@@ -149,7 +149,7 @@ function CashModal({ amount, onClose, onSave }) {
         <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
       </header>
       <div className="modal-body form">
-        <FormRow label="Amount (USD)" hint="Your buffer · no P/L, always flat today">
+        <FormRow label="Amount (USD)">
           <input className="inp mono" autoFocus value={val} onChange={(e) => setVal(e.target.value)} inputMode="decimal" />
         </FormRow>
       </div>
