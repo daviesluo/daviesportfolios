@@ -2,16 +2,36 @@
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 const { fmtMoney, fmtPct, fmtPrice, pctColor, computeMetrics, detectFormation, refreshPrices, POSITION_COORDS } = window.Utils;
 
-const STORAGE_KEY = "portfolio-tactics-board-v1";
 const REFRESH_MS = 30 * 1000;
 
-// Load / save ------------------------------------------------------------
-function loadPortfolio() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return migrate(JSON.parse(raw));
-  } catch (e) {}
+// Supabase ---------------------------------------------------------------
+const SUPABASE_URL  = "https://flmvxigozjuizpckllvk.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbXZ4aWdvemp1aXpwY2tsbHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODM3MjgsImV4cCI6MjA5MjM1OTcyOH0.vFqe6PNsPbVkg7NJmQJBsVECX1S58vAvv5MOjf63Xck";
+const sb = window.supabase && window.supabase.createClient
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
+  : null;
+const BOARD_ID = 1;
+
+async function loadPortfolioRemote() {
+  if (!sb) throw new Error("Supabase client not initialized");
+  const { data, error } = await sb
+    .from("board_data").select("data").eq("id", BOARD_ID).maybeSingle();
+  if (error) { console.error("[supabase] load error:", error); throw error; }
+  if (data && data.data) return migrate(data.data);
+  // No row yet — safe to seed with the initial portfolio.
   return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
+}
+
+async function savePortfolioRemote(p) {
+  if (!sb) return;
+  try {
+    const { error } = await sb
+      .from("board_data")
+      .upsert({ id: BOARD_ID, data: p }, { onConflict: "id" });
+    if (error) console.error("[supabase] save error:", error);
+  } catch (e) {
+    console.error("[supabase] save exception:", e);
+  }
 }
 
 // Migrate old saved shapes to current schema.
@@ -39,15 +59,10 @@ function migrate(p) {
     }
   }
   // v2 → v3: refresh labels + default subtitles from INITIAL_PORTFOLIO for untouched slots.
-  // Also prune any position keys not in the current schema (legacy leftovers).
   const validKeys = new Set(Object.keys(window.INITIAL_PORTFOLIO.positions));
   for (const k of Object.keys(p.positions)) {
     if (!validKeys.has(k)) delete p.positions[k];
   }
-  // - Label: any stored label that differs from the current short code (or is the old long name) gets refreshed.
-  //   Heuristic: if the stored label is >4 chars it's a legacy long name ("Box-to-Box", "Left Winger", etc).
-  //   Also refresh if it simply differs from the current default — short codes are stable (GK/LB/CB/CM/LW/ST/RW/CDM).
-  // - Subtitle: if empty OR matches a prior legacy default, overwrite with the current default.
   const LEGACY_SUBTITLES = new Set(["", "Cash reserves", "Growth", "Value", "Speculative"]);
   for (const [k, defaults] of Object.entries(window.INITIAL_PORTFOLIO.positions)) {
     const cur = p.positions[k];
@@ -58,34 +73,83 @@ function migrate(p) {
   }
   return p;
 }
-function savePortfolio(p) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch (e) {}
+
+// Auth gate --------------------------------------------------------------
+function promptForAuth() {
+  const pw = window.prompt("Enter password:");
+  if (pw === "8888") return { isReadOnly: true  };
+  if (pw === "7119") return { isReadOnly: false };
+  return null;
 }
 
 // Main app ---------------------------------------------------------------
 function App() {
-  const [portfolio, setPortfolio] = useState(() => loadPortfolio());
-  const [drillPos, setDrillPos] = useState(null);       // position key to drill into
+  // Prompt synchronously on first render so there's no flash of content.
+  const [auth] = useState(() => promptForAuth());
+
+  if (!auth) {
+    return (
+      <div className="access-denied">
+        <div className="ad-card">
+          <div className="ad-title mono">ACCESS DENIED</div>
+          <div className="ad-sub">Incorrect password.</div>
+          <button className="btn-primary" onClick={() => window.location.reload()}>Try again</button>
+        </div>
+      </div>
+    );
+  }
+  return <Board isReadOnly={auth.isReadOnly} />;
+}
+
+function Board({ isReadOnly }) {
+  const [portfolio, setPortfolio] = useState(null);      // null = loading
+  const [loadError, setLoadError]   = useState(false);
+  const [drillPos, setDrillPos] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [editingTicker, setEditingTicker] = useState(null); // ticker string
-  const [addingToPos, setAddingToPos] = useState(null);  // position key to add to
+  const [editingTicker, setEditingTicker] = useState(null);
+  const [addingToPos, setAddingToPos] = useState(null);
   const [editingCash, setEditingCash] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [source, setSource] = useState("—");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [recentlyUpdated, setRecentlyUpdated] = useState(false);
-  const [flashTickers, setFlashTickers] = useState({});   // ticker -> "up"|"down"
-  const [dragging, setDragging] = useState(null);         // { ticker, fromPos }
+  const [flashTickers, setFlashTickers] = useState({});
+  const [dragging, setDragging] = useState(null);
 
-  // persist on change
-  useEffect(() => { savePortfolio(portfolio); }, [portfolio]);
+  // In read-only mode, force-disable edit mode.
+  useEffect(() => { if (isReadOnly && editMode) setEditMode(false); }, [isReadOnly, editMode]);
+
+  // Initial load from Supabase
+  useEffect(() => {
+    let cancelled = false;
+    loadPortfolioRemote()
+      .then(p => { if (!cancelled) setPortfolio(p); })
+      .catch(e => { if (!cancelled) { console.error(e); setLoadError(true); } });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Debounced persist to Supabase — admin only. Skip the initial null-to-loaded transition.
+  const lastSavedRef = useRef(null);
+  useEffect(() => {
+    if (!portfolio) return;
+    if (isReadOnly) return;
+    if (lastSavedRef.current === null) { lastSavedRef.current = portfolio; return; }
+    if (lastSavedRef.current === portfolio) return;
+    const id = setTimeout(() => {
+      lastSavedRef.current = portfolio;
+      savePortfolioRemote(portfolio);
+    }, 600);
+    return () => clearTimeout(id);
+  }, [portfolio, isReadOnly]);
 
   // Price refresh loop
   const doRefresh = useCallback(async () => {
+    if (!portfolio) return;
     setIsRefreshing(true);
     const { updates, source: src } = await refreshPrices(portfolio, "live");
     setSource(src);
     setPortfolio(prev => {
+      if (!prev) return prev;
       const next = { ...prev, holdings: { ...prev.holdings } };
       const flashes = {};
       for (const [t, u] of Object.entries(updates)) {
@@ -113,60 +177,69 @@ function App() {
       setRecentlyUpdated(true);
       setTimeout(() => setRecentlyUpdated(false), 1600);
     }
-    // If failed, try again shortly
     if (src === "error") {
       setTimeout(() => doRefreshRef.current(), 3000);
     }
-  }, [portfolio.holdings]); // only re-bind when holdings change
+  }, [portfolio]);
 
-  // Always keep ref pointing to the latest doRefresh so the interval
-  // picks up newly added tickers without restarting.
   const doRefreshRef = useRef(doRefresh);
   useEffect(() => { doRefreshRef.current = doRefresh; }, [doRefresh]);
 
+  // Kick off the refresh loop once the portfolio is loaded.
   useEffect(() => {
+    if (!portfolio) return;
     doRefreshRef.current();
     const id = setInterval(() => doRefreshRef.current(), REFRESH_MS);
     return () => clearInterval(id);
-  }, []);
+  }, [portfolio !== null]);
 
-  const metrics = useMemo(() => computeMetrics(portfolio), [portfolio]);
-  const formation = useMemo(() => detectFormation(portfolio), [portfolio]);
+  if (loadError && !portfolio) {
+    return (
+      <div className="access-denied">
+        <div className="ad-card">
+          <div className="ad-title mono">CONNECTION ERROR</div>
+          <div className="ad-sub">Could not reach Supabase.</div>
+          <button className="btn-primary" onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      </div>
+    );
+  }
+  if (!portfolio) {
+    return (
+      <div className="access-denied">
+        <div className="ad-card">
+          <div className="ad-title mono">LOADING…</div>
+          <div className="ad-sub">Fetching board from cloud.</div>
+        </div>
+      </div>
+    );
+  }
 
-  // Identify special tickers
-  const captainTicker = useMemo(() => {
-    let best = null, bestMV = 0;
-    for (const [t, h] of Object.entries(portfolio.holdings)) {
-      const mv = h.shares * h.lastPrice;
-      if (mv > bestMV) { bestMV = mv; best = t; }
-    }
-    return best;
-  }, [portfolio.holdings]);
+  const metrics = computeMetrics(portfolio);
+  const formation = detectFormation(portfolio);
 
-  const hotMoverTicker = useMemo(() => {
-    let best = null, bestAbs = 0;
-    for (const [t, h] of Object.entries(portfolio.holdings)) {
-      const abs = Math.abs(h.dayPct ?? 0);
-      if (abs > bestAbs) { bestAbs = abs; best = t; }
-    }
-    return best;
-  }, [portfolio.holdings]);
+  let captainTicker = null, captainMV = 0;
+  for (const [t, h] of Object.entries(portfolio.holdings)) {
+    const mv = h.shares * h.lastPrice;
+    if (mv > captainMV) { captainMV = mv; captainTicker = t; }
+  }
+  let hotMoverTicker = null, hotAbs = 0;
+  for (const [t, h] of Object.entries(portfolio.holdings)) {
+    const abs = Math.abs(h.dayPct ?? 0);
+    if (abs > hotAbs) { hotAbs = abs; hotMoverTicker = t; }
+  }
+  let hotMoverPosKey = null;
+  for (const [k, pos] of Object.entries(portfolio.positions)) {
+    if (pos.tickers.includes(hotMoverTicker)) { hotMoverPosKey = k; break; }
+  }
 
-  const hotMoverPosKey = useMemo(() => {
-    for (const [k, pos] of Object.entries(portfolio.positions)) {
-      if (pos.tickers.includes(hotMoverTicker)) return k;
-    }
-    return null;
-  }, [portfolio.positions, hotMoverTicker]);
+  // Edit handlers — all no-ops when read-only.
+  const guard = (fn) => (...args) => { if (isReadOnly) return; fn(...args); };
 
-  // Edit handlers
-  const updateHolding = (ticker, patch) => {
-    setPortfolio(p => ({
-      ...p,
-      holdings: { ...p.holdings, [ticker]: { ...p.holdings[ticker], ...patch } },
-    }));
-  };
-  const removeHolding = (ticker) => {
+  const updateHolding = guard((ticker, patch) => {
+    setPortfolio(p => ({ ...p, holdings: { ...p.holdings, [ticker]: { ...p.holdings[ticker], ...patch } } }));
+  });
+  const removeHolding = guard((ticker) => {
     setPortfolio(p => {
       const holdings = { ...p.holdings }; delete holdings[ticker];
       const positions = {};
@@ -175,8 +248,8 @@ function App() {
       }
       return { ...p, holdings, positions };
     });
-  };
-  const addHolding = (posKey, ticker, shares, cost, lastPrice) => {
+  });
+  const addHolding = guard((posKey, ticker, shares, cost, lastPrice) => {
     ticker = ticker.toUpperCase().trim();
     if (!ticker) return;
     setPortfolio(p => {
@@ -198,8 +271,8 @@ function App() {
       }
       return { ...p, holdings, positions };
     });
-  };
-  const movePlayer = (ticker, toPos) => {
+  });
+  const movePlayer = guard((ticker, toPos) => {
     setPortfolio(p => {
       const positions = {};
       for (const [k, pos] of Object.entries(p.positions)) {
@@ -209,17 +282,14 @@ function App() {
       }
       return { ...p, positions };
     });
-  };
-
-  const updatePosition = (posKey, patch) => {
-    setPortfolio(p => ({
-      ...p,
-      positions: { ...p.positions, [posKey]: { ...p.positions[posKey], ...patch } },
-    }));
-  };
+  });
+  const updatePosition = guard((posKey, patch) => {
+    setPortfolio(p => ({ ...p, positions: { ...p.positions, [posKey]: { ...p.positions[posKey], ...patch } } }));
+  });
 
   const handleDrop = (e, toPos) => {
     e.preventDefault();
+    if (isReadOnly) { setDragging(null); return; }
     if (dragging && dragging.fromPos !== toPos) movePlayer(dragging.ticker, toPos);
     setDragging(null);
   };
@@ -235,6 +305,7 @@ function App() {
         onRefresh={doRefresh}
         editMode={editMode}
         setEditMode={setEditMode}
+        isReadOnly={isReadOnly}
       />
 
       <main className="main">
@@ -245,11 +316,18 @@ function App() {
           hotMoverPosKey={hotMoverPosKey}
           flashTickers={flashTickers}
           editMode={editMode}
+          isReadOnly={isReadOnly}
           dragging={dragging}
-          setDragging={setDragging}
+          setDragging={isReadOnly ? () => {} : setDragging}
           onDrop={handleDrop}
-          onOpenPosition={(k) => { if (k === "GK") setEditingCash(true); else setDrillPos(k); }}
-          onAddToPosition={(k) => { if (k === "GK") setEditingCash(true); else setAddingToPos(k); }}
+          onOpenPosition={(k) => {
+            if (k === "GK") { if (!isReadOnly) setEditingCash(true); return; }
+            setDrillPos(k);
+          }}
+          onAddToPosition={(k) => {
+            if (isReadOnly) return;
+            if (k === "GK") setEditingCash(true); else setAddingToPos(k);
+          }}
           onUpdatePosition={updatePosition}
           isRefreshing={isRefreshing}
           recentlyUpdated={recentlyUpdated}
@@ -265,15 +343,16 @@ function App() {
           hotMoverTicker={hotMoverTicker}
           flashTickers={flashTickers}
           editMode={editMode}
+          isReadOnly={isReadOnly}
           onClose={() => setDrillPos(null)}
-          onEditTicker={(t) => setEditingTicker(t)}
-          onAddTicker={() => setAddingToPos(drillPos)}
-          onRemoveTicker={(t) => { if (confirm(`Remove ${t}?`)) removeHolding(t); }}
+          onEditTicker={(t) => { if (isReadOnly) return; setEditingTicker(t); }}
+          onAddTicker={() => { if (isReadOnly) return; setAddingToPos(drillPos); }}
+          onRemoveTicker={(t) => { if (isReadOnly) return; if (confirm(`Remove ${t}?`)) removeHolding(t); }}
           onUpdatePosition={(patch) => updatePosition(drillPos, patch)}
         />
       )}
 
-      {editingTicker && portfolio.holdings[editingTicker] && (
+      {editingTicker && !isReadOnly && portfolio.holdings[editingTicker] && (
         <EditTickerModal
           ticker={editingTicker}
           holding={portfolio.holdings[editingTicker]}
@@ -283,7 +362,7 @@ function App() {
         />
       )}
 
-      {addingToPos && (
+      {addingToPos && !isReadOnly && (
         <AddTickerModal
           posKey={addingToPos}
           position={portfolio.positions[addingToPos]}
@@ -295,7 +374,7 @@ function App() {
         />
       )}
 
-      {editingCash && (
+      {editingCash && !isReadOnly && (
         <CashModal
           amount={portfolio.holdings.CASH ? portfolio.holdings.CASH.lastPrice : 0}
           onClose={() => setEditingCash(false)}

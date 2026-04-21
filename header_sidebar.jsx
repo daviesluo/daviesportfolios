@@ -18,7 +18,7 @@ function useClock(intervalMs = 1000) {
   return now;
 }
 
-function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode }) {
+function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly }) {
   const now = useClock(1000);
   const t = londonTimeParts(now);
   const phase = usMarketPhase(now);
@@ -100,9 +100,13 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
           </svg>
           {isRefreshing ? "Refreshing" : "Refresh"}
         </button>
-        <button className={`btn-toggle ${editMode ? "on" : ""}`} onClick={() => setEditMode(v => !v)}>
-          {editMode ? "✓ EDIT MODE" : "EDIT"}
-        </button>
+        {isReadOnly ? (
+          <span className="ro-badge mono" title="Read-only viewer">VIEWER</span>
+        ) : (
+          <button className={`btn-toggle ${editMode ? "on" : ""}`} onClick={() => setEditMode(v => !v)}>
+            {editMode ? "✓ EDIT MODE" : "EDIT"}
+          </button>
+        )}
       </div>
     </header>
   );

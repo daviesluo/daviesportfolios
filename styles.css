@@ -53,6 +53,46 @@ body {
   flex-direction: column;
 }
 
+/* Access denied / loading overlay */
+.access-denied {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.ad-card {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(0,0,0,0.35);
+  padding: 28px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  min-width: 260px;
+}
+.ad-title {
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  color: var(--loss);
+}
+.ad-sub {
+  font-size: 12px;
+  color: var(--chalk-dim);
+  margin-bottom: 6px;
+}
+
+/* Viewer (read-only) badge replacing the EDIT button */
+.ro-badge {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--chalk-dim);
+  background: rgba(244,239,227,0.03);
+}
+
 /* ============= HEADER ============= */
 .header {
   display: grid;
