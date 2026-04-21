@@ -133,8 +133,11 @@ window.Utils = (function () {
   };
 
   // -------- Live price fetch --------
-  // Yahoo v8 chart endpoint via multiple CORS proxies. The v7 quote endpoint
-  // is no longer public; v8 chart is still open and returns live prices.
+  // Primary path: Supabase Edge Function (server-side direct Yahoo fetch — no CORS proxy).
+  // Fallback: CORS proxies for when the edge function is not yet deployed.
+  const EDGE_PRICES_URL = "https://flmvxigozjuizpckllvk.supabase.co/functions/v1/prices";
+  const EDGE_ANON_KEY   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbXZ4aWdvemp1aXpwY2tsbHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODM3MjgsImV4cCI6MjA5MjM1OTcyOH0.vFqe6PNsPbVkg7NJmQJBsVECX1S58vAvv5MOjf63Xck";
+
   const PROXIES = [
     (url) => `https://api.cors.lol/?url=${encodeURIComponent(url)}`,
     (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
@@ -144,8 +147,6 @@ window.Utils = (function () {
   ];
 
   async function fetchOneYahooChart(symbol) {
-    // v8 chart gives us current price + previousClose.
-    // Add a nonce to defeat any aggressive proxy caches.
     const nonce = Date.now();
     const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d&includePrePost=false&_=${nonce}`;
     for (const makeProxy of PROXIES) {
@@ -161,15 +162,11 @@ window.Utils = (function () {
         if (!meta) continue;
         const lastPrice = meta.regularMarketPrice;
         if (lastPrice == null) continue;
-        // Best source of "real" previous close = last non-today daily close from the time series,
-        // which reflects splits/dividends that meta.previousClose can lag.
         let prevClose = null;
         const closes = result?.indicators?.quote?.[0]?.close || [];
-        // Walk backwards, skip today's (last) bar, find the most recent non-null close.
         for (let i = closes.length - 2; i >= 0; i--) {
           if (closes[i] != null) { prevClose = closes[i]; break; }
         }
-        // Fallbacks
         if (prevClose == null) prevClose = meta.chartPreviousClose ?? meta.previousClose ?? lastPrice;
         return {
           lastPrice,
@@ -178,16 +175,48 @@ window.Utils = (function () {
         };
       } catch (e) {
         clearTimeout(tid);
-        /* try next proxy */
       }
     }
     return null;
   }
 
+  async function fetchViaEdge(liveTickers) {
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 12000);
+    try {
+      const res = await fetch(
+        `${EDGE_PRICES_URL}?tickers=${liveTickers.map(encodeURIComponent).join(",")}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${EDGE_ANON_KEY}`,
+            "apikey": EDGE_ANON_KEY,
+          },
+          cache: "no-store",
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(tid);
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data && typeof data === "object" && !data.error && Object.keys(data).length > 0) {
+        return data;
+      }
+      return null;
+    } catch (e) {
+      clearTimeout(tid);
+      return null;
+    }
+  }
+
   async function fetchYahoo(tickers) {
     const liveTickers = tickers.filter(t => !t.endsWith(".PVT") && t !== "CASH");
     if (!liveTickers.length) return {};
-    // Fire all in parallel to cut round-trip time
+
+    // Try edge function first — single round-trip, direct server-side Yahoo access.
+    const edgeResult = await fetchViaEdge(liveTickers);
+    if (edgeResult) return edgeResult;
+
+    // Fallback: CORS proxies (one request per ticker, in parallel).
     const results = await Promise.all(liveTickers.map(async (t) => [t, await fetchOneYahooChart(t)]));
     const out = {};
     let anySuccess = false;
