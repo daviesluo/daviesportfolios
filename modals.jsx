@@ -16,7 +16,7 @@ function Modal({ children, onClose, size = "md" }) {
   );
 }
 
-function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, flashTickers, editMode, onClose, onEditTicker, onAddTicker, onRemoveTicker }) {
+function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onClose, onEditTicker, onAddTicker, onRemoveTicker }) {
   if (!position) return null;
 
   const sorted = [...position.players].sort((a, b) => b.marketValue - a.marketValue);
@@ -38,7 +38,7 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
           </div>
         </div>
         <div className="modal-head-actions">
-          <button className="btn-primary" onClick={onAddTicker}>+ Add Player</button>
+          {!isReadOnly && <button className="btn-primary" onClick={onAddTicker}>+ Add Player</button>}
           <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
         </div>
       </header>
@@ -48,7 +48,7 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
           <div className="empty-state">
             <div className="empty-icon">○</div>
             <div>No players at this position</div>
-            <button className="btn-primary" onClick={onAddTicker}>Add one</button>
+            {!isReadOnly && <button className="btn-primary" onClick={onAddTicker}>Add one</button>}
           </div>
         ) : (
           <div className="player-grid">
@@ -59,9 +59,9 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
                 isCaptain={p.ticker === captainTicker}
                 isHot={p.ticker === hotMoverTicker}
                 flash={flashTickers[p.ticker]}
-                onClick={() => onEditTicker(p.ticker)}
+                onClick={isReadOnly ? undefined : () => onEditTicker(p.ticker)}
                 onRemove={() => onRemoveTicker(p.ticker)}
-                showRemove={editMode}
+                showRemove={editMode && !isReadOnly}
               />
             ))}
           </div>

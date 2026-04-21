@@ -1,7 +1,7 @@
 // The tactics-board pitch with position chips placed on it
 const { fmtMoney: fmtM, fmtPct: fmtPc, fmtPrice: fmtPr, pctColor: pctClr } = window.Utils;
 
-function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, dragging, setDragging, onDrop, onOpenPosition, onAddToPosition, onUpdatePosition, isRefreshing, recentlyUpdated }) {
+function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, dragging, setDragging, onDrop, onOpenPosition, onAddToPosition, onUpdatePosition, isRefreshing, recentlyUpdated }) {
   const coords = window.Utils.POSITION_COORDS;
 
   return (
@@ -23,6 +23,7 @@ function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTi
               hotMoverTicker={hotMoverTicker}
               flashTickers={flashTickers}
               editMode={editMode}
+              isReadOnly={isReadOnly}
               onOpen={() => onOpenPosition(k)}
               onAdd={() => onAddToPosition(k)}
               onDragStart={(ticker) => setDragging({ ticker, fromPos: k })}
@@ -100,7 +101,7 @@ function PitchLines() {
   );
 }
 
-function PositionChip({ posKey, position, coord, captainTicker, hotMoverTicker, flashTickers, editMode, onOpen, onAdd, onDragStart, onDrop, isDropTarget, onUpdatePosition, isRefreshing, recentlyUpdated }) {
+function PositionChip({ posKey, position, coord, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onOpen, onAdd, onDragStart, onDrop, isDropTarget, onUpdatePosition, isRefreshing, recentlyUpdated }) {
   const hasPlayers = position.players.length > 0;
   const pctClass = position.dayPct > 0 ? "gain" : position.dayPct < 0 ? "loss" : "flat";
 
@@ -113,6 +114,7 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverTicker, 
   const [editingName, setEditingName] = React.useState(false);
 
   const onDragOverChip = (e) => {
+    if (isReadOnly) return;
     if (isDropTarget) { e.preventDefault(); setDragOver(true); }
   };
   const onDragLeaveChip = () => setDragOver(false);
