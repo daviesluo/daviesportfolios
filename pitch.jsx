@@ -164,15 +164,17 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverTicker, 
             <span className="chip-name" title={position.subtitle || position.label}>
               {position.subtitle || position.label}
             </span>
-            <button
-              className="chip-edit-btn"
-              title="Rename group"
-              onClick={(e) => { e.stopPropagation(); setEditingName(true); }}
-            >
-              <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M11.5 2.5 L13.5 4.5 L5 13 L2.5 13.5 L3 11 Z" />
-              </svg>
-            </button>
+            {editMode && (
+              <button
+                className="chip-edit-btn"
+                title="Rename group"
+                onClick={(e) => { e.stopPropagation(); setEditingName(true); }}
+              >
+                <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M11.5 2.5 L13.5 4.5 L5 13 L2.5 13.5 L3 11 Z" />
+                </svg>
+              </button>
+            )}
           </div>
         )}
         {hasPlayers && (

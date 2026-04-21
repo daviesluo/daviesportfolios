@@ -4,9 +4,9 @@ window.INITIAL_PORTFOLIO = {
   positions: {
     GK:   { label: "GK",  subtitle: "Cash",          role: "GK",  tickers: ["CASH"] },
     CB1:  { label: "CB",  subtitle: "",              role: "DEF", tickers: [] },
-    CB2:  { label: "CB",  subtitle: "",              role: "DEF", tickers: [] },
+    CB2:  { label: "CB",  subtitle: "BRK.B",          role: "DEF", tickers: ["BRK-B"] },
     LB:   { label: "LB",  subtitle: "Entertainment", role: "DEF", tickers: ["NFLX"] },
-    RB:   { label: "RB",  subtitle: "Finance",       role: "DEF", tickers: ["BX", "BRK-B"] },
+    RB:   { label: "RB",  subtitle: "Finance",       role: "DEF", tickers: ["BX"] },
     CDM:  { label: "CDM", subtitle: "Electric Power",role: "MID", tickers: ["CEG", "VST"] },
     CM:   { label: "CM",  subtitle: "BIG 7",         role: "MID", tickers: ["NVDA","GOOG","META","AAPL","MSFT","AMZN","TSLA"] },
     CAM:  { label: "CM",  subtitle: "AI Infra",      role: "MID", tickers: ["AVGO","TEM","TSM","SOUN","NVTS","MU","UBER","NET","ANET","VRT"] },
@@ -16,7 +16,7 @@ window.INITIAL_PORTFOLIO = {
   },
   holdings: {
     "CASH":     { shares: 1,      cost: 0,      lastPrice: 0,      dayPct: 0,      prevClose: 0,      isCash: true },
-    "BRK-B":    { shares: 5,      cost: 469.99, lastPrice: 469.92, dayPct: -0.01,  prevClose: 469.99 },
+    "BRK-B":    { shares: 5.25,   cost: 469.94, lastPrice: 469.92, dayPct: -0.01,  prevClose: 469.99 },
     "NVDA":     { shares: 50,     cost: 123.63, lastPrice: 201.63, dayPct: -0.20,  prevClose: 202.03 },
     "AVGO":     { shares: 18.5,   cost: 172.62, lastPrice: 402.99, dayPct: +0.84,  prevClose: 399.64 },
     "APLD":     { shares: 225,    cost: 10.80,  lastPrice: 32.22,  dayPct: +0.14,  prevClose: 32.18 },
