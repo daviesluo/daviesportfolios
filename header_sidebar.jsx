@@ -70,15 +70,15 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
           <div className="sb-label">DAY CHANGE</div>
-          <div className="sb-value mono" style={{ color: "var(--gain)" }}>
-            {fmM(metrics.dayChange, { signed: true })} <span style={{ color: "var(--gain)", opacity: 0.85 }}>({fmP(metrics.dayPct)})</span>
+          <div className="sb-value mono" style={{ color: pcC(metrics.dayPct) }}>
+            {fmM(metrics.dayChange, { signed: true })} <span style={{ color: pcC(metrics.dayPct), opacity: 0.85 }}>({fmP(metrics.dayPct)})</span>
           </div>
         </div>
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
           <div className="sb-label">UNREALIZED G/L</div>
-          <div className="sb-value mono" style={{ color: "var(--gain)" }}>
-            {fmM(metrics.unrlGL, { signed: true })} <span style={{ color: "var(--gain)", opacity: 0.85 }}>({fmP(metrics.unrlPct)})</span>
+          <div className="sb-value mono" style={{ color: pcC(metrics.unrlPct) }}>
+            {fmM(metrics.unrlGL, { signed: true })} <span style={{ color: pcC(metrics.unrlPct), opacity: 0.85 }}>({fmP(metrics.unrlPct)})</span>
           </div>
         </div>
       </div>
