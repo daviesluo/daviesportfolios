@@ -4,33 +4,50 @@ const { fmtMoney, fmtPct, fmtPrice, pctColor, computeMetrics, detectFormation, r
 
 const REFRESH_MS = 30 * 1000;
 
-// Supabase ---------------------------------------------------------------
-const SUPABASE_URL  = "https://flmvxigozjuizpckllvk.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbXZ4aWdvemp1aXpwY2tsbHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODM3MjgsImV4cCI6MjA5MjM1OTcyOH0.vFqe6PNsPbVkg7NJmQJBsVECX1S58vAvv5MOjf63Xck";
-const sb = window.supabase && window.supabase.createClient
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
-  : null;
-const BOARD_ID = 1;
+// Supabase — direct PostgREST REST calls, no SDK required. ---------------
+const SB_URL  = "https://flmvxigozjuizpckllvk.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbXZ4aWdvemp1aXpwY2tsbHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODM3MjgsImV4cCI6MjA5MjM1OTcyOH0.vFqe6PNsPbVkg7NJmQJBsVECX1S58vAvv5MOjf63Xck";
+const SB_HEADERS = {
+  "apikey": SB_ANON,
+  "Authorization": `Bearer ${SB_ANON}`,
+  "Content-Type": "application/json",
+};
 
 async function loadPortfolioRemote() {
-  if (!sb) throw new Error("Supabase client not initialized");
-  const { data, error } = await sb
-    .from("board_data").select("data").eq("id", BOARD_ID).maybeSingle();
-  if (error) { console.error("[supabase] load error:", error); throw error; }
-  if (data && data.data) return migrate(data.data);
-  // No row yet — safe to seed with the initial portfolio.
-  return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/board_data?id=eq.1&select=data`,
+      { headers: SB_HEADERS }
+    );
+    if (!res.ok) {
+      console.error("[supabase] load failed:", res.status, await res.text());
+      return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
+    }
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows.length > 0 && rows[0].data) {
+      return migrate(rows[0].data);
+    }
+    // No row yet — seed with initial portfolio.
+    return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
+  } catch (e) {
+    console.error("[supabase] load error:", e);
+    return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
+  }
 }
 
 async function savePortfolioRemote(p) {
-  if (!sb) return;
   try {
-    const { error } = await sb
-      .from("board_data")
-      .upsert({ id: BOARD_ID, data: p }, { onConflict: "id" });
-    if (error) console.error("[supabase] save error:", error);
+    const res = await fetch(
+      `${SB_URL}/rest/v1/board_data`,
+      {
+        method: "POST",
+        headers: { ...SB_HEADERS, "Prefer": "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify({ id: 1, data: p }),
+      }
+    );
+    if (!res.ok) console.error("[supabase] save failed:", res.status, await res.text());
   } catch (e) {
-    console.error("[supabase] save exception:", e);
+    console.error("[supabase] save error:", e);
   }
 }
 
@@ -102,8 +119,7 @@ function App() {
 }
 
 function Board({ isReadOnly }) {
-  const [portfolio, setPortfolio] = useState(null);      // null = loading
-  const [loadError, setLoadError]   = useState(false);
+  const [portfolio, setPortfolio] = useState(null);      // null = still loading
   const [drillPos, setDrillPos] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editingTicker, setEditingTicker] = useState(null);
@@ -119,12 +135,10 @@ function Board({ isReadOnly }) {
   // In read-only mode, force-disable edit mode.
   useEffect(() => { if (isReadOnly && editMode) setEditMode(false); }, [isReadOnly, editMode]);
 
-  // Initial load from Supabase
+  // Initial load from Supabase (never throws — falls back to INITIAL_PORTFOLIO on any error)
   useEffect(() => {
     let cancelled = false;
-    loadPortfolioRemote()
-      .then(p => { if (!cancelled) setPortfolio(p); })
-      .catch(e => { if (!cancelled) { console.error(e); setLoadError(true); } });
+    loadPortfolioRemote().then(p => { if (!cancelled) setPortfolio(p); });
     return () => { cancelled = true; };
   }, []);
 
@@ -193,17 +207,6 @@ function Board({ isReadOnly }) {
     return () => clearInterval(id);
   }, [portfolio !== null]);
 
-  if (loadError && !portfolio) {
-    return (
-      <div className="access-denied">
-        <div className="ad-card">
-          <div className="ad-title mono">CONNECTION ERROR</div>
-          <div className="ad-sub">Could not reach Supabase.</div>
-          <button className="btn-primary" onClick={() => window.location.reload()}>Retry</button>
-        </div>
-      </div>
-    );
-  }
   if (!portfolio) {
     return (
       <div className="access-denied">
