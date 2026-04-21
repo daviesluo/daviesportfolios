@@ -149,8 +149,11 @@ window.Utils = (function () {
     const nonce = Date.now();
     const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d&includePrePost=false&_=${nonce}`;
     for (const makeProxy of PROXIES) {
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 8000);
       try {
-        const res = await fetch(makeProxy(yahooUrl), { cache: "no-store" });
+        const res = await fetch(makeProxy(yahooUrl), { cache: "no-store", signal: controller.signal });
+        clearTimeout(tid);
         if (!res.ok) continue;
         const data = await res.json();
         const result = data?.chart?.result?.[0];
@@ -161,7 +164,6 @@ window.Utils = (function () {
         // Best source of "real" previous close = last non-today daily close from the time series,
         // which reflects splits/dividends that meta.previousClose can lag.
         let prevClose = null;
-        const ts = result.timestamp || [];
         const closes = result?.indicators?.quote?.[0]?.close || [];
         // Walk backwards, skip today's (last) bar, find the most recent non-null close.
         for (let i = closes.length - 2; i >= 0; i--) {
@@ -174,7 +176,10 @@ window.Utils = (function () {
           prevClose,
           dayPct: prevClose > 0 ? ((lastPrice - prevClose) / prevClose) * 100 : 0,
         };
-      } catch (e) { /* try next proxy */ }
+      } catch (e) {
+        clearTimeout(tid);
+        /* try next proxy */
+      }
     }
     return null;
   }
