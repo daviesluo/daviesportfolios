@@ -8,12 +8,88 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Regular session boundaries in exchange-local minutes-of-day
+const MARKET_OPEN_MIN  = 9 * 60 + 30;  // 9:30 AM
+const MARKET_CLOSE_MIN = 16 * 60;       // 4:00 PM
+
+async function fetchPrice(symbol: string): Promise<{
+  lastPrice: number;
+  extPrice: number | null;
+  prevClose: number;
+  dayPct: number;
+  extDayPct: number | null;
+} | null> {
+  const nonce = Date.now();
+  // 5-minute candles for today with pre+post market — lets us read extended
+  // hours prices directly from candle closes rather than unreliable meta fields.
+  const url =
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
+    `?interval=5m&range=1d&includePrePost=true&_=${nonce}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Accept: "application/json,text/plain,*/*",
+      },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const result = data?.chart?.result?.[0];
+    const meta   = result?.meta;
+    if (!meta?.regularMarketPrice) return null;
+
+    const lastPrice: number = meta.regularMarketPrice;
+    const prevClose: number =
+      meta.chartPreviousClose ??
+      meta.regularMarketPreviousClose ??
+      meta.previousClose ??
+      lastPrice;
+
+    // gmtoffset is the exchange's offset from UTC in seconds (e.g. EDT = -14400).
+    // We use it to convert each candle's UTC timestamp to local time-of-day so
+    // we can tell whether it falls inside or outside the regular session.
+    const gmtOffset: number = meta.gmtoffset ?? -14400;
+    const timestamps: number[]       = result?.timestamp ?? [];
+    const closes: (number | null)[]  = result?.indicators?.quote?.[0]?.close ?? [];
+
+    // Walk backwards to find the most recent candle that sits outside regular
+    // market hours — that is the current extended-hours price.
+    let extPrice: number | null = null;
+    for (let i = timestamps.length - 1; i >= 0; i--) {
+      const close = closes[i];
+      if (close == null) continue;
+      // Convert UTC timestamp → local seconds-in-day (handles negative offsets)
+      const localSecInDay = ((timestamps[i] + gmtOffset) % 86400 + 86400) % 86400;
+      const localMin      = Math.floor(localSecInDay / 60);
+      if (localMin < MARKET_OPEN_MIN || localMin >= MARKET_CLOSE_MIN) {
+        extPrice = close;
+        break;
+      }
+    }
+
+    const pc = prevClose;
+    return {
+      lastPrice,
+      extPrice,
+      prevClose: pc,
+      dayPct:    pc > 0 ? ((lastPrice  - pc) / pc) * 100 : 0,
+      extDayPct: (extPrice != null && pc > 0) ? ((extPrice - pc) / pc) * 100 : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
   }
 
-  const url = new URL(req.url);
+  const url   = new URL(req.url);
   const param = url.searchParams.get("tickers") ?? "";
   const tickers = param
     .split(",")
@@ -27,62 +103,17 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const nonce = Date.now();
-  const symbols = tickers.map(encodeURIComponent).join(",");
-  const quoteUrl =
-    `https://query1.finance.yahoo.com/v7/finance/quote` +
-    `?symbols=${symbols}` +
-    `&fields=regularMarketPrice,regularMarketPreviousClose,chartPreviousClose,preMarketPrice,postMarketPrice` +
-    `&_=${nonce}`;
+  // Fetch all tickers in parallel — same pattern as before, proven fast.
+  const entries = await Promise.all(
+    tickers.map(async (t) => [t, await fetchPrice(t)] as const)
+  );
 
-  try {
-    const res = await fetch(quoteUrl, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        Accept: "application/json,text/plain,*/*",
-      },
-      signal: AbortSignal.timeout(10_000),
-    });
-
-    const out: Record<string, unknown> = {};
-
-    if (res.ok) {
-      const data = await res.json();
-      const quotes: any[] = data?.quoteResponse?.result ?? [];
-
-      for (const quote of quotes) {
-        const lastPrice: number | undefined = quote.regularMarketPrice;
-        if (lastPrice == null) continue;
-
-        const prevClose: number =
-          quote.regularMarketPreviousClose ??
-          quote.chartPreviousClose ??
-          lastPrice;
-
-        const extPrice: number | null =
-          quote.preMarketPrice ?? quote.postMarketPrice ?? null;
-
-        const pc = prevClose;
-        out[quote.symbol] = {
-          lastPrice,
-          extPrice,
-          prevClose: pc,
-          dayPct: pc > 0 ? ((lastPrice - pc) / pc) * 100 : 0,
-          extDayPct:
-            extPrice != null && pc > 0
-              ? ((extPrice - pc) / pc) * 100
-              : null,
-        };
-      }
-    }
-
-    return new Response(JSON.stringify(out), {
-      headers: { ...CORS, "Content-Type": "application/json" },
-    });
-  } catch {
-    return new Response(JSON.stringify({}), {
-      headers: { ...CORS, "Content-Type": "application/json" },
-    });
+  const out: Record<string, unknown> = {};
+  for (const [t, r] of entries) {
+    if (r) out[t] = r;
   }
+
+  return new Response(JSON.stringify(out), {
+    headers: { ...CORS, "Content-Type": "application/json" },
+  });
 });
