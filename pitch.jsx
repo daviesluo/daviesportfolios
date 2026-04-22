@@ -20,7 +20,7 @@ function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTi
               position={pos}
               coord={coord}
               captainTicker={captainTicker}
-              hotMoverTicker={hotMoverTicker}
+              hotMoverPosKey={hotMoverPosKey}
               flashTickers={flashTickers}
               editMode={editMode}
               isReadOnly={isReadOnly}
@@ -101,12 +101,12 @@ function PitchLines() {
   );
 }
 
-function PositionChip({ posKey, position, coord, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onOpen, onAdd, onDragStart, onDrop, isDropTarget, onUpdatePosition, isRefreshing, recentlyUpdated }) {
+function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpen, onAdd, onDragStart, onDrop, isDropTarget, onUpdatePosition, isRefreshing, recentlyUpdated }) {
   const hasPlayers = position.players.length > 0;
   const pctClass = position.dayPct > 0 ? "gain" : position.dayPct < 0 ? "loss" : "flat";
 
   const hasCaptain = captainTicker && position.tickers.includes(captainTicker);
-  const hasHot = hotMoverTicker && position.tickers.includes(hotMoverTicker);
+  const hasHot = posKey === hotMoverPosKey;
 
   const flashesInPos = position.players.some(p => flashTickers[p.ticker]);
 

@@ -175,7 +175,7 @@ window.Utils = (function () {
           extPrice,
           prevClose,
           dayPct: prevClose > 0 ? ((lastPrice - prevClose) / prevClose) * 100 : 0,
-          extDayPct: (extPrice != null && prevClose > 0) ? ((extPrice - prevClose) / prevClose) * 100 : null,
+          extDayPct: (extPrice != null && lastPrice > 0) ? ((extPrice - lastPrice) / lastPrice) * 100 : null,
         };
       } catch (e) {
         clearTimeout(tid);
@@ -263,8 +263,8 @@ window.Utils = (function () {
   // -------- Position coordinates on 100x100 pitch (home team attacks UP; GK at bottom) --------
   const POSITION_COORDS = {
     GK:  { x: 50, y: 91 },
-    CB1: { x: 36, y: 76 },
-    CB2: { x: 64, y: 76 },
+    CB1: { x: 39, y: 76 },
+    CB2: { x: 61, y: 76 },
     LB:  { x: 15, y: 70 },
     RB:  { x: 85, y: 70 },
     CDM: { x: 50, y: 58 },
