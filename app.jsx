@@ -2,6 +2,27 @@
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 const { fmtMoney, fmtPct, fmtPrice, pctColor, computeMetrics, detectFormation, refreshPrices, POSITION_COORDS } = window.Utils;
 
+// Catches any render-time crash and shows a readable error instead of a blank page.
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { err: null }; }
+  static getDerivedStateFromError(e) { return { err: e }; }
+  render() {
+    if (this.state.err) {
+      return React.createElement('div', {
+        style: { color: '#fff', background: '#0c1310', padding: '32px', fontFamily: 'monospace', minHeight: '100vh' }
+      },
+        React.createElement('div', { style: { color: '#f55', marginBottom: '12px', letterSpacing: '0.15em' } }, 'RENDER ERROR'),
+        React.createElement('pre', { style: { color: '#aaa', fontSize: '12px', whiteSpace: 'pre-wrap', marginBottom: '20px' } }, String(this.state.err)),
+        React.createElement('button', {
+          onClick: () => window.location.reload(),
+          style: { background: '#2a2a2a', color: '#fff', border: '1px solid #444', padding: '8px 16px', cursor: 'pointer', fontFamily: 'monospace' }
+        }, 'Reload')
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const REFRESH_MS = 30 * 1000;
 
 // Supabase — direct PostgREST REST calls, no SDK required. ---------------
@@ -106,16 +127,20 @@ function App() {
 
   if (!auth) {
     return (
-      <div className="access-denied">
-        <div className="ad-card">
-          <div className="ad-title mono">ACCESS DENIED</div>
-          <div className="ad-sub">Incorrect password.</div>
-          <button className="btn-primary" onClick={() => window.location.reload()}>Try again</button>
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' }}>
+        <div style={{ textAlign: 'center', padding: '40px', border: '1px solid #2a2a2a', borderRadius: '4px' }}>
+          <div style={{ color: '#f55', fontFamily: 'monospace', letterSpacing: '0.2em', fontSize: '14px', marginBottom: '8px' }}>ACCESS DENIED</div>
+          <div style={{ color: '#888', fontFamily: 'monospace', fontSize: '12px', marginBottom: '20px' }}>Incorrect password.</div>
+          <button style={{ background: '#1e2d28', color: '#ccc', border: '1px solid #3a3a3a', padding: '8px 20px', cursor: 'pointer', fontFamily: 'monospace', fontSize: '12px', borderRadius: '2px' }} onClick={() => window.location.reload()}>Try again</button>
         </div>
       </div>
     );
   }
-  return <Board isReadOnly={auth.isReadOnly} />;
+  return (
+    <ErrorBoundary>
+      <Board isReadOnly={auth.isReadOnly} />
+    </ErrorBoundary>
+  );
 }
 
 function Board({ isReadOnly }) {
@@ -209,10 +234,10 @@ function Board({ isReadOnly }) {
 
   if (!portfolio) {
     return (
-      <div className="access-denied">
-        <div className="ad-card">
-          <div className="ad-title mono">LOADING…</div>
-          <div className="ad-sub">Fetching board from cloud.</div>
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: '#aaa', fontFamily: 'monospace', letterSpacing: '0.2em', fontSize: '12px', marginBottom: '8px' }}>LOADING…</div>
+          <div style={{ color: '#555', fontFamily: 'monospace', fontSize: '11px' }}>Fetching board from cloud.</div>
         </div>
       </div>
     );
