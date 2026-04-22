@@ -51,7 +51,7 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
           </svg>
         </div>
         <div>
-          <div className="brand-title">My Portfolios</div>
+          <div className="brand-title">Davies' Portfolios</div>
           <div className="brand-sub">Tactics Board</div>
           <div className="brand-formation mono">Formation {formation} · {metrics.tickerCount} tickers</div>
         </div>
