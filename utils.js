@@ -266,8 +266,8 @@ window.Utils = (function () {
   // -------- Position coordinates on 100x100 pitch (home team attacks UP; GK at bottom) --------
   const POSITION_COORDS = {
     GK:  { x: 50, y: 91 },
-    CB1: { x: 38.5, y: 76 },
-    CB2: { x: 61.5, y: 76 },
+    CB1: { x: 38, y: 76 },
+    CB2: { x: 62, y: 76 },
     LB:  { x: 15, y: 70 },
     RB:  { x: 85, y: 70 },
     CDM: { x: 50, y: 58 },
