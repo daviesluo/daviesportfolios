@@ -43,10 +43,13 @@ async function fetchPrice(symbol: string): Promise<{
     if (!meta?.regularMarketPrice) return null;
 
     const lastPrice: number = meta.regularMarketPrice;
+    // regularMarketPreviousClose = most recent completed regular session close.
+    // chartPreviousClose = session before the chart's range start — with range=1d
+    // on a pre-market morning that can be two sessions back, so use it last.
     const prevClose: number =
-      meta.chartPreviousClose ??
       meta.regularMarketPreviousClose ??
       meta.previousClose ??
+      meta.chartPreviousClose ??
       lastPrice;
 
     // gmtoffset is the exchange's offset from UTC in seconds (e.g. EDT = -14400).
