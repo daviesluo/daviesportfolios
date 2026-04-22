@@ -298,7 +298,10 @@ function Board({ isReadOnly }) {
     );
   }
 
-  const metrics = computeMetrics(portfolio, { extended: extendedHours });
+  // Never substitute extended-hours prices during the regular session — the
+  // toggle only takes effect outside RTH so the displayed value stays consistent.
+  const currentPhase = window.Utils.usMarketPhase(new Date());
+  const metrics = computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular" });
   const formation = detectFormation(portfolio);
 
   let captainTicker = null, captainMV = 0;
