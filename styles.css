@@ -99,7 +99,7 @@ body {
 /* ============= HEADER ============= */
 .header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr) 380px;
   align-items: center;
   padding: 0 24px;
   gap: 24px;
@@ -206,11 +206,10 @@ body {
 .main {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(0, 560px) minmax(220px, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr) 380px;
   gap: 24px;
   padding: 24px;
   min-height: 0;
-  justify-content: center;
 }
 @media (max-width: 1300px) {
   .main { grid-template-columns: minmax(0, 1fr) 380px; }
