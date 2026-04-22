@@ -99,7 +99,7 @@ body {
 /* ============= HEADER ============= */
 .header {
   display: grid;
-  grid-template-columns: 240px 1fr 380px;
+  grid-template-columns: 240px 1fr auto;
   align-items: center;
   padding: 0 24px;
   gap: 24px;
@@ -191,6 +191,12 @@ body {
 .btn-danger { color: var(--loss); border-color: var(--loss-dim); }
 .btn-danger:hover { background: var(--loss-dim); }
 .btn-toggle.on { background: var(--gold); color: #0c1310; border-color: var(--gold); }
+/* Each button locked to its widest natural label so the row never reflows.
+   The scoreboard stays stable because it lives in the fixed 1fr grid column. */
+.btn-toggle.ext-toggle { min-width: 148px; justify-content: center; }
+.live-pill              { min-width: 128px; }
+.header-actions .btn-ghost { min-width: 100px; justify-content: center; }
+.header-actions .btn-toggle:not(.ext-toggle) { min-width: 88px; justify-content: center; }
 
 /* ============= MAIN LAYOUT ============= */
 .main {
