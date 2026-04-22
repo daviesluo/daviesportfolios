@@ -208,8 +208,8 @@ function Sidebar({ metrics, source }) {
 
       <div className="sidebar-foot">
         <div className="foot-kv"><span>Source</span><span className="mono">{source === "live" ? "Yahoo Finance" : source === "sim" ? "Simulated" : "—"}</span></div>
-        <div className="foot-kv"><span>Refresh</span><span className="mono">30s</span></div>
-        <div className="foot-kv"><span>Stored</span><span className="mono">localStorage</span></div>
+        <div className="foot-kv"><span>Auto Refresh</span><span className="mono">30s</span></div>
+        <div className="foot-kv"><span>Stored</span><span className="mono">Supabase</span></div>
       </div>
     </aside>
   );
