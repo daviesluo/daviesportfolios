@@ -8,55 +8,7 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function fetchPrice(symbol: string): Promise<{
-  lastPrice: number;
-  extPrice: number | null;
-  prevClose: number;
-  dayPct: number;
-  extDayPct: number | null;
-} | null> {
-  const nonce = Date.now();
-  const url =
-    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
-    `?interval=1d&range=5d&includePrePost=true&_=${nonce}`;
-
-  try {
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        Accept: "application/json,text/plain,*/*",
-      },
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!res.ok) return null;
-
-    const data = await res.json();
-    const result = data?.chart?.result?.[0];
-    const meta = result?.meta;
-    if (!meta?.regularMarketPrice) return null;
-
-    // Use meta fields for prevClose — reliable regular-session close regardless of includePrePost.
-    const prevClose: number =
-      meta.chartPreviousClose ?? meta.regularMarketPreviousClose ?? meta.previousClose ?? meta.regularMarketPrice;
-
-    const lastPrice: number = meta.regularMarketPrice;
-    const pc = prevClose as number;
-    const extPrice: number | null = meta.preMarketPrice ?? meta.postMarketPrice ?? null;
-    return {
-      lastPrice,
-      extPrice,
-      prevClose: pc,
-      dayPct: pc > 0 ? ((lastPrice - pc) / pc) * 100 : 0,
-      extDayPct: (extPrice != null && pc > 0) ? ((extPrice - pc) / pc) * 100 : null,
-    };
-  } catch {
-    return null;
-  }
-}
-
 Deno.serve(async (req: Request) => {
-  // CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
   }
@@ -75,17 +27,62 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Fetch all tickers in parallel server-side.
-  const entries = await Promise.all(
-    tickers.map(async (t) => [t, await fetchPrice(t)] as const)
-  );
+  const nonce = Date.now();
+  const symbols = tickers.map(encodeURIComponent).join(",");
+  const quoteUrl =
+    `https://query1.finance.yahoo.com/v7/finance/quote` +
+    `?symbols=${symbols}` +
+    `&fields=regularMarketPrice,regularMarketPreviousClose,chartPreviousClose,preMarketPrice,postMarketPrice` +
+    `&_=${nonce}`;
 
-  const out: Record<string, unknown> = {};
-  for (const [t, r] of entries) {
-    if (r) out[t] = r;
+  try {
+    const res = await fetch(quoteUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Accept: "application/json,text/plain,*/*",
+      },
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    const out: Record<string, unknown> = {};
+
+    if (res.ok) {
+      const data = await res.json();
+      const quotes: any[] = data?.quoteResponse?.result ?? [];
+
+      for (const quote of quotes) {
+        const lastPrice: number | undefined = quote.regularMarketPrice;
+        if (lastPrice == null) continue;
+
+        const prevClose: number =
+          quote.regularMarketPreviousClose ??
+          quote.chartPreviousClose ??
+          lastPrice;
+
+        const extPrice: number | null =
+          quote.preMarketPrice ?? quote.postMarketPrice ?? null;
+
+        const pc = prevClose;
+        out[quote.symbol] = {
+          lastPrice,
+          extPrice,
+          prevClose: pc,
+          dayPct: pc > 0 ? ((lastPrice - pc) / pc) * 100 : 0,
+          extDayPct:
+            extPrice != null && pc > 0
+              ? ((extPrice - pc) / pc) * 100
+              : null,
+        };
+      }
+    }
+
+    return new Response(JSON.stringify(out), {
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  } catch {
+    return new Response(JSON.stringify({}), {
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
   }
-
-  return new Response(JSON.stringify(out), {
-    headers: { ...CORS, "Content-Type": "application/json" },
-  });
 });
