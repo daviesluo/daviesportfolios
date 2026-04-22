@@ -251,10 +251,13 @@ window.Utils = (function () {
     const tickers = Object.keys(portfolio.holdings);
     const result = await fetchYahoo(tickers);
     if (!result || Object.keys(result).length === 0) {
-      // No live data — surface failure so caller can retry; no sim.
       return { updates: {}, source: "error" };
     }
     return { updates: result, source: "live" };
+  }
+
+  async function fetchTickers(tickers) {
+    return fetchYahoo(tickers.filter(Boolean));
   }
 
   // -------- Position coordinates on 100x100 pitch (home team attacks UP; GK at bottom) --------
@@ -276,6 +279,6 @@ window.Utils = (function () {
     fmtMoney, fmtPct, fmtPrice, pctColor,
     londonTimeParts, usMarketPhase, formatAgo,
     computeMetrics, detectFormation,
-    refreshPrices, POSITION_COORDS,
+    refreshPrices, fetchTickers, POSITION_COORDS,
   };
 })();
