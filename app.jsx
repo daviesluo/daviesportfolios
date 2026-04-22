@@ -255,7 +255,7 @@ function Board({ isReadOnly }) {
           extPrice: u.extPrice ?? next.holdings[t].extPrice ?? null,
           prevClose: u.prevClose ?? next.holdings[t].prevClose,
           dayPct: u.dayPct ?? next.holdings[t].dayPct,
-          extDayPct: u.extDayPct ?? next.holdings[t].extDayPct ?? null,
+          extDayPct: (u.extPrice != null && u.lastPrice > 0) ? ((u.extPrice - u.lastPrice) / u.lastPrice) * 100 : next.holdings[t].extDayPct ?? null,
         };
         const newExt = u.extPrice ?? null;
         const priceChanged = Math.abs(u.lastPrice - old) > 0.0001;

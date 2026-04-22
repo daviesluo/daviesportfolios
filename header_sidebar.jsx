@@ -64,7 +64,7 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
           </div>
           <div className="sb-value mono">
             {t.hh}:{t.mm}:{t.ss}
-            <span className="sb-suffix"> London</span>
+            <span className="sb-suffix"> GMT</span>
           </div>
         </div>
         <div className="scoreboard-divider" />
@@ -76,14 +76,16 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
         <div className="scoreboard-cell">
           <div className="sb-label">DAY CHANGE</div>
           <div className="sb-value mono" style={{ color: pcC(metrics.dayPct) }}>
-            {fmM(metrics.dayChange, { signed: true })} <span style={{ color: pcC(metrics.dayPct), opacity: 0.85 }}>({fmP(metrics.dayPct)})</span>
+            <div>{fmM(metrics.dayChange, { signed: true })}</div>
+            <div style={{ fontSize: '10px', opacity: 0.75 }}>({fmP(metrics.dayPct)})</div>
           </div>
         </div>
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
           <div className="sb-label">UNREALIZED G/L</div>
           <div className="sb-value mono" style={{ color: pcC(metrics.unrlPct) }}>
-            {fmM(metrics.unrlGL, { signed: true })} <span style={{ color: pcC(metrics.unrlPct), opacity: 0.85 }}>({fmP(metrics.unrlPct)})</span>
+            <div>{fmM(metrics.unrlGL, { signed: true })}</div>
+            <div style={{ fontSize: '10px', opacity: 0.75 }}>({fmP(metrics.unrlPct)})</div>
           </div>
         </div>
       </div>
@@ -165,7 +167,7 @@ function Sidebar({ metrics, source }) {
       </section>
 
       <section className="panel">
-        <h3 className="panel-title">FORMATION VALUE</h3>
+        <h3 className="panel-title">Overall FORMATION VALUE</h3>
         <div className="formation-list">
           {positionList.map(([k, p]) => {
             const pct = metrics.marketValue > 0 ? (p.marketValue / metrics.marketValue) * 100 : 0;
@@ -180,7 +182,6 @@ function Sidebar({ metrics, source }) {
                 </div>
                 <div className="fr-meta">
                   <span className="mono dim">{pct.toFixed(1)}%</span>
-                  <span className="mono" style={{ color: pcC(p.unrlPct) }}>{fmP(p.unrlPct)} G/L</span>
                 </div>
               </div>
             );
