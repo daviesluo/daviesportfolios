@@ -154,6 +154,8 @@ function promptForAuth() {
   return null;
 }
 
+const MC_TICKERS = ["^GSPC", "^NDX", "^VIX", "BZ=F"];
+
 // Main app ---------------------------------------------------------------
 function App() {
   const [auth] = useState(() => promptForAuth());
@@ -203,6 +205,7 @@ function Board({ isReadOnly }) {
   const [flashTickers, setFlashTickers] = useState({});
   const [dragging, setDragging] = useState(null);
   const [extendedHours, setExtendedHours] = useState(false);
+  const [marketData, setMarketData] = useState({});
 
   // In read-only mode, force-disable edit mode.
   useEffect(() => { if (isReadOnly && editMode) setEditMode(false); }, [isReadOnly, editMode]);
@@ -232,7 +235,11 @@ function Board({ isReadOnly }) {
   const doRefresh = useCallback(async () => {
     if (!portfolio) return;
     setIsRefreshing(true);
-    const { updates, source: src } = await refreshPrices(portfolio, "live");
+    const [{ updates, source: src }, mcResult] = await Promise.all([
+      refreshPrices(portfolio, "live"),
+      window.Utils.fetchTickers(MC_TICKERS),
+    ]);
+    if (mcResult) setMarketData(mcResult);
     setSource(src);
     setPortfolio(prev => {
       if (!prev) return prev;
@@ -397,6 +404,11 @@ function Board({ isReadOnly }) {
       />
 
       <main className="main">
+        <MarketConditions
+          marketData={marketData}
+          extendedHours={extendedHours}
+          phase={currentPhase}
+        />
         <Pitch
           metrics={metrics}
           captainTicker={captainTicker}

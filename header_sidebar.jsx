@@ -1,5 +1,5 @@
 // Header + Sidebar components
-const { fmtMoney: fmM, fmtPct: fmP, pctColor: pcC, londonTimeParts, usMarketPhase, formatAgo } = window.Utils;
+const { fmtMoney: fmM, fmtPct: fmP, fmtPrice: fmtPr, pctColor: pcC, londonTimeParts, usMarketPhase, formatAgo } = window.Utils;
 
 // Phase → color mapping
 const PHASE = {
@@ -130,8 +130,9 @@ function Sidebar({ metrics, source }) {
   for (const pos of Object.values(metrics.positions)) {
     for (const p of pos.players) allPlayers.push({ ...p, pos: pos.label });
   }
-  const winners = [...allPlayers].sort((a, b) => (b.dayPct ?? 0) - (a.dayPct ?? 0)).slice(0, 5);
-  const losers  = [...allPlayers].sort((a, b) => (a.dayPct ?? 0) - (b.dayPct ?? 0)).slice(0, 5);
+  const movable = allPlayers.filter(p => !p.isCash && p.ticker !== "CASH");
+  const winners = [...movable].sort((a, b) => (b.dayPct ?? 0) - (a.dayPct ?? 0)).slice(0, 5);
+  const losers  = [...movable].sort((a, b) => (a.dayPct ?? 0) - (b.dayPct ?? 0)).slice(0, 5);
 
   const positionList = Object.entries(metrics.positions)
     .filter(([_, p]) => p.players.length > 0)
@@ -223,4 +224,51 @@ function StatRow({ label, value, mono, dim, color }) {
   );
 }
 
-Object.assign(window, { Header, Sidebar, StatRow });
+// ---- Market Conditions column ----
+const MC_INDICES = [
+  { ticker: "^GSPC", name: "S&P 500"    },
+  { ticker: "^NDX",  name: "NASDAQ 100" },
+  { ticker: "^VIX",  name: "VIX"        },
+  { ticker: "BZ=F",  name: "Brent Oil"  },
+];
+
+function fmtChg(n) {
+  if (n == null || isNaN(n)) return "—";
+  const sign = n >= 0 ? "+" : "";
+  const abs  = Math.abs(n);
+  if (abs >= 1000) return sign + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  if (abs >= 100)  return sign + n.toFixed(0);
+  return sign + n.toFixed(2);
+}
+
+function MarketConditions({ marketData, extendedHours, phase }) {
+  const useExt = extendedHours && phase !== "regular";
+  return (
+    <aside className="market-conditions">
+      {MC_INDICES.map(({ ticker, name }) => {
+        const d = marketData[ticker];
+        const price     = d ? ((useExt && d.extPrice   != null) ? d.extPrice   : d.lastPrice)       : null;
+        const pct       = d ? ((useExt && d.extDayPct  != null) ? d.extDayPct  : (d.dayPct ?? 0))   : null;
+        const prevClose = d ? (d.prevClose ?? d.lastPrice) : null;
+        const dayChange = (price != null && prevClose != null) ? price - prevClose : null;
+        return (
+          <section key={ticker} className="panel mc-card">
+            <div className="mc-card-head">
+              <h3 className="panel-title" style={{ margin: 0 }}>{name}</h3>
+              <span className="mono dim" style={{ fontSize: '10px' }}>{ticker}</span>
+            </div>
+            <div className="mc-price mono">
+              {price != null ? fmtPr(price) : "—"}
+            </div>
+            <div className="mc-footer">
+              <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{fmtChg(dayChange)}</span>
+              <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{pct != null ? fmP(pct) : "—"}</span>
+            </div>
+          </section>
+        );
+      })}
+    </aside>
+  );
+}
+
+Object.assign(window, { Header, Sidebar, StatRow, MarketConditions });

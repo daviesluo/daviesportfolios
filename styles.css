@@ -201,10 +201,14 @@ body {
 .main {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
+  grid-template-columns: 240px minmax(0, 1fr) 380px;
   gap: 24px;
   padding: 24px;
   min-height: 0;
+}
+@media (max-width: 1300px) {
+  .main { grid-template-columns: minmax(0, 1fr) 380px; }
+  .market-conditions { display: none; }
 }
 @media (max-width: 1020px) {
   .main { grid-template-columns: minmax(0, 1fr); padding: 16px; }
@@ -426,6 +430,24 @@ body {
 .legend-sw.sw-ball { border-radius: 50%; background: #fff; border: 1px solid #0c1310; }
 .legend-sw.sw-gain { background: var(--gain); }
 .legend-sw.sw-loss { background: var(--loss); }
+
+/* ============= MARKET CONDITIONS ============= */
+.market-conditions {
+  display: flex; flex-direction: column; gap: 10px;
+  min-width: 0;
+}
+.mc-card { cursor: default; }
+.mc-card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.mc-price {
+  font-size: 20px; font-weight: 500;
+  margin-bottom: 6px; letter-spacing: -0.01em;
+}
+.mc-footer {
+  display: flex; justify-content: space-between;
+}
 
 /* ============= SIDEBAR ============= */
 .sidebar {
