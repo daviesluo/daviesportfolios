@@ -99,10 +99,10 @@ body {
 /* ============= HEADER ============= */
 .header {
   display: grid;
-  grid-template-columns: 260px 1fr auto;
+  grid-template-columns: 240px 1fr 380px;
   align-items: center;
   padding: 0 24px;
-  gap: 32px;
+  gap: 24px;
   border-bottom: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(244,239,227,0.03), transparent);
 }
@@ -143,7 +143,7 @@ body {
   box-shadow: 0 0 6px currentColor;
 }
 
-.header-actions { display: flex; gap: 10px; align-items: stretch; }
+.header-actions { display: flex; gap: 10px; align-items: stretch; justify-self: end; }
 
 .live-pill {
   display: flex; align-items: center; gap: 10px;
