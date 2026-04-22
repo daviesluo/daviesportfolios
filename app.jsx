@@ -165,6 +165,7 @@ function Board({ isReadOnly }) {
   const [recentlyUpdated, setRecentlyUpdated] = useState(false);
   const [flashTickers, setFlashTickers] = useState({});
   const [dragging, setDragging] = useState(null);
+  const [extendedHours, setExtendedHours] = useState(false);
 
   // In read-only mode, force-disable edit mode.
   useEffect(() => { if (isReadOnly && editMode) setEditMode(false); }, [isReadOnly, editMode]);
@@ -206,8 +207,10 @@ function Board({ isReadOnly }) {
         next.holdings[t] = {
           ...next.holdings[t],
           lastPrice: u.lastPrice,
+          extPrice: u.extPrice ?? next.holdings[t].extPrice ?? null,
           prevClose: u.prevClose ?? next.holdings[t].prevClose,
           dayPct: u.dayPct ?? next.holdings[t].dayPct,
+          extDayPct: u.extDayPct ?? next.holdings[t].extDayPct ?? null,
         };
         if (Math.abs(u.lastPrice - old) > 0.0001) {
           flashes[t] = u.lastPrice > old ? "up" : "down";
@@ -252,7 +255,7 @@ function Board({ isReadOnly }) {
     );
   }
 
-  const metrics = computeMetrics(portfolio);
+  const metrics = computeMetrics(portfolio, { extended: extendedHours });
   const formation = detectFormation(portfolio);
 
   let captainTicker = null, captainMV = 0;
@@ -343,6 +346,8 @@ function Board({ isReadOnly }) {
         editMode={editMode}
         setEditMode={setEditMode}
         isReadOnly={isReadOnly}
+        extendedHours={extendedHours}
+        onToggleExtended={() => setExtendedHours(v => !v)}
       />
 
       <main className="main">

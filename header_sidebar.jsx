@@ -18,7 +18,7 @@ function useClock(intervalMs = 1000) {
   return now;
 }
 
-function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly }) {
+function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended }) {
   const now = useClock(1000);
   const t = londonTimeParts(now);
   const phase = usMarketPhase(now);
@@ -84,6 +84,13 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
       </div>
 
       <div className="header-actions">
+        <button
+          className={`btn-toggle ${extendedHours ? "on" : ""}`}
+          onClick={onToggleExtended}
+          title="Toggle extended hours prices (pre-market / after-hours vs previous close)"
+        >
+          {extendedHours ? "✓ 24/7" : "24/7"}
+        </button>
         <div className={`live-pill ${isRefreshing ? "refreshing" : ""} ${source === "error" ? "err" : ""}`}
              title={source === "live" ? "Yahoo Finance" : source === "error" ? "Retrying…" : "Connecting"}>
           <span className={`live-dot ${isRefreshing ? "pulse" : ""} ${source === "error" ? "err" : ""}`} />
