@@ -1,7 +1,7 @@
 // Supabase Edge Function: prices
 // Fetches Yahoo Finance prices server-side — no CORS proxies needed.
 // Call: GET /functions/v1/prices?tickers=NVDA,AAPL,GOOG
-// Returns: { "NVDA": { lastPrice, prevClose, dayPct }, ... }
+// Returns: { "NVDA": { lastPrice, extPrice, prevClose, dayPct, extDayPct }, ... }
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -10,8 +10,10 @@ const CORS = {
 
 async function fetchPrice(symbol: string): Promise<{
   lastPrice: number;
+  extPrice: number | null;
   prevClose: number;
   dayPct: number;
+  extDayPct: number | null;
 } | null> {
   const nonce = Date.now();
   const url =
@@ -49,10 +51,13 @@ async function fetchPrice(symbol: string): Promise<{
 
     const lastPrice: number = meta.regularMarketPrice;
     const pc = prevClose as number;
+    const extPrice: number | null = meta.preMarketPrice ?? meta.postMarketPrice ?? null;
     return {
       lastPrice,
+      extPrice,
       prevClose: pc,
       dayPct: pc > 0 ? ((lastPrice - pc) / pc) * 100 : 0,
+      extDayPct: (extPrice != null && pc > 0) ? ((extPrice - pc) / pc) * 100 : null,
     };
   } catch {
     return null;

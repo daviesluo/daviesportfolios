@@ -79,7 +79,8 @@ window.Utils = (function () {
   }
 
   // -------- Portfolio math --------
-  const computeMetrics = (portfolio) => {
+  const computeMetrics = (portfolio, opts = {}) => {
+    const ext = !!opts.extended;
     let marketValue = 0, totalCost = 0, dayChange = 0;
     const positionsOut = {};
     for (const [posKey, pos] of Object.entries(portfolio.positions)) {
@@ -90,11 +91,15 @@ window.Utils = (function () {
         if (!h) continue;
         // Cash entries: MV = lastPrice (held as dollar amount); no P/L, no day change.
         const isCash = !!h.isCash;
-        const mv = isCash ? h.lastPrice : h.shares * h.lastPrice;
-        const prevMV = isCash ? mv : h.shares * (h.prevClose ?? h.lastPrice);
+        // In extended mode use the extended price if available; cash always uses lastPrice.
+        const price = isCash ? h.lastPrice : ((ext && h.extPrice != null) ? h.extPrice : h.lastPrice);
+        const pct   = (ext && h.extDayPct != null) ? h.extDayPct : (h.dayPct ?? 0);
+        const mv = isCash ? h.lastPrice : h.shares * price;
+        const prevMV = isCash ? mv : h.shares * (h.prevClose ?? price);
         const cost = isCash ? mv : h.shares * h.cost;
         posMV += mv; posPrev += prevMV; posCost += cost;
-        players.push({ ticker: t, ...h, marketValue: mv });
+        // Override lastPrice/dayPct in the player object so modals show the right price.
+        players.push({ ticker: t, ...h, marketValue: mv, lastPrice: price, dayPct: pct });
       }
       marketValue += posMV; totalCost += posCost;
       const dayDelta = posMV - posPrev;
@@ -168,10 +173,14 @@ window.Utils = (function () {
           if (closes[i] != null) { prevClose = closes[i]; break; }
         }
         if (prevClose == null) prevClose = meta.chartPreviousClose ?? meta.previousClose ?? lastPrice;
+        // Extended hours price: pre-market or after-hours (null if not available).
+        const extPrice = meta.preMarketPrice ?? meta.postMarketPrice ?? null;
         return {
           lastPrice,
+          extPrice,
           prevClose,
           dayPct: prevClose > 0 ? ((lastPrice - prevClose) / prevClose) * 100 : 0,
+          extDayPct: (extPrice != null && prevClose > 0) ? ((extPrice - prevClose) / prevClose) * 100 : null,
         };
       } catch (e) {
         clearTimeout(tid);
