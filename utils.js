@@ -153,7 +153,7 @@ window.Utils = (function () {
 
   async function fetchOneYahooChart(symbol) {
     const nonce = Date.now();
-    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d&includePrePost=false&_=${nonce}`;
+    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d&includePrePost=true&_=${nonce}`;
     for (const makeProxy of PROXIES) {
       const controller = new AbortController();
       const tid = setTimeout(() => controller.abort(), 8000);
@@ -167,12 +167,8 @@ window.Utils = (function () {
         if (!meta) continue;
         const lastPrice = meta.regularMarketPrice;
         if (lastPrice == null) continue;
-        let prevClose = null;
-        const closes = result?.indicators?.quote?.[0]?.close || [];
-        for (let i = closes.length - 2; i >= 0; i--) {
-          if (closes[i] != null) { prevClose = closes[i]; break; }
-        }
-        if (prevClose == null) prevClose = meta.chartPreviousClose ?? meta.previousClose ?? lastPrice;
+        // Use meta fields for prevClose — reliable regular-session close regardless of includePrePost.
+        const prevClose = meta.chartPreviousClose ?? meta.regularMarketPreviousClose ?? meta.previousClose ?? lastPrice;
         // Extended hours price: pre-market or after-hours (null if not available).
         const extPrice = meta.preMarketPrice ?? meta.postMarketPrice ?? null;
         return {

@@ -18,7 +18,7 @@ async function fetchPrice(symbol: string): Promise<{
   const nonce = Date.now();
   const url =
     `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
-    `?interval=1d&range=5d&includePrePost=false&_=${nonce}`;
+    `?interval=1d&range=5d&includePrePost=true&_=${nonce}`;
 
   try {
     const res = await fetch(url, {
@@ -36,18 +36,9 @@ async function fetchPrice(symbol: string): Promise<{
     const meta = result?.meta;
     if (!meta?.regularMarketPrice) return null;
 
-    // Walk backwards through daily closes (skip today's bar) for a clean prev-close.
-    let prevClose: number | null = null;
-    const closes: (number | null)[] = result?.indicators?.quote?.[0]?.close ?? [];
-    for (let i = closes.length - 2; i >= 0; i--) {
-      if (closes[i] != null) {
-        prevClose = closes[i] as number;
-        break;
-      }
-    }
-    if (prevClose == null) {
-      prevClose = meta.chartPreviousClose ?? meta.previousClose ?? meta.regularMarketPrice;
-    }
+    // Use meta fields for prevClose — reliable regular-session close regardless of includePrePost.
+    const prevClose: number =
+      meta.chartPreviousClose ?? meta.regularMarketPreviousClose ?? meta.previousClose ?? meta.regularMarketPrice;
 
     const lastPrice: number = meta.regularMarketPrice;
     const pc = prevClose as number;
