@@ -226,10 +226,13 @@ function StatRow({ label, value, mono, dim, color }) {
 
 // ---- Market Conditions column ----
 const MC_INDICES = [
-  { ticker: "^GSPC", name: "S&P 500"    },
-  { ticker: "^NDX",  name: "NASDAQ 100" },
-  { ticker: "^VIX",  name: "VIX"        },
-  { ticker: "BZ=F",  name: "Brent Oil"  },
+  { ticker: "^GSPC",    name: "S&P 500"      },
+  { ticker: "^NDX",     name: "NASDAQ 100"   },
+  { ticker: "^RUT",     name: "Russell 2000" },
+  { ticker: "^VIX",     name: "VIX"          },
+  { ticker: "BZ=F",     name: "Brent Oil"    },
+  { ticker: "GBPUSD=X", name: "GBP/USD"      },
+  { ticker: "GBPCNH=X", name: "GBP/CNH"      },
 ];
 
 function fmtChg(n) {
