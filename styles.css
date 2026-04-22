@@ -98,15 +98,16 @@ body {
 
 /* ============= HEADER ============= */
 .header {
-  display: grid;
-  grid-template-columns: 240px 1fr auto;
+  display: flex;
   align-items: center;
   padding: 0 24px;
   gap: 24px;
+  height: 64px;
   border-bottom: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(244,239,227,0.03), transparent);
+  position: relative;
 }
-.brand { display: flex; gap: 12px; align-items: center; }
+.brand { display: flex; gap: 12px; align-items: center; flex-shrink: 0; }
 .brand-mark {
   width: 40px; height: 40px; border-radius: 50%;
   border: 1px solid var(--line);
@@ -119,12 +120,16 @@ body {
 .brand-formation { font-size: 10px; color: var(--chalk-mute); letter-spacing: 0.06em; font-family: var(--font-mono); margin-top: 1px; white-space: nowrap; }
 
 .scoreboard {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex; align-items: center; gap: 24px;
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 10px 20px;
   background: rgba(0,0,0,0.25);
-  justify-self: center;
+  z-index: 1;
+  white-space: nowrap;
 }
 .scoreboard-cell { display: flex; flex-direction: column; gap: 3px; }
 .sb-label {
@@ -143,7 +148,7 @@ body {
   box-shadow: 0 0 6px currentColor;
 }
 
-.header-actions { display: flex; gap: 10px; align-items: stretch; justify-self: end; }
+.header-actions { display: flex; gap: 10px; align-items: stretch; margin-left: auto; }
 
 .live-pill {
   display: flex; align-items: center; gap: 10px;
@@ -613,7 +618,7 @@ body {
 
 /* responsive */
 @media (max-width: 760px) {
-  .header { grid-template-columns: 1fr auto; padding: 0 12px; gap: 12px; }
+  .header { padding: 0 12px; gap: 12px; height: auto; min-height: 52px; }
   .scoreboard { display: none; }
   .pitch { height: 720px; }
   .pos-chip { width: 84px; min-height: 58px; padding: 5px 6px; }
