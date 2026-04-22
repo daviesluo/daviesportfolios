@@ -122,17 +122,54 @@ function migrate(p) {
 }
 
 // Auth gate --------------------------------------------------------------
+const AUTH_LOCKOUT_KEY  = "auth_lockout_until";
+const AUTH_ATTEMPTS_KEY = "auth_attempts";
+const MAX_ATTEMPTS      = 3;
+const LOCKOUT_MS        = 24 * 60 * 60 * 1000;
+
 function promptForAuth() {
+  const lockUntil = parseInt(localStorage.getItem(AUTH_LOCKOUT_KEY) || "0", 10);
+  if (lockUntil > Date.now()) return { locked: true, lockUntil };
+
   const pw = window.prompt("Enter password:");
-  if (pw === "8888") return { isReadOnly: true  };
-  if (pw === "7119") return { isReadOnly: false };
+  if (pw === "8848") {
+    localStorage.removeItem(AUTH_ATTEMPTS_KEY);
+    localStorage.removeItem(AUTH_LOCKOUT_KEY);
+    return { isReadOnly: true };
+  }
+  if (pw === "7119") {
+    localStorage.removeItem(AUTH_ATTEMPTS_KEY);
+    localStorage.removeItem(AUTH_LOCKOUT_KEY);
+    return { isReadOnly: false };
+  }
+
+  const attempts = parseInt(localStorage.getItem(AUTH_ATTEMPTS_KEY) || "0", 10) + 1;
+  if (attempts >= MAX_ATTEMPTS) {
+    const until = Date.now() + LOCKOUT_MS;
+    localStorage.setItem(AUTH_LOCKOUT_KEY, String(until));
+    localStorage.removeItem(AUTH_ATTEMPTS_KEY);
+    return { locked: true, lockUntil: until };
+  }
+  localStorage.setItem(AUTH_ATTEMPTS_KEY, String(attempts));
   return null;
 }
 
 // Main app ---------------------------------------------------------------
 function App() {
-  // Prompt synchronously on first render so there's no flash of content.
   const [auth] = useState(() => promptForAuth());
+
+  if (auth && auth.locked) {
+    const hoursLeft = Math.ceil((auth.lockUntil - Date.now()) / 1000 / 60 / 60);
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' }}>
+        <div style={{ textAlign: 'center', padding: '40px', border: '1px solid #2a2a2a', borderRadius: '4px' }}>
+          <div style={{ color: '#f55', fontFamily: 'monospace', letterSpacing: '0.2em', fontSize: '14px', marginBottom: '8px' }}>ACCESS LOCKED</div>
+          <div style={{ color: '#888', fontFamily: 'monospace', fontSize: '12px' }}>Too many incorrect attempts.</div>
+          <div style={{ color: '#555', fontFamily: 'monospace', fontSize: '12px', marginTop: '6px' }}>Try again in {hoursLeft}h.</div>
+        </div>
+      </div>
+    );
+  }
 
   if (!auth) {
     return (
@@ -204,6 +241,7 @@ function Board({ isReadOnly }) {
       for (const [t, u] of Object.entries(updates)) {
         if (!next.holdings[t]) continue;
         const old = next.holdings[t].lastPrice;
+        const oldExt = next.holdings[t].extPrice ?? null;
         next.holdings[t] = {
           ...next.holdings[t],
           lastPrice: u.lastPrice,
@@ -212,8 +250,13 @@ function Board({ isReadOnly }) {
           dayPct: u.dayPct ?? next.holdings[t].dayPct,
           extDayPct: u.extDayPct ?? next.holdings[t].extDayPct ?? null,
         };
-        if (Math.abs(u.lastPrice - old) > 0.0001) {
-          flashes[t] = u.lastPrice > old ? "up" : "down";
+        const newExt = u.extPrice ?? null;
+        const priceChanged = Math.abs(u.lastPrice - old) > 0.0001;
+        const extChanged = newExt != null && oldExt != null && Math.abs(newExt - oldExt) > 0.0001;
+        if (priceChanged || extChanged) {
+          const newRef = newExt ?? u.lastPrice;
+          const oldRef = oldExt ?? old;
+          flashes[t] = newRef > oldRef ? "up" : "down";
         }
       }
       if (Object.keys(flashes).length) {
