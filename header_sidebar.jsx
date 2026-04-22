@@ -35,9 +35,8 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
 
   const extLabel = !extendedHours || phase === "regular"
     ? "Market Hours Price"
-    : phase === "premarket"  ? "Pre-Market Price"
-    : phase === "afterhours" ? "After Hours Price"
-    : "Overnight";
+    : phase === "premarket" ? "Pre-Market Price"
+    : "After Hours Price";
 
   return (
     <header className="header">
