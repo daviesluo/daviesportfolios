@@ -89,7 +89,7 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
           onClick={onToggleExtended}
           title="Toggle extended hours prices (pre-market / after-hours vs previous close)"
         >
-          {extendedHours ? "✓ 24/7" : "24/7"}
+          {extendedHours ? "24 Hour Market" : "Market Hour"}
         </button>
         <div className={`live-pill ${isRefreshing ? "refreshing" : ""} ${source === "error" ? "err" : ""}`}
              title={source === "live" ? "Yahoo Finance" : source === "error" ? "Retrying…" : "Connecting"}>
