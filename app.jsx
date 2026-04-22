@@ -46,7 +46,12 @@ async function loadPortfolioRemote() {
     }
     const rows = await res.json();
     if (Array.isArray(rows) && rows.length > 0 && rows[0].data) {
-      return migrate(rows[0].data);
+      const loaded = migrate(rows[0].data);
+      // If holdings is empty the row is from a broken earlier save — treat as fresh.
+      if (!loaded.holdings || Object.keys(loaded.holdings).length === 0) {
+        return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
+      }
+      return loaded;
     }
     // No row yet — seed with initial portfolio.
     return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
@@ -57,6 +62,8 @@ async function loadPortfolioRemote() {
 }
 
 async function savePortfolioRemote(p) {
+  // Guard: never persist a portfolio that has lost its holdings data.
+  if (!p || !p.holdings || Object.keys(p.holdings).length === 0) return;
   try {
     const res = await fetch(
       `${SB_URL}/rest/v1/board_data`,
