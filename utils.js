@@ -95,7 +95,10 @@ window.Utils = (function () {
         const price = isCash ? h.lastPrice : ((ext && h.extPrice != null) ? h.extPrice : h.lastPrice);
         const pct   = (ext && h.extDayPct != null) ? h.extDayPct : (h.dayPct ?? 0);
         const mv = isCash ? h.lastPrice : h.shares * price;
-        const prevMV = isCash ? mv : h.shares * (h.prevClose ?? price);
+        // In extended-hours mode the baseline is today's RTH close (lastPrice), not yesterday's close.
+        // This makes position + scoreboard day change reflect the after-hours move since 16:00 ET.
+        const baselinePrice = ext ? (h.lastPrice ?? h.prevClose ?? price) : (h.prevClose ?? price);
+        const prevMV = isCash ? mv : h.shares * baselinePrice;
         const cost = isCash ? mv : h.shares * h.cost;
         posMV += mv; posPrev += prevMV; posCost += cost;
         // Override lastPrice/dayPct in the player object so modals show the right price.
@@ -263,8 +266,8 @@ window.Utils = (function () {
   // -------- Position coordinates on 100x100 pitch (home team attacks UP; GK at bottom) --------
   const POSITION_COORDS = {
     GK:  { x: 50, y: 91 },
-    CB1: { x: 39, y: 76 },
-    CB2: { x: 61, y: 76 },
+    CB1: { x: 38.5, y: 76 },
+    CB2: { x: 61.5, y: 76 },
     LB:  { x: 15, y: 70 },
     RB:  { x: 85, y: 70 },
     CDM: { x: 50, y: 58 },

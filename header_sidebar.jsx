@@ -167,7 +167,7 @@ function Sidebar({ metrics, source }) {
       </section>
 
       <section className="panel">
-        <h3 className="panel-title">Overall FORMATION VALUE</h3>
+        <h3 className="panel-title">FORMATION VALUE</h3>
         <div className="formation-list">
           {positionList.map(([k, p]) => {
             const pct = metrics.marketValue > 0 ? (p.marketValue / metrics.marketValue) * 100 : 0;
@@ -182,6 +182,7 @@ function Sidebar({ metrics, source }) {
                 </div>
                 <div className="fr-meta">
                   <span className="mono dim">{pct.toFixed(1)}%</span>
+                  <span className="mono" style={{ color: pcC(p.unrlPct) }}>{fmM(p.unrlGL, { signed: true })} ({fmP(p.unrlPct)})</span>
                 </div>
               </div>
             );
