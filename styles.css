@@ -37,6 +37,7 @@ body {
   background:
     radial-gradient(ellipse at top, #14201b 0%, #0c1310 70%),
     #0c1310;
+  background-attachment: fixed;
   color: var(--chalk);
   font-family: var(--font-sans);
   font-size: 14px;
@@ -189,10 +190,12 @@ body {
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-danger { color: var(--loss); border-color: var(--loss-dim); }
 .btn-danger:hover { background: var(--loss-dim); }
-.btn-toggle { letter-spacing: 0.14em; font-size: 11px; }
 .btn-toggle.on { background: var(--gold); color: #0c1310; border-color: var(--gold); }
-/* Fixed width so text changes (Market Hours Price ↔ Overnight) don't shift the scoreboard */
+/* Fixed widths so dynamic text (Market Hours Price ↔ Overnight, Refresh ↔ Refreshing,
+   LIVE ↔ REFRESHING…) never shifts the scoreboard */
 .btn-toggle.ext-toggle { min-width: 178px; justify-content: center; }
+.live-pill { min-width: 150px; }
+.header-actions .btn-ghost { min-width: 120px; justify-content: center; }
 
 /* ============= MAIN LAYOUT ============= */
 .main {
