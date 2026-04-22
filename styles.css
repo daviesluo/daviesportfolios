@@ -98,8 +98,7 @@ body {
 
 /* ============= HEADER ============= */
 .header {
-  display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 380px;
+  display: flex;
   align-items: center;
   padding: 0 24px;
   gap: 24px;
@@ -121,13 +120,15 @@ body {
 .brand-formation { font-size: 10px; color: var(--chalk-mute); letter-spacing: 0.06em; font-family: var(--font-mono); margin-top: 1px; white-space: nowrap; }
 
 .scoreboard {
-  position: static;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex; align-items: center; gap: 24px;
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 10px 20px;
   background: rgba(0,0,0,0.25);
-  justify-self: center;
+  z-index: 1;
   white-space: nowrap;
 }
 .scoreboard-cell { display: flex; flex-direction: column; gap: 3px; }
@@ -147,7 +148,7 @@ body {
   box-shadow: 0 0 6px currentColor;
 }
 
-.header-actions { display: flex; gap: 10px; align-items: stretch; justify-self: end; }
+.header-actions { display: flex; gap: 10px; align-items: stretch; margin-left: auto; }
 
 .live-pill {
   display: flex; align-items: center; gap: 10px;
