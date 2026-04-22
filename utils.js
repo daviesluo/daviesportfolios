@@ -167,8 +167,7 @@ window.Utils = (function () {
         if (!meta) continue;
         const lastPrice = meta.regularMarketPrice;
         if (lastPrice == null) continue;
-        // Use meta fields for prevClose — reliable regular-session close regardless of includePrePost.
-        const prevClose = meta.chartPreviousClose ?? meta.regularMarketPreviousClose ?? meta.previousClose ?? lastPrice;
+        const prevClose = meta.regularMarketPreviousClose ?? meta.previousClose ?? meta.chartPreviousClose ?? lastPrice;
         // Extended hours price: pre-market or after-hours (null if not available).
         const extPrice = meta.preMarketPrice ?? meta.postMarketPrice ?? null;
         return {
