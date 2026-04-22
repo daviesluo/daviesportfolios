@@ -141,48 +141,6 @@ function Sidebar({ metrics, source }) {
   return (
     <aside className="sidebar">
       <section className="panel">
-        <h3 className="panel-title">HOLDINGS SUMMARY</h3>
-        <div className="panel-grid">
-          <StatRow label="Market Value" value={fmM(metrics.marketValue)} mono />
-          <StatRow label="Total Cost" value={fmM(metrics.totalCost)} mono dim />
-          <StatRow
-            label="Day Change"
-            value={`${fmM(metrics.dayChange, { signed: true })} (${fmP(metrics.dayPct)})`}
-            mono color={pcC(metrics.dayPct)}
-          />
-          <StatRow
-            label="Unrealized G/L"
-            value={`${fmM(metrics.unrlGL, { signed: true })} (${fmP(metrics.unrlPct)})`}
-            mono color={pcC(metrics.unrlPct)}
-          />
-        </div>
-      </section>
-
-      <section className="panel">
-        <h3 className="panel-title">FORMATION VALUE</h3>
-        <div className="formation-list">
-          {positionList.map(([k, p]) => {
-            const pct = metrics.marketValue > 0 ? (p.marketValue / metrics.marketValue) * 100 : 0;
-            return (
-              <div key={k} className="formation-row">
-                <div className="fr-top">
-                  <span className="fr-label">{p.label}{p.subtitle && <span className="fr-sub"> · {p.subtitle}</span>}</span>
-                  <span className="fr-val mono">{fmM(p.marketValue)}</span>
-                </div>
-                <div className="fr-bar">
-                  <div className="fr-bar-fill" style={{ width: pct + "%" }} />
-                </div>
-                <div className="fr-meta">
-                  <span className="mono dim">{pct.toFixed(1)}%</span>
-                  <span className="mono" style={{ color: pcC(p.dayPct) }}>{fmP(p.dayPct)} today</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="panel">
         <h3 className="panel-title">TOP MOVERS · TODAY</h3>
         <div className="movers-grid">
           <div>
@@ -203,6 +161,30 @@ function Sidebar({ metrics, source }) {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="panel">
+        <h3 className="panel-title">FORMATION VALUE</h3>
+        <div className="formation-list">
+          {positionList.map(([k, p]) => {
+            const pct = metrics.marketValue > 0 ? (p.marketValue / metrics.marketValue) * 100 : 0;
+            return (
+              <div key={k} className="formation-row">
+                <div className="fr-top">
+                  <span className="fr-label">{p.label}{p.subtitle && <span className="fr-sub"> · {p.subtitle}</span>}</span>
+                  <span className="fr-val mono">{fmM(p.marketValue)}</span>
+                </div>
+                <div className="fr-bar">
+                  <div className="fr-bar-fill" style={{ width: pct + "%" }} />
+                </div>
+                <div className="fr-meta">
+                  <span className="mono dim">{pct.toFixed(1)}%</span>
+                  <span className="mono" style={{ color: pcC(p.unrlPct) }}>{fmP(p.unrlPct)} G/L</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 

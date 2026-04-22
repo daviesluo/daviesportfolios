@@ -316,14 +316,18 @@ function Board({ isReadOnly }) {
     const mv = h.shares * h.lastPrice;
     if (mv > captainMV) { captainMV = mv; captainTicker = t; }
   }
-  let hotMoverTicker = null, hotAbs = 0;
+  // hotMoverTicker: biggest individual mover, used for the hot-badge inside drill modals
+  let hotMoverTicker = null, hotTickAbs = 0;
   for (const [t, h] of Object.entries(portfolio.holdings)) {
     const abs = Math.abs(h.dayPct ?? 0);
-    if (abs > hotAbs) { hotAbs = abs; hotMoverTicker = t; }
+    if (abs > hotTickAbs) { hotTickAbs = abs; hotMoverTicker = t; }
   }
-  let hotMoverPosKey = null;
-  for (const [k, pos] of Object.entries(portfolio.positions)) {
-    if (pos.tickers.includes(hotMoverTicker)) { hotMoverPosKey = k; break; }
+  // hotMoverPosKey: position (card) with the highest |dayPct| — determines where the ball sits
+  let hotMoverPosKey = null, hotPosAbs = 0;
+  for (const [k, pos] of Object.entries(metrics.positions)) {
+    if (!pos.players.length) continue;
+    const abs = Math.abs(pos.dayPct ?? 0);
+    if (abs > hotPosAbs) { hotPosAbs = abs; hotMoverPosKey = k; }
   }
 
   // Edit handlers — all no-ops when read-only.
