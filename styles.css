@@ -191,6 +191,8 @@ body {
 .btn-danger:hover { background: var(--loss-dim); }
 .btn-toggle { letter-spacing: 0.14em; font-size: 11px; }
 .btn-toggle.on { background: var(--gold); color: #0c1310; border-color: var(--gold); }
+/* Fixed width so text changes (Market Hours Price ↔ Overnight) don't shift the scoreboard */
+.btn-toggle.ext-toggle { min-width: 178px; justify-content: center; }
 
 /* ============= MAIN LAYOUT ============= */
 .main {

@@ -91,7 +91,7 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
 
       <div className="header-actions">
         <button
-          className={`btn-toggle ${extendedHours ? "on" : ""}`}
+          className={`btn-toggle ext-toggle ${extendedHours ? "on" : ""}`}
           onClick={onToggleExtended}
           title="Toggle extended hours prices (pre-market / after-hours vs previous close)"
         >
