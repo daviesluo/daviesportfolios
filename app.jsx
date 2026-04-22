@@ -74,7 +74,9 @@ async function savePortfolioRemote(p) {
 
 // Migrate old saved shapes to current schema.
 function migrate(p) {
-  if (!p || !p.positions) return p;
+  if (!p || typeof p !== "object") return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
+  if (!p.positions) p.positions = {};
+  if (!p.holdings)  p.holdings  = {};
   // v1 → v2: split single "CB" into "CB1" + "CB2"
   if (p.positions.CB && !p.positions.CB1) {
     const old = p.positions.CB;
