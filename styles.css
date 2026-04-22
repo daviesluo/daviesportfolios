@@ -98,7 +98,8 @@ body {
 
 /* ============= HEADER ============= */
 .header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   padding: 0 24px;
   gap: 24px;
@@ -120,15 +121,13 @@ body {
 .brand-formation { font-size: 10px; color: var(--chalk-mute); letter-spacing: 0.06em; font-family: var(--font-mono); margin-top: 1px; white-space: nowrap; }
 
 .scoreboard {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  position: static;
   display: flex; align-items: center; gap: 24px;
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 10px 20px;
   background: rgba(0,0,0,0.25);
-  z-index: 1;
+  justify-self: center;
   white-space: nowrap;
 }
 .scoreboard-cell { display: flex; flex-direction: column; gap: 3px; }
@@ -148,7 +147,7 @@ body {
   box-shadow: 0 0 6px currentColor;
 }
 
-.header-actions { display: flex; gap: 10px; align-items: stretch; margin-left: auto; }
+.header-actions { display: flex; gap: 10px; align-items: stretch; justify-self: end; }
 
 .live-pill {
   display: flex; align-items: center; gap: 10px;
@@ -207,10 +206,11 @@ body {
 .main {
   flex: 1;
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 380px;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 560px) minmax(220px, 1fr);
   gap: 24px;
   padding: 24px;
   min-height: 0;
+  justify-content: center;
 }
 @media (max-width: 1300px) {
   .main { grid-template-columns: minmax(0, 1fr) 380px; }
