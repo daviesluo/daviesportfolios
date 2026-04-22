@@ -86,11 +86,13 @@ body {
 .ro-badge {
   font-size: 11px;
   letter-spacing: 0.18em;
-  padding: 6px 10px;
+  padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 4px;
   color: var(--chalk-dim);
   background: rgba(244,239,227,0.03);
+  display: flex;
+  align-items: center;
 }
 
 /* ============= HEADER ============= */
@@ -140,7 +142,7 @@ body {
   box-shadow: 0 0 6px currentColor;
 }
 
-.header-actions { display: flex; gap: 10px; align-items: center; }
+.header-actions { display: flex; gap: 10px; align-items: stretch; }
 
 .live-pill {
   display: flex; align-items: center; gap: 10px;
