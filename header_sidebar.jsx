@@ -206,9 +206,9 @@ function StatRow({ label, value, mono, dim, color }) {
 
 // ---- Market Conditions column ----
 const MC_INDICES = [
-  { ticker: "^GSPC",    name: "S&P 500",      ftTicker: "ES=F",  ftName: "S&P Futures"    },
-  { ticker: "^NDX",     name: "NASDAQ 100",   ftTicker: "NQ=F",  ftName: "Nasdaq Futures" },
-  { ticker: "^RUT",     name: "Russell 2000", ftTicker: "RTY=F", ftName: "R2K Futures"    },
+  { ticker: "^GSPC",    name: "S&P 500",      nameB: "S&P",    nameN: "500",  ftTicker: "ES=F",  ftName: "S&P Futures"    },
+  { ticker: "^NDX",     name: "NASDAQ 100",   nameB: "NASDAQ", nameN: "100",  ftTicker: "NQ=F",  ftName: "Nasdaq Futures" },
+  { ticker: "^RUT",     name: "Russell 2000", nameB: "Russell",nameN: "2000", ftTicker: "RTY=F", ftName: "R2K Futures"    },
   { ticker: "^VIX",     name: "VIX"          },
   { ticker: "BZ=F",     name: "Brent Oil"    },
   { ticker: "GBPUSD=X", name: "GBP/USD"      },
@@ -228,7 +228,7 @@ function MarketConditions({ marketData, extendedHours, phase }) {
   const useExt = extendedHours && phase !== "regular";
   return (
     <aside className="market-conditions">
-      {MC_INDICES.map(({ ticker, name, ftTicker, ftName }) => {
+      {MC_INDICES.map(({ ticker, name, nameB, nameN, ftTicker, ftName }) => {
         const activeTicker = (useExt && ftTicker) ? ftTicker : ticker;
         const activeName   = (useExt && ftName)   ? ftName   : name;
         const d = marketData[activeTicker];
@@ -239,7 +239,14 @@ function MarketConditions({ marketData, extendedHours, phase }) {
         return (
           <section key={activeTicker} className={`panel mc-card${ticker === "GBPCNH=X" ? " mc-hide-mobile" : ""}`}>
             <div className="mc-card-head">
-              <h3 className="panel-title" style={{ margin: 0 }}>{activeName}</h3>
+              <h3 className="panel-title" style={{ margin: 0 }}>
+                {(nameB && nameN && !useExt) ? (
+                  <>
+                    <span className="mc-name-full">{activeName}</span>
+                    <span className="mc-name-split">{nameB}<br />{nameN}</span>
+                  </>
+                ) : activeName}
+              </h3>
               <span className="mono dim" style={{ fontSize: '10px' }}>{activeTicker}</span>
             </div>
             <div className="mc-price mono">
