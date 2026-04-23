@@ -41,10 +41,8 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
           <div className="brand-sub">Tactics Board</div>
           <div className="brand-formation mono">Formation {formation} · {metrics.tickerCount} tickers</div>
         </div>
-      </div>
-
-      <div className="scoreboard">
-        <div className="scoreboard-cell">
+        {/* Mobile only: time + toggle lives here instead of in scrolling scoreboard */}
+        <div className="brand-time">
           <div className="sb-time-line">
             <span className="sb-label-inline mono">GMT TIME</span>
             <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
@@ -60,7 +58,26 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
             <span className="ext-track"><span className="ext-thumb" /></span>
           </label>
         </div>
-        <div className="scoreboard-divider" />
+      </div>
+
+      <div className="scoreboard">
+        <div className="scoreboard-cell scoreboard-cell-time">
+          <div className="sb-time-line">
+            <span className="sb-label-inline mono">GMT TIME</span>
+            <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
+            <span className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</span>
+          </div>
+          <label
+            className="ext-switch"
+            style={{ "--ext-on-color": phaseInfo.color }}
+            title={extendedHours ? "Showing extended-hours prices — click to switch off" : "Click to show pre-market / after-hours prices"}
+          >
+            <span className="ext-switch-label mono">EXTENDED HOURS</span>
+            <input type="checkbox" className="ext-checkbox" checked={extendedHours} onChange={onToggleExtended} />
+            <span className="ext-track"><span className="ext-thumb" /></span>
+          </label>
+        </div>
+        <div className="scoreboard-divider scoreboard-divider-time" />
         <div className="scoreboard-cell">
           <div className="sb-label">PORTFOLIO</div>
           <div className="sb-value sb-value-lg mono">{fmM(metrics.marketValue)}</div>
