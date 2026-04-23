@@ -657,13 +657,111 @@ body {
 }
 .ext-checkbox:checked ~ .ext-track .ext-thumb { transform: translateX(12px); background: #0c1310; }
 
-/* responsive */
+/* ============= MOBILE (≤ 760px) ============= */
 @media (max-width: 760px) {
-  .header { padding: 0 12px; gap: 12px; height: auto; min-height: 52px; }
-  .scoreboard { display: none; }
-  .pitch { height: 720px; }
+
+  /* --- Header: stacked rows --- */
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px 0;
+    gap: 0;
+    height: auto;
+    position: relative; /* keep for z-index */
+  }
+  .brand { padding: 2px 0 6px; }
+  .brand-title { font-size: 14px; }
+  .brand-sub { font-size: 9px; }
+  .brand-formation { font-size: 9px; }
+
+  /* Row 2: action buttons */
+  .header-actions {
+    order: 2;
+    margin-left: 0;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 0;
+    border-top: 1px solid var(--line);
+    min-width: 0;
+  }
+  .header-actions .btn-ghost,
+  .header-actions .btn-toggle { min-width: 0; font-size: 11px; padding: 6px 10px; }
+  .live-pill { min-width: 0; flex: 1; }
+
+  /* Row 3: scoreboard — show as horizontal scrolling strip */
+  .scoreboard {
+    order: 3;
+    display: flex !important;
+    position: static;
+    transform: none;
+    left: auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 12px;
+    padding: 8px 0 10px;
+    border: none;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    background: none;
+    white-space: nowrap;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .scoreboard::-webkit-scrollbar { display: none; }
+  .sb-value-lg { font-size: 14px; }
+  .sb-value { font-size: 12px; }
+  .scoreboard-divider { height: 28px; flex-shrink: 0; }
+  .sb-time-line { gap: 5px; }
+  .ext-switch { gap: 5px; }
+
+  /* --- Main: flex column, reordered --- */
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px;
+  }
+  .pitch-wrap        { order: 1; width: 100%; }
+  .sidebar           { order: 2; width: 100%; min-width: 0; }
+  .market-conditions { order: 3; display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  /* --- Pitch --- */
+  .pitch { height: 640px; }
   .pos-chip { width: 84px; min-height: 58px; padding: 5px 6px; }
   .chip-name { font-size: 10px; }
   .chip-pct { font-size: 11px; }
   .chip-tickers { display: none; }
+
+  /* --- Pitch legend: 2×2 grid --- */
+  .pitch-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 20px;
+    font-size: 9px;
+  }
+
+  /* --- Market conditions cards: compact --- */
+  .panel.mc-card { padding: 8px 10px; }
+  .mc-card-head { margin-bottom: 4px; }
+  .mc-price { font-size: 14px; margin-bottom: 3px; letter-spacing: -0.01em; }
+  .mc-footer { font-size: 10px; }
+  .panel-title { font-size: 9px; margin-bottom: 0; }
+
+  /* --- Modals: full-width, single-column cards --- */
+  .modal-backdrop { align-items: flex-end; padding-bottom: 0; }
+  .modal,
+  .modal.size-sm,
+  .modal.size-md,
+  .modal.size-lg {
+    width: 100vw;
+    max-width: 100vw;
+    border-radius: 10px 10px 0 0;
+    max-height: 88vh;
+  }
+  .modal-head { padding: 14px 16px 12px; }
+  .modal-body { padding: 12px 16px; }
+  .modal-foot { padding: 10px 16px; }
+  .player-grid { grid-template-columns: 1fr; }
+  .form-row + .form-row { margin-top: 4px; }
 }
