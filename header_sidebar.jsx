@@ -47,8 +47,8 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
         <div className="scoreboard-cell">
           <div className="sb-time-line">
             <span className="sb-label-inline mono">GMT TIME</span>
-            <span className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</span>
             <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
+            <span className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</span>
           </div>
           <label
             className="ext-switch"

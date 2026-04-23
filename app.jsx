@@ -204,7 +204,7 @@ function Board({ isReadOnly }) {
   const [recentlyUpdated, setRecentlyUpdated] = useState(false);
   const [flashTickers, setFlashTickers] = useState({});
   const [dragging, setDragging] = useState(null);
-  const [extendedHours, setExtendedHours] = useState(true);
+  const [extendedHours, setExtendedHours] = useState(false);
   const [marketData, setMarketData] = useState({});
 
   // In read-only mode, force-disable edit mode.
