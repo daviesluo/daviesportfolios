@@ -627,8 +627,9 @@ body {
   margin-top: 4px;
 }
 .ext-switch-label {
-  font-size: 11px; letter-spacing: 0.06em;
+  font-size: 9px; letter-spacing: 0.18em;
   color: var(--chalk-dim); white-space: nowrap;
+  font-family: var(--font-mono);
 }
 .ext-checkbox {
   position: absolute; opacity: 0; pointer-events: none;
