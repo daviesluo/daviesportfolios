@@ -176,12 +176,22 @@ function Sidebar({ metrics, source }) {
         </div>
       </section>
 
-      <div className="sidebar-foot">
+      <div className="sidebar-foot sidebar-foot-desktop">
         <div className="foot-kv"><span>Source</span><span className="mono">{source === "live" ? "Yahoo Finance" : source === "sim" ? "Simulated" : "—"}</span></div>
         <div className="foot-kv"><span>Auto Refresh</span><span className="mono">30s</span></div>
         <div className="foot-kv"><span>Stored</span><span className="mono">Supabase</span></div>
       </div>
     </aside>
+  );
+}
+
+function SidebarFoot({ source }) {
+  return (
+    <div className="sidebar-foot sidebar-foot-mobile">
+      <div className="foot-kv"><span>Source</span><span className="mono">{source === "live" ? "Yahoo Finance" : source === "sim" ? "Simulated" : "—"}</span></div>
+      <div className="foot-kv"><span>Auto Refresh</span><span className="mono">30s</span></div>
+      <div className="foot-kv"><span>Stored</span><span className="mono">Supabase</span></div>
+    </div>
   );
 }
 
@@ -227,7 +237,7 @@ function MarketConditions({ marketData, extendedHours, phase }) {
         const prevClose = d ? (d.prevClose ?? d.lastPrice) : null;
         const dayChange = (price != null && prevClose != null) ? price - prevClose : null;
         return (
-          <section key={activeTicker} className="panel mc-card">
+          <section key={activeTicker} className={`panel mc-card${ticker === "GBPCNH=X" ? " mc-hide-mobile" : ""}`}>
             <div className="mc-card-head">
               <h3 className="panel-title" style={{ margin: 0 }}>{activeName}</h3>
               <span className="mono dim" style={{ fontSize: '10px' }}>{activeTicker}</span>
@@ -246,4 +256,4 @@ function MarketConditions({ marketData, extendedHours, phase }) {
   );
 }
 
-Object.assign(window, { Header, Sidebar, StatRow, MarketConditions });
+Object.assign(window, { Header, Sidebar, SidebarFoot, StatRow, MarketConditions });
