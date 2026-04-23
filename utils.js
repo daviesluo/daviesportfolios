@@ -5,12 +5,12 @@ window.Utils = (function () {
   // -------- Formatting --------
   const fmtMoney = (n, opts = {}) => {
     if (n == null || isNaN(n)) return "—";
-    const sign = opts.signed && n > 0 ? "+" : "";
     const abs = Math.abs(n);
-    if (abs >= 1e9) return sign + "$" + (n / 1e9).toFixed(2) + "B";
-    if (abs >= 1e6) return sign + "$" + (n / 1e6).toFixed(2) + "M";
-    if (abs >= 1e3) return sign + "$" + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
-    return sign + "$" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const sign = n < 0 ? "-" : (opts.signed && n > 0 ? "+" : "");
+    if (abs >= 1e9) return sign + "$" + (abs / 1e9).toFixed(2) + "B";
+    if (abs >= 1e6) return sign + "$" + (abs / 1e6).toFixed(2) + "M";
+    if (abs >= 1e3) return sign + "$" + abs.toLocaleString(undefined, { maximumFractionDigits: 0 });
+    return sign + "$" + abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
   const fmtPct = (n) => {
     if (n == null || isNaN(n)) return "—";
