@@ -337,12 +337,14 @@ function MarketConditions({ marketData, extendedHours, phase }) {
               </h3>
               <span className="mono dim" style={{ fontSize: '10px' }}>{activeTicker}</span>
             </div>
-            <div className="mc-price mono" style={ticker === "^VIX" && price != null ? { color: vixRegime(price).color } : {}}>
-              {fmtMcPrice(price, ticker)}
+            <div className="mc-price-row">
+              <div className="mc-price mono" style={ticker === "^VIX" && price != null ? { color: vixRegime(price).color } : {}}>
+                {fmtMcPrice(price, ticker)}
+              </div>
+              {ticker === "^VIX" && price != null && (
+                <span className="mc-vix-regime mono" style={{ color: vixRegime(price).color }}>{vixRegime(price).label}</span>
+              )}
             </div>
-            {ticker === "^VIX" && price != null && (
-              <div className="mc-vix-regime mono" style={{ color: vixRegime(price).color }}>{vixRegime(price).label}</div>
-            )}
             <div className="mc-footer">
               <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{fmtChg(dayChange)}</span>
               <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{pct != null ? fmP(pct) : "—"}</span>
