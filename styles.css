@@ -615,13 +615,11 @@ body {
 .inp:focus { border-color: var(--chalk-dim); }
 .inp.upper { text-transform: uppercase; letter-spacing: 0.04em; }
 
-/* Inline time + extended-hours toggle */
-.sb-time-row { display: flex; align-items: center; gap: 8px; }
-
 /* Extended hours toggle switch */
 .ext-switch {
-  display: inline-flex; align-items: center;
+  display: inline-flex; align-items: center; gap: 6px;
   cursor: pointer; user-select: none;
+  margin-top: 4px;
 }
 .ext-switch-label {
   font-size: 11px; letter-spacing: 0.06em;
