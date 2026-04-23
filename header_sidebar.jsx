@@ -18,7 +18,7 @@ function useClock(intervalMs = 1000) {
   return now;
 }
 
-function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended }) {
+function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView }) {
   const now = useClock(1000);
   const t = londonTimeParts(now);
   const phase = usMarketPhase(now);
@@ -138,6 +138,10 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
           </svg>
           {isRefreshing ? "Refreshing" : "Refresh"}
         </button>
+        <button className={`btn-ghost${viewMode === "heatmap" ? " on" : ""}`} onClick={onToggleView}
+          title={viewMode === "heatmap" ? "Switch to tactics board" : "Switch to heatmap"}>
+          {viewMode === "heatmap" ? "TACTICS" : "HEATMAP"}
+        </button>
         {isReadOnly ? (
           <span className="ro-badge mono" title="Read-only viewer">VIEWER</span>
         ) : (
@@ -151,30 +155,53 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
 }
 
 function Sparkline({ snapshots }) {
+  const [selIdx, setSelIdx] = React.useState(null);
+
   if (!snapshots || snapshots.length < 2) {
     return <div className="sparkline-empty dim mono">Collecting data…</div>;
   }
+
   const vals = snapshots.map(s => s.value);
   const minV = Math.min(...vals);
   const maxV = Math.max(...vals);
   const range = maxV - minV || 1;
   const W = 200, H = 44, pad = 3;
-  const pts = snapshots.map((s, i) => {
-    const x = (i / (snapshots.length - 1)) * W;
-    const y = H - pad - ((s.value - minV) / range) * (H - pad * 2);
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(" ");
-  const pct = ((snapshots[snapshots.length - 1].value - snapshots[0].value) / snapshots[0].value) * 100;
-  const lineColor = pct >= 0 ? "var(--gain)" : "var(--loss)";
-  const startDate = snapshots[0].date.slice(5); // MM-DD
+  const gx = (i) => snapshots.length < 2 ? W / 2 : (i / (snapshots.length - 1)) * W;
+  const gy = (v) => H - pad - ((v - minV) / range) * (H - pad * 2);
+
+  const pts = snapshots.map((s, i) => `${gx(i).toFixed(1)},${gy(s.value).toFixed(1)}`).join(" ");
+  const totalPct = ((snapshots[snapshots.length - 1].value - snapshots[0].value) / snapshots[0].value) * 100;
+  const lineColor = totalPct >= 0 ? "var(--gain)" : "var(--loss)";
+
+  const si = selIdx ?? snapshots.length - 1;
+  const sel = snapshots[si];
+  const selFromStart = si === 0 ? 0 : ((sel.value - snapshots[0].value) / snapshots[0].value) * 100;
+  const selToEnd = si === snapshots.length - 1 ? null
+    : ((snapshots[snapshots.length - 1].value - sel.value) / sel.value) * 100;
+  const infoVal = selToEnd ?? selFromStart;
+
   return (
     <div className="sparkline-wrap">
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none">
         <polyline points={pts} fill="none" stroke={lineColor} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+        <line x1={gx(si).toFixed(1)} y1="0" x2={gx(si).toFixed(1)} y2={H}
+          stroke={lineColor} strokeWidth="0.5" strokeDasharray="2,2" opacity="0.45" />
+        <circle cx={gx(si).toFixed(1)} cy={gy(sel.value).toFixed(1)} r="3"
+          fill={lineColor} stroke="#0c1310" strokeWidth="1.5" />
       </svg>
+      {snapshots.length > 2 && (
+        <input type="range" min={0} max={snapshots.length - 1} value={si}
+          onChange={e => setSelIdx(Number(e.target.value))}
+          className="sparkline-slider" />
+      )}
       <div className="sparkline-meta">
-        <span className="dim mono">{startDate} → today  ({snapshots.length}d)</span>
-        <span className="mono" style={{ color: lineColor }}>{fmP(pct)}</span>
+        <span className="dim mono">{sel.date.slice(5)}{si === snapshots.length - 1 ? " (today)" : ""}</span>
+        <span className="mono">{fmM(sel.value)}</span>
+        <span className="mono" style={{ color: infoVal >= 0 ? "var(--gain)" : "var(--loss)" }}>
+          {selToEnd != null
+            ? `${infoVal >= 0 ? "+" : ""}${infoVal.toFixed(1)}% →now`
+            : `${infoVal >= 0 ? "+" : ""}${infoVal.toFixed(1)}%`}
+        </span>
       </div>
     </div>
   );
@@ -312,6 +339,27 @@ function vixRegime(price) {
   return           { color: "var(--loss)",             label: "FEAR" };
 }
 
+function fmtVol(n) {
+  if (!n || n <= 0) return null;
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
+  if (n >= 1e3) return Math.round(n / 1e3) + "K";
+  return String(n);
+}
+
+function heatColor(pct) {
+  if (pct == null || isNaN(pct)) return "rgba(244,239,227,0.06)";
+  const a = Math.abs(pct);
+  if (pct > 0) {
+    if (a > 3) return "oklch(0.48 0.18 150)";
+    if (a > 1) return "oklch(0.40 0.12 150)";
+    return            "oklch(0.30 0.07 150)";
+  }
+  if (a > 3) return "oklch(0.45 0.18 25)";
+  if (a > 1) return "oklch(0.37 0.12 25)";
+  return            "oklch(0.27 0.07 25)";
+}
+
 function MarketConditions({ marketData, extendedHours, phase }) {
   const useExt = extendedHours && phase !== "regular";
   return (
@@ -319,11 +367,12 @@ function MarketConditions({ marketData, extendedHours, phase }) {
       {MC_INDICES.map(({ ticker, name, nameB, nameN, ftTicker, ftName }) => {
         const activeTicker = (useExt && ftTicker) ? ftTicker : ticker;
         const activeName   = (useExt && ftName)   ? ftName   : name;
-        const d = marketData[activeTicker];
+        const d         = marketData[activeTicker];
         const price     = d ? d.lastPrice : null;
         const pct       = d ? (d.dayPct ?? 0) : null;
         const prevClose = d ? (d.prevClose ?? d.lastPrice) : null;
         const dayChange = (price != null && prevClose != null) ? price - prevClose : null;
+        const extVol    = useExt ? fmtVol(d?.extVolume ?? null) : null;
         return (
           <section key={activeTicker} className={`panel mc-card${ticker === "GBPCNH=X" ? " mc-hide-mobile" : ""}`}>
             <div className="mc-card-head">
@@ -349,6 +398,9 @@ function MarketConditions({ marketData, extendedHours, phase }) {
               <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{fmtChg(dayChange)}</span>
               <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{pct != null ? fmP(pct) : "—"}</span>
             </div>
+            {extVol && (
+              <div className="mc-vol mono dim">EXT VOL {extVol}</div>
+            )}
           </section>
         );
       })}
@@ -356,4 +408,38 @@ function MarketConditions({ marketData, extendedHours, phase }) {
   );
 }
 
-Object.assign(window, { Header, Sidebar, SidebarFoot, StatRow, MarketConditions });
+function Heatmap({ metrics, onBack }) {
+  const players = [];
+  for (const pos of Object.values(metrics.positions)) {
+    for (const p of pos.players) {
+      if (!p.isCash && p.ticker !== "CASH" && p.marketValue > 0) players.push(p);
+    }
+  }
+  const total = players.reduce((s, p) => s + p.marketValue, 0);
+  const sorted = [...players].sort((a, b) => b.marketValue - a.marketValue);
+
+  return (
+    <div className="heatmap-wrap">
+      <div className="heatmap-topbar">
+        <span className="dim mono" style={{ fontSize: '10px', letterSpacing: '0.12em' }}>SIZE = VALUE · COLOR = DAY CHANGE</span>
+        <button className="btn-ghost" onClick={onBack} style={{ fontSize: '11px', padding: '4px 10px' }}>← TACTICS</button>
+      </div>
+      <div className="heatmap">
+        {sorted.map(p => {
+          const share = p.marketValue / total;
+          const pct   = share * 100;
+          return (
+            <div key={p.ticker} className="heatmap-cell"
+              style={{ width: pct + '%', background: heatColor(p.dayPct) }}
+              title={`${p.ticker}: ${fmP(p.dayPct)} today · ${fmM(p.marketValue)}`}>
+              {pct > 2 && <span className="hm-ticker mono">{p.ticker}</span>}
+              {pct > 5 && <span className="hm-pct mono">{fmP(p.dayPct)}</span>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { Header, Sidebar, SidebarFoot, StatRow, MarketConditions, Heatmap });

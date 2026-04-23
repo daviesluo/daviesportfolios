@@ -172,13 +172,17 @@ window.Utils = (function () {
         if (lastPrice == null) continue;
         const prevClose = meta.regularMarketPreviousClose ?? meta.previousClose ?? meta.chartPreviousClose ?? lastPrice;
         // Extended hours price: pre-market or after-hours (null if not available).
-        const extPrice = meta.preMarketPrice ?? meta.postMarketPrice ?? null;
+        const extPrice  = meta.preMarketPrice ?? meta.postMarketPrice ?? null;
+        const volume    = meta.regularMarketVolume ?? null;
+        const extVolume = meta.preMarketVolume ?? meta.postMarketVolume ?? null;
         return {
           lastPrice,
           extPrice,
           prevClose,
           dayPct: prevClose > 0 ? ((lastPrice - prevClose) / prevClose) * 100 : 0,
           extDayPct: (extPrice != null && lastPrice > 0) ? ((extPrice - lastPrice) / lastPrice) * 100 : null,
+          volume,
+          extVolume,
         };
       } catch (e) {
         clearTimeout(tid);

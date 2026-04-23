@@ -210,6 +210,7 @@ function Board({ isReadOnly }) {
   const [dragging, setDragging] = useState(null);
   const [extendedHours, setExtendedHours] = useState(false);
   const [marketData, setMarketData] = useState({});
+  const [viewMode, setViewMode] = useState("tactics");
 
   // In read-only mode, force-disable edit mode.
   useEffect(() => { if (isReadOnly && editMode) setEditMode(false); }, [isReadOnly, editMode]);
@@ -424,6 +425,8 @@ function Board({ isReadOnly }) {
         isReadOnly={isReadOnly}
         extendedHours={extendedHours}
         onToggleExtended={() => setExtendedHours(v => !v)}
+        viewMode={viewMode}
+        onToggleView={() => setViewMode(v => v === "tactics" ? "heatmap" : "tactics")}
       />
 
       <main className="main">
@@ -432,29 +435,33 @@ function Board({ isReadOnly }) {
           extendedHours={extendedHours}
           phase={currentPhase}
         />
-        <Pitch
-          metrics={metrics}
-          captainTicker={captainTicker}
-          hotMoverTicker={hotMoverTicker}
-          hotMoverPosKey={hotMoverPosKey}
-          flashTickers={flashTickers}
-          editMode={editMode}
-          isReadOnly={isReadOnly}
-          dragging={dragging}
-          setDragging={isReadOnly ? () => {} : setDragging}
-          onDrop={handleDrop}
-          onOpenPosition={(k) => {
-            if (k === "GK") { if (!isReadOnly) setEditingCash(true); return; }
-            setDrillPos(k);
-          }}
-          onAddToPosition={(k) => {
-            if (isReadOnly) return;
-            if (k === "GK") setEditingCash(true); else setAddingToPos(k);
-          }}
-          onUpdatePosition={updatePosition}
-          isRefreshing={isRefreshing}
-          recentlyUpdated={recentlyUpdated}
-        />
+        {viewMode === "heatmap" ? (
+          <window.Heatmap metrics={metrics} onBack={() => setViewMode("tactics")} />
+        ) : (
+          <Pitch
+            metrics={metrics}
+            captainTicker={captainTicker}
+            hotMoverTicker={hotMoverTicker}
+            hotMoverPosKey={hotMoverPosKey}
+            flashTickers={flashTickers}
+            editMode={editMode}
+            isReadOnly={isReadOnly}
+            dragging={dragging}
+            setDragging={isReadOnly ? () => {} : setDragging}
+            onDrop={handleDrop}
+            onOpenPosition={(k) => {
+              if (k === "GK") { if (!isReadOnly) setEditingCash(true); return; }
+              setDrillPos(k);
+            }}
+            onAddToPosition={(k) => {
+              if (isReadOnly) return;
+              if (k === "GK") setEditingCash(true); else setAddingToPos(k);
+            }}
+            onUpdatePosition={updatePosition}
+            isRefreshing={isRefreshing}
+            recentlyUpdated={recentlyUpdated}
+          />
+        )}
         <Sidebar metrics={metrics} source={source} snapshots={portfolio.snapshots || []} />
         <window.SidebarFoot source={source} />
       </main>
