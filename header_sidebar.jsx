@@ -36,15 +36,6 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
   return (
     <header className="header">
       <div className="brand">
-        <div className="brand-mark">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6">
-            <circle cx="12" cy="12" r="9.5" />
-            <path d="M12 2.5 L14.5 5.5 L13 9 L10 9 L8.5 5.5 Z" />
-            <path d="M12 14 L17 17.5 L15 22 L9 22 L7 17.5 Z" opacity="0.6" />
-            <path d="M2.5 12 L6 10 L9 12 L8 15.5 L5 16" opacity="0.4" />
-            <path d="M21.5 12 L18 10 L15 12 L16 15.5 L19 16" opacity="0.4" />
-          </svg>
-        </div>
         <div>
           <div className="brand-title">Davies' Portfolios</div>
           <div className="brand-sub">Tactics Board</div>
@@ -57,17 +48,16 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
           <div className="sb-label">
             GMT TIME <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
           </div>
-          <div className="sb-time-row">
-            <span className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</span>
-            <label
-              className="ext-switch"
-              style={{ "--ext-on-color": phaseInfo.color }}
-              title={extendedHours ? "Showing extended-hours prices — click to switch off" : "Click to show pre-market / after-hours prices"}
-            >
-              <input type="checkbox" className="ext-checkbox" checked={extendedHours} onChange={onToggleExtended} />
-              <span className="ext-track"><span className="ext-thumb" /></span>
-            </label>
-          </div>
+          <div className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</div>
+          <label
+            className="ext-switch"
+            style={{ "--ext-on-color": phaseInfo.color }}
+            title={extendedHours ? "Showing extended-hours prices — click to switch off" : "Click to show pre-market / after-hours prices"}
+          >
+            <input type="checkbox" className="ext-checkbox" checked={extendedHours} onChange={onToggleExtended} />
+            <span className="ext-track"><span className="ext-thumb" /></span>
+            <span className="ext-switch-label mono">Extended Hours</span>
+          </label>
         </div>
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
