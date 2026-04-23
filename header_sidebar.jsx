@@ -33,11 +33,6 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
     source === "live" ? "LIVE" :
     source === "error" ? "RETRYING…" : "…";
 
-  const extLabel = !extendedHours || phase === "regular"
-    ? "Market Hours Price"
-    : phase === "premarket" ? "Pre-Market Price"
-    : "After Hours Price";
-
   return (
     <header className="header">
       <div className="brand">
@@ -91,13 +86,11 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
       </div>
 
       <div className="header-actions">
-        <button
-          className={`btn-toggle ext-toggle ${extendedHours ? "on" : ""}`}
-          onClick={onToggleExtended}
-          title="Toggle extended hours prices (pre-market / after-hours vs previous close)"
-        >
-          {extLabel}
-        </button>
+        <label className="ext-switch" title="Toggle extended hours (pre-market / after-hours) prices">
+          <span className="ext-switch-label mono">Extended Hours</span>
+          <input type="checkbox" className="ext-checkbox" checked={extendedHours} onChange={onToggleExtended} />
+          <span className="ext-track"><span className="ext-thumb" /></span>
+        </label>
         <div className={`live-pill ${isRefreshing ? "refreshing" : ""} ${source === "error" ? "err" : ""}`}
              title={source === "live" ? "Yahoo Finance" : source === "error" ? "Retrying…" : "Connecting"}>
           <span className={`live-dot ${isRefreshing ? "pulse" : ""} ${source === "error" ? "err" : ""}`} />
