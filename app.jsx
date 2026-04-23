@@ -437,6 +437,7 @@ function Board({ isReadOnly }) {
           recentlyUpdated={recentlyUpdated}
         />
         <Sidebar metrics={metrics} source={source} />
+        <window.SidebarFoot source={source} />
       </main>
 
       {drillPos && (
