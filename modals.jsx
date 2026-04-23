@@ -206,7 +206,7 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
 }
 
 function NewsSection({ tickers }) {
-  const [items, setItems] = React.useState(null); // null = loading
+  const [items, setItems] = React.useState(null);
 
   React.useEffect(() => {
     const live = tickers.filter(t => !t.endsWith(".PVT") && t !== "CASH");
@@ -217,25 +217,26 @@ function NewsSection({ tickers }) {
       const PROXIES = [
         (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
         (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+        (u) => `https://api.cors.lol/?url=${encodeURIComponent(u)}`,
       ];
       for (const ticker of live.slice(0, 4)) {
-        const rss = `https://feeds.finance.yahoo.com/rss/2.0/headline?s=${encodeURIComponent(ticker)}&region=US&lang=en-US`;
+        const apiUrl = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(ticker)}&quotesCount=0&newsCount=5&enableFuzzyQuery=false`;
         for (const makeProxy of PROXIES) {
           const ctrl = new AbortController();
           const tid = setTimeout(() => ctrl.abort(), 7000);
           try {
-            const res = await fetch(makeProxy(rss), { signal: ctrl.signal, cache: "no-store" });
+            const res = await fetch(makeProxy(apiUrl), { signal: ctrl.signal, cache: "no-store" });
             clearTimeout(tid);
             if (!res.ok) continue;
-            const text = await res.text();
-            const doc = new DOMParser().parseFromString(text, "text/xml");
-            for (const xi of Array.from(doc.querySelectorAll("item")).slice(0, 2)) {
-              const title = xi.querySelector("title")?.textContent?.trim();
-              const link  = xi.querySelector("link")?.textContent?.trim() || "#";
-              const pub   = xi.querySelector("pubDate")?.textContent?.trim() || "";
+            const data = await res.json();
+            const news = data?.finance?.result?.[0]?.news ?? data?.news ?? [];
+            for (const item of news.slice(0, 2)) {
+              const title = item.title?.trim();
+              const link  = item.link || item.url || "#";
+              const pub   = item.providerPublishTime ? new Date(item.providerPublishTime * 1000).toISOString() : "";
               if (title) all.push({ ticker, title, link, pub });
             }
-            break; // proxy worked, move to next ticker
+            if (news.length > 0) break;
           } catch { clearTimeout(tid); }
         }
       }

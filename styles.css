@@ -551,26 +551,6 @@ body {
 .mc-vix-regime { font-size: 9px; letter-spacing: 0.16em; font-family: var(--font-mono); }
 .mc-vol { font-size: 9px; letter-spacing: 0.08em; margin-top: 3px; }
 
-/* ============= HEATMAP ============= */
-.heatmap-wrap {
-  display: flex; flex-direction: column; gap: 10px;
-  min-width: 0; padding: 0 2px;
-}
-.heatmap-topbar { display: flex; justify-content: space-between; align-items: center; }
-.heatmap {
-  display: flex; flex-wrap: wrap; gap: 2px;
-  align-content: flex-start;
-}
-.heatmap-cell {
-  height: 64px; min-width: 8px;
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  border-radius: 2px; overflow: hidden; cursor: default;
-  transition: filter 0.12s;
-}
-.heatmap-cell:hover { filter: brightness(1.18); }
-.hm-ticker { font-size: 11px; font-weight: 700; letter-spacing: 0.02em; color: rgba(255,255,255,0.92); }
-.hm-pct    { font-size: 9px; color: rgba(255,255,255,0.75); margin-top: 2px; letter-spacing: 0.04em; }
-
 /* ============= NEWS SECTION ============= */
 .news-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
 .news-hd { font-size: 9px; letter-spacing: 0.2em; color: var(--chalk-dim); margin-bottom: 10px; }

@@ -18,7 +18,7 @@ function useClock(intervalMs = 1000) {
   return now;
 }
 
-function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView }) {
+function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended }) {
   const now = useClock(1000);
   const t = londonTimeParts(now);
   const phase = usMarketPhase(now);
@@ -137,10 +137,6 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
             <path d="M3 20v-5h5" />
           </svg>
           {isRefreshing ? "Refreshing" : "Refresh"}
-        </button>
-        <button className={`btn-ghost${viewMode === "heatmap" ? " on" : ""}`} onClick={onToggleView}
-          title={viewMode === "heatmap" ? "Switch to tactics board" : "Switch to heatmap"}>
-          {viewMode === "heatmap" ? "TACTICS" : "HEATMAP"}
         </button>
         {isReadOnly ? (
           <span className="ro-badge mono" title="Read-only viewer">VIEWER</span>
@@ -347,19 +343,6 @@ function fmtVol(n) {
   return String(n);
 }
 
-function heatColor(pct) {
-  if (pct == null || isNaN(pct)) return "rgba(244,239,227,0.06)";
-  const a = Math.abs(pct);
-  if (pct > 0) {
-    if (a > 3) return "oklch(0.48 0.18 150)";
-    if (a > 1) return "oklch(0.40 0.12 150)";
-    return            "oklch(0.30 0.07 150)";
-  }
-  if (a > 3) return "oklch(0.45 0.18 25)";
-  if (a > 1) return "oklch(0.37 0.12 25)";
-  return            "oklch(0.27 0.07 25)";
-}
-
 function MarketConditions({ marketData, extendedHours, phase }) {
   const useExt = extendedHours && phase !== "regular";
   return (
@@ -372,7 +355,7 @@ function MarketConditions({ marketData, extendedHours, phase }) {
         const pct       = d ? (d.dayPct ?? 0) : null;
         const prevClose = d ? (d.prevClose ?? d.lastPrice) : null;
         const dayChange = (price != null && prevClose != null) ? price - prevClose : null;
-        const extVol    = useExt ? fmtVol(d?.extVolume ?? null) : null;
+        const vol       = (useExt && ftTicker) ? fmtVol(d?.volume ?? null) : null;
         return (
           <section key={activeTicker} className={`panel mc-card${ticker === "GBPCNH=X" ? " mc-hide-mobile" : ""}`}>
             <div className="mc-card-head">
@@ -398,8 +381,8 @@ function MarketConditions({ marketData, extendedHours, phase }) {
               <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{fmtChg(dayChange)}</span>
               <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{pct != null ? fmP(pct) : "—"}</span>
             </div>
-            {extVol && (
-              <div className="mc-vol mono dim">EXT VOL {extVol}</div>
+            {vol && (
+              <div className="mc-vol mono dim">VOL {vol}</div>
             )}
           </section>
         );
@@ -408,38 +391,4 @@ function MarketConditions({ marketData, extendedHours, phase }) {
   );
 }
 
-function Heatmap({ metrics, onBack }) {
-  const players = [];
-  for (const pos of Object.values(metrics.positions)) {
-    for (const p of pos.players) {
-      if (!p.isCash && p.ticker !== "CASH" && p.marketValue > 0) players.push(p);
-    }
-  }
-  const total = players.reduce((s, p) => s + p.marketValue, 0);
-  const sorted = [...players].sort((a, b) => b.marketValue - a.marketValue);
-
-  return (
-    <div className="heatmap-wrap">
-      <div className="heatmap-topbar">
-        <span className="dim mono" style={{ fontSize: '10px', letterSpacing: '0.12em' }}>SIZE = VALUE · COLOR = DAY CHANGE</span>
-        <button className="btn-ghost" onClick={onBack} style={{ fontSize: '11px', padding: '4px 10px' }}>← TACTICS</button>
-      </div>
-      <div className="heatmap">
-        {sorted.map(p => {
-          const share = p.marketValue / total;
-          const pct   = share * 100;
-          return (
-            <div key={p.ticker} className="heatmap-cell"
-              style={{ width: pct + '%', background: heatColor(p.dayPct) }}
-              title={`${p.ticker}: ${fmP(p.dayPct)} today · ${fmM(p.marketValue)}`}>
-              {pct > 2 && <span className="hm-ticker mono">{p.ticker}</span>}
-              {pct > 5 && <span className="hm-pct mono">{fmP(p.dayPct)}</span>}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-Object.assign(window, { Header, Sidebar, SidebarFoot, StatRow, MarketConditions, Heatmap });
+Object.assign(window, { Header, Sidebar, SidebarFoot, StatRow, MarketConditions });
