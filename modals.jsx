@@ -2,26 +2,14 @@
 const { fmtMoney: fmtMo, fmtPct: fmtPe, fmtPrice: fmtPri, pctColor: pctClo } = window.Utils;
 
 function Modal({ children, onClose, size = "md" }) {
-  const dragY = React.useRef(null);
-
   React.useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-
-  const onDragStart = (e) => { dragY.current = e.touches[0].clientY; };
-  const onDragEnd   = (e) => {
-    if (dragY.current === null) return;
-    const delta = e.changedTouches[0].clientY - dragY.current;
-    dragY.current = null;
-    if (delta > 60) onClose();
-  };
-
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className={`modal size-${size}`} onClick={(e) => e.stopPropagation()}>
-        <div className="modal-drag-handle" onTouchStart={onDragStart} onTouchEnd={onDragEnd} />
         {children}
       </div>
     </div>

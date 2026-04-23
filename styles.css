@@ -463,9 +463,10 @@ body {
 .mc-name-full  { display: inline; }
 .mc-name-split { display: none; }
 
+.mc-price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
 .mc-price {
   font-size: 20px; font-weight: 500;
-  margin-bottom: 6px; letter-spacing: -0.01em;
+  letter-spacing: -0.01em;
 }
 .mc-footer {
   display: flex; justify-content: space-between;
@@ -534,9 +535,6 @@ body {
 
 /* ============= VIX REGIME LABEL ============= */
 .mc-vix-regime { font-size: 9px; letter-spacing: 0.16em; font-family: var(--font-mono); margin-bottom: 4px; }
-
-/* ============= MODAL DRAG HANDLE ============= */
-.modal-drag-handle { display: none; }
 
 /* ============= MODALS ============= */
 .modal-backdrop {
@@ -817,16 +815,6 @@ body {
   .modal-body { padding: 12px 16px; overflow-y: auto; flex: 1; }
   .modal-foot { padding: 10px 16px; }
   .player-grid { grid-template-columns: 1fr; }
-
-  /* --- Modal drag handle (swipe down to close) --- */
-  .modal-drag-handle {
-    display: block;
-    width: 40px; height: 4px; border-radius: 2px;
-    background: var(--chalk-mute);
-    margin: 10px auto 0;
-    flex-shrink: 0;
-    cursor: grab;
-  }
 
   /* --- Inputs: 16px prevents iOS auto-zoom on focus --- */
   .inp { font-size: 16px; touch-action: manipulation; }
