@@ -121,7 +121,7 @@ body {
 
 .scoreboard {
   position: absolute;
-  left: 50%;
+  left: calc(50% - 70px);
   transform: translateX(-50%);
   display: flex; align-items: center; gap: 24px;
   border: 1px solid var(--line);
@@ -198,7 +198,6 @@ body {
 .btn-toggle.on { background: var(--gold); color: #0c1310; border-color: var(--gold); }
 /* Each button locked to its widest natural label so the row never reflows.
    The scoreboard stays stable because it lives in the fixed 1fr grid column. */
-.btn-toggle.ext-toggle { min-width: 148px; justify-content: center; }
 .live-pill              { min-width: 128px; }
 .header-actions .btn-ghost { min-width: 100px; justify-content: center; }
 .header-actions .btn-toggle:not(.ext-toggle) { min-width: 88px; justify-content: center; }
@@ -615,6 +614,32 @@ body {
 }
 .inp:focus { border-color: var(--chalk-dim); }
 .inp.upper { text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* Extended hours toggle switch */
+.ext-switch {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; user-select: none;
+  padding: 0 4px;
+}
+.ext-switch-label {
+  font-size: 11px; letter-spacing: 0.06em;
+  color: var(--chalk-dim); white-space: nowrap;
+}
+.ext-checkbox { display: none; }
+.ext-track {
+  position: relative; width: 34px; height: 18px; border-radius: 9px;
+  background: rgba(244,239,227,0.08); border: 1px solid var(--chalk-mute);
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+.ext-thumb {
+  position: absolute; top: 2px; left: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--chalk-dim);
+  transition: transform 0.2s, background 0.2s;
+}
+.ext-checkbox:checked ~ .ext-track { background: var(--gold); border-color: var(--gold); }
+.ext-checkbox:checked ~ .ext-track .ext-thumb { transform: translateX(16px); background: #0c1310; }
 
 /* responsive */
 @media (max-width: 760px) {
