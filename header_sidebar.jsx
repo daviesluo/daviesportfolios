@@ -196,9 +196,9 @@ function StatRow({ label, value, mono, dim, color }) {
 
 // ---- Market Conditions column ----
 const MC_INDICES = [
-  { ticker: "^GSPC",    name: "S&P 500"      },
-  { ticker: "^NDX",     name: "NASDAQ 100"   },
-  { ticker: "^RUT",     name: "Russell 2000" },
+  { ticker: "^GSPC",    name: "S&P 500",      ftTicker: "ES=F",  ftName: "S&P Futures"    },
+  { ticker: "^NDX",     name: "NASDAQ 100",   ftTicker: "NQ=F",  ftName: "Nasdaq Futures" },
+  { ticker: "^RUT",     name: "Russell 2000", ftTicker: "RTY=F", ftName: "R2K Futures"    },
   { ticker: "^VIX",     name: "VIX"          },
   { ticker: "BZ=F",     name: "Brent Oil"    },
   { ticker: "GBPUSD=X", name: "GBP/USD"      },
@@ -218,17 +218,19 @@ function MarketConditions({ marketData, extendedHours, phase }) {
   const useExt = extendedHours && phase !== "regular";
   return (
     <aside className="market-conditions">
-      {MC_INDICES.map(({ ticker, name }) => {
-        const d = marketData[ticker];
-        const price     = d ? ((useExt && d.extPrice   != null) ? d.extPrice   : d.lastPrice)       : null;
-        const pct       = d ? ((useExt && d.extDayPct  != null) ? d.extDayPct  : (d.dayPct ?? 0))   : null;
+      {MC_INDICES.map(({ ticker, name, ftTicker, ftName }) => {
+        const activeTicker = (useExt && ftTicker) ? ftTicker : ticker;
+        const activeName   = (useExt && ftName)   ? ftName   : name;
+        const d = marketData[activeTicker];
+        const price     = d ? d.lastPrice : null;
+        const pct       = d ? (d.dayPct ?? 0) : null;
         const prevClose = d ? (d.prevClose ?? d.lastPrice) : null;
         const dayChange = (price != null && prevClose != null) ? price - prevClose : null;
         return (
-          <section key={ticker} className="panel mc-card">
+          <section key={activeTicker} className="panel mc-card">
             <div className="mc-card-head">
-              <h3 className="panel-title" style={{ margin: 0 }}>{name}</h3>
-              <span className="mono dim" style={{ fontSize: '10px' }}>{ticker}</span>
+              <h3 className="panel-title" style={{ margin: 0 }}>{activeName}</h3>
+              <span className="mono dim" style={{ fontSize: '10px' }}>{activeTicker}</span>
             </div>
             <div className="mc-price mono">
               {price != null ? fmtPr(price) : "—"}
