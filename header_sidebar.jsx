@@ -28,6 +28,27 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
   const agoMs = lastUpdated ? (now - lastUpdated) : null;
   const agoText = lastUpdated ? formatAgo(agoMs) : "—";
 
+  // Scoreboard flash: detect value changes on price refresh
+  const prevMetrics = React.useRef(null);
+  const [sbFlash, setSbFlash] = React.useState({});
+  React.useEffect(() => {
+    if (!prevMetrics.current) { prevMetrics.current = metrics; return; }
+    const prev = prevMetrics.current;
+    const eps = 0.01;
+    const f = {};
+    if (Math.abs((metrics.marketValue ?? 0) - (prev.marketValue ?? 0)) > eps)
+      f.mv   = metrics.marketValue  > prev.marketValue  ? "up" : "down";
+    if (Math.abs((metrics.dayChange ?? 0) - (prev.dayChange ?? 0)) > eps)
+      f.day  = metrics.dayChange    > prev.dayChange    ? "up" : "down";
+    if (Math.abs((metrics.unrlGL ?? 0) - (prev.unrlGL ?? 0)) > eps)
+      f.unrl = metrics.unrlGL       > prev.unrlGL       ? "up" : "down";
+    prevMetrics.current = metrics;
+    if (Object.keys(f).length) {
+      setSbFlash(f);
+      setTimeout(() => setSbFlash({}), 1400);
+    }
+  }, [metrics]);
+
   const statusLabel =
     isRefreshing ? "REFRESHING…" :
     source === "live" ? "LIVE" :
@@ -80,12 +101,12 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
         <div className="scoreboard-divider scoreboard-divider-time" />
         <div className="scoreboard-cell">
           <div className="sb-label">PORTFOLIO</div>
-          <div className="sb-value sb-value-lg mono">{fmM(metrics.marketValue)}</div>
+          <div className={`sb-value sb-value-lg mono${sbFlash.mv ? " sb-flash-" + sbFlash.mv : ""}`}>{fmM(metrics.marketValue)}</div>
         </div>
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
           <div className="sb-label">DAY CHANGE</div>
-          <div className="sb-value mono sb-change-row" style={{ color: pcC(metrics.dayPct) }}>
+          <div className={`sb-value mono sb-change-row${sbFlash.day ? " sb-flash-" + sbFlash.day : ""}`} style={{ color: pcC(metrics.dayPct) }}>
             <span>{fmM(metrics.dayChange, { signed: true })}</span>
             <span className="sb-pct">({fmP(metrics.dayPct)})</span>
           </div>
@@ -93,7 +114,7 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
           <div className="sb-label">UNREALIZED G/L</div>
-          <div className="sb-value mono sb-change-row" style={{ color: pcC(metrics.unrlPct) }}>
+          <div className={`sb-value mono sb-change-row${sbFlash.unrl ? " sb-flash-" + sbFlash.unrl : ""}`} style={{ color: pcC(metrics.unrlPct) }}>
             <span>{fmM(metrics.unrlGL, { signed: true })}</span>
             <span className="sb-pct">({fmP(metrics.unrlPct)})</span>
           </div>
@@ -129,7 +150,37 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
   );
 }
 
-function Sidebar({ metrics, source }) {
+function Sparkline({ snapshots }) {
+  if (!snapshots || snapshots.length < 2) {
+    return <div className="sparkline-empty dim mono">Collecting data…</div>;
+  }
+  const vals = snapshots.map(s => s.value);
+  const minV = Math.min(...vals);
+  const maxV = Math.max(...vals);
+  const range = maxV - minV || 1;
+  const W = 200, H = 44, pad = 3;
+  const pts = snapshots.map((s, i) => {
+    const x = (i / (snapshots.length - 1)) * W;
+    const y = H - pad - ((s.value - minV) / range) * (H - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  const pct = ((snapshots[snapshots.length - 1].value - snapshots[0].value) / snapshots[0].value) * 100;
+  const lineColor = pct >= 0 ? "var(--gain)" : "var(--loss)";
+  const startDate = snapshots[0].date.slice(5); // MM-DD
+  return (
+    <div className="sparkline-wrap">
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none">
+        <polyline points={pts} fill="none" stroke={lineColor} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      </svg>
+      <div className="sparkline-meta">
+        <span className="dim mono">{startDate} → today  ({snapshots.length}d)</span>
+        <span className="mono" style={{ color: lineColor }}>{fmP(pct)}</span>
+      </div>
+    </div>
+  );
+}
+
+function Sidebar({ metrics, source, snapshots }) {
   // top movers: by |dayPct|, both winners and losers, split
   const allPlayers = [];
   for (const pos of Object.values(metrics.positions)) {
@@ -193,6 +244,11 @@ function Sidebar({ metrics, source }) {
         </div>
       </section>
 
+      <section className="panel">
+        <h3 className="panel-title">EQUITY CURVE</h3>
+        <Sparkline snapshots={snapshots} />
+      </section>
+
       <div className="sidebar-foot sidebar-foot-desktop">
         <div className="foot-kv"><span>Source</span><span className="mono">{source === "live" ? "Yahoo Finance" : source === "sim" ? "Simulated" : "—"}</span></div>
         <div className="foot-kv"><span>Auto Refresh</span><span className="mono">30s</span></div>
@@ -248,6 +304,14 @@ function fmtMcPrice(price, baseTicker) {
   return fmtPr(price);
 }
 
+function vixRegime(price) {
+  if (price == null) return null;
+  if (price < 15) return { color: "var(--gain)",     label: "LOW VOL" };
+  if (price < 25) return { color: "var(--chalk-dim)", label: "NORMAL" };
+  if (price < 30) return { color: "var(--gold)",      label: "ELEVATED" };
+  return           { color: "var(--loss)",             label: "FEAR" };
+}
+
 function MarketConditions({ marketData, extendedHours, phase }) {
   const useExt = extendedHours && phase !== "regular";
   return (
@@ -273,9 +337,12 @@ function MarketConditions({ marketData, extendedHours, phase }) {
               </h3>
               <span className="mono dim" style={{ fontSize: '10px' }}>{activeTicker}</span>
             </div>
-            <div className="mc-price mono">
+            <div className="mc-price mono" style={ticker === "^VIX" && price != null ? { color: vixRegime(price).color } : {}}>
               {fmtMcPrice(price, ticker)}
             </div>
+            {ticker === "^VIX" && price != null && (
+              <div className="mc-vix-regime mono" style={{ color: vixRegime(price).color }}>{vixRegime(price).label}</div>
+            )}
             <div className="mc-footer">
               <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{fmtChg(dayChange)}</span>
               <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{pct != null ? fmP(pct) : "—"}</span>

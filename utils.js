@@ -219,18 +219,24 @@ window.Utils = (function () {
     const liveTickers = tickers.filter(t => !t.endsWith(".PVT") && t !== "CASH");
     if (!liveTickers.length) return {};
 
-    // Try edge function first — single round-trip, direct server-side Yahoo access.
-    const edgeResult = await fetchViaEdge(liveTickers);
-    if (edgeResult) return edgeResult;
+    // Race edge function (batch, fast) vs CORS proxy (per-ticker, fallback).
+    // Both start immediately; whichever returns valid data first wins.
+    const edgeP = fetchViaEdge(liveTickers);
+    const proxyP = Promise.all(liveTickers.map(async (t) => [t, await fetchOneYahooChart(t)]))
+      .then(pairs => {
+        const out = {};
+        for (const [t, r] of pairs) if (r) out[t] = r;
+        return Object.keys(out).length > 0 ? out : null;
+      });
 
-    // Fallback: CORS proxies (one request per ticker, in parallel).
-    const results = await Promise.all(liveTickers.map(async (t) => [t, await fetchOneYahooChart(t)]));
-    const out = {};
-    let anySuccess = false;
-    for (const [t, r] of results) {
-      if (r) { out[t] = r; anySuccess = true; }
-    }
-    return anySuccess ? out : null;
+    const result = await Promise.any(
+      [edgeP, proxyP].map(p => p.then(r => {
+        if (r && Object.keys(r).length > 0) return r;
+        return Promise.reject(new Error("no data"));
+      }))
+    ).catch(() => null);
+
+    return result;
   }
 
   // Gentle random walk fallback

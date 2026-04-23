@@ -152,6 +152,11 @@ body {
 .score-sep { color: var(--chalk-mute); font-weight: 300; }
 .scoreboard-divider { width: 1px; height: 32px; background: var(--line); }
 
+@keyframes sb-flash-up   { 0%, 30% { background: var(--gain-dim); } 100% { background: transparent; } }
+@keyframes sb-flash-down { 0%, 30% { background: var(--loss-dim); } 100% { background: transparent; } }
+.sb-flash-up   { animation: sb-flash-up   1.4s ease-out; border-radius: 3px; padding: 1px 3px; margin: -1px -3px; }
+.sb-flash-down { animation: sb-flash-down 1.4s ease-out; border-radius: 3px; padding: 1px 3px; margin: -1px -3px; }
+
 .phase-dot {
   display: inline-block; width: 7px; height: 7px; border-radius: 50%;
   box-shadow: 0 0 6px currentColor;
@@ -521,6 +526,18 @@ body {
 .sidebar-foot-mobile { display: none; }
 .foot-kv { display: flex; justify-content: space-between; }
 
+/* ============= SPARKLINE ============= */
+.sparkline-wrap { padding: 2px 0 4px; }
+.sparkline-wrap svg { display: block; }
+.sparkline-meta { display: flex; justify-content: space-between; font-size: 10px; margin-top: 4px; font-family: var(--font-mono); }
+.sparkline-empty { font-size: 10px; padding: 10px 0; text-align: center; font-family: var(--font-mono); }
+
+/* ============= VIX REGIME LABEL ============= */
+.mc-vix-regime { font-size: 9px; letter-spacing: 0.16em; font-family: var(--font-mono); margin-bottom: 4px; }
+
+/* ============= MODAL DRAG HANDLE ============= */
+.modal-drag-handle { display: none; }
+
 /* ============= MODALS ============= */
 .modal-backdrop {
   position: fixed; inset: 0;
@@ -800,6 +817,16 @@ body {
   .modal-body { padding: 12px 16px; overflow-y: auto; flex: 1; }
   .modal-foot { padding: 10px 16px; }
   .player-grid { grid-template-columns: 1fr; }
+
+  /* --- Modal drag handle (swipe down to close) --- */
+  .modal-drag-handle {
+    display: block;
+    width: 40px; height: 4px; border-radius: 2px;
+    background: var(--chalk-mute);
+    margin: 10px auto 0;
+    flex-shrink: 0;
+    cursor: grab;
+  }
 
   /* --- Inputs: 16px prevents iOS auto-zoom on focus --- */
   .inp { font-size: 16px; touch-action: manipulation; }
