@@ -210,8 +210,6 @@ function Board({ isReadOnly }) {
   const [dragging, setDragging] = useState(null);
   const [extendedHours, setExtendedHours] = useState(false);
   const [marketData, setMarketData] = useState({});
-  const [viewMode, setViewMode] = useState("tactics");
-
   // In read-only mode, force-disable edit mode.
   useEffect(() => { if (isReadOnly && editMode) setEditMode(false); }, [isReadOnly, editMode]);
 
@@ -242,7 +240,7 @@ function Board({ isReadOnly }) {
     setIsRefreshing(true);
     const [{ updates, source: src }, mcResult] = await Promise.all([
       refreshPrices(portfolio, "live"),
-      window.Utils.fetchTickers(MC_TICKERS),
+      window.Utils.fetchTickersWithVolume(MC_TICKERS),
     ]);
     if (mcResult) setMarketData(mcResult);
     setSource(src);
@@ -425,8 +423,6 @@ function Board({ isReadOnly }) {
         isReadOnly={isReadOnly}
         extendedHours={extendedHours}
         onToggleExtended={() => setExtendedHours(v => !v)}
-        viewMode={viewMode}
-        onToggleView={() => setViewMode(v => v === "tactics" ? "heatmap" : "tactics")}
       />
 
       <main className="main">
@@ -435,10 +431,7 @@ function Board({ isReadOnly }) {
           extendedHours={extendedHours}
           phase={currentPhase}
         />
-        {viewMode === "heatmap" ? (
-          <window.Heatmap metrics={metrics} onBack={() => setViewMode("tactics")} />
-        ) : (
-          <Pitch
+        <Pitch
             metrics={metrics}
             captainTicker={captainTicker}
             hotMoverTicker={hotMoverTicker}
@@ -461,7 +454,6 @@ function Board({ isReadOnly }) {
             isRefreshing={isRefreshing}
             recentlyUpdated={recentlyUpdated}
           />
-        )}
         <Sidebar metrics={metrics} source={source} snapshots={portfolio.snapshots || []} />
         <window.SidebarFoot source={source} />
       </main>
