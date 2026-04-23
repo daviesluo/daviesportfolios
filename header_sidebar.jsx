@@ -55,11 +55,18 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
       <div className="scoreboard">
         <div className="scoreboard-cell">
           <div className="sb-label">
-            TIME <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
+            GMT TIME <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
           </div>
-          <div className="sb-value mono">
-            {t.hh}:{t.mm}:{t.ss}
-            <span className="sb-suffix"> GMT</span>
+          <div className="sb-time-row">
+            <span className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</span>
+            <label
+              className="ext-switch"
+              style={{ "--ext-on-color": phaseInfo.color }}
+              title={extendedHours ? "Showing extended-hours prices — click to switch off" : "Click to show pre-market / after-hours prices"}
+            >
+              <input type="checkbox" className="ext-checkbox" checked={extendedHours} onChange={onToggleExtended} />
+              <span className="ext-track"><span className="ext-thumb" /></span>
+            </label>
           </div>
         </div>
         <div className="scoreboard-divider" />
@@ -86,11 +93,6 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
       </div>
 
       <div className="header-actions">
-        <label className="ext-switch" title="Toggle extended hours (pre-market / after-hours) prices">
-          <span className="ext-switch-label mono">Extended Hours</span>
-          <input type="checkbox" className="ext-checkbox" checked={extendedHours} onChange={onToggleExtended} />
-          <span className="ext-track"><span className="ext-thumb" /></span>
-        </label>
         <div className={`live-pill ${isRefreshing ? "refreshing" : ""} ${source === "error" ? "err" : ""}`}
              title={source === "live" ? "Yahoo Finance" : source === "error" ? "Retrying…" : "Connecting"}>
           <span className={`live-dot ${isRefreshing ? "pulse" : ""} ${source === "error" ? "err" : ""}`} />
