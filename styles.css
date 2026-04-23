@@ -145,7 +145,7 @@ body {
   font-family: var(--font-mono);
 }
 .sb-change-row { display: flex; align-items: baseline; gap: 6px; }
-.sb-pct { font-size: 10px; opacity: 0.75; }
+.sb-pct { opacity: 0.75; }
 .sb-suffix { font-size: 10px; color: var(--chalk-mute); margin-left: 4px; font-weight: 400; letter-spacing: 0.08em; }
 .sb-score { font-size: 22px; font-weight: 600; display: flex; align-items: baseline; gap: 10px; }
 .score-sep { color: var(--chalk-mute); font-weight: 300; }
@@ -633,8 +633,8 @@ body {
   font-size: 9px; letter-spacing: 0.18em;
   color: var(--chalk-dim); white-space: nowrap;
   font-family: var(--font-mono);
-  margin-left: auto;
 }
+.ext-switch .ext-track { margin-left: auto; }
 .ext-checkbox {
   position: absolute; opacity: 0; pointer-events: none;
   width: 0; height: 0; margin: 0;
