@@ -138,6 +138,11 @@ body {
 }
 .sb-value { font-size: 13px; font-weight: 600; }
 .sb-value-lg { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.sb-time-line { display: flex; align-items: center; gap: 6px; }
+.sb-label-inline {
+  font-size: 9px; letter-spacing: 0.18em; color: var(--chalk-dim);
+  font-family: var(--font-mono);
+}
 .sb-suffix { font-size: 10px; color: var(--chalk-mute); margin-left: 4px; font-weight: 400; letter-spacing: 0.08em; }
 .sb-score { font-size: 22px; font-weight: 600; display: flex; align-items: baseline; gap: 10px; }
 .score-sep { color: var(--chalk-mute); font-weight: 300; }
