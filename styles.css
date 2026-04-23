@@ -790,4 +790,11 @@ body {
 
   /* --- Inputs: 16px prevents iOS auto-zoom on focus --- */
   .inp { font-size: 16px; touch-action: manipulation; }
+
+  /* --- Hot ball: smaller offset so it stays within pitch on narrow screens --- */
+  .ball { animation: ball-bob-mobile 2.4s ease-in-out infinite; }
+  @keyframes ball-bob-mobile {
+    0%, 100% { transform: translate(calc(-50% + 18px), calc(-50% - 30px)) rotate(-8deg); }
+    50%       { transform: translate(calc(-50% + 18px), calc(-50% - 38px)) rotate(8deg); }
+  }
 }
