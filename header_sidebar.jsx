@@ -55,9 +55,9 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
             style={{ "--ext-on-color": phaseInfo.color }}
             title={extendedHours ? "Showing extended-hours prices — click to switch off" : "Click to show pre-market / after-hours prices"}
           >
+            <span className="ext-switch-label mono">EXTENDED HOURS</span>
             <input type="checkbox" className="ext-checkbox" checked={extendedHours} onChange={onToggleExtended} />
             <span className="ext-track"><span className="ext-thumb" /></span>
-            <span className="ext-switch-label mono">EXTENDED HOURS</span>
           </label>
         </div>
         <div className="scoreboard-divider" />
