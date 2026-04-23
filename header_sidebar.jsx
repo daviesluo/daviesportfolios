@@ -241,6 +241,13 @@ function fmtChg(n) {
   return sign + n.toFixed(2);
 }
 
+const FX_4DP = new Set(["GBPUSD=X", "GBPCNH=X"]);
+function fmtMcPrice(price, baseTicker) {
+  if (price == null || isNaN(price)) return "—";
+  if (FX_4DP.has(baseTicker)) return price.toFixed(4);
+  return fmtPr(price);
+}
+
 function MarketConditions({ marketData, extendedHours, phase }) {
   const useExt = extendedHours && phase !== "regular";
   return (
@@ -267,7 +274,7 @@ function MarketConditions({ marketData, extendedHours, phase }) {
               <span className="mono dim" style={{ fontSize: '10px' }}>{activeTicker}</span>
             </div>
             <div className="mc-price mono">
-              {price != null ? fmtPr(price) : "—"}
+              {fmtMcPrice(price, ticker)}
             </div>
             <div className="mc-footer">
               <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{fmtChg(dayChange)}</span>
