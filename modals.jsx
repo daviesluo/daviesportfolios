@@ -66,7 +66,6 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
             ))}
           </div>
         )}
-        <NewsSection tickers={sorted.map(p => p.ticker)} />
       </div>
     </Modal>
   );
@@ -202,67 +201,6 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
         <button className="btn-primary" onClick={submit} disabled={!ticker.trim()}>Sign</button>
       </footer>
     </Modal>
-  );
-}
-
-function NewsSection({ tickers }) {
-  const [items, setItems] = React.useState(null);
-
-  React.useEffect(() => {
-    const live = tickers.filter(t => !t.endsWith(".PVT") && t !== "CASH");
-    if (!live.length) { setItems([]); return; }
-    let cancelled = false;
-    (async () => {
-      const all = [];
-      const PROXIES = [
-        (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-        (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
-        (u) => `https://api.cors.lol/?url=${encodeURIComponent(u)}`,
-      ];
-      for (const ticker of live.slice(0, 4)) {
-        const apiUrl = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(ticker)}&quotesCount=0&newsCount=5&enableFuzzyQuery=false`;
-        for (const makeProxy of PROXIES) {
-          const ctrl = new AbortController();
-          const tid = setTimeout(() => ctrl.abort(), 7000);
-          try {
-            const res = await fetch(makeProxy(apiUrl), { signal: ctrl.signal, cache: "no-store" });
-            clearTimeout(tid);
-            if (!res.ok) continue;
-            const data = await res.json();
-            const news = data?.finance?.result?.[0]?.news ?? data?.news ?? [];
-            for (const item of news.slice(0, 2)) {
-              const title = item.title?.trim();
-              const link  = item.link || item.url || "#";
-              const pub   = item.providerPublishTime ? new Date(item.providerPublishTime * 1000).toISOString() : "";
-              if (title) all.push({ ticker, title, link, pub });
-            }
-            if (news.length > 0) break;
-          } catch { clearTimeout(tid); }
-        }
-      }
-      if (!cancelled) {
-        all.sort((a, b) => new Date(b.pub) - new Date(a.pub));
-        setItems(all.slice(0, 6));
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [tickers.join(",")]);
-
-  return (
-    <div className="news-section">
-      <div className="news-hd mono">RECENT NEWS</div>
-      {items === null
-        ? <div className="dim mono news-status">Loading…</div>
-        : items.length === 0
-          ? <div className="dim mono news-status">No news found</div>
-          : items.map((item, i) => (
-              <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" className="news-item">
-                <span className="news-ticker mono">{item.ticker}</span>
-                <span className="news-text">{item.title}</span>
-              </a>
-            ))
-      }
-    </div>
   );
 }
 

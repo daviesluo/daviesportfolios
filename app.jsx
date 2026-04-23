@@ -240,7 +240,7 @@ function Board({ isReadOnly }) {
     setIsRefreshing(true);
     const [{ updates, source: src }, mcResult] = await Promise.all([
       refreshPrices(portfolio, "live"),
-      window.Utils.fetchTickersWithVolume(MC_TICKERS),
+      window.Utils.fetchTickers(MC_TICKERS),
     ]);
     if (mcResult) setMarketData(mcResult);
     setSource(src);

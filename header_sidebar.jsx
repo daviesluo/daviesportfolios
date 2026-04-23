@@ -335,14 +335,6 @@ function vixRegime(price) {
   return           { color: "var(--loss)",             label: "FEAR" };
 }
 
-function fmtVol(n) {
-  if (!n || n <= 0) return null;
-  if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
-  if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
-  if (n >= 1e3) return Math.round(n / 1e3) + "K";
-  return String(n);
-}
-
 function MarketConditions({ marketData, extendedHours, phase }) {
   const useExt = extendedHours && phase !== "regular";
   return (
@@ -355,7 +347,6 @@ function MarketConditions({ marketData, extendedHours, phase }) {
         const pct       = d ? (d.dayPct ?? 0) : null;
         const prevClose = d ? (d.prevClose ?? d.lastPrice) : null;
         const dayChange = (price != null && prevClose != null) ? price - prevClose : null;
-        const vol       = (useExt && ftTicker) ? fmtVol(d?.volume ?? null) : null;
         return (
           <section key={activeTicker} className={`panel mc-card${ticker === "GBPCNH=X" ? " mc-hide-mobile" : ""}`}>
             <div className="mc-card-head">
@@ -381,9 +372,6 @@ function MarketConditions({ marketData, extendedHours, phase }) {
               <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{fmtChg(dayChange)}</span>
               <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{pct != null ? fmP(pct) : "—"}</span>
             </div>
-            {vol && (
-              <div className="mc-vol mono dim">VOL {vol}</div>
-            )}
           </section>
         );
       })}
