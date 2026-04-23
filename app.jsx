@@ -154,7 +154,7 @@ function promptForAuth() {
   return null;
 }
 
-const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^VIX", "BZ=F", "GBPUSD=X", "GBPCNH=X"];
+const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^VIX", "BZ=F", "GBPUSD=X", "GBPCNH=X", "ES=F", "NQ=F", "RTY=F"];
 
 // Main app ---------------------------------------------------------------
 function App() {
