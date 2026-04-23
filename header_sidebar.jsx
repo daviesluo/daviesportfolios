@@ -47,8 +47,8 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
         <div className="scoreboard-cell">
           <div className="sb-time-line">
             <span className="sb-label-inline mono">GMT TIME</span>
-            <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
             <span className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</span>
+            <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
           </div>
           <label
             className="ext-switch"
@@ -57,7 +57,7 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
           >
             <input type="checkbox" className="ext-checkbox" checked={extendedHours} onChange={onToggleExtended} />
             <span className="ext-track"><span className="ext-thumb" /></span>
-            <span className="ext-switch-label mono">Extended Hours</span>
+            <span className="ext-switch-label mono">EXTENDED HOURS</span>
           </label>
         </div>
         <div className="scoreboard-divider" />
