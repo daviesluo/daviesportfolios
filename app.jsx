@@ -105,6 +105,10 @@ function migrate(p) {
       if (p.holdings["BRK-B"].cost   === 469.99) p.holdings["BRK-B"].cost   = 469.94;
     }
   }
+  // Add snapshots array if missing
+  if (!p.snapshots) p.snapshots = [];
+  if (p.snapshots.length > 30) p.snapshots = p.snapshots.slice(-30);
+
   // v2 → v3: refresh labels + default subtitles from INITIAL_PORTFOLIO for untouched slots.
   const validKeys = new Set(Object.keys(window.INITIAL_PORTFOLIO.positions));
   for (const k of Object.keys(p.positions)) {
@@ -270,6 +274,21 @@ function Board({ isReadOnly }) {
         setFlashTickers(flashes);
         setTimeout(() => setFlashTickers({}), 1200);
       }
+
+      // Daily snapshot: save once per day when live prices arrive
+      if (src === "live") {
+        const today = new Date().toISOString().slice(0, 10);
+        const existing = next.snapshots || [];
+        if (!existing.some(s => s.date === today)) {
+          const m = computeMetrics(next, { extended: false });
+          if (m.marketValue > 0) {
+            next.snapshots = [...existing, { date: today, value: Math.round(m.marketValue * 100) / 100 }]
+              .sort((a, b) => a.date.localeCompare(b.date))
+              .slice(-30);
+          }
+        }
+      }
+
       return next;
     });
     setLastUpdated(new Date());
@@ -436,7 +455,7 @@ function Board({ isReadOnly }) {
           isRefreshing={isRefreshing}
           recentlyUpdated={recentlyUpdated}
         />
-        <Sidebar metrics={metrics} source={source} />
+        <Sidebar metrics={metrics} source={source} snapshots={portfolio.snapshots || []} />
         <window.SidebarFoot source={source} />
       </main>
 
