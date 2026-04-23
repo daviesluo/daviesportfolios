@@ -45,10 +45,11 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
 
       <div className="scoreboard">
         <div className="scoreboard-cell">
-          <div className="sb-label">
-            GMT TIME <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
+          <div className="sb-time-line">
+            <span className="sb-label-inline mono">GMT TIME</span>
+            <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
+            <span className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</span>
           </div>
-          <div className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</div>
           <label
             className="ext-switch"
             style={{ "--ext-on-color": phaseInfo.color }}
