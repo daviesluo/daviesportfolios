@@ -118,6 +118,7 @@ body {
 .brand-title { font-weight: 700; letter-spacing: 0.04em; font-size: 16px; text-transform: none; }
 .brand-sub { font-size: 10px; color: var(--chalk-dim); letter-spacing: 0.14em; text-transform: uppercase; font-family: var(--font-mono); margin-top: 2px; }
 .brand-formation { font-size: 10px; color: var(--chalk-mute); letter-spacing: 0.06em; font-family: var(--font-mono); margin-top: 1px; white-space: nowrap; }
+.brand-time { display: none; }
 
 .scoreboard {
   position: absolute;
@@ -672,10 +673,13 @@ body {
     height: auto;
     position: relative; /* keep for z-index */
   }
-  .brand { padding: 2px 0 6px; }
+  .brand { padding: 2px 0 6px; justify-content: space-between; align-items: flex-start; }
   .brand-title { font-size: 14px; }
   .brand-sub { font-size: 9px; }
   .brand-formation { font-size: 9px; }
+  .brand-time { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .scoreboard-cell-time { display: none; }
+  .scoreboard-divider-time { display: none; }
 
   /* Row 2: action buttons */
   .header-actions {
@@ -801,7 +805,7 @@ body {
   /* --- Hot ball: smaller offset so it stays within pitch on narrow screens --- */
   .ball { animation: ball-bob-mobile 2.4s ease-in-out infinite; }
   @keyframes ball-bob-mobile {
-    0%, 100% { transform: translate(calc(-50% + 18px), calc(-50% - 30px)) rotate(-8deg); }
-    50%       { transform: translate(calc(-50% + 18px), calc(-50% - 38px)) rotate(8deg); }
+    0%, 100% { transform: translate(calc(-50% + 18px), calc(-50% - 50px)) rotate(-8deg); }
+    50%       { transform: translate(calc(-50% + 18px), calc(-50% - 58px)) rotate(8deg); }
   }
 }
