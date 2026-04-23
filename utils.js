@@ -273,16 +273,6 @@ window.Utils = (function () {
     return fetchYahoo(tickers.filter(Boolean));
   }
 
-  // Like fetchTickers but always uses CORS proxies (skips edge function) so
-  // volume fields are always populated in the result.
-  async function fetchTickersWithVolume(tickers) {
-    const filtered = tickers.filter(Boolean);
-    if (!filtered.length) return {};
-    const pairs = await Promise.all(filtered.map(async (t) => [t, await fetchOneYahooChart(t)]));
-    const out = {};
-    for (const [t, r] of pairs) if (r) out[t] = r;
-    return out;
-  }
 
   // -------- Position coordinates on 100x100 pitch (home team attacks UP; GK at bottom) --------
   const POSITION_COORDS = {
@@ -303,6 +293,6 @@ window.Utils = (function () {
     fmtMoney, fmtPct, fmtPrice, pctColor,
     londonTimeParts, usMarketPhase, formatAgo,
     computeMetrics, detectFormation,
-    refreshPrices, fetchTickers, fetchTickersWithVolume, POSITION_COORDS,
+    refreshPrices, fetchTickers, POSITION_COORDS,
   };
 })();

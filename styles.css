@@ -549,22 +549,6 @@ body {
 
 /* ============= VIX REGIME LABEL ============= */
 .mc-vix-regime { font-size: 9px; letter-spacing: 0.16em; font-family: var(--font-mono); }
-.mc-vol { font-size: 9px; letter-spacing: 0.08em; margin-top: 3px; }
-
-/* ============= NEWS SECTION ============= */
-.news-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
-.news-hd { font-size: 9px; letter-spacing: 0.2em; color: var(--chalk-dim); margin-bottom: 10px; }
-.news-status { font-size: 11px; padding: 4px 0; }
-.news-item {
-  display: flex; gap: 10px; align-items: flex-start;
-  padding: 8px 0; border-bottom: 1px solid var(--line-2);
-  text-decoration: none; color: var(--chalk); transition: color 0.12s;
-}
-.news-item:hover { color: var(--chalk-dim); }
-.news-item:last-child { border-bottom: none; }
-.news-ticker { font-size: 9px; letter-spacing: 0.06em; color: var(--chalk-mute); flex-shrink: 0; padding-top: 2px; width: 38px; }
-.news-text { font-size: 12px; line-height: 1.45; flex: 1; }
-
 /* ============= MODALS ============= */
 .modal-backdrop {
   position: fixed; inset: 0;
