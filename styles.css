@@ -52,6 +52,13 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* iOS PWA: viewport-fit=cover lets content render under the status bar +
+     home indicator. Reserve space here so the header/footer don't collide
+     with system UI. Falls back to 0 in browsers without env() support. */
+  padding-top:    env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left:   env(safe-area-inset-left);
+  padding-right:  env(safe-area-inset-right);
 }
 
 /* Access denied / loading overlay */

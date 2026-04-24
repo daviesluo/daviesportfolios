@@ -145,15 +145,24 @@ function promptForAuth() {
   if (lockUntil > Date.now()) return { locked: true, lockUntil };
 
   // 1. Magic URL param ?pwd=<password> — used to pre-authenticate the PWA bookmark.
-  //    Persist the token, then silently erase ?pwd from the address bar so it
-  //    never appears in screenshots or history.
+  //    iOS captures whatever URL is in Safari's address bar at the moment of
+  //    "Add to Home Screen", so we MUST keep ?pwd= visible while the user
+  //    is still in Safari. Once the page is running as an installed PWA
+  //    (display-mode: standalone) we strip the param — every PWA launch
+  //    reloads from the bookmarked URL anyway, so the token re-arrives next
+  //    time and stripping just keeps `location.href` clean during the session.
   const params = new URLSearchParams(window.location.search);
   const urlPwd = params.get("pwd");
   if (urlPwd) {
-    params.delete("pwd");
-    const newSearch = params.toString();
-    history.replaceState(null, "",
-      window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
+    const isStandalone =
+      window.matchMedia?.("(display-mode: standalone)")?.matches ||
+      window.navigator.standalone === true;
+    if (isStandalone) {
+      params.delete("pwd");
+      const newSearch = params.toString();
+      history.replaceState(null, "",
+        window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
+    }
     if (urlPwd === "8848") {
       localStorage.setItem(AUTH_TOKEN_KEY, "ro");
       localStorage.removeItem(AUTH_ATTEMPTS_KEY);
