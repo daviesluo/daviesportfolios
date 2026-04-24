@@ -13,6 +13,32 @@ const DB_HEADERS = {
 };
 
 async function fetchClosePrice(symbol: string): Promise<number | null> {
+  // 6-digit numeric → Chinese mutual fund (eastmoney 天天基金)
+  if (/^\d{6}$/.test(symbol)) {
+    const url = `https://fundgz.1234567.com.cn/js/${encodeURIComponent(symbol)}.js?rt=${Date.now()}`;
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          "Referer": "https://fund.eastmoney.com/",
+          "Accept": "*/*",
+        },
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!res.ok) return null;
+      const text = (await res.text()).trim();
+      const m = text.match(/^jsonpgz\((.+?)\)\s*;?\s*$/s);
+      if (!m) return null;
+      const obj = JSON.parse(m[1]);
+      // dwjz = the most recently published official daily NAV — that *is* the close.
+      const dwjz = parseFloat(obj.dwjz);
+      return isFinite(dwjz) && dwjz > 0 ? dwjz : null;
+    } catch {
+      return null;
+    }
+  }
+
+  // Otherwise → Yahoo Finance daily candle
   const url =
     `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
     `?interval=1d&range=5d&_=${Date.now()}`;

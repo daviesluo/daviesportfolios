@@ -1,7 +1,9 @@
 // Supabase Edge Function: prices
-// Fetches Yahoo Finance prices server-side — no CORS proxies needed.
-// Call: GET /functions/v1/prices?tickers=NVDA,AAPL,GOOG
-// Returns: { "NVDA": { lastPrice, extPrice, prevClose, dayPct, extDayPct }, ... }
+// Routes ticker requests to the appropriate data source:
+//   - 6-digit numeric tickers (e.g. 017731) → eastmoney 天天基金 (CN mutual funds)
+//   - Everything else                       → Yahoo Finance v8/chart
+// Returns a unified shape: { lastPrice, extPrice, prevClose, dayPct, extDayPct }
+// Call: GET /functions/v1/prices?tickers=NVDA,017731,GBPUSD=X
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -12,13 +14,19 @@ const CORS = {
 const MARKET_OPEN_MIN  = 9 * 60 + 30;  // 9:30 AM
 const MARKET_CLOSE_MIN = 16 * 60;       // 4:00 PM
 
-async function fetchPrice(symbol: string): Promise<{
+// 6-digit numeric → assume Chinese mutual fund code
+const CN_FUND_RE = /^\d{6}$/;
+
+type PriceResult = {
   lastPrice: number;
   extPrice: number | null;
   prevClose: number;
   dayPct: number;
   extDayPct: number | null;
-} | null> {
+};
+
+// ---------------- Yahoo Finance ----------------
+async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
   const nonce = Date.now();
   // 5-minute candles for today with pre+post market — lets us read extended
   // hours prices directly from candle closes rather than unreliable meta fields.
@@ -87,6 +95,62 @@ async function fetchPrice(symbol: string): Promise<{
   }
 }
 
+// ---------------- Eastmoney 天天基金 ----------------
+// JSONP endpoint, returns:
+//   jsonpgz({"fundcode":"017731","name":"…","jzrq":"2026-04-23",
+//            "dwjz":"1.2345","gsz":"1.2456","gszzl":"0.89","gztime":"…"});
+//   dwjz  = 单位净值 (last published official NAV)        →  prevClose
+//   gsz   = 估算净值 (real-time intraday estimate)        →  lastPrice
+//   gszzl = 估算涨跌幅 % (informational; we recompute)
+// Funds have no extended-hours concept, so extPrice/extDayPct are always null.
+async function fetchCNFund(code: string): Promise<PriceResult | null> {
+  const url = `https://fundgz.1234567.com.cn/js/${encodeURIComponent(code)}.js?rt=${Date.now()}`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Referer": "https://fund.eastmoney.com/",
+        "Accept": "*/*",
+      },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+
+    const text = (await res.text()).trim();
+    // Strip the jsonpgz(…); wrapper. Some responses omit the trailing semicolon.
+    const m = text.match(/^jsonpgz\((.+?)\)\s*;?\s*$/s);
+    if (!m) return null;
+
+    let obj: Record<string, string>;
+    try { obj = JSON.parse(m[1]); } catch { return null; }
+
+    const dwjz = parseFloat(obj.dwjz);
+    if (!isFinite(dwjz) || dwjz <= 0) return null;
+
+    // gsz may be empty/missing on weekends, holidays, or before estimate is published.
+    // In that case, treat the fund as flat at its last NAV (no day change).
+    const gsz = parseFloat(obj.gsz);
+    const lastPrice = isFinite(gsz) && gsz > 0 ? gsz : dwjz;
+
+    return {
+      lastPrice,
+      extPrice: null,
+      prevClose: dwjz,
+      dayPct:    ((lastPrice - dwjz) / dwjz) * 100,
+      extDayPct: null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ---------------- Router ----------------
+function fetchPrice(ticker: string): Promise<PriceResult | null> {
+  if (CN_FUND_RE.test(ticker)) return fetchCNFund(ticker);
+  return fetchYahoo(ticker);
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
@@ -106,7 +170,8 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Fetch all tickers in parallel — same pattern as before, proven fast.
+  // Fetch all tickers in parallel — Yahoo and Eastmoney happen concurrently
+  // because they're awaited inside the Promise.all callback.
   const entries = await Promise.all(
     tickers.map(async (t) => [t, await fetchPrice(t)] as const)
   );
