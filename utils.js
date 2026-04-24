@@ -191,6 +191,35 @@ window.Utils = (function () {
     return null;
   }
 
+  // Fetch a single CN mutual fund (6-digit code) from eastmoney via CORS proxies.
+  // Used as a fallback when the Edge Function is not yet updated to handle CN funds.
+  async function fetchOneCNFund(code) {
+    const eastmoneyUrl = `https://fundgz.1234567.com.cn/js/${encodeURIComponent(code)}.js?rt=${Date.now()}`;
+    for (const makeProxy of PROXIES) {
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 8000);
+      try {
+        const res = await fetch(makeProxy(eastmoneyUrl), { cache: "no-store", signal: controller.signal });
+        clearTimeout(tid);
+        if (!res.ok) continue;
+        const text = (await res.text()).trim();
+        const m = text.match(/^jsonpgz\((.+?)\)\s*;?\s*$/s);
+        if (!m) continue;
+        let obj;
+        try { obj = JSON.parse(m[1]); } catch { continue; }
+        const dwjz = parseFloat(obj.dwjz);
+        if (!isFinite(dwjz) || dwjz <= 0) continue;
+        const gsz = parseFloat(obj.gsz);
+        const lastPrice = isFinite(gsz) && gsz > 0 ? gsz : dwjz;
+        return {
+          lastPrice, extPrice: null, prevClose: dwjz,
+          dayPct: ((lastPrice - dwjz) / dwjz) * 100, extDayPct: null,
+        };
+      } catch { clearTimeout(tid); }
+    }
+    return null;
+  }
+
   async function fetchViaEdge(liveTickers) {
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 12000);
@@ -223,13 +252,22 @@ window.Utils = (function () {
     const liveTickers = tickers.filter(t => !t.endsWith(".PVT") && t !== "CASH");
     if (!liveTickers.length) return {};
 
-    // 6-digit numeric tickers are Chinese mutual funds, only the edge function
-    // can resolve them. Skip the CORS-proxy race so it can't win with
-    // an "incomplete but earlier" response that drops the fund prices.
-    const hasCNFund = liveTickers.some(t => /^\d{6}$/.test(t));
+    // 6-digit numeric tickers are Chinese mutual funds.
+    // We run the Edge Function and direct CORS-proxy CN fund fetches in parallel.
+    // Edge function wins for everything when updated; CORS proxy fills in missing CN funds
+    // when the Edge Function is running an older version that only handles Yahoo tickers.
+    const cnFunds = liveTickers.filter(t => /^\d{6}$/.test(t));
+    const hasCNFund = cnFunds.length > 0;
     if (hasCNFund) {
-      const edgeOnly = await fetchViaEdge(liveTickers);
-      return (edgeOnly && Object.keys(edgeOnly).length > 0) ? edgeOnly : null;
+      const edgeP = fetchViaEdge(liveTickers);
+      const cnProxyP = Promise.all(cnFunds.map(async t => [t, await fetchOneCNFund(t)]))
+        .then(pairs => { const o = {}; for (const [t, r] of pairs) if (r) o[t] = r; return o; });
+      const [edgeResult, cnFromProxy] = await Promise.all([edgeP, cnProxyP]);
+      const out = { ...(edgeResult || {}) };
+      for (const t of cnFunds) {
+        if (!out[t] && cnFromProxy[t]) out[t] = cnFromProxy[t];
+      }
+      return Object.keys(out).length > 0 ? out : null;
     }
 
     // Race edge function (batch, fast) vs CORS proxy (per-ticker, fallback).
