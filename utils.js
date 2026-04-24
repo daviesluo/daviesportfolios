@@ -223,6 +223,15 @@ window.Utils = (function () {
     const liveTickers = tickers.filter(t => !t.endsWith(".PVT") && t !== "CASH");
     if (!liveTickers.length) return {};
 
+    // 6-digit numeric tickers are Chinese mutual funds, only the edge function
+    // can resolve them. Skip the CORS-proxy race so it can't win with
+    // an "incomplete but earlier" response that drops the fund prices.
+    const hasCNFund = liveTickers.some(t => /^\d{6}$/.test(t));
+    if (hasCNFund) {
+      const edgeOnly = await fetchViaEdge(liveTickers);
+      return (edgeOnly && Object.keys(edgeOnly).length > 0) ? edgeOnly : null;
+    }
+
     // Race edge function (batch, fast) vs CORS proxy (per-ticker, fallback).
     // Both start immediately; whichever returns valid data first wins.
     const edgeP = fetchViaEdge(liveTickers);
