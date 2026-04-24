@@ -340,9 +340,10 @@ const MC_INDICES = [
   { ticker: "GBPCNH=X", name: "GBP/CNH"      },
 ];
 
-function fmtChg(n) {
+function fmtChg(n, baseTicker) {
   if (n == null || isNaN(n)) return "—";
   const sign = n >= 0 ? "+" : "";
+  if (baseTicker && FX_4DP.has(baseTicker)) return sign + n.toFixed(4);
   const abs  = Math.abs(n);
   if (abs >= 1000) return sign + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
   if (abs >= 100)  return sign + n.toFixed(0);
@@ -398,7 +399,7 @@ function MarketConditions({ marketData, extendedHours, phase }) {
               )}
             </div>
             <div className="mc-footer">
-              <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{fmtChg(dayChange)}</span>
+              <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{fmtChg(dayChange, ticker)}</span>
               <span className="mono" style={{ color: pcC(pct), fontSize: '11px' }}>{pct != null ? fmP(pct) : "—"}</span>
             </div>
           </section>
