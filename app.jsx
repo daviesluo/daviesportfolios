@@ -134,6 +134,7 @@ function migrate(p) {
 }
 
 // Auth gate --------------------------------------------------------------
+const AUTH_TOKEN_KEY    = "auth_token";   // persisted session ("ro" | "admin")
 const AUTH_LOCKOUT_KEY  = "auth_lockout_until";
 const AUTH_ATTEMPTS_KEY = "auth_attempts";
 const MAX_ATTEMPTS      = 3;
@@ -143,13 +144,47 @@ function promptForAuth() {
   const lockUntil = parseInt(localStorage.getItem(AUTH_LOCKOUT_KEY) || "0", 10);
   if (lockUntil > Date.now()) return { locked: true, lockUntil };
 
+  // 1. Magic URL param ?pwd=<password> — used to pre-authenticate the PWA bookmark.
+  //    Persist the token, then silently erase ?pwd from the address bar so it
+  //    never appears in screenshots or history.
+  const params = new URLSearchParams(window.location.search);
+  const urlPwd = params.get("pwd");
+  if (urlPwd) {
+    params.delete("pwd");
+    const newSearch = params.toString();
+    history.replaceState(null, "",
+      window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
+    if (urlPwd === "8848") {
+      localStorage.setItem(AUTH_TOKEN_KEY, "ro");
+      localStorage.removeItem(AUTH_ATTEMPTS_KEY);
+      localStorage.removeItem(AUTH_LOCKOUT_KEY);
+      return { isReadOnly: true };
+    }
+    if (urlPwd === "7119") {
+      localStorage.setItem(AUTH_TOKEN_KEY, "admin");
+      localStorage.removeItem(AUTH_ATTEMPTS_KEY);
+      localStorage.removeItem(AUTH_LOCKOUT_KEY);
+      return { isReadOnly: false };
+    }
+    // Wrong password in URL — fall through to prompt
+  }
+
+  // 2. Cached token from a previous successful login (magic URL or typed password).
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  if (token === "ro")    return { isReadOnly: true };
+  if (token === "admin") return { isReadOnly: false };
+  if (token) localStorage.removeItem(AUTH_TOKEN_KEY); // clear unknown/stale value
+
+  // 3. Interactive prompt — shown to strangers who land on the bare URL.
   const pw = window.prompt("Enter password:");
   if (pw === "8848") {
+    localStorage.setItem(AUTH_TOKEN_KEY, "ro");
     localStorage.removeItem(AUTH_ATTEMPTS_KEY);
     localStorage.removeItem(AUTH_LOCKOUT_KEY);
     return { isReadOnly: true };
   }
   if (pw === "7119") {
+    localStorage.setItem(AUTH_TOKEN_KEY, "admin");
     localStorage.removeItem(AUTH_ATTEMPTS_KEY);
     localStorage.removeItem(AUTH_LOCKOUT_KEY);
     return { isReadOnly: false };
