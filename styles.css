@@ -547,6 +547,14 @@ body {
   background: var(--chalk-dim); border: 1px solid var(--line); cursor: pointer;
 }
 
+.spark-live-btn {
+  background: none; border: 1px solid var(--gold); color: var(--gold);
+  border-radius: 2px; padding: 0 5px; font-size: 9px; cursor: pointer;
+  letter-spacing: 0.06em; line-height: 16px;
+  transition: opacity 0.12s;
+}
+.spark-live-btn:hover { opacity: 0.7; }
+
 /* ============= VIX REGIME LABEL ============= */
 .mc-vix-regime { font-size: 9px; letter-spacing: 0.16em; font-family: var(--font-mono); }
 /* ============= MODALS ============= */

@@ -18,7 +18,7 @@ function useClock(intervalMs = 1000) {
   return now;
 }
 
-function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended }) {
+function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, histDate }) {
   const now = useClock(1000);
   const t = londonTimeParts(now);
   const phase = usMarketPhase(now);
@@ -122,36 +122,61 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
       </div>
 
       <div className="header-actions">
-        <div className={`live-pill ${isRefreshing ? "refreshing" : ""} ${source === "error" ? "err" : ""}`}
-             title={source === "live" ? "Yahoo Finance" : source === "error" ? "Retrying…" : "Connecting"}>
-          <span className={`live-dot ${isRefreshing ? "pulse" : ""} ${source === "error" ? "err" : ""}`} />
-          <div className="live-col">
-            <span className="live-txt">{statusLabel}</span>
-            <span className="live-ago mono">Last updated {agoText}</span>
+        {histDate ? (
+          <div className="live-pill" title="Viewing historical snapshot">
+            <span className="live-dot" style={{ background: "var(--gold)" }} />
+            <div className="live-col">
+              <span className="live-txt" style={{ color: "var(--gold)" }}>SNAPSHOT</span>
+              <span className="live-ago mono">{histDate.slice(5).replace("-", "/")}</span>
+            </div>
           </div>
-        </div>
-        <button className="btn-ghost" onClick={onRefresh} disabled={isRefreshing} title="Refresh prices">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"
-               className={isRefreshing ? "spin" : ""}>
-            <path d="M3 12a9 9 0 1 1 3 6.7" />
-            <path d="M3 20v-5h5" />
-          </svg>
-          {isRefreshing ? "Refreshing" : "Refresh"}
-        </button>
-        {isReadOnly ? (
+        ) : (
+          <div className={`live-pill ${isRefreshing ? "refreshing" : ""} ${source === "error" ? "err" : ""}`}
+               title={source === "live" ? "Yahoo Finance" : source === "error" ? "Retrying…" : "Connecting"}>
+            <span className={`live-dot ${isRefreshing ? "pulse" : ""} ${source === "error" ? "err" : ""}`} />
+            <div className="live-col">
+              <span className="live-txt">{statusLabel}</span>
+              <span className="live-ago mono">Last updated {agoText}</span>
+            </div>
+          </div>
+        )}
+        {!histDate && (
+          <button className="btn-ghost" onClick={onRefresh} disabled={isRefreshing} title="Refresh prices">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"
+                 className={isRefreshing ? "spin" : ""}>
+              <path d="M3 12a9 9 0 1 1 3 6.7" />
+              <path d="M3 20v-5h5" />
+            </svg>
+            {isRefreshing ? "Refreshing" : "Refresh"}
+          </button>
+        )}
+        {!histDate && (isReadOnly ? (
           <span className="ro-badge mono" title="Read-only viewer">VIEWER</span>
         ) : (
           <button className={`btn-toggle ${editMode ? "on" : ""}`} onClick={() => setEditMode(v => !v)}>
             {editMode ? "✓ EDIT MODE" : "EDIT"}
           </button>
-        )}
+        ))}
       </div>
     </header>
   );
 }
 
-function Sparkline({ snapshots }) {
+function Sparkline({ snapshots, onSelectSnapshot }) {
   const [selIdx, setSelIdx] = React.useState(null);
+
+  const handleSlide = (e) => {
+    const idx = Number(e.target.value);
+    setSelIdx(idx);
+    if (!onSelectSnapshot) return;
+    const isLatest = idx === snapshots.length - 1;
+    onSelectSnapshot(isLatest ? null : (snapshots[idx]?.prices ? snapshots[idx] : null));
+  };
+
+  const goLive = () => {
+    setSelIdx(null);
+    if (onSelectSnapshot) onSelectSnapshot(null);
+  };
 
   if (!snapshots || snapshots.length < 2) {
     return <div className="sparkline-empty dim mono">Collecting data…</div>;
@@ -187,23 +212,27 @@ function Sparkline({ snapshots }) {
       </svg>
       {snapshots.length > 2 && (
         <input type="range" min={0} max={snapshots.length - 1} value={si}
-          onChange={e => setSelIdx(Number(e.target.value))}
+          onChange={handleSlide}
           className="sparkline-slider" />
       )}
       <div className="sparkline-meta">
         <span className="dim mono">{sel.date.slice(5)}{si === snapshots.length - 1 ? " (today)" : ""}</span>
         <span className="mono">{fmM(sel.value)}</span>
-        <span className="mono" style={{ color: infoVal >= 0 ? "var(--gain)" : "var(--loss)" }}>
-          {selToEnd != null
-            ? `${infoVal >= 0 ? "+" : ""}${infoVal.toFixed(1)}% →now`
-            : `${infoVal >= 0 ? "+" : ""}${infoVal.toFixed(1)}%`}
-        </span>
+        {si < snapshots.length - 1 && sel.prices ? (
+          <button className="spark-live-btn mono" onClick={goLive}>← LIVE</button>
+        ) : (
+          <span className="mono" style={{ color: infoVal >= 0 ? "var(--gain)" : "var(--loss)" }}>
+            {selToEnd != null
+              ? `${infoVal >= 0 ? "+" : ""}${infoVal.toFixed(1)}% →now`
+              : `${infoVal >= 0 ? "+" : ""}${infoVal.toFixed(1)}%`}
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
-function Sidebar({ metrics, source, snapshots }) {
+function Sidebar({ metrics, source, snapshots, onSelectSnapshot }) {
   // top movers: by |dayPct|, both winners and losers, split
   const allPlayers = [];
   for (const pos of Object.values(metrics.positions)) {
@@ -269,7 +298,7 @@ function Sidebar({ metrics, source, snapshots }) {
 
       <section className="panel">
         <h3 className="panel-title">EQUITY CURVE</h3>
-        <Sparkline snapshots={snapshots} />
+        <Sparkline snapshots={snapshots} onSelectSnapshot={onSelectSnapshot} />
       </section>
 
       <div className="sidebar-foot sidebar-foot-desktop">
