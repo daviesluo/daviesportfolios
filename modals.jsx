@@ -7,8 +7,14 @@ function Modal({ children, onClose, size = "md" }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  const downOnBackdrop = React.useRef(false);
+
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop"
+      onMouseDown={(e) => { downOnBackdrop.current = e.target === e.currentTarget; }}
+      onClick={() => { if (downOnBackdrop.current) onClose(); }}
+    >
       <div className={`modal size-${size}`} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
