@@ -23,6 +23,9 @@ type PriceResult = {
   prevClose: number;
   dayPct: number;
   extDayPct: number | null;
+  // Native currency the price is quoted in. Frontend converts to USD via live FX.
+  // London tickers come through as "GBP" because we pre-divide GBp (pence) by 100.
+  currency: string | null;
 };
 
 // ---------------- Yahoo Finance ----------------
@@ -50,15 +53,26 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
     const meta   = result?.meta;
     if (!meta?.regularMarketPrice) return null;
 
-    const lastPrice: number = meta.regularMarketPrice;
+    let lastPrice: number = meta.regularMarketPrice;
     // regularMarketPreviousClose = most recent completed regular session close.
     // chartPreviousClose = session before the chart's range start — with range=1d
     // on a pre-market morning that can be two sessions back, so use it last.
-    const prevClose: number =
+    let prevClose: number =
       meta.regularMarketPreviousClose ??
       meta.previousClose ??
       meta.chartPreviousClose ??
       lastPrice;
+
+    // London-listed securities are quoted in pence (GBp/GBX). Normalize to GBP
+    // so the frontend can apply a single GBP→USD FX rate without special-casing.
+    let currency: string | null = meta.currency ?? null;
+    let penceFactor = 1;
+    if (currency === "GBp" || currency === "GBX") {
+      penceFactor = 100;
+      currency = "GBP";
+      lastPrice  /= penceFactor;
+      prevClose  /= penceFactor;
+    }
 
     // gmtoffset is the exchange's offset from UTC in seconds (e.g. EDT = -14400).
     // We use it to convert each candle's UTC timestamp to local time-of-day so
@@ -77,7 +91,7 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
       const localSecInDay = ((timestamps[i] + gmtOffset) % 86400 + 86400) % 86400;
       const localMin      = Math.floor(localSecInDay / 60);
       if (localMin < MARKET_OPEN_MIN || localMin >= MARKET_CLOSE_MIN) {
-        extPrice = close;
+        extPrice = close / penceFactor;
         break;
       }
     }
@@ -87,6 +101,7 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
       lastPrice,
       extPrice,
       prevClose: pc,
+      currency,
       dayPct:    pc > 0 ? ((lastPrice  - pc) / pc) * 100 : 0,
       extDayPct: (extPrice != null && pc > 0) ? ((extPrice - pc) / pc) * 100 : null,
     };
@@ -137,6 +152,7 @@ async function fetchCNFund(code: string): Promise<PriceResult | null> {
       lastPrice,
       extPrice: null,
       prevClose: dwjz,
+      currency: "CNY",
       dayPct:    ((lastPrice - dwjz) / dwjz) * 100,
       extDayPct: null,
     };

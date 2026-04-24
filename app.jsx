@@ -109,6 +109,14 @@ function migrate(p) {
   if (!p.snapshots) p.snapshots = [];
   if (p.snapshots.length > 30) p.snapshots = p.snapshots.slice(-30);
 
+  // Backfill currency on holdings that pre-date the multi-currency migration.
+  // detectCurrency is purely ticker-pattern based, so this is safe to run on
+  // every load without overwriting an explicitly-set currency.
+  for (const [t, h] of Object.entries(p.holdings)) {
+    if (h.currency || h.isCash || t === "CASH") continue;
+    h.currency = window.Utils.detectCurrency(t);
+  }
+
   // v2 → v3: refresh labels + default subtitles from INITIAL_PORTFOLIO for untouched slots.
   const validKeys = new Set(Object.keys(window.INITIAL_PORTFOLIO.positions));
   for (const k of Object.keys(p.positions)) {
@@ -158,7 +166,10 @@ function promptForAuth() {
   return null;
 }
 
-const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^VIX", "BZ=F", "GBPUSD=X", "GBPCNH=X", "ES=F", "NQ=F", "RTY=F"];
+// USDCNY=X is a hidden FX fetch used only for CNY→USD conversion of holdings
+// (not shown in the market-conditions column). GBPUSD=X doubles as both a
+// displayed card and the rate we use to convert GBP holdings to USD.
+const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^VIX", "BZ=F", "GBPUSD=X", "GBPCNH=X", "USDCNY=X", "ES=F", "NQ=F", "RTY=F"];
 
 // Main app ---------------------------------------------------------------
 function App() {
@@ -283,6 +294,9 @@ function Board({ isReadOnly }) {
           prevClose: u.prevClose ?? next.holdings[t].prevClose,
           dayPct: u.dayPct ?? next.holdings[t].dayPct,
           extDayPct: (u.extPrice != null && u.lastPrice > 0) ? ((u.extPrice - u.lastPrice) / u.lastPrice) * 100 : next.holdings[t].extDayPct ?? null,
+          // Carry currency from the price fetch if present; otherwise keep what's
+          // already stored (from detectCurrency at add time).
+          currency: u.currency ?? next.holdings[t].currency,
         };
         const newExt = u.extPrice ?? null;
         const priceChanged = Math.abs(u.lastPrice - old) > 0.0001;
@@ -303,7 +317,7 @@ function Board({ isReadOnly }) {
         const today = new Date().toISOString().slice(0, 10);
         const existing = next.snapshots || [];
         if (!existing.some(s => s.date === today)) {
-          const m = computeMetrics(next, { extended: false });
+          const m = computeMetrics(next, { extended: false, marketData });
           if (m.marketValue > 0) {
             next.snapshots = [...existing, { date: today, value: Math.round(m.marketValue * 100) / 100 }]
               .sort((a, b) => a.date.localeCompare(b.date))
@@ -350,15 +364,18 @@ function Board({ isReadOnly }) {
   // Never substitute extended-hours prices during the regular session — the
   // toggle only takes effect outside RTH so the displayed value stays consistent.
   const currentPhase = window.Utils.usMarketPhase(new Date());
-  const metrics = computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular" });
+  const metrics = computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular", marketData });
   const formation = detectFormation(portfolio);
 
   const displayPortfolio = histSnap ? applyHistPrices(portfolio, histSnap) : portfolio;
-  const displayMetrics   = histSnap ? computeMetrics(displayPortfolio, { extended: false }) : metrics;
+  const displayMetrics   = histSnap ? computeMetrics(displayPortfolio, { extended: false, marketData }) : metrics;
 
+  // Captain is the single largest position by USD market value — convert native
+  // currency to USD so a CNY or GBP holding is ranked correctly against USD ones.
   let captainTicker = null, captainMV = 0;
   for (const [t, h] of Object.entries(portfolio.holdings)) {
-    const mv = h.shares * h.lastPrice;
+    const fx = window.Utils.fxToUSD(h.currency, marketData);
+    const mv = h.shares * h.lastPrice * fx;
     if (mv > captainMV) { captainMV = mv; captainTicker = t; }
   }
   // hotMoverTicker: biggest individual mover, used for the hot-badge inside drill modals
@@ -394,6 +411,7 @@ function Board({ isReadOnly }) {
   const addHolding = guard((posKey, ticker, shares, cost, lastPrice) => {
     ticker = ticker.toUpperCase().trim();
     if (!ticker) return;
+    const currency = window.Utils.detectCurrency(ticker);
     setPortfolio(p => {
       const holdings = {
         ...p.holdings,
@@ -403,6 +421,7 @@ function Board({ isReadOnly }) {
           lastPrice: Number(lastPrice) || Number(cost) || 0,
           prevClose: Number(lastPrice) || Number(cost) || 0,
           dayPct: 0,
+          currency,
         },
       };
       const positions = {};

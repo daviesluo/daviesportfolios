@@ -1,5 +1,5 @@
 // Modals: position drill-in, edit ticker, add ticker
-const { fmtMoney: fmtMo, fmtPct: fmtPe, fmtPrice: fmtPri, pctColor: pctClo } = window.Utils;
+const { fmtMoney: fmtMo, fmtPct: fmtPe, fmtPrice: fmtPri, pctColor: pctClo, currencySymbol: curSym } = window.Utils;
 
 function Modal({ children, onClose, size = "md" }) {
   React.useEffect(() => {
@@ -79,8 +79,14 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
 
 function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRemove }) {
   const pctC = pctClo(player.dayPct);
-  const unrlPct = player.cost > 0 ? ((player.lastPrice - player.cost) / player.cost) * 100 : 0;
-  const unrlGl = player.shares * (player.lastPrice - player.cost);
+  // AC and live price stay in native currency (¥/£/$ — what the user typed/sees in their broker).
+  // Cost / Value / G/L convert to USD using the per-player FX rate populated by computeMetrics,
+  // so the football-board total is always in one comparable currency.
+  const sym = curSym(player.currency);
+  const fx  = player.fx ?? 1;
+  const unrlPct   = player.cost > 0 ? ((player.lastPrice - player.cost) / player.cost) * 100 : 0;
+  const unrlGlUSD = player.shares * (player.lastPrice - player.cost) * fx;
+  const costUSD   = player.shares * player.cost * fx;
   return (
     <div className={`player-card ${flash ? "flash-" + flash : ""} ${isHot ? "hot" : ""}`} onClick={onClick}>
       {isCaptain && <div className="armband small">C</div>}
@@ -89,14 +95,14 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
         <span className="pc-ticker mono">{player.ticker}</span>
         <span className={`pc-pct mono`} style={{ color: pctC }}>{fmtPe(player.dayPct)}</span>
       </div>
-      <div className="pc-price mono">${fmtPri(player.lastPrice)}</div>
+      <div className="pc-price mono">{sym}{fmtPri(player.lastPrice)}</div>
       <div className="pc-rows">
         <div className="pc-row"><span className="dim">Shares</span><span className="mono">{player.shares}</span></div>
-        <div className="pc-row"><span className="dim">AC</span><span className="mono">${fmtPri(player.cost)}</span></div>
-        <div className="pc-row"><span className="dim">Cost</span><span className="mono">{fmtMo(player.shares * player.cost)}</span></div>
+        <div className="pc-row"><span className="dim">AC</span><span className="mono">{sym}{fmtPri(player.cost)}</span></div>
+        <div className="pc-row"><span className="dim">Cost</span><span className="mono">{fmtMo(costUSD)}</span></div>
         <div className="pc-row"><span className="dim">Value</span><span className="mono">{fmtMo(player.marketValue)}</span></div>
         <div className="pc-row"><span className="dim">G/L</span>
-          <span className="mono" style={{ color: pctClo(unrlPct) }}>{fmtMo(unrlGl, { signed: true })} ({fmtPe(unrlPct)})</span>
+          <span className="mono" style={{ color: pctClo(unrlPct) }}>{fmtMo(unrlGlUSD, { signed: true })} ({fmtPe(unrlPct)})</span>
         </div>
       </div>
       {showRemove && (
@@ -109,6 +115,10 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
 function EditTickerModal({ ticker, holding, onClose, onSave, onDelete }) {
   const [shares, setShares] = React.useState(String(holding.shares));
   const [cost, setCost] = React.useState(String(holding.cost));
+  const sym = curSym(holding.currency);
+  const acHint = holding.currency && holding.currency !== "USD"
+    ? `Enter avg cost in ${holding.currency} (${sym}). Live price is in ${holding.currency}; conversion to USD uses live FX.`
+    : "Price refreshes automatically from live data";
 
   const save = () => {
     onSave({
@@ -129,7 +139,7 @@ function EditTickerModal({ ticker, holding, onClose, onSave, onDelete }) {
 
       <div className="modal-body form">
         <FormRow label="Shares"><input className="inp mono" value={shares} onChange={(e) => setShares(e.target.value)} inputMode="decimal" /></FormRow>
-        <FormRow label="Avg cost" hint="Price refreshes automatically from live data"><input className="inp mono" value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" /></FormRow>
+        <FormRow label={`Avg cost (${sym})`} hint={acHint}><input className="inp mono" value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" /></FormRow>
       </div>
 
       <footer className="modal-foot">
@@ -174,6 +184,13 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
   const [cost, setCost] = React.useState("");
   const [lastPrice, setLastPrice] = React.useState("");
 
+  // Currency follows the ticker the user is typing — 6-digit → ¥, .L → £, else $.
+  const cur = window.Utils.detectCurrency(ticker.trim());
+  const sym = curSym(cur);
+  const costHint = cur === "USD"
+    ? "In USD"
+    : `In ${cur} (${sym}) — values on the board are converted to USD using live FX`;
+
   const submit = () => {
     if (!ticker.trim()) return;
     onAdd(ticker, shares, cost, lastPrice || cost);
@@ -193,10 +210,10 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
       </header>
 
       <div className="modal-body form">
-        <FormRow label="Ticker" hint="e.g. NVDA, BTC-USD"><input className="inp mono upper" autoFocus value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} /></FormRow>
+        <FormRow label="Ticker" hint="e.g. NVDA · BTC-USD · 017731 (CN fund) · VUAG.L (London)"><input className="inp mono upper" autoFocus value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} /></FormRow>
         <FormRow label="Shares"><input className="inp mono" value={shares} onChange={(e) => setShares(e.target.value)} inputMode="decimal" /></FormRow>
-        <FormRow label="Avg cost"><input className="inp mono" value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" /></FormRow>
-        <FormRow label="Last price" hint="Leave blank to use avg cost until first live refresh">
+        <FormRow label={`Avg cost (${sym})`} hint={costHint}><input className="inp mono" value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" /></FormRow>
+        <FormRow label={`Last price (${sym})`} hint="Leave blank to use avg cost until first live refresh">
           <input className="inp mono" value={lastPrice} onChange={(e) => setLastPrice(e.target.value)} inputMode="decimal" />
         </FormRow>
       </div>
