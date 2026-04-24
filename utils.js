@@ -78,9 +78,48 @@ window.Utils = (function () {
     return `${h}h ${String(rm).padStart(2, "0")}m`;
   }
 
+  // -------- Currency --------
+  // Each holding has a native currency. We store price + cost in that native
+  // currency and convert to USD on the fly using FX rates from marketData.
+  // Detection rules (ticker-pattern based so it works without a live fetch):
+  //   6-digit numeric     → CNY (Chinese mutual fund)
+  //   ticker ends in .L   → GBP (London Stock Exchange)
+  //   ticker ends in .HK  → HKD (Hong Kong)
+  //   everything else     → USD
+  function detectCurrency(ticker) {
+    if (/^\d{6}$/.test(ticker)) return "CNY";
+    if (/\.L$/i.test(ticker))   return "GBP";
+    if (/\.HK$/i.test(ticker))  return "HKD";
+    return "USD";
+  }
+
+  // Symbol + decimal rules for the avg-cost field (what the user typed).
+  // We keep 4 decimals for GBP/CNY so sub-penny precision isn't lost.
+  const CURRENCY_SYMBOLS = { USD: "$", GBP: "£", CNY: "¥", HKD: "HK$" };
+  function currencySymbol(cur) { return CURRENCY_SYMBOLS[cur] || "$"; }
+
+  // FX rate: how many USD one unit of `currency` is worth, given current market data.
+  // Yahoo's GBPUSD=X is quoted GBP→USD directly.
+  // Yahoo's USDCNY=X is USD→CNY, so we invert.
+  // USDHKD=X same inversion.
+  function fxToUSD(currency, marketData) {
+    if (!currency || currency === "USD") return 1;
+    if (currency === "GBP") return marketData?.["GBPUSD=X"]?.lastPrice ?? 1;
+    if (currency === "CNY") {
+      const r = marketData?.["USDCNY=X"]?.lastPrice;
+      return r > 0 ? 1 / r : 1;
+    }
+    if (currency === "HKD") {
+      const r = marketData?.["USDHKD=X"]?.lastPrice;
+      return r > 0 ? 1 / r : 1;
+    }
+    return 1;
+  }
+
   // -------- Portfolio math --------
   const computeMetrics = (portfolio, opts = {}) => {
     const ext = !!opts.extended;
+    const marketData = opts.marketData || {};
     let marketValue = 0, totalCost = 0, dayChange = 0;
     const positionsOut = {};
     for (const [posKey, pos] of Object.entries(portfolio.positions)) {
@@ -92,17 +131,28 @@ window.Utils = (function () {
         // Cash entries: MV = lastPrice (held as dollar amount); no P/L, no day change.
         const isCash = !!h.isCash;
         // In extended mode use the extended price if available; cash always uses lastPrice.
-        const price = isCash ? h.lastPrice : ((ext && h.extPrice != null) ? h.extPrice : h.lastPrice);
+        const priceNative = isCash ? h.lastPrice : ((ext && h.extPrice != null) ? h.extPrice : h.lastPrice);
         const pct   = (ext && h.extDayPct != null) ? h.extDayPct : (h.dayPct ?? 0);
-        const mv = isCash ? h.lastPrice : h.shares * price;
+        // Convert native → USD (cash is already USD; treat missing currency as USD)
+        const fx = isCash ? 1 : fxToUSD(h.currency, marketData);
+        const priceUSD = priceNative * fx;
+        const mv = isCash ? h.lastPrice : h.shares * priceUSD;
         // In extended-hours mode the baseline is today's RTH close (lastPrice), not yesterday's close.
         // This makes position + scoreboard day change reflect the after-hours move since 16:00 ET.
-        const baselinePrice = ext ? (h.lastPrice ?? h.prevClose ?? price) : (h.prevClose ?? price);
-        const prevMV = isCash ? mv : h.shares * baselinePrice;
-        const cost = isCash ? mv : h.shares * h.cost;
-        posMV += mv; posPrev += prevMV; posCost += cost;
-        // Override lastPrice/dayPct in the player object so modals show the right price.
-        players.push({ ticker: t, ...h, marketValue: mv, lastPrice: price, dayPct: pct });
+        const baselinePrice = ext ? (h.lastPrice ?? h.prevClose ?? priceNative) : (h.prevClose ?? priceNative);
+        const prevMV = isCash ? mv : h.shares * baselinePrice * fx;
+        const costUSD = isCash ? mv : h.shares * h.cost * fx;
+        posMV += mv; posPrev += prevMV; posCost += costUSD;
+        // Player object: marketValue/dayChange/cost in USD; lastPrice stays native
+        // so modals can render it with the correct currency symbol.
+        players.push({
+          ticker: t, ...h,
+          marketValue: mv,
+          lastPrice: priceNative,
+          lastPriceUSD: priceUSD,
+          fx,
+          dayPct: pct,
+        });
       }
       marketValue += posMV; totalCost += posCost;
       const dayDelta = posMV - posPrev;
@@ -168,21 +218,27 @@ window.Utils = (function () {
         const result = data?.chart?.result?.[0];
         const meta = result?.meta;
         if (!meta) continue;
-        const lastPrice = meta.regularMarketPrice;
+        let lastPrice = meta.regularMarketPrice;
         if (lastPrice == null) continue;
-        const prevClose = meta.regularMarketPreviousClose ?? meta.previousClose ?? meta.chartPreviousClose ?? lastPrice;
+        let prevClose = meta.regularMarketPreviousClose ?? meta.previousClose ?? meta.chartPreviousClose ?? lastPrice;
         // Extended hours price: pre-market or after-hours (null if not available).
-        const extPrice  = meta.preMarketPrice ?? meta.postMarketPrice ?? null;
-        const volume    = meta.regularMarketVolume ?? null;
-        const extVolume = meta.preMarketVolume ?? meta.postMarketVolume ?? null;
+        let extPrice  = meta.preMarketPrice ?? meta.postMarketPrice ?? null;
+        // Yahoo returns London-listed prices in pence (currency "GBp"). Normalize
+        // to GBP (divide by 100) so downstream math never has to special-case pence.
+        let currency = meta.currency || null;
+        if (currency === "GBp" || currency === "GBX") {
+          lastPrice /= 100;
+          prevClose /= 100;
+          if (extPrice != null) extPrice /= 100;
+          currency = "GBP";
+        }
         return {
           lastPrice,
           extPrice,
           prevClose,
+          currency,
           dayPct: prevClose > 0 ? ((lastPrice - prevClose) / prevClose) * 100 : 0,
           extDayPct: (extPrice != null && lastPrice > 0) ? ((extPrice - lastPrice) / lastPrice) * 100 : null,
-          volume,
-          extVolume,
         };
       } catch (e) {
         clearTimeout(tid);
@@ -213,6 +269,7 @@ window.Utils = (function () {
         const lastPrice = isFinite(gsz) && gsz > 0 ? gsz : dwjz;
         return {
           lastPrice, extPrice: null, prevClose: dwjz,
+          currency: "CNY",
           dayPct: ((lastPrice - dwjz) / dwjz) * 100, extDayPct: null,
         };
       } catch { clearTimeout(tid); }
@@ -248,31 +305,54 @@ window.Utils = (function () {
     }
   }
 
+  // Normalize Edge Function results: it returns raw Yahoo values, so London
+  // tickers come through in pence. Convert to GBP and tag currency so the app
+  // can convert to USD consistently. Safe to call on any result map.
+  function normalizeEdgeResult(result) {
+    if (!result) return result;
+    for (const [t, r] of Object.entries(result)) {
+      if (!r) continue;
+      if (/^\d{6}$/.test(t) && r.currency == null) r.currency = "CNY";
+      else if (/\.L$/i.test(t)) {
+        // Edge doesn't report currency; assume London GBp unless values already look like GBP (<50).
+        // Most London ETFs/stocks trade at hundreds of pence, so /100 is the safe default.
+        if (r.currency == null) {
+          r.lastPrice /= 100;
+          if (r.prevClose != null) r.prevClose /= 100;
+          if (r.extPrice != null) r.extPrice /= 100;
+          r.currency = "GBP";
+        }
+      }
+    }
+    return result;
+  }
+
   async function fetchYahoo(tickers) {
     const liveTickers = tickers.filter(t => !t.endsWith(".PVT") && t !== "CASH");
     if (!liveTickers.length) return {};
 
     // 6-digit numeric tickers are Chinese mutual funds.
-    // We run the Edge Function and direct CORS-proxy CN fund fetches in parallel.
-    // Edge function wins for everything when updated; CORS proxy fills in missing CN funds
-    // when the Edge Function is running an older version that only handles Yahoo tickers.
+    // Start Edge Function and direct CORS-proxy CN fund fetches in parallel.
+    // If Edge returns everything (newer deployment), return immediately and
+    // don't wait for the slower CORS proxy. Otherwise merge proxy results.
     const cnFunds = liveTickers.filter(t => /^\d{6}$/.test(t));
     const hasCNFund = cnFunds.length > 0;
     if (hasCNFund) {
       const edgeP = fetchViaEdge(liveTickers);
       const cnProxyP = Promise.all(cnFunds.map(async t => [t, await fetchOneCNFund(t)]))
         .then(pairs => { const o = {}; for (const [t, r] of pairs) if (r) o[t] = r; return o; });
-      const [edgeResult, cnFromProxy] = await Promise.all([edgeP, cnProxyP]);
+      const edgeResult = normalizeEdgeResult(await edgeP);
+      // Short-circuit: Edge covers every CN fund → return without waiting for proxy.
+      if (edgeResult && cnFunds.every(t => edgeResult[t])) return edgeResult;
+      const cnFromProxy = await cnProxyP;
       const out = { ...(edgeResult || {}) };
-      for (const t of cnFunds) {
-        if (!out[t] && cnFromProxy[t]) out[t] = cnFromProxy[t];
-      }
+      for (const t of cnFunds) if (!out[t] && cnFromProxy[t]) out[t] = cnFromProxy[t];
       return Object.keys(out).length > 0 ? out : null;
     }
 
     // Race edge function (batch, fast) vs CORS proxy (per-ticker, fallback).
     // Both start immediately; whichever returns valid data first wins.
-    const edgeP = fetchViaEdge(liveTickers);
+    const edgeP = fetchViaEdge(liveTickers).then(normalizeEdgeResult);
     const proxyP = Promise.all(liveTickers.map(async (t) => [t, await fetchOneYahooChart(t)]))
       .then(pairs => {
         const out = {};
@@ -340,6 +420,7 @@ window.Utils = (function () {
     fmtMoney, fmtPct, fmtPrice, pctColor,
     londonTimeParts, usMarketPhase, formatAgo,
     computeMetrics, detectFormation,
+    detectCurrency, currencySymbol, fxToUSD,
     refreshPrices, fetchTickers, POSITION_COORDS,
   };
 })();

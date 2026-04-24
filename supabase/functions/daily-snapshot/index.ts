@@ -53,7 +53,12 @@ async function fetchClosePrice(symbol: string): Promise<number | null> {
     if (!res.ok) return null;
     const data = await res.json();
     const meta = data?.chart?.result?.[0]?.meta;
-    return meta?.regularMarketPrice ?? null;
+    const px = meta?.regularMarketPrice;
+    if (px == null) return null;
+    // London-listed securities are quoted in pence — normalize to pounds so the
+    // snapshot stores the same units the live `prices` Edge Function returns.
+    if (meta.currency === "GBp" || meta.currency === "GBX") return px / 100;
+    return px;
   } catch {
     return null;
   }
@@ -78,20 +83,38 @@ Deno.serve(async (_req: Request) => {
     );
     if (!tickers.length) throw new Error("no live tickers");
 
+    // FX rates for non-USD holdings — fetched alongside ticker prices.
+    // GBPUSD=X is GBP→USD direct; USDCNY=X is USD→CNY (we invert to get CNY→USD).
+    const fxTickers = ["GBPUSD=X", "USDCNY=X"];
+    const allTickers = [...tickers, ...fxTickers];
+
     // Fetch closing prices in parallel
     const pairs = await Promise.all(
-      tickers.map(t => fetchClosePrice(t).then(p => [t, p] as const))
+      allTickers.map(t => fetchClosePrice(t).then(p => [t, p] as const))
     );
-    const prices: Record<string, number> = {};
-    for (const [t, p] of pairs) if (p != null) prices[t] = p;
+    const allPrices: Record<string, number> = {};
+    for (const [t, p] of pairs) if (p != null) allPrices[t] = p;
 
+    // Snapshot only stores the holding-ticker prices (FX rates aren't a holding).
+    const prices: Record<string, number> = {};
+    for (const t of tickers) if (allPrices[t] != null) prices[t] = allPrices[t];
     if (!Object.keys(prices).length) throw new Error("all price fetches failed");
 
-    // Total portfolio value
+    const gbpUsd = allPrices["GBPUSD=X"] || 1;
+    const usdCny = allPrices["USDCNY=X"] || 0;
+    const fxToUSD = (cur: string | undefined): number => {
+      if (!cur || cur === "USD") return 1;
+      if (cur === "GBP") return gbpUsd;
+      if (cur === "CNY") return usdCny > 0 ? 1 / usdCny : 1;
+      return 1;
+    };
+
+    // Total portfolio value (USD) — converts native-currency prices via live FX
     let totalValue = 0;
     for (const [t, h] of Object.entries(holdings)) {
       if (h.isCash || t === "CASH") { totalValue += h.lastPrice ?? 0; continue; }
-      totalValue += (h.shares ?? 0) * (prices[t] ?? h.lastPrice ?? 0);
+      const native = prices[t] ?? h.lastPrice ?? 0;
+      totalValue += (h.shares ?? 0) * native * fxToUSD(h.currency);
     }
     if (totalValue <= 0) return new Response(JSON.stringify({ skipped: "zero value" }), {
       headers: { "Content-Type": "application/json" },
