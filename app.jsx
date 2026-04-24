@@ -195,6 +195,29 @@ function App() {
   );
 }
 
+function applyHistPrices(portfolio, histSnap) {
+  if (!histSnap?.prices) return portfolio;
+  const snaps = portfolio.snapshots || [];
+  const histIdx = snaps.findIndex(s => s.date === histSnap.date);
+  const prevSnap = histIdx > 0 ? snaps[histIdx - 1] : null;
+  const holdings = {};
+  for (const [t, h] of Object.entries(portfolio.holdings)) {
+    const hp = histSnap.prices[t];
+    const prevHp = prevSnap?.prices?.[t];
+    if (hp != null) {
+      holdings[t] = {
+        ...h, lastPrice: hp, extPrice: null,
+        prevClose: prevHp ?? hp,
+        dayPct: (prevHp != null && prevHp > 0) ? ((hp - prevHp) / prevHp) * 100 : 0,
+        extDayPct: null,
+      };
+    } else {
+      holdings[t] = h;
+    }
+  }
+  return { ...portfolio, holdings };
+}
+
 function Board({ isReadOnly }) {
   const [portfolio, setPortfolio] = useState(null);      // null = still loading
   const [drillPos, setDrillPos] = useState(null);
@@ -210,8 +233,9 @@ function Board({ isReadOnly }) {
   const [dragging, setDragging] = useState(null);
   const [extendedHours, setExtendedHours] = useState(false);
   const [marketData, setMarketData] = useState({});
-  // In read-only mode, force-disable edit mode.
-  useEffect(() => { if (isReadOnly && editMode) setEditMode(false); }, [isReadOnly, editMode]);
+  const [histSnap, setHistSnap] = useState(null);
+  // In read-only mode or history mode, force-disable edit mode.
+  useEffect(() => { if ((isReadOnly || histSnap) && editMode) setEditMode(false); }, [isReadOnly, histSnap, editMode]);
 
   // Initial load from Supabase (never throws — falls back to INITIAL_PORTFOLIO on any error)
   useEffect(() => {
@@ -329,6 +353,9 @@ function Board({ isReadOnly }) {
   const metrics = computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular" });
   const formation = detectFormation(portfolio);
 
+  const displayPortfolio = histSnap ? applyHistPrices(portfolio, histSnap) : portfolio;
+  const displayMetrics   = histSnap ? computeMetrics(displayPortfolio, { extended: false }) : metrics;
+
   let captainTicker = null, captainMV = 0;
   for (const [t, h] of Object.entries(portfolio.holdings)) {
     const mv = h.shares * h.lastPrice;
@@ -412,7 +439,7 @@ function Board({ isReadOnly }) {
   return (
     <div className="app">
       <Header
-        metrics={metrics}
+        metrics={displayMetrics}
         formation={formation}
         source={source}
         lastUpdated={lastUpdated}
@@ -422,7 +449,8 @@ function Board({ isReadOnly }) {
         setEditMode={setEditMode}
         isReadOnly={isReadOnly}
         extendedHours={extendedHours}
-        onToggleExtended={() => setExtendedHours(v => !v)}
+        onToggleExtended={() => { if (!histSnap) setExtendedHours(v => !v); }}
+        histDate={histSnap?.date ?? null}
       />
 
       <main className="main">
@@ -432,36 +460,42 @@ function Board({ isReadOnly }) {
           phase={currentPhase}
         />
         <Pitch
-            metrics={metrics}
+            metrics={displayMetrics}
             captainTicker={captainTicker}
             hotMoverTicker={hotMoverTicker}
             hotMoverPosKey={hotMoverPosKey}
-            flashTickers={flashTickers}
+            flashTickers={histSnap ? {} : flashTickers}
             editMode={editMode}
-            isReadOnly={isReadOnly}
-            dragging={dragging}
-            setDragging={isReadOnly ? () => {} : setDragging}
-            onDrop={handleDrop}
+            isReadOnly={isReadOnly || !!histSnap}
+            dragging={histSnap ? null : dragging}
+            setDragging={isReadOnly || histSnap ? () => {} : setDragging}
+            onDrop={histSnap ? () => {} : handleDrop}
             onOpenPosition={(k) => {
+              if (histSnap) { setDrillPos(k); return; }
               if (k === "GK") { if (!isReadOnly) setEditingCash(true); return; }
               setDrillPos(k);
             }}
             onAddToPosition={(k) => {
-              if (isReadOnly) return;
+              if (isReadOnly || histSnap) return;
               if (k === "GK") setEditingCash(true); else setAddingToPos(k);
             }}
             onUpdatePosition={updatePosition}
-            isRefreshing={isRefreshing}
-            recentlyUpdated={recentlyUpdated}
+            isRefreshing={isRefreshing && !histSnap}
+            recentlyUpdated={recentlyUpdated && !histSnap}
           />
-        <Sidebar metrics={metrics} source={source} snapshots={portfolio.snapshots || []} />
+        <Sidebar
+          metrics={displayMetrics}
+          source={source}
+          snapshots={portfolio.snapshots || []}
+          onSelectSnapshot={setHistSnap}
+        />
         <window.SidebarFoot source={source} />
       </main>
 
       {drillPos && (
         <PositionDrillModal
           posKey={drillPos}
-          position={metrics.positions[drillPos]}
+          position={displayMetrics.positions[drillPos]}
           captainTicker={captainTicker}
           hotMoverTicker={hotMoverTicker}
           flashTickers={flashTickers}
