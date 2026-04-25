@@ -69,6 +69,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
             </label>
             <span className={`view-lbl mono${viewMode === 'heatmap' ? ' view-lbl-on' : ''}`}>HEAT MAP</span>
           </div>
+          <div className="brand-formation mono">{metrics.tickerCount} tickers</div>
         </div>
         {/* Mobile only: time + toggle lives here instead of in scrolling scoreboard */}
         <div className="brand-time">
