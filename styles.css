@@ -52,9 +52,10 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  /* iOS PWA: side + bottom safe-area insets keep content off the rounded
-     corners and home indicator. Top inset is applied to .header instead
-     so it expands only that bar, not the entire app container. */
+  /* iOS PWA: full env(safe-area-inset-top) is visually too tall — shave 20px
+     off so the title sits closer to the status bar (with 8px floor as guard
+     against negative values on devices that report a small inset). */
+  padding-top:    max(8px, calc(env(safe-area-inset-top) - 20px));
   padding-bottom: env(safe-area-inset-bottom);
   padding-left:   env(safe-area-inset-left);
   padding-right:  env(safe-area-inset-right);
@@ -106,12 +107,9 @@ body {
 .header {
   display: flex;
   align-items: center;
-  /* iOS PWA: status bar clearance. The full safe-area-inset-top is taller than
-     needed visually — subtract a chunk so the title sits closer to the status
-     bar (matches the looks-right reference screenshot) but never overlaps. */
-  padding: max(8px, calc(env(safe-area-inset-top) - 20px)) 24px 0;
+  padding: 0 24px;
   gap: 24px;
-  height: calc(64px + max(8px, calc(env(safe-area-inset-top) - 20px)));
+  height: 64px;
   border-bottom: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(244,239,227,0.03), transparent);
   position: relative;
