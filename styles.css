@@ -631,6 +631,20 @@ body {
 }
 .spark-live-btn:hover { opacity: 0.7; }
 
+/* ============= YTD PERFORMANCE CHART ============= */
+.perf-chart-wrap { padding: 2px 0 4px; }
+.perf-legend {
+  display: flex; gap: 14px; align-items: center;
+  margin-bottom: 8px;
+}
+.perf-legend-item { display: flex; align-items: center; gap: 5px; }
+.perf-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  flex-shrink: 0; display: inline-block;
+}
+.perf-lbl { font-size: 9px; letter-spacing: 0.12em; }
+.perf-val { font-size: 9px; letter-spacing: 0.03em; }
+
 /* ============= VIX REGIME LABEL ============= */
 .mc-vix-regime { font-size: 9px; letter-spacing: 0.16em; font-family: var(--font-mono); }
 /* ============= MODALS ============= */
