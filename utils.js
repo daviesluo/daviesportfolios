@@ -400,6 +400,36 @@ window.Utils = (function () {
     return fetchYahoo(tickers.filter(Boolean));
   }
 
+  // Fetch daily historical closes for a single symbol via the CORS proxy chain.
+  // Returns [{date: "YYYY-MM-DD", close: number}, …] sorted ascending, or null on failure.
+  async function fetchHistorical(symbol, range = "ytd", interval = "1d") {
+    const nonce = Date.now();
+    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}&_=${nonce}`;
+    for (const makeProxy of PROXIES) {
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 10000);
+      try {
+        const res = await fetch(makeProxy(yahooUrl), { cache: "no-store", signal: controller.signal });
+        clearTimeout(tid);
+        if (!res.ok) continue;
+        const data = await res.json();
+        const result = data?.chart?.result?.[0];
+        const timestamps = result?.timestamp;
+        const closes = result?.indicators?.quote?.[0]?.close;
+        if (!timestamps || !closes) continue;
+        const points = [];
+        for (let i = 0; i < timestamps.length; i++) {
+          if (closes[i] == null) continue;
+          const date = new Date(timestamps[i] * 1000).toISOString().slice(0, 10);
+          points.push({ date, close: closes[i] });
+        }
+        if (points.length > 0) return points;
+      } catch (_) {
+        clearTimeout(tid);
+      }
+    }
+    return null;
+  }
 
   // -------- Position coordinates on 100x100 pitch (home team attacks UP; GK at bottom) --------
   const POSITION_COORDS = {
@@ -421,6 +451,6 @@ window.Utils = (function () {
     londonTimeParts, usMarketPhase, formatAgo,
     computeMetrics, detectFormation,
     detectCurrency, currencySymbol, fxToUSD,
-    refreshPrices, fetchTickers, POSITION_COORDS,
+    refreshPrices, fetchTickers, fetchHistorical, POSITION_COORDS,
   };
 })();
