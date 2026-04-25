@@ -172,50 +172,163 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 }
 
 // YTD performance chart: portfolio % return vs S&P 500, normalised from a common start.
-function PerfChart({ snapshots }) {
-  const [spData,  setSpData]  = React.useState(null);
+// Cache YTD historical fetch results in sessionStorage. Past closes are static
+// so we can reuse aggressively; TTL exists only to refresh today's close.
+const YTD_CACHE_KEY = 'ytd-perf-cache-v2';
+const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
+
+function loadYtdCache(year, tickers) {
+  try {
+    const raw = sessionStorage.getItem(YTD_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed.year !== year) return null;
+    if (Date.now() - parsed.ts > YTD_CACHE_TTL_MS) return null;
+    if (!parsed.data || !parsed.data['^GSPC']) return null;
+    if (tickers.some(t => !parsed.data[t])) return null;
+    return parsed.data;
+  } catch (_) { return null; }
+}
+function saveYtdCache(year, data) {
+  try {
+    sessionStorage.setItem(YTD_CACHE_KEY, JSON.stringify({ year, ts: Date.now(), data }));
+  } catch (_) {}
+}
+
+// YTD performance chart: portfolio % return vs S&P 500, computed from per-lot
+// purchase history + historical closes (Yahoo Finance), normalised from the
+// first trading day of the calendar year.
+function PerfChart({ portfolio, marketData }) {
+  const [hist,    setHist]    = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const [error,   setError]   = React.useState(false);
+
+  // Tickers we need historical YTD data for — skip cash, private (.PVT) and
+  // CN funds (6-digit) since they have no Yahoo chart endpoint.
+  const tickers = React.useMemo(() => {
+    if (!portfolio) return [];
+    const out = new Set();
+    for (const [t, h] of Object.entries(portfolio.holdings || {})) {
+      if (h.isCash || t === 'CASH') continue;
+      if (t.endsWith('.PVT')) continue;
+      if (/^\d{6}$/.test(t)) continue;
+      out.add(t);
+    }
+    return Array.from(out).sort();
+  }, [portfolio]);
+  const tickerKey = tickers.join(',');
 
   React.useEffect(() => {
+    if (!portfolio) return;
     let cancelled = false;
-    window.Utils.fetchHistorical('^GSPC', 'ytd', '1d').then(data => {
+    const year = new Date().getFullYear();
+
+    const cached = loadYtdCache(year, tickers);
+    if (cached) {
+      setHist(cached);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const symbols = ['^GSPC', ...tickers];
+    Promise.all(
+      symbols.map(s => window.Utils.fetchHistorical(s, 'ytd', '1d').catch(() => null))
+    ).then(results => {
       if (cancelled) return;
-      setSpData(data && data.length > 0 ? data : []);
+      const data = {};
+      symbols.forEach((s, i) => { if (results[i]) data[s] = results[i]; });
+      if (!data['^GSPC']) {
+        setError(true);
+        setLoading(false);
+        return;
+      }
+      saveYtdCache(year, data);
+      setHist(data);
       setLoading(false);
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [tickerKey]);
 
-  // Portfolio snapshots for the current calendar year only
-  const year = new Date().getFullYear().toString();
-  const portSeries = (snapshots || [])
-    .filter(s => s.date && s.date.startsWith(year) && s.value > 0)
+  if (!portfolio)              return <div className="sparkline-empty dim mono">Loading…</div>;
+  if (loading)                 return <div className="sparkline-empty dim mono">Computing YTD…</div>;
+  if (error || !hist?.['^GSPC']) return <div className="sparkline-empty dim mono">Couldn't load history</div>;
+
+  const year = new Date().getFullYear();
+  const yearStart = `${year}-01-01`;
+
+  // S&P 500 YTD trading dates anchor everything
+  const spYtd = (hist['^GSPC'] || [])
+    .filter(p => p.date >= yearStart)
     .sort((a, b) => a.date.localeCompare(b.date));
+  if (spYtd.length < 2) return <div className="sparkline-empty dim mono">No YTD data yet</div>;
 
-  if (loading) return <div className="sparkline-empty dim mono">Loading…</div>;
-
-  const hasPort = portSeries.length >= 1;
-  const hasSP   = spData && spData.length >= 2;
-
-  if (!hasPort && !hasSP) {
-    return <div className="sparkline-empty dim mono">Collecting data…</div>;
+  // Per-ticker sorted series + map for fast lookup
+  const tickerSeries = {};
+  for (const t of tickers) {
+    const series = (hist[t] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+    const map = {};
+    for (const p of series) map[p.date] = p.close;
+    tickerSeries[t] = { series, map };
   }
 
-  // Common start: portfolio's first snapshot if available, otherwise S&P's first point
-  const startDate = hasPort ? portSeries[0].date : spData[0].date;
+  // Get close for ticker on a date — exact match, or last known close ≤ date.
+  const closeOn = (ticker, date) => {
+    const tm = tickerSeries[ticker];
+    if (!tm) return null;
+    if (tm.map[date] != null) return tm.map[date];
+    let lo = 0, hi = tm.series.length - 1, best = null;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (tm.series[mid].date <= date) { best = tm.series[mid].close; lo = mid + 1; }
+      else hi = mid - 1;
+    }
+    return best;
+  };
 
-  // Filter S&P to dates >= startDate and normalise from first point at/after startDate
-  const spFiltered = hasSP ? spData.filter(p => p.date >= startDate) : [];
-  const spBase  = spFiltered.length > 0 ? spFiltered[0].close : null;
-  const spNorm  = spBase  ? spFiltered.map(p => ({ date: p.date, pct: ((p.close - spBase) / spBase) * 100 })) : [];
+  // Compute portfolio USD value at a given date using cumulative lots.
+  const valueAt = (date) => {
+    let total = 0;
+    for (const [ticker, h] of Object.entries(portfolio.holdings)) {
+      if (h.isCash || ticker === 'CASH') {
+        total += h.lastPrice || 0; // cash held flat (we only track current balance)
+        continue;
+      }
+      if (!Array.isArray(h.lots) || h.lots.length === 0) continue;
+      let cumShares = 0;
+      for (const lot of h.lots) if (lot.date <= date) cumShares += lot.shares;
+      if (cumShares === 0) continue;
 
-  // Normalise portfolio from its first value
-  const portBase = hasPort ? portSeries[0].value : null;
-  const portNorm = portBase ? portSeries.map(p => ({ date: p.date, pct: ((p.value - portBase) / portBase) * 100 })) : [];
+      let priceNative = closeOn(ticker, date);
+      if (priceNative == null) {
+        // No Yahoo data (e.g. SPAX.PVT, 017731): fall back to weighted-average
+        // cost of lots already purchased — flat line, no historical curve.
+        let c = 0, s = 0;
+        for (const lot of h.lots) {
+          if (lot.date <= date) { c += lot.shares * lot.cost; s += lot.shares; }
+        }
+        priceNative = s > 0 ? c / s : 0;
+      }
+      const fx = (h.currency && h.currency !== 'USD')
+        ? window.Utils.fxToUSD(h.currency, marketData)
+        : 1;
+      total += cumShares * priceNative * fx;
+    }
+    return total;
+  };
 
-  // Date range across both series
+  // Portfolio value series — same dates as S&P 500 trading days
+  const portValues = spYtd.map(p => ({ date: p.date, value: valueAt(p.date) }));
+  const portValid  = portValues.filter(p => p.value > 0);
+  if (portValid.length < 2) return <div className="sparkline-empty dim mono">Insufficient data</div>;
+
+  // Normalise both series to % return from year start
+  const portBase = portValid[0].value;
+  const portNorm = portValid.map(p => ({ date: p.date, pct: ((p.value - portBase) / portBase) * 100 }));
+  const spBase   = spYtd[0].close;
+  const spNorm   = spYtd.map(p => ({ date: p.date, pct: ((p.close - spBase) / spBase) * 100 }));
+
   const allDates = [...portNorm.map(p => p.date), ...spNorm.map(p => p.date)].sort();
-  if (allDates.length === 0) return <div className="sparkline-empty dim mono">No data</div>;
   const d0 = allDates[0];
   const d1 = allDates[allDates.length - 1];
 
@@ -347,17 +460,11 @@ function PerfChart({ snapshots }) {
                          r="3" fill={portColor} stroke="#0c1310" strokeWidth="1.5" />;
         })()}
       </svg>
-
-      {!hasPort && (
-        <div className="sparkline-empty dim mono" style={{ fontSize: 9, paddingTop: 2 }}>
-          Portfolio tracking starts today
-        </div>
-      )}
     </div>
   );
 }
 
-function Sidebar({ metrics, source, snapshots, onSelectSnapshot }) {
+function Sidebar({ metrics, source, portfolio, marketData }) {
   // top movers: by |dayPct|, both winners and losers, split
   const allPlayers = [];
   for (const pos of Object.values(metrics.positions)) {
@@ -423,7 +530,7 @@ function Sidebar({ metrics, source, snapshots, onSelectSnapshot }) {
 
       <section className="panel">
         <h3 className="panel-title">YTD PERFORMANCE</h3>
-        <PerfChart snapshots={snapshots} />
+        <PerfChart portfolio={portfolio} marketData={marketData} />
       </section>
 
       <div className="sidebar-foot sidebar-foot-desktop">
