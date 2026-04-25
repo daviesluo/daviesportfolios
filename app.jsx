@@ -117,6 +117,29 @@ function migrate(p) {
     h.currency = window.Utils.detectCurrency(t);
   }
 
+  // Backfill `lots` (per-purchase history) on holdings missing it. Drives the
+  // YTD performance chart's historical value calculation.
+  // We only apply a seed if its shares sum matches the current holding (within
+  // rounding tolerance) — otherwise the user has manually adjusted shares and
+  // applying stale seed lots would over- or under-count.
+  const initialLots = window.INITIAL_LOTS || {};
+  for (const [t, h] of Object.entries(p.holdings)) {
+    if (h.isCash || t === "CASH") continue;
+    if (Array.isArray(h.lots) && h.lots.length > 0) continue;
+    const seed = initialLots[t];
+    let applied = false;
+    if (seed && seed.length > 0 && seed.every(l => l.shares > 0)) {
+      const seedTotal = seed.reduce((s, l) => s + l.shares, 0);
+      if (Math.abs(seedTotal - (h.shares || 0)) < 0.01) {
+        h.lots = seed.map(l => ({ date: l.date, shares: l.shares, cost: l.cost }));
+        applied = true;
+      }
+    }
+    if (!applied) {
+      h.lots = [{ date: "2025-01-01", shares: h.shares, cost: h.cost }];
+    }
+  }
+
   // v2 → v3: refresh labels + default subtitles from INITIAL_PORTFOLIO for untouched slots.
   const validKeys = new Set(Object.keys(window.INITIAL_PORTFOLIO.positions));
   for (const k of Object.keys(p.positions)) {
@@ -432,7 +455,18 @@ function Board({ isReadOnly }) {
   const guard = (fn) => (...args) => { if (isReadOnly) return; fn(...args); };
 
   const updateHolding = guard((ticker, patch) => {
-    setPortfolio(p => ({ ...p, holdings: { ...p.holdings, [ticker]: { ...p.holdings[ticker], ...patch } } }));
+    setPortfolio(p => {
+      const cur = p.holdings[ticker];
+      if (!cur) return p;
+      const next = { ...cur, ...patch };
+      // If shares were changed manually, reset `lots` to a single lot dated
+      // today so the YTD chart doesn't double-count from stale per-lot history.
+      if (patch.shares != null && Number(patch.shares) !== Number(cur.shares)) {
+        const today = new Date().toISOString().slice(0, 10);
+        next.lots = [{ date: today, shares: Number(patch.shares) || 0, cost: Number(next.cost) || 0 }];
+      }
+      return { ...p, holdings: { ...p.holdings, [ticker]: next } };
+    });
   });
   const removeHolding = guard((ticker) => {
     setPortfolio(p => {
@@ -444,10 +478,12 @@ function Board({ isReadOnly }) {
       return { ...p, holdings, positions };
     });
   });
-  const addHolding = guard((posKey, ticker, shares, cost, lastPrice) => {
+  const addHolding = guard((posKey, ticker, shares, cost, lastPrice, buyDate) => {
     ticker = ticker.toUpperCase().trim();
     if (!ticker) return;
     const currency = window.Utils.detectCurrency(ticker);
+    const today = new Date().toISOString().slice(0, 10);
+    const lotDate = buyDate || today;
     setPortfolio(p => {
       const holdings = {
         ...p.holdings,
@@ -458,6 +494,7 @@ function Board({ isReadOnly }) {
           prevClose: Number(lastPrice) || Number(cost) || 0,
           dayPct: 0,
           currency,
+          lots: [{ date: lotDate, shares: Number(shares) || 0, cost: Number(cost) || 0 }],
         },
       };
       const positions = {};
@@ -549,8 +586,8 @@ function Board({ isReadOnly }) {
         <Sidebar
           metrics={displayMetrics}
           source={source}
-          snapshots={portfolio.snapshots || []}
-          onSelectSnapshot={setHistSnap}
+          portfolio={portfolio}
+          marketData={marketData}
         />
         <window.SidebarFoot source={source} />
       </main>
