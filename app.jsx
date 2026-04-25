@@ -280,6 +280,7 @@ function Board({ isReadOnly }) {
   const [extendedHours, setExtendedHours] = useState(false);
   const [marketData, setMarketData] = useState({});
   const [histSnap, setHistSnap] = useState(null);
+  const [viewMode, setViewMode] = useState('tactics');
   // In read-only mode or history mode, force-disable edit mode.
   useEffect(() => { if ((isReadOnly || histSnap) && editMode) setEditMode(false); }, [isReadOnly, histSnap, editMode]);
 
@@ -494,7 +495,6 @@ function Board({ isReadOnly }) {
     <div className="app">
       <Header
         metrics={displayMetrics}
-        formation={formation}
         source={source}
         lastUpdated={lastUpdated}
         isRefreshing={isRefreshing}
@@ -505,6 +505,8 @@ function Board({ isReadOnly }) {
         extendedHours={extendedHours}
         onToggleExtended={() => { if (!histSnap) setExtendedHours(v => !v); }}
         histDate={histSnap?.date ?? null}
+        viewMode={viewMode}
+        onToggleView={setViewMode}
       />
 
       <main className="main">
@@ -513,7 +515,13 @@ function Board({ isReadOnly }) {
           extendedHours={extendedHours}
           phase={currentPhase}
         />
-        <Pitch
+        {viewMode === 'heatmap' ? (
+          <window.Heatmap
+            metrics={displayMetrics}
+            extendedHours={extendedHours && currentPhase !== "regular"}
+          />
+        ) : (
+          <Pitch
             metrics={displayMetrics}
             captainTicker={captainTicker}
             hotMoverTicker={hotMoverTicker}
@@ -537,6 +545,7 @@ function Board({ isReadOnly }) {
             isRefreshing={isRefreshing && !histSnap}
             recentlyUpdated={recentlyUpdated && !histSnap}
           />
+        )}
         <Sidebar
           metrics={displayMetrics}
           source={source}
