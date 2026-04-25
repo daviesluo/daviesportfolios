@@ -26,47 +26,35 @@ function treemap(nodes, x, y, w, h) {
   }
 }
 
-// ── Tile colour (Trading 212-style muted dark gradient) ──────────────────────
-// Magnitude shapes lightness; sqrt curve keeps small moves visible while
-// saturating gracefully on big moves. Top-bright / bottom-dim gradient gives
-// the tiles a subtle 3D feel.
+// ── Tile colour — HSL-based, Trading 212 dark-mode palette ──────────────────
+// Both hue families use the same lightness/saturation curve so the visual
+// weight of gains and losses is symmetric. sqrt(t) keeps tiny moves visible.
 function tileStyle(pct) {
   if (pct == null || Math.abs(pct) < 0.005) {
     return {
-      bg: 'linear-gradient(180deg, rgb(34,40,38) 0%, rgb(26,32,30) 100%)',
-      tickerClr: 'var(--chalk-dim)',
-      pctClr: 'var(--chalk-dim)',
+      bg: 'linear-gradient(180deg, hsl(158,12%,13%) 0%, hsl(158,12%,10%) 100%)',
+      tickerClr: 'rgba(244,239,227,0.45)',
+      pctClr:    'rgba(244,239,227,0.45)',
     };
   }
-  // t in [0,1] — saturates at ~10% magnitude
-  const t = Math.min(1, Math.abs(pct) / 10);
-  const k = Math.sqrt(t); // soften so tiny moves still show colour
+  const t = Math.min(1, Math.abs(pct) / 10); // saturate at 10%
+  const k = Math.sqrt(t);                     // soft curve
+  const sat   = Math.round(28 + k * 40);      // 28 → 68 %
+  const light = Math.round(11 + k * 21);      // 11 → 32 %
 
   if (pct > 0) {
-    // Forest green progression
-    const r1 = Math.round(28 + k * 50);
-    const g1 = Math.round(48 + k * 110);
-    const b1 = Math.round(38 + k * 60);
-    const r2 = Math.round(r1 * 0.82);
-    const g2 = Math.round(g1 * 0.82);
-    const b2 = Math.round(b1 * 0.82);
+    const pctLight = Math.round(50 + k * 22); // pct text: 50 → 72 %
     return {
-      bg: `linear-gradient(180deg, rgb(${r1},${g1},${b1}) 0%, rgb(${r2},${g2},${b2}) 100%)`,
-      tickerClr: '#e3f5e8',
-      pctClr: '#86efac',
+      bg:        `linear-gradient(180deg, hsl(142,${sat}%,${light + 4}%) 0%, hsl(142,${sat}%,${light - 2}%) 100%)`,
+      tickerClr: 'rgba(244,239,227,0.92)',
+      pctClr:    `hsl(142,75%,${pctLight}%)`,
     };
   }
-  // Crimson progression
-  const r1 = Math.round(50 + k * 130);
-  const g1 = Math.round(28 + k * 38);
-  const b1 = Math.round(36 + k * 50);
-  const r2 = Math.round(r1 * 0.82);
-  const g2 = Math.round(g1 * 0.82);
-  const b2 = Math.round(b1 * 0.82);
+  const pctLight = Math.round(55 + k * 22); // pct text: 55 → 77 %
   return {
-    bg: `linear-gradient(180deg, rgb(${r1},${g1},${b1}) 0%, rgb(${r2},${g2},${b2}) 100%)`,
-    tickerClr: '#fbe5e9',
-    pctClr: '#fca5a5',
+    bg:        `linear-gradient(180deg, hsl(352,${sat}%,${light + 4}%) 0%, hsl(352,${sat}%,${light - 2}%) 100%)`,
+    tickerClr: 'rgba(244,239,227,0.92)',
+    pctClr:    `hsl(352,85%,${pctLight}%)`,
   };
 }
 
@@ -115,8 +103,8 @@ function Heatmap({ metrics, extendedHours }) {
             const { bg, tickerClr, pctClr } = tileStyle(tile.pct);
             const pctStr = (tile.pct >= 0 ? '+' : '') + tile.pct.toFixed(2) + '%';
 
-            const showTicker = tw >= 38 && th >= 28;
-            const showPct    = tw >= 48 && th >= 42;
+            const showTicker = tw >= 30 && th >= 22;
+            const showPct    = tw >= 36 && th >= 32;
 
             return (
               <div
