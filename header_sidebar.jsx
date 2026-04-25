@@ -174,7 +174,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 // YTD performance chart: portfolio % return vs S&P 500, normalised from a common start.
 // Cache YTD historical fetch results in sessionStorage. Past closes are static
 // so we can reuse aggressively; TTL exists only to refresh today's close.
-const YTD_CACHE_KEY = 'ytd-perf-cache-v3';
+const YTD_CACHE_KEY = 'ytd-perf-cache-v4';
 const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
 function loadYtdCache(year, tickers) {
@@ -288,14 +288,15 @@ function PerfChart({ portfolio, marketData }) {
 
   // Compute portfolio USD value at a given date.
   //
-  // We use **constant current shares** for every YTD date — i.e. project
-  // today's portfolio composition backwards in time. This matches Yahoo
-  // Finance's "Portfolio Performance YTD" view: it answers "if I had held
-  // exactly my current positions since Jan 1, how would they have moved?"
+  // Per-lot valuation matching Yahoo Finance's "Portfolio Performance YTD":
+  //   - Lot purchased on or before `date` → value = shares × historical close
+  //   - Lot purchased AFTER `date` (still in the future) → value = shares × cost
   //
-  // We can't use cumulative-shares-by-buy-date here because that would
-  // count post-Jan-1 cash inflows (new buys) as "performance" — which is
-  // wrong. Time-weighted YTD return assumes a fixed basket.
+  // The "future" lots contribute their cost-basis flat (no fictional Jan-1
+  // price they didn't actually pay), so a stock bought mid-year doesn't
+  // retroactively credit/blame the user for the price move before purchase.
+  // When a lot's date arrives, its contribution transitions smoothly from
+  // cost to market price.
   const valueAt = (date) => {
     let total = 0;
     for (const [ticker, h] of Object.entries(portfolio.holdings)) {
@@ -303,21 +304,25 @@ function PerfChart({ portfolio, marketData }) {
         total += h.lastPrice || 0;
         continue;
       }
-      const shares = Array.isArray(h.lots) && h.lots.length > 0
-        ? h.lots.reduce((s, l) => s + (l.shares || 0), 0)
-        : (h.shares || 0);
-      if (shares === 0) continue;
+      if (!Array.isArray(h.lots) || h.lots.length === 0) continue;
 
-      let priceNative = closeOn(ticker, date);
-      if (priceNative == null) {
-        // No Yahoo data (e.g. SPAX.PVT, 017731): hold at current price so
-        // they contribute a flat baseline and don't distort the % return.
-        priceNative = h.lastPrice || h.cost || 0;
-      }
       const fx = (h.currency && h.currency !== 'USD')
         ? window.Utils.fxToUSD(h.currency, marketData)
         : 1;
-      total += shares * priceNative * fx;
+
+      for (const lot of h.lots) {
+        if (!lot || !lot.shares) continue;
+        let price;
+        if (lot.date <= date) {
+          // Already held on `date`: use historical close (or cost if no Yahoo data)
+          price = closeOn(ticker, date);
+          if (price == null) price = lot.cost;
+        } else {
+          // Not yet purchased: lock at cost basis until the lot's date arrives
+          price = lot.cost;
+        }
+        total += lot.shares * price * fx;
+      }
     }
     return total;
   };
