@@ -117,15 +117,14 @@ function migrate(p) {
     h.currency = window.Utils.detectCurrency(t);
   }
 
-  // Backfill `lots` (per-purchase history) on holdings missing it. Drives the
-  // YTD performance chart's historical value calculation.
-  // We only apply a seed if its shares sum matches the current holding (within
-  // rounding tolerance) — otherwise the user has manually adjusted shares and
-  // applying stale seed lots would over- or under-count.
+  // Backfill `lots` (per-purchase history) on holdings. Drives the YTD
+  // performance chart's historical value calculation.
+  // We ALWAYS overwrite with the seed if its share total matches the holding —
+  // this corrects any stale single-lot fallback data persisted by earlier
+  // versions of this migration.
   const initialLots = window.INITIAL_LOTS || {};
   for (const [t, h] of Object.entries(p.holdings)) {
     if (h.isCash || t === "CASH") continue;
-    if (Array.isArray(h.lots) && h.lots.length > 0) continue;
     const seed = initialLots[t];
     let applied = false;
     if (seed && seed.length > 0 && seed.every(l => l.shares > 0)) {
@@ -135,7 +134,7 @@ function migrate(p) {
         applied = true;
       }
     }
-    if (!applied) {
+    if (!applied && !(Array.isArray(h.lots) && h.lots.length > 0)) {
       h.lots = [{ date: "2025-01-01", shares: h.shares, cost: h.cost }];
     }
   }

@@ -174,7 +174,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 // YTD performance chart: portfolio % return vs S&P 500, normalised from a common start.
 // Cache YTD historical fetch results in sessionStorage. Past closes are static
 // so we can reuse aggressively; TTL exists only to refresh today's close.
-const YTD_CACHE_KEY = 'ytd-perf-cache-v4';
+const YTD_CACHE_KEY = 'ytd-perf-cache-v5';
 const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
 function loadYtdCache(year, tickers) {
