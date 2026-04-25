@@ -174,7 +174,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 // YTD performance chart: portfolio % return vs S&P 500, normalised from a common start.
 // Cache YTD historical fetch results in sessionStorage. Past closes are static
 // so we can reuse aggressively; TTL exists only to refresh today's close.
-const YTD_CACHE_KEY = 'ytd-perf-cache-v5';
+const YTD_CACHE_KEY = 'ytd-perf-cache-v6';
 const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
 function loadYtdCache(year, tickers) {
@@ -286,6 +286,23 @@ function PerfChart({ portfolio, marketData }) {
     return best;
   };
 
+  // Resolve which lots to use for a holding. Source-of-truth priority:
+  //   1. INITIAL_LOTS seed if it exists AND its share total matches today's
+  //      h.shares — bypasses any stale h.lots persisted by earlier versions
+  //      of the migration that wrote single-lot fallbacks.
+  //   2. h.lots if already present (e.g. added manually via the Add modal).
+  //   3. Synthetic single lot dated 2025-01-01 (ultimate fallback).
+  const seedLots = window.INITIAL_LOTS || {};
+  const lotsFor = (ticker, h) => {
+    const seed = seedLots[ticker];
+    if (seed && seed.length > 0 && seed.every(l => l.shares > 0)) {
+      const seedTotal = seed.reduce((s, l) => s + l.shares, 0);
+      if (Math.abs(seedTotal - (h.shares || 0)) < 0.01) return seed;
+    }
+    if (Array.isArray(h.lots) && h.lots.length > 0) return h.lots;
+    return [{ date: "2025-01-01", shares: h.shares || 0, cost: h.cost || 0 }];
+  };
+
   // Compute portfolio USD value at a given date.
   //
   // Per-lot valuation matching Yahoo Finance's "Portfolio Performance YTD":
@@ -304,21 +321,20 @@ function PerfChart({ portfolio, marketData }) {
         total += h.lastPrice || 0;
         continue;
       }
-      if (!Array.isArray(h.lots) || h.lots.length === 0) continue;
+      const lots = lotsFor(ticker, h);
+      if (!lots.length) continue;
 
       const fx = (h.currency && h.currency !== 'USD')
         ? window.Utils.fxToUSD(h.currency, marketData)
         : 1;
 
-      for (const lot of h.lots) {
+      for (const lot of lots) {
         if (!lot || !lot.shares) continue;
         let price;
         if (lot.date <= date) {
-          // Already held on `date`: use historical close (or cost if no Yahoo data)
           price = closeOn(ticker, date);
           if (price == null) price = lot.cost;
         } else {
-          // Not yet purchased: lock at cost basis until the lot's date arrives
           price = lot.cost;
         }
         total += lot.shares * price * fx;
