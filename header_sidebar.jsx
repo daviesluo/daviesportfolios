@@ -171,72 +171,188 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
   );
 }
 
-function Sparkline({ snapshots, onSelectSnapshot }) {
-  const [selIdx, setSelIdx] = React.useState(null);
+// YTD performance chart: portfolio % return vs S&P 500, normalised from a common start.
+function PerfChart({ snapshots }) {
+  const [spData,  setSpData]  = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
 
-  const handleSlide = (e) => {
-    const idx = Number(e.target.value);
-    setSelIdx(idx);
-    if (!onSelectSnapshot) return;
-    const isLatest = idx === snapshots.length - 1;
-    onSelectSnapshot(isLatest ? null : (snapshots[idx]?.prices ? snapshots[idx] : null));
-  };
+  React.useEffect(() => {
+    let cancelled = false;
+    window.Utils.fetchHistorical('^GSPC', 'ytd', '1d').then(data => {
+      if (cancelled) return;
+      setSpData(data && data.length > 0 ? data : []);
+      setLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
-  const goLive = () => {
-    setSelIdx(null);
-    if (onSelectSnapshot) onSelectSnapshot(null);
-  };
+  // Portfolio snapshots for the current calendar year only
+  const year = new Date().getFullYear().toString();
+  const portSeries = (snapshots || [])
+    .filter(s => s.date && s.date.startsWith(year) && s.value > 0)
+    .sort((a, b) => a.date.localeCompare(b.date));
 
-  if (!snapshots || snapshots.length < 2) {
+  if (loading) return <div className="sparkline-empty dim mono">Loading…</div>;
+
+  const hasPort = portSeries.length >= 1;
+  const hasSP   = spData && spData.length >= 2;
+
+  if (!hasPort && !hasSP) {
     return <div className="sparkline-empty dim mono">Collecting data…</div>;
   }
 
-  const vals = snapshots.map(s => s.value);
-  const minV = Math.min(...vals);
-  const maxV = Math.max(...vals);
-  const range = maxV - minV || 1;
-  const W = 200, H = 44, pad = 3;
-  const gx = (i) => snapshots.length < 2 ? W / 2 : (i / (snapshots.length - 1)) * W;
-  const gy = (v) => H - pad - ((v - minV) / range) * (H - pad * 2);
+  // Common start: portfolio's first snapshot if available, otherwise S&P's first point
+  const startDate = hasPort ? portSeries[0].date : spData[0].date;
 
-  const pts = snapshots.map((s, i) => `${gx(i).toFixed(1)},${gy(s.value).toFixed(1)}`).join(" ");
-  const totalPct = ((snapshots[snapshots.length - 1].value - snapshots[0].value) / snapshots[0].value) * 100;
-  const lineColor = totalPct >= 0 ? "var(--gain)" : "var(--loss)";
+  // Filter S&P to dates >= startDate and normalise from first point at/after startDate
+  const spFiltered = hasSP ? spData.filter(p => p.date >= startDate) : [];
+  const spBase  = spFiltered.length > 0 ? spFiltered[0].close : null;
+  const spNorm  = spBase  ? spFiltered.map(p => ({ date: p.date, pct: ((p.close - spBase) / spBase) * 100 })) : [];
 
-  const si = selIdx ?? snapshots.length - 1;
-  const sel = snapshots[si];
-  const selFromStart = si === 0 ? 0 : ((sel.value - snapshots[0].value) / snapshots[0].value) * 100;
-  const selToEnd = si === snapshots.length - 1 ? null
-    : ((snapshots[snapshots.length - 1].value - sel.value) / sel.value) * 100;
-  const infoVal = selToEnd ?? selFromStart;
+  // Normalise portfolio from its first value
+  const portBase = hasPort ? portSeries[0].value : null;
+  const portNorm = portBase ? portSeries.map(p => ({ date: p.date, pct: ((p.value - portBase) / portBase) * 100 })) : [];
+
+  // Date range across both series
+  const allDates = [...portNorm.map(p => p.date), ...spNorm.map(p => p.date)].sort();
+  if (allDates.length === 0) return <div className="sparkline-empty dim mono">No data</div>;
+  const d0 = allDates[0];
+  const d1 = allDates[allDates.length - 1];
+
+  // SVG coordinate helpers
+  const W = 300, H = 106;
+  const padL = 34, padR = 8, padT = 10, padB = 20;
+  const cW = W - padL - padR;
+  const cH = H - padT - padB;
+
+  const t0 = new Date(d0).getTime();
+  const tSpan = Math.max(new Date(d1).getTime() - t0, 86400000);
+  const xOf = d => padL + ((new Date(d).getTime() - t0) / tSpan) * cW;
+
+  // Y range — always include 0
+  const allPcts = [...portNorm.map(p => p.pct), ...spNorm.map(p => p.pct), 0];
+  const rawMin  = Math.min(...allPcts);
+  const rawMax  = Math.max(...allPcts);
+  const yPad    = Math.max(1.5, (rawMax - rawMin) * 0.12);
+  const yMin = rawMin - yPad;
+  const yMax = rawMax + yPad;
+  const yRange = yMax - yMin || 1;
+  const yOf = p => padT + ((yMax - p) / yRange) * cH;
+
+  // Nice Y ticks
+  const tickStep = (() => {
+    const r = yMax - yMin;
+    if (r <= 8)  return 2;
+    if (r <= 20) return 5;
+    if (r <= 50) return 10;
+    return 20;
+  })();
+  const ticks = [];
+  for (let t = Math.ceil(yMin / tickStep) * tickStep; t <= yMax; t += tickStep) ticks.push(t);
+
+  // Month labels for X axis
+  const months = [];
+  {
+    const d0Date = new Date(d0);
+    const d1Date = new Date(d1);
+    for (
+      let m = new Date(d0Date.getUTCFullYear(), d0Date.getUTCMonth(), 1);
+      m <= d1Date;
+      m = new Date(m.getFullYear(), m.getMonth() + 1, 1)
+    ) {
+      const iso = m.toISOString().slice(0, 10);
+      if (iso < d0) continue;
+      const x = xOf(iso);
+      if (x < padL + 10 || x > W - padR - 8) continue;
+      months.push({ x, label: m.toLocaleString('default', { month: 'short' }) });
+    }
+  }
+
+  // SVG paths
+  const toPath = norm => {
+    if (norm.length === 0) return '';
+    return 'M' + norm.map(p => `${xOf(p.date).toFixed(1)},${yOf(p.pct).toFixed(1)}`).join('L');
+  };
+  const portPath = toPath(portNorm);
+  const spPath   = toPath(spNorm);
+
+  const portCurrent = portNorm.length > 0 ? portNorm[portNorm.length - 1].pct : null;
+  const spCurrent   = spNorm.length   > 0 ? spNorm[spNorm.length - 1].pct   : null;
+  const portColor = portCurrent != null && portCurrent >= 0 ? 'var(--gain)' : 'var(--loss)';
+  const spColor   = '#6b7280';
+  const zeroY = yOf(0);
+
+  const fmtP1 = n => (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
 
   return (
-    <div className="sparkline-wrap">
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none">
-        <polyline points={pts} fill="none" stroke={lineColor} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-        <line x1={gx(si).toFixed(1)} y1="0" x2={gx(si).toFixed(1)} y2={H}
-          stroke={lineColor} strokeWidth="0.5" strokeDasharray="2,2" opacity="0.45" />
-        <circle cx={gx(si).toFixed(1)} cy={gy(sel.value).toFixed(1)} r="3"
-          fill={lineColor} stroke="#0c1310" strokeWidth="1.5" />
-      </svg>
-      {snapshots.length > 2 && (
-        <input type="range" min={0} max={snapshots.length - 1} value={si}
-          onChange={handleSlide}
-          className="sparkline-slider" />
-      )}
-      <div className="sparkline-meta">
-        <span className="dim mono">{sel.date.slice(5)}{si === snapshots.length - 1 ? " (today)" : ""}</span>
-        <span className="mono">{fmM(sel.value)}</span>
-        {si < snapshots.length - 1 && sel.prices ? (
-          <button className="spark-live-btn mono" onClick={goLive}>← LIVE</button>
-        ) : (
-          <span className="mono" style={{ color: infoVal >= 0 ? "var(--gain)" : "var(--loss)" }}>
-            {selToEnd != null
-              ? `${infoVal >= 0 ? "+" : ""}${infoVal.toFixed(1)}% →now`
-              : `${infoVal >= 0 ? "+" : ""}${infoVal.toFixed(1)}%`}
-          </span>
-        )}
+    <div className="perf-chart-wrap">
+      <div className="perf-legend">
+        <span className="perf-legend-item">
+          <span className="perf-dot" style={{ background: portColor }} />
+          <span className="mono dim perf-lbl">PORTFOLIO</span>
+          {portCurrent != null && (
+            <span className="mono perf-val" style={{ color: portColor }}>{fmtP1(portCurrent)}</span>
+          )}
+        </span>
+        <span className="perf-legend-item">
+          <span className="perf-dot" style={{ background: spColor }} />
+          <span className="mono dim perf-lbl">S&amp;P 500</span>
+          {spCurrent != null && (
+            <span className="mono perf-val" style={{ color: spColor }}>{fmtP1(spCurrent)}</span>
+          )}
+        </span>
       </div>
+
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: 'block' }}>
+        {/* Y-axis ticks + grid lines */}
+        {ticks.map(t => (
+          <g key={t}>
+            <line x1={padL} y1={yOf(t).toFixed(1)} x2={W - padR} y2={yOf(t).toFixed(1)}
+                  stroke="var(--line-2)" strokeWidth="0.5"
+                  strokeDasharray={t === 0 ? undefined : "2,3"} />
+            <text x={padL - 3} y={yOf(t).toFixed(1)} textAnchor="end" dominantBaseline="middle"
+                  fontSize="7.5" fill="rgba(244,239,227,0.38)" fontFamily="var(--font-mono)">
+              {t >= 0 ? '+' : ''}{t}%
+            </text>
+          </g>
+        ))}
+        {/* Zero line (stronger) */}
+        <line x1={padL} y1={zeroY.toFixed(1)} x2={W - padR} y2={zeroY.toFixed(1)}
+              stroke="var(--line)" strokeWidth="0.8" />
+        {/* Month grid lines + labels */}
+        {months.map((m, i) => (
+          <g key={i}>
+            <line x1={m.x.toFixed(1)} y1={padT} x2={m.x.toFixed(1)} y2={H - padB}
+                  stroke="var(--line-2)" strokeWidth="0.4" />
+            <text x={m.x.toFixed(1)} y={H - padB + 9} textAnchor="middle"
+                  fontSize="7.5" fill="rgba(244,239,227,0.38)" fontFamily="var(--font-mono)">
+              {m.label}
+            </text>
+          </g>
+        ))}
+        {/* S&P 500 line */}
+        {spPath && (
+          <path d={spPath} fill="none" stroke={spColor} strokeWidth="1.2" opacity="0.75"
+                strokeLinejoin="round" strokeLinecap="round" />
+        )}
+        {/* Portfolio line */}
+        {portPath && (
+          <path d={portPath} fill="none" stroke={portColor} strokeWidth="1.6"
+                strokeLinejoin="round" strokeLinecap="round" />
+        )}
+        {/* Dot at last portfolio point */}
+        {portNorm.length > 0 && (() => {
+          const last = portNorm[portNorm.length - 1];
+          return <circle cx={xOf(last.date).toFixed(1)} cy={yOf(last.pct).toFixed(1)}
+                         r="3" fill={portColor} stroke="#0c1310" strokeWidth="1.5" />;
+        })()}
+      </svg>
+
+      {!hasPort && (
+        <div className="sparkline-empty dim mono" style={{ fontSize: 9, paddingTop: 2 }}>
+          Portfolio tracking starts today
+        </div>
+      )}
     </div>
   );
 }
@@ -306,8 +422,8 @@ function Sidebar({ metrics, source, snapshots, onSelectSnapshot }) {
       </section>
 
       <section className="panel">
-        <h3 className="panel-title">EQUITY CURVE</h3>
-        <Sparkline snapshots={snapshots} onSelectSnapshot={onSelectSnapshot} />
+        <h3 className="panel-title">YTD PERFORMANCE</h3>
+        <PerfChart snapshots={snapshots} />
       </section>
 
       <div className="sidebar-foot sidebar-foot-desktop">
