@@ -174,7 +174,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 // YTD performance chart: portfolio % return vs S&P 500, normalised from a common start.
 // Cache YTD historical fetch results in sessionStorage. Past closes are static
 // so we can reuse aggressively; TTL exists only to refresh today's close.
-const YTD_CACHE_KEY = 'ytd-perf-cache-v2';
+const YTD_CACHE_KEY = 'ytd-perf-cache-v3';
 const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
 function loadYtdCache(year, tickers) {
@@ -286,33 +286,38 @@ function PerfChart({ portfolio, marketData }) {
     return best;
   };
 
-  // Compute portfolio USD value at a given date using cumulative lots.
+  // Compute portfolio USD value at a given date.
+  //
+  // We use **constant current shares** for every YTD date — i.e. project
+  // today's portfolio composition backwards in time. This matches Yahoo
+  // Finance's "Portfolio Performance YTD" view: it answers "if I had held
+  // exactly my current positions since Jan 1, how would they have moved?"
+  //
+  // We can't use cumulative-shares-by-buy-date here because that would
+  // count post-Jan-1 cash inflows (new buys) as "performance" — which is
+  // wrong. Time-weighted YTD return assumes a fixed basket.
   const valueAt = (date) => {
     let total = 0;
     for (const [ticker, h] of Object.entries(portfolio.holdings)) {
       if (h.isCash || ticker === 'CASH') {
-        total += h.lastPrice || 0; // cash held flat (we only track current balance)
+        total += h.lastPrice || 0;
         continue;
       }
-      if (!Array.isArray(h.lots) || h.lots.length === 0) continue;
-      let cumShares = 0;
-      for (const lot of h.lots) if (lot.date <= date) cumShares += lot.shares;
-      if (cumShares === 0) continue;
+      const shares = Array.isArray(h.lots) && h.lots.length > 0
+        ? h.lots.reduce((s, l) => s + (l.shares || 0), 0)
+        : (h.shares || 0);
+      if (shares === 0) continue;
 
       let priceNative = closeOn(ticker, date);
       if (priceNative == null) {
-        // No Yahoo data (e.g. SPAX.PVT, 017731): fall back to weighted-average
-        // cost of lots already purchased — flat line, no historical curve.
-        let c = 0, s = 0;
-        for (const lot of h.lots) {
-          if (lot.date <= date) { c += lot.shares * lot.cost; s += lot.shares; }
-        }
-        priceNative = s > 0 ? c / s : 0;
+        // No Yahoo data (e.g. SPAX.PVT, 017731): hold at current price so
+        // they contribute a flat baseline and don't distort the % return.
+        priceNative = h.lastPrice || h.cost || 0;
       }
       const fx = (h.currency && h.currency !== 'USD')
         ? window.Utils.fxToUSD(h.currency, marketData)
         : 1;
-      total += cumShares * priceNative * fx;
+      total += shares * priceNative * fx;
     }
     return total;
   };
