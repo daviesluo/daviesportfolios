@@ -52,3 +52,100 @@ window.INITIAL_PORTFOLIO = {
     "VST":      { shares: 8,      cost: 73.41,  lastPrice: 155.11, dayPct: -2.81,  prevClose: 159.59 },
   },
 };
+
+// Per-lot purchase history. Keyed by ticker. Each lot: { date, shares, cost }.
+// Used to backfill `lots` on holdings that don't have it yet, so the YTD chart
+// can compute true historical portfolio value at each trading day.
+// Tickers not listed here default to a single lot dated 2025-01-01.
+window.INITIAL_LOTS = {
+  "NVDA": [
+    { date: "2024-07-20", shares: 12,   cost: 113.33 },
+    { date: "2025-04-01", shares: 26.5, cost: 109.45 },
+    { date: "2026-03-27", shares: 6.5,  cost: 168.16 },
+    { date: "2026-03-30", shares: 1.5,  cost: 165.50 },
+    { date: "2026-03-30", shares: 3.5,  cost: 165.68 },
+  ],
+  "APLD":     [{ date: "2025-05-20", shares: 225,  cost: 10.80   }],
+  "AVGO":     [{ date: "2025-04-01", shares: 18.5, cost: 172.62  }],
+  "GOOG": [
+    { date: "2025-04-20", shares: 8.5, cost: 152.12 },
+    { date: "2025-08-20", shares: 3.5, cost: 166.86 },
+    { date: "2026-03-27", shares: 6.5, cost: 276.80 },
+  ],
+  "SPAX.PVT": [{ date: "2026-04-19", shares: 10,   cost: 527.00  }],
+  "NBIS": [
+    { date: "2025-05-20", shares: 20, cost: 43.48 },
+    { date: "2025-12-20", shares: 20, cost: 77.89 },
+  ],
+  "ORCL":     [{ date: "2026-01-20", shares: 32.5, cost: 146.98  }],
+  "AAPL":     [{ date: "2025-04-01", shares: 20,   cost: 201.52  }],
+  "META":     [{ date: "2025-11-20", shares: 8,    cost: 615.74  }],
+  "CEG":      [{ date: "2026-01-16", shares: 16.5, cost: 288.51  }],
+  "NFLX":     [{ date: "2025-12-20", shares: 50,   cost: 92.73   }],
+  "MSFT": [
+    { date: "2025-04-18", shares: 3.25, cost: 388.49 },
+    { date: "2026-02-05", shares: 1.75, cost: 392.80 },
+    { date: "2026-03-27", shares: 1.5,  cost: 357.61 },
+    { date: "2026-03-30", shares: 3.5,  cost: 354.98 },
+  ],
+  "MSTR":     [{ date: "2025-12-31", shares: 24,   cost: 125.46  }],
+  "AMZN": [
+    { date: "2026-01-20", shares: 2.5, cost: 173.55 },
+    { date: "2026-02-05", shares: 2.5, cost: 199.99 },
+    { date: "2026-03-27", shares: 3.5, cost: 200.70 },
+    { date: "2026-03-27", shares: 6.5, cost: 201.34 },
+  ],
+  "UBER": [
+    { date: "2025-11-21", shares: 25, cost: 80.69 },
+    { date: "2026-04-21", shares: 25, cost: 78.50 },
+  ],
+  "BX":       [{ date: "2026-03-10", shares: 28.5, cost: 107.46  }],
+  "BTC-USD":  [{ date: "2026-02-11", shares: 0.0435, cost: 66756.70 }],
+  "RKLB": [
+    { date: "2025-11-07", shares: 11.5, cost: 48.18 },
+    { date: "2025-11-20", shares: 30,   cost: 43.81 },
+  ],
+  "SATS":     [{ date: "2026-03-06", shares: 27,   cost: 106.88  }],
+  "CRWV":     [{ date: "2025-04-10", shares: 27,   cost: 36.34   }],
+  "TSM":      [{ date: "2024-07-20", shares: 7,    cost: 162.02  }],
+  "NVTS":     [{ date: "2025-09-12", shares: 150,  cost: 6.63    }],
+  "HOOD":     [{ date: "2026-02-02", shares: 30,   cost: 81.09   }],
+  "TEM":      [{ date: "2025-07-15", shares: 48.5, cost: 55.41   }],
+  "SOUN":     [{ date: "2025-12-31", shares: 300,  cost: 8.94    }],
+  "MU":       [{ date: "2026-02-04", shares: 4.4,  cost: 376.32  }],
+  "IREN":     [{ date: "2025-12-10", shares: 40,   cost: 36.59   }],
+  "NET": [
+    { date: "2026-01-09", shares: 3.5, cost: 167.50 },
+    { date: "2026-02-23", shares: 2.5, cost: 161.45 },
+    { date: "2026-04-11", shares: 2,   cost: 166.96 },
+    { date: "2026-04-13", shares: 1,   cost: 166.00 },
+  ],
+  "ANET": [
+    { date: "2025-11-22", shares: 3.5, cost: 116.47 },
+    { date: "2026-03-26", shares: 1.5, cost: 123.67 },
+    { date: "2026-03-27", shares: 3,   cost: 121.19 },
+    { date: "2026-03-30", shares: 2,   cost: 119.50 },
+  ],
+  "TSLA": [
+    { date: "2024-07-20", shares: 2, cost: 220.68 },
+    { date: "2026-03-27", shares: 2, cost: 361.12 },
+  ],
+  "BMNR": [
+    { date: "2025-12-31", shares: 25, cost: 27.06 },
+    { date: "2026-02-05", shares: 5,  cost: 17.97 },
+    { date: "2026-02-05", shares: 5,  cost: 18.49 },
+    { date: "2026-02-05", shares: 5,  cost: 19.35 },
+    { date: "2026-02-06", shares: 5,  cost: 16.73 },
+    { date: "2026-03-27", shares: 5,  cost: 18.61 },
+    { date: "2026-04-15", shares: 10, cost: 21.95 },
+  ],
+  "VST":      [{ date: "2024-07-20", shares: 8,    cost: 73.41   }],
+  "VRT": [
+    { date: "2025-12-25", shares: 2,   cost: 148.60 },
+    { date: "2026-03-27", shares: 1.5, cost: 250.50 },
+    { date: "2026-03-28", shares: 0.5, cost: 249.50 },
+  ],
+  "BRK-B":    [{ date: "2025-01-01", shares: 5.25, cost: 469.94  }],
+  // 017731 (CN fund): no entry here so the fallback in migrate() seeds a single
+  // lot dated 2025-01-01 with whatever shares/cost the holding has in Supabase.
+};

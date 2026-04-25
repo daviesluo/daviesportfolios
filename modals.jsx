@@ -183,6 +183,7 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
   const [shares, setShares] = React.useState("");
   const [cost, setCost] = React.useState("");
   const [lastPrice, setLastPrice] = React.useState("");
+  const [buyDate, setBuyDate] = React.useState(() => new Date().toISOString().slice(0, 10));
 
   // Currency follows the ticker the user is typing — 6-digit → ¥, .L → £, else $.
   const cur = window.Utils.detectCurrency(ticker.trim());
@@ -193,7 +194,7 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
 
   const submit = () => {
     if (!ticker.trim()) return;
-    onAdd(ticker, shares, cost, lastPrice || cost);
+    onAdd(ticker, shares, cost, lastPrice || cost, buyDate);
   };
 
   return (
@@ -215,6 +216,9 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
         <FormRow label={`Avg cost (${sym})`} hint={costHint}><input className="inp mono" value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" /></FormRow>
         <FormRow label={`Last price (${sym})`} hint="Leave blank to use avg cost until first live refresh">
           <input className="inp mono" value={lastPrice} onChange={(e) => setLastPrice(e.target.value)} inputMode="decimal" />
+        </FormRow>
+        <FormRow label="Buy date" hint="Used by the YTD performance chart to compute historical portfolio value">
+          <input type="date" className="inp mono" value={buyDate} onChange={(e) => setBuyDate(e.target.value)} max={new Date().toISOString().slice(0, 10)} />
         </FormRow>
       </div>
 
