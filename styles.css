@@ -106,12 +106,12 @@ body {
 .header {
   display: flex;
   align-items: center;
-  /* iOS PWA: absorb the status bar height at the header level only. The header
-     height stays 64px for its own content; padding-top shifts the whole bar
-     down by the safe-area inset without affecting the rest of the page. */
-  padding: env(safe-area-inset-top) 24px 0;
+  /* iOS PWA: status bar clearance. The full safe-area-inset-top is taller than
+     needed visually — subtract a chunk so the title sits closer to the status
+     bar (matches the looks-right reference screenshot) but never overlaps. */
+  padding: max(8px, calc(env(safe-area-inset-top) - 20px)) 24px 0;
   gap: 24px;
-  height: calc(64px + env(safe-area-inset-top));
+  height: calc(64px + max(8px, calc(env(safe-area-inset-top) - 20px)));
   border-bottom: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(244,239,227,0.03), transparent);
   position: relative;
