@@ -52,10 +52,8 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  /* iOS PWA: full env(safe-area-inset-top) leaves the title hugging the
-     status bar — add a 20px breathing buffer so the header has visible
-     clearance below the system bar. */
-  padding-top:    calc(env(safe-area-inset-top) + 20px);
+  /* iOS PWA: shave 5px off env(safe-area-inset-top) for a tighter look. */
+  padding-top:    max(8px, calc(env(safe-area-inset-top) - 5px));
   padding-bottom: env(safe-area-inset-bottom);
   padding-left:   env(safe-area-inset-left);
   padding-right:  env(safe-area-inset-right);
