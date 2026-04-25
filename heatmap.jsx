@@ -1,8 +1,6 @@
 // Heatmap view — binary-split treemap of all holdings.
 // Tiles sized by USD market value; colour-coded by day % change.
 
-const { fmtMoney: hmFmtM, fmtPct: hmFmtP } = window.Utils;
-
 // ── Treemap layout (recursive binary split) ──────────────────────────────────
 function treemap(nodes, x, y, w, h) {
   if (!nodes.length) return [];
@@ -28,25 +26,60 @@ function treemap(nodes, x, y, w, h) {
   }
 }
 
-// ── Tile colour ───────────────────────────────────────────────────────────────
+// ── Tile colour (Trading 212-style muted dark gradient) ──────────────────────
+// Magnitude shapes lightness; sqrt curve keeps small moves visible while
+// saturating gracefully on big moves. Top-bright / bottom-dim gradient gives
+// the tiles a subtle 3D feel.
 function tileStyle(pct) {
-  if (pct == null || Math.abs(pct) < 0.005)
-    return { bg: 'rgba(100,116,139,0.28)', pctClr: 'var(--chalk-dim)' };
-  const alpha = Math.min(0.90, 0.22 + Math.abs(pct) * 0.13);
-  if (pct > 0) return { bg: `rgba(34,197,94,${alpha.toFixed(2)})`,   pctClr: '#86efac' };
-  return            { bg: `rgba(220,53,69,${alpha.toFixed(2)})`,  pctClr: '#fca5a5' };
+  if (pct == null || Math.abs(pct) < 0.005) {
+    return {
+      bg: 'linear-gradient(180deg, rgb(34,40,38) 0%, rgb(26,32,30) 100%)',
+      tickerClr: 'var(--chalk-dim)',
+      pctClr: 'var(--chalk-dim)',
+    };
+  }
+  // t in [0,1] — saturates at ~10% magnitude
+  const t = Math.min(1, Math.abs(pct) / 10);
+  const k = Math.sqrt(t); // soften so tiny moves still show colour
+
+  if (pct > 0) {
+    // Forest green progression
+    const r1 = Math.round(28 + k * 50);
+    const g1 = Math.round(48 + k * 110);
+    const b1 = Math.round(38 + k * 60);
+    const r2 = Math.round(r1 * 0.82);
+    const g2 = Math.round(g1 * 0.82);
+    const b2 = Math.round(b1 * 0.82);
+    return {
+      bg: `linear-gradient(180deg, rgb(${r1},${g1},${b1}) 0%, rgb(${r2},${g2},${b2}) 100%)`,
+      tickerClr: '#e3f5e8',
+      pctClr: '#86efac',
+    };
+  }
+  // Crimson progression
+  const r1 = Math.round(50 + k * 130);
+  const g1 = Math.round(28 + k * 38);
+  const b1 = Math.round(36 + k * 50);
+  const r2 = Math.round(r1 * 0.82);
+  const g2 = Math.round(g1 * 0.82);
+  const b2 = Math.round(b1 * 0.82);
+  return {
+    bg: `linear-gradient(180deg, rgb(${r1},${g1},${b1}) 0%, rgb(${r2},${g2},${b2}) 100%)`,
+    tickerClr: '#fbe5e9',
+    pctClr: '#fca5a5',
+  };
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 function Heatmap({ metrics, extendedHours }) {
-  const containerRef = React.useRef(null);
+  const canvasRef = React.useRef(null);
   const [size, setSize] = React.useState({ w: 0, h: 0 });
 
   React.useEffect(() => {
-    const el = containerRef.current;
+    const el = canvasRef.current;
     if (!el) return;
     const ro = new ResizeObserver(() =>
-      setSize({ w: el.offsetWidth, h: el.offsetHeight })
+      setSize({ w: el.clientWidth, h: el.clientHeight })
     );
     ro.observe(el);
     return () => ro.disconnect();
@@ -74,39 +107,43 @@ function Heatmap({ metrics, extendedHours }) {
 
   return (
     <div className="pitch-wrap">
-      <div ref={containerRef} className="heatmap">
-        {tiles.map(tile => {
-          const tw = tile.w - GAP;
-          const th = tile.h - GAP;
-          const { bg, pctClr } = tileStyle(tile.pct);
-          const pctStr = (tile.pct >= 0 ? '+' : '') + tile.pct.toFixed(2) + '%';
+      <div className="heatmap">
+        <div ref={canvasRef} className="heatmap-canvas">
+          {tiles.map(tile => {
+            const tw = tile.w - GAP;
+            const th = tile.h - GAP;
+            const { bg, tickerClr, pctClr } = tileStyle(tile.pct);
+            const pctStr = (tile.pct >= 0 ? '+' : '') + tile.pct.toFixed(2) + '%';
 
-          const showTicker = tw >= 38 && th >= 28;
-          const showPct    = tw >= 48 && th >= 42;
+            const showTicker = tw >= 38 && th >= 28;
+            const showPct    = tw >= 48 && th >= 42;
 
-          return (
-            <div
-              key={tile.ticker}
-              className="hm-tile"
-              style={{
-                left:       tile.x + GAP / 2,
-                top:        tile.y + GAP / 2,
-                width:      tw,
-                height:     th,
-                background: bg,
-              }}
-            >
-              {showTicker && (
-                <span className="hm-ticker mono">{tile.ticker}</span>
-              )}
-              {showPct && (
-                <span className="hm-pct mono" style={{ color: pctClr }}>
-                  {pctStr}
-                </span>
-              )}
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={tile.ticker}
+                className="hm-tile"
+                style={{
+                  left:       tile.x + GAP / 2,
+                  top:        tile.y + GAP / 2,
+                  width:      tw,
+                  height:     th,
+                  background: bg,
+                }}
+              >
+                {showTicker && (
+                  <span className="hm-ticker mono" style={{ color: tickerClr }}>
+                    {tile.ticker}
+                  </span>
+                )}
+                {showPct && (
+                  <span className="hm-pct mono" style={{ color: pctClr }}>
+                    {pctStr}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
