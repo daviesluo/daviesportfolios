@@ -286,17 +286,62 @@ function PerfChart({ portfolio, marketData }) {
     return best;
   };
 
-  // Total cost basis in USD — the constant denominator that matches Yahoo Finance's YTD formula:
-  //   YTD % = (current_MV - total_cost) / total_cost
-  const totalCostUSD = Object.entries(portfolio.holdings).reduce((sum, [ticker, h]) => {
-    if (h.isCash || ticker === 'CASH') return sum;
+  // Resolve which lots to use for a holding.
+  const seedLots = window.INITIAL_LOTS || {};
+  const lotsFor = (ticker, h) => {
+    const seed = seedLots[ticker];
+    if (seed && seed.length > 0 && seed.every(l => l.shares > 0)) {
+      const seedTotal = seed.reduce((s, l) => s + l.shares, 0);
+      if (Math.abs(seedTotal - (h.shares || 0)) < 0.01) return seed;
+    }
+    if (Array.isArray(h.lots) && h.lots.length > 0) return h.lots;
+    return [{ date: '2025-01-01', shares: h.shares || 0, cost: h.cost || 0 }];
+  };
+
+  // First trading day of the year = spYtd[0].date (e.g. "2026-01-02").
+  // YTD formula — matches Yahoo Finance:
+  //   YTD_d = (V_d − V_begin − CF_d) / V_begin
+  // Where:
+  //   V_begin = value of positions HELD on Jan 1 at Jan-1 prices (constant denominator)
+  //   V_d     = value of ALL current positions at historical close on day d
+  //   CF_d    = cumulative cost of lots PURCHASED after Jan 1 up to day d
+  //
+  // New purchases subtract from the numerator (they're capital deployment, not return),
+  // leaving only the gain on the original Jan-1 capital in the numerator.
+  const jan1Date = spYtd[0].date;
+
+  // V_begin: sum(pre-Jan1 lots × Jan1 price).
+  // For tickers whose history doesn't have an exact Jan1 date, fall back to the
+  // earliest available close (series[0]), then to the lot's own cost.
+  let V_begin = 0;
+  const postJan1Lots = [];   // { date, costUSD } — accumulated as CF below
+
+  for (const [ticker, h] of Object.entries(portfolio.holdings)) {
+    if (h.isCash || ticker === 'CASH') continue;
     const fx = (h.currency && h.currency !== 'USD')
       ? window.Utils.fxToUSD(h.currency, marketData) : 1;
-    return sum + (h.shares || 0) * (h.cost || 0) * fx;
-  }, 0);
+    const lots = lotsFor(ticker, h);
+    for (const lot of lots) {
+      if (!lot || !lot.shares) continue;
+      if (lot.date <= jan1Date) {
+        let price = closeOn(ticker, jan1Date);
+        if (price == null) {
+          const tm = tickerSeries[ticker];
+          price = (tm && tm.series.length > 0) ? tm.series[0].close : (lot.cost || 0);
+        }
+        V_begin += lot.shares * price * fx;
+      } else {
+        postJan1Lots.push({ date: lot.date, costUSD: lot.shares * (lot.cost || 0) * fx });
+      }
+    }
+  }
 
-  // Portfolio USD value at a given date = sum(current_shares × historical_close × fx).
-  // Tickers without YTD history (CN funds, .PVT) fall back to h.cost (flat line contribution).
+  if (V_begin <= 0) return <div className="sparkline-empty dim mono">No Jan 1 data</div>;
+
+  // Sort new-lot events chronologically so we can walk through them in one pass.
+  postJan1Lots.sort((a, b) => a.date.localeCompare(b.date));
+
+  // Portfolio market value at a given date (all current shares × historical close).
   const valueAt = (date) => {
     let total = 0;
     for (const [ticker, h] of Object.entries(portfolio.holdings)) {
@@ -311,13 +356,15 @@ function PerfChart({ portfolio, marketData }) {
     return total;
   };
 
-  if (totalCostUSD <= 0) return <div className="sparkline-empty dim mono">No cost data</div>;
-
-  // Portfolio YTD % = (MV - cost_basis) / cost_basis — identical to Yahoo Finance's calculation
-  const portNorm = spYtd.map(p => ({
-    date: p.date,
-    pct: ((valueAt(p.date) - totalCostUSD) / totalCostUSD) * 100
-  }));
+  // Walk spYtd in order, accumulating CF as new lots cross their purchase date.
+  let cfIdx = 0, cumCF = 0;
+  const portNorm = spYtd.map(p => {
+    while (cfIdx < postJan1Lots.length && postJan1Lots[cfIdx].date <= p.date) {
+      cumCF += postJan1Lots[cfIdx].costUSD;
+      cfIdx++;
+    }
+    return { date: p.date, pct: (valueAt(p.date) - V_begin - cumCF) / V_begin * 100 };
+  });
   if (portNorm.length < 2) return <div className="sparkline-empty dim mono">Insufficient data</div>;
 
   const spBase = spYtd[0].close;
