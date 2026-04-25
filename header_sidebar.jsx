@@ -18,7 +18,7 @@ function useClock(intervalMs = 1000) {
   return now;
 }
 
-function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, histDate }) {
+function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, histDate, viewMode, onToggleView }) {
   const now = useClock(1000);
   const t = londonTimeParts(now);
   const phase = usMarketPhase(now);
@@ -59,8 +59,16 @@ function Header({ metrics, formation, source, lastUpdated, isRefreshing, onRefre
       <div className="brand">
         <div>
           <div className="brand-title">Davies' Portfolios</div>
-          <div className="brand-sub">Tactics Board</div>
-          <div className="brand-formation mono">Formation {formation} · {metrics.tickerCount} tickers</div>
+          <div className="view-toggle">
+            <span className={`view-lbl mono${viewMode !== 'heatmap' ? ' view-lbl-on' : ''}`}>TACTICS BOARD</span>
+            <label className="view-switch" title="Switch view">
+              <input type="checkbox" className="ext-checkbox"
+                     checked={viewMode === 'heatmap'}
+                     onChange={() => onToggleView(viewMode === 'heatmap' ? 'tactics' : 'heatmap')} />
+              <span className="ext-track"><span className="ext-thumb" /></span>
+            </label>
+            <span className={`view-lbl mono${viewMode === 'heatmap' ? ' view-lbl-on' : ''}`}>HEAT MAP</span>
+          </div>
         </div>
         {/* Mobile only: time + toggle lives here instead of in scrolling scoreboard */}
         <div className="brand-time">
