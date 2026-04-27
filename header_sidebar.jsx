@@ -197,7 +197,7 @@ function saveYtdCache(year, entries) {
 // YTD performance chart: portfolio % return vs S&P 500, computed from per-lot
 // purchase history + historical closes (Yahoo Finance), normalised from the
 // first trading day of the calendar year.
-function PerfChart({ portfolio, marketData }) {
+function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const [hist,    setHist]    = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState(false);
@@ -385,8 +385,11 @@ function PerfChart({ portfolio, marketData }) {
   //   - Year lot:      basis = shares × cost;               value(d) = shares × close(d)
   //   - YTD%(d) = (Σ value − Σ basis) / Σ basis × 100
   // For the LAST chart point we substitute live marketData prices for value(d)
-  // so the displayed YTD% matches what Yahoo shows in real time and updates
-  // when the user clicks refresh (which mutates marketData).
+  // so the displayed YTD% matches what the rest of the app shows in real time
+  // and updates when the user clicks refresh. When extended-hours mode is on
+  // outside regular hours we use extPrice (futures-like or pre/post-market)
+  // instead of lastPrice — same convention the header total uses.
+  const useExt = !!(extendedHours && phase && phase !== "regular");
   const liveAnchorDate = spYtd[spYtd.length - 1].date;
   const computeAt = (date) => {
     const useLive = date === liveAnchorDate;
@@ -400,7 +403,11 @@ function PerfChart({ portfolio, marketData }) {
       const ts = tickerSeries[ticker];
       const janPrice = ts ? ts.janPrice : null;
       const lastPrice = h.lastPrice;
-      const livePrice = useLive ? (marketData?.[ticker]?.lastPrice ?? lastPrice) : null;
+      const md = marketData?.[ticker];
+      const livePrice = useLive
+        ? ((useExt && md?.extPrice != null && md.extPrice > 0) ? md.extPrice
+           : (md?.lastPrice ?? lastPrice))
+        : null;
 
       for (const lot of lots) {
         if (lot.date > date) continue; // not yet held
@@ -596,7 +603,24 @@ function PerfChart({ portfolio, marketData }) {
   );
 }
 
-function Sidebar({ metrics, source, portfolio, marketData }) {
+// Standalone YTD panel — same panel chrome as TOP MOVERS / FORMATION VALUE,
+// rendered separately so we can place it in the desktop left column instead
+// of the sidebar. The Sidebar still renders its own copy on tablet/mobile.
+function PerfPanel({ portfolio, marketData, extendedHours, phase, className }) {
+  return (
+    <section className={`panel ${className || ""}`.trim()}>
+      <h3 className="panel-title">YTD PERFORMANCE</h3>
+      <PerfChart
+        portfolio={portfolio}
+        marketData={marketData}
+        extendedHours={extendedHours}
+        phase={phase}
+      />
+    </section>
+  );
+}
+
+function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase }) {
   // top movers: by |dayPct|, both winners and losers, split
   const allPlayers = [];
   for (const pos of Object.values(metrics.positions)) {
@@ -660,10 +684,13 @@ function Sidebar({ metrics, source, portfolio, marketData }) {
         </div>
       </section>
 
-      <section className="panel">
-        <h3 className="panel-title">YTD PERFORMANCE</h3>
-        <PerfChart portfolio={portfolio} marketData={marketData} />
-      </section>
+      <PerfPanel
+        portfolio={portfolio}
+        marketData={marketData}
+        extendedHours={extendedHours}
+        phase={phase}
+        className="perf-in-sidebar"
+      />
 
       <div className="sidebar-foot sidebar-foot-desktop">
         <div className="foot-kv"><span>Source</span><span className="mono">{source === "live" ? "Yahoo Finance" : source === "sim" ? "Simulated" : "—"}</span></div>
@@ -694,6 +721,10 @@ function StatRow({ label, value, mono, dim, color }) {
 }
 
 // ---- Market Conditions column ----
+// Six cards laid out as a 3-row × 2-column grid on desktop (column 1: equity
+// indices SP500 / NDX / RUT; column 2: VIX, Brent, GBP/USD). On mobile the
+// existing 3-column row layout is retained. GBP/CNH used to live here but was
+// dropped — too niche to keep occupying a slot.
 const MC_INDICES = [
   { ticker: "^GSPC",    name: "S&P 500",      nameB: "S&P",    nameN: "500",  ftTicker: "ES=F",  ftName: "S&P Futures"    },
   { ticker: "^NDX",     name: "NASDAQ 100",   nameB: "NASDAQ", nameN: "100",  ftTicker: "NQ=F",  ftName: "Nasdaq Futures" },
@@ -701,7 +732,6 @@ const MC_INDICES = [
   { ticker: "^VIX",     name: "VIX"          },
   { ticker: "BZ=F",     name: "Brent Oil"    },
   { ticker: "GBPUSD=X", name: "GBP/USD"      },
-  { ticker: "GBPCNH=X", name: "GBP/CNH"      },
 ];
 
 function fmtChg(n, baseTicker) {
@@ -742,7 +772,7 @@ function MarketConditions({ marketData, extendedHours, phase }) {
         const prevClose = d ? (d.prevClose ?? d.lastPrice) : null;
         const dayChange = (price != null && prevClose != null) ? price - prevClose : null;
         return (
-          <section key={activeTicker} className={`panel mc-card${ticker === "GBPCNH=X" ? " mc-hide-mobile" : ""}`}>
+          <section key={activeTicker} className="panel mc-card">
             <div className="mc-card-head">
               <h3 className="panel-title" style={{ margin: 0 }}>
                 {(nameB && nameN && !useExt) ? (
@@ -773,4 +803,4 @@ function MarketConditions({ marketData, extendedHours, phase }) {
   );
 }
 
-Object.assign(window, { Header, Sidebar, SidebarFoot, StatRow, MarketConditions });
+Object.assign(window, { Header, Sidebar, SidebarFoot, StatRow, MarketConditions, PerfPanel });

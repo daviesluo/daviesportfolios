@@ -301,9 +301,24 @@ body {
   padding: 24px;
   min-height: 0;
 }
+.left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+}
+/* The YTD chart appears in the desktop left column (above market conditions)
+   and ALSO inside the sidebar (used on tablet/mobile, where the left column
+   is hidden). At each breakpoint exactly one copy is visible — both render
+   but they share the localStorage cache so there's no extra network cost. */
+.perf-in-sidebar { display: none; }
+.perf-in-left    { display: flex; flex-direction: column; }
 @media (max-width: 1300px) {
   .main { grid-template-columns: minmax(0, 1fr) 380px; }
-  .market-conditions { display: none; }
+  .left-col { display: none; }
+  .perf-in-sidebar { display: block; }
+  .perf-in-left    { display: none; }
 }
 @media (max-width: 1020px) {
   .main { grid-template-columns: minmax(0, 1fr); padding: 16px; }
@@ -528,7 +543,11 @@ body {
 
 /* ============= MARKET CONDITIONS ============= */
 .market-conditions {
-  display: flex; flex-direction: column; gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(3, auto);
+  grid-auto-flow: column;
+  gap: 10px;
   min-width: 0;
 }
 .mc-card { cursor: default; }
@@ -858,7 +877,14 @@ body {
   }
   .pitch-wrap        { order: 1; width: 100%; }
   .sidebar           { order: 2; width: 100%; min-width: 0; }
-  .market-conditions { order: 3; display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .market-conditions {
+    order: 3;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto;
+    grid-auto-flow: row;
+    gap: 8px;
+  }
 
   /* --- Pitch --- */
   .pitch { height: 640px; }
