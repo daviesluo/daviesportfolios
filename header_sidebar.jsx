@@ -176,7 +176,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 // don't break the chart — when today's fetch misses a ticker, we keep using the
 // most recent cached series for that ticker (Jan-1 close never changes anyway).
 // Each entry is timestamped; we refetch any entry older than the TTL.
-const YTD_CACHE_KEY = 'ytd-perf-cache-v11';
+const YTD_CACHE_KEY = 'ytd-perf-cache-v12';
 const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
 function loadYtdCache(year) {
@@ -249,8 +249,20 @@ function PerfChart({ portfolio, marketData }) {
 
     // Fetch range=1y so we have data from the last trading day of the previous
     // year — that close is the YTD baseline (matches Yahoo Finance's anchor).
-    window.Utils.fetchHistoricalBatch(stale, '1y', '1d').then(batch => {
+    (async () => {
+      const batch = await window.Utils.fetchHistoricalBatch(stale, '1y', '1d');
       if (cancelled) return;
+      // ^GSPC anchors the X axis. If the batch missed it (Edge Function down,
+      // CORS proxies rate-limited, etc.) try a few more direct fetches before
+      // giving up — better to wait an extra second than show "Couldn't load".
+      if (!batch['^GSPC']) {
+        for (let i = 0; i < 3 && !batch['^GSPC']; i++) {
+          await new Promise(r => setTimeout(r, 800 * (i + 1)));
+          if (cancelled) return;
+          const retry = await window.Utils.fetchHistorical('^GSPC', '1y', '1d').catch(() => null);
+          if (retry) batch['^GSPC'] = retry;
+        }
+      }
       // Merge new fetches into both the live state and persistent cache. Tickers
       // that failed today fall back to whatever the previous cached entry was.
       const merged = { ...fresh };
@@ -265,40 +277,59 @@ function PerfChart({ portfolio, marketData }) {
         }
       }
       saveYtdCache(year, newEntries);
-      if (!merged['^GSPC']) {
+      // We need SOMETHING to anchor the X axis. Prefer ^GSPC; otherwise pick
+      // the longest portfolio-ticker series so the chart still renders even if
+      // the S&P 500 line is missing today.
+      const hasAnchor = merged['^GSPC'] || Object.values(merged).some(s => Array.isArray(s) && s.length >= 2);
+      if (!hasAnchor) {
         setError(true);
         setLoading(false);
         return;
       }
       setHist(merged);
       setLoading(false);
-    });
+    })();
     return () => { cancelled = true; };
   }, [tickerKey]);
 
-  if (!portfolio)              return <div className="sparkline-empty dim mono">Loading…</div>;
-  if (loading)                 return <div className="sparkline-empty dim mono">Computing YTD…</div>;
-  if (error || !hist?.['^GSPC']) return <div className="sparkline-empty dim mono">Couldn't load history</div>;
+  if (!portfolio) return <div className="sparkline-empty dim mono">Loading…</div>;
+  if (loading)    return <div className="sparkline-empty dim mono">Computing YTD…</div>;
+  if (error)      return <div className="sparkline-empty dim mono">Couldn't load history</div>;
 
   const year = new Date().getFullYear();
   const yearStart = `${year}-01-01`;
 
-  // S&P 500 trading dates within YTD anchor the chart's x-axis. We need data
-  // from BEFORE yearStart too (we fetch range=1y) so the YTD baseline can use
-  // the close from the last trading day of the previous year — that's what
-  // Yahoo Finance does, and it's why a stock that gaps up on Jan 2 already
-  // shows a positive YTD on Jan 2 itself rather than starting at exactly 0%.
+  // S&P 500 trading dates within YTD anchor the chart's x-axis. We fetch
+  // range=1y so we also have data from BEFORE yearStart — the close from the
+  // last trading day of the previous year is what Yahoo uses as the YTD
+  // baseline (so stocks that gap up on Jan 2 already show a positive YTD).
+  // If ^GSPC is unavailable we fall back to the longest portfolio-ticker
+  // series so the chart still renders (without an S&P 500 line).
   const allSp = (hist['^GSPC'] || [])
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date));
-  const spYtd = allSp.filter(p => p.date >= yearStart);
-  if (spYtd.length < 2) return <div className="sparkline-empty dim mono">No YTD data yet</div>;
+  let spYtd = allSp.filter(p => p.date >= yearStart);
+  let hasSp = spYtd.length >= 2;
+  if (!hasSp) {
+    let bestKey = null, bestLen = 0;
+    for (const [k, s] of Object.entries(hist || {})) {
+      if (k === '^GSPC' || !Array.isArray(s)) continue;
+      const ytdSlice = s.filter(p => p.date >= yearStart);
+      if (ytdSlice.length > bestLen) { bestLen = ytdSlice.length; bestKey = k; }
+    }
+    if (!bestKey || bestLen < 2) return <div className="sparkline-empty dim mono">No YTD data yet</div>;
+    spYtd = (hist[bestKey] || [])
+      .slice()
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .filter(p => p.date >= yearStart);
+  }
   const yearStartDate = spYtd[0].date;
   const todayMs = Date.now();
 
   // S&P 500 baseline = last close strictly before yearStart (Dec 31 of prior year).
-  // Falls back to first YTD close if no prior-year data is available (e.g., new index).
-  const spPriorYear = allSp.filter(p => p.date < yearStart);
+  // Falls back to first YTD close if no prior-year data is available.
+  // Only meaningful when hasSp; otherwise we'll skip drawing the S&P 500 line.
+  const spPriorYear = hasSp ? allSp.filter(p => p.date < yearStart) : [];
   const spBase = spPriorYear.length > 0 ? spPriorYear[spPriorYear.length - 1].close : spYtd[0].close;
 
   // Per-ticker sorted series + map + Jan-1 baseline price.
@@ -424,8 +455,10 @@ function PerfChart({ portfolio, marketData }) {
   if (portYtd.length < 2) return <div className="sparkline-empty dim mono">Insufficient data</div>;
 
   // S&P 500 normalised from prior-year-end close (computed earlier as spBase).
+  // Empty when hasSp is false; downstream rendering already guards against
+  // empty spNorm arrays via .length checks.
   const portNorm = portYtd;
-  const spNorm   = spYtd.map(p => ({ date: p.date, pct: ((p.close - spBase) / spBase) * 100 }));
+  const spNorm   = hasSp ? spYtd.map(p => ({ date: p.date, pct: ((p.close - spBase) / spBase) * 100 })) : [];
 
   const allDates = [...portNorm.map(p => p.date), ...spNorm.map(p => p.date)].sort();
   const d0 = allDates[0];
