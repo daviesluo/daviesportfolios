@@ -914,6 +914,11 @@ body {
     border-radius: 0;
     height: 100dvh;
     max-height: 100dvh;
+    /* Reserve room for the iOS status bar / dynamic island so the modal
+       header isn't hidden underneath. Match the main app's top inset
+       (env − 8px, min 8px) so the visual rhythm is identical. */
+    padding-top: max(8px, calc(env(safe-area-inset-top) - 8px));
+    padding-bottom: env(safe-area-inset-bottom);
   }
   .modal-head {
     padding: 14px 16px 12px;
