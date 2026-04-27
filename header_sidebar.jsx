@@ -352,9 +352,12 @@ function PerfChart({ portfolio, marketData }) {
   //   - Pre-year lot:  basis = shares × Jan-1 market price; value(d) = shares × close(d)
   //   - Year lot:      basis = shares × cost;               value(d) = shares × close(d)
   //   - YTD%(d) = (Σ value − Σ basis) / Σ basis × 100
-  // This makes the curve start at exactly 0% on Jan 1 and matches the YTD number
-  // shown in the Yahoo Finance app.
+  // For the LAST chart point we substitute live marketData prices for value(d)
+  // so the displayed YTD% matches what Yahoo shows in real time and updates
+  // when the user clicks refresh (which mutates marketData).
+  const liveAnchorDate = spYtd[spYtd.length - 1].date;
   const computeAt = (date) => {
+    const useLive = date === liveAnchorDate;
     let value = 0, basis = 0;
     for (const [ticker, h] of Object.entries(portfolio.holdings)) {
       if (h.isCash || ticker === 'CASH') continue;
@@ -365,6 +368,7 @@ function PerfChart({ portfolio, marketData }) {
       const ts = tickerSeries[ticker];
       const janPrice = ts ? ts.janPrice : null;
       const lastPrice = h.lastPrice;
+      const livePrice = useLive ? (marketData?.[ticker]?.lastPrice ?? lastPrice) : null;
 
       for (const lot of lots) {
         if (lot.date > date) continue; // not yet held
@@ -384,8 +388,11 @@ function PerfChart({ portfolio, marketData }) {
           basisPrice = lot.cost;
         }
 
-        // Current price at date
-        let priceAtD = ts ? closeOn(ticker, date) : null;
+        // Current price at date — prefer live for the latest chart point so the
+        // endpoint matches the rest of the app (and Yahoo) in real time.
+        let priceAtD = (useLive && livePrice != null && livePrice > 0)
+          ? livePrice
+          : (ts ? closeOn(ticker, date) : null);
         if (priceAtD == null) {
           // No historical data (e.g. SPAX.PVT, 017731): linearly interpolate
           // from cost on lot.date to current lastPrice on today, so the chart
