@@ -296,7 +296,9 @@ body {
 .main {
   flex: 1;
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 380px;
+  /* Wider left column so the YTD chart panel has more breathing room and the
+     2×3 market-conditions grid below has reasonable card sizes. */
+  grid-template-columns: 320px minmax(0, 1fr) 380px;
   gap: 24px;
   padding: 24px;
   min-height: 0;
@@ -545,12 +547,24 @@ body {
 .market-conditions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(3, auto);
+  /* All six cards share the same height — the tallest cell sets the height of
+     all three rows because each row is sized to its largest item, and minmax
+     keeps the rows equal even when content shrinks. */
+  grid-auto-rows: minmax(96px, 1fr);
+  grid-template-rows: minmax(96px, 1fr) minmax(96px, 1fr) minmax(96px, 1fr);
   grid-auto-flow: column;
   gap: 10px;
   min-width: 0;
 }
-.mc-card { cursor: default; }
+.mc-card {
+  cursor: default;
+  /* Stretch each card so all six end up identical in height regardless of
+     which row they sit in. Flex column lets the price row hug the top and
+     the change row sit at the bottom for a consistent visual rhythm. */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 .mc-card-head {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 8px;
@@ -883,6 +897,7 @@ body {
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: auto;
     grid-auto-flow: row;
+    grid-auto-rows: auto;
     gap: 8px;
   }
 
