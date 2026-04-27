@@ -42,16 +42,19 @@ function tileStyle(pct) {
       pctClr: 'var(--chalk-dim)',
     };
   }
-  // Saturate at 6% magnitude (was 8) so colours deepen a touch faster on
-  // typical daily moves. kL exponent dropped 0.7 → 0.55 so lightness falls
-  // a little quicker too — the user wanted the gradient to ramp faster
-  // without losing the washed-pastel look at the very small end.
+  // Saturate at 6% magnitude. kL drops faster than kS so lightness pulls
+  // ahead — the tile darkens before it gets too saturated, which avoids the
+  // mid-range hitting a vibrant fully-saturated medium green/red that reads
+  // as "刺眼" on the eye. kS uses pow(t, 0.65) and a tighter ceiling so the
+  // 2-3 % band lands on a softer, less neon-y colour.
   const t = Math.min(1, Math.abs(pct) / 6);
-  const kS = Math.sqrt(t);
+  const kS = Math.pow(t, 0.65);
   const kL = Math.pow(t, 0.55);
 
-  // L1 sweeps 78% (washed pastel) down to 28% (deep). S sweeps 22% to 60%.
-  const S  = 22 + kS * 38;
+  // L1 sweeps 78% (washed pastel) down to 28% (deep). S sweeps 20% to 50%
+  // (was 22 → 60) so mid-range tiles aren't fully saturated and the deepest
+  // colour is still clearly green/red without being neon.
+  const S  = 20 + kS * 30;
   const L1 = 78 - kL * 50;            // top of gradient
   const L2 = Math.max(22, L1 - 4);    // bottom 4pp dimmer for the 3D feel
   const useDarkText = L1 > 52;
