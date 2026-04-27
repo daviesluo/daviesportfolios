@@ -721,22 +721,27 @@ function StatRow({ label, value, mono, dim, color }) {
 }
 
 // ---- Market Conditions column ----
-// Six cards laid out as a 3-row × 2-column grid on desktop (column 1: equity
-// indices SP500 / NDX / RUT; column 2: VIX, Brent, GBP/USD). On mobile the
-// existing 3-column row layout is retained. GBP/CNH used to live here but was
-// dropped — too niche to keep occupying a slot.
+// Eight cards laid out as a 4-row × 2-column grid on desktop (column-major):
+//   col 1 → S&P 500, NASDAQ 100, Russell 2000, VIX
+//   col 2 → Brent Oil, US 10Y Treasury Yield, GBP/USD, GBP/CNY
+// Mobile keeps the previous 6-card layout (10Y + GBP/CNY hidden) so the
+// mobile MC strip stays compact. Cards flagged hideMobile carry the
+// `mc-hide-mobile` class which is display:none on the mobile breakpoint.
 const MC_INDICES = [
   { ticker: "^GSPC",    name: "S&P 500",      nameB: "S&P",    nameN: "500",  ftTicker: "ES=F",  ftName: "S&P Futures"    },
   { ticker: "^NDX",     name: "NASDAQ 100",   nameB: "NASDAQ", nameN: "100",  ftTicker: "NQ=F",  ftName: "Nasdaq Futures" },
   { ticker: "^RUT",     name: "Russell 2000", nameB: "Russell",nameN: "2000", ftTicker: "RTY=F", ftName: "R2K Futures"    },
   { ticker: "^VIX",     name: "VIX"          },
   { ticker: "BZ=F",     name: "Brent Oil"    },
+  { ticker: "^TNX",     name: "US 10Y Yield", nameB: "US 10Y", nameN: "Yield", hideMobile: true },
   { ticker: "GBPUSD=X", name: "GBP/USD"      },
+  { ticker: "GBPCNH=X", name: "GBP/CNY",      hideMobile: true },
 ];
 
 function fmtChg(n, baseTicker) {
   if (n == null || isNaN(n)) return "—";
   const sign = n >= 0 ? "+" : "";
+  if (baseTicker === "^TNX")               return sign + n.toFixed(2) + "%";
   if (baseTicker && FX_4DP.has(baseTicker)) return sign + n.toFixed(4);
   const abs  = Math.abs(n);
   if (abs >= 1000) return sign + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -747,6 +752,7 @@ function fmtChg(n, baseTicker) {
 const FX_4DP = new Set(["GBPUSD=X", "GBPCNH=X"]);
 function fmtMcPrice(price, baseTicker) {
   if (price == null || isNaN(price)) return "—";
+  if (baseTicker === "^TNX") return price.toFixed(2) + "%";
   if (FX_4DP.has(baseTicker)) return price.toFixed(4);
   return fmtPr(price);
 }
@@ -763,7 +769,7 @@ function MarketConditions({ marketData, extendedHours, phase }) {
   const useExt = extendedHours && phase !== "regular";
   return (
     <aside className="market-conditions">
-      {MC_INDICES.map(({ ticker, name, nameB, nameN, ftTicker, ftName }) => {
+      {MC_INDICES.map(({ ticker, name, nameB, nameN, ftTicker, ftName, hideMobile }) => {
         const activeTicker = (useExt && ftTicker) ? ftTicker : ticker;
         const activeName   = (useExt && ftName)   ? ftName   : name;
         const d         = marketData[activeTicker];
@@ -772,7 +778,7 @@ function MarketConditions({ marketData, extendedHours, phase }) {
         const prevClose = d ? (d.prevClose ?? d.lastPrice) : null;
         const dayChange = (price != null && prevClose != null) ? price - prevClose : null;
         return (
-          <section key={activeTicker} className="panel mc-card">
+          <section key={activeTicker} className={`panel mc-card${hideMobile ? " mc-hide-mobile" : ""}`}>
             <div className="mc-card-head">
               <h3 className="panel-title" style={{ margin: 0 }}>
                 {(nameB && nameN && !useExt) ? (
