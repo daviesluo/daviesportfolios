@@ -217,7 +217,7 @@ function promptForAuth() {
 // USDCNY=X is a hidden FX fetch used only for CNY→USD conversion of holdings
 // (not shown in the market-conditions column). GBPUSD=X doubles as both a
 // displayed card and the rate we use to convert GBP holdings to USD.
-const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^VIX", "BZ=F", "GBPUSD=X", "GBPCNH=X", "USDCNY=X", "ES=F", "NQ=F", "RTY=F"];
+const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNH=X", "USDCNY=X", "ES=F", "NQ=F", "RTY=F"];
 
 // Main app ---------------------------------------------------------------
 function App() {
