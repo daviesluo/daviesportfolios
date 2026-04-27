@@ -547,11 +547,20 @@ function Board({ isReadOnly }) {
       />
 
       <main className="main">
-        <MarketConditions
-          marketData={marketData}
-          extendedHours={extendedHours}
-          phase={currentPhase}
-        />
+        <div className="left-col">
+          <window.PerfPanel
+            portfolio={portfolio}
+            marketData={marketData}
+            extendedHours={extendedHours}
+            phase={currentPhase}
+            className="perf-in-left"
+          />
+          <MarketConditions
+            marketData={marketData}
+            extendedHours={extendedHours}
+            phase={currentPhase}
+          />
+        </div>
         {viewMode === 'heatmap' ? (
           <window.Heatmap
             metrics={displayMetrics}
@@ -588,6 +597,8 @@ function Board({ isReadOnly }) {
           source={source}
           portfolio={portfolio}
           marketData={marketData}
+          extendedHours={extendedHours}
+          phase={currentPhase}
         />
         <window.SidebarFoot source={source} />
       </main>
