@@ -157,52 +157,66 @@ function migrate(p) {
 }
 
 // Auth gate --------------------------------------------------------------
-// URL-only access: every visit must include ?pwd=<password>. No caching, no
-// interactive prompt. Strangers landing on the bare URL get an access-denied
-// screen and never see a password prompt that could be brute-forced.
-//   ?pwd=7119 → admin (full edit)
-//   ?pwd=8848 → read-only (shareable view)
+// Every visit re-authenticates — no device caching. Two equivalent paths:
+//   1. ?pwd=<password> in the URL (used by PWA bookmarks: ?pwd=7119 etc.)
+//   2. Interactive prompt, shown when no URL pwd was supplied
+// Both paths grant a one-shot session that disappears when the page reloads.
+//   ?pwd=7119 / typing 7119 → admin (full edit)
+//   ?pwd=8848 / typing 8848 → read-only (shareable view)
 const AUTH_TOKEN_KEY    = "auth_token";        // legacy, kept for cleanup only
 const AUTH_LOCKOUT_KEY  = "auth_lockout_until";
 const AUTH_ATTEMPTS_KEY = "auth_attempts";
 const MAX_ATTEMPTS      = 3;
 const LOCKOUT_MS        = 24 * 60 * 60 * 1000;
 
+function checkPassword(pw) {
+  if (pw === "8848") return { isReadOnly: true };
+  if (pw === "7119") return { isReadOnly: false };
+  return null;
+}
+
 function promptForAuth() {
-  // One-time cleanup: previous versions of this app cached the auth token in
-  // localStorage. The new contract is URL-only, so wipe any leftover token so
-  // a stale device session can't slip through.
+  // Wipe any legacy cached token from previous versions of this app so a
+  // stale device session can never short-circuit the prompt.
   localStorage.removeItem(AUTH_TOKEN_KEY);
 
   const lockUntil = parseInt(localStorage.getItem(AUTH_LOCKOUT_KEY) || "0", 10);
   if (lockUntil > Date.now()) return { locked: true, lockUntil };
 
+  // 1. Magic URL param. Strip ?pwd= from the address bar immediately so the
+  //    credential isn't visible to anyone glancing at the screen.
   const params = new URLSearchParams(window.location.search);
   const urlPwd = params.get("pwd");
-
-  // No password in the URL → strangers see an access-denied screen.
-  if (!urlPwd) return null;
-
-  // Strip ?pwd= from the address bar immediately so the credential isn't
-  // visible to anyone glancing at the screen, and so reload-without-strip
-  // (e.g. after editing) wouldn't keep re-authenticating from the bar.
-  params.delete("pwd");
-  const newSearch = params.toString();
-  history.replaceState(null, "",
-    window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
-
-  if (urlPwd === "8848") {
-    localStorage.removeItem(AUTH_ATTEMPTS_KEY);
-    localStorage.removeItem(AUTH_LOCKOUT_KEY);
-    return { isReadOnly: true };
-  }
-  if (urlPwd === "7119") {
-    localStorage.removeItem(AUTH_ATTEMPTS_KEY);
-    localStorage.removeItem(AUTH_LOCKOUT_KEY);
-    return { isReadOnly: false };
+  let attempted = false;
+  if (urlPwd != null) {
+    params.delete("pwd");
+    const newSearch = params.toString();
+    history.replaceState(null, "",
+      window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
+    const result = checkPassword(urlPwd);
+    if (result) {
+      localStorage.removeItem(AUTH_ATTEMPTS_KEY);
+      localStorage.removeItem(AUTH_LOCKOUT_KEY);
+      return result;
+    }
+    attempted = true;
   }
 
-  // Wrong password in URL — count toward lockout so a script can't enumerate.
+  // 2. Interactive prompt. No URL → ask for the password directly.
+  if (!attempted) {
+    const pw = window.prompt("Enter password:");
+    if (pw != null) {
+      const result = checkPassword(pw);
+      if (result) {
+        localStorage.removeItem(AUTH_ATTEMPTS_KEY);
+        localStorage.removeItem(AUTH_LOCKOUT_KEY);
+        return result;
+      }
+    }
+  }
+
+  // Wrong password (URL or prompt) — count toward lockout so brute-force
+  // attempts can't loop forever.
   const attempts = parseInt(localStorage.getItem(AUTH_ATTEMPTS_KEY) || "0", 10) + 1;
   if (attempts >= MAX_ATTEMPTS) {
     const until = Date.now() + LOCKOUT_MS;
@@ -241,7 +255,8 @@ function App() {
       <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' }}>
         <div style={{ textAlign: 'center', padding: '40px', border: '1px solid #2a2a2a', borderRadius: '4px' }}>
           <div style={{ color: '#f55', fontFamily: 'monospace', letterSpacing: '0.2em', fontSize: '14px', marginBottom: '8px' }}>ACCESS DENIED</div>
-          <div style={{ color: '#888', fontFamily: 'monospace', fontSize: '12px' }}>This URL requires a password parameter.</div>
+          <div style={{ color: '#888', fontFamily: 'monospace', fontSize: '12px', marginBottom: '20px' }}>Incorrect password.</div>
+          <button style={{ background: '#1e2d28', color: '#ccc', border: '1px solid #3a3a3a', padding: '8px 20px', cursor: 'pointer', fontFamily: 'monospace', fontSize: '12px', borderRadius: '2px' }} onClick={() => window.location.reload()}>Try again</button>
         </div>
       </div>
     );
