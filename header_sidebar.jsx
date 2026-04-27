@@ -176,7 +176,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 // don't break the chart — when today's fetch misses a ticker, we keep using the
 // most recent cached series for that ticker (Jan-1 close never changes anyway).
 // Each entry is timestamped; we refetch any entry older than the TTL.
-const YTD_CACHE_KEY = 'ytd-perf-cache-v9';
+const YTD_CACHE_KEY = 'ytd-perf-cache-v10';
 const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
 function loadYtdCache(year) {
@@ -246,7 +246,9 @@ function PerfChart({ portfolio, marketData }) {
 
     if (stale.length === 0) return;
 
-    window.Utils.fetchHistoricalBatch(stale, 'ytd', '1d').then(batch => {
+    // Fetch range=1y so we have data from the last trading day of the previous
+    // year — that close is the YTD baseline (matches Yahoo Finance's anchor).
+    window.Utils.fetchHistoricalBatch(stale, '1y', '1d').then(batch => {
       if (cancelled) return;
       // Merge new fetches into both the live state and persistent cache. Tickers
       // that failed today fall back to whatever the previous cached entry was.
@@ -280,22 +282,39 @@ function PerfChart({ portfolio, marketData }) {
   const year = new Date().getFullYear();
   const yearStart = `${year}-01-01`;
 
-  // S&P 500 YTD trading dates anchor everything
-  const spYtd = (hist['^GSPC'] || [])
-    .filter(p => p.date >= yearStart)
+  // S&P 500 trading dates within YTD anchor the chart's x-axis. We need data
+  // from BEFORE yearStart too (we fetch range=1y) so the YTD baseline can use
+  // the close from the last trading day of the previous year — that's what
+  // Yahoo Finance does, and it's why a stock that gaps up on Jan 2 already
+  // shows a positive YTD on Jan 2 itself rather than starting at exactly 0%.
+  const allSp = (hist['^GSPC'] || [])
+    .slice()
     .sort((a, b) => a.date.localeCompare(b.date));
+  const spYtd = allSp.filter(p => p.date >= yearStart);
   if (spYtd.length < 2) return <div className="sparkline-empty dim mono">No YTD data yet</div>;
   const yearStartDate = spYtd[0].date;
   const todayMs = Date.now();
 
-  // Per-ticker sorted series + map + Jan 1 baseline price
+  // S&P 500 baseline = last close strictly before yearStart (Dec 31 of prior year).
+  // Falls back to first YTD close if no prior-year data is available (e.g., new index).
+  const spPriorYear = allSp.filter(p => p.date < yearStart);
+  const spBase = spPriorYear.length > 0 ? spPriorYear[spPriorYear.length - 1].close : spYtd[0].close;
+
+  // Per-ticker sorted series + map + Jan-1 baseline price.
+  // Baseline = close on the last trading day BEFORE yearStart (matches Yahoo).
   const tickerSeries = {};
   for (const t of tickers) {
     const series = (hist[t] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
     const map = {};
     for (const p of series) map[p.date] = p.close;
-    const ytdSeries = series.filter(p => p.date >= yearStartDate);
-    const janPrice = ytdSeries.length > 0 ? ytdSeries[0].close : null;
+    const priorYear = series.filter(p => p.date < yearStart);
+    let janPrice = null;
+    if (priorYear.length > 0) {
+      janPrice = priorYear[priorYear.length - 1].close;
+    } else {
+      const ytdSeries = series.filter(p => p.date >= yearStartDate);
+      janPrice = ytdSeries.length > 0 ? ytdSeries[0].close : null;
+    }
     tickerSeries[t] = { series, map, janPrice };
   }
 
@@ -396,8 +415,7 @@ function PerfChart({ portfolio, marketData }) {
   });
   if (portYtd.length < 2) return <div className="sparkline-empty dim mono">Insufficient data</div>;
 
-  // S&P 500 normalised from first YTD trading day
-  const spBase   = spYtd[0].close;
+  // S&P 500 normalised from prior-year-end close (computed earlier as spBase).
   const portNorm = portYtd;
   const spNorm   = spYtd.map(p => ({ date: p.date, pct: ((p.close - spBase) / spBase) * 100 }));
 
