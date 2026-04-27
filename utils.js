@@ -401,11 +401,13 @@ window.Utils = (function () {
   }
 
   // Fetch daily historical closes for a single symbol via the CORS proxy chain.
-  // Returns [{date: "YYYY-MM-DD", close: number}, …] sorted ascending, or null on failure.
+  // Tries proxies in randomised order to spread load across them on bursty
+  // multi-ticker calls. Returns [{date,close}, …] or null on total failure.
   async function fetchHistorical(symbol, range = "ytd", interval = "1d") {
     const nonce = Date.now();
     const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}&_=${nonce}`;
-    for (const makeProxy of PROXIES) {
+    const proxies = [...PROXIES].sort(() => Math.random() - 0.5);
+    for (const makeProxy of proxies) {
       const controller = new AbortController();
       const tid = setTimeout(() => controller.abort(), 10000);
       try {
@@ -417,11 +419,13 @@ window.Utils = (function () {
         const timestamps = result?.timestamp;
         const closes = result?.indicators?.quote?.[0]?.close;
         if (!timestamps || !closes) continue;
+        const meta = result?.meta;
+        const penceFactor = (meta?.currency === "GBp" || meta?.currency === "GBX") ? 100 : 1;
         const points = [];
         for (let i = 0; i < timestamps.length; i++) {
           if (closes[i] == null) continue;
           const date = new Date(timestamps[i] * 1000).toISOString().slice(0, 10);
-          points.push({ date, close: closes[i] });
+          points.push({ date, close: closes[i] / penceFactor });
         }
         if (points.length > 0) return points;
       } catch (_) {
@@ -429,6 +433,50 @@ window.Utils = (function () {
       }
     }
     return null;
+  }
+
+  // Batch fetch YTD historical closes for multiple symbols.
+  // Strategy:
+  //   1. Try the Supabase Edge Function (server-side fetch, no CORS proxies — much
+  //      more reliable than browser-side proxies under concurrent load).
+  //   2. For any tickers the Edge Function didn't return (function not deployed
+  //      yet, or specific symbols that Yahoo refused), fall back to per-symbol
+  //      fetchHistorical via the CORS proxy chain.
+  // Returns { ticker: [{date,close}, …], … } — failed tickers are simply absent.
+  async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1d") {
+    const out = {};
+    const list = Array.from(new Set(symbols.filter(Boolean)));
+    if (list.length === 0) return out;
+
+    // Edge Function first
+    try {
+      const edgeUrl =
+        `${EDGE_PRICES_URL.replace(/\/prices$/, "/chart")}` +
+        `?tickers=${encodeURIComponent(list.join(","))}` +
+        `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}`;
+      const res = await fetch(edgeUrl, {
+        headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
+        signal: AbortSignal.timeout(15000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && typeof data === "object") {
+          for (const [t, pts] of Object.entries(data)) {
+            if (Array.isArray(pts) && pts.length > 0) out[t] = pts;
+          }
+        }
+      }
+    } catch (_) { /* fall through to CORS proxies */ }
+
+    // CORS-proxy fallback for any missing
+    const missing = list.filter(t => !out[t]);
+    if (missing.length > 0) {
+      const results = await Promise.all(
+        missing.map(s => fetchHistorical(s, range, interval).catch(() => null))
+      );
+      missing.forEach((s, i) => { if (results[i]) out[s] = results[i]; });
+    }
+    return out;
   }
 
   // -------- Position coordinates on 100x100 pitch (home team attacks UP; GK at bottom) --------
@@ -451,6 +499,6 @@ window.Utils = (function () {
     londonTimeParts, usMarketPhase, formatAgo,
     computeMetrics, detectFormation,
     detectCurrency, currencySymbol, fxToUSD,
-    refreshPrices, fetchTickers, fetchHistorical, POSITION_COORDS,
+    refreshPrices, fetchTickers, fetchHistorical, fetchHistoricalBatch, POSITION_COORDS,
   };
 })();

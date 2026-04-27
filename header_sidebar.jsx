@@ -172,26 +172,25 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 }
 
 // YTD performance chart: portfolio % return vs S&P 500, normalised from a common start.
-// Cache YTD historical fetch results in sessionStorage. Past closes are static
-// so we can reuse aggressively; TTL exists only to refresh today's close.
-const YTD_CACHE_KEY = 'ytd-perf-cache-v8';
+// We cache historical closes per-ticker in localStorage so partial fetch failures
+// don't break the chart — when today's fetch misses a ticker, we keep using the
+// most recent cached series for that ticker (Jan-1 close never changes anyway).
+// Each entry is timestamped; we refetch any entry older than the TTL.
+const YTD_CACHE_KEY = 'ytd-perf-cache-v9';
 const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
-function loadYtdCache(year, tickers) {
+function loadYtdCache(year) {
   try {
-    const raw = sessionStorage.getItem(YTD_CACHE_KEY);
-    if (!raw) return null;
+    const raw = localStorage.getItem(YTD_CACHE_KEY);
+    if (!raw) return {};
     const parsed = JSON.parse(raw);
-    if (parsed.year !== year) return null;
-    if (Date.now() - parsed.ts > YTD_CACHE_TTL_MS) return null;
-    if (!parsed.data || !parsed.data['^GSPC']) return null;
-    if (tickers.some(t => !parsed.data[t])) return null;
-    return parsed.data;
-  } catch (_) { return null; }
+    if (parsed.year !== year || !parsed.entries) return {};
+    return parsed.entries; // { ticker: { ts, data: [{date,close}, …] } }
+  } catch (_) { return {}; }
 }
-function saveYtdCache(year, data) {
+function saveYtdCache(year, entries) {
   try {
-    sessionStorage.setItem(YTD_CACHE_KEY, JSON.stringify({ year, ts: Date.now(), data }));
+    localStorage.setItem(YTD_CACHE_KEY, JSON.stringify({ year, entries }));
   } catch (_) {}
 }
 
@@ -222,29 +221,53 @@ function PerfChart({ portfolio, marketData }) {
     if (!portfolio) return;
     let cancelled = false;
     const year = new Date().getFullYear();
+    const symbols = ['^GSPC', ...tickers];
 
-    const cached = loadYtdCache(year, tickers);
-    if (cached) {
-      setHist(cached);
-      setLoading(false);
-      return;
+    // Read per-ticker cache; populate hist immediately with whatever's still fresh.
+    const entries = loadYtdCache(year);
+    const fresh = {};
+    const stale = [];
+    for (const s of symbols) {
+      const e = entries[s];
+      if (e && e.data && Array.isArray(e.data) && (Date.now() - (e.ts || 0)) < YTD_CACHE_TTL_MS) {
+        fresh[s] = e.data;
+      } else {
+        stale.push(s);
+      }
     }
 
-    setLoading(true);
-    const symbols = ['^GSPC', ...tickers];
-    Promise.all(
-      symbols.map(s => window.Utils.fetchHistorical(s, 'ytd', '1d').catch(() => null))
-    ).then(results => {
+    // Show whatever's already in cache while we refresh stale entries in the background.
+    if (Object.keys(fresh).length > 0 && fresh['^GSPC']) {
+      setHist({ ...fresh });
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
+    if (stale.length === 0) return;
+
+    window.Utils.fetchHistoricalBatch(stale, 'ytd', '1d').then(batch => {
       if (cancelled) return;
-      const data = {};
-      symbols.forEach((s, i) => { if (results[i]) data[s] = results[i]; });
-      if (!data['^GSPC']) {
+      // Merge new fetches into both the live state and persistent cache. Tickers
+      // that failed today fall back to whatever the previous cached entry was.
+      const merged = { ...fresh };
+      const newEntries = { ...entries };
+      const now = Date.now();
+      for (const s of stale) {
+        if (batch[s]) {
+          merged[s] = batch[s];
+          newEntries[s] = { ts: now, data: batch[s] };
+        } else if (entries[s] && entries[s].data) {
+          merged[s] = entries[s].data; // keep prior cached series rather than dropping the ticker
+        }
+      }
+      saveYtdCache(year, newEntries);
+      if (!merged['^GSPC']) {
         setError(true);
         setLoading(false);
         return;
       }
-      saveYtdCache(year, data);
-      setHist(data);
+      setHist(merged);
       setLoading(false);
     });
     return () => { cancelled = true; };
@@ -327,6 +350,21 @@ function PerfChart({ portfolio, marketData }) {
       for (const lot of lots) {
         if (lot.date > date) continue; // not yet held
 
+        // Basis price for this lot
+        let basisPrice;
+        if (lot.date < yearStartDate) {
+          // Pre-year lot needs Jan-1 market price. If we don't have one, skip
+          // this lot entirely — including it with a guessed basis would either
+          // over-attribute (cost) or zero out (lastPrice) the contribution and
+          // distort the percentage. Better to compute YTD% over the holdings
+          // we do have data for than to include misleading numbers.
+          if (janPrice == null) continue;
+          basisPrice = janPrice;
+        } else {
+          // Year lot: basis = cost (always known)
+          basisPrice = lot.cost;
+        }
+
         // Current price at date
         let priceAtD = ts ? closeOn(ticker, date) : null;
         if (priceAtD == null) {
@@ -342,19 +380,6 @@ function PerfChart({ portfolio, marketData }) {
             const t = (dMs - lotMs) / (todayMs - lotMs);
             priceAtD = lot.cost + (tgtPrice - lot.cost) * t;
           }
-        }
-
-        // Basis price for this lot
-        let basisPrice;
-        if (lot.date < yearStartDate) {
-          // Pre-year lot: use Jan-1 market price; if no historical data, use
-          // current lastPrice so this lot contributes 0 to YTD (we don't know
-          // its Jan 1 price, so the only safe assumption is "no change").
-          basisPrice = (janPrice != null) ? janPrice
-                     : ((lastPrice != null && lastPrice > 0) ? lastPrice : lot.cost);
-        } else {
-          // Year lot: basis = cost
-          basisPrice = lot.cost;
         }
 
         value += lot.shares * priceAtD * fx;
