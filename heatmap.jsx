@@ -51,28 +51,27 @@ function tileStyle(pct) {
   const kS = Math.pow(t, 0.65);
   const kL = Math.pow(t, 0.55);
 
-  // Saturation sweeps 20% → 50% — both sides share this so neither colour
-  // dominates. Each side picks its own lightness curve:
-  //   Green: L 78 → 28, gentle kL (washed pastel up top)
-  //   Red:   L 70 → 28, steeper kL (escapes the pastel-pink band quickly so
-  //          1-2 % movers read as red rather than peach/pink)
+  // Saturation sweeps 20% → 50% — both sides share this. Lightness ranges
+  // were previously 78 → 28 (green) and 70 → 28 (red), which gave the
+  // smallest movers a near-white pastel look. The user wanted to skip the
+  // two palest tiers and start from a noticeably tinted mid-light shade,
+  // so each side now starts ~18 pp darker. Red still uses a steeper kL so
+  // 1-2 % decliners don't get stuck in the pastel-pink band.
   const S = 20 + kS * 30;
   if (pct > 0) {
-    const L1 = 78 - kL * 50;
+    const L1 = 60 - kL * 32;          // 60 % → 28 %
     const L2 = Math.max(22, L1 - 4);
-    const useDarkText = L1 > 52;
+    const useDarkText = L1 > 48;
     return {
       bg: `linear-gradient(180deg, hsl(142, ${S}%, ${L1}%) 0%, hsl(142, ${S}%, ${L2}%) 100%)`,
       tickerClr: useDarkText ? '#0f3a23' : '#e8f6ec',
       pctClr:    useDarkText ? '#0f5a31' : '#9be8b3',
     };
   }
-  // Red: tighter pastel ceiling + steeper L curve so the 1-2 % band stops
-  // looking pink and starts looking like a soft red.
   const kLr = Math.pow(t, 0.45);
-  const L1r = 70 - kLr * 42;          // 70% → 28% (was 78% → 28% via kL=0.55)
+  const L1r = 54 - kLr * 26;          // 54 % → 28 %
   const L2r = Math.max(24, L1r - 4);
-  const useDarkTextR = L1r > 52;
+  const useDarkTextR = L1r > 48;
   return {
     bg: `linear-gradient(180deg, hsl(354, ${S}%, ${L1r}%) 0%, hsl(354, ${S}%, ${L2r}%) 100%)`,
     tickerClr: useDarkTextR ? '#4a1620' : '#fbe6e9',
