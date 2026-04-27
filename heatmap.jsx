@@ -42,11 +42,13 @@ function tileStyle(pct) {
       pctClr: 'var(--chalk-dim)',
     };
   }
-  // Saturate at 8% magnitude — daily moves above that are uncommon enough that
-  // we don't need extra resolution beyond the deepest colour.
-  const t = Math.min(1, Math.abs(pct) / 8);
-  const kS = Math.sqrt(t);            // saturation rises fast on small moves
-  const kL = Math.pow(t, 0.7);        // lightness falls a little more gently
+  // Saturate at 6% magnitude (was 8) so colours deepen a touch faster on
+  // typical daily moves. kL exponent dropped 0.7 → 0.55 so lightness falls
+  // a little quicker too — the user wanted the gradient to ramp faster
+  // without losing the washed-pastel look at the very small end.
+  const t = Math.min(1, Math.abs(pct) / 6);
+  const kS = Math.sqrt(t);
+  const kL = Math.pow(t, 0.55);
 
   // L1 sweeps 78% (washed pastel) down to 28% (deep). S sweeps 22% to 60%.
   const S  = 22 + kS * 38;
