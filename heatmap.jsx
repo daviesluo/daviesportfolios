@@ -27,13 +27,13 @@ function treemap(nodes, x, y, w, h) {
 }
 
 // ── Tile colour (Trading 212-style HSL gradient) ─────────────────────────────
-// Magnitude scales BOTH saturation and lightness:
-//   - Tiny moves → low saturation + low lightness → tile reads as a slightly
-//     tinted dark gray (more washed-out / "白" leaning) so it doesn't shout.
-//   - Big moves → higher saturation + higher lightness → vivid dark green/red.
-// Saturation curve is sharper than lightness so the tile starts grayer and
-// gets noticeably more colourful as the magnitude grows. sqrt curve keeps
-// small moves still distinguishable from the neutral "no-change" tile.
+// Magnitude inversely scales lightness and positively scales saturation:
+//   - Tiny moves → very high lightness + low saturation → washed-out pale
+//     pastel ("nearly white"), low contrast against the page.
+//   - Big moves → low lightness + high saturation → deep, rich dark green/red.
+// "颜色更深代表变动越大" maps directly to luminance: deeper tile == bigger move.
+// Text colour flips automatically — dark glyphs on the light pastel tiles,
+// light glyphs on the deep tiles — so percentages stay legible at every level.
 function tileStyle(pct) {
   if (pct == null || Math.abs(pct) < 0.005) {
     return {
@@ -45,28 +45,26 @@ function tileStyle(pct) {
   // Saturate at 8% magnitude — daily moves above that are uncommon enough that
   // we don't need extra resolution beyond the deepest colour.
   const t = Math.min(1, Math.abs(pct) / 8);
-  const kS = Math.sqrt(t);                // saturation curve — fast ramp
-  const kL = Math.pow(t, 0.7);            // lightness curve — gentler
+  const kS = Math.sqrt(t);            // saturation rises fast on small moves
+  const kL = Math.pow(t, 0.7);        // lightness falls a little more gently
+
+  // L1 sweeps 78% (washed pastel) down to 28% (deep). S sweeps 22% to 60%.
+  const S  = 22 + kS * 38;
+  const L1 = 78 - kL * 50;            // top of gradient
+  const L2 = Math.max(22, L1 - 4);    // bottom 4pp dimmer for the 3D feel
+  const useDarkText = L1 > 52;
 
   if (pct > 0) {
-    // Green: H≈142°. Small moves: low S, dark grey-green. Big moves: vivid.
-    const S  = 14 + kS * 44;          // 14% → 58%
-    const L1 = 16 + kL * 14;          // 16% → 30% (top of gradient)
-    const L2 = Math.max(10, L1 - 4);  // bottom is 4pp dimmer for 3D feel
     return {
       bg: `linear-gradient(180deg, hsl(142, ${S}%, ${L1}%) 0%, hsl(142, ${S}%, ${L2}%) 100%)`,
-      tickerClr: '#e8f6ec',
-      pctClr: '#9be8b3',
+      tickerClr: useDarkText ? '#0f3a23' : '#e8f6ec',
+      pctClr:    useDarkText ? '#0f5a31' : '#9be8b3',
     };
   }
-  // Red: H≈354°.
-  const S  = 18 + kS * 44;          // 18% → 62%
-  const L1 = 18 + kL * 16;          // 18% → 34%
-  const L2 = Math.max(12, L1 - 4);
   return {
     bg: `linear-gradient(180deg, hsl(354, ${S}%, ${L1}%) 0%, hsl(354, ${S}%, ${L2}%) 100%)`,
-    tickerClr: '#fbe6e9',
-    pctClr: '#f4a8b0',
+    tickerClr: useDarkText ? '#4a1620' : '#fbe6e9',
+    pctClr:    useDarkText ? '#811f2c' : '#f4a8b0',
   };
 }
 
