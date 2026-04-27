@@ -176,7 +176,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 // don't break the chart — when today's fetch misses a ticker, we keep using the
 // most recent cached series for that ticker (Jan-1 close never changes anyway).
 // Each entry is timestamped; we refetch any entry older than the TTL.
-const YTD_CACHE_KEY = 'ytd-perf-cache-v10';
+const YTD_CACHE_KEY = 'ytd-perf-cache-v11';
 const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
 function loadYtdCache(year) {
@@ -202,15 +202,16 @@ function PerfChart({ portfolio, marketData }) {
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState(false);
 
-  // Tickers we need historical YTD data for — skip cash, private (.PVT) and
-  // CN funds (6-digit) since they have no Yahoo chart endpoint.
+  // Tickers we need historical data for. We send all non-cash holdings to the
+  // chart Edge Function — it routes 6-digit CN fund codes to eastmoney's
+  // pingzhongdata endpoint and everything else (including .PVT) to Yahoo. A
+  // ticker that's unsupported on either backend just returns null and falls
+  // back to linear interpolation between cost and lastPrice.
   const tickers = React.useMemo(() => {
     if (!portfolio) return [];
     const out = new Set();
     for (const [t, h] of Object.entries(portfolio.holdings || {})) {
       if (h.isCash || t === 'CASH') continue;
-      if (t.endsWith('.PVT')) continue;
-      if (/^\d{6}$/.test(t)) continue;
       out.add(t);
     }
     return Array.from(out).sort();
