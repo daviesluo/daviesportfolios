@@ -174,7 +174,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 // YTD performance chart: portfolio % return vs S&P 500, normalised from a common start.
 // Cache YTD historical fetch results in sessionStorage. Past closes are static
 // so we can reuse aggressively; TTL exists only to refresh today's close.
-const YTD_CACHE_KEY = 'ytd-perf-cache-v2';
+const YTD_CACHE_KEY = 'ytd-perf-cache-v8';
 const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
 function loadYtdCache(year, tickers) {
@@ -262,14 +262,18 @@ function PerfChart({ portfolio, marketData }) {
     .filter(p => p.date >= yearStart)
     .sort((a, b) => a.date.localeCompare(b.date));
   if (spYtd.length < 2) return <div className="sparkline-empty dim mono">No YTD data yet</div>;
+  const yearStartDate = spYtd[0].date;
+  const todayMs = Date.now();
 
-  // Per-ticker sorted series + map for fast lookup
+  // Per-ticker sorted series + map + Jan 1 baseline price
   const tickerSeries = {};
   for (const t of tickers) {
     const series = (hist[t] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
     const map = {};
     for (const p of series) map[p.date] = p.close;
-    tickerSeries[t] = { series, map };
+    const ytdSeries = series.filter(p => p.date >= yearStartDate);
+    const janPrice = ytdSeries.length > 0 ? ytdSeries[0].close : null;
+    tickerSeries[t] = { series, map, janPrice };
   }
 
   // Get close for ticker on a date — exact match, or last known close ≤ date.
@@ -286,46 +290,90 @@ function PerfChart({ portfolio, marketData }) {
     return best;
   };
 
-  // Compute portfolio USD value at a given date using cumulative lots.
-  const valueAt = (date) => {
-    let total = 0;
-    for (const [ticker, h] of Object.entries(portfolio.holdings)) {
-      if (h.isCash || ticker === 'CASH') {
-        total += h.lastPrice || 0; // cash held flat (we only track current balance)
-        continue;
-      }
-      if (!Array.isArray(h.lots) || h.lots.length === 0) continue;
-      let cumShares = 0;
-      for (const lot of h.lots) if (lot.date <= date) cumShares += lot.shares;
-      if (cumShares === 0) continue;
+  // Resolve which lots to use for a holding. Prefer h.lots (manual edits + persisted
+  // state) when its share total matches; else fall back to seed; else single lot
+  // dated yearStart. This keeps the chart correct even if migration hasn't run.
+  const lotsFor = (ticker, h) => {
+    const sumShares = (lots) => lots.reduce((s, l) => s + (l.shares || 0), 0);
+    if (Array.isArray(h.lots) && h.lots.length > 0
+        && Math.abs(sumShares(h.lots) - h.shares) < 0.0001) {
+      return h.lots;
+    }
+    const seed = window.INITIAL_LOTS && window.INITIAL_LOTS[ticker];
+    if (Array.isArray(seed) && Math.abs(sumShares(seed) - h.shares) < 0.0001) {
+      return seed;
+    }
+    return [{ date: yearStart, shares: h.shares, cost: h.lastPrice || 0 }];
+  };
 
-      let priceNative = closeOn(ticker, date);
-      if (priceNative == null) {
-        // No Yahoo data (e.g. SPAX.PVT, 017731): fall back to weighted-average
-        // cost of lots already purchased — flat line, no historical curve.
-        let c = 0, s = 0;
-        for (const lot of h.lots) {
-          if (lot.date <= date) { c += lot.shares * lot.cost; s += lot.shares; }
-        }
-        priceNative = s > 0 ? c / s : 0;
-      }
+  // Yahoo's YTD formula:
+  //   - Pre-year lot:  basis = shares × Jan-1 market price; value(d) = shares × close(d)
+  //   - Year lot:      basis = shares × cost;               value(d) = shares × close(d)
+  //   - YTD%(d) = (Σ value − Σ basis) / Σ basis × 100
+  // This makes the curve start at exactly 0% on Jan 1 and matches the YTD number
+  // shown in the Yahoo Finance app.
+  const computeAt = (date) => {
+    let value = 0, basis = 0;
+    for (const [ticker, h] of Object.entries(portfolio.holdings)) {
+      if (h.isCash || ticker === 'CASH') continue;
+      const lots = lotsFor(ticker, h);
       const fx = (h.currency && h.currency !== 'USD')
         ? window.Utils.fxToUSD(h.currency, marketData)
         : 1;
-      total += cumShares * priceNative * fx;
+      const ts = tickerSeries[ticker];
+      const janPrice = ts ? ts.janPrice : null;
+      const lastPrice = h.lastPrice;
+
+      for (const lot of lots) {
+        if (lot.date > date) continue; // not yet held
+
+        // Current price at date
+        let priceAtD = ts ? closeOn(ticker, date) : null;
+        if (priceAtD == null) {
+          // No historical data (e.g. SPAX.PVT, 017731): linearly interpolate
+          // from cost on lot.date to current lastPrice on today, so the chart
+          // ends at the truthful current value without an ugly endpoint step.
+          const lotMs = new Date(lot.date).getTime();
+          const dMs = new Date(date).getTime();
+          const tgtPrice = (lastPrice != null && lastPrice > 0) ? lastPrice : lot.cost;
+          if (todayMs <= lotMs || dMs >= todayMs) priceAtD = tgtPrice;
+          else if (dMs <= lotMs) priceAtD = lot.cost;
+          else {
+            const t = (dMs - lotMs) / (todayMs - lotMs);
+            priceAtD = lot.cost + (tgtPrice - lot.cost) * t;
+          }
+        }
+
+        // Basis price for this lot
+        let basisPrice;
+        if (lot.date < yearStartDate) {
+          // Pre-year lot: use Jan-1 market price; if no historical data, use
+          // current lastPrice so this lot contributes 0 to YTD (we don't know
+          // its Jan 1 price, so the only safe assumption is "no change").
+          basisPrice = (janPrice != null) ? janPrice
+                     : ((lastPrice != null && lastPrice > 0) ? lastPrice : lot.cost);
+        } else {
+          // Year lot: basis = cost
+          basisPrice = lot.cost;
+        }
+
+        value += lot.shares * priceAtD * fx;
+        basis += lot.shares * basisPrice * fx;
+      }
     }
-    return total;
+    return { value, basis };
   };
 
-  // Portfolio value series — same dates as S&P 500 trading days
-  const portValues = spYtd.map(p => ({ date: p.date, value: valueAt(p.date) }));
-  const portValid  = portValues.filter(p => p.value > 0);
-  if (portValid.length < 2) return <div className="sparkline-empty dim mono">Insufficient data</div>;
+  const portYtd = spYtd.map(p => {
+    const { value, basis } = computeAt(p.date);
+    const pct = basis > 0 ? ((value - basis) / basis) * 100 : 0;
+    return { date: p.date, pct };
+  });
+  if (portYtd.length < 2) return <div className="sparkline-empty dim mono">Insufficient data</div>;
 
-  // Normalise both series to % return from year start
-  const portBase = portValid[0].value;
-  const portNorm = portValid.map(p => ({ date: p.date, pct: ((p.value - portBase) / portBase) * 100 }));
+  // S&P 500 normalised from first YTD trading day
   const spBase   = spYtd[0].close;
+  const portNorm = portYtd;
   const spNorm   = spYtd.map(p => ({ date: p.date, pct: ((p.close - spBase) / spBase) * 100 }));
 
   const allDates = [...portNorm.map(p => p.date), ...spNorm.map(p => p.date)].sort();
