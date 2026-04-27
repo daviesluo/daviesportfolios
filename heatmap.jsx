@@ -27,13 +27,16 @@ function treemap(nodes, x, y, w, h) {
 }
 
 // ── Tile colour (Trading 212-style HSL gradient) ─────────────────────────────
-// Magnitude scales BOTH saturation and lightness:
-//   - Tiny moves → low saturation + low lightness → tile reads as a slightly
-//     tinted dark gray (more washed-out / "白" leaning) so it doesn't shout.
-//   - Big moves → higher saturation + higher lightness → vivid dark green/red.
-// Saturation curve is sharper than lightness so the tile starts grayer and
-// gets noticeably more colourful as the magnitude grows. sqrt curve keeps
-// small moves still distinguishable from the neutral "no-change" tile.
+// Hue, saturation AND lightness all shift with magnitude so the small/big
+// extremes land on specific colour names:
+//   Up   small → light grass green  (hsl ≈ 100°, 55%, 78%)
+//   Up   big   → pine / 松绿        (hsl ≈ 150°, 60%, 26%)
+//   Down small → light pink         (hsl ≈ 352°, 78%, 86%)
+//   Down big   → plum red / 梅红    (hsl ≈ 346°, 58%, 36%)
+// kS = sqrt(t) so small moves already start to colour up, but the deepest
+// hue/lightness only fully arrives near the saturation cap (8% daily move).
+// Text colour auto-flips at L>52% — dark glyphs on the pale tiles, light
+// glyphs on the deep tiles.
 function tileStyle(pct) {
   if (pct == null || Math.abs(pct) < 0.005) {
     return {
@@ -42,31 +45,32 @@ function tileStyle(pct) {
       pctClr: 'var(--chalk-dim)',
     };
   }
-  // Saturate at 8% magnitude — daily moves above that are uncommon enough that
-  // we don't need extra resolution beyond the deepest colour.
   const t = Math.min(1, Math.abs(pct) / 8);
-  const kS = Math.sqrt(t);                // saturation curve — fast ramp
-  const kL = Math.pow(t, 0.7);            // lightness curve — gentler
+  const kS = Math.sqrt(t);
+  const kL = Math.pow(t, 0.7);
 
   if (pct > 0) {
-    // Green: H≈142°. Small moves: low S, dark grey-green. Big moves: vivid.
-    const S  = 14 + kS * 44;          // 14% → 58%
-    const L1 = 16 + kL * 14;          // 16% → 30% (top of gradient)
-    const L2 = Math.max(10, L1 - 4);  // bottom is 4pp dimmer for 3D feel
+    const H  = 100 + kS * 50;          // grass 100° → pine 150°
+    const S  = 55 + kS * 5;            // 55% → 60%
+    const L1 = 78 - kL * 52;           // 78% (light grass) → 26% (pine)
+    const L2 = Math.max(20, L1 - 4);
+    const useDarkText = L1 > 52;
     return {
-      bg: `linear-gradient(180deg, hsl(142, ${S}%, ${L1}%) 0%, hsl(142, ${S}%, ${L2}%) 100%)`,
-      tickerClr: '#e8f6ec',
-      pctClr: '#9be8b3',
+      bg: `linear-gradient(180deg, hsl(${H}, ${S}%, ${L1}%) 0%, hsl(${H}, ${S}%, ${L2}%) 100%)`,
+      tickerClr: useDarkText ? '#0f3a23' : '#eaf7ee',
+      pctClr:    useDarkText ? '#0f5a31' : '#a7eabd',
     };
   }
-  // Red: H≈354°.
-  const S  = 18 + kS * 44;          // 18% → 62%
-  const L1 = 18 + kL * 16;          // 18% → 34%
-  const L2 = Math.max(12, L1 - 4);
+  // Red side
+  const H  = 352 - kS * 6;             // light pink 352° → plum 346°
+  const S  = 78 - kS * 20;             // 78% (vivid pink) → 58% (plum)
+  const L1 = 86 - kL * 50;             // 86% (light pink) → 36% (plum red)
+  const L2 = Math.max(28, L1 - 4);
+  const useDarkText = L1 > 52;
   return {
-    bg: `linear-gradient(180deg, hsl(354, ${S}%, ${L1}%) 0%, hsl(354, ${S}%, ${L2}%) 100%)`,
-    tickerClr: '#fbe6e9',
-    pctClr: '#f4a8b0',
+    bg: `linear-gradient(180deg, hsl(${H}, ${S}%, ${L1}%) 0%, hsl(${H}, ${S}%, ${L2}%) 100%)`,
+    tickerClr: useDarkText ? '#4a1622' : '#fbe6e9',
+    pctClr:    useDarkText ? '#871f2e' : '#f4a8b0',
   };
 }
 
