@@ -26,10 +26,14 @@ function treemap(nodes, x, y, w, h) {
   }
 }
 
-// ── Tile colour (Trading 212-style muted dark gradient) ──────────────────────
-// Magnitude shapes lightness; sqrt curve keeps small moves visible while
-// saturating gracefully on big moves. Top-bright / bottom-dim gradient gives
-// the tiles a subtle 3D feel.
+// ── Tile colour (Trading 212-style HSL gradient) ─────────────────────────────
+// Magnitude scales BOTH saturation and lightness:
+//   - Tiny moves → low saturation + low lightness → tile reads as a slightly
+//     tinted dark gray (more washed-out / "白" leaning) so it doesn't shout.
+//   - Big moves → higher saturation + higher lightness → vivid dark green/red.
+// Saturation curve is sharper than lightness so the tile starts grayer and
+// gets noticeably more colourful as the magnitude grows. sqrt curve keeps
+// small moves still distinguishable from the neutral "no-change" tile.
 function tileStyle(pct) {
   if (pct == null || Math.abs(pct) < 0.005) {
     return {
@@ -38,35 +42,31 @@ function tileStyle(pct) {
       pctClr: 'var(--chalk-dim)',
     };
   }
-  // t in [0,1] — saturates at ~10% magnitude
-  const t = Math.min(1, Math.abs(pct) / 10);
-  const k = Math.sqrt(t); // soften so tiny moves still show colour
+  // Saturate at 8% magnitude — daily moves above that are uncommon enough that
+  // we don't need extra resolution beyond the deepest colour.
+  const t = Math.min(1, Math.abs(pct) / 8);
+  const kS = Math.sqrt(t);                // saturation curve — fast ramp
+  const kL = Math.pow(t, 0.7);            // lightness curve — gentler
 
   if (pct > 0) {
-    // Forest green progression
-    const r1 = Math.round(28 + k * 50);
-    const g1 = Math.round(48 + k * 110);
-    const b1 = Math.round(38 + k * 60);
-    const r2 = Math.round(r1 * 0.82);
-    const g2 = Math.round(g1 * 0.82);
-    const b2 = Math.round(b1 * 0.82);
+    // Green: H≈142°. Small moves: low S, dark grey-green. Big moves: vivid.
+    const S  = 14 + kS * 44;          // 14% → 58%
+    const L1 = 16 + kL * 14;          // 16% → 30% (top of gradient)
+    const L2 = Math.max(10, L1 - 4);  // bottom is 4pp dimmer for 3D feel
     return {
-      bg: `linear-gradient(180deg, rgb(${r1},${g1},${b1}) 0%, rgb(${r2},${g2},${b2}) 100%)`,
-      tickerClr: '#e3f5e8',
-      pctClr: '#86efac',
+      bg: `linear-gradient(180deg, hsl(142, ${S}%, ${L1}%) 0%, hsl(142, ${S}%, ${L2}%) 100%)`,
+      tickerClr: '#e8f6ec',
+      pctClr: '#9be8b3',
     };
   }
-  // Crimson progression
-  const r1 = Math.round(50 + k * 130);
-  const g1 = Math.round(28 + k * 38);
-  const b1 = Math.round(36 + k * 50);
-  const r2 = Math.round(r1 * 0.82);
-  const g2 = Math.round(g1 * 0.82);
-  const b2 = Math.round(b1 * 0.82);
+  // Red: H≈354°.
+  const S  = 18 + kS * 44;          // 18% → 62%
+  const L1 = 18 + kL * 16;          // 18% → 34%
+  const L2 = Math.max(12, L1 - 4);
   return {
-    bg: `linear-gradient(180deg, rgb(${r1},${g1},${b1}) 0%, rgb(${r2},${g2},${b2}) 100%)`,
-    tickerClr: '#fbe5e9',
-    pctClr: '#fca5a5',
+    bg: `linear-gradient(180deg, hsl(354, ${S}%, ${L1}%) 0%, hsl(354, ${S}%, ${L2}%) 100%)`,
+    tickerClr: '#fbe6e9',
+    pctClr: '#f4a8b0',
   };
 }
 
