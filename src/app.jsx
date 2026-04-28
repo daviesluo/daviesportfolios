@@ -15,7 +15,7 @@ import {
   Storage,
   POSITION_COORDS,
 } from './utils.js';
-import { INITIAL_PORTFOLIO, INITIAL_LOTS } from './data.js';
+import { INITIAL_PORTFOLIO } from './data.js';
 import { Header, Sidebar, MarketConditions, PerfPanel, SidebarFoot } from './header_sidebar.jsx';
 import { Pitch } from './pitch.jsx';
 import { Heatmap } from './heatmap.jsx';
@@ -150,27 +150,16 @@ function migrate(p) {
     h.currency = detectCurrency(t);
   }
 
-  // Backfill `lots` (per-purchase history) on holdings missing it. Drives the
-  // YTD performance chart's historical value calculation.
-  // We only apply a seed if its shares sum matches the current holding (within
-  // rounding tolerance) — otherwise the user has manually adjusted shares and
-  // applying stale seed lots would over- or under-count.
-  const initialLots = INITIAL_LOTS || {};
+  // Backfill `lots` (per-purchase history) on any holding that's missing it
+  // (legacy data from before the lot editor existed). Just stamps a single
+  // lot dated 2025-01-01 with current shares + avg cost — the user can then
+  // refine via the EditTickerModal lot editor. Lots are the source of truth
+  // for the YTD chart, so post-migration nothing else should mutate them
+  // outside that modal.
   for (const [t, h] of Object.entries(p.holdings)) {
     if (h.isCash || t === "CASH") continue;
     if (Array.isArray(h.lots) && h.lots.length > 0) continue;
-    const seed = initialLots[t];
-    let applied = false;
-    if (seed && seed.length > 0 && seed.every(l => l.shares > 0)) {
-      const seedTotal = seed.reduce((s, l) => s + l.shares, 0);
-      if (Math.abs(seedTotal - (h.shares || 0)) < 0.01) {
-        h.lots = seed.map(l => ({ date: l.date, shares: l.shares, cost: l.cost }));
-        applied = true;
-      }
-    }
-    if (!applied) {
-      h.lots = [{ date: "2025-01-01", shares: h.shares, cost: h.cost }];
-    }
+    h.lots = [{ date: "2025-01-01", shares: h.shares, cost: h.cost }];
   }
 
   // v2 → v3: refresh labels + default subtitles from INITIAL_PORTFOLIO for untouched slots.
@@ -537,11 +526,13 @@ function Board({ isReadOnly }) {
       const cur = p.holdings[ticker];
       if (!cur) return p;
       const next = { ...cur, ...patch };
-      // If shares were changed manually, reset `lots` to a single lot dated
-      // today so the YTD chart doesn't double-count from stale per-lot history.
-      if (patch.shares != null && Number(patch.shares) !== Number(cur.shares)) {
-        const today = new Date().toISOString().slice(0, 10);
-        next.lots = [{ date: today, shares: Number(patch.shares) || 0, cost: Number(next.cost) || 0 }];
+      // When the modal saves an explicit `lots` array we recompute total shares
+      // and weighted-average cost from it, so the lots stay the source of truth.
+      if (Array.isArray(patch.lots)) {
+        const totalShares = patch.lots.reduce((s, l) => s + (Number(l.shares) || 0), 0);
+        const totalCost   = patch.lots.reduce((s, l) => s + (Number(l.shares) || 0) * (Number(l.cost) || 0), 0);
+        next.shares = totalShares;
+        next.cost   = totalShares > 0 ? totalCost / totalShares : 0;
       }
       return { ...p, holdings: { ...p.holdings, [ticker]: next } };
     });
