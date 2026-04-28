@@ -164,7 +164,7 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
             onClick={(e) => e.stopPropagation()}
             onBlur={(e) => commitName(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") { e.target.blur(); }
+              if (e.key === "Enter") { /** @type {HTMLElement} */ (e.target).blur(); }
               if (e.key === "Escape") { setEditingName(false); }
             }}
           />

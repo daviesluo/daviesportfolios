@@ -1,0 +1,51 @@
+{
+  "compilerOptions": {
+    // Lightweight type-check pass over the existing JS/JSX. We never emit —
+    // Vite handles compilation. `npm run typecheck` runs `tsc --noEmit` to
+    // surface obvious errors (typos, undefined identifiers, wrong arg
+    // counts) without forcing a TypeScript rewrite.
+    "target": "es2020",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "jsx": "react-jsx",
+
+    // Type-check JS / JSX too — that's the whole point.
+    "allowJs": true,
+    "checkJs": true,
+
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+
+    // Loose enough that vanilla JS without explicit JSDoc passes; tighten
+    // these as more files get annotated.
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noImplicitThis": false,
+    "alwaysStrict": false,
+
+    // Surface real bugs.
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedParameters": false,
+    "noUnusedLocals": false,
+
+    // Module-augmentation entry for vite-plugin-pwa's virtual:pwa-register.
+    "types": ["vite-plugin-pwa/react", "vite-plugin-pwa/client"]
+  },
+  "include": [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "vite.config.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "assets",
+    "supabase",
+    "dist"
+  ]
+}
