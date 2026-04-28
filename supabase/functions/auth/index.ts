@@ -93,22 +93,36 @@ function clientIp(req: Request): string {
   return "unknown";
 }
 
-type AttemptRow = { ip: string; attempts: number; lockout_until: number | null };
+type LockoutCheck = { lockout_until: number | null };
 
-async function loadAttempts(ip: string): Promise<AttemptRow | null> {
-  const url = `${SUPABASE_URL}/rest/v1/auth_attempts?ip=eq.${encodeURIComponent(ip)}&select=ip,attempts,lockout_until`;
+// Cheap read-only check — used as a fast-path before validating the password.
+// A stale value here is harmless: if the row was just locked by another
+// request the bump RPC below will catch it; if the row was just unlocked
+// we'll just hash an extra password.
+async function getLockout(ip: string): Promise<number | null> {
+  const url = `${SUPABASE_URL}/rest/v1/auth_attempts?ip=eq.${encodeURIComponent(ip)}&select=lockout_until`;
   const res = await fetch(url, { headers: SB_HEADERS });
   if (!res.ok) return null;
-  const rows = await res.json();
-  return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+  const rows = (await res.json()) as LockoutCheck[];
+  if (!Array.isArray(rows) || rows.length === 0) return null;
+  return rows[0].lockout_until ?? null;
 }
 
-async function saveAttempts(row: AttemptRow): Promise<void> {
-  await fetch(`${SUPABASE_URL}/rest/v1/auth_attempts`, {
+// Atomic increment-or-lockout via the bump_auth_attempt SQL function. Doing
+// the read-modify-write in a single statement avoids the TOCTOU race that
+// Codex flagged: if two wrong-password requests for the same IP land at the
+// same time they each see the OTHER's increment, so the threshold can't
+// be undercounted by parallel traffic.
+type BumpResult = { attempts_out: number; lockout_until_out: number | null; locked_out: boolean };
+async function bumpAttempt(ip: string, max: number, lockoutMs: number): Promise<BumpResult | null> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/bump_auth_attempt`, {
     method: "POST",
-    headers: { ...SB_HEADERS, "Prefer": "resolution=merge-duplicates,return=minimal" },
-    body: JSON.stringify({ ...row, updated_at: new Date().toISOString() }),
+    headers: SB_HEADERS,
+    body: JSON.stringify({ _ip: ip, _max: max, _lockout_ms: lockoutMs }),
   });
+  if (!res.ok) return null;
+  const rows = (await res.json()) as BumpResult[];
+  return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 }
 
 async function clearAttempts(ip: string): Promise<void> {
@@ -127,11 +141,13 @@ Deno.serve(async (req: Request) => {
   }
 
   const ip = clientIp(req);
-  const existing = await loadAttempts(ip);
 
-  // Locked out → bail before even hashing the password.
-  if (existing?.lockout_until && existing.lockout_until > Date.now()) {
-    return json(429, { error: "locked", lockoutUntil: existing.lockout_until });
+  // Fast-path lockout check — saves a round-trip to the RPC if the caller
+  // is already locked out. Stale reads are fine; bump_auth_attempt below
+  // is the authoritative writer.
+  const lockedUntil = await getLockout(ip);
+  if (lockedUntil && lockedUntil > Date.now()) {
+    return json(429, { error: "locked", lockoutUntil: lockedUntil });
   }
 
   let body: { password?: string };
@@ -144,18 +160,18 @@ Deno.serve(async (req: Request) => {
 
   if (role) {
     // Successful login — wipe any failed-attempt counter for this IP.
-    if (existing) clearAttempts(ip).catch(() => {});
+    clearAttempts(ip).catch(() => {});
     const token = await makeToken(role);
     return json(200, { token, role });
   }
 
-  // Wrong password — bump attempts, lock if at threshold.
-  const attempts = (existing?.attempts ?? 0) + 1;
-  if (attempts >= MAX_ATTEMPTS) {
-    const lockoutUntil = Date.now() + LOCKOUT_MS;
-    await saveAttempts({ ip, attempts: 0, lockout_until: lockoutUntil });
-    return json(429, { error: "locked", lockoutUntil });
+  // Wrong password → atomic increment via SQL function. The function
+  // handles the threshold check in a single statement so concurrent
+  // wrong-password requests can't race-read the same counter.
+  const result = await bumpAttempt(ip, MAX_ATTEMPTS, LOCKOUT_MS);
+  if (result?.locked_out) {
+    return json(429, { error: "locked", lockoutUntil: result.lockout_until_out ?? Date.now() + LOCKOUT_MS });
   }
-  await saveAttempts({ ip, attempts, lockout_until: null });
-  return json(401, { error: "invalid", attempts, attemptsLeft: MAX_ATTEMPTS - attempts });
+  const attempts = result?.attempts_out ?? 0;
+  return json(401, { error: "invalid", attempts, attemptsLeft: Math.max(0, MAX_ATTEMPTS - attempts) });
 });
