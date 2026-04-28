@@ -25,57 +25,65 @@ class ErrorBoundary extends React.Component {
 
 const REFRESH_MS = 30 * 1000;
 
-// Supabase — direct PostgREST REST calls, no SDK required. ---------------
+// Data access — proxied through the `data` Edge Function. The browser never
+// sees the Supabase service-role key; every request carries the HMAC token
+// the `auth` function issued at login. SB_ANON is still required by the
+// Supabase Edge runtime for invocation auth, but it's separate from the
+// app-level token that gates row access.
 const SB_URL  = "https://flmvxigozjuizpckllvk.supabase.co";
 const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbXZ4aWdvemp1aXpwY2tsbHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODM3MjgsImV4cCI6MjA5MjM1OTcyOH0.vFqe6PNsPbVkg7NJmQJBsVECX1S58vAvv5MOjf63Xck";
-const SB_HEADERS = {
-  "apikey": SB_ANON,
-  "Authorization": `Bearer ${SB_ANON}`,
-  "Content-Type": "application/json",
-};
+const EDGE_AUTH_URL = `${SB_URL}/functions/v1/auth`;
+const EDGE_DATA_URL = `${SB_URL}/functions/v1/data`;
+const APP_TOKEN_KEY = "dp.token"; // sessionStorage — wiped on tab close
+
+function getAppToken() { return sessionStorage.getItem(APP_TOKEN_KEY) || ""; }
+function setAppToken(t) {
+  if (t) sessionStorage.setItem(APP_TOKEN_KEY, t);
+  else   sessionStorage.removeItem(APP_TOKEN_KEY);
+}
+
+function dataHeaders() {
+  return {
+    "apikey": SB_ANON,
+    "Authorization": `Bearer ${SB_ANON}`,
+    "X-App-Token": getAppToken(),
+    "Content-Type": "application/json",
+  };
+}
 
 async function loadPortfolioRemote() {
   try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/board_data?id=eq.1&select=data`,
-      { headers: SB_HEADERS }
-    );
+    const res = await fetch(`${EDGE_DATA_URL}?action=load`, { headers: dataHeaders() });
     if (!res.ok) {
-      console.error("[supabase] load failed:", res.status, await res.text());
+      console.error("[data] load failed:", res.status, await res.text());
       return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
     }
-    const rows = await res.json();
-    if (Array.isArray(rows) && rows.length > 0 && rows[0].data) {
-      const loaded = migrate(rows[0].data);
-      // If holdings is empty the row is from a broken earlier save — treat as fresh.
+    const { data } = await res.json();
+    if (data) {
+      const loaded = migrate(data);
       if (!loaded.holdings || Object.keys(loaded.holdings).length === 0) {
         return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
       }
       return loaded;
     }
-    // No row yet — seed with initial portfolio.
     return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
   } catch (e) {
-    console.error("[supabase] load error:", e);
+    console.error("[data] load error:", e);
     return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
   }
 }
 
 async function savePortfolioRemote(p) {
-  // Guard: never persist a portfolio that has lost its holdings data.
   if (!p || !p.holdings || Object.keys(p.holdings).length === 0) return;
   try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/board_data`,
-      {
-        method: "POST",
-        headers: { ...SB_HEADERS, "Prefer": "resolution=merge-duplicates,return=minimal" },
-        body: JSON.stringify({ id: 1, data: p }),
-      }
-    );
-    if (!res.ok) console.error("[supabase] save failed:", res.status, await res.text());
+    const res = await fetch(`${EDGE_DATA_URL}?action=save`, {
+      method: "POST",
+      headers: dataHeaders(),
+      body: JSON.stringify(p),
+    });
+    if (!res.ok) console.error("[data] save failed:", res.status, await res.text());
   } catch (e) {
-    console.error("[supabase] save error:", e);
+    console.error("[data] save error:", e);
   }
 }
 
@@ -157,60 +165,79 @@ function migrate(p) {
 }
 
 // Auth gate --------------------------------------------------------------
-// Every visit re-authenticates — no device caching of the actual token.
-// Two equivalent password-entry paths:
-//   1. ?pwd=<password> in the URL (PWA bookmarks: ?pwd=7119 etc.)
-//   2. Interactive prompt, shown when no URL pwd was supplied
-// Failed attempts/lockout state is the only thing persisted; it lives at
-// Utils.Storage.loadAuth() / saveAuth() under the unified storage schema.
+// Two-stage flow. Synchronous part collects the password (URL ?pwd= or
+// window.prompt). Async part posts it to the `auth` Edge Function, which
+// validates the value server-side and returns a signed token if it
+// matches. The token is stashed in sessionStorage (wiped on tab close) and
+// included as `X-App-Token` on every Supabase data call.
 //   ?pwd=7119 / typing 7119 → admin (full edit)
 //   ?pwd=8848 / typing 8848 → read-only (shareable view)
 const MAX_ATTEMPTS = 3;
 const LOCKOUT_MS   = 24 * 60 * 60 * 1000;
 
-function checkPassword(pw) {
-  if (pw === "8848") return { isReadOnly: true };
-  if (pw === "7119") return { isReadOnly: false };
-  return null;
-}
-
-function promptForAuth() {
-  const Store = window.Utils.Storage;
-  const auth = Store.loadAuth();
-  if (auth.lockoutUntil > Date.now()) return { locked: true, lockUntil: auth.lockoutUntil };
-
-  // 1. Magic URL param. Strip ?pwd= from the address bar immediately so the
-  //    credential isn't visible to anyone glancing at the screen.
+// Synchronous: collect the password and clean up the URL bar. Returns the
+// raw string the user supplied, or null if they cancelled the prompt.
+function collectPassword() {
   const params = new URLSearchParams(window.location.search);
   const urlPwd = params.get("pwd");
-  let attempted = false;
   if (urlPwd != null) {
     params.delete("pwd");
     const newSearch = params.toString();
     history.replaceState(null, "",
       window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
-    const result = checkPassword(urlPwd);
-    if (result) {
-      Store.clearAuth();
-      return result;
-    }
-    attempted = true;
+    return urlPwd;
+  }
+  const typed = window.prompt("Enter password:");
+  return typed; // may be null if user cancels
+}
+
+// Async: hit the auth Edge Function. Resolves to:
+//   { isReadOnly }            — successful login, token already stored
+//   { locked: true, lockUntil } — too many failed attempts
+//   null                       — wrong password (caller decides what to do)
+async function authenticate(pw) {
+  const Store = window.Utils.Storage;
+  const auth = Store.loadAuth();
+  if (auth.lockoutUntil > Date.now()) return { locked: true, lockUntil: auth.lockoutUntil };
+
+  if (pw == null || pw === "") {
+    // No password supplied (cancelled prompt). Don't count as an attempt;
+    // just deny.
+    return null;
   }
 
-  // 2. Interactive prompt. No URL → ask for the password directly.
-  if (!attempted) {
-    const pw = window.prompt("Enter password:");
-    if (pw != null) {
-      const result = checkPassword(pw);
-      if (result) {
-        Store.clearAuth();
-        return result;
-      }
+  let role = null, token = null;
+  try {
+    const res = await fetch(EDGE_AUTH_URL, {
+      method: "POST",
+      headers: {
+        "apikey": SB_ANON,
+        "Authorization": `Bearer ${SB_ANON}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password: pw }),
+    });
+    if (res.ok) {
+      const body = await res.json();
+      role = body.role;
+      token = body.token;
+    } else if (res.status !== 401) {
+      // 5xx, network blip — treat as transient, don't lock out.
+      console.error("[auth] unexpected:", res.status);
+      return null;
     }
+  } catch (e) {
+    console.error("[auth] error:", e);
+    return null;
   }
 
-  // Wrong password (URL or prompt) — count toward lockout so brute-force
-  // attempts can't loop forever.
+  if (role && token) {
+    setAppToken(token);
+    Store.clearAuth(); // wipe any stale failed-attempt counter
+    return { isReadOnly: role === "ro" };
+  }
+
+  // Wrong password — count toward client-side lockout.
   const attempts = (auth.attempts || 0) + 1;
   if (attempts >= MAX_ATTEMPTS) {
     const until = Date.now() + LOCKOUT_MS;
@@ -228,13 +255,35 @@ const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^VIX", "BZ=F", "^TNX", "GBPUSD=X",
 
 // Main app ---------------------------------------------------------------
 function App() {
-  // Run the localStorage schema migration exactly once before any persisted
-  // state is read. Subsequent renders are no-ops because the version stamp
-  // already matches CURRENT_SCHEMA_VERSION.
-  const [auth] = useState(() => {
+  // Auth lifecycle:
+  //   pwInput   collected synchronously on first render (URL ?pwd= or
+  //             window.prompt) and never re-read afterwards
+  //   auth      result of the async Edge Function check; null while in
+  //             flight, then either { isReadOnly } / { locked } / 'denied'
+  // Storage migration runs in the same initial useState callback so
+  // persisted state has the right shape before anything else reads it.
+  const [pwInput] = useState(() => {
     window.Utils.Storage.migrate();
-    return promptForAuth();
+    return collectPassword();
   });
+  const [auth, setAuth] = useState(undefined); // undefined = pending, null = denied
+
+  useEffect(() => {
+    if (pwInput == null) { setAuth(null); return; }
+    let cancelled = false;
+    authenticate(pwInput).then(result => {
+      if (!cancelled) setAuth(result);
+    });
+    return () => { cancelled = true; };
+  }, [pwInput]);
+
+  if (auth === undefined) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' }}>
+        <div style={{ color: '#888', fontFamily: 'monospace', letterSpacing: '0.2em', fontSize: '12px' }}>AUTHENTICATING…</div>
+      </div>
+    );
+  }
 
   if (auth && auth.locked) {
     const hoursLeft = Math.ceil((auth.lockUntil - Date.now()) / 1000 / 60 / 60);
