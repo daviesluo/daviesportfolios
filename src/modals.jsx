@@ -120,23 +120,56 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
   );
 }
 
+// Per-lot editor. Each row is a single purchase batch; total shares and
+// weighted-average cost are derived from the rows on save and become the
+// holding's `shares`/`cost` (lots are the source of truth for the YTD chart).
 function EditTickerModal({ ticker, holding, onClose, onSave, onDelete }) {
-  const [shares, setShares] = React.useState(String(holding.shares));
-  const [cost, setCost] = React.useState(String(holding.cost));
+  const today = new Date().toISOString().slice(0, 10);
+  const seed = (Array.isArray(holding.lots) && holding.lots.length > 0)
+    ? holding.lots
+    : [{ date: today, shares: holding.shares || 0, cost: holding.cost || 0 }];
+
+  /** @type {[Array<{date:string,shares:string|number,cost:string|number}>, Function]} */
+  const [lots, setLots] = React.useState(seed.map(l => ({
+    date: l.date || today,
+    shares: String(l.shares ?? ''),
+    cost: String(l.cost ?? ''),
+  })));
+
   const sym = curSym(holding.currency);
   const acHint = holding.currency && holding.currency !== "USD"
-    ? `Enter avg cost in ${holding.currency} (${sym}). Live price is in ${holding.currency}; conversion to USD uses live FX.`
-    : "Price refreshes automatically from live data";
+    ? `Costs are in ${holding.currency} (${sym}). Board values use live FX to convert to USD.`
+    : null;
+
+  const updateLot = (idx, patch) => {
+    setLots(/** @param {any[]} ls */ ls => ls.map((l, i) => i === idx ? { ...l, ...patch } : l));
+  };
+  const removeLot = (idx) => {
+    setLots(/** @param {any[]} ls */ ls => ls.filter((_, i) => i !== idx));
+  };
+  const addLot = () => {
+    setLots(/** @param {any[]} ls */ ls => [...ls, { date: today, shares: '', cost: '' }]);
+  };
+
+  const totalShares = lots.reduce((s, l) => s + (Number(l.shares) || 0), 0);
+  const weightedCost = totalShares > 0
+    ? lots.reduce((s, l) => s + (Number(l.shares) || 0) * (Number(l.cost) || 0), 0) / totalShares
+    : 0;
 
   const save = () => {
-    onSave({
-      shares: Number(shares) || 0,
-      cost: Number(cost) || 0,
-    });
+    const cleaned = lots
+      .filter(l => Number(l.shares) > 0 && l.date)
+      .map(l => ({
+        date: l.date,
+        shares: Number(l.shares) || 0,
+        cost: Number(l.cost) || 0,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    onSave({ lots: cleaned });
   };
 
   return (
-    <Modal onClose={onClose} size="sm">
+    <Modal onClose={onClose} size="md">
       <header className="modal-head">
         <div>
           <div className="modal-eyebrow mono">EDIT HOLDING</div>
@@ -145,13 +178,40 @@ function EditTickerModal({ ticker, holding, onClose, onSave, onDelete }) {
         <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
       </header>
 
-      <div className="modal-body form">
-        <FormRow label="Shares"><input className="inp mono" value={shares} onChange={(e) => setShares(e.target.value)} inputMode="decimal" /></FormRow>
-        <FormRow label={`Avg cost (${sym})`} hint={acHint}><input className="inp mono" value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" /></FormRow>
+      <div className="modal-body">
+        <div className="lot-summary">
+          <div><span className="lot-summary-label mono">TOTAL SHARES</span><span className="lot-summary-val mono">{totalShares.toFixed(2)}</span></div>
+          <div><span className="lot-summary-label mono">AVG COST ({sym})</span><span className="lot-summary-val mono">{weightedCost.toFixed(2)}</span></div>
+        </div>
+        {acHint && <div className="lot-hint mono dim">{acHint}</div>}
+
+        <div className="lot-grid">
+          <div className="lot-grid-head mono">
+            <span>Date</span>
+            <span>Shares</span>
+            <span>Cost / share ({sym})</span>
+            <span />
+          </div>
+          {lots.length === 0 && (
+            <div className="lot-empty mono dim">No lots — click "Add lot" to record a purchase.</div>
+          )}
+          {lots.map((l, i) => (
+            <div key={i} className="lot-grid-row">
+              <input className="inp mono" type="date" value={l.date}
+                     onChange={(e) => updateLot(i, { date: e.target.value })} />
+              <input className="inp mono" inputMode="decimal" value={l.shares}
+                     onChange={(e) => updateLot(i, { shares: e.target.value })} placeholder="0" />
+              <input className="inp mono" inputMode="decimal" value={l.cost}
+                     onChange={(e) => updateLot(i, { cost: e.target.value })} placeholder="0" />
+              <button className="btn-ghost icon" onClick={() => removeLot(i)} aria-label="Remove lot" title="Remove lot">✕</button>
+            </div>
+          ))}
+          <button className="btn-ghost lot-add" onClick={addLot}>+ Add lot</button>
+        </div>
       </div>
 
       <footer className="modal-foot">
-        <button className="btn-danger" onClick={onDelete}>Delete</button>
+        <button className="btn-danger" onClick={onDelete}>Delete holding</button>
         <div className="spacer" />
         <button className="btn-ghost" onClick={onClose}>Cancel</button>
         <button className="btn-primary" onClick={save}>Save</button>
