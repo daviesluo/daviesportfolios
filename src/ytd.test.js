@@ -263,3 +263,43 @@ describe('computeAt — live endpoint uses marketData lastPrice', () => {
     expect(ytdPct(r)).toBeCloseTo(14.286, 2);
   });
 });
+
+describe('computeAt — 1D intraday date comparison (Codex #43 regression)', () => {
+  it("treats a lot bought today as in-anchor (basis = cost) even when the chart's date is a YYYY-MM-DDTHH:MM intraday string", () => {
+    // Ticker series uses intraday timestamps. anchorDate / yearStartDate
+    // are intraday strings too. A lot dated "2026-04-28" must NOT be
+    // classified as pre-anchor (which would use prevClose as basis); it
+    // should use lot.cost.
+    const tickerSeries = buildTickerSeries({
+      AAPL: [
+        { date: '2026-04-28T13:30', close: 200 },
+        { date: '2026-04-28T15:00', close: 210 },
+        { date: '2026-04-28T19:55', close: 215 },
+      ],
+    }, '2026-04-28', '1D', { AAPL: { prevClose: 195 } });
+
+    const portfolio = {
+      holdings: {
+        AAPL: {
+          shares: 10, cost: 200, lastPrice: 215, currency: 'USD',
+          // Lot bought TODAY at $200/share.
+          lots: [{ date: '2026-04-28', shares: 10, cost: 200 }],
+        },
+      },
+    };
+    const r = computeAt({
+      ...baseOpts,
+      yearStart: '2026-04-28',
+      yearStartDate: '2026-04-28T13:30',          // ← intraday format
+      liveAnchorDate: '2026-04-28T19:55',
+      date: '2026-04-28T19:55',
+      portfolio, tickerSeries,
+      marketData: { AAPL: { lastPrice: 215, prevClose: 195 } },
+    });
+    // Basis must be 10 × 200 = $2000 (lot.cost), NOT 10 × 195 = $1950
+    // (prevClose). The bug Codex flagged would compute the latter.
+    expect(r.basis).toBeCloseTo(2000, 4);
+    expect(r.value).toBeCloseTo(2150, 4);
+    expect(ytdPct(r)).toBeCloseTo(7.5, 3);
+  });
+});

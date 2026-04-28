@@ -21,11 +21,13 @@ async function fetchYahooHistorical(
   symbol: string,
   range: string,
   interval: string,
+  includePrePost: boolean,
 ): Promise<Point[] | null> {
   const nonce = Date.now();
+  const ipp = includePrePost ? "&includePrePost=true" : "";
   const url =
     `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
-    `?interval=${encodeURIComponent(interval)}&range=${encodeURIComponent(range)}&_=${nonce}`;
+    `?interval=${encodeURIComponent(interval)}&range=${encodeURIComponent(range)}${ipp}&_=${nonce}`;
 
   try {
     const res = await fetch(url, {
@@ -142,9 +144,9 @@ async function fetchEastmoneyHistorical(code: string, range: string): Promise<Po
 }
 
 // ---------------- Router ----------------
-function fetchOne(symbol: string, range: string, interval: string): Promise<Point[] | null> {
+function fetchOne(symbol: string, range: string, interval: string, includePrePost: boolean): Promise<Point[] | null> {
   if (CN_FUND_RE.test(symbol)) return fetchEastmoneyHistorical(symbol, range);
-  return fetchYahooHistorical(symbol, range, interval);
+  return fetchYahooHistorical(symbol, range, interval, includePrePost);
 }
 
 Deno.serve(async (req: Request) => {
@@ -156,6 +158,7 @@ Deno.serve(async (req: Request) => {
   const param = url.searchParams.get("tickers") ?? "";
   const range = url.searchParams.get("range") ?? "ytd";
   const interval = url.searchParams.get("interval") ?? "1d";
+  const includePrePost = url.searchParams.get("includePrePost") === "true";
   const tickers = param
     .split(",")
     .map((t) => t.trim())
@@ -169,7 +172,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const entries = await Promise.all(
-    tickers.map(async (t) => [t, await fetchOne(t, range, interval)] as const),
+    tickers.map(async (t) => [t, await fetchOne(t, range, interval, includePrePost)] as const),
   );
 
   const out: Record<string, Point[]> = {};

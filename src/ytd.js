@@ -18,6 +18,43 @@ export const RANGES = {
 };
 export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
 
+/**
+ * Pick (yahooRange, interval, includePrePost) for a given chart range.
+ * 1D has three sub-modes per the user spec:
+ *   - extendedHours OFF + regular session  → today's regular hours intraday
+ *   - extendedHours OFF + market closed    → previous regular trading day's
+ *                                            intraday (we fetch a 5-day
+ *                                            window then keep the most
+ *                                            recent calendar day's points)
+ *   - extendedHours ON                      → past 24 h with pre/post-market
+ *                                            included; chart draws a
+ *                                            vertical dashed line at the
+ *                                            last regular close.
+ *
+ * @param {string} rangeKey
+ * @param {boolean} extendedHours
+ * @param {string} phase  — 'regular' | 'premarket' | 'afterhours' | 'overnight'
+ * @returns {{ yahooRange: string, interval: string, includePrePost: boolean, variant: string }}
+ */
+export function fetchParamsFor(rangeKey, extendedHours, phase) {
+  const r = RANGES[rangeKey] || RANGES.YTD;
+  if (rangeKey !== '1D') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'std' };
+  if (extendedHours)       return { yahooRange: '1d', interval: '5m', includePrePost: true,  variant: 'ext' };
+  if (phase === 'regular') return { yahooRange: '1d', interval: '5m', includePrePost: false, variant: 'reg' };
+  return                     { yahooRange: '5d', interval: '5m', includePrePost: false, variant: 'closed' };
+}
+
+/**
+ * For the "1D + ext OFF + market closed" variant the fetched series spans
+ * 5 days; we want only the most recent calendar day's bars. Returns the
+ * filtered array (or the input untouched for other variants).
+ */
+export function filterToLatestDay(points) {
+  if (!Array.isArray(points) || points.length === 0) return points;
+  const lastDate = points[points.length - 1].date.slice(0, 10);
+  return points.filter(p => p.date.startsWith(lastDate));
+}
+
 /** Computes the date string the chart's leftmost edge should sit at, given
  *  a range. For 1D the anchor is "now" so we use today's date with the
  *  earliest practical timestamp; for daily ranges it's a pure YYYY-MM-DD. */
@@ -155,7 +192,7 @@ export function lotsFor(h, yearStart) {
  *   date: string,
  *   portfolio: { holdings: Record<string, any> },
  *   tickerSeries: ReturnType<typeof buildTickerSeries>,
- *   marketData?: Record<string, { lastPrice?: number, extPrice?: number | null }>,
+ *   marketData?: Record<string, { lastPrice?: number, extPrice?: number | null, prevClose?: number }>,
  *   yearStart: string,
  *   yearStartDate: string,
  *   todayMs: number,
@@ -171,6 +208,15 @@ export function computeAt(opts) {
     yearStart, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
   } = opts;
   const useLive = date === liveAnchorDate;
+  // Lot dates are always YYYY-MM-DD (no intraday precision). The chart's
+  // `date` and `yearStartDate` strings can be either YYYY-MM-DD (daily
+  // ranges) or YYYY-MM-DDTHH:MM (1D intraday). Comparing "2026-04-28"
+  // against "2026-04-28T13:30" naively returns true (the 10-char string
+  // is lexicographically < the 16-char one because '' < 'T'), which would
+  // misclassify a lot bought today as pre-anchor in the 1D range. Slice
+  // the chart-side dates to YYYY-MM-DD before comparing with lot dates.
+  const dateDay = (date || '').slice(0, 10);
+  const anchorDay = (yearStartDate || '').slice(0, 10);
   let value = 0, basis = 0;
 
   for (const [ticker, h] of Object.entries(portfolio.holdings)) {
@@ -187,11 +233,11 @@ export function computeAt(opts) {
       : null;
 
     for (const lot of lots) {
-      if (lot.date > date) continue; // not yet held
+      if (lot.date > dateDay) continue; // not yet held
 
       // Basis price for this lot
       let basisPrice;
-      if (lot.date < yearStartDate) {
+      if (lot.date < anchorDay) {
         if (janPrice == null) continue; // skip — no Jan 1 baseline available
         basisPrice = janPrice;
       } else {
