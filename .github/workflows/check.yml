@@ -24,5 +24,8 @@ jobs:
       - name: Type check (tsc --noEmit on JS/JSX with checkJs)
         run: npm run typecheck
 
+      - name: Unit tests (vitest)
+        run: npm test
+
       - name: Build (Vite production bundle)
         run: npm run build
