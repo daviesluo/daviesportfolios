@@ -13,7 +13,6 @@ import {
   fetchHistoricalBatch,
   Storage,
 } from './utils.js';
-import { INITIAL_LOTS } from './data.js';
 
 // Phase → color mapping
 const PHASE = {
@@ -377,18 +376,16 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     return best;
   };
 
-  // Resolve which lots to use for a holding. Prefer h.lots (manual edits + persisted
-  // state) when its share total matches; else fall back to seed; else single lot
-  // dated yearStart. This keeps the chart correct even if migration hasn't run.
+  // Resolve which lots to use for a holding. The lots are now the source of
+  // truth (managed via the lot editor in EditTickerModal), so we just use
+  // h.lots verbatim when their share total matches. If something's been
+  // edited inconsistently, fall back to a single yearStart lot so the chart
+  // still has SOMETHING to plot.
   const lotsFor = (ticker, h) => {
     const sumShares = (lots) => lots.reduce((s, l) => s + (l.shares || 0), 0);
     if (Array.isArray(h.lots) && h.lots.length > 0
         && Math.abs(sumShares(h.lots) - h.shares) < 0.0001) {
       return h.lots;
-    }
-    const seed = INITIAL_LOTS && INITIAL_LOTS[ticker];
-    if (Array.isArray(seed) && Math.abs(sumShares(seed) - h.shares) < 0.0001) {
-      return seed;
     }
     return [{ date: yearStart, shares: h.shares, cost: h.lastPrice || 0 }];
   };

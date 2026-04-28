@@ -787,6 +787,52 @@ body {
 .inp:focus { border-color: var(--chalk-dim); }
 .inp.upper { text-transform: uppercase; letter-spacing: 0.04em; }
 
+/* Lot editor inside EditTickerModal — one row per purchase batch.
+   Read-only summary at the top shows the totals derived from the rows. */
+.lot-summary {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  padding: 12px 16px; margin-bottom: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.lot-summary > div { display: flex; flex-direction: column; gap: 4px; }
+.lot-summary-label { font-size: 10px; letter-spacing: 0.12em; color: var(--chalk-dim); }
+.lot-summary-val   { font-size: 18px; font-weight: 500; color: var(--chalk); }
+.lot-hint  { font-size: 11px; margin-bottom: 12px; }
+.lot-empty { padding: 16px; text-align: center; font-size: 12px; }
+
+.lot-grid { display: flex; flex-direction: column; gap: 8px; }
+.lot-grid-head, .lot-grid-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 1fr 28px;
+  gap: 10px;
+  align-items: center;
+}
+.lot-grid-head {
+  font-size: 10px; letter-spacing: 0.12em; color: var(--chalk-dim);
+  padding: 0 4px;
+}
+.lot-grid-row .inp { padding: 8px 10px; font-size: 13px; }
+.lot-add { align-self: flex-start; margin-top: 4px; font-size: 12px; }
+
+@media (max-width: 760px) {
+  .lot-grid-head { display: none; }
+  .lot-grid-row {
+    grid-template-columns: 1fr 28px;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "date  remove"
+      "shares remove"
+      "cost  remove";
+    gap: 6px;
+  }
+  .lot-grid-row > input:nth-of-type(1) { grid-area: date; }
+  .lot-grid-row > input:nth-of-type(2) { grid-area: shares; }
+  .lot-grid-row > input:nth-of-type(3) { grid-area: cost; }
+  .lot-grid-row > button             { grid-area: remove; align-self: start; }
+}
+
 /* Extended hours toggle switch */
 .ext-switch {
   display: flex; align-items: center; gap: 6px;
