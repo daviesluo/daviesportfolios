@@ -1,22 +1,17 @@
 # Cloudflare Pages cache rules.
 #
-# Force index.html and the root path to revalidate on every load. The HTML
-# carries the ?v=N query strings on every script/style tag, so as soon as
-# index.html is fresh the browser will pull whichever sub-resources changed.
-# Without this rule Cloudflare's default cache (and iOS PWA's aggressive
-# offline cache) can serve a months-old index.html that points to long-stale
-# JSX versions — that's why mobile saw an old YTD chart while desktop didn't.
+# index.html itself must always revalidate so a fresh deploy's hashed asset
+# URLs reach the device on the next visit. iOS PWA + Cloudflare's default
+# cache will otherwise serve a months-old index pointing at long-deleted
+# JS/CSS bundles, leaving mobile devices stuck on a stale version of the
+# app for days.
 /
   Cache-Control: public, max-age=0, must-revalidate
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
 
-# Versioned static assets are safe to cache for a long time: the URL itself
-# changes (?v=49 → ?v=50) whenever we ship new code, so a stale cache entry
-# is simply unused rather than served instead of fresh content.
-/*.jsx
-  Cache-Control: public, max-age=31536000
-/*.js
-  Cache-Control: public, max-age=31536000
-/*.css
-  Cache-Control: public, max-age=31536000
+# Vite emits content-hashed filenames in /assets/, so any cached bundle is
+# safe to cache forever — when the source changes the hash changes too and
+# the browser fetches a different URL.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
