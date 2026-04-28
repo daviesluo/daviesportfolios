@@ -10,6 +10,14 @@
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
 
+# The service worker file MUST revalidate every load — caching it would
+# stop new SW versions (and therefore the in-app "new version available"
+# banner) from ever reaching devices.
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+/manifest.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate
+
 # Vite emits content-hashed filenames in /assets/, so any cached bundle is
 # safe to cache forever — when the source changes the hash changes too and
 # the browser fetches a different URL.
