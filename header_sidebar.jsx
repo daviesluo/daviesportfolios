@@ -176,22 +176,18 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 // don't break the chart — when today's fetch misses a ticker, we keep using the
 // most recent cached series for that ticker (Jan-1 close never changes anyway).
 // Each entry is timestamped; we refetch any entry older than the TTL.
-const YTD_CACHE_KEY = 'ytd-perf-cache-v12';
+// Storage lives at Utils.Storage's `dp.ytd` key under the unified schema —
+// no per-revision cache key bumping any more; bump CURRENT_SCHEMA_VERSION
+// in utils.js if the format genuinely changes.
 const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
 function loadYtdCache(year) {
-  try {
-    const raw = localStorage.getItem(YTD_CACHE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    if (parsed.year !== year || !parsed.entries) return {};
-    return parsed.entries; // { ticker: { ts, data: [{date,close}, …] } }
-  } catch (_) { return {}; }
+  const parsed = window.Utils.Storage.loadYtd();
+  if (!parsed || parsed.year !== year || !parsed.entries) return {};
+  return parsed.entries; // { ticker: { ts, data: [{date,close}, …] } }
 }
 function saveYtdCache(year, entries) {
-  try {
-    localStorage.setItem(YTD_CACHE_KEY, JSON.stringify({ year, entries }));
-  } catch (_) {}
+  window.Utils.Storage.saveYtd({ year, entries });
 }
 
 // YTD performance chart: portfolio % return vs S&P 500, computed from per-lot
