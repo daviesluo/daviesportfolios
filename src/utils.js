@@ -478,10 +478,17 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d") {
       if (!timestamps || !closes) continue;
       const meta = result?.meta;
       const penceFactor = (meta?.currency === "GBp" || meta?.currency === "GBX") ? 100 : 1;
+      // For daily interval keep YYYY-MM-DD; for intraday intervals (1m, 5m,
+      // 15m, 30m, 60m, 90m, 1h) keep ISO precision down to the minute so
+      // each candle has a unique sortable date string. Truncating intraday
+      // points to the date would collapse 78 5-minute bars onto a single
+      // key (Codex review #42).
+      const isIntraday = !/^\d+d$|^\dwk$|^\dmo$/.test(interval);
       const points = [];
       for (let i = 0; i < timestamps.length; i++) {
         if (closes[i] == null) continue;
-        const date = new Date(timestamps[i] * 1000).toISOString().slice(0, 10);
+        const iso = new Date(timestamps[i] * 1000).toISOString();
+        const date = isIntraday ? iso.slice(0, 16) : iso.slice(0, 10);
         points.push({ date, close: closes[i] / penceFactor });
       }
       if (points.length > 0) return points;

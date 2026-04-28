@@ -30,10 +30,16 @@ function Modal({ children, onClose, size = "md" }) {
   );
 }
 
-function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onClose, onEditTicker, onViewChart, onAddTicker, onRemoveTicker, onUpdatePosition }) {
+// Same digit-mask helper used everywhere — replaces digits with `*`,
+// keeping currency symbols / signs / punctuation so the placeholder is the
+// same visual width as the real number.
+const maskDigits = (s) => typeof s === 'string' ? s.replace(/\d/g, '*') : s;
+
+function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onClose, onEditTicker, onViewChart, onAddTicker, onRemoveTicker, onUpdatePosition, hideValues }) {
   if (!position) return null;
 
   const sorted = [...position.players].sort((a, b) => b.marketValue - a.marketValue);
+  const m = (s) => hideValues ? maskDigits(s) : s;
 
   return (
     <Modal onClose={onClose} size="lg">
@@ -45,9 +51,9 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
             {position.subtitle && <span className="modal-sub"> · {position.subtitle}</span>}
           </h2>
           <div className="modal-meta mono">
-            <span>{fmtMo(position.marketValue)} Value</span>
-            <span style={{ color: pctClo(position.dayPct) }}>{fmtMo(position.dayChange, { signed: true })} ({fmtPe(position.dayPct)}) today</span>
-            <span style={{ color: pctClo(position.unrlPct) }}>{fmtMo(position.unrlGL, { signed: true })} ({fmtPe(position.unrlPct)}) G/L</span>
+            <span>{m(fmtMo(position.marketValue))} Value</span>
+            <span style={{ color: pctClo(position.dayPct) }}>{m(fmtMo(position.dayChange, { signed: true }))} ({fmtPe(position.dayPct)}) today</span>
+            <span style={{ color: pctClo(position.unrlPct) }}>{m(fmtMo(position.unrlGL, { signed: true }))} ({fmtPe(position.unrlPct)}) G/L</span>
             <span className="dim">{position.players.length} {position.players.length === 1 ? "ticker" : "tickers"}</span>
           </div>
         </div>
@@ -82,6 +88,7 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
                 }
                 onRemove={() => onRemoveTicker(p.ticker)}
                 showRemove={editMode && !isReadOnly}
+                hideValues={hideValues}
               />
             ))}
           </div>
@@ -91,7 +98,7 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
   );
 }
 
-function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRemove }) {
+function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRemove, hideValues }) {
   const pctC = pctClo(player.dayPct);
   // AC and live price stay in native currency (¥/£/$ — what the user typed/sees in their broker).
   // Cost / Value / G/L convert to USD using the per-player FX rate populated by computeMetrics,
@@ -101,6 +108,7 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
   const unrlPct   = player.cost > 0 ? ((player.lastPrice - player.cost) / player.cost) * 100 : 0;
   const unrlGlUSD = player.shares * (player.lastPrice - player.cost) * fx;
   const costUSD   = player.shares * player.cost * fx;
+  const m = (s) => hideValues ? maskDigits(s) : s;
   return (
     <div className={`player-card ${flash ? "flash-" + flash : ""} ${isHot ? "hot" : ""}`} onClick={onClick}>
       {isCaptain && <div className="armband small">C</div>}
@@ -109,14 +117,14 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
         <span className="pc-ticker mono">{player.ticker}</span>
         <span className={`pc-pct mono`} style={{ color: pctC }}>{fmtPe(player.dayPct)}</span>
       </div>
-      <div className="pc-price mono">{sym}{fmtPri(player.lastPrice)}</div>
+      <div className="pc-price mono">{m(`${sym}${fmtPri(player.lastPrice)}`)}</div>
       <div className="pc-rows">
-        <div className="pc-row"><span className="dim">Shares</span><span className="mono">{player.shares}</span></div>
-        <div className="pc-row"><span className="dim">AC</span><span className="mono">{sym}{fmtPri(player.cost)}</span></div>
-        <div className="pc-row"><span className="dim">Cost</span><span className="mono">{fmtMo(costUSD)}</span></div>
-        <div className="pc-row"><span className="dim">Value</span><span className="mono">{fmtMo(player.marketValue)}</span></div>
+        <div className="pc-row"><span className="dim">Shares</span><span className="mono">{m(String(player.shares))}</span></div>
+        <div className="pc-row"><span className="dim">AC</span><span className="mono">{m(`${sym}${fmtPri(player.cost)}`)}</span></div>
+        <div className="pc-row"><span className="dim">Cost</span><span className="mono">{m(fmtMo(costUSD))}</span></div>
+        <div className="pc-row"><span className="dim">Value</span><span className="mono">{m(fmtMo(player.marketValue))}</span></div>
         <div className="pc-row"><span className="dim">G/L</span>
-          <span className="mono" style={{ color: pctClo(unrlPct) }}>{fmtMo(unrlGlUSD, { signed: true })} ({fmtPe(unrlPct)})</span>
+          <span className="mono" style={{ color: pctClo(unrlPct) }}>{m(fmtMo(unrlGlUSD, { signed: true }))} ({fmtPe(unrlPct)})</span>
         </div>
       </div>
       {showRemove && (
