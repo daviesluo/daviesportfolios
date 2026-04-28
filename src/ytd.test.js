@@ -28,7 +28,7 @@ describe('buildTickerSeries', () => {
         { date: '2026-01-02', close: 260 },
         { date: '2026-04-27', close: 270 },
       ],
-    }, yearStart, yearStartDate);
+    }, yearStart, "YTD");
     expect(ts.AAPL.janPrice).toBe(245);
   });
 
@@ -38,7 +38,7 @@ describe('buildTickerSeries', () => {
         { date: '2026-01-15', close: 100 }, // ticker started trading mid-year
         { date: '2026-04-27', close: 120 },
       ],
-    }, yearStart, yearStartDate);
+    }, yearStart, "YTD");
     expect(ts.NEW.janPrice).toBe(100);
   });
 });
@@ -50,7 +50,7 @@ describe('closeOn', () => {
       { date: '2026-01-05', close: 263 },
       { date: '2026-01-09', close: 268 },
     ],
-  }, yearStart, yearStartDate);
+  }, yearStart, "YTD");
 
   it('returns the exact close on a known date', () => {
     expect(closeOn(ts, 'AAPL', '2026-01-05')).toBe(263);
@@ -100,7 +100,7 @@ describe('computeAt — single pre-year lot', () => {
         { date: '2025-12-31', close: 245 },
         { date: '2026-04-27', close: 270 },
       ],
-    }, yearStart, yearStartDate);
+    }, yearStart, "YTD");
     const portfolio = {
       holdings: {
         AAPL: {
@@ -131,7 +131,7 @@ describe('computeAt — single year lot', () => {
         { date: '2026-02-23', close: 165 },     // purchase day
         { date: '2026-04-27', close: 213.74 },
       ],
-    }, yearStart, yearStartDate);
+    }, yearStart, "YTD");
     const portfolio = {
       holdings: {
         NET: {
@@ -152,7 +152,7 @@ describe('computeAt — single year lot', () => {
   it('contributes 0 on the lot.date itself (basis = value at cost)', () => {
     const tickerSeries = buildTickerSeries({
       NET: [{ date: '2026-02-23', close: 165 }],
-    }, yearStart, yearStartDate);
+    }, yearStart, "YTD");
     const portfolio = {
       holdings: {
         NET: {
@@ -181,7 +181,7 @@ describe('computeAt — mixed pre-year + year lots in one ticker', () => {
         { date: '2026-03-15', close: 250 },
         { date: '2026-04-27', close: 270 },
       ],
-    }, yearStart, yearStartDate);
+    }, yearStart, "YTD");
     const portfolio = {
       holdings: {
         AAPL: {
@@ -213,7 +213,7 @@ describe('computeAt — pre-year lot with no Jan-1 baseline is skipped', () => {
         { date: '2026-04-27', close: 270 },
       ],
       // 017731: no entry — simulating no Yahoo history for a CN fund
-    }, yearStart, yearStartDate);
+    }, yearStart, "YTD");
     const portfolio = {
       holdings: {
         AAPL: {
@@ -245,7 +245,7 @@ describe('computeAt — live endpoint uses marketData lastPrice', () => {
         { date: '2025-12-31', close: 245 },
         { date: '2026-04-27', close: 270 },     // historical
       ],
-    }, yearStart, yearStartDate);
+    }, yearStart, "YTD");
     const portfolio = {
       holdings: {
         AAPL: {

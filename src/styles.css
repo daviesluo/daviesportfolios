@@ -675,6 +675,32 @@ body {
 
 /* ============= YTD PERFORMANCE CHART ============= */
 .perf-chart-wrap { padding: 2px 0 4px; }
+.ticker-chart-wrap {
+  padding: 8px 0;
+  min-height: 240px;
+  display: flex; align-items: center; justify-content: center;
+}
+.perf-range-row {
+  display: flex; gap: 4px; justify-content: center;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.perf-range-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--chalk-dim);
+  font-size: 10px; letter-spacing: 0.08em;
+  padding: 3px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.12s, color 0.12s, border 0.12s;
+}
+.perf-range-btn:hover { color: var(--chalk); border-color: var(--chalk-dim); }
+.perf-range-btn.on {
+  background: rgba(255,255,255,0.06);
+  color: var(--chalk);
+  border-color: var(--chalk-dim);
+}
 .perf-legend {
   display: flex; gap: 14px; align-items: center;
   margin-bottom: 8px;

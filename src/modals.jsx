@@ -30,7 +30,7 @@ function Modal({ children, onClose, size = "md" }) {
   );
 }
 
-function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onClose, onEditTicker, onAddTicker, onRemoveTicker, onUpdatePosition }) {
+function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onClose, onEditTicker, onViewChart, onAddTicker, onRemoveTicker, onUpdatePosition }) {
   if (!position) return null;
 
   const sorted = [...position.players].sort((a, b) => b.marketValue - a.marketValue);
@@ -73,7 +73,13 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
                 isCaptain={p.ticker === captainTicker}
                 isHot={p.ticker === hotMoverTicker}
                 flash={flashTickers[p.ticker]}
-                onClick={isReadOnly ? undefined : () => onEditTicker(p.ticker)}
+                onClick={
+                  // Edit mode (non-read-only) → open the lot editor.
+                  // Otherwise → open the ticker price chart modal.
+                  (editMode && !isReadOnly)
+                    ? () => onEditTicker(p.ticker)
+                    : (onViewChart ? () => onViewChart(p.ticker) : undefined)
+                }
                 onRemove={() => onRemoveTicker(p.ticker)}
                 showRemove={editMode && !isReadOnly}
               />
