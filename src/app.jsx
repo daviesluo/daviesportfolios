@@ -707,6 +707,8 @@ function Board({ isReadOnly }) {
           ticker={viewingTicker}
           holding={portfolio.holdings[viewingTicker]}
           marketData={marketData}
+          extendedHours={extendedHours}
+          phase={currentPhase}
           onClose={() => setViewingTicker(null)}
         />
       )}

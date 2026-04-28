@@ -460,9 +460,10 @@ export async function fetchTickers(tickers) {
 // Fetch daily historical closes for a single symbol via the CORS proxy chain.
 // Tries proxies in randomised order to spread load across them on bursty
 // multi-ticker calls. Returns [{date,close}, …] or null on total failure.
-export async function fetchHistorical(symbol, range = "ytd", interval = "1d") {
+export async function fetchHistorical(symbol, range = "ytd", interval = "1d", includePrePost = false) {
   const nonce = Date.now();
-  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}&_=${nonce}`;
+  const ipp = includePrePost ? "&includePrePost=true" : "";
+  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}${ipp}&_=${nonce}`;
   const proxies = [...PROXIES].sort(() => Math.random() - 0.5);
   for (const makeProxy of proxies) {
     const controller = new AbortController();
@@ -507,17 +508,18 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d") {
 //      yet, or specific symbols that Yahoo refused), fall back to per-symbol
 //      fetchHistorical via the CORS proxy chain.
 // Returns { ticker: [{date,close}, …], … } — failed tickers are simply absent.
-export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1d") {
+export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1d", includePrePost = false) {
   const out = {};
   const list = Array.from(new Set(symbols.filter(Boolean)));
   if (list.length === 0) return out;
 
   // Edge Function first
   try {
+    const ipp = includePrePost ? "&includePrePost=true" : "";
     const edgeUrl =
       `${EDGE_PRICES_URL.replace(/\/prices$/, "/chart")}` +
       `?tickers=${encodeURIComponent(list.join(","))}` +
-      `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}`;
+      `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}`;
     const res = await fetch(edgeUrl, {
       headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
       signal: AbortSignal.timeout(15000),
@@ -536,7 +538,7 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
   const missing = list.filter(t => !out[t]);
   if (missing.length > 0) {
     const results = await Promise.all(
-      missing.map(s => fetchHistorical(s, range, interval).catch(() => null))
+      missing.map(s => fetchHistorical(s, range, interval, includePrePost).catch(() => null))
     );
     missing.forEach((s, i) => { if (results[i]) out[s] = results[i]; });
   }

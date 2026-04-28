@@ -13,7 +13,7 @@ import {
   fetchHistoricalBatch,
   Storage,
 } from './utils.js';
-import { buildTickerSeries, computeAt, ytdPct, RANGES, RANGE_KEYS, anchorDateFor } from './ytd.js';
+import { buildTickerSeries, computeAt, ytdPct, RANGES, RANGE_KEYS, anchorDateFor, fetchParamsFor, filterToLatestDay } from './ytd.js';
 
 // Tiny placeholder shell so the loading / error / range-button row renders
 // the same chrome as the full chart — keeps the layout from jumping when
@@ -283,6 +283,11 @@ function savePerfCache(year, rangeKey, entries) {
 // first trading day of the calendar year.
 function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const [rangeKey, setRangeKey] = React.useState('YTD');
+  // 1D's fetch params depend on the ext-hours toggle + market phase, so
+  // include those in the cache key. Other ranges are insensitive.
+  const variantKey = rangeKey === '1D'
+    ? (extendedHours ? 'ext' : (phase === 'regular' ? 'reg' : 'closed'))
+    : 'std';
   const [hist,    setHist]    = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState(false);
@@ -306,12 +311,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     let cancelled = false;
     const year = new Date().getFullYear();
     const symbols = ['^GSPC', ...tickers];
-    const ranges = RANGES[rangeKey] || RANGES.YTD;
+    const params = fetchParamsFor(rangeKey, extendedHours, phase);
     const ttl = PERF_CACHE_TTL_MS[rangeKey] || PERF_CACHE_TTL_MS.YTD;
+    const cacheKey = `${rangeKey}:${variantKey}`;
 
-    // Read per-ticker cache for THIS range; show fresh entries immediately
-    // and refetch anything stale in the background.
-    const entries = loadPerfCache(year, rangeKey);
+    // Read per-ticker cache for THIS range/variant; show fresh entries
+    // immediately and refetch anything stale in the background.
+    const entries = loadPerfCache(year, cacheKey);
     /** @type {Record<string, any[]>} */
     const fresh = {};
     const stale = [];
@@ -334,14 +340,14 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     if (stale.length === 0) return;
 
     (async () => {
-      const batch = await fetchHistoricalBatch(stale, ranges.yahooRange, ranges.interval);
+      const batch = await fetchHistoricalBatch(stale, params.yahooRange, params.interval, params.includePrePost);
       if (cancelled) return;
       // ^GSPC anchors the X axis. Retry if the batch missed it.
       if (!batch['^GSPC']) {
         for (let i = 0; i < 3 && !batch['^GSPC']; i++) {
           await new Promise(r => setTimeout(r, 800 * (i + 1)));
           if (cancelled) return;
-          const retry = await fetchHistorical('^GSPC', ranges.yahooRange, ranges.interval).catch(() => null);
+          const retry = await fetchHistorical('^GSPC', params.yahooRange, params.interval, params.includePrePost).catch(() => null);
           if (retry) batch['^GSPC'] = retry;
         }
       }
@@ -349,14 +355,17 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       const newEntries = { ...entries };
       const now = Date.now();
       for (const s of stale) {
-        if (batch[s]) {
-          merged[s] = batch[s];
-          newEntries[s] = { ts: now, data: batch[s] };
+        let data = batch[s];
+        // 1D + ext OFF + market closed: keep only the latest day's points.
+        if (data && params.variant === 'closed') data = filterToLatestDay(data);
+        if (data) {
+          merged[s] = data;
+          newEntries[s] = { ts: now, data };
         } else if (entries[s] && entries[s].data) {
           merged[s] = entries[s].data;
         }
       }
-      savePerfCache(year, rangeKey, newEntries);
+      savePerfCache(year, cacheKey, newEntries);
       const hasAnchor = merged['^GSPC'] || Object.values(merged).some(s => Array.isArray(s) && s.length >= 2);
       if (!hasAnchor) {
         setError(true);
@@ -368,7 +377,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       setLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [tickerKey, rangeKey]);
+  }, [tickerKey, rangeKey, variantKey]);
 
   if (!portfolio) return renderShell(<div className="sparkline-empty dim mono">Loading…</div>, rangeKey, setRangeKey);
   if (loading)    return renderShell(<div className="sparkline-empty dim mono">Computing…</div>, rangeKey, setRangeKey);
@@ -561,6 +570,30 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
             </text>
           </g>
         ))}
+        {/* Vertical dashed line at the last regular-session close (1D ext mode).
+            16:00 ET = 20:00 UTC; allow a small slack for non-quarter-hour bars. */}
+        {rangeKey === '1D' && variantKey === 'ext' && (() => {
+          let idx = -1;
+          for (let i = spYtd.length - 1; i >= 0; i--) {
+            const d = spYtd[i].date;
+            if (d.length < 16) continue;
+            const hh = parseInt(d.slice(11, 13), 10);
+            const mm = parseInt(d.slice(14, 16), 10);
+            if (hh === 20 && mm <= 5) { idx = i; break; }
+          }
+          if (idx < 0) return null;
+          const x = xOf(spYtd[idx].date).toFixed(1);
+          return (
+            <g>
+              <line x1={x} y1={padT} x2={x} y2={H - padB}
+                    stroke="rgba(244,239,227,0.45)" strokeWidth="0.8" strokeDasharray="3,3" />
+              <text x={x} y={padT - 2} textAnchor="middle"
+                    fontSize="7" fill="rgba(244,239,227,0.5)" fontFamily="var(--font-mono)">
+                CLOSE
+              </text>
+            </g>
+          );
+        })()}
         {/* S&P 500 line */}
         {spPath && (
           <path d={spPath} fill="none" stroke={spColor} strokeWidth="1.2" opacity="0.75"

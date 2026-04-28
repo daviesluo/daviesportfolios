@@ -18,6 +18,43 @@ export const RANGES = {
 };
 export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
 
+/**
+ * Pick (yahooRange, interval, includePrePost) for a given chart range.
+ * 1D has three sub-modes per the user spec:
+ *   - extendedHours OFF + regular session  → today's regular hours intraday
+ *   - extendedHours OFF + market closed    → previous regular trading day's
+ *                                            intraday (we fetch a 5-day
+ *                                            window then keep the most
+ *                                            recent calendar day's points)
+ *   - extendedHours ON                      → past 24 h with pre/post-market
+ *                                            included; chart draws a
+ *                                            vertical dashed line at the
+ *                                            last regular close.
+ *
+ * @param {string} rangeKey
+ * @param {boolean} extendedHours
+ * @param {string} phase  — 'regular' | 'premarket' | 'afterhours' | 'overnight'
+ * @returns {{ yahooRange: string, interval: string, includePrePost: boolean, variant: string }}
+ */
+export function fetchParamsFor(rangeKey, extendedHours, phase) {
+  const r = RANGES[rangeKey] || RANGES.YTD;
+  if (rangeKey !== '1D') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'std' };
+  if (extendedHours)       return { yahooRange: '1d', interval: '5m', includePrePost: true,  variant: 'ext' };
+  if (phase === 'regular') return { yahooRange: '1d', interval: '5m', includePrePost: false, variant: 'reg' };
+  return                     { yahooRange: '5d', interval: '5m', includePrePost: false, variant: 'closed' };
+}
+
+/**
+ * For the "1D + ext OFF + market closed" variant the fetched series spans
+ * 5 days; we want only the most recent calendar day's bars. Returns the
+ * filtered array (or the input untouched for other variants).
+ */
+export function filterToLatestDay(points) {
+  if (!Array.isArray(points) || points.length === 0) return points;
+  const lastDate = points[points.length - 1].date.slice(0, 10);
+  return points.filter(p => p.date.startsWith(lastDate));
+}
+
 /** Computes the date string the chart's leftmost edge should sit at, given
  *  a range. For 1D the anchor is "now" so we use today's date with the
  *  earliest practical timestamp; for daily ranges it's a pure YYYY-MM-DD. */
