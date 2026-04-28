@@ -12,6 +12,7 @@ const STORAGE_KEYS = {
   schemaVersion: 'dp.schema',
   auth:          'dp.auth',         // { lockoutUntil, attempts }
   ytd:           'dp.ytd',          // { year, entries: { ticker: { ts, data } } }
+  prefs:         'dp.prefs',        // { hideValues: boolean, ... }
 };
 const CURRENT_SCHEMA_VERSION = 1;
 
@@ -54,6 +55,8 @@ export const Storage = {
   clearAuth: () => { try { localStorage.removeItem(STORAGE_KEYS.auth); } catch (_) {} },
   loadYtd:   () => readJSON(STORAGE_KEYS.ytd, null),
   saveYtd:   (d) => writeJSON(STORAGE_KEYS.ytd, d),
+  loadPrefs: () => readJSON(STORAGE_KEYS.prefs, { hideValues: false }),
+  savePrefs: (p) => writeJSON(STORAGE_KEYS.prefs, p),
 };
 
 // -------- Formatting --------
