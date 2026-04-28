@@ -157,17 +157,16 @@ function migrate(p) {
 }
 
 // Auth gate --------------------------------------------------------------
-// Every visit re-authenticates — no device caching. Two equivalent paths:
-//   1. ?pwd=<password> in the URL (used by PWA bookmarks: ?pwd=7119 etc.)
+// Every visit re-authenticates — no device caching of the actual token.
+// Two equivalent password-entry paths:
+//   1. ?pwd=<password> in the URL (PWA bookmarks: ?pwd=7119 etc.)
 //   2. Interactive prompt, shown when no URL pwd was supplied
-// Both paths grant a one-shot session that disappears when the page reloads.
+// Failed attempts/lockout state is the only thing persisted; it lives at
+// Utils.Storage.loadAuth() / saveAuth() under the unified storage schema.
 //   ?pwd=7119 / typing 7119 → admin (full edit)
 //   ?pwd=8848 / typing 8848 → read-only (shareable view)
-const AUTH_TOKEN_KEY    = "auth_token";        // legacy, kept for cleanup only
-const AUTH_LOCKOUT_KEY  = "auth_lockout_until";
-const AUTH_ATTEMPTS_KEY = "auth_attempts";
-const MAX_ATTEMPTS      = 3;
-const LOCKOUT_MS        = 24 * 60 * 60 * 1000;
+const MAX_ATTEMPTS = 3;
+const LOCKOUT_MS   = 24 * 60 * 60 * 1000;
 
 function checkPassword(pw) {
   if (pw === "8848") return { isReadOnly: true };
@@ -176,12 +175,9 @@ function checkPassword(pw) {
 }
 
 function promptForAuth() {
-  // Wipe any legacy cached token from previous versions of this app so a
-  // stale device session can never short-circuit the prompt.
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-
-  const lockUntil = parseInt(localStorage.getItem(AUTH_LOCKOUT_KEY) || "0", 10);
-  if (lockUntil > Date.now()) return { locked: true, lockUntil };
+  const Store = window.Utils.Storage;
+  const auth = Store.loadAuth();
+  if (auth.lockoutUntil > Date.now()) return { locked: true, lockUntil: auth.lockoutUntil };
 
   // 1. Magic URL param. Strip ?pwd= from the address bar immediately so the
   //    credential isn't visible to anyone glancing at the screen.
@@ -195,8 +191,7 @@ function promptForAuth() {
       window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
     const result = checkPassword(urlPwd);
     if (result) {
-      localStorage.removeItem(AUTH_ATTEMPTS_KEY);
-      localStorage.removeItem(AUTH_LOCKOUT_KEY);
+      Store.clearAuth();
       return result;
     }
     attempted = true;
@@ -208,8 +203,7 @@ function promptForAuth() {
     if (pw != null) {
       const result = checkPassword(pw);
       if (result) {
-        localStorage.removeItem(AUTH_ATTEMPTS_KEY);
-        localStorage.removeItem(AUTH_LOCKOUT_KEY);
+        Store.clearAuth();
         return result;
       }
     }
@@ -217,14 +211,13 @@ function promptForAuth() {
 
   // Wrong password (URL or prompt) — count toward lockout so brute-force
   // attempts can't loop forever.
-  const attempts = parseInt(localStorage.getItem(AUTH_ATTEMPTS_KEY) || "0", 10) + 1;
+  const attempts = (auth.attempts || 0) + 1;
   if (attempts >= MAX_ATTEMPTS) {
     const until = Date.now() + LOCKOUT_MS;
-    localStorage.setItem(AUTH_LOCKOUT_KEY, String(until));
-    localStorage.removeItem(AUTH_ATTEMPTS_KEY);
+    Store.saveAuth({ lockoutUntil: until, attempts: 0 });
     return { locked: true, lockUntil: until };
   }
-  localStorage.setItem(AUTH_ATTEMPTS_KEY, String(attempts));
+  Store.saveAuth({ lockoutUntil: 0, attempts });
   return null;
 }
 
@@ -235,7 +228,13 @@ const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^VIX", "BZ=F", "^TNX", "GBPUSD=X",
 
 // Main app ---------------------------------------------------------------
 function App() {
-  const [auth] = useState(() => promptForAuth());
+  // Run the localStorage schema migration exactly once before any persisted
+  // state is read. Subsequent renders are no-ops because the version stamp
+  // already matches CURRENT_SCHEMA_VERSION.
+  const [auth] = useState(() => {
+    window.Utils.Storage.migrate();
+    return promptForAuth();
+  });
 
   if (auth && auth.locked) {
     const hoursLeft = Math.ceil((auth.lockUntil - Date.now()) / 1000 / 60 / 60);
