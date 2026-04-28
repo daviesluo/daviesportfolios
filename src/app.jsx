@@ -363,6 +363,19 @@ function Board({ isReadOnly }) {
   const [marketData, setMarketData] = useState({});
   const [histSnap, setHistSnap] = useState(null);
   const [viewMode, setViewMode] = useState('tactics');
+
+  // "Hide values" toggle — replaces dollar amounts with bullets so the
+  // user can show the page to someone next to them without revealing
+  // absolute portfolio sizes. Percentages stay visible. Persisted across
+  // reloads in the unified `dp.prefs` storage slot.
+  const [hideValues, setHideValues] = useState(() => Storage.loadPrefs().hideValues === true);
+  const toggleHideValues = useCallback(() => {
+    setHideValues(v => {
+      const next = !v;
+      Storage.savePrefs({ ...Storage.loadPrefs(), hideValues: next });
+      return next;
+    });
+  }, []);
   // In read-only mode or history mode, force-disable edit mode.
   useEffect(() => { if ((isReadOnly || histSnap) && editMode) setEditMode(false); }, [isReadOnly, histSnap, editMode]);
 
@@ -605,6 +618,8 @@ function Board({ isReadOnly }) {
         histDate={histSnap?.date ?? null}
         viewMode={viewMode}
         onToggleView={setViewMode}
+        hideValues={hideValues}
+        onToggleHideValues={toggleHideValues}
       />
 
       <main className="main">
@@ -660,6 +675,7 @@ function Board({ isReadOnly }) {
           marketData={marketData}
           extendedHours={extendedHours}
           phase={currentPhase}
+          hideValues={hideValues}
         />
         <SidebarFoot source={source} />
       </main>
