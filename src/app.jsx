@@ -183,11 +183,11 @@ function migrate(p) {
 // window.prompt). Async part posts it to the `auth` Edge Function, which
 // validates the value server-side and returns a signed token if it
 // matches. The token is stashed in sessionStorage (wiped on tab close) and
-// included as `X-App-Token` on every Supabase data call.
+// included as `X-App-Token` on every Supabase data call. Failed-attempt
+// rate limiting is now done server-side per IP — the client just relays
+// the function's 401 / 429 responses to the user-facing UI.
 //   ?pwd=7119 / typing 7119 → admin (full edit)
 //   ?pwd=8848 / typing 8848 → read-only (shareable view)
-const MAX_ATTEMPTS = 3;
-const LOCKOUT_MS   = 24 * 60 * 60 * 1000;
 
 // Synchronous: collect the password and clean up the URL bar. Returns the
 // raw string the user supplied, or null if they cancelled the prompt.
@@ -209,18 +209,15 @@ function collectPassword() {
 //   { isReadOnly }            — successful login, token already stored
 //   { locked: true, lockUntil } — too many failed attempts
 //   null                       — wrong password (caller decides what to do)
+// The auth Edge Function does its own IP-keyed lockout server-side
+// (auth_attempts table, 3 wrong → 24h), so the client just relays its
+// verdict. Returns:
+//   { isReadOnly }                    — successful login, token already stored
+//   { locked: true, lockUntil }       — server says this IP is currently locked
+//   null                              — wrong password / cancelled prompt
 async function authenticate(pw) {
-  const Store = Storage;
-  const auth = Store.loadAuth();
-  if (auth.lockoutUntil > Date.now()) return { locked: true, lockUntil: auth.lockoutUntil };
+  if (pw == null || pw === "") return null;
 
-  if (pw == null || pw === "") {
-    // No password supplied (cancelled prompt). Don't count as an attempt;
-    // just deny.
-    return null;
-  }
-
-  let role = null, token = null;
   try {
     const res = await fetch(EDGE_AUTH_URL, {
       method: "POST",
@@ -231,35 +228,30 @@ async function authenticate(pw) {
       },
       body: JSON.stringify({ password: pw }),
     });
+
     if (res.ok) {
-      const body = await res.json();
-      role = body.role;
-      token = body.token;
-    } else if (res.status !== 401) {
-      // 5xx, network blip — treat as transient, don't lock out.
-      console.error("[auth] unexpected:", res.status);
-      return null;
+      const { token, role } = await res.json();
+      if (token && role) {
+        setAppToken(token);
+        return { isReadOnly: role === "ro" };
+      }
     }
+
+    if (res.status === 429) {
+      const body = await res.json().catch(() => ({}));
+      const lockUntil = Number(body?.lockoutUntil) || (Date.now() + 24 * 60 * 60 * 1000);
+      return { locked: true, lockUntil };
+    }
+
+    if (res.status === 401) return null;
+
+    // 5xx, network blip — treat as transient, don't pretend to lock out.
+    console.error("[auth] unexpected:", res.status);
+    return null;
   } catch (e) {
     console.error("[auth] error:", e);
     return null;
   }
-
-  if (role && token) {
-    setAppToken(token);
-    Store.clearAuth(); // wipe any stale failed-attempt counter
-    return { isReadOnly: role === "ro" };
-  }
-
-  // Wrong password — count toward client-side lockout.
-  const attempts = (auth.attempts || 0) + 1;
-  if (attempts >= MAX_ATTEMPTS) {
-    const until = Date.now() + LOCKOUT_MS;
-    Store.saveAuth({ lockoutUntil: until, attempts: 0 });
-    return { locked: true, lockUntil: until };
-  }
-  Store.saveAuth({ lockoutUntil: 0, attempts });
-  return null;
 }
 
 // USDCNY=X is a hidden FX fetch used only for CNY→USD conversion of holdings
