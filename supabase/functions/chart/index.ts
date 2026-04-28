@@ -49,11 +49,17 @@ async function fetchYahooHistorical(
     const currency: string | null = result?.meta?.currency ?? null;
     const penceFactor = currency === "GBp" || currency === "GBX" ? 100 : 1;
 
+    // Daily interval → YYYY-MM-DD (one point per day, key = date).
+    // Intraday intervals (e.g. 5m, 15m) → keep precision down to the
+    // minute so each candle has a unique sortable string. Truncating
+    // intraday points to YYYY-MM-DD would collapse them all to one key.
+    const isIntraday = !/^\d+d$|^\dwk$|^\dmo$/.test(interval);
     const points: Point[] = [];
     for (let i = 0; i < timestamps.length; i++) {
       const c = closes[i];
       if (c == null) continue;
-      const date = new Date(timestamps[i] * 1000).toISOString().slice(0, 10);
+      const iso = new Date(timestamps[i] * 1000).toISOString();
+      const date = isIntraday ? iso.slice(0, 16) : iso.slice(0, 10);
       points.push({ date, close: c / penceFactor });
     }
     return points.length > 0 ? points : null;
