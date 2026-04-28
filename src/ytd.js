@@ -192,7 +192,7 @@ export function lotsFor(h, yearStart) {
  *   date: string,
  *   portfolio: { holdings: Record<string, any> },
  *   tickerSeries: ReturnType<typeof buildTickerSeries>,
- *   marketData?: Record<string, { lastPrice?: number, extPrice?: number | null }>,
+ *   marketData?: Record<string, { lastPrice?: number, extPrice?: number | null, prevClose?: number }>,
  *   yearStart: string,
  *   yearStartDate: string,
  *   todayMs: number,
