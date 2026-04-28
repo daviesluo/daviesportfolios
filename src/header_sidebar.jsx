@@ -541,6 +541,15 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
             <span className="mono perf-val" style={{ color: spColor }}>{fmtP1(spCurrent)}</span>
           )}
         </span>
+        {/* In 1D + ext-hours mode the chart's anchor is the last regular
+            close (vertical dashed line in the future iteration), not
+            yesterday's open. Make the basis explicit so the user knows
+            what the % is relative to. */}
+        {rangeKey === '1D' && useExt && (
+          <span className="perf-legend-item">
+            <span className="mono dim" style={{ fontSize: 9 }}>(since previous close)</span>
+          </span>
+        )}
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: 'block' }}>
