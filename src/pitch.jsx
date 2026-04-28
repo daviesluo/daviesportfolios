@@ -1,8 +1,15 @@
 // The tactics-board pitch with position chips placed on it
-const { fmtMoney: fmtM, fmtPct: fmtPc, fmtPrice: fmtPr, pctColor: pctClr } = window.Utils;
+import React from 'react';
+import {
+  fmtMoney as fmtM,
+  fmtPct as fmtPc,
+  fmtPrice as fmtPr,
+  pctColor as pctClr,
+  POSITION_COORDS,
+} from './utils.js';
 
 function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, dragging, setDragging, onDrop, onOpenPosition, onAddToPosition, onUpdatePosition, isRefreshing, recentlyUpdated }) {
-  const coords = window.Utils.POSITION_COORDS;
+  const coords = POSITION_COORDS;
 
   return (
     <div className="pitch-wrap">
@@ -225,4 +232,4 @@ function Ball({ coord, ticker }) {
   );
 }
 
-Object.assign(window, { Pitch });
+export { Pitch };

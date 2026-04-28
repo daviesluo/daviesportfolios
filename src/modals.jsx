@@ -1,5 +1,13 @@
 // Modals: position drill-in, edit ticker, add ticker
-const { fmtMoney: fmtMo, fmtPct: fmtPe, fmtPrice: fmtPri, pctColor: pctClo, currencySymbol: curSym } = window.Utils;
+import React from 'react';
+import {
+  fmtMoney as fmtMo,
+  fmtPct as fmtPe,
+  fmtPrice as fmtPri,
+  pctColor as pctClo,
+  currencySymbol as curSym,
+  detectCurrency,
+} from './utils.js';
 
 function Modal({ children, onClose, size = "md" }) {
   React.useEffect(() => {
@@ -186,7 +194,7 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
   const [buyDate, setBuyDate] = React.useState(() => new Date().toISOString().slice(0, 10));
 
   // Currency follows the ticker the user is typing — 6-digit → ¥, .L → £, else $.
-  const cur = window.Utils.detectCurrency(ticker.trim());
+  const cur = detectCurrency(ticker.trim());
   const sym = curSym(cur);
   const costHint = cur === "USD"
     ? "In USD"
@@ -243,4 +251,4 @@ function FormRow({ label, hint, children }) {
   );
 }
 
-Object.assign(window, { Modal, PositionDrillModal, PlayerCard, EditTickerModal, AddTickerModal, CashModal, FormRow });
+export { Modal, PositionDrillModal, PlayerCard, EditTickerModal, AddTickerModal, CashModal, FormRow };
