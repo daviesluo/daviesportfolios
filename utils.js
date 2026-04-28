@@ -2,6 +2,61 @@
 
 window.Utils = (function () {
 
+  // -------- localStorage schema -----------------------------------------
+  // All persisted state lives under the `dp.` namespace and is gated on a
+  // single integer schema version. Bumping CURRENT_SCHEMA_VERSION + adding
+  // a migration step inside migrateStorage() lets us evolve the on-disk
+  // format without scattering versioned cache keys (e.g. `ytd-perf-cache-v12`)
+  // around the codebase. Call `migrateStorage()` exactly once on app startup
+  // before reading any persisted state.
+  const STORAGE_KEYS = {
+    schemaVersion: 'dp.schema',
+    auth:          'dp.auth',         // { lockoutUntil, attempts }
+    ytd:           'dp.ytd',          // { year, entries: { ticker: { ts, data } } }
+  };
+  const CURRENT_SCHEMA_VERSION = 1;
+
+  function readJSON(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw == null ? fallback : JSON.parse(raw);
+    } catch (_) { return fallback; }
+  }
+  function writeJSON(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
+  }
+
+  function migrateStorage() {
+    const stored = parseInt(localStorage.getItem(STORAGE_KEYS.schemaVersion) || '0', 10);
+    if (stored === CURRENT_SCHEMA_VERSION) return;
+
+    if (stored < 1) {
+      // v0 → v1: drop the per-feature keys that pre-date the unified schema.
+      // Auth state and YTD cache will rebuild themselves on first use; we
+      // don't try to preserve them since the auth state is short-lived and
+      // the YTD cache is just a fetch optimisation.
+      const legacy = ['auth_token', 'auth_lockout_until', 'auth_attempts'];
+      // Old per-version YTD cache keys (we got up to v12 before the rewrite).
+      for (let i = 1; i <= 20; i++) legacy.push('ytd-perf-cache-v' + i);
+      legacy.push('ytd-perf-cache-v2'); // alias kept for safety
+      for (const k of legacy) localStorage.removeItem(k);
+    }
+    // Future migrations: if (stored < 2) { ... }
+
+    localStorage.setItem(STORAGE_KEYS.schemaVersion, String(CURRENT_SCHEMA_VERSION));
+  }
+
+  // Typed helpers — call these instead of touching localStorage directly so
+  // the keys stay centralised and migrations stay possible.
+  const Storage = {
+    migrate: migrateStorage,
+    loadAuth:  () => readJSON(STORAGE_KEYS.auth, { lockoutUntil: 0, attempts: 0 }),
+    saveAuth:  (s) => writeJSON(STORAGE_KEYS.auth, s),
+    clearAuth: () => { try { localStorage.removeItem(STORAGE_KEYS.auth); } catch (_) {} },
+    loadYtd:   () => readJSON(STORAGE_KEYS.ytd, null),
+    saveYtd:   (d) => writeJSON(STORAGE_KEYS.ytd, d),
+  };
+
   // -------- Formatting --------
   const fmtMoney = (n, opts = {}) => {
     if (n == null || isNaN(n)) return "—";
@@ -500,5 +555,6 @@ window.Utils = (function () {
     computeMetrics, detectFormation,
     detectCurrency, currencySymbol, fxToUSD,
     refreshPrices, fetchTickers, fetchHistorical, fetchHistoricalBatch, POSITION_COORDS,
+    Storage,
   };
 })();
