@@ -25,6 +25,7 @@ import {
   AddTickerModal,
   CashModal,
 } from './modals.jsx';
+import { TickerChartModal } from './ticker_chart_modal.jsx';
 import { ServiceWorkerBanner } from './sw-banner.jsx';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
@@ -351,6 +352,7 @@ function Board({ isReadOnly }) {
   const [drillPos, setDrillPos] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editingTicker, setEditingTicker] = useState(null);
+  const [viewingTicker, setViewingTicker] = useState(null);
   const [addingToPos, setAddingToPos] = useState(null);
   const [editingCash, setEditingCash] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -691,9 +693,19 @@ function Board({ isReadOnly }) {
           isReadOnly={isReadOnly}
           onClose={() => setDrillPos(null)}
           onEditTicker={(t) => { if (isReadOnly) return; setEditingTicker(t); }}
+          onViewChart={(t) => setViewingTicker(t)}
           onAddTicker={() => { if (isReadOnly) return; setAddingToPos(drillPos); }}
           onRemoveTicker={(t) => { if (isReadOnly) return; if (confirm(`Remove ${t}?`)) removeHolding(t); }}
           onUpdatePosition={(patch) => updatePosition(drillPos, patch)}
+        />
+      )}
+
+      {viewingTicker && portfolio.holdings[viewingTicker] && (
+        <TickerChartModal
+          ticker={viewingTicker}
+          holding={portfolio.holdings[viewingTicker]}
+          marketData={marketData}
+          onClose={() => setViewingTicker(null)}
         />
       )}
 

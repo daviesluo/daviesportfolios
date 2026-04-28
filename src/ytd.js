@@ -1,6 +1,39 @@
-// Pure YTD-chart math, extracted from PerfChart so it's unit-testable
-// independently of React rendering, network fetches and DOM state.
+// Pure portfolio-performance chart math, extracted from PerfChart so it's
+// unit-testable independently of React rendering, network fetches and DOM
+// state. Supports five time ranges (1D / 1W / 1M / 3M / YTD); the formula
+// is the same for all of them, only the anchor price (chart's leftmost
+// "starting value") differs.
 //
+// Range catalogue:
+
+/**
+ * @typedef {'1D'|'1W'|'1M'|'3M'|'YTD'} RangeKey
+ */
+export const RANGES = {
+  '1D':  { yahooRange: '1d',  interval: '5m', label: '1D'  },
+  '1W':  { yahooRange: '5d',  interval: '1d', label: '1W'  },
+  '1M':  { yahooRange: '1mo', interval: '1d', label: '1M'  },
+  '3M':  { yahooRange: '3mo', interval: '1d', label: '3M'  },
+  'YTD': { yahooRange: 'ytd', interval: '1d', label: 'YTD' },
+};
+export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
+
+/** Computes the date string the chart's leftmost edge should sit at, given
+ *  a range. For 1D the anchor is "now" so we use today's date with the
+ *  earliest practical timestamp; for daily ranges it's a pure YYYY-MM-DD. */
+export function anchorDateFor(rangeKey, now = new Date()) {
+  const today = now.toISOString().slice(0, 10);
+  if (rangeKey === '1D')  return today;
+  if (rangeKey === 'YTD') return `${now.getFullYear()}-01-01`;
+  // Approximate calendar-day cutoffs. The chart's actual leftmost data
+  // point is whatever the fetched series starts at; this only affects the
+  // pre-anchor / in-range classification of lots, so daily granularity
+  // is fine.
+  const days = rangeKey === '1W' ? 7 : rangeKey === '1M' ? 31 : rangeKey === '3M' ? 93 : 0;
+  const cutoff = new Date(now.getTime() - days * 86400_000);
+  return cutoff.toISOString().slice(0, 10);
+}
+
 // The Yahoo-Finance-equivalent YTD formula:
 //
 //   For each lot (date, shares, cost) in each non-cash holding:
@@ -20,16 +53,25 @@
 // for rather than including a misleading number.
 
 /**
- * Build per-ticker historical series + Jan-1 baseline price from a raw hist
- * map (the shape returned by fetchHistoricalBatch). Each series is sorted
- * ascending by date, with a {date → close} map for O(1) exact lookups.
+ * Build per-ticker historical series + anchor price from a raw hist map
+ * (the shape returned by fetchHistoricalBatch). Each series is sorted
+ * ascending by date string (which works for both `YYYY-MM-DD` and
+ * `YYYY-MM-DDTHH:MM` formats since both sort lexicographically).
+ *
+ * Anchor price by range:
+ *   - 1D  → marketData[ticker].prevClose (yesterday's regular session close)
+ *   - YTD → last close strictly before yearStart (prior-year-end close,
+ *           Yahoo's YTD baseline)
+ *   - 1W/1M/3M → last close strictly before anchorDate, else first close
+ *           inside the fetched window
  *
  * @param {Record<string, {date:string, close:number}[]>} hist
- * @param {string} yearStart       — '2026-01-01'
- * @param {string} yearStartDate   — first YTD trading date, e.g. '2026-01-02'
+ * @param {string} anchorDate    — chart's leftmost cutoff (YYYY-MM-DD)
+ * @param {string} rangeKey      — '1D' | '1W' | '1M' | '3M' | 'YTD'
+ * @param {Record<string, {prevClose?:number, lastPrice?:number}>} [marketData]
  * @returns {Record<string, {series:{date:string,close:number}[], map:Record<string,number>, janPrice:number|null}>}
  */
-export function buildTickerSeries(hist, yearStart, yearStartDate) {
+export function buildTickerSeries(hist, anchorDate, rangeKey = 'YTD', marketData = {}) {
   /** @type {Record<string, {series:{date:string,close:number}[], map:Record<string,number>, janPrice:number|null}>} */
   const out = {};
   for (const [t, raw] of Object.entries(hist || {})) {
@@ -37,16 +79,26 @@ export function buildTickerSeries(hist, yearStart, yearStartDate) {
     /** @type {Record<string, number>} */
     const map = {};
     for (const p of series) map[p.date] = p.close;
-    // YTD baseline: prefer the last close strictly BEFORE yearStart (Yahoo
-    // anchors YTD to that). Fall back to the first close inside the YTD
-    // window for tickers that started trading after Jan 1.
-    const priorYear = series.filter(p => p.date < yearStart);
+
     let janPrice = null;
-    if (priorYear.length > 0) {
-      janPrice = priorYear[priorYear.length - 1].close;
+    if (rangeKey === '1D') {
+      // 1D's anchor is yesterday's regular close — comes from the live
+      // marketData snapshot since intraday history doesn't include it.
+      const md = marketData[t];
+      if (md && typeof md.prevClose === 'number' && md.prevClose > 0) {
+        janPrice = md.prevClose;
+      }
     } else {
-      const ytdSeries = series.filter(p => p.date >= yearStartDate);
-      janPrice = ytdSeries.length > 0 ? ytdSeries[0].close : null;
+      // Daily ranges: the close on the last trading day strictly before
+      // anchorDate. Fall back to the first close inside the window for
+      // tickers that started trading after the anchor.
+      const prior = series.filter(p => p.date < anchorDate);
+      if (prior.length > 0) {
+        janPrice = prior[prior.length - 1].close;
+      } else {
+        const inRange = series.filter(p => p.date >= anchorDate);
+        janPrice = inRange.length > 0 ? inRange[0].close : null;
+      }
     }
     out[t] = { series, map, janPrice };
   }
