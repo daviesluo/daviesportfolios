@@ -208,6 +208,15 @@ export function computeAt(opts) {
     yearStart, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
   } = opts;
   const useLive = date === liveAnchorDate;
+  // Lot dates are always YYYY-MM-DD (no intraday precision). The chart's
+  // `date` and `yearStartDate` strings can be either YYYY-MM-DD (daily
+  // ranges) or YYYY-MM-DDTHH:MM (1D intraday). Comparing "2026-04-28"
+  // against "2026-04-28T13:30" naively returns true (the 10-char string
+  // is lexicographically < the 16-char one because '' < 'T'), which would
+  // misclassify a lot bought today as pre-anchor in the 1D range. Slice
+  // the chart-side dates to YYYY-MM-DD before comparing with lot dates.
+  const dateDay = (date || '').slice(0, 10);
+  const anchorDay = (yearStartDate || '').slice(0, 10);
   let value = 0, basis = 0;
 
   for (const [ticker, h] of Object.entries(portfolio.holdings)) {
@@ -224,11 +233,11 @@ export function computeAt(opts) {
       : null;
 
     for (const lot of lots) {
-      if (lot.date > date) continue; // not yet held
+      if (lot.date > dateDay) continue; // not yet held
 
       // Basis price for this lot
       let basisPrice;
-      if (lot.date < yearStartDate) {
+      if (lot.date < anchorDay) {
         if (janPrice == null) continue; // skip — no Jan 1 baseline available
         basisPrice = janPrice;
       } else {

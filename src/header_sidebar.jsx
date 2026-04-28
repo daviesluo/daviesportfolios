@@ -623,7 +623,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 function PerfPanel({ portfolio, marketData, extendedHours, phase, className }) {
   return (
     <section className={`panel ${className || ""}`.trim()}>
-      <h3 className="panel-title">PORTFOLIO PERFORMANCE VS S&amp;P 500</h3>
+      <h3 className="panel-title">PERFORMANCE VS S&amp;P 500</h3>
       <PerfChart
         portfolio={portfolio}
         marketData={marketData}
