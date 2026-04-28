@@ -8,7 +8,7 @@ import {
   POSITION_COORDS,
 } from './utils.js';
 
-function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, dragging, setDragging, onDrop, onOpenPosition, onAddToPosition, onUpdatePosition, isRefreshing, recentlyUpdated }) {
+function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, dragging, setDragging, onDrop, onOpenPosition, onAddToPosition, onUpdatePosition, isRefreshing, recentlyUpdated, hideValues }) {
   const coords = POSITION_COORDS;
 
   return (
@@ -39,6 +39,7 @@ function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTi
               onUpdatePosition={(patch) => onUpdatePosition(k, patch)}
               isRefreshing={isRefreshing}
               recentlyUpdated={recentlyUpdated}
+              hideValues={hideValues}
             />
           );
         })}
@@ -108,7 +109,7 @@ function PitchLines() {
   );
 }
 
-function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpen, onAdd, onDragStart, onDrop, isDropTarget, onUpdatePosition, isRefreshing, recentlyUpdated }) {
+function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpen, onAdd, onDragStart, onDrop, isDropTarget, onUpdatePosition, isRefreshing, recentlyUpdated, hideValues }) {
   const hasPlayers = position.players.length > 0;
   const pctClass = position.dayPct > 0 ? "gain" : position.dayPct < 0 ? "loss" : "flat";
 
@@ -187,7 +188,7 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
           </div>
         )}
         {hasPlayers && (
-          <div className="chip-mv mono">{fmtM(position.marketValue)}</div>
+          <div className="chip-mv mono">{hideValues ? fmtM(position.marketValue).replace(/\d/g, '*') : fmtM(position.marketValue)}</div>
         )}
         {hasPlayers ? (
           <div className="chip-tickers">

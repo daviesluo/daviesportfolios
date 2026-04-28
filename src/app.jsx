@@ -668,6 +668,7 @@ function Board({ isReadOnly }) {
             onUpdatePosition={updatePosition}
             isRefreshing={isRefreshing && !histSnap}
             recentlyUpdated={recentlyUpdated && !histSnap}
+            hideValues={hideValues}
           />
         )}
         <Sidebar
@@ -697,6 +698,7 @@ function Board({ isReadOnly }) {
           onAddTicker={() => { if (isReadOnly) return; setAddingToPos(drillPos); }}
           onRemoveTicker={(t) => { if (isReadOnly) return; if (confirm(`Remove ${t}?`)) removeHolding(t); }}
           onUpdatePosition={(patch) => updatePosition(drillPos, patch)}
+          hideValues={hideValues}
         />
       )}
 
