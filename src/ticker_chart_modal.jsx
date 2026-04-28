@@ -31,17 +31,24 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const useExt = !!(extendedHours && phase && phase !== 'regular');
 
   // Pick (yahooRange, interval, includePrePost) based on the user's choice.
+  // Single-ticker chart uses denser intervals than the portfolio chart so
+  // the line has enough points to read at a glance:
+  //   1W → 5d / 30m   (~65 bars, vs the portfolio's 5 daily bars)
+  //   1M → 1mo / 60m  (~150 bars)
+  //   3M → 3mo / 1d
+  //   YTD → ytd / 1d
   // 1D has three sub-modes per the spec:
   //   ext OFF + market open  → today's regular hours intraday
   //   ext OFF + market close → previous regular trading day's intraday
   //   ext ON                  → past 24 h with pre/post-market included
   function fetchParams(rk) {
-    const r = RANGES[rk] || RANGES.YTD;
-    if (rk !== '1D') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false };
+    if (rk === '1W')  return { yahooRange: '5d',  interval: '30m', includePrePost: false };
+    if (rk === '1M')  return { yahooRange: '1mo', interval: '60m', includePrePost: false };
+    if (rk === '3M')  return { yahooRange: '3mo', interval: '1d',  includePrePost: false };
+    if (rk === 'YTD') return { yahooRange: 'ytd', interval: '1d',  includePrePost: false };
+    // 1D
     if (extendedHours) return { yahooRange: '1d', interval: '5m', includePrePost: true };
     if (phase === 'regular') return { yahooRange: '1d', interval: '5m', includePrePost: false };
-    // Market closed and ext OFF → fetch a 5-day window so we have at least
-    // one complete prior session, then keep just the most recent date below.
     return { yahooRange: '5d', interval: '5m', includePrePost: false };
   }
 
@@ -60,10 +67,19 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     setLoading(true);
     setError(false);
     (async () => {
-      const out = await fetchHistoricalBatch([ticker], yahooRange, interval, includePrePost);
-      if (cancelled) return;
-      let data = out[ticker];
-      if (!data || data.length < 2) { setError(true); setLoading(false); return; }
+      // Retry up to 3 times — single-ticker fetches go through the same
+      // CORS-proxy chain as the portfolio chart, which is occasionally
+      // flaky enough that a one-shot request shows the user "Couldn't
+      // load history" when a quick retry would have succeeded.
+      let data = null;
+      for (let attempt = 0; attempt < 3 && !data; attempt++) {
+        if (attempt > 0) await new Promise(r => setTimeout(r, 400 * attempt));
+        if (cancelled) return;
+        const out = await fetchHistoricalBatch([ticker], yahooRange, interval, includePrePost);
+        if (cancelled) return;
+        if (out[ticker] && out[ticker].length >= 2) data = out[ticker];
+      }
+      if (!data) { setError(true); setLoading(false); return; }
       // ext OFF + market closed: keep just the most recent calendar day's
       // data. Series points are "YYYY-MM-DDTHH:MM" in this mode so we group
       // by the date prefix, take the latest, and slice.
@@ -177,22 +193,44 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
 
-  // Mouse handler: find nearest point by X distance, set hoverIdx
+  // Mouse handler — find nearest point by X distance, then schedule the
+  // state update via requestAnimationFrame so we paint at most once per
+  // frame even when the browser fires mousemove much faster than that.
+  // Without this throttle the dot visibly lags behind the cursor on a
+  // dense intraday series because every event triggers a full SVG
+  // re-render.
   const svgRef = React.useRef(null);
+  const rafRef = React.useRef(0);
+  const pendingIdxRef = React.useRef(/** @type {number|null} */ (null));
   function handleMove(e) {
     if (!hasData || !svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
     const sx = ((e.clientX - rect.left) / rect.width) * W;
-    if (sx < padL || sx > W - padR) { setHoverIdx(null); return; }
-    let bestI = 0, bestD = Infinity;
-    for (let i = 0; i < points.length; i++) {
-      const x = xOf(points[i].date);
-      const d = Math.abs(x - sx);
-      if (d < bestD) { bestD = d; bestI = i; }
+    if (sx < padL || sx > W - padR) {
+      pendingIdxRef.current = null;
+    } else {
+      let bestI = 0, bestD = Infinity;
+      for (let i = 0; i < points.length; i++) {
+        const x = xOf(points[i].date);
+        const d = Math.abs(x - sx);
+        if (d < bestD) { bestD = d; bestI = i; }
+      }
+      pendingIdxRef.current = bestI;
     }
-    setHoverIdx(bestI);
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = 0;
+      setHoverIdx(pendingIdxRef.current);
+    });
   }
-  function handleLeave() { setHoverIdx(null); }
+  function handleLeave() {
+    pendingIdxRef.current = null;
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = 0; }
+    setHoverIdx(null);
+  }
+  React.useEffect(() => () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+  }, []);
 
   const path = points.length > 0
     ? 'M' + points.map(p => `${xOf(p.date).toFixed(1)},${yOf(p.close).toFixed(1)}`).join('L')
@@ -216,6 +254,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             <span className="mono dim">Last</span>
             <span className="mono">{lastClose != null ? `${sym}${fmtPr(lastClose)}` : '—'}</span>
             <span className="mono" style={{ color: pcC(pctNow) }}>{fmP(pctNow)}</span>
+            {/* In 1D ext-hours mode the chart's anchor is the LAST regular
+                close (vertical dashed line), not yesterday's open or the
+                first bar. Make the basis explicit so the user knows what
+                the % is relative to. */}
+            {rangeKey === '1D' && useExt && (
+              <span className="mono dim" style={{ fontSize: 10 }}>(since previous close)</span>
+            )}
             {holding?.shares != null && (
               <>
                 <span className="mono dim">·</span>
