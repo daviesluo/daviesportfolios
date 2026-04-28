@@ -1,0 +1,17 @@
+# Cloudflare Pages cache rules.
+#
+# index.html itself must always revalidate so a fresh deploy's hashed asset
+# URLs reach the device on the next visit. iOS PWA + Cloudflare's default
+# cache will otherwise serve a months-old index pointing at long-deleted
+# JS/CSS bundles, leaving mobile devices stuck on a stale version of the
+# app for days.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Vite emits content-hashed filenames in /assets/, so any cached bundle is
+# safe to cache forever — when the source changes the hash changes too and
+# the browser fetches a different URL.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

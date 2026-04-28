@@ -4,3 +4,13 @@
 !.dev.vars.example
 .env*
 !.env.example
+
+# tooling
+node_modules
+.DS_Store
+*.log
+
+# Note: `dist/` is intentionally NOT ignored. We pre-build with
+# `npm run build` and commit the bundle so Cloudflare Pages can deploy
+# without needing a custom build step in the dashboard. When/if we
+# migrate to CF-managed builds, ignore dist/ here and remove it from git.
