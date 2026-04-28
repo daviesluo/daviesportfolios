@@ -39,16 +39,19 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
   const phaseInfo = PHASE[phase] || PHASE.overnight;
   const dayClr = pcC(metrics.dayPct);
 
-  const agoMs = lastUpdated ? (now - lastUpdated) : null;
+  const agoMs = lastUpdated ? (now.getTime() - lastUpdated.getTime()) : null;
   const agoText = lastUpdated ? formatAgo(agoMs) : "—";
 
   // Scoreboard flash: detect value changes on price refresh
+  /** @type {React.MutableRefObject<import('./types').PortfolioMetrics | null>} */
   const prevMetrics = React.useRef(null);
+  /** @type {[Record<string, 'up' | 'down'>, (f: Record<string, 'up' | 'down'>) => void]} */
   const [sbFlash, setSbFlash] = React.useState({});
   React.useEffect(() => {
     if (!prevMetrics.current) { prevMetrics.current = metrics; return; }
     const prev = prevMetrics.current;
     const eps = 0.01;
+    /** @type {Record<string, 'up' | 'down'>} */
     const f = {};
     if (Math.abs((metrics.marketValue ?? 0) - (prev.marketValue ?? 0)) > eps)
       f.mv   = metrics.marketValue  > prev.marketValue  ? "up" : "down";
@@ -94,7 +97,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
           </div>
           <label
             className="ext-switch"
-            style={{ "--ext-on-color": phaseInfo.color }}
+            style={/** @type {React.CSSProperties} */ ({ "--ext-on-color": phaseInfo.color })}
             title={extendedHours ? "Showing extended-hours prices — click to switch off" : "Click to show pre-market / after-hours prices"}
           >
             <span className="ext-switch-label mono">EXTENDED HOURS</span>
@@ -113,7 +116,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
           </div>
           <label
             className="ext-switch"
-            style={{ "--ext-on-color": phaseInfo.color }}
+            style={/** @type {React.CSSProperties} */ ({ "--ext-on-color": phaseInfo.color })}
             title={extendedHours ? "Showing extended-hours prices — click to switch off" : "Click to show pre-market / after-hours prices"}
           >
             <span className="ext-switch-label mono">EXTENDED HOURS</span>
