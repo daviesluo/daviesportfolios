@@ -25,6 +25,7 @@ import {
   AddTickerModal,
   CashModal,
 } from './modals.jsx';
+import { ServiceWorkerBanner } from './sw-banner.jsx';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
 class ErrorBoundary extends React.Component {
@@ -335,6 +336,7 @@ function App() {
   }
   return (
     <ErrorBoundary>
+      <ServiceWorkerBanner />
       <Board isReadOnly={auth.isReadOnly} />
     </ErrorBoundary>
   );
