@@ -1,6 +1,30 @@
 // Main portfolio tactics board app
-const { useState, useEffect, useRef, useMemo, useCallback } = React;
-const { fmtMoney, fmtPct, fmtPrice, pctColor, computeMetrics, detectFormation, refreshPrices, POSITION_COORDS } = window.Utils;
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import {
+  fmtMoney,
+  fmtPct,
+  fmtPrice,
+  pctColor,
+  computeMetrics,
+  detectFormation,
+  refreshPrices,
+  fetchTickers,
+  usMarketPhase,
+  detectCurrency,
+  fxToUSD,
+  Storage,
+  POSITION_COORDS,
+} from './utils.js';
+import { INITIAL_PORTFOLIO, INITIAL_LOTS } from './data.js';
+import { Header, Sidebar, MarketConditions, PerfPanel, SidebarFoot } from './header_sidebar.jsx';
+import { Pitch } from './pitch.jsx';
+import { Heatmap } from './heatmap.jsx';
+import {
+  PositionDrillModal,
+  EditTickerModal,
+  AddTickerModal,
+  CashModal,
+} from './modals.jsx';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
 class ErrorBoundary extends React.Component {
@@ -56,20 +80,20 @@ async function loadPortfolioRemote() {
     const res = await fetch(`${EDGE_DATA_URL}?action=load`, { headers: dataHeaders() });
     if (!res.ok) {
       console.error("[data] load failed:", res.status, await res.text());
-      return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
+      return JSON.parse(JSON.stringify(INITIAL_PORTFOLIO));
     }
     const { data } = await res.json();
     if (data) {
       const loaded = migrate(data);
       if (!loaded.holdings || Object.keys(loaded.holdings).length === 0) {
-        return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
+        return JSON.parse(JSON.stringify(INITIAL_PORTFOLIO));
       }
       return loaded;
     }
-    return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
+    return JSON.parse(JSON.stringify(INITIAL_PORTFOLIO));
   } catch (e) {
     console.error("[data] load error:", e);
-    return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
+    return JSON.parse(JSON.stringify(INITIAL_PORTFOLIO));
   }
 }
 
@@ -89,7 +113,7 @@ async function savePortfolioRemote(p) {
 
 // Migrate old saved shapes to current schema.
 function migrate(p) {
-  if (!p || typeof p !== "object") return JSON.parse(JSON.stringify(window.INITIAL_PORTFOLIO));
+  if (!p || typeof p !== "object") return JSON.parse(JSON.stringify(INITIAL_PORTFOLIO));
   if (!p.positions) p.positions = {};
   if (!p.holdings)  p.holdings  = {};
   // v1 → v2: split single "CB" into "CB1" + "CB2"
@@ -122,7 +146,7 @@ function migrate(p) {
   // every load without overwriting an explicitly-set currency.
   for (const [t, h] of Object.entries(p.holdings)) {
     if (h.currency || h.isCash || t === "CASH") continue;
-    h.currency = window.Utils.detectCurrency(t);
+    h.currency = detectCurrency(t);
   }
 
   // Backfill `lots` (per-purchase history) on holdings missing it. Drives the
@@ -130,7 +154,7 @@ function migrate(p) {
   // We only apply a seed if its shares sum matches the current holding (within
   // rounding tolerance) — otherwise the user has manually adjusted shares and
   // applying stale seed lots would over- or under-count.
-  const initialLots = window.INITIAL_LOTS || {};
+  const initialLots = INITIAL_LOTS || {};
   for (const [t, h] of Object.entries(p.holdings)) {
     if (h.isCash || t === "CASH") continue;
     if (Array.isArray(h.lots) && h.lots.length > 0) continue;
@@ -149,12 +173,12 @@ function migrate(p) {
   }
 
   // v2 → v3: refresh labels + default subtitles from INITIAL_PORTFOLIO for untouched slots.
-  const validKeys = new Set(Object.keys(window.INITIAL_PORTFOLIO.positions));
+  const validKeys = new Set(Object.keys(INITIAL_PORTFOLIO.positions));
   for (const k of Object.keys(p.positions)) {
     if (!validKeys.has(k)) delete p.positions[k];
   }
   const LEGACY_SUBTITLES = new Set(["", "Cash reserves", "Growth", "Value", "Speculative"]);
-  for (const [k, defaults] of Object.entries(window.INITIAL_PORTFOLIO.positions)) {
+  for (const [k, defaults] of Object.entries(INITIAL_PORTFOLIO.positions)) {
     const cur = p.positions[k];
     if (!cur) { p.positions[k] = JSON.parse(JSON.stringify(defaults)); continue; }
     if (!cur.label || cur.label.length > 4 || cur.label !== defaults.label) cur.label = defaults.label;
@@ -196,7 +220,7 @@ function collectPassword() {
 //   { locked: true, lockUntil } — too many failed attempts
 //   null                       — wrong password (caller decides what to do)
 async function authenticate(pw) {
-  const Store = window.Utils.Storage;
+  const Store = Storage;
   const auth = Store.loadAuth();
   if (auth.lockoutUntil > Date.now()) return { locked: true, lockUntil: auth.lockoutUntil };
 
@@ -263,7 +287,7 @@ function App() {
   // Storage migration runs in the same initial useState callback so
   // persisted state has the right shape before anything else reads it.
   const [pwInput] = useState(() => {
-    window.Utils.Storage.migrate();
+    Storage.migrate();
     return collectPassword();
   });
   const [auth, setAuth] = useState(undefined); // undefined = pending, null = denied
@@ -386,7 +410,7 @@ function Board({ isReadOnly }) {
     setIsRefreshing(true);
     const [{ updates, source: src }, mcResult] = await Promise.all([
       refreshPrices(portfolio, "live"),
-      window.Utils.fetchTickers(MC_TICKERS),
+      fetchTickers(MC_TICKERS),
     ]);
     if (mcResult) setMarketData(mcResult);
     setSource(src);
@@ -474,7 +498,7 @@ function Board({ isReadOnly }) {
 
   // Never substitute extended-hours prices during the regular session — the
   // toggle only takes effect outside RTH so the displayed value stays consistent.
-  const currentPhase = window.Utils.usMarketPhase(new Date());
+  const currentPhase = usMarketPhase(new Date());
   const metrics = computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular", marketData });
   const formation = detectFormation(portfolio);
 
@@ -485,7 +509,7 @@ function Board({ isReadOnly }) {
   // currency to USD so a CNY or GBP holding is ranked correctly against USD ones.
   let captainTicker = null, captainMV = 0;
   for (const [t, h] of Object.entries(portfolio.holdings)) {
-    const fx = window.Utils.fxToUSD(h.currency, marketData);
+    const fx = fxToUSD(h.currency, marketData);
     const mv = h.shares * h.lastPrice * fx;
     if (mv > captainMV) { captainMV = mv; captainTicker = t; }
   }
@@ -533,7 +557,7 @@ function Board({ isReadOnly }) {
   const addHolding = guard((posKey, ticker, shares, cost, lastPrice, buyDate) => {
     ticker = ticker.toUpperCase().trim();
     if (!ticker) return;
-    const currency = window.Utils.detectCurrency(ticker);
+    const currency = detectCurrency(ticker);
     const today = new Date().toISOString().slice(0, 10);
     const lotDate = buyDate || today;
     setPortfolio(p => {
@@ -600,7 +624,7 @@ function Board({ isReadOnly }) {
 
       <main className="main">
         <div className="left-col">
-          <window.PerfPanel
+          <PerfPanel
             portfolio={portfolio}
             marketData={marketData}
             extendedHours={extendedHours}
@@ -614,7 +638,7 @@ function Board({ isReadOnly }) {
           />
         </div>
         {viewMode === 'heatmap' ? (
-          <window.Heatmap
+          <Heatmap
             metrics={displayMetrics}
             extendedHours={extendedHours && currentPhase !== "regular"}
           />
@@ -652,7 +676,7 @@ function Board({ isReadOnly }) {
           extendedHours={extendedHours}
           phase={currentPhase}
         />
-        <window.SidebarFoot source={source} />
+        <SidebarFoot source={source} />
       </main>
 
       {drillPos && (
@@ -719,4 +743,4 @@ function Board({ isReadOnly }) {
 }
 
 // Expose to window
-window.App = App;
+export default App;

@@ -1,5 +1,19 @@
 // Header + Sidebar components
-const { fmtMoney: fmM, fmtPct: fmP, fmtPrice: fmtPr, pctColor: pcC, londonTimeParts, usMarketPhase, formatAgo } = window.Utils;
+import React from 'react';
+import {
+  fmtMoney as fmM,
+  fmtPct as fmP,
+  fmtPrice as fmtPr,
+  pctColor as pcC,
+  londonTimeParts,
+  usMarketPhase,
+  formatAgo,
+  fxToUSD,
+  fetchHistorical,
+  fetchHistoricalBatch,
+  Storage,
+} from './utils.js';
+import { INITIAL_LOTS } from './data.js';
 
 // Phase → color mapping
 const PHASE = {
@@ -182,12 +196,12 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
 function loadYtdCache(year) {
-  const parsed = window.Utils.Storage.loadYtd();
+  const parsed = Storage.loadYtd();
   if (!parsed || parsed.year !== year || !parsed.entries) return {};
   return parsed.entries; // { ticker: { ts, data: [{date,close}, …] } }
 }
 function saveYtdCache(year, entries) {
-  window.Utils.Storage.saveYtd({ year, entries });
+  Storage.saveYtd({ year, entries });
 }
 
 // YTD performance chart: portfolio % return vs S&P 500, computed from per-lot
@@ -246,7 +260,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     // Fetch range=1y so we have data from the last trading day of the previous
     // year — that close is the YTD baseline (matches Yahoo Finance's anchor).
     (async () => {
-      const batch = await window.Utils.fetchHistoricalBatch(stale, '1y', '1d');
+      const batch = await fetchHistoricalBatch(stale, '1y', '1d');
       if (cancelled) return;
       // ^GSPC anchors the X axis. If the batch missed it (Edge Function down,
       // CORS proxies rate-limited, etc.) try a few more direct fetches before
@@ -255,7 +269,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
         for (let i = 0; i < 3 && !batch['^GSPC']; i++) {
           await new Promise(r => setTimeout(r, 800 * (i + 1)));
           if (cancelled) return;
-          const retry = await window.Utils.fetchHistorical('^GSPC', '1y', '1d').catch(() => null);
+          const retry = await fetchHistorical('^GSPC', '1y', '1d').catch(() => null);
           if (retry) batch['^GSPC'] = retry;
         }
       }
@@ -369,7 +383,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
         && Math.abs(sumShares(h.lots) - h.shares) < 0.0001) {
       return h.lots;
     }
-    const seed = window.INITIAL_LOTS && window.INITIAL_LOTS[ticker];
+    const seed = INITIAL_LOTS && INITIAL_LOTS[ticker];
     if (Array.isArray(seed) && Math.abs(sumShares(seed) - h.shares) < 0.0001) {
       return seed;
     }
@@ -394,7 +408,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       if (h.isCash || ticker === 'CASH') continue;
       const lots = lotsFor(ticker, h);
       const fx = (h.currency && h.currency !== 'USD')
-        ? window.Utils.fxToUSD(h.currency, marketData)
+        ? fxToUSD(h.currency, marketData)
         : 1;
       const ts = tickerSeries[ticker];
       const janPrice = ts ? ts.janPrice : null;
@@ -805,4 +819,4 @@ function MarketConditions({ marketData, extendedHours, phase }) {
   );
 }
 
-Object.assign(window, { Header, Sidebar, SidebarFoot, StatRow, MarketConditions, PerfPanel });
+export { Header, Sidebar, SidebarFoot, StatRow, MarketConditions, PerfPanel };

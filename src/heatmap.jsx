@@ -1,5 +1,6 @@
 // Heatmap view — binary-split treemap of all holdings.
 // Tiles sized by USD market value; colour-coded by day % change.
+import React from 'react';
 
 // ── Treemap layout (recursive binary split) ──────────────────────────────────
 function treemap(nodes, x, y, w, h) {
@@ -158,4 +159,4 @@ function Heatmap({ metrics, extendedHours }) {
   );
 }
 
-Object.assign(window, { Heatmap });
+export { Heatmap };
