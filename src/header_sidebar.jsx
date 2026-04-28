@@ -80,10 +80,11 @@ function useClock(intervalMs = 1000) {
   return now;
 }
 
-// Hidden-values placeholder. Used everywhere a portfolio dollar amount
-// would otherwise show, so the user can hand the screen to someone next
-// to them without revealing absolute sizes — percentages stay readable.
-const VALUE_MASK = "•••••";
+// Hidden-values mask. When the user has the eye toggle closed we replace
+// each digit in a formatted dollar amount with `*` while keeping the
+// currency symbol, sign and punctuation, so the placeholder is the same
+// width as the real number ("$129,341.49" → "$***,***.**").
+function mask(s) { return typeof s === 'string' ? s.replace(/\d/g, '*') : s; }
 
 function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, histDate, viewMode, onToggleView, hideValues, onToggleHideValues }) {
   const now = useClock(1000);
@@ -191,22 +192,22 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
               {hideValues ? <EyeClosedIcon /> : <EyeOpenIcon />}
             </button>
           </div>
-          <div className={`sb-value sb-value-lg mono${sbFlash.mv ? " sb-flash-" + sbFlash.mv : ""}`}>{hideValues ? VALUE_MASK : fmM(metrics.marketValue)}</div>
+          <div className={`sb-value sb-value-lg mono${sbFlash.mv ? " sb-flash-" + sbFlash.mv : ""}`}>{hideValues ? mask(fmM(metrics.marketValue)) : fmM(metrics.marketValue)}</div>
         </div>
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
           <div className="sb-label">DAY CHANGE</div>
           <div className={`sb-value mono sb-change-row${sbFlash.day ? " sb-flash-" + sbFlash.day : ""}`} style={{ color: pcC(metrics.dayPct) }}>
-            {!hideValues && <span>{fmM(metrics.dayChange, { signed: true })}</span>}
-            <span className="sb-pct">{hideValues ? fmP(metrics.dayPct) : `(${fmP(metrics.dayPct)})`}</span>
+            <span>{hideValues ? mask(fmM(metrics.dayChange, { signed: true })) : fmM(metrics.dayChange, { signed: true })}</span>
+            <span className="sb-pct">({fmP(metrics.dayPct)})</span>
           </div>
         </div>
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
           <div className="sb-label">UNREALIZED G/L</div>
           <div className={`sb-value mono sb-change-row${sbFlash.unrl ? " sb-flash-" + sbFlash.unrl : ""}`} style={{ color: pcC(metrics.unrlPct) }}>
-            {!hideValues && <span>{fmM(metrics.unrlGL, { signed: true })}</span>}
-            <span className="sb-pct">{hideValues ? fmP(metrics.unrlPct) : `(${fmP(metrics.unrlPct)})`}</span>
+            <span>{hideValues ? mask(fmM(metrics.unrlGL, { signed: true })) : fmM(metrics.unrlGL, { signed: true })}</span>
+            <span className="sb-pct">({fmP(metrics.unrlPct)})</span>
           </div>
         </div>
       </div>
@@ -589,7 +590,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 function PerfPanel({ portfolio, marketData, extendedHours, phase, className }) {
   return (
     <section className={`panel ${className || ""}`.trim()}>
-      <h3 className="panel-title">PORTFOLIO PERFORMANCE</h3>
+      <h3 className="panel-title">PORTFOLIO PERFORMANCE VS S&amp;P 500</h3>
       <PerfChart
         portfolio={portfolio}
         marketData={marketData}
@@ -649,7 +650,7 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
               <div key={k} className="formation-row">
                 <div className="fr-top">
                   <span className="fr-label">{p.label}{p.subtitle && <span className="fr-sub"> · {p.subtitle}</span>}</span>
-                  <span className="fr-val mono">{hideValues ? VALUE_MASK : fmM(p.marketValue)}</span>
+                  <span className="fr-val mono">{hideValues ? mask(fmM(p.marketValue)) : fmM(p.marketValue)}</span>
                 </div>
                 <div className="fr-bar">
                   <div className="fr-bar-fill" style={{ width: pct + "%" }} />
@@ -657,7 +658,7 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
                 <div className="fr-meta">
                   <span className="mono dim">{pct.toFixed(1)}%</span>
                   <span className="mono" style={{ color: pcC(p.unrlPct) }}>
-                    {!hideValues && <>{fmM(p.unrlGL, { signed: true })} </>}({fmP(p.unrlPct)})
+                    {hideValues ? mask(fmM(p.unrlGL, { signed: true })) : fmM(p.unrlGL, { signed: true })} ({fmP(p.unrlPct)})
                   </span>
                 </div>
               </div>
