@@ -13,6 +13,7 @@ import {
   fetchHistoricalBatch,
   Storage,
 } from './utils.js';
+import { buildTickerSeries, computeAt, ytdPct } from './ytd.js';
 
 // Phase → color mapping
 const PHASE = {
@@ -344,128 +345,30 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const spPriorYear = hasSp ? allSp.filter(p => p.date < yearStart) : [];
   const spBase = spPriorYear.length > 0 ? spPriorYear[spPriorYear.length - 1].close : spYtd[0].close;
 
-  // Per-ticker sorted series + map + Jan-1 baseline price.
-  // Baseline = close on the last trading day BEFORE yearStart (matches Yahoo).
-  const tickerSeries = {};
-  for (const t of tickers) {
-    const series = (hist[t] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
-    const map = {};
-    for (const p of series) map[p.date] = p.close;
-    const priorYear = series.filter(p => p.date < yearStart);
-    let janPrice = null;
-    if (priorYear.length > 0) {
-      janPrice = priorYear[priorYear.length - 1].close;
-    } else {
-      const ytdSeries = series.filter(p => p.date >= yearStartDate);
-      janPrice = ytdSeries.length > 0 ? ytdSeries[0].close : null;
-    }
-    tickerSeries[t] = { series, map, janPrice };
-  }
+  // Per-ticker sorted series + map + Jan-1 baseline price. Pure helper from
+  // ./ytd.js so the chart math can be unit-tested without React/network.
+  /** @type {Record<string, {date:string,close:number}[]>} */
+  const histForTickers = {};
+  for (const t of tickers) histForTickers[t] = hist[t] || [];
+  const tickerSeries = buildTickerSeries(histForTickers, yearStart, yearStartDate);
 
-  // Get close for ticker on a date — exact match, or last known close ≤ date.
-  const closeOn = (ticker, date) => {
-    const tm = tickerSeries[ticker];
-    if (!tm) return null;
-    if (tm.map[date] != null) return tm.map[date];
-    let lo = 0, hi = tm.series.length - 1, best = null;
-    while (lo <= hi) {
-      const mid = (lo + hi) >> 1;
-      if (tm.series[mid].date <= date) { best = tm.series[mid].close; lo = mid + 1; }
-      else hi = mid - 1;
-    }
-    return best;
-  };
-
-  // Resolve which lots to use for a holding. The lots are now the source of
-  // truth (managed via the lot editor in EditTickerModal), so we just use
-  // h.lots verbatim when their share total matches. If something's been
-  // edited inconsistently, fall back to a single yearStart lot so the chart
-  // still has SOMETHING to plot.
-  const lotsFor = (ticker, h) => {
-    const sumShares = (lots) => lots.reduce((s, l) => s + (l.shares || 0), 0);
-    if (Array.isArray(h.lots) && h.lots.length > 0
-        && Math.abs(sumShares(h.lots) - h.shares) < 0.0001) {
-      return h.lots;
-    }
-    return [{ date: yearStart, shares: h.shares, cost: h.lastPrice || 0 }];
-  };
-
-  // Yahoo's YTD formula:
-  //   - Pre-year lot:  basis = shares × Jan-1 market price; value(d) = shares × close(d)
-  //   - Year lot:      basis = shares × cost;               value(d) = shares × close(d)
+  // Yahoo's YTD formula (see ytd.js for the long form).
+  //   - Pre-year lot: basis = shares × Jan-1 market price
+  //   - Year lot:     basis = shares × cost
   //   - YTD%(d) = (Σ value − Σ basis) / Σ basis × 100
-  // For the LAST chart point we substitute live marketData prices for value(d)
-  // so the displayed YTD% matches what the rest of the app shows in real time
-  // and updates when the user clicks refresh. When extended-hours mode is on
-  // outside regular hours we use extPrice (futures-like or pre/post-market)
-  // instead of lastPrice — same convention the header total uses.
+  // The last chart point swaps in live marketData prices so the endpoint
+  // matches the rest of the app + Yahoo in real time. With extendedHours on
+  // outside regular hours, we use extPrice (same convention as the header
+  // dollar total).
   const useExt = !!(extendedHours && phase && phase !== "regular");
   const liveAnchorDate = spYtd[spYtd.length - 1].date;
-  const computeAt = (date) => {
-    const useLive = date === liveAnchorDate;
-    let value = 0, basis = 0;
-    for (const [ticker, h] of Object.entries(portfolio.holdings)) {
-      if (h.isCash || ticker === 'CASH') continue;
-      const lots = lotsFor(ticker, h);
-      const fx = (h.currency && h.currency !== 'USD')
-        ? fxToUSD(h.currency, marketData)
-        : 1;
-      const ts = tickerSeries[ticker];
-      const janPrice = ts ? ts.janPrice : null;
-      const lastPrice = h.lastPrice;
-      const md = marketData?.[ticker];
-      const livePrice = useLive
-        ? ((useExt && md?.extPrice != null && md.extPrice > 0) ? md.extPrice
-           : (md?.lastPrice ?? lastPrice))
-        : null;
-
-      for (const lot of lots) {
-        if (lot.date > date) continue; // not yet held
-
-        // Basis price for this lot
-        let basisPrice;
-        if (lot.date < yearStartDate) {
-          // Pre-year lot needs Jan-1 market price. If we don't have one, skip
-          // this lot entirely — including it with a guessed basis would either
-          // over-attribute (cost) or zero out (lastPrice) the contribution and
-          // distort the percentage. Better to compute YTD% over the holdings
-          // we do have data for than to include misleading numbers.
-          if (janPrice == null) continue;
-          basisPrice = janPrice;
-        } else {
-          // Year lot: basis = cost (always known)
-          basisPrice = lot.cost;
-        }
-
-        // Current price at date — prefer live for the latest chart point so the
-        // endpoint matches the rest of the app (and Yahoo) in real time.
-        let priceAtD = (useLive && livePrice != null && livePrice > 0)
-          ? livePrice
-          : (ts ? closeOn(ticker, date) : null);
-        if (priceAtD == null) {
-          // No historical data (e.g. SPAX.PVT, 017731): linearly interpolate
-          // from cost on lot.date to current lastPrice on today, so the chart
-          // ends at the truthful current value without an ugly endpoint step.
-          const lotMs = new Date(lot.date).getTime();
-          const dMs = new Date(date).getTime();
-          const tgtPrice = (lastPrice != null && lastPrice > 0) ? lastPrice : lot.cost;
-          if (todayMs <= lotMs || dMs >= todayMs) priceAtD = tgtPrice;
-          else if (dMs <= lotMs) priceAtD = lot.cost;
-          else {
-            const t = (dMs - lotMs) / (todayMs - lotMs);
-            priceAtD = lot.cost + (tgtPrice - lot.cost) * t;
-          }
-        }
-
-        value += lot.shares * priceAtD * fx;
-        basis += lot.shares * basisPrice * fx;
-      }
-    }
-    return { value, basis };
+  const ytdOpts = {
+    portfolio, tickerSeries, marketData,
+    yearStart, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
   };
 
   const portYtd = spYtd.map(p => {
-    const { value, basis } = computeAt(p.date);
+    const { value, basis } = computeAt({ ...ytdOpts, date: p.date });
     const pct = basis > 0 ? ((value - basis) / basis) * 100 : 0;
     return { date: p.date, pct };
   });
