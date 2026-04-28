@@ -522,7 +522,11 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
       `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}`;
     const res = await fetch(edgeUrl, {
       headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
-      signal: AbortSignal.timeout(15000),
+      // Short timeout — if the Edge Function is slow we'd rather fail fast
+      // and try the CORS proxies than make the user stare at a "Loading…"
+      // for 15 s. The proxy fallback path also runs fast on the happy path
+      // so total worst-case latency is bounded.
+      signal: AbortSignal.timeout(7000),
     });
     if (res.ok) {
       const data = await res.json();
