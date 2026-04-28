@@ -30,7 +30,7 @@ function Modal({ children, onClose, size = "md" }) {
   );
 }
 
-function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onClose, onEditTicker, onAddTicker, onRemoveTicker }) {
+function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onClose, onEditTicker, onAddTicker, onRemoveTicker, onUpdatePosition }) {
   if (!position) return null;
 
   const sorted = [...position.players].sort((a, b) => b.marketValue - a.marketValue);
@@ -239,7 +239,7 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
   );
 }
 
-function FormRow({ label, hint, children }) {
+function FormRow({ label, hint = null, children }) {
   return (
     <label className="form-row">
       <div className="form-lbl">
