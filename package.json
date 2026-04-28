@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "rm -rf assets",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"

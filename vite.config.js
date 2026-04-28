@@ -1,15 +1,22 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// Vite config — single-page app, output `dist/` for Cloudflare Pages.
-// React/ReactDOM are bundled from npm, replacing the previous Babel-in-browser
-// + CDN setup. The window-globals pattern from the legacy files is kept intact
-// during this initial migration; src/main.jsx imports each module for its
-// side effects (each still attaches its exports to `window.*`).
+// Source root is `src/` and Vite emits the production bundle to the
+// project root (repo root). Cloudflare Pages serves the project root,
+// so the deploy works without any dashboard build-output config — index.html
+// and the hashed `assets/` end up exactly where CF expects.
+//
+// `emptyOutDir: false` means Vite won't wipe the project root on each
+// build (which would delete src/, package.json, etc.). The trade-off is
+// stale hashed bundles can pile up under `assets/` over time; the
+// `prebuild` npm script handles that by clearing it before each build.
 export default defineConfig({
+  root: 'src',
+  publicDir: '../public',
   plugins: [react()],
   build: {
-    outDir: 'dist',
+    outDir: '..',
+    emptyOutDir: false,
     sourcemap: true,
     target: 'es2020',
   },
