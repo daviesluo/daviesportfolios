@@ -1,6 +1,6 @@
 // Initial portfolio data — seeds localStorage on first load.
 // Positions map to football roles; each holding has ticker + shares + avg cost.
-window.INITIAL_PORTFOLIO = {
+export const INITIAL_PORTFOLIO = {
   positions: {
     GK:   { label: "GK",  subtitle: "Cash",          role: "GK",  tickers: ["CASH"] },
     CB1:  { label: "CB",  subtitle: "",              role: "DEF", tickers: [] },
@@ -57,7 +57,7 @@ window.INITIAL_PORTFOLIO = {
 // Used to backfill `lots` on holdings that don't have it yet, so the YTD chart
 // can compute true historical portfolio value at each trading day.
 // Tickers not listed here default to a single lot dated 2025-01-01.
-window.INITIAL_LOTS = {
+export const INITIAL_LOTS = {
   "NVDA": [
     { date: "2024-07-20", shares: 12,   cost: 113.33 },
     { date: "2025-04-01", shares: 26.5, cost: 109.45 },
