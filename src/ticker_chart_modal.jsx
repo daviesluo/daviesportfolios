@@ -26,7 +26,6 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const [series, setSeries]     = React.useState(/** @type {Array<{date:string,close:number}>|null} */ (null));
   const [loading, setLoading]   = React.useState(true);
   const [error, setError]       = React.useState(false);
-  const [hoverIdx, setHoverIdx] = React.useState(/** @type {number|null} */ (null));
 
   const useExt = !!(extendedHours && phase && phase !== 'regular');
 
@@ -67,12 +66,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     setLoading(true);
     setError(false);
     (async () => {
-      // Retry up to 3 times — single-ticker fetches go through the same
-      // CORS-proxy chain as the portfolio chart, which is occasionally
-      // flaky enough that a one-shot request shows the user "Couldn't
-      // load history" when a quick retry would have succeeded.
+      // Retry up to 5 times — Yahoo's CORS-proxy chain is flaky enough
+      // that a one-shot request occasionally shows the user "Couldn't
+      // load history" when a quick retry would have succeeded. Backoff
+      // 400 ms / 800 ms / 1.2 s / 1.6 s; total worst case ~4 s before
+      // we give up.
       let data = null;
-      for (let attempt = 0; attempt < 3 && !data; attempt++) {
+      for (let attempt = 0; attempt < 5 && !data; attempt++) {
         if (attempt > 0) await new Promise(r => setTimeout(r, 400 * attempt));
         if (cancelled) return;
         const out = await fetchHistoricalBatch([ticker], yahooRange, interval, includePrePost);
@@ -150,13 +150,16 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const cW = W - padL - padR, cH = H - padT - padB;
 
   const hasData = points.length >= 2 && anchorClose;
-  let xOf = (_d) => padL, yOf = (_p) => padT + cH / 2;
+  // X positioning is INDEX-based, not time-based. Treating each bar as one
+  // equally-spaced step removes the ugly weekend / overnight gaps a real
+  // time scale would draw, and matches the convention every brokerage
+  // chart uses (Yahoo, Robinhood, T212 etc.) — they all collapse non-
+  // trading time into a single step. xOfIdx(i) takes the data-array index.
+  let xOfIdx = (_i) => padL, yOf = (_p) => padT + cH / 2;
   let yMin = 0, yMax = 0, ticksY = [], ticksX = [];
   if (hasData) {
-    const t0 = new Date(points[0].date).getTime();
-    const t1 = new Date(points[points.length - 1].date).getTime();
-    const tSpan = Math.max(t1 - t0, 1);
-    xOf = (d) => padL + ((new Date(d).getTime() - t0) / tSpan) * cW;
+    const denom = Math.max(1, points.length - 1);
+    xOfIdx = (i) => padL + (i / denom) * cW;
     const allP = points.map(p => p.close);
     const rawMin = Math.min(...allP), rawMax = Math.max(...allP);
     const yPad = Math.max(0.001, (rawMax - rawMin) * 0.08);
@@ -175,33 +178,80 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     };
     const step = niceStep(r);
     for (let v = Math.ceil(yMin / step) * step; v <= yMax; v += step) ticksY.push(v);
-    // X ticks — pick a few representative timestamps
+    // X ticks — pick equally-spaced INDICES (not times) so labels track
+    // actual data points rather than calendar gaps. Each tick records
+    // both the chart-x coord and the date string at that index.
     const ticksToShow = rangeKey === '1D' ? 5 : 4;
     for (let i = 0; i <= ticksToShow; i++) {
-      const t = t0 + (tSpan * i) / ticksToShow;
-      ticksX.push(t);
+      const idx = Math.round((points.length - 1) * (i / ticksToShow));
+      const safeIdx = Math.max(0, Math.min(points.length - 1, idx));
+      ticksX.push({ x: xOfIdx(safeIdx), date: points[safeIdx].date });
     }
   }
 
-  function fmtX(ts) {
-    const d = new Date(ts);
+  function fmtDate(dateStr) {
+    const d = new Date(dateStr);
     if (rangeKey === '1D') {
-      // HH:MM, browser locale
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
-    // Mon DD
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
 
-  // Mouse handler — find nearest point by X distance, then schedule the
-  // state update via requestAnimationFrame so we paint at most once per
-  // frame even when the browser fires mousemove much faster than that.
-  // Without this throttle the dot visibly lags behind the cursor on a
-  // dense intraday series because every event triggers a full SVG
-  // re-render.
+  // Hover crosshair is updated via direct DOM-ref manipulation — NOT React
+  // state. Setting state on every mousemove caused the whole SVG (including
+  // the path with up to 150 points) to reconcile, which was the root of
+  // the lag the user kept hitting. Here we keep the index in a ref and
+  // imperatively update the crosshair group's child attributes inside a
+  // requestAnimationFrame, leaving everything else in the chart untouched.
   const svgRef = React.useRef(null);
+  const crossRef = React.useRef(/** @type {SVGGElement | null} */ (null));
+  const cVlineRef = React.useRef(/** @type {SVGLineElement | null} */ (null));
+  const cHlineRef = React.useRef(/** @type {SVGLineElement | null} */ (null));
+  const cDotRef = React.useRef(/** @type {SVGCircleElement | null} */ (null));
+  const cXRectRef = React.useRef(/** @type {SVGRectElement | null} */ (null));
+  const cXTextRef = React.useRef(/** @type {SVGTextElement | null} */ (null));
+  const cYRectRef = React.useRef(/** @type {SVGRectElement | null} */ (null));
+  const cYTextRef = React.useRef(/** @type {SVGTextElement | null} */ (null));
+  const cPctRectRef = React.useRef(/** @type {SVGRectElement | null} */ (null));
+  const cPctTextRef = React.useRef(/** @type {SVGTextElement | null} */ (null));
   const rafRef = React.useRef(0);
   const pendingIdxRef = React.useRef(/** @type {number|null} */ (null));
+
+  function paintCrosshair() {
+    rafRef.current = 0;
+    const idx = pendingIdxRef.current;
+    const g = crossRef.current;
+    if (!g) return;
+    if (idx == null || !points[idx]) {
+      g.style.display = 'none';
+      return;
+    }
+    g.style.display = '';
+    const p = points[idx];
+    const x = xOfIdx(idx);
+    const y = yOf(p.close);
+    const pct = anchorClose ? ((p.close - anchorClose) / anchorClose) * 100 : 0;
+
+    if (cVlineRef.current) { cVlineRef.current.setAttribute('x1', String(x)); cVlineRef.current.setAttribute('x2', String(x)); }
+    if (cHlineRef.current) { cHlineRef.current.setAttribute('y1', String(y)); cHlineRef.current.setAttribute('y2', String(y)); }
+    if (cDotRef.current)   { cDotRef.current.setAttribute('cx', String(x)); cDotRef.current.setAttribute('cy', String(y));
+                             cDotRef.current.setAttribute('fill', pct >= 0 ? 'var(--gain)' : 'var(--loss)'); }
+    if (cXRectRef.current) cXRectRef.current.setAttribute('x', String(x - 32));
+    if (cXTextRef.current) { cXTextRef.current.setAttribute('x', String(x)); cXTextRef.current.textContent = fmtDate(p.date); }
+    if (cYRectRef.current) cYRectRef.current.setAttribute('y', String(y - 9));
+    if (cYTextRef.current) { cYTextRef.current.setAttribute('y', String(y)); cYTextRef.current.textContent = `${sym}${fmtPr(p.close)}`; }
+    if (cPctRectRef.current) {
+      cPctRectRef.current.setAttribute('x', String(x + 6));
+      cPctRectRef.current.setAttribute('y', String(y - 16));
+      cPctRectRef.current.setAttribute('fill', pct >= 0 ? 'rgba(70,160,90,0.85)' : 'rgba(190,60,70,0.85)');
+    }
+    if (cPctTextRef.current) {
+      cPctTextRef.current.setAttribute('x', String(x + 34));
+      cPctTextRef.current.setAttribute('y', String(y - 5));
+      cPctTextRef.current.textContent = fmP(pct);
+    }
+  }
+
   function handleMove(e) {
     if (!hasData || !svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
@@ -209,40 +259,35 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     if (sx < padL || sx > W - padR) {
       pendingIdxRef.current = null;
     } else {
-      let bestI = 0, bestD = Infinity;
-      for (let i = 0; i < points.length; i++) {
-        const x = xOf(points[i].date);
-        const d = Math.abs(x - sx);
-        if (d < bestD) { bestD = d; bestI = i; }
-      }
-      pendingIdxRef.current = bestI;
+      // Index-based hit: invert xOfIdx to find the nearest data index.
+      const denom = Math.max(1, points.length - 1);
+      const frac = (sx - padL) / cW;
+      const i = Math.round(frac * denom);
+      pendingIdxRef.current = Math.max(0, Math.min(points.length - 1, i));
     }
     if (rafRef.current) return;
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = 0;
-      setHoverIdx(pendingIdxRef.current);
-    });
+    rafRef.current = requestAnimationFrame(paintCrosshair);
   }
   function handleLeave() {
     pendingIdxRef.current = null;
     if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = 0; }
-    setHoverIdx(null);
+    if (crossRef.current) crossRef.current.style.display = 'none';
   }
   React.useEffect(() => () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
   }, []);
+  // Re-hide the crosshair whenever the data swaps (e.g. range change).
+  React.useEffect(() => {
+    if (crossRef.current) crossRef.current.style.display = 'none';
+  }, [series]);
 
+  // Path is built once per render of the chart (when data / geometry
+  // changes). It does NOT depend on hover, so the rAF crosshair paints
+  // don't trigger a path recompute.
   const path = points.length > 0
-    ? 'M' + points.map(p => `${xOf(p.date).toFixed(1)},${yOf(p.close).toFixed(1)}`).join('L')
+    ? 'M' + points.map((p, i) => `${xOfIdx(i).toFixed(1)},${yOf(p.close).toFixed(1)}`).join('L')
     : '';
   const lineColor = pctNow >= 0 ? 'var(--gain)' : 'var(--loss)';
-
-  // Hover-derived display values (or fall back to "now")
-  const displayIdx = hoverIdx != null ? hoverIdx : (points.length - 1);
-  const displayPt  = hasData ? points[displayIdx] : null;
-  const displayPct = (displayPt && anchorClose)
-    ? ((displayPt.close - anchorClose) / anchorClose) * 100
-    : 0;
 
   return (
     <Modal onClose={onClose} size="lg">
@@ -297,17 +342,18 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                   </text>
                 </g>
               ))}
-              {/* X-axis labels */}
-              {ticksX.map((ts, i) => (
-                <text key={`x${i}`} x={padL + (cW * i) / (ticksX.length - 1)} y={H - padB + 14}
+              {/* X-axis labels — index-based, so weekend / non-trading
+                  gaps don't open up empty stretches under the chart. */}
+              {ticksX.map((tk, i) => (
+                <text key={`x${i}`} x={tk.x} y={H - padB + 14}
                       textAnchor={i === 0 ? 'start' : (i === ticksX.length - 1 ? 'end' : 'middle')}
                       fontSize="9.5" fill="rgba(244,239,227,0.55)" fontFamily="var(--font-mono)">
-                  {fmtX(ts)}
+                  {fmtDate(tk.date)}
                 </text>
               ))}
               {/* Vertical dashed line at last regular close (1D ext mode) */}
               {regularCloseIdx >= 0 && (() => {
-                const x = xOf(points[regularCloseIdx].date).toFixed(1);
+                const x = xOfIdx(regularCloseIdx).toFixed(1);
                 return (
                   <g>
                     <line x1={x} y1={padT} x2={x} y2={H - padB}
@@ -325,47 +371,33 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               {/* End-of-line dot */}
               {points.length > 0 && (() => {
                 const last = points[points.length - 1];
-                return <circle cx={xOf(last.date).toFixed(1)} cy={yOf(last.close).toFixed(1)}
+                return <circle cx={xOfIdx(points.length - 1).toFixed(1)} cy={yOf(last.close).toFixed(1)}
                                r="3" fill={lineColor} stroke="#0c1310" strokeWidth="1.5" />;
               })()}
-              {/* Hover crosshair */}
-              {hoverIdx != null && displayPt && (() => {
-                const hx = xOf(displayPt.date);
-                const hy = yOf(displayPt.close);
-                const dotColor = displayPct >= 0 ? 'var(--gain)' : 'var(--loss)';
-                return (
-                  <g>
-                    {/* Vertical dashed line down to X axis */}
-                    <line x1={hx.toFixed(1)} y1={padT} x2={hx.toFixed(1)} y2={H - padB}
-                          stroke="rgba(244,239,227,0.5)" strokeWidth="0.7" strokeDasharray="3,3" />
-                    {/* Horizontal dashed line out to Y axis */}
-                    <line x1={padL} y1={hy.toFixed(1)} x2={W - padR} y2={hy.toFixed(1)}
-                          stroke="rgba(244,239,227,0.5)" strokeWidth="0.7" strokeDasharray="3,3" />
-                    {/* X-axis time label */}
-                    <rect x={hx - 32} y={H - padB + 1} width={64} height={18} fill="#0c1310" stroke="var(--chalk-dim)" />
-                    <text x={hx.toFixed(1)} y={H - padB + 13} textAnchor="middle"
-                          fontSize="9.5" fill="var(--chalk)" fontFamily="var(--font-mono)">
-                      {fmtX(new Date(displayPt.date).getTime())}
-                    </text>
-                    {/* Y-axis price label */}
-                    <rect x={padL - 56} y={hy - 9} width={52} height={18} fill="#0c1310" stroke="var(--chalk-dim)" />
-                    <text x={padL - 6} y={hy.toFixed(1)} textAnchor="end" dominantBaseline="middle"
-                          fontSize="9.5" fill="var(--chalk)" fontFamily="var(--font-mono)">
-                      {sym}{fmtPr(displayPt.close)}
-                    </text>
-                    {/* Dot at the hovered point */}
-                    <circle cx={hx.toFixed(1)} cy={hy.toFixed(1)} r="3.5"
-                            fill={dotColor} stroke="#0c1310" strokeWidth="1.5" />
-                    {/* % label slightly above-right of the dot */}
-                    <rect x={hx + 6} y={hy - 16} width={56} height={16} rx={2}
-                          fill={displayPct >= 0 ? 'rgba(70,160,90,0.85)' : 'rgba(190,60,70,0.85)'} />
-                    <text x={hx + 34} y={hy - 5} textAnchor="middle"
-                          fontSize="10" fill="#fff" fontFamily="var(--font-mono)" fontWeight="600">
-                      {fmP(displayPct)}
-                    </text>
-                  </g>
-                );
-              })()}
+              {/* Hover crosshair — rendered once with refs, hidden by
+                  default. handleMove updates these elements directly via
+                  setAttribute inside a rAF, so the rest of the SVG (path,
+                  axes) doesn't reconcile every frame. */}
+              <g ref={crossRef} style={{ display: 'none' }}>
+                <line ref={cVlineRef} x1={padL} y1={padT} x2={padL} y2={H - padB}
+                      stroke="rgba(244,239,227,0.5)" strokeWidth="0.7" strokeDasharray="3,3" />
+                <line ref={cHlineRef} x1={padL} y1={padT} x2={W - padR} y2={padT}
+                      stroke="rgba(244,239,227,0.5)" strokeWidth="0.7" strokeDasharray="3,3" />
+                <rect ref={cXRectRef} x={padL} y={H - padB + 1} width={64} height={18}
+                      fill="#0c1310" stroke="var(--chalk-dim)" />
+                <text ref={cXTextRef} x={padL} y={H - padB + 13} textAnchor="middle"
+                      fontSize="9.5" fill="var(--chalk)" fontFamily="var(--font-mono)" />
+                <rect ref={cYRectRef} x={padL - 56} y={padT} width={52} height={18}
+                      fill="#0c1310" stroke="var(--chalk-dim)" />
+                <text ref={cYTextRef} x={padL - 6} y={padT} textAnchor="end" dominantBaseline="middle"
+                      fontSize="9.5" fill="var(--chalk)" fontFamily="var(--font-mono)" />
+                <circle ref={cDotRef} cx={padL} cy={padT} r="3.5"
+                        fill="var(--gain)" stroke="#0c1310" strokeWidth="1.5" />
+                <rect ref={cPctRectRef} x={padL} y={padT} width={56} height={16} rx={2}
+                      fill="rgba(70,160,90,0.85)" />
+                <text ref={cPctTextRef} x={padL} y={padT} textAnchor="middle"
+                      fontSize="10" fill="#fff" fontFamily="var(--font-mono)" fontWeight="600" />
+              </g>
             </svg>
           )}
         </div>
