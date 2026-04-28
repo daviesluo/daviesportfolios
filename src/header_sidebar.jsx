@@ -13,7 +13,34 @@ import {
   fetchHistoricalBatch,
   Storage,
 } from './utils.js';
-import { buildTickerSeries, computeAt, ytdPct } from './ytd.js';
+import { buildTickerSeries, computeAt, ytdPct, RANGES, RANGE_KEYS, anchorDateFor } from './ytd.js';
+
+// Tiny placeholder shell so the loading / error / range-button row renders
+// the same chrome as the full chart — keeps the layout from jumping when
+// the user flips between ranges.
+function renderShell(child, rangeKey, setRangeKey) {
+  return (
+    <div className="perf-chart-wrap">
+      {child}
+      <RangeButtons rangeKey={rangeKey} onChange={setRangeKey} />
+    </div>
+  );
+}
+
+function RangeButtons({ rangeKey, onChange }) {
+  return (
+    <div className="perf-range-row">
+      {RANGE_KEYS.map(k => (
+        <button
+          key={k}
+          type="button"
+          className={`perf-range-btn mono${k === rangeKey ? ' on' : ''}`}
+          onClick={() => onChange(k)}
+        >{RANGES[k].label}</button>
+      ))}
+    </div>
+  );
+}
 
 // Eye icons for the "hide values" toggle in the scoreboard. Inline SVG so
 // they inherit currentColor and don't need an extra HTTP request.
@@ -225,38 +252,43 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
   );
 }
 
-// YTD performance chart: portfolio % return vs S&P 500, normalised from a common start.
-// We cache historical closes per-ticker in localStorage so partial fetch failures
-// don't break the chart — when today's fetch misses a ticker, we keep using the
-// most recent cached series for that ticker (Jan-1 close never changes anyway).
-// Each entry is timestamped; we refetch any entry older than the TTL.
-// Storage lives at Utils.Storage's `dp.ytd` key under the unified schema —
-// no per-revision cache key bumping any more; bump CURRENT_SCHEMA_VERSION
-// in utils.js if the format genuinely changes.
-const YTD_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
+// Portfolio Performance chart: portfolio % return vs S&P 500, with a range
+// selector (1D / 1W / 1M / 3M / YTD). We cache historical closes per
+// (range, ticker) in localStorage so switching between ranges is instant
+// once they've been fetched once. Cache TTL is short for 1D (intraday data
+// becomes stale fast) and longer for daily ranges.
+const PERF_CACHE_TTL_MS = {
+  '1D': 5 * 60 * 1000,           // 5 min — intraday, churns
+  '1W': 4 * 60 * 60 * 1000,
+  '1M': 4 * 60 * 60 * 1000,
+  '3M': 4 * 60 * 60 * 1000,
+  'YTD': 4 * 60 * 60 * 1000,
+};
 
-function loadYtdCache(year) {
+function loadPerfCache(year, rangeKey) {
   const parsed = Storage.loadYtd();
-  if (!parsed || parsed.year !== year || !parsed.entries) return {};
-  return parsed.entries; // { ticker: { ts, data: [{date,close}, …] } }
+  if (!parsed || parsed.year !== year || !parsed.byRange) return {};
+  return parsed.byRange[rangeKey]?.entries || {};
 }
-function saveYtdCache(year, entries) {
-  Storage.saveYtd({ year, entries });
+function savePerfCache(year, rangeKey, entries) {
+  const cur = Storage.loadYtd();
+  const byRange = (cur && cur.year === year && cur.byRange) ? cur.byRange : {};
+  byRange[rangeKey] = { entries };
+  Storage.saveYtd({ year, byRange });
 }
 
 // YTD performance chart: portfolio % return vs S&P 500, computed from per-lot
 // purchase history + historical closes (Yahoo Finance), normalised from the
 // first trading day of the calendar year.
 function PerfChart({ portfolio, marketData, extendedHours, phase }) {
+  const [rangeKey, setRangeKey] = React.useState('YTD');
   const [hist,    setHist]    = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState(false);
 
   // Tickers we need historical data for. We send all non-cash holdings to the
   // chart Edge Function — it routes 6-digit CN fund codes to eastmoney's
-  // pingzhongdata endpoint and everything else (including .PVT) to Yahoo. A
-  // ticker that's unsupported on either backend just returns null and falls
-  // back to linear interpolation between cost and lastPrice.
+  // pingzhongdata endpoint and everything else (including .PVT) to Yahoo.
   const tickers = React.useMemo(() => {
     if (!portfolio) return [];
     const out = new Set();
@@ -273,21 +305,24 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     let cancelled = false;
     const year = new Date().getFullYear();
     const symbols = ['^GSPC', ...tickers];
+    const ranges = RANGES[rangeKey] || RANGES.YTD;
+    const ttl = PERF_CACHE_TTL_MS[rangeKey] || PERF_CACHE_TTL_MS.YTD;
 
-    // Read per-ticker cache; populate hist immediately with whatever's still fresh.
-    const entries = loadYtdCache(year);
+    // Read per-ticker cache for THIS range; show fresh entries immediately
+    // and refetch anything stale in the background.
+    const entries = loadPerfCache(year, rangeKey);
+    /** @type {Record<string, any[]>} */
     const fresh = {};
     const stale = [];
     for (const s of symbols) {
       const e = entries[s];
-      if (e && e.data && Array.isArray(e.data) && (Date.now() - (e.ts || 0)) < YTD_CACHE_TTL_MS) {
+      if (e && e.data && Array.isArray(e.data) && (Date.now() - (e.ts || 0)) < ttl) {
         fresh[s] = e.data;
       } else {
         stale.push(s);
       }
     }
 
-    // Show whatever's already in cache while we refresh stale entries in the background.
     if (Object.keys(fresh).length > 0 && fresh['^GSPC']) {
       setHist({ ...fresh });
       setLoading(false);
@@ -297,24 +332,18 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 
     if (stale.length === 0) return;
 
-    // Fetch range=1y so we have data from the last trading day of the previous
-    // year — that close is the YTD baseline (matches Yahoo Finance's anchor).
     (async () => {
-      const batch = await fetchHistoricalBatch(stale, '1y', '1d');
+      const batch = await fetchHistoricalBatch(stale, ranges.yahooRange, ranges.interval);
       if (cancelled) return;
-      // ^GSPC anchors the X axis. If the batch missed it (Edge Function down,
-      // CORS proxies rate-limited, etc.) try a few more direct fetches before
-      // giving up — better to wait an extra second than show "Couldn't load".
+      // ^GSPC anchors the X axis. Retry if the batch missed it.
       if (!batch['^GSPC']) {
         for (let i = 0; i < 3 && !batch['^GSPC']; i++) {
           await new Promise(r => setTimeout(r, 800 * (i + 1)));
           if (cancelled) return;
-          const retry = await fetchHistorical('^GSPC', '1y', '1d').catch(() => null);
+          const retry = await fetchHistorical('^GSPC', ranges.yahooRange, ranges.interval).catch(() => null);
           if (retry) batch['^GSPC'] = retry;
         }
       }
-      // Merge new fetches into both the live state and persistent cache. Tickers
-      // that failed today fall back to whatever the previous cached entry was.
       const merged = { ...fresh };
       const newEntries = { ...entries };
       const now = Date.now();
@@ -323,93 +352,92 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
           merged[s] = batch[s];
           newEntries[s] = { ts: now, data: batch[s] };
         } else if (entries[s] && entries[s].data) {
-          merged[s] = entries[s].data; // keep prior cached series rather than dropping the ticker
+          merged[s] = entries[s].data;
         }
       }
-      saveYtdCache(year, newEntries);
-      // We need SOMETHING to anchor the X axis. Prefer ^GSPC; otherwise pick
-      // the longest portfolio-ticker series so the chart still renders even if
-      // the S&P 500 line is missing today.
+      savePerfCache(year, rangeKey, newEntries);
       const hasAnchor = merged['^GSPC'] || Object.values(merged).some(s => Array.isArray(s) && s.length >= 2);
       if (!hasAnchor) {
         setError(true);
         setLoading(false);
         return;
       }
+      setError(false);
       setHist(merged);
       setLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [tickerKey]);
+  }, [tickerKey, rangeKey]);
 
-  if (!portfolio) return <div className="sparkline-empty dim mono">Loading…</div>;
-  if (loading)    return <div className="sparkline-empty dim mono">Computing YTD…</div>;
-  if (error)      return <div className="sparkline-empty dim mono">Couldn't load history</div>;
+  if (!portfolio) return renderShell(<div className="sparkline-empty dim mono">Loading…</div>, rangeKey, setRangeKey);
+  if (loading)    return renderShell(<div className="sparkline-empty dim mono">Computing…</div>, rangeKey, setRangeKey);
+  if (error)      return renderShell(<div className="sparkline-empty dim mono">Couldn't load history</div>, rangeKey, setRangeKey);
 
   const year = new Date().getFullYear();
-  const yearStart = `${year}-01-01`;
+  const anchorDate = anchorDateFor(rangeKey);
 
-  // S&P 500 trading dates within YTD anchor the chart's x-axis. We fetch
-  // range=1y so we also have data from BEFORE yearStart — the close from the
-  // last trading day of the previous year is what Yahoo uses as the YTD
-  // baseline (so stocks that gap up on Jan 2 already show a positive YTD).
-  // If ^GSPC is unavailable we fall back to the longest portfolio-ticker
-  // series so the chart still renders (without an S&P 500 line).
+  // S&P 500 trading dates within the selected window anchor the chart's
+  // x-axis. We use range-specific cutoffs (anchorDate). If ^GSPC is
+  // unavailable, fall back to the longest portfolio-ticker series.
   const allSp = (hist['^GSPC'] || [])
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date));
-  let spYtd = allSp.filter(p => p.date >= yearStart);
-  let hasSp = spYtd.length >= 2;
+  let spWindow = allSp.filter(p => p.date >= anchorDate);
+  let hasSp = spWindow.length >= 2;
   if (!hasSp) {
     let bestKey = null, bestLen = 0;
     for (const [k, s] of Object.entries(hist || {})) {
       if (k === '^GSPC' || !Array.isArray(s)) continue;
-      const ytdSlice = s.filter(p => p.date >= yearStart);
-      if (ytdSlice.length > bestLen) { bestLen = ytdSlice.length; bestKey = k; }
+      const slice = s.filter(p => p.date >= anchorDate);
+      if (slice.length > bestLen) { bestLen = slice.length; bestKey = k; }
     }
-    if (!bestKey || bestLen < 2) return <div className="sparkline-empty dim mono">No YTD data yet</div>;
-    spYtd = (hist[bestKey] || [])
+    if (!bestKey || bestLen < 2) {
+      return renderShell(<div className="sparkline-empty dim mono">No data for this range</div>, rangeKey, setRangeKey);
+    }
+    spWindow = (hist[bestKey] || [])
       .slice()
       .sort((a, b) => a.date.localeCompare(b.date))
-      .filter(p => p.date >= yearStart);
+      .filter(p => p.date >= anchorDate);
   }
-  const yearStartDate = spYtd[0].date;
+  const yearStartDate = spWindow[0].date;
   const todayMs = Date.now();
 
-  // S&P 500 baseline = last close strictly before yearStart (Dec 31 of prior year).
-  // Falls back to first YTD close if no prior-year data is available.
-  // Only meaningful when hasSp; otherwise we'll skip drawing the S&P 500 line.
-  const spPriorYear = hasSp ? allSp.filter(p => p.date < yearStart) : [];
-  const spBase = spPriorYear.length > 0 ? spPriorYear[spPriorYear.length - 1].close : spYtd[0].close;
+  // S&P 500 baseline. For 1D this is the prevClose of ^GSPC (from
+  // marketData). For daily ranges it's the last close strictly before
+  // anchorDate. Falls back to the first window close.
+  let spBase;
+  if (rangeKey === '1D') {
+    const md = marketData?.['^GSPC'];
+    spBase = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : spWindow[0].close;
+  } else {
+    const spPrior = hasSp ? allSp.filter(p => p.date < anchorDate) : [];
+    spBase = spPrior.length > 0 ? spPrior[spPrior.length - 1].close : spWindow[0].close;
+  }
 
-  // Per-ticker sorted series + map + Jan-1 baseline price. Pure helper from
-  // ./ytd.js so the chart math can be unit-tested without React/network.
   /** @type {Record<string, {date:string,close:number}[]>} */
   const histForTickers = {};
   for (const t of tickers) histForTickers[t] = hist[t] || [];
-  const tickerSeries = buildTickerSeries(histForTickers, yearStart, yearStartDate);
+  const tickerSeries = buildTickerSeries(histForTickers, anchorDate, rangeKey, marketData);
 
-  // Yahoo's YTD formula (see ytd.js for the long form).
-  //   - Pre-year lot: basis = shares × Jan-1 market price
-  //   - Year lot:     basis = shares × cost
-  //   - YTD%(d) = (Σ value − Σ basis) / Σ basis × 100
-  // The last chart point swaps in live marketData prices so the endpoint
-  // matches the rest of the app + Yahoo in real time. With extendedHours on
-  // outside regular hours, we use extPrice (same convention as the header
-  // dollar total).
   const useExt = !!(extendedHours && phase && phase !== "regular");
-  const liveAnchorDate = spYtd[spYtd.length - 1].date;
+  const liveAnchorDate = spWindow[spWindow.length - 1].date;
   const ytdOpts = {
     portfolio, tickerSeries, marketData,
-    yearStart, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
+    yearStart: anchorDate, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
   };
 
-  const portYtd = spYtd.map(p => {
+  const portYtd = spWindow.map(p => {
     const { value, basis } = computeAt({ ...ytdOpts, date: p.date });
     const pct = basis > 0 ? ((value - basis) / basis) * 100 : 0;
     return { date: p.date, pct };
   });
-  if (portYtd.length < 2) return <div className="sparkline-empty dim mono">Insufficient data</div>;
+  if (portYtd.length < 2) {
+    return renderShell(<div className="sparkline-empty dim mono">Insufficient data</div>, rangeKey, setRangeKey);
+  }
+
+  // Re-binding for downstream rendering code that still uses spYtd / yearStart
+  const spYtd = spWindow;
+  const yearStart = anchorDate;
 
   // S&P 500 normalised from prior-year-end close (computed earlier as spBase).
   // Empty when hasSp is false; downstream rendering already guards against
@@ -549,6 +577,8 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
                          r="3" fill={portColor} stroke="#0c1310" strokeWidth="1.5" />;
         })()}
       </svg>
+
+      <RangeButtons rangeKey={rangeKey} onChange={setRangeKey} />
     </div>
   );
 }
@@ -559,7 +589,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 function PerfPanel({ portfolio, marketData, extendedHours, phase, className }) {
   return (
     <section className={`panel ${className || ""}`.trim()}>
-      <h3 className="panel-title">YTD PERFORMANCE</h3>
+      <h3 className="panel-title">PORTFOLIO PERFORMANCE</h3>
       <PerfChart
         portfolio={portfolio}
         marketData={marketData}
