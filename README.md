@@ -72,6 +72,104 @@ secrets server-side.
 
 ---
 
+## Using the board
+
+A short tour of the interactive surface. (Engineering details are
+covered further down.)
+
+### Sign in
+
+Two passwords gate the app, each granting a different role:
+
+- `?pwd=<admin>` — full edit mode. Add / remove tickers, edit lots,
+  drag holdings between positions, adjust cash.
+- `?pwd=<readonly>` — view-only "share" link. Same data, no editing
+  controls. The header shows a `VIEWER` badge instead of the
+  `EDIT` toggle.
+
+The password is consumed and stripped from the URL on first load
+(it never lingers in browser history). The signed token lives in
+`sessionStorage` and is reused across reloads, so a service-worker
+update — or any other mid-session refresh — won't bounce you back
+to the prompt.
+
+### Header / scoreboard
+
+- **Time + market phase** — local UK time (auto-flips between BST
+  and GMT) plus a coloured dot for the current US market phase
+  (green = open, gold = pre-market, purple = after-hours, blue =
+  overnight).
+- **Extended hours toggle** — when off, the scoreboard reflects the
+  regular session. When on, indices switch to their futures
+  contracts (`^GSPC` → `ES=F`, etc.) and the day-change recomputes
+  against today's regular close so post-market moves show up.
+- **Hide-values eye** — masks dollar amounts with `*` so the page is
+  screenshot-safe; percentages stay visible. Sticky across reloads.
+- **Tactics Board ↔ Heat Map** — switch the central panel between
+  the football-pitch view and a treemap heatmap.
+- **Refresh** — manually triggers a price fetch + a background
+  prefetch of every chart range. The page also auto-refreshes prices
+  every 30 s.
+
+### Tactics board view
+
+- Each card shows a position (GK / CB / CDM / CM / LW / ST / RW …)
+  with the holdings assigned to it. The largest position by USD
+  value gets the captain's armband; the position with the biggest
+  intraday move gets a "hot mover" ball.
+- **Tap a card** in non-edit mode → drilldown modal listing every
+  holding in that position, sorted by market value.
+- **Tap a ticker** in non-edit mode → opens the ticker chart modal.
+- **Edit mode** (admin only) — long-press / drag a ticker to a
+  different position card; tap a card to add a new ticker; tap the
+  GK card to adjust cash.
+
+### Heatmap view
+
+- One tile per non-cash holding, sized by USD market value, coloured
+  by today's % change (green up, red down, deeper = larger move).
+- **Tap a tile** → opens the same ticker chart modal.
+
+### Ticker chart modal
+
+- **Range buttons**: 1D / 1W / 1M / 3M / YTD. CN funds (6-digit
+  codes) only show the daily ranges since they publish one NAV /
+  trading day.
+- **1D view** spans the trailing 24 h with two dashed markers:
+  `CLOSE` at the previous regular close and `OPEN` at today's open.
+  The displayed % is "since previous close", matching the
+  scoreboard's DAY CHANGE and every heatmap tile. While the modal is
+  open the chart polls back-to-back (5 s minimum gap) so intraday
+  bars trickle in without a manual refresh.
+- **Hover** anywhere on the chart for a crosshair: dashed lines down
+  to both axes, a tooltip showing the price at that bar, and the %
+  change from the anchor.
+- **Other ranges** (1W / 1M / 3M / YTD) are pre-fetched in the
+  background after every refresh, so range-button clicks usually
+  hit the cache and render instantly.
+
+### Performance vs S&P 500 panel
+
+A two-line chart comparing the portfolio's % return against the
+S&P 500 over the same range buttons. 1D ext-mode swaps `^GSPC` for
+`ES=F` so post-market moves are visible.
+
+### Sidebar
+
+- **Top Movers · Today** — the five largest winners and losers by %
+  change.
+- **Formation Value** — every position's USD weight as a horizontal
+  bar plus its day P/L.
+
+### Install as a PWA
+
+The app is a PWA — on iOS / Android, "Add to Home Screen" gives a
+full-screen launcher with the proper icon. When a new version is
+deployed, a top-of-screen banner offers a `RELOAD` button; the SW
+won't auto-reload mid-session.
+
+---
+
 ## Stack
 
 - **Frontend** — React 18 + Vite 5, JSX with `checkJs` + JSDoc for type
