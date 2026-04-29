@@ -21,7 +21,15 @@ function modalCacheGet(key, ttlMs) {
 }
 function modalCacheSet(key, data) { _modalCache.set(key, { ts: Date.now(), data }); }
 
+// 6-digit numeric codes are CN mutual funds (天天基金). They only publish
+// one NAV per trading day, so 1D / 1W (5 m / 30 m intraday) ranges have
+// no meaningful data — restrict the visible range buttons to the daily
+// ones for these tickers.
+const CN_FUND_RE = /^\d{6}$/;
+
 export function TickerChartModal({ ticker, holding, marketData, extendedHours, phase, onClose }) {
+  const isCnFund = CN_FUND_RE.test(ticker);
+  const visibleRangeKeys = isCnFund ? ['1M', '3M', 'YTD'] : RANGE_KEYS;
   const [rangeKey, setRangeKey] = React.useState('YTD');
   const [series, setSeries]     = React.useState(/** @type {Array<{date:string,close:number}>|null} */ (null));
   const [loading, setLoading]   = React.useState(true);
@@ -53,14 +61,14 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     setLoading(true);
     setError(false);
     (async () => {
-      // Retry up to 5 times — Yahoo's CORS-proxy chain is flaky enough
-      // that a one-shot request occasionally shows the user "Couldn't
-      // load history" when a quick retry would have succeeded. Backoff
-      // 400 ms / 800 ms / 1.2 s / 1.6 s; total worst case ~4 s before
-      // we give up.
+      // Yahoo's CORS-proxy chain is occasionally flaky enough to drop a
+      // first request; one quick retry catches the recoverable cases.
+      // More than that mostly extends the spinner with no extra payoff —
+      // when a symbol consistently fails (e.g. delisted or 6-digit fund
+      // with eastmoney downtime) repeating won't conjure data.
       let data = null;
-      for (let attempt = 0; attempt < 5 && !data; attempt++) {
-        if (attempt > 0) await new Promise(r => setTimeout(r, 400 * attempt));
+      for (let attempt = 0; attempt < 2 && !data; attempt++) {
+        if (attempt > 0) await new Promise(r => setTimeout(r, 300));
         if (cancelled) return;
         const out = await fetchHistoricalBatch([ticker], yahooRange, interval, includePrePost);
         if (cancelled) return;
@@ -85,7 +93,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // cache untouched and the next click pays the normal fetch cost.
   React.useEffect(() => {
     if (loading || error || !series) return;
-    const others = RANGE_KEYS.filter(k => k !== rangeKey);
+    const others = visibleRangeKeys.filter(k => k !== rangeKey);
     let cancelled = false;
     (async () => {
       for (const rk of others) {
@@ -215,17 +223,25 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     }
   }
 
+  // Crosshair hover label — keeps minute precision on 1W/1M so the user
+  // can read the exact bar's timestamp.
   function fmtDate(dateStr) {
     const d = new Date(dateStr);
     if (rangeKey === '1D') {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
-    // 1W and 1M now use 30m / 60m intraday intervals — multiple bars per
-    // day. Ticker chart shows date + time so neighbouring bars on the
-    // same calendar date don't all read as the identical "Apr 28" label.
     if (rangeKey === '1W' || rangeKey === '1M') {
       return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
              d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+  // X-axis tick labels — bare date on 1W/1M (5–6 samples across the row,
+  // intraday timestamps would just clutter without adding info).
+  function fmtAxisDate(dateStr) {
+    const d = new Date(dateStr);
+    if (rangeKey === '1D') {
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
@@ -402,7 +418,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                 <text key={`x${i}`} x={tk.x} y={H - padB + 14}
                       textAnchor={i === 0 ? 'start' : (i === ticksX.length - 1 ? 'end' : 'middle')}
                       fontSize="9.5" fill="rgba(244,239,227,0.55)" fontFamily="var(--font-mono)">
-                  {fmtDate(tk.date)}
+                  {fmtAxisDate(tk.date)}
                 </text>
               ))}
               {/* Vertical dashed line at last regular close (1D ext mode) */}
@@ -457,7 +473,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         </div>
 
         <div className="perf-range-row">
-          {RANGE_KEYS.map(k => (
+          {visibleRangeKeys.map(k => (
             <button
               key={k}
               type="button"
