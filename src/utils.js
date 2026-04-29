@@ -13,6 +13,7 @@ const STORAGE_KEYS = {
   auth:          'dp.auth',         // { lockoutUntil, attempts }
   ytd:           'dp.ytd',          // { year, entries: { ticker: { ts, data } } }
   prefs:         'dp.prefs',        // { hideValues: boolean, ... }
+  tickerChart:   'dp.tickerChart',  // { entries: { "ticker|range|variant|phase": { ts, data } } }
 };
 const CURRENT_SCHEMA_VERSION = 1;
 
@@ -57,6 +58,8 @@ export const Storage = {
   saveYtd:   (d) => writeJSON(STORAGE_KEYS.ytd, d),
   loadPrefs: () => readJSON(STORAGE_KEYS.prefs, { hideValues: false }),
   savePrefs: (p) => writeJSON(STORAGE_KEYS.prefs, p),
+  loadTickerChart: () => readJSON(STORAGE_KEYS.tickerChart, { entries: {} }),
+  saveTickerChart: (d) => writeJSON(STORAGE_KEYS.tickerChart, d),
 };
 
 // -------- Formatting --------
@@ -523,7 +526,7 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
     for (const makeProxy of PROXIES) {
       const controller = new AbortController();
       controllers.push(controller);
-      const tid = setTimeout(() => controller.abort(), 7000);
+      const tid = setTimeout(() => controller.abort(), 4000);
       timers.push(tid);
       (async () => {
         try {
@@ -666,7 +669,7 @@ async function fetchCnFundHistoryViaProxy(code, range) {
     for (const { url, parse } of attempts) {
       const controller = new AbortController();
       controllers.push(controller);
-      const tid = setTimeout(() => controller.abort(), 7000);
+      const tid = setTimeout(() => controller.abort(), 4000);
       timers.push(tid);
       (async () => {
         try {
