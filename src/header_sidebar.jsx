@@ -321,23 +321,35 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     const ttl = PERF_CACHE_TTL_MS[rangeKey] || PERF_CACHE_TTL_MS.YTD;
     const cacheKey = `${rangeKey}:${variantKey}`;
 
-    // Read per-ticker cache for THIS range/variant; show fresh entries
-    // immediately and refetch anything stale in the background.
+    // Read per-ticker cache for THIS range/variant. Render whatever's
+    // there first (fresh OR stale) so the chart appears immediately on
+    // subsequent visits even if the cache has aged past TTL — the
+    // background revalidate below replaces it once fresh data lands.
     const entries = loadPerfCache(year, cacheKey);
     /** @type {Record<string, any[]>} */
     const fresh = {};
     const stale = [];
+    /** @type {Record<string, any[]>} */
+    const staleData = {};
     for (const s of symbols) {
       const e = entries[s];
-      if (e && e.data && Array.isArray(e.data) && (Date.now() - (e.ts || 0)) < ttl) {
-        fresh[s] = e.data;
+      if (e && e.data && Array.isArray(e.data)) {
+        if ((Date.now() - (e.ts || 0)) < ttl) {
+          fresh[s] = e.data;
+        } else {
+          stale.push(s);
+          staleData[s] = e.data;
+        }
       } else {
         stale.push(s);
       }
     }
 
-    if (Object.keys(fresh).length > 0 && fresh['^GSPC']) {
-      setHist({ ...fresh });
+    // Stale-while-revalidate: show whatever we have (fresh + stale)
+    // instantly. The user sees "Computing…" only on a true cold cache.
+    const initial = { ...fresh, ...staleData };
+    if (initial[spSymbol]) {
+      setHist(initial);
       setLoading(false);
     } else {
       setLoading(true);
@@ -345,42 +357,79 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 
     if (stale.length === 0) return;
 
-    (async () => {
-      const batch = await fetchHistoricalBatch(stale, params.yahooRange, params.interval, params.includePrePost);
-      if (cancelled) return;
-      // The S&P reference anchors the X axis. Retry if the batch missed it.
-      if (!batch[spSymbol]) {
-        for (let i = 0; i < 3 && !batch[spSymbol]; i++) {
-          await new Promise(r => setTimeout(r, 800 * (i + 1)));
-          if (cancelled) return;
-          const retry = await fetchHistorical(spSymbol, params.yahooRange, params.interval, params.includePrePost).catch(() => null);
-          if (retry) batch[spSymbol] = retry;
-        }
-      }
-      const merged = { ...fresh };
-      const newEntries = { ...entries };
+    // Split the cold/stale batch into TWO parallel calls:
+    //   - S&P alone (1 ticker — Edge Function returns in ~300 ms when warm)
+    //   - The rest of the portfolio (N tickers — slowest one gates it)
+    // As soon as S&P returns we can paint the chart; the bulk fetch
+    // updates it in place when it lands. Total time ≈ slowest single
+    // ticker, but the user perceives the chart appearing the moment the
+    // S&P anchor data arrives.
+    const staleSp = stale.includes(spSymbol) ? [spSymbol] : [];
+    const staleTickers = stale.filter(s => s !== spSymbol);
+
+    /** @type {Record<string, any[]>} */
+    const merged = { ...initial };
+    const newEntries = { ...entries };
+
+    const applyBatch = (batch) => {
       const now = Date.now();
       for (const s of stale) {
         let data = batch[s];
-        // 1D + ext OFF + market closed: keep only the latest day's points.
         if (data && params.variant === 'closed') data = filterToLatestDay(data);
         if (data) {
           merged[s] = data;
           newEntries[s] = { ts: now, data };
-        } else if (entries[s] && entries[s].data) {
-          merged[s] = entries[s].data;
         }
       }
       savePerfCache(year, cacheKey, newEntries);
+      if (cancelled) return;
       const hasAnchor = merged[spSymbol] || Object.values(merged).some(s => Array.isArray(s) && s.length >= 2);
       if (!hasAnchor) {
-        setError(true);
-        setLoading(false);
+        if (Object.keys(initial).length === 0) {
+          setError(true);
+          setLoading(false);
+        }
         return;
       }
       setError(false);
-      setHist(merged);
+      setHist({ ...merged });
       setLoading(false);
+    };
+
+    const spPromise = staleSp.length > 0
+      ? fetchHistoricalBatch(staleSp, params.yahooRange, params.interval, params.includePrePost)
+          .then(b => { if (!cancelled) applyBatch(b); return b; })
+      : Promise.resolve({});
+    const tickersPromise = staleTickers.length > 0
+      ? fetchHistoricalBatch(staleTickers, params.yahooRange, params.interval, params.includePrePost)
+          .then(b => { if (!cancelled) applyBatch(b); return b; })
+      : Promise.resolve({});
+
+    (async () => {
+      const [spBatch, tickersBatch] = await Promise.all([spPromise, tickersPromise]);
+      if (cancelled) return;
+      // After both batches resolve: if S&P is still missing, do up to 3
+      // proxy retries for it specifically — the chart won't render
+      // without an anchor series.
+      if (!merged[spSymbol] && !spBatch[spSymbol]) {
+        for (let i = 0; i < 3 && !merged[spSymbol]; i++) {
+          await new Promise(r => setTimeout(r, 600 * (i + 1)));
+          if (cancelled) return;
+          const retry = await fetchHistorical(spSymbol, params.yahooRange, params.interval, params.includePrePost).catch(() => null);
+          if (retry) {
+            merged[spSymbol] = retry;
+            newEntries[spSymbol] = { ts: Date.now(), data: retry };
+            savePerfCache(year, cacheKey, newEntries);
+            applyBatch({ [spSymbol]: retry });
+          }
+        }
+      }
+      // Final state — if still no anchor and we haven't shown anything yet,
+      // surface an error.
+      if (!cancelled && !merged[spSymbol] && Object.keys(initial).length === 0) {
+        setError(true);
+        setLoading(false);
+      }
     })();
     return () => { cancelled = true; };
   }, [tickerKey, rangeKey, variantKey]);
