@@ -32,6 +32,20 @@ secrets server-side.
 - **Extended-hours toggle** — switches indices to their futures
   contracts (`^GSPC` → `ES=F` etc.) and recomputes day change against
   the regular-session close so post-market moves show up correctly.
+- **1D chart symmetry** — when market is open the ticker chart shows
+  the past ~24 h with a vertical OPEN dashed line at today's regular
+  open and reads "since market opened"; when market is closed (with
+  the ext-hours toggle on) the same chart shows the past 24 h with a
+  CLOSE line at the previous regular close and reads "since previous
+  close". DST-aware: open / close UTC hours flip automatically between
+  EDT and EST so the markers don't drift Nov–Mar.
+- **DST-aware scoreboard label** — the "GMT TIME" label flips to
+  "BST TIME" automatically during British Summer Time (last Sun Mar →
+  last Sun Oct). All chart UTC-string parsing appends an explicit `Z`
+  so intraday timestamps render in the user's local zone correctly
+  (was off by one hour for non-UTC users).
+- **Heatmap drilldown** — clicking any heatmap tile opens the
+  per-ticker chart modal (mirrors the tactics-board view's drilldown).
 - **Hide values toggle** — masks dollar amounts with `*` so the page
   is screenshot-safe; percentages stay visible.
 - **Background chart prefetch** — every successful price refresh
@@ -79,7 +93,7 @@ secrets server-side.
 | `auth.js` | Password → HMAC token flow. `collectPassword` (URL `?pwd=` or `window.prompt`), `authenticate` (POSTs to `/auth`), `decodeAppToken` (skip prompt if a valid sessionStorage token already exists). |
 | `portfolio_remote.js` | `loadPortfolioRemote` / `savePortfolioRemote` against the `data` Edge Function. Includes `migrate(p)` for legacy portfolio shapes (CB → CB1/CB2 split, BRK-B move, currency backfill, lots backfill). |
 | `supabase_config.js` | Shared `SB_URL`, `SB_ANON`, `EDGE_AUTH_URL`, `EDGE_DATA_URL`. |
-| `utils.js` | `computeMetrics`, FX helpers, `fetchTickers` (live snapshot), `fetchHistorical` / `fetchHistoricalBatch` (race Edge Function vs. CORS-proxy chain, abort losers), formatters, `Storage` namespace, schema-version migration. |
+| `utils.js` | `computeMetrics`, FX helpers, `fetchTickers` (live snapshot), `fetchHistorical` / `fetchHistoricalBatch` (race Edge Function vs. CORS-proxy chain, abort losers), formatters, `Storage` namespace, schema-version migration, DST-aware helpers (`ukTzAbbr`, `usMarketHoursUtc`). |
 | `data.js` | `INITIAL_PORTFOLIO` seed for first-load demo state. |
 | `ytd.js` | Pure chart math. `buildTickerSeries`, `computeAt`, `lotsFor`, `closeOn`, `RANGES`, `fetchParamsFor`, `filterToLatestDay`. Decoupled from React so it's unit-testable. |
 | `ytd.test.js` | 19 cases pinning the YTD formula behaviors (pre-year lot, year lot, mixed, missing janPrice, 1D ext mode, intraday date comparison, etc.). |
