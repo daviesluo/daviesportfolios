@@ -242,12 +242,20 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // First-regular-open bar in the data — used to draw the OPEN dashed
   // line during the in-session view. Visual context only; the % basis
   // pivots at prevClose so it agrees with the scoreboard / heatmap.
+  // We scope the search to TODAY's calendar date because the 24-h
+  // window includes yesterday's afternoon bars whose UTC hours also
+  // satisfy hh >= openHh — without the day filter, regularOpenIdx
+  // would land on yesterday's first afternoon bar (= chart's left
+  // edge) instead of today's actual open.
   let regularOpenIdx = -1;
   if (rangeKey === '1D' && phase === 'regular' && series && series.length > 0) {
+    const todayDay = series[series.length - 1].date.slice(0, 10);
     for (let i = 0; i < series.length; i++) {
-      const hh = parseInt(series[i].date.slice(11, 13), 10);
-      const mm = parseInt(series[i].date.slice(14, 16), 10);
-      // First bar at-or-after openHh:openMm UTC.
+      const d = series[i].date;
+      if (d.slice(0, 10) !== todayDay) continue;
+      const hh = parseInt(d.slice(11, 13), 10);
+      const mm = parseInt(d.slice(14, 16), 10);
+      // First bar at-or-after openHh:openMm UTC on today's date.
       if ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh) { regularOpenIdx = i; break; }
     }
   }
