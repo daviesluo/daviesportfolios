@@ -539,6 +539,12 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
   });
 }
 
+// 6-digit numeric tickers are CN mutual funds (天天基金 / pingzhongdata) —
+// they don't exist on Yahoo, so the CORS-proxy Yahoo fetch is guaranteed
+// to fail, just consuming the per-proxy 7 s timeout. We skip it for these
+// symbols and rely on the Edge Function (which routes them to eastmoney).
+const CN_FUND_RE = /^\d{6}$/;
+
 // Batch fetch YTD historical closes for multiple symbols.
 // Strategy:
 //   1. Try the Supabase Edge Function (server-side fetch, no CORS proxies — much
@@ -600,12 +606,23 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
     })();
 
     // Per-ticker CORS-proxy fetches ----------------------------------------
+    // Skip the Yahoo proxy for CN fund codes — Yahoo doesn't carry them
+    // and waiting for 5 proxies × 7 s of certain failure just delays the
+    // Edge Function's response from being shown.
     for (const s of list) {
+      if (CN_FUND_RE.test(s)) {
+        proxiesRemaining--;
+        continue;
+      }
       fetchHistorical(s, range, interval, includePrePost)
         .then((data) => { if (data && data.length > 0 && !out[s]) out[s] = data; })
         .catch(() => {})
         .finally(() => { proxiesRemaining--; check(); });
     }
+    // If every symbol was a CN fund the for-loop short-circuited without
+    // scheduling a check; trigger one so we don't deadlock waiting on
+    // proxies that never started.
+    if (proxiesRemaining === 0) check();
   });
 }
 
