@@ -15,12 +15,18 @@ const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$' };
 // reload — is instant. The previous in-memory Map reset on every load,
 // so cold starts always paid the full Edge Function + proxy round-trip
 // even when the user had viewed the same ticker minutes earlier.
-// TTL: 5 min for intraday (1D / 1W / 1M now have intraday bars), 12 h
-// for the daily ranges (3M / YTD).
+// TTL is matched to each range's bar interval so we don't refetch faster
+// than the source can publish a new bar:
+//   1D   → 5  m bars  →  5 m TTL
+//   1W   → 30 m bars  → 30 m TTL
+//   1M   → 60 m bars  →  1 h TTL
+//   3M   →  1 d bars  → 12 h TTL
+//   YTD  →  1 d bars  → 12 h TTL
 function modalTtl(rangeKey) {
-  return (rangeKey === '1D' || rangeKey === '1W' || rangeKey === '1M')
-    ? 5 * 60 * 1000
-    : 12 * 60 * 60 * 1000;
+  if (rangeKey === '1D') return  5 * 60 * 1000;
+  if (rangeKey === '1W') return 30 * 60 * 1000;
+  if (rangeKey === '1M') return 60 * 60 * 1000;
+  return                       12 * 60 * 60 * 1000;
 }
 function modalCacheGet(key) {
   const all = Storage.loadTickerChart();
