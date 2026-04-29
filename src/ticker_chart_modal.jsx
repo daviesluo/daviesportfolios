@@ -5,21 +5,43 @@
 // player in non-edit mode — edit mode keeps opening the EditTickerModal.
 import React from 'react';
 import { Modal } from './modals.jsx';
-import { fetchHistoricalBatch } from './utils.js';
+import { fetchHistoricalBatch, Storage } from './utils.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, filterToLatestDay } from './ytd.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, pctColor as pcC } from './utils.js';
 
 const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$' };
 
-// Memoized fetch cache so re-opening the modal for the same (ticker,range,
-// extended-hours) is instant. 5-min TTL for intraday data, 1 h for daily.
-const _modalCache = new Map(); // key → { ts, data }
-function modalCacheGet(key, ttlMs) {
-  const e = _modalCache.get(key);
-  if (e && Date.now() - e.ts < ttlMs) return e.data;
-  return null;
+// Persistent fetch cache so re-opening the modal — even after a page
+// reload — is instant. The previous in-memory Map reset on every load,
+// so cold starts always paid the full Edge Function + proxy round-trip
+// even when the user had viewed the same ticker minutes earlier.
+// TTL: 5 min for intraday (1D / 1W / 1M now have intraday bars), 12 h
+// for the daily ranges (3M / YTD).
+function modalTtl(rangeKey) {
+  return (rangeKey === '1D' || rangeKey === '1W' || rangeKey === '1M')
+    ? 5 * 60 * 1000
+    : 12 * 60 * 60 * 1000;
 }
-function modalCacheSet(key, data) { _modalCache.set(key, { ts: Date.now(), data }); }
+function modalCacheGet(key) {
+  const all = Storage.loadTickerChart();
+  return all?.entries?.[key] ?? null; // { ts, data } | null
+}
+function modalCacheSet(key, data) {
+  const all = Storage.loadTickerChart() || { entries: {} };
+  all.entries = { ...(all.entries || {}), [key]: { ts: Date.now(), data } };
+  // Soft-cap at ~200 keys so the localStorage entry can't bloat unboundedly.
+  const keys = Object.keys(all.entries);
+  if (keys.length > 200) {
+    const sorted = keys
+      .map(k => ({ k, ts: all.entries[k]?.ts || 0 }))
+      .sort((a, b) => b.ts - a.ts);
+    /** @type {Record<string, {ts:number, data:any}>} */
+    const trimmed = {};
+    for (let i = 0; i < 200; i++) trimmed[sorted[i].k] = all.entries[sorted[i].k];
+    all.entries = trimmed;
+  }
+  Storage.saveTickerChart(all);
+}
 
 // 6-digit numeric codes are CN mutual funds (天天基金). They only publish
 // one NAV per trading day, so 1D / 1W (5 m / 30 m intraday) ranges have
@@ -50,16 +72,25 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     let cancelled = false;
     const { yahooRange, interval, includePrePost } = fetchParams(rangeKey);
     const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
-    const ttl = rangeKey === '1D' ? 5 * 60 * 1000 : 60 * 60 * 1000;
-    const cached = modalCacheGet(cacheKey, ttl);
-    if (cached) {
-      setSeries(cached);
+    const ttl = modalTtl(rangeKey);
+    const cached = modalCacheGet(cacheKey);
+
+    // Stale-while-revalidate: if there's any cached data, paint it
+    // immediately. Within TTL we trust it and stop. Stale entries get
+    // shown but a background refetch updates them in place — no spinner.
+    let needsFresh = !cached;
+    if (cached && Array.isArray(cached.data) && cached.data.length >= 2) {
+      setSeries(cached.data);
       setLoading(false);
       setError(false);
-      return;
+      const ageMs = Date.now() - (cached.ts || 0);
+      if (ageMs >= ttl) needsFresh = true;
+    } else {
+      setLoading(true);
+      setError(false);
     }
-    setLoading(true);
-    setError(false);
+    if (!needsFresh) return;
+
     (async () => {
       // Yahoo's CORS-proxy chain plus the Edge Function path together
       // are flaky enough that one fetch can drop where a quick retry
@@ -74,15 +105,21 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         if (cancelled) return;
         if (out[ticker] && out[ticker].length >= 2) data = out[ticker];
       }
-      if (!data) { setError(true); setLoading(false); return; }
-      // 1D + ext OFF + market closed: fetch range covers 5 trading days;
-      // keep only the latest calendar day's bars. Same helper PerfChart
-      // uses, so the two charts stay in sync.
+      if (!data) {
+        // Only surface the error if we have nothing to show. If we're
+        // revalidating a stale cache hit, keep the chart on screen.
+        if (!cached) {
+          setError(true);
+          setLoading(false);
+        }
+        return;
+      }
       const params = fetchParamsFor(rangeKey, extendedHours, phase);
       if (params.variant === 'closed') data = filterToLatestDay(data);
       modalCacheSet(cacheKey, data);
       setSeries(data);
       setLoading(false);
+      setError(false);
     })();
     return () => { cancelled = true; };
   }, [ticker, rangeKey, useExt, phase]);
@@ -100,8 +137,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         if (cancelled) return;
         const { yahooRange, interval, includePrePost, variant } = fetchParamsFor(rk, extendedHours, phase);
         const cacheKey = `${ticker}|${rk}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
-        const ttl = rk === '1D' ? 5 * 60 * 1000 : 60 * 60 * 1000;
-        if (modalCacheGet(cacheKey, ttl)) continue;
+        const ttl = modalTtl(rk);
+        const c = modalCacheGet(cacheKey);
+        if (c && Array.isArray(c.data) && (Date.now() - (c.ts || 0)) < ttl) continue;
         const out = await fetchHistoricalBatch([ticker], yahooRange, interval, includePrePost);
         if (cancelled) return;
         let data = out[ticker];
