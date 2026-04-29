@@ -25,10 +25,15 @@ export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
 /**
  * Pick (yahooRange, interval, includePrePost) for a given chart range.
  * 1D has three sub-modes per the user spec:
- *   - phase === 'regular' (market is open) → past ~24 h with pre/post
- *                                            included; chart draws a
- *                                            vertical OPEN line at the
- *                                            regular-session open.
+ *   - phase === 'regular' (market is open) → fetch 5d / 5m / prepost,
+ *                                            then slice client-side to
+ *                                            the last 24 h. Yahoo's
+ *                                            `1d` range only ever
+ *                                            returns the current
+ *                                            session even with prepost,
+ *                                            so to get yesterday's
+ *                                            close visible we need a
+ *                                            wider window.
  *   - extendedHours ON + phase != 'regular' → past 24 h with pre/post
  *                                            included; chart draws a
  *                                            vertical CLOSE line at the
@@ -47,9 +52,31 @@ export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
 export function fetchParamsFor(rangeKey, extendedHours, phase) {
   const r = RANGES[rangeKey] || RANGES.YTD;
   if (rangeKey !== '1D') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'std' };
-  if (phase === 'regular') return { yahooRange: '1d', interval: '5m', includePrePost: true,  variant: 'reg' };
+  if (phase === 'regular') return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'reg' };
   if (extendedHours)       return { yahooRange: '1d', interval: '5m', includePrePost: true,  variant: 'ext' };
   return                     { yahooRange: '5d', interval: '5m', includePrePost: false, variant: 'closed' };
+}
+
+/**
+ * For the "1D regular" variant the fetch returns up to 5 trading days
+ * worth of bars; we only want the last 24 hours so the chart matches
+ * the user's "past 24 hours" expectation. Bars are tagged with their
+ * UTC timestamp string ("YYYY-MM-DDTHH:MM"); without the trailing Z
+ * `new Date()` would parse them as local, so append it explicitly.
+ */
+export function filterToLast24h(points) {
+  if (!Array.isArray(points) || points.length === 0) return points;
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const out = points.filter(p => {
+    const isUtcIso = typeof p.date === 'string' && p.date.length === 16 && p.date[10] === 'T';
+    const t = new Date(p.date + (isUtcIso ? 'Z' : '')).getTime();
+    return Number.isFinite(t) && t >= cutoff;
+  });
+  // Defensive: if the filter wiped everything (e.g. clock skew or all
+  // bars older than 24 h because the market was closed for a long
+  // weekend), fall back to the most recent calendar day so the chart
+  // still has data to draw rather than going blank.
+  return out.length >= 2 ? out : filterToLatestDay(points);
 }
 
 /**

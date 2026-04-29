@@ -21,7 +21,7 @@
 //     on five concurrent N-ticker batches.
 
 import { Storage, fetchHistoricalBatch } from './utils.js';
-import { fetchParamsFor, filterToLatestDay, RANGE_KEYS } from './ytd.js';
+import { fetchParamsFor, filterToLatestDay, filterToLast24h, RANGE_KEYS } from './ytd.js';
 
 // Match each range's bar interval — same shape PerfChart and the
 // TickerChartModal use. Past TTL the prefetch decides "stale" and
@@ -91,6 +91,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     for (const s of stale) {
       let data = batch[s];
       if (data && params.variant === 'closed') data = filterToLatestDay(data);
+      else if (data && params.variant === 'reg') data = filterToLast24h(data);
       if (data) newPerfEntries[s] = { ts: now, data };
     }
     ytdYear[perfKey] = { entries: newPerfEntries };
@@ -101,6 +102,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     for (const t of tickers) {  // skip spSymbol — never opens in the modal
       let data = batch[t];
       if (data && params.variant === 'closed') data = filterToLatestDay(data);
+      else if (data && params.variant === 'reg') data = filterToLast24h(data);
       if (data && data.length >= 2) {
         tcAll.entries = tcAll.entries || {};
         tcAll.entries[tickerKey(t)] = { ts: now, data };
