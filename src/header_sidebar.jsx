@@ -806,9 +806,15 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
           // anchored) and today's OPEN. Both are visual context only;
           // the % comes from prevClose to match the scoreboard / heatmap.
           let openIdx = -1, closeIdx = -1;
+          // Restrict OPEN search to today's calendar date — without this
+          // the first yesterday afternoon bar (whose UTC hour also
+          // satisfies hh > openHh) would steal the match and pin the
+          // marker to the chart's left edge.
+          const todayDay = spYtd.length > 0 ? spYtd[spYtd.length - 1].date.slice(0, 10) : null;
           for (let i = 0; i < spYtd.length; i++) {
             const d = spYtd[i].date;
             if (d.length < 16) continue;
+            if (todayDay && d.slice(0, 10) !== todayDay) continue;
             const hh = parseInt(d.slice(11, 13), 10);
             const mm = parseInt(d.slice(14, 16), 10);
             if (openIdx < 0 && ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh)) {
