@@ -288,6 +288,12 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const variantKey = rangeKey === '1D'
     ? (extendedHours ? 'ext' : (phase === 'regular' ? 'reg' : 'closed'))
     : 'std';
+  // The S&P 500 reference uses the futures contract (ES=F) when the user
+  // is in extended hours mode for 1D — ^GSPC isn't trading then, so the
+  // index would only show yesterday's close. ES=F tracks pre/post-market
+  // and gives the same reference point the DAY CHANGE on the scoreboard
+  // is benchmarked against in ext mode.
+  const spSymbol = (rangeKey === '1D' && extendedHours) ? 'ES=F' : '^GSPC';
   const [hist,    setHist]    = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState(false);
@@ -310,7 +316,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     if (!portfolio) return;
     let cancelled = false;
     const year = new Date().getFullYear();
-    const symbols = ['^GSPC', ...tickers];
+    const symbols = [spSymbol, ...tickers];
     const params = fetchParamsFor(rangeKey, extendedHours, phase);
     const ttl = PERF_CACHE_TTL_MS[rangeKey] || PERF_CACHE_TTL_MS.YTD;
     const cacheKey = `${rangeKey}:${variantKey}`;
@@ -342,13 +348,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     (async () => {
       const batch = await fetchHistoricalBatch(stale, params.yahooRange, params.interval, params.includePrePost);
       if (cancelled) return;
-      // ^GSPC anchors the X axis. Retry if the batch missed it.
-      if (!batch['^GSPC']) {
-        for (let i = 0; i < 3 && !batch['^GSPC']; i++) {
+      // The S&P reference anchors the X axis. Retry if the batch missed it.
+      if (!batch[spSymbol]) {
+        for (let i = 0; i < 3 && !batch[spSymbol]; i++) {
           await new Promise(r => setTimeout(r, 800 * (i + 1)));
           if (cancelled) return;
-          const retry = await fetchHistorical('^GSPC', params.yahooRange, params.interval, params.includePrePost).catch(() => null);
-          if (retry) batch['^GSPC'] = retry;
+          const retry = await fetchHistorical(spSymbol, params.yahooRange, params.interval, params.includePrePost).catch(() => null);
+          if (retry) batch[spSymbol] = retry;
         }
       }
       const merged = { ...fresh };
@@ -366,7 +372,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
         }
       }
       savePerfCache(year, cacheKey, newEntries);
-      const hasAnchor = merged['^GSPC'] || Object.values(merged).some(s => Array.isArray(s) && s.length >= 2);
+      const hasAnchor = merged[spSymbol] || Object.values(merged).some(s => Array.isArray(s) && s.length >= 2);
       if (!hasAnchor) {
         setError(true);
         setLoading(false);
@@ -384,40 +390,53 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   if (error)      return renderShell(<div className="sparkline-empty dim mono">Couldn't load history</div>, rangeKey, setRangeKey);
 
   const year = new Date().getFullYear();
-  const anchorDate = anchorDateFor(rangeKey);
 
-  // S&P 500 trading dates within the selected window anchor the chart's
-  // x-axis. We use range-specific cutoffs (anchorDate). If ^GSPC is
-  // unavailable, fall back to the longest portfolio-ticker series.
-  const allSp = (hist['^GSPC'] || [])
+  // S&P reference series — sorted, sliced to the selected window. For 1D
+  // we DON'T filter by anchorDateFor("today") because in closed-market
+  // mode the data spans yesterday, and using "today" would empty the
+  // window. For daily ranges we still filter by the calendar cutoff.
+  const allSp = (hist[spSymbol] || [])
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date));
-  let spWindow = allSp.filter(p => p.date >= anchorDate);
+
+  // 1D's anchor date is whatever calendar day the fetched data actually
+  // covers — the latest UTC date in the series. Yesterday for closed
+  // markets, today for open markets.
+  let anchorDate;
+  if (rangeKey === '1D') {
+    anchorDate = allSp.length > 0
+      ? allSp[allSp.length - 1].date.slice(0, 10)
+      : anchorDateFor(rangeKey);
+  } else {
+    anchorDate = anchorDateFor(rangeKey);
+  }
+
+  let spWindow = rangeKey === '1D'
+    ? allSp                                  // already trimmed at fetch time
+    : allSp.filter(p => p.date >= anchorDate);
   let hasSp = spWindow.length >= 2;
   if (!hasSp) {
     let bestKey = null, bestLen = 0;
     for (const [k, s] of Object.entries(hist || {})) {
-      if (k === '^GSPC' || !Array.isArray(s)) continue;
-      const slice = s.filter(p => p.date >= anchorDate);
+      if (k === spSymbol || !Array.isArray(s)) continue;
+      const slice = rangeKey === '1D' ? s : s.filter(p => p.date >= anchorDate);
       if (slice.length > bestLen) { bestLen = slice.length; bestKey = k; }
     }
     if (!bestKey || bestLen < 2) {
       return renderShell(<div className="sparkline-empty dim mono">No data for this range</div>, rangeKey, setRangeKey);
     }
-    spWindow = (hist[bestKey] || [])
-      .slice()
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .filter(p => p.date >= anchorDate);
+    const fallbackSeries = (hist[bestKey] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+    spWindow = rangeKey === '1D' ? fallbackSeries : fallbackSeries.filter(p => p.date >= anchorDate);
   }
   const yearStartDate = spWindow[0].date;
   const todayMs = Date.now();
 
-  // S&P 500 baseline. For 1D this is the prevClose of ^GSPC (from
-  // marketData). For daily ranges it's the last close strictly before
-  // anchorDate. Falls back to the first window close.
+  // S&P 500 baseline. For 1D this is the prevClose of the S&P reference
+  // (^GSPC during regular hours, ES=F in ext mode) from marketData. For
+  // daily ranges it's the last close strictly before anchorDate.
   let spBase;
   if (rangeKey === '1D') {
-    const md = marketData?.['^GSPC'];
+    const md = marketData?.[spSymbol];
     spBase = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : spWindow[0].close;
   } else {
     const spPrior = hasSp ? allSp.filter(p => p.date < anchorDate) : [];
