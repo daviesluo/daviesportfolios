@@ -65,6 +65,18 @@ describe('buildTickerSeries', () => {
     }, '2026-04-28', '1D', { AAPL: { prevClose: 195 } }, true);
     expect(ts.AAPL.janPrice).toBe(195);
   });
+
+  it('1D regression: marketData missing the ticker entirely → janPrice null', () => {
+    // Reproduces the bug where PerfChart passed marketData (indices/forex
+    // only) into buildTickerSeries, so per-stock entries were undefined
+    // and the chart silently flat-lined at 0%. With the holdings-merge
+    // fix in PerfChart this should no longer happen — but the pin keeps
+    // the function honest if a future caller forgets.
+    const ts = buildTickerSeries({
+      AAPL: [{ date: '2026-04-28T13:30', close: 200 }],
+    }, '2026-04-28', '1D', /* marketData = */ { '^GSPC': { prevClose: 5000 } }, false);
+    expect(ts.AAPL.janPrice).toBeNull();
+  });
 });
 
 describe('closeOn', () => {
