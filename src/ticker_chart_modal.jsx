@@ -193,10 +193,28 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     }
   }
 
+  // First-regular-open bar — mirror of regularCloseIdx for the in-session
+  // case. When market is currently open we draw an OPEN dashed line and
+  // pivot the displayed % so it shows the move "since market opens"
+  // rather than "since yesterday's close" — same semantic as the CLOSE
+  // marker in ext mode. 13:30 UTC = 9:30 EDT.
+  let regularOpenIdx = -1;
+  if (rangeKey === '1D' && phase === 'regular' && series && series.length > 0) {
+    for (let i = 0; i < series.length; i++) {
+      const hh = parseInt(series[i].date.slice(11, 13), 10);
+      const mm = parseInt(series[i].date.slice(14, 16), 10);
+      // First bar at-or-after 13:30 UTC. Without pre/post in the fetch
+      // this is index 0 (and we suppress the visible line below); with
+      // pre/post the line lands somewhere in the middle of the chart.
+      if ((hh === 13 && mm >= 30) || hh >= 14) { regularOpenIdx = i; break; }
+    }
+  }
+
   // Anchor for % calculation:
-  //   1D regular  → marketData.prevClose
   //   1D ext on   → close at the regular-close idx if found, else
   //                 marketData.lastPrice (today's regular close), else first pt
+  //   1D regular  → close at the regular-open idx (= today's open price);
+  //                 the % then reads "since market opens"
   //   1D ext off + closed → first point of the last day (already filtered)
   //   others      → last close strictly before the first window point
   let anchorClose = null;
@@ -209,6 +227,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         // for futures) — fall back to today's regular close from the
         // live snapshot so the basis still matches scoreboard semantics.
         anchorClose = md.lastPrice;
+      } else if (phase === 'regular' && regularOpenIdx >= 0) {
+        anchorClose = series[regularOpenIdx].close;
       } else if (!extendedHours && phase === 'regular') {
         anchorClose = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : series[0].close;
       } else {
@@ -428,6 +448,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             {rangeKey === '1D' && useExt && (
               <span className="mono dim" style={{ fontSize: 10 }}>(since previous close)</span>
             )}
+            {rangeKey === '1D' && phase === 'regular' && regularOpenIdx >= 0 && (
+              <span className="mono dim" style={{ fontSize: 10 }}>(since market opens)</span>
+            )}
             {holding?.shares != null && (
               <>
                 <span className="mono dim">·</span>
@@ -483,6 +506,24 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                     <text x={x} y={padT - 4} textAnchor="middle"
                           fontSize="8.5" fill="var(--chalk-dim)" fontFamily="var(--font-mono)">
                       CLOSE
+                    </text>
+                  </g>
+                );
+              })()}
+              {/* Vertical dashed line at today's regular open (1D in
+                  regular session). Suppressed when the line would land
+                  on the chart's left edge — without pre/post in the
+                  fetch, regularOpenIdx is 0 and the line would visually
+                  merge with the y-axis. */}
+              {regularOpenIdx > 0 && (() => {
+                const x = xOfIdx(regularOpenIdx).toFixed(1);
+                return (
+                  <g>
+                    <line x1={x} y1={padT} x2={x} y2={H - padB}
+                          stroke="var(--chalk-dim)" strokeWidth="0.8" strokeDasharray="3,4" opacity="0.6" />
+                    <text x={x} y={padT - 4} textAnchor="middle"
+                          fontSize="8.5" fill="var(--chalk-dim)" fontFamily="var(--font-mono)">
+                      OPEN
                     </text>
                   </g>
                 );
