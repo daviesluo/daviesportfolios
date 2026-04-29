@@ -152,19 +152,56 @@ async function fetchEastmoneyHistorical(code: string, range: string): Promise<Po
       },
       signal: AbortSignal.timeout(8_000),
     });
+    if (res.ok) {
+      const json = await res.json();
+      const list = json?.Data?.LSJZList;
+      if (Array.isArray(list)) {
+        // LSJZ rows: { FSRQ: "2026-04-23", DWJZ: "1.2345", … } — daily NAV.
+        const points: Point[] = [];
+        for (const row of list) {
+          const close = parseFloat(row?.DWJZ);
+          if (!isFinite(close) || close <= 0) continue;
+          const date = String(row?.FSRQ ?? "").slice(0, 10);
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+          points.push({ date, close });
+        }
+        if (points.length > 0) {
+          points.sort((a, b) => a.date.localeCompare(b.date));
+          const out = trimToRange(points, range);
+          if (out.length > 0) return out;
+        }
+      }
+    }
+  } catch { /* fall through to danjuanapp */ }
+
+  // ---- Path 3: danjuanapp.com (Snowball / 雪球-owned 蛋卷基金, JSON history)
+  // Generally the most permissive of the three from non-CN egress IPs —
+  // they don't gate on Referer/Cookie like the eastmoney CDN sometimes does.
+  const djUrl =
+    `https://danjuanapp.com/djapi/fund/nav/history/${encodeURIComponent(code)}` +
+    `?size=500&page=1`;
+  try {
+    const res = await fetch(djUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/json,*/*",
+      },
+      signal: AbortSignal.timeout(8_000),
+    });
     if (!res.ok) return null;
     const json = await res.json();
-    const list = json?.Data?.LSJZList;
-    if (!Array.isArray(list)) return null;
-    // LSJZ rows: { FSRQ: "2026-04-23", DWJZ: "1.2345", … } — daily NAV.
+    const items = json?.data?.items;
+    if (!Array.isArray(items)) return null;
     const points: Point[] = [];
-    for (const row of list) {
-      const close = parseFloat(row?.DWJZ);
+    for (const row of items) {
+      const close = parseFloat(row?.nav);
       if (!isFinite(close) || close <= 0) continue;
-      const date = String(row?.FSRQ ?? "").slice(0, 10);
+      const date = String(row?.date ?? "").slice(0, 10);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
       points.push({ date, close });
     }
+    if (points.length === 0) return null;
     points.sort((a, b) => a.date.localeCompare(b.date));
     return trimToRange(points, range);
   } catch {

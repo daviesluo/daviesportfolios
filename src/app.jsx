@@ -206,6 +206,26 @@ function collectPassword() {
   return typed; // may be null if user cancels
 }
 
+// Decode our HMAC-signed token's payload WITHOUT verifying the signature
+// — verification still happens server-side on every data call. We only
+// need the role + exp to decide whether to reuse a sessionStorage token
+// across reloads. Token format: `<base64url(payload)>.<base64url(sig)>`
+// where payload is `{ role: "admin"|"ro", exp: <ms> }`.
+/** @returns {{role: 'admin'|'ro', exp: number} | null} */
+function decodeAppToken(token) {
+  if (!token) return null;
+  const dot = token.indexOf(".");
+  if (dot <= 0) return null;
+  try {
+    const b64 = token.slice(0, dot).replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const payload = JSON.parse(atob(padded));
+    if (typeof payload.exp !== "number" || payload.exp < Date.now()) return null;
+    if (payload.role !== "admin" && payload.role !== "ro") return null;
+    return payload;
+  } catch { return null; }
+}
+
 // Async: hit the auth Edge Function. Resolves to:
 //   { isReadOnly }            — successful login, token already stored
 //   { locked: true, lockUntil } — too many failed attempts
@@ -263,26 +283,46 @@ const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^VIX", "BZ=F", "^TNX", "GBPUSD=X",
 // Main app ---------------------------------------------------------------
 function App() {
   // Auth lifecycle:
-  //   pwInput   collected synchronously on first render (URL ?pwd= or
-  //             window.prompt) and never re-read afterwards
-  //   auth      result of the async Edge Function check; null while in
-  //             flight, then either { isReadOnly } / { locked } / 'denied'
-  // Storage migration runs in the same initial useState callback so
-  // persisted state has the right shape before anything else reads it.
-  const [pwInput] = useState(() => {
+  //   bootState  one-shot init that runs Storage.migrate, decides whether
+  //              we already have a still-valid sessionStorage token (skip
+  //              prompt entirely) or need to collect a password
+  //   pwInput    raw password from URL or window.prompt; null when we're
+  //              reusing an existing token
+  //   auth       result of the async Edge Function check; undefined while
+  //              in flight, then { isReadOnly } | { locked } | null
+  // Reusing the existing token is what stops the "page reloads 1-2 s
+  // after entering ?pwd= and re-prompts for password" issue: when the SW
+  // (or anything else) reloads the tab, the URL pwd is gone but session-
+  // Storage still holds a valid token from the pre-reload login.
+  const [bootState] = useState(() => {
     Storage.migrate();
-    return collectPassword();
+    const existing = decodeAppToken(getAppToken());
+    if (existing) {
+      // Still consume the URL ?pwd if present so it doesn't linger in
+      // browser history; we just don't need its result.
+      const params = new URLSearchParams(window.location.search);
+      if (params.has("pwd")) {
+        params.delete("pwd");
+        const newSearch = params.toString();
+        history.replaceState(null, "",
+          window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
+      }
+      return { pwInput: null, initialAuth: { isReadOnly: existing.role === "ro" } };
+    }
+    return { pwInput: collectPassword(), initialAuth: undefined };
   });
-  const [auth, setAuth] = useState(undefined); // undefined = pending, null = denied
+  const pwInput = bootState.pwInput;
+  const [auth, setAuth] = useState(bootState.initialAuth);
 
   useEffect(() => {
+    if (auth !== undefined) return;            // already authed via existing token
     if (pwInput == null) { setAuth(null); return; }
     let cancelled = false;
     authenticate(pwInput).then(result => {
       if (!cancelled) setAuth(result);
     });
     return () => { cancelled = true; };
-  }, [pwInput]);
+  }, [pwInput, auth]);
 
   if (auth === undefined) {
     return (
