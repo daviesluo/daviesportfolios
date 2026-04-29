@@ -205,8 +205,18 @@ function Board({ isReadOnly }) {
   }, [portfolio, isReadOnly]);
 
   // Price refresh loop
-  const doRefresh = useCallback(async () => {
+  // `doRefresh(opts)` always fetches the live-prices snapshot. The
+  // optional opts.prefetch flag (default true) controls whether we ALSO
+  // kick off the background chart-data prefetch afterwards. The 30 s
+  // auto-refresh interval passes prefetch:false so it doesn't re-do
+  // the same fetches well inside each range's TTL.
+  const doRefresh = useCallback(async (opts) => {
     if (!portfolio) return;
+    // Defaults to true so the manual Refresh button (which forwards a
+    // click event as the first arg, not an opts object) still triggers
+    // the prefetch.
+    const shouldPrefetch =
+      opts && typeof opts === 'object' && opts.prefetch === false ? false : true;
     setIsRefreshing(true);
     const [{ updates, source: src }, mcResult] = await Promise.all([
       refreshPrices(portfolio, "live"),
@@ -255,19 +265,22 @@ function Board({ isReadOnly }) {
       setTimeout(() => setRecentlyUpdated(false), 1600);
       // Background prefetch every (range × ticker) chart payload after the
       // live-prices UI has settled. Fire-and-forget — the cache writes that
-      // land before the user navigates away are still useful, and the
-      // prefetcher itself skips ranges whose every ticker is fresh under
-      // TTL, so on a 30 s auto-refresh tick most calls do zero network IO.
-      const phaseNow = usMarketPhase(new Date());
-      const tickerList = Object.keys(portfolio?.holdings || {})
-        .filter((t) => t !== "CASH" && !portfolio.holdings[t]?.isCash);
-      const sp = (extendedHours && phaseNow !== "regular") ? "ES=F" : "^GSPC";
-      prefetchAllChartData({
-        tickers: tickerList,
-        spSymbol: sp,
-        extendedHours,
-        phase: phaseNow,
-      });
+      // land before the user navigates away are still useful. Skipped on
+      // the 30 s auto-refresh tick (shouldPrefetch=false) since cache TTLs
+      // (5 m / 30 m / 1 h / 12 h) mean those would refetch with nothing
+      // fresh to show.
+      if (shouldPrefetch) {
+        const phaseNow = usMarketPhase(new Date());
+        const tickerList = Object.keys(portfolio?.holdings || {})
+          .filter((t) => t !== "CASH" && !portfolio.holdings[t]?.isCash);
+        const sp = (extendedHours && phaseNow !== "regular") ? "ES=F" : "^GSPC";
+        prefetchAllChartData({
+          tickers: tickerList,
+          spSymbol: sp,
+          extendedHours,
+          phase: phaseNow,
+        });
+      }
     }
     if (src === "error") {
       setTimeout(() => doRefreshRef.current(), 3000);
@@ -280,8 +293,14 @@ function Board({ isReadOnly }) {
   // Kick off the refresh loop once the portfolio is loaded.
   useEffect(() => {
     if (!portfolio) return;
+    // Initial mount triggers prefetch (default). The 30 s tick skips it
+    // — TTLs run in minutes/hours so the auto-refresh would re-fetch
+    // chart data with no fresh bars to show. The user's explicit
+    // Refresh click also triggers prefetch (it goes through doRefresh
+    // directly, with the synthetic React event arg which is truthy but
+    // not { prefetch: false } so the default applies).
     doRefreshRef.current();
-    const id = setInterval(() => doRefreshRef.current(), REFRESH_MS);
+    const id = setInterval(() => doRefreshRef.current({ prefetch: false }), REFRESH_MS);
     return () => clearInterval(id);
   }, [portfolio !== null]);
 

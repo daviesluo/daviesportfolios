@@ -34,6 +34,13 @@ secrets server-side.
   the regular-session close so post-market moves show up correctly.
 - **Hide values toggle** — masks dollar amounts with `*` so the page
   is screenshot-safe; percentages stay visible.
+- **Background chart prefetch** — every successful price refresh
+  (initial load + manual Refresh click) silently warms every chart
+  range × ticker into `localStorage`, so opening any ticker modal or
+  flipping PerfChart range buttons hits cache instead of paying the
+  Edge Function round-trip. TTL-aligned per range (5 m / 30 m / 1 h /
+  12 h / 12 h); auto-refresh ticks skip the prefetch since they'd
+  re-fetch with nothing fresh to show.
 - **PWA** — installable on iOS / Android home screen, offline-capable
   via Workbox precache, in-app "new version available" banner.
 - **HMAC-signed token auth** — passwords never leave the Edge Function;
@@ -75,8 +82,8 @@ secrets server-side.
 | `utils.js` | `computeMetrics`, FX helpers, `fetchTickers` (live snapshot), `fetchHistorical` / `fetchHistoricalBatch` (race Edge Function vs. CORS-proxy chain, abort losers), formatters, `Storage` namespace, schema-version migration. |
 | `data.js` | `INITIAL_PORTFOLIO` seed for first-load demo state. |
 | `ytd.js` | Pure chart math. `buildTickerSeries`, `computeAt`, `lotsFor`, `closeOn`, `RANGES`, `fetchParamsFor`, `filterToLatestDay`. Decoupled from React so it's unit-testable. |
-| `ytd.test.js` | 21 cases pinning the YTD formula behaviors (pre-year lot, year lot, mixed, missing janPrice, 1D ext mode, intraday date comparison, etc.). |
-| `utils.test.js` | 4 cases pinning `fetchHistoricalBatch`'s race behavior (Edge fast path, partial fill, CN-fund proxy bypass, dedup). |
+| `ytd.test.js` | 19 cases pinning the YTD formula behaviors (pre-year lot, year lot, mixed, missing janPrice, 1D ext mode, intraday date comparison, etc.). |
+| `utils.test.js` | 5 cases pinning `fetchHistoricalBatch`'s race behavior (Edge fast path, partial fill, CN-fund proxy bypass, empty input, dedup). |
 | `header_sidebar.jsx` | `<Header>` (scoreboard + extended-hours toggle + hide-values eye), `<Sidebar>` (top movers + formation value + perf chart), `<PerfPanel>` (Performance vs S&P 500 chart with range buttons + crosshair), `<MarketConditions>` (8 index/forex cards). |
 | `pitch.jsx` | Football-pitch SVG rendering. Position dots, captain armband, hot-mover ball, drag/drop in edit mode. |
 | `heatmap.jsx` | One tile per holding, sized by market value, colored by day-change. |
@@ -84,6 +91,7 @@ secrets server-side.
 | `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel, DOM-ref crosshair (no React rerender on hover), persistent localStorage cache + stale-while-revalidate, 6-digit CN funds restricted to 1M / 3M / YTD. |
 | `sw-banner.jsx` | "New version available — RELOAD" banner. Uses `useRegisterSW` from `vite-plugin-pwa`. |
 | `ops_error.js` | `reportError(kind, opts)`. Per-`(kind, symbol)` cooldown + per-load cap. POSTs to the `ops-error` Edge Function with `keepalive: true` so render-crash reports survive the user's Reload click. |
+| `prefetch.js` | `prefetchAllChartData(opts)`. Fired from `doRefresh` on initial load + manual Refresh click (skipped on the 30 s auto-refresh tick). Walks every (range × ticker) combo, skips ranges that are fully fresh under their TTL, and writes results into both the PerfChart cache (`dp.ytd`) and the TickerChartModal cache (`dp.tickerChart`) so the next chart open is instant. |
 | `types.d.ts` | JSDoc-friendly type definitions. |
 | `styles.css` | All app styles (single sheet). |
 | `index.html` | Vite root. References `/assets/index-<hash>.js`. |
