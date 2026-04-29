@@ -493,19 +493,39 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
   return new Promise((resolve) => {
     let resolved = false;
     let remaining = PROXIES.length;
+    /** @type {AbortController[]} */
+    const controllers = [];
+    /** @type {ReturnType<typeof setTimeout>[]} */
+    const timers = [];
+
+    // When the race produces a winner (or all losers), tear down the
+    // remaining in-flight requests so they don't keep eating bandwidth
+    // and rate-limit budget against the proxy hosts. Codex P2 review
+    // (#48) — without this, every losing proxy ran out its full 7 s
+    // timeout, multiplied across every ticker in a 30-symbol portfolio.
+    const cleanup = () => {
+      for (const c of controllers) {
+        try { c.abort(); } catch (_) {}
+      }
+      for (const t of timers) clearTimeout(t);
+    };
+
     const settle = (data) => {
       if (resolved) return;
       if (data) {
         resolved = true;
+        cleanup();
         resolve(data);
       } else if (--remaining === 0) {
         resolve(null);
       }
     };
     for (const makeProxy of PROXIES) {
+      const controller = new AbortController();
+      controllers.push(controller);
+      const tid = setTimeout(() => controller.abort(), 7000);
+      timers.push(tid);
       (async () => {
-        const controller = new AbortController();
-        const tid = setTimeout(() => controller.abort(), 7000);
         try {
           const res = await fetch(makeProxy(yahooUrl), { cache: "no-store", signal: controller.signal });
           clearTimeout(tid);
