@@ -6,7 +6,7 @@
 import React from 'react';
 import { Modal } from './modals.jsx';
 import { fetchHistoricalBatch } from './utils.js';
-import { RANGES, RANGE_KEYS } from './ytd.js';
+import { RANGES, RANGE_KEYS, fetchParamsFor, filterToLatestDay } from './ytd.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, pctColor as pcC } from './utils.js';
 
 const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$' };
@@ -30,26 +30,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const useExt = !!(extendedHours && phase && phase !== 'regular');
 
   // Pick (yahooRange, interval, includePrePost) based on the user's choice.
-  // Single-ticker chart uses denser intervals than the portfolio chart so
-  // the line has enough points to read at a glance:
-  //   1W → 5d / 30m   (~65 bars, vs the portfolio's 5 daily bars)
-  //   1M → 1mo / 60m  (~150 bars)
-  //   3M → 3mo / 1d
-  //   YTD → ytd / 1d
-  // 1D has three sub-modes per the spec:
-  //   ext OFF + market open  → today's regular hours intraday
-  //   ext OFF + market close → previous regular trading day's intraday
-  //   ext ON                  → past 24 h with pre/post-market included
-  function fetchParams(rk) {
-    if (rk === '1W')  return { yahooRange: '5d',  interval: '30m', includePrePost: false };
-    if (rk === '1M')  return { yahooRange: '1mo', interval: '60m', includePrePost: false };
-    if (rk === '3M')  return { yahooRange: '3mo', interval: '1d',  includePrePost: false };
-    if (rk === 'YTD') return { yahooRange: 'ytd', interval: '1d',  includePrePost: false };
-    // 1D
-    if (extendedHours) return { yahooRange: '1d', interval: '5m', includePrePost: true };
-    if (phase === 'regular') return { yahooRange: '1d', interval: '5m', includePrePost: false };
-    return { yahooRange: '5d', interval: '5m', includePrePost: false };
-  }
+  // Single-ticker fetch params are now shared with the portfolio chart
+  // via fetchParamsFor() in ytd.js — both charts now use intraday
+  // intervals on 1W (30 m) and 1M (60 m) so the line has enough bars
+  // to read at a glance, and 1D's three sub-modes (ext OFF + open,
+  // ext OFF + closed, ext ON) live in one place rather than duplicated
+  // here.
+  const fetchParams = (rk) => fetchParamsFor(rk, extendedHours, phase);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -80,13 +67,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         if (out[ticker] && out[ticker].length >= 2) data = out[ticker];
       }
       if (!data) { setError(true); setLoading(false); return; }
-      // ext OFF + market closed: keep just the most recent calendar day's
-      // data. Series points are "YYYY-MM-DDTHH:MM" in this mode so we group
-      // by the date prefix, take the latest, and slice.
-      if (rangeKey === '1D' && !extendedHours && phase !== 'regular') {
-        const lastDate = data[data.length - 1].date.slice(0, 10);
-        data = data.filter(p => p.date.startsWith(lastDate));
-      }
+      // 1D + ext OFF + market closed: fetch range covers 5 trading days;
+      // keep only the latest calendar day's bars. Same helper PerfChart
+      // uses, so the two charts stay in sync.
+      const params = fetchParamsFor(rangeKey, extendedHours, phase);
+      if (params.variant === 'closed') data = filterToLatestDay(data);
       modalCacheSet(cacheKey, data);
       setSeries(data);
       setLoading(false);
@@ -193,6 +178,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     const d = new Date(dateStr);
     if (rangeKey === '1D') {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    // 1W and 1M now use 30m / 60m intraday intervals — multiple bars per
+    // day. Ticker chart shows date + time so neighbouring bars on the
+    // same calendar date don't all read as the identical "Apr 28" label.
+    if (rangeKey === '1W' || rangeKey === '1M') {
+      return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
+             d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
