@@ -16,13 +16,16 @@ export default defineConfig({
   publicDir: '../public',
   plugins: [
     react(),
-    // Service worker via Workbox. registerType:'autoUpdate' fetches a fresh
-    // SW on every page load; once it's installed the SW emits an
-    // `updatefound` event the frontend listens for to show a one-line
-    // "New version available, reload?" banner. devOptions:{ enabled:false }
-    // keeps the SW out of `vite dev` so HMR isn't fighting the cache.
+    // Service worker via Workbox. registerType:'prompt' installs the new
+    // SW in the background but waits for the user to click RELOAD on the
+    // banner before it takes over. `autoUpdate` (the previous setting)
+    // calls skipWaiting + clientsClaim under the hood, which auto-reloads
+    // the page mid-session — and on a `?pwd=…` deep link that reload
+    // wiped the URL pwd and re-prompted the user for the password 1-2 s
+    // after they'd just typed it. devOptions:{ enabled:false } keeps the
+    // SW out of `vite dev` so HMR isn't fighting the cache.
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       injectRegister: 'auto',
       devOptions: { enabled: false },
       workbox: {
