@@ -514,44 +514,60 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
   if (list.length === 0) return out;
 
   // Race the Edge Function (one batched request for all tickers) against
-  // per-ticker CORS-proxy fetches in parallel. Whichever fills `out[ticker]`
-  // first wins; the slower path then fills any tickers the faster one
-  // missed. Net effect: total wall time ≈ min(edge, fastest-proxy) on the
-  // happy path, instead of the previous edge-first-then-proxies sequential
-  // chain (which made the user stare at "Loading…" for ~7-10 s if Edge was
-  // slow before falling back).
+  // per-ticker CORS-proxy fetches in parallel. Resolve as soon as either
+  //   (a) every requested ticker has data in `out`, OR
+  //   (b) both paths have finished (so we resolve with whatever we got).
+  // Concretely: when Edge returns the full batch fast, we don't sit and
+  // wait for the slower proxy chain to complete — the Promise resolves
+  // the moment the last ticker is filled. (Codex P1 review on PR #47.)
   const ipp = includePrePost ? "&includePrePost=true" : "";
 
-  const edgePromise = (async () => {
-    try {
-      const edgeUrl =
-        `${EDGE_PRICES_URL.replace(/\/prices$/, "/chart")}` +
-        `?tickers=${encodeURIComponent(list.join(","))}` +
-        `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}`;
-      const res = await fetch(edgeUrl, {
-        headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
-        signal: AbortSignal.timeout(8000),
-      });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data || typeof data !== "object") return;
-      for (const [t, pts] of Object.entries(data)) {
-        if (Array.isArray(pts) && pts.length > 0 && !out[t]) out[t] = pts;
+  return new Promise((resolve) => {
+    let resolved = false;
+    let edgeDone = false;
+    let proxiesRemaining = list.length;
+
+    const check = () => {
+      if (resolved) return;
+      const allFilled = list.every((t) => out[t]);
+      if (allFilled || (edgeDone && proxiesRemaining === 0)) {
+        resolved = true;
+        resolve(out);
       }
-    } catch (_) { /* swallow — proxy path may still succeed */ }
-  })();
+    };
 
-  const proxyPromise = Promise.all(
-    list.map(async (s) => {
-      const data = await fetchHistorical(s, range, interval, includePrePost).catch(() => null);
-      if (data && data.length > 0 && !out[s]) out[s] = data;
-    }),
-  );
+    // Edge Function (batched) ----------------------------------------------
+    (async () => {
+      try {
+        const edgeUrl =
+          `${EDGE_PRICES_URL.replace(/\/prices$/, "/chart")}` +
+          `?tickers=${encodeURIComponent(list.join(","))}` +
+          `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}`;
+        const res = await fetch(edgeUrl, {
+          headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
+          signal: AbortSignal.timeout(8000),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && typeof data === "object") {
+            for (const [t, pts] of Object.entries(data)) {
+              if (Array.isArray(pts) && pts.length > 0 && !out[t]) out[t] = pts;
+            }
+          }
+        }
+      } catch (_) { /* proxy path may still succeed */ }
+      edgeDone = true;
+      check();
+    })();
 
-  // Wait for both — but the loser's writes are skipped via the `!out[s]`
-  // guards above, so duplicate fetches don't clobber existing data.
-  await Promise.all([edgePromise, proxyPromise]);
-  return out;
+    // Per-ticker CORS-proxy fetches ----------------------------------------
+    for (const s of list) {
+      fetchHistorical(s, range, interval, includePrePost)
+        .then((data) => { if (data && data.length > 0 && !out[s]) out[s] = data; })
+        .catch(() => {})
+        .finally(() => { proxiesRemaining--; check(); });
+    }
+  });
 }
 
 // -------- Position coordinates on 100x100 pitch (home team attacks UP; GK at bottom) --------
