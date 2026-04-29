@@ -25,15 +25,19 @@ export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
 /**
  * Pick (yahooRange, interval, includePrePost) for a given chart range.
  * 1D has three sub-modes per the user spec:
- *   - extendedHours OFF + regular session  → today's regular hours intraday
- *   - extendedHours OFF + market closed    → previous regular trading day's
- *                                            intraday (we fetch a 5-day
- *                                            window then keep the most
- *                                            recent calendar day's points)
- *   - extendedHours ON                      → past 24 h with pre/post-market
+ *   - phase === 'regular' (market is open) → past ~24 h with pre/post
  *                                            included; chart draws a
- *                                            vertical dashed line at the
+ *                                            vertical OPEN line at the
+ *                                            regular-session open.
+ *   - extendedHours ON + phase != 'regular' → past 24 h with pre/post
+ *                                            included; chart draws a
+ *                                            vertical CLOSE line at the
  *                                            last regular close.
+ *   - extendedHours OFF + market closed     → previous regular trading
+ *                                            day's intraday only (we
+ *                                            fetch a 5-day window then
+ *                                            keep the most recent
+ *                                            calendar day's points).
  *
  * @param {string} rangeKey
  * @param {boolean} extendedHours
@@ -43,8 +47,8 @@ export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
 export function fetchParamsFor(rangeKey, extendedHours, phase) {
   const r = RANGES[rangeKey] || RANGES.YTD;
   if (rangeKey !== '1D') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'std' };
+  if (phase === 'regular') return { yahooRange: '1d', interval: '5m', includePrePost: true,  variant: 'reg' };
   if (extendedHours)       return { yahooRange: '1d', interval: '5m', includePrePost: true,  variant: 'ext' };
-  if (phase === 'regular') return { yahooRange: '1d', interval: '5m', includePrePost: false, variant: 'reg' };
   return                     { yahooRange: '5d', interval: '5m', includePrePost: false, variant: 'closed' };
 }
 
