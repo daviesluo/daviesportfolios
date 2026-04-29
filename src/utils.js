@@ -464,40 +464,59 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
   const nonce = Date.now();
   const ipp = includePrePost ? "&includePrePost=true" : "";
   const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}${ipp}&_=${nonce}`;
-  const proxies = [...PROXIES].sort(() => Math.random() - 0.5);
-  for (const makeProxy of proxies) {
-    const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), 10000);
-    try {
-      const res = await fetch(makeProxy(yahooUrl), { cache: "no-store", signal: controller.signal });
-      clearTimeout(tid);
-      if (!res.ok) continue;
-      const data = await res.json();
-      const result = data?.chart?.result?.[0];
-      const timestamps = result?.timestamp;
-      const closes = result?.indicators?.quote?.[0]?.close;
-      if (!timestamps || !closes) continue;
-      const meta = result?.meta;
-      const penceFactor = (meta?.currency === "GBp" || meta?.currency === "GBX") ? 100 : 1;
-      // For daily interval keep YYYY-MM-DD; for intraday intervals (1m, 5m,
-      // 15m, 30m, 60m, 90m, 1h) keep ISO precision down to the minute so
-      // each candle has a unique sortable date string. Truncating intraday
-      // points to the date would collapse 78 5-minute bars onto a single
-      // key (Codex review #42).
-      const isIntraday = !/^\d+d$|^\dwk$|^\dmo$/.test(interval);
-      const points = [];
-      for (let i = 0; i < timestamps.length; i++) {
-        if (closes[i] == null) continue;
-        const iso = new Date(timestamps[i] * 1000).toISOString();
-        const date = isIntraday ? iso.slice(0, 16) : iso.slice(0, 10);
-        points.push({ date, close: closes[i] / penceFactor });
-      }
-      if (points.length > 0) return points;
-    } catch (_) {
-      clearTimeout(tid);
+
+  // Race ALL proxies in parallel — the previous serial fall-through
+  // could take 50 s in the worst case (5 proxies × 10 s timeout each)
+  // when the first few in random order were dead. Now total wall time
+  // ≈ fastest live proxy. First success wins, others get cancelled.
+  const isIntraday = !/^\d+d$|^\dwk$|^\dmo$/.test(interval);
+
+  const parseResponse = async (res) => {
+    if (!res.ok) return null;
+    const data = await res.json();
+    const result = data?.chart?.result?.[0];
+    const timestamps = result?.timestamp;
+    const closes = result?.indicators?.quote?.[0]?.close;
+    if (!timestamps || !closes) return null;
+    const meta = result?.meta;
+    const penceFactor = (meta?.currency === "GBp" || meta?.currency === "GBX") ? 100 : 1;
+    const points = [];
+    for (let i = 0; i < timestamps.length; i++) {
+      if (closes[i] == null) continue;
+      const iso = new Date(timestamps[i] * 1000).toISOString();
+      const date = isIntraday ? iso.slice(0, 16) : iso.slice(0, 10);
+      points.push({ date, close: closes[i] / penceFactor });
     }
-  }
-  return null;
+    return points.length > 0 ? points : null;
+  };
+
+  return new Promise((resolve) => {
+    let resolved = false;
+    let remaining = PROXIES.length;
+    const settle = (data) => {
+      if (resolved) return;
+      if (data) {
+        resolved = true;
+        resolve(data);
+      } else if (--remaining === 0) {
+        resolve(null);
+      }
+    };
+    for (const makeProxy of PROXIES) {
+      (async () => {
+        const controller = new AbortController();
+        const tid = setTimeout(() => controller.abort(), 7000);
+        try {
+          const res = await fetch(makeProxy(yahooUrl), { cache: "no-store", signal: controller.signal });
+          clearTimeout(tid);
+          settle(await parseResponse(res));
+        } catch (_) {
+          clearTimeout(tid);
+          settle(null);
+        }
+      })();
+    }
+  });
 }
 
 // Batch fetch YTD historical closes for multiple symbols.
