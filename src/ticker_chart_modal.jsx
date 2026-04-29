@@ -182,11 +182,18 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // silently miss the close marker Nov–Mar.
   const mh = usMarketHoursUtc(new Date());
 
-  // Last-regular-close timestamp inside the series — used to draw the
-  // vertical dashed line in 1D ext mode and to anchor % return when the
-  // chart includes pre/post hours.
+  // Most-recent regular-close bar inside the series. Walk backwards
+  // from the end and pick the first bar whose UTC time-of-day matches
+  // close time:
+  //   - In ext mode (market is currently closed) the most recent close
+  //     bar is TODAY's close — anchor / line render as "today's session
+  //     just ended, ext-hours moves are vs. that".
+  //   - In regular mode (market is currently open) the most recent
+  //     close bar is YESTERDAY's close (today's close hasn't happened
+  //     yet) — used purely as a visual marker; the % anchor still
+  //     comes from md.prevClose so it matches the scoreboard exactly.
   let regularCloseIdx = -1;
-  if (rangeKey === '1D' && useExt && series && series.length > 0) {
+  if (rangeKey === '1D' && (useExt || phase === 'regular') && series && series.length > 0) {
     for (let i = series.length - 1; i >= 0; i--) {
       const hh = parseInt(series[i].date.slice(11, 13), 10);
       const mm = parseInt(series[i].date.slice(14, 16), 10);
@@ -195,11 +202,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     }
   }
 
-  // First-regular-open bar — mirror of regularCloseIdx for the in-session
-  // case. When market is currently open we draw an OPEN dashed line and
-  // pivot the displayed % so it shows the move "since market opened"
-  // rather than "since yesterday's close" — same semantic as the CLOSE
-  // marker in ext mode.
+  // First-regular-open bar in the data — used to draw the OPEN dashed
+  // line during the in-session view. Visual context only; the % basis
+  // pivots at prevClose so it agrees with the scoreboard / heatmap.
   let regularOpenIdx = -1;
   if (rangeKey === '1D' && phase === 'regular' && series && series.length > 0) {
     for (let i = 0; i < series.length; i++) {
@@ -212,24 +217,22 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
 
   // Anchor for % calculation:
   //   1D ext on   → close at the regular-close idx if found, else
-  //                 marketData.lastPrice (today's regular close), else first pt
-  //   1D regular  → close at the regular-open idx (= today's open price);
-  //                 the % then reads "since market opens"
+  //                 marketData.lastPrice (today's regular close)
+  //   1D regular  → marketData.prevClose so the % matches the
+  //                 scoreboard's DAY CHANGE / heatmap tile exactly
   //   1D ext off + closed → first point of the last day (already filtered)
-  //   others      → last close strictly before the first window point
+  //   others      → first window point
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
       if (useExt && regularCloseIdx >= 0) {
         anchorClose = series[regularCloseIdx].close;
       } else if (useExt && md?.lastPrice && md.lastPrice > 0) {
-        // No 20:00 UTC bar in the fetched window (e.g. weekend session
+        // No close UTC bar in the fetched window (e.g. weekend session
         // for futures) — fall back to today's regular close from the
         // live snapshot so the basis still matches scoreboard semantics.
         anchorClose = md.lastPrice;
-      } else if (phase === 'regular' && regularOpenIdx >= 0) {
-        anchorClose = series[regularOpenIdx].close;
-      } else if (!extendedHours && phase === 'regular') {
+      } else if (phase === 'regular') {
         anchorClose = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : series[0].close;
       } else {
         anchorClose = series[0].close;
@@ -452,15 +455,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             <span className="mono dim">Last</span>
             <span className="mono">{lastClose != null ? `${sym}${fmtPr(lastClose)}` : '—'}</span>
             <span className="mono" style={{ color: pcC(pctNow) }}>{fmP(pctNow)}</span>
-            {/* In 1D ext-hours mode the chart's anchor is the LAST regular
-                close (vertical dashed line), not yesterday's open or the
-                first bar. Make the basis explicit so the user knows what
-                the % is relative to. */}
-            {rangeKey === '1D' && useExt && (
+            {/* In 1D the chart's % is anchored at the previous regular
+                close (vertical CLOSE line) so it matches the scoreboard
+                / heatmap's DAY CHANGE. Make the basis explicit so the
+                user can see what the % is relative to. */}
+            {rangeKey === '1D' && (useExt || phase === 'regular') && (
               <span className="mono dim" style={{ fontSize: 10 }}>(since previous close)</span>
-            )}
-            {rangeKey === '1D' && phase === 'regular' && regularOpenIdx >= 0 && (
-              <span className="mono dim" style={{ fontSize: 10 }}>(since market opened)</span>
             )}
             {holding?.shares != null && (
               <>
@@ -507,7 +507,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                   {fmtAxisDate(tk.date)}
                 </text>
               ))}
-              {/* Vertical dashed line at last regular close (1D ext mode) */}
+              {/* Vertical dashed CLOSE line. In ext mode this is today's
+                  close; in regular mode it's yesterday's close (= the
+                  prevClose the % anchors at). */}
               {regularCloseIdx >= 0 && (() => {
                 const x = xOfIdx(regularCloseIdx).toFixed(1);
                 return (

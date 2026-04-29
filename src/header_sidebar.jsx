@@ -800,27 +800,50 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
             the CLOSE marker so it stays correct when the S&P fetch
             failed and the chart fell back to another ticker. */}
         {rangeKey === '1D' && variantKey === 'reg' && (() => {
-          let idx = -1;
+          // Two markers: yesterday's CLOSE (= prevClose, where the % is
+          // anchored) and today's OPEN. Both are visual context only;
+          // the % comes from prevClose to match the scoreboard / heatmap.
+          let openIdx = -1, closeIdx = -1;
           for (let i = 0; i < spYtd.length; i++) {
             const d = spYtd[i].date;
             if (d.length < 16) continue;
             const hh = parseInt(d.slice(11, 13), 10);
             const mm = parseInt(d.slice(14, 16), 10);
-            if ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh) { idx = i; break; }
+            if (openIdx < 0 && ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh)) {
+              openIdx = i;
+            }
           }
-          if (idx <= 0) return null; // suppress when no pre-market data is in view
-          const openDate = spYtd[idx].date;
-          const idxInChart = spIdxOf.get(openDate) ?? portIdxOf.get(openDate) ?? 0;
-          const x = (padL + (idxInChart / Math.max(1, totalLen - 1)) * cW).toFixed(1);
+          // CLOSE = the most recent close-hour bar BEFORE the OPEN.
+          if (openIdx > 0) {
+            for (let i = openIdx - 1; i >= 0; i--) {
+              const d = spYtd[i].date;
+              if (d.length < 16) continue;
+              const hh = parseInt(d.slice(11, 13), 10);
+              const mm = parseInt(d.slice(14, 16), 10);
+              if (hh === mh.closeHh && mm <= mh.closeMm + 5) { closeIdx = i; break; }
+            }
+          }
+          const renderMarker = (idx, label) => {
+            if (idx < 0) return null;
+            const date = spYtd[idx].date;
+            const idxInChart = spIdxOf.get(date) ?? portIdxOf.get(date) ?? 0;
+            const x = (padL + (idxInChart / Math.max(1, totalLen - 1)) * cW).toFixed(1);
+            return (
+              <g key={label}>
+                <line x1={x} y1={padT} x2={x} y2={H - padB}
+                      stroke="rgba(244,239,227,0.45)" strokeWidth="0.8" strokeDasharray="3,3" />
+                <text x={x} y={padT - 2} textAnchor="middle"
+                      fontSize="7" fill="rgba(244,239,227,0.5)" fontFamily="var(--font-mono)">
+                  {label}
+                </text>
+              </g>
+            );
+          };
           return (
-            <g>
-              <line x1={x} y1={padT} x2={x} y2={H - padB}
-                    stroke="rgba(244,239,227,0.45)" strokeWidth="0.8" strokeDasharray="3,3" />
-              <text x={x} y={padT - 2} textAnchor="middle"
-                    fontSize="7" fill="rgba(244,239,227,0.5)" fontFamily="var(--font-mono)">
-                OPEN
-              </text>
-            </g>
+            <>
+              {renderMarker(closeIdx, 'CLOSE')}
+              {renderMarker(openIdx,  'OPEN')}
+            </>
           );
         })()}
         {/* S&P 500 line */}
