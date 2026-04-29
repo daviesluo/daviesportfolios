@@ -6,7 +6,7 @@
 import React from 'react';
 import { Modal } from './modals.jsx';
 import { fetchHistoricalBatch, Storage, usMarketHoursUtc } from './utils.js';
-import { RANGES, RANGE_KEYS, fetchParamsFor, filterToLatestDay } from './ytd.js';
+import { RANGES, RANGE_KEYS, fetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, pctColor as pcC } from './utils.js';
 import { reportError } from './ops_error.js';
 
@@ -130,6 +130,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       }
       const params = fetchParamsFor(rangeKey, extendedHours, phase);
       if (params.variant === 'closed') data = filterToLatestDay(data);
+      else if (params.variant === 'reg') data = filterToLast24h(data);
       modalCacheSet(cacheKey, data);
       setSeries(data);
       setLoading(false);
@@ -159,12 +160,48 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         let data = out[ticker];
         if (data && data.length >= 2) {
           if (variant === 'closed') data = filterToLatestDay(data);
+          else if (variant === 'reg') data = filterToLast24h(data);
           modalCacheSet(cacheKey, data);
         }
       }
     })();
     return () => { cancelled = true; };
   }, [ticker, rangeKey, useExt, phase, loading, error]);
+
+  // Continuous polling for the 1D view — re-fetch back-to-back so the
+  // chart tracks intraday moves without needing a manual refresh. New
+  // data swaps `series` in place; the previous bars stay on screen
+  // during the next fetch (no spinner flicker). 5 s minimum gap between
+  // polls in case fetchHistoricalBatch returns instantly from a hot
+  // cache, so the loop can't pin the network. Tears down on rangeKey
+  // change or modal close.
+  React.useEffect(() => {
+    if (rangeKey !== '1D' || !series) return;
+    let cancelled = false;
+    let timer = null;
+    const POLL_MIN_MS = 5000;
+    async function tick() {
+      if (cancelled) return;
+      try {
+        const params = fetchParamsFor(rangeKey, extendedHours, phase);
+        const out = await fetchHistoricalBatch(
+          [ticker], params.yahooRange, params.interval, params.includePrePost,
+        );
+        if (cancelled) return;
+        let data = out[ticker];
+        if (data && data.length >= 2) {
+          if (params.variant === 'closed') data = filterToLatestDay(data);
+          else if (params.variant === 'reg') data = filterToLast24h(data);
+          const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+          modalCacheSet(cacheKey, data);
+          setSeries(data);
+        }
+      } catch { /* keep prior data on screen */ }
+      if (!cancelled) timer = setTimeout(tick, POLL_MIN_MS);
+    }
+    timer = setTimeout(tick, POLL_MIN_MS);
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
+  }, [ticker, rangeKey, useExt, phase, series === null]);
 
   // In ext-on AH/PM mode the chart's right-edge price needs to be the
   // current after-hours quote so the % return matches the scoreboard's

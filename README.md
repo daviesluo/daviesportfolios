@@ -32,13 +32,20 @@ secrets server-side.
 - **Extended-hours toggle** — switches indices to their futures
   contracts (`^GSPC` → `ES=F` etc.) and recomputes day change against
   the regular-session close so post-market moves show up correctly.
-- **1D chart symmetry** — when market is open the ticker chart shows
-  the past ~24 h with a vertical OPEN dashed line at today's regular
-  open and reads "since market opened"; when market is closed (with
-  the ext-hours toggle on) the same chart shows the past 24 h with a
-  CLOSE line at the previous regular close and reads "since previous
-  close". DST-aware: open / close UTC hours flip automatically between
+- **1D chart spans 24 h** — both in-session and ext-hours views show
+  the trailing 24 h. In-session uses Yahoo `range=5d` + a client-side
+  `filterToLast24h` cut (Yahoo's `range=1d` only ever covers the
+  current session, so yesterday's close was unreachable that way).
+  Vertical dashed CLOSE line marks the previous regular close (= the
+  prevClose anchor); in-session view also renders an OPEN line at
+  today's open. The displayed % is "since previous close" in both
+  modes, so it always agrees with the scoreboard's DAY CHANGE and
+  every heatmap tile. DST-aware: open / close UTC hours flip between
   EDT and EST so the markers don't drift Nov–Mar.
+- **Live 1D updates** — opening the ticker modal on 1D starts a
+  back-to-back polling loop (5 s minimum gap) so intraday bars trickle
+  in without needing a manual refresh. Previous bars stay on screen
+  during each fetch — no spinner flicker.
 - **DST-aware scoreboard label** — the "GMT TIME" label flips to
   "BST TIME" automatically during British Summer Time (last Sun Mar →
   last Sun Oct). All chart UTC-string parsing appends an explicit `Z`

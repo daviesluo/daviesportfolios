@@ -15,7 +15,7 @@ import {
   fetchHistoricalBatch,
   Storage,
 } from './utils.js';
-import { buildTickerSeries, computeAt, ytdPct, RANGES, RANGE_KEYS, anchorDateFor, fetchParamsFor, filterToLatestDay } from './ytd.js';
+import { buildTickerSeries, computeAt, ytdPct, RANGES, RANGE_KEYS, anchorDateFor, fetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
 import { reportError } from './ops_error.js';
 
 // Tiny placeholder shell so the loading / error / range-button row renders
@@ -380,6 +380,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       for (const s of stale) {
         let data = batch[s];
         if (data && params.variant === 'closed') data = filterToLatestDay(data);
+        else if (data && params.variant === 'reg') data = filterToLast24h(data);
         if (data) {
           merged[s] = data;
           newEntries[s] = { ts: now, data };
@@ -476,6 +477,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
         for (const s of stale) {
           let data = batch[s];
           if (data && params.variant === 'closed') data = filterToLatestDay(data);
+        else if (data && params.variant === 'reg') data = filterToLast24h(data);
           if (data) newEntries[s] = { ts: now, data };
         }
         savePerfCache(year, cacheKey, newEntries);
