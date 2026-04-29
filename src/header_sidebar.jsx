@@ -7,6 +7,8 @@ import {
   pctColor as pcC,
   londonTimeParts,
   usMarketPhase,
+  ukTzAbbr,
+  usMarketHoursUtc,
   formatAgo,
   fxToUSD,
   fetchHistorical,
@@ -92,6 +94,10 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
   const t = londonTimeParts(now);
   const phase = usMarketPhase(now);
   const phaseInfo = PHASE[phase] || PHASE.overnight;
+  // Scoreboard time label flips between BST (Mar–Oct) and GMT (Oct–Mar)
+  // automatically, since the displayed hh:mm is `Europe/London` from
+  // londonTimeParts and the user expects the abbreviation to match.
+  const tzLabel = `${ukTzAbbr(now)} TIME`;
   const dayClr = pcC(metrics.dayPct);
 
   const agoMs = lastUpdated ? (now.getTime() - lastUpdated.getTime()) : null;
@@ -146,7 +152,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
         {/* Mobile only: time + toggle lives here instead of in scrolling scoreboard */}
         <div className="brand-time">
           <div className="sb-time-line">
-            <span className="sb-label-inline mono">GMT TIME</span>
+            <span className="sb-label-inline mono">{tzLabel}</span>
             <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
             <span className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</span>
           </div>
@@ -165,7 +171,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
       <div className="scoreboard">
         <div className="scoreboard-cell scoreboard-cell-time">
           <div className="sb-time-line">
-            <span className="sb-label-inline mono">GMT TIME</span>
+            <span className="sb-label-inline mono">{tzLabel}</span>
             <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
             <span className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</span>
           </div>
@@ -553,6 +559,10 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   // line does (and matches scoreboard semantics). We locate the bar at
   // or just before 20:00 UTC (= 16:00 ET) inside the fetched ES=F window.
   // For daily ranges it's the last close strictly before anchorDate.
+  // US market hours in UTC for today. Dynamic so EST (UTC-5) winter
+  // sessions still find their open/close bars correctly — hard-coding
+  // 13:30/20:00 UTC would silently break Nov–Mar.
+  const mh = usMarketHoursUtc(new Date());
   let spBase;
   if (rangeKey === '1D') {
     if (useExt) {
@@ -562,7 +572,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
         if (d.length < 16) continue;
         const hh = parseInt(d.slice(11, 13), 10);
         const mm = parseInt(d.slice(14, 16), 10);
-        if (hh < 20 || (hh === 20 && mm <= 5)) { closeIdx = i; break; }
+        if (hh < mh.closeHh || (hh === mh.closeHh && mm <= mh.closeMm + 5)) { closeIdx = i; break; }
       }
       const gspc = marketData?.['^GSPC'];
       spBase = closeIdx >= 0
@@ -763,7 +773,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
             if (d.length < 16) continue;
             const hh = parseInt(d.slice(11, 13), 10);
             const mm = parseInt(d.slice(14, 16), 10);
-            if (hh === 20 && mm <= 5) { idx = i; break; }
+            if (hh === mh.closeHh && mm <= mh.closeMm + 5) { idx = i; break; }
           }
           if (idx < 0) return null;
           // Codex P2: when S&P fetch failed and we fell back to another
@@ -796,7 +806,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
             if (d.length < 16) continue;
             const hh = parseInt(d.slice(11, 13), 10);
             const mm = parseInt(d.slice(14, 16), 10);
-            if ((hh === 13 && mm >= 30) || hh >= 14) { idx = i; break; }
+            if ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh) { idx = i; break; }
           }
           if (idx <= 0) return null; // suppress when no pre-market data is in view
           const openDate = spYtd[idx].date;

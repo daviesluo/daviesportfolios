@@ -5,7 +5,7 @@
 // player in non-edit mode — edit mode keeps opening the EditTickerModal.
 import React from 'react';
 import { Modal } from './modals.jsx';
-import { fetchHistoricalBatch, Storage } from './utils.js';
+import { fetchHistoricalBatch, Storage, usMarketHoursUtc } from './utils.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, filterToLatestDay } from './ytd.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, pctColor as pcC } from './utils.js';
 import { reportError } from './ops_error.js';
@@ -177,36 +177,36 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     : (md?.lastPrice ?? holding?.lastPrice)
   ) || null;
 
+  // US market hours in UTC for today. Dynamic so EST winter sessions
+  // (close 21:00 UTC) still find their bars — hard-coding 20:00 would
+  // silently miss the close marker Nov–Mar.
+  const mh = usMarketHoursUtc(new Date());
+
   // Last-regular-close timestamp inside the series — used to draw the
   // vertical dashed line in 1D ext mode and to anchor % return when the
   // chart includes pre/post hours.
   let regularCloseIdx = -1;
   if (rangeKey === '1D' && useExt && series && series.length > 0) {
-    // The last point whose UTC time-of-day matches 20:00 (16:00 ET) is the
-    // most recent regular session close. Walk backwards from the end.
-    // Series points are "YYYY-MM-DDTHH:MM" (UTC ISO).
     for (let i = series.length - 1; i >= 0; i--) {
       const hh = parseInt(series[i].date.slice(11, 13), 10);
       const mm = parseInt(series[i].date.slice(14, 16), 10);
-      // 20:00 UTC = 16:00 EDT; allow a bit of slack for non-quarter-hour bars.
-      if (hh === 20 && mm <= 5) { regularCloseIdx = i; break; }
+      // closeHh:closeMm UTC; allow a bit of slack for non-quarter-hour bars.
+      if (hh === mh.closeHh && mm <= mh.closeMm + 5) { regularCloseIdx = i; break; }
     }
   }
 
   // First-regular-open bar — mirror of regularCloseIdx for the in-session
   // case. When market is currently open we draw an OPEN dashed line and
-  // pivot the displayed % so it shows the move "since market opens"
+  // pivot the displayed % so it shows the move "since market opened"
   // rather than "since yesterday's close" — same semantic as the CLOSE
-  // marker in ext mode. 13:30 UTC = 9:30 EDT.
+  // marker in ext mode.
   let regularOpenIdx = -1;
   if (rangeKey === '1D' && phase === 'regular' && series && series.length > 0) {
     for (let i = 0; i < series.length; i++) {
       const hh = parseInt(series[i].date.slice(11, 13), 10);
       const mm = parseInt(series[i].date.slice(14, 16), 10);
-      // First bar at-or-after 13:30 UTC. Without pre/post in the fetch
-      // this is index 0 (and we suppress the visible line below); with
-      // pre/post the line lands somewhere in the middle of the chart.
-      if ((hh === 13 && mm >= 30) || hh >= 14) { regularOpenIdx = i; break; }
+      // First bar at-or-after openHh:openMm UTC.
+      if ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh) { regularOpenIdx = i; break; }
     }
   }
 

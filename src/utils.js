@@ -127,6 +127,45 @@ export function usMarketPhase(now = new Date()) {
   return "overnight";                                     // 20:00–4:00
 }
 
+// UK time-zone short name ('GMT' or 'BST') for the given moment.
+// Uses Intl so DST transitions (last Sun Mar / last Sun Oct) are
+// resolved by the runtime — no manual cutover dates to maintain.
+export function ukTzAbbr(now = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/London',
+    timeZoneName: 'short',
+  }).formatToParts(now);
+  const tz = parts.find(p => p.type === 'timeZoneName')?.value;
+  return tz === 'BST' || tz === 'GMT' ? tz : 'GMT';
+}
+
+// US regular-market open / close in UTC for the given moment, accounting
+// for whether the date lands in EDT (UTC-4, March 2nd Sun → Nov 1st Sun)
+// or EST (UTC-5). Returned as hh/mm pairs so the chart code can compare
+// against the UTC-string slice of each intraday bar.
+//
+//   EDT: open 13:30 UTC (= 9:30 ET), close 20:00 UTC (= 16:00 ET)
+//   EST: open 14:30 UTC,             close 21:00 UTC
+//
+// Detection: ask the runtime for the NY hour, compare to the UTC hour;
+// the offset is 4 (EDT) or 5 (EST). Avoids hard-coded DST cutover
+// dates.
+export function usMarketHoursUtc(now = new Date()) {
+  const utcHour = now.getUTCHours();
+  const nyHour = parseInt(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    hour: '2-digit',
+    hour12: false,
+  }).format(now), 10) % 24;
+  let diff = utcHour - nyHour;
+  if (diff > 12)  diff -= 24;
+  if (diff < -12) diff += 24;
+  const edt = diff === 4;
+  return edt
+    ? { openHh: 13, openMm: 30, closeHh: 20, closeMm: 0, edt: true }
+    : { openHh: 14, openMm: 30, closeHh: 21, closeMm: 0, edt: false };
+}
+
 // e.g. 1m 24s / 12s / 1h 03m
 export function formatAgo(ms) {
   if (ms == null || ms < 0) return "—";
