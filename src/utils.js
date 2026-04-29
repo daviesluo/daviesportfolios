@@ -549,14 +549,41 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
 // reaching the data hosts.
 const CN_FUND_RE = /^\d{6}$/;
 
+// Trim a fetched CN-fund history to the requested chart range. Both the
+// danjuanapp and xueqiu endpoints return ~500 daily bars regardless of
+// range; without this trim, picking 1M / 3M / YTD all renders multi-year
+// data — the user noticed because the chart looked identical across
+// range buttons. (The Edge Function applies the same trim server-side
+// for the eastmoney path; this is the client-side equivalent.)
+function trimCnFundToRange(points, range) {
+  if (!Array.isArray(points) || points.length === 0) return points;
+  const now = Date.now();
+  let cutoffMs = 0;
+  if (range === "ytd") {
+    cutoffMs = new Date(new Date().getFullYear(), 0, 1).getTime() - 7 * 86_400_000;
+  } else if (range === "1y" || range === "1Y") {
+    cutoffMs = now - 380 * 86_400_000;
+  } else if (range === "6mo") {
+    cutoffMs = now - 200 * 86_400_000;
+  } else if (range === "3mo") {
+    cutoffMs = now - 100 * 86_400_000;
+  } else if (range === "1mo") {
+    cutoffMs = now - 35 * 86_400_000;
+  } else {
+    return points; // unknown range → keep everything
+  }
+  const filtered = points.filter(p => new Date(p.date).getTime() >= cutoffMs);
+  return filtered.length > 0 ? filtered : points;
+}
+
 // Race CORS proxies × 2 alternative NAV-history endpoints. Returns
-// `[{date,close}, …]` on first success, null if every (proxy, endpoint)
-// combination fails. Endpoints we try:
+// `[{date,close}, …]` (trimmed to `range`) on first success, null if
+// every (proxy, endpoint) combination fails. Endpoints we try:
 //   - danjuanapp.com (Snowball/雪球 旗下蛋卷基金)
 //   - stock.xueqiu.com kline.json (Snowball public API, F-prefixed code)
 // Both are globally accessible (Cloudflare/AWS) and have a separate IP-
 // path chance vs. the Edge Function reaching eastmoney directly.
-async function fetchCnFundHistoryViaProxy(code) {
+async function fetchCnFundHistoryViaProxy(code, range) {
   const djUrl =
     `https://danjuanapp.com/djapi/fund/nav/history/${encodeURIComponent(code)}` +
     `?size=500&page=1&_=${Date.now()}`;
@@ -582,7 +609,7 @@ async function fetchCnFundHistoryViaProxy(code) {
     }
     if (points.length === 0) return null;
     points.sort((a, b) => a.date.localeCompare(b.date));
-    return points;
+    return trimCnFundToRange(points, range);
   };
   const parseXueqiu = async (res) => {
     if (!res.ok) return null;
@@ -604,7 +631,7 @@ async function fetchCnFundHistoryViaProxy(code) {
     }
     if (points.length === 0) return null;
     points.sort((a, b) => a.date.localeCompare(b.date));
-    return points;
+    return trimCnFundToRange(points, range);
   };
 
   const attempts = [];
@@ -722,7 +749,7 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
     // know these symbols so we don't bother trying it.
     for (const s of list) {
       const promise = CN_FUND_RE.test(s)
-        ? fetchCnFundHistoryViaProxy(s)
+        ? fetchCnFundHistoryViaProxy(s, range)
         : fetchHistorical(s, range, interval, includePrePost);
       promise
         .then((data) => { if (data && data.length > 0 && !out[s]) out[s] = data; })
