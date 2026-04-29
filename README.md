@@ -6,7 +6,7 @@ prices and FX are pulled in real time, holdings are arranged by role
 a "Performance vs S&P 500" chart with 1D / 1W / 1M / 3M / YTD ranges.
 
 Deployed at [daviesluo.com](https://daviesluo.com) (admin / read-only
-modes via different password). Source is intentionally a single small repo: React
+modes via different password).
 + Vite client bundled to static files on Cloudflare Pages, plus a
 handful of Supabase Edge Functions that hide the data and 3rd-party
 secrets server-side.
