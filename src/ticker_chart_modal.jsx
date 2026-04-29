@@ -59,7 +59,9 @@ const CN_FUND_RE = /^\d{6}$/;
 export function TickerChartModal({ ticker, holding, marketData, extendedHours, phase, onClose }) {
   const isCnFund = CN_FUND_RE.test(ticker);
   const visibleRangeKeys = isCnFund ? ['1M', '3M', 'YTD'] : RANGE_KEYS;
-  const [rangeKey, setRangeKey] = React.useState('YTD');
+  // CN funds publish 1 NAV / day, so 1D is meaningless — start them on
+  // 1M instead. Everything else opens to today's intraday view.
+  const [rangeKey, setRangeKey] = React.useState(isCnFund ? '1M' : '1D');
   const [series, setSeries]     = React.useState(/** @type {Array<{date:string,close:number}>|null} */ (null));
   const [loading, setLoading]   = React.useState(true);
   const [error, setError]       = React.useState(false);
