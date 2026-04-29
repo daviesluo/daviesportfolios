@@ -18,6 +18,7 @@ import {
 import { INITIAL_PORTFOLIO } from './data.js';
 import { collectPassword, decodeAppToken, getAppToken, authenticate } from './auth.js';
 import { loadPortfolioRemote, savePortfolioRemote } from './portfolio_remote.js';
+import { prefetchAllChartData } from './prefetch.js';
 import { Header, Sidebar, MarketConditions, PerfPanel, SidebarFoot } from './header_sidebar.jsx';
 import { Pitch } from './pitch.jsx';
 import { Heatmap } from './heatmap.jsx';
@@ -252,11 +253,26 @@ function Board({ isReadOnly }) {
     if (src === "live") {
       setRecentlyUpdated(true);
       setTimeout(() => setRecentlyUpdated(false), 1600);
+      // Background prefetch every (range × ticker) chart payload after the
+      // live-prices UI has settled. Fire-and-forget — the cache writes that
+      // land before the user navigates away are still useful, and the
+      // prefetcher itself skips ranges whose every ticker is fresh under
+      // TTL, so on a 30 s auto-refresh tick most calls do zero network IO.
+      const phaseNow = usMarketPhase(new Date());
+      const tickerList = Object.keys(portfolio?.holdings || {})
+        .filter((t) => t !== "CASH" && !portfolio.holdings[t]?.isCash);
+      const sp = (extendedHours && phaseNow !== "regular") ? "ES=F" : "^GSPC";
+      prefetchAllChartData({
+        tickers: tickerList,
+        spSymbol: sp,
+        extendedHours,
+        phase: phaseNow,
+      });
     }
     if (src === "error") {
       setTimeout(() => doRefreshRef.current(), 3000);
     }
-  }, [portfolio]);
+  }, [portfolio, extendedHours]);
 
   const doRefreshRef = useRef(doRefresh);
   useEffect(() => { doRefreshRef.current = doRefresh; }, [doRefresh]);
