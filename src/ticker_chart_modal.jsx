@@ -255,11 +255,25 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   function handleMove(e) {
     if (!hasData || !svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
-    const sx = ((e.clientX - rect.left) / rect.width) * W;
+    // The SVG uses the default preserveAspectRatio="xMidYMid meet", which
+    // letterboxes the viewBox content when the rendered element's aspect
+    // ratio differs from W/H (e.g. wide desktop view). Compute the actual
+    // content-area offset+size so the cursor → chart-x mapping is exact
+    // right up to the edge of the visible chart, not the SVG element.
+    const vbRatio = W / H;
+    const elRatio = rect.width / rect.height;
+    let contentW, contentH, offX, offY;
+    if (elRatio > vbRatio) {
+      contentH = rect.height; contentW = contentH * vbRatio;
+      offX = (rect.width - contentW) / 2; offY = 0;
+    } else {
+      contentW = rect.width;  contentH = contentW / vbRatio;
+      offX = 0; offY = (rect.height - contentH) / 2;
+    }
+    const sx = ((e.clientX - rect.left - offX) / contentW) * W;
     // Clamp the cursor's chart-space x to [padL, W-padR] so the crosshair
     // pins to the first / last data point when the mouse drifts into the
-    // axis padding instead of "snapping off". The user expected the dot
-    // to keep tracking right up to the edge of the SVG.
+    // axis padding instead of "snapping off".
     const clampedSx = Math.max(padL, Math.min(W - padR, sx));
     const denom = Math.max(1, points.length - 1);
     const frac = (clampedSx - padL) / cW;
