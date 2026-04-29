@@ -1,6 +1,8 @@
-// Background chart-data prefetch. Triggered after every successful
-// price refresh (manual Refresh click + auto-refresh tick + initial
-// load). Walks every (range × ticker) combo and writes into both:
+// Background chart-data prefetch. Triggered on initial portfolio load
+// and on the user's explicit Refresh click ONLY — NOT on the 30 s
+// auto-refresh tick (auto-ticks would re-do the same fetches well
+// inside each range's TTL with no fresh data to show for it). Walks
+// every (range × ticker) combo and writes into both:
 //
 //   - dp.ytd (PerfChart's per-(range, variant) cache)
 //   - dp.tickerChart (TickerChartModal's per-(ticker, range, variant,
@@ -13,11 +15,10 @@
 //
 // Cost control:
 //   - Reads each ticker's TTL from RANGE_TTL_MS before fetching.
-//     Ranges whose every ticker is fresh are skipped entirely
-//     (zero-network ticks under the auto-refresh interval).
-//   - Sequential by range (1D → 1W → 1M → 3M → YTD) with a 200 ms
-//     pause between each, so the browser isn't pinned on network
-//     IO with 5 concurrent N-ticker batches.
+//     Ranges whose every ticker is fresh are skipped entirely.
+//   - Sequential by range (1D → 1W → 1M → 3M → YTD) — only one
+//     in-flight HTTP request at a time, so we don't pin the browser
+//     on five concurrent N-ticker batches.
 
 import { Storage, fetchHistoricalBatch } from './utils.js';
 import { fetchParamsFor, filterToLatestDay, RANGE_KEYS } from './ytd.js';
@@ -120,8 +121,5 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       }
       Storage.saveTickerChart(tcAll);
     }
-
-    // Tiny pause so the auto-refresh tick doesn't pin the browser on network IO
-    await new Promise((r) => setTimeout(r, 200));
   }
 }
