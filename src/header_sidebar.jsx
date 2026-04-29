@@ -385,6 +385,47 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     return () => { cancelled = true; };
   }, [tickerKey, rangeKey, variantKey]);
 
+  // Background prefetch the other ranges once the user's chosen range has
+  // loaded so subsequent range-button clicks are instant. Sequential (not
+  // parallel) to avoid hammering the Edge Function with five concurrent
+  // batched fetches every time the chart mounts. Skips ranges already
+  // covered by fresh per-ticker entries in the cache.
+  React.useEffect(() => {
+    if (!portfolio || loading || error || !hist) return;
+    const year = new Date().getFullYear();
+    const symbols = [spSymbol, ...tickers];
+    const others = RANGE_KEYS.filter(k => k !== rangeKey);
+    let cancelled = false;
+    (async () => {
+      for (const rk of others) {
+        if (cancelled) return;
+        const otherVariant = rk === '1D'
+          ? (extendedHours ? 'ext' : (phase === 'regular' ? 'reg' : 'closed'))
+          : 'std';
+        const cacheKey = `${rk}:${otherVariant}`;
+        const ttl = PERF_CACHE_TTL_MS[rk] || PERF_CACHE_TTL_MS.YTD;
+        const entries = loadPerfCache(year, cacheKey);
+        const stale = symbols.filter(s => {
+          const e = entries[s];
+          return !(e && e.data && Array.isArray(e.data) && (Date.now() - (e.ts || 0)) < ttl);
+        });
+        if (stale.length === 0) continue;
+        const params = fetchParamsFor(rk, extendedHours, phase);
+        const batch = await fetchHistoricalBatch(stale, params.yahooRange, params.interval, params.includePrePost);
+        if (cancelled) return;
+        const newEntries = { ...entries };
+        const now = Date.now();
+        for (const s of stale) {
+          let data = batch[s];
+          if (data && params.variant === 'closed') data = filterToLatestDay(data);
+          if (data) newEntries[s] = { ts: now, data };
+        }
+        savePerfCache(year, cacheKey, newEntries);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [tickerKey, rangeKey, variantKey, loading, error]);
+
   if (!portfolio) return renderShell(<div className="sparkline-empty dim mono">Loading…</div>, rangeKey, setRangeKey);
   if (loading)    return renderShell(<div className="sparkline-empty dim mono">Computing…</div>, rangeKey, setRangeKey);
   if (error)      return renderShell(<div className="sparkline-empty dim mono">Couldn't load history</div>, rangeKey, setRangeKey);
@@ -431,13 +472,36 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const yearStartDate = spWindow[0].date;
   const todayMs = Date.now();
 
+  const useExt = !!(extendedHours && phase && phase !== "regular");
+
   // S&P 500 baseline. For 1D this is the prevClose of the S&P reference
-  // (^GSPC during regular hours, ES=F in ext mode) from marketData. For
-  // daily ranges it's the last close strictly before anchorDate.
+  // (^GSPC during regular hours, ES=F in ext mode) from marketData. In
+  // 1D + ext-on AH/PM we pivot to today's regular close instead so the
+  // S&P line crosses 0% at the same vertical CLOSE marker the portfolio
+  // line does (and matches scoreboard semantics). We locate the bar at
+  // or just before 20:00 UTC (= 16:00 ET) inside the fetched ES=F window.
+  // For daily ranges it's the last close strictly before anchorDate.
   let spBase;
   if (rangeKey === '1D') {
-    const md = marketData?.[spSymbol];
-    spBase = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : spWindow[0].close;
+    if (useExt) {
+      let closeIdx = -1;
+      for (let i = spWindow.length - 1; i >= 0; i--) {
+        const d = spWindow[i].date;
+        if (d.length < 16) continue;
+        const hh = parseInt(d.slice(11, 13), 10);
+        const mm = parseInt(d.slice(14, 16), 10);
+        if (hh < 20 || (hh === 20 && mm <= 5)) { closeIdx = i; break; }
+      }
+      const gspc = marketData?.['^GSPC'];
+      spBase = closeIdx >= 0
+        ? spWindow[closeIdx].close
+        : (gspc && gspc.lastPrice && gspc.lastPrice > 0
+            ? gspc.lastPrice
+            : (marketData?.[spSymbol]?.prevClose ?? spWindow[0].close));
+    } else {
+      const md = marketData?.[spSymbol];
+      spBase = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : spWindow[0].close;
+    }
   } else {
     const spPrior = hasSp ? allSp.filter(p => p.date < anchorDate) : [];
     spBase = spPrior.length > 0 ? spPrior[spPrior.length - 1].close : spWindow[0].close;
@@ -446,9 +510,8 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   /** @type {Record<string, {date:string,close:number}[]>} */
   const histForTickers = {};
   for (const t of tickers) histForTickers[t] = hist[t] || [];
-  const tickerSeries = buildTickerSeries(histForTickers, anchorDate, rangeKey, marketData);
+  const tickerSeries = buildTickerSeries(histForTickers, anchorDate, rangeKey, marketData, useExt);
 
-  const useExt = !!(extendedHours && phase && phase !== "regular");
   const liveAnchorDate = spWindow[spWindow.length - 1].date;
   const ytdOpts = {
     portfolio, tickerSeries, marketData,

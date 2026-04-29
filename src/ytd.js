@@ -100,7 +100,12 @@ export function anchorDateFor(rangeKey, now = new Date()) {
  * `YYYY-MM-DDTHH:MM` formats since both sort lexicographically).
  *
  * Anchor price by range:
- *   - 1D  → marketData[ticker].prevClose (yesterday's regular session close)
+ *   - 1D + useExt → marketData[ticker].lastPrice (today's regular close).
+ *           Pivots the chart's basis at the regular close so the right-
+ *           edge % matches the scoreboard's DAY CHANGE %, which in ext-on
+ *           AH/PM mode is computed as (extPrice − lastPrice) / lastPrice.
+ *   - 1D otherwise → marketData[ticker].prevClose (yesterday's regular
+ *           session close)
  *   - YTD → last close strictly before yearStart (prior-year-end close,
  *           Yahoo's YTD baseline)
  *   - 1W/1M/3M → last close strictly before anchorDate, else first close
@@ -110,9 +115,10 @@ export function anchorDateFor(rangeKey, now = new Date()) {
  * @param {string} anchorDate    — chart's leftmost cutoff (YYYY-MM-DD)
  * @param {string} rangeKey      — '1D' | '1W' | '1M' | '3M' | 'YTD'
  * @param {Record<string, {prevClose?:number, lastPrice?:number}>} [marketData]
+ * @param {boolean} [useExt]     - extendedHours and phase not 'regular'
  * @returns {Record<string, {series:{date:string,close:number}[], map:Record<string,number>, janPrice:number|null}>}
  */
-export function buildTickerSeries(hist, anchorDate, rangeKey = 'YTD', marketData = {}) {
+export function buildTickerSeries(hist, anchorDate, rangeKey = 'YTD', marketData = {}, useExt = false) {
   /** @type {Record<string, {series:{date:string,close:number}[], map:Record<string,number>, janPrice:number|null}>} */
   const out = {};
   for (const [t, raw] of Object.entries(hist || {})) {
@@ -123,10 +129,17 @@ export function buildTickerSeries(hist, anchorDate, rangeKey = 'YTD', marketData
 
     let janPrice = null;
     if (rangeKey === '1D') {
-      // 1D's anchor is yesterday's regular close — comes from the live
-      // marketData snapshot since intraday history doesn't include it.
+      // 1D's anchor comes from the live marketData snapshot — historical
+      // intraday bars don't include yesterday's close. In ext-on AH/PM
+      // we pivot to today's regular close (lastPrice) instead so the
+      // chart's right-edge % matches the scoreboard's DAY CHANGE.
       const md = marketData[t];
-      if (md && typeof md.prevClose === 'number' && md.prevClose > 0) {
+      const ref = useExt ? md?.lastPrice : md?.prevClose;
+      if (typeof ref === 'number' && ref > 0) {
+        janPrice = ref;
+      } else if (md && typeof md.prevClose === 'number' && md.prevClose > 0) {
+        // Fallback: useExt requested but lastPrice missing — better to plot
+        // against prevClose than render an empty chart.
         janPrice = md.prevClose;
       }
     } else {

@@ -79,7 +79,43 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     return () => { cancelled = true; };
   }, [ticker, rangeKey, useExt, phase]);
 
-  const liveLast = (marketData?.[ticker]?.lastPrice ?? holding?.lastPrice) || null;
+  // Background prefetch the other ranges once the user's chosen range has
+  // landed. Range-button clicks then hit the in-memory cache for an
+  // instant swap. Sequential, fire-and-forget — failures just leave the
+  // cache untouched and the next click pays the normal fetch cost.
+  React.useEffect(() => {
+    if (loading || error || !series) return;
+    const others = RANGE_KEYS.filter(k => k !== rangeKey);
+    let cancelled = false;
+    (async () => {
+      for (const rk of others) {
+        if (cancelled) return;
+        const { yahooRange, interval, includePrePost, variant } = fetchParamsFor(rk, extendedHours, phase);
+        const cacheKey = `${ticker}|${rk}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+        const ttl = rk === '1D' ? 5 * 60 * 1000 : 60 * 60 * 1000;
+        if (modalCacheGet(cacheKey, ttl)) continue;
+        const out = await fetchHistoricalBatch([ticker], yahooRange, interval, includePrePost);
+        if (cancelled) return;
+        let data = out[ticker];
+        if (data && data.length >= 2) {
+          if (variant === 'closed') data = filterToLatestDay(data);
+          modalCacheSet(cacheKey, data);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [ticker, rangeKey, useExt, phase, loading, error]);
+
+  // In ext-on AH/PM mode the chart's right-edge price needs to be the
+  // current after-hours quote so the % return matches the scoreboard's
+  // DAY CHANGE (which in the same mode is computed against today's
+  // regular close). Outside ext-AH we use lastPrice (today's regular
+  // session price during the day, or yesterday's close after hours).
+  const md = marketData?.[ticker];
+  const liveLast = (
+    (useExt && md?.extPrice != null && md.extPrice > 0) ? md.extPrice
+    : (md?.lastPrice ?? holding?.lastPrice)
+  ) || null;
 
   // Last-regular-close timestamp inside the series — used to draw the
   // vertical dashed line in 1D ext mode and to anchor % return when the
@@ -99,15 +135,20 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
 
   // Anchor for % calculation:
   //   1D regular  → marketData.prevClose
-  //   1D ext on   → close at the regular-close idx if found, else first pt
+  //   1D ext on   → close at the regular-close idx if found, else
+  //                 marketData.lastPrice (today's regular close), else first pt
   //   1D ext off + closed → first point of the last day (already filtered)
   //   others      → last close strictly before the first window point
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
-      const md = marketData?.[ticker];
       if (useExt && regularCloseIdx >= 0) {
         anchorClose = series[regularCloseIdx].close;
+      } else if (useExt && md?.lastPrice && md.lastPrice > 0) {
+        // No 20:00 UTC bar in the fetched window (e.g. weekend session
+        // for futures) — fall back to today's regular close from the
+        // live snapshot so the basis still matches scoreboard semantics.
+        anchorClose = md.lastPrice;
       } else if (!extendedHours && phase === 'regular') {
         anchorClose = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : series[0].close;
       } else {
@@ -209,6 +250,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const rafRef = React.useRef(0);
   const pendingIdxRef = React.useRef(/** @type {number|null} */ (null));
 
+  // Crosshair x-axis label box width depends on the formatted text — 1W/1M
+  // emit "Mon DD HH:MM" (~12 chars at fontSize 9.5) which doesn't fit the
+  // 64 px box that's enough for "HH:MM" or "Mon DD". Sized per range so
+  // the box snugly fits the longest possible label without leaving big
+  // gaps on shorter ones.
+  const xRectWidth = (rangeKey === '1W' || rangeKey === '1M') ? 96 : 64;
+
   function paintCrosshair() {
     rafRef.current = 0;
     const idx = pendingIdxRef.current;
@@ -228,7 +276,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     if (cHlineRef.current) { cHlineRef.current.setAttribute('y1', String(y)); cHlineRef.current.setAttribute('y2', String(y)); }
     if (cDotRef.current)   { cDotRef.current.setAttribute('cx', String(x)); cDotRef.current.setAttribute('cy', String(y));
                              cDotRef.current.setAttribute('fill', pct >= 0 ? 'var(--gain)' : 'var(--loss)'); }
-    if (cXRectRef.current) cXRectRef.current.setAttribute('x', String(x - 32));
+    if (cXRectRef.current) cXRectRef.current.setAttribute('x', String(x - xRectWidth / 2));
     if (cXTextRef.current) { cXTextRef.current.setAttribute('x', String(x)); cXTextRef.current.textContent = fmtDate(p.date); }
     if (cYRectRef.current) cYRectRef.current.setAttribute('y', String(y - 9));
     if (cYTextRef.current) { cYTextRef.current.setAttribute('y', String(y)); cYTextRef.current.textContent = `${sym}${fmtPr(p.close)}`; }
@@ -389,7 +437,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                       stroke="rgba(244,239,227,0.5)" strokeWidth="0.7" strokeDasharray="3,3" />
                 <line ref={cHlineRef} x1={padL} y1={padT} x2={W - padR} y2={padT}
                       stroke="rgba(244,239,227,0.5)" strokeWidth="0.7" strokeDasharray="3,3" />
-                <rect ref={cXRectRef} x={padL} y={H - padB + 1} width={64} height={18}
+                <rect ref={cXRectRef} x={padL} y={H - padB + 1} width={xRectWidth} height={18}
                       fill="#0c1310" stroke="var(--chalk-dim)" />
                 <text ref={cXTextRef} x={padL} y={H - padB + 13} textAnchor="middle"
                       fontSize="9.5" fill="var(--chalk)" fontFamily="var(--font-mono)" />
