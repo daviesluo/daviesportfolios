@@ -472,6 +472,26 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const yearStartDate = spWindow[0].date;
   const todayMs = Date.now();
 
+  // marketData (parent state) only carries indices / forex tickers
+  // (^GSPC, ES=F, GBPUSD=X, …). Per-stock prices live on
+  // portfolio.holdings[t]. The chart math (1D anchor pricing, live-price
+  // substitution at the right edge) needs prevClose / lastPrice /
+  // extPrice for EVERY ticker, so merge them into a single map. Without
+  // this, marketData[<stock>] was undefined and the 1D chart's basis
+  // collapsed to null → chart drew a flat 0% line, not matching the
+  // scoreboard's DAY CHANGE.
+  /** @type {Record<string, {prevClose?:number, lastPrice?:number, extPrice?:number|null, dayPct?:number}>} */
+  const tickerMarketData = { ...marketData };
+  for (const [t, h] of Object.entries(portfolio.holdings || {})) {
+    if (h.isCash || t === 'CASH') continue;
+    tickerMarketData[t] = {
+      prevClose: h.prevClose,
+      lastPrice: h.lastPrice,
+      extPrice: h.extPrice ?? null,
+      dayPct: h.dayPct,
+    };
+  }
+
   const useExt = !!(extendedHours && phase && phase !== "regular");
 
   // S&P 500 baseline. For 1D this is the prevClose of the S&P reference
@@ -510,11 +530,11 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   /** @type {Record<string, {date:string,close:number}[]>} */
   const histForTickers = {};
   for (const t of tickers) histForTickers[t] = hist[t] || [];
-  const tickerSeries = buildTickerSeries(histForTickers, anchorDate, rangeKey, marketData, useExt);
+  const tickerSeries = buildTickerSeries(histForTickers, anchorDate, rangeKey, tickerMarketData, useExt);
 
   const liveAnchorDate = spWindow[spWindow.length - 1].date;
   const ytdOpts = {
-    portfolio, tickerSeries, marketData,
+    portfolio, tickerSeries, marketData: tickerMarketData,
     yearStart: anchorDate, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
   };
 
@@ -587,12 +607,11 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   // X-axis labels. With index-based positioning we can't pin labels to
   // calendar months any more (each step is a data point, not a wall-clock
   // step), so we sample a handful of equally-spaced indices and let the
-  // formatter decide what's most useful (HH:MM for 1D, "Mon DD" for the
-  // longer ranges, "Mon DD HH:MM" for 1W/1M intraday so multi-bar days
-  // are distinguishable).
+  // formatter decide what's most useful: HH:MM for 1D intraday, "Mon DD"
+  // for 1W/1M (intraday bars are distinguishable from the curve itself —
+  // the user found "Mon DD HH:MM" too noisy), and bare month for 3M/YTD.
   const months = [];
   if (portNorm.length > 0) {
-    const showTime = rangeKey === '1D' || rangeKey === '1W' || rangeKey === '1M';
     const denom = Math.max(1, portNorm.length - 1);
     const labelCount = rangeKey === '1D' ? 4 : 5;
     for (let i = 0; i <= labelCount; i++) {
@@ -605,9 +624,8 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       let label;
       if (rangeKey === '1D') {
         label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      } else if (showTime) {
-        label = d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
-                d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else if (rangeKey === '1W' || rangeKey === '1M') {
+        label = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
       } else {
         label = d.toLocaleString('default', { month: 'short' });
       }
@@ -691,7 +709,14 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
             if (hh === 20 && mm <= 5) { idx = i; break; }
           }
           if (idx < 0) return null;
-          const x = xOfSp(spYtd[idx].date).toFixed(1);
+          // Codex P2: when S&P fetch failed and we fell back to another
+          // ticker for spYtd, spNorm stays empty so xOfSp resolves every
+          // date to padL. Use whichever index map actually contains the
+          // date — falls back to portfolio's index (which uses the same
+          // total step count as S&P would).
+          const closeDate = spYtd[idx].date;
+          const idxInChart = spIdxOf.get(closeDate) ?? portIdxOf.get(closeDate) ?? 0;
+          const x = (padL + (idxInChart / Math.max(1, totalLen - 1)) * cW).toFixed(1);
           return (
             <g>
               <line x1={x} y1={padT} x2={x} y2={H - padB}
