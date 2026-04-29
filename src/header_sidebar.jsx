@@ -484,9 +484,21 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const cW = W - padL - padR;
   const cH = H - padT - padB;
 
-  const t0 = new Date(d0).getTime();
-  const tSpan = Math.max(new Date(d1).getTime() - t0, 86400000);
-  const xOf = d => padL + ((new Date(d).getTime() - t0) / tSpan) * cW;
+  // X positioning is INDEX-based (each data point = one equally-spaced
+  // step), not time-based. Two reasons:
+  //   1. Closed-market 1D used to clamp tSpan to a 1-day minimum, which
+  //      stuffed the actual 6.5-hour intraday data into the first ~27 %
+  //      of the chart, leaving the rest blank ("前半段" bug the user
+  //      flagged on PR #49). Index-based positioning fills the full
+  //      width regardless of how short the time span is.
+  //   2. Weekend / overnight gaps don't draw empty stretches under the
+  //      line — same convention every brokerage chart uses (Yahoo,
+  //      Robinhood, T212).
+  const portIdxOf = new Map(portNorm.map((p, i) => [p.date, i]));
+  const spIdxOf   = new Map(spNorm.map((p, i) => [p.date, i]));
+  const totalLen  = Math.max(portNorm.length, spNorm.length, 2);
+  const xOfPort = (date) => padL + ((portIdxOf.get(date) ?? 0) / Math.max(1, totalLen - 1)) * cW;
+  const xOfSp   = (date) => padL + ((spIdxOf.get(date)   ?? 0) / Math.max(1, totalLen - 1)) * cW;
 
   // Y range — always include 0
   const allPcts = [...portNorm.map(p => p.pct), ...spNorm.map(p => p.pct), 0];
@@ -509,31 +521,46 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const ticks = [];
   for (let t = Math.ceil(yMin / tickStep) * tickStep; t <= yMax; t += tickStep) ticks.push(t);
 
-  // Month labels for X axis
+  // X-axis labels. With index-based positioning we can't pin labels to
+  // calendar months any more (each step is a data point, not a wall-clock
+  // step), so we sample a handful of equally-spaced indices and let the
+  // formatter decide what's most useful (HH:MM for 1D, "Mon DD" for the
+  // longer ranges, "Mon DD HH:MM" for 1W/1M intraday so multi-bar days
+  // are distinguishable).
   const months = [];
-  {
-    const d0Date = new Date(d0);
-    const d1Date = new Date(d1);
-    for (
-      let m = new Date(d0Date.getUTCFullYear(), d0Date.getUTCMonth(), 1);
-      m <= d1Date;
-      m = new Date(m.getFullYear(), m.getMonth() + 1, 1)
-    ) {
-      const iso = m.toISOString().slice(0, 10);
-      if (iso < d0) continue;
-      const x = xOf(iso);
+  if (portNorm.length > 0) {
+    const showTime = rangeKey === '1D' || rangeKey === '1W' || rangeKey === '1M';
+    const denom = Math.max(1, portNorm.length - 1);
+    const labelCount = rangeKey === '1D' ? 4 : 5;
+    for (let i = 0; i <= labelCount; i++) {
+      const idx = Math.round((portNorm.length - 1) * (i / labelCount));
+      const safeIdx = Math.max(0, Math.min(portNorm.length - 1, idx));
+      const dateStr = portNorm[safeIdx].date;
+      const x = padL + (safeIdx / denom) * cW;
       if (x < padL + 10 || x > W - padR - 8) continue;
-      months.push({ x, label: m.toLocaleString('default', { month: 'short' }) });
+      const d = new Date(dateStr);
+      let label;
+      if (rangeKey === '1D') {
+        label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else if (showTime) {
+        label = d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
+                d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else {
+        label = d.toLocaleString('default', { month: 'short' });
+      }
+      months.push({ x, label });
     }
   }
 
-  // SVG paths
-  const toPath = norm => {
+  // SVG paths — each series uses its own index map so portfolio and S&P
+  // align even when the two series have slightly different point counts
+  // (e.g. one ticker missed today's data).
+  const toPath = (norm, xFn) => {
     if (norm.length === 0) return '';
-    return 'M' + norm.map(p => `${xOf(p.date).toFixed(1)},${yOf(p.pct).toFixed(1)}`).join('L');
+    return 'M' + norm.map(p => `${xFn(p.date).toFixed(1)},${yOf(p.pct).toFixed(1)}`).join('L');
   };
-  const portPath = toPath(portNorm);
-  const spPath   = toPath(spNorm);
+  const portPath = toPath(portNorm, xOfPort);
+  const spPath   = toPath(spNorm,   xOfSp);
 
   const portCurrent = portNorm.length > 0 ? portNorm[portNorm.length - 1].pct : null;
   const spCurrent   = spNorm.length   > 0 ? spNorm[spNorm.length - 1].pct   : null;
@@ -601,7 +628,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
             if (hh === 20 && mm <= 5) { idx = i; break; }
           }
           if (idx < 0) return null;
-          const x = xOf(spYtd[idx].date).toFixed(1);
+          const x = xOfSp(spYtd[idx].date).toFixed(1);
           return (
             <g>
               <line x1={x} y1={padT} x2={x} y2={H - padB}
@@ -626,7 +653,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
         {/* Dot at last portfolio point */}
         {portNorm.length > 0 && (() => {
           const last = portNorm[portNorm.length - 1];
-          return <circle cx={xOf(last.date).toFixed(1)} cy={yOf(last.pct).toFixed(1)}
+          return <circle cx={xOfPort(last.date).toFixed(1)} cy={yOf(last.pct).toFixed(1)}
                          r="3" fill={portColor} stroke="#0c1310" strokeWidth="1.5" />;
         })()}
       </svg>

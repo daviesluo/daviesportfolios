@@ -10,11 +10,15 @@
  * @typedef {'1D'|'1W'|'1M'|'3M'|'YTD'} RangeKey
  */
 export const RANGES = {
-  '1D':  { yahooRange: '1d',  interval: '5m', label: '1D'  },
-  '1W':  { yahooRange: '5d',  interval: '1d', label: '1W'  },
-  '1M':  { yahooRange: '1mo', interval: '1d', label: '1M'  },
-  '3M':  { yahooRange: '3mo', interval: '1d', label: '3M'  },
-  'YTD': { yahooRange: 'ytd', interval: '1d', label: 'YTD' },
+  // Intraday intervals on 1W / 1M so a 5-day or 30-day chart has enough
+  // points to read at a glance (was 5 / 22 daily bars; now ~65 / ~150).
+  // Yahoo limits 30m bars to 60 days and 60m bars to 730 days, both well
+  // within these ranges.
+  '1D':  { yahooRange: '1d',  interval: '5m',  label: '1D'  },
+  '1W':  { yahooRange: '5d',  interval: '30m', label: '1W'  },
+  '1M':  { yahooRange: '1mo', interval: '60m', label: '1M'  },
+  '3M':  { yahooRange: '3mo', interval: '1d',  label: '3M'  },
+  'YTD': { yahooRange: 'ytd', interval: '1d',  label: 'YTD' },
 };
 export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
 
