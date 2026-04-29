@@ -549,16 +549,24 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
 // reaching the data hosts.
 const CN_FUND_RE = /^\d{6}$/;
 
-// Race CORS proxies → danjuanapp.com NAV history endpoint. Returns
-// `[{date,close}, …]` on success, null if every proxy fails. Lives
-// here (not in fetchHistorical) so it can be reused as one half of
-// fetchHistoricalBatch's CN-fund race against the Edge Function.
+// Race CORS proxies × 2 alternative NAV-history endpoints. Returns
+// `[{date,close}, …]` on first success, null if every (proxy, endpoint)
+// combination fails. Endpoints we try:
+//   - danjuanapp.com (Snowball/雪球 旗下蛋卷基金)
+//   - stock.xueqiu.com kline.json (Snowball public API, F-prefixed code)
+// Both are globally accessible (Cloudflare/AWS) and have a separate IP-
+// path chance vs. the Edge Function reaching eastmoney directly.
 async function fetchCnFundHistoryViaProxy(code) {
-  const url =
+  const djUrl =
     `https://danjuanapp.com/djapi/fund/nav/history/${encodeURIComponent(code)}` +
     `?size=500&page=1&_=${Date.now()}`;
+  // Snowball klines for a fund use the F-prefixed symbol. count=-500 = last 500 daily bars.
+  const xqUrl =
+    `https://stock.xueqiu.com/v5/stock/chart/kline.json` +
+    `?symbol=F${encodeURIComponent(code)}&period=day&type=before&count=-500` +
+    `&indicator=kline&_=${Date.now()}`;
 
-  const parse = async (res) => {
+  const parseDanjuan = async (res) => {
     if (!res.ok) return null;
     const json = await res.json();
     const items = json?.data?.items;
@@ -576,10 +584,38 @@ async function fetchCnFundHistoryViaProxy(code) {
     points.sort((a, b) => a.date.localeCompare(b.date));
     return points;
   };
+  const parseXueqiu = async (res) => {
+    if (!res.ok) return null;
+    const json = await res.json();
+    // Response: { data: { column: ["timestamp","volume","open","high","low","close",…], item: [[ts,vol,open,…]] } }
+    const cols = json?.data?.column;
+    const rows = json?.data?.item;
+    if (!Array.isArray(cols) || !Array.isArray(rows)) return null;
+    const tsIdx = cols.indexOf("timestamp");
+    const closeIdx = cols.indexOf("close");
+    if (tsIdx < 0 || closeIdx < 0) return null;
+    /** @type {{date:string, close:number}[]} */
+    const points = [];
+    for (const row of rows) {
+      const ts = Number(row?.[tsIdx]);
+      const close = Number(row?.[closeIdx]);
+      if (!isFinite(ts) || !isFinite(close) || close <= 0) continue;
+      points.push({ date: new Date(ts).toISOString().slice(0, 10), close });
+    }
+    if (points.length === 0) return null;
+    points.sort((a, b) => a.date.localeCompare(b.date));
+    return points;
+  };
+
+  const attempts = [];
+  for (const makeProxy of PROXIES) {
+    attempts.push({ url: makeProxy(djUrl), parse: parseDanjuan });
+    attempts.push({ url: makeProxy(xqUrl), parse: parseXueqiu });
+  }
 
   return new Promise((resolve) => {
     let resolved = false;
-    let remaining = PROXIES.length;
+    let remaining = attempts.length;
     /** @type {AbortController[]} */
     const controllers = [];
     /** @type {ReturnType<typeof setTimeout>[]} */
@@ -600,14 +636,14 @@ async function fetchCnFundHistoryViaProxy(code) {
         resolve(null);
       }
     };
-    for (const makeProxy of PROXIES) {
+    for (const { url, parse } of attempts) {
       const controller = new AbortController();
       controllers.push(controller);
       const tid = setTimeout(() => controller.abort(), 7000);
       timers.push(tid);
       (async () => {
         try {
-          const res = await fetch(makeProxy(url), { cache: "no-store", signal: controller.signal });
+          const res = await fetch(url, { cache: "no-store", signal: controller.signal });
           clearTimeout(tid);
           settle(await parse(res));
         } catch (_) {
