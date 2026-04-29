@@ -513,39 +513,44 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
   const list = Array.from(new Set(symbols.filter(Boolean)));
   if (list.length === 0) return out;
 
-  // Edge Function first
-  try {
-    const ipp = includePrePost ? "&includePrePost=true" : "";
-    const edgeUrl =
-      `${EDGE_PRICES_URL.replace(/\/prices$/, "/chart")}` +
-      `?tickers=${encodeURIComponent(list.join(","))}` +
-      `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}`;
-    const res = await fetch(edgeUrl, {
-      headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
-      // Short timeout — if the Edge Function is slow we'd rather fail fast
-      // and try the CORS proxies than make the user stare at a "Loading…"
-      // for 15 s. The proxy fallback path also runs fast on the happy path
-      // so total worst-case latency is bounded.
-      signal: AbortSignal.timeout(7000),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && typeof data === "object") {
-        for (const [t, pts] of Object.entries(data)) {
-          if (Array.isArray(pts) && pts.length > 0) out[t] = pts;
-        }
-      }
-    }
-  } catch (_) { /* fall through to CORS proxies */ }
+  // Race the Edge Function (one batched request for all tickers) against
+  // per-ticker CORS-proxy fetches in parallel. Whichever fills `out[ticker]`
+  // first wins; the slower path then fills any tickers the faster one
+  // missed. Net effect: total wall time ≈ min(edge, fastest-proxy) on the
+  // happy path, instead of the previous edge-first-then-proxies sequential
+  // chain (which made the user stare at "Loading…" for ~7-10 s if Edge was
+  // slow before falling back).
+  const ipp = includePrePost ? "&includePrePost=true" : "";
 
-  // CORS-proxy fallback for any missing
-  const missing = list.filter(t => !out[t]);
-  if (missing.length > 0) {
-    const results = await Promise.all(
-      missing.map(s => fetchHistorical(s, range, interval, includePrePost).catch(() => null))
-    );
-    missing.forEach((s, i) => { if (results[i]) out[s] = results[i]; });
-  }
+  const edgePromise = (async () => {
+    try {
+      const edgeUrl =
+        `${EDGE_PRICES_URL.replace(/\/prices$/, "/chart")}` +
+        `?tickers=${encodeURIComponent(list.join(","))}` +
+        `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}`;
+      const res = await fetch(edgeUrl, {
+        headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data || typeof data !== "object") return;
+      for (const [t, pts] of Object.entries(data)) {
+        if (Array.isArray(pts) && pts.length > 0 && !out[t]) out[t] = pts;
+      }
+    } catch (_) { /* swallow — proxy path may still succeed */ }
+  })();
+
+  const proxyPromise = Promise.all(
+    list.map(async (s) => {
+      const data = await fetchHistorical(s, range, interval, includePrePost).catch(() => null);
+      if (data && data.length > 0 && !out[s]) out[s] = data;
+    }),
+  );
+
+  // Wait for both — but the loser's writes are skipped via the `!out[s]`
+  // guards above, so duplicate fetches don't clobber existing data.
+  await Promise.all([edgePromise, proxyPromise]);
   return out;
 }
 
