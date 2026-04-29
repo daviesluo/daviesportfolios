@@ -256,15 +256,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     if (!hasData || !svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
     const sx = ((e.clientX - rect.left) / rect.width) * W;
-    if (sx < padL || sx > W - padR) {
-      pendingIdxRef.current = null;
-    } else {
-      // Index-based hit: invert xOfIdx to find the nearest data index.
-      const denom = Math.max(1, points.length - 1);
-      const frac = (sx - padL) / cW;
-      const i = Math.round(frac * denom);
-      pendingIdxRef.current = Math.max(0, Math.min(points.length - 1, i));
-    }
+    // Clamp the cursor's chart-space x to [padL, W-padR] so the crosshair
+    // pins to the first / last data point when the mouse drifts into the
+    // axis padding instead of "snapping off". The user expected the dot
+    // to keep tracking right up to the edge of the SVG.
+    const clampedSx = Math.max(padL, Math.min(W - padR, sx));
+    const denom = Math.max(1, points.length - 1);
+    const frac = (clampedSx - padL) / cW;
+    const i = Math.round(frac * denom);
+    pendingIdxRef.current = Math.max(0, Math.min(points.length - 1, i));
     if (rafRef.current) return;
     rafRef.current = requestAnimationFrame(paintCrosshair);
   }
