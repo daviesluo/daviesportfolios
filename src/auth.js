@@ -15,6 +15,7 @@
 // Server-side IP-keyed lockout (3 wrong → 24 h) is handled inside the
 // Edge Function — the client just relays its 401 / 429 verdicts.
 import { SB_ANON, EDGE_AUTH_URL } from './supabase_config.js';
+import { reportError } from './ops_error.js';
 
 const APP_TOKEN_KEY = "dp.token"; // sessionStorage — wiped on tab close
 
@@ -97,9 +98,11 @@ export async function authenticate(pw) {
 
     // 5xx, network blip — treat as transient, don't pretend to lock out.
     console.error("[auth] unexpected:", res.status);
+    reportError('auth.unexpected', { context: { status: res.status } });
     return null;
   } catch (e) {
     console.error("[auth] error:", e);
+    reportError('auth.network', { message: String(e?.message || e) });
     return null;
   }
 }

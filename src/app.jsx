@@ -29,11 +29,18 @@ import {
 } from './modals.jsx';
 import { TickerChartModal } from './ticker_chart_modal.jsx';
 import { ServiceWorkerBanner } from './sw-banner.jsx';
+import { reportError } from './ops_error.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
 class ErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { err: null }; }
   static getDerivedStateFromError(e) { return { err: e }; }
+  componentDidCatch(error, info) {
+    reportError('render.crash', {
+      message: String(error?.message || error),
+      context: { stack: String(error?.stack || '').slice(0, 1500), componentStack: String(info?.componentStack || '').slice(0, 800) },
+    });
+  }
   render() {
     if (this.state.err) {
       return React.createElement('div', {

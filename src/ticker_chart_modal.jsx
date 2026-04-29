@@ -8,6 +8,7 @@ import { Modal } from './modals.jsx';
 import { fetchHistoricalBatch, Storage } from './utils.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, filterToLatestDay } from './ytd.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, pctColor as pcC } from './utils.js';
+import { reportError } from './ops_error.js';
 
 const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$' };
 
@@ -112,6 +113,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         if (out[ticker] && out[ticker].length >= 2) data = out[ticker];
       }
       if (!data) {
+        reportError('fetch.histsingle', {
+          symbol: ticker,
+          message: 'all attempts returned no data',
+          context: { range: yahooRange, interval, includePrePost, attempts: 3 },
+        });
         // Only surface the error if we have nothing to show. If we're
         // revalidating a stale cache hit, keep the chart on screen.
         if (!cached) {
