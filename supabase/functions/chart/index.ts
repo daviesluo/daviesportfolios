@@ -36,7 +36,10 @@ async function fetchYahooHistorical(
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         Accept: "application/json,text/plain,*/*",
       },
-      signal: AbortSignal.timeout(10_000),
+      // 5 s ceiling per ticker. Fetching all portfolio tickers via
+      // Promise.all means the slowest one gates the response, so trim
+      // generously — well-behaved Yahoo responses land under 1 s.
+      signal: AbortSignal.timeout(5_000),
     });
     if (!res.ok) return null;
 
@@ -90,57 +93,94 @@ function rangeCutoffMs(range: string): number {
 }
 
 async function fetchEastmoneyHistorical(code: string, range: string): Promise<Point[] | null> {
-  const url = `http://fund.eastmoney.com/pingzhongdata/${encodeURIComponent(code)}.js?v=${Date.now()}`;
+  // Try the lighter pingzhongdata endpoint first; fall back to api.fund.eastmoney.com's
+  // f10/lsjz JSON API if the JS file is unreachable (eastmoney has been redirecting
+  // plain-HTTP requests to a CDN host that occasionally 403s on Deno Deploy IPs).
+  const cdnUrl = `https://fund.eastmoney.com/pingzhongdata/${encodeURIComponent(code)}.js?v=${Date.now()}`;
+  const apiUrl = `https://api.fund.eastmoney.com/f10/lsjz` +
+    `?fundCode=${encodeURIComponent(code)}&pageIndex=1&pageSize=500&_=${Date.now()}`;
+
+  // ---- Path 1: pingzhongdata (small, single fetch, has full multi-year history)
   try {
-    const res = await fetch(url, {
+    const res = await fetch(cdnUrl, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Referer": "http://fund.eastmoney.com/",
+        "Referer": "https://fund.eastmoney.com/",
         "Accept": "*/*",
       },
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(8_000),
     });
-    if (!res.ok) return null;
-    const text = await res.text();
-
-    // Pull out the bracketed array assigned to Data_netWorthTrend.
-    const m = text.match(/var\s+Data_netWorthTrend\s*=\s*(\[[\s\S]*?\])\s*;/);
-    if (!m) return null;
-
-    let arr: { x: number; y: number | string }[] = [];
-    try {
-      arr = JSON.parse(m[1]);
-    } catch {
-      // JSON.parse failed — fall back to a permissive regex extracting (x,y) pairs.
-      const itemRe = /"x"\s*:\s*(\d+)\s*,\s*"y"\s*:\s*([\d.]+)/g;
-      let im: RegExpExecArray | null;
-      while ((im = itemRe.exec(m[1])) !== null) {
-        arr.push({ x: parseInt(im[1], 10), y: parseFloat(im[2]) });
+    if (res.ok) {
+      const text = await res.text();
+      const m = text.match(/var\s+Data_netWorthTrend\s*=\s*(\[[\s\S]*?\])\s*;/);
+      if (m) {
+        let arr: { x: number; y: number | string }[] = [];
+        try {
+          arr = JSON.parse(m[1]);
+        } catch {
+          const itemRe = /"x"\s*:\s*(\d+)\s*,\s*"y"\s*:\s*([\d.]+)/g;
+          let im: RegExpExecArray | null;
+          while ((im = itemRe.exec(m[1])) !== null) {
+            arr.push({ x: parseInt(im[1], 10), y: parseFloat(im[2]) });
+          }
+        }
+        if (arr.length > 0) {
+          const out = trimToRange(
+            arr.map((p) => {
+              const close = typeof p.y === "number" ? p.y : parseFloat(String(p.y));
+              return isFinite(close) && close > 0
+                ? { date: new Date(p.x).toISOString().slice(0, 10), close }
+                : null;
+            }).filter((p): p is Point => p !== null),
+            range,
+          );
+          if (out.length > 0) return out;
+        }
       }
     }
+  } catch { /* fall through to api.fund.eastmoney.com */ }
 
-    let points: Point[] = [];
-    for (const p of arr) {
-      const close = typeof p.y === "number" ? p.y : parseFloat(String(p.y));
+  // ---- Path 2: api.fund.eastmoney.com/f10/lsjz (JSON, requires Referer)
+  try {
+    const res = await fetch(apiUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Referer": "https://fundf10.eastmoney.com/",
+        "Accept": "application/json,text/plain,*/*",
+      },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const list = json?.Data?.LSJZList;
+    if (!Array.isArray(list)) return null;
+    // LSJZ rows: { FSRQ: "2026-04-23", DWJZ: "1.2345", … } — daily NAV.
+    const points: Point[] = [];
+    for (const row of list) {
+      const close = parseFloat(row?.DWJZ);
       if (!isFinite(close) || close <= 0) continue;
-      points.push({
-        date: new Date(p.x).toISOString().slice(0, 10),
-        close,
-      });
+      const date = String(row?.FSRQ ?? "").slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      points.push({ date, close });
     }
-    if (points.length === 0) return null;
-
-    // pingzhongdata returns the fund's entire history (often years worth) —
-    // trim to the requested range so the frontend doesn't carry around extra data.
-    const cutoff = rangeCutoffMs(range);
-    if (cutoff > 0) {
-      points = points.filter((p) => new Date(p.date).getTime() >= cutoff);
-    }
-    return points.length > 0 ? points : null;
+    points.sort((a, b) => a.date.localeCompare(b.date));
+    return trimToRange(points, range);
   } catch {
     return null;
   }
+}
+
+// Shared range trim — pingzhongdata returns multi-year, lsjz returns one page.
+// Keep the part of the series that overlaps the requested range so the frontend
+// doesn't carry around extra data.
+function trimToRange(points: Point[], range: string): Point[] {
+  if (points.length === 0) return points;
+  const cutoff = rangeCutoffMs(range);
+  if (cutoff <= 0) return points;
+  const filtered = points.filter((p) => new Date(p.date).getTime() >= cutoff);
+  return filtered.length > 0 ? filtered : points;
 }
 
 // ---------------- Router ----------------
