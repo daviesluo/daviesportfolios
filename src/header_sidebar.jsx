@@ -86,7 +86,7 @@ function useClock(intervalMs = 1000) {
 // width as the real number ("$129,341.49" → "$***,***.**").
 function mask(s) { return typeof s === 'string' ? s.replace(/\d/g, '*') : s; }
 
-function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, histDate, viewMode, onToggleView, hideValues, onToggleHideValues }) {
+function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues }) {
   const now = useClock(1000);
   const t = londonTimeParts(now);
   const phase = usMarketPhase(now);
@@ -213,41 +213,29 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
       </div>
 
       <div className="header-actions">
-        {histDate ? (
-          <div className="live-pill" title="Viewing historical snapshot">
-            <span className="live-dot" style={{ background: "var(--gold)" }} />
-            <div className="live-col">
-              <span className="live-txt" style={{ color: "var(--gold)" }}>SNAPSHOT</span>
-              <span className="live-ago mono">{histDate.slice(5).replace("-", "/")}</span>
-            </div>
+        <div className={`live-pill ${isRefreshing ? "refreshing" : ""} ${source === "error" ? "err" : ""}`}
+             title={source === "live" ? "Yahoo Finance" : source === "error" ? "Retrying…" : "Connecting"}>
+          <span className={`live-dot ${isRefreshing ? "pulse" : ""} ${source === "error" ? "err" : ""}`} />
+          <div className="live-col">
+            <span className="live-txt">{statusLabel}</span>
+            <span className="live-ago mono">Last updated {agoText}</span>
           </div>
-        ) : (
-          <div className={`live-pill ${isRefreshing ? "refreshing" : ""} ${source === "error" ? "err" : ""}`}
-               title={source === "live" ? "Yahoo Finance" : source === "error" ? "Retrying…" : "Connecting"}>
-            <span className={`live-dot ${isRefreshing ? "pulse" : ""} ${source === "error" ? "err" : ""}`} />
-            <div className="live-col">
-              <span className="live-txt">{statusLabel}</span>
-              <span className="live-ago mono">Last updated {agoText}</span>
-            </div>
-          </div>
-        )}
-        {!histDate && (
-          <button className="btn-ghost" onClick={onRefresh} disabled={isRefreshing} title="Refresh prices">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"
-                 className={isRefreshing ? "spin" : ""}>
-              <path d="M3 12a9 9 0 1 1 3 6.7" />
-              <path d="M3 20v-5h5" />
-            </svg>
-            {isRefreshing ? "Refreshing" : "Refresh"}
-          </button>
-        )}
-        {!histDate && (isReadOnly ? (
+        </div>
+        <button className="btn-ghost" onClick={onRefresh} disabled={isRefreshing} title="Refresh prices">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"
+               className={isRefreshing ? "spin" : ""}>
+            <path d="M3 12a9 9 0 1 1 3 6.7" />
+            <path d="M3 20v-5h5" />
+          </svg>
+          {isRefreshing ? "Refreshing" : "Refresh"}
+        </button>
+        {isReadOnly ? (
           <span className="ro-badge mono" title="Read-only viewer">VIEWER</span>
         ) : (
           <button className={`btn-toggle ${editMode ? "on" : ""}`} onClick={() => setEditMode(v => !v)}>
             {editMode ? "✓ EDIT MODE" : "EDIT"}
           </button>
-        ))}
+        )}
       </div>
     </header>
   );

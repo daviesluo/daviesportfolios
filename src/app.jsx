@@ -139,10 +139,6 @@ function migrate(p) {
       if (p.holdings["BRK-B"].cost   === 469.99) p.holdings["BRK-B"].cost   = 469.94;
     }
   }
-  // Add snapshots array if missing
-  if (!p.snapshots) p.snapshots = [];
-  if (p.snapshots.length > 30) p.snapshots = p.snapshots.slice(-30);
-
   // Backfill currency on holdings that pre-date the multi-currency migration.
   // detectCurrency is purely ticker-pattern based, so this is safe to run on
   // every load without overwriting an explicitly-set currency.
@@ -364,29 +360,6 @@ function App() {
   );
 }
 
-function applyHistPrices(portfolio, histSnap) {
-  if (!histSnap?.prices) return portfolio;
-  const snaps = portfolio.snapshots || [];
-  const histIdx = snaps.findIndex(s => s.date === histSnap.date);
-  const prevSnap = histIdx > 0 ? snaps[histIdx - 1] : null;
-  const holdings = {};
-  for (const [t, h] of Object.entries(portfolio.holdings)) {
-    const hp = histSnap.prices[t];
-    const prevHp = prevSnap?.prices?.[t];
-    if (hp != null) {
-      holdings[t] = {
-        ...h, lastPrice: hp, extPrice: null,
-        prevClose: prevHp ?? hp,
-        dayPct: (prevHp != null && prevHp > 0) ? ((hp - prevHp) / prevHp) * 100 : 0,
-        extDayPct: null,
-      };
-    } else {
-      holdings[t] = h;
-    }
-  }
-  return { ...portfolio, holdings };
-}
-
 function Board({ isReadOnly }) {
   const [portfolio, setPortfolio] = useState(null);      // null = still loading
   const [drillPos, setDrillPos] = useState(null);
@@ -403,7 +376,6 @@ function Board({ isReadOnly }) {
   const [dragging, setDragging] = useState(null);
   const [extendedHours, setExtendedHours] = useState(false);
   const [marketData, setMarketData] = useState({});
-  const [histSnap, setHistSnap] = useState(null);
   const [viewMode, setViewMode] = useState('tactics');
 
   // "Hide values" toggle — replaces dollar amounts with bullets so the
@@ -419,7 +391,7 @@ function Board({ isReadOnly }) {
     });
   }, []);
   // In read-only mode or history mode, force-disable edit mode.
-  useEffect(() => { if ((isReadOnly || histSnap) && editMode) setEditMode(false); }, [isReadOnly, histSnap, editMode]);
+  useEffect(() => { if (isReadOnly && editMode) setEditMode(false); }, [isReadOnly, editMode]);
 
   // Initial load from Supabase (never throws — falls back to INITIAL_PORTFOLIO on any error)
   useEffect(() => {
@@ -484,21 +456,6 @@ function Board({ isReadOnly }) {
         setFlashTickers(flashes);
         setTimeout(() => setFlashTickers({}), 1200);
       }
-
-      // Daily snapshot: save once per day when live prices arrive
-      if (src === "live") {
-        const today = new Date().toISOString().slice(0, 10);
-        const existing = next.snapshots || [];
-        if (!existing.some(s => s.date === today)) {
-          const m = computeMetrics(next, { extended: false, marketData });
-          if (m.marketValue > 0) {
-            next.snapshots = [...existing, { date: today, value: Math.round(m.marketValue * 100) / 100 }]
-              .sort((a, b) => a.date.localeCompare(b.date))
-              .slice(-30);
-          }
-        }
-      }
-
       return next;
     });
     setLastUpdated(new Date());
@@ -539,9 +496,6 @@ function Board({ isReadOnly }) {
   const currentPhase = usMarketPhase(new Date());
   const metrics = computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular", marketData });
   const formation = detectFormation(portfolio);
-
-  const displayPortfolio = histSnap ? applyHistPrices(portfolio, histSnap) : portfolio;
-  const displayMetrics   = histSnap ? computeMetrics(displayPortfolio, { extended: false, marketData }) : metrics;
 
   // Captain is the single largest position by USD market value — convert native
   // currency to USD so a CNY or GBP holding is ranked correctly against USD ones.
@@ -647,7 +601,7 @@ function Board({ isReadOnly }) {
   return (
     <div className="app">
       <Header
-        metrics={displayMetrics}
+        metrics={metrics}
         source={source}
         lastUpdated={lastUpdated}
         isRefreshing={isRefreshing}
@@ -656,8 +610,7 @@ function Board({ isReadOnly }) {
         setEditMode={setEditMode}
         isReadOnly={isReadOnly}
         extendedHours={extendedHours}
-        onToggleExtended={() => { if (!histSnap) setExtendedHours(v => !v); }}
-        histDate={histSnap?.date ?? null}
+        onToggleExtended={() => setExtendedHours(v => !v)}
         viewMode={viewMode}
         onToggleView={setViewMode}
         hideValues={hideValues}
@@ -681,38 +634,37 @@ function Board({ isReadOnly }) {
         </div>
         {viewMode === 'heatmap' ? (
           <Heatmap
-            metrics={displayMetrics}
+            metrics={metrics}
             extendedHours={extendedHours && currentPhase !== "regular"}
           />
         ) : (
           <Pitch
-            metrics={displayMetrics}
+            metrics={metrics}
             captainTicker={captainTicker}
             hotMoverTicker={hotMoverTicker}
             hotMoverPosKey={hotMoverPosKey}
-            flashTickers={histSnap ? {} : flashTickers}
+            flashTickers={flashTickers}
             editMode={editMode}
-            isReadOnly={isReadOnly || !!histSnap}
-            dragging={histSnap ? null : dragging}
-            setDragging={isReadOnly || histSnap ? () => {} : setDragging}
-            onDrop={histSnap ? () => {} : handleDrop}
+            isReadOnly={isReadOnly}
+            dragging={dragging}
+            setDragging={isReadOnly ? () => {} : setDragging}
+            onDrop={handleDrop}
             onOpenPosition={(k) => {
-              if (histSnap) { setDrillPos(k); return; }
               if (k === "GK") { if (!isReadOnly) setEditingCash(true); return; }
               setDrillPos(k);
             }}
             onAddToPosition={(k) => {
-              if (isReadOnly || histSnap) return;
+              if (isReadOnly) return;
               if (k === "GK") setEditingCash(true); else setAddingToPos(k);
             }}
             onUpdatePosition={updatePosition}
-            isRefreshing={isRefreshing && !histSnap}
-            recentlyUpdated={recentlyUpdated && !histSnap}
+            isRefreshing={isRefreshing}
+            recentlyUpdated={recentlyUpdated}
             hideValues={hideValues}
           />
         )}
         <Sidebar
-          metrics={displayMetrics}
+          metrics={metrics}
           source={source}
           portfolio={portfolio}
           marketData={marketData}
@@ -726,7 +678,7 @@ function Board({ isReadOnly }) {
       {drillPos && (
         <PositionDrillModal
           posKey={drillPos}
-          position={displayMetrics.positions[drillPos]}
+          position={metrics.positions[drillPos]}
           captainTicker={captainTicker}
           hotMoverTicker={hotMoverTicker}
           flashTickers={flashTickers}
