@@ -14,6 +14,7 @@ import {
   Storage,
 } from './utils.js';
 import { buildTickerSeries, computeAt, ytdPct, RANGES, RANGE_KEYS, anchorDateFor, fetchParamsFor, filterToLatestDay } from './ytd.js';
+import { reportError } from './ops_error.js';
 
 // Tiny placeholder shell so the loading / error / range-button row renders
 // the same chrome as the full chart — keeps the layout from jumping when
@@ -424,6 +425,11 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       // Final state — if still no anchor and we haven't shown anything yet,
       // surface an error.
       if (!cancelled && !merged[spSymbol] && Object.keys(initial).length === 0) {
+        reportError('fetch.perfchart.anchor', {
+          symbol: spSymbol,
+          message: 'S&P / fallback anchor never resolved after batch + retries',
+          context: { rangeKey, variantKey, tickerCount: tickers.length },
+        });
         setError(true);
         setLoading(false);
       }
