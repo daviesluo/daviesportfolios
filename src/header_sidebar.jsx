@@ -672,7 +672,12 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       const dateStr = portNorm[safeIdx].date;
       const x = padL + (safeIdx / denom) * cW;
       if (x < padL + 10 || x > W - padR - 8) continue;
-      const d = new Date(dateStr);
+      // Intraday strings come in as "YYYY-MM-DDTHH:MM" (UTC) without a Z
+      // suffix; without that suffix `new Date(...)` parses as LOCAL,
+      // shifting every label by the user's TZ offset (BST users saw
+      // 1:30 PM where US market open should have read 2:30 PM).
+      const isIntraday = typeof dateStr === 'string' && dateStr.length === 16 && dateStr[10] === 'T';
+      const d = new Date(isIntraday ? dateStr + 'Z' : dateStr);
       let label;
       if (rangeKey === '1D') {
         label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -776,6 +781,34 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
               <text x={x} y={padT - 2} textAnchor="middle"
                     fontSize="7" fill="rgba(244,239,227,0.5)" fontFamily="var(--font-mono)">
                 CLOSE
+              </text>
+            </g>
+          );
+        })()}
+        {/* Vertical dashed line at today's regular-session open (1D in
+            regular session). 9:30 ET = 13:30 UTC. Same x-fallback as
+            the CLOSE marker so it stays correct when the S&P fetch
+            failed and the chart fell back to another ticker. */}
+        {rangeKey === '1D' && variantKey === 'reg' && (() => {
+          let idx = -1;
+          for (let i = 0; i < spYtd.length; i++) {
+            const d = spYtd[i].date;
+            if (d.length < 16) continue;
+            const hh = parseInt(d.slice(11, 13), 10);
+            const mm = parseInt(d.slice(14, 16), 10);
+            if ((hh === 13 && mm >= 30) || hh >= 14) { idx = i; break; }
+          }
+          if (idx <= 0) return null; // suppress when no pre-market data is in view
+          const openDate = spYtd[idx].date;
+          const idxInChart = spIdxOf.get(openDate) ?? portIdxOf.get(openDate) ?? 0;
+          const x = (padL + (idxInChart / Math.max(1, totalLen - 1)) * cW).toFixed(1);
+          return (
+            <g>
+              <line x1={x} y1={padT} x2={x} y2={H - padB}
+                    stroke="rgba(244,239,227,0.45)" strokeWidth="0.8" strokeDasharray="3,3" />
+              <text x={x} y={padT - 2} textAnchor="middle"
+                    fontSize="7" fill="rgba(244,239,227,0.5)" fontFamily="var(--font-mono)">
+                OPEN
               </text>
             </g>
           );

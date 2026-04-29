@@ -296,9 +296,20 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   }
 
   // Crosshair hover label — keeps minute precision on 1W/1M so the user
-  // can read the exact bar's timestamp.
+  // can read the exact bar's timestamp. Intraday strings from the chart
+  // Edge Function are UTC ISO truncated to "YYYY-MM-DDTHH:MM" with NO
+  // 'Z' suffix; without that suffix `new Date(...)` parses the value as
+  // *local* time — for a London/BST user that mis-rendered every
+  // intraday bar an hour earlier than it actually was (US market open
+  // 13:30 UTC showed as 1:30 PM instead of 2:30 PM BST). Append the Z
+  // ourselves so the engine treats it as UTC.
+  function parseChartDate(dateStr) {
+    if (typeof dateStr !== 'string') return new Date(dateStr);
+    if (dateStr.length === 16 && dateStr[10] === 'T') return new Date(dateStr + 'Z');
+    return new Date(dateStr);
+  }
   function fmtDate(dateStr) {
-    const d = new Date(dateStr);
+    const d = parseChartDate(dateStr);
     if (rangeKey === '1D') {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
@@ -311,7 +322,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // X-axis tick labels — bare date on 1W/1M (5–6 samples across the row,
   // intraday timestamps would just clutter without adding info).
   function fmtAxisDate(dateStr) {
-    const d = new Date(dateStr);
+    const d = parseChartDate(dateStr);
     if (rangeKey === '1D') {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
@@ -449,7 +460,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               <span className="mono dim" style={{ fontSize: 10 }}>(since previous close)</span>
             )}
             {rangeKey === '1D' && phase === 'regular' && regularOpenIdx >= 0 && (
-              <span className="mono dim" style={{ fontSize: 10 }}>(since market opens)</span>
+              <span className="mono dim" style={{ fontSize: 10 }}>(since market opened)</span>
             )}
             {holding?.shares != null && (
               <>
@@ -511,11 +522,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                 );
               })()}
               {/* Vertical dashed line at today's regular open (1D in
-                  regular session). Suppressed when the line would land
-                  on the chart's left edge — without pre/post in the
-                  fetch, regularOpenIdx is 0 and the line would visually
-                  merge with the y-axis. */}
-              {regularOpenIdx > 0 && (() => {
+                  regular session). Mirror of the CLOSE marker for the
+                  ext-AH case — the chart now always fetches with
+                  prepost when phase==='regular', so the OPEN bar is
+                  somewhere in the middle of the data, not at index 0. */}
+              {regularOpenIdx >= 0 && (() => {
                 const x = xOfIdx(regularOpenIdx).toFixed(1);
                 return (
                   <g>
