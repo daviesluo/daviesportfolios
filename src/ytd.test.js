@@ -41,6 +41,30 @@ describe('buildTickerSeries', () => {
     }, yearStart, "YTD");
     expect(ts.NEW.janPrice).toBe(100);
   });
+
+  it('1D regular mode: anchors at marketData.prevClose (yesterday close)', () => {
+    const ts = buildTickerSeries({
+      AAPL: [{ date: '2026-04-28T13:30', close: 200 }],
+    }, '2026-04-28', '1D', { AAPL: { prevClose: 195, lastPrice: 198 } }, false);
+    expect(ts.AAPL.janPrice).toBe(195);
+  });
+
+  it('1D ext mode: anchors at marketData.lastPrice (today regular close) so chart % matches scoreboard DAY CHANGE', () => {
+    // In ext-on AH/PM the scoreboard computes DAY CHANGE as
+    // (extPrice - lastPrice) / lastPrice. The chart needs the same basis
+    // (lastPrice) so its right-edge % equals DAY CHANGE %.
+    const ts = buildTickerSeries({
+      AAPL: [{ date: '2026-04-28T20:00', close: 198 }],
+    }, '2026-04-28', '1D', { AAPL: { prevClose: 195, lastPrice: 198 } }, true);
+    expect(ts.AAPL.janPrice).toBe(198);
+  });
+
+  it('1D ext mode falls back to prevClose when lastPrice is missing', () => {
+    const ts = buildTickerSeries({
+      AAPL: [{ date: '2026-04-28T13:30', close: 200 }],
+    }, '2026-04-28', '1D', { AAPL: { prevClose: 195 } }, true);
+    expect(ts.AAPL.janPrice).toBe(195);
+  });
 });
 
 describe('closeOn', () => {
