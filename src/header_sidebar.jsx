@@ -258,12 +258,21 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
 // (range, ticker) in localStorage so switching between ranges is instant
 // once they've been fetched once. Cache TTL is short for 1D (intraday data
 // becomes stale fast) and longer for daily ranges.
+// TTL is matched to each range's bar interval so we don't refetch
+// faster than Yahoo can publish a new bar:
+//   1D   → 5  m bars  →  5 m TTL
+//   1W   → 30 m bars  → 30 m TTL
+//   1M   → 60 m bars  →  1 h TTL
+//   3M   →  1 d bars  → 12 h TTL
+//   YTD  →  1 d bars  → 12 h TTL
+// stale-while-revalidate (above) means even past TTL the cached chart
+// renders instantly while the next fetch runs silently in background.
 const PERF_CACHE_TTL_MS = {
-  '1D': 5 * 60 * 1000,           // 5 min — intraday, churns
-  '1W': 4 * 60 * 60 * 1000,
-  '1M': 4 * 60 * 60 * 1000,
-  '3M': 4 * 60 * 60 * 1000,
-  'YTD': 4 * 60 * 60 * 1000,
+  '1D':  5  * 60 * 1000,
+  '1W':  30 * 60 * 1000,
+  '1M':  60 * 60 * 1000,
+  '3M':  12 * 60 * 60 * 1000,
+  'YTD': 12 * 60 * 60 * 1000,
 };
 
 function loadPerfCache(year, rangeKey) {
