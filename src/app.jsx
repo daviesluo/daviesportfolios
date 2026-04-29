@@ -460,6 +460,7 @@ function Board({ isReadOnly }) {
           <Heatmap
             metrics={metrics}
             extendedHours={extendedHours && currentPhase !== "regular"}
+            onTileClick={(t) => setViewingTicker(t)}
           />
         ) : (
           <Pitch

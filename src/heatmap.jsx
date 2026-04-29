@@ -81,7 +81,7 @@ function tileStyle(pct) {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-function Heatmap({ metrics, extendedHours }) {
+function Heatmap({ metrics, extendedHours, onTileClick }) {
   const canvasRef = React.useRef(null);
   const [size, setSize] = React.useState({ w: 0, h: 0 });
 
@@ -128,16 +128,28 @@ function Heatmap({ metrics, extendedHours }) {
             const showTicker = tw >= 30 && th >= 22;
             const showPct    = tw >= 36 && th >= 32;
 
+            const clickable = typeof onTileClick === 'function';
             return (
               <div
                 key={tile.ticker}
                 className="hm-tile"
+                role={clickable ? 'button' : undefined}
+                tabIndex={clickable ? 0 : undefined}
+                onClick={clickable ? () => onTileClick(tile.ticker) : undefined}
+                onKeyDown={clickable ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onTileClick(tile.ticker);
+                  }
+                } : undefined}
+                title={clickable ? `Open ${tile.ticker} chart` : undefined}
                 style={{
                   left:       tile.x + GAP / 2,
                   top:        tile.y + GAP / 2,
                   width:      tw,
                   height:     th,
                   background: bg,
+                  cursor:     clickable ? 'pointer' : undefined,
                 }}
               >
                 {showTicker && (
