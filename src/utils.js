@@ -513,40 +513,61 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
   const list = Array.from(new Set(symbols.filter(Boolean)));
   if (list.length === 0) return out;
 
-  // Edge Function first
-  try {
-    const ipp = includePrePost ? "&includePrePost=true" : "";
-    const edgeUrl =
-      `${EDGE_PRICES_URL.replace(/\/prices$/, "/chart")}` +
-      `?tickers=${encodeURIComponent(list.join(","))}` +
-      `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}`;
-    const res = await fetch(edgeUrl, {
-      headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
-      // Short timeout — if the Edge Function is slow we'd rather fail fast
-      // and try the CORS proxies than make the user stare at a "Loading…"
-      // for 15 s. The proxy fallback path also runs fast on the happy path
-      // so total worst-case latency is bounded.
-      signal: AbortSignal.timeout(7000),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && typeof data === "object") {
-        for (const [t, pts] of Object.entries(data)) {
-          if (Array.isArray(pts) && pts.length > 0) out[t] = pts;
-        }
-      }
-    }
-  } catch (_) { /* fall through to CORS proxies */ }
+  // Race the Edge Function (one batched request for all tickers) against
+  // per-ticker CORS-proxy fetches in parallel. Resolve as soon as either
+  //   (a) every requested ticker has data in `out`, OR
+  //   (b) both paths have finished (so we resolve with whatever we got).
+  // Concretely: when Edge returns the full batch fast, we don't sit and
+  // wait for the slower proxy chain to complete — the Promise resolves
+  // the moment the last ticker is filled. (Codex P1 review on PR #47.)
+  const ipp = includePrePost ? "&includePrePost=true" : "";
 
-  // CORS-proxy fallback for any missing
-  const missing = list.filter(t => !out[t]);
-  if (missing.length > 0) {
-    const results = await Promise.all(
-      missing.map(s => fetchHistorical(s, range, interval, includePrePost).catch(() => null))
-    );
-    missing.forEach((s, i) => { if (results[i]) out[s] = results[i]; });
-  }
-  return out;
+  return new Promise((resolve) => {
+    let resolved = false;
+    let edgeDone = false;
+    let proxiesRemaining = list.length;
+
+    const check = () => {
+      if (resolved) return;
+      const allFilled = list.every((t) => out[t]);
+      if (allFilled || (edgeDone && proxiesRemaining === 0)) {
+        resolved = true;
+        resolve(out);
+      }
+    };
+
+    // Edge Function (batched) ----------------------------------------------
+    (async () => {
+      try {
+        const edgeUrl =
+          `${EDGE_PRICES_URL.replace(/\/prices$/, "/chart")}` +
+          `?tickers=${encodeURIComponent(list.join(","))}` +
+          `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}`;
+        const res = await fetch(edgeUrl, {
+          headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
+          signal: AbortSignal.timeout(8000),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && typeof data === "object") {
+            for (const [t, pts] of Object.entries(data)) {
+              if (Array.isArray(pts) && pts.length > 0 && !out[t]) out[t] = pts;
+            }
+          }
+        }
+      } catch (_) { /* proxy path may still succeed */ }
+      edgeDone = true;
+      check();
+    })();
+
+    // Per-ticker CORS-proxy fetches ----------------------------------------
+    for (const s of list) {
+      fetchHistorical(s, range, interval, includePrePost)
+        .then((data) => { if (data && data.length > 0 && !out[s]) out[s] = data; })
+        .catch(() => {})
+        .finally(() => { proxiesRemaining--; check(); });
+    }
+  });
 }
 
 // -------- Position coordinates on 100x100 pitch (home team attacks UP; GK at bottom) --------
