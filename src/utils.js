@@ -541,9 +541,83 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
 
 // 6-digit numeric tickers are CN mutual funds (天天基金 / pingzhongdata) —
 // they don't exist on Yahoo, so the CORS-proxy Yahoo fetch is guaranteed
-// to fail, just consuming the per-proxy 7 s timeout. We skip it for these
-// symbols and rely on the Edge Function (which routes them to eastmoney).
+// to fail. The Edge Function routes them to eastmoney/danjuanapp, but
+// Deno Deploy's egress IPs sometimes get geo-blocked from those Chinese
+// hosts. The fetchCnFundHistoryViaProxy helper below races public CORS
+// proxies in parallel as a fallback — those proxies' egress IPs are
+// different (Cloudflare / various) and have a separate chance of
+// reaching the data hosts.
 const CN_FUND_RE = /^\d{6}$/;
+
+// Race CORS proxies → danjuanapp.com NAV history endpoint. Returns
+// `[{date,close}, …]` on success, null if every proxy fails. Lives
+// here (not in fetchHistorical) so it can be reused as one half of
+// fetchHistoricalBatch's CN-fund race against the Edge Function.
+async function fetchCnFundHistoryViaProxy(code) {
+  const url =
+    `https://danjuanapp.com/djapi/fund/nav/history/${encodeURIComponent(code)}` +
+    `?size=500&page=1&_=${Date.now()}`;
+
+  const parse = async (res) => {
+    if (!res.ok) return null;
+    const json = await res.json();
+    const items = json?.data?.items;
+    if (!Array.isArray(items) || items.length === 0) return null;
+    /** @type {{date:string, close:number}[]} */
+    const points = [];
+    for (const row of items) {
+      const close = parseFloat(row?.nav);
+      if (!isFinite(close) || close <= 0) continue;
+      const date = String(row?.date ?? "").slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      points.push({ date, close });
+    }
+    if (points.length === 0) return null;
+    points.sort((a, b) => a.date.localeCompare(b.date));
+    return points;
+  };
+
+  return new Promise((resolve) => {
+    let resolved = false;
+    let remaining = PROXIES.length;
+    /** @type {AbortController[]} */
+    const controllers = [];
+    /** @type {ReturnType<typeof setTimeout>[]} */
+    const timers = [];
+    const cleanup = () => {
+      for (const c of controllers) {
+        try { c.abort(); } catch (_) {}
+      }
+      for (const t of timers) clearTimeout(t);
+    };
+    const settle = (data) => {
+      if (resolved) return;
+      if (data) {
+        resolved = true;
+        cleanup();
+        resolve(data);
+      } else if (--remaining === 0) {
+        resolve(null);
+      }
+    };
+    for (const makeProxy of PROXIES) {
+      const controller = new AbortController();
+      controllers.push(controller);
+      const tid = setTimeout(() => controller.abort(), 7000);
+      timers.push(tid);
+      (async () => {
+        try {
+          const res = await fetch(makeProxy(url), { cache: "no-store", signal: controller.signal });
+          clearTimeout(tid);
+          settle(await parse(res));
+        } catch (_) {
+          clearTimeout(tid);
+          settle(null);
+        }
+      })();
+    }
+  });
+}
 
 // Batch fetch YTD historical closes for multiple symbols.
 // Strategy:
@@ -606,23 +680,19 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
     })();
 
     // Per-ticker CORS-proxy fetches ----------------------------------------
-    // Skip the Yahoo proxy for CN fund codes — Yahoo doesn't carry them
-    // and waiting for 5 proxies × 7 s of certain failure just delays the
-    // Edge Function's response from being shown.
+    // CN fund codes route to danjuanapp via CORS proxies (different
+    // egress IPs from Deno Deploy, so they can succeed when the Edge
+    // Function's eastmoney path is geo-blocked). Yahoo proxy doesn't
+    // know these symbols so we don't bother trying it.
     for (const s of list) {
-      if (CN_FUND_RE.test(s)) {
-        proxiesRemaining--;
-        continue;
-      }
-      fetchHistorical(s, range, interval, includePrePost)
+      const promise = CN_FUND_RE.test(s)
+        ? fetchCnFundHistoryViaProxy(s)
+        : fetchHistorical(s, range, interval, includePrePost);
+      promise
         .then((data) => { if (data && data.length > 0 && !out[s]) out[s] = data; })
         .catch(() => {})
         .finally(() => { proxiesRemaining--; check(); });
     }
-    // If every symbol was a CN fund the for-loop short-circuited without
-    // scheduling a check; trigger one so we don't deadlock waiting on
-    // proxies that never started.
-    if (proxiesRemaining === 0) check();
   });
 }
 

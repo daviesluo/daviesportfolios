@@ -36,10 +36,10 @@ async function fetchYahooHistorical(
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         Accept: "application/json,text/plain,*/*",
       },
-      // 5 s ceiling per ticker. Fetching all portfolio tickers via
-      // Promise.all means the slowest one gates the response, so trim
-      // generously — well-behaved Yahoo responses land under 1 s.
-      signal: AbortSignal.timeout(5_000),
+      // 8 s ceiling per ticker — well-behaved Yahoo responses land under
+      // 1 s, but Yahoo occasionally takes 4-6 s under load and a tighter
+      // cap caused chart fetches to flake out as "Couldn't load history".
+      signal: AbortSignal.timeout(8_000),
     });
     if (!res.ok) return null;
 

@@ -61,14 +61,14 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     setLoading(true);
     setError(false);
     (async () => {
-      // Yahoo's CORS-proxy chain is occasionally flaky enough to drop a
-      // first request; one quick retry catches the recoverable cases.
-      // More than that mostly extends the spinner with no extra payoff —
-      // when a symbol consistently fails (e.g. delisted or 6-digit fund
-      // with eastmoney downtime) repeating won't conjure data.
+      // Yahoo's CORS-proxy chain plus the Edge Function path together
+      // are flaky enough that one fetch can drop where a quick retry
+      // succeeds. 3 attempts with short backoff catches the recoverable
+      // cases without making the spinner feel endless when the symbol
+      // really is unfetchable.
       let data = null;
-      for (let attempt = 0; attempt < 2 && !data; attempt++) {
-        if (attempt > 0) await new Promise(r => setTimeout(r, 300));
+      for (let attempt = 0; attempt < 3 && !data; attempt++) {
+        if (attempt > 0) await new Promise(r => setTimeout(r, 250 * attempt));
         if (cancelled) return;
         const out = await fetchHistoricalBatch([ticker], yahooRange, interval, includePrePost);
         if (cancelled) return;
