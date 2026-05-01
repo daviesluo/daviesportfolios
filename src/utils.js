@@ -62,6 +62,18 @@ export const Storage = {
   saveTickerChart: (d) => writeJSON(STORAGE_KEYS.tickerChart, d),
 };
 
+// -------- Hidden-values mask --------
+// Replaces each digit in a formatted string with a centred bullet so
+// the masked text stays vertically aligned with neighbouring real
+// numbers ("$129,341.49" → "$•••,•••.••"). Bullet is preferred over
+// asterisk because `*` sits high in the x-height of our mono font and
+// makes masked rows look elevated. Single source of truth — was
+// duplicated as `mask` / `maskDigits` / inline `.replace(...)` across
+// header_sidebar / modals / pitch.
+export function maskDigits(s) {
+  return typeof s === 'string' ? s.replace(/\d/g, '•') : s;
+}
+
 // -------- Formatting --------
 export const fmtMoney = (n, opts = {}) => {
   if (n == null || isNaN(n)) return "—";
