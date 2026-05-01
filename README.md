@@ -383,6 +383,7 @@ A copy-pasteable shape of the three app-level vars lives at
 | `APP_AUTH_SECRET` | `auth`, `data` | Long random string (`openssl rand -hex 32`). |
 | `APP_ADMIN_PASSWORD` | `auth` | Your admin password. |
 | `APP_RO_PASSWORD` | `auth` | Your read-only / shareable password. |
+| `FINNHUB_API_KEY` | `fundamentals` | Free key from finnhub.io. Powers the ticker-modal "P/E YTD" view; without it the P/E button stays hidden and everything else still works. |
 
 ### 4. Wire the client
 

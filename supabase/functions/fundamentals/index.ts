@@ -1,13 +1,15 @@
 // Supabase Edge Function: fundamentals
 //
 // Returns current TTM P/E + trailing EPS for a list of tickers via
-// Yahoo's v7/finance/quote endpoint. Yahoo started gating quote +
-// quoteSummary on a "crumb" token in mid-2024, so the function
-// performs a 2-step bootstrap on cold start:
-//   1. GET fc.yahoo.com to receive a session B-cookie.
-//   2. GET /v1/test/getcrumb with that cookie to get a crumb string.
-// Both are cached in module-level state for an hour so warm
-// invocations skip the bootstrap.
+// Finnhub's stock-metric endpoint. We tried Yahoo's v7/quote and
+// v10/quoteSummary but both were crumb-gated to a degree the Deno
+// Deploy egress IPs couldn't reliably bootstrap; Finnhub's free tier
+// (60 calls / minute, no payment info) gives a stable shape.
+//
+// Env: FINNHUB_API_KEY (required). Set in Supabase Edge Functions →
+// Settings → Secrets. If absent, the function returns {} for every
+// request and the client treats every ticker as "no P/E available"
+// (button stays hidden) — no errors thrown, just no feature.
 //
 // Used by the ticker chart modal's "P/E YTD" view: the client divides
 // each YTD daily-close price by the EPS returned here to plot a P/E
@@ -22,105 +24,43 @@
 // Call: GET /functions/v1/fundamentals?tickers=NVDA,GOOG,AAPL
 // Returns: { NVDA: { pe: 30.5, eps: 6.5 }, GOOG: { pe: 25, eps: 8.2 } }
 
+const FINNHUB_API_KEY = Deno.env.get("FINNHUB_API_KEY") ?? "";
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const UA =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-  "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
-
 type Fundamentals = { pe: number; eps: number };
 
-// Module-level credential cache. Edge Functions reuse the same isolate
-// across invocations until cold restart, so a single bootstrap
-// suffices for ~hours of warm traffic.
-let cachedCookie: string | null = null;
-let cachedCrumb:  string | null = null;
-let cookieExpiresAt = 0;
-
-async function getYahooCreds(): Promise<{ cookie: string; crumb: string } | null> {
-  if (cachedCookie && cachedCrumb && Date.now() < cookieExpiresAt) {
-    return { cookie: cachedCookie, crumb: cachedCrumb };
-  }
-  try {
-    // Step 1: hit fc.yahoo.com to harvest the B cookie that gates
-    // crumb issuance. We don't follow redirects so we can read the
-    // Set-Cookie header from the initial response.
-    const cookieRes = await fetch("https://fc.yahoo.com", {
-      headers: { "User-Agent": UA, "Accept": "*/*" },
-      redirect: "manual",
-      signal: AbortSignal.timeout(5_000),
-    });
-    const setCookie = cookieRes.headers.get("set-cookie") ?? "";
-    const bMatch = setCookie.match(/B=([^;]+)/);
-    if (!bMatch) return null;
-    const cookie = `B=${bMatch[1]}`;
-
-    // Step 2: crumb endpoint expects the cookie; returns the bare
-    // crumb string in the response body.
-    const crumbRes = await fetch("https://query1.finance.yahoo.com/v1/test/getcrumb", {
-      headers: { "User-Agent": UA, "Accept": "*/*", "Cookie": cookie },
-      signal: AbortSignal.timeout(5_000),
-    });
-    if (!crumbRes.ok) return null;
-    const crumb = (await crumbRes.text()).trim();
-    if (!crumb || crumb.length > 50) return null; // sanity: real crumbs are <16 chars
-
-    cachedCookie    = cookie;
-    cachedCrumb     = crumb;
-    cookieExpiresAt = Date.now() + 60 * 60 * 1000; // 1 h
-    return { cookie, crumb };
-  } catch {
-    return null;
-  }
-}
-
-async function fetchYahooBatch(symbols: string[]): Promise<Record<string, Fundamentals>> {
-  if (symbols.length === 0) return {};
-  const creds = await getYahooCreds();
-  if (!creds) return {};
+// Finnhub returns metric data shaped like:
+//   { metric: { peTTM: 30.5, epsTTM: 6.5, ... }, metricType, series: {...} }
+// We only need peTTM + epsTTM. Note: free tier sometimes returns
+// `peBasicExcl…` / `epsExclExtra…` variants — we read the most
+// straightforward TTM fields and fall back to alternates.
+async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
+  if (!FINNHUB_API_KEY) return null;
   const url =
-    `https://query1.finance.yahoo.com/v7/finance/quote` +
-    `?symbols=${encodeURIComponent(symbols.join(","))}` +
-    `&fields=trailingPE,epsTrailingTwelveMonths,quoteType` +
-    `&crumb=${encodeURIComponent(creds.crumb)}`;
+    `https://finnhub.io/api/v1/stock/metric` +
+    `?symbol=${encodeURIComponent(symbol)}&metric=all` +
+    `&token=${encodeURIComponent(FINNHUB_API_KEY)}`;
   try {
     const res = await fetch(url, {
-      headers: {
-        "User-Agent": UA,
-        "Accept": "application/json,text/plain,*/*",
-        "Cookie": creds.cookie,
-      },
+      headers: { "Accept": "application/json" },
       signal: AbortSignal.timeout(8_000),
     });
-    if (!res.ok) {
-      // Crumb may have been rotated — drop the cache so the next
-      // request bootstraps fresh credentials.
-      if (res.status === 401 || res.status === 403) {
-        cachedCookie = null;
-        cachedCrumb  = null;
-      }
-      return {};
-    }
+    if (!res.ok) return null;
     const data = await res.json();
-    const rows: any[] = data?.quoteResponse?.result ?? [];
-    const out: Record<string, Fundamentals> = {};
-    for (const row of rows) {
-      const symbol = row?.symbol;
-      // ETFs report `quoteType: "ETF"` and frequently have a synthetic
-      // trailingPE that's the weighted average of holdings — not what
-      // the user means by "P/E". Skip them so the button stays hidden.
-      if (!symbol || row?.quoteType === "ETF" || row?.quoteType === "MUTUALFUND") continue;
-      const pe  = Number(row?.trailingPE);
-      const eps = Number(row?.epsTrailingTwelveMonths);
-      if (!isFinite(pe) || !isFinite(eps) || eps <= 0 || pe <= 0) continue;
-      out[symbol] = { pe, eps };
-    }
-    return out;
+    const m = data?.metric;
+    if (!m) return null;
+    // Field-name fallback chain — Finnhub uses slightly different
+    // names depending on the company / how Yahoo reported.
+    const pe  = Number(m.peTTM ?? m.peBasicExclExtraTTM ?? m.peNormalizedAnnual);
+    const eps = Number(m.epsTTM ?? m.epsBasicExclExtraItemsTTM ?? m.epsNormalizedAnnual);
+    if (!isFinite(pe) || !isFinite(eps) || eps <= 0 || pe <= 0) return null;
+    return { pe, eps };
   } catch {
-    return {};
+    return null;
   }
 }
 
@@ -140,8 +80,7 @@ Deno.serve(async (req: Request) => {
     .split(",")
     .map((t) => t.trim())
     // Skip categories that never have meaningful P/E so we don't burn
-    // a Yahoo request just to get null. The client also filters most
-    // of these before calling, but defense in depth.
+    // a Finnhub request just to get null.
     .filter((t) =>
       !!t &&
       t !== "CASH" &&
@@ -152,15 +91,29 @@ Deno.serve(async (req: Request) => {
       !/[-]USD$/i.test(t) &&         // crypto
       !/=X$/.test(t)                 // forex
     );
-  if (tickers.length === 0) {
+  if (tickers.length === 0 || !FINNHUB_API_KEY) {
     return new Response(JSON.stringify({}), {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
 
-  const out = await fetchYahooBatch(tickers);
+  // Free tier is 60 calls / minute → ~1 call / sec. Issuing N parallel
+  // requests for a 30-ticker portfolio would burst over that ceiling
+  // briefly; cap parallelism at 6 to stay under it for typical
+  // refreshes.
+  const out: Record<string, Fundamentals> = {};
+  const queue = [...tickers];
+  const workers = Array.from({ length: Math.min(6, queue.length) }, async () => {
+    while (queue.length > 0) {
+      const t = queue.shift();
+      if (!t) break;
+      const f = await fetchFinnhub(t);
+      if (f) out[t] = f;
+    }
+  });
+  await Promise.all(workers);
+
   return new Response(JSON.stringify(out), {
     headers: { ...CORS, "Content-Type": "application/json" },
   });
 });
-
