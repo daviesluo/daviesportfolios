@@ -513,6 +513,30 @@ export async function fetchTickers(tickers) {
   return fetchYahoo(tickers.filter(Boolean));
 }
 
+// Fetch current TTM P/E + EPS for the given tickers via the
+// `fundamentals` Edge Function. Returns
+//   { NVDA: { pe: 30.5, eps: 6.5 }, … }
+// with tickers that have no meaningful fundamentals (futures /
+// indices / ETFs / crypto / .PVT / 6-digit CN funds) simply absent.
+export async function fetchFundamentals(symbols) {
+  const list = Array.from(new Set((symbols || []).filter(Boolean)));
+  if (list.length === 0) return {};
+  try {
+    const url =
+      `${EDGE_PRICES_URL.replace(/\/prices$/, "/fundamentals")}` +
+      `?tickers=${encodeURIComponent(list.join(","))}`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return {};
+    const data = await res.json();
+    return data && typeof data === "object" ? data : {};
+  } catch {
+    return {};
+  }
+}
+
 // Fetch daily historical closes for a single symbol via the CORS proxy chain.
 // Tries proxies in randomised order to spread load across them on bursty
 // multi-ticker calls. Returns [{date,close}, …] or null on total failure.
