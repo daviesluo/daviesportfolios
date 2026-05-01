@@ -301,15 +301,12 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const variantKey = rangeKey === '1D'
     ? (extendedHours ? 'ext' : (phase === 'regular' ? 'reg' : 'closed'))
     : 'std';
-  // The S&P 500 reference uses the futures contract (ES=F) when the
-  // market is closed AND the user has extended hours on for 1D —
-  // ^GSPC freezes at the regular close, so the index would only show
-  // yesterday's close. ES=F tracks pre/post-market and gives the same
-  // reference point the DAY CHANGE on the scoreboard is benchmarked
-  // against in ext mode. During regular hours ^GSPC is itself live,
-  // so we keep using it even when the ext toggle is on (mirrors
-  // scoreboard's `useExt = extendedHours && phase !== 'regular'`).
-  const spSymbol = (rangeKey === '1D' && extendedHours && phase && phase !== 'regular') ? 'ES=F' : '^GSPC';
+  // The S&P 500 reference uses the futures contract (ES=F) whenever
+  // the user has the extended-hours toggle on for 1D — even during
+  // regular hours, since "ext on" is the user's signal that they want
+  // to track futures pricing. The legend label flips to
+  // "S&P 500 FUTURES" to match.
+  const spSymbol = (rangeKey === '1D' && extendedHours) ? 'ES=F' : '^GSPC';
   const [hist,    setHist]    = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState(false);
@@ -526,14 +523,32 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   if (error)      return renderShell(<div className="sparkline-empty dim mono">Couldn't load history</div>, rangeKey, setRangeKey);
 
   const year = new Date().getFullYear();
+  // US market hours in UTC for today, used here for the ^GSPC RTH filter
+  // and below for CLOSE / OPEN marker detection. Hoisted above the
+  // first allSp use so the filter can reach it.
+  const mh = usMarketHoursUtc(new Date());
 
   // S&P reference series — sorted, sliced to the selected window. For 1D
   // we DON'T filter by anchorDateFor("today") because in closed-market
   // mode the data spans yesterday, and using "today" would empty the
   // window. For daily ranges we still filter by the calendar cutoff.
-  const allSp = (hist[spSymbol] || [])
+  // For ^GSPC specifically, drop any bars outside regular trading hours
+  // — Yahoo's prepost=true sometimes returns spurious low-volume bars
+  // around the 16:00 ET close, and any of those that survive would
+  // appear visually as a "data between close and open" artifact in
+  // the 24-h chart.
+  const allSpRaw = (hist[spSymbol] || [])
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date));
+  const allSp = (rangeKey === '1D' && spSymbol === '^GSPC')
+    ? allSpRaw.filter(p => {
+        if (typeof p.date !== 'string' || p.date.length < 16 || p.date[10] !== 'T') return true;
+        const hh = parseInt(p.date.slice(11, 13), 10);
+        const mm = parseInt(p.date.slice(14, 16), 10);
+        const t = hh * 60 + mm;
+        return t >= mh.openHh * 60 + mh.openMm && t <= mh.closeHh * 60 + mh.closeMm;
+      })
+    : allSpRaw;
 
   // 1D's anchor date is whatever calendar day the fetched data actually
   // covers — the latest UTC date in the series. Yesterday for closed
@@ -596,10 +611,6 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   // line does (and matches scoreboard semantics). We locate the bar at
   // or just before 20:00 UTC (= 16:00 ET) inside the fetched ES=F window.
   // For daily ranges it's the last close strictly before anchorDate.
-  // US market hours in UTC for today. Dynamic so EST (UTC-5) winter
-  // sessions still find their open/close bars correctly — hard-coding
-  // 13:30/20:00 UTC would silently break Nov–Mar.
-  const mh = usMarketHoursUtc(new Date());
   let spBase;
   if (rangeKey === '1D') {
     if (useExt) {
@@ -897,70 +908,42 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
             </text>
           </g>
         ))}
-        {/* Vertical dashed line at the last regular-session close (1D ext mode).
-            16:00 ET = 20:00 UTC; allow a small slack for non-quarter-hour bars. */}
-        {rangeKey === '1D' && variantKey === 'ext' && (() => {
-          let idx = -1;
-          for (let i = spYtd.length - 1; i >= 0; i--) {
-            const d = spYtd[i].date;
-            if (d.length < 16) continue;
-            const hh = parseInt(d.slice(11, 13), 10);
-            const mm = parseInt(d.slice(14, 16), 10);
-            if (hh === mh.closeHh && mm <= mh.closeMm + 5) { idx = i; break; }
-          }
-          if (idx < 0) return null;
-          // Codex P2: when S&P fetch failed and we fell back to another
-          // ticker for spYtd, spNorm stays empty so xOfSp resolves every
-          // date to padL. Use whichever index map actually contains the
-          // date — falls back to portfolio's index (which uses the same
-          // total step count as S&P would).
-          const closeDate = spYtd[idx].date;
-          const idxInChart = spIdxOf.get(closeDate) ?? portIdxOf.get(closeDate) ?? 0;
-          const x = (padL + (idxInChart / Math.max(1, totalLen - 1)) * cW).toFixed(1);
-          return (
-            <g>
-              <line x1={x} y1={padT} x2={x} y2={H - padB}
-                    stroke="rgba(244,239,227,0.45)" strokeWidth="0.8" strokeDasharray="3,3" />
-              <text x={x} y={padT - 2} textAnchor="middle"
-                    fontSize="7" fill="rgba(244,239,227,0.5)" fontFamily="var(--font-mono)">
-                CLOSE
-              </text>
-            </g>
-          );
-        })()}
-        {/* Vertical dashed line at today's regular-session open (1D in
-            regular session). 9:30 ET = 13:30 UTC. Same x-fallback as
-            the CLOSE marker so it stays correct when the S&P fetch
-            failed and the chart fell back to another ticker. */}
-        {rangeKey === '1D' && variantKey === 'reg' && (() => {
+        {/* Vertical dashed CLOSE + OPEN markers for any 1D session view
+            (regular hours OR ext-on after-hours). Same x-fallback as
+            the legacy ext-only block: spIdxOf may be empty when S&P
+            fetch fell back to another ticker, so use the portfolio
+            index map as backup. */}
+        {rangeKey === '1D' && (variantKey === 'reg' || variantKey === 'ext') && (() => {
           // Two markers: yesterday's CLOSE (= prevClose, where the % is
-          // anchored) and today's OPEN. Both are visual context only;
-          // the % comes from prevClose to match the scoreboard / heatmap.
+          // anchored in 'reg' mode; in 'ext' mode it's today's regular
+          // close where the futures' day-change basis sits) and today's
+          // OPEN. Both are visual context.
           let openIdx = -1, closeIdx = -1;
-          // Restrict OPEN search to today's calendar date — without this
-          // the first yesterday afternoon bar (whose UTC hour also
-          // satisfies hh > openHh) would steal the match and pin the
-          // marker to the chart's left edge.
-          const todayDay = spYtd.length > 0 ? spYtd[spYtd.length - 1].date.slice(0, 10) : null;
+          // Restrict OPEN search to the most-recent calendar date in the
+          // data — without this the first yesterday-afternoon bar (whose
+          // UTC hour also satisfies hh > openHh) would steal the match
+          // and pin the marker to the chart's left edge.
+          const lastDay = spYtd.length > 0 ? spYtd[spYtd.length - 1].date.slice(0, 10) : null;
           for (let i = 0; i < spYtd.length; i++) {
             const d = spYtd[i].date;
             if (d.length < 16) continue;
-            if (todayDay && d.slice(0, 10) !== todayDay) continue;
+            if (lastDay && d.slice(0, 10) !== lastDay) continue;
             const hh = parseInt(d.slice(11, 13), 10);
             const mm = parseInt(d.slice(14, 16), 10);
             if (openIdx < 0 && ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh)) {
               openIdx = i;
             }
           }
-          // CLOSE = the most recent close-hour bar BEFORE the OPEN.
-          if (openIdx > 0) {
-            for (let i = openIdx - 1; i >= 0; i--) {
-              const d = spYtd[i].date;
-              if (d.length < 16) continue;
-              const hh = parseInt(d.slice(11, 13), 10);
-              const mm = parseInt(d.slice(14, 16), 10);
-              if (hh === mh.closeHh && mm <= mh.closeMm + 5) { closeIdx = i; break; }
-            }
+          // CLOSE = the most recent close-hour bar in the data. In 'reg'
+          // mode it's BEFORE the OPEN (yesterday); in 'ext' AH mode the
+          // close has already happened on the most-recent day, so just
+          // walk backwards from the end.
+          for (let i = spYtd.length - 1; i >= 0; i--) {
+            const d = spYtd[i].date;
+            if (d.length < 16) continue;
+            const hh = parseInt(d.slice(11, 13), 10);
+            const mm = parseInt(d.slice(14, 16), 10);
+            if (hh === mh.closeHh && mm <= mh.closeMm + 5) { closeIdx = i; break; }
           }
           const renderMarker = (idx, label) => {
             if (idx < 0) return null;
@@ -1038,13 +1021,9 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 // rendered separately so we can place it in the desktop left column instead
 // of the sidebar. The Sidebar still renders its own copy on tablet/mobile.
 function PerfPanel({ portfolio, marketData, extendedHours, phase, className }) {
-  // In ext-on AH/PM mode the chart benchmarks against ES=F (S&P futures)
-  // since ^GSPC freezes at the regular close. Reflect that in the title
-  // so the user knows what they're comparing to.
-  const benchLabel = (extendedHours && phase && phase !== 'regular') ? 'S&P 500 FUTURES' : 'S&P 500';
   return (
     <section className={`panel ${className || ""}`.trim()}>
-      <h3 className="panel-title">PERFORMANCE VS {benchLabel}</h3>
+      <h3 className="panel-title">PERFORMANCE VS S&amp;P 500</h3>
       <PerfChart
         portfolio={portfolio}
         marketData={marketData}

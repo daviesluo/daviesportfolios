@@ -83,12 +83,20 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // to read at a glance, and 1D's three sub-modes (ext OFF + open,
   // ext OFF + closed, ext ON) live in one place rather than duplicated
   // here.
-  const fetchParams = (rk) => fetchParamsFor(rk, extendedHours, phase);
+  // Override fetchParamsFor's intraday interval to '1d' for tickers
+  // that only have daily data (CN funds publish 1 NAV / day; .PVT
+  // private tickers don't have intraday bars on Yahoo, so a 1mo/60m
+  // request returns empty and the chart shows "Couldn't load history"
+  // even when daily data exists for the same range).
+  const fetchParams = (rk) => {
+    const p = fetchParamsFor(rk, extendedHours, phase);
+    return dailyOnly ? { ...p, interval: '1d', includePrePost: false } : p;
+  };
 
   React.useEffect(() => {
     let cancelled = false;
     const { yahooRange, interval, includePrePost } = fetchParams(rangeKey);
-    const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+    const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}|${dailyOnly ? 'dly' : 'ix'}`;
     const ttl = modalTtl(rangeKey);
     const cached = modalCacheGet(cacheKey);
 
@@ -158,8 +166,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     (async () => {
       for (const rk of others) {
         if (cancelled) return;
-        const { yahooRange, interval, includePrePost, variant } = fetchParamsFor(rk, extendedHours, phase);
-        const cacheKey = `${ticker}|${rk}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+        const baseParams = fetchParamsFor(rk, extendedHours, phase);
+        const { yahooRange, interval, includePrePost, variant } = dailyOnly
+          ? { ...baseParams, interval: '1d', includePrePost: false }
+          : baseParams;
+        const cacheKey = `${ticker}|${rk}|${useExt ? 'ext' : 'reg'}|${phase || ''}|${dailyOnly ? 'dly' : 'ix'}`;
         const ttl = modalTtl(rk);
         const c = modalCacheGet(cacheKey);
         if (c && Array.isArray(c.data) && (Date.now() - (c.ts || 0)) < ttl) continue;
@@ -199,8 +210,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         let data = out[ticker];
         if (data && data.length >= 2) {
           if (params.variant === 'closed') data = filterToLatestDay(data);
-          else if (params.variant === 'reg') data = filterToLast24h(data);
-          const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+          else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
+          const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}|${dailyOnly ? 'dly' : 'ix'}`;
           modalCacheSet(cacheKey, data);
           setSeries(data);
         }
@@ -529,11 +540,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       <div className="modal-body">
         <div className="ticker-chart-wrap">
           {loading && <div className="sparkline-empty dim mono">Loading…</div>}
-          {!loading && error && (
-            <div className="sparkline-empty dim mono">
-              {isPvt ? 'No public history (private holding)' : "Couldn't load history"}
-            </div>
-          )}
+          {!loading && error && <div className="sparkline-empty dim mono">Couldn't load history</div>}
           {!loading && !error && !hasData && <div className="sparkline-empty dim mono">No data for this range</div>}
           {!loading && !error && hasData && (
             <svg

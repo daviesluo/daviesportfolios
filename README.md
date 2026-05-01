@@ -33,9 +33,9 @@ secrets server-side.
 - **Extended-hours toggle** — switches indices to their futures
   contracts (`^GSPC` → `ES=F` etc.) and recomputes day change against
   the regular-session close so post-market moves show up correctly.
-  When the toggle is on AND the market is closed, the perf-chart
-  panel renames itself to "PERFORMANCE VS S&P 500 FUTURES" and the
-  legend dot reads `S&P 500 FUTURES` so the benchmark is unambiguous.
+  Whenever the toggle is on, the perf-chart legend dot flips to
+  `S&P 500 FUTURES` so the benchmark is unambiguous (panel title
+  stays "PERFORMANCE VS S&P 500" — futures track the S&P).
 - **1D chart spans 24 h** — both in-session and ext-hours views show
   the trailing 24 h. In-session uses Yahoo `range=5d` + a client-side
   `filterToLast24h` cut (Yahoo's `range=1d` only ever covers the
@@ -155,13 +155,14 @@ to the prompt.
 ### Performance vs S&P 500 panel
 
 A two-line chart comparing the portfolio's % return against the
-S&P 500 over the same range buttons. 1D ext-mode (market closed +
-ext-hours toggle on) swaps `^GSPC` for `ES=F` so post-market moves
-are visible — and the panel header / legend rename to
-"PERFORMANCE VS S&P 500 FUTURES" / `S&P 500 FUTURES` so the
-benchmark is unambiguous. Hover the chart for a crosshair: vertical
-dashed line, dots on both lines, and per-series % chips next to each
-dot plus a date label under the chart.
+S&P 500 over the same range buttons. 1D ext-on swaps `^GSPC` for
+`ES=F` (S&P futures) so post-market moves are visible — the legend
+dot flips to `S&P 500 FUTURES` while the panel header stays
+"PERFORMANCE VS S&P 500" (futures track the index). Both `CLOSE`
+and `OPEN` dashed markers render on the 1D view in either mode so
+the previous regular session's bookends are always anchored. Hover
+the chart for a crosshair: vertical dashed line, dots on both lines,
+per-series % chips next to each dot, and a date pill at the bottom.
 
 ### Sidebar
 
