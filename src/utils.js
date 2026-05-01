@@ -242,11 +242,13 @@ export const computeMetrics = (portfolio, opts = {}) => {
       const prevMV = isCash ? mv : h.shares * baselinePrice * fx;
       const costUSD = isCash ? mv : h.shares * h.cost * fx;
       posMV += mv; posPrev += prevMV; posCost += costUSD;
-      // Player object: marketValue/dayChange/cost in USD; lastPrice stays native
-      // so modals can render it with the correct currency symbol.
+      // Player object: marketValue / dayChange / cost in USD; lastPrice
+      // stays native so modals can render it with the correct currency
+      // symbol. dayChange = mv − prevMV in the same units (USD).
       players.push({
         ticker: t, ...h,
         marketValue: mv,
+        dayChange: mv - prevMV,
         lastPrice: priceNative,
         lastPriceUSD: priceUSD,
         fx,

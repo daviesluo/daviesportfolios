@@ -55,13 +55,21 @@ function modalCacheSet(key, data) {
 // no meaningful data — restrict the visible range buttons to the daily
 // ones for these tickers.
 const CN_FUND_RE = /^\d{6}$/;
+// .PVT suffix is the convention this app uses for private/un-listed
+// holdings (e.g. SPAX.PVT). Yahoo doesn't carry them, so intraday
+// ranges always fail. Keep them on the daily buttons only and surface
+// a clear "no public history" message instead of a generic error.
+const PVT_RE = /\.PVT$/i;
 
 export function TickerChartModal({ ticker, holding, marketData, extendedHours, phase, onClose }) {
   const isCnFund = CN_FUND_RE.test(ticker);
-  const visibleRangeKeys = isCnFund ? ['1M', '3M', 'YTD'] : RANGE_KEYS;
-  // CN funds publish 1 NAV / day, so 1D is meaningless — start them on
-  // 1M instead. Everything else opens to today's intraday view.
-  const [rangeKey, setRangeKey] = React.useState(isCnFund ? '1M' : '1D');
+  const isPvt    = PVT_RE.test(ticker);
+  const dailyOnly = isCnFund || isPvt;
+  const visibleRangeKeys = dailyOnly ? ['1M', '3M', 'YTD'] : RANGE_KEYS;
+  // CN funds publish 1 NAV / day; .PVT placeholders don't trade on
+  // public exchanges. Both default to 1M so the user sees something
+  // immediately rather than landing on an intraday view that's empty.
+  const [rangeKey, setRangeKey] = React.useState(dailyOnly ? '1M' : '1D');
   const [series, setSeries]     = React.useState(/** @type {Array<{date:string,close:number}>|null} */ (null));
   const [loading, setLoading]   = React.useState(true);
   const [error, setError]       = React.useState(false);
@@ -130,7 +138,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       }
       const params = fetchParamsFor(rangeKey, extendedHours, phase);
       if (params.variant === 'closed') data = filterToLatestDay(data);
-      else if (params.variant === 'reg') data = filterToLast24h(data);
+      else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
       modalCacheSet(cacheKey, data);
       setSeries(data);
       setLoading(false);
@@ -160,7 +168,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         let data = out[ticker];
         if (data && data.length >= 2) {
           if (variant === 'closed') data = filterToLatestDay(data);
-          else if (variant === 'reg') data = filterToLast24h(data);
+          else if (variant === 'reg' || variant === 'ext') data = filterToLast24h(data);
           modalCacheSet(cacheKey, data);
         }
       }
@@ -521,7 +529,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       <div className="modal-body">
         <div className="ticker-chart-wrap">
           {loading && <div className="sparkline-empty dim mono">Loading…</div>}
-          {!loading && error && <div className="sparkline-empty dim mono">Couldn't load history</div>}
+          {!loading && error && (
+            <div className="sparkline-empty dim mono">
+              {isPvt ? 'No public history (private holding)' : "Couldn't load history"}
+            </div>
+          )}
           {!loading && !error && !hasData && <div className="sparkline-empty dim mono">No data for this range</div>}
           {!loading && !error && hasData && (
             <svg

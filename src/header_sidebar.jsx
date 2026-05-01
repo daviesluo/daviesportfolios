@@ -285,6 +285,15 @@ function savePerfCache(year, rangeKey, entries) {
 // YTD performance chart: portfolio % return vs S&P 500, computed from per-lot
 // purchase history + historical closes (Yahoo Finance), normalised from the
 // first trading day of the calendar year.
+// Parse a chart date string. Intraday strings come in as
+// "YYYY-MM-DDTHH:MM" UTC without a Z; without that suffix `new Date`
+// reads them as local. Append Z for the truncated UTC shape.
+function parsePerfDate(d) {
+  if (typeof d !== 'string') return new Date(d);
+  if (d.length === 16 && d[10] === 'T') return new Date(d + 'Z');
+  return new Date(d);
+}
+
 function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const [rangeKey, setRangeKey] = React.useState('YTD');
   // 1D's fetch params depend on the ext-hours toggle + market phase, so
@@ -292,12 +301,15 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const variantKey = rangeKey === '1D'
     ? (extendedHours ? 'ext' : (phase === 'regular' ? 'reg' : 'closed'))
     : 'std';
-  // The S&P 500 reference uses the futures contract (ES=F) when the user
-  // is in extended hours mode for 1D — ^GSPC isn't trading then, so the
-  // index would only show yesterday's close. ES=F tracks pre/post-market
-  // and gives the same reference point the DAY CHANGE on the scoreboard
-  // is benchmarked against in ext mode.
-  const spSymbol = (rangeKey === '1D' && extendedHours) ? 'ES=F' : '^GSPC';
+  // The S&P 500 reference uses the futures contract (ES=F) when the
+  // market is closed AND the user has extended hours on for 1D —
+  // ^GSPC freezes at the regular close, so the index would only show
+  // yesterday's close. ES=F tracks pre/post-market and gives the same
+  // reference point the DAY CHANGE on the scoreboard is benchmarked
+  // against in ext mode. During regular hours ^GSPC is itself live,
+  // so we keep using it even when the ext toggle is on (mirrors
+  // scoreboard's `useExt = extendedHours && phase !== 'regular'`).
+  const spSymbol = (rangeKey === '1D' && extendedHours && phase && phase !== 'regular') ? 'ES=F' : '^GSPC';
   const [hist,    setHist]    = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState(false);
@@ -380,7 +392,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       for (const s of stale) {
         let data = batch[s];
         if (data && params.variant === 'closed') data = filterToLatestDay(data);
-        else if (data && params.variant === 'reg') data = filterToLast24h(data);
+        else if (data && (params.variant === 'reg' || params.variant === 'ext')) data = filterToLast24h(data);
         if (data) {
           merged[s] = data;
           newEntries[s] = { ts: now, data };
@@ -477,7 +489,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
         for (const s of stale) {
           let data = batch[s];
           if (data && params.variant === 'closed') data = filterToLatestDay(data);
-        else if (data && params.variant === 'reg') data = filterToLast24h(data);
+        else if (data && (params.variant === 'reg' || params.variant === 'ext')) data = filterToLast24h(data);
           if (data) newEntries[s] = { ts: now, data };
         }
         savePerfCache(year, cacheKey, newEntries);
@@ -720,6 +732,109 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 
   const fmtP1 = n => (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
 
+  // Hover crosshair — DOM-ref based for the same reasons as the
+  // ticker modal: setting React state on every mousemove would
+  // reconcile the whole SVG (path with up to ~150 points) on every
+  // frame. Refs + setAttribute inside a rAF keeps everything else in
+  // the chart untouched while the cursor moves.
+  const svgRef     = React.useRef(/** @type {SVGSVGElement|null} */ (null));
+  const crossRef   = React.useRef(/** @type {SVGGElement|null}   */ (null));
+  const cVlineRef  = React.useRef(/** @type {SVGLineElement|null}*/ (null));
+  const cPortDot   = React.useRef(/** @type {SVGCircleElement|null}*/ (null));
+  const cSpDot     = React.useRef(/** @type {SVGCircleElement|null}*/ (null));
+  const cDateRect  = React.useRef(/** @type {SVGRectElement|null} */ (null));
+  const cDateText  = React.useRef(/** @type {SVGTextElement|null} */ (null));
+  const cPortRect  = React.useRef(/** @type {SVGRectElement|null} */ (null));
+  const cPortText  = React.useRef(/** @type {SVGTextElement|null} */ (null));
+  const cSpRect    = React.useRef(/** @type {SVGRectElement|null} */ (null));
+  const cSpText    = React.useRef(/** @type {SVGTextElement|null} */ (null));
+  const rafRef        = React.useRef(0);
+  const pendingIdxRef = React.useRef(/** @type {number|null} */ (null));
+
+  // Lookup tables for crosshair index→data.
+  const portByIdx = portNorm;
+  const spByIdx   = spNorm.length === portNorm.length ? spNorm : null; // aligned in 1D / YTD
+  const fmtCrosshairDate = (dateStr) => {
+    const d = parsePerfDate(dateStr);
+    if (rangeKey === '1D') {
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+  function paintCrosshair() {
+    rafRef.current = 0;
+    const idx = pendingIdxRef.current;
+    const g = crossRef.current;
+    if (!g) return;
+    if (idx == null || !portByIdx[idx]) { g.style.display = 'none'; return; }
+    g.style.display = '';
+    const p = portByIdx[idx];
+    const x = xOfPort(p.date);
+    const portY = yOf(p.pct);
+    if (cVlineRef.current) { cVlineRef.current.setAttribute('x1', String(x.toFixed(1))); cVlineRef.current.setAttribute('x2', String(x.toFixed(1))); }
+    if (cPortDot.current) { cPortDot.current.setAttribute('cx', String(x.toFixed(1))); cPortDot.current.setAttribute('cy', String(portY.toFixed(1))); }
+    const sp = spByIdx?.[idx] ?? null;
+    if (sp && cSpDot.current) {
+      cSpDot.current.setAttribute('cx', String(x.toFixed(1)));
+      cSpDot.current.setAttribute('cy', String(yOf(sp.pct).toFixed(1)));
+      cSpDot.current.style.display = '';
+    } else if (cSpDot.current) {
+      cSpDot.current.style.display = 'none';
+    }
+    if (cDateRect.current) cDateRect.current.setAttribute('x', String((x - 22).toFixed(1)));
+    if (cDateText.current) { cDateText.current.setAttribute('x', String(x.toFixed(1))); cDateText.current.textContent = fmtCrosshairDate(p.date); }
+    if (cPortRect.current && cPortText.current) {
+      const yTop = (portY - 8).toFixed(1);
+      cPortRect.current.setAttribute('y', yTop);
+      cPortRect.current.setAttribute('fill', p.pct >= 0 ? 'rgba(70,160,90,0.85)' : 'rgba(190,60,70,0.85)');
+      cPortText.current.setAttribute('y', String((portY).toFixed(1)));
+      cPortText.current.textContent = fmtP1(p.pct);
+    }
+    if (cSpRect.current && cSpText.current) {
+      if (sp) {
+        const spY = yOf(sp.pct);
+        cSpRect.current.style.display = '';
+        cSpText.current.style.display = '';
+        cSpRect.current.setAttribute('y', (spY - 8).toFixed(1));
+        cSpText.current.setAttribute('y', String((spY).toFixed(1)));
+        cSpText.current.textContent = fmtP1(sp.pct);
+      } else {
+        cSpRect.current.style.display = 'none';
+        cSpText.current.style.display = 'none';
+      }
+    }
+  }
+  function handleMove(e) {
+    if (!svgRef.current || portByIdx.length === 0) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const vbRatio = W / H, elRatio = rect.width / rect.height;
+    let contentW, contentH, offX, offY;
+    if (elRatio > vbRatio) {
+      contentH = rect.height; contentW = contentH * vbRatio;
+      offX = (rect.width - contentW) / 2; offY = 0;
+    } else {
+      contentW = rect.width;  contentH = contentW / vbRatio;
+      offX = 0; offY = (rect.height - contentH) / 2;
+    }
+    const sx = ((e.clientX - rect.left - offX) / contentW) * W;
+    const clampedSx = Math.max(padL, Math.min(W - padR, sx));
+    const denom = Math.max(1, portByIdx.length - 1);
+    const frac = (clampedSx - padL) / cW;
+    const i = Math.round(frac * denom);
+    pendingIdxRef.current = Math.max(0, Math.min(portByIdx.length - 1, i));
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(paintCrosshair);
+  }
+  function handleLeave() {
+    pendingIdxRef.current = null;
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = 0; }
+    if (crossRef.current) crossRef.current.style.display = 'none';
+  }
+  React.useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
+  React.useEffect(() => {
+    if (crossRef.current) crossRef.current.style.display = 'none';
+  }, [rangeKey, hist]);
+
   return (
     <div className="perf-chart-wrap">
       <div className="perf-legend">
@@ -732,14 +847,22 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
         </span>
         <span className="perf-legend-item">
           <span className="perf-dot" style={{ background: spColor }} />
-          <span className="mono dim perf-lbl">S&amp;P 500</span>
+          <span className="mono dim perf-lbl">{spSymbol === 'ES=F' ? 'S&P 500 FUTURES' : 'S&P 500'}</span>
           {spCurrent != null && (
             <span className="mono perf-val" style={{ color: spColor }}>{fmtP1(spCurrent)}</span>
           )}
         </span>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: 'block' }}>
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${W} ${H}`}
+        width="100%"
+        height={H}
+        style={{ display: 'block' }}
+        onMouseMove={handleMove}
+        onMouseLeave={handleLeave}
+      >
         {/* Y-axis ticks + grid lines */}
         {ticks.map(t => (
           <g key={t}>
@@ -870,6 +993,32 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
           return <circle cx={xOfPort(last.date).toFixed(1)} cy={yOf(last.pct).toFixed(1)}
                          r="3" fill={portColor} stroke="#0c1310" strokeWidth="1.5" />;
         })()}
+        {/* Hover crosshair — vertical line + per-line dots + a tiny date
+            label under the chart and per-series % chips next to each
+            dot. Hidden by default; updated imperatively on mousemove. */}
+        <g ref={crossRef} style={{ display: 'none' }}>
+          <line ref={cVlineRef} x1={padL} y1={padT} x2={padL} y2={H - padB}
+                stroke="rgba(244,239,227,0.5)" strokeWidth="0.6" strokeDasharray="2,2" />
+          <circle ref={cPortDot} cx={padL} cy={padT} r="2.5"
+                  fill={portColor} stroke="#0c1310" strokeWidth="1" />
+          <circle ref={cSpDot}   cx={padL} cy={padT} r="2.5"
+                  fill={spColor}   stroke="#0c1310" strokeWidth="1" />
+          {/* Date pill under the chart */}
+          <rect ref={cDateRect} x={padL} y={H - padB + 1} width={44} height={11}
+                fill="#0c1310" stroke="var(--chalk-dim)" strokeWidth="0.5" />
+          <text ref={cDateText} x={padL} y={H - padB + 9} textAnchor="middle"
+                fontSize="7.5" fill="var(--chalk)" fontFamily="var(--font-mono)" />
+          {/* PORTFOLIO % chip — drawn left of the dot */}
+          <rect ref={cPortRect} x={padL + 4} width={32} height={11} rx={1.5}
+                fill="rgba(70,160,90,0.85)" />
+          <text ref={cPortText} x={padL + 20} dominantBaseline="middle" textAnchor="middle"
+                fontSize="7.5" fill="#fff" fontFamily="var(--font-mono)" fontWeight="600" />
+          {/* S&P % chip */}
+          <rect ref={cSpRect} x={padL + 4} width={32} height={11} rx={1.5}
+                fill="rgba(107,114,128,0.85)" />
+          <text ref={cSpText} x={padL + 20} dominantBaseline="middle" textAnchor="middle"
+                fontSize="7.5" fill="#fff" fontFamily="var(--font-mono)" fontWeight="600" />
+        </g>
       </svg>
 
       <RangeButtons rangeKey={rangeKey} onChange={setRangeKey} />
@@ -881,9 +1030,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 // rendered separately so we can place it in the desktop left column instead
 // of the sidebar. The Sidebar still renders its own copy on tablet/mobile.
 function PerfPanel({ portfolio, marketData, extendedHours, phase, className }) {
+  // In ext-on AH/PM mode the chart benchmarks against ES=F (S&P futures)
+  // since ^GSPC freezes at the regular close. Reflect that in the title
+  // so the user knows what they're comparing to.
+  const benchLabel = (extendedHours && phase && phase !== 'regular') ? 'S&P 500 FUTURES' : 'S&P 500';
   return (
     <section className={`panel ${className || ""}`.trim()}>
-      <h3 className="panel-title">PERFORMANCE VS S&amp;P 500</h3>
+      <h3 className="panel-title">PERFORMANCE VS {benchLabel}</h3>
       <PerfChart
         portfolio={portfolio}
         marketData={marketData}
@@ -997,7 +1150,7 @@ function StatRow({ label, value, mono, dim, color }) {
 }
 
 // ---- Market Conditions column ----
-// Eight cards laid out as a 4-row × 2-column grid on desktop (column-major):
+// Ten cards laid out as a 5-row × 2-column grid on desktop (column-major):
 //   col 1 → S&P 500, NASDAQ 100, Russell 2000, VIX
 //   col 2 → Brent Oil, US 10Y Treasury Yield, GBP/USD, GBP/CNY
 // Mobile keeps the previous 6-card layout (10Y + GBP/CNY hidden) so the
@@ -1007,11 +1160,13 @@ const MC_INDICES = [
   { ticker: "^GSPC",    name: "S&P 500",      nameB: "S&P",    nameN: "500",  ftTicker: "ES=F",  ftName: "S&P Futures"    },
   { ticker: "^NDX",     name: "NASDAQ 100",   nameB: "NASDAQ", nameN: "100",  ftTicker: "NQ=F",  ftName: "Nasdaq Futures" },
   { ticker: "^RUT",     name: "Russell 2000", nameB: "Russell",nameN: "2000", ftTicker: "RTY=F", ftName: "R2K Futures"    },
+  { ticker: "^SOX",     name: "PHLX SOX",     nameB: "PHLX",   nameN: "SOX",  hideMobile: true },
   { ticker: "^VIX",     name: "VIX"          },
   { ticker: "BZ=F",     name: "Brent Oil"    },
   { ticker: "^TNX",     name: "US 10Y Yield", nameB: "US 10Y", nameN: "Yield", hideMobile: true },
   { ticker: "GBPUSD=X", name: "GBP/USD"      },
   { ticker: "GBPCNH=X", name: "GBP/CNY",      hideMobile: true },
+  { ticker: "USDCNY=X", name: "USD/CNY",      hideMobile: true },
 ];
 
 function fmtChg(n, baseTicker) {

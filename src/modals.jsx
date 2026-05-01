@@ -45,7 +45,7 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
         <div>
-          <div className="modal-eyebrow mono">{posKey} · POSITION</div>
+          <div className="modal-eyebrow mono">POSITION · SECTOR</div>
           <h2 className="modal-title">
             {position.label}
             {position.subtitle && <span className="modal-sub"> · {position.subtitle}</span>}
@@ -115,7 +115,9 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
       {isHot && <div className="hot-badge">⚽</div>}
       <div className="pc-top">
         <span className="pc-ticker mono">{player.ticker}</span>
-        <span className={`pc-pct mono`} style={{ color: pctC }}>{fmtPe(player.dayPct)}</span>
+        <span className="pc-day mono" style={{ color: pctC }}>
+          {m(fmtMo(player.dayChange ?? 0, { signed: true }))} ({fmtPe(player.dayPct)})
+        </span>
       </div>
       <div className="pc-price mono">{m(`${sym}${fmtPri(player.lastPrice)}`)}</div>
       <div className="pc-rows">

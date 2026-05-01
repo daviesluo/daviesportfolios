@@ -91,7 +91,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     for (const s of stale) {
       let data = batch[s];
       if (data && params.variant === 'closed') data = filterToLatestDay(data);
-      else if (data && params.variant === 'reg') data = filterToLast24h(data);
+      else if (data && (params.variant === 'reg' || params.variant === 'ext')) data = filterToLast24h(data);
       if (data) newPerfEntries[s] = { ts: now, data };
     }
     ytdYear[perfKey] = { entries: newPerfEntries };
@@ -102,7 +102,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     for (const t of tickers) {  // skip spSymbol — never opens in the modal
       let data = batch[t];
       if (data && params.variant === 'closed') data = filterToLatestDay(data);
-      else if (data && params.variant === 'reg') data = filterToLast24h(data);
+      else if (data && (params.variant === 'reg' || params.variant === 'ext')) data = filterToLast24h(data);
       if (data && data.length >= 2) {
         tcAll.entries = tcAll.entries || {};
         tcAll.entries[tickerKey(t)] = { ts: now, data };
