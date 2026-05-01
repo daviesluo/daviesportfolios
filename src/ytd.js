@@ -53,7 +53,7 @@ export function fetchParamsFor(rangeKey, extendedHours, phase) {
   const r = RANGES[rangeKey] || RANGES.YTD;
   if (rangeKey !== '1D') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'std' };
   if (phase === 'regular') return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'reg' };
-  if (extendedHours)       return { yahooRange: '1d', interval: '5m', includePrePost: true,  variant: 'ext' };
+  if (extendedHours)       return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'ext' };
   return                     { yahooRange: '5d', interval: '5m', includePrePost: false, variant: 'closed' };
 }
 

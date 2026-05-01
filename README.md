@@ -33,6 +33,9 @@ secrets server-side.
 - **Extended-hours toggle** — switches indices to their futures
   contracts (`^GSPC` → `ES=F` etc.) and recomputes day change against
   the regular-session close so post-market moves show up correctly.
+  When the toggle is on AND the market is closed, the perf-chart
+  panel renames itself to "PERFORMANCE VS S&P 500 FUTURES" and the
+  legend dot reads `S&P 500 FUTURES` so the benchmark is unambiguous.
 - **1D chart spans 24 h** — both in-session and ext-hours views show
   the trailing 24 h. In-session uses Yahoo `range=5d` + a client-side
   `filterToLast24h` cut (Yahoo's `range=1d` only ever covers the
@@ -152,8 +155,13 @@ to the prompt.
 ### Performance vs S&P 500 panel
 
 A two-line chart comparing the portfolio's % return against the
-S&P 500 over the same range buttons. 1D ext-mode swaps `^GSPC` for
-`ES=F` so post-market moves are visible.
+S&P 500 over the same range buttons. 1D ext-mode (market closed +
+ext-hours toggle on) swaps `^GSPC` for `ES=F` so post-market moves
+are visible — and the panel header / legend rename to
+"PERFORMANCE VS S&P 500 FUTURES" / `S&P 500 FUTURES` so the
+benchmark is unambiguous. Hover the chart for a crosshair: vertical
+dashed line, dots on both lines, and per-series % chips next to each
+dot plus a date label under the chart.
 
 ### Sidebar
 
@@ -204,11 +212,11 @@ won't auto-reload mid-session.
 | `ytd.js` | Pure chart math. `buildTickerSeries`, `computeAt`, `lotsFor`, `closeOn`, `RANGES`, `fetchParamsFor`, `filterToLatestDay`, `filterToLast24h`. Decoupled from React so it's unit-testable. |
 | `ytd.test.js` | 19 cases pinning the YTD formula behaviors (pre-year lot, year lot, mixed, missing janPrice, 1D ext mode, intraday date comparison, etc.). |
 | `utils.test.js` | 5 cases pinning `fetchHistoricalBatch`'s race behavior (Edge fast path, partial fill, CN-fund proxy bypass, empty input, dedup). |
-| `header_sidebar.jsx` | `<Header>` (scoreboard + extended-hours toggle + hide-values eye), `<Sidebar>` (top movers + formation value + perf chart), `<PerfPanel>` (Performance vs S&P 500 chart with range buttons + crosshair), `<MarketConditions>` (8 index/forex cards). |
+| `header_sidebar.jsx` | `<Header>` (scoreboard + extended-hours toggle + hide-values eye), `<Sidebar>` (top movers + formation value + perf chart), `<PerfPanel>` (Performance vs S&P 500 chart with range buttons + DOM-ref crosshair), `<MarketConditions>` (10 index/forex cards). |
 | `pitch.jsx` | Football-pitch SVG rendering. Position dots, captain armband, hot-mover ball, drag/drop in edit mode. |
 | `heatmap.jsx` | One tile per holding, sized by market value, colored by day-change. |
 | `modals.jsx` | `<PositionDrillModal>`, `<EditTickerModal>` (incl. lot editor), `<AddTickerModal>`, `<CashModal>`. |
-| `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel, DOM-ref crosshair (no React rerender on hover), persistent localStorage cache + stale-while-revalidate, 6-digit CN funds restricted to 1M / 3M / YTD. |
+| `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel, DOM-ref crosshair (no React rerender on hover), persistent localStorage cache + stale-while-revalidate, 6-digit CN funds and `.PVT` private holdings restricted to 1M / 3M / YTD. |
 | `sw-banner.jsx` | "New version available — RELOAD" banner. Uses `useRegisterSW` from `vite-plugin-pwa`. |
 | `ops_error.js` | `reportError(kind, opts)`. Per-`(kind, symbol)` cooldown + per-load cap. POSTs to the `ops-error` Edge Function with `keepalive: true` so render-crash reports survive the user's Reload click. |
 | `prefetch.js` | `prefetchAllChartData(opts)`. Fired from `doRefresh` on initial load + manual Refresh click (skipped on the 30 s auto-refresh tick). Walks every (range × ticker) combo, skips ranges that are fully fresh under their TTL, and writes results into both the PerfChart cache (`dp.ytd`) and the TickerChartModal cache (`dp.tickerChart`) so the next chart open is instant. |
