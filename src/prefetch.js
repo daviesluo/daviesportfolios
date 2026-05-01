@@ -37,6 +37,14 @@ const RANGE_TTL_MS = {
 
 const TICKER_CACHE_CAP = 200;
 
+// Same predicate the TickerChartModal uses — CN mutual funds publish
+// one NAV per trading day, and .PVT placeholders don't have intraday
+// data on Yahoo. Both flip the prefetch to interval=1d so the cache
+// row matches what the modal will subsequently read; otherwise the
+// prefetch would land empty intraday rows and the modal would still
+// pay a cold fetch on first open.
+const DAILY_ONLY_RE = /^(?:\d{6}|.*\.PVT)$/i;
+
 /**
  * @param {{ tickers: string[], spSymbol: string, extendedHours: boolean, phase: string }} opts
  */
@@ -47,6 +55,10 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   const tickerVariantTag = useExt ? 'ext' : 'reg';
   const phaseTag = phase || '';
   const allSymbols = [spSymbol, ...tickers];
+
+  // Split daily-only symbols (CN funds, .PVT) from intraday-friendly
+  // ones so each group gets the right fetch params per range.
+  const dailyOnlySet = new Set(allSymbols.filter(s => DAILY_ONLY_RE.test(s)));
 
   for (const rk of RANGE_KEYS) {
     const params = fetchParamsFor(rk, extendedHours, phase);
@@ -77,11 +89,26 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     });
     if (stale.length === 0) continue;
 
-    let batch;
+    // Run two parallel batches when the stale list mixes intraday and
+    // daily-only symbols — one with the range's normal interval, one
+    // with `interval=1d` for the symbols Yahoo doesn't have intraday
+    // data for. Without this split, prefetch returns empty rows for
+    // SPAX.PVT / 6-digit CN funds and the modal then has to do a
+    // cold fetch on first open even though prefetch supposedly ran.
+    const ixStale  = stale.filter(s => !dailyOnlySet.has(s));
+    const dlyStale = stale.filter(s =>  dailyOnlySet.has(s));
+    /** @type {Record<string, any[]>} */
+    let batch = {};
     try {
-      batch = await fetchHistoricalBatch(
-        stale, params.yahooRange, params.interval, params.includePrePost,
-      );
+      const [ixBatch, dlyBatch] = await Promise.all([
+        ixStale.length > 0
+          ? fetchHistoricalBatch(ixStale, params.yahooRange, params.interval, params.includePrePost)
+          : Promise.resolve({}),
+        dlyStale.length > 0
+          ? fetchHistoricalBatch(dlyStale, params.yahooRange, '1d', false)
+          : Promise.resolve({}),
+      ]);
+      batch = { ...ixBatch, ...dlyBatch };
     } catch { continue; }
 
     // ---- Write back to dp.ytd (PerfChart cache)

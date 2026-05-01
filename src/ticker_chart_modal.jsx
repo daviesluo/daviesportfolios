@@ -96,7 +96,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   React.useEffect(() => {
     let cancelled = false;
     const { yahooRange, interval, includePrePost } = fetchParams(rangeKey);
-    const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}|${dailyOnly ? 'dly' : 'ix'}`;
+    const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
     const ttl = modalTtl(rangeKey);
     const cached = modalCacheGet(cacheKey);
 
@@ -170,7 +170,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         const { yahooRange, interval, includePrePost, variant } = dailyOnly
           ? { ...baseParams, interval: '1d', includePrePost: false }
           : baseParams;
-        const cacheKey = `${ticker}|${rk}|${useExt ? 'ext' : 'reg'}|${phase || ''}|${dailyOnly ? 'dly' : 'ix'}`;
+        const cacheKey = `${ticker}|${rk}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
         const ttl = modalTtl(rk);
         const c = modalCacheGet(cacheKey);
         if (c && Array.isArray(c.data) && (Date.now() - (c.ts || 0)) < ttl) continue;
@@ -211,7 +211,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         if (data && data.length >= 2) {
           if (params.variant === 'closed') data = filterToLatestDay(data);
           else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
-          const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}|${dailyOnly ? 'dly' : 'ix'}`;
+          const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
           modalCacheSet(cacheKey, data);
           setSeries(data);
         }
