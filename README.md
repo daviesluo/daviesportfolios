@@ -158,11 +158,16 @@ A two-line chart comparing the portfolio's % return against the
 S&P 500 over the same range buttons. 1D ext-on swaps `^GSPC` for
 `ES=F` (S&P futures) so post-market moves are visible — the legend
 dot flips to `S&P 500 FUTURES` while the panel header stays
-"PERFORMANCE VS S&P 500" (futures track the index). Both `CLOSE`
-and `OPEN` dashed markers render on the 1D view in either mode so
-the previous regular session's bookends are always anchored. Hover
-the chart for a crosshair: vertical dashed line, dots on both lines,
-per-series % chips next to each dot, and a date pill at the bottom.
+"PERFORMANCE VS S&P 500" (futures track the index). The 1D view
+draws an `OPEN` dashed marker at today's regular open in both
+sub-modes; ext-on additionally renders a `CLOSE` marker at today's
+regular close so the user can see the boundary between RTH and
+after-hours. ES=F bars are clipped to extended trading hours
+(4 AM – 8 PM ET) so the chart doesn't include Asia-overnight bars
+where stocks aren't trading; ^GSPC bars are clipped to RTH only.
+Hover the chart for a crosshair: vertical dashed line, dots on both
+lines, per-series % chips next to each dot, and a date pill at the
+bottom.
 
 ### Sidebar
 

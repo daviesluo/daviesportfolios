@@ -540,13 +540,30 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const allSpRaw = (hist[spSymbol] || [])
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date));
-  const allSp = (rangeKey === '1D' && spSymbol === '^GSPC')
+  // 1D session-window filter:
+  //   - ^GSPC: drop bars outside 9:30-16:00 ET (RTH only — Yahoo's
+  //     prepost=true sometimes slips spurious low-volume bars in,
+  //     which would render as a "data between close and open"
+  //     artifact).
+  //   - ES=F: futures trade ~23 h, so a 24-h slice would include
+  //     Asia-overnight bars where stocks aren't open. Match the rest
+  //     of the app (which only has data 4 AM ET → 8 PM ET) by
+  //     dropping bars outside that window.
+  const allSp = (rangeKey === '1D' && (spSymbol === '^GSPC' || spSymbol === 'ES=F'))
     ? allSpRaw.filter(p => {
         if (typeof p.date !== 'string' || p.date.length < 16 || p.date[10] !== 'T') return true;
-        const hh = parseInt(p.date.slice(11, 13), 10);
-        const mm = parseInt(p.date.slice(14, 16), 10);
-        const t = hh * 60 + mm;
-        return t >= mh.openHh * 60 + mh.openMm && t <= mh.closeHh * 60 + mh.closeMm;
+        const utcMins = parseInt(p.date.slice(11, 13), 10) * 60 + parseInt(p.date.slice(14, 16), 10);
+        if (spSymbol === '^GSPC') {
+          return utcMins >= mh.openHh * 60 + mh.openMm
+              && utcMins <= mh.closeHh * 60 + mh.closeMm;
+        }
+        // ES=F: keep bars whose ET time-of-day is in [04:00, 20:00)
+        // (= pre-market start through after-hours end). Convert UTC
+        // to ET via the DST-aware offset embedded in mh.edt.
+        const offsetMins = (mh.edt ? 4 : 5) * 60;
+        let etMins = utcMins - offsetMins;
+        if (etMins < 0) etMins += 24 * 60;
+        return etMins >= 4 * 60 && etMins < 20 * 60;
       })
     : allSpRaw;
 
@@ -908,21 +925,22 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
             </text>
           </g>
         ))}
-        {/* Vertical dashed CLOSE + OPEN markers for any 1D session view
-            (regular hours OR ext-on after-hours). Same x-fallback as
-            the legacy ext-only block: spIdxOf may be empty when S&P
-            fetch fell back to another ticker, so use the portfolio
-            index map as backup. */}
+        {/* Vertical dashed markers for the 1D session views.
+            - 'reg' (market open, ext-off): only OPEN. The CLOSE bar
+              would land 1 index slot to the left of OPEN, which the
+              user perceived as a confusing "5-min gap"; dropping the
+              CLOSE line in this variant cleans that up.
+            - 'ext' (ext-on, futures view): both OPEN + CLOSE. Useful
+              context when the chart includes pre-market / RTH /
+              after-hours of one full session.
+            Same x-fallback as the legacy block: spIdxOf may be empty
+            when S&P fetch fell back to another ticker, so use the
+            portfolio index map as backup. */}
         {rangeKey === '1D' && (variantKey === 'reg' || variantKey === 'ext') && (() => {
-          // Two markers: yesterday's CLOSE (= prevClose, where the % is
-          // anchored in 'reg' mode; in 'ext' mode it's today's regular
-          // close where the futures' day-change basis sits) and today's
-          // OPEN. Both are visual context.
           let openIdx = -1, closeIdx = -1;
-          // Restrict OPEN search to the most-recent calendar date in the
-          // data — without this the first yesterday-afternoon bar (whose
-          // UTC hour also satisfies hh > openHh) would steal the match
-          // and pin the marker to the chart's left edge.
+          // OPEN is scoped to the most-recent calendar date in the
+          // data so a yesterday-afternoon bar (whose UTC hour also
+          // satisfies hh > openHh) doesn't steal the match.
           const lastDay = spYtd.length > 0 ? spYtd[spYtd.length - 1].date.slice(0, 10) : null;
           for (let i = 0; i < spYtd.length; i++) {
             const d = spYtd[i].date;
@@ -934,16 +952,16 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
               openIdx = i;
             }
           }
-          // CLOSE = the most recent close-hour bar in the data. In 'reg'
-          // mode it's BEFORE the OPEN (yesterday); in 'ext' AH mode the
-          // close has already happened on the most-recent day, so just
-          // walk backwards from the end.
-          for (let i = spYtd.length - 1; i >= 0; i--) {
-            const d = spYtd[i].date;
-            if (d.length < 16) continue;
-            const hh = parseInt(d.slice(11, 13), 10);
-            const mm = parseInt(d.slice(14, 16), 10);
-            if (hh === mh.closeHh && mm <= mh.closeMm + 5) { closeIdx = i; break; }
+          // CLOSE only matters in 'ext' mode — walk backwards and find
+          // the most recent close-hour bar.
+          if (variantKey === 'ext') {
+            for (let i = spYtd.length - 1; i >= 0; i--) {
+              const d = spYtd[i].date;
+              if (d.length < 16) continue;
+              const hh = parseInt(d.slice(11, 13), 10);
+              const mm = parseInt(d.slice(14, 16), 10);
+              if (hh === mh.closeHh && mm <= mh.closeMm + 5) { closeIdx = i; break; }
+            }
           }
           const renderMarker = (idx, label) => {
             if (idx < 0) return null;
