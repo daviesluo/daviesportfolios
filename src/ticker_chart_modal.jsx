@@ -66,18 +66,33 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const isPvt    = PVT_RE.test(ticker);
   const dailyOnly = isCnFund || isPvt;
   // 'PE' is a synthetic range button — same YTD daily prices but the
-  // y-axis becomes a P/E ratio (price ÷ current TTM EPS). Only shown
-  // for tickers that have meaningful fundamentals (skip on CN funds /
-  // .PVT / futures-style tickers etc.; the fundamentals Edge Function
-  // also filters those server-side).
-  const supportsPe = !dailyOnly
+  // y-axis becomes a P/E ratio (price ÷ current TTM EPS). Two-stage
+  // filter:
+  //   1. Cheap pattern check rules out tickers that obviously can't
+  //      have a meaningful EPS (CN funds, .PVT, futures, indices,
+  //      crypto, forex). Keeps the button-render initial state stable.
+  //   2. Async fundamentals fetch on modal open. ETFs / loss-makers /
+  //      anything Yahoo doesn't have a positive trailingEps for set
+  //      `peSupported` to false and the button stays hidden.
+  const supportsPePattern = !dailyOnly
     && !/^\^/.test(ticker)
     && !/=F$/.test(ticker)
     && !/=X$/.test(ticker)
     && !/[-]USD$/i.test(ticker);
+  const [peSupported, setPeSupported] = React.useState(false);
+  React.useEffect(() => {
+    if (!supportsPePattern) { setPeSupported(false); return; }
+    let cancelled = false;
+    fetchFundamentals([ticker]).then(f => {
+      if (cancelled) return;
+      const eps = f?.[ticker]?.eps;
+      setPeSupported(typeof eps === 'number' && eps > 0);
+    });
+    return () => { cancelled = true; };
+  }, [ticker, supportsPePattern]);
   const visibleRangeKeys = dailyOnly
     ? ['1M', '3M', 'YTD']
-    : (supportsPe ? [...RANGE_KEYS, 'PE'] : RANGE_KEYS);
+    : (peSupported ? [...RANGE_KEYS, 'PE'] : RANGE_KEYS);
   // CN funds publish 1 NAV / day; .PVT placeholders don't trade on
   // public exchanges. Both default to 1M so the user sees something
   // immediately rather than landing on an intraday view that's empty.
