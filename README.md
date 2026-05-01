@@ -176,6 +176,17 @@ bottom.
 - **Formation Value** — every position's USD weight as a horizontal
   bar plus its day P/L.
 
+### Mobile layout
+
+Below the 1020 px breakpoint the page collapses into a single column
+in this order: Header → Pitch / Heatmap → Sidebar → Market Conditions
+(3 × 3 grid: indices / commodities + yield / FX) → footer.
+
+The PWA update banner is safe-area-aware on iOS so it doesn't crash
+into the notch / status bar; the hide-values mask uses a vertically-
+centered bullet (`•`) instead of `*` so masked rows stay flush with
+neighbouring real numbers on the same line.
+
 ### Install as a PWA
 
 The app is a PWA — on iOS / Android, "Add to Home Screen" gives a
@@ -218,7 +229,7 @@ won't auto-reload mid-session.
 | `ytd.js` | Pure chart math. `buildTickerSeries`, `computeAt`, `lotsFor`, `closeOn`, `RANGES`, `fetchParamsFor`, `filterToLatestDay`, `filterToLast24h`. Decoupled from React so it's unit-testable. |
 | `ytd.test.js` | 19 cases pinning the YTD formula behaviors (pre-year lot, year lot, mixed, missing janPrice, 1D ext mode, intraday date comparison, etc.). |
 | `utils.test.js` | 5 cases pinning `fetchHistoricalBatch`'s race behavior (Edge fast path, partial fill, CN-fund proxy bypass, empty input, dedup). |
-| `header_sidebar.jsx` | `<Header>` (scoreboard + extended-hours toggle + hide-values eye), `<Sidebar>` (top movers + formation value + perf chart), `<PerfPanel>` (Performance vs S&P 500 chart with range buttons + DOM-ref crosshair), `<MarketConditions>` (10 index/forex cards). |
+| `header_sidebar.jsx` | `<Header>` (scoreboard + extended-hours toggle + hide-values eye), `<Sidebar>` (top movers + formation value + perf chart), `<PerfPanel>` (Performance vs S&P 500 chart with range buttons + DOM-ref crosshair), `<MarketConditions>` (10 cards desktop, 9 cards mobile in a 3 × 3 grid; SOX dropped on mobile). |
 | `pitch.jsx` | Football-pitch SVG rendering. Position dots, captain armband, hot-mover ball, drag/drop in edit mode. |
 | `heatmap.jsx` | One tile per holding, sized by market value, colored by day-change. |
 | `modals.jsx` | `<PositionDrillModal>`, `<EditTickerModal>` (incl. lot editor), `<AddTickerModal>`, `<CashModal>`. |
