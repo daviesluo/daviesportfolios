@@ -53,6 +53,14 @@ secrets server-side.
   back-to-back polling loop (5 s minimum gap) so intraday bars trickle
   in without needing a manual refresh. Previous bars stay on screen
   during each fetch — no spinner flicker.
+- **P/E YTD view** — sixth range button on the ticker chart modal
+  for stocks with positive trailing EPS. Plots `price ÷ EPS` over
+  YTD via Finnhub fundamentals. Const-EPS approximation (the curve's
+  shape mirrors price within a quarter); the y-axis swaps to bare
+  P/E values and the modal header shifts to "P/E RATIO" so the basis
+  is unambiguous. ETFs / futures / indices / crypto / forex /
+  loss-makers hide the button automatically since Finnhub returns no
+  usable EPS for them.
 - **DST-aware scoreboard label** — the "GMT TIME" label flips to
   "BST TIME" automatically during British Summer Time (last Sun Mar →
   last Sun Oct). All chart UTC-string parsing appends an explicit `Z`
@@ -139,15 +147,24 @@ to the prompt.
 
 ### Ticker chart modal
 
-- **Range buttons**: 1D / 1W / 1M / 3M / YTD. CN funds (6-digit
-  codes) only show the daily ranges since they publish one NAV /
-  trading day.
+- **Range buttons**: 1D / 1W / 1M / 3M / YTD plus an optional
+  **P/E YTD** for stocks with positive trailing EPS. CN funds (6-digit
+  codes) and `.PVT` private holdings only show the daily ranges
+  (1M / 3M / YTD) since they don't trade intraday on Yahoo. ETFs /
+  futures / indices / crypto / forex / loss-makers don't show the
+  P/E button (Finnhub returns no usable EPS for them).
 - **1D view** spans the trailing 24 h with two dashed markers:
   `CLOSE` at the previous regular close and `OPEN` at today's open.
   The displayed % is "since previous close", matching the
   scoreboard's DAY CHANGE and every heatmap tile. While the modal is
   open the chart polls back-to-back (5 s minimum gap) so intraday
   bars trickle in without a manual refresh.
+- **P/E YTD view** uses the same YTD daily price series but divides
+  every bar by the ticker's current TTM EPS (from Finnhub) to
+  produce a P/E-ratio chart. Const-EPS approximation — the shape
+  mirrors price within a quarter, becomes inaccurate after an
+  earnings report. Modal header swaps "PRICE / Last $price" for
+  "P/E RATIO / P/E ratio (price ÷ TTM EPS)" so the basis is explicit.
 - **Hover** anywhere on the chart for a crosshair: dashed lines down
   to both axes, a tooltip showing the price at that bar, and the %
   change from the anchor.
@@ -237,7 +254,7 @@ won't auto-reload mid-session.
 | `pitch.jsx` | Football-pitch SVG rendering. Position dots, captain armband, hot-mover ball, drag/drop in edit mode. |
 | `heatmap.jsx` | One tile per holding, sized by market value, colored by day-change. |
 | `modals.jsx` | `<PositionDrillModal>`, `<EditTickerModal>` (incl. lot editor), `<AddTickerModal>`, `<CashModal>`. |
-| `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel, DOM-ref crosshair (no React rerender on hover), persistent localStorage cache + stale-while-revalidate, 6-digit CN funds and `.PVT` private holdings restricted to 1M / 3M / YTD. |
+| `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel + an optional `P/E YTD` button for stocks with positive TTM EPS. DOM-ref crosshair (no React rerender on hover), persistent localStorage cache + stale-while-revalidate, 6-digit CN funds and `.PVT` private holdings restricted to 1M / 3M / YTD, ETFs / loss-makers hide the P/E button. |
 | `sw-banner.jsx` | "New version available — RELOAD" banner. Uses `useRegisterSW` from `vite-plugin-pwa`. |
 | `ops_error.js` | `reportError(kind, opts)`. Per-`(kind, symbol)` cooldown + per-load cap. POSTs to the `ops-error` Edge Function with `keepalive: true` so render-crash reports survive the user's Reload click. |
 | `prefetch.js` | `prefetchAllChartData(opts)`. Fired from `doRefresh` on initial load + manual Refresh click (skipped on the 30 s auto-refresh tick). Walks every (range × ticker) combo, skips ranges that are fully fresh under their TTL, and writes results into both the PerfChart cache (`dp.ytd`) and the TickerChartModal cache (`dp.tickerChart`) so the next chart open is instant. |
@@ -252,7 +269,8 @@ won't auto-reload mid-session.
 | `auth` | `POST { password }` → `{ token, role }` on success, `429 { lockoutUntil }` after 3 wrong attempts from the same IP. Tokens are `<base64url(payload)>.<base64url(sig)>` where payload is `{ role, exp }`, signed HMAC-SHA256 with `APP_AUTH_SECRET`. |
 | `data` | `?action=load` / `?action=save`. Validates the `X-App-Token` header (re-derives HMAC + checks exp + checks role) before reading / writing `board_data`. Service-role key never leaves the function. |
 | `prices` | `?tickers=NVDA,017731,GBPUSD=X,…` → `{ ticker: { lastPrice, extPrice?, prevClose, currency, dayPct, extDayPct? } }`. Routes 6-digit codes to eastmoney's `fundgz.1234567.com.cn`, everything else to Yahoo Finance v8. |
-| `chart` | `?tickers=…&range=1mo&interval=60m&includePrePost=true` → `{ ticker: [{ date, close }, …] }`. Routes CN funds to a 3-tier eastmoney fallback (pingzhongdata → lsjz JSON → danjuanapp), everything else to Yahoo. |
+| `chart` | `?tickers=…&range=1mo&interval=60m&includePrePost=true` → `{ ticker: [{ date, close }, …] }`. Routes CN funds to a 3-tier eastmoney fallback (pingzhongdata → lsjz JSON → danjuanapp), everything else to Yahoo. `.PVT` placeholders fall back to the bare symbol when Yahoo 404s the literal. |
+| `fundamentals` | `?tickers=NVDA,GOOG,…` → `{ NVDA: { pe, eps }, … }`. Powers the ticker-modal "P/E YTD" view via the Finnhub free tier. Skips ETFs / loss-makers / non-stock symbols server-side. |
 | `ops-error` | Two modes. `POST { kind, symbol?, message?, context? }` → inserts into `ops_errors` (no auth; size + length capped; per-row IP captured server-side). `GET ?action=summary&hours=24` with header `x-app-token: <admin token>` → `{ hours, total, byKind, bySymbol }` aggregate over the last N hours, so triage doesn't require a Supabase dashboard login. |
 
 ### `supabase/migrations/`
