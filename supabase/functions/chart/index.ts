@@ -223,7 +223,29 @@ function trimToRange(points: Point[], range: string): Point[] {
 // ---------------- Router ----------------
 function fetchOne(symbol: string, range: string, interval: string, includePrePost: boolean): Promise<Point[] | null> {
   if (CN_FUND_RE.test(symbol)) return fetchEastmoneyHistorical(symbol, range);
-  return fetchYahooHistorical(symbol, range, interval, includePrePost);
+  return fetchYahooWithPvtFallback(symbol, range, interval, includePrePost);
+}
+
+// `.PVT` suffix is the app's convention for private / un-listed
+// holdings (e.g. SPAX.PVT). Yahoo doesn't recognise the literal
+// suffix and returns 404, but the underlying ticker (`SPAX`) often
+// has daily data. Try the literal first; if that returns nothing,
+// retry stripped. CN funds bypass this since they go to eastmoney.
+async function fetchYahooWithPvtFallback(
+  symbol: string,
+  range: string,
+  interval: string,
+  includePrePost: boolean,
+): Promise<Point[] | null> {
+  const direct = await fetchYahooHistorical(symbol, range, interval, includePrePost);
+  if (direct && direct.length > 0) return direct;
+  if (/\.PVT$/i.test(symbol)) {
+    const stripped = symbol.replace(/\.PVT$/i, "");
+    if (stripped && stripped !== symbol) {
+      return await fetchYahooHistorical(stripped, range, interval, includePrePost);
+    }
+  }
+  return null;
 }
 
 Deno.serve(async (req: Request) => {
