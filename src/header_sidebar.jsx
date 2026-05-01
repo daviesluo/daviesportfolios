@@ -13,6 +13,7 @@ import {
   fxToUSD,
   fetchHistorical,
   fetchHistoricalBatch,
+  maskDigits as mask,
   Storage,
 } from './utils.js';
 import { buildTickerSeries, computeAt, ytdPct, RANGES, RANGE_KEYS, anchorDateFor, fetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
@@ -83,13 +84,9 @@ function useClock(intervalMs = 1000) {
   return now;
 }
 
-// Hidden-values mask. When the user has the eye toggle closed we replace
-// each digit with a bullet (•) — bullet is vertically centered in most
-// fonts so masked rows stay flat ("$•••,•••.••" reads as a clean line).
-// Asterisks drifted toward the top of the x-height in our mono font and
-// made the masked numbers look like they were floating at different
-// heights compared to unmasked text on the same page.
-function mask(s) { return typeof s === 'string' ? s.replace(/\d/g, '•') : s; }
+// Hidden-values mask: imported from utils.js as `maskDigits`, aliased
+// to `mask` here so the original short name keeps reading naturally
+// inside the JSX.
 
 function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues }) {
   const now = useClock(1000);
@@ -100,7 +97,6 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
   // automatically, since the displayed hh:mm is `Europe/London` from
   // londonTimeParts and the user expects the abbreviation to match.
   const tzLabel = `${ukTzAbbr(now)} TIME`;
-  const dayClr = pcC(metrics.dayPct);
 
   const agoMs = lastUpdated ? (now.getTime() - lastUpdated.getTime()) : null;
   const agoText = lastUpdated ? formatAgo(agoMs) : "—";

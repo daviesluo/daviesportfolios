@@ -5,6 +5,7 @@ import {
   fmtPct as fmtPc,
   fmtPrice as fmtPr,
   pctColor as pctClr,
+  maskDigits,
   POSITION_COORDS,
 } from './utils.js';
 
@@ -188,7 +189,7 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
           </div>
         )}
         {hasPlayers && (
-          <div className="chip-mv mono">{hideValues ? fmtM(position.marketValue).replace(/\d/g, '•') : fmtM(position.marketValue)}</div>
+          <div className="chip-mv mono">{hideValues ? maskDigits(fmtM(position.marketValue)) : fmtM(position.marketValue)}</div>
         )}
         {hasPlayers ? (
           <div className="chip-tickers">

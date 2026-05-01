@@ -7,6 +7,7 @@ import {
   pctColor as pctClo,
   currencySymbol as curSym,
   detectCurrency,
+  maskDigits,
 } from './utils.js';
 
 function Modal({ children, onClose, size = "md" }) {
@@ -33,9 +34,8 @@ function Modal({ children, onClose, size = "md" }) {
 // Same digit-mask helper used everywhere — replaces digits with `*`,
 // keeping currency symbols / signs / punctuation so the placeholder is the
 // same visual width as the real number.
-// Bullet (•) instead of asterisk so masked rows stay vertically centered
-// — see the comment on `mask()` in header_sidebar.jsx.
-const maskDigits = (s) => typeof s === 'string' ? s.replace(/\d/g, '•') : s;
+// `maskDigits` is imported from utils.js — single source of truth shared
+// across header_sidebar / modals / pitch.
 
 function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onClose, onEditTicker, onViewChart, onAddTicker, onRemoveTicker, onUpdatePosition, hideValues }) {
   if (!position) return null;
