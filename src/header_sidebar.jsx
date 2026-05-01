@@ -498,6 +498,29 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     return () => { cancelled = true; };
   }, [tickerKey, rangeKey, variantKey, loading, error]);
 
+  // Crosshair refs + effects must run on EVERY render (including the
+  // early-return placeholder ones below) so React's hook count stays
+  // stable across the loading → loaded transition. Otherwise we get
+  // minified error #310 ("Rendered more hooks than during the
+  // previous render"). Keep them above the early returns.
+  const svgRef     = React.useRef(/** @type {SVGSVGElement|null} */ (null));
+  const crossRef   = React.useRef(/** @type {SVGGElement|null}   */ (null));
+  const cVlineRef  = React.useRef(/** @type {SVGLineElement|null}*/ (null));
+  const cPortDot   = React.useRef(/** @type {SVGCircleElement|null}*/ (null));
+  const cSpDot     = React.useRef(/** @type {SVGCircleElement|null}*/ (null));
+  const cDateRect  = React.useRef(/** @type {SVGRectElement|null} */ (null));
+  const cDateText  = React.useRef(/** @type {SVGTextElement|null} */ (null));
+  const cPortRect  = React.useRef(/** @type {SVGRectElement|null} */ (null));
+  const cPortText  = React.useRef(/** @type {SVGTextElement|null} */ (null));
+  const cSpRect    = React.useRef(/** @type {SVGRectElement|null} */ (null));
+  const cSpText    = React.useRef(/** @type {SVGTextElement|null} */ (null));
+  const rafRef        = React.useRef(0);
+  const pendingIdxRef = React.useRef(/** @type {number|null} */ (null));
+  React.useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
+  React.useEffect(() => {
+    if (crossRef.current) crossRef.current.style.display = 'none';
+  }, [rangeKey, hist]);
+
   if (!portfolio) return renderShell(<div className="sparkline-empty dim mono">Loading…</div>, rangeKey, setRangeKey);
   if (loading)    return renderShell(<div className="sparkline-empty dim mono">Computing…</div>, rangeKey, setRangeKey);
   if (error)      return renderShell(<div className="sparkline-empty dim mono">Couldn't load history</div>, rangeKey, setRangeKey);
@@ -736,20 +759,10 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   // ticker modal: setting React state on every mousemove would
   // reconcile the whole SVG (path with up to ~150 points) on every
   // frame. Refs + setAttribute inside a rAF keeps everything else in
-  // the chart untouched while the cursor moves.
-  const svgRef     = React.useRef(/** @type {SVGSVGElement|null} */ (null));
-  const crossRef   = React.useRef(/** @type {SVGGElement|null}   */ (null));
-  const cVlineRef  = React.useRef(/** @type {SVGLineElement|null}*/ (null));
-  const cPortDot   = React.useRef(/** @type {SVGCircleElement|null}*/ (null));
-  const cSpDot     = React.useRef(/** @type {SVGCircleElement|null}*/ (null));
-  const cDateRect  = React.useRef(/** @type {SVGRectElement|null} */ (null));
-  const cDateText  = React.useRef(/** @type {SVGTextElement|null} */ (null));
-  const cPortRect  = React.useRef(/** @type {SVGRectElement|null} */ (null));
-  const cPortText  = React.useRef(/** @type {SVGTextElement|null} */ (null));
-  const cSpRect    = React.useRef(/** @type {SVGRectElement|null} */ (null));
-  const cSpText    = React.useRef(/** @type {SVGTextElement|null} */ (null));
-  const rafRef        = React.useRef(0);
-  const pendingIdxRef = React.useRef(/** @type {number|null} */ (null));
+  // the chart untouched while the cursor moves. The refs + their
+  // useEffect cleanups live above the early returns so the hook
+  // count stays stable; only the closures-over-render-vars (paint
+  // helper, mouse handlers) live here.
 
   // Lookup tables for crosshair index→data.
   const portByIdx = portNorm;
@@ -830,11 +843,6 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = 0; }
     if (crossRef.current) crossRef.current.style.display = 'none';
   }
-  React.useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
-  React.useEffect(() => {
-    if (crossRef.current) crossRef.current.style.display = 'none';
-  }, [rangeKey, hist]);
-
   return (
     <div className="perf-chart-wrap">
       <div className="perf-legend">
