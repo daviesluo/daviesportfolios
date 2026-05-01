@@ -1230,7 +1230,7 @@ function MarketConditions({ marketData, extendedHours, phase, className = '' }) 
                   </>
                 ) : activeName}
               </h3>
-              <span className="mono dim" style={{ fontSize: '10px' }}>{activeTicker}</span>
+              <span className="mono dim mc-card-ticker" style={{ fontSize: '10px' }}>{activeTicker}</span>
             </div>
             <div className="mc-price-row">
               <div className="mc-price mono" style={ticker === "^VIX" && price != null ? { color: vixRegime(price).color } : {}}>
