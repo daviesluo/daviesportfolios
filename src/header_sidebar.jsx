@@ -84,10 +84,12 @@ function useClock(intervalMs = 1000) {
 }
 
 // Hidden-values mask. When the user has the eye toggle closed we replace
-// each digit in a formatted dollar amount with `*` while keeping the
-// currency symbol, sign and punctuation, so the placeholder is the same
-// width as the real number ("$129,341.49" → "$***,***.**").
-function mask(s) { return typeof s === 'string' ? s.replace(/\d/g, '*') : s; }
+// each digit with a bullet (•) — bullet is vertically centered in most
+// fonts so masked rows stay flat ("$•••,•••.••" reads as a clean line).
+// Asterisks drifted toward the top of the x-height in our mono font and
+// made the masked numbers look like they were floating at different
+// heights compared to unmasked text on the same page.
+function mask(s) { return typeof s === 'string' ? s.replace(/\d/g, '•') : s; }
 
 function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues }) {
   const now = useClock(1000);
@@ -1162,16 +1164,20 @@ function StatRow({ label, value, mono, dim, color }) {
 // mobile MC strip stays compact. Cards flagged hideMobile carry the
 // `mc-hide-mobile` class which is display:none on the mobile breakpoint.
 const MC_INDICES = [
+  // Mobile renders a 3 × 3 grid (one less card than desktop, SOX dropped)
+  // in the order GSPC / NDX / RUT — VIX / BZ=F / TNX — GBPUSD / GBPCNH /
+  // USDCNY. The grid-auto-flow:row CSS on the mobile container means the
+  // visible cards fill row-by-row in this array order.
   { ticker: "^GSPC",    name: "S&P 500",      nameB: "S&P",    nameN: "500",  ftTicker: "ES=F",  ftName: "S&P Futures"    },
   { ticker: "^NDX",     name: "NASDAQ 100",   nameB: "NASDAQ", nameN: "100",  ftTicker: "NQ=F",  ftName: "Nasdaq Futures" },
   { ticker: "^RUT",     name: "Russell 2000", nameB: "Russell",nameN: "2000", ftTicker: "RTY=F", ftName: "R2K Futures"    },
   { ticker: "^SOX",     name: "PHLX SOX",     nameB: "PHLX",   nameN: "SOX",  hideMobile: true },
   { ticker: "^VIX",     name: "VIX"          },
   { ticker: "BZ=F",     name: "Brent Oil"    },
-  { ticker: "^TNX",     name: "US 10Y Yield", nameB: "US 10Y", nameN: "Yield", hideMobile: true },
+  { ticker: "^TNX",     name: "US 10Y Yield", nameB: "US 10Y", nameN: "Yield" },
   { ticker: "GBPUSD=X", name: "GBP/USD"      },
-  { ticker: "GBPCNH=X", name: "GBP/CNY",      hideMobile: true },
-  { ticker: "USDCNY=X", name: "USD/CNY",      hideMobile: true },
+  { ticker: "GBPCNH=X", name: "GBP/CNY"      },
+  { ticker: "USDCNY=X", name: "USD/CNY"      },
 ];
 
 function fmtChg(n, baseTicker) {
@@ -1201,10 +1207,10 @@ function vixRegime(price) {
   return           { color: "var(--loss)",             label: "FEAR" };
 }
 
-function MarketConditions({ marketData, extendedHours, phase }) {
+function MarketConditions({ marketData, extendedHours, phase, className = '' }) {
   const useExt = extendedHours && phase !== "regular";
   return (
-    <aside className="market-conditions">
+    <aside className={`market-conditions${className ? " " + className : ""}`}>
       {MC_INDICES.map(({ ticker, name, nameB, nameN, ftTicker, ftName, hideMobile }) => {
         const activeTicker = (useExt && ftTicker) ? ftTicker : ticker;
         const activeName   = (useExt && ftName)   ? ftName   : name;

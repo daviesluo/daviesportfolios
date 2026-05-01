@@ -25,7 +25,13 @@ export function ServiceWorkerBanner() {
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
       background: '#1d4d3b', color: '#e8f6ec',
-      padding: '10px 14px',
+      // Match the main page's top inset so the banner doesn't crash
+      // into the iOS status bar / notch on PWA — same expression as
+      // the .app-shell rule in styles.css.
+      paddingTop:    'max(10px, calc(env(safe-area-inset-top, 0px) + 4px))',
+      paddingBottom: '10px',
+      paddingLeft:   'max(14px, env(safe-area-inset-left, 0px))',
+      paddingRight:  'max(14px, env(safe-area-inset-right, 0px))',
       fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.05em',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       gap: 14, boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
