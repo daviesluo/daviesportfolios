@@ -38,6 +38,13 @@ beforeEach(() => {
       }
       return /** @type {any} */ ({ ok: true, json: async () => out });
     }
+    // PE-prefetch hits the fundamentals Edge Function after the
+    // range loop. Return an empty {} so the PE pass short-circuits
+    // (no usable EPS = no PE entries written) — the prefetch tests
+    // care about the chart-data shape, not PE.
+    if (u.includes('/functions/v1/fundamentals')) {
+      return /** @type {any} */ ({ ok: true, json: async () => ({}) });
+    }
     // Hang the proxy fallback so the Edge Function path always wins.
     return new Promise(() => {});
   }));

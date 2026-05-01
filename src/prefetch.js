@@ -20,7 +20,7 @@
 //     in-flight HTTP request at a time, so we don't pin the browser
 //     on five concurrent N-ticker batches.
 
-import { Storage, fetchHistoricalBatch } from './utils.js';
+import { Storage, fetchHistoricalBatch, fetchFundamentals } from './utils.js';
 import { fetchParamsFor, filterToLatestDay, filterToLast24h, RANGE_KEYS } from './ytd.js';
 
 // Match each range's bar interval — same shape PerfChart and the
@@ -138,6 +138,61 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     }
     if (tcChanged) {
       // Soft LRU cap so the localStorage entry can't bloat unboundedly.
+      const keys = Object.keys(tcAll.entries);
+      if (keys.length > TICKER_CACHE_CAP) {
+        const sorted = keys
+          .map((k) => ({ k, ts: tcAll.entries[k]?.ts || 0 }))
+          .sort((a, b) => b.ts - a.ts);
+        /** @type {Record<string, {ts:number, data:any[]}>} */
+        const trimmed = {};
+        for (let i = 0; i < TICKER_CACHE_CAP; i++) trimmed[sorted[i].k] = tcAll.entries[sorted[i].k];
+        tcAll.entries = trimmed;
+      }
+      Storage.saveTickerChart(tcAll);
+    }
+  }
+
+  // P/E YTD prefetch — divides each ticker's freshly-cached YTD daily
+  // closes by the current TTM EPS (one batched fetchFundamentals
+  // call) to produce a P/E series for the ticker modal. Cached under
+  // the same `${ticker}|PE|${variant}|${phase}` key shape the modal
+  // reads. Skipped when every ticker already has a fresh PE entry,
+  // so the auto-refresh tick (which doesn't call this function) and
+  // back-to-back manual refreshes don't burn Finnhub quota.
+  const peTtl = 12 * 60 * 60 * 1000; // 12 h, matches YTD's TTL
+  const tcAll = Storage.loadTickerChart() || { entries: {} };
+  const ytdNow = Storage.loadYtd();
+  const ytdEntriesNow = ytdNow?.byRange?.['YTD:std']?.entries ?? {};
+  const peKey = (t) => `${t}|PE|${tickerVariantTag}|${phaseTag}`;
+  // Only consider tickers that (a) have a freshly-cached YTD daily
+  // series we can divide, and (b) don't already have a fresh PE
+  // entry. Indices / futures / .PVT / CN funds / crypto / forex
+  // never get a PE entry from the Edge Function so they're naturally
+  // skipped — fetchFundamentals filters them server-side too.
+  const peCandidates = tickers.filter((t) => {
+    const ytd = ytdEntriesNow[t];
+    if (!ytd?.data || !Array.isArray(ytd.data) || ytd.data.length < 2) return false;
+    const cached = tcAll.entries?.[peKey(t)];
+    return !(cached && cached.data && (Date.now() - (cached.ts || 0)) < peTtl);
+  });
+  if (peCandidates.length > 0) {
+    let fundamentals = {};
+    try {
+      fundamentals = await fetchFundamentals(peCandidates);
+    } catch { /* fall through — leave fresh PE entries unwritten */ }
+    tcAll.entries = tcAll.entries || {};
+    let tcChanged = false;
+    const now = Date.now();
+    for (const t of peCandidates) {
+      const eps = fundamentals?.[t]?.eps;
+      if (typeof eps !== 'number' || eps <= 0) continue;
+      const ytdData = ytdEntriesNow[t].data;
+      const peSeries = ytdData.map((p) => ({ date: p.date, close: p.close / eps }));
+      tcAll.entries[peKey(t)] = { ts: now, data: peSeries };
+      tcChanged = true;
+    }
+    if (tcChanged) {
+      // Same LRU cap as the per-range writes above.
       const keys = Object.keys(tcAll.entries);
       if (keys.length > TICKER_CACHE_CAP) {
         const sorted = keys
