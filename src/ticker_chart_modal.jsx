@@ -5,7 +5,7 @@
 // player in non-edit mode — edit mode keeps opening the EditTickerModal.
 import React from 'react';
 import { Modal } from './modals.jsx';
-import { fetchHistoricalBatch, Storage, usMarketHoursUtc } from './utils.js';
+import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc } from './utils.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, pctColor as pcC } from './utils.js';
 import { reportError } from './ops_error.js';
@@ -65,7 +65,19 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const isCnFund = CN_FUND_RE.test(ticker);
   const isPvt    = PVT_RE.test(ticker);
   const dailyOnly = isCnFund || isPvt;
-  const visibleRangeKeys = dailyOnly ? ['1M', '3M', 'YTD'] : RANGE_KEYS;
+  // 'PE' is a synthetic range button — same YTD daily prices but the
+  // y-axis becomes a P/E ratio (price ÷ current TTM EPS). Only shown
+  // for tickers that have meaningful fundamentals (skip on CN funds /
+  // .PVT / futures-style tickers etc.; the fundamentals Edge Function
+  // also filters those server-side).
+  const supportsPe = !dailyOnly
+    && !/^\^/.test(ticker)
+    && !/=F$/.test(ticker)
+    && !/=X$/.test(ticker)
+    && !/[-]USD$/i.test(ticker);
+  const visibleRangeKeys = dailyOnly
+    ? ['1M', '3M', 'YTD']
+    : (supportsPe ? [...RANGE_KEYS, 'PE'] : RANGE_KEYS);
   // CN funds publish 1 NAV / day; .PVT placeholders don't trade on
   // public exchanges. Both default to 1M so the user sees something
   // immediately rather than landing on an intraday view that's empty.
@@ -87,8 +99,14 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // that only have daily data (CN funds publish 1 NAV / day; .PVT
   // private tickers don't have intraday bars on Yahoo, so a 1mo/60m
   // request returns empty and the chart shows "Couldn't load history"
-  // even when daily data exists for the same range).
+  // even when daily data exists for the same range). 'PE' uses YTD
+  // daily prices under the hood — the y-axis transformation happens
+  // after fetch.
   const fetchParams = (rk) => {
+    if (rk === 'PE') {
+      const p = fetchParamsFor('YTD', extendedHours, phase);
+      return { ...p, interval: '1d', includePrePost: false };
+    }
     const p = fetchParamsFor(rk, extendedHours, phase);
     return dailyOnly ? { ...p, interval: '1d', includePrePost: false } : p;
   };
@@ -144,9 +162,31 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         }
         return;
       }
-      const params = fetchParamsFor(rangeKey, extendedHours, phase);
+      const params = fetchParamsFor(rangeKey === 'PE' ? 'YTD' : rangeKey, extendedHours, phase);
       if (params.variant === 'closed') data = filterToLatestDay(data);
       else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
+      // 'PE' transform: divide each historical close by current TTM EPS
+      // to produce a P/E ratio series. EPS is fetched once via the
+      // fundamentals Edge Function. const-EPS approximation — over a
+      // ~1-year window most of the P/E movement is price-driven, so
+      // this is a reasonable tradeoff vs. plumbing quarterly EPS
+      // history. Symbols without fundamentals (futures, indices,
+      // CN funds, .PVT) shouldn't reach here since the button is
+      // hidden for them upstream.
+      if (rangeKey === 'PE') {
+        const fundamentals = await fetchFundamentals([ticker]);
+        if (cancelled) return;
+        const eps = fundamentals?.[ticker]?.eps;
+        if (!eps || eps <= 0) {
+          reportError('fetch.pe.no-eps', {
+            symbol: ticker,
+            message: 'fundamentals returned no usable EPS',
+          });
+          if (!cached) { setError(true); setLoading(false); }
+          return;
+        }
+        data = data.map(p => ({ date: p.date, close: p.close / eps }));
+      }
       modalCacheSet(cacheKey, data);
       setSeries(data);
       setLoading(false);
@@ -166,10 +206,19 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     (async () => {
       for (const rk of others) {
         if (cancelled) return;
-        const baseParams = fetchParamsFor(rk, extendedHours, phase);
-        const { yahooRange, interval, includePrePost, variant } = dailyOnly
-          ? { ...baseParams, interval: '1d', includePrePost: false }
-          : baseParams;
+        // PE uses YTD daily data + a price ÷ EPS transform; everything
+        // else uses fetchParamsFor's normal output (with the dailyOnly
+        // override for CN funds + .PVT).
+        let yahooRange, interval, includePrePost, variant;
+        if (rk === 'PE') {
+          const p = fetchParamsFor('YTD', extendedHours, phase);
+          yahooRange = p.yahooRange; interval = '1d'; includePrePost = false; variant = p.variant;
+        } else {
+          const baseParams = fetchParamsFor(rk, extendedHours, phase);
+          ({ yahooRange, interval, includePrePost, variant } = dailyOnly
+            ? { ...baseParams, interval: '1d', includePrePost: false }
+            : baseParams);
+        }
         const cacheKey = `${ticker}|${rk}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
         const ttl = modalTtl(rk);
         const c = modalCacheGet(cacheKey);
@@ -180,6 +229,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         if (data && data.length >= 2) {
           if (variant === 'closed') data = filterToLatestDay(data);
           else if (variant === 'reg' || variant === 'ext') data = filterToLast24h(data);
+          if (rk === 'PE') {
+            const f = await fetchFundamentals([ticker]);
+            if (cancelled) return;
+            const eps = f?.[ticker]?.eps;
+            if (!eps || eps <= 0) continue; // skip — can't build PE series
+            data = data.map(p => ({ date: p.date, close: p.close / eps }));
+          }
           modalCacheSet(cacheKey, data);
         }
       }
@@ -307,9 +363,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   }
 
   // Display series: substitute live price into the last point so the chart
-  // tail tracks the rest of the app in real time.
+  // tail tracks the rest of the app in real time. Skipped for the PE
+  // view since the cached series is already in P/E units; substituting
+  // a raw price would tank the last bar.
   const points = series ? series.map((p, i) => (
-    i === series.length - 1 && liveLast ? { date: p.date, close: liveLast } : p
+    rangeKey !== 'PE' && i === series.length - 1 && liveLast ? { date: p.date, close: liveLast } : p
   )) : [];
 
   const lastClose = points.length > 0 ? points[points.length - 1].close : null;
@@ -445,7 +503,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     if (cXRectRef.current) cXRectRef.current.setAttribute('x', String(x - xRectWidth / 2));
     if (cXTextRef.current) { cXTextRef.current.setAttribute('x', String(x)); cXTextRef.current.textContent = fmtDate(p.date); }
     if (cYRectRef.current) cYRectRef.current.setAttribute('y', String(y - 9));
-    if (cYTextRef.current) { cYTextRef.current.setAttribute('y', String(y)); cYTextRef.current.textContent = `${sym}${fmtPr(p.close)}`; }
+    if (cYTextRef.current) {
+      cYTextRef.current.setAttribute('y', String(y));
+      cYTextRef.current.textContent = rangeKey === 'PE' ? p.close.toFixed(2) : `${sym}${fmtPr(p.close)}`;
+    }
     if (cPctRectRef.current) {
       cPctRectRef.current.setAttribute('x', String(x + 6));
       cPctRectRef.current.setAttribute('y', String(y - 16));
@@ -513,11 +574,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
         <div>
-          <div className="modal-eyebrow mono">PRICE</div>
+          <div className="modal-eyebrow mono">{rangeKey === 'PE' ? 'P/E RATIO' : 'PRICE'}</div>
           <h2 className="modal-title mono">{ticker}</h2>
           <div className="modal-meta">
-            <span className="mono dim">Last</span>
-            <span className="mono">{lastClose != null ? `${sym}${fmtPr(lastClose)}` : '—'}</span>
+            <span className="mono dim">{rangeKey === 'PE' ? 'P/E' : 'Last'}</span>
+            <span className="mono">{
+              lastClose != null
+                ? (rangeKey === 'PE' ? lastClose.toFixed(2) : `${sym}${fmtPr(lastClose)}`)
+                : '—'
+            }</span>
             <span className="mono" style={{ color: pcC(pctNow) }}>{fmP(pctNow)}</span>
             {/* In 1D the chart's % is anchored at the previous regular
                 close (vertical CLOSE line) so it matches the scoreboard
@@ -526,7 +591,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             {rangeKey === '1D' && (useExt || phase === 'regular') && (
               <span className="mono dim" style={{ fontSize: 10 }}>(since previous close)</span>
             )}
-            {holding?.shares != null && (
+            {rangeKey === 'PE' && (
+              <span className="mono dim" style={{ fontSize: 10 }}>(price ÷ TTM EPS)</span>
+            )}
+            {rangeKey !== 'PE' && holding?.shares != null && (
               <>
                 <span className="mono dim">·</span>
                 <span className="mono dim">{holding.shares} shares</span>
@@ -558,7 +626,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                         stroke="var(--line-2)" strokeWidth="0.5" strokeDasharray="2,3" />
                   <text x={padL - 6} y={yOf(v).toFixed(1)} textAnchor="end" dominantBaseline="middle"
                         fontSize="9.5" fill="rgba(244,239,227,0.55)" fontFamily="var(--font-mono)">
-                    {sym}{fmtPr(v)}
+                    {rangeKey === 'PE' ? v.toFixed(2) : `${sym}${fmtPr(v)}`}
                   </text>
                 </g>
               ))}
@@ -649,7 +717,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               type="button"
               className={`perf-range-btn mono${k === rangeKey ? ' on' : ''}`}
               onClick={() => setRangeKey(k)}
-            >{RANGES[k].label}</button>
+            >{k === 'PE' ? 'P/E YTD' : RANGES[k].label}</button>
           ))}
         </div>
       </div>
