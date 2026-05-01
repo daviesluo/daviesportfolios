@@ -188,7 +188,7 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
           </div>
         )}
         {hasPlayers && (
-          <div className="chip-mv mono">{hideValues ? fmtM(position.marketValue).replace(/\d/g, '*') : fmtM(position.marketValue)}</div>
+          <div className="chip-mv mono">{hideValues ? fmtM(position.marketValue).replace(/\d/g, '•') : fmtM(position.marketValue)}</div>
         )}
         {hasPlayers ? (
           <div className="chip-tickers">

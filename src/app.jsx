@@ -497,6 +497,16 @@ function Board({ isReadOnly }) {
           phase={currentPhase}
           hideValues={hideValues}
         />
+        {/* Mobile-only Market Conditions strip — rendered as a separate
+            sibling because the desktop instance lives inside .left-col,
+            which is display:none on mobile. CSS hides this one above
+            the mobile breakpoint. */}
+        <MarketConditions
+          marketData={marketData}
+          extendedHours={extendedHours}
+          phase={currentPhase}
+          className="market-conditions-mobile"
+        />
         <SidebarFoot source={source} />
       </main>
 
