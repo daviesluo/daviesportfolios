@@ -253,7 +253,7 @@ won't auto-reload mid-session.
 | `data` | `?action=load` / `?action=save`. Validates the `X-App-Token` header (re-derives HMAC + checks exp + checks role) before reading / writing `board_data`. Service-role key never leaves the function. |
 | `prices` | `?tickers=NVDA,017731,GBPUSD=X,…` → `{ ticker: { lastPrice, extPrice?, prevClose, currency, dayPct, extDayPct? } }`. Routes 6-digit codes to eastmoney's `fundgz.1234567.com.cn`, everything else to Yahoo Finance v8. |
 | `chart` | `?tickers=…&range=1mo&interval=60m&includePrePost=true` → `{ ticker: [{ date, close }, …] }`. Routes CN funds to a 3-tier eastmoney fallback (pingzhongdata → lsjz JSON → danjuanapp), everything else to Yahoo. |
-| `ops-error` | `POST { kind, symbol?, message?, context? }` → inserts into `ops_errors`. No auth; size + length capped; per-row IP captured server-side. |
+| `ops-error` | Two modes. `POST { kind, symbol?, message?, context? }` → inserts into `ops_errors` (no auth; size + length capped; per-row IP captured server-side). `GET ?action=summary&hours=24` with header `x-app-token: <admin token>` → `{ hours, total, byKind, bySymbol }` aggregate over the last N hours, so triage doesn't require a Supabase dashboard login. |
 
 ### `supabase/migrations/`
 
