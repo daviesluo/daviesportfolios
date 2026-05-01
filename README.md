@@ -232,7 +232,8 @@ won't auto-reload mid-session.
 | `ytd.js` | Pure chart math. `buildTickerSeries`, `computeAt`, `lotsFor`, `closeOn`, `RANGES`, `fetchParamsFor`, `filterToLatestDay`, `filterToLast24h`. Decoupled from React so it's unit-testable. |
 | `ytd.test.js` | 19 cases pinning the YTD formula behaviors (pre-year lot, year lot, mixed, missing janPrice, 1D ext mode, intraday date comparison, etc.). |
 | `utils.test.js` | 5 cases pinning `fetchHistoricalBatch`'s race behavior (Edge fast path, partial fill, CN-fund proxy bypass, empty input, dedup). |
-| `header_sidebar.jsx` | `<Header>` (scoreboard + extended-hours toggle + hide-values eye), `<Sidebar>` (top movers + formation value + perf chart), `<PerfPanel>` (Performance vs S&P 500 chart with range buttons + DOM-ref crosshair), `<MarketConditions>` (10 cards desktop, 9 cards mobile in a 3 × 3 grid; SOX dropped on mobile). |
+| `header_sidebar.jsx` | `<Header>` (scoreboard + extended-hours toggle + hide-values eye), `<Sidebar>` (top movers + formation value + perf chart), `<MarketConditions>` (10 cards desktop, 9 cards mobile in a 3 × 3 grid; SOX dropped on mobile). Re-exports `<PerfPanel>` from `perf_chart.jsx` so `app.jsx` keeps its existing import. |
+| `perf_chart.jsx` | `<PerfChart>` (the chart) + `<PerfPanel>` (chrome wrapper). 5 ranges, dual fetch effect (S&P alone + portfolio batch in parallel), background prefetch effect for the other ranges, DOM-ref crosshair, CLOSE/OPEN markers in 1D, ^GSPC RTH filter + ES=F ETH filter. |
 | `pitch.jsx` | Football-pitch SVG rendering. Position dots, captain armband, hot-mover ball, drag/drop in edit mode. |
 | `heatmap.jsx` | One tile per holding, sized by market value, colored by day-change. |
 | `modals.jsx` | `<PositionDrillModal>`, `<EditTickerModal>` (incl. lot editor), `<AddTickerModal>`, `<CashModal>`. |
