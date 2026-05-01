@@ -1,5 +1,8 @@
 # Davies' Portfolios
 
+[![CI](https://github.com/daviesluo/daviesportfolios/actions/workflows/check.yml/badge.svg)](https://github.com/daviesluo/daviesportfolios/actions/workflows/check.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
 A personal portfolio tracker rendered as a football tactics board. Live
 prices and FX are pulled in real time, holdings are arranged by role
 (GK / DEF / MID / FWD), and the same data is available as a heatmap or
@@ -368,6 +371,9 @@ For each directory under `supabase/functions/*`, copy the contents into
 a new function in Supabase dashboard → Edge Functions, then Deploy.
 
 Required environment variables (Edge Functions → Settings):
+
+A copy-pasteable shape of the three app-level vars lives at
+[`.env.example`](./.env.example).
 
 | Var | Used by | Notes |
 |---|---|---|
