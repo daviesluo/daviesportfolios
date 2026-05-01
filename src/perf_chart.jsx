@@ -98,7 +98,9 @@ function parsePerfDate(d) {
 // per-lot purchase history + historical closes (Yahoo Finance),
 // normalised from the first trading day of the calendar year.
 function PerfChart({ portfolio, marketData, extendedHours, phase }) {
-  const [rangeKey, setRangeKey] = React.useState('YTD');
+  // Default to 1D so the chart opens on today's intraday view; YTD is a
+  // single button-click away when the user wants the long view.
+  const [rangeKey, setRangeKey] = React.useState('1D');
   // 1D's fetch params depend on the ext-hours toggle + market phase, so
   // include those in the cache key. Other ranges are insensitive.
   const variantKey = rangeKey === '1D'
@@ -574,7 +576,10 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const spColor   = '#6b7280';
   const zeroY = yOf(0);
 
-  const fmtP1 = n => (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
+  // Two-decimal precision matches the ticker drill modal's per-row %
+  // (`fmtPct` from utils) so the legend and crosshair chips read at
+  // the same precision as the rest of the app.
+  const fmtP1 = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
 
   // Hover crosshair — DOM-ref based for the same reasons as the
   // ticker modal: setting React state on every mousemove would
