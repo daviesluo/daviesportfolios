@@ -401,7 +401,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
 
   // Chart geometry
   const W = 600, H = 280;
-  const padL = 56, padR = 16, padT = 18, padB = 38;
+  // Right padding is wider in PE mode so the "3Y AVG 25.20" label
+  // can sit OUTSIDE the chart's plot area (between the right edge of
+  // the dashed line and the SVG's right side) instead of floating
+  // inside the chart and getting crossed by the price line.
+  const padL = 56, padT = 18, padB = 38;
+  const padR = rangeKey === 'PE' ? 96 : 16;
   const cW = W - padL - padR, cH = H - padT - padB;
 
   const hasData = points.length >= 2 && anchorClose;
@@ -670,16 +675,18 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                 </text>
               ))}
               {/* P/E YTD: 3-year-average reference line. Dashed gray
-                  horizontal line spanning the chart with the value
-                  labeled at the right edge. Comes from Finnhub's
-                  series.annual.pe (last 3 entries averaged). */}
+                  horizontal line spanning the plot area with the
+                  value labeled in the right margin (outside the
+                  plot) so the price line never crosses through it.
+                  Comes from Finnhub's series.annual.pe (last 3
+                  entries averaged). */}
               {rangeKey === 'PE' && typeof pe3yAvg === 'number' && pe3yAvg > 0 && (() => {
                 const y = yOf(pe3yAvg);
                 return (
                   <g>
                     <line x1={padL} y1={y.toFixed(1)} x2={W - padR} y2={y.toFixed(1)}
                           stroke="rgba(244,239,227,0.55)" strokeWidth="0.8" strokeDasharray="4,3" />
-                    <text x={W - padR - 4} y={(y - 3).toFixed(1)} textAnchor="end"
+                    <text x={W - padR + 4} y={y.toFixed(1)} textAnchor="start" dominantBaseline="middle"
                           fontSize="9" fill="rgba(244,239,227,0.7)" fontFamily="var(--font-mono)">
                       3Y AVG {pe3yAvg.toFixed(2)}
                     </text>
