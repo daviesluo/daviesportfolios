@@ -31,13 +31,17 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type Fundamentals = { pe: number; eps: number };
+type Fundamentals = { pe: number; eps: number; pe3yAvg: number | null };
 
 // Finnhub returns metric data shaped like:
-//   { metric: { peTTM: 30.5, epsTTM: 6.5, ... }, metricType, series: {...} }
-// We only need peTTM + epsTTM. Note: free tier sometimes returns
-// `peBasicExcl…` / `epsExclExtra…` variants — we read the most
-// straightforward TTM fields and fall back to alternates.
+//   { metric: { peTTM: 30.5, epsTTM: 6.5, ... },
+//     series: { annual: { pe: [{period, v}, ...], ... },
+//               quarterly: {...} } }
+// We need peTTM + epsTTM (current) plus the most recent 3 annual PE
+// values for the 3-year-average reference line on the YTD chart.
+// Field-name fallbacks:
+//   pe  → peTTM | peBasicExclExtraTTM | peNormalizedAnnual
+//   eps → epsTTM | epsBasicExclExtraItemsTTM | epsNormalizedAnnual
 async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
   if (!FINNHUB_API_KEY) return null;
   const url =
@@ -53,12 +57,28 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
     const data = await res.json();
     const m = data?.metric;
     if (!m) return null;
-    // Field-name fallback chain — Finnhub uses slightly different
-    // names depending on the company / how Yahoo reported.
     const pe  = Number(m.peTTM ?? m.peBasicExclExtraTTM ?? m.peNormalizedAnnual);
     const eps = Number(m.epsTTM ?? m.epsBasicExclExtraItemsTTM ?? m.epsNormalizedAnnual);
     if (!isFinite(pe) || !isFinite(eps) || eps <= 0 || pe <= 0) return null;
-    return { pe, eps };
+
+    // 3-year-avg PE from the annual series. Pick the 3 most-recent
+    // entries with a positive value so a single quirky year (loss-
+    // maker turning around or a one-off charge) doesn't pin the
+    // average to a meaningless number.
+    let pe3yAvg: number | null = null;
+    const annual = data?.series?.annual?.pe ?? [];
+    if (Array.isArray(annual) && annual.length > 0) {
+      const sorted = annual
+        .map((p: any) => ({ period: String(p?.period ?? ""), v: Number(p?.v) }))
+        .filter((p) => p.period && isFinite(p.v) && p.v > 0)
+        .sort((a, b) => (a.period < b.period ? 1 : -1))
+        .slice(0, 3);
+      if (sorted.length > 0) {
+        pe3yAvg = sorted.reduce((s, p) => s + p.v, 0) / sorted.length;
+      }
+    }
+
+    return { pe, eps, pe3yAvg };
   } catch {
     return null;
   }

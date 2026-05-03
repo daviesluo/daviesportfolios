@@ -80,13 +80,22 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     && !/=X$/.test(ticker)
     && !/[-]USD$/i.test(ticker);
   const [peSupported, setPeSupported] = React.useState(false);
+  // pe3yAvg drives the dashed reference line on the P/E YTD chart.
+  // Comes back null when Finnhub's annual PE series is empty (very
+  // new IPOs, or tickers where Finnhub couldn't retrieve historicals)
+  // — in that case the chart renders without the reference line
+  // instead of erroring.
+  const [pe3yAvg, setPe3yAvg] = React.useState(/** @type {number|null} */ (null));
   React.useEffect(() => {
-    if (!supportsPePattern) { setPeSupported(false); return; }
+    if (!supportsPePattern) { setPeSupported(false); setPe3yAvg(null); return; }
     let cancelled = false;
     fetchFundamentals([ticker]).then(f => {
       if (cancelled) return;
-      const eps = f?.[ticker]?.eps;
+      const row = f?.[ticker];
+      const eps = row?.eps;
       setPeSupported(typeof eps === 'number' && eps > 0);
+      const avg = row?.pe3yAvg;
+      setPe3yAvg(typeof avg === 'number' && isFinite(avg) && avg > 0 ? avg : null);
     });
     return () => { cancelled = true; };
   }, [ticker, supportsPePattern]);
@@ -407,6 +416,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     const denom = Math.max(1, points.length - 1);
     xOfIdx = (i) => padL + (i / denom) * cW;
     const allP = points.map(p => p.close);
+    // PE chart includes the 3-year-average reference line in the
+    // y-range so the dashed marker is always on-screen, even when
+    // current P/E has drifted far from the historical average.
+    if (rangeKey === 'PE' && typeof pe3yAvg === 'number' && pe3yAvg > 0) {
+      allP.push(pe3yAvg);
+    }
     const rawMin = Math.min(...allP), rawMax = Math.max(...allP);
     const yPad = Math.max(0.001, (rawMax - rawMin) * 0.08);
     yMin = rawMin - yPad; yMax = rawMax + yPad;
@@ -654,6 +669,23 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                   {fmtAxisDate(tk.date)}
                 </text>
               ))}
+              {/* P/E YTD: 3-year-average reference line. Dashed gray
+                  horizontal line spanning the chart with the value
+                  labeled at the right edge. Comes from Finnhub's
+                  series.annual.pe (last 3 entries averaged). */}
+              {rangeKey === 'PE' && typeof pe3yAvg === 'number' && pe3yAvg > 0 && (() => {
+                const y = yOf(pe3yAvg);
+                return (
+                  <g>
+                    <line x1={padL} y1={y.toFixed(1)} x2={W - padR} y2={y.toFixed(1)}
+                          stroke="rgba(244,239,227,0.55)" strokeWidth="0.8" strokeDasharray="4,3" />
+                    <text x={W - padR - 4} y={(y - 3).toFixed(1)} textAnchor="end"
+                          fontSize="9" fill="rgba(244,239,227,0.7)" fontFamily="var(--font-mono)">
+                      3Y AVG {pe3yAvg.toFixed(2)}
+                    </text>
+                  </g>
+                );
+              })()}
               {/* Vertical dashed CLOSE line. In ext mode this is today's
                   close; in regular mode it's yesterday's close (= the
                   prevClose the % anchors at). */}
