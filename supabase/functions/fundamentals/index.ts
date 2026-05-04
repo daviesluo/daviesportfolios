@@ -120,28 +120,37 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
 // Returns eps:0 deliberately; the client reconstructs an implied EPS
 // from lastClose / pe so the historical YTD price series can still
 // be divided into P/E values.
-async function fetchFmpEtf(etfSymbol: string): Promise<Fundamentals | null> {
-  if (!FMP_API_KEY) return null;
+async function fetchFmpEtf(etfSymbol: string): Promise<Fundamentals | { _debug: any } | null> {
+  if (!FMP_API_KEY) return { _debug: { stage: 'no-key', etfSymbol } } as any;
   const enc = encodeURIComponent(etfSymbol);
   try {
+    const quoteUrl = `https://financialmodelingprep.com/api/v3/quote/${enc}?apikey=${encodeURIComponent(FMP_API_KEY)}`;
     const quoteRes = await fetch(
-      `https://financialmodelingprep.com/api/v3/quote/${enc}?apikey=${encodeURIComponent(FMP_API_KEY)}`,
+      quoteUrl,
       { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(8_000) },
     );
-    if (!quoteRes.ok) return null;
+    if (!quoteRes.ok) {
+      const bodyText = await quoteRes.text().catch(() => '<read failed>');
+      return { _debug: { stage: 'quote-not-ok', etfSymbol, status: quoteRes.status, body: bodyText.slice(0, 400) } } as any;
+    }
     const quoteArr = await quoteRes.json();
     const quote = Array.isArray(quoteArr) ? quoteArr[0] : null;
     const pe = Number(quote?.pe);
-    if (!isFinite(pe) || pe <= 0) return null;
+    if (!isFinite(pe) || pe <= 0) {
+      return { _debug: { stage: 'no-usable-pe', etfSymbol, peRaw: quote?.pe, quoteKeys: quote ? Object.keys(quote) : null, sample: Array.isArray(quoteArr) ? quoteArr.slice(0, 1) : quoteArr } } as any;
+    }
 
-    // 3-year-avg from annual key-metrics. Most-recent 3 fiscal years.
     let pe3yAvg: number | null = null;
+    let kmDebug: any = null;
     try {
+      const kmUrl = `https://financialmodelingprep.com/api/v3/key-metrics/${enc}?period=annual&limit=3&apikey=${encodeURIComponent(FMP_API_KEY)}`;
       const kmRes = await fetch(
-        `https://financialmodelingprep.com/api/v3/key-metrics/${enc}?period=annual&limit=3&apikey=${encodeURIComponent(FMP_API_KEY)}`,
+        kmUrl,
         { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(8_000) },
       );
-      if (kmRes.ok) {
+      if (!kmRes.ok) {
+        kmDebug = { stage: 'km-not-ok', status: kmRes.status };
+      } else {
         const km = await kmRes.json();
         if (Array.isArray(km)) {
           const peVals = km
@@ -149,18 +158,29 @@ async function fetchFmpEtf(etfSymbol: string): Promise<Fundamentals | null> {
             .filter((v) => isFinite(v) && v > 0);
           if (peVals.length > 0) {
             pe3yAvg = peVals.reduce((s, v) => s + v, 0) / peVals.length;
+          } else {
+            kmDebug = { stage: 'km-no-pe', sampleKey0: km[0] ? Object.keys(km[0]).slice(0, 20) : null };
           }
+        } else {
+          kmDebug = { stage: 'km-not-array', sample: km };
         }
       }
-    } catch { /* fall through — return without pe3yAvg */ }
+    } catch (e) {
+      kmDebug = { stage: 'km-throw', err: String(e).slice(0, 200) };
+    }
 
+    // Annotate the success path with kmDebug too if 3Y avg failed —
+    // this lets us see whether quote alone worked but km failed.
+    if (pe3yAvg === null && kmDebug) {
+      return { pe, eps: 0, pe3yAvg, _debug: kmDebug } as any;
+    }
     return { pe, eps: 0, pe3yAvg };
-  } catch {
-    return null;
+  } catch (e) {
+    return { _debug: { stage: 'fmp-throw', etfSymbol, err: String(e).slice(0, 200) } } as any;
   }
 }
 
-async function fetchFundamentals(symbol: string): Promise<Fundamentals | null> {
+async function fetchFundamentals(symbol: string): Promise<Fundamentals | { _debug: any } | null> {
   const proxy = INDEX_ETF_PROXY[symbol];
   if (proxy) return fetchFmpEtf(proxy);
   return fetchFinnhub(symbol);
@@ -209,7 +229,7 @@ Deno.serve(async (req: Request) => {
   // Cap parallelism so we don't burst past either provider's per-second
   // rate limit (Finnhub free = 60/min ≈ 1/sec; FMP free = ~10/sec).
   // 6 in-flight is safe for both.
-  const out: Record<string, Fundamentals> = {};
+  const out: Record<string, Fundamentals | { _debug: any }> = {};
   const queue = [...tickers];
   const workers = Array.from({ length: Math.min(6, queue.length) }, async () => {
     while (queue.length > 0) {
