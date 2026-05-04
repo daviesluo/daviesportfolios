@@ -66,6 +66,12 @@ const REFRESH_MS = 30 * 1000;
 // displayed card and the rate we use to convert GBP holdings to USD.
 const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X", "ES=F", "NQ=F", "RTY=F"];
 
+// MC symbols whose CARDS are clickable — i.e. canonical (non-futures)
+// names. The futures alternates (ES=F / NQ=F / RTY=F) only show up on
+// the card face during ext-hours, but onCardClick always passes the
+// canonical name so prefetch only needs to warm the canonical set.
+const MC_PREFETCH_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X"];
+
 // Main app ---------------------------------------------------------------
 function App() {
   // Auth lifecycle:
@@ -276,6 +282,7 @@ function Board({ isReadOnly }) {
         const sp = (extendedHours && phaseNow !== "regular") ? "ES=F" : "^GSPC";
         prefetchAllChartData({
           tickers: tickerList,
+          mcTickers: MC_PREFETCH_TICKERS,
           spSymbol: sp,
           extendedHours,
           phase: phaseNow,
