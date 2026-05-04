@@ -188,9 +188,51 @@ async function fetchFmpEtf(etfSymbol: string): Promise<Fundamentals | { _debug: 
   }
 }
 
-async function fetchFundamentals(symbol: string): Promise<Fundamentals | { _debug: any } | null> {
+// Yahoo /v8/chart probe — used as a last-resort source for ETF P/E
+// since FMP free tier returns 17 price-stat fields and no `pe` for
+// ETFs. Yahoo's chart endpoint occasionally surfaces `trailingPE` in
+// the meta block; this is no-crumb so we don't hit the same
+// bootstrap headaches the v7/quote and v10/quoteSummary endpoints
+// gave us before.
+async function fetchYahooEtfMeta(etfSymbol: string): Promise<any> {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etfSymbol)}?range=1mo&interval=1d`;
+  try {
+    const res = await fetch(url, {
+      headers: { "Accept": "application/json", "User-Agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) {
+      const bodyText = await res.text().catch(() => '<read failed>');
+      return { _debug: { stage: 'yahoo-not-ok', etfSymbol, status: res.status, body: bodyText.slice(0, 200) } };
+    }
+    const data = await res.json();
+    const meta = data?.chart?.result?.[0]?.meta;
+    if (!meta) return { _debug: { stage: 'yahoo-no-meta', etfSymbol } };
+    const tpe = Number(meta.trailingPE ?? meta.trailingPe ?? meta.peRatio);
+    if (!isFinite(tpe) || tpe <= 0) {
+      return { _debug: { stage: 'yahoo-no-trailingPE', etfSymbol, metaKeys: Object.keys(meta), trailingPERaw: meta.trailingPE } };
+    }
+    return { pe: tpe, eps: 0, pe3yAvg: null };
+  } catch (e) {
+    return { _debug: { stage: 'yahoo-throw', etfSymbol, err: String(e).slice(0, 200) } };
+  }
+}
+
+async function fetchFundamentals(symbol: string): Promise<any> {
   const proxy = INDEX_ETF_PROXY[symbol];
-  if (proxy) return fetchFmpEtf(proxy);
+  if (proxy) {
+    // Try FMP first (it's the Edge Function's documented vendor for
+    // ETFs). Most likely returns _debug shape on free tier — fall
+    // through to Yahoo chart meta. We surface BOTH debug payloads so
+    // we can see exactly which path failed.
+    const fmp = await fetchFmpEtf(proxy);
+    if (fmp && !('_debug' in fmp) && (fmp as any).pe > 0) return fmp;
+    const yahoo = await fetchYahooEtfMeta(proxy);
+    if (yahoo && !('_debug' in yahoo) && (yahoo as any).pe > 0) {
+      return yahoo;
+    }
+    return { _debug: { fmp: (fmp as any)?._debug, yahoo: (yahoo as any)?._debug } };
+  }
   return fetchFinnhub(symbol);
 }
 
