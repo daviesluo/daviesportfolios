@@ -581,6 +581,12 @@ body {
   flex-direction: column;
   justify-content: space-between;
 }
+/* Cards open a 1D/1W/1M/3M/YTD chart modal on click — same drill-in
+   the portfolio tiles use. The cursor + subtle border-brighten on
+   hover signals the affordance. */
+.mc-card-clickable { cursor: pointer; }
+.mc-card-clickable:hover { border-color: var(--chalk-dim); }
+.mc-card-clickable:focus-visible { outline: 1px solid var(--chalk-dim); outline-offset: 1px; }
 .mc-card-head {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 8px;
