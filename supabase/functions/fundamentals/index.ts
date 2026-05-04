@@ -122,6 +122,14 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
 // be divided into P/E values.
 async function fetchFmpEtf(etfSymbol: string): Promise<Fundamentals | { _debug: any } | null> {
   if (!FMP_API_KEY) return { _debug: { stage: 'no-key', etfSymbol } } as any;
+  // Safe key fingerprint — length and first 4 chars — so we can tell
+  // from the client whether the env var got mangled (whitespace,
+  // truncation, etc.) without actually exposing the secret.
+  const keyLen = FMP_API_KEY.length;
+  const keyHead = FMP_API_KEY.slice(0, 4);
+  const keyTail = FMP_API_KEY.slice(-2);
+  const keyHasWhitespace = /\s/.test(FMP_API_KEY);
+  const keyHasQuotes = /['"]/.test(FMP_API_KEY);
   const enc = encodeURIComponent(etfSymbol);
   try {
     const quoteUrl = `https://financialmodelingprep.com/api/v3/quote/${enc}?apikey=${encodeURIComponent(FMP_API_KEY)}`;
@@ -131,7 +139,7 @@ async function fetchFmpEtf(etfSymbol: string): Promise<Fundamentals | { _debug: 
     );
     if (!quoteRes.ok) {
       const bodyText = await quoteRes.text().catch(() => '<read failed>');
-      return { _debug: { stage: 'quote-not-ok', etfSymbol, status: quoteRes.status, body: bodyText.slice(0, 400) } } as any;
+      return { _debug: { stage: 'quote-not-ok', etfSymbol, status: quoteRes.status, body: bodyText.slice(0, 400), keyFingerprint: { len: keyLen, head: keyHead, tail: keyTail, hasWhitespace: keyHasWhitespace, hasQuotes: keyHasQuotes } } } as any;
     }
     const quoteArr = await quoteRes.json();
     const quote = Array.isArray(quoteArr) ? quoteArr[0] : null;
