@@ -187,6 +187,10 @@ to the prompt.
   mirrors price within a quarter, becomes inaccurate after an
   earnings report. Modal header swaps "PRICE / Last $price" for
   "P/E RATIO / P/E ratio (price ÷ TTM EPS)" so the basis is explicit.
+  A horizontal dashed gray line at the 3-year average P/E (mean of
+  the three most-recent annual P/E values from Finnhub) gives a
+  cycle-aware reference; the value is labelled in the right margin
+  outside the plot area so it never crosses the price line.
 - **Hover** anywhere on the chart for a crosshair: dashed lines down
   to both axes, a tooltip showing the price at that bar, and the %
   change from the anchor.
