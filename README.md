@@ -92,9 +92,12 @@ secrets server-side.
   (initial load + manual Refresh click) silently warms every chart
   range × ticker into `localStorage`, so opening any ticker modal or
   flipping PerfChart range buttons hits cache instead of paying the
-  Edge Function round-trip. TTL-aligned per range (5 m / 30 m / 1 h /
-  12 h / 12 h); auto-refresh ticks skip the prefetch since they'd
-  re-fetch with nothing fresh to show.
+  Edge Function round-trip. Coverage spans the portfolio holdings,
+  the S&P benchmark AND every Market-Conditions card (^GSPC, ^NDX,
+  ^RUT, ^SOX, ^VIX, BZ=F, ^TNX, GBPUSD=X, GBPCNY=X, USDCNY=X) — plus
+  P/E YTD for the four ETF-proxied indices. TTL-aligned per range
+  (5 m / 30 m / 1 h / 12 h / 12 h); auto-refresh ticks skip the
+  prefetch since they'd re-fetch with nothing fresh to show.
 - **PWA** — installable on iOS / Android home screen, offline-capable
   via Workbox precache, in-app "new version available" banner.
 - **HMAC-signed token auth** — passwords never leave the Edge Function;
@@ -285,11 +288,11 @@ won't auto-reload mid-session.
 | `auth.js` | Password → HMAC token flow. `collectPassword` (URL `?pwd=` or `window.prompt`), `authenticate` (POSTs to `/auth`), `decodeAppToken` (skip prompt if a valid sessionStorage token already exists). |
 | `portfolio_remote.js` | `loadPortfolioRemote` / `savePortfolioRemote` against the `data` Edge Function. Includes `migrate(p)` for legacy portfolio shapes (CB → CB1/CB2 split, BRK-B move, currency backfill, lots backfill). |
 | `supabase_config.js` | Shared `SB_URL`, `SB_ANON`, `EDGE_AUTH_URL`, `EDGE_DATA_URL`. |
-| `utils.js` | `computeMetrics`, FX helpers, `fetchTickers` (live snapshot), `fetchHistorical` / `fetchHistoricalBatch` (race Edge Function vs. CORS-proxy chain, abort losers), formatters, `Storage` namespace, schema-version migration, DST-aware helpers (`ukTzAbbr`, `usMarketHoursUtc`). |
+| `utils.js` | `computeMetrics`, FX helpers, `fetchTickers` (live snapshot), `fetchHistorical` / `fetchHistoricalBatch` (Edge Function first; CORS-proxy chain only fires for tickers the Edge omitted AND only when the Edge call itself failed — Edge has equivalent server-side fallbacks for `.PVT` and CN funds, so retrying the same upstreams via browser proxies just burns proxy quota), formatters, `Storage` namespace, schema-version migration, DST-aware helpers (`ukTzAbbr`, `usMarketHoursUtc`). |
 | `data.js` | `INITIAL_PORTFOLIO` seed for first-load demo state. |
 | `ytd.js` | Pure chart math. `buildTickerSeries`, `computeAt`, `lotsFor`, `closeOn`, `RANGES`, `fetchParamsFor`, `filterToLatestDay`, `filterToLast24h`. Decoupled from React so it's unit-testable. |
 | `ytd.test.js` | 19 cases pinning the YTD formula behaviors (pre-year lot, year lot, mixed, missing janPrice, 1D ext mode, intraday date comparison, etc.). |
-| `utils.test.js` | 5 cases pinning `fetchHistoricalBatch`'s race behavior (Edge fast path, partial fill, CN-fund proxy bypass, empty input, dedup). |
+| `utils.test.js` | 6 cases pinning `fetchHistoricalBatch`'s strategy: Edge fast path, "trust Edge omissions" (no proxy fallback when Edge succeeded with a partial response), Edge total-failure → proxy fallback, CN-fund proxy bypass, empty input, dedup. |
 | `header_sidebar.jsx` | `<Header>` (scoreboard + extended-hours toggle + hide-values eye), `<Sidebar>` (top movers + formation value + perf chart), `<MarketConditions>` (10 cards desktop, 9 cards mobile in a 3 × 3 grid; SOX dropped on mobile). Re-exports `<PerfPanel>` from `perf_chart.jsx` so `app.jsx` keeps its existing import. |
 | `perf_chart.jsx` | `<PerfChart>` (the chart) + `<PerfPanel>` (chrome wrapper). 5 ranges, dual fetch effect (S&P alone + portfolio batch in parallel), background prefetch effect for the other ranges, DOM-ref crosshair, CLOSE/OPEN markers in 1D, ^GSPC RTH filter + ES=F ETH filter. |
 | `pitch.jsx` | Football-pitch SVG rendering. Position dots, captain armband, hot-mover ball, drag/drop in edit mode. |
@@ -326,7 +329,7 @@ won't auto-reload mid-session.
 
 | File | What it does |
 |---|---|
-| `vite.config.js` | React plugin, PWA plugin (Workbox precache + runtime caches for fonts), build output to repo root. |
+| `vite.config.js` | React plugin, PWA plugin (Workbox precache + runtime caches for fonts), build output to repo root. Bundle filenames pinned to lower-case hex hashes with an explicit `app-` prefix (`assets/app-{hex}.js`) so the URL can never contain a substring like `Ad`/`Ads` that AdGuard's content filter strips — caught one production outage where a build hash of `_Ad` made AdGuard's system-level proxy delete the `<script>` tag, blank-page-ing the site for users who had AdGuard. Hex (0-9a-f) is alphabet-safe against that whole class of false positive. |
 | `tsconfig.json` | `checkJs: true` so JSDoc annotations get type-checked by `tsc --noEmit`. |
 | `_headers` | Cloudflare Pages cache rules. `index.html` / `sw.js` always revalidate; `/assets/*` cached for a year (filenames are content-hashed). |
 | `manifest.webmanifest` | PWA install metadata (name, icons, theme color). |
