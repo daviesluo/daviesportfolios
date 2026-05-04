@@ -645,6 +645,12 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   }
   function handleMove(e) {
     if (!svgRef.current || portByIdx.length === 0) return;
+    // Support both mouse events (desktop) and touch events (mobile) —
+    // touch coords live on `e.touches[0]`; the SVG sets
+    // `touch-action: none` so finger drags don't compete with the
+    // browser's scroll/zoom gestures.
+    const clientX = e.touches?.[0]?.clientX ?? e.clientX;
+    if (clientX == null) return;
     const rect = svgRef.current.getBoundingClientRect();
     const vbRatio = W / H, elRatio = rect.width / rect.height;
     let contentW, contentH, offX, offY;
@@ -655,7 +661,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       contentW = rect.width;  contentH = contentW / vbRatio;
       offX = 0; offY = (rect.height - contentH) / 2;
     }
-    const sx = ((e.clientX - rect.left - offX) / contentW) * W;
+    const sx = ((clientX - rect.left - offX) / contentW) * W;
     const clampedSx = Math.max(padL, Math.min(W - padR, sx));
     const denom = Math.max(1, portByIdx.length - 1);
     const frac = (clampedSx - padL) / cW;
@@ -694,9 +700,14 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
         viewBox={`0 0 ${W} ${H}`}
         width="100%"
         height={H}
-        style={{ display: 'block' }}
+        // touchAction:none claims horizontal finger drags for the
+        // crosshair instead of the browser scroll/zoom gestures.
+        // Vertical scrolling outside the chart still works.
+        style={{ display: 'block', touchAction: 'none' }}
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
+        onTouchStart={handleMove}
+        onTouchMove={handleMove}
       >
         {/* Y-axis ticks + grid lines */}
         {ticks.map(t => (
