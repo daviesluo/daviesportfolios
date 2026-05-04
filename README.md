@@ -54,22 +54,24 @@ secrets server-side.
   in without needing a manual refresh. Previous bars stay on screen
   during each fetch — no spinner flicker.
 - **P/E YTD view** — sixth range button on the ticker chart modal
-  for stocks with positive trailing EPS (Finnhub `/stock/metric`),
-  plus the three big US indices (`^GSPC`, `^NDX`, `^RUT`) via an
-  ETF-proxy lookup against SPY / QQQ / IWM (Financial Modeling Prep
-  `/v3/quote` + `/v3/key-metrics`). Two vendors because Finnhub's
-  free tier doesn't carry ETF fundamentals — only price stats. Plots
-  `price ÷ EPS` over YTD with a horizontal dashed line at the
-  3-year-average P/E for context. Const-EPS approximation (the
-  curve's shape mirrors price within a quarter); the y-axis swaps to
-  bare P/E values and the modal header shifts to "P/E RATIO" so the
-  basis is unambiguous. For the index proxies FMP gives the trailing
-  P/E (no aggregate EPS at the ETF level), so the client
-  reconstructs an implied EPS from `lastClose / pe` and divides the
-  YTD series through that — the y-axis still anchors at the
-  vendor-quoted current P/E. Futures / non-major indices (`^VIX`,
-  `^TNX`, `^SOX`) / crypto / forex / loss-makers hide the button
-  automatically since neither vendor returns usable values for them.
+  for stocks with positive trailing EPS (Finnhub `/stock/metric`)
+  plus the three big US indices (`^GSPC`, `^NDX`, `^RUT`) via
+  hardcoded constants in the fundamentals Edge Function (refresh
+  quarterly). Three free APIs were tried for index/ETF P/E and
+  none worked — Finnhub's free tier returns price stats only for
+  ETFs (no `peTTM`), FMP retired free /v3 endpoints in Aug 2025
+  and the new /stable shape paywalls QQQ/IWM and lacks `pe` on SPY,
+  Yahoo `/v8/chart` meta has no `trailingPE` field — so the
+  pragmatic call is a hardcoded table that updates with a normal
+  commit when the printed values feel off. Plots `price ÷ EPS`
+  over YTD with a horizontal dashed line at the 3-year-average P/E
+  for context. Const-EPS approximation (the curve's shape mirrors
+  price within a quarter); the y-axis swaps to bare P/E values and
+  the modal header shifts to "P/E RATIO". For the indices the
+  client reconstructs an implied EPS from `lastClose / pe` so the
+  YTD price series still divides cleanly. Futures / non-major
+  indices (`^VIX`, `^TNX`, `^SOX`) / crypto / forex / loss-makers
+  hide the button automatically.
 - **DST-aware scoreboard label** — the "GMT TIME" label flips to
   "BST TIME" automatically during British Summer Time (last Sun Mar →
   last Sun Oct). All chart UTC-string parsing appends an explicit `Z`
@@ -309,7 +311,7 @@ won't auto-reload mid-session.
 | `data` | `?action=load` / `?action=save`. Validates the `X-App-Token` header (re-derives HMAC + checks exp + checks role) before reading / writing `board_data`. Service-role key never leaves the function. |
 | `prices` | `?tickers=NVDA,017731,GBPUSD=X,…` → `{ ticker: { lastPrice, extPrice?, prevClose, currency, dayPct, extDayPct? } }`. Routes 6-digit codes to eastmoney's `fundgz.1234567.com.cn`, everything else to Yahoo Finance v8. |
 | `chart` | `?tickers=…&range=1mo&interval=60m&includePrePost=true` → `{ ticker: [{ date, close }, …] }`. Routes CN funds to a 3-tier eastmoney fallback (pingzhongdata → lsjz JSON → danjuanapp), everything else to Yahoo. `.PVT` placeholders fall back to the bare symbol when Yahoo 404s the literal. |
-| `fundamentals` | `?tickers=NVDA,GOOG,^GSPC,…` → `{ NVDA: { pe, eps, pe3yAvg }, ^GSPC: { pe, eps:0, pe3yAvg }, … }`. Powers the ticker-modal "P/E YTD" view. Individual stocks → Finnhub `/stock/metric`. Three big US indices (`^GSPC`/`^NDX`/`^RUT`) → FMP `/v3/quote` + `/v3/key-metrics` against their ETF proxies (SPY/QQQ/IWM); Finnhub's free tier doesn't carry ETF fundamentals so a second vendor is required. ETF rows return `eps:0` and the client reconstructs an implied EPS from `lastClose / pe`. |
+| `fundamentals` | `?tickers=NVDA,GOOG,^GSPC,…` → `{ NVDA: { pe, eps, pe3yAvg }, ^GSPC: { pe, eps:0, pe3yAvg }, … }`. Powers the ticker-modal "P/E YTD" view. Individual stocks → Finnhub `/stock/metric`. Three big US indices (`^GSPC`/`^NDX`/`^RUT`) → hardcoded P/E + 3Y-avg constants (`INDEX_PE_HARDCODED` in `index.ts`); refresh quarterly via a normal commit. Index rows return `eps:0` and the client reconstructs an implied EPS from `lastClose / pe`. |
 | `ops-error` | Two modes. `POST { kind, symbol?, message?, context? }` → inserts into `ops_errors` (no auth; size + length capped; per-row IP captured server-side). `GET ?action=summary&hours=24` with header `x-app-token: <admin token>` → `{ hours, total, byKind, bySymbol }` aggregate over the last N hours, so triage doesn't require a Supabase dashboard login. |
 
 ### `supabase/migrations/`
@@ -440,8 +442,7 @@ A copy-pasteable shape of the three app-level vars lives at
 | `APP_AUTH_SECRET` | `auth`, `data` | Long random string (`openssl rand -hex 32`). |
 | `APP_ADMIN_PASSWORD` | `auth` | Your admin password. |
 | `APP_RO_PASSWORD` | `auth` | Your read-only / shareable password. |
-| `FINNHUB_API_KEY` | `fundamentals` | Free key from finnhub.io (60 calls / min). Powers the ticker-modal "P/E YTD" view for individual stocks; without it the P/E button stays hidden for stocks but everything else still works. |
-| `FMP_API_KEY` | `fundamentals` | Free key from financialmodelingprep.com (250 calls / day). Powers the ETF-proxy P/E lookup for the three big US indices (`^GSPC`/`^NDX`/`^RUT` → SPY/QQQ/IWM) — Finnhub's free tier doesn't carry ETF fundamentals so a second vendor is needed for index P/E. Without it the index P/E button stays hidden. |
+| `FINNHUB_API_KEY` | `fundamentals` | Free key from finnhub.io (60 calls / min). Powers the ticker-modal "P/E YTD" view for individual stocks; without it the P/E button stays hidden for stocks but everything else still works. Index P/E (^GSPC/^NDX/^RUT) is hardcoded in the function source — no env var needed for indices. |
 
 ### 4. Wire the client
 

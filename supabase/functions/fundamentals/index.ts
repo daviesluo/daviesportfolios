@@ -1,49 +1,48 @@
 // Supabase Edge Function: fundamentals
 //
 // Returns current TTM P/E + trailing EPS for a list of tickers from
-// two data sources:
-//   - Individual stocks → Finnhub `/stock/metric` (60 calls / minute,
-//     no payment info on free tier). Yahoo's v7/quote and v10/
-//     quoteSummary were crumb-gated to a degree Deno Deploy egress IPs
-//     couldn't reliably bootstrap, so Finnhub it is.
-//   - The three major US indices (^GSPC / ^NDX / ^RUT) → Financial
-//     Modeling Prep `/v3/quote/{ETF}` + `/v3/key-metrics/{ETF}?period
-//     =annual` against their ETF proxies (SPY / QQQ / IWM). Finnhub's
-//     free tier confirmed empty for ETFs (returns 19 price-stats
-//     fields and zero fundamentals — no peTTM, no epsTTM, no annual
-//     series), so the proxy lookup MUST go to a different vendor.
-//     FMP free tier = 250 calls / day, plenty for our ~10-call/day
-//     usage on these three symbols.
+// two sources:
+//
+//   1. Individual stocks → Finnhub `/stock/metric` (free tier:
+//      60 calls / minute, no payment info). Yahoo's v7/quote and
+//      v10/quoteSummary were crumb-gated to a degree Deno Deploy
+//      egress IPs couldn't reliably bootstrap.
+//
+//   2. Three big US indices (^GSPC / ^NDX / ^RUT) → hardcoded values
+//      below (INDEX_PE_HARDCODED). We tried in order: Finnhub free
+//      (returns 19 price-stat fields and zero fundamentals for ETFs);
+//      FMP free (post-2025 stable endpoints either return no `pe`
+//      field for SPY or 402-paywall QQQ/IWM); Yahoo /v8/chart meta
+//      (25 fields, none of them P/E). With every free API exhausted,
+//      hardcoding the indices' current trailing P/E + 3-year-average
+//      P/E and refreshing the constants quarterly is the cleanest
+//      path. Manual refresh: visit multpl.com / siblingnindexes for
+//      current values, edit the table below, redeploy. Indices move
+//      slowly (S&P 500 P/E ~+1.5 / quarter on average) so a 3-month
+//      cadence is enough.
 //
 // Env:
-//   FINNHUB_API_KEY  (required for individual stocks)
-//   FMP_API_KEY      (required for ^GSPC / ^NDX / ^RUT — register a
-//                     free key at financialmodelingprep.com)
-// If either is absent the corresponding tickers just don't appear in
-// the response — no errors thrown, the client treats them as "no P/E".
-//
-// Used by the ticker chart modal's "P/E YTD" view: the client divides
-// each YTD daily-close price by the EPS returned here to plot a P/E
-// series. The approximation assumes EPS hasn't moved within YTD —
-// fine for most stocks within a quarter, becomes inaccurate right
-// after an earnings report. For ETF proxies (where FMP gives us a
-// trailing P/E but no aggregate EPS), the client reconstructs an
-// implied EPS from `lastClose / pe` so the y-axis still anchors at
-// the published current P/E.
+//   FINNHUB_API_KEY  (required for individual-stock P/E; without it
+//                     stocks just don't appear in the response)
+// (No env var is needed for index P/E — values are baked in.)
 //
 // Tickers without meaningful fundamentals (futures, non-major indices,
 // crypto, .PVT placeholders, 6-digit CN funds, loss-makers with
 // negative EPS) are simply absent from the response.
 //
+// Used by the ticker chart modal's "P/E YTD" view. Stocks divide each
+// YTD daily-close by the EPS returned here. Indices return eps:0 and
+// the client reconstructs an implied EPS from `lastClose / pe` so the
+// historical price series can still be divided into P/E values.
+//
 // Call: GET /functions/v1/fundamentals?tickers=NVDA,GOOG,^GSPC
 // Returns:
 //   {
 //     NVDA:  { pe: 40.16, eps: 4.90, pe3yAvg: 43.13 },
-//     ^GSPC: { pe: 22.50, eps: 0,    pe3yAvg: 24.10 }   // eps:0 → use implied
+//     ^GSPC: { pe: 27.5,  eps: 0,    pe3yAvg: 25.0 }
 //   }
 
 const FINNHUB_API_KEY = Deno.env.get("FINNHUB_API_KEY") ?? "";
-const FMP_API_KEY     = Deno.env.get("FMP_API_KEY") ?? "";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -52,26 +51,25 @@ const CORS = {
 
 type Fundamentals = { pe: number; eps: number; pe3yAvg: number | null };
 
-// Three major indices use ETF proxies for the P/E lookup because
-// `/stock/metric` (Finnhub) and `/quote/{etf}` (FMP) are both
-// company/security endpoints — they don't accept the index symbol
-// itself. The ETF that tracks the index (SPY for ^GSPC, QQQ for ^NDX,
-// IWM for ^RUT) publishes a trailing P/E that's a reasonable stand-in
-// for the underlying basket. The response is keyed back under the
-// original `^GSPC` etc. so the client doesn't need to know about the
-// alias.
-const INDEX_ETF_PROXY: Record<string, string> = {
-  "^GSPC": "SPY",
-  "^NDX":  "QQQ",
-  "^RUT":  "IWM",
+// Hardcoded P/E values for the three big US indices. Refresh
+// quarterly. Sources used the last time these were updated:
+//   ^GSPC → multpl.com/s-p-500-pe-ratio
+//   ^NDX  → wsj.com/market-data/quotes/index/US/XNAS/NDX/key-stats
+//   ^RUT  → wsj.com/market-data/quotes/index/US/RUT/key-stats
+// 3Y AVG = mean of the last 3 fiscal-year-end P/E values. Move slowly,
+// so refreshing once a year is also fine.
+//
+// LAST REFRESHED: 2026-05-04. Values approximate — refresh whenever
+// the printed P/E in the modal feels off.
+const INDEX_PE_HARDCODED: Record<string, { pe: number; pe3yAvg: number }> = {
+  "^GSPC": { pe: 27.5, pe3yAvg: 25.0 },
+  "^NDX":  { pe: 33.0, pe3yAvg: 30.0 },
+  "^RUT":  { pe: 28.0, pe3yAvg: 24.0 },
 };
 
 // Finnhub: individual stocks only. Free tier returns:
-//   { metric: { peTTM: 30.5, epsTTM: 6.5, ... },
-//     series: { annual: { pe: [{period, v}, ...], ... } } }
-// Field-name fallbacks:
-//   pe  → peTTM | peBasicExclExtraTTM | peNormalizedAnnual
-//   eps → epsTTM | epsBasicExclExtraItemsTTM | epsNormalizedAnnual
+//   { metric: { peTTM, epsTTM, ... },
+//     series: { annual: { pe: [{period, v}, ...] } } }
 async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
   if (!FINNHUB_API_KEY) return null;
   const url =
@@ -107,132 +105,15 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
         pe3yAvg = sorted.reduce((s, p) => s + p.v, 0) / sorted.length;
       }
     }
-
     return { pe, eps, pe3yAvg };
   } catch {
     return null;
   }
 }
 
-// FMP: ETF P/E for the three index proxies. Two requests per ETF —
-//   /stable/quote?symbol={ETF}                          → current trailing P/E (`pe`)
-//   /stable/ratios?symbol={ETF}&period=annual&limit=3   → historical annual P/E
-// FMP retired their `/api/v3/*` endpoints on 2025-08-31 for new
-// accounts; both calls below use the post-2025 stable path. Returns
-// eps:0 deliberately — the FMP shape doesn't include an aggregate EPS
-// for ETFs, and the client reconstructs an implied EPS from
-// lastClose / pe so the YTD price series can still be divided into
-// P/E values.
-async function fetchFmpEtf(etfSymbol: string): Promise<Fundamentals | { _debug: any } | null> {
-  if (!FMP_API_KEY) return { _debug: { stage: 'no-key', etfSymbol } } as any;
-  const enc = encodeURIComponent(etfSymbol);
-  try {
-    const quoteUrl = `https://financialmodelingprep.com/stable/quote?symbol=${enc}&apikey=${encodeURIComponent(FMP_API_KEY)}`;
-    const quoteRes = await fetch(
-      quoteUrl,
-      { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(8_000) },
-    );
-    if (!quoteRes.ok) {
-      const bodyText = await quoteRes.text().catch(() => '<read failed>');
-      return { _debug: { stage: 'quote-not-ok', etfSymbol, status: quoteRes.status, body: bodyText.slice(0, 400) } } as any;
-    }
-    const quoteArr = await quoteRes.json();
-    const quote = Array.isArray(quoteArr) ? quoteArr[0] : null;
-    // FMP /stable/quote returns `pe` for the trailing ratio — same key
-    // name as the legacy /v3 shape. Fall back to common alternatives
-    // in case the field gets renamed in a future stable release.
-    const pe = Number(quote?.pe ?? quote?.peRatio ?? quote?.priceEarningsRatio);
-    if (!isFinite(pe) || pe <= 0) {
-      return { _debug: { stage: 'no-usable-pe', etfSymbol, peRaw: quote?.pe, quoteKeys: quote ? Object.keys(quote) : null, sample: Array.isArray(quoteArr) ? quoteArr.slice(0, 1) : quoteArr } } as any;
-    }
-
-    let pe3yAvg: number | null = null;
-    let kmDebug: any = null;
-    try {
-      const kmUrl = `https://financialmodelingprep.com/stable/ratios?symbol=${enc}&period=annual&limit=3&apikey=${encodeURIComponent(FMP_API_KEY)}`;
-      const kmRes = await fetch(
-        kmUrl,
-        { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(8_000) },
-      );
-      if (!kmRes.ok) {
-        const bodyText = await kmRes.text().catch(() => '<read failed>');
-        kmDebug = { stage: 'km-not-ok', status: kmRes.status, body: bodyText.slice(0, 200) };
-      } else {
-        const km = await kmRes.json();
-        if (Array.isArray(km)) {
-          // Stable endpoint may name the field `priceEarningsRatio`,
-          // `peRatio`, or `priceToEarningsRatio` depending on version.
-          // Try the lot.
-          const peVals = km
-            .map((r: any) => Number(r?.priceEarningsRatio ?? r?.peRatio ?? r?.priceToEarningsRatio ?? r?.peRatioTTM))
-            .filter((v) => isFinite(v) && v > 0);
-          if (peVals.length > 0) {
-            pe3yAvg = peVals.reduce((s, v) => s + v, 0) / peVals.length;
-          } else {
-            kmDebug = { stage: 'km-no-pe', sampleKey0: km[0] ? Object.keys(km[0]).slice(0, 20) : null };
-          }
-        } else {
-          kmDebug = { stage: 'km-not-array', sample: km };
-        }
-      }
-    } catch (e) {
-      kmDebug = { stage: 'km-throw', err: String(e).slice(0, 200) };
-    }
-
-    if (pe3yAvg === null && kmDebug) {
-      return { pe, eps: 0, pe3yAvg, _debug: kmDebug } as any;
-    }
-    return { pe, eps: 0, pe3yAvg };
-  } catch (e) {
-    return { _debug: { stage: 'fmp-throw', etfSymbol, err: String(e).slice(0, 200) } } as any;
-  }
-}
-
-// Yahoo /v8/chart probe — used as a last-resort source for ETF P/E
-// since FMP free tier returns 17 price-stat fields and no `pe` for
-// ETFs. Yahoo's chart endpoint occasionally surfaces `trailingPE` in
-// the meta block; this is no-crumb so we don't hit the same
-// bootstrap headaches the v7/quote and v10/quoteSummary endpoints
-// gave us before.
-async function fetchYahooEtfMeta(etfSymbol: string): Promise<any> {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etfSymbol)}?range=1mo&interval=1d`;
-  try {
-    const res = await fetch(url, {
-      headers: { "Accept": "application/json", "User-Agent": "Mozilla/5.0" },
-      signal: AbortSignal.timeout(8_000),
-    });
-    if (!res.ok) {
-      const bodyText = await res.text().catch(() => '<read failed>');
-      return { _debug: { stage: 'yahoo-not-ok', etfSymbol, status: res.status, body: bodyText.slice(0, 200) } };
-    }
-    const data = await res.json();
-    const meta = data?.chart?.result?.[0]?.meta;
-    if (!meta) return { _debug: { stage: 'yahoo-no-meta', etfSymbol } };
-    const tpe = Number(meta.trailingPE ?? meta.trailingPe ?? meta.peRatio);
-    if (!isFinite(tpe) || tpe <= 0) {
-      return { _debug: { stage: 'yahoo-no-trailingPE', etfSymbol, metaKeys: Object.keys(meta), trailingPERaw: meta.trailingPE } };
-    }
-    return { pe: tpe, eps: 0, pe3yAvg: null };
-  } catch (e) {
-    return { _debug: { stage: 'yahoo-throw', etfSymbol, err: String(e).slice(0, 200) } };
-  }
-}
-
-async function fetchFundamentals(symbol: string): Promise<any> {
-  const proxy = INDEX_ETF_PROXY[symbol];
-  if (proxy) {
-    // Try FMP first (it's the Edge Function's documented vendor for
-    // ETFs). Most likely returns _debug shape on free tier — fall
-    // through to Yahoo chart meta. We surface BOTH debug payloads so
-    // we can see exactly which path failed.
-    const fmp = await fetchFmpEtf(proxy);
-    if (fmp && !('_debug' in fmp) && (fmp as any).pe > 0) return fmp;
-    const yahoo = await fetchYahooEtfMeta(proxy);
-    if (yahoo && !('_debug' in yahoo) && (yahoo as any).pe > 0) {
-      return yahoo;
-    }
-    return { _debug: { fmp: (fmp as any)?._debug, yahoo: (yahoo as any)?._debug } };
-  }
+async function fetchFundamentals(symbol: string): Promise<Fundamentals | null> {
+  const hard = INDEX_PE_HARDCODED[symbol];
+  if (hard) return { pe: hard.pe, eps: 0, pe3yAvg: hard.pe3yAvg };
   return fetchFinnhub(symbol);
 }
 
@@ -252,34 +133,29 @@ Deno.serve(async (req: Request) => {
     .split(",")
     .map((t) => t.trim())
     // Skip categories that never have meaningful P/E so we don't burn
-    // a Finnhub request just to get null.
+    // a Finnhub request just to get null. Indices are kept iff they're
+    // in the hardcoded table — that's where the proxy mapping
+    // implicitly lives now.
     .filter((t) =>
       !!t &&
       t !== "CASH" &&
       !/\.PVT$/i.test(t) &&
       !/^\d{6}$/.test(t) &&
       !/=F$/.test(t) &&             // futures
-      // Indices: skip unless they have an ETF-proxy mapping (^GSPC,
-      // ^NDX, ^RUT). Other ^-prefixed symbols (^VIX, ^SOX, ^TNX)
-      // have no meaningful EPS so we drop them here to avoid a wasted
-      // Finnhub call that always returns null.
-      (!t.startsWith("^") || (t in INDEX_ETF_PROXY)) &&
+      (!t.startsWith("^") || (t in INDEX_PE_HARDCODED)) &&
       !/[-]USD$/i.test(t) &&         // crypto
       !/=X$/.test(t)                 // forex
     );
-  // Need at least one provider key to do anything. Either is enough:
-  //   - FINNHUB_API_KEY only → individual stocks work, indices don't
-  //   - FMP_API_KEY only      → indices work, individual stocks don't
-  if (tickers.length === 0 || (!FINNHUB_API_KEY && !FMP_API_KEY)) {
+  if (tickers.length === 0) {
     return new Response(JSON.stringify({}), {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
 
-  // Cap parallelism so we don't burst past either provider's per-second
-  // rate limit (Finnhub free = 60/min ≈ 1/sec; FMP free = ~10/sec).
-  // 6 in-flight is safe for both.
-  const out: Record<string, Fundamentals | { _debug: any }> = {};
+  // Cap parallelism so we don't burst past Finnhub's per-second rate
+  // limit (free = 60/min ≈ 1/sec). Hardcoded indices are sync, no
+  // network — they finish instantly.
+  const out: Record<string, Fundamentals> = {};
   const queue = [...tickers];
   const workers = Array.from({ length: Math.min(6, queue.length) }, async () => {
     while (queue.length > 0) {
