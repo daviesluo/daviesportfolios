@@ -28,7 +28,7 @@ const TICKER_DISPLAY_NAMES = {
   'NQ=F':     'Nasdaq Futures',
   'RTY=F':    'R2K Futures',
   'GBPUSD=X': 'GBP/USD',
-  'GBPCNH=X': 'GBP/CNY',
+  'GBPCNY=X': 'GBP/CNY',
   'USDCNY=X': 'USD/CNY',
 };
 
@@ -38,7 +38,7 @@ const TICKER_DISPLAY_NAMES = {
 // have a meaningful EPS so the button stays hidden.
 const INDEX_PE_ALLOWED = new Set(['^GSPC', '^NDX', '^RUT', '^SOX']);
 
-const FX_4DP = new Set(['GBPUSD=X', 'GBPCNH=X', 'USDCNY=X']);
+const FX_4DP = new Set(['GBPUSD=X', 'GBPCNY=X', 'USDCNY=X']);
 
 // Per-ticker price formatter. Indices / futures / forex / yields don't
 // carry a currency symbol; yields are rendered as percentages; the two

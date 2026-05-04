@@ -4,40 +4,31 @@
 // two sources, picked by symbol:
 //
 //   1. Individual stocks → Finnhub `/stock/metric` (free tier:
-//      60 calls / minute, no payment info on free tier). Yahoo's
-//      v7/quote and v10/quoteSummary were crumb-gated to a degree
-//      Deno Deploy egress IPs couldn't reliably bootstrap.
+//      60 calls / minute, no payment info).
 //
 //   2. Four big US indices (^GSPC / ^NDX / ^RUT / ^SOX) → Alpha
 //      Vantage `OVERVIEW` against ETF proxies (SPY / QQQ / IWM /
 //      SOXX), with a 24 h server-side cache in
-//      `index_fundamentals_cache` so we never burn more than ~4
-//      Alpha Vantage calls per day no matter how many clients hit
-//      this Edge Function. Alpha Vantage free tier is 25 req / day,
-//      so the cache headroom is ~6× even with refresh storms.
-//      Tried in order before settling on AV: Finnhub free (zero
-//      fundamentals on ETFs); FMP free /stable (paywalls QQQ/IWM and
-//      lacks `pe` on SPY); Yahoo /v8/chart meta (no P/E in meta).
+//      `index_fundamentals_cache`. AV's free tier enforces a hard
+//      "1 request per second" pace plus a 25 / day total — so the
+//      cache + serial dispatch (1.2 s between calls in this Edge
+//      Function invocation) keep us comfortably inside both ceilings
+//      with a 4-ETF working set.
 //
-// 3-year-average P/E is hardcoded for indices (`INDEX_PE_3Y_AVG`)
-// since it changes slowly — refresh once a year via a normal commit.
-// Current trailing P/E is dynamic and comes from the Alpha Vantage
-// path above.
+// Layered fallback for index P/E (newest → oldest data):
+//   a. Fresh cache (< 24 h)               — almost every request
+//   b. Live Alpha Vantage                 — once per ETF per 24 h
+//   c. Stale cache (any age, last-known)  — when AV is rate-limited
+//   d. Hardcoded INDEX_PE_FALLBACK        — first deploy / total outage
+//
+// 3-year-average P/E is hardcoded since AV's free tier doesn't
+// expose historical annuals; refresh ~yearly.
 //
 // Env:
-//   FINNHUB_API_KEY            (required for individual-stock P/E)
-//   ALPHAVANTAGE_API_KEY       (required for index P/E)
-//   SUPABASE_URL               (auto-injected; used by cache layer)
-//   SUPABASE_SERVICE_ROLE_KEY  (auto-injected; used by cache layer)
-//
-// If a key is missing the Edge Function quietly skips the
-// corresponding tickers — they're absent from the response and the
-// client treats that as "no P/E available", hiding the button.
-//
-// Used by the ticker chart modal's "P/E YTD" view. Stocks divide each
-// YTD daily-close by the EPS returned here. Indices return eps:0 and
-// the client reconstructs an implied EPS from `lastClose / pe` so
-// the historical price series can still be divided into P/E values.
+//   FINNHUB_API_KEY            (individual-stock P/E)
+//   ALPHAVANTAGE_API_KEY       (index P/E)
+//   SUPABASE_URL               (auto-injected; cache layer)
+//   SUPABASE_SERVICE_ROLE_KEY  (auto-injected; cache layer)
 //
 // Call: GET /functions/v1/fundamentals?tickers=NVDA,GOOG,^GSPC
 // Returns:
@@ -58,11 +49,6 @@ const CORS = {
 
 type Fundamentals = { pe: number; eps: number; pe3yAvg: number | null };
 
-// Index → ETF proxy. Alpha Vantage's OVERVIEW endpoint is
-// company/security-scoped and doesn't accept index symbols directly,
-// so we look up the ETF that tracks each index and use its P/E as a
-// stand-in for the underlying basket. Response is keyed back under
-// the original index symbol.
 const INDEX_ETF_PROXY: Record<string, string> = {
   "^GSPC": "SPY",   // S&P 500
   "^NDX":  "QQQ",   // NASDAQ 100
@@ -70,10 +56,6 @@ const INDEX_ETF_PROXY: Record<string, string> = {
   "^SOX":  "SOXX",  // PHLX Semiconductor
 };
 
-// 3Y-AVG P/E hardcoded since AV's OVERVIEW doesn't expose historical
-// annuals on the free tier. These move slowly (single-digit % per
-// year) so a yearly commit refresh is fine. LAST REFRESHED:
-// 2026-05-04. Sources: macrotrends.net per-index PE history pages.
 const INDEX_PE_3Y_AVG: Record<string, number> = {
   "^GSPC": 25.0,
   "^NDX":  30.0,
@@ -81,11 +63,6 @@ const INDEX_PE_3Y_AVG: Record<string, number> = {
   "^SOX":  35.0,
 };
 
-// Hardcoded current-PE fallback used only when both the cache table
-// and Alpha Vantage are unavailable (e.g. AV rate-limited, cache
-// schema not migrated, network blip). Same numbers can drift up to
-// a couple of points over a quarter — refresh quarterly, but the
-// Alpha Vantage path normally serves a fresher value anyway.
 const INDEX_PE_FALLBACK: Record<string, number> = {
   "^GSPC": 27.5,
   "^NDX":  33.0,
@@ -94,11 +71,19 @@ const INDEX_PE_FALLBACK: Record<string, number> = {
 };
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+// Inter-request delay enforced by AV's free tier. The header allowance
+// is 1 req / sec; 1.2 s gives a 20% safety margin so back-to-back
+// queries never trip the throttle even when network jitter is
+// counted as request time on AV's side.
+const AV_INTER_REQUEST_MS = 1_200;
 
-// ---- Cache layer (Supabase REST against the table created in
-// migration 0003_index_fundamentals_cache.sql) -------------------
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
-async function readCachedPe(etfSymbol: string): Promise<number | null> {
+// ---- Cache layer ----------------------------------------------------
+
+async function readCachedPe(etfSymbol: string): Promise<{ pe: number; ageMs: number } | null> {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
   try {
     const url = `${SUPABASE_URL}/rest/v1/index_fundamentals_cache` +
@@ -116,9 +101,10 @@ async function readCachedPe(etfSymbol: string): Promise<number | null> {
     if (!Array.isArray(rows) || rows.length === 0) return null;
     const row = rows[0];
     const fetchedAt = new Date(row?.fetched_at).getTime();
-    if (!isFinite(fetchedAt) || (Date.now() - fetchedAt) > CACHE_TTL_MS) return null;
+    if (!isFinite(fetchedAt)) return null;
     const pe = Number(row?.pe);
-    return isFinite(pe) && pe > 0 ? pe : null;
+    if (!isFinite(pe) || pe <= 0) return null;
+    return { pe, ageMs: Date.now() - fetchedAt };
   } catch {
     return null;
   }
@@ -134,8 +120,6 @@ async function writeCachedPe(etfSymbol: string, pe: number): Promise<void> {
         "apikey": SUPABASE_SERVICE_ROLE_KEY,
         "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         "Content-Type": "application/json",
-        // Upsert behaviour — overwrite the row keyed by `symbol`
-        // instead of conflicting on the primary key.
         "Prefer": "resolution=merge-duplicates",
       },
       body: JSON.stringify({
@@ -145,13 +129,17 @@ async function writeCachedPe(etfSymbol: string, pe: number): Promise<void> {
       }),
       signal: AbortSignal.timeout(5_000),
     });
-  } catch { /* best effort — cache miss next time is harmless */ }
+  } catch { /* best effort */ }
 }
 
 // ---- Alpha Vantage --------------------------------------------------
 
-async function fetchAlphaVantageEtfPe(etfSymbol: string): Promise<{ pe: number | null, debug?: any }> {
-  if (!ALPHAVANTAGE_API_KEY) return { pe: null, debug: { stage: 'no-key' } };
+type AvResult =
+  | { ok: true; pe: number }
+  | { ok: false; rateLimited: boolean };
+
+async function fetchAlphaVantageEtfPe(etfSymbol: string): Promise<AvResult> {
+  if (!ALPHAVANTAGE_API_KEY) return { ok: false, rateLimited: false };
   const url = `https://www.alphavantage.co/query?function=OVERVIEW` +
     `&symbol=${encodeURIComponent(etfSymbol)}` +
     `&apikey=${encodeURIComponent(ALPHAVANTAGE_API_KEY)}`;
@@ -160,39 +148,74 @@ async function fetchAlphaVantageEtfPe(etfSymbol: string): Promise<{ pe: number |
       headers: { "Accept": "application/json" },
       signal: AbortSignal.timeout(8_000),
     });
-    if (!res.ok) {
-      const bodyText = await res.text().catch(() => '<read failed>');
-      return { pe: null, debug: { stage: 'av-not-ok', status: res.status, body: bodyText.slice(0, 300) } };
-    }
+    if (!res.ok) return { ok: false, rateLimited: false };
     const data = await res.json();
+    // AV signals throttle / quota issues by returning a JSON envelope
+    // with `Information` (per-second rate hint) or `Note` (daily
+    // quota). Bail loudly so the caller can stop pounding AV with the
+    // remaining ETFs in the same batch.
+    if (data?.Information || data?.Note) {
+      return { ok: false, rateLimited: true };
+    }
     const pe = Number(data?.PERatio);
-    if (isFinite(pe) && pe > 0) return { pe };
-    // Couldn't extract a usable PE — surface the response shape so we
-    // can tell whether AV returned an error envelope, a "None" string,
-    // or a totally different field set for ETFs.
-    return { pe: null, debug: { stage: 'av-no-pe', dataKeys: Object.keys(data ?? {}).slice(0, 30), peRaw: data?.PERatio, sample: typeof data === 'object' && data !== null ? Object.fromEntries(Object.entries(data).slice(0, 5)) : data } };
-  } catch (e) {
-    return { pe: null, debug: { stage: 'av-throw', err: String(e).slice(0, 200) } };
+    if (isFinite(pe) && pe > 0) return { ok: true, pe };
+    // Empty `{}` shape on free tier when bursts overlap — also treat
+    // as rate-limit so we don't keep firing.
+    if (!data || Object.keys(data).length === 0) {
+      return { ok: false, rateLimited: true };
+    }
+    return { ok: false, rateLimited: false };
+  } catch {
+    return { ok: false, rateLimited: false };
   }
 }
 
-async function fetchIndexPe(indexSymbol: string): Promise<any> {
+// ---- Index dispatcher (sequential to respect AV rate cap) ----------
+
+async function resolveIndexPe(
+  indexSymbol: string,
+  avBlocked: { value: boolean },
+  isFirstAvCall: { value: boolean },
+): Promise<Fundamentals | null> {
   const etf = INDEX_ETF_PROXY[indexSymbol];
   if (!etf) return null;
+
   const cached = await readCachedPe(etf);
+  if (cached && cached.ageMs < CACHE_TTL_MS) {
+    // (a) fresh cache
+    return { pe: cached.pe, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null };
+  }
+
+  // Stale or missing — try AV unless the batch already saw a rate
+  // limit (any further calls would just compound the problem and burn
+  // daily quota for nothing).
+  if (!avBlocked.value && ALPHAVANTAGE_API_KEY) {
+    if (!isFirstAvCall.value) {
+      // Pace consecutive AV calls to honour the free-tier 1 req/s cap.
+      await sleep(AV_INTER_REQUEST_MS);
+    }
+    isFirstAvCall.value = false;
+    const av = await fetchAlphaVantageEtfPe(etf);
+    if (av.ok) {
+      // (b) live AV — write back and use.
+      await writeCachedPe(etf, av.pe);
+      return { pe: av.pe, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null };
+    }
+    if (av.rateLimited) avBlocked.value = true;
+  }
+
+  // (c) stale cache — better than the static fallback because it's
+  // still real AV-sourced data, just possibly a few days old.
   if (cached) {
-    return { pe: cached, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null, _source: 'cache' };
+    return { pe: cached.pe, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null };
   }
-  const av = await fetchAlphaVantageEtfPe(etf);
-  if (av.pe) {
-    await writeCachedPe(etf, av.pe);
-    return { pe: av.pe, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null, _source: 'av' };
+
+  // (d) hardcoded fallback — only on first deploy or total outage.
+  const fb = INDEX_PE_FALLBACK[indexSymbol];
+  if (fb) {
+    return { pe: fb, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null };
   }
-  const fallback = INDEX_PE_FALLBACK[indexSymbol];
-  if (fallback) {
-    return { pe: fallback, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null, _source: 'fallback', _avDebug: av.debug };
-  }
-  return { _avDebug: av.debug };
+  return null;
 }
 
 // ---- Finnhub --------------------------------------------------------
@@ -216,10 +239,6 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
     const eps = Number(m.epsTTM ?? m.epsBasicExclExtraItemsTTM ?? m.epsNormalizedAnnual);
     if (!isFinite(pe) || !isFinite(eps) || eps <= 0 || pe <= 0) return null;
 
-    // 3-year-avg PE from the annual series. Pick the 3 most-recent
-    // entries with a positive value so a single quirky year (loss-
-    // maker turning around or a one-off charge) doesn't pin the
-    // average to a meaningless number.
     let pe3yAvg: number | null = null;
     const annual = data?.series?.annual?.pe ?? [];
     if (Array.isArray(annual) && annual.length > 0) {
@@ -236,11 +255,6 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
   } catch {
     return null;
   }
-}
-
-async function fetchFundamentals(symbol: string): Promise<Fundamentals | null> {
-  if (symbol in INDEX_ETF_PROXY) return fetchIndexPe(symbol);
-  return fetchFinnhub(symbol);
 }
 
 // ---- HTTP entry -----------------------------------------------------
@@ -260,17 +274,15 @@ Deno.serve(async (req: Request) => {
   const tickers = param
     .split(",")
     .map((t) => t.trim())
-    // Skip categories that never have meaningful P/E. Indices are
-    // kept iff they have an ETF proxy in INDEX_ETF_PROXY.
     .filter((t) =>
       !!t &&
       t !== "CASH" &&
       !/\.PVT$/i.test(t) &&
       !/^\d{6}$/.test(t) &&
-      !/=F$/.test(t) &&             // futures
+      !/=F$/.test(t) &&
       (!t.startsWith("^") || (t in INDEX_ETF_PROXY)) &&
-      !/[-]USD$/i.test(t) &&         // crypto
-      !/=X$/.test(t)                 // forex
+      !/[-]USD$/i.test(t) &&
+      !/=X$/.test(t)
     );
   if (tickers.length === 0) {
     return new Response(JSON.stringify({}), {
@@ -278,20 +290,36 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Cap parallelism at 6 — Finnhub free is 60/min, AV usage is
-  // already cache-fronted, and Supabase REST handles the cache
-  // queries fine in parallel.
+  // Split into stocks (Finnhub, can run with parallelism 6) and
+  // indices (AV, must be serial). Run them concurrently with each
+  // other — they hit different vendors with independent rate caps.
+  const indexSymbols = tickers.filter((t) => t in INDEX_ETF_PROXY);
+  const stockSymbols = tickers.filter((t) => !(t in INDEX_ETF_PROXY));
   const out: Record<string, Fundamentals> = {};
-  const queue = [...tickers];
-  const workers = Array.from({ length: Math.min(6, queue.length) }, async () => {
-    while (queue.length > 0) {
-      const t = queue.shift();
-      if (!t) break;
-      const f = await fetchFundamentals(t);
+
+  const stocksTask = (async () => {
+    const queue = [...stockSymbols];
+    const workers = Array.from({ length: Math.min(6, queue.length) }, async () => {
+      while (queue.length > 0) {
+        const t = queue.shift();
+        if (!t) break;
+        const f = await fetchFinnhub(t);
+        if (f) out[t] = f;
+      }
+    });
+    await Promise.all(workers);
+  })();
+
+  const indicesTask = (async () => {
+    const avBlocked = { value: false };
+    const isFirstAvCall = { value: true };
+    for (const t of indexSymbols) {
+      const f = await resolveIndexPe(t, avBlocked, isFirstAvCall);
       if (f) out[t] = f;
     }
-  });
-  await Promise.all(workers);
+  })();
+
+  await Promise.all([stocksTask, indicesTask]);
 
   return new Response(JSON.stringify(out), {
     headers: { ...CORS, "Content-Type": "application/json" },
