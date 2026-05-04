@@ -150,8 +150,8 @@ async function writeCachedPe(etfSymbol: string, pe: number): Promise<void> {
 
 // ---- Alpha Vantage --------------------------------------------------
 
-async function fetchAlphaVantageEtfPe(etfSymbol: string): Promise<number | null> {
-  if (!ALPHAVANTAGE_API_KEY) return null;
+async function fetchAlphaVantageEtfPe(etfSymbol: string): Promise<{ pe: number | null, debug?: any }> {
+  if (!ALPHAVANTAGE_API_KEY) return { pe: null, debug: { stage: 'no-key' } };
   const url = `https://www.alphavantage.co/query?function=OVERVIEW` +
     `&symbol=${encodeURIComponent(etfSymbol)}` +
     `&apikey=${encodeURIComponent(ALPHAVANTAGE_API_KEY)}`;
@@ -160,40 +160,39 @@ async function fetchAlphaVantageEtfPe(etfSymbol: string): Promise<number | null>
       headers: { "Accept": "application/json" },
       signal: AbortSignal.timeout(8_000),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const bodyText = await res.text().catch(() => '<read failed>');
+      return { pe: null, debug: { stage: 'av-not-ok', status: res.status, body: bodyText.slice(0, 300) } };
+    }
     const data = await res.json();
-    // Alpha Vantage uses string fields. PERatio is the trailing P/E.
-    // Note: AV returns a literal string "None" when the field is
-    // unavailable, which Number() converts to NaN — caught by isFinite.
     const pe = Number(data?.PERatio);
-    return isFinite(pe) && pe > 0 ? pe : null;
-  } catch {
-    return null;
+    if (isFinite(pe) && pe > 0) return { pe };
+    // Couldn't extract a usable PE — surface the response shape so we
+    // can tell whether AV returned an error envelope, a "None" string,
+    // or a totally different field set for ETFs.
+    return { pe: null, debug: { stage: 'av-no-pe', dataKeys: Object.keys(data ?? {}).slice(0, 30), peRaw: data?.PERatio, sample: typeof data === 'object' && data !== null ? Object.fromEntries(Object.entries(data).slice(0, 5)) : data } };
+  } catch (e) {
+    return { pe: null, debug: { stage: 'av-throw', err: String(e).slice(0, 200) } };
   }
 }
 
-async function fetchIndexPe(indexSymbol: string): Promise<Fundamentals | null> {
+async function fetchIndexPe(indexSymbol: string): Promise<any> {
   const etf = INDEX_ETF_PROXY[indexSymbol];
   if (!etf) return null;
-  // Cache hit → return immediately.
   const cached = await readCachedPe(etf);
   if (cached) {
-    return { pe: cached, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null };
+    return { pe: cached, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null, _source: 'cache' };
   }
-  // Miss → ask Alpha Vantage. On success, write back to cache for
-  // the next 24 h.
-  const fresh = await fetchAlphaVantageEtfPe(etf);
-  if (fresh) {
-    await writeCachedPe(etf, fresh);
-    return { pe: fresh, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null };
+  const av = await fetchAlphaVantageEtfPe(etf);
+  if (av.pe) {
+    await writeCachedPe(etf, av.pe);
+    return { pe: av.pe, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null, _source: 'av' };
   }
-  // Fallback to the hardcoded constant so the chart still renders
-  // even when AV is rate-limited or temporarily unavailable.
   const fallback = INDEX_PE_FALLBACK[indexSymbol];
   if (fallback) {
-    return { pe: fallback, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null };
+    return { pe: fallback, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null, _source: 'fallback', _avDebug: av.debug };
   }
-  return null;
+  return { _avDebug: av.debug };
 }
 
 // ---- Finnhub --------------------------------------------------------
