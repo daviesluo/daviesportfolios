@@ -103,6 +103,25 @@ export default defineConfig({
     emptyOutDir: false,
     sourcemap: true,
     target: 'es2020',
+    // Force lower-case hex hashes instead of Vite's default base64
+    // so the bundle filename can never contain a substring like "ad",
+    // "ads", "track" etc. that AdGuard / uBlock / similar content
+    // filters strip. We hit exactly that: a build named
+    // `index-DIMhU_Ad.js` was being silently rewritten out of the
+    // served HTML by AdGuard's system-level proxy because the URL
+    // contained `Ad`. The page loaded a blank <div id="root"> and no
+    // errors fired — the script tag was just missing entirely.
+    // Hex (0-9a-f) is alphabet-safe against every variant of that
+    // class of false positive, and the explicit `app-` prefix keeps
+    // the path obviously app-scoped.
+    rollupOptions: {
+      output: {
+        hashCharacters: 'hex',
+        entryFileNames: 'assets/app-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash][extname]',
+      },
+    },
   },
   server: {
     port: 5173,
