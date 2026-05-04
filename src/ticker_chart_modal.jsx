@@ -34,9 +34,9 @@ const TICKER_DISPLAY_NAMES = {
 
 // Indices we still surface a P/E YTD chart for, via the fundamentals
 // Edge Function's INDEX_ETF_PROXY mapping (^GSPC→SPY, ^NDX→QQQ,
-// ^RUT→IWM). Other ^-prefixed tickers (^VIX, ^SOX, ^TNX) don't have
-// a meaningful EPS so the button stays hidden.
-const INDEX_PE_ALLOWED = new Set(['^GSPC', '^NDX', '^RUT']);
+// ^RUT→IWM, ^SOX→SOXX). Other ^-prefixed tickers (^VIX, ^TNX) don't
+// have a meaningful EPS so the button stays hidden.
+const INDEX_PE_ALLOWED = new Set(['^GSPC', '^NDX', '^RUT', '^SOX']);
 
 const FX_4DP = new Set(['GBPUSD=X', 'GBPCNH=X', 'USDCNY=X']);
 
