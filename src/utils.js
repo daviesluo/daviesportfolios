@@ -472,12 +472,16 @@ async function fetchYahoo(tickers) {
   const edgeResult = await fetchViaEdge(liveTickers).then(normalizeEdgeResult).catch(() => null);
   const haveEverything = edgeResult && liveTickers.every(t => edgeResult[t]);
   if (haveEverything) return edgeResult;
-  const missing = liveTickers.filter(t => !edgeResult?.[t]);
-  if (missing.length === 0) {
-    return edgeResult && Object.keys(edgeResult).length > 0 ? edgeResult : null;
-  }
-  // Edge missed at least one symbol — proxy-fallback only the missing
-  // set, not the full list.
+  // If the Edge Function returned anything at all (even a partial set),
+  // trust it — the tickers it omitted genuinely failed server-side
+  // (Yahoo doesn't have them, .PVT placeholder, geo-blocked CN fund,
+  // etc.). Re-trying the same upstreams through browser CORS proxies
+  // wastes the proxies' rate limits with no realistic chance of
+  // different data. Only fall back to proxies when the Edge call
+  // ITSELF failed (no result whatsoever).
+  if (edgeResult) return edgeResult;
+  const missing = liveTickers;
+  // Edge call totally failed — proxy fallback for everything.
   const proxyPairs = await Promise.all(missing.map(async (t) => [t, await fetchOneYahooChart(t)]));
   const out = { ...(edgeResult || {}) };
   for (const [t, r] of proxyPairs) if (r) out[t] = r;
@@ -784,6 +788,7 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
   // Function was healthy.
   const ipp = includePrePost ? "&includePrePost=true" : "";
 
+  let edgeSucceeded = false;
   try {
     const edgeUrl =
       `${EDGE_PRICES_URL.replace(/\/prices$/, "/chart")}` +
@@ -796,20 +801,30 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
     if (res.ok) {
       const data = await res.json();
       if (data && typeof data === "object") {
+        edgeSucceeded = true;
         for (const [t, pts] of Object.entries(data)) {
           if (Array.isArray(pts) && pts.length > 0) out[t] = pts;
         }
       }
     }
-  } catch (_) { /* proxy fallback below picks up missing tickers */ }
+  } catch (_) { /* fall through to proxy-fallback */ }
 
   const missing = list.filter((t) => !out[t]);
   if (missing.length === 0) return out;
 
-  // Per-ticker CORS-proxy fallback — only for tickers the Edge missed.
-  // CN fund codes route to xueqiu / danjuanapp via the proxy chain
-  // (different egress IPs from Deno Deploy, so they can succeed when
-  // the Edge Function's eastmoney path is geo-blocked).
+  // If the Edge Function ran successfully and just didn't return some
+  // tickers, those tickers genuinely failed server-side — the Edge
+  // already exhausts all sensible upstreams server-side (Yahoo with
+  // .PVT-strip fallback for stocks; eastmoney → lsjz → danjuanapp for
+  // CN funds). Re-trying via the same Yahoo / xueqiu endpoints through
+  // browser CORS proxies just burns the proxies' rate limits without
+  // any chance of a different outcome. Skip them quietly.
+  //
+  // Only fall back to proxies when the Edge Function call ITSELF failed
+  // (network error, gateway 5xx, function not deployed). In that case
+  // proxies are the only way to get any data for the page.
+  if (edgeSucceeded) return out;
+
   await Promise.all(missing.map(async (s) => {
     const data = await (CN_FUND_RE.test(s)
       ? fetchCnFundHistoryViaProxy(s, range)
