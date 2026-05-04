@@ -463,24 +463,25 @@ async function fetchYahoo(tickers) {
     return Object.keys(out).length > 0 ? out : null;
   }
 
-  // Race edge function (batch, fast) vs CORS proxy (per-ticker, fallback).
-  // Both start immediately; whichever returns valid data first wins.
-  const edgeP = fetchViaEdge(liveTickers).then(normalizeEdgeResult);
-  const proxyP = Promise.all(liveTickers.map(async (t) => [t, await fetchOneYahooChart(t)]))
-    .then(pairs => {
-      const out = {};
-      for (const [t, r] of pairs) if (r) out[t] = r;
-      return Object.keys(out).length > 0 ? out : null;
-    });
-
-  const result = await Promise.any(
-    [edgeP, proxyP].map(p => p.then(r => {
-      if (r && Object.keys(r).length > 0) return r;
-      return Promise.reject(new Error("no data"));
-    }))
-  ).catch(() => null);
-
-  return result;
+  // Edge Function first — it batches all tickers in one server-side
+  // request and is the source of truth when healthy. Only fall back to
+  // the per-ticker CORS-proxy chain for tickers the Edge missed; the
+  // proxies have aggressive rate limits so racing them on every refresh
+  // (the previous Promise.any approach) burned through their daily
+  // quota even when the Edge Function was working fine.
+  const edgeResult = await fetchViaEdge(liveTickers).then(normalizeEdgeResult).catch(() => null);
+  const haveEverything = edgeResult && liveTickers.every(t => edgeResult[t]);
+  if (haveEverything) return edgeResult;
+  const missing = liveTickers.filter(t => !edgeResult?.[t]);
+  if (missing.length === 0) {
+    return edgeResult && Object.keys(edgeResult).length > 0 ? edgeResult : null;
+  }
+  // Edge missed at least one symbol — proxy-fallback only the missing
+  // set, not the full list.
+  const proxyPairs = await Promise.all(missing.map(async (t) => [t, await fetchOneYahooChart(t)]));
+  const out = { ...(edgeResult || {}) };
+  for (const [t, r] of proxyPairs) if (r) out[t] = r;
+  return Object.keys(out).length > 0 ? out : null;
 }
 
 // Gentle random walk fallback
