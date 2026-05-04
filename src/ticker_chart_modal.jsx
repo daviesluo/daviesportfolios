@@ -139,7 +139,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       if (cancelled) return;
       const row = f?.[ticker];
       const eps = row?.eps;
-      setPeSupported(typeof eps === 'number' && eps > 0);
+      const pe  = row?.pe;
+      // ETF proxies (^GSPC/^NDX/^RUT → SPY/QQQ/IWM) have no aggregate
+      // EPS in Finnhub's free tier; the Edge Function returns eps:0
+      // there. Treat the row as "supported" if EITHER eps > 0 OR
+      // pe > 0 — the client reconstructs an implied EPS from the
+      // last close ÷ pe so the P/E series is still drawable.
+      const hasEps = typeof eps === 'number' && eps > 0;
+      const hasPe  = typeof pe  === 'number' && pe  > 0;
+      setPeSupported(hasEps || hasPe);
       const avg = row?.pe3yAvg;
       setPe3yAvg(typeof avg === 'number' && isFinite(avg) && avg > 0 ? avg : null);
     });
@@ -246,7 +254,18 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       if (rangeKey === 'PE') {
         const fundamentals = await fetchFundamentals([ticker]);
         if (cancelled) return;
-        const eps = fundamentals?.[ticker]?.eps;
+        const row = fundamentals?.[ticker];
+        // ETF-proxy tickers (^GSPC/^NDX/^RUT) typically come back with
+        // eps:0 — Finnhub doesn't aggregate EPS at the index/ETF
+        // level. Reconstruct an implied EPS from the most recent close
+        // and the published trailing P/E (eps_implied = lastClose / pe)
+        // so the historical series can still be divided into P/E
+        // values that match the labelled y-axis.
+        let eps = row?.eps;
+        const pe = row?.pe;
+        if ((!eps || eps <= 0) && typeof pe === 'number' && pe > 0 && data.length > 0) {
+          eps = data[data.length - 1].close / pe;
+        }
         if (!eps || eps <= 0) {
           reportError('fetch.pe.no-eps', {
             symbol: ticker,
@@ -302,8 +321,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           if (rk === 'PE') {
             const f = await fetchFundamentals([ticker]);
             if (cancelled) return;
-            const eps = f?.[ticker]?.eps;
-            if (!eps || eps <= 0) continue; // skip — can't build PE series
+            const row = f?.[ticker];
+            let eps = row?.eps;
+            const pe = row?.pe;
+            // Same implied-EPS fallback as the main fetch above —
+            // index proxies don't have aggregate EPS in Finnhub.
+            if ((!eps || eps <= 0) && typeof pe === 'number' && pe > 0 && data.length > 0) {
+              eps = data[data.length - 1].close / pe;
+            }
+            if (!eps || eps <= 0) continue;
             data = data.map(p => ({ date: p.date, close: p.close / eps }));
           }
           modalCacheSet(cacheKey, data);
