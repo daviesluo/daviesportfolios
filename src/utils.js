@@ -394,16 +394,13 @@ async function fetchViaEdge(liveTickers) {
   const controller = new AbortController();
   const tid = setTimeout(() => controller.abort(), 12000);
   try {
-    // apikey via URL query param keeps this as a simple GET (no
-    // CORS preflight). Same reason as the chart Edge Function call
-    // below — the browser would otherwise fire an OPTIONS preflight
-    // for the Authorization header and Supabase's gateway has been
-    // intermittently returning non-OK on those, dropping every
-    // request to the proxy-fallback path.
     const res = await fetch(
-      `${EDGE_PRICES_URL}?tickers=${liveTickers.map(encodeURIComponent).join(",")}` +
-      `&apikey=${encodeURIComponent(EDGE_ANON_KEY)}`,
+      `${EDGE_PRICES_URL}?tickers=${liveTickers.map(encodeURIComponent).join(",")}`,
       {
+        headers: {
+          "Authorization": `Bearer ${EDGE_ANON_KEY}`,
+          "apikey": EDGE_ANON_KEY,
+        },
         cache: "no-store",
         signal: controller.signal,
       }
@@ -526,13 +523,11 @@ export async function fetchFundamentals(symbols) {
   const list = Array.from(new Set((symbols || []).filter(Boolean)));
   if (list.length === 0) return {};
   try {
-    // apikey in URL → simple GET → no CORS preflight. See chart /
-    // prices Edge Function calls for the same workaround.
     const url =
       `${EDGE_PRICES_URL.replace(/\/prices$/, "/fundamentals")}` +
-      `?tickers=${encodeURIComponent(list.join(","))}` +
-      `&apikey=${encodeURIComponent(EDGE_ANON_KEY)}`;
+      `?tickers=${encodeURIComponent(list.join(","))}`;
     const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return {};
@@ -790,20 +785,12 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
   const ipp = includePrePost ? "&includePrePost=true" : "";
 
   try {
-    // Pass the apikey as a URL query param instead of an Authorization
-    // header so the browser treats this as a "simple" GET request and
-    // skips the CORS preflight. Supabase's chart Edge Function was
-    // failing OPTIONS preflight from this origin (gateway returned a
-    // non-OK status, breaking every batched chart fetch and forcing
-    // the slow per-ticker proxy fallback for every refresh). With no
-    // custom headers there is no preflight, the GET goes through
-    // directly. Same trick we'd use for any flaky CORS gateway.
     const edgeUrl =
       `${EDGE_PRICES_URL.replace(/\/prices$/, "/chart")}` +
       `?tickers=${encodeURIComponent(list.join(","))}` +
-      `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}` +
-      `&apikey=${encodeURIComponent(EDGE_ANON_KEY)}`;
+      `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}`;
     const res = await fetch(edgeUrl, {
+      headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
       signal: AbortSignal.timeout(8000),
     });
     if (res.ok) {
