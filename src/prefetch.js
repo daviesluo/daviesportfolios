@@ -45,16 +45,40 @@ const TICKER_CACHE_CAP = 200;
 // pay a cold fetch on first open.
 const DAILY_ONLY_RE = /^(?:\d{6}|.*\.PVT)$/i;
 
+// Indices we surface a P/E YTD chart for. The fundamentals Edge
+// Function maps these to ETF proxies (SPY/QQQ/IWM) so a trailing P/E
+// is available; everything else under MC (^VIX, ^TNX, BZ=F, FX pairs)
+// has no meaningful EPS so we don't include it in the PE-prefetch
+// candidate list.
+const PE_PROXIED_INDICES = new Set(['^GSPC', '^NDX', '^RUT']);
+
 /**
- * @param {{ tickers: string[], spSymbol: string, extendedHours: boolean, phase: string }} opts
+ * @param {{
+ *   tickers: string[],
+ *   spSymbol: string,
+ *   extendedHours: boolean,
+ *   phase: string,
+ *   mcTickers?: string[],
+ * }} opts
  */
-export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, phase }) {
-  if (!tickers || tickers.length === 0) return;
+export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, phase, mcTickers }) {
+  const portfolioTickers = tickers || [];
+  const mcList = mcTickers || [];
+  if (portfolioTickers.length === 0 && mcList.length === 0) return;
   const year = new Date().getFullYear();
   const useExt = !!(extendedHours && phase && phase !== 'regular');
   const tickerVariantTag = useExt ? 'ext' : 'reg';
   const phaseTag = phase || '';
-  const allSymbols = [spSymbol, ...tickers];
+  // Fetched/cached symbols cover three roles, deduped:
+  //   - spSymbol  → benchmark for PerfChart (only the perf cache cares)
+  //   - portfolio → both PerfChart series and modal drilldown
+  //   - mc        → modal drilldown only (clicking a Market Conditions
+  //                 card opens the same TickerChartModal)
+  const allSymbols = Array.from(new Set([spSymbol, ...portfolioTickers, ...mcList].filter(Boolean)));
+  // Modal-clickable subset — everything except spSymbol (the perf
+  // benchmark; modal never opens for it). Used to gate which symbols
+  // get written into the dp.tickerChart cache.
+  const modalSymbols = new Set(allSymbols.filter(s => s !== spSymbol));
 
   // Split daily-only symbols (CN funds, .PVT) from intraday-friendly
   // ones so each group gets the right fetch params per range.
@@ -125,8 +149,11 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     Storage.saveYtd({ year, byRange: ytdYear });
 
     // ---- Write back to dp.tickerChart (TickerChartModal cache)
+    // Covers portfolio tickers AND Market-Conditions tickers (modal
+    // drilldown opens for both). Skip spSymbol — modal never opens
+    // for the PerfChart benchmark.
     let tcChanged = false;
-    for (const t of tickers) {  // skip spSymbol — never opens in the modal
+    for (const t of modalSymbols) {
       let data = batch[t];
       if (data && params.variant === 'closed') data = filterToLatestDay(data);
       else if (data && (params.variant === 'reg' || params.variant === 'ext')) data = filterToLast24h(data);
@@ -166,10 +193,17 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   const peKey = (t) => `${t}|PE|${tickerVariantTag}|${phaseTag}`;
   // Only consider tickers that (a) have a freshly-cached YTD daily
   // series we can divide, and (b) don't already have a fresh PE
-  // entry. Indices / futures / .PVT / CN funds / crypto / forex
-  // never get a PE entry from the Edge Function so they're naturally
-  // skipped — fetchFundamentals filters them server-side too.
-  const peCandidates = tickers.filter((t) => {
+  // entry. Portfolio tickers come from `tickers`; the three big US
+  // indices come in via `mcTickers` and are gated by
+  // PE_PROXIED_INDICES (^GSPC/^NDX/^RUT — the only MC symbols that
+  // resolve to a meaningful trailing P/E via the Edge Function's
+  // INDEX_ETF_PROXY map). Other MC symbols (^VIX / ^TNX / BZ=F /
+  // forex) have no EPS so they're filtered server-side too.
+  const peEligible = Array.from(new Set([
+    ...portfolioTickers,
+    ...mcList.filter(t => PE_PROXIED_INDICES.has(t)),
+  ]));
+  const peCandidates = peEligible.filter((t) => {
     const ytd = ytdEntriesNow[t];
     if (!ytd?.data || !Array.isArray(ytd.data) || ytd.data.length < 2) return false;
     const cached = tcAll.entries?.[peKey(t)];
