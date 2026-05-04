@@ -42,11 +42,24 @@ type Fundamentals = { pe: number; eps: number; pe3yAvg: number | null };
 // Field-name fallbacks:
 //   pe  → peTTM | peBasicExclExtraTTM | peNormalizedAnnual
 //   eps → epsTTM | epsBasicExclExtraItemsTTM | epsNormalizedAnnual
+// Three major indices use ETF proxies for the P/E lookup since
+// Finnhub's /stock/metric is meant for individual companies — but the
+// matching ETF (SPY for ^GSPC, QQQ for ^NDX, IWM for ^RUT) carries
+// a published trailing P/E that's a reasonable stand-in for the
+// underlying basket. The response is keyed back under the original
+// `^GSPC` etc. so the client doesn't need to know about the alias.
+const INDEX_ETF_PROXY: Record<string, string> = {
+  "^GSPC": "SPY",
+  "^NDX":  "QQQ",
+  "^RUT":  "IWM",
+};
+
 async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
   if (!FINNHUB_API_KEY) return null;
+  const queriedSymbol = INDEX_ETF_PROXY[symbol] ?? symbol;
   const url =
     `https://finnhub.io/api/v1/stock/metric` +
-    `?symbol=${encodeURIComponent(symbol)}&metric=all` +
+    `?symbol=${encodeURIComponent(queriedSymbol)}&metric=all` +
     `&token=${encodeURIComponent(FINNHUB_API_KEY)}`;
   try {
     const res = await fetch(url, {
