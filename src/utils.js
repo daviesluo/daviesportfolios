@@ -776,68 +776,47 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
   const list = Array.from(new Set(symbols.filter(Boolean)));
   if (list.length === 0) return out;
 
-  // Race the Edge Function (one batched request for all tickers) against
-  // per-ticker CORS-proxy fetches in parallel. Resolve as soon as either
-  //   (a) every requested ticker has data in `out`, OR
-  //   (b) both paths have finished (so we resolve with whatever we got).
-  // Concretely: when Edge returns the full batch fast, we don't sit and
-  // wait for the slower proxy chain to complete — the Promise resolves
-  // the moment the last ticker is filled. (Codex P1 review on PR #47.)
+  // Edge Function first (single batched request, server-side direct
+  // Yahoo fetch — fast and CORS-clean). Per-ticker CORS-proxy chain is
+  // ONLY consulted for tickers the Edge missed; firing it concurrently
+  // with the Edge call (the previous Promise-based race) burned through
+  // the free proxies' rate limits on every refresh even when the Edge
+  // Function was healthy.
   const ipp = includePrePost ? "&includePrePost=true" : "";
 
-  return new Promise((resolve) => {
-    let resolved = false;
-    let edgeDone = false;
-    let proxiesRemaining = list.length;
-
-    const check = () => {
-      if (resolved) return;
-      const allFilled = list.every((t) => out[t]);
-      if (allFilled || (edgeDone && proxiesRemaining === 0)) {
-        resolved = true;
-        resolve(out);
-      }
-    };
-
-    // Edge Function (batched) ----------------------------------------------
-    (async () => {
-      try {
-        const edgeUrl =
-          `${EDGE_PRICES_URL.replace(/\/prices$/, "/chart")}` +
-          `?tickers=${encodeURIComponent(list.join(","))}` +
-          `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}`;
-        const res = await fetch(edgeUrl, {
-          headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
-          signal: AbortSignal.timeout(8000),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && typeof data === "object") {
-            for (const [t, pts] of Object.entries(data)) {
-              if (Array.isArray(pts) && pts.length > 0 && !out[t]) out[t] = pts;
-            }
-          }
+  try {
+    const edgeUrl =
+      `${EDGE_PRICES_URL.replace(/\/prices$/, "/chart")}` +
+      `?tickers=${encodeURIComponent(list.join(","))}` +
+      `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}`;
+    const res = await fetch(edgeUrl, {
+      headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && typeof data === "object") {
+        for (const [t, pts] of Object.entries(data)) {
+          if (Array.isArray(pts) && pts.length > 0) out[t] = pts;
         }
-      } catch (_) { /* proxy path may still succeed */ }
-      edgeDone = true;
-      check();
-    })();
-
-    // Per-ticker CORS-proxy fetches ----------------------------------------
-    // CN fund codes route to danjuanapp via CORS proxies (different
-    // egress IPs from Deno Deploy, so they can succeed when the Edge
-    // Function's eastmoney path is geo-blocked). Yahoo proxy doesn't
-    // know these symbols so we don't bother trying it.
-    for (const s of list) {
-      const promise = CN_FUND_RE.test(s)
-        ? fetchCnFundHistoryViaProxy(s, range)
-        : fetchHistorical(s, range, interval, includePrePost);
-      promise
-        .then((data) => { if (data && data.length > 0 && !out[s]) out[s] = data; })
-        .catch(() => {})
-        .finally(() => { proxiesRemaining--; check(); });
+      }
     }
-  });
+  } catch (_) { /* proxy fallback below picks up missing tickers */ }
+
+  const missing = list.filter((t) => !out[t]);
+  if (missing.length === 0) return out;
+
+  // Per-ticker CORS-proxy fallback — only for tickers the Edge missed.
+  // CN fund codes route to xueqiu / danjuanapp via the proxy chain
+  // (different egress IPs from Deno Deploy, so they can succeed when
+  // the Edge Function's eastmoney path is geo-blocked).
+  await Promise.all(missing.map(async (s) => {
+    const data = await (CN_FUND_RE.test(s)
+      ? fetchCnFundHistoryViaProxy(s, range)
+      : fetchHistorical(s, range, interval, includePrePost)).catch(() => null);
+    if (data && data.length > 0) out[s] = data;
+  }));
+  return out;
 }
 
 // -------- Position coordinates on 100x100 pitch (home team attacks UP; GK at bottom) --------
