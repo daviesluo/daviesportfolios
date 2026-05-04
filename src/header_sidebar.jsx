@@ -329,7 +329,7 @@ function StatRow({ label, value, mono, dim, color }) {
 // `mc-hide-mobile` class which is display:none on the mobile breakpoint.
 const MC_INDICES = [
   // Mobile renders a 3 × 3 grid (one less card than desktop, SOX dropped)
-  // in the order GSPC / NDX / RUT — VIX / BZ=F / TNX — GBPUSD / GBPCNH /
+  // in the order GSPC / NDX / RUT — VIX / BZ=F / TNX — GBPUSD / GBPCNY /
   // USDCNY. The grid-auto-flow:row CSS on the mobile container means the
   // visible cards fill row-by-row in this array order.
   { ticker: "^GSPC",    name: "S&P 500",      nameB: "S&P",    nameN: "500",  ftTicker: "ES=F",  ftName: "S&P Futures"    },
@@ -340,7 +340,7 @@ const MC_INDICES = [
   { ticker: "BZ=F",     name: "Brent Oil"    },
   { ticker: "^TNX",     name: "US 10Y Yield", nameB: "US 10Y", nameN: "Yield" },
   { ticker: "GBPUSD=X", name: "GBP/USD"      },
-  { ticker: "GBPCNH=X", name: "GBP/CNY"      },
+  { ticker: "GBPCNY=X", name: "GBP/CNY"      },
   { ticker: "USDCNY=X", name: "USD/CNY"      },
 ];
 
@@ -355,7 +355,7 @@ function fmtChg(n, baseTicker) {
   return sign + n.toFixed(2);
 }
 
-const FX_4DP = new Set(["GBPUSD=X", "GBPCNH=X"]);
+const FX_4DP = new Set(["GBPUSD=X", "GBPCNY=X"]);
 function fmtMcPrice(price, baseTicker) {
   if (price == null || isNaN(price)) return "—";
   if (baseTicker === "^TNX") return price.toFixed(2) + "%";

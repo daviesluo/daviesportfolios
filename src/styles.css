@@ -1002,7 +1002,7 @@ body {
     min-width: 0;
   }
   /* Drop the raw Yahoo ticker symbol on the mobile MC strip — the FX
-     row in particular ("GBPUSD=X" / "GBPCNH=X" / "USDCNY=X") was the
+     row in particular ("GBPUSD=X" / "GBPCNY=X" / "USDCNY=X") was the
      widest line in the card header and made the 3-col grid feel
      cluttered. The friendly name on the same row is enough. */
   .market-conditions-mobile .mc-card-ticker { display: none; }
