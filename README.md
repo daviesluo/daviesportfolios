@@ -61,9 +61,13 @@ secrets server-side.
   P/E for context. Const-EPS approximation (the curve's shape
   mirrors price within a quarter); the y-axis swaps to bare P/E
   values and the modal header shifts to "P/E RATIO" so the basis is
-  unambiguous. ETFs / futures / non-major indices / crypto / forex /
-  loss-makers hide the button automatically since Finnhub returns no
-  usable EPS for them.
+  unambiguous. For the index proxies Finnhub's free tier only
+  returns the trailing P/E (no aggregate EPS), so the client
+  reconstructs an implied EPS from `lastClose / pe` and divides the
+  YTD series through that — the y-axis still anchors at the
+  Finnhub-quoted current P/E. ETFs / futures / non-major indices /
+  crypto / forex / loss-makers hide the button automatically since
+  Finnhub returns no usable P/E or EPS for them.
 - **DST-aware scoreboard label** — the "GMT TIME" label flips to
   "BST TIME" automatically during British Summer Time (last Sun Mar →
   last Sun Oct). All chart UTC-string parsing appends an explicit `Z`

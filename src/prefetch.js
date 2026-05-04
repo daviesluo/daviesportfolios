@@ -184,9 +184,17 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     let tcChanged = false;
     const now = Date.now();
     for (const t of peCandidates) {
-      const eps = fundamentals?.[t]?.eps;
-      if (typeof eps !== 'number' || eps <= 0) continue;
+      const row = fundamentals?.[t];
+      let eps = row?.eps;
+      const pe = row?.pe;
       const ytdData = ytdEntriesNow[t].data;
+      // ETF-proxy tickers (^GSPC/^NDX/^RUT) come back with eps:0 —
+      // reconstruct an implied EPS from the last close ÷ trailing P/E
+      // so the historical series can still be divided into P/E values.
+      if ((typeof eps !== 'number' || eps <= 0) && typeof pe === 'number' && pe > 0 && ytdData.length > 0) {
+        eps = ytdData[ytdData.length - 1].close / pe;
+      }
+      if (typeof eps !== 'number' || eps <= 0) continue;
       const peSeries = ytdData.map((p) => ({ date: p.date, close: p.close / eps }));
       tcAll.entries[peKey(t)] = { ts: now, data: peSeries };
       tcChanged = true;

@@ -71,8 +71,21 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
     const m = data?.metric;
     if (!m) return null;
     const pe  = Number(m.peTTM ?? m.peBasicExclExtraTTM ?? m.peNormalizedAnnual);
-    const eps = Number(m.epsTTM ?? m.epsBasicExclExtraItemsTTM ?? m.epsNormalizedAnnual);
-    if (!isFinite(pe) || !isFinite(eps) || eps <= 0 || pe <= 0) return null;
+    let   eps = Number(m.epsTTM ?? m.epsBasicExclExtraItemsTTM ?? m.epsNormalizedAnnual);
+    if (!isFinite(pe) || pe <= 0) return null;
+    // ETFs / index proxies (SPY/QQQ/IWM) typically don't carry an
+    // aggregate epsTTM in Finnhub's free tier — only peTTM is
+    // populated. Reject `eps <= 0` only for individual stocks; for
+    // proxied symbols we send eps:0 and the client reconstructs an
+    // implied EPS from the historical-close anchor (last_close / pe).
+    // The chart's shape ends up identical either way; the y-axis
+    // labels match the Finnhub-quoted P/E.
+    const isProxiedIndex = symbol in INDEX_ETF_PROXY;
+    if (!isProxiedIndex) {
+      if (!isFinite(eps) || eps <= 0) return null;
+    } else {
+      if (!isFinite(eps) || eps <= 0) eps = 0;
+    }
 
     // 3-year-avg PE from the annual series. Pick the 3 most-recent
     // entries with a positive value so a single quirky year (loss-
