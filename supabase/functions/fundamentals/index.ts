@@ -54,9 +54,10 @@ const INDEX_ETF_PROXY: Record<string, string> = {
   "^RUT":  "IWM",
 };
 
-async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
+async function fetchFinnhub(symbol: string): Promise<Fundamentals | { _debugRaw: any } | null> {
   if (!FINNHUB_API_KEY) return null;
   const queriedSymbol = INDEX_ETF_PROXY[symbol] ?? symbol;
+  const isProxiedIndex = symbol in INDEX_ETF_PROXY;
   const url =
     `https://finnhub.io/api/v1/stock/metric` +
     `?symbol=${encodeURIComponent(queriedSymbol)}&metric=all` +
@@ -66,21 +67,35 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
       headers: { "Accept": "application/json" },
       signal: AbortSignal.timeout(8_000),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      // DEBUG: surface the response shape for proxied indices so we can
+      // see why ^GSPC etc. aren't getting fundamentals back. Remove
+      // once the data source is confirmed working.
+      if (isProxiedIndex) {
+        return { _debugRaw: { status: res.status, statusText: res.statusText, queriedSymbol } } as any;
+      }
+      return null;
+    }
     const data = await res.json();
     const m = data?.metric;
-    if (!m) return null;
+    if (!m) {
+      if (isProxiedIndex) {
+        return { _debugRaw: { status: res.status, queriedSymbol, dataKeys: data ? Object.keys(data) : null, sample: data } } as any;
+      }
+      return null;
+    }
     const pe  = Number(m.peTTM ?? m.peBasicExclExtraTTM ?? m.peNormalizedAnnual);
     let   eps = Number(m.epsTTM ?? m.epsBasicExclExtraItemsTTM ?? m.epsNormalizedAnnual);
-    if (!isFinite(pe) || pe <= 0) return null;
-    // ETFs / index proxies (SPY/QQQ/IWM) typically don't carry an
-    // aggregate epsTTM in Finnhub's free tier — only peTTM is
-    // populated. Reject `eps <= 0` only for individual stocks; for
-    // proxied symbols we send eps:0 and the client reconstructs an
-    // implied EPS from the historical-close anchor (last_close / pe).
-    // The chart's shape ends up identical either way; the y-axis
-    // labels match the Finnhub-quoted P/E.
-    const isProxiedIndex = symbol in INDEX_ETF_PROXY;
+    if (!isFinite(pe) || pe <= 0) {
+      // DEBUG: still echo the raw metric so we can see what Finnhub
+      // returns for ETFs (SPY/QQQ/IWM are ETFs, not stocks, and Finnhub
+      // free tier may not populate peTTM for them).
+      if (isProxiedIndex) {
+        const peKeys = Object.keys(m).filter(k => /pe|eps|earn|ratio/i.test(k));
+        return { _debugRaw: { queriedSymbol, peCandidates: Object.fromEntries(peKeys.map(k => [k, m[k]])), allMetricKeysCount: Object.keys(m).length, firstFewKeys: Object.keys(m).slice(0, 30) } } as any;
+      }
+      return null;
+    }
     if (!isProxiedIndex) {
       if (!isFinite(eps) || eps <= 0) return null;
     } else {
@@ -151,7 +166,7 @@ Deno.serve(async (req: Request) => {
   // requests for a 30-ticker portfolio would burst over that ceiling
   // briefly; cap parallelism at 6 to stay under it for typical
   // refreshes.
-  const out: Record<string, Fundamentals> = {};
+  const out: Record<string, Fundamentals | { _debugRaw: any }> = {};
   const queue = [...tickers];
   const workers = Array.from({ length: Math.min(6, queue.length) }, async () => {
     while (queue.length > 0) {
