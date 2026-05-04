@@ -51,16 +51,24 @@ describe('fetchHistoricalBatch — Edge Function fast path', () => {
     expect(out.NVDA).toEqual([{ date: "2026-04-27", close: 200 }]);
   });
 
-  it('returns whatever the Edge Function delivered + whatever proxies delivered, even when one ticker fails everywhere', async () => {
+  it('trusts Edge omissions as real failures and does NOT fall back to proxies when Edge succeeded', async () => {
+    // Pins the post-39c73c4 behaviour: when the Edge Function call
+    // itself succeeds (200 + JSON), tickers it didn't include are
+    // treated as genuinely unavailable — the Edge already exhausts
+    // every reasonable upstream server-side, so re-trying the SAME
+    // sources through browser CORS proxies would just burn the
+    // proxies' rate limits without any chance of new data.
+    let proxyHits = 0;
     ANY_FETCH(async (url) => {
       const u = String(url);
       if (u.includes("/functions/v1/chart")) {
-        // Edge Function only knew about AAPL.
         return new Response(JSON.stringify({
           AAPL: [{ date: "2026-04-27", close: 270 }],
         }), { status: 200 });
       }
-      // Proxy: NVDA succeeds, MISSING fails.
+      // Even though a proxy COULD return data for NVDA here, the new
+      // logic shouldn't fire it.
+      proxyHits++;
       if (u.includes("NVDA")) {
         return new Response(JSON.stringify(yahooBody([200], ["2026-04-27"])), { status: 200 });
       }
@@ -69,8 +77,29 @@ describe('fetchHistoricalBatch — Edge Function fast path', () => {
 
     const out = await fetchHistoricalBatch(["AAPL", "NVDA", "MISSING"]);
     expect(out.AAPL).toBeDefined();
-    expect(out.NVDA).toBeDefined();
+    expect(out.NVDA).toBeUndefined();
     expect(out.MISSING).toBeUndefined();
+    expect(proxyHits).toBe(0);
+  });
+
+  it('falls back to proxies for ALL tickers when the Edge Function call itself fails', async () => {
+    // Counterpart to the previous test: proxy-fallback only kicks in
+    // when the Edge call itself failed (network error / 5xx / not
+    // deployed). In that case the proxies are the only available
+    // route to data.
+    ANY_FETCH(async (url) => {
+      const u = String(url);
+      if (u.includes("/functions/v1/chart")) {
+        return new Response("boom", { status: 500 });
+      }
+      if (u.includes("NVDA")) {
+        return new Response(JSON.stringify(yahooBody([200], ["2026-04-27"])), { status: 200 });
+      }
+      return new Response("not found", { status: 404 });
+    });
+
+    const out = await fetchHistoricalBatch(["AAPL", "NVDA"]);
+    expect(out.NVDA).toBeDefined();
   });
 });
 
