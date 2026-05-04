@@ -1,30 +1,49 @@
 // Supabase Edge Function: fundamentals
 //
-// Returns current TTM P/E + trailing EPS for a list of tickers via
-// Finnhub's stock-metric endpoint. We tried Yahoo's v7/quote and
-// v10/quoteSummary but both were crumb-gated to a degree the Deno
-// Deploy egress IPs couldn't reliably bootstrap; Finnhub's free tier
-// (60 calls / minute, no payment info) gives a stable shape.
+// Returns current TTM P/E + trailing EPS for a list of tickers from
+// two data sources:
+//   - Individual stocks → Finnhub `/stock/metric` (60 calls / minute,
+//     no payment info on free tier). Yahoo's v7/quote and v10/
+//     quoteSummary were crumb-gated to a degree Deno Deploy egress IPs
+//     couldn't reliably bootstrap, so Finnhub it is.
+//   - The three major US indices (^GSPC / ^NDX / ^RUT) → Financial
+//     Modeling Prep `/v3/quote/{ETF}` + `/v3/key-metrics/{ETF}?period
+//     =annual` against their ETF proxies (SPY / QQQ / IWM). Finnhub's
+//     free tier confirmed empty for ETFs (returns 19 price-stats
+//     fields and zero fundamentals — no peTTM, no epsTTM, no annual
+//     series), so the proxy lookup MUST go to a different vendor.
+//     FMP free tier = 250 calls / day, plenty for our ~10-call/day
+//     usage on these three symbols.
 //
-// Env: FINNHUB_API_KEY (required). Set in Supabase Edge Functions →
-// Settings → Secrets. If absent, the function returns {} for every
-// request and the client treats every ticker as "no P/E available"
-// (button stays hidden) — no errors thrown, just no feature.
+// Env:
+//   FINNHUB_API_KEY  (required for individual stocks)
+//   FMP_API_KEY      (required for ^GSPC / ^NDX / ^RUT — register a
+//                     free key at financialmodelingprep.com)
+// If either is absent the corresponding tickers just don't appear in
+// the response — no errors thrown, the client treats them as "no P/E".
 //
 // Used by the ticker chart modal's "P/E YTD" view: the client divides
 // each YTD daily-close price by the EPS returned here to plot a P/E
 // series. The approximation assumes EPS hasn't moved within YTD —
 // fine for most stocks within a quarter, becomes inaccurate right
-// after an earnings report.
+// after an earnings report. For ETF proxies (where FMP gives us a
+// trailing P/E but no aggregate EPS), the client reconstructs an
+// implied EPS from `lastClose / pe` so the y-axis still anchors at
+// the published current P/E.
 //
-// Tickers without meaningful fundamentals (futures, indices, ETFs,
+// Tickers without meaningful fundamentals (futures, non-major indices,
 // crypto, .PVT placeholders, 6-digit CN funds, loss-makers with
 // negative EPS) are simply absent from the response.
 //
-// Call: GET /functions/v1/fundamentals?tickers=NVDA,GOOG,AAPL
-// Returns: { NVDA: { pe: 30.5, eps: 6.5 }, GOOG: { pe: 25, eps: 8.2 } }
+// Call: GET /functions/v1/fundamentals?tickers=NVDA,GOOG,^GSPC
+// Returns:
+//   {
+//     NVDA:  { pe: 40.16, eps: 4.90, pe3yAvg: 43.13 },
+//     ^GSPC: { pe: 22.50, eps: 0,    pe3yAvg: 24.10 }   // eps:0 → use implied
+//   }
 
 const FINNHUB_API_KEY = Deno.env.get("FINNHUB_API_KEY") ?? "";
+const FMP_API_KEY     = Deno.env.get("FMP_API_KEY") ?? "";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -33,74 +52,44 @@ const CORS = {
 
 type Fundamentals = { pe: number; eps: number; pe3yAvg: number | null };
 
-// Finnhub returns metric data shaped like:
-//   { metric: { peTTM: 30.5, epsTTM: 6.5, ... },
-//     series: { annual: { pe: [{period, v}, ...], ... },
-//               quarterly: {...} } }
-// We need peTTM + epsTTM (current) plus the most recent 3 annual PE
-// values for the 3-year-average reference line on the YTD chart.
-// Field-name fallbacks:
-//   pe  → peTTM | peBasicExclExtraTTM | peNormalizedAnnual
-//   eps → epsTTM | epsBasicExclExtraItemsTTM | epsNormalizedAnnual
-// Three major indices use ETF proxies for the P/E lookup since
-// Finnhub's /stock/metric is meant for individual companies — but the
-// matching ETF (SPY for ^GSPC, QQQ for ^NDX, IWM for ^RUT) carries
-// a published trailing P/E that's a reasonable stand-in for the
-// underlying basket. The response is keyed back under the original
-// `^GSPC` etc. so the client doesn't need to know about the alias.
+// Three major indices use ETF proxies for the P/E lookup because
+// `/stock/metric` (Finnhub) and `/quote/{etf}` (FMP) are both
+// company/security endpoints — they don't accept the index symbol
+// itself. The ETF that tracks the index (SPY for ^GSPC, QQQ for ^NDX,
+// IWM for ^RUT) publishes a trailing P/E that's a reasonable stand-in
+// for the underlying basket. The response is keyed back under the
+// original `^GSPC` etc. so the client doesn't need to know about the
+// alias.
 const INDEX_ETF_PROXY: Record<string, string> = {
   "^GSPC": "SPY",
   "^NDX":  "QQQ",
   "^RUT":  "IWM",
 };
 
-async function fetchFinnhub(symbol: string): Promise<Fundamentals | { _debugRaw: any } | null> {
+// Finnhub: individual stocks only. Free tier returns:
+//   { metric: { peTTM: 30.5, epsTTM: 6.5, ... },
+//     series: { annual: { pe: [{period, v}, ...], ... } } }
+// Field-name fallbacks:
+//   pe  → peTTM | peBasicExclExtraTTM | peNormalizedAnnual
+//   eps → epsTTM | epsBasicExclExtraItemsTTM | epsNormalizedAnnual
+async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
   if (!FINNHUB_API_KEY) return null;
-  const queriedSymbol = INDEX_ETF_PROXY[symbol] ?? symbol;
-  const isProxiedIndex = symbol in INDEX_ETF_PROXY;
   const url =
     `https://finnhub.io/api/v1/stock/metric` +
-    `?symbol=${encodeURIComponent(queriedSymbol)}&metric=all` +
+    `?symbol=${encodeURIComponent(symbol)}&metric=all` +
     `&token=${encodeURIComponent(FINNHUB_API_KEY)}`;
   try {
     const res = await fetch(url, {
       headers: { "Accept": "application/json" },
       signal: AbortSignal.timeout(8_000),
     });
-    if (!res.ok) {
-      // DEBUG: surface the response shape for proxied indices so we can
-      // see why ^GSPC etc. aren't getting fundamentals back. Remove
-      // once the data source is confirmed working.
-      if (isProxiedIndex) {
-        return { _debugRaw: { status: res.status, statusText: res.statusText, queriedSymbol } } as any;
-      }
-      return null;
-    }
+    if (!res.ok) return null;
     const data = await res.json();
     const m = data?.metric;
-    if (!m) {
-      if (isProxiedIndex) {
-        return { _debugRaw: { status: res.status, queriedSymbol, dataKeys: data ? Object.keys(data) : null, sample: data } } as any;
-      }
-      return null;
-    }
+    if (!m) return null;
     const pe  = Number(m.peTTM ?? m.peBasicExclExtraTTM ?? m.peNormalizedAnnual);
-    let   eps = Number(m.epsTTM ?? m.epsBasicExclExtraItemsTTM ?? m.epsNormalizedAnnual);
-    if (!isFinite(pe) || pe <= 0) {
-      // DEBUG: still echo the raw metric so we can see what Finnhub
-      // returns for ETFs (SPY/QQQ/IWM are ETFs, not stocks, and Finnhub
-      // free tier may not populate peTTM for them).
-      if (isProxiedIndex) {
-        const peKeys = Object.keys(m).filter(k => /pe|eps|earn|ratio/i.test(k));
-        return { _debugRaw: { queriedSymbol, peCandidates: Object.fromEntries(peKeys.map(k => [k, m[k]])), allMetricKeysCount: Object.keys(m).length, firstFewKeys: Object.keys(m).slice(0, 30) } } as any;
-      }
-      return null;
-    }
-    if (!isProxiedIndex) {
-      if (!isFinite(eps) || eps <= 0) return null;
-    } else {
-      if (!isFinite(eps) || eps <= 0) eps = 0;
-    }
+    const eps = Number(m.epsTTM ?? m.epsBasicExclExtraItemsTTM ?? m.epsNormalizedAnnual);
+    if (!isFinite(pe) || !isFinite(eps) || eps <= 0 || pe <= 0) return null;
 
     // 3-year-avg PE from the annual series. Pick the 3 most-recent
     // entries with a positive value so a single quirky year (loss-
@@ -123,6 +112,58 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | { _debugRaw:
   } catch {
     return null;
   }
+}
+
+// FMP: ETF P/E for the three index proxies. Two requests per ETF —
+//   /v3/quote/{ETF}                       → current trailing P/E
+//   /v3/key-metrics/{ETF}?period=annual   → historical annual peRatio
+// Returns eps:0 deliberately; the client reconstructs an implied EPS
+// from lastClose / pe so the historical YTD price series can still
+// be divided into P/E values.
+async function fetchFmpEtf(etfSymbol: string): Promise<Fundamentals | null> {
+  if (!FMP_API_KEY) return null;
+  const enc = encodeURIComponent(etfSymbol);
+  try {
+    const quoteRes = await fetch(
+      `https://financialmodelingprep.com/api/v3/quote/${enc}?apikey=${encodeURIComponent(FMP_API_KEY)}`,
+      { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(8_000) },
+    );
+    if (!quoteRes.ok) return null;
+    const quoteArr = await quoteRes.json();
+    const quote = Array.isArray(quoteArr) ? quoteArr[0] : null;
+    const pe = Number(quote?.pe);
+    if (!isFinite(pe) || pe <= 0) return null;
+
+    // 3-year-avg from annual key-metrics. Most-recent 3 fiscal years.
+    let pe3yAvg: number | null = null;
+    try {
+      const kmRes = await fetch(
+        `https://financialmodelingprep.com/api/v3/key-metrics/${enc}?period=annual&limit=3&apikey=${encodeURIComponent(FMP_API_KEY)}`,
+        { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(8_000) },
+      );
+      if (kmRes.ok) {
+        const km = await kmRes.json();
+        if (Array.isArray(km)) {
+          const peVals = km
+            .map((r: any) => Number(r?.peRatio ?? r?.peRatioTTM))
+            .filter((v) => isFinite(v) && v > 0);
+          if (peVals.length > 0) {
+            pe3yAvg = peVals.reduce((s, v) => s + v, 0) / peVals.length;
+          }
+        }
+      }
+    } catch { /* fall through — return without pe3yAvg */ }
+
+    return { pe, eps: 0, pe3yAvg };
+  } catch {
+    return null;
+  }
+}
+
+async function fetchFundamentals(symbol: string): Promise<Fundamentals | null> {
+  const proxy = INDEX_ETF_PROXY[symbol];
+  if (proxy) return fetchFmpEtf(proxy);
+  return fetchFinnhub(symbol);
 }
 
 Deno.serve(async (req: Request) => {
@@ -156,23 +197,25 @@ Deno.serve(async (req: Request) => {
       !/[-]USD$/i.test(t) &&         // crypto
       !/=X$/.test(t)                 // forex
     );
-  if (tickers.length === 0 || !FINNHUB_API_KEY) {
+  // Need at least one provider key to do anything. Either is enough:
+  //   - FINNHUB_API_KEY only → individual stocks work, indices don't
+  //   - FMP_API_KEY only      → indices work, individual stocks don't
+  if (tickers.length === 0 || (!FINNHUB_API_KEY && !FMP_API_KEY)) {
     return new Response(JSON.stringify({}), {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
 
-  // Free tier is 60 calls / minute → ~1 call / sec. Issuing N parallel
-  // requests for a 30-ticker portfolio would burst over that ceiling
-  // briefly; cap parallelism at 6 to stay under it for typical
-  // refreshes.
-  const out: Record<string, Fundamentals | { _debugRaw: any }> = {};
+  // Cap parallelism so we don't burst past either provider's per-second
+  // rate limit (Finnhub free = 60/min ≈ 1/sec; FMP free = ~10/sec).
+  // 6 in-flight is safe for both.
+  const out: Record<string, Fundamentals> = {};
   const queue = [...tickers];
   const workers = Array.from({ length: Math.min(6, queue.length) }, async () => {
     while (queue.length > 0) {
       const t = queue.shift();
       if (!t) break;
-      const f = await fetchFinnhub(t);
+      const f = await fetchFundamentals(t);
       if (f) out[t] = f;
     }
   });
