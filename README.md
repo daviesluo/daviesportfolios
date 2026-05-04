@@ -88,12 +88,9 @@ secrets server-side.
   (initial load + manual Refresh click) silently warms every chart
   range × ticker into `localStorage`, so opening any ticker modal or
   flipping PerfChart range buttons hits cache instead of paying the
-  Edge Function round-trip. Coverage spans the portfolio holdings,
-  the S&P benchmark AND every Market-Conditions card (^GSPC, ^NDX,
-  ^RUT, ^SOX, ^VIX, BZ=F, ^TNX, GBPUSD=X, GBPCNH=X, USDCNY=X) — plus
-  P/E YTD for the three ETF-proxied indices. TTL-aligned per range
-  (5 m / 30 m / 1 h / 12 h / 12 h); auto-refresh ticks skip the
-  prefetch since they'd re-fetch with nothing fresh to show.
+  Edge Function round-trip. TTL-aligned per range (5 m / 30 m / 1 h /
+  12 h / 12 h); auto-refresh ticks skip the prefetch since they'd
+  re-fetch with nothing fresh to show.
 - **PWA** — installable on iOS / Android home screen, offline-capable
   via Workbox precache, in-app "new version available" banner.
 - **HMAC-signed token auth** — passwords never leave the Edge Function;
