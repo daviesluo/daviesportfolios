@@ -628,6 +628,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
 
   function handleMove(e) {
     if (!hasData || !svgRef.current) return;
+    // Support both mouse events (desktop) and touch events (mobile).
+    // Touch events expose pointer coords on `e.touches[0]`; the SVG
+    // also has `touch-action: none` set so finger drags don't fight
+    // the page scroller for ownership.
+    const clientX = e.touches?.[0]?.clientX ?? e.clientX;
+    if (clientX == null) return;
     const rect = svgRef.current.getBoundingClientRect();
     // The SVG uses the default preserveAspectRatio="xMidYMid meet", which
     // letterboxes the viewBox content when the rendered element's aspect
@@ -644,7 +650,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       contentW = rect.width;  contentH = contentW / vbRatio;
       offX = 0; offY = (rect.height - contentH) / 2;
     }
-    const sx = ((e.clientX - rect.left - offX) / contentW) * W;
+    const sx = ((clientX - rect.left - offX) / contentW) * W;
     // Clamp the cursor's chart-space x to [padL, W-padR] so the crosshair
     // pins to the first / last data point when the mouse drifts into the
     // axis padding instead of "snapping off".
@@ -726,9 +732,16 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               ref={svgRef}
               viewBox={`0 0 ${W} ${H}`}
               width="100%" height={H}
-              style={{ display: 'block' }}
+              // touchAction:none lets the chart claim horizontal finger
+              // drags for crosshair updates instead of the browser
+              // interpreting them as page-scroll / pinch-zoom gestures.
+              // Mobile users can still scroll the modal by putting their
+              // finger above or below the chart.
+              style={{ display: 'block', touchAction: 'none' }}
               onMouseMove={handleMove}
               onMouseLeave={handleLeave}
+              onTouchStart={handleMove}
+              onTouchMove={handleMove}
             >
               {/* Y-axis grid + labels */}
               {ticksY.map((v, i) => (
