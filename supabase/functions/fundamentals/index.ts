@@ -115,35 +115,33 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
 }
 
 // FMP: ETF P/E for the three index proxies. Two requests per ETF —
-//   /v3/quote/{ETF}                       → current trailing P/E
-//   /v3/key-metrics/{ETF}?period=annual   → historical annual peRatio
-// Returns eps:0 deliberately; the client reconstructs an implied EPS
-// from lastClose / pe so the historical YTD price series can still
-// be divided into P/E values.
+//   /stable/quote?symbol={ETF}                          → current trailing P/E (`pe`)
+//   /stable/ratios?symbol={ETF}&period=annual&limit=3   → historical annual P/E
+// FMP retired their `/api/v3/*` endpoints on 2025-08-31 for new
+// accounts; both calls below use the post-2025 stable path. Returns
+// eps:0 deliberately — the FMP shape doesn't include an aggregate EPS
+// for ETFs, and the client reconstructs an implied EPS from
+// lastClose / pe so the YTD price series can still be divided into
+// P/E values.
 async function fetchFmpEtf(etfSymbol: string): Promise<Fundamentals | { _debug: any } | null> {
   if (!FMP_API_KEY) return { _debug: { stage: 'no-key', etfSymbol } } as any;
-  // Safe key fingerprint — length and first 4 chars — so we can tell
-  // from the client whether the env var got mangled (whitespace,
-  // truncation, etc.) without actually exposing the secret.
-  const keyLen = FMP_API_KEY.length;
-  const keyHead = FMP_API_KEY.slice(0, 4);
-  const keyTail = FMP_API_KEY.slice(-2);
-  const keyHasWhitespace = /\s/.test(FMP_API_KEY);
-  const keyHasQuotes = /['"]/.test(FMP_API_KEY);
   const enc = encodeURIComponent(etfSymbol);
   try {
-    const quoteUrl = `https://financialmodelingprep.com/api/v3/quote/${enc}?apikey=${encodeURIComponent(FMP_API_KEY)}`;
+    const quoteUrl = `https://financialmodelingprep.com/stable/quote?symbol=${enc}&apikey=${encodeURIComponent(FMP_API_KEY)}`;
     const quoteRes = await fetch(
       quoteUrl,
       { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(8_000) },
     );
     if (!quoteRes.ok) {
       const bodyText = await quoteRes.text().catch(() => '<read failed>');
-      return { _debug: { stage: 'quote-not-ok', etfSymbol, status: quoteRes.status, body: bodyText.slice(0, 400), keyFingerprint: { len: keyLen, head: keyHead, tail: keyTail, hasWhitespace: keyHasWhitespace, hasQuotes: keyHasQuotes } } } as any;
+      return { _debug: { stage: 'quote-not-ok', etfSymbol, status: quoteRes.status, body: bodyText.slice(0, 400) } } as any;
     }
     const quoteArr = await quoteRes.json();
     const quote = Array.isArray(quoteArr) ? quoteArr[0] : null;
-    const pe = Number(quote?.pe);
+    // FMP /stable/quote returns `pe` for the trailing ratio — same key
+    // name as the legacy /v3 shape. Fall back to common alternatives
+    // in case the field gets renamed in a future stable release.
+    const pe = Number(quote?.pe ?? quote?.peRatio ?? quote?.priceEarningsRatio);
     if (!isFinite(pe) || pe <= 0) {
       return { _debug: { stage: 'no-usable-pe', etfSymbol, peRaw: quote?.pe, quoteKeys: quote ? Object.keys(quote) : null, sample: Array.isArray(quoteArr) ? quoteArr.slice(0, 1) : quoteArr } } as any;
     }
@@ -151,18 +149,22 @@ async function fetchFmpEtf(etfSymbol: string): Promise<Fundamentals | { _debug: 
     let pe3yAvg: number | null = null;
     let kmDebug: any = null;
     try {
-      const kmUrl = `https://financialmodelingprep.com/api/v3/key-metrics/${enc}?period=annual&limit=3&apikey=${encodeURIComponent(FMP_API_KEY)}`;
+      const kmUrl = `https://financialmodelingprep.com/stable/ratios?symbol=${enc}&period=annual&limit=3&apikey=${encodeURIComponent(FMP_API_KEY)}`;
       const kmRes = await fetch(
         kmUrl,
         { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(8_000) },
       );
       if (!kmRes.ok) {
-        kmDebug = { stage: 'km-not-ok', status: kmRes.status };
+        const bodyText = await kmRes.text().catch(() => '<read failed>');
+        kmDebug = { stage: 'km-not-ok', status: kmRes.status, body: bodyText.slice(0, 200) };
       } else {
         const km = await kmRes.json();
         if (Array.isArray(km)) {
+          // Stable endpoint may name the field `priceEarningsRatio`,
+          // `peRatio`, or `priceToEarningsRatio` depending on version.
+          // Try the lot.
           const peVals = km
-            .map((r: any) => Number(r?.peRatio ?? r?.peRatioTTM))
+            .map((r: any) => Number(r?.priceEarningsRatio ?? r?.peRatio ?? r?.priceToEarningsRatio ?? r?.peRatioTTM))
             .filter((v) => isFinite(v) && v > 0);
           if (peVals.length > 0) {
             pe3yAvg = peVals.reduce((s, v) => s + v, 0) / peVals.length;
@@ -177,8 +179,6 @@ async function fetchFmpEtf(etfSymbol: string): Promise<Fundamentals | { _debug: 
       kmDebug = { stage: 'km-throw', err: String(e).slice(0, 200) };
     }
 
-    // Annotate the success path with kmDebug too if 3Y avg failed —
-    // this lets us see whether quote alone worked but km failed.
     if (pe3yAvg === null && kmDebug) {
       return { pe, eps: 0, pe3yAvg, _debug: kmDebug } as any;
     }
