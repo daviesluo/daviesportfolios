@@ -120,7 +120,11 @@ Deno.serve(async (req: Request) => {
       !/\.PVT$/i.test(t) &&
       !/^\d{6}$/.test(t) &&
       !/=F$/.test(t) &&             // futures
-      !t.startsWith("^") &&          // indices
+      // Indices: skip unless they have an ETF-proxy mapping (^GSPC,
+      // ^NDX, ^RUT). Other ^-prefixed symbols (^VIX, ^SOX, ^TNX)
+      // have no meaningful EPS so we drop them here to avoid a wasted
+      // Finnhub call that always returns null.
+      (!t.startsWith("^") || (t in INDEX_ETF_PROXY)) &&
       !/[-]USD$/i.test(t) &&         // crypto
       !/=X$/.test(t)                 // forex
     );
