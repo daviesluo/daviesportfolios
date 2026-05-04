@@ -454,6 +454,7 @@ function Board({ isReadOnly }) {
             marketData={marketData}
             extendedHours={extendedHours}
             phase={currentPhase}
+            onCardClick={setViewingTicker}
           />
         </div>
         {viewMode === 'heatmap' ? (
@@ -506,6 +507,7 @@ function Board({ isReadOnly }) {
           extendedHours={extendedHours}
           phase={currentPhase}
           className="market-conditions-mobile"
+          onCardClick={setViewingTicker}
         />
         <SidebarFoot source={source} />
       </main>
@@ -529,10 +531,10 @@ function Board({ isReadOnly }) {
         />
       )}
 
-      {viewingTicker && portfolio.holdings[viewingTicker] && (
+      {viewingTicker && (
         <TickerChartModal
           ticker={viewingTicker}
-          holding={portfolio.holdings[viewingTicker]}
+          holding={portfolio.holdings[viewingTicker] ?? null}
           marketData={marketData}
           extendedHours={extendedHours}
           phase={currentPhase}

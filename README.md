@@ -54,11 +54,14 @@ secrets server-side.
   in without needing a manual refresh. Previous bars stay on screen
   during each fetch — no spinner flicker.
 - **P/E YTD view** — sixth range button on the ticker chart modal
-  for stocks with positive trailing EPS. Plots `price ÷ EPS` over
-  YTD via Finnhub fundamentals. Const-EPS approximation (the curve's
-  shape mirrors price within a quarter); the y-axis swaps to bare
-  P/E values and the modal header shifts to "P/E RATIO" so the basis
-  is unambiguous. ETFs / futures / indices / crypto / forex /
+  for stocks with positive trailing EPS, plus the three big US
+  indices (`^GSPC`, `^NDX`, `^RUT`) via an ETF-proxy lookup
+  (SPY / QQQ / IWM). Plots `price ÷ EPS` over YTD via Finnhub
+  fundamentals, with a horizontal dashed line at the 3-year-average
+  P/E for context. Const-EPS approximation (the curve's shape
+  mirrors price within a quarter); the y-axis swaps to bare P/E
+  values and the modal header shifts to "P/E RATIO" so the basis is
+  unambiguous. ETFs / futures / non-major indices / crypto / forex /
   loss-makers hide the button automatically since Finnhub returns no
   usable EPS for them.
 - **DST-aware scoreboard label** — the "GMT TIME" label flips to
@@ -68,6 +71,13 @@ secrets server-side.
   (was off by one hour for non-UTC users).
 - **Heatmap drilldown** — clicking any heatmap tile opens the
   per-ticker chart modal (mirrors the tactics-board view's drilldown).
+- **Market Conditions drilldown** — every card in the indices /
+  commodities / FX column is clickable. Opens the same 1D / 1W / 1M /
+  3M / YTD modal used for individual stocks; `^GSPC`, `^NDX` and
+  `^RUT` additionally show a P/E YTD chart with a 3-year-average
+  reference line, sourced via the fundamentals Edge Function's
+  index → ETF proxy (SPY / QQQ / IWM publish a trailing P/E that
+  stands in for the underlying basket).
 - **Hide values toggle** — masks dollar amounts with `*` so the page
   is screenshot-safe; percentages stay visible.
 - **Background chart prefetch** — every successful price refresh
@@ -148,11 +158,19 @@ to the prompt.
 ### Ticker chart modal
 
 - **Range buttons**: 1D / 1W / 1M / 3M / YTD plus an optional
-  **P/E YTD** for stocks with positive trailing EPS. CN funds (6-digit
-  codes) and `.PVT` private holdings only show the daily ranges
-  (1M / 3M / YTD) since they don't trade intraday on Yahoo. ETFs /
-  futures / indices / crypto / forex / loss-makers don't show the
-  P/E button (Finnhub returns no usable EPS for them).
+  **P/E YTD** for stocks with positive trailing EPS and the three
+  big US indices (`^GSPC` / `^NDX` / `^RUT`, via ETF-proxy P/E).
+  CN funds (6-digit codes) and `.PVT` private holdings only show the
+  daily ranges (1M / 3M / YTD) since they don't trade intraday on
+  Yahoo. ETFs / futures / non-major indices / crypto / forex /
+  loss-makers don't show the P/E button (Finnhub returns no usable
+  EPS for them).
+- **Opens for any board surface** — clicking a tactics-board player,
+  a heatmap tile, or a Market Conditions card all route through the
+  same modal. Indices / futures / forex / yield tickers render with
+  a context-appropriate y-axis label (no currency prefix; `%` suffix
+  for `^TNX`; 4-decimal places for FX pairs); the modal title shows
+  a friendly name (e.g. "S&P 500 ^GSPC") for non-equity tickers.
 - **1D view** spans the trailing 24 h with two dashed markers:
   `CLOSE` at the previous regular close and `OPEN` at today's open.
   The displayed % is "since previous close", matching the
@@ -188,6 +206,17 @@ where stocks aren't trading; ^GSPC bars are clipped to RTH only.
 Hover the chart for a crosshair: vertical dashed line, dots on both
 lines, per-series % chips next to each dot, and a date pill at the
 bottom.
+
+### Market Conditions
+
+The left column's grid of indices / commodities / FX cards is fully
+clickable — tap any card to open the same chart modal individual
+stocks use, with the full 1D / 1W / 1M / 3M / YTD range row. `^GSPC`,
+`^NDX` and `^RUT` additionally surface a **P/E YTD** button (sourced
+from the matching ETF's trailing P/E via Finnhub) with a 3-year-
+average dashed reference line. Yields render with a `%` suffix, FX
+pairs at four decimals, and indices / futures without a currency
+prefix so the y-axis matches each instrument's natural scale.
 
 ### Sidebar
 

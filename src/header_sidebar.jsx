@@ -371,7 +371,7 @@ function vixRegime(price) {
   return           { color: "var(--loss)",             label: "FEAR" };
 }
 
-function MarketConditions({ marketData, extendedHours, phase, className = '' }) {
+function MarketConditions({ marketData, extendedHours, phase, className = '', onCardClick }) {
   const useExt = extendedHours && phase !== "regular";
   return (
     <aside className={`market-conditions${className ? " " + className : ""}`}>
@@ -383,8 +383,21 @@ function MarketConditions({ marketData, extendedHours, phase, className = '' }) 
         const pct       = d ? (d.dayPct ?? 0) : null;
         const prevClose = d ? (d.prevClose ?? d.lastPrice) : null;
         const dayChange = (price != null && prevClose != null) ? price - prevClose : null;
+        // Card click always opens the canonical (non-futures) symbol so
+        // ^GSPC/^NDX/^RUT keep their P/E YTD button regardless of the
+        // ext-hours toggle. The futures-substitution is purely a "what
+        // price is most relevant right now" thing for the card face.
+        const handleClick = onCardClick ? () => onCardClick(ticker) : undefined;
         return (
-          <section key={activeTicker} className={`panel mc-card${hideMobile ? " mc-hide-mobile" : ""}`}>
+          <section
+            key={activeTicker}
+            className={`panel mc-card${hideMobile ? " mc-hide-mobile" : ""}${onCardClick ? " mc-card-clickable" : ""}`}
+            onClick={handleClick}
+            onKeyDown={onCardClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCardClick(ticker); } } : undefined}
+            role={onCardClick ? "button" : undefined}
+            tabIndex={onCardClick ? 0 : undefined}
+            title={onCardClick ? `Open ${name} chart` : undefined}
+          >
             <div className="mc-card-head">
               <h3 className="panel-title" style={{ margin: 0 }}>
                 {(nameB && nameN && !useExt) ? (

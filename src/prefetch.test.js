@@ -109,6 +109,12 @@ describe('prefetchAllChartData → TickerChartModal cache-key contract', () => {
         ];
         return /** @type {any} */ ({ ok: true, json: async () => out });
       }
+      // PE-prefetch hits the fundamentals Edge Function after the
+      // chart loop. Match the suite-wide stub so the call doesn't
+      // hang on the proxy-fallback Promise below.
+      if (u.includes('/functions/v1/fundamentals')) {
+        return /** @type {any} */ ({ ok: true, json: async () => ({}) });
+      }
       return new Promise(() => {});
     });
 

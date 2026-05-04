@@ -12,6 +12,47 @@ import { reportError } from './ops_error.js';
 
 const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$' };
 
+// Friendly modal-title names for non-stock tickers. Stocks just show
+// the ticker symbol since the company name isn't carried anywhere in
+// the holdings shape; indices/futures/forex/yields all have ASCII
+// tickers that mean nothing to a human and benefit from a label.
+const TICKER_DISPLAY_NAMES = {
+  '^GSPC':    'S&P 500',
+  '^NDX':     'NASDAQ 100',
+  '^RUT':     'Russell 2000',
+  '^SOX':     'PHLX SOX',
+  '^VIX':     'VIX',
+  '^TNX':     'US 10Y Yield',
+  'BZ=F':     'Brent Oil',
+  'ES=F':     'S&P Futures',
+  'NQ=F':     'Nasdaq Futures',
+  'RTY=F':    'R2K Futures',
+  'GBPUSD=X': 'GBP/USD',
+  'GBPCNH=X': 'GBP/CNY',
+  'USDCNY=X': 'USD/CNY',
+};
+
+// Indices we still surface a P/E YTD chart for, via the fundamentals
+// Edge Function's INDEX_ETF_PROXY mapping (^GSPC→SPY, ^NDX→QQQ,
+// ^RUT→IWM). Other ^-prefixed tickers (^VIX, ^SOX, ^TNX) don't have
+// a meaningful EPS so the button stays hidden.
+const INDEX_PE_ALLOWED = new Set(['^GSPC', '^NDX', '^RUT']);
+
+const FX_4DP = new Set(['GBPUSD=X', 'GBPCNH=X', 'USDCNY=X']);
+
+// Per-ticker price formatter. Indices / futures / forex / yields don't
+// carry a currency symbol; yields are rendered as percentages; the two
+// FX pairs the app shows always need 4 dp. Stocks fall through to the
+// currency-prefixed format the modal had before.
+function fmtTickerPrice(price, ticker, sym) {
+  if (price == null || !isFinite(price)) return '—';
+  if (ticker === '^TNX') return price.toFixed(2) + '%';
+  if (FX_4DP.has(ticker)) return price.toFixed(4);
+  if (/=X$/.test(ticker)) return price.toFixed(4);
+  if (/^\^/.test(ticker) || /=F$/.test(ticker)) return fmtPr(price);
+  return `${sym}${fmtPr(price)}`;
+}
+
 // Persistent fetch cache so re-opening the modal — even after a page
 // reload — is instant. The previous in-memory Map reset on every load,
 // so cold starts always paid the full Edge Function + proxy round-trip
@@ -74,8 +115,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   //   2. Async fundamentals fetch on modal open. ETFs / loss-makers /
   //      anything Yahoo doesn't have a positive trailingEps for set
   //      `peSupported` to false and the button stays hidden.
+  // ^GSPC / ^NDX / ^RUT are supported via the Edge Function's index→ETF
+  // proxy (Finnhub doesn't carry indices, but SPY/QQQ/IWM publish a
+  // trailing P/E that's a reasonable stand-in for the underlying basket).
+  // Other ^-prefixed tickers (VIX, SOX, TNX) and futures / forex are
+  // ruled out at the pattern stage.
   const supportsPePattern = !dailyOnly
-    && !/^\^/.test(ticker)
+    && (!/^\^/.test(ticker) || INDEX_PE_ALLOWED.has(ticker))
     && !/=F$/.test(ticker)
     && !/=X$/.test(ticker)
     && !/[-]USD$/i.test(ticker);
@@ -540,7 +586,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     if (cYRectRef.current) cYRectRef.current.setAttribute('y', String(y - 9));
     if (cYTextRef.current) {
       cYTextRef.current.setAttribute('y', String(y));
-      cYTextRef.current.textContent = rangeKey === 'PE' ? p.close.toFixed(2) : `${sym}${fmtPr(p.close)}`;
+      cYTextRef.current.textContent = rangeKey === 'PE' ? p.close.toFixed(2) : fmtTickerPrice(p.close, ticker, sym);
     }
     if (cPctRectRef.current) {
       cPctRectRef.current.setAttribute('x', String(x + 6));
@@ -610,12 +656,16 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       <header className="modal-head">
         <div>
           <div className="modal-eyebrow mono">{rangeKey === 'PE' ? 'P/E RATIO' : 'PRICE'}</div>
-          <h2 className="modal-title mono">{ticker}</h2>
+          <h2 className="modal-title mono">
+            {TICKER_DISPLAY_NAMES[ticker]
+              ? <>{TICKER_DISPLAY_NAMES[ticker]} <span className="dim" style={{ fontSize: '0.7em' }}>{ticker}</span></>
+              : ticker}
+          </h2>
           <div className="modal-meta">
             <span className="mono dim">{rangeKey === 'PE' ? 'P/E' : 'Last'}</span>
             <span className="mono">{
               lastClose != null
-                ? (rangeKey === 'PE' ? lastClose.toFixed(2) : `${sym}${fmtPr(lastClose)}`)
+                ? (rangeKey === 'PE' ? lastClose.toFixed(2) : fmtTickerPrice(lastClose, ticker, sym))
                 : '—'
             }</span>
             <span className="mono" style={{ color: pcC(pctNow) }}>{fmP(pctNow)}</span>
@@ -661,7 +711,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                         stroke="var(--line-2)" strokeWidth="0.5" strokeDasharray="2,3" />
                   <text x={padL - 6} y={yOf(v).toFixed(1)} textAnchor="end" dominantBaseline="middle"
                         fontSize="9.5" fill="rgba(244,239,227,0.55)" fontFamily="var(--font-mono)">
-                    {rangeKey === 'PE' ? v.toFixed(2) : `${sym}${fmtPr(v)}`}
+                    {rangeKey === 'PE' ? v.toFixed(2) : fmtTickerPrice(v, ticker, sym)}
                   </text>
                 </g>
               ))}
