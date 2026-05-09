@@ -160,17 +160,20 @@ export function buildTickerSeries(hist, anchorDate, rangeKey = 'YTD', marketData
 
     let janPrice = null;
     if (rangeKey === '1D') {
-      // 1D always anchors at the previous regular session's close so the
-      // chart's right-edge % matches the cards / heatmap / scoreboard's
-      // DAY CHANGE — all three derive from (live - prevClose) / prevClose.
-      // Previously useExt pivoted to today's regular close (lastPrice) so
-      // the chart could measure the AH/PM move alone, but that meant the
-      // perf chart, MC cards, and ticker-drill modal all reported three
-      // different numbers for the same ticker. Pin to prevClose for one
-      // source of truth; the AH/PM move stays visible as the curve's
-      // distance from the CLOSE marker rather than the right-edge %.
+      // 1D anchors at "the most recent 16:00 ET regular close that has
+      // occurred". During regular hours that's yesterday's close (=
+      // marketData.prevClose). In ext-on AH/PM that's today's regular
+      // close (= marketData.lastPrice — Yahoo updates lastPrice to the
+      // 16:00 ET print once the market closes). Same anchor as the
+      // ticker-drill modal and the perf chart's S&P legend so the three
+      // surfaces report the same %.
       const md = marketData[t];
-      if (md && typeof md.prevClose === 'number' && md.prevClose > 0) {
+      const ref = useExt ? md?.lastPrice : md?.prevClose;
+      if (typeof ref === 'number' && ref > 0) {
+        janPrice = ref;
+      } else if (md && typeof md.prevClose === 'number' && md.prevClose > 0) {
+        // Fallback: useExt requested but lastPrice missing — better to plot
+        // against prevClose than render an empty chart.
         janPrice = md.prevClose;
       }
     } else {

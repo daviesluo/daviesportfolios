@@ -518,6 +518,40 @@ export async function fetchTickers(tickers) {
   return fetchYahoo(tickers.filter(Boolean));
 }
 
+// Returns { ticker: <close at today's 16:00 ET bar> } for whichever
+// tickers have an intraday bar at exactly the regular-session close on
+// today's UTC date. Used by the Market Conditions cards so a futures
+// card displaying ES=F in ext-on mode can compute its day % from
+// "today's just-finished cash close" instead of yesterday's settle —
+// otherwise the card said "+0.76%" while the perf chart said "-0.02%"
+// for the same ticker.
+//
+// Falls through silently when the bar isn't in the data (regular hours
+// before 16:00 ET, weekend, fetch failure) — caller should fall back
+// to marketData.prevClose.
+export async function fetchTodayRegularClose(tickers) {
+  const list = Array.from(new Set((tickers || []).filter(Boolean)));
+  if (list.length === 0) return {};
+  const batch = await fetchHistoricalBatch(list, "1d", "5m", true);
+  const mh = usMarketHoursUtc(new Date());
+  const todayUtc = new Date().toISOString().slice(0, 10);
+  /** @type {Record<string, number>} */
+  const out = {};
+  for (const t of list) {
+    const series = batch[t];
+    if (!Array.isArray(series) || series.length === 0) continue;
+    for (let i = series.length - 1; i >= 0; i--) {
+      const d = series[i].date;
+      if (typeof d !== "string" || d.length < 16 || d[10] !== "T") continue;
+      if (d.slice(0, 10) !== todayUtc) break;
+      const hh = parseInt(d.slice(11, 13), 10);
+      const mm = parseInt(d.slice(14, 16), 10);
+      if (hh === mh.closeHh && mm === mh.closeMm) { out[t] = series[i].close; break; }
+    }
+  }
+  return out;
+}
+
 // Fetch current TTM P/E + EPS for the given tickers via the
 // `fundamentals` Edge Function. Returns
 //   { NVDA: { pe: 30.5, eps: 6.5 }, … }

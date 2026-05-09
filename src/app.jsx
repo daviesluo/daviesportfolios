@@ -9,6 +9,7 @@ import {
   detectFormation,
   refreshPrices,
   fetchTickers,
+  fetchTodayRegularClose,
   usMarketPhase,
   detectCurrency,
   fxToUSD,
@@ -224,11 +225,27 @@ function Board({ isReadOnly }) {
     const shouldPrefetch =
       opts && typeof opts === 'object' && opts.prefetch === false ? false : true;
     setIsRefreshing(true);
-    const [{ updates, source: src }, mcResult] = await Promise.all([
+    // Three parallel fetches:
+    //   - live prices for portfolio holdings
+    //   - live snapshots for the MC index/futures cards
+    //   - today's 16:00 ET close for futures cards. Yahoo's prevClose
+    //     for ES=F / NQ=F / RTY=F / BZ=F is yesterday's settle, so an
+    //     ext-on AH card showing dayPct against prevClose disagreed
+    //     with the perf chart legend (which anchors at today's 16:00
+    //     ET close). Fetching the actual 16:00 ET bar gives the cards
+    //     the same anchor so the two surfaces report the same %.
+    const FUTURES_FOR_CLOSE = MC_TICKERS.filter(t => /=F$/.test(t));
+    const [{ updates, source: src }, mcResult, todayCloses] = await Promise.all([
       refreshPrices(portfolio, "live"),
       fetchTickers(MC_TICKERS),
+      fetchTodayRegularClose(FUTURES_FOR_CLOSE),
     ]);
-    if (mcResult) setMarketData(mcResult);
+    if (mcResult) {
+      for (const [t, c] of Object.entries(todayCloses || {})) {
+        if (mcResult[t]) mcResult[t].todayRegularClose = c;
+      }
+      setMarketData(mcResult);
+    }
     setSource(src);
     setPortfolio(prev => {
       if (!prev) return prev;

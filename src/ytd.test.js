@@ -49,28 +49,24 @@ describe('buildTickerSeries', () => {
     expect(ts.AAPL.janPrice).toBe(195);
   });
 
-  it('1D ext mode: ALSO anchors at prevClose, same as regular mode', () => {
-    // Pin the post-unification behaviour: the perf chart, MC cards, and
-    // ticker-drill modal all derive their pct from (live - prevClose) /
-    // prevClose so they read the same number for the same ticker.
-    // Previously useExt pivoted to lastPrice (today's regular close) so
-    // the chart could show the AH/PM move alone, but that left the user
-    // looking at three different numbers for the same ticker. Regression
-    // pin: a 198/195 pair must produce janPrice 195 in BOTH modes.
+  it('1D ext mode: anchors at marketData.lastPrice (today regular close) so chart % matches scoreboard DAY CHANGE', () => {
+    // In ext-on AH/PM the perf chart, MC futures cards, and ticker-drill
+    // modal all anchor at "the most recent 16:00 ET close that has
+    // occurred" = today's 16:00 ET close. Yahoo pins lastPrice to that
+    // 16:00 ET print once the market closes, so using md.lastPrice
+    // matches the perf chart's close-bar lookup and the card's
+    // todayRegularClose lookup.
     const ts = buildTickerSeries({
       AAPL: [{ date: '2026-04-28T20:00', close: 198 }],
     }, '2026-04-28', '1D', { AAPL: { prevClose: 195, lastPrice: 198 } }, true);
-    expect(ts.AAPL.janPrice).toBe(195);
+    expect(ts.AAPL.janPrice).toBe(198);
   });
 
-  it('1D ext mode falls back to series[0] when prevClose is missing', () => {
-    // (Caller code in ticker_chart_modal also has its own series[0] fallback,
-    // but for buildTickerSeries the contract is: no prevClose → janPrice null,
-    // and the chart uses spWindow[0].close downstream.)
+  it('1D ext mode falls back to prevClose when lastPrice is missing', () => {
     const ts = buildTickerSeries({
       AAPL: [{ date: '2026-04-28T13:30', close: 200 }],
-    }, '2026-04-28', '1D', { AAPL: { lastPrice: 198 } }, true);
-    expect(ts.AAPL.janPrice).toBeNull();
+    }, '2026-04-28', '1D', { AAPL: { prevClose: 195 } }, true);
+    expect(ts.AAPL.janPrice).toBe(195);
   });
 
   it('1D regression: marketData missing the ticker entirely → janPrice null', () => {
