@@ -560,13 +560,20 @@ export async function fetchTodayRegularClose(tickers) {
 //   { NVDA: { pe: 30.5, eps: 6.5 }, … }
 // with tickers that have no meaningful fundamentals (futures /
 // indices / ETFs / crypto / .PVT / 6-digit CN funds) simply absent.
-export async function fetchFundamentals(symbols) {
+//
+// Pass `{ epsHistory: true }` to also receive `epsHistory: [{date,eps}, …]`
+// (last ~12 quarters) on each Finnhub-backed entry. Used by the P/E
+// chart modal to compute a rolling TTM-EPS series so the historical
+// P/E line steps when an earnings report changes the denominator,
+// instead of being a 1:1 scaled copy of the price chart.
+export async function fetchFundamentals(symbols, opts = {}) {
   const list = Array.from(new Set((symbols || []).filter(Boolean)));
   if (list.length === 0) return {};
   try {
+    const qs = `?tickers=${encodeURIComponent(list.join(","))}`
+      + (opts && opts.epsHistory ? "&epsHistory=true" : "");
     const url =
-      `${EDGE_PRICES_URL.replace(/\/prices$/, "/fundamentals")}` +
-      `?tickers=${encodeURIComponent(list.join(","))}`;
+      `${EDGE_PRICES_URL.replace(/\/prices$/, "/fundamentals")}${qs}`;
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
       signal: AbortSignal.timeout(8000),
