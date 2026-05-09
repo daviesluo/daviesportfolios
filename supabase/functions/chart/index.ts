@@ -14,7 +14,11 @@ const CORS = {
 
 const CN_FUND_RE = /^\d{6}$/;
 
-type Point = { date: string; close: number };
+// `volume` is included on intraday bars so the modal can render a
+// VWAP overlay without a second fetch. Optional + non-breaking — old
+// clients that destructure { date, close } simply ignore it; new
+// clients that compute VWAP get it for free out of the same payload.
+type Point = { date: string; close: number; volume?: number };
 
 // ---------------- Yahoo Finance ----------------
 async function fetchYahooHistorical(
@@ -47,6 +51,12 @@ async function fetchYahooHistorical(
     const result = data?.chart?.result?.[0];
     const timestamps: number[] | undefined = result?.timestamp;
     const closes: (number | null)[] | undefined = result?.indicators?.quote?.[0]?.close;
+    // Volume is per-bar in Yahoo's quote indicator; only meaningful on
+    // intraday bars (daily volume is aggregated and rarely useful for
+    // overlays we draw). Forex / yields / indices come back as 0 or
+    // null; the client treats those as "no volume" and skips the
+    // VWAP overlay automatically.
+    const volumes: (number | null)[] | undefined = result?.indicators?.quote?.[0]?.volume;
     if (!timestamps || !closes) return null;
 
     // London-listed securities are quoted in pence (GBp/GBX). Normalise to GBP
@@ -65,7 +75,10 @@ async function fetchYahooHistorical(
       if (c == null) continue;
       const iso = new Date(timestamps[i] * 1000).toISOString();
       const date = isIntraday ? iso.slice(0, 16) : iso.slice(0, 10);
-      points.push({ date, close: c / penceFactor });
+      const v = isIntraday ? volumes?.[i] : null;
+      const point: Point = { date, close: c / penceFactor };
+      if (typeof v === "number" && isFinite(v) && v >= 0) point.volume = v;
+      points.push(point);
     }
     return points.length > 0 ? points : null;
   } catch {
