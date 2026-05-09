@@ -690,11 +690,27 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   if (rangeKey === '1D' && points.length > 0) {
     const hasAnyVolume = points.some(p => Number(p.volume) > 0);
     if (hasAnyVolume) {
-      let sumPV = 0, sumV = 0, currentSession = '';
+      // Forward-fill volume across zero-volume bars within the same
+      // session. Yahoo's BTC-USD intraday endpoint returns ~hourly
+      // non-zero volumes with zeros in between, so a strict bar-by-bar
+      // cumulative VWAP held flat between volume points → "stair-step"
+      // line. Filling zeros with the most recent non-zero volume in
+      // the SAME session lets every bar contribute to sumPV/sumV
+      // proportionally, and the resulting VWAP updates each bar.
+      // For NVDA / AAPL etc. — where every 5m bar has its own volume
+      // — this branch is never taken (lastSeenVol stays equal to the
+      // bar's own volume), so the strict cumulative formula those
+      // tickers had before is preserved.
+      let sumPV = 0, sumV = 0, currentSession = '', lastSeenVol = 0;
       vwapSeries = points.map(p => {
         const sk = vwapSessionKeyOf(p.date);
-        if (sk !== currentSession) { sumPV = 0; sumV = 0; currentSession = sk; }
-        const v = Number(p.volume) || 0;
+        if (sk !== currentSession) {
+          sumPV = 0; sumV = 0; currentSession = sk; lastSeenVol = 0;
+        }
+        const realV = Number(p.volume);
+        const isReal = isFinite(realV) && realV > 0;
+        if (isReal) lastSeenVol = realV;
+        const v = isReal ? realV : lastSeenVol;
         sumPV += p.close * v;
         sumV  += v;
         return sumV > 0 ? sumPV / sumV : null;
