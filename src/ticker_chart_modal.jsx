@@ -438,20 +438,27 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // Anchor for % calculation. 1D anchors at "the most recent 16:00 ET
   // regular close that has occurred":
   //   - regular hours → marketData.prevClose
-  //   - ext-on AH/PM  → today's 16:00 ET bar in the fetched series, or
-  //                     marketData.lastPrice as a fallback (which Yahoo
-  //                     pins to the 16:00 ET print once the market closes)
-  // Same anchor as the perf chart's S&P legend and the MC card's
-  // todayRegularClose, so all three surfaces report the same %.
+  //   - ext-on AH/PM, ticker that trades AH (futures, stocks with
+  //     extPrice) → today's 16:00 ET bar in the fetched series, or
+  //     marketData.lastPrice as a fallback (Yahoo pins lastPrice to
+  //     the 16:00 ET print once the market closes)
+  //   - ext-on AH/PM, ticker with NO AH activity (^VIX / ^TNX /
+  //     ^SOX / forex) → fall through to prevClose so the modal %
+  //     equals today's regular session move = matches the MC card's
+  //     dayPct. Without this carve-out the modal showed ~0% (anchor
+  //     at the same final 16:00 ET bar that's also the latest bar)
+  //     while the card showed dayPct, so the two disagreed.
+  const isFuturesTicker = /=F$/.test(ticker);
+  const hasMeaningfulAh = isFuturesTicker || (md?.extPrice != null && md.extPrice > 0);
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
-      if (useExt && regularCloseIdx >= 0) {
+      if (useExt && hasMeaningfulAh && regularCloseIdx >= 0) {
         anchorClose = series[regularCloseIdx].close;
-      } else if (useExt && md?.lastPrice && md.lastPrice > 0) {
+      } else if (useExt && hasMeaningfulAh && md?.lastPrice && md.lastPrice > 0) {
         anchorClose = md.lastPrice;
-      } else if (phase === 'regular') {
-        anchorClose = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : series[0].close;
+      } else if (md && md.prevClose && md.prevClose > 0) {
+        anchorClose = md.prevClose;
       } else {
         anchorClose = series[0].close;
       }
