@@ -643,33 +643,44 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
 
   // Volume-weighted average price (1D only). Standard cumulative VWAP
   // formula, with the reset boundary chosen per asset class:
-  //   - US stocks / ETFs / futures (anything that's not crypto): reset
-  //     at 9:30 ET each day (= mh.openHh:openMm UTC). Pre-market and
-  //     overnight bars belong to the *previous* session's VWAP, not
-  //     today's — typing "VWAP" on NVDA on 9:31 should start a fresh
-  //     ramp, not inherit the 4 AM ET pre-market accumulation.
-  //   - Crypto (`-USD` suffix on Yahoo): reset at 00:00 UTC. Anchored-
-  //     VWAP convention for 24/7 markets like BTC-USD; no cash-equity
-  //     session to lean on.
+  //   - US equities / ETFs (no exchange suffix, no =F/=X/^/-USD):
+  //     reset at 9:30 ET each day (= mh.openHh:openMm UTC). Pre-market
+  //     and overnight bars belong to the *previous* session's VWAP, not
+  //     today's — opening NVDA at 9:31 should start a fresh ramp, not
+  //     inherit the 4 AM ET pre-market accumulation.
+  //   - Anything else with intraday volume (LSE `.L`, HK `.HK`,
+  //     CME futures `=F`, etc.): reset at 00:00 UTC. The exchange
+  //     hours fit inside a single UTC date for LSE / HK and the CME
+  //     globex session conveniently spans the midnight boundary, so
+  //     a UTC-date anchor is a reasonable default without hard-coding
+  //     a per-exchange table.
+  //   - Crypto (`-USD` suffix on Yahoo): reset at 00:00 UTC.
+  //     Anchored-VWAP convention for 24/7 markets like BTC-USD.
   // Tickers without meaningful per-bar volume (forex, yields, ^VIX-
-  // style indices, CN funds, .PVT) trip the `hasAnyVolume` check and
-  // skip the overlay outright — `volume` is undefined or 0 across the
-  // window so VWAP is undefined anyway. Skipped formula:
+  // style indices, CN funds, .PVT) trip the `hasAnyVolume` check
+  // below and skip the overlay outright. Formula otherwise:
   //   VWAP_t = Σ(close_i × volume_i) / Σ(volume_i)
   // for all bars i in the same session as t.
   const isCrypto = /-USD$/i.test(ticker);
-  const sessionResetMins = isCrypto ? 0 : (mh.openHh * 60 + mh.openMm);
+  // US equity = no exchange suffix, no class-marker, not crypto.
+  // .X (forex) and ^X (indices) are also flagged here but they're
+  // already filtered out by hasAnyVolume since they don't carry
+  // meaningful per-bar volume; the predicate just stops false
+  // positives flowing through to the reset logic.
+  const isUsEquity = !isCrypto && !/\.[A-Z]+$|=F$|=X$|^\^/.test(ticker);
+  const useUsOpenReset = isUsEquity;
+  const sessionResetMins = useUsOpenReset ? (mh.openHh * 60 + mh.openMm) : 0;
   /** Bucket a bar's UTC timestamp to its session-start UTC date so two
-   *  bars on opposite sides of 9:30 ET (or 00:00 UTC for crypto) get
-   *  different keys and the cumulator resets between them. */
+   *  bars on opposite sides of the reset boundary get different keys
+   *  and the cumulator resets between them. */
   const vwapSessionKeyOf = (dateStr) => {
     if (typeof dateStr !== 'string' || dateStr.length < 16) return '';
     const day = dateStr.slice(0, 10);
-    if (isCrypto) return day;
+    if (!useUsOpenReset) return day; // crypto + non-US: simple UTC-date reset
     const hh = parseInt(dateStr.slice(11, 13), 10);
     const mm = parseInt(dateStr.slice(14, 16), 10);
     if ((hh * 60 + mm) >= sessionResetMins) return day;
-    // Pre-reset hours (e.g. US pre-market 04:00–13:30 UTC) belong to
+    // Pre-reset hours (US pre-market 04:00–13:30 UTC) belong to
     // *yesterday's* session — shift the key back one UTC day.
     const d = new Date(day + 'T00:00:00Z');
     d.setUTCDate(d.getUTCDate() - 1);
