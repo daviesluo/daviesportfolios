@@ -197,7 +197,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     // the rolling-TTM-EPS computation. Bump the suffix again any time
     // the PE math changes shape.
     const cacheKey = rangeKey === 'PE'
-      ? `${ticker}|PE|v2|${useExt ? 'ext' : 'reg'}|${phase || ''}`
+      ? `${ticker}|PE|v3|${useExt ? 'ext' : 'reg'}|${phase || ''}`
       : `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
     const ttl = modalTtl(rangeKey);
     const cached = modalCacheGet(cacheKey);
@@ -249,16 +249,17 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       const params = fetchParamsFor(rangeKey === 'PE' ? 'YTD' : rangeKey, extendedHours, phase);
       if (params.variant === 'closed') data = filterToLatestDay(data);
       else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
-      // 'PE' transform: divide each historical close by trailing TTM
-      // EPS to produce a P/E ratio series. We ask the fundamentals
-      // Edge Function for the last ~12 quarters of reported EPS and
-      // build a rolling TTM-EPS at each price date (sum of the 4 most
-      // recent quarters whose period + 45-day report lag is <= that
-      // date). Without this the chart was just a 1:1 scale of the
-      // price chart — earnings-day steps never showed up. Falls back
-      // to the const current-TTM-EPS path when (a) Finnhub didn't
-      // return a history (free-tier coverage gap) or (b) we don't yet
-      // have 4 reported quarters before a given price date.
+      // 'PE' transform: divide each historical close by the rolling
+      // TTM diluted EPS as of that price date so the chart actually
+      // *moves* on earnings days instead of being a 1:1 scale of the
+      // price chart. Edge Function returns `epsHistory` from Yahoo's
+      // fundamentals-timeseries — already-summed TTM at each quarter
+      // end, 5+ years of history. For each price date we just pick
+      // the latest entry whose `quarterEnd + 45-day report lag` is
+      // <= the price date. Falls back to the const current-TTM-EPS
+      // path when (a) Yahoo didn't return a history (rate limit or
+      // sparse coverage) or (b) the price date predates the earliest
+      // reported quarter.
       if (rangeKey === 'PE') {
         const fundamentals = await fetchFundamentals([ticker], { epsHistory: true });
         if (cancelled) return;
@@ -285,15 +286,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         const REPORT_LAG_MS = 45 * 86400000;
         const epsHist = Array.isArray(row?.epsHistory) ? row.epsHistory : [];
         const reportEvents = epsHist
-          .map(e => ({ eps: Number(e.eps), reportMs: new Date(e.date).getTime() + REPORT_LAG_MS }))
-          .filter(e => isFinite(e.eps) && isFinite(e.reportMs))
+          .map(e => ({ ttm: Number(e.eps), reportMs: new Date(e.date).getTime() + REPORT_LAG_MS }))
+          .filter(e => isFinite(e.ttm) && isFinite(e.reportMs) && e.ttm > 0)
           .sort((a, b) => a.reportMs - b.reportMs);
         data = data.map(p => {
           const dMs = new Date(p.date).getTime();
-          const reported = reportEvents.filter(e => e.reportMs <= dMs);
-          const ttmEps = reported.length >= 4
-            ? reported.slice(-4).reduce((s, e) => s + e.eps, 0)
-            : eps;
+          let ttmEps = eps;
+          for (let i = reportEvents.length - 1; i >= 0; i--) {
+            if (reportEvents[i].reportMs <= dMs) { ttmEps = reportEvents[i].ttm; break; }
+          }
           return { date: p.date, close: ttmEps > 0 ? p.close / ttmEps : 0 };
         });
       }
@@ -330,7 +331,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             : baseParams);
         }
         const cacheKey = rk === 'PE'
-          ? `${ticker}|PE|v2|${useExt ? 'ext' : 'reg'}|${phase || ''}`
+          ? `${ticker}|PE|v3|${useExt ? 'ext' : 'reg'}|${phase || ''}`
           : `${ticker}|${rk}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
         const ttl = modalTtl(rk);
         const c = modalCacheGet(cacheKey);
@@ -356,15 +357,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             const REPORT_LAG_MS = 45 * 86400000;
             const epsHist = Array.isArray(row?.epsHistory) ? row.epsHistory : [];
             const reportEvents = epsHist
-              .map(e => ({ eps: Number(e.eps), reportMs: new Date(e.date).getTime() + REPORT_LAG_MS }))
-              .filter(e => isFinite(e.eps) && isFinite(e.reportMs))
+              .map(e => ({ ttm: Number(e.eps), reportMs: new Date(e.date).getTime() + REPORT_LAG_MS }))
+              .filter(e => isFinite(e.ttm) && isFinite(e.reportMs) && e.ttm > 0)
               .sort((a, b) => a.reportMs - b.reportMs);
             data = data.map(p => {
               const dMs = new Date(p.date).getTime();
-              const reported = reportEvents.filter(e => e.reportMs <= dMs);
-              const ttmEps = reported.length >= 4
-                ? reported.slice(-4).reduce((s, e) => s + e.eps, 0)
-                : eps;
+              let ttmEps = eps;
+              for (let i = reportEvents.length - 1; i >= 0; i--) {
+                if (reportEvents[i].reportMs <= dMs) { ttmEps = reportEvents[i].ttm; break; }
+              }
               return { date: p.date, close: ttmEps > 0 ? p.close / ttmEps : 0 };
             });
           }
