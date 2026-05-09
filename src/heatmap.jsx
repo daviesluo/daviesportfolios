@@ -125,8 +125,12 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
             const { bg, tickerClr, pctClr } = tileStyle(tile.pct);
             const pctStr = (tile.pct >= 0 ? '+' : '') + tile.pct.toFixed(2) + '%';
 
-            const showTicker = tw >= 30 && th >= 22;
+            const showTicker = tw >= 22 && th >= 16;
             const showPct    = tw >= 36 && th >= 32;
+            // Auto-shrink ticker font on tight tiles so 4-char tickers
+            // (BMNR etc.) wrap to two lines instead of being clipped.
+            // Clamp 8–11px based on the smaller tile dimension.
+            const tickerFs = Math.max(8, Math.min(11, Math.floor(Math.min(tw, th) / 3)));
 
             const clickable = typeof onTileClick === 'function';
             return (
@@ -153,7 +157,7 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
                 }}
               >
                 {showTicker && (
-                  <span className="hm-ticker mono" style={{ color: tickerClr }}>
+                  <span className="hm-ticker mono" style={{ color: tickerClr, fontSize: tickerFs + 'px' }}>
                     {tile.ticker}
                   </span>
                 )}

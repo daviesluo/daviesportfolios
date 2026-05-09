@@ -17,6 +17,17 @@ function Modal({ children, onClose, size = "md" }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // Lock body scroll while the modal is open so iOS Safari's bouncy
+  // overscroll can't drag the underlying page (clicking a position from
+  // the tactic board and then swiping was scrolling the home page
+  // behind the modal). CSS `overscroll-behavior: contain` on the body
+  // alone isn't enough on iOS — we also need to pin `overflow: hidden`.
+  React.useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   const downOnBackdrop = React.useRef(false);
 
   return (
