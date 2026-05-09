@@ -47,7 +47,13 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type Fundamentals = { pe: number; eps: number; pe3yAvg: number | null };
+type EpsHistoryPoint = { date: string; eps: number };
+type Fundamentals = {
+  pe: number;
+  eps: number;
+  pe3yAvg: number | null;
+  epsHistory?: EpsHistoryPoint[];
+};
 
 const INDEX_ETF_PROXY: Record<string, string> = {
   "^GSPC": "SPY",   // S&P 500
@@ -257,6 +263,47 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
   }
 }
 
+// Fetches the last ~12 quarters of reported EPS so the client can build
+// a rolling TTM-EPS series. The default P/E modal logic divides every
+// historical price by a single CURRENT EPS, which made the P/E chart
+// just a 1:1 scale of the price chart — earnings revisions never
+// showed up. With this list the client can recompute TTM EPS at each
+// price date (sum of the latest 4 reports whose period+lag <= date)
+// so the P/E line genuinely steps when a new quarter prints.
+//
+// Each entry is { date: "YYYY-MM-DD" (quarter end), eps: <actual EPS>}.
+// Free Finnhub returns up to 12 quarters which covers ~3 years —
+// plenty for the modal's YTD window. Returns null on any error or
+// when the response is empty so the client cleanly falls back.
+async function fetchFinnhubEarningsHistory(
+  symbol: string,
+): Promise<Array<{ date: string; eps: number }> | null> {
+  if (!FINNHUB_API_KEY) return null;
+  const url =
+    `https://finnhub.io/api/v1/stock/earnings` +
+    `?symbol=${encodeURIComponent(symbol)}&limit=12` +
+    `&token=${encodeURIComponent(FINNHUB_API_KEY)}`;
+  try {
+    const res = await fetch(url, {
+      headers: { "Accept": "application/json" },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const arr = await res.json();
+    if (!Array.isArray(arr)) return null;
+    const out = arr
+      .map((r: any) => ({
+        date: String(r?.period ?? ""),
+        eps:  Number(r?.actual),
+      }))
+      .filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date) && isFinite(r.eps))
+      .sort((a, b) => (a.date < b.date ? -1 : 1));
+    return out.length > 0 ? out : null;
+  } catch {
+    return null;
+  }
+}
+
 // ---- HTTP entry -----------------------------------------------------
 
 Deno.serve(async (req: Request) => {
@@ -271,6 +318,11 @@ Deno.serve(async (req: Request) => {
 
   const url = new URL(req.url);
   const param = url.searchParams.get("tickers") ?? "";
+  // Opt-in flag — when "true" each Finnhub-backed entry also gets an
+  // epsHistory array (last 12 quarters of reported EPS). Off by default
+  // because every other caller (heatmap badges, etc.) just needs the
+  // current TTM P/E and shouldn't pay the extra round-trip per ticker.
+  const includeEpsHistory = url.searchParams.get("epsHistory") === "true";
   const tickers = param
     .split(",")
     .map((t) => t.trim())
@@ -304,7 +356,12 @@ Deno.serve(async (req: Request) => {
         const t = queue.shift();
         if (!t) break;
         const f = await fetchFinnhub(t);
-        if (f) out[t] = f;
+        if (!f) continue;
+        if (includeEpsHistory) {
+          const hist = await fetchFinnhubEarningsHistory(t);
+          if (hist) f.epsHistory = hist;
+        }
+        out[t] = f;
       }
     });
     await Promise.all(workers);

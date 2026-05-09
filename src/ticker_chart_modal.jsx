@@ -192,7 +192,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   React.useEffect(() => {
     let cancelled = false;
     const { yahooRange, interval, includePrePost } = fetchParams(rangeKey);
-    const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+    // PE cache key gets an algorithm-version suffix so old caches that
+    // hold const-EPS-divided P/E series get invalidated when we ship
+    // the rolling-TTM-EPS computation. Bump the suffix again any time
+    // the PE math changes shape.
+    const cacheKey = rangeKey === 'PE'
+      ? `${ticker}|PE|v2|${useExt ? 'ext' : 'reg'}|${phase || ''}`
+      : `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
     const ttl = modalTtl(rangeKey);
     const cached = modalCacheGet(cacheKey);
 
@@ -243,16 +249,18 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       const params = fetchParamsFor(rangeKey === 'PE' ? 'YTD' : rangeKey, extendedHours, phase);
       if (params.variant === 'closed') data = filterToLatestDay(data);
       else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
-      // 'PE' transform: divide each historical close by current TTM EPS
-      // to produce a P/E ratio series. EPS is fetched once via the
-      // fundamentals Edge Function. const-EPS approximation — over a
-      // ~1-year window most of the P/E movement is price-driven, so
-      // this is a reasonable tradeoff vs. plumbing quarterly EPS
-      // history. Symbols without fundamentals (futures, indices,
-      // CN funds, .PVT) shouldn't reach here since the button is
-      // hidden for them upstream.
+      // 'PE' transform: divide each historical close by trailing TTM
+      // EPS to produce a P/E ratio series. We ask the fundamentals
+      // Edge Function for the last ~12 quarters of reported EPS and
+      // build a rolling TTM-EPS at each price date (sum of the 4 most
+      // recent quarters whose period + 45-day report lag is <= that
+      // date). Without this the chart was just a 1:1 scale of the
+      // price chart — earnings-day steps never showed up. Falls back
+      // to the const current-TTM-EPS path when (a) Finnhub didn't
+      // return a history (free-tier coverage gap) or (b) we don't yet
+      // have 4 reported quarters before a given price date.
       if (rangeKey === 'PE') {
-        const fundamentals = await fetchFundamentals([ticker]);
+        const fundamentals = await fetchFundamentals([ticker], { epsHistory: true });
         if (cancelled) return;
         const row = fundamentals?.[ticker];
         // ETF-proxy tickers (^GSPC/^NDX/^RUT) typically come back with
@@ -274,7 +282,20 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           if (!cached) { setError(true); setLoading(false); }
           return;
         }
-        data = data.map(p => ({ date: p.date, close: p.close / eps }));
+        const REPORT_LAG_MS = 45 * 86400000;
+        const epsHist = Array.isArray(row?.epsHistory) ? row.epsHistory : [];
+        const reportEvents = epsHist
+          .map(e => ({ eps: Number(e.eps), reportMs: new Date(e.date).getTime() + REPORT_LAG_MS }))
+          .filter(e => isFinite(e.eps) && isFinite(e.reportMs))
+          .sort((a, b) => a.reportMs - b.reportMs);
+        data = data.map(p => {
+          const dMs = new Date(p.date).getTime();
+          const reported = reportEvents.filter(e => e.reportMs <= dMs);
+          const ttmEps = reported.length >= 4
+            ? reported.slice(-4).reduce((s, e) => s + e.eps, 0)
+            : eps;
+          return { date: p.date, close: ttmEps > 0 ? p.close / ttmEps : 0 };
+        });
       }
       modalCacheSet(cacheKey, data);
       setSeries(data);
@@ -308,7 +329,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             ? { ...baseParams, interval: '1d', includePrePost: false }
             : baseParams);
         }
-        const cacheKey = `${ticker}|${rk}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+        const cacheKey = rk === 'PE'
+          ? `${ticker}|PE|v2|${useExt ? 'ext' : 'reg'}|${phase || ''}`
+          : `${ticker}|${rk}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
         const ttl = modalTtl(rk);
         const c = modalCacheGet(cacheKey);
         if (c && Array.isArray(c.data) && (Date.now() - (c.ts || 0)) < ttl) continue;
@@ -319,7 +342,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           if (variant === 'closed') data = filterToLatestDay(data);
           else if (variant === 'reg' || variant === 'ext') data = filterToLast24h(data);
           if (rk === 'PE') {
-            const f = await fetchFundamentals([ticker]);
+            const f = await fetchFundamentals([ticker], { epsHistory: true });
             if (cancelled) return;
             const row = f?.[ticker];
             let eps = row?.eps;
@@ -330,7 +353,20 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               eps = data[data.length - 1].close / pe;
             }
             if (!eps || eps <= 0) continue;
-            data = data.map(p => ({ date: p.date, close: p.close / eps }));
+            const REPORT_LAG_MS = 45 * 86400000;
+            const epsHist = Array.isArray(row?.epsHistory) ? row.epsHistory : [];
+            const reportEvents = epsHist
+              .map(e => ({ eps: Number(e.eps), reportMs: new Date(e.date).getTime() + REPORT_LAG_MS }))
+              .filter(e => isFinite(e.eps) && isFinite(e.reportMs))
+              .sort((a, b) => a.reportMs - b.reportMs);
+            data = data.map(p => {
+              const dMs = new Date(p.date).getTime();
+              const reported = reportEvents.filter(e => e.reportMs <= dMs);
+              const ttmEps = reported.length >= 4
+                ? reported.slice(-4).reduce((s, e) => s + e.eps, 0)
+                : eps;
+              return { date: p.date, close: ttmEps > 0 ? p.close / ttmEps : 0 };
+            });
           }
           modalCacheSet(cacheKey, data);
         }
