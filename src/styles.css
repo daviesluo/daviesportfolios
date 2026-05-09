@@ -197,8 +197,16 @@ body {
 }
 .hm-pct {
   font-size: 10px; font-weight: 500;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   line-height: 1;
+  padding: 0 2px;
+  text-align: center;
+  /* Auto-shrink font is set inline by the JSX. Allow the value to
+     break-anywhere as a last-resort against tile clipping rather than
+     being silently swallowed. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 .scoreboard {

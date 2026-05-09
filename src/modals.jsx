@@ -15,20 +15,46 @@ import {
 // If each captured/restored body.overflow independently, the second one
 // to mount would capture 'hidden' from the first and restore that on
 // unmount, leaving the page locked after every modal closes. Count
-// active modals and only flip body.overflow at the 0↔1 boundary.
+// active modals and only flip body styles at the 0↔1 boundary.
+//
+// On iOS Safari, `overflow: hidden` on <body> alone does NOT stop the
+// page underneath from scrolling — the user's screenshot showed two
+// scrollbars (the modal-body's *and* the home page's) and dragging the
+// modal area still scrolled the home page in the background. The only
+// reliable lock is `position: fixed` on <body> with the saved scroll
+// offset pinned via `top`, restored on release. This trick is also
+// what Bootstrap / Material-UI ship for the same reason.
 let bodyLockCount = 0;
-let bodyLockPrev = '';
+let savedScrollY = 0;
+let savedBodyStyles = { position: '', top: '', left: '', right: '', width: '', overflow: '' };
 function acquireBodyLock() {
   if (bodyLockCount === 0) {
-    bodyLockPrev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    savedScrollY = window.scrollY || window.pageYOffset || 0;
+    const s = document.body.style;
+    savedBodyStyles = {
+      position: s.position, top: s.top, left: s.left, right: s.right,
+      width: s.width, overflow: s.overflow,
+    };
+    s.position = 'fixed';
+    s.top = `-${savedScrollY}px`;
+    s.left = '0';
+    s.right = '0';
+    s.width = '100%';
+    s.overflow = 'hidden';
   }
   bodyLockCount += 1;
 }
 function releaseBodyLock() {
   bodyLockCount -= 1;
   if (bodyLockCount === 0) {
-    document.body.style.overflow = bodyLockPrev;
+    const s = document.body.style;
+    s.position = savedBodyStyles.position;
+    s.top = savedBodyStyles.top;
+    s.left = savedBodyStyles.left;
+    s.right = savedBodyStyles.right;
+    s.width = savedBodyStyles.width;
+    s.overflow = savedBodyStyles.overflow;
+    window.scrollTo(0, savedScrollY);
   }
 }
 
@@ -40,10 +66,8 @@ function Modal({ children, onClose, size = "md" }) {
   }, [onClose]);
 
   // Lock body scroll while any modal is mounted so iOS Safari's bouncy
-  // overscroll can't drag the underlying page (clicking a position from
-  // the tactic board and then swiping was scrolling the home page
-  // behind the modal). CSS `overscroll-behavior: contain` on the body
-  // alone isn't enough on iOS — we also need to pin `overflow: hidden`.
+  // overscroll can't drag the underlying page. See acquireBodyLock for
+  // why `position: fixed` rather than just `overflow: hidden`.
   React.useEffect(() => {
     acquireBodyLock();
     return releaseBodyLock;
