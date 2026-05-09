@@ -379,18 +379,24 @@ function MarketConditions({ marketData, extendedHours, phase, className = '', on
         const activeTicker = (useExt && ftTicker) ? ftTicker : ticker;
         const activeName   = (useExt && ftName)   ? ftName   : name;
         const d         = marketData[activeTicker];
-        const price     = d ? d.lastPrice : null;
-        // In ext-on AH/PM mode the card displays "since the most recent
-        // 16:00 ET close that has occurred" — same anchor as the perf
-        // chart legend and the ticker-drill modal. For futures (ES=F /
-        // NQ=F / RTY=F / BZ=F) that's the bar fetched into
-        // todayRegularClose; for non-futures with no AH-friendly anchor
-        // we fall through to dayPct (yesterday's settle) which the
-        // card always showed before. Outside ext mode we always use
-        // dayPct so the card reads the regular session move.
+        // Price displayed: in ext mode prefer extPrice when present so
+        // the card matches the modal's liveLast (= same precedence in
+        // ticker_chart_modal). Yahoo populates extPrice for tickers
+        // like ^VIX even though they don't really trade AH — the card
+        // was showing lastPrice (= today's regular close) while the
+        // modal showed extPrice (= a slightly different post-close
+        // value), so the two prices and pcts disagreed.
+        const price = d
+          ? ((useExt && d.extPrice != null && d.extPrice > 0) ? d.extPrice : d.lastPrice)
+          : null;
+        // Anchor for "since the most recent 16:00 ET close that has
+        // occurred". In ext mode every MC ticker has todayRegularClose
+        // populated by app.jsx (same bar the modal looks up via
+        // regularCloseIdx), so the card and modal align. In regular
+        // hours we use prevClose, also matching the modal.
         const useTodayClose = useExt && d && typeof d.todayRegularClose === 'number' && d.todayRegularClose > 0;
         const anchor    = useTodayClose ? d.todayRegularClose : (d ? (d.prevClose ?? d.lastPrice) : null);
-        const pct       = (useTodayClose && price != null)
+        const pct       = (price != null && anchor != null && anchor > 0)
                             ? ((price - anchor) / anchor) * 100
                             : (d ? (d.dayPct ?? 0) : null);
         const dayChange = (price != null && anchor != null) ? price - anchor : null;
