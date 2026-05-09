@@ -642,23 +642,75 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   }
 
   // Volume-weighted average price (1D only). Standard cumulative VWAP
-  // formula, reset at every UTC date boundary so multi-day 1D windows
-  // (closed-market variant spans yesterday's session, ext-on may show
-  // ~24 h spanning two dates) restart cleanly:
-  //   VWAP_t = sum(close_i * volume_i) / sum(volume_i)
-  //   for all i in [first bar of t's date .. t]
-  // Skipped on tickers without meaningful per-bar volume (forex,
-  // yields, ^VIX-style index proxies, CN funds): if no bar in the
-  // session has volume > 0 we don't draw the overlay.
+  // formula, with the reset boundary chosen per asset class:
+  //   - US equities / ETFs (no exchange suffix, no =F/=X/^/-USD):
+  //     reset at 9:30 ET each day (= mh.openHh:openMm UTC). Pre-market
+  //     and overnight bars belong to the *previous* session's VWAP, not
+  //     today's — opening NVDA at 9:31 should start a fresh ramp, not
+  //     inherit the 4 AM ET pre-market accumulation.
+  //   - Anything else with intraday volume (LSE `.L`, HK `.HK`,
+  //     CME futures `=F`, etc.): reset at 00:00 UTC. The exchange
+  //     hours fit inside a single UTC date for LSE / HK and the CME
+  //     globex session conveniently spans the midnight boundary, so
+  //     a UTC-date anchor is a reasonable default without hard-coding
+  //     a per-exchange table.
+  //   - Crypto (`-USD` suffix on Yahoo): reset at 00:00 UTC.
+  //     Anchored-VWAP convention for 24/7 markets like BTC-USD.
+  // Tickers without meaningful per-bar volume (forex, yields, ^VIX-
+  // style indices, CN funds, .PVT) trip the `hasAnyVolume` check
+  // below and skip the overlay outright. Formula otherwise:
+  //   VWAP_t = Σ(close_i × volume_i) / Σ(volume_i)
+  // for all bars i in the same session as t.
+  const isCrypto = /-USD$/i.test(ticker);
+  // US equity = no exchange suffix, no class-marker, not crypto.
+  // .X (forex) and ^X (indices) are also flagged here but they're
+  // already filtered out by hasAnyVolume since they don't carry
+  // meaningful per-bar volume; the predicate just stops false
+  // positives flowing through to the reset logic.
+  const isUsEquity = !isCrypto && !/\.[A-Z]+$|=F$|=X$|^\^/.test(ticker);
+  const useUsOpenReset = isUsEquity;
+  const sessionResetMins = useUsOpenReset ? (mh.openHh * 60 + mh.openMm) : 0;
+  /** Bucket a bar's UTC timestamp to its session-start UTC date so two
+   *  bars on opposite sides of the reset boundary get different keys
+   *  and the cumulator resets between them. */
+  const vwapSessionKeyOf = (dateStr) => {
+    if (typeof dateStr !== 'string' || dateStr.length < 16) return '';
+    const day = dateStr.slice(0, 10);
+    if (!useUsOpenReset) return day; // crypto + non-US: simple UTC-date reset
+    const hh = parseInt(dateStr.slice(11, 13), 10);
+    const mm = parseInt(dateStr.slice(14, 16), 10);
+    if ((hh * 60 + mm) >= sessionResetMins) return day;
+    // Pre-reset hours (US pre-market 04:00–13:30 UTC) belong to
+    // *yesterday's* session — shift the key back one UTC day.
+    const d = new Date(day + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() - 1);
+    return d.toISOString().slice(0, 10);
+  };
   let vwapSeries = null;
   if (rangeKey === '1D' && points.length > 0) {
     const hasAnyVolume = points.some(p => Number(p.volume) > 0);
     if (hasAnyVolume) {
-      let sumPV = 0, sumV = 0, currentDay = '';
+      // Forward-fill volume across zero-volume bars within the same
+      // session. Yahoo's BTC-USD intraday endpoint returns ~hourly
+      // non-zero volumes with zeros in between, so a strict bar-by-bar
+      // cumulative VWAP held flat between volume points → "stair-step"
+      // line. Filling zeros with the most recent non-zero volume in
+      // the SAME session lets every bar contribute to sumPV/sumV
+      // proportionally, and the resulting VWAP updates each bar.
+      // For NVDA / AAPL etc. — where every 5m bar has its own volume
+      // — this branch is never taken (lastSeenVol stays equal to the
+      // bar's own volume), so the strict cumulative formula those
+      // tickers had before is preserved.
+      let sumPV = 0, sumV = 0, currentSession = '', lastSeenVol = 0;
       vwapSeries = points.map(p => {
-        const day = (typeof p.date === 'string' && p.date.length >= 10) ? p.date.slice(0, 10) : '';
-        if (day !== currentDay) { sumPV = 0; sumV = 0; currentDay = day; }
-        const v = Number(p.volume) || 0;
+        const sk = vwapSessionKeyOf(p.date);
+        if (sk !== currentSession) {
+          sumPV = 0; sumV = 0; currentSession = sk; lastSeenVol = 0;
+        }
+        const realV = Number(p.volume);
+        const isReal = isFinite(realV) && realV > 0;
+        if (isReal) lastSeenVol = realV;
+        const v = isReal ? realV : lastSeenVol;
         sumPV += p.close * v;
         sumV  += v;
         return sumV > 0 ? sumPV / sumV : null;
@@ -907,25 +959,24 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       })()
     : null;
 
-  // VWAP path + last-value label. Unlike MA, VWAP resets to 0 at every
-  // UTC date boundary inside the displayed window (last-24h reg slice
-  // and ext-on views span two dates). Emit a fresh `M` at each new
-  // day so the SVG doesn't draw a misleading straight segment from
-  // the prior day's final VWAP down to the new day's first.
+  // VWAP path + last-value label. Unlike MA, VWAP resets at every
+  // session boundary inside the displayed window (9:30 ET for US
+  // equities, 00:00 UTC for crypto). Emit a fresh `M` at each new
+  // session so the SVG doesn't draw a misleading straight segment
+  // from the prior session's final VWAP down to the new session's
+  // first.
   const vwapPath = vwapSeries
     ? (() => {
         let out = '';
         let openSegment = false;
-        let prevDay = '';
+        let prevSession = '';
         for (let i = 0; i < vwapSeries.length; i++) {
           if (vwapSeries[i] == null) { openSegment = false; continue; }
-          const day = (typeof points[i].date === 'string' && points[i].date.length >= 10)
-            ? points[i].date.slice(0, 10)
-            : '';
-          const cmd = (openSegment && day === prevDay) ? 'L' : 'M';
+          const sk = vwapSessionKeyOf(points[i].date);
+          const cmd = (openSegment && sk === prevSession) ? 'L' : 'M';
           out += `${cmd}${xOfIdx(i).toFixed(1)},${yOf(vwapSeries[i]).toFixed(1)}`;
           openSegment = true;
-          prevDay = day;
+          prevSession = sk;
         }
         return out;
       })()
