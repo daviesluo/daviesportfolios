@@ -443,7 +443,9 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
         if (d.length < 16) continue;
         const hh = parseInt(d.slice(11, 13), 10);
         const mm = parseInt(d.slice(14, 16), 10);
-        if (hh < mh.closeHh || (hh === mh.closeHh && mm === mh.closeMm)) { closeIdx = i; break; }
+        // Strict closeHh:closeMm match — see the marker block below for
+        // why a hh<closeHh fallback would mis-select a premarket bar.
+        if (hh === mh.closeHh && mm === mh.closeMm) { closeIdx = i; break; }
       }
       const gspc = marketData?.['^GSPC'];
       spBase = closeIdx >= 0
@@ -778,7 +780,11 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
               if (d.length < 16) continue;
               const hh = parseInt(d.slice(11, 13), 10);
               const mm = parseInt(d.slice(14, 16), 10);
-              if (hh < mh.closeHh || (hh === mh.closeHh && mm === mh.closeMm)) { closeIdx = i; break; }
+              // Strict closeHh:closeMm match. A looser hh<closeHh
+              // fallback matches premarket bars after midnight UTC, so
+              // the CLOSE marker would jump onto a 9:30 ET premarket
+              // bar instead of yesterday's actual 16:00 ET close.
+              if (hh === mh.closeHh && mm === mh.closeMm) { closeIdx = i; break; }
             }
           }
           const renderMarker = (idx, label) => {

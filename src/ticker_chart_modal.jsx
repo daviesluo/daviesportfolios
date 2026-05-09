@@ -405,12 +405,14 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     for (let i = series.length - 1; i >= 0; i--) {
       const hh = parseInt(series[i].date.slice(11, 13), 10);
       const mm = parseInt(series[i].date.slice(14, 16), 10);
-      // Pick the bar at exactly closeHh:closeMm UTC (= 20:00 EDT /
-      // 21:00 EST), or the latest bar strictly before close if the
-      // exact-close bar isn't in the data. The previous +5-min slack
-      // would steal the marker for a 20:05 post-close bar — user saw
-      // CLOSE rendered at 9:05pm BST instead of 9:00pm.
-      if (hh < mh.closeHh || (hh === mh.closeHh && mm === mh.closeMm)) { regularCloseIdx = i; break; }
+      // Match the bar at exactly closeHh:closeMm UTC (= 20:00 EDT /
+      // 21:00 EST). Strict equality only — a looser "hh < closeHh"
+      // fallback would match overnight / premarket bars after midnight
+      // UTC and pin the anchor to the latest premarket tick instead of
+      // yesterday's 16:00 ET close, leaving the modal showing ~0% on
+      // any pre-open holding chart. If the exact bar is missing from
+      // the data the anchor block falls through to lastPrice instead.
+      if (hh === mh.closeHh && mm === mh.closeMm) { regularCloseIdx = i; break; }
     }
   }
 
@@ -437,28 +439,35 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
 
   // Anchor for % calculation. 1D anchors at "the most recent 16:00 ET
   // regular close that has occurred":
-  //   - regular hours → marketData.prevClose
+  //   - regular hours → prevClose
   //   - ext-on AH/PM, ticker that trades AH (futures, stocks with
   //     extPrice) → today's 16:00 ET bar in the fetched series, or
-  //     marketData.lastPrice as a fallback (Yahoo pins lastPrice to
-  //     the 16:00 ET print once the market closes)
+  //     lastPrice as a fallback (Yahoo pins lastPrice to the 16:00 ET
+  //     print once the market closes)
   //   - ext-on AH/PM, ticker with NO AH activity (^VIX / ^TNX /
   //     ^SOX / forex) → fall through to prevClose so the modal %
   //     equals today's regular session move = matches the MC card's
-  //     dayPct. Without this carve-out the modal showed ~0% (anchor
-  //     at the same final 16:00 ET bar that's also the latest bar)
-  //     while the card showed dayPct, so the two disagreed.
+  //     dayPct.
+  // marketData only carries the MC indices/futures/forex; portfolio
+  // stocks are passed in via `holding`, so we have to look in BOTH
+  // places for the ticker's price metadata. Without the holding
+  // fallback, an after-hours stock chart opened from a position
+  // would mis-detect "no AH activity" and anchor at series[0] (24h
+  // ago) instead of today's 16:00 ET close.
   const isFuturesTicker = /=F$/.test(ticker);
-  const hasMeaningfulAh = isFuturesTicker || (md?.extPrice != null && md.extPrice > 0);
+  const extPriceAny  = md?.extPrice  ?? holding?.extPrice  ?? null;
+  const lastPriceAny = md?.lastPrice ?? holding?.lastPrice ?? null;
+  const prevCloseAny = md?.prevClose ?? holding?.prevClose ?? null;
+  const hasMeaningfulAh = isFuturesTicker || (extPriceAny != null && extPriceAny > 0);
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
       if (useExt && hasMeaningfulAh && regularCloseIdx >= 0) {
         anchorClose = series[regularCloseIdx].close;
-      } else if (useExt && hasMeaningfulAh && md?.lastPrice && md.lastPrice > 0) {
-        anchorClose = md.lastPrice;
-      } else if (md && md.prevClose && md.prevClose > 0) {
-        anchorClose = md.prevClose;
+      } else if (useExt && hasMeaningfulAh && lastPriceAny && lastPriceAny > 0) {
+        anchorClose = lastPriceAny;
+      } else if (prevCloseAny && prevCloseAny > 0) {
+        anchorClose = prevCloseAny;
       } else {
         anchorClose = series[0].close;
       }
