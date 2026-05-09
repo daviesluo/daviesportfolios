@@ -191,12 +191,21 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   // at every range). Without warming this cache, opening any modal
   // triggered a cold network fetch for the MA history — visible as a
   // late-rendering gray line. Walk the same (range × ticker) grid
-  // and warm `${ticker}|MA|${range}` into dp.tickerChart so the
-  // modal hits cache instantly. spSymbol included so MC modals (^GSPC
-  // etc.) opened from the home page are also instant.
+  // and warm `${ticker}|MA|${range}` so the modal hits cache
+  // instantly. spSymbol included so MC modals (^GSPC etc.) opened
+  // from the home page are also instant.
+  //
+  // MA rows live in their OWN dp.maCache LRU — a separate
+  // localStorage entry from dp.tickerChart. Otherwise this loop
+  // (which runs after the display-range loop and writes newer
+  // timestamps) would push the freshly warmed display rows out of
+  // the shared 200-entry LRU and the next modal open would still
+  // pay a cold fetch. Per-cache cap below sized for ~50 modal
+  // tickers × 4 MA ranges = 200 entries.
+  const MA_CACHE_CAP = 240;
   for (const rk of RANGE_KEYS) {
     if (rk === '1D') continue; // MA overlay skips 1D (single-session view)
-    const tcAllRead = Storage.loadTickerChart() || { entries: {} };
+    const maStoreRead = Storage.loadMaCache() || { entries: {} };
     const maKey = (t) => `${t}|MA|${rk}`;
     const isFreshMa = (entry) =>
       entry && entry.data && Array.isArray(entry.data) && entry.data.length > 0 &&
@@ -204,8 +213,8 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
 
     const ixSymbols  = allSymbols.filter(s => !dailyOnlySet.has(s));
     const dlySymbols = allSymbols.filter(s =>  dailyOnlySet.has(s));
-    const ixStaleMa  = ixSymbols.filter(s => !isFreshMa(tcAllRead.entries?.[maKey(s)]));
-    const dlyStaleMa = dlySymbols.filter(s => !isFreshMa(tcAllRead.entries?.[maKey(s)]));
+    const ixStaleMa  = ixSymbols.filter(s => !isFreshMa(maStoreRead.entries?.[maKey(s)]));
+    const dlyStaleMa = dlySymbols.filter(s => !isFreshMa(maStoreRead.entries?.[maKey(s)]));
     if (ixStaleMa.length === 0 && dlyStaleMa.length === 0) continue;
 
     const ixParams  = maFetchParamsFor(rk, false);
@@ -226,9 +235,9 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       maBatch = { ...ixBatch, ...dlyBatch };
     } catch { continue; }
 
-    const tcAll = Storage.loadTickerChart() || { entries: {} };
-    tcAll.entries = tcAll.entries || {};
-    let tcChanged = false;
+    const maStore = Storage.loadMaCache() || { entries: {} };
+    maStore.entries = maStore.entries || {};
+    let maChanged = false;
     const now = Date.now();
     for (const t of [...ixStaleMa, ...dlyStaleMa]) {
       const data = maBatch[t];
@@ -238,21 +247,21 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
         .slice()
         .sort((a, b) => a.date < b.date ? -1 : 1);
       if (sorted.length === 0) continue;
-      tcAll.entries[maKey(t)] = { ts: now, data: sorted };
-      tcChanged = true;
+      maStore.entries[maKey(t)] = { ts: now, data: sorted };
+      maChanged = true;
     }
-    if (tcChanged) {
-      const keys = Object.keys(tcAll.entries);
-      if (keys.length > TICKER_CACHE_CAP) {
+    if (maChanged) {
+      const keys = Object.keys(maStore.entries);
+      if (keys.length > MA_CACHE_CAP) {
         const sorted = keys
-          .map((k) => ({ k, ts: tcAll.entries[k]?.ts || 0 }))
+          .map((k) => ({ k, ts: maStore.entries[k]?.ts || 0 }))
           .sort((a, b) => b.ts - a.ts);
         /** @type {Record<string, {ts:number, data:any[]}>} */
         const trimmed = {};
-        for (let i = 0; i < TICKER_CACHE_CAP; i++) trimmed[sorted[i].k] = tcAll.entries[sorted[i].k];
-        tcAll.entries = trimmed;
+        for (let i = 0; i < MA_CACHE_CAP; i++) trimmed[sorted[i].k] = maStore.entries[sorted[i].k];
+        maStore.entries = trimmed;
       }
-      Storage.saveTickerChart(tcAll);
+      Storage.saveMaCache(maStore);
     }
   }
 
