@@ -337,7 +337,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     if (!params) { setMaHistory(null); return; }
     const cacheKey = `${ticker}|MA|${rangeKey}`;
     const MA_TTL_MS = 12 * 60 * 60 * 1000;
-    const tcAll = Storage.loadTickerChart() || { entries: {} };
+    // Lives in `dp.maCache`, NOT `dp.tickerChart` — MA warming runs
+    // after the per-range display warming and we don't want its
+    // newer timestamps to evict freshly warmed 1D/1W/etc. modal
+    // rows from the shared 200-entry LRU.
+    const tcAll = Storage.loadMaCache() || { entries: {} };
     const cached = tcAll.entries?.[cacheKey];
     let isFresh = false;
     if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
@@ -360,14 +364,14 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           .sort((a, b) => a.date < b.date ? -1 : 1);
         if (sorted.length === 0) return;
         setMaHistory(sorted);
-        // Write back to the shared dp.tickerChart cache so prefetch +
-        // future modal opens hit it instantly. Reload before merge so
-        // we don't clobber a concurrent write.
+        // Write back to dp.maCache so prefetch + future modal opens
+        // hit it instantly. Reload before merge so we don't clobber
+        // a concurrent write.
         try {
-          const cur = Storage.loadTickerChart() || { entries: {} };
+          const cur = Storage.loadMaCache() || { entries: {} };
           cur.entries = cur.entries || {};
           cur.entries[cacheKey] = { ts: Date.now(), data: sorted };
-          Storage.saveTickerChart(cur);
+          Storage.saveMaCache(cur);
         } catch { /* best effort */ }
       } catch { /* leave the stale cached series in place */ }
     })();
