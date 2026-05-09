@@ -405,8 +405,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     for (let i = series.length - 1; i >= 0; i--) {
       const hh = parseInt(series[i].date.slice(11, 13), 10);
       const mm = parseInt(series[i].date.slice(14, 16), 10);
-      // closeHh:closeMm UTC; allow a bit of slack for non-quarter-hour bars.
-      if (hh === mh.closeHh && mm <= mh.closeMm + 5) { regularCloseIdx = i; break; }
+      // Pick the bar at exactly closeHh:closeMm UTC (= 20:00 EDT /
+      // 21:00 EST), or the latest bar strictly before close if the
+      // exact-close bar isn't in the data. The previous +5-min slack
+      // would steal the marker for a 20:05 post-close bar — user saw
+      // CLOSE rendered at 9:05pm BST instead of 9:00pm.
+      if (hh < mh.closeHh || (hh === mh.closeHh && mm === mh.closeMm)) { regularCloseIdx = i; break; }
     }
   }
 
@@ -431,25 +435,17 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     }
   }
 
-  // Anchor for % calculation:
-  //   1D ext on   → close at the regular-close idx if found, else
-  //                 marketData.lastPrice (today's regular close)
-  //   1D regular  → marketData.prevClose so the % matches the
-  //                 scoreboard's DAY CHANGE / heatmap tile exactly
-  //   1D ext off + closed → first point of the last day (already filtered)
-  //   others      → first window point
+  // Anchor for % calculation. 1D always anchors at the previous regular
+  // session's close so the modal's pct matches the MC card / scoreboard
+  // / perf-chart legend — they all derive from (live - prevClose) /
+  // prevClose. (Previously ext mode pivoted to today's 16:00 ET close
+  // so the modal could measure the AH/PM move alone, but that put four
+  // different numbers on screen for the same ticker.)
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
-      if (useExt && regularCloseIdx >= 0) {
-        anchorClose = series[regularCloseIdx].close;
-      } else if (useExt && md?.lastPrice && md.lastPrice > 0) {
-        // No close UTC bar in the fetched window (e.g. weekend session
-        // for futures) — fall back to today's regular close from the
-        // live snapshot so the basis still matches scoreboard semantics.
-        anchorClose = md.lastPrice;
-      } else if (phase === 'regular') {
-        anchorClose = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : series[0].close;
+      if (md && md.prevClose && md.prevClose > 0) {
+        anchorClose = md.prevClose;
       } else {
         anchorClose = series[0].close;
       }

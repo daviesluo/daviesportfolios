@@ -160,17 +160,17 @@ export function buildTickerSeries(hist, anchorDate, rangeKey = 'YTD', marketData
 
     let janPrice = null;
     if (rangeKey === '1D') {
-      // 1D's anchor comes from the live marketData snapshot — historical
-      // intraday bars don't include yesterday's close. In ext-on AH/PM
-      // we pivot to today's regular close (lastPrice) instead so the
-      // chart's right-edge % matches the scoreboard's DAY CHANGE.
+      // 1D always anchors at the previous regular session's close so the
+      // chart's right-edge % matches the cards / heatmap / scoreboard's
+      // DAY CHANGE — all three derive from (live - prevClose) / prevClose.
+      // Previously useExt pivoted to today's regular close (lastPrice) so
+      // the chart could measure the AH/PM move alone, but that meant the
+      // perf chart, MC cards, and ticker-drill modal all reported three
+      // different numbers for the same ticker. Pin to prevClose for one
+      // source of truth; the AH/PM move stays visible as the curve's
+      // distance from the CLOSE marker rather than the right-edge %.
       const md = marketData[t];
-      const ref = useExt ? md?.lastPrice : md?.prevClose;
-      if (typeof ref === 'number' && ref > 0) {
-        janPrice = ref;
-      } else if (md && typeof md.prevClose === 'number' && md.prevClose > 0) {
-        // Fallback: useExt requested but lastPrice missing — better to plot
-        // against prevClose than render an empty chart.
+      if (md && typeof md.prevClose === 'number' && md.prevClose > 0) {
         janPrice = md.prevClose;
       }
     } else {
