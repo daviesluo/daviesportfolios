@@ -736,20 +736,41 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     : '';
   const lineColor = pctNow >= 0 ? 'var(--gain)' : 'var(--loss)';
 
-  // Moving-average overlay. 1W → MA5, 1M → MA10, 3M → MA20, YTD → MA50.
-  // The window matches the chart's bar interval (5m on 1W is overkill,
-  // so the 1W window picks up daily bars only when the user is on the
-  // 30m interval — close enough). 1D and PE skip the overlay (1D is a
-  // single-session intraday view; PE has its own 3Y AVG line).
+  // Moving-average overlay. 1W → MA 5d, 1M → MA 10d, 3M → MA 20d,
+  // YTD → MA 50d. 1D and PE skip the overlay (1D is single-session
+  // intraday; PE has its own 3Y AVG dashed line).
+  //
+  // Daily semantics: the user asked for "5日 / 10日 / 20日 / 50日"
+  // moving averages. 1W and 1M fetch *intraday* bars (30m / 60m per
+  // ytd.js), so a naive N-bar window over `points` would average a
+  // few hours of price action, not N trading days. Resample to one
+  // close per UTC calendar date (last bar wins), compute the trailing
+  // SMA on the daily series, then map each intraday bar back to its
+  // day's MA so the line still spans the chart visually. For ranges
+  // already at daily granularity (3M / YTD) this resample is a no-op.
   const MA_WINDOW = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50 }[rangeKey] || 0;
-  const maSeries = MA_WINDOW > 0 && points.length >= MA_WINDOW
-    ? points.map((_p, i) => {
-        if (i < MA_WINDOW - 1) return null;
-        let sum = 0;
-        for (let j = i - MA_WINDOW + 1; j <= i; j++) sum += points[j].close;
-        return sum / MA_WINDOW;
-      })
-    : null;
+  let maSeries = null;
+  if (MA_WINDOW > 0 && points.length > 0) {
+    const byDate = new Map();
+    for (const p of points) {
+      if (typeof p.date !== 'string' || p.date.length < 10) continue;
+      byDate.set(p.date.slice(0, 10), p.close); // last close of each day wins
+    }
+    const days = Array.from(byDate.keys()).sort();
+    if (days.length >= MA_WINDOW) {
+      const dayMa = new Map();
+      let sum = 0;
+      for (let i = 0; i < days.length; i++) {
+        sum += byDate.get(days[i]);
+        if (i >= MA_WINDOW) sum -= byDate.get(days[i - MA_WINDOW]);
+        if (i >= MA_WINDOW - 1) dayMa.set(days[i], sum / MA_WINDOW);
+      }
+      maSeries = points.map(p => {
+        const day = (typeof p.date === 'string' && p.date.length >= 10) ? p.date.slice(0, 10) : '';
+        return dayMa.has(day) ? dayMa.get(day) : null;
+      });
+    }
+  }
   const maPath = maSeries
     ? (() => {
         const start = maSeries.findIndex(v => v != null);
