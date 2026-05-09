@@ -5,7 +5,7 @@
 // player in non-edit mode — edit mode keeps opening the EditTickerModal.
 import React from 'react';
 import { Modal } from './modals.jsx';
-import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc, fxToUSD } from './utils.js';
+import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc, fxToUSD, maskDigits } from './utils.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC } from './utils.js';
 import { reportError } from './ops_error.js';
@@ -102,7 +102,7 @@ const CN_FUND_RE = /^\d{6}$/;
 // a clear "no public history" message instead of a generic error.
 const PVT_RE = /\.PVT$/i;
 
-export function TickerChartModal({ ticker, holding, marketData, extendedHours, phase, onClose, portfolioTotalValue }) {
+export function TickerChartModal({ ticker, holding, marketData, extendedHours, phase, onClose, portfolioTotalValue, hideValues }) {
   const isCnFund = CN_FUND_RE.test(ticker);
   const isPvt    = PVT_RE.test(ticker);
   const dailyOnly = isCnFund || isPvt;
@@ -743,19 +743,24 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             const glUsd     = valueUsd - costUsd;
             const glPct     = costUsd > 0 ? (glUsd / costUsd) * 100 : 0;
             const portShare = portfolioTotalValue > 0 ? (valueUsd / portfolioTotalValue) * 100 : null;
+            // Mask raw shares + dollar amounts under the privacy toggle —
+            // matches what PlayerCard does for the same fields. Percentages
+            // (G/L %, portfolio share) stay visible since they don't reveal
+            // portfolio size.
+            const m = (s) => hideValues ? maskDigits(s) : s;
             return (
               <div className="modal-meta">
-                <span className="mono dim">{holding.shares} shares</span>
+                <span className="mono dim">{m(String(holding.shares))} shares</span>
                 <span className="mono dim">·</span>
-                <span className="mono dim">AC <span className="mono">{hSym}{fmtPr(holding.cost)}</span></span>
+                <span className="mono dim">AC <span className="mono">{m(`${hSym}${fmtPr(holding.cost)}`)}</span></span>
                 <span className="mono dim">·</span>
-                <span className="mono dim">Cost <span className="mono">{fmtMo(costUsd)}</span></span>
+                <span className="mono dim">Cost <span className="mono">{m(fmtMo(costUsd))}</span></span>
                 <span className="mono dim">·</span>
-                <span className="mono dim">Value <span className="mono">{fmtMo(valueUsd)}</span>{portShare != null && (
+                <span className="mono dim">Value <span className="mono">{m(fmtMo(valueUsd))}</span>{portShare != null && (
                   <span className="mono dim" style={{ fontSize: 10 }}> ({portShare.toFixed(2)}%)</span>
                 )}</span>
                 <span className="mono dim">·</span>
-                <span className="mono dim">G/L <span className="mono" style={{ color: pcC(glPct) }}>{fmtMo(glUsd, { signed: true })} ({fmP(glPct)})</span></span>
+                <span className="mono dim">G/L <span className="mono" style={{ color: pcC(glPct) }}>{m(fmtMo(glUsd, { signed: true }))} ({fmP(glPct)})</span></span>
               </div>
             );
           })()}

@@ -563,6 +563,7 @@ function Board({ isReadOnly }) {
           extendedHours={extendedHours}
           phase={currentPhase}
           portfolioTotalValue={metrics.marketValue}
+          hideValues={hideValues}
           onClose={() => setViewingTicker(null)}
         />
       )}
