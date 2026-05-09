@@ -383,17 +383,21 @@ function MarketConditions({ marketData, extendedHours, phase, className = '', on
         const pct       = d ? (d.dayPct ?? 0) : null;
         const prevClose = d ? (d.prevClose ?? d.lastPrice) : null;
         const dayChange = (price != null && prevClose != null) ? price - prevClose : null;
-        // Card click always opens the canonical (non-futures) symbol so
-        // ^GSPC/^NDX/^RUT keep their P/E YTD button regardless of the
-        // ext-hours toggle. The futures-substitution is purely a "what
-        // price is most relevant right now" thing for the card face.
-        const handleClick = onCardClick ? () => onCardClick(ticker) : undefined;
+        // Card click opens whichever ticker the card is currently
+        // *displaying* — so in ext mode the S&P card opens the ES=F
+        // futures chart and the modal's pct matches what the card
+        // showed. (Previously it always opened the canonical ^GSPC so
+        // the modal could keep its P/E button, but that meant the
+        // modal's pct was for ^GSPC's prevClose while the card's pct
+        // was for ES=F's prevClose — different numbers for the same
+        // tap. Toggle ext off if you want the index P/E view.)
+        const handleClick = onCardClick ? () => onCardClick(activeTicker) : undefined;
         return (
           <section
             key={activeTicker}
             className={`panel mc-card${hideMobile ? " mc-hide-mobile" : ""}${onCardClick ? " mc-card-clickable" : ""}`}
             onClick={handleClick}
-            onKeyDown={onCardClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCardClick(ticker); } } : undefined}
+            onKeyDown={onCardClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCardClick(activeTicker); } } : undefined}
             role={onCardClick ? "button" : undefined}
             tabIndex={onCardClick ? 0 : undefined}
             title={onCardClick ? `Open ${name} chart` : undefined}
