@@ -163,13 +163,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const [series, setSeries]     = React.useState(/** @type {Array<{date:string,close:number}>|null} */ (null));
   const [loading, setLoading]   = React.useState(true);
   const [error, setError]       = React.useState(false);
-  // Dedicated daily history for the moving-average overlay. Keyed by
-  // YYYY-MM-DD UTC date. Fetched separately from `series` because the
-  // chart's display window doesn't include the N prior trading days
-  // the MA needs to be valid at the leftmost edge — without this the
-  // MA line only kicked in halfway through the chart. See the MA
-  // useEffect below for the per-range fetch widths.
-  const [maHistory, setMaHistory] = React.useState(/** @type {Map<string, number>|null} */ (null));
+  // Dedicated history series for the moving-average overlay. Stored
+  // as a sorted-by-date array at the SAME interval as the displayed
+  // chart, but covering a wider time range so the MA window can fit
+  // even at the leftmost displayed bar. See the MA useEffect below
+  // for the per-range fetch widths.
+  const [maHistory, setMaHistory] = React.useState(/** @type {Array<{date:string,close:number}>|null} */ (null));
 
   const useExt = !!(extendedHours && phase && phase !== 'regular');
 
@@ -317,36 +316,38 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // Background prefetch the other ranges once the user's chosen range has
   // landed. Range-button clicks then hit the in-memory cache for an
   // instant swap. Sequential, fire-and-forget — failures just leave the
-  // Moving-average history fetch — wider than `series` so the MA
-  // line can start on the chart's leftmost bar instead of mid-chart.
-  // For each range we pull a daily window large enough to cover the
-  // displayed period PLUS the MA's N-day prior history:
-  //   1W (5d)  + MA 5  → 1mo daily
-  //   1M (1mo) + MA 10 → 3mo daily
-  //   3M (3mo) + MA 20 → 6mo daily
-  //   YTD      + MA 50 → 1y  daily
+  // Moving-average history fetch — same interval as the chart's
+  // display fetch, but a wider time range so the MA's bar window
+  // can fit even at the leftmost displayed bar. The "5/10/20/50 day"
+  // semantic translates to a per-range bar count below; with the
+  // same interval the wider series shares timestamps with the
+  // displayed series, so each display bar's MA is just a Map lookup.
+  //   1W (5d/30m)  → 1mo/30m  (~600 bars; need ~65 for MA 5d × 13/day)
+  //   1M (1mo/60m) → 3mo/60m  (~470 bars; need ~70 for MA 10d × 7/day)
+  //   3M (3mo/1d)  → 6mo/1d   (need 20 daily bars before display start)
+  //   YTD (ytd/1d) → 1y/1d    (need 50 daily bars before display start)
   // 1D and PE skip (no MA overlay). Re-runs on ticker / rangeKey
   // change; cancels on unmount via the cleanup flag.
   React.useEffect(() => {
-    const wideRange = { '1W': '1mo', '1M': '3mo', '3M': '6mo', 'YTD': '1y' }[rangeKey];
-    if (!wideRange) { setMaHistory(null); return; }
+    const params = {
+      '1W':  { range: '1mo', interval: '30m' },
+      '1M':  { range: '3mo', interval: '60m' },
+      '3M':  { range: '6mo', interval: '1d'  },
+      'YTD': { range: '1y',  interval: '1d'  },
+    }[rangeKey];
+    if (!params) { setMaHistory(null); return; }
     let cancelled = false;
     (async () => {
       try {
-        const out = await fetchHistoricalBatch([ticker], wideRange, '1d', false);
+        const out = await fetchHistoricalBatch([ticker], params.range, params.interval, false);
         if (cancelled) return;
         const data = out?.[ticker];
         if (!Array.isArray(data) || data.length === 0) { setMaHistory(null); return; }
-        const byDate = new Map();
-        for (const p of data) {
-          if (typeof p.date !== 'string' || p.date.length < 10) continue;
-          if (!isFinite(Number(p.close)) || p.close <= 0) continue;
-          // Daily endpoint returns YYYY-MM-DD; if it ever switches to
-          // intraday-style for fresher today bars, slice still gives
-          // the day correctly.
-          byDate.set(p.date.slice(0, 10), p.close);
-        }
-        setMaHistory(byDate.size > 0 ? byDate : null);
+        const sorted = data
+          .filter(p => typeof p.date === 'string' && isFinite(Number(p.close)) && p.close > 0)
+          .slice()
+          .sort((a, b) => a.date < b.date ? -1 : 1);
+        setMaHistory(sorted.length > 0 ? sorted : null);
       } catch {
         if (!cancelled) setMaHistory(null);
       }
@@ -578,6 +579,35 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const padR = rangeKey === 'PE' ? 96 : (showMa ? 56 : 16);
   const cW = W - padL - padR, cH = H - padT - padB;
 
+  // Bar-based SMA over `maHistory` (a same-interval, wider-range
+  // sister fetch — see the maHistory effect above). On 1W (30m bars)
+  // and 1M (60m bars) the daily-MA semantic is preserved by setting
+  // the bar window to N_days × bars/day; on 3M / YTD this collapses
+  // to the textbook N-day SMA. Same convention TradingView uses.
+  // Bars per trading day at each interval (RTH only, 9:30-16:00 ET):
+  //   30m → 13 bars, 60m → 7 bars, 1d → 1 bar.
+  const MA_BARS = {
+    '1W':  5  * 13,
+    '1M':  10 * 7,
+    '3M':  20,
+    'YTD': 50,
+  }[rangeKey] || 0;
+  // What the user sees on the right margin — "MA 5" / "MA 10" /
+  // "MA 20" / "MA 50". Decoupled from MA_BARS because the bar count
+  // is interval-dependent on intraday ranges.
+  const MA_LABEL_N = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50 }[rangeKey] || 0;
+  let maSeries = null;
+  if (MA_BARS > 0 && points.length > 0 && maHistory && maHistory.length >= MA_BARS) {
+    const maByDate = new Map();
+    let sum = 0;
+    for (let i = 0; i < maHistory.length; i++) {
+      sum += maHistory[i].close;
+      if (i >= MA_BARS) sum -= maHistory[i - MA_BARS].close;
+      if (i >= MA_BARS - 1) maByDate.set(maHistory[i].date, sum / MA_BARS);
+    }
+    maSeries = points.map(p => maByDate.has(p.date) ? maByDate.get(p.date) : null);
+  }
+
   const hasData = points.length >= 2 && anchorClose;
   // X positioning is INDEX-based, not time-based. Treating each bar as one
   // equally-spaced step removes the ugly weekend / overnight gaps a real
@@ -595,6 +625,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     // current P/E has drifted far from the historical average.
     if (rangeKey === 'PE' && typeof pe3yAvg === 'number' && pe3yAvg > 0) {
       allP.push(pe3yAvg);
+    }
+    // MA values too — without this the line could overflow the
+    // chart bounds on the leftmost bars where MA reflects a much
+    // older (lower) average than the current price. User reported
+    // it as "MA 线溢出图表".
+    if (maSeries) {
+      for (const v of maSeries) {
+        if (typeof v === 'number' && isFinite(v)) allP.push(v);
+      }
     }
     const rawMin = Math.min(...allP), rawMax = Math.max(...allP);
     const yPad = Math.max(0.001, (rawMax - rawMin) * 0.08);
@@ -780,46 +819,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     : '';
   const lineColor = pctNow >= 0 ? 'var(--gain)' : 'var(--loss)';
 
-  // Moving-average overlay. 1W → MA 5d, 1M → MA 10d, 3M → MA 20d,
-  // YTD → MA 50d. 1D and PE skip (1D is single-session intraday; PE
-  // has its own 3Y AVG dashed line).
-  //
-  // The user asked for "5日 / 10日 / 20日 / 50日" — daily MAs. The
-  // history comes from `maHistory` (a separate daily fetch wide
-  // enough to cover the displayed range PLUS the MA's prior window
-  // — see the maHistory effect above). For each rendered point we
-  // compute the MA as `(bar.close + sum of N-1 *strict prior* daily
-  // closes) / N`. On daily-granularity ranges (3M / YTD) bar.close
-  // IS the day's close, so this collapses to the textbook
-  // N-day SMA. On intraday ranges (1W / 1M, 30m / 60m bars) the
-  // formula keeps "today's contribution" tied to the bar's own price
-  // rather than the day's stale daily close, so the MA glides
-  // smoothly through the day instead of step-jumping at midnight —
-  // same convention TradingView and other charting platforms use.
-  const MA_WINDOW = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50 }[rangeKey] || 0;
-  let maSeries = null;
-  if (MA_WINDOW > 0 && points.length > 0 && maHistory && maHistory.size >= MA_WINDOW - 1) {
-    const days = Array.from(maHistory.keys()).sort();
-    // Prefix sum of daily closes — O(1) range queries for any prior-N
-    // window. dailyPrefixSum[i] = sum of days[0..i-1].
-    const dailyPrefixSum = [0];
-    for (let i = 0; i < days.length; i++) {
-      dailyPrefixSum.push(dailyPrefixSum[i] + maHistory.get(days[i]));
-    }
-    const N = MA_WINDOW;
-    // Walk points and `days` chronologically. priorIdx tracks the
-    // index of the last day strictly before the current point's day.
-    let priorIdx = -1;
-    maSeries = points.map(p => {
-      const day = (typeof p.date === 'string' && p.date.length >= 10) ? p.date.slice(0, 10) : '';
-      if (!day) return null;
-      while (priorIdx + 1 < days.length && days[priorIdx + 1] < day) priorIdx++;
-      // Need (N-1) strict prior daily closes for a valid MA.
-      if (priorIdx < N - 2) return null;
-      const sum = dailyPrefixSum[priorIdx + 1] - dailyPrefixSum[priorIdx + 1 - (N - 1)];
-      return (sum + p.close) / N;
-    });
-  }
+  // (MA series itself is computed earlier — before the y-range
+  // calculation — so MA values can participate in yMin/yMax.)
   const maPath = maSeries
     ? (() => {
         const start = maSeries.findIndex(v => v != null);
@@ -1022,7 +1023,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                 <text x={W - padR + 4} y={yOf(maLastValue).toFixed(1)}
                       textAnchor="start" dominantBaseline="middle"
                       fontSize="9" fill="rgba(244,239,227,0.7)" fontFamily="var(--font-mono)">
-                  MA {MA_WINDOW}
+                  MA {MA_LABEL_N}
                 </text>
               )}
               {/* Price path */}
