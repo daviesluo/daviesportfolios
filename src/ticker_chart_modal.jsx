@@ -784,35 +784,40 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // YTD → MA 50d. 1D and PE skip (1D is single-session intraday; PE
   // has its own 3Y AVG dashed line).
   //
-  // The user asked for "5日 / 10日 / 20日 / 50日" — daily MAs. 1W
-  // and 1M fetch *intraday* bars (30m / 60m), so we can't compute
-  // those off `points` alone, and 3M / YTD don't have enough prior
-  // history in the displayed window to start the MA at the chart's
-  // left edge. Both problems solved by `maHistory`: a separate daily
-  // fetch wide enough to cover the displayed range PLUS the MA's
-  // prior-day window. Each intraday bar maps to the latest daily MA
-  // whose date is <= that bar's UTC date so the line spans the whole
-  // chart left-to-right.
+  // The user asked for "5日 / 10日 / 20日 / 50日" — daily MAs. The
+  // history comes from `maHistory` (a separate daily fetch wide
+  // enough to cover the displayed range PLUS the MA's prior window
+  // — see the maHistory effect above). For each rendered point we
+  // compute the MA as `(bar.close + sum of N-1 *strict prior* daily
+  // closes) / N`. On daily-granularity ranges (3M / YTD) bar.close
+  // IS the day's close, so this collapses to the textbook
+  // N-day SMA. On intraday ranges (1W / 1M, 30m / 60m bars) the
+  // formula keeps "today's contribution" tied to the bar's own price
+  // rather than the day's stale daily close, so the MA glides
+  // smoothly through the day instead of step-jumping at midnight —
+  // same convention TradingView and other charting platforms use.
   const MA_WINDOW = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50 }[rangeKey] || 0;
   let maSeries = null;
-  if (MA_WINDOW > 0 && points.length > 0 && maHistory && maHistory.size >= MA_WINDOW) {
+  if (MA_WINDOW > 0 && points.length > 0 && maHistory && maHistory.size >= MA_WINDOW - 1) {
     const days = Array.from(maHistory.keys()).sort();
-    const dayMa = new Map();
-    let sum = 0;
+    // Prefix sum of daily closes — O(1) range queries for any prior-N
+    // window. dailyPrefixSum[i] = sum of days[0..i-1].
+    const dailyPrefixSum = [0];
     for (let i = 0; i < days.length; i++) {
-      sum += maHistory.get(days[i]);
-      if (i >= MA_WINDOW) sum -= maHistory.get(days[i - MA_WINDOW]);
-      if (i >= MA_WINDOW - 1) dayMa.set(days[i], sum / MA_WINDOW);
+      dailyPrefixSum.push(dailyPrefixSum[i] + maHistory.get(days[i]));
     }
-    // Sorted list of days that have a valid MA value, walked in lock-
-    // step with the (already chronological) display points.
-    const maDays = days.filter(d => dayMa.has(d));
-    let maIdx = -1;
+    const N = MA_WINDOW;
+    // Walk points and `days` chronologically. priorIdx tracks the
+    // index of the last day strictly before the current point's day.
+    let priorIdx = -1;
     maSeries = points.map(p => {
       const day = (typeof p.date === 'string' && p.date.length >= 10) ? p.date.slice(0, 10) : '';
-      while (maIdx + 1 < maDays.length && maDays[maIdx + 1] <= day) maIdx++;
-      if (maIdx < 0) return null;
-      return dayMa.get(maDays[maIdx]);
+      if (!day) return null;
+      while (priorIdx + 1 < days.length && days[priorIdx + 1] < day) priorIdx++;
+      // Need (N-1) strict prior daily closes for a valid MA.
+      if (priorIdx < N - 2) return null;
+      const sum = dailyPrefixSum[priorIdx + 1] - dailyPrefixSum[priorIdx + 1 - (N - 1)];
+      return (sum + p.close) / N;
     });
   }
   const maPath = maSeries
