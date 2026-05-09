@@ -52,7 +52,12 @@ type Fundamentals = {
   pe: number;
   eps: number;
   pe3yAvg: number | null;
-  epsHistory?: EpsHistoryPoint[];
+  // Pre-summed TTM diluted EPS at each quarter end. Named explicitly
+  // to avoid colliding with the previous `epsHistory` contract that
+  // returned RAW quarterly EPS — a stale Edge Function or
+  // SW-cached response would otherwise be misinterpreted as TTM by
+  // the new client (yields P/E ~4x too low).
+  ttmEpsHistory?: EpsHistoryPoint[];
 };
 
 const INDEX_ETF_PROXY: Record<string, string> = {
@@ -263,6 +268,51 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
   }
 }
 
+// Fetches the rolling TTM diluted EPS at each quarter-end for the
+// symbol, via Yahoo's `fundamentals-timeseries` API. Yahoo returns the
+// already-summed TTM directly (= sum of last 4 quarterly EPS as of
+// each quarter-end), with 5+ years of history per ticker on the free /
+// public endpoint — much more than Finnhub's free `/stock/earnings`,
+// which caps at 4 quarters and so can never give the client enough
+// history to recompute a meaningful TTM at YTD start. Each entry is
+// `{ date: "YYYY-MM-DD" (quarter end), eps: <TTM diluted EPS> }`.
+// Returns null on any error or when the response is empty so the
+// dispatcher cleanly falls back.
+async function fetchYahooTrailingEpsHistory(
+  symbol: string,
+): Promise<Array<{ date: string; eps: number }> | null> {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const fiveYearsAgoSec = nowSec - 5 * 365 * 86400;
+  const url =
+    `https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/` +
+    `${encodeURIComponent(symbol)}?type=trailingDilutedEPS` +
+    `&period1=${fiveYearsAgoSec}&period2=${nowSec}`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/json,text/plain,*/*",
+      },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const arr = data?.timeseries?.result?.[0]?.trailingDilutedEPS;
+    if (!Array.isArray(arr)) return null;
+    const out = arr
+      .map((p: any) => ({
+        date: String(p?.asOfDate ?? ""),
+        eps: Number(p?.reportedValue?.raw),
+      }))
+      .filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date) && isFinite(r.eps) && r.eps > 0)
+      .sort((a, b) => (a.date < b.date ? -1 : 1));
+    return out.length > 0 ? out : null;
+  } catch {
+    return null;
+  }
+}
+
 // Fetches the last ~12 quarters of reported EPS so the client can build
 // a rolling TTM-EPS series. The default P/E modal logic divides every
 // historical price by a single CURRENT EPS, which made the P/E chart
@@ -318,11 +368,15 @@ Deno.serve(async (req: Request) => {
 
   const url = new URL(req.url);
   const param = url.searchParams.get("tickers") ?? "";
-  // Opt-in flag — when "true" each Finnhub-backed entry also gets an
-  // epsHistory array (last 12 quarters of reported EPS). Off by default
-  // because every other caller (heatmap badges, etc.) just needs the
-  // current TTM P/E and shouldn't pay the extra round-trip per ticker.
-  const includeEpsHistory = url.searchParams.get("epsHistory") === "true";
+  // Opt-in flag — when "true" each entry also gets a `ttmEpsHistory`
+  // array (Yahoo trailingDilutedEPS, 5+ yrs). Off by default since
+  // every other caller (heatmap badges, etc.) just needs the current
+  // TTM P/E and shouldn't pay the extra round-trip per ticker. The
+  // flag name is intentionally distinct from #64's `epsHistory` so a
+  // mixed-version state (new client + old Edge Function, or vice
+  // versa, or a SW-cached old response) cleanly degrades to const-EPS
+  // instead of mixing raw-quarterly and TTM semantics.
+  const includeEpsHistory = url.searchParams.get("ttmEpsHistory") === "true";
   const tickers = param
     .split(",")
     .map((t) => t.trim())
@@ -358,8 +412,29 @@ Deno.serve(async (req: Request) => {
         const f = await fetchFinnhub(t);
         if (!f) continue;
         if (includeEpsHistory) {
-          const hist = await fetchFinnhubEarningsHistory(t);
-          if (hist) f.epsHistory = hist;
+          // Each entry's `eps` is TTM diluted EPS at that quarter end —
+          // already summed by Yahoo, so the client can just look up
+          // the latest entry whose date+lag is before the price date.
+          // Falls back to Finnhub on Yahoo failure: Finnhub returns
+          // *raw* quarterly EPS so we sum the last 4 to expose a single
+          // TTM data point. 4 quarters is rarely enough to draw
+          // earnings-day steps, but it keeps the response shape
+          // consistent so the client doesn't need to know the source.
+          let hist = await fetchYahooTrailingEpsHistory(t);
+          if (!hist) {
+            const raw = await fetchFinnhubEarningsHistory(t);
+            if (raw && raw.length >= 4) {
+              hist = [];
+              for (let i = 3; i < raw.length; i++) {
+                hist.push({
+                  date: raw[i].date,
+                  eps: raw[i].eps + raw[i - 1].eps + raw[i - 2].eps + raw[i - 3].eps,
+                });
+              }
+              if (hist.length === 0) hist = null;
+            }
+          }
+          if (hist) f.ttmEpsHistory = hist;
         }
         out[t] = f;
       }
