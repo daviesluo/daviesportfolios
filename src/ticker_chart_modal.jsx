@@ -160,7 +160,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // public exchanges. Both default to 1M so the user sees something
   // immediately rather than landing on an intraday view that's empty.
   const [rangeKey, setRangeKey] = React.useState(dailyOnly ? '1M' : '1D');
-  const [series, setSeries]     = React.useState(/** @type {Array<{date:string,close:number}>|null} */ (null));
+  const [series, setSeries]     = React.useState(/** @type {Array<{date:string,close:number,volume?:number}>|null} */ (null));
   const [loading, setLoading]   = React.useState(true);
   const [error, setError]       = React.useState(false);
   // Wider sister-fetch for the moving-average overlay. Same Yahoo
@@ -581,7 +581,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // view since the cached series is already in P/E units; substituting
   // a raw price would tank the last bar.
   const points = series ? series.map((p, i) => (
-    rangeKey !== 'PE' && i === series.length - 1 && liveLast ? { date: p.date, close: liveLast } : p
+    // Preserve any extra fields on the bar (notably `volume`, used by
+    // the VWAP overlay) when substituting the live tail value.
+    rangeKey !== 'PE' && i === series.length - 1 && liveLast ? { ...p, close: liveLast } : p
   )) : [];
 
   const lastClose = points.length > 0 ? points[points.length - 1].close : null;
@@ -598,8 +600,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // treatment for the MA overlay (1W/1M/3M/YTD) — the "MA 50" label
   // sits in the right margin at the level of the latest MA value.
   const showMa = ['1W', '1M', '3M', 'YTD'].includes(rangeKey);
+  // 1D has no MA line but may have a VWAP overlay — same right-margin
+  // label treatment, so it needs the same widened padR.
+  const showVwap = rangeKey === '1D';
   const padL = 56, padT = 18, padB = 38;
-  const padR = rangeKey === 'PE' ? 96 : (showMa ? 56 : 16);
+  const padR = rangeKey === 'PE' ? 96 : (showMa || showVwap ? 56 : 16);
   const cW = W - padL - padR, cH = H - padT - padB;
 
   // Intraday rolling SMA — what TradingView calls "5/10/20/50-day MA"
@@ -636,6 +641,31 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     maSeries = points.map(p => maByDate.has(p.date) ? maByDate.get(p.date) : null);
   }
 
+  // Volume-weighted average price (1D only). Standard cumulative VWAP
+  // formula, reset at every UTC date boundary so multi-day 1D windows
+  // (closed-market variant spans yesterday's session, ext-on may show
+  // ~24 h spanning two dates) restart cleanly:
+  //   VWAP_t = sum(close_i * volume_i) / sum(volume_i)
+  //   for all i in [first bar of t's date .. t]
+  // Skipped on tickers without meaningful per-bar volume (forex,
+  // yields, ^VIX-style index proxies, CN funds): if no bar in the
+  // session has volume > 0 we don't draw the overlay.
+  let vwapSeries = null;
+  if (rangeKey === '1D' && points.length > 0) {
+    const hasAnyVolume = points.some(p => Number(p.volume) > 0);
+    if (hasAnyVolume) {
+      let sumPV = 0, sumV = 0, currentDay = '';
+      vwapSeries = points.map(p => {
+        const day = (typeof p.date === 'string' && p.date.length >= 10) ? p.date.slice(0, 10) : '';
+        if (day !== currentDay) { sumPV = 0; sumV = 0; currentDay = day; }
+        const v = Number(p.volume) || 0;
+        sumPV += p.close * v;
+        sumV  += v;
+        return sumV > 0 ? sumPV / sumV : null;
+      });
+    }
+  }
+
   const hasData = points.length >= 2 && anchorClose;
   // X positioning is INDEX-based, not time-based. Treating each bar as one
   // equally-spaced step removes the ugly weekend / overnight gaps a real
@@ -660,6 +690,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     // it as "MA 线溢出图表".
     if (maSeries) {
       for (const v of maSeries) {
+        if (typeof v === 'number' && isFinite(v)) allP.push(v);
+      }
+    }
+    // Same containment treatment for VWAP — without it the overlay
+    // could clip at the top/bottom of the plot area on volatile days.
+    if (vwapSeries) {
+      for (const v of vwapSeries) {
         if (typeof v === 'number' && isFinite(v)) allP.push(v);
       }
     }
@@ -870,6 +907,38 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       })()
     : null;
 
+  // VWAP path + last-value label. Unlike MA, VWAP resets to 0 at every
+  // UTC date boundary inside the displayed window (last-24h reg slice
+  // and ext-on views span two dates). Emit a fresh `M` at each new
+  // day so the SVG doesn't draw a misleading straight segment from
+  // the prior day's final VWAP down to the new day's first.
+  const vwapPath = vwapSeries
+    ? (() => {
+        let out = '';
+        let openSegment = false;
+        let prevDay = '';
+        for (let i = 0; i < vwapSeries.length; i++) {
+          if (vwapSeries[i] == null) { openSegment = false; continue; }
+          const day = (typeof points[i].date === 'string' && points[i].date.length >= 10)
+            ? points[i].date.slice(0, 10)
+            : '';
+          const cmd = (openSegment && day === prevDay) ? 'L' : 'M';
+          out += `${cmd}${xOfIdx(i).toFixed(1)},${yOf(vwapSeries[i]).toFixed(1)}`;
+          openSegment = true;
+          prevDay = day;
+        }
+        return out;
+      })()
+    : '';
+  const vwapLastValue = vwapSeries
+    ? (() => {
+        for (let i = vwapSeries.length - 1; i >= 0; i--) {
+          if (vwapSeries[i] != null) return vwapSeries[i];
+        }
+        return null;
+      })()
+    : null;
+
   return (
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
@@ -1037,6 +1106,21 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                   </g>
                 );
               })()}
+              {/* VWAP overlay (1D only, when bar volume is available).
+                  Drawn before the price path so the active price line
+                  stays on top. Same gray + label-in-right-margin
+                  treatment as the MA overlays on other ranges. */}
+              {vwapPath && (
+                <path d={vwapPath} fill="none" stroke="#6b7280" strokeWidth="1.0"
+                      strokeLinejoin="round" strokeLinecap="round" opacity="0.85" />
+              )}
+              {vwapLastValue != null && (
+                <text x={W - padR + 4} y={yOf(vwapLastValue).toFixed(1)}
+                      textAnchor="start" dominantBaseline="middle"
+                      fontSize="9" fill="rgba(244,239,227,0.7)" fontFamily="var(--font-mono)">
+                  VWAP
+                </text>
+              )}
               {/* Moving-average overlay (1W → 5d, 1M → 10d, 3M → 20d,
                   YTD → 50d). Drawn before the price path so the active
                   price line stays on top. Same gray as the PerfChart
