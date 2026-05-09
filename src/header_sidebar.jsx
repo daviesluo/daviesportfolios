@@ -392,10 +392,21 @@ function MarketConditions({ marketData, extendedHours, phase, className = '', on
         // Anchor for "since the most recent 16:00 ET close that has
         // occurred". In ext mode every MC ticker has todayRegularClose
         // populated by app.jsx (same bar the modal looks up via
-        // regularCloseIdx), so the card and modal align. In regular
-        // hours we use prevClose, also matching the modal.
-        const useTodayClose = useExt && d && typeof d.todayRegularClose === 'number' && d.todayRegularClose > 0;
-        const anchor    = useTodayClose ? d.todayRegularClose : (d ? (d.prevClose ?? d.lastPrice) : null);
+        // regularCloseIdx). When that lookup misses (cold weekend, fetch
+        // hiccup), fall back to lastPrice — matches the modal's
+        // useExt+regularCloseIdx<0 fallback so the card still reports
+        // the same number as the modal even on the unhappy path. In
+        // regular hours we use prevClose, also matching the modal.
+        let anchor = null;
+        if (d) {
+          if (useExt && typeof d.todayRegularClose === 'number' && d.todayRegularClose > 0) {
+            anchor = d.todayRegularClose;
+          } else if (useExt && d.lastPrice && d.lastPrice > 0) {
+            anchor = d.lastPrice;
+          } else {
+            anchor = d.prevClose ?? d.lastPrice ?? null;
+          }
+        }
         const pct       = (price != null && anchor != null && anchor > 0)
                             ? ((price - anchor) / anchor) * 100
                             : (d ? (d.dayPct ?? 0) : null);

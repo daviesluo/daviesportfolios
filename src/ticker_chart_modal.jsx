@@ -5,9 +5,9 @@
 // player in non-edit mode — edit mode keeps opening the EditTickerModal.
 import React from 'react';
 import { Modal } from './modals.jsx';
-import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc } from './utils.js';
+import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc, fxToUSD } from './utils.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
-import { fmtPrice as fmtPr, fmtPct as fmP, pctColor as pcC } from './utils.js';
+import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC } from './utils.js';
 import { reportError } from './ops_error.js';
 
 const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$' };
@@ -102,7 +102,7 @@ const CN_FUND_RE = /^\d{6}$/;
 // a clear "no public history" message instead of a generic error.
 const PVT_RE = /\.PVT$/i;
 
-export function TickerChartModal({ ticker, holding, marketData, extendedHours, phase, onClose }) {
+export function TickerChartModal({ ticker, holding, marketData, extendedHours, phase, onClose, portfolioTotalValue }) {
   const isCnFund = CN_FUND_RE.test(ticker);
   const isPvt    = PVT_RE.test(ticker);
   const dailyOnly = isCnFund || isPvt;
@@ -723,13 +723,42 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             {rangeKey === 'PE' && (
               <span className="mono dim" style={{ fontSize: 10 }}>(price ÷ TTM EPS)</span>
             )}
-            {rangeKey !== 'PE' && holding?.shares != null && (
-              <>
-                <span className="mono dim">·</span>
-                <span className="mono dim">{holding.shares} shares</span>
-              </>
-            )}
           </div>
+          {/* Holding-stats line — shares / AC / Cost / Value / G/L,
+              same set the position-drill PlayerCard shows. AC stays in
+              native currency (matches the broker print the user typed
+              in); Cost / Value / G/L convert to USD via the per-holding
+              fx rate. Value gets a "(X.X% of portfolio)" parenthesis
+              so the user can see this position's weight in the book at
+              a glance, without bouncing back to the home page. */}
+          {rangeKey !== 'PE' && holding && holding.shares != null && (() => {
+            const hCur = holding.currency || 'USD';
+            const hSym = SYMBOL_BY_CUR[hCur] || '$';
+            const fx        = fxToUSD(hCur, marketData);
+            const livePrice = (useExt && holding.extPrice != null && holding.extPrice > 0)
+                                ? holding.extPrice
+                                : holding.lastPrice;
+            const valueUsd  = holding.shares * livePrice * fx;
+            const costUsd   = holding.shares * holding.cost * fx;
+            const glUsd     = valueUsd - costUsd;
+            const glPct     = costUsd > 0 ? (glUsd / costUsd) * 100 : 0;
+            const portShare = portfolioTotalValue > 0 ? (valueUsd / portfolioTotalValue) * 100 : null;
+            return (
+              <div className="modal-meta">
+                <span className="mono dim">{holding.shares} shares</span>
+                <span className="mono dim">·</span>
+                <span className="mono dim">AC <span className="mono">{hSym}{fmtPr(holding.cost)}</span></span>
+                <span className="mono dim">·</span>
+                <span className="mono dim">Cost <span className="mono">{fmtMo(costUsd)}</span></span>
+                <span className="mono dim">·</span>
+                <span className="mono dim">Value <span className="mono">{fmtMo(valueUsd)}</span>{portShare != null && (
+                  <span className="mono dim" style={{ fontSize: 10 }}> ({portShare.toFixed(2)}%)</span>
+                )}</span>
+                <span className="mono dim">·</span>
+                <span className="mono dim">G/L <span className="mono" style={{ color: pcC(glPct) }}>{fmtMo(glUsd, { signed: true })} ({fmP(glPct)})</span></span>
+              </div>
+            );
+          })()}
         </div>
         <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
       </header>

@@ -562,6 +562,7 @@ function Board({ isReadOnly }) {
           marketData={marketData}
           extendedHours={extendedHours}
           phase={currentPhase}
+          portfolioTotalValue={metrics.marketValue}
           onClose={() => setViewingTicker(null)}
         />
       )}
