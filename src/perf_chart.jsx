@@ -423,15 +423,38 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 
   const useExt = !!(extendedHours && phase && phase !== "regular");
 
-  // S&P 500 baseline. For 1D this is the prevClose of the S&P
-  // reference (^GSPC during regular hours, ES=F in ext mode) from
-  // marketData — same source-of-truth as the MC card and the ticker-
-  // drill modal use, so all three report the same %. For daily ranges
-  // it's the last close strictly before anchorDate.
+  // S&P 500 baseline. 1D anchors at "the most recent 16:00 ET regular
+  // close that has occurred":
+  //   - regular hours → prevClose (yesterday's close from marketData)
+  //   - ext-on AH/PM  → today's 16:00 ET bar from the fetched ES=F
+  //                     window (= the bar at exactly closeHh:closeMm
+  //                     UTC), so the chart's right-edge % is the move
+  //                     since today's just-finished cash close. The
+  //                     ticker-drill modal uses the same anchor and
+  //                     the MC card's todayRegularClose field is filled
+  //                     from the same bar lookup, so all three agree.
+  // For daily ranges the basis is the last close strictly before anchorDate.
   let spBase;
   if (rangeKey === '1D') {
-    const md = marketData?.[spSymbol];
-    spBase = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : spWindow[0].close;
+    if (useExt) {
+      let closeIdx = -1;
+      for (let i = spWindow.length - 1; i >= 0; i--) {
+        const d = spWindow[i].date;
+        if (d.length < 16) continue;
+        const hh = parseInt(d.slice(11, 13), 10);
+        const mm = parseInt(d.slice(14, 16), 10);
+        if (hh < mh.closeHh || (hh === mh.closeHh && mm === mh.closeMm)) { closeIdx = i; break; }
+      }
+      const gspc = marketData?.['^GSPC'];
+      spBase = closeIdx >= 0
+        ? spWindow[closeIdx].close
+        : (gspc && gspc.lastPrice && gspc.lastPrice > 0
+            ? gspc.lastPrice
+            : (marketData?.[spSymbol]?.prevClose ?? spWindow[0].close));
+    } else {
+      const md = marketData?.[spSymbol];
+      spBase = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : spWindow[0].close;
+    }
   } else {
     const spPrior = hasSp ? allSp.filter(p => p.date < anchorDate) : [];
     spBase = spPrior.length > 0 ? spPrior[spPrior.length - 1].close : spWindow[0].close;
