@@ -6,7 +6,7 @@
 import React from 'react';
 import { Modal } from './modals.jsx';
 import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc, fxToUSD, maskDigits } from './utils.js';
-import { RANGES, RANGE_KEYS, fetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
+import { RANGES, RANGE_KEYS, fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC } from './utils.js';
 import { reportError } from './ops_error.js';
 
@@ -318,47 +318,62 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // landed. Range-button clicks then hit the in-memory cache for an
   // instant swap. Sequential, fire-and-forget — failures just leave the
   // MA-history fetch — SAME interval as the chart's display fetch
-  // (so timestamps line up exactly), wider time range so the
-  // rolling window is satisfied at every displayed bar.
-  //   1W (5d/30m)  → 1mo/30m  (~286 bars; need 65 for 5d × 13/day)
-  //   1M (1mo/60m) → 3mo/60m  (~462 bars; need 70 for 10d × 7/day)
-  //   3M (3mo/1d)  → 6mo/1d
-  //   YTD (ytd/1d) → 1y/1d
-  // dailyOnly tickers (CN funds / .PVT) override the display fetch
-  // to 1d at every range — Yahoo has no intraday for them, the
-  // eastmoney path returns daily NAVs only — so the MA fetch has to
-  // mirror that, otherwise the MA history is empty/sparse and the
-  // overlay disappears for those tickers.
+  // (so timestamps line up exactly), wider time range so the rolling
+  // window is satisfied at every displayed bar. Centralised in
+  // `maFetchParamsFor` so the modal and the background prefetch
+  // agree on which (range, interval) tuple to fetch + cache under.
   // 1D and PE skip (no MA overlay).
+  //
+  // Cache layer (`dp.tickerChart` under key `${ticker}|MA|${range}`):
+  // stale-while-revalidate, 12 h TTL. If a cache row is present it
+  // paints immediately (no spinner); under TTL we skip the network
+  // entirely; over TTL we still paint the stale data and refetch
+  // silently in the background. Background prefetch warms this same
+  // cache on initial app load and on Refresh, so opening the modal
+  // is normally instant — the per-ticker MA fetches no longer pile
+  // up on first interaction.
   React.useEffect(() => {
-    const intradayParams = {
-      '1W':  { range: '1mo', interval: '30m' },
-      '1M':  { range: '3mo', interval: '60m' },
-      '3M':  { range: '6mo', interval: '1d'  },
-      'YTD': { range: '1y',  interval: '1d'  },
-    }[rangeKey];
-    const dailyOverride = {
-      '1W': '1mo', '1M': '3mo', '3M': '6mo', 'YTD': '1y',
-    }[rangeKey];
-    const params = dailyOnly && dailyOverride
-      ? { range: dailyOverride, interval: '1d' }
-      : intradayParams;
+    const params = maFetchParamsFor(rangeKey, dailyOnly);
     if (!params) { setMaHistory(null); return; }
+    const cacheKey = `${ticker}|MA|${rangeKey}`;
+    const MA_TTL_MS = 12 * 60 * 60 * 1000;
+    // Lives in `dp.maCache`, NOT `dp.tickerChart` — MA warming runs
+    // after the per-range display warming and we don't want its
+    // newer timestamps to evict freshly warmed 1D/1W/etc. modal
+    // rows from the shared 200-entry LRU.
+    const tcAll = Storage.loadMaCache() || { entries: {} };
+    const cached = tcAll.entries?.[cacheKey];
+    let isFresh = false;
+    if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
+      setMaHistory(cached.data);
+      isFresh = (Date.now() - (cached.ts || 0)) < MA_TTL_MS;
+    } else {
+      setMaHistory(null);
+    }
+    if (isFresh) return undefined;
     let cancelled = false;
     (async () => {
       try {
         const out = await fetchHistoricalBatch([ticker], params.range, params.interval, false);
         if (cancelled) return;
         const data = out?.[ticker];
-        if (!Array.isArray(data) || data.length === 0) { setMaHistory(null); return; }
+        if (!Array.isArray(data) || data.length === 0) return;
         const sorted = data
           .filter(p => typeof p.date === 'string' && isFinite(Number(p.close)) && p.close > 0)
           .slice()
           .sort((a, b) => a.date < b.date ? -1 : 1);
-        setMaHistory(sorted.length > 0 ? sorted : null);
-      } catch {
-        if (!cancelled) setMaHistory(null);
-      }
+        if (sorted.length === 0) return;
+        setMaHistory(sorted);
+        // Write back to dp.maCache so prefetch + future modal opens
+        // hit it instantly. Reload before merge so we don't clobber
+        // a concurrent write.
+        try {
+          const cur = Storage.loadMaCache() || { entries: {} };
+          cur.entries = cur.entries || {};
+          cur.entries[cacheKey] = { ts: Date.now(), data: sorted };
+          Storage.saveMaCache(cur);
+        } catch { /* best effort */ }
+      } catch { /* leave the stale cached series in place */ }
     })();
     return () => { cancelled = true; };
   }, [ticker, rangeKey, dailyOnly]);

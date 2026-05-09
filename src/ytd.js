@@ -58,6 +58,32 @@ export function fetchParamsFor(rangeKey, extendedHours, phase) {
 }
 
 /**
+ * Fetch params for the moving-average overlay's wider history series.
+ * Same shape as fetchParamsFor but tuned for "MA window prior to the
+ * leftmost displayed bar". 1D and PE return null (no MA overlay).
+ * dailyOnly tickers (CN funds / .PVT) override interval to 1d at every
+ * range — Yahoo has no intraday for them and the eastmoney path
+ * returns daily NAVs only.
+ *
+ * @param {string} rangeKey
+ * @param {boolean} [dailyOnly]
+ * @returns {{ range: string, interval: string } | null}
+ */
+export function maFetchParamsFor(rangeKey, dailyOnly = false) {
+  const intraday = {
+    '1W':  { range: '1mo', interval: '30m' },
+    '1M':  { range: '3mo', interval: '60m' },
+    '3M':  { range: '6mo', interval: '1d'  },
+    'YTD': { range: '1y',  interval: '1d'  },
+  }[rangeKey];
+  if (!intraday) return null;
+  if (dailyOnly && (rangeKey === '1W' || rangeKey === '1M')) {
+    return { range: intraday.range, interval: '1d' };
+  }
+  return intraday;
+}
+
+/**
  * For the "1D regular" variant the fetch returns up to 5 trading days
  * worth of bars; we only want the last 24 hours so the chart matches
  * the user's "past 24 hours" expectation. Bars are tagged with their
