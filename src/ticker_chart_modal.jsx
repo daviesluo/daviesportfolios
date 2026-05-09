@@ -440,31 +440,25 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // Anchor for % calculation. 1D anchors at "the most recent 16:00 ET
   // regular close that has occurred":
   //   - regular hours → prevClose
-  //   - ext-on AH/PM, ticker that trades AH (futures, stocks with
-  //     extPrice) → today's 16:00 ET bar in the fetched series, or
-  //     lastPrice as a fallback (Yahoo pins lastPrice to the 16:00 ET
-  //     print once the market closes)
-  //   - ext-on AH/PM, ticker with NO AH activity (^VIX / ^TNX /
-  //     ^SOX / forex) → fall through to prevClose so the modal %
-  //     equals today's regular session move = matches the MC card's
-  //     dayPct.
+  //   - ext-on AH/PM → today's 16:00 ET bar in the fetched series,
+  //     with lastPrice as a fallback (Yahoo pins lastPrice to the
+  //     16:00 ET print once the market closes), and prevClose as the
+  //     final fallback if neither is available.
+  // Same anchor for every ticker so the modal % always matches the
+  // MC card's todayRegularClose-based pct. Tickers with no AH
+  // activity (^VIX / ^TNX / ^SOX) end up reading ~0% in ext mode —
+  // expected, since the latest bar IS the 16:00 ET bar.
   // marketData only carries the MC indices/futures/forex; portfolio
-  // stocks are passed in via `holding`, so we have to look in BOTH
-  // places for the ticker's price metadata. Without the holding
-  // fallback, an after-hours stock chart opened from a position
-  // would mis-detect "no AH activity" and anchor at series[0] (24h
-  // ago) instead of today's 16:00 ET close.
-  const isFuturesTicker = /=F$/.test(ticker);
-  const extPriceAny  = md?.extPrice  ?? holding?.extPrice  ?? null;
+  // stocks are passed in via `holding`, so we look in BOTH places
+  // for the ticker's price metadata.
   const lastPriceAny = md?.lastPrice ?? holding?.lastPrice ?? null;
   const prevCloseAny = md?.prevClose ?? holding?.prevClose ?? null;
-  const hasMeaningfulAh = isFuturesTicker || (extPriceAny != null && extPriceAny > 0);
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
-      if (useExt && hasMeaningfulAh && regularCloseIdx >= 0) {
+      if (useExt && regularCloseIdx >= 0) {
         anchorClose = series[regularCloseIdx].close;
-      } else if (useExt && hasMeaningfulAh && lastPriceAny && lastPriceAny > 0) {
+      } else if (useExt && lastPriceAny && lastPriceAny > 0) {
         anchorClose = lastPriceAny;
       } else if (prevCloseAny && prevCloseAny > 0) {
         anchorClose = prevCloseAny;
