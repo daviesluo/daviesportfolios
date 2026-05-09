@@ -405,12 +405,14 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     for (let i = series.length - 1; i >= 0; i--) {
       const hh = parseInt(series[i].date.slice(11, 13), 10);
       const mm = parseInt(series[i].date.slice(14, 16), 10);
-      // Pick the bar at exactly closeHh:closeMm UTC (= 20:00 EDT /
-      // 21:00 EST), or the latest bar strictly before close if the
-      // exact-close bar isn't in the data. The previous +5-min slack
-      // would steal the marker for a 20:05 post-close bar — user saw
-      // CLOSE rendered at 9:05pm BST instead of 9:00pm.
-      if (hh < mh.closeHh || (hh === mh.closeHh && mm === mh.closeMm)) { regularCloseIdx = i; break; }
+      // Match the bar at exactly closeHh:closeMm UTC (= 20:00 EDT /
+      // 21:00 EST). Strict equality only — a looser "hh < closeHh"
+      // fallback would match overnight / premarket bars after midnight
+      // UTC and pin the anchor to the latest premarket tick instead of
+      // yesterday's 16:00 ET close, leaving the modal showing ~0% on
+      // any pre-open holding chart. If the exact bar is missing from
+      // the data the anchor block falls through to lastPrice instead.
+      if (hh === mh.closeHh && mm === mh.closeMm) { regularCloseIdx = i; break; }
     }
   }
 
