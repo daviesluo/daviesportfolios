@@ -425,33 +425,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 
   // S&P 500 baseline. For 1D this is the prevClose of the S&P
   // reference (^GSPC during regular hours, ES=F in ext mode) from
-  // marketData. In 1D + ext-on AH/PM we pivot to today's regular
-  // close instead so the S&P line crosses 0% at the same vertical
-  // CLOSE marker the portfolio line does (and matches scoreboard
-  // semantics). We locate the bar at or just before 20:00 UTC (=
-  // 16:00 ET) inside the fetched ES=F window. For daily ranges it's
-  // the last close strictly before anchorDate.
+  // marketData — same source-of-truth as the MC card and the ticker-
+  // drill modal use, so all three report the same %. For daily ranges
+  // it's the last close strictly before anchorDate.
   let spBase;
   if (rangeKey === '1D') {
-    if (useExt) {
-      let closeIdx = -1;
-      for (let i = spWindow.length - 1; i >= 0; i--) {
-        const d = spWindow[i].date;
-        if (d.length < 16) continue;
-        const hh = parseInt(d.slice(11, 13), 10);
-        const mm = parseInt(d.slice(14, 16), 10);
-        if (hh < mh.closeHh || (hh === mh.closeHh && mm <= mh.closeMm + 5)) { closeIdx = i; break; }
-      }
-      const gspc = marketData?.['^GSPC'];
-      spBase = closeIdx >= 0
-        ? spWindow[closeIdx].close
-        : (gspc && gspc.lastPrice && gspc.lastPrice > 0
-            ? gspc.lastPrice
-            : (marketData?.[spSymbol]?.prevClose ?? spWindow[0].close));
-    } else {
-      const md = marketData?.[spSymbol];
-      spBase = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : spWindow[0].close;
-    }
+    const md = marketData?.[spSymbol];
+    spBase = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : spWindow[0].close;
   } else {
     const spPrior = hasSp ? allSp.filter(p => p.date < anchorDate) : [];
     spBase = spPrior.length > 0 ? spPrior[spPrior.length - 1].close : spWindow[0].close;
@@ -763,14 +743,19 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
             }
           }
           // CLOSE only matters in 'ext' mode — walk backwards and
-          // find the most recent close-hour bar.
+          // find the bar whose timestamp is the regular close itself
+          // (e.g. 20:00 UTC for EDT). Previously we allowed +5 min of
+          // slack, which meant a 20:05 bar would steal the marker —
+          // user saw "CLOSE" rendered at 9:05pm BST instead of 9:00pm.
+          // Falls through to the latest bar strictly before close if
+          // the exact-close bar is missing.
           if (variantKey === 'ext') {
             for (let i = spYtd.length - 1; i >= 0; i--) {
               const d = spYtd[i].date;
               if (d.length < 16) continue;
               const hh = parseInt(d.slice(11, 13), 10);
               const mm = parseInt(d.slice(14, 16), 10);
-              if (hh === mh.closeHh && mm <= mh.closeMm + 5) { closeIdx = i; break; }
+              if (hh < mh.closeHh || (hh === mh.closeHh && mm === mh.closeMm)) { closeIdx = i; break; }
             }
           }
           const renderMarker = (idx, label) => {
