@@ -19,6 +19,25 @@ export function ServiceWorkerBanner() {
     },
   });
 
+  // Track the "RELOAD pressed but page not yet refreshing" window so the
+  // button can switch to "RELOADING…" and not look unresponsive on iOS.
+  const [reloading, setReloading] = React.useState(false);
+
+  const handleReload = React.useCallback(() => {
+    if (reloading) return;
+    setReloading(true);
+    // Tell the waiting SW to activate. workbox-window registers a
+    // `controllerchange` listener that's *supposed* to reload the page
+    // once activation completes — but iOS Safari (and some Chrome
+    // versions in standalone PWA mode) don't fire that event reliably,
+    // so the click visually did nothing and the user had to refresh
+    // manually. Belt-and-suspenders: kick off updateServiceWorker for
+    // the standard path AND set our own fallback reload after 1500 ms,
+    // well past typical activation time, so the page always refreshes.
+    try { updateServiceWorker(true); } catch {}
+    setTimeout(() => { window.location.reload(); }, 1500);
+  }, [reloading, updateServiceWorker]);
+
   if (!needRefresh) return null;
 
   return (
@@ -38,19 +57,23 @@ export function ServiceWorkerBanner() {
     }}>
       <span>NEW VERSION AVAILABLE</span>
       <button
-        onClick={() => updateServiceWorker(true)}
+        onClick={handleReload}
+        disabled={reloading}
         style={{
           background: '#2a805f', color: '#fff', border: '1px solid #3aa37a',
-          padding: '4px 12px', cursor: 'pointer',
+          padding: '4px 12px', cursor: reloading ? 'wait' : 'pointer',
+          opacity: reloading ? 0.7 : 1,
           fontFamily: 'inherit', fontSize: 11, letterSpacing: '0.1em',
           borderRadius: 3,
         }}
-      >RELOAD</button>
+      >{reloading ? 'RELOADING…' : 'RELOAD'}</button>
       <button
         onClick={() => setNeedRefresh(false)}
+        disabled={reloading}
         style={{
           background: 'transparent', color: '#9bb8aa', border: '1px solid #2a805f',
-          padding: '4px 10px', cursor: 'pointer',
+          padding: '4px 10px', cursor: reloading ? 'wait' : 'pointer',
+          opacity: reloading ? 0.5 : 1,
           fontFamily: 'inherit', fontSize: 11, letterSpacing: '0.1em',
           borderRadius: 3,
         }}
