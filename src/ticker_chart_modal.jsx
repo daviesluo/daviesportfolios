@@ -907,17 +907,27 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       })()
     : null;
 
-  // VWAP path + last-value label, mirrored on MA's render structure.
+  // VWAP path + last-value label. Unlike MA, VWAP resets to 0 at every
+  // UTC date boundary inside the displayed window (last-24h reg slice
+  // and ext-on views span two dates). Emit a fresh `M` at each new
+  // day so the SVG doesn't draw a misleading straight segment from
+  // the prior day's final VWAP down to the new day's first.
   const vwapPath = vwapSeries
     ? (() => {
-        const start = vwapSeries.findIndex(v => v != null);
-        if (start < 0) return '';
-        const segs = [];
-        for (let i = start; i < vwapSeries.length; i++) {
-          if (vwapSeries[i] == null) continue;
-          segs.push(`${xOfIdx(i).toFixed(1)},${yOf(vwapSeries[i]).toFixed(1)}`);
+        let out = '';
+        let openSegment = false;
+        let prevDay = '';
+        for (let i = 0; i < vwapSeries.length; i++) {
+          if (vwapSeries[i] == null) { openSegment = false; continue; }
+          const day = (typeof points[i].date === 'string' && points[i].date.length >= 10)
+            ? points[i].date.slice(0, 10)
+            : '';
+          const cmd = (openSegment && day === prevDay) ? 'L' : 'M';
+          out += `${cmd}${xOfIdx(i).toFixed(1)},${yOf(vwapSeries[i]).toFixed(1)}`;
+          openSegment = true;
+          prevDay = day;
         }
-        return segs.length >= 2 ? 'M' + segs.join('L') : '';
+        return out;
       })()
     : '';
   const vwapLastValue = vwapSeries
