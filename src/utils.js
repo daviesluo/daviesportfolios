@@ -14,6 +14,7 @@ const STORAGE_KEYS = {
   ytd:           'dp.ytd',          // { year, entries: { ticker: { ts, data } } }
   prefs:         'dp.prefs',        // { hideValues: boolean, ... }
   tickerChart:   'dp.tickerChart',  // { entries: { "ticker|range|variant|phase": { ts, data } } }
+  maCache:       'dp.maCache',      // { entries: { "ticker|MA|range": { ts, data } } } — separate LRU so MA warming can't evict warmed display rows
 };
 const CURRENT_SCHEMA_VERSION = 1;
 
@@ -60,6 +61,8 @@ export const Storage = {
   savePrefs: (p) => writeJSON(STORAGE_KEYS.prefs, p),
   loadTickerChart: () => readJSON(STORAGE_KEYS.tickerChart, { entries: {} }),
   saveTickerChart: (d) => writeJSON(STORAGE_KEYS.tickerChart, d),
+  loadMaCache: () => readJSON(STORAGE_KEYS.maCache, { entries: {} }),
+  saveMaCache: (d) => writeJSON(STORAGE_KEYS.maCache, d),
 };
 
 // -------- Hidden-values mask --------

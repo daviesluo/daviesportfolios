@@ -21,7 +21,7 @@
 //     on five concurrent N-ticker batches.
 
 import { Storage, fetchHistoricalBatch, fetchFundamentals } from './utils.js';
-import { fetchParamsFor, filterToLatestDay, filterToLast24h, RANGE_KEYS } from './ytd.js';
+import { fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h, RANGE_KEYS } from './ytd.js';
 
 // Match each range's bar interval — same shape PerfChart and the
 // TickerChartModal use. Past TTL the prefetch decides "stale" and
@@ -34,6 +34,11 @@ const RANGE_TTL_MS = {
   '3M':  12 * 60 * 60 * 1000,
   'YTD': 12 * 60 * 60 * 1000,
 };
+
+// Moving-average history cache TTL — must match the modal's value
+// (`MA_TTL_MS`). MA is daily/intraday history wider than the chart's
+// display range; doesn't need to refresh more than twice a day.
+const MA_TTL_MS = 12 * 60 * 60 * 1000;
 
 const TICKER_CACHE_CAP = 200;
 
@@ -176,6 +181,87 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
         tcAll.entries = trimmed;
       }
       Storage.saveTickerChart(tcAll);
+    }
+  }
+
+  // ---- Moving-average history prefetch
+  // The TickerChartModal's MA overlay reads a separate, wider series
+  // than the displayed chart (1mo/30m for 1W, 3mo/60m for 1M, 6mo/1d
+  // for 3M, 1y/1d for YTD; dailyOnly tickers override interval=1d
+  // at every range). Without warming this cache, opening any modal
+  // triggered a cold network fetch for the MA history — visible as a
+  // late-rendering gray line. Walk the same (range × ticker) grid
+  // and warm `${ticker}|MA|${range}` so the modal hits cache
+  // instantly. spSymbol included so MC modals (^GSPC etc.) opened
+  // from the home page are also instant.
+  //
+  // MA rows live in their OWN dp.maCache LRU — a separate
+  // localStorage entry from dp.tickerChart. Otherwise this loop
+  // (which runs after the display-range loop and writes newer
+  // timestamps) would push the freshly warmed display rows out of
+  // the shared 200-entry LRU and the next modal open would still
+  // pay a cold fetch. Per-cache cap below sized for ~50 modal
+  // tickers × 4 MA ranges = 200 entries.
+  const MA_CACHE_CAP = 240;
+  for (const rk of RANGE_KEYS) {
+    if (rk === '1D') continue; // MA overlay skips 1D (single-session view)
+    const maStoreRead = Storage.loadMaCache() || { entries: {} };
+    const maKey = (t) => `${t}|MA|${rk}`;
+    const isFreshMa = (entry) =>
+      entry && entry.data && Array.isArray(entry.data) && entry.data.length > 0 &&
+      (Date.now() - (entry.ts || 0)) < MA_TTL_MS;
+
+    const ixSymbols  = allSymbols.filter(s => !dailyOnlySet.has(s));
+    const dlySymbols = allSymbols.filter(s =>  dailyOnlySet.has(s));
+    const ixStaleMa  = ixSymbols.filter(s => !isFreshMa(maStoreRead.entries?.[maKey(s)]));
+    const dlyStaleMa = dlySymbols.filter(s => !isFreshMa(maStoreRead.entries?.[maKey(s)]));
+    if (ixStaleMa.length === 0 && dlyStaleMa.length === 0) continue;
+
+    const ixParams  = maFetchParamsFor(rk, false);
+    const dlyParams = maFetchParamsFor(rk, true);
+    if (!ixParams && !dlyParams) continue;
+
+    /** @type {Record<string, any[]>} */
+    let maBatch = {};
+    try {
+      const [ixBatch, dlyBatch] = await Promise.all([
+        ixStaleMa.length > 0 && ixParams
+          ? fetchHistoricalBatch(ixStaleMa, ixParams.range, ixParams.interval, false)
+          : Promise.resolve({}),
+        dlyStaleMa.length > 0 && dlyParams
+          ? fetchHistoricalBatch(dlyStaleMa, dlyParams.range, dlyParams.interval, false)
+          : Promise.resolve({}),
+      ]);
+      maBatch = { ...ixBatch, ...dlyBatch };
+    } catch { continue; }
+
+    const maStore = Storage.loadMaCache() || { entries: {} };
+    maStore.entries = maStore.entries || {};
+    let maChanged = false;
+    const now = Date.now();
+    for (const t of [...ixStaleMa, ...dlyStaleMa]) {
+      const data = maBatch[t];
+      if (!Array.isArray(data) || data.length === 0) continue;
+      const sorted = data
+        .filter(p => typeof p.date === 'string' && isFinite(Number(p.close)) && p.close > 0)
+        .slice()
+        .sort((a, b) => a.date < b.date ? -1 : 1);
+      if (sorted.length === 0) continue;
+      maStore.entries[maKey(t)] = { ts: now, data: sorted };
+      maChanged = true;
+    }
+    if (maChanged) {
+      const keys = Object.keys(maStore.entries);
+      if (keys.length > MA_CACHE_CAP) {
+        const sorted = keys
+          .map((k) => ({ k, ts: maStore.entries[k]?.ts || 0 }))
+          .sort((a, b) => b.ts - a.ts);
+        /** @type {Record<string, {ts:number, data:any[]}>} */
+        const trimmed = {};
+        for (let i = 0; i < MA_CACHE_CAP; i++) trimmed[sorted[i].k] = maStore.entries[sorted[i].k];
+        maStore.entries = trimmed;
+      }
+      Storage.saveMaCache(maStore);
     }
   }
 
