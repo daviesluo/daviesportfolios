@@ -252,16 +252,17 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // 'PE' transform: divide each historical close by the rolling
       // TTM diluted EPS as of that price date so the chart actually
       // *moves* on earnings days instead of being a 1:1 scale of the
-      // price chart. Edge Function returns `epsHistory` from Yahoo's
-      // fundamentals-timeseries — already-summed TTM at each quarter
-      // end, 5+ years of history. For each price date we just pick
-      // the latest entry whose `quarterEnd + 45-day report lag` is
-      // <= the price date. Falls back to the const current-TTM-EPS
+      // price chart. Edge Function returns `ttmEpsHistory` from
+      // Yahoo's fundamentals-timeseries — already-summed TTM at each
+      // quarter end, 5+ years of history. For each price date we just
+      // pick the latest entry whose `quarterEnd + 45-day report lag`
+      // is <= the price date. Falls back to the const current-TTM-EPS
       // path when (a) Yahoo didn't return a history (rate limit or
-      // sparse coverage) or (b) the price date predates the earliest
-      // reported quarter.
+      // sparse coverage), (b) the price date predates the earliest
+      // reported quarter, or (c) the Edge Function is on the older
+      // version that doesn't yet emit `ttmEpsHistory`.
       if (rangeKey === 'PE') {
-        const fundamentals = await fetchFundamentals([ticker], { epsHistory: true });
+        const fundamentals = await fetchFundamentals([ticker], { ttmEpsHistory: true });
         if (cancelled) return;
         const row = fundamentals?.[ticker];
         // ETF-proxy tickers (^GSPC/^NDX/^RUT) typically come back with
@@ -284,7 +285,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           return;
         }
         const REPORT_LAG_MS = 45 * 86400000;
-        const epsHist = Array.isArray(row?.epsHistory) ? row.epsHistory : [];
+        const epsHist = Array.isArray(row?.ttmEpsHistory) ? row.ttmEpsHistory : [];
         const reportEvents = epsHist
           .map(e => ({ ttm: Number(e.eps), reportMs: new Date(e.date).getTime() + REPORT_LAG_MS }))
           .filter(e => isFinite(e.ttm) && isFinite(e.reportMs) && e.ttm > 0)
@@ -343,7 +344,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           if (variant === 'closed') data = filterToLatestDay(data);
           else if (variant === 'reg' || variant === 'ext') data = filterToLast24h(data);
           if (rk === 'PE') {
-            const f = await fetchFundamentals([ticker], { epsHistory: true });
+            const f = await fetchFundamentals([ticker], { ttmEpsHistory: true });
             if (cancelled) return;
             const row = f?.[ticker];
             let eps = row?.eps;
@@ -355,7 +356,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             }
             if (!eps || eps <= 0) continue;
             const REPORT_LAG_MS = 45 * 86400000;
-            const epsHist = Array.isArray(row?.epsHistory) ? row.epsHistory : [];
+            const epsHist = Array.isArray(row?.ttmEpsHistory) ? row.ttmEpsHistory : [];
             const reportEvents = epsHist
               .map(e => ({ ttm: Number(e.eps), reportMs: new Date(e.date).getTime() + REPORT_LAG_MS }))
               .filter(e => isFinite(e.ttm) && isFinite(e.reportMs) && e.ttm > 0)
