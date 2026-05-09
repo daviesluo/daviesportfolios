@@ -324,14 +324,25 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   //   1M (1mo/60m) → 3mo/60m  (~462 bars; need 70 for 10d × 7/day)
   //   3M (3mo/1d)  → 6mo/1d
   //   YTD (ytd/1d) → 1y/1d
+  // dailyOnly tickers (CN funds / .PVT) override the display fetch
+  // to 1d at every range — Yahoo has no intraday for them, the
+  // eastmoney path returns daily NAVs only — so the MA fetch has to
+  // mirror that, otherwise the MA history is empty/sparse and the
+  // overlay disappears for those tickers.
   // 1D and PE skip (no MA overlay).
   React.useEffect(() => {
-    const params = {
+    const intradayParams = {
       '1W':  { range: '1mo', interval: '30m' },
       '1M':  { range: '3mo', interval: '60m' },
       '3M':  { range: '6mo', interval: '1d'  },
       'YTD': { range: '1y',  interval: '1d'  },
     }[rangeKey];
+    const dailyOverride = {
+      '1W': '1mo', '1M': '3mo', '3M': '6mo', 'YTD': '1y',
+    }[rangeKey];
+    const params = dailyOnly && dailyOverride
+      ? { range: dailyOverride, interval: '1d' }
+      : intradayParams;
     if (!params) { setMaHistory(null); return; }
     let cancelled = false;
     (async () => {
@@ -350,7 +361,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       }
     })();
     return () => { cancelled = true; };
-  }, [ticker, rangeKey]);
+  }, [ticker, rangeKey, dailyOnly]);
 
   // cache untouched and the next click pays the normal fetch cost.
   React.useEffect(() => {
@@ -584,12 +595,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // the chart's interval, so on 30m the line updates every 30 min
   // and on 60m every 60 min — no flat day-long plateaus.
   // Bars per RTH trading day (9:30–16:00 ET): 30m → 13, 60m → 7.
-  const MA_BARS = {
-    '1W':  5  * 13,
-    '1M':  10 * 7,
-    '3M':  20,
-    'YTD': 50,
-  }[rangeKey] || 0;
+  // dailyOnly tickers (CN funds / .PVT) skip the interval scaling —
+  // their MA fetch is 1d at every range so the bar window is just
+  // the day count.
+  const MA_BARS = (dailyOnly
+    ? { '1W': 5,     '1M': 10,    '3M': 20, 'YTD': 50 }
+    : { '1W': 5 * 13, '1M': 10 * 7, '3M': 20, 'YTD': 50 }
+  )[rangeKey] || 0;
   // Right-margin label is decoupled from MA_BARS — the user-facing
   // semantic is days, so "MA 5" / "MA 10" / etc. always.
   const MA_DAYS = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50 }[rangeKey] || 0;
