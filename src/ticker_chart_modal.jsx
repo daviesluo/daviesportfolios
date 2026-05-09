@@ -163,13 +163,17 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const [series, setSeries]     = React.useState(/** @type {Array<{date:string,close:number}>|null} */ (null));
   const [loading, setLoading]   = React.useState(true);
   const [error, setError]       = React.useState(false);
-  // Dedicated daily history for the moving-average overlay. Keyed by
-  // YYYY-MM-DD UTC date. Fetched separately from `series` because the
-  // chart's display window doesn't include the N prior trading days
-  // the MA needs to be valid at the leftmost edge — without this the
-  // MA line only kicked in halfway through the chart. See the MA
-  // useEffect below for the per-range fetch widths.
-  const [maHistory, setMaHistory] = React.useState(/** @type {Map<string, number>|null} */ (null));
+  // Daily history dedicated to the moving-average overlay. Stored
+  // sorted ascending as `[{date:'YYYY-MM-DD', close:number}, …]`.
+  // Always daily — even when the display fetch is intraday (1W/1M)
+  // — so the MA is a strict, causal N-day SMA on daily closes that
+  // matches the user's "5/10/20/50日均线" intent. The trade-off is
+  // that intraday bars within the same calendar day all share their
+  // day's MA value (stair-step visual). That's the honest behaviour
+  // of a daily MA on intraday bars; a smoother line would need a
+  // different indicator (EMA / bar-based) which conflates the
+  // chart's bar interval with the MA's day-count semantic.
+  const [maHistory, setMaHistory] = React.useState(/** @type {Array<{date:string,close:number}>|null} */ (null));
 
   const useExt = !!(extendedHours && phase && phase !== 'regular');
 
@@ -317,36 +321,32 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // Background prefetch the other ranges once the user's chosen range has
   // landed. Range-button clicks then hit the in-memory cache for an
   // instant swap. Sequential, fire-and-forget — failures just leave the
-  // Moving-average history fetch — wider than `series` so the MA
-  // line can start on the chart's leftmost bar instead of mid-chart.
-  // For each range we pull a daily window large enough to cover the
-  // displayed period PLUS the MA's N-day prior history:
-  //   1W (5d)  + MA 5  → 1mo daily
-  //   1M (1mo) + MA 10 → 3mo daily
-  //   3M (3mo) + MA 20 → 6mo daily
-  //   YTD      + MA 50 → 1y  daily
-  // 1D and PE skip (no MA overlay). Re-runs on ticker / rangeKey
-  // change; cancels on unmount via the cleanup flag.
+  // Moving-average daily history fetch. Always daily / 1d interval
+  // regardless of the display fetch's interval, so the MA is a true
+  // N-day SMA — auditable by hand from any visible daily close.
+  // Width is "display range + ~MA window" so the MA can be computed
+  // for every displayed bar (no missing leftmost values):
+  //   1W  + MA 5  → 6mo/1d  (plenty of slack)
+  //   1M  + MA 10 → 6mo/1d
+  //   3M  + MA 20 → 6mo/1d
+  //   YTD + MA 50 → 1y/1d
+  // 1D and PE skip (no MA overlay).
   React.useEffect(() => {
-    const wideRange = { '1W': '1mo', '1M': '3mo', '3M': '6mo', 'YTD': '1y' }[rangeKey];
-    if (!wideRange) { setMaHistory(null); return; }
+    const ranges = { '1W': '6mo', '1M': '6mo', '3M': '6mo', 'YTD': '1y' };
+    const range = ranges[rangeKey];
+    if (!range) { setMaHistory(null); return; }
     let cancelled = false;
     (async () => {
       try {
-        const out = await fetchHistoricalBatch([ticker], wideRange, '1d', false);
+        const out = await fetchHistoricalBatch([ticker], range, '1d', false);
         if (cancelled) return;
         const data = out?.[ticker];
         if (!Array.isArray(data) || data.length === 0) { setMaHistory(null); return; }
-        const byDate = new Map();
-        for (const p of data) {
-          if (typeof p.date !== 'string' || p.date.length < 10) continue;
-          if (!isFinite(Number(p.close)) || p.close <= 0) continue;
-          // Daily endpoint returns YYYY-MM-DD; if it ever switches to
-          // intraday-style for fresher today bars, slice still gives
-          // the day correctly.
-          byDate.set(p.date.slice(0, 10), p.close);
-        }
-        setMaHistory(byDate.size > 0 ? byDate : null);
+        const sorted = data
+          .filter(p => typeof p.date === 'string' && p.date.length >= 10 && isFinite(Number(p.close)) && p.close > 0)
+          .map(p => ({ date: p.date.slice(0, 10), close: Number(p.close) }))
+          .sort((a, b) => a.date < b.date ? -1 : 1);
+        setMaHistory(sorted.length > 0 ? sorted : null);
       } catch {
         if (!cancelled) setMaHistory(null);
       }
@@ -578,6 +578,43 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const padR = rangeKey === 'PE' ? 96 : (showMa ? 56 : 16);
   const cW = W - padL - padR, cH = H - padT - padB;
 
+  // Strict causal N-day SMA on daily closes. At day D we need >= N
+  // daily closes ending at D (inclusive) to compute the MA — no
+  // future data, no curve fitting. If maHistory doesn't carry today
+  // yet (Yahoo's daily endpoint occasionally lags an in-progress
+  // session), append a synthetic "today" entry from the latest
+  // intraday close so the MA value lines up with the rightmost
+  // display bar instead of going null.
+  const MA_DAYS = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50 }[rangeKey] || 0;
+  let maSeries = null;
+  if (MA_DAYS > 0 && points.length > 0 && maHistory && maHistory.length > 0) {
+    const lastDisplayDay = points[points.length - 1].date.slice(0, 10);
+    const lastMaDay      = maHistory[maHistory.length - 1].date;
+    /** @type {Array<{date:string,close:number}>} */
+    const dailyForMa = (lastDisplayDay > lastMaDay)
+      ? [...maHistory, { date: lastDisplayDay, close: points[points.length - 1].close }]
+      : maHistory;
+    if (dailyForMa.length >= MA_DAYS) {
+      // Trailing SMA at each daily date (inclusive of that day).
+      const dayMa = new Map();
+      let sum = 0;
+      for (let i = 0; i < dailyForMa.length; i++) {
+        sum += dailyForMa[i].close;
+        if (i >= MA_DAYS) sum -= dailyForMa[i - MA_DAYS].close;
+        if (i >= MA_DAYS - 1) dayMa.set(dailyForMa[i].date, sum / MA_DAYS);
+      }
+      // Map every display bar to its calendar day's MA. On intraday
+      // ranges (1W/1M) all bars within a day share the same value;
+      // a daily MA cannot do otherwise without smuggling future data
+      // or fabricating values. Display bars whose day predates the
+      // MA window get null (line simply doesn't draw there).
+      maSeries = points.map(p => {
+        const day = (typeof p.date === 'string' && p.date.length >= 10) ? p.date.slice(0, 10) : '';
+        return dayMa.has(day) ? dayMa.get(day) : null;
+      });
+    }
+  }
+
   const hasData = points.length >= 2 && anchorClose;
   // X positioning is INDEX-based, not time-based. Treating each bar as one
   // equally-spaced step removes the ugly weekend / overnight gaps a real
@@ -595,6 +632,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     // current P/E has drifted far from the historical average.
     if (rangeKey === 'PE' && typeof pe3yAvg === 'number' && pe3yAvg > 0) {
       allP.push(pe3yAvg);
+    }
+    // MA values too — without this the line could overflow the
+    // chart bounds on the leftmost bars where MA reflects a much
+    // older (lower) average than the current price. User reported
+    // it as "MA 线溢出图表".
+    if (maSeries) {
+      for (const v of maSeries) {
+        if (typeof v === 'number' && isFinite(v)) allP.push(v);
+      }
     }
     const rawMin = Math.min(...allP), rawMax = Math.max(...allP);
     const yPad = Math.max(0.001, (rawMax - rawMin) * 0.08);
@@ -780,41 +826,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     : '';
   const lineColor = pctNow >= 0 ? 'var(--gain)' : 'var(--loss)';
 
-  // Moving-average overlay. 1W → MA 5d, 1M → MA 10d, 3M → MA 20d,
-  // YTD → MA 50d. 1D and PE skip (1D is single-session intraday; PE
-  // has its own 3Y AVG dashed line).
-  //
-  // The user asked for "5日 / 10日 / 20日 / 50日" — daily MAs. 1W
-  // and 1M fetch *intraday* bars (30m / 60m), so we can't compute
-  // those off `points` alone, and 3M / YTD don't have enough prior
-  // history in the displayed window to start the MA at the chart's
-  // left edge. Both problems solved by `maHistory`: a separate daily
-  // fetch wide enough to cover the displayed range PLUS the MA's
-  // prior-day window. Each intraday bar maps to the latest daily MA
-  // whose date is <= that bar's UTC date so the line spans the whole
-  // chart left-to-right.
-  const MA_WINDOW = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50 }[rangeKey] || 0;
-  let maSeries = null;
-  if (MA_WINDOW > 0 && points.length > 0 && maHistory && maHistory.size >= MA_WINDOW) {
-    const days = Array.from(maHistory.keys()).sort();
-    const dayMa = new Map();
-    let sum = 0;
-    for (let i = 0; i < days.length; i++) {
-      sum += maHistory.get(days[i]);
-      if (i >= MA_WINDOW) sum -= maHistory.get(days[i - MA_WINDOW]);
-      if (i >= MA_WINDOW - 1) dayMa.set(days[i], sum / MA_WINDOW);
-    }
-    // Sorted list of days that have a valid MA value, walked in lock-
-    // step with the (already chronological) display points.
-    const maDays = days.filter(d => dayMa.has(d));
-    let maIdx = -1;
-    maSeries = points.map(p => {
-      const day = (typeof p.date === 'string' && p.date.length >= 10) ? p.date.slice(0, 10) : '';
-      while (maIdx + 1 < maDays.length && maDays[maIdx + 1] <= day) maIdx++;
-      if (maIdx < 0) return null;
-      return dayMa.get(maDays[maIdx]);
-    });
-  }
+  // (MA series itself is computed earlier — before the y-range
+  // calculation — so MA values can participate in yMin/yMax.)
   const maPath = maSeries
     ? (() => {
         const start = maSeries.findIndex(v => v != null);
@@ -1017,7 +1030,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                 <text x={W - padR + 4} y={yOf(maLastValue).toFixed(1)}
                       textAnchor="start" dominantBaseline="middle"
                       fontSize="9" fill="rgba(244,239,227,0.7)" fontFamily="var(--font-mono)">
-                  MA {MA_WINDOW}
+                  MA {MA_DAYS}
                 </text>
               )}
               {/* Price path */}
