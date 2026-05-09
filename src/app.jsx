@@ -228,17 +228,17 @@ function Board({ isReadOnly }) {
     // Three parallel fetches:
     //   - live prices for portfolio holdings
     //   - live snapshots for the MC index/futures cards
-    //   - today's 16:00 ET close for futures cards. Yahoo's prevClose
-    //     for ES=F / NQ=F / RTY=F / BZ=F is yesterday's settle, so an
-    //     ext-on AH card showing dayPct against prevClose disagreed
-    //     with the perf chart legend (which anchors at today's 16:00
-    //     ET close). Fetching the actual 16:00 ET bar gives the cards
-    //     the same anchor so the two surfaces report the same %.
-    const FUTURES_FOR_CLOSE = MC_TICKERS.filter(t => /=F$/.test(t));
+    //   - today's 16:00 ET close for *every* MC ticker so ext-on cards
+    //     all share the same "since the last 16:00 ET close" anchor as
+    //     the per-ticker drill modal. Yahoo's prevClose is yesterday's
+    //     settle/close which doesn't match the modal's anchor; fetching
+    //     the actual 16:00 ET bar lines them up. Indices (^VIX / ^TNX
+    //     / ^SOX) that don't move in AH end up showing ~0% in ext
+    //     mode — same as the modal — which is the expected reading.
     const [{ updates, source: src }, mcResult, todayCloses] = await Promise.all([
       refreshPrices(portfolio, "live"),
       fetchTickers(MC_TICKERS),
-      fetchTodayRegularClose(FUTURES_FOR_CLOSE),
+      fetchTodayRegularClose(MC_TICKERS),
     ]);
     if (mcResult) {
       for (const [t, c] of Object.entries(todayCloses || {})) {
