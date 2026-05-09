@@ -526,9 +526,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // Right padding is wider in PE mode so the "3Y AVG 25.20" label
   // can sit OUTSIDE the chart's plot area (between the right edge of
   // the dashed line and the SVG's right side) instead of floating
-  // inside the chart and getting crossed by the price line.
+  // inside the chart and getting crossed by the price line. Same
+  // treatment for the MA overlay (1W/1M/3M/YTD) — the "MA 50" label
+  // sits in the right margin at the level of the latest MA value.
+  const showMa = ['1W', '1M', '3M', 'YTD'].includes(rangeKey);
   const padL = 56, padT = 18, padB = 38;
-  const padR = rangeKey === 'PE' ? 96 : 16;
+  const padR = rangeKey === 'PE' ? 96 : (showMa ? 56 : 16);
   const cW = W - padL - padR, cH = H - padT - padB;
 
   const hasData = points.length >= 2 && anchorClose;
@@ -733,6 +736,41 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     : '';
   const lineColor = pctNow >= 0 ? 'var(--gain)' : 'var(--loss)';
 
+  // Moving-average overlay. 1W → MA5, 1M → MA10, 3M → MA20, YTD → MA50.
+  // The window matches the chart's bar interval (5m on 1W is overkill,
+  // so the 1W window picks up daily bars only when the user is on the
+  // 30m interval — close enough). 1D and PE skip the overlay (1D is a
+  // single-session intraday view; PE has its own 3Y AVG line).
+  const MA_WINDOW = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50 }[rangeKey] || 0;
+  const maSeries = MA_WINDOW > 0 && points.length >= MA_WINDOW
+    ? points.map((_p, i) => {
+        if (i < MA_WINDOW - 1) return null;
+        let sum = 0;
+        for (let j = i - MA_WINDOW + 1; j <= i; j++) sum += points[j].close;
+        return sum / MA_WINDOW;
+      })
+    : null;
+  const maPath = maSeries
+    ? (() => {
+        const start = maSeries.findIndex(v => v != null);
+        if (start < 0) return '';
+        const segs = [];
+        for (let i = start; i < maSeries.length; i++) {
+          if (maSeries[i] == null) continue;
+          segs.push(`${xOfIdx(i).toFixed(1)},${yOf(maSeries[i]).toFixed(1)}`);
+        }
+        return segs.length >= 2 ? 'M' + segs.join('L') : '';
+      })()
+    : '';
+  const maLastValue = maSeries
+    ? (() => {
+        for (let i = maSeries.length - 1; i >= 0; i--) {
+          if (maSeries[i] != null) return maSeries[i];
+        }
+        return null;
+      })()
+    : null;
+
   return (
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
@@ -900,6 +938,23 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                   </g>
                 );
               })()}
+              {/* Moving-average overlay (1W → 5d, 1M → 10d, 3M → 20d,
+                  YTD → 50d). Drawn before the price path so the active
+                  price line stays on top. Same gray as the PerfChart
+                  S&P comparison line. Label sits in the right margin
+                  at the y of the latest MA value, mirroring the PE
+                  chart's 3Y AVG label position. */}
+              {maPath && (
+                <path d={maPath} fill="none" stroke="#6b7280" strokeWidth="1.0"
+                      strokeLinejoin="round" strokeLinecap="round" opacity="0.85" />
+              )}
+              {maLastValue != null && (
+                <text x={W - padR + 4} y={yOf(maLastValue).toFixed(1)}
+                      textAnchor="start" dominantBaseline="middle"
+                      fontSize="9" fill="rgba(244,239,227,0.7)" fontFamily="var(--font-mono)">
+                  MA {MA_WINDOW}
+                </text>
+              )}
               {/* Price path */}
               <path d={path} fill="none" stroke={lineColor} strokeWidth="1.6"
                     strokeLinejoin="round" strokeLinecap="round" />
