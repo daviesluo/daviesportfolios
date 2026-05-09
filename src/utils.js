@@ -561,17 +561,22 @@ export async function fetchTodayRegularClose(tickers) {
 // with tickers that have no meaningful fundamentals (futures /
 // indices / ETFs / crypto / .PVT / 6-digit CN funds) simply absent.
 //
-// Pass `{ epsHistory: true }` to also receive `epsHistory: [{date,eps}, …]`
-// (last ~12 quarters) on each Finnhub-backed entry. Used by the P/E
-// chart modal to compute a rolling TTM-EPS series so the historical
-// P/E line steps when an earnings report changes the denominator,
-// instead of being a 1:1 scaled copy of the price chart.
+// Pass `{ ttmEpsHistory: true }` to also receive
+// `ttmEpsHistory: [{date, eps:<TTM diluted EPS>}, …]` on each entry —
+// pre-summed TTM at each quarter end, sourced from Yahoo's
+// fundamentals-timeseries (5+ yrs). Used by the P/E chart modal so
+// the historical P/E line steps when an earnings report changes the
+// denominator, instead of being a 1:1 scaled copy of the price chart.
+// The contract name is deliberately distinct from #64's earlier
+// `epsHistory` (which returned RAW quarterly EPS) — a stale Edge
+// Function deploy, or a SW-cached old response, would otherwise feed
+// raw quarterly numbers into the TTM lookup and inflate P/E ~4x.
 export async function fetchFundamentals(symbols, opts = {}) {
   const list = Array.from(new Set((symbols || []).filter(Boolean)));
   if (list.length === 0) return {};
   try {
     const qs = `?tickers=${encodeURIComponent(list.join(","))}`
-      + (opts && opts.epsHistory ? "&epsHistory=true" : "");
+      + (opts && opts.ttmEpsHistory ? "&ttmEpsHistory=true" : "");
     const url =
       `${EDGE_PRICES_URL.replace(/\/prices$/, "/fundamentals")}${qs}`;
     const res = await fetch(url, {

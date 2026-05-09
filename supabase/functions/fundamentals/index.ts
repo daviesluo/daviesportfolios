@@ -52,7 +52,12 @@ type Fundamentals = {
   pe: number;
   eps: number;
   pe3yAvg: number | null;
-  epsHistory?: EpsHistoryPoint[];
+  // Pre-summed TTM diluted EPS at each quarter end. Named explicitly
+  // to avoid colliding with the previous `epsHistory` contract that
+  // returned RAW quarterly EPS — a stale Edge Function or
+  // SW-cached response would otherwise be misinterpreted as TTM by
+  // the new client (yields P/E ~4x too low).
+  ttmEpsHistory?: EpsHistoryPoint[];
 };
 
 const INDEX_ETF_PROXY: Record<string, string> = {
@@ -363,11 +368,15 @@ Deno.serve(async (req: Request) => {
 
   const url = new URL(req.url);
   const param = url.searchParams.get("tickers") ?? "";
-  // Opt-in flag — when "true" each Finnhub-backed entry also gets an
-  // epsHistory array (last 12 quarters of reported EPS). Off by default
-  // because every other caller (heatmap badges, etc.) just needs the
-  // current TTM P/E and shouldn't pay the extra round-trip per ticker.
-  const includeEpsHistory = url.searchParams.get("epsHistory") === "true";
+  // Opt-in flag — when "true" each entry also gets a `ttmEpsHistory`
+  // array (Yahoo trailingDilutedEPS, 5+ yrs). Off by default since
+  // every other caller (heatmap badges, etc.) just needs the current
+  // TTM P/E and shouldn't pay the extra round-trip per ticker. The
+  // flag name is intentionally distinct from #64's `epsHistory` so a
+  // mixed-version state (new client + old Edge Function, or vice
+  // versa, or a SW-cached old response) cleanly degrades to const-EPS
+  // instead of mixing raw-quarterly and TTM semantics.
+  const includeEpsHistory = url.searchParams.get("ttmEpsHistory") === "true";
   const tickers = param
     .split(",")
     .map((t) => t.trim())
@@ -425,7 +434,7 @@ Deno.serve(async (req: Request) => {
               if (hist.length === 0) hist = null;
             }
           }
-          if (hist) f.epsHistory = hist;
+          if (hist) f.ttmEpsHistory = hist;
         }
         out[t] = f;
       }
