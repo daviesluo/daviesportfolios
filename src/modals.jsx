@@ -10,12 +10,44 @@ import {
   maskDigits,
 } from './utils.js';
 
+// Ref-counted body scroll lock. PositionDrill can stack on top of the
+// chart/edit/add modal, so two Modal instances can be mounted at once.
+// If each captured/restored body.overflow independently, the second one
+// to mount would capture 'hidden' from the first and restore that on
+// unmount, leaving the page locked after every modal closes. Count
+// active modals and only flip body.overflow at the 0↔1 boundary.
+let bodyLockCount = 0;
+let bodyLockPrev = '';
+function acquireBodyLock() {
+  if (bodyLockCount === 0) {
+    bodyLockPrev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+  }
+  bodyLockCount += 1;
+}
+function releaseBodyLock() {
+  bodyLockCount -= 1;
+  if (bodyLockCount === 0) {
+    document.body.style.overflow = bodyLockPrev;
+  }
+}
+
 function Modal({ children, onClose, size = "md" }) {
   React.useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  // Lock body scroll while any modal is mounted so iOS Safari's bouncy
+  // overscroll can't drag the underlying page (clicking a position from
+  // the tactic board and then swiping was scrolling the home page
+  // behind the modal). CSS `overscroll-behavior: contain` on the body
+  // alone isn't enough on iOS — we also need to pin `overflow: hidden`.
+  React.useEffect(() => {
+    acquireBodyLock();
+    return releaseBodyLock;
+  }, []);
 
   const downOnBackdrop = React.useRef(false);
 
