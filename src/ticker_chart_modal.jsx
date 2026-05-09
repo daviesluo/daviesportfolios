@@ -435,17 +435,23 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     }
   }
 
-  // Anchor for % calculation. 1D always anchors at the previous regular
-  // session's close so the modal's pct matches the MC card / scoreboard
-  // / perf-chart legend — they all derive from (live - prevClose) /
-  // prevClose. (Previously ext mode pivoted to today's 16:00 ET close
-  // so the modal could measure the AH/PM move alone, but that put four
-  // different numbers on screen for the same ticker.)
+  // Anchor for % calculation. 1D anchors at "the most recent 16:00 ET
+  // regular close that has occurred":
+  //   - regular hours → marketData.prevClose
+  //   - ext-on AH/PM  → today's 16:00 ET bar in the fetched series, or
+  //                     marketData.lastPrice as a fallback (which Yahoo
+  //                     pins to the 16:00 ET print once the market closes)
+  // Same anchor as the perf chart's S&P legend and the MC card's
+  // todayRegularClose, so all three surfaces report the same %.
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
-      if (md && md.prevClose && md.prevClose > 0) {
-        anchorClose = md.prevClose;
+      if (useExt && regularCloseIdx >= 0) {
+        anchorClose = series[regularCloseIdx].close;
+      } else if (useExt && md?.lastPrice && md.lastPrice > 0) {
+        anchorClose = md.lastPrice;
+      } else if (phase === 'regular') {
+        anchorClose = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : series[0].close;
       } else {
         anchorClose = series[0].close;
       }

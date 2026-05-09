@@ -380,9 +380,20 @@ function MarketConditions({ marketData, extendedHours, phase, className = '', on
         const activeName   = (useExt && ftName)   ? ftName   : name;
         const d         = marketData[activeTicker];
         const price     = d ? d.lastPrice : null;
-        const pct       = d ? (d.dayPct ?? 0) : null;
-        const prevClose = d ? (d.prevClose ?? d.lastPrice) : null;
-        const dayChange = (price != null && prevClose != null) ? price - prevClose : null;
+        // In ext-on AH/PM mode the card displays "since the most recent
+        // 16:00 ET close that has occurred" — same anchor as the perf
+        // chart legend and the ticker-drill modal. For futures (ES=F /
+        // NQ=F / RTY=F / BZ=F) that's the bar fetched into
+        // todayRegularClose; for non-futures with no AH-friendly anchor
+        // we fall through to dayPct (yesterday's settle) which the
+        // card always showed before. Outside ext mode we always use
+        // dayPct so the card reads the regular session move.
+        const useTodayClose = useExt && d && typeof d.todayRegularClose === 'number' && d.todayRegularClose > 0;
+        const anchor    = useTodayClose ? d.todayRegularClose : (d ? (d.prevClose ?? d.lastPrice) : null);
+        const pct       = (useTodayClose && price != null)
+                            ? ((price - anchor) / anchor) * 100
+                            : (d ? (d.dayPct ?? 0) : null);
+        const dayChange = (price != null && anchor != null) ? price - anchor : null;
         // Card click opens whichever ticker the card is currently
         // *displaying* — so in ext mode the S&P card opens the ES=F
         // futures chart and the modal's pct matches what the card
