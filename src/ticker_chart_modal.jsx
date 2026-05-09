@@ -163,6 +163,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const [series, setSeries]     = React.useState(/** @type {Array<{date:string,close:number}>|null} */ (null));
   const [loading, setLoading]   = React.useState(true);
   const [error, setError]       = React.useState(false);
+  // Dedicated daily history for the moving-average overlay. Keyed by
+  // YYYY-MM-DD UTC date. Fetched separately from `series` because the
+  // chart's display window doesn't include the N prior trading days
+  // the MA needs to be valid at the leftmost edge — without this the
+  // MA line only kicked in halfway through the chart. See the MA
+  // useEffect below for the per-range fetch widths.
+  const [maHistory, setMaHistory] = React.useState(/** @type {Map<string, number>|null} */ (null));
 
   const useExt = !!(extendedHours && phase && phase !== 'regular');
 
@@ -310,6 +317,43 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // Background prefetch the other ranges once the user's chosen range has
   // landed. Range-button clicks then hit the in-memory cache for an
   // instant swap. Sequential, fire-and-forget — failures just leave the
+  // Moving-average history fetch — wider than `series` so the MA
+  // line can start on the chart's leftmost bar instead of mid-chart.
+  // For each range we pull a daily window large enough to cover the
+  // displayed period PLUS the MA's N-day prior history:
+  //   1W (5d)  + MA 5  → 1mo daily
+  //   1M (1mo) + MA 10 → 3mo daily
+  //   3M (3mo) + MA 20 → 6mo daily
+  //   YTD      + MA 50 → 1y  daily
+  // 1D and PE skip (no MA overlay). Re-runs on ticker / rangeKey
+  // change; cancels on unmount via the cleanup flag.
+  React.useEffect(() => {
+    const wideRange = { '1W': '1mo', '1M': '3mo', '3M': '6mo', 'YTD': '1y' }[rangeKey];
+    if (!wideRange) { setMaHistory(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const out = await fetchHistoricalBatch([ticker], wideRange, '1d', false);
+        if (cancelled) return;
+        const data = out?.[ticker];
+        if (!Array.isArray(data) || data.length === 0) { setMaHistory(null); return; }
+        const byDate = new Map();
+        for (const p of data) {
+          if (typeof p.date !== 'string' || p.date.length < 10) continue;
+          if (!isFinite(Number(p.close)) || p.close <= 0) continue;
+          // Daily endpoint returns YYYY-MM-DD; if it ever switches to
+          // intraday-style for fresher today bars, slice still gives
+          // the day correctly.
+          byDate.set(p.date.slice(0, 10), p.close);
+        }
+        setMaHistory(byDate.size > 0 ? byDate : null);
+      } catch {
+        if (!cancelled) setMaHistory(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [ticker, rangeKey]);
+
   // cache untouched and the next click pays the normal fetch cost.
   React.useEffect(() => {
     if (loading || error || !series) return;
@@ -737,39 +781,39 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const lineColor = pctNow >= 0 ? 'var(--gain)' : 'var(--loss)';
 
   // Moving-average overlay. 1W → MA 5d, 1M → MA 10d, 3M → MA 20d,
-  // YTD → MA 50d. 1D and PE skip the overlay (1D is single-session
-  // intraday; PE has its own 3Y AVG dashed line).
+  // YTD → MA 50d. 1D and PE skip (1D is single-session intraday; PE
+  // has its own 3Y AVG dashed line).
   //
-  // Daily semantics: the user asked for "5日 / 10日 / 20日 / 50日"
-  // moving averages. 1W and 1M fetch *intraday* bars (30m / 60m per
-  // ytd.js), so a naive N-bar window over `points` would average a
-  // few hours of price action, not N trading days. Resample to one
-  // close per UTC calendar date (last bar wins), compute the trailing
-  // SMA on the daily series, then map each intraday bar back to its
-  // day's MA so the line still spans the chart visually. For ranges
-  // already at daily granularity (3M / YTD) this resample is a no-op.
+  // The user asked for "5日 / 10日 / 20日 / 50日" — daily MAs. 1W
+  // and 1M fetch *intraday* bars (30m / 60m), so we can't compute
+  // those off `points` alone, and 3M / YTD don't have enough prior
+  // history in the displayed window to start the MA at the chart's
+  // left edge. Both problems solved by `maHistory`: a separate daily
+  // fetch wide enough to cover the displayed range PLUS the MA's
+  // prior-day window. Each intraday bar maps to the latest daily MA
+  // whose date is <= that bar's UTC date so the line spans the whole
+  // chart left-to-right.
   const MA_WINDOW = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50 }[rangeKey] || 0;
   let maSeries = null;
-  if (MA_WINDOW > 0 && points.length > 0) {
-    const byDate = new Map();
-    for (const p of points) {
-      if (typeof p.date !== 'string' || p.date.length < 10) continue;
-      byDate.set(p.date.slice(0, 10), p.close); // last close of each day wins
+  if (MA_WINDOW > 0 && points.length > 0 && maHistory && maHistory.size >= MA_WINDOW) {
+    const days = Array.from(maHistory.keys()).sort();
+    const dayMa = new Map();
+    let sum = 0;
+    for (let i = 0; i < days.length; i++) {
+      sum += maHistory.get(days[i]);
+      if (i >= MA_WINDOW) sum -= maHistory.get(days[i - MA_WINDOW]);
+      if (i >= MA_WINDOW - 1) dayMa.set(days[i], sum / MA_WINDOW);
     }
-    const days = Array.from(byDate.keys()).sort();
-    if (days.length >= MA_WINDOW) {
-      const dayMa = new Map();
-      let sum = 0;
-      for (let i = 0; i < days.length; i++) {
-        sum += byDate.get(days[i]);
-        if (i >= MA_WINDOW) sum -= byDate.get(days[i - MA_WINDOW]);
-        if (i >= MA_WINDOW - 1) dayMa.set(days[i], sum / MA_WINDOW);
-      }
-      maSeries = points.map(p => {
-        const day = (typeof p.date === 'string' && p.date.length >= 10) ? p.date.slice(0, 10) : '';
-        return dayMa.has(day) ? dayMa.get(day) : null;
-      });
-    }
+    // Sorted list of days that have a valid MA value, walked in lock-
+    // step with the (already chronological) display points.
+    const maDays = days.filter(d => dayMa.has(d));
+    let maIdx = -1;
+    maSeries = points.map(p => {
+      const day = (typeof p.date === 'string' && p.date.length >= 10) ? p.date.slice(0, 10) : '';
+      while (maIdx + 1 < maDays.length && maDays[maIdx + 1] <= day) maIdx++;
+      if (maIdx < 0) return null;
+      return dayMa.get(maDays[maIdx]);
+    });
   }
   const maPath = maSeries
     ? (() => {
