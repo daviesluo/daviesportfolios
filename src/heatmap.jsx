@@ -123,14 +123,30 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
             const tw = tile.w - GAP;
             const th = tile.h - GAP;
             const { bg, tickerClr, pctClr } = tileStyle(tile.pct);
-            const pctStr = (tile.pct >= 0 ? '+' : '') + tile.pct.toFixed(2) + '%';
+            // Drop a decimal on tight tiles so the pct still fits next
+            // to the ticker — "+15.26%" needs ~30px at 7px mono, but
+            // "+15%" fits in ~22px. Without this, BMNR/NET-sized tiles
+            // showed the ticker and silently swallowed the day move.
+            const pctStr = tw < 36
+              ? (tile.pct >= 0 ? '+' : '') + Math.round(tile.pct) + '%'
+              : (tile.pct >= 0 ? '+' : '') + tile.pct.toFixed(2) + '%';
 
             const showTicker = tw >= 22 && th >= 16;
-            const showPct    = tw >= 36 && th >= 32;
+            // Drop the pct threshold so medium-small tiles (BMNR / NET
+            // etc.) still get their % — previously they showed only the
+            // ticker and the user couldn't read the day move at all.
+            // Allowed down to 24×22 px; below that we'd be stacking two
+            // lines on a tile too small for either to be legible.
+            const showPct    = tw >= 24 && th >= 22;
             // Auto-shrink ticker font on tight tiles so 4-char tickers
             // (BMNR etc.) wrap to two lines instead of being clipped.
             // Clamp 8–11px based on the smaller tile dimension.
             const tickerFs = Math.max(8, Math.min(11, Math.floor(Math.min(tw, th) / 3)));
+            // Pct text is wider than the ticker (e.g. "+15.26%" is 7
+            // chars), so it needs to scale on tile *width* and shrink
+            // smaller (down to 7px) than the ticker so both lines stay
+            // inside the tile.
+            const pctFs    = Math.max(7, Math.min(10, Math.floor(tw / 5)));
 
             const clickable = typeof onTileClick === 'function';
             return (
@@ -162,7 +178,7 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
                   </span>
                 )}
                 {showPct && (
-                  <span className="hm-pct mono" style={{ color: pctClr }}>
+                  <span className="hm-pct mono" style={{ color: pctClr, fontSize: pctFs + 'px' }}>
                     {pctStr}
                   </span>
                 )}
