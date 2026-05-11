@@ -66,12 +66,15 @@ describe('prefetchAllChartData → TickerChartModal cache-key contract', () => {
 
     const tc = Storage.loadTickerChart();
     expect(tc?.entries).toBeTruthy();
-    // Modal cache keys use this exact shape — see ticker_chart_modal.jsx
-    // (`${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`).
-    // useExt during regular hours is false, so the variant tag is 'reg'.
-    expect(tc.entries['NVDA|YTD|reg|regular']).toBeTruthy();
+    // Modal cache keys come from cache.js `tickerChartCacheKey()` — 1D
+    // keeps variant+phase (its fetched window differs across them);
+    // non-1D/non-PE drops both since `fetchParamsFor` returns
+    // identical params for every (toggle, phase). Bumping the shape
+    // means a phase transition (16:00 ET) no longer invalidates the
+    // prefetched YTD/3M/1W/1M cache.
+    expect(tc.entries['NVDA|YTD']).toBeTruthy();
     expect(tc.entries['NVDA|1D|reg|regular']).toBeTruthy();
-    expect(tc.entries['GOOG|3M|reg|regular']).toBeTruthy();
+    expect(tc.entries['GOOG|3M']).toBeTruthy();
   });
 
   it('writes spSymbol into the PerfChart cache (dp.ytd) under year + range:variant', async () => {
