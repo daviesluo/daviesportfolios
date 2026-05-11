@@ -169,8 +169,16 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     fetchFundamentals([ticker]).then(f => {
       if (cancelled) return;
       const row = f?.[ticker];
-      const eps = row?.eps;
-      const pe  = row?.pe;
+      // Guard against a missing / transient-failure response: if the
+      // Edge Function timed out, rate-limited, or returned `{}`, `row`
+      // is undefined. Writing an empty FUND cache row here would
+      // overwrite a perfectly good prefetched value AND fool the next
+      // prefetch's freshness check (which keys off ts, not contents)
+      // into skipping the repair. Bail silently — the prefetched
+      // values that seeded peSupported / pe3yAvg above stay intact.
+      if (!row || typeof row !== 'object') return;
+      const eps = row.eps;
+      const pe  = row.pe;
       // ETF proxies (^GSPC/^NDX/^RUT → SPY/QQQ/IWM) have no aggregate
       // EPS in Finnhub's free tier; the Edge Function returns eps:0
       // there. Treat the row as "supported" if EITHER eps > 0 OR
@@ -179,7 +187,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       const hasEps = typeof eps === 'number' && eps > 0;
       const hasPe  = typeof pe  === 'number' && pe  > 0;
       setPeSupported(hasEps || hasPe);
-      const avg = row?.pe3yAvg;
+      const avg = row.pe3yAvg;
       setPe3yAvg(typeof avg === 'number' && isFinite(avg) && avg > 0 ? avg : null);
       // Write back to the FUND cache so a subsequent modal open hits
       // synchronously even when the prefetch pass didn't cover this
@@ -563,7 +571,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const lastPriceLive = md?.lastPrice ?? holding?.lastPrice ?? null;
   const openMinsUtc   = mh.openHh  * 60 + mh.openMm;
   const closeMinsUtc  = mh.closeHh * 60 + mh.closeMm;
-  const hasExtendedBars = Array.isArray(series) && series.length > 0 && series.some(p => {
+  // First signal: does the intraday series contain any AH-timestamped
+  // bar? Yahoo includes them even for OTC ADRs like SFTBY (just at the
+  // RTH close price), so this alone isn't enough to trust extPrice.
+  const hasAhBars = Array.isArray(series) && series.length > 0 && series.some(p => {
     if (typeof p.date !== 'string' || p.date.length < 16) return false;
     const hh = parseInt(p.date.slice(11, 13), 10);
     const mm = parseInt(p.date.slice(14, 16), 10);
@@ -571,6 +582,25 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     const mins = hh * 60 + mm;
     return mins < openMinsUtc || mins > closeMinsUtc;
   });
+  // Second signal: is `extPrice` actually close to where the intraday
+  // series ends? For real AH movement (NVDA, AAPL) the latest bar's
+  // close ≈ extPrice within ~1 %. For OTC ADRs / illiquid names that
+  // Yahoo fills with a bogus postMarketPrice (often today's regular
+  // open), extPrice diverges 5-10 % from every real AH bar.
+  // Tolerance of 3 % is wide enough for an after-hours flash move
+  // and tight enough to catch SFTBY's $20.15 vs $18.65 (~8 %) case.
+  const latestBar = Array.isArray(series) && series.length > 0
+    ? series[series.length - 1] : null;
+  const extPriceTracksSeries = !!(
+    latestBar && typeof latestBar.close === 'number' && latestBar.close > 0 &&
+    typeof extPriceLive === 'number' && extPriceLive > 0 &&
+    Math.abs(extPriceLive - latestBar.close) / latestBar.close < 0.03
+  );
+  // hasExtendedBars combines both signals — only true when AH is
+  // real for this ticker AND Yahoo's extPrice reflects what the
+  // bars show. Drives both the chart's right-edge substitution and
+  // the anchor logic, so SFTBY's bogus +8 % headline disappears.
+  const hasExtendedBars = hasAhBars && extPriceTracksSeries;
   const liveLast = (
     (useExt && hasExtendedBars && typeof extPriceLive === 'number' && extPriceLive > 0)
       ? extPriceLive
