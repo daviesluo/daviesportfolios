@@ -135,13 +135,6 @@ secrets server-side.
   successful price fetch is more than 5 min old, so a dead Edge
   Function can't quietly leave the scoreboard stuck on old numbers
   while the auto-retry loop churns in the background.
-- **Admin error triage badge** — when signed in as admin, an
-  `⚠ N ERRORS · last 24h` pill in the header polls
-  `/functions/v1/ops-error?action=summary` every 60 s and opens a
-  modal with a by-kind and by-symbol breakdown of recent failures.
-  Replaces "SSH into Supabase SQL Editor" for routine triage. Hidden
-  for read-only viewers (the endpoint also enforces admin token
-  server-side).
 - **Background chart prefetch** — every successful price refresh
   (initial load + manual Refresh click) silently warms every chart
   range × ticker into `localStorage`, so opening any ticker modal or
@@ -378,8 +371,7 @@ unresponsive.
 | `modals.jsx` | `<PositionDrillModal>`, `<EditTickerModal>` (incl. lot editor), `<AddTickerModal>`, `<CashModal>`. |
 | `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel + an optional `P/E YTD` button. Header now carries a `Shares · AC · Cost · Value(%) · G/L` line for holdings. Overlays: gray `MA 5 / 10 / 20 / 50` on 1W / 1M / 3M / YTD (bar-based SMA on a same-interval wider fetch held in `dp.maCache`, with the display series merged in so the line spans the full chart even when the cache drifts); gray `VWAP` on 1D for tickers Yahoo gives per-bar volume for (US equity reset 09:30 ET / pre-market 04:00 ET when ext is on; crypto reset 00:00 UTC; forward-fill smoothing for sparse-volume tickers like BTC-USD). DOM-ref crosshair (no React rerender on hover), persistent localStorage cache + stale-while-revalidate, 6-digit CN funds and `.PVT` private holdings restricted to 1M / 3M / YTD, ETFs / loss-makers hide the P/E button. P/E view divides by historical TTM EPS from Yahoo's `fundamentals-timeseries` so the curve steps on earnings dates. Indicator math (MA, VWAP, PE-from-TTM-history, extended-hours-bar detection) lives in `indicators.js` so it can be pinned by tests; ticker shape predicates come from `ticker_class.js`; cache helpers from `cache.js`. |
 | `sw-banner.jsx` | "New version available — RELOAD" banner. Uses `useRegisterSW` from `vite-plugin-pwa`. Kicks `updateServiceWorker(true)` for the standard `controllerchange`-driven reload AND a hard `window.location.reload()` 1.5 s later, because iOS Safari (and standalone-PWA Chrome) don't fire `controllerchange` reliably and the click otherwise felt unresponsive. |
-| `ops_error.js` | `reportError(kind, opts)` POSTs failures to the `ops-error` Edge Function (per-`(kind, symbol)` cooldown + per-load cap, `keepalive: true` so render-crash reports survive a Reload). Also exports `fetchOpsErrorSummary(hours)` which the admin-only `<OpsErrorBadge>` uses to poll the `?action=summary` endpoint every 60 s. |
-| `ops_error_badge.jsx` | `<OpsErrorBadge>` — pill in the header that surfaces a 24 h ops-error count for admin viewers and opens a modal with the by-kind / by-symbol breakdown. Hidden entirely for read-only viewers (which the Edge Function also enforces server-side). |
+| `ops_error.js` | `reportError(kind, opts)` POSTs failures to the `ops-error` Edge Function (per-`(kind, symbol)` cooldown + per-load cap, `keepalive: true` so render-crash reports survive a Reload). Server-side `?action=summary` is queryable directly when needed for triage. |
 | `prefetch.js` | `prefetchAllChartData(opts)`. Fired from `doRefresh` on initial load + manual Refresh click (skipped on the 30 s auto-refresh tick). Walks every (range × ticker) combo, skips ranges that are fully fresh under their TTL (and treats 1D rows missing the new `volume` field as stale so the VWAP overlay shows up after the Edge Function redeploy without a manual cache wipe), and writes results into the PerfChart cache (`dp.ytd`), the TickerChartModal cache (`dp.tickerChart`), and the MA overlay's wider-history cache (`dp.maCache`) so the next chart open is instant. Uses the shared `cache.js` (`isFresh` / `hasAnyNumericField` / `trimLru`) and `ticker_class.js` (`isDailyOnly`) helpers so the prefetch + modal can't disagree on freshness or daily-only routing. |
 | `types.d.ts` | JSDoc-friendly type definitions. |
 | `styles.css` | All app styles (single sheet). |
