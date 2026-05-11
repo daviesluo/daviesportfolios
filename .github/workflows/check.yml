@@ -29,3 +29,12 @@ jobs:
 
       - name: Build (Vite production bundle)
         run: npm run build
+
+      - name: Dependency audit (high-severity only)
+        # Surfaces supply-chain vulnerabilities. `--audit-level=high`
+        # so a transitive moderate doesn't gate every push; bump to
+        # `moderate` when the dep tree is clean enough that it's
+        # signal not noise. `--omit=dev` excludes vitest / vite /
+        # plugins from the audit — those don't ship to users so a
+        # vulnerability there doesn't affect the deployed site.
+        run: npm audit --audit-level=high --omit=dev

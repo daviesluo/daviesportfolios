@@ -6,8 +6,8 @@ import {
   fmtPrice as fmtPr,
   pctColor as pctClr,
   maskDigits,
-  POSITION_COORDS,
-} from './utils.js';
+} from './formatters.js';
+import { POSITION_COORDS } from './utils.js';
 
 function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, dragging, setDragging, onDrop, onOpenPosition, onAddToPosition, onUpdatePosition, isRefreshing, recentlyUpdated, hideValues }) {
   const coords = POSITION_COORDS;

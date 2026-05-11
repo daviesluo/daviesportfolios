@@ -5,10 +5,10 @@ import {
   fmtPct as fmtPe,
   fmtPrice as fmtPri,
   pctColor as pctClo,
-  currencySymbol as curSym,
-  detectCurrency,
   maskDigits,
-} from './utils.js';
+} from './formatters.js';
+import { currencySymbol as curSym, detectCurrency } from './fx.js';
+import { cleanLots } from './lots.js';
 
 // Ref-counted body scroll lock. PositionDrill can stack on top of the
 // chart/edit/add modal, so two Modal instances can be mounted at once.
@@ -225,22 +225,24 @@ function EditTickerModal({ ticker, holding, onClose, onSave, onDelete }) {
     setLots(/** @param {any[]} ls */ ls => [...ls, { date: today, shares: '', cost: '' }]);
   };
 
-  const totalShares = lots.reduce((s, l) => s + (Number(l.shares) || 0), 0);
+  // Preview total / weighted AC reflects only rows that would survive
+  // `cleanLots()` on save — otherwise the user could see e.g. a
+  // negative-cost row pulling the weighted average down here and
+  // then get a different number after pressing Save (where the bad
+  // row gets dropped silently).
+  const validLots = cleanLots(lots);
+  const totalShares = validLots.reduce((s, l) => s + l.shares, 0);
   const weightedCost = totalShares > 0
-    ? lots.reduce((s, l) => s + (Number(l.shares) || 0) * (Number(l.cost) || 0), 0) / totalShares
+    ? validLots.reduce((s, l) => s + l.shares * l.cost, 0) / totalShares
     : 0;
 
-  const save = () => {
-    const cleaned = lots
-      .filter(l => Number(l.shares) > 0 && l.date)
-      .map(l => ({
-        date: l.date,
-        shares: Number(l.shares) || 0,
-        cost: Number(l.cost) || 0,
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-    onSave({ lots: cleaned });
-  };
+  // `cleanLots` (lots.js) is the single source of truth for which
+  // lots are kept and how their values are coerced. Centralised so
+  // the EditTicker save path and the YTD chart's lot iterator can't
+  // disagree on what counts as a valid lot — and so the per-row
+  // rules (shares > 0, cost ≥ 0, YYYY-MM-DD date) are pinned by
+  // lots.test.js instead of living inline here.
+  const save = () => onSave({ lots: cleanLots(lots) });
 
   return (
     <Modal onClose={onClose} size="md">

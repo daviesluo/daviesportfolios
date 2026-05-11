@@ -9,8 +9,8 @@
 // Public API: `<PerfPanel>` (default surface) and `<PerfChart>` (raw
 // chart) are both exported. Renderers in app.jsx import only PerfPanel.
 import React from 'react';
+import { fxToUSD } from './fx.js';
 import {
-  fxToUSD,
   fetchHistorical,
   fetchHistoricalBatch,
   usMarketHoursUtc,
