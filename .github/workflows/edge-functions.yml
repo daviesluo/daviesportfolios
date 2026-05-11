@@ -29,7 +29,7 @@ jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # Full history so `git diff $before..$after` in the detect step
           # below can resolve the push base (the default shallow clone
@@ -38,7 +38,12 @@ jobs:
           fetch-depth: 0
 
       - name: Install Deno
-        uses: denoland/setup-deno@v1
+        # Action wrapper bumped to v2 (Node-24-compatible runner).
+        # `deno-version: v1.x` keeps the actual Deno runtime on 1.x
+        # to match Supabase's Edge Runtime, which is still Deno-1
+        # based — running tests on Deno 2 in CI but Deno 1 in
+        # production could surface subtle stdlib drift.
+        uses: denoland/setup-deno@v2
         with:
           deno-version: v1.x
 
