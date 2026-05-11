@@ -30,6 +30,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so `git diff $before..$after` in the detect step
+          # below can resolve the push base (the default shallow clone
+          # is depth=1, which would error out on any push of more than
+          # one commit).
+          fetch-depth: 0
 
       - name: Install Deno
         uses: denoland/setup-deno@v1
@@ -54,16 +60,27 @@ jobs:
       - name: Detect changed functions
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: changed
+        env:
+          # Diff the entire push, not just the tip commit — otherwise a
+          # push of multiple commits where only the LAST one doesn't
+          # touch `<fn>/index.ts` would silently skip deploying earlier
+          # changes (CI green, production stuck on the old version).
+          # `github.event.before` is the prior tip; `00..0` is GitHub's
+          # sentinel for "branch creation, no prior commit".
+          BEFORE: ${{ github.event.before }}
+          AFTER:  ${{ github.sha }}
         run: |
-          # Compare HEAD against the previous commit on main. For the
-          # very first run (no parent) just deploy everything.
-          if git rev-parse HEAD~1 >/dev/null 2>&1; then
-            CHANGED=$(git diff --name-only HEAD~1 HEAD \
-              | grep '^supabase/functions/[^/]*/index\.ts$' \
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "No previous tip (branch creation) — deploying every function."
+            CHANGED=$(ls supabase/functions/)
+          else
+            # `|| true` so a push that touches supabase/functions/** WITHOUT
+            # changing any index.ts (e.g. a test-only edit) doesn't trip
+            # bash's pipefail when grep finds no matches.
+            CHANGED=$(git diff --name-only "$BEFORE" "$AFTER" \
+              | { grep '^supabase/functions/[^/]*/index\.ts$' || true; } \
               | awk -F/ '{print $3}' \
               | sort -u)
-          else
-            CHANGED=$(ls supabase/functions/)
           fi
           if [ -z "$CHANGED" ]; then
             echo "No Edge Function index.ts changes; nothing to deploy."
