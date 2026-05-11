@@ -219,6 +219,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       setError(false);
       const ageMs = Date.now() - (cached.ts || 0);
       if (ageMs >= ttl) needsFresh = true;
+      // Volume was added to intraday bars after this app shipped.
+      // Old 1D cache rows that pre-date the redeploy still satisfy
+      // the freshness window but have no `volume` field on any bar,
+      // so the VWAP overlay silently disappears. Detect that and
+      // force a refetch — the fresh response from the redeployed
+      // Edge Function carries volume and the overlay re-appears.
+      if (rangeKey === '1D' && !cached.data.some(p => typeof p.volume === 'number')) {
+        needsFresh = true;
+      }
     } else {
       setLoading(true);
       setError(false);
