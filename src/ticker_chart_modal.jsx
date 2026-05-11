@@ -645,19 +645,31 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // semantic is days, so "MA 5" / "MA 10" / etc. always.
   const MA_DAYS = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50 }[rangeKey] || 0;
   let maSeries = null;
-  if (MA_BARS > 0 && points.length > 0 && maHistory && maHistory.length >= MA_BARS) {
-    const maByDate = new Map();
-    let sum = 0;
-    for (let i = 0; i < maHistory.length; i++) {
-      sum += maHistory[i].close;
-      if (i >= MA_BARS) sum -= maHistory[i - MA_BARS].close;
-      if (i >= MA_BARS - 1) maByDate.set(maHistory[i].date, sum / MA_BARS);
+  if (MA_BARS > 0 && points.length > 0) {
+    // Combine maHistory (wider, used for the prior-bar window) and the
+    // display series (`points`, freshest) into one chronological
+    // bar-stream deduped by timestamp. Without this, a maHistory cache
+    // that's a few hours stale (12 h TTL) misses bars the display
+    // already has, the per-bar lookup returns null for those, and the
+    // MA line breaks off mid-chart — TSM's missing left edge and
+    // NET's right edge both come from this gap. Display values win
+    // on duplicate keys so the live-tail substitution still matters.
+    const combinedMap = new Map();
+    if (maHistory) for (const p of maHistory) combinedMap.set(p.date, p.close);
+    for (const p of points) combinedMap.set(p.date, p.close);
+    const combined = Array.from(combinedMap.entries())
+      .map(([date, close]) => ({ date, close }))
+      .sort((a, b) => a.date < b.date ? -1 : 1);
+    if (combined.length >= MA_BARS) {
+      const maByDate = new Map();
+      let sum = 0;
+      for (let i = 0; i < combined.length; i++) {
+        sum += combined[i].close;
+        if (i >= MA_BARS) sum -= combined[i - MA_BARS].close;
+        if (i >= MA_BARS - 1) maByDate.set(combined[i].date, sum / MA_BARS);
+      }
+      maSeries = points.map(p => maByDate.has(p.date) ? maByDate.get(p.date) : null);
     }
-    // Same-interval fetch → display bars share timestamps with
-    // wider-series bars → MA value is a Map lookup. Display bars
-    // whose timestamps don't align (rare, e.g. live-substituted
-    // bar inserted between 30-min boundaries) get null.
-    maSeries = points.map(p => maByDate.has(p.date) ? maByDate.get(p.date) : null);
   }
 
   // Volume-weighted average price (1D only). Standard cumulative VWAP
