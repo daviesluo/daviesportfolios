@@ -64,14 +64,51 @@ secrets server-side.
   `/stable` paywalls QQQ/IWM and lacks `pe` on SPY, Yahoo
   `/v8/chart` meta has no P/E field. The 3-year-average reference
   line is a hardcoded constant per index since AV's free tier
-  doesn't expose historical annuals; refresh ~yearly. Plots
-  `price ÷ EPS` over YTD; const-EPS approximation (the curve's
-  shape mirrors price within a quarter). The y-axis swaps to bare
-  P/E values and the modal header shifts to "P/E RATIO". For the
-  indices the client reconstructs an implied EPS from `lastClose /
-  pe` so the YTD price series still divides cleanly. Futures /
-  other indices (`^VIX`, `^TNX`) / crypto / forex / loss-makers
-  hide the button automatically.
+  doesn't expose historical annuals; refresh ~yearly. **Trailing
+  TTM EPS history** comes from Yahoo's `fundamentals-timeseries`
+  endpoint (5+ years of pre-summed quarter-end TTM diluted EPS), so
+  the chart re-anchors at every earnings report — `price ÷ TTM EPS`
+  using the TTM as-of that bar's date, not a single constant. P/E
+  visibly steps on report days instead of being a 1:1 scale of the
+  price chart. Y-axis swaps to bare P/E values, modal header shifts
+  to "P/E RATIO". For ETF-proxied indices the client reconstructs
+  an implied EPS from `lastClose / pe` (Finnhub returns no aggregate
+  EPS at the index level) and stays on const-EPS. Futures / other
+  indices (`^VIX`, `^TNX`) / crypto / forex / loss-makers hide the
+  button automatically.
+- **Moving-average overlays** — every multi-day chart (1W / 1M /
+  3M / YTD) gets a gray N-day SMA drawn under the price line,
+  labelled `MA 5` / `MA 10` / `MA 20` / `MA 50` in the right
+  margin (same position style as the P/E view's 3Y AVG marker).
+  Computed bar-based on a same-interval wider history fetch
+  (1mo/30m for 1W, 3mo/60m for 1M, 6mo/1d for 3M, 1y/1d for YTD)
+  so the line updates every bar — no day-boundary stair-stepping
+  on intraday views — and is strictly causal (no future data).
+  CN funds / `.PVT` placeholders override the bar count to plain
+  N-day SMA on the daily-only data they get. Display series and
+  the wider history are combined + deduped by timestamp so the
+  line spans the full chart even when the wider history cache
+  drifts behind the live display fetch.
+- **VWAP overlay on 1D** — Volume-Weighted Average Price drawn as
+  a gray line on every 1D chart that has per-bar volume (US
+  equities, crypto, futures, LSE/HK names; skipped on forex /
+  yields / `^VIX` / CN funds since they have no usable per-bar
+  volume). Strictly causal cumulative `Σ(close × volume) / Σ(volume)`
+  per session; per-asset anchor — US equities reset at the trading
+  open (09:30 ET when the ext-hours toggle is off, **04:00 ET
+  pre-market open when it's on** so the VWAP spans pre / regular /
+  AH as one ramp); crypto (`-USD`) at 00:00 UTC; other markets
+  (LSE / HK / futures) at 00:00 UTC. Forward-fills sparse-volume
+  bars (BTC-USD's hourly-only volume on Yahoo) with the last seen
+  volume in the session so the line stays smooth instead of
+  stair-stepping. Path breaks at every session reset (no ghost
+  segment across the boundary). Label `VWAP` sits in the right
+  margin.
+- **Holding stats in the chart modal** — when the modal opens on
+  a holding (not an MC ticker), a second line under the price
+  shows `Shares · AC · Cost · Value (X.XX% of portfolio) · G/L`
+  in the same format as the position-drill card. Honours the
+  hide-values privacy toggle (digits masked, percentages stay).
 - **DST-aware scoreboard label** — the "GMT TIME" label flips to
   "BST TIME" automatically during British Summer Time (last Sun Mar →
   last Sun Oct). All chart UTC-string parsing appends an explicit `Z`
@@ -95,7 +132,10 @@ secrets server-side.
   Edge Function round-trip. Coverage spans the portfolio holdings,
   the S&P benchmark AND every Market-Conditions card (^GSPC, ^NDX,
   ^RUT, ^SOX, ^VIX, BZ=F, ^TNX, GBPUSD=X, GBPCNY=X, USDCNY=X) — plus
-  P/E YTD for the four ETF-proxied indices. TTL-aligned per range
+  P/E YTD for the four ETF-proxied indices and the MA overlay's
+  wider history series for every chart range. The MA history lives
+  in its own `dp.maCache` LRU so warming it can't evict freshly
+  warmed display rows from `dp.tickerChart`. TTL-aligned per range
   (5 m / 30 m / 1 h / 12 h / 12 h); auto-refresh ticks skip the
   prefetch since they'd re-fetch with nothing fresh to show.
 - **PWA** — installable on iOS / Android home screen, offline-capable
@@ -251,12 +291,28 @@ into the notch / status bar; the hide-values mask uses a vertically-
 centered bullet (`•`) instead of `*` so masked rows stay flush with
 neighbouring real numbers on the same line.
 
+When any modal is open the body is pinned with `position: fixed` and
+the page-scroll offset is restored on close. Without this iOS Safari's
+bouncy overscroll pulled the home page out from under the modal as
+soon as a finger drag crossed an edge of the dialog. Same lock pattern
+is used by every charting platform / Bootstrap / Material UI.
+
+Heatmap tiles auto-wrap long tickers (`BMNR` → `BM`/`NR`) and
+auto-shrink the font on cramped tiles so 4-char symbols stay legible
+without being clipped to `BM…`.
+
 ### Install as a PWA
 
 The app is a PWA — on iOS / Android, "Add to Home Screen" gives a
 full-screen launcher with the proper icon. When a new version is
 deployed, a top-of-screen banner offers a `RELOAD` button; the SW
-won't auto-reload mid-session.
+won't auto-reload mid-session. The button calls
+`updateServiceWorker(true)` for the standard `controllerchange`
+path but also schedules a hard `window.location.reload()` 1.5 s
+later as a belt-and-suspenders fallback — iOS Safari (and some
+standalone-PWA Chrome contexts) don't fire `controllerchange`
+reliably, so without the second reload the click felt silently
+unresponsive.
 
 ---
 
@@ -266,8 +322,9 @@ won't auto-reload mid-session.
   safety (no `.tsx`). Bundle output to repo root (`/assets/*.js`),
   served by Cloudflare Pages.
 - **Backend** — Supabase (Postgres + Edge Functions, Deno runtime).
-  Five functions: `auth`, `data`, `prices`, `chart`, `ops-error`. Two
-  migrations: `auth_attempts`, `ops_errors`, `index_fundamentals_cache`.
+  Six functions: `auth`, `data`, `prices`, `chart`, `fundamentals`,
+  `ops-error`. Three migrations: `auth_attempts`, `ops_errors`,
+  `index_fundamentals_cache`.
 - **Build / CI** — Vite production bundle, vitest for unit tests, tsc
   in `--noEmit` mode for typechecking. GitHub Actions workflow runs
   all three on every push to `main`.
@@ -288,20 +345,20 @@ won't auto-reload mid-session.
 | `auth.js` | Password → HMAC token flow. `collectPassword` (URL `?pwd=` or `window.prompt`), `authenticate` (POSTs to `/auth`), `decodeAppToken` (skip prompt if a valid sessionStorage token already exists). |
 | `portfolio_remote.js` | `loadPortfolioRemote` / `savePortfolioRemote` against the `data` Edge Function. Includes `migrate(p)` for legacy portfolio shapes (CB → CB1/CB2 split, BRK-B move, currency backfill, lots backfill). |
 | `supabase_config.js` | Shared `SB_URL`, `SB_ANON`, `EDGE_AUTH_URL`, `EDGE_DATA_URL`. |
-| `utils.js` | `computeMetrics`, FX helpers, `fetchTickers` (live snapshot), `fetchHistorical` / `fetchHistoricalBatch` (Edge Function first; CORS-proxy chain only fires for tickers the Edge omitted AND only when the Edge call itself failed — Edge has equivalent server-side fallbacks for `.PVT` and CN funds, so retrying the same upstreams via browser proxies just burns proxy quota), formatters, `Storage` namespace, schema-version migration, DST-aware helpers (`ukTzAbbr`, `usMarketHoursUtc`). |
+| `utils.js` | `computeMetrics`, FX helpers, `fetchTickers` (live snapshot), `fetchTodayRegularClose` (per-ticker 16:00 ET close bar, used to anchor the MC cards' "since 16:00 ET" pct so card and modal agree), `fetchHistorical` / `fetchHistoricalBatch` (Edge Function first; CORS-proxy chain only fires for tickers the Edge omitted AND only when the Edge call itself failed — Edge has equivalent server-side fallbacks for `.PVT` and CN funds, so retrying the same upstreams via browser proxies just burns proxy quota; both paths pass per-bar `volume` through on intraday intervals so the VWAP overlay has data to chew on), formatters, `Storage` namespace (now includes a dedicated `dp.maCache` row alongside `dp.ytd` / `dp.tickerChart`), schema-version migration, DST-aware helpers (`ukTzAbbr`, `usMarketHoursUtc`). |
 | `data.js` | `INITIAL_PORTFOLIO` seed for first-load demo state. |
-| `ytd.js` | Pure chart math. `buildTickerSeries`, `computeAt`, `lotsFor`, `closeOn`, `RANGES`, `fetchParamsFor`, `filterToLatestDay`, `filterToLast24h`. Decoupled from React so it's unit-testable. |
-| `ytd.test.js` | 19 cases pinning the YTD formula behaviors (pre-year lot, year lot, mixed, missing janPrice, 1D ext mode, intraday date comparison, etc.). |
-| `utils.test.js` | 6 cases pinning `fetchHistoricalBatch`'s strategy: Edge fast path, "trust Edge omissions" (no proxy fallback when Edge succeeded with a partial response), Edge total-failure → proxy fallback, CN-fund proxy bypass, empty input, dedup. |
+| `ytd.js` | Pure chart math. `buildTickerSeries`, `computeAt`, `lotsFor`, `closeOn`, `RANGES`, `fetchParamsFor`, `maFetchParamsFor` (per-range wider-history params for the MA overlay; honours the `dailyOnly` override so CN funds / `.PVT` get 1d-only history), `filterToLatestDay`, `filterToLast24h`. Decoupled from React so it's unit-testable. |
+| `ytd.test.js` | YTD formula pins (pre-year lot, year lot, mixed, missing janPrice, 1D ext mode anchored at today's regular close, intraday date comparison, etc.). |
+| `utils.test.js` | `fetchHistoricalBatch` strategy pins: Edge fast path, "trust Edge omissions" (no proxy fallback when Edge succeeded with a partial response), Edge total-failure → proxy fallback, CN-fund proxy bypass, empty input, dedup. |
 | `header_sidebar.jsx` | `<Header>` (scoreboard + extended-hours toggle + hide-values eye), `<Sidebar>` (top movers + formation value + perf chart), `<MarketConditions>` (10 cards desktop, 9 cards mobile in a 3 × 3 grid; SOX dropped on mobile). Re-exports `<PerfPanel>` from `perf_chart.jsx` so `app.jsx` keeps its existing import. |
 | `perf_chart.jsx` | `<PerfChart>` (the chart) + `<PerfPanel>` (chrome wrapper). 5 ranges, dual fetch effect (S&P alone + portfolio batch in parallel), background prefetch effect for the other ranges, DOM-ref crosshair, CLOSE/OPEN markers in 1D, ^GSPC RTH filter + ES=F ETH filter. |
 | `pitch.jsx` | Football-pitch SVG rendering. Position dots, captain armband, hot-mover ball, drag/drop in edit mode. |
 | `heatmap.jsx` | One tile per holding, sized by market value, colored by day-change. |
 | `modals.jsx` | `<PositionDrillModal>`, `<EditTickerModal>` (incl. lot editor), `<AddTickerModal>`, `<CashModal>`. |
-| `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel + an optional `P/E YTD` button for stocks with positive TTM EPS. DOM-ref crosshair (no React rerender on hover), persistent localStorage cache + stale-while-revalidate, 6-digit CN funds and `.PVT` private holdings restricted to 1M / 3M / YTD, ETFs / loss-makers hide the P/E button. |
-| `sw-banner.jsx` | "New version available — RELOAD" banner. Uses `useRegisterSW` from `vite-plugin-pwa`. |
+| `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel + an optional `P/E YTD` button. Header now carries a `Shares · AC · Cost · Value(%) · G/L` line for holdings. Overlays: gray `MA 5 / 10 / 20 / 50` on 1W / 1M / 3M / YTD (bar-based SMA on a same-interval wider fetch held in `dp.maCache`, with the display series merged in so the line spans the full chart even when the cache drifts); gray `VWAP` on 1D for tickers Yahoo gives per-bar volume for (US equity reset 09:30 ET / pre-market 04:00 ET when ext is on; crypto reset 00:00 UTC; forward-fill smoothing for sparse-volume tickers like BTC-USD). DOM-ref crosshair (no React rerender on hover), persistent localStorage cache + stale-while-revalidate, 6-digit CN funds and `.PVT` private holdings restricted to 1M / 3M / YTD, ETFs / loss-makers hide the P/E button. P/E view divides by historical TTM EPS from Yahoo's `fundamentals-timeseries` so the curve steps on earnings dates. |
+| `sw-banner.jsx` | "New version available — RELOAD" banner. Uses `useRegisterSW` from `vite-plugin-pwa`. Kicks `updateServiceWorker(true)` for the standard `controllerchange`-driven reload AND a hard `window.location.reload()` 1.5 s later, because iOS Safari (and standalone-PWA Chrome) don't fire `controllerchange` reliably and the click otherwise felt unresponsive. |
 | `ops_error.js` | `reportError(kind, opts)`. Per-`(kind, symbol)` cooldown + per-load cap. POSTs to the `ops-error` Edge Function with `keepalive: true` so render-crash reports survive the user's Reload click. |
-| `prefetch.js` | `prefetchAllChartData(opts)`. Fired from `doRefresh` on initial load + manual Refresh click (skipped on the 30 s auto-refresh tick). Walks every (range × ticker) combo, skips ranges that are fully fresh under their TTL, and writes results into both the PerfChart cache (`dp.ytd`) and the TickerChartModal cache (`dp.tickerChart`) so the next chart open is instant. |
+| `prefetch.js` | `prefetchAllChartData(opts)`. Fired from `doRefresh` on initial load + manual Refresh click (skipped on the 30 s auto-refresh tick). Walks every (range × ticker) combo, skips ranges that are fully fresh under their TTL (and treats 1D rows missing the new `volume` field as stale so the VWAP overlay shows up after the Edge Function redeploy without a manual cache wipe), and writes results into the PerfChart cache (`dp.ytd`), the TickerChartModal cache (`dp.tickerChart`), and the MA overlay's wider-history cache (`dp.maCache`) so the next chart open is instant. |
 | `types.d.ts` | JSDoc-friendly type definitions. |
 | `styles.css` | All app styles (single sheet). |
 | `index.html` | Vite root. References `/assets/index-<hash>.js`. |
@@ -313,8 +370,8 @@ won't auto-reload mid-session.
 | `auth` | `POST { password }` → `{ token, role }` on success, `429 { lockoutUntil }` after 3 wrong attempts from the same IP. Tokens are `<base64url(payload)>.<base64url(sig)>` where payload is `{ role, exp }`, signed HMAC-SHA256 with `APP_AUTH_SECRET`. |
 | `data` | `?action=load` / `?action=save`. Validates the `X-App-Token` header (re-derives HMAC + checks exp + checks role) before reading / writing `board_data`. Service-role key never leaves the function. |
 | `prices` | `?tickers=NVDA,017731,GBPUSD=X,…` → `{ ticker: { lastPrice, extPrice?, prevClose, currency, dayPct, extDayPct? } }`. Routes 6-digit codes to eastmoney's `fundgz.1234567.com.cn`, everything else to Yahoo Finance v8. |
-| `chart` | `?tickers=…&range=1mo&interval=60m&includePrePost=true` → `{ ticker: [{ date, close }, …] }`. Routes CN funds to a 3-tier eastmoney fallback (pingzhongdata → lsjz JSON → danjuanapp), everything else to Yahoo. `.PVT` placeholders fall back to the bare symbol when Yahoo 404s the literal. |
-| `fundamentals` | `?tickers=NVDA,GOOG,^GSPC,…` → `{ NVDA: { pe, eps, pe3yAvg }, ^GSPC: { pe, eps:0, pe3yAvg }, … }`. Powers the ticker-modal "P/E YTD" view. Individual stocks → Finnhub `/stock/metric`. Four big US indices (`^GSPC`/`^NDX`/`^RUT`/`^SOX`) → Alpha Vantage `OVERVIEW` against ETF proxies (SPY/QQQ/IWM/SOXX) cached for 24 h in `index_fundamentals_cache`; 3Y-avg P/E lives in `INDEX_PE_3Y_AVG` constants. Index rows return `eps:0` and the client reconstructs an implied EPS from `lastClose / pe`. Hardcoded fallback constants kick in if AV is unreachable. |
+| `chart` | `?tickers=…&range=1mo&interval=60m&includePrePost=true` → `{ ticker: [{ date, close, volume? }, …] }`. Intraday bars also carry the per-bar `volume` (used by the modal's VWAP overlay). Routes CN funds to a 3-tier eastmoney fallback (pingzhongdata → lsjz JSON → danjuanapp), everything else to Yahoo. `.PVT` placeholders fall back to the bare symbol when Yahoo 404s the literal. |
+| `fundamentals` | `?tickers=NVDA,GOOG,^GSPC,…` → `{ NVDA: { pe, eps, pe3yAvg, ttmEpsHistory? }, ^GSPC: { pe, eps:0, pe3yAvg }, … }`. Powers the ticker-modal "P/E YTD" view. Individual stocks → Finnhub `/stock/metric`. Four big US indices (`^GSPC`/`^NDX`/`^RUT`/`^SOX`) → Alpha Vantage `OVERVIEW` against ETF proxies (SPY/QQQ/IWM/SOXX) cached for 24 h in `index_fundamentals_cache`; 3Y-avg P/E lives in `INDEX_PE_3Y_AVG` constants. Opt-in `&ttmEpsHistory=true` adds a `ttmEpsHistory: [{date, eps}, …]` array sourced from Yahoo's `fundamentals-timeseries` (`trailingDilutedEPS`, 5+ years of pre-summed quarter-end TTM EPS) so the P/E modal can step the curve on earnings dates instead of dividing by a single constant; opt-in so the cheaper heatmap / scoreboard fundamentals fetches don't pay the extra round-trip. Falls back to a Finnhub `/stock/earnings` sum-of-4-quarters if Yahoo misses. Index rows return `eps:0` and the client reconstructs an implied EPS from `lastClose / pe`. Hardcoded fallback constants kick in if AV is unreachable. |
 | `ops-error` | Two modes. `POST { kind, symbol?, message?, context? }` → inserts into `ops_errors` (no auth; size + length capped; per-row IP captured server-side). `GET ?action=summary&hours=24` with header `x-app-token: <admin token>` → `{ hours, total, byKind, bySymbol }` aggregate over the last N hours, so triage doesn't require a Supabase dashboard login. |
 
 ### `supabase/migrations/`
@@ -349,11 +406,13 @@ won't auto-reload mid-session.
        │              ├── auth via /functions/v1/auth (gets HMAC token)
        │              └── error reports via /functions/v1/ops-error
        │  localStorage (dp.* namespace)
-       │    ├── dp.token    (sessionStorage — wiped on tab close)
-       │    ├── dp.ytd      (per-range historical close cache)
-       │    ├── dp.tickerChart (single-ticker modal cache)
-       │    ├── dp.prefs    (hide-values toggle, etc.)
-       │    └── dp.schema   (single integer; bumps drive Storage.migrate)
+       │    ├── dp.token        (sessionStorage — wiped on tab close)
+       │    ├── dp.ytd          (PerfChart per-range historical close cache)
+       │    ├── dp.tickerChart  (single-ticker modal cache)
+       │    ├── dp.maCache      (MA overlay wider-history cache — own LRU so
+       │    │                    it can't evict freshly warmed display rows)
+       │    ├── dp.prefs        (hide-values toggle, etc.)
+       │    └── dp.schema       (single integer; bumps drive Storage.migrate)
        └────────────────────────────────────────────────────┘
                                   │
                                   ▼
@@ -389,7 +448,7 @@ git clone https://github.com/daviesluo/daviesportfolios
 cd daviesportfolios
 npm install
 npm run dev           # Vite dev server at http://localhost:5173
-npm test              # vitest (currently 24 cases)
+npm test              # vitest (currently 40 cases)
 npm run typecheck     # tsc --noEmit with checkJs
 npm run build         # production bundle to repo root
 ```
