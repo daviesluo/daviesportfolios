@@ -1,0 +1,225 @@
+import { describe, it, expect } from 'vitest';
+import {
+  maBarsFor, maLabelDaysFor,
+  rollingSma, computeMaSeries,
+  vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
+  priceDividedByTtmEps,
+  hasExtendedHoursBars,
+} from './indicators.js';
+
+describe('maBarsFor / maLabelDaysFor', () => {
+  it('intraday ranges scale by bars/day; daily ranges stay 1:1', () => {
+    expect(maBarsFor('1W', false)).toBe(65);   // 5 days × 13 bars at 30m
+    expect(maBarsFor('1M', false)).toBe(70);   // 10 days × 7 bars at 60m
+    expect(maBarsFor('3M', false)).toBe(20);
+    expect(maBarsFor('YTD', false)).toBe(50);
+  });
+
+  it('dailyOnly tickers (CN funds / .PVT) bypass the bars-per-day scaling', () => {
+    expect(maBarsFor('1W', true)).toBe(5);
+    expect(maBarsFor('1M', true)).toBe(10);
+    expect(maBarsFor('3M', true)).toBe(20);
+    expect(maBarsFor('YTD', true)).toBe(50);
+  });
+
+  it('unknown range = 0', () => {
+    expect(maBarsFor('1D', false)).toBe(0);
+    expect(maBarsFor('PE', false)).toBe(0);
+  });
+
+  it('label always shows day count', () => {
+    expect(maLabelDaysFor('1W')).toBe(5);
+    expect(maLabelDaysFor('YTD')).toBe(50);
+    expect(maLabelDaysFor('1D')).toBe(0);
+  });
+});
+
+describe('rollingSma', () => {
+  it('first (N-1) entries null; rest are trailing averages', () => {
+    const bars = [{date:'a', close:1}, {date:'b', close:2}, {date:'c', close:3}, {date:'d', close:4}];
+    const ma = rollingSma(bars, 3);
+    expect(ma).toEqual([null, null, 2, 3]); // (1+2+3)/3 = 2; (2+3+4)/3 = 3
+  });
+
+  it('zero / empty / window > length all return clean defaults', () => {
+    expect(rollingSma([], 5)).toEqual([]);
+    expect(rollingSma([{date:'a', close:1}], 0)).toEqual([]);
+    expect(rollingSma([{date:'a', close:1}], 3)).toEqual([null]);
+  });
+});
+
+describe('computeMaSeries (combined wider + display)', () => {
+  it('uses wider history bars to populate MA at the leftmost display bar', () => {
+    const wider   = [
+      {date:'2026-05-01', close:1}, {date:'2026-05-02', close:2},
+      {date:'2026-05-03', close:3}, {date:'2026-05-04', close:4},
+    ];
+    const display = [{date:'2026-05-05', close:5}, {date:'2026-05-06', close:6}];
+    // 5-day MA on the combined stream of 6 bars:
+    //   index 4 (display[0], '2026-05-05'): avg of bars 0..4 = 3
+    //   index 5 (display[1], '2026-05-06'): avg of bars 1..5 = 4
+    expect(computeMaSeries(display, wider, 5)).toEqual([3, 4]);
+  });
+
+  it('display value wins on duplicate timestamp (live-tail substitution)', () => {
+    const wider   = [{date:'a', close:100}, {date:'b', close:100}];
+    const display = [{date:'a', close: 50}, {date:'b', close: 50}];  // display's are "live"
+    // Combined dedupes by date — display values used. With window 2:
+    //   '2026-05-05' (idx 0): null (only 1 prior)
+    //   '2026-05-06' (idx 1): (50+50)/2 = 50
+    expect(computeMaSeries(display, wider, 2)).toEqual([null, 50]);
+  });
+
+  it('returns null for every display bar when combined is too short', () => {
+    expect(computeMaSeries([{date:'a', close:1}], [], 5)).toEqual([null]);
+  });
+});
+
+describe('vwapSessionResetFor', () => {
+  const mhEdt = { edt: true,  openHh: 13, openMm: 30 };
+  const mhEst = { edt: false, openHh: 14, openMm: 30 };
+
+  it('crypto resets at UTC midnight', () => {
+    expect(vwapSessionResetFor('BTC-USD', true,  mhEdt)).toEqual({ resetMins: 0, useUsOpenReset: false });
+    expect(vwapSessionResetFor('BTC-USD', false, mhEdt)).toEqual({ resetMins: 0, useUsOpenReset: false });
+  });
+
+  it('US equity in EDT: 09:30 ET when ext off, 04:00 ET when ext on', () => {
+    expect(vwapSessionResetFor('NVDA', false, mhEdt)).toEqual({ resetMins: 13 * 60 + 30, useUsOpenReset: true });
+    expect(vwapSessionResetFor('NVDA', true,  mhEdt)).toEqual({ resetMins: 8 * 60,       useUsOpenReset: true });
+  });
+
+  it('US equity in EST winter shifts by 1 hour', () => {
+    expect(vwapSessionResetFor('NVDA', false, mhEst)).toEqual({ resetMins: 14 * 60 + 30, useUsOpenReset: true });
+    expect(vwapSessionResetFor('NVDA', true,  mhEst)).toEqual({ resetMins: 9 * 60,       useUsOpenReset: true });
+  });
+
+  it('non-US equity (LSE / HK / =F / =X / ^index / CN fund / .PVT) → UTC midnight', () => {
+    for (const t of ['VUAG.L', '0700.HK', 'ES=F', 'GBPUSD=X', '^GSPC', '017731', 'SPAX.PVT']) {
+      expect(vwapSessionResetFor(t, true, mhEdt).useUsOpenReset).toBe(false);
+    }
+  });
+});
+
+describe('vwapSessionKeyOf', () => {
+  const usCfg = { resetMins: 8 * 60, useUsOpenReset: true };       // 04:00 ET ext-on EDT
+  const cryptoCfg = { resetMins: 0, useUsOpenReset: false };
+
+  it('crypto: bucket = UTC date', () => {
+    expect(vwapSessionKeyOf('2026-05-11T03:00', cryptoCfg)).toBe('2026-05-11');
+    expect(vwapSessionKeyOf('2026-05-11T23:59', cryptoCfg)).toBe('2026-05-11');
+  });
+
+  it('US ext-on: bars at-or-after 08:00 UTC keep today; earlier roll back to yesterday', () => {
+    expect(vwapSessionKeyOf('2026-05-11T08:00', usCfg)).toBe('2026-05-11');  // exactly 04:00 ET
+    expect(vwapSessionKeyOf('2026-05-11T08:30', usCfg)).toBe('2026-05-11');
+    expect(vwapSessionKeyOf('2026-05-11T07:55', usCfg)).toBe('2026-05-10');  // 03:55 ET overnight
+    expect(vwapSessionKeyOf('2026-05-11T00:00', usCfg)).toBe('2026-05-10');  // 20:00 ET after-hours
+  });
+});
+
+describe('computeVwap', () => {
+  const cfg = { resetMins: 0, useUsOpenReset: false };
+  const sk  = (d) => vwapSessionKeyOf(d, cfg);
+
+  it('null for sessions with no volume at all', () => {
+    const pts = [
+      { date: '2026-05-11T13:30', close: 100 },
+      { date: '2026-05-11T13:35', close: 101 },
+    ];
+    expect(computeVwap(pts, sk)).toEqual([null, null]);
+  });
+
+  it('cumulative weighted average within a session', () => {
+    const pts = [
+      { date: '2026-05-11T13:30', close: 100, volume: 100 },
+      { date: '2026-05-11T13:35', close: 102, volume: 200 },
+    ];
+    // bar 1: 100×100/100 = 100
+    // bar 2: (100×100 + 102×200)/(100+200) = 30400/300 = 101.333…
+    const out = computeVwap(pts, sk);
+    expect(out[0]).toBe(100);
+    expect(out[1]).toBeCloseTo(101.333, 2);
+  });
+
+  it('forward-fills zero-volume bars with the most recent real volume', () => {
+    const pts = [
+      { date: '2026-05-11T13:30', close: 100, volume: 100 },
+      { date: '2026-05-11T13:35', close: 110, volume: 0 },     // fwd-fill v=100
+      { date: '2026-05-11T13:40', close: 120, volume: 0 },     // fwd-fill v=100
+    ];
+    const out = computeVwap(pts, sk);
+    expect(out[0]).toBe(100);
+    expect(out[1]).toBe(105); // (100+110)/2
+    expect(out[2]).toBe(110); // (100+110+120)/3
+  });
+
+  it('resets on session boundary (cumulator restarts; no real volume yet → null)', () => {
+    const cfg2 = { resetMins: 8 * 60, useUsOpenReset: true };
+    const sk2 = (d) => vwapSessionKeyOf(d, cfg2);
+    const pts = [
+      { date: '2026-05-10T15:00', close: 100, volume: 1000 },  // yesterday session
+      { date: '2026-05-11T08:00', close: 200, volume: 0    },  // today session opens; no volume yet
+      { date: '2026-05-11T08:05', close: 201, volume: 500  },  // first real today vol
+    ];
+    const out = computeVwap(pts, sk2);
+    expect(out[0]).toBe(100);
+    expect(out[1]).toBeNull();    // today's first bar, vol=0, no prior real volume in this session
+    expect(out[2]).toBe(201);     // today bar 2: VWAP = 201 (only one real bar in today's session)
+  });
+
+  it('returns empty array on empty input', () => {
+    expect(computeVwap([], sk)).toEqual([]);
+  });
+});
+
+describe('priceDividedByTtmEps', () => {
+  it('steps the P/E down when a higher TTM EPS gets reported', () => {
+    const prices = [
+      { date: '2026-04-01', close: 100 },
+      { date: '2026-06-01', close: 100 },  // after Q1 reports (with 45d lag)
+    ];
+    // Quarter end 2026-03-31; reportMs = +45d ≈ 2026-05-15
+    // Before that → fallback EPS (4); after that → TTM EPS (5)
+    const history = [{ date: '2026-03-31', eps: 5 }];
+    const out = priceDividedByTtmEps(prices, history, 4);
+    expect(out[0]).toEqual({ date: '2026-04-01', close: 25 });  // 100/4 fallback
+    expect(out[1]).toEqual({ date: '2026-06-01', close: 20 });  // 100/5 from history
+  });
+
+  it('empty / missing history → fallback EPS for every bar', () => {
+    const prices = [{ date: '2026-04-01', close: 100 }];
+    expect(priceDividedByTtmEps(prices, null, 4)).toEqual([{ date: '2026-04-01', close: 25 }]);
+    expect(priceDividedByTtmEps(prices, [],   4)).toEqual([{ date: '2026-04-01', close: 25 }]);
+  });
+
+  it('fallback ≤ 0 produces close 0 (degenerate but safe)', () => {
+    const prices = [{ date: '2026-04-01', close: 100 }];
+    expect(priceDividedByTtmEps(prices, null, 0)).toEqual([{ date: '2026-04-01', close: 0 }]);
+  });
+});
+
+describe('hasExtendedHoursBars', () => {
+  it('returns true if any bar is before openMins', () => {
+    const series = [{ date: '2026-05-11T08:00' }];  // 04:00 ET pre-market
+    expect(hasExtendedHoursBars(series, 13 * 60 + 30, 20 * 60)).toBe(true);
+  });
+
+  it('returns true if any bar is after closeMins', () => {
+    const series = [{ date: '2026-05-11T21:00' }];  // 17:00 ET after-hours
+    expect(hasExtendedHoursBars(series, 13 * 60 + 30, 20 * 60)).toBe(true);
+  });
+
+  it('returns false if every bar is inside the regular session', () => {
+    const series = [
+      { date: '2026-05-11T14:00' },  // 10:00 ET RTH
+      { date: '2026-05-11T19:55' },  // 15:55 ET RTH
+    ];
+    expect(hasExtendedHoursBars(series, 13 * 60 + 30, 20 * 60)).toBe(false);
+  });
+
+  it('empty / non-array input → false', () => {
+    expect(hasExtendedHoursBars([], 0, 0)).toBe(false);
+    expect(hasExtendedHoursBars(/** @type {any} */ (null), 0, 0)).toBe(false);
+  });
+});

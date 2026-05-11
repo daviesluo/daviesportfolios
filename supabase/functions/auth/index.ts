@@ -43,13 +43,13 @@ const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const enc = new TextEncoder();
 
-function b64url(bytes: Uint8Array | string): string {
+export function b64url(bytes: Uint8Array | string): string {
   const buf = typeof bytes === "string" ? enc.encode(bytes) : bytes;
   let s = btoa(String.fromCharCode(...buf));
   return s.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 }
 
-async function sign(payload: string, secret: string): Promise<string> {
+export async function sign(payload: string, secret: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
     enc.encode(secret),
@@ -61,10 +61,18 @@ async function sign(payload: string, secret: string): Promise<string> {
   return b64url(new Uint8Array(sig));
 }
 
-async function makeToken(role: "admin" | "ro"): Promise<string> {
-  const payload = b64url(JSON.stringify({ role, exp: Date.now() + TOKEN_TTL_MS }));
-  const signature = await sign(payload, SECRET);
+export async function makeToken(role: "admin" | "ro", secret = SECRET, ttlMs = TOKEN_TTL_MS): Promise<string> {
+  const payload = b64url(JSON.stringify({ role, exp: Date.now() + ttlMs }));
+  const signature = await sign(payload, secret);
   return `${payload}.${signature}`;
+}
+
+export function clientIpFromHeaders(req: Request): string {
+  const cf = req.headers.get("cf-connecting-ip");
+  if (cf) return cf;
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0].trim();
+  return "unknown";
 }
 
 function json(status: number, body: Record<string, unknown>): Response {
@@ -81,17 +89,12 @@ const SB_HEADERS = {
   "Content-Type": "application/json",
 };
 
-function clientIp(req: Request): string {
-  // Cloudflare → cf-connecting-ip; Supabase Edge → x-forwarded-for.
-  // First IP in x-forwarded-for is the original client. Fall back to a
-  // sentinel so a missing header still keys per-deploy rather than
-  // bypassing the limiter entirely.
-  const cf = req.headers.get("cf-connecting-ip");
-  if (cf) return cf;
-  const xff = req.headers.get("x-forwarded-for");
-  if (xff) return xff.split(",")[0].trim();
-  return "unknown";
-}
+// Cloudflare → cf-connecting-ip; Supabase Edge → x-forwarded-for.
+// First IP in x-forwarded-for is the original client. Fall back to a
+// sentinel so a missing header still keys per-deploy rather than
+// bypassing the limiter entirely. Exported above as
+// `clientIpFromHeaders` for unit testing.
+const clientIp = clientIpFromHeaders;
 
 type LockoutCheck = { lockout_until: number | null };
 
@@ -132,7 +135,10 @@ async function clearAttempts(ip: string): Promise<void> {
   });
 }
 
-Deno.serve(async (req: Request) => {
+// Guarded so tests can import the helpers above without spinning up
+// the server. Supabase's runtime executes index.ts as the entry
+// module, so `import.meta.main` is true in production.
+if (import.meta.main) Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST")    return json(405, { error: "method not allowed" });
 

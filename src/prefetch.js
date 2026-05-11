@@ -22,33 +22,10 @@
 
 import { Storage, fetchHistoricalBatch, fetchFundamentals } from './utils.js';
 import { fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h, RANGE_KEYS } from './ytd.js';
-
-// Match each range's bar interval — same shape PerfChart and the
-// TickerChartModal use. Past TTL the prefetch decides "stale" and
-// refetches; under TTL it's a no-op (and downstream stale-while-
-// revalidate handles the same range from cache).
-const RANGE_TTL_MS = {
-  '1D':  5  * 60 * 1000,
-  '1W':  30 * 60 * 1000,
-  '1M':  60 * 60 * 1000,
-  '3M':  12 * 60 * 60 * 1000,
-  'YTD': 12 * 60 * 60 * 1000,
-};
-
-// Moving-average history cache TTL — must match the modal's value
-// (`MA_TTL_MS`). MA is daily/intraday history wider than the chart's
-// display range; doesn't need to refresh more than twice a day.
-const MA_TTL_MS = 12 * 60 * 60 * 1000;
+import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, isFresh, hasAnyNumericField, trimLru } from './cache.js';
+import { isDailyOnly } from './ticker_class.js';
 
 const TICKER_CACHE_CAP = 200;
-
-// Same predicate the TickerChartModal uses — CN mutual funds publish
-// one NAV per trading day, and .PVT placeholders don't have intraday
-// data on Yahoo. Both flip the prefetch to interval=1d so the cache
-// row matches what the modal will subsequently read; otherwise the
-// prefetch would land empty intraday rows and the modal would still
-// pay a cold fetch on first open.
-const DAILY_ONLY_RE = /^(?:\d{6}|.*\.PVT)$/i;
 
 // Indices we surface a P/E YTD chart for. The fundamentals Edge Function
 // maps these to ETF proxies (SPY/QQQ/IWM/SOXX) and serves a cached
@@ -87,7 +64,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
 
   // Split daily-only symbols (CN funds, .PVT) from intraday-friendly
   // ones so each group gets the right fetch params per range.
-  const dailyOnlySet = new Set(allSymbols.filter(s => DAILY_ONLY_RE.test(s)));
+  const dailyOnlySet = new Set(allSymbols.filter(s => isDailyOnly(s)));
 
   for (const rk of RANGE_KEYS) {
     const params = fetchParamsFor(rk, extendedHours, phase);
@@ -106,22 +83,16 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     /** @param {string} t */
     const tickerKey = (t) => `${t}|${rk}|${tickerVariantTag}|${phaseTag}`;
 
-    const isFresh = (entry) => {
-      if (!entry || !entry.data || !Array.isArray(entry.data) || entry.data.length < 2) return false;
-      if ((Date.now() - (entry.ts || 0)) >= ttl) return false;
-      // 1D cache rows from before the volume-bearing Edge Function
-      // shipped still satisfy the TTL but lack a `volume` field on
-      // every bar — they'd suppress the modal's VWAP overlay
-      // indefinitely. Treat such rows as stale so this prefetch
-      // pass refetches them through the redeployed Edge Function.
-      if (rk === '1D' && !entry.data.some((p) => typeof p.volume === 'number')) return false;
-      return true;
-    };
-
+    // 1D cache rows from before the volume-bearing Edge Function
+    // shipped still satisfy the TTL but lack a `volume` field on
+    // every bar — they'd suppress the modal's VWAP overlay
+    // indefinitely. Treat such rows as stale so this prefetch pass
+    // refetches them through the redeployed Edge Function.
+    const extraValid = rk === '1D' ? hasAnyNumericField('volume') : undefined;
     const stale = allSymbols.filter((s) => {
-      const inPerf = isFresh(perfEntries[s]);
+      const inPerf = isFresh(perfEntries[s], ttl, extraValid);
       // tickerChart cache only covers portfolio tickers (modal never opens for spSymbol)
-      const inTicker = s === spSymbol ? true : isFresh(tcAll.entries?.[tickerKey(s)]);
+      const inTicker = s === spSymbol ? true : isFresh(tcAll.entries?.[tickerKey(s)], ttl, extraValid);
       return !(inPerf && inTicker);
     });
     if (stale.length === 0) continue;
@@ -177,17 +148,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       }
     }
     if (tcChanged) {
-      // Soft LRU cap so the localStorage entry can't bloat unboundedly.
-      const keys = Object.keys(tcAll.entries);
-      if (keys.length > TICKER_CACHE_CAP) {
-        const sorted = keys
-          .map((k) => ({ k, ts: tcAll.entries[k]?.ts || 0 }))
-          .sort((a, b) => b.ts - a.ts);
-        /** @type {Record<string, {ts:number, data:any[]}>} */
-        const trimmed = {};
-        for (let i = 0; i < TICKER_CACHE_CAP; i++) trimmed[sorted[i].k] = tcAll.entries[sorted[i].k];
-        tcAll.entries = trimmed;
-      }
+      trimLru(tcAll, TICKER_CACHE_CAP);
       Storage.saveTickerChart(tcAll);
     }
   }
@@ -215,8 +176,10 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     if (rk === '1D') continue; // MA overlay skips 1D (single-session view)
     const maStoreRead = Storage.loadMaCache() || { entries: {} };
     const maKey = (t) => `${t}|MA|${rk}`;
+    // MA history is keyed by wider-history fetch; a single bar is
+    // valid, so don't require the 2-bar floor isFresh applies.
     const isFreshMa = (entry) =>
-      entry && entry.data && Array.isArray(entry.data) && entry.data.length > 0 &&
+      !!entry && Array.isArray(entry.data) && entry.data.length > 0 &&
       (Date.now() - (entry.ts || 0)) < MA_TTL_MS;
 
     const ixSymbols  = allSymbols.filter(s => !dailyOnlySet.has(s));
@@ -259,16 +222,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       maChanged = true;
     }
     if (maChanged) {
-      const keys = Object.keys(maStore.entries);
-      if (keys.length > MA_CACHE_CAP) {
-        const sorted = keys
-          .map((k) => ({ k, ts: maStore.entries[k]?.ts || 0 }))
-          .sort((a, b) => b.ts - a.ts);
-        /** @type {Record<string, {ts:number, data:any[]}>} */
-        const trimmed = {};
-        for (let i = 0; i < MA_CACHE_CAP; i++) trimmed[sorted[i].k] = maStore.entries[sorted[i].k];
-        maStore.entries = trimmed;
-      }
+      trimLru(maStore, MA_CACHE_CAP);
       Storage.saveMaCache(maStore);
     }
   }
@@ -280,7 +234,6 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   // reads. Skipped when every ticker already has a fresh PE entry,
   // so the auto-refresh tick (which doesn't call this function) and
   // back-to-back manual refreshes don't burn Finnhub quota.
-  const peTtl = 12 * 60 * 60 * 1000; // 12 h, matches YTD's TTL
   const tcAll = Storage.loadTickerChart() || { entries: {} };
   const ytdNow = Storage.loadYtd();
   const ytdEntriesNow = ytdNow?.byRange?.['YTD:std']?.entries ?? {};
@@ -296,10 +249,8 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     ...mcList.filter(t => PE_PROXIED_INDICES.has(t)),
   ]));
   const peCandidates = peEligible.filter((t) => {
-    const ytd = ytdEntriesNow[t];
-    if (!ytd?.data || !Array.isArray(ytd.data) || ytd.data.length < 2) return false;
-    const cached = tcAll.entries?.[peKey(t)];
-    return !(cached && cached.data && (Date.now() - (cached.ts || 0)) < peTtl);
+    if (!isFresh(ytdEntriesNow[t], PE_TTL_MS)) return false;
+    return !isFresh(tcAll.entries?.[peKey(t)], PE_TTL_MS);
   });
   if (peCandidates.length > 0) {
     let fundamentals = {};
@@ -326,17 +277,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       tcChanged = true;
     }
     if (tcChanged) {
-      // Same LRU cap as the per-range writes above.
-      const keys = Object.keys(tcAll.entries);
-      if (keys.length > TICKER_CACHE_CAP) {
-        const sorted = keys
-          .map((k) => ({ k, ts: tcAll.entries[k]?.ts || 0 }))
-          .sort((a, b) => b.ts - a.ts);
-        /** @type {Record<string, {ts:number, data:any[]}>} */
-        const trimmed = {};
-        for (let i = 0; i < TICKER_CACHE_CAP; i++) trimmed[sorted[i].k] = tcAll.entries[sorted[i].k];
-        tcAll.entries = trimmed;
-      }
+      trimLru(tcAll, TICKER_CACHE_CAP);
       Storage.saveTickerChart(tcAll);
     }
   }

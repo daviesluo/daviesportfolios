@@ -250,18 +250,7 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
     const eps = Number(m.epsTTM ?? m.epsBasicExclExtraItemsTTM ?? m.epsNormalizedAnnual);
     if (!isFinite(pe) || !isFinite(eps) || eps <= 0 || pe <= 0) return null;
 
-    let pe3yAvg: number | null = null;
-    const annual = data?.series?.annual?.pe ?? [];
-    if (Array.isArray(annual) && annual.length > 0) {
-      const sorted = annual
-        .map((p: any) => ({ period: String(p?.period ?? ""), v: Number(p?.v) }))
-        .filter((p) => p.period && isFinite(p.v) && p.v > 0)
-        .sort((a, b) => (a.period < b.period ? 1 : -1))
-        .slice(0, 3);
-      if (sorted.length > 0) {
-        pe3yAvg = sorted.reduce((s, p) => s + p.v, 0) / sorted.length;
-      }
-    }
+    const pe3yAvg = computePe3yAvg(data?.series?.annual?.pe ?? []);
     return { pe, eps, pe3yAvg };
   } catch {
     return null;
@@ -354,9 +343,70 @@ async function fetchFinnhubEarningsHistory(
   }
 }
 
+// ---- Pure helpers exposed for tests ---------------------------------
+
+/**
+ * "Is this ticker something the fundamentals function can fetch a P/E
+ * for?" — strips CASH, .PVT placeholders, CN funds, futures, forex,
+ * crypto, and indices we don't have ETF proxies for. The Edge
+ * Function filters its inputs with this predicate so the Finnhub /
+ * AV calls only fire for tickers where they'd be meaningful.
+ */
+export function isFundamentalsTicker(t: string): boolean {
+  if (!t || t === "CASH") return false;
+  if (/\.PVT$/i.test(t))  return false;   // private holdings
+  if (/^\d{6}$/.test(t))  return false;   // CN mutual funds
+  if (/=F$/.test(t))      return false;   // futures
+  if (/=X$/.test(t))      return false;   // forex pairs
+  if (/[-]USD$/i.test(t)) return false;   // crypto
+  if (t.startsWith("^") && !(t in INDEX_ETF_PROXY)) return false;
+  return true;
+}
+
+/**
+ * Build a TTM EPS history from raw quarterly Finnhub EPS by summing
+ * each rolling window of 4 quarters. Used as the fallback when
+ * Yahoo's trailingDilutedEPS endpoint fails. Returns null if there
+ * aren't enough quarters to form a single TTM point.
+ */
+export function rollingTtmFromRawQuarterly(
+  raw: Array<{ date: string; eps: number }>,
+): Array<{ date: string; eps: number }> | null {
+  if (!Array.isArray(raw) || raw.length < 4) return null;
+  const out: Array<{ date: string; eps: number }> = [];
+  for (let i = 3; i < raw.length; i++) {
+    out.push({
+      date: raw[i].date,
+      eps:  raw[i].eps + raw[i - 1].eps + raw[i - 2].eps + raw[i - 3].eps,
+    });
+  }
+  return out.length > 0 ? out : null;
+}
+
+/**
+ * Compute the 3-year average P/E from Finnhub's `series.annual.pe`
+ * (or any similarly-shaped { period, v } array). Takes the 3 most
+ * recent valid years.
+ */
+export function computePe3yAvg(
+  annualSeries: Array<{ period?: unknown; v?: unknown }>,
+): number | null {
+  if (!Array.isArray(annualSeries) || annualSeries.length === 0) return null;
+  const sorted = annualSeries
+    .map((p) => ({ period: String(p?.period ?? ""), v: Number(p?.v) }))
+    .filter((p) => p.period && isFinite(p.v) && p.v > 0)
+    .sort((a, b) => (a.period < b.period ? 1 : -1))
+    .slice(0, 3);
+  if (sorted.length === 0) return null;
+  return sorted.reduce((s, p) => s + p.v, 0) / sorted.length;
+}
+
 // ---- HTTP entry -----------------------------------------------------
 
-Deno.serve(async (req: Request) => {
+// Guarded so tests can import the helpers above without spinning up
+// the server. Supabase's runtime executes index.ts as the entry
+// module, so `import.meta.main` is true in production.
+if (import.meta.main) Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
   }
@@ -380,16 +430,7 @@ Deno.serve(async (req: Request) => {
   const tickers = param
     .split(",")
     .map((t) => t.trim())
-    .filter((t) =>
-      !!t &&
-      t !== "CASH" &&
-      !/\.PVT$/i.test(t) &&
-      !/^\d{6}$/.test(t) &&
-      !/=F$/.test(t) &&
-      (!t.startsWith("^") || (t in INDEX_ETF_PROXY)) &&
-      !/[-]USD$/i.test(t) &&
-      !/=X$/.test(t)
-    );
+    .filter(isFundamentalsTicker);
   if (tickers.length === 0) {
     return new Response(JSON.stringify({}), {
       headers: { ...CORS, "Content-Type": "application/json" },
@@ -423,16 +464,7 @@ Deno.serve(async (req: Request) => {
           let hist = await fetchYahooTrailingEpsHistory(t);
           if (!hist) {
             const raw = await fetchFinnhubEarningsHistory(t);
-            if (raw && raw.length >= 4) {
-              hist = [];
-              for (let i = 3; i < raw.length; i++) {
-                hist.push({
-                  date: raw[i].date,
-                  eps: raw[i].eps + raw[i - 1].eps + raw[i - 2].eps + raw[i - 3].eps,
-                });
-              }
-              if (hist.length === 0) hist = null;
-            }
+            if (raw) hist = rollingTtmFromRawQuarterly(raw);
           }
           if (hist) f.ttmEpsHistory = hist;
         }

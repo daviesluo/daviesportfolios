@@ -1,0 +1,109 @@
+# Edge Function CI/CD.
+#
+# On every PR:    runs `deno test` on every supabase/functions/* pin
+#                 test so server-side math regressions can't slip in
+#                 unnoticed.
+# On push to main: same tests, then deploys every changed function
+#                 with the Supabase CLI. Requires repo secrets:
+#                   - SUPABASE_ACCESS_TOKEN  (account-level PAT)
+#                   - SUPABASE_PROJECT_REF   (project's ref id)
+# A push that doesn't touch supabase/functions/** still runs the
+# tests (it's cheap and guards against test files being changed
+# without an accompanying function update) but skips the deploy step
+# entirely.
+
+name: edge-functions
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/**'
+      - '.github/workflows/edge-functions.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/**'
+      - '.github/workflows/edge-functions.yml'
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so `git diff $before..$after` in the detect step
+          # below can resolve the push base (the default shallow clone
+          # is depth=1, which would error out on any push of more than
+          # one commit).
+          fetch-depth: 0
+
+      - name: Install Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Deno test (pure-helper pins for every Edge Function)
+        # --allow-env is required because each function reads
+        # Deno.env.get(...) at module-init time (the result is an
+        # empty string when the secret isn't set, which is fine for
+        # the pure helpers being tested).
+        # --no-check skips Deno's slow TypeScript pass on the std lib;
+        # the tests themselves still type-check.
+        run: deno test --allow-env --no-check supabase/functions/
+
+      - name: Install Supabase CLI
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Detect changed functions
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: changed
+        env:
+          # Diff the entire push, not just the tip commit — otherwise a
+          # push of multiple commits where only the LAST one doesn't
+          # touch `<fn>/index.ts` would silently skip deploying earlier
+          # changes (CI green, production stuck on the old version).
+          # `github.event.before` is the prior tip; `00..0` is GitHub's
+          # sentinel for "branch creation, no prior commit".
+          BEFORE: ${{ github.event.before }}
+          AFTER:  ${{ github.sha }}
+        run: |
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "No previous tip (branch creation) — deploying every function."
+            CHANGED=$(ls supabase/functions/)
+          else
+            # `|| true` so a push that touches supabase/functions/** WITHOUT
+            # changing any index.ts (e.g. a test-only edit) doesn't trip
+            # bash's pipefail when grep finds no matches.
+            CHANGED=$(git diff --name-only "$BEFORE" "$AFTER" \
+              | { grep '^supabase/functions/[^/]*/index\.ts$' || true; } \
+              | awk -F/ '{print $3}' \
+              | sort -u)
+          fi
+          if [ -z "$CHANGED" ]; then
+            echo "No Edge Function index.ts changes; nothing to deploy."
+            echo "functions=" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changed Edge Functions: $CHANGED"
+            # Join with spaces for the next step.
+            FUNCS=$(echo "$CHANGED" | tr '\n' ' ' | sed 's/ *$//')
+            echo "functions=$FUNCS" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy changed Edge Functions
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.changed.outputs.functions != ''
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF:  ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$SUPABASE_PROJECT_REF" ]; then
+            echo "::warning::Supabase secrets missing — set SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF in repo secrets to enable auto-deploy. Skipping."
+            exit 0
+          fi
+          for fn in ${{ steps.changed.outputs.functions }}; do
+            echo "::group::Deploying $fn"
+            supabase functions deploy "$fn" --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
+            echo "::endgroup::"
+          done

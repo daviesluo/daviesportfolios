@@ -350,15 +350,18 @@ unresponsive.
 | `ytd.js` | Pure chart math. `buildTickerSeries`, `computeAt`, `lotsFor`, `closeOn`, `RANGES`, `fetchParamsFor`, `maFetchParamsFor` (per-range wider-history params for the MA overlay; honours the `dailyOnly` override so CN funds / `.PVT` get 1d-only history), `filterToLatestDay`, `filterToLast24h`. Decoupled from React so it's unit-testable. |
 | `ytd.test.js` | YTD formula pins (pre-year lot, year lot, mixed, missing janPrice, 1D ext mode anchored at today's regular close, intraday date comparison, etc.). |
 | `utils.test.js` | `fetchHistoricalBatch` strategy pins: Edge fast path, "trust Edge omissions" (no proxy fallback when Edge succeeded with a partial response), Edge total-failure → proxy fallback, CN-fund proxy bypass, empty input, dedup. |
+| `ticker_class.js` / `ticker_class.test.js` | Pure regex predicates for ticker shape (`isCrypto`, `isFutures`, `isForex`, `isIndex`, `isExchangeListed`, `isCnFund`, `isPvt`, `isDailyOnly`, `isUsEquity`). Lifted out of `ticker_chart_modal.jsx` / `prefetch.js` / `indicators.js` so the same classification can't drift between three callers (was happening — modal said `BRK-B` is crypto because its earlier regex was just `/-USD$/` instead of `/-USD$/i.test` AND a "doesn't start with `^`" check). |
+| `cache.js` / `cache.test.js` | Shared TTL constants (`RANGE_TTL_MS`, `MA_TTL_MS`, `PE_TTL_MS`) + freshness predicate (`isFresh(entry, ttlMs, extraValid?)` with a pluggable per-row check, e.g. `hasAnyNumericField('volume')` for 1D rows that pre-date the volume-bearing Edge Function deploy) + soft LRU (`trimLru(store, cap)`). Three caches (`dp.ytd`, `dp.tickerChart`, `dp.maCache`) all had near-identical hand-rolled copies that had already drifted (one forgot the 2-bar floor; another inlined volume detection in a way that couldn't be reused). |
+| `indicators.js` / `indicators.test.js` | Pure indicator math lifted out of the chart modal: `maBarsFor` / `maLabelDaysFor` / `rollingSma` / `computeMaSeries` (MA overlay), `vwapSessionResetFor` / `vwapSessionKeyOf` / `computeVwap` (per-asset anchor + cumulative VWAP + forward-fill smoothing), `priceDividedByTtmEps` (TTM-history-aware P/E series), `hasExtendedHoursBars` (the SFTBY/OTC bogus-extPrice detector). Every function takes plain arrays so it can be pinned by vitest without spinning up React — the modal was the single largest source of subtle math regressions in this codebase and every fix had been risking silently breaking another ticker class because the conditions were tangled with rendering state. |
 | `header_sidebar.jsx` | `<Header>` (scoreboard + extended-hours toggle + hide-values eye), `<Sidebar>` (top movers + formation value + perf chart), `<MarketConditions>` (10 cards desktop, 9 cards mobile in a 3 × 3 grid; SOX dropped on mobile). Re-exports `<PerfPanel>` from `perf_chart.jsx` so `app.jsx` keeps its existing import. |
 | `perf_chart.jsx` | `<PerfChart>` (the chart) + `<PerfPanel>` (chrome wrapper). 5 ranges, dual fetch effect (S&P alone + portfolio batch in parallel), background prefetch effect for the other ranges, DOM-ref crosshair, CLOSE/OPEN markers in 1D, ^GSPC RTH filter + ES=F ETH filter. |
 | `pitch.jsx` | Football-pitch SVG rendering. Position dots, captain armband, hot-mover ball, drag/drop in edit mode. |
 | `heatmap.jsx` | One tile per holding, sized by market value, colored by day-change. |
 | `modals.jsx` | `<PositionDrillModal>`, `<EditTickerModal>` (incl. lot editor), `<AddTickerModal>`, `<CashModal>`. |
-| `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel + an optional `P/E YTD` button. Header now carries a `Shares · AC · Cost · Value(%) · G/L` line for holdings. Overlays: gray `MA 5 / 10 / 20 / 50` on 1W / 1M / 3M / YTD (bar-based SMA on a same-interval wider fetch held in `dp.maCache`, with the display series merged in so the line spans the full chart even when the cache drifts); gray `VWAP` on 1D for tickers Yahoo gives per-bar volume for (US equity reset 09:30 ET / pre-market 04:00 ET when ext is on; crypto reset 00:00 UTC; forward-fill smoothing for sparse-volume tickers like BTC-USD). DOM-ref crosshair (no React rerender on hover), persistent localStorage cache + stale-while-revalidate, 6-digit CN funds and `.PVT` private holdings restricted to 1M / 3M / YTD, ETFs / loss-makers hide the P/E button. P/E view divides by historical TTM EPS from Yahoo's `fundamentals-timeseries` so the curve steps on earnings dates. |
+| `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel + an optional `P/E YTD` button. Header now carries a `Shares · AC · Cost · Value(%) · G/L` line for holdings. Overlays: gray `MA 5 / 10 / 20 / 50` on 1W / 1M / 3M / YTD (bar-based SMA on a same-interval wider fetch held in `dp.maCache`, with the display series merged in so the line spans the full chart even when the cache drifts); gray `VWAP` on 1D for tickers Yahoo gives per-bar volume for (US equity reset 09:30 ET / pre-market 04:00 ET when ext is on; crypto reset 00:00 UTC; forward-fill smoothing for sparse-volume tickers like BTC-USD). DOM-ref crosshair (no React rerender on hover), persistent localStorage cache + stale-while-revalidate, 6-digit CN funds and `.PVT` private holdings restricted to 1M / 3M / YTD, ETFs / loss-makers hide the P/E button. P/E view divides by historical TTM EPS from Yahoo's `fundamentals-timeseries` so the curve steps on earnings dates. Indicator math (MA, VWAP, PE-from-TTM-history, extended-hours-bar detection) lives in `indicators.js` so it can be pinned by tests; ticker shape predicates come from `ticker_class.js`; cache helpers from `cache.js`. |
 | `sw-banner.jsx` | "New version available — RELOAD" banner. Uses `useRegisterSW` from `vite-plugin-pwa`. Kicks `updateServiceWorker(true)` for the standard `controllerchange`-driven reload AND a hard `window.location.reload()` 1.5 s later, because iOS Safari (and standalone-PWA Chrome) don't fire `controllerchange` reliably and the click otherwise felt unresponsive. |
 | `ops_error.js` | `reportError(kind, opts)`. Per-`(kind, symbol)` cooldown + per-load cap. POSTs to the `ops-error` Edge Function with `keepalive: true` so render-crash reports survive the user's Reload click. |
-| `prefetch.js` | `prefetchAllChartData(opts)`. Fired from `doRefresh` on initial load + manual Refresh click (skipped on the 30 s auto-refresh tick). Walks every (range × ticker) combo, skips ranges that are fully fresh under their TTL (and treats 1D rows missing the new `volume` field as stale so the VWAP overlay shows up after the Edge Function redeploy without a manual cache wipe), and writes results into the PerfChart cache (`dp.ytd`), the TickerChartModal cache (`dp.tickerChart`), and the MA overlay's wider-history cache (`dp.maCache`) so the next chart open is instant. |
+| `prefetch.js` | `prefetchAllChartData(opts)`. Fired from `doRefresh` on initial load + manual Refresh click (skipped on the 30 s auto-refresh tick). Walks every (range × ticker) combo, skips ranges that are fully fresh under their TTL (and treats 1D rows missing the new `volume` field as stale so the VWAP overlay shows up after the Edge Function redeploy without a manual cache wipe), and writes results into the PerfChart cache (`dp.ytd`), the TickerChartModal cache (`dp.tickerChart`), and the MA overlay's wider-history cache (`dp.maCache`) so the next chart open is instant. Uses the shared `cache.js` (`isFresh` / `hasAnyNumericField` / `trimLru`) and `ticker_class.js` (`isDailyOnly`) helpers so the prefetch + modal can't disagree on freshness or daily-only routing. |
 | `types.d.ts` | JSDoc-friendly type definitions. |
 | `styles.css` | All app styles (single sheet). |
 | `index.html` | Vite root. References `/assets/index-<hash>.js`. |
@@ -373,6 +376,8 @@ unresponsive.
 | `chart` | `?tickers=…&range=1mo&interval=60m&includePrePost=true` → `{ ticker: [{ date, close, volume? }, …] }`. Intraday bars also carry the per-bar `volume` (used by the modal's VWAP overlay). Routes CN funds to a 3-tier eastmoney fallback (pingzhongdata → lsjz JSON → danjuanapp), everything else to Yahoo. `.PVT` placeholders fall back to the bare symbol when Yahoo 404s the literal. |
 | `fundamentals` | `?tickers=NVDA,GOOG,^GSPC,…` → `{ NVDA: { pe, eps, pe3yAvg, ttmEpsHistory? }, ^GSPC: { pe, eps:0, pe3yAvg }, … }`. Powers the ticker-modal "P/E YTD" view. Individual stocks → Finnhub `/stock/metric`. Four big US indices (`^GSPC`/`^NDX`/`^RUT`/`^SOX`) → Alpha Vantage `OVERVIEW` against ETF proxies (SPY/QQQ/IWM/SOXX) cached for 24 h in `index_fundamentals_cache`; 3Y-avg P/E lives in `INDEX_PE_3Y_AVG` constants. Opt-in `&ttmEpsHistory=true` adds a `ttmEpsHistory: [{date, eps}, …]` array sourced from Yahoo's `fundamentals-timeseries` (`trailingDilutedEPS`, 5+ years of pre-summed quarter-end TTM EPS) so the P/E modal can step the curve on earnings dates instead of dividing by a single constant; opt-in so the cheaper heatmap / scoreboard fundamentals fetches don't pay the extra round-trip. Falls back to a Finnhub `/stock/earnings` sum-of-4-quarters if Yahoo misses. Index rows return `eps:0` and the client reconstructs an implied EPS from `lastClose / pe`. Hardcoded fallback constants kick in if AV is unreachable. |
 | `ops-error` | Two modes. `POST { kind, symbol?, message?, context? }` → inserts into `ops_errors` (no auth; size + length capped; per-row IP captured server-side). `GET ?action=summary&hours=24` with header `x-app-token: <admin token>` → `{ hours, total, byKind, bySymbol }` aggregate over the last N hours, so triage doesn't require a Supabase dashboard login. |
+
+Every Edge Function's pure helpers (range filtering, HMAC token sign / verify, ticker classification, TTM rolling-sum, market-hour predicate, anti-spam clipper) are exported and pinned by a co-located `index.test.ts` so a `deno test supabase/functions/` run guards them just like vitest guards the client. The `Deno.serve(...)` entrypoint is guarded by `import.meta.main` so importing a function's helpers in a test does NOT bind a port. Cross-function tests (e.g. auth sign + data verify roundtrip) live next to one of the two and import the other directly.
 
 ### `supabase/migrations/`
 
@@ -391,6 +396,7 @@ unresponsive.
 | `_headers` | Cloudflare Pages cache rules. `index.html` / `sw.js` always revalidate; `/assets/*` cached for a year (filenames are content-hashed). |
 | `manifest.webmanifest` | PWA install metadata (name, icons, theme color). |
 | `.github/workflows/check.yml` | CI: typecheck → vitest → build, on every push. |
+| `.github/workflows/edge-functions.yml` | Edge Function CI/CD. Runs `deno test supabase/functions/` on every PR; on push to `main` it also deploys every changed `supabase/functions/<name>/index.ts` via the Supabase CLI (requires `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF` repo secrets). Replaces the manual paste-into-dashboard workflow that CLAUDE.md still mentions — once those secrets are set the workflow takes over and the dashboard step is optional. |
 | `CLAUDE.md` | Conventions for Claude Code sessions working on this repo. |
 
 ---
@@ -448,9 +454,12 @@ git clone https://github.com/daviesluo/daviesportfolios
 cd daviesportfolios
 npm install
 npm run dev           # Vite dev server at http://localhost:5173
-npm test              # vitest (currently 40 cases)
+npm test              # vitest (83 client-side cases — YTD math, indicators, cache, ticker shape, fetch strategy)
 npm run typecheck     # tsc --noEmit with checkJs
 npm run build         # production bundle to repo root
+
+# Edge Functions (Deno). Requires `deno` installed locally; CI runs the same.
+deno test --allow-env supabase/functions/   # range filter / HMAC / ticker filter / TTM rollover / market hours / clip
 ```
 
 The dev server hits the deployed Edge Functions by default. To point
@@ -491,8 +500,18 @@ insert into public.board_data (id, data) values (1, '{}'::jsonb);
 
 ### 3. Deploy the Edge Functions
 
-For each directory under `supabase/functions/*`, copy the contents into
-a new function in Supabase dashboard → Edge Functions, then Deploy.
+Two options:
+
+- **Automatic (recommended)** — set `SUPABASE_ACCESS_TOKEN` (account-level
+  PAT from `https://supabase.com/dashboard/account/tokens`) and
+  `SUPABASE_PROJECT_REF` (the project's ref id) as repo secrets. The
+  `edge-functions.yml` workflow will deploy any changed
+  `supabase/functions/<name>/index.ts` on every push to `main`, after
+  the `deno test` step passes.
+- **Manual** — for each directory under `supabase/functions/*`, copy
+  the contents into a new function in Supabase dashboard → Edge
+  Functions, then Deploy. Use this for the first-time bootstrap or
+  when you don't want to grant CI a PAT.
 
 Required environment variables (Edge Functions → Settings):
 
