@@ -24,6 +24,7 @@ import { Storage, fetchHistoricalBatch, fetchFundamentals } from './utils.js';
 import { fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h, RANGE_KEYS } from './ytd.js';
 import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, isFresh, hasAnyNumericField, trimLru } from './cache.js';
 import { isDailyOnly } from './ticker_class.js';
+import { priceDividedByTtmEps } from './indicators.js';
 
 const TICKER_CACHE_CAP = 200;
 
@@ -227,17 +228,29 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     }
   }
 
-  // P/E YTD prefetch — divides each ticker's freshly-cached YTD daily
-  // closes by the current TTM EPS (one batched fetchFundamentals
-  // call) to produce a P/E series for the ticker modal. Cached under
-  // the same `${ticker}|PE|${variant}|${phase}` key shape the modal
-  // reads. Skipped when every ticker already has a fresh PE entry,
-  // so the auto-refresh tick (which doesn't call this function) and
+  // P/E YTD prefetch — two writes per eligible ticker:
+  //
+  //   1. `${ticker}|FUND|v1` — the raw fundamentals row (eps / pe /
+  //      pe3yAvg / ttmEpsHistory). Modal first-render reads this
+  //      synchronously to decide whether to show the P/E YTD button
+  //      and to fill in pe3yAvg, so the button stops "popping in"
+  //      a couple of seconds after the modal opens.
+  //
+  //   2. `${ticker}|PE|v3|${variant}|${phase}` — the TTM-aware P/E
+  //      series. Same key shape the modal reads (the previous
+  //      prefetch wrote `|PE|${variant}|${phase}` without the v3
+  //      suffix, so the cache was actually dead). priceDividedByTtmEps
+  //      uses each quarter-end TTM EPS as the denominator instead of
+  //      a single constant, matching the on-modal computation.
+  //
+  // Skipped when every ticker already has a fresh PE+FUND entry so
+  // the auto-refresh tick (which doesn't call this function) and
   // back-to-back manual refreshes don't burn Finnhub quota.
   const tcAll = Storage.loadTickerChart() || { entries: {} };
   const ytdNow = Storage.loadYtd();
   const ytdEntriesNow = ytdNow?.byRange?.['YTD:std']?.entries ?? {};
-  const peKey = (t) => `${t}|PE|${tickerVariantTag}|${phaseTag}`;
+  const fundKey = (t) => `${t}|FUND|v1`;
+  const peKey   = (t) => `${t}|PE|v3|${tickerVariantTag}|${phaseTag}`;
   // Only consider tickers that (a) have a freshly-cached YTD daily
   // series we can divide, and (b) don't already have a fresh PE
   // entry. Portfolio tickers come from `tickers`; the four big US
@@ -250,31 +263,47 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   ]));
   const peCandidates = peEligible.filter((t) => {
     if (!isFresh(ytdEntriesNow[t], PE_TTL_MS)) return false;
-    return !isFresh(tcAll.entries?.[peKey(t)], PE_TTL_MS);
+    // Refetch when either cache row is stale — we always write both
+    // in the same pass, so freshness is in lockstep in practice.
+    const fundFresh = isFresh(
+      /** @type {any} */ ({ ts: tcAll.entries?.[fundKey(t)]?.ts || 0, data: [1, 2] }),
+      PE_TTL_MS,
+    );
+    const peFresh = isFresh(tcAll.entries?.[peKey(t)], PE_TTL_MS);
+    return !(fundFresh && peFresh);
   });
   if (peCandidates.length > 0) {
     let fundamentals = {};
     try {
-      fundamentals = await fetchFundamentals(peCandidates);
+      // ttmEpsHistory=true asks the Edge Function for the rolling
+      // quarter-end TTM-EPS array Yahoo's fundamentals-timeseries
+      // returns; without it the modal's PE chart would have to do
+      // its own second fetchFundamentals call on first open.
+      fundamentals = await fetchFundamentals(peCandidates, { ttmEpsHistory: true });
     } catch { /* fall through — leave fresh PE entries unwritten */ }
     tcAll.entries = tcAll.entries || {};
     let tcChanged = false;
     const now = Date.now();
     for (const t of peCandidates) {
       const row = fundamentals?.[t];
-      let eps = row?.eps;
-      const pe = row?.pe;
+      if (!row) continue;
+      // (1) Cache the row itself for the modal's first-render gate.
+      tcAll.entries[fundKey(t)] = { ts: now, data: row };
+      tcChanged = true;
+      // (2) Compute the TTM-aware PE series for the modal's
+      // P/E YTD chart. ETF-proxy tickers (^GSPC/^NDX/^RUT) come
+      // back with eps:0 — reconstruct an implied EPS from the last
+      // close ÷ trailing P/E so the const-EPS fallback inside
+      // priceDividedByTtmEps still produces drawable values.
+      let eps = row.eps;
+      const pe = row.pe;
       const ytdData = ytdEntriesNow[t].data;
-      // ETF-proxy tickers (^GSPC/^NDX/^RUT) come back with eps:0 —
-      // reconstruct an implied EPS from the last close ÷ trailing P/E
-      // so the historical series can still be divided into P/E values.
       if ((typeof eps !== 'number' || eps <= 0) && typeof pe === 'number' && pe > 0 && ytdData.length > 0) {
         eps = ytdData[ytdData.length - 1].close / pe;
       }
       if (typeof eps !== 'number' || eps <= 0) continue;
-      const peSeries = ytdData.map((p) => ({ date: p.date, close: p.close / eps }));
+      const peSeries = priceDividedByTtmEps(ytdData, row.ttmEpsHistory, eps);
       tcAll.entries[peKey(t)] = { ts: now, data: peSeries };
-      tcChanged = true;
     }
     if (tcChanged) {
       trimLru(tcAll, TICKER_CACHE_CAP);
