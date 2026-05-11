@@ -5,9 +5,10 @@
 // player in non-edit mode — edit mode keeps opening the EditTickerModal.
 import React from 'react';
 import { Modal } from './modals.jsx';
-import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc, fxToUSD, maskDigits } from './utils.js';
+import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc } from './utils.js';
+import { fxToUSD } from './fx.js';
+import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
-import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC } from './utils.js';
 import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT } from './ticker_class.js';
 import { MA_TTL_MS, isFresh as cacheIsFresh, hasAnyNumericField, trimLru } from './cache.js';
 import {

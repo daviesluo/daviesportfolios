@@ -125,6 +125,23 @@ secrets server-side.
   stands in for the underlying basket).
 - **Hide values toggle** — masks dollar amounts with `*` so the page
   is screenshot-safe; percentages stay visible.
+- **FX-missing badge + stale-price indicator** — when a multi-currency
+  holding's FX pair (GBPUSD=X / USDCNY=X / USDHKD=X) is missing from
+  the live quote, the header surfaces an `⚠ FX MISSING` pill listing
+  affected ticker count and reports an `fx-fallback` ops-error per
+  ticker, instead of silently valuing the holding at 1:1 USD (which
+  was understating GBP portfolios by ~20% during brief Yahoo FX
+  outages). Same row: a "STALE Nm" pill appears whenever the last
+  successful price fetch is more than 5 min old, so a dead Edge
+  Function can't quietly leave the scoreboard stuck on old numbers
+  while the auto-retry loop churns in the background.
+- **Admin error triage badge** — when signed in as admin, an
+  `⚠ N ERRORS · last 24h` pill in the header polls
+  `/functions/v1/ops-error?action=summary` every 60 s and opens a
+  modal with a by-kind and by-symbol breakdown of recent failures.
+  Replaces "SSH into Supabase SQL Editor" for routine triage. Hidden
+  for read-only viewers (the endpoint also enforces admin token
+  server-side).
 - **Background chart prefetch** — every successful price refresh
   (initial load + manual Refresh click) silently warms every chart
   range × ticker into `localStorage`, so opening any ticker modal or
@@ -345,7 +362,8 @@ unresponsive.
 | `auth.js` | Password → HMAC token flow. `collectPassword` (URL `?pwd=` or `window.prompt`), `authenticate` (POSTs to `/auth`), `decodeAppToken` (skip prompt if a valid sessionStorage token already exists). |
 | `portfolio_remote.js` | `loadPortfolioRemote` / `savePortfolioRemote` against the `data` Edge Function. Includes `migrate(p)` for legacy portfolio shapes (CB → CB1/CB2 split, BRK-B move, currency backfill, lots backfill). |
 | `supabase_config.js` | Shared `SB_URL`, `SB_ANON`, `EDGE_AUTH_URL`, `EDGE_DATA_URL`. |
-| `utils.js` | `computeMetrics`, FX helpers, `fetchTickers` (live snapshot), `fetchTodayRegularClose` (per-ticker 16:00 ET close bar, used to anchor the MC cards' "since 16:00 ET" pct so card and modal agree), `fetchHistorical` / `fetchHistoricalBatch` (Edge Function first; CORS-proxy chain only fires for tickers the Edge omitted AND only when the Edge call itself failed — Edge has equivalent server-side fallbacks for `.PVT` and CN funds, so retrying the same upstreams via browser proxies just burns proxy quota; both paths pass per-bar `volume` through on intraday intervals so the VWAP overlay has data to chew on), formatters, `Storage` namespace (now includes a dedicated `dp.maCache` row alongside `dp.ytd` / `dp.tickerChart`), schema-version migration, DST-aware helpers (`ukTzAbbr`, `usMarketHoursUtc`). |
+| `utils.js` | Live-price fetch + proxy plumbing (`fetchTickers`, `fetchTodayRegularClose` for the MC cards' "since 16:00 ET" anchor, `fetchHistorical` / `fetchHistoricalBatch` with Edge-first + proxy-fallback strategy, `fetchFundamentals` for the P/E modal), `Storage` namespace (`dp.ytd` / `dp.tickerChart` / `dp.maCache` / `dp.prefs` / `dp.schema`) with schema-version migration, DST-aware helpers (`londonTimeParts`, `usMarketPhase`, `ukTzAbbr`, `usMarketHoursUtc`), `POSITION_COORDS`. Formatters / FX / metrics moved to their own modules below — `utils.js` keeps re-exports so existing imports work, but new code should import from the focused module. |
+| `formatters.js` / `fx.js` / `metrics.js` / `lots.js` | The pure pieces lifted out of `utils.js`. `formatters.js`: `fmtMoney` / `fmtPct` / `fmtPrice` / `pctColor` / `maskDigits` / `formatAgo`. `fx.js`: `detectCurrency` / `currencySymbol` / `fxRateToUSD` (the version that returns `{ rate, missing }` so a 1:1 fallback can be surfaced) / `fxToUSD` (back-compat shim). `metrics.js`: `computeMetrics` / `detectFormation`. `lots.js`: `cleanLots` / `totalShares` / `weightedAvgCost` (lot-input sanitisation, which used to be inline in modals.jsx and silently kept negative cost values). All pinned by `utils.metrics.test.js` (19 cases) and `lots.test.js` (14 cases) so the on-screen portfolio numbers can't quietly regress. |
 | `data.js` | `INITIAL_PORTFOLIO` seed for first-load demo state. |
 | `ytd.js` | Pure chart math. `buildTickerSeries`, `computeAt`, `lotsFor`, `closeOn`, `RANGES`, `fetchParamsFor`, `maFetchParamsFor` (per-range wider-history params for the MA overlay; honours the `dailyOnly` override so CN funds / `.PVT` get 1d-only history), `filterToLatestDay`, `filterToLast24h`. Decoupled from React so it's unit-testable. |
 | `ytd.test.js` | YTD formula pins (pre-year lot, year lot, mixed, missing janPrice, 1D ext mode anchored at today's regular close, intraday date comparison, etc.). |
@@ -360,7 +378,8 @@ unresponsive.
 | `modals.jsx` | `<PositionDrillModal>`, `<EditTickerModal>` (incl. lot editor), `<AddTickerModal>`, `<CashModal>`. |
 | `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel + an optional `P/E YTD` button. Header now carries a `Shares · AC · Cost · Value(%) · G/L` line for holdings. Overlays: gray `MA 5 / 10 / 20 / 50` on 1W / 1M / 3M / YTD (bar-based SMA on a same-interval wider fetch held in `dp.maCache`, with the display series merged in so the line spans the full chart even when the cache drifts); gray `VWAP` on 1D for tickers Yahoo gives per-bar volume for (US equity reset 09:30 ET / pre-market 04:00 ET when ext is on; crypto reset 00:00 UTC; forward-fill smoothing for sparse-volume tickers like BTC-USD). DOM-ref crosshair (no React rerender on hover), persistent localStorage cache + stale-while-revalidate, 6-digit CN funds and `.PVT` private holdings restricted to 1M / 3M / YTD, ETFs / loss-makers hide the P/E button. P/E view divides by historical TTM EPS from Yahoo's `fundamentals-timeseries` so the curve steps on earnings dates. Indicator math (MA, VWAP, PE-from-TTM-history, extended-hours-bar detection) lives in `indicators.js` so it can be pinned by tests; ticker shape predicates come from `ticker_class.js`; cache helpers from `cache.js`. |
 | `sw-banner.jsx` | "New version available — RELOAD" banner. Uses `useRegisterSW` from `vite-plugin-pwa`. Kicks `updateServiceWorker(true)` for the standard `controllerchange`-driven reload AND a hard `window.location.reload()` 1.5 s later, because iOS Safari (and standalone-PWA Chrome) don't fire `controllerchange` reliably and the click otherwise felt unresponsive. |
-| `ops_error.js` | `reportError(kind, opts)`. Per-`(kind, symbol)` cooldown + per-load cap. POSTs to the `ops-error` Edge Function with `keepalive: true` so render-crash reports survive the user's Reload click. |
+| `ops_error.js` | `reportError(kind, opts)` POSTs failures to the `ops-error` Edge Function (per-`(kind, symbol)` cooldown + per-load cap, `keepalive: true` so render-crash reports survive a Reload). Also exports `fetchOpsErrorSummary(hours)` which the admin-only `<OpsErrorBadge>` uses to poll the `?action=summary` endpoint every 60 s. |
+| `ops_error_badge.jsx` | `<OpsErrorBadge>` — pill in the header that surfaces a 24 h ops-error count for admin viewers and opens a modal with the by-kind / by-symbol breakdown. Hidden entirely for read-only viewers (which the Edge Function also enforces server-side). |
 | `prefetch.js` | `prefetchAllChartData(opts)`. Fired from `doRefresh` on initial load + manual Refresh click (skipped on the 30 s auto-refresh tick). Walks every (range × ticker) combo, skips ranges that are fully fresh under their TTL (and treats 1D rows missing the new `volume` field as stale so the VWAP overlay shows up after the Edge Function redeploy without a manual cache wipe), and writes results into the PerfChart cache (`dp.ytd`), the TickerChartModal cache (`dp.tickerChart`), and the MA overlay's wider-history cache (`dp.maCache`) so the next chart open is instant. Uses the shared `cache.js` (`isFresh` / `hasAnyNumericField` / `trimLru`) and `ticker_class.js` (`isDailyOnly`) helpers so the prefetch + modal can't disagree on freshness or daily-only routing. |
 | `types.d.ts` | JSDoc-friendly type definitions. |
 | `styles.css` | All app styles (single sheet). |
@@ -454,9 +473,10 @@ git clone https://github.com/daviesluo/daviesportfolios
 cd daviesportfolios
 npm install
 npm run dev           # Vite dev server at http://localhost:5173
-npm test              # vitest (83 client-side cases — YTD math, indicators, cache, ticker shape, fetch strategy)
+npm test              # vitest (116 client-side cases — YTD math, indicators, cache, ticker shape, fetch strategy, portfolio metrics + FX, lot sanitisation)
 npm run typecheck     # tsc --noEmit with checkJs
 npm run build         # production bundle to repo root
+npm audit --audit-level=high --omit=dev   # supply-chain check on shipped deps
 
 # Edge Functions (Deno). Requires `deno` installed locally; CI runs the same.
 deno test --allow-env supabase/functions/   # range filter / HMAC / ticker filter / TTM rollover / market hours / clip
