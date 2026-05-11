@@ -129,16 +129,43 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     && !/=F$/.test(ticker)
     && !/=X$/.test(ticker)
     && !/[-]USD$/i.test(ticker);
-  const [peSupported, setPeSupported] = React.useState(false);
+  // Read the prefetched fundamentals row from dp.tickerChart (key
+  // `${ticker}|FUND|v1`) synchronously so the P/E YTD button can
+  // appear on the very first paint instead of "popping in" 1-2 s
+  // after the modal opens. Background revalidate still runs below
+  // to refresh the row when stale. Returns null on cache miss.
+  /** @returns {{ eps?: number, pe?: number, pe3yAvg?: number|null, ttmEpsHistory?: any[] } | null} */
+  const readFundCache = () => {
+    try {
+      const store = Storage.loadTickerChart();
+      const row = store?.entries?.[`${ticker}|FUND|v1`]?.data;
+      return row && typeof row === 'object' ? row : null;
+    } catch { return null; }
+  };
+  const fundCached = supportsPePattern ? readFundCache() : null;
+  const cachedHasEps = typeof fundCached?.eps === 'number' && fundCached.eps > 0;
+  const cachedHasPe  = typeof fundCached?.pe  === 'number' && fundCached.pe  > 0;
+  const [peSupported, setPeSupported] = React.useState(cachedHasEps || cachedHasPe);
   // pe3yAvg drives the dashed reference line on the P/E YTD chart.
   // Comes back null when Finnhub's annual PE series is empty (very
   // new IPOs, or tickers where Finnhub couldn't retrieve historicals)
   // — in that case the chart renders without the reference line
   // instead of erroring.
-  const [pe3yAvg, setPe3yAvg] = React.useState(/** @type {number|null} */ (null));
+  const [pe3yAvg, setPe3yAvg] = React.useState(
+    /** @type {number|null} */ (
+      typeof fundCached?.pe3yAvg === 'number' && fundCached.pe3yAvg > 0
+        ? fundCached.pe3yAvg
+        : null
+    ),
+  );
   React.useEffect(() => {
     if (!supportsPePattern) { setPeSupported(false); setPe3yAvg(null); return; }
     let cancelled = false;
+    // Stale-while-revalidate: synchronous cache read above already
+    // seeded peSupported / pe3yAvg, so the button is visible (or
+    // hidden) at first paint. This fetch refreshes the values from
+    // the Edge Function in the background and falls through silently
+    // on failure — never clobbers a usable cache with a no-op.
     fetchFundamentals([ticker]).then(f => {
       if (cancelled) return;
       const row = f?.[ticker];
@@ -154,6 +181,16 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       setPeSupported(hasEps || hasPe);
       const avg = row?.pe3yAvg;
       setPe3yAvg(typeof avg === 'number' && isFinite(avg) && avg > 0 ? avg : null);
+      // Write back to the FUND cache so a subsequent modal open hits
+      // synchronously even when the prefetch pass didn't cover this
+      // particular ticker (drilldown into an MC card the prefetch
+      // didn't include, etc.).
+      try {
+        const store = Storage.loadTickerChart() || { entries: {} };
+        store.entries = store.entries || {};
+        store.entries[`${ticker}|FUND|v1`] = { ts: Date.now(), data: row };
+        Storage.saveTickerChart(store);
+      } catch { /* localStorage full or disabled — best effort */ }
     });
     return () => { cancelled = true; };
   }, [ticker, supportsPePattern]);
