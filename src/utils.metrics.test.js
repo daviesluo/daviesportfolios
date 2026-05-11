@@ -158,23 +158,65 @@ describe('computeMetrics — extended-hours toggle', () => {
   });
 
   it('ext ON: extPrice substitutes for lastPrice and baseline flips to today\'s RTH close', () => {
+    // 3 % AH move — under the 5 % EXT_PRICE_MAX_DIVERGENCE gate so
+    // extPrice is trusted; the SFTBY-style 8 %+ divergence is
+    // separately pinned in the OTC ADR test below.
     const m = computeMetrics(pf(
-      { NVDA: { shares: 10, lastPrice: 100, prevClose: 90, extPrice: 105, extDayPct: 5,
+      { NVDA: { shares: 10, lastPrice: 100, prevClose: 90, extPrice: 103, extDayPct: 3,
                 cost: 80, currency: 'USD', dayPct: 11.11 } },
       { FWD: { role: 'FWD', tickers: ['NVDA'], label: 'FWD' } },
     ), { extended: true });
-    // mv uses extPrice (105); baseline = today's RTH lastPrice (100).
-    expect(m.marketValue).toBe(1050);                  // 10 × 105
-    expect(m.dayChange).toBeCloseTo(10 * (105 - 100)); // 50 — the AH move only
+    // mv uses extPrice (103); baseline = today's RTH lastPrice (100).
+    expect(m.marketValue).toBe(1030);                  // 10 × 103
+    expect(m.dayChange).toBeCloseTo(10 * (103 - 100)); // 30 — the AH move only
   });
 
-  it('ext ON but no extPrice available → falls back to lastPrice; day change = 0', () => {
+  it('ext ON but no extPrice available → falls back to lastPrice; day change = regular session move', () => {
     const m = computeMetrics(pf(
       { NVDA: { shares: 10, lastPrice: 100, prevClose: 90, cost: 80, currency: 'USD' } },
       { FWD: { role: 'FWD', tickers: ['NVDA'], label: 'FWD' } },
     ), { extended: true });
-    // ext baseline is also lastPrice → 0 AH move shown
-    expect(m.dayChange).toBe(0);
+    // No extPrice → trustExt=false → baseline reverts to prevClose
+    // (the regular-session "since previous close" anchor) instead of
+    // the silent $0 AH move the previous logic produced.
+    expect(m.dayChange).toBeCloseTo(10 * (100 - 90)); // 100
+  });
+
+  it('OTC ADR bogus extPrice (8 %+ divergence from lastPrice) is rejected; card shows regular-session numbers', () => {
+    // SFTBY-shape input: today's regular close $18.65, Yahoo's bogus
+    // postMarketPrice $20.15 (= today's open). The home page used to
+    // pick up the bogus value as MV and show +8 % AH move; with the
+    // 5 % divergence gate the tile falls back to lastPrice and the
+    // dayPct comes from the regular session.
+    const m = computeMetrics(pf(
+      { SFTBY: {
+          shares: 50, lastPrice: 18.65, prevClose: 20.15,
+          extPrice: 20.15, extDayPct: 0,
+          cost: 18.58, currency: 'USD', dayPct: -7.45,
+        }
+      },
+      { FWD: { role: 'FWD', tickers: ['SFTBY'], label: 'FWD' } },
+    ), { extended: true });
+    expect(m.positions.FWD.players[0].lastPrice).toBe(18.65);    // not $20.15
+    // dayChange uses prevClose as baseline → reflects the
+    // regular-session move (50 × (18.65 − 20.15) = −75) rather than
+    // the bogus AH spike.
+    expect(m.dayChange).toBeCloseTo(50 * (18.65 - 20.15));
+  });
+
+  it('Real AH move within 5 % of lastPrice (NVDA +2 %) is trusted', () => {
+    const m = computeMetrics(pf(
+      { NVDA: {
+          shares: 10, lastPrice: 100, prevClose: 90,
+          extPrice: 102, extDayPct: 13.33,
+          cost: 80, currency: 'USD', dayPct: 11.11,
+        }
+      },
+      { FWD: { role: 'FWD', tickers: ['NVDA'], label: 'FWD' } },
+    ), { extended: true });
+    expect(m.positions.FWD.players[0].lastPrice).toBe(102);
+    // ext baseline = today's RTH close (100) → AH-only delta of 10×(102−100) = 20.
+    expect(m.dayChange).toBeCloseTo(20);
   });
 });
 
