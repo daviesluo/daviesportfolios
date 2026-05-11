@@ -106,9 +106,17 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     /** @param {string} t */
     const tickerKey = (t) => `${t}|${rk}|${tickerVariantTag}|${phaseTag}`;
 
-    const isFresh = (entry) =>
-      entry && entry.data && Array.isArray(entry.data) && entry.data.length >= 2 &&
-      (Date.now() - (entry.ts || 0)) < ttl;
+    const isFresh = (entry) => {
+      if (!entry || !entry.data || !Array.isArray(entry.data) || entry.data.length < 2) return false;
+      if ((Date.now() - (entry.ts || 0)) >= ttl) return false;
+      // 1D cache rows from before the volume-bearing Edge Function
+      // shipped still satisfy the TTL but lack a `volume` field on
+      // every bar — they'd suppress the modal's VWAP overlay
+      // indefinitely. Treat such rows as stale so this prefetch
+      // pass refetches them through the redeployed Edge Function.
+      if (rk === '1D' && !entry.data.some((p) => typeof p.volume === 'number')) return false;
+      return true;
+    };
 
     const stale = allSymbols.filter((s) => {
       const inPerf = isFresh(perfEntries[s]);

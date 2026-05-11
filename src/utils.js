@@ -614,6 +614,12 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
     const result = data?.chart?.result?.[0];
     const timestamps = result?.timestamp;
     const closes = result?.indicators?.quote?.[0]?.close;
+    // Volume is per-bar and only meaningful on intraday intervals.
+    // Kept in lockstep with the Edge Function path so the proxy
+    // fallback also feeds the modal's VWAP overlay — otherwise
+    // any time Yahoo's Edge call dropped a ticker the 1D chart
+    // would silently lose its VWAP line until the next refetch.
+    const volumes = result?.indicators?.quote?.[0]?.volume;
     if (!timestamps || !closes) return null;
     const meta = result?.meta;
     const penceFactor = (meta?.currency === "GBp" || meta?.currency === "GBX") ? 100 : 1;
@@ -622,7 +628,10 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
       if (closes[i] == null) continue;
       const iso = new Date(timestamps[i] * 1000).toISOString();
       const date = isIntraday ? iso.slice(0, 16) : iso.slice(0, 10);
-      points.push({ date, close: closes[i] / penceFactor });
+      const v = isIntraday ? volumes?.[i] : null;
+      const point = { date, close: closes[i] / penceFactor };
+      if (typeof v === "number" && isFinite(v) && v >= 0) point.volume = v;
+      points.push(point);
     }
     return points.length > 0 ? points : null;
   };
