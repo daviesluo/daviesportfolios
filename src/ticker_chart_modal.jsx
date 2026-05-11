@@ -10,7 +10,7 @@ import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
 import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT } from './ticker_class.js';
-import { MA_TTL_MS, isFresh as cacheIsFresh, hasAnyNumericField, trimLru } from './cache.js';
+import { MA_TTL_MS, TICKER_CACHE_CAP, isFresh as cacheIsFresh, hasAnyNumericField, trimLru } from './cache.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
@@ -85,17 +85,10 @@ function modalCacheGet(key) {
 function modalCacheSet(key, data) {
   const all = Storage.loadTickerChart() || { entries: {} };
   all.entries = { ...(all.entries || {}), [key]: { ts: Date.now(), data } };
-  // Soft-cap at ~200 keys so the localStorage entry can't bloat unboundedly.
-  const keys = Object.keys(all.entries);
-  if (keys.length > 200) {
-    const sorted = keys
-      .map(k => ({ k, ts: all.entries[k]?.ts || 0 }))
-      .sort((a, b) => b.ts - a.ts);
-    /** @type {Record<string, {ts:number, data:any}>} */
-    const trimmed = {};
-    for (let i = 0; i < 200; i++) trimmed[sorted[i].k] = all.entries[sorted[i].k];
-    all.entries = trimmed;
-  }
+  // Soft LRU — uses the same TICKER_CACHE_CAP as the prefetch so a
+  // modal write can't quietly halve the prefetch's headroom and
+  // evict freshly-warmed chart rows for other tickers/ranges.
+  trimLru(all, TICKER_CACHE_CAP);
   Storage.saveTickerChart(all);
 }
 
