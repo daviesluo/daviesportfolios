@@ -26,17 +26,15 @@
 
 import { Storage, fetchHistoricalBatch, fetchFundamentals } from './utils.js';
 import { fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h, RANGE_KEYS } from './ytd.js';
-import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, isFresh, hasAnyNumericField, trimLru } from './cache.js';
+import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, TICKER_CACHE_CAP, MA_CACHE_CAP, isFresh, hasAnyNumericField, trimLru } from './cache.js';
 import { isDailyOnly } from './ticker_class.js';
 import { priceDividedByTtmEps } from './indicators.js';
 
-// Soft LRU caps. Sized so a multi-phase / multi-variant accumulation
-// over several refreshes doesn't evict still-relevant current-phase
-// rows. Each (ticker × range × variant × phase) is one entry; with
-// ~20 modal-clickable tickers × 5 ranges × 2 variants × 4 phases =
-// 800 theoretical max, but in practice only one variant+phase combo
-// is active per refresh so 400 gives plenty of headroom.
-const TICKER_CACHE_CAP = 400;
+// TICKER_CACHE_CAP + MA_CACHE_CAP imported from cache.js so the
+// modal's cache writer (modalCacheSet) uses the same value — a
+// previous version had 200 hard-coded here and 200 hard-coded
+// there; bumping one without the other halved the prefetch's
+// headroom on the next modal write.
 
 // Indices we surface a P/E YTD chart for. The fundamentals Edge Function
 // maps these to ETF proxies (SPY/QQQ/IWM/SOXX) and serves a cached
@@ -206,7 +204,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   // the shared 200-entry LRU and the next modal open would still
   // pay a cold fetch. Per-cache cap below sized for ~50 modal
   // tickers × 4 MA ranges = 200 entries.
-  const MA_CACHE_CAP = 240;
+  // MA_CACHE_CAP imported from cache.js.
   const maStoreStart = Storage.loadMaCache() || { entries: {} };
   // MA history is keyed by wider-history fetch; a single bar is
   // valid, so don't require the 2-bar floor isFresh applies.
