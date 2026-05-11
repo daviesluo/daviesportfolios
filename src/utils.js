@@ -65,43 +65,10 @@ export const Storage = {
   saveMaCache: (d) => writeJSON(STORAGE_KEYS.maCache, d),
 };
 
-// -------- Hidden-values mask --------
-// Replaces each digit in a formatted string with a centred bullet so
-// the masked text stays vertically aligned with neighbouring real
-// numbers ("$129,341.49" → "$•••,•••.••"). Bullet is preferred over
-// asterisk because `*` sits high in the x-height of our mono font and
-// makes masked rows look elevated. Single source of truth — was
-// duplicated as `mask` / `maskDigits` / inline `.replace(...)` across
-// header_sidebar / modals / pitch.
-export function maskDigits(s) {
-  return typeof s === 'string' ? s.replace(/\d/g, '•') : s;
-}
-
-// -------- Formatting --------
-export const fmtMoney = (n, opts = {}) => {
-  if (n == null || isNaN(n)) return "—";
-  const abs = Math.abs(n);
-  const sign = n < 0 ? "-" : (opts.signed && n > 0 ? "+" : "");
-  if (abs >= 1e9) return sign + "$" + (abs / 1e9).toFixed(2) + "B";
-  if (abs >= 1e6) return sign + "$" + (abs / 1e6).toFixed(2) + "M";
-  if (abs >= 1e3) return sign + "$" + abs.toLocaleString(undefined, { maximumFractionDigits: 0 });
-  return sign + "$" + abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
-export const fmtPct = (n) => {
-  if (n == null || isNaN(n)) return "—";
-  const sign = n > 0 ? "+" : "";
-  return sign + n.toFixed(2) + "%";
-};
-export const fmtPrice = (n) => {
-  if (n == null || isNaN(n)) return "—";
-  if (n >= 1000) return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
-  if (n >= 10) return n.toFixed(2);
-  return n.toFixed(2);
-};
-export const pctColor = (n) => {
-  if (n == null || isNaN(n) || Math.abs(n) < 0.005) return "var(--chalk-dim)";
-  return n >= 0 ? "var(--gain)" : "var(--loss)";
-};
+// Formatters + the hidden-values mask moved to ./formatters.js. Kept
+// re-exported here so existing callers don't break — prefer importing
+// from './formatters.js' directly in new code.
+export { maskDigits, fmtMoney, fmtPct, fmtPrice, pctColor, formatAgo } from './formatters.js';
 
 // -------- London time + US market phase --------
 // Returns { hh, mm, ss } of Europe/London right now.
@@ -181,130 +148,17 @@ export function usMarketHoursUtc(now = new Date()) {
     : { openHh: 14, openMm: 30, closeHh: 21, closeMm: 0, edt: false };
 }
 
-// e.g. 1m 24s / 12s / 1h 03m
-export function formatAgo(ms) {
-  if (ms == null || ms < 0) return "—";
-  const s = Math.floor(ms / 1000);
-  if (s < 60) return `${s}s`;
-  const m = Math.floor(s / 60), rs = s % 60;
-  if (m < 60) return `${m}m ${String(rs).padStart(2, "0")}s`;
-  const h = Math.floor(m / 60), rm = m % 60;
-  return `${h}h ${String(rm).padStart(2, "0")}m`;
-}
+// formatAgo moved to ./formatters.js — see the re-export block above.
 
-// -------- Currency --------
-// Each holding has a native currency. We store price + cost in that native
-// currency and convert to USD on the fly using FX rates from marketData.
-// Detection rules (ticker-pattern based so it works without a live fetch):
-//   6-digit numeric     → CNY (Chinese mutual fund)
-//   ticker ends in .L   → GBP (London Stock Exchange)
-//   ticker ends in .HK  → HKD (Hong Kong)
-//   everything else     → USD
-export function detectCurrency(ticker) {
-  if (/^\d{6}$/.test(ticker)) return "CNY";
-  if (/\.L$/i.test(ticker))   return "GBP";
-  if (/\.HK$/i.test(ticker))  return "HKD";
-  return "USD";
-}
+// Currency detection + FX moved to ./fx.js. Re-exported for back-compat.
+// Prefer importing from './fx.js' in new code.
+export { detectCurrency, currencySymbol, fxRateToUSD, fxToUSD } from './fx.js';
 
-// Symbol + decimal rules for the avg-cost field (what the user typed).
-// We keep 4 decimals for GBP/CNY so sub-penny precision isn't lost.
-const CURRENCY_SYMBOLS = { USD: "$", GBP: "£", CNY: "¥", HKD: "HK$" };
-export function currencySymbol(cur) { return CURRENCY_SYMBOLS[cur] || "$"; }
-
-// FX rate: how many USD one unit of `currency` is worth, given current market data.
-// Yahoo's GBPUSD=X is quoted GBP→USD directly.
-// Yahoo's USDCNY=X is USD→CNY, so we invert.
-// USDHKD=X same inversion.
-export function fxToUSD(currency, marketData) {
-  if (!currency || currency === "USD") return 1;
-  if (currency === "GBP") return marketData?.["GBPUSD=X"]?.lastPrice ?? 1;
-  if (currency === "CNY") {
-    const r = marketData?.["USDCNY=X"]?.lastPrice;
-    return r > 0 ? 1 / r : 1;
-  }
-  if (currency === "HKD") {
-    const r = marketData?.["USDHKD=X"]?.lastPrice;
-    return r > 0 ? 1 / r : 1;
-  }
-  return 1;
-}
-
-// -------- Portfolio math --------
-export const computeMetrics = (portfolio, opts = {}) => {
-  const ext = !!opts.extended;
-  const marketData = opts.marketData || {};
-  let marketValue = 0, totalCost = 0, dayChange = 0;
-  const positionsOut = {};
-  for (const [posKey, pos] of Object.entries(portfolio.positions)) {
-    let posMV = 0, posPrev = 0, posCost = 0;
-    const players = [];
-    for (const t of pos.tickers) {
-      const h = portfolio.holdings[t];
-      if (!h) continue;
-      // Cash entries: MV = lastPrice (held as dollar amount); no P/L, no day change.
-      const isCash = !!h.isCash;
-      // In extended mode use the extended price if available; cash always uses lastPrice.
-      const priceNative = isCash ? h.lastPrice : ((ext && h.extPrice != null) ? h.extPrice : h.lastPrice);
-      const pct   = (ext && h.extDayPct != null) ? h.extDayPct : (h.dayPct ?? 0);
-      // Convert native → USD (cash is already USD; treat missing currency as USD)
-      const fx = isCash ? 1 : fxToUSD(h.currency, marketData);
-      const priceUSD = priceNative * fx;
-      const mv = isCash ? h.lastPrice : h.shares * priceUSD;
-      // In extended-hours mode the baseline is today's RTH close (lastPrice), not yesterday's close.
-      // This makes position + scoreboard day change reflect the after-hours move since 16:00 ET.
-      const baselinePrice = ext ? (h.lastPrice ?? h.prevClose ?? priceNative) : (h.prevClose ?? priceNative);
-      const prevMV = isCash ? mv : h.shares * baselinePrice * fx;
-      const costUSD = isCash ? mv : h.shares * h.cost * fx;
-      posMV += mv; posPrev += prevMV; posCost += costUSD;
-      // Player object: marketValue / dayChange / cost in USD; lastPrice
-      // stays native so modals can render it with the correct currency
-      // symbol. dayChange = mv − prevMV in the same units (USD).
-      players.push({
-        ticker: t, ...h,
-        marketValue: mv,
-        dayChange: mv - prevMV,
-        lastPrice: priceNative,
-        lastPriceUSD: priceUSD,
-        fx,
-        dayPct: pct,
-      });
-    }
-    marketValue += posMV; totalCost += posCost;
-    const dayDelta = posMV - posPrev;
-    dayChange += dayDelta;
-    positionsOut[posKey] = {
-      ...pos,
-      marketValue: posMV,
-      dayChange: dayDelta,
-      dayPct: posPrev > 0 ? (dayDelta / posPrev) * 100 : 0,
-      unrlGL: posMV - posCost,
-      unrlPct: posCost > 0 ? ((posMV - posCost) / posCost) * 100 : 0,
-      players,
-    };
-  }
-  return {
-    marketValue,
-    totalCost,
-    dayChange,
-    dayPct: (marketValue - dayChange) > 0 ? (dayChange / (marketValue - dayChange)) * 100 : 0,
-    unrlGL: marketValue - totalCost,
-    unrlPct: totalCost > 0 ? ((marketValue - totalCost) / totalCost) * 100 : 0,
-    tickerCount: Object.keys(portfolio.holdings).filter(t => t !== "CASH" && !(portfolio.holdings[t] && portfolio.holdings[t].isCash)).length,
-    positions: positionsOut,
-  };
-};
-
-// -------- Formation detection --------
-export const detectFormation = (portfolio) => {
-  const counts = { DEF: 0, MID: 0, FWD: 0 };
-  for (const pos of Object.values(portfolio.positions)) {
-    if (pos.role !== "GK") {
-      counts[pos.role] = (counts[pos.role] || 0) + 1;
-    }
-  }
-  return `${counts.DEF}-${counts.MID}-${counts.FWD}`;
-};
+// Portfolio rollup + formation detection moved to ./metrics.js. Re-
+// exported for back-compat. Prefer importing from './metrics.js' in
+// new code so the dep graph (formatters / fx / metrics / utils) stays
+// readable.
+export { computeMetrics, detectFormation } from './metrics.js';
 
 // -------- Live price fetch --------
 // Primary path: Supabase Edge Function (server-side direct Yahoo fetch — no CORS proxy).

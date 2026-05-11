@@ -7,7 +7,7 @@
 
 import { SB_ANON, EDGE_DATA_URL } from './supabase_config.js';
 import { getAppToken } from './auth.js';
-import { detectCurrency } from './utils.js';
+import { detectCurrency } from './fx.js';
 import { INITIAL_PORTFOLIO } from './data.js';
 
 function dataHeaders() {
