@@ -731,6 +731,16 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // — this branch is never taken (lastSeenVol stays equal to the
       // bar's own volume), so the strict cumulative formula those
       // tickers had before is preserved.
+      //
+      // Bootstrap: when the session opens with a run of zero-volume
+      // bars (US pre-market on thinly-traded stocks like ORCL — Yahoo
+      // reports volume=0 for the 04:00–~07:00 ET stretch), the
+      // forward-fill has no prior volume to copy from and VWAP would
+      // stay null until the first real-volume bar appears (often near
+      // 09:30 ET). Substitute v=1 in that case so each early bar
+      // contributes close × 1 — VWAP starts as a near-TWAP through
+      // the empty bars and seamlessly transitions to true volume-
+      // weighting once real volume arrives.
       let sumPV = 0, sumV = 0, currentSession = '', lastSeenVol = 0;
       vwapSeries = points.map(p => {
         const sk = vwapSessionKeyOf(p.date);
@@ -740,7 +750,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         const realV = Number(p.volume);
         const isReal = isFinite(realV) && realV > 0;
         if (isReal) lastSeenVol = realV;
-        const v = isReal ? realV : lastSeenVol;
+        const v = isReal ? realV : (lastSeenVol > 0 ? lastSeenVol : 1);
         sumPV += p.close * v;
         sumV  += v;
         return sumV > 0 ? sumPV / sumV : null;
