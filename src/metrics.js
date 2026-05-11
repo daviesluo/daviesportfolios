@@ -6,6 +6,35 @@
 
 import { fxRateToUSD } from './fx.js';
 
+// Yahoo's `postMarketPrice` for OTC ADRs like SFTBY is bogus — it
+// ships today's regular-session OPEN as if it were an after-hours
+// quote, even though SFTBY doesn't actually trade AH. The result on
+// the home page was a +8 % "AH move" the ticker never made.
+//
+// Without an intraday series at this layer (computeMetrics doesn't
+// fetch — it consumes whatever marketData gives it), the strongest
+// signal we have is the absolute divergence between `extPrice` and
+// `lastPrice` (= today's regular close). Real after-hours quotes
+// usually sit within a couple of percent of the regular close; the
+// SFTBY-shape bug spikes 8 %+. 5 % threshold catches it while
+// allowing typical AH movement.
+//
+// Earnings-day false negative: an honest 10 % AH move on a real
+// stock (NVDA after a beat) would also exceed 5 % and fall back to
+// lastPrice on the tactics board. The trade-off is intentional —
+// the user has explicitly asked for SFTBY to stop lying, and they
+// can still see the real AH price in the modal (which has the
+// intraday series to validate). Re-tighten when we have a better
+// per-ticker signal here.
+const EXT_PRICE_MAX_DIVERGENCE = 0.05;
+
+/** @param {number | null | undefined} extPrice @param {number | null | undefined} lastPrice */
+function extPriceLooksReal(extPrice, lastPrice) {
+  if (typeof extPrice !== 'number' || extPrice <= 0) return false;
+  if (typeof lastPrice !== 'number' || lastPrice <= 0) return true; // no anchor → trust extPrice
+  return Math.abs(extPrice - lastPrice) / lastPrice < EXT_PRICE_MAX_DIVERGENCE;
+}
+
 /**
  * Aggregate every position in `portfolio` into `{ marketValue,
  * dayChange, unrlGL, positions: {[k]: ...}, fxMissingTickers }`.
@@ -37,9 +66,16 @@ export const computeMetrics = (portfolio, opts = {}) => {
       if (!h) continue;
       // Cash entries: MV = lastPrice (held as dollar amount); no P/L, no day change.
       const isCash = !!h.isCash;
-      // In extended mode use the extended price if available; cash always uses lastPrice.
-      const priceNative = isCash ? h.lastPrice : ((ext && h.extPrice != null) ? h.extPrice : h.lastPrice);
-      const pct   = (ext && h.extDayPct != null) ? h.extDayPct : (h.dayPct ?? 0);
+      // In extended mode use the extended price if available AND it's
+      // close enough to the regular close to look like a real AH
+      // quote — see EXT_PRICE_MAX_DIVERGENCE above. Cash always uses
+      // lastPrice; the OTC ADR check only applies to traded
+      // securities. Without this gate the tactics board / heatmap
+      // tile / position-drill modal all picked up SFTBY's bogus
+      // $20.15 even though the chart modal already corrected for it.
+      const trustExt = !isCash && ext && extPriceLooksReal(h.extPrice, h.lastPrice);
+      const priceNative = trustExt ? h.extPrice : h.lastPrice;
+      const pct   = (trustExt && h.extDayPct != null) ? h.extDayPct : (h.dayPct ?? 0);
       // Convert native → USD (cash is already USD; treat missing currency as USD).
       // `fxMissing` propagates to the player object so the UI can badge
       // it — without that flag a GBP holding silently falls back to
@@ -51,9 +87,18 @@ export const computeMetrics = (portfolio, opts = {}) => {
       const fxMissing = fxResult.missing;
       const priceUSD = priceNative * fx;
       const mv = isCash ? h.lastPrice : h.shares * priceUSD;
-      // In extended-hours mode the baseline is today's RTH close (lastPrice), not yesterday's close.
-      // This makes position + scoreboard day change reflect the after-hours move since 16:00 ET.
-      const baselinePrice = ext ? (h.lastPrice ?? h.prevClose ?? priceNative) : (h.prevClose ?? priceNative);
+      // Baseline for the day-change calculation:
+      //   - ext-on AND extPrice trustworthy: today's RTH close
+      //     (so dayChange = AH move since 16:00 ET).
+      //   - ext-on but extPrice rejected (SFTBY pattern): treat like
+      //     regular mode — yesterday's prevClose, so the card shows
+      //     the regular-session move (matches what the modal headline
+      //     reports as "-7.49 % since previous close") instead of a
+      //     phantom $0 change.
+      //   - ext-off: yesterday's prevClose, same as before.
+      const baselinePrice = (ext && trustExt)
+        ? (h.lastPrice ?? h.prevClose ?? priceNative)
+        : (h.prevClose ?? priceNative);
       const prevMV = isCash ? mv : h.shares * baselinePrice * fx;
       const costUSD = isCash ? mv : h.shares * h.cost * fx;
       posMV += mv; posPrev += prevMV; posCost += costUSD;
