@@ -18,7 +18,6 @@ import {
   ukTzAbbr,
 } from './utils.js';
 import { PerfPanel } from './perf_chart.jsx';
-import { OpsErrorBadge } from './ops_error_badge.jsx';
 
 // Eye icons for the "hide values" toggle in the scoreboard. Inline SVG so
 // they inherit currentColor and don't need an extra HTTP request.
@@ -232,7 +231,6 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
             </div>
           </div>
         )}
-        <OpsErrorBadge isReadOnly={isReadOnly} />
         <button className="btn-ghost" onClick={onRefresh} disabled={isRefreshing} title="Refresh prices">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"
                className={isRefreshing ? "spin" : ""}>
