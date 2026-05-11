@@ -323,22 +323,17 @@ function Board({ isReadOnly }) {
     return () => clearInterval(id);
   }, [portfolio !== null]);
 
-  if (!portfolio) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ color: '#aaa', fontFamily: 'monospace', letterSpacing: '0.2em', fontSize: '12px', marginBottom: '8px' }}>LOADING…</div>
-          <div style={{ color: '#555', fontFamily: 'monospace', fontSize: '11px' }}>Fetching board from cloud.</div>
-        </div>
-      </div>
-    );
-  }
-
   // Never substitute extended-hours prices during the regular session — the
   // toggle only takes effect outside RTH so the displayed value stays consistent.
+  // Computed before the loading early-return below so the FX-reporting
+  // useEffect that watches `metrics.fxMissingTickers` runs every render
+  // — hooks must appear in the same order on first load (portfolio
+  // null) and post-load (portfolio populated), otherwise React throws
+  // "Rendered more hooks than during the previous render".
   const currentPhase = usMarketPhase(new Date());
-  const metrics = computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular", marketData });
-  const formation = detectFormation(portfolio);
+  const metrics = portfolio
+    ? computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular", marketData })
+    : null;
 
   // Report FX-rate-missing as an ops-error event. Fires at most once
   // per minute per (kind, symbol) thanks to the reporter's dedup —
@@ -346,7 +341,7 @@ function Board({ isReadOnly }) {
   // minute, not every render. Without this report the only signal a
   // GBP / CNY / HKD holding silently fell back to 1:1 USD was the
   // header badge, which is only useful if the user is looking.
-  const fxMissingKey = (metrics.fxMissingTickers || []).join(",");
+  const fxMissingKey = (metrics?.fxMissingTickers || []).join(",");
   React.useEffect(() => {
     if (!fxMissingKey) return;
     for (const t of fxMissingKey.split(",").filter(Boolean)) {
@@ -357,6 +352,19 @@ function Board({ isReadOnly }) {
       });
     }
   }, [fxMissingKey, extendedHours, currentPhase]);
+
+  if (!portfolio || !metrics) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: '#aaa', fontFamily: 'monospace', letterSpacing: '0.2em', fontSize: '12px', marginBottom: '8px' }}>LOADING…</div>
+          <div style={{ color: '#555', fontFamily: 'monospace', fontSize: '11px' }}>Fetching board from cloud.</div>
+        </div>
+      </div>
+    );
+  }
+
+  const formation = detectFormation(portfolio);
 
   // Captain is the single largest position by USD market value — convert native
   // currency to USD so a CNY or GBP holding is ranked correctly against USD ones.
