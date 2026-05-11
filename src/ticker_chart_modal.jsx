@@ -485,10 +485,20 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // DAY CHANGE (which in the same mode is computed against today's
   // regular close). Outside ext-AH we use lastPrice (today's regular
   // session price during the day, or yesterday's close after hours).
+  //
+  // marketData only carries the MC index/futures/forex snapshots —
+  // portfolio stocks come in via the `holding` prop, so we look in
+  // BOTH places for extPrice / lastPrice. Without the holding
+  // fallback an in-portfolio stock (e.g. GOOG) in ext mode would
+  // show holding.lastPrice as the modal's "Last" while the home
+  // card showed holding.extPrice; user reported this for GOOG.
   const md = marketData?.[ticker];
+  const extPriceLive  = md?.extPrice  ?? holding?.extPrice  ?? null;
+  const lastPriceLive = md?.lastPrice ?? holding?.lastPrice ?? null;
   const liveLast = (
-    (useExt && md?.extPrice != null && md.extPrice > 0) ? md.extPrice
-    : (md?.lastPrice ?? holding?.lastPrice)
+    (useExt && typeof extPriceLive === 'number' && extPriceLive > 0)
+      ? extPriceLive
+      : lastPriceLive
   ) || null;
 
   // US market hours in UTC for today. Dynamic so EST winter sessions
