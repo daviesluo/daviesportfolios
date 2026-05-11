@@ -1068,7 +1068,14 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             const hCur = holding.currency || 'USD';
             const hSym = SYMBOL_BY_CUR[hCur] || '$';
             const fx        = fxToUSD(hCur, marketData);
-            const livePrice = (useExt && holding.extPrice != null && holding.extPrice > 0)
+            // Same gate the chart's right edge uses: trust `extPrice`
+            // only when AH bars exist AND extPrice is within 3 % of
+            // the latest bar — otherwise Yahoo's bogus postMarketPrice
+            // for OTC ADRs like SFTBY shows up as today's open and
+            // makes Value / G/L lie. Without this check the stats row
+            // would still print +$78.50 (+8.45%) for SFTBY even after
+            // the chart's right edge was corrected.
+            const livePrice = (useExt && hasExtendedBars && holding.extPrice != null && holding.extPrice > 0)
                                 ? holding.extPrice
                                 : holding.lastPrice;
             const valueUsd  = holding.shares * livePrice * fx;
