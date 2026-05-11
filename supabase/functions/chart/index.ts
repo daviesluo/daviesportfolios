@@ -92,7 +92,7 @@ async function fetchYahooHistorical(
 // where x = unix ms timestamp, y = unit NAV (单位净值). We extract this array
 // and filter to the requested range. Note: CN funds publish ONE NAV per
 // trading day after market close — there's no intraday history.
-function rangeCutoffMs(range: string): number {
+export function rangeCutoffMs(range: string): number {
   const now = Date.now();
   if (range === "ytd") {
     const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime();
@@ -225,7 +225,7 @@ async function fetchEastmoneyHistorical(code: string, range: string): Promise<Po
 // Shared range trim — pingzhongdata returns multi-year, lsjz returns one page.
 // Keep the part of the series that overlaps the requested range so the frontend
 // doesn't carry around extra data.
-function trimToRange(points: Point[], range: string): Point[] {
+export function trimToRange(points: Point[], range: string): Point[] {
   if (points.length === 0) return points;
   const cutoff = rangeCutoffMs(range);
   if (cutoff <= 0) return points;
@@ -261,7 +261,10 @@ async function fetchYahooWithPvtFallback(
   return null;
 }
 
-Deno.serve(async (req: Request) => {
+// Guarded so tests can import the pure helpers above without
+// spinning up the server. Supabase's runtime executes index.ts as
+// the entry module, so `import.meta.main` is true in production.
+if (import.meta.main) Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
   }
