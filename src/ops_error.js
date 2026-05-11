@@ -6,7 +6,6 @@
 // spam the table.
 
 import { SB_ANON, SB_URL } from './supabase_config.js';
-import { getAppToken } from './auth.js';
 
 const ENDPOINT = `${SB_URL}/functions/v1/ops-error`;
 
@@ -63,38 +62,4 @@ export function reportError(kind, opts = {}) {
       keepalive: true,
     }).catch(() => {});
   } catch { /* swallow */ }
-}
-
-/**
- * Read the last N hours' aggregated ops-error rows. Backs the
- * admin-only ⚠ badge in the header so the user can triage failures
- * without opening Supabase dashboard. Requires an admin app token
- * (the Edge Function 401s read-only tokens).
- *
- * @param {number} [hours=24]   1..168, clipped server-side
- * @returns {Promise<{
- *   hours: number,
- *   total: number,
- *   byKind:   Array<{ kind: string, count: number, latestMessage: string | null }>,
- *   bySymbol: Array<{ symbol: string | null, kind: string, count: number, latestMessage: string | null, latestAt: string }>,
- * } | null>}  null on auth / network / parse failure
- */
-export async function fetchOpsErrorSummary(hours = 24) {
-  const token = getAppToken();
-  if (!token) return null;
-  try {
-    const url = `${ENDPOINT}?action=summary&hours=${encodeURIComponent(String(hours))}`;
-    const res = await fetch(url, {
-      headers: {
-        'apikey':       SB_ANON,
-        'Authorization': `Bearer ${SB_ANON}`,
-        'x-app-token':  token,
-      },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (!data || typeof data !== 'object' || typeof data.total !== 'number') return null;
-    return data;
-  } catch { return null; }
 }

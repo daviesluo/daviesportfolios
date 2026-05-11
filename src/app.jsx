@@ -341,9 +341,18 @@ function Board({ isReadOnly }) {
   // minute, not every render. Without this report the only signal a
   // GBP / CNY / HKD holding silently fell back to 1:1 USD was the
   // header badge, which is only useful if the user is looking.
+  //
+  // The `Object.keys(marketData).length > 0` guard suppresses the
+  // initial-load false positive: between portfolio load and the first
+  // fetchTickers resolution, marketData is the empty default and every
+  // non-USD holding "looks" fx-missing for one render. Without this
+  // gate the user accumulates a spurious fx-fallback row per refresh
+  // for every non-USD holding (saw 4 noise rows for VUAG.L + 017731
+  // immediately after deploying this reporter).
   const fxMissingKey = (metrics?.fxMissingTickers || []).join(",");
+  const hasMarketData = Object.keys(marketData).length > 0;
   React.useEffect(() => {
-    if (!fxMissingKey) return;
+    if (!fxMissingKey || !hasMarketData) return;
     for (const t of fxMissingKey.split(",").filter(Boolean)) {
       reportError("fx-fallback", {
         symbol: t,
@@ -351,7 +360,7 @@ function Board({ isReadOnly }) {
         context: { extendedHours, phase: currentPhase },
       });
     }
-  }, [fxMissingKey, extendedHours, currentPhase]);
+  }, [fxMissingKey, hasMarketData, extendedHours, currentPhase]);
 
   if (!portfolio || !metrics) {
     return (
