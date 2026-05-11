@@ -61,13 +61,13 @@ async function hmacSign(payload: string, secret: string): Promise<string> {
 // Verify an HMAC-signed app token and return the payload's role on
 // success. Mirrors the `data` Edge Function's gate. Returns null for
 // any failure (bad shape, bad signature, expired, unknown role).
-async function verifyAdminToken(token: string | null): Promise<"admin" | "ro" | null> {
-  if (!token || !APP_AUTH_SECRET) return null;
+export async function verifyAdminToken(token: string | null, secret = APP_AUTH_SECRET): Promise<"admin" | "ro" | null> {
+  if (!token || !secret) return null;
   const dot = token.indexOf(".");
   if (dot <= 0) return null;
   const payloadB64 = token.slice(0, dot);
   const sig        = token.slice(dot + 1);
-  const expected   = await hmacSign(payloadB64, APP_AUTH_SECRET);
+  const expected   = await hmacSign(payloadB64, secret);
   if (sig !== expected) return null;
   try {
     const padded = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
@@ -79,13 +79,16 @@ async function verifyAdminToken(token: string | null): Promise<"admin" | "ro" | 
   } catch { return null; }
 }
 
-function clip(s: string | null | undefined, max: number): string | null {
+export function clip(s: string | null | undefined, max: number): string | null {
   if (s == null) return null;
   const t = String(s);
   return t.length <= max ? t : t.slice(0, max);
 }
 
-Deno.serve(async (req: Request) => {
+// Guarded so tests can import the helpers above without spinning up
+// the server. Supabase's runtime executes index.ts as the entry
+// module, so `import.meta.main` is true in production.
+if (import.meta.main) Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
   }

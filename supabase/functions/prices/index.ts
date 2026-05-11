@@ -17,6 +17,34 @@ const MARKET_CLOSE_MIN = 16 * 60;       // 4:00 PM
 // 6-digit numeric → assume Chinese mutual fund code
 const CN_FUND_RE = /^\d{6}$/;
 
+/**
+ * Convert a unix-seconds UTC timestamp + an exchange's UTC offset
+ * (also in seconds, can be negative) to the exchange's local
+ * minute-of-day in [0, 1440). Pure helper, exported for tests.
+ */
+export function localMinOfDay(utcSec: number, gmtOffsetSec: number): number {
+  const localSecInDay = ((utcSec + gmtOffsetSec) % 86400 + 86400) % 86400;
+  return Math.floor(localSecInDay / 60);
+}
+
+/**
+ * "Is this minute-of-day outside the regular US equity session?" —
+ * matches the predicate used to detect extended-hours candles.
+ * Exported for tests.
+ */
+export function isOutsideRth(localMin: number): boolean {
+  return localMin < MARKET_OPEN_MIN || localMin >= MARKET_CLOSE_MIN;
+}
+
+/**
+ * Percent change from `prev` to `curr` ("day pct"). Returns 0 when
+ * `prev` isn't a positive number — same shape the price quote
+ * exposes when prevClose is missing.
+ */
+export function pctChange(curr: number, prev: number): number {
+  return prev > 0 ? ((curr - prev) / prev) * 100 : 0;
+}
+
 type PriceResult = {
   lastPrice: number;
   extPrice: number | null;
@@ -87,23 +115,19 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
     for (let i = timestamps.length - 1; i >= 0; i--) {
       const close = closes[i];
       if (close == null) continue;
-      // Convert UTC timestamp → local seconds-in-day (handles negative offsets)
-      const localSecInDay = ((timestamps[i] + gmtOffset) % 86400 + 86400) % 86400;
-      const localMin      = Math.floor(localSecInDay / 60);
-      if (localMin < MARKET_OPEN_MIN || localMin >= MARKET_CLOSE_MIN) {
+      if (isOutsideRth(localMinOfDay(timestamps[i], gmtOffset))) {
         extPrice = close / penceFactor;
         break;
       }
     }
 
-    const pc = prevClose;
     return {
       lastPrice,
       extPrice,
-      prevClose: pc,
+      prevClose,
       currency,
-      dayPct:    pc > 0 ? ((lastPrice  - pc) / pc) * 100 : 0,
-      extDayPct: (extPrice != null && pc > 0) ? ((extPrice - pc) / pc) * 100 : null,
+      dayPct:    pctChange(lastPrice, prevClose),
+      extDayPct: extPrice != null ? pctChange(extPrice, prevClose) : null,
     };
   } catch {
     return null;
@@ -167,7 +191,10 @@ function fetchPrice(ticker: string): Promise<PriceResult | null> {
   return fetchYahoo(ticker);
 }
 
-Deno.serve(async (req: Request) => {
+// Guarded so tests can import the helpers above without spinning up
+// the server. Supabase's runtime executes index.ts as the entry
+// module, so `import.meta.main` is true in production.
+if (import.meta.main) Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
   }
