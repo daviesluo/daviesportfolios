@@ -654,10 +654,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // Volume-weighted average price (1D only). Standard cumulative VWAP
   // formula, with the reset boundary chosen per asset class:
   //   - US equities / ETFs (no exchange suffix, no =F/=X/^/-USD):
-  //     reset at 9:30 ET each day (= mh.openHh:openMm UTC). Pre-market
-  //     and overnight bars belong to the *previous* session's VWAP, not
-  //     today's — opening NVDA at 9:31 should start a fresh ramp, not
-  //     inherit the 4 AM ET pre-market accumulation.
+  //     reset at the US trading-day open in ET. *Which* open depends
+  //     on the extended-hours toggle:
+  //       - toggle off → 9:30 ET (regular open). Pre-market bars in
+  //         the data belong to the previous session's VWAP.
+  //       - toggle on  → 4:00 ET (pre-market open). User asked for
+  //         a single VWAP ramp spanning pre / regular / after-hours
+  //         so they can read the metric throughout the extended day.
   //   - Anything else with intraday volume (LSE `.L`, HK `.HK`,
   //     CME futures `=F`, etc.): reset at 00:00 UTC. The exchange
   //     hours fit inside a single UTC date for LSE / HK and the CME
@@ -679,7 +682,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // positives flowing through to the reset logic.
   const isUsEquity = !isCrypto && !/\.[A-Z]+$|=F$|=X$|^\^/.test(ticker);
   const useUsOpenReset = isUsEquity;
-  const sessionResetMins = useUsOpenReset ? (mh.openHh * 60 + mh.openMm) : 0;
+  // ET → UTC offset embedded in mh.edt: edt=true → ET+4 = UTC,
+  // edt=false (EST) → ET+5 = UTC. Pre-market opens at 04:00 ET, so
+  // 08:00 UTC (EDT) / 09:00 UTC (EST). The regular open (09:30 ET)
+  // is already exposed as mh.openHh:openMm.
+  const sessionResetMins = useUsOpenReset
+    ? (extendedHours
+        ? (4 + (mh.edt ? 4 : 5)) * 60
+        : (mh.openHh * 60 + mh.openMm))
+    : 0;
   /** Bucket a bar's UTC timestamp to its session-start UTC date so two
    *  bars on opposite sides of the reset boundary get different keys
    *  and the cumulator resets between them. */
