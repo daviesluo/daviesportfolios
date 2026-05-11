@@ -102,7 +102,15 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
       if (p.isCash || p.ticker === 'CASH') continue;
       const value = Math.max(0, p.marketValue ?? 0);
       if (value === 0) continue;
-      const pct = extendedHours && p.extDayPct != null ? p.extDayPct : (p.dayPct ?? 0);
+      // Use the already-gated `p.dayPct` from computeMetrics — it
+      // honours the same OTC-ADR / bogus-extPrice check
+      // (`extPriceLooksReal` in metrics.js) that the tactics board
+      // uses, so SFTBY-shape tickers can't show a phantom +8 % AH
+      // move here while the rest of the app correctly says -7.49 %.
+      // Reading raw `p.extDayPct` bypassed that gate and was the
+      // reason the heatmap kept reporting the bogus number after
+      // PR #81 fixed the cards.
+      const pct = p.dayPct ?? 0;
       items.push({ ticker: p.ticker, value, pct });
     }
   }

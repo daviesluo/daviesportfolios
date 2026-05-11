@@ -26,7 +26,7 @@
 
 import { Storage, fetchHistoricalBatch, fetchFundamentals } from './utils.js';
 import { fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h, RANGE_KEYS } from './ytd.js';
-import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, TICKER_CACHE_CAP, MA_CACHE_CAP, isFresh, hasAnyNumericField, trimLru } from './cache.js';
+import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, TICKER_CACHE_CAP, MA_CACHE_CAP, tickerChartCacheKey, isFresh, hasAnyNumericField, trimLru } from './cache.js';
 import { isDailyOnly } from './ticker_class.js';
 import { priceDividedByTtmEps } from './indicators.js';
 
@@ -58,8 +58,6 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   if (portfolioTickers.length === 0 && mcList.length === 0) return;
   const year = new Date().getFullYear();
   const useExt = !!(extendedHours && phase && phase !== 'regular');
-  const tickerVariantTag = useExt ? 'ext' : 'reg';
-  const phaseTag = phase || '';
   // Fetched/cached symbols cover three roles, deduped:
   //   - spSymbol  → benchmark for PerfChart (only the perf cache cares)
   //   - portfolio → both PerfChart series and modal drilldown
@@ -101,7 +99,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     const perfKey = `${rk}:${perfVariant}`;
     const perfEntries = ytdYearStart[perfKey]?.entries || {};
     /** @param {string} t */
-    const tickerKey = (t) => `${t}|${rk}|${tickerVariantTag}|${phaseTag}`;
+    const tickerKey = (t) => tickerChartCacheKey(t, rk, useExt, phase);
     // 1D cache rows from before the volume-bearing Edge Function
     // shipped still satisfy the TTL but lack a `volume` field on
     // every bar — they'd suppress the modal's VWAP overlay
@@ -296,7 +294,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   const ytdNow = Storage.loadYtd();
   const ytdEntriesNow = ytdNow?.byRange?.['YTD:std']?.entries ?? {};
   const fundKey = (t) => `${t}|FUND|v1`;
-  const peKey   = (t) => `${t}|PE|v3|${tickerVariantTag}|${phaseTag}`;
+  const peKey   = (t) => tickerChartCacheKey(t, 'PE', useExt, phase);
   // Only consider tickers that (a) have a freshly-cached YTD daily
   // series we can divide, and (b) don't already have a fresh PE
   // entry. Portfolio tickers come from `tickers`; the four big US
