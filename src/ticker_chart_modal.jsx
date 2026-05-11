@@ -1068,14 +1068,19 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             const hCur = holding.currency || 'USD';
             const hSym = SYMBOL_BY_CUR[hCur] || '$';
             const fx        = fxToUSD(hCur, marketData);
-            // Same gate the chart's right edge uses: trust `extPrice`
-            // only when AH bars exist AND extPrice is within 3 % of
-            // the latest bar — otherwise Yahoo's bogus postMarketPrice
-            // for OTC ADRs like SFTBY shows up as today's open and
-            // makes Value / G/L lie. Without this check the stats row
-            // would still print +$78.50 (+8.45%) for SFTBY even after
-            // the chart's right edge was corrected.
-            const livePrice = (useExt && hasExtendedBars && holding.extPrice != null && holding.extPrice > 0)
+            // OTC ADR guard: Yahoo's bogus postMarketPrice for tickers
+            // like SFTBY shows up as today's open and makes Value /
+            // G/L lie. The chart's right edge already falls back to
+            // lastPrice when `hasExtendedBars` is false, but that
+            // signal only works on the 1D range (it inspects the
+            // intraday series). For 1W/1M/3M/YTD the series is daily
+            // bars with no intraday timestamps to inspect, so applying
+            // the gate there would silently fall back to lastPrice
+            // for legit AH movers (NVDA up 10 % on earnings, etc.)
+            // when the user is on a non-1D view. Only apply the gate
+            // when we have the data to validate it.
+            const trustExtPrice = rangeKey !== '1D' || hasExtendedBars;
+            const livePrice = (useExt && trustExtPrice && holding.extPrice != null && holding.extPrice > 0)
                                 ? holding.extPrice
                                 : holding.lastPrice;
             const valueUsd  = holding.shares * livePrice * fx;
