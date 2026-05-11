@@ -489,6 +489,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, [ticker, rangeKey, useExt, phase, series === null]);
 
+  // US market hours in UTC for today. Dynamic so EST winter sessions
+  // (close 21:00 UTC) still find their bars — hard-coding 20:00 would
+  // silently miss the close marker Nov–Mar.
+  const mh = usMarketHoursUtc(new Date());
+
   // In ext-on AH/PM mode the chart's right-edge price needs to be the
   // current after-hours quote so the % return matches the scoreboard's
   // DAY CHANGE (which in the same mode is computed against today's
@@ -501,19 +506,35 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // fallback an in-portfolio stock (e.g. GOOG) in ext mode would
   // show holding.lastPrice as the modal's "Last" while the home
   // card showed holding.extPrice; user reported this for GOOG.
+  //
+  // OTC ADR caveat: Yahoo populates a `postMarketPrice` for tickers
+  // that don't actually trade after-hours (e.g. SFTBY = SoftBank
+  // Pink Sheets, no real AH session). The reported value is often
+  // a stale or computed number (today's open price for SFTBY), and
+  // blindly substituting it for the chart's right edge produces a
+  // fake spike + a misleading "+8 %" headline. Detect "no extended-
+  // hours activity" by checking whether the fetched intraday series
+  // has any bar outside the regular session window (pre-market or
+  // AH bars). If not, the ticker has no real AH and we ignore
+  // `extPrice`, falling back to `lastPrice` (= last real trade).
   const md = marketData?.[ticker];
   const extPriceLive  = md?.extPrice  ?? holding?.extPrice  ?? null;
   const lastPriceLive = md?.lastPrice ?? holding?.lastPrice ?? null;
+  const openMinsUtc   = mh.openHh  * 60 + mh.openMm;
+  const closeMinsUtc  = mh.closeHh * 60 + mh.closeMm;
+  const hasExtendedBars = Array.isArray(series) && series.length > 0 && series.some(p => {
+    if (typeof p.date !== 'string' || p.date.length < 16) return false;
+    const hh = parseInt(p.date.slice(11, 13), 10);
+    const mm = parseInt(p.date.slice(14, 16), 10);
+    if (!isFinite(hh) || !isFinite(mm)) return false;
+    const mins = hh * 60 + mm;
+    return mins < openMinsUtc || mins > closeMinsUtc;
+  });
   const liveLast = (
-    (useExt && typeof extPriceLive === 'number' && extPriceLive > 0)
+    (useExt && hasExtendedBars && typeof extPriceLive === 'number' && extPriceLive > 0)
       ? extPriceLive
       : lastPriceLive
   ) || null;
-
-  // US market hours in UTC for today. Dynamic so EST winter sessions
-  // (close 21:00 UTC) still find their bars — hard-coding 20:00 would
-  // silently miss the close marker Nov–Mar.
-  const mh = usMarketHoursUtc(new Date());
 
   // Most-recent regular-close bar inside the series. Walk backwards
   // from the end and pick the first bar whose UTC time-of-day matches
@@ -565,14 +586,18 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // Anchor for % calculation. 1D anchors at "the most recent 16:00 ET
   // regular close that has occurred":
   //   - regular hours → prevClose
-  //   - ext-on AH/PM → today's 16:00 ET bar in the fetched series,
-  //     with lastPrice as a fallback (Yahoo pins lastPrice to the
-  //     16:00 ET print once the market closes), and prevClose as the
-  //     final fallback if neither is available.
-  // Same anchor for every ticker so the modal % always matches the
-  // MC card's todayRegularClose-based pct. Tickers with no AH
-  // activity (^VIX / ^TNX / ^SOX) end up reading ~0% in ext mode —
-  // expected, since the latest bar IS the 16:00 ET bar.
+  //   - ext-on AH/PM, ticker that actually trades in pre / AH (has
+  //     bars outside the regular session window in `series`) →
+  //     today's 16:00 ET bar, with lastPrice as a fallback (Yahoo
+  //     pins lastPrice to the 16:00 ET print once the market
+  //     closes), and prevClose as the final fallback.
+  //   - ext-on AH/PM, ticker that doesn't have extended-hours bars
+  //     in the fetched series (^VIX / ^TNX / OTC ADRs like SFTBY) →
+  //     prevClose. Yahoo populates a bogus `postMarketPrice` for
+  //     these (often today's open or stale value), so anchoring at
+  //     today's close would print "0.00%" or wildly fake numbers;
+  //     anchoring at yesterday's close gives the standard
+  //     "since prev close" % which IS the meaningful headline.
   // marketData only carries the MC indices/futures/forex; portfolio
   // stocks are passed in via `holding`, so we look in BOTH places
   // for the ticker's price metadata.
@@ -581,9 +606,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
-      if (useExt && regularCloseIdx >= 0) {
+      if (useExt && hasExtendedBars && regularCloseIdx >= 0) {
         anchorClose = series[regularCloseIdx].close;
-      } else if (useExt && lastPriceAny && lastPriceAny > 0) {
+      } else if (useExt && hasExtendedBars && lastPriceAny && lastPriceAny > 0) {
         anchorClose = lastPriceAny;
       } else if (prevCloseAny && prevCloseAny > 0) {
         anchorClose = prevCloseAny;
@@ -645,19 +670,31 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // semantic is days, so "MA 5" / "MA 10" / etc. always.
   const MA_DAYS = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50 }[rangeKey] || 0;
   let maSeries = null;
-  if (MA_BARS > 0 && points.length > 0 && maHistory && maHistory.length >= MA_BARS) {
-    const maByDate = new Map();
-    let sum = 0;
-    for (let i = 0; i < maHistory.length; i++) {
-      sum += maHistory[i].close;
-      if (i >= MA_BARS) sum -= maHistory[i - MA_BARS].close;
-      if (i >= MA_BARS - 1) maByDate.set(maHistory[i].date, sum / MA_BARS);
+  if (MA_BARS > 0 && points.length > 0) {
+    // Combine maHistory (wider, used for the prior-bar window) and the
+    // display series (`points`, freshest) into one chronological
+    // bar-stream deduped by timestamp. Without this, a maHistory cache
+    // that's a few hours stale (12 h TTL) misses bars the display
+    // already has, the per-bar lookup returns null for those, and the
+    // MA line breaks off mid-chart — TSM's missing left edge and
+    // NET's right edge both come from this gap. Display values win
+    // on duplicate keys so the live-tail substitution still matters.
+    const combinedMap = new Map();
+    if (maHistory) for (const p of maHistory) combinedMap.set(p.date, p.close);
+    for (const p of points) combinedMap.set(p.date, p.close);
+    const combined = Array.from(combinedMap.entries())
+      .map(([date, close]) => ({ date, close }))
+      .sort((a, b) => a.date < b.date ? -1 : 1);
+    if (combined.length >= MA_BARS) {
+      const maByDate = new Map();
+      let sum = 0;
+      for (let i = 0; i < combined.length; i++) {
+        sum += combined[i].close;
+        if (i >= MA_BARS) sum -= combined[i - MA_BARS].close;
+        if (i >= MA_BARS - 1) maByDate.set(combined[i].date, sum / MA_BARS);
+      }
+      maSeries = points.map(p => maByDate.has(p.date) ? maByDate.get(p.date) : null);
     }
-    // Same-interval fetch → display bars share timestamps with
-    // wider-series bars → MA value is a Map lookup. Display bars
-    // whose timestamps don't align (rare, e.g. live-substituted
-    // bar inserted between 30-min boundaries) get null.
-    maSeries = points.map(p => maByDate.has(p.date) ? maByDate.get(p.date) : null);
   }
 
   // Volume-weighted average price (1D only). Standard cumulative VWAP
@@ -731,6 +768,14 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // — this branch is never taken (lastSeenVol stays equal to the
       // bar's own volume), so the strict cumulative formula those
       // tickers had before is preserved.
+      //
+      // Sessions that open with a run of zero-volume bars (US
+      // pre-market on thin stocks where Yahoo reports volume=0)
+      // simply don't render a VWAP line until the first real-volume
+      // bar arrives — user explicitly asked for a strict
+      // volume-weighted line, not a TWAP fudge. The post-open
+      // segment IS a true VWAP (cumulative over real RTH + AH
+      // volumes from the first non-zero bar).
       let sumPV = 0, sumV = 0, currentSession = '', lastSeenVol = 0;
       vwapSeries = points.map(p => {
         const sk = vwapSessionKeyOf(p.date);
