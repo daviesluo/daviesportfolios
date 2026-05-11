@@ -9,13 +9,16 @@ import {
   fmtPct as fmP,
   fmtPrice as fmtPr,
   pctColor as pcC,
+  formatAgo,
+  maskDigits as mask,
+} from './formatters.js';
+import {
   londonTimeParts,
   usMarketPhase,
   ukTzAbbr,
-  formatAgo,
-  maskDigits as mask,
 } from './utils.js';
 import { PerfPanel } from './perf_chart.jsx';
+import { OpsErrorBadge } from './ops_error_badge.jsx';
 
 // Eye icons for the "hide values" toggle in the scoreboard. Inline SVG so
 // they inherit currentColor and don't need an extra HTTP request.
@@ -96,10 +99,26 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
     }
   }, [metrics]);
 
+  // Stale-price detection — when the last successful fetch was more
+  // than this many minutes ago, the live-pill flips to "STALE Nm"
+  // even when `source === "live"`. Auto-refresh runs every 30 s, so
+  // > 5 min without an update means several consecutive ticks failed
+  // and the user should know the displayed numbers are out of date.
+  const STALE_PRICE_MS = 5 * 60 * 1000;
+  const stalePrices = agoMs != null && agoMs > STALE_PRICE_MS;
   const statusLabel =
-    isRefreshing ? "REFRESHING…" :
-    source === "live" ? "LIVE" :
-    source === "error" ? "RETRYING…" : "…";
+    isRefreshing       ? "REFRESHING…"
+    : source === "error" ? "RETRYING…"
+    : stalePrices       ? `STALE ${formatAgo(agoMs)}`
+    : source === "live"  ? "LIVE"
+    : "…";
+
+  // FX badge — surface any holding whose native-USD conversion fell
+  // back to 1:1 this tick (the FX pair for its currency was missing
+  // from marketData). Without this badge a GBP holding silently
+  // values at 1:1 USD and the portfolio undercounts by ~20%.
+  /** @type {string[]} */
+  const fxMissing = (metrics && /** @type {any} */ (metrics).fxMissingTickers) || [];
 
   return (
     <header className="header">
@@ -189,14 +208,31 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
       </div>
 
       <div className="header-actions">
-        <div className={`live-pill ${isRefreshing ? "refreshing" : ""} ${source === "error" ? "err" : ""}`}
-             title={source === "live" ? "Yahoo Finance" : source === "error" ? "Retrying…" : "Connecting"}>
-          <span className={`live-dot ${isRefreshing ? "pulse" : ""} ${source === "error" ? "err" : ""}`} />
+        <div className={`live-pill ${isRefreshing ? "refreshing" : ""} ${(source === "error" || stalePrices) ? "err" : ""}`}
+             title={
+               source === "error" ? "Retrying price fetch…" :
+               stalePrices ? `No successful price update in ${formatAgo(agoMs)}; auto-retry running` :
+               source === "live" ? "Yahoo Finance" : "Connecting"
+             }>
+          <span className={`live-dot ${isRefreshing ? "pulse" : ""} ${(source === "error" || stalePrices) ? "err" : ""}`} />
           <div className="live-col">
             <span className="live-txt">{statusLabel}</span>
             <span className="live-ago mono">Last updated {agoText}</span>
           </div>
         </div>
+        {fxMissing.length > 0 && (
+          <div
+            className="live-pill err"
+            title={`Live FX rate missing for ${fxMissing.join(", ")} — these holdings are valued at 1:1 USD until the FX pair refreshes. Click Refresh.`}
+          >
+            <span className="live-dot err" />
+            <div className="live-col">
+              <span className="live-txt">FX MISSING</span>
+              <span className="live-ago mono">{fxMissing.length} {fxMissing.length === 1 ? "ticker" : "tickers"}</span>
+            </div>
+          </div>
+        )}
+        <OpsErrorBadge isReadOnly={isReadOnly} />
         <button className="btn-ghost" onClick={onRefresh} disabled={isRefreshing} title="Refresh prices">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"
                className={isRefreshing ? "spin" : ""}>

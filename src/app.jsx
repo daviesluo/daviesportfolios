@@ -1,18 +1,13 @@
 // Main portfolio tactics board app
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { fmtMoney, fmtPct, fmtPrice, pctColor } from './formatters.js';
+import { detectCurrency, fxToUSD } from './fx.js';
+import { computeMetrics, detectFormation } from './metrics.js';
 import {
-  fmtMoney,
-  fmtPct,
-  fmtPrice,
-  pctColor,
-  computeMetrics,
-  detectFormation,
   refreshPrices,
   fetchTickers,
   fetchTodayRegularClose,
   usMarketPhase,
-  detectCurrency,
-  fxToUSD,
   Storage,
   POSITION_COORDS,
 } from './utils.js';
@@ -344,6 +339,24 @@ function Board({ isReadOnly }) {
   const currentPhase = usMarketPhase(new Date());
   const metrics = computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular", marketData });
   const formation = detectFormation(portfolio);
+
+  // Report FX-rate-missing as an ops-error event. Fires at most once
+  // per minute per (kind, symbol) thanks to the reporter's dedup —
+  // so a steady-state outage records one row per affected ticker per
+  // minute, not every render. Without this report the only signal a
+  // GBP / CNY / HKD holding silently fell back to 1:1 USD was the
+  // header badge, which is only useful if the user is looking.
+  const fxMissingKey = (metrics.fxMissingTickers || []).join(",");
+  React.useEffect(() => {
+    if (!fxMissingKey) return;
+    for (const t of fxMissingKey.split(",").filter(Boolean)) {
+      reportError("fx-fallback", {
+        symbol: t,
+        message: "FX pair missing from marketData; native→USD fell back to 1:1",
+        context: { extendedHours, phase: currentPhase },
+      });
+    }
+  }, [fxMissingKey, extendedHours, currentPhase]);
 
   // Captain is the single largest position by USD market value — convert native
   // currency to USD so a CNY or GBP holding is ranked correctly against USD ones.
