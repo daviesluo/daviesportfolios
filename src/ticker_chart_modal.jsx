@@ -10,7 +10,7 @@ import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
 import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT } from './ticker_class.js';
-import { MA_TTL_MS, TICKER_CACHE_CAP, isFresh as cacheIsFresh, hasAnyNumericField, trimLru } from './cache.js';
+import { MA_TTL_MS, TICKER_CACHE_CAP, tickerChartCacheKey, isFresh as cacheIsFresh, hasAnyNumericField, trimLru } from './cache.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
@@ -241,13 +241,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   React.useEffect(() => {
     let cancelled = false;
     const { yahooRange, interval, includePrePost } = fetchParams(rangeKey);
-    // PE cache key gets an algorithm-version suffix so old caches that
-    // hold const-EPS-divided P/E series get invalidated when we ship
-    // the rolling-TTM-EPS computation. Bump the suffix again any time
-    // the PE math changes shape.
-    const cacheKey = rangeKey === 'PE'
-      ? `${ticker}|PE|v3|${useExt ? 'ext' : 'reg'}|${phase || ''}`
-      : `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+    // Cache key shape lives in cache.js (`tickerChartCacheKey`) so the
+    // prefetch can't drift. Non-1D / non-PE ranges drop variant +
+    // phase from the key — the fetched data is identical across
+    // phase/toggle combos for those ranges, and including phase used
+    // to invalidate the whole prefetched cache at every 16:00 ET
+    // boundary.
+    const cacheKey = tickerChartCacheKey(ticker, rangeKey, useExt, phase);
     const ttl = modalTtl(rangeKey);
     const cached = modalCacheGet(cacheKey);
 
@@ -450,9 +450,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             ? { ...baseParams, interval: '1d', includePrePost: false }
             : baseParams);
         }
-        const cacheKey = rk === 'PE'
-          ? `${ticker}|PE|v3|${useExt ? 'ext' : 'reg'}|${phase || ''}`
-          : `${ticker}|${rk}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+        const cacheKey = tickerChartCacheKey(ticker, rk, useExt, phase);
         const ttl = modalTtl(rk);
         const c = modalCacheGet(cacheKey);
         if (c && Array.isArray(c.data) && (Date.now() - (c.ts || 0)) < ttl) continue;

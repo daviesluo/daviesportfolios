@@ -53,6 +53,37 @@ export function isFresh(entry, ttlMs, extraValid) {
 }
 
 /**
+ * Cache key for a (ticker × range) chart in dp.tickerChart. Shared
+ * by the prefetch and the modal so the two sites can't drift in a
+ * way that produces silent cache misses.
+ *
+ *   - 1D: `${ticker}|1D|${variant}|${phase}` — the fetched data
+ *     differs by (extendedHours, phase): includePrePost on/off,
+ *     range/interval pinned. Both axes participate in the key so
+ *     a phase or toggle flip can't serve the wrong-window cache.
+ *   - 1W/1M/3M/YTD: `${ticker}|${rangeKey}` — `fetchParamsFor`
+ *     returns the SAME (range, interval, includePrePost=false) for
+ *     all phase/toggle combos here, so adding variant/phase to the
+ *     key would just split the cache between phases and force a
+ *     cold fetch every time the clock crosses 16:00 ET (which was
+ *     happening — the user reported "刷新完等一段时间所有图都还要
+ *     loading" after a phase transition).
+ *   - PE: `${ticker}|PE|v3|${variant}|${phase}` — keep the v3
+ *     algorithm-version suffix so old const-EPS series don't get
+ *     served after the TTM-aware switch.
+ *
+ * @param {string} ticker
+ * @param {string} rangeKey
+ * @param {boolean} useExt
+ * @param {string} phase
+ */
+export function tickerChartCacheKey(ticker, rangeKey, useExt, phase) {
+  if (rangeKey === 'PE') return `${ticker}|PE|v3|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+  if (rangeKey === '1D') return `${ticker}|1D|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+  return `${ticker}|${rangeKey}`;
+}
+
+/**
  * Predicate factory: "the data array includes at least one row
  * where `field` is a number". Used by the prefetch's 1D check
  * to invalidate cache rows from before per-bar `volume` started
