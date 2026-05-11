@@ -454,13 +454,21 @@ async function fetchYahoo(tickers) {
   const cnFunds = liveTickers.filter(t => /^\d{6}$/.test(t));
   const hasCNFund = cnFunds.length > 0;
   if (hasCNFund) {
-    const edgeP = fetchViaEdge(liveTickers);
-    const cnProxyP = Promise.all(cnFunds.map(async t => [t, await fetchOneCNFund(t)]))
-      .then(pairs => { const o = {}; for (const [t, r] of pairs) if (r) o[t] = r; return o; });
-    const edgeResult = normalizeEdgeResult(await edgeP);
-    // Short-circuit: Edge covers every CN fund → return without waiting for proxy.
+    // Edge Function first — it covers CN funds (eastmoney / lsjz /
+    // danjuanapp fallback chain server-side) so the happy path needs
+    // zero CORS-proxy traffic. Previous version fired the proxy chain
+    // in parallel "in case Edge missed some", but browsers don't
+    // cancel in-flight requests when the Promise short-circuits, so
+    // every 30 s auto-refresh burned through `corsproxy.io` /
+    // `api.cors.lol` rate limits and littered the Network tab with
+    // 403 / 429 / cancelled rows. Serial: only fire CORS proxies for
+    // CN funds the Edge call actually missed.
+    const edgeResult = normalizeEdgeResult(await fetchViaEdge(liveTickers));
     if (edgeResult && cnFunds.every(t => edgeResult[t])) return edgeResult;
-    const cnFromProxy = await cnProxyP;
+    const missingCn = cnFunds.filter(t => !edgeResult?.[t]);
+    const cnFromProxy = (await Promise.all(
+      missingCn.map(async t => [t, await fetchOneCNFund(t)])
+    )).reduce((acc, [t, r]) => { if (r) acc[t] = r; return acc; }, /** @type {Record<string, any>} */ ({}));
     const out = { ...(edgeResult || {}) };
     for (const t of cnFunds) if (!out[t] && cnFromProxy[t]) out[t] = cnFromProxy[t];
     return Object.keys(out).length > 0 ? out : null;
