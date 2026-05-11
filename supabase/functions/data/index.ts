@@ -26,13 +26,13 @@ const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const enc = new TextEncoder();
 
-function b64url(bytes: Uint8Array | string): string {
+export function b64url(bytes: Uint8Array | string): string {
   const buf = typeof bytes === "string" ? enc.encode(bytes) : bytes;
   let s = btoa(String.fromCharCode(...buf));
   return s.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 }
 
-async function sign(payload: string, secret: string): Promise<string> {
+export async function sign(payload: string, secret: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
     enc.encode(secret),
@@ -44,13 +44,13 @@ async function sign(payload: string, secret: string): Promise<string> {
   return b64url(new Uint8Array(sig));
 }
 
-type Verified = { role: "admin" | "ro"; exp: number };
+export type Verified = { role: "admin" | "ro"; exp: number };
 
-async function verifyToken(token: string): Promise<Verified | null> {
-  if (!SECRET) return null;
+export async function verifyToken(token: string, secret = SECRET): Promise<Verified | null> {
+  if (!secret) return null;
   const [payloadB64, sigB64] = token.split(".");
   if (!payloadB64 || !sigB64) return null;
-  const expected = await sign(payloadB64, SECRET);
+  const expected = await sign(payloadB64, secret);
   if (expected !== sigB64) return null;
   try {
     const padded = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
@@ -75,7 +75,10 @@ const SB_HEADERS = {
   "Content-Type": "application/json",
 };
 
-Deno.serve(async (req: Request) => {
+// Guarded so tests can import the helpers above without spinning up
+// the server. Supabase's runtime executes index.ts as the entry
+// module, so `import.meta.main` is true in production.
+if (import.meta.main) Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   const url = new URL(req.url);

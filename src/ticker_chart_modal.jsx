@@ -8,6 +8,13 @@ import { Modal } from './modals.jsx';
 import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc, fxToUSD, maskDigits } from './utils.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC } from './utils.js';
+import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT } from './ticker_class.js';
+import { MA_TTL_MS, isFresh as cacheIsFresh, hasAnyNumericField, trimLru } from './cache.js';
+import {
+  maBarsFor, maLabelDaysFor, computeMaSeries,
+  vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
+  priceDividedByTtmEps, hasExtendedHoursBars,
+} from './indicators.js';
 import { reportError } from './ops_error.js';
 
 const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$' };
@@ -91,21 +98,17 @@ function modalCacheSet(key, data) {
   Storage.saveTickerChart(all);
 }
 
-// 6-digit numeric codes are CN mutual funds (天天基金). They only publish
-// one NAV per trading day, so 1D / 1W (5 m / 30 m intraday) ranges have
-// no meaningful data — restrict the visible range buttons to the daily
-// ones for these tickers.
-const CN_FUND_RE = /^\d{6}$/;
-// .PVT suffix is the convention this app uses for private/un-listed
-// holdings (e.g. SPAX.PVT). Yahoo doesn't carry them, so intraday
-// ranges always fail. Keep them on the daily buttons only and surface
-// a clear "no public history" message instead of a generic error.
-const PVT_RE = /\.PVT$/i;
+// Ticker classification predicates moved to `src/ticker_class.js` so
+// the modal, prefetch, header_sidebar, etc. all share one definition
+// of "CN fund" / ".PVT" / "daily-only". CN funds publish one NAV per
+// trading day so 1D / 1W (5 m / 30 m intraday) ranges have no
+// meaningful data; .PVT placeholders aren't on Yahoo at all. Both
+// restrict the modal to daily buttons.
 
 export function TickerChartModal({ ticker, holding, marketData, extendedHours, phase, onClose, portfolioTotalValue, hideValues }) {
-  const isCnFund = CN_FUND_RE.test(ticker);
-  const isPvt    = PVT_RE.test(ticker);
-  const dailyOnly = isCnFund || isPvt;
+  const isCnFund = isCnFundT(ticker);
+  const isPvt    = isPvtT(ticker);
+  const dailyOnly = isDailyOnlyT(ticker);
   // 'PE' is a synthetic range button — same YTD daily prices but the
   // y-axis becomes a P/E ratio (price ÷ current TTM EPS). Two-stage
   // filter:
@@ -658,140 +661,32 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // the number of *bars* equivalent to the requested day count at
   // the chart's interval, so on 30m the line updates every 30 min
   // and on 60m every 60 min — no flat day-long plateaus.
-  // Bars per RTH trading day (9:30–16:00 ET): 30m → 13, 60m → 7.
-  // dailyOnly tickers (CN funds / .PVT) skip the interval scaling —
-  // their MA fetch is 1d at every range so the bar window is just
-  // the day count.
-  const MA_BARS = (dailyOnly
-    ? { '1W': 5,     '1M': 10,    '3M': 20, 'YTD': 50 }
-    : { '1W': 5 * 13, '1M': 10 * 7, '3M': 20, 'YTD': 50 }
-  )[rangeKey] || 0;
-  // Right-margin label is decoupled from MA_BARS — the user-facing
-  // semantic is days, so "MA 5" / "MA 10" / etc. always.
-  const MA_DAYS = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50 }[rangeKey] || 0;
-  let maSeries = null;
-  if (MA_BARS > 0 && points.length > 0) {
-    // Combine maHistory (wider, used for the prior-bar window) and the
-    // display series (`points`, freshest) into one chronological
-    // bar-stream deduped by timestamp. Without this, a maHistory cache
-    // that's a few hours stale (12 h TTL) misses bars the display
-    // already has, the per-bar lookup returns null for those, and the
-    // MA line breaks off mid-chart — TSM's missing left edge and
-    // NET's right edge both come from this gap. Display values win
-    // on duplicate keys so the live-tail substitution still matters.
-    const combinedMap = new Map();
-    if (maHistory) for (const p of maHistory) combinedMap.set(p.date, p.close);
-    for (const p of points) combinedMap.set(p.date, p.close);
-    const combined = Array.from(combinedMap.entries())
-      .map(([date, close]) => ({ date, close }))
-      .sort((a, b) => a.date < b.date ? -1 : 1);
-    if (combined.length >= MA_BARS) {
-      const maByDate = new Map();
-      let sum = 0;
-      for (let i = 0; i < combined.length; i++) {
-        sum += combined[i].close;
-        if (i >= MA_BARS) sum -= combined[i - MA_BARS].close;
-        if (i >= MA_BARS - 1) maByDate.set(combined[i].date, sum / MA_BARS);
-      }
-      maSeries = points.map(p => maByDate.has(p.date) ? maByDate.get(p.date) : null);
-    }
-  }
+  // Moving-average overlay — pure math lives in `src/indicators.js`.
+  // Combined-source SMA so the line spans the full chart even when
+  // maHistory's 12 h cache lags the freshly fetched display data.
+  // Bars-per-day scaling on intraday ranges (5d × 13 bars/day at 30m,
+  // 10d × 7 at 60m) is encapsulated in `maBarsFor`; dailyOnly tickers
+  // (CN funds / .PVT) take the plain day count via the same call.
+  const MA_BARS = maBarsFor(rangeKey, dailyOnly);
+  const MA_DAYS = maLabelDaysFor(rangeKey);
+  const maSeries = MA_BARS > 0 ? computeMaSeries(points, maHistory, MA_BARS) : null;
 
-  // Volume-weighted average price (1D only). Standard cumulative VWAP
-  // formula, with the reset boundary chosen per asset class:
-  //   - US equities / ETFs (no exchange suffix, no =F/=X/^/-USD):
-  //     reset at the US trading-day open in ET. *Which* open depends
-  //     on the extended-hours toggle:
-  //       - toggle off → 9:30 ET (regular open). Pre-market bars in
-  //         the data belong to the previous session's VWAP.
-  //       - toggle on  → 4:00 ET (pre-market open). User asked for
-  //         a single VWAP ramp spanning pre / regular / after-hours
-  //         so they can read the metric throughout the extended day.
-  //   - Anything else with intraday volume (LSE `.L`, HK `.HK`,
-  //     CME futures `=F`, etc.): reset at 00:00 UTC. The exchange
-  //     hours fit inside a single UTC date for LSE / HK and the CME
-  //     globex session conveniently spans the midnight boundary, so
-  //     a UTC-date anchor is a reasonable default without hard-coding
-  //     a per-exchange table.
-  //   - Crypto (`-USD` suffix on Yahoo): reset at 00:00 UTC.
-  //     Anchored-VWAP convention for 24/7 markets like BTC-USD.
-  // Tickers without meaningful per-bar volume (forex, yields, ^VIX-
-  // style indices, CN funds, .PVT) trip the `hasAnyVolume` check
-  // below and skip the overlay outright. Formula otherwise:
-  //   VWAP_t = Σ(close_i × volume_i) / Σ(volume_i)
-  // for all bars i in the same session as t.
-  const isCrypto = /-USD$/i.test(ticker);
-  // US equity = no exchange suffix, no class-marker, not crypto.
-  // .X (forex) and ^X (indices) are also flagged here but they're
-  // already filtered out by hasAnyVolume since they don't carry
-  // meaningful per-bar volume; the predicate just stops false
-  // positives flowing through to the reset logic.
-  const isUsEquity = !isCrypto && !/\.[A-Z]+$|=F$|=X$|^\^/.test(ticker);
-  const useUsOpenReset = isUsEquity;
-  // ET → UTC offset embedded in mh.edt: edt=true → ET+4 = UTC,
-  // edt=false (EST) → ET+5 = UTC. Pre-market opens at 04:00 ET, so
-  // 08:00 UTC (EDT) / 09:00 UTC (EST). The regular open (09:30 ET)
-  // is already exposed as mh.openHh:openMm.
-  const sessionResetMins = useUsOpenReset
-    ? (extendedHours
-        ? (4 + (mh.edt ? 4 : 5)) * 60
-        : (mh.openHh * 60 + mh.openMm))
-    : 0;
-  /** Bucket a bar's UTC timestamp to its session-start UTC date so two
-   *  bars on opposite sides of the reset boundary get different keys
-   *  and the cumulator resets between them. */
-  const vwapSessionKeyOf = (dateStr) => {
-    if (typeof dateStr !== 'string' || dateStr.length < 16) return '';
-    const day = dateStr.slice(0, 10);
-    if (!useUsOpenReset) return day; // crypto + non-US: simple UTC-date reset
-    const hh = parseInt(dateStr.slice(11, 13), 10);
-    const mm = parseInt(dateStr.slice(14, 16), 10);
-    if ((hh * 60 + mm) >= sessionResetMins) return day;
-    // Pre-reset hours (US pre-market 04:00–13:30 UTC) belong to
-    // *yesterday's* session — shift the key back one UTC day.
-    const d = new Date(day + 'T00:00:00Z');
-    d.setUTCDate(d.getUTCDate() - 1);
-    return d.toISOString().slice(0, 10);
-  };
-  let vwapSeries = null;
-  if (rangeKey === '1D' && points.length > 0) {
-    const hasAnyVolume = points.some(p => Number(p.volume) > 0);
-    if (hasAnyVolume) {
-      // Forward-fill volume across zero-volume bars within the same
-      // session. Yahoo's BTC-USD intraday endpoint returns ~hourly
-      // non-zero volumes with zeros in between, so a strict bar-by-bar
-      // cumulative VWAP held flat between volume points → "stair-step"
-      // line. Filling zeros with the most recent non-zero volume in
-      // the SAME session lets every bar contribute to sumPV/sumV
-      // proportionally, and the resulting VWAP updates each bar.
-      // For NVDA / AAPL etc. — where every 5m bar has its own volume
-      // — this branch is never taken (lastSeenVol stays equal to the
-      // bar's own volume), so the strict cumulative formula those
-      // tickers had before is preserved.
-      //
-      // Sessions that open with a run of zero-volume bars (US
-      // pre-market on thin stocks where Yahoo reports volume=0)
-      // simply don't render a VWAP line until the first real-volume
-      // bar arrives — user explicitly asked for a strict
-      // volume-weighted line, not a TWAP fudge. The post-open
-      // segment IS a true VWAP (cumulative over real RTH + AH
-      // volumes from the first non-zero bar).
-      let sumPV = 0, sumV = 0, currentSession = '', lastSeenVol = 0;
-      vwapSeries = points.map(p => {
-        const sk = vwapSessionKeyOf(p.date);
-        if (sk !== currentSession) {
-          sumPV = 0; sumV = 0; currentSession = sk; lastSeenVol = 0;
-        }
-        const realV = Number(p.volume);
-        const isReal = isFinite(realV) && realV > 0;
-        if (isReal) lastSeenVol = realV;
-        const v = isReal ? realV : lastSeenVol;
-        sumPV += p.close * v;
-        sumV  += v;
-        return sumV > 0 ? sumPV / sumV : null;
-      });
-    }
-  }
+  // Volume-weighted average price (1D only). Per-asset reset anchor —
+  //   - US equity: 09:30 ET when ext off; 04:00 ET pre-market open
+  //     when ext on so the VWAP spans pre / regular / AH as one ramp.
+  //   - Crypto (`-USD`): 00:00 UTC anchored-VWAP convention for 24/7
+  //     markets.
+  //   - Other 24h-or-non-US markets: 00:00 UTC fallback.
+  // Forward-fills sparse-volume bars (BTC-USD's hourly-only volume on
+  // Yahoo) so the line stays smooth instead of stair-stepping.
+  // Bars before any real session volume return null — strict
+  // volume-weighted only, no TWAP fudge.
+  const vwapResetCfg = vwapSessionResetFor(ticker, extendedHours, mh);
+  /** @param {string} d */
+  const sessionKeyOf = (d) => vwapSessionKeyOf(d, vwapResetCfg);
+  const vwapSeries = (rangeKey === '1D' && points.length > 0)
+    ? computeVwap(points, sessionKeyOf)
+    : null;
 
   const hasData = points.length >= 2 && anchorClose;
   // X positioning is INDEX-based, not time-based. Treating each bar as one
@@ -1047,7 +942,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         let prevSession = '';
         for (let i = 0; i < vwapSeries.length; i++) {
           if (vwapSeries[i] == null) { openSegment = false; continue; }
-          const sk = vwapSessionKeyOf(points[i].date);
+          const sk = sessionKeyOf(points[i].date);
           const cmd = (openSegment && sk === prevSession) ? 'L' : 'M';
           out += `${cmd}${xOfIdx(i).toFixed(1)},${yOf(vwapSeries[i]).toFixed(1)}`;
           openSegment = true;
