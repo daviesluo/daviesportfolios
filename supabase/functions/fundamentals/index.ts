@@ -53,6 +53,11 @@ type Fundamentals = {
   pe: number;
   eps: number;
   pe3yAvg: number | null;
+  // Internal-only USD market price (from FMP or Yahoo) — used to
+  // derive the USD anchor (price/pe) for normalizing ADR TTM-EPS
+  // history. Stripped from the response before it goes over the
+  // wire so the client API stays the same.
+  price?: number;
   // Pre-summed TTM diluted EPS at each quarter end. Named explicitly
   // to avoid colliding with the previous `epsHistory` contract that
   // returned RAW quarterly EPS — a stale Edge Function or
@@ -296,7 +301,7 @@ export async function fetchFmpQuoteBatched(symbols: string[]): Promise<Record<st
 // so we use Yahoo as the primary source and fall back to Finnhub
 // only when Yahoo is unreachable / blocked.
 
-type YahooQuoteSummary = { pe: number; eps: number; currency: string | null };
+type YahooQuoteSummary = { pe: number; eps: number; price: number; currency: string | null };
 
 async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary | null> {
   // quoteSummary doesn't require auth for most tickers (crumb is
@@ -321,12 +326,23 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
     const peRaw  = result?.summaryDetail?.trailingPE?.raw
                 ?? result?.defaultKeyStatistics?.trailingPE?.raw;
     const epsRaw = result?.defaultKeyStatistics?.trailingEps?.raw;
+    // Yahoo's `price.regularMarketPrice` is the ADR's USD market
+    // price — same currency as `trailingPE` — so price/pe gives the
+    // implied USD EPS we need as the rescale anchor when FMP has no
+    // coverage for this symbol (TSM/SFTBY/ASML on the free tier).
+    const priceRaw = result?.price?.regularMarketPrice?.raw;
     const currency = result?.price?.currency ?? null;
-    const pe  = Number(peRaw);
-    const eps = Number(epsRaw);
+    const pe    = Number(peRaw);
+    const eps   = Number(epsRaw);
+    const price = Number(priceRaw);
     if (!isFinite(pe)  || pe  <= 0) return null;
     if (!isFinite(eps) || eps <= 0) return null;
-    return { pe, eps, currency: typeof currency === 'string' ? currency : null };
+    return {
+      pe,
+      eps,
+      price: isFinite(price) && price > 0 ? price : 0,
+      currency: typeof currency === 'string' ? currency : null,
+    };
   } catch {
     return null;
   }
@@ -364,6 +380,7 @@ export async function fetchStockFundamentals(
     return {
       pe: fmpRow.pe,
       eps: fmpRow.eps,
+      price: fmpRow.price,
       pe3yAvg: finn?.pe3yAvg ?? null,
     };
   }
@@ -375,6 +392,7 @@ export async function fetchStockFundamentals(
     return {
       pe: yahoo.pe,
       eps: yahoo.eps,
+      price: yahoo.price,
       pe3yAvg: finn?.pe3yAvg ?? null,
     };
   }
@@ -659,17 +677,30 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
             const raw = await fetchFinnhubEarningsHistory(t);
             if (raw) hist = rollingTtmFromRawQuarterly(raw);
           }
-          // FMP's `eps` field is in the underlying foreign currency
-          // for ADRs (TSM TWD, SFTBY JPY, ASML EUR) — using it as
-          // the USD anchor would leave the rescale in the wrong
-          // unit. FMP's `pe` IS USD-normalized, so price/pe gives
-          // the implied USD EPS directly. Use that when FMP gave us
-          // both fields; otherwise fall back to f.eps (only ever
-          // hit on the Yahoo/Finnhub fallback path).
+          // USD-anchor for rescaling foreign-currency TTM-EPS history.
+          // Priority:
+          //   1. FMP price/pe — same response, no timing skew, but FMP
+          //      free tier doesn't cover all ADRs (TSM/SFTBY/ASML are
+          //      missing as of 2026-05).
+          //   2. Yahoo price/pe — both fields come from the same
+          //      quoteSummary response and are USD-normalized for
+          //      ADRs, so dividing gives the implied USD EPS without
+          //      a client/server price-timing mismatch.
+          //   3. f.eps — only hit on the Finnhub-only fallback path
+          //      (no Yahoo + no FMP), where Finnhub's USD-anchor bug
+          //      was the original cause of TSM=1.22 etc. and the
+          //      ratio detection in normalizeEpsHistoryToUsd will
+          //      simply leave the history unscaled.
           const fmpRow = fmpByTicker[t];
-          const usdAnchor = (fmpRow && fmpRow.price > 0 && fmpRow.pe > 0)
-            ? fmpRow.price / fmpRow.pe
-            : f.eps;
+          let usdAnchor = f.eps;
+          let anchorSource: 'fmp_price_pe' | 'yahoo_price_pe' | 'fallback_f_eps' = 'fallback_f_eps';
+          if (fmpRow && fmpRow.price > 0 && fmpRow.pe > 0) {
+            usdAnchor = fmpRow.price / fmpRow.pe;
+            anchorSource = 'fmp_price_pe';
+          } else if (f.price && f.price > 0 && f.pe > 0) {
+            usdAnchor = f.price / f.pe;
+            anchorSource = 'yahoo_price_pe';
+          }
           if (hist) f.ttmEpsHistory = normalizeEpsHistoryToUsd(hist, usdAnchor);
           // TEMP debug — shows the route the deployed function actually
           // took. Once we confirm the right anchor is being used the
@@ -679,10 +710,15 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
             fmpHasPrice: !!fmpRow && fmpRow.price > 0,
             fmpPrice: fmpRow?.price ?? null,
             fmpPe: fmpRow?.pe ?? null,
+            yahooPrice: f.price ?? null,
+            yahooPe: f.pe,
             usdAnchor,
-            anchorSource: (fmpRow && fmpRow.price > 0 && fmpRow.pe > 0) ? 'fmp_price_pe' : 'fallback_f_eps',
+            anchorSource,
           };
         }
+        // Strip the internal `price` field — clients don't consume it
+        // and we don't want to commit to it as a public API surface.
+        if ('price' in f) delete f.price;
         out[t] = f;
       }
     });
