@@ -39,6 +39,7 @@
 
 const FINNHUB_API_KEY            = Deno.env.get("FINNHUB_API_KEY") ?? "";
 const ALPHAVANTAGE_API_KEY       = Deno.env.get("ALPHAVANTAGE_API_KEY") ?? "";
+const FMP_API_KEY                = Deno.env.get("FMP_API_KEY") ?? "";
 const SUPABASE_URL               = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -229,7 +230,61 @@ async function resolveIndexPe(
   return null;
 }
 
-// ---- Yahoo quoteSummary (ADR-currency-safe P/E) --------------------
+// ---- Financial Modeling Prep (primary, ADR-safe trailingPE) --------
+//
+// FMP's `/v3/quote/<symbols>` endpoint returns `pe` and `eps` in
+// USD for the ADR / US-listed ticker — same currency as the
+// reported price, so the values are sane out-of-box for ADRs
+// (TSM ~30, SFTBY ~15, ASML ~33). One HTTP request handles the
+// whole portfolio via comma-separated symbols. Free tier is
+// 250 calls/day which is plenty: a typical refresh fires the
+// fundamentals call once, so ~5-10 calls/day per browser session.
+//
+// Failure modes:
+//   - FMP_API_KEY env var missing → return null, fall through
+//   - Network / rate-limit / 401 → return null, fall through
+//   - Symbol not in FMP's universe (rare for US-listed) → row absent
+//
+// Layers below this (Yahoo quoteSummary, Finnhub) handle anything
+// FMP doesn't have. The ordering matters: FMP is the only one that
+// gets ADR P/E correct without a crumb workflow.
+
+export type FmpRow = { pe: number; eps: number };
+
+export async function fetchFmpQuoteBatched(symbols: string[]): Promise<Record<string, FmpRow>> {
+  if (!FMP_API_KEY || symbols.length === 0) return {};
+  // FMP rejects URL-encoded commas inside the path segment, so
+  // join raw and encodeURIComponent each symbol individually.
+  const path = symbols.map(s => encodeURIComponent(s)).join(",");
+  const url =
+    `https://financialmodelingprep.com/api/v3/quote/${path}` +
+    `?apikey=${encodeURIComponent(FMP_API_KEY)}`;
+  try {
+    const res = await fetch(url, {
+      headers: { "Accept": "application/json" },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return {};
+    const data = await res.json();
+    if (!Array.isArray(data)) return {};
+    /** @type {Record<string, FmpRow>} */
+    const out: Record<string, FmpRow> = {};
+    for (const row of data) {
+      const sym = String(row?.symbol ?? "");
+      const pe  = Number(row?.pe);
+      const eps = Number(row?.eps);
+      if (!sym) continue;
+      if (!isFinite(pe)  || pe  <= 0) continue;
+      if (!isFinite(eps) || eps <= 0) continue;
+      out[sym] = { pe, eps };
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+// ---- Yahoo quoteSummary (secondary, used when FMP doesn't have it) --
 //
 // Finnhub's `peTTM` is broken for ADRs (TSM, SFTBY, etc.) — Finnhub
 // returns the ADR's USD price but the EPS in the foreign reporting
@@ -290,8 +345,27 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
  * for the symbol), the result falls back entirely to Finnhub —
  * which is correct for US-listed stocks where Finnhub doesn't have
  * the currency-mismatch bug.
+ *
+ * `fmpRow`, when passed, short-circuits both the Yahoo and Finnhub
+ * `pe`/`eps` lookups — FMP already returned ADR-USD-normalized
+ * values for this symbol in the caller's batched fetch, so we just
+ * use them. Finnhub still runs for `pe3yAvg` regardless of FMP.
  */
-export async function fetchStockFundamentals(symbol: string): Promise<Fundamentals | null> {
+export async function fetchStockFundamentals(
+  symbol: string,
+  fmpRow?: FmpRow | null,
+): Promise<Fundamentals | null> {
+  // When FMP gave us a clean pe/eps already, we still want the
+  // Finnhub annual series for pe3yAvg — fire it in parallel with
+  // nothing else, so this branch is as fast as one HTTP request.
+  if (fmpRow) {
+    const finn = await fetchFinnhub(symbol);
+    return {
+      pe: fmpRow.pe,
+      eps: fmpRow.eps,
+      pe3yAvg: finn?.pe3yAvg ?? null,
+    };
+  }
   const [yahoo, finn] = await Promise.all([
     fetchYahooQuoteSummary(symbol),
     fetchFinnhub(symbol),
@@ -557,16 +631,18 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
   const out: Record<string, Fundamentals> = {};
 
   const stocksTask = (async () => {
+    // ONE batched FMP call for the whole stock list — FMP returns
+    // ADR-currency-safe pe/eps natively (TSM ~30, SFTBY ~15,
+    // ASML ~33). Symbols FMP doesn't cover fall through to the
+    // Yahoo-quoteSummary + Finnhub layers inside
+    // fetchStockFundamentals().
+    const fmpByTicker = await fetchFmpQuoteBatched(stockSymbols);
     const queue = [...stockSymbols];
     const workers = Array.from({ length: Math.min(6, queue.length) }, async () => {
       while (queue.length > 0) {
         const t = queue.shift();
         if (!t) break;
-        // Yahoo quoteSummary first → ADR-currency-safe pe/eps.
-        // Finnhub still used for pe3yAvg (its annual series is our
-        // only free historical-PE source). See fetchStockFundamentals
-        // for the full layering.
-        const f = await fetchStockFundamentals(t);
+        const f = await fetchStockFundamentals(t, fmpByTicker[t]);
         if (!f) continue;
         if (includeEpsHistory) {
           // Each entry's `eps` is TTM diluted EPS at that quarter end —

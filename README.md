@@ -558,7 +558,8 @@ A copy-pasteable shape of the three app-level vars lives at
 | `APP_AUTH_SECRET` | `auth`, `data` | Long random string (`openssl rand -hex 32`). |
 | `APP_ADMIN_PASSWORD` | `auth` | Your admin password. |
 | `APP_RO_PASSWORD` | `auth` | Your read-only / shareable password. |
-| `FINNHUB_API_KEY` | `fundamentals` | Free key from finnhub.io (60 calls / min). Powers the ticker-modal "P/E YTD" view for individual stocks; without it the P/E button stays hidden for stocks but everything else still works. |
+| `FMP_API_KEY` | `fundamentals` | Free key from [financialmodelingprep.com](https://site.financialmodelingprep.com/developer/docs) (250 calls / day). **Primary source of trailing P/E** because FMP returns ADR P/E correctly USD-normalized (TSM ~30, SFTBY ~15, ASML ~33), while Finnhub's `peTTM` for ADRs divides the USD ADR price by the underlying foreign-currency EPS and yields garbage values (1.22 / 0.07 / 63). One batched HTTP request handles the whole portfolio via comma-separated symbols, so a refresh costs 1 call — 250/day is plenty. Without this key the function falls back to Yahoo `quoteSummary` then Finnhub, which gets the ADR P/E wrong. |
+| `FINNHUB_API_KEY` | `fundamentals` | Free key from finnhub.io (60 calls / min). Used for `pe3yAvg` (3-year average P/E) since FMP doesn't expose annual P/E history on the free tier; also serves as the tertiary fallback for current pe/eps when both FMP and Yahoo quoteSummary fail. Without it the P/E button still works (FMP+Yahoo cover current P/E) but the 3-year-avg reference line on the chart is hidden. |
 | `ALPHAVANTAGE_API_KEY` | `fundamentals` | Free key from alphavantage.co (25 calls / day). Powers index P/E for `^GSPC` / `^NDX` / `^RUT` / `^SOX` via their ETF proxies, with a 24 h server-side cache so the daily quota is never strained. Without it the function falls back to hardcoded constants — chart still draws but the printed values stop auto-refreshing. |
 
 ### 4. Wire the client
