@@ -115,19 +115,26 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     rangeMeta.push({ rk, perfKey, params, tickerKey, stale });
   }
 
-  // Phase B: parallel fetches across all stale ranges. The Edge
-  // Function batches each range into one HTTP request (per
-  // intraday/daily group), so 5 concurrent calls is well under what
-  // Yahoo / Cloudflare will queue. Replaces the previous sequential
-  // loop that took 30-60 s for a full warm; now closer to 5-10 s.
-  const fetchResults = await Promise.all(rangeMeta.map(async (meta) => {
-    if (meta.stale.length === 0) return { meta, batch: /** @type {Record<string, any[]>} */ ({}) };
-    // Split daily-only symbols (CN funds, .PVT) so each group gets
-    // the right interval — without this, prefetch returns empty rows
-    // for SPAX.PVT / 6-digit CN funds and the modal then has to do
-    // a cold fetch on first open.
+  // Phase B: parallel fetches across all stale ranges, with each
+  // range writing its OWN chunk of dp.ytd / dp.tickerChart as soon
+  // as its fetch resolves. Earlier the writes were coalesced into a
+  // single Phase C after `Promise.all` — but Promise.all waits for
+  // the SLOWEST range (1M intraday with `range=3mo, interval=60m` is
+  // usually it; that's ~1k bars × 20 tickers from Yahoo), so a 15-20s
+  // 1M response was leaving the user's cache empty for every range
+  // until then. Writing per-range means 1D/3M/YTD land in localStorage
+  // within a couple of seconds even while 1M is still in flight.
+  //
+  // Race safety: JS is single-threaded — every `.then()` callback
+  // below runs atomically wrt the others (load → mutate → save is
+  // one synchronous block), so two near-simultaneous range
+  // resolutions can't interleave their localStorage writes.
+  await Promise.all(rangeMeta.map(async (meta) => {
+    if (meta.stale.length === 0) return;
     const ixStale  = meta.stale.filter(s => !dailyOnlySet.has(s));
     const dlyStale = meta.stale.filter(s =>  dailyOnlySet.has(s));
+    /** @type {Record<string, any[]>} */
+    let batch = {};
     try {
       const [ixBatch, dlyBatch] = await Promise.all([
         ixStale.length > 0
@@ -137,27 +144,17 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
           ? fetchHistoricalBatch(dlyStale, meta.params.yahooRange, '1d', false)
           : Promise.resolve(/** @type {Record<string, any[]>} */ ({})),
       ]);
-      return { meta, batch: { ...ixBatch, ...dlyBatch } };
+      batch = { ...ixBatch, ...dlyBatch };
     } catch {
-      return { meta, batch: /** @type {Record<string, any[]>} */ ({}) };
+      return;  // leave caches alone on a network error
     }
-  }));
-
-  // Phase C: merge all range results into a single dp.ytd write and
-  // a single dp.tickerChart write. The serial structure of localStorage
-  // means we can't do concurrent writes safely (load → mutate → save
-  // would race), so we coalesce.
-  const ytdYear = { ...ytdYearStart };
-  const tcAll = tcAllStart;
-  tcAll.entries = tcAll.entries || {};
-  const now = Date.now();
-  let tcChanged = false;
-  let ytdChanged = false;
-  for (const { meta, batch } of fetchResults) {
-    if (meta.stale.length === 0) continue;
-    const perfEntries = ytdYear[meta.perfKey]?.entries || {};
-    /** @type {Record<string, {ts:number, data:any[]}>} */
+    // ---- Write this range's chunk to dp.ytd
+    const now = Date.now();
+    const ytdCur2 = Storage.loadYtd();
+    const ytdYear2 = ytdCur2 && ytdCur2.year === year && ytdCur2.byRange ? ytdCur2.byRange : {};
+    const perfEntries = ytdYear2[meta.perfKey]?.entries || {};
     const newPerfEntries = { ...perfEntries };
+    let ytdChanged = false;
     for (const s of meta.stale) {
       let data = batch[s];
       if (data && meta.params.variant === 'closed') data = filterToLatestDay(data);
@@ -167,22 +164,28 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
         ytdChanged = true;
       }
     }
-    ytdYear[meta.perfKey] = { entries: newPerfEntries };
+    if (ytdChanged) {
+      ytdYear2[meta.perfKey] = { entries: newPerfEntries };
+      Storage.saveYtd({ year, byRange: ytdYear2 });
+    }
+    // ---- Write this range's chunk to dp.tickerChart
+    const tc = Storage.loadTickerChart() || { entries: {} };
+    tc.entries = tc.entries || {};
+    let tcChanged = false;
     for (const t of modalSymbols) {
       let data = batch[t];
       if (data && meta.params.variant === 'closed') data = filterToLatestDay(data);
       else if (data && (meta.params.variant === 'reg' || meta.params.variant === 'ext')) data = filterToLast24h(data);
       if (data && data.length >= 2) {
-        tcAll.entries[meta.tickerKey(t)] = { ts: now, data };
+        tc.entries[meta.tickerKey(t)] = { ts: now, data };
         tcChanged = true;
       }
     }
-  }
-  if (ytdChanged) Storage.saveYtd({ year, byRange: ytdYear });
-  if (tcChanged) {
-    trimLru(tcAll, TICKER_CACHE_CAP);
-    Storage.saveTickerChart(tcAll);
-  }
+    if (tcChanged) {
+      trimLru(tc, TICKER_CACHE_CAP);
+      Storage.saveTickerChart(tc);
+    }
+  }));
 
   // ---- Moving-average history prefetch
   // The TickerChartModal's MA overlay reads a separate, wider series
@@ -210,8 +213,10 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     !!entry && Array.isArray(entry.data) && entry.data.length > 0 &&
     (Date.now() - (entry.ts || 0)) < MA_TTL_MS;
   // Parallel fetches across the 4 MA ranges (1W / 1M / 3M / YTD;
-  // 1D is excluded). Same pattern as the per-range loop above —
-  // pulls 4 → 1 HTTP round-trip widths to ~1, then merges writes.
+  // 1D is excluded). Each range writes its own chunk of dp.maCache
+  // as soon as its fetch resolves, same pattern as the chart prefetch
+  // above — so the fast ranges land in cache without waiting on the
+  // slow ones.
   const maRangeMeta = RANGE_KEYS
     .filter(rk => rk !== '1D')
     .map(rk => {
@@ -226,13 +231,11 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
         dlyParams: maFetchParamsFor(rk, true),
       };
     });
-  const maFetchResults = await Promise.all(maRangeMeta.map(async (meta) => {
-    if (meta.ixStaleMa.length === 0 && meta.dlyStaleMa.length === 0) {
-      return { meta, batch: /** @type {Record<string, any[]>} */ ({}) };
-    }
-    if (!meta.ixParams && !meta.dlyParams) {
-      return { meta, batch: /** @type {Record<string, any[]>} */ ({}) };
-    }
+  await Promise.all(maRangeMeta.map(async (meta) => {
+    if (meta.ixStaleMa.length === 0 && meta.dlyStaleMa.length === 0) return;
+    if (!meta.ixParams && !meta.dlyParams) return;
+    /** @type {Record<string, any[]>} */
+    let batch = {};
     try {
       const [ixBatch, dlyBatch] = await Promise.all([
         meta.ixStaleMa.length > 0 && meta.ixParams
@@ -242,16 +245,12 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
           ? fetchHistoricalBatch(meta.dlyStaleMa, meta.dlyParams.range, meta.dlyParams.interval, false)
           : Promise.resolve(/** @type {Record<string, any[]>} */ ({})),
       ]);
-      return { meta, batch: { ...ixBatch, ...dlyBatch } };
-    } catch {
-      return { meta, batch: /** @type {Record<string, any[]>} */ ({}) };
-    }
-  }));
-  const maStore = maStoreStart;
-  maStore.entries = maStore.entries || {};
-  let maChanged = false;
-  const maNow = Date.now();
-  for (const { meta, batch } of maFetchResults) {
+      batch = { ...ixBatch, ...dlyBatch };
+    } catch { return; }
+    const maStore = Storage.loadMaCache() || { entries: {} };
+    maStore.entries = maStore.entries || {};
+    let maChanged = false;
+    const now = Date.now();
     for (const t of [...meta.ixStaleMa, ...meta.dlyStaleMa]) {
       const data = batch[t];
       if (!Array.isArray(data) || data.length === 0) continue;
@@ -260,14 +259,14 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
         .slice()
         .sort((a, b) => a.date < b.date ? -1 : 1);
       if (sorted.length === 0) continue;
-      maStore.entries[meta.maKey(t)] = { ts: maNow, data: sorted };
+      maStore.entries[meta.maKey(t)] = { ts: now, data: sorted };
       maChanged = true;
     }
-  }
-  if (maChanged) {
-    trimLru(maStore, MA_CACHE_CAP);
-    Storage.saveMaCache(maStore);
-  }
+    if (maChanged) {
+      trimLru(maStore, MA_CACHE_CAP);
+      Storage.saveMaCache(maStore);
+    }
+  }));
 
   // P/E YTD prefetch — two writes per eligible ticker:
   //
