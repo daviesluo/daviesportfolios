@@ -9,6 +9,7 @@
 import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   isFundamentalsTicker, rollingTtmFromRawQuarterly, computePe3yAvg,
+  normalizeEpsHistoryToUsd, isPlausiblePe,
 } from "./index.ts";
 
 Deno.test("isFundamentalsTicker: keeps US equities", () => {
@@ -91,8 +92,83 @@ Deno.test("computePe3yAvg: empty / non-array → null", () => {
   assertEquals(computePe3yAvg(null), null);
 });
 
-// `normalizeEpsHistoryToUsd` and `isPlausiblePe` were removed when
-// the Edge Function stopped doing any P/E math itself — Yahoo's
-// pre-computed `trailingPE` is the only source of truth now, and
-// ADR currency mismatch is handled at the ticker level (hide the
-// chart button) instead of by guessing FX ratios per row.
+// --- ADR currency normalization (TSM / SFTBY) -----------------------
+
+Deno.test("normalizeEpsHistoryToUsd: TSM-shape scales TWD-denominated history to USD", () => {
+  // TSM ADR price ~$220 USD, Yahoo quoteSummary trailingEps ~8.3 USD.
+  // Yahoo fundamentals-timeseries returns trailingDilutedEPS in TWD,
+  // latest ~150 TWD. Without scaling, the modal divides USD prices by
+  // TWD EPS and produces P/E ratios of ~1.4 — the exact bug the user
+  // reported. After scaling, each historical entry is in USD so the
+  // P/E ratio is sensible.
+  const historyTwd = [
+    { date: "2025-09-30", eps: 130 },
+    { date: "2025-12-31", eps: 140 },
+    { date: "2026-03-31", eps: 150 },  // latest, used as the FX-anchor
+  ];
+  const out = normalizeEpsHistoryToUsd(historyTwd, 8.3);
+  assertEquals(out.length, 3);
+  // Ratio = 8.3 / 150 = 0.05533... so the latest scales to exactly
+  // the authoritative USD value.
+  assertAlmostEquals(out[2].eps, 8.3, 1e-9);
+  // Earlier entries scaled by the same ratio — relative shape preserved.
+  assertAlmostEquals(out[0].eps, 130 * (8.3 / 150), 1e-9);
+  assertAlmostEquals(out[1].eps, 140 * (8.3 / 150), 1e-9);
+});
+
+Deno.test("normalizeEpsHistoryToUsd: SFTBY-shape (JPY → USD)", () => {
+  // SoftBank ADR price ~$18.60 USD, Yahoo quoteSummary trailingEps
+  // ~1.2 USD. fundamentals-timeseries trailingDilutedEPS in JPY,
+  // latest ~180 JPY. Without scaling the P/E shows ~0.07.
+  const historyJpy = [
+    { date: "2025-09-30", eps: 160 },
+    { date: "2026-03-31", eps: 180 },
+  ];
+  const out = normalizeEpsHistoryToUsd(historyJpy, 1.2);
+  assertAlmostEquals(out[1].eps, 1.2, 1e-9);
+  assertAlmostEquals(out[0].eps, 160 * (1.2 / 180), 1e-9);
+});
+
+Deno.test("normalizeEpsHistoryToUsd: same-currency history (NVDA) passes through unchanged", () => {
+  // NVDA reports in USD already; Yahoo trailingEps ~5.0, history
+  // entries ~5.0. Ratio ≈ 1.0 — within the ±20 % no-op band so
+  // the function returns the input as-is (preserves identity).
+  const historyUsd = [
+    { date: "2025-09-30", eps: 4.5 },
+    { date: "2026-03-31", eps: 5.0 },
+  ];
+  const out = normalizeEpsHistoryToUsd(historyUsd, 5.0);
+  // Same reference (no unnecessary copy) — important so callers can
+  // share the array between modal series + cache without aliasing
+  // concerns.
+  assertEquals(out, historyUsd);
+});
+
+Deno.test("normalizeEpsHistoryToUsd: degenerate inputs (empty / NaN anchor / zero latest) → no scaling", () => {
+  assertEquals(normalizeEpsHistoryToUsd([], 5), []);
+  const input = [{ date: "2025-03-31", eps: 100 }];
+  assertEquals(normalizeEpsHistoryToUsd(input, NaN), input);
+  assertEquals(normalizeEpsHistoryToUsd(input, 0),   input);
+  assertEquals(normalizeEpsHistoryToUsd([{ date: "2025-03-31", eps: 0 }], 5),
+               [{ date: "2025-03-31", eps: 0 }]);
+});
+
+Deno.test("isPlausiblePe: rejects Finnhub ADR-bug pe values (TSM=1.22, SFTBY=0.07)", () => {
+  assertEquals(isPlausiblePe(1.22), false);  // TSM via Finnhub
+  assertEquals(isPlausiblePe(0.07), false);  // SFTBY via Finnhub
+  assertEquals(isPlausiblePe(0),    false);
+  assertEquals(isPlausiblePe(-5),   false);
+});
+
+Deno.test("isPlausiblePe: accepts the normal US-equity range", () => {
+  for (const pe of [12, 25, 40, 80, 150, 280]) {
+    assertEquals(isPlausiblePe(pe), true);
+  }
+});
+
+Deno.test("isPlausiblePe: rejects implausibly high pe (likely data corruption)", () => {
+  assertEquals(isPlausiblePe(500), false);
+  assertEquals(isPlausiblePe(10000), false);
+  assertEquals(isPlausiblePe(NaN), false);
+  assertEquals(isPlausiblePe(Infinity), false);
+});
