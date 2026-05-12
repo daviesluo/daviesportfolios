@@ -43,13 +43,14 @@ export function ServiceWorkerBanner() {
   // up a new bundle — works fine for daily-active users but a
   // long-running tab (PWA on a laptop that goes to sleep, phone in
   // the background) can sit on a months-old version. Auto-skip after
-  // 24 h gives the user a generous window to click manually but
-  // guarantees no one is stuck on an old build forever. The original
-  // `registerType: 'autoUpdate'` setting wiped the `?pwd=…` URL
-  // mid-login (PR feedback in vite.config.js); the 24 h timer skips
-  // that race entirely — by then the user already has their auth
-  // token in sessionStorage so a reload doesn't re-prompt.
-  const AUTO_RELOAD_AFTER_MS = 24 * 60 * 60 * 1000;
+  // 1 h gives the user a deliberately tight window to click manually
+  // but guarantees no one is stuck on an old build for a workday.
+  // The original `registerType: 'autoUpdate'` setting wiped the
+  // `?pwd=…` URL mid-login (PR feedback in vite.config.js); the
+  // 1 h timer skips that race entirely — by then the user already
+  // has their auth token in sessionStorage so a reload doesn't
+  // re-prompt.
+  const AUTO_RELOAD_AFTER_MS = 60 * 60 * 1000;
   React.useEffect(() => {
     if (!needRefresh || reloading) return undefined;
     const t = setTimeout(() => { handleReload(); }, AUTO_RELOAD_AFTER_MS);
