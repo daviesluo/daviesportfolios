@@ -70,9 +70,13 @@ export function isFresh(entry, ttlMs, extraValid) {
  *     cold fetch every time the clock crosses 16:00 ET (which was
  *     happening — the user reported "刷新完等一段时间所有图都还要
  *     loading" after a phase transition).
- *   - PE: `${ticker}|PE|v3|${variant}|${phase}` — keep the v3
- *     algorithm-version suffix so old const-EPS series don't get
- *     served after the TTM-aware switch.
+ *   - PE: `${ticker}|PE|v4|${variant}|${phase}` — keep an
+ *     algorithm-version suffix so old series don't get served
+ *     across breaking changes. v1→v2 was the TTM-aware switch;
+ *     v3→v4 invalidates the broken-anchor series the prefetch
+ *     wrote while the fundamentals Edge Function was still
+ *     dividing USD prices by foreign-currency EPS (TSM 1.22 /
+ *     SFTBY 0.07 / ASML 63 bug).
  *
  * @param {string} ticker
  * @param {string} rangeKey
@@ -80,7 +84,7 @@ export function isFresh(entry, ttlMs, extraValid) {
  * @param {string} phase
  */
 export function tickerChartCacheKey(ticker, rangeKey, useExt, phase) {
-  if (rangeKey === 'PE') return `${ticker}|PE|v3|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+  if (rangeKey === 'PE') return `${ticker}|PE|v4|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
   if (rangeKey === '1D') return `${ticker}|1D|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
   return `${ticker}|${rangeKey}`;
 }
