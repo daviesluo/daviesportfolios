@@ -362,20 +362,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           if (!cached) { setError(true); setLoading(false); }
           return;
         }
-        const REPORT_LAG_MS = 45 * 86400000;
-        const epsHist = Array.isArray(row?.ttmEpsHistory) ? row.ttmEpsHistory : [];
-        const reportEvents = epsHist
-          .map(e => ({ ttm: Number(e.eps), reportMs: new Date(e.date).getTime() + REPORT_LAG_MS }))
-          .filter(e => isFinite(e.ttm) && isFinite(e.reportMs) && e.ttm > 0)
-          .sort((a, b) => a.reportMs - b.reportMs);
-        data = data.map(p => {
-          const dMs = new Date(p.date).getTime();
-          let ttmEps = eps;
-          for (let i = reportEvents.length - 1; i >= 0; i--) {
-            if (reportEvents[i].reportMs <= dMs) { ttmEps = reportEvents[i].ttm; break; }
-          }
-          return { date: p.date, close: ttmEps > 0 ? p.close / ttmEps : 0 };
-        });
+        // Use the shared `priceDividedByTtmEps` helper so the same
+        // USD-anchor history rescale (Codex P1 fix) lands here as
+        // in prefetch.js. Inline transform deleted to avoid drift.
+        data = priceDividedByTtmEps(data, row?.ttmEpsHistory, eps);
       }
       modalCacheSet(cacheKey, data);
       setSeries(data);
@@ -492,20 +482,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           eps = data[data.length - 1].close / pe;
         }
         if (!eps || eps <= 0) return;
-        const REPORT_LAG_MS = 45 * 86400000;
-        const epsHist = Array.isArray(row?.ttmEpsHistory) ? row.ttmEpsHistory : [];
-        const reportEvents = epsHist
-          .map(e => ({ ttm: Number(e.eps), reportMs: new Date(e.date).getTime() + REPORT_LAG_MS }))
-          .filter(e => isFinite(e.ttm) && isFinite(e.reportMs) && e.ttm > 0)
-          .sort((a, b) => a.reportMs - b.reportMs);
-        data = data.map(p => {
-          const dMs = new Date(p.date).getTime();
-          let ttmEps = eps;
-          for (let i = reportEvents.length - 1; i >= 0; i--) {
-            if (reportEvents[i].reportMs <= dMs) { ttmEps = reportEvents[i].ttm; break; }
-          }
-          return { date: p.date, close: ttmEps > 0 ? p.close / ttmEps : 0 };
-        });
+        // Use the shared `priceDividedByTtmEps` helper so the same
+        // USD-anchor history rescale (Codex P1 fix) lands here as
+        // in prefetch.js. Inline transform deleted to avoid drift.
+        data = priceDividedByTtmEps(data, row?.ttmEpsHistory, eps);
       }
       modalCacheSet(cacheKey, data);
     })).catch(() => { /* per-range failures stay quiet */ });
