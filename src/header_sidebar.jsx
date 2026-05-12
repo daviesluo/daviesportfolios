@@ -62,7 +62,7 @@ function useClock(intervalMs = 1000) {
 // to `mask` here so the original short name keeps reading naturally
 // inside the JSX.
 
-function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues }) {
+function Header({ metrics, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues }) {
   const now = useClock(1000);
   const t = londonTimeParts(now);
   const phase = usMarketPhase(now);
@@ -220,7 +220,7 @@ function Header({ metrics, source, lastUpdated, isRefreshing, onRefresh, editMod
             <span className="live-ago mono">Last updated {agoText}</span>
           </div>
         </div>
-        {fxMissing.length > 0 && (
+        {marketDataReady && fxMissing.length > 0 && (
           <div
             className="live-pill err"
             title={`Live FX rate missing for ${fxMissing.join(", ")} — these holdings are valued at 1:1 USD until the FX pair refreshes. Click Refresh.`}
