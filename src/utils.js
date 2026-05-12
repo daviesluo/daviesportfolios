@@ -12,12 +12,28 @@ const STORAGE_KEYS = {
   schemaVersion: 'dp.schema',
   auth:          'dp.auth',   // { lockoutUntil, attempts }
   prefs:         'dp.prefs',  // { hideValues: boolean, ... }
+  // Last-known FX rates from the live market-data fetch. Hydrated
+  // on app mount as the initial value of `marketData` so the first
+  // metrics compute uses real cross-rates (~yesterday's, well
+  // within a percent of live) instead of the silent 1:1 USD
+  // fallback that was inflating CNY-denominated holdings by ~7x
+  // for ~500 ms during cold start, then "correcting" once the
+  // live fetch came back. Only the FX subset is persisted —
+  // index / futures prices are fine to start cold, the user
+  // doesn't read the MC cards before they paint.
+  fxCache:       'dp.fxCache', // { ts, rates: { 'GBPUSD=X': { lastPrice }, ... } }
   // Chart caches (dp.tickerChart / dp.maCache / dp.ytd) live in
   // IndexedDB now (chart_store.js). chart_store's hydrate() owns
   // the legacy-localStorage migration so these names are referenced
   // there, not here.
 };
 const CURRENT_SCHEMA_VERSION = 1;
+// FX cache freshness — accept rows up to 7 days old. FX moves <1 %
+// over a typical week so the cold-start render is still well within
+// noise; older than that we'd rather show the cached "$—" loading
+// state than a number that could be off by several percent.
+const FX_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const FX_KEYS = ['GBPUSD=X', 'USDCNY=X', 'USDHKD=X'];
 
 function readJSON(key, fallback) {
   try {
@@ -110,6 +126,42 @@ export const Storage = {
   clearAuth: () => { try { localStorage.removeItem(STORAGE_KEYS.auth); } catch (_) {} },
   loadPrefs: () => readJSON(STORAGE_KEYS.prefs, { hideValues: false }),
   savePrefs: (p) => writeJSON(STORAGE_KEYS.prefs, p),
+  // FX-rate seed: returns a marketData-shaped fragment containing only
+  // the FX pairs `fxRateToUSD` reads, taken from the most recent
+  // successful live tick. Initial render of metrics uses these so
+  // CNY / GBP / HKD holdings get reasonable USD conversions instead
+  // of the silent 1:1 fallback that would briefly inflate (CNY) or
+  // deflate (GBP) the portfolio total. Returns `{}` when the cache
+  // is missing or older than 7 days.
+  loadFxCache: () => {
+    const row = readJSON(STORAGE_KEYS.fxCache, null);
+    if (!row || typeof row !== 'object') return {};
+    const ts = Number(row.ts);
+    if (!isFinite(ts) || Date.now() - ts > FX_CACHE_MAX_AGE_MS) return {};
+    const rates = row.rates;
+    if (!rates || typeof rates !== 'object') return {};
+    /** @type {Record<string, {lastPrice: number}>} */
+    const out = {};
+    for (const k of FX_KEYS) {
+      const lp = Number(rates?.[k]?.lastPrice);
+      if (isFinite(lp) && lp > 0) out[k] = { lastPrice: lp };
+    }
+    return out;
+  },
+  // Persist the FX subset of a fresh marketData tick. Called after
+  // every successful setMarketData so the next cold start has a
+  // recent set of cross-rates to seed with.
+  saveFxCache: (marketData) => {
+    if (!marketData || typeof marketData !== 'object') return false;
+    /** @type {Record<string, {lastPrice: number}>} */
+    const rates = {};
+    for (const k of FX_KEYS) {
+      const lp = Number(marketData?.[k]?.lastPrice);
+      if (isFinite(lp) && lp > 0) rates[k] = { lastPrice: lp };
+    }
+    if (Object.keys(rates).length === 0) return false;
+    return writeJSON(STORAGE_KEYS.fxCache, { ts: Date.now(), rates });
+  },
   // dp.tickerChart / dp.maCache / dp.ytd moved to IndexedDB
   // (chart_store.js — ChartStore / MaStore / YtdStore). See that
   // module for the read/write API. localStorage now only holds
