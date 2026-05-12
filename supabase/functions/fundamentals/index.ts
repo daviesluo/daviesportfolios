@@ -358,6 +358,40 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
   }
 }
 
+/**
+ * Yahoo's chart endpoint returns the last day's bars plus a `meta`
+ * block containing `regularMarketPrice` as a plain USD number.
+ * Unlike quoteSummary's `price` / `summaryDetail` blocks — which
+ * Yahoo strips price-ish fields out of for unauthenticated callers
+ * targeting ADRs (TSM / SFTBY / ASML all returned NULL for
+ * regularMarketPrice / previousClose / fiftyDayAverage in prod) —
+ * the chart endpoint is what Yahoo's own consumer site uses and it
+ * answers anon callers reliably. Used as the last-resort USD anchor
+ * for the TTM-EPS rescale when neither FMP nor quoteSummary
+ * supplies a price.
+ */
+async function fetchYahooChartPrice(symbol: string): Promise<number> {
+  const url =
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
+    `?range=1d&interval=1d`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/json,text/plain,*/*",
+      },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return 0;
+    const data = await res.json();
+    const price = Number(data?.chart?.result?.[0]?.meta?.regularMarketPrice);
+    return isFinite(price) && price > 0 ? price : 0;
+  } catch {
+    return 0;
+  }
+}
+
 // ---- Finnhub --------------------------------------------------------
 
 /**
@@ -692,24 +726,34 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
           //   1. FMP price/pe — same response, no timing skew, but FMP
           //      free tier doesn't cover all ADRs (TSM/SFTBY/ASML are
           //      missing as of 2026-05).
-          //   2. Yahoo price/pe — both fields come from the same
-          //      quoteSummary response and are USD-normalized for
-          //      ADRs, so dividing gives the implied USD EPS without
-          //      a client/server price-timing mismatch.
-          //   3. f.eps — only hit on the Finnhub-only fallback path
-          //      (no Yahoo + no FMP), where Finnhub's USD-anchor bug
-          //      was the original cause of TSM=1.22 etc. and the
-          //      ratio detection in normalizeEpsHistoryToUsd will
-          //      simply leave the history unscaled.
+          //   2. Yahoo quoteSummary price/pe — both fields come from
+          //      the same response. In practice Yahoo strips all
+          //      price-ish fields from quoteSummary for anon callers
+          //      targeting ADRs, so this rarely fires for the
+          //      tickers we actually need it for.
+          //   3. Yahoo chart-endpoint price / quoteSummary pe —
+          //      separate Yahoo API that reliably returns
+          //      `meta.regularMarketPrice` for ADRs. One extra HTTP
+          //      call per ADR ticker, only when (2) didn't fire.
+          //   4. f.eps — only hit when Yahoo's chart endpoint also
+          //      fails or pe is 0; normalizeEpsHistoryToUsd's ratio
+          //      guard then leaves the history unscaled.
           const fmpRow = fmpByTicker[t];
           let usdAnchor = f.eps;
-          let anchorSource: 'fmp_price_pe' | 'yahoo_price_pe' | 'fallback_f_eps' = 'fallback_f_eps';
+          let chartPrice = 0;
+          let anchorSource: 'fmp_price_pe' | 'yahoo_price_pe' | 'yahoo_chart_pe' | 'fallback_f_eps' = 'fallback_f_eps';
           if (fmpRow && fmpRow.price > 0 && fmpRow.pe > 0) {
             usdAnchor = fmpRow.price / fmpRow.pe;
             anchorSource = 'fmp_price_pe';
           } else if (f.price && f.price > 0 && f.pe > 0) {
             usdAnchor = f.price / f.pe;
             anchorSource = 'yahoo_price_pe';
+          } else if (f.pe > 0) {
+            chartPrice = await fetchYahooChartPrice(t);
+            if (chartPrice > 0) {
+              usdAnchor = chartPrice / f.pe;
+              anchorSource = 'yahoo_chart_pe';
+            }
           }
           if (hist) f.ttmEpsHistory = normalizeEpsHistoryToUsd(hist, usdAnchor);
           // TEMP debug — shows the route the deployed function actually
@@ -722,6 +766,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
             fmpPe: fmpRow?.pe ?? null,
             yahooPrice: f.price ?? null,
             yahooPe: f.pe,
+            chartPrice: chartPrice || null,
             usdAnchor,
             anchorSource,
           };
