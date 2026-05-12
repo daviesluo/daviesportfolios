@@ -481,16 +481,20 @@ async function fetchYahoo(tickers) {
   const edgeResult = await fetchViaEdge(liveTickers).then(normalizeEdgeResult).catch(() => null);
   const haveEverything = edgeResult && liveTickers.every(t => edgeResult[t]);
   if (haveEverything) return edgeResult;
-  // If the Edge Function returned anything at all (even a partial set),
-  // trust it — the tickers it omitted genuinely failed server-side
-  // (Yahoo doesn't have them, .PVT placeholder, geo-blocked CN fund,
-  // etc.). Re-trying the same upstreams through browser CORS proxies
-  // wastes the proxies' rate limits with no realistic chance of
-  // different data. Only fall back to proxies when the Edge call
-  // ITSELF failed (no result whatsoever).
-  if (edgeResult) return edgeResult;
-  const missing = liveTickers;
-  // Edge call totally failed — proxy fallback for everything.
+  // Partial Edge response — narrow the proxy retry to JUST the tickers
+  // Edge omitted, instead of either trusting the omissions (the old
+  // policy, which produced the recurring "FX MISSING" pill the user
+  // hit whenever Yahoo dropped GBPUSD=X for a single tick) or
+  // re-fetching everything via proxy (which would shred the proxy
+  // chain's rate limits). The proxies hit the same Yahoo upstream so
+  // a non-transient miss still won't recover, but Yahoo's per-ticker
+  // drops are mostly transient (the next refresh tick already has
+  // them back) and a quick retry catches them before the silent 1:1
+  // USD fallback in fxRateToUSD propagates into the portfolio total.
+  const missing = edgeResult
+    ? liveTickers.filter(t => !edgeResult[t])
+    : liveTickers;
+  if (missing.length === 0 && edgeResult) return edgeResult;
   const proxyPairs = await Promise.all(missing.map(async (t) => [t, await fetchOneYahooChart(t)]));
   const out = { ...(edgeResult || {}) };
   for (const [t, r] of proxyPairs) if (r) out[t] = r;

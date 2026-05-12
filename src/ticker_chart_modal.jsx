@@ -342,9 +342,21 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // reported quarter, or (c) the Edge Function is on the older
       // version that doesn't yet emit `ttmEpsHistory`.
       if (rangeKey === 'PE') {
-        const fundamentals = await fetchFundamentals([ticker], { ttmEpsHistory: true });
-        if (cancelled) return;
-        const row = fundamentals?.[ticker];
+        // Mirror the 3-attempt retry policy fetchHistoricalBatch uses
+        // a few lines up: the fundamentals chain (FMP → Yahoo
+        // quoteSummary → Yahoo chart → Finnhub) is just as flaky
+        // single-shot, and a single Yahoo / FMP burp would otherwise
+        // drop the whole modal into the "Couldn't load history" state
+        // AND fire fetch.pe.network-drop in ops-error. Most of those
+        // turned out to be transient when checked manually.
+        let row;
+        for (let attempt = 0; attempt < 3 && !row; attempt++) {
+          if (attempt > 0) await new Promise(r => setTimeout(r, 250 * attempt));
+          if (cancelled) return;
+          const fundamentals = await fetchFundamentals([ticker], { ttmEpsHistory: true });
+          if (cancelled) return;
+          row = fundamentals?.[ticker];
+        }
         // Three terminal states for this branch:
         //   (a) `row` absent — the Edge Function dropped this ticker
         //       entirely (5xx, network drop, Yahoo/FMP/Finnhub all
