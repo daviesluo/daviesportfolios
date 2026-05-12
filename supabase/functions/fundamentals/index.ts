@@ -229,7 +229,82 @@ async function resolveIndexPe(
   return null;
 }
 
+// ---- Yahoo quoteSummary (ADR-currency-safe P/E) --------------------
+//
+// Finnhub's `peTTM` is broken for ADRs (TSM, SFTBY, etc.) — Finnhub
+// returns the ADR's USD price but the EPS in the foreign reporting
+// currency (TWD / JPY), so peTTM comes out as ~1.22 for TSM and
+// ~0.07 for SFTBY. Yahoo's quoteSummary endpoint pre-computes
+// trailingPE / trailingEps with both sides on the same USD scale
+// because the consumer-facing site has to show consistent numbers,
+// so we use Yahoo as the primary source and fall back to Finnhub
+// only when Yahoo is unreachable / blocked.
+
+type YahooQuoteSummary = { pe: number; eps: number; currency: string | null };
+
+async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary | null> {
+  // quoteSummary doesn't require auth for most tickers (crumb is
+  // only required on a few high-traffic endpoints). The chart Edge
+  // Function uses the same query1 host without a crumb.
+  const url =
+    `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}` +
+    `?modules=summaryDetail,defaultKeyStatistics,price`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/json,text/plain,*/*",
+      },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const result = data?.quoteSummary?.result?.[0];
+    if (!result) return null;
+    const peRaw  = result?.summaryDetail?.trailingPE?.raw
+                ?? result?.defaultKeyStatistics?.trailingPE?.raw;
+    const epsRaw = result?.defaultKeyStatistics?.trailingEps?.raw;
+    const currency = result?.price?.currency ?? null;
+    const pe  = Number(peRaw);
+    const eps = Number(epsRaw);
+    if (!isFinite(pe)  || pe  <= 0) return null;
+    if (!isFinite(eps) || eps <= 0) return null;
+    return { pe, eps, currency: typeof currency === 'string' ? currency : null };
+  } catch {
+    return null;
+  }
+}
+
 // ---- Finnhub --------------------------------------------------------
+
+/**
+ * Combined fundamentals for a single stock symbol. Yahoo's
+ * quoteSummary is the primary source for `pe` + `eps` because it
+ * handles ADR currency normalization correctly (TSM/SFTBY return
+ * sane ~26 / ~15 instead of Finnhub's 1.22 / 0.07). Finnhub is still
+ * the source of `pe3yAvg` (its `series.annual.pe` is the only free
+ * historical-annual data we have access to) — fetched in parallel
+ * so this combined call is no slower than fetchFinnhub used to be
+ * for non-ADR stocks. If Yahoo fails (rate-limited, no PE published
+ * for the symbol), the result falls back entirely to Finnhub —
+ * which is correct for US-listed stocks where Finnhub doesn't have
+ * the currency-mismatch bug.
+ */
+export async function fetchStockFundamentals(symbol: string): Promise<Fundamentals | null> {
+  const [yahoo, finn] = await Promise.all([
+    fetchYahooQuoteSummary(symbol),
+    fetchFinnhub(symbol),
+  ]);
+  if (yahoo) {
+    return {
+      pe: yahoo.pe,
+      eps: yahoo.eps,
+      pe3yAvg: finn?.pe3yAvg ?? null,
+    };
+  }
+  return finn;
+}
 
 async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
   if (!FINNHUB_API_KEY) return null;
@@ -384,6 +459,43 @@ export function rollingTtmFromRawQuarterly(
 }
 
 /**
+ * Scale a TTM-EPS history series to USD using the ratio between the
+ * authoritative USD eps (from Yahoo quoteSummary) and the latest
+ * entry in the historical series. ADRs like TSM / SFTBY report
+ * fundamentals in the underlying foreign currency (TWD / JPY) via
+ * Yahoo's fundamentals-timeseries endpoint, while the ADR's market
+ * price + trailingPE / trailingEps from quoteSummary are pre-
+ * normalized to USD. Dividing USD prices by foreign-currency EPS
+ * was the source of the TSM=1.22 / SFTBY=0.07 bug.
+ *
+ * The scaling assumes the FX rate has been approximately constant
+ * over the historical window — true within ±5-10 % for USD/TWD,
+ * USD/JPY over a typical 1y chart, which is acceptable for a "how
+ * has the P/E moved this year?" visualization.
+ *
+ * For US-listed stocks where currencies already match, the ratio is
+ * ≈ 1.0 so this is a near no-op (just a uniform multiply).
+ *
+ * @param history       latest-last EPS series, foreign-currency for ADRs
+ * @param epsUsdLatest  authoritative USD trailing EPS (Yahoo quoteSummary)
+ */
+export function normalizeEpsHistoryToUsd(
+  history: Array<{ date: string; eps: number }>,
+  epsUsdLatest: number,
+): Array<{ date: string; eps: number }> {
+  if (!Array.isArray(history) || history.length === 0) return history;
+  if (!isFinite(epsUsdLatest) || epsUsdLatest <= 0) return history;
+  const latest = history[history.length - 1].eps;
+  if (!isFinite(latest) || latest <= 0) return history;
+  // If the latest historical EPS is already within ±20 % of the
+  // authoritative USD value, currencies already match — return as-is
+  // rather than apply a near-1.0 scale that could amplify noise.
+  const ratio = epsUsdLatest / latest;
+  if (ratio > 0.8 && ratio < 1.2) return history;
+  return history.map((p) => ({ date: p.date, eps: p.eps * ratio }));
+}
+
+/**
  * Compute the 3-year average P/E from Finnhub's `series.annual.pe`
  * (or any similarly-shaped { period, v } array). Takes the 3 most
  * recent valid years.
@@ -450,7 +562,11 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
       while (queue.length > 0) {
         const t = queue.shift();
         if (!t) break;
-        const f = await fetchFinnhub(t);
+        // Yahoo quoteSummary first → ADR-currency-safe pe/eps.
+        // Finnhub still used for pe3yAvg (its annual series is our
+        // only free historical-PE source). See fetchStockFundamentals
+        // for the full layering.
+        const f = await fetchStockFundamentals(t);
         if (!f) continue;
         if (includeEpsHistory) {
           // Each entry's `eps` is TTM diluted EPS at that quarter end —
@@ -466,7 +582,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
             const raw = await fetchFinnhubEarningsHistory(t);
             if (raw) hist = rollingTtmFromRawQuarterly(raw);
           }
-          if (hist) f.ttmEpsHistory = hist;
+          if (hist) f.ttmEpsHistory = normalizeEpsHistoryToUsd(hist, f.eps);
         }
         out[t] = f;
       }
