@@ -671,6 +671,17 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
             ? fmpRow.price / fmpRow.pe
             : f.eps;
           if (hist) f.ttmEpsHistory = normalizeEpsHistoryToUsd(hist, usdAnchor);
+          // TEMP debug — shows the route the deployed function actually
+          // took. Once we confirm the right anchor is being used the
+          // user can see the fix landed (or which branch is firing if
+          // it didn't). Remove after.
+          /** @type {any} */ (f).__debug = {
+            fmpHasPrice: !!fmpRow && fmpRow.price > 0,
+            fmpPrice: fmpRow?.price ?? null,
+            fmpPe: fmpRow?.pe ?? null,
+            usdAnchor,
+            anchorSource: (fmpRow && fmpRow.price > 0 && fmpRow.pe > 0) ? 'fmp_price_pe' : 'fallback_f_eps',
+          };
         }
         out[t] = f;
       }
