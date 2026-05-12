@@ -326,11 +326,21 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
     const peRaw  = result?.summaryDetail?.trailingPE?.raw
                 ?? result?.defaultKeyStatistics?.trailingPE?.raw;
     const epsRaw = result?.defaultKeyStatistics?.trailingEps?.raw;
-    // Yahoo's `price.regularMarketPrice` is the ADR's USD market
-    // price — same currency as `trailingPE` — so price/pe gives the
-    // implied USD EPS we need as the rescale anchor when FMP has no
-    // coverage for this symbol (TSM/SFTBY/ASML on the free tier).
-    const priceRaw = result?.price?.regularMarketPrice?.raw;
+    // Yahoo's USD market price for the symbol — used as the anchor
+    // (price/pe = implied USD EPS) when rescaling foreign-currency
+    // TTM-EPS history for ADRs. `price.regularMarketPrice` is the
+    // ideal field but Yahoo strips it from anon (no-crumb) callers
+    // for some symbols, so we walk a fallback chain through
+    // summaryDetail — all USD for US-listed ADRs, all guaranteed
+    // present in the same response, no extra HTTP call. Each is a
+    // few-day-stale price at worst; that's well inside the noise of
+    // a P/E chart's FX rescale (single-digit % drift).
+    const priceRaw =
+      result?.price?.regularMarketPrice?.raw
+      ?? result?.summaryDetail?.regularMarketPreviousClose?.raw
+      ?? result?.summaryDetail?.previousClose?.raw
+      ?? result?.summaryDetail?.fiftyDayAverage?.raw
+      ?? result?.summaryDetail?.twoHundredDayAverage?.raw;
     const currency = result?.price?.currency ?? null;
     const pe    = Number(peRaw);
     const eps   = Number(epsRaw);
