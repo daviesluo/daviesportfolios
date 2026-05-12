@@ -62,11 +62,14 @@ const REFRESH_MS = 30 * 1000;
 // displayed card and the rate we use to convert GBP holdings to USD.
 const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X", "ES=F", "NQ=F", "RTY=F"];
 
-// MC symbols whose CARDS are clickable — i.e. canonical (non-futures)
-// names. The futures alternates (ES=F / NQ=F / RTY=F) only show up on
-// the card face during ext-hours, but onCardClick always passes the
-// canonical name so prefetch only needs to warm the canonical set.
-const MC_PREFETCH_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X"];
+// MC symbols whose CARDS are clickable. The futures alternates
+// (ES=F / NQ=F / RTY=F) only appear on the card face during
+// ext-hours, but `<MarketConditions>`'s `onCardClick` passes
+// the ACTIVE ticker (= futures during ext-on for indices that
+// have a futures alt), so prefetch needs to warm both canonical
+// and futures tickers — otherwise clicking ^GSPC card in ext
+// mode opens an ES=F chart whose cache is cold.
+const MC_PREFETCH_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X", "ES=F", "NQ=F", "RTY=F"];
 
 // Main app ---------------------------------------------------------------
 function App() {
@@ -322,6 +325,42 @@ function Board({ isReadOnly }) {
     const id = setInterval(() => doRefreshRef.current({ prefetch: false }), REFRESH_MS);
     return () => clearInterval(id);
   }, [portfolio !== null]);
+
+  // Re-prefetch when the user toggles extendedHours. 1D's cache key
+  // includes the variant tag (`reg` vs `ext`) because the fetched
+  // window differs across them (includePrePost on/off); without
+  // re-firing prefetch on toggle, a user who flips the toggle after
+  // their initial load gets a cache miss on every 1D click until the
+  // next manual Refresh. Non-1D ranges + the PE block re-check fresh
+  // entries cheaply and short-circuit, so the cost of running the
+  // whole prefetch here is dominated by just the 1D fetch (~1-2 s).
+  // The bootstrap useEffect above already covers the initial mount —
+  // its `extendedHours` is whatever was restored from sessionStorage
+  // — so this effect's "skipped first call" is intentional: the
+  // toggle hasn't changed yet on mount.
+  const prefetchedExtRef = useRef(/** @type {boolean | null} */ (null));
+  useEffect(() => {
+    if (!portfolio) return;
+    if (prefetchedExtRef.current === null) {
+      prefetchedExtRef.current = extendedHours;
+      return; // first run — initial mount already prefetched
+    }
+    if (prefetchedExtRef.current === extendedHours) return;
+    prefetchedExtRef.current = extendedHours;
+    // Fire-and-forget; the prefetch will short-circuit any range
+    // whose cache is already fresh, so only 1D actually re-fetches.
+    const phaseNow = usMarketPhase(new Date());
+    const tickerList = Object.keys(portfolio?.holdings || {})
+      .filter((t) => t !== "CASH" && !portfolio.holdings[t]?.isCash);
+    const sp = (extendedHours && phaseNow !== "regular") ? "ES=F" : "^GSPC";
+    prefetchAllChartData({
+      tickers: tickerList,
+      mcTickers: MC_PREFETCH_TICKERS,
+      spSymbol: sp,
+      extendedHours,
+      phase: phaseNow,
+    });
+  }, [extendedHours, portfolio]);
 
   // Never substitute extended-hours prices during the regular session — the
   // toggle only takes effect outside RTH so the displayed value stays consistent.
