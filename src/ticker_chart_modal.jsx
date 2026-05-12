@@ -453,67 +453,72 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   }, [ticker, rangeKey, dailyOnly]);
 
   // cache untouched and the next click pays the normal fetch cost.
+  // Per-modal range prefetch: as soon as the current range has
+  // rendered (loading=false, error=false, series set), kick off
+  // PARALLEL fetches for every OTHER range so subsequent range
+  // clicks hit cache instead of paying a cold fetch. Each fetch
+  // short-circuits if its cache entry is still fresh, so the
+  // typical post-global-prefetch case is mostly no-ops.
+  //
+  // Previously this loop was sequential — clicking a ticker that
+  // the global prefetch missed meant the user could click 1W
+  // before the modal had fetched it, paying a fresh load. Going
+  // parallel lets all 4-5 ranges (1W / 1M / 3M / YTD / PE) settle
+  // in roughly the time of the slowest one (~1-3 s) instead of
+  // summing them serially (~5-15 s).
   React.useEffect(() => {
     if (loading || error || !series) return;
     const others = visibleRangeKeys.filter(k => k !== rangeKey);
     let cancelled = false;
-    (async () => {
-      for (const rk of others) {
-        if (cancelled) return;
-        // PE uses YTD daily data + a price ÷ EPS transform; everything
-        // else uses fetchParamsFor's normal output (with the dailyOnly
-        // override for CN funds + .PVT).
-        let yahooRange, interval, includePrePost, variant;
-        if (rk === 'PE') {
-          const p = fetchParamsFor('YTD', extendedHours, phase);
-          yahooRange = p.yahooRange; interval = '1d'; includePrePost = false; variant = p.variant;
-        } else {
-          const baseParams = fetchParamsFor(rk, extendedHours, phase);
-          ({ yahooRange, interval, includePrePost, variant } = dailyOnly
-            ? { ...baseParams, interval: '1d', includePrePost: false }
-            : baseParams);
-        }
-        const cacheKey = tickerChartCacheKey(ticker, rk, useExt, phase);
-        const ttl = modalTtl(rk);
-        const c = modalCacheGet(cacheKey);
-        if (c && Array.isArray(c.data) && (Date.now() - (c.ts || 0)) < ttl) continue;
-        const out = await fetchHistoricalBatch([ticker], yahooRange, interval, includePrePost);
-        if (cancelled) return;
-        let data = out[ticker];
-        if (data && data.length >= 2) {
-          if (variant === 'closed') data = filterToLatestDay(data);
-          else if (variant === 'reg' || variant === 'ext') data = filterToLast24h(data);
-          if (rk === 'PE') {
-            const f = await fetchFundamentals([ticker], { ttmEpsHistory: true });
-            if (cancelled) return;
-            const row = f?.[ticker];
-            let eps = row?.eps;
-            const pe = row?.pe;
-            // Same implied-EPS fallback as the main fetch above —
-            // index proxies don't have aggregate EPS in Finnhub.
-            if ((!eps || eps <= 0) && typeof pe === 'number' && pe > 0 && data.length > 0) {
-              eps = data[data.length - 1].close / pe;
-            }
-            if (!eps || eps <= 0) continue;
-            const REPORT_LAG_MS = 45 * 86400000;
-            const epsHist = Array.isArray(row?.ttmEpsHistory) ? row.ttmEpsHistory : [];
-            const reportEvents = epsHist
-              .map(e => ({ ttm: Number(e.eps), reportMs: new Date(e.date).getTime() + REPORT_LAG_MS }))
-              .filter(e => isFinite(e.ttm) && isFinite(e.reportMs) && e.ttm > 0)
-              .sort((a, b) => a.reportMs - b.reportMs);
-            data = data.map(p => {
-              const dMs = new Date(p.date).getTime();
-              let ttmEps = eps;
-              for (let i = reportEvents.length - 1; i >= 0; i--) {
-                if (reportEvents[i].reportMs <= dMs) { ttmEps = reportEvents[i].ttm; break; }
-              }
-              return { date: p.date, close: ttmEps > 0 ? p.close / ttmEps : 0 };
-            });
-          }
-          modalCacheSet(cacheKey, data);
-        }
+    Promise.all(others.map(async (rk) => {
+      if (cancelled) return;
+      let yahooRange, interval, includePrePost, variant;
+      if (rk === 'PE') {
+        const p = fetchParamsFor('YTD', extendedHours, phase);
+        yahooRange = p.yahooRange; interval = '1d'; includePrePost = false; variant = p.variant;
+      } else {
+        const baseParams = fetchParamsFor(rk, extendedHours, phase);
+        ({ yahooRange, interval, includePrePost, variant } = dailyOnly
+          ? { ...baseParams, interval: '1d', includePrePost: false }
+          : baseParams);
       }
-    })();
+      const cacheKey = tickerChartCacheKey(ticker, rk, useExt, phase);
+      const ttl = modalTtl(rk);
+      const c = modalCacheGet(cacheKey);
+      if (c && Array.isArray(c.data) && (Date.now() - (c.ts || 0)) < ttl) return;
+      const out = await fetchHistoricalBatch([ticker], yahooRange, interval, includePrePost);
+      if (cancelled) return;
+      let data = out[ticker];
+      if (!data || data.length < 2) return;
+      if (variant === 'closed') data = filterToLatestDay(data);
+      else if (variant === 'reg' || variant === 'ext') data = filterToLast24h(data);
+      if (rk === 'PE') {
+        const f = await fetchFundamentals([ticker], { ttmEpsHistory: true });
+        if (cancelled) return;
+        const row = f?.[ticker];
+        let eps = row?.eps;
+        const pe = row?.pe;
+        if ((!eps || eps <= 0) && typeof pe === 'number' && pe > 0 && data.length > 0) {
+          eps = data[data.length - 1].close / pe;
+        }
+        if (!eps || eps <= 0) return;
+        const REPORT_LAG_MS = 45 * 86400000;
+        const epsHist = Array.isArray(row?.ttmEpsHistory) ? row.ttmEpsHistory : [];
+        const reportEvents = epsHist
+          .map(e => ({ ttm: Number(e.eps), reportMs: new Date(e.date).getTime() + REPORT_LAG_MS }))
+          .filter(e => isFinite(e.ttm) && isFinite(e.reportMs) && e.ttm > 0)
+          .sort((a, b) => a.reportMs - b.reportMs);
+        data = data.map(p => {
+          const dMs = new Date(p.date).getTime();
+          let ttmEps = eps;
+          for (let i = reportEvents.length - 1; i >= 0; i--) {
+            if (reportEvents[i].reportMs <= dMs) { ttmEps = reportEvents[i].ttm; break; }
+          }
+          return { date: p.date, close: ttmEps > 0 ? p.close / ttmEps : 0 };
+        });
+      }
+      modalCacheSet(cacheKey, data);
+    })).catch(() => { /* per-range failures stay quiet */ });
     return () => { cancelled = true; };
   }, [ticker, rangeKey, useExt, phase, loading, error]);
 
