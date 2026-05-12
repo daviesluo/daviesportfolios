@@ -18,17 +18,19 @@ export const RANGE_TTL_MS = {
 export const MA_TTL_MS = 12 * 60 * 60 * 1000;
 
 /**
- * Soft LRU caps for the two ticker-shaped stores. Sized so the
- * prefetch's freshly-warmed (range × ticker × variant × phase) rows
- * don't get evicted by the modal's subsequent writes, and so a
- * multi-phase / multi-variant accumulation over several refreshes
- * has breathing room. Used by both prefetch.js and the modal's
- * cache writer — duplicating the cap value broke the prefetch once
- * (the modal's 200 trim halved the prefetch's 400 cap on the next
- * modal write).
+ * Soft LRU caps for the two ticker-shaped stores. Originally bumped
+ * to 400 to give multi-phase accumulation breathing room, but the
+ * user hit localStorage quota (~5-10 MB total per origin): 400
+ * entries × ~10 KB avg per entry = ~4 MB just for dp.tickerChart,
+ * plus dp.maCache + dp.ytd + the FUND/PE rows = often over quota.
+ * Once full, every Storage.saveTickerChart silently failed — no
+ * cache writes landed. Dropped back to 200 (~2 MB worst case),
+ * which fits with comfortable headroom; the writeJSON quota
+ * handler in utils.js does an emergency halving on QuotaExceededError
+ * as a backstop.
  */
-export const TICKER_CACHE_CAP = 400;
-export const MA_CACHE_CAP     = 240;
+export const TICKER_CACHE_CAP = 200;
+export const MA_CACHE_CAP     = 160;
 
 /** TTL for the P/E modal's TTM EPS history fetch. */
 export const PE_TTL_MS = 12 * 60 * 60 * 1000;

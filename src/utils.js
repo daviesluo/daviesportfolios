@@ -24,11 +24,64 @@ function readJSON(key, fallback) {
     return raw == null ? fallback : JSON.parse(raw);
   } catch (_) { return fallback; }
 }
+
+// localStorage write with quota-fallback. Browsers throw
+// QuotaExceededError when the per-origin quota (~5-10 MB) is hit;
+// the previous version swallowed that silently, which meant a full
+// cache stopped accepting any new entries — the user reported
+// "switch ranges and back, still loads" because no chart entry
+// could persist. Now: on quota failure, halve the largest dp.* row
+// (the chart cache typically) and retry once. If THAT still fails
+// we give up — the worst case is one cold fetch, not silent
+// permanent breakage.
 function writeJSON(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (e) {
+    // Detect quota: name varies by browser ('QuotaExceededError' /
+    // 'NS_ERROR_DOM_QUOTA_REACHED'); code 22 / 1014 also possible.
+    const isQuota = e && (
+      e.name === 'QuotaExceededError' ||
+      e.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      e.code === 22 || e.code === 1014
+    );
+    if (!isQuota) return false;
+    // Free space: halve the entries on the cache rows that grow
+    // unboundedly. Keep the freshest half by ts.
+    try {
+      for (const k of ['dp.tickerChart', 'dp.maCache']) {
+        const raw = localStorage.getItem(k);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        const entries = parsed?.entries || {};
+        const keys = Object.keys(entries);
+        if (keys.length === 0) continue;
+        const half = Math.max(1, Math.floor(keys.length / 2));
+        const sorted = keys
+          .map((kk) => ({ kk, ts: entries[kk]?.ts || 0 }))
+          .sort((a, b) => b.ts - a.ts)
+          .slice(0, half);
+        const trimmed = {};
+        for (const { kk } of sorted) trimmed[kk] = entries[kk];
+        parsed.entries = trimmed;
+        try { localStorage.setItem(k, JSON.stringify(parsed)); } catch { /* ignore */ }
+      }
+      // Retry the original write now that we've freed space.
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch { return false; }
+  }
 }
 
 function migrateStorage() {
+  // Quota-pressure relief runs every boot, even when the schema is
+  // already current. Without this the migrate function returned
+  // early below and the localStorage chart caches accumulated until
+  // they hit the per-origin quota — at which point every save
+  // silently failed and no new cache entry could persist (the user
+  // reported "switch ranges and back, still loads").
+  pruneStaleChartCache();
   const stored = parseInt(localStorage.getItem(STORAGE_KEYS.schemaVersion) || '0', 10);
   if (stored === CURRENT_SCHEMA_VERSION) return;
 
@@ -46,6 +99,41 @@ function migrateStorage() {
   // Future migrations: if (stored < 2) { ... }
 
   localStorage.setItem(STORAGE_KEYS.schemaVersion, String(CURRENT_SCHEMA_VERSION));
+}
+
+const PRUNE_AGE_MS = 24 * 60 * 60 * 1000;
+function pruneStaleChartCache() {
+  for (const key of [STORAGE_KEYS.tickerChart, STORAGE_KEYS.maCache, STORAGE_KEYS.ytd]) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      const cutoff = Date.now() - PRUNE_AGE_MS;
+      if (key === STORAGE_KEYS.ytd) {
+        // dp.ytd has shape { year, byRange: { 'YTD:std': { entries: { t: { ts, data } } } } }
+        const byRange = parsed?.byRange;
+        if (!byRange || typeof byRange !== 'object') continue;
+        let touched = false;
+        for (const rkey of Object.keys(byRange)) {
+          const entries = byRange[rkey]?.entries;
+          if (!entries) continue;
+          for (const t of Object.keys(entries)) {
+            if ((entries[t]?.ts || 0) < cutoff) { delete entries[t]; touched = true; }
+          }
+        }
+        if (touched) { try { localStorage.setItem(key, JSON.stringify(parsed)); } catch { /* ignore */ } }
+      } else {
+        // dp.tickerChart, dp.maCache: shape { entries: { k: { ts, data } } }
+        const entries = parsed?.entries;
+        if (!entries || typeof entries !== 'object') continue;
+        let touched = false;
+        for (const k of Object.keys(entries)) {
+          if ((entries[k]?.ts || 0) < cutoff) { delete entries[k]; touched = true; }
+        }
+        if (touched) { try { localStorage.setItem(key, JSON.stringify(parsed)); } catch { /* ignore */ } }
+      }
+    } catch { /* corrupted row — leave it; prefetch will overwrite */ }
+  }
 }
 
 // Typed helpers — call these instead of touching localStorage directly so
