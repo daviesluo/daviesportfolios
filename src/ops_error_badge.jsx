@@ -20,11 +20,15 @@ import { Modal } from './modals.jsx';
 
 const POLL_MS = 60 * 1000;
 const SUMMARY_HOURS = 24;
-// Same breakpoint as the rest of the app (`.mc-hide-mobile`,
-// `.sidebar-foot-mobile`, etc.) — keep them in sync so the badge
-// appears at exactly the same width where the header gains room
-// for it.
-const DESKTOP_MEDIA_QUERY = '(min-width: 1021px)';
+// Match the same breakpoint the header CSS uses: at ≤ 760 px the
+// header stacks vertically (styles.css `@media (max-width: 760px)`)
+// and there's no room for the pill, so the badge stays unmounted
+// below that. Above 761 px the desktop horizontal layout has room
+// for it. The previous 1021 px value bled the badge into the
+// 761–1020 tablet band where the desktop layout had already kicked
+// in but the badge stayed hidden — visible discrepancy with the
+// sibling LIVE pill that the user's bug report flagged.
+const DESKTOP_MEDIA_QUERY = '(min-width: 761px)';
 
 function useIsDesktop() {
   const match = () =>
