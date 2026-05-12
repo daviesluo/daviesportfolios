@@ -375,32 +375,15 @@ function Board({ isReadOnly }) {
     ? computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular", marketData })
     : null;
 
-  // Report FX-rate-missing as an ops-error event. Fires at most once
-  // per minute per (kind, symbol) thanks to the reporter's dedup —
-  // so a steady-state outage records one row per affected ticker per
-  // minute, not every render. Without this report the only signal a
-  // GBP / CNY / HKD holding silently fell back to 1:1 USD was the
-  // header badge, which is only useful if the user is looking.
-  //
-  // The `Object.keys(marketData).length > 0` guard suppresses the
-  // initial-load false positive: between portfolio load and the first
-  // fetchTickers resolution, marketData is the empty default and every
-  // non-USD holding "looks" fx-missing for one render. Without this
-  // gate the user accumulates a spurious fx-fallback row per refresh
-  // for every non-USD holding (saw 4 noise rows for VUAG.L + 017731
-  // immediately after deploying this reporter).
-  const fxMissingKey = (metrics?.fxMissingTickers || []).join(",");
-  const hasMarketData = Object.keys(marketData).length > 0;
-  React.useEffect(() => {
-    if (!fxMissingKey || !hasMarketData) return;
-    for (const t of fxMissingKey.split(",").filter(Boolean)) {
-      reportError("fx-fallback", {
-        symbol: t,
-        message: "FX pair missing from marketData; native→USD fell back to 1:1",
-        context: { extendedHours, phase: currentPhase },
-      });
-    }
-  }, [fxMissingKey, hasMarketData, extendedHours, currentPhase]);
+  // FX-rate-missing is already surfaced by the red "FX MISSING N
+  // tickers" pill in the header (see Header.jsx, populated from
+  // metrics.fxMissingTickers). The user sees a missed FX pair
+  // immediately, so the previous ops-error reporter just duplicated
+  // a signal already visible to the user — 6+ noise rows per (kind,
+  // symbol) on every chronic outage. The header badge stays as the
+  // sole surface; any sustained outage is one click of Refresh away
+  // from re-resolving, which is the action the badge title spells
+  // out anyway.
 
   if (!portfolio || !metrics) {
     return (
