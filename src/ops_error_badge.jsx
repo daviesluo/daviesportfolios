@@ -87,7 +87,10 @@ export function OpsErrorBadge({ isReadOnly }) {
         className="live-pill err"
         title={`${summary.total} ops-error rows in the last ${summary.hours} h — click for breakdown`}
         onClick={() => { setOpen(true); refresh(); }}
-        style={{ cursor: 'pointer', border: 'none', font: 'inherit', color: 'inherit' }}
+        // No `border: none` — drop the UA outset border but let
+        // `.live-pill` / `.live-pill.err` paint the same 1px line +
+        // loss-red colour the non-button pills in the row use.
+        style={{ cursor: 'pointer', font: 'inherit', color: 'inherit' }}
       >
         <span className="live-dot err" />
         <div className="live-col">
