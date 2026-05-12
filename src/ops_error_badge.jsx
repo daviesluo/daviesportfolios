@@ -28,13 +28,29 @@ const SUMMARY_HOURS = 24;
 // 761–1020 tablet band where the desktop layout had already kicked
 // in but the badge stayed hidden — visible discrepancy with the
 // sibling LIVE pill that the user's bug report flagged.
-const DESKTOP_MEDIA_QUERY = '(min-width: 761px)';
+// Exported alongside isDesktopViewport so vitest can pin both the
+// constant and the predicate without spinning up a DOM.
+export const DESKTOP_MEDIA_QUERY = '(min-width: 761px)';
+
+/**
+ * Pure desktop-viewport predicate so the matchMedia check can be
+ * tested without a DOM. Takes the matchMedia function in directly
+ * (production: `window.matchMedia.bind(window)`; tests: a stub
+ * returning `{ matches }`). Falls back to false on any failure —
+ * private-mode iOS Safari, etc. — so the badge stays unmounted
+ * rather than render erroneously.
+ * @param {((q: string) => { matches: boolean }) | null | undefined} matchMediaFn
+ */
+export function isDesktopViewport(matchMediaFn) {
+  if (typeof matchMediaFn !== 'function') return false;
+  try { return matchMediaFn(DESKTOP_MEDIA_QUERY).matches === true; }
+  catch { return false; }
+}
 
 function useIsDesktop() {
   const match = () =>
     typeof window !== 'undefined'
-    && typeof window.matchMedia === 'function'
-    && window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
+    && isDesktopViewport(typeof window.matchMedia === 'function' ? window.matchMedia.bind(window) : null);
   const [isDesktop, setIsDesktop] = React.useState(match);
   React.useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
