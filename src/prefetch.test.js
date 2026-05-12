@@ -3,26 +3,31 @@
 // silently — the chart still works, just always pays a cold fetch
 // on first open even though prefetch supposedly warmed it. We hit
 // that exact bug once already; this test guards against repeats.
+//
+// Caches are now IndexedDB-backed via chart_store.js. The store has
+// a synchronous in-memory mirror that's the source of truth for
+// reads; IDB writes are best-effort persistence. In a vitest node
+// environment `indexedDB` is undefined so chart_store falls back to
+// mem-only — that's fine, we read the same mirror via the same API.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Storage } from './utils.js';
+import { ChartStore, MaStore, YtdStore } from './chart_store.js';
 
-// localStorage stub for a node test runner — vi.stubGlobal works
-// around `localStorage` being a non-configurable getter in some node
-// environments.
-beforeEach(() => {
-  const store = new Map();
+beforeEach(async () => {
+  // Drop any state left over from a previous test.
+  await ChartStore._resetForTest();
+  await MaStore._resetForTest();
+  await YtdStore._resetForTest();
+  // Minimal localStorage stub — Storage.migrate still touches it for
+  // the schema-version row; nothing chart-related lives there now.
+  const ls = new Map();
   vi.stubGlobal('localStorage', {
-    getItem: (k) => (store.has(k) ? store.get(k) : null),
-    setItem: (k, v) => { store.set(k, String(v)); },
-    removeItem: (k) => { store.delete(k); },
-    clear: () => { store.clear(); },
-    key: (i) => Array.from(store.keys())[i] ?? null,
-    get length() { return store.size; },
+    getItem: (k) => (ls.has(k) ? ls.get(k) : null),
+    setItem: (k, v) => { ls.set(k, String(v)); },
+    removeItem: (k) => { ls.delete(k); },
+    clear: () => { ls.clear(); },
+    key: (i) => Array.from(ls.keys())[i] ?? null,
+    get length() { return ls.size; },
   });
-  // fetchHistoricalBatch's underlying global fetch — stub a happy path
-  // that returns 12 intraday bars in the last hour. Recent-enough that
-  // filterToLast24h keeps them; >= 2 bars so prefetch's length guard
-  // passes and the cache row actually gets written.
   vi.stubGlobal('fetch', vi.fn(async (url) => {
     const u = String(url);
     if (u.includes('/functions/v1/chart')) {
@@ -38,14 +43,9 @@ beforeEach(() => {
       }
       return /** @type {any} */ ({ ok: true, json: async () => out });
     }
-    // PE-prefetch hits the fundamentals Edge Function after the
-    // range loop. Return an empty {} so the PE pass short-circuits
-    // (no usable EPS = no PE entries written) — the prefetch tests
-    // care about the chart-data shape, not PE.
     if (u.includes('/functions/v1/fundamentals')) {
       return /** @type {any} */ ({ ok: true, json: async () => ({}) });
     }
-    // Hang the proxy fallback so the Edge Function path always wins.
     return new Promise(() => {});
   }));
 });
@@ -64,17 +64,15 @@ describe('prefetchAllChartData → TickerChartModal cache-key contract', () => {
       phase: 'regular',
     });
 
-    const tc = Storage.loadTickerChart();
-    expect(tc?.entries).toBeTruthy();
     // Modal cache keys come from cache.js `tickerChartCacheKey()` — 1D
     // keeps variant+phase (its fetched window differs across them);
     // non-1D/non-PE drops both since `fetchParamsFor` returns
-    // identical params for every (toggle, phase). Bumping the shape
-    // means a phase transition (16:00 ET) no longer invalidates the
-    // prefetched YTD/3M/1W/1M cache.
-    expect(tc.entries['NVDA|YTD']).toBeTruthy();
-    expect(tc.entries['NVDA|1D|reg|regular']).toBeTruthy();
-    expect(tc.entries['GOOG|3M']).toBeTruthy();
+    // identical params for every (toggle, phase). Reads go through
+    // ChartStore (chart_store.js, IDB-backed in prod, mem-only in
+    // these tests).
+    expect(ChartStore.get('NVDA|YTD')).toBeTruthy();
+    expect(ChartStore.get('NVDA|1D|reg|regular')).toBeTruthy();
+    expect(ChartStore.get('GOOG|3M')).toBeTruthy();
   });
 
   it('writes spSymbol into the PerfChart cache (dp.ytd) under year + range:variant', async () => {
@@ -85,13 +83,12 @@ describe('prefetchAllChartData → TickerChartModal cache-key contract', () => {
       extendedHours: false,
       phase: 'regular',
     });
-    const ytd = Storage.loadYtd();
     const year = new Date().getFullYear();
-    expect(ytd?.year).toBe(year);
-    // Variant for 1D regular hours is 'reg'.
-    expect(ytd.byRange['1D:reg']?.entries['^GSPC']).toBeTruthy();
-    expect(ytd.byRange['1D:reg']?.entries['NVDA']).toBeTruthy();
-    expect(ytd.byRange['YTD:std']?.entries['^GSPC']).toBeTruthy();
+    // YtdStore keys are flat: `y${year}|${rkey}|${ticker}`. Variant
+    // for 1D regular hours is 'reg'; non-1D ranges use 'std'.
+    expect(YtdStore.get(`y${year}|1D:reg|^GSPC`)).toBeTruthy();
+    expect(YtdStore.get(`y${year}|1D:reg|NVDA`)).toBeTruthy();
+    expect(YtdStore.get(`y${year}|YTD:std|^GSPC`)).toBeTruthy();
   });
 
   it('skips the daily-only ticker on the intraday batch (interval=1d split)', async () => {

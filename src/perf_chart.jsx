@@ -14,8 +14,8 @@ import {
   fetchHistorical,
   fetchHistoricalBatch,
   usMarketHoursUtc,
-  Storage,
 } from './utils.js';
+import { YtdStore } from './chart_store.js';
 import {
   buildTickerSeries,
   computeAt,
@@ -73,16 +73,33 @@ const PERF_CACHE_TTL_MS = {
   'YTD': 12 * 60 * 60 * 1000,
 };
 
+// PerfChart cache reads/writes go through `YtdStore` (chart_store.js,
+// IndexedDB-backed). One IDB row per (year, rangeKey, ticker) keyed
+// `y${year}|${rangeKey}|${ticker}`. ytdSnapshot() rebuilds the
+// nested {year, byRange:{rkey:{entries:{ticker:...}}}} shape that
+// callers were used to.
 function loadPerfCache(year, rangeKey) {
-  const parsed = Storage.loadYtd();
-  if (!parsed || parsed.year !== year || !parsed.byRange) return {};
-  return parsed.byRange[rangeKey]?.entries || {};
+  /** @type {Record<string, any>} */
+  const out = {};
+  for (const k of YtdStore.keys()) {
+    const m = /^y(\d+)\|([^|]+)\|(.+)$/.exec(k);
+    if (!m) continue;
+    if (parseInt(m[1], 10) !== year || m[2] !== rangeKey) continue;
+    const v = YtdStore.get(k);
+    if (v) out[m[3]] = v;
+  }
+  return out;
 }
 function savePerfCache(year, rangeKey, entries) {
-  const cur = Storage.loadYtd();
-  const byRange = (cur && cur.year === year && cur.byRange) ? cur.byRange : {};
-  byRange[rangeKey] = { entries };
-  Storage.saveYtd({ year, byRange });
+  // Replace the entire (year, rangeKey) bucket — drop any existing
+  // entries first so a ticker removed from `entries` doesn't linger.
+  const prefix = `y${year}|${rangeKey}|`;
+  for (const k of YtdStore.keys()) {
+    if (k.startsWith(prefix)) YtdStore.del(k);
+  }
+  for (const [ticker, entry] of Object.entries(entries)) {
+    YtdStore.set(`${prefix}${ticker}`, /** @type {any} */ (entry));
+  }
 }
 
 // Parse a chart date string. Intraday strings come in as
