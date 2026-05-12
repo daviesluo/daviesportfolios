@@ -49,25 +49,14 @@ const CORS = {
 
 type EpsHistoryPoint = { date: string; eps: number };
 type Fundamentals = {
-  /** Trailing P/E as published by Yahoo (ADR-currency-safe). */
   pe: number;
-  /** 3-year average P/E from Finnhub annual series. */
+  eps: number;
   pe3yAvg: number | null;
-  /**
-   * Trading currency (USD for US-listed). When this matches
-   * `financialCurrency` the underlying reports in USD too and the
-   * P/E YTD historical chart can be drawn safely. When they
-   * differ (ADRs), the frontend hides the P/E YTD button — we'd
-   * need daily historical FX rates to do it right and we don't
-   * have those.
-   */
-  currency: string | null;
-  financialCurrency: string | null;
-  /**
-   * Quarter-end TTM-EPS history (USD), present only when
-   * `currency === financialCurrency` so the modal can divide USD
-   * prices by USD EPS without a unit mismatch. Absent for ADRs.
-   */
+  // Pre-summed TTM diluted EPS at each quarter end. Named explicitly
+  // to avoid colliding with the previous `epsHistory` contract that
+  // returned RAW quarterly EPS — a stale Edge Function or
+  // SW-cached response would otherwise be misinterpreted as TTM by
+  // the new client (yields P/E ~4x too low).
   ttmEpsHistory?: EpsHistoryPoint[];
 };
 
@@ -205,7 +194,7 @@ async function resolveIndexPe(
   const cached = await readCachedPe(etf);
   if (cached && cached.ageMs < CACHE_TTL_MS) {
     // (a) fresh cache
-    return { pe: cached.pe, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null, currency: "USD", financialCurrency: "USD" };
+    return { pe: cached.pe, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null };
   }
 
   // Stale or missing — try AV unless the batch already saw a rate
@@ -221,7 +210,7 @@ async function resolveIndexPe(
     if (av.ok) {
       // (b) live AV — write back and use.
       await writeCachedPe(etf, av.pe);
-      return { pe: av.pe, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null, currency: "USD", financialCurrency: "USD" };
+      return { pe: av.pe, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null };
     }
     if (av.rateLimited) avBlocked.value = true;
   }
@@ -229,162 +218,148 @@ async function resolveIndexPe(
   // (c) stale cache — better than the static fallback because it's
   // still real AV-sourced data, just possibly a few days old.
   if (cached) {
-    return { pe: cached.pe, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null, currency: "USD", financialCurrency: "USD" };
+    return { pe: cached.pe, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null };
   }
 
   // (d) hardcoded fallback — only on first deploy or total outage.
   const fb = INDEX_PE_FALLBACK[indexSymbol];
   if (fb) {
-    return { pe: fb, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null, currency: "USD", financialCurrency: "USD" };
+    return { pe: fb, eps: 0, pe3yAvg: INDEX_PE_3Y_AVG[indexSymbol] ?? null };
   }
   return null;
 }
 
-// ---- Yahoo quote (only source of truth for trailingPE) -------------
+// ---- Yahoo quoteSummary (ADR-currency-safe P/E) --------------------
 //
-// We exclusively use Yahoo's own `trailingPE` field — never compute
-// P/E ourselves. Finnhub's peTTM is broken for ADRs (USD price ÷
-// foreign-currency EPS = e.g. TSM 1.22, SFTBY 0.07, ASML 63 vs the
-// real ~26 / ~15 / ~33), and even with sanity gates that's a bad
-// answer to a question we shouldn't have asked. Yahoo handles ADR
-// currency normalization correctly on the consumer site, so
-// `trailingPE` from quote IS the official answer.
-//
-// Yahoo's modern quote endpoints (/v7, /v10) require a crumb +
-// cookie pair. Workflow:
-//   1. GET https://fc.yahoo.com  → response sets A1/A3 cookies
-//   2. GET https://query1.finance.yahoo.com/v1/test/getcrumb
-//      with that cookie → returns the crumb string
-//   3. /v7/finance/quote?symbols=...&crumb=...  with the cookie
-//
-// The crumb+cookie is cached at module scope for ~1 h so a 30-ticker
-// portfolio refresh only pays the auth handshake once per warm Edge
-// Function instance.
+// Finnhub's `peTTM` is broken for ADRs (TSM, SFTBY, etc.) — Finnhub
+// returns the ADR's USD price but the EPS in the foreign reporting
+// currency (TWD / JPY), so peTTM comes out as ~1.22 for TSM and
+// ~0.07 for SFTBY. Yahoo's quoteSummary endpoint pre-computes
+// trailingPE / trailingEps with both sides on the same USD scale
+// because the consumer-facing site has to show consistent numbers,
+// so we use Yahoo as the primary source and fall back to Finnhub
+// only when Yahoo is unreachable / blocked.
 
-const YAHOO_UA =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+type YahooQuoteSummary = { pe: number; eps: number; currency: string | null };
 
-type YahooAuth = { crumb: string; cookie: string; expiresAt: number };
-let cachedYahooAuth: YahooAuth | null = null;
-const YAHOO_AUTH_TTL_MS = 60 * 60 * 1000;
+const YAHOO_HEADERS = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Accept": "application/json,text/plain,*/*",
+};
 
-async function getYahooAuth(): Promise<{ crumb: string; cookie: string } | null> {
-  if (cachedYahooAuth && cachedYahooAuth.expiresAt > Date.now()) {
-    return { crumb: cachedYahooAuth.crumb, cookie: cachedYahooAuth.cookie };
-  }
+/** Try the v10 quoteSummary endpoint (richest schema). */
+async function fetchYahooQuoteSummaryOnce(host: string, symbol: string): Promise<YahooQuoteSummary | null> {
+  const url =
+    `https://${host}/v10/finance/quoteSummary/${encodeURIComponent(symbol)}` +
+    `?modules=summaryDetail,defaultKeyStatistics,price`;
   try {
-    const init = await fetch("https://fc.yahoo.com", {
-      headers: { "User-Agent": YAHOO_UA, "Accept": "text/html,*/*" },
-      redirect: "manual",
-      signal: AbortSignal.timeout(8_000),
-    });
-    // Deno exposes set-cookie via the .getSetCookie() method on Headers
-    // (per the WhatWG fetch spec). Fall back to the raw header join in
-    // case it's missing.
-    /** @type {string[]} */
-    const rawSetCookies =
-      (typeof (init.headers as any).getSetCookie === "function"
-        ? (init.headers as any).getSetCookie()
-        : []) as string[];
-    const cookies: string[] = rawSetCookies.length > 0
-      ? rawSetCookies
-      : (init.headers.get("set-cookie") ?? "").split(/,(?=\s*[A-Za-z0-9_]+=)/);
-    const cookieHeader = cookies
-      .map((c) => c.split(";")[0].trim())
-      .filter(Boolean)
-      .join("; ");
-    if (!cookieHeader) return null;
-
-    const crumbRes = await fetch("https://query1.finance.yahoo.com/v1/test/getcrumb", {
-      headers: { "User-Agent": YAHOO_UA, "Accept": "*/*", "Cookie": cookieHeader },
-      signal: AbortSignal.timeout(8_000),
-    });
-    if (!crumbRes.ok) return null;
-    const crumb = (await crumbRes.text()).trim();
-    if (!crumb) return null;
-
-    cachedYahooAuth = {
-      crumb,
-      cookie: cookieHeader,
-      expiresAt: Date.now() + YAHOO_AUTH_TTL_MS,
-    };
-    return { crumb, cookie: cookieHeader };
+    const res = await fetch(url, { headers: YAHOO_HEADERS, signal: AbortSignal.timeout(8_000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const result = data?.quoteSummary?.result?.[0];
+    if (!result) return null;
+    const peRaw  = result?.summaryDetail?.trailingPE?.raw
+                ?? result?.defaultKeyStatistics?.trailingPE?.raw;
+    const epsRaw = result?.defaultKeyStatistics?.trailingEps?.raw;
+    const currency = result?.price?.currency ?? null;
+    const pe  = Number(peRaw);
+    const eps = Number(epsRaw);
+    if (!isFinite(pe)  || pe  <= 0) return null;
+    if (!isFinite(eps) || eps <= 0) return null;
+    return { pe, eps, currency: typeof currency === 'string' ? currency : null };
   } catch {
     return null;
   }
 }
 
-type YahooQuoteRow = {
-  pe: number;
-  /** Trading currency of the symbol (USD for ADRs). */
-  currency: string | null;
-  /**
-   * Underlying financial reporting currency. Differs from `currency`
-   * for ADRs (TSM = TWD, SFTBY = JPY, ASML = EUR). The frontend uses
-   * `currency !== financialCurrency` to detect "we don't have daily
-   * historical FX rates → don't try to draw P/E YTD".
-   */
-  financialCurrency: string | null;
-};
+/** Older v7 quote endpoint — flat shape, sometimes responds when v10 is crumb-gated. */
+async function fetchYahooQuoteV7(host: string, symbol: string): Promise<YahooQuoteSummary | null> {
+  const url = `https://${host}/v7/finance/quote?symbols=${encodeURIComponent(symbol)}`;
+  try {
+    const res = await fetch(url, { headers: YAHOO_HEADERS, signal: AbortSignal.timeout(8_000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const row = data?.quoteResponse?.result?.[0];
+    if (!row) return null;
+    const pe  = Number(row.trailingPE);
+    const eps = Number(row.epsTrailingTwelveMonths);
+    if (!isFinite(pe)  || pe  <= 0) return null;
+    if (!isFinite(eps) || eps <= 0) return null;
+    const currency = typeof row.currency === 'string' ? row.currency : null;
+    return { pe, eps, currency };
+  } catch {
+    return null;
+  }
+}
 
 /**
- * Batched Yahoo quote fetch. Returns `{ symbol: { pe, currency,
- * financialCurrency } }` for every symbol where Yahoo has a valid
- * `trailingPE`; symbols without are simply absent from the result.
- * Single HTTP request for the whole list (Yahoo v7 quote supports
- * comma-separated symbols).
+ * Yahoo's pre-computed trailingPE is the ADR-currency-safe source —
+ * tries the v10 quoteSummary endpoint on query1, then v10 on query2
+ * (Yahoo occasionally crumb-gates one host but not the other), then
+ * the older v7 quote endpoint as the final Yahoo fallback. Returns
+ * the first response with valid pe + eps; null if every attempt
+ * fails (caller then falls through to Finnhub with sanity gates).
  */
-async function fetchYahooQuoteBatched(symbols: string[]): Promise<Record<string, YahooQuoteRow>> {
-  if (symbols.length === 0) return {};
-  const auth = await getYahooAuth();
-  if (!auth) return {};
-  const url =
-    `https://query1.finance.yahoo.com/v7/finance/quote` +
-    `?symbols=${encodeURIComponent(symbols.join(","))}` +
-    `&crumb=${encodeURIComponent(auth.crumb)}`;
-  try {
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent": YAHOO_UA,
-        "Accept": "application/json",
-        "Cookie": auth.cookie,
-      },
-      signal: AbortSignal.timeout(8_000),
-    });
-    if (!res.ok) {
-      // 401 → crumb stale; bust the cache so the next call re-auths.
-      if (res.status === 401) cachedYahooAuth = null;
-      return {};
-    }
-    const data = await res.json();
-    const arr = data?.quoteResponse?.result;
-    if (!Array.isArray(arr)) return {};
-    const out: Record<string, YahooQuoteRow> = {};
-    for (const row of arr) {
-      const pe = Number(row?.trailingPE);
-      if (!isFinite(pe) || pe <= 0) continue;
-      out[String(row?.symbol ?? "")] = {
-        pe,
-        currency: typeof row?.currency === "string" ? row.currency : null,
-        financialCurrency: typeof row?.financialCurrency === "string" ? row.financialCurrency : null,
-      };
-    }
-    return out;
-  } catch {
-    return {};
-  }
+async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary | null> {
+  return (await fetchYahooQuoteSummaryOnce("query1.finance.yahoo.com", symbol))
+      ?? (await fetchYahooQuoteSummaryOnce("query2.finance.yahoo.com", symbol))
+      ?? (await fetchYahooQuoteV7("query1.finance.yahoo.com", symbol))
+      ?? (await fetchYahooQuoteV7("query2.finance.yahoo.com", symbol));
 }
 
 // ---- Finnhub --------------------------------------------------------
 
 /**
- * Finnhub call kept only for `pe3yAvg` — Yahoo doesn't expose
- * historical-annual P/E in a stable shape, and the annual series
- * is unaffected by the ADR currency-mismatch bug. The `pe` / `eps`
- * fields on Finnhub's `/stock/metric` response are NOT used here
- * because they're broken for ADRs.
+ * Combined fundamentals for a single stock symbol. Yahoo's
+ * quoteSummary is the primary source for `pe` + `eps` because it
+ * handles ADR currency normalization correctly (TSM/SFTBY return
+ * sane ~26 / ~15 instead of Finnhub's 1.22 / 0.07). Finnhub is still
+ * the source of `pe3yAvg` (its `series.annual.pe` is the only free
+ * historical-annual data we have access to) — fetched in parallel
+ * so this combined call is no slower than fetchFinnhub used to be
+ * for non-ADR stocks. If Yahoo fails (rate-limited, no PE published
+ * for the symbol), the result falls back entirely to Finnhub —
+ * which is correct for US-listed stocks where Finnhub doesn't have
+ * the currency-mismatch bug.
  */
-async function fetchFinnhubPe3y(symbol: string): Promise<number | null> {
+export async function fetchStockFundamentals(symbol: string): Promise<Fundamentals | null> {
+  const [yahoo, finn] = await Promise.all([
+    fetchYahooQuoteSummary(symbol),
+    fetchFinnhub(symbol),
+  ]);
+  if (yahoo) {
+    return {
+      pe: yahoo.pe,
+      eps: yahoo.eps,
+      pe3yAvg: finn?.pe3yAvg ?? null,
+    };
+  }
+  // Yahoo failed — fall back to Finnhub, but only if Finnhub's pe
+  // passes a sanity gate. The TSM/SFTBY currency-mismatch bug
+  // produced pe=1.22 / 0.07 from Finnhub, which is implausible for
+  // any real US-listed security; returning that to the UI is worse
+  // than hiding the P/E button entirely. `isPlausiblePe` rejects
+  // anything outside [3, 300]; growth names occasionally touch 200
+  // legitimately (TSLA peaked ~250) so 300 is the upper guardrail.
+  if (finn && isPlausiblePe(finn.pe)) return finn;
+  return null;
+}
+
+/**
+ * Sanity threshold for a trailing P/E ratio. Real US-listed
+ * securities essentially never fall outside [3, 300]: anything
+ * under 3 indicates a Finnhub ADR currency-mismatch (USD price ÷
+ * foreign-currency EPS — TSM at 1.22, SFTBY at 0.07), and anything
+ * over 300 is either a near-zero-EPS turnaround stock that's
+ * already in the P/E-hidden bucket on the modal anyway, or another
+ * data corruption.
+ */
+export function isPlausiblePe(pe: number): boolean {
+  return isFinite(pe) && pe >= 3 && pe <= 300;
+}
+
+async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
   if (!FINNHUB_API_KEY) return null;
   const url =
     `https://finnhub.io/api/v1/stock/metric` +
@@ -397,7 +372,14 @@ async function fetchFinnhubPe3y(symbol: string): Promise<number | null> {
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return computePe3yAvg(data?.series?.annual?.pe ?? []);
+    const m = data?.metric;
+    if (!m) return null;
+    const pe  = Number(m.peTTM ?? m.peBasicExclExtraTTM ?? m.peNormalizedAnnual);
+    const eps = Number(m.epsTTM ?? m.epsBasicExclExtraItemsTTM ?? m.epsNormalizedAnnual);
+    if (!isFinite(pe) || !isFinite(eps) || eps <= 0 || pe <= 0) return null;
+
+    const pe3yAvg = computePe3yAvg(data?.series?.annual?.pe ?? []);
+    return { pe, eps, pe3yAvg };
   } catch {
     return null;
   }
@@ -530,6 +512,43 @@ export function rollingTtmFromRawQuarterly(
 }
 
 /**
+ * Scale a TTM-EPS history series to USD using the ratio between the
+ * authoritative USD eps (from Yahoo quoteSummary) and the latest
+ * entry in the historical series. ADRs like TSM / SFTBY report
+ * fundamentals in the underlying foreign currency (TWD / JPY) via
+ * Yahoo's fundamentals-timeseries endpoint, while the ADR's market
+ * price + trailingPE / trailingEps from quoteSummary are pre-
+ * normalized to USD. Dividing USD prices by foreign-currency EPS
+ * was the source of the TSM=1.22 / SFTBY=0.07 bug.
+ *
+ * The scaling assumes the FX rate has been approximately constant
+ * over the historical window — true within ±5-10 % for USD/TWD,
+ * USD/JPY over a typical 1y chart, which is acceptable for a "how
+ * has the P/E moved this year?" visualization.
+ *
+ * For US-listed stocks where currencies already match, the ratio is
+ * ≈ 1.0 so this is a near no-op (just a uniform multiply).
+ *
+ * @param history       latest-last EPS series, foreign-currency for ADRs
+ * @param epsUsdLatest  authoritative USD trailing EPS (Yahoo quoteSummary)
+ */
+export function normalizeEpsHistoryToUsd(
+  history: Array<{ date: string; eps: number }>,
+  epsUsdLatest: number,
+): Array<{ date: string; eps: number }> {
+  if (!Array.isArray(history) || history.length === 0) return history;
+  if (!isFinite(epsUsdLatest) || epsUsdLatest <= 0) return history;
+  const latest = history[history.length - 1].eps;
+  if (!isFinite(latest) || latest <= 0) return history;
+  // If the latest historical EPS is already within ±20 % of the
+  // authoritative USD value, currencies already match — return as-is
+  // rather than apply a near-1.0 scale that could amplify noise.
+  const ratio = epsUsdLatest / latest;
+  if (ratio > 0.8 && ratio < 1.2) return history;
+  return history.map((p) => ({ date: p.date, eps: p.eps * ratio }));
+}
+
+/**
  * Compute the 3-year average P/E from Finnhub's `series.annual.pe`
  * (or any similarly-shaped { period, v } array). Takes the 3 most
  * recent valid years.
@@ -591,39 +610,37 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
   const out: Record<string, Fundamentals> = {};
 
   const stocksTask = (async () => {
-    // ONE batched call to Yahoo for trailingPE + currency
-    // information across every stock symbol. Yahoo's published
-    // trailingPE is the single source of truth — we don't compute
-    // it ourselves anywhere. Finnhub is only consulted for
-    // `pe3yAvg` (annual P/E series, which doesn't have the
-    // currency-mismatch bug because both numerator and denominator
-    // are reported in the same currency at any point in time).
-    const yahooByTicker = await fetchYahooQuoteBatched(stockSymbols);
-    await Promise.all(stockSymbols.map(async (t) => {
-      const y = yahooByTicker[t];
-      if (!y) return;  // No trailingPE published — skip the ticker
-      // ADR detection: when Yahoo's trading currency differs from
-      // the underlying financial reporting currency (TSM USD vs
-      // TWD, ASML USD vs EUR, SFTBY USD vs JPY), we DON'T have
-      // daily historical FX rates to do a proper P/E YTD series.
-      // Don't even attempt it — frontend hides the chart button
-      // based on `currency !== financialCurrency` so the user gets
-      // a clean "not available" rather than a wrong chart.
-      const isAdr = !!(y.financialCurrency && y.currency
-        && y.financialCurrency !== y.currency);
-      const [pe3yAvg, hist] = await Promise.all([
-        fetchFinnhubPe3y(t),
-        includeEpsHistory && !isAdr ? fetchYahooTrailingEpsHistory(t) : Promise.resolve(null),
-      ]);
-      const row: Fundamentals = {
-        pe: y.pe,
-        pe3yAvg,
-        currency: y.currency,
-        financialCurrency: y.financialCurrency,
-      };
-      if (hist && hist.length > 0) row.ttmEpsHistory = hist;
-      out[t] = row;
-    }));
+    const queue = [...stockSymbols];
+    const workers = Array.from({ length: Math.min(6, queue.length) }, async () => {
+      while (queue.length > 0) {
+        const t = queue.shift();
+        if (!t) break;
+        // Yahoo quoteSummary first → ADR-currency-safe pe/eps.
+        // Finnhub still used for pe3yAvg (its annual series is our
+        // only free historical-PE source). See fetchStockFundamentals
+        // for the full layering.
+        const f = await fetchStockFundamentals(t);
+        if (!f) continue;
+        if (includeEpsHistory) {
+          // Each entry's `eps` is TTM diluted EPS at that quarter end —
+          // already summed by Yahoo, so the client can just look up
+          // the latest entry whose date+lag is before the price date.
+          // Falls back to Finnhub on Yahoo failure: Finnhub returns
+          // *raw* quarterly EPS so we sum the last 4 to expose a single
+          // TTM data point. 4 quarters is rarely enough to draw
+          // earnings-day steps, but it keeps the response shape
+          // consistent so the client doesn't need to know the source.
+          let hist = await fetchYahooTrailingEpsHistory(t);
+          if (!hist) {
+            const raw = await fetchFinnhubEarningsHistory(t);
+            if (raw) hist = rollingTtmFromRawQuarterly(raw);
+          }
+          if (hist) f.ttmEpsHistory = normalizeEpsHistoryToUsd(hist, f.eps);
+        }
+        out[t] = f;
+      }
+    });
+    await Promise.all(workers);
   })();
 
   const indicesTask = (async () => {
