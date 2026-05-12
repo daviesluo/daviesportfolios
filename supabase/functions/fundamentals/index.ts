@@ -723,56 +723,39 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
           }
           // USD-anchor for rescaling foreign-currency TTM-EPS history.
           // Priority:
-          //   1. FMP price/pe — same response, no timing skew, but FMP
-          //      free tier doesn't cover all ADRs (TSM/SFTBY/ASML are
-          //      missing as of 2026-05).
+          //   1. FMP price/pe — same response, no timing skew. FMP's
+          //      free tier doesn't cover every ADR though (TSM /
+          //      SFTBY / ASML all return no row), so this only fires
+          //      for the universe of US-listed stocks FMP supports.
           //   2. Yahoo quoteSummary price/pe — both fields come from
-          //      the same response. In practice Yahoo strips all
-          //      price-ish fields from quoteSummary for anon callers
-          //      targeting ADRs, so this rarely fires for the
-          //      tickers we actually need it for.
+          //      the same response. In practice Yahoo strips every
+          //      price-ish field from quoteSummary for anon callers
+          //      targeting ADRs (regularMarketPrice / previousClose /
+          //      fiftyDayAverage / twoHundredDayAverage all return
+          //      null), so this branch rarely fires for the ADRs
+          //      that actually need it.
           //   3. Yahoo chart-endpoint price / quoteSummary pe —
-          //      separate Yahoo API that reliably returns
-          //      `meta.regularMarketPrice` for ADRs. One extra HTTP
-          //      call per ADR ticker, only when (2) didn't fire.
-          //   4. f.eps — only hit when Yahoo's chart endpoint also
-          //      fails or pe is 0; normalizeEpsHistoryToUsd's ratio
-          //      guard then leaves the history unscaled.
+          //      `meta.regularMarketPrice` on `/v8/finance/chart`
+          //      is what Yahoo's consumer site uses; reliably
+          //      returned for anon callers including ADRs. One extra
+          //      HTTP call only for tickers (1) and (2) missed.
+          //   4. f.eps — only hit when the chart endpoint also fails
+          //      or pe is 0; normalizeEpsHistoryToUsd's ratio guard
+          //      then leaves the history unscaled.
           const fmpRow = fmpByTicker[t];
           let usdAnchor = f.eps;
-          let chartPrice = 0;
-          let anchorSource: 'fmp_price_pe' | 'yahoo_price_pe' | 'yahoo_chart_pe' | 'fallback_f_eps' = 'fallback_f_eps';
           if (fmpRow && fmpRow.price > 0 && fmpRow.pe > 0) {
             usdAnchor = fmpRow.price / fmpRow.pe;
-            anchorSource = 'fmp_price_pe';
           } else if (f.price && f.price > 0 && f.pe > 0) {
             usdAnchor = f.price / f.pe;
-            anchorSource = 'yahoo_price_pe';
           } else if (f.pe > 0) {
-            chartPrice = await fetchYahooChartPrice(t);
-            if (chartPrice > 0) {
-              usdAnchor = chartPrice / f.pe;
-              anchorSource = 'yahoo_chart_pe';
-            }
+            const chartPrice = await fetchYahooChartPrice(t);
+            if (chartPrice > 0) usdAnchor = chartPrice / f.pe;
           }
           if (hist) f.ttmEpsHistory = normalizeEpsHistoryToUsd(hist, usdAnchor);
-          // TEMP debug — shows the route the deployed function actually
-          // took. Once we confirm the right anchor is being used the
-          // user can see the fix landed (or which branch is firing if
-          // it didn't). Remove after.
-          /** @type {any} */ (f).__debug = {
-            fmpHasPrice: !!fmpRow && fmpRow.price > 0,
-            fmpPrice: fmpRow?.price ?? null,
-            fmpPe: fmpRow?.pe ?? null,
-            yahooPrice: f.price ?? null,
-            yahooPe: f.pe,
-            chartPrice: chartPrice || null,
-            usdAnchor,
-            anchorSource,
-          };
         }
-        // Strip the internal `price` field — clients don't consume it
-        // and we don't want to commit to it as a public API surface.
+        // Strip the internal `price` field — used above as the USD
+        // anchor source; not part of the public response contract.
         if ('price' in f) delete f.price;
         out[t] = f;
       }
