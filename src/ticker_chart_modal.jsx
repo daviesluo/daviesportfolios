@@ -337,15 +337,21 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         const fundamentals = await fetchFundamentals([ticker], { ttmEpsHistory: true });
         if (cancelled) return;
         const row = fundamentals?.[ticker];
-        // ETF-proxy tickers (^GSPC/^NDX/^RUT) typically come back with
-        // eps:0 — Finnhub doesn't aggregate EPS at the index/ETF
-        // level. Reconstruct an implied EPS from the most recent close
-        // and the published trailing P/E (eps_implied = lastClose / pe)
-        // so the historical series can still be divided into P/E
-        // values that match the labelled y-axis.
+        // Force-derive EPS from `lastClose / trailingPE` whenever a
+        // pe is available. FMP's `pe` is USD-normalized for ADRs
+        // (TSM 30.8, ASML 49.3, SFTBY 9.5) but its `eps` field for
+        // those same ADRs is reported in the underlying foreign
+        // currency (TSM 74 TWD-ish, ASML 26 EUR, SFTBY 645 JPY),
+        // so dividing USD prices by that eps produces the original
+        // 1.22 / 63 / 0.07 bug. The implied USD EPS the trailingPE
+        // would imply IS the right unit. For US-listed stocks where
+        // FMP's eps is already in USD this is a no-op (derived
+        // value matches FMP's reported one within rounding). Also
+        // handles the index-ETF path (^GSPC etc.) where Finnhub
+        // returns eps:0 — same code path, no special-case.
         let eps = row?.eps;
         const pe = row?.pe;
-        if ((!eps || eps <= 0) && typeof pe === 'number' && pe > 0 && data.length > 0) {
+        if (typeof pe === 'number' && pe > 0 && data.length > 0) {
           eps = data[data.length - 1].close / pe;
         }
         if (!eps || eps <= 0) {
@@ -477,9 +483,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         const f = await fetchFundamentals([ticker], { ttmEpsHistory: true });
         if (cancelled) return;
         const row = f?.[ticker];
+        // See main effect above — derive EPS from lastClose / pe
+        // unconditionally so the ADR currency mismatch in FMP's
+        // `eps` field doesn't poison the chart.
         let eps = row?.eps;
         const pe = row?.pe;
-        if ((!eps || eps <= 0) && typeof pe === 'number' && pe > 0 && data.length > 0) {
+        if (typeof pe === 'number' && pe > 0 && data.length > 0) {
           eps = data[data.length - 1].close / pe;
         }
         if (!eps || eps <= 0) return;

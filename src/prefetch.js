@@ -292,11 +292,18 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       // back with eps:0 — reconstruct an implied EPS from the last
       // close ÷ trailing P/E so the const-EPS fallback inside
       // priceDividedByTtmEps still produces drawable values.
+      // Always derive USD eps from `lastClose / pe` whenever the
+      // Edge Function shipped a pe — FMP's reported eps for ADRs
+      // is in the underlying foreign currency, which would
+      // re-introduce the original TSM=1.22 / SFTBY=0.07 / ASML=63
+      // bug. The implied USD EPS that pe was computed against is
+      // the only field guaranteed to be in the same unit as the
+      // USD price points the chart is going to divide.
       let eps = row.eps;
       const pe = row.pe;
       const ytdEntry = ytdEntryFor(t);
       const ytdData = ytdEntry?.data || [];
-      if ((typeof eps !== 'number' || eps <= 0) && typeof pe === 'number' && pe > 0 && ytdData.length > 0) {
+      if (typeof pe === 'number' && pe > 0 && ytdData.length > 0) {
         eps = ytdData[ytdData.length - 1].close / pe;
       }
       if (typeof eps !== 'number' || eps <= 0) continue;
