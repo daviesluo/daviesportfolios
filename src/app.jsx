@@ -15,6 +15,7 @@ import { INITIAL_PORTFOLIO } from './data.js';
 import { collectPassword, decodeAppToken, getAppToken, authenticate } from './auth.js';
 import { loadPortfolioRemote, savePortfolioRemote } from './portfolio_remote.js';
 import { prefetchAllChartData } from './prefetch.js';
+import { hydrateAllChartStores } from './chart_store.js';
 import { Header, Sidebar, MarketConditions, PerfPanel, SidebarFoot } from './header_sidebar.jsx';
 import { Pitch } from './pitch.jsx';
 import { Heatmap } from './heatmap.jsx';

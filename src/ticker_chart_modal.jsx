@@ -10,7 +10,8 @@ import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
 import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT } from './ticker_class.js';
-import { MA_TTL_MS, TICKER_CACHE_CAP, tickerChartCacheKey, isFresh as cacheIsFresh, hasAnyNumericField, trimLru } from './cache.js';
+import { MA_TTL_MS, tickerChartCacheKey, isFresh as cacheIsFresh, hasAnyNumericField } from './cache.js';
+import { ChartStore, MaStore } from './chart_store.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
@@ -78,18 +79,19 @@ function modalTtl(rangeKey) {
   if (rangeKey === '1M') return 60 * 60 * 1000;
   return                       12 * 60 * 60 * 1000;
 }
+// Cache I/O routes through `ChartStore` (chart_store.js), which is
+// IndexedDB-backed via idb-keyval with a synchronous in-memory
+// mirror. Reads stay sync (the modal's useState initializer needs
+// them on the first paint); writes update the mirror immediately
+// and persist to IDB in the background. localStorage's ~5 MB quota
+// no longer applies — the prefetch can warm everything for every
+// portfolio + MC ticker × every range × every variant without
+// thrashing.
 function modalCacheGet(key) {
-  const all = Storage.loadTickerChart();
-  return all?.entries?.[key] ?? null; // { ts, data } | null
+  return ChartStore.get(key); // { ts, data } | null
 }
 function modalCacheSet(key, data) {
-  const all = Storage.loadTickerChart() || { entries: {} };
-  all.entries = { ...(all.entries || {}), [key]: { ts: Date.now(), data } };
-  // Soft LRU — uses the same TICKER_CACHE_CAP as the prefetch so a
-  // modal write can't quietly halve the prefetch's headroom and
-  // evict freshly-warmed chart rows for other tickers/ranges.
-  trimLru(all, TICKER_CACHE_CAP);
-  Storage.saveTickerChart(all);
+  ChartStore.set(key, { ts: Date.now(), data });
 }
 
 // Ticker classification predicates moved to `src/ticker_class.js` so
@@ -129,11 +131,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // to refresh the row when stale. Returns null on cache miss.
   /** @returns {{ eps?: number, pe?: number, pe3yAvg?: number|null, ttmEpsHistory?: any[] } | null} */
   const readFundCache = () => {
-    try {
-      const store = Storage.loadTickerChart();
-      const row = store?.entries?.[`${ticker}|FUND|v1`]?.data;
-      return row && typeof row === 'object' ? row : null;
-    } catch { return null; }
+    const row = ChartStore.get(`${ticker}|FUND|v1`)?.data;
+    return row && typeof row === 'object' ? row : null;
   };
   const fundCached = supportsPePattern ? readFundCache() : null;
   const cachedHasEps = typeof fundCached?.eps === 'number' && fundCached.eps > 0;
@@ -186,12 +185,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // synchronously even when the prefetch pass didn't cover this
       // particular ticker (drilldown into an MC card the prefetch
       // didn't include, etc.).
-      try {
-        const store = Storage.loadTickerChart() || { entries: {} };
-        store.entries = store.entries || {};
-        store.entries[`${ticker}|FUND|v1`] = { ts: Date.now(), data: row };
-        Storage.saveTickerChart(store);
-      } catch { /* localStorage full or disabled — best effort */ }
+      ChartStore.set(`${ticker}|FUND|v1`, { ts: Date.now(), data: row });
     });
     return () => { cancelled = true; };
   }, [ticker, supportsPePattern]);
@@ -216,11 +210,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const initialUseExt   = !!(extendedHours && phase && phase !== 'regular');
   const initialCacheKey = tickerChartCacheKey(ticker, initialRangeKey, initialUseExt, phase);
   const initialCached   = (() => {
-    try {
-      const all = Storage.loadTickerChart();
-      const row = all?.entries?.[initialCacheKey];
-      return row && Array.isArray(row.data) && row.data.length >= 2 ? row : null;
-    } catch { return null; }
+    const row = ChartStore.get(initialCacheKey);
+    return row && Array.isArray(row.data) && row.data.length >= 2 ? row : null;
   })();
   const [series, setSeries]     = React.useState(
     /** @type {Array<{date:string,close:number,volume?:number}>|null} */
@@ -410,13 +401,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     const params = maFetchParamsFor(rangeKey, dailyOnly);
     if (!params) { setMaHistory(null); return; }
     const cacheKey = `${ticker}|MA|${rangeKey}`;
-    const MA_TTL_MS = 12 * 60 * 60 * 1000;
-    // Lives in `dp.maCache`, NOT `dp.tickerChart` — MA warming runs
-    // after the per-range display warming and we don't want its
-    // newer timestamps to evict freshly warmed 1D/1W/etc. modal
-    // rows from the shared 200-entry LRU.
-    const tcAll = Storage.loadMaCache() || { entries: {} };
-    const cached = tcAll.entries?.[cacheKey];
+    // MA cache lives in `MaStore` (dp.maCache via IndexedDB) so its
+    // ~12 h-TTL rows can persist independently of the chart-display
+    // cache; previously this mattered because both shared a tight
+    // localStorage LRU, but with IDB capacity is no longer an issue.
+    const cached = MaStore.get(cacheKey);
     let isFresh = false;
     if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
       setMaHistory(cached.data);
@@ -438,15 +427,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           .sort((a, b) => a.date < b.date ? -1 : 1);
         if (sorted.length === 0) return;
         setMaHistory(sorted);
-        // Write back to dp.maCache so prefetch + future modal opens
-        // hit it instantly. Reload before merge so we don't clobber
-        // a concurrent write.
-        try {
-          const cur = Storage.loadMaCache() || { entries: {} };
-          cur.entries = cur.entries || {};
-          cur.entries[cacheKey] = { ts: Date.now(), data: sorted };
-          Storage.saveMaCache(cur);
-        } catch { /* best effort */ }
+        MaStore.set(cacheKey, { ts: Date.now(), data: sorted });
       } catch { /* leave the stale cached series in place */ }
     })();
     return () => { cancelled = true; };

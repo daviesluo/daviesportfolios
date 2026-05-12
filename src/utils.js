@@ -10,11 +10,12 @@
 // before reading any persisted state.
 const STORAGE_KEYS = {
   schemaVersion: 'dp.schema',
-  auth:          'dp.auth',         // { lockoutUntil, attempts }
-  ytd:           'dp.ytd',          // { year, entries: { ticker: { ts, data } } }
-  prefs:         'dp.prefs',        // { hideValues: boolean, ... }
-  tickerChart:   'dp.tickerChart',  // { entries: { "ticker|range|variant|phase": { ts, data } } }
-  maCache:       'dp.maCache',      // { entries: { "ticker|MA|range": { ts, data } } } — separate LRU so MA warming can't evict warmed display rows
+  auth:          'dp.auth',   // { lockoutUntil, attempts }
+  prefs:         'dp.prefs',  // { hideValues: boolean, ... }
+  // Chart caches (dp.tickerChart / dp.maCache / dp.ytd) live in
+  // IndexedDB now (chart_store.js). chart_store's hydrate() owns
+  // the legacy-localStorage migration so these names are referenced
+  // there, not here.
 };
 const CURRENT_SCHEMA_VERSION = 1;
 
@@ -24,11 +25,63 @@ function readJSON(key, fallback) {
     return raw == null ? fallback : JSON.parse(raw);
   } catch (_) { return fallback; }
 }
+
+// localStorage write with quota-fallback. Browsers throw
+// QuotaExceededError when the per-origin quota (~5-10 MB) is hit;
+// the previous version swallowed that silently, which meant a full
+// cache stopped accepting any new entries — the user reported
+// "switch ranges and back, still loads" because no chart entry
+// could persist. Now: on quota failure, halve the largest dp.* row
+// (the chart cache typically) and retry once. If THAT still fails
+// we give up — the worst case is one cold fetch, not silent
+// permanent breakage.
 function writeJSON(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (e) {
+    // Detect quota: name varies by browser ('QuotaExceededError' /
+    // 'NS_ERROR_DOM_QUOTA_REACHED'); code 22 / 1014 also possible.
+    const isQuota = e && (
+      e.name === 'QuotaExceededError' ||
+      e.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      e.code === 22 || e.code === 1014
+    );
+    if (!isQuota) return false;
+    // Free space: halve the entries on the cache rows that grow
+    // unboundedly. Keep the freshest half by ts.
+    try {
+      for (const k of ['dp.tickerChart', 'dp.maCache']) {
+        const raw = localStorage.getItem(k);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        const entries = parsed?.entries || {};
+        const keys = Object.keys(entries);
+        if (keys.length === 0) continue;
+        const half = Math.max(1, Math.floor(keys.length / 2));
+        const sorted = keys
+          .map((kk) => ({ kk, ts: entries[kk]?.ts || 0 }))
+          .sort((a, b) => b.ts - a.ts)
+          .slice(0, half);
+        const trimmed = {};
+        for (const { kk } of sorted) trimmed[kk] = entries[kk];
+        parsed.entries = trimmed;
+        try { localStorage.setItem(k, JSON.stringify(parsed)); } catch { /* ignore */ }
+      }
+      // Retry the original write now that we've freed space.
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch { return false; }
+  }
 }
 
 function migrateStorage() {
+  // Chart caches now live in IndexedDB (chart_store.js). Their
+  // module's hydrate() handles a one-shot localStorage→IDB migration
+  // for any legacy dp.tickerChart / dp.maCache / dp.ytd rows the
+  // user still has from older deploys. Pruning lives there too,
+  // since IDB's quota is so much higher (100+ MB) that the trim is
+  // bounded by a soft cap rather than browser quota pressure.
   const stored = parseInt(localStorage.getItem(STORAGE_KEYS.schemaVersion) || '0', 10);
   if (stored === CURRENT_SCHEMA_VERSION) return;
 
@@ -55,14 +108,13 @@ export const Storage = {
   loadAuth:  () => readJSON(STORAGE_KEYS.auth, { lockoutUntil: 0, attempts: 0 }),
   saveAuth:  (s) => writeJSON(STORAGE_KEYS.auth, s),
   clearAuth: () => { try { localStorage.removeItem(STORAGE_KEYS.auth); } catch (_) {} },
-  loadYtd:   () => readJSON(STORAGE_KEYS.ytd, null),
-  saveYtd:   (d) => writeJSON(STORAGE_KEYS.ytd, d),
   loadPrefs: () => readJSON(STORAGE_KEYS.prefs, { hideValues: false }),
   savePrefs: (p) => writeJSON(STORAGE_KEYS.prefs, p),
-  loadTickerChart: () => readJSON(STORAGE_KEYS.tickerChart, { entries: {} }),
-  saveTickerChart: (d) => writeJSON(STORAGE_KEYS.tickerChart, d),
-  loadMaCache: () => readJSON(STORAGE_KEYS.maCache, { entries: {} }),
-  saveMaCache: (d) => writeJSON(STORAGE_KEYS.maCache, d),
+  // dp.tickerChart / dp.maCache / dp.ytd moved to IndexedDB
+  // (chart_store.js — ChartStore / MaStore / YtdStore). See that
+  // module for the read/write API. localStorage now only holds
+  // small, low-churn rows: auth token + prefs + schema version,
+  // staying well clear of the per-origin ~5 MB quota.
 };
 
 // Formatters + the hidden-values mask moved to ./formatters.js. Kept

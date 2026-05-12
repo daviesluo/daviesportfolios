@@ -135,19 +135,35 @@ secrets server-side.
   successful price fetch is more than 5 min old, so a dead Edge
   Function can't quietly leave the scoreboard stuck on old numbers
   while the auto-retry loop churns in the background.
-- **Background chart prefetch** — every successful price refresh
-  (initial load + manual Refresh click) silently warms every chart
-  range × ticker into `localStorage`, so opening any ticker modal or
-  flipping PerfChart range buttons hits cache instead of paying the
-  Edge Function round-trip. Coverage spans the portfolio holdings,
-  the S&P benchmark AND every Market-Conditions card (^GSPC, ^NDX,
-  ^RUT, ^SOX, ^VIX, BZ=F, ^TNX, GBPUSD=X, GBPCNY=X, USDCNY=X) — plus
-  P/E YTD for the four ETF-proxied indices and the MA overlay's
-  wider history series for every chart range. The MA history lives
-  in its own `dp.maCache` LRU so warming it can't evict freshly
-  warmed display rows from `dp.tickerChart`. TTL-aligned per range
-  (5 m / 30 m / 1 h / 12 h / 12 h); auto-refresh ticks skip the
-  prefetch since they'd re-fetch with nothing fresh to show.
+- **Background chart prefetch (IndexedDB-backed)** — every successful
+  price refresh (initial load + manual Refresh click; also re-fired
+  whenever the ext-hours toggle changes since 1D's cache key includes
+  the variant tag) silently warms every chart range × ticker into
+  IndexedDB via [`idb-keyval`](https://github.com/jakearchibald/idb-keyval),
+  so opening any ticker modal or flipping PerfChart range buttons
+  hits cache instead of paying the Edge Function round-trip. Coverage
+  spans the portfolio holdings, the S&P benchmark AND every
+  Market-Conditions card including the futures alternates (`^GSPC` /
+  `ES=F`, `^NDX` / `NQ=F`, `^RUT` / `RTY=F`, `^SOX`, `^VIX`, `BZ=F`,
+  `^TNX`, `GBPUSD=X`, `GBPCNY=X`, `USDCNY=X`) — plus the FUND row
+  (eps / pe / pe3yAvg / ttmEpsHistory) and the TTM-aware P/E YTD
+  series for every eligible ticker, plus the MA overlay's wider
+  history series for every chart range. **Storage moved off
+  localStorage to IndexedDB in 2026-05** because the previous chart
+  cache regularly hit the per-origin ~5 MB localStorage quota at
+  ~30 tickers × all ranges × variants, after which every save
+  silently failed (the user reported "switch ranges and back, still
+  has to reload"). IDB has 100+ MB of quota and no realistic ceiling
+  for our workload, so the prefetch can be as thorough as it wants
+  without trim-thrashing. A synchronous in-memory mirror is
+  hydrated from IDB at module load so the modal's `useState`
+  initializer can paint a warm-cache chart on the very first render
+  with no spinner flash. Per-range writes happen immediately as each
+  fetch resolves (parallel `Promise.all`) so fast ranges (1D / 3M /
+  YTD) land in cache without waiting on the slow ones (1M intraday).
+  TTL-aligned per range (5 m / 30 m / 1 h / 12 h / 12 h); auto-refresh
+  ticks skip the prefetch since they'd re-fetch with nothing fresh
+  to show.
 - **PWA** — installable on iOS / Android home screen, offline-capable
   via Workbox precache, in-app "new version available" banner.
 - **HMAC-signed token auth** — passwords never leave the Edge Function;
@@ -355,14 +371,15 @@ unresponsive.
 | `auth.js` | Password → HMAC token flow. `collectPassword` (URL `?pwd=` or `window.prompt`), `authenticate` (POSTs to `/auth`), `decodeAppToken` (skip prompt if a valid sessionStorage token already exists). |
 | `portfolio_remote.js` | `loadPortfolioRemote` / `savePortfolioRemote` against the `data` Edge Function. Includes `migrate(p)` for legacy portfolio shapes (CB → CB1/CB2 split, BRK-B move, currency backfill, lots backfill). |
 | `supabase_config.js` | Shared `SB_URL`, `SB_ANON`, `EDGE_AUTH_URL`, `EDGE_DATA_URL`. |
-| `utils.js` | Live-price fetch + proxy plumbing (`fetchTickers`, `fetchTodayRegularClose` for the MC cards' "since 16:00 ET" anchor, `fetchHistorical` / `fetchHistoricalBatch` with Edge-first + proxy-fallback strategy, `fetchFundamentals` for the P/E modal), `Storage` namespace (`dp.ytd` / `dp.tickerChart` / `dp.maCache` / `dp.prefs` / `dp.schema`) with schema-version migration, DST-aware helpers (`londonTimeParts`, `usMarketPhase`, `ukTzAbbr`, `usMarketHoursUtc`), `POSITION_COORDS`. Formatters / FX / metrics moved to their own modules below — `utils.js` keeps re-exports so existing imports work, but new code should import from the focused module. |
+| `utils.js` | Live-price fetch + proxy plumbing (`fetchTickers`, `fetchTodayRegularClose` for the MC cards' "since 16:00 ET" anchor, `fetchHistorical` / `fetchHistoricalBatch` with Edge-first + proxy-fallback strategy, `fetchFundamentals` for the P/E modal), `Storage` namespace (`dp.auth` / `dp.prefs` / `dp.schema`) with schema-version migration, DST-aware helpers (`londonTimeParts`, `usMarketPhase`, `ukTzAbbr`, `usMarketHoursUtc`), `POSITION_COORDS`. Chart caches (`dp.tickerChart` / `dp.maCache` / `dp.ytd`) moved to IndexedDB via `chart_store.js` to escape the localStorage 5 MB quota. Formatters / FX / metrics moved to their own modules below — `utils.js` keeps re-exports so existing imports work, but new code should import from the focused module. |
+| `chart_store.js` | IndexedDB-backed chart cache layer built on [`idb-keyval`](https://github.com/jakearchibald/idb-keyval). Three logical stores — `ChartStore` (per-ticker per-range chart series + the `\|FUND\|v1` fundamentals row + the `\|PE\|v3\|...` series), `MaStore` (MA overlay wider-history per ticker × range), `YtdStore` (PerfChart's per-(year, range, ticker) entries). Each store has a synchronous in-memory `Map` mirror that's auto-hydrated from IDB at module load so the modal's `useState` initializer can read warm cache on the very first paint. Writes update the mirror immediately and persist to IDB in the background (best-effort). One-shot legacy-`localStorage` migration on first hydrate copies any existing `dp.tickerChart` / `dp.maCache` / `dp.ytd` rows into the matching IDB store, then deletes the localStorage row to free the quota for `dp.auth` / `dp.prefs`. Falls back to mem-only cleanly when `indexedDB` is undefined (vitest, private-mode iOS Safari). |
 | `formatters.js` / `fx.js` / `metrics.js` / `lots.js` | The pure pieces lifted out of `utils.js`. `formatters.js`: `fmtMoney` / `fmtPct` / `fmtPrice` / `pctColor` / `maskDigits` / `formatAgo`. `fx.js`: `detectCurrency` / `currencySymbol` / `fxRateToUSD` (the version that returns `{ rate, missing }` so a 1:1 fallback can be surfaced) / `fxToUSD` (back-compat shim). `metrics.js`: `computeMetrics` / `detectFormation`. `lots.js`: `cleanLots` / `totalShares` / `weightedAvgCost` (lot-input sanitisation, which used to be inline in modals.jsx and silently kept negative cost values). All pinned by `utils.metrics.test.js` (19 cases) and `lots.test.js` (14 cases) so the on-screen portfolio numbers can't quietly regress. |
 | `data.js` | `INITIAL_PORTFOLIO` seed for first-load demo state. |
 | `ytd.js` | Pure chart math. `buildTickerSeries`, `computeAt`, `lotsFor`, `closeOn`, `RANGES`, `fetchParamsFor`, `maFetchParamsFor` (per-range wider-history params for the MA overlay; honours the `dailyOnly` override so CN funds / `.PVT` get 1d-only history), `filterToLatestDay`, `filterToLast24h`. Decoupled from React so it's unit-testable. |
 | `ytd.test.js` | YTD formula pins (pre-year lot, year lot, mixed, missing janPrice, 1D ext mode anchored at today's regular close, intraday date comparison, etc.). |
 | `utils.test.js` | `fetchHistoricalBatch` strategy pins: Edge fast path, "trust Edge omissions" (no proxy fallback when Edge succeeded with a partial response), Edge total-failure → proxy fallback, CN-fund proxy bypass, empty input, dedup. |
 | `ticker_class.js` / `ticker_class.test.js` | Pure regex predicates for ticker shape (`isCrypto`, `isFutures`, `isForex`, `isIndex`, `isExchangeListed`, `isCnFund`, `isPvt`, `isDailyOnly`, `isUsEquity`). Lifted out of `ticker_chart_modal.jsx` / `prefetch.js` / `indicators.js` so the same classification can't drift between three callers (was happening — modal said `BRK-B` is crypto because its earlier regex was just `/-USD$/` instead of `/-USD$/i.test` AND a "doesn't start with `^`" check). |
-| `cache.js` / `cache.test.js` | Shared TTL constants (`RANGE_TTL_MS`, `MA_TTL_MS`, `PE_TTL_MS`) + freshness predicate (`isFresh(entry, ttlMs, extraValid?)` with a pluggable per-row check, e.g. `hasAnyNumericField('volume')` for 1D rows that pre-date the volume-bearing Edge Function deploy) + soft LRU (`trimLru(store, cap)`). Three caches (`dp.ytd`, `dp.tickerChart`, `dp.maCache`) all had near-identical hand-rolled copies that had already drifted (one forgot the 2-bar floor; another inlined volume detection in a way that couldn't be reused). |
+| `cache.js` / `cache.test.js` | Shared TTL constants (`RANGE_TTL_MS`, `MA_TTL_MS`, `PE_TTL_MS`) + freshness predicate (`isFresh(entry, ttlMs, extraValid?)` with a pluggable per-row check, e.g. `hasAnyNumericField('volume')` for 1D rows that pre-date the volume-bearing Edge Function deploy) + cache-key helper (`tickerChartCacheKey`, the single source of truth for the modal + prefetch). Soft LRU (`trimLru`) is still here but only used for legacy localStorage rows during migration — IDB-backed caches don't need it. |
 | `indicators.js` / `indicators.test.js` | Pure indicator math lifted out of the chart modal: `maBarsFor` / `maLabelDaysFor` / `rollingSma` / `computeMaSeries` (MA overlay), `vwapSessionResetFor` / `vwapSessionKeyOf` / `computeVwap` (per-asset anchor + cumulative VWAP + forward-fill smoothing), `priceDividedByTtmEps` (TTM-history-aware P/E series), `hasExtendedHoursBars` (the SFTBY/OTC bogus-extPrice detector). Every function takes plain arrays so it can be pinned by vitest without spinning up React — the modal was the single largest source of subtle math regressions in this codebase and every fix had been risking silently breaking another ticker class because the conditions were tangled with rendering state. |
 | `header_sidebar.jsx` | `<Header>` (scoreboard + extended-hours toggle + hide-values eye), `<Sidebar>` (top movers + formation value + perf chart), `<MarketConditions>` (10 cards desktop, 9 cards mobile in a 3 × 3 grid; SOX dropped on mobile). Re-exports `<PerfPanel>` from `perf_chart.jsx` so `app.jsx` keeps its existing import. |
 | `perf_chart.jsx` | `<PerfChart>` (the chart) + `<PerfPanel>` (chrome wrapper). 5 ranges, dual fetch effect (S&P alone + portfolio batch in parallel), background prefetch effect for the other ranges, DOM-ref crosshair, CLOSE/OPEN markers in 1D, ^GSPC RTH filter + ES=F ETH filter. |
@@ -422,14 +439,18 @@ Every Edge Function's pure helpers (range filtering, HMAC token sign / verify, t
        │              ├── chart bars via /functions/v1/chart
        │              ├── auth via /functions/v1/auth (gets HMAC token)
        │              └── error reports via /functions/v1/ops-error
-       │  localStorage (dp.* namespace)
-       │    ├── dp.token        (sessionStorage — wiped on tab close)
-       │    ├── dp.ytd          (PerfChart per-range historical close cache)
-       │    ├── dp.tickerChart  (single-ticker modal cache)
-       │    ├── dp.maCache      (MA overlay wider-history cache — own LRU so
-       │    │                    it can't evict freshly warmed display rows)
-       │    ├── dp.prefs        (hide-values toggle, etc.)
-       │    └── dp.schema       (single integer; bumps drive Storage.migrate)
+       │  Persistent state:
+       │    ├── localStorage / sessionStorage (small, low-churn rows)
+       │    │     ├── dp.token   (sessionStorage — wiped on tab close)
+       │    │     ├── dp.auth    (failed-login lockout state)
+       │    │     ├── dp.prefs   (hide-values toggle, etc.)
+       │    │     └── dp.schema  (single integer; bumps drive Storage.migrate)
+       │    └── IndexedDB via idb-keyval (chart_store.js — bulk chart data)
+       │          ├── ChartStore (per-ticker modal cache: chart series,
+       │          │               FUND row, TTM-aware PE series)
+       │          ├── MaStore    (MA overlay wider-history cache, separate
+       │          │               object store)
+       │          └── YtdStore   (PerfChart per-(year, range, ticker) cache)
        └────────────────────────────────────────────────────┘
                                   │
                                   ▼
