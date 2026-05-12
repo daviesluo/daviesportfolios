@@ -391,14 +391,13 @@ reliably, so without the second reload the click felt silently
 unresponsive.
 
 If the user doesn't click `RELOAD`, the banner auto-fires the same
-handler after 24 h. `registerType: 'prompt'` was kept (autoUpdate
+handler after 1 h. `registerType: 'prompt'` was kept (autoUpdate
 wiped the `?pwd=…` URL mid-login), but the user-visible deferred
 update used to sit indefinitely — a long-running tab could drift
-months behind the deployed bundle. 24 h is well past the auth
+months behind the deployed bundle. 1 h is well past the auth
 round-trip (the user has a sessionStorage token long before then,
-so reload doesn't re-prompt) and generous enough that any
-normally-used tab will have been clicked or naturally reloaded
-before the timer fires.
+so reload doesn't re-prompt) and tight enough that nobody is more
+than one workday behind the latest deploy.
 
 ---
 
