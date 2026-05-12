@@ -23,9 +23,40 @@ export function ServiceWorkerBanner() {
   // button can switch to "RELOADING…" and not look unresponsive on iOS.
   const [reloading, setReloading] = React.useState(false);
 
+  // Suppress the banner for 5 min after the user clicks RELOAD. On
+  // iOS Safari standalone-PWA mode the SW state transition is
+  // unreliable enough that even with caches.delete + unregister
+  // before reload, the next-page-mount useRegisterSW sometimes still
+  // sees a waiting worker and re-shows the banner the user just
+  // dismissed. Whether that's a fresh deploy in flight or stale iOS
+  // SW bookkeeping, surfacing it to the user 2 s after their click
+  // looks like the click did nothing. Stash a `dp.swReloadAt` row in
+  // sessionStorage so the suppression survives the reload, then expire
+  // after 5 min — long enough for the iOS bookkeeping to settle, short
+  // enough that a genuinely-new build the user hasn't seen yet still
+  // raises the banner on the next poll.
+  const RELOAD_SUPPRESS_KEY = 'dp.swReloadAt';
+  const RELOAD_SUPPRESS_MS  = 5 * 60 * 1000;
+  const [suppressUntil, setSuppressUntil] = React.useState(() => {
+    try {
+      const v = Number(sessionStorage.getItem(RELOAD_SUPPRESS_KEY) || 0);
+      return isFinite(v) && v > 0 ? v + RELOAD_SUPPRESS_MS : 0;
+    } catch { return 0; }
+  });
+  React.useEffect(() => {
+    const remaining = suppressUntil - Date.now();
+    if (remaining <= 0) return undefined;
+    const t = setTimeout(() => setSuppressUntil(0), remaining);
+    return () => clearTimeout(t);
+  }, [suppressUntil]);
+
   const handleReload = React.useCallback(async () => {
     if (reloading) return;
     setReloading(true);
+    // Record the click timestamp BEFORE any of the async cleanup so
+    // the next-page-mount useState initializer picks it up even if
+    // the cleanup races against the navigation.
+    try { sessionStorage.setItem(RELOAD_SUPPRESS_KEY, String(Date.now())); } catch { /* ignore */ }
     // Tell the waiting SW to activate. workbox-window registers a
     // `controllerchange` listener that's *supposed* to reload the page
     // once activation completes — but iOS Safari (and some Chrome
@@ -81,6 +112,7 @@ export function ServiceWorkerBanner() {
   }, [needRefresh, reloading, handleReload]);
 
   if (!needRefresh) return null;
+  if (Date.now() < suppressUntil) return null;
 
   return (
     <div style={{
