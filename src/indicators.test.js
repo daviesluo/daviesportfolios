@@ -175,16 +175,46 @@ describe('computeVwap', () => {
 
 describe('priceDividedByTtmEps', () => {
   it('steps the P/E down when a higher TTM EPS gets reported', () => {
+    // fallback ≈ latest history (the realistic shape — Yahoo's
+    // trailingPE = today_price / last_quarter_TTM_eps, so the
+    // implied USD eps that callers pass IS history.latest).
+    // The chart step happens between EARLIER history entries.
     const prices = [
       { date: '2026-04-01', close: 100 },
       { date: '2026-06-01', close: 100 },  // after Q1 reports (with 45d lag)
     ];
-    // Quarter end 2026-03-31; reportMs = +45d ≈ 2026-05-15
-    // Before that → fallback EPS (4); after that → TTM EPS (5)
-    const history = [{ date: '2026-03-31', eps: 5 }];
-    const out = priceDividedByTtmEps(prices, history, 4);
-    expect(out[0]).toEqual({ date: '2026-04-01', close: 25 });  // 100/4 fallback
-    expect(out[1]).toEqual({ date: '2026-06-01', close: 20 });  // 100/5 from history
+    // Two quarters: 2025-12-31 (eps=4) reports ≈ 2026-02-14;
+    // 2026-03-31 (eps=5) reports ≈ 2026-05-15.
+    const history = [
+      { date: '2025-12-31', eps: 4 },
+      { date: '2026-03-31', eps: 5 },
+    ];
+    const out = priceDividedByTtmEps(prices, history, 5);
+    // 2026-04-01: latest-with-reportMs<=date is 2025-12-31 (eps=4) → 100/4
+    expect(out[0]).toEqual({ date: '2026-04-01', close: 25 });
+    // 2026-06-01: latest is now 2026-03-31 (eps=5) → 100/5
+    expect(out[1]).toEqual({ date: '2026-06-01', close: 20 });
+  });
+
+  it('rescales ADR foreign-currency history to USD using fallbackEps as anchor', () => {
+    // TSM shape: USD prices, ttmEpsHistory in TWD (Yahoo's
+    // fundamentals-timeseries currency), implied USD eps from
+    // FMP's trailingPE. Anchor rescale maps latest history to the
+    // USD value, preserves the relative shape of earlier entries.
+    const prices = [
+      { date: '2025-09-01', close: 200 },  // before any report
+      { date: '2026-06-01', close: 220 },  // after 2026-03-31 + 45d report lag
+    ];
+    const historyTwd = [
+      { date: '2025-12-31', eps: 160 },    // older Q (TWD)
+      { date: '2026-03-31', eps: 180 },    // latest Q (TWD) → anchored to 7.15 USD
+    ];
+    // Implied USD eps = 220 / 30.79 ≈ 7.15. Ratio = 7.15 / 180.
+    const out = priceDividedByTtmEps(prices, historyTwd, 7.15);
+    // 2025-09-01: no report event yet → falls back to 7.15 USD eps
+    expect(out[0].close).toBeCloseTo(200 / 7.15, 2);
+    // 2026-06-01: 2026-03-31 entry (scaled to 7.15) applies → 220 / 7.15
+    expect(out[1].close).toBeCloseTo(220 / 7.15, 2);
   });
 
   it('empty / missing history → fallback EPS for every bar', () => {
