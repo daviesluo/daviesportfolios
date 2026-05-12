@@ -219,6 +219,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   );
   const [loading, setLoading]   = React.useState(!initialCached);
   const [error, setError]       = React.useState(false);
+  // Distinct from `error`: this is the legitimate "this ticker has
+  // no positive trailing P/E to chart" state — loss-makers (NBIS,
+  // any pre-profit IPO), ETF proxies where Finnhub has no
+  // aggregate EPS, etc. Different copy than the network-failure
+  // error panel, and we don't fire ops-error for it (it's not a bug).
+  const [noPe, setNoPe]         = React.useState(false);
   // Wider sister-fetch for the moving-average overlay. Same Yahoo
   // interval as the chart's display fetch so timestamps line up
   // bar-for-bar — the MA at each display bar is then a Map lookup
@@ -273,6 +279,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       setSeries(cached.data);
       setLoading(false);
       setError(false);
+      setNoPe(false);
       const ageMs = Date.now() - (cached.ts || 0);
       if (ageMs >= ttl) needsFresh = true;
       // Volume was added to intraday bars after this app shipped.
@@ -287,6 +294,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     } else {
       setLoading(true);
       setError(false);
+      setNoPe(false);
     }
     if (!needsFresh) return;
 
@@ -337,6 +345,21 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         const fundamentals = await fetchFundamentals([ticker], { ttmEpsHistory: true });
         if (cancelled) return;
         const row = fundamentals?.[ticker];
+        // Three terminal states for this branch:
+        //   (a) `row` absent — the Edge Function dropped this ticker
+        //       entirely (5xx, network drop, Yahoo/FMP/Finnhub all
+        //       returned null). REAL infra failure worth logging in
+        //       ops-error so chronic backend instability surfaces in
+        //       the admin badge. UI shows the standard error panel.
+        //   (b) `row` present but pe ≤ 0 AND no usable eps —
+        //       legitimate "this ticker has no positive trailing P/E"
+        //       case (loss-makers like NBIS pre-profit, ETF proxies
+        //       where Finnhub has no aggregate EPS, etc.). NOT a bug
+        //       — fire no ops-error and show a softer "P/E not
+        //       available" copy instead of the red error panel.
+        //   (c) row carries usable pe or eps — happy path: derive
+        //       USD eps from lastClose/pe and run priceDividedByTtmEps.
+        //
         // Force-derive EPS from `lastClose / trailingPE` whenever a
         // pe is available. FMP's `pe` is USD-normalized for ADRs
         // (TSM 30.8, ASML 49.3, SFTBY 9.5) but its `eps` field for
@@ -349,28 +372,40 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         // value matches FMP's reported one within rounding). Also
         // handles the index-ETF path (^GSPC etc.) where Finnhub
         // returns eps:0 — same code path, no special-case.
-        let eps = row?.eps;
-        const pe = row?.pe;
+        if (!row || typeof row !== 'object') {
+          // (a) — infra failure.
+          reportError('fetch.pe.network-drop', {
+            symbol: ticker,
+            message: 'fundamentals Edge Function returned no row for this ticker',
+          });
+          if (!cached) { setError(true); setLoading(false); }
+          return;
+        }
+        let eps = row.eps;
+        const pe = row.pe;
         if (typeof pe === 'number' && pe > 0 && data.length > 0) {
           eps = data[data.length - 1].close / pe;
         }
         if (!eps || eps <= 0) {
-          reportError('fetch.pe.no-eps', {
-            symbol: ticker,
-            message: 'fundamentals returned no usable EPS',
-          });
-          if (!cached) { setError(true); setLoading(false); }
+          // (b) — legitimate no-P/E state. Soft UI, no ops-error.
+          if (!cached) {
+            setNoPe(true);
+            setError(false);
+            setSeries([]);
+            setLoading(false);
+          }
           return;
         }
         // Use the shared `priceDividedByTtmEps` helper so the same
         // USD-anchor history rescale (Codex P1 fix) lands here as
         // in prefetch.js. Inline transform deleted to avoid drift.
-        data = priceDividedByTtmEps(data, row?.ttmEpsHistory, eps);
+        data = priceDividedByTtmEps(data, row.ttmEpsHistory, eps);
       }
       modalCacheSet(cacheKey, data);
       setSeries(data);
       setLoading(false);
       setError(false);
+      setNoPe(false);
     })();
     return () => { cancelled = true; };
   }, [ticker, rangeKey, useExt, phase]);
@@ -1106,8 +1141,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         <div className="ticker-chart-wrap">
           {loading && <div className="sparkline-empty dim mono">Loading…</div>}
           {!loading && error && <div className="sparkline-empty dim mono">Couldn't load history</div>}
-          {!loading && !error && !hasData && <div className="sparkline-empty dim mono">No data for this range</div>}
-          {!loading && !error && hasData && (
+          {!loading && !error && noPe && <div className="sparkline-empty dim mono">P/E not available — N/A</div>}
+          {!loading && !error && !noPe && !hasData && <div className="sparkline-empty dim mono">No data for this range</div>}
+          {!loading && !error && !noPe && hasData && (
             <svg
               ref={svgRef}
               viewBox={`0 0 ${W} ${H}`}
