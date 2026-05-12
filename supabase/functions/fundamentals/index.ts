@@ -1,4 +1,4 @@
-// Supabase Edge Function: fundamentals
+// Supabase Edge Function: fundamentals (rev: PR #95 USD-anchor)
 //
 // Returns current TTM P/E + trailing EPS for a list of tickers from
 // two sources, picked by symbol:
