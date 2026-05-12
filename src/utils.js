@@ -10,11 +10,12 @@
 // before reading any persisted state.
 const STORAGE_KEYS = {
   schemaVersion: 'dp.schema',
-  auth:          'dp.auth',         // { lockoutUntil, attempts }
-  ytd:           'dp.ytd',          // { year, entries: { ticker: { ts, data } } }
-  prefs:         'dp.prefs',        // { hideValues: boolean, ... }
-  tickerChart:   'dp.tickerChart',  // { entries: { "ticker|range|variant|phase": { ts, data } } }
-  maCache:       'dp.maCache',      // { entries: { "ticker|MA|range": { ts, data } } } — separate LRU so MA warming can't evict warmed display rows
+  auth:          'dp.auth',   // { lockoutUntil, attempts }
+  prefs:         'dp.prefs',  // { hideValues: boolean, ... }
+  // Chart caches (dp.tickerChart / dp.maCache / dp.ytd) live in
+  // IndexedDB now (chart_store.js). chart_store's hydrate() owns
+  // the legacy-localStorage migration so these names are referenced
+  // there, not here.
 };
 const CURRENT_SCHEMA_VERSION = 1;
 
@@ -75,13 +76,12 @@ function writeJSON(key, value) {
 }
 
 function migrateStorage() {
-  // Quota-pressure relief runs every boot, even when the schema is
-  // already current. Without this the migrate function returned
-  // early below and the localStorage chart caches accumulated until
-  // they hit the per-origin quota — at which point every save
-  // silently failed and no new cache entry could persist (the user
-  // reported "switch ranges and back, still loads").
-  pruneStaleChartCache();
+  // Chart caches now live in IndexedDB (chart_store.js). Their
+  // module's hydrate() handles a one-shot localStorage→IDB migration
+  // for any legacy dp.tickerChart / dp.maCache / dp.ytd rows the
+  // user still has from older deploys. Pruning lives there too,
+  // since IDB's quota is so much higher (100+ MB) that the trim is
+  // bounded by a soft cap rather than browser quota pressure.
   const stored = parseInt(localStorage.getItem(STORAGE_KEYS.schemaVersion) || '0', 10);
   if (stored === CURRENT_SCHEMA_VERSION) return;
 
@@ -101,41 +101,6 @@ function migrateStorage() {
   localStorage.setItem(STORAGE_KEYS.schemaVersion, String(CURRENT_SCHEMA_VERSION));
 }
 
-const PRUNE_AGE_MS = 24 * 60 * 60 * 1000;
-function pruneStaleChartCache() {
-  for (const key of [STORAGE_KEYS.tickerChart, STORAGE_KEYS.maCache, STORAGE_KEYS.ytd]) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
-      const parsed = JSON.parse(raw);
-      const cutoff = Date.now() - PRUNE_AGE_MS;
-      if (key === STORAGE_KEYS.ytd) {
-        // dp.ytd has shape { year, byRange: { 'YTD:std': { entries: { t: { ts, data } } } } }
-        const byRange = parsed?.byRange;
-        if (!byRange || typeof byRange !== 'object') continue;
-        let touched = false;
-        for (const rkey of Object.keys(byRange)) {
-          const entries = byRange[rkey]?.entries;
-          if (!entries) continue;
-          for (const t of Object.keys(entries)) {
-            if ((entries[t]?.ts || 0) < cutoff) { delete entries[t]; touched = true; }
-          }
-        }
-        if (touched) { try { localStorage.setItem(key, JSON.stringify(parsed)); } catch { /* ignore */ } }
-      } else {
-        // dp.tickerChart, dp.maCache: shape { entries: { k: { ts, data } } }
-        const entries = parsed?.entries;
-        if (!entries || typeof entries !== 'object') continue;
-        let touched = false;
-        for (const k of Object.keys(entries)) {
-          if ((entries[k]?.ts || 0) < cutoff) { delete entries[k]; touched = true; }
-        }
-        if (touched) { try { localStorage.setItem(key, JSON.stringify(parsed)); } catch { /* ignore */ } }
-      }
-    } catch { /* corrupted row — leave it; prefetch will overwrite */ }
-  }
-}
-
 // Typed helpers — call these instead of touching localStorage directly so
 // the keys stay centralised and migrations stay possible.
 export const Storage = {
@@ -143,14 +108,13 @@ export const Storage = {
   loadAuth:  () => readJSON(STORAGE_KEYS.auth, { lockoutUntil: 0, attempts: 0 }),
   saveAuth:  (s) => writeJSON(STORAGE_KEYS.auth, s),
   clearAuth: () => { try { localStorage.removeItem(STORAGE_KEYS.auth); } catch (_) {} },
-  loadYtd:   () => readJSON(STORAGE_KEYS.ytd, null),
-  saveYtd:   (d) => writeJSON(STORAGE_KEYS.ytd, d),
   loadPrefs: () => readJSON(STORAGE_KEYS.prefs, { hideValues: false }),
   savePrefs: (p) => writeJSON(STORAGE_KEYS.prefs, p),
-  loadTickerChart: () => readJSON(STORAGE_KEYS.tickerChart, { entries: {} }),
-  saveTickerChart: (d) => writeJSON(STORAGE_KEYS.tickerChart, d),
-  loadMaCache: () => readJSON(STORAGE_KEYS.maCache, { entries: {} }),
-  saveMaCache: (d) => writeJSON(STORAGE_KEYS.maCache, d),
+  // dp.tickerChart / dp.maCache / dp.ytd moved to IndexedDB
+  // (chart_store.js — ChartStore / MaStore / YtdStore). See that
+  // module for the read/write API. localStorage now only holds
+  // small, low-churn rows: auth token + prefs + schema version,
+  // staying well clear of the per-origin ~5 MB quota.
 };
 
 // Formatters + the hidden-values mask moved to ./formatters.js. Kept

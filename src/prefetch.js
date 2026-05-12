@@ -24,17 +24,21 @@
 //     5 concurrent calls (one per range) is well under what Yahoo /
 //     Cloudflare will queue.
 
-import { Storage, fetchHistoricalBatch, fetchFundamentals } from './utils.js';
+import { fetchHistoricalBatch, fetchFundamentals } from './utils.js';
 import { fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h, RANGE_KEYS } from './ytd.js';
-import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, TICKER_CACHE_CAP, MA_CACHE_CAP, tickerChartCacheKey, isFresh, hasAnyNumericField, trimLru } from './cache.js';
+import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh, hasAnyNumericField } from './cache.js';
 import { isDailyOnly } from './ticker_class.js';
 import { priceDividedByTtmEps } from './indicators.js';
+import { ChartStore, MaStore, YtdStore, hydrateAllChartStores } from './chart_store.js';
 
-// TICKER_CACHE_CAP + MA_CACHE_CAP imported from cache.js so the
-// modal's cache writer (modalCacheSet) uses the same value — a
-// previous version had 200 hard-coded here and 200 hard-coded
-// there; bumping one without the other halved the prefetch's
-// headroom on the next modal write.
+// All chart cache I/O goes through `ChartStore` / `MaStore` /
+// `YtdStore` (chart_store.js) — IndexedDB-backed, synchronous
+// in-memory mirror, no per-entry localStorage trim. The previous
+// localStorage-only implementation regularly hit the per-origin
+// 5-10 MB quota when a portfolio had ~30 tickers × all ranges ×
+// multiple variants, at which point every Storage.saveTickerChart
+// silently failed. With IDB the prefetch can warm everything for
+// every (ticker × range × variant × phase) without trim-thrashing.
 
 // Indices we surface a P/E YTD chart for. The fundamentals Edge Function
 // maps these to ETF proxies (SPY/QQQ/IWM/SOXX) and serves a cached
@@ -53,6 +57,12 @@ const PE_PROXIED_INDICES = new Set(['^GSPC', '^NDX', '^RUT', '^SOX']);
  * }} opts
  */
 export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, phase, mcTickers }) {
+  // Make sure the IDB-backed in-memory mirror is hydrated before we
+  // do any sync staleness checks — without this the very first
+  // prefetch on a hard-refresh page-load might think every entry is
+  // stale (mirror still empty) and re-fetch everything from scratch
+  // even when persisted IDB data was perfectly fresh.
+  await hydrateAllChartStores();
   const portfolioTickers = tickers || [];
   const mcList = mcTickers || [];
   if (portfolioTickers.length === 0 && mcList.length === 0) return;
@@ -76,14 +86,13 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   // Phase A: build per-range metadata + stale lists from the current
   // cache state. Done up front, before any network calls, so all
   // ranges agree on which symbols are stale and the fetches in
-  // Phase B can run concurrently without re-reading storage.
-  const ytdCur = Storage.loadYtd();
-  const ytdYearStart = ytdCur && ytdCur.year === year && ytdCur.byRange ? ytdCur.byRange : {};
-  const tcAllStart = Storage.loadTickerChart() || { entries: {} };
+  // Phase B can run concurrently. ChartStore / YtdStore reads are
+  // sync against the in-memory IDB mirror.
 
   /** @typedef {{
    *   rk: string,
    *   perfKey: string,
+   *   ytdKey: (t: string) => string,
    *   params: any,
    *   tickerKey: (t: string) => string,
    *   stale: string[],
@@ -97,9 +106,10 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       ? (extendedHours ? 'ext' : (phase === 'regular' ? 'reg' : 'closed'))
       : 'std';
     const perfKey = `${rk}:${perfVariant}`;
-    const perfEntries = ytdYearStart[perfKey]?.entries || {};
     /** @param {string} t */
     const tickerKey = (t) => tickerChartCacheKey(t, rk, useExt, phase);
+    /** @param {string} t */
+    const ytdKey = (t) => `y${year}|${perfKey}|${t}`;
     // 1D cache rows from before the volume-bearing Edge Function
     // shipped still satisfy the TTL but lack a `volume` field on
     // every bar — they'd suppress the modal's VWAP overlay
@@ -107,12 +117,12 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     // refetches them through the redeployed Edge Function.
     const extraValid = rk === '1D' ? hasAnyNumericField('volume') : undefined;
     const stale = allSymbols.filter((s) => {
-      const inPerf = isFresh(perfEntries[s], ttl, extraValid);
+      const inPerf = isFresh(YtdStore.get(ytdKey(s)), ttl, extraValid);
       // tickerChart cache only covers portfolio tickers (modal never opens for spSymbol)
-      const inTicker = s === spSymbol ? true : isFresh(tcAllStart.entries?.[tickerKey(s)], ttl, extraValid);
+      const inTicker = s === spSymbol ? true : isFresh(ChartStore.get(tickerKey(s)), ttl, extraValid);
       return !(inPerf && inTicker);
     });
-    rangeMeta.push({ rk, perfKey, params, tickerKey, stale });
+    rangeMeta.push({ rk, perfKey, ytdKey, params, tickerKey, stale });
   }
 
   // Phase B: parallel fetches across all stale ranges, with each
@@ -148,83 +158,43 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     } catch {
       return;  // leave caches alone on a network error
     }
-    // ---- Write this range's chunk to dp.ytd
+    // ---- Write this range's chunk to YtdStore + ChartStore.
+    // Per-entry sets — IDB has no quota concern so we don't merge
+    // into a single big object then trim.
     const now = Date.now();
-    const ytdCur2 = Storage.loadYtd();
-    const ytdYear2 = ytdCur2 && ytdCur2.year === year && ytdCur2.byRange ? ytdCur2.byRange : {};
-    const perfEntries = ytdYear2[meta.perfKey]?.entries || {};
-    const newPerfEntries = { ...perfEntries };
-    let ytdChanged = false;
     for (const s of meta.stale) {
       let data = batch[s];
       if (data && meta.params.variant === 'closed') data = filterToLatestDay(data);
       else if (data && (meta.params.variant === 'reg' || meta.params.variant === 'ext')) data = filterToLast24h(data);
       if (data) {
-        newPerfEntries[s] = { ts: now, data };
-        ytdChanged = true;
+        YtdStore.set(meta.ytdKey(s), { ts: now, data });
       }
     }
-    if (ytdChanged) {
-      ytdYear2[meta.perfKey] = { entries: newPerfEntries };
-      Storage.saveYtd({ year, byRange: ytdYear2 });
-    }
-    // ---- Write this range's chunk to dp.tickerChart
-    const tc = Storage.loadTickerChart() || { entries: {} };
-    tc.entries = tc.entries || {};
-    let tcChanged = false;
     for (const t of modalSymbols) {
       let data = batch[t];
       if (data && meta.params.variant === 'closed') data = filterToLatestDay(data);
       else if (data && (meta.params.variant === 'reg' || meta.params.variant === 'ext')) data = filterToLast24h(data);
       if (data && data.length >= 2) {
-        tc.entries[meta.tickerKey(t)] = { ts: now, data };
-        tcChanged = true;
+        ChartStore.set(meta.tickerKey(t), { ts: now, data });
       }
-    }
-    if (tcChanged) {
-      trimLru(tc, TICKER_CACHE_CAP);
-      Storage.saveTickerChart(tc);
     }
   }));
 
-  // ---- Moving-average history prefetch
-  // The TickerChartModal's MA overlay reads a separate, wider series
-  // than the displayed chart (1mo/30m for 1W, 3mo/60m for 1M, 6mo/1d
-  // for 3M, 1y/1d for YTD; dailyOnly tickers override interval=1d
-  // at every range). Without warming this cache, opening any modal
-  // triggered a cold network fetch for the MA history — visible as a
-  // late-rendering gray line. Walk the same (range × ticker) grid
-  // and warm `${ticker}|MA|${range}` so the modal hits cache
-  // instantly. spSymbol included so MC modals (^GSPC etc.) opened
-  // from the home page are also instant.
-  //
-  // MA rows live in their OWN dp.maCache LRU — a separate
-  // localStorage entry from dp.tickerChart. Otherwise this loop
-  // (which runs after the display-range loop and writes newer
-  // timestamps) would push the freshly warmed display rows out of
-  // the shared 200-entry LRU and the next modal open would still
-  // pay a cold fetch. Per-cache cap below sized for ~50 modal
-  // tickers × 4 MA ranges = 200 entries.
-  // MA_CACHE_CAP imported from cache.js.
-  const maStoreStart = Storage.loadMaCache() || { entries: {} };
-  // MA history is keyed by wider-history fetch; a single bar is
-  // valid, so don't require the 2-bar floor isFresh applies.
+  // ---- Moving-average history prefetch (writes to MaStore /
+  // dp.maCache via IDB). Same parallel-immediate-write pattern as
+  // the chart-range loop. 1D excluded — MA overlay isn't drawn on
+  // the single-session view.
   const isFreshMa = (entry) =>
     !!entry && Array.isArray(entry.data) && entry.data.length > 0 &&
     (Date.now() - (entry.ts || 0)) < MA_TTL_MS;
-  // Parallel fetches across the 4 MA ranges (1W / 1M / 3M / YTD;
-  // 1D is excluded). Each range writes its own chunk of dp.maCache
-  // as soon as its fetch resolves, same pattern as the chart prefetch
-  // above — so the fast ranges land in cache without waiting on the
-  // slow ones.
   const maRangeMeta = RANGE_KEYS
     .filter(rk => rk !== '1D')
     .map(rk => {
       const maKey = (t) => `${t}|MA|${rk}`;
       const ixSymbols  = allSymbols.filter(s => !dailyOnlySet.has(s));
       const dlySymbols = allSymbols.filter(s =>  dailyOnlySet.has(s));
-      const ixStaleMa  = ixSymbols.filter(s => !isFreshMa(maStoreStart.entries?.[maKey(s)]));
-      const dlyStaleMa = dlySymbols.filter(s => !isFreshMa(maStoreStart.entries?.[maKey(s)]));
+      const ixStaleMa  = ixSymbols.filter(s => !isFreshMa(MaStore.get(maKey(s))));
+      const dlyStaleMa = dlySymbols.filter(s => !isFreshMa(MaStore.get(maKey(s))));
       return {
         rk, maKey, ixStaleMa, dlyStaleMa,
         ixParams: maFetchParamsFor(rk, false),
@@ -247,9 +217,6 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       ]);
       batch = { ...ixBatch, ...dlyBatch };
     } catch { return; }
-    const maStore = Storage.loadMaCache() || { entries: {} };
-    maStore.entries = maStore.entries || {};
-    let maChanged = false;
     const now = Date.now();
     for (const t of [...meta.ixStaleMa, ...meta.dlyStaleMa]) {
       const data = batch[t];
@@ -259,12 +226,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
         .slice()
         .sort((a, b) => a.date < b.date ? -1 : 1);
       if (sorted.length === 0) continue;
-      maStore.entries[meta.maKey(t)] = { ts: now, data: sorted };
-      maChanged = true;
-    }
-    if (maChanged) {
-      trimLru(maStore, MA_CACHE_CAP);
-      Storage.saveMaCache(maStore);
+      MaStore.set(meta.maKey(t), { ts: now, data: sorted });
     }
   }));
 
@@ -286,14 +248,11 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   // Skipped when every ticker already has a fresh PE+FUND entry so
   // the auto-refresh tick (which doesn't call this function) and
   // back-to-back manual refreshes don't burn Finnhub quota.
-  // Re-load here (instead of reusing the per-range pass's `tcAll`)
-  // so the PE block sees the chart entries the per-range Phase C
-  // just wrote — needed by the YTD-fresh check before fetching.
-  const tcAllPe = Storage.loadTickerChart() || { entries: {} };
-  const ytdNow = Storage.loadYtd();
-  const ytdEntriesNow = ytdNow?.byRange?.['YTD:std']?.entries ?? {};
+  // Reads come from the in-memory mirror (sync), so the per-range
+  // pass's writes above are already visible here.
   const fundKey = (t) => `${t}|FUND|v1`;
   const peKey   = (t) => tickerChartCacheKey(t, 'PE', useExt, phase);
+  const ytdEntryFor = (t) => YtdStore.get(`y${year}|YTD:std|${t}`);
   // Only consider tickers that (a) have a freshly-cached YTD daily
   // series we can divide, and (b) don't already have a fresh PE
   // entry. Portfolio tickers come from `tickers`; the four big US
@@ -305,14 +264,12 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     ...mcList.filter(t => PE_PROXIED_INDICES.has(t)),
   ]));
   const peCandidates = peEligible.filter((t) => {
-    if (!isFresh(ytdEntriesNow[t], PE_TTL_MS)) return false;
-    // Refetch when either cache row is stale — we always write both
-    // in the same pass, so freshness is in lockstep in practice.
-    const fundFresh = isFresh(
-      /** @type {any} */ ({ ts: tcAllPe.entries?.[fundKey(t)]?.ts || 0, data: [1, 2] }),
-      PE_TTL_MS,
-    );
-    const peFresh = isFresh(tcAllPe.entries?.[peKey(t)], PE_TTL_MS);
+    if (!isFresh(ytdEntryFor(t), PE_TTL_MS)) return false;
+    // Refetch when either FUND or PE cache row is stale — we always
+    // write both in the same pass so freshness is in lockstep.
+    const fundEntry = ChartStore.get(fundKey(t));
+    const fundFresh = !!fundEntry && (Date.now() - (fundEntry.ts || 0)) < PE_TTL_MS;
+    const peFresh = isFresh(ChartStore.get(peKey(t)), PE_TTL_MS);
     return !(fundFresh && peFresh);
   });
   if (peCandidates.length > 0) {
@@ -324,15 +281,12 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       // its own second fetchFundamentals call on first open.
       fundamentals = await fetchFundamentals(peCandidates, { ttmEpsHistory: true });
     } catch { /* fall through — leave fresh PE entries unwritten */ }
-    tcAllPe.entries = tcAllPe.entries || {};
-    let peTcChanged = false;
     const peNow = Date.now();
     for (const t of peCandidates) {
       const row = fundamentals?.[t];
       if (!row) continue;
       // (1) Cache the row itself for the modal's first-render gate.
-      tcAllPe.entries[fundKey(t)] = { ts: peNow, data: row };
-      peTcChanged = true;
+      ChartStore.set(fundKey(t), { ts: peNow, data: row });
       // (2) Compute the TTM-aware PE series for the modal's
       // P/E YTD chart. ETF-proxy tickers (^GSPC/^NDX/^RUT) come
       // back with eps:0 — reconstruct an implied EPS from the last
@@ -340,17 +294,14 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       // priceDividedByTtmEps still produces drawable values.
       let eps = row.eps;
       const pe = row.pe;
-      const ytdData = ytdEntriesNow[t].data;
+      const ytdEntry = ytdEntryFor(t);
+      const ytdData = ytdEntry?.data || [];
       if ((typeof eps !== 'number' || eps <= 0) && typeof pe === 'number' && pe > 0 && ytdData.length > 0) {
         eps = ytdData[ytdData.length - 1].close / pe;
       }
       if (typeof eps !== 'number' || eps <= 0) continue;
       const peSeries = priceDividedByTtmEps(ytdData, row.ttmEpsHistory, eps);
-      tcAllPe.entries[peKey(t)] = { ts: peNow, data: peSeries };
-    }
-    if (peTcChanged) {
-      trimLru(tcAllPe, TICKER_CACHE_CAP);
-      Storage.saveTickerChart(tcAllPe);
+      ChartStore.set(peKey(t), { ts: peNow, data: peSeries });
     }
   }
 }
