@@ -129,15 +129,30 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // appear on the very first paint instead of "popping in" 1-2 s
   // after the modal opens. Background revalidate still runs below
   // to refresh the row when stale. Returns null on cache miss.
-  /** @returns {{ eps?: number, pe?: number, pe3yAvg?: number|null, ttmEpsHistory?: any[] } | null} */
+  /**
+   * @returns {{ pe?: number, pe3yAvg?: number|null, currency?: string|null,
+   *             financialCurrency?: string|null, ttmEpsHistory?: any[] } | null}
+   */
   const readFundCache = () => {
     const row = ChartStore.get(`${ticker}|FUND|v1`)?.data;
     return row && typeof row === 'object' ? row : null;
   };
   const fundCached = supportsPePattern ? readFundCache() : null;
-  const cachedHasEps = typeof fundCached?.eps === 'number' && fundCached.eps > 0;
-  const cachedHasPe  = typeof fundCached?.pe  === 'number' && fundCached.pe  > 0;
-  const [peSupported, setPeSupported] = React.useState(cachedHasEps || cachedHasPe);
+  // P/E YTD button is enabled ONLY when we have (a) a published
+  // trailingPE from Yahoo AND (b) the ticker reports financials in
+  // the same currency it trades in. For ADRs (TSM/TWD, SFTBY/JPY,
+  // ASML/EUR) the historical EPS we'd draw against USD prices is
+  // in foreign currency and we don't have daily historical FX
+  // rates to convert it properly — better to hide the chart than
+  // to show one based on guessed math. The Edge Function returns
+  // currency + financialCurrency on every fundamentals row.
+  const isCurrencyMismatch = (row) =>
+    !!(row && row.currency && row.financialCurrency
+       && row.currency !== row.financialCurrency);
+  const cachedChartable =
+    typeof fundCached?.pe === 'number' && fundCached.pe > 0
+    && !isCurrencyMismatch(fundCached);
+  const [peSupported, setPeSupported] = React.useState(cachedChartable);
   // pe3yAvg drives the dashed reference line on the P/E YTD chart.
   // Comes back null when Finnhub's annual PE series is empty (very
   // new IPOs, or tickers where Finnhub couldn't retrieve historicals)
@@ -169,16 +184,16 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // into skipping the repair. Bail silently — the prefetched
       // values that seeded peSupported / pe3yAvg above stay intact.
       if (!row || typeof row !== 'object') return;
-      const eps = row.eps;
-      const pe  = row.pe;
-      // ETF proxies (^GSPC/^NDX/^RUT → SPY/QQQ/IWM) have no aggregate
-      // EPS in Finnhub's free tier; the Edge Function returns eps:0
-      // there. Treat the row as "supported" if EITHER eps > 0 OR
-      // pe > 0 — the client reconstructs an implied EPS from the
-      // last close ÷ pe so the P/E series is still drawable.
-      const hasEps = typeof eps === 'number' && eps > 0;
-      const hasPe  = typeof pe  === 'number' && pe  > 0;
-      setPeSupported(hasEps || hasPe);
+      const pe = row.pe;
+      // P/E YTD button visibility: needs both a published Yahoo
+      // trailingPE AND matching trading/financial currencies.
+      // ADRs (currency !== financialCurrency) get the button
+      // hidden — we don't have daily historical FX rates and any
+      // chart we drew would be based on the same broken math
+      // we just stopped trusting from Finnhub.
+      const hasPe = typeof pe === 'number' && pe > 0;
+      const chartable = hasPe && !isCurrencyMismatch(row);
+      setPeSupported(chartable);
       const avg = row.pe3yAvg;
       setPe3yAvg(typeof avg === 'number' && isFinite(avg) && avg > 0 ? avg : null);
       // Write back to the FUND cache so a subsequent modal open hits
