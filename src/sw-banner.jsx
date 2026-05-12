@@ -5,16 +5,68 @@
 import React from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
+// Suppress the banner for SW_RELOAD_SUPPRESS_MS after the user clicks
+// RELOAD. On iOS Safari standalone-PWA mode the SW state transition
+// is unreliable enough that the next-page-mount useRegisterSW
+// sometimes still sees a waiting worker and re-shows the banner the
+// user just dismissed. Storage key + window length + the read /
+// compute helpers below are exported so the suppression behaviour
+// can be pinned by vitest without a DOM.
+export const SW_RELOAD_SUPPRESS_KEY = 'dp.swReloadAt';
+export const SW_RELOAD_SUPPRESS_MS  = 2 * 60 * 1000;
+
+/**
+ * Read the most-recent RELOAD-click timestamp from a Storage-shaped
+ * object (sessionStorage in prod, mocked in tests). Returns 0 when
+ * the key is missing, malformed, non-positive, or the storage object
+ * itself isn't usable (private-mode quirks, vitest node env without
+ * jsdom, etc.).
+ * @param {Pick<Storage, 'getItem'> | null | undefined} storage
+ */
+export function readReloadSuppressAt(storage) {
+  if (!storage || typeof storage.getItem !== 'function') return 0;
+  try {
+    const v = Number(storage.getItem(SW_RELOAD_SUPPRESS_KEY) || 0);
+    return isFinite(v) && v > 0 ? v : 0;
+  } catch { return 0; }
+}
+
+/**
+ * Translate a stored reloadAt timestamp into the absolute "show the
+ * banner again at this time" wall-clock deadline. 0 reloadAt → 0
+ * deadline (never been clicked, banner can render whenever
+ * needRefresh is true).
+ * @param {number} reloadAt
+ */
+export function computeSuppressUntil(reloadAt) {
+  return reloadAt > 0 ? reloadAt + SW_RELOAD_SUPPRESS_MS : 0;
+}
+
+/**
+ * Render gate for the banner. Hide when there's nothing pending OR
+ * when we're inside the post-reload suppression window.
+ * @param {boolean} needRefresh
+ * @param {number} now
+ * @param {number} suppressUntil
+ */
+export function shouldShowBanner(needRefresh, now, suppressUntil) {
+  if (!needRefresh) return false;
+  return now >= suppressUntil;
+}
+
 export function ServiceWorkerBanner() {
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
     onRegisteredSW(swUrl, registration) {
-      // Poll for updates every 30 minutes so a long-running tab eventually
-      // catches the new build without needing a hard refresh.
+      // Poll for updates every 10 minutes so a long-running tab eventually
+      // catches the new build without needing a hard refresh. Combined
+      // with the 1 h auto-reload below this caps the worst-case stale
+      // window at ~70 min (poll-interval + auto-reload) instead of the
+      // previous 90 min (30 min poll + 60 min auto-reload).
       if (!registration) return;
-      const POLL_MS = 30 * 60 * 1000;
+      const POLL_MS = 10 * 60 * 1000;
       setInterval(() => registration.update().catch(() => {}), POLL_MS);
     },
   });
@@ -23,25 +75,13 @@ export function ServiceWorkerBanner() {
   // button can switch to "RELOADING…" and not look unresponsive on iOS.
   const [reloading, setReloading] = React.useState(false);
 
-  // Suppress the banner for 2 min after the user clicks RELOAD. On
-  // iOS Safari standalone-PWA mode the SW state transition is
-  // unreliable enough that even with caches.delete + unregister
-  // before reload, the next-page-mount useRegisterSW sometimes still
-  // sees a waiting worker and re-shows the banner the user just
-  // dismissed. Whether that's a fresh deploy in flight or stale iOS
-  // SW bookkeeping, surfacing it to the user 2 s after their click
-  // looks like the click did nothing. Stash a `dp.swReloadAt` row in
-  // sessionStorage so the suppression survives the reload, then expire
-  // after 2 min — long enough for the iOS bookkeeping to settle, short
-  // enough that a genuinely-new build the user hasn't seen yet still
-  // raises the banner on the next poll.
-  const RELOAD_SUPPRESS_KEY = 'dp.swReloadAt';
-  const RELOAD_SUPPRESS_MS  = 2 * 60 * 1000;
+  // Suppression machinery: see SW_RELOAD_SUPPRESS_KEY +
+  // readReloadSuppressAt / computeSuppressUntil at the top of the
+  // file for the why. Initializer is wrapped in a try in case
+  // sessionStorage itself throws (Safari private mode etc.).
   const [suppressUntil, setSuppressUntil] = React.useState(() => {
-    try {
-      const v = Number(sessionStorage.getItem(RELOAD_SUPPRESS_KEY) || 0);
-      return isFinite(v) && v > 0 ? v + RELOAD_SUPPRESS_MS : 0;
-    } catch { return 0; }
+    try { return computeSuppressUntil(readReloadSuppressAt(sessionStorage)); }
+    catch { return 0; }
   });
   React.useEffect(() => {
     const remaining = suppressUntil - Date.now();
@@ -56,7 +96,7 @@ export function ServiceWorkerBanner() {
     // Record the click timestamp BEFORE any of the async cleanup so
     // the next-page-mount useState initializer picks it up even if
     // the cleanup races against the navigation.
-    try { sessionStorage.setItem(RELOAD_SUPPRESS_KEY, String(Date.now())); } catch { /* ignore */ }
+    try { sessionStorage.setItem(SW_RELOAD_SUPPRESS_KEY, String(Date.now())); } catch { /* ignore */ }
     // Tell the waiting SW to activate. workbox-window registers a
     // `controllerchange` listener that's *supposed* to reload the page
     // once activation completes — but iOS Safari (and some Chrome
@@ -111,8 +151,7 @@ export function ServiceWorkerBanner() {
     return () => clearTimeout(t);
   }, [needRefresh, reloading, handleReload]);
 
-  if (!needRefresh) return null;
-  if (Date.now() < suppressUntil) return null;
+  if (!shouldShowBanner(needRefresh, Date.now(), suppressUntil)) return null;
 
   return (
     <div style={{
