@@ -98,7 +98,7 @@ export function OpsErrorBadge({ isReadOnly }) {
       >
         <span className="live-dot err" />
         <div className="live-col">
-          <span className="live-txt">⚠ {summary.total} ERRORS</span>
+          <span className="live-txt">{summary.total} ERRORS</span>
           <span className="live-ago mono">last {summary.hours}h</span>
         </div>
       </button>

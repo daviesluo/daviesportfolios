@@ -172,6 +172,12 @@ function Board({ isReadOnly }) {
   const [dragging, setDragging] = useState(null);
   const [extendedHours, setExtendedHours] = useState(false);
   const [marketData, setMarketData] = useState({});
+  // "Has the first successful fetchTickers reply landed yet?" — used
+  // by Header to delay rendering the red FX MISSING pill until we've
+  // actually had a market-data tick. Otherwise every cold start
+  // flashes "FX MISSING N tickers" for ~500 ms before the first
+  // fetch fills marketData and the pill unmounts.
+  const [marketDataReady, setMarketDataReady] = useState(false);
   const [viewMode, setViewMode] = useState('tactics');
 
   // "Hide values" toggle — replaces dollar amounts with bullets so the
@@ -244,6 +250,7 @@ function Board({ isReadOnly }) {
         if (mcResult[t]) mcResult[t].todayRegularClose = c;
       }
       setMarketData(mcResult);
+      setMarketDataReady(true);
     }
     setSource(src);
     setPortfolio(prev => {
@@ -503,6 +510,7 @@ function Board({ isReadOnly }) {
     <div className="app">
       <Header
         metrics={metrics}
+        marketDataReady={marketDataReady}
         source={source}
         lastUpdated={lastUpdated}
         isRefreshing={isRefreshing}
