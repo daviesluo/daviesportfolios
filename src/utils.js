@@ -139,14 +139,38 @@ export const Storage = {
   // keep the seed clean.
   loadMarketCache: () => {
     const row = readJSON(STORAGE_KEYS.marketCache, null);
-    if (!row || typeof row !== 'object') return {};
-    const ts = Number(row.ts);
-    if (!isFinite(ts) || Date.now() - ts > MARKET_CACHE_MAX_AGE_MS) return {};
-    const data = row.data;
-    if (!data || typeof data !== 'object') return {};
+    if (row && typeof row === 'object') {
+      const ts = Number(row.ts);
+      if (!isFinite(ts) || Date.now() - ts > MARKET_CACHE_MAX_AGE_MS) return {};
+      const data = row.data;
+      if (!data || typeof data !== 'object') return {};
+      /** @type {Record<string, any>} */
+      const out = {};
+      for (const [t, v] of Object.entries(data)) {
+        if (!v || typeof v !== 'object') continue;
+        const lp = Number(/** @type {any} */ (v).lastPrice);
+        if (!isFinite(lp) || lp <= 0) continue;
+        out[t] = v;
+      }
+      return out;
+    }
+    // One-shot back-compat: the previous storage key was `dp.fxCache`
+    // (PR #105 — FX subset only, shape `{ts, rates}`). A browser that
+    // upgraded across the rename has no `dp.marketCache` row yet but
+    // still carries the older fxCache from yesterday, so reading it
+    // as a fallback keeps the cold-start flash suppressed during
+    // the first post-deploy paint. saveMarketCache deletes the
+    // legacy key after a successful write, so this branch only
+    // fires once per browser.
+    const legacy = readJSON('dp.fxCache', null);
+    if (!legacy || typeof legacy !== 'object') return {};
+    const lts = Number(legacy.ts);
+    if (!isFinite(lts) || Date.now() - lts > MARKET_CACHE_MAX_AGE_MS) return {};
+    const rates = legacy.rates;
+    if (!rates || typeof rates !== 'object') return {};
     /** @type {Record<string, any>} */
     const out = {};
-    for (const [t, v] of Object.entries(data)) {
+    for (const [t, v] of Object.entries(rates)) {
       if (!v || typeof v !== 'object') continue;
       const lp = Number(/** @type {any} */ (v).lastPrice);
       if (!isFinite(lp) || lp <= 0) continue;
@@ -168,7 +192,15 @@ export const Storage = {
       data[t] = v;
     }
     if (Object.keys(data).length === 0) return false;
-    return writeJSON(STORAGE_KEYS.marketCache, { ts: Date.now(), data });
+    const ok = writeJSON(STORAGE_KEYS.marketCache, { ts: Date.now(), data });
+    // Clean up the legacy `dp.fxCache` row once the new cache has at
+    // least one fresh write — keeps localStorage tidy and ensures
+    // the loadMarketCache back-compat branch doesn't keep firing
+    // off increasingly-stale data.
+    if (ok) {
+      try { localStorage.removeItem('dp.fxCache'); } catch { /* ignore */ }
+    }
+    return ok;
   },
   // dp.tickerChart / dp.maCache / dp.ytd moved to IndexedDB
   // (chart_store.js — ChartStore / MaStore / YtdStore). See that

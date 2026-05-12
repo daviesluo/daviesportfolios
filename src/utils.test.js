@@ -256,4 +256,43 @@ describe('Storage.loadMarketCache / saveMarketCache', () => {
     expect(Storage.saveMarketCache({})).toBe(false);
     expect(Storage.saveMarketCache({ A: { lastPrice: 0 } })).toBe(false);
   });
+
+  it('falls back to the legacy dp.fxCache shape when the new key is empty (Codex P2 #106)', async () => {
+    const { Storage } = await import('./utils.js');
+    // Old shape: { ts, rates: { ... } } — what PR #105 wrote before
+    // PR #106 renamed the key.
+    const legacy = {
+      ts: Date.now() - (12 * 60 * 60 * 1000),
+      rates: {
+        'GBPUSD=X': { lastPrice: 1.27 },
+        'USDCNY=X': { lastPrice: 7.21 },
+      },
+    };
+    store['dp.fxCache'] = JSON.stringify(legacy);
+    // No dp.marketCache yet — first cold start after upgrade.
+    expect(Storage.loadMarketCache()).toEqual({
+      'GBPUSD=X': { lastPrice: 1.27 },
+      'USDCNY=X': { lastPrice: 7.21 },
+    });
+  });
+
+  it('expires the legacy fxCache row too (7-day max age)', async () => {
+    const { Storage } = await import('./utils.js');
+    store['dp.fxCache'] = JSON.stringify({
+      ts: Date.now() - (8 * 24 * 60 * 60 * 1000),
+      rates: { 'GBPUSD=X': { lastPrice: 1.27 } },
+    });
+    expect(Storage.loadMarketCache()).toEqual({});
+  });
+
+  it('saveMarketCache deletes the legacy dp.fxCache row after a fresh write', async () => {
+    const { Storage } = await import('./utils.js');
+    store['dp.fxCache'] = JSON.stringify({
+      ts: Date.now(),
+      rates: { 'GBPUSD=X': { lastPrice: 1.27 } },
+    });
+    expect('dp.fxCache' in store).toBe(true);
+    Storage.saveMarketCache({ '^GSPC': { lastPrice: 5300 } });
+    expect('dp.fxCache' in store).toBe(false);
+  });
 });
