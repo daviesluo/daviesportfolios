@@ -28,6 +28,16 @@ let _sentThisLoad = 0;
 export function reportError(kind, opts = {}) {
   if (_sentThisLoad >= MAX_PER_LOAD) return;
   if (!kind) return;
+  // Admin-token gate (Edge-Function side enforces; we also short-
+  // circuit here to skip the network round-trip + drop noisy reports
+  // from sessions that never authenticated). The client-side
+  // cooldown / per-load cap is still defense in depth, but the real
+  // guard is now server-side. Pre-auth render crashes from before
+  // the user's typed-pwd → token round-trip are no longer captured
+  // — accepted tradeoff (PR #106): a fully-anonymous POST endpoint
+  // was trivially spammable.
+  const token = getAppToken();
+  if (!token) return;
   const symbol = opts.symbol || '';
   const dedupKey = `${kind}|${symbol}`;
   const last = RECENT.get(dedupKey);
@@ -55,6 +65,7 @@ export function reportError(kind, opts = {}) {
         'apikey': SB_ANON,
         'Authorization': `Bearer ${SB_ANON}`,
         'Content-Type': 'application/json',
+        'x-app-token': token,
       },
       body: JSON.stringify(payload),
       // keepalive lets the request survive a navigation / tab close —

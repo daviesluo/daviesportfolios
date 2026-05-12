@@ -2,14 +2,20 @@
 //
 // Lightweight observability sink with two modes:
 //
-//   POST /functions/v1/ops-error  (no auth)
-//     body: { kind, symbol?, message?, context? }
+//   POST /functions/v1/ops-error
+//     Header: x-app-token: <admin token>
+//     body:   { kind, symbol?, message?, context? }
 //     Inserts one row into public.ops_errors via the service-role key.
 //     Anon access to the table is RLS-denied so only this function can
-//     write. Anti-spam: reject payloads larger than 4 KB and clip
-//     fields to length caps before insert. Logged-out browsers can
-//     report freely so we capture render crashes that fire before
-//     auth completes.
+//     write. Token gate (added 2026-05): the previous "no auth" mode
+//     let anyone with the Supabase URL spam the table — per-(kind,
+//     symbol) cooldown + per-load cap on the client could be trivially
+//     bypassed with random kinds. Now requires the same HMAC-signed
+//     admin token the summary endpoint already uses. Anti-spam:
+//     reject payloads larger than 4 KB and clip fields to length caps
+//     before insert. Render crashes that fire BEFORE auth completes
+//     (token not yet set) are no longer captured — the
+//     observability tradeoff the user accepted on PR #106.
 //
 //   GET /functions/v1/ops-error?action=summary&hours=24
 //     Header: x-app-token: <admin token>
@@ -168,6 +174,16 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "method not allowed" }), {
       status: 405, headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+
+  // Admin token gate. Reject anything that isn't a valid signed admin
+  // token before we even look at the body — keeps the spam surface
+  // tight without needing IP rate-limiting infrastructure.
+  const postRole = await verifyAdminToken(req.headers.get("x-app-token"));
+  if (postRole !== "admin") {
+    return new Response(JSON.stringify({ error: "admin token required" }), {
+      status: 401, headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
 

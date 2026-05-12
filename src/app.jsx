@@ -56,7 +56,16 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// 30 s during the trading day (regular session + pre / after-hours),
+// 5 min overnight + weekends. US exchanges are closed and there's
+// no fresh price activity to fetch during the slow window — going
+// every 30 s burned ~5,760 round-trips over a weekend with nothing
+// new to show, and ate Yahoo's per-IP soft rate-limit budget for
+// the rare crypto/FX move that actually does happen. Crypto and FX
+// trade 24/7 so a 5 min cadence still catches material moves
+// without spamming requests through dead hours.
 const REFRESH_MS = 30 * 1000;
+const REFRESH_MS_OVERNIGHT = 5 * 60 * 1000;
 
 // USDCNY=X is a hidden FX fetch used only for CNY→USD conversion of holdings
 // (not shown in the market-conditions column). GBPUSD=X doubles as both a
@@ -181,7 +190,7 @@ function Board({ isReadOnly }) {
   // $156 k before settling at $146 k. Storage.loadFxCache returns
   // `{}` when the cache is missing or older than 7 days, so callers
   // that need to detect "no FX yet" still can.
-  const [marketData, setMarketData] = useState(() => Storage.loadFxCache());
+  const [marketData, setMarketData] = useState(() => Storage.loadMarketCache());
   // "Has the first successful fetchTickers reply landed yet?" — used
   // by Header to delay rendering the red FX MISSING pill until we've
   // actually had a market-data tick. Otherwise every cold start
@@ -263,7 +272,7 @@ function Board({ isReadOnly }) {
       setMarketDataReady(true);
       // Persist this tick's FX rates so the next cold start can seed
       // marketData with them instead of falling back to 1:1.
-      Storage.saveFxCache(mcResult);
+      Storage.saveMarketCache(mcResult);
     }
     setSource(src);
     setPortfolio(prev => {
@@ -336,15 +345,37 @@ function Board({ isReadOnly }) {
   // Kick off the refresh loop once the portfolio is loaded.
   useEffect(() => {
     if (!portfolio) return;
-    // Initial mount triggers prefetch (default). The 30 s tick skips it
-    // — TTLs run in minutes/hours so the auto-refresh would re-fetch
+    // Initial mount triggers prefetch (default). Subsequent ticks skip
+    // it — TTLs run in minutes/hours so the auto-refresh would re-fetch
     // chart data with no fresh bars to show. The user's explicit
     // Refresh click also triggers prefetch (it goes through doRefresh
     // directly, with the synthetic React event arg which is truthy but
     // not { prefetch: false } so the default applies).
+    //
+    // Self-rearming setTimeout (not setInterval) so the cadence can
+    // adapt to the market phase each cycle — 30 s during the trading
+    // day, 5 min through the overnight / weekend dead window. Tick at
+    // the current phase's interval; phase transitions take effect on
+    // the next tick (good enough; no precise edge-trigger needed).
     doRefreshRef.current();
-    const id = setInterval(() => doRefreshRef.current({ prefetch: false }), REFRESH_MS);
-    return () => clearInterval(id);
+    let cancelled = false;
+    /** @type {ReturnType<typeof setTimeout> | null} */
+    let timeoutId = null;
+    const tickIntervalMs = () =>
+      usMarketPhase(new Date()) === 'overnight' ? REFRESH_MS_OVERNIGHT : REFRESH_MS;
+    const schedule = () => {
+      if (cancelled) return;
+      timeoutId = setTimeout(() => {
+        if (cancelled) return;
+        doRefreshRef.current({ prefetch: false });
+        schedule();
+      }, tickIntervalMs());
+    };
+    schedule();
+    return () => {
+      cancelled = true;
+      if (timeoutId !== null) clearTimeout(timeoutId);
+    };
   }, [portfolio !== null]);
 
   // Re-prefetch when the user toggles extendedHours. 1D's cache key

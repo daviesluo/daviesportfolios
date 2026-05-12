@@ -147,19 +147,25 @@ secrets server-side.
   holding's FX pair (GBPUSD=X / USDCNY=X / USDHKD=X) is missing from
   the live quote, the header surfaces a red `FX MISSING N tickers`
   pill instead of silently valuing the holding at 1:1 USD (which was
-  understating GBP portfolios by ~20% during brief Yahoo FX
+  understating GBP portfolios by ~20 % during brief Yahoo FX
   outages). Render is gated on a `marketDataReady` flag that flips
   true only after the first successful `fetchTickers` reply, so the
-  cold-start window (where `marketData` is the empty default and
-  every non-USD holding briefly "looks" FX-missing) doesn't flash
-  the pill for half a second on every page load. The underlying
-  `metrics.fxMissingTickers` detection is unchanged — a genuine
-  later-tick outage (marketData populated for everything except
-  the FX pair) still triggers the pill. Same row: a `STALE Nm` pill
-  appears whenever the last successful price fetch is more than
-  5 min old, so a dead Edge Function can't quietly leave the
-  scoreboard stuck on old numbers while the auto-retry loop churns
-  in the background.
+  cold-start window (where `marketData` would otherwise be the empty
+  default and every non-USD holding briefly "looks" FX-missing)
+  doesn't flash the pill for half a second on every page load.
+  The cold-start window is also seeded from `dp.marketCache` (see
+  `Storage.loadMarketCache` in utils.js — the full last-tick MC +
+  FX snapshot, max age 7 days), so the **portfolio total prints
+  the right number from the first paint** instead of the previous
+  "1:1-USD-fallback flashes ~$10 k high, then snaps to real after
+  the live tick" behaviour for CNY-denominated holdings. The
+  underlying `metrics.fxMissingTickers` detection is unchanged —
+  a genuine later-tick outage (marketData populated for everything
+  except the FX pair) still triggers the pill. Same row: a
+  `STALE Nm` pill appears whenever the last successful price fetch
+  is more than 5 min old, so a dead Edge Function can't quietly
+  leave the scoreboard stuck on old numbers while the auto-retry
+  loop churns in the background.
 - **Admin error-triage badge** (desktop only) — admin viewers get a
   red `N ERRORS / last 24h` pill in the header that polls
   `/functions/v1/ops-error?action=summary&hours=24` every 60 s.
@@ -249,7 +255,13 @@ to the prompt.
   the football-pitch view and a treemap heatmap.
 - **Refresh** — manually triggers a price fetch + a background
   prefetch of every chart range. The page also auto-refreshes prices
-  every 30 s.
+  on a phase-aware cadence: **30 s during the trading day** (regular
+  session + pre- / after-hours), **5 min when `usMarketPhase ===
+  'overnight'`** (weekday 20:00–04:00 ET plus the entire weekend).
+  Crypto / FX still trade through the slow window so a 5 min tick
+  is enough to catch any material move, but the heavy 30 s cadence
+  through dead hours used to burn ~5,760 round-trips per weekend
+  with nothing fresh to show.
 
 ### Tactics board view
 
@@ -378,6 +390,16 @@ standalone-PWA Chrome contexts) don't fire `controllerchange`
 reliably, so without the second reload the click felt silently
 unresponsive.
 
+If the user doesn't click `RELOAD`, the banner auto-fires the same
+handler after 24 h. `registerType: 'prompt'` was kept (autoUpdate
+wiped the `?pwd=…` URL mid-login), but the user-visible deferred
+update used to sit indefinitely — a long-running tab could drift
+months behind the deployed bundle. 24 h is well past the auth
+round-trip (the user has a sessionStorage token long before then,
+so reload doesn't re-prompt) and generous enough that any
+normally-used tab will have been clicked or naturally reloaded
+before the timer fires.
+
 ---
 
 ## Stack
@@ -409,7 +431,7 @@ unresponsive.
 | `auth.js` | Password → HMAC token flow. `collectPassword` (URL `?pwd=` or `window.prompt`), `authenticate` (POSTs to `/auth`), `decodeAppToken` (skip prompt if a valid sessionStorage token already exists). |
 | `portfolio_remote.js` | `loadPortfolioRemote` / `savePortfolioRemote` against the `data` Edge Function. Includes `migrate(p)` for legacy portfolio shapes (CB → CB1/CB2 split, BRK-B move, currency backfill, lots backfill). |
 | `supabase_config.js` | Shared `SB_URL`, `SB_ANON`, `EDGE_AUTH_URL`, `EDGE_DATA_URL`. |
-| `utils.js` | Live-price fetch + proxy plumbing (`fetchTickers`, `fetchTodayRegularClose` for the MC cards' "since 16:00 ET" anchor, `fetchHistorical` / `fetchHistoricalBatch` with Edge-first + proxy-fallback strategy, `fetchFundamentals` for the P/E modal), `Storage` namespace (`dp.auth` / `dp.prefs` / `dp.schema`) with schema-version migration, DST-aware helpers (`londonTimeParts`, `usMarketPhase`, `ukTzAbbr`, `usMarketHoursUtc`), `POSITION_COORDS`. Chart caches (`dp.tickerChart` / `dp.maCache` / `dp.ytd`) moved to IndexedDB via `chart_store.js` to escape the localStorage 5 MB quota. Formatters / FX / metrics moved to their own modules below — `utils.js` keeps re-exports so existing imports work, but new code should import from the focused module. |
+| `utils.js` | Live-price fetch + proxy plumbing (`fetchTickers`, `fetchTodayRegularClose` for the MC cards' "since 16:00 ET" anchor, `fetchHistorical` / `fetchHistoricalBatch` with Edge-first + proxy-fallback strategy, `fetchFundamentals` for the P/E modal), `Storage` namespace (`dp.auth` / `dp.prefs` / `dp.schema` / `dp.marketCache`) with schema-version migration, DST-aware helpers (`londonTimeParts`, `usMarketPhase`, `ukTzAbbr`, `usMarketHoursUtc`), `POSITION_COORDS`. `Storage.loadMarketCache` / `saveMarketCache` persist the last successful `fetchTickers` reply (FX pairs + MC tickers) and hydrate the next cold start so the portfolio total + MC cards paint correct values on the first frame instead of flashing 1:1-USD fallbacks. Chart caches (`dp.tickerChart` / `dp.maCache` / `dp.ytd`) moved to IndexedDB via `chart_store.js` to escape the localStorage 5 MB quota. Formatters / FX / metrics moved to their own modules below — `utils.js` keeps re-exports so existing imports work, but new code should import from the focused module. |
 | `chart_store.js` | IndexedDB-backed chart cache layer built on [`idb-keyval`](https://github.com/jakearchibald/idb-keyval). Three logical stores — `ChartStore` (per-ticker per-range chart series + the `\|FUND\|v2` fundamentals row + the `\|PE\|v4\|...` series), `MaStore` (MA overlay wider-history per ticker × range), `YtdStore` (PerfChart's per-(year, range, ticker) entries). Each store has a synchronous in-memory `Map` mirror that's auto-hydrated from IDB at module load so the modal's `useState` initializer can read warm cache on the very first paint. Writes update the mirror immediately and persist to IDB in the background (best-effort). One-shot legacy-`localStorage` migration on first hydrate copies any existing `dp.tickerChart` / `dp.maCache` / `dp.ytd` rows into the matching IDB store, then deletes the localStorage row to free the quota for `dp.auth` / `dp.prefs`. Falls back to mem-only cleanly when `indexedDB` is undefined (vitest, private-mode iOS Safari). |
 | `formatters.js` / `fx.js` / `metrics.js` / `lots.js` | The pure pieces lifted out of `utils.js`. `formatters.js`: `fmtMoney` / `fmtPct` / `fmtPrice` / `pctColor` / `maskDigits` / `formatAgo`. `fx.js`: `detectCurrency` / `currencySymbol` / `fxRateToUSD` (the version that returns `{ rate, missing }` so a 1:1 fallback can be surfaced) / `fxToUSD` (back-compat shim). `metrics.js`: `computeMetrics` / `detectFormation`. `lots.js`: `cleanLots` / `totalShares` / `weightedAvgCost` (lot-input sanitisation, which used to be inline in modals.jsx and silently kept negative cost values). All pinned by `utils.metrics.test.js` (19 cases) and `lots.test.js` (14 cases) so the on-screen portfolio numbers can't quietly regress. |
 | `data.js` | `INITIAL_PORTFOLIO` seed for first-load demo state. |
@@ -441,7 +463,7 @@ unresponsive.
 | `prices` | `?tickers=NVDA,017731,GBPUSD=X,…` → `{ ticker: { lastPrice, extPrice?, prevClose, currency, dayPct, extDayPct? } }`. Routes 6-digit codes to eastmoney's `fundgz.1234567.com.cn`, everything else to Yahoo Finance v8. |
 | `chart` | `?tickers=…&range=1mo&interval=60m&includePrePost=true` → `{ ticker: [{ date, close, volume? }, …] }`. Intraday bars also carry the per-bar `volume` (used by the modal's VWAP overlay). Routes CN funds to a 3-tier eastmoney fallback (pingzhongdata → lsjz JSON → danjuanapp), everything else to Yahoo. `.PVT` placeholders fall back to the bare symbol when Yahoo 404s the literal. |
 | `fundamentals` | `?tickers=NVDA,GOOG,^GSPC,…` → `{ NVDA: { pe, eps, pe3yAvg, ttmEpsHistory? }, ^GSPC: { pe, eps:0, pe3yAvg }, … }`. Powers the ticker-modal "P/E YTD" view. **Individual stocks** flow through a three-tier source chain inside `fetchStockFundamentals`: (1) FMP `/v3/quote/<csv>` (one batched call for the whole portfolio, ADR-USD-normalized natively, free tier 250 calls/day — used as primary because Finnhub's `peTTM` for ADRs incorrectly divides the USD ADR price by the foreign-currency reported EPS and yields garbage values like TSM ≈ 1.22 / SFTBY ≈ 0.07 / ASML ≈ 63); (2) Yahoo `quoteSummary` (`summaryDetail.trailingPE` + `defaultKeyStatistics.trailingEps`) for tickers FMP's free tier doesn't cover; (3) Finnhub `/stock/metric` as final fallback. Finnhub still runs in parallel on every path to source `pe3yAvg` from its `series.annual.pe`, since neither FMP nor Yahoo expose historical-annual P/E on the free tier. **Four big US indices** (`^GSPC`/`^NDX`/`^RUT`/`^SOX`) → Alpha Vantage `OVERVIEW` against ETF proxies (SPY/QQQ/IWM/SOXX) cached for 24 h in `index_fundamentals_cache`; 3Y-avg P/E lives in `INDEX_PE_3Y_AVG` constants. Hardcoded `INDEX_PE_FALLBACK` constants kick in if AV is unreachable. **Opt-in `&ttmEpsHistory=true`** adds a `ttmEpsHistory: [{date, eps}, …]` array sourced from Yahoo's `fundamentals-timeseries` (`trailingDilutedEPS`, 5+ years of pre-summed quarter-end TTM EPS), falling back to a Finnhub `/stock/earnings` sum-of-4-quarters if Yahoo misses. For ADRs the upstream values are reported in the underlying foreign currency, so the Edge Function rescales them to USD via **`normalizeEpsHistoryToUsd(history, usdAnchor)`** before returning. The `usdAnchor` is derived from a price/pe pair drawn from the same response chain so the two sides of the ratio never have a timing skew: FMP `price/pe` (preferred — same batched response) → Yahoo `quoteSummary` `price/pe` (Yahoo strips this field from anon ADR callers for some symbols, so this branch sometimes no-ops) → Yahoo `/v8/finance/chart` `meta.regularMarketPrice` divided by quoteSummary's `pe` (the reliable last-resort — what Yahoo's own consumer site uses, always returns for ADRs). When the ratio (anchor / latest history entry) lands within ±20 % the function returns the history untouched (it's already in USD), so US-listed stocks pay no rescaling cost. Index rows return `eps:0` and the client reconstructs an implied EPS from `lastClose / pe`. |
-| `ops-error` | Two modes. `POST { kind, symbol?, message?, context? }` → inserts into `ops_errors` (no auth; size + length capped; per-row IP captured server-side). `GET ?action=summary&hours=24` with header `x-app-token: <admin token>` → `{ hours, total, byKind, bySymbol }` aggregate over the last N hours, so triage doesn't require a Supabase dashboard login. |
+| `ops-error` | Two modes, both admin-gated. `POST { kind, symbol?, message?, context? }` with header `x-app-token: <admin token>` → inserts into `ops_errors` (size + length capped; per-row IP captured server-side from `x-forwarded-for`). `GET ?action=summary&hours=24` with the same header → `{ hours, total, byKind, bySymbol }` aggregate over the last N hours, so triage doesn't require a Supabase dashboard login. POST was anon-writeable until 2026-05; the client-side per-(kind, symbol) cooldown + 50-per-load cap was trivially bypassable with random kinds, so the admin token gate now mirrors the summary endpoint's existing one. Trade-off: pre-auth render crashes that fire before the user's pwd → token round-trip completes are no longer captured. |
 
 Every Edge Function's pure helpers (range filtering, HMAC token sign / verify, ticker classification, TTM rolling-sum, market-hour predicate, anti-spam clipper) are exported and pinned by a co-located `index.test.ts` so a `deno test supabase/functions/` run guards them just like vitest guards the client. The `Deno.serve(...)` entrypoint is guarded by `import.meta.main` so importing a function's helpers in a test does NOT bind a port. Cross-function tests (e.g. auth sign + data verify roundtrip) live next to one of the two and import the other directly.
 
@@ -452,6 +474,7 @@ Every Edge Function's pure helpers (range filtering, HMAC token sign / verify, t
 | `0001_auth_attempts.sql` | `auth_attempts` table + `bump_auth_attempt` RPC for atomic increment-or-lock. |
 | `0002_ops_errors.sql` | `ops_errors` table with timestamped indexes; RLS-deny default. |
 | `0003_index_fundamentals_cache.sql` | `index_fundamentals_cache` table — server-side 24 h cache of index trailing P/E from Alpha Vantage so the `fundamentals` Edge Function stays well under AV's 25-call/day free tier. |
+| `0004_ops_errors_retention.sql` | `pg_cron` job at 03:00 UTC daily that drops `ops_errors` rows older than 30 days. Keeps the table bounded and the badge's `?action=summary` scan tight. Apply once via Supabase SQL Editor — pg_cron-scheduling SQL doesn't propagate through the edge-functions deploy workflow. |
 
 ### Build / config
 
@@ -479,10 +502,14 @@ Every Edge Function's pure helpers (range filtering, HMAC token sign / verify, t
        │              └── error reports via /functions/v1/ops-error
        │  Persistent state:
        │    ├── localStorage / sessionStorage (small, low-churn rows)
-       │    │     ├── dp.token   (sessionStorage — wiped on tab close)
-       │    │     ├── dp.auth    (failed-login lockout state)
-       │    │     ├── dp.prefs   (hide-values toggle, etc.)
-       │    │     └── dp.schema  (single integer; bumps drive Storage.migrate)
+       │    │     ├── dp.token        (sessionStorage — wiped on tab close)
+       │    │     ├── dp.auth         (failed-login lockout state)
+       │    │     ├── dp.prefs        (hide-values toggle, etc.)
+       │    │     ├── dp.marketCache  (last live tick's MC + FX snapshot,
+       │    │     │                    seeds cold start so the portfolio
+       │    │     │                    total + MC cards print right on
+       │    │     │                    the first frame; max age 7 days)
+       │    │     └── dp.schema       (single integer; bumps drive Storage.migrate)
        │    └── IndexedDB via idb-keyval (chart_store.js — bulk chart data)
        │          ├── ChartStore (per-ticker modal cache: chart series,
        │          │               FUND row, TTM-aware PE series)
@@ -556,6 +583,7 @@ In Supabase dashboard → SQL Editor, paste and run:
 - `supabase/migrations/0001_auth_attempts.sql`
 - `supabase/migrations/0002_ops_errors.sql`
 - `supabase/migrations/0003_index_fundamentals_cache.sql`
+- `supabase/migrations/0004_ops_errors_retention.sql`
 
 Then create the `board_data` table:
 
@@ -634,6 +662,9 @@ Cloudflare Pages will auto-deploy on every push to `main`.
 ## Working conventions
 
 See [`CLAUDE.md`](./CLAUDE.md) for repo conventions (push directly to
-`main`, run tests + typecheck + build before every push, manual
-deploys for `supabase/functions/*`, schema-version migrations under
-`Storage.migrate()` in `utils.js`).
+`main`, run tests + typecheck + build before every push,
+schema-version migrations under `Storage.migrate()` in `utils.js`).
+Edge Functions auto-deploy via `.github/workflows/edge-functions.yml`
+on every push to `main` that changes a `supabase/functions/*/index.ts`
+(gated by `deno test`); manual paste-into-dashboard is only needed
+when the deploy secrets are missing.

@@ -154,3 +154,145 @@ describe('fetchHistoricalBatch — empty input', () => {
     expect(tickers).toBe("AAPL");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Storage.loadMarketCache / saveMarketCache — pin the cold-start FX seed.
+//
+// Critical for the portfolio total NOT to flash a 1:1-fallback value on every
+// page load. Regressions here are silent (vitest won't catch a key-name typo
+// without an explicit test) so they get their own block.
+// ---------------------------------------------------------------------------
+describe('Storage.loadMarketCache / saveMarketCache', () => {
+  // Stub localStorage so the test doesn't depend on jsdom's quirks.
+  /** @type {Record<string, string>} */
+  let store;
+  beforeEach(() => {
+    store = {};
+    globalThis.localStorage = /** @type {any} */ ({
+      getItem: (k) => (k in store ? store[k] : null),
+      setItem: (k, v) => { store[k] = String(v); },
+      removeItem: (k) => { delete store[k]; },
+      clear: () => { store = {}; },
+    });
+  });
+
+  it('returns {} when the row is missing', async () => {
+    const { Storage } = await import('./utils.js');
+    expect(Storage.loadMarketCache()).toEqual({});
+  });
+
+  it('roundtrips a save → load: every ticker with a positive lastPrice comes back', async () => {
+    const { Storage } = await import('./utils.js');
+    const tick = {
+      'GBPUSD=X': { lastPrice: 1.27 },
+      'USDCNY=X': { lastPrice: 7.21 },
+      '^GSPC':    { lastPrice: 5300, prevClose: 5280, dayPct: 0.37 },
+      'BZ=F':     { lastPrice: 82.5 },
+    };
+    Storage.saveMarketCache(tick);
+    const loaded = Storage.loadMarketCache();
+    expect(loaded['GBPUSD=X'].lastPrice).toBe(1.27);
+    expect(loaded['USDCNY=X'].lastPrice).toBe(7.21);
+    expect(loaded['^GSPC'].lastPrice).toBe(5300);
+    expect(loaded['^GSPC'].prevClose).toBe(5280);
+    expect(loaded['BZ=F'].lastPrice).toBe(82.5);
+  });
+
+  it('drops entries with non-positive / invalid lastPrice on both save and load', async () => {
+    const { Storage } = await import('./utils.js');
+    Storage.saveMarketCache({
+      OK:    { lastPrice: 100 },
+      ZERO:  { lastPrice: 0 },
+      NEG:   { lastPrice: -1 },
+      NULL:  { lastPrice: null },
+      NAN:   { lastPrice: NaN },
+      OBJ:   /** @type {any} */ ('not an object'),
+      ABSENT:{ /* no lastPrice field */ },
+    });
+    const loaded = Storage.loadMarketCache();
+    expect(Object.keys(loaded).sort()).toEqual(['OK']);
+  });
+
+  it('expires rows older than 7 days', async () => {
+    const { Storage } = await import('./utils.js');
+    // Write directly so we control the ts.
+    const stale = {
+      ts: Date.now() - (7 * 24 * 60 * 60 * 1000 + 60_000),
+      data: { 'GBPUSD=X': { lastPrice: 1.27 } },
+    };
+    store['dp.marketCache'] = JSON.stringify(stale);
+    expect(Storage.loadMarketCache()).toEqual({});
+  });
+
+  it('keeps rows just under the 7-day threshold', async () => {
+    const { Storage } = await import('./utils.js');
+    const fresh = {
+      ts: Date.now() - (6 * 24 * 60 * 60 * 1000),
+      data: { 'GBPUSD=X': { lastPrice: 1.27 } },
+    };
+    store['dp.marketCache'] = JSON.stringify(fresh);
+    expect(Storage.loadMarketCache()).toEqual({ 'GBPUSD=X': { lastPrice: 1.27 } });
+  });
+
+  it('returns {} on malformed JSON / wrong shape (defensive)', async () => {
+    const { Storage } = await import('./utils.js');
+    // Corrupt JSON
+    store['dp.marketCache'] = '{not json';
+    expect(Storage.loadMarketCache()).toEqual({});
+    // Missing ts
+    store['dp.marketCache'] = JSON.stringify({ data: { OK: { lastPrice: 1 } } });
+    expect(Storage.loadMarketCache()).toEqual({});
+    // Missing data
+    store['dp.marketCache'] = JSON.stringify({ ts: Date.now() });
+    expect(Storage.loadMarketCache()).toEqual({});
+    // String data
+    store['dp.marketCache'] = JSON.stringify({ ts: Date.now(), data: 'oops' });
+    expect(Storage.loadMarketCache()).toEqual({});
+  });
+
+  it('save returns false on empty / no-usable-tickers input', async () => {
+    const { Storage } = await import('./utils.js');
+    expect(Storage.saveMarketCache(null)).toBe(false);
+    expect(Storage.saveMarketCache({})).toBe(false);
+    expect(Storage.saveMarketCache({ A: { lastPrice: 0 } })).toBe(false);
+  });
+
+  it('falls back to the legacy dp.fxCache shape when the new key is empty (Codex P2 #106)', async () => {
+    const { Storage } = await import('./utils.js');
+    // Old shape: { ts, rates: { ... } } — what PR #105 wrote before
+    // PR #106 renamed the key.
+    const legacy = {
+      ts: Date.now() - (12 * 60 * 60 * 1000),
+      rates: {
+        'GBPUSD=X': { lastPrice: 1.27 },
+        'USDCNY=X': { lastPrice: 7.21 },
+      },
+    };
+    store['dp.fxCache'] = JSON.stringify(legacy);
+    // No dp.marketCache yet — first cold start after upgrade.
+    expect(Storage.loadMarketCache()).toEqual({
+      'GBPUSD=X': { lastPrice: 1.27 },
+      'USDCNY=X': { lastPrice: 7.21 },
+    });
+  });
+
+  it('expires the legacy fxCache row too (7-day max age)', async () => {
+    const { Storage } = await import('./utils.js');
+    store['dp.fxCache'] = JSON.stringify({
+      ts: Date.now() - (8 * 24 * 60 * 60 * 1000),
+      rates: { 'GBPUSD=X': { lastPrice: 1.27 } },
+    });
+    expect(Storage.loadMarketCache()).toEqual({});
+  });
+
+  it('saveMarketCache deletes the legacy dp.fxCache row after a fresh write', async () => {
+    const { Storage } = await import('./utils.js');
+    store['dp.fxCache'] = JSON.stringify({
+      ts: Date.now(),
+      rates: { 'GBPUSD=X': { lastPrice: 1.27 } },
+    });
+    expect('dp.fxCache' in store).toBe(true);
+    Storage.saveMarketCache({ '^GSPC': { lastPrice: 5300 } });
+    expect('dp.fxCache' in store).toBe(false);
+  });
+});
