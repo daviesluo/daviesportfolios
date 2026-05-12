@@ -249,7 +249,7 @@ async function resolveIndexPe(
 // FMP doesn't have. The ordering matters: FMP is the only one that
 // gets ADR P/E correct without a crumb workflow.
 
-export type FmpRow = { pe: number; eps: number };
+export type FmpRow = { pe: number; eps: number; price: number };
 
 export async function fetchFmpQuoteBatched(symbols: string[]): Promise<Record<string, FmpRow>> {
   if (!FMP_API_KEY || symbols.length === 0) return {};
@@ -271,12 +271,13 @@ export async function fetchFmpQuoteBatched(symbols: string[]): Promise<Record<st
     const out: Record<string, FmpRow> = {};
     for (const row of data) {
       const sym = String(row?.symbol ?? "");
-      const pe  = Number(row?.pe);
-      const eps = Number(row?.eps);
+      const pe    = Number(row?.pe);
+      const eps   = Number(row?.eps);
+      const price = Number(row?.price);
       if (!sym) continue;
       if (!isFinite(pe)  || pe  <= 0) continue;
       if (!isFinite(eps) || eps <= 0) continue;
-      out[sym] = { pe, eps };
+      out[sym] = { pe, eps, price: isFinite(price) && price > 0 ? price : 0 };
     }
     return out;
   } catch {
@@ -658,7 +659,18 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
             const raw = await fetchFinnhubEarningsHistory(t);
             if (raw) hist = rollingTtmFromRawQuarterly(raw);
           }
-          if (hist) f.ttmEpsHistory = normalizeEpsHistoryToUsd(hist, f.eps);
+          // FMP's `eps` field is in the underlying foreign currency
+          // for ADRs (TSM TWD, SFTBY JPY, ASML EUR) — using it as
+          // the USD anchor would leave the rescale in the wrong
+          // unit. FMP's `pe` IS USD-normalized, so price/pe gives
+          // the implied USD EPS directly. Use that when FMP gave us
+          // both fields; otherwise fall back to f.eps (only ever
+          // hit on the Yahoo/Finnhub fallback path).
+          const fmpRow = fmpByTicker[t];
+          const usdAnchor = (fmpRow && fmpRow.price > 0 && fmpRow.pe > 0)
+            ? fmpRow.price / fmpRow.pe
+            : f.eps;
+          if (hist) f.ttmEpsHistory = normalizeEpsHistoryToUsd(hist, usdAnchor);
         }
         out[t] = f;
       }
