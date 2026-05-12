@@ -242,19 +242,22 @@ async function resolveIndexPe(
 
 type YahooQuoteSummary = { pe: number; eps: number; currency: string | null };
 
-const YAHOO_HEADERS = {
-  "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-  "Accept": "application/json,text/plain,*/*",
-};
-
-/** Try the v10 quoteSummary endpoint (richest schema). */
-async function fetchYahooQuoteSummaryOnce(host: string, symbol: string): Promise<YahooQuoteSummary | null> {
+async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary | null> {
+  // quoteSummary doesn't require auth for most tickers (crumb is
+  // only required on a few high-traffic endpoints). The chart Edge
+  // Function uses the same query1 host without a crumb.
   const url =
-    `https://${host}/v10/finance/quoteSummary/${encodeURIComponent(symbol)}` +
+    `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}` +
     `?modules=summaryDetail,defaultKeyStatistics,price`;
   try {
-    const res = await fetch(url, { headers: YAHOO_HEADERS, signal: AbortSignal.timeout(8_000) });
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/json,text/plain,*/*",
+      },
+      signal: AbortSignal.timeout(8_000),
+    });
     if (!res.ok) return null;
     const data = await res.json();
     const result = data?.quoteSummary?.result?.[0];
@@ -271,41 +274,6 @@ async function fetchYahooQuoteSummaryOnce(host: string, symbol: string): Promise
   } catch {
     return null;
   }
-}
-
-/** Older v7 quote endpoint — flat shape, sometimes responds when v10 is crumb-gated. */
-async function fetchYahooQuoteV7(host: string, symbol: string): Promise<YahooQuoteSummary | null> {
-  const url = `https://${host}/v7/finance/quote?symbols=${encodeURIComponent(symbol)}`;
-  try {
-    const res = await fetch(url, { headers: YAHOO_HEADERS, signal: AbortSignal.timeout(8_000) });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const row = data?.quoteResponse?.result?.[0];
-    if (!row) return null;
-    const pe  = Number(row.trailingPE);
-    const eps = Number(row.epsTrailingTwelveMonths);
-    if (!isFinite(pe)  || pe  <= 0) return null;
-    if (!isFinite(eps) || eps <= 0) return null;
-    const currency = typeof row.currency === 'string' ? row.currency : null;
-    return { pe, eps, currency };
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Yahoo's pre-computed trailingPE is the ADR-currency-safe source —
- * tries the v10 quoteSummary endpoint on query1, then v10 on query2
- * (Yahoo occasionally crumb-gates one host but not the other), then
- * the older v7 quote endpoint as the final Yahoo fallback. Returns
- * the first response with valid pe + eps; null if every attempt
- * fails (caller then falls through to Finnhub with sanity gates).
- */
-async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary | null> {
-  return (await fetchYahooQuoteSummaryOnce("query1.finance.yahoo.com", symbol))
-      ?? (await fetchYahooQuoteSummaryOnce("query2.finance.yahoo.com", symbol))
-      ?? (await fetchYahooQuoteV7("query1.finance.yahoo.com", symbol))
-      ?? (await fetchYahooQuoteV7("query2.finance.yahoo.com", symbol));
 }
 
 // ---- Finnhub --------------------------------------------------------
@@ -335,28 +303,7 @@ export async function fetchStockFundamentals(symbol: string): Promise<Fundamenta
       pe3yAvg: finn?.pe3yAvg ?? null,
     };
   }
-  // Yahoo failed — fall back to Finnhub, but only if Finnhub's pe
-  // passes a sanity gate. The TSM/SFTBY currency-mismatch bug
-  // produced pe=1.22 / 0.07 from Finnhub, which is implausible for
-  // any real US-listed security; returning that to the UI is worse
-  // than hiding the P/E button entirely. `isPlausiblePe` rejects
-  // anything outside [3, 300]; growth names occasionally touch 200
-  // legitimately (TSLA peaked ~250) so 300 is the upper guardrail.
-  if (finn && isPlausiblePe(finn.pe)) return finn;
-  return null;
-}
-
-/**
- * Sanity threshold for a trailing P/E ratio. Real US-listed
- * securities essentially never fall outside [3, 300]: anything
- * under 3 indicates a Finnhub ADR currency-mismatch (USD price ÷
- * foreign-currency EPS — TSM at 1.22, SFTBY at 0.07), and anything
- * over 300 is either a near-zero-EPS turnaround stock that's
- * already in the P/E-hidden bucket on the modal anyway, or another
- * data corruption.
- */
-export function isPlausiblePe(pe: number): boolean {
-  return isFinite(pe) && pe >= 3 && pe <= 300;
+  return finn;
 }
 
 async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
