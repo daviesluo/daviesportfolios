@@ -202,8 +202,31 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // public exchanges. Both default to 1M so the user sees something
   // immediately rather than landing on an intraday view that's empty.
   const [rangeKey, setRangeKey] = React.useState(dailyOnly ? '1M' : '1D');
-  const [series, setSeries]     = React.useState(/** @type {Array<{date:string,close:number,volume?:number}>|null} */ (null));
-  const [loading, setLoading]   = React.useState(true);
+  // Seed series + loading state from the localStorage cache up front
+  // so a warm-cache open doesn't flash a spinner. Reading on first
+  // paint means the chart paints from cache on the very first render
+  // — without this the useEffect below runs after the first render
+  // and React shows the spinner for one frame (long enough to feel
+  // like "loading 一段时间" on a phone). The useEffect still runs to
+  // background-revalidate when stale, so this is purely a paint
+  // latency improvement.
+  const initialRangeKey = dailyOnly ? '1M' : '1D';
+  // useExt is computed below; inline the same expression here so we
+  // don't fight the TDZ ordering — they're cheap.
+  const initialUseExt   = !!(extendedHours && phase && phase !== 'regular');
+  const initialCacheKey = tickerChartCacheKey(ticker, initialRangeKey, initialUseExt, phase);
+  const initialCached   = (() => {
+    try {
+      const all = Storage.loadTickerChart();
+      const row = all?.entries?.[initialCacheKey];
+      return row && Array.isArray(row.data) && row.data.length >= 2 ? row : null;
+    } catch { return null; }
+  })();
+  const [series, setSeries]     = React.useState(
+    /** @type {Array<{date:string,close:number,volume?:number}>|null} */
+    (initialCached ? initialCached.data : null),
+  );
+  const [loading, setLoading]   = React.useState(!initialCached);
   const [error, setError]       = React.useState(false);
   // Wider sister-fetch for the moving-average overlay. Same Yahoo
   // interval as the chart's display fetch so timestamps line up
