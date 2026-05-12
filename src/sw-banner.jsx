@@ -23,7 +23,7 @@ export function ServiceWorkerBanner() {
   // button can switch to "RELOADING…" and not look unresponsive on iOS.
   const [reloading, setReloading] = React.useState(false);
 
-  // Suppress the banner for 5 min after the user clicks RELOAD. On
+  // Suppress the banner for 2 min after the user clicks RELOAD. On
   // iOS Safari standalone-PWA mode the SW state transition is
   // unreliable enough that even with caches.delete + unregister
   // before reload, the next-page-mount useRegisterSW sometimes still
@@ -32,11 +32,11 @@ export function ServiceWorkerBanner() {
   // SW bookkeeping, surfacing it to the user 2 s after their click
   // looks like the click did nothing. Stash a `dp.swReloadAt` row in
   // sessionStorage so the suppression survives the reload, then expire
-  // after 5 min — long enough for the iOS bookkeeping to settle, short
+  // after 2 min — long enough for the iOS bookkeeping to settle, short
   // enough that a genuinely-new build the user hasn't seen yet still
   // raises the banner on the next poll.
   const RELOAD_SUPPRESS_KEY = 'dp.swReloadAt';
-  const RELOAD_SUPPRESS_MS  = 5 * 60 * 1000;
+  const RELOAD_SUPPRESS_MS  = 2 * 60 * 1000;
   const [suppressUntil, setSuppressUntil] = React.useState(() => {
     try {
       const v = Number(sessionStorage.getItem(RELOAD_SUPPRESS_KEY) || 0);
