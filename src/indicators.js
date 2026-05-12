@@ -189,7 +189,36 @@ export function computeVwap(points, sessionKeyOf) {
  */
 export function priceDividedByTtmEps(pricePoints, ttmEpsHistory, fallbackEps, reportLagMs = 45 * 86400000) {
   if (!Array.isArray(pricePoints) || pricePoints.length === 0) return [];
-  const reportEvents = Array.isArray(ttmEpsHistory) ? ttmEpsHistory
+  // Rescale `ttmEpsHistory` so its LATEST entry maps to
+  // `fallbackEps`. Callers pass the implied USD EPS
+  // (`lastClose / trailingPE`) as fallbackEps; Yahoo's
+  // `fundamentals-timeseries trailingDilutedEPS` history for ADRs
+  // is in the underlying foreign currency (TSM TWD, SFTBY JPY,
+  // ASML EUR). Without rescaling, every price point AFTER the
+  // first historical report event would divide USD prices by
+  // foreign-currency EPS — the exact bug PR #93 only fixed for
+  // the dates BEFORE the first history event (Codex P1 catch).
+  // For US-listed stocks the ratio is ≈ 1.0 (within ±5 %), so
+  // this collapses to a no-op pass-through.
+  let history = ttmEpsHistory;
+  if (Array.isArray(ttmEpsHistory) && ttmEpsHistory.length > 0
+      && isFinite(fallbackEps) && fallbackEps > 0) {
+    const latest = Number(ttmEpsHistory[ttmEpsHistory.length - 1]?.eps);
+    if (isFinite(latest) && latest > 0) {
+      // Always rescale — for US-listed stocks the ratio is ≈ 1.0
+      // by construction (Yahoo's trailingPE = today_price /
+      // last_quarter_TTM_eps, so implied_usd_eps = last_quarter_
+      // TTM_eps = history.latest), and the multiply is a no-op.
+      // For ADRs the ratio is the implicit FX (TSM TWD→USD ≈ 0.05,
+      // SFTBY JPY→USD ≈ 0.007, ASML EUR→USD ≈ 0.6) and uniformly
+      // rebases the whole series to USD. A narrow-band threshold
+      // had to handle EUR-based ADRs anyway, so a single
+      // unconditional rescale is both simpler and more correct.
+      const ratio = fallbackEps / latest;
+      history = ttmEpsHistory.map((e) => ({ date: e.date, eps: e.eps * ratio }));
+    }
+  }
+  const reportEvents = Array.isArray(history) ? history
     .map(e => ({ ttm: Number(e.eps), reportMs: new Date(e.date).getTime() + reportLagMs }))
     .filter(e => isFinite(e.ttm) && isFinite(e.reportMs) && e.ttm > 0)
     .sort((a, b) => a.reportMs - b.reportMs)
