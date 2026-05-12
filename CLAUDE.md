@@ -43,8 +43,10 @@ the function's pure helpers from `index.test.ts` would bind a port.
 ## Testing
 
 - `npm run typecheck` — tsc with `checkJs`, no type errors should slip through.
-- `npm test` — vitest. 83 cases as of this writing: YTD chart math,
-  fetch/proxy strategy, ticker-shape predicates, cache TTL + LRU, and
+- `npm test` — vitest. 163 cases as of this writing: YTD chart math,
+  fetch/proxy strategy, ticker-shape predicates, cache TTL + LRU,
+  market-cache + legacy fallback, SW banner suppression window,
+  ops-badge desktop gate, portfolio user-fingerprint diffing, and
   the chart-modal indicator math (MA / VWAP / TTM-EPS-P/E /
   extended-hours-bar detection). Add a pin test whenever a regression
   is fixed so the bug can't quietly come back.

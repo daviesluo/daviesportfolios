@@ -13,7 +13,7 @@ import {
 } from './utils.js';
 import { INITIAL_PORTFOLIO } from './data.js';
 import { collectPassword, decodeAppToken, getAppToken, authenticate } from './auth.js';
-import { loadPortfolioRemote, savePortfolioRemote } from './portfolio_remote.js';
+import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL } from './portfolio_remote.js';
 import { prefetchAllChartData } from './prefetch.js';
 import { hydrateAllChartStores } from './chart_store.js';
 import { Header, Sidebar, MarketConditions, PerfPanel, SidebarFoot } from './header_sidebar.jsx';
@@ -221,19 +221,62 @@ function Board({ isReadOnly }) {
     return () => { cancelled = true; };
   }, []);
 
-  // Debounced persist to Supabase — admin only. Skip the initial null-to-loaded transition.
-  const lastSavedRef = useRef(null);
+  // Debounced persist to Supabase — admin only.
+  // Compares against a STRING FINGERPRINT of just the user-edited
+  // subset (positions + shares/cost/lots/currency) instead of object-
+  // identity on the whole portfolio. The 30 s / 5 min price-refresh
+  // tick mutates `holdings[t].lastPrice` etc., which used to create
+  // a new portfolio reference and trigger an unnecessary save. A
+  // backgrounded tab serialising its stale-shares-with-fresh-prices
+  // snapshot back to the server is exactly how an edit made in
+  // another tab gets silently reverted — fingerprint-equality
+  // short-circuits the save when only ephemeral fields changed.
+  const lastSavedFingerprintRef = useRef(null);
   useEffect(() => {
     if (!portfolio) return;
     if (isReadOnly) return;
-    if (lastSavedRef.current === null) { lastSavedRef.current = portfolio; return; }
-    if (lastSavedRef.current === portfolio) return;
+    const fp = portfolioUserFingerprint(portfolio);
+    if (lastSavedFingerprintRef.current === null) {
+      lastSavedFingerprintRef.current = fp;
+      return;
+    }
+    if (lastSavedFingerprintRef.current === fp) return;
     const id = setTimeout(() => {
-      lastSavedRef.current = portfolio;
+      lastSavedFingerprintRef.current = fp;
       savePortfolioRemote(portfolio);
     }, 600);
     return () => clearTimeout(id);
   }, [portfolio, isReadOnly]);
+
+  // Cross-tab sync: when any other tab on this origin successfully
+  // persists a new portfolio (via savePortfolioRemote's broadcast),
+  // re-fetch ours so the UI doesn't sit on a stale copy that the
+  // user will then "edit" against an out-of-date baseline. We update
+  // the fingerprint ref BEFORE setPortfolio so the next render's
+  // auto-save effect sees a no-op delta and doesn't re-save the data
+  // we just received.
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return undefined;
+    let cancelled = false;
+    let bc;
+    try { bc = new BroadcastChannel(PORTFOLIO_BROADCAST_CHANNEL); }
+    catch { return undefined; }
+    const handler = (e) => {
+      if (cancelled) return;
+      if (e?.data?.kind !== 'portfolio-saved') return;
+      loadPortfolioRemote().then((p) => {
+        if (cancelled || !p) return;
+        lastSavedFingerprintRef.current = portfolioUserFingerprint(p);
+        setPortfolio(p);
+      }).catch(() => { /* network blip — next tick retries via own load path */ });
+    };
+    bc.addEventListener('message', handler);
+    return () => {
+      cancelled = true;
+      try { bc.removeEventListener('message', handler); } catch { /* ignore */ }
+      try { bc.close(); } catch { /* ignore */ }
+    };
+  }, []);
 
   // Price refresh loop
   // `doRefresh(opts)` always fetches the live-prices snapshot. The

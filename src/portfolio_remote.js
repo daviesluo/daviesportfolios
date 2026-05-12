@@ -10,6 +10,20 @@ import { getAppToken } from './auth.js';
 import { detectCurrency } from './fx.js';
 import { INITIAL_PORTFOLIO } from './data.js';
 
+// Cross-tab notification channel. When this tab successfully saves the
+// portfolio, every other tab gets a `portfolio-saved` message and
+// refetches its own copy from the server. Without this:
+//   Tab A edits, saves V1 → server = V1
+//   Tab B (idle, still showing V0) does its next 30 s price refresh →
+//     setPortfolio with V0 + fresh prices → debounced save → server = V0
+//   Tab A's edit silently lost.
+// BroadcastChannel doesn't deliver to the sender, so a save in Tab A
+// only wakes Tab B. The `portfolioUserFingerprint` guard below also
+// prevents the price-refresh-triggered re-save in the first place,
+// but the broadcast keeps Tab B's UI in sync so the user doesn't
+// have to refresh manually to see their own edit.
+export const PORTFOLIO_BROADCAST_CHANNEL = 'dp.portfolio';
+
 function dataHeaders() {
   return {
     "apikey": SB_ANON,
@@ -49,10 +63,58 @@ export async function savePortfolioRemote(p) {
       headers: dataHeaders(),
       body: JSON.stringify(p),
     });
-    if (!res.ok) console.error("[data] save failed:", res.status, await res.text());
+    if (!res.ok) {
+      console.error("[data] save failed:", res.status, await res.text());
+      return;
+    }
+    // Tell every other tab on this origin that the persisted portfolio
+    // just changed so they can refetch instead of carrying a stale copy
+    // that might overwrite our save on their next price-refresh tick.
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel(PORTFOLIO_BROADCAST_CHANNEL);
+        bc.postMessage({ kind: 'portfolio-saved', ts: Date.now() });
+        bc.close();
+      }
+    } catch { /* swallow — best-effort cross-tab nudge */ }
   } catch (e) {
     console.error("[data] save error:", e);
   }
+}
+
+/**
+ * Stable string fingerprint of the user-EDITED subset of a portfolio.
+ * Deliberately omits every field that gets mutated by the price-refresh
+ * loop (lastPrice / extPrice / prevClose / dayPct / extDayPct /
+ * todayRegularClose). Used by the debounced auto-save effect to skip
+ * server writes when only ephemeral price data changed — without
+ * which a backgrounded tab's 30 s refresh would re-serialize its stale
+ * snapshot to the server and overwrite an edit made in another tab.
+ *
+ * Keys are sorted so two portfolios with identical user data but
+ * different insertion orders produce the same fingerprint. Returns ''
+ * for null / malformed inputs so the caller's "saved ref" comparison
+ * falls back to the previous behaviour (first valid render seeds the
+ * ref, subsequent reads match by string equality).
+ *
+ * @param {{ positions: Record<string, any>, holdings: Record<string, any> } | null | undefined} p
+ */
+export function portfolioUserFingerprint(p) {
+  if (!p || typeof p !== 'object' || !p.holdings || !p.positions) return '';
+  const parts = [];
+  for (const k of Object.keys(p.positions).sort()) {
+    const pos = p.positions[k] || {};
+    const tickers = Array.isArray(pos.tickers) ? [...pos.tickers].sort() : [];
+    parts.push(`p:${k}=${pos.role || ''}|${pos.label || ''}|${pos.subtitle || ''}|${tickers.join(',')}`);
+  }
+  for (const t of Object.keys(p.holdings).sort()) {
+    const h = p.holdings[t] || {};
+    const lots = Array.isArray(h.lots)
+      ? h.lots.map(l => `${l?.date || ''},${l?.shares ?? ''},${l?.cost ?? ''}`).join(';')
+      : '';
+    parts.push(`h:${t}=${h.shares ?? ''}|${h.cost ?? ''}|${h.currency || ''}|${!!h.isCash}|${lots}`);
+  }
+  return parts.join('\n');
 }
 
 // Migrate old saved shapes to current schema. Keeps the legacy v1→v2
