@@ -92,6 +92,89 @@ Deno.test("computePe3yAvg: empty / non-array → null", () => {
   assertEquals(computePe3yAvg(null), null);
 });
 
+// --- FMP primary source (ADR-currency-safe) -------------------------
+//
+// FMP_API_KEY is read at module load time (`Deno.env.get(...)`), so
+// these tests can't dynamically inject a key — they exercise the
+// response-parsing logic by stubbing `fetch` to return a known FMP
+// shape, and rely on the module having been loaded with the key
+// present (CI sets it; locally `deno test --env FMP_API_KEY=...`).
+// Without a key the function short-circuits and returns `{}`,
+// which is itself pinned below as the "no-key" path.
+
+import { fetchFmpQuoteBatched } from "./index.ts";
+
+// FMP's `/v3/quote/<symbols>` response shape: a JSON array of rows
+// with `symbol`, `pe`, `eps` (USD), plus a bunch of other fields we
+// ignore. ADR rows like TSM come back already-USD-normalized because
+// the ADR's price IS in USD on US exchanges and FMP computes its pe
+// from that against the appropriately-converted EPS.
+function stubFmpFetch(responseBody: unknown, opts: { ok?: boolean } = {}) {
+  const original = globalThis.fetch;
+  globalThis.fetch = ((async () => {
+    return {
+      ok: opts.ok ?? true,
+      json: async () => responseBody,
+    } as any;
+  }) as any);
+  return () => { globalThis.fetch = original; };
+}
+
+Deno.test("fetchFmpQuoteBatched: empty input → empty object", async () => {
+  // No symbols → no fetch fired, even before checking the API key.
+  assertEquals(await fetchFmpQuoteBatched([]), {});
+});
+
+Deno.test("fetchFmpQuoteBatched: parses TSM/SFTBY/ASML ADR rows with USD-normalized pe/eps", async () => {
+  if (!Deno.env.get("FMP_API_KEY")) return; // skip when no key
+  const restore = stubFmpFetch([
+    { symbol: "TSM",   pe: 30.5,  eps: 8.3 },
+    { symbol: "SFTBY", pe: 15.2,  eps: 1.2 },
+    { symbol: "ASML",  pe: 33.1,  eps: 26.4 },
+  ]);
+  try {
+    const out = await fetchFmpQuoteBatched(["TSM", "SFTBY", "ASML"]);
+    assertEquals(Object.keys(out).sort(), ["ASML", "SFTBY", "TSM"]);
+    assertAlmostEquals(out.TSM.pe,   30.5, 1e-9);
+    assertAlmostEquals(out.TSM.eps,   8.3, 1e-9);
+    assertAlmostEquals(out.SFTBY.pe, 15.2, 1e-9);
+    assertAlmostEquals(out.ASML.eps, 26.4, 1e-9);
+  } finally { restore(); }
+});
+
+Deno.test("fetchFmpQuoteBatched: skips rows with missing / invalid pe or eps", async () => {
+  if (!Deno.env.get("FMP_API_KEY")) return;
+  const restore = stubFmpFetch([
+    { symbol: "VALID",  pe: 25, eps: 5 },
+    { symbol: "NEGPE",  pe: -3, eps: 5 },         // loss-maker pe — skip
+    { symbol: "ZEROEPS", pe: 25, eps: 0 },         // skip
+    { symbol: "NULLPE", pe: null, eps: 5 },        // skip
+    { symbol: "NOEPS",  pe: 30 },                  // missing eps — skip
+    { pe: 25, eps: 5 },                            // missing symbol — skip
+  ]);
+  try {
+    const out = await fetchFmpQuoteBatched(["VALID", "NEGPE", "ZEROEPS", "NULLPE", "NOEPS"]);
+    assertEquals(Object.keys(out), ["VALID"]);
+    assertEquals(out.VALID.pe, 25);
+  } finally { restore(); }
+});
+
+Deno.test("fetchFmpQuoteBatched: !ok / non-array body / fetch throws → empty object (clean fall-through)", async () => {
+  if (!Deno.env.get("FMP_API_KEY")) return;
+  const cases: Array<[unknown, { ok?: boolean }]> = [
+    [{}, { ok: true }],                  // non-array body
+    [{ Error: "rate limit" }, { ok: true }], // FMP's error envelope
+    [[], { ok: false }],                 // 401 / 429 — http error
+  ];
+  for (const [body, opts] of cases) {
+    const restore = stubFmpFetch(body, opts);
+    try {
+      const out = await fetchFmpQuoteBatched(["AAPL"]);
+      assertEquals(out, {});
+    } finally { restore(); }
+  }
+});
+
 // --- ADR currency normalization (TSM / SFTBY) -----------------------
 
 Deno.test("normalizeEpsHistoryToUsd: TSM-shape scales TWD-denominated history to USD", () => {
