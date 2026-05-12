@@ -9,7 +9,7 @@
 import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   isFundamentalsTicker, rollingTtmFromRawQuarterly, computePe3yAvg,
-  normalizeEpsHistoryToUsd,
+  normalizeEpsHistoryToUsd, isPlausiblePe,
 } from "./index.ts";
 
 Deno.test("isFundamentalsTicker: keeps US equities", () => {
@@ -151,4 +151,24 @@ Deno.test("normalizeEpsHistoryToUsd: degenerate inputs (empty / NaN anchor / zer
   assertEquals(normalizeEpsHistoryToUsd(input, 0),   input);
   assertEquals(normalizeEpsHistoryToUsd([{ date: "2025-03-31", eps: 0 }], 5),
                [{ date: "2025-03-31", eps: 0 }]);
+});
+
+Deno.test("isPlausiblePe: rejects Finnhub ADR-bug pe values (TSM=1.22, SFTBY=0.07)", () => {
+  assertEquals(isPlausiblePe(1.22), false);  // TSM via Finnhub
+  assertEquals(isPlausiblePe(0.07), false);  // SFTBY via Finnhub
+  assertEquals(isPlausiblePe(0),    false);
+  assertEquals(isPlausiblePe(-5),   false);
+});
+
+Deno.test("isPlausiblePe: accepts the normal US-equity range", () => {
+  for (const pe of [12, 25, 40, 80, 150, 280]) {
+    assertEquals(isPlausiblePe(pe), true);
+  }
+});
+
+Deno.test("isPlausiblePe: rejects implausibly high pe (likely data corruption)", () => {
+  assertEquals(isPlausiblePe(500), false);
+  assertEquals(isPlausiblePe(10000), false);
+  assertEquals(isPlausiblePe(NaN), false);
+  assertEquals(isPlausiblePe(Infinity), false);
 });
