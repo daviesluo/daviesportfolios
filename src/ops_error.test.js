@@ -11,6 +11,11 @@ beforeEach(async () => {
   vi.stubGlobal('navigator', { userAgent: 'vitest' });
   vi.stubGlobal('window',    { location: { pathname: '/' } });
   vi.stubGlobal('fetch',     vi.fn(() => Promise.resolve(/** @type {any} */ ({ ok: true, status: 202 }))));
+  // Stub auth.js's getAppToken so the admin-token gate inside
+  // reportError lets the call through. doMock re-applies on every
+  // import after vi.resetModules() above. Override in individual
+  // tests via vi.doMock to exercise the no-token path.
+  vi.doMock('./auth.js', () => ({ getAppToken: () => 'fake.admin.token' }));
 });
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -58,5 +63,25 @@ describe('reportError dedup', () => {
     reportError('', { symbol: 'NVDA' });
     reportError(undefined, { symbol: 'NVDA' });
     expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('drops the call when no admin token is available (pre-auth render crash)', async () => {
+    // Override the default auth.js mock so getAppToken returns null —
+    // simulates the window between mount and the user's pwd round-trip
+    // completing.
+    vi.resetModules();
+    vi.doMock('./auth.js', () => ({ getAppToken: () => null }));
+    const { reportError } = await import('./ops_error.js');
+    reportError('render.crash', { symbol: 'NVDA', message: 'pre-auth crash' });
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('attaches x-app-token to the POST request', async () => {
+    const { reportError } = await import('./ops_error.js');
+    reportError('fetch.histsingle', { symbol: 'NVDA' });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    const fetchMock = /** @type {any} */ (globalThis.fetch);
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init.headers['x-app-token']).toBe('fake.admin.token');
   });
 });
