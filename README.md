@@ -86,12 +86,36 @@ secrets server-side.
   The client never re-scales — doing it client-side leaks
   client/server price-timing skew into the chart even for already-
   correct US stocks. Y-axis swaps to bare P/E values, modal header
-  shifts to "P/E RATIO". For ETF-proxied indices the client
-  reconstructs an implied EPS from `lastClose / pe` (Finnhub
-  returns no aggregate EPS at the index level) and stays on
-  const-EPS. Futures / other indices (`^VIX`, `^TNX`) / crypto /
-  forex stay button-less. **Pre-profit loss-makers** get the
-  parallel P/S YTD button below instead.
+  shifts to "P/E RATIO". A secondary **PEG** chip sits next to the
+  P/E value when Yahoo published Forward P/E
+  (`summaryDetail.forwardPE`). The math is forward-over-forward
+  (`forwardPE ÷ (growth × 100)`) so the numerator's horizon
+  matches the denominator's — pairing trailing P/E with forward
+  growth is the classic PEG misuse and we deliberately avoid it.
+  The growth horizon is **3 years** (tech / semi portfolios swing
+  too much for the 5y consensus to be a reliable anchor; 3y is
+  short enough to track cycle phase and long enough not to be
+  hijacked by a single blockbuster quarter). FMP `/v3/analyst-
+  estimates` is the primary source — `compute3yCagrFromEstimates`
+  picks the per-symbol estimate closest to "today + 3y" and
+  computes `(target_eps / current_eps)^(1/years) − 1` over the
+  actual elapsed time so Sep-fiscal AAPL and Dec-fiscal MU both
+  come out sensibly. Results live in the new
+  `analyst_estimates_cache` table with a **7-day TTL** that matches
+  the cadence sell-side analysts actually revise forecasts at
+  (earnings season + catalysts; daily refetches don't change the
+  answer), so a 30-ticker portfolio burns ~5 FMP calls / day
+  instead of ~30. Yahoo's `earningsTrend.trend[+5y].growth` is the
+  fallback when FMP doesn't cover the ticker. Hidden whenever the
+  growth row is missing, zero, or negative (negative growth makes
+  PEG itself negative, and most data vendors hide it in that case
+  rather than render a number that doesn't fit the "~1 = fair
+  value" interpretation).
+  For ETF-proxied indices the client reconstructs an implied EPS
+  from `lastClose / pe` (Finnhub returns no aggregate EPS at the
+  index level) and stays on const-EPS. Futures / other indices
+  (`^VIX`, `^TNX`) / crypto / forex stay button-less. **Pre-profit
+  loss-makers** get the parallel P/S YTD button below instead.
 - **P/S YTD view** — same range-button slot for **loss-makers**
   (pre-profit companies where Yahoo / Finnhub publish no trailing
   P/E because EPS ≤ 0). Mutually exclusive with the P/E button:
@@ -493,7 +517,7 @@ before this guard landed).
 | `data` | `?action=load` / `?action=save`. Validates the `X-App-Token` header (re-derives HMAC + checks exp + checks role) before reading / writing `board_data`. Service-role key never leaves the function. |
 | `prices` | `?tickers=NVDA,017731,GBPUSD=X,…` → `{ ticker: { lastPrice, extPrice?, prevClose, currency, dayPct, extDayPct? } }`. Routes 6-digit codes to eastmoney's `fundgz.1234567.com.cn`, everything else to Yahoo Finance v8. |
 | `chart` | `?tickers=…&range=1mo&interval=60m&includePrePost=true` → `{ ticker: [{ date, close, volume? }, …] }`. Intraday bars also carry the per-bar `volume` (used by the modal's VWAP overlay). Routes CN funds to a 3-tier eastmoney fallback (pingzhongdata → lsjz JSON → danjuanapp), everything else to Yahoo. `.PVT` placeholders fall back to the bare symbol when Yahoo 404s the literal. |
-| `fundamentals` | `?tickers=NVDA,NBIS,^GSPC,…` → `{ NVDA: { pe, eps, pe3yAvg, ps, ps3yAvg, ttmEpsHistory? }, NBIS: { pe:0, eps:0, ps, ps3yAvg, … }, ^GSPC: { pe, eps:0, pe3yAvg }, … }`. Powers the ticker-modal P/E YTD AND P/S YTD views. **Individual stocks** flow through a three-tier source chain inside `fetchStockFundamentals`: (1) FMP `/v3/quote/<csv>` (one batched call for the whole portfolio, ADR-USD-normalized pe/eps natively, free tier 250 calls/day — used as primary because Finnhub's `peTTM` for ADRs incorrectly divides the USD ADR price by the foreign-currency reported EPS and yields garbage values like TSM ≈ 1.22 / SFTBY ≈ 0.07 / ASML ≈ 63); (2) Yahoo `quoteSummary` (`summaryDetail.trailingPE` + `defaultKeyStatistics.trailingEps` + `summaryDetail.priceToSalesTrailing12Months`) for tickers FMP doesn't cover; (3) Finnhub `/stock/metric` as final fallback. Finnhub still runs in parallel on every path to source `pe3yAvg` / `ps3yAvg` from its `series.annual.pe` / `series.annual.ps`, since neither FMP nor Yahoo expose historical-annual ratios on the free tier. The pe/eps/ps validation is relaxed to "any usable ratio surfaces the row" so loss-makers (eps ≤ 0 → no pe) still come back with a ps value the client can use for the P/S YTD view. **Four big US indices** (`^GSPC`/`^NDX`/`^RUT`/`^SOX`) → Alpha Vantage `OVERVIEW` against ETF proxies (SPY/QQQ/IWM/SOXX) cached for 24 h in `index_fundamentals_cache`; 3Y-avg P/E lives in `INDEX_PE_3Y_AVG` constants. Hardcoded `INDEX_PE_FALLBACK` constants kick in if AV is unreachable. **Opt-in `&ttmEpsHistory=true`** adds a `ttmEpsHistory: [{date, eps}, …]` array sourced from Yahoo's `fundamentals-timeseries` (`trailingDilutedEPS`, 5+ years of pre-summed quarter-end TTM EPS), falling back to a Finnhub `/stock/earnings` sum-of-4-quarters if Yahoo misses. For ADRs the upstream EPS history is reported in the underlying foreign currency, so the Edge Function rescales it to USD via **`normalizeEpsHistoryToUsd(history, usdAnchor)`** before returning. The `usdAnchor` is derived from a price/pe pair drawn from the same response chain so the two sides of the ratio never have a timing skew: FMP `price/pe` (preferred — same batched response) → Yahoo `quoteSummary` `price/pe` (Yahoo strips this field from anon ADR callers for some symbols, so this branch sometimes no-ops) → Yahoo `/v8/finance/chart` `meta.regularMarketPrice` divided by quoteSummary's `pe` (the reliable last-resort — what Yahoo's own consumer site uses, always returns for ADRs). When the ratio (anchor / latest history entry) lands within ±20 % the function returns the history untouched (it's already in USD), so US-listed stocks pay no rescaling cost. P/S has no equivalent history rescale — the client uses const current sales-per-share derived from `lastClose / ps`, which sidesteps the foreign-currency revenue issue without an extra round-trip. Index rows return `eps:0` and the client reconstructs an implied EPS from `lastClose / pe`. |
+| `fundamentals` | `?tickers=NVDA,NBIS,^GSPC,…` → `{ NVDA: { pe, eps, pe3yAvg, ps, ps3yAvg, peg?, ttmEpsHistory? }, NBIS: { pe:0, eps:0, ps, ps3yAvg, … }, ^GSPC: { pe, eps:0, pe3yAvg }, … }`. Powers the ticker-modal P/E YTD AND P/S YTD views. **Individual stocks** flow through a three-tier source chain inside `fetchStockFundamentals`: (1) FMP `/v3/quote/<csv>` (one batched call for the whole portfolio, ADR-USD-normalized pe/eps natively, free tier 250 calls/day — used as primary because Finnhub's `peTTM` for ADRs incorrectly divides the USD ADR price by the foreign-currency reported EPS and yields garbage values like TSM ≈ 1.22 / SFTBY ≈ 0.07 / ASML ≈ 63); (2) Yahoo `quoteSummary` (`summaryDetail.trailingPE` + `defaultKeyStatistics.trailingEps` + `summaryDetail.priceToSalesTrailing12Months`) for tickers FMP doesn't cover; (3) Finnhub `/stock/metric` as final fallback. Finnhub still runs in parallel on every path to source `pe3yAvg` / `ps3yAvg` from its `series.annual.pe` / `series.annual.ps`, since neither FMP nor Yahoo expose historical-annual ratios on the free tier. The pe/eps/ps validation is relaxed to "any usable ratio surfaces the row" so loss-makers (eps ≤ 0 → no pe) still come back with a ps value the client can use for the P/S YTD view. **Four big US indices** (`^GSPC`/`^NDX`/`^RUT`/`^SOX`) → Alpha Vantage `OVERVIEW` against ETF proxies (SPY/QQQ/IWM/SOXX) cached for 24 h in `index_fundamentals_cache`; 3Y-avg P/E lives in `INDEX_PE_3Y_AVG` constants. Hardcoded `INDEX_PE_FALLBACK` constants kick in if AV is unreachable. **Opt-in `&ttmEpsHistory=true`** adds a `ttmEpsHistory: [{date, eps}, …]` array sourced from Yahoo's `fundamentals-timeseries` (`trailingDilutedEPS`, 5+ years of pre-summed quarter-end TTM EPS), falling back to a Finnhub `/stock/earnings` sum-of-4-quarters if Yahoo misses. For ADRs the upstream EPS history is reported in the underlying foreign currency, so the Edge Function rescales it to USD via **`normalizeEpsHistoryToUsd(history, usdAnchor)`** before returning. The `usdAnchor` is derived from a price/pe pair drawn from the same response chain so the two sides of the ratio never have a timing skew: FMP `price/pe` (preferred — same batched response) → Yahoo `quoteSummary` `price/pe` (Yahoo strips this field from anon ADR callers for some symbols, so this branch sometimes no-ops) → Yahoo `/v8/finance/chart` `meta.regularMarketPrice` divided by quoteSummary's `pe` (the reliable last-resort — what Yahoo's own consumer site uses, always returns for ADRs). When the ratio (anchor / latest history entry) lands within ±20 % the function returns the history untouched (it's already in USD), so US-listed stocks pay no rescaling cost. P/S has no equivalent history rescale — the client uses const current sales-per-share derived from `lastClose / ps`, which sidesteps the foreign-currency revenue issue without an extra round-trip. Index rows return `eps:0` and the client reconstructs an implied EPS from `lastClose / pe`. |
 | `ops-error` | Two modes, both admin-gated. `POST { kind, symbol?, message?, context? }` with header `x-app-token: <admin token>` → inserts into `ops_errors` (size + length capped; per-row IP captured server-side from `x-forwarded-for`). `GET ?action=summary&hours=24` with the same header → `{ hours, total, byKind, bySymbol }` aggregate over the last N hours, so triage doesn't require a Supabase dashboard login. POST was anon-writeable until 2026-05; the client-side per-(kind, symbol) cooldown + 50-per-load cap was trivially bypassable with random kinds, so the admin token gate now mirrors the summary endpoint's existing one. Trade-off: pre-auth render crashes that fire before the user's pwd → token round-trip completes are no longer captured. |
 
 Every Edge Function's pure helpers (range filtering, HMAC token sign / verify, ticker classification, TTM rolling-sum, market-hour predicate, anti-spam clipper) are exported and pinned by a co-located `index.test.ts` so a `deno test supabase/functions/` run guards them just like vitest guards the client. The `Deno.serve(...)` entrypoint is guarded by `import.meta.main` so importing a function's helpers in a test does NOT bind a port. Cross-function tests (e.g. auth sign + data verify roundtrip) live next to one of the two and import the other directly.
@@ -506,6 +530,7 @@ Every Edge Function's pure helpers (range filtering, HMAC token sign / verify, t
 | `0002_ops_errors.sql` | `ops_errors` table with timestamped indexes; RLS-deny default. |
 | `0003_index_fundamentals_cache.sql` | `index_fundamentals_cache` table — server-side 24 h cache of index trailing P/E from Alpha Vantage so the `fundamentals` Edge Function stays well under AV's 25-call/day free tier. |
 | `0004_ops_errors_retention.sql` | `pg_cron` job at 03:00 UTC daily that drops `ops_errors` rows older than 30 days. Keeps the table bounded and the badge's `?action=summary` scan tight. Apply once via Supabase SQL Editor — pg_cron-scheduling SQL doesn't propagate through the edge-functions deploy workflow. |
+| `0005_analyst_estimates_cache.sql` | `analyst_estimates_cache` table — 7-day cache of the FMP-derived 3y forward EPS-CAGR per ticker so PEG can use a 3-year horizon (better for cyclical tech / semi names than Yahoo's only-available `+5y` consensus) without burning the FMP free-tier 250-call/day quota on data that only really changes around earnings seasons. Lazy fetch-on-miss spreads the per-ticker refresh load naturally across the week. |
 
 ### Build / config
 
@@ -582,7 +607,7 @@ git clone https://github.com/daviesluo/daviesportfolios
 cd daviesportfolios
 npm install
 npm run dev           # Vite dev server at http://localhost:5173
-npm test              # vitest (167 client-side cases — YTD math, indicators, cache + ratio-suffix key pins, ticker shape, fetch strategy, portfolio metrics + FX, lot sanitisation, market-cache + legacy fallback, SW banner suppression window, ops-badge desktop gate, portfolio fingerprint diffing)
+npm test              # vitest (170 client-side cases — YTD math, indicators (incl. isPriceAxis live-tail gate), cache + ratio-suffix key pins, ticker shape, fetch strategy, portfolio metrics + FX, lot sanitisation, market-cache + legacy fallback, SW banner suppression window, ops-badge desktop gate, portfolio fingerprint diffing). 30 Deno cases for the fundamentals Edge Function helpers (TTM rollover, USD-anchor rescale, pickPsFields ADR guard, computePeg).
 npm run typecheck     # tsc --noEmit with checkJs
 npm run build         # production bundle to repo root
 npm audit --audit-level=high --omit=dev   # supply-chain check on shipped deps
@@ -615,6 +640,7 @@ In Supabase dashboard → SQL Editor, paste and run:
 - `supabase/migrations/0002_ops_errors.sql`
 - `supabase/migrations/0003_index_fundamentals_cache.sql`
 - `supabase/migrations/0004_ops_errors_retention.sql`
+- `supabase/migrations/0005_analyst_estimates_cache.sql`
 
 Then create the `board_data` table:
 
