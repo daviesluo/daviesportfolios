@@ -5,6 +5,7 @@ import {
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   priceDividedByTtmEps,
   hasExtendedHoursBars,
+  isPriceAxis,
 } from './indicators.js';
 
 describe('maBarsFor / maLabelDaysFor', () => {
@@ -225,5 +226,30 @@ describe('hasExtendedHoursBars', () => {
   it('empty / non-array input → false', () => {
     expect(hasExtendedHoursBars([], 0, 0)).toBe(false);
     expect(hasExtendedHoursBars(/** @type {any} */ (null), 0, 0)).toBe(false);
+  });
+});
+
+describe('isPriceAxis (live-tail substitution gate)', () => {
+  // Critical bug pinning: when the y-axis is in ratio units (PE / PS),
+  // the modal must NOT swap in the live raw price on the last bar.
+  // The user reported a vertical cliff on the P/S chart of NET / SATS
+  // / NVTS / SOUN because the original gate excluded only 'PE'; this
+  // test locks in the corrected behaviour so a future change can't
+  // silently revert it.
+  it('every price-axis range substitutes the live tail', () => {
+    for (const rk of ['1D', '1W', '1M', '3M', 'YTD']) {
+      expect(isPriceAxis(rk)).toBe(true);
+    }
+  });
+  it('every ratio-axis range skips the live tail', () => {
+    expect(isPriceAxis('PE')).toBe(false);
+    expect(isPriceAxis('PS')).toBe(false);
+  });
+  it('unknown rangeKey defaults to the price-axis branch (safe default)', () => {
+    // Better to substitute when in doubt than render a stale tail —
+    // the worst case there is one bar matching the rest of the price
+    // line, not a cross-unit cliff.
+    expect(isPriceAxis('UNKNOWN')).toBe(true);
+    expect(isPriceAxis('')).toBe(true);
   });
 });
