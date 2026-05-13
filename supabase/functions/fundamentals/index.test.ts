@@ -361,9 +361,15 @@ Deno.test("computePeg: growth expressed as a decimal, not percentage", () => {
 
 // --- 3y forward EPS-CAGR from FMP analyst-estimates -----------------
 
+// Full ISO timestamp (not date-only). The function parses with
+// `new Date(e.date).getTime()` and divides by exactly-one-year to
+// derive the CAGR's exponent — truncating to YYYY-MM-DD would
+// round-trip through midnight UTC and skew `years` by up to ~0.001,
+// which is enough to push Math.pow's result well past a 1e-6
+// tolerance on the textbook case. Tests pin the actual math, not
+// the date precision of the FMP feed.
 const yearsFromNow = (years: number) => {
-  const d = new Date(Date.now() + years * 365 * 86400_000);
-  return d.toISOString().slice(0, 10);
+  return new Date(Date.now() + years * 365 * 86400_000).toISOString();
 };
 
 Deno.test("compute3yCagrFromEstimates: textbook MU shape", () => {
