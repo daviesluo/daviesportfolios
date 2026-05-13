@@ -235,3 +235,25 @@ export function hasExtendedHoursBars(series, openMinsUtc, closeMinsUtc) {
     return mins < openMinsUtc || mins > closeMinsUtc;
   });
 }
+
+/**
+ * "Is this chart range plotted on a price y-axis?" — true for every
+ * actual price chart (1D / 1W / 1M / 3M / YTD), false for the ratio
+ * charts (PE / PS) where the series has already been divided by
+ * earnings or sales per share and the y-axis is in ratio units.
+ *
+ * Used by ticker_chart_modal.jsx's live-tail substitution: when the
+ * chart axis is in dollars, swap in the live last price so the tail
+ * tracks the rest of the app in real time. When the axis is in
+ * ratio units (PE / PS), DON'T swap — the live price is in a
+ * different unit and would draw a vertical cliff between the
+ * second-to-last bar (the actual ratio) and today (the raw price).
+ * That's the bug the user hit on NET / SATS / NVTS / SOUN after the
+ * P/S YTD view shipped (only 'PE' was excluded from substitution; PS
+ * fell through and corrupted the last bar).
+ *
+ * @param {string} rangeKey
+ */
+export function isPriceAxis(rangeKey) {
+  return rangeKey !== 'PE' && rangeKey !== 'PS';
+}
