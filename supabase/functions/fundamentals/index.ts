@@ -53,6 +53,16 @@ type Fundamentals = {
   pe: number;
   eps: number;
   pe3yAvg: number | null;
+  // PEG (Price/Earnings-to-Growth) — sourced from Yahoo's forward
+  // P/E and the analyst-consensus 5y EPS-growth CAGR
+  // (`earningsTrend.trend[+5y].growth.raw`). Forward over forward
+  // by convention: trailing P/E paired with backward-looking growth
+  // is the classic PEG misuse since the market prices in
+  // expectations, not history. Computed server-side via
+  // `computePeg` so the client just reads a single number. Optional
+  // — null when Yahoo doesn't publish forwardPE or no analyst
+  // consensus exists yet (brand-new IPOs, illiquid OTC, etc.).
+  peg?: number;
   // Price-to-Sales: paired with pe / eps so a single fundamentals
   // response covers both the profitable (P/E view) and loss-maker
   // (P/S view) cases. Sourced from Yahoo's
@@ -317,6 +327,8 @@ type YahooQuoteSummary = {
   pe: number;
   eps: number;
   ps: number;
+  forwardPE: number;
+  epsGrowth5y: number;   // analyst-consensus 5y CAGR, decimal (0.225 = 22.5 %)
   price: number;
   currency: string | null;
 };
@@ -325,9 +337,11 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
   // quoteSummary doesn't require auth for most tickers (crumb is
   // only required on a few high-traffic endpoints). The chart Edge
   // Function uses the same query1 host without a crumb.
+  // `earningsTrend` is needed for the forward 5y EPS growth CAGR
+  // that pairs with `forwardPE` to produce PEG — see computePeg.
   const url =
     `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}` +
-    `?modules=summaryDetail,defaultKeyStatistics,price`;
+    `?modules=summaryDetail,defaultKeyStatistics,price,earningsTrend`;
   try {
     const res = await fetch(url, {
       headers: {
@@ -367,24 +381,49 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
       ?? result?.summaryDetail?.previousClose?.raw
       ?? result?.summaryDetail?.fiftyDayAverage?.raw
       ?? result?.summaryDetail?.twoHundredDayAverage?.raw;
+    // Forward P/E + analyst-consensus 5y growth CAGR for PEG.
+    // Forward P/E pairs with forward growth by convention — using
+    // trailing P/E with forward growth (or vice versa) is the
+    // classic PEG misuse since the market prices in expectations,
+    // not history. `earningsTrend.trend` is an array of period
+    // buckets; the one we want is `period === '+5y'`, whose
+    // `growth.raw` is a decimal (0.225 = 22.5 %). Both fields are
+    // optional — Yahoo doesn't publish them for brand-new IPOs,
+    // illiquid OTC tickers, or names without analyst coverage.
+    const fwdPeRaw = result?.summaryDetail?.forwardPE?.raw
+                  ?? result?.defaultKeyStatistics?.forwardPE?.raw;
+    /** @type {Array<{ period?: string, growth?: { raw?: number } }>} */
+    const trend = Array.isArray(result?.earningsTrend?.trend) ? result.earningsTrend.trend : [];
+    const fiveYr = trend.find((t: any) => t?.period === '+5y');
+    const growth5yRaw = fiveYr?.growth?.raw;
     const currency = result?.price?.currency ?? null;
     const pe    = Number(peRaw);
     const eps   = Number(epsRaw);
     const ps    = Number(psRaw);
+    const fwdPe = Number(fwdPeRaw);
+    const g5y   = Number(growth5yRaw);
     const price = Number(priceRaw);
     // Use 0 as the "no usable value" sentinel so the response shape
     // stays uniform and the caller can decide per-field whether to
     // show that view. Reject the whole call only when EVERY ratio is
     // missing — loss-makers have no pe/eps but do publish ps, and we
     // want to keep that row alive to back the new P/S YTD button.
-    const pe2  = isFinite(pe)  && pe  > 0 ? pe  : 0;
-    const eps2 = isFinite(eps) && eps > 0 ? eps : 0;
-    const ps2  = isFinite(ps)  && ps  > 0 ? ps  : 0;
+    const pe2     = isFinite(pe)    && pe    > 0 ? pe    : 0;
+    const eps2    = isFinite(eps)   && eps   > 0 ? eps   : 0;
+    const ps2     = isFinite(ps)    && ps    > 0 ? ps    : 0;
+    const fwdPe2  = isFinite(fwdPe) && fwdPe > 0 ? fwdPe : 0;
+    // Growth can legitimately be negative (analysts expect earnings
+    // to shrink). Keep the sign — `computePeg` decides whether to
+    // emit a value. A literal 0 % growth still means "no PEG" since
+    // the math diverges.
+    const g5y2    = isFinite(g5y) ? g5y : 0;
     if (pe2 === 0 && eps2 === 0 && ps2 === 0) return null;
     return {
       pe:  pe2,
       eps: eps2,
       ps:  ps2,
+      forwardPE:    fwdPe2,
+      epsGrowth5y:  g5y2,
       price: isFinite(price) && price > 0 ? price : 0,
       currency: typeof currency === 'string' ? currency : null,
     };
@@ -468,6 +507,11 @@ export async function fetchStockFundamentals(
       fetchYahooQuoteSummary(symbol),
     ]);
     const { ps, ps3yAvg } = pickPsFields(yahoo?.ps, finn?.ps, finn?.ps3yAvg);
+    // PEG only fires when Yahoo gave us both the forward P/E and
+    // the analyst consensus +5y growth. FMP / Finnhub don't expose
+    // either on the free tier, so we don't try to substitute when
+    // Yahoo missed.
+    const peg = computePeg(yahoo?.forwardPE, yahoo?.epsGrowth5y);
     return {
       pe: fmpRow.pe,
       eps: fmpRow.eps,
@@ -475,6 +519,7 @@ export async function fetchStockFundamentals(
       pe3yAvg: finn?.pe3yAvg ?? null,
       ps,
       ps3yAvg,
+      peg: peg ?? undefined,
     };
   }
   const [yahoo, finn] = await Promise.all([
@@ -487,6 +532,7 @@ export async function fetchStockFundamentals(
     // populated) instead of hiding the chart entirely. Same ADR
     // sanity check via pickPsFields as the FMP branch above.
     const { ps, ps3yAvg } = pickPsFields(yahoo.ps, finn?.ps, finn?.ps3yAvg);
+    const peg = computePeg(yahoo.forwardPE, yahoo.epsGrowth5y);
     return {
       pe: yahoo.pe,
       eps: yahoo.eps,
@@ -494,6 +540,7 @@ export async function fetchStockFundamentals(
       pe3yAvg: finn?.pe3yAvg ?? null,
       ps,
       ps3yAvg,
+      peg: peg ?? undefined,
     };
   }
   return finn;
@@ -620,6 +667,40 @@ async function fetchFinnhubEarningsHistory(
 }
 
 // ---- Pure helpers exposed for tests ---------------------------------
+
+/**
+ * PEG = forward P/E ÷ forward 5y EPS-growth CAGR (in percent).
+ *
+ * The "forward over forward" convention is the load-bearing detail:
+ * the market prices in expectations, not history, so pairing
+ * trailing P/E with forward growth (or vice versa) gives a
+ * misleading number. Yahoo's `summaryDetail.forwardPE.raw` and
+ * `earningsTrend.trend[+5y].growth.raw` both come from Wall Street
+ * analyst consensus and align on the same forward horizon.
+ *
+ * `epsGrowth5y` is a DECIMAL (0.225 = 22.5 %). To turn it into the
+ * standard "PEG denominator" we multiply by 100, so PEG ends up
+ * scaled the way Bloomberg / Yahoo / etc. display it (a fairly-
+ * valued stock has PEG ≈ 1).
+ *
+ * Returns null whenever the formula doesn't have a meaningful
+ * answer: forwardPE missing or ≤ 0, growth missing or ≤ 0
+ * (negative growth makes PEG itself negative, and most data
+ * vendors hide PEG in that case rather than try to interpret it).
+ *
+ * @param {number | undefined | null} forwardPE
+ * @param {number | undefined | null} epsGrowth5y  decimal, e.g. 0.225
+ */
+export function computePeg(
+  forwardPE: number | undefined | null,
+  epsGrowth5y: number | undefined | null,
+): number | null {
+  const f = Number(forwardPE);
+  const g = Number(epsGrowth5y);
+  if (!isFinite(f) || f <= 0) return null;
+  if (!isFinite(g) || g <= 0) return null;
+  return f / (g * 100);
+}
 
 /**
  * Pick the P/S value and the 3-year-average reference value, guarding

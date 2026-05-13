@@ -10,7 +10,7 @@ import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@
 import {
   isFundamentalsTicker, rollingTtmFromRawQuarterly, computePe3yAvg,
   normalizeEpsHistoryToUsd,
-  pickPsFields,
+  pickPsFields, computePeg,
 } from "./index.ts";
 
 Deno.test("isFundamentalsTicker: keeps US equities", () => {
@@ -311,4 +311,50 @@ Deno.test("pickPsFields: boundary check — 2× exactly is treated as disagreeme
   // Just inside the window — accepted.
   const slightlyInside = pickPsFields(19.0, 10.0, 15.0); // ratio 1.9
   assertEquals(slightlyInside.ps3yAvg, 15.0);
+});
+
+// --- PEG (forward P/E ÷ forward 5y EPS-growth CAGR in %) -----------
+
+Deno.test("computePeg: textbook MU shape", () => {
+  // Forward P/E ~36, analyst-consensus 5y growth ~0.30 → 30 %.
+  // PEG = 36 / 30 = 1.2 (slightly overvalued by the classic rule
+  // of thumb that PEG≈1 is fair value).
+  const peg = computePeg(36, 0.30);
+  assertAlmostEquals(peg!, 1.2, 1e-9);
+});
+
+Deno.test("computePeg: NVDA-shape (high growth, low PEG)", () => {
+  // Forward P/E ~40 with forward growth ~40 % → PEG = 1.0.
+  const peg = computePeg(40, 0.40);
+  assertAlmostEquals(peg!, 1.0, 1e-9);
+});
+
+Deno.test("computePeg: missing forwardPE → null", () => {
+  assertEquals(computePeg(0,         0.25), null);
+  assertEquals(computePeg(NaN,       0.25), null);
+  assertEquals(computePeg(undefined, 0.25), null);
+  assertEquals(computePeg(null,      0.25), null);
+});
+
+Deno.test("computePeg: missing growth → null", () => {
+  assertEquals(computePeg(30, 0),         null);
+  assertEquals(computePeg(30, NaN),       null);
+  assertEquals(computePeg(30, undefined), null);
+  assertEquals(computePeg(30, null),      null);
+});
+
+Deno.test("computePeg: negative growth → null (data vendors hide PEG in this case)", () => {
+  // Negative expected growth means PEG itself comes out negative,
+  // which makes no interpretive sense for a "fair-value at ~1"
+  // metric. Better to omit the value than render -2.4 and let the
+  // user puzzle over it.
+  assertEquals(computePeg(30, -0.10), null);
+});
+
+Deno.test("computePeg: growth expressed as a decimal, not percentage", () => {
+  // Sanity-pin the convention. Yahoo's earningsTrend.growth.raw is
+  // a decimal (0.225 = 22.5 %); the implementation multiplies by
+  // 100 internally. Two ways to express 22.5 % would diverge by
+  // 100x otherwise.
+  assertAlmostEquals(computePeg(30, 0.225)!, 30 / 22.5, 1e-9);
 });
