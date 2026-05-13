@@ -87,16 +87,30 @@ secrets server-side.
   client/server price-timing skew into the chart even for already-
   correct US stocks. Y-axis swaps to bare P/E values, modal header
   shifts to "P/E RATIO". A secondary **PEG** chip sits next to the
-  P/E value when Yahoo published both Forward P/E
-  (`summaryDetail.forwardPE`) and the analyst-consensus +5 y EPS
-  growth CAGR (`earningsTrend.trend[+5y].growth`). The math is
-  forward-over-forward (`forwardPE ÷ (growth × 100)`) so the
-  numerator's horizon matches the denominator's — pairing trailing
-  P/E with forward growth is the classic PEG misuse and we
-  deliberately avoid it. Hidden whenever the growth row is missing,
-  zero, or negative (negative growth makes PEG itself negative, and
-  most data vendors hide it in that case rather than render a
-  number that doesn't fit the "~1 = fair value" interpretation).
+  P/E value when Yahoo published Forward P/E
+  (`summaryDetail.forwardPE`). The math is forward-over-forward
+  (`forwardPE ÷ (growth × 100)`) so the numerator's horizon
+  matches the denominator's — pairing trailing P/E with forward
+  growth is the classic PEG misuse and we deliberately avoid it.
+  The growth horizon is **3 years** (tech / semi portfolios swing
+  too much for the 5y consensus to be a reliable anchor; 3y is
+  short enough to track cycle phase and long enough not to be
+  hijacked by a single blockbuster quarter). FMP `/v3/analyst-
+  estimates` is the primary source — `compute3yCagrFromEstimates`
+  picks the per-symbol estimate closest to "today + 3y" and
+  computes `(target_eps / current_eps)^(1/years) − 1` over the
+  actual elapsed time so Sep-fiscal AAPL and Dec-fiscal MU both
+  come out sensibly. Results live in the new
+  `analyst_estimates_cache` table with a **7-day TTL** that matches
+  the cadence sell-side analysts actually revise forecasts at
+  (earnings season + catalysts; daily refetches don't change the
+  answer), so a 30-ticker portfolio burns ~5 FMP calls / day
+  instead of ~30. Yahoo's `earningsTrend.trend[+5y].growth` is the
+  fallback when FMP doesn't cover the ticker. Hidden whenever the
+  growth row is missing, zero, or negative (negative growth makes
+  PEG itself negative, and most data vendors hide it in that case
+  rather than render a number that doesn't fit the "~1 = fair
+  value" interpretation).
   For ETF-proxied indices the client reconstructs an implied EPS
   from `lastClose / pe` (Finnhub returns no aggregate EPS at the
   index level) and stays on const-EPS. Futures / other indices
@@ -516,6 +530,7 @@ Every Edge Function's pure helpers (range filtering, HMAC token sign / verify, t
 | `0002_ops_errors.sql` | `ops_errors` table with timestamped indexes; RLS-deny default. |
 | `0003_index_fundamentals_cache.sql` | `index_fundamentals_cache` table — server-side 24 h cache of index trailing P/E from Alpha Vantage so the `fundamentals` Edge Function stays well under AV's 25-call/day free tier. |
 | `0004_ops_errors_retention.sql` | `pg_cron` job at 03:00 UTC daily that drops `ops_errors` rows older than 30 days. Keeps the table bounded and the badge's `?action=summary` scan tight. Apply once via Supabase SQL Editor — pg_cron-scheduling SQL doesn't propagate through the edge-functions deploy workflow. |
+| `0005_analyst_estimates_cache.sql` | `analyst_estimates_cache` table — 7-day cache of the FMP-derived 3y forward EPS-CAGR per ticker so PEG can use a 3-year horizon (better for cyclical tech / semi names than Yahoo's only-available `+5y` consensus) without burning the FMP free-tier 250-call/day quota on data that only really changes around earnings seasons. Lazy fetch-on-miss spreads the per-ticker refresh load naturally across the week. |
 
 ### Build / config
 
@@ -625,6 +640,7 @@ In Supabase dashboard → SQL Editor, paste and run:
 - `supabase/migrations/0002_ops_errors.sql`
 - `supabase/migrations/0003_index_fundamentals_cache.sql`
 - `supabase/migrations/0004_ops_errors_retention.sql`
+- `supabase/migrations/0005_analyst_estimates_cache.sql`
 
 Then create the `board_data` table:
 

@@ -171,6 +171,139 @@ async function writeCachedPe(etfSymbol: string, pe: number): Promise<void> {
   } catch { /* best effort */ }
 }
 
+// ---- Analyst-estimates cache (3y forward EPS-growth CAGR) ----------
+//
+// Sell-side analysts batch multi-year revisions to earnings season +
+// major catalysts; a daily refetch would burn FMP's 250-call/day quota
+// for data that didn't change. A 7-day TTL matches the cadence
+// revisions actually happen at, and lazy-fetch-on-miss spreads the
+// per-ticker refresh load across the week naturally (steady-state ~5
+// FMP calls / day on a 30-ticker portfolio instead of ~30).
+
+const ANALYST_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+async function readCachedGrowth3y(symbol: string): Promise<{ growth: number; ageMs: number } | null> {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/analyst_estimates_cache` +
+      `?symbol=eq.${encodeURIComponent(symbol)}&select=growth_3y,fetched_at`;
+    const res = await fetch(url, {
+      headers: {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        "Accept": "application/json",
+      },
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    const row = rows[0];
+    const fetchedAt = new Date(row?.fetched_at).getTime();
+    if (!isFinite(fetchedAt)) return null;
+    const g = Number(row?.growth_3y);
+    if (!isFinite(g)) return null;
+    return { growth: g, ageMs: Date.now() - fetchedAt };
+  } catch {
+    return null;
+  }
+}
+
+async function writeCachedGrowth3y(symbol: string, growth: number): Promise<void> {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return;
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/analyst_estimates_cache`;
+    await fetch(url, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({
+        symbol,
+        growth_3y: growth,
+        fetched_at: new Date().toISOString(),
+      }),
+      signal: AbortSignal.timeout(5_000),
+    });
+  } catch { /* best effort */ }
+}
+
+/** Raw FMP analyst-estimate row we care about (the rest of the
+ *  response shape is ignored). One entry per fiscal year. */
+type FmpEstimate = { date: string; estimatedEpsAvg: number };
+
+async function fetchFmpAnalystEstimates(symbol: string): Promise<FmpEstimate[] | null> {
+  if (!FMP_API_KEY) return null;
+  const url =
+    `https://financialmodelingprep.com/api/v3/analyst-estimates/${encodeURIComponent(symbol)}` +
+    `?apikey=${encodeURIComponent(FMP_API_KEY)}`;
+  try {
+    const res = await fetch(url, {
+      headers: { "Accept": "application/json" },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!Array.isArray(data)) return null;
+    const out: FmpEstimate[] = [];
+    for (const row of data) {
+      const date = String(row?.date ?? "");
+      const eps  = Number(row?.estimatedEpsAvg);
+      if (!/^\d{4}-\d{2}-\d{2}/.test(date)) continue;
+      if (!isFinite(eps) || eps <= 0) continue;
+      out.push({ date, estimatedEpsAvg: eps });
+    }
+    return out.length > 0 ? out : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve the forward 3-year EPS-growth CAGR for `symbol`, using a
+ * 7-day Supabase cache so FMP gets ~5 calls/day instead of 30. On a
+ * cache miss the function pulls FMP's analyst-estimates, computes
+ * the 3y CAGR via `compute3yCagrFromEstimates`, and writes the
+ * result back. When EVERYTHING fails (no FMP key, FMP rate-limited,
+ * cache empty AND fetch failed) we fall back to Yahoo's `+5y`
+ * earningsTrend growth — looser horizon than the user asked for but
+ * better than dropping PEG entirely. The 7-day TTL matches the
+ * cadence sell-side analysts actually revise multi-year forecasts at
+ * (earnings season + major catalysts; daily refetches don't change
+ * the answer). Negative CAGRs are stored verbatim so the
+ * computePeg() guard handles them consistently with the rest of the
+ * pipeline.
+ */
+async function resolveGrowth3y(
+  symbol: string,
+  currentEps: number,
+  yahooEpsGrowth5y: number,
+): Promise<number | null> {
+  // Cache first. Hit → return regardless of sign (computePeg drops
+  // non-positive growth on its own).
+  const cached = await readCachedGrowth3y(symbol);
+  if (cached && cached.ageMs < ANALYST_CACHE_TTL_MS) {
+    return isFinite(cached.growth) ? cached.growth : null;
+  }
+  // Cache miss / stale → FMP.
+  const estimates = await fetchFmpAnalystEstimates(symbol);
+  const cagr = compute3yCagrFromEstimates(currentEps, estimates);
+  if (cagr != null && isFinite(cagr)) {
+    // Best-effort write — failure here doesn't break the request.
+    await writeCachedGrowth3y(symbol, cagr);
+    return cagr;
+  }
+  // FMP failed too. Prefer stale cache over a Yahoo fallback (still
+  // closer to the right horizon), then Yahoo's +5y as a last resort.
+  if (cached && isFinite(cached.growth)) return cached.growth;
+  return isFinite(yahooEpsGrowth5y) && yahooEpsGrowth5y > 0
+    ? yahooEpsGrowth5y
+    : null;
+}
+
 // ---- Alpha Vantage --------------------------------------------------
 
 type AvResult =
@@ -507,11 +640,12 @@ export async function fetchStockFundamentals(
       fetchYahooQuoteSummary(symbol),
     ]);
     const { ps, ps3yAvg } = pickPsFields(yahoo?.ps, finn?.ps, finn?.ps3yAvg);
-    // PEG only fires when Yahoo gave us both the forward P/E and
-    // the analyst consensus +5y growth. FMP / Finnhub don't expose
-    // either on the free tier, so we don't try to substitute when
-    // Yahoo missed.
-    const peg = computePeg(yahoo?.forwardPE, yahoo?.epsGrowth5y);
+    // PEG numerator is Yahoo's forward P/E; denominator is the 3y
+    // analyst-consensus EPS CAGR from FMP (cached 7d to keep
+    // FMP quota usage tiny) with Yahoo's +5y as a graceful
+    // fallback when FMP fails or doesn't cover the ticker.
+    const growth3y = await resolveGrowth3y(symbol, fmpRow.eps, yahoo?.epsGrowth5y ?? 0);
+    const peg = computePeg(yahoo?.forwardPE, growth3y);
     return {
       pe: fmpRow.pe,
       eps: fmpRow.eps,
@@ -532,7 +666,8 @@ export async function fetchStockFundamentals(
     // populated) instead of hiding the chart entirely. Same ADR
     // sanity check via pickPsFields as the FMP branch above.
     const { ps, ps3yAvg } = pickPsFields(yahoo.ps, finn?.ps, finn?.ps3yAvg);
-    const peg = computePeg(yahoo.forwardPE, yahoo.epsGrowth5y);
+    const growth3y = await resolveGrowth3y(symbol, yahoo.eps, yahoo.epsGrowth5y);
+    const peg = computePeg(yahoo.forwardPE, growth3y);
     return {
       pe: yahoo.pe,
       eps: yahoo.eps,
@@ -669,16 +804,20 @@ async function fetchFinnhubEarningsHistory(
 // ---- Pure helpers exposed for tests ---------------------------------
 
 /**
- * PEG = forward P/E ÷ forward 5y EPS-growth CAGR (in percent).
+ * PEG = forward P/E ÷ forward N-year EPS-growth CAGR (in percent).
  *
  * The "forward over forward" convention is the load-bearing detail:
  * the market prices in expectations, not history, so pairing
  * trailing P/E with forward growth (or vice versa) gives a
- * misleading number. Yahoo's `summaryDetail.forwardPE.raw` and
- * `earningsTrend.trend[+5y].growth.raw` both come from Wall Street
- * analyst consensus and align on the same forward horizon.
+ * misleading number. Yahoo's `summaryDetail.forwardPE.raw` is the
+ * numerator. The denominator is sourced separately — see
+ * `compute3yCagrFromEstimates` for the FMP-analyst-estimates path
+ * (preferred — 3y horizon matches the user's tech/semi portfolio
+ * better than Yahoo's only-available `+5y` figure) and Yahoo's
+ * `earningsTrend.trend[+5y].growth.raw` as the fallback when FMP
+ * doesn't cover a ticker.
  *
- * `epsGrowth5y` is a DECIMAL (0.225 = 22.5 %). To turn it into the
+ * Growth is a DECIMAL (0.225 = 22.5 %). To turn it into the
  * standard "PEG denominator" we multiply by 100, so PEG ends up
  * scaled the way Bloomberg / Yahoo / etc. display it (a fairly-
  * valued stock has PEG ≈ 1).
@@ -689,17 +828,64 @@ async function fetchFinnhubEarningsHistory(
  * vendors hide PEG in that case rather than try to interpret it).
  *
  * @param {number | undefined | null} forwardPE
- * @param {number | undefined | null} epsGrowth5y  decimal, e.g. 0.225
+ * @param {number | undefined | null} growth  decimal, e.g. 0.225
  */
 export function computePeg(
   forwardPE: number | undefined | null,
-  epsGrowth5y: number | undefined | null,
+  growth: number | undefined | null,
 ): number | null {
   const f = Number(forwardPE);
-  const g = Number(epsGrowth5y);
+  const g = Number(growth);
   if (!isFinite(f) || f <= 0) return null;
   if (!isFinite(g) || g <= 0) return null;
   return f / (g * 100);
+}
+
+/**
+ * Pull the 3-year forward EPS-growth CAGR out of FMP's per-symbol
+ * analyst-estimates response. FMP returns annual fiscal-year
+ * forecasts; we pick the estimate whose date is closest to "today
+ * + 3 years" and compute `(target_eps / current_eps)^(1/years) − 1`
+ * over the actual elapsed time so a Sep-fiscal-year AAPL and a
+ * Dec-fiscal-year MU both land sensibly without ad-hoc offsets.
+ *
+ * `currentEps` is the company's current TTM EPS (used as the CAGR's
+ * starting value). Loss-makers have currentEps ≤ 0; for those the
+ * function returns null since CAGR is undefined when the base case
+ * isn't positive. Loss-makers also can't have a P/E anyway, so
+ * skipping PEG is the right behaviour.
+ *
+ * @param {number | undefined | null} currentEps  current TTM EPS, positive only
+ * @param {Array<{date: string, estimatedEpsAvg: number}>} estimates  FMP per-symbol forecasts
+ */
+export function compute3yCagrFromEstimates(
+  currentEps: number | undefined | null,
+  estimates: Array<{ date: string; estimatedEpsAvg: number }> | null | undefined,
+): number | null {
+  const cur = Number(currentEps);
+  if (!isFinite(cur) || cur <= 0) return null;
+  if (!Array.isArray(estimates) || estimates.length === 0) return null;
+  const now = Date.now();
+  const target = now + 3 * 365 * 86400_000;
+  let bestEps = 0;
+  let bestMs  = 0;
+  let bestDiff = Infinity;
+  for (const e of estimates) {
+    const ms = new Date(e.date).getTime();
+    if (!isFinite(ms) || ms <= now) continue;  // skip historical / today
+    const eps = Number(e.estimatedEpsAvg);
+    if (!isFinite(eps) || eps <= 0) continue;
+    const diff = Math.abs(ms - target);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestEps  = eps;
+      bestMs   = ms;
+    }
+  }
+  if (bestEps <= 0 || bestMs <= now) return null;
+  const years = (bestMs - now) / (365 * 86400_000);
+  if (years < 1) return null;  // require ≥ 1y horizon to call it a CAGR
+  return Math.pow(bestEps / cur, 1 / years) - 1;
 }
 
 /**

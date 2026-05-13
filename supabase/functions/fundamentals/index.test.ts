@@ -10,7 +10,7 @@ import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@
 import {
   isFundamentalsTicker, rollingTtmFromRawQuarterly, computePe3yAvg,
   normalizeEpsHistoryToUsd,
-  pickPsFields, computePeg,
+  pickPsFields, computePeg, compute3yCagrFromEstimates,
 } from "./index.ts";
 
 Deno.test("isFundamentalsTicker: keeps US equities", () => {
@@ -357,4 +357,90 @@ Deno.test("computePeg: growth expressed as a decimal, not percentage", () => {
   // 100 internally. Two ways to express 22.5 % would diverge by
   // 100x otherwise.
   assertAlmostEquals(computePeg(30, 0.225)!, 30 / 22.5, 1e-9);
+});
+
+// --- 3y forward EPS-CAGR from FMP analyst-estimates -----------------
+
+const yearsFromNow = (years: number) => {
+  const d = new Date(Date.now() + years * 365 * 86400_000);
+  return d.toISOString().slice(0, 10);
+};
+
+Deno.test("compute3yCagrFromEstimates: textbook MU shape", () => {
+  // Current TTM EPS = 5; analysts call ~20% / yr → year+3 EPS ~8.64.
+  // CAGR over 3 years should land on 0.20.
+  const estimates = [
+    { date: yearsFromNow(1), estimatedEpsAvg: 6.0 },
+    { date: yearsFromNow(2), estimatedEpsAvg: 7.2 },
+    { date: yearsFromNow(3), estimatedEpsAvg: 5 * Math.pow(1.20, 3) }, // ≈ 8.64
+  ];
+  const cagr = compute3yCagrFromEstimates(5, estimates);
+  assertAlmostEquals(cagr!, 0.20, 1e-6);
+});
+
+Deno.test("compute3yCagrFromEstimates: picks the estimate closest to today + 3y when no exact match", () => {
+  // AAPL-style fiscal Sep; the year+3 estimate might land at year+2.7
+  // or year+3.3 calendar-wise. We pick whichever is closer and
+  // compute the CAGR over the actual elapsed time so the math is
+  // consistent across fiscal calendars.
+  const estimates = [
+    { date: yearsFromNow(0.7), estimatedEpsAvg: 6 },
+    { date: yearsFromNow(2.8), estimatedEpsAvg: 9 },  // closest to 3y target
+    { date: yearsFromNow(4.5), estimatedEpsAvg: 12 },
+  ];
+  const cagr = compute3yCagrFromEstimates(5, estimates);
+  // (9/5)^(1/2.8) - 1
+  assertAlmostEquals(cagr!, Math.pow(9 / 5, 1 / 2.8) - 1, 1e-6);
+});
+
+Deno.test("compute3yCagrFromEstimates: ignores historical / past-dated rows", () => {
+  // FMP's analyst-estimates response sometimes includes the prior
+  // fiscal year as a reference. Those shouldn't be picked as the
+  // "year+3" target — confirm by feeding past-dated rows first.
+  const estimates = [
+    { date: yearsFromNow(-2), estimatedEpsAvg: 3 },
+    { date: yearsFromNow(-1), estimatedEpsAvg: 4 },
+    { date: yearsFromNow(3),  estimatedEpsAvg: 10 },
+  ];
+  const cagr = compute3yCagrFromEstimates(5, estimates);
+  assertAlmostEquals(cagr!, Math.pow(10 / 5, 1 / 3) - 1, 1e-6);
+});
+
+Deno.test("compute3yCagrFromEstimates: rejects when current EPS is missing / non-positive (loss-maker)", () => {
+  const estimates = [{ date: yearsFromNow(3), estimatedEpsAvg: 10 }];
+  assertEquals(compute3yCagrFromEstimates(0, estimates), null);
+  assertEquals(compute3yCagrFromEstimates(-1, estimates), null);
+  assertEquals(compute3yCagrFromEstimates(NaN, estimates), null);
+  assertEquals(compute3yCagrFromEstimates(null, estimates), null);
+});
+
+Deno.test("compute3yCagrFromEstimates: rejects when estimates are empty / invalid / all-past", () => {
+  assertEquals(compute3yCagrFromEstimates(5, null), null);
+  assertEquals(compute3yCagrFromEstimates(5, []), null);
+  assertEquals(compute3yCagrFromEstimates(5, [
+    { date: yearsFromNow(-1), estimatedEpsAvg: 4 },
+  ]), null);
+});
+
+Deno.test("compute3yCagrFromEstimates: requires ≥ 1 year horizon (next-quarter estimate is not a CAGR)", () => {
+  // A quarter-out estimate shouldn't be annualised as a 3y CAGR —
+  // that would amplify quarterly noise. Skip when the closest
+  // available row is less than a year away.
+  const estimates = [
+    { date: yearsFromNow(0.25), estimatedEpsAvg: 6 },
+  ];
+  assertEquals(compute3yCagrFromEstimates(5, estimates), null);
+});
+
+Deno.test("compute3yCagrFromEstimates: negative growth flows through (computePeg drops it)", () => {
+  // Earnings expected to shrink. The CAGR is negative; computePeg's
+  // own guard catches it. compute3yCagrFromEstimates stays
+  // contract-pure and returns the raw rate.
+  const estimates = [
+    { date: yearsFromNow(3), estimatedEpsAvg: 3 },  // shrinks from 5 → 3
+  ];
+  const cagr = compute3yCagrFromEstimates(5, estimates);
+  assertAlmostEquals(cagr!, Math.pow(3 / 5, 1 / 3) - 1, 1e-6);  // ≈ -0.156
+  // Sanity: computePeg should refuse to coin a PEG out of it.
+  assertEquals(computePeg(30, cagr), null);
 });
