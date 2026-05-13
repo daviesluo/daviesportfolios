@@ -646,6 +646,15 @@ export async function fetchStockFundamentals(
     // fallback when FMP fails or doesn't cover the ticker.
     const growth3y = await resolveGrowth3y(symbol, fmpRow.eps, yahoo?.epsGrowth5y ?? 0);
     const peg = computePeg(yahoo?.forwardPE, growth3y);
+    // TEMP debug — surface every PEG input so the client can see
+    // exactly which step of the pipeline produced a null. Remove
+    // after the user has confirmed the chip is rendering.
+    const __debug = {
+      fwdPe:   yahoo?.forwardPE  ?? null,
+      yahoo5y: yahoo?.epsGrowth5y ?? null,
+      growth3y: growth3y ?? null,
+      fmpKeyPresent: !!FMP_API_KEY,
+    };
     return {
       pe: fmpRow.pe,
       eps: fmpRow.eps,
@@ -654,7 +663,8 @@ export async function fetchStockFundamentals(
       ps,
       ps3yAvg,
       peg: peg ?? undefined,
-    };
+      /** @type {any} */ __debug,
+    } as any;
   }
   const [yahoo, finn] = await Promise.all([
     fetchYahooQuoteSummary(symbol),
@@ -668,6 +678,12 @@ export async function fetchStockFundamentals(
     const { ps, ps3yAvg } = pickPsFields(yahoo.ps, finn?.ps, finn?.ps3yAvg);
     const growth3y = await resolveGrowth3y(symbol, yahoo.eps, yahoo.epsGrowth5y);
     const peg = computePeg(yahoo.forwardPE, growth3y);
+    const __debug = {
+      fwdPe:   yahoo.forwardPE   || null,
+      yahoo5y: yahoo.epsGrowth5y || null,
+      growth3y: growth3y ?? null,
+      fmpKeyPresent: !!FMP_API_KEY,
+    };
     return {
       pe: yahoo.pe,
       eps: yahoo.eps,
@@ -676,7 +692,8 @@ export async function fetchStockFundamentals(
       ps,
       ps3yAvg,
       peg: peg ?? undefined,
-    };
+      /** @type {any} */ __debug,
+    } as any;
   }
   return finn;
 }
