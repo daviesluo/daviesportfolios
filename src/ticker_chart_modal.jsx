@@ -129,7 +129,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // appear on the very first paint instead of "popping in" 1-2 s
   // after the modal opens. Background revalidate still runs below
   // to refresh the row when stale. Returns null on cache miss.
-  /** @returns {{ eps?: number, pe?: number, pe3yAvg?: number|null, ps?: number, ps3yAvg?: number|null, ttmEpsHistory?: any[] } | null} */
+  /** @returns {{ eps?: number, pe?: number, pe3yAvg?: number|null, ps?: number, ps3yAvg?: number|null, peg?: number, ttmEpsHistory?: any[] } | null} */
   const readFundCache = () => {
     const row = ChartStore.get(`${ticker}|FUND|v2`)?.data;
     return row && typeof row === 'object' ? row : null;
@@ -163,10 +163,24 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         : null
     ),
   );
+  // PEG — forward P/E ÷ analyst-consensus 5y EPS-growth CAGR (in
+  // percent). Optional sibling of the P/E line in the modal header.
+  // Computed server-side from Yahoo's forwardPE + earningsTrend
+  // (see computePeg). Null when either input is missing or the
+  // growth rate is non-positive (negative growth makes PEG itself
+  // meaningless and most data vendors hide it in that case).
+  const [peg, setPeg] = React.useState(
+    /** @type {number|null} */ (
+      typeof fundCached?.peg === 'number' && isFinite(fundCached.peg) && fundCached.peg > 0
+        ? fundCached.peg
+        : null
+    ),
+  );
   React.useEffect(() => {
     if (!supportsPePattern) {
       setPeSupported(false); setPe3yAvg(null);
       setPsSupported(false); setPs3yAvg(null);
+      setPeg(null);
       return;
     }
     let cancelled = false;
@@ -205,8 +219,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       setPsSupported(!peOk && hasPs);
       const peAvg = row.pe3yAvg;
       const psAvg = row.ps3yAvg;
+      const pegV  = row.peg;
       setPe3yAvg(typeof peAvg === 'number' && isFinite(peAvg) && peAvg > 0 ? peAvg : null);
       setPs3yAvg(typeof psAvg === 'number' && isFinite(psAvg) && psAvg > 0 ? psAvg : null);
+      setPeg(typeof pegV === 'number' && isFinite(pegV) && pegV > 0 ? pegV : null);
       // Write back to the FUND cache so a subsequent modal open hits
       // synchronously even when the prefetch pass didn't cover this
       // particular ticker (drilldown into an MC card the prefetch
@@ -1145,6 +1161,19 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             )}
             {rangeKey === 'PS' && (
               <span className="mono dim" style={{ fontSize: 10 }}>(price ÷ TTM sales per share)</span>
+            )}
+            {/* PEG sits next to P/E in the same row — secondary
+                valuation metric, only renders when Yahoo published
+                BOTH forward P/E and the +5y analyst-consensus EPS
+                growth. Hidden on PS view (PEG pairs with earnings,
+                not sales) and on the price ranges. */}
+            {rangeKey === 'PE' && peg != null && peg > 0 && (
+              <>
+                <span className="mono dim">·</span>
+                <span className="mono dim">PEG</span>
+                <span className="mono">{peg.toFixed(2)}</span>
+                <span className="mono dim" style={{ fontSize: 10 }}>(forward P/E ÷ 3y EPS growth %)</span>
+              </>
             )}
           </div>
           {/* Holding-stats line — shares / AC / Cost / Value / G/L,
