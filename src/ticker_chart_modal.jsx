@@ -129,7 +129,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // appear on the very first paint instead of "popping in" 1-2 s
   // after the modal opens. Background revalidate still runs below
   // to refresh the row when stale. Returns null on cache miss.
-  /** @returns {{ eps?: number, pe?: number, pe3yAvg?: number|null, ttmEpsHistory?: any[] } | null} */
+  /** @returns {{ eps?: number, pe?: number, pe3yAvg?: number|null, ps?: number, ps3yAvg?: number|null, ttmEpsHistory?: any[] } | null} */
   const readFundCache = () => {
     const row = ChartStore.get(`${ticker}|FUND|v2`)?.data;
     return row && typeof row === 'object' ? row : null;
@@ -137,12 +137,18 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const fundCached = supportsPePattern ? readFundCache() : null;
   const cachedHasEps = typeof fundCached?.eps === 'number' && fundCached.eps > 0;
   const cachedHasPe  = typeof fundCached?.pe  === 'number' && fundCached.pe  > 0;
+  const cachedHasPs  = typeof fundCached?.ps  === 'number' && fundCached.ps  > 0;
   const [peSupported, setPeSupported] = React.useState(cachedHasEps || cachedHasPe);
-  // pe3yAvg drives the dashed reference line on the P/E YTD chart.
-  // Comes back null when Finnhub's annual PE series is empty (very
-  // new IPOs, or tickers where Finnhub couldn't retrieve historicals)
-  // — in that case the chart renders without the reference line
-  // instead of erroring.
+  // P/S YTD button is shown for loss-makers — profitable tickers
+  // (eps > 0) keep the P/E view since price-to-earnings is the
+  // standard valuation metric there. Mutually exclusive with PE.
+  const [psSupported, setPsSupported] = React.useState(!cachedHasEps && !cachedHasPe && cachedHasPs);
+  // pe3yAvg / ps3yAvg drive the dashed reference line on the
+  // P/E YTD / P/S YTD charts respectively. Either can come back
+  // null when Finnhub's annual series for that ratio is empty
+  // (very new IPOs, or tickers where Finnhub couldn't retrieve
+  // historicals) — in that case the chart renders without the
+  // reference line instead of erroring.
   const [pe3yAvg, setPe3yAvg] = React.useState(
     /** @type {number|null} */ (
       typeof fundCached?.pe3yAvg === 'number' && fundCached.pe3yAvg > 0
@@ -150,14 +156,26 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         : null
     ),
   );
+  const [ps3yAvg, setPs3yAvg] = React.useState(
+    /** @type {number|null} */ (
+      typeof fundCached?.ps3yAvg === 'number' && fundCached.ps3yAvg > 0
+        ? fundCached.ps3yAvg
+        : null
+    ),
+  );
   React.useEffect(() => {
-    if (!supportsPePattern) { setPeSupported(false); setPe3yAvg(null); return; }
+    if (!supportsPePattern) {
+      setPeSupported(false); setPe3yAvg(null);
+      setPsSupported(false); setPs3yAvg(null);
+      return;
+    }
     let cancelled = false;
     // Stale-while-revalidate: synchronous cache read above already
-    // seeded peSupported / pe3yAvg, so the button is visible (or
-    // hidden) at first paint. This fetch refreshes the values from
-    // the Edge Function in the background and falls through silently
-    // on failure — never clobbers a usable cache with a no-op.
+    // seeded peSupported / psSupported / pe3yAvg / ps3yAvg, so the
+    // buttons are visible (or hidden) at first paint. This fetch
+    // refreshes the values from the Edge Function in the background
+    // and falls through silently on failure — never clobbers a usable
+    // cache with a no-op.
     fetchFundamentals([ticker]).then(f => {
       if (cancelled) return;
       const row = f?.[ticker];
@@ -167,20 +185,28 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // overwrite a perfectly good prefetched value AND fool the next
       // prefetch's freshness check (which keys off ts, not contents)
       // into skipping the repair. Bail silently — the prefetched
-      // values that seeded peSupported / pe3yAvg above stay intact.
+      // values that seeded the state above stay intact.
       if (!row || typeof row !== 'object') return;
       const eps = row.eps;
       const pe  = row.pe;
+      const ps  = row.ps;
       // ETF proxies (^GSPC/^NDX/^RUT → SPY/QQQ/IWM) have no aggregate
       // EPS in Finnhub's free tier; the Edge Function returns eps:0
-      // there. Treat the row as "supported" if EITHER eps > 0 OR
+      // there. Treat the row as "PE supported" if EITHER eps > 0 OR
       // pe > 0 — the client reconstructs an implied EPS from the
       // last close ÷ pe so the P/E series is still drawable.
+      // P/S only fires when neither pe nor eps is usable (loss-maker)
+      // AND ps is present, so the two buttons don't both show up.
       const hasEps = typeof eps === 'number' && eps > 0;
       const hasPe  = typeof pe  === 'number' && pe  > 0;
-      setPeSupported(hasEps || hasPe);
-      const avg = row.pe3yAvg;
-      setPe3yAvg(typeof avg === 'number' && isFinite(avg) && avg > 0 ? avg : null);
+      const hasPs  = typeof ps  === 'number' && ps  > 0;
+      const peOk = hasEps || hasPe;
+      setPeSupported(peOk);
+      setPsSupported(!peOk && hasPs);
+      const peAvg = row.pe3yAvg;
+      const psAvg = row.ps3yAvg;
+      setPe3yAvg(typeof peAvg === 'number' && isFinite(peAvg) && peAvg > 0 ? peAvg : null);
+      setPs3yAvg(typeof psAvg === 'number' && isFinite(psAvg) && psAvg > 0 ? psAvg : null);
       // Write back to the FUND cache so a subsequent modal open hits
       // synchronously even when the prefetch pass didn't cover this
       // particular ticker (drilldown into an MC card the prefetch
@@ -189,13 +215,18 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     });
     return () => { cancelled = true; };
   }, [ticker, supportsPePattern]);
+  // P/E and P/S are mutually exclusive — append whichever applies.
+  const valuationRange = peSupported ? ['PE'] : (psSupported ? ['PS'] : []);
   const visibleRangeKeys = dailyOnly
     ? ['1M', '3M', 'YTD']
-    : (peSupported ? [...RANGE_KEYS, 'PE'] : RANGE_KEYS);
+    : [...RANGE_KEYS, ...valuationRange];
   // CN funds publish 1 NAV / day; .PVT placeholders don't trade on
   // public exchanges. Both default to 1M so the user sees something
   // immediately rather than landing on an intraday view that's empty.
   const [rangeKey, setRangeKey] = React.useState(dailyOnly ? '1M' : '1D');
+  // Convenience flag for renderers that share behaviour across the
+  // two ratio views (axis label, 3Y AVG reference line, header copy).
+  const isRatioRange = rangeKey === 'PE' || rangeKey === 'PS';
   // Seed series + loading state from the localStorage cache up front
   // so a warm-cache open doesn't flash a spinner. Reading on first
   // paint means the chart paints from cache on the very first render
@@ -250,7 +281,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // daily prices under the hood — the y-axis transformation happens
   // after fetch.
   const fetchParams = (rk) => {
-    if (rk === 'PE') {
+    if (rk === 'PE' || rk === 'PS') {
       const p = fetchParamsFor('YTD', extendedHours, phase);
       return { ...p, interval: '1d', includePrePost: false };
     }
@@ -326,7 +357,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         }
         return;
       }
-      const params = fetchParamsFor(rangeKey === 'PE' ? 'YTD' : rangeKey, extendedHours, phase);
+      const params = fetchParamsFor(isRatioRange ? 'YTD' : rangeKey, extendedHours, phase);
       if (params.variant === 'closed') data = filterToLatestDay(data);
       else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
       // 'PE' transform: divide each historical close by the rolling
@@ -341,7 +372,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // sparse coverage), (b) the price date predates the earliest
       // reported quarter, or (c) the Edge Function is on the older
       // version that doesn't yet emit `ttmEpsHistory`.
-      if (rangeKey === 'PE') {
+      // 'PS' transform is the same shape minus the TTM history: P/S
+      // ratio history isn't published by Yahoo's fundamentals-timeseries
+      // on the public endpoint, so we use the const-current-TTM-sales
+      // path that priceDividedByTtmEps already supports (history=null
+      // → fallback applies on every bar). Sales-per-share moves much
+      // more slowly than EPS so within a YTD window this is a fine
+      // approximation; revisit if quarterly revenue series becomes
+      // available cheaply.
+      if (isRatioRange) {
         // Mirror the 3-attempt retry policy fetchHistoricalBatch uses
         // a few lines up: the fundamentals chain (FMP → Yahoo
         // quoteSummary → Yahoo chart → Finnhub) is just as flaky
@@ -363,43 +402,40 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         //       returned null). REAL infra failure worth logging in
         //       ops-error so chronic backend instability surfaces in
         //       the admin badge. UI shows the standard error panel.
-        //   (b) `row` present but pe ≤ 0 AND no usable eps —
-        //       legitimate "this ticker has no positive trailing P/E"
-        //       case (loss-makers like NBIS pre-profit, ETF proxies
-        //       where Finnhub has no aggregate EPS, etc.). NOT a bug
-        //       — fire no ops-error and show a softer "P/E not
-        //       available" copy instead of the red error panel.
-        //   (c) row carries usable pe or eps — happy path: derive
-        //       USD eps from lastClose/pe and run priceDividedByTtmEps.
+        //   (b) `row` present but the active ratio (pe / ps) ≤ 0 —
+        //       legitimate "this ticker has no positive trailing
+        //       ratio" case (loss-makers, ETF proxies where Finnhub
+        //       has no aggregate EPS, brand-new IPOs with no revenue
+        //       history). NOT a bug — fire no ops-error and show a
+        //       softer "P/X not available" copy instead of the red
+        //       error panel.
+        //   (c) row carries a usable ratio — happy path: derive the
+        //       per-share denominator from `lastClose / ratio` and
+        //       run priceDividedByTtmEps.
         //
-        // Force-derive EPS from `lastClose / trailingPE` whenever a
-        // pe is available. FMP's `pe` is USD-normalized for ADRs
-        // (TSM 30.8, ASML 49.3, SFTBY 9.5) but its `eps` field for
-        // those same ADRs is reported in the underlying foreign
-        // currency (TSM 74 TWD-ish, ASML 26 EUR, SFTBY 645 JPY),
-        // so dividing USD prices by that eps produces the original
-        // 1.22 / 63 / 0.07 bug. The implied USD EPS the trailingPE
-        // would imply IS the right unit. For US-listed stocks where
-        // FMP's eps is already in USD this is a no-op (derived
-        // value matches FMP's reported one within rounding). Also
-        // handles the index-ETF path (^GSPC etc.) where Finnhub
-        // returns eps:0 — same code path, no special-case.
+        // Force-derive the denominator from `lastClose / ratio`
+        // whenever a ratio is available. For P/E that's how we dodge
+        // FMP's ADR eps-currency mismatch (TSM 30.79 USD pe ÷ 74.38
+        // TWD eps was the original 1.22 bug); for P/S it's how we
+        // stay USD-correct without re-pulling revenue figures.
         if (!row || typeof row !== 'object') {
           // (a) — infra failure.
           reportError('fetch.pe.network-drop', {
             symbol: ticker,
             message: 'fundamentals Edge Function returned no row for this ticker',
+            context: { ratio: rangeKey },
           });
           if (!cached) { setError(true); setLoading(false); }
           return;
         }
-        let eps = row.eps;
-        const pe = row.pe;
-        if (typeof pe === 'number' && pe > 0 && data.length > 0) {
-          eps = data[data.length - 1].close / pe;
+        const isPe = rangeKey === 'PE';
+        const ratio = isPe ? row.pe : row.ps;
+        let denom = isPe ? row.eps : null;  // PS has no published denominator field
+        if (typeof ratio === 'number' && ratio > 0 && data.length > 0) {
+          denom = data[data.length - 1].close / ratio;
         }
-        if (!eps || eps <= 0) {
-          // (b) — legitimate no-P/E state. Soft UI, no ops-error.
+        if (!denom || denom <= 0) {
+          // (b) — legitimate no-ratio state. Soft UI, no ops-error.
           if (!cached) {
             setNoPe(true);
             setError(false);
@@ -408,10 +444,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           }
           return;
         }
-        // Use the shared `priceDividedByTtmEps` helper so the same
-        // USD-anchor history rescale (Codex P1 fix) lands here as
-        // in prefetch.js. Inline transform deleted to avoid drift.
-        data = priceDividedByTtmEps(data, row.ttmEpsHistory, eps);
+        // priceDividedByTtmEps with history=null → const-denominator
+        // path. For PE we still pass ttmEpsHistory so the curve steps
+        // on earnings dates (Yahoo's trailingDilutedEPS series);
+        // for PS we deliberately omit history so the chart uses the
+        // current sales-per-share for every bar.
+        data = priceDividedByTtmEps(data, isPe ? row.ttmEpsHistory : null, denom);
       }
       modalCacheSet(cacheKey, data);
       setSeries(data);
@@ -497,7 +535,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     Promise.all(others.map(async (rk) => {
       if (cancelled) return;
       let yahooRange, interval, includePrePost, variant;
-      if (rk === 'PE') {
+      const isPeRk = rk === 'PE';
+      const isPsRk = rk === 'PS';
+      const isRatioRk = isPeRk || isPsRk;
+      if (isRatioRk) {
         const p = fetchParamsFor('YTD', extendedHours, phase);
         yahooRange = p.yahooRange; interval = '1d'; includePrePost = false; variant = p.variant;
       } else {
@@ -516,23 +557,25 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       if (!data || data.length < 2) return;
       if (variant === 'closed') data = filterToLatestDay(data);
       else if (variant === 'reg' || variant === 'ext') data = filterToLast24h(data);
-      if (rk === 'PE') {
+      if (isRatioRk) {
         const f = await fetchFundamentals([ticker], { ttmEpsHistory: true });
         if (cancelled) return;
         const row = f?.[ticker];
-        // See main effect above — derive EPS from lastClose / pe
-        // unconditionally so the ADR currency mismatch in FMP's
-        // `eps` field doesn't poison the chart.
-        let eps = row?.eps;
-        const pe = row?.pe;
-        if (typeof pe === 'number' && pe > 0 && data.length > 0) {
-          eps = data[data.length - 1].close / pe;
+        // See main effect above — derive the per-share denominator
+        // from lastClose / ratio so the ADR currency mismatch in
+        // FMP's `eps` field doesn't poison the P/E chart, and so the
+        // P/S chart uses a USD-correct sales-per-share regardless of
+        // which upstream supplied `ps`.
+        const ratio = isPeRk ? row?.pe : row?.ps;
+        let denom = isPeRk ? row?.eps : null;
+        if (typeof ratio === 'number' && ratio > 0 && data.length > 0) {
+          denom = data[data.length - 1].close / ratio;
         }
-        if (!eps || eps <= 0) return;
-        // Use the shared `priceDividedByTtmEps` helper so the same
-        // USD-anchor history rescale (Codex P1 fix) lands here as
-        // in prefetch.js. Inline transform deleted to avoid drift.
-        data = priceDividedByTtmEps(data, row?.ttmEpsHistory, eps);
+        if (!denom || denom <= 0) return;
+        // For PE pass ttmEpsHistory so the curve steps on earnings
+        // dates; for PS pass null so it stays on the const
+        // current-TTM-sales path.
+        data = priceDividedByTtmEps(data, isPeRk ? row?.ttmEpsHistory : null, denom);
       }
       modalCacheSet(cacheKey, data);
     })).catch(() => { /* per-range failures stay quiet */ });
@@ -755,7 +798,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // label treatment, so it needs the same widened padR.
   const showVwap = rangeKey === '1D';
   const padL = 56, padT = 18, padB = 38;
-  const padR = rangeKey === 'PE' ? 96 : (showMa || showVwap ? 56 : 16);
+  const padR = isRatioRange ? 96 : (showMa || showVwap ? 56 : 16);
   const cW = W - padL - padR, cH = H - padT - padB;
 
   // Intraday rolling SMA — what TradingView calls "5/10/20/50-day MA"
@@ -804,11 +847,14 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     const denom = Math.max(1, points.length - 1);
     xOfIdx = (i) => padL + (i / denom) * cW;
     const allP = points.map(p => p.close);
-    // PE chart includes the 3-year-average reference line in the
-    // y-range so the dashed marker is always on-screen, even when
-    // current P/E has drifted far from the historical average.
+    // PE / PS charts include the 3-year-average reference line in
+    // the y-range so the dashed marker is always on-screen, even when
+    // the current ratio has drifted far from the historical average.
     if (rangeKey === 'PE' && typeof pe3yAvg === 'number' && pe3yAvg > 0) {
       allP.push(pe3yAvg);
+    }
+    if (rangeKey === 'PS' && typeof ps3yAvg === 'number' && ps3yAvg > 0) {
+      allP.push(ps3yAvg);
     }
     // MA values too — without this the line could overflow the
     // chart bounds on the leftmost bars where MA reflects a much
@@ -939,7 +985,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     if (cYRectRef.current) cYRectRef.current.setAttribute('y', String(y - 9));
     if (cYTextRef.current) {
       cYTextRef.current.setAttribute('y', String(y));
-      cYTextRef.current.textContent = rangeKey === 'PE' ? p.close.toFixed(2) : fmtTickerPrice(p.close, ticker, sym);
+      cYTextRef.current.textContent = isRatioRange ? p.close.toFixed(2) : fmtTickerPrice(p.close, ticker, sym);
     }
     if (cPctRectRef.current) {
       cPctRectRef.current.setAttribute('x', String(x + 6));
@@ -1068,17 +1114,21 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
         <div>
-          <div className="modal-eyebrow mono">{rangeKey === 'PE' ? 'P/E RATIO' : 'PRICE'}</div>
+          <div className="modal-eyebrow mono">{
+            rangeKey === 'PE' ? 'P/E RATIO' : rangeKey === 'PS' ? 'P/S RATIO' : 'PRICE'
+          }</div>
           <h2 className="modal-title mono">
             {TICKER_DISPLAY_NAMES[ticker]
               ? <>{TICKER_DISPLAY_NAMES[ticker]} <span className="dim" style={{ fontSize: '0.7em' }}>{ticker}</span></>
               : ticker}
           </h2>
           <div className="modal-meta">
-            <span className="mono dim">{rangeKey === 'PE' ? 'P/E' : 'Last'}</span>
+            <span className="mono dim">{
+              rangeKey === 'PE' ? 'P/E' : rangeKey === 'PS' ? 'P/S' : 'Last'
+            }</span>
             <span className="mono">{
               lastClose != null
-                ? (rangeKey === 'PE' ? lastClose.toFixed(2) : fmtTickerPrice(lastClose, ticker, sym))
+                ? (isRatioRange ? lastClose.toFixed(2) : fmtTickerPrice(lastClose, ticker, sym))
                 : '—'
             }</span>
             <span className="mono" style={{ color: pcC(pctNow) }}>{fmP(pctNow)}</span>
@@ -1091,6 +1141,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             )}
             {rangeKey === 'PE' && (
               <span className="mono dim" style={{ fontSize: 10 }}>(price ÷ TTM EPS)</span>
+            )}
+            {rangeKey === 'PS' && (
+              <span className="mono dim" style={{ fontSize: 10 }}>(price ÷ TTM sales per share)</span>
             )}
           </div>
           {/* Holding-stats line — shares / AC / Cost / Value / G/L,
@@ -1178,7 +1231,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                         stroke="var(--line-2)" strokeWidth="0.5" strokeDasharray="2,3" />
                   <text x={padL - 6} y={yOf(v).toFixed(1)} textAnchor="end" dominantBaseline="middle"
                         fontSize="9.5" fill="rgba(244,239,227,0.55)" fontFamily="var(--font-mono)">
-                    {rangeKey === 'PE' ? v.toFixed(2) : fmtTickerPrice(v, ticker, sym)}
+                    {isRatioRange ? v.toFixed(2) : fmtTickerPrice(v, ticker, sym)}
                   </text>
                 </g>
               ))}
@@ -1197,15 +1250,20 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                   plot) so the price line never crosses through it.
                   Comes from Finnhub's series.annual.pe (last 3
                   entries averaged). */}
-              {rangeKey === 'PE' && typeof pe3yAvg === 'number' && pe3yAvg > 0 && (() => {
-                const y = yOf(pe3yAvg);
+              {(() => {
+                // Same dashed reference line for both ratio views —
+                // pick whichever 3Y average matches the active range
+                // and render in the right margin.
+                const avg = rangeKey === 'PE' ? pe3yAvg : rangeKey === 'PS' ? ps3yAvg : null;
+                if (typeof avg !== 'number' || avg <= 0) return null;
+                const y = yOf(avg);
                 return (
                   <g>
                     <line x1={padL} y1={y.toFixed(1)} x2={W - padR} y2={y.toFixed(1)}
                           stroke="rgba(244,239,227,0.55)" strokeWidth="0.8" strokeDasharray="4,3" />
                     <text x={W - padR + 4} y={y.toFixed(1)} textAnchor="start" dominantBaseline="middle"
                           fontSize="9" fill="rgba(244,239,227,0.7)" fontFamily="var(--font-mono)">
-                      3Y AVG {pe3yAvg.toFixed(2)}
+                      3Y AVG {avg.toFixed(2)}
                     </text>
                   </g>
                 );
@@ -1320,7 +1378,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               type="button"
               className={`perf-range-btn mono${k === rangeKey ? ' on' : ''}`}
               onClick={() => setRangeKey(k)}
-            >{k === 'PE' ? 'P/E YTD' : RANGES[k].label}</button>
+            >{k === 'PE' ? 'P/E YTD' : k === 'PS' ? 'P/S YTD' : RANGES[k].label}</button>
           ))}
         </div>
       </div>

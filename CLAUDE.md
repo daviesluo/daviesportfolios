@@ -43,7 +43,7 @@ the function's pure helpers from `index.test.ts` would bind a port.
 ## Testing
 
 - `npm run typecheck` — tsc with `checkJs`, no type errors should slip through.
-- `npm test` — vitest. 163 cases as of this writing: YTD chart math,
+- `npm test` — vitest. 167 cases as of this writing: YTD chart math,
   fetch/proxy strategy, ticker-shape predicates, cache TTL + LRU,
   market-cache + legacy fallback, SW banner suppression window,
   ops-badge desktop gate, portfolio user-fingerprint diffing, and
