@@ -252,6 +252,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   // pass's writes above are already visible here.
   const fundKey = (t) => `${t}|FUND|v2`;
   const peKey   = (t) => tickerChartCacheKey(t, 'PE', useExt, phase);
+  const psKey   = (t) => tickerChartCacheKey(t, 'PS', useExt, phase);
   const ytdEntryFor = (t) => YtdStore.get(`y${year}|YTD:std|${t}`);
   // Only consider tickers that (a) have a freshly-cached YTD daily
   // series we can divide, and (b) don't already have a fresh PE
@@ -265,12 +266,15 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   ]));
   const peCandidates = peEligible.filter((t) => {
     if (!isFresh(ytdEntryFor(t), PE_TTL_MS)) return false;
-    // Refetch when either FUND or PE cache row is stale — we always
-    // write both in the same pass so freshness is in lockstep.
+    // Refetch when FUND is stale OR the ticker has neither a fresh
+    // PE nor a fresh PS series — we write whichever applies in the
+    // same pass so freshness is in lockstep, but profitable tickers
+    // get a PE row and loss-makers get a PS row, never both.
     const fundEntry = ChartStore.get(fundKey(t));
     const fundFresh = !!fundEntry && (Date.now() - (fundEntry.ts || 0)) < PE_TTL_MS;
-    const peFresh = isFresh(ChartStore.get(peKey(t)), PE_TTL_MS);
-    return !(fundFresh && peFresh);
+    const ratioFresh = isFresh(ChartStore.get(peKey(t)), PE_TTL_MS)
+                     || isFresh(ChartStore.get(psKey(t)), PE_TTL_MS);
+    return !(fundFresh && ratioFresh);
   });
   if (peCandidates.length > 0) {
     let fundamentals = {};
@@ -306,9 +310,21 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       if (typeof pe === 'number' && pe > 0 && ytdData.length > 0) {
         eps = ytdData[ytdData.length - 1].close / pe;
       }
-      if (typeof eps !== 'number' || eps <= 0) continue;
-      const peSeries = priceDividedByTtmEps(ytdData, row.ttmEpsHistory, eps);
-      ChartStore.set(peKey(t), { ts: peNow, data: peSeries });
+      if (typeof eps === 'number' && eps > 0) {
+        const peSeries = priceDividedByTtmEps(ytdData, row.ttmEpsHistory, eps);
+        ChartStore.set(peKey(t), { ts: peNow, data: peSeries });
+      } else if (typeof row.ps === 'number' && row.ps > 0 && ytdData.length > 0) {
+        // (3) Loss-maker fallback: no usable EPS but the Edge Function
+        // shipped a `ps` — precompute the const-current-TTM-sales
+        // P/S series so clicking P/S YTD in the modal hits cache
+        // instantly. Derive sales-per-share from lastClose / ps for
+        // the same ADR-currency-safe reason as the EPS path above.
+        const salesPerShare = ytdData[ytdData.length - 1].close / row.ps;
+        if (salesPerShare > 0) {
+          const psSeries = priceDividedByTtmEps(ytdData, null, salesPerShare);
+          ChartStore.set(psKey(t), { ts: peNow, data: psSeries });
+        }
+      }
     }
   }
 }

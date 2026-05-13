@@ -1,5 +1,28 @@
 import { describe, it, expect } from 'vitest';
-import { isFresh, hasAnyNumericField, trimLru, RANGE_TTL_MS } from './cache.js';
+import { isFresh, hasAnyNumericField, trimLru, RANGE_TTL_MS, tickerChartCacheKey } from './cache.js';
+
+describe('tickerChartCacheKey — algorithm-version suffixes', () => {
+  // The PE / PS keys carry an algorithm-version suffix so a breaking
+  // change to the ratio-series math can evict every browser's cached
+  // series in one push instead of waiting out the 12 h TTL. The
+  // particular version numbers matter: a future shrug-and-rename
+  // would silently invalidate every existing user's cache for no
+  // reason. Pin them.
+  it('PE rangeKey emits |PE|v4|', () => {
+    expect(tickerChartCacheKey('NVDA', 'PE', false, 'regular')).toBe('NVDA|PE|v4|reg|regular');
+  });
+  it('PS rangeKey emits |PS|v1|', () => {
+    expect(tickerChartCacheKey('NBIS', 'PS', false, 'regular')).toBe('NBIS|PS|v1|reg|regular');
+  });
+  it('PE / PS share the variant + phase suffix shape (cross-toggle swap pattern)', () => {
+    expect(tickerChartCacheKey('NVDA', 'PE', true,  'post')).toBe('NVDA|PE|v4|ext|post');
+    expect(tickerChartCacheKey('NBIS', 'PS', true,  'post')).toBe('NBIS|PS|v1|ext|post');
+  });
+  it('non-ratio ranges leave the variant/phase off — same key across toggles', () => {
+    expect(tickerChartCacheKey('NVDA', 'YTD', false, 'pre')).toBe('NVDA|YTD');
+    expect(tickerChartCacheKey('NVDA', 'YTD', true,  'pre')).toBe('NVDA|YTD');
+  });
+});
 
 describe('isFresh', () => {
   it('rejects empty / missing / single-bar entries', () => {

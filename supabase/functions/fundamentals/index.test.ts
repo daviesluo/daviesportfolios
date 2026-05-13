@@ -92,6 +92,23 @@ Deno.test("computePe3yAvg: empty / non-array → null", () => {
   assertEquals(computePe3yAvg(null), null);
 });
 
+// computePe3yAvg is generic over the `{ period, v }` shape — Finnhub's
+// `series.annual.ps` has the same structure, so the function backs the
+// P/S 3-year-average reference line on the loss-maker P/S YTD view too.
+// Pin that contract here so a future "let's make this PE-specific"
+// refactor breaks the test instead of the P/S chart.
+Deno.test("computePe3yAvg is reused for ps3yAvg — same shape, same math", () => {
+  const psAnnual = [
+    { period: "2021-12-31", v: 6.0 },
+    { period: "2022-12-31", v: 8.0 },
+    { period: "2023-12-31", v: 10.0 },
+    { period: "2024-12-31", v: 12.0 },
+  ];
+  // 3 most recent: 12, 10, 8 → avg 10. Identical handling regardless
+  // of which metric the caller is summarising.
+  assertAlmostEquals(computePe3yAvg(psAnnual)!, 10, 1e-9);
+});
+
 // --- FMP primary source (ADR-currency-safe) -------------------------
 //
 // FMP_API_KEY is read at module load time (`Deno.env.get(...)`), so
