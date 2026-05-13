@@ -85,6 +85,7 @@ export function isFresh(entry, ttlMs, extraValid) {
  */
 export function tickerChartCacheKey(ticker, rangeKey, useExt, phase) {
   if (rangeKey === 'PE') return `${ticker}|PE|v4|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+  if (rangeKey === 'PS') return `${ticker}|PS|v1|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
   if (rangeKey === '1D') return `${ticker}|1D|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
   return `${ticker}|${rangeKey}`;
 }
