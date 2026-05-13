@@ -10,6 +10,7 @@ import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@
 import {
   isFundamentalsTicker, rollingTtmFromRawQuarterly, computePe3yAvg,
   normalizeEpsHistoryToUsd,
+  pickPsFields,
 } from "./index.ts";
 
 Deno.test("isFundamentalsTicker: keeps US equities", () => {
@@ -251,4 +252,63 @@ Deno.test("normalizeEpsHistoryToUsd: degenerate inputs (empty / NaN anchor / zer
   assertEquals(normalizeEpsHistoryToUsd(input, 0),   input);
   assertEquals(normalizeEpsHistoryToUsd([{ date: "2025-03-31", eps: 0 }], 5),
                [{ date: "2025-03-31", eps: 0 }]);
+});
+
+// --- ADR P/S currency-mismatch guard --------------------------------
+
+Deno.test("pickPsFields: NVDA-shape (US-listed, sources agree) → trust Finnhub's 3Y avg", () => {
+  // NVDA reports in USD; Yahoo and Finnhub agree on current P/S.
+  // The 3Y average from Finnhub is in the same units and safe to use.
+  const out = pickPsFields(28.0, 28.5, 24.3);
+  assertEquals(out.ps, 28.0);
+  assertEquals(out.ps3yAvg, 24.3);
+});
+
+Deno.test("pickPsFields: TSM-shape (ADR, Finnhub mixes USD price with TWD revenue) → drop 3Y avg", () => {
+  // Yahoo's USD-USD P/S ~12. Finnhub divides USD market cap by TWD
+  // revenue → ~360. Ratio ~30 — well outside (0.5, 2.0). The dashed
+  // 3Y-AVG reference line would be off-scale by the same factor, so
+  // we null it out rather than render a misleading marker.
+  const out = pickPsFields(12.0, 360.0, 200.0);
+  assertEquals(out.ps, 12.0);     // Yahoo's USD-USD value still wins
+  assertEquals(out.ps3yAvg, null); // Finnhub's annual series dropped
+});
+
+Deno.test("pickPsFields: Finnhub absent → no annual cross-check possible, drop 3Y avg", () => {
+  // Conservative default: without two sources to compare, we can't
+  // tell whether Finnhub's annual series is in the same units as
+  // the rendered P/S value. Safer to omit the reference line.
+  const out = pickPsFields(28.0, 0, 24.0);
+  assertEquals(out.ps, 28.0);
+  assertEquals(out.ps3yAvg, null);
+});
+
+Deno.test("pickPsFields: Yahoo absent → fall back to Finnhub's psTTM, still drop 3Y avg", () => {
+  // Yahoo doesn't always publish priceToSalesTrailing12Months for
+  // brand-new IPOs. Use Finnhub as the fallback for the current
+  // value but still don't render the reference line since the
+  // cross-check can't run.
+  const out = pickPsFields(0, 5.5, 4.2);
+  assertEquals(out.ps, 5.5);
+  assertEquals(out.ps3yAvg, null);
+});
+
+Deno.test("pickPsFields: both sources absent → ps:0, ps3yAvg:null", () => {
+  assertEquals(pickPsFields(0, 0, 0),               { ps: 0, ps3yAvg: null });
+  assertEquals(pickPsFields(undefined, null, null), { ps: 0, ps3yAvg: null });
+  assertEquals(pickPsFields(NaN, NaN, NaN),         { ps: 0, ps3yAvg: null });
+});
+
+Deno.test("pickPsFields: boundary check — 2× exactly is treated as disagreement (strict <)", () => {
+  // The window is the OPEN interval (0.5, 2.0) — values at exactly
+  // 2× either way are NOT trusted. This keeps the rare borderline
+  // case on the conservative side; if the cross-check ever fires
+  // it should be on near-equal sources.
+  const halfDisagree = pickPsFields(10.0, 20.0, 15.0);  // ratio exactly 0.5 (boundary)
+  assertEquals(halfDisagree.ps3yAvg, null);
+  const doubleDisagree = pickPsFields(20.0, 10.0, 15.0); // ratio exactly 2.0 (boundary)
+  assertEquals(doubleDisagree.ps3yAvg, null);
+  // Just inside the window — accepted.
+  const slightlyInside = pickPsFields(19.0, 10.0, 15.0); // ratio 1.9
+  assertEquals(slightlyInside.ps3yAvg, 15.0);
 });

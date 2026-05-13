@@ -456,23 +456,25 @@ export async function fetchStockFundamentals(
   // nothing else, so this branch is as fast as one HTTP request.
   if (fmpRow) {
     // FMP's /v3/quote doesn't carry a P/S field on the free tier,
-    // so pull it from Finnhub alongside pe3yAvg. Yahoo would be more
-    // accurate for ADRs (FMP/Finnhub PS can inherit the foreign-EPS
-    // currency mismatch), but FMP-covered tickers are mostly US-listed
-    // so Finnhub's `psTTM` is usually fine. The Yahoo branch below
-    // covers the ADR case where Yahoo `summaryDetail.priceToSales...`
-    // is the source.
+    // so pull it from Finnhub alongside pe3yAvg. Yahoo is more
+    // accurate for ADRs (Yahoo's summaryDetail.priceToSales... is
+    // USD-USD; Finnhub's psTTM inherits the ADR foreign-currency
+    // bug Finnhub's peTTM has). `pickPsFields` cross-checks the two
+    // sources and drops Finnhub's `ps3yAvg` when they disagree,
+    // which is the only safe behaviour given Yahoo doesn't expose
+    // historical annual P/S.
     const [finn, yahoo] = await Promise.all([
       fetchFinnhub(symbol),
       fetchYahooQuoteSummary(symbol),
     ]);
+    const { ps, ps3yAvg } = pickPsFields(yahoo?.ps, finn?.ps, finn?.ps3yAvg);
     return {
       pe: fmpRow.pe,
       eps: fmpRow.eps,
       price: fmpRow.price,
       pe3yAvg: finn?.pe3yAvg ?? null,
-      ps: (yahoo?.ps ?? finn?.ps) || 0,
-      ps3yAvg: finn?.ps3yAvg ?? null,
+      ps,
+      ps3yAvg,
     };
   }
   const [yahoo, finn] = await Promise.all([
@@ -482,14 +484,16 @@ export async function fetchStockFundamentals(
   if (yahoo) {
     // pe / eps both = 0 → loss-maker / no-earnings case. Surface the
     // row anyway so the client can show the P/S YTD view (ps still
-    // populated) instead of hiding the chart entirely.
+    // populated) instead of hiding the chart entirely. Same ADR
+    // sanity check via pickPsFields as the FMP branch above.
+    const { ps, ps3yAvg } = pickPsFields(yahoo.ps, finn?.ps, finn?.ps3yAvg);
     return {
       pe: yahoo.pe,
       eps: yahoo.eps,
       price: yahoo.price,
       pe3yAvg: finn?.pe3yAvg ?? null,
-      ps: (yahoo.ps || finn?.ps) ?? 0,
-      ps3yAvg: finn?.ps3yAvg ?? null,
+      ps,
+      ps3yAvg,
     };
   }
   return finn;
@@ -616,6 +620,55 @@ async function fetchFinnhubEarningsHistory(
 }
 
 // ---- Pure helpers exposed for tests ---------------------------------
+
+/**
+ * Pick the P/S value and the 3-year-average reference value, guarding
+ * against the ADR currency-mismatch that plagued Finnhub's `peTTM`
+ * (USD ADR price ÷ foreign-currency reported EPS). Finnhub's
+ * `psTTM` / `series.annual.ps` inherit the same bug — for an ADR
+ * Finnhub divides USD market cap by foreign-currency revenue, so
+ * the published ratios come out off by the FX rate. Yahoo's
+ * `summaryDetail.priceToSalesTrailing12Months` is USD-correct
+ * because the consumer-facing site has to display a coherent
+ * number, so we always prefer it for the current value.
+ *
+ * The harder case is the 3-year average. Yahoo doesn't expose
+ * historical annual P/S on the free tier, so the 3Y AVG dashed
+ * reference line on the chart comes from Finnhub's annual series
+ * regardless of source. We can still catch the ADR case
+ * heuristically: when BOTH sources have a current P/S, compare
+ * them. If they agree within 2× either way, currencies are
+ * consistent and Finnhub's annual series is trustworthy. If they
+ * disagree (Yahoo $TSM ps ~12, Finnhub $TSM psTTM ~360 because
+ * of the TWD mismatch), drop Finnhub's `ps3yAvg` so the chart
+ * doesn't paint a wildly off-scale reference line.
+ *
+ * @param {number | undefined | null} yahooPs   Yahoo's USD-USD P/S
+ * @param {number | undefined | null} finnPs    Finnhub's possibly-mixed-unit P/S
+ * @param {number | undefined | null} finnPs3y  Finnhub's annual 3Y avg P/S
+ */
+export function pickPsFields(
+  yahooPs: number | undefined | null,
+  finnPs: number | undefined | null,
+  finnPs3y: number | undefined | null,
+): { ps: number; ps3yAvg: number | null } {
+  const ys = isFinite(Number(yahooPs)) && Number(yahooPs) > 0 ? Number(yahooPs) : 0;
+  const fs = isFinite(Number(finnPs))  && Number(finnPs)  > 0 ? Number(finnPs)  : 0;
+  const ps = ys > 0 ? ys : fs;
+  // The annual 3Y avg only renders when sources cross-check. When
+  // only one source has a current value the cross-check is
+  // impossible — fall back to "no reference line", same as if
+  // Finnhub had returned no annual series at all.
+  let ps3yAvg: number | null = null;
+  if (
+    typeof finnPs3y === 'number' && isFinite(finnPs3y) && finnPs3y > 0
+    && ys > 0 && fs > 0
+  ) {
+    const r = ys / fs;
+    if (r > 0.5 && r < 2) ps3yAvg = finnPs3y;
+  }
+  return { ps, ps3yAvg };
+}
 
 /**
  * "Is this ticker something the fundamentals function can fetch a P/E

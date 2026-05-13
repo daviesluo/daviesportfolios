@@ -15,7 +15,7 @@ import { ChartStore, MaStore } from './chart_store.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
-  priceDividedByTtmEps, hasExtendedHoursBars,
+  priceDividedByTtmEps, hasExtendedHoursBars, isPriceAxis,
 } from './indicators.js';
 import { reportError } from './ops_error.js';
 
@@ -770,14 +770,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     }
   }
 
-  // Display series: substitute live price into the last point so the chart
-  // tail tracks the rest of the app in real time. Skipped for the PE
-  // view since the cached series is already in P/E units; substituting
-  // a raw price would tank the last bar.
+  // Display series: substitute live price into the last point so the
+  // chart tail tracks the rest of the app in real time. `isPriceAxis`
+  // gates this on the y-axis units — true for the price ranges
+  // (1D/1W/1M/3M/YTD), false for the ratio ranges (PE/PS). Mixing a
+  // raw price into a ratio series would draw a vertical cliff
+  // between the second-to-last bar and today, which the user hit on
+  // NET / SATS / NVTS / SOUN before this gate was extended to PS.
   const points = series ? series.map((p, i) => (
-    // Preserve any extra fields on the bar (notably `volume`, used by
-    // the VWAP overlay) when substituting the live tail value.
-    rangeKey !== 'PE' && i === series.length - 1 && liveLast ? { ...p, close: liveLast } : p
+    isPriceAxis(rangeKey) && i === series.length - 1 && liveLast ? { ...p, close: liveLast } : p
   )) : [];
 
   const lastClose = points.length > 0 ? points[points.length - 1].close : null;
