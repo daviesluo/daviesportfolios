@@ -53,6 +53,18 @@ type Fundamentals = {
   pe: number;
   eps: number;
   pe3yAvg: number | null;
+  // Price-to-Sales: paired with pe / eps so a single fundamentals
+  // response covers both the profitable (P/E view) and loss-maker
+  // (P/S view) cases. Sourced from Yahoo's
+  // `summaryDetail.priceToSalesTrailing12Months` (primary; USD-correct
+  // for ADRs since Yahoo reports the ADR-side number) with Finnhub's
+  // `psTTM` as a fallback. `ps3yAvg` averages the 3 most recent
+  // annual `series.annual.ps` rows from Finnhub. Both are optional —
+  // some tickers (newly-listed ADRs, indices, etc.) have no usable
+  // revenue ratio and just return undefined. Client gates the
+  // P/S YTD button on `eps <= 0 && ps > 0`.
+  ps?: number;
+  ps3yAvg?: number | null;
   // Internal-only USD market price (from FMP or Yahoo) — used to
   // derive the USD anchor (price/pe) for normalizing ADR TTM-EPS
   // history. Stripped from the response before it goes over the
@@ -301,7 +313,13 @@ export async function fetchFmpQuoteBatched(symbols: string[]): Promise<Record<st
 // so we use Yahoo as the primary source and fall back to Finnhub
 // only when Yahoo is unreachable / blocked.
 
-type YahooQuoteSummary = { pe: number; eps: number; price: number; currency: string | null };
+type YahooQuoteSummary = {
+  pe: number;
+  eps: number;
+  ps: number;
+  price: number;
+  currency: string | null;
+};
 
 async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary | null> {
   // quoteSummary doesn't require auth for most tickers (crumb is
@@ -326,6 +344,14 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
     const peRaw  = result?.summaryDetail?.trailingPE?.raw
                 ?? result?.defaultKeyStatistics?.trailingPE?.raw;
     const epsRaw = result?.defaultKeyStatistics?.trailingEps?.raw;
+    // Price-to-Sales TTM — used for the loss-maker P/S view. Yahoo
+    // reports the ADR-side number directly so this is USD-correct
+    // for ADRs (unlike Finnhub's ps which would inherit the EPS
+    // currency mismatch). summaryDetail.priceToSalesTrailing12Months
+    // is the canonical field; falls through to defaultKeyStatistics
+    // for the (very rare) symbols where summaryDetail strips it.
+    const psRaw  = result?.summaryDetail?.priceToSalesTrailing12Months?.raw
+                ?? result?.defaultKeyStatistics?.priceToSalesTrailing12Months?.raw;
     // Yahoo's USD market price for the symbol — used as the anchor
     // (price/pe = implied USD EPS) when rescaling foreign-currency
     // TTM-EPS history for ADRs. `price.regularMarketPrice` is the
@@ -344,12 +370,21 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
     const currency = result?.price?.currency ?? null;
     const pe    = Number(peRaw);
     const eps   = Number(epsRaw);
+    const ps    = Number(psRaw);
     const price = Number(priceRaw);
-    if (!isFinite(pe)  || pe  <= 0) return null;
-    if (!isFinite(eps) || eps <= 0) return null;
+    // Use 0 as the "no usable value" sentinel so the response shape
+    // stays uniform and the caller can decide per-field whether to
+    // show that view. Reject the whole call only when EVERY ratio is
+    // missing — loss-makers have no pe/eps but do publish ps, and we
+    // want to keep that row alive to back the new P/S YTD button.
+    const pe2  = isFinite(pe)  && pe  > 0 ? pe  : 0;
+    const eps2 = isFinite(eps) && eps > 0 ? eps : 0;
+    const ps2  = isFinite(ps)  && ps  > 0 ? ps  : 0;
+    if (pe2 === 0 && eps2 === 0 && ps2 === 0) return null;
     return {
-      pe,
-      eps,
+      pe:  pe2,
+      eps: eps2,
+      ps:  ps2,
       price: isFinite(price) && price > 0 ? price : 0,
       currency: typeof currency === 'string' ? currency : null,
     };
@@ -420,12 +455,24 @@ export async function fetchStockFundamentals(
   // Finnhub annual series for pe3yAvg — fire it in parallel with
   // nothing else, so this branch is as fast as one HTTP request.
   if (fmpRow) {
-    const finn = await fetchFinnhub(symbol);
+    // FMP's /v3/quote doesn't carry a P/S field on the free tier,
+    // so pull it from Finnhub alongside pe3yAvg. Yahoo would be more
+    // accurate for ADRs (FMP/Finnhub PS can inherit the foreign-EPS
+    // currency mismatch), but FMP-covered tickers are mostly US-listed
+    // so Finnhub's `psTTM` is usually fine. The Yahoo branch below
+    // covers the ADR case where Yahoo `summaryDetail.priceToSales...`
+    // is the source.
+    const [finn, yahoo] = await Promise.all([
+      fetchFinnhub(symbol),
+      fetchYahooQuoteSummary(symbol),
+    ]);
     return {
       pe: fmpRow.pe,
       eps: fmpRow.eps,
       price: fmpRow.price,
       pe3yAvg: finn?.pe3yAvg ?? null,
+      ps: (yahoo?.ps ?? finn?.ps) || 0,
+      ps3yAvg: finn?.ps3yAvg ?? null,
     };
   }
   const [yahoo, finn] = await Promise.all([
@@ -433,11 +480,16 @@ export async function fetchStockFundamentals(
     fetchFinnhub(symbol),
   ]);
   if (yahoo) {
+    // pe / eps both = 0 → loss-maker / no-earnings case. Surface the
+    // row anyway so the client can show the P/S YTD view (ps still
+    // populated) instead of hiding the chart entirely.
     return {
       pe: yahoo.pe,
       eps: yahoo.eps,
       price: yahoo.price,
       pe3yAvg: finn?.pe3yAvg ?? null,
+      ps: (yahoo.ps || finn?.ps) ?? 0,
+      ps3yAvg: finn?.ps3yAvg ?? null,
     };
   }
   return finn;
@@ -458,12 +510,20 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
     const data = await res.json();
     const m = data?.metric;
     if (!m) return null;
-    const pe  = Number(m.peTTM ?? m.peBasicExclExtraTTM ?? m.peNormalizedAnnual);
-    const eps = Number(m.epsTTM ?? m.epsBasicExclExtraItemsTTM ?? m.epsNormalizedAnnual);
-    if (!isFinite(pe) || !isFinite(eps) || eps <= 0 || pe <= 0) return null;
-
+    const peRaw  = Number(m.peTTM ?? m.peBasicExclExtraTTM ?? m.peNormalizedAnnual);
+    const epsRaw = Number(m.epsTTM ?? m.epsBasicExclExtraItemsTTM ?? m.epsNormalizedAnnual);
+    const psRaw  = Number(m.psTTM ?? m.psAnnual);
+    const pe  = isFinite(peRaw)  && peRaw  > 0 ? peRaw  : 0;
+    const eps = isFinite(epsRaw) && epsRaw > 0 ? epsRaw : 0;
+    const ps  = isFinite(psRaw)  && psRaw  > 0 ? psRaw  : 0;
+    // Surface the row whenever ANY ratio is usable. Loss-makers
+    // typically have pe/eps absent but ps populated — without this
+    // relaxation the function dropped them entirely and the new P/S
+    // YTD view would have nothing to show.
+    if (pe === 0 && eps === 0 && ps === 0) return null;
     const pe3yAvg = computePe3yAvg(data?.series?.annual?.pe ?? []);
-    return { pe, eps, pe3yAvg };
+    const ps3yAvg = computePe3yAvg(data?.series?.annual?.ps ?? []);
+    return { pe, eps, ps, pe3yAvg, ps3yAvg };
   } catch {
     return null;
   }
