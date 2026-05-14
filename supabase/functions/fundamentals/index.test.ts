@@ -10,7 +10,7 @@ import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@
 import {
   isFundamentalsTicker, rollingTtmFromRawQuarterly, computePe3yAvg,
   normalizeEpsHistoryToUsd,
-  pickPsFields, computePeg, compute3yCagrFromEstimates,
+  pickPsFields, computePeg,
 } from "./index.ts";
 
 Deno.test("isFundamentalsTicker: keeps US equities", () => {
@@ -110,88 +110,6 @@ Deno.test("computePe3yAvg is reused for ps3yAvg — same shape, same math", () =
   assertAlmostEquals(computePe3yAvg(psAnnual)!, 10, 1e-9);
 });
 
-// --- FMP primary source (ADR-currency-safe) -------------------------
-//
-// FMP_API_KEY is read at module load time (`Deno.env.get(...)`), so
-// these tests can't dynamically inject a key — they exercise the
-// response-parsing logic by stubbing `fetch` to return a known FMP
-// shape, and rely on the module having been loaded with the key
-// present (CI sets it; locally `deno test --env FMP_API_KEY=...`).
-// Without a key the function short-circuits and returns `{}`,
-// which is itself pinned below as the "no-key" path.
-
-import { fetchFmpQuoteBatched } from "./index.ts";
-
-// FMP's `/v3/quote/<symbols>` response shape: a JSON array of rows
-// with `symbol`, `pe`, `eps` (USD), plus a bunch of other fields we
-// ignore. ADR rows like TSM come back already-USD-normalized because
-// the ADR's price IS in USD on US exchanges and FMP computes its pe
-// from that against the appropriately-converted EPS.
-function stubFmpFetch(responseBody: unknown, opts: { ok?: boolean } = {}) {
-  const original = globalThis.fetch;
-  globalThis.fetch = ((async () => {
-    return {
-      ok: opts.ok ?? true,
-      json: async () => responseBody,
-    } as any;
-  }) as any);
-  return () => { globalThis.fetch = original; };
-}
-
-Deno.test("fetchFmpQuoteBatched: empty input → empty object", async () => {
-  // No symbols → no fetch fired, even before checking the API key.
-  assertEquals(await fetchFmpQuoteBatched([]), {});
-});
-
-Deno.test("fetchFmpQuoteBatched: parses TSM/SFTBY/ASML ADR rows with USD-normalized pe/eps", async () => {
-  if (!Deno.env.get("FMP_API_KEY")) return; // skip when no key
-  const restore = stubFmpFetch([
-    { symbol: "TSM",   pe: 30.5,  eps: 8.3 },
-    { symbol: "SFTBY", pe: 15.2,  eps: 1.2 },
-    { symbol: "ASML",  pe: 33.1,  eps: 26.4 },
-  ]);
-  try {
-    const out = await fetchFmpQuoteBatched(["TSM", "SFTBY", "ASML"]);
-    assertEquals(Object.keys(out).sort(), ["ASML", "SFTBY", "TSM"]);
-    assertAlmostEquals(out.TSM.pe,   30.5, 1e-9);
-    assertAlmostEquals(out.TSM.eps,   8.3, 1e-9);
-    assertAlmostEquals(out.SFTBY.pe, 15.2, 1e-9);
-    assertAlmostEquals(out.ASML.eps, 26.4, 1e-9);
-  } finally { restore(); }
-});
-
-Deno.test("fetchFmpQuoteBatched: skips rows with missing / invalid pe or eps", async () => {
-  if (!Deno.env.get("FMP_API_KEY")) return;
-  const restore = stubFmpFetch([
-    { symbol: "VALID",  pe: 25, eps: 5 },
-    { symbol: "NEGPE",  pe: -3, eps: 5 },         // loss-maker pe — skip
-    { symbol: "ZEROEPS", pe: 25, eps: 0 },         // skip
-    { symbol: "NULLPE", pe: null, eps: 5 },        // skip
-    { symbol: "NOEPS",  pe: 30 },                  // missing eps — skip
-    { pe: 25, eps: 5 },                            // missing symbol — skip
-  ]);
-  try {
-    const out = await fetchFmpQuoteBatched(["VALID", "NEGPE", "ZEROEPS", "NULLPE", "NOEPS"]);
-    assertEquals(Object.keys(out), ["VALID"]);
-    assertEquals(out.VALID.pe, 25);
-  } finally { restore(); }
-});
-
-Deno.test("fetchFmpQuoteBatched: !ok / non-array body / fetch throws → empty object (clean fall-through)", async () => {
-  if (!Deno.env.get("FMP_API_KEY")) return;
-  const cases: Array<[unknown, { ok?: boolean }]> = [
-    [{}, { ok: true }],                  // non-array body
-    [{ Error: "rate limit" }, { ok: true }], // FMP's error envelope
-    [[], { ok: false }],                 // 401 / 429 — http error
-  ];
-  for (const [body, opts] of cases) {
-    const restore = stubFmpFetch(body, opts);
-    try {
-      const out = await fetchFmpQuoteBatched(["AAPL"]);
-      assertEquals(out, {});
-    } finally { restore(); }
-  }
-});
 
 // --- ADR currency normalization (TSM / SFTBY) -----------------------
 
@@ -357,96 +275,4 @@ Deno.test("computePeg: growth expressed as a decimal, not percentage", () => {
   // 100 internally. Two ways to express 22.5 % would diverge by
   // 100x otherwise.
   assertAlmostEquals(computePeg(30, 0.225)!, 30 / 22.5, 1e-9);
-});
-
-// --- 3y forward EPS-CAGR from FMP analyst-estimates -----------------
-
-// Full ISO timestamp (not date-only). The function parses with
-// `new Date(e.date).getTime()` and divides by exactly-one-year to
-// derive the CAGR's exponent — truncating to YYYY-MM-DD would
-// round-trip through midnight UTC and skew `years` by up to ~0.001,
-// which is enough to push Math.pow's result well past a 1e-6
-// tolerance on the textbook case. Tests pin the actual math, not
-// the date precision of the FMP feed.
-const yearsFromNow = (years: number) => {
-  return new Date(Date.now() + years * 365 * 86400_000).toISOString();
-};
-
-Deno.test("compute3yCagrFromEstimates: textbook MU shape", () => {
-  // Current TTM EPS = 5; analysts call ~20% / yr → year+3 EPS ~8.64.
-  // CAGR over 3 years should land on 0.20.
-  const estimates = [
-    { date: yearsFromNow(1), estimatedEpsAvg: 6.0 },
-    { date: yearsFromNow(2), estimatedEpsAvg: 7.2 },
-    { date: yearsFromNow(3), estimatedEpsAvg: 5 * Math.pow(1.20, 3) }, // ≈ 8.64
-  ];
-  const cagr = compute3yCagrFromEstimates(5, estimates);
-  assertAlmostEquals(cagr!, 0.20, 1e-6);
-});
-
-Deno.test("compute3yCagrFromEstimates: picks the estimate closest to today + 3y when no exact match", () => {
-  // AAPL-style fiscal Sep; the year+3 estimate might land at year+2.7
-  // or year+3.3 calendar-wise. We pick whichever is closer and
-  // compute the CAGR over the actual elapsed time so the math is
-  // consistent across fiscal calendars.
-  const estimates = [
-    { date: yearsFromNow(0.7), estimatedEpsAvg: 6 },
-    { date: yearsFromNow(2.8), estimatedEpsAvg: 9 },  // closest to 3y target
-    { date: yearsFromNow(4.5), estimatedEpsAvg: 12 },
-  ];
-  const cagr = compute3yCagrFromEstimates(5, estimates);
-  // (9/5)^(1/2.8) - 1
-  assertAlmostEquals(cagr!, Math.pow(9 / 5, 1 / 2.8) - 1, 1e-6);
-});
-
-Deno.test("compute3yCagrFromEstimates: ignores historical / past-dated rows", () => {
-  // FMP's analyst-estimates response sometimes includes the prior
-  // fiscal year as a reference. Those shouldn't be picked as the
-  // "year+3" target — confirm by feeding past-dated rows first.
-  const estimates = [
-    { date: yearsFromNow(-2), estimatedEpsAvg: 3 },
-    { date: yearsFromNow(-1), estimatedEpsAvg: 4 },
-    { date: yearsFromNow(3),  estimatedEpsAvg: 10 },
-  ];
-  const cagr = compute3yCagrFromEstimates(5, estimates);
-  assertAlmostEquals(cagr!, Math.pow(10 / 5, 1 / 3) - 1, 1e-6);
-});
-
-Deno.test("compute3yCagrFromEstimates: rejects when current EPS is missing / non-positive (loss-maker)", () => {
-  const estimates = [{ date: yearsFromNow(3), estimatedEpsAvg: 10 }];
-  assertEquals(compute3yCagrFromEstimates(0, estimates), null);
-  assertEquals(compute3yCagrFromEstimates(-1, estimates), null);
-  assertEquals(compute3yCagrFromEstimates(NaN, estimates), null);
-  assertEquals(compute3yCagrFromEstimates(null, estimates), null);
-});
-
-Deno.test("compute3yCagrFromEstimates: rejects when estimates are empty / invalid / all-past", () => {
-  assertEquals(compute3yCagrFromEstimates(5, null), null);
-  assertEquals(compute3yCagrFromEstimates(5, []), null);
-  assertEquals(compute3yCagrFromEstimates(5, [
-    { date: yearsFromNow(-1), estimatedEpsAvg: 4 },
-  ]), null);
-});
-
-Deno.test("compute3yCagrFromEstimates: requires ≥ 1 year horizon (next-quarter estimate is not a CAGR)", () => {
-  // A quarter-out estimate shouldn't be annualised as a 3y CAGR —
-  // that would amplify quarterly noise. Skip when the closest
-  // available row is less than a year away.
-  const estimates = [
-    { date: yearsFromNow(0.25), estimatedEpsAvg: 6 },
-  ];
-  assertEquals(compute3yCagrFromEstimates(5, estimates), null);
-});
-
-Deno.test("compute3yCagrFromEstimates: negative growth flows through (computePeg drops it)", () => {
-  // Earnings expected to shrink. The CAGR is negative; computePeg's
-  // own guard catches it. compute3yCagrFromEstimates stays
-  // contract-pure and returns the raw rate.
-  const estimates = [
-    { date: yearsFromNow(3), estimatedEpsAvg: 3 },  // shrinks from 5 → 3
-  ];
-  const cagr = compute3yCagrFromEstimates(5, estimates);
-  assertAlmostEquals(cagr!, Math.pow(3 / 5, 1 / 3) - 1, 1e-6);  // ≈ -0.156
-  // Sanity: computePeg should refuse to coin a PEG out of it.
-  assertEquals(computePeg(30, cagr), null);
 });
