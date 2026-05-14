@@ -1172,7 +1172,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                 <span className="mono dim">·</span>
                 <span className="mono dim">PEG</span>
                 <span className="mono">{peg.toFixed(2)}</span>
-                <span className="mono dim" style={{ fontSize: 10 }}>(forward P/E ÷ 3y EPS growth %)</span>
+                <span className="mono dim" style={{ fontSize: 10 }}>(forward P/E ÷ 5y EPS growth %)</span>
               </>
             )}
           </div>
