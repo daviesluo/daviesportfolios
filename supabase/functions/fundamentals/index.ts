@@ -869,17 +869,19 @@ export function computePe3yAvg(
 // ---- TEMP: PEG data-source probe ------------------------------------
 //
 // `?tickers=AVGO&pegProbe=true` short-circuits the normal response and
-// dumps, for the first ticker, the raw data behind two candidate
-// multi-year-growth sources:
+// dumps, for the first ticker, Yahoo's `earningsTrend` requested
+// ALONE on both host mirrors (query1 / query2) — to see whether
+// module-bundling or the mirror is what trims the '+5y' / '-5y'
+// period buckets that __pegDebug showed missing for AVGO.
 //
-//   1. Yahoo `earningsTrend` requested ALONE, on both host mirrors
-//      (query1 / query2) — to see whether module-bundling or the
-//      mirror is what trims the '+5y' / '-5y' period buckets that
-//      __pegDebug showed missing for AVGO.
-//   2. Alpha Vantage `OVERVIEW` — it publishes its own `PEGRatio` +
-//      `ForwardPE`; the full body is dumped so any multi-year growth
-//      field is visible. AV's free tier is 25 calls/day, so this is
-//      gated behind the flag rather than run on every request.
+// Yahoo quoteSummary needs no API key and the function already calls
+// it on every normal request, so this probe burns no shared quota and
+// is strictly lighter than a normal request — safe to leave ungated.
+// (The Alpha Vantage OVERVIEW lead is checked from AV's public docs
+// instead: routing a server-key AV call through this undocumented,
+// --no-verify-jwt, CORS-* endpoint would let anyone burn the shared
+// 25/day quota the index-P/E path depends on, and gating it behind a
+// URL token would leak that secret into Supabase's request logs.)
 //
 // Removed once the PEG source is settled.
 async function runPegProbe(symbol: string): Promise<unknown> {
@@ -912,26 +914,6 @@ async function runPegProbe(symbol: string): Promise<unknown> {
     } catch (e) {
       out[`yahoo_${host}`] = { error: String(e) };
     }
-  }
-
-  try {
-    const u =
-      `https://www.alphavantage.co/query?function=OVERVIEW` +
-      `&symbol=${encodeURIComponent(symbol)}` +
-      `&apikey=${encodeURIComponent(ALPHAVANTAGE_API_KEY)}`;
-    const res = await fetch(u, {
-      headers: { "Accept": "application/json" },
-      signal: AbortSignal.timeout(10_000),
-    });
-    let body: unknown = null;
-    if (res.ok) body = await res.json();
-    out.alphaVantage_OVERVIEW = {
-      status: res.status,
-      hasKey: !!ALPHAVANTAGE_API_KEY,
-      body,
-    };
-  } catch (e) {
-    out.alphaVantage_OVERVIEW = { error: String(e) };
   }
 
   return out;
@@ -973,9 +955,8 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     });
   }
 
-  // TEMP — PEG data-source probe. See runPegProbe(). Short-circuits
-  // the normal fetch so it never burns Alpha Vantage quota unless
-  // explicitly asked for.
+  // TEMP — PEG data-source probe. See runPegProbe(). Yahoo-only, no
+  // API key, strictly lighter than a normal request — safe ungated.
   if (url.searchParams.get("pegProbe") === "true") {
     const probe = await runPegProbe(tickers[0]);
     return new Response(JSON.stringify({ __probe: probe }, null, 2), {
