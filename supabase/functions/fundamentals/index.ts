@@ -97,6 +97,10 @@ type Fundamentals = {
   // SW-cached response would otherwise be misinterpreted as TTM by
   // the new client (yields P/E ~4x too low).
   ttmEpsHistory?: EpsHistoryPoint[];
+  // TEMP debug — see fetchYahooQuoteSummary's __pegDebug. Surfaces the
+  // raw forwardPE / 5y-growth inputs on the wire so a prod fetch can
+  // pinpoint why PEG is null. Remove once PEG is confirmed working.
+  __pegDebug?: unknown;
 };
 
 const INDEX_ETF_PROXY: Record<string, string> = {
@@ -347,6 +351,9 @@ type YahooQuoteSummary = {
   epsGrowth5y: number;   // analyst-consensus 5y CAGR, decimal (0.225 = 22.5 %)
   price: number;
   currency: string | null;
+  // TEMP debug — raw PEG inputs surfaced so a prod fetch can show why
+  // computePeg returns null. Remove once PEG is confirmed working.
+  __pegDebug?: unknown;
 };
 
 async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary | null> {
@@ -443,6 +450,21 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
     // the math diverges.
     const g5y2    = isFinite(g5y) ? g5y : 0;
     if (pe2 === 0 && eps2 === 0 && ps2 === 0) return null;
+    // TEMP debug — surfaces exactly which PEG input is missing from
+    // the crumb-authed response: whether each module came back, the
+    // raw forwardPE from both candidate locations, and every period
+    // bucket present in earningsTrend.trend (so a missing '+5y' shows
+    // up immediately).
+    const __pegDebug = {
+      hasSummaryDetail:    !!result?.summaryDetail,
+      hasDefaultKeyStats:  !!result?.defaultKeyStatistics,
+      hasEarningsTrend:    !!result?.earningsTrend,
+      fwdPe_summaryDetail: result?.summaryDetail?.forwardPE?.raw ?? null,
+      fwdPe_keyStats:      result?.defaultKeyStatistics?.forwardPE?.raw ?? null,
+      trendPeriods:        trend.map((t: any) => String(t?.period ?? '?')),
+      growth5yRaw:         growth5yRaw ?? null,
+      parsed: { fwdPe2, g5y2 },
+    };
     return {
       pe:  pe2,
       eps: eps2,
@@ -451,6 +473,7 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
       epsGrowth5y:  g5y2,
       price: isFinite(price) && price > 0 ? price : 0,
       currency: typeof currency === 'string' ? currency : null,
+      __pegDebug,
     };
   } catch {
     return null;
@@ -530,6 +553,7 @@ export async function fetchStockFundamentals(
       ps,
       ps3yAvg,
       peg: peg ?? undefined,
+      __pegDebug: yahoo.__pegDebug,
     };
   }
   return finn;
