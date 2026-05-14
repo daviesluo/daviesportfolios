@@ -866,6 +866,59 @@ export function computePe3yAvg(
   return sorted.reduce((s, p) => s + p.v, 0) / sorted.length;
 }
 
+// ---- TEMP: PEG data-source probe ------------------------------------
+//
+// `?tickers=AVGO&pegProbe=true` short-circuits the normal response and
+// dumps, for the first ticker, Yahoo's `earningsTrend` requested
+// ALONE on both host mirrors (query1 / query2) — to see whether
+// module-bundling or the mirror is what trims the '+5y' / '-5y'
+// period buckets that __pegDebug showed missing for AVGO.
+//
+// Yahoo quoteSummary needs no API key and the function already calls
+// it on every normal request, so this probe burns no shared quota and
+// is strictly lighter than a normal request — safe to leave ungated.
+// (The Alpha Vantage OVERVIEW lead is checked from AV's public docs
+// instead: routing a server-key AV call through this undocumented,
+// --no-verify-jwt, CORS-* endpoint would let anyone burn the shared
+// 25/day quota the index-P/E path depends on, and gating it behind a
+// URL token would leak that secret into Supabase's request logs.)
+//
+// Removed once the PEG source is settled.
+async function runPegProbe(symbol: string): Promise<unknown> {
+  const out: Record<string, unknown> = {};
+
+  for (const host of ["query1", "query2"]) {
+    try {
+      const auth = await getYahooCrumb();
+      const u =
+        `https://${host}.finance.yahoo.com/v10/finance/quoteSummary/` +
+        `${encodeURIComponent(symbol)}?modules=earningsTrend` +
+        (auth ? `&crumb=${encodeURIComponent(auth.crumb)}` : "");
+      const res = await fetch(u, {
+        headers: {
+          "User-Agent": YAHOO_UA,
+          "Accept": "application/json,text/plain,*/*",
+          ...(auth ? { "Cookie": auth.cookie } : {}),
+        },
+        signal: AbortSignal.timeout(8_000),
+      });
+      let earningsTrend: unknown = null;
+      if (res.ok) {
+        const data = await res.json();
+        earningsTrend =
+          data?.quoteSummary?.result?.[0]?.earningsTrend ??
+          data?.quoteSummary?.error ??
+          "no earningsTrend in result";
+      }
+      out[`yahoo_${host}`] = { status: res.status, earningsTrend };
+    } catch (e) {
+      out[`yahoo_${host}`] = { error: String(e) };
+    }
+  }
+
+  return out;
+}
+
 // ---- HTTP entry -----------------------------------------------------
 
 // Guarded so tests can import the helpers above without spinning up
@@ -898,6 +951,15 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     .filter(isFundamentalsTicker);
   if (tickers.length === 0) {
     return new Response(JSON.stringify({}), {
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+
+  // TEMP — PEG data-source probe. See runPegProbe(). Yahoo-only, no
+  // API key, strictly lighter than a normal request — safe ungated.
+  if (url.searchParams.get("pegProbe") === "true") {
+    const probe = await runPegProbe(tickers[0]);
+    return new Response(JSON.stringify({ __probe: probe }, null, 2), {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
