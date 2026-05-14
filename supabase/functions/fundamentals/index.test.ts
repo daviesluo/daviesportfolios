@@ -10,7 +10,7 @@ import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@
 import {
   isFundamentalsTicker, rollingTtmFromRawQuarterly, computePe3yAvg,
   normalizeEpsHistoryToUsd,
-  pickPsFields, computePeg,
+  pickPsFields, computeForwardGrowth, computePeg,
 } from "./index.ts";
 
 Deno.test("isFundamentalsTicker: keeps US equities", () => {
@@ -231,10 +231,10 @@ Deno.test("pickPsFields: boundary check — 2× exactly is treated as disagreeme
   assertEquals(slightlyInside.ps3yAvg, 15.0);
 });
 
-// --- PEG (forward P/E ÷ forward 5y EPS-growth CAGR in %) -----------
+// --- PEG (forward P/E ÷ blended forward EPS-growth rate in %) ------
 
 Deno.test("computePeg: textbook MU shape", () => {
-  // Forward P/E ~36, analyst-consensus 5y growth ~0.30 → 30 %.
+  // Forward P/E ~36, blended forward growth ~0.30 → 30 %.
   // PEG = 36 / 30 = 1.2 (slightly overvalued by the classic rule
   // of thumb that PEG≈1 is fair value).
   const peg = computePeg(36, 0.30);
@@ -275,4 +275,80 @@ Deno.test("computePeg: growth expressed as a decimal, not percentage", () => {
   // 100 internally. Two ways to express 22.5 % would diverge by
   // 100x otherwise.
   assertAlmostEquals(computePeg(30, 0.225)!, 30 / 22.5, 1e-9);
+});
+
+// --- computeForwardGrowth (blended 2y forward EPS growth) ----------
+//
+// The PEG denominator. Pins the shape of Yahoo's earningsTrend
+// buckets after the May-2026 change that removed the '+5y'
+// long-term-growth bucket — see the function doc. Cases use the real
+// AVGO numbers from the prod probe so the regression target is
+// concrete.
+
+Deno.test("computeForwardGrowth: averages the 0y and +1y annual buckets", () => {
+  // AVGO, May-2026 prod probe: 0y +67.53 %, +1y +58.57 %. Quarterly
+  // buckets are present in the real payload but must be ignored —
+  // their growth is quarter-over-year-ago-quarter, not annual.
+  const trend = [
+    { period: "0q",  growth: { raw: 0.513 } },
+    { period: "+1q", growth: { raw: 0.91730005 } },
+    { period: "0y",  growth: { raw: 0.6753 } },
+    { period: "+1y", growth: { raw: 0.5857 } },
+  ];
+  assertAlmostEquals(computeForwardGrowth(trend)!, (0.6753 + 0.5857) / 2, 1e-9);
+});
+
+Deno.test("computeForwardGrowth: only one annual bucket present → use it alone", () => {
+  assertAlmostEquals(
+    computeForwardGrowth([{ period: "0y", growth: { raw: 0.30 } }])!, 0.30, 1e-9);
+  assertAlmostEquals(
+    computeForwardGrowth([{ period: "+1y", growth: { raw: 0.18 } }])!, 0.18, 1e-9);
+});
+
+Deno.test("computeForwardGrowth: non-positive buckets are dropped before averaging", () => {
+  // +1y consensus calls for a down year — exclude it and fall back to
+  // 0y alone rather than let the negative drag the blend into nonsense.
+  assertAlmostEquals(
+    computeForwardGrowth([
+      { period: "0y",  growth: { raw: 0.40 } },
+      { period: "+1y", growth: { raw: -0.05 } },
+    ])!, 0.40, 1e-9);
+});
+
+Deno.test("computeForwardGrowth: no usable annual bucket → null", () => {
+  // Quarterly-only trend (no 0y / +1y at all).
+  assertEquals(computeForwardGrowth([
+    { period: "0q",  growth: { raw: 0.5 } },
+    { period: "+1q", growth: { raw: 0.6 } },
+  ]), null);
+  // Both annual buckets non-positive.
+  assertEquals(computeForwardGrowth([
+    { period: "0y",  growth: { raw: -0.1 } },
+    { period: "+1y", growth: { raw: 0 } },
+  ]), null);
+  // Growth field missing / malformed.
+  assertEquals(computeForwardGrowth([{ period: "0y" }]), null);
+  assertEquals(computeForwardGrowth([{ period: "0y", growth: { raw: "junk" } }]), null);
+});
+
+Deno.test("computeForwardGrowth: non-array input → null", () => {
+  assertEquals(computeForwardGrowth(null), null);
+  assertEquals(computeForwardGrowth(undefined), null);
+  assertEquals(computeForwardGrowth([]), null);
+  assertEquals(computeForwardGrowth("nope"), null);
+});
+
+Deno.test("computeForwardGrowth → computePeg: AVGO end-to-end (May 2026 probe)", () => {
+  // The whole PEG pipeline on real prod-probe numbers: forwardPE 23.0
+  // ÷ blended 63.05 % ≈ 0.365. This is the regression target for the
+  // '+5y'-bucket-removal fix — if Yahoo's bucket layout shifts again
+  // or the blend math drifts, this breaks.
+  const trend = [
+    { period: "0y",  growth: { raw: 0.6753 } },
+    { period: "+1y", growth: { raw: 0.5857 } },
+  ];
+  const g = computeForwardGrowth(trend);
+  assert(g !== null);
+  const peg = computePeg(23.0, g);
+  assertAlmostEquals(peg!, 23.0 / (((0.6753 + 0.5857) / 2) * 100), 1e-9);
 });
