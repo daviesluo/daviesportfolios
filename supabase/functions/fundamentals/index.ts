@@ -1,10 +1,13 @@
-// Supabase Edge Function: fundamentals (rev: PR #95 USD-anchor)
+// Supabase Edge Function: fundamentals (rev: Yahoo-crumb)
 //
-// Returns current TTM P/E + trailing EPS for a list of tickers from
-// two sources, picked by symbol:
+// Returns current TTM P/E + trailing EPS (+ P/S, PEG, ttmEpsHistory)
+// for a list of tickers from two sources, picked by symbol:
 //
-//   1. Individual stocks → Finnhub `/stock/metric` (free tier:
-//      60 calls / minute, no payment info).
+//   1. Individual stocks → Yahoo `quoteSummary` (primary; pe / eps /
+//      ps / forwardPE / earningsTrend, all USD-correct for ADRs),
+//      with Finnhub `/stock/metric` as the fallback when Yahoo is
+//      unreachable. Yahoo's quoteSummary now requires a crumb token
+//      — see getYahooCrumb() for the cookie→crumb handshake.
 //
 //   2. Four big US indices (^GSPC / ^NDX / ^RUT / ^SOX) → Alpha
 //      Vantage `OVERVIEW` against ETF proxies (SPY / QQQ / IWM /
@@ -24,8 +27,14 @@
 // 3-year-average P/E is hardcoded since AV's free tier doesn't
 // expose historical annuals; refresh ~yearly.
 //
+// FMP was the primary source for individual-stock P/E during the ADR
+// currency-fix saga, but FMP retired its `/v3/` endpoints for
+// post-2025-08-31 keys and paywalled the `/stable/` replacements, so
+// the whole FMP layer was removed — Yahoo quoteSummary (with crumb)
+// is the only remaining free source for ADR-correct ratios + PEG.
+//
 // Env:
-//   FINNHUB_API_KEY            (individual-stock P/E)
+//   FINNHUB_API_KEY            (individual-stock P/E fallback)
 //   ALPHAVANTAGE_API_KEY       (index P/E)
 //   SUPABASE_URL               (auto-injected; cache layer)
 //   SUPABASE_SERVICE_ROLE_KEY  (auto-injected; cache layer)
@@ -33,13 +42,12 @@
 // Call: GET /functions/v1/fundamentals?tickers=NVDA,GOOG,^GSPC
 // Returns:
 //   {
-//     NVDA:  { pe: 40.16, eps: 4.90, pe3yAvg: 43.13 },
+//     NVDA:  { pe: 40.16, eps: 4.90, pe3yAvg: 43.13, peg: 1.4, ps: 25 },
 //     ^GSPC: { pe: 27.5,  eps: 0,    pe3yAvg: 25.0 }
 //   }
 
 const FINNHUB_API_KEY            = Deno.env.get("FINNHUB_API_KEY") ?? "";
 const ALPHAVANTAGE_API_KEY       = Deno.env.get("ALPHAVANTAGE_API_KEY") ?? "";
-const FMP_API_KEY                = Deno.env.get("FMP_API_KEY") ?? "";
 const SUPABASE_URL               = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -53,15 +61,18 @@ type Fundamentals = {
   pe: number;
   eps: number;
   pe3yAvg: number | null;
-  // PEG (Price/Earnings-to-Growth) — sourced from Yahoo's forward
-  // P/E and the analyst-consensus 5y EPS-growth CAGR
+  // PEG (Price/Earnings-to-Growth) — Yahoo's forward P/E divided by
+  // the analyst-consensus 5y EPS-growth CAGR
   // (`earningsTrend.trend[+5y].growth.raw`). Forward over forward
   // by convention: trailing P/E paired with backward-looking growth
   // is the classic PEG misuse since the market prices in
-  // expectations, not history. Computed server-side via
-  // `computePeg` so the client just reads a single number. Optional
-  // — null when Yahoo doesn't publish forwardPE or no analyst
-  // consensus exists yet (brand-new IPOs, illiquid OTC, etc.).
+  // expectations, not history. (A 3y horizon would suit cyclical
+  // tech/semi names better, but FMP's analyst-estimates endpoint —
+  // the only free 3y source — was paywalled, so +5y is what's
+  // available.) Computed server-side via `computePeg` so the client
+  // just reads a single number. Optional — null when Yahoo doesn't
+  // publish forwardPE or no analyst consensus exists yet (brand-new
+  // IPOs, illiquid OTC, etc.).
   peg?: number;
   // Price-to-Sales: paired with pe / eps so a single fundamentals
   // response covers both the profitable (P/E view) and loss-maker
@@ -75,10 +86,10 @@ type Fundamentals = {
   // P/S YTD button on `eps <= 0 && ps > 0`.
   ps?: number;
   ps3yAvg?: number | null;
-  // Internal-only USD market price (from FMP or Yahoo) — used to
-  // derive the USD anchor (price/pe) for normalizing ADR TTM-EPS
-  // history. Stripped from the response before it goes over the
-  // wire so the client API stays the same.
+  // Internal-only USD market price (from Yahoo) — used to derive the
+  // USD anchor (price/pe) for normalizing ADR TTM-EPS history.
+  // Stripped from the response before it goes over the wire so the
+  // client API stays the same.
   price?: number;
   // Pre-summed TTM diluted EPS at each quarter end. Named explicitly
   // to avoid colliding with the previous `epsHistory` contract that
@@ -171,139 +182,6 @@ async function writeCachedPe(etfSymbol: string, pe: number): Promise<void> {
   } catch { /* best effort */ }
 }
 
-// ---- Analyst-estimates cache (3y forward EPS-growth CAGR) ----------
-//
-// Sell-side analysts batch multi-year revisions to earnings season +
-// major catalysts; a daily refetch would burn FMP's 250-call/day quota
-// for data that didn't change. A 7-day TTL matches the cadence
-// revisions actually happen at, and lazy-fetch-on-miss spreads the
-// per-ticker refresh load across the week naturally (steady-state ~5
-// FMP calls / day on a 30-ticker portfolio instead of ~30).
-
-const ANALYST_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-
-async function readCachedGrowth3y(symbol: string): Promise<{ growth: number; ageMs: number } | null> {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
-  try {
-    const url = `${SUPABASE_URL}/rest/v1/analyst_estimates_cache` +
-      `?symbol=eq.${encodeURIComponent(symbol)}&select=growth_3y,fetched_at`;
-    const res = await fetch(url, {
-      headers: {
-        "apikey": SUPABASE_SERVICE_ROLE_KEY,
-        "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        "Accept": "application/json",
-      },
-      signal: AbortSignal.timeout(5_000),
-    });
-    if (!res.ok) return null;
-    const rows = await res.json();
-    if (!Array.isArray(rows) || rows.length === 0) return null;
-    const row = rows[0];
-    const fetchedAt = new Date(row?.fetched_at).getTime();
-    if (!isFinite(fetchedAt)) return null;
-    const g = Number(row?.growth_3y);
-    if (!isFinite(g)) return null;
-    return { growth: g, ageMs: Date.now() - fetchedAt };
-  } catch {
-    return null;
-  }
-}
-
-async function writeCachedGrowth3y(symbol: string, growth: number): Promise<void> {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return;
-  try {
-    const url = `${SUPABASE_URL}/rest/v1/analyst_estimates_cache`;
-    await fetch(url, {
-      method: "POST",
-      headers: {
-        "apikey": SUPABASE_SERVICE_ROLE_KEY,
-        "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        "Content-Type": "application/json",
-        "Prefer": "resolution=merge-duplicates",
-      },
-      body: JSON.stringify({
-        symbol,
-        growth_3y: growth,
-        fetched_at: new Date().toISOString(),
-      }),
-      signal: AbortSignal.timeout(5_000),
-    });
-  } catch { /* best effort */ }
-}
-
-/** Raw FMP analyst-estimate row we care about (the rest of the
- *  response shape is ignored). One entry per fiscal year. */
-type FmpEstimate = { date: string; estimatedEpsAvg: number };
-
-async function fetchFmpAnalystEstimates(symbol: string): Promise<FmpEstimate[] | null> {
-  if (!FMP_API_KEY) return null;
-  const url =
-    `https://financialmodelingprep.com/api/v3/analyst-estimates/${encodeURIComponent(symbol)}` +
-    `?apikey=${encodeURIComponent(FMP_API_KEY)}`;
-  try {
-    const res = await fetch(url, {
-      headers: { "Accept": "application/json" },
-      signal: AbortSignal.timeout(8_000),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (!Array.isArray(data)) return null;
-    const out: FmpEstimate[] = [];
-    for (const row of data) {
-      const date = String(row?.date ?? "");
-      const eps  = Number(row?.estimatedEpsAvg);
-      if (!/^\d{4}-\d{2}-\d{2}/.test(date)) continue;
-      if (!isFinite(eps) || eps <= 0) continue;
-      out.push({ date, estimatedEpsAvg: eps });
-    }
-    return out.length > 0 ? out : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Resolve the forward 3-year EPS-growth CAGR for `symbol`, using a
- * 7-day Supabase cache so FMP gets ~5 calls/day instead of 30. On a
- * cache miss the function pulls FMP's analyst-estimates, computes
- * the 3y CAGR via `compute3yCagrFromEstimates`, and writes the
- * result back. When EVERYTHING fails (no FMP key, FMP rate-limited,
- * cache empty AND fetch failed) we fall back to Yahoo's `+5y`
- * earningsTrend growth — looser horizon than the user asked for but
- * better than dropping PEG entirely. The 7-day TTL matches the
- * cadence sell-side analysts actually revise multi-year forecasts at
- * (earnings season + major catalysts; daily refetches don't change
- * the answer). Negative CAGRs are stored verbatim so the
- * computePeg() guard handles them consistently with the rest of the
- * pipeline.
- */
-async function resolveGrowth3y(
-  symbol: string,
-  currentEps: number,
-  yahooEpsGrowth5y: number,
-): Promise<number | null> {
-  // Cache first. Hit → return regardless of sign (computePeg drops
-  // non-positive growth on its own).
-  const cached = await readCachedGrowth3y(symbol);
-  if (cached && cached.ageMs < ANALYST_CACHE_TTL_MS) {
-    return isFinite(cached.growth) ? cached.growth : null;
-  }
-  // Cache miss / stale → FMP.
-  const estimates = await fetchFmpAnalystEstimates(symbol);
-  const cagr = compute3yCagrFromEstimates(currentEps, estimates);
-  if (cagr != null && isFinite(cagr)) {
-    // Best-effort write — failure here doesn't break the request.
-    await writeCachedGrowth3y(symbol, cagr);
-    return cagr;
-  }
-  // FMP failed too. Prefer stale cache over a Yahoo fallback (still
-  // closer to the right horizon), then Yahoo's +5y as a last resort.
-  if (cached && isFinite(cached.growth)) return cached.growth;
-  return isFinite(yahooEpsGrowth5y) && yahooEpsGrowth5y > 0
-    ? yahooEpsGrowth5y
-    : null;
-}
-
 // ---- Alpha Vantage --------------------------------------------------
 
 type AvResult =
@@ -390,71 +268,76 @@ async function resolveIndexPe(
   return null;
 }
 
-// ---- Financial Modeling Prep (primary, ADR-safe trailingPE) --------
+// ---- Yahoo crumb auth ----------------------------------------------
 //
-// FMP's `/v3/quote/<symbols>` endpoint returns `pe` and `eps` in
-// USD for the ADR / US-listed ticker — same currency as the
-// reported price, so the values are sane out-of-box for ADRs
-// (TSM ~30, SFTBY ~15, ASML ~33). One HTTP request handles the
-// whole portfolio via comma-separated symbols. Free tier is
-// 250 calls/day which is plenty: a typical refresh fires the
-// fundamentals call once, so ~5-10 calls/day per browser session.
-//
-// Failure modes:
-//   - FMP_API_KEY env var missing → return null, fall through
-//   - Network / rate-limit / 401 → return null, fall through
-//   - Symbol not in FMP's universe (rare for US-listed) → row absent
-//
-// Layers below this (Yahoo quoteSummary, Finnhub) handle anything
-// FMP doesn't have. The ordering matters: FMP is the only one that
-// gets ADR P/E correct without a crumb workflow.
+// Yahoo's `quoteSummary` endpoint started returning 401 "Invalid
+// Crumb" for anon callers. The crumb workflow is Yahoo's own
+// consumer-site auth mechanism: GET a session cookie from
+// fc.yahoo.com, exchange it for a crumb token at
+// /v1/test/getcrumb, then attach BOTH (cookie header + `?crumb=`
+// param) to every quoteSummary request. The pair stays valid for
+// the lifetime of an Edge Function worker, so we handshake once at
+// first use and cache it in module scope. The single-flight guard
+// keeps the 6 parallel stock workers from each kicking off their
+// own handshake on a cold start.
 
-export type FmpRow = { pe: number; eps: number; price: number };
+const YAHOO_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
-export async function fetchFmpQuoteBatched(symbols: string[]): Promise<Record<string, FmpRow>> {
-  if (!FMP_API_KEY || symbols.length === 0) return {};
-  // FMP rejects URL-encoded commas inside the path segment, so
-  // join raw and encodeURIComponent each symbol individually.
-  const path = symbols.map(s => encodeURIComponent(s)).join(",");
-  const url =
-    `https://financialmodelingprep.com/api/v3/quote/${path}` +
-    `?apikey=${encodeURIComponent(FMP_API_KEY)}`;
-  try {
-    const res = await fetch(url, {
-      headers: { "Accept": "application/json" },
-      signal: AbortSignal.timeout(8_000),
-    });
-    if (!res.ok) return {};
-    const data = await res.json();
-    if (!Array.isArray(data)) return {};
-    /** @type {Record<string, FmpRow>} */
-    const out: Record<string, FmpRow> = {};
-    for (const row of data) {
-      const sym = String(row?.symbol ?? "");
-      const pe    = Number(row?.pe);
-      const eps   = Number(row?.eps);
-      const price = Number(row?.price);
-      if (!sym) continue;
-      if (!isFinite(pe)  || pe  <= 0) continue;
-      if (!isFinite(eps) || eps <= 0) continue;
-      out[sym] = { pe, eps, price: isFinite(price) && price > 0 ? price : 0 };
+let _yahooCrumb: { crumb: string; cookie: string } | null = null;
+let _yahooCrumbInFlight: Promise<{ crumb: string; cookie: string } | null> | null = null;
+
+async function getYahooCrumb(): Promise<{ crumb: string; cookie: string } | null> {
+  if (_yahooCrumb) return _yahooCrumb;
+  if (_yahooCrumbInFlight) return _yahooCrumbInFlight;
+  _yahooCrumbInFlight = (async () => {
+    try {
+      // Step 1 — session cookie. fc.yahoo.com 404s but still sends
+      // Set-Cookie; getSetCookie() returns each header separately so
+      // the comma inside an `expires=` date doesn't get mis-split.
+      const cookieRes = await fetch("https://fc.yahoo.com/", {
+        headers: { "User-Agent": YAHOO_UA },
+        signal: AbortSignal.timeout(8_000),
+      });
+      const setCookies = cookieRes.headers.getSetCookie?.() ?? [];
+      const cookie = setCookies
+        .map((c) => c.split(";")[0].trim())
+        .filter(Boolean)
+        .join("; ");
+      if (!cookie) return null;
+      // Step 2 — exchange the cookie for a crumb token (plain text).
+      const crumbRes = await fetch(
+        "https://query1.finance.yahoo.com/v1/test/getcrumb",
+        {
+          headers: { "User-Agent": YAHOO_UA, "Cookie": cookie },
+          signal: AbortSignal.timeout(8_000),
+        },
+      );
+      if (!crumbRes.ok) return null;
+      const crumb = (await crumbRes.text()).trim();
+      // Real crumbs are short alphanumeric tokens; an HTML error page
+      // would be much longer and contain '<'.
+      if (!crumb || crumb.length > 64 || crumb.includes("<")) return null;
+      _yahooCrumb = { crumb, cookie };
+      return _yahooCrumb;
+    } catch {
+      return null;
+    } finally {
+      _yahooCrumbInFlight = null;
     }
-    return out;
-  } catch {
-    return {};
-  }
+  })();
+  return _yahooCrumbInFlight;
 }
 
-// ---- Yahoo quoteSummary (secondary, used when FMP doesn't have it) --
+// ---- Yahoo quoteSummary (primary individual-stock source) ----------
 //
-// Finnhub's `peTTM` is broken for ADRs (TSM, SFTBY, etc.) — Finnhub
-// returns the ADR's USD price but the EPS in the foreign reporting
-// currency (TWD / JPY), so peTTM comes out as ~1.22 for TSM and
-// ~0.07 for SFTBY. Yahoo's quoteSummary endpoint pre-computes
-// trailingPE / trailingEps with both sides on the same USD scale
-// because the consumer-facing site has to show consistent numbers,
-// so we use Yahoo as the primary source and fall back to Finnhub
-// only when Yahoo is unreachable / blocked.
+// Pre-computes trailingPE / trailingEps / priceToSales / forwardPE
+// with every side on the same USD scale because the consumer-facing
+// site has to show consistent numbers — so unlike Finnhub (whose
+// `peTTM` divides the USD ADR price by the foreign-currency EPS,
+// yielding TSM ~1.22 / SFTBY ~0.07) Yahoo's ratios are ADR-safe
+// out of the box. Finnhub is only the fallback when Yahoo is
+// unreachable or the crumb handshake fails.
 
 type YahooQuoteSummary = {
   pe: number;
@@ -467,23 +350,32 @@ type YahooQuoteSummary = {
 };
 
 async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary | null> {
-  // quoteSummary doesn't require auth for most tickers (crumb is
-  // only required on a few high-traffic endpoints). The chart Edge
-  // Function uses the same query1 host without a crumb.
+  // quoteSummary now requires a crumb token — see getYahooCrumb().
   // `earningsTrend` is needed for the forward 5y EPS growth CAGR
   // that pairs with `forwardPE` to produce PEG — see computePeg.
+  const auth = await getYahooCrumb();
+  if (!auth) return null;  // handshake failed → caller falls to Finnhub
   const url =
     `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}` +
-    `?modules=summaryDetail,defaultKeyStatistics,price,earningsTrend`;
+    `?modules=summaryDetail,defaultKeyStatistics,price,earningsTrend` +
+    `&crumb=${encodeURIComponent(auth.crumb)}`;
   try {
     const res = await fetch(url, {
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "User-Agent": YAHOO_UA,
         "Accept": "application/json,text/plain,*/*",
+        "Cookie": auth.cookie,
       },
       signal: AbortSignal.timeout(8_000),
     });
+    // A 401 means the crumb went stale mid-session — drop the cache
+    // so the next call re-handshakes. This request still fails (the
+    // caller falls through to Finnhub) but the worker recovers for
+    // every subsequent symbol.
+    if (res.status === 401) {
+      _yahooCrumb = null;
+      return null;
+    }
     if (!res.ok) return null;
     const data = await res.json();
     const result = data?.quoteSummary?.result?.[0];
@@ -573,9 +465,9 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
  * targeting ADRs (TSM / SFTBY / ASML all returned NULL for
  * regularMarketPrice / previousClose / fiftyDayAverage in prod) —
  * the chart endpoint is what Yahoo's own consumer site uses and it
- * answers anon callers reliably. Used as the last-resort USD anchor
- * for the TTM-EPS rescale when neither FMP nor quoteSummary
- * supplies a price.
+ * answers anon callers reliably (no crumb needed). Used as the
+ * last-resort USD anchor for the TTM-EPS rescale when quoteSummary
+ * didn't supply a price.
  */
 async function fetchYahooChartPrice(symbol: string): Promise<number> {
   const url =
@@ -603,69 +495,19 @@ async function fetchYahooChartPrice(symbol: string): Promise<number> {
 
 /**
  * Combined fundamentals for a single stock symbol. Yahoo's
- * quoteSummary is the primary source for `pe` + `eps` because it
- * handles ADR currency normalization correctly (TSM/SFTBY return
- * sane ~26 / ~15 instead of Finnhub's 1.22 / 0.07). Finnhub is still
- * the source of `pe3yAvg` (its `series.annual.pe` is the only free
- * historical-annual data we have access to) — fetched in parallel
- * so this combined call is no slower than fetchFinnhub used to be
- * for non-ADR stocks. If Yahoo fails (rate-limited, no PE published
- * for the symbol), the result falls back entirely to Finnhub —
- * which is correct for US-listed stocks where Finnhub doesn't have
- * the currency-mismatch bug.
- *
- * `fmpRow`, when passed, short-circuits both the Yahoo and Finnhub
- * `pe`/`eps` lookups — FMP already returned ADR-USD-normalized
- * values for this symbol in the caller's batched fetch, so we just
- * use them. Finnhub still runs for `pe3yAvg` regardless of FMP.
+ * quoteSummary is the primary source for `pe` / `eps` / `ps` /
+ * `forwardPE` / `epsGrowth5y` because it handles ADR currency
+ * normalization correctly (TSM/SFTBY return sane ~26 / ~15 instead
+ * of Finnhub's 1.22 / 0.07). Finnhub runs in parallel for
+ * `pe3yAvg` / `ps3yAvg` (its `series.annual.*` is the only free
+ * historical-annual data we have) and as the whole-row fallback
+ * when Yahoo's crumb handshake fails or it's rate-limited — which
+ * is fine for US-listed stocks where Finnhub doesn't have the
+ * currency-mismatch bug.
  */
 export async function fetchStockFundamentals(
   symbol: string,
-  fmpRow?: FmpRow | null,
 ): Promise<Fundamentals | null> {
-  // When FMP gave us a clean pe/eps already, we still want the
-  // Finnhub annual series for pe3yAvg — fire it in parallel with
-  // nothing else, so this branch is as fast as one HTTP request.
-  if (fmpRow) {
-    // FMP's /v3/quote doesn't carry a P/S field on the free tier,
-    // so pull it from Finnhub alongside pe3yAvg. Yahoo is more
-    // accurate for ADRs (Yahoo's summaryDetail.priceToSales... is
-    // USD-USD; Finnhub's psTTM inherits the ADR foreign-currency
-    // bug Finnhub's peTTM has). `pickPsFields` cross-checks the two
-    // sources and drops Finnhub's `ps3yAvg` when they disagree,
-    // which is the only safe behaviour given Yahoo doesn't expose
-    // historical annual P/S.
-    const [finn, yahoo] = await Promise.all([
-      fetchFinnhub(symbol),
-      fetchYahooQuoteSummary(symbol),
-    ]);
-    const { ps, ps3yAvg } = pickPsFields(yahoo?.ps, finn?.ps, finn?.ps3yAvg);
-    // PEG numerator is Yahoo's forward P/E; denominator is the 3y
-    // analyst-consensus EPS CAGR from FMP (cached 7d to keep
-    // FMP quota usage tiny) with Yahoo's +5y as a graceful
-    // fallback when FMP fails or doesn't cover the ticker.
-    const growth3y = await resolveGrowth3y(symbol, fmpRow.eps, yahoo?.epsGrowth5y ?? 0);
-    const peg = computePeg(yahoo?.forwardPE, growth3y);
-    // TEMP debug — surface every PEG input so the client can see
-    // exactly which step of the pipeline produced a null. Remove
-    // after the user has confirmed the chip is rendering.
-    const __debug = {
-      fwdPe:   yahoo?.forwardPE  ?? null,
-      yahoo5y: yahoo?.epsGrowth5y ?? null,
-      growth3y: growth3y ?? null,
-      fmpKeyPresent: !!FMP_API_KEY,
-    };
-    return {
-      pe: fmpRow.pe,
-      eps: fmpRow.eps,
-      price: fmpRow.price,
-      pe3yAvg: finn?.pe3yAvg ?? null,
-      ps,
-      ps3yAvg,
-      peg: peg ?? undefined,
-      /** @type {any} */ __debug,
-    } as any;
-  }
   const [yahoo, finn] = await Promise.all([
     fetchYahooQuoteSummary(symbol),
     fetchFinnhub(symbol),
@@ -673,17 +515,13 @@ export async function fetchStockFundamentals(
   if (yahoo) {
     // pe / eps both = 0 → loss-maker / no-earnings case. Surface the
     // row anyway so the client can show the P/S YTD view (ps still
-    // populated) instead of hiding the chart entirely. Same ADR
-    // sanity check via pickPsFields as the FMP branch above.
+    // populated) instead of hiding the chart entirely. `pickPsFields`
+    // cross-checks Yahoo vs Finnhub P/S and drops Finnhub's
+    // `ps3yAvg` reference line when they disagree (ADR currency
+    // mismatch). PEG = Yahoo's forwardPE ÷ its +5y analyst-consensus
+    // growth — see computePeg.
     const { ps, ps3yAvg } = pickPsFields(yahoo.ps, finn?.ps, finn?.ps3yAvg);
-    const growth3y = await resolveGrowth3y(symbol, yahoo.eps, yahoo.epsGrowth5y);
-    const peg = computePeg(yahoo.forwardPE, growth3y);
-    const __debug = {
-      fwdPe:   yahoo.forwardPE   || null,
-      yahoo5y: yahoo.epsGrowth5y || null,
-      growth3y: growth3y ?? null,
-      fmpKeyPresent: !!FMP_API_KEY,
-    };
+    const peg = computePeg(yahoo.forwardPE, yahoo.epsGrowth5y);
     return {
       pe: yahoo.pe,
       eps: yahoo.eps,
@@ -692,8 +530,7 @@ export async function fetchStockFundamentals(
       ps,
       ps3yAvg,
       peg: peg ?? undefined,
-      /** @type {any} */ __debug,
-    } as any;
+    };
   }
   return finn;
 }
@@ -745,18 +582,24 @@ async function fetchFinnhub(symbol: string): Promise<Fundamentals | null> {
 async function fetchYahooTrailingEpsHistory(
   symbol: string,
 ): Promise<Array<{ date: string; eps: number }> | null> {
+  // Attach the crumb + cookie defensively — fundamentals-timeseries
+  // hasn't been confirmed to require auth, but quoteSummary on the
+  // same host does now, and a crumb param is harmless on an endpoint
+  // that ignores it. If the handshake fails we still try anon.
+  const auth = await getYahooCrumb();
   const nowSec = Math.floor(Date.now() / 1000);
   const fiveYearsAgoSec = nowSec - 5 * 365 * 86400;
   const url =
     `https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/` +
     `${encodeURIComponent(symbol)}?type=trailingDilutedEPS` +
-    `&period1=${fiveYearsAgoSec}&period2=${nowSec}`;
+    `&period1=${fiveYearsAgoSec}&period2=${nowSec}` +
+    (auth ? `&crumb=${encodeURIComponent(auth.crumb)}` : "");
   try {
     const res = await fetch(url, {
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "User-Agent": YAHOO_UA,
         "Accept": "application/json,text/plain,*/*",
+        ...(auth ? { "Cookie": auth.cookie } : {}),
       },
       signal: AbortSignal.timeout(8_000),
     });
@@ -821,18 +664,17 @@ async function fetchFinnhubEarningsHistory(
 // ---- Pure helpers exposed for tests ---------------------------------
 
 /**
- * PEG = forward P/E ÷ forward N-year EPS-growth CAGR (in percent).
+ * PEG = forward P/E ÷ forward 5y EPS-growth CAGR (in percent).
  *
  * The "forward over forward" convention is the load-bearing detail:
  * the market prices in expectations, not history, so pairing
  * trailing P/E with forward growth (or vice versa) gives a
- * misleading number. Yahoo's `summaryDetail.forwardPE.raw` is the
- * numerator. The denominator is sourced separately — see
- * `compute3yCagrFromEstimates` for the FMP-analyst-estimates path
- * (preferred — 3y horizon matches the user's tech/semi portfolio
- * better than Yahoo's only-available `+5y` figure) and Yahoo's
- * `earningsTrend.trend[+5y].growth.raw` as the fallback when FMP
- * doesn't cover a ticker.
+ * misleading number. Both inputs come from Yahoo's quoteSummary:
+ * `summaryDetail.forwardPE.raw` (numerator) and
+ * `earningsTrend.trend[+5y].growth.raw` (denominator). A 3y horizon
+ * would suit cyclical tech/semi names better, but FMP's
+ * analyst-estimates endpoint — the only free 3y source — was
+ * paywalled, so +5y is what's available.
  *
  * Growth is a DECIMAL (0.225 = 22.5 %). To turn it into the
  * standard "PEG denominator" we multiply by 100, so PEG ends up
@@ -856,53 +698,6 @@ export function computePeg(
   if (!isFinite(f) || f <= 0) return null;
   if (!isFinite(g) || g <= 0) return null;
   return f / (g * 100);
-}
-
-/**
- * Pull the 3-year forward EPS-growth CAGR out of FMP's per-symbol
- * analyst-estimates response. FMP returns annual fiscal-year
- * forecasts; we pick the estimate whose date is closest to "today
- * + 3 years" and compute `(target_eps / current_eps)^(1/years) − 1`
- * over the actual elapsed time so a Sep-fiscal-year AAPL and a
- * Dec-fiscal-year MU both land sensibly without ad-hoc offsets.
- *
- * `currentEps` is the company's current TTM EPS (used as the CAGR's
- * starting value). Loss-makers have currentEps ≤ 0; for those the
- * function returns null since CAGR is undefined when the base case
- * isn't positive. Loss-makers also can't have a P/E anyway, so
- * skipping PEG is the right behaviour.
- *
- * @param {number | undefined | null} currentEps  current TTM EPS, positive only
- * @param {Array<{date: string, estimatedEpsAvg: number}>} estimates  FMP per-symbol forecasts
- */
-export function compute3yCagrFromEstimates(
-  currentEps: number | undefined | null,
-  estimates: Array<{ date: string; estimatedEpsAvg: number }> | null | undefined,
-): number | null {
-  const cur = Number(currentEps);
-  if (!isFinite(cur) || cur <= 0) return null;
-  if (!Array.isArray(estimates) || estimates.length === 0) return null;
-  const now = Date.now();
-  const target = now + 3 * 365 * 86400_000;
-  let bestEps = 0;
-  let bestMs  = 0;
-  let bestDiff = Infinity;
-  for (const e of estimates) {
-    const ms = new Date(e.date).getTime();
-    if (!isFinite(ms) || ms <= now) continue;  // skip historical / today
-    const eps = Number(e.estimatedEpsAvg);
-    if (!isFinite(eps) || eps <= 0) continue;
-    const diff = Math.abs(ms - target);
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      bestEps  = eps;
-      bestMs   = ms;
-    }
-  }
-  if (bestEps <= 0 || bestMs <= now) return null;
-  const years = (bestMs - now) / (365 * 86400_000);
-  if (years < 1) return null;  // require ≥ 1y horizon to call it a CAGR
-  return Math.pow(bestEps / cur, 1 / years) - 1;
 }
 
 /**
@@ -1091,18 +886,12 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
   const out: Record<string, Fundamentals> = {};
 
   const stocksTask = (async () => {
-    // ONE batched FMP call for the whole stock list — FMP returns
-    // ADR-currency-safe pe/eps natively (TSM ~30, SFTBY ~15,
-    // ASML ~33). Symbols FMP doesn't cover fall through to the
-    // Yahoo-quoteSummary + Finnhub layers inside
-    // fetchStockFundamentals().
-    const fmpByTicker = await fetchFmpQuoteBatched(stockSymbols);
     const queue = [...stockSymbols];
     const workers = Array.from({ length: Math.min(6, queue.length) }, async () => {
       while (queue.length > 0) {
         const t = queue.shift();
         if (!t) break;
-        const f = await fetchStockFundamentals(t, fmpByTicker[t]);
+        const f = await fetchStockFundamentals(t);
         if (!f) continue;
         if (includeEpsHistory) {
           // Each entry's `eps` is TTM diluted EPS at that quarter end —
@@ -1120,30 +909,21 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
           }
           // USD-anchor for rescaling foreign-currency TTM-EPS history.
           // Priority:
-          //   1. FMP price/pe — same response, no timing skew. FMP's
-          //      free tier doesn't cover every ADR though (TSM /
-          //      SFTBY / ASML all return no row), so this only fires
-          //      for the universe of US-listed stocks FMP supports.
-          //   2. Yahoo quoteSummary price/pe — both fields come from
-          //      the same response. In practice Yahoo strips every
-          //      price-ish field from quoteSummary for anon callers
-          //      targeting ADRs (regularMarketPrice / previousClose /
-          //      fiftyDayAverage / twoHundredDayAverage all return
-          //      null), so this branch rarely fires for the ADRs
-          //      that actually need it.
-          //   3. Yahoo chart-endpoint price / quoteSummary pe —
+          //   1. Yahoo quoteSummary price/pe — both fields come from
+          //      the same response, no timing skew. Yahoo's
+          //      quoteSummary price-ish fields are USD-correct for
+          //      ADRs (the consumer site has to show coherent
+          //      numbers).
+          //   2. Yahoo chart-endpoint price / quoteSummary pe —
           //      `meta.regularMarketPrice` on `/v8/finance/chart`
-          //      is what Yahoo's consumer site uses; reliably
-          //      returned for anon callers including ADRs. One extra
-          //      HTTP call only for tickers (1) and (2) missed.
-          //   4. f.eps — only hit when the chart endpoint also fails
+          //      needs no crumb and reliably answers anon callers
+          //      including ADRs. One extra HTTP call only when (1)
+          //      didn't supply a price.
+          //   3. f.eps — only hit when the chart endpoint also fails
           //      or pe is 0; normalizeEpsHistoryToUsd's ratio guard
           //      then leaves the history unscaled.
-          const fmpRow = fmpByTicker[t];
           let usdAnchor = f.eps;
-          if (fmpRow && fmpRow.price > 0 && fmpRow.pe > 0) {
-            usdAnchor = fmpRow.price / fmpRow.pe;
-          } else if (f.price && f.price > 0 && f.pe > 0) {
+          if (f.price && f.price > 0 && f.pe > 0) {
             usdAnchor = f.price / f.pe;
           } else if (f.pe > 0) {
             const chartPrice = await fetchYahooChartPrice(t);
