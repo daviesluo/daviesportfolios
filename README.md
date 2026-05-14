@@ -457,8 +457,9 @@ before this guard landed).
   served by Cloudflare Pages.
 - **Backend** — Supabase (Postgres + Edge Functions, Deno runtime).
   Six functions: `auth`, `data`, `prices`, `chart`, `fundamentals`,
-  `ops-error`. Three migrations: `auth_attempts`, `ops_errors`,
-  `index_fundamentals_cache`.
+  `ops-error`. Six migration files (`0001`–`0006`); `0005`/`0006`
+  are a historical create/drop pair for the retired
+  `analyst_estimates_cache` table.
 - **Build / CI** — Vite production bundle, vitest for unit tests, tsc
   in `--noEmit` mode for typechecking. GitHub Actions workflow runs
   all three on every push to `main`.
@@ -523,6 +524,8 @@ Every Edge Function's pure helpers (range filtering, HMAC token sign / verify, t
 | `0002_ops_errors.sql` | `ops_errors` table with timestamped indexes; RLS-deny default. |
 | `0003_index_fundamentals_cache.sql` | `index_fundamentals_cache` table — server-side 24 h cache of index trailing P/E from Alpha Vantage so the `fundamentals` Edge Function stays well under AV's 25-call/day free tier. |
 | `0004_ops_errors_retention.sql` | `pg_cron` job at 03:00 UTC daily that drops `ops_errors` rows older than 30 days. Keeps the table bounded and the badge's `?action=summary` scan tight. Apply once via Supabase SQL Editor — pg_cron-scheduling SQL doesn't propagate through the edge-functions deploy workflow. |
+| `0005_analyst_estimates_cache.sql` | `analyst_estimates_cache` table — server-side 7-day cache of FMP analyst-consensus 3y EPS-growth CAGR that once fed PEG. Retired by `0006` after PR #114 dropped the FMP layer; kept in history because it was applied to production. |
+| `0006_drop_analyst_estimates_cache.sql` | Drops `analyst_estimates_cache`. PEG now uses Yahoo's 5y EPS-growth figure computed inline in the `fundamentals` Edge Function, so the cache table is dead weight. Forward migration rather than an edit to `0005`. |
 
 ### Build / config
 
@@ -632,6 +635,10 @@ In Supabase dashboard → SQL Editor, paste and run:
 - `supabase/migrations/0002_ops_errors.sql`
 - `supabase/migrations/0003_index_fundamentals_cache.sql`
 - `supabase/migrations/0004_ops_errors_retention.sql`
+
+`0005` / `0006` are a historical create/drop pair (the retired
+`analyst_estimates_cache` table) — a fresh setup nets nothing from
+them and can skip both.
 
 Then create the `board_data` table:
 
