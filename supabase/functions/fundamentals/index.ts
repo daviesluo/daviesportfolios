@@ -866,6 +866,77 @@ export function computePe3yAvg(
   return sorted.reduce((s, p) => s + p.v, 0) / sorted.length;
 }
 
+// ---- TEMP: PEG data-source probe ------------------------------------
+//
+// `?tickers=AVGO&pegProbe=true` short-circuits the normal response and
+// dumps, for the first ticker, the raw data behind two candidate
+// multi-year-growth sources:
+//
+//   1. Yahoo `earningsTrend` requested ALONE, on both host mirrors
+//      (query1 / query2) — to see whether module-bundling or the
+//      mirror is what trims the '+5y' / '-5y' period buckets that
+//      __pegDebug showed missing for AVGO.
+//   2. Alpha Vantage `OVERVIEW` — it publishes its own `PEGRatio` +
+//      `ForwardPE`; the full body is dumped so any multi-year growth
+//      field is visible. AV's free tier is 25 calls/day, so this is
+//      gated behind the flag rather than run on every request.
+//
+// Removed once the PEG source is settled.
+async function runPegProbe(symbol: string): Promise<unknown> {
+  const out: Record<string, unknown> = {};
+
+  for (const host of ["query1", "query2"]) {
+    try {
+      const auth = await getYahooCrumb();
+      const u =
+        `https://${host}.finance.yahoo.com/v10/finance/quoteSummary/` +
+        `${encodeURIComponent(symbol)}?modules=earningsTrend` +
+        (auth ? `&crumb=${encodeURIComponent(auth.crumb)}` : "");
+      const res = await fetch(u, {
+        headers: {
+          "User-Agent": YAHOO_UA,
+          "Accept": "application/json,text/plain,*/*",
+          ...(auth ? { "Cookie": auth.cookie } : {}),
+        },
+        signal: AbortSignal.timeout(8_000),
+      });
+      let earningsTrend: unknown = null;
+      if (res.ok) {
+        const data = await res.json();
+        earningsTrend =
+          data?.quoteSummary?.result?.[0]?.earningsTrend ??
+          data?.quoteSummary?.error ??
+          "no earningsTrend in result";
+      }
+      out[`yahoo_${host}`] = { status: res.status, earningsTrend };
+    } catch (e) {
+      out[`yahoo_${host}`] = { error: String(e) };
+    }
+  }
+
+  try {
+    const u =
+      `https://www.alphavantage.co/query?function=OVERVIEW` +
+      `&symbol=${encodeURIComponent(symbol)}` +
+      `&apikey=${encodeURIComponent(ALPHAVANTAGE_API_KEY)}`;
+    const res = await fetch(u, {
+      headers: { "Accept": "application/json" },
+      signal: AbortSignal.timeout(10_000),
+    });
+    let body: unknown = null;
+    if (res.ok) body = await res.json();
+    out.alphaVantage_OVERVIEW = {
+      status: res.status,
+      hasKey: !!ALPHAVANTAGE_API_KEY,
+      body,
+    };
+  } catch (e) {
+    out.alphaVantage_OVERVIEW = { error: String(e) };
+  }
+
+  return out;
+}
+
 // ---- HTTP entry -----------------------------------------------------
 
 // Guarded so tests can import the helpers above without spinning up
@@ -898,6 +969,16 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     .filter(isFundamentalsTicker);
   if (tickers.length === 0) {
     return new Response(JSON.stringify({}), {
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+
+  // TEMP — PEG data-source probe. See runPegProbe(). Short-circuits
+  // the normal fetch so it never burns Alpha Vantage quota unless
+  // explicitly asked for.
+  if (url.searchParams.get("pegProbe") === "true") {
+    const probe = await runPegProbe(tickers[0]);
+    return new Response(JSON.stringify({ __probe: probe }, null, 2), {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
