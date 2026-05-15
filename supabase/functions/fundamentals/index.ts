@@ -1,7 +1,8 @@
 // Supabase Edge Function: fundamentals (rev: Yahoo-crumb)
 //
-// Returns current TTM P/E + trailing EPS (+ P/S, PEG, ttmEpsHistory)
-// for a list of tickers from two sources, picked by symbol:
+// Returns current TTM P/E + trailing EPS (+ P/S, PEG, ttmEpsHistory,
+// ttmSalesHistory) for a list of tickers from two sources, picked by
+// symbol:
 //
 //   1. Individual stocks → Yahoo `quoteSummary` (primary; pe / eps /
 //      ps / forwardPE / earningsTrend, all USD-correct for ADRs),
@@ -98,6 +99,15 @@ type Fundamentals = {
   // SW-cached response would otherwise be misinterpreted as TTM by
   // the new client (yields P/E ~4x too low).
   ttmEpsHistory?: EpsHistoryPoint[];
+  // TTM sales-per-share at each quarter end — the P/S analogue of
+  // ttmEpsHistory. Each point's `eps` field carries sales-per-share
+  // (USD), so the client's priceDividedByTtmEps divides price by it
+  // exactly the way it does for EPS. Built from Yahoo's
+  // `trailingTotalRevenue` series rescaled to the current USD
+  // sales-per-share — see the handler. Without this the P/S YTD
+  // chart used a constant denominator and was just the price chart
+  // rescaled (no step on earnings).
+  ttmSalesHistory?: EpsHistoryPoint[];
 };
 
 const INDEX_ETF_PROXY: Record<string, string> = {
@@ -614,6 +624,56 @@ async function fetchYahooTrailingEpsHistory(
   }
 }
 
+// Fetches the rolling TTM total revenue at each quarter-end for the
+// symbol — the P/S analogue of fetchYahooTrailingEpsHistory. Same
+// `fundamentals-timeseries` API, `type=trailingTotalRevenue`: Yahoo
+// returns the already-summed TTM revenue at each quarter end. The
+// caller rescales it to USD sales-per-share via
+// `normalizeEpsHistoryToUsd` — the latest point is pinned to the
+// current `price / ps`, and the relative quarterly revenue-growth
+// shape is what makes the client's P/S chart step on earnings
+// instead of tracking price 1:1. Each entry is `{ date, eps: <TTM
+// total revenue> }` — the `eps` field name is reused so the shared
+// rescale / divide helpers accept it unchanged. Returns null on any
+// error or empty response so the caller cleanly falls back to the
+// constant-denominator path.
+async function fetchYahooTrailingSalesHistory(
+  symbol: string,
+): Promise<Array<{ date: string; eps: number }> | null> {
+  const auth = await getYahooCrumb();
+  const nowSec = Math.floor(Date.now() / 1000);
+  const fiveYearsAgoSec = nowSec - 5 * 365 * 86400;
+  const url =
+    `https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/` +
+    `${encodeURIComponent(symbol)}?type=trailingTotalRevenue` +
+    `&period1=${fiveYearsAgoSec}&period2=${nowSec}` +
+    (auth ? `&crumb=${encodeURIComponent(auth.crumb)}` : "");
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": YAHOO_UA,
+        "Accept": "application/json,text/plain,*/*",
+        ...(auth ? { "Cookie": auth.cookie } : {}),
+      },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const arr = data?.timeseries?.result?.[0]?.trailingTotalRevenue;
+    if (!Array.isArray(arr)) return null;
+    const out = arr
+      .map((p: any) => ({
+        date: String(p?.asOfDate ?? ""),
+        eps: Number(p?.reportedValue?.raw),
+      }))
+      .filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date) && isFinite(r.eps) && r.eps > 0)
+      .sort((a, b) => (a.date < b.date ? -1 : 1));
+    return out.length > 0 ? out : null;
+  } catch {
+    return null;
+  }
+}
+
 // Fetches the last ~12 quarters of reported EPS so the client can build
 // a rolling TTM-EPS series. The default P/E modal logic divides every
 // historical price by a single CURRENT EPS, which made the P/E chart
@@ -927,42 +987,56 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
         const f = await fetchStockFundamentals(t);
         if (!f) continue;
         if (includeEpsHistory) {
-          // Each entry's `eps` is TTM diluted EPS at that quarter end —
-          // already summed by Yahoo, so the client can just look up
-          // the latest entry whose date+lag is before the price date.
-          // Falls back to Finnhub on Yahoo failure: Finnhub returns
-          // *raw* quarterly EPS so we sum the last 4 to expose a single
-          // TTM data point. 4 quarters is rarely enough to draw
-          // earnings-day steps, but it keeps the response shape
-          // consistent so the client doesn't need to know the source.
-          let hist = await fetchYahooTrailingEpsHistory(t);
+          // Two TTM per-share histories from Yahoo's
+          // fundamentals-timeseries, fetched in parallel:
+          //   - trailingDilutedEPS   -> ttmEpsHistory   (P/E chart)
+          //   - trailingTotalRevenue -> ttmSalesHistory (P/S chart)
+          // Each entry's `eps` is the already-summed TTM value at that
+          // quarter end, so the client just picks the latest entry
+          // whose date+lag is before each price date. EPS falls back
+          // to Finnhub on Yahoo failure (raw quarterly EPS summed to a
+          // single TTM point — rarely enough bars to draw earnings
+          // steps, but keeps the response shape consistent).
+          const [epsHistRaw, salesHist] = await Promise.all([
+            fetchYahooTrailingEpsHistory(t),
+            fetchYahooTrailingSalesHistory(t),
+          ]);
+          let hist = epsHistRaw;
           if (!hist) {
             const raw = await fetchFinnhubEarningsHistory(t);
             if (raw) hist = rollingTtmFromRawQuarterly(raw);
           }
-          // USD-anchor for rescaling foreign-currency TTM-EPS history.
-          // Priority:
-          //   1. Yahoo quoteSummary price/pe — both fields come from
-          //      the same response, no timing skew. Yahoo's
-          //      quoteSummary price-ish fields are USD-correct for
-          //      ADRs (the consumer site has to show coherent
-          //      numbers).
-          //   2. Yahoo chart-endpoint price / quoteSummary pe —
-          //      `meta.regularMarketPrice` on `/v8/finance/chart`
-          //      needs no crumb and reliably answers anon callers
-          //      including ADRs. One extra HTTP call only when (1)
-          //      didn't supply a price.
-          //   3. f.eps — only hit when the chart endpoint also fails
-          //      or pe is 0; normalizeEpsHistoryToUsd's ratio guard
-          //      then leaves the history unscaled.
-          let usdAnchor = f.eps;
-          if (f.price && f.price > 0 && f.pe > 0) {
-            usdAnchor = f.price / f.pe;
-          } else if (f.pe > 0) {
+          // USD price for rescaling BOTH histories. Priority:
+          //   1. Yahoo quoteSummary `price` — USD-correct for ADRs
+          //      (the consumer site has to show coherent numbers).
+          //   2. Yahoo chart-endpoint `meta.regularMarketPrice` —
+          //      needs no crumb, answers anon callers including ADRs;
+          //      one extra HTTP call only when (1) is missing.
+          // When neither is available the EPS rescale falls back to
+          // f.eps (its ±20% guard then no-ops) and the sales history
+          // is skipped — the client then uses the const-denominator
+          // path for P/S, same as before this field existed.
+          let usdPrice = (f.price && f.price > 0) ? f.price : 0;
+          if (usdPrice === 0 && (f.pe > 0 || (f.ps && f.ps > 0))) {
             const chartPrice = await fetchYahooChartPrice(t);
-            if (chartPrice > 0) usdAnchor = chartPrice / f.pe;
+            if (chartPrice > 0) usdPrice = chartPrice;
           }
+          // TTM-EPS history -> USD: usdAnchor is the current USD TTM
+          // EPS (price / pe), falling back to f.eps when no price/pe
+          // pair is available.
+          let usdAnchor = f.eps;
+          if (usdPrice > 0 && f.pe > 0) usdAnchor = usdPrice / f.pe;
           if (hist) f.ttmEpsHistory = normalizeEpsHistoryToUsd(hist, usdAnchor);
+          // TTM-sales history -> USD sales-per-share, same mechanism:
+          // Yahoo's trailingTotalRevenue rescaled so the latest point
+          // lands on the current USD sales-per-share (price / ps). The
+          // relative quarterly revenue-growth shape is what makes the
+          // P/S chart step on earnings instead of tracking price 1:1.
+          // (Share count is assumed ~flat across the window — fine
+          // within a YTD chart.)
+          if (salesHist && usdPrice > 0 && f.ps && f.ps > 0) {
+            f.ttmSalesHistory = normalizeEpsHistoryToUsd(salesHist, usdPrice / f.ps);
+          }
         }
         // Strip the internal `price` field — used above as the USD
         // anchor source; not part of the public response contract.

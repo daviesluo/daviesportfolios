@@ -202,6 +202,23 @@ describe('priceDividedByTtmEps', () => {
     const prices = [{ date: '2026-04-01', close: 100 }];
     expect(priceDividedByTtmEps(prices, null, 0)).toEqual([{ date: '2026-04-01', close: 0 }]);
   });
+
+  it('steps the P/S the same way — the denominator is generic, not EPS-specific', () => {
+    // Regression guard for the "P/S YTD == price YTD" bug: P/S used to
+    // pass history=null (const denominator), so its chart was just the
+    // price chart rescaled and reported an identical YTD %. With a
+    // real sales-per-share history (Edge Function's ttmSalesHistory)
+    // it steps on earnings exactly like P/E — `eps` here carries TTM
+    // sales-per-share, the function is denominator-agnostic.
+    const prices = [
+      { date: '2026-04-01', close: 120 },
+      { date: '2026-06-01', close: 120 },  // after Q1 reports (with 45d lag)
+    ];
+    const salesHistory = [{ date: '2026-03-31', eps: 12 }];  // TTM sales/share
+    const out = priceDividedByTtmEps(prices, salesHistory, 10);
+    expect(out[0]).toEqual({ date: '2026-04-01', close: 12 });  // 120/10 fallback
+    expect(out[1]).toEqual({ date: '2026-06-01', close: 10 });  // 120/12 from history
+  });
 });
 
 describe('hasExtendedHoursBars', () => {

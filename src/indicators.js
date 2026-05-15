@@ -171,20 +171,23 @@ export function computeVwap(points, sessionKeyOf) {
 }
 
 /**
- * Apply a rolling TTM-EPS series to a daily price series to produce
- * a P/E ratio series. The TTM history is what comes out of Yahoo's
- * `fundamentals-timeseries trailingDilutedEPS` — pre-summed TTM at
- * each quarter end. We add a 45-day report lag to each quarter-end
- * so the P/E only steps when the market would actually have known
- * the new EPS, then for each price date pick the latest reported
- * TTM EPS ≤ that date. Falls through to `fallbackEps` (the
- * current TTM EPS) for dates earlier than the first reported
- * quarter — index proxies (^GSPC etc.) stay on this fallback path
- * since Finnhub returns no aggregate EPS at the index level.
+ * Apply a rolling TTM per-share series to a daily price series to
+ * produce a ratio series — used for BOTH the P/E and P/S charts.
+ * The history is what comes out of Yahoo's `fundamentals-timeseries`:
+ * `trailingDilutedEPS` for P/E, revenue rescaled to sales-per-share
+ * for P/S. The math is denominator-agnostic — each history entry's
+ * `eps` field just carries whichever per-share figure applies. We
+ * add a 45-day report lag to each quarter-end so the ratio only
+ * steps when the market would actually have known the new figure,
+ * then for each price date pick the latest reported TTM value ≤ that
+ * date. Falls through to `fallbackEps` (the current TTM value) for
+ * dates earlier than the first reported quarter — index proxies
+ * (^GSPC etc.) stay on this fallback path since Finnhub returns no
+ * aggregate EPS at the index level.
  *
  * @param {Array<{date: string, close: number}>} pricePoints
- * @param {Array<{date: string, eps: number}> | null | undefined} ttmEpsHistory  ascending by date
- * @param {number} fallbackEps  current TTM EPS used when no reported TTM is in scope
+ * @param {Array<{date: string, eps: number}> | null | undefined} ttmEpsHistory  per-share TTM history, ascending by date
+ * @param {number} fallbackEps  current TTM per-share value used when no reported TTM is in scope
  * @param {number} [reportLagMs] default 45 days
  */
 export function priceDividedByTtmEps(pricePoints, ttmEpsHistory, fallbackEps, reportLagMs = 45 * 86400000) {
