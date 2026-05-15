@@ -306,15 +306,22 @@ function Board({ isReadOnly }) {
     //     the actual 16:00 ET bar lines them up. Indices (^VIX / ^TNX
     //     / ^SOX) that don't move in AH end up showing ~0% in ext
     //     mode — same as the modal — which is the expected reading.
-    //   - (ext mode only) today's intraday bars for the US-equity
+    //   - (outside RTH) today's intraday bars for the US-equity
     //     holdings, so each `extPrice` can be validated against the
     //     real pre/post bars the same way the chart modal does. The
     //     position cards used to lean on a ±5% quote-only heuristic
     //     that disagreed with the modal on genuine >5% AH moves (the
     //     CBRS card-vs-modal bug); this gives both the same verdict.
+    //     Fetched whenever we're outside RTH regardless of toggle
+    //     state — pre-populates `extPriceTrusted` so toggling ext on
+    //     doesn't have to fall back to the ±5% heuristic for the
+    //     window before the next auto-refresh (the user explicitly
+    //     asked the toggle to not trigger a refresh). When ext is
+    //     off computeMetrics ignores the verdict anyway, so the
+    //     extra fetch costs network but never affects display.
     const refreshPhase = usMarketPhase(new Date());
-    const extActive = extendedHours && refreshPhase !== "regular";
-    const extHoldingTickers = extActive
+    const wantsExtSeries = refreshPhase !== "regular";
+    const extHoldingTickers = wantsExtSeries
       ? Object.keys(portfolio.holdings).filter(
           (t) => t !== "CASH" && !portfolio.holdings[t]?.isCash && isUsEquity(t),
         )
@@ -354,11 +361,15 @@ function Board({ isReadOnly }) {
         const extPriceVal = u.extPrice ?? next.holdings[t].extPrice ?? null;
         // Real-AH verdict from the intraday series fetched above —
         // the same check the chart modal runs, so the position card
-        // and the modal agree. null when not in ext mode or the
-        // series is missing, so computeMetrics / the modal fall back
-        // to the lightweight quote heuristic.
+        // and the modal agree. Computed whenever the series is
+        // available, regardless of toggle state, so toggling ext on
+        // doesn't have to wait for the next auto-refresh to revalidate
+        // — computeMetrics ignores the verdict when ext is off. null
+        // when no series (regular hours or fetch failed), so the
+        // metrics layer falls back to the lightweight ±5% quote
+        // heuristic.
         const extSer = extSeries[t];
-        const extPriceTrusted = (extActive && Array.isArray(extSer) && extSer.length > 0)
+        const extPriceTrusted = (Array.isArray(extSer) && extSer.length > 0)
           ? extPriceIsRealAh(extSer, extPriceVal, extOpenMins, extCloseMins)
           : null;
         next.holdings[t] = {
