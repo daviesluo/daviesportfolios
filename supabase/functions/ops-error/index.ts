@@ -21,10 +21,13 @@
 //     Header: x-app-token: <admin token>
 //     Returns:
 //       {
-//         hours, total,
+//         hours, total, latestAt,
 //         byKind:  [{kind, count, latestMessage}, …],
 //         bySymbol:[{symbol, kind, count, latestMessage, latestAt}, …]
 //       }
+//       `latestAt` is the newest error's timestamp across ALL rows —
+//       computed before bySymbol is sliced to the top 100, so the
+//       client's "acknowledge" gate can't miss a newer one-off error.
 //     Token gate: must be a valid HMAC-signed app token AND role=admin
 //     (same `${b64url(payload)}.${b64url(sig)}` format `auth` issues).
 //     Lets a logged-in admin (or a Claude Code session with the token
@@ -158,9 +161,17 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
 
       const byKind   = [...byKindMap.values()].sort((a, b) => b.count - a.count);
       const bySymbol = [...bySymbolMap.values()].sort((a, b) => b.count - a.count).slice(0, 100);
+      // Newest error timestamp across ALL rows. `rows` is ordered
+      // created_at.desc (see the query above) so rows[0] is the most
+      // recent. Exposed at the summary level rather than derived
+      // client-side from bySymbol, because bySymbol is sliced to the
+      // top-100-by-count — a newer one-off error can fall outside it,
+      // and the client's Acknowledge gate keys off this timestamp so
+      // it must reflect every row.
+      const latestAt = rows.length > 0 ? rows[0].created_at : null;
 
       return new Response(
-        JSON.stringify({ hours, total: rows.length, byKind, bySymbol }),
+        JSON.stringify({ hours, total: rows.length, latestAt, byKind, bySymbol }),
         { headers: { ...CORS, "Content-Type": "application/json" } },
       );
     } catch (e) {

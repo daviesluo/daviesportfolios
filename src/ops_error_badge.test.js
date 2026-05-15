@@ -5,7 +5,7 @@
 // collapsed it. Regressing the predicate re-introduces that flash.
 
 import { describe, it, expect, vi } from 'vitest';
-import { DESKTOP_MEDIA_QUERY, isDesktopViewport } from './ops_error_badge.jsx';
+import { DESKTOP_MEDIA_QUERY, isDesktopViewport, latestErrorAt } from './ops_error_badge.jsx';
 
 describe('DESKTOP_MEDIA_QUERY constant', () => {
   it('matches the header CSS mobile breakpoint (≤ 760 px)', () => {
@@ -51,5 +51,51 @@ describe('isDesktopViewport', () => {
 
   it('returns false when matchMedia throws (private-mode iOS Safari)', () => {
     expect(isDesktopViewport(() => { throw new Error('safari'); })).toBe(false);
+  });
+});
+
+describe('latestErrorAt', () => {
+  it('prefers the summary-level latestAt over the (sliced) bySymbol max', () => {
+    // bySymbol is sliced to the top-100-by-count server-side, so a
+    // newer one-off error can be missing from it. summary.latestAt is
+    // computed before slicing — trust it even when every bySymbol row
+    // is older (otherwise Acknowledge could hide an unacked error).
+    const summary = {
+      latestAt: '2026-05-15T09:00:00Z',                                 // server-computed, pre-slice
+      bySymbol: [{ symbol: 'NVDA', latestAt: '2026-05-15T03:00:00Z' }],  // stale top-100 slice
+    };
+    expect(latestErrorAt(summary)).toBe(Date.parse('2026-05-15T09:00:00Z'));
+  });
+
+  it('falls back to the newest bySymbol latestAt when summary.latestAt is absent (older Edge Function)', () => {
+    const summary = {
+      bySymbol: [
+        { symbol: 'CBRS', latestAt: '2026-05-15T00:10:58Z' },
+        { symbol: 'NVDA', latestAt: '2026-05-15T03:22:00Z' },  // newest
+        { symbol: 'AAPL', latestAt: '2026-05-14T19:00:00Z' },
+      ],
+    };
+    expect(latestErrorAt(summary)).toBe(Date.parse('2026-05-15T03:22:00Z'));
+  });
+
+  it('returns 0 for empty / missing / malformed summaries — badge stays visible', () => {
+    expect(latestErrorAt(null)).toBe(0);
+    expect(latestErrorAt(undefined)).toBe(0);
+    expect(latestErrorAt({})).toBe(0);
+    expect(latestErrorAt({ bySymbol: [] })).toBe(0);
+    expect(latestErrorAt({ bySymbol: [{ symbol: 'X' }] })).toBe(0);        // no latestAt
+    expect(latestErrorAt({ bySymbol: [{ latestAt: 'not a date' }] })).toBe(0);
+    expect(latestErrorAt({ bySymbol: [null] })).toBe(0);
+  });
+
+  it('skips unparseable rows but keeps the max of the valid ones', () => {
+    const summary = {
+      bySymbol: [
+        { latestAt: 'garbage' },
+        { latestAt: '2026-05-15T01:00:00Z' },
+        null,
+      ],
+    };
+    expect(latestErrorAt(summary)).toBe(Date.parse('2026-05-15T01:00:00Z'));
   });
 });
