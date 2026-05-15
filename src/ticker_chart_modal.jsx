@@ -129,7 +129,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // appear on the very first paint instead of "popping in" 1-2 s
   // after the modal opens. Background revalidate still runs below
   // to refresh the row when stale. Returns null on cache miss.
-  /** @returns {{ eps?: number, pe?: number, pe3yAvg?: number|null, ps?: number, ps3yAvg?: number|null, peg?: number, ttmEpsHistory?: any[] } | null} */
+  /** @returns {{ eps?: number, pe?: number, pe3yAvg?: number|null, ps?: number, ps3yAvg?: number|null, peg?: number, ttmEpsHistory?: any[], ttmSalesHistory?: any[] } | null} */
   const readFundCache = () => {
     const row = ChartStore.get(`${ticker}|FUND|v2`)?.data;
     return row && typeof row === 'object' ? row : null;
@@ -376,26 +376,21 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       const params = fetchParamsFor(isRatioRange ? 'YTD' : rangeKey, extendedHours, phase);
       if (params.variant === 'closed') data = filterToLatestDay(data);
       else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
-      // 'PE' transform: divide each historical close by the rolling
-      // TTM diluted EPS as of that price date so the chart actually
-      // *moves* on earnings days instead of being a 1:1 scale of the
-      // price chart. Edge Function returns `ttmEpsHistory` from
-      // Yahoo's fundamentals-timeseries — already-summed TTM at each
-      // quarter end, 5+ years of history. For each price date we just
+      // 'PE' / 'PS' transform: divide each historical close by the
+      // rolling TTM per-share denominator as of that price date so
+      // the chart actually *moves* on earnings days instead of being
+      // a 1:1 scale of the price chart. The Edge Function returns
+      // both histories from Yahoo's fundamentals-timeseries —
+      // `ttmEpsHistory` (trailing diluted EPS) for P/E and
+      // `ttmSalesHistory` (trailing revenue, rescaled to USD
+      // sales-per-share) for P/S — each an already-summed TTM value
+      // at every quarter end, 5+ years deep. For each price date we
       // pick the latest entry whose `quarterEnd + 45-day report lag`
-      // is <= the price date. Falls back to the const current-TTM-EPS
+      // is <= the price date. Falls back to the const current-ratio
       // path when (a) Yahoo didn't return a history (rate limit or
       // sparse coverage), (b) the price date predates the earliest
-      // reported quarter, or (c) the Edge Function is on the older
-      // version that doesn't yet emit `ttmEpsHistory`.
-      // 'PS' transform is the same shape minus the TTM history: P/S
-      // ratio history isn't published by Yahoo's fundamentals-timeseries
-      // on the public endpoint, so we use the const-current-TTM-sales
-      // path that priceDividedByTtmEps already supports (history=null
-      // → fallback applies on every bar). Sales-per-share moves much
-      // more slowly than EPS so within a YTD window this is a fine
-      // approximation; revisit if quarterly revenue series becomes
-      // available cheaply.
+      // reported quarter, or (c) the Edge Function is on an older
+      // version that doesn't yet emit the history field.
       if (isRatioRange) {
         // Mirror the 3-attempt retry policy fetchHistoricalBatch uses
         // a few lines up: the fundamentals chain (FMP → Yahoo
@@ -460,12 +455,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           }
           return;
         }
-        // priceDividedByTtmEps with history=null → const-denominator
-        // path. For PE we still pass ttmEpsHistory so the curve steps
-        // on earnings dates (Yahoo's trailingDilutedEPS series);
-        // for PS we deliberately omit history so the chart uses the
-        // current sales-per-share for every bar.
-        data = priceDividedByTtmEps(data, isPe ? row.ttmEpsHistory : null, denom);
+        // priceDividedByTtmEps steps the ratio at each earnings date
+        // when given a TTM history, else falls back to `denom` for
+        // every bar. P/E gets ttmEpsHistory, P/S gets ttmSalesHistory
+        // (both from the Edge Function); a null/absent history → the
+        // const-denominator path, same as before the field existed.
+        data = priceDividedByTtmEps(data, isPe ? row.ttmEpsHistory : row.ttmSalesHistory, denom);
       }
       modalCacheSet(cacheKey, data);
       setSeries(data);
@@ -588,10 +583,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           denom = data[data.length - 1].close / ratio;
         }
         if (!denom || denom <= 0) return;
-        // For PE pass ttmEpsHistory so the curve steps on earnings
-        // dates; for PS pass null so it stays on the const
-        // current-TTM-sales path.
-        data = priceDividedByTtmEps(data, isPeRk ? row?.ttmEpsHistory : null, denom);
+        // For PE pass ttmEpsHistory, for PS pass ttmSalesHistory, so
+        // both curves step on earnings dates instead of tracking
+        // price 1:1. null/absent history → const-denominator path.
+        data = priceDividedByTtmEps(data, isPeRk ? row?.ttmEpsHistory : row?.ttmSalesHistory, denom);
       }
       modalCacheSet(cacheKey, data);
     })).catch(() => { /* per-range failures stay quiet */ });
