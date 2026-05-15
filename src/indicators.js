@@ -237,6 +237,41 @@ export function hasExtendedHoursBars(series, openMinsUtc, closeMinsUtc) {
 }
 
 /**
+ * "Is `extPrice` a real extended-hours quote for this ticker?" — the
+ * shared verdict behind both the chart modal's right-edge price and
+ * the home page's position-card prices, so the two never disagree
+ * (the CBRS card-vs-modal divergence).
+ *
+ * Two signals, both required:
+ *   1. The intraday series has at least one pre/post-market bar.
+ *      Yahoo includes AH-timestamped bars even for OTC ADRs like
+ *      SFTBY (just pinned at the RTH close), so signal 1 alone isn't
+ *      enough.
+ *   2. `extPrice` tracks the latest bar within 3%. SFTBY's bogus
+ *      postMarketPrice (Yahoo ships today's OPEN as the "AH" quote)
+ *      diverges 5-10% from every real bar and fails here; a genuine
+ *      AH mover — even a big one, a hot IPO or an earnings beat —
+ *      lands within 3% of the last AH bar and passes.
+ *
+ * The ±5% quote-only heuristic (`extPriceLooksReal` in metrics.js)
+ * can't tell SFTBY's bogus price from a real >5% AH move; this can,
+ * because it has the intraday bars.
+ *
+ * @param {Array<{date: string, close?: number}>} series  intraday bars
+ * @param {number | null | undefined} extPrice
+ * @param {number} openMinsUtc
+ * @param {number} closeMinsUtc
+ */
+export function extPriceIsRealAh(series, extPrice, openMinsUtc, closeMinsUtc) {
+  if (typeof extPrice !== 'number' || !isFinite(extPrice) || extPrice <= 0) return false;
+  if (!hasExtendedHoursBars(series, openMinsUtc, closeMinsUtc)) return false;
+  const latest = Array.isArray(series) && series.length > 0
+    ? series[series.length - 1] : null;
+  if (!latest || typeof latest.close !== 'number' || latest.close <= 0) return false;
+  return Math.abs(extPrice - latest.close) / latest.close < 0.03;
+}
+
+/**
  * "Is this chart range plotted on a price y-axis?" — true for every
  * actual price chart (1D / 1W / 1M / 3M / YTD), false for the ratio
  * charts (PE / PS) where the series has already been divided by
