@@ -142,11 +142,13 @@ describe('computeMetrics — multi-currency', () => {
 });
 
 describe('computeMetrics — extended-hours toggle', () => {
-  // ext-on:  uses extPrice if available; baseline is today's RTH lastPrice (= the
-  //           previous regular close from this session) so day change = AH move
-  //           since 16:00 ET.
-  // ext-off: uses lastPrice; baseline is yesterday's prevClose so day change =
-  //           full-session move since previous close.
+  // ext-on:  uses extPrice when it's a trusted AH quote (the verdict
+  //           `extPriceTrusted`, else the ±5% quote heuristic).
+  //           Baseline is today's RTH close, so day change = the AH
+  //           move since 16:00 ET — and a US name that didn't trade
+  //           AH reads 0 (not a stale regular-session number).
+  // ext-off: uses lastPrice; baseline is yesterday's prevClose so day
+  //           change = full-session move since previous close.
   it('ext OFF: baseline = prevClose, day change = (lastPrice − prevClose) × shares', () => {
     const m = computeMetrics(pf(
       { NVDA: { shares: 10, lastPrice: 100, prevClose: 90, extPrice: 105, extDayPct: 5,
@@ -171,23 +173,25 @@ describe('computeMetrics — extended-hours toggle', () => {
     expect(m.dayChange).toBeCloseTo(10 * (103 - 100)); // 30 — the AH move only
   });
 
-  it('ext ON but no extPrice available → falls back to lastPrice; day change = regular session move', () => {
+  it('ext ON but no extPrice → anchors at today\'s RTH close → reads flat (0), not the stale regular-session move', () => {
     const m = computeMetrics(pf(
       { NVDA: { shares: 10, lastPrice: 100, prevClose: 90, cost: 80, currency: 'USD' } },
       { FWD: { role: 'FWD', tickers: ['NVDA'], label: 'FWD' } },
     ), { extended: true });
-    // No extPrice → trustExt=false → baseline reverts to prevClose
-    // (the regular-session "since previous close" anchor) instead of
-    // the silent $0 AH move the previous logic produced.
-    expect(m.dayChange).toBeCloseTo(10 * (100 - 90)); // 100
+    // No extPrice → not trusted → in ext mode the baseline is today's
+    // RTH close (lastPrice), so a name that didn't trade AH reads
+    // flat. (Previously this fell back to prevClose and showed the
+    // full regular-session move — a stale number once the US market
+    // has closed for the day.)
+    expect(m.dayChange).toBe(0);
+    expect(m.positions.FWD.players[0].dayPct).toBe(0);
   });
 
-  it('OTC ADR bogus extPrice (8 %+ divergence from lastPrice) is rejected; card shows regular-session numbers', () => {
+  it('OTC ADR bogus extPrice (SFTBY): rejected, and in ext mode the card reads flat (0) — not the bogus spike, not a stale regular-session move', () => {
     // SFTBY-shape input: today's regular close $18.65, Yahoo's bogus
-    // postMarketPrice $20.15 (= today's open). The home page used to
-    // pick up the bogus value as MV and show +8 % AH move; with the
-    // 5 % divergence gate the tile falls back to lastPrice and the
-    // dayPct comes from the regular session.
+    // postMarketPrice $20.15 (= today's open). SFTBY is an OTC ADR
+    // with no real AH session — once the US market has closed it
+    // genuinely hasn't moved, so the card should read $0 / 0%.
     const m = computeMetrics(pf(
       { SFTBY: {
           shares: 50, lastPrice: 18.65, prevClose: 20.15,
@@ -197,11 +201,9 @@ describe('computeMetrics — extended-hours toggle', () => {
       },
       { FWD: { role: 'FWD', tickers: ['SFTBY'], label: 'FWD' } },
     ), { extended: true });
-    expect(m.positions.FWD.players[0].lastPrice).toBe(18.65);    // not $20.15
-    // dayChange uses prevClose as baseline → reflects the
-    // regular-session move (50 × (18.65 − 20.15) = −75) rather than
-    // the bogus AH spike.
-    expect(m.dayChange).toBeCloseTo(50 * (18.65 - 20.15));
+    expect(m.positions.FWD.players[0].lastPrice).toBe(18.65);   // not $20.15
+    expect(m.dayChange).toBe(0);                                 // flat since the close
+    expect(m.positions.FWD.players[0].dayPct).toBe(0);
   });
 
   it('Real AH move within 5 % of lastPrice (NVDA +2 %) is trusted', () => {
@@ -217,6 +219,44 @@ describe('computeMetrics — extended-hours toggle', () => {
     expect(m.positions.FWD.players[0].lastPrice).toBe(102);
     // ext baseline = today's RTH close (100) → AH-only delta of 10×(102−100) = 20.
     expect(m.dayChange).toBeCloseTo(20);
+  });
+
+  it('extPriceTrusted=true overrides the ±5 % heuristic — a big real AH move is trusted (CBRS-shape)', () => {
+    // Hot IPO up huge in AH. extPrice diverges far more than 5 % from
+    // the RTH close, so the quote-only heuristic would reject it —
+    // but the app's intraday validation set extPriceTrusted=true (the
+    // pre/post bars confirm the move). The card must match the chart
+    // modal and show the real AH price + the AH move.
+    const m = computeMetrics(pf(
+      { CBRS: {
+          shares: 7, lastPrice: 185, prevClose: 185,
+          extPrice: 311, extDayPct: 68.1, extPriceTrusted: true,
+          cost: 100, currency: 'USD', dayPct: 0,
+        }
+      },
+      { FWD: { role: 'FWD', tickers: ['CBRS'], label: 'FWD' } },
+    ), { extended: true });
+    expect(m.positions.FWD.players[0].lastPrice).toBe(311);      // the real AH price
+    expect(m.dayChange).toBeCloseTo(7 * (311 - 185));            // AH move vs today's close
+    expect(m.positions.FWD.players[0].dayPct).toBe(68.1);
+  });
+
+  it('extPriceTrusted=false overrides the ±5 % heuristic — a tracking-but-rejected extPrice is NOT trusted', () => {
+    // extPrice is within 5 % of lastPrice (the heuristic alone would
+    // accept it), but the app's intraday validation found no real AH
+    // bars and set extPriceTrusted=false. The verdict wins → the card
+    // reads flat, matching what the modal shows.
+    const m = computeMetrics(pf(
+      { FOO: {
+          shares: 10, lastPrice: 100, prevClose: 90,
+          extPrice: 102, extDayPct: 2, extPriceTrusted: false,
+          cost: 80, currency: 'USD', dayPct: 11.11,
+        }
+      },
+      { FWD: { role: 'FWD', tickers: ['FOO'], label: 'FWD' } },
+    ), { extended: true });
+    expect(m.positions.FWD.players[0].lastPrice).toBe(100);     // lastPrice, not 102
+    expect(m.dayChange).toBe(0);                                 // flat since the close
   });
 });
 

@@ -15,7 +15,7 @@ import { ChartStore, MaStore } from './chart_store.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
-  priceDividedByTtmEps, hasExtendedHoursBars, isPriceAxis,
+  priceDividedByTtmEps, extPriceIsRealAh, isPriceAxis,
 } from './indicators.js';
 import { reportError } from './ops_error.js';
 
@@ -666,36 +666,20 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const lastPriceLive = md?.lastPrice ?? holding?.lastPrice ?? null;
   const openMinsUtc   = mh.openHh  * 60 + mh.openMm;
   const closeMinsUtc  = mh.closeHh * 60 + mh.closeMm;
-  // First signal: does the intraday series contain any AH-timestamped
-  // bar? Yahoo includes them even for OTC ADRs like SFTBY (just at the
-  // RTH close price), so this alone isn't enough to trust extPrice.
-  const hasAhBars = Array.isArray(series) && series.length > 0 && series.some(p => {
-    if (typeof p.date !== 'string' || p.date.length < 16) return false;
-    const hh = parseInt(p.date.slice(11, 13), 10);
-    const mm = parseInt(p.date.slice(14, 16), 10);
-    if (!isFinite(hh) || !isFinite(mm)) return false;
-    const mins = hh * 60 + mm;
-    return mins < openMinsUtc || mins > closeMinsUtc;
-  });
-  // Second signal: is `extPrice` actually close to where the intraday
-  // series ends? For real AH movement (NVDA, AAPL) the latest bar's
-  // close ≈ extPrice within ~1 %. For OTC ADRs / illiquid names that
-  // Yahoo fills with a bogus postMarketPrice (often today's regular
-  // open), extPrice diverges 5-10 % from every real AH bar.
-  // Tolerance of 3 % is wide enough for an after-hours flash move
-  // and tight enough to catch SFTBY's $20.15 vs $18.65 (~8 %) case.
-  const latestBar = Array.isArray(series) && series.length > 0
-    ? series[series.length - 1] : null;
-  const extPriceTracksSeries = !!(
-    latestBar && typeof latestBar.close === 'number' && latestBar.close > 0 &&
-    typeof extPriceLive === 'number' && extPriceLive > 0 &&
-    Math.abs(extPriceLive - latestBar.close) / latestBar.close < 0.03
-  );
-  // hasExtendedBars combines both signals — only true when AH is
-  // real for this ticker AND Yahoo's extPrice reflects what the
-  // bars show. Drives both the chart's right-edge substitution and
-  // the anchor logic, so SFTBY's bogus +8 % headline disappears.
-  const hasExtendedBars = hasAhBars && extPriceTracksSeries;
+  // hasExtendedBars — "is `extPrice` a real AH quote for this
+  // ticker?". Prefer the verdict the home page already computed for
+  // this holding (`holding.extPriceTrusted`, from its ext-hours
+  // validation fetch) so the modal and the position card never
+  // disagree — that's the CBRS card-vs-modal bug. Fall back to
+  // validating the modal's own intraday series (extPriceIsRealAh:
+  // real pre/post bars AND extPrice tracking them) for tickers with
+  // no holding — MC index cards opened from Market Conditions — or
+  // before the home page's verdict has landed. Drives both the
+  // chart's right-edge substitution and the anchor logic, so
+  // SFTBY's bogus +8 % headline disappears.
+  const hasExtendedBars = (typeof holding?.extPriceTrusted === 'boolean')
+    ? holding.extPriceTrusted
+    : extPriceIsRealAh(series, extPriceLive, openMinsUtc, closeMinsUtc);
   const liveLast = (
     (useExt && hasExtendedBars && typeof extPriceLive === 'number' && extPriceLive > 0)
       ? extPriceLive
@@ -772,10 +756,22 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
-      if (useExt && hasExtendedBars && regularCloseIdx >= 0) {
-        anchorClose = series[regularCloseIdx].close;
-      } else if (useExt && hasExtendedBars && lastPriceAny && lastPriceAny > 0) {
-        anchorClose = lastPriceAny;
+      if (useExt) {
+        // Ext mode: the headline % is "move since today's 16:00 ET
+        // close". Anchor at today's close bar — or lastPrice, which
+        // Yahoo pins to the 16:00 print — regardless of whether this
+        // ticker has real AH bars. A non-AH-trading name (SFTBY, an
+        // OTC ADR; ^VIX) then reads ~0%, not yesterday's stale
+        // regular-session move.
+        if (regularCloseIdx >= 0) {
+          anchorClose = series[regularCloseIdx].close;
+        } else if (lastPriceAny && lastPriceAny > 0) {
+          anchorClose = lastPriceAny;
+        } else if (prevCloseAny && prevCloseAny > 0) {
+          anchorClose = prevCloseAny;
+        } else {
+          anchorClose = series[0].close;
+        }
       } else if (prevCloseAny && prevCloseAny > 0) {
         anchorClose = prevCloseAny;
       } else {
@@ -1162,20 +1158,21 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             {rangeKey === 'PS' && (
               <span className="mono dim" style={{ fontSize: 10 }}>(price ÷ TTM sales per share)</span>
             )}
-            {/* PEG sits next to P/E in the same row — secondary
-                valuation metric, only renders when Yahoo published
-                BOTH forward P/E and the +5y analyst-consensus EPS
-                growth. Hidden on PS view (PEG pairs with earnings,
-                not sales) and on the price ranges. */}
-            {rangeKey === 'PE' && peg != null && peg > 0 && (
-              <>
-                <span className="mono dim">·</span>
-                <span className="mono dim">PEG</span>
-                <span className="mono">{peg.toFixed(2)}</span>
-                <span className="mono dim" style={{ fontSize: 10 }}>(forward P/E ÷ 5y EPS growth %)</span>
-              </>
-            )}
           </div>
+          {/* PEG on its own line below the P/E row — secondary
+              valuation metric, only renders when Yahoo published
+              BOTH a forward P/E and a usable forward EPS-growth rate
+              (the blended 2y forward growth from computeForwardGrowth
+              in the fundamentals Edge Function). Hidden on the PS
+              view (PEG pairs with earnings, not sales) and on the
+              price ranges. */}
+          {rangeKey === 'PE' && peg != null && peg > 0 && (
+            <div className="modal-meta">
+              <span className="mono dim">PEG</span>
+              <span className="mono">{peg.toFixed(2)}</span>
+              <span className="mono dim" style={{ fontSize: 10 }}>(forward P/E ÷ 2y fwd EPS growth %)</span>
+            </div>
+          )}
           {/* Holding-stats line — shares / AC / Cost / Value / G/L,
               same set the position-drill PlayerCard shows. AC stays in
               native currency (matches the broker print the user typed

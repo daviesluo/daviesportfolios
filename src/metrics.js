@@ -5,6 +5,7 @@
 // pull in fetch plumbing / market hours / Storage.
 
 import { fxRateToUSD } from './fx.js';
+import { isUsEquity } from './ticker_class.js';
 
 // Yahoo's `postMarketPrice` for OTC ADRs like SFTBY is bogus — it
 // ships today's regular-session OPEN as if it were an after-hours
@@ -66,16 +67,30 @@ export const computeMetrics = (portfolio, opts = {}) => {
       if (!h) continue;
       // Cash entries: MV = lastPrice (held as dollar amount); no P/L, no day change.
       const isCash = !!h.isCash;
-      // In extended mode use the extended price if available AND it's
-      // close enough to the regular close to look like a real AH
-      // quote — see EXT_PRICE_MAX_DIVERGENCE above. Cash always uses
-      // lastPrice; the OTC ADR check only applies to traded
-      // securities. Without this gate the tactics board / heatmap
-      // tile / position-drill modal all picked up SFTBY's bogus
-      // $20.15 even though the chart modal already corrected for it.
-      const trustExt = !isCash && ext && extPriceLooksReal(h.extPrice, h.lastPrice);
+      // In extended mode use the extended price if it's a real AH
+      // quote. The verdict is `h.extPriceTrusted` — set by the app's
+      // ext-hours validation fetch, which inspects the intraday
+      // series exactly the way the chart modal does, so the position
+      // card and the drill modal never disagree (the CBRS divergence
+      // bug). When that verdict hasn't been computed yet (first paint,
+      // or the validation fetch failed) fall back to the lightweight
+      // ±5% quote-only heuristic. Cash always uses lastPrice.
+      const extVerdict = typeof h.extPriceTrusted === 'boolean'
+        ? h.extPriceTrusted
+        : extPriceLooksReal(h.extPrice, h.lastPrice);
+      const trustExt = !isCash && ext && extVerdict;
       const priceNative = trustExt ? h.extPrice : h.lastPrice;
-      const pct   = (trustExt && h.extDayPct != null) ? h.extDayPct : (h.dayPct ?? 0);
+      // `extActive` = "treat this row's day-change as a US extended-
+      // hours move". US equities / ADRs only: crypto trades 24/7 (no
+      // RTH close to anchor at) and London / CN-fund rows keep their
+      // own session's "since previous close", so both are excluded.
+      // When active, the change is measured from today's RTH close —
+      // so a US name that doesn't actually trade AH shows 0%, not a
+      // stale regular-session number. Also drives baselinePrice below.
+      const extActive = ext && !isCash && isUsEquity(t);
+      const pct = extActive
+        ? (trustExt && h.extDayPct != null ? h.extDayPct : 0)
+        : (h.dayPct ?? 0);
       // Convert native → USD (cash is already USD; treat missing currency as USD).
       // `fxMissing` propagates to the player object so the UI can badge
       // it — without that flag a GBP holding silently falls back to
@@ -87,16 +102,17 @@ export const computeMetrics = (portfolio, opts = {}) => {
       const fxMissing = fxResult.missing;
       const priceUSD = priceNative * fx;
       const mv = isCash ? h.lastPrice : h.shares * priceUSD;
-      // Baseline for the day-change calculation:
-      //   - ext-on AND extPrice trustworthy: today's RTH close
-      //     (so dayChange = AH move since 16:00 ET).
-      //   - ext-on but extPrice rejected (SFTBY pattern): treat like
-      //     regular mode — yesterday's prevClose, so the card shows
-      //     the regular-session move (matches what the modal headline
-      //     reports as "-7.49 % since previous close") instead of a
-      //     phantom $0 change.
-      //   - ext-off: yesterday's prevClose, same as before.
-      const baselinePrice = (ext && trustExt)
+      // Day-change baseline:
+      //   - ext-on, extPrice trusted → today's RTH close, so the
+      //     change is the AH move since 16:00 ET.
+      //   - ext-on, extPrice rejected/absent (OTC ADRs like SFTBY
+      //     that don't trade AH) → ALSO today's RTH close → 0, since
+      //     the price genuinely hasn't moved since the close. (This
+      //     used to fall back to yesterday's prevClose and show the
+      //     regular-session move, but in ext mode that's a stale
+      //     number — a non-AH-trading stock IS flat after the close.)
+      //   - ext-off → yesterday's prevClose, the full-session move.
+      const baselinePrice = extActive
         ? (h.lastPrice ?? h.prevClose ?? priceNative)
         : (h.prevClose ?? priceNative);
       const prevMV = isCash ? mv : h.shares * baselinePrice * fx;
