@@ -196,7 +196,11 @@ async function fetchT212Portfolio(): Promise<unknown> {
     },
   });
   if (!res.ok) {
-    throw new Error(`T212 ${res.status}`);
+    // Include a short body snippet so the catch-path's `error` field
+    // can show what T212 actually said — without it `stale` is opaque
+    // and you can't tell auth-fail from rate-limit from endpoint-404.
+    const snippet = (await res.text().catch(() => "")).slice(0, 200);
+    throw new Error(`T212 ${res.status} ${res.statusText} :: ${snippet}`);
   }
   return await res.json();
 }
@@ -262,21 +266,27 @@ if (import.meta.main) {
         updatedAt: new Date().toISOString(),
         source: "live",
       }), { headers: { ...CORS, "content-type": "application/json" } });
-    } catch {
-      // T212 errored after we claimed the refresh slot. Serve stale
-      // cache (within 5 min grace) so a transient 429 / 500 doesn't
-      // blank the lots out client-side.
+    } catch (e) {
+      // T212 errored after we claimed the refresh slot. Log + surface
+      // the error so the caller can diagnose (auth fail vs rate limit
+      // vs endpoint 404 etc.) instead of silently serving empty.
+      const err = e instanceof Error ? e.message : String(e);
+      console.error("T212 upstream error:", err);
+      // Serve stale cache (within 5 min grace) so a transient 429 /
+      // 500 doesn't blank the lots out client-side.
       if (cached && cacheIsFresh(cached.updated_at, now, STALE_OK_MS)) {
         return new Response(JSON.stringify({
           holdings: cached.data,
           updatedAt: cached.updated_at,
           source: "stale",
+          error: err,
         }), { headers: { ...CORS, "content-type": "application/json" } });
       }
       return new Response(JSON.stringify({
         holdings: {},
         updatedAt: new Date().toISOString(),
         source: "stale",
+        error: err,
       }), { headers: { ...CORS, "content-type": "application/json" } });
     }
   });
