@@ -296,3 +296,51 @@ describe('Storage.loadMarketCache / saveMarketCache', () => {
     expect('dp.fxCache' in store).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Per-proxy backoff. The CORS-proxy chain (api.cors.lol, corsproxy.io, ...)
+// is rate-limited per IP by every free proxy; without backoff, one dead
+// proxy gets re-hit every 30s refresh tick and the whole chain stalls
+// behind it. These tests pin: mark dead → not available, expire → back in,
+// clearProxyBackoff resets, all-dead set isn't returned as "available".
+// ---------------------------------------------------------------------------
+describe('proxy backoff', () => {
+  it('a fresh proxy index is available', async () => {
+    const { proxyIsAvailable, clearProxyBackoff } = await import('./utils.js');
+    clearProxyBackoff();
+    expect(proxyIsAvailable(0)).toBe(true);
+  });
+
+  it('markProxyDead → proxyIsAvailable returns false for the backoff window', async () => {
+    const { proxyIsAvailable, markProxyDead, clearProxyBackoff } = await import('./utils.js');
+    clearProxyBackoff();
+    markProxyDead(1, 60_000);
+    expect(proxyIsAvailable(1)).toBe(false);
+    // Other proxies are unaffected.
+    expect(proxyIsAvailable(0)).toBe(true);
+    expect(proxyIsAvailable(2)).toBe(true);
+  });
+
+  it('expired backoff auto-clears on the next proxyIsAvailable call', async () => {
+    const { proxyIsAvailable, markProxyDead, clearProxyBackoff } = await import('./utils.js');
+    clearProxyBackoff();
+    markProxyDead(2, 1);
+    // Wait past expiry; in-Vitest there's no fake-timer here so use real sleep.
+    await new Promise((r) => setTimeout(r, 5));
+    expect(proxyIsAvailable(2)).toBe(true);
+  });
+
+  it('clearProxyBackoff(i) un-pins a single proxy; clearProxyBackoff() un-pins all', async () => {
+    const { proxyIsAvailable, markProxyDead, clearProxyBackoff } = await import('./utils.js');
+    clearProxyBackoff();
+    markProxyDead(0);
+    markProxyDead(3);
+    expect(proxyIsAvailable(0)).toBe(false);
+    expect(proxyIsAvailable(3)).toBe(false);
+    clearProxyBackoff(0);
+    expect(proxyIsAvailable(0)).toBe(true);
+    expect(proxyIsAvailable(3)).toBe(false);
+    clearProxyBackoff();
+    expect(proxyIsAvailable(3)).toBe(true);
+  });
+});
