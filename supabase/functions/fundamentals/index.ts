@@ -108,6 +108,13 @@ type Fundamentals = {
   // P/S YTD chart used a constant denominator and was just the price
   // chart rescaled (no step on earnings).
   ttmSalesHistory?: EpsHistoryPoint[];
+  // Shares outstanding, derived server-side as Yahoo's marketCap ÷
+  // regularMarketPrice — NOT defaultKeyStatistics.sharesOutstanding,
+  // which for ADRs is the underlying-share count that doesn't pair
+  // with the USD ADR price. The client multiplies this by the live
+  // price for a price-synced market cap in the modal header.
+  // Optional — absent when Yahoo doesn't publish a market cap.
+  sharesOutstanding?: number;
 };
 
 const INDEX_ETF_PROXY: Record<string, string> = {
@@ -361,6 +368,9 @@ type YahooQuoteSummary = {
   // computePeg / computeForwardGrowth.
   epsGrowthFwd: number | null;
   price: number;
+  // marketCap ÷ price (price-consistent, ADR-safe) — see
+  // fetchYahooQuoteSummary. 0 when Yahoo didn't publish a market cap.
+  sharesOutstanding: number;
   currency: string | null;
 };
 
@@ -421,6 +431,14 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
       ?? result?.summaryDetail?.previousClose?.raw
       ?? result?.summaryDetail?.fiftyDayAverage?.raw
       ?? result?.summaryDetail?.twoHundredDayAverage?.raw;
+    // Market cap — for the modal header's live market-cap line. We
+    // turn it into a share count (marketCap ÷ price, below) rather
+    // than ship the snapshot, so the client can multiply by the live
+    // price. Deriving shares this way — vs defaultKeyStatistics.
+    // sharesOutstanding — keeps it price-consistent for ADRs: both
+    // marketCap and price here are the USD ADR-side numbers.
+    const marketCapRaw = result?.price?.marketCap?.raw
+                      ?? result?.summaryDetail?.marketCap?.raw;
     // Forward P/E + blended forward EPS growth for PEG. Forward P/E
     // pairs with forward growth by convention — using trailing P/E
     // with forward growth (or vice versa) is the classic PEG misuse
@@ -437,6 +455,14 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
     const ps    = Number(psRaw);
     const fwdPe = Number(fwdPeRaw);
     const price = Number(priceRaw);
+    const marketCap = Number(marketCapRaw);
+    // Share count, price-consistent (see marketCapRaw). 0 when either
+    // input is missing — the client then just omits the market-cap
+    // line rather than rendering a wrong number.
+    const sharesOutstanding =
+      isFinite(marketCap) && marketCap > 0 && isFinite(price) && price > 0
+        ? marketCap / price
+        : 0;
     // Use 0 as the "no usable value" sentinel so the response shape
     // stays uniform and the caller can decide per-field whether to
     // show that view. Reject the whole call only when EVERY ratio is
@@ -454,6 +480,7 @@ async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuoteSummary
       forwardPE:    fwdPe2,
       epsGrowthFwd, // null | positive decimal — see computeForwardGrowth
       price: isFinite(price) && price > 0 ? price : 0,
+      sharesOutstanding,
       currency: typeof currency === 'string' ? currency : null,
     };
   } catch {
@@ -534,6 +561,7 @@ export async function fetchStockFundamentals(
       ps,
       ps3yAvg,
       peg: peg ?? undefined,
+      sharesOutstanding: yahoo.sharesOutstanding > 0 ? yahoo.sharesOutstanding : undefined,
     };
   }
   return finn;
