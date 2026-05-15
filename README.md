@@ -36,9 +36,14 @@ secrets server-side.
 - **Extended-hours toggle** — switches indices to their futures
   contracts (`^GSPC` → `ES=F` etc.) and recomputes day change against
   the regular-session close so post-market moves show up correctly.
-  Whenever the toggle is on, the perf-chart legend dot flips to
-  `S&P 500 FUTURES` so the benchmark is unambiguous (panel title
-  stays "PERFORMANCE VS S&P 500" — futures track the S&P).
+  Non-AH-trading indices (`^VIX`, `^TNX`, `^SOX`) stay on `lastPrice`
+  even when Yahoo ships a synthetic `extPrice` for them, so the MC
+  cards always match the drill modal. The initial-load prefetch
+  pre-warms **both** ext-states' 1D chart caches, so toggling the
+  switch is a cache-hit instead of a 1-2 s cold fetch — no manual
+  refresh needed. Whenever the toggle is on, the perf-chart legend
+  dot flips to `S&P 500 FUTURES` so the benchmark is unambiguous
+  (panel title stays "PERFORMANCE VS S&P 500" — futures track the S&P).
 - **1D chart spans 24 h** — both in-session and ext-hours views show
   the trailing 24 h. In-session uses Yahoo `range=5d` + a client-side
   `filterToLast24h` cut (Yahoo's `range=1d` only ever covers the
@@ -89,21 +94,25 @@ secrets server-side.
   re-scales — doing it client-side leaks client/server
   price-timing skew into the chart even for already-correct US
   stocks. Y-axis swaps to bare P/E values, modal header shifts to
-  "P/E RATIO". A secondary **PEG** chip sits next to the P/E value
-  when Yahoo published Forward P/E (`summaryDetail.forwardPE`).
-  The math is forward-over-forward (`forwardPE ÷ (growth × 100)`)
-  so the numerator's horizon matches the denominator's — pairing
-  trailing P/E with forward growth is the classic PEG misuse and
-  we deliberately avoid it. Growth is Yahoo's analyst-consensus
-  `earningsTrend.trend[+5y].growth` CAGR. (A 3-year horizon suits
-  cyclical tech / semi names better, and the implementation
-  briefly used FMP's analyst-estimates for it — but FMP paywalled
-  that endpoint along with the rest of `/v3`, so +5y is the only
-  free forward-CAGR left.) Hidden whenever the growth row is
-  missing, zero, or negative (negative growth makes PEG itself
-  negative, and most data vendors hide it in that case rather
-  than render a number that doesn't fit the "~1 = fair value"
-  interpretation). For ETF-proxied indices the client
+  "P/E RATIO". A secondary **PEG** line renders on its own row
+  below the P/E value when Yahoo published Forward P/E
+  (`summaryDetail.forwardPE`). The math is forward-over-forward
+  (`forwardPE ÷ (growth × 100)`) so the numerator's horizon
+  matches the denominator's — pairing trailing P/E with forward
+  growth is the classic PEG misuse and we deliberately avoid it.
+  Growth is the **blended 2y forward EPS growth** — `computeForwardGrowth`
+  averages Yahoo's `earningsTrend.trend[0y].growth` (current FY)
+  and `[+1y].growth` (next FY) consensus rates. Yahoo retired its
+  `+5y` long-term-growth bucket (confirmed gone in the May-2026
+  prod probe), so the two near-term annual buckets are the only
+  free forward-CAGR left; averaging them is steadier than any
+  single year for the cyclical tech / semi names where one fiscal
+  year can land on a cycle peak or trough. Buckets with
+  non-positive growth are dropped before averaging. Hidden
+  whenever the growth row is missing, zero, or negative (negative
+  growth makes PEG itself negative, and most data vendors hide it
+  in that case rather than render a number that doesn't fit the
+  "~1 = fair value" interpretation). For ETF-proxied indices the client
   reconstructs an implied EPS from `lastClose / pe` (Finnhub
   returns no aggregate EPS at the index level) and stays on
   const-EPS. Futures / other indices (`^VIX`, `^TNX`) / crypto /
@@ -120,11 +129,21 @@ secrets server-side.
   reference line averages the 3 most recent entries of Finnhub's
   `series.annual.ps` and draws as a dashed gray line the same way
   the P/E view does. The series math reuses
-  `priceDividedByTtmEps` with `history = null` so every bar uses
-  the current sales-per-share (derived from `lastClose / ps` for
-  the same ADR-safety reason the P/E path derives EPS from
-  `lastClose / pe` — sidesteps any foreign-currency revenue
-  field that might leak through Finnhub). Header copy swaps to
+  `priceDividedByTtmEps` with a TTM-sales-per-share history when
+  Yahoo published quarterly revenues: the Edge Function pulls
+  `quarterlyTotalRevenue` from `fundamentals-timeseries`, runs
+  `rollingTtmFromRawQuarterly` to sum each set of 4 consecutive
+  quarters into a TTM series, rescales the absolute revenue to
+  per-share via `normalizeEpsHistoryToUsd(salesHist, usdPrice / ps)`
+  so the latest entry anchors to the live `lastClose / ps`, and
+  returns it as `ttmSalesHistory`. Earlier the code tried
+  `trailingTotalRevenue` from the same endpoint, but the May-2026
+  prod probe showed Yahoo only publishes 2 (often-stale,
+  often-inconsistent) annual points there — useless as a TTM
+  series. When `ttmSalesHistory` is missing the chart falls back
+  to `history = null` (const current sales-per-share, every bar
+  flat at today's ratio) instead of erroring — preserves the YTD
+  view for tickers without quarterly history. Header copy swaps to
   "P/S RATIO" and the basis chip reads "(price ÷ TTM sales per
   share)". When neither pe/eps nor ps is usable (very rare —
   IPOs that haven't published a revenue figure yet), the modal
@@ -208,19 +227,24 @@ secrets server-side.
   `/functions/v1/ops-error?action=summary&hours=24` every 60 s.
   Click opens a modal with the byKind / bySymbol breakdown, so
   routine triage doesn't require opening the Supabase SQL editor.
-  The whole component is gated on `matchMedia('(min-width: 761px)')`
-  — the mobile header layout (≤ 760 px) has no room for an extra
-  pill and the earlier CSS-only hide still mounted, polled and
-  flashed for a couple of seconds before the layout collapsed it.
-  Now on phones the badge never mounts, never fetches, never
-  paints; only desktop viewers carry the polling weight. Hidden
-  for read-only sessions; the underlying endpoint also rejects
-  non-admin tokens server-side.
+  Each kind row has an **Acknowledge** button that POSTs to
+  `ops-error?action=acknowledge` with the kind name; the server
+  marks every matching row in the last-24h window as acked, the
+  summary endpoint stops counting them, and the badge's red total
+  drops accordingly. Lets the admin clear known-resolved noise
+  (e.g. an upstream Yahoo outage already triaged) without waiting
+  30 days for the retention sweep. The whole component is gated on
+  `matchMedia('(min-width: 761px)')` — the mobile header layout
+  (≤ 760 px) has no room for an extra pill and the earlier
+  CSS-only hide still mounted, polled and flashed for a couple of
+  seconds before the layout collapsed it. Now on phones the badge
+  never mounts, never fetches, never paints; only desktop viewers
+  carry the polling weight. Hidden for read-only sessions; the
+  underlying endpoint also rejects non-admin tokens server-side.
 - **Background chart prefetch (IndexedDB-backed)** — every successful
-  price refresh (initial load + manual Refresh click; also re-fired
-  whenever the ext-hours toggle changes since 1D's cache key includes
-  the variant tag) silently warms every chart range × ticker into
-  IndexedDB via [`idb-keyval`](https://github.com/jakearchibald/idb-keyval),
+  price refresh (initial load + manual Refresh click) silently
+  warms every chart range × ticker into IndexedDB via
+  [`idb-keyval`](https://github.com/jakearchibald/idb-keyval),
   so opening any ticker modal or flipping PerfChart range buttons
   hits cache instead of paying the Edge Function round-trip. Coverage
   spans the portfolio holdings, the S&P benchmark AND every
@@ -344,15 +368,16 @@ to the prompt.
   open the chart polls back-to-back (5 s minimum gap) so intraday
   bars trickle in without a manual refresh.
 - **P/E YTD view** uses the same YTD daily price series but divides
-  every bar by the ticker's current TTM EPS (from Finnhub) to
-  produce a P/E-ratio chart. Const-EPS approximation — the shape
-  mirrors price within a quarter, becomes inaccurate after an
-  earnings report. Modal header swaps "PRICE / Last $price" for
-  "P/E RATIO / P/E ratio (price ÷ TTM EPS)" so the basis is explicit.
-  A horizontal dashed gray line at the 3-year average P/E (mean of
-  the three most-recent annual P/E values from Finnhub) gives a
-  cycle-aware reference; the value is labelled in the right margin
-  outside the plot area so it never crosses the price line.
+  every bar by the ticker's TTM EPS as of that bar (from Yahoo
+  `fundamentals-timeseries`' `trailingDilutedEPS`, rescaled to USD
+  for ADRs via `normalizeEpsHistoryToUsd`) — P/E steps visibly on
+  report days instead of mirroring the price chart. Modal header
+  swaps "PRICE / Last $price" for "P/E RATIO / P/E ratio (price ÷ TTM EPS)"
+  so the basis is explicit. A horizontal dashed gray line at the
+  3-year average P/E (mean of the three most-recent annual P/E
+  values from Finnhub) gives a cycle-aware reference; the value is
+  labelled in the right margin outside the plot area so it never
+  crosses the price line.
 - **Hover** anywhere on the chart for a crosshair: dashed lines down
   to both axes, a tooltip showing the price at that bar, and the %
   change from the anchor.
@@ -489,13 +514,13 @@ before this guard landed).
 | `utils.test.js` | `fetchHistoricalBatch` strategy pins: Edge fast path, "trust Edge omissions" (no proxy fallback when Edge succeeded with a partial response), Edge total-failure → proxy fallback, CN-fund proxy bypass, empty input, dedup. **Note**: the sibling `fetchYahoo` (live prices, not historical bars) takes the opposite stance — when the Edge Function returns a partial set it proxy-retries the omitted tickers, because Yahoo dropping a single FX pair for one tick was the actual root cause of the recurring `FX MISSING` flash (`fxRateToUSD` 1:1 fallback baked into the portfolio total until next refresh). Historical bars don't have that problem so the chart path stays cheap. |
 | `ticker_class.js` / `ticker_class.test.js` | Pure regex predicates for ticker shape (`isCrypto`, `isFutures`, `isForex`, `isIndex`, `isExchangeListed`, `isCnFund`, `isPvt`, `isDailyOnly`, `isUsEquity`). Lifted out of `ticker_chart_modal.jsx` / `prefetch.js` / `indicators.js` so the same classification can't drift between three callers (was happening — modal said `BRK-B` is crypto because its earlier regex was just `/-USD$/` instead of `/-USD$/i.test` AND a "doesn't start with `^`" check). |
 | `cache.js` / `cache.test.js` | Shared TTL constants (`RANGE_TTL_MS`, `MA_TTL_MS`, `PE_TTL_MS`) + freshness predicate (`isFresh(entry, ttlMs, extraValid?)` with a pluggable per-row check, e.g. `hasAnyNumericField('volume')` for 1D rows that pre-date the volume-bearing Edge Function deploy) + cache-key helper (`tickerChartCacheKey`, the single source of truth for the modal + prefetch). The PE key carries an algorithm-version suffix (currently `v4`) so a breaking change to the PE-series math (e.g. the 2026-05 ADR USD-anchor rescale) can evict every browser's cached series in one push by bumping the suffix, instead of waiting out the 12 h TTL. Soft LRU (`trimLru`) is still here but only used for legacy localStorage rows during migration — IDB-backed caches don't need it. |
-| `indicators.js` / `indicators.test.js` | Pure indicator math lifted out of the chart modal: `maBarsFor` / `maLabelDaysFor` / `rollingSma` / `computeMaSeries` (MA overlay), `vwapSessionResetFor` / `vwapSessionKeyOf` / `computeVwap` (per-asset anchor + cumulative VWAP + forward-fill smoothing), `priceDividedByTtmEps` (TTM-history-aware P/E series), `hasExtendedHoursBars` (the SFTBY/OTC bogus-extPrice detector). Every function takes plain arrays so it can be pinned by vitest without spinning up React — the modal was the single largest source of subtle math regressions in this codebase and every fix had been risking silently breaking another ticker class because the conditions were tangled with rendering state. |
+| `indicators.js` / `indicators.test.js` | Pure indicator math lifted out of the chart modal: `maBarsFor` / `maLabelDaysFor` / `rollingSma` / `computeMaSeries` (MA overlay), `vwapSessionResetFor` / `vwapSessionKeyOf` / `computeVwap` (per-asset anchor + cumulative VWAP + forward-fill smoothing), `priceDividedByTtmEps` (TTM-history-aware ratio series — drives both P/E and P/S), `hasExtendedHoursBars` (the SFTBY/OTC bogus-extPrice detector), `extPriceIsRealAh` (the shared "is the upstream `extPrice` a real ext-hours trade, or a sentinel that should fall back to `lastPrice`?" verdict used by both the VIX-class MC cards and the drill modal so they can't disagree about which price to render). Every function takes plain arrays so it can be pinned by vitest without spinning up React — the modal was the single largest source of subtle math regressions in this codebase and every fix had been risking silently breaking another ticker class because the conditions were tangled with rendering state. |
 | `header_sidebar.jsx` | `<Header>` (scoreboard + extended-hours toggle + hide-values eye), `<Sidebar>` (top movers + formation value + perf chart), `<MarketConditions>` (10 cards desktop, 9 cards mobile in a 3 × 3 grid; SOX dropped on mobile). Re-exports `<PerfPanel>` from `perf_chart.jsx` so `app.jsx` keeps its existing import. |
 | `perf_chart.jsx` | `<PerfChart>` (the chart) + `<PerfPanel>` (chrome wrapper). 5 ranges, dual fetch effect (S&P alone + portfolio batch in parallel), background prefetch effect for the other ranges, DOM-ref crosshair, CLOSE/OPEN markers in 1D, ^GSPC RTH filter + ES=F ETH filter. |
 | `pitch.jsx` | Football-pitch SVG rendering. Position dots, captain armband, hot-mover ball, drag/drop in edit mode. |
 | `heatmap.jsx` | One tile per holding, sized by market value, colored by day-change. |
 | `modals.jsx` | `<PositionDrillModal>`, `<EditTickerModal>` (incl. lot editor), `<AddTickerModal>`, `<CashModal>`. |
-| `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel + one optional valuation button — `P/E YTD` for profitable stocks, `P/S YTD` for loss-makers, mutually exclusive. Header now carries a `Shares · AC · Cost · Value(%) · G/L` line for holdings. Overlays: gray `MA 5 / 10 / 20 / 50` on 1W / 1M / 3M / YTD (bar-based SMA on a same-interval wider fetch held in `dp.maCache`, with the display series merged in so the line spans the full chart even when the cache drifts); gray `VWAP` on 1D for tickers Yahoo gives per-bar volume for (US equity reset 09:30 ET / pre-market 04:00 ET when ext is on; crypto reset 00:00 UTC; forward-fill smoothing for sparse-volume tickers like BTC-USD). DOM-ref crosshair (no React rerender on hover), persistent IndexedDB cache + stale-while-revalidate, 6-digit CN funds and `.PVT` private holdings restricted to 1M / 3M / YTD. P/E view divides by historical TTM EPS from Yahoo's `fundamentals-timeseries` so the curve steps on earnings dates; P/S view uses const current TTM sales-per-share (revenue history isn't published on the public endpoint). Both ratio views derive their per-share denominator from `lastClose / ratio` so the chart stays USD-correct for ADRs regardless of whether the upstream returned EPS / revenue in the foreign reporting currency. Both the bar fetch and the fundamentals fetch retry 3× with 250 ms / 500 ms backoff before reporting `fetch.histsingle` / `fetch.pe.network-drop` to ops-error, so a single transient Yahoo burp doesn't flip the modal into the red "Couldn't load history" state. When no usable ratio exists in either flavour (very-recent IPOs etc.) the modal renders the soft "P/E not available — N/A" panel instead of an error. Indicator math (MA, VWAP, PE-from-TTM-history, extended-hours-bar detection) lives in `indicators.js` so it can be pinned by tests; ticker shape predicates come from `ticker_class.js`; cache helpers from `cache.js`. |
+| `ticker_chart_modal.jsx` | Single-ticker price-history modal. Same range buttons as PerfPanel + one optional valuation button — `P/E YTD` for profitable stocks, `P/S YTD` for loss-makers, mutually exclusive. Header row carries `Last $price · DAY %change` on price ranges, switches to `P/E ratio · 3Y AVG` or `P/S ratio · 3Y AVG` on the valuation buttons, and ends with a live `Mkt Cap $value` (recomputed every poll from `price × sharesOutstanding`, where `sharesOutstanding` comes server-side from `marketCap / price` rather than `defaultKeyStatistics.sharesOutstanding` so ADRs stay correct — Yahoo's "shares outstanding" field for ADRs reports the foreign parent-company share count, which would balloon T's market cap by orders of magnitude). A separate PEG line sits below the P/E row when applicable. Holdings get a `Shares · AC · Cost · Value(%) · G/L` line. Overlays: gray `MA 5 / 10 / 20 / 50` on 1W / 1M / 3M / YTD (bar-based SMA on a same-interval wider fetch held in `dp.maCache`, with the display series merged in so the line spans the full chart even when the cache drifts); gray `VWAP` on 1D for tickers Yahoo gives per-bar volume for (US equity reset 09:30 ET / pre-market 04:00 ET when ext is on; crypto reset 00:00 UTC; forward-fill smoothing for sparse-volume tickers like BTC-USD). DOM-ref crosshair (no React rerender on hover), persistent IndexedDB cache + stale-while-revalidate, 6-digit CN funds and `.PVT` private holdings restricted to 1M / 3M / YTD. P/E view divides by historical TTM EPS from Yahoo's `fundamentals-timeseries` so the curve steps on earnings dates; P/S view divides by a TTM sales-per-share history rolled from Yahoo's `quarterlyTotalRevenue` (4-quarter sum via `rollingTtmFromRawQuarterly`, rescaled to USD via `normalizeEpsHistoryToUsd`), falling back to const current sales-per-share when no quarterly history is published. Both ratio views derive their per-share denominator from `lastClose / ratio` so the chart stays USD-correct for ADRs regardless of whether the upstream returned EPS / revenue in the foreign reporting currency. Both the bar fetch and the fundamentals fetch retry 3× with 250 ms / 500 ms backoff before reporting `fetch.histsingle` / `fetch.pe.network-drop` to ops-error, so a single transient Yahoo burp doesn't flip the modal into the red "Couldn't load history" state. When no usable ratio exists in either flavour (very-recent IPOs etc.) the modal renders the soft "P/E not available — N/A" panel instead of an error. Indicator math (MA, VWAP, PE-from-TTM-history, extended-hours-bar detection, `extPriceIsRealAh` ext-trade verdict) lives in `indicators.js` so it can be pinned by tests; ticker shape predicates come from `ticker_class.js`; cache helpers from `cache.js`. |
 | `sw-banner.jsx` | "New version available — RELOAD" banner. Uses `useRegisterSW` from `vite-plugin-pwa`. Kicks `updateServiceWorker(true)` for the standard `controllerchange`-driven reload AND a hard `window.location.reload()` 1.5 s later, because iOS Safari (and standalone-PWA Chrome) don't fire `controllerchange` reliably and the click otherwise felt unresponsive. |
 | `ops_error.js` / `ops_error_badge.jsx` | `reportError(kind, opts)` POSTs failures to the `ops-error` Edge Function (per-`(kind, symbol)` cooldown + per-load cap, `keepalive: true` so render-crash reports survive a Reload). `fetchOpsErrorSummary(hours)` reads the same function's `?action=summary` endpoint with the admin `x-app-token` header attached so admin viewers can pull the last-24 h aggregate without hitting Supabase directly. **What we report**: `auth.unexpected` / `auth.network` (auth failures), `render.crash` (React error boundary), `fetch.histsingle` (chart fetch ran out of retries), `fetch.perfchart.anchor` (PerfChart anchor missing), `fetch.pe.network-drop` (fundamentals Edge Function returned no row at all for a ticker — real backend incident). **What we deliberately don't report**: `fx-fallback` (FX MISSING pill already shows it interactively) and the "ticker has no positive trailing P/E" case (loss-makers like NBIS — legitimate financial state, not a bug). The `OpsErrorBadge` component (desktop-gated, see Highlights) is the in-app surface for the summary; the same endpoint is still queryable directly when finer triage is needed. |
 | `prefetch.js` | `prefetchAllChartData(opts)`. Fired from `doRefresh` on initial load + manual Refresh click (skipped on the 30 s auto-refresh tick). Walks every (range × ticker) combo, skips ranges that are fully fresh under their TTL (and treats 1D rows missing the new `volume` field as stale so the VWAP overlay shows up after the Edge Function redeploy without a manual cache wipe), and writes results into the PerfChart cache (`dp.ytd`), the TickerChartModal cache (`dp.tickerChart`), and the MA overlay's wider-history cache (`dp.maCache`) so the next chart open is instant. Also fetches each eligible ticker's full fundamentals row (`{eps, pe, pe3yAvg, ttmEpsHistory}`) — cached under `${ticker}\|FUND\|v2` so the modal's P/E-button visibility can be decided synchronously on first paint, and the `${ticker}\|PE\|v4\|...` series is precomputed via `priceDividedByTtmEps` so clicking P/E YTD hits cache instantly instead of waiting on a fresh fundamentals fetch. **The v2 / v4 suffixes both stepped in 2026-05** to evict the broken-anchor peSeries rows the prefetch wrote during the ADR P/E fix's intermediate revisions — `PE_TTL_MS = 12 h` plus the prefetch's `fundFresh && peFresh` skip gate meant any browser that hit the site during that window stayed stuck on the wrong values until the TTL elapsed; bumping the algorithm-version suffix is the standard cache-busting move on a breaking shape / math change. Uses the shared `cache.js` (`isFresh` / `hasAnyNumericField` / `trimLru`) and `ticker_class.js` (`isDailyOnly`) helpers so the prefetch + modal can't disagree on freshness or daily-only routing. |
@@ -511,7 +536,7 @@ before this guard landed).
 | `data` | `?action=load` / `?action=save`. Validates the `X-App-Token` header (re-derives HMAC + checks exp + checks role) before reading / writing `board_data`. Service-role key never leaves the function. |
 | `prices` | `?tickers=NVDA,017731,GBPUSD=X,…` → `{ ticker: { lastPrice, extPrice?, prevClose, currency, dayPct, extDayPct? } }`. Routes 6-digit codes to eastmoney's `fundgz.1234567.com.cn`, everything else to Yahoo Finance v8. |
 | `chart` | `?tickers=…&range=1mo&interval=60m&includePrePost=true` → `{ ticker: [{ date, close, volume? }, …] }`. Intraday bars also carry the per-bar `volume` (used by the modal's VWAP overlay). Routes CN funds to a 3-tier eastmoney fallback (pingzhongdata → lsjz JSON → danjuanapp), everything else to Yahoo. `.PVT` placeholders fall back to the bare symbol when Yahoo 404s the literal. |
-| `fundamentals` | `?tickers=NVDA,NBIS,^GSPC,…` → `{ NVDA: { pe, eps, pe3yAvg, ps, ps3yAvg, peg?, ttmEpsHistory? }, NBIS: { pe:0, eps:0, ps, ps3yAvg, … }, ^GSPC: { pe, eps:0, pe3yAvg }, … }`. Powers the ticker-modal P/E YTD AND P/S YTD views. **Individual stocks**: Yahoo `quoteSummary` is the primary source (`trailingPE` / `trailingEps` / `priceToSalesTrailing12Months` / `forwardPE` / `earningsTrend`, all USD-correct for ADRs), with Finnhub `/stock/metric` as the whole-row fallback when Yahoo's crumb handshake fails or it's rate-limited. quoteSummary now 401s anon callers, so `getYahooCrumb()` does the cookie → `/v1/test/getcrumb` → `&crumb=…` handshake once per Edge Function worker and caches the pair in module scope (single-flight guarded so the 6 parallel stock workers don't each handshake). FMP was the primary source through the ADR-currency-fix saga, but it retired its `/v3/` endpoints for post-2025-08-31 keys (403 "Legacy Endpoint") and paywalled the `/stable/` replacements (402), so the whole FMP layer was removed — Finnhub's `peTTM` divides the USD ADR price by the foreign-currency reported EPS (TSM ≈ 1.22 / SFTBY ≈ 0.07 / ASML ≈ 63 — the bug the saga was about), Yahoo's quoteSummary ratios aren't affected. Finnhub still runs in parallel on the happy path to source `pe3yAvg` / `ps3yAvg` from `series.annual.pe` / `series.annual.ps`, since Yahoo doesn't expose historical-annual ratios. The pe/eps/ps validation is relaxed to "any usable ratio surfaces the row" so loss-makers (eps ≤ 0 → no pe) still come back with a ps value for the P/S YTD view. **PEG** = `computePeg(forwardPE, earningsTrend.trend[+5y].growth)` — forward-over-forward; null when either input is missing or growth ≤ 0. **Four big US indices** (`^GSPC`/`^NDX`/`^RUT`/`^SOX`) → Alpha Vantage `OVERVIEW` against ETF proxies (SPY/QQQ/IWM/SOXX) cached for 24 h in `index_fundamentals_cache`; 3Y-avg P/E lives in `INDEX_PE_3Y_AVG` constants. Hardcoded `INDEX_PE_FALLBACK` constants kick in if AV is unreachable. **Opt-in `&ttmEpsHistory=true`** adds a `ttmEpsHistory: [{date, eps}, …]` array sourced from Yahoo's `fundamentals-timeseries` (`trailingDilutedEPS`, 5+ years of pre-summed quarter-end TTM EPS), falling back to a Finnhub `/stock/earnings` sum-of-4-quarters if Yahoo misses. For ADRs the upstream EPS history is reported in the underlying foreign currency, so the Edge Function rescales it to USD via **`normalizeEpsHistoryToUsd(history, usdAnchor)`** before returning. The `usdAnchor` is Yahoo quoteSummary `price/pe` → Yahoo `/v8/finance/chart` `meta.regularMarketPrice ÷ pe` (the no-crumb endpoint, what Yahoo's consumer site uses). When the ratio (anchor / latest history entry) lands within ±20 % the function returns the history untouched (it's already in USD), so US-listed stocks pay no rescaling cost. P/S has no equivalent history rescale — the client uses const current sales-per-share derived from `lastClose / ps`. Index rows return `eps:0` and the client reconstructs an implied EPS from `lastClose / pe`. |
+| `fundamentals` | `?tickers=NVDA,NBIS,^GSPC,…` → `{ NVDA: { pe, eps, pe3yAvg, ps, ps3yAvg, peg?, sharesOutstanding?, ttmEpsHistory?, ttmSalesHistory? }, NBIS: { pe:0, eps:0, ps, ps3yAvg, … }, ^GSPC: { pe, eps:0, pe3yAvg }, … }`. Powers the ticker-modal P/E YTD AND P/S YTD views AND the live `Mkt Cap` line in the modal header. **Individual stocks**: Yahoo `quoteSummary` is the primary source (`trailingPE` / `trailingEps` / `priceToSalesTrailing12Months` / `forwardPE` / `earningsTrend` / `marketCap` / `price`, all USD-correct for ADRs), with Finnhub `/stock/metric` as the whole-row fallback when Yahoo's crumb handshake fails or it's rate-limited. quoteSummary now 401s anon callers, so `getYahooCrumb()` does the cookie → `/v1/test/getcrumb` → `&crumb=…` handshake once per Edge Function worker and caches the pair in module scope (single-flight guarded so the 6 parallel stock workers don't each handshake). FMP was the primary source through the ADR-currency-fix saga, but it retired its `/v3/` endpoints for post-2025-08-31 keys (403 "Legacy Endpoint") and paywalled the `/stable/` replacements (402), so the whole FMP layer was removed — Finnhub's `peTTM` divides the USD ADR price by the foreign-currency reported EPS (TSM ≈ 1.22 / SFTBY ≈ 0.07 / ASML ≈ 63 — the bug the saga was about), Yahoo's quoteSummary ratios aren't affected. Finnhub still runs in parallel on the happy path to source `pe3yAvg` / `ps3yAvg` from `series.annual.pe` / `series.annual.ps`, since Yahoo doesn't expose historical-annual ratios. The pe/eps/ps validation is relaxed to "any usable ratio surfaces the row" so loss-makers (eps ≤ 0 → no pe) still come back with a ps value for the P/S YTD view. **PEG** = `computePeg(forwardPE, computeForwardGrowth(earningsTrend.trend))` — forward-over-forward; the growth denominator is the **blended 2y forward EPS growth**, computed by averaging the `0y` and `+1y` bucket `growth.raw` rates from Yahoo's `earningsTrend.trend` and dropping non-positive buckets. Yahoo retired its `+5y` long-term-growth bucket in May 2026, so the two near-term annual buckets are the only free forward CAGRs left; averaging them is steadier than any single fiscal year for cyclical tech / semi names. Returns null when either forward P/E or blended growth is missing or growth ≤ 0. **`sharesOutstanding`** is derived server-side as `marketCap / regularMarketPrice` rather than read from `defaultKeyStatistics.sharesOutstanding` — Yahoo's "shares outstanding" field for ADRs reports the foreign parent-company share count, which would balloon TSM/SFTBY/ASML market caps by orders of magnitude when the client multiplies it by the USD ADR price. The client uses this to recompute the live `Mkt Cap` line every poll (`livePrice × sharesOutstanding`). **Four big US indices** (`^GSPC`/`^NDX`/`^RUT`/`^SOX`) → Alpha Vantage `OVERVIEW` against ETF proxies (SPY/QQQ/IWM/SOXX) cached for 24 h in `index_fundamentals_cache`; 3Y-avg P/E lives in `INDEX_PE_3Y_AVG` constants. Hardcoded `INDEX_PE_FALLBACK` constants kick in if AV is unreachable. **Opt-in `&ttmEpsHistory=true`** adds a `ttmEpsHistory: [{date, eps}, …]` array sourced from Yahoo's `fundamentals-timeseries` (`trailingDilutedEPS`, 5+ years of pre-summed quarter-end TTM EPS), falling back to a Finnhub `/stock/earnings` sum-of-4-quarters if Yahoo misses. **`&ttmSalesHistory=true`** adds the parallel `ttmSalesHistory: [{date, eps}, …]` array for the P/S YTD view, but built differently: Yahoo's `trailingTotalRevenue` endpoint only ships 2 stale annual points per ticker (confirmed in the May-2026 prod probe), so the function pulls `quarterlyTotalRevenue` and runs `rollingTtmFromRawQuarterly` to sum every 4 consecutive quarters into a TTM series before rescaling to per-share. For ADRs the upstream EPS / revenue histories are reported in the underlying foreign currency, so the Edge Function rescales each to USD via **`normalizeEpsHistoryToUsd(history, usdAnchor)`** before returning. The `usdAnchor` is Yahoo quoteSummary `price/pe` → Yahoo `/v8/finance/chart` `meta.regularMarketPrice ÷ pe` (the no-crumb endpoint, what Yahoo's consumer site uses); for the sales history the anchor is `usdPrice / ps` so the latest entry lines up with `lastClose / ps`. When the ratio (anchor / latest history entry) lands within ±20 % the function returns the history untouched (it's already in USD), so US-listed stocks pay no rescaling cost. Index rows return `eps:0` and the client reconstructs an implied EPS from `lastClose / pe`. |
 | `ops-error` | Two modes, both admin-gated. `POST { kind, symbol?, message?, context? }` with header `x-app-token: <admin token>` → inserts into `ops_errors` (size + length capped; per-row IP captured server-side from `x-forwarded-for`). `GET ?action=summary&hours=24` with the same header → `{ hours, total, byKind, bySymbol }` aggregate over the last N hours, so triage doesn't require a Supabase dashboard login. POST was anon-writeable until 2026-05; the client-side per-(kind, symbol) cooldown + 50-per-load cap was trivially bypassable with random kinds, so the admin token gate now mirrors the summary endpoint's existing one. Trade-off: pre-auth render crashes that fire before the user's pwd → token round-trip completes are no longer captured. |
 
 Every Edge Function's pure helpers (range filtering, HMAC token sign / verify, ticker classification, TTM rolling-sum, market-hour predicate, anti-spam clipper) are exported and pinned by a co-located `index.test.ts` so a `deno test supabase/functions/` run guards them just like vitest guards the client. The `Deno.serve(...)` entrypoint is guarded by `import.meta.main` so importing a function's helpers in a test does NOT bind a port. Cross-function tests (e.g. auth sign + data verify roundtrip) live next to one of the two and import the other directly.
@@ -525,7 +550,7 @@ Every Edge Function's pure helpers (range filtering, HMAC token sign / verify, t
 | `0003_index_fundamentals_cache.sql` | `index_fundamentals_cache` table — server-side 24 h cache of index trailing P/E from Alpha Vantage so the `fundamentals` Edge Function stays well under AV's 25-call/day free tier. |
 | `0004_ops_errors_retention.sql` | `pg_cron` job at 03:00 UTC daily that drops `ops_errors` rows older than 30 days. Keeps the table bounded and the badge's `?action=summary` scan tight. Apply once via Supabase SQL Editor — pg_cron-scheduling SQL doesn't propagate through the edge-functions deploy workflow. |
 | `0005_analyst_estimates_cache.sql` | `analyst_estimates_cache` table — server-side 7-day cache of FMP analyst-consensus 3y EPS-growth CAGR that once fed PEG. Retired by `0006` after PR #114 dropped the FMP layer; kept in history because it was applied to production. |
-| `0006_drop_analyst_estimates_cache.sql` | Drops `analyst_estimates_cache`. PEG now uses Yahoo's 5y EPS-growth figure computed inline in the `fundamentals` Edge Function, so the cache table is dead weight. Forward migration rather than an edit to `0005`. |
+| `0006_drop_analyst_estimates_cache.sql` | Drops `analyst_estimates_cache`. PEG now uses the **blended 2y forward EPS-growth** (mean of `earningsTrend.trend[0y].growth` and `[+1y].growth`) computed inline in the `fundamentals` Edge Function — Yahoo retired its `+5y` long-term-growth bucket in May 2026 so the prior single-bucket approach went null. Either way the cache table is dead weight. Forward migration rather than an edit to `0005`. |
 
 ### Build / config
 
@@ -602,7 +627,7 @@ git clone https://github.com/daviesluo/daviesportfolios
 cd daviesportfolios
 npm install
 npm run dev           # Vite dev server at http://localhost:5173
-npm test              # vitest (170 client-side cases — YTD math, indicators (incl. isPriceAxis live-tail gate), cache + ratio-suffix key pins, ticker shape, fetch strategy, portfolio metrics + FX, lot sanitisation, market-cache + legacy fallback, SW banner suppression window, ops-badge desktop gate, portfolio fingerprint diffing). 30 Deno cases for the fundamentals Edge Function helpers (TTM rollover, USD-anchor rescale, pickPsFields ADR guard, computePeg).
+npm test              # vitest (190 client-side cases — YTD math, indicators (incl. isPriceAxis live-tail gate + extPriceIsRealAh ext-trade verdict), cache + ratio-suffix key pins, ticker shape, fetch strategy, portfolio metrics + FX, lot sanitisation, market-cache + legacy fallback, SW banner suppression window, ops-badge desktop gate, portfolio fingerprint diffing, fmtMoney magnitude tiers). 32 Deno cases for the `fundamentals` Edge Function helpers alone (TTM rollover, USD-anchor rescale, pickPsFields ADR guard, computeForwardGrowth blend, computePeg).
 npm run typecheck     # tsc --noEmit with checkJs
 npm run build         # production bundle to repo root
 npm audit --audit-level=high --omit=dev   # supply-chain check on shipped deps

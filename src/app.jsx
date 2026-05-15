@@ -306,15 +306,22 @@ function Board({ isReadOnly }) {
     //     the actual 16:00 ET bar lines them up. Indices (^VIX / ^TNX
     //     / ^SOX) that don't move in AH end up showing ~0% in ext
     //     mode — same as the modal — which is the expected reading.
-    //   - (ext mode only) today's intraday bars for the US-equity
+    //   - (outside RTH) today's intraday bars for the US-equity
     //     holdings, so each `extPrice` can be validated against the
     //     real pre/post bars the same way the chart modal does. The
     //     position cards used to lean on a ±5% quote-only heuristic
     //     that disagreed with the modal on genuine >5% AH moves (the
     //     CBRS card-vs-modal bug); this gives both the same verdict.
+    //     Fetched whenever we're outside RTH regardless of toggle
+    //     state — pre-populates `extPriceTrusted` so toggling ext on
+    //     doesn't have to fall back to the ±5% heuristic for the
+    //     window before the next auto-refresh (the user explicitly
+    //     asked the toggle to not trigger a refresh). When ext is
+    //     off computeMetrics ignores the verdict anyway, so the
+    //     extra fetch costs network but never affects display.
     const refreshPhase = usMarketPhase(new Date());
-    const extActive = extendedHours && refreshPhase !== "regular";
-    const extHoldingTickers = extActive
+    const wantsExtSeries = refreshPhase !== "regular";
+    const extHoldingTickers = wantsExtSeries
       ? Object.keys(portfolio.holdings).filter(
           (t) => t !== "CASH" && !portfolio.holdings[t]?.isCash && isUsEquity(t),
         )
@@ -354,11 +361,15 @@ function Board({ isReadOnly }) {
         const extPriceVal = u.extPrice ?? next.holdings[t].extPrice ?? null;
         // Real-AH verdict from the intraday series fetched above —
         // the same check the chart modal runs, so the position card
-        // and the modal agree. null when not in ext mode or the
-        // series is missing, so computeMetrics / the modal fall back
-        // to the lightweight quote heuristic.
+        // and the modal agree. Computed whenever the series is
+        // available, regardless of toggle state, so toggling ext on
+        // doesn't have to wait for the next auto-refresh to revalidate
+        // — computeMetrics ignores the verdict when ext is off. null
+        // when no series (regular hours or fetch failed), so the
+        // metrics layer falls back to the lightweight ±5% quote
+        // heuristic.
         const extSer = extSeries[t];
-        const extPriceTrusted = (extActive && Array.isArray(extSer) && extSer.length > 0)
+        const extPriceTrusted = (Array.isArray(extSer) && extSer.length > 0)
           ? extPriceIsRealAh(extSer, extPriceVal, extOpenMins, extCloseMins)
           : null;
         next.holdings[t] = {
@@ -437,6 +448,27 @@ function Board({ isReadOnly }) {
     // the current phase's interval; phase transitions take effect on
     // the next tick (good enough; no precise edge-trigger needed).
     doRefreshRef.current();
+    // Pre-warm the OPPOSITE extended-hours state's chart cache so the
+    // toggle is a cache-hit instead of a 1-2 s cold fetch. The 1D
+    // cache key carries a `reg` / `ext` variant tag (the fetched
+    // window differs by includePrePost), so without this the user
+    // had to hit Refresh after every toggle. The initial doRefresh
+    // above already covered the current state; this covers the other.
+    // Fire-and-forget; the prefetch short-circuits any range whose
+    // cache is already fresh.
+    {
+      const oppPhase = usMarketPhase(new Date());
+      const oppTickers = Object.keys(portfolio.holdings)
+        .filter((t) => t !== "CASH" && !portfolio.holdings[t]?.isCash);
+      const oppSp = (!extendedHours && oppPhase !== "regular") ? "ES=F" : "^GSPC";
+      prefetchAllChartData({
+        tickers: oppTickers,
+        mcTickers: MC_PREFETCH_TICKERS,
+        spSymbol: oppSp,
+        extendedHours: !extendedHours,
+        phase: oppPhase,
+      });
+    }
     let cancelled = false;
     /** @type {ReturnType<typeof setTimeout> | null} */
     let timeoutId = null;
@@ -456,34 +488,6 @@ function Board({ isReadOnly }) {
       if (timeoutId !== null) clearTimeout(timeoutId);
     };
   }, [portfolio !== null]);
-
-  // Refresh when the user toggles extendedHours. The live-price
-  // snapshot and the 1D chart cache both differ by mode (ext fetches
-  // pull pre/post bars; the 1D cache key carries a `reg`/`ext`
-  // variant tag), so without re-firing on toggle a user who flips it
-  // after their initial load keeps the pre-toggle prices on the
-  // scoreboard / heatmap / MC cards AND cache-misses every 1D click,
-  // until the next manual Refresh. The bootstrap useEffect above
-  // already covers the initial mount — its `extendedHours` is
-  // whatever was restored from sessionStorage — so this effect's
-  // "skipped first call" is intentional: the toggle hasn't changed
-  // yet on mount.
-  const prefetchedExtRef = useRef(/** @type {boolean | null} */ (null));
-  useEffect(() => {
-    if (!portfolio) return;
-    if (prefetchedExtRef.current === null) {
-      prefetchedExtRef.current = extendedHours;
-      return; // first run — initial mount already refreshed + prefetched
-    }
-    if (prefetchedExtRef.current === extendedHours) return;
-    prefetchedExtRef.current = extendedHours;
-    // Pull a fresh snapshot for the new mode right away. doRefresh
-    // fetches live prices AND re-prefetches chart data (prefetch:true
-    // default), so one call covers both the stale-prices and the
-    // 1D-cache-miss problems. It reads the now-current extendedHours
-    // via doRefreshRef (the ref-updater effect above runs first).
-    doRefreshRef.current();
-  }, [extendedHours, portfolio]);
 
   // Never substitute extended-hours prices during the regular session — the
   // toggle only takes effect outside RTH so the displayed value stays consistent.
