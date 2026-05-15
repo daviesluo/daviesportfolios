@@ -457,40 +457,32 @@ function Board({ isReadOnly }) {
     };
   }, [portfolio !== null]);
 
-  // Re-prefetch when the user toggles extendedHours. 1D's cache key
-  // includes the variant tag (`reg` vs `ext`) because the fetched
-  // window differs across them (includePrePost on/off); without
-  // re-firing prefetch on toggle, a user who flips the toggle after
-  // their initial load gets a cache miss on every 1D click until the
-  // next manual Refresh. Non-1D ranges + the PE block re-check fresh
-  // entries cheaply and short-circuit, so the cost of running the
-  // whole prefetch here is dominated by just the 1D fetch (~1-2 s).
-  // The bootstrap useEffect above already covers the initial mount —
-  // its `extendedHours` is whatever was restored from sessionStorage
-  // — so this effect's "skipped first call" is intentional: the
-  // toggle hasn't changed yet on mount.
+  // Refresh when the user toggles extendedHours. The live-price
+  // snapshot and the 1D chart cache both differ by mode (ext fetches
+  // pull pre/post bars; the 1D cache key carries a `reg`/`ext`
+  // variant tag), so without re-firing on toggle a user who flips it
+  // after their initial load keeps the pre-toggle prices on the
+  // scoreboard / heatmap / MC cards AND cache-misses every 1D click,
+  // until the next manual Refresh. The bootstrap useEffect above
+  // already covers the initial mount — its `extendedHours` is
+  // whatever was restored from sessionStorage — so this effect's
+  // "skipped first call" is intentional: the toggle hasn't changed
+  // yet on mount.
   const prefetchedExtRef = useRef(/** @type {boolean | null} */ (null));
   useEffect(() => {
     if (!portfolio) return;
     if (prefetchedExtRef.current === null) {
       prefetchedExtRef.current = extendedHours;
-      return; // first run — initial mount already prefetched
+      return; // first run — initial mount already refreshed + prefetched
     }
     if (prefetchedExtRef.current === extendedHours) return;
     prefetchedExtRef.current = extendedHours;
-    // Fire-and-forget; the prefetch will short-circuit any range
-    // whose cache is already fresh, so only 1D actually re-fetches.
-    const phaseNow = usMarketPhase(new Date());
-    const tickerList = Object.keys(portfolio?.holdings || {})
-      .filter((t) => t !== "CASH" && !portfolio.holdings[t]?.isCash);
-    const sp = (extendedHours && phaseNow !== "regular") ? "ES=F" : "^GSPC";
-    prefetchAllChartData({
-      tickers: tickerList,
-      mcTickers: MC_PREFETCH_TICKERS,
-      spSymbol: sp,
-      extendedHours,
-      phase: phaseNow,
-    });
+    // Pull a fresh snapshot for the new mode right away. doRefresh
+    // fetches live prices AND re-prefetches chart data (prefetch:true
+    // default), so one call covers both the stale-prices and the
+    // 1D-cache-miss problems. It reads the now-current extendedHours
+    // via doRefreshRef (the ref-updater effect above runs first).
+    doRefreshRef.current();
   }, [extendedHours, portfolio]);
 
   // Never substitute extended-hours prices during the regular session — the
