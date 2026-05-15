@@ -32,6 +32,7 @@ import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
+import { fetchTrading212Holdings, applyTrading212 } from './trading212.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
 class ErrorBoundary extends React.Component {
@@ -326,13 +327,21 @@ function Board({ isReadOnly }) {
           (t) => t !== "CASH" && !portfolio.holdings[t]?.isCash && isUsEquity(t),
         )
       : [];
-    const [{ updates, source: src }, mcResult, todayCloses, extSeries] = await Promise.all([
+    const [{ updates, source: src }, mcResult, todayCloses, extSeries, t212Holdings] = await Promise.all([
       refreshPrices(portfolio, "live"),
       fetchTickers(MC_TICKERS),
       fetchTodayRegularClose(MC_TICKERS),
       extHoldingTickers.length > 0
         ? fetchHistoricalBatch(extHoldingTickers, "1d", "5m", true).catch(() => ({}))
         : Promise.resolve({}),
+      // Trading 212 auto-sync for VUAG.L / SEGM.L. Server-cached at
+      // 120 s (4× T212's 1-req-per-30-s window) and gated by an
+      // atomic Postgres claim so multi-device refreshes share a
+      // single upstream call. Returns null when the API key/secret
+      // aren't configured or the upstream errored — applyTrading212
+      // no-ops in that case and we keep whatever lots the user last
+      // saved manually.
+      fetchTrading212Holdings(),
     ]);
     if (mcResult) {
       for (const [t, c] of Object.entries(todayCloses || {})) {
@@ -397,6 +406,14 @@ function Board({ isReadOnly }) {
         setFlashTickers(flashes);
         setTimeout(() => setFlashTickers({}), 1200);
       }
+      // Trading 212 auto-sync overlay — runs after the live-prices
+      // merge so the price/extPrice fields above stay the source of
+      // truth for the LIVE market data, and the T212 sync only
+      // touches `lots` / `shares` / `cost` on the allow-listed
+      // tickers (VUAG.L, SEGM.L). When the API key isn't set or
+      // the upstream errored, applyTrading212 is a no-op and the
+      // user's last-saved local lots stay put.
+      applyTrading212(next.holdings, t212Holdings);
       return next;
     });
     setLastUpdated(new Date());
