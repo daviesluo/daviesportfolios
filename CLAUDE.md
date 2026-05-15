@@ -4,9 +4,15 @@ A few standing instructions for Claude Code sessions.
 
 ## Git workflow
 
-- **Push directly to `main`.** No feature branches, no PRs. Each commit
-  is its own logical unit; if the work spans multiple concerns, split
-  into multiple commits before pushing.
+- **Default to direct push on `main`.** No feature branches needed for
+  small / mechanical changes (typo, copy-edit, dep bump, single-file
+  fix). Each commit is its own logical unit; if the work spans multiple
+  concerns, split into multiple commits before pushing.
+- **Open a PR for larger / multi-file changes** where you want Codex
+  review (`@codex` bot only triggers on PRs) — e.g. new Edge Function,
+  cross-cutting refactor, anything that touches `auth` or migration
+  state. When a PR is open the post-merge commit map is fine to land
+  through it.
 - Run `npm test`, `npm run typecheck`, and `npm run build` locally
   before every push — only push if all three are green.
 - Cloudflare Pages and the `typecheck-and-build` GitHub Action run on
@@ -43,13 +49,14 @@ the function's pure helpers from `index.test.ts` would bind a port.
 ## Testing
 
 - `npm run typecheck` — tsc with `checkJs`, no type errors should slip through.
-- `npm test` — vitest. 170 cases as of this writing: YTD chart math,
-  fetch/proxy strategy, ticker-shape predicates, cache TTL + LRU,
-  market-cache + legacy fallback, SW banner suppression window,
-  ops-badge desktop gate, portfolio user-fingerprint diffing, and
-  the chart-modal indicator math (MA / VWAP / TTM-EPS-P/E /
-  extended-hours-bar detection). Add a pin test whenever a regression
-  is fixed so the bug can't quietly come back.
+- `npm test` — vitest. ~200 cases covering: YTD chart math, fetch /
+  proxy strategy, ticker-shape predicates, cache TTL + LRU, per-proxy
+  backoff, market-cache + legacy fallback, SW banner suppression
+  window, ops-badge desktop gate, portfolio user-fingerprint diffing,
+  T212 sync application, and the chart-modal indicator math (MA /
+  VWAP / TTM-EPS-P/E / extended-hours-bar detection). Add a pin
+  test whenever a regression is fixed so the bug can't quietly come
+  back.
 - `npm run build` — Vite production bundle, output to repo root.
 - `deno test --allow-env supabase/functions/` — Edge Function pin
   tests. Required locally before pushing changes to any
@@ -69,10 +76,12 @@ version (`Utils.Storage.migrate()`). When the data shape changes, bump
 `CURRENT_SCHEMA_VERSION` in `src/utils.js` and add a migration step
 instead of inventing a new key.
 
-## Codex / PR review (legacy — currently unused)
+## Codex / PR review
 
 Codex's `@codex` bot reviews PRs only, not direct commits to `main`.
-With the current push-to-main workflow there's no automated review
-— the human user catches issues via Cloudflare preview deploys and
-real-world testing. If a future change re-introduces PRs, the old
-"check Codex's `get_review_comments` before merging" rule applies again.
+For direct-push changes the human user catches issues via Cloudflare
+preview deploys and real-world testing. When you DO open a PR (for
+larger work — see "Git workflow" above), wait for Codex's review and
+respond to its `get_review_comments` before merging. The recent T212
+rollout (PR #129) caught both the per-share-vs-total cost bug and the
+boundary-race concern this way.
