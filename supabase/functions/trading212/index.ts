@@ -35,12 +35,15 @@
 // the worker that successfully updates `updated_at` calls T212;
 // losers serve whatever the winner already wrote.
 //
-// `T212_API_KEY` + `T212_API_SECRET` env vars are required for live
-// calls (HTTP Basic Auth — T212's current two-key scheme uses
-// key-id as username and secret as password). When either is
-// absent the function returns `source: 'disabled'` + empty
-// holdings so the client can no-op. T212 errors fall back to stale
-// cache up to STALE_OK_MS old.
+// `T212_API_KEY` env var is required for live calls — T212's
+// documented public API auth is a single key passed as the raw
+// `Authorization` header value (no `Bearer ` prefix, no Basic
+// encoding; see https://t212public-api-docs.redoc.ly/). The
+// optional `T212_API_SECRET` is used as a fallback HTTP Basic Auth
+// password in case the account / API version actually requires the
+// two-key scheme. When `T212_API_KEY` is absent the function
+// returns `source: 'disabled'` + empty holdings so the client can
+// no-op. T212 errors fall back to stale cache up to STALE_OK_MS old.
 
 // Yahoo ticker → T212 internal ticker. The T212 convention for LSE is
 // `<TICKER>l_EQ` (lowercase 'l' exchange suffix + `_EQ`). The function
@@ -189,12 +192,27 @@ async function writeCacheRow(data: unknown): Promise<void> {
 }
 
 async function fetchT212Portfolio(): Promise<unknown> {
-  const res = await fetch(T212_PORTFOLIO_URL, {
+  // Try T212's documented single-key auth first: the raw API key as
+  // the Authorization header value, no prefix, no encoding. This is
+  // what t212public-api-docs.redoc.ly specifies. If the account /
+  // API version actually requires the two-key Basic Auth flavor a
+  // user-side AI floated, fall back to that on 401 only — every
+  // upstream call burns a 30s rate-limit slot, so the fallback is
+  // gated behind an actual auth failure.
+  let res = await fetch(T212_PORTFOLIO_URL, {
     headers: {
-      authorization: basicAuthHeader(T212_API_KEY, T212_API_SECRET),
+      authorization: T212_API_KEY,
       accept: "application/json",
     },
   });
+  if (res.status === 401 && T212_API_SECRET) {
+    res = await fetch(T212_PORTFOLIO_URL, {
+      headers: {
+        authorization: basicAuthHeader(T212_API_KEY, T212_API_SECRET),
+        accept: "application/json",
+      },
+    });
+  }
   if (!res.ok) {
     // Include a short body snippet so the catch-path's `error` field
     // can show what T212 actually said — without it `stale` is opaque
@@ -216,7 +234,7 @@ if (import.meta.main) {
       });
     }
 
-    if (!T212_API_KEY || !T212_API_SECRET) {
+    if (!T212_API_KEY) {
       return new Response(JSON.stringify({
         holdings: {},
         updatedAt: new Date().toISOString(),
