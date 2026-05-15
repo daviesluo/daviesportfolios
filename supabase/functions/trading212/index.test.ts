@@ -2,23 +2,27 @@
 // entrypoint is guarded by `if (import.meta.main)` so importing the
 // module here doesn't bind a port.
 //
-//   - `shapeT212Portfolio` — ticker allow-list + pence/GBX → GBP
-//     normalization + the per-row finiteness guard.
+//   - `shapeT212Portfolio` — ticker allow-list + per-row finiteness
+//     guard + cost-is-per-share-AC contract.
 //   - `cacheIsFresh` — TTL predicate independent of system clock.
+//   - `basicAuthHeader` — T212's two-key HTTP Basic encoding.
 
 import { assert, assertEquals } from "https://deno.land/std@0.218.0/assert/mod.ts";
-import { shapeT212Portfolio, cacheIsFresh } from "./index.ts";
+import { shapeT212Portfolio, cacheIsFresh, basicAuthHeader } from "./index.ts";
 
-Deno.test("shapeT212Portfolio — VUAGl_EQ / SEGMl_EQ get mapped + pence-normalized; cost is per-share", () => {
+Deno.test("shapeT212Portfolio — VUAGl_EQ / SEGMl_EQ map to Yahoo tickers; cost is per-share GBP", () => {
+  // T212's averagePrice for VUAG.L / SEGM.L is GBP per share (NOT
+  // pence) — these are GBP-denominated UCITS ETFs and T212 reports
+  // in the instrument's settle currency. The Edge Function passes
+  // averagePrice through unchanged; lot.cost / h.cost is per-share
+  // AC everywhere in the app (metrics.js multiplies h.shares * h.cost
+  // for total cost; weightedAvgCost does shares * cost).
   const raw = [
-    { ticker: "VUAGl_EQ", quantity: 12.5, averagePrice: 9600 },   // 96.00 GBP per share
-    { ticker: "SEGMl_EQ", quantity: 30,   averagePrice: 1234.5 }, // 12.345 GBP per share
+    { ticker: "VUAGl_EQ", quantity: 12.5, averagePrice: 96.00 },
+    { ticker: "SEGMl_EQ", quantity: 30,   averagePrice: 12.345 },
   ];
   const out = shapeT212Portfolio(raw);
   assertEquals(out["VUAG.L"].shares, 12.5);
-  // cost is PER-SHARE AC, not total — lot.cost / h.cost is the per-share
-  // value the rest of the app multiplies by shares (see metrics.js
-  // `h.shares * h.cost * fx` and lots.js `weightedAvgCost`'s shares*cost).
   assertEquals(out["VUAG.L"].cost, 96.00);
   assertEquals(out["SEGM.L"].shares, 30);
   assertEquals(out["SEGM.L"].cost, 12.345);
@@ -27,7 +31,7 @@ Deno.test("shapeT212Portfolio — VUAGl_EQ / SEGMl_EQ get mapped + pence-normali
 Deno.test("shapeT212Portfolio — non-allowlisted tickers are dropped", () => {
   const raw = [
     { ticker: "AAPL_US_EQ", quantity: 10, averagePrice: 150 },
-    { ticker: "VUAGl_EQ", quantity: 5,    averagePrice: 9000 },
+    { ticker: "VUAGl_EQ", quantity: 5,    averagePrice: 90.00 },
   ];
   const out = shapeT212Portfolio(raw);
   assert(!("AAPL" in out));
@@ -37,11 +41,11 @@ Deno.test("shapeT212Portfolio — non-allowlisted tickers are dropped", () => {
 
 Deno.test("shapeT212Portfolio — non-positive quantity / averagePrice are dropped", () => {
   const raw = [
-    { ticker: "VUAGl_EQ", quantity: 0,   averagePrice: 9600 },
-    { ticker: "VUAGl_EQ", quantity: -1,  averagePrice: 9600 },
+    { ticker: "VUAGl_EQ", quantity: 0,   averagePrice: 96 },
+    { ticker: "VUAGl_EQ", quantity: -1,  averagePrice: 96 },
     { ticker: "VUAGl_EQ", quantity: 10,  averagePrice: 0 },
     { ticker: "VUAGl_EQ", quantity: 10,  averagePrice: -50 },
-    { ticker: "VUAGl_EQ", quantity: NaN, averagePrice: 9600 },
+    { ticker: "VUAGl_EQ", quantity: NaN, averagePrice: 96 },
   ];
   const out = shapeT212Portfolio(raw);
   assertEquals(out, {});
@@ -59,18 +63,28 @@ Deno.test("shapeT212Portfolio — malformed input returns empty map (not throws)
 Deno.test("cacheIsFresh — within TTL is fresh", () => {
   const now = 1_700_000_000_000;
   const fiveSecAgo = new Date(now - 5_000).toISOString();
-  assert(cacheIsFresh(fiveSecAgo, now, 30_000));
+  assert(cacheIsFresh(fiveSecAgo, now, 120_000));
 });
 
 Deno.test("cacheIsFresh — beyond TTL is stale", () => {
   const now = 1_700_000_000_000;
-  const oneMinAgo = new Date(now - 60_000).toISOString();
-  assert(!cacheIsFresh(oneMinAgo, now, 30_000));
+  const twoMinAgo = new Date(now - 130_000).toISOString();
+  assert(!cacheIsFresh(twoMinAgo, now, 120_000));
 });
 
 Deno.test("cacheIsFresh — null / malformed timestamps are stale", () => {
   const now = 1_700_000_000_000;
-  assert(!cacheIsFresh(null, now, 30_000));
-  assert(!cacheIsFresh("not-a-date", now, 30_000));
-  assert(!cacheIsFresh("", now, 30_000));
+  assert(!cacheIsFresh(null, now, 120_000));
+  assert(!cacheIsFresh("not-a-date", now, 120_000));
+  assert(!cacheIsFresh("", now, 120_000));
+});
+
+Deno.test("basicAuthHeader — base64(keyId:secret) with `Basic ` prefix", () => {
+  // T212's HTTP Basic uses the API key id as username and the API
+  // secret as password, joined with a single colon and base64-encoded.
+  assertEquals(basicAuthHeader("user", "pass"), "Basic dXNlcjpwYXNz");
+  assertEquals(
+    basicAuthHeader("abc123", "secret-with-dashes"),
+    "Basic " + btoa("abc123:secret-with-dashes"),
+  );
 });
