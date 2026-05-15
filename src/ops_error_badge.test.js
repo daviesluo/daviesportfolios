@@ -55,7 +55,19 @@ describe('isDesktopViewport', () => {
 });
 
 describe('latestErrorAt', () => {
-  it('returns the newest bySymbol latestAt as a ms-epoch timestamp', () => {
+  it('prefers the summary-level latestAt over the (sliced) bySymbol max', () => {
+    // bySymbol is sliced to the top-100-by-count server-side, so a
+    // newer one-off error can be missing from it. summary.latestAt is
+    // computed before slicing — trust it even when every bySymbol row
+    // is older (otherwise Acknowledge could hide an unacked error).
+    const summary = {
+      latestAt: '2026-05-15T09:00:00Z',                                 // server-computed, pre-slice
+      bySymbol: [{ symbol: 'NVDA', latestAt: '2026-05-15T03:00:00Z' }],  // stale top-100 slice
+    };
+    expect(latestErrorAt(summary)).toBe(Date.parse('2026-05-15T09:00:00Z'));
+  });
+
+  it('falls back to the newest bySymbol latestAt when summary.latestAt is absent (older Edge Function)', () => {
     const summary = {
       bySymbol: [
         { symbol: 'CBRS', latestAt: '2026-05-15T00:10:58Z' },

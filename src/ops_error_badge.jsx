@@ -49,16 +49,24 @@ export function isDesktopViewport(matchMediaFn) {
 }
 
 /**
- * Newest error timestamp (ms epoch) in an ops-error summary, taken
- * from the `bySymbol` rows' `latestAt`. Drives the Acknowledge gate:
- * the badge hides while every error is at-or-before the acknowledged
- * timestamp, and reappears the moment a newer one lands. Returns 0
- * for an empty / missing / unparseable summary — the badge then
- * stays visible (fail toward showing errors, not swallowing them).
- * @param {{ bySymbol?: any[] } | null | undefined} summary  ops-error summary (external API shape)
+ * Newest error timestamp (ms epoch) in an ops-error summary. Prefers
+ * the summary-level `latestAt` (computed server-side across ALL rows,
+ * before `bySymbol` is sliced to the top 100); falls back to the max
+ * over `bySymbol` for older Edge Function deploys that don't emit the
+ * field yet. Drives the Acknowledge gate: the badge hides while every
+ * error is at-or-before the acknowledged timestamp, and reappears the
+ * moment a newer one lands. Returns 0 for an empty / missing /
+ * unparseable summary — the badge then stays visible (fail toward
+ * showing errors, not swallowing them).
+ * @param {{ latestAt?: string, bySymbol?: any[] } | null | undefined} summary  ops-error summary (external API shape)
  */
 export function latestErrorAt(summary) {
-  const rows = summary && Array.isArray(summary.bySymbol) ? summary.bySymbol : [];
+  if (!summary) return 0;
+  // Prefer the unsliced, server-computed timestamp; bySymbol is the
+  // top-100-by-count slice and can omit a newer one-off error.
+  const direct = Date.parse(summary.latestAt);
+  if (isFinite(direct)) return direct;
+  const rows = Array.isArray(summary.bySymbol) ? summary.bySymbol : [];
   let max = 0;
   for (const r of rows) {
     const t = Date.parse(r?.latestAt);
