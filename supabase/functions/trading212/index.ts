@@ -20,10 +20,13 @@
 // — a single synthetic lot replacing whatever was there.
 //
 // All visitors call this on every doRefresh, so the response is
-// cached server-side at `public.trading212_cache` for 30 s. With the
-// cache, N concurrent visitors share a single upstream call per
-// window — without it, two visitors refreshing simultaneously would
-// blow through T212's 1-req-per-30-s rate limit on `/equity/portfolio`.
+// cached server-side at `public.trading212_cache` for 60 s (T212's
+// rate limit is 1 req / 30 s; 60 s gives a 30 s safety margin in
+// case two Edge Function workers race past the freshness check at
+// the same instant). With the cache, N concurrent visitors share
+// a single upstream call per window — without it, two visitors
+// refreshing simultaneously would blow through the rate limit on
+// `/equity/portfolio`.
 //
 // `TRADING212_API_KEY` env var is required for live calls; when
 // absent the function returns `source: 'disabled'` and an empty
@@ -52,7 +55,12 @@ function isPenceDenominated(yahooTicker: string): boolean {
   return false;
 }
 
-const CACHE_TTL_MS = 30_000;        // matches client auto-refresh + T212 rate limit
+// 60 s TTL — comfortably under T212's `1 req / 30 s` rate limit on
+// `/equity/portfolio` (1 req / 60 s leaves a 30 s safety margin in case
+// two Edge Function workers race past the cache check at the same
+// instant). T212 data lags client-displayed prices a little but DCA
+// activity isn't time-sensitive enough to need 30 s freshness.
+const CACHE_TTL_MS = 60_000;
 const STALE_OK_MS  = 5 * 60_000;    // serve stale up to 5 min on upstream error
 
 const SB_URL      = Deno.env.get("SUPABASE_URL") ?? "https://flmvxigozjuizpckllvk.supabase.co";
