@@ -9,16 +9,19 @@
 import { assert, assertEquals } from "https://deno.land/std@0.218.0/assert/mod.ts";
 import { shapeT212Portfolio, cacheIsFresh } from "./index.ts";
 
-Deno.test("shapeT212Portfolio — VUAGl_EQ / SEGMl_EQ get mapped + pence-normalized", () => {
+Deno.test("shapeT212Portfolio — VUAGl_EQ / SEGMl_EQ get mapped + pence-normalized; cost is per-share", () => {
   const raw = [
     { ticker: "VUAGl_EQ", quantity: 12.5, averagePrice: 9600 },   // 96.00 GBP per share
     { ticker: "SEGMl_EQ", quantity: 30,   averagePrice: 1234.5 }, // 12.345 GBP per share
   ];
   const out = shapeT212Portfolio(raw);
   assertEquals(out["VUAG.L"].shares, 12.5);
-  assertEquals(out["VUAG.L"].cost, 12.5 * 96.00);
+  // cost is PER-SHARE AC, not total — lot.cost / h.cost is the per-share
+  // value the rest of the app multiplies by shares (see metrics.js
+  // `h.shares * h.cost * fx` and lots.js `weightedAvgCost`'s shares*cost).
+  assertEquals(out["VUAG.L"].cost, 96.00);
   assertEquals(out["SEGM.L"].shares, 30);
-  assertEquals(out["SEGM.L"].cost, 30 * 12.345);
+  assertEquals(out["SEGM.L"].cost, 12.345);
 });
 
 Deno.test("shapeT212Portfolio — non-allowlisted tickers are dropped", () => {
