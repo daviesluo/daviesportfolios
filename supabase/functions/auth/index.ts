@@ -34,6 +34,7 @@ const CORS = {
 const TOKEN_TTL_MS  = 24 * 60 * 60 * 1000;
 const MAX_ATTEMPTS  = 3;
 const LOCKOUT_MS    = 24 * 60 * 60 * 1000;
+export const WRONG_PASSWORD_DELAY_MS = 500;
 
 const ADMIN_PWD    = Deno.env.get("APP_ADMIN_PWD") ?? "";
 const RO_PWD       = Deno.env.get("APP_RO_PWD") ?? "";
@@ -67,11 +68,30 @@ export async function makeToken(role: "admin" | "ro", secret = SECRET, ttlMs = T
   return `${payload}.${signature}`;
 }
 
+// IP priority (most-trusted first):
+//   1. `cf-connecting-ip` — only set by Cloudflare (none in our path
+//      today, but harmless to honor first if it ever appears).
+//   2. `x-real-ip` — standard reverse-proxy header that Supabase's
+//      gateway sets to the actual client; not client-settable end-to-end.
+//   3. **Last** entry of `x-forwarded-for`, NOT the first. Proxies
+//      append their source as they forward, so the last value is the
+//      most-trusted (set by Supabase's edge); the first entry is
+//      whatever the original client sent and is trivially spoofable.
+//      The pre-2026 implementation took `xff[0]`, which let an
+//      attacker rotate `x-forwarded-for: 1.2.3.4` per request and
+//      bypass the per-IP lockout entirely.
+//   4. "unknown" sentinel — keeps the limiter keyed per-deploy so a
+//      missing header doesn't silently bypass everything.
 export function clientIpFromHeaders(req: Request): string {
   const cf = req.headers.get("cf-connecting-ip");
   if (cf) return cf;
+  const xri = req.headers.get("x-real-ip");
+  if (xri) return xri;
   const xff = req.headers.get("x-forwarded-for");
-  if (xff) return xff.split(",")[0].trim();
+  if (xff) {
+    const parts = xff.split(",").map((s) => s.trim()).filter(Boolean);
+    if (parts.length > 0) return parts[parts.length - 1];
+  }
   return "unknown";
 }
 
@@ -174,6 +194,16 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
   // Wrong password → atomic increment via SQL function. The function
   // handles the threshold check in a single statement so concurrent
   // wrong-password requests can't race-read the same counter.
+  //
+  // Also pause ~500 ms before responding: with a 4-digit numeric
+  // password (10⁴ keyspace) and IP-rotation defeating the per-IP
+  // lockout, the throughput of a brute-force run is what slows the
+  // attacker. 500 ms × 10000 = ~83 min minimum offline-ish; a real
+  // user typing a wrong password notices nothing. Pin chosen at
+  // 500ms by `WRONG_PASSWORD_DELAY_MS` so the test suite can assert
+  // it stays on (regressions that drop the delay to 0 would silently
+  // restore the brute-force window).
+  await new Promise((r) => setTimeout(r, WRONG_PASSWORD_DELAY_MS));
   const result = await bumpAttempt(ip, MAX_ATTEMPTS, LOCKOUT_MS);
   if (result?.locked_out) {
     return json(429, { error: "locked", lockoutUntil: result.lockout_until_out ?? Date.now() + LOCKOUT_MS });

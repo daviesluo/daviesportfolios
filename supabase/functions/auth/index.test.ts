@@ -7,7 +7,13 @@
 // CI runs the same via the deploy workflow.
 
 import { assertEquals, assert, assertNotEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { b64url, sign, makeToken, clientIpFromHeaders } from "./index.ts";
+import {
+  b64url,
+  sign,
+  makeToken,
+  clientIpFromHeaders,
+  WRONG_PASSWORD_DELAY_MS,
+} from "./index.ts";
 import { verifyToken } from "../data/index.ts";
 
 Deno.test("b64url: url-safe alphabet, no padding", () => {
@@ -65,18 +71,48 @@ Deno.test("verifyToken: refuses to operate with an empty secret", async () => {
   assertEquals(await verifyToken("a.b", ""), null);
 });
 
-Deno.test("clientIpFromHeaders: cf-connecting-ip wins over x-forwarded-for", () => {
+Deno.test("clientIpFromHeaders: cf-connecting-ip wins over x-real-ip and x-forwarded-for", () => {
   const req = new Request("https://x", {
-    headers: { "cf-connecting-ip": "1.2.3.4", "x-forwarded-for": "5.6.7.8" },
+    headers: {
+      "cf-connecting-ip": "1.2.3.4",
+      "x-real-ip":        "9.9.9.9",
+      "x-forwarded-for":  "5.6.7.8",
+    },
   });
   assertEquals(clientIpFromHeaders(req), "1.2.3.4");
 });
 
-Deno.test("clientIpFromHeaders: x-forwarded-for falls back when no cf header; first IP only", () => {
-  const req = new Request("https://x", { headers: { "x-forwarded-for": "10.0.0.1, 10.0.0.2" } });
+Deno.test("clientIpFromHeaders: x-real-ip wins over x-forwarded-for when no cf header", () => {
+  const req = new Request("https://x", {
+    headers: { "x-real-ip": "9.9.9.9", "x-forwarded-for": "5.6.7.8" },
+  });
+  assertEquals(clientIpFromHeaders(req), "9.9.9.9");
+});
+
+Deno.test("clientIpFromHeaders: x-forwarded-for takes the LAST entry, not the first", () => {
+  // Proxies append as they forward, so the last hop is the gateway's
+  // truth. The first entry is what the original client sent and is
+  // trivially spoofable — a per-IP limiter that keys off the first
+  // entry can be bypassed by rotating `x-forwarded-for: 1.2.3.4`.
+  const req = new Request("https://x", {
+    headers: { "x-forwarded-for": "spoofed-by-client, 10.0.0.2, 172.16.0.5" },
+  });
+  assertEquals(clientIpFromHeaders(req), "172.16.0.5");
+});
+
+Deno.test("clientIpFromHeaders: x-forwarded-for with one entry returns that entry", () => {
+  const req = new Request("https://x", { headers: { "x-forwarded-for": "10.0.0.1" } });
   assertEquals(clientIpFromHeaders(req), "10.0.0.1");
 });
 
 Deno.test("clientIpFromHeaders: missing headers → 'unknown' sentinel (limiter keys safely)", () => {
   assertEquals(clientIpFromHeaders(new Request("https://x")), "unknown");
+});
+
+Deno.test("WRONG_PASSWORD_DELAY_MS is on (regressions to 0 would re-open the brute-force window)", () => {
+  // 4-digit numeric passwords have a 10⁴ keyspace; per-IP lockout
+  // can be bypassed by IP rotation, so the response-latency throttle
+  // is the secondary defense. Pin it on so a future refactor that
+  // accidentally drops the await would break CI.
+  assert(WRONG_PASSWORD_DELAY_MS >= 200);
 });
