@@ -6,9 +6,20 @@
 //     guard + cost-is-per-share-AC contract.
 //   - `cacheIsFresh` — TTL predicate independent of system clock.
 //   - `basicAuthHeader` — T212's two-key HTTP Basic encoding.
+//   - `sign` / `verifyToken` — HMAC-signed app-token gate. Duplicated
+//     across functions (no shared modules in Supabase Edge Runtime);
+//     pinned here so a refactor of `data/index.ts`'s copy doesn't
+//     silently desync this one.
 
 import { assert, assertEquals } from "https://deno.land/std@0.218.0/assert/mod.ts";
-import { shapeT212Portfolio, cacheIsFresh, basicAuthHeader } from "./index.ts";
+import {
+  shapeT212Portfolio,
+  cacheIsFresh,
+  basicAuthHeader,
+  b64url,
+  sign,
+  verifyToken,
+} from "./index.ts";
 
 Deno.test("shapeT212Portfolio — VUAGl_EQ / SEGMl_EQ map to Yahoo tickers; cost is per-share GBP", () => {
   // T212's averagePrice for VUAG.L / SEGM.L is GBP per share (NOT
@@ -87,4 +98,42 @@ Deno.test("basicAuthHeader — base64(keyId:secret) with `Basic ` prefix", () =>
     basicAuthHeader("abc123", "secret-with-dashes"),
     "Basic " + btoa("abc123:secret-with-dashes"),
   );
+});
+
+Deno.test("verifyToken — admin token roundtrip with same secret", async () => {
+  const secret = "t212-test-secret";
+  const payload = b64url(JSON.stringify({ role: "admin", exp: Date.now() + 60_000 }));
+  const signature = await sign(payload, secret);
+  const v = await verifyToken(`${payload}.${signature}`, secret);
+  assertEquals(v?.role, "admin");
+});
+
+Deno.test("verifyToken — ro token also accepted (RO viewers see synced holdings)", async () => {
+  const secret = "t212-test-secret";
+  const payload = b64url(JSON.stringify({ role: "ro", exp: Date.now() + 60_000 }));
+  const signature = await sign(payload, secret);
+  const v = await verifyToken(`${payload}.${signature}`, secret);
+  assertEquals(v?.role, "ro");
+});
+
+Deno.test("verifyToken — rejects expired token", async () => {
+  const secret = "t212-test-secret";
+  const payload = b64url(JSON.stringify({ role: "admin", exp: Date.now() - 1 }));
+  const signature = await sign(payload, secret);
+  assertEquals(await verifyToken(`${payload}.${signature}`, secret), null);
+});
+
+Deno.test("verifyToken — rejects bad signature", async () => {
+  const secret = "t212-test-secret";
+  const payload = b64url(JSON.stringify({ role: "admin", exp: Date.now() + 60_000 }));
+  const signature = await sign(payload, "different-secret");
+  assertEquals(await verifyToken(`${payload}.${signature}`, secret), null);
+});
+
+Deno.test("verifyToken — rejects missing dot / empty / malformed", async () => {
+  const secret = "t212-test-secret";
+  assertEquals(await verifyToken("", secret), null);
+  assertEquals(await verifyToken("no-dot", secret), null);
+  assertEquals(await verifyToken(".sig-only", secret), null);
+  assertEquals(await verifyToken("payload-only.", secret), null);
 });

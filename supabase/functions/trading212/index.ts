@@ -44,6 +44,14 @@
 // two-key scheme. When `T212_API_KEY` is absent the function
 // returns `source: 'disabled'` + empty holdings so the client can
 // no-op. T212 errors fall back to stale cache up to STALE_OK_MS old.
+//
+// Token-gated by the same HMAC-signed `x-app-token` the `data` /
+// `ops-error` functions use — admin OR ro is accepted, since the
+// read-only "screenshot" mode is supposed to see synced holdings
+// the same way it sees the rest of the portfolio. Holdings are PII
+// and an anonymous endpoint would leak the owner's share counts
+// and average cost to anyone with the function URL. Requires the
+// `APP_AUTH_SECRET` env var (same value as the `auth` function).
 
 // Yahoo ticker → T212 internal ticker. The T212 convention for LSE is
 // `<TICKER>l_EQ` (lowercase 'l' exchange suffix + `_EQ`). The function
@@ -59,6 +67,7 @@ const STALE_OK_MS  = 5 * 60_000;    // serve stale up to 5 min on upstream error
 
 const SB_URL      = Deno.env.get("SUPABASE_URL") ?? "https://flmvxigozjuizpckllvk.supabase.co";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const APP_AUTH_SECRET = Deno.env.get("APP_AUTH_SECRET") ?? "";
 const T212_API_KEY    = Deno.env.get("T212_API_KEY") ?? "";
 const T212_API_SECRET = Deno.env.get("T212_API_SECRET") ?? "";
 
@@ -67,8 +76,48 @@ const T212_PORTFOLIO_URL = "https://live.trading212.com/api/v0/equity/portfolio"
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-app-token",
 };
+
+// HMAC-signed token verification. Duplicates `data/index.ts`'s
+// `verifyToken` because Supabase Edge Functions don't have a
+// shared-module mechanism — pinned in this file's own
+// `index.test.ts` so refactoring one without the other can't
+// silently land.
+const enc = new TextEncoder();
+
+export function b64url(bytes: Uint8Array | string): string {
+  const buf = typeof bytes === "string" ? enc.encode(bytes) : bytes;
+  return btoa(String.fromCharCode(...buf))
+    .replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+}
+
+export async function sign(payload: string, secret: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
+  return b64url(new Uint8Array(sig));
+}
+
+export async function verifyToken(
+  token: string,
+  secret = APP_AUTH_SECRET,
+): Promise<{ role: "admin" | "ro"; exp: number } | null> {
+  if (!secret) return null;
+  const [payloadB64, sigB64] = token.split(".");
+  if (!payloadB64 || !sigB64) return null;
+  const expected = await sign(payloadB64, secret);
+  if (expected !== sigB64) return null;
+  try {
+    const padded = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
+    const json = atob(padded + "=".repeat((4 - padded.length % 4) % 4));
+    const obj = JSON.parse(json);
+    if (typeof obj?.exp !== "number" || obj.exp < Date.now()) return null;
+    if (obj?.role !== "admin" && obj?.role !== "ro") return null;
+    return obj;
+  } catch { return null; }
+}
 
 /**
  * Pick out the allow-listed tickers from a raw T212 `/equity/portfolio`
@@ -239,6 +288,17 @@ if (import.meta.main) {
     if (req.method !== "GET") {
       return new Response(JSON.stringify({ error: "method not allowed" }), {
         status: 405, headers: { ...CORS, "content-type": "application/json" },
+      });
+    }
+
+    // Token gate. Either admin or ro is fine — read-only viewers
+    // should see the synced holdings the same as the rest of the
+    // portfolio. Anonymous callers get 401 so the holdings aren't
+    // world-readable through the function URL.
+    const verified = await verifyToken(req.headers.get("x-app-token") ?? "");
+    if (!verified) {
+      return new Response(JSON.stringify({ error: "invalid token" }), {
+        status: 401, headers: { ...CORS, "content-type": "application/json" },
       });
     }
 

@@ -18,7 +18,8 @@
 // just overwrite the manual edit on the next tick, which is the
 // stated behaviour ("永远也可以手动编辑，api拉到最新数据了再覆盖就行").
 
-import { EDGE_TRADING212_URL } from './supabase_config.js';
+import { EDGE_TRADING212_URL, SB_ANON } from './supabase_config.js';
+import { getAppToken } from './auth.js';
 
 /**
  * Fetch the current T212-mirrored holdings. Returns null on any
@@ -26,11 +27,22 @@ import { EDGE_TRADING212_URL } from './supabase_config.js';
  * is per-share AC (the same convention as `lot.cost` / `h.cost`
  * elsewhere in the app — multiplied by shares to get total cost).
  *
+ * Sends the same `x-app-token` the `data` function uses — the T212
+ * function 401s anonymous callers so holdings aren't leaked via
+ * the function URL. Both admin and ro tokens are accepted.
+ *
  * @returns {Promise<Record<string, { shares: number, cost: number }> | null>}
  */
 export async function fetchTrading212Holdings() {
   try {
-    const res = await fetch(EDGE_TRADING212_URL, { method: 'GET' });
+    const res = await fetch(EDGE_TRADING212_URL, {
+      method: 'GET',
+      headers: {
+        'apikey': SB_ANON,
+        'Authorization': `Bearer ${SB_ANON}`,
+        'X-App-Token': getAppToken(),
+      },
+    });
     if (!res.ok) return null;
     const json = await res.json();
     if (!json || typeof json !== 'object') return null;
