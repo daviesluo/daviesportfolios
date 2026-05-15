@@ -335,10 +335,12 @@ function Board({ isReadOnly }) {
         ? fetchHistoricalBatch(extHoldingTickers, "1d", "5m", true).catch(() => ({}))
         : Promise.resolve({}),
       // Trading 212 auto-sync for VUAG.L / SEGM.L. Server-cached at
-      // 30 s so this is cheap to call on every tick. Returns null
-      // when the API key isn't configured or the upstream errored
-      // — applyTrading212 no-ops in that case and we keep whatever
-      // lots the user last saved manually.
+      // 60 s so this is cheap to call on every tick (T212 rate-limits
+      // /equity/portfolio at 1 req / 30 s; the Edge Function's 60 s
+      // cache leaves a comfortable margin). Returns null when the API
+      // key isn't configured or the upstream errored — applyTrading212
+      // no-ops in that case and we keep whatever lots the user last
+      // saved manually.
       fetchTrading212Holdings(),
     ]);
     if (mcResult) {
