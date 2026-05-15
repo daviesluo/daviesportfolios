@@ -16,6 +16,7 @@
 
 import React from 'react';
 import { fetchOpsErrorSummary } from './ops_error.js';
+import { Storage } from './utils.js';
 import { Modal } from './modals.jsx';
 
 const POLL_MS = 60 * 1000;
@@ -45,6 +46,25 @@ export function isDesktopViewport(matchMediaFn) {
   if (typeof matchMediaFn !== 'function') return false;
   try { return matchMediaFn(DESKTOP_MEDIA_QUERY).matches === true; }
   catch { return false; }
+}
+
+/**
+ * Newest error timestamp (ms epoch) in an ops-error summary, taken
+ * from the `bySymbol` rows' `latestAt`. Drives the Acknowledge gate:
+ * the badge hides while every error is at-or-before the acknowledged
+ * timestamp, and reappears the moment a newer one lands. Returns 0
+ * for an empty / missing / unparseable summary — the badge then
+ * stays visible (fail toward showing errors, not swallowing them).
+ * @param {{ bySymbol?: any[] } | null | undefined} summary  ops-error summary (external API shape)
+ */
+export function latestErrorAt(summary) {
+  const rows = summary && Array.isArray(summary.bySymbol) ? summary.bySymbol : [];
+  let max = 0;
+  for (const r of rows) {
+    const t = Date.parse(r?.latestAt);
+    if (isFinite(t) && t > max) max = t;
+  }
+  return max;
 }
 
 function useIsDesktop() {
@@ -78,6 +98,9 @@ export function OpsErrorBadge({ isReadOnly }) {
   // Single-flight guard so the periodic poll and an explicit open-click
   // don't race two concurrent fetches.
   const inFlight = React.useRef(false);
+  // Newest ops-error timestamp the admin has acknowledged — the badge
+  // stays hidden until something newer is reported.
+  const [ackAt, setAckAt] = React.useState(() => Storage.loadOpsErrorAck());
 
   const refresh = React.useCallback(async () => {
     if (!enabled || inFlight.current) return;
@@ -99,6 +122,11 @@ export function OpsErrorBadge({ isReadOnly }) {
   // Until the first poll resolves OR the endpoint says zero, render
   // nothing — we don't want to flash an empty badge during cold start.
   if (!summary || summary.total === 0) return null;
+  // "Acknowledge" hides the badge until something newer than the
+  // acknowledged timestamp lands. latestAt 0 (no parseable rows) →
+  // don't suppress, so errors are never silently swallowed.
+  const latestAt = latestErrorAt(summary);
+  if (latestAt > 0 && latestAt <= ackAt) return null;
 
   return (
     <>
@@ -125,7 +153,21 @@ export function OpsErrorBadge({ isReadOnly }) {
               <div className="modal-eyebrow mono">OPS · LAST {summary.hours}H</div>
               <h2 className="modal-title mono">{summary.total} errors</h2>
             </div>
-            <button className="btn-ghost icon" onClick={() => setOpen(false)} aria-label="Close">✕</button>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn-ghost"
+                style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+                title="Hide the errors badge until a newer error is reported"
+                onClick={() => {
+                  // Mark every error in the current summary as seen;
+                  // the badge re-appears only when a newer one lands.
+                  if (latestAt > 0) { Storage.saveOpsErrorAck(latestAt); setAckAt(latestAt); }
+                  setOpen(false);
+                }}
+              >Acknowledge</button>
+              <button className="btn-ghost icon" onClick={() => setOpen(false)} aria-label="Close">✕</button>
+            </div>
           </header>
           <div className="modal-body">
             <section style={{ marginBottom: 16 }}>

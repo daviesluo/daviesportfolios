@@ -22,6 +22,11 @@ const STORAGE_KEYS = {
   // "Loading…" on cold start — they paint the last-known values
   // immediately and refresh once the live tick lands.
   marketCache:   'dp.marketCache', // { ts, data: { ticker: { lastPrice, prevClose?, dayPct?, ... }, ... } }
+  // Timestamp (ms epoch) of the newest ops-error the admin has
+  // acknowledged via the error-triage badge — the badge stays hidden
+  // until a newer error is reported. Admin-only single scalar; no
+  // migration needed (a missing key reads as 0 = "nothing acked").
+  opsErrorAck:   'dp.opsErrorAck', // number (ms epoch)
   // Chart caches (dp.tickerChart / dp.maCache / dp.ytd) live in
   // IndexedDB now (chart_store.js). chart_store's hydrate() owns
   // the legacy-localStorage migration so these names are referenced
@@ -127,6 +132,10 @@ export const Storage = {
   clearAuth: () => { try { localStorage.removeItem(STORAGE_KEYS.auth); } catch (_) {} },
   loadPrefs: () => readJSON(STORAGE_KEYS.prefs, { hideValues: false }),
   savePrefs: (p) => writeJSON(STORAGE_KEYS.prefs, p),
+  // Newest acknowledged ops-error timestamp (ms epoch); 0 when the
+  // admin has never acknowledged. See OpsErrorBadge.
+  loadOpsErrorAck: () => readJSON(STORAGE_KEYS.opsErrorAck, 0),
+  saveOpsErrorAck: (ts) => writeJSON(STORAGE_KEYS.opsErrorAck, ts),
   // Market-data seed: returns a marketData-shaped object containing
   // every ticker from the most recent successful live tick. Initial
   // render uses these for both (a) FX-conversion in metrics (so CNY
