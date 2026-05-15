@@ -315,13 +315,18 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
         ChartStore.set(peKey(t), { ts: peNow, data: peSeries });
       } else if (typeof row.ps === 'number' && row.ps > 0 && ytdData.length > 0) {
         // (3) Loss-maker fallback: no usable EPS but the Edge Function
-        // shipped a `ps` — precompute the const-current-TTM-sales
-        // P/S series so clicking P/S YTD in the modal hits cache
-        // instantly. Derive sales-per-share from lastClose / ps for
-        // the same ADR-currency-safe reason as the EPS path above.
+        // shipped a `ps` — precompute the P/S YTD series so clicking
+        // P/S YTD in the modal hits cache instantly. Derive
+        // sales-per-share from lastClose / ps for the same
+        // ADR-currency-safe reason as the EPS path above, and pass
+        // `ttmSalesHistory` so the curve steps on earnings — matching
+        // the modal's own transform. Passing null here (the old
+        // behaviour) wrote a const-denominator series that masked the
+        // real one until the 12 h TTL expired, so the P/S YTD chart
+        // stayed a 1:1 rescale of the price line.
         const salesPerShare = ytdData[ytdData.length - 1].close / row.ps;
         if (salesPerShare > 0) {
-          const psSeries = priceDividedByTtmEps(ytdData, null, salesPerShare);
+          const psSeries = priceDividedByTtmEps(ytdData, row.ttmSalesHistory, salesPerShare);
           ChartStore.set(psKey(t), { ts: peNow, data: psSeries });
         }
       }
