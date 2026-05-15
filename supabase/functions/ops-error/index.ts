@@ -129,6 +129,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
           "apikey": SERVICE_KEY,
           "Authorization": `Bearer ${SERVICE_KEY}`,
         },
+        signal: AbortSignal.timeout(5_000),
       });
       if (!res.ok) {
         const text = await res.text();
@@ -253,6 +254,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
         "Prefer": "return=minimal",
       },
       body: JSON.stringify(row),
+      signal: AbortSignal.timeout(5_000),
     });
     if (!res.ok) {
       const text = await res.text();

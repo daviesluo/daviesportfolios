@@ -185,6 +185,7 @@ async function readCacheRow(): Promise<{ data: unknown; updated_at: string } | n
         authorization: `Bearer ${SERVICE_KEY}`,
         accept: "application/json",
       },
+      signal: AbortSignal.timeout(5_000),
     });
     if (!res.ok) return null;
     const arr = await res.json();
@@ -217,10 +218,24 @@ async function claimRefresh(): Promise<boolean> {
         "content-type": "application/json",
       },
       body: JSON.stringify({ ttl_ms: CACHE_TTL_MS }),
+      signal: AbortSignal.timeout(5_000),
     });
     if (!res.ok) {
       const snippet = (await res.text().catch(() => "")).slice(0, 200);
-      console.error(`T212 claim RPC ${res.status}: ${snippet}`);
+      // Loud detection of the two "missing migration" symptoms we've
+      // hit before: 42P01 (relation does not exist → 0007 not applied)
+      // and 42883 (function does not exist → 0008 not applied). Without
+      // this hint the loser-branch silently swallows the cause and the
+      // UI shows "T212 just stopped working" with no pointer.
+      if (snippet.includes("42P01") || snippet.includes("42883")) {
+        console.error(
+          `T212 claim RPC ${res.status} — Postgres reports a missing table or function. ` +
+          `Re-apply migrations 0007 (trading212_cache) and 0008 (try_claim_t212_refresh) ` +
+          `via Supabase SQL Editor. Raw: ${snippet}`,
+        );
+      } else {
+        console.error(`T212 claim RPC ${res.status}: ${snippet}`);
+      }
       return false;
     }
     const body = await res.json();
@@ -242,9 +257,12 @@ async function writeCacheRow(data: unknown): Promise<void> {
         prefer: "resolution=merge-duplicates",
       },
       body: JSON.stringify({ id: 1, data, updated_at: new Date().toISOString() }),
+      signal: AbortSignal.timeout(5_000),
     });
-  } catch {
+  } catch (e) {
     // Cache write failures are non-fatal — next visitor will refetch.
+    // Log so a chronic outage doesn't silently mean every refresh hits T212.
+    console.error("T212 cache write failed:", e instanceof Error ? e.message : e);
   }
 }
 
@@ -261,6 +279,7 @@ async function fetchT212Portfolio(): Promise<unknown> {
       authorization: T212_API_KEY,
       accept: "application/json",
     },
+    signal: AbortSignal.timeout(8_000),
   });
   if (res.status === 401 && T212_API_SECRET) {
     res = await fetch(T212_PORTFOLIO_URL, {
@@ -268,6 +287,7 @@ async function fetchT212Portfolio(): Promise<unknown> {
         authorization: basicAuthHeader(T212_API_KEY, T212_API_SECRET),
         accept: "application/json",
       },
+      signal: AbortSignal.timeout(8_000),
     });
   }
   if (!res.ok) {
