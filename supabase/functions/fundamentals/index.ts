@@ -935,6 +935,62 @@ export function computePe3yAvg(
   return sorted.reduce((s, p) => s + p.v, 0) / sorted.length;
 }
 
+// ---- TEMP: P/S revenue-source probe ---------------------------------
+//
+// `?tickers=TEM,SOUN&salesProbe=true` dumps, for each ticker, what
+// Yahoo's `fundamentals-timeseries` actually returns for the three
+// candidate revenue types. PR #120 wired the P/S YTD chart to
+// `trailingTotalRevenue`, but it comes back empty for most loss-makers
+// (only TEM worked) — so `ttmSalesHistory` was absent and the chart
+// stayed a 1:1 rescale of the price line. This probe shows which type
+// actually carries data so the real fetch can switch to it. Removed
+// once the revenue source is settled.
+async function runSalesProbe(symbols: string[]): Promise<unknown> {
+  const auth = await getYahooCrumb();
+  const nowSec = Math.floor(Date.now() / 1000);
+  const fiveYearsAgoSec = nowSec - 5 * 365 * 86400;
+  const out: Record<string, unknown> = {};
+  for (const symbol of symbols) {
+    const perType: Record<string, unknown> = {};
+    for (const type of ["trailingTotalRevenue", "quarterlyTotalRevenue", "annualTotalRevenue"]) {
+      try {
+        const u =
+          `https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/` +
+          `${encodeURIComponent(symbol)}?type=${type}` +
+          `&period1=${fiveYearsAgoSec}&period2=${nowSec}` +
+          (auth ? `&crumb=${encodeURIComponent(auth.crumb)}` : "");
+        const res = await fetch(u, {
+          headers: {
+            "User-Agent": YAHOO_UA,
+            "Accept": "application/json,text/plain,*/*",
+            ...(auth ? { "Cookie": auth.cookie } : {}),
+          },
+          signal: AbortSignal.timeout(8_000),
+        });
+        let body: unknown = null;
+        if (res.ok) {
+          const data = await res.json();
+          const result = data?.timeseries?.result;
+          const arr = result?.[0]?.[type];
+          body = {
+            resultLen: Array.isArray(result) ? result.length : null,
+            result0Keys: result?.[0] && typeof result[0] === "object"
+              ? Object.keys(result[0]) : null,
+            tsError: data?.timeseries?.error ?? null,
+            arrLen: Array.isArray(arr) ? arr.length : null,
+            sample: Array.isArray(arr) ? arr.slice(-3) : null,
+          };
+        }
+        perType[type] = { status: res.status, body };
+      } catch (e) {
+        perType[type] = { error: String(e) };
+      }
+    }
+    out[symbol] = perType;
+  }
+  return out;
+}
+
 // ---- HTTP entry -----------------------------------------------------
 
 // Guarded so tests can import the helpers above without spinning up
@@ -967,6 +1023,16 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     .filter(isFundamentalsTicker);
   if (tickers.length === 0) {
     return new Response(JSON.stringify({}), {
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+
+  // TEMP — P/S revenue-source probe. See runSalesProbe(). Yahoo
+  // fundamentals-timeseries, no API key; gated so it never runs on a
+  // normal request.
+  if (url.searchParams.get("salesProbe") === "true") {
+    const probe = await runSalesProbe(tickers.slice(0, 5));
+    return new Response(JSON.stringify({ __salesProbe: probe }, null, 2), {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
