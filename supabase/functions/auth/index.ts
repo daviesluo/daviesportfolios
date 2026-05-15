@@ -124,7 +124,7 @@ type LockoutCheck = { lockout_until: number | null };
 // we'll just hash an extra password.
 async function getLockout(ip: string): Promise<number | null> {
   const url = `${SUPABASE_URL}/rest/v1/auth_attempts?ip=eq.${encodeURIComponent(ip)}&select=lockout_until`;
-  const res = await fetch(url, { headers: SB_HEADERS });
+  const res = await fetch(url, { headers: SB_HEADERS, signal: AbortSignal.timeout(5_000) });
   if (!res.ok) return null;
   const rows = (await res.json()) as LockoutCheck[];
   if (!Array.isArray(rows) || rows.length === 0) return null;
@@ -142,6 +142,7 @@ async function bumpAttempt(ip: string, max: number, lockoutMs: number): Promise<
     method: "POST",
     headers: SB_HEADERS,
     body: JSON.stringify({ _ip: ip, _max: max, _lockout_ms: lockoutMs }),
+    signal: AbortSignal.timeout(5_000),
   });
   if (!res.ok) return null;
   const rows = (await res.json()) as BumpResult[];
@@ -152,6 +153,7 @@ async function clearAttempts(ip: string): Promise<void> {
   await fetch(`${SUPABASE_URL}/rest/v1/auth_attempts?ip=eq.${encodeURIComponent(ip)}`, {
     method: "DELETE",
     headers: SB_HEADERS,
+    signal: AbortSignal.timeout(5_000),
   });
 }
 

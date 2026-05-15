@@ -91,7 +91,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
   if (action === "load" && req.method === "GET") {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/board_data?id=eq.1&select=data`,
-      { headers: SB_HEADERS },
+      { headers: SB_HEADERS, signal: AbortSignal.timeout(5_000) },
     );
     if (!res.ok) return json(res.status, { error: "load failed" });
     const rows = await res.json();
@@ -109,6 +109,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
         method: "POST",
         headers: { ...SB_HEADERS, "Prefer": "resolution=merge-duplicates,return=minimal" },
         body: JSON.stringify({ id: 1, data: body }),
+        signal: AbortSignal.timeout(5_000),
       },
     );
     if (!res.ok) return json(res.status, { error: "save failed" });
