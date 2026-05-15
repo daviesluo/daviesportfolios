@@ -146,19 +146,19 @@ async function readCacheRow(): Promise<{ data: unknown; updated_at: string } | n
 }
 
 /**
- * Atomic refresh claim. Returns `{ claimed, error }` — `claimed` is
- * true iff this worker won the right to call T212 for this window;
- * `error` is non-null when the RPC itself failed (network /
- * permissions / RPC missing) so the caller can surface it instead
- * of silently treating "RPC broken" the same as "another worker
- * won". Implemented as a Postgres RPC (`try_claim_t212_refresh`,
- * added in migration 0008) that does a conditional UPSERT — bumps
- * `updated_at` only when the existing row is older than ttl_ms (or
- * no row exists), and returns whether the row was actually written.
- * `INSERT ... ON CONFLICT DO UPDATE WHERE` is atomic, so two
- * workers racing the call see at most one true return value.
+ * Atomic refresh claim. Returns true iff this worker won the right
+ * to call T212 for this window. Implemented as a Postgres RPC
+ * (`try_claim_t212_refresh`, added in migration 0008) that does a
+ * conditional UPSERT — bumps `updated_at` only when the existing
+ * row is older than ttl_ms (or no row exists), and returns whether
+ * the row was actually written. `INSERT ... ON CONFLICT DO UPDATE
+ * WHERE` is atomic, so two workers racing the call see at most one
+ * true return value. RPC failures (network, missing migration, bad
+ * permissions) log to Supabase Functions logs but don't surface in
+ * the client response — the loser branch is the right behaviour
+ * either way.
  */
-async function claimRefresh(): Promise<{ claimed: boolean; error: string | null }> {
+async function claimRefresh(): Promise<boolean> {
   try {
     const res = await fetch(`${SB_URL}/rest/v1/rpc/try_claim_t212_refresh`, {
       method: "POST",
@@ -171,12 +171,14 @@ async function claimRefresh(): Promise<{ claimed: boolean; error: string | null 
     });
     if (!res.ok) {
       const snippet = (await res.text().catch(() => "")).slice(0, 200);
-      return { claimed: false, error: `RPC ${res.status} ${res.statusText} :: ${snippet}` };
+      console.error(`T212 claim RPC ${res.status}: ${snippet}`);
+      return false;
     }
     const body = await res.json();
-    return { claimed: body === true, error: null };
+    return body === true;
   } catch (e) {
-    return { claimed: false, error: e instanceof Error ? e.message : String(e) };
+    console.error("T212 claim RPC error:", e instanceof Error ? e.message : e);
+    return false;
   }
 }
 
@@ -263,8 +265,7 @@ if (import.meta.main) {
     // written between our SELECT and our claim attempt) and serve
     // whatever's there. Worst case for a loser on cold cache: empty
     // holdings for one tick until the winner's write lands.
-    const { claimed, error: claimError } = await claimRefresh();
-    if (claimError) console.error("T212 claim RPC error:", claimError);
+    const claimed = await claimRefresh();
     if (!claimed) {
       const refreshed = await readCacheRow();
       const row = refreshed || cached;
@@ -273,14 +274,12 @@ if (import.meta.main) {
           holdings: row.data,
           updatedAt: row.updated_at,
           source: "cache",
-          ...(claimError ? { claimError } : {}),
         }), { headers: { ...CORS, "content-type": "application/json" } });
       }
       return new Response(JSON.stringify({
         holdings: {},
         updatedAt: new Date().toISOString(),
         source: "stale",
-        ...(claimError ? { claimError } : {}),
       }), { headers: { ...CORS, "content-type": "application/json" } });
     }
 
@@ -294,26 +293,22 @@ if (import.meta.main) {
         source: "live",
       }), { headers: { ...CORS, "content-type": "application/json" } });
     } catch (e) {
-      // T212 errored after we claimed the refresh slot. Log + surface
-      // the error so the caller can diagnose (auth fail vs rate limit
-      // vs endpoint 404 etc.) instead of silently serving empty.
-      const err = e instanceof Error ? e.message : String(e);
-      console.error("T212 upstream error:", err);
-      // Serve stale cache (within 5 min grace) so a transient 429 /
-      // 500 doesn't blank the lots out client-side.
+      // T212 errored after we claimed the refresh slot. Log to
+      // Supabase Functions logs for forensics, then serve stale
+      // cache (within 5 min grace) so a transient 429 / 500 doesn't
+      // blank the lots out client-side.
+      console.error("T212 upstream error:", e instanceof Error ? e.message : e);
       if (cached && cacheIsFresh(cached.updated_at, now, STALE_OK_MS)) {
         return new Response(JSON.stringify({
           holdings: cached.data,
           updatedAt: cached.updated_at,
           source: "stale",
-          error: err,
         }), { headers: { ...CORS, "content-type": "application/json" } });
       }
       return new Response(JSON.stringify({
         holdings: {},
         updatedAt: new Date().toISOString(),
         source: "stale",
-        error: err,
       }), { headers: { ...CORS, "content-type": "application/json" } });
     }
   });
