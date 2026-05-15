@@ -102,11 +102,11 @@ type Fundamentals = {
   // TTM sales-per-share at each quarter end — the P/S analogue of
   // ttmEpsHistory. Each point's `eps` field carries sales-per-share
   // (USD), so the client's priceDividedByTtmEps divides price by it
-  // exactly the way it does for EPS. Built from Yahoo's
-  // `trailingTotalRevenue` series rescaled to the current USD
-  // sales-per-share — see the handler. Without this the P/S YTD
-  // chart used a constant denominator and was just the price chart
-  // rescaled (no step on earnings).
+  // exactly the way it does for EPS. Built by rolling Yahoo's
+  // `quarterlyTotalRevenue` into a TTM series, then rescaling to the
+  // current USD sales-per-share — see the handler. Without this the
+  // P/S YTD chart used a constant denominator and was just the price
+  // chart rescaled (no step on earnings).
   ttmSalesHistory?: EpsHistoryPoint[];
 };
 
@@ -624,20 +624,20 @@ async function fetchYahooTrailingEpsHistory(
   }
 }
 
-// Fetches the rolling TTM total revenue at each quarter-end for the
-// symbol — the P/S analogue of fetchYahooTrailingEpsHistory. Same
-// `fundamentals-timeseries` API, `type=trailingTotalRevenue`: Yahoo
-// returns the already-summed TTM revenue at each quarter end. The
-// caller rescales it to USD sales-per-share via
-// `normalizeEpsHistoryToUsd` — the latest point is pinned to the
-// current `price / ps`, and the relative quarterly revenue-growth
-// shape is what makes the client's P/S chart step on earnings
-// instead of tracking price 1:1. Each entry is `{ date, eps: <TTM
-// total revenue> }` — the `eps` field name is reused so the shared
-// rescale / divide helpers accept it unchanged. Returns null on any
-// error or empty response so the caller cleanly falls back to the
-// constant-denominator path.
-async function fetchYahooTrailingSalesHistory(
+// Fetches the last ~5 quarters of total revenue for the symbol via
+// Yahoo's `fundamentals-timeseries`. The revenue-side
+// `trailingTotalRevenue` type only ships ~2 TTM points and which
+// quarters they cover is inconsistent (the May-2026 probe found TEM
+// got [Q2, Q4] — a usable mid-window step — while SOUN got [Q2,
+// next-Q1], which left the YTD chart flat). `quarterlyTotalRevenue`
+// ships ~5 RAW quarters instead; the caller runs
+// `rollingTtmFromRawQuarterly` over them to build the TTM series, so
+// the P/S chart steps reliably within a YTD window. Each entry is
+// `{ date, eps: <quarterly total revenue> }` — the `eps` field name
+// is reused so the shared rolling-sum / rescale helpers accept it
+// unchanged. Returns null on any error or empty response so the
+// caller cleanly falls back to the constant-denominator path.
+async function fetchYahooQuarterlyRevenue(
   symbol: string,
 ): Promise<Array<{ date: string; eps: number }> | null> {
   const auth = await getYahooCrumb();
@@ -645,7 +645,7 @@ async function fetchYahooTrailingSalesHistory(
   const fiveYearsAgoSec = nowSec - 5 * 365 * 86400;
   const url =
     `https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/` +
-    `${encodeURIComponent(symbol)}?type=trailingTotalRevenue` +
+    `${encodeURIComponent(symbol)}?type=quarterlyTotalRevenue` +
     `&period1=${fiveYearsAgoSec}&period2=${nowSec}` +
     (auth ? `&crumb=${encodeURIComponent(auth.crumb)}` : "");
   try {
@@ -659,7 +659,7 @@ async function fetchYahooTrailingSalesHistory(
     });
     if (!res.ok) return null;
     const data = await res.json();
-    const arr = data?.timeseries?.result?.[0]?.trailingTotalRevenue;
+    const arr = data?.timeseries?.result?.[0]?.quarterlyTotalRevenue;
     if (!Array.isArray(arr)) return null;
     const out = arr
       .map((p: any) => ({
@@ -935,62 +935,6 @@ export function computePe3yAvg(
   return sorted.reduce((s, p) => s + p.v, 0) / sorted.length;
 }
 
-// ---- TEMP: P/S revenue-source probe ---------------------------------
-//
-// `?tickers=TEM,SOUN&salesProbe=true` dumps, for each ticker, what
-// Yahoo's `fundamentals-timeseries` actually returns for the three
-// candidate revenue types. PR #120 wired the P/S YTD chart to
-// `trailingTotalRevenue`, but it comes back empty for most loss-makers
-// (only TEM worked) — so `ttmSalesHistory` was absent and the chart
-// stayed a 1:1 rescale of the price line. This probe shows which type
-// actually carries data so the real fetch can switch to it. Removed
-// once the revenue source is settled.
-async function runSalesProbe(symbols: string[]): Promise<unknown> {
-  const auth = await getYahooCrumb();
-  const nowSec = Math.floor(Date.now() / 1000);
-  const fiveYearsAgoSec = nowSec - 5 * 365 * 86400;
-  const out: Record<string, unknown> = {};
-  for (const symbol of symbols) {
-    const perType: Record<string, unknown> = {};
-    for (const type of ["trailingTotalRevenue", "quarterlyTotalRevenue", "annualTotalRevenue"]) {
-      try {
-        const u =
-          `https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/` +
-          `${encodeURIComponent(symbol)}?type=${type}` +
-          `&period1=${fiveYearsAgoSec}&period2=${nowSec}` +
-          (auth ? `&crumb=${encodeURIComponent(auth.crumb)}` : "");
-        const res = await fetch(u, {
-          headers: {
-            "User-Agent": YAHOO_UA,
-            "Accept": "application/json,text/plain,*/*",
-            ...(auth ? { "Cookie": auth.cookie } : {}),
-          },
-          signal: AbortSignal.timeout(8_000),
-        });
-        let body: unknown = null;
-        if (res.ok) {
-          const data = await res.json();
-          const result = data?.timeseries?.result;
-          const arr = result?.[0]?.[type];
-          body = {
-            resultLen: Array.isArray(result) ? result.length : null,
-            result0Keys: result?.[0] && typeof result[0] === "object"
-              ? Object.keys(result[0]) : null,
-            tsError: data?.timeseries?.error ?? null,
-            arrLen: Array.isArray(arr) ? arr.length : null,
-            sample: Array.isArray(arr) ? arr.slice(-3) : null,
-          };
-        }
-        perType[type] = { status: res.status, body };
-      } catch (e) {
-        perType[type] = { error: String(e) };
-      }
-    }
-    out[symbol] = perType;
-  }
-  return out;
-}
-
 // ---- HTTP entry -----------------------------------------------------
 
 // Guarded so tests can import the helpers above without spinning up
@@ -1027,16 +971,6 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     });
   }
 
-  // TEMP — P/S revenue-source probe. See runSalesProbe(). Yahoo
-  // fundamentals-timeseries, no API key; gated so it never runs on a
-  // normal request.
-  if (url.searchParams.get("salesProbe") === "true") {
-    const probe = await runSalesProbe(tickers.slice(0, 5));
-    return new Response(JSON.stringify({ __salesProbe: probe }, null, 2), {
-      headers: { ...CORS, "Content-Type": "application/json" },
-    });
-  }
-
   // Split into stocks (Finnhub, can run with parallelism 6) and
   // indices (AV, must be serial). Run them concurrently with each
   // other — they hit different vendors with independent rate caps.
@@ -1053,25 +987,27 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
         const f = await fetchStockFundamentals(t);
         if (!f) continue;
         if (includeEpsHistory) {
-          // Two TTM per-share histories from Yahoo's
-          // fundamentals-timeseries, fetched in parallel:
-          //   - trailingDilutedEPS   -> ttmEpsHistory   (P/E chart)
-          //   - trailingTotalRevenue -> ttmSalesHistory (P/S chart)
-          // Each entry's `eps` is the already-summed TTM value at that
-          // quarter end, so the client just picks the latest entry
-          // whose date+lag is before each price date. EPS falls back
-          // to Finnhub on Yahoo failure (raw quarterly EPS summed to a
-          // single TTM point — rarely enough bars to draw earnings
-          // steps, but keeps the response shape consistent).
-          const [epsHistRaw, salesHist] = await Promise.all([
+          // Two TTM per-share histories for the ratio charts, from
+          // Yahoo's fundamentals-timeseries, fetched in parallel:
+          //   - trailingDilutedEPS    -> ttmEpsHistory   (P/E chart)
+          //   - quarterlyTotalRevenue -> ttmSalesHistory (P/S chart)
+          // EPS: `trailingDilutedEPS` is already a TTM series; on
+          // Yahoo failure it falls back to Finnhub raw quarterly EPS
+          // summed to a single TTM point. Sales: `quarterlyTotalRevenue`
+          // is RAW quarterly, rolled into a TTM series here — the
+          // revenue-side `trailingTotalRevenue` type ships too few /
+          // inconsistently-placed points for the P/S chart to step
+          // within a YTD window (see fetchYahooQuarterlyRevenue).
+          const [epsHistRaw, quarterlyRev] = await Promise.all([
             fetchYahooTrailingEpsHistory(t),
-            fetchYahooTrailingSalesHistory(t),
+            fetchYahooQuarterlyRevenue(t),
           ]);
           let hist = epsHistRaw;
           if (!hist) {
             const raw = await fetchFinnhubEarningsHistory(t);
             if (raw) hist = rollingTtmFromRawQuarterly(raw);
           }
+          const salesHist = quarterlyRev ? rollingTtmFromRawQuarterly(quarterlyRev) : null;
           // USD price for rescaling BOTH histories. Priority:
           //   1. Yahoo quoteSummary `price` — USD-correct for ADRs
           //      (the consumer site has to show coherent numbers).
@@ -1094,12 +1030,12 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
           if (usdPrice > 0 && f.pe > 0) usdAnchor = usdPrice / f.pe;
           if (hist) f.ttmEpsHistory = normalizeEpsHistoryToUsd(hist, usdAnchor);
           // TTM-sales history -> USD sales-per-share, same mechanism:
-          // Yahoo's trailingTotalRevenue rescaled so the latest point
-          // lands on the current USD sales-per-share (price / ps). The
-          // relative quarterly revenue-growth shape is what makes the
-          // P/S chart step on earnings instead of tracking price 1:1.
-          // (Share count is assumed ~flat across the window — fine
-          // within a YTD chart.)
+          // the rolled quarterly-revenue TTM series rescaled so the
+          // latest point lands on the current USD sales-per-share
+          // (price / ps). The relative quarterly revenue-growth shape
+          // is what makes the P/S chart step on earnings instead of
+          // tracking price 1:1. (Share count is assumed ~flat across
+          // the window — fine within a YTD chart.)
           if (salesHist && usdPrice > 0 && f.ps && f.ps > 0) {
             f.ttmSalesHistory = normalizeEpsHistoryToUsd(salesHist, usdPrice / f.ps);
           }
