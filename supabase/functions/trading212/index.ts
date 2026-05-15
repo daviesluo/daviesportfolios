@@ -146,16 +146,19 @@ async function readCacheRow(): Promise<{ data: unknown; updated_at: string } | n
 }
 
 /**
- * Atomic refresh claim. Returns true iff this worker won the right
- * to call T212 for this window. Implemented as a Postgres RPC
- * (`try_claim_t212_refresh`, added in migration 0008) that does a
- * conditional UPSERT — it bumps `updated_at` only when the existing
- * row is older than ttl_ms (or no row exists), and returns whether
- * the row was actually written. Two workers racing the call will
- * see at most one true return value because the underlying
- * `INSERT ... ON CONFLICT DO UPDATE WHERE` is atomic.
+ * Atomic refresh claim. Returns `{ claimed, error }` — `claimed` is
+ * true iff this worker won the right to call T212 for this window;
+ * `error` is non-null when the RPC itself failed (network /
+ * permissions / RPC missing) so the caller can surface it instead
+ * of silently treating "RPC broken" the same as "another worker
+ * won". Implemented as a Postgres RPC (`try_claim_t212_refresh`,
+ * added in migration 0008) that does a conditional UPSERT — bumps
+ * `updated_at` only when the existing row is older than ttl_ms (or
+ * no row exists), and returns whether the row was actually written.
+ * `INSERT ... ON CONFLICT DO UPDATE WHERE` is atomic, so two
+ * workers racing the call see at most one true return value.
  */
-async function claimRefresh(): Promise<boolean> {
+async function claimRefresh(): Promise<{ claimed: boolean; error: string | null }> {
   try {
     const res = await fetch(`${SB_URL}/rest/v1/rpc/try_claim_t212_refresh`, {
       method: "POST",
@@ -166,11 +169,14 @@ async function claimRefresh(): Promise<boolean> {
       },
       body: JSON.stringify({ ttl_ms: CACHE_TTL_MS }),
     });
-    if (!res.ok) return false;
+    if (!res.ok) {
+      const snippet = (await res.text().catch(() => "")).slice(0, 200);
+      return { claimed: false, error: `RPC ${res.status} ${res.statusText} :: ${snippet}` };
+    }
     const body = await res.json();
-    return body === true;
-  } catch {
-    return false;
+    return { claimed: body === true, error: null };
+  } catch (e) {
+    return { claimed: false, error: e instanceof Error ? e.message : String(e) };
   }
 }
 
@@ -257,7 +263,8 @@ if (import.meta.main) {
     // written between our SELECT and our claim attempt) and serve
     // whatever's there. Worst case for a loser on cold cache: empty
     // holdings for one tick until the winner's write lands.
-    const claimed = await claimRefresh();
+    const { claimed, error: claimError } = await claimRefresh();
+    if (claimError) console.error("T212 claim RPC error:", claimError);
     if (!claimed) {
       const refreshed = await readCacheRow();
       const row = refreshed || cached;
@@ -266,12 +273,14 @@ if (import.meta.main) {
           holdings: row.data,
           updatedAt: row.updated_at,
           source: "cache",
+          ...(claimError ? { claimError } : {}),
         }), { headers: { ...CORS, "content-type": "application/json" } });
       }
       return new Response(JSON.stringify({
         holdings: {},
         updatedAt: new Date().toISOString(),
         source: "stale",
+        ...(claimError ? { claimError } : {}),
       }), { headers: { ...CORS, "content-type": "application/json" } });
     }
 
