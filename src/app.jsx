@@ -7,7 +7,9 @@ import {
   refreshPrices,
   fetchTickers,
   fetchTodayRegularClose,
+  fetchHistoricalBatch,
   usMarketPhase,
+  usMarketHoursUtc,
   Storage,
   POSITION_COORDS,
 } from './utils.js';
@@ -28,6 +30,8 @@ import {
 import { TickerChartModal } from './ticker_chart_modal.jsx';
 import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
+import { extPriceIsRealAh } from './indicators.js';
+import { isUsEquity } from './ticker_class.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
 class ErrorBoundary extends React.Component {
@@ -292,7 +296,7 @@ function Board({ isReadOnly }) {
     const shouldPrefetch =
       opts && typeof opts === 'object' && opts.prefetch === false ? false : true;
     setIsRefreshing(true);
-    // Three parallel fetches:
+    // Parallel fetches:
     //   - live prices for portfolio holdings
     //   - live snapshots for the MC index/futures cards
     //   - today's 16:00 ET close for *every* MC ticker so ext-on cards
@@ -302,10 +306,26 @@ function Board({ isReadOnly }) {
     //     the actual 16:00 ET bar lines them up. Indices (^VIX / ^TNX
     //     / ^SOX) that don't move in AH end up showing ~0% in ext
     //     mode — same as the modal — which is the expected reading.
-    const [{ updates, source: src }, mcResult, todayCloses] = await Promise.all([
+    //   - (ext mode only) today's intraday bars for the US-equity
+    //     holdings, so each `extPrice` can be validated against the
+    //     real pre/post bars the same way the chart modal does. The
+    //     position cards used to lean on a ±5% quote-only heuristic
+    //     that disagreed with the modal on genuine >5% AH moves (the
+    //     CBRS card-vs-modal bug); this gives both the same verdict.
+    const refreshPhase = usMarketPhase(new Date());
+    const extActive = extendedHours && refreshPhase !== "regular";
+    const extHoldingTickers = extActive
+      ? Object.keys(portfolio.holdings).filter(
+          (t) => t !== "CASH" && !portfolio.holdings[t]?.isCash && isUsEquity(t),
+        )
+      : [];
+    const [{ updates, source: src }, mcResult, todayCloses, extSeries] = await Promise.all([
       refreshPrices(portfolio, "live"),
       fetchTickers(MC_TICKERS),
       fetchTodayRegularClose(MC_TICKERS),
+      extHoldingTickers.length > 0
+        ? fetchHistoricalBatch(extHoldingTickers, "1d", "5m", true).catch(() => ({}))
+        : Promise.resolve({}),
     ]);
     if (mcResult) {
       for (const [t, c] of Object.entries(todayCloses || {})) {
@@ -318,6 +338,11 @@ function Board({ isReadOnly }) {
       Storage.saveMarketCache(mcResult);
     }
     setSource(src);
+    // Open/close minutes for the ext-hours verdict below — computed
+    // once per refresh, not per holding.
+    const extMh = usMarketHoursUtc(new Date());
+    const extOpenMins  = extMh.openHh  * 60 + extMh.openMm;
+    const extCloseMins = extMh.closeHh * 60 + extMh.closeMm;
     setPortfolio(prev => {
       if (!prev) return prev;
       const next = { ...prev, holdings: { ...prev.holdings } };
@@ -326,13 +351,24 @@ function Board({ isReadOnly }) {
         if (!next.holdings[t]) continue;
         const old = next.holdings[t].lastPrice;
         const oldExt = next.holdings[t].extPrice ?? null;
+        const extPriceVal = u.extPrice ?? next.holdings[t].extPrice ?? null;
+        // Real-AH verdict from the intraday series fetched above —
+        // the same check the chart modal runs, so the position card
+        // and the modal agree. null when not in ext mode or the
+        // series is missing, so computeMetrics / the modal fall back
+        // to the lightweight quote heuristic.
+        const extSer = extSeries[t];
+        const extPriceTrusted = (extActive && Array.isArray(extSer) && extSer.length > 0)
+          ? extPriceIsRealAh(extSer, extPriceVal, extOpenMins, extCloseMins)
+          : null;
         next.holdings[t] = {
           ...next.holdings[t],
           lastPrice: u.lastPrice,
-          extPrice: u.extPrice ?? next.holdings[t].extPrice ?? null,
+          extPrice: extPriceVal,
           prevClose: u.prevClose ?? next.holdings[t].prevClose,
           dayPct: u.dayPct ?? next.holdings[t].dayPct,
           extDayPct: (u.extPrice != null && u.lastPrice > 0) ? ((u.extPrice - u.lastPrice) / u.lastPrice) * 100 : next.holdings[t].extDayPct ?? null,
+          extPriceTrusted,
           // Carry currency from the price fetch if present; otherwise keep what's
           // already stored (from detectCurrency at add time).
           currency: u.currency ?? next.holdings[t].currency,
