@@ -17,6 +17,7 @@ import {
   usMarketPhase,
   ukTzAbbr,
 } from './utils.js';
+import { isIndex } from './ticker_class.js';
 import { PerfPanel } from './perf_chart.jsx';
 import { OpsErrorBadge } from './ops_error_badge.jsx';
 
@@ -415,15 +416,18 @@ function MarketConditions({ marketData, extendedHours, phase, className = '', on
         const activeTicker = (useExt && ftTicker) ? ftTicker : ticker;
         const activeName   = (useExt && ftName)   ? ftName   : name;
         const d         = marketData[activeTicker];
-        // Price displayed: in ext mode prefer extPrice when present so
-        // the card matches the modal's liveLast (= same precedence in
-        // ticker_chart_modal). Yahoo populates extPrice for tickers
-        // like ^VIX even though they don't really trade AH — the card
-        // was showing lastPrice (= today's regular close) while the
-        // modal showed extPrice (= a slightly different post-close
-        // value), so the two prices and pcts disagreed.
+        // Price displayed: in ext mode prefer extPrice when present —
+        // EXCEPT for indices (^VIX / ^TNX / ^SOX …), which don't
+        // actually trade after hours. Yahoo still ships a synthetic
+        // `extPrice` for them; using it made the ^VIX card read
+        // ~18.05 / +4.4% while the drill modal — which validates
+        // against the intraday series and falls back to lastPrice for
+        // non-AH-trading tickers — read ~17.26 / ~0%. Gating on
+        // isIndex keeps the card on lastPrice (today's regular close)
+        // for indices, matching the modal. Futures (ES=F, the
+        // ext-mode S&P proxy) do trade ~24h, so they keep extPrice.
         const price = d
-          ? ((useExt && d.extPrice != null && d.extPrice > 0) ? d.extPrice : d.lastPrice)
+          ? ((useExt && !isIndex(activeTicker) && d.extPrice != null && d.extPrice > 0) ? d.extPrice : d.lastPrice)
           : null;
         // Anchor for "since the most recent 16:00 ET close that has
         // occurred". In ext mode every MC ticker has todayRegularClose
