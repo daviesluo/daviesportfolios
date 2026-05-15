@@ -327,16 +327,54 @@ const PROXIES = [
   (url) => `https://cors.eu.org/${url}`,
 ];
 
+// Per-proxy backoff cache. When a proxy returns 429 / 403 / 5xx (or
+// times out) we mark it "dead" for `PROXY_BACKOFF_MS` so the next
+// 30-second refresh tick skips it instead of immediately re-hammering
+// the same broken host. Free public CORS proxies rate-limit per IP
+// aggressively; without this, one bad proxy poisons every refresh
+// until the user reloads. Cleared on success and on natural expiry.
+//
+// In-memory only — resets on page reload (intentional; proxies recover
+// over time and we'd rather re-probe a fresh tab than carry a 10-min
+// suspicion across sessions).
+export const PROXY_BACKOFF_MS = 10 * 60_000;
+const _proxyBackoff = new Map(); // index → expire-at ms
+
+export function proxyIsAvailable(i, now = Date.now()) {
+  const t = _proxyBackoff.get(i);
+  if (t == null) return true;
+  if (t > now) return false;
+  _proxyBackoff.delete(i);   // expired — clear and let it back in
+  return true;
+}
+export function markProxyDead(i, durationMs = PROXY_BACKOFF_MS) {
+  _proxyBackoff.set(i, Date.now() + durationMs);
+}
+export function clearProxyBackoff(i) {
+  if (i == null) _proxyBackoff.clear();
+  else _proxyBackoff.delete(i);
+}
+export function _proxyBackoffSnapshot() {
+  // Test-only inspector. Returns a plain object so tests can assert
+  // backoff state without poking the Map directly.
+  return Object.fromEntries(_proxyBackoff);
+}
+
 async function fetchOneYahooChart(symbol) {
   const nonce = Date.now();
   const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d&includePrePost=true&_=${nonce}`;
-  for (const makeProxy of PROXIES) {
+  for (let i = 0; i < PROXIES.length; i++) {
+    if (!proxyIsAvailable(i)) continue;
+    const makeProxy = PROXIES[i];
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 8000);
     try {
       const res = await fetch(makeProxy(yahooUrl), { cache: "no-store", signal: controller.signal });
       clearTimeout(tid);
-      if (!res.ok) continue;
+      if (!res.ok) {
+        if (res.status === 429 || res.status === 403 || res.status >= 500) markProxyDead(i);
+        continue;
+      }
       const data = await res.json();
       const result = data?.chart?.result?.[0];
       const meta = result?.meta;
@@ -355,6 +393,7 @@ async function fetchOneYahooChart(symbol) {
         if (extPrice != null) extPrice /= 100;
         currency = "GBP";
       }
+      clearProxyBackoff(i);
       return {
         lastPrice,
         extPrice,
@@ -365,6 +404,9 @@ async function fetchOneYahooChart(symbol) {
       };
     } catch (e) {
       clearTimeout(tid);
+      // Timeouts / network errors → shorter backoff (1 min); the proxy
+      // may be transiently slow rather than rate-limiting us.
+      markProxyDead(i, 60_000);
     }
   }
   return null;
@@ -374,13 +416,18 @@ async function fetchOneYahooChart(symbol) {
 // Used as a fallback when the Edge Function is not yet updated to handle CN funds.
 async function fetchOneCNFund(code) {
   const eastmoneyUrl = `https://fundgz.1234567.com.cn/js/${encodeURIComponent(code)}.js?rt=${Date.now()}`;
-  for (const makeProxy of PROXIES) {
+  for (let i = 0; i < PROXIES.length; i++) {
+    if (!proxyIsAvailable(i)) continue;
+    const makeProxy = PROXIES[i];
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 8000);
     try {
       const res = await fetch(makeProxy(eastmoneyUrl), { cache: "no-store", signal: controller.signal });
       clearTimeout(tid);
-      if (!res.ok) continue;
+      if (!res.ok) {
+        if (res.status === 429 || res.status === 403 || res.status >= 500) markProxyDead(i);
+        continue;
+      }
       const text = (await res.text()).trim();
       const m = text.match(/^jsonpgz\((.+?)\)\s*;?\s*$/s);
       if (!m) continue;
@@ -390,12 +437,16 @@ async function fetchOneCNFund(code) {
       if (!isFinite(dwjz) || dwjz <= 0) continue;
       const gsz = parseFloat(obj.gsz);
       const lastPrice = isFinite(gsz) && gsz > 0 ? gsz : dwjz;
+      clearProxyBackoff(i);
       return {
         lastPrice, extPrice: null, prevClose: dwjz,
         currency: "CNY",
         dayPct: ((lastPrice - dwjz) / dwjz) * 100, extDayPct: null,
       };
-    } catch { clearTimeout(tid); }
+    } catch {
+      clearTimeout(tid);
+      markProxyDead(i, 60_000);
+    }
   }
   return null;
 }
@@ -657,9 +708,15 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
     return points.length > 0 ? points : null;
   };
 
+  // Filter out proxies currently in backoff. If they're all dead, fall
+  // back to ALL of them — the alternative is unconditionally returning
+  // null, which would freeze chart data across the whole session.
+  const liveIndices = PROXIES.map((_, i) => i).filter((i) => proxyIsAvailable(i));
+  const idxs = liveIndices.length > 0 ? liveIndices : PROXIES.map((_, i) => i);
+
   return new Promise((resolve) => {
     let resolved = false;
-    let remaining = PROXIES.length;
+    let remaining = idxs.length;
     /** @type {AbortController[]} */
     const controllers = [];
     /** @type {ReturnType<typeof setTimeout>[]} */
@@ -677,17 +734,19 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
       for (const t of timers) clearTimeout(t);
     };
 
-    const settle = (data) => {
+    const settle = (data, winnerIdx) => {
       if (resolved) return;
       if (data) {
         resolved = true;
+        if (winnerIdx != null) clearProxyBackoff(winnerIdx);
         cleanup();
         resolve(data);
       } else if (--remaining === 0) {
         resolve(null);
       }
     };
-    for (const makeProxy of PROXIES) {
+    for (const i of idxs) {
+      const makeProxy = PROXIES[i];
       const controller = new AbortController();
       controllers.push(controller);
       const tid = setTimeout(() => controller.abort(), 4000);
@@ -696,9 +755,13 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
         try {
           const res = await fetch(makeProxy(yahooUrl), { cache: "no-store", signal: controller.signal });
           clearTimeout(tid);
-          settle(await parseResponse(res));
+          if (!res.ok && (res.status === 429 || res.status === 403 || res.status >= 500)) {
+            markProxyDead(i);
+          }
+          settle(await parseResponse(res), i);
         } catch (_) {
           clearTimeout(tid);
+          markProxyDead(i, 60_000);
           settle(null);
         }
       })();
@@ -801,10 +864,15 @@ async function fetchCnFundHistoryViaProxy(code, range) {
     return trimCnFundToRange(points, range);
   };
 
+  // Skip backed-off proxies; fall back to all if every one is dead
+  // (better to retry a maybe-recovered host than freeze CN-fund history
+  // until the user reloads).
+  const liveIndices = PROXIES.map((_, i) => i).filter((i) => proxyIsAvailable(i));
+  const idxs = liveIndices.length > 0 ? liveIndices : PROXIES.map((_, i) => i);
   const attempts = [];
-  for (const makeProxy of PROXIES) {
-    attempts.push({ url: makeProxy(djUrl), parse: parseDanjuan });
-    attempts.push({ url: makeProxy(xqUrl), parse: parseXueqiu });
+  for (const i of idxs) {
+    attempts.push({ proxyIdx: i, url: PROXIES[i](djUrl), parse: parseDanjuan });
+    attempts.push({ proxyIdx: i, url: PROXIES[i](xqUrl), parse: parseXueqiu });
   }
 
   return new Promise((resolve) => {
@@ -820,17 +888,18 @@ async function fetchCnFundHistoryViaProxy(code, range) {
       }
       for (const t of timers) clearTimeout(t);
     };
-    const settle = (data) => {
+    const settle = (data, winnerIdx) => {
       if (resolved) return;
       if (data) {
         resolved = true;
+        if (winnerIdx != null) clearProxyBackoff(winnerIdx);
         cleanup();
         resolve(data);
       } else if (--remaining === 0) {
         resolve(null);
       }
     };
-    for (const { url, parse } of attempts) {
+    for (const { proxyIdx, url, parse } of attempts) {
       const controller = new AbortController();
       controllers.push(controller);
       const tid = setTimeout(() => controller.abort(), 4000);
@@ -839,9 +908,13 @@ async function fetchCnFundHistoryViaProxy(code, range) {
         try {
           const res = await fetch(url, { cache: "no-store", signal: controller.signal });
           clearTimeout(tid);
-          settle(await parse(res));
+          if (!res.ok && (res.status === 429 || res.status === 403 || res.status >= 500)) {
+            markProxyDead(proxyIdx);
+          }
+          settle(await parse(res), proxyIdx);
         } catch (_) {
           clearTimeout(tid);
+          markProxyDead(proxyIdx, 60_000);
           settle(null);
         }
       })();
