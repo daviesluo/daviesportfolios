@@ -11,12 +11,16 @@ describe('tickerChartCacheKey — algorithm-version suffixes', () => {
   it('PE rangeKey emits |PE|v4|', () => {
     expect(tickerChartCacheKey('NVDA', 'PE', false, 'regular')).toBe('NVDA|PE|v4|reg|regular');
   });
-  it('PS rangeKey emits |PS|v1|', () => {
-    expect(tickerChartCacheKey('NBIS', 'PS', false, 'regular')).toBe('NBIS|PS|v1|reg|regular');
+  it('PS rangeKey emits |PS|v2|', () => {
+    // v1 -> v2 evicted the const-denominator P/S series (a 1:1
+    // rescale of the price line) so the ttmSalesHistory-based,
+    // steps-on-earnings series replaces it without waiting out the
+    // 12 h TTL.
+    expect(tickerChartCacheKey('NBIS', 'PS', false, 'regular')).toBe('NBIS|PS|v2|reg|regular');
   });
   it('PE / PS share the variant + phase suffix shape (cross-toggle swap pattern)', () => {
     expect(tickerChartCacheKey('NVDA', 'PE', true,  'post')).toBe('NVDA|PE|v4|ext|post');
-    expect(tickerChartCacheKey('NBIS', 'PS', true,  'post')).toBe('NBIS|PS|v1|ext|post');
+    expect(tickerChartCacheKey('NBIS', 'PS', true,  'post')).toBe('NBIS|PS|v2|ext|post');
   });
   it('non-ratio ranges leave the variant/phase off — same key across toggles', () => {
     expect(tickerChartCacheKey('NVDA', 'YTD', false, 'pre')).toBe('NVDA|YTD');
