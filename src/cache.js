@@ -77,6 +77,10 @@ export function isFresh(entry, ttlMs, extraValid) {
  *     wrote while the fundamentals Edge Function was still
  *     dividing USD prices by foreign-currency EPS (TSM 1.22 /
  *     SFTBY 0.07 / ASML 63 bug).
+ *   - PS: `${ticker}|PS|v2|${variant}|${phase}` — v1→v2
+ *     invalidates the const-denominator P/S series (a 1:1 rescale
+ *     of the price line); v2 steps on earnings via the Edge
+ *     Function's ttmSalesHistory, same as PE.
  *
  * @param {string} ticker
  * @param {string} rangeKey
@@ -85,7 +89,7 @@ export function isFresh(entry, ttlMs, extraValid) {
  */
 export function tickerChartCacheKey(ticker, rangeKey, useExt, phase) {
   if (rangeKey === 'PE') return `${ticker}|PE|v4|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
-  if (rangeKey === 'PS') return `${ticker}|PS|v1|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
+  if (rangeKey === 'PS') return `${ticker}|PS|v2|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
   if (rangeKey === '1D') return `${ticker}|1D|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
   return `${ticker}|${rangeKey}`;
 }
