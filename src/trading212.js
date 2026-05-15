@@ -21,7 +21,9 @@ import { EDGE_TRADING212_URL } from './supabase_config.js';
 
 /**
  * Fetch the current T212-mirrored holdings. Returns null on any
- * failure (network, non-2xx, malformed JSON, T212 disabled).
+ * failure (network, non-2xx, malformed JSON, T212 disabled). `cost`
+ * is per-share AC (the same convention as `lot.cost` / `h.cost`
+ * elsewhere in the app — multiplied by shares to get total cost).
  *
  * @returns {Promise<Record<string, { shares: number, cost: number }> | null>}
  */

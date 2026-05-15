@@ -12,12 +12,16 @@
 //          updatedAt: ISO-string,
 //          source: 'cache' | 'live' | 'stale' | 'disabled' }
 //
-// `cost` is total cost in the instrument's native currency (GBP for
-// LSE listings — T212 reports LSE in pence/GBX, this function divides
-// by 100 before returning to match the rest of the app's GBP
-// convention). `shares` is T212's `quantity`. The shape is what the
-// client folds into `holding.lots = [{ date: today, shares, cost }]`
-// — a single synthetic lot replacing whatever was there.
+// `cost` is per-share average cost ("AC") in the instrument's native
+// currency — GBP for LSE listings, with T212's pence/GBX figure
+// divided by 100 to match the rest of the app's GBP convention. The
+// app stores cost basis per-share everywhere (`holding.cost`,
+// `lot.cost`, the lot editor's AC computation, and `computeMetrics`
+// which multiplies `shares * cost` for the position's total cost),
+// so per-share is the unit the client expects. `shares` is T212's
+// `quantity`. The shape folds into
+// `holding.lots = [{ date: today, shares, cost }]` — a single synthetic
+// lot replacing whatever was there.
 //
 // All visitors call this on every doRefresh, so the response is
 // cached server-side at `public.trading212_cache` for 60 s (T212's
@@ -81,6 +85,9 @@ const CORS = {
  * the client expects. Pence/GBX prices for LSE rows are divided by
  * 100 so the cost lands in GBP, matching the rest of the app.
  *
+ * `cost` is per-share average cost (the value the lot editor /
+ * computeMetrics multiply by `shares` to get position-level cost).
+ *
  * Pure function so the `index.test.ts` can pin the conversion math
  * + ticker filtering without needing the network.
  */
@@ -102,7 +109,7 @@ export function shapeT212Portfolio(
     const priceNative = isPenceDenominated(yahooTicker) ? averagePrice / 100 : averagePrice;
     out[yahooTicker] = {
       shares: quantity,
-      cost: quantity * priceNative,
+      cost: priceNative,
     };
   }
   return out;
@@ -206,13 +213,19 @@ if (import.meta.main) {
         source: "live",
       }), { headers: { ...CORS, "content-type": "application/json" } });
     } catch {
-      // Upstream failed — serve stale cache if it's still within the
-      // grace window, otherwise return empty so the client falls back
-      // to whatever it has locally.
-      if (cached && cacheIsFresh(cached.updated_at, now, STALE_OK_MS)) {
+      // Upstream failed — could be T212 down, network, OR (the case
+      // worth catching) a concurrent worker passed the freshness
+      // check at the same instant and got a 429 from T212 because
+      // the winner had already used the 1-req-per-30-s budget.
+      // Re-read the cache: if the winner wrote between our initial
+      // read and now, we can return their fresh value tagged as
+      // `stale` rather than serving empty holdings.
+      const refreshed = await readCacheRow();
+      const fallback = refreshed || cached;
+      if (fallback && cacheIsFresh(fallback.updated_at, now, STALE_OK_MS)) {
         return new Response(JSON.stringify({
-          holdings: cached.data,
-          updatedAt: cached.updated_at,
+          holdings: fallback.data,
+          updatedAt: fallback.updated_at,
           source: "stale",
         }), { headers: { ...CORS, "content-type": "application/json" } });
       }
