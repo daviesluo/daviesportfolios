@@ -481,8 +481,8 @@ before this guard landed).
   safety (no `.tsx`). Bundle output to repo root (`/assets/*.js`),
   served by Cloudflare Pages.
 - **Backend** — Supabase (Postgres + Edge Functions, Deno runtime).
-  Six functions: `auth`, `data`, `prices`, `chart`, `fundamentals`,
-  `ops-error`. Seven migration files (`0001`–`0007`); `0005`/`0006`
+  Seven functions: `auth`, `data`, `prices`, `chart`, `fundamentals`,
+  `ops-error`, `trading212`. Nine migration files (`0001`–`0009`); `0005`/`0006`
   are a historical create/drop pair for the retired
   `analyst_estimates_cache` table.
 - **Build / CI** — Vite production bundle, vitest for unit tests, tsc
@@ -658,28 +658,26 @@ URL and the `anon public` API key (Settings → API).
 
 ### 2. Run the migrations
 
-In Supabase dashboard → SQL Editor, paste and run:
+In Supabase dashboard → SQL Editor, paste and run **in order**:
 
 - `supabase/migrations/0001_auth_attempts.sql`
 - `supabase/migrations/0002_ops_errors.sql`
 - `supabase/migrations/0003_index_fundamentals_cache.sql`
 - `supabase/migrations/0004_ops_errors_retention.sql`
+- `supabase/migrations/0009_board_data.sql` *(the `board_data` table the `data` function reads/writes)*
+- `supabase/migrations/0007_trading212_cache.sql` — **only if you want the Trading 212 auto-sync.** Skip if you're not setting `T212_API_KEY`.
+- `supabase/migrations/0008_trading212_claim_refresh_rpc.sql` — pair with 0007; the RPC references the `trading212_cache` table created in 0007.
 
 `0005` / `0006` are a historical create/drop pair (the retired
 `analyst_estimates_cache` table) — a fresh setup nets nothing from
 them and can skip both.
 
-Then create the `board_data` table:
-
-```sql
-create table public.board_data (
-  id   bigint primary key,
-  data jsonb not null
-);
-alter table public.board_data enable row level security;
--- No policies → only service-role (used by the data function) can read/write.
-insert into public.board_data (id, data) values (1, '{}'::jsonb);
-```
+> Both T212 migrations are gated together: if you apply 0008 without
+> 0007 (or `0007` was rolled back at some point) the function silently
+> returns empty holdings because every claim RPC call hits
+> `42P01: relation "public.trading212_cache" does not exist`. The
+> Edge Function logs that specific code prominently to Supabase
+> Functions logs to point you at the missing migration.
 
 ### 3. Deploy the Edge Functions
 
@@ -710,7 +708,8 @@ A copy-pasteable shape of the three app-level vars lives at
 | `APP_RO_PASSWORD` | `auth` | Your read-only / shareable password. |
 | `FINNHUB_API_KEY` | `fundamentals` | Free key from finnhub.io (60 calls / min). Source of `pe3yAvg` / `ps3yAvg` (3-year averages — Yahoo doesn't expose historical-annual ratios on the free tier) and the whole-row fallback for current pe/eps/ps when Yahoo's crumb handshake fails or it's rate-limited. Without it the P/E / P/S YTD buttons still work for tickers Yahoo covers, but the dashed 3Y AVG reference line is hidden and a Yahoo outage drops the chart entirely. *(There used to be an `FMP_API_KEY` here — FMP retired its `/v3/` endpoints and paywalled the `/stable/` replacements in 2026, so the FMP layer was removed and Yahoo `quoteSummary` + a crumb handshake is now the primary source. No FMP key is needed.)* |
 | `ALPHAVANTAGE_API_KEY` | `fundamentals` | Free key from alphavantage.co (25 calls / day). Powers index P/E for `^GSPC` / `^NDX` / `^RUT` / `^SOX` via their ETF proxies, with a 24 h server-side cache so the daily quota is never strained. Without it the function falls back to hardcoded constants — chart still draws but the printed values stop auto-refreshing. |
-| `TRADING212_API_KEY` | `trading212` | Optional. Read-only API key from Trading 212 → Settings → API. Powers the auto-sync of VUAG.L / SEGM.L lots — without it the function returns `source: 'disabled'` + empty holdings and the client falls back to whatever the user last typed into EditTickerModal. Set this when you want to stop typing every daily DCA buy by hand. |
+| `T212_API_KEY` | `trading212` | Optional. Read-only API key from Trading 212 → Settings → Account & Personal → API Settings. Powers the auto-sync of VUAG.L / SEGM.L lots — without it the function returns `source: 'disabled'` + empty holdings and the client falls back to whatever the user last typed into EditTickerModal. Sent as the raw `Authorization` header value per T212's documented public API. |
+| `T212_API_SECRET` | `trading212` | Optional fallback for T212 accounts that use the two-key HTTP Basic Auth flavour. The function tries single-key auth (`T212_API_KEY` alone) first; if T212 returns 401 AND this secret is set, retries once with `Basic base64(key:secret)`. Leave unset for the standard documented scheme. |
 
 ### 4. Wire the client
 
