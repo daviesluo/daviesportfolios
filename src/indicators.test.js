@@ -4,7 +4,7 @@ import {
   rollingSma, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   priceDividedByTtmEps,
-  hasExtendedHoursBars,
+  hasExtendedHoursBars, extPriceIsRealAh,
   isPriceAxis,
 } from './indicators.js';
 
@@ -226,6 +226,70 @@ describe('hasExtendedHoursBars', () => {
   it('empty / non-array input → false', () => {
     expect(hasExtendedHoursBars([], 0, 0)).toBe(false);
     expect(hasExtendedHoursBars(/** @type {any} */ (null), 0, 0)).toBe(false);
+  });
+});
+
+describe('extPriceIsRealAh (shared card/modal AH-trust verdict)', () => {
+  const OPEN = 13 * 60 + 30, CLOSE = 20 * 60;  // 09:30 / 16:00 ET in UTC
+
+  it('real AH mover: AH bars present AND extPrice tracks the last bar → true', () => {
+    const series = [
+      { date: '2026-05-11T19:55', close: 100 },  // 15:55 ET RTH
+      { date: '2026-05-11T20:30', close: 104 },  // 16:30 ET — real AH bar
+    ];
+    // extPrice 104.5 is within 3% of the last AH bar (104).
+    expect(extPriceIsRealAh(series, 104.5, OPEN, CLOSE)).toBe(true);
+  });
+
+  it('big AH move still tracked by the bars (CBRS-shape) → true', () => {
+    // The ±5% quote-only heuristic (extPriceLooksReal) rejects this;
+    // extPriceIsRealAh accepts it because the AH bars confirm the
+    // move is real — the whole point of the card/modal unification.
+    const series = [
+      { date: '2026-05-11T19:55', close: 100 },  // RTH close
+      { date: '2026-05-11T21:00', close: 168 },  // +68% AH bar
+    ];
+    expect(extPriceIsRealAh(series, 168, OPEN, CLOSE)).toBe(true);
+  });
+
+  it('SFTBY-shape: AH bars exist but extPrice diverges from them → false', () => {
+    // Yahoo pads AH-timestamped bars at the RTH close for OTC ADRs,
+    // then ships a bogus postMarketPrice (today's open). The bars say
+    // ~18.65, the bogus extPrice says 20.15 (~8% off) → rejected.
+    const series = [
+      { date: '2026-05-11T19:55', close: 18.65 },  // RTH close
+      { date: '2026-05-11T20:30', close: 18.65 },  // padded AH bar, flat
+    ];
+    expect(extPriceIsRealAh(series, 20.15, OPEN, CLOSE)).toBe(false);
+  });
+
+  it('no AH bars at all → false', () => {
+    const series = [
+      { date: '2026-05-11T14:00', close: 100 },  // 10:00 ET RTH
+      { date: '2026-05-11T19:55', close: 101 },  // 15:55 ET RTH
+    ];
+    expect(extPriceIsRealAh(series, 101, OPEN, CLOSE)).toBe(false);
+  });
+
+  it('missing / non-positive extPrice → false', () => {
+    const series = [{ date: '2026-05-11T20:30', close: 104 }];
+    expect(extPriceIsRealAh(series, null, OPEN, CLOSE)).toBe(false);
+    expect(extPriceIsRealAh(series, 0, OPEN, CLOSE)).toBe(false);
+    expect(extPriceIsRealAh(series, -5, OPEN, CLOSE)).toBe(false);
+    expect(extPriceIsRealAh(series, /** @type {any} */ (undefined), OPEN, CLOSE)).toBe(false);
+  });
+
+  it('empty / non-array series → false', () => {
+    expect(extPriceIsRealAh([], 100, OPEN, CLOSE)).toBe(false);
+    expect(extPriceIsRealAh(/** @type {any} */ (null), 100, OPEN, CLOSE)).toBe(false);
+  });
+
+  it('latest bar has no usable close → false', () => {
+    const series = [
+      { date: '2026-05-11T19:55', close: 100 },
+      { date: '2026-05-11T20:30', close: 0 },  // AH bar but no real close
+    ];
+    expect(extPriceIsRealAh(series, 104, OPEN, CLOSE)).toBe(false);
   });
 });
 
