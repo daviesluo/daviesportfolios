@@ -574,12 +574,14 @@ export async function fetchTodayRegularClose(tickers) {
 // with tickers that have no meaningful fundamentals (futures /
 // indices / ETFs / crypto / .PVT / 6-digit CN funds) simply absent.
 //
-// Pass `{ ttmEpsHistory: true }` to also receive
-// `ttmEpsHistory: [{date, eps:<TTM diluted EPS>}, …]` on each entry —
-// pre-summed TTM at each quarter end, sourced from Yahoo's
-// fundamentals-timeseries (5+ yrs). Used by the P/E chart modal so
-// the historical P/E line steps when an earnings report changes the
-// denominator, instead of being a 1:1 scaled copy of the price chart.
+// Pass `{ ttmEpsHistory: true }` to also receive `ttmEpsHistory` AND
+// `ttmSalesHistory` on each entry — `[{date, eps:<TTM value>}, …]`,
+// pre-summed TTM at each quarter end from Yahoo's
+// fundamentals-timeseries (5+ yrs): diluted EPS for the P/E chart,
+// revenue rescaled to sales-per-share for the P/S chart. Used by the
+// ratio chart modals so the historical P/E and P/S lines step when
+// an earnings report changes the denominator, instead of being a 1:1
+// scaled copy of the price chart.
 // The contract name is deliberately distinct from #64's earlier
 // `epsHistory` (which returned RAW quarterly EPS) — a stale Edge
 // Function deploy, or a SW-cached old response, would otherwise feed
