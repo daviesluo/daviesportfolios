@@ -125,13 +125,14 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     && !/=X$/.test(ticker)
     && !/[-]USD$/i.test(ticker);
   // Read the prefetched fundamentals row from dp.tickerChart (key
-  // `${ticker}|FUND|v2`) synchronously so the P/E YTD button can
-  // appear on the very first paint instead of "popping in" 1-2 s
-  // after the modal opens. Background revalidate still runs below
-  // to refresh the row when stale. Returns null on cache miss.
+  // `${ticker}|FUND|v3`) synchronously so the P/E YTD button + Mkt
+  // Cap line can appear on the very first paint instead of "popping
+  // in" 1-2 s after the modal opens. Background revalidate still
+  // runs below to refresh the row when stale. Returns null on cache
+  // miss.
   /** @returns {{ eps?: number, pe?: number, pe3yAvg?: number|null, ps?: number, ps3yAvg?: number|null, peg?: number, ttmEpsHistory?: any[], ttmSalesHistory?: any[], sharesOutstanding?: number } | null} */
   const readFundCache = () => {
-    const row = ChartStore.get(`${ticker}|FUND|v2`)?.data;
+    const row = ChartStore.get(`${ticker}|FUND|v3`)?.data;
     return row && typeof row === 'object' ? row : null;
   };
   const fundCached = supportsPePattern ? readFundCache() : null;
@@ -240,7 +241,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // synchronously even when the prefetch pass didn't cover this
       // particular ticker (drilldown into an MC card the prefetch
       // didn't include, etc.).
-      ChartStore.set(`${ticker}|FUND|v2`, { ts: Date.now(), data: row });
+      ChartStore.set(`${ticker}|FUND|v3`, { ts: Date.now(), data: row });
     });
     return () => { cancelled = true; };
   }, [ticker, supportsPePattern]);
@@ -1147,6 +1148,17 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               ? <>{TICKER_DISPLAY_NAMES[ticker]} <span className="dim" style={{ fontSize: '0.7em' }}>{ticker}</span></>
               : ticker}
           </h2>
+          {/* Live market cap (live price × shares outstanding) — sits
+              on its own row ABOVE the Last-price line so the eyebrow
+              reads "Mkt Cap $X.YT \n Last $price …". Stocks only:
+              sharesOut is null for non-stocks / when Yahoo has no
+              market cap, so the whole row disappears then. */}
+          {liveMarketCap != null && (
+            <div className="modal-meta">
+              <span className="mono dim">Mkt Cap</span>
+              <span className="mono dim">{fmtMo(liveMarketCap)}</span>
+            </div>
+          )}
           <div className="modal-meta">
             <span className="mono dim">{
               rangeKey === 'PE' ? 'P/E' : rangeKey === 'PS' ? 'P/S' : 'Last'
@@ -1169,17 +1181,6 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             )}
             {rangeKey === 'PS' && (
               <span className="mono dim" style={{ fontSize: 10 }}>(price ÷ TTM sales per share)</span>
-            )}
-            {/* Live market cap (live price × shares outstanding) —
-                replaces the old PRICE / P/E RATIO eyebrow. All-grey,
-                sits at the right end of the row. Stocks only:
-                sharesOut is null for non-stocks / when Yahoo has no
-                market cap, so the labels just don't render then. */}
-            {liveMarketCap != null && (
-              <>
-                <span className="mono dim">Mkt Cap</span>
-                <span className="mono dim">{fmtMo(liveMarketCap)}</span>
-              </>
             )}
           </div>
           {/* PEG on its own line below the P/E row — secondary
