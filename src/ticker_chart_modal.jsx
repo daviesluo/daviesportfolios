@@ -1147,16 +1147,6 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               ? <>{TICKER_DISPLAY_NAMES[ticker]} <span className="dim" style={{ fontSize: '0.7em' }}>{ticker}</span></>
               : ticker}
           </h2>
-          {/* Live market cap (live price × shares outstanding) —
-              replaces the old PRICE / P/E RATIO eyebrow. All-grey,
-              same size as the Last line below. Stocks only: sharesOut
-              is null for non-stocks / when Yahoo has no market cap. */}
-          {liveMarketCap != null && (
-            <div className="modal-meta">
-              <span className="mono dim">Mkt Cap</span>
-              <span className="mono dim">{fmtMo(liveMarketCap)}</span>
-            </div>
-          )}
           <div className="modal-meta">
             <span className="mono dim">{
               rangeKey === 'PE' ? 'P/E' : rangeKey === 'PS' ? 'P/S' : 'Last'
@@ -1179,6 +1169,17 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             )}
             {rangeKey === 'PS' && (
               <span className="mono dim" style={{ fontSize: 10 }}>(price ÷ TTM sales per share)</span>
+            )}
+            {/* Live market cap (live price × shares outstanding) —
+                replaces the old PRICE / P/E RATIO eyebrow. All-grey,
+                sits at the right end of the row. Stocks only:
+                sharesOut is null for non-stocks / when Yahoo has no
+                market cap, so the labels just don't render then. */}
+            {liveMarketCap != null && (
+              <>
+                <span className="mono dim">Mkt Cap</span>
+                <span className="mono dim">{fmtMo(liveMarketCap)}</span>
+              </>
             )}
           </div>
           {/* PEG on its own line below the P/E row — secondary
