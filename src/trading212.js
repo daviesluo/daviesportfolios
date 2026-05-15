@@ -5,10 +5,11 @@
 // tickers (currently VUAG.L / SEGM.L — the user DCAs into those
 // daily on T212, which would otherwise require typing every small
 // buy into EditTickerModal). The Edge Function does the actual
-// rate-limited upstream call to T212 with 60 s caching (T212 limits
-// `/equity/portfolio` at 1 req / 30 s; 60 s gives a safety margin),
-// so this helper is safe to call on every visitor's auto-refresh
-// without punching through the rate limit.
+// rate-limited upstream call to T212 with 120 s caching (4× T212's
+// 1-req-per-30-s window) + an atomic Postgres claim that lets only
+// one worker per window call live T212 regardless of how many
+// devices are refreshing, so this helper is safe to call on every
+// visitor's auto-refresh without punching through the rate limit.
 //
 // Best-effort: returns `null` on network error or upstream miss so
 // the caller (doRefresh) can fall through to the existing local

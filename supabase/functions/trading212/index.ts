@@ -12,30 +12,35 @@
 //          updatedAt: ISO-string,
 //          source: 'cache' | 'live' | 'stale' | 'disabled' }
 //
-// `cost` is per-share average cost ("AC") in the instrument's native
-// currency — GBP for LSE listings, with T212's pence/GBX figure
-// divided by 100 to match the rest of the app's GBP convention. The
-// app stores cost basis per-share everywhere (`holding.cost`,
-// `lot.cost`, the lot editor's AC computation, and `computeMetrics`
-// which multiplies `shares * cost` for the position's total cost),
-// so per-share is the unit the client expects. `shares` is T212's
-// `quantity`. The shape folds into
-// `holding.lots = [{ date: today, shares, cost }]` — a single synthetic
-// lot replacing whatever was there.
+// `cost` is per-share average cost in the instrument's quote
+// currency. T212's `/equity/portfolio` reports `averagePrice` in the
+// account's settle currency for the instrument — for VUAG.L /
+// SEGM.L (both GBP-denominated UCITS ETFs on LSE) that's GBP, NOT
+// the GBp/pence figure Yahoo's quote feed publishes. So this
+// function passes `averagePrice` through unchanged. `shares` is
+// T212's `quantity`. The shape folds into
+// `holding.lots = [{ date: today, shares, cost }]` — a single
+// synthetic lot replacing whatever was there. lot.cost / h.cost is
+// per-share AC everywhere in the app; metrics.js multiplies
+// `h.shares * h.cost` for total cost.
 //
 // All visitors call this on every doRefresh, so the response is
-// cached server-side at `public.trading212_cache` for 60 s (T212's
-// rate limit is 1 req / 30 s; 60 s gives a 30 s safety margin in
-// case two Edge Function workers race past the freshness check at
-// the same instant). With the cache, N concurrent visitors share
-// a single upstream call per window — without it, two visitors
-// refreshing simultaneously would blow through the rate limit on
-// `/equity/portfolio`.
+// cached server-side at `public.trading212_cache` for 120 s. T212's
+// rate limit is 1 req / 30 s on `/equity/portfolio`; with a 120 s
+// TTL there's a 90 s margin on the steady-state rate. To kill the
+// boundary race entirely — two workers racing past the freshness
+// check on a stale row and both firing live T212 calls in the same
+// rate-limit window — refresh is also gated by an atomic Postgres
+// claim (`try_claim_t212_refresh` RPC, conditional UPSERT). Only
+// the worker that successfully updates `updated_at` calls T212;
+// losers serve whatever the winner already wrote.
 //
-// `TRADING212_API_KEY` env var is required for live calls; when
-// absent the function returns `source: 'disabled'` and an empty
-// holdings map so the client can no-op gracefully. T212 errors fall
-// back to stale cache up to STALE_OK_MS old.
+// `T212_API_KEY` + `T212_API_SECRET` env vars are required for live
+// calls (HTTP Basic Auth — T212's current two-key scheme uses
+// key-id as username and secret as password). When either is
+// absent the function returns `source: 'disabled'` + empty
+// holdings so the client can no-op. T212 errors fall back to stale
+// cache up to STALE_OK_MS old.
 
 // Yahoo ticker → T212 internal ticker. The T212 convention for LSE is
 // `<TICKER>l_EQ` (lowercase 'l' exchange suffix + `_EQ`). The function
@@ -46,30 +51,13 @@ const T212_TO_YAHOO: Record<string, string> = {
   "SEGMl_EQ": "SEGM.L",
 };
 
-// LSE-listed instruments — T212 reports prices in pence (GBX), so the
-// function divides averagePrice by 100 before returning to match the
-// rest of the app's GBP convention (utils.js does the same /100 to
-// Yahoo's GBp meta currency).
-const PENCE_DENOMINATED = new Set([".L"]);
-
-function isPenceDenominated(yahooTicker: string): boolean {
-  for (const suffix of PENCE_DENOMINATED) {
-    if (yahooTicker.endsWith(suffix)) return true;
-  }
-  return false;
-}
-
-// 60 s TTL — comfortably under T212's `1 req / 30 s` rate limit on
-// `/equity/portfolio` (1 req / 60 s leaves a 30 s safety margin in case
-// two Edge Function workers race past the cache check at the same
-// instant). T212 data lags client-displayed prices a little but DCA
-// activity isn't time-sensitive enough to need 30 s freshness.
-const CACHE_TTL_MS = 60_000;
+const CACHE_TTL_MS = 120_000;       // 120 s: 4× T212's 1-req-per-30-s window
 const STALE_OK_MS  = 5 * 60_000;    // serve stale up to 5 min on upstream error
 
 const SB_URL      = Deno.env.get("SUPABASE_URL") ?? "https://flmvxigozjuizpckllvk.supabase.co";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const T212_API_KEY = Deno.env.get("TRADING212_API_KEY") ?? "";
+const T212_API_KEY    = Deno.env.get("T212_API_KEY") ?? "";
+const T212_API_SECRET = Deno.env.get("T212_API_SECRET") ?? "";
 
 const T212_PORTFOLIO_URL = "https://live.trading212.com/api/v0/equity/portfolio";
 
@@ -82,14 +70,13 @@ const CORS = {
 /**
  * Pick out the allow-listed tickers from a raw T212 `/equity/portfolio`
  * response and normalize each row into the `{ shares, cost }` shape
- * the client expects. Pence/GBX prices for LSE rows are divided by
- * 100 so the cost lands in GBP, matching the rest of the app.
- *
- * `cost` is per-share average cost (the value the lot editor /
+ * the client expects. `averagePrice` is taken verbatim — for the
+ * VUAG.L / SEGM.L allow-list (LSE-listed GBP ETFs) T212 reports in
+ * GBP, not pence. `cost` is per-share AC (the value the lot editor /
  * computeMetrics multiply by `shares` to get position-level cost).
  *
- * Pure function so the `index.test.ts` can pin the conversion math
- * + ticker filtering without needing the network.
+ * Pure function so `index.test.ts` can pin the conversion math +
+ * ticker filtering without needing the network.
  */
 export function shapeT212Portfolio(
   positions: unknown,
@@ -106,10 +93,9 @@ export function shapeT212Portfolio(
     const averagePrice = Number((p as { averagePrice?: unknown }).averagePrice);
     if (!isFinite(quantity) || quantity <= 0) continue;
     if (!isFinite(averagePrice) || averagePrice <= 0) continue;
-    const priceNative = isPenceDenominated(yahooTicker) ? averagePrice / 100 : averagePrice;
     out[yahooTicker] = {
       shares: quantity,
-      cost: priceNative,
+      cost: averagePrice,
     };
   }
   return out;
@@ -127,6 +113,18 @@ export function cacheIsFresh(updatedAt: string | null, nowMs: number, ttlMs: num
   return nowMs - t < ttlMs;
 }
 
+/**
+ * Build the HTTP Basic Auth header value for T212. T212's current
+ * scheme uses two keys — API key id and secret — concatenated with
+ * a colon and base64 encoded, same as standard HTTP Basic.
+ *
+ * Pure function so the test suite can pin the encoding without
+ * exposing real secrets.
+ */
+export function basicAuthHeader(keyId: string, secret: string): string {
+  return "Basic " + btoa(`${keyId}:${secret}`);
+}
+
 async function readCacheRow(): Promise<{ data: unknown; updated_at: string } | null> {
   try {
     const res = await fetch(`${SB_URL}/rest/v1/trading212_cache?id=eq.1&select=data,updated_at`, {
@@ -141,6 +139,35 @@ async function readCacheRow(): Promise<{ data: unknown; updated_at: string } | n
     return Array.isArray(arr) && arr[0] ? arr[0] : null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Atomic refresh claim. Returns true iff this worker won the right
+ * to call T212 for this window. Implemented as a Postgres RPC
+ * (`try_claim_t212_refresh`, added in migration 0008) that does a
+ * conditional UPSERT — it bumps `updated_at` only when the existing
+ * row is older than ttl_ms (or no row exists), and returns whether
+ * the row was actually written. Two workers racing the call will
+ * see at most one true return value because the underlying
+ * `INSERT ... ON CONFLICT DO UPDATE WHERE` is atomic.
+ */
+async function claimRefresh(): Promise<boolean> {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/try_claim_t212_refresh`, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE_KEY,
+        authorization: `Bearer ${SERVICE_KEY}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ ttl_ms: CACHE_TTL_MS }),
+    });
+    if (!res.ok) return false;
+    const body = await res.json();
+    return body === true;
+  } catch {
+    return false;
   }
 }
 
@@ -164,7 +191,7 @@ async function writeCacheRow(data: unknown): Promise<void> {
 async function fetchT212Portfolio(): Promise<unknown> {
   const res = await fetch(T212_PORTFOLIO_URL, {
     headers: {
-      authorization: T212_API_KEY,
+      authorization: basicAuthHeader(T212_API_KEY, T212_API_SECRET),
       accept: "application/json",
     },
   });
@@ -185,7 +212,7 @@ if (import.meta.main) {
       });
     }
 
-    if (!T212_API_KEY) {
+    if (!T212_API_KEY || !T212_API_SECRET) {
       return new Response(JSON.stringify({
         holdings: {},
         updatedAt: new Date().toISOString(),
@@ -203,6 +230,29 @@ if (import.meta.main) {
       }), { headers: { ...CORS, "content-type": "application/json" } });
     }
 
+    // Stale (or cold). Atomically claim the right to refresh. Only the
+    // winner calls T212; losers re-read the cache (winner may have
+    // written between our SELECT and our claim attempt) and serve
+    // whatever's there. Worst case for a loser on cold cache: empty
+    // holdings for one tick until the winner's write lands.
+    const claimed = await claimRefresh();
+    if (!claimed) {
+      const refreshed = await readCacheRow();
+      const row = refreshed || cached;
+      if (row) {
+        return new Response(JSON.stringify({
+          holdings: row.data,
+          updatedAt: row.updated_at,
+          source: "cache",
+        }), { headers: { ...CORS, "content-type": "application/json" } });
+      }
+      return new Response(JSON.stringify({
+        holdings: {},
+        updatedAt: new Date().toISOString(),
+        source: "stale",
+      }), { headers: { ...CORS, "content-type": "application/json" } });
+    }
+
     try {
       const raw = await fetchT212Portfolio();
       const holdings = shapeT212Portfolio(raw);
@@ -213,19 +263,13 @@ if (import.meta.main) {
         source: "live",
       }), { headers: { ...CORS, "content-type": "application/json" } });
     } catch {
-      // Upstream failed — could be T212 down, network, OR (the case
-      // worth catching) a concurrent worker passed the freshness
-      // check at the same instant and got a 429 from T212 because
-      // the winner had already used the 1-req-per-30-s budget.
-      // Re-read the cache: if the winner wrote between our initial
-      // read and now, we can return their fresh value tagged as
-      // `stale` rather than serving empty holdings.
-      const refreshed = await readCacheRow();
-      const fallback = refreshed || cached;
-      if (fallback && cacheIsFresh(fallback.updated_at, now, STALE_OK_MS)) {
+      // T212 errored after we claimed the refresh slot. Serve stale
+      // cache (within 5 min grace) so a transient 429 / 500 doesn't
+      // blank the lots out client-side.
+      if (cached && cacheIsFresh(cached.updated_at, now, STALE_OK_MS)) {
         return new Response(JSON.stringify({
-          holdings: fallback.data,
-          updatedAt: fallback.updated_at,
+          holdings: cached.data,
+          updatedAt: cached.updated_at,
           source: "stale",
         }), { headers: { ...CORS, "content-type": "application/json" } });
       }
