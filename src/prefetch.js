@@ -232,7 +232,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
 
   // P/E YTD prefetch — two writes per eligible ticker:
   //
-  //   1. `${ticker}|FUND|v2` — the raw fundamentals row (eps / pe /
+  //   1. `${ticker}|FUND|v3` — the raw fundamentals row (eps / pe /
   //      pe3yAvg / ttmEpsHistory). Modal first-render reads this
   //      synchronously to decide whether to show the P/E YTD button
   //      and to fill in pe3yAvg, so the button stops "popping in"
@@ -250,7 +250,11 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   // back-to-back manual refreshes don't burn Finnhub quota.
   // Reads come from the in-memory mirror (sync), so the per-range
   // pass's writes above are already visible here.
-  const fundKey = (t) => `${t}|FUND|v2`;
+  // v3 (bumped 2026-05) evicts pre-PR-126 rows that pre-dated the
+  // server adding `sharesOutstanding` — old rows would still be
+  // counted fresh under the 12 h FUND TTL, so the modal's Mkt Cap
+  // line never paints until something else cycled the cache.
+  const fundKey = (t) => `${t}|FUND|v3`;
   const peKey   = (t) => tickerChartCacheKey(t, 'PE', useExt, phase);
   const psKey   = (t) => tickerChartCacheKey(t, 'PS', useExt, phase);
   const ytdEntryFor = (t) => YtdStore.get(`y${year}|YTD:std|${t}`);
