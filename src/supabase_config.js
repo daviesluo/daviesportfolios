@@ -8,3 +8,4 @@ export const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmF
 
 export const EDGE_AUTH_URL = `${SB_URL}/functions/v1/auth`;
 export const EDGE_DATA_URL = `${SB_URL}/functions/v1/data`;
+export const EDGE_TRADING212_URL = `${SB_URL}/functions/v1/trading212`;
