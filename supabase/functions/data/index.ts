@@ -16,7 +16,14 @@
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-app-token",
+  // `if-match` is included so the browser's CORS preflight doesn't
+  // block saves once the client starts attaching the optimistic-
+  // concurrency header (per migration 0013). It's not a safelisted
+  // request header — without it listed here, every cross-origin POST
+  // that carries an `If-Match` fails preflight before this handler
+  // even sees the request, and the user's saves silently stop
+  // working as soon as `lastKnownVersion` is cached.
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-app-token, if-match",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
