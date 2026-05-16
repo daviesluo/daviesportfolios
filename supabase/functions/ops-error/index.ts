@@ -70,6 +70,16 @@ async function hmacSign(payload: string, secret: string): Promise<string> {
 // Verify an HMAC-signed app token and return the payload's role on
 // success. Mirrors the `data` Edge Function's gate. Returns null for
 // any failure (bad shape, bad signature, expired, unknown role).
+// Constant-time string equality — see data/index.ts for the rationale.
+// Duplicated across Edge Function modules (Supabase Deno can't share
+// code between functions); per-function tests keep the copies pinned.
+export function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 export async function verifyAdminToken(token: string | null, secret = APP_AUTH_SECRET): Promise<"admin" | "ro" | null> {
   if (!token || !secret) return null;
   const dot = token.indexOf(".");
@@ -77,7 +87,7 @@ export async function verifyAdminToken(token: string | null, secret = APP_AUTH_S
   const payloadB64 = token.slice(0, dot);
   const sig        = token.slice(dot + 1);
   const expected   = await hmacSign(payloadB64, secret);
-  if (sig !== expected) return null;
+  if (!constantTimeEqual(sig, expected)) return null;
   try {
     const padded = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
     const json = atob(padded + "=".repeat((4 - padded.length % 4) % 4));

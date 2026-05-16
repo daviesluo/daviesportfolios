@@ -19,6 +19,7 @@ import {
   b64url,
   sign,
   verifyToken,
+  constantTimeEqual,
 } from "./index.ts";
 
 Deno.test("shapeT212Portfolio — VUAGl_EQ / SEGMl_EQ map to Yahoo tickers; cost is per-share GBP", () => {
@@ -136,4 +137,10 @@ Deno.test("verifyToken — rejects missing dot / empty / malformed", async () =>
   assertEquals(await verifyToken("no-dot", secret), null);
   assertEquals(await verifyToken(".sig-only", secret), null);
   assertEquals(await verifyToken("payload-only.", secret), null);
+});
+
+Deno.test("constantTimeEqual: identical / non-identical / length-mismatched", () => {
+  assert(constantTimeEqual("abc", "abc"));
+  assert(!constantTimeEqual("abc", "abd"));
+  assert(!constantTimeEqual("abc", "abcd"));
 });

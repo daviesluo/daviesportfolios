@@ -6,8 +6,8 @@
 //
 // Run locally: `deno test --allow-env supabase/functions/data/`
 
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { b64url, sign, verifyToken } from "./index.ts";
+import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { b64url, sign, verifyToken, constantTimeEqual } from "./index.ts";
 
 Deno.test("b64url: url-safe alphabet, no padding", () => {
   const s = b64url("hello world!?");
@@ -42,4 +42,21 @@ Deno.test("verifyToken: rejects token with role outside admin/ro", async () => {
   const payload = b64url(JSON.stringify({ role: "other", exp: Date.now() + 60_000 }));
   const signature = await sign(payload, secret);
   assertEquals(await verifyToken(`${payload}.${signature}`, secret), null);
+});
+
+Deno.test("constantTimeEqual: equal strings return true", () => {
+  assert(constantTimeEqual("hello", "hello"));
+  assert(constantTimeEqual("", ""));
+});
+
+Deno.test("constantTimeEqual: different content returns false", () => {
+  assert(!constantTimeEqual("hello", "world"));
+  assert(!constantTimeEqual("hello", "hellp"));   // last byte differs
+  assert(!constantTimeEqual("aello", "hello"));   // first byte differs
+});
+
+Deno.test("constantTimeEqual: different length returns false", () => {
+  assert(!constantTimeEqual("hello", "helloo"));
+  assert(!constantTimeEqual("hello", "hell"));
+  assert(!constantTimeEqual("", "x"));
 });

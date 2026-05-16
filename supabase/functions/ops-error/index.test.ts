@@ -6,7 +6,7 @@
 // Run locally: `deno test --allow-env supabase/functions/ops-error/`
 
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { clip, verifyAdminToken } from "./index.ts";
+import { clip, verifyAdminToken, constantTimeEqual } from "./index.ts";
 import { makeToken } from "../auth/index.ts";
 
 Deno.test("clip: returns input unchanged when under cap", () => {
@@ -57,4 +57,10 @@ Deno.test("verifyAdminToken: rejects when secret is empty (short-circuit)", asyn
   // isn't set; verifyAdminToken must short-circuit rather than try
   // to validate an HMAC under an empty key.
   assertEquals(await verifyAdminToken("anything.signature", ""), null);
+});
+
+Deno.test("constantTimeEqual: identical / non-identical / length-mismatched", () => {
+  assert(constantTimeEqual("abc", "abc"));
+  assert(!constantTimeEqual("abc", "abd"));
+  assert(!constantTimeEqual("abc", "abcd"));
 });

@@ -46,12 +46,27 @@ export async function sign(payload: string, secret: string): Promise<string> {
 
 export type Verified = { role: "admin" | "ro"; exp: number };
 
+// Constant-time string equality. JS `!==` short-circuits on first
+// byte mismatch, which leaks a timing side-channel an attacker can
+// use to forge tokens byte-by-byte. Walking the full length and
+// OR-ing the per-char xor keeps the comparison time independent of
+// where (if anywhere) the mismatch is. Length mismatch short-circuits
+// only the LENGTH check — not the per-byte content — which is the
+// information we're already willing to leak (a 43-byte vs 44-byte
+// signature isn't a useful guess for the attacker).
+export function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 export async function verifyToken(token: string, secret = SECRET): Promise<Verified | null> {
   if (!secret) return null;
   const [payloadB64, sigB64] = token.split(".");
   if (!payloadB64 || !sigB64) return null;
   const expected = await sign(payloadB64, secret);
-  if (expected !== sigB64) return null;
+  if (!constantTimeEqual(expected, sigB64)) return null;
   try {
     const padded = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
     const json = atob(padded + "=".repeat((4 - padded.length % 4) % 4));
