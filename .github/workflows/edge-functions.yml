@@ -107,8 +107,24 @@ jobs:
             echo "::warning::Supabase secrets missing — set SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF in repo secrets to enable auto-deploy. Skipping."
             exit 0
           fi
+          # Per-function deploy flags. Anon-callable functions
+          # (auth — needs to receive the password challenge before any
+          # token exists; data / trading212 / ops-error — gated by
+          # their own HMAC x-app-token inside the function body) get
+          # --no-verify-jwt so the Supabase platform doesn't reject
+          # the call before our gate runs. The remaining three
+          # (prices / chart / fundamentals) keep Supabase's JWT
+          # check on, so unauthenticated visitors can't use them as a
+          # free Yahoo / Finnhub / AlphaVantage proxy — which would
+          # silently burn through this project's outbound rate-limit
+          # quotas and eventually trip Yahoo's per-IP ban.
+          PUBLIC_FNS="auth data trading212 ops-error"
           for fn in ${{ steps.changed.outputs.functions }}; do
-            echo "::group::Deploying $fn"
-            supabase functions deploy "$fn" --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
+            FLAGS="--project-ref $SUPABASE_PROJECT_REF"
+            case " $PUBLIC_FNS " in
+              *" $fn "*) FLAGS="$FLAGS --no-verify-jwt" ;;
+            esac
+            echo "::group::Deploying $fn ($FLAGS)"
+            supabase functions deploy "$fn" $FLAGS
             echo "::endgroup::"
           done
