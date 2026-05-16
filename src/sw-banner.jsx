@@ -60,14 +60,35 @@ export function ServiceWorkerBanner() {
     updateServiceWorker,
   } = useRegisterSW({
     onRegisteredSW(swUrl, registration) {
-      // Poll for updates every 10 minutes so a long-running tab eventually
-      // catches the new build without needing a hard refresh. Combined
-      // with the 1 h auto-reload below this caps the worst-case stale
-      // window at ~70 min (poll-interval + auto-reload) instead of the
-      // previous 90 min (30 min poll + 60 min auto-reload).
+      // Poll for updates every 60 s so a desktop tab or a phone PWA
+      // picks up a new deploy within ~1 min of the push landing, not
+      // the previous 10 min. Combined with the visibility-change /
+      // focus listeners below (which fire registration.update on
+      // tab-resume), a backgrounded PWA gets a near-instant banner
+      // when the user touches it.
       if (!registration) return;
-      const POLL_MS = 10 * 60 * 1000;
-      setInterval(() => registration.update().catch(() => {}), POLL_MS);
+      const POLL_MS = 60 * 1000;
+      const checkNow = () => { registration.update().catch(() => {}); };
+      const id = setInterval(checkNow, POLL_MS);
+      // Also check whenever the tab regains visibility / focus — a
+      // phone PWA spends 99% of its life backgrounded, and the
+      // 60 s setInterval is throttled-to-minutes by mobile browsers
+      // when the tab isn't foreground. visibilitychange + focus fire
+      // synchronously the moment the user opens the app, so the
+      // banner appears within seconds of the user looking at it
+      // rather than after the next foreground tick.
+      const onVisible = () => {
+        if (typeof document !== 'undefined' && !document.hidden) checkNow();
+      };
+      try {
+        document.addEventListener('visibilitychange', onVisible);
+        window.addEventListener('focus', onVisible);
+      } catch { /* SSR / non-browser env */ }
+      // No cleanup return — useRegisterSW's callback fires once at
+      // mount and the listeners should live for the tab's lifetime.
+      // Returning would also conflict with vite-plugin-pwa's typed
+      // signature.
+      void id;
     },
   });
 
@@ -107,15 +128,22 @@ export function ServiceWorkerBanner() {
     // well past typical activation time, so the page always refreshes.
     try { updateServiceWorker(true); } catch {}
 
-    // iOS Safari fallback for the "reloaded but banner is still there"
-    // case the user kept hitting: even after the 1500 ms reload, the
-    // old SW was sometimes still the controller (SKIP_WAITING wasn't
-    // honoured) and the new SW stayed in `waiting`, so the next
-    // useRegisterSW mount saw needRefresh=true again and re-showed
-    // the banner. Drop every Workbox cache + unregister all SWs so
-    // the upcoming reload starts from a clean slate — the new SW
-    // re-registers fresh on the next paint, never enters a waiting
-    // state for this version, and the banner stays gone.
+    // Full clean-slate purge before the reload, so the new SW
+    // mounts as if the user had just opened the page for the first
+    // time. Auth token lives in sessionStorage and survives reload
+    // (sessionStorage is per-tab and persists across reloads within
+    // the same tab), so the user doesn't need to re-login. Everything
+    // else gets nuked:
+    //   - Workbox / runtime caches (asset, fonts, data-api)
+    //   - Service workers (forces a fresh registration on next load)
+    //   - localStorage (dp.* schema, prefs, market cache, opsErrorAck)
+    //   - IndexedDB (chart_store: ChartStore / MaStore / YtdStore)
+    //
+    // Why this strict: the previous lighter purge (caches + SW only)
+    // sometimes left old-shape localStorage / IDB data around that the
+    // new version's code interpreted incorrectly. The reload UX
+    // promise is "just like the first time you opened it", and
+    // explicit guarantee > best-effort.
     try {
       if (typeof caches !== 'undefined' && typeof caches.keys === 'function') {
         const names = await caches.keys();
@@ -128,6 +156,30 @@ export function ServiceWorkerBanner() {
         await Promise.all(regs.map((r) => r.unregister()));
       }
     } catch { /* ignore — reload still proceeds */ }
+    try { localStorage.clear(); } catch { /* private mode etc. */ }
+    try {
+      if (typeof indexedDB !== 'undefined' && typeof indexedDB.databases === 'function') {
+        const dbs = await indexedDB.databases();
+        await Promise.all(dbs.map((db) => new Promise((resolve) => {
+          if (!db.name) { resolve(undefined); return; }
+          const req = indexedDB.deleteDatabase(db.name);
+          req.onsuccess = req.onerror = req.onblocked = () => resolve(undefined);
+        })));
+      } else if (typeof indexedDB !== 'undefined') {
+        // Older browsers (notably Safari pre-17) lack `databases()`.
+        // Fall back to deleting our known-name DB explicitly.
+        await new Promise((resolve) => {
+          const req = indexedDB.deleteDatabase('daviesportfolios');
+          req.onsuccess = req.onerror = req.onblocked = () => resolve(undefined);
+        });
+      }
+    } catch { /* ignore — reload still proceeds */ }
+
+    // Re-stash the reload-suppress timestamp since the localStorage
+    // clear above wiped sessionStorage in some browsers (notably
+    // Safari ITP-like behaviour). Lives in sessionStorage normally
+    // but the line is cheap insurance against a quirky purge order.
+    try { sessionStorage.setItem(SW_RELOAD_SUPPRESS_KEY, String(Date.now())); } catch { /* ignore */ }
 
     setTimeout(() => { window.location.reload(); }, 1500);
   }, [reloading, updateServiceWorker]);
