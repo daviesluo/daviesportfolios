@@ -44,23 +44,32 @@ async function tryClaimAvCall(): Promise<boolean> {
       signal: AbortSignal.timeout(5_000),
     });
     if (!res.ok) {
-      // 404 → migration 0012 not applied; fall open (don't block)
-      // and log the missing-migration symptom for the maintainer.
+      // Failure-mode triage. The cache layer uses the SAME service-role
+      // key (see _caches.ts), so any auth / network / 5xx failure here
+      // means the cache layer is also failing — i.e. we're already IN
+      // the cache-bypass scenario this breaker exists to contain.
+      // Falling open in that branch would silently nullify the
+      // guardrail. The only failure that's safe to fall open on is
+      // "migration 0012 isn't applied yet" — caches still work; only
+      // the RPC is missing. PostgREST surfaces that as 42P01 (table
+      // missing) / 42883 (function missing) in the JSON body.
       const snippet = (await res.text().catch(() => "")).slice(0, 200);
       if (snippet.includes("42883") || snippet.includes("42P01")) {
         console.error(
           `AV quota RPC ${res.status} — re-apply migration 0012 ` +
           `(av_quota table + try_claim_av_call RPC). Falling open. Raw: ${snippet}`,
         );
-      } else {
-        console.error(`AV quota RPC ${res.status}: ${snippet}`);
+        return true;
       }
-      return true;
+      console.error(`AV quota RPC ${res.status}: ${snippet} — failing closed.`);
+      return false;
     }
     return (await res.json()) === true;
   } catch (e) {
-    console.error("AV quota RPC error:", e instanceof Error ? e.message : e);
-    return true; // fail open
+    // Network error / abort / timeout — cache layer is just as
+    // unreachable, so fail closed for the same reason as above.
+    console.error("AV quota RPC error (failing closed):", e instanceof Error ? e.message : e);
+    return false;
   }
 }
 
