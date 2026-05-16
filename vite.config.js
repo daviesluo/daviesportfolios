@@ -101,7 +101,12 @@ export default defineConfig({
   build: {
     outDir: '..',
     emptyOutDir: false,
-    sourcemap: true,
+    // `'hidden'` emits .map files for local debugging but strips the
+    // `//# sourceMappingURL=` comment from the JS so the browser
+    // never fetches them in production. Combined with .gitignore'ing
+    // *.js.map (so the ~900 KB maps don't ride along on every push),
+    // this keeps prod bundles lean without losing local sourcemaps.
+    sourcemap: 'hidden',
     target: 'es2020',
     // Force lower-case hex hashes instead of Vite's default base64
     // so the bundle filename can never contain a substring like "ad",

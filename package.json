@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "rm -rf assets",
+    "prebuild": "rm -rf assets sw.js sw.js.map workbox-*.js workbox-*.js.map",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
