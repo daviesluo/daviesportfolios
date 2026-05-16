@@ -7,6 +7,7 @@
 
 import { SB_ANON, SB_URL } from './supabase_config.js';
 import { getAppToken } from './auth.js';
+import { APP_VERSION } from './version.js';
 
 const ENDPOINT = `${SB_URL}/functions/v1/ops-error`;
 
@@ -54,6 +55,11 @@ export function reportError(kind, opts = {}) {
       ua: navigator.userAgent,
       ts: new Date().toISOString(),
       url: typeof window !== 'undefined' ? window.location.pathname : null,
+      // Build identity (CalVer + short git SHA) so an error can be
+      // mapped back to the exact bundle the user was running — a
+      // "broken since 2026.5.16" report becomes unambiguous instead
+      // of "some recent deploy maybe".
+      ver: APP_VERSION,
     },
   };
 

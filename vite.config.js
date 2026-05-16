@@ -2,6 +2,24 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Build-time CalVer with minute-precision timestamp → `YYYY.M.D.HHMM`.
+// Deliberately SHA-less: Cloudflare Pages serves the repo root as-is
+// (wrangler.jsonc `assets.directory = "."` — no build at deploy time),
+// so the build SHA we'd bake in would be the parent commit's SHA, not
+// the commit that actually ships the bundle (chicken-and-egg: writing
+// the bundle into git changes the SHA the bundle references). After
+// squash-merge the PR-commit SHA also disappears from main entirely.
+// A minute-precision UTC timestamp side-steps both: every rebuild
+// produces a unique stamp, and `ops_error.ver` → git log around that
+// UTC minute → commit is a 30-second triage path.
+function computeAppVersion() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}.${d.getUTCMonth() + 1}.${d.getUTCDate()}.` +
+         `${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}`;
+}
+const APP_VERSION = computeAppVersion();
+
 // Source root is `src/` and Vite emits the production bundle to the
 // project root (repo root). Cloudflare Pages serves the project root,
 // so the deploy works without any dashboard build-output config — index.html
@@ -130,5 +148,11 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+  },
+  // Inlined as a string literal in every file that references
+  // __APP_VERSION__ (currently src/version.js). String-replace, not
+  // a runtime read, so dead-code elimination still works.
+  define: {
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
   },
 });
