@@ -210,6 +210,21 @@ function EditTickerModal({ ticker, holding, onClose, onSave, onDelete }) {
     cost: String(l.cost ?? ''),
   })));
 
+  // Snapshot the initial lots once at mount so we can detect "dirty"
+  // state on close. Without this, an outside-click on the backdrop
+  // (or a stray Cancel/✕) silently discards everything the user just
+  // typed — and the symptom only shows up at the next refresh when
+  // the user notices old numbers.
+  const [initialLotsJSON] = React.useState(() => JSON.stringify(lots));
+  const isDirty = React.useMemo(
+    () => JSON.stringify(lots) !== initialLotsJSON,
+    [lots, initialLotsJSON],
+  );
+  const safeClose = React.useCallback(() => {
+    if (isDirty && !window.confirm("Discard unsaved changes?")) return;
+    onClose();
+  }, [isDirty, onClose]);
+
   const sym = curSym(holding.currency);
   const acHint = holding.currency && holding.currency !== "USD"
     ? `Costs are in ${holding.currency} (${sym}). Board values use live FX to convert to USD.`
@@ -245,13 +260,13 @@ function EditTickerModal({ ticker, holding, onClose, onSave, onDelete }) {
   const save = () => onSave({ lots: cleanLots(lots) });
 
   return (
-    <Modal onClose={onClose} size="md">
+    <Modal onClose={safeClose} size="md">
       <header className="modal-head">
         <div>
           <div className="modal-eyebrow mono">EDIT HOLDING</div>
           <h2 className="modal-title mono">{ticker}</h2>
         </div>
-        <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
+        <button className="btn-ghost icon" onClick={safeClose} aria-label="Close">✕</button>
       </header>
 
       <div className="modal-body">
@@ -289,7 +304,7 @@ function EditTickerModal({ ticker, holding, onClose, onSave, onDelete }) {
       <footer className="modal-foot">
         <button className="btn-danger" onClick={onDelete}>Delete holding</button>
         <div className="spacer" />
-        <button className="btn-ghost" onClick={onClose}>Cancel</button>
+        <button className="btn-ghost" onClick={safeClose}>Cancel</button>
         <button className="btn-primary" onClick={save}>Save</button>
       </footer>
     </Modal>
