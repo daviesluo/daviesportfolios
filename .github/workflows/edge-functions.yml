@@ -166,3 +166,31 @@ jobs:
             supabase functions deploy "$fn" $FLAGS
             echo "::endgroup::"
           done
+
+  # Separate job purely so `issues: write` doesn't widen the deploy
+  # job's scope. Runs only on push-to-main failures.
+  notify-failure:
+    needs: test-and-deploy
+    if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open / bump CI-failure issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          existing=$(gh issue list --repo "${{ github.repository }}" \
+            --label ci-failure --state open --limit 1 --json number \
+            --jq '.[0].number')
+          body="❌ \`${{ github.workflow }}\` failed on \`main\` at commit \`${{ github.sha }}\`
+          [View run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "${{ github.repository }}" --body "$body"
+          else
+            gh issue create --repo "${{ github.repository }}" \
+              --title "❌ ${{ github.workflow }} failed on main" \
+              --body "$body" \
+              --label ci-failure
+          fi

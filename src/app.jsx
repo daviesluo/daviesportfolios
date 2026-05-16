@@ -77,6 +77,11 @@ const REFRESH_MS_OVERNIGHT = 5 * 60 * 1000;
 // (not shown in the market-conditions column). GBPUSD=X doubles as both a
 // displayed card and the rate we use to convert GBP holdings to USD.
 const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X", "USDHKD=X", "ES=F", "NQ=F", "RTY=F"];
+// sessionStorage key for the pending-save draft mirror. Per-tab
+// (sessionStorage, not localStorage) so two tabs can't replay each
+// other's drafts; survives reload-in-same-tab (which is what a
+// browser crash + relaunch typically does for the tab).
+const PENDING_SAVE_KEY = 'dp.pendingSave';
 
 // MC symbols whose CARDS are clickable. The futures alternates
 // (ES=F / NQ=F / RTY=F) only appear on the card face during
@@ -290,12 +295,43 @@ function Board({ isReadOnly }) {
     const fp = portfolioUserFingerprint(portfolio);
     if (lastSavedFingerprintRef.current === null) {
       lastSavedFingerprintRef.current = fp;
+      // Cold-mount: if a previous tab crashed mid-edit (or the
+      // browser killed the tab in the 600ms debounce window), the
+      // pending draft is still in sessionStorage. Replay it now so
+      // the user sees their unsaved changes instead of the
+      // server's last-saved blob.
+      try {
+        const raw = sessionStorage.getItem(PENDING_SAVE_KEY);
+        if (raw) {
+          const pending = JSON.parse(raw);
+          if (pending && pending.fp && pending.fp !== fp && pending.portfolio) {
+            setPortfolio(pending.portfolio);
+            // setPortfolio will re-fire this effect on the next render,
+            // at which point fp will differ from
+            // lastSavedFingerprintRef and the normal debounce + save
+            // path will pick up the draft.
+          }
+        }
+      } catch { /* private mode etc. */ }
       return;
     }
     if (lastSavedFingerprintRef.current === fp) return;
+    // Mirror the about-to-be-saved portfolio to sessionStorage
+    // BEFORE the 600 ms debounce. If the browser dies in that
+    // window the next cold mount replays it; if the save succeeds
+    // the .then() below clears the mirror so the next cold mount
+    // sees nothing pending. Per-tab (sessionStorage) so two tabs
+    // can't accidentally replay each other's drafts.
+    try {
+      sessionStorage.setItem(PENDING_SAVE_KEY, JSON.stringify({ fp, portfolio, ts: Date.now() }));
+    } catch { /* swallow — best-effort */ }
     const id = setTimeout(() => {
       lastSavedFingerprintRef.current = fp;
-      savePortfolioRemote(portfolio);
+      savePortfolioRemote(portfolio).then((ok) => {
+        if (ok) {
+          try { sessionStorage.removeItem(PENDING_SAVE_KEY); } catch { /* ignore */ }
+        }
+      });
     }, 600);
     return () => clearTimeout(id);
   }, [portfolio, isReadOnly]);

@@ -85,8 +85,12 @@ export async function loadPortfolioRemote() {
   }
 }
 
+// Returns true on a successful save, false otherwise. The boolean is
+// what the caller uses to decide whether to clear its sessionStorage
+// `dp.pendingSave` draft mirror — a failed save leaves the draft
+// around so the next load can replay it.
 export async function savePortfolioRemote(p) {
-  if (!p || !p.holdings || Object.keys(p.holdings).length === 0) return;
+  if (!p || !p.holdings || Object.keys(p.holdings).length === 0) return false;
   try {
     const res = await fetch(`${EDGE_DATA_URL}?action=save`, {
       method: "POST",
@@ -98,7 +102,7 @@ export async function savePortfolioRemote(p) {
       if (res.status !== 401) {
         reportError('data.save.failed', { context: { status: res.status } });
       }
-      return;
+      return false;
     }
     // Tell every other tab on this origin that the persisted portfolio
     // just changed so they can refetch instead of carrying a stale copy
@@ -110,8 +114,10 @@ export async function savePortfolioRemote(p) {
         bc.close();
       }
     } catch { /* swallow — best-effort cross-tab nudge */ }
+    return true;
   } catch (e) {
     reportError('data.save.error', { message: String(e?.message || e) });
+    return false;
   }
 }
 
