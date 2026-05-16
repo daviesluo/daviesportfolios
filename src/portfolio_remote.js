@@ -34,6 +34,36 @@ function dataHeaders() {
   };
 }
 
+// Optimistic-concurrency state. The `data` Edge Function (per
+// migration 0013) bumps a `version` counter on every successful save
+// and returns it on every load. We send the last-seen version as
+// `If-Match` on subsequent saves; if another tab / device saved in
+// between, the server returns 412 and we surface a conflict to the
+// caller instead of clobbering their change. Module-scoped on
+// purpose: the value lives across the load/save lifecycle of a
+// single tab without leaking into per-call argument lists, and a
+// missed update from the server (cold project, error response) just
+// falls back to "no If-Match" — the server then writes through
+// (backward-compatible path) and we re-acquire the version on the
+// reply.
+let lastKnownVersion = null;
+
+/**
+ * Test hook — lets the per-callsite tests assert that loadPortfolioRemote
+ * / savePortfolioRemote behave correctly against a stubbed version
+ * without exposing the module-private state to production code.
+ *
+ * @returns {number | null}
+ */
+export function _peekLastKnownVersion() {
+  return lastKnownVersion;
+}
+
+/** Test hook — resets the version cache between tests. */
+export function _resetLastKnownVersion() {
+  lastKnownVersion = null;
+}
+
 // Tag the seeded fallback so the UI can warn the user that they're
 // looking at demo data (Davies's 33-ticker book) rather than their
 // own portfolio. The save effect ALSO skips while `_isDemo` is true
@@ -70,7 +100,15 @@ export async function loadPortfolioRemote() {
       }
       return demoFallback();
     }
-    const { data } = await res.json();
+    const body = await res.json();
+    // Cache the server's version so the next save can prove it
+    // hasn't been clobbered. Server always sends `version` (0 for
+    // cold project); a missing field means we're talking to a
+    // pre-0013 deploy and should skip If-Match entirely.
+    if (typeof body?.version === 'number') {
+      lastKnownVersion = body.version;
+    }
+    const data = body?.data;
     if (data) {
       const loaded = migrate(data);
       if (!loaded.holdings || Object.keys(loaded.holdings).length === 0) {
@@ -85,25 +123,72 @@ export async function loadPortfolioRemote() {
   }
 }
 
-// Returns true on a successful save, false otherwise. The boolean is
-// what the caller uses to decide whether to clear its sessionStorage
-// `dp.pendingSave` draft mirror — a failed save leaves the draft
-// around so the next load can replay it.
+/**
+ * Persist the portfolio. Returns one of:
+ *   { ok: true,  version }             — server accepted the write
+ *   { ok: false, conflict: true }      — another tab/device saved in
+ *                                        between (server returned 412);
+ *                                        caller should reload, not retry
+ *   { ok: false }                      — other failure (network, 5xx,
+ *                                        token expired) — caller leaves
+ *                                        the pending-save draft for the
+ *                                        next debounce attempt
+ *
+ * The caller (app.jsx) uses `ok` to decide whether to clear its
+ * sessionStorage `dp.pendingSave` mirror, and `conflict` to decide
+ * whether to surface a "another tab saved newer changes" banner.
+ *
+ * @param {{ holdings?: object } | null | undefined} p
+ * @returns {Promise<{ ok: true, version: number } | { ok: false, conflict?: boolean }>}
+ */
 export async function savePortfolioRemote(p) {
-  if (!p || !p.holdings || Object.keys(p.holdings).length === 0) return false;
+  if (!p || !p.holdings || Object.keys(p.holdings).length === 0) {
+    return { ok: false };
+  }
   try {
+    const headers = dataHeaders();
+    // Send If-Match only when we have a server-supplied version. A
+    // null lastKnownVersion (cold mount before any load completed, or
+    // an old pre-0013 deploy) means we skip the optimistic check and
+    // fall through to the legacy unconditional write — same behaviour
+    // as before this PR.
+    if (lastKnownVersion != null) {
+      headers['If-Match'] = String(lastKnownVersion);
+    }
     const res = await fetch(`${EDGE_DATA_URL}?action=save`, {
       method: "POST",
-      headers: dataHeaders(),
+      headers,
       body: JSON.stringify(p),
       signal: AbortSignal.timeout(10_000),
     });
+    if (res.status === 412) {
+      // Another tab/device wrote between our load and our save.
+      // Update lastKnownVersion from the server's reply so a manual
+      // reload (or the caller-driven refresh below) doesn't loop.
+      try {
+        const body = await res.json();
+        if (typeof body?.currentVersion === 'number') {
+          lastKnownVersion = body.currentVersion;
+        }
+      } catch { /* swallow — best-effort */ }
+      reportError('data.save.conflict', { context: { currentVersion: lastKnownVersion } });
+      return { ok: false, conflict: true };
+    }
     if (!res.ok) {
       if (res.status !== 401) {
         reportError('data.save.failed', { context: { status: res.status } });
       }
-      return false;
+      return { ok: false };
     }
+    // Capture the new version so the next save's If-Match matches.
+    let nextVersion = null;
+    try {
+      const body = await res.json();
+      if (typeof body?.version === 'number') {
+        nextVersion = body.version;
+        lastKnownVersion = body.version;
+      }
+    } catch { /* swallow — server may have returned no body */ }
     // Tell every other tab on this origin that the persisted portfolio
     // just changed so they can refetch instead of carrying a stale copy
     // that might overwrite our save on their next price-refresh tick.
@@ -114,10 +199,10 @@ export async function savePortfolioRemote(p) {
         bc.close();
       }
     } catch { /* swallow — best-effort cross-tab nudge */ }
-    return true;
+    return { ok: true, version: nextVersion ?? 0 };
   } catch (e) {
     reportError('data.save.error', { message: String(e?.message || e) });
-    return false;
+    return { ok: false };
   }
 }
 

@@ -16,7 +16,14 @@
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-app-token",
+  // `if-match` is included so the browser's CORS preflight doesn't
+  // block saves once the client starts attaching the optimistic-
+  // concurrency header (per migration 0013). It's not a safelisted
+  // request header — without it listed here, every cross-origin POST
+  // that carries an `If-Match` fails preflight before this handler
+  // even sees the request, and the user's saves silently stop
+  // working as soon as `lastKnownVersion` is cached.
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-app-token, if-match",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
@@ -133,30 +140,74 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
 
     if (action === "load" && req.method === "GET") {
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/board_data?id=eq.1&select=data`,
+        `${SUPABASE_URL}/rest/v1/board_data?id=eq.1&select=data,version`,
         { headers: SB_HEADERS, signal: AbortSignal.timeout(5_000) },
       );
       if (!res.ok) return json(res.status, { error: "load failed" });
       const rows = await res.json();
-      const data = Array.isArray(rows) && rows.length > 0 ? rows[0].data : null;
-      return json(200, { data });
+      // Cold project (no row yet) → null data + version 0 so the
+      // client's optimistic-concurrency state has a starting point
+      // (an If-Match of 0 will succeed on the first save).
+      if (!Array.isArray(rows) || rows.length === 0) {
+        return json(200, { data: null, version: 0 });
+      }
+      return json(200, {
+        data: rows[0].data,
+        version: typeof rows[0].version === "number" ? rows[0].version : 0,
+      });
     }
 
     if (action === "save" && req.method === "POST") {
       if (verified.role !== "admin") return json(403, { error: "read-only" });
       let body: unknown;
       try { body = await req.json(); } catch { return json(400, { error: "bad json" }); }
+
+      // Optional If-Match header. Treated as the client's
+      // last-known version; the save_board_data RPC rejects with
+      // 412 if it doesn't match the row's current version (another
+      // tab / device saved in between). A missing header skips the
+      // check — backward-compatible so old clients still work.
+      const ifMatchRaw = req.headers.get("if-match");
+      let ifMatch: number | null = null;
+      if (ifMatchRaw != null) {
+        const parsed = Number(ifMatchRaw);
+        if (!Number.isFinite(parsed) || parsed < 0) {
+          return json(400, { error: "bad if-match" });
+        }
+        ifMatch = parsed;
+      }
+
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/board_data`,
+        `${SUPABASE_URL}/rest/v1/rpc/save_board_data`,
         {
           method: "POST",
-          headers: { ...SB_HEADERS, "Prefer": "resolution=merge-duplicates,return=minimal" },
-          body: JSON.stringify({ id: 1, data: body }),
+          headers: SB_HEADERS,
+          body: JSON.stringify({ _data: body, _if_match: ifMatch }),
           signal: AbortSignal.timeout(5_000),
         },
       );
-      if (!res.ok) return json(res.status, { error: "save failed" });
-      return json(200, { ok: true });
+      if (!res.ok) {
+        // 42P01 (table missing) / 42883 (function missing) → migration
+        // 0013 not applied. Log loudly so the maintainer sees the
+        // missing-migration symptom instead of guessing at intermittent
+        // saves silently dropping the optimistic-concurrency guard.
+        const snippet = (await res.text().catch(() => "")).slice(0, 200);
+        if (snippet.includes("42883") || snippet.includes("42P01")) {
+          console.error(
+            `save_board_data RPC ${res.status} — re-apply migration 0013 ` +
+            `(board_data.version + save_board_data RPC). Raw: ${snippet}`,
+          );
+        }
+        return json(res.status, { error: "save failed" });
+      }
+      const result = await res.json();
+      if (result?.ok === false && result?.conflict === true) {
+        return json(412, {
+          error: "conflict",
+          currentVersion: result.current_version,
+        });
+      }
+      return json(200, { ok: true, version: result?.version });
     }
 
     return json(400, { error: "unknown action" });
