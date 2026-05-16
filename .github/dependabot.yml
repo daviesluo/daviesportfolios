@@ -1,0 +1,33 @@
+# Dependabot config — weekly updates for npm + GitHub Actions.
+#
+# npm: React / Vite / Vitest / Workbox / idb-keyval all sit here.
+# Weekly cadence (not daily) keeps the PR volume tractable for a
+# solo project. `open-pull-requests-limit: 5` caps the inbox in
+# case a big-bang upgrade week lands.
+#
+# github-actions: pairs with the SHA-pinning in `.github/workflows/*`.
+# Once each action is pinned by SHA (not by mutable tag), Dependabot
+# is the only thing that bumps them on a real release.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: deps
+    labels:
+      - dependencies
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+    labels:
+      - dependencies
+      - ci

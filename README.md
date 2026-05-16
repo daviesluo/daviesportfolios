@@ -1,6 +1,7 @@
 # Davies' Portfolios
 
 [![CI](https://github.com/daviesluo/daviesportfolios/actions/workflows/check.yml/badge.svg)](https://github.com/daviesluo/daviesportfolios/actions/workflows/check.yml)
+[![Edge Functions](https://github.com/daviesluo/daviesportfolios/actions/workflows/edge-functions.yml/badge.svg)](https://github.com/daviesluo/daviesportfolios/actions/workflows/edge-functions.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 A personal portfolio tracker rendered as a football tactics board. Live
@@ -14,6 +15,19 @@ modes via different password).
 Vite client bundled to static files on Cloudflare Pages, plus a
 handful of Supabase Edge Functions that hide the data and 3rd-party
 secrets server-side.
+
+---
+
+## Contents
+
+- [Highlights](#highlights)
+- [Using the board](#using-the-board)
+- [Stack](#stack)
+- [File map](#file-map)
+- [Data flow](#data-flow)
+- [Local development](#local-development)
+- [Forking / re-using this project](#forking--re-using-this-project)
+- [Working conventions](#working-conventions)
 
 ---
 
