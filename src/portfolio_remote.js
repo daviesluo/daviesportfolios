@@ -35,7 +35,10 @@ function dataHeaders() {
 
 export async function loadPortfolioRemote() {
   try {
-    const res = await fetch(`${EDGE_DATA_URL}?action=load`, { headers: dataHeaders() });
+    const res = await fetch(`${EDGE_DATA_URL}?action=load`, {
+      headers: dataHeaders(),
+      signal: AbortSignal.timeout(10_000),
+    });
     if (!res.ok) {
       console.error("[data] load failed:", res.status, await res.text());
       return JSON.parse(JSON.stringify(INITIAL_PORTFOLIO));
@@ -62,6 +65,7 @@ export async function savePortfolioRemote(p) {
       method: "POST",
       headers: dataHeaders(),
       body: JSON.stringify(p),
+      signal: AbortSignal.timeout(10_000),
     });
     if (!res.ok) {
       console.error("[data] save failed:", res.status, await res.text());

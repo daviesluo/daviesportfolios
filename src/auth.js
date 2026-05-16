@@ -78,6 +78,11 @@ export async function authenticate(pw) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ password: pw }),
+      // Auth has the 500ms wrong-password throttle baked in, plus a
+      // 5s PostgREST timeout per Edge call. 10s here covers both
+      // plus cold-start latency so the UI doesn't spin forever if
+      // the Edge call hangs.
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (res.ok) {
