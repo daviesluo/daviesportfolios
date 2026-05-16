@@ -482,7 +482,7 @@ before this guard landed).
   served by Cloudflare Pages.
 - **Backend** — Supabase (Postgres + Edge Functions, Deno runtime).
   Seven functions: `auth`, `data`, `prices`, `chart`, `fundamentals`,
-  `ops-error`, `trading212`. Nine migration files (`0001`–`0009`); `0005`/`0006`
+  `ops-error`, `trading212`. Ten migration files (`0001`–`0010`); `0005`/`0006`
   are a historical create/drop pair for the retired
   `analyst_estimates_cache` table.
 - **Build / CI** — Vite production bundle, vitest for unit tests, tsc
@@ -665,6 +665,7 @@ In Supabase dashboard → SQL Editor, paste and run **in order**:
 - `supabase/migrations/0003_index_fundamentals_cache.sql`
 - `supabase/migrations/0004_ops_errors_retention.sql`
 - `supabase/migrations/0009_board_data.sql` *(the `board_data` table the `data` function reads/writes)*
+- `supabase/migrations/0010_stock_fundamentals_cache.sql` *(per-stock Fundamentals cache — the `fundamentals` function falls back gracefully when this table is missing, so this one is optional, but skipping it means every page load hammers Yahoo for fresh quote-summary + EPS-history per ticker)*
 - `supabase/migrations/0007_trading212_cache.sql` — **only if you want the Trading 212 auto-sync.** Skip if you're not setting `T212_API_KEY`.
 - `supabase/migrations/0008_trading212_claim_refresh_rpc.sql` — pair with 0007; the RPC references the `trading212_cache` table created in 0007.
 

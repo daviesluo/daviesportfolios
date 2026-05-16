@@ -200,6 +200,76 @@ async function writeCachedPe(etfSymbol: string, pe: number): Promise<void> {
   } catch { /* best effort */ }
 }
 
+// ---- Per-stock Fundamentals cache (Yahoo + Finnhub) ----------------
+//
+// Mirrors the index cache above but keyed by (symbol, includeEpsHistory).
+// 2 h TTL — fundamentals change quarterly but market re-rates and ttm
+// roll-overs happen intraday, and that's also enough wall-clock time
+// to amortise the Yahoo/Finnhub calls across many visitors of a busy
+// session. `includeEpsHistory` is part of the key because the two
+// payload shapes are different (the history flag pulls 2 extra Yahoo
+// timeseries + an optional chart-price call); sharing a row would
+// have the lighter shape overwrite the heavier mid-window.
+const STOCK_CACHE_TTL_MS = 2 * 60 * 60 * 1000;
+
+async function readCachedStockFundamentals(
+  symbol: string,
+  includeEpsHistory: boolean,
+): Promise<{ payload: Fundamentals; ageMs: number } | null> {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/stock_fundamentals_cache` +
+      `?symbol=eq.${encodeURIComponent(symbol)}` +
+      `&include_eps_hist=eq.${includeEpsHistory}` +
+      `&select=payload,fetched_at`;
+    const res = await fetch(url, {
+      headers: {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        "Accept": "application/json",
+      },
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    const row = rows[0];
+    const fetchedAt = new Date(row?.fetched_at).getTime();
+    if (!isFinite(fetchedAt)) return null;
+    const payload = row?.payload;
+    if (!payload || typeof payload !== "object") return null;
+    return { payload: payload as Fundamentals, ageMs: Date.now() - fetchedAt };
+  } catch {
+    return null;
+  }
+}
+
+async function writeCachedStockFundamentals(
+  symbol: string,
+  includeEpsHistory: boolean,
+  payload: Fundamentals,
+): Promise<void> {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/stock_fundamentals_cache`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({
+        symbol,
+        include_eps_hist: includeEpsHistory,
+        payload,
+        fetched_at: new Date().toISOString(),
+      }),
+      signal: AbortSignal.timeout(5_000),
+    });
+  } catch { /* best effort */ }
+}
+
 // ---- Alpha Vantage --------------------------------------------------
 
 type AvResult =
@@ -1012,6 +1082,16 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
       while (queue.length > 0) {
         const t = queue.shift();
         if (!t) break;
+        // Cache-first: 2 h TTL for the full per-stock Fundamentals
+        // payload. Without this, a 30-ticker page load with the P/E
+        // chart open burns ~120 Yahoo calls (4/stock); with it, the
+        // first call after expiry pays the cost and the next 2 h of
+        // visitors share the cached row.
+        const cached = await readCachedStockFundamentals(t, includeEpsHistory);
+        if (cached && cached.ageMs < STOCK_CACHE_TTL_MS) {
+          out[t] = cached.payload;
+          continue;
+        }
         const f = await fetchStockFundamentals(t);
         if (!f) continue;
         if (includeEpsHistory) {
@@ -1072,6 +1152,9 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
         // anchor source; not part of the public response contract.
         if ('price' in f) delete f.price;
         out[t] = f;
+        // Best-effort cache write — fire-and-forget so the response
+        // path isn't blocked on a slow PostgREST write.
+        writeCachedStockFundamentals(t, includeEpsHistory, f).catch(() => {});
       }
     });
     await Promise.all(workers);
