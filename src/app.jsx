@@ -19,6 +19,7 @@ import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, POR
 import { prefetchAllChartData } from './prefetch.js';
 import { hydrateAllChartStores } from './chart_store.js';
 import { Header, Sidebar, MarketConditions, PerfPanel, SidebarFoot } from './header_sidebar.jsx';
+import { useIsDesktop } from './ops_error_badge.jsx';
 import { Pitch } from './pitch.jsx';
 import { Heatmap } from './heatmap.jsx';
 import {
@@ -184,6 +185,11 @@ function Board({ isReadOnly }) {
   const [recentlyUpdated, setRecentlyUpdated] = useState(false);
   const [flashTickers, setFlashTickers] = useState({});
   const [extendedHours, setExtendedHours] = useState(false);
+  // Mount only one MarketConditions tree (desktop OR mobile) instead
+  // of both — the previous "render both, CSS-hide one" pattern paid
+  // the full render cost for ten market cards on every refresh in
+  // the unused viewport.
+  const isDesktop = useIsDesktop();
   // Seed marketData with last-known FX rates from localStorage so the
   // first metrics compute uses real cross-rates (~yesterday's, well
   // inside a percent of live) instead of fxRateToUSD's silent 1:1
@@ -652,12 +658,14 @@ function Board({ isReadOnly }) {
             phase={currentPhase}
             className="perf-in-left"
           />
-          <MarketConditions
-            marketData={marketData}
-            extendedHours={extendedHours}
-            phase={currentPhase}
-            onCardClick={setViewingTicker}
-          />
+          {isDesktop && (
+            <MarketConditions
+              marketData={marketData}
+              extendedHours={extendedHours}
+              phase={currentPhase}
+              onCardClick={setViewingTicker}
+            />
+          )}
         </div>
         {viewMode === 'heatmap' ? (
           <Heatmap
@@ -699,15 +707,17 @@ function Board({ isReadOnly }) {
         />
         {/* Mobile-only Market Conditions strip — rendered as a separate
             sibling because the desktop instance lives inside .left-col,
-            which is display:none on mobile. CSS hides this one above
-            the mobile breakpoint. */}
-        <MarketConditions
-          marketData={marketData}
-          extendedHours={extendedHours}
-          phase={currentPhase}
-          className="market-conditions-mobile"
-          onCardClick={setViewingTicker}
-        />
+            which is display:none on mobile. matchMedia-gated so it
+            doesn't mount/render at all on desktop. */}
+        {!isDesktop && (
+          <MarketConditions
+            marketData={marketData}
+            extendedHours={extendedHours}
+            phase={currentPhase}
+            className="market-conditions-mobile"
+            onCardClick={setViewingTicker}
+          />
+        )}
         <SidebarFoot source={source} />
       </main>
 
