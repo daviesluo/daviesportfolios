@@ -98,7 +98,7 @@ export async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuote
   if (!auth) return null;  // handshake failed → caller falls to Finnhub
   const url =
     `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}` +
-    `?modules=summaryDetail,defaultKeyStatistics,price,earningsTrend` +
+    `?modules=summaryDetail,defaultKeyStatistics,price,earningsTrend,calendarEvents` +
     `&crumb=${encodeURIComponent(auth.crumb)}`;
   try {
     const res = await fetch(url, {
@@ -166,6 +166,24 @@ export async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuote
                   ?? result?.defaultKeyStatistics?.forwardPE?.raw;
     const epsGrowthFwd = computeForwardGrowth(result?.earningsTrend?.trend);
     const currency = result?.price?.currency ?? null;
+    // Next earnings date. Yahoo's calendarEvents.earnings.earningsDate
+    // is an array of one or two entries — when a window is published
+    // (estimated quarter end ± few days) it's [start, end]; when the
+    // date is firm it's a single entry. Take the FIRST entry as the
+    // "next" date — earliest-possible report time so the panel
+    // reflects "you might hear from this company on or after this
+    // date". `earningsCallTimeName` is "before market open" / "after
+    // market close" / "time as supplied" when set; the client
+    // translates to compact BMO / AMC labels.
+    const earningsDates = result?.calendarEvents?.earnings?.earningsDate;
+    const earningsDateRaw = Array.isArray(earningsDates) && earningsDates.length > 0
+      ? Number(earningsDates[0]?.raw)
+      : NaN;
+    const earningsDateSec = isFinite(earningsDateRaw) && earningsDateRaw > 0 ? earningsDateRaw : 0;
+    const earningsTimeName = result?.calendarEvents?.earnings?.earningsCallTimeName;
+    const earningsTime = typeof earningsTimeName === 'string' && earningsTimeName.length > 0
+      ? earningsTimeName
+      : null;
     const pe    = Number(peRaw);
     const eps   = Number(epsRaw);
     const ps    = Number(psRaw);
@@ -198,6 +216,8 @@ export async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuote
       price: isFinite(price) && price > 0 ? price : 0,
       sharesOutstanding,
       currency: typeof currency === 'string' ? currency : null,
+      earningsDateSec,
+      earningsTime,
     };
   } catch {
     return null;
