@@ -10,6 +10,12 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Auto-injected by the Supabase runtime — used only by the
+// reportServerError helper at the bottom of this file to surface
+// unhandled exceptions in the admin ⚠ badge. No new secrets required.
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
 // Regular session boundaries in exchange-local minutes-of-day
 const MARKET_OPEN_MIN  = 9 * 60 + 30;  // 9:30 AM
 const MARKET_CLOSE_MIN = 16 * 60;       // 4:00 PM
@@ -204,40 +210,81 @@ function fetchPrice(ticker: string): Promise<PriceResult | null> {
   return fetchYahoo(ticker);
 }
 
+// Direct insert into public.ops_errors via the service-role key (RLS
+// denies anon). Used by the top-level try/catch wrap so a runtime
+// crash here becomes a row the admin ⚠ badge surfaces instead of a
+// silent 500. Best-effort: never throws.
+async function reportServerError(
+  kind: string,
+  opts: { message?: string; symbol?: string; context?: unknown } = {},
+): Promise<void> {
+  if (!SUPABASE_URL || !SERVICE_KEY) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/ops_errors`, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        kind,
+        symbol: opts.symbol ?? null,
+        message: opts.message ? opts.message.slice(0, 512) : null,
+        context: opts.context ?? null,
+        ip: "edge",
+      }),
+      signal: AbortSignal.timeout(3_000),
+    });
+  } catch (e) {
+    console.error("reportServerError failed:", String(e));
+  }
+}
+
 // Guarded so tests can import the helpers above without spinning up
 // the server. Supabase's runtime executes index.ts as the entry
 // module, so `import.meta.main` is true in production.
 if (import.meta.main) Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: CORS });
-  }
+  try {
+    if (req.method === "OPTIONS") {
+      return new Response("ok", { headers: CORS });
+    }
 
-  const url   = new URL(req.url);
-  const param = url.searchParams.get("tickers") ?? "";
-  const tickers = param
-    .split(",")
-    .map((t) => t.trim())
-    .filter((t) => t && !t.endsWith(".PVT") && t !== "CASH");
+    const url   = new URL(req.url);
+    const param = url.searchParams.get("tickers") ?? "";
+    const tickers = param
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t && !t.endsWith(".PVT") && t !== "CASH");
 
-  if (!tickers.length) {
-    return new Response(JSON.stringify({ error: "tickers required" }), {
-      status: 400,
+    if (!tickers.length) {
+      return new Response(JSON.stringify({ error: "tickers required" }), {
+        status: 400,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+
+    // Fetch all tickers in parallel — Yahoo and Eastmoney happen concurrently
+    // because they're awaited inside the Promise.all callback.
+    const entries = await Promise.all(
+      tickers.map(async (t) => [t, await fetchPrice(t)] as const)
+    );
+
+    const out: Record<string, unknown> = {};
+    for (const [t, r] of entries) {
+      if (r) out[t] = r;
+    }
+
+    return new Response(JSON.stringify(out), {
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e);
+    await reportServerError("prices.unhandled", { message: msg });
+    return new Response(JSON.stringify({ error: "internal" }), {
+      status: 500,
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
-
-  // Fetch all tickers in parallel — Yahoo and Eastmoney happen concurrently
-  // because they're awaited inside the Promise.all callback.
-  const entries = await Promise.all(
-    tickers.map(async (t) => [t, await fetchPrice(t)] as const)
-  );
-
-  const out: Record<string, unknown> = {};
-  for (const [t, r] of entries) {
-    if (r) out[t] = r;
-  }
-
-  return new Response(JSON.stringify(out), {
-    headers: { ...CORS, "Content-Type": "application/json" },
-  });
 });
