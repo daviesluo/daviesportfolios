@@ -30,9 +30,18 @@ export function cleanLots(lots) {
   if (!Array.isArray(lots)) return [];
   /** @type {Array<{date: string, shares: number, cost: number}>} */
   const out = [];
+  // Reject future-dated lots — the EditTickerModal's <input type="date">
+  // sets max=today but a paste / programmatic edit can still slip
+  // through. computeAt() in ytd.js correctly says "not yet held" for a
+  // future date and skips the lot, while the scoreboard reads
+  // h.shares directly — leaving the YTD chart and the scoreboard
+  // displaying different totals for the same holding. Gate here so
+  // both paths agree.
+  const today = new Date().toISOString().slice(0, 10);
   for (const l of lots) {
     const date = typeof l?.date === 'string' ? l.date.trim() : '';
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+    if (date > today) continue;
     const shares = Number(l?.shares);
     if (!Number.isFinite(shares) || shares <= 0) continue;
     const cost = Number(l?.cost);
