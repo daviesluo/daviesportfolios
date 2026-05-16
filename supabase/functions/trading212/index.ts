@@ -65,7 +65,7 @@ const T212_TO_YAHOO: Record<string, string> = {
 const CACHE_TTL_MS = 120_000;       // 120 s: 4× T212's 1-req-per-30-s window
 const STALE_OK_MS  = 5 * 60_000;    // serve stale up to 5 min on upstream error
 
-const SB_URL      = Deno.env.get("SUPABASE_URL") ?? "https://flmvxigozjuizpckllvk.supabase.co";
+const SB_URL      = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const APP_AUTH_SECRET = Deno.env.get("APP_AUTH_SECRET") ?? "";
 const T212_API_KEY    = Deno.env.get("T212_API_KEY") ?? "";
