@@ -1,6 +1,34 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+// `node:` prefix is the modern form (Node 18+); the alias works in
+// any Node we'd run vite under. Dropped here only because TS's
+// bundler-mode module resolution doesn't recognise the prefix
+// without @types/node, and we only need a slice of one API.
+// eslint-disable-next-line import/no-nodejs-modules
+import { execSync } from 'child_process';
+
+// Build-time CalVer + short git SHA → `YYYY.M.D-abcdef0`. Cloudflare
+// Pages sets CF_PAGES_COMMIT_SHA on every deploy; GitHub Actions sets
+// GITHUB_SHA. Local dev falls through to `git rev-parse HEAD`. The
+// result is inlined into the bundle via the `define` block below and
+// re-exported from src/version.js, so every ops_error report carries
+// the exact deploy identity. Without it, a "broken since when?" pass
+// has nothing to triangulate from but commit logs + CF deploy times.
+function computeAppVersion() {
+  let sha = process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA || '';
+  if (!sha) {
+    try {
+      sha = execSync('git rev-parse HEAD', {
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).toString().trim();
+    } catch { sha = 'dev'; }
+  }
+  const shortSha = (sha || 'dev').slice(0, 7);
+  const now = new Date();
+  return `${now.getUTCFullYear()}.${now.getUTCMonth() + 1}.${now.getUTCDate()}-${shortSha}`;
+}
+const APP_VERSION = computeAppVersion();
 
 // Source root is `src/` and Vite emits the production bundle to the
 // project root (repo root). Cloudflare Pages serves the project root,
@@ -130,5 +158,11 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+  },
+  // Inlined as a string literal in every file that references
+  // __APP_VERSION__ (currently src/version.js). String-replace, not
+  // a runtime read, so dead-code elimination still works.
+  define: {
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
   },
 });
