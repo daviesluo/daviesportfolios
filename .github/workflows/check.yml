@@ -8,6 +8,16 @@ on:
   push:
     branches: [main]
 
+# Cancel any in-flight run for the same branch when a new push lands.
+# Without this, two rapid pushes on main both kick off jobs and which
+# one wins (writes the latest status / triggers downstream deploys) is
+# whichever finishes last — not always the latest commit. The new
+# rule means the older job is killed mid-flight; the latest push is
+# always the canonical state.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   typecheck-and-build:
     runs-on: ubuntu-latest
