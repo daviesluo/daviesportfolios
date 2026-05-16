@@ -18,13 +18,25 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Lock the GITHUB_TOKEN down to read-only. Defaults to repo's "Read
+# and write permissions" on public repos, which gives the workflow
+# more than it needs (this one just typechecks / tests / builds; no
+# commit, no comment, no release). Explicit `contents: read` is the
+# safest baseline; jobs that need to write can override locally.
+permissions:
+  contents: read
+
 jobs:
   typecheck-and-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      # Actions pinned by full commit SHA (with the release tag as a
+      # comment) — mutable `@v5` tags can be silently re-pointed by a
+      # compromised maintainer to run arbitrary code against the
+      # workflow's secrets. Dependabot bumps these on real releases.
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: '22'
           cache: 'npm'
