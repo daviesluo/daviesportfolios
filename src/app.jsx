@@ -224,6 +224,41 @@ function Board({ isReadOnly }) {
   // In read-only mode or history mode, force-disable edit mode.
   useEffect(() => { if (isReadOnly && editMode) setEditMode(false); }, [isReadOnly, editMode]);
 
+  // Global keyboard shortcuts (advertised in the sidebar foot):
+  //   r → refresh prices (everyone)
+  //   e → toggle edit mode (admin only)
+  //   x → toggle extended-hours pricing (everyone)
+  // Skipped while typing in an input/textarea/contenteditable, while
+  // any modifier (Ctrl/Cmd/Alt) is held, and while any modal is open
+  // — Ctrl+R still reloads the page, the EditTickerModal still types
+  // an 'e' or 'r' into a shares field without firing the shortcut.
+  useEffect(() => {
+    const anyModalOpen = () =>
+      drillPos != null || editingTicker != null || viewingTicker != null
+      || addingToPos != null || editingCash;
+    const onKey = (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (anyModalOpen()) return;
+      const tgt = /** @type {HTMLElement | null} */ (e.target);
+      const tag = tgt?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (tgt?.isContentEditable) return;
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        doRefreshRef.current?.();
+      } else if (e.key === 'e' || e.key === 'E') {
+        if (isReadOnly) return;
+        e.preventDefault();
+        setEditMode(v => !v);
+      } else if (e.key === 'x' || e.key === 'X') {
+        e.preventDefault();
+        setExtendedHours(v => !v);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isReadOnly, drillPos, editingTicker, viewingTicker, addingToPos, editingCash]);
+
   // Initial load from Supabase (never throws — falls back to INITIAL_PORTFOLIO on any error)
   useEffect(() => {
     let cancelled = false;

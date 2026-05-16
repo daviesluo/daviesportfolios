@@ -339,6 +339,7 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
         <div className="foot-kv"><span>Source</span><span className="mono">{source === "live" ? "Yahoo Finance" : source === "sim" ? "Simulated" : "—"}</span></div>
         <div className="foot-kv"><span>Auto Refresh</span><span className="mono">30s</span></div>
         <div className="foot-kv"><span>Stored</span><span className="mono">Supabase</span></div>
+        <div className="foot-kv"><span>Shortcuts</span><span className="mono" title="Keyboard shortcuts: r refresh · e toggle edit mode · x toggle extended hours">r · e · x</span></div>
       </div>
     </aside>
   );
@@ -350,6 +351,7 @@ function SidebarFoot({ source }) {
       <div className="foot-kv"><span>Source</span><span className="mono">{source === "live" ? "Yahoo Finance" : source === "sim" ? "Simulated" : "—"}</span></div>
       <div className="foot-kv"><span>Auto Refresh</span><span className="mono">30s</span></div>
       <div className="foot-kv"><span>Stored</span><span className="mono">Supabase</span></div>
+      <div className="foot-kv"><span>Shortcuts</span><span className="mono" title="Keyboard shortcuts: r refresh · e toggle edit mode · x toggle extended hours">r · e · x</span></div>
     </div>
   );
 }
