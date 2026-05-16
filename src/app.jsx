@@ -183,7 +183,6 @@ function Board({ isReadOnly }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [recentlyUpdated, setRecentlyUpdated] = useState(false);
   const [flashTickers, setFlashTickers] = useState({});
-  const [dragging, setDragging] = useState(null);
   const [extendedHours, setExtendedHours] = useState(false);
   // Seed marketData with last-known FX rates from localStorage so the
   // first metrics compute uses real cross-rates (~yesterday's, well
@@ -620,27 +619,9 @@ function Board({ isReadOnly }) {
       return { ...p, holdings, positions };
     });
   });
-  const movePlayer = guard((ticker, toPos) => {
-    setPortfolio(p => {
-      const positions = {};
-      for (const [k, pos] of Object.entries(p.positions)) {
-        const tickers = pos.tickers.filter(t => t !== ticker);
-        if (k === toPos) tickers.push(ticker);
-        positions[k] = { ...pos, tickers };
-      }
-      return { ...p, positions };
-    });
-  });
   const updatePosition = guard((posKey, patch) => {
     setPortfolio(p => ({ ...p, positions: { ...p.positions, [posKey]: { ...p.positions[posKey], ...patch } } }));
   });
-
-  const handleDrop = (e, toPos) => {
-    e.preventDefault();
-    if (isReadOnly) { setDragging(null); return; }
-    if (dragging && dragging.fromPos !== toPos) movePlayer(dragging.ticker, toPos);
-    setDragging(null);
-  };
 
   return (
     <div className="app">
@@ -693,9 +674,6 @@ function Board({ isReadOnly }) {
             flashTickers={flashTickers}
             editMode={editMode}
             isReadOnly={isReadOnly}
-            dragging={dragging}
-            setDragging={isReadOnly ? () => {} : setDragging}
-            onDrop={handleDrop}
             onOpenPosition={(k) => {
               if (k === "GK") { if (!isReadOnly) setEditingCash(true); return; }
               setDrillPos(k);
