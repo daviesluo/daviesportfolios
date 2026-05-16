@@ -100,6 +100,17 @@ export async function sign(payload: string, secret: string): Promise<string> {
   return b64url(new Uint8Array(sig));
 }
 
+// Constant-time string equality — see data/index.ts for the rationale.
+// Duplicated across Edge Function modules because Supabase Deno doesn't
+// share code across functions; the per-function vitest pins keep the
+// copies from drifting.
+export function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 export async function verifyToken(
   token: string,
   secret = APP_AUTH_SECRET,
@@ -108,7 +119,7 @@ export async function verifyToken(
   const [payloadB64, sigB64] = token.split(".");
   if (!payloadB64 || !sigB64) return null;
   const expected = await sign(payloadB64, secret);
-  if (expected !== sigB64) return null;
+  if (!constantTimeEqual(expected, sigB64)) return null;
   try {
     const padded = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
     const json = atob(padded + "=".repeat((4 - padded.length % 4) % 4));
