@@ -26,6 +26,7 @@ import {
   filterToLatestDay,
   filterToLast24h,
 } from './ytd.js';
+import { pointerToDataIndex } from './chart_geometry.js';
 import { reportError } from './ops_error.js';
 
 // Tiny placeholder shell so the loading / error / range-button row
@@ -666,29 +667,16 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     }
   }
   function handleMove(e) {
-    if (!svgRef.current || portByIdx.length === 0) return;
-    // Support both mouse events (desktop) and touch events (mobile) —
-    // touch coords live on `e.touches[0]`; the SVG sets
-    // `touch-action: none` so finger drags don't compete with the
-    // browser's scroll/zoom gestures.
-    const clientX = e.touches?.[0]?.clientX ?? e.clientX;
-    if (clientX == null) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const vbRatio = W / H, elRatio = rect.width / rect.height;
-    let contentW, contentH, offX, offY;
-    if (elRatio > vbRatio) {
-      contentH = rect.height; contentW = contentH * vbRatio;
-      offX = (rect.width - contentW) / 2; offY = 0;
-    } else {
-      contentW = rect.width;  contentH = contentW / vbRatio;
-      offX = 0; offY = (rect.height - contentH) / 2;
-    }
-    const sx = ((clientX - rect.left - offX) / contentW) * W;
-    const clampedSx = Math.max(padL, Math.min(W - padR, sx));
-    const denom = Math.max(1, portByIdx.length - 1);
-    const frac = (clampedSx - padL) / cW;
-    const i = Math.round(frac * denom);
-    pendingIdxRef.current = Math.max(0, Math.min(portByIdx.length - 1, i));
+    // pointerToDataIndex (chart_geometry.js) handles the mouse-vs-touch
+    // coords + SVG letterbox correction + clamp-into-padding logic that
+    // was previously duplicated almost verbatim between this chart and
+    // the ticker-modal chart. The SVG sets `touch-action: none` so
+    // finger drags don't compete with the browser's scroll/zoom.
+    const idx = pointerToDataIndex(
+      e, svgRef.current, { W, H, padL, padR, cW }, portByIdx.length,
+    );
+    if (idx == null) return;
+    pendingIdxRef.current = idx;
     if (rafRef.current) return;
     rafRef.current = requestAnimationFrame(paintCrosshair);
   }
