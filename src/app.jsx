@@ -802,6 +802,7 @@ function Board({ isReadOnly }) {
         <AddTickerModal
           posKey={addingToPos}
           position={portfolio.positions[addingToPos]}
+          positions={portfolio.positions}
           onClose={() => setAddingToPos(null)}
           onAdd={(ticker, shares, cost, lastPrice) => {
             addHolding(addingToPos, ticker, shares, cost, lastPrice);

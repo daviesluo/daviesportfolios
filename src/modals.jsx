@@ -337,7 +337,7 @@ function CashModal({ amount, onClose, onSave }) {
   );
 }
 
-function AddTickerModal({ posKey, position, onClose, onAdd }) {
+function AddTickerModal({ posKey, position, positions, onClose, onAdd }) {
   const [ticker, setTicker] = React.useState("");
   const [shares, setShares] = React.useState("");
   const [cost, setCost] = React.useState("");
@@ -351,10 +351,39 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
     ? "In USD"
     : `In ${cur} (${sym}) — values on the board are converted to USD using live FX`;
 
+  // Build the ticker → posKey map from `positions` so we can:
+  //   1. populate a <datalist> autocomplete with every existing
+  //      ticker in the portfolio (the user often re-types one they
+  //      already own when moving it between positions);
+  //   2. surface a "Currently in X — adding here will move it"
+  //      warning when the typed ticker is already in a different
+  //      position. addHolding() in app.jsx silently does the move
+  //      via `tickers.filter(t => t !== ticker)`; without this hint
+  //      the user has no idea the move happened.
+  // `positions` may be missing in older callers — fall back to {}
+  // so existing usages keep working without a UI change.
+  const tickerToPos = React.useMemo(() => {
+    const m = /** @type {Record<string, string>} */ ({});
+    if (!positions) return m;
+    for (const [k, pos] of Object.entries(positions)) {
+      for (const t of (pos?.tickers ?? [])) m[t] = k;
+    }
+    return m;
+  }, [positions]);
+  const trimmedTicker = ticker.trim().toUpperCase();
+  const existingPosKey = tickerToPos[trimmedTicker];
+  const willMove = existingPosKey && existingPosKey !== posKey;
+  const existingPosLabel = willMove ? (positions?.[existingPosKey]?.label || existingPosKey) : null;
+  const existingPosSubtitle = willMove ? positions?.[existingPosKey]?.subtitle : null;
+
   const submit = () => {
     if (!ticker.trim()) return;
     onAdd(ticker, shares, cost, lastPrice || cost, buyDate);
   };
+
+  // datalist id is scoped to this modal instance — multiple
+  // AddTickerModal opens in a session would collide on a static id.
+  const datalistId = React.useId();
 
   return (
     <Modal onClose={onClose} size="sm">
@@ -370,7 +399,25 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
       </header>
 
       <div className="modal-body form">
-        <FormRow label="Ticker" hint="e.g. NVDA · BTC-USD · 017731 (CN fund) · VUAG.L (London)"><input className="inp mono upper" autoFocus value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} /></FormRow>
+        <FormRow label="Ticker" hint="e.g. NVDA · BTC-USD · 017731 (CN fund) · VUAG.L (London)">
+          <input
+            className="inp mono upper"
+            autoFocus
+            list={datalistId}
+            value={ticker}
+            onChange={(e) => setTicker(e.target.value.toUpperCase())}
+          />
+          <datalist id={datalistId}>
+            {Object.keys(tickerToPos).sort().map((t) => (
+              <option key={t} value={t} />
+            ))}
+          </datalist>
+        </FormRow>
+        {willMove && (
+          <div className="form-warn mono">
+            Already in <strong>{existingPosLabel}{existingPosSubtitle ? ` · ${existingPosSubtitle}` : ""}</strong>. Signing here will move it from there.
+          </div>
+        )}
         <FormRow label="Shares"><input className="inp mono" value={shares} onChange={(e) => setShares(e.target.value)} inputMode="decimal" /></FormRow>
         <FormRow label={`Avg cost (${sym})`} hint={costHint}><input className="inp mono" value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" /></FormRow>
         <FormRow label={`Last price (${sym})`} hint="Leave blank to use avg cost until first live refresh">
@@ -384,7 +431,7 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
       <footer className="modal-foot">
         <div className="spacer" />
         <button className="btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn-primary" onClick={submit} disabled={!ticker.trim()}>Sign</button>
+        <button className="btn-primary" onClick={submit} disabled={!ticker.trim()}>{willMove ? "Move here" : "Sign"}</button>
       </footer>
     </Modal>
   );
