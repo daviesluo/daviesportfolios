@@ -336,22 +336,52 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
       />
 
       <div className="sidebar-foot sidebar-foot-desktop">
-        <div className="foot-kv"><span>Source</span><span className="mono">{source === "live" ? "Yahoo Finance" : source === "sim" ? "Simulated" : "—"}</span></div>
+        <div className="foot-kv"><span>Source</span><span className="mono">{sourceLabel(source)}</span></div>
         <div className="foot-kv"><span>Auto Refresh</span><span className="mono">30s</span></div>
         <div className="foot-kv"><span>Stored</span><span className="mono">Supabase</span></div>
-        <div className="foot-kv"><span>Shortcuts</span><span className="mono">r (refresh) · e (edit) · x (ext)</span></div>
+        {/* Shortcuts row is desktop-only — the r/e/x keys don't exist
+            on touch and the row was visual noise on phones. */}
+        <div className="foot-kv"><span>Shortcuts</span><span className="mono">R (refresh) · E (edit) · X (ext)</span></div>
       </div>
     </aside>
   );
 }
 
+// Multi-source label for the Source row. The Source column conflates
+// live-price provenance ("Yahoo Finance" / "Simulated") with the
+// broader question of "which upstream services feed the dashboard?";
+// the user wants the full list since several providers are quietly
+// integrated:
+//
+//   Yahoo Finance — prices, intraday chart bars, quoteSummary
+//                   fundamentals, fundamentals-timeseries (TTM EPS /
+//                   revenue history). Primary source for almost
+//                   everything price-related.
+//   Eastmoney     — CN-fund daily NAV (6-digit tickers Yahoo
+//                   doesn't cover); both server-side via the chart
+//                   Edge Function and as a CORS-proxy fallback
+//                   client-side.
+//   Finnhub       — secondary stock fundamentals (ps3yAvg /
+//                   pe3yAvg series); whole-row fallback when
+//                   Yahoo's crumb handshake fails.
+//   Alpha Vantage — index P/E for ^GSPC / ^NDX / ^RUT / ^SOX via
+//                   their ETF proxies (SPY/QQQ/IWM/SOXX).
+//   Trading 212   — read-only mirror of the owner's holdings via
+//                   /equity/portfolio.
+function sourceLabel(source) {
+  if (source === "sim") return "Simulated";
+  if (source !== "live") return "—";
+  // Compact list (mobile foot has limited width). "AV" = Alpha
+  // Vantage, "T212" = Trading 212 — both standard abbreviations.
+  return "Yahoo · Eastmoney · Finnhub · AV · T212";
+}
+
 function SidebarFoot({ source }) {
   return (
     <div className="sidebar-foot sidebar-foot-mobile">
-      <div className="foot-kv"><span>Source</span><span className="mono">{source === "live" ? "Yahoo Finance" : source === "sim" ? "Simulated" : "—"}</span></div>
+      <div className="foot-kv"><span>Source</span><span className="mono">{sourceLabel(source)}</span></div>
       <div className="foot-kv"><span>Auto Refresh</span><span className="mono">30s</span></div>
       <div className="foot-kv"><span>Stored</span><span className="mono">Supabase</span></div>
-      <div className="foot-kv"><span>Shortcuts</span><span className="mono" title="Keyboard shortcuts: r refresh · e toggle edit mode · x toggle extended hours">r · e · x</span></div>
     </div>
   );
 }
@@ -378,7 +408,7 @@ const MC_INDICES = [
   // USDCNY. The grid-auto-flow:row CSS on the mobile container means the
   // visible cards fill row-by-row in this array order.
   { ticker: "^GSPC",    name: "S&P 500",      nameB: "S&P",    nameN: "500",  ftTicker: "ES=F",  ftName: "S&P Futures"    },
-  { ticker: "^NDX",     name: "NASDAQ 100",   nameB: "NASDAQ", nameN: "100",  ftTicker: "NQ=F",  ftName: "Nasdaq Futures" },
+  { ticker: "^NDX",     name: "NASDAQ 100",   nameB: "NASDAQ", nameN: "100",  ftTicker: "NQ=F",  ftName: "NQ Futures" },
   { ticker: "^RUT",     name: "Russell 2000", nameB: "Russell",nameN: "2000", ftTicker: "RTY=F", ftName: "R2K Futures"    },
   { ticker: "^SOX",     name: "PHLX SOX",     nameB: "PHLX",   nameN: "SOX",  hideMobile: true },
   { ticker: "^VIX",     name: "VIX"          },
