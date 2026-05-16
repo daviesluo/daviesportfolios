@@ -80,3 +80,22 @@ export function usMarketHoursUtc(now = new Date()) {
     ? { openHh: 13, openMm: 30, closeHh: 20, closeMm: 0, edt: true }
     : { openHh: 14, openMm: 30, closeHh: 21, closeMm: 0, edt: false };
 }
+
+// LSE regular session: 08:00 - 16:30 London time (Mon-Fri). Returns
+// true when the given moment falls inside that window. Weekends and
+// public holidays are NOT modelled — Yahoo simply doesn't return new
+// bars then, and the dayPct stays at the previous trading day's
+// close, so a "Saturday show 0" guard is redundant. Used by
+// computeMetrics to gate the ext-hours toggle's display for .L
+// tickers: LSE has no US-style pre/after session, so the toggle
+// should read 0 outside LSE trading hours and the live intraday
+// pct only when LSE is actually open (i.e. during US pre-market
+// where LSE has been trading for ~1-6h and is genuinely moving).
+export function lseIsOpen(now = new Date()) {
+  const parts = londonTimeParts(now);
+  const hh = parseInt(parts.hh, 10);
+  const mm = parseInt(parts.mm, 10);
+  if (!isFinite(hh) || !isFinite(mm)) return false;
+  const mins = hh * 60 + mm;
+  return mins >= 8 * 60 && mins < 16 * 60 + 30;
+}

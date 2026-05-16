@@ -407,7 +407,14 @@ function Board({ isReadOnly }) {
         if (!next.holdings[t]) continue;
         const old = next.holdings[t].lastPrice;
         const oldExt = next.holdings[t].extPrice ?? null;
-        const extPriceVal = u.extPrice ?? next.holdings[t].extPrice ?? null;
+        // Respect the Edge response's `extPrice` verbatim — including
+        // an explicit null. The previous `?? prev` fallback was
+        // intended for the case where a refresh tick briefly omitted
+        // the field, but Edge always populates it (number | null per
+        // the PriceResult type), so the fallback only ever served to
+        // keep a STALE extPrice alive when Edge correctly told us to
+        // clear it (e.g. an LSE ticker after the prices fix below).
+        const extPriceVal = u.extPrice ?? null;
         // Real-AH verdict from the intraday series fetched above —
         // the same check the chart modal runs, so the position card
         // and the modal agree. Computed whenever the series is
@@ -427,7 +434,9 @@ function Board({ isReadOnly }) {
           extPrice: extPriceVal,
           prevClose: u.prevClose ?? next.holdings[t].prevClose,
           dayPct: u.dayPct ?? next.holdings[t].dayPct,
-          extDayPct: (u.extPrice != null && u.lastPrice > 0) ? ((u.extPrice - u.lastPrice) / u.lastPrice) * 100 : next.holdings[t].extDayPct ?? null,
+          // Mirror the extPriceVal logic above: Edge response is the
+          // source of truth, no stale fallback.
+          extDayPct: (u.extPrice != null && u.lastPrice > 0) ? ((u.extPrice - u.lastPrice) / u.lastPrice) * 100 : null,
           extPriceTrusted,
           // Carry currency from the price fetch if present; otherwise keep what's
           // already stored (from detectCurrency at add time).

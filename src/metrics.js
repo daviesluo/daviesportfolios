@@ -6,6 +6,7 @@
 
 import { fxRateToUSD } from './fx.js';
 import { isUsEquity } from './ticker_class.js';
+import { lseIsOpen } from './market_hours.js';
 
 // Yahoo's `postMarketPrice` for OTC ADRs like SFTBY is bogus — it
 // ships today's regular-session OPEN as if it were an after-hours
@@ -88,9 +89,26 @@ export const computeMetrics = (portfolio, opts = {}) => {
       // so a US name that doesn't actually trade AH shows 0%, not a
       // stale regular-session number. Also drives baselinePrice below.
       const extActive = ext && !isCash && isUsEquity(t);
-      const pct = extActive
-        ? (trustExt && h.extDayPct != null ? h.extDayPct : 0)
-        : (h.dayPct ?? 0);
+      // LSE-only gate for the ext-hours toggle. LSE has no US-style
+      // pre/after session, so when the toggle is on the row should
+      // show the live LSE intraday pct ONLY while LSE itself is
+      // currently trading (08:00-16:30 UK — covers US pre-market and
+      // the first hour of US RTH). Outside LSE hours (US after-hours
+      // / overnight / night-market for the East-Asia user) it should
+      // read 0 — there is literally no movement happening. Without
+      // this gate the toggle painted the stale LSE close pct as
+      // "extended-hours" 24/7, which is what surfaced as the
+      // "VUAG.L / SEGM.L show non-zero ext-hours at midnight" bug.
+      const isLse = typeof t === 'string' && t.endsWith('.L');
+      const lseSuppress = ext && !isCash && isLse && !lseIsOpen();
+      let pct;
+      if (extActive) {
+        pct = (trustExt && h.extDayPct != null ? h.extDayPct : 0);
+      } else if (lseSuppress) {
+        pct = 0;
+      } else {
+        pct = (h.dayPct ?? 0);
+      }
       // Convert native → USD (cash is already USD; treat missing currency as USD).
       // `fxMissing` propagates to the player object so the UI can badge
       // it — without that flag a GBP holding silently falls back to
@@ -111,10 +129,16 @@ export const computeMetrics = (portfolio, opts = {}) => {
       //     used to fall back to yesterday's prevClose and show the
       //     regular-session move, but in ext mode that's a stale
       //     number — a non-AH-trading stock IS flat after the close.)
+      //   - lseSuppress (LSE ticker, ext-on, LSE closed) → current
+      //     priceNative → dayChange = 0 too. LSE has no movement
+      //     when its own session is closed, and the toggle visually
+      //     promises "extended-hours" which doesn't exist for these.
       //   - ext-off → yesterday's prevClose, the full-session move.
       const baselinePrice = extActive
         ? (h.lastPrice ?? h.prevClose ?? priceNative)
-        : (h.prevClose ?? priceNative);
+        : lseSuppress
+          ? priceNative
+          : (h.prevClose ?? priceNative);
       const prevMV = isCash ? mv : h.shares * baselinePrice * fx;
       const costUSD = isCash ? mv : h.shares * h.cost * fx;
       posMV += mv; posPrev += prevMV; posCost += costUSD;

@@ -22,6 +22,7 @@ export {
   usMarketPhase,
   ukTzAbbr,
   usMarketHoursUtc,
+  lseIsOpen,
 } from './market_hours.js';
 
 // -------- Currency / FX --------------------------------------------
