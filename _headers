@@ -1,10 +1,60 @@
-# Cloudflare Pages cache rules.
+# Cloudflare Pages headers — cache rules + security headers.
 #
 # index.html itself must always revalidate so a fresh deploy's hashed asset
 # URLs reach the device on the next visit. iOS PWA + Cloudflare's default
 # cache will otherwise serve a months-old index pointing at long-deleted
 # JS/CSS bundles, leaving mobile devices stuck on a stale version of the
 # app for days.
+
+# -------- Security headers (apply to every path) -----------------------
+#
+# CSP rationale per directive:
+#   default-src 'self'    — anything not enumerated falls back to same-origin.
+#   script-src 'self'     — block inline / eval'd scripts. Vite emits hashed
+#                           module bundles served from /assets/, no inline
+#                           script tags in index.html.
+#   style-src 'self'
+#       'unsafe-inline'   — React renders inline `style={…}` attribute, so
+#                           inline styles are unavoidable. Strictly worse
+#                           than nonce-style-src but the alternative is
+#                           rewriting every styled JSX prop.
+#       fonts.googleapis  — index.html loads Inter / JetBrains Mono from
+#                           Google Fonts (preconnect + <link>).
+#   font-src              — actual font files come from gstatic.
+#   img-src               — data: + blob: cover Vite's inline SVGs and any
+#                           runtime canvas → blob exports.
+#   connect-src           — every host the app fetches from. Adding a new
+#                           upstream means adding it here, otherwise the
+#                           browser silently blocks the request.
+#                             * Supabase (auth/data/trading212/ops-error/...)
+#                             * Yahoo Finance (chart + quote endpoints)
+#                             * eastmoney + danjuan + xueqiu for CN funds
+#                             * 5 free CORS proxies (utils.js PROXIES) — any
+#                               proxy host that gets squatted could otherwise
+#                               serve attacker-controlled JSON into the
+#                               portfolio render. The proxies are static so
+#                               enumerating them tightly is the right call.
+#   frame-ancestors 'none' — block clickjack (the app's edit mode renders
+#                             real-value G/L that someone could iframe-embed
+#                             then overlay a "click to claim reward" UI).
+#   base-uri / form-action — fix the document base + form submission
+#                            origin, both standard hardening.
+#
+# HSTS: 2 years + includeSubDomains + preload (the recommended max). The
+# site is HTTPS-only via Cloudflare so a downgrade attempt has nothing to
+# downgrade to anyway, but HSTS makes the browser-level enforcement
+# explicit and survives a Cloudflare misconfig.
+#
+# Permissions-Policy: deny camera / microphone / geolocation / payment —
+# the app has zero use for any of these, so a future XSS can't quietly
+# ask for them.
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://fundgz.1234567.com.cn https://api.fund.eastmoney.com https://danjuanapp.com https://stock.xueqiu.com https://api.cors.lol https://corsproxy.io https://api.allorigins.win https://api.codetabs.com https://cors.eu.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
 /
   Cache-Control: public, max-age=0, must-revalidate
 /index.html
