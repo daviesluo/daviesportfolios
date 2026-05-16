@@ -124,35 +124,6 @@ body {
   padding-right:  env(safe-area-inset-right);
 }
 
-/* Access denied / loading overlay */
-.access-denied {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-}
-.ad-card {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: rgba(0,0,0,0.35);
-  padding: 28px 36px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  min-width: 260px;
-}
-.ad-title {
-  font-size: 14px;
-  letter-spacing: 0.2em;
-  color: var(--loss);
-}
-.ad-sub {
-  font-size: 12px;
-  color: var(--chalk-dim);
-  margin-bottom: 6px;
-}
-
 /* Viewer (read-only) badge replacing the EDIT button */
 .ro-badge {
   font-size: 11px;
@@ -310,9 +281,6 @@ body {
 }
 .sb-change-row { display: flex; align-items: baseline; gap: 6px; }
 .sb-pct { opacity: 0.75; }
-.sb-suffix { font-size: 10px; color: var(--chalk-mute); margin-left: 4px; font-weight: 400; letter-spacing: 0.08em; }
-.sb-score { font-size: 22px; font-weight: 600; display: flex; align-items: baseline; gap: 10px; }
-.score-sep { color: var(--chalk-mute); font-weight: 300; }
 .scoreboard-divider { width: 1px; height: 32px; background: var(--line); }
 
 @keyframes sb-flash-up   { 0%, 30% { background: var(--gain-dim); } 100% { background: transparent; } }
@@ -751,33 +719,10 @@ body {
 .sidebar-foot-mobile { display: none; }
 .foot-kv { display: flex; justify-content: space-between; }
 
-/* ============= SPARKLINE ============= */
-.sparkline-wrap { padding: 2px 0 4px; }
-.sparkline-wrap svg { display: block; }
-.sparkline-meta { display: flex; justify-content: space-between; gap: 6px; font-size: 10px; margin-top: 4px; font-family: var(--font-mono); }
+/* Loading / error / empty-state copy inside chart panels. The
+   `.sparkline-*` family name predates the chart rewrite; only this
+   one is still in use. */
 .sparkline-empty { font-size: 10px; padding: 10px 0; text-align: center; font-family: var(--font-mono); }
-.sparkline-slider {
-  -webkit-appearance: none; appearance: none;
-  width: 100%; height: 2px; margin: 6px 0 2px;
-  background: var(--line); border-radius: 1px; outline: none; cursor: pointer;
-}
-.sparkline-slider::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 12px; height: 12px; border-radius: 50%;
-  background: var(--chalk-dim); border: 1px solid var(--line); cursor: pointer;
-}
-.sparkline-slider::-moz-range-thumb {
-  width: 12px; height: 12px; border-radius: 50%;
-  background: var(--chalk-dim); border: 1px solid var(--line); cursor: pointer;
-}
-
-.spark-live-btn {
-  background: none; border: 1px solid var(--gold); color: var(--gold);
-  border-radius: 2px; padding: 0 5px; font-size: 9px; cursor: pointer;
-  letter-spacing: 0.06em; line-height: 16px;
-  transition: opacity 0.12s;
-}
-.spark-live-btn:hover { opacity: 0.7; }
 
 /* ============= YTD PERFORMANCE CHART ============= */
 .perf-chart-wrap { padding: 2px 0 4px; }
