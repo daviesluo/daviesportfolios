@@ -10,7 +10,14 @@ node_modules
 .DS_Store
 *.log
 
-# Note: `dist/` is intentionally NOT ignored. We pre-build with
-# `npm run build` and commit the bundle so Cloudflare Pages can deploy
-# without needing a custom build step in the dashboard. When/if we
-# migrate to CF-managed builds, ignore dist/ here and remove it from git.
+# Build source maps. Vite emits these in `build.sourcemap: 'hidden'`
+# mode for local debugging, but they don't get referenced from the
+# shipped JS (no `//# sourceMappingURL=` comment) — and they're ~900 KB
+# each, so committing them inflates every push for no shipping benefit.
+*.js.map
+
+# Note: the JS / CSS / HTML bundle IS intentionally committed (no
+# `dist/` ignore). We pre-build with `npm run build` and commit the
+# output so Cloudflare Pages can deploy without needing a custom
+# build step in the dashboard. When/if we migrate to CF-managed
+# builds, switch to ignoring the build output here too.
