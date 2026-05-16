@@ -832,19 +832,6 @@ body {
 .form-lbl { display: flex; justify-content: space-between; align-items: baseline; }
 .form-lbl > span:first-child { font-size: 12px; color: var(--chalk-dim); letter-spacing: 0.02em; }
 .form-hint { font-size: 10px; color: var(--chalk-mute); }
-/* Inline warning beneath an AddTickerModal field — e.g. "already in
-   X position, signing here will move it from there." Uses the gold
-   colour palette (same as `.armband`) so it reads as a heads-up
-   rather than an error/loss-red signal. */
-.form-warn {
-  font-size: 11px;
-  color: var(--gold, oklch(0.82 0.14 85));
-  background: oklch(0.82 0.14 85 / 0.08);
-  border-left: 2px solid oklch(0.82 0.14 85);
-  padding: 6px 10px;
-  border-radius: 3px;
-  margin-top: -6px;
-}
 .inp {
   background: rgba(0,0,0,0.3);
   border: 1px solid var(--line);

@@ -76,7 +76,7 @@ const REFRESH_MS_OVERNIGHT = 5 * 60 * 1000;
 // USDCNY=X is a hidden FX fetch used only for CNY→USD conversion of holdings
 // (not shown in the market-conditions column). GBPUSD=X doubles as both a
 // displayed card and the rate we use to convert GBP holdings to USD.
-const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X", "ES=F", "NQ=F", "RTY=F"];
+const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X", "USDHKD=X", "ES=F", "NQ=F", "RTY=F"];
 
 // MC symbols whose CARDS are clickable. The futures alternates
 // (ES=F / NQ=F / RTY=F) only appear on the card face during
@@ -85,7 +85,7 @@ const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GB
 // have a futures alt), so prefetch needs to warm both canonical
 // and futures tickers — otherwise clicking ^GSPC card in ext
 // mode opens an ES=F chart whose cache is cold.
-const MC_PREFETCH_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X", "ES=F", "NQ=F", "RTY=F"];
+const MC_PREFETCH_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X", "USDHKD=X", "ES=F", "NQ=F", "RTY=F"];
 
 // Main app ---------------------------------------------------------------
 function App() {
@@ -811,7 +811,6 @@ function Board({ isReadOnly }) {
         <AddTickerModal
           posKey={addingToPos}
           position={portfolio.positions[addingToPos]}
-          positions={portfolio.positions}
           onClose={() => setAddingToPos(null)}
           onAdd={(ticker, shares, cost, lastPrice) => {
             addHolding(addingToPos, ticker, shares, cost, lastPrice);
