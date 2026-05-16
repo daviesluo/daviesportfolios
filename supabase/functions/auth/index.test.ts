@@ -71,15 +71,20 @@ Deno.test("verifyToken: refuses to operate with an empty secret", async () => {
   assertEquals(await verifyToken("a.b", ""), null);
 });
 
-Deno.test("clientIpFromHeaders: cf-connecting-ip wins over x-real-ip and x-forwarded-for", () => {
+Deno.test("clientIpFromHeaders: cf-connecting-ip is IGNORED (Supabase-direct path, header is client-supplied)", () => {
+  // Critical security pin: the browser calls *.supabase.co directly,
+  // no Cloudflare in front, so `cf-connecting-ip` is whatever the
+  // attacker wrote. Honouring it would let them rotate the value per
+  // request and bypass per-IP lockout entirely. Only x-real-ip /
+  // last-xff (both gateway-set) are trusted.
   const req = new Request("https://x", {
     headers: {
-      "cf-connecting-ip": "1.2.3.4",
-      "x-real-ip":        "9.9.9.9",
+      "cf-connecting-ip": "1.2.3.4",       // attacker-supplied
+      "x-real-ip":        "9.9.9.9",       // gateway-truth
       "x-forwarded-for":  "5.6.7.8",
     },
   });
-  assertEquals(clientIpFromHeaders(req), "1.2.3.4");
+  assertEquals(clientIpFromHeaders(req), "9.9.9.9");
 });
 
 Deno.test("clientIpFromHeaders: x-real-ip wins over x-forwarded-for when no cf header", () => {

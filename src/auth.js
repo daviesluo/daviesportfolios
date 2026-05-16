@@ -102,11 +102,11 @@ export async function authenticate(pw) {
     if (res.status === 401) return null;
 
     // 5xx, network blip — treat as transient, don't pretend to lock out.
-    console.error("[auth] unexpected:", res.status);
+    // reportError surfaces it in the badge / ops_errors; no console
+    // noise needed alongside (DevTools is the wrong channel for this).
     reportError('auth.unexpected', { context: { status: res.status } });
     return null;
   } catch (e) {
-    console.error("[auth] error:", e);
     reportError('auth.network', { message: String(e?.message || e) });
     return null;
   }

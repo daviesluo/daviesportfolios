@@ -200,13 +200,23 @@ export function priceDividedByTtmEps(pricePoints, ttmEpsHistory, fallbackEps, re
   // `fallbackEps` would inject the client/server price-timing
   // mismatch into the chart even for already-correct US stocks
   // and ADRs — see Codex P2 on PR #94.
+  // Parse both `e.date` (quarter end, always "YYYY-MM-DD") and `p.date`
+  // (price bar, "YYYY-MM-DD" daily or "YYYY-MM-DDTHH:MM" intraday) as
+  // UTC. `new Date("YYYY-MM-DDTHH:MM")` (no `Z`) parses as LOCAL time
+  // — so for a user in UTC+8 the intraday bar's ms is 8 h earlier
+  // than the equivalent UTC ms, while the quarter-end string parses
+  // as UTC midnight. The boundary between "before report" and "after
+  // report" then shifts ±12 h depending on the user's tz, producing a
+  // one-bar step in the wrong place at the exact 45-day report-lag
+  // boundary. Force both sides to UTC by appending `Z` when missing.
+  const utcMs = (s) => new Date(typeof s === 'string' && s.length === 16 ? s + 'Z' : s).getTime();
   const reportEvents = Array.isArray(ttmEpsHistory) ? ttmEpsHistory
-    .map(e => ({ ttm: Number(e.eps), reportMs: new Date(e.date).getTime() + reportLagMs }))
+    .map(e => ({ ttm: Number(e.eps), reportMs: utcMs(e.date) + reportLagMs }))
     .filter(e => isFinite(e.ttm) && isFinite(e.reportMs) && e.ttm > 0)
     .sort((a, b) => a.reportMs - b.reportMs)
     : [];
   return pricePoints.map(p => {
-    const dMs = new Date(p.date).getTime();
+    const dMs = utcMs(p.date);
     let ttmEps = fallbackEps;
     for (let i = reportEvents.length - 1; i >= 0; i--) {
       if (reportEvents[i].reportMs <= dMs) { ttmEps = reportEvents[i].ttm; break; }

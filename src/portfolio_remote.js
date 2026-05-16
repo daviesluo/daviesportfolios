@@ -9,6 +9,7 @@ import { SB_ANON, EDGE_DATA_URL } from './supabase_config.js';
 import { getAppToken } from './auth.js';
 import { detectCurrency } from './fx.js';
 import { INITIAL_PORTFOLIO } from './data.js';
+import { reportError } from './ops_error.js';
 
 // Cross-tab notification channel. When this tab successfully saves the
 // portfolio, every other tab gets a `portfolio-saved` message and
@@ -39,8 +40,17 @@ function dataHeaders() {
 // so touching edit mode doesn't accidentally overwrite the user's
 // (empty) Supabase row with the demo positions. The banner gives
 // them a Reset-to-empty button to start clean.
+//
+// Runs `migrate()` over the seed before returning so the demo path
+// produces a fully-shaped portfolio (currency on every holding,
+// `lots` arrays backfilled from shares+cost, label/subtitle
+// normalisation). INITIAL_PORTFOLIO is hand-edited in data.js and
+// has historically been missing those fields; without the migrate
+// pass the demo render briefly hit "h.currency is undefined" → 1:1
+// USD fallback in fxRateToUSD + an empty lots branch in code that
+// destructures it.
 function demoFallback() {
-  return { ...JSON.parse(JSON.stringify(INITIAL_PORTFOLIO)), _isDemo: true };
+  return { ...migrate(JSON.parse(JSON.stringify(INITIAL_PORTFOLIO))), _isDemo: true };
 }
 
 export async function loadPortfolioRemote() {
@@ -50,7 +60,14 @@ export async function loadPortfolioRemote() {
       signal: AbortSignal.timeout(10_000),
     });
     if (!res.ok) {
-      console.error("[data] load failed:", res.status, await res.text());
+      // Route to ops_errors so the admin badge surfaces the failure
+      // alongside other operational signals (auth.unexpected,
+      // render.crash, etc.). Status 401 is special-cased — it's the
+      // normal "token expired" path the user fixes by re-auth'ing,
+      // not a backend incident worth flagging.
+      if (res.status !== 401) {
+        reportError('data.load.failed', { context: { status: res.status } });
+      }
       return demoFallback();
     }
     const { data } = await res.json();
@@ -63,7 +80,7 @@ export async function loadPortfolioRemote() {
     }
     return demoFallback();
   } catch (e) {
-    console.error("[data] load error:", e);
+    reportError('data.load.error', { message: String(e?.message || e) });
     return demoFallback();
   }
 }
@@ -78,7 +95,9 @@ export async function savePortfolioRemote(p) {
       signal: AbortSignal.timeout(10_000),
     });
     if (!res.ok) {
-      console.error("[data] save failed:", res.status, await res.text());
+      if (res.status !== 401) {
+        reportError('data.save.failed', { context: { status: res.status } });
+      }
       return;
     }
     // Tell every other tab on this origin that the persisted portfolio
@@ -92,7 +111,7 @@ export async function savePortfolioRemote(p) {
       }
     } catch { /* swallow — best-effort cross-tab nudge */ }
   } catch (e) {
-    console.error("[data] save error:", e);
+    reportError('data.save.error', { message: String(e?.message || e) });
   }
 }
 
