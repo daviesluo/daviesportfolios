@@ -42,6 +42,10 @@ export async function fetchTrading212Holdings() {
         'Authorization': `Bearer ${SB_ANON}`,
         'X-App-Token': getAppToken(),
       },
+      // 10s is comfortable headroom over the function's own internal
+      // timeouts (5s PostgREST + 8s T212 upstream); without it a
+      // hung Edge cold-start would freeze doRefresh indefinitely.
+      signal: AbortSignal.timeout(10_000),
     });
     if (!res.ok) return null;
     const json = await res.json();
