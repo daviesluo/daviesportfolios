@@ -4,6 +4,7 @@
 // nothing when no update is pending and when the SW first goes offline-ready.
 import React from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import { reportError } from './ops_error.js';
 
 // Suppress the banner for SW_RELOAD_SUPPRESS_MS after the user clicks
 // RELOAD. On iOS Safari standalone-PWA mode the SW state transition
@@ -118,6 +119,17 @@ export function ServiceWorkerBanner() {
     // the next-page-mount useState initializer picks it up even if
     // the cleanup races against the navigation.
     try { sessionStorage.setItem(SW_RELOAD_SUPPRESS_KEY, String(Date.now())); } catch { /* ignore */ }
+    // Track whether `controllerchange` actually fires in the 1500 ms
+    // window before the fallback reload. If it doesn't, the SW
+    // activation effectively failed (Workbox saw `updateServiceWorker`
+    // but the new SW never took control) — report to ops_errors so
+    // a chronic deploy-bricks-PWA scenario becomes visible instead of
+    // disguised as a "reload didn't help" complaint.
+    let activated = false;
+    const onControllerChange = () => { activated = true; };
+    try {
+      navigator.serviceWorker?.addEventListener?.('controllerchange', onControllerChange);
+    } catch { /* SW not supported */ }
     // Tell the waiting SW to activate. workbox-window registers a
     // `controllerchange` listener that's *supposed* to reload the page
     // once activation completes — but iOS Safari (and some Chrome
@@ -181,7 +193,18 @@ export function ServiceWorkerBanner() {
     // but the line is cheap insurance against a quirky purge order.
     try { sessionStorage.setItem(SW_RELOAD_SUPPRESS_KEY, String(Date.now())); } catch { /* ignore */ }
 
-    setTimeout(() => { window.location.reload(); }, 1500);
+    setTimeout(() => {
+      try { navigator.serviceWorker?.removeEventListener?.('controllerchange', onControllerChange); }
+      catch { /* ignore */ }
+      if (!activated) {
+        // Force-reload anyway (we still want to leave the user on a
+        // page) but flag the silent activation failure for ops_errors.
+        reportError('sw.activation.timeout', {
+          context: { hadController: !!navigator.serviceWorker?.controller },
+        });
+      }
+      window.location.reload();
+    }, 1500);
   }, [reloading, updateServiceWorker]);
 
   // Force-reload after the update has been pending for 24 h. `prompt`
