@@ -33,6 +33,16 @@ function dataHeaders() {
   };
 }
 
+// Tag the seeded fallback so the UI can warn the user that they're
+// looking at demo data (Davies's 33-ticker book) rather than their
+// own portfolio. The save effect ALSO skips while `_isDemo` is true
+// so touching edit mode doesn't accidentally overwrite the user's
+// (empty) Supabase row with the demo positions. The banner gives
+// them a Reset-to-empty button to start clean.
+function demoFallback() {
+  return { ...JSON.parse(JSON.stringify(INITIAL_PORTFOLIO)), _isDemo: true };
+}
+
 export async function loadPortfolioRemote() {
   try {
     const res = await fetch(`${EDGE_DATA_URL}?action=load`, {
@@ -41,20 +51,20 @@ export async function loadPortfolioRemote() {
     });
     if (!res.ok) {
       console.error("[data] load failed:", res.status, await res.text());
-      return JSON.parse(JSON.stringify(INITIAL_PORTFOLIO));
+      return demoFallback();
     }
     const { data } = await res.json();
     if (data) {
       const loaded = migrate(data);
       if (!loaded.holdings || Object.keys(loaded.holdings).length === 0) {
-        return JSON.parse(JSON.stringify(INITIAL_PORTFOLIO));
+        return demoFallback();
       }
       return loaded;
     }
-    return JSON.parse(JSON.stringify(INITIAL_PORTFOLIO));
+    return demoFallback();
   } catch (e) {
     console.error("[data] load error:", e);
-    return JSON.parse(JSON.stringify(INITIAL_PORTFOLIO));
+    return demoFallback();
   }
 }
 
