@@ -34,7 +34,7 @@
 //     in hand) triage the last N hours' failures without touching
 //     Supabase dashboard.
 
-const SB_URL      = Deno.env.get("SUPABASE_URL") ?? "https://flmvxigozjuizpckllvk.supabase.co";
+const SB_URL      = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const APP_AUTH_SECRET = Deno.env.get("APP_AUTH_SECRET") ?? "";
 
