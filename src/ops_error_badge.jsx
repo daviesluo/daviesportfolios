@@ -75,7 +75,14 @@ export function latestErrorAt(summary) {
   return max;
 }
 
-function useIsDesktop() {
+/**
+ * React hook returning whether the viewport currently matches the
+ * desktop breakpoint (≥761 px wide). Updates on resize / orientation
+ * change. Exported so callers other than OpsErrorBadge (e.g.
+ * MarketConditions, which had two render trees being hidden via CSS)
+ * can mount one viewport's tree instead of both.
+ */
+export function useIsDesktop() {
   const match = () =>
     typeof window !== 'undefined'
     && isDesktopViewport(typeof window.matchMedia === 'function' ? window.matchMedia.bind(window) : null);

@@ -59,23 +59,80 @@ function useClock(intervalMs = 1000) {
   return now;
 }
 
+// Time chip + extended-hours toggle. Owns its own 1 Hz clock so the
+// parent Header doesn't re-render every second — only this leaf and
+// the sibling HeaderStatusPill (which tracks "ago" the same way) do.
+// Rendered both inside `.brand-time` (mobile) and `.scoreboard-cell-time`
+// (desktop) — `phaseInfo` and `tzLabel` derive from the same `now`.
+function HeaderTime({ extendedHours, onToggleExtended }) {
+  const now = useClock(1000);
+  const t = londonTimeParts(now);
+  const phase = usMarketPhase(now);
+  const phaseInfo = PHASE[phase] || PHASE.overnight;
+  const tzLabel = `${ukTzAbbr(now)} TIME`;
+  return (
+    <>
+      <div className="sb-time-line">
+        <span className="sb-label-inline mono">{tzLabel}</span>
+        <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
+        <span className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</span>
+      </div>
+      <label
+        className="ext-switch"
+        style={/** @type {React.CSSProperties} */ ({ "--ext-on-color": phaseInfo.color })}
+        title={extendedHours ? "Showing extended-hours prices — click to switch off" : "Click to show pre-market / after-hours prices"}
+      >
+        <span className="ext-switch-label mono">EXTENDED HOURS</span>
+        <input type="checkbox" className="ext-checkbox" checked={extendedHours} onChange={onToggleExtended} />
+        <span className="ext-track"><span className="ext-thumb" /></span>
+      </label>
+    </>
+  );
+}
+
+// Live/STALE/Refreshing status pill in the header-actions row. The
+// "ago" text + STALE-after-5-min flip depend on the clock so this
+// leaf owns its own useClock. Status label / title-attribute logic
+// is identical to the old inline version; moved here so the parent
+// Header doesn't pay the per-second re-render cost.
+function HeaderStatusPill({ lastUpdated, source, isRefreshing }) {
+  const now = useClock(1000);
+  const agoMs = lastUpdated ? (now.getTime() - lastUpdated.getTime()) : null;
+  const agoText = lastUpdated ? formatAgo(agoMs) : "—";
+  // Stale-price detection — when the last successful fetch was more
+  // than this many minutes ago, the live-pill flips to "STALE Nm"
+  // even when `source === "live"`. Auto-refresh runs every 30 s, so
+  // > 5 min without an update means several consecutive ticks failed
+  // and the user should know the displayed numbers are out of date.
+  const STALE_PRICE_MS = 5 * 60 * 1000;
+  const stalePrices = agoMs != null && agoMs > STALE_PRICE_MS;
+  const statusLabel =
+    isRefreshing       ? "REFRESHING…"
+    : source === "error" ? "RETRYING…"
+    : stalePrices       ? `STALE ${formatAgo(agoMs)}`
+    : source === "live"  ? "LIVE"
+    : "…";
+  return (
+    <div className={`live-pill ${isRefreshing ? "refreshing" : ""} ${(source === "error" || stalePrices) ? "err" : ""}`}
+         title={
+           source === "error" ? "Retrying price fetch…" :
+           stalePrices ? `No successful price update in ${formatAgo(agoMs)}; auto-retry running` :
+           source === "live" ? "Yahoo Finance" : "Connecting"
+         }>
+      <span className={`live-dot ${isRefreshing ? "pulse" : ""} ${(source === "error" || stalePrices) ? "err" : ""}`} />
+      <div className="live-col">
+        <span className="live-txt">{statusLabel}</span>
+        <span className="live-ago mono">Last updated {agoText}</span>
+      </div>
+    </div>
+  );
+}
+
 // Hidden-values mask: imported from utils.js as `maskDigits`, aliased
 // to `mask` here so the original short name keeps reading naturally
 // inside the JSX.
 
 function Header({ metrics, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues }) {
-  const now = useClock(1000);
-  const t = londonTimeParts(now);
-  const phase = usMarketPhase(now);
-  const phaseInfo = PHASE[phase] || PHASE.overnight;
-  // Scoreboard time label flips between BST (Mar–Oct) and GMT (Oct–Mar)
-  // automatically, since the displayed hh:mm is `Europe/London` from
-  // londonTimeParts and the user expects the abbreviation to match.
-  const tzLabel = `${ukTzAbbr(now)} TIME`;
-
-  const agoMs = lastUpdated ? (now.getTime() - lastUpdated.getTime()) : null;
-  const agoText = lastUpdated ? formatAgo(agoMs) : "—";
-
   // Scoreboard flash: detect value changes on price refresh
   /** @type {React.MutableRefObject<import('./types').PortfolioMetrics | null>} */
   const prevMetrics = React.useRef(null);
@@ -99,20 +156,6 @@ function Header({ metrics, marketDataReady, source, lastUpdated, isRefreshing, o
       setTimeout(() => setSbFlash({}), 1400);
     }
   }, [metrics]);
-
-  // Stale-price detection — when the last successful fetch was more
-  // than this many minutes ago, the live-pill flips to "STALE Nm"
-  // even when `source === "live"`. Auto-refresh runs every 30 s, so
-  // > 5 min without an update means several consecutive ticks failed
-  // and the user should know the displayed numbers are out of date.
-  const STALE_PRICE_MS = 5 * 60 * 1000;
-  const stalePrices = agoMs != null && agoMs > STALE_PRICE_MS;
-  const statusLabel =
-    isRefreshing       ? "REFRESHING…"
-    : source === "error" ? "RETRYING…"
-    : stalePrices       ? `STALE ${formatAgo(agoMs)}`
-    : source === "live"  ? "LIVE"
-    : "…";
 
   // FX badge — surface any holding whose native-USD conversion fell
   // back to 1:1 this tick (the FX pair for its currency was missing
@@ -140,39 +183,13 @@ function Header({ metrics, marketDataReady, source, lastUpdated, isRefreshing, o
         </div>
         {/* Mobile only: time + toggle lives here instead of in scrolling scoreboard */}
         <div className="brand-time">
-          <div className="sb-time-line">
-            <span className="sb-label-inline mono">{tzLabel}</span>
-            <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
-            <span className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</span>
-          </div>
-          <label
-            className="ext-switch"
-            style={/** @type {React.CSSProperties} */ ({ "--ext-on-color": phaseInfo.color })}
-            title={extendedHours ? "Showing extended-hours prices — click to switch off" : "Click to show pre-market / after-hours prices"}
-          >
-            <span className="ext-switch-label mono">EXTENDED HOURS</span>
-            <input type="checkbox" className="ext-checkbox" checked={extendedHours} onChange={onToggleExtended} />
-            <span className="ext-track"><span className="ext-thumb" /></span>
-          </label>
+          <HeaderTime extendedHours={extendedHours} onToggleExtended={onToggleExtended} />
         </div>
       </div>
 
       <div className="scoreboard">
         <div className="scoreboard-cell scoreboard-cell-time">
-          <div className="sb-time-line">
-            <span className="sb-label-inline mono">{tzLabel}</span>
-            <span className="phase-dot" style={{ background: phaseInfo.color }} title={phaseInfo.label} />
-            <span className="sb-value mono">{t.hh}:{t.mm}:{t.ss}</span>
-          </div>
-          <label
-            className="ext-switch"
-            style={/** @type {React.CSSProperties} */ ({ "--ext-on-color": phaseInfo.color })}
-            title={extendedHours ? "Showing extended-hours prices — click to switch off" : "Click to show pre-market / after-hours prices"}
-          >
-            <span className="ext-switch-label mono">EXTENDED HOURS</span>
-            <input type="checkbox" className="ext-checkbox" checked={extendedHours} onChange={onToggleExtended} />
-            <span className="ext-track"><span className="ext-thumb" /></span>
-          </label>
+          <HeaderTime extendedHours={extendedHours} onToggleExtended={onToggleExtended} />
         </div>
         <div className="scoreboard-divider scoreboard-divider-time" />
         <div className="scoreboard-cell">
@@ -209,18 +226,7 @@ function Header({ metrics, marketDataReady, source, lastUpdated, isRefreshing, o
       </div>
 
       <div className="header-actions">
-        <div className={`live-pill ${isRefreshing ? "refreshing" : ""} ${(source === "error" || stalePrices) ? "err" : ""}`}
-             title={
-               source === "error" ? "Retrying price fetch…" :
-               stalePrices ? `No successful price update in ${formatAgo(agoMs)}; auto-retry running` :
-               source === "live" ? "Yahoo Finance" : "Connecting"
-             }>
-          <span className={`live-dot ${isRefreshing ? "pulse" : ""} ${(source === "error" || stalePrices) ? "err" : ""}`} />
-          <div className="live-col">
-            <span className="live-txt">{statusLabel}</span>
-            <span className="live-ago mono">Last updated {agoText}</span>
-          </div>
-        </div>
+        <HeaderStatusPill lastUpdated={lastUpdated} source={source} isRefreshing={isRefreshing} />
         {marketDataReady && fxMissing.length > 0 && (
           <div
             className="live-pill err"
