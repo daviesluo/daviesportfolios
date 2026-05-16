@@ -607,19 +607,21 @@ function UpcomingEarnings({ portfolio, className = '' }) {
   );
 }
 
-// MM/DD using Europe/London tz — matches the scoreboard clock so the
-// "date" the user sees on the panel agrees with the time chip above.
+// "03 Jun" — day + short month name in Europe/London tz. Matches the
+// scoreboard clock so the date agrees with the time chip above, and
+// reads more naturally than the previous numeric MM/DD which forced
+// the eye to map 06 → June.
 function fmtEarningsDate(unixSec) {
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Europe/London',
-    month: '2-digit', day: '2-digit',
+    day: '2-digit', month: 'short',
   }).formatToParts(new Date(unixSec * 1000));
-  let mo = '', dd = '';
+  let dd = '', mo = '';
   for (const p of parts) {
-    if (p.type === 'month') mo = p.value;
     if (p.type === 'day') dd = p.value;
+    if (p.type === 'month') mo = p.value;
   }
-  return `${mo}/${dd}`;
+  return `${dd} ${mo}`;
 }
 
 // Prefer Yahoo's labelled time ("before market open" → "BMO") when
