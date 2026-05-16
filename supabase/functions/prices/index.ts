@@ -111,13 +111,26 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
 
     // Walk backwards to find the most recent candle that sits outside regular
     // market hours — that is the current extended-hours price.
+    //
+    // `isOutsideRth` is hardcoded to 9:30-16:00 (US RTH). For non-US
+    // tickers (anything with a dotted suffix like `.L`, `.HK`, `.SS`,
+    // `.DE` …), Yahoo returns candles in the local exchange's tz, so
+    // the same minute-of-day boundary doesn't match — LSE pre-auction
+    // candles at 08:30 UK end up flagged as "extended hours" and the
+    // last live LSE intraday bar gets written as `extPrice` during US
+    // pre-market. Those exchanges don't have a US-style pre/post
+    // session anyway, so skip the scan entirely for them and let
+    // extPrice stay null. US-index pseudo-symbols (`^GSPC` etc.) have
+    // no dot so they're correctly NOT skipped.
     let extPrice: number | null = null;
-    for (let i = timestamps.length - 1; i >= 0; i--) {
-      const close = closes[i];
-      if (close == null) continue;
-      if (isOutsideRth(localMinOfDay(timestamps[i], gmtOffset))) {
-        extPrice = close / penceFactor;
-        break;
+    if (!symbol.includes(".")) {
+      for (let i = timestamps.length - 1; i >= 0; i--) {
+        const close = closes[i];
+        if (close == null) continue;
+        if (isOutsideRth(localMinOfDay(timestamps[i], gmtOffset))) {
+          extPrice = close / penceFactor;
+          break;
+        }
       }
     }
 

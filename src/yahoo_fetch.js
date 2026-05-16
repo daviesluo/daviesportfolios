@@ -41,7 +41,16 @@ async function fetchOneYahooChart(symbol) {
       if (lastPrice == null) continue;
       let prevClose = meta.regularMarketPreviousClose ?? meta.previousClose ?? meta.chartPreviousClose ?? lastPrice;
       // Extended hours price: pre-market or after-hours (null if not available).
-      let extPrice  = meta.preMarketPrice ?? meta.postMarketPrice ?? null;
+      // For non-US tickers (any dotted-suffix symbol like `.L`, `.HK`, `.SS`,
+      // `.DE`, etc.) Yahoo's `preMarketPrice` / `postMarketPrice` reflect the
+      // local exchange's live intraday quote rather than a US-style ext-hours
+      // session — for example a .L ticker during US pre-market still has LSE
+      // open, so `preMarketPrice` is the live LSE price and the ext-hours pct
+      // shows real LSE movement when the user expects 0 (those exchanges
+      // don't have an after-hours / pre-market session). Suppress.
+      let extPrice  = symbol.includes('.')
+        ? null
+        : (meta.preMarketPrice ?? meta.postMarketPrice ?? null);
       // Yahoo returns London-listed prices in pence (currency "GBp"). Normalize
       // to GBP (divide by 100) so downstream math never has to special-case pence.
       let currency = meta.currency || null;
