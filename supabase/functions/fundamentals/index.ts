@@ -130,6 +130,12 @@ export async function fetchStockFundamentals(
       ps3yAvg,
       peg: peg ?? undefined,
       sharesOutstanding: yahoo.sharesOutstanding > 0 ? yahoo.sharesOutstanding : undefined,
+      // Only populate when Yahoo published a usable date — keeps the
+      // payload compact for the (many) tickers without scheduled
+      // earnings (newly listed, ETFs, indices) and lets the client
+      // filter with a simple `if (f.earningsDate)`.
+      earningsDate: yahoo.earningsDateSec > 0 ? yahoo.earningsDateSec : undefined,
+      earningsTime: yahoo.earningsTime ?? undefined,
     };
   }
   return finn;

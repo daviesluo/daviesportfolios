@@ -18,7 +18,7 @@ import { collectPassword, decodeAppToken, getAppToken, authenticate } from './au
 import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL } from './portfolio_remote.js';
 import { prefetchAllChartData } from './prefetch.js';
 import { hydrateAllChartStores } from './chart_store.js';
-import { Header, Sidebar, MarketConditions, PerfPanel, SidebarFoot } from './header_sidebar.jsx';
+import { Header, Sidebar, MarketConditions, PerfPanel, SidebarFoot, UpcomingEarnings } from './header_sidebar.jsx';
 import { useIsDesktop } from './ops_error_badge.jsx';
 import { Pitch } from './pitch.jsx';
 import { Heatmap } from './heatmap.jsx';
@@ -758,6 +758,7 @@ function Board({ isReadOnly }) {
               onCardClick={setViewingTicker}
             />
           )}
+          {isDesktop && <UpcomingEarnings portfolio={portfolio} />}
         </div>
         {viewMode === 'heatmap' ? (
           <Heatmap
@@ -810,6 +811,7 @@ function Board({ isReadOnly }) {
             onCardClick={setViewingTicker}
           />
         )}
+        {!isDesktop && <UpcomingEarnings portfolio={portfolio} className="earnings-panel-mobile" />}
         <SidebarFoot source={source} />
       </main>
 

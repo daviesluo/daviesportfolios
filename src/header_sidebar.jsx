@@ -16,6 +16,7 @@ import {
   londonTimeParts,
   usMarketPhase,
   ukTzAbbr,
+  fetchFundamentals,
 } from './utils.js';
 import { isIndex } from './ticker_class.js';
 import { PerfPanel } from './perf_chart.jsx';
@@ -538,4 +539,110 @@ function MarketConditions({ marketData, extendedHours, phase, className = '', on
   );
 }
 
-export { Header, Sidebar, SidebarFoot, StatRow, MarketConditions, PerfPanel };
+// UPCOMING EARNINGS panel — shows the next 3 future earnings dates
+// across the user's holdings. On mount + when the holding list
+// changes, fetches /functions/v1/fundamentals which now includes
+// `earningsDate` (Unix seconds) and `earningsTime` ("before market
+// open" / "after market close" / etc) from Yahoo's calendarEvents
+// module. Cached server-side for 2 h per the stock_fundamentals_cache
+// so the call is cheap.
+//
+// Render slot:
+//   - Desktop: in the left column under MarketConditions, same width
+//     as PerfPanel (PERFORMANCE VS S&P 500).
+//   - Mobile: as a sibling after the mobile MarketConditions, same
+//     width as TOP MOVERS (the .panel default in the sidebar grid).
+// Two render sites in app.jsx, one matchMedia-gated to each.
+function UpcomingEarnings({ portfolio, className = '' }) {
+  /** @type {[Record<string, any>, Function]} */
+  const [byTicker, setByTicker] = React.useState({});
+  // Bucket the portfolio tickers into a stable join-string for the
+  // deps array, so reordering / mutation doesn't trigger a refetch.
+  const tickerJoin = portfolio?.holdings
+    ? Object.keys(portfolio.holdings).sort().join(',')
+    : '';
+  React.useEffect(() => {
+    if (!tickerJoin) return undefined;
+    const tickers = tickerJoin.split(',').filter(Boolean);
+    if (tickers.length === 0) return undefined;
+    let cancelled = false;
+    fetchFundamentals(tickers).then((data) => {
+      if (!cancelled && data && typeof data === 'object') setByTicker(data);
+    }).catch(() => { /* best effort — panel just stays empty */ });
+    return () => { cancelled = true; };
+  }, [tickerJoin]);
+
+  const upcoming = React.useMemo(() => {
+    const nowSec = Math.floor(Date.now() / 1000);
+    /** @type {{ticker: string, ts: number, time: string | null}[]} */
+    const rows = [];
+    for (const [ticker, f] of Object.entries(byTicker || {})) {
+      const ts = Number(/** @type {any} */ (f)?.earningsDate);
+      if (!isFinite(ts) || ts <= nowSec) continue;
+      rows.push({
+        ticker,
+        ts,
+        time: /** @type {any} */ (f)?.earningsTime || null,
+      });
+    }
+    rows.sort((a, b) => a.ts - b.ts);
+    return rows.slice(0, 3);
+  }, [byTicker]);
+
+  return (
+    <section className={`panel earnings-panel ${className}`}>
+      <h3 className="panel-title">UPCOMING EARNINGS</h3>
+      <div className="earnings-list">
+        {upcoming.length === 0 ? (
+          <div className="earnings-empty mono dim">No scheduled earnings.</div>
+        ) : upcoming.map(row => (
+          <div key={row.ticker} className="earnings-row">
+            <span className="earnings-ticker mono">{row.ticker}</span>
+            <span className="earnings-date mono">{fmtEarningsDate(row.ts)}</span>
+            <span className="earnings-time mono dim">{fmtEarningsTime(row.ts, row.time)}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// MM/DD using Europe/London tz — matches the scoreboard clock so the
+// "date" the user sees on the panel agrees with the time chip above.
+function fmtEarningsDate(unixSec) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/London',
+    month: '2-digit', day: '2-digit',
+  }).formatToParts(new Date(unixSec * 1000));
+  let mo = '', dd = '';
+  for (const p of parts) {
+    if (p.type === 'month') mo = p.value;
+    if (p.type === 'day') dd = p.value;
+  }
+  return `${mo}/${dd}`;
+}
+
+// Prefer Yahoo's labelled time ("before market open" → "BMO") when
+// available — more meaningful than the raw timestamp for US-listed
+// companies whose earnings calls run BMO or AMC. Falls back to
+// London-tz HH:MM (same tz as the scoreboard clock) when Yahoo's
+// time-name field is empty / "time as supplied".
+function fmtEarningsTime(unixSec, timeName) {
+  if (typeof timeName === 'string' && timeName.length > 0) {
+    const lower = timeName.toLowerCase();
+    if (lower.includes('before')) return 'BMO';
+    if (lower.includes('after'))  return 'AMC';
+  }
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/London',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(new Date(unixSec * 1000));
+  let hh = '00', mm = '00';
+  for (const p of parts) {
+    if (p.type === 'hour') hh = p.value;
+    if (p.type === 'minute') mm = p.value;
+  }
+  return `${hh}:${mm}`;
+}
+
+export { Header, Sidebar, SidebarFoot, StatRow, MarketConditions, PerfPanel, UpcomingEarnings };

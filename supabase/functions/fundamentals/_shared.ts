@@ -72,6 +72,19 @@ export type Fundamentals = {
   // price for a price-synced market cap in the modal header.
   // Optional — absent when Yahoo doesn't publish a market cap.
   sharesOutstanding?: number;
+  // Next earnings date as Unix seconds (start of the estimate range
+  // when Yahoo gives a window of dates). Drives the "UPCOMING EARNINGS"
+  // panel in the sidebar / mobile strip. Absent when Yahoo has no
+  // upcoming earnings on file — newly-listed names, indices, ETFs,
+  // crypto pairs, etc.
+  earningsDate?: number;
+  // BMO ("before market open") / AMC ("after market close") /
+  // TAS ("time as supplied") timestamp hint, when Yahoo provides
+  // earningsCallTimeName. Used to render a friendlier time column
+  // than a raw timestamp on the earnings panel — for a 09:30 ET
+  // earningsDate the "BMO" label is more meaningful to a US trader
+  // than the UTC-converted scoreboard time.
+  earningsTime?: string;
 };
 
 export type AvResult =
@@ -93,6 +106,13 @@ export type YahooQuoteSummary = {
   // fetchYahooQuoteSummary. 0 when Yahoo didn't publish a market cap.
   sharesOutstanding: number;
   currency: string | null;
+  // Next earnings date, Unix seconds. From calendarEvents.earnings.
+  // earningsDate[0]?.raw. 0 when Yahoo has no scheduled date (very
+  // newly listed; ETF; indices use this module too but never have
+  // earnings). Returned alongside the time hint so the client can
+  // decide whether to render "BMO" / "AMC" or a HH:MM string.
+  earningsDateSec: number;
+  earningsTime: string | null;
 };
 
 export const INDEX_ETF_PROXY: Record<string, string> = {

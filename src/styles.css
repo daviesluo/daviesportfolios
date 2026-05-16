@@ -723,6 +723,23 @@ body {
 .mover-row { display: flex; justify-content: space-between; font-size: 11px; padding: 3px 0; }
 .mover-ticker { letter-spacing: 0.02em; }
 
+/* UPCOMING EARNINGS panel — three rows of ticker / date / time,
+   matches the .panel / .mover-row aesthetic. Date column is centered
+   so the MM/DD reads as a compact block between ticker and time. */
+.earnings-list { display: flex; flex-direction: column; gap: 4px; }
+.earnings-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(60px, auto);
+  align-items: baseline;
+  gap: 10px;
+  font-size: 11px;
+  padding: 3px 0;
+}
+.earnings-ticker { letter-spacing: 0.02em; }
+.earnings-date   { text-align: right; color: var(--chalk, #e8e8e8); }
+.earnings-time   { text-align: right; font-size: 10px; }
+.earnings-empty  { font-size: 11px; padding: 4px 0; }
+
 .sidebar-foot {
   display: flex; flex-direction: column; gap: 4px;
   padding: 8px 4px; font-size: 10px; color: var(--chalk-dim);
@@ -1109,10 +1126,21 @@ body {
   .panel-title { font-size: 9px; margin-bottom: 0; }
   .mc-hide-mobile { display: none !important; }
 
+  /* UPCOMING EARNINGS slots between MarketConditions (order:3) and
+     the sidebar-foot. Same .panel chrome so the visual rhythm with
+     TOP MOVERS / FORMATION VALUE up in the sidebar carries through.
+     `width:100%` matches the mobile MC strip and the sidebar's
+     full-width-below-pitch layout. */
+  .earnings-panel-mobile {
+    order: 4;
+    width: 100%;
+    min-width: 0;
+  }
+
   /* --- Sidebar notes: hide inside sidebar, show as last item --- */
   .sidebar-foot-desktop { display: none; }
   .sidebar-foot-mobile {
-    order: 4;
+    order: 5;
     padding: 6px 4px;
     font-size: 10px;
     color: var(--chalk-dim);
