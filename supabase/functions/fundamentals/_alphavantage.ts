@@ -9,6 +9,8 @@ import {
   INDEX_ETF_PROXY,
   INDEX_PE_3Y_AVG,
   INDEX_PE_FALLBACK,
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY,
   sleep,
   type AvResult,
   type Fundamentals,
@@ -21,8 +23,60 @@ import { readCachedPe, writeCachedPe, CACHE_TTL_MS } from "./_caches.ts";
 // counted as request time on AV's side.
 const AV_INTER_REQUEST_MS = 1_200;
 
+// Daily quota cap. AV free tier = 25/day; cap our claim at 20 so
+// there's a 5-call buffer for human-triggered tests / one-off
+// probes outside the Edge Function. Counter lives in `av_quota`
+// per migration 0012; the `try_claim_av_call` RPC atomically
+// increments and returns whether we're under the cap.
+const AV_DAILY_CAP = 20;
+
+async function tryClaimAvCall(): Promise<boolean> {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return true; // dev / env-missing → don't block
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/try_claim_av_call`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ max_calls: AV_DAILY_CAP }),
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!res.ok) {
+      // 404 → migration 0012 not applied; fall open (don't block)
+      // and log the missing-migration symptom for the maintainer.
+      const snippet = (await res.text().catch(() => "")).slice(0, 200);
+      if (snippet.includes("42883") || snippet.includes("42P01")) {
+        console.error(
+          `AV quota RPC ${res.status} — re-apply migration 0012 ` +
+          `(av_quota table + try_claim_av_call RPC). Falling open. Raw: ${snippet}`,
+        );
+      } else {
+        console.error(`AV quota RPC ${res.status}: ${snippet}`);
+      }
+      return true;
+    }
+    return (await res.json()) === true;
+  } catch (e) {
+    console.error("AV quota RPC error:", e instanceof Error ? e.message : e);
+    return true; // fail open
+  }
+}
+
 export async function fetchAlphaVantageEtfPe(etfSymbol: string): Promise<AvResult> {
   if (!ALPHAVANTAGE_API_KEY) return { ok: false, rateLimited: false };
+  // Circuit breaker: refuse to fire the live AV call once we've
+  // burned through the daily budget. Behaves like a rate-limited
+  // response so `resolveIndexPe` falls through to stale cache or
+  // hardcoded fallback. Without this guard a cache-bypass scenario
+  // (RLS regression, env-typo) would drain the 25 / day in an hour
+  // and leave 23 h of users on the static fallback.
+  const allowed = await tryClaimAvCall();
+  if (!allowed) {
+    console.error(`AV daily cap (${AV_DAILY_CAP}) reached — refusing live call for ${etfSymbol}`);
+    return { ok: false, rateLimited: true };
+  }
   const url = `https://www.alphavantage.co/query?function=OVERVIEW` +
     `&symbol=${encodeURIComponent(etfSymbol)}` +
     `&apikey=${encodeURIComponent(ALPHAVANTAGE_API_KEY)}`;
