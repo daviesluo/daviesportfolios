@@ -259,7 +259,7 @@ async function claimRefresh(): Promise<boolean> {
 
 async function writeCacheRow(data: unknown): Promise<void> {
   try {
-    await fetch(`${SB_URL}/rest/v1/trading212_cache`, {
+    const res = await fetch(`${SB_URL}/rest/v1/trading212_cache`, {
       method: "POST",
       headers: {
         apikey: SERVICE_KEY,
@@ -270,6 +270,22 @@ async function writeCacheRow(data: unknown): Promise<void> {
       body: JSON.stringify({ id: 1, data, updated_at: new Date().toISOString() }),
       signal: AbortSignal.timeout(5_000),
     });
+    // Check the HTTP status too — previously only thrown errors (network /
+    // timeout) hit the catch; a 4xx/5xx PostgREST response was silently
+    // dropped. That's the scenario that walks into the T212 ban-storm: if
+    // RLS / migration / quota fails the row never lands, every subsequent
+    // visitor passes the staleness check, claims the refresh, and calls
+    // T212 again — burning through the 1-req-per-30s rate limit.
+    if (!res.ok) {
+      const snippet = (await res.text().catch(() => "")).slice(0, 200);
+      // Loud detection of the missing-migration smell we hit during the T212
+      // rollout — surfaces the specific Postgres error code in the function
+      // logs so the maintainer can see which migration to re-apply.
+      const hint = (snippet.includes("42P01") || snippet.includes("42883"))
+        ? " — re-apply migration 0007 (trading212_cache table) and/or 0008 (try_claim_t212_refresh RPC) via Supabase SQL Editor."
+        : "";
+      console.error(`T212 cache write ${res.status} ${res.statusText}: ${snippet}${hint}`);
+    }
   } catch (e) {
     // Cache write failures are non-fatal — next visitor will refetch.
     // Log so a chronic outage doesn't silently mean every refresh hits T212.
