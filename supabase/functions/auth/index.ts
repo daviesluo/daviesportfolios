@@ -162,59 +162,96 @@ async function clearAttempts(ip: string): Promise<void> {
   });
 }
 
+// Direct insert into public.ops_errors via the service-role key (RLS
+// denies anon; service key bypasses). Used by the top-level try/catch
+// wrap below so a runtime crash in this Edge Function becomes a row
+// the admin ⚠ badge surfaces, instead of a silent 500 the user only
+// notices when the page UX visibly breaks. 3 s timeout + swallowed
+// failure: observability must never make a real error worse.
+async function reportServerError(
+  kind: string,
+  opts: { message?: string; symbol?: string; context?: unknown } = {},
+): Promise<void> {
+  if (!SUPABASE_URL || !SERVICE_KEY) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/ops_errors`, {
+      method: "POST",
+      headers: { ...SB_HEADERS, "Prefer": "return=minimal" },
+      body: JSON.stringify({
+        kind,
+        symbol: opts.symbol ?? null,
+        message: opts.message ? opts.message.slice(0, 512) : null,
+        context: opts.context ?? null,
+        ip: "edge",
+      }),
+      signal: AbortSignal.timeout(3_000),
+    });
+  } catch (e) {
+    console.error("reportServerError failed:", String(e));
+  }
+}
+
 // Guarded so tests can import the helpers above without spinning up
 // the server. Supabase's runtime executes index.ts as the entry
 // module, so `import.meta.main` is true in production.
 if (import.meta.main) Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-  if (req.method !== "POST")    return json(405, { error: "method not allowed" });
+  try {
+    if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+    if (req.method !== "POST")    return json(405, { error: "method not allowed" });
 
-  if (!SECRET || !ADMIN_PWD || !RO_PWD) {
-    return json(500, { error: "auth not configured" });
+    if (!SECRET || !ADMIN_PWD || !RO_PWD) {
+      return json(500, { error: "auth not configured" });
+    }
+
+    const ip = clientIp(req);
+
+    // Fast-path lockout check — saves a round-trip to the RPC if the caller
+    // is already locked out. Stale reads are fine; bump_auth_attempt below
+    // is the authoritative writer.
+    const lockedUntil = await getLockout(ip);
+    if (lockedUntil && lockedUntil > Date.now()) {
+      return json(429, { error: "locked", lockoutUntil: lockedUntil });
+    }
+
+    let body: { password?: string };
+    try { body = await req.json(); } catch { return json(400, { error: "bad json" }); }
+    const pw = (body?.password ?? "").toString();
+
+    let role: "admin" | "ro" | null = null;
+    if (pw === ADMIN_PWD) role = "admin";
+    else if (pw === RO_PWD) role = "ro";
+
+    if (role) {
+      // Successful login — wipe any failed-attempt counter for this IP.
+      clearAttempts(ip).catch(() => {});
+      const token = await makeToken(role);
+      return json(200, { token, role });
+    }
+
+    // Wrong password → atomic increment via SQL function. The function
+    // handles the threshold check in a single statement so concurrent
+    // wrong-password requests can't race-read the same counter.
+    //
+    // Also pause ~500 ms before responding: with a 4-digit numeric
+    // password (10⁴ keyspace) and IP-rotation defeating the per-IP
+    // lockout, the throughput of a brute-force run is what slows the
+    // attacker. 500 ms × 10000 = ~83 min minimum offline-ish; a real
+    // user typing a wrong password notices nothing. Pin chosen at
+    // 500ms by `WRONG_PASSWORD_DELAY_MS` so the test suite can assert
+    // it stays on (regressions that drop the delay to 0 would silently
+    // restore the brute-force window).
+    await new Promise((r) => setTimeout(r, WRONG_PASSWORD_DELAY_MS));
+    const result = await bumpAttempt(ip, MAX_ATTEMPTS, LOCKOUT_MS);
+    if (result?.locked_out) {
+      return json(429, { error: "locked", lockoutUntil: result.lockout_until_out ?? Date.now() + LOCKOUT_MS });
+    }
+    const attempts = result?.attempts_out ?? 0;
+    return json(401, { error: "invalid", attempts, attemptsLeft: Math.max(0, MAX_ATTEMPTS - attempts) });
+  } catch (e) {
+    // Unhandled exception — turn it into an ops_errors row so it's
+    // visible in the admin badge, then return a generic 500.
+    const msg = e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e);
+    await reportServerError("auth.unhandled", { message: msg });
+    return json(500, { error: "internal" });
   }
-
-  const ip = clientIp(req);
-
-  // Fast-path lockout check — saves a round-trip to the RPC if the caller
-  // is already locked out. Stale reads are fine; bump_auth_attempt below
-  // is the authoritative writer.
-  const lockedUntil = await getLockout(ip);
-  if (lockedUntil && lockedUntil > Date.now()) {
-    return json(429, { error: "locked", lockoutUntil: lockedUntil });
-  }
-
-  let body: { password?: string };
-  try { body = await req.json(); } catch { return json(400, { error: "bad json" }); }
-  const pw = (body?.password ?? "").toString();
-
-  let role: "admin" | "ro" | null = null;
-  if (pw === ADMIN_PWD) role = "admin";
-  else if (pw === RO_PWD) role = "ro";
-
-  if (role) {
-    // Successful login — wipe any failed-attempt counter for this IP.
-    clearAttempts(ip).catch(() => {});
-    const token = await makeToken(role);
-    return json(200, { token, role });
-  }
-
-  // Wrong password → atomic increment via SQL function. The function
-  // handles the threshold check in a single statement so concurrent
-  // wrong-password requests can't race-read the same counter.
-  //
-  // Also pause ~500 ms before responding: with a 4-digit numeric
-  // password (10⁴ keyspace) and IP-rotation defeating the per-IP
-  // lockout, the throughput of a brute-force run is what slows the
-  // attacker. 500 ms × 10000 = ~83 min minimum offline-ish; a real
-  // user typing a wrong password notices nothing. Pin chosen at
-  // 500ms by `WRONG_PASSWORD_DELAY_MS` so the test suite can assert
-  // it stays on (regressions that drop the delay to 0 would silently
-  // restore the brute-force window).
-  await new Promise((r) => setTimeout(r, WRONG_PASSWORD_DELAY_MS));
-  const result = await bumpAttempt(ip, MAX_ATTEMPTS, LOCKOUT_MS);
-  if (result?.locked_out) {
-    return json(429, { error: "locked", lockoutUntil: result.lockout_until_out ?? Date.now() + LOCKOUT_MS });
-  }
-  const attempts = result?.attempts_out ?? 0;
-  return json(401, { error: "invalid", attempts, attemptsLeft: Math.max(0, MAX_ATTEMPTS - attempts) });
 });

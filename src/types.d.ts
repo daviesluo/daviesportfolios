@@ -3,6 +3,10 @@
 // shapes here mirror what's persisted in Supabase board_data and what flows
 // through computeMetrics, the YTD chart and the modals.
 
+// Globals + ambient module declarations are split into src/ambient.d.ts
+// — they need to live in a NON-module .d.ts (no `export`) to land as
+// true ambient, which this file isn't (it has `export type` below).
+
 export type Currency = 'USD' | 'GBP' | 'CNY' | 'HKD';
 
 /** A single purchase batch — shape persisted on Holding.lots. */

@@ -327,96 +327,140 @@ async function fetchT212Portfolio(): Promise<unknown> {
   return await res.json();
 }
 
+// Direct insert into public.ops_errors via the service-role key (RLS
+// denies anon). Used by the outer try/catch wrap so a runtime crash
+// here becomes a row the admin ⚠ badge surfaces instead of a silent
+// 500. Best-effort: never throws.
+async function reportServerError(
+  kind: string,
+  opts: { message?: string; symbol?: string; context?: unknown } = {},
+): Promise<void> {
+  if (!SB_URL || !SERVICE_KEY) return;
+  try {
+    await fetch(`${SB_URL}/rest/v1/ops_errors`, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        kind,
+        symbol: opts.symbol ?? null,
+        message: opts.message ? opts.message.slice(0, 512) : null,
+        context: opts.context ?? null,
+        ip: "edge",
+      }),
+      signal: AbortSignal.timeout(3_000),
+    });
+  } catch (e) {
+    console.error("reportServerError failed:", String(e));
+  }
+}
+
 if (import.meta.main) {
   Deno.serve(async (req: Request) => {
-    if (req.method === "OPTIONS") {
-      return new Response(null, { headers: CORS });
-    }
-    if (req.method !== "GET") {
-      return new Response(JSON.stringify({ error: "method not allowed" }), {
-        status: 405, headers: { ...CORS, "content-type": "application/json" },
-      });
-    }
+    try {
+      if (req.method === "OPTIONS") {
+        return new Response(null, { headers: CORS });
+      }
+      if (req.method !== "GET") {
+        return new Response(JSON.stringify({ error: "method not allowed" }), {
+          status: 405, headers: { ...CORS, "content-type": "application/json" },
+        });
+      }
 
-    // Token gate. Either admin or ro is fine — read-only viewers
-    // should see the synced holdings the same as the rest of the
-    // portfolio. Anonymous callers get 401 so the holdings aren't
-    // world-readable through the function URL.
-    const verified = await verifyToken(req.headers.get("x-app-token") ?? "");
-    if (!verified) {
-      return new Response(JSON.stringify({ error: "invalid token" }), {
-        status: 401, headers: { ...CORS, "content-type": "application/json" },
-      });
-    }
+      // Token gate. Either admin or ro is fine — read-only viewers
+      // should see the synced holdings the same as the rest of the
+      // portfolio. Anonymous callers get 401 so the holdings aren't
+      // world-readable through the function URL.
+      const verified = await verifyToken(req.headers.get("x-app-token") ?? "");
+      if (!verified) {
+        return new Response(JSON.stringify({ error: "invalid token" }), {
+          status: 401, headers: { ...CORS, "content-type": "application/json" },
+        });
+      }
 
-    if (!T212_API_KEY) {
-      return new Response(JSON.stringify({
-        holdings: {},
-        updatedAt: new Date().toISOString(),
-        source: "disabled",
-      }), { headers: { ...CORS, "content-type": "application/json" } });
-    }
-
-    const now = Date.now();
-    const cached = await readCacheRow();
-    if (cached && cacheIsFresh(cached.updated_at, now, CACHE_TTL_MS)) {
-      return new Response(JSON.stringify({
-        holdings: cached.data,
-        updatedAt: cached.updated_at,
-        source: "cache",
-      }), { headers: { ...CORS, "content-type": "application/json" } });
-    }
-
-    // Stale (or cold). Atomically claim the right to refresh. Only the
-    // winner calls T212; losers re-read the cache (winner may have
-    // written between our SELECT and our claim attempt) and serve
-    // whatever's there. Worst case for a loser on cold cache: empty
-    // holdings for one tick until the winner's write lands.
-    const claimed = await claimRefresh();
-    if (!claimed) {
-      const refreshed = await readCacheRow();
-      const row = refreshed || cached;
-      if (row) {
+      if (!T212_API_KEY) {
         return new Response(JSON.stringify({
-          holdings: row.data,
-          updatedAt: row.updated_at,
-          source: "cache",
+          holdings: {},
+          updatedAt: new Date().toISOString(),
+          source: "disabled",
         }), { headers: { ...CORS, "content-type": "application/json" } });
       }
-      return new Response(JSON.stringify({
-        holdings: {},
-        updatedAt: new Date().toISOString(),
-        source: "stale",
-      }), { headers: { ...CORS, "content-type": "application/json" } });
-    }
 
-    try {
-      const raw = await fetchT212Portfolio();
-      const holdings = shapeT212Portfolio(raw);
-      await writeCacheRow(holdings);
-      return new Response(JSON.stringify({
-        holdings,
-        updatedAt: new Date().toISOString(),
-        source: "live",
-      }), { headers: { ...CORS, "content-type": "application/json" } });
-    } catch (e) {
-      // T212 errored after we claimed the refresh slot. Log to
-      // Supabase Functions logs for forensics, then serve stale
-      // cache (within 5 min grace) so a transient 429 / 500 doesn't
-      // blank the lots out client-side.
-      console.error("T212 upstream error:", e instanceof Error ? e.message : e);
-      if (cached && cacheIsFresh(cached.updated_at, now, STALE_OK_MS)) {
+      const now = Date.now();
+      const cached = await readCacheRow();
+      if (cached && cacheIsFresh(cached.updated_at, now, CACHE_TTL_MS)) {
         return new Response(JSON.stringify({
           holdings: cached.data,
           updatedAt: cached.updated_at,
+          source: "cache",
+        }), { headers: { ...CORS, "content-type": "application/json" } });
+      }
+
+      // Stale (or cold). Atomically claim the right to refresh. Only the
+      // winner calls T212; losers re-read the cache (winner may have
+      // written between our SELECT and our claim attempt) and serve
+      // whatever's there. Worst case for a loser on cold cache: empty
+      // holdings for one tick until the winner's write lands.
+      const claimed = await claimRefresh();
+      if (!claimed) {
+        const refreshed = await readCacheRow();
+        const row = refreshed || cached;
+        if (row) {
+          return new Response(JSON.stringify({
+            holdings: row.data,
+            updatedAt: row.updated_at,
+            source: "cache",
+          }), { headers: { ...CORS, "content-type": "application/json" } });
+        }
+        return new Response(JSON.stringify({
+          holdings: {},
+          updatedAt: new Date().toISOString(),
           source: "stale",
         }), { headers: { ...CORS, "content-type": "application/json" } });
       }
-      return new Response(JSON.stringify({
-        holdings: {},
-        updatedAt: new Date().toISOString(),
-        source: "stale",
-      }), { headers: { ...CORS, "content-type": "application/json" } });
+
+      try {
+        const raw = await fetchT212Portfolio();
+        const holdings = shapeT212Portfolio(raw);
+        await writeCacheRow(holdings);
+        return new Response(JSON.stringify({
+          holdings,
+          updatedAt: new Date().toISOString(),
+          source: "live",
+        }), { headers: { ...CORS, "content-type": "application/json" } });
+      } catch (e) {
+        // T212 errored after we claimed the refresh slot. Log to
+        // Supabase Functions logs for forensics, then serve stale
+        // cache (within 5 min grace) so a transient 429 / 500 doesn't
+        // blank the lots out client-side.
+        console.error("T212 upstream error:", e instanceof Error ? e.message : e);
+        if (cached && cacheIsFresh(cached.updated_at, now, STALE_OK_MS)) {
+          return new Response(JSON.stringify({
+            holdings: cached.data,
+            updatedAt: cached.updated_at,
+            source: "stale",
+          }), { headers: { ...CORS, "content-type": "application/json" } });
+        }
+        return new Response(JSON.stringify({
+          holdings: {},
+          updatedAt: new Date().toISOString(),
+          source: "stale",
+        }), { headers: { ...CORS, "content-type": "application/json" } });
+      }
+    } catch (e) {
+      // The outer net — anything not caught by the upstream-error
+      // branch above (token verification crash, cache RPC throw,
+      // etc.). Same shape as the silent-500 the runtime would return
+      // anyway, but now visible in ops_errors.
+      const msg = e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e);
+      await reportServerError("trading212.unhandled", { message: msg });
+      return new Response(JSON.stringify({ error: "internal" }), {
+        status: 500, headers: { ...CORS, "content-type": "application/json" },
+      });
     }
   });
 }

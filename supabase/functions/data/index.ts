@@ -90,46 +90,79 @@ const SB_HEADERS = {
   "Content-Type": "application/json",
 };
 
+// Direct insert into public.ops_errors via the service-role key (RLS
+// denies anon). Used by the top-level try/catch wrap so a runtime
+// crash here becomes a row the admin ⚠ badge surfaces instead of a
+// silent 500. Best-effort: never throws.
+async function reportServerError(
+  kind: string,
+  opts: { message?: string; symbol?: string; context?: unknown } = {},
+): Promise<void> {
+  if (!SUPABASE_URL || !SERVICE_KEY) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/ops_errors`, {
+      method: "POST",
+      headers: { ...SB_HEADERS, "Prefer": "return=minimal" },
+      body: JSON.stringify({
+        kind,
+        symbol: opts.symbol ?? null,
+        message: opts.message ? opts.message.slice(0, 512) : null,
+        context: opts.context ?? null,
+        ip: "edge",
+      }),
+      signal: AbortSignal.timeout(3_000),
+    });
+  } catch (e) {
+    console.error("reportServerError failed:", String(e));
+  }
+}
+
 // Guarded so tests can import the helpers above without spinning up
 // the server. Supabase's runtime executes index.ts as the entry
 // module, so `import.meta.main` is true in production.
 if (import.meta.main) Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  try {
+    if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
-  const url = new URL(req.url);
-  const action = url.searchParams.get("action") ?? "";
+    const url = new URL(req.url);
+    const action = url.searchParams.get("action") ?? "";
 
-  const token = req.headers.get("x-app-token") ?? "";
-  const verified = await verifyToken(token);
-  if (!verified) return json(401, { error: "invalid token" });
+    const token = req.headers.get("x-app-token") ?? "";
+    const verified = await verifyToken(token);
+    if (!verified) return json(401, { error: "invalid token" });
 
-  if (action === "load" && req.method === "GET") {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/board_data?id=eq.1&select=data`,
-      { headers: SB_HEADERS, signal: AbortSignal.timeout(5_000) },
-    );
-    if (!res.ok) return json(res.status, { error: "load failed" });
-    const rows = await res.json();
-    const data = Array.isArray(rows) && rows.length > 0 ? rows[0].data : null;
-    return json(200, { data });
+    if (action === "load" && req.method === "GET") {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/board_data?id=eq.1&select=data`,
+        { headers: SB_HEADERS, signal: AbortSignal.timeout(5_000) },
+      );
+      if (!res.ok) return json(res.status, { error: "load failed" });
+      const rows = await res.json();
+      const data = Array.isArray(rows) && rows.length > 0 ? rows[0].data : null;
+      return json(200, { data });
+    }
+
+    if (action === "save" && req.method === "POST") {
+      if (verified.role !== "admin") return json(403, { error: "read-only" });
+      let body: unknown;
+      try { body = await req.json(); } catch { return json(400, { error: "bad json" }); }
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/board_data`,
+        {
+          method: "POST",
+          headers: { ...SB_HEADERS, "Prefer": "resolution=merge-duplicates,return=minimal" },
+          body: JSON.stringify({ id: 1, data: body }),
+          signal: AbortSignal.timeout(5_000),
+        },
+      );
+      if (!res.ok) return json(res.status, { error: "save failed" });
+      return json(200, { ok: true });
+    }
+
+    return json(400, { error: "unknown action" });
+  } catch (e) {
+    const msg = e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e);
+    await reportServerError("data.unhandled", { message: msg });
+    return json(500, { error: "internal" });
   }
-
-  if (action === "save" && req.method === "POST") {
-    if (verified.role !== "admin") return json(403, { error: "read-only" });
-    let body: unknown;
-    try { body = await req.json(); } catch { return json(400, { error: "bad json" }); }
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/board_data`,
-      {
-        method: "POST",
-        headers: { ...SB_HEADERS, "Prefer": "resolution=merge-duplicates,return=minimal" },
-        body: JSON.stringify({ id: 1, data: body }),
-        signal: AbortSignal.timeout(5_000),
-      },
-    );
-    if (!res.ok) return json(res.status, { error: "save failed" });
-    return json(200, { ok: true });
-  }
-
-  return json(400, { error: "unknown action" });
 });
