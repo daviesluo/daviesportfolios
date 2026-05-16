@@ -1,0 +1,16 @@
+# Editor-agnostic indent / EOL / charset pinning so a future
+# contributor's editor doesn't drift the style of every file they
+# touch. Matches the existing codebase: 2-space indent, LF line
+# endings, UTF-8, no trailing whitespace, final newline.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false

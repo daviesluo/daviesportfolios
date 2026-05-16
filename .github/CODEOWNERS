@@ -1,0 +1,6 @@
+# Sole-author repo — every path requires owner approval on PR.
+# Combined with branch protection on `main` this guarantees that
+# nothing (Codex bot, Dependabot, or any future contributor) can
+# merge without explicit signoff. Bots can still open PRs; the
+# review is the gate.
+* @daviesluo

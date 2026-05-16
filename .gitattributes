@@ -1,0 +1,14 @@
+# Default to LF line endings + auto-detect text vs binary so a
+# future contributor pushing from a Windows checkout doesn't flip
+# every file's line endings.
+* text=auto eol=lf
+
+# Mark the committed prod bundle as "generated" so GitHub's Linguist
+# excludes it from the repo's language breakdown (otherwise the
+# minified app-*.js / index-*.css count as JS / CSS and dominate
+# the bar). The .gitignore explanation in this repo notes why the
+# bundle is committed at all — short version: Cloudflare Pages
+# deploys without a build step, so the artefact rides along.
+assets/* linguist-generated=true
+sw.js linguist-generated=true
+workbox-*.js linguist-generated=true
