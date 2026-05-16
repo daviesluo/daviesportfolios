@@ -724,20 +724,23 @@ body {
 .mover-ticker { letter-spacing: 0.02em; }
 
 /* UPCOMING EARNINGS panel — three rows of ticker / date / time,
-   matches the .panel / .mover-row aesthetic. Date column is centered
-   so the MM/DD reads as a compact block between ticker and time. */
+   matches the .panel / .mover-row aesthetic. All three columns use
+   the same dim gray + 10px size as the MC card titles (`.panel-title`)
+   so the rows read as quiet labels — the user explicitly wanted no
+   visual hierarchy between ticker, date, and time. */
 .earnings-list { display: flex; flex-direction: column; gap: 4px; }
 .earnings-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(60px, auto);
   align-items: baseline;
   gap: 10px;
-  font-size: 11px;
+  font-size: 10px;
+  color: var(--chalk-dim);
   padding: 3px 0;
 }
 .earnings-ticker { letter-spacing: 0.02em; }
-.earnings-date   { text-align: right; color: var(--chalk, #e8e8e8); }
-.earnings-time   { text-align: right; font-size: 10px; }
+.earnings-date   { text-align: right; }
+.earnings-time   { text-align: right; }
 .earnings-empty  { font-size: 11px; padding: 4px 0; }
 
 .sidebar-foot {
