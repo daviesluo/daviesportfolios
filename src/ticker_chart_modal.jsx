@@ -1152,9 +1152,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             <span className="mono" style={{ color: pcC(pctNow) }}>{fmP(pctNow)}</span>
             {/* In 1D the chart's % is anchored at the previous regular
                 close (vertical CLOSE line) so it matches the scoreboard
-                / heatmap's DAY CHANGE. Make the basis explicit so the
-                user can see what the % is relative to. */}
-            {rangeKey === '1D' && (useExt || phase === 'regular') && (
+                / heatmap's DAY CHANGE. Make the basis explicit whether
+                or not extended hours is on — the anchor is the same
+                either way, so the label being conditional made the
+                ext-OFF case (most common during the trading day) look
+                like it had a different reference point. */}
+            {rangeKey === '1D' && (
               <span className="mono dim" style={{ fontSize: 10 }}>(since previous close)</span>
             )}
             {rangeKey === 'PE' && (
