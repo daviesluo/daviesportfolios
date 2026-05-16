@@ -9,7 +9,7 @@ import {
 } from './formatters.js';
 import { POSITION_COORDS } from './utils.js';
 
-function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, dragging, setDragging, onDrop, onOpenPosition, onAddToPosition, onUpdatePosition, isRefreshing, recentlyUpdated, hideValues }) {
+function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpenPosition, onAddToPosition, onUpdatePosition, isRefreshing, recentlyUpdated, hideValues }) {
   const coords = POSITION_COORDS;
 
   return (
@@ -34,9 +34,6 @@ function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTi
               isReadOnly={isReadOnly}
               onOpen={() => onOpenPosition(k)}
               onAdd={() => onAddToPosition(k)}
-              onDragStart={(ticker) => setDragging({ ticker, fromPos: k })}
-              onDrop={(e) => onDrop(e, k)}
-              isDropTarget={dragging && dragging.fromPos !== k}
               onUpdatePosition={(patch) => onUpdatePosition(k, patch)}
               isRefreshing={isRefreshing}
               recentlyUpdated={recentlyUpdated}
@@ -110,7 +107,7 @@ function PitchLines() {
   );
 }
 
-function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpen, onAdd, onDragStart, onDrop, isDropTarget, onUpdatePosition, isRefreshing, recentlyUpdated, hideValues }) {
+function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpen, onAdd, onUpdatePosition, isRefreshing, recentlyUpdated, hideValues }) {
   const hasPlayers = position.players.length > 0;
   const pctClass = position.dayPct > 0 ? "gain" : position.dayPct < 0 ? "loss" : "flat";
 
@@ -119,15 +116,7 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
 
   const flashesInPos = position.players.some(p => flashTickers[p.ticker]);
 
-  const [dragOver, setDragOver] = React.useState(false);
   const [editingName, setEditingName] = React.useState(false);
-
-  const onDragOverChip = (e) => {
-    if (isReadOnly) return;
-    if (isDropTarget) { e.preventDefault(); setDragOver(true); }
-  };
-  const onDragLeaveChip = () => setDragOver(false);
-  const onDropChip = (e) => { setDragOver(false); onDrop(e); };
 
   const commitName = (v) => {
     onUpdatePosition && onUpdatePosition({ subtitle: v.trim() });
@@ -139,12 +128,9 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
 
   return (
     <div
-      className={`pos-chip role-${position.role.toLowerCase()} ${!hasPlayers ? "empty" : ""} ${hasHot ? "hot" : ""} ${flashesInPos ? "flash" : ""} ${dragOver ? "drag-over" : ""}`}
+      className={`pos-chip role-${position.role.toLowerCase()} ${!hasPlayers ? "empty" : ""} ${hasHot ? "hot" : ""} ${flashesInPos ? "flash" : ""}`}
       style={{ left: coord.x + "%", top: coord.y + "%" }}
       onClick={(e) => { if (editingName) return; hasPlayers ? onOpen() : onAdd(); }}
-      onDragOver={onDragOverChip}
-      onDragLeave={onDragLeaveChip}
-      onDrop={onDropChip}
       role="button"
       tabIndex={0}
     >

@@ -418,11 +418,6 @@ body {
   0% { box-shadow: 0 0 0 2px rgba(255,255,255,0.5); }
   100% { box-shadow: 0 4px 18px rgba(0,0,0,0.4); }
 }
-.pos-chip.drag-over {
-  border-color: var(--gold);
-  background: oklch(0.82 0.14 85 / 0.12);
-}
-
 .chip-inner { display: flex; flex-direction: column; gap: 1px; }
 .chip-label { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
 .chip-pos-code {
