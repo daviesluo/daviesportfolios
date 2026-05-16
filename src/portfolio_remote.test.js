@@ -5,8 +5,20 @@
 // multi-tab silent-overwrite bug from the session that added this
 // helper. Each `it` corresponds to one failure mode.
 
-import { describe, it, expect } from 'vitest';
-import { portfolioUserFingerprint } from './portfolio_remote.js';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {
+  portfolioUserFingerprint,
+  loadPortfolioRemote,
+  savePortfolioRemote,
+  _peekLastKnownVersion,
+  _resetLastKnownVersion,
+} from './portfolio_remote.js';
+
+// Both ops_error.js and auth.js read browser-only globals at module
+// init; mock them at the module level so the version-tracking tests
+// below don't have to spin up a fake window.
+vi.mock('./ops_error.js', () => ({ reportError: vi.fn() }));
+vi.mock('./auth.js', () => ({ getAppToken: () => 'fake-token' }));
 
 const baseHolding = (over = {}) => ({
   shares: 10,
@@ -159,5 +171,101 @@ describe('portfolioUserFingerprint', () => {
     const b = basePortfolio();
     b.positions.ST = { ...b.positions.ST, tickers: ['AAPL', 'NVDA'] }; // a is ['NVDA','AAPL']
     expect(portfolioUserFingerprint(a)).toBe(portfolioUserFingerprint(b));
+  });
+});
+
+// Pin tests for the optimistic-concurrency wiring added in PR #N
+// (migration 0013 + If-Match header). Two failure modes we want
+// blocked: (a) a successful load not caching the server version, so
+// the next save can't send If-Match and silently degrades to
+// last-write-wins; (b) a 412 response not flipping into the conflict
+// branch, so the caller's "ok ? clearDraft : leaveDraft" gate would
+// either spam-retry or never alert the user.
+describe('optimistic concurrency (load → save → conflict)', () => {
+  beforeEach(() => {
+    _resetLastKnownVersion();
+    vi.restoreAllMocks();
+  });
+
+  it('loadPortfolioRemote caches the server version for the next save', async () => {
+    const portfolio = { positions: { GK: { role: 'GK', tickers: ['CASH'] } }, holdings: { CASH: { isCash: true, shares: 0, cost: 0 }, NVDA: { shares: 1, cost: 100 } } };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ data: portfolio, version: 7 }),
+    }));
+    await loadPortfolioRemote();
+    expect(_peekLastKnownVersion()).toBe(7);
+  });
+
+  it('savePortfolioRemote sends If-Match using the cached version', async () => {
+    // Seed the version cache via a fake load.
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ data: { holdings: { CASH: {}, X: {} } }, version: 12 }),
+    }));
+    await loadPortfolioRemote();
+    expect(_peekLastKnownVersion()).toBe(12);
+
+    // Now save and inspect the headers fetch was called with.
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true, version: 13 }),
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+    const result = await savePortfolioRemote({ holdings: { X: { shares: 1, cost: 1 } } });
+    expect(result).toEqual({ ok: true, version: 13 });
+    expect(_peekLastKnownVersion()).toBe(13);
+    const [, init] = fetchSpy.mock.calls[0];
+    expect(init.headers['If-Match']).toBe('12');
+  });
+
+  it('savePortfolioRemote returns { ok: false, conflict: true } on 412 and re-caches the server version', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ data: { holdings: { CASH: {}, X: {} } }, version: 4 }),
+    }));
+    await loadPortfolioRemote();
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 412,
+      json: async () => ({ error: 'conflict', currentVersion: 9 }),
+    }));
+    const result = await savePortfolioRemote({ holdings: { X: { shares: 1, cost: 1 } } });
+    expect(result).toEqual({ ok: false, conflict: true });
+    // Crucial: the server-supplied currentVersion is now what's
+    // cached, so a subsequent retry against the same row goes
+    // through cleanly instead of looping on the stale local version.
+    expect(_peekLastKnownVersion()).toBe(9);
+  });
+
+  it('savePortfolioRemote skips If-Match when no version has been observed yet', async () => {
+    // Cold mount, no prior load. We still want the legacy
+    // unconditional-write path to work so a fresh tab doesn't
+    // require a load round-trip before its first save.
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true, version: 1 }),
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+    const result = await savePortfolioRemote({ holdings: { X: { shares: 1, cost: 1 } } });
+    expect(result.ok).toBe(true);
+    const [, init] = fetchSpy.mock.calls[0];
+    expect('If-Match' in init.headers).toBe(false);
+  });
+
+  it('savePortfolioRemote returns { ok: false } (no conflict) on non-412 failures so the caller can retry / log', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: 'boom' }),
+    }));
+    const result = await savePortfolioRemote({ holdings: { X: { shares: 1, cost: 1 } } });
+    expect(result).toEqual({ ok: false });
   });
 });

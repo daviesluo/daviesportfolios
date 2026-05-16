@@ -190,6 +190,14 @@ function Board({ isReadOnly }) {
   const [recentlyUpdated, setRecentlyUpdated] = useState(false);
   const [flashTickers, setFlashTickers] = useState({});
   const [extendedHours, setExtendedHours] = useState(false);
+  // Conflict banner: set when a save round-trip returned 412 — another
+  // tab / device wrote between our load and this save. We don't
+  // auto-overwrite; the user picks via the banner (Reload to discard
+  // the in-flight edits and adopt the latest server state, or Keep
+  // editing and let the next debounce retry — the save effect
+  // re-cached the server's current version on the 412 reply so a
+  // retry against the same row will go through).
+  const [saveConflict, setSaveConflict] = useState(false);
   // Mount only one MarketConditions tree (desktop OR mobile) instead
   // of both — the previous "render both, CSS-hide one" pattern paid
   // the full render cost for ten market cards on every refresh in
@@ -327,9 +335,19 @@ function Board({ isReadOnly }) {
     } catch { /* swallow — best-effort */ }
     const id = setTimeout(() => {
       lastSavedFingerprintRef.current = fp;
-      savePortfolioRemote(portfolio).then((ok) => {
-        if (ok) {
+      savePortfolioRemote(portfolio).then((result) => {
+        if (result && result.ok === true) {
           try { sessionStorage.removeItem(PENDING_SAVE_KEY); } catch { /* ignore */ }
+          return;
+        }
+        if (result && result.ok === false && result.conflict === true) {
+          // Another tab/device wrote between our last load and this
+          // save. Don't clear the pending-draft mirror — the user
+          // should resolve the conflict explicitly via the banner
+          // (Reload to discard local + see latest, or Keep editing
+          // to retry; the next save attempt with the freshly-cached
+          // version may go through cleanly).
+          setSaveConflict(true);
         }
       });
     }, 600);
@@ -757,6 +775,18 @@ function Board({ isReadOnly }) {
           </span>
           <button className="demo-banner-btn primary" onClick={onResetDemo}>Reset to empty</button>
           <button className="demo-banner-btn" onClick={onKeepDemo}>Keep these</button>
+        </div>
+      )}
+      {saveConflict && !isReadOnly && (
+        <div className="demo-banner">
+          <span className="demo-banner-msg mono">
+            CONFLICT — another tab or device saved newer changes. Reload to see them (your current in-tab edits will be discarded).
+          </span>
+          <button
+            className="demo-banner-btn primary"
+            onClick={() => { try { sessionStorage.removeItem(PENDING_SAVE_KEY); } catch { /* ignore */ } window.location.reload(); }}
+          >Reload</button>
+          <button className="demo-banner-btn" onClick={() => setSaveConflict(false)}>Keep editing</button>
         </div>
       )}
       <Header
