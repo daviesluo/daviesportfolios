@@ -288,4 +288,78 @@ describe('computeMetrics — degenerate inputs', () => {
     expect(m.dayPct).toBe(0);
     expect(m.unrlPct).toBe(0);
   });
+
+  // .L tickers (LSE) have no US-style ext-hours session. When the
+  // ext-hours toggle is on AND LSE itself is closed, the row must
+  // read 0 % — not the stale "today's LSE dayPct" the previous
+  // implementation surfaced. When LSE is open (e.g. during US
+  // pre-market), the toggle reverts to showing the live LSE
+  // intraday pct.
+  //
+  // metrics.js's `lseSuppress` reads the live wall clock, so these
+  // tests stash/restore `Date` to deterministically place the test
+  // inside an LSE-closed window (UTC 02:00 = UK 02:00 GMT / 03:00 BST,
+  // both safely before the 08:00 open) and an LSE-open window
+  // (UTC 12:00 = UK 12:00 / 13:00, both inside 08:00-16:30).
+  describe('LSE ticker + ext-hours toggle', () => {
+    const realDate = globalThis.Date;
+    function freezeAt(iso) {
+      class FrozenDate extends realDate {
+        constructor(arg) {
+          if (arg === undefined) { super(iso); return; }
+          super(arg);
+        }
+        static now() { return realDate.parse(iso); }
+      }
+      // @ts-expect-error overriding global Date in this scope
+      globalThis.Date = FrozenDate;
+    }
+    function unfreezeDate() { globalThis.Date = realDate; }
+
+    const holdings = {
+      'VUAG.L': {
+        shares: 10, lastPrice: 100, prevClose: 95, cost: 90,
+        currency: 'GBP', dayPct: 5.26, // 100 vs 95
+      },
+    };
+    const positions = { CB1: { role: 'DEF', tickers: ['VUAG.L'], label: 'CB1' } };
+    // GBP/USD = 1 keeps the test arithmetic clean; the LSE gate
+    // doesn't touch currency conversion.
+    const md = { 'GBPUSD=X': { lastPrice: 1 } };
+
+    it('ext OFF: shows the normal LSE dayPct regardless of LSE-clock', () => {
+      freezeAt('2026-01-15T02:00:00Z'); // UK 02:00 → LSE closed
+      try {
+        const m = computeMetrics(pf(holdings, positions), { extended: false, marketData: md });
+        // dayPct propagates from the holding; no suppression when toggle is off.
+        expect(m.positions.CB1.players[0].dayPct).toBeCloseTo(5.26, 4);
+      } finally { unfreezeDate(); }
+    });
+
+    it('ext ON, LSE closed (UK 02:00): dayPct suppressed to 0', () => {
+      freezeAt('2026-01-15T02:00:00Z'); // UK 02:00 → LSE closed
+      try {
+        const m = computeMetrics(pf(holdings, positions), { extended: true, marketData: md });
+        expect(m.positions.CB1.players[0].dayPct).toBe(0);
+        // dayChange also zeroed via baselinePrice = priceNative.
+        expect(m.positions.CB1.players[0].dayChange).toBe(0);
+      } finally { unfreezeDate(); }
+    });
+
+    it('ext ON, LSE open (UK 12:00): dayPct shows the live LSE intraday pct', () => {
+      freezeAt('2026-01-15T12:00:00Z'); // UK 12:00 → LSE open
+      try {
+        const m = computeMetrics(pf(holdings, positions), { extended: true, marketData: md });
+        expect(m.positions.CB1.players[0].dayPct).toBeCloseTo(5.26, 4);
+      } finally { unfreezeDate(); }
+    });
+
+    it('ext ON, LSE just-closed (UK 16:35): suppressed to 0', () => {
+      freezeAt('2026-01-15T16:35:00Z'); // UK 16:35 → 5 min past close
+      try {
+        const m = computeMetrics(pf(holdings, positions), { extended: true, marketData: md });
+        expect(m.positions.CB1.players[0].dayPct).toBe(0);
+      } finally { unfreezeDate(); }
+    });
+  });
 });
