@@ -1,32 +1,22 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-// `node:` prefix is the modern form (Node 18+); the alias works in
-// any Node we'd run vite under. Dropped here only because TS's
-// bundler-mode module resolution doesn't recognise the prefix
-// without @types/node, and we only need a slice of one API.
-// eslint-disable-next-line import/no-nodejs-modules
-import { execSync } from 'child_process';
 
-// Build-time CalVer + short git SHA → `YYYY.M.D-abcdef0`. Cloudflare
-// Pages sets CF_PAGES_COMMIT_SHA on every deploy; GitHub Actions sets
-// GITHUB_SHA. Local dev falls through to `git rev-parse HEAD`. The
-// result is inlined into the bundle via the `define` block below and
-// re-exported from src/version.js, so every ops_error report carries
-// the exact deploy identity. Without it, a "broken since when?" pass
-// has nothing to triangulate from but commit logs + CF deploy times.
+// Build-time CalVer with minute-precision timestamp → `YYYY.M.D.HHMM`.
+// Deliberately SHA-less: Cloudflare Pages serves the repo root as-is
+// (wrangler.jsonc `assets.directory = "."` — no build at deploy time),
+// so the build SHA we'd bake in would be the parent commit's SHA, not
+// the commit that actually ships the bundle (chicken-and-egg: writing
+// the bundle into git changes the SHA the bundle references). After
+// squash-merge the PR-commit SHA also disappears from main entirely.
+// A minute-precision UTC timestamp side-steps both: every rebuild
+// produces a unique stamp, and `ops_error.ver` → git log around that
+// UTC minute → commit is a 30-second triage path.
 function computeAppVersion() {
-  let sha = process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA || '';
-  if (!sha) {
-    try {
-      sha = execSync('git rev-parse HEAD', {
-        stdio: ['ignore', 'pipe', 'ignore'],
-      }).toString().trim();
-    } catch { sha = 'dev'; }
-  }
-  const shortSha = (sha || 'dev').slice(0, 7);
-  const now = new Date();
-  return `${now.getUTCFullYear()}.${now.getUTCMonth() + 1}.${now.getUTCDate()}-${shortSha}`;
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}.${d.getUTCMonth() + 1}.${d.getUTCDate()}.` +
+         `${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}`;
 }
 const APP_VERSION = computeAppVersion();
 
