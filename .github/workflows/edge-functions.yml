@@ -35,11 +35,29 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Read-only token by default. The deploy step's `environment:`
+# elevates secrets exposure on push-to-main only, scoped to the
+# `production` GitHub Environment that holds SUPABASE_ACCESS_TOKEN
+# + SUPABASE_PROJECT_REF.
+permissions:
+  contents: read
+
 jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
+    # Gate the whole job on the `production` GitHub Environment when
+    # this is a push-to-main run. Required-reviewers / wait-timer /
+    # secret rotation all live on the Environment in GitHub Settings.
+    # Set up: Settings → Environments → New environment "production",
+    # move SUPABASE_ACCESS_TOKEN + SUPABASE_PROJECT_REF from repo
+    # secrets into it. The job is unaffected for PR runs (the
+    # condition only matches push-to-main).
+    environment: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && 'production' || '' }}
     steps:
-      - uses: actions/checkout@v5
+      # Actions SHA-pinned (mutable tags can be silently re-pointed by
+      # a compromised maintainer to run arbitrary code against the
+      # SUPABASE_ACCESS_TOKEN). Dependabot bumps them on real releases.
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           # Full history so `git diff $before..$after` in the detect step
           # below can resolve the push base (the default shallow clone
@@ -53,7 +71,7 @@ jobs:
         # to match Supabase's Edge Runtime, which is still Deno-1
         # based — running tests on Deno 2 in CI but Deno 1 in
         # production could surface subtle stdlib drift.
-        uses: denoland/setup-deno@v2
+        uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2.0.4
         with:
           deno-version: v1.x
 
@@ -78,7 +96,7 @@ jobs:
 
       - name: Install Supabase CLI
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
         with:
           version: latest
 
