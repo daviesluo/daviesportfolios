@@ -1,0 +1,132 @@
+// Pins for the shared chart geometry helpers — same crosshair math
+// previously lived inline in both perf_chart.jsx and
+// ticker_chart_modal.jsx. Each fix to one had to be remembered in
+// the other; extracting + pinning here means a regression in either
+// chart now fails CI before deploy.
+
+import { describe, expect, it } from 'vitest';
+import { pointerToDataIndex, pointsToSvgPath } from './chart_geometry.js';
+
+// Fake an SVG element with just the surface the helper touches.
+function fakeSvg(rect) {
+  return { getBoundingClientRect: () => rect };
+}
+
+const GEOM_DEFAULT = { W: 100, H: 60, padL: 10, padR: 10, cW: 80 };
+
+describe('pointerToDataIndex', () => {
+  it('null svg → null', () => {
+    expect(pointerToDataIndex({ clientX: 50 }, null, GEOM_DEFAULT, 10)).toBe(null);
+  });
+
+  it('zero-length data → null', () => {
+    const svg = fakeSvg({ left: 0, width: 100, height: 60 });
+    expect(pointerToDataIndex({ clientX: 50 }, svg, GEOM_DEFAULT, 0)).toBe(null);
+  });
+
+  it('no clientX or touches → null (synthetic event guard)', () => {
+    const svg = fakeSvg({ left: 0, width: 100, height: 60 });
+    expect(pointerToDataIndex({}, svg, GEOM_DEFAULT, 10)).toBe(null);
+    expect(pointerToDataIndex(null, svg, GEOM_DEFAULT, 10)).toBe(null);
+  });
+
+  it('zero-width rect → null (chart not laid out yet)', () => {
+    const svg = fakeSvg({ left: 0, width: 0, height: 0 });
+    expect(pointerToDataIndex({ clientX: 50 }, svg, GEOM_DEFAULT, 10)).toBe(null);
+  });
+
+  it('exact viewBox aspect (no letterbox) — center cursor → middle index', () => {
+    // rect aspect = 100/60 = viewBox aspect, so contentW = rect.width, offX = 0.
+    const svg = fakeSvg({ left: 0, width: 100, height: 60 });
+    // 10 points → indices 0..9. Cursor at chart-space x=50 lands at
+    // frac = (50-10)/80 = 0.5, denom = 9, → round(4.5) = 5 (banker's rounding
+    // off; Math.round in V8 rounds half-away-from-zero so 4.5 → 5).
+    expect(pointerToDataIndex({ clientX: 50 }, svg, GEOM_DEFAULT, 10)).toBe(5);
+  });
+
+  it('cursor in left axis padding → pins to first point (index 0)', () => {
+    const svg = fakeSvg({ left: 0, width: 100, height: 60 });
+    // clientX=5 maps to sx=5; clamp to padL=10; frac=0; round(0)=0.
+    expect(pointerToDataIndex({ clientX: 5 }, svg, GEOM_DEFAULT, 10)).toBe(0);
+    // Also true exactly AT the padding edge.
+    expect(pointerToDataIndex({ clientX: 0 }, svg, GEOM_DEFAULT, 10)).toBe(0);
+  });
+
+  it('cursor in right axis padding → pins to last point', () => {
+    const svg = fakeSvg({ left: 0, width: 100, height: 60 });
+    // clientX past W-padR=90 → clamp to 90; frac=80/80=1; round(9)=9.
+    expect(pointerToDataIndex({ clientX: 95 }, svg, GEOM_DEFAULT, 10)).toBe(9);
+    expect(pointerToDataIndex({ clientX: 100 }, svg, GEOM_DEFAULT, 10)).toBe(9);
+  });
+
+  it('single-point series → always returns 0 (no division by zero)', () => {
+    const svg = fakeSvg({ left: 0, width: 100, height: 60 });
+    expect(pointerToDataIndex({ clientX: 50 }, svg, GEOM_DEFAULT, 1)).toBe(0);
+  });
+
+  it('horizontal letterbox — wide element, cursor needs offX correction', () => {
+    // viewBox 100/60 ≈ 1.667. Make element 200×60 → aspect 3.33 (wider).
+    // contentH = 60, contentW = 60 * 1.667 = 100. offX = (200-100)/2 = 50.
+    // Pointer at clientX=150 → sx = (150-0-50)/100 * 100 = 100 → clamps to 90 → last point.
+    const svg = fakeSvg({ left: 0, width: 200, height: 60 });
+    expect(pointerToDataIndex({ clientX: 150 }, svg, GEOM_DEFAULT, 10)).toBe(9);
+    // Pointer at clientX=100 (middle of element, which is also middle of content
+    // since the bars are symmetric) → sx = (100-50)/100 * 100 = 50 → mid index 5.
+    expect(pointerToDataIndex({ clientX: 100 }, svg, GEOM_DEFAULT, 10)).toBe(5);
+  });
+
+  it('rect.left offset (chart scrolled into view) — subtracted correctly', () => {
+    // Element starts at page-x = 200, width 100. Cursor clientX 250 → sx = 50.
+    const svg = fakeSvg({ left: 200, width: 100, height: 60 });
+    expect(pointerToDataIndex({ clientX: 250 }, svg, GEOM_DEFAULT, 10)).toBe(5);
+  });
+
+  it('touch event — reads from e.touches[0].clientX', () => {
+    const svg = fakeSvg({ left: 0, width: 100, height: 60 });
+    const touchEvent = { touches: [{ clientX: 50 }] };
+    expect(pointerToDataIndex(touchEvent, svg, GEOM_DEFAULT, 10)).toBe(5);
+  });
+
+  it('mouse coords win over touches when both present (mouse-first)', () => {
+    // React mouse events technically don't carry .touches but defensive paths
+    // sometimes set both — pin the precedence so a future refactor doesn't
+    // flip it silently.
+    const svg = fakeSvg({ left: 0, width: 100, height: 60 });
+    // touches takes precedence in the impl (touchEvent on mobile sometimes
+    // also carries a clientX from coalesced events).
+    const e = { clientX: 90, touches: [{ clientX: 10 }] };
+    expect(pointerToDataIndex(e, svg, GEOM_DEFAULT, 10)).toBe(0);
+  });
+});
+
+describe('pointsToSvgPath', () => {
+  it('empty / null input → empty path string', () => {
+    expect(pointsToSvgPath(null, () => 0, () => 0)).toBe('');
+    expect(pointsToSvgPath(undefined, () => 0, () => 0)).toBe('');
+    expect(pointsToSvgPath([], () => 0, () => 0)).toBe('');
+  });
+
+  it('basic shape — single M + L-joined coords, 1-decimal precision', () => {
+    const pts = [{ x: 10, y: 20 }, { x: 30, y: 40 }, { x: 50, y: 60 }];
+    const out = pointsToSvgPath(pts, (p) => p.x, (p) => p.y);
+    expect(out).toBe('M10.0,20.0L30.0,40.0L50.0,60.0');
+  });
+
+  it('drops non-finite coords (NaN / Infinity) instead of polluting the path', () => {
+    const pts = [{ x: 10, y: 20 }, { x: NaN, y: 40 }, { x: 50, y: 60 }];
+    const out = pointsToSvgPath(pts, (p) => p.x, (p) => p.y);
+    expect(out).toBe('M10.0,20.0L50.0,60.0');
+  });
+
+  it('all-non-finite input → empty path (caller can conditionally render)', () => {
+    const pts = [{ x: NaN, y: 1 }, { x: 2, y: Infinity }];
+    const out = pointsToSvgPath(pts, (p) => p.x, (p) => p.y);
+    expect(out).toBe('');
+  });
+
+  it('xFn / yFn get index as second arg — enables i-indexed projection', () => {
+    const pts = ['a', 'b', 'c'];
+    const out = pointsToSvgPath(pts, (_p, i) => i * 10, () => 0);
+    expect(out).toBe('M0.0,0.0L10.0,0.0L20.0,0.0');
+  });
+});
