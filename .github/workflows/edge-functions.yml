@@ -25,6 +25,16 @@ on:
       - 'supabase/functions/**'
       - '.github/workflows/edge-functions.yml'
 
+# Cancel any in-flight run for the same branch when a new push lands —
+# otherwise two rapid pushes both fire `supabase functions deploy` and
+# the later one might land BEFORE the earlier one finishes uploading,
+# leaving production on whichever upload finished last (not the latest
+# commit). With cancel-in-progress the older run dies before its deploy
+# step runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
@@ -47,13 +57,23 @@ jobs:
         with:
           deno-version: v1.x
 
+      - name: Deno typecheck (full TS pass over all Edge Functions)
+        # `deno test --no-check` (the next step) disables the TS pass
+        # globally so the runtime tests start faster. That meant a TS
+        # error in `_yahoo.ts` would only surface at production
+        # runtime — `deno check` here catches them at CI time.
+        # --quiet so the per-module type emit doesn't drown the log;
+        # we want a clean pass or a clean failure, nothing in between.
+        run: deno check --quiet supabase/functions/
+
       - name: Deno test (pure-helper pins for every Edge Function)
         # --allow-env is required because each function reads
         # Deno.env.get(...) at module-init time (the result is an
         # empty string when the secret isn't set, which is fine for
         # the pure helpers being tested).
-        # --no-check skips Deno's slow TypeScript pass on the std lib;
-        # the tests themselves still type-check.
+        # --no-check here is intentional after the dedicated typecheck
+        # step above — it makes the test pass faster without losing
+        # the TS-error-blocks-CI guarantee.
         run: deno test --allow-env --no-check supabase/functions/
 
       - name: Install Supabase CLI
