@@ -48,6 +48,38 @@ body {
 .dim { color: var(--chalk-dim); }
 
 /* ============= APP SHELL ============= */
+/* Force the dark theme to actually print instead of being stripped
+   to "black text on white paper" by the browser's default ink-saving
+   behaviour. Without these two declarations Cmd-P / "Save as PDF"
+   produces an unreadable page (light-on-dark CSS but the browser
+   drops the dark background → light text on white = invisible).
+   User explicitly wants the printed output to match the display,
+   not a separately-styled light variant. */
+@media print {
+  html, body, .app, * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* Hide the LATER / RELOAD service-worker banner so it doesn't waste
+     a print row on transient UI. The cache-control noise on the live
+     pill is also irrelevant on paper. Keep everything else as-is so
+     the printed page reads identically to the on-screen dashboard. */
+  .demo-banner,
+  .live-pill { display: none !important; }
+}
+
+/* iOS PWA screenshot color note (no CSS fix available):
+   Mobile screenshots on iOS sometimes look paler than the on-screen
+   dashboard. Cause is iOS rendering the live page in Display-P3
+   (wide gamut) but capturing screenshots through the sRGB color
+   space, which clips the wider P3 values. The OKLCh declarations
+   in this stylesheet sometimes resolve to P3 colors slightly outside
+   sRGB; the live render is what the user actually sees on the OLED
+   display, the screenshot is what gets clipped down. Mitigation
+   would mean converting every OKLCh value to a sRGB-equivalent hex,
+   which would also change the live look — explicitly NOT doing that
+   per the user's "don't change the display colors" guidance. */
+
 /* Demo-data banner — visible when loadPortfolioRemote fell back to
    the seeded INITIAL_PORTFOLIO. Sits above the Header so the user
    sees it before they touch edit mode (which would otherwise persist
