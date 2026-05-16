@@ -48,6 +48,39 @@ body {
 .dim { color: var(--chalk-dim); }
 
 /* ============= APP SHELL ============= */
+/* Demo-data banner — visible when loadPortfolioRemote fell back to
+   the seeded INITIAL_PORTFOLIO. Sits above the Header so the user
+   sees it before they touch edit mode (which would otherwise persist
+   the demo positions to their own row). Gold so it reads as a
+   heads-up, not red error. */
+.demo-banner {
+  background: oklch(0.82 0.14 85 / 0.14);
+  border-bottom: 1px solid oklch(0.82 0.14 85);
+  color: var(--chalk, #e8e8e8);
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+.demo-banner-msg { font-size: 12px; letter-spacing: 0.02em; }
+.demo-banner-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  padding: 5px 14px;
+  border-radius: 3px;
+  border: 1px solid oklch(0.82 0.14 85);
+  background: transparent;
+  color: oklch(0.82 0.14 85);
+  cursor: pointer;
+}
+.demo-banner-btn.primary {
+  background: oklch(0.82 0.14 85);
+  color: #1a1a1a;
+}
+
 .app {
   min-height: 100vh;
   display: flex;

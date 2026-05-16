@@ -280,6 +280,13 @@ function Board({ isReadOnly }) {
   useEffect(() => {
     if (!portfolio) return;
     if (isReadOnly) return;
+    // Don't persist the seeded demo portfolio over the user's Supabase
+    // row. The DemoBanner below gives them an explicit choice (Reset
+    // to empty / Keep these positions); both clear `_isDemo` so saves
+    // resume. Without this gate, opening the site once + entering
+    // edit mode (even just toggling without actual data changes) was
+    // enough to silently lock the user into Davies's 33-ticker book.
+    if (portfolio._isDemo) return;
     const fp = portfolioUserFingerprint(portfolio);
     if (lastSavedFingerprintRef.current === null) {
       lastSavedFingerprintRef.current = fp;
@@ -673,8 +680,49 @@ function Board({ isReadOnly }) {
     setPortfolio(p => ({ ...p, positions: { ...p.positions, [posKey]: { ...p.positions[posKey], ...patch } } }));
   });
 
+  // Demo-data banner — shown when loadPortfolioRemote fell back to the
+  // seeded INITIAL_PORTFOLIO (no row in Supabase yet, or the load
+  // failed). Two paths out:
+  //   Reset to empty: replace each position's tickers with [] (GK
+  //     keeps CASH), holdings → just CASH. Saves immediately.
+  //   Keep these: clears the _isDemo flag, save effect resumes; the
+  //     demo positions become the user's portfolio on the next edit.
+  // Both clear `_isDemo`, which unblocks the save effect.
+  const onResetDemo = () => {
+    if (!window.confirm("Reset to an empty board? The demo positions will be replaced with a blank pitch (just the Cash slot kept).")) return;
+    setPortfolio((p) => {
+      const positions = {};
+      for (const [k, pos] of Object.entries(p.positions)) {
+        positions[k] = { ...pos, tickers: k === 'GK' ? ['CASH'] : [] };
+      }
+      const next = {
+        positions,
+        holdings: {
+          CASH: { shares: 1, cost: 0, lastPrice: 0, prevClose: 0, dayPct: 0, isCash: true, currency: 'USD' },
+        },
+      };
+      return next; // _isDemo dropped
+    });
+  };
+  const onKeepDemo = () => {
+    setPortfolio((p) => {
+      const next = { ...p };
+      delete next._isDemo;
+      return next;
+    });
+  };
+
   return (
     <div className="app">
+      {portfolio?._isDemo && !isReadOnly && (
+        <div className="demo-banner">
+          <span className="demo-banner-msg mono">
+            DEMO DATA — these are seeded example positions, not your portfolio yet.
+          </span>
+          <button className="demo-banner-btn primary" onClick={onResetDemo}>Reset to empty</button>
+          <button className="demo-banner-btn" onClick={onKeepDemo}>Keep these</button>
+        </div>
+      )}
       <Header
         metrics={metrics}
         marketDataReady={marketDataReady}
