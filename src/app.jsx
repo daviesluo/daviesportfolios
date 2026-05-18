@@ -830,7 +830,17 @@ function Board({ isReadOnly }) {
           <Heatmap
             metrics={metrics}
             extendedHours={extendedHours && currentPhase !== "regular"}
-            onTileClick={(t) => setViewingTicker(t)}
+            onTileClick={(t) => {
+              // In edit mode, the heatmap doubles as a per-ticker
+              // shortcut into EditTickerModal — same pattern as
+              // clicking a player chip on the Pitch view. Out of edit
+              // mode (and for read-only viewers) it keeps the
+              // chart-modal behaviour the heatmap has always had.
+              // Heatmap already filters CASH out (heatmap.jsx:102),
+              // so no isCash guard needed here.
+              if (editMode && !isReadOnly) setEditingTicker(t);
+              else setViewingTicker(t);
+            }}
           />
         ) : (
           <Pitch
