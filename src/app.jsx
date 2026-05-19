@@ -435,7 +435,7 @@ function Board({ isReadOnly }) {
       extHoldingTickers.length > 0
         ? fetchHistoricalBatch(extHoldingTickers, "1d", "5m", true).catch(() => ({}))
         : Promise.resolve({}),
-      // Trading 212 auto-sync for VUAG.L / SEGM.L. Server-cached at
+      // Trading 212 auto-sync for VUAA.L / SAEM.L. Server-cached at
       // 120 s (4× T212's 1-req-per-30-s window) and gated by an
       // atomic Postgres claim so multi-device refreshes share a
       // single upstream call. Returns null when the API key/secret
@@ -520,7 +520,7 @@ function Board({ isReadOnly }) {
       // merge so the price/extPrice fields above stay the source of
       // truth for the LIVE market data, and the T212 sync only
       // touches `lots` / `shares` / `cost` on the allow-listed
-      // tickers (VUAG.L, SEGM.L). When the API key isn't set or
+      // tickers (VUAA.L, SAEM.L). When the API key isn't set or
       // the upstream errored, applyTrading212 is a no-op and the
       // user's last-saved local lots stay put.
       applyTrading212(next.holdings, t212Holdings);
@@ -830,7 +830,17 @@ function Board({ isReadOnly }) {
           <Heatmap
             metrics={metrics}
             extendedHours={extendedHours && currentPhase !== "regular"}
-            onTileClick={(t) => setViewingTicker(t)}
+            onTileClick={(t) => {
+              // In edit mode, the heatmap doubles as a per-ticker
+              // shortcut into EditTickerModal — same pattern as
+              // clicking a player chip on the Pitch view. Out of edit
+              // mode (and for read-only viewers) it keeps the
+              // chart-modal behaviour the heatmap has always had.
+              // Heatmap already filters CASH out (heatmap.jsx:102),
+              // so no isCash guard needed here.
+              if (editMode && !isReadOnly) setEditingTicker(t);
+              else setViewingTicker(t);
+            }}
           />
         ) : (
           <Pitch
