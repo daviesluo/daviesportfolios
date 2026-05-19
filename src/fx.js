@@ -5,18 +5,37 @@
 // before — fxRateToUSD returns the silent-fallback flag and
 // fxToUSD is the back-compat shim.
 
+// Per-ticker overrides for tickers whose suffix doesn't match their
+// settle currency. LSE lists both GBP-denominated ETFs (VUAG.L /
+// SEGM.L) and USD-denominated UCITS ETFs (VUAA.L / SAEM.L); the
+// suffix `.L` rule below would force both into GBP and the FX path
+// would then mis-convert the USD-quoted price by ~1.27× (Yahoo
+// reports the USD ETFs in USD natively — `prices/index.ts` skips
+// the GBp → GBP pence-divide for them, so the holding's currency
+// must agree). Add new mappings here when extending the T212 sync
+// allow-list with another non-default-suffix ticker.
+const TICKER_CURRENCY_OVERRIDES = /** @type {const} */ ({
+  'VUAA.L': 'USD',
+  'SAEM.L': 'USD',
+});
+
 /**
  * Each holding has a native currency. We store price + cost in that
  * native currency and convert to USD on the fly using FX rates from
- * marketData. Detection rules (ticker-pattern based so it works
- * without a live fetch):
- *   - 6-digit numeric → CNY (Chinese mutual fund)
- *   - ticker ends in .L → GBP (London Stock Exchange)
- *   - ticker ends in .HK → HKD (Hong Kong)
- *   - everything else → USD
+ * marketData. Detection rules:
+ *   1. explicit per-ticker override (TICKER_CURRENCY_OVERRIDES) for
+ *      cases where suffix lies about settle currency
+ *   2. ticker-pattern fallback (works without a live fetch):
+ *        - 6-digit numeric → CNY (Chinese mutual fund)
+ *        - ticker ends in .L → GBP (London Stock Exchange)
+ *        - ticker ends in .HK → HKD (Hong Kong)
+ *        - everything else → USD
  * @param {string} ticker
  */
 export function detectCurrency(ticker) {
+  if (ticker in TICKER_CURRENCY_OVERRIDES) {
+    return TICKER_CURRENCY_OVERRIDES[/** @type {keyof typeof TICKER_CURRENCY_OVERRIDES} */ (ticker)];
+  }
   if (/^\d{6}$/.test(ticker)) return "CNY";
   if (/\.L$/i.test(ticker))   return "GBP";
   if (/\.HK$/i.test(ticker))  return "HKD";
