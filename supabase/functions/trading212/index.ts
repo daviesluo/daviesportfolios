@@ -2,23 +2,26 @@
 //
 // Mirrors a small slice of the owner's Trading 212 portfolio — just
 // `quantity` and `averagePrice` for a hard-coded allow-list of tickers
-// the user DCAs through T212 (currently `VUAG.L` and `SEGM.L`, the
-// two GBP-denominated ETFs the user buys daily). Lets the app pick
-// up new T212 buys without the user typing each lot into the
-// EditTickerModal.
+// the user DCAs through T212 (currently `VUAA.L` and `SAEM.L`, the
+// two USD-denominated UCITS ETFs the user buys daily — T212's
+// cashback + Spare-Change auto-invest both settle in USD, which is
+// why the previous GBP-denominated VUAG.L / SEGM.L were swapped out
+// to avoid an avoidable round-trip FX hit on every micro-buy). Lets
+// the app pick up new T212 buys without the user typing each lot
+// into the EditTickerModal.
 //
 //   GET /functions/v1/trading212
-//     →  { holdings: { 'VUAG.L': { shares, cost }, 'SEGM.L': { ... } },
+//     →  { holdings: { 'VUAA.L': { shares, cost }, 'SAEM.L': { ... } },
 //          updatedAt: ISO-string,
 //          source: 'cache' | 'live' | 'stale' | 'disabled' }
 //
 // `cost` is per-share average cost in the instrument's quote
 // currency. T212's `/equity/portfolio` reports `averagePrice` in the
-// account's settle currency for the instrument — for VUAG.L /
-// SEGM.L (both GBP-denominated UCITS ETFs on LSE) that's GBP, NOT
-// the GBp/pence figure Yahoo's quote feed publishes. So this
-// function passes `averagePrice` through unchanged. `shares` is
-// T212's `quantity`. The shape folds into
+// account's settle currency for the instrument — for VUAA.L /
+// SAEM.L (both USD-denominated UCITS ETFs on LSE) that's USD, NOT
+// the GBp/pence figure Yahoo's quote feed uses for the GBP-side
+// LSE listings. So this function passes `averagePrice` through
+// unchanged. `shares` is T212's `quantity`. The shape folds into
 // `holding.lots = [{ date: today, shares, cost }]` — a single
 // synthetic lot replacing whatever was there. lot.cost / h.cost is
 // per-share AC everywhere in the app; metrics.js multiplies
@@ -56,10 +59,13 @@
 // Yahoo ticker → T212 internal ticker. The T212 convention for LSE is
 // `<TICKER>l_EQ` (lowercase 'l' exchange suffix + `_EQ`). The function
 // fetches the full portfolio and picks out just the entries in this
-// map; everything else is dropped.
+// map; everything else is dropped. Both entries below are
+// USD-denominated UCITS ETFs on LSE — see fx.js TICKER_CURRENCY_OVERRIDES
+// for the corresponding client-side currency override that prevents
+// the suffix-based `detectCurrency` from mis-detecting them as GBP.
 const T212_TO_YAHOO: Record<string, string> = {
-  "VUAGl_EQ": "VUAG.L",
-  "SEGMl_EQ": "SEGM.L",
+  "VUAAl_EQ": "VUAA.L",
+  "SAEMl_EQ": "SAEM.L",
 };
 
 const CACHE_TTL_MS = 120_000;       // 120 s: 4× T212's 1-req-per-30-s window
@@ -134,9 +140,10 @@ export async function verifyToken(
  * Pick out the allow-listed tickers from a raw T212 `/equity/portfolio`
  * response and normalize each row into the `{ shares, cost }` shape
  * the client expects. `averagePrice` is taken verbatim — for the
- * VUAG.L / SEGM.L allow-list (LSE-listed GBP ETFs) T212 reports in
- * GBP, not pence. `cost` is per-share AC (the value the lot editor /
- * computeMetrics multiply by `shares` to get position-level cost).
+ * VUAA.L / SAEM.L allow-list (LSE-listed USD-denominated UCITS ETFs)
+ * T212 reports `averagePrice` in USD, not pence. `cost` is per-share
+ * AC (the value the lot editor / computeMetrics multiply by `shares`
+ * to get position-level cost).
  *
  * Pure function so `index.test.ts` can pin the conversion math +
  * ticker filtering without needing the network.

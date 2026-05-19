@@ -22,42 +22,42 @@ import {
   constantTimeEqual,
 } from "./index.ts";
 
-Deno.test("shapeT212Portfolio — VUAGl_EQ / SEGMl_EQ map to Yahoo tickers; cost is per-share GBP", () => {
-  // T212's averagePrice for VUAG.L / SEGM.L is GBP per share (NOT
-  // pence) — these are GBP-denominated UCITS ETFs and T212 reports
-  // in the instrument's settle currency. The Edge Function passes
+Deno.test("shapeT212Portfolio — VUAAl_EQ / SAEMl_EQ map to Yahoo tickers; cost is per-share USD", () => {
+  // T212's averagePrice for VUAA.L / SAEM.L is USD per share — these
+  // are USD-denominated UCITS ETFs on LSE and T212 reports in the
+  // instrument's settle currency. The Edge Function passes
   // averagePrice through unchanged; lot.cost / h.cost is per-share
   // AC everywhere in the app (metrics.js multiplies h.shares * h.cost
   // for total cost; weightedAvgCost does shares * cost).
   const raw = [
-    { ticker: "VUAGl_EQ", quantity: 12.5, averagePrice: 96.00 },
-    { ticker: "SEGMl_EQ", quantity: 30,   averagePrice: 12.345 },
+    { ticker: "VUAAl_EQ", quantity: 12.5, averagePrice: 96.00 },
+    { ticker: "SAEMl_EQ", quantity: 30,   averagePrice: 12.345 },
   ];
   const out = shapeT212Portfolio(raw);
-  assertEquals(out["VUAG.L"].shares, 12.5);
-  assertEquals(out["VUAG.L"].cost, 96.00);
-  assertEquals(out["SEGM.L"].shares, 30);
-  assertEquals(out["SEGM.L"].cost, 12.345);
+  assertEquals(out["VUAA.L"].shares, 12.5);
+  assertEquals(out["VUAA.L"].cost, 96.00);
+  assertEquals(out["SAEM.L"].shares, 30);
+  assertEquals(out["SAEM.L"].cost, 12.345);
 });
 
 Deno.test("shapeT212Portfolio — non-allowlisted tickers are dropped", () => {
   const raw = [
     { ticker: "AAPL_US_EQ", quantity: 10, averagePrice: 150 },
-    { ticker: "VUAGl_EQ", quantity: 5,    averagePrice: 90.00 },
+    { ticker: "VUAAl_EQ", quantity: 5,    averagePrice: 90.00 },
   ];
   const out = shapeT212Portfolio(raw);
   assert(!("AAPL" in out));
   assert(!("AAPL_US_EQ" in out));
-  assertEquals(Object.keys(out), ["VUAG.L"]);
+  assertEquals(Object.keys(out), ["VUAA.L"]);
 });
 
 Deno.test("shapeT212Portfolio — non-positive quantity / averagePrice are dropped", () => {
   const raw = [
-    { ticker: "VUAGl_EQ", quantity: 0,   averagePrice: 96 },
-    { ticker: "VUAGl_EQ", quantity: -1,  averagePrice: 96 },
-    { ticker: "VUAGl_EQ", quantity: 10,  averagePrice: 0 },
-    { ticker: "VUAGl_EQ", quantity: 10,  averagePrice: -50 },
-    { ticker: "VUAGl_EQ", quantity: NaN, averagePrice: 96 },
+    { ticker: "VUAAl_EQ", quantity: 0,   averagePrice: 96 },
+    { ticker: "VUAAl_EQ", quantity: -1,  averagePrice: 96 },
+    { ticker: "VUAAl_EQ", quantity: 10,  averagePrice: 0 },
+    { ticker: "VUAAl_EQ", quantity: 10,  averagePrice: -50 },
+    { ticker: "VUAAl_EQ", quantity: NaN, averagePrice: 96 },
   ];
   const out = shapeT212Portfolio(raw);
   assertEquals(out, {});
