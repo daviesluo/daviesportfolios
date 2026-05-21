@@ -330,17 +330,17 @@ to the prompt.
   the football-pitch view and a treemap heatmap.
 - **Refresh** — manually triggers a price fetch + a background
   prefetch of every chart range. The page also auto-refreshes prices
-  every **30 s in every phase, overnight included**. Overnight used to
-  drop to 5 min (US exchanges closed, nothing fresh to fetch), but the
-  T212 overnight-price feature needs the 30 s cadence at night so the
-  broker's overnight quote for US holdings stays live without a manual
-  refresh. The T212 call is still capped at ≤1 / 30 s by the Edge
-  Function's cache + atomic claim, so the night cadence can't trip
-  T212's rate limit; the trade-off is more Yahoo price round-trips
-  through the dead hours (incl. weekends, which `usMarketPhase` classes
-  as `'overnight'`) than the old 5 min tick. Manual refresh between
-  ticks is always safe — it serves the ≤30 s cache when fresh and only
-  the claim winner ever calls T212.
+  every **30 s through the trading week, weekday overnights included**
+  (so the T212 overnight quote for US holdings stays live without a
+  manual refresh — the T212 call is still capped at ≤1 / 30 s by the
+  Edge Function's cache + atomic claim, so the night cadence can't trip
+  T212's rate limit). The only slow window is the **weekend dead zone**
+  — Fri 20:00 ET (after-hours close) through Sun 20:00 ET (overnight
+  reopen), `isWeekendDeadZone()` — where nothing trades (not even the
+  24/5 overnight session), so it drops to **5 min** to avoid burning
+  Yahoo's per-IP budget on round-trips with nothing fresh to show.
+  Manual refresh between ticks is always safe — it serves the ≤30 s
+  cache when fresh and only the claim winner ever calls T212.
 
 ### Tactics board view
 

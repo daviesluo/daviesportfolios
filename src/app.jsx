@@ -10,6 +10,7 @@ import {
   fetchHistoricalBatch,
   usMarketPhase,
   usMarketHoursUtc,
+  isWeekendDeadZone,
   Storage,
   POSITION_COORDS,
 } from './utils.js';
@@ -63,16 +64,17 @@ class ErrorBoundary extends React.Component {
 }
 
 // 30 s during the trading day (regular session + pre / after-hours),
-// Auto-refresh cadence — 30 s in EVERY phase, overnight included.
-// Overnight used to drop to 5 min (US exchanges closed, no fresh
-// price activity), but the T212 overnight-price feature needs the
-// 30 s cadence at night too so the broker's overnight quote for US
-// holdings stays live without a manual refresh. The T212 call itself
-// is still capped at ≤1 / 30 s by the Edge Function's cache + atomic
-// claim, so the tighter night cadence can't trip T212's rate limit;
-// the cost is more Yahoo price round-trips through the dead hours
-// (incl. weekends, which usMarketPhase classes as 'overnight').
+// Auto-refresh cadence. 30 s through the trading week — INCLUDING
+// weekday overnights, so the T212 overnight quote for US holdings
+// stays live without a manual refresh (the T212 call is still capped
+// at ≤1 / 30 s by the Edge Function's cache + atomic claim, so the
+// night cadence can't trip T212's rate limit). The ONLY slow window
+// is the weekend dead zone — Fri 20:00 ET (after-hours close) through
+// Sun 20:00 ET (overnight reopen) — where nothing trades, not even
+// the 24/5 overnight session, so 5 min avoids burning Yahoo's per-IP
+// budget on round-trips with nothing fresh to show.
 const REFRESH_MS = 30 * 1000;
+const REFRESH_MS_WEEKEND = 5 * 60 * 1000;
 
 // USDCNY=X is a hidden FX fetch used only for CNY→USD conversion of holdings
 // (not shown in the market-conditions column). GBPUSD=X doubles as both a
@@ -610,11 +612,14 @@ function Board({ isReadOnly }) {
     let timeoutId = null;
     const schedule = () => {
       if (cancelled) return;
+      // Re-evaluated each tick so the cadence flips automatically at the
+      // Fri 20:00 / Sun 20:00 ET weekend-dead-zone boundaries.
+      const intervalMs = isWeekendDeadZone(new Date()) ? REFRESH_MS_WEEKEND : REFRESH_MS;
       timeoutId = setTimeout(() => {
         if (cancelled) return;
         doRefreshRef.current({ prefetch: false });
         schedule();
-      }, REFRESH_MS);
+      }, intervalMs);
     };
     schedule();
     return () => {
