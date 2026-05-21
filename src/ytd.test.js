@@ -158,6 +158,55 @@ describe('computeAt — single pre-year lot', () => {
   });
 });
 
+describe('computeAt — cash dilutes the return (matches header DAY CHANGE)', () => {
+  it('adds cash to BOTH value and basis so % reflects the whole account', () => {
+    // 10 AAPL @ basis 245 (Jan-1) → today 270: invested gain $250 on
+    // invested basis $2450 = +10.20% ex-cash. With $2450 of cash held,
+    // the account basis is $4900 and the same $250 gain is only +5.10%
+    // — the cash-in-denominator metric the scoreboard DAY CHANGE uses.
+    const tickerSeries = buildTickerSeries({
+      AAPL: [
+        { date: '2025-12-31', close: 245 },
+        { date: '2026-04-27', close: 270 },
+      ],
+    }, yearStart, "YTD");
+    const portfolio = {
+      holdings: {
+        AAPL: {
+          shares: 10, cost: 100, lastPrice: 270, currency: 'USD',
+          lots: [{ date: '2025-04-01', shares: 10, cost: 100 }],
+        },
+        CASH: { shares: 1, cost: 0, lastPrice: 2450, isCash: true, currency: 'USD' },
+      },
+    };
+    const result = computeAt({
+      ...baseOpts, date: liveAnchorDate, portfolio, tickerSeries,
+      marketData: { AAPL: { lastPrice: 270 } },
+    });
+    expect(result.basis).toBeCloseTo(4900, 4);  // 2450 invested + 2450 cash
+    expect(result.value).toBeCloseTo(5150, 4);  // 2700 invested + 2450 cash
+    expect(ytdPct(result)).toBeCloseTo(5.1020, 3);
+  });
+
+  it('no cash holding → unchanged (additive, back-compat)', () => {
+    const tickerSeries = buildTickerSeries({
+      AAPL: [{ date: '2025-12-31', close: 245 }, { date: '2026-04-27', close: 270 }],
+    }, yearStart, "YTD");
+    const portfolio = {
+      holdings: {
+        AAPL: { shares: 10, cost: 100, lastPrice: 270, currency: 'USD',
+                lots: [{ date: '2025-04-01', shares: 10, cost: 100 }] },
+      },
+    };
+    const result = computeAt({
+      ...baseOpts, date: liveAnchorDate, portfolio, tickerSeries,
+      marketData: { AAPL: { lastPrice: 270 } },
+    });
+    expect(result.basis).toBeCloseTo(2450, 4);
+    expect(ytdPct(result)).toBeCloseTo(10.2041, 3);
+  });
+});
+
 describe('computeAt — single year lot', () => {
   it('uses lot.cost (not Jan-1 price) as the basis for in-year purchases', () => {
     // NET bought 5 @ 165 on Feb 23, 2026. Today 213.74. YTD gain on this
