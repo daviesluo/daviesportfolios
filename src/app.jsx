@@ -721,14 +721,29 @@ function Board({ isReadOnly }) {
     const today = new Date().toISOString().slice(0, 10);
     const lotDate = buyDate || today;
     setPortfolio(p => {
+      const existing = p.holdings[ticker];
+      const newLast = Number(lastPrice) || Number(cost) || 0;
+      // `.PVT` holdings are never price-refreshed (the prices Edge
+      // Function skips them), so this re-add is their only price-update
+      // path. Carry the OLD price into `prevClose` when the price
+      // actually changes, so the day change shows (today's price vs the
+      // previous update) instead of a flat 0 — the behaviour the user
+      // wants for SPAX.PVT, which they revalue daily. New holdings (no
+      // prior) seed prevClose = newLast → 0 % on day one. Fetched
+      // tickers ignore this seed (the next refresh overwrites prevClose).
+      const prevClose = (ticker.endsWith('.PVT')
+          && existing && typeof existing.lastPrice === 'number'
+          && existing.lastPrice > 0 && existing.lastPrice !== newLast)
+        ? existing.lastPrice
+        : newLast;
       const holdings = {
         ...p.holdings,
         [ticker]: {
           shares: Number(shares) || 0,
           cost: Number(cost) || 0,
-          lastPrice: Number(lastPrice) || Number(cost) || 0,
-          prevClose: Number(lastPrice) || Number(cost) || 0,
-          dayPct: 0,
+          lastPrice: newLast,
+          prevClose,
+          dayPct: prevClose > 0 ? ((newLast - prevClose) / prevClose) * 100 : 0,
           currency,
           lots: [{ date: lotDate, shares: Number(shares) || 0, cost: Number(cost) || 0 }],
         },

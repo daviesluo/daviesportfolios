@@ -271,6 +271,41 @@ describe('computeAt — prevCloseBasis (1D day-change uses prevClose, not lot.co
   });
 });
 
+describe('computeAt — board scope (only positioned holdings count, like the scoreboard)', () => {
+  it('skips a holding that is in holdings but not referenced by any position', () => {
+    const ts = buildTickerSeries(
+      {
+        A: [{ date: '2026-04-27T15:55', close: 110 }],
+        ORPH: [{ date: '2026-04-27T15:55', close: 300 }],
+      },
+      '2026-04-27', '1D',
+      { A: { prevClose: 100, lastPrice: 110 }, ORPH: { prevClose: 100, lastPrice: 300 } },
+      false,
+    );
+    const portfolio = {
+      positions: { ST: { tickers: ['A'] } },              // ORPH not on the board
+      holdings: {
+        A:    { shares: 10, cost: 50, lastPrice: 110, prevClose: 100, currency: 'USD', lots: [{ date: '2026-01-01', shares: 10, cost: 50 }] },
+        ORPH: { shares: 10, cost: 50, lastPrice: 300, prevClose: 100, currency: 'USD', lots: [{ date: '2026-01-01', shares: 10, cost: 50 }] },
+      },
+    };
+    const opts = {
+      portfolio, tickerSeries: ts,
+      marketData: { A: { prevClose: 100, lastPrice: 110 }, ORPH: { prevClose: 100, lastPrice: 300 } },
+      yearStart: '2026-04-27', yearStartDate: '2026-04-26',
+      todayMs: new Date('2026-04-27').getTime(),
+      liveAnchorDate: '2026-04-27T15:55', useExt: false, fxToUSD: () => 1,
+      date: '2026-04-27T15:55', prevCloseBasis: true,
+    };
+    const r = computeAt(opts);
+    // Only A counts: basis 10×100 = 1000, value 10×110 = 1100 → +10%.
+    // ORPH (the huge +200% mover) is excluded because it's not on the board.
+    expect(r.basis).toBeCloseTo(1000, 4);
+    expect(r.value).toBeCloseTo(1100, 4);
+    expect(ytdPct(r)).toBeCloseTo(10, 6);
+  });
+});
+
 describe('computeAt — single year lot', () => {
   it('uses lot.cost (not Jan-1 price) as the basis for in-year purchases', () => {
     // NET bought 5 @ 165 on Feb 23, 2026. Today 213.74. YTD gain on this
