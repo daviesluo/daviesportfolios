@@ -207,6 +207,70 @@ describe('computeAt — cash dilutes the return (matches header DAY CHANGE)', ()
   });
 });
 
+describe('computeAt — prevCloseBasis (1D day-change uses prevClose, not lot.cost)', () => {
+  it('a today-dated lot (e.g. T212 sync) uses prevClose as basis, not avgCost', () => {
+    // VUAA.L-style: long-held but T212 re-stamps the synthetic lot to
+    // `today` at the average cost (50). prevClose 100, now 102. The day
+    // change must be +2% (vs prevClose), NOT +104% (vs the 50 cost) —
+    // that leak is exactly the chart-vs-scoreboard bug.
+    const ts = buildTickerSeries(
+      { X: [{ date: '2026-04-27T15:55', close: 102 }] },
+      '2026-04-27', '1D', { X: { prevClose: 100, lastPrice: 102 } }, false,
+    );
+    const portfolio = {
+      holdings: {
+        X: {
+          shares: 10, cost: 50, lastPrice: 102, currency: 'USD', prevClose: 100,
+          lots: [{ date: '2026-04-27', shares: 10, cost: 50 }], // dated "today"
+        },
+      },
+    };
+    const opts = {
+      portfolio, tickerSeries: ts,
+      marketData: { X: { prevClose: 100, lastPrice: 102 } },
+      yearStart: '2026-04-27', yearStartDate: '2026-04-26', // anchorDay = yesterday
+      todayMs: new Date('2026-04-27').getTime(),
+      liveAnchorDate: '2026-04-27T15:55', useExt: false, fxToUSD: () => 1,
+      date: '2026-04-27T15:55',
+    };
+    // Default (no flag): today-lot ≥ anchorDay → basis = cost (the bug).
+    expect(computeAt(opts).basis).toBeCloseTo(500, 4);   // 10 × 50
+    // prevCloseBasis: basis = prevClose for every held lot.
+    const fixed = computeAt({ ...opts, prevCloseBasis: true });
+    expect(fixed.basis).toBeCloseTo(1000, 4);            // 10 × 100
+    expect(fixed.value).toBeCloseTo(1020, 4);            // 10 × 102
+    expect(ytdPct(fixed)).toBeCloseTo(2, 6);             // +2% day change, matches scoreboard
+  });
+
+  it('prevCloseBasis includes a no-prevClose holding FLAT (in denominator, 0 day change)', () => {
+    // SPAX.PVT-style: no prevClose → janPrice null. Must NOT be dropped;
+    // instead counted flat (basis = current price) so it sits in the
+    // denominator like the scoreboard does, rather than inflating the %.
+    const ts = buildTickerSeries(
+      { PVT: [] }, '2026-04-27', '1D', { PVT: {} }, false,
+    );
+    const portfolio = {
+      holdings: {
+        PVT: {
+          shares: 4, cost: 0, lastPrice: 250, currency: 'USD',
+          lots: [{ date: '2026-04-27', shares: 4, cost: 250 }],
+        },
+      },
+    };
+    const opts = {
+      portfolio, tickerSeries: ts, marketData: { PVT: {} },
+      yearStart: '2026-04-27', yearStartDate: '2026-04-26',
+      todayMs: new Date('2026-04-27').getTime(),
+      liveAnchorDate: '2026-04-27T15:55', useExt: false, fxToUSD: () => 1,
+      date: '2026-04-27T15:55', prevCloseBasis: true,
+    };
+    const r = computeAt(opts);
+    expect(r.value).toBeCloseTo(1000, 4);  // 4 × 250 (in denominator)
+    expect(r.basis).toBeCloseTo(1000, 4);  // flat: basis = current price
+    expect(ytdPct(r)).toBeCloseTo(0, 6);   // 0 day change, but counted
+  });
+});
+
 describe('computeAt — single year lot', () => {
   it('uses lot.cost (not Jan-1 price) as the basis for in-year purchases', () => {
     // NET bought 5 @ 165 on Feb 23, 2026. Today 213.74. YTD gain on this

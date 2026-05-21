@@ -520,6 +520,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const ytdOpts = {
     portfolio, tickerSeries, marketData: tickerMarketData,
     yearStart: anchorDate, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
+    // 1D = a day-change view: force every holding's basis to prevClose
+    // (today's regular close in ext), matching the scoreboard DAY CHANGE,
+    // instead of the per-lot cost that leaked T212-synced lots' total
+    // gains into the day %. Longer ranges keep the per-lot Jan-1/cost
+    // basis (a YTD/1W/etc. return genuinely is measured from cost for
+    // in-period buys).
+    prevCloseBasis: rangeKey === '1D',
   };
 
   const portYtd = spWindow.map(p => {
