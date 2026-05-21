@@ -267,7 +267,7 @@ export function lotsFor(h, yearStart) {
  *
  * @param {{
  *   date: string,
- *   portfolio: { holdings: Record<string, any> },
+ *   portfolio: { holdings: Record<string, any>, positions?: Record<string, { tickers?: string[] }> },
  *   tickerSeries: ReturnType<typeof buildTickerSeries>,
  *   marketData?: Record<string, { lastPrice?: number, extPrice?: number | null, prevClose?: number }>,
  *   yearStart: string,
@@ -276,6 +276,7 @@ export function lotsFor(h, yearStart) {
  *   liveAnchorDate: string,
  *   useExt: boolean,
  *   fxToUSD: (currency: string | undefined, marketData: any) => number,
+ *   prevCloseBasis?: boolean,
  * }} opts
  * @returns {{ value: number, basis: number }}
  */
@@ -283,6 +284,7 @@ export function computeAt(opts) {
   const {
     date, portfolio, tickerSeries, marketData,
     yearStart, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
+    prevCloseBasis = false,
   } = opts;
   const useLive = date === liveAnchorDate;
   // Lot dates are always YYYY-MM-DD (no intraday precision). The chart's
@@ -296,8 +298,26 @@ export function computeAt(opts) {
   const anchorDay = (yearStartDate || '').slice(0, 10);
   let value = 0, basis = 0;
 
+  // Match the scoreboard's scope. computeMetrics iterates
+  // positions → tickers → holdings[t], so only holdings actually placed
+  // on the board count toward its DAY CHANGE / market value. A holding
+  // left in `holdings` but not referenced by any position (orphaned by
+  // an edit) would otherwise be summed by the chart but not the
+  // scoreboard, splitting the two numbers for reasons unrelated to the
+  // basis. Restrict to positioned tickers so the chart's PORTFOLIO line
+  // is computed over exactly the same set.
+  const positioned = new Set();
+  for (const pos of Object.values(portfolio.positions || {})) {
+    if (pos && Array.isArray(pos.tickers)) for (const t of pos.tickers) positioned.add(t);
+  }
+  // No positions at all (e.g. unit-test fixtures) → don't filter; count
+  // every holding. In production there are always positions, so the
+  // board-scope restriction below applies.
+  const scopeAll = positioned.size === 0;
+
   for (const [ticker, h] of Object.entries(portfolio.holdings)) {
     if (h.isCash || ticker === 'CASH') continue;
+    if (!scopeAll && !positioned.has(ticker)) continue; // orphaned holding — not on the board
     const lots = lotsFor(h, yearStart);
     const fx = (h.currency && h.currency !== 'USD') ? fxToUSD(h.currency, marketData) : 1;
     const ts = tickerSeries[ticker];
@@ -312,16 +332,8 @@ export function computeAt(opts) {
     for (const lot of lots) {
       if (lot.date > dateDay) continue; // not yet held
 
-      // Basis price for this lot
-      let basisPrice;
-      if (lot.date < anchorDay) {
-        if (janPrice == null) continue; // skip — no Jan 1 baseline available
-        basisPrice = janPrice;
-      } else {
-        basisPrice = lot.cost;
-      }
-
-      // Current price at date — prefer live for the latest chart point
+      // Current price at date — prefer live for the latest chart point.
+      // Computed first so the prevCloseBasis flat-fallback can reuse it.
       let priceAtD = (useLive && livePrice != null && livePrice > 0)
         ? livePrice
         : (ts ? closeOn(tickerSeries, ticker, date) : null);
@@ -339,10 +351,57 @@ export function computeAt(opts) {
         }
       }
 
+      // Basis price for this lot.
+      let basisPrice;
+      if (prevCloseBasis) {
+        // 1D day-change mode: the basis is ALWAYS the day anchor (janPrice
+        // = prevClose in regular hours / today's regular close in ext)
+        // for EVERY held lot, regardless of when it was bought — a "day
+        // change" is measured vs yesterday's close, never the purchase
+        // cost. Flat (basis = current price) when prevClose is missing,
+        // so the holding still lands in the denominator instead of being
+        // dropped. This mirrors computeMetrics' baselinePrice = prevClose
+        // ?? currentPrice exactly, so the 1D right-edge % equals the
+        // scoreboard DAY CHANGE. Without it, T212-synced lots (re-dated
+        // `today` every refresh) and any same-/prior-day buy used
+        // lot.cost as the basis, leaking the position's TOTAL gain into
+        // the day %.
+        basisPrice = (janPrice != null && janPrice > 0) ? janPrice : priceAtD;
+      } else if (lot.date < anchorDay) {
+        if (janPrice == null) continue; // skip — no Jan 1 baseline available
+        basisPrice = janPrice;
+      } else {
+        basisPrice = lot.cost;
+      }
+
       value += lot.shares * priceAtD * fx;
       basis += lot.shares * basisPrice * fx;
     }
   }
+
+  // Cash (isCash holdings) — a constant balance that doesn't move with
+  // the market. The header's DAY CHANGE % counts cash in its
+  // denominator (computeMetrics: marketValue includes cash, so
+  // dayPct = dayChange / yesterday's TOTAL incl. cash), so the chart's
+  // PORTFOLIO line must too. Without it the line showed the
+  // invested-only return and overstated the move whenever the book
+  // holds meaningful cash — e.g. chart +4.27 % vs scoreboard +2.32 %.
+  // Added to BOTH value and basis at every point: cash contributes
+  // equally to numerator and denominator, diluting the % toward the
+  // true account return. Mirrors computeMetrics' cash handling
+  // (mv = lastPrice, treated USD) so the 1D live point matches the
+  // scoreboard exactly during regular hours. Historical points use the
+  // current balance as a constant (we don't track past cash balances)
+  // — exact intraday for 1D, a reasonable held-constant approximation
+  // for the longer ranges.
+  let cashUSD = 0;
+  for (const [ticker, h] of Object.entries(portfolio.holdings)) {
+    if (!(h.isCash || ticker === 'CASH')) continue;
+    if (!scopeAll && !positioned.has(ticker)) continue; // same board-scope as above
+    if (typeof h.lastPrice === 'number' && h.lastPrice > 0) cashUSD += h.lastPrice;
+  }
+  value += cashUSD;
+  basis += cashUSD;
   return { value, basis };
 }
 

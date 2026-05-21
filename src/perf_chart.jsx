@@ -343,6 +343,37 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     if (crossRef.current) crossRef.current.style.display = 'none';
   }, [rangeKey, hist]);
 
+  // Native non-passive touchmove listener for the crosshair drag.
+  // React's synthetic onTouchMove is registered passive at the root,
+  // so `e.preventDefault()` there is a no-op and the only thing
+  // stopping the page from scrolling mid-drag is the SVG's inline
+  // `touch-action: none`. iOS Safari ignores `touch-action` on an
+  // inline <svg> when an ancestor is scrollable — which is exactly
+  // this chart's situation on mobile (it lives in the scrollable
+  // `.sidebar`, unlike the TickerChartModal which sits in a
+  // scroll-locked overlay, which is why the modal's identical setup
+  // worked and this one didn't: finger drags scrolled the page
+  // instead of moving the crosshair). A native { passive: false }
+  // listener lets preventDefault actually cancel the scroll.
+  //
+  // `handleMoveRef` holds the latest render's handleMove so the
+  // listener (attached once per SVG mount via the callback ref) always
+  // sees current geometry without re-binding on every render.
+  const handleMoveRef = React.useRef(/** @type {(e: TouchEvent) => void} */ (() => {}));
+  const touchCleanupRef = React.useRef(/** @type {(() => void) | null} */ (null));
+  const setSvgNode = React.useCallback((/** @type {SVGSVGElement | null} */ node) => {
+    if (touchCleanupRef.current) { touchCleanupRef.current(); touchCleanupRef.current = null; }
+    svgRef.current = node;
+    if (node) {
+      const onTouchMove = (/** @type {TouchEvent} */ e) => {
+        e.preventDefault();
+        handleMoveRef.current(e);
+      };
+      node.addEventListener('touchmove', onTouchMove, { passive: false });
+      touchCleanupRef.current = () => node.removeEventListener('touchmove', onTouchMove);
+    }
+  }, []);
+
   if (!portfolio) return renderShell(<div className="sparkline-empty dim mono">Loading…</div>, rangeKey, setRangeKey);
   if (loading)    return renderShell(<div className="sparkline-empty dim mono">Computing…</div>, rangeKey, setRangeKey);
   if (error)      return renderShell(<div className="sparkline-empty dim mono">Couldn't load history</div>, rangeKey, setRangeKey);
@@ -489,6 +520,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const ytdOpts = {
     portfolio, tickerSeries, marketData: tickerMarketData,
     yearStart: anchorDate, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
+    // 1D = a day-change view: force every holding's basis to prevClose
+    // (today's regular close in ext), matching the scoreboard DAY CHANGE,
+    // instead of the per-lot cost that leaked T212-synced lots' total
+    // gains into the day %. Longer ranges keep the per-lot Jan-1/cost
+    // basis (a YTD/1W/etc. return genuinely is measured from cost for
+    // in-period buys).
+    prevCloseBasis: rangeKey === '1D',
   };
 
   const portYtd = spWindow.map(p => {
@@ -680,6 +718,9 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     if (rafRef.current) return;
     rafRef.current = requestAnimationFrame(paintCrosshair);
   }
+  // Keep the native touchmove listener (attached in setSvgNode)
+  // pointing at the current render's handleMove closure.
+  handleMoveRef.current = handleMove;
   function handleLeave() {
     pendingIdxRef.current = null;
     if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = 0; }
@@ -706,18 +747,22 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       </div>
 
       <svg
-        ref={svgRef}
+        ref={setSvgNode}
         viewBox={`0 0 ${W} ${H}`}
         width="100%"
         height={H}
         // touchAction:none claims horizontal finger drags for the
         // crosshair instead of the browser scroll/zoom gestures.
-        // Vertical scrolling outside the chart still works.
+        // Vertical scrolling outside the chart still works. On iOS
+        // this alone isn't enough for an inline <svg> inside a
+        // scrollable ancestor, so the actual crosshair-drag is driven
+        // by the native non-passive touchmove listener attached in
+        // setSvgNode (see the comment there). onTouchStart still
+        // handles the initial tap-to-place.
         style={{ display: 'block', touchAction: 'none' }}
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
         onTouchStart={handleMove}
-        onTouchMove={handleMove}
       >
         {/* Y-axis ticks + grid lines */}
         {ticks.map(t => (
