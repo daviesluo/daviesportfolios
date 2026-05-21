@@ -276,6 +276,7 @@ export function lotsFor(h, yearStart) {
  *   liveAnchorDate: string,
  *   useExt: boolean,
  *   fxToUSD: (currency: string | undefined, marketData: any) => number,
+ *   prevCloseBasis?: boolean,
  * }} opts
  * @returns {{ value: number, basis: number }}
  */
@@ -283,6 +284,7 @@ export function computeAt(opts) {
   const {
     date, portfolio, tickerSeries, marketData,
     yearStart, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
+    prevCloseBasis = false,
   } = opts;
   const useLive = date === liveAnchorDate;
   // Lot dates are always YYYY-MM-DD (no intraday precision). The chart's
@@ -312,16 +314,8 @@ export function computeAt(opts) {
     for (const lot of lots) {
       if (lot.date > dateDay) continue; // not yet held
 
-      // Basis price for this lot
-      let basisPrice;
-      if (lot.date < anchorDay) {
-        if (janPrice == null) continue; // skip — no Jan 1 baseline available
-        basisPrice = janPrice;
-      } else {
-        basisPrice = lot.cost;
-      }
-
-      // Current price at date — prefer live for the latest chart point
+      // Current price at date — prefer live for the latest chart point.
+      // Computed first so the prevCloseBasis flat-fallback can reuse it.
       let priceAtD = (useLive && livePrice != null && livePrice > 0)
         ? livePrice
         : (ts ? closeOn(tickerSeries, ticker, date) : null);
@@ -337,6 +331,29 @@ export function computeAt(opts) {
           const t = (dMs - lotMs) / (todayMs - lotMs);
           priceAtD = lot.cost + (tgtPrice - lot.cost) * t;
         }
+      }
+
+      // Basis price for this lot.
+      let basisPrice;
+      if (prevCloseBasis) {
+        // 1D day-change mode: the basis is ALWAYS the day anchor (janPrice
+        // = prevClose in regular hours / today's regular close in ext)
+        // for EVERY held lot, regardless of when it was bought — a "day
+        // change" is measured vs yesterday's close, never the purchase
+        // cost. Flat (basis = current price) when prevClose is missing,
+        // so the holding still lands in the denominator instead of being
+        // dropped. This mirrors computeMetrics' baselinePrice = prevClose
+        // ?? currentPrice exactly, so the 1D right-edge % equals the
+        // scoreboard DAY CHANGE. Without it, T212-synced lots (re-dated
+        // `today` every refresh) and any same-/prior-day buy used
+        // lot.cost as the basis, leaking the position's TOTAL gain into
+        // the day %.
+        basisPrice = (janPrice != null && janPrice > 0) ? janPrice : priceAtD;
+      } else if (lot.date < anchorDay) {
+        if (janPrice == null) continue; // skip — no Jan 1 baseline available
+        basisPrice = janPrice;
+      } else {
+        basisPrice = lot.cost;
       }
 
       value += lot.shares * priceAtD * fx;
