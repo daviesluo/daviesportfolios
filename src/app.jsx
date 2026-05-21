@@ -10,6 +10,7 @@ import {
   fetchHistoricalBatch,
   usMarketPhase,
   usMarketHoursUtc,
+  isWeekendDeadZone,
   Storage,
   POSITION_COORDS,
 } from './utils.js';
@@ -33,7 +34,7 @@ import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
-import { fetchTrading212Holdings, applyTrading212 } from './trading212.js';
+import { fetchTrading212Holdings, applyTrading212, applyTrading212NightPrice } from './trading212.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
 class ErrorBoundary extends React.Component {
@@ -63,15 +64,17 @@ class ErrorBoundary extends React.Component {
 }
 
 // 30 s during the trading day (regular session + pre / after-hours),
-// 5 min overnight + weekends. US exchanges are closed and there's
-// no fresh price activity to fetch during the slow window — going
-// every 30 s burned ~5,760 round-trips over a weekend with nothing
-// new to show, and ate Yahoo's per-IP soft rate-limit budget for
-// the rare crypto/FX move that actually does happen. Crypto and FX
-// trade 24/7 so a 5 min cadence still catches material moves
-// without spamming requests through dead hours.
+// Auto-refresh cadence. 30 s through the trading week — INCLUDING
+// weekday overnights, so the T212 overnight quote for US holdings
+// stays live without a manual refresh (the T212 call is still capped
+// at ≤1 / 30 s by the Edge Function's cache + atomic claim, so the
+// night cadence can't trip T212's rate limit). The ONLY slow window
+// is the weekend dead zone — Fri 20:00 ET (after-hours close) through
+// Sun 20:00 ET (overnight reopen) — where nothing trades, not even
+// the 24/5 overnight session, so 5 min avoids burning Yahoo's per-IP
+// budget on round-trips with nothing fresh to show.
 const REFRESH_MS = 30 * 1000;
-const REFRESH_MS_OVERNIGHT = 5 * 60 * 1000;
+const REFRESH_MS_WEEKEND = 5 * 60 * 1000;
 
 // USDCNY=X is a hidden FX fetch used only for CNY→USD conversion of holdings
 // (not shown in the market-conditions column). GBPUSD=X doubles as both a
@@ -435,13 +438,14 @@ function Board({ isReadOnly }) {
       extHoldingTickers.length > 0
         ? fetchHistoricalBatch(extHoldingTickers, "1d", "5m", true).catch(() => ({}))
         : Promise.resolve({}),
-      // Trading 212 auto-sync for VUAA.L / SAEM.L. Server-cached at
-      // 120 s (4× T212's 1-req-per-30-s window) and gated by an
-      // atomic Postgres claim so multi-device refreshes share a
-      // single upstream call. Returns null when the API key/secret
-      // aren't configured or the upstream errored — applyTrading212
-      // no-ops in that case and we keep whatever lots the user last
-      // saved manually.
+      // Trading 212 sync. Server-cached at 30 s (in lockstep with the
+      // regular-hours auto-refresh) and gated by an atomic Postgres
+      // claim so multi-device refreshes share a single upstream call —
+      // at most one T212 hit per 30 s window, within T212's
+      // 1-req-per-30-s limit. Returns `{ holdings, prices }` (or null
+      // when the key/secret aren't configured / upstream errored):
+      // `holdings` drives the VUAA.L / SAEM.L shares-cost auto-sync,
+      // `prices` feeds the overnight US-equity quote overlay below.
       fetchTrading212Holdings(),
     ]);
     if (mcResult) {
@@ -516,14 +520,21 @@ function Board({ isReadOnly }) {
         setFlashTickers(flashes);
         setTimeout(() => setFlashTickers({}), 1200);
       }
-      // Trading 212 auto-sync overlay — runs after the live-prices
-      // merge so the price/extPrice fields above stay the source of
-      // truth for the LIVE market data, and the T212 sync only
-      // touches `lots` / `shares` / `cost` on the allow-listed
-      // tickers (VUAA.L, SAEM.L). When the API key isn't set or
-      // the upstream errored, applyTrading212 is a no-op and the
-      // user's last-saved local lots stay put.
-      applyTrading212(next.holdings, t212Holdings);
+      // Trading 212 overlays — both run AFTER the live-prices merge so
+      // they see the Yahoo lastPrice/prevClose just set.
+      //   1. Holdings auto-sync: shares/cost/lots for the allow-list
+      //      ETFs (VUAA.L, SAEM.L). Price untouched — these LSE ETFs
+      //      keep the Yahoo quote.
+      //   2. Overnight price: only during the overnight window
+      //      (20:00–04:00 ET) with the Extended Hours toggle on, swap
+      //      in T212's `currentPrice` as the extended-hours quote for
+      //      any US equity the user also holds in T212. Regular / pre /
+      //      after-hours keep the original Yahoo logic untouched.
+      // When the API key isn't set or the upstream errored,
+      // t212Holdings is null → both calls no-op.
+      applyTrading212(next.holdings, t212Holdings?.holdings);
+      const nightActive = extendedHours && refreshPhase === 'overnight';
+      applyTrading212NightPrice(next.holdings, t212Holdings?.prices, nightActive);
       return next;
     });
     setLastUpdated(new Date());
@@ -599,15 +610,16 @@ function Board({ isReadOnly }) {
     let cancelled = false;
     /** @type {ReturnType<typeof setTimeout> | null} */
     let timeoutId = null;
-    const tickIntervalMs = () =>
-      usMarketPhase(new Date()) === 'overnight' ? REFRESH_MS_OVERNIGHT : REFRESH_MS;
     const schedule = () => {
       if (cancelled) return;
+      // Re-evaluated each tick so the cadence flips automatically at the
+      // Fri 20:00 / Sun 20:00 ET weekend-dead-zone boundaries.
+      const intervalMs = isWeekendDeadZone(new Date()) ? REFRESH_MS_WEEKEND : REFRESH_MS;
       timeoutId = setTimeout(() => {
         if (cancelled) return;
         doRefreshRef.current({ prefetch: false });
         schedule();
-      }, tickIntervalMs());
+      }, intervalMs);
     };
     schedule();
     return () => {
@@ -709,14 +721,29 @@ function Board({ isReadOnly }) {
     const today = new Date().toISOString().slice(0, 10);
     const lotDate = buyDate || today;
     setPortfolio(p => {
+      const existing = p.holdings[ticker];
+      const newLast = Number(lastPrice) || Number(cost) || 0;
+      // `.PVT` holdings are never price-refreshed (the prices Edge
+      // Function skips them), so this re-add is their only price-update
+      // path. Carry the OLD price into `prevClose` when the price
+      // actually changes, so the day change shows (today's price vs the
+      // previous update) instead of a flat 0 — the behaviour the user
+      // wants for SPAX.PVT, which they revalue daily. New holdings (no
+      // prior) seed prevClose = newLast → 0 % on day one. Fetched
+      // tickers ignore this seed (the next refresh overwrites prevClose).
+      const prevClose = (ticker.endsWith('.PVT')
+          && existing && typeof existing.lastPrice === 'number'
+          && existing.lastPrice > 0 && existing.lastPrice !== newLast)
+        ? existing.lastPrice
+        : newLast;
       const holdings = {
         ...p.holdings,
         [ticker]: {
           shares: Number(shares) || 0,
           cost: Number(cost) || 0,
-          lastPrice: Number(lastPrice) || Number(cost) || 0,
-          prevClose: Number(lastPrice) || Number(cost) || 0,
-          dayPct: 0,
+          lastPrice: newLast,
+          prevClose,
+          dayPct: prevClose > 0 ? ((newLast - prevClose) / prevClose) * 100 : 0,
           currency,
           lots: [{ date: lotDate, shares: Number(shares) || 0, cost: Number(cost) || 0 }],
         },

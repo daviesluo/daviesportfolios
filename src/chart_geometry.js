@@ -33,9 +33,10 @@
  * @param {{ getBoundingClientRect: () => { left: number, width: number, height: number } } | null} svgEl
  *   The `<svg>` element ref (or any DOM node with the same surface — the test
  *   mocks it with just `getBoundingClientRect`).
- * @param {{ W: number, H: number, padL: number, padR: number, cW: number }} geom
- *   Chart geometry: viewBox width/height, left/right axis padding, and the
- *   pre-computed content width `cW = W - padL - padR`.
+ * @param {{ W: number, H: number, padL: number, padR: number, cW: number, xDenom?: number }} geom
+ *   Chart geometry: viewBox width/height, left/right axis padding, the
+ *   pre-computed content width `cW = W - padL - padR`, and an optional
+ *   `xDenom` x-axis denominator override (see below).
  * @param {number} dataLength
  *   Number of points in the series the crosshair is mapping to.
  * @returns {number | null}
@@ -65,12 +66,44 @@ export function pointerToDataIndex(event, svgEl, geom, dataLength) {
   // Map page-x → chart-space x (in viewBox units).
   const sx = ((clientX - rect.left - offX) / contentW) * W;
   const clampedSx = Math.max(padL, Math.min(W - padR, sx));
-  // Index = round to nearest data slot. denom guards against
-  // division-by-zero when there's only one point in the series.
-  const denom = Math.max(1, dataLength - 1);
+  // Index = round to nearest data slot. `geom.xDenom` lets a caller
+  // override the x denominator when the bars don't fill the full
+  // [padL, W-padR] span — e.g. the ticker modal's overnight view, which
+  // reserves the right edge for the time-proportional gap + the live
+  // trailing dot. Defaults to `dataLength - 1` (bars fill the width),
+  // which is what PerfChart + the regular modal view pass. The final
+  // clamp to [0, dataLength-1] means a pointer dragged into the gap
+  // region pins to the last real bar rather than the trailing dot.
+  const denom = (geom && typeof geom.xDenom === "number" && geom.xDenom > 0)
+    ? geom.xDenom
+    : Math.max(1, dataLength - 1);
   const frac = (clampedSx - padL) / cW;
   const i = Math.round(frac * denom);
   return Math.max(0, Math.min(dataLength - 1, i));
+}
+
+/**
+ * How far past the last bar the live "now" dot sits, expressed in
+ * bar-interval units, for the ticker modal's overnight view. The chart
+ * is otherwise index-based (one step per bar, non-trading gaps
+ * collapsed); this is the ONE place real elapsed time is honoured —
+ * the current overnight session (last after-hours bar → now) is drawn
+ * as a proportional gap so the trailing heartbeat dot floats at its
+ * true-time position instead of snapping next to the 20:00 bar.
+ *
+ * Returns the gap in bar-interval units (0 when inputs are unusable),
+ * so the caller can set the x denominator to `(dataLength - 1) + gap`
+ * and place the dot at virtual index `(dataLength - 1) + gap` (the far
+ * right edge).
+ *
+ * @param {number} lastBarMs    epoch ms of the last real bar
+ * @param {number} nowMs        epoch ms of "now"
+ * @param {number} barIntervalMs  the chart's bar interval (5m/30m/60m)
+ * @returns {number}
+ */
+export function overnightTrailingGap(lastBarMs, nowMs, barIntervalMs) {
+  if (!isFinite(lastBarMs) || !isFinite(nowMs) || !(barIntervalMs > 0)) return 0;
+  return Math.max(0, (nowMs - lastBarMs) / barIntervalMs);
 }
 
 /**

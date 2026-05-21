@@ -9,7 +9,7 @@ import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc } fr
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
-import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT } from './ticker_class.js';
+import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, isUsEquity } from './ticker_class.js';
 import { MA_TTL_MS, tickerChartCacheKey, isFresh as cacheIsFresh, hasAnyNumericField } from './cache.js';
 import { ChartStore, MaStore } from './chart_store.js';
 import {
@@ -17,10 +17,15 @@ import {
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   priceDividedByTtmEps, extPriceIsRealAh, isPriceAxis,
 } from './indicators.js';
-import { pointerToDataIndex } from './chart_geometry.js';
+import { pointerToDataIndex, overnightTrailingGap } from './chart_geometry.js';
 import { reportError } from './ops_error.js';
 
 const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$' };
+
+// Bar interval per intraday range, for the overnight live-dot's
+// time-proportional gap (chart_geometry.overnightTrailingGap). Only
+// these three ranges get the dot; ratio ranges / 3M / YTD don't.
+const NIGHT_BAR_INTERVAL_MS = { '1D': 5 * 60_000, '1W': 30 * 60_000, '1M': 60 * 60_000 };
 
 // Friendly modal-title names for non-stock tickers. Stocks just show
 // the ticker symbol since the company name isn't carried anywhere in
@@ -799,12 +804,41 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // raw price into a ratio series would draw a vertical cliff
   // between the second-to-last bar and today, which the user hit on
   // NET / SATS / NVTS / SOUN before this gate was extended to PS.
+  // Overnight live dot ("night market" heartbeat). During the overnight
+  // session (20:00–04:00 ET) with the Extended Hours toggle on, the T212
+  // price (carried on holding.extPrice → extPriceLive) is the only live
+  // quote for a US equity — Yahoo has no overnight bars. We show it as a
+  // single UNCONNECTED pulsing dot at its true-time position rather than
+  // jamming it into the 20:00 bar: when active we (a) skip the usual
+  // live-substitution so the historical bars stay real, (b) reserve an
+  // x-axis gap proportional to the elapsed overnight time, and (c) draw
+  // the dot at the far-right edge. Only 1D/1W/1M for US equities.
+  const nightDotActive = useExt && phase === 'overnight' && isUsEquity(ticker)
+    && typeof extPriceLive === 'number' && extPriceLive > 0
+    && !!NIGHT_BAR_INTERVAL_MS[rangeKey]
+    && Array.isArray(series) && series.length >= 2;
+
   const points = series ? series.map((p, i) => (
-    isPriceAxis(rangeKey) && i === series.length - 1 && liveLast ? { ...p, close: liveLast } : p
+    isPriceAxis(rangeKey) && i === series.length - 1 && liveLast && !nightDotActive ? { ...p, close: liveLast } : p
   )) : [];
 
   const lastClose = points.length > 0 ? points[points.length - 1].close : null;
-  const pctNow = (anchorClose && lastClose) ? ((lastClose - anchorClose) / anchorClose) * 100 : 0;
+  // Header price/pct: the T212 now-price during the overnight-dot case
+  // (so the header agrees with the position card + the dot), otherwise
+  // the chart's last close (which already carries the live substitution
+  // for regular / pre / after-hours).
+  const headerPrice = nightDotActive ? extPriceLive : lastClose;
+  const pctNow = (anchorClose && headerPrice) ? ((headerPrice - anchorClose) / anchorClose) * 100 : 0;
+
+  // Trailing dot geometry: gap (in bar-interval units) from the last
+  // real bar to now, so the dot floats at its true-time x-position.
+  const overnightDot = nightDotActive ? (() => {
+    const lastDate = points[points.length - 1].date;
+    const isUtcIso = typeof lastDate === 'string' && lastDate.length === 16 && lastDate[10] === 'T';
+    const lastBarMs = new Date(lastDate + (isUtcIso ? 'Z' : '')).getTime();
+    const gap = overnightTrailingGap(lastBarMs, Date.now(), NIGHT_BAR_INTERVAL_MS[rangeKey]);
+    return gap > 0 ? { price: extPriceLive, gap } : null;
+  })() : null;
   const cur = holding?.currency || 'USD';
   const sym = SYMBOL_BY_CUR[cur] || '$';
 
@@ -866,10 +900,21 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // trading time into a single step. xOfIdx(i) takes the data-array index.
   let xOfIdx = (_i) => padL, yOf = (_p) => padT + cH / 2;
   let yMin = 0, yMax = 0, ticksY = [], ticksX = [];
+  // X denominator, hoisted so the crosshair (pointerToDataIndex) maps
+  // against the same scale. Normally `points.length - 1` (bars fill the
+  // width); during the overnight-dot view it's extended by the gap so
+  // the bars compress left and the right edge holds the trailing dot.
+  let chartXDenom = Math.max(1, points.length - 1);
   if (hasData) {
-    const denom = Math.max(1, points.length - 1);
+    chartXDenom = overnightDot
+      ? Math.max(1, points.length - 1) + overnightDot.gap
+      : Math.max(1, points.length - 1);
+    const denom = chartXDenom;
     xOfIdx = (i) => padL + (i / denom) * cW;
     const allP = points.map(p => p.close);
+    // Keep the trailing dot's price inside the y-range so it can't clip
+    // off the top/bottom when the overnight move ran past the bars.
+    if (overnightDot) allP.push(overnightDot.price);
     // PE / PS charts include the 3-year-average reference line in
     // the y-range so the dashed marker is always on-screen, even when
     // the current ratio has drifted far from the historical average.
@@ -1031,7 +1076,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     // and PerfChart. The SVG also has `touch-action: none` set so finger
     // drags don't fight the page scroller for ownership.
     const idx = pointerToDataIndex(
-      e, svgRef.current, { W, H, padL, padR, cW }, points.length,
+      e, svgRef.current, { W, H, padL, padR, cW, xDenom: chartXDenom }, points.length,
     );
     if (idx == null) return;
     pendingIdxRef.current = idx;
@@ -1145,8 +1190,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               rangeKey === 'PE' ? 'P/E' : rangeKey === 'PS' ? 'P/S' : 'Last'
             }</span>
             <span className="mono">{
-              lastClose != null
-                ? (isRatioRange ? lastClose.toFixed(2) : fmtTickerPrice(lastClose, ticker, sym))
+              headerPrice != null
+                ? (isRatioRange ? headerPrice.toFixed(2) : fmtTickerPrice(headerPrice, ticker, sym))
                 : '—'
             }</span>
             <span className="mono" style={{ color: pcC(pctNow) }}>{fmP(pctNow)}</span>
@@ -1372,11 +1417,29 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               {/* Price path */}
               <path d={path} fill="none" stroke={lineColor} strokeWidth="1.6"
                     strokeLinejoin="round" strokeLinecap="round" />
-              {/* End-of-line dot */}
+              {/* End-of-line dot — sits on the last REAL bar (left of the
+                  overnight gap when the night dot is active). */}
               {points.length > 0 && (() => {
                 const last = points[points.length - 1];
                 return <circle cx={xOfIdx(points.length - 1).toFixed(1)} cy={yOf(last.close).toFixed(1)}
                                r="3" fill={lineColor} stroke="#0c1310" strokeWidth="1.5" />;
+              })()}
+              {/* Overnight live dot — the T212 "night market" price as a
+                  pulsing heartbeat at the far-right (true-time) position,
+                  UNCONNECTED to the price line. Only rendered during the
+                  overnight session with ext on (overnightDot != null). */}
+              {overnightDot && (() => {
+                const dx = (W - padR).toFixed(1);            // = xOfIdx(chartXDenom), far right
+                const dy = yOf(overnightDot.price).toFixed(1);
+                return (
+                  <g>
+                    <circle cx={dx} cy={dy} r="3.5" fill="none" stroke={lineColor} strokeWidth="1.2" opacity="0.7">
+                      <animate attributeName="r" values="3.5;9;3.5" dur="1.6s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" values="0.7;0;0.7" dur="1.6s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx={dx} cy={dy} r="3" fill={lineColor} stroke="#0c1310" strokeWidth="1.2" />
+                  </g>
+                );
               })()}
               {/* Hover crosshair — rendered once with refs, hidden by
                   default. handleMove updates these elements directly via
