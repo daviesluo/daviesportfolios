@@ -5,7 +5,7 @@
 // chart now fails CI before deploy.
 
 import { describe, expect, it } from 'vitest';
-import { pointerToDataIndex, pointsToSvgPath } from './chart_geometry.js';
+import { pointerToDataIndex, pointsToSvgPath, overnightTrailingGap } from './chart_geometry.js';
 
 // Fake an SVG element with just the surface the helper touches.
 function fakeSvg(rect) {
@@ -128,5 +128,55 @@ describe('pointsToSvgPath', () => {
     const pts = ['a', 'b', 'c'];
     const out = pointsToSvgPath(pts, (_p, i) => i * 10, () => 0);
     expect(out).toBe('M0.0,0.0L10.0,0.0L20.0,0.0');
+  });
+});
+
+describe('pointerToDataIndex — xDenom override (overnight gap view)', () => {
+  const svg = fakeSvg({ left: 0, width: 100, height: 60 });
+
+  it('with xDenom, bars compress left — the same clientX maps to a larger index', () => {
+    // 10 bars (indices 0..9). Without xDenom, x=50 → frac 0.5 → index 5.
+    // With xDenom=19 (gap of 10 reserved on the right), x=50 → 0.5*19 ≈ 9.5
+    // → rounds to 9 then clamps to last bar (9). The far-right region is
+    // the reserved gap → the trailing dot, never a bar.
+    const geom = { ...GEOM_DEFAULT, xDenom: 19 };
+    expect(pointerToDataIndex({ clientX: 50 }, svg, geom, 10)).toBe(9);
+  });
+
+  it('with xDenom, an early-x cursor still reaches the low bars', () => {
+    // x=18 → frac (18-10)/80 = 0.1 → 0.1*19 = 1.9 → round 2.
+    const geom = { ...GEOM_DEFAULT, xDenom: 19 };
+    expect(pointerToDataIndex({ clientX: 18 }, svg, geom, 10)).toBe(2);
+  });
+
+  it('cursor dragged into the reserved gap clamps to the last real bar', () => {
+    const geom = { ...GEOM_DEFAULT, xDenom: 19 };
+    expect(pointerToDataIndex({ clientX: 95 }, svg, geom, 10)).toBe(9);
+  });
+
+  it('xDenom omitted → behaves exactly as dataLength-1 (back-compat)', () => {
+    expect(pointerToDataIndex({ clientX: 50 }, svg, GEOM_DEFAULT, 10)).toBe(5);
+  });
+});
+
+describe('overnightTrailingGap', () => {
+  const BAR = 5 * 60_000; // 5 m
+
+  it('returns elapsed time in bar-interval units', () => {
+    const last = 1_000_000_000_000;
+    expect(overnightTrailingGap(last, last + 6 * BAR, BAR)).toBe(6);
+    expect(overnightTrailingGap(last, last + 0.5 * BAR, BAR)).toBe(0.5);
+  });
+
+  it('clamps negative (now before last bar — clock skew) to 0', () => {
+    const last = 1_000_000_000_000;
+    expect(overnightTrailingGap(last, last - 10 * BAR, BAR)).toBe(0);
+  });
+
+  it('non-finite / non-positive inputs → 0', () => {
+    expect(overnightTrailingGap(NaN, 1, BAR)).toBe(0);
+    expect(overnightTrailingGap(1, NaN, BAR)).toBe(0);
+    expect(overnightTrailingGap(1, 2, 0)).toBe(0);
+    expect(overnightTrailingGap(1, 2, -5)).toBe(0);
   });
 });
