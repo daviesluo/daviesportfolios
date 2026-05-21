@@ -343,6 +343,29 @@ export function computeAt(opts) {
       basis += lot.shares * basisPrice * fx;
     }
   }
+
+  // Cash (isCash holdings) — a constant balance that doesn't move with
+  // the market. The header's DAY CHANGE % counts cash in its
+  // denominator (computeMetrics: marketValue includes cash, so
+  // dayPct = dayChange / yesterday's TOTAL incl. cash), so the chart's
+  // PORTFOLIO line must too. Without it the line showed the
+  // invested-only return and overstated the move whenever the book
+  // holds meaningful cash — e.g. chart +4.27 % vs scoreboard +2.32 %.
+  // Added to BOTH value and basis at every point: cash contributes
+  // equally to numerator and denominator, diluting the % toward the
+  // true account return. Mirrors computeMetrics' cash handling
+  // (mv = lastPrice, treated USD) so the 1D live point matches the
+  // scoreboard exactly during regular hours. Historical points use the
+  // current balance as a constant (we don't track past cash balances)
+  // — exact intraday for 1D, a reasonable held-constant approximation
+  // for the longer ranges.
+  let cashUSD = 0;
+  for (const [ticker, h] of Object.entries(portfolio.holdings)) {
+    if (!(h.isCash || ticker === 'CASH')) continue;
+    if (typeof h.lastPrice === 'number' && h.lastPrice > 0) cashUSD += h.lastPrice;
+  }
+  value += cashUSD;
+  basis += cashUSD;
   return { value, basis };
 }
 
