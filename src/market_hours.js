@@ -20,10 +20,10 @@ export function londonTimeParts(now = new Date()) {
   return parts;
 }
 
-// US market phase, based on NY local time.
-// RTH: 09:30–16:00, Premarket: 04:00–09:30, Afterhours: 16:00–20:00, Overnight: 20:00–04:00.
-// Weekends → overnight.
-export function usMarketPhase(now = new Date()) {
+// Hour / minute / weekday in America/New_York. Shared by usMarketPhase
+// + isWeekendDeadZone so both read the exact same ET clock (and DST is
+// resolved by Intl). `wd` is the en-US short weekday ("Mon"…"Sun").
+function etHourMinuteWeekday(now) {
   const fmt = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
     hour: "2-digit", minute: "2-digit", weekday: "short", hour12: false,
@@ -34,12 +34,37 @@ export function usMarketPhase(now = new Date()) {
     if (p.type === "minute")  mm = parseInt(p.value, 10);
     if (p.type === "weekday") wd = p.value;
   }
+  return { hh, mm, wd };
+}
+
+// US market phase, based on NY local time.
+// RTH: 09:30–16:00, Premarket: 04:00–09:30, Afterhours: 16:00–20:00, Overnight: 20:00–04:00.
+// Weekends → overnight.
+export function usMarketPhase(now = new Date()) {
+  const { hh, mm, wd } = etHourMinuteWeekday(now);
   const mins = hh * 60 + mm;
   if (wd === "Sat" || wd === "Sun") return "overnight";
   if (mins >= 570 && mins < 960) return "regular";      // 9:30–16:00
   if (mins >= 240 && mins < 570) return "premarket";    // 4:00–9:30
   if (mins >= 960 && mins < 1200) return "afterhours";  // 16:00–20:00
   return "overnight";                                     // 20:00–4:00
+}
+
+// "Weekend dead zone" — Friday after-hours close (20:00 ET) through
+// Sunday's overnight reopen (20:00 ET). US equities, including the
+// 24/5 overnight session, don't trade in this window, so the T212
+// overnight quote can't move and there's nothing fresh to pull. The
+// auto-refresh stays slow (5 min) here while weekday overnights run
+// the fast 30 s cadence that keeps live overnight prices current.
+// Boundaries line up with the overnight session: Fri 20:00 ET in,
+// Sun 20:00 ET out.
+export function isWeekendDeadZone(now = new Date()) {
+  const { hh, mm, wd } = etHourMinuteWeekday(now);
+  const mins = hh * 60 + mm;
+  if (wd === "Sat") return true;
+  if (wd === "Fri") return mins >= 1200;  // 20:00 ET onward
+  if (wd === "Sun") return mins < 1200;   // before 20:00 ET
+  return false;
 }
 
 // UK time-zone short name ('GMT' or 'BST') for the given moment.

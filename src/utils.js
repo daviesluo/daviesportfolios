@@ -23,6 +23,7 @@ export {
   ukTzAbbr,
   usMarketHoursUtc,
   lseIsOpen,
+  isWeekendDeadZone,
 } from './market_hours.js';
 
 // -------- Currency / FX --------------------------------------------
