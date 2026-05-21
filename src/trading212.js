@@ -29,12 +29,15 @@ import { getAppToken } from './auth.js';
  * failure (network, non-2xx, malformed JSON, T212 disabled). `cost`
  * is per-share AC (the same convention as `lot.cost` / `h.cost`
  * elsewhere in the app — multiplied by shares to get total cost).
+ * `price` (optional) is T212's live `currentPrice` for the ticker in
+ * the same USD settle currency — present only when the Edge Function
+ * got a positive quote; absent → caller keeps the Yahoo price.
  *
  * Sends the same `x-app-token` the `data` function uses — the T212
  * function 401s anonymous callers so holdings aren't leaked via
  * the function URL. Both admin and ro tokens are accepted.
  *
- * @returns {Promise<Record<string, { shares: number, cost: number }> | null>}
+ * @returns {Promise<Record<string, { shares: number, cost: number, price?: number }> | null>}
  */
 export async function fetchTrading212Holdings() {
   try {
@@ -56,15 +59,19 @@ export async function fetchTrading212Holdings() {
     if (json.source === 'disabled') return null;
     const h = json.holdings;
     if (!h || typeof h !== 'object') return null;
-    const out = /** @type {Record<string, { shares: number, cost: number }>} */ ({});
+    const out = /** @type {Record<string, { shares: number, cost: number, price?: number }>} */ ({});
     for (const [t, row] of Object.entries(h)) {
       if (!row || typeof row !== 'object') continue;
-      const r = /** @type {{shares?: unknown, cost?: unknown}} */ (row);
+      const r = /** @type {{shares?: unknown, cost?: unknown, price?: unknown}} */ (row);
       const shares = Number(r.shares);
       const cost   = Number(r.cost);
       if (!isFinite(shares) || shares <= 0) continue;
       if (!isFinite(cost)   || cost   < 0)  continue;
-      out[t] = { shares, cost };
+      /** @type {{ shares: number, cost: number, price?: number }} */
+      const entry = { shares, cost };
+      const price = Number(r.price);
+      if (isFinite(price) && price > 0) entry.price = price;
+      out[t] = entry;
     }
     return out;
   } catch {
@@ -77,11 +84,19 @@ export async function fetchTrading212Holdings() {
  * replacing each matching ticker's lots with a single synthetic lot
  * dated today. Mutates `holdings` in place and returns it.
  *
+ * When a T212 row carries a `price` (the broker's live `currentPrice`)
+ * it also overrides the ticker's `lastPrice` with it and recomputes
+ * `dayPct` against the holding's existing `prevClose` (Yahoo's last
+ * close — T212 doesn't report a previous close). Call this AFTER the
+ * Yahoo price merge in doRefresh so `prevClose` is already populated.
+ * No `price` on the row → lastPrice / dayPct left untouched (Yahoo
+ * stays the source for that ticker).
+ *
  * Pure-ish (Date.now-dependent for the date stamp), exported so the
  * vitest pin can assert the merge shape without spinning up React.
  *
  * @param {Record<string, any>} holdings           live portfolio map (mutated)
- * @param {Record<string, { shares: number, cost: number }> | null} t212  result of fetchTrading212Holdings
+ * @param {Record<string, { shares: number, cost: number, price?: number }> | null} t212  result of fetchTrading212Holdings
  * @param {string} [today]                          ISO date (YYYY-MM-DD) — defaults to today UTC
  * @returns {Record<string, any>}
  */
@@ -90,12 +105,20 @@ export function applyTrading212(holdings, t212, today) {
   const date = today || new Date().toISOString().slice(0, 10);
   for (const [t, row] of Object.entries(t212)) {
     if (!holdings[t]) continue;
-    holdings[t] = {
+    const next = {
       ...holdings[t],
       lots: [{ date, shares: row.shares, cost: row.cost }],
       shares: row.shares,
       cost: row.cost,
     };
+    if (typeof row.price === 'number' && row.price > 0) {
+      next.lastPrice = row.price;
+      const prevClose = holdings[t].prevClose;
+      if (typeof prevClose === 'number' && prevClose > 0) {
+        next.dayPct = ((row.price - prevClose) / prevClose) * 100;
+      }
+    }
+    holdings[t] = next;
   }
   return holdings;
 }

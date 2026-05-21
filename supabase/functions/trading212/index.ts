@@ -11,7 +11,7 @@
 // into the EditTickerModal.
 //
 //   GET /functions/v1/trading212
-//     →  { holdings: { 'VUAA.L': { shares, cost }, 'SAEM.L': { ... } },
+//     →  { holdings: { 'VUAA.L': { shares, cost, price? }, 'SAEM.L': { ... } },
 //          updatedAt: ISO-string,
 //          source: 'cache' | 'live' | 'stale' | 'disabled' }
 //
@@ -21,11 +21,16 @@
 // SAEM.L (both USD-denominated UCITS ETFs on LSE) that's USD, NOT
 // the GBp/pence figure Yahoo's quote feed uses for the GBP-side
 // LSE listings. So this function passes `averagePrice` through
-// unchanged. `shares` is T212's `quantity`. The shape folds into
+// unchanged. `shares` is T212's `quantity`. `price` is T212's
+// `currentPrice` from the SAME portfolio row (no extra API call) —
+// the broker's own live quote in the same USD settle currency,
+// which the client uses as the live price for these two tickers
+// (day % computed against Yahoo's prevClose, since T212 doesn't
+// report a previous close). The shape folds into
 // `holding.lots = [{ date: today, shares, cost }]` — a single
-// synthetic lot replacing whatever was there. lot.cost / h.cost is
-// per-share AC everywhere in the app; metrics.js multiplies
-// `h.shares * h.cost` for total cost.
+// synthetic lot replacing whatever was there — plus `lastPrice` from
+// `price`. lot.cost / h.cost is per-share AC everywhere in the app;
+// metrics.js multiplies `h.shares * h.cost` for total cost.
 //
 // All visitors call this on every doRefresh, so the response is
 // cached server-side at `public.trading212_cache` for 120 s. T212's
@@ -68,7 +73,15 @@ const T212_TO_YAHOO: Record<string, string> = {
   "SAEMl_EQ": "SAEM.L",
 };
 
-const CACHE_TTL_MS = 120_000;       // 120 s: 4× T212's 1-req-per-30-s window
+// 30 s so the synced price + holdings refresh in lockstep with the
+// app's regular-hours auto-refresh tick. The atomic claim
+// (`try_claim_t212_refresh`, gated on this same TTL) guarantees at
+// most ONE upstream T212 call per 30 s window across all devices, so
+// even at a 30 s TTL we stay within T212's documented 1-req-per-30-s
+// limit on /equity/portfolio. (Was 120 s when this only carried
+// shares/cost, which change rarely; now it also carries the live
+// `currentPrice` so it needs to keep pace with price refreshes.)
+const CACHE_TTL_MS = 30_000;
 const STALE_OK_MS  = 5 * 60_000;    // serve stale up to 5 min on upstream error
 
 const SB_URL      = Deno.env.get("SUPABASE_URL") ?? "";
@@ -138,20 +151,21 @@ export async function verifyToken(
 
 /**
  * Pick out the allow-listed tickers from a raw T212 `/equity/portfolio`
- * response and normalize each row into the `{ shares, cost }` shape
- * the client expects. `averagePrice` is taken verbatim — for the
+ * response and normalize each row into the `{ shares, cost, price? }`
+ * shape the client expects. `averagePrice` is taken verbatim — for the
  * VUAA.L / SAEM.L allow-list (LSE-listed USD-denominated UCITS ETFs)
  * T212 reports `averagePrice` in USD, not pence. `cost` is per-share
  * AC (the value the lot editor / computeMetrics multiply by `shares`
- * to get position-level cost).
+ * to get position-level cost). `price` mirrors T212's `currentPrice`
+ * (same USD settle currency) when present + positive, omitted otherwise.
  *
  * Pure function so `index.test.ts` can pin the conversion math +
  * ticker filtering without needing the network.
  */
 export function shapeT212Portfolio(
   positions: unknown,
-): Record<string, { shares: number; cost: number }> {
-  const out: Record<string, { shares: number; cost: number }> = {};
+): Record<string, { shares: number; cost: number; price?: number }> {
+  const out: Record<string, { shares: number; cost: number; price?: number }> = {};
   if (!Array.isArray(positions)) return out;
   for (const p of positions) {
     if (!p || typeof p !== "object") continue;
@@ -163,10 +177,22 @@ export function shapeT212Portfolio(
     const averagePrice = Number((p as { averagePrice?: unknown }).averagePrice);
     if (!isFinite(quantity) || quantity <= 0) continue;
     if (!isFinite(averagePrice) || averagePrice <= 0) continue;
-    out[yahooTicker] = {
+    const row: { shares: number; cost: number; price?: number } = {
       shares: quantity,
       cost: averagePrice,
     };
+    // `currentPrice` is the live market price T212 reports in the SAME
+    // /equity/portfolio row — no extra API call needed. Surfaced as
+    // `price` so the client can use the broker's own quote for these
+    // two LSE ETFs (in USD, the instruments' settle currency, same as
+    // averagePrice). Optional: dropped when T212 omits it or sends a
+    // non-positive value, in which case the client falls back to the
+    // Yahoo price for that ticker.
+    const currentPrice = Number((p as { currentPrice?: unknown }).currentPrice);
+    if (isFinite(currentPrice) && currentPrice > 0) {
+      row.price = currentPrice;
+    }
+    out[yahooTicker] = row;
   }
   return out;
 }
