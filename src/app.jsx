@@ -436,12 +436,14 @@ function Board({ isReadOnly }) {
         ? fetchHistoricalBatch(extHoldingTickers, "1d", "5m", true).catch(() => ({}))
         : Promise.resolve({}),
       // Trading 212 auto-sync for VUAA.L / SAEM.L. Server-cached at
-      // 120 s (4× T212's 1-req-per-30-s window) and gated by an
-      // atomic Postgres claim so multi-device refreshes share a
-      // single upstream call. Returns null when the API key/secret
-      // aren't configured or the upstream errored — applyTrading212
-      // no-ops in that case and we keep whatever lots the user last
-      // saved manually.
+      // 30 s (in lockstep with the regular-hours auto-refresh) and
+      // gated by an atomic Postgres claim so multi-device refreshes
+      // share a single upstream call — at most one T212 hit per 30 s
+      // window, within T212's 1-req-per-30-s limit. Carries shares /
+      // cost AND the broker's live `currentPrice`. Returns null when
+      // the API key/secret aren't configured or the upstream errored —
+      // applyTrading212 no-ops in that case and we keep whatever the
+      // user last saved manually + the Yahoo price.
       fetchTrading212Holdings(),
     ]);
     if (mcResult) {
@@ -516,13 +518,15 @@ function Board({ isReadOnly }) {
         setFlashTickers(flashes);
         setTimeout(() => setFlashTickers({}), 1200);
       }
-      // Trading 212 auto-sync overlay — runs after the live-prices
-      // merge so the price/extPrice fields above stay the source of
-      // truth for the LIVE market data, and the T212 sync only
-      // touches `lots` / `shares` / `cost` on the allow-listed
-      // tickers (VUAA.L, SAEM.L). When the API key isn't set or
-      // the upstream errored, applyTrading212 is a no-op and the
-      // user's last-saved local lots stay put.
+      // Trading 212 auto-sync overlay — runs AFTER the live-prices
+      // merge on purpose: it reads the prevClose Yahoo just set to
+      // recompute dayPct, and overrides lastPrice with T212's live
+      // `currentPrice` for the allow-listed tickers (VUAA.L, SAEM.L)
+      // so the broker's own quote wins for those two. It also syncs
+      // `lots` / `shares` / `cost`. extPrice/extDayPct are left as the
+      // Yahoo merge set them (null for LSE tickers). When the API key
+      // isn't set or the upstream errored, applyTrading212 is a no-op
+      // and the user's last-saved lots + the Yahoo price stay put.
       applyTrading212(next.holdings, t212Holdings);
       return next;
     });
