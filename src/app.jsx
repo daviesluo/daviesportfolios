@@ -33,7 +33,7 @@ import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
-import { fetchTrading212Holdings, applyTrading212 } from './trading212.js';
+import { fetchTrading212Holdings, applyTrading212, applyTrading212NightPrice } from './trading212.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
 class ErrorBoundary extends React.Component {
@@ -435,15 +435,14 @@ function Board({ isReadOnly }) {
       extHoldingTickers.length > 0
         ? fetchHistoricalBatch(extHoldingTickers, "1d", "5m", true).catch(() => ({}))
         : Promise.resolve({}),
-      // Trading 212 auto-sync for VUAA.L / SAEM.L. Server-cached at
-      // 30 s (in lockstep with the regular-hours auto-refresh) and
-      // gated by an atomic Postgres claim so multi-device refreshes
-      // share a single upstream call — at most one T212 hit per 30 s
-      // window, within T212's 1-req-per-30-s limit. Carries shares /
-      // cost AND the broker's live `currentPrice`. Returns null when
-      // the API key/secret aren't configured or the upstream errored —
-      // applyTrading212 no-ops in that case and we keep whatever the
-      // user last saved manually + the Yahoo price.
+      // Trading 212 sync. Server-cached at 30 s (in lockstep with the
+      // regular-hours auto-refresh) and gated by an atomic Postgres
+      // claim so multi-device refreshes share a single upstream call —
+      // at most one T212 hit per 30 s window, within T212's
+      // 1-req-per-30-s limit. Returns `{ holdings, prices }` (or null
+      // when the key/secret aren't configured / upstream errored):
+      // `holdings` drives the VUAA.L / SAEM.L shares-cost auto-sync,
+      // `prices` feeds the overnight US-equity quote overlay below.
       fetchTrading212Holdings(),
     ]);
     if (mcResult) {
@@ -518,16 +517,21 @@ function Board({ isReadOnly }) {
         setFlashTickers(flashes);
         setTimeout(() => setFlashTickers({}), 1200);
       }
-      // Trading 212 auto-sync overlay — runs AFTER the live-prices
-      // merge on purpose: it reads the prevClose Yahoo just set to
-      // recompute dayPct, and overrides lastPrice with T212's live
-      // `currentPrice` for the allow-listed tickers (VUAA.L, SAEM.L)
-      // so the broker's own quote wins for those two. It also syncs
-      // `lots` / `shares` / `cost`. extPrice/extDayPct are left as the
-      // Yahoo merge set them (null for LSE tickers). When the API key
-      // isn't set or the upstream errored, applyTrading212 is a no-op
-      // and the user's last-saved lots + the Yahoo price stay put.
-      applyTrading212(next.holdings, t212Holdings);
+      // Trading 212 overlays — both run AFTER the live-prices merge so
+      // they see the Yahoo lastPrice/prevClose just set.
+      //   1. Holdings auto-sync: shares/cost/lots for the allow-list
+      //      ETFs (VUAA.L, SAEM.L). Price untouched — these LSE ETFs
+      //      keep the Yahoo quote.
+      //   2. Overnight price: only during the overnight window
+      //      (20:00–04:00 ET) with the Extended Hours toggle on, swap
+      //      in T212's `currentPrice` as the extended-hours quote for
+      //      any US equity the user also holds in T212. Regular / pre /
+      //      after-hours keep the original Yahoo logic untouched.
+      // When the API key isn't set or the upstream errored,
+      // t212Holdings is null → both calls no-op.
+      applyTrading212(next.holdings, t212Holdings?.holdings);
+      const nightActive = extendedHours && refreshPhase === 'overnight';
+      applyTrading212NightPrice(next.holdings, t212Holdings?.prices, nightActive);
       return next;
     });
     setLastUpdated(new Date());

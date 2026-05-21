@@ -14,6 +14,8 @@
 import { assert, assertEquals } from "https://deno.land/std@0.218.0/assert/mod.ts";
 import {
   shapeT212Portfolio,
+  t212TickerToYahoo,
+  unpackCache,
   cacheIsFresh,
   basicAuthHeader,
   b64url,
@@ -22,75 +24,77 @@ import {
   constantTimeEqual,
 } from "./index.ts";
 
-Deno.test("shapeT212Portfolio — VUAAl_EQ / SAEMl_EQ map to Yahoo tickers; cost is per-share USD", () => {
+Deno.test("t212TickerToYahoo — allow-list, generic US, generic LSE, unknown", () => {
+  assertEquals(t212TickerToYahoo("VUAAl_EQ"), "VUAA.L");   // allow-list
+  assertEquals(t212TickerToYahoo("SAEMl_EQ"), "SAEM.L");   // allow-list
+  assertEquals(t212TickerToYahoo("AAPL_US_EQ"), "AAPL");   // generic US
+  assertEquals(t212TickerToYahoo("HOOD_US_EQ"), "HOOD");   // generic US
+  assertEquals(t212TickerToYahoo("TSCOl_EQ"), "TSCO.L");   // generic LSE
+  assertEquals(t212TickerToYahoo("SOMEd_DE_EQ"), null);    // other exchange → null
+  assertEquals(t212TickerToYahoo(""), null);
+});
+
+Deno.test("shapeT212Portfolio — holdings = allow-list shares/cost (USD per share)", () => {
   // T212's averagePrice for VUAA.L / SAEM.L is USD per share — these
   // are USD-denominated UCITS ETFs on LSE and T212 reports in the
-  // instrument's settle currency. The Edge Function passes
-  // averagePrice through unchanged; lot.cost / h.cost is per-share
-  // AC everywhere in the app (metrics.js multiplies h.shares * h.cost
-  // for total cost; weightedAvgCost does shares * cost).
+  // instrument's settle currency. cost is per-share AC everywhere
+  // (metrics.js multiplies h.shares * h.cost for total cost).
   const raw = [
-    { ticker: "VUAAl_EQ", quantity: 12.5, averagePrice: 96.00 },
-    { ticker: "SAEMl_EQ", quantity: 30,   averagePrice: 12.345 },
+    { ticker: "VUAAl_EQ", quantity: 12.5, averagePrice: 96.00, currentPrice: 98 },
+    { ticker: "SAEMl_EQ", quantity: 30,   averagePrice: 12.345, currentPrice: 13 },
   ];
-  const out = shapeT212Portfolio(raw);
-  assertEquals(out["VUAA.L"].shares, 12.5);
-  assertEquals(out["VUAA.L"].cost, 96.00);
-  assertEquals(out["SAEM.L"].shares, 30);
-  assertEquals(out["SAEM.L"].cost, 12.345);
+  const { holdings } = shapeT212Portfolio(raw);
+  assertEquals(holdings["VUAA.L"], { shares: 12.5, cost: 96.00 });
+  assertEquals(holdings["SAEM.L"], { shares: 30, cost: 12.345 });
+  // No `price` key on holdings — price lives in the separate map now.
+  assertEquals("price" in holdings["VUAA.L"], false);
 });
 
-Deno.test("shapeT212Portfolio — currentPrice surfaces as `price` (broker's live quote)", () => {
+Deno.test("shapeT212Portfolio — prices = EVERY recognised holding's currentPrice (generic map)", () => {
   const raw = [
     { ticker: "VUAAl_EQ", quantity: 12.5, averagePrice: 96.00, currentPrice: 98.42 },
-    { ticker: "SAEMl_EQ", quantity: 30,   averagePrice: 12.345, currentPrice: 12.90 },
+    { ticker: "AAPL_US_EQ", quantity: 3, averagePrice: 200, currentPrice: 234.5 },
+    { ticker: "HOOD_US_EQ", quantity: 9, averagePrice: 30, currentPrice: 0 },   // non-positive → no price
   ];
-  const out = shapeT212Portfolio(raw);
-  assertEquals(out["VUAA.L"].price, 98.42);
-  assertEquals(out["SAEM.L"].price, 12.90);
+  const { holdings, prices } = shapeT212Portfolio(raw);
+  // Price map carries the allow-list ETF AND the US stock.
+  assertEquals(prices["VUAA.L"], 98.42);
+  assertEquals(prices["AAPL"], 234.5);
+  assertEquals("HOOD" in prices, false);  // 0 currentPrice dropped
+  // But holdings (shares/cost sync) is still allow-list only — AAPL is
+  // priced but NOT shares/cost-synced.
+  assertEquals(Object.keys(holdings), ["VUAA.L"]);
+  assertEquals("AAPL" in holdings, false);
 });
 
-Deno.test("shapeT212Portfolio — missing / non-positive currentPrice → `price` omitted (client falls back to Yahoo)", () => {
+Deno.test("shapeT212Portfolio — non-positive quantity / averagePrice drop the allow-list holding (price may still surface)", () => {
   const raw = [
-    { ticker: "VUAAl_EQ", quantity: 5, averagePrice: 90 },                     // no currentPrice
-    { ticker: "SAEMl_EQ", quantity: 5, averagePrice: 10, currentPrice: 0 },    // non-positive
+    { ticker: "VUAAl_EQ", quantity: 0,   averagePrice: 96, currentPrice: 98 },
+    { ticker: "VUAAl_EQ", quantity: 10,  averagePrice: 0,  currentPrice: 98 },
   ];
-  const out = shapeT212Portfolio(raw);
-  assertEquals(out["VUAA.L"].shares, 5);
-  assertEquals("price" in out["VUAA.L"], false);
-  assertEquals("price" in out["SAEM.L"], false);
+  const { holdings, prices } = shapeT212Portfolio(raw);
+  assertEquals(holdings, {});         // no valid shares/cost
+  assertEquals(prices["VUAA.L"], 98); // price still recognised
 });
 
-Deno.test("shapeT212Portfolio — non-allowlisted tickers are dropped", () => {
-  const raw = [
-    { ticker: "AAPL_US_EQ", quantity: 10, averagePrice: 150 },
-    { ticker: "VUAAl_EQ", quantity: 5,    averagePrice: 90.00 },
-  ];
-  const out = shapeT212Portfolio(raw);
-  assert(!("AAPL" in out));
-  assert(!("AAPL_US_EQ" in out));
-  assertEquals(Object.keys(out), ["VUAA.L"]);
+Deno.test("shapeT212Portfolio — malformed input returns empty maps (not throws)", () => {
+  assertEquals(shapeT212Portfolio(null), { holdings: {}, prices: {} });
+  assertEquals(shapeT212Portfolio(undefined), { holdings: {}, prices: {} });
+  assertEquals(shapeT212Portfolio({}), { holdings: {}, prices: {} });
+  assertEquals(shapeT212Portfolio("nope"), { holdings: {}, prices: {} });
+  assertEquals(shapeT212Portfolio([null, undefined, "x", 42]), { holdings: {}, prices: {} });
+  assertEquals(shapeT212Portfolio([{ ticker: 42 }, { quantity: 5 }]), { holdings: {}, prices: {} });
 });
 
-Deno.test("shapeT212Portfolio — non-positive quantity / averagePrice are dropped", () => {
-  const raw = [
-    { ticker: "VUAAl_EQ", quantity: 0,   averagePrice: 96 },
-    { ticker: "VUAAl_EQ", quantity: -1,  averagePrice: 96 },
-    { ticker: "VUAAl_EQ", quantity: 10,  averagePrice: 0 },
-    { ticker: "VUAAl_EQ", quantity: 10,  averagePrice: -50 },
-    { ticker: "VUAAl_EQ", quantity: NaN, averagePrice: 96 },
-  ];
-  const out = shapeT212Portfolio(raw);
-  assertEquals(out, {});
+Deno.test("unpackCache — new {holdings, prices} shape passes through", () => {
+  const data = { holdings: { "VUAA.L": { shares: 1, cost: 90 } }, prices: { "AAPL": 234 } };
+  assertEquals(unpackCache(data), data);
 });
 
-Deno.test("shapeT212Portfolio — malformed input returns empty map (not throws)", () => {
-  assertEquals(shapeT212Portfolio(null), {});
-  assertEquals(shapeT212Portfolio(undefined), {});
-  assertEquals(shapeT212Portfolio({}), {});
-  assertEquals(shapeT212Portfolio("nope"), {});
-  assertEquals(shapeT212Portfolio([null, undefined, "x", 42]), {});
-  assertEquals(shapeT212Portfolio([{ ticker: 42 }, { quantity: 5 }]), {});
+Deno.test("unpackCache — legacy holdings-map shape is treated as holdings with empty prices", () => {
+  // Pre-this-version cache rows stored the holdings map directly.
+  const legacy = { "VUAA.L": { shares: 1, cost: 90 } };
+  assertEquals(unpackCache(legacy), { holdings: legacy, prices: {} });
 });
 
 Deno.test("cacheIsFresh — within TTL is fresh", () => {

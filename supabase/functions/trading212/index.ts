@@ -11,26 +11,32 @@
 // into the EditTickerModal.
 //
 //   GET /functions/v1/trading212
-//     →  { holdings: { 'VUAA.L': { shares, cost, price? }, 'SAEM.L': { ... } },
+//     →  { holdings: { 'VUAA.L': { shares, cost }, 'SAEM.L': { ... } },
+//          prices:   { 'VUAA.L': 98.4, 'AAPL': 234.5, ... },
 //          updatedAt: ISO-string,
 //          source: 'cache' | 'live' | 'stale' | 'disabled' }
 //
-// `cost` is per-share average cost in the instrument's quote
-// currency. T212's `/equity/portfolio` reports `averagePrice` in the
-// account's settle currency for the instrument — for VUAA.L /
-// SAEM.L (both USD-denominated UCITS ETFs on LSE) that's USD, NOT
-// the GBp/pence figure Yahoo's quote feed uses for the GBP-side
-// LSE listings. So this function passes `averagePrice` through
-// unchanged. `shares` is T212's `quantity`. `price` is T212's
-// `currentPrice` from the SAME portfolio row (no extra API call) —
-// the broker's own live quote in the same USD settle currency,
-// which the client uses as the live price for these two tickers
-// (day % computed against Yahoo's prevClose, since T212 doesn't
-// report a previous close). The shape folds into
-// `holding.lots = [{ date: today, shares, cost }]` — a single
-// synthetic lot replacing whatever was there — plus `lastPrice` from
-// `price`. lot.cost / h.cost is per-share AC everywhere in the app;
-// metrics.js multiplies `h.shares * h.cost` for total cost.
+// Two maps, two purposes:
+//
+//   `holdings` — the auto-sync ALLOW-LIST only (VUAA.L / SAEM.L). Each
+//     is `{ shares, cost }`; `cost` is per-share AC in the instrument's
+//     settle currency (USD — these are USD-denominated UCITS ETFs on
+//     LSE, so `averagePrice` passes through unchanged, NOT the GBp/pence
+//     Yahoo uses for GBP-side LSE listings). `shares` is T212's
+//     `quantity`. The client folds each into
+//     `holding.lots = [{ date: today, shares, cost }]` (a single
+//     synthetic lot) + sets shares/cost. lot.cost / h.cost is per-share
+//     AC everywhere; metrics.js multiplies `h.shares * h.cost`.
+//
+//   `prices` — EVERY recognised T212 holding (generic ticker map, e.g.
+//     `AAPL_US_EQ → AAPL`), `ticker → currentPrice` (USD). The client
+//     uses these as overnight "night market" quotes: for a US equity it
+//     ALSO holds, during the overnight window (20:00–04:00 ET) with the
+//     Extended Hours toggle on, it shows T212's price instead of the
+//     stale Yahoo close. Regular / pre / post hours keep Yahoo. These
+//     never touch shares/cost — display only. The two DCA ETFs appear
+//     here too but the client ignores them (they're not US equities and
+//     have no overnight session).
 //
 // All visitors call this on every doRefresh, so the response is
 // cached server-side at `public.trading212_cache` for 120 s. T212's
@@ -62,16 +68,35 @@
 // `APP_AUTH_SECRET` env var (same value as the `auth` function).
 
 // Yahoo ticker → T212 internal ticker. The T212 convention for LSE is
-// `<TICKER>l_EQ` (lowercase 'l' exchange suffix + `_EQ`). The function
-// fetches the full portfolio and picks out just the entries in this
-// map; everything else is dropped. Both entries below are
-// USD-denominated UCITS ETFs on LSE — see fx.js TICKER_CURRENCY_OVERRIDES
-// for the corresponding client-side currency override that prevents
-// the suffix-based `detectCurrency` from mis-detecting them as GBP.
+// `<TICKER>l_EQ` (lowercase 'l' exchange suffix + `_EQ`). This explicit
+// map is the **holdings auto-sync allow-list** — only these tickers get
+// their shares/cost mirrored into the portfolio (the user's DCA ETFs).
+// Both entries are USD-denominated UCITS ETFs on LSE — see fx.js
+// TICKER_CURRENCY_OVERRIDES for the client-side currency override that
+// stops the suffix-based `detectCurrency` mis-detecting them as GBP.
 const T212_TO_YAHOO: Record<string, string> = {
   "VUAAl_EQ": "VUAA.L",
   "SAEMl_EQ": "SAEM.L",
 };
+
+// Generic T212-internal → Yahoo ticker mapping, used to build the
+// `prices` map for EVERY T212 holding (not just the allow-list above).
+// The client uses these as overnight ("night market") quotes for any
+// US equity it also holds — so a US stock the user buys in T212 picks
+// up the broker's overnight price automatically, no allow-list edit.
+//   AAPL_US_EQ → AAPL   (US: strip the _US_EQ suffix)
+//   VUAAl_EQ   → VUAA.L (LSE: lowercase-l suffix → .L)
+// Returns null for shapes we don't recognise (other exchanges) so they
+// simply don't get a price entry.
+export function t212TickerToYahoo(t212Ticker: string): string | null {
+  if (typeof t212Ticker !== "string" || !t212Ticker) return null;
+  if (T212_TO_YAHOO[t212Ticker]) return T212_TO_YAHOO[t212Ticker];
+  const us = t212Ticker.match(/^([A-Za-z]+)_US_EQ$/);
+  if (us) return us[1].toUpperCase();
+  const lse = t212Ticker.match(/^([A-Za-z]+)l_EQ$/);
+  if (lse) return lse[1].toUpperCase() + ".L";
+  return null;
+}
 
 // 30 s so the synced price + holdings refresh in lockstep with the
 // app's regular-hours auto-refresh tick. The atomic claim
@@ -150,51 +175,71 @@ export async function verifyToken(
 }
 
 /**
- * Pick out the allow-listed tickers from a raw T212 `/equity/portfolio`
- * response and normalize each row into the `{ shares, cost, price? }`
- * shape the client expects. `averagePrice` is taken verbatim — for the
- * VUAA.L / SAEM.L allow-list (LSE-listed USD-denominated UCITS ETFs)
- * T212 reports `averagePrice` in USD, not pence. `cost` is per-share
- * AC (the value the lot editor / computeMetrics multiply by `shares`
- * to get position-level cost). `price` mirrors T212's `currentPrice`
- * (same USD settle currency) when present + positive, omitted otherwise.
+ * Normalise a raw T212 `/equity/portfolio` response into two maps:
  *
- * Pure function so `index.test.ts` can pin the conversion math +
- * ticker filtering without needing the network.
+ *   - `holdings` — the **auto-sync allow-list** only (VUAA.L / SAEM.L):
+ *     `{ shares, cost }` per ticker. `averagePrice` is taken verbatim
+ *     (USD per share — these are USD-denominated UCITS, not pence).
+ *     `cost` is per-share AC; computeMetrics multiplies by `shares`.
+ *     This is what overwrites the portfolio's lots/shares/cost.
+ *
+ *   - `prices` — EVERY recognised T212 holding (generic ticker map):
+ *     `ticker → currentPrice` (USD). The client uses these as overnight
+ *     "night market" quotes for any US equity it also holds; they never
+ *     touch shares/cost, only the displayed price during the overnight
+ *     window. Non-positive / missing currentPrice → no entry.
+ *
+ * Pure function so `index.test.ts` can pin the mapping + filtering
+ * without needing the network.
  */
 export function shapeT212Portfolio(
   positions: unknown,
-): Record<string, { shares: number; cost: number; price?: number }> {
-  const out: Record<string, { shares: number; cost: number; price?: number }> = {};
-  if (!Array.isArray(positions)) return out;
+): {
+  holdings: Record<string, { shares: number; cost: number }>;
+  prices: Record<string, number>;
+} {
+  const holdings: Record<string, { shares: number; cost: number }> = {};
+  const prices: Record<string, number> = {};
+  if (!Array.isArray(positions)) return { holdings, prices };
   for (const p of positions) {
     if (!p || typeof p !== "object") continue;
     const t212Ticker = (p as { ticker?: unknown }).ticker;
     if (typeof t212Ticker !== "string") continue;
-    const yahooTicker = T212_TO_YAHOO[t212Ticker];
+    const yahooTicker = t212TickerToYahoo(t212Ticker);
     if (!yahooTicker) continue;
-    const quantity = Number((p as { quantity?: unknown }).quantity);
-    const averagePrice = Number((p as { averagePrice?: unknown }).averagePrice);
-    if (!isFinite(quantity) || quantity <= 0) continue;
-    if (!isFinite(averagePrice) || averagePrice <= 0) continue;
-    const row: { shares: number; cost: number; price?: number } = {
-      shares: quantity,
-      cost: averagePrice,
-    };
-    // `currentPrice` is the live market price T212 reports in the SAME
-    // /equity/portfolio row — no extra API call needed. Surfaced as
-    // `price` so the client can use the broker's own quote for these
-    // two LSE ETFs (in USD, the instruments' settle currency, same as
-    // averagePrice). Optional: dropped when T212 omits it or sends a
-    // non-positive value, in which case the client falls back to the
-    // Yahoo price for that ticker.
+
+    // Price map: every recognised holding with a positive currentPrice.
     const currentPrice = Number((p as { currentPrice?: unknown }).currentPrice);
     if (isFinite(currentPrice) && currentPrice > 0) {
-      row.price = currentPrice;
+      prices[yahooTicker] = currentPrice;
     }
-    out[yahooTicker] = row;
+
+    // Holdings (shares/cost) sync: allow-list only.
+    if (T212_TO_YAHOO[t212Ticker]) {
+      const quantity = Number((p as { quantity?: unknown }).quantity);
+      const averagePrice = Number((p as { averagePrice?: unknown }).averagePrice);
+      if (isFinite(quantity) && quantity > 0 && isFinite(averagePrice) && averagePrice > 0) {
+        holdings[yahooTicker] = { shares: quantity, cost: averagePrice };
+      }
+    }
   }
-  return out;
+  return { holdings, prices };
+}
+
+/**
+ * Cache-shape compat unpacker. The cached `data` is `{ holdings, prices }`
+ * since this version; older rows stored the holdings map directly. Treat
+ * a row without a `holdings` key as the legacy shape so a deploy doesn't
+ * blank the response between the migration and the first live refresh.
+ */
+export function unpackCache(
+  data: unknown,
+): { holdings: Record<string, unknown>; prices: Record<string, number> } {
+  if (data && typeof data === "object" && !Array.isArray(data) && "holdings" in (data as object)) {
+    const d = data as { holdings?: Record<string, unknown>; prices?: Record<string, number> };
+    return { holdings: d.holdings ?? {}, prices: d.prices ?? {} };
+  }
+  return { holdings: (data as Record<string, unknown>) ?? {}, prices: {} };
 }
 
 /**
@@ -418,6 +463,7 @@ if (import.meta.main) {
       if (!T212_API_KEY) {
         return new Response(JSON.stringify({
           holdings: {},
+          prices: {},
           updatedAt: new Date().toISOString(),
           source: "disabled",
         }), { headers: { ...CORS, "content-type": "application/json" } });
@@ -426,8 +472,10 @@ if (import.meta.main) {
       const now = Date.now();
       const cached = await readCacheRow();
       if (cached && cacheIsFresh(cached.updated_at, now, CACHE_TTL_MS)) {
+        const { holdings, prices } = unpackCache(cached.data);
         return new Response(JSON.stringify({
-          holdings: cached.data,
+          holdings,
+          prices,
           updatedAt: cached.updated_at,
           source: "cache",
         }), { headers: { ...CORS, "content-type": "application/json" } });
@@ -443,14 +491,17 @@ if (import.meta.main) {
         const refreshed = await readCacheRow();
         const row = refreshed || cached;
         if (row) {
+          const { holdings, prices } = unpackCache(row.data);
           return new Response(JSON.stringify({
-            holdings: row.data,
+            holdings,
+            prices,
             updatedAt: row.updated_at,
             source: "cache",
           }), { headers: { ...CORS, "content-type": "application/json" } });
         }
         return new Response(JSON.stringify({
           holdings: {},
+          prices: {},
           updatedAt: new Date().toISOString(),
           source: "stale",
         }), { headers: { ...CORS, "content-type": "application/json" } });
@@ -458,10 +509,11 @@ if (import.meta.main) {
 
       try {
         const raw = await fetchT212Portfolio();
-        const holdings = shapeT212Portfolio(raw);
-        await writeCacheRow(holdings);
+        const shaped = shapeT212Portfolio(raw);
+        await writeCacheRow(shaped);
         return new Response(JSON.stringify({
-          holdings,
+          holdings: shaped.holdings,
+          prices: shaped.prices,
           updatedAt: new Date().toISOString(),
           source: "live",
         }), { headers: { ...CORS, "content-type": "application/json" } });
@@ -472,14 +524,17 @@ if (import.meta.main) {
         // blank the lots out client-side.
         console.error("T212 upstream error:", e instanceof Error ? e.message : e);
         if (cached && cacheIsFresh(cached.updated_at, now, STALE_OK_MS)) {
+          const { holdings, prices } = unpackCache(cached.data);
           return new Response(JSON.stringify({
-            holdings: cached.data,
+            holdings,
+            prices,
             updatedAt: cached.updated_at,
             source: "stale",
           }), { headers: { ...CORS, "content-type": "application/json" } });
         }
         return new Response(JSON.stringify({
           holdings: {},
+          prices: {},
           updatedAt: new Date().toISOString(),
           source: "stale",
         }), { headers: { ...CORS, "content-type": "application/json" } });
