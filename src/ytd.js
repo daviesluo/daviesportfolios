@@ -267,7 +267,7 @@ export function lotsFor(h, yearStart) {
  *
  * @param {{
  *   date: string,
- *   portfolio: { holdings: Record<string, any> },
+ *   portfolio: { holdings: Record<string, any>, positions?: Record<string, { tickers?: string[] }> },
  *   tickerSeries: ReturnType<typeof buildTickerSeries>,
  *   marketData?: Record<string, { lastPrice?: number, extPrice?: number | null, prevClose?: number }>,
  *   yearStart: string,
@@ -298,8 +298,26 @@ export function computeAt(opts) {
   const anchorDay = (yearStartDate || '').slice(0, 10);
   let value = 0, basis = 0;
 
+  // Match the scoreboard's scope. computeMetrics iterates
+  // positions → tickers → holdings[t], so only holdings actually placed
+  // on the board count toward its DAY CHANGE / market value. A holding
+  // left in `holdings` but not referenced by any position (orphaned by
+  // an edit) would otherwise be summed by the chart but not the
+  // scoreboard, splitting the two numbers for reasons unrelated to the
+  // basis. Restrict to positioned tickers so the chart's PORTFOLIO line
+  // is computed over exactly the same set.
+  const positioned = new Set();
+  for (const pos of Object.values(portfolio.positions || {})) {
+    if (pos && Array.isArray(pos.tickers)) for (const t of pos.tickers) positioned.add(t);
+  }
+  // No positions at all (e.g. unit-test fixtures) → don't filter; count
+  // every holding. In production there are always positions, so the
+  // board-scope restriction below applies.
+  const scopeAll = positioned.size === 0;
+
   for (const [ticker, h] of Object.entries(portfolio.holdings)) {
     if (h.isCash || ticker === 'CASH') continue;
+    if (!scopeAll && !positioned.has(ticker)) continue; // orphaned holding — not on the board
     const lots = lotsFor(h, yearStart);
     const fx = (h.currency && h.currency !== 'USD') ? fxToUSD(h.currency, marketData) : 1;
     const ts = tickerSeries[ticker];
@@ -379,6 +397,7 @@ export function computeAt(opts) {
   let cashUSD = 0;
   for (const [ticker, h] of Object.entries(portfolio.holdings)) {
     if (!(h.isCash || ticker === 'CASH')) continue;
+    if (!scopeAll && !positioned.has(ticker)) continue; // same board-scope as above
     if (typeof h.lastPrice === 'number' && h.lastPrice > 0) cashUSD += h.lastPrice;
   }
   value += cashUSD;
