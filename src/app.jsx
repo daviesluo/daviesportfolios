@@ -63,15 +63,16 @@ class ErrorBoundary extends React.Component {
 }
 
 // 30 s during the trading day (regular session + pre / after-hours),
-// 5 min overnight + weekends. US exchanges are closed and there's
-// no fresh price activity to fetch during the slow window — going
-// every 30 s burned ~5,760 round-trips over a weekend with nothing
-// new to show, and ate Yahoo's per-IP soft rate-limit budget for
-// the rare crypto/FX move that actually does happen. Crypto and FX
-// trade 24/7 so a 5 min cadence still catches material moves
-// without spamming requests through dead hours.
+// Auto-refresh cadence — 30 s in EVERY phase, overnight included.
+// Overnight used to drop to 5 min (US exchanges closed, no fresh
+// price activity), but the T212 overnight-price feature needs the
+// 30 s cadence at night too so the broker's overnight quote for US
+// holdings stays live without a manual refresh. The T212 call itself
+// is still capped at ≤1 / 30 s by the Edge Function's cache + atomic
+// claim, so the tighter night cadence can't trip T212's rate limit;
+// the cost is more Yahoo price round-trips through the dead hours
+// (incl. weekends, which usMarketPhase classes as 'overnight').
 const REFRESH_MS = 30 * 1000;
-const REFRESH_MS_OVERNIGHT = 5 * 60 * 1000;
 
 // USDCNY=X is a hidden FX fetch used only for CNY→USD conversion of holdings
 // (not shown in the market-conditions column). GBPUSD=X doubles as both a
@@ -607,15 +608,13 @@ function Board({ isReadOnly }) {
     let cancelled = false;
     /** @type {ReturnType<typeof setTimeout> | null} */
     let timeoutId = null;
-    const tickIntervalMs = () =>
-      usMarketPhase(new Date()) === 'overnight' ? REFRESH_MS_OVERNIGHT : REFRESH_MS;
     const schedule = () => {
       if (cancelled) return;
       timeoutId = setTimeout(() => {
         if (cancelled) return;
         doRefreshRef.current({ prefetch: false });
         schedule();
-      }, tickIntervalMs());
+      }, REFRESH_MS);
     };
     schedule();
     return () => {
