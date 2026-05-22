@@ -116,6 +116,16 @@ describe('applyTrading212NightPrice', () => {
     expect(out['VUAA.L'].extPrice).toBeNull(); // .L → not US equity → skipped
   });
 
+  it('skips OTC ADRs with no overnight session (SFTBY) even though they are US-shaped', () => {
+    // SFTBY passes isUsEquity (no suffix) but has no T212 night market —
+    // its currentPrice is just the stale RTH/AH close, so we must NOT
+    // surface it as a live overnight quote. Leave it on Yahoo.
+    const holdings = { SFTBY: usHolding({ lastPrice: 25, extPrice: null }) };
+    const prices = { SFTBY: 25.01 };
+    const out = applyTrading212NightPrice(holdings, prices, true);
+    expect(out.SFTBY.extPrice).toBeNull();  // excluded by hasOvernightSession
+  });
+
   it('skips tickers not held in the portfolio (T212-only, e.g. a T212 stock not on the board)', () => {
     const holdings = { AAPL: usHolding() };
     const prices = { TSLA: 412 }; // TSLA in T212 but not in local holdings

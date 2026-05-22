@@ -89,6 +89,36 @@ const T212_TO_YAHOO: Record<string, string> = {
   "SAEMl_EQ": "SAEM.L",
 };
 
+// Renamed / merged US tickers. T212 assigns an instrument's internal
+// ticker at first listing and DOESN'T rewrite it through a corporate
+// rename, ticker swap, or SPAC merger — so the API keeps returning the
+// ORIGINAL symbol long after the stock trades under a new one. The
+// generic `_US_EQ` rule below would map these to the stale symbol
+// (`FB_US_EQ → FB`), which never matches the board's current ticker, so
+// the overnight price silently never lands. This explicit alias table
+// maps the stale T212 code → the current Yahoo ticker.
+//
+// IMPORTANT: this is the PRICE-map alias only — distinct from
+// `T212_TO_YAHOO` above, which doubles as the shares/cost auto-sync
+// allow-list. Entries here feed `prices` (overnight quotes) ONLY; they
+// never sync shares/cost (the user manages those holdings manually).
+//   FB   → META   (Facebook renamed to Meta, 2022)
+//   YNDX → NBIS   (Yandex N.V. → Nebius Group, relisted 2024)
+//   IIVI → COHR   (II-VI Incorporated → Coherent Corp, 2022)
+//   VACQ → RKLB   (Vector Acquisition SPAC → Rocket Lab, 2021)
+//   LOKB → NVTS   (Live Oak Acq. II SPAC → Navitas, 2021)
+//   GOOGL→ GOOG   (T212 lists Alphabet's class-A line; the board tracks
+//                  the class-C GOOG ticker — the two track within a
+//                  fraction of a % so it's a faithful overnight proxy)
+const T212_US_ALIASES: Record<string, string> = {
+  "FB_US_EQ": "META",
+  "YNDX_US_EQ": "NBIS",
+  "IIVI_US_EQ": "COHR",
+  "VACQ_US_EQ": "RKLB",
+  "LOKB_US_EQ": "NVTS",
+  "GOOGL_US_EQ": "GOOG",
+};
+
 // Generic T212-internal → Yahoo ticker mapping, used to build the
 // `prices` map for EVERY T212 holding (not just the allow-list above).
 // The client uses these as overnight ("night market") quotes for any
@@ -96,11 +126,13 @@ const T212_TO_YAHOO: Record<string, string> = {
 // up the broker's overnight price automatically, no allow-list edit.
 //   AAPL_US_EQ → AAPL   (US: strip the _US_EQ suffix)
 //   VUAAl_EQ   → VUAA.L (LSE: lowercase-l suffix → .L)
+//   FB_US_EQ   → META   (renamed/merged: via T212_US_ALIASES)
 // Returns null for shapes we don't recognise (other exchanges) so they
 // simply don't get a price entry.
 export function t212TickerToYahoo(t212Ticker: string): string | null {
   if (typeof t212Ticker !== "string" || !t212Ticker) return null;
   if (T212_TO_YAHOO[t212Ticker]) return T212_TO_YAHOO[t212Ticker];
+  if (T212_US_ALIASES[t212Ticker]) return T212_US_ALIASES[t212Ticker];
   const us = t212Ticker.match(/^([A-Za-z]+)_US_EQ$/);
   if (us) return us[1].toUpperCase();
   const lse = t212Ticker.match(/^([A-Za-z]+)l_EQ$/);
@@ -452,30 +484,27 @@ async function writeCacheRow(data: unknown): Promise<void> {
 }
 
 async function fetchT212Portfolio(apiKey: string, apiSecret: string): Promise<unknown> {
-  // Try T212's documented single-key auth first: the raw API key as
-  // the Authorization header value, no prefix, no encoding. This is
-  // what t212public-api-docs.redoc.ly specifies. If the account /
-  // API version actually requires the two-key Basic Auth flavor a
-  // user-side AI floated, fall back to that on 401 only — every
-  // upstream call burns a rate-limit slot (1 req / s per account), so
-  // the fallback is gated behind an actual auth failure. Parameterised by key/secret
-  // so the same path serves both the invest and ISA accounts (T212
-  // scopes its API per account).
-  let res = await fetch(T212_POSITIONS_URL, {
-    headers: {
-      authorization: apiKey,
-      accept: "application/json",
-    },
-    signal: AbortSignal.timeout(8_000),
-  });
-  if (res.status === 401 && apiSecret) {
+  // Auth scheme. T212's two-key accounts authenticate with HTTP Basic
+  // (`base64(key:secret)`); single-key accounts pass the raw API key as
+  // the Authorization value. When a secret is configured we go STRAIGHT
+  // to Basic — empirically these accounts 401 the raw-key attempt, so
+  // trying it first just burned a doomed round-trip AND fired a second
+  // request inside the same second, which risks T212's 1-req/s rate
+  // limit (a 429 on the real call). The OTHER scheme is kept as a 401
+  // fallback so a single-key account (no secret) still works and a
+  // mis-paired key/secret still gets a second chance. Parameterised by
+  // key/secret so the same path serves both the invest and ISA accounts
+  // (T212 scopes its API per account).
+  const attempts = apiSecret
+    ? [basicAuthHeader(apiKey, apiSecret), apiKey] // two-key account: Basic first
+    : [apiKey];                                    // single-key account: raw only
+  let res!: Response;
+  for (const authorization of attempts) {
     res = await fetch(T212_POSITIONS_URL, {
-      headers: {
-        authorization: basicAuthHeader(apiKey, apiSecret),
-        accept: "application/json",
-      },
+      headers: { authorization, accept: "application/json" },
       signal: AbortSignal.timeout(8_000),
     });
+    if (res.status !== 401) break; // success or a non-auth error → don't burn the fallback
   }
   if (!res.ok) {
     // Include a short body snippet so the catch-path's `error` field
