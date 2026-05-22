@@ -59,6 +59,14 @@
 // returns `source: 'disabled'` + empty holdings so the client can
 // no-op. T212 errors fall back to stale cache up to STALE_OK_MS old.
 //
+// `T212_ISA_API_KEY` (+ optional `T212_ISA_API_SECRET`) is the SECOND
+// account. T212 scopes its public API per account, so ISA holdings —
+// and crucially their live overnight prices — are only reachable with
+// the ISA key. When set, the ISA portfolio is fetched in parallel and
+// merged in (prices union'd; shares/cost summed for any allow-list
+// ticker held in both). Best-effort: an ISA fetch failure degrades to
+// invest-only. Absent → invest-only, exactly as before.
+//
 // Token-gated by the same HMAC-signed `x-app-token` the `data` /
 // `ops-error` functions use — admin OR ro is accepted, since the
 // read-only "screenshot" mode is supposed to see synced holdings
@@ -114,6 +122,12 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const APP_AUTH_SECRET = Deno.env.get("APP_AUTH_SECRET") ?? "";
 const T212_API_KEY    = Deno.env.get("T212_API_KEY") ?? "";
 const T212_API_SECRET = Deno.env.get("T212_API_SECRET") ?? "";
+// Second T212 account (ISA). Same shape as the invest keys above —
+// T212 scopes its public API per account, so the ISA holdings (and
+// their live overnight prices) are only reachable with the ISA key.
+// Optional: absent → invest-only, exactly as before.
+const T212_ISA_API_KEY    = Deno.env.get("T212_ISA_API_KEY") ?? "";
+const T212_ISA_API_SECRET = Deno.env.get("T212_ISA_API_SECRET") ?? "";
 
 const T212_PORTFOLIO_URL = "https://live.trading212.com/api/v0/equity/portfolio";
 
@@ -240,6 +254,33 @@ export function unpackCache(
     return { holdings: d.holdings ?? {}, prices: d.prices ?? {} };
   }
   return { holdings: (data as Record<string, unknown>) ?? {}, prices: {} };
+}
+
+/**
+ * Merge two shaped portfolios (e.g. invest + ISA accounts) into one.
+ * `prices` is a plain union — a ticker held in both accounts is the same
+ * instrument with the same `currentPrice`, so either wins. `holdings`
+ * (the shares/cost auto-sync allow-list) is summed when a ticker appears
+ * in both: total shares + share-weighted average cost, so a position
+ * split across accounts mirrors its combined size. Pure, for testing.
+ */
+export function mergeShaped(
+  a: { holdings: Record<string, { shares: number; cost: number }>; prices: Record<string, number> },
+  b: { holdings: Record<string, { shares: number; cost: number }>; prices: Record<string, number> },
+): { holdings: Record<string, { shares: number; cost: number }>; prices: Record<string, number> } {
+  const prices = { ...a.prices, ...b.prices };
+  const holdings: Record<string, { shares: number; cost: number }> = { ...a.holdings };
+  for (const [t, h] of Object.entries(b.holdings)) {
+    const ex = holdings[t];
+    if (ex) {
+      const totalShares = ex.shares + h.shares;
+      const cost = totalShares > 0 ? (ex.shares * ex.cost + h.shares * h.cost) / totalShares : 0;
+      holdings[t] = { shares: totalShares, cost };
+    } else {
+      holdings[t] = h;
+    }
+  }
+  return { holdings, prices };
 }
 
 /**
@@ -371,25 +412,27 @@ async function writeCacheRow(data: unknown): Promise<void> {
   }
 }
 
-async function fetchT212Portfolio(): Promise<unknown> {
+async function fetchT212Portfolio(apiKey: string, apiSecret: string): Promise<unknown> {
   // Try T212's documented single-key auth first: the raw API key as
   // the Authorization header value, no prefix, no encoding. This is
   // what t212public-api-docs.redoc.ly specifies. If the account /
   // API version actually requires the two-key Basic Auth flavor a
   // user-side AI floated, fall back to that on 401 only — every
   // upstream call burns a 30s rate-limit slot, so the fallback is
-  // gated behind an actual auth failure.
+  // gated behind an actual auth failure. Parameterised by key/secret
+  // so the same path serves both the invest and ISA accounts (T212
+  // scopes its API per account).
   let res = await fetch(T212_PORTFOLIO_URL, {
     headers: {
-      authorization: T212_API_KEY,
+      authorization: apiKey,
       accept: "application/json",
     },
     signal: AbortSignal.timeout(8_000),
   });
-  if (res.status === 401 && T212_API_SECRET) {
+  if (res.status === 401 && apiSecret) {
     res = await fetch(T212_PORTFOLIO_URL, {
       headers: {
-        authorization: basicAuthHeader(T212_API_KEY, T212_API_SECRET),
+        authorization: basicAuthHeader(apiKey, apiSecret),
         accept: "application/json",
       },
       signal: AbortSignal.timeout(8_000),
@@ -508,8 +551,28 @@ if (import.meta.main) {
       }
 
       try {
-        const raw = await fetchT212Portfolio();
-        const shaped = shapeT212Portfolio(raw);
+        // Fetch both T212 accounts in parallel (each key has its own
+        // rate-limit bucket, so this is one call per bucket per claimed
+        // 30 s window). Invest is primary: if it throws, fall through to
+        // the stale-cache path below. ISA is best-effort — a bad/expired
+        // ISA key logs and degrades to invest-only rather than blanking
+        // everything.
+        const [investResult, isaResult] = await Promise.allSettled([
+          fetchT212Portfolio(T212_API_KEY, T212_API_SECRET),
+          T212_ISA_API_KEY
+            ? fetchT212Portfolio(T212_ISA_API_KEY, T212_ISA_API_SECRET)
+            : Promise.resolve(null),
+        ]);
+        if (investResult.status === "rejected") throw investResult.reason;
+        if (isaResult.status === "rejected") {
+          console.error("T212 ISA fetch failed (using invest-only):",
+            isaResult.reason instanceof Error ? isaResult.reason.message : isaResult.reason);
+        }
+        const investShaped = shapeT212Portfolio(investResult.value);
+        const isaShaped = (isaResult.status === "fulfilled" && isaResult.value != null)
+          ? shapeT212Portfolio(isaResult.value)
+          : { holdings: {}, prices: {} };
+        const shaped = mergeShaped(investShaped, isaShaped);
         await writeCacheRow(shaped);
         return new Response(JSON.stringify({
           holdings: shaped.holdings,
