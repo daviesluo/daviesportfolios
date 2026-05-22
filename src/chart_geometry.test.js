@@ -159,6 +159,31 @@ describe('pointerToDataIndex — xDenom override (overnight gap view)', () => {
   });
 });
 
+describe('pointerToDataIndex — hasLiveDot (overnight trailing dot selectable)', () => {
+  const svg = fakeSvg({ left: 0, width: 100, height: 60 });
+  // 10 bars (0..9) fill the left part; xDenom 19 reserves a gap of 10 on
+  // the right whose far end (virtual index 19) is the live dot. Midpoint
+  // of the gap is virtual index (9 + 19)/2 = 14 → chart-x where
+  // rawI = 14: frac = 14/19 → clampedSx = padL + frac*cW = 10 + 0.7368*80
+  // ≈ 68.9. So clientX ≈ 69 is the boundary.
+  const geom = { ...GEOM_DEFAULT, xDenom: 19, hasLiveDot: true };
+
+  it('pointer in the dot-half of the gap → returns dataLength (the dot)', () => {
+    // clientX 90 → frac (90-10)/80 = 1 → rawI 19 > 14 → dot.
+    expect(pointerToDataIndex({ clientX: 90 }, svg, geom, 10)).toBe(10);
+  });
+
+  it('pointer still over the bars → returns a bar index, not the dot', () => {
+    // clientX 40 → frac 0.375 → rawI 7.125 → ≤ 14 → bar, round 7.
+    expect(pointerToDataIndex({ clientX: 40 }, svg, geom, 10)).toBe(7);
+  });
+
+  it('without hasLiveDot, the gap clamps to the last bar (no dot)', () => {
+    const noDot = { ...GEOM_DEFAULT, xDenom: 19 };
+    expect(pointerToDataIndex({ clientX: 90 }, svg, noDot, 10)).toBe(9);
+  });
+});
+
 describe('overnightTrailingGap', () => {
   const BAR = 5 * 60_000; // 5 m
 
