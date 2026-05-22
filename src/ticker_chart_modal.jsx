@@ -836,8 +836,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     const lastDate = points[points.length - 1].date;
     const isUtcIso = typeof lastDate === 'string' && lastDate.length === 16 && lastDate[10] === 'T';
     const lastBarMs = new Date(lastDate + (isUtcIso ? 'Z' : '')).getTime();
-    const gap = overnightTrailingGap(lastBarMs, Date.now(), NIGHT_BAR_INTERVAL_MS[rangeKey]);
-    return gap > 0 ? { price: extPriceLive, gap } : null;
+    const nowMs = Date.now();
+    const gap = overnightTrailingGap(lastBarMs, nowMs, NIGHT_BAR_INTERVAL_MS[rangeKey]);
+    // `dateStr` = "now" in the same UTC `YYYY-MM-DDTHH:MM` shape the bar
+    // dates use, so the crosshair label + the rightmost x-axis tick can
+    // format it through fmtDate / fmtAxisDate and update each refresh.
+    const dateStr = new Date(nowMs).toISOString().slice(0, 16);
+    return gap > 0 ? { price: extPriceLive, gap, dateStr } : null;
   })() : null;
   const cur = holding?.currency || 'USD';
   const sym = SYMBOL_BY_CUR[cur] || '$';
@@ -966,7 +971,24 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       const safeIdx = Math.max(0, Math.min(points.length - 1, idx));
       ticksX.push({ x: xOfIdx(safeIdx), date: points[safeIdx].date });
     }
+    // Overnight: the bar ticks above sit in the compressed left portion;
+    // add one more at the live dot's true-time x (far right) labelled
+    // with "now", so the axis under the heartbeat dot reflects the
+    // current time and refreshes each tick. Placed last so it gets the
+    // 'end' text-anchor in the render.
+    if (overnightDot) {
+      ticksX.push({ x: padL + cW, date: overnightDot.dateStr });
+    }
   }
+
+  // X for the right-margin overlay labels (VWAP / MA). Normally the far
+  // right margin, but in the overnight view the line ends at the last
+  // bar (left of the time gap) — anchor the label right there instead,
+  // so "VWAP" / "MA 5" sit next to the line end rather than floating at
+  // the far edge with a big gap in between.
+  const rightLabelX = (hasData && overnightDot)
+    ? xOfIdx(points.length - 1) + 4
+    : W - padR + 4;
 
   // Crosshair hover label — keeps minute precision on 1W/1M so the user
   // can read the exact bar's timestamp. Intraday strings from the chart
@@ -1034,13 +1056,19 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     const idx = pendingIdxRef.current;
     const g = crossRef.current;
     if (!g) return;
-    if (idx == null || !points[idx]) {
+    // idx === points.length is the live trailing dot (overnight view).
+    // It isn't in `points`, so synthesize a point from overnightDot and
+    // pin it to the far-right x; everything else reads from `points`.
+    const isLiveDot = !!overnightDot && idx === points.length;
+    const p = isLiveDot
+      ? { close: overnightDot.price, date: overnightDot.dateStr }
+      : (idx != null ? points[idx] : null);
+    if (idx == null || !p) {
       g.style.display = 'none';
       return;
     }
     g.style.display = '';
-    const p = points[idx];
-    const x = xOfIdx(idx);
+    const x = isLiveDot ? (padL + cW) : xOfIdx(idx);
     const y = yOf(p.close);
     const pct = anchorClose ? ((p.close - anchorClose) / anchorClose) * 100 : 0;
 
@@ -1076,7 +1104,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     // and PerfChart. The SVG also has `touch-action: none` set so finger
     // drags don't fight the page scroller for ownership.
     const idx = pointerToDataIndex(
-      e, svgRef.current, { W, H, padL, padR, cW, xDenom: chartXDenom }, points.length,
+      e, svgRef.current, { W, H, padL, padR, cW, xDenom: chartXDenom, hasLiveDot: !!overnightDot }, points.length,
     );
     if (idx == null) return;
     pendingIdxRef.current = idx;
@@ -1391,7 +1419,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                       strokeLinejoin="round" strokeLinecap="round" opacity="0.85" />
               )}
               {vwapLastValue != null && (
-                <text x={W - padR + 4} y={yOf(vwapLastValue).toFixed(1)}
+                <text x={rightLabelX} y={yOf(vwapLastValue).toFixed(1)}
                       textAnchor="start" dominantBaseline="middle"
                       fontSize="9" fill="rgba(244,239,227,0.7)" fontFamily="var(--font-mono)">
                   VWAP
@@ -1408,7 +1436,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                       strokeLinejoin="round" strokeLinecap="round" opacity="0.85" />
               )}
               {maLastValue != null && (
-                <text x={W - padR + 4} y={yOf(maLastValue).toFixed(1)}
+                <text x={rightLabelX} y={yOf(maLastValue).toFixed(1)}
                       textAnchor="start" dominantBaseline="middle"
                       fontSize="9" fill="rgba(244,239,227,0.7)" fontFamily="var(--font-mono)">
                   MA {MA_DAYS}
@@ -1417,9 +1445,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               {/* Price path */}
               <path d={path} fill="none" stroke={lineColor} strokeWidth="1.6"
                     strokeLinejoin="round" strokeLinecap="round" />
-              {/* End-of-line dot — sits on the last REAL bar (left of the
-                  overnight gap when the night dot is active). */}
-              {points.length > 0 && (() => {
+              {/* End-of-line dot. Suppressed when the overnight heartbeat
+                  dot is shown — that pulsing dot is the "current" marker
+                  then, and a second static dot at the line's end reads as
+                  a stray point. */}
+              {points.length > 0 && !overnightDot && (() => {
                 const last = points[points.length - 1];
                 return <circle cx={xOfIdx(points.length - 1).toFixed(1)} cy={yOf(last.close).toFixed(1)}
                                r="3" fill={lineColor} stroke="#0c1310" strokeWidth="1.5" />;
