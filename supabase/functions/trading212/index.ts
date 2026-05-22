@@ -1,7 +1,7 @@
 // Supabase Edge Function: trading212
 //
 // Mirrors a small slice of the owner's Trading 212 portfolio — just
-// `quantity` and `averagePrice` for a hard-coded allow-list of tickers
+// `quantity` and `averagePricePaid` for a hard-coded allow-list of tickers
 // the user DCAs through T212 (currently `VUAA.L` and `SAEM.L`, the
 // two USD-denominated UCITS ETFs the user buys daily — T212's
 // cashback + Spare-Change auto-invest both settle in USD, which is
@@ -21,9 +21,9 @@
 //   `holdings` — the auto-sync ALLOW-LIST only (VUAA.L / SAEM.L). Each
 //     is `{ shares, cost }`; `cost` is per-share AC in the instrument's
 //     settle currency (USD — these are USD-denominated UCITS ETFs on
-//     LSE, so `averagePrice` passes through unchanged, NOT the GBp/pence
-//     Yahoo uses for GBP-side LSE listings). `shares` is T212's
-//     `quantity`. The client folds each into
+//     LSE, so `averagePricePaid` passes through unchanged, NOT the
+//     GBp/pence Yahoo uses for GBP-side LSE listings). `shares` is
+//     T212's `quantity`. The client folds each into
 //     `holding.lots = [{ date: today, shares, cost }]` (a single
 //     synthetic lot) + sets shares/cost. lot.cost / h.cost is per-share
 //     AC everywhere; metrics.js multiplies `h.shares * h.cost`.
@@ -39,14 +39,16 @@
 //     have no overnight session).
 //
 // All visitors call this on every doRefresh, so the response is
-// cached server-side at `public.trading212_cache` for 120 s. T212's
-// rate limit is 1 req / 30 s on `/equity/portfolio`; with a 120 s
-// TTL there's a 90 s margin on the steady-state rate. To kill the
-// boundary race entirely — two workers racing past the freshness
-// check on a stale row and both firing live T212 calls in the same
-// rate-limit window — refresh is also gated by an atomic Postgres
-// claim (`try_claim_t212_refresh` RPC, conditional UPSERT). Only
-// the worker that successfully updates `updated_at` calls T212;
+// cached server-side at `public.trading212_cache` for 1 s. T212's
+// `/equity/positions` rate limit is 1 req / 1 s, applied per account
+// (not per IP / key), so a 1 s TTL is the floor that stays within the
+// limit while letting a manual refresh feel instant — a click lands
+// fresh data unless the last upstream call was under a second ago. To
+// kill the boundary race entirely — two workers racing past the
+// freshness check on a stale row and both firing live T212 calls in
+// the same rate-limit window — refresh is also gated by an atomic
+// Postgres claim (`try_claim_t212_refresh` RPC, conditional UPSERT).
+// Only the worker that successfully updates `updated_at` calls T212;
 // losers serve whatever the winner already wrote.
 //
 // `T212_API_KEY` env var is required for live calls — T212's
@@ -106,15 +108,15 @@ export function t212TickerToYahoo(t212Ticker: string): string | null {
   return null;
 }
 
-// 30 s so the synced price + holdings refresh in lockstep with the
-// app's regular-hours auto-refresh tick. The atomic claim
-// (`try_claim_t212_refresh`, gated on this same TTL) guarantees at
-// most ONE upstream T212 call per 30 s window across all devices, so
-// even at a 30 s TTL we stay within T212's documented 1-req-per-30-s
-// limit on /equity/portfolio. (Was 120 s when this only carried
-// shares/cost, which change rarely; now it also carries the live
-// `currentPrice` so it needs to keep pace with price refreshes.)
-const CACHE_TTL_MS = 30_000;
+// 1 s cache. `/equity/positions` allows 1 req / second, so this is the
+// floor that keeps us within the limit while making a manual refresh
+// feel instant (a click lands fresh data unless the last call was <1 s
+// ago). The auto-refresh tick (30 s regular / overnight) easily clears
+// it. The atomic claim (`try_claim_t212_refresh`, gated on this same
+// TTL) still coordinates devices so concurrent refreshes can't burst
+// past 1 call / s. (Was 30 s back when the endpoint was the
+// harder-limited `/equity/portfolio`.)
+const CACHE_TTL_MS = 1_000;
 const STALE_OK_MS  = 5 * 60_000;    // serve stale up to 5 min on upstream error
 
 const SB_URL      = Deno.env.get("SUPABASE_URL") ?? "";
@@ -129,7 +131,15 @@ const T212_API_SECRET = Deno.env.get("T212_API_SECRET") ?? "";
 const T212_ISA_API_KEY    = Deno.env.get("T212_ISA_API_KEY") ?? "";
 const T212_ISA_API_SECRET = Deno.env.get("T212_ISA_API_SECRET") ?? "";
 
-const T212_PORTFOLIO_URL = "https://live.trading212.com/api/v0/equity/portfolio";
+// `/equity/positions` (T212's current endpoint; the older
+// `/equity/portfolio` it replaced is rate-limited far harder). Same
+// base + raw-key auth. Returns an array of position objects shaped
+// `{ instrument: { ticker, … }, quantity, averagePricePaid,
+// currentPrice, … }` — note the ticker is nested under `instrument`
+// and the cost field is `averagePricePaid` (the old endpoint used a
+// flat `ticker` + `averagePrice`); shapeT212Portfolio reads both
+// shapes. Documented rate limit: 1 req / second.
+const T212_POSITIONS_URL = "https://live.trading212.com/api/v0/equity/positions";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -189,13 +199,36 @@ export async function verifyToken(
 }
 
 /**
- * Normalise a raw T212 `/equity/portfolio` response into two maps:
+ * Extract T212's internal ticker from one position object, tolerating
+ * both endpoint shapes. `/equity/positions` (current) nests it under an
+ * `instrument` object — `{ instrument: { ticker: "AAPL_US_EQ", name,
+ * isin, currency }, … }`. The older `/equity/portfolio` had a flat
+ * top-level `ticker`. A couple of community wrappers also expose
+ * `instrument` as a bare ticker string, so accept that too. Returns
+ * null for anything that isn't a non-empty string ticker.
+ */
+function positionTicker(p: object): string | null {
+  const inst = (p as { instrument?: unknown }).instrument;
+  if (typeof inst === "string" && inst) return inst;
+  if (inst && typeof inst === "object") {
+    const t = (inst as { ticker?: unknown }).ticker;
+    if (typeof t === "string" && t) return t;
+  }
+  const flat = (p as { ticker?: unknown }).ticker;
+  if (typeof flat === "string" && flat) return flat;
+  return null;
+}
+
+/**
+ * Normalise a raw T212 `/equity/positions` response into two maps:
  *
  *   - `holdings` — the **auto-sync allow-list** only (VUAA.L / SAEM.L):
- *     `{ shares, cost }` per ticker. `averagePrice` is taken verbatim
- *     (USD per share — these are USD-denominated UCITS, not pence).
- *     `cost` is per-share AC; computeMetrics multiplies by `shares`.
- *     This is what overwrites the portfolio's lots/shares/cost.
+ *     `{ shares, cost }` per ticker. `cost` comes from `averagePricePaid`
+ *     (`/equity/positions`; the old `/equity/portfolio` called it
+ *     `averagePrice`) — taken verbatim, in the instrument's settle
+ *     currency (USD per share — these are USD-denominated UCITS, not
+ *     pence). `cost` is per-share AC; computeMetrics multiplies by
+ *     `shares`. This is what overwrites the portfolio's lots/shares/cost.
  *
  *   - `prices` — EVERY recognised T212 holding (generic ticker map):
  *     `ticker → currentPrice` (USD). The client uses these as overnight
@@ -203,8 +236,9 @@ export async function verifyToken(
  *     touch shares/cost, only the displayed price during the overnight
  *     window. Non-positive / missing currentPrice → no entry.
  *
- * Pure function so `index.test.ts` can pin the mapping + filtering
- * without needing the network.
+ * Reads the ticker via `positionTicker` so the nested-`instrument` and
+ * flat shapes both work. Pure function so `index.test.ts` can pin the
+ * mapping + filtering without needing the network.
  */
 export function shapeT212Portfolio(
   positions: unknown,
@@ -217,8 +251,8 @@ export function shapeT212Portfolio(
   if (!Array.isArray(positions)) return { holdings, prices };
   for (const p of positions) {
     if (!p || typeof p !== "object") continue;
-    const t212Ticker = (p as { ticker?: unknown }).ticker;
-    if (typeof t212Ticker !== "string") continue;
+    const t212Ticker = positionTicker(p);
+    if (!t212Ticker) continue;
     const yahooTicker = t212TickerToYahoo(t212Ticker);
     if (!yahooTicker) continue;
 
@@ -228,12 +262,17 @@ export function shapeT212Portfolio(
       prices[yahooTicker] = currentPrice;
     }
 
-    // Holdings (shares/cost) sync: allow-list only.
+    // Holdings (shares/cost) sync: allow-list only. Cost field is
+    // `averagePricePaid` on `/equity/positions`, `averagePrice` on the
+    // legacy `/equity/portfolio` — accept whichever is present.
     if (T212_TO_YAHOO[t212Ticker]) {
       const quantity = Number((p as { quantity?: unknown }).quantity);
-      const averagePrice = Number((p as { averagePrice?: unknown }).averagePrice);
-      if (isFinite(quantity) && quantity > 0 && isFinite(averagePrice) && averagePrice > 0) {
-        holdings[yahooTicker] = { shares: quantity, cost: averagePrice };
+      const cost = Number(
+        (p as { averagePricePaid?: unknown }).averagePricePaid ??
+          (p as { averagePrice?: unknown }).averagePrice,
+      );
+      if (isFinite(quantity) && quantity > 0 && isFinite(cost) && cost > 0) {
+        holdings[yahooTicker] = { shares: quantity, cost };
       }
     }
   }
@@ -394,7 +433,7 @@ async function writeCacheRow(data: unknown): Promise<void> {
     // dropped. That's the scenario that walks into the T212 ban-storm: if
     // RLS / migration / quota fails the row never lands, every subsequent
     // visitor passes the staleness check, claims the refresh, and calls
-    // T212 again — burning through the 1-req-per-30s rate limit.
+    // T212 again — burning through the 1-req-per-second rate limit.
     if (!res.ok) {
       const snippet = (await res.text().catch(() => "")).slice(0, 200);
       // Loud detection of the missing-migration smell we hit during the T212
@@ -418,11 +457,11 @@ async function fetchT212Portfolio(apiKey: string, apiSecret: string): Promise<un
   // what t212public-api-docs.redoc.ly specifies. If the account /
   // API version actually requires the two-key Basic Auth flavor a
   // user-side AI floated, fall back to that on 401 only — every
-  // upstream call burns a 30s rate-limit slot, so the fallback is
-  // gated behind an actual auth failure. Parameterised by key/secret
+  // upstream call burns a rate-limit slot (1 req / s per account), so
+  // the fallback is gated behind an actual auth failure. Parameterised by key/secret
   // so the same path serves both the invest and ISA accounts (T212
   // scopes its API per account).
-  let res = await fetch(T212_PORTFOLIO_URL, {
+  let res = await fetch(T212_POSITIONS_URL, {
     headers: {
       authorization: apiKey,
       accept: "application/json",
@@ -430,7 +469,7 @@ async function fetchT212Portfolio(apiKey: string, apiSecret: string): Promise<un
     signal: AbortSignal.timeout(8_000),
   });
   if (res.status === 401 && apiSecret) {
-    res = await fetch(T212_PORTFOLIO_URL, {
+    res = await fetch(T212_POSITIONS_URL, {
       headers: {
         authorization: basicAuthHeader(apiKey, apiSecret),
         accept: "application/json",
@@ -551,9 +590,9 @@ if (import.meta.main) {
       }
 
       try {
-        // Fetch both T212 accounts in parallel (each key has its own
-        // rate-limit bucket, so this is one call per bucket per claimed
-        // 30 s window). Invest is primary: if it throws, fall through to
+        // Fetch both T212 accounts in parallel (rate limits are
+        // per-account, so each key has its own bucket — this is one call
+        // per account per claimed window). Invest is primary: if it throws, fall through to
         // the stale-cache path below. ISA is best-effort — a bad/expired
         // ISA key logs and degrades to invest-only rather than blanking
         // everything.
