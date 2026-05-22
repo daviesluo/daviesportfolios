@@ -117,6 +117,50 @@ Deno.test("shapeT212Portfolio — malformed input returns empty maps (not throws
   assertEquals(shapeT212Portfolio([{ ticker: 42 }, { quantity: 5 }]), { holdings: {}, prices: {} });
 });
 
+Deno.test("shapeT212Portfolio — /equity/positions nested instrument shape (ticker + averagePricePaid)", () => {
+  // The current endpoint nests the ticker under an `instrument` object
+  // and names the cost field `averagePricePaid`; the old
+  // `/equity/portfolio` used flat `ticker` + `averagePrice`. Both must
+  // shape identically so the endpoint swap is invisible downstream.
+  const raw = [
+    {
+      instrument: { ticker: "VUAAl_EQ", name: "Vanguard S&P 500 ETF", isin: "IE00BFMXXD54", currency: "USD" },
+      quantity: 12.5, averagePricePaid: 96.0, currentPrice: 98.42,
+    },
+    {
+      instrument: { ticker: "AAPL_US_EQ", name: "Apple Inc", isin: "US0378331005", currency: "USD" },
+      quantity: 3, averagePricePaid: 200, currentPrice: 234.5,
+    },
+  ];
+  const { holdings, prices } = shapeT212Portfolio(raw);
+  // Allow-list ETF: shares/cost synced from quantity + averagePricePaid.
+  assertEquals(holdings["VUAA.L"], { shares: 12.5, cost: 96.0 });
+  // AAPL is priced (US-equity night-market quote) but NOT shares/cost-synced.
+  assertEquals("AAPL" in holdings, false);
+  assertEquals(prices["VUAA.L"], 98.42);
+  assertEquals(prices["AAPL"], 234.5);
+});
+
+Deno.test("shapeT212Portfolio — instrument as a bare ticker string is also accepted", () => {
+  // Defensive: a couple of community wrappers flatten `instrument` to the
+  // bare ticker string rather than the documented object.
+  const raw = [
+    { instrument: "SAEMl_EQ", quantity: 30, averagePricePaid: 12.345, currentPrice: 13 },
+  ];
+  const { holdings, prices } = shapeT212Portfolio(raw);
+  assertEquals(holdings["SAEM.L"], { shares: 30, cost: 12.345 });
+  assertEquals(prices["SAEM.L"], 13);
+});
+
+Deno.test("shapeT212Portfolio — malformed nested instrument is skipped (not thrown)", () => {
+  const raw = [
+    { instrument: { ticker: 42 }, quantity: 5, averagePricePaid: 9 },   // non-string ticker
+    { instrument: null, quantity: 5, averagePricePaid: 9 },             // null instrument
+    { instrument: {}, quantity: 5, averagePricePaid: 9 },               // no ticker key
+  ];
+  assertEquals(shapeT212Portfolio(raw), { holdings: {}, prices: {} });
+});
+
 Deno.test("unpackCache — new {holdings, prices} shape passes through", () => {
   const data = { holdings: { "VUAA.L": { shares: 1, cost: 90 } }, prices: { "AAPL": 234 } };
   assertEquals(unpackCache(data), data);
