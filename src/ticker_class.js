@@ -37,3 +37,23 @@ export const isUsEquity = (ticker) =>
   !isExchangeListed(ticker) &&
   !isCnFund(ticker) &&
   !isPvt(ticker);
+
+// US-shaped tickers that have NO overnight ("night market") session —
+// OTC ADRs like SoftBank (SFTBY) quote only their regular US session,
+// so T212 has no live overnight print for them. Without this exclusion
+// the overnight heartbeat dot + T212 night-price override would surface
+// a stale RTH/AH close as if it were a live overnight quote. Treated
+// like the LSE ETFs: regular-session bars only. Compared upper-cased so
+// case never matters.
+const NO_OVERNIGHT_SESSION = new Set(['SFTBY']);
+
+/**
+ * True for a US equity that ALSO trades a T212 overnight session — i.e.
+ * eligible for the night-market heartbeat dot + T212 overnight price
+ * override. Excludes OTC ADRs (e.g. SFTBY) that quote only their
+ * regular session. Everything `isUsEquity` excludes (LSE/CN/crypto/…)
+ * is excluded here too.
+ * @param {string} ticker
+ */
+export const hasOvernightSession = (ticker) =>
+  isUsEquity(ticker) && !NO_OVERNIGHT_SESSION.has((ticker || '').toUpperCase());

@@ -25,7 +25,7 @@
 
 import { EDGE_TRADING212_URL, SB_ANON } from './supabase_config.js';
 import { getAppToken } from './auth.js';
-import { isUsEquity } from './ticker_class.js';
+import { hasOvernightSession } from './ticker_class.js';
 
 /**
  * Fetch the current T212 snapshot. Returns null on any failure
@@ -128,13 +128,16 @@ export function applyTrading212(holdings, t212Holdings, today) {
  * — during regular / pre-market / after-hours the original Yahoo logic
  * is left untouched, per the user's spec.
  *
- * For each US-equity ticker present in BOTH the portfolio and the T212
- * `prices` map, it writes the T212 price into `extPrice` (+ marks
- * `extPriceTrusted` so metrics.js uses it under the ext toggle) and
- * recomputes `extDayPct` against today's RTH close (`lastPrice`, the
- * baseline computeMetrics uses for an extended-hours move). Non-US
- * tickers (the LSE ETFs, CN funds, crypto, etc.) are skipped — they
- * have no US overnight session. Mutates `holdings` in place.
+ * For each ticker present in BOTH the portfolio and the T212 `prices`
+ * map that has an overnight session (`hasOvernightSession`), it writes
+ * the T212 price into `extPrice` (+ marks `extPriceTrusted` so
+ * metrics.js uses it under the ext toggle) and recomputes `extDayPct`
+ * against today's RTH close (`lastPrice`, the baseline computeMetrics
+ * uses for an extended-hours move). Tickers with no overnight session
+ * (the LSE ETFs, CN funds, crypto, AND OTC ADRs like SFTBY) are
+ * skipped — they have no live overnight print, so leaving them on
+ * Yahoo avoids surfacing a stale close as a fake overnight quote.
+ * Mutates `holdings` in place.
  *
  * Call AFTER the Yahoo merge in doRefresh so `lastPrice` (today's RTH
  * close) is populated for the baseline.
@@ -148,7 +151,7 @@ export function applyTrading212NightPrice(holdings, prices, active) {
   if (!active || !prices || !holdings) return holdings;
   for (const [t, price] of Object.entries(prices)) {
     if (!holdings[t]) continue;          // portfolio ∩ T212 only
-    if (!isUsEquity(t)) continue;        // US equities only (LSE ETFs etc. excluded)
+    if (!hasOvernightSession(t)) continue; // US equities WITH a night session (LSE ETFs + OTC ADRs like SFTBY excluded)
     if (typeof price !== 'number' || price <= 0) continue;
     const rthClose = holdings[t].lastPrice; // today's regular close, the ext baseline
     holdings[t] = {
