@@ -65,6 +65,34 @@ Deno.test("t212TickerToYahoo — allow-list, generic US, generic LSE, unknown", 
   assertEquals(t212TickerToYahoo(""), null);
 });
 
+Deno.test("t212TickerToYahoo — renamed / merged US tickers map to the CURRENT symbol", () => {
+  // T212 keeps the pre-rename internal code forever, so the generic
+  // `_US_EQ` rule would resolve these to the stale symbol (FB, YNDX, …)
+  // which never matches the board → overnight price silently lost. The
+  // alias table fixes the six the user actually holds.
+  assertEquals(t212TickerToYahoo("FB_US_EQ"), "META");    // Facebook → Meta
+  assertEquals(t212TickerToYahoo("YNDX_US_EQ"), "NBIS");  // Yandex → Nebius
+  assertEquals(t212TickerToYahoo("IIVI_US_EQ"), "COHR");  // II-VI → Coherent
+  assertEquals(t212TickerToYahoo("VACQ_US_EQ"), "RKLB");  // Vector Acq SPAC → Rocket Lab
+  assertEquals(t212TickerToYahoo("LOKB_US_EQ"), "NVTS");  // Live Oak II SPAC → Navitas
+  assertEquals(t212TickerToYahoo("GOOGL_US_EQ"), "GOOG"); // Alphabet class-A line → board's GOOG
+});
+
+Deno.test("shapeT212Portfolio — a renamed ticker surfaces its price under the CURRENT symbol", () => {
+  // FB_US_EQ is Meta on T212; its currentPrice must land under META so
+  // the board's META holding picks up the overnight quote.
+  const raw = [
+    { instrument: { ticker: "FB_US_EQ", name: "Meta Platforms Inc" }, quantity: 4, averagePricePaid: 300, currentPrice: 512.3 },
+    { instrument: { ticker: "VACQ_US_EQ", name: "Rocket Lab" }, quantity: 100, averagePricePaid: 5, currentPrice: 22.7 },
+  ];
+  const { holdings, prices } = shapeT212Portfolio(raw);
+  assertEquals(prices["META"], 512.3);
+  assertEquals(prices["RKLB"], 22.7);
+  // Renamed tickers are NOT in the shares/cost allow-list (price-only).
+  assertEquals("META" in holdings, false);
+  assertEquals("RKLB" in holdings, false);
+});
+
 Deno.test("shapeT212Portfolio — holdings = allow-list shares/cost (USD per share)", () => {
   // T212's averagePrice for VUAA.L / SAEM.L is USD per share — these
   // are USD-denominated UCITS ETFs on LSE and T212 reports in the
