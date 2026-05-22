@@ -33,10 +33,12 @@
  * @param {{ getBoundingClientRect: () => { left: number, width: number, height: number } } | null} svgEl
  *   The `<svg>` element ref (or any DOM node with the same surface — the test
  *   mocks it with just `getBoundingClientRect`).
- * @param {{ W: number, H: number, padL: number, padR: number, cW: number, xDenom?: number }} geom
+ * @param {{ W: number, H: number, padL: number, padR: number, cW: number, xDenom?: number, hasLiveDot?: boolean }} geom
  *   Chart geometry: viewBox width/height, left/right axis padding, the
- *   pre-computed content width `cW = W - padL - padR`, and an optional
- *   `xDenom` x-axis denominator override (see below).
+ *   pre-computed content width `cW = W - padL - padR`, an optional
+ *   `xDenom` x-axis denominator override (see below), and an optional
+ *   `hasLiveDot` flag — when set, returns `dataLength` (the live trailing
+ *   dot) for pointers in the dot-half of the gap.
  * @param {number} dataLength
  *   Number of points in the series the crosshair is mapping to.
  * @returns {number | null}
@@ -78,7 +80,18 @@ export function pointerToDataIndex(event, svgEl, geom, dataLength) {
     ? geom.xDenom
     : Math.max(1, dataLength - 1);
   const frac = (clampedSx - padL) / cW;
-  const i = Math.round(frac * denom);
+  const rawI = frac * denom;
+  // Live dot (overnight view): a single point sits at virtual index
+  // `denom` (the far right), separated from the last bar (index
+  // dataLength-1) by the time gap. When `geom.hasLiveDot` is set and the
+  // pointer is past the midpoint of that gap, select the dot — signalled
+  // by returning `dataLength` (one past the last bar) — so the crosshair
+  // can snap onto the live point instead of clamping back to the last
+  // bar. Callers without a dot don't pass the flag and never see it.
+  if (geom && geom.hasLiveDot && rawI > (dataLength - 1 + denom) / 2) {
+    return dataLength;
+  }
+  const i = Math.round(rawI);
   return Math.max(0, Math.min(dataLength - 1, i));
 }
 
