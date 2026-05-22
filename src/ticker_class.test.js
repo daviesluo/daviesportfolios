@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   isCrypto, isFutures, isForex, isIndex, isExchangeListed,
-  isCnFund, isPvt, isDailyOnly, isUsEquity,
+  isCnFund, isPvt, isDailyOnly, isUsEquity, hasOvernightSession,
 } from './ticker_class.js';
 
 describe('ticker_class', () => {
@@ -76,5 +76,22 @@ describe('ticker_class', () => {
     expect(isUsEquity('017731')).toBe(false);
     expect(isUsEquity('SPAX.PVT')).toBe(false);
     expect(isUsEquity('')).toBe(false);
+  });
+
+  it('hasOvernightSession = isUsEquity minus OTC ADRs (SFTBY)', () => {
+    // Normal US equities trade T212's overnight session.
+    expect(hasOvernightSession('NVDA')).toBe(true);
+    expect(hasOvernightSession('NBIS')).toBe(true);
+    expect(hasOvernightSession('GOOG')).toBe(true);
+    expect(hasOvernightSession('META')).toBe(true);
+    // SFTBY is a US-shaped OTC ADR with no overnight session — excluded
+    // (case-insensitive) so it doesn't show a stale close as a fake dot.
+    expect(hasOvernightSession('SFTBY')).toBe(false);
+    expect(hasOvernightSession('sftby')).toBe(false);
+    // Everything isUsEquity already rejects stays rejected.
+    expect(hasOvernightSession('VUAA.L')).toBe(false);
+    expect(hasOvernightSession('017731')).toBe(false);
+    expect(hasOvernightSession('BTC-USD')).toBe(false);
+    expect(hasOvernightSession('')).toBe(false);
   });
 });

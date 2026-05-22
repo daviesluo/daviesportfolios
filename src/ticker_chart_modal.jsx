@@ -9,7 +9,7 @@ import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc } fr
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
-import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, isUsEquity } from './ticker_class.js';
+import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession } from './ticker_class.js';
 import { MA_TTL_MS, tickerChartCacheKey, isFresh as cacheIsFresh, hasAnyNumericField } from './cache.js';
 import { ChartStore, MaStore } from './chart_store.js';
 import {
@@ -812,8 +812,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // jamming it into the 20:00 bar: when active we (a) skip the usual
   // live-substitution so the historical bars stay real, (b) reserve an
   // x-axis gap proportional to the elapsed overnight time, and (c) draw
-  // the dot at the far-right edge. Only 1D/1W/1M for US equities.
-  const nightDotActive = useExt && phase === 'overnight' && isUsEquity(ticker)
+  // the dot at the far-right edge. Only 1D/1W/1M for US equities that
+  // actually trade overnight — OTC ADRs like SFTBY (no night session)
+  // are excluded via hasOvernightSession so they don't show a stale
+  // close as a fake heartbeat.
+  const nightDotActive = useExt && phase === 'overnight' && hasOvernightSession(ticker)
     && typeof extPriceLive === 'number' && extPriceLive > 0
     && !!NIGHT_BAR_INTERVAL_MS[rangeKey]
     && Array.isArray(series) && series.length >= 2;
