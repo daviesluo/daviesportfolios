@@ -16,6 +16,7 @@ import {
   shapeT212Portfolio,
   t212TickerToYahoo,
   unpackCache,
+  mergeShaped,
   cacheIsFresh,
   basicAuthHeader,
   b64url,
@@ -23,6 +24,36 @@ import {
   verifyToken,
   constantTimeEqual,
 } from "./index.ts";
+
+Deno.test("mergeShaped — unions prices; passes through disjoint holdings (invest + ISA)", () => {
+  const invest = {
+    holdings: { "VUAA.L": { shares: 12, cost: 96 } },
+    prices: { "VUAA.L": 98, "HOOD": 50 },
+  };
+  const isa = {
+    holdings: {},
+    prices: { "AAPL": 234, "TSLA": 412 },   // ISA stocks — only prices, no allow-list shares/cost
+  };
+  const out = mergeShaped(invest, isa);
+  assertEquals(out.holdings, { "VUAA.L": { shares: 12, cost: 96 } });
+  assertEquals(out.prices, { "VUAA.L": 98, "HOOD": 50, "AAPL": 234, "TSLA": 412 });
+});
+
+Deno.test("mergeShaped — a holding in BOTH accounts sums shares + weights cost", () => {
+  const a = { holdings: { "VUAA.L": { shares: 10, cost: 100 } }, prices: { "VUAA.L": 110 } };
+  const b = { holdings: { "VUAA.L": { shares: 30, cost: 120 } }, prices: { "VUAA.L": 110 } };
+  const out = mergeShaped(a, b);
+  // 40 shares; weighted cost = (10×100 + 30×120) / 40 = (1000+3600)/40 = 115.
+  assertEquals(out.holdings["VUAA.L"].shares, 40);
+  assertEquals(out.holdings["VUAA.L"].cost, 115);
+  assertEquals(out.prices["VUAA.L"], 110);
+});
+
+Deno.test("mergeShaped — empty ISA side is a no-op (invest-only / ISA key absent)", () => {
+  const invest = { holdings: { "VUAA.L": { shares: 5, cost: 90 } }, prices: { "VUAA.L": 92 } };
+  const out = mergeShaped(invest, { holdings: {}, prices: {} });
+  assertEquals(out, invest);
+});
 
 Deno.test("t212TickerToYahoo — allow-list, generic US, generic LSE, unknown", () => {
   assertEquals(t212TickerToYahoo("VUAAl_EQ"), "VUAA.L");   // allow-list
