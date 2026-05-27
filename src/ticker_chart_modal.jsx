@@ -371,13 +371,26 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // succeeds. 3 attempts with short backoff catches the recoverable
       // cases without making the spinner feel endless when the symbol
       // really is unfetchable.
+      //
+      // Minimum-points threshold. Public tickers require ≥ 2 points so
+      // a half-baked Yahoo response (single bar at the open) doesn't
+      // count as success. But isDailyOnly (CN funds + `.PVT` private
+      // holdings) legitimately ships SPARSE data — Yahoo's
+      // `/v8/chart/SPAX.PVT` returns just one timestamp at the latest
+      // valuation update (e.g. 5/22 for SpaceX) when older valuations
+      // have rolled out of the requested range, since private-company
+      // valuations only update every few weeks. Rejecting a 1-point
+      // response there was the "stuck at 5/22 + fetch.histsingle ops
+      // spam" bug — the cache never updated past whatever multi-point
+      // snapshot it last held.
+      const minPoints = isDailyOnlyT(ticker) ? 1 : 2;
       let data = null;
       for (let attempt = 0; attempt < 3 && !data; attempt++) {
         if (attempt > 0) await new Promise(r => setTimeout(r, 250 * attempt));
         if (cancelled) return;
         const out = await fetchHistoricalBatch([ticker], yahooRange, interval, includePrePost);
         if (cancelled) return;
-        if (out[ticker] && out[ticker].length >= 2) data = out[ticker];
+        if (out[ticker] && out[ticker].length >= minPoints) data = out[ticker];
       }
       if (!data) {
         reportError('fetch.histsingle', {
