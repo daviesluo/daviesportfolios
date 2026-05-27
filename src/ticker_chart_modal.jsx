@@ -276,9 +276,23 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // don't fight the TDZ ordering — they're cheap.
   const initialUseExt   = !!(extendedHours && phase && phase !== 'regular');
   const initialCacheKey = tickerChartCacheKey(ticker, initialRangeKey, initialUseExt, phase);
+  // Minimum-points threshold gating every "is the data usable" check
+  // in this modal — initial cache prime, in-effect cache prime, fetch
+  // retry loop, live-poll refresh, and the `hasData` render gate.
+  // Public tickers require >= 2 so a half-baked Yahoo response (single
+  // open-bar) doesn't count as success. isDailyOnly (CN funds + `.PVT`
+  // private holdings) legitimately ships SPARSE data — Yahoo's
+  // /v8/chart/SPAX.PVT returns just one timestamp at the latest
+  // valuation update (e.g. 5/22 for SpaceX) once older valuations roll
+  // out of the requested range, since private valuations only update
+  // every few weeks. Rejecting a 1-point response there was the
+  // "stuck at 5/22 + fetch.histsingle ops spam" bug — the cache never
+  // updated past whatever multi-point snapshot it last held, AND the
+  // render gate hid the lone valuation even when the fetch succeeded.
+  const minPoints = isDailyOnlyT(ticker) ? 1 : 2;
   const initialCached   = (() => {
     const row = ChartStore.get(initialCacheKey);
-    return row && Array.isArray(row.data) && row.data.length >= 2 ? row : null;
+    return row && Array.isArray(row.data) && row.data.length >= minPoints ? row : null;
   })();
   const [series, setSeries]     = React.useState(
     /** @type {Array<{date:string,close:number,volume?:number}>|null} */
@@ -342,7 +356,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     // immediately. Within TTL we trust it and stop. Stale entries get
     // shown but a background refetch updates them in place — no spinner.
     let needsFresh = !cached;
-    if (cached && Array.isArray(cached.data) && cached.data.length >= 2) {
+    if (cached && Array.isArray(cached.data) && cached.data.length >= minPoints) {
       setSeries(cached.data);
       setLoading(false);
       setError(false);
@@ -370,20 +384,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // are flaky enough that one fetch can drop where a quick retry
       // succeeds. 3 attempts with short backoff catches the recoverable
       // cases without making the spinner feel endless when the symbol
-      // really is unfetchable.
-      //
-      // Minimum-points threshold. Public tickers require ≥ 2 points so
-      // a half-baked Yahoo response (single bar at the open) doesn't
-      // count as success. But isDailyOnly (CN funds + `.PVT` private
-      // holdings) legitimately ships SPARSE data — Yahoo's
-      // `/v8/chart/SPAX.PVT` returns just one timestamp at the latest
-      // valuation update (e.g. 5/22 for SpaceX) when older valuations
-      // have rolled out of the requested range, since private-company
-      // valuations only update every few weeks. Rejecting a 1-point
-      // response there was the "stuck at 5/22 + fetch.histsingle ops
-      // spam" bug — the cache never updated past whatever multi-point
-      // snapshot it last held.
-      const minPoints = isDailyOnlyT(ticker) ? 1 : 2;
+      // really is unfetchable. `minPoints` (defined at component top)
+      // gates what counts as a usable response.
       let data = null;
       for (let attempt = 0; attempt < 3 && !data; attempt++) {
         if (attempt > 0) await new Promise(r => setTimeout(r, 250 * attempt));
@@ -647,7 +649,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         );
         if (cancelled) return;
         let data = out[ticker];
-        if (data && data.length >= 2) {
+        if (data && data.length >= minPoints) {
           if (params.variant === 'closed') data = filterToLatestDay(data);
           else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
           const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
@@ -913,7 +915,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     ? computeVwap(points, sessionKeyOf)
     : null;
 
-  const hasData = points.length >= 2 && anchorClose;
+  const hasData = points.length >= minPoints && anchorClose;
   // X positioning is INDEX-based, not time-based. Treating each bar as one
   // equally-spaced step removes the ugly weekend / overnight gaps a real
   // time scale would draw, and matches the convention every brokerage
@@ -932,6 +934,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       : Math.max(1, points.length - 1);
     const denom = chartXDenom;
     xOfIdx = (i) => padL + (i / denom) * cW;
+    // Single-point chart (typically a sparse `.PVT` valuation update —
+    // see `minPoints` rationale above): center the lone dot horizontally
+    // instead of pinning it at the left edge, so it reads as "this is
+    // the one data point we have" rather than a half-drawn chart.
+    if (points.length === 1) xOfIdx = () => padL + cW / 2;
     const allP = points.map(p => p.close);
     // Keep the trailing dot's price inside the y-range so it can't clip
     // off the top/bottom when the overnight move ran past the bars.
@@ -961,7 +968,16 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         if (typeof v === 'number' && isFinite(v)) allP.push(v);
       }
     }
-    const rawMin = Math.min(...allP), rawMax = Math.max(...allP);
+    let rawMin = Math.min(...allP), rawMax = Math.max(...allP);
+    // Single-point chart: widen the visible range to ±5% around the
+    // close (with a small absolute floor for sub-$10 values) so the
+    // y-axis ticks aren't all jammed at the same number, which makes
+    // the chart look broken even when the data is fine.
+    if (points.length === 1 && rawMin === rawMax) {
+      const half = Math.max(Math.abs(rawMin) * 0.05, 0.5);
+      rawMin -= half;
+      rawMax += half;
+    }
     const yPad = Math.max(0.001, (rawMax - rawMin) * 0.08);
     yMin = rawMin - yPad; yMax = rawMax + yPad;
     const yRange = yMax - yMin || 1;
