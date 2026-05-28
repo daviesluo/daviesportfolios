@@ -244,16 +244,20 @@ function fetchOne(symbol: string, range: string, interval: string, includePrePos
   if (CN_FUND_RE.test(symbol)) return fetchEastmoneyHistorical(symbol, range);
   // `.PVT` (private holdings like SPAX.PVT) goes straight to Yahoo's
   // /v8/chart/{symbol} — Yahoo DOES recognise the literal suffix and
-  // serves the private-company valuation history. An older version of
-  // this function had a bare-symbol fallback (strip `.PVT`, retry) on
-  // the assumption Yahoo 404s the literal, but that turned out to be
-  // (a) untrue against most Yahoo paths and (b) actively HARMFUL once
-  // a SPAC ETF launched on bare `SPAX` (May 2026): for Edge IPs that
-  // Yahoo blocks for the `.PVT` path, the fallback silently substituted
-  // SPAC-ETF closes (~$130) under the SPAX.PVT key, polluting the chart
-  // with data from an entirely unrelated ticker. The client side
-  // (historical.js) now lets the CORS-proxy chain try `.PVT` when the
-  // Edge returns nothing, which is the right escape hatch.
+  // serves the private-company valuation history (sparse: roughly
+  // one timestamp per valuation update, weeks apart).
+  //
+  // An older version had a bare-symbol fallback (strip `.PVT`, retry)
+  // for when Yahoo returned nothing on the literal. That assumption
+  // turned out to be obsolete (the literal works), and the fallback
+  // became actively dangerous in May 2026 when a SPAC ETF launched on
+  // bare `SPAX`: any future Yahoo hiccup on the literal `.PVT` path
+  // would silently substitute SPAC-ETF closes (~$130) under the
+  // SPAX.PVT key — data from an entirely unrelated ticker. (Notably
+  // the SPAC-ETF range coincidentally OVERLAPS the SpaceX post-split
+  // price after SPAX.PVT's 1:5 split, so a leak would be visually
+  // plausible.) Better to return null and let the modal show "no
+  // data" than silently swap one ticker's history for another.
   return fetchYahooHistorical(symbol, range, interval, includePrePost);
 }
 

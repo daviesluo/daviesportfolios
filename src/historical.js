@@ -329,12 +329,17 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
   // just burns the proxies' rate limits without any chance of a
   // different outcome. Skip them quietly.
   //
-  // EXCEPTION: `.PVT` tickers. Yahoo serves the literal `.PVT` path
-  // (private-company valuation history, e.g. SpaceX) from residential
-  // / CORS-proxy IPs but blocks the Supabase Edge IP range for it —
-  // verified May 2026 when SPAX.PVT started returning empty server-
-  // side. For these, the client-side proxy chain is genuinely a
-  // different code path with a different outcome, so let it try.
+  // EXCEPTION: `.PVT` tickers (private holdings like SPAX.PVT) get
+  // a proxy retry even on edgeSucceeded. Yahoo's data for these is
+  // SPARSE (one valuation update every few weeks) and the Edge
+  // Function no longer has a bare-symbol fallback for it — see the
+  // long comment in `supabase/functions/chart/index.ts` re. why
+  // falling back to bare SPAX would silently leak unrelated
+  // SPAC-ETF data. If the Edge happens to return nothing for a
+  // .PVT ticker (transient Yahoo hiccup, network blip), the
+  // client-side proxy chain runs the same /v8/chart/{symbol}.PVT
+  // call from a different IP pool — cheap retry, no risk of
+  // contaminated data.
   //
   // Only fall back to proxies when the Edge Function call ITSELF failed
   // (network error, gateway 5xx, function not deployed). In that case
