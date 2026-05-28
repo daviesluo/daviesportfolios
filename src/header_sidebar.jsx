@@ -42,8 +42,20 @@ function EyeClosedIcon() {
     </svg>
   );
 }
-
-// Phase → color mapping
+// Currency-exchange icon for the mobile scoreboard's USD/GBP/CNY
+// cycle button. STATIC — same icon every click (the displayed digits
+// + symbol next to PORTFOLIO change to reflect the active currency,
+// but the button itself stays a constant "swap" marker so the user
+// always knows which control they're tapping). Two opposing
+// horizontal arrows reads universally as "exchange / convert".
+function CcyExchangeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 9h13l-3-3" />
+      <path d="M20 15H7l3 3" />
+    </svg>
+  );
+}
 const PHASE = {
   regular:    { color: "var(--gain)",   label: "Market Open" },
   premarket:  { color: "var(--gold)",   label: "Pre-market" },
@@ -254,28 +266,31 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
         <div className="scoreboard-cell">
           <div className="sb-label sb-label-row">
             <span>PORTFOLIO</span>
-            <button
-              type="button"
-              className="hide-eye"
-              onClick={onToggleHideValues}
-              aria-label={hideValues ? "Show values" : "Hide values"}
-              title={hideValues ? "Click to show values" : "Click to hide values"}
-            >
-              {hideValues ? <EyeClosedIcon /> : <EyeOpenIcon />}
-            </button>
-            {/* Mobile-only currency cycle. Same `.sb-label-row` flex
-                slot as the eye; `.ccy-cycle` hides itself via media
-                query on desktop. Ephemeral state — every cold page
-                load starts on USD per the user's spec. */}
-            <button
-              type="button"
-              className="ccy-cycle"
-              onClick={cycleCcy}
-              aria-label={`Currency: ${ccy} (click to cycle USD / GBP / CNY)`}
-              title={`Currency: ${ccy} — click to cycle USD / GBP / CNY`}
-            >
-              {ccySym}
-            </button>
+            {/* Eye + currency-cycle stacked vertically — both buttons
+                visible on mobile; the cycle hides itself on desktop
+                via `.ccy-cycle`'s min-width media query. The
+                wrapper's flex-column makes the cycle sit directly
+                BELOW the eye rather than to its right. */}
+            <div className="sb-label-actions">
+              <button
+                type="button"
+                className="hide-eye"
+                onClick={onToggleHideValues}
+                aria-label={hideValues ? "Show values" : "Hide values"}
+                title={hideValues ? "Click to show values" : "Click to hide values"}
+              >
+                {hideValues ? <EyeClosedIcon /> : <EyeOpenIcon />}
+              </button>
+              <button
+                type="button"
+                className="ccy-cycle"
+                onClick={cycleCcy}
+                aria-label={`Currency: ${ccy} (click to cycle USD / GBP / CNY)`}
+                title={`Currency: ${ccy} — click to cycle USD / GBP / CNY`}
+              >
+                <CcyExchangeIcon />
+              </button>
+            </div>
           </div>
           <div className={`sb-value sb-value-lg mono${sbFlash.mv ? " sb-flash-" + sbFlash.mv : ""}`}>{hideValues ? mask(fmCcy(metrics.marketValue)) : fmCcy(metrics.marketValue)}</div>
         </div>
