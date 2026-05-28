@@ -305,3 +305,46 @@ export function extPriceIsRealAh(series, extPrice, openMinsUtc, closeMinsUtc) {
 export function isPriceAxis(rangeKey) {
   return rangeKey !== 'PE' && rangeKey !== 'PS';
 }
+
+/**
+ * Drop Yahoo's bogus "closing print" bar from a 1D intraday series.
+ *
+ * Background: Yahoo's /v8/chart for thin-volume OTC pink-sheet ADRs
+ * (SFTBY is the canonical case) sometimes emits a last 5-min bar
+ * whose close equals the day's OPEN price rather than the actual
+ * last trade in the bar's window. Concretely, SFTBY's last real
+ * trade lands around 20:58 BST (15:58 ET) at ~$22.85, but Yahoo's
+ * 15:55-16:00 ET bar reports close = $23.30 — exactly the day's
+ * open price. The chart then draws a misleading "snap to open"
+ * spike at the right edge, and "since previous close" reads wrong.
+ *
+ * Pattern check (all three must hold): (a) last bar diverges from
+ * the previous bar by > 1.5 %, AND (b) last bar matches the first
+ * bar's close within 0.5 %, AND (c) the divergence direction
+ * "returns to" the first bar (i.e. last close - first close has
+ * the OPPOSITE sign of prev close - first close, OR prev close is
+ * far from first close). A real legitimate close-print that just
+ * happens to land at the open won't satisfy (a) — it'd have grown
+ * into the value gradually.
+ *
+ * Returns the original array when the pattern doesn't match —
+ * regular tickers with normal closing prints are unaffected.
+ *
+ * @param {Array<{date: string, close: number, volume?: number}>} data
+ */
+export function trimBogusCloseBar(data) {
+  if (!Array.isArray(data) || data.length < 3) return data;
+  const last = data[data.length - 1];
+  const prev = data[data.length - 2];
+  const first = data[0];
+  if (!last || !prev || !first) return data;
+  if (typeof last.close !== 'number' || typeof prev.close !== 'number'
+      || typeof first.close !== 'number') return data;
+  if (prev.close <= 0 || first.close <= 0) return data;
+  const divFromPrev = Math.abs(last.close - prev.close) / prev.close;
+  const divFromFirst = Math.abs(last.close - first.close) / first.close;
+  if (divFromPrev > 0.015 && divFromFirst < 0.005) {
+    return data.slice(0, -1);
+  }
+  return data;
+}

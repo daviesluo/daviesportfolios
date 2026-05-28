@@ -15,7 +15,7 @@ import { ChartStore, MaStore } from './chart_store.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
-  priceDividedByTtmEps, extPriceIsRealAh, isPriceAxis,
+  priceDividedByTtmEps, extPriceIsRealAh, isPriceAxis, trimBogusCloseBar,
 } from './indicators.js';
 import { pointerToDataIndex, overnightTrailingGap } from './chart_geometry.js';
 import { reportError } from './ops_error.js';
@@ -296,7 +296,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   })();
   const [series, setSeries]     = React.useState(
     /** @type {Array<{date:string,close:number,volume?:number}>|null} */
-    (initialCached ? initialCached.data : null),
+    (initialCached
+      ? (initialRangeKey === '1D' ? trimBogusCloseBar(initialCached.data) : initialCached.data)
+      : null),
   );
   const [loading, setLoading]   = React.useState(!initialCached);
   const [error, setError]       = React.useState(false);
@@ -357,7 +359,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     // shown but a background refetch updates them in place — no spinner.
     let needsFresh = !cached;
     if (cached && Array.isArray(cached.data) && cached.data.length >= minPoints) {
-      setSeries(cached.data);
+      // Defensively trim the SFTBY-style bogus close-print bar in case
+      // this row was cached before the fix landed. Fresh fetches below
+      // also trim, so eventually-consistent.
+      const primed = rangeKey === '1D' ? trimBogusCloseBar(cached.data) : cached.data;
+      setSeries(primed);
       setLoading(false);
       setError(false);
       setNoPe(false);
@@ -497,6 +503,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         // const-denominator path, same as before the field existed.
         data = priceDividedByTtmEps(data, isPe ? row.ttmEpsHistory : row.ttmSalesHistory, denom);
       }
+      // Trim Yahoo's "snap to open" bogus close-print bar for 1D
+      // intraday — affects thin OTC pink-sheet ADRs (SFTBY). No-op on
+      // tickers whose actual close-print bar diverges naturally.
+      if (rangeKey === '1D') data = trimBogusCloseBar(data);
       modalCacheSet(cacheKey, data);
       setSeries(data);
       setLoading(false);
@@ -652,6 +662,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         if (data && data.length >= minPoints) {
           if (params.variant === 'closed') data = filterToLatestDay(data);
           else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
+          // Live-poll only runs for 1D — strip the SFTBY-style bogus
+          // close-print bar before persisting.
+          data = trimBogusCloseBar(data);
           const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
           modalCacheSet(cacheKey, data);
           setSeries(data);
@@ -1368,9 +1381,17 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         <div className="ticker-chart-wrap">
           {loading && <div className="sparkline-empty dim mono">Loading…</div>}
           {!loading && error && <div className="sparkline-empty dim mono">Couldn't load history</div>}
-          {!loading && !error && noPe && <div className="sparkline-empty dim mono">P/E not available — N/A</div>}
-          {!loading && !error && !noPe && !hasData && <div className="sparkline-empty dim mono">No data for this range</div>}
-          {!loading && !error && !noPe && hasData && (
+          {!loading && !error && isPvt && hasData && (
+            <div className="sparkline-empty dim mono">
+              Valuation snapshot · updated {series && series.length > 0
+                ? series[series.length - 1].date.slice(0, 10)
+                : '—'}
+            </div>
+          )}
+          {!loading && !error && isPvt && !hasData && <div className="sparkline-empty dim mono">No valuation data yet</div>}
+          {!loading && !error && !isPvt && noPe && <div className="sparkline-empty dim mono">P/E not available — N/A</div>}
+          {!loading && !error && !isPvt && !noPe && !hasData && <div className="sparkline-empty dim mono">No data for this range</div>}
+          {!loading && !error && !isPvt && !noPe && hasData && (
             <svg
               ref={svgRef}
               viewBox={`0 0 ${W} ${H}`}
@@ -1553,16 +1574,18 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           )}
         </div>
 
-        <div className="perf-range-row">
-          {visibleRangeKeys.map(k => (
-            <button
-              key={k}
-              type="button"
-              className={`perf-range-btn mono${k === rangeKey ? ' on' : ''}`}
-              onClick={() => setRangeKey(k)}
-            >{k === 'PE' ? 'P/E YTD' : k === 'PS' ? 'P/S YTD' : RANGES[k].label}</button>
-          ))}
-        </div>
+        {!isPvt && (
+          <div className="perf-range-row">
+            {visibleRangeKeys.map(k => (
+              <button
+                key={k}
+                type="button"
+                className={`perf-range-btn mono${k === rangeKey ? ' on' : ''}`}
+                onClick={() => setRangeKey(k)}
+              >{k === 'PE' ? 'P/E YTD' : k === 'PS' ? 'P/S YTD' : RANGES[k].label}</button>
+            ))}
+          </div>
+        )}
       </div>
     </Modal>
   );

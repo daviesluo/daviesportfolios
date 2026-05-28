@@ -5,7 +5,7 @@ import {
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   priceDividedByTtmEps,
   hasExtendedHoursBars, extPriceIsRealAh,
-  isPriceAxis,
+  isPriceAxis, trimBogusCloseBar,
 } from './indicators.js';
 
 describe('maBarsFor / maLabelDaysFor', () => {
@@ -332,5 +332,60 @@ describe('isPriceAxis (live-tail substitution gate)', () => {
     // line, not a cross-unit cliff.
     expect(isPriceAxis('UNKNOWN')).toBe(true);
     expect(isPriceAxis('')).toBe(true);
+  });
+});
+
+describe('trimBogusCloseBar (SFTBY snap-to-open close-print)', () => {
+  it('drops the last bar when it jumps >1.5% from prev AND lands ~at the day open', () => {
+    // SFTBY pattern: opens at 23.30, drops to 22.40, recovers to
+    // 22.85 by 15:55, Yahoo's "closing print" bar lies at 23.30
+    // again (= open). Pre-fix the chart spiked at the right edge.
+    const data = [
+      { date: '2026-05-27T13:30', close: 23.30 },
+      { date: '2026-05-27T14:00', close: 22.60 },
+      { date: '2026-05-27T15:30', close: 22.85 },
+      { date: '2026-05-27T15:55', close: 23.30 },  // bogus
+    ];
+    expect(trimBogusCloseBar(data).length).toBe(3);
+    expect(trimBogusCloseBar(data).at(-1)?.close).toBe(22.85);
+  });
+
+  it('keeps a real close-print bar that diverges but does NOT match the open', () => {
+    // Real news-driven close spike — the close diverges from prev
+    // by >1.5% but the day's open was different, so it's not the
+    // bogus snap-to-open pattern.
+    const data = [
+      { date: '2026-05-27T13:30', close: 100 },
+      { date: '2026-05-27T14:00', close: 105 },
+      { date: '2026-05-27T15:30', close: 110 },
+      { date: '2026-05-27T15:55', close: 115 },  // real close
+    ];
+    expect(trimBogusCloseBar(data).length).toBe(4);
+  });
+
+  it('keeps a smooth-trending close even when it lands near the open', () => {
+    // Round-trip back to the open price BUT gradually — final bar
+    // doesn't jump from prev by 1.5%. Real pattern, not bogus.
+    const data = [
+      { date: '2026-05-27T13:30', close: 100 },
+      { date: '2026-05-27T14:00', close: 99.5 },
+      { date: '2026-05-27T15:30', close: 99.8 },
+      { date: '2026-05-27T15:55', close: 100.1 },  // smooth landing
+    ];
+    expect(trimBogusCloseBar(data).length).toBe(4);
+  });
+
+  it('no-ops on series shorter than 3 bars, or non-numeric closes', () => {
+    expect(trimBogusCloseBar([]).length).toBe(0);
+    expect(trimBogusCloseBar([{ date: 'x', close: 1 }]).length).toBe(1);
+    expect(trimBogusCloseBar([
+      { date: 'x', close: 1 }, { date: 'y', close: 2 },
+    ]).length).toBe(2);
+    // Bad closes — should not crash.
+    expect(trimBogusCloseBar(/** @type {any} */ ([
+      { date: 'x', close: null },
+      { date: 'y', close: 100 },
+      { date: 'z', close: 100 },
+    ])).length).toBe(3);
   });
 });
