@@ -517,9 +517,15 @@ before this guard landed).
   `ops-error`, `trading212`. Eleven migration files (`0001`–`0011`); `0005`/`0006`
   are a historical create/drop pair for the retired
   `analyst_estimates_cache` table.
-- **Build / CI** — Vite production bundle, vitest for unit tests, tsc
-  in `--noEmit` mode for typechecking. GitHub Actions workflow runs
-  all three on every push to `main`.
+- **Build / CI** — Vite production bundle, vitest for unit tests
+  (`jsdom` environment so component-level tests on `TickerChartModal`
+  / `PerfChart` / `App` mount with `@testing-library/react`), tsc in
+  `--noEmit` mode for typechecking. Three GitHub Actions workflows:
+  `check.yml` (typecheck + tests + build on every push), `edge-functions.yml`
+  (deno test + auto-deploy of changed `supabase/functions/<name>/index.ts`
+  on push to main), `migrations.yml` (PR-time SQL lint, push-to-main
+  `supabase db push` applying any new migration files against prod's
+  `schema_migrations` table).
 - **Hosting** — Cloudflare Pages auto-deploys from `main`. `_headers`
   pins cache rules so iOS PWA can't get stuck on a stale `index.html`
   pointing at deleted hashed bundles.
@@ -543,6 +549,7 @@ before this guard landed).
 | `proxy_chain.js` | The 5-host public CORS-proxy list + per-proxy backoff cache (`proxyIsAvailable`, `markProxyDead`, `clearProxyBackoff`). When a proxy returns 429 / 403 / 5xx it's blacklisted for 10 minutes (1 minute for plain timeouts), so one dead host doesn't poison every 30-second refresh tick. Cleared on first successful response from that proxy. In-memory only; resets on page reload. Imported by `yahoo_fetch.js` + `historical.js`. |
 | `yahoo_fetch.js` | The live-price pipeline. Edge-first (`/functions/v1/prices`) with the per-proxy fallback chain consulted only for tickers Edge dropped. Public surface: `refreshPrices`, `fetchTickers`, `fetchFundamentals`. `fetchOneYahooChart` (the proxy-side single-symbol fallback) now suppresses `extPrice` for any ticker with a dotted suffix (`.L`, `.HK`, `.SS`, …) — Yahoo's `preMarketPrice` / `postMarketPrice` for those reflects the local exchange's live intraday quote, not a US-style pre/post session, so the ext-hours toggle would otherwise leak real LSE intraday movement when the user expects 0. |
 | `historical.js` | Chart-data fetch. `fetchHistorical` (single-symbol proxy race), `fetchCnFundHistoryViaProxy` (danjuanapp + xueqiu race for 6-digit CN funds), `fetchHistoricalBatch` (Edge-first, proxy-fallback only on Edge total failure), `fetchTodayRegularClose` (latest 16:00 ET close per ticker for the MC cards' "since 16:00 ET" anchor). |
+| `chart_modal_geometry.js` / `chart_modal_geometry.test.js` | Pure geometry for the ticker chart modal: anchorClose selection (regular / ext-mode fallback chain to lastPrice / prevClose / series[0]), `hasData` gate, `xOfIdx` / `yOf` scale fns, y-range containment for PE/PS 3yAvg + MA + VWAP + the overnight-dot price, "nice step" y-tick spacing, and index-spaced x-ticks (+ the "now" tick at the live dot's true-time x). Lifted out of `ticker_chart_modal.jsx` in PR #158 — the inline block had grown to ~200 lines that needed to be touched in 8 different positions during PR #157's SFTBY / `.PVT` saga. Pinned by 13 vitest cases. |
 | `chart_geometry.js` / `chart_geometry.test.js` | Shared SVG-chart helpers used by both `perf_chart.jsx` and `ticker_chart_modal.jsx`. `pointerToDataIndex(event, svgEl, geom, dataLength)` replaces the duplicated 20-line `handleMove` math (mouse + touch coord extraction, SVG letterbox correction, axis-padding clamp, round-to-nearest-index) so a bug fix in one chart propagates to the other automatically; `geom.xDenom` optionally overrides the x denominator when the bars don't fill the full width (the modal's overnight view reserves the right edge for the live dot's time-proportional gap). `overnightTrailingGap(lastBarMs, nowMs, barIntervalMs)` returns how far past the last bar the live "night market" dot sits, in bar-interval units, so the otherwise index-based chart honours real elapsed time for just the current overnight session. `pointsToSvgPath` is also exported. vitest pins the letterbox math, the `xDenom` override + gap edge cases. |
 | `chart_store.js` | IndexedDB-backed chart cache layer built on [`idb-keyval`](https://github.com/jakearchibald/idb-keyval). Three logical stores — `ChartStore` (per-ticker per-range chart series + the `\|FUND\|v2` fundamentals row + the `\|PE\|v4\|...` series), `MaStore` (MA overlay wider-history per ticker × range), `YtdStore` (PerfChart's per-(year, range, ticker) entries). Each store has a synchronous in-memory `Map` mirror that's auto-hydrated from IDB at module load so the modal's `useState` initializer can read warm cache on the very first paint. Writes update the mirror immediately and persist to IDB in the background (best-effort). One-shot legacy-`localStorage` migration on first hydrate copies any existing `dp.tickerChart` / `dp.maCache` / `dp.ytd` rows into the matching IDB store, then deletes the localStorage row to free the quota for `dp.auth` / `dp.prefs`. Falls back to mem-only cleanly when `indexedDB` is undefined (vitest, private-mode iOS Safari). |
 | `formatters.js` / `fx.js` / `metrics.js` / `lots.js` | The pure pieces lifted out of `utils.js`. `formatters.js`: `fmtMoney` / `fmtPct` / `fmtPrice` / `pctColor` / `maskDigits` / `formatAgo`. `fx.js`: `detectCurrency` / `currencySymbol` / `fxRateToUSD` (the version that returns `{ rate, missing }` so a 1:1 fallback can be surfaced) / `fxToUSD` (back-compat shim). `metrics.js`: `computeMetrics` / `detectFormation`. `lots.js`: `cleanLots` / `totalShares` / `weightedAvgCost` (lot-input sanitisation, which used to be inline in modals.jsx and silently kept negative cost values). All pinned by `utils.metrics.test.js` (19 cases) and `lots.test.js` (14 cases) so the on-screen portfolio numbers can't quietly regress. |
@@ -565,6 +572,8 @@ before this guard landed).
 | `trading212.js` / `trading212.test.js` | `fetchTrading212Holdings()` hits the `trading212` Edge Function and returns `{ holdings: { 'VUAA.L': { shares, cost }, … }, prices: { 'VUAA.L': 98.4, 'AAPL': 234.5, … } }` or null; `applyTrading212(holdings, t212, today)` overlays the shares/cost allow-list on the live portfolio by replacing each matching ticker's `lots` with a single synthetic lot dated today, while `applyTrading212NightPrice(holdings, prices, active)` overlays the `prices` map as overnight quotes (only tickers with `hasOvernightSession` — US equities excluding OTC ADRs like SFTBY — and only when `active`). Fired in parallel with the live-prices / MC / ext-series fetches inside `doRefresh`. Best-effort: a null T212 response leaves the lots alone, so a transient upstream error doesn't wipe what the user last saved manually. The user can still edit lots in EditTickerModal; the next auto-refresh tick just overwrites the manual edit with whatever T212 reports. |
 | `types.d.ts` | JSDoc-friendly type definitions. |
 | `styles.css` | All app styles (single sheet). |
+| `test_setup.js` | Single-line vitest setup file (referenced from `vite.config.js → test.setupFiles`). Imports `@testing-library/jest-dom/vitest` so `toBeInTheDocument` / `toHaveTextContent` etc. work in every test without a per-file import. |
+| `ticker_chart_modal.test.jsx` / `perf_chart.test.jsx` / `app.test.jsx` | Component-level smoke tests (React-Testing-Library on top of vitest's `jsdom` env). Each one mounts the component with heavy children + network calls mocked via `vi.mock` and asserts the render-decision tree (loading / error / has-data branches) hasn't drifted. Bar is "regression coverage for prop renames + hook reorders", not E2E — the math is still pinned by the pure-helper tests. |
 | `index.html` | Vite root. References `/assets/index-<hash>.js`. |
 
 ### `supabase/functions/` — Edge Functions (Deno)
@@ -703,7 +712,16 @@ URL and the `anon public` API key (Settings → API).
 
 ### 2. Run the migrations
 
-In Supabase dashboard → SQL Editor, paste and run **in order**:
+**Recommended path** (after PR #158): set `SUPABASE_DB_PASSWORD` in
+the `production` GitHub Environment alongside the existing
+`SUPABASE_ACCESS_TOKEN` / `SUPABASE_PROJECT_REF`. The `migrations.yml`
+workflow auto-runs `supabase db push --include-all` on every push to
+main that touches `supabase/migrations/**`, applying files not already
+in prod's `supabase_migrations.schema_migrations` table.
+
+For initial bootstrap (or as a fallback if the workflow secrets
+aren't set), paste and run in the Supabase dashboard → SQL Editor
+**in order**:
 
 - `supabase/migrations/0001_auth_attempts.sql`
 - `supabase/migrations/0002_ops_errors.sql`
