@@ -560,6 +560,22 @@ function Board({ isReadOnly }) {
           extendedHours,
           phase: phaseNow,
         });
+        // Outside the regular session, ALSO pre-warm the opposite
+        // ext-toggle state's 1D cache so flipping the Extended Hours
+        // switch is a cache hit instead of a 1-2 s cold fetch. The
+        // 1D cache key includes `useExt`, so this writes to a
+        // distinct row from the call above; harmless during regular
+        // hours (toggle is a no-op then) so we skip the second call.
+        if (phaseNow !== "regular") {
+          const altSp = !extendedHours ? "ES=F" : "^GSPC";
+          prefetchAllChartData({
+            tickers: tickerList,
+            mcTickers: MC_PREFETCH_TICKERS,
+            spSymbol: altSp,
+            extendedHours: !extendedHours,
+            phase: phaseNow,
+          });
+        }
       }
     }
     if (src === "error") {
