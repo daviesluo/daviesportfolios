@@ -110,7 +110,7 @@ if (import.meta.main) {
     // don't need to ride along on every fetch.
     const now = new Date();
     const cutoff = new Date(now.getTime() - 26 * 3_600_000).toISOString();
-    let rows;
+    let rows: Array<{ bucket_time: string; price: number | string }> = [];
     try { rows = await readPoints(cutoff); }
     catch { rows = []; }
     const body = shapeResponse(rows, now);
