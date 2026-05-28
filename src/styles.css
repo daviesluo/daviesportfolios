@@ -262,7 +262,12 @@ body {
   font-size: 9px; letter-spacing: 0.18em; color: var(--chalk-dim);
   font-family: var(--font-mono); display: flex; align-items: center; gap: 6px;
 }
-.sb-label-row { gap: 8px; }
+/* PORTFOLIO label row — pin the eye to the far RIGHT (was inline
+   8 px after the label) so it sits in the same vertical column as
+   the currency-cycle button below it in `.sb-value-row`. Both
+   buttons end up right-aligned at the cell edge, vertically
+   stacked from the user's eye-line view. */
+.sb-label-row { gap: 8px; justify-content: space-between; }
 /* The eye icon next to "PORTFOLIO" — toggles the hide-values mode. */
 /* PORTFOLIO value row — the big `$xxx,xxx` number on the left, the
    currency-cycle button on the right (mobile only; on desktop the
@@ -293,12 +298,14 @@ body {
 .hide-eye svg { display: block; }
 /* The 💱 glyph is an OS-native emoji — most platforms render it in
    colour (red/blue currency tags). Desaturate + dim it so it sits
-   on-tone with the gray hide-eye (CSS `color` can't touch emoji
-   pixels; only filters can). */
+   on-tone with the eye (CSS `color` can't touch emoji pixels; only
+   filters can). `opacity(0.5)` matches the alpha channel on
+   `--chalk-dim` (rgba(244,239,227,0.5)) so the emoji matches the
+   eye's perceived weight, not just hue. Font-size 14 px matches
+   the eye SVG's 14×14 box. */
 .ccy-cycle {
-  font-size: 15px; line-height: 1;
-  filter: grayscale(1) opacity(0.65);
-  -webkit-font-smoothing: antialiased;
+  font-size: 14px; line-height: 1;
+  filter: grayscale(1) opacity(0.5);
 }
 /* `.ccy-cycle` itself stays in DOM on desktop (so refs / focus order
    are stable) but is hidden via media query — the feature is
