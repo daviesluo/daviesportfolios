@@ -834,6 +834,7 @@ function Board({ isReadOnly }) {
       )}
       <Header
         metrics={metrics}
+        marketData={marketData}
         marketDataReady={marketDataReady}
         source={source}
         lastUpdated={lastUpdated}

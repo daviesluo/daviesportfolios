@@ -42,8 +42,9 @@ function EyeClosedIcon() {
     </svg>
   );
 }
-
-// Phase → color mapping
+// (No icon component for the currency cycle — it renders the 💱
+// emoji as plain text content so OS-native font sizing handles it.
+// Grayscale + opacity filter in CSS keeps it on-tone with the eye.)
 const PHASE = {
   regular:    { color: "var(--gain)",   label: "Market Open" },
   premarket:  { color: "var(--gold)",   label: "Pre-market" },
@@ -133,7 +134,77 @@ function HeaderStatusPill({ lastUpdated, source, isRefreshing }) {
 // to `mask` here so the original short name keeps reading naturally
 // inside the JSX.
 
-function Header({ metrics, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues }) {
+// Currency cycle for the mobile scoreboard. Order is USD → GBP → CNY,
+// wrapping back to USD. The user requested ephemeral state — every
+// fresh page load starts on USD — so this lives in component state
+// (not `Storage`) and survives only within the current React mount.
+const CCY_CYCLE = /** @type {const} */ (['USD', 'GBP', 'CNY']);
+/** @type {Record<'USD'|'GBP'|'CNY', string>} */
+const CCY_SYMBOL = { USD: '$', GBP: '£', CNY: '¥' };
+
+/**
+ * Resolve the multiplier that converts a USD figure (the canonical
+ * portfolio currency that `metrics.marketValue` / `dayChange` /
+ * `unrlGL` are computed in) into the target cycle currency.
+ *
+ * Sourced from the same `marketData` map the Market Conditions cards
+ * read, so the scoreboard never disagrees with the FX cards visible
+ * lower in the page. Falls back to 1 (USD identity) on any missing
+ * pair — the cycle button keeps cycling but the displayed digits
+ * stay USD-numerically until the next FX refresh lands. The
+ * SYMBOL still follows the cycle so the user has a clear visual
+ * cue that the rate didn't land yet.
+ *
+ * @param {'USD'|'GBP'|'CNY'} ccy
+ * @param {Record<string, {lastPrice?: number}>} marketData
+ */
+function usdToCcyRate(ccy, marketData) {
+  if (ccy === 'USD') return 1;
+  if (ccy === 'GBP') {
+    // GBPUSD=X = "how many USD per 1 GBP" → invert for USD→GBP.
+    const gbpusd = marketData?.['GBPUSD=X']?.lastPrice;
+    return (typeof gbpusd === 'number' && gbpusd > 0) ? 1 / gbpusd : 1;
+  }
+  if (ccy === 'CNY') {
+    // USDCNY=X = "how many CNY per 1 USD" → direct multiplier.
+    const usdcny = marketData?.['USDCNY=X']?.lastPrice;
+    return (typeof usdcny === 'number' && usdcny > 0) ? usdcny : 1;
+  }
+  return 1;
+}
+
+function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues }) {
+  // Currency cycle for the scoreboard's PORTFOLIO number. Ephemeral
+  // by design — every cold load starts on USD per the user's spec.
+  // The button itself renders on every breakpoint; the
+  // `.scoreboard-cell-portfolio` CSS grid relocates it across
+  // breakpoints — mobile slots it row 2 col 2 (under the eye, right
+  // of the $value), desktop slots it row 1 col 3 (right of the eye
+  // in the label row).
+  const [ccy, setCcy] = React.useState(/** @type {'USD'|'GBP'|'CNY'} */ ('USD'));
+  const cycleCcy = React.useCallback(() => {
+    setCcy((cur) => CCY_CYCLE[(CCY_CYCLE.indexOf(cur) + 1) % CCY_CYCLE.length]);
+  }, []);
+  const ccyRate   = usdToCcyRate(ccy, marketData);
+  const ccySym    = CCY_SYMBOL[ccy];
+  /** Wraps the existing fmM() with the cycle's rate + symbol so the
+   *  3 scoreboard numbers stay in lockstep without sprinkling the
+   *  conversion at every call site. */
+  const fmCcy = React.useCallback(
+    /** @param {number | null | undefined} n @param {{signed?: boolean}} [opts] */
+    (n, opts) => fmM(typeof n === 'number' ? n * ccyRate : n, {
+      ...opts, symbol: ccySym,
+      // `compact: false` — the scoreboard expands M/B/T to full
+      // digits so e.g. a $159 K portfolio doesn't read as "¥1.08M"
+      // after the CNY cycle, but as the actual ¥1,079,451. Tier
+      // collapse applies app-wide everywhere else (sidebar /
+      // cards / modal) where the smaller font would otherwise
+      // overflow.
+      compact: false,
+    }),
+    [ccyRate, ccySym],
+  );
+
   // Scoreboard flash: detect value changes on price refresh
   /** @type {React.MutableRefObject<import('./types').PortfolioMetrics | null>} */
   const prevMetrics = React.useRef(null);
@@ -193,26 +264,38 @@ function Header({ metrics, marketDataReady, source, lastUpdated, isRefreshing, o
           <HeaderTime extendedHours={extendedHours} onToggleExtended={onToggleExtended} />
         </div>
         <div className="scoreboard-divider scoreboard-divider-time" />
-        <div className="scoreboard-cell">
-          <div className="sb-label sb-label-row">
-            <span>PORTFOLIO</span>
-            <button
-              type="button"
-              className="hide-eye"
-              onClick={onToggleHideValues}
-              aria-label={hideValues ? "Show values" : "Hide values"}
-              title={hideValues ? "Click to show values" : "Click to hide values"}
-            >
-              {hideValues ? <EyeClosedIcon /> : <EyeOpenIcon />}
-            </button>
-          </div>
-          <div className={`sb-value sb-value-lg mono${sbFlash.mv ? " sb-flash-" + sbFlash.mv : ""}`}>{hideValues ? mask(fmM(metrics.marketValue)) : fmM(metrics.marketValue)}</div>
+        {/* PORTFOLIO cell uses a 2-column × 2-row CSS grid so the eye
+            (row 1 col 2) and the currency-cycle (row 2 col 2) line
+            up at the same right edge regardless of how wide the
+            "$xxx,xxx" value renders. Flex couldn't pin them to a
+            shared column because the cell's intrinsic width was
+            set by content and `justify-content: space-between`
+            had no extra space to distribute. */}
+        <div className="scoreboard-cell scoreboard-cell-portfolio">
+          <span className="sb-label">PORTFOLIO</span>
+          <button
+            type="button"
+            className="hide-eye"
+            onClick={onToggleHideValues}
+            aria-label={hideValues ? "Show values" : "Hide values"}
+            title={hideValues ? "Click to show values" : "Click to hide values"}
+          >
+            {hideValues ? <EyeClosedIcon /> : <EyeOpenIcon />}
+          </button>
+          <div className={`sb-value sb-value-lg mono${sbFlash.mv ? " sb-flash-" + sbFlash.mv : ""}`}>{hideValues ? mask(fmCcy(metrics.marketValue)) : fmCcy(metrics.marketValue)}</div>
+          <button
+            type="button"
+            className="ccy-cycle"
+            onClick={cycleCcy}
+            aria-label={`Currency: ${ccy} (click to cycle USD / GBP / CNY)`}
+            title={`Currency: ${ccy} — click to cycle USD / GBP / CNY`}
+          >💱</button>
         </div>
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
           <div className="sb-label">DAY CHANGE</div>
           <div className={`sb-value mono sb-change-row${sbFlash.day ? " sb-flash-" + sbFlash.day : ""}`} style={{ color: pcC(metrics.dayPct) }}>
-            <span>{hideValues ? mask(fmM(metrics.dayChange, { signed: true })) : fmM(metrics.dayChange, { signed: true })}</span>
+            <span>{hideValues ? mask(fmCcy(metrics.dayChange, { signed: true })) : fmCcy(metrics.dayChange, { signed: true })}</span>
             <span className="sb-pct">({fmP(metrics.dayPct)})</span>
           </div>
         </div>
@@ -220,7 +303,7 @@ function Header({ metrics, marketDataReady, source, lastUpdated, isRefreshing, o
         <div className="scoreboard-cell">
           <div className="sb-label">UNREALIZED G/L</div>
           <div className={`sb-value mono sb-change-row${sbFlash.unrl ? " sb-flash-" + sbFlash.unrl : ""}`} style={{ color: pcC(metrics.unrlPct) }}>
-            <span>{hideValues ? mask(fmM(metrics.unrlGL, { signed: true })) : fmM(metrics.unrlGL, { signed: true })}</span>
+            <span>{hideValues ? mask(fmCcy(metrics.unrlGL, { signed: true })) : fmCcy(metrics.unrlGL, { signed: true })}</span>
             <span className="sb-pct">({fmP(metrics.unrlPct)})</span>
           </div>
         </div>
