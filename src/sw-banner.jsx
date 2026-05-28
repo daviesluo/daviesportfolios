@@ -125,6 +125,18 @@ export function ServiceWorkerBanner() {
     // but the new SW never took control) — report to ops_errors so
     // a chronic deploy-bricks-PWA scenario becomes visible instead of
     // disguised as a "reload didn't help" complaint.
+    //
+    // …BUT only report when a controller was already in place before
+    // the reload. iOS Safari + standalone-PWA Chrome are documented
+    // to fire `controllerchange` unreliably even in the happy path
+    // (see the comment block below that drives the hard reload), so
+    // every RELOAD click on those was registering a noisy
+    // `sw.activation.timeout` row even when the user's session was
+    // fine. Gating on `hadControllerBefore` keeps the chronic-deploy
+    // signal (the case the report was originally added for — a SW
+    // that USED to work but now silently stops controlling) while
+    // dropping the iOS-first-install / Safari-quirk noise.
+    const hadControllerBefore = !!navigator.serviceWorker?.controller;
     let activated = false;
     const onControllerChange = () => { activated = true; };
     try {
@@ -196,9 +208,13 @@ export function ServiceWorkerBanner() {
     setTimeout(() => {
       try { navigator.serviceWorker?.removeEventListener?.('controllerchange', onControllerChange); }
       catch { /* ignore */ }
-      if (!activated) {
+      if (!activated && hadControllerBefore) {
         // Force-reload anyway (we still want to leave the user on a
         // page) but flag the silent activation failure for ops_errors.
+        // Gated on `hadControllerBefore` so iOS Safari / standalone
+        // PWAs that fire `controllerchange` unreliably even on the
+        // happy path don't generate noise (see the comment above
+        // where `hadControllerBefore` is captured).
         reportError('sw.activation.timeout', {
           context: { hadController: !!navigator.serviceWorker?.controller },
         });
