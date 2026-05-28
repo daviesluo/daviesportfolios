@@ -323,18 +323,30 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
 
   // If the Edge Function ran successfully and just didn't return some
   // tickers, those tickers genuinely failed server-side — the Edge
-  // already exhausts all sensible upstreams server-side (Yahoo with
-  // .PVT-strip fallback for stocks; eastmoney → lsjz → danjuanapp for
-  // CN funds). Re-trying via the same Yahoo / xueqiu endpoints through
-  // browser CORS proxies just burns the proxies' rate limits without
-  // any chance of a different outcome. Skip them quietly.
+  // already exhausts all sensible upstreams server-side (Yahoo for
+  // stocks; eastmoney → lsjz → danjuanapp for CN funds). Re-trying
+  // via the same Yahoo / xueqiu endpoints through browser CORS proxies
+  // just burns the proxies' rate limits without any chance of a
+  // different outcome. Skip them quietly.
+  //
+  // EXCEPTION: `.PVT` tickers. Yahoo serves the literal `.PVT` path
+  // (private-company valuation history, e.g. SpaceX) from residential
+  // / CORS-proxy IPs but blocks the Supabase Edge IP range for it —
+  // verified May 2026 when SPAX.PVT started returning empty server-
+  // side. For these, the client-side proxy chain is genuinely a
+  // different code path with a different outcome, so let it try.
   //
   // Only fall back to proxies when the Edge Function call ITSELF failed
   // (network error, gateway 5xx, function not deployed). In that case
   // proxies are the only way to get any data for the page.
-  if (edgeSucceeded) return out;
+  const pvtMissing = missing.filter((t) => /\.PVT$/i.test(t));
+  if (edgeSucceeded && pvtMissing.length === 0) return out;
 
-  await Promise.all(missing.map(async (s) => {
+  // When the Edge succeeded, only retry `.PVT` tickers (see exception
+  // above) — burning proxy quota on the other missing tickers would
+  // just hit the same upstream that failed server-side.
+  const toRetry = edgeSucceeded ? pvtMissing : missing;
+  await Promise.all(toRetry.map(async (s) => {
     const data = await (CN_FUND_RE.test(s)
       ? fetchCnFundHistoryViaProxy(s, range)
       : fetchHistorical(s, range, interval, includePrePost)).catch(() => null);

@@ -836,8 +836,30 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     && !!NIGHT_BAR_INTERVAL_MS[rangeKey]
     && Array.isArray(series) && series.length >= 2;
 
+  // Skip the live-tail substitution when the market isn't actively
+  // trading right now AND `liveLast` diverges materially from the
+  // actual last intraday bar. Background: for thin-volume OTC pink-
+  // sheet ADRs like SFTBY, Yahoo's `regularMarketPrice` stale-sticks
+  // at the OPEN price after the session ends instead of the closing
+  // print. Blindly substituting it for the right-edge bar drew a
+  // misleading "snap to open" spike (~2 % jump from the last 5-min
+  // bar's close to the open price) and made the modal headline read
+  // a stale "since previous close" pct that kept changing as md
+  // refetched the bogus number. The original SFTBY fix (57016be) only
+  // covered the extPrice path; the lastPrice path was the regression
+  // the user is now reporting.
+  //
+  // Active-trading signal: US regular session, OR the ticker has real
+  // AH bars (hasExtendedBars), OR the divergence is small enough that
+  // the substitution is benign (≤1 % — covers live-price tracking for
+  // UK-listed stocks during UK hours, where the US-centric `phase` is
+  // not 'regular' but liveLast genuinely matches the freshest bar).
+  const lastBarClose = series && series.length > 0 ? series[series.length - 1].close : null;
+  const liveLastTracksLastBar = !!(liveLast && lastBarClose && lastBarClose > 0
+    && Math.abs(liveLast - lastBarClose) / lastBarClose <= 0.01);
+  const substituteLiveLast = phase === 'regular' || hasExtendedBars || liveLastTracksLastBar;
   const points = series ? series.map((p, i) => (
-    isPriceAxis(rangeKey) && i === series.length - 1 && liveLast && !nightDotActive ? { ...p, close: liveLast } : p
+    isPriceAxis(rangeKey) && i === series.length - 1 && liveLast && !nightDotActive && substituteLiveLast ? { ...p, close: liveLast } : p
   )) : [];
 
   const lastClose = points.length > 0 ? points[points.length - 1].close : null;

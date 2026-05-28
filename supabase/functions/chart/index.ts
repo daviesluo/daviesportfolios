@@ -242,29 +242,19 @@ export function trimToRange(points: Point[], range: string): Point[] {
 // ---------------- Router ----------------
 function fetchOne(symbol: string, range: string, interval: string, includePrePost: boolean): Promise<Point[] | null> {
   if (CN_FUND_RE.test(symbol)) return fetchEastmoneyHistorical(symbol, range);
-  return fetchYahooWithPvtFallback(symbol, range, interval, includePrePost);
-}
-
-// `.PVT` suffix is the app's convention for private / un-listed
-// holdings (e.g. SPAX.PVT). Yahoo doesn't recognise the literal
-// suffix and returns 404, but the underlying ticker (`SPAX`) often
-// has daily data. Try the literal first; if that returns nothing,
-// retry stripped. CN funds bypass this since they go to eastmoney.
-async function fetchYahooWithPvtFallback(
-  symbol: string,
-  range: string,
-  interval: string,
-  includePrePost: boolean,
-): Promise<Point[] | null> {
-  const direct = await fetchYahooHistorical(symbol, range, interval, includePrePost);
-  if (direct && direct.length > 0) return direct;
-  if (/\.PVT$/i.test(symbol)) {
-    const stripped = symbol.replace(/\.PVT$/i, "");
-    if (stripped && stripped !== symbol) {
-      return await fetchYahooHistorical(stripped, range, interval, includePrePost);
-    }
-  }
-  return null;
+  // `.PVT` (private holdings like SPAX.PVT) goes straight to Yahoo's
+  // /v8/chart/{symbol} — Yahoo DOES recognise the literal suffix and
+  // serves the private-company valuation history. An older version of
+  // this function had a bare-symbol fallback (strip `.PVT`, retry) on
+  // the assumption Yahoo 404s the literal, but that turned out to be
+  // (a) untrue against most Yahoo paths and (b) actively HARMFUL once
+  // a SPAC ETF launched on bare `SPAX` (May 2026): for Edge IPs that
+  // Yahoo blocks for the `.PVT` path, the fallback silently substituted
+  // SPAC-ETF closes (~$130) under the SPAX.PVT key, polluting the chart
+  // with data from an entirely unrelated ticker. The client side
+  // (historical.js) now lets the CORS-proxy chain try `.PVT` when the
+  // Edge returns nothing, which is the right escape hatch.
+  return fetchYahooHistorical(symbol, range, interval, includePrePost);
 }
 
 // Direct insert into public.ops_errors via the service-role key (RLS
