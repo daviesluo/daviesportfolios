@@ -18,6 +18,7 @@ import {
   priceDividedByTtmEps, extPriceIsRealAh, isPriceAxis,
 } from './indicators.js';
 import { pointerToDataIndex, overnightTrailingGap } from './chart_geometry.js';
+import { computeChartGeometry } from './chart_modal_geometry.js';
 import { reportError } from './ops_error.js';
 
 const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$' };
@@ -766,36 +767,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // marketData only carries the MC indices/futures/forex; portfolio
   // stocks are passed in via `holding`, so we look in BOTH places
   // for the ticker's price metadata.
+  // The actual selection lives in `computeChartGeometry` below — it
+  // needs anchor + hasData + scale derived together so the pure
+  // function can be unit-pinned and PR-#157-style 8-place fixes
+  // collapse to one.
   const lastPriceAny = md?.lastPrice ?? holding?.lastPrice ?? null;
   const prevCloseAny = md?.prevClose ?? holding?.prevClose ?? null;
-  let anchorClose = null;
-  if (series && series.length > 0) {
-    if (rangeKey === '1D') {
-      if (useExt) {
-        // Ext mode: the headline % is "move since today's 16:00 ET
-        // close". Anchor at today's close bar — or lastPrice, which
-        // Yahoo pins to the 16:00 print — regardless of whether this
-        // ticker has real AH bars. A non-AH-trading name (SFTBY, an
-        // OTC ADR; ^VIX) then reads ~0%, not yesterday's stale
-        // regular-session move.
-        if (regularCloseIdx >= 0) {
-          anchorClose = series[regularCloseIdx].close;
-        } else if (lastPriceAny && lastPriceAny > 0) {
-          anchorClose = lastPriceAny;
-        } else if (prevCloseAny && prevCloseAny > 0) {
-          anchorClose = prevCloseAny;
-        } else {
-          anchorClose = series[0].close;
-        }
-      } else if (prevCloseAny && prevCloseAny > 0) {
-        anchorClose = prevCloseAny;
-      } else {
-        anchorClose = series[0].close;
-      }
-    } else {
-      anchorClose = series[0].close;
-    }
-  }
 
   // Display series: substitute live price into the last point so the
   // chart tail tracks the rest of the app in real time. `isPriceAxis`
@@ -831,7 +808,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // the chart's last close (which already carries the live substitution
   // for regular / pre / after-hours).
   const headerPrice = nightDotActive ? extPriceLive : lastClose;
-  const pctNow = (anchorClose && headerPrice) ? ((headerPrice - anchorClose) / anchorClose) * 100 : 0;
+  // pctNow is computed AFTER computeChartGeometry runs below — anchor
+  // selection moved there with the rest of the chart-axis math.
 
   // Trailing dot geometry: gap (in bar-interval units) from the last
   // real bar to now, so the dot floats at its true-time x-position.
@@ -900,89 +878,42 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     ? computeVwap(points, sessionKeyOf)
     : null;
 
-  const hasData = points.length >= 2 && anchorClose;
-  // X positioning is INDEX-based, not time-based. Treating each bar as one
-  // equally-spaced step removes the ugly weekend / overnight gaps a real
-  // time scale would draw, and matches the convention every brokerage
-  // chart uses (Yahoo, Robinhood, T212 etc.) — they all collapse non-
-  // trading time into a single step. xOfIdx(i) takes the data-array index.
-  let xOfIdx = (_i) => padL, yOf = (_p) => padT + cH / 2;
-  let yMin = 0, yMax = 0, ticksY = [], ticksX = [];
-  // X denominator, hoisted so the crosshair (pointerToDataIndex) maps
-  // against the same scale. Normally `points.length - 1` (bars fill the
-  // width); during the overnight-dot view it's extended by the gap so
-  // the bars compress left and the right edge holds the trailing dot.
-  let chartXDenom = Math.max(1, points.length - 1);
-  if (hasData) {
-    chartXDenom = overnightDot
-      ? Math.max(1, points.length - 1) + overnightDot.gap
-      : Math.max(1, points.length - 1);
-    const denom = chartXDenom;
-    xOfIdx = (i) => padL + (i / denom) * cW;
-    const allP = points.map(p => p.close);
-    // Keep the trailing dot's price inside the y-range so it can't clip
-    // off the top/bottom when the overnight move ran past the bars.
-    if (overnightDot) allP.push(overnightDot.price);
-    // PE / PS charts include the 3-year-average reference line in
-    // the y-range so the dashed marker is always on-screen, even when
-    // the current ratio has drifted far from the historical average.
-    if (rangeKey === 'PE' && typeof pe3yAvg === 'number' && pe3yAvg > 0) {
-      allP.push(pe3yAvg);
-    }
-    if (rangeKey === 'PS' && typeof ps3yAvg === 'number' && ps3yAvg > 0) {
-      allP.push(ps3yAvg);
-    }
-    // MA values too — without this the line could overflow the
-    // chart bounds on the leftmost bars where MA reflects a much
-    // older (lower) average than the current price. User reported
-    // it as "MA 线溢出图表".
-    if (maSeries) {
-      for (const v of maSeries) {
-        if (typeof v === 'number' && isFinite(v)) allP.push(v);
-      }
-    }
-    // Same containment treatment for VWAP — without it the overlay
-    // could clip at the top/bottom of the plot area on volatile days.
-    if (vwapSeries) {
-      for (const v of vwapSeries) {
-        if (typeof v === 'number' && isFinite(v)) allP.push(v);
-      }
-    }
-    const rawMin = Math.min(...allP), rawMax = Math.max(...allP);
-    const yPad = Math.max(0.001, (rawMax - rawMin) * 0.08);
-    yMin = rawMin - yPad; yMax = rawMax + yPad;
-    const yRange = yMax - yMin || 1;
-    yOf = (p) => padT + ((yMax - p) / yRange) * cH;
-    // Y ticks — pick a step that gives ~5 ticks
-    const r = yMax - yMin;
-    const niceStep = (r) => {
-      const exp = Math.pow(10, Math.floor(Math.log10(r)));
-      const norm = r / exp;
-      if (norm < 1.5) return 0.2 * exp;
-      if (norm < 3) return 0.5 * exp;
-      if (norm < 7) return 1 * exp;
-      return 2 * exp;
-    };
-    const step = niceStep(r);
-    for (let v = Math.ceil(yMin / step) * step; v <= yMax; v += step) ticksY.push(v);
-    // X ticks — pick equally-spaced INDICES (not times) so labels track
-    // actual data points rather than calendar gaps. Each tick records
-    // both the chart-x coord and the date string at that index.
-    const ticksToShow = rangeKey === '1D' ? 5 : 4;
-    for (let i = 0; i <= ticksToShow; i++) {
-      const idx = Math.round((points.length - 1) * (i / ticksToShow));
-      const safeIdx = Math.max(0, Math.min(points.length - 1, idx));
-      ticksX.push({ x: xOfIdx(safeIdx), date: points[safeIdx].date });
-    }
-    // Overnight: the bar ticks above sit in the compressed left portion;
-    // add one more at the live dot's true-time x (far right) labelled
-    // with "now", so the axis under the heartbeat dot reflects the
-    // current time and refreshes each tick. Placed last so it gets the
-    // 'end' text-anchor in the render.
-    if (overnightDot) {
-      ticksX.push({ x: padL + cW, date: overnightDot.dateStr });
-    }
-  }
+  // Geometry — anchorClose / hasData / xOfIdx / yOf / yMin / yMax /
+  // ticksY / ticksX / chartXDenom. Pure function in chart_modal_geometry.js,
+  // pinned by chart_modal_geometry.test.js. Replaces a ~200-line inline
+  // block (anchor + hasData gate + x/y scale + range containment +
+  // tick generation) that PR #157 reworked from 8 places at once —
+  // having it as a pure function means future fixes land here and
+  // get unit-tested instead of touching React state.
+  //
+  // X positioning is INDEX-based, not time-based. Treating each bar
+  // as one equally-spaced step removes the ugly weekend / overnight
+  // gaps a real time scale would draw, and matches every brokerage
+  // chart's convention. During the overnight-dot view chartXDenom is
+  // extended by `overnightDot.gap` so the bars compress left and the
+  // right edge holds the trailing dot; the crosshair (pointerToDataIndex)
+  // is wired against the same chartXDenom so click-to-data-index uses
+  // the same scale.
+  const geometry = computeChartGeometry({
+    series,
+    points,
+    rangeKey,
+    useExt,
+    isRatioRange,
+    overnightDot,
+    regularCloseIdx,
+    dimensions: { padL, padR, padT, padB, cW, cH },
+    anchorRefs: {
+      lastPriceAny,
+      prevCloseAny,
+      pe3yAvg,
+      ps3yAvg,
+      maSeries,
+      vwapSeries,
+    },
+  });
+  const { anchorClose, hasData, xOfIdx, yOf, yMin, yMax, ticksY, ticksX, chartXDenom } = geometry;
+  const pctNow = (anchorClose && headerPrice) ? ((headerPrice - anchorClose) / anchorClose) * 100 : 0;
 
   // X for the right-margin overlay labels (VWAP / MA). Normally the far
   // right margin, but in the overnight view the line ends at the last
