@@ -35,6 +35,7 @@ import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
 import { fetchTrading212Holdings, applyTrading212, applyTrading212NightPrice, applyTrading212SftbyPrice } from './trading212.js';
+import { recordSftbyTick } from './sftby_intraday.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
 class ErrorBoundary extends React.Component {
@@ -431,7 +432,18 @@ function Board({ isReadOnly }) {
           (t) => t !== "CASH" && !portfolio.holdings[t]?.isCash && isUsEquity(t),
         )
       : [];
-    const [{ updates, source: src }, mcResult, todayCloses, extSeries, t212Holdings] = await Promise.all([
+    // .PVT tickers (private holdings like SPAX.PVT) don't ship a
+    // tradeable intraday tape so the prices Edge Function filters them
+    // out — fetch their chart endpoint here instead and use the latest
+    // bar's close as lastPrice for the position card / scoreboard /
+    // heatmap. This is a CLIENT-SIDE workaround because the equivalent
+    // server-side fix (drop the prices-Edge filter) only deploys on
+    // push to main, so it doesn't activate in Cloudflare Pages
+    // previews. Cheap (one Yahoo call per .PVT holding, ~1 KB JSON).
+    const pvtHoldingTickers = Object.keys(portfolio.holdings).filter(
+      (t) => /\.PVT$/i.test(t),
+    );
+    const [{ updates, source: src }, mcResult, todayCloses, extSeries, t212Holdings, pvtChart] = await Promise.all([
       refreshPrices(portfolio, "live"),
       fetchTickers(MC_TICKERS),
       fetchTodayRegularClose(MC_TICKERS),
@@ -447,6 +459,10 @@ function Board({ isReadOnly }) {
       // `holdings` drives the VUAA.L / SAEM.L shares-cost auto-sync,
       // `prices` feeds the overnight US-equity quote overlay below.
       fetchTrading212Holdings(),
+      // See `pvtHoldingTickers` comment above.
+      pvtHoldingTickers.length > 0
+        ? fetchHistoricalBatch(pvtHoldingTickers, "5d", "1d", false).catch(() => ({}))
+        : Promise.resolve({}),
     ]);
     if (mcResult) {
       for (const [t, c] of Object.entries(todayCloses || {})) {
@@ -541,8 +557,31 @@ function Board({ isReadOnly }) {
       // night overlay so the SFTBY override always wins for SFTBY,
       // and the night overlay still applies to every other US equity.
       applyTrading212SftbyPrice(next.holdings, t212Holdings?.prices);
+      // .PVT: derive lastPrice/prevClose from the chart-endpoint batch
+      // we kicked off above (cheap fallback for the prices-Edge .PVT
+      // skip). No-op when pvtChart is empty (no .PVT holdings, or the
+      // fetch failed — fall back to whatever the merge above wrote).
+      for (const [t, series] of Object.entries(pvtChart || {})) {
+        if (!next.holdings[t]) continue;
+        if (!Array.isArray(series) || series.length === 0) continue;
+        const lastClose = series[series.length - 1].close;
+        if (typeof lastClose !== 'number' || lastClose <= 0) continue;
+        const prevClose = series.length >= 2 ? series[series.length - 2].close : lastClose;
+        next.holdings[t] = {
+          ...next.holdings[t],
+          lastPrice: lastClose,
+          prevClose: typeof prevClose === 'number' && prevClose > 0 ? prevClose : lastClose,
+          dayPct: (typeof prevClose === 'number' && prevClose > 0)
+            ? ((lastClose - prevClose) / prevClose) * 100
+            : 0,
+        };
+      }
       return next;
     });
+    // SFTBY: capture this tick's T212 currentPrice into the client-side
+    // 1D intraday recorder. No-op outside SFTBY's session window (UK
+    // 13:00-21:00 Mon-Fri) or when T212 isn't configured.
+    recordSftbyTick(t212Holdings?.prices?.SFTBY);
     setLastUpdated(new Date());
     setIsRefreshing(false);
     if (src === "live") {

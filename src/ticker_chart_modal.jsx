@@ -6,6 +6,7 @@
 import React from 'react';
 import { Modal } from './modals.jsx';
 import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc } from './utils.js';
+import { getSftbyIntradaySeries, mergeSftbyToday, SFTBY_INTRADAY_TICK_EVENT } from './sftby_intraday.js';
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
@@ -300,8 +301,23 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // render gate hid the lone valuation even when the fetch succeeded.
   const minPoints = isDailyOnlyT(ticker) ? 1 : 2;
   const initialCached   = (() => {
+    // SFTBY 1D bypasses Yahoo entirely — read the client-side intraday
+    // recorder from localStorage. Synchronous, so the first paint has
+    // the chart already drawn (no Loading… flash). See
+    // src/sftby_intraday.js for why the recorder exists.
+    if (ticker === 'SFTBY' && initialRangeKey === '1D') {
+      const synth = getSftbyIntradaySeries();
+      return synth.length > 0 ? { data: synth, ts: Date.now() } : null;
+    }
     const row = ChartStore.get(initialCacheKey);
-    return row && Array.isArray(row.data) && row.data.length >= minPoints ? row : null;
+    if (!row || !Array.isArray(row.data) || row.data.length < minPoints) return null;
+    // SFTBY non-1D: cache stores Yahoo data unchanged; apply the
+    // synthetic-today merge at read time so the first paint matches
+    // what the effect's re-fetch will produce.
+    if (ticker === 'SFTBY' && initialRangeKey !== '1D') {
+      return { ...row, data: mergeSftbyToday(row.data, initialRangeKey) };
+    }
+    return row;
   })();
   const [series, setSeries]     = React.useState(
     /** @type {Array<{date:string,close:number,volume?:number}>|null} */
@@ -352,6 +368,25 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
 
   React.useEffect(() => {
     let cancelled = false;
+    // SFTBY 1D: client-side recorded series, no Yahoo fetch. Read from
+    // localStorage on mount and subscribe to the recorder's tick event
+    // for live updates. The doRefresh loop in app.jsx writes a new
+    // entry every 30 s during the session (overwriting within each
+    // 5-min bucket so the rightmost bar tracks the live T212 price).
+    if (ticker === 'SFTBY' && rangeKey === '1D') {
+      setSeries(getSftbyIntradaySeries());
+      setLoading(false);
+      setError(false);
+      setNoPe(false);
+      const onTick = () => {
+        if (!cancelled) setSeries(getSftbyIntradaySeries());
+      };
+      window.addEventListener(SFTBY_INTRADAY_TICK_EVENT, onTick);
+      return () => {
+        cancelled = true;
+        window.removeEventListener(SFTBY_INTRADAY_TICK_EVENT, onTick);
+      };
+    }
     const { yahooRange, interval, includePrePost } = fetchParams(rangeKey);
     // Cache key shape lives in cache.js (`tickerChartCacheKey`) so the
     // prefetch can't drift. Non-1D / non-PE ranges drop variant +
@@ -370,8 +405,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     if (cached && Array.isArray(cached.data) && cached.data.length >= minPoints) {
       // Defensively trim the SFTBY-style bogus close-print bar in case
       // this row was cached before the fix landed. Fresh fetches below
-      // also trim, so eventually-consistent.
-      const primed = rangeKey === '1D' && needsBogusBarTrim ? trimBogusCloseBar(cached.data) : cached.data;
+      // also trim, so eventually-consistent. Also apply the SFTBY
+      // synthetic-today merge for non-1D ranges so the cache prime
+      // matches the post-effect render.
+      let primed = cached.data;
+      if (rangeKey === '1D' && needsBogusBarTrim) primed = trimBogusCloseBar(primed);
+      if (needsBogusBarTrim && rangeKey !== '1D') primed = mergeSftbyToday(primed, rangeKey);
       setSeries(primed);
       setLoading(false);
       setError(false);
@@ -516,6 +555,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // only — see `needsBogusBarTrim` above for why the gate is
       // ticker-specific rather than pattern-only.
       if (rangeKey === '1D' && needsBogusBarTrim) data = trimBogusCloseBar(data);
+      // SFTBY multi-day ranges: swap today's Yahoo bars (RTH 14:30-
+      // 21:00 BST only) for the client-side synthetic series, which
+      // covers the full T212 session (UK 13:00-21:00). 1D is handled
+      // by the top-of-effect short-circuit above; this block handles
+      // 1W / 1M / 3M / YTD.
+      if (needsBogusBarTrim && rangeKey !== '1D') data = mergeSftbyToday(data, rangeKey);
       modalCacheSet(cacheKey, data);
       setSeries(data);
       setLoading(false);
@@ -642,6 +687,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         // price 1:1. null/absent history → const-denominator path.
         data = priceDividedByTtmEps(data, isPeRk ? row?.ttmEpsHistory : row?.ttmSalesHistory, denom);
       }
+      // Same SFTBY multi-day substitution as in the main effect, so
+      // the in-modal background prefetch of other ranges also writes
+      // a cache row with today's portion sourced from the synthetic
+      // recorder rather than Yahoo's RTH-only tape.
+      if (needsBogusBarTrim && rk !== '1D' && !isRatioRk) data = mergeSftbyToday(data, rk);
       modalCacheSet(cacheKey, data);
     })).catch(() => { /* per-range failures stay quiet */ });
     return () => { cancelled = true; };
@@ -656,6 +706,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // change or modal close.
   React.useEffect(() => {
     if (rangeKey !== '1D' || !series) return;
+    // SFTBY 1D doesn't go through Yahoo — the doRefresh tick in app.jsx
+    // calls `recordSftbyTick` which fires the SFTBY_INTRADAY_TICK_EVENT
+    // we subscribe to in the main fetch effect above. Live polling
+    // here would just hit Yahoo for no benefit.
+    if (ticker === 'SFTBY') return;
     let cancelled = false;
     let timer = null;
     const POLL_MIN_MS = 5000;
