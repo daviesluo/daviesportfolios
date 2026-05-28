@@ -307,16 +307,25 @@ body {
    - font-size 12 px so the rendered emoji optically lands at ~14 px
    - `transform: translateY(-0.5px)` nudges the baseline-anchored
      emoji upward so its visual center matches the eye SVG's center
-   For colour parity with the eye's `--chalk-dim` warm-cream stroke:
-   - `grayscale(1)` removes the emoji's native red/blue tags
-   - `brightness(0.95)` knocks down the residual whitepoint so the
-     gray reads closer to the chalk-dim luminance
-   - `opacity(0.5)` matches the alpha channel on the eye's stroke
-     so both buttons read at the same perceived weight, not just
-     the same hue. */
+   For colour parity with the eye's `--chalk-dim` (warm-cream stroke
+   at 50 % alpha on the dark scoreboard background):
+   - `brightness(0)` forces every emoji pixel to pure black (a
+     monochrome silhouette in the emoji's shape — transparent
+     areas stay transparent because brightness only affects RGB,
+     not alpha)
+   - `invert(1)` flips that black silhouette to pure white
+   - `opacity(0.5)` then dims the white to 50 % alpha — visually
+     identical to `rgba(255,255,255,0.5)` which sits within a
+     whisker of `rgba(244,239,227,0.5)` on a dark background.
+   This pipeline beats `grayscale(1)` because grayscale just
+   desaturates per-pixel luminance — red/blue currency tags map
+   to medium-to-dark gray, which then reads as nearly black at
+   50 % opacity on the scoreboard's dark bg. The whitewash-then-
+   dim pipeline gives a uniform light gray that actually matches
+   the eye stroke. */
 .ccy-cycle {
   font-size: 12px; line-height: 1;
-  filter: grayscale(1) brightness(0.95) opacity(0.5);
+  filter: brightness(0) invert(1) opacity(0.5);
   transform: translateY(-0.5px);
 }
 /* `.ccy-cycle` itself stays in DOM on desktop (so refs / focus order
