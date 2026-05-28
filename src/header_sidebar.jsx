@@ -133,7 +133,65 @@ function HeaderStatusPill({ lastUpdated, source, isRefreshing }) {
 // to `mask` here so the original short name keeps reading naturally
 // inside the JSX.
 
-function Header({ metrics, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues }) {
+// Currency cycle for the mobile scoreboard. Order is USD → GBP → CNY,
+// wrapping back to USD. The user requested ephemeral state — every
+// fresh page load starts on USD — so this lives in component state
+// (not `Storage`) and survives only within the current React mount.
+const CCY_CYCLE = /** @type {const} */ (['USD', 'GBP', 'CNY']);
+/** @type {Record<'USD'|'GBP'|'CNY', string>} */
+const CCY_SYMBOL = { USD: '$', GBP: '£', CNY: '¥' };
+
+/**
+ * Resolve the multiplier that converts a USD figure (the canonical
+ * portfolio currency that `metrics.marketValue` / `dayChange` /
+ * `unrlGL` are computed in) into the target cycle currency.
+ *
+ * Sourced from the same `marketData` map the Market Conditions cards
+ * read, so the scoreboard never disagrees with the FX cards visible
+ * lower in the page. Falls back to 1 (USD identity) on any missing
+ * pair — the cycle button keeps cycling but the displayed digits
+ * stay USD-numerically until the next FX refresh lands. The
+ * SYMBOL still follows the cycle so the user has a clear visual
+ * cue that the rate didn't land yet.
+ *
+ * @param {'USD'|'GBP'|'CNY'} ccy
+ * @param {Record<string, {lastPrice?: number}>} marketData
+ */
+function usdToCcyRate(ccy, marketData) {
+  if (ccy === 'USD') return 1;
+  if (ccy === 'GBP') {
+    // GBPUSD=X = "how many USD per 1 GBP" → invert for USD→GBP.
+    const gbpusd = marketData?.['GBPUSD=X']?.lastPrice;
+    return (typeof gbpusd === 'number' && gbpusd > 0) ? 1 / gbpusd : 1;
+  }
+  if (ccy === 'CNY') {
+    // USDCNY=X = "how many CNY per 1 USD" → direct multiplier.
+    const usdcny = marketData?.['USDCNY=X']?.lastPrice;
+    return (typeof usdcny === 'number' && usdcny > 0) ? usdcny : 1;
+  }
+  return 1;
+}
+
+function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues }) {
+  // Mobile-only currency cycle. Ephemeral by design — every cold
+  // load starts on USD per the user's spec. The button itself is
+  // hidden on desktop via the `.ccy-cycle` CSS media query (the
+  // hide-eye + ccy-cycle wrapper sits inside `.sb-label-row`).
+  const [ccy, setCcy] = React.useState(/** @type {'USD'|'GBP'|'CNY'} */ ('USD'));
+  const cycleCcy = React.useCallback(() => {
+    setCcy((cur) => CCY_CYCLE[(CCY_CYCLE.indexOf(cur) + 1) % CCY_CYCLE.length]);
+  }, []);
+  const ccyRate   = usdToCcyRate(ccy, marketData);
+  const ccySym    = CCY_SYMBOL[ccy];
+  /** Wraps the existing fmM() with the cycle's rate + symbol so the
+   *  3 scoreboard numbers stay in lockstep without sprinkling the
+   *  conversion at every call site. */
+  const fmCcy = React.useCallback(
+    /** @param {number | null | undefined} n @param {{signed?: boolean}} [opts] */
+    (n, opts) => fmM(typeof n === 'number' ? n * ccyRate : n, { ...opts, symbol: ccySym }),
+    [ccyRate, ccySym],
+  );
+
   // Scoreboard flash: detect value changes on price refresh
   /** @type {React.MutableRefObject<import('./types').PortfolioMetrics | null>} */
   const prevMetrics = React.useRef(null);
@@ -205,14 +263,27 @@ function Header({ metrics, marketDataReady, source, lastUpdated, isRefreshing, o
             >
               {hideValues ? <EyeClosedIcon /> : <EyeOpenIcon />}
             </button>
+            {/* Mobile-only currency cycle. Same `.sb-label-row` flex
+                slot as the eye; `.ccy-cycle` hides itself via media
+                query on desktop. Ephemeral state — every cold page
+                load starts on USD per the user's spec. */}
+            <button
+              type="button"
+              className="ccy-cycle"
+              onClick={cycleCcy}
+              aria-label={`Currency: ${ccy} (click to cycle USD / GBP / CNY)`}
+              title={`Currency: ${ccy} — click to cycle USD / GBP / CNY`}
+            >
+              {ccySym}
+            </button>
           </div>
-          <div className={`sb-value sb-value-lg mono${sbFlash.mv ? " sb-flash-" + sbFlash.mv : ""}`}>{hideValues ? mask(fmM(metrics.marketValue)) : fmM(metrics.marketValue)}</div>
+          <div className={`sb-value sb-value-lg mono${sbFlash.mv ? " sb-flash-" + sbFlash.mv : ""}`}>{hideValues ? mask(fmCcy(metrics.marketValue)) : fmCcy(metrics.marketValue)}</div>
         </div>
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
           <div className="sb-label">DAY CHANGE</div>
           <div className={`sb-value mono sb-change-row${sbFlash.day ? " sb-flash-" + sbFlash.day : ""}`} style={{ color: pcC(metrics.dayPct) }}>
-            <span>{hideValues ? mask(fmM(metrics.dayChange, { signed: true })) : fmM(metrics.dayChange, { signed: true })}</span>
+            <span>{hideValues ? mask(fmCcy(metrics.dayChange, { signed: true })) : fmCcy(metrics.dayChange, { signed: true })}</span>
             <span className="sb-pct">({fmP(metrics.dayPct)})</span>
           </div>
         </div>
@@ -220,7 +291,7 @@ function Header({ metrics, marketDataReady, source, lastUpdated, isRefreshing, o
         <div className="scoreboard-cell">
           <div className="sb-label">UNREALIZED G/L</div>
           <div className={`sb-value mono sb-change-row${sbFlash.unrl ? " sb-flash-" + sbFlash.unrl : ""}`} style={{ color: pcC(metrics.unrlPct) }}>
-            <span>{hideValues ? mask(fmM(metrics.unrlGL, { signed: true })) : fmM(metrics.unrlGL, { signed: true })}</span>
+            <span>{hideValues ? mask(fmCcy(metrics.unrlGL, { signed: true })) : fmCcy(metrics.unrlGL, { signed: true })}</span>
             <span className="sb-pct">({fmP(metrics.unrlPct)})</span>
           </div>
         </div>

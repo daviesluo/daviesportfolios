@@ -271,6 +271,19 @@ body {
 }
 .hide-eye:hover { color: var(--chalk); }
 .hide-eye svg { display: block; }
+/* Mobile currency cycle button. Matches `.hide-eye`'s visual weight
+   (text symbol sized to the eye's ~14px square footprint) so the
+   PORTFOLIO header row stays balanced. Hidden on desktop — the
+   feature is mobile-only per the user's spec. */
+.ccy-cycle {
+  background: transparent; border: none; cursor: pointer;
+  padding: 0 2px; display: inline-flex; align-items: center;
+  color: var(--chalk-dim); transition: color 0.12s;
+  font: 600 14px/1 var(--font-mono); min-width: 14px;
+  justify-content: center;
+}
+.ccy-cycle:hover { color: var(--chalk); }
+@media (min-width: 761px) { .ccy-cycle { display: none; } }
 .sb-value { font-size: 13px; font-weight: 600; }
 .sb-value-lg { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 .sb-time-line { display: flex; align-items: center; gap: 6px; }
