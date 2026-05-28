@@ -263,14 +263,84 @@ body {
   font-family: var(--font-mono); display: flex; align-items: center; gap: 6px;
 }
 .sb-label-row { gap: 8px; }
-/* The eye icon next to "PORTFOLIO" — toggles the hide-values mode. */
-.hide-eye {
-  background: transparent; border: none; cursor: pointer;
-  padding: 0 2px; display: inline-flex; align-items: center;
-  color: var(--chalk-dim); transition: color 0.12s;
+/* PORTFOLIO cell — CSS grid so the hide-eye + currency-cycle
+   buttons can be placed independently of DOM order across
+   breakpoints.
+   Mobile default: 2-col grid. Eye sits row 1 col 2 (right of
+   PORTFOLIO label), cycle sits row 2 col 2 (right of $value).
+   Both buttons share the cell's right-anchored auto-width column.
+   Desktop (≥761px): 3-col grid. Cycle moves up to row 1 col 3
+   (immediately right of the eye in the label row), and the
+   $value spans cols 1-3 in row 2. */
+.scoreboard-cell-portfolio {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  row-gap: 3px;
+  align-items: center;
 }
-.hide-eye:hover { color: var(--chalk); }
+.scoreboard-cell-portfolio .sb-label   { grid-row: 1; grid-column: 1; }
+.scoreboard-cell-portfolio .hide-eye   { grid-row: 1; grid-column: 2; }
+.scoreboard-cell-portfolio .ccy-cycle  { grid-row: 2; grid-column: 2; }
+.scoreboard-cell-portfolio .sb-value   { grid-row: 2; grid-column: 1; }
+@media (min-width: 761px) {
+  .scoreboard-cell-portfolio {
+    grid-template-columns: 1fr auto auto;
+  }
+  .scoreboard-cell-portfolio .ccy-cycle { grid-row: 1; grid-column: 3; }
+  .scoreboard-cell-portfolio .sb-value  { grid-row: 2; grid-column: 1 / -1; }
+}
+/* The eye icon next to "PORTFOLIO" — toggles the hide-values mode. */
+/* Eye + currency-cycle buttons. Always rendered in `--chalk-dim`
+   (no hover / focus / active highlight) per the user's spec —
+   tapping shouldn't change the button's own colour, the feedback
+   is in the scoreboard number that changes underneath. */
+.hide-eye,
+.ccy-cycle {
+  background: transparent; border: none; cursor: pointer; padding: 0 2px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--chalk-dim);
+}
+.hide-eye:hover, .ccy-cycle:hover,
+.hide-eye:focus, .ccy-cycle:focus,
+.hide-eye:active, .ccy-cycle:active {
+  color: var(--chalk-dim);
+  outline: none;
+}
 .hide-eye svg { display: block; }
+/* The 💱 glyph is an OS-native emoji — most platforms render it in
+   colour (red/blue currency tags) and the glyph's optical box is
+   ~20-25 % taller than its CSS font-size due to built-in ascender
+   padding. To match the 14×14 hide-eye SVG visually:
+   - font-size 12 px so the rendered emoji optically lands at ~14 px
+   - `transform: translateY(-0.5px)` nudges the baseline-anchored
+     emoji upward so its visual center matches the eye SVG's center
+   For colour parity with the eye's `--chalk-dim` (warm-cream stroke
+   at 50 % alpha on the dark scoreboard background):
+   - `brightness(0)` forces every emoji pixel to pure black (a
+     monochrome silhouette in the emoji's shape — transparent
+     areas stay transparent because brightness only affects RGB,
+     not alpha)
+   - `invert(1)` flips that black silhouette to pure white
+   - `opacity(0.5)` then dims the white to 50 % alpha — visually
+     identical to `rgba(255,255,255,0.5)` which sits within a
+     whisker of `rgba(244,239,227,0.5)` on a dark background.
+   This pipeline beats `grayscale(1)` because grayscale just
+   desaturates per-pixel luminance — red/blue currency tags map
+   to medium-to-dark gray, which then reads as nearly black at
+   50 % opacity on the scoreboard's dark bg. The whitewash-then-
+   dim pipeline gives a uniform light gray that actually matches
+   the eye stroke. */
+.ccy-cycle {
+  font-size: 12px; line-height: 1;
+  filter: brightness(0) invert(1) opacity(0.5);
+  transform: translateY(-0.5px);
+}
+/* `.ccy-cycle` is now visible on every breakpoint — desktop places
+   it in the label row (right of the eye) via the grid-area rules
+   in `.scoreboard-cell-portfolio` above, mobile keeps it in the
+   value row (below the eye). No `display: none` toggle needed. */
 .sb-value { font-size: 13px; font-weight: 600; }
 .sb-value-lg { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 .sb-time-line { display: flex; align-items: center; gap: 6px; }
@@ -999,7 +1069,11 @@ body {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    gap: 12px;
+    /* Tighter than the desktop's 24 px so a 360-380 px viewport fits
+       all three cells without horizontal scroll — the original 12 px
+       left the third cell's `+%)` clipped on narrow phones; 6 was
+       overkill, 10 is the user-confirmed sweet spot. */
+    gap: 10px;
     padding: 8px 0 10px;
     border: none;
     border-top: 1px solid var(--line);
