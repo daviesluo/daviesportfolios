@@ -6,7 +6,7 @@
 import React from 'react';
 import { Modal } from './modals.jsx';
 import { fetchHistoricalBatch, fetchFundamentals, Storage, usMarketHoursUtc } from './utils.js';
-import { getSftbyIntradaySeries, mergeSftbyToday, SFTBY_INTRADAY_TICK_EVENT } from './sftby_intraday.js';
+import { getSftbyIntradaySeries, mergeSftbyToday, SFTBY_FETCH_EVENT } from './sftby_intraday.js';
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
@@ -381,10 +381,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       const onTick = () => {
         if (!cancelled) setSeries(getSftbyIntradaySeries());
       };
-      window.addEventListener(SFTBY_INTRADAY_TICK_EVENT, onTick);
+      window.addEventListener(SFTBY_FETCH_EVENT, onTick);
       return () => {
         cancelled = true;
-        window.removeEventListener(SFTBY_INTRADAY_TICK_EVENT, onTick);
+        window.removeEventListener(SFTBY_FETCH_EVENT, onTick);
       };
     }
     const { yahooRange, interval, includePrePost } = fetchParams(rangeKey);

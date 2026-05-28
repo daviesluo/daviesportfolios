@@ -35,7 +35,7 @@ import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
 import { fetchTrading212Holdings, applyTrading212, applyTrading212NightPrice, applyTrading212SftbyPrice } from './trading212.js';
-import { recordSftbyTick } from './sftby_intraday.js';
+import { fetchSftbyServerData } from './sftby_intraday.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
 class ErrorBoundary extends React.Component {
@@ -443,7 +443,7 @@ function Board({ isReadOnly }) {
     const pvtHoldingTickers = Object.keys(portfolio.holdings).filter(
       (t) => /\.PVT$/i.test(t),
     );
-    const [{ updates, source: src }, mcResult, todayCloses, extSeries, t212Holdings, pvtChart] = await Promise.all([
+    const [{ updates, source: src }, mcResult, todayCloses, extSeries, t212Holdings, pvtChart, sftbyServer] = await Promise.all([
       refreshPrices(portfolio, "live"),
       fetchTickers(MC_TICKERS),
       fetchTodayRegularClose(MC_TICKERS),
@@ -463,6 +463,13 @@ function Board({ isReadOnly }) {
       pvtHoldingTickers.length > 0
         ? fetchHistoricalBatch(pvtHoldingTickers, "5d", "1d", false).catch(() => ({}))
         : Promise.resolve({}),
+      // SFTBY: pull the server-side recorder's snapshot (series for
+      // today + yesterday's last-bucket prevClose). Pg_cron writes
+      // every 5 min during the UK session; this call refreshes the
+      // localStorage cache the modal reads on first paint. Resolves
+      // to null on network error — the modal then renders from
+      // whatever the cache last held.
+      fetchSftbyServerData(),
     ]);
     if (mcResult) {
       for (const [t, c] of Object.entries(todayCloses || {})) {
@@ -556,7 +563,7 @@ function Board({ isReadOnly }) {
       // see applyTrading212SftbyPrice's docstring). Runs after the
       // night overlay so the SFTBY override always wins for SFTBY,
       // and the night overlay still applies to every other US equity.
-      applyTrading212SftbyPrice(next.holdings, t212Holdings?.prices);
+      applyTrading212SftbyPrice(next.holdings, t212Holdings?.prices, sftbyServer?.prevClose);
       // .PVT: derive lastPrice/prevClose from the chart-endpoint batch
       // we kicked off above (cheap fallback for the prices-Edge .PVT
       // skip). No-op when pvtChart is empty (no .PVT holdings, or the
@@ -578,10 +585,6 @@ function Board({ isReadOnly }) {
       }
       return next;
     });
-    // SFTBY: capture this tick's T212 currentPrice into the client-side
-    // 1D intraday recorder. No-op outside SFTBY's session window (UK
-    // 13:00-21:00 Mon-Fri) or when T212 isn't configured.
-    recordSftbyTick(t212Holdings?.prices?.SFTBY);
     setLastUpdated(new Date());
     setIsRefreshing(false);
     if (src === "live") {

@@ -1,115 +1,115 @@
-// SFTBY-only client-side intraday recorder. Yahoo's intraday tape for
-// this OTC pink-sheet ADR is unreliable (the 21:00-BST close-print bar
-// snaps to the day's open price; the actual T212 session is UK 13:00-
-// 21:00 but Yahoo's first bar lands at 14:30 BST anyway). Instead, on
-// every doRefresh tick during the SFTBY session, we record T212's
-// `currentPrice` into localStorage. The modal's 1D chart reads from
-// here directly — `prefetch`-equivalent paint (synchronous read, no
-// network) and the rightmost point keeps updating live as the bucket
-// price gets overwritten by subsequent ticks within the same 5-min
-// window.
+// SFTBY's chart data source. The actual recording happens on the
+// server (`supabase/functions/sftby-record/index.ts` on a pg_cron
+// schedule — runs even when no client is open). This module is the
+// CLIENT-SIDE READ + CACHE layer: it fetches the latest
+// `series + prevClose` from the `sftby-fetch` Edge Function, mirrors
+// it into localStorage for instant first-paint, and exposes accessors
+// for the modal + the price-merge helpers.
 //
-// Storage shape (localStorage `dp.sftby.intraday`):
-//   [{ time: <ms epoch>, price: <number> }, ...]
-// Points are auto-pruned to the last ~26 hours so the array stays
-// small even after weeks of running (96 buckets / day × 1 day = 96
-// entries, ~3 KB JSON).
+// Why server-side: Yahoo's tape for this OTC pink-sheet ADR doesn't
+// start until UK 14:30 (US RTH open) even though T212's trading
+// window is UK 13:00-21:00, so every chart was missing the first
+// 1.5 h of every session. The pg_cron-driven recorder fills the gap
+// AND keeps recording while the user's browser is closed — which is
+// also what makes a meaningful prevClose possible (yesterday's last
+// bucket survives the page reload).
 
-import { londonTimeParts } from './market_hours.js';
+import { SB_URL } from './supabase_config.js';
+import { EDGE_ANON_KEY } from './yahoo_fetch.js';
 
-const STORAGE_KEY = 'dp.sftby.intraday';
-const BUCKET_MS   = 5 * 60_000;        // 5-min granularity
-const MAX_AGE_MS  = 26 * 3_600_000;    // ~26h rolling window
-const TICK_EVENT  = 'sftby:intraday:tick';
+const STORAGE_KEY = 'dp.sftby.server-cache';
+const SFTBY_FETCH_URL = `${SB_URL}/functions/v1/sftby-fetch`;
+const TICK_EVENT  = 'sftby:server-fetched';
 
 /**
- * SFTBY's T212 trading window: Mon-Fri 13:00-21:00 London time. Outside
- * this window T212's `currentPrice` is frozen at the last real trade
- * and there's no value in recording duplicates.
+ * @typedef {{
+ *   date: string,        // 'YYYY-MM-DDTHH:MM' (UTC)
+ *   close: number,
+ *   volume: number,      // always 0 — synthetic series has no volume
+ * }} Point
  *
- * @param {Date} [now]
+ * @typedef {{
+ *   series: Array<Point>,
+ *   prevClose: number | null,
+ *   prevCloseDate: string | null,
+ *   fetchedAt: number,   // ms epoch — used to suppress stale-cache writes
+ * }} CachedData
  */
-export function isSftbySessionOpen(now = new Date()) {
-  const day = now.getUTCDay();
-  if (day === 0 || day === 6) return false;
-  const parts = londonTimeParts(now);
-  const hh = parseInt(parts.hh, 10);
-  if (!isFinite(hh)) return false;
-  return hh >= 13 && hh < 21;
-}
 
-/** @returns {Array<{time: number, price: number}>} */
-function readStored() {
+/** @returns {CachedData | null} */
+function readCache() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
+    if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((p) => p && typeof p.time === 'number' && typeof p.price === 'number');
-  } catch { return []; }
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (!Array.isArray(parsed.series)) return null;
+    return parsed;
+  } catch { return null; }
 }
 
-/** @param {Array<{time: number, price: number}>} points */
-function writeStored(points) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(points)); }
-  catch { /* quota — silently drop, next tick will retry */ }
+/** @param {CachedData} data */
+function writeCache(data) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+  catch { /* quota — silently drop; next fetch retries */ }
 }
-
-/** @param {number} timeMs */
-function bucketIdx(timeMs) { return Math.floor(timeMs / BUCKET_MS); }
 
 /**
- * Record T212's currentPrice for SFTBY at `now`. Behaviour:
- *   - Outside the session window → no-op.
- *   - Within the same 5-min bucket as the last point → overwrite that
- *     point's price (so the chart's rightmost bar tracks the live
- *     price every refresh tick).
- *   - New bucket → append a fresh point.
- *   - Prune anything older than 26h.
+ * Hit `sftby-fetch` on the Edge, update localStorage, and fire the
+ * server-fetched event so subscribed modals re-render with fresh
+ * series + prevClose.
  *
- * Fires a `sftby:intraday:tick` CustomEvent on `window` afterwards so
- * the modal can re-read without a polling loop.
+ * Returns the freshly-fetched CachedData, or null on network failure
+ * (callers should fall back to whatever readCache() returns).
  *
- * @param {number | null | undefined} price
- * @param {number} [now]  ms epoch (test injection)
+ * @param {typeof fetch} [fetcher]  test injection point
  */
-export function recordSftbyTick(price, now) {
-  if (typeof price !== 'number' || !isFinite(price) || price <= 0) return;
-  const t = typeof now === 'number' ? now : Date.now();
-  if (!isSftbySessionOpen(new Date(t))) return;
-
-  const points = readStored();
-  const last = points.length > 0 ? points[points.length - 1] : null;
-  const nowBucket = bucketIdx(t);
-
-  if (last && bucketIdx(last.time) === nowBucket) {
-    last.price = price;
-    last.time = t;
-  } else {
-    points.push({ time: t, price });
-  }
-
-  const cutoff = t - MAX_AGE_MS;
-  const pruned = points.filter((p) => p.time >= cutoff);
-  writeStored(pruned);
-
-  if (typeof window !== 'undefined' && typeof CustomEvent === 'function') {
-    try { window.dispatchEvent(new CustomEvent(TICK_EVENT)); } catch { /* ignore */ }
-  }
+export async function fetchSftbyServerData(fetcher = fetch) {
+  try {
+    const res = await fetcher(SFTBY_FETCH_URL, {
+      headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const body = await res.json();
+    if (!body || !Array.isArray(body.series)) return null;
+    /** @type {CachedData} */
+    const data = {
+      series: body.series,
+      prevClose: typeof body.prevClose === 'number' ? body.prevClose : null,
+      prevCloseDate: typeof body.prevCloseDate === 'string' ? body.prevCloseDate : null,
+      fetchedAt: Date.now(),
+    };
+    writeCache(data);
+    if (typeof window !== 'undefined' && typeof CustomEvent === 'function') {
+      try { window.dispatchEvent(new CustomEvent(TICK_EVENT)); } catch { /* ignore */ }
+    }
+    return data;
+  } catch { return null; }
 }
 
 /**
- * Return SFTBY's intraday series in the chart's standard format —
- * `[{date: 'YYYY-MM-DDTHH:MM', close, volume: 0}, ...]`. Empty array
- * when nothing's been recorded yet (cold cache, weekend, app's first
- * tick of the session, etc.).
+ * Return TODAY's intraday series in the chart's standard format.
+ * Reads synchronously from the localStorage cache (populated by
+ * `fetchSftbyServerData`), so the modal's React.useState initialiser
+ * gets data on the very first render — no Loading… flash even on
+ * cold mount, as long as the cache holds a prior session.
+ *
+ * @returns {Array<Point>}
  */
 export function getSftbyIntradaySeries() {
-  return readStored().map((p) => ({
-    date: new Date(p.time).toISOString().slice(0, 16),
-    close: p.price,
-    volume: 0,
-  }));
+  const cached = readCache();
+  return cached ? cached.series : [];
+}
+
+/**
+ * Yesterday's last bucket's close, used as today's prevClose for the
+ * "since previous close" pct. Server-computed so the client doesn't
+ * have to skip weekends / holidays itself.
+ */
+export function getSftbyPrevClose() {
+  const cached = readCache();
+  return cached ? cached.prevClose : null;
 }
 
 /**
@@ -177,17 +177,17 @@ export function mergeSftbyToday(yahooSeries, rangeKey, todayIso) {
 }
 
 /**
- * The event name modal subscribes to so it re-reads after each tick.
- * Exported so the modal doesn't hard-code the string.
+ * The event name modal subscribes to so it re-reads after each server
+ * fetch (or any other writer to the cache). Exported so the modal
+ * doesn't hard-code the string.
  */
-export const SFTBY_INTRADAY_TICK_EVENT = TICK_EVENT;
+export const SFTBY_FETCH_EVENT = TICK_EVENT;
 
 // Test hooks — not part of the public runtime surface but exported so
-// the unit tests can clear / inject without poking at localStorage.
+// the unit tests can clear / inspect without poking at localStorage.
 export const _testHooks = {
   STORAGE_KEY,
-  BUCKET_MS,
-  MAX_AGE_MS,
   reset() { try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ } },
-  read: readStored,
+  readCache,
+  writeCache,
 };

@@ -196,4 +196,27 @@ describe('applyTrading212SftbyPrice', () => {
     expect(holdings.AAPL.extPrice).toBe(201);
     expect(holdings.SFTBY.lastPrice).toBe(22.85);
   });
+
+  it('serverPrevClose overrides Yahoo prevClose and re-anchors dayPct', () => {
+    const holdings = {
+      SFTBY: {
+        shares: 140, cost: 2593, lastPrice: 23.30, extPrice: 23.30,
+        prevClose: 99.99, dayPct: 0, extDayPct: 0, extPriceTrusted: false,
+      },
+    };
+    applyTrading212SftbyPrice(holdings, { SFTBY: 22.85 }, 24.72);
+    expect(holdings.SFTBY.lastPrice).toBe(22.85);
+    expect(holdings.SFTBY.prevClose).toBe(24.72);
+    expect(holdings.SFTBY.dayPct).toBeCloseTo(-7.566, 2);
+  });
+
+  it('ignores serverPrevClose when non-positive / non-finite (falls back to Yahoo prevClose)', () => {
+    const holdings = { SFTBY: { lastPrice: 23.30, prevClose: 24.72 } };
+    applyTrading212SftbyPrice(holdings, { SFTBY: 22.85 }, 0);
+    expect(holdings.SFTBY.prevClose).toBe(24.72);
+    applyTrading212SftbyPrice(holdings, { SFTBY: 22.85 }, /** @type {any} */ (NaN));
+    expect(holdings.SFTBY.prevClose).toBe(24.72);
+    applyTrading212SftbyPrice(holdings, { SFTBY: 22.85 }, null);
+    expect(holdings.SFTBY.prevClose).toBe(24.72);
+  });
 });
