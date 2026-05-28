@@ -174,10 +174,13 @@ function usdToCcyRate(ccy, marketData) {
 }
 
 function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues }) {
-  // Mobile-only currency cycle. Ephemeral by design — every cold
-  // load starts on USD per the user's spec. The button itself is
-  // hidden on desktop via the `.ccy-cycle` CSS media query (the
-  // hide-eye + ccy-cycle wrapper sits inside `.sb-label-row`).
+  // Currency cycle for the scoreboard's PORTFOLIO number. Ephemeral
+  // by design — every cold load starts on USD per the user's spec.
+  // The button itself renders on every breakpoint; the
+  // `.scoreboard-cell-portfolio` CSS grid relocates it across
+  // breakpoints — mobile slots it row 2 col 2 (under the eye, right
+  // of the $value), desktop slots it row 1 col 3 (right of the eye
+  // in the label row).
   const [ccy, setCcy] = React.useState(/** @type {'USD'|'GBP'|'CNY'} */ ('USD'));
   const cycleCcy = React.useCallback(() => {
     setCcy((cur) => CCY_CYCLE[(CCY_CYCLE.indexOf(cur) + 1) % CCY_CYCLE.length]);
