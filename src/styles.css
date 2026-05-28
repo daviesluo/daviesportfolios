@@ -264,16 +264,16 @@ body {
 }
 .sb-label-row { gap: 8px; }
 /* The eye icon next to "PORTFOLIO" — toggles the hide-values mode. */
-/* Stacks the scoreboard's PORTFOLIO action buttons vertically (eye
-   on top, currency-cycle below) so the cycle button sits directly
-   UNDER the eye rather than next to it. On desktop the cycle is
-   hidden (mobile-only feature), so the wrapper collapses to a
-   single-button column with no visual change vs. the old inline
-   eye. */
-.sb-label-actions {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 2px;
+/* PORTFOLIO value row — the big `$xxx,xxx` number on the left, the
+   currency-cycle button on the right (mobile only; on desktop the
+   `.ccy-cycle` media-query rule below hides the button and the
+   row collapses to just the value, byte-identical to the previous
+   layout). `gap: 6px` + the value's natural width leave the cycle
+   button pinned right via `margin-left: auto`. */
+.sb-value-row {
+  display: flex; align-items: center; gap: 6px;
 }
+.sb-value-row .ccy-cycle { margin-left: auto; }
 /* Eye + currency-cycle buttons. Always rendered in `--chalk-dim`
    (no hover / focus / active highlight) per the user's spec —
    tapping shouldn't change the button's own colour, the feedback
@@ -290,7 +290,16 @@ body {
   color: var(--chalk-dim);
   outline: none;
 }
-.hide-eye svg, .ccy-cycle svg { display: block; }
+.hide-eye svg { display: block; }
+/* The 💱 glyph is an OS-native emoji — most platforms render it in
+   colour (red/blue currency tags). Desaturate + dim it so it sits
+   on-tone with the gray hide-eye (CSS `color` can't touch emoji
+   pixels; only filters can). */
+.ccy-cycle {
+  font-size: 15px; line-height: 1;
+  filter: grayscale(1) opacity(0.65);
+  -webkit-font-smoothing: antialiased;
+}
 /* `.ccy-cycle` itself stays in DOM on desktop (so refs / focus order
    are stable) but is hidden via media query — the feature is
    mobile-only. */
