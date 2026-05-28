@@ -57,4 +57,20 @@ describe('fmtMoney — magnitude tiers', () => {
     expect(fmtMoney(12_345)).toBe('$12,345');
     expect(fmtMoney(12_345, { signed: true })).toBe('+$12,345');
   });
+
+  it('compact:false expands the M / B / T tiers to full digits', () => {
+    // The mobile scoreboard's CNY cycle uses this so a $159 K USD
+    // portfolio renders as `¥1,079,451`, not `¥1.08M`.
+    expect(fmtMoney(1_079_451, { symbol: '¥', compact: false })).toBe('¥1,079,451');
+    expect(fmtMoney(2_500_000_000, { symbol: '£', compact: false })).toBe('£2,500,000,000');
+    expect(fmtMoney(3_460_000_000_000, { compact: false })).toBe('$3,460,000,000,000');
+    // Sub-1M values fall through to the same toLocaleString path so
+    // compact:false is a no-op there — still tests the contract.
+    expect(fmtMoney(12_345, { compact: false })).toBe('$12,345');
+  });
+
+  it('compact:true (default) preserves M / B / T abbreviation', () => {
+    expect(fmtMoney(1_079_451, { symbol: '¥' })).toBe('¥1.08M');
+    expect(fmtMoney(1_079_451, { symbol: '¥', compact: true })).toBe('¥1.08M');
+  });
 });
