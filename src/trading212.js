@@ -165,3 +165,49 @@ export function applyTrading212NightPrice(holdings, prices, active) {
   }
   return holdings;
 }
+
+/**
+ * SFTBY-only override: replace Yahoo's `lastPrice` / `extPrice` with
+ * T212's `currentPrice` at every refresh. Background: Yahoo's
+ * `regularMarketPrice` for SFTBY (an OTC pink-sheet ADR with no
+ * closing auction) stale-sticks at the day's OPEN price after the
+ * regular session ends — user verified that Yahoo's own quote page
+ * stops updating at 20:58 BST. The intraday chart got patched via
+ * `trimBogusCloseBar` in indicators.js, but the live-price scoreboard
+ * / position cards / heatmap / modal header all read
+ * `holding.lastPrice`, which still came straight from Yahoo. This
+ * function lifts T212 (which DOES freeze at the real last trade and
+ * stays there) to the single source of truth for SFTBY's price.
+ *
+ * SFTBY has no real after-hours session — extPrice is pinned to
+ * lastPrice so `extDayPct` is 0 % and `extPriceTrusted` is true, which
+ * keeps metrics.js / extPriceLooksReal from falling back to a stale
+ * Yahoo value. Other tickers are untouched.
+ *
+ * prevClose is left at Yahoo's `regularMarketPreviousClose` for now —
+ * if that turns out to be bogus the same way the intraday close-print
+ * is, a follow-up can persist T212's session-close price across days
+ * to derive a T212-native prevClose. Mutates `holdings` in place.
+ *
+ * @param {Record<string, any>} holdings  live portfolio map (mutated)
+ * @param {Record<string, number> | null | undefined} prices  T212 currentPrice map
+ * @returns {Record<string, any>}
+ */
+export function applyTrading212SftbyPrice(holdings, prices) {
+  if (!holdings || !prices) return holdings;
+  const t212Price = prices['SFTBY'];
+  if (typeof t212Price !== 'number' || !isFinite(t212Price) || t212Price <= 0) return holdings;
+  if (!holdings['SFTBY']) return holdings;
+  const h = holdings['SFTBY'];
+  const prevClose = (typeof h.prevClose === 'number' && h.prevClose > 0) ? h.prevClose : t212Price;
+  const dayPct = ((t212Price - prevClose) / prevClose) * 100;
+  holdings['SFTBY'] = {
+    ...h,
+    lastPrice: t212Price,
+    extPrice: t212Price,
+    dayPct,
+    extDayPct: 0,
+    extPriceTrusted: true,
+  };
+  return holdings;
+}

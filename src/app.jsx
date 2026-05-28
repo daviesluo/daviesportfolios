@@ -34,7 +34,7 @@ import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
-import { fetchTrading212Holdings, applyTrading212, applyTrading212NightPrice } from './trading212.js';
+import { fetchTrading212Holdings, applyTrading212, applyTrading212NightPrice, applyTrading212SftbyPrice } from './trading212.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
 class ErrorBoundary extends React.Component {
@@ -535,6 +535,12 @@ function Board({ isReadOnly }) {
       applyTrading212(next.holdings, t212Holdings?.holdings);
       const nightActive = extendedHours && refreshPhase === 'overnight';
       applyTrading212NightPrice(next.holdings, t212Holdings?.prices, nightActive);
+      // SFTBY-only: T212 is the canonical price source for this ticker
+      // at every phase (Yahoo's `regularMarketPrice` is unreliable —
+      // see applyTrading212SftbyPrice's docstring). Runs after the
+      // night overlay so the SFTBY override always wins for SFTBY,
+      // and the night overlay still applies to every other US equity.
+      applyTrading212SftbyPrice(next.holdings, t212Holdings?.prices);
       return next;
     });
     setLastUpdated(new Date());

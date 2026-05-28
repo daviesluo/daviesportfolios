@@ -4,7 +4,7 @@
 // the Edge Function's deno tests, not retested here.
 
 import { describe, it, expect } from 'vitest';
-import { applyTrading212, applyTrading212NightPrice } from './trading212.js';
+import { applyTrading212, applyTrading212NightPrice, applyTrading212SftbyPrice } from './trading212.js';
 
 describe('applyTrading212', () => {
   it('replaces lots / shares / cost (per-share AC) for matching tickers; leaves others alone', () => {
@@ -146,5 +146,54 @@ describe('applyTrading212NightPrice', () => {
     expect(applyTrading212NightPrice(null, { AAPL: 1 }, true)).toBeNull();
     const h = { AAPL: usHolding() };
     expect(applyTrading212NightPrice(h, null, true)).toBe(h);
+  });
+});
+
+describe('applyTrading212SftbyPrice', () => {
+  it('overrides SFTBY lastPrice + extPrice with T212 price, zeroes extDayPct', () => {
+    const holdings = {
+      SFTBY: {
+        shares: 140, cost: 2593, lastPrice: 23.30, extPrice: 23.30,
+        prevClose: 24.72, dayPct: -5.74, extDayPct: 0, extPriceTrusted: false,
+      },
+    };
+    applyTrading212SftbyPrice(holdings, { SFTBY: 22.85 });
+    expect(holdings.SFTBY.lastPrice).toBe(22.85);
+    expect(holdings.SFTBY.extPrice).toBe(22.85);
+    expect(holdings.SFTBY.dayPct).toBeCloseTo(-7.566, 2);
+    expect(holdings.SFTBY.extDayPct).toBe(0);
+    expect(holdings.SFTBY.extPriceTrusted).toBe(true);
+    // prevClose left alone — keeps Yahoo's value until a follow-up
+    // wires a T212-native prevClose source.
+    expect(holdings.SFTBY.prevClose).toBe(24.72);
+  });
+
+  it('no-op when SFTBY missing from prices or holdings', () => {
+    const holdings = { SFTBY: { lastPrice: 23.30, prevClose: 24.72 } };
+    applyTrading212SftbyPrice(holdings, null);
+    applyTrading212SftbyPrice(holdings, {});
+    applyTrading212SftbyPrice(holdings, { AAPL: 200 });
+    expect(holdings.SFTBY.lastPrice).toBe(23.30);
+    expect(applyTrading212SftbyPrice({}, { SFTBY: 22.85 })).toEqual({});
+  });
+
+  it('no-op for non-positive or non-finite T212 prices', () => {
+    const holdings = { SFTBY: { lastPrice: 23.30, prevClose: 24.72 } };
+    applyTrading212SftbyPrice(holdings, { SFTBY: 0 });
+    applyTrading212SftbyPrice(holdings, { SFTBY: -1 });
+    applyTrading212SftbyPrice(holdings, { SFTBY: /** @type {any} */ (Infinity) });
+    applyTrading212SftbyPrice(holdings, { SFTBY: /** @type {any} */ (NaN) });
+    expect(holdings.SFTBY.lastPrice).toBe(23.30);
+  });
+
+  it('leaves non-SFTBY tickers untouched', () => {
+    const holdings = {
+      AAPL: { lastPrice: 200, extPrice: 201, prevClose: 199, dayPct: 0.5, extDayPct: 0.5 },
+      SFTBY: { lastPrice: 23.30, prevClose: 24.72 },
+    };
+    applyTrading212SftbyPrice(holdings, { AAPL: 250, SFTBY: 22.85 });
+    expect(holdings.AAPL.lastPrice).toBe(200);
+    expect(holdings.AAPL.extPrice).toBe(201);
+    expect(holdings.SFTBY.lastPrice).toBe(22.85);
   });
 });

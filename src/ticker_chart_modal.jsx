@@ -1389,19 +1389,25 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
 
       <div className="modal-body">
         <div className="ticker-chart-wrap">
-          {loading && <div className="sparkline-empty dim mono">Loading…</div>}
-          {!loading && error && <div className="sparkline-empty dim mono">Couldn't load history</div>}
-          {!loading && !error && isPvt && hasData && (
+          {/* `.PVT` (SpaceX-style private holding): the snapshot text
+              is a stable, one-liner derived from `series` + `holding`
+              — paint it on first render REGARDLESS of `loading` so
+              the modal opens looking complete instead of flashing
+              "Loading…" -> snapshot. The optional " · updated DATE"
+              suffix appears once the cache/fetch lands. */}
+          {isPvt && !error && (
             <div className="sparkline-empty dim mono">
-              Valuation snapshot · updated {series && series.length > 0
-                ? series[series.length - 1].date.slice(0, 10)
-                : '—'}
+              Valuation snapshot{series && series.length > 0
+                ? ` · updated ${series[series.length - 1].date.slice(0, 10)}`
+                : ''}
             </div>
           )}
-          {!loading && !error && isPvt && !hasData && <div className="sparkline-empty dim mono">No valuation data yet</div>}
-          {!loading && !error && !isPvt && noPe && <div className="sparkline-empty dim mono">P/E not available — N/A</div>}
-          {!loading && !error && !isPvt && !noPe && !hasData && <div className="sparkline-empty dim mono">No data for this range</div>}
-          {!loading && !error && !isPvt && !noPe && hasData && (
+          {isPvt && error && <div className="sparkline-empty dim mono">Couldn't load valuation</div>}
+          {!isPvt && loading && <div className="sparkline-empty dim mono">Loading…</div>}
+          {!isPvt && !loading && error && <div className="sparkline-empty dim mono">Couldn't load history</div>}
+          {!isPvt && !loading && !error && noPe && <div className="sparkline-empty dim mono">P/E not available — N/A</div>}
+          {!isPvt && !loading && !error && !noPe && !hasData && <div className="sparkline-empty dim mono">No data for this range</div>}
+          {!isPvt && !loading && !error && !noPe && hasData && (
             <svg
               ref={svgRef}
               viewBox={`0 0 ${W} ${H}`}
