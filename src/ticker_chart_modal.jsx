@@ -111,6 +111,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const isCnFund = isCnFundT(ticker);
   const isPvt    = isPvtT(ticker);
   const dailyOnly = isDailyOnlyT(ticker);
+  // SFTBY (SoftBank OTC pink-sheet ADR) is the one ticker in this
+  // portfolio whose Yahoo intraday response includes a "closing print"
+  // 5-min bar whose close equals the day's OPEN price rather than the
+  // actual last trade — see `trimBogusCloseBar` in indicators.js for
+  // the full background. The trim is gated specifically on this ticker
+  // (per user direction) so the pattern detection can't accidentally
+  // fire on a different ticker whose closing print legitimately
+  // happens to land near the open.
+  const needsBogusBarTrim = ticker === 'SFTBY';
   // 'PE' is a synthetic range button — same YTD daily prices but the
   // y-axis becomes a P/E ratio (price ÷ current TTM EPS). Two-stage
   // filter:
@@ -297,7 +306,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const [series, setSeries]     = React.useState(
     /** @type {Array<{date:string,close:number,volume?:number}>|null} */
     (initialCached
-      ? (initialRangeKey === '1D' ? trimBogusCloseBar(initialCached.data) : initialCached.data)
+      ? (initialRangeKey === '1D' && needsBogusBarTrim ? trimBogusCloseBar(initialCached.data) : initialCached.data)
       : null),
   );
   const [loading, setLoading]   = React.useState(!initialCached);
@@ -362,7 +371,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // Defensively trim the SFTBY-style bogus close-print bar in case
       // this row was cached before the fix landed. Fresh fetches below
       // also trim, so eventually-consistent.
-      const primed = rangeKey === '1D' ? trimBogusCloseBar(cached.data) : cached.data;
+      const primed = rangeKey === '1D' && needsBogusBarTrim ? trimBogusCloseBar(cached.data) : cached.data;
       setSeries(primed);
       setLoading(false);
       setError(false);
@@ -503,10 +512,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         // const-denominator path, same as before the field existed.
         data = priceDividedByTtmEps(data, isPe ? row.ttmEpsHistory : row.ttmSalesHistory, denom);
       }
-      // Trim Yahoo's "snap to open" bogus close-print bar for 1D
-      // intraday — affects thin OTC pink-sheet ADRs (SFTBY). No-op on
-      // tickers whose actual close-print bar diverges naturally.
-      if (rangeKey === '1D') data = trimBogusCloseBar(data);
+      // Trim Yahoo's "snap to open" bogus close-print bar for SFTBY
+      // only — see `needsBogusBarTrim` above for why the gate is
+      // ticker-specific rather than pattern-only.
+      if (rangeKey === '1D' && needsBogusBarTrim) data = trimBogusCloseBar(data);
       modalCacheSet(cacheKey, data);
       setSeries(data);
       setLoading(false);
@@ -662,9 +671,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         if (data && data.length >= minPoints) {
           if (params.variant === 'closed') data = filterToLatestDay(data);
           else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
-          // Live-poll only runs for 1D — strip the SFTBY-style bogus
-          // close-print bar before persisting.
-          data = trimBogusCloseBar(data);
+          // Live-poll only runs for 1D — strip SFTBY's bogus close-
+          // print bar before persisting. Gated to SFTBY only (see
+          // `needsBogusBarTrim` at the top of the component).
+          if (needsBogusBarTrim) data = trimBogusCloseBar(data);
           const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
           modalCacheSet(cacheKey, data);
           setSeries(data);
