@@ -44,17 +44,28 @@ export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
  *                                            keep the most recent
  *                                            calendar day's points).
  *
+ * SFTBY-only quirk: this OTC pink-sheet ADR's T212 trading window is
+ * UK 13:00-21:00 (= US 08:00-16:00 ET), 1.5 hours wider than US RTH
+ * because T212 lets the user trade against the latter half of US
+ * premarket. Forces `includePrePost=true` on every range so the
+ * chart spans the full T212 window — without this 1W/1M chop off the
+ * leftmost 1.5 hours of every session. Mirrors the VUAA.L / SAEM.L
+ * pattern where the chart naturally spans the ticker's actual session
+ * (LSE in their case) rather than US RTH only.
+ *
  * @param {string} rangeKey
  * @param {boolean} extendedHours
  * @param {string} phase  — 'regular' | 'premarket' | 'afterhours' | 'overnight'
+ * @param {string} [ticker]  optional ticker for per-symbol overrides
  * @returns {{ yahooRange: string, interval: string, includePrePost: boolean, variant: string }}
  */
-export function fetchParamsFor(rangeKey, extendedHours, phase) {
+export function fetchParamsFor(rangeKey, extendedHours, phase, ticker) {
   const r = RANGES[rangeKey] || RANGES.YTD;
-  if (rangeKey !== '1D') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'std' };
+  const sftbyExtra = ticker === 'SFTBY';
+  if (rangeKey !== '1D') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: sftbyExtra, variant: 'std' };
   if (phase === 'regular') return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'reg' };
   if (extendedHours)       return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'ext' };
-  return                     { yahooRange: '5d', interval: '5m', includePrePost: false, variant: 'closed' };
+  return                     { yahooRange: '5d', interval: '5m', includePrePost: sftbyExtra, variant: sftbyExtra ? 'reg' : 'closed' };
 }
 
 /**

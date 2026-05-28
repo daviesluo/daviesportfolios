@@ -343,10 +343,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // after fetch.
   const fetchParams = (rk) => {
     if (rk === 'PE' || rk === 'PS') {
-      const p = fetchParamsFor('YTD', extendedHours, phase);
+      const p = fetchParamsFor('YTD', extendedHours, phase, ticker);
       return { ...p, interval: '1d', includePrePost: false };
     }
-    const p = fetchParamsFor(rk, extendedHours, phase);
+    const p = fetchParamsFor(rk, extendedHours, phase, ticker);
     return dailyOnly ? { ...p, interval: '1d', includePrePost: false } : p;
   };
 
@@ -423,7 +423,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         }
         return;
       }
-      const params = fetchParamsFor(isRatioRange ? 'YTD' : rangeKey, extendedHours, phase);
+      const params = fetchParamsFor(isRatioRange ? 'YTD' : rangeKey, extendedHours, phase, ticker);
       if (params.variant === 'closed') data = filterToLatestDay(data);
       else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
       // 'PE' / 'PS' transform: divide each historical close by the
@@ -604,10 +604,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       const isPsRk = rk === 'PS';
       const isRatioRk = isPeRk || isPsRk;
       if (isRatioRk) {
-        const p = fetchParamsFor('YTD', extendedHours, phase);
+        const p = fetchParamsFor('YTD', extendedHours, phase, ticker);
         yahooRange = p.yahooRange; interval = '1d'; includePrePost = false; variant = p.variant;
       } else {
-        const baseParams = fetchParamsFor(rk, extendedHours, phase);
+        const baseParams = fetchParamsFor(rk, extendedHours, phase, ticker);
         ({ yahooRange, interval, includePrePost, variant } = dailyOnly
           ? { ...baseParams, interval: '1d', includePrePost: false }
           : baseParams);
@@ -662,7 +662,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     async function tick() {
       if (cancelled) return;
       try {
-        const params = fetchParamsFor(rangeKey, extendedHours, phase);
+        const params = fetchParamsFor(rangeKey, extendedHours, phase, ticker);
         const out = await fetchHistoricalBatch(
           [ticker], params.yahooRange, params.interval, params.includePrePost,
         );

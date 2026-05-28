@@ -3,7 +3,7 @@
 // reintroduce the +80% / +21% / +9% misreports we hit during the original
 // implementation.
 import { describe, it, expect } from 'vitest';
-import { buildTickerSeries, closeOn, lotsFor, computeAt, ytdPct } from './ytd.js';
+import { buildTickerSeries, closeOn, lotsFor, computeAt, ytdPct, fetchParamsFor } from './ytd.js';
 
 const yearStart      = '2026-01-01';
 const yearStartDate  = '2026-01-02';
@@ -488,5 +488,48 @@ describe('computeAt — 1D intraday date comparison (Codex #43 regression)', () 
     expect(r.basis).toBeCloseTo(2000, 4);
     expect(r.value).toBeCloseTo(2150, 4);
     expect(ytdPct(r)).toBeCloseTo(7.5, 3);
+  });
+});
+
+describe('fetchParamsFor — SFTBY pre/post override', () => {
+  it('forces includePrePost=true on non-1D ranges for SFTBY only', () => {
+    // SFTBY's T212 session is UK 13:00-21:00 = US 08:00-16:00 ET, 1.5h
+    // wider than US RTH because T212 lets the user trade against the
+    // latter half of US premarket. The non-1D ranges (1W / 1M / 3M /
+    // YTD) ship `includePrePost=false` by default; for SFTBY we flip
+    // it so the chart spans the full T212 window.
+    const sftby1W = fetchParamsFor('1W', false, 'regular', 'SFTBY');
+    expect(sftby1W.includePrePost).toBe(true);
+    const sftby1M = fetchParamsFor('1M', false, 'regular', 'SFTBY');
+    expect(sftby1M.includePrePost).toBe(true);
+    const aapl1W = fetchParamsFor('1W', false, 'regular', 'AAPL');
+    expect(aapl1W.includePrePost).toBe(false);
+    // Omitting ticker keeps the legacy default (no override).
+    const noTicker = fetchParamsFor('1W', false, 'regular');
+    expect(noTicker.includePrePost).toBe(false);
+  });
+
+  it("for SFTBY 1D 'closed' (market-shut, ext off), still surfaces the pre-RTH session bars", () => {
+    // The original 1D-closed variant fetches with `includePrePost=false`
+    // — fine for regular US stocks because the chart only needs RTH
+    // bars when the market's been shut for the day. For SFTBY the
+    // session is wider than RTH, so we keep includePrePost=true and
+    // tag the variant 'reg' instead of 'closed' to opt into the
+    // last-24h filter (which preserves SFTBY's premarket portion).
+    const sftbyClosed = fetchParamsFor('1D', false, 'afterhours', 'SFTBY');
+    expect(sftbyClosed.includePrePost).toBe(true);
+    expect(sftbyClosed.variant).toBe('reg');
+    const aaplClosed = fetchParamsFor('1D', false, 'afterhours', 'AAPL');
+    expect(aaplClosed.includePrePost).toBe(false);
+    expect(aaplClosed.variant).toBe('closed');
+  });
+
+  it('1D regular / ext variants are SFTBY-agnostic (already includePrePost=true)', () => {
+    const sftbyReg = fetchParamsFor('1D', false, 'regular', 'SFTBY');
+    const aaplReg = fetchParamsFor('1D', false, 'regular', 'AAPL');
+    expect(sftbyReg).toEqual(aaplReg);
+    const sftbyExt = fetchParamsFor('1D', true, 'afterhours', 'SFTBY');
+    const aaplExt = fetchParamsFor('1D', true, 'afterhours', 'AAPL');
+    expect(sftbyExt).toEqual(aaplExt);
   });
 });

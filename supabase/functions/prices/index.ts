@@ -256,7 +256,13 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     const tickers = param
       .split(",")
       .map((t) => t.trim())
-      .filter((t) => t && !t.endsWith(".PVT") && t !== "CASH");
+      // CASH is the cash position pseudo-ticker — no price needed. `.PVT`
+      // (private holdings like SPAX.PVT) is INCLUDED: Yahoo's chart meta
+      // returns a `regularMarketPrice` for them too (SpaceX's post-1:5
+      // split valuation, for example), and without this the position
+      // card / scoreboard / heatmap tile stays pinned to whatever stale
+      // seed value data.js shipped with.
+      .filter((t) => t && t !== "CASH");
 
     if (!tickers.length) {
       return new Response(JSON.stringify({ error: "tickers required" }), {
