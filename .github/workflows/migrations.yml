@@ -83,11 +83,15 @@ jobs:
               fail=1
             fi
             # Dollar-quoting: each `$tag$` should appear an even number
-            # of times. Empty-tag `$$` is the common case.
+            # of times. Empty-tag `$$` is the common case; named tags
+            # `$cron$` etc. are used by pg_cron / function bodies.
+            # Count actual OCCURRENCES not matching lines — `$$ ... $$`
+            # often lives on one line for short statements (see
+            # 0004_ops_errors_retention.sql's cron.schedule call), and
+            # `grep -c` would only count the line once.
             for tag in $(grep -oE '\$[a-zA-Z_]*\$' "$f" | sort -u); do
-              # Escape the $ for grep -c.
               escaped=$(printf '%s' "$tag" | sed 's/\$/\\$/g')
-              n=$(grep -cE "$escaped" "$f" || true)
+              n=$(grep -oE "$escaped" "$f" | wc -l || true)
               if (( n % 2 != 0 )); then
                 echo "::error file=$f::Unbalanced dollar-quote $tag ($n occurrences)"
                 fail=1
