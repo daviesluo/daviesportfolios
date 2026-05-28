@@ -1071,8 +1071,9 @@ body {
     scrollbar-width: none;
     /* Tighter than the desktop's 24 px so a 360-380 px viewport fits
        all three cells without horizontal scroll — the original 12 px
-       left the third cell's `+%)` clipped on narrow phones. */
-    gap: 6px;
+       left the third cell's `+%)` clipped on narrow phones; 6 was
+       overkill, 10 is the user-confirmed sweet spot. */
+    gap: 10px;
     padding: 8px 0 10px;
     border: none;
     border-top: 1px solid var(--line);
