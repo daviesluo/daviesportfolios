@@ -264,25 +264,36 @@ body {
 }
 .sb-label-row { gap: 8px; }
 /* The eye icon next to "PORTFOLIO" — toggles the hide-values mode. */
-.hide-eye {
-  background: transparent; border: none; cursor: pointer;
-  padding: 0 2px; display: inline-flex; align-items: center;
-  color: var(--chalk-dim); transition: color 0.12s;
+/* Stacks the scoreboard's PORTFOLIO action buttons vertically (eye
+   on top, currency-cycle below) so the cycle button sits directly
+   UNDER the eye rather than next to it. On desktop the cycle is
+   hidden (mobile-only feature), so the wrapper collapses to a
+   single-button column with no visual change vs. the old inline
+   eye. */
+.sb-label-actions {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 2px;
 }
-.hide-eye:hover { color: var(--chalk); }
-.hide-eye svg { display: block; }
-/* Mobile currency cycle button. Matches `.hide-eye`'s visual weight
-   (text symbol sized to the eye's ~14px square footprint) so the
-   PORTFOLIO header row stays balanced. Hidden on desktop — the
-   feature is mobile-only per the user's spec. */
+/* Eye + currency-cycle buttons. Always rendered in `--chalk-dim`
+   (no hover / focus / active highlight) per the user's spec —
+   tapping shouldn't change the button's own colour, the feedback
+   is in the scoreboard number that changes underneath. */
+.hide-eye,
 .ccy-cycle {
-  background: transparent; border: none; cursor: pointer;
-  padding: 0 2px; display: inline-flex; align-items: center;
-  color: var(--chalk-dim); transition: color 0.12s;
-  font: 600 14px/1 var(--font-mono); min-width: 14px;
-  justify-content: center;
+  background: transparent; border: none; cursor: pointer; padding: 0 2px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--chalk-dim);
 }
-.ccy-cycle:hover { color: var(--chalk); }
+.hide-eye:hover, .ccy-cycle:hover,
+.hide-eye:focus, .ccy-cycle:focus,
+.hide-eye:active, .ccy-cycle:active {
+  color: var(--chalk-dim);
+  outline: none;
+}
+.hide-eye svg, .ccy-cycle svg { display: block; }
+/* `.ccy-cycle` itself stays in DOM on desktop (so refs / focus order
+   are stable) but is hidden via media query — the feature is
+   mobile-only. */
 @media (min-width: 761px) { .ccy-cycle { display: none; } }
 .sb-value { font-size: 13px; font-weight: 600; }
 .sb-value-lg { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
