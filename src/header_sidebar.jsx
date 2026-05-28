@@ -252,34 +252,32 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
           <HeaderTime extendedHours={extendedHours} onToggleExtended={onToggleExtended} />
         </div>
         <div className="scoreboard-divider scoreboard-divider-time" />
-        <div className="scoreboard-cell">
-          <div className="sb-label sb-label-row">
-            <span>PORTFOLIO</span>
-            <button
-              type="button"
-              className="hide-eye"
-              onClick={onToggleHideValues}
-              aria-label={hideValues ? "Show values" : "Hide values"}
-              title={hideValues ? "Click to show values" : "Click to hide values"}
-            >
-              {hideValues ? <EyeClosedIcon /> : <EyeOpenIcon />}
-            </button>
-          </div>
-          {/* Value + currency-cycle on the same row. `.ccy-cycle`
-              hides itself on desktop so the value collapses back to
-              the full width; on mobile it sits at the far right of
-              the value row (the value column has plenty of unused
-              padding there per the user's spec). */}
-          <div className="sb-value-row">
-            <div className={`sb-value sb-value-lg mono${sbFlash.mv ? " sb-flash-" + sbFlash.mv : ""}`}>{hideValues ? mask(fmCcy(metrics.marketValue)) : fmCcy(metrics.marketValue)}</div>
-            <button
-              type="button"
-              className="ccy-cycle"
-              onClick={cycleCcy}
-              aria-label={`Currency: ${ccy} (click to cycle USD / GBP / CNY)`}
-              title={`Currency: ${ccy} — click to cycle USD / GBP / CNY`}
-            >💱</button>
-          </div>
+        {/* PORTFOLIO cell uses a 2-column × 2-row CSS grid so the eye
+            (row 1 col 2) and the currency-cycle (row 2 col 2) line
+            up at the same right edge regardless of how wide the
+            "$xxx,xxx" value renders. Flex couldn't pin them to a
+            shared column because the cell's intrinsic width was
+            set by content and `justify-content: space-between`
+            had no extra space to distribute. */}
+        <div className="scoreboard-cell scoreboard-cell-portfolio">
+          <span className="sb-label">PORTFOLIO</span>
+          <button
+            type="button"
+            className="hide-eye"
+            onClick={onToggleHideValues}
+            aria-label={hideValues ? "Show values" : "Hide values"}
+            title={hideValues ? "Click to show values" : "Click to hide values"}
+          >
+            {hideValues ? <EyeClosedIcon /> : <EyeOpenIcon />}
+          </button>
+          <div className={`sb-value sb-value-lg mono${sbFlash.mv ? " sb-flash-" + sbFlash.mv : ""}`}>{hideValues ? mask(fmCcy(metrics.marketValue)) : fmCcy(metrics.marketValue)}</div>
+          <button
+            type="button"
+            className="ccy-cycle"
+            onClick={cycleCcy}
+            aria-label={`Currency: ${ccy} (click to cycle USD / GBP / CNY)`}
+            title={`Currency: ${ccy} — click to cycle USD / GBP / CNY`}
+          >💱</button>
         </div>
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">

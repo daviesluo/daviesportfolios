@@ -262,23 +262,27 @@ body {
   font-size: 9px; letter-spacing: 0.18em; color: var(--chalk-dim);
   font-family: var(--font-mono); display: flex; align-items: center; gap: 6px;
 }
-/* PORTFOLIO label row — pin the eye to the far RIGHT (was inline
-   8 px after the label) so it sits in the same vertical column as
-   the currency-cycle button below it in `.sb-value-row`. Both
-   buttons end up right-aligned at the cell edge, vertically
-   stacked from the user's eye-line view. */
-.sb-label-row { gap: 8px; justify-content: space-between; }
-/* The eye icon next to "PORTFOLIO" — toggles the hide-values mode. */
-/* PORTFOLIO value row — the big `$xxx,xxx` number on the left, the
-   currency-cycle button on the right (mobile only; on desktop the
-   `.ccy-cycle` media-query rule below hides the button and the
-   row collapses to just the value, byte-identical to the previous
-   layout). `gap: 6px` + the value's natural width leave the cycle
-   button pinned right via `margin-left: auto`. */
-.sb-value-row {
-  display: flex; align-items: center; gap: 6px;
+.sb-label-row { gap: 8px; }
+/* PORTFOLIO cell only — 2×2 CSS grid so the hide-eye button (row 1
+   col 2) and the currency-cycle button (row 2 col 2) share the
+   same column right edge, vertically aligned. Flex couldn't pin
+   them to a shared column because the cell's intrinsic width was
+   set by its content. `1fr auto` lets the label / value text take
+   the natural width on the left while the buttons sit in a
+   right-anchored fixed-width column. `display: none` on
+   `.ccy-cycle` for desktop simply omits it from the grid — the
+   eye + value layout collapses cleanly back to the original
+   2-row look. */
+.scoreboard-cell-portfolio {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  row-gap: 3px;
+  align-items: center;
 }
-.sb-value-row .ccy-cycle { margin-left: auto; }
+.scoreboard-cell-portfolio .sb-value { grid-column: 1; }
+/* The eye icon next to "PORTFOLIO" — toggles the hide-values mode. */
 /* Eye + currency-cycle buttons. Always rendered in `--chalk-dim`
    (no hover / focus / active highlight) per the user's spec —
    tapping shouldn't change the button's own colour, the feedback
@@ -297,15 +301,23 @@ body {
 }
 .hide-eye svg { display: block; }
 /* The 💱 glyph is an OS-native emoji — most platforms render it in
-   colour (red/blue currency tags). Desaturate + dim it so it sits
-   on-tone with the eye (CSS `color` can't touch emoji pixels; only
-   filters can). `opacity(0.5)` matches the alpha channel on
-   `--chalk-dim` (rgba(244,239,227,0.5)) so the emoji matches the
-   eye's perceived weight, not just hue. Font-size 14 px matches
-   the eye SVG's 14×14 box. */
+   colour (red/blue currency tags) and the glyph's optical box is
+   ~20-25 % taller than its CSS font-size due to built-in ascender
+   padding. To match the 14×14 hide-eye SVG visually:
+   - font-size 12 px so the rendered emoji optically lands at ~14 px
+   - `transform: translateY(-0.5px)` nudges the baseline-anchored
+     emoji upward so its visual center matches the eye SVG's center
+   For colour parity with the eye's `--chalk-dim` warm-cream stroke:
+   - `grayscale(1)` removes the emoji's native red/blue tags
+   - `brightness(0.95)` knocks down the residual whitepoint so the
+     gray reads closer to the chalk-dim luminance
+   - `opacity(0.5)` matches the alpha channel on the eye's stroke
+     so both buttons read at the same perceived weight, not just
+     the same hue. */
 .ccy-cycle {
-  font-size: 14px; line-height: 1;
-  filter: grayscale(1) opacity(0.5);
+  font-size: 12px; line-height: 1;
+  filter: grayscale(1) brightness(0.95) opacity(0.5);
+  transform: translateY(-0.5px);
 }
 /* `.ccy-cycle` itself stays in DOM on desktop (so refs / focus order
    are stable) but is hidden via media query — the feature is
