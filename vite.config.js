@@ -1,4 +1,8 @@
-import { defineConfig } from 'vite';
+// `defineConfig` from vitest/config is the same as vite's but with the
+// `test` block typed. Stays compatible with `vite build` / `vite dev`
+// (the runtime ignores the test block) so we don't need a second
+// config file.
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
@@ -154,5 +158,17 @@ export default defineConfig({
   // a runtime read, so dead-code elimination still works.
   define: {
     __APP_VERSION__: JSON.stringify(APP_VERSION),
+  },
+  // vitest config — uses jsdom for component tests (TickerChartModal /
+  // PerfChart / App) so React-Testing-Library can mount + query the
+  // DOM. Pure-helper tests don't need jsdom but the overhead is tiny
+  // (~30ms per file) so a single env is simpler than splitting node
+  // vs jsdom by globbed pattern. `setupFiles` brings in jest-dom's
+  // matcher extensions (toBeInTheDocument etc.) globally.
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./test_setup.js'],
+    // Tests live under src/, alongside the modules they pin.
+    include: ['./**/*.test.{js,jsx,ts,tsx}'],
   },
 });

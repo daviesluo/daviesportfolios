@@ -1,0 +1,170 @@
+# Postgres migration CI/CD.
+#
+# On every PR:    runs a best-effort lint pass over `supabase/migrations/*.sql`
+#                 so a syntactically-broken migration file flunks CI
+#                 instead of silently sitting unapplied on prod.
+# On push to main: runs `supabase db push` against the linked project,
+#                 applying any migration files that aren't already in
+#                 prod's `supabase_migrations.schema_migrations` table.
+#                 Requires these repo secrets (the `production` GitHub
+#                 Environment scopes them to the deploy step only):
+#                   - SUPABASE_ACCESS_TOKEN   (account-level PAT, same
+#                                              one edge-functions.yml uses)
+#                   - SUPABASE_PROJECT_REF    (project's ref id, ditto)
+#                   - SUPABASE_DB_PASSWORD    (DB password; the CLI
+#                                              prompts for it interactively
+#                                              and uses it for the direct
+#                                              Postgres connection it
+#                                              opens to apply migrations)
+#
+# Why this exists: prior to this workflow, migrations had to be pasted
+# into the Supabase Dashboard SQL Editor by hand on every push to main.
+# README.md called this out for every migration file individually
+# ("To apply: paste into Supabase Dashboard → SQL Editor → Run") — and
+# any forgotten apply meant prod's schema drifted from the SQL on main
+# until someone noticed.
+#
+# Setup:
+#   1. Settings → Environments → New environment "production" (if it
+#      doesn't already exist from edge-functions.yml).
+#   2. Add `SUPABASE_DB_PASSWORD` to that environment. The other two
+#      secrets are already there.
+
+name: migrations
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - '.github/workflows/migrations.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - '.github/workflows/migrations.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Lint migration files
+        # Best-effort syntax checks against each .sql file:
+        #   - balanced single quotes (odd count = stray quote)
+        #   - balanced dollar-quoting ($cron$ … $cron$, $$ … $$)
+        #   - filenames in the four-digit-prefix convention
+        # Not a real parse — `pg_query`-equivalent would catch more
+        # but would also need a Postgres install on the runner. The
+        # bar is "obvious typo flunks CI" not "full SQL validation".
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in supabase/migrations/*.sql; do
+            base=$(basename "$f")
+            if [[ ! "$base" =~ ^[0-9]{4}_.*\.sql$ ]]; then
+              echo "::error file=$f::Migration file does not match 0000_name.sql pattern"
+              fail=1
+            fi
+            # Strip line comments so `--`-prefixed quotes don't trip the count.
+            stripped=$(sed -E 's/--.*$//' "$f")
+            # Odd number of single quotes → unbalanced literal.
+            sq=$(printf '%s' "$stripped" | tr -cd "'" | wc -c)
+            if (( sq % 2 != 0 )); then
+              echo "::error file=$f::Unbalanced single quotes ($sq)"
+              fail=1
+            fi
+            # Dollar-quoting: each `$tag$` should appear an even number
+            # of times. Empty-tag `$$` is the common case; named tags
+            # `$cron$` etc. are used by pg_cron / function bodies.
+            # Count actual OCCURRENCES not matching lines — `$$ ... $$`
+            # often lives on one line for short statements (see
+            # 0004_ops_errors_retention.sql's cron.schedule call), and
+            # `grep -c` would only count the line once.
+            for tag in $(grep -oE '\$[a-zA-Z_]*\$' "$f" | sort -u); do
+              escaped=$(printf '%s' "$tag" | sed 's/\$/\\$/g')
+              n=$(grep -oE "$escaped" "$f" | wc -l || true)
+              if (( n % 2 != 0 )); then
+                echo "::error file=$f::Unbalanced dollar-quote $tag ($n occurrences)"
+                fail=1
+              fi
+            done
+          done
+          if (( fail != 0 )); then
+            echo "::error::One or more migration files failed lint."
+            exit 1
+          fi
+          echo "All migration files passed lint."
+
+  push:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@3c2f5e2ae34c34e428e8e206e2c4d21fa2d20fbf # v2.1.1
+        with:
+          version: latest
+
+      - name: Push migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF:  ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD:  ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ] || [ -z "${SUPABASE_PROJECT_REF:-}" ]; then
+            echo "::warning::SUPABASE_ACCESS_TOKEN or SUPABASE_PROJECT_REF missing — skipping. Set them in the production Environment to enable auto-push."
+            exit 0
+          fi
+          if [ -z "${SUPABASE_DB_PASSWORD:-}" ]; then
+            echo "::warning::SUPABASE_DB_PASSWORD missing — the CLI's DB connection needs it. Skipping. Add it to the production Environment."
+            exit 0
+          fi
+          # `link` writes the project-ref + auth into the CLI's local
+          # config so subsequent `db push` uses them.
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          # `db push` reads the migrations folder and applies only the
+          # files that aren't already in prod's
+          # `supabase_migrations.schema_migrations` table. The CLI
+          # picks up the password from SUPABASE_DB_PASSWORD env var.
+          supabase db push --include-all
+
+  # Same pattern as edge-functions.yml's failure notifier — open or
+  # bump a single tracking issue on push-to-main failure so the
+  # admin sees it on the repo home without diving into Actions.
+  notify-failure:
+    needs: push
+    if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open / bump CI-failure issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          existing=$(gh issue list --repo "${{ github.repository }}" \
+            --label ci-failure --state open --limit 1 --json number \
+            --jq '.[0].number')
+          body="❌ \`${{ github.workflow }}\` failed on \`main\` at commit \`${{ github.sha }}\`
+          [View run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "${{ github.repository }}" --body "$body"
+          else
+            gh issue create --repo "${{ github.repository }}" \
+              --title "❌ ${{ github.workflow }} failed on main" \
+              --body "$body" \
+              --label ci-failure
+          fi

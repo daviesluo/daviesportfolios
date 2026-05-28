@@ -9,8 +9,11 @@
 //      Token format: `<base64url(payload)>.<base64url(sig)>` where
 //      payload is `{ role: "admin" | "ro", exp: <ms> }`.
 //
-// `?pwd=7119` / typing 7119 → admin (full edit)
-// `?pwd=8848` / typing 8848 → read-only (shareable view)
+// Two roles, two secrets — both validated server-side in the `auth`
+// Edge Function (see `APP_PASSWORD_*` env vars there); the actual
+// values intentionally don't appear in this client bundle:
+//   `?pwd=<admin-secret>`     / typing it → admin (full edit)
+//   `?pwd=<read-only-secret>` / typing it → read-only (shareable view)
 //
 // Server-side IP-keyed lockout (3 wrong → 24 h) is handled inside the
 // Edge Function — the client just relays its 401 / 429 verdicts.
