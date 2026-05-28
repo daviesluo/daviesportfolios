@@ -52,6 +52,24 @@ jobs:
       - name: Build (Vite production bundle)
         run: npm run build
 
+      - name: Bundle size budget (gzipped main bundle)
+        # Hard cap on `assets/app-*.js` gzipped size — see `.size-limit.json`
+        # for the current limit. A PR that doubles the bundle (lazy chunks
+        # added back to the main chunk, a heavy dep imported eagerly,
+        # etc.) goes red instead of silently shipping. Bump the limit in
+        # the same PR if the growth is intentional.
+        run: npx --no-install size-limit
+
+      - name: Dead-code / unused-export scan (informational)
+        # knip surfaces exports that no one imports + unused
+        # devDependencies. INFORMATIONAL only (`continue-on-error: true`)
+        # because the project's `utils.js` barrel-export pattern produces
+        # false positives that need per-export annotation to clear, and
+        # we'd rather see the report in the Action log than block PRs on
+        # noise. Turn this into a hard gate once the noise is triaged.
+        continue-on-error: true
+        run: npx --no-install knip
+
       - name: Dependency audit (high-severity only)
         # Surfaces supply-chain vulnerabilities. `--audit-level=high`
         # so a transitive moderate doesn't gate every push; bump to
