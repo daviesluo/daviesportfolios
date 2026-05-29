@@ -6,7 +6,7 @@
 // exactly — only that they carry no magnitude suffix.)
 
 import { describe, it, expect } from 'vitest';
-import { fmtMoney } from './formatters.js';
+import { fmtMoney, fmtPct } from './formatters.js';
 
 describe('fmtMoney — magnitude tiers', () => {
   it('>= $1T → trillions with a T suffix', () => {
@@ -72,5 +72,37 @@ describe('fmtMoney — magnitude tiers', () => {
   it('compact:true (default) preserves M / B / T abbreviation', () => {
     expect(fmtMoney(1_079_451, { symbol: '¥' })).toBe('¥1.08M');
     expect(fmtMoney(1_079_451, { symbol: '¥', compact: true })).toBe('¥1.08M');
+  });
+
+  it('precision opt strips decimals on the sub-1000 path', () => {
+    // Mobile scoreboard DAY CHANGE prefers integer dollars for the
+    // small-swing case.
+    expect(fmtMoney(500.50, { precision: 0, signed: true })).toBe('+$501');
+    expect(fmtMoney(-12.34, { precision: 0 })).toBe('-$12');
+    // Default (2) preserves the legacy "$500.50" surface.
+    expect(fmtMoney(500.50, { signed: true })).toBe('+$500.50');
+    // >=1000 path was always integer; precision doesn't change it.
+    expect(fmtMoney(12_345, { precision: 0 })).toBe('$12,345');
+    expect(fmtMoney(12_345, { precision: 2 })).toBe('$12,345');
+  });
+});
+
+describe('fmtPct', () => {
+  it('defaults to 2-decimal precision', () => {
+    expect(fmtPct(1.44)).toBe('+1.44%');
+    expect(fmtPct(-3.5)).toBe('-3.50%');
+    expect(fmtPct(0)).toBe('0.00%');
+  });
+
+  it('precision opt drops decimals (mobile scoreboard DAY CHANGE)', () => {
+    expect(fmtPct(1.44, { precision: 0 })).toBe('+1%');
+    expect(fmtPct(-3.5, { precision: 0 })).toBe('-4%');
+    expect(fmtPct(1.44, { precision: 1 })).toBe('+1.4%');
+  });
+
+  it('null / NaN / undefined → em dash', () => {
+    expect(fmtPct(null)).toBe('—');
+    expect(fmtPct(NaN)).toBe('—');
+    expect(fmtPct(undefined)).toBe('—');
   });
 });

@@ -18,7 +18,7 @@ export function maskDigits(s) {
 
 /**
  * @param {number | null | undefined} n
- * @param {{signed?: boolean, symbol?: string, compact?: boolean}} [opts]
+ * @param {{signed?: boolean, symbol?: string, compact?: boolean, precision?: number}} [opts]
  */
 export const fmtMoney = (n, opts = {}) => {
   if (n == null || isNaN(n)) return "—";
@@ -42,14 +42,27 @@ export const fmtMoney = (n, opts = {}) => {
     if (abs >= 1e6) return sign + sym + (abs / 1e6).toFixed(2) + "M";
   }
   if (abs >= 1e3) return sign + sym + abs.toLocaleString(undefined, { maximumFractionDigits: 0 });
-  return sign + sym + abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // `precision` only affects the sub-1000 path where the default is
+  // 2 (so a $5.50 lot reads as "$5.50"). The mobile scoreboard's
+  // DAY CHANGE passes `precision: 0` so a sub-$1000 daily swing
+  // reads as "$500" instead of "$500.00". The >=1e3 branch above
+  // already uses maxFractionDigits: 0 so dollars-per-thousands
+  // were always integer there.
+  const prec = opts.precision ?? 2;
+  return sign + sym + abs.toLocaleString(undefined, { minimumFractionDigits: prec, maximumFractionDigits: prec });
 };
 
-/** @param {number | null | undefined} n */
-export const fmtPct = (n) => {
+/**
+ * @param {number | null | undefined} n
+ * @param {{precision?: number}} [opts]
+ */
+export const fmtPct = (n, opts = {}) => {
   if (n == null || isNaN(n)) return "—";
   const sign = n > 0 ? "+" : "";
-  return sign + n.toFixed(2) + "%";
+  // Default 2 decimals (the legacy behaviour every existing caller
+  // sees). The mobile scoreboard's DAY CHANGE passes precision: 0
+  // for an integer percent — see Header in header_sidebar.jsx.
+  return sign + n.toFixed(opts.precision ?? 2) + "%";
 };
 
 /** @param {number | null | undefined} n */
