@@ -626,6 +626,11 @@ function Board({ isReadOnly }) {
     let cancelled = false;
     /** @type {ReturnType<typeof setTimeout> | null} */
     let timeoutId = null;
+    // Track the wall-clock of the last completed refresh so the
+    // visibility-resume path can decide whether a catch-up fetch is
+    // actually warranted (returning to the tab 3 s after backgrounding
+    // shouldn't fire a redundant call).
+    let lastRefreshMs = Date.now();
     const schedule = () => {
       if (cancelled) return;
       // Re-evaluated each tick so the cadence flips automatically at the
@@ -633,14 +638,44 @@ function Board({ isReadOnly }) {
       const intervalMs = isWeekendDeadZone(new Date()) ? REFRESH_MS_WEEKEND : REFRESH_MS;
       timeoutId = setTimeout(() => {
         if (cancelled) return;
+        // Skip the network round-trip while the tab is backgrounded /
+        // the phone is locked — keep re-arming so the cadence is intact
+        // the instant the user returns, but don't burn battery / Edge
+        // Function quota / the T212 rate-limit window polling a screen
+        // nobody's looking at. The visibilitychange handler below fires
+        // an immediate catch-up when the tab becomes visible again.
+        if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+          schedule();
+          return;
+        }
         doRefreshRef.current({ prefetch: false });
+        lastRefreshMs = Date.now();
         schedule();
       }, intervalMs);
     };
+    // Catch-up on return-to-foreground: if the tab was hidden long
+    // enough that the data is now staler than one refresh interval,
+    // fetch immediately instead of making the user wait up to 30 s
+    // (or 5 min in the weekend dead zone) for the next scheduled tick.
+    const onVisibility = () => {
+      if (cancelled) return;
+      if (typeof document === 'undefined' || document.visibilityState !== 'visible') return;
+      const intervalMs = isWeekendDeadZone(new Date()) ? REFRESH_MS_WEEKEND : REFRESH_MS;
+      if (Date.now() - lastRefreshMs >= intervalMs) {
+        doRefreshRef.current({ prefetch: false });
+        lastRefreshMs = Date.now();
+      }
+    };
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisibility);
+    }
     schedule();
     return () => {
       cancelled = true;
       if (timeoutId !== null) clearTimeout(timeoutId);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisibility);
+      }
     };
   }, [portfolio !== null]);
 
@@ -652,9 +687,32 @@ function Board({ isReadOnly }) {
   // null) and post-load (portfolio populated), otherwise React throws
   // "Rendered more hooks than during the previous render".
   const currentPhase = usMarketPhase(new Date());
-  const metrics = portfolio
-    ? computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular", marketData })
-    : null;
+  // Memoize the metrics compute so it only re-runs when one of its
+  // actual inputs changes — NOT on every render. The Board re-renders
+  // on each refresh tick for peripheral reasons (isRefreshing flip,
+  // lastUpdated clock, recentlyUpdated flash, flashTickers) on top of
+  // the actual data change; without the memo, computeMetrics ran the
+  // full portfolio aggregate on every one of those. `currentPhase` is
+  // a stable string within a market phase so it doesn't defeat the
+  // memo; `marketData` is a fresh object only on a real price tick, so
+  // the memo recomputes exactly when prices move and not otherwise.
+  const metrics = useMemo(
+    () => (portfolio
+      ? computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular", marketData })
+      : null),
+    [portfolio, extendedHours, currentPhase, marketData],
+  );
+  // Stable handler for the Heatmap's tile click — useCallback so the
+  // Heatmap's React.memo (heatmap.jsx) isn't defeated by a fresh
+  // closure each Board render. Declared here (above the loading
+  // early-return) so its hook slot is unconditional. In edit mode the
+  // heatmap doubles as a per-ticker shortcut into EditTickerModal
+  // (same as a Pitch chip); otherwise it opens the chart modal.
+  // Heatmap filters CASH out itself, so no isCash guard needed.
+  const handleTileClick = useCallback((t) => {
+    if (editMode && !isReadOnly) setEditingTicker(t);
+    else setViewingTicker(t);
+  }, [editMode, isReadOnly]);
 
   // FX-rate-missing is already surfaced by the red "FX MISSING N
   // tickers" pill in the header (see Header.jsx, populated from
@@ -874,17 +932,7 @@ function Board({ isReadOnly }) {
           <Heatmap
             metrics={metrics}
             extendedHours={extendedHours && currentPhase !== "regular"}
-            onTileClick={(t) => {
-              // In edit mode, the heatmap doubles as a per-ticker
-              // shortcut into EditTickerModal — same pattern as
-              // clicking a player chip on the Pitch view. Out of edit
-              // mode (and for read-only viewers) it keeps the
-              // chart-modal behaviour the heatmap has always had.
-              // Heatmap already filters CASH out (heatmap.jsx:102),
-              // so no isCash guard needed here.
-              if (editMode && !isReadOnly) setEditingTicker(t);
-              else setViewingTicker(t);
-            }}
+            onTileClick={handleTileClick}
           />
         ) : (
           <Pitch
