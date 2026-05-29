@@ -199,4 +199,9 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
   );
 }
 
-export { Heatmap };
+// React.memo — same rationale as Pitch: the treemap recomputes its
+// binary-split layout + renders a tile per holding, no need to redo
+// that on a Board render where neither `metrics` nor `extendedHours`
+// changed (e.g. the mobile currency-cycle toggle).
+const MemoHeatmap = React.memo(Heatmap);
+export { MemoHeatmap as Heatmap };
