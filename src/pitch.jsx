@@ -220,4 +220,11 @@ function Ball({ coord, ticker }) {
   );
 }
 
+// NB: deliberately NOT React.memo'd. Pitch takes `isRefreshing` +
+// `recentlyUpdated`, both of which flip on every refresh tick (the
+// shimmer + the flash), so the component re-renders each tick by
+// design — a memo wrapper would compare-then-render-anyway, paying
+// the shallow-compare cost for no skipped render. The Heatmap (which
+// has none of those per-tick props) is the one that benefits from
+// memo; see heatmap.jsx.
 export { Pitch };
