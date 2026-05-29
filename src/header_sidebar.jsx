@@ -20,7 +20,7 @@ import {
 } from './utils.js';
 import { isIndex } from './ticker_class.js';
 import { PerfPanel } from './perf_chart.jsx';
-import { OpsErrorBadge } from './ops_error_badge.jsx';
+import { OpsErrorBadge, useIsDesktop } from './ops_error_badge.jsx';
 
 // Eye icons for the "hide values" toggle in the scoreboard. Inline SVG so
 // they inherit currentColor and don't need an extra HTTP request.
@@ -182,6 +182,13 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
   // of the $value), desktop slots it row 1 col 3 (right of the eye
   // in the label row).
   const [ccy, setCcy] = React.useState(/** @type {'USD'|'GBP'|'CNY'} */ ('USD'));
+  // Mobile-only precision drop on DAY CHANGE — user prefers integer
+  // dollars + integer percent ("+$2,252 (+1%)") over the legacy
+  // two-decimal percent ("+$2,252 (+1.44%)") on the narrow phone
+  // viewport. Desktop keeps the full 2-decimal precision since the
+  // scoreboard cell has plenty of horizontal headroom there.
+  const isDesktop = useIsDesktop();
+  const dayPrec = isDesktop ? 2 : 0;
   const cycleCcy = React.useCallback(() => {
     setCcy((cur) => CCY_CYCLE[(CCY_CYCLE.indexOf(cur) + 1) % CCY_CYCLE.length]);
   }, []);
@@ -191,7 +198,7 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
    *  3 scoreboard numbers stay in lockstep without sprinkling the
    *  conversion at every call site. */
   const fmCcy = React.useCallback(
-    /** @param {number | null | undefined} n @param {{signed?: boolean}} [opts] */
+    /** @param {number | null | undefined} n @param {{signed?: boolean, precision?: number}} [opts] */
     (n, opts) => fmM(typeof n === 'number' ? n * ccyRate : n, {
       ...opts, symbol: ccySym,
       // `compact: false` — the scoreboard expands M/B/T to full
@@ -295,8 +302,8 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
         <div className="scoreboard-cell">
           <div className="sb-label">DAY CHANGE</div>
           <div className={`sb-value mono sb-change-row${sbFlash.day ? " sb-flash-" + sbFlash.day : ""}`} style={{ color: pcC(metrics.dayPct) }}>
-            <span>{hideValues ? mask(fmCcy(metrics.dayChange, { signed: true })) : fmCcy(metrics.dayChange, { signed: true })}</span>
-            <span className="sb-pct">({fmP(metrics.dayPct)})</span>
+            <span>{hideValues ? mask(fmCcy(metrics.dayChange, { signed: true, precision: dayPrec })) : fmCcy(metrics.dayChange, { signed: true, precision: dayPrec })}</span>
+            <span className="sb-pct">({fmP(metrics.dayPct, { precision: dayPrec })})</span>
           </div>
         </div>
         <div className="scoreboard-divider" />
