@@ -35,6 +35,7 @@ import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
 import { fetchTrading212Holdings, applyTrading212, applyTrading212NightPrice } from './trading212.js';
+import { fetchOvernightSeries } from './overnight_intraday.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
 class ErrorBoundary extends React.Component {
@@ -554,6 +555,16 @@ function Board({ isReadOnly }) {
     });
     setLastUpdated(new Date());
     setIsRefreshing(false);
+    // Overnight intraday line: during the overnight window, pull the
+    // server-recorded 5-min points for the US-equity holdings into the
+    // localStorage cache (fire-and-forget; it fires an event the modal
+    // listens to). Only meaningful overnight — the modal only merges
+    // the line when phase === 'overnight', so a daytime fetch would
+    // just warm a cache nothing reads. `extHoldingTickers` is already
+    // the outside-RTH US-equity set computed above.
+    if (refreshPhase === 'overnight' && extHoldingTickers.length > 0) {
+      fetchOvernightSeries(extHoldingTickers);
+    }
     if (src === "live") {
       setRecentlyUpdated(true);
       setTimeout(() => setRecentlyUpdated(false), 1600);
