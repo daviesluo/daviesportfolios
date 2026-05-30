@@ -533,7 +533,22 @@ function Board({ isReadOnly }) {
       // When the API key isn't set or the upstream errored,
       // t212Holdings is null → both calls no-op.
       applyTrading212(next.holdings, t212Holdings?.holdings);
-      const nightActive = extendedHours && refreshPhase === 'overnight';
+      // Apply T212's overnight price into holdings.extPrice whenever
+      // it's the overnight window — NOT gated on the Extended Hours
+      // toggle. Mirrors the Yahoo extPrice / extSeries fetch above
+      // (see the `wantsExtSeries = refreshPhase !== "regular"`
+      // comment): the data is pre-populated regardless of the toggle
+      // so flipping ext ON shows the overnight price instantly
+      // instead of stale lastPrice until the user manually hits
+      // Refresh. computeMetrics ignores extPrice when the toggle is
+      // off (`trustExt = ext && …`), so writing it unconditionally is
+      // inert until the toggle flips. The previous `&& extendedHours`
+      // gate was the bug behind "open during ext hours, toggle on,
+      // scoreboard + cards + pitch all stay stale until I Refresh —
+      // and re-entering the page repeats it": every load resets the
+      // toggle to off, so the mount refresh ran with nightActive=false
+      // and never wrote the night price.
+      const nightActive = refreshPhase === 'overnight';
       applyTrading212NightPrice(next.holdings, t212Holdings?.prices, nightActive);
       return next;
     });
