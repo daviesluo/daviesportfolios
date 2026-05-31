@@ -19,6 +19,7 @@ import {
 } from './indicators.js';
 import { pointerToDataIndex, overnightTrailingGap } from './chart_geometry.js';
 import { computeChartGeometry } from './chart_modal_geometry.js';
+import { getOvernightSeries, mergeOvernightSeries, OVERNIGHT_FETCH_EVENT } from './overnight_intraday.js';
 import { reportError } from './ops_error.js';
 
 const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$' };
@@ -654,6 +655,31 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // silently miss the close marker Nov–Mar.
   const mh = usMarketHoursUtc(new Date());
 
+  // Overnight recorded points (server-side recorder via overnight-fetch,
+  // mirrored to localStorage). Read synchronously so the first paint
+  // already has them; re-read on the `overnight:fetched` event each
+  // refresh writes. `displaySeries` below splices them onto the Yahoo
+  // series so the overnight portion draws as a real connected LINE
+  // instead of the single heartbeat dot.
+  const [overnightPts, setOvernightPts] = React.useState(() => getOvernightSeries(ticker));
+  React.useEffect(() => {
+    const read = () => setOvernightPts(getOvernightSeries(ticker));
+    read();
+    if (typeof window === 'undefined') return undefined;
+    window.addEventListener(OVERNIGHT_FETCH_EVENT, read);
+    return () => window.removeEventListener(OVERNIGHT_FETCH_EVENT, read);
+  }, [ticker]);
+  // Yahoo series with the current overnight session's recorded points
+  // appended (when eligible — see mergeOvernightSeries). Returns the
+  // same `series` ref when there's no overnight line to draw, so
+  // `hasOvernightLine` below is a cheap reference check and the
+  // existing single-dot fallback path stays byte-identical.
+  const displaySeries = React.useMemo(
+    () => mergeOvernightSeries(series, overnightPts, { rangeKey, useExt, phase, ticker }),
+    [series, overnightPts, rangeKey, useExt, phase, ticker],
+  );
+  const hasOvernightLine = displaySeries !== series;
+
   // In ext-on AH/PM mode the chart's right-edge price needs to be the
   // current after-hours quote so the % return matches the scoreboard's
   // DAY CHANGE (which in the same mode is computed against today's
@@ -793,13 +819,27 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // actually trade overnight — OTC ADRs like SFTBY (no night session)
   // are excluded via hasOvernightSession so they don't show a stale
   // close as a fake heartbeat.
+  // The single heartbeat dot is the FALLBACK for when the overnight
+  // recorder has 0-1 points (cron just started / a gap): show one
+  // pulsing dot at the live price. Once the recorder has >= 2 points
+  // for the current session, `displaySeries` already carries them as
+  // a connected line (hasOvernightLine), so we suppress the dot —
+  // the line's last bar, with the live substitution below, IS the
+  // current overnight price.
   const nightDotActive = useExt && phase === 'overnight' && hasOvernightSession(ticker)
     && typeof extPriceLive === 'number' && extPriceLive > 0
     && !!NIGHT_BAR_INTERVAL_MS[rangeKey]
-    && Array.isArray(series) && series.length >= 2;
+    && !hasOvernightLine
+    && Array.isArray(displaySeries) && displaySeries.length >= 2;
 
-  const points = series ? series.map((p, i) => (
-    isPriceAxis(rangeKey) && i === series.length - 1 && liveLast && !nightDotActive ? { ...p, close: liveLast } : p
+  // Points drive the line + geometry. Built from `displaySeries` (the
+  // Yahoo bars + any spliced overnight line). The live substitution on
+  // the LAST point keeps the right edge tracking the current price —
+  // for the overnight line that means the most recent recorded point
+  // shows the live T212 quote, satisfying "the rightmost realtime
+  // point can still update anytime".
+  const points = displaySeries ? displaySeries.map((p, i) => (
+    isPriceAxis(rangeKey) && i === displaySeries.length - 1 && liveLast && !nightDotActive ? { ...p, close: liveLast } : p
   )) : [];
 
   const lastClose = points.length > 0 ? points[points.length - 1].close : null;
@@ -895,7 +935,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // is wired against the same chartXDenom so click-to-data-index uses
   // the same scale.
   const geometry = computeChartGeometry({
-    series,
+    series: displaySeries,
     points,
     rangeKey,
     useExt,
