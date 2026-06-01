@@ -418,6 +418,50 @@ body {
 .header-actions .btn-ghost { min-width: 100px; justify-content: center; }
 .header-actions .btn-toggle:not(.ext-toggle) { min-width: 88px; justify-content: center; }
 
+/* ☰ overflow menu (to the right of EDIT). */
+.header-menu { position: relative; display: flex; }
+.header-menu-btn { min-width: 0 !important; padding: 6px 8px; }
+.header-menu-btn.on { color: var(--chalk); border-color: var(--chalk-mute); }
+.header-menu-dropdown {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 60;
+  min-width: 160px; padding: 4px;
+  background: rgba(12, 19, 16, 0.98); backdrop-filter: blur(8px);
+  border: 1px solid var(--line); border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.header-menu-item {
+  display: block; width: 100%; text-align: left;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--chalk); font-size: 13px; padding: 8px 10px; border-radius: 4px;
+}
+.header-menu-item:hover { background: rgba(244,239,227,0.08); }
+
+/* Holdings list table (☰ → Holding list). */
+.hl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.hl-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.hl-th {
+  position: sticky; top: 0; z-index: 1;
+  background: rgba(12,19,16,0.98);
+  color: var(--chalk-dim); font-weight: 600; font-size: 11px;
+  letter-spacing: 0.04em; text-transform: none;
+  padding: 8px 10px; cursor: pointer; user-select: none; white-space: nowrap;
+  border-bottom: 1px solid var(--line);
+}
+.hl-th:hover { color: var(--chalk); }
+.hl-th.hl-sorted { color: var(--chalk); }
+.hl-left  { text-align: left; }
+.hl-right { text-align: right; }
+.hl-table td { padding: 9px 10px; border-bottom: 1px solid rgba(244,239,227,0.06); vertical-align: middle; }
+.hl-table tbody tr:hover { background: rgba(244,239,227,0.04); }
+.hl-strong { font-weight: 600; color: var(--chalk); }
+.hl-sub { font-size: 11px; opacity: 0.85; margin-top: 1px; }
+.hl-sym { min-width: 150px; }
+.hl-ticker-btn { background: transparent; border: none; cursor: pointer; padding: 0; text-align: left; display: block; }
+.hl-ticker { display: block; color: var(--link, #4a8fd8); font-weight: 600; font-size: 14px; }
+.hl-ticker-btn:hover .hl-ticker { text-decoration: underline; }
+.hl-name { display: block; color: var(--chalk-dim); font-size: 11px; margin-top: 1px; }
+.hl-empty { text-align: center; padding: 24px; }
+
 /* ============= MAIN LAYOUT ============= */
 .main {
   flex: 1;
@@ -1085,6 +1129,9 @@ body {
   }
   .header-actions .btn-ghost,
   .header-actions .btn-toggle { min-width: 0; font-size: 11px; padding: 6px 10px; }
+  /* LIVE pill keeps its original look; `flex: 1` lets it fill the row,
+     so adding the ☰ button just trims the pill by the button's width —
+     nothing else about the pill changes. */
   .live-pill { min-width: 0; flex: 1; }
 
   /* Row 3: scoreboard — show as horizontal scrolling strip */

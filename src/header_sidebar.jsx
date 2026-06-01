@@ -173,7 +173,7 @@ function usdToCcyRate(ccy, marketData) {
   return 1;
 }
 
-function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues }) {
+function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues, onOpenHoldingsList }) {
   // Currency cycle for the scoreboard's PORTFOLIO number. Ephemeral
   // by design — every cold load starts on USD per the user's spec.
   // The button itself renders on every breakpoint; the
@@ -347,8 +347,49 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
             {editMode ? "✓ EDIT MODE" : "EDIT"}
           </button>
         )}
+        <HeaderMenu onOpenHoldingsList={onOpenHoldingsList} />
       </div>
     </header>
+  );
+}
+
+// ☰ overflow menu to the right of EDIT. Click to toggle a dropdown;
+// click-away / Escape closes it. One item for now — "Holding list" —
+// but the pattern scales to more. Available in both view + edit mode,
+// read-only included (the holdings table is view-only).
+function HeaderMenu({ onOpenHoldingsList }) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(/** @type {HTMLDivElement | null} */ (null));
+  React.useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [open]);
+  return (
+    <div className="header-menu" ref={ref}>
+      <button
+        className={`btn-ghost icon header-menu-btn${open ? ' on' : ''}`}
+        onClick={() => setOpen(v => !v)}
+        aria-label="Menu" aria-haspopup="menu" aria-expanded={open}
+        title="Menu"
+      >
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M3 6h18" /><path d="M3 12h18" /><path d="M3 18h18" />
+        </svg>
+      </button>
+      {open && (
+        <div className="header-menu-dropdown" role="menu">
+          <button
+            className="header-menu-item"
+            role="menuitem"
+            onClick={() => { setOpen(false); onOpenHoldingsList && onOpenHoldingsList(); }}
+          >Holding list</button>
+        </div>
+      )}
+    </div>
   );
 }
 
