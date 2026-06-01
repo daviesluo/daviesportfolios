@@ -814,6 +814,26 @@ function Board({ isReadOnly }) {
       return { ...p, holdings, positions };
     });
   });
+  // Move a holding to a different tactics-board position: strip it from
+  // whatever slot currently holds it, then append to the target slot.
+  // Holdings/lots are untouched — only the position membership moves.
+  // No-op if the target doesn't exist or already holds the ticker.
+  const moveHolding = guard((ticker, toPosKey) => {
+    setPortfolio(p => {
+      if (!p.positions[toPosKey]) return p;
+      const positions = {};
+      for (const [k, pos] of Object.entries(p.positions)) {
+        positions[k] = { ...pos, tickers: pos.tickers.filter(t => t !== ticker) };
+      }
+      if (!positions[toPosKey].tickers.includes(ticker)) {
+        positions[toPosKey] = {
+          ...positions[toPosKey],
+          tickers: [...positions[toPosKey].tickers, ticker],
+        };
+      }
+      return { ...p, positions };
+    });
+  });
   const addHolding = guard((posKey, ticker, shares, cost, lastPrice, buyDate) => {
     ticker = ticker.toUpperCase().trim();
     if (!ticker) return;
@@ -1045,9 +1065,11 @@ function Board({ isReadOnly }) {
         <EditTickerModal
           ticker={editingTicker}
           holding={portfolio.holdings[editingTicker]}
+          positions={portfolio.positions}
           onClose={() => setEditingTicker(null)}
           onSave={(patch) => { updateHolding(editingTicker, patch); setEditingTicker(null); }}
           onDelete={() => { if (confirm(`Remove ${editingTicker}?`)) { removeHolding(editingTicker); setEditingTicker(null); } }}
+          onMove={(toPosKey) => { moveHolding(editingTicker, toPosKey); setEditingTicker(null); }}
         />
       )}
 
