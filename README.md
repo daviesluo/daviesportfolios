@@ -385,6 +385,19 @@ to the prompt.
   by today's % change (green up, red down, deeper = larger move).
 - **Tap a tile** → opens the same ticker chart modal.
 
+### Holding list (☰ menu)
+
+- The **☰ menu** to the right of EDIT (both desktop + mobile) opens a
+  dropdown; its one item, **Holding list**, opens a Yahoo-Finance-style
+  sortable table of every holding: Symbol (+ company name), Exposure %,
+  Cost Basis, Market Value, Day Change ($ / %), Unrealized G/L ($ / %).
+- Every column header sorts asc/desc on click (default **Exposure %,
+  high → low**). Reads straight off the live `metrics`, so it's always
+  in sync with the board / heatmap and opens instantly (no fetch).
+  **Tap a symbol** → the ticker chart modal.
+- On mobile the LIVE status pill is shortened (its "ago" sub-text is
+  hidden) to make room for the ☰ button.
+
 ### Ticker chart modal
 
 - **Range buttons**: 1D / 1W / 1M / 3M / YTD plus an optional
@@ -567,6 +580,7 @@ before this guard landed).
 | `proxy_chain.js` | The 5-host public CORS-proxy list + per-proxy backoff cache (`proxyIsAvailable`, `markProxyDead`, `clearProxyBackoff`). When a proxy returns 429 / 403 / 5xx it's blacklisted for 10 minutes (1 minute for plain timeouts), so one dead host doesn't poison every 30-second refresh tick. Cleared on first successful response from that proxy. In-memory only; resets on page reload. Imported by `yahoo_fetch.js` + `historical.js`. |
 | `yahoo_fetch.js` | The live-price pipeline. Edge-first (`/functions/v1/prices`) with the per-proxy fallback chain consulted only for tickers Edge dropped. Public surface: `refreshPrices`, `fetchTickers`, `fetchFundamentals`. `fetchOneYahooChart` (the proxy-side single-symbol fallback) now suppresses `extPrice` for any ticker with a dotted suffix (`.L`, `.HK`, `.SS`, …) — Yahoo's `preMarketPrice` / `postMarketPrice` for those reflects the local exchange's live intraday quote, not a US-style pre/post session, so the ext-hours toggle would otherwise leak real LSE intraday movement when the user expects 0. |
 | `historical.js` | Chart-data fetch. `fetchHistorical` (single-symbol proxy race), `fetchCnFundHistoryViaProxy` (danjuanapp + xueqiu race for 6-digit CN funds), `fetchHistoricalBatch` (Edge-first, proxy-fallback only on Edge total failure), `fetchTodayRegularClose` (latest 16:00 ET close per ticker for the MC cards' "since 16:00 ET" anchor). |
+| `holdings_list.jsx` / `holdings_list.test.jsx` | The ☰-menu **Holding list** table. Pure `buildHoldingsRows(metrics)` flattens `metrics.positions[].players` into one row per holding (cash excluded; exposure = mv / total, costBasis = shares·cost·fx, unrl derived) and `sortHoldingsRows(rows, key, dir)` sorts; both pinned. `<HoldingsListModal>` renders the sortable table (default exposure desc) and calls `onTickerClick` to open the chart modal. `COMPANY_NAMES` is a static ticker→name map (no client name source for equities; unknown → "--"). |
 | `overnight_intraday.js` / `overnight_intraday.test.js` | Client read/cache layer for the server-side overnight recorder (the actual sampling is `overnight-record` on pg_cron). `fetchOvernightSeries(tickers)` hits `overnight-fetch`, mirrors the result to localStorage (`dp.overnight.cache`) + fires an `overnight:fetched` event; `getOvernightSeries(ticker)` is the synchronous cache read so the modal paints instantly; `mergeOvernightSeries(series, pts, ctx)` is the pure splice that appends the current session's recorded points onto the Yahoo series (only ext-on + overnight + overnight-session ticker + 1D/1W/1M + ≥2 points after the last Yahoo bar; otherwise returns the series ref unchanged so the modal's single-heartbeat-dot path is the no-regression fallback). `app.jsx` fetches during the overnight window; `ticker_chart_modal.jsx` derives `displaySeries` from the merge, suppresses the dot when the line is present, and keeps the rightmost point live. |
 | `chart_modal_geometry.js` / `chart_modal_geometry.test.js` | Pure geometry for the ticker chart modal: anchorClose selection (regular / ext-mode fallback chain to lastPrice / prevClose / series[0]), `hasData` gate, `xOfIdx` / `yOf` scale fns, y-range containment for PE/PS 3yAvg + MA + VWAP + the overnight-dot price, "nice step" y-tick spacing, and index-spaced x-ticks (+ the "now" tick at the live dot's true-time x). Lifted out of `ticker_chart_modal.jsx` in PR #158 — the inline block had grown to ~200 lines that needed to be touched in 8 different positions during PR #157's SFTBY / `.PVT` saga. Pinned by 13 vitest cases. |
 | `chart_geometry.js` / `chart_geometry.test.js` | Shared SVG-chart helpers used by both `perf_chart.jsx` and `ticker_chart_modal.jsx`. `pointerToDataIndex(event, svgEl, geom, dataLength)` replaces the duplicated 20-line `handleMove` math (mouse + touch coord extraction, SVG letterbox correction, axis-padding clamp, round-to-nearest-index) so a bug fix in one chart propagates to the other automatically; `geom.xDenom` optionally overrides the x denominator when the bars don't fill the full width (the modal's overnight view reserves the right edge for the live dot's time-proportional gap). `overnightTrailingGap(lastBarMs, nowMs, barIntervalMs)` returns how far past the last bar the live "night market" dot sits, in bar-interval units, so the otherwise index-based chart honours real elapsed time for just the current overnight session. `pointsToSvgPath` is also exported. vitest pins the letterbox math, the `xDenom` override + gap edge cases. |
