@@ -1073,6 +1073,20 @@ function Board({ isReadOnly }) {
         />
       )}
 
+      {/* Holdings list renders BEFORE the ticker modal so that when a
+          symbol is tapped from the list, the ticker modal stacks ON
+          TOP (later in the DOM wins at equal z-index) and the list
+          stays mounted behind it — closing the ticker modal returns
+          to the list, not all the way home. */}
+      {showHoldingsList && (
+        <HoldingsListModal
+          metrics={metrics}
+          hideValues={hideValues}
+          onTickerClick={(t) => setViewingTicker(t)}
+          onClose={() => setShowHoldingsList(false)}
+        />
+      )}
+
       {viewingTicker && (
         <TickerChartModal
           ticker={viewingTicker}
@@ -1083,15 +1097,6 @@ function Board({ isReadOnly }) {
           portfolioTotalValue={metrics.marketValue}
           hideValues={hideValues}
           onClose={() => setViewingTicker(null)}
-        />
-      )}
-
-      {showHoldingsList && (
-        <HoldingsListModal
-          metrics={metrics}
-          hideValues={hideValues}
-          onTickerClick={(t) => { setShowHoldingsList(false); setViewingTicker(t); }}
-          onClose={() => setShowHoldingsList(false)}
         />
       )}
 
