@@ -502,6 +502,25 @@ body {
   box-shadow: 0 6px 20px rgba(0,0,0,0.6);
   z-index: 10;
 }
+/* Edit-mode drag-to-swap. `.draggable` chips claim the touch gesture
+   (touch-action:none) so a drag isn't stolen as a page scroll, and
+   show a grab cursor on desktop. */
+.pos-chip.draggable { touch-action: none; cursor: grab; }
+.pos-chip.draggable:active { cursor: grabbing; }
+/* The chip being dragged: follow the pointer instantly (no transition),
+   go pointer-transparent so elementFromPoint finds the chip underneath
+   as the drop target, and lift visually. */
+.pos-chip.dragging {
+  transition: none !important;
+  pointer-events: none;
+  opacity: 0.9;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.7);
+}
+/* The chip currently under the dragged one — the swap target. */
+.pos-chip.drop-target {
+  border-color: var(--gold, #d8b24a);
+  box-shadow: 0 0 0 2px var(--gold, #d8b24a), 0 6px 20px rgba(0,0,0,0.6);
+}
 .pos-chip.role-def { border-top: 2px solid var(--role-def); }
 .pos-chip.role-mid { border-top: 2px solid var(--role-mid); }
 .pos-chip.role-fwd { border-top: 2px solid var(--role-fwd); }

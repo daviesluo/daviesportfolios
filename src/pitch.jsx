@@ -9,12 +9,81 @@ import {
 } from './formatters.js';
 import { POSITION_COORDS } from './utils.js';
 
-function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpenPosition, onAddToPosition, onUpdatePosition, isRefreshing, recentlyUpdated, hideValues }) {
+function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpenPosition, onAddToPosition, onUpdatePosition, onSwapPositions, isRefreshing, recentlyUpdated, hideValues }) {
   const coords = POSITION_COORDS;
+
+  // Edit-mode drag-to-swap. Pointer Events (mouse + touch) rather than
+  // HTML5 DnD, which never fires on touch. Handled imperatively (direct
+  // style.transform + classList on the dragged / drop-target DOM nodes)
+  // so each pointermove doesn't trigger a React re-render of all the
+  // chips — only the final swap goes through React. `clickGuardRef`
+  // suppresses the chip's click-to-open that would otherwise fire after
+  // a drag's pointerup. All three handlers are stable (useCallback []),
+  // reading live state off `dragRef`, so a mid-drag re-render (refresh
+  // tick) can't strand the window listeners on stale closures.
+  const dragRef = React.useRef(/** @type {any} */ (null));
+  const clickGuardRef = React.useRef(false);
+  const onSwapRef = React.useRef(onSwapPositions);
+  React.useEffect(() => { onSwapRef.current = onSwapPositions; }, [onSwapPositions]);
+
+  const endDrag = React.useCallback(() => {
+    const st = dragRef.current;
+    if (!st) return;
+    if (st.el) { st.el.style.transform = ''; st.el.style.zIndex = ''; st.el.classList.remove('dragging'); }
+    if (st.overEl) st.overEl.classList.remove('drop-target');
+    window.removeEventListener('pointermove', st.onMove);
+    window.removeEventListener('pointerup', st.onUp);
+    window.removeEventListener('pointercancel', st.onUp);
+    dragRef.current = null;
+  }, []);
+
+  const onChipPointerDown = React.useCallback((posKey, e) => {
+    if (e.button != null && e.button !== 0) return; // primary / touch only
+    const el = /** @type {HTMLElement} */ (e.currentTarget);
+    const onMove = (ev) => {
+      const st = dragRef.current;
+      if (!st) return;
+      const dx = ev.clientX - st.startX, dy = ev.clientY - st.startY;
+      if (!st.dragging && Math.hypot(dx, dy) < 8) return; // movement threshold
+      if (!st.dragging) { st.dragging = true; clickGuardRef.current = true; el.classList.add('dragging'); el.style.zIndex = '50'; }
+      // The chip's base CSS centres it with translate(-50%,-50%); keep
+      // that and add the drag delta on top, or it'd jump on first move.
+      el.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px)`;
+      const under = document.elementFromPoint(ev.clientX, ev.clientY);
+      const chip = under && under.closest ? under.closest('.pos-chip[data-poskey]') : null;
+      const overKey = chip ? chip.getAttribute('data-poskey') : null;
+      const newOverEl = (overKey && overKey !== st.fromKey) ? /** @type {HTMLElement} */ (chip) : null;
+      if (newOverEl !== st.overEl) {
+        if (st.overEl) st.overEl.classList.remove('drop-target');
+        if (newOverEl) newOverEl.classList.add('drop-target');
+        st.overEl = newOverEl;
+        st.overKey = newOverEl ? overKey : null;
+      }
+    };
+    const onUp = () => {
+      const st = dragRef.current;
+      if (!st) return;
+      const { fromKey, overKey, dragging } = st;
+      endDrag();
+      if (dragging && overKey && overKey !== fromKey) onSwapRef.current?.(fromKey, overKey);
+      // Release the click guard after the synthetic click (which fires
+      // post-pointerup) has been swallowed.
+      if (dragging) setTimeout(() => { clickGuardRef.current = false; }, 0);
+    };
+    dragRef.current = { fromKey: posKey, el, startX: e.clientX, startY: e.clientY, dragging: false, overEl: null, overKey: null, onMove, onUp };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+  }, [endDrag]);
+
+  // Clean up a drag-in-progress if the Pitch unmounts mid-gesture.
+  React.useEffect(() => endDrag, [endDrag]);
+
+  const dragEnabled = editMode && !isReadOnly && typeof onSwapPositions === 'function';
 
   return (
     <div className="pitch-wrap">
-      <div className="pitch">
+      <div className={`pitch${dragEnabled ? ' editing' : ''}`}>
         <PitchLines />
 
         {/* Position chips */}
@@ -32,6 +101,9 @@ function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTi
               flashTickers={flashTickers}
               editMode={editMode}
               isReadOnly={isReadOnly}
+              dragEnabled={dragEnabled}
+              onDragStart={onChipPointerDown}
+              clickGuardRef={clickGuardRef}
               onOpen={() => onOpenPosition(k)}
               onAdd={() => onAddToPosition(k)}
               onUpdatePosition={(patch) => onUpdatePosition(k, patch)}
@@ -107,7 +179,7 @@ function PitchLines() {
   );
 }
 
-function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpen, onAdd, onUpdatePosition, isRefreshing, recentlyUpdated, hideValues }) {
+function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, dragEnabled, onDragStart, clickGuardRef, onOpen, onAdd, onUpdatePosition, isRefreshing, recentlyUpdated, hideValues }) {
   const hasPlayers = position.players.length > 0;
   const pctClass = position.dayPct > 0 ? "gain" : position.dayPct < 0 ? "loss" : "flat";
 
@@ -128,9 +200,17 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
 
   return (
     <div
-      className={`pos-chip role-${position.role.toLowerCase()} ${!hasPlayers ? "empty" : ""} ${hasHot ? "hot" : ""} ${flashesInPos ? "flash" : ""}`}
+      className={`pos-chip role-${position.role.toLowerCase()} ${!hasPlayers ? "empty" : ""} ${hasHot ? "hot" : ""} ${flashesInPos ? "flash" : ""}${dragEnabled ? " draggable" : ""}`}
       style={{ left: coord.x + "%", top: coord.y + "%" }}
-      onClick={(e) => { if (editingName) return; hasPlayers ? onOpen() : onAdd(); }}
+      data-poskey={posKey}
+      onPointerDown={dragEnabled ? (e) => onDragStart(posKey, e) : undefined}
+      onClick={(e) => {
+        if (editingName) return;
+        // Swallow the click that fires right after a drag's pointerup so
+        // a swap doesn't also open the drill modal.
+        if (clickGuardRef && clickGuardRef.current) return;
+        hasPlayers ? onOpen() : onAdd();
+      }}
       role="button"
       tabIndex={0}
     >
