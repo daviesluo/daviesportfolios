@@ -974,6 +974,14 @@ body {
 }
 .lot-grid-row .inp { padding: 8px 10px; font-size: 13px; }
 .lot-add { align-self: flex-start; margin-top: 4px; font-size: 12px; }
+/* "Move holding" position picker — revealed under the lot grid when
+   the user clicks Move holding in the footer. Inline row: label +
+   position <select> + Move/Cancel. */
+.move-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+}
+.move-select { flex: 1; min-width: 140px; }
 
 @media (max-width: 760px) {
   .lot-grid-head { display: none; }

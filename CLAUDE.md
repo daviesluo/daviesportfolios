@@ -2,6 +2,16 @@
 
 A few standing instructions for Claude Code sessions.
 
+## Documentation
+
+- **Keep `README.md` in sync as part of every change** — don't wait to
+  be asked. When a change adds/removes an Edge Function, migration,
+  `src/` module, workflow, or a user-facing feature, update the matching
+  README section (Highlights / Stack / File map / migrations table) in
+  the same commit or PR. Trim redundant/outdated prose while you're
+  there. The README is the source-of-truth map of the system; a change
+  that lands without its README update is incomplete.
+
 ## Git workflow
 
 - **Default to direct push on `main`.** No feature branches needed for

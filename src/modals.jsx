@@ -197,7 +197,7 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
 // Per-lot editor. Each row is a single purchase batch; total shares and
 // weighted-average cost are derived from the rows on save and become the
 // holding's `shares`/`cost` (lots are the source of truth for the YTD chart).
-function EditTickerModal({ ticker, holding, onClose, onSave, onDelete }) {
+function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete, onMove }) {
   const today = new Date().toISOString().slice(0, 10);
   const seed = (Array.isArray(holding.lots) && holding.lots.length > 0)
     ? holding.lots
@@ -259,6 +259,35 @@ function EditTickerModal({ ticker, holding, onClose, onSave, onDelete }) {
   // lots.test.js instead of living inline here.
   const save = () => onSave({ lots: cleanLots(lots) });
 
+  // "Move holding" — relocate this ticker to a different tactics-board
+  // position. The picker is a two-step reveal (button → select + Move)
+  // so an accidental tap can't relocate the holding. Targets exclude
+  // GK (the cash-only keeper slot) and the position the ticker already
+  // sits in. Moving applies the position change only (like Delete, it
+  // doesn't persist unsaved lot edits) and closes.
+  const [showMove, setShowMove] = React.useState(false);
+  const posMap = positions && typeof positions === 'object' ? positions : {};
+  const currentPosKey = Object.keys(posMap).find(
+    (k) => Array.isArray(posMap[k].tickers) && posMap[k].tickers.includes(ticker),
+  );
+  const moveTargets = Object.keys(posMap).filter((k) => k !== 'GK' && k !== currentPosKey);
+  const [moveTarget, setMoveTarget] = React.useState(moveTargets[0] || '');
+  const posLabel = (k) => {
+    const pos = posMap[k] || {};
+    return pos.subtitle ? `${pos.label} · ${pos.subtitle}` : (pos.label || k);
+  };
+  const canMove = typeof onMove === 'function' && moveTargets.length > 0;
+  // Move applies the position change only and closes — so if the user
+  // typed lot edits first, those would be silently dropped. Gate it
+  // with the SAME discard-confirm as Cancel/✕/backdrop (safeClose):
+  // unlike Delete (where the whole holding goes anyway), Move keeps
+  // the holding, so losing the edits without a prompt is a surprise.
+  const doMove = () => {
+    if (!moveTarget) return;
+    if (isDirty && !window.confirm("Discard unsaved changes?")) return;
+    onMove(moveTarget);
+  };
+
   return (
     <Modal onClose={safeClose} size="md">
       <header className="modal-head">
@@ -299,10 +328,31 @@ function EditTickerModal({ ticker, holding, onClose, onSave, onDelete }) {
           ))}
           <button className="btn-ghost lot-add" onClick={addLot}>+ Add lot</button>
         </div>
+
+        {showMove && canMove && (
+          <div className="move-row">
+            <span className="lot-summary-label mono">MOVE TO</span>
+            <select
+              className="inp mono move-select"
+              value={moveTarget}
+              onChange={(e) => setMoveTarget(e.target.value)}
+              aria-label="Move holding to position"
+            >
+              {moveTargets.map((k) => (
+                <option key={k} value={k}>{posLabel(k)}</option>
+              ))}
+            </select>
+            <button className="btn-primary" onClick={doMove} disabled={!moveTarget}>Move</button>
+            <button className="btn-ghost" onClick={() => setShowMove(false)}>Cancel</button>
+          </div>
+        )}
       </div>
 
       <footer className="modal-foot">
         <button className="btn-danger" onClick={onDelete}>Delete holding</button>
+        {canMove && (
+          <button className="btn-ghost" onClick={() => setShowMove(v => !v)}>Move holding</button>
+        )}
         <div className="spacer" />
         <button className="btn-ghost" onClick={safeClose}>Cancel</button>
         <button className="btn-primary" onClick={save}>Save</button>
