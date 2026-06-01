@@ -30,6 +30,7 @@ import {
   CashModal,
 } from './modals.jsx';
 import { TickerChartModal } from './ticker_chart_modal.jsx';
+import { HoldingsListModal } from './holdings_list.jsx';
 import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
@@ -186,6 +187,7 @@ function Board({ isReadOnly }) {
   const [editMode, setEditMode] = useState(false);
   const [editingTicker, setEditingTicker] = useState(null);
   const [viewingTicker, setViewingTicker] = useState(null);
+  const [showHoldingsList, setShowHoldingsList] = useState(false);
   const [addingToPos, setAddingToPos] = useState(null);
   const [editingCash, setEditingCash] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -252,7 +254,7 @@ function Board({ isReadOnly }) {
   useEffect(() => {
     const anyModalOpen = () =>
       drillPos != null || editingTicker != null || viewingTicker != null
-      || addingToPos != null || editingCash;
+      || addingToPos != null || editingCash || showHoldingsList;
     const onKey = (e) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (anyModalOpen()) return;
@@ -274,7 +276,7 @@ function Board({ isReadOnly }) {
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [isReadOnly, drillPos, editingTicker, viewingTicker, addingToPos, editingCash]);
+  }, [isReadOnly, drillPos, editingTicker, viewingTicker, addingToPos, editingCash, showHoldingsList]);
 
   // Initial load from Supabase (never throws — falls back to INITIAL_PORTFOLIO on any error)
   useEffect(() => {
@@ -974,6 +976,7 @@ function Board({ isReadOnly }) {
         onToggleView={setViewMode}
         hideValues={hideValues}
         onToggleHideValues={toggleHideValues}
+        onOpenHoldingsList={() => setShowHoldingsList(true)}
       />
 
       <main className="main">
@@ -1080,6 +1083,15 @@ function Board({ isReadOnly }) {
           portfolioTotalValue={metrics.marketValue}
           hideValues={hideValues}
           onClose={() => setViewingTicker(null)}
+        />
+      )}
+
+      {showHoldingsList && (
+        <HoldingsListModal
+          metrics={metrics}
+          hideValues={hideValues}
+          onTickerClick={(t) => { setShowHoldingsList(false); setViewingTicker(t); }}
+          onClose={() => setShowHoldingsList(false)}
         />
       )}
 

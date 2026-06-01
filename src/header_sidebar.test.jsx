@@ -62,6 +62,7 @@ function renderHeader(overrides = {}) {
     onToggleView: vi.fn(),
     hideValues: false,
     onToggleHideValues: vi.fn(),
+    onOpenHoldingsList: vi.fn(),
     ...overrides,
   };
   return render(<Header {...props} />);
