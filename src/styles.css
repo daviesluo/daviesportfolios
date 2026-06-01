@@ -1129,13 +1129,10 @@ body {
   }
   .header-actions .btn-ghost,
   .header-actions .btn-toggle { min-width: 0; font-size: 11px; padding: 6px 10px; }
-  /* Shorter LIVE pill on mobile — its right half was unused space.
-     Sized to its content (no flex-grow) so the ☰ menu + the other
-     actions get the room back. */
-  .live-pill { min-width: 0; flex: 0 0 auto; }
-  .live-ago { display: none; }
-  .header-menu-btn { padding: 6px 8px; }
-  .header-menu-dropdown { min-width: 150px; }
+  /* LIVE pill keeps its original look; `flex: 1` lets it fill the row,
+     so adding the ☰ button just trims the pill by the button's width —
+     nothing else about the pill changes. */
+  .live-pill { min-width: 0; flex: 1; }
 
   /* Row 3: scoreboard — show as horizontal scrolling strip */
   .scoreboard {
