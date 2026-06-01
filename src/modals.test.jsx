@@ -70,4 +70,31 @@ describe('EditTickerModal — Move holding', () => {
     renderModal({ onMove: undefined });
     expect(screen.queryByRole('button', { name: /Move holding/i })).not.toBeInTheDocument();
   });
+
+  it('confirms discard before moving when lot edits are dirty', async () => {
+    const user = userEvent.setup();
+    const { props } = renderModal();
+    // Make the modal dirty: change a lot's shares field.
+    const sharesInputs = screen.getAllByPlaceholderText('0');
+    await user.clear(sharesInputs[0]);
+    await user.type(sharesInputs[0], '99');
+
+    await user.click(screen.getByRole('button', { name: /Move holding/i }));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /Move holding to position/i }),
+      'LW',
+    );
+
+    // Decline the discard confirm → move is aborted.
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    await user.click(screen.getByRole('button', { name: /^Move$/i }));
+    expect(confirmSpy).toHaveBeenCalledWith('Discard unsaved changes?');
+    expect(props.onMove).not.toHaveBeenCalled();
+
+    // Accept the discard confirm → move proceeds.
+    confirmSpy.mockReturnValue(true);
+    await user.click(screen.getByRole('button', { name: /^Move$/i }));
+    expect(props.onMove).toHaveBeenCalledWith('LW');
+    confirmSpy.mockRestore();
+  });
 });

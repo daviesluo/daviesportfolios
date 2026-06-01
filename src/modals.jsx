@@ -277,7 +277,16 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
     return pos.subtitle ? `${pos.label} · ${pos.subtitle}` : (pos.label || k);
   };
   const canMove = typeof onMove === 'function' && moveTargets.length > 0;
-  const doMove = () => { if (moveTarget) onMove(moveTarget); };
+  // Move applies the position change only and closes — so if the user
+  // typed lot edits first, those would be silently dropped. Gate it
+  // with the SAME discard-confirm as Cancel/✕/backdrop (safeClose):
+  // unlike Delete (where the whole holding goes anyway), Move keeps
+  // the holding, so losing the edits without a prompt is a surprise.
+  const doMove = () => {
+    if (!moveTarget) return;
+    if (isDirty && !window.confirm("Discard unsaved changes?")) return;
+    onMove(moveTarget);
+  };
 
   return (
     <Modal onClose={safeClose} size="md">
