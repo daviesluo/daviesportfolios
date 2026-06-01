@@ -394,9 +394,10 @@ to the prompt.
 - Every column header sorts asc/desc on click (default **Exposure %,
   high → low**). Reads straight off the live `metrics`, so it's always
   in sync with the board / heatmap and opens instantly (no fetch).
-  **Tap a symbol** → the ticker chart modal.
-- On mobile the LIVE status pill is shortened (its "ago" sub-text is
-  hidden) to make room for the ☰ button.
+  **Tap a symbol** → the ticker chart modal (which stacks over the
+  list, so closing it returns to the list rather than home). On mobile
+  the Symbol column is frozen (sticky-left) so the right-side numbers
+  stay tied to a company as the table scrolls horizontally.
 
 ### Ticker chart modal
 

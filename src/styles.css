@@ -453,6 +453,16 @@ body {
 .hl-right { text-align: right; }
 .hl-table td { padding: 9px 10px; border-bottom: 1px solid rgba(244,239,227,0.06); vertical-align: middle; }
 .hl-table tbody tr:hover { background: rgba(244,239,227,0.04); }
+/* Freeze the Symbol column when the table scrolls horizontally (mobile)
+   so each row's right-side numbers stay tied to a company. Opaque bg +
+   right-edge shadow so scrolled cells pass cleanly underneath. The body
+   cells use the modal panel colour (--bg-2) to blend; the header corner
+   keeps its own header bg and sits above everything (z 3 > body 2 > the
+   other top-sticky headers 1). */
+.hl-table td:first-child,
+.hl-table th:first-child { position: sticky; left: 0; box-shadow: 2px 0 5px rgba(0,0,0,0.35); }
+.hl-table td:first-child { z-index: 2; background: var(--bg-2); }
+.hl-table th:first-child { z-index: 3; }
 .hl-strong { font-weight: 600; color: var(--chalk); }
 .hl-sub { font-size: 11px; opacity: 0.85; margin-top: 1px; }
 .hl-sym { min-width: 150px; }
