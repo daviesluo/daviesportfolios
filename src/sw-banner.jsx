@@ -4,7 +4,6 @@
 // nothing when no update is pending and when the SW first goes offline-ready.
 import React from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { reportError } from './ops_error.js';
 
 // Suppress the banner for SW_RELOAD_SUPPRESS_MS after the user clicks
 // RELOAD. On iOS Safari standalone-PWA mode the SW state transition
@@ -119,29 +118,6 @@ export function ServiceWorkerBanner() {
     // the next-page-mount useState initializer picks it up even if
     // the cleanup races against the navigation.
     try { sessionStorage.setItem(SW_RELOAD_SUPPRESS_KEY, String(Date.now())); } catch { /* ignore */ }
-    // Track whether `controllerchange` actually fires in the 1500 ms
-    // window before the fallback reload. If it doesn't, the SW
-    // activation effectively failed (Workbox saw `updateServiceWorker`
-    // but the new SW never took control) — report to ops_errors so
-    // a chronic deploy-bricks-PWA scenario becomes visible instead of
-    // disguised as a "reload didn't help" complaint.
-    //
-    // …BUT only report when a controller was already in place before
-    // the reload. iOS Safari + standalone-PWA Chrome are documented
-    // to fire `controllerchange` unreliably even in the happy path
-    // (see the comment block below that drives the hard reload), so
-    // every RELOAD click on those was registering a noisy
-    // `sw.activation.timeout` row even when the user's session was
-    // fine. Gating on `hadControllerBefore` keeps the chronic-deploy
-    // signal (the case the report was originally added for — a SW
-    // that USED to work but now silently stops controlling) while
-    // dropping the iOS-first-install / Safari-quirk noise.
-    const hadControllerBefore = !!navigator.serviceWorker?.controller;
-    let activated = false;
-    const onControllerChange = () => { activated = true; };
-    try {
-      navigator.serviceWorker?.addEventListener?.('controllerchange', onControllerChange);
-    } catch { /* SW not supported */ }
     // Tell the waiting SW to activate. workbox-window registers a
     // `controllerchange` listener that's *supposed* to reload the page
     // once activation completes — but iOS Safari (and some Chrome
@@ -206,19 +182,14 @@ export function ServiceWorkerBanner() {
     try { sessionStorage.setItem(SW_RELOAD_SUPPRESS_KEY, String(Date.now())); } catch { /* ignore */ }
 
     setTimeout(() => {
-      try { navigator.serviceWorker?.removeEventListener?.('controllerchange', onControllerChange); }
-      catch { /* ignore */ }
-      if (!activated && hadControllerBefore) {
-        // Force-reload anyway (we still want to leave the user on a
-        // page) but flag the silent activation failure for ops_errors.
-        // Gated on `hadControllerBefore` so iOS Safari / standalone
-        // PWAs that fire `controllerchange` unreliably even on the
-        // happy path don't generate noise (see the comment above
-        // where `hadControllerBefore` is captured).
-        reportError('sw.activation.timeout', {
-          context: { hadController: !!navigator.serviceWorker?.controller },
-        });
-      }
+      // Force-reload regardless of whether `controllerchange` fired —
+      // the new SW is installed either way and the hard reload picks
+      // it up. We used to also report a `sw.activation.timeout` ops
+      // error when the event didn't arrive, but iOS Safari /
+      // standalone-PWA Chrome fire `controllerchange` unreliably even
+      // on a perfectly healthy reload, so that report was pure noise
+      // (two gating attempts couldn't tame the false positives) for a
+      // path that self-heals via this reload. Dropped it.
       window.location.reload();
     }, 1500);
   }, [reloading, updateServiceWorker]);
