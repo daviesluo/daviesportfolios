@@ -14,8 +14,12 @@
 // even when no browser tab is open, hence a cron worker.
 //
 // Auth: caller MUST present `Authorization: Bearer <CRON_SECRET>`.
-// The cron job sets it from the `app.cron_secret` Postgres setting
-// (configured once, out-of-band — see the migration header).
+// The cron job sends it (inlined in the cron.schedule body, or via
+// the `app.cron_secret` Postgres setting where ALTER DATABASE is
+// permitted). Because CRON_SECRET is NOT a Supabase JWT, this
+// function MUST be deployed with `--no-verify-jwt` (see PUBLIC_FNS in
+// .github/workflows/edge-functions.yml) — otherwise the platform's
+// JWT gate 401s the cron call before this handler's own check runs.
 //
 // Returns:
 //   200 { ok: true, bucketTime, recorded: <n> }     — n tickers written
