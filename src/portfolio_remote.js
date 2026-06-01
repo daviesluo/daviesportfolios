@@ -171,7 +171,11 @@ export async function savePortfolioRemote(p) {
           lastKnownVersion = body.currentVersion;
         }
       } catch { /* swallow — best-effort */ }
-      reportError('data.save.conflict', { context: { currentVersion: lastKnownVersion } });
+      // Deliberately NOT reported to ops_errors. A 412 is the normal,
+      // self-healing multi-tab/device outcome — the conflict banner +
+      // the next auto-refresh fetch the latest and move on. It's a
+      // benign concurrency event, not a backend incident, so logging
+      // it was pure noise in the ops badge (user asked to drop it).
       return { ok: false, conflict: true };
     }
     if (!res.ok) {
