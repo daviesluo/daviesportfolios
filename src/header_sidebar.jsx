@@ -213,6 +213,17 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
     [ccyRate, ccySym],
   );
 
+  // Mobile scoreboard gap auto-tunes to the DAY CHANGE amount's digit
+  // count (the cell whose width swings most — and the ext-hours toggle
+  // changes the day-change basis, so the digit count can flip when it's
+  // toggled). Uses the DISPLAYED magnitude (currency-converted), since
+  // a CNY cycle makes the number ~7× bigger. Buckets → CSS picks the
+  // gap via `[data-daygap]` inside the mobile media query (desktop is
+  // unaffected). <100 → 15px, 100-999 → 12px, ≥1000 → 10px.
+  const dayChangeShown = Math.abs((metrics.dayChange || 0) * ccyRate);
+  const dayDigits = dayChangeShown >= 1 ? Math.floor(Math.log10(dayChangeShown)) + 1 : 1;
+  const dayGapBucket = dayDigits >= 4 ? 'lg' : dayDigits === 3 ? 'md' : 'sm';
+
   // Scoreboard flash: detect value changes on price refresh
   /** @type {React.MutableRefObject<import('./types').PortfolioMetrics | null>} */
   const prevMetrics = React.useRef(null);
@@ -267,7 +278,7 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
         </div>
       </div>
 
-      <div className="scoreboard">
+      <div className="scoreboard" data-daygap={dayGapBucket}>
         <div className="scoreboard-cell scoreboard-cell-time">
           <HeaderTime extendedHours={extendedHours} onToggleExtended={onToggleExtended} />
         </div>
