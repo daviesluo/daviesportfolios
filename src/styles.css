@@ -1154,8 +1154,11 @@ body {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    /* Tighter than the desktop's 24 px so a 360-380 px viewport fits
-       cells. */
+    /* Gap auto-tunes to the DAY CHANGE digit count (set as data-daygap
+       in Header) so the row stays snug whether the day move is 2, 3 or
+       4 digits — and re-tunes when the ext-hours toggle flips the
+       basis. Default 12 px (3-digit); overrides below. Desktop keeps
+       its own 24 px (this rule is mobile-only). */
     gap: 12px;
     padding: 8px 0 10px;
     border: none;
@@ -1167,6 +1170,10 @@ body {
     box-sizing: border-box;
   }
   .scoreboard::-webkit-scrollbar { display: none; }
+  /* DAY CHANGE digit-count → gap. sm (<100) wider, lg (≥1000) tighter. */
+  .scoreboard[data-daygap="sm"] { gap: 15px; }
+  .scoreboard[data-daygap="md"] { gap: 12px; }
+  .scoreboard[data-daygap="lg"] { gap: 10px; }
   .sb-value-lg { font-size: 14px; }
   .sb-value { font-size: 12px; }
   .scoreboard-divider { height: 28px; flex-shrink: 0; }
