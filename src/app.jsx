@@ -814,6 +814,27 @@ function Board({ isReadOnly }) {
       return { ...p, holdings, positions };
     });
   });
+  // Swap two tactics-board positions' player content. The slot
+  // designation (label like "CM"/"CDM", role, key, pitch coord) stays
+  // put; everything that identifies the *players* — the subtitle
+  // (group name) and the tickers — trades places. Like two footballers
+  // swapping positions on the pitch. Wired to the edit-mode drag-and-
+  // drop in pitch.jsx. No-op for same slot or a missing slot.
+  const swapPositions = guard((keyA, keyB) => {
+    if (keyA === keyB) return;
+    setPortfolio(p => {
+      const a = p.positions[keyA], b = p.positions[keyB];
+      if (!a || !b) return p;
+      return {
+        ...p,
+        positions: {
+          ...p.positions,
+          [keyA]: { ...a, subtitle: b.subtitle, tickers: b.tickers },
+          [keyB]: { ...b, subtitle: a.subtitle, tickers: a.tickers },
+        },
+      };
+    });
+  });
   // Move a holding to a different tactics-board position: strip it from
   // whatever slot currently holds it, then append to the target slot.
   // Holdings/lots are untouched — only the position membership moves.
@@ -998,6 +1019,7 @@ function Board({ isReadOnly }) {
               if (k === "GK") setEditingCash(true); else setAddingToPos(k);
             }}
             onUpdatePosition={updatePosition}
+            onSwapPositions={swapPositions}
             isRefreshing={isRefreshing}
             recentlyUpdated={recentlyUpdated}
             hideValues={hideValues}
