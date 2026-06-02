@@ -125,14 +125,25 @@ export function computeChartGeometry({
   // of yesterday's stale move); otherwise prevClose for the standard
   // "since previous close" reading. Multi-day ranges anchor at the
   // leftmost bar so the line starts at 0%.
+  //
+  // Ext-on anchor order: the OFFICIAL regular close (`lastPriceAny`,
+  // i.e. Yahoo `regularMarketPrice`) FIRST, then the 16:00 ET intraday
+  // bar as a fallback. computeMetrics divides extDayPct by that same
+  // `h.lastPrice`, so the scoreboard + heatmap and this modal now share
+  // one denominator. Preferring the intraday close bar (the old order)
+  // used the last 5-min print, which misses the closing-auction cross —
+  // that ~0.1-0.3% gap was the bug behind "heatmap says AVGO +4.12% but
+  // the modal says +3.85% since previous close". The intraday bar is
+  // only used when no quote metadata is available (e.g. an MC card with
+  // neither lastPrice nor prevClose).
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
       if (useExt) {
-        if (regularCloseIdx >= 0) {
-          anchorClose = series[regularCloseIdx].close;
-        } else if (lastPriceAny && lastPriceAny > 0) {
+        if (lastPriceAny && lastPriceAny > 0) {
           anchorClose = lastPriceAny;
+        } else if (regularCloseIdx >= 0) {
+          anchorClose = series[regularCloseIdx].close;
         } else if (prevCloseAny && prevCloseAny > 0) {
           anchorClose = prevCloseAny;
         } else {
