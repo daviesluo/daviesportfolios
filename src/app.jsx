@@ -435,23 +435,23 @@ function Board({ isReadOnly }) {
         )
       : [];
     // Overnight intraday line — warm the server-recorded 5-min points
-    // for the US-equity holdings as PART OF THIS PRELOAD WAVE: fired
-    // here (fire-and-forget, not awaited) so it runs in parallel with
-    // the price / MC / chart-series fetches below instead of trailing
-    // after they all resolve. On the page-entry + manual-Refresh path
-    // that means the overnight cache is warm by the time the user can
-    // click a tile, so the chart modal splices in a real overnight LINE
-    // the instant it opens rather than fetching on demand (dot → line
-    // flash). It writes the localStorage cache and dispatches an event
-    // any open modal re-reads. Only the overnight window has recorded
-    // points worth showing (the modal merges the line only when
-    // phase === 'overnight'), and this runs on every overnight refresh
-    // — including the 30 s auto-tick — so an already-open modal's line
-    // keeps updating live too. `extHoldingTickers` is a superset of the
-    // modal's `hasOvernightSession` set, so coverage is complete.
-    if (refreshPhase === 'overnight' && extHoldingTickers.length > 0) {
-      fetchOvernightSeries(extHoldingTickers);
-    }
+    // for the US-equity holdings BEFORE setLastUpdated fires, so by
+    // the time the user sees "Last updated" the cache is hot and the
+    // chart modal splices in a real overnight LINE the instant it
+    // opens. Fired here so it runs in parallel with the price / MC /
+    // chart-series fetches below, then explicitly AWAITED after the
+    // main Promise.all (not part of the destructure — its return value
+    // isn't used here) so refresh doesn't claim "done" until the cache
+    // write has landed. Previously this was fire-and-forget: refresh
+    // completed first, the fetch was still in flight, and a user who
+    // clicked a tile in those next few seconds saw the dot → line
+    // flash. `extHoldingTickers` is a superset of the modal's
+    // `hasOvernightSession` set, so coverage is complete; on every
+    // overnight refresh (incl. the 30 s auto-tick) any open modal's
+    // line stays live via OVERNIGHT_FETCH_EVENT.
+    const overnightPromise = (refreshPhase === 'overnight' && extHoldingTickers.length > 0)
+      ? fetchOvernightSeries(extHoldingTickers).catch(() => null)
+      : Promise.resolve(null);
     const [{ updates, source: src }, mcResult, todayCloses, extSeries, t212Holdings] = await Promise.all([
       refreshPrices(portfolio, "live"),
       fetchTickers(MC_TICKERS),
@@ -573,6 +573,11 @@ function Board({ isReadOnly }) {
       applyTrading212NightPrice(next.holdings, t212Holdings?.prices, nightActive);
       return next;
     });
+    // Make sure the overnight cache write has landed before we mark
+    // the refresh "done" — so a user who clicks a tile right after
+    // "Last updated" appears sees the dotted overnight line already
+    // spliced in instead of waiting on a still-in-flight fetch.
+    await overnightPromise;
     setLastUpdated(new Date());
     setIsRefreshing(false);
     if (src === "live") {
