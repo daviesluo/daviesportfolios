@@ -95,17 +95,28 @@ export function getOvernightSeries(ticker) {
  *   - extended-hours toggle on AND it's the overnight phase,
  *   - the ticker has a real overnight session (US equity, not SFTBY),
  *   - the range is 1D / 1W / 1M (the intraday-capable views),
- *   - there are >= 2 recorded points dated strictly AFTER the last
- *     Yahoo bar (the 20:00 ET after-hours close) — i.e. an actual
- *     overnight trend, not just one stale point.
- * Appending only points after the last Yahoo bar keeps it to the
- * CURRENT overnight session (older sessions' points are already
- * before/within the Yahoo window or pruned). Falls back (returns
- * `series` unchanged) so the caller's existing single-dot path runs
- * with no regression when there's 0-1 overnight point.
+ *   - there are >= 2 recorded points inside the chart's time window.
+ *
+ * Merge strategy: keep Yahoo bars dated BEFORE the first recorded
+ * overnight point, then let the recorded 5-min samples OWN the
+ * overnight window from there on. We do NOT cut at "the last Yahoo
+ * bar" — Yahoo has started returning sparse overnight prints for the
+ * most liquid names (NVDA, ORCL…) but not others (GOOG), so a
+ * `> lastBarDate` filter dropped almost all recorded points for the
+ * liquid ones (their last Yahoo bar was already deep in the overnight)
+ * and the line only appeared for tickers Yahoo had NO overnight data
+ * for. Owning the window from the first recorded point makes the line
+ * consistent regardless of how much overnight data Yahoo happens to
+ * have, and the recorded T212 series is the truth we want anyway.
+ *
+ * `windowStart` scopes the recorded points to the visible chart window
+ * (series[0].date) so a prior session's points (still in the 26h fetch)
+ * can't leak in. Falls back (returns `series` unchanged) so the
+ * caller's single-dot path runs with no regression when there are
+ * 0-1 usable points.
  *
  * Date strings are UTC `YYYY-MM-DDTHH:MM` on both sides, so the
- * lexicographic `>` comparison is chronological.
+ * lexicographic comparisons are chronological.
  *
  * @param {Point[] | null} series          Yahoo bars
  * @param {Point[]} overnightPts           recorded overnight points (oldest-first)
@@ -119,11 +130,15 @@ export function mergeOvernightSeries(series, overnightPts, ctx) {
   if (rangeKey !== '1D' && rangeKey !== '1W' && rangeKey !== '1M') return series;
   if (!Array.isArray(series) || series.length === 0) return series;
   if (!Array.isArray(overnightPts) || overnightPts.length < 2) return series;
-  const lastBarDate = series[series.length - 1].date;
-  const tail = overnightPts.filter((p) => p && typeof p.date === 'string' && p.date > lastBarDate
+  const windowStart = series[0].date;
+  const rec = overnightPts.filter((p) => p && typeof p.date === 'string' && p.date >= windowStart
     && typeof p.close === 'number' && isFinite(p.close));
-  if (tail.length < 2) return series;
-  return [...series, ...tail];
+  if (rec.length < 2) return series;
+  const firstRec = rec[0].date;
+  // Yahoo bars before the recorded window's start; recorded samples own
+  // everything from there (incl. any stray Yahoo overnight bars).
+  const base = series.filter((p) => p.date < firstRec);
+  return [...base, ...rec];
 }
 
 /** Event the modal subscribes to so it re-reads after each fetch. */
