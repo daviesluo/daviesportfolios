@@ -157,4 +157,40 @@ describe('mergeOvernightSeries — splice eligibility', () => {
     expect(mergeOvernightSeries(null, ON, ctx())).toBe(null);
     expect(mergeOvernightSeries([], ON, ctx())).toEqual([]);
   });
+
+  it('1W (barIntervalMs=30m) keeps every 6th 5-min point AND the live tail', () => {
+    // 12 recorded 5-min points (1 h). Step = 30m / 5m = 6 → indices 0
+    // and 6 land in `sampled`; the loop's next i (12) exits, so the
+    // tail at index 11 is appended explicitly so the line still ends
+    // at "now". Combined with the YAHOO fixture (first rec date equals
+    // YAHOO[1].date) base = [YAHOO[0]], result = 4 points.
+    const ON12 = Array.from({ length: 12 }, (_, i) =>
+      PT(`2026-05-28T20:${String(i * 5).padStart(2, '0')}`, 170 + i));
+    const out = mergeOvernightSeries(YAHOO, ON12, ctx({ rangeKey: '1W', barIntervalMs: 30 * 60_000 }));
+    expect(out.length).toBe(4);
+    expect(out[1]).toBe(ON12[0]);    // step-aligned
+    expect(out[2]).toBe(ON12[6]);    // step-aligned
+    expect(out[3]).toBe(ON12[11]);   // live tail preserved
+  });
+
+  it('1M (barIntervalMs=60m) keeps every 12th — and skips the tail-append when the tail is already step-aligned', () => {
+    // 25 recorded points. Step = 60m / 5m = 12 → indices 0, 12, 24.
+    // The tail (24) equals the last sampled index → no extra append.
+    const ON25 = Array.from({ length: 25 }, (_, i) => {
+      const hh = 20 + Math.floor((i * 5) / 60);
+      const mm = (i * 5) % 60;
+      return PT(`2026-05-28T${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`, 170 + i);
+    });
+    const out = mergeOvernightSeries(YAHOO, ON25, ctx({ rangeKey: '1M', barIntervalMs: 60 * 60_000 }));
+    expect(out.length).toBe(4);
+    expect(out[1]).toBe(ON25[0]);
+    expect(out[2]).toBe(ON25[12]);
+    expect(out[3]).toBe(ON25[24]);
+  });
+
+  it('treats missing barIntervalMs as 5 min (= step 1, no downsample) — keeps the legacy 1D behaviour', () => {
+    const out = mergeOvernightSeries(YAHOO, ON, ctx());   // no barIntervalMs
+    expect(out.length).toBe(5);
+    expect(out.slice(-3)).toEqual(ON);                    // every rec point kept
+  });
 });

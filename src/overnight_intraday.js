@@ -114,6 +114,16 @@ export function getOvernightSeries(ticker) {
  * consistent regardless of how much overnight data Yahoo happens to
  * have, and the recorded T212 series is the truth we want anyway.
  *
+ * **Downsampling for 1W / 1M:** the recorded points are 5-min, but
+ * 1W draws at a 30-min cadence and 1M at 60-min. Without sampling,
+ * the ~130 overnight points dwarfed the per-day bar count and made
+ * "today" occupy ~50% of 1W / ~25% of 1M on the index x-axis (the
+ * "1W and 1M's most recent day looks oversized" report). Caller passes
+ * `barIntervalMs` (= the chart's bar cadence); we take every
+ * `round(barIntervalMs / 5 min)`-th recorded point and always append
+ * the live tail so the line still ends at "now". 1D's cadence equals
+ * the recorded interval → step 1 → no-op.
+ *
  * `windowStart` scopes the recorded points to the visible chart window
  * (series[0].date) so a prior session's points (still in the 26h fetch)
  * can't leak in. Falls back (returns `series` unchanged) so the
@@ -125,11 +135,11 @@ export function getOvernightSeries(ticker) {
  *
  * @param {Point[] | null} series          Yahoo bars
  * @param {Point[]} overnightPts           recorded overnight points (oldest-first)
- * @param {{ rangeKey: string, useExt: boolean, phase: string, ticker: string }} ctx
+ * @param {{ rangeKey: string, useExt: boolean, phase: string, ticker: string, barIntervalMs?: number }} ctx
  * @returns {Point[] | null}
  */
 export function mergeOvernightSeries(series, overnightPts, ctx) {
-  const { rangeKey, useExt, phase, ticker } = ctx || {};
+  const { rangeKey, useExt, phase, ticker, barIntervalMs } = ctx || {};
   if (!useExt || phase !== 'overnight') return series;
   if (!hasOvernightSession(ticker)) return series;
   if (rangeKey !== '1D' && rangeKey !== '1W' && rangeKey !== '1M') return series;
@@ -139,11 +149,27 @@ export function mergeOvernightSeries(series, overnightPts, ctx) {
   const rec = overnightPts.filter((p) => p && typeof p.date === 'string' && p.date >= windowStart
     && typeof p.close === 'number' && isFinite(p.close));
   if (rec.length < 2) return series;
-  const firstRec = rec[0].date;
+  // Match the recorded-point density to the chart's bar cadence —
+  // 1D (5 min) is a no-op; 1W (30 min) keeps every 6th; 1M (60 min)
+  // every 12th. Always append the live tail so the line still ends
+  // at the most recent quote, not at the last step-aligned bar.
+  const RECORDED_INTERVAL_MS = 5 * 60_000;
+  const step = Math.max(1, Math.round((barIntervalMs || RECORDED_INTERVAL_MS) / RECORDED_INTERVAL_MS));
+  let sampled;
+  if (step === 1) {
+    sampled = rec;
+  } else {
+    sampled = [];
+    for (let i = 0; i < rec.length; i += step) sampled.push(rec[i]);
+    const last = rec[rec.length - 1];
+    if (sampled[sampled.length - 1] !== last) sampled.push(last);
+  }
+  if (sampled.length < 2) return series;
+  const firstRec = sampled[0].date;
   // Yahoo bars before the recorded window's start; recorded samples own
   // everything from there (incl. any stray Yahoo overnight bars).
   const base = series.filter((p) => p.date < firstRec);
-  return [...base, ...rec];
+  return [...base, ...sampled];
 }
 
 /** Event the modal subscribes to so it re-reads after each fetch. */

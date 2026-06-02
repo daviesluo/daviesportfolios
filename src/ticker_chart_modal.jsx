@@ -684,7 +684,14 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // `hasOvernightLine` below is a cheap reference check and the
   // existing single-dot fallback path stays byte-identical.
   const displaySeries = React.useMemo(
-    () => mergeOvernightSeries(series, overnightPts, { rangeKey, useExt, phase, ticker }),
+    () => mergeOvernightSeries(series, overnightPts, {
+      rangeKey, useExt, phase, ticker,
+      // Match the recorded-point density to the chart's bar cadence
+      // so 1W / 1M don't get visually swallowed by today's ~130
+      // 5-min overnight pts. NIGHT_BAR_INTERVAL_MS picks 5/30/60 min
+      // for 1D/1W/1M respectively; merge uses it to step-sample.
+      barIntervalMs: NIGHT_BAR_INTERVAL_MS[rangeKey],
+    }),
     [series, overnightPts, rangeKey, useExt, phase, ticker],
   );
   const hasOvernightLine = displaySeries !== series;
