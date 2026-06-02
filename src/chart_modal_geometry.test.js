@@ -5,12 +5,11 @@
 //   - overnight-dot live extension               → chartXDenom + extra x-tick
 //   - single-point series (length 1, <2 minimum) → hasData=false fallback
 //   - empty series                                → fallback geometry
-//   - ext mode with regularCloseIdx              → anchor from series bar
-//   - ext mode without close idx, with lastPrice → fallback to lastPrice
+//   - ext mode, official close present           → anchor from lastPrice
+//   - ext mode, no lastPrice but close bar        → fallback to series bar
 //
-// The function is byte-for-byte equivalent to the inline geometry
-// block in `src/ticker_chart_modal.jsx` it replaced — these tests
-// document that contract.
+// These tests document the contract the modal's render path relies on
+// (anchor selection, the hasData gate, x/y scale, tick generation).
 
 import { describe, it, expect } from 'vitest';
 import { computeChartGeometry } from './chart_modal_geometry.js';
@@ -93,7 +92,29 @@ describe('computeChartGeometry — regular path', () => {
 });
 
 describe('computeChartGeometry — ext-mode anchor selection', () => {
-  it('uses series[regularCloseIdx].close when ext-on and the close bar is present', () => {
+  it('prefers lastPriceAny (official regular close) over the intraday close bar', () => {
+    // The bug fix: even with the 20:00 ET close bar present
+    // (regularCloseIdx: 3 → close 103), the headline % must anchor at
+    // the official regularMarketPrice (lastPriceAny: 200) so it shares
+    // computeMetrics' extDayPct denominator (h.lastPrice). Anchoring at
+    // the 5-min bar missed the closing-auction cross → modal vs heatmap
+    // disagreed by ~0.1-0.3%.
+    const points = intradayPoints();
+    const out = computeChartGeometry({
+      series: points,
+      points,
+      rangeKey: '1D',
+      useExt: true,
+      isRatioRange: false,
+      overnightDot: null,
+      regularCloseIdx: 3, // the 20:00 close bar is present but must NOT win
+      dimensions: DIMS,
+      anchorRefs: { ...NO_REFS, lastPriceAny: 200, prevCloseAny: 95 },
+    });
+    expect(out.anchorClose).toBe(200); // lastPriceAny, not points[3].close (103)
+  });
+
+  it('uses the intraday close bar when no official lastPrice is available', () => {
     const points = intradayPoints();
     const out = computeChartGeometry({
       series: points,
@@ -104,25 +125,9 @@ describe('computeChartGeometry — ext-mode anchor selection', () => {
       overnightDot: null,
       regularCloseIdx: 3, // = the 20:00 close bar above
       dimensions: DIMS,
-      anchorRefs: { ...NO_REFS, lastPriceAny: 200, prevCloseAny: 95 },
+      anchorRefs: { ...NO_REFS, lastPriceAny: 0, prevCloseAny: 95 },
     });
-    expect(out.anchorClose).toBe(103); // points[3].close
-  });
-
-  it('falls through to lastPriceAny when the close bar isnt fetched', () => {
-    const points = intradayPoints();
-    const out = computeChartGeometry({
-      series: points,
-      points,
-      rangeKey: '1D',
-      useExt: true,
-      isRatioRange: false,
-      overnightDot: null,
-      regularCloseIdx: -1,
-      dimensions: DIMS,
-      anchorRefs: { ...NO_REFS, lastPriceAny: 200, prevCloseAny: 95 },
-    });
-    expect(out.anchorClose).toBe(200);
+    expect(out.anchorClose).toBe(103); // points[3].close (lastPrice absent)
   });
 
   it('falls through past lastPrice to prevClose, then to series[0]', () => {
