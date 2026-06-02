@@ -434,6 +434,24 @@ function Board({ isReadOnly }) {
           (t) => t !== "CASH" && !portfolio.holdings[t]?.isCash && isUsEquity(t),
         )
       : [];
+    // Overnight intraday line — warm the server-recorded 5-min points
+    // for the US-equity holdings as PART OF THIS PRELOAD WAVE: fired
+    // here (fire-and-forget, not awaited) so it runs in parallel with
+    // the price / MC / chart-series fetches below instead of trailing
+    // after they all resolve. On the page-entry + manual-Refresh path
+    // that means the overnight cache is warm by the time the user can
+    // click a tile, so the chart modal splices in a real overnight LINE
+    // the instant it opens rather than fetching on demand (dot → line
+    // flash). It writes the localStorage cache and dispatches an event
+    // any open modal re-reads. Only the overnight window has recorded
+    // points worth showing (the modal merges the line only when
+    // phase === 'overnight'), and this runs on every overnight refresh
+    // — including the 30 s auto-tick — so an already-open modal's line
+    // keeps updating live too. `extHoldingTickers` is a superset of the
+    // modal's `hasOvernightSession` set, so coverage is complete.
+    if (refreshPhase === 'overnight' && extHoldingTickers.length > 0) {
+      fetchOvernightSeries(extHoldingTickers);
+    }
     const [{ updates, source: src }, mcResult, todayCloses, extSeries, t212Holdings] = await Promise.all([
       refreshPrices(portfolio, "live"),
       fetchTickers(MC_TICKERS),
@@ -557,16 +575,6 @@ function Board({ isReadOnly }) {
     });
     setLastUpdated(new Date());
     setIsRefreshing(false);
-    // Overnight intraday line: during the overnight window, pull the
-    // server-recorded 5-min points for the US-equity holdings into the
-    // localStorage cache (fire-and-forget; it fires an event the modal
-    // listens to). Only meaningful overnight — the modal only merges
-    // the line when phase === 'overnight', so a daytime fetch would
-    // just warm a cache nothing reads. `extHoldingTickers` is already
-    // the outside-RTH US-equity set computed above.
-    if (refreshPhase === 'overnight' && extHoldingTickers.length > 0) {
-      fetchOvernightSeries(extHoldingTickers);
-    }
     if (src === "live") {
       setRecentlyUpdated(true);
       setTimeout(() => setRecentlyUpdated(false), 1600);
