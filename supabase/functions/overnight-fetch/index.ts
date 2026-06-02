@@ -31,6 +31,21 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 // IN() set. A portfolio is a few dozen names; 100 is generous.
 const MAX_TICKERS = 100;
 
+// PostgREST default max-rows is 1000. With ~40 holdings × up to 312
+// 5-min samples / 26 h ≈ 12k rows per fetch, a single request used to
+// be truncated at the 1000th row — and because the query orders by
+// `ticker.asc`, the alphabetically-later names (NVDA / ORCL / TSM …)
+// were silently dropped from the response while AAPL / AMZN / etc.
+// came back complete. That's exactly the user-reported "some stocks'
+// overnight line shows up instantly, others delay-load" — the
+// delayed names were the truncated ones; the modal's own single-
+// ticker fetch always fit in one page and so kicked in late as the
+// "barbell" that finally surfaced the missing line.
+// `paginateRows` below loops the IN() query until the database
+// reports a short page (or the maxPages safety cap fires).
+const PAGE_SIZE = 1000;
+const MAX_PAGES = 50;             // 50k-row safety ceiling (>> any realistic ask)
+
 // ---------------- Pure helpers (test-pinned) ----------------
 
 /** Parse + sanitise the `tickers` query param into a unique, capped list. */
@@ -68,6 +83,28 @@ export function groupRows(
   return out;
 }
 
+/**
+ * Walk a paginated PostgREST endpoint via repeated `?limit=&offset=`
+ * calls until a short page (or empty page) signals "no more rows", or
+ * the maxPages safety cap fires. The `pageFetcher` does the actual
+ * HTTP — passed as a callback so the loop logic is unit-pinnable
+ * without hitting the network.
+ */
+export async function paginateRows<T>(
+  pageFetcher: (offset: number, limit: number) => Promise<T[]>,
+  pageSize: number = PAGE_SIZE,
+  maxPages: number = MAX_PAGES,
+): Promise<T[]> {
+  const all: T[] = [];
+  for (let p = 0; p < maxPages; p++) {
+    const rows = await pageFetcher(p * pageSize, pageSize);
+    if (!Array.isArray(rows) || rows.length === 0) break;
+    for (const r of rows) all.push(r);
+    if (rows.length < pageSize) break;
+  }
+  return all;
+}
+
 // ---------------- I/O ----------------
 
 async function readPoints(
@@ -79,18 +116,23 @@ async function readPoints(
   // safe with dotted / caret tickers. parseTickers already restricts
   // the charset so this can't break out of the quoting.
   const inList = tickers.map((t) => `"${t}"`).join(",");
-  const url = `${SB_URL}/rest/v1/overnight_intraday_points` +
+  const base = `${SB_URL}/rest/v1/overnight_intraday_points` +
     `?ticker=in.(${encodeURIComponent(inList)})` +
     `&bucket_time=gte.${encodeURIComponent(cutoff)}` +
     `&order=ticker.asc,bucket_time.asc` +
     `&select=ticker,bucket_time,price`;
-  const res = await fetch(url, {
-    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
-    signal: AbortSignal.timeout(8_000),
-  });
-  if (!res.ok) return [];
-  const rows = await res.json();
-  return Array.isArray(rows) ? rows : [];
+  return await paginateRows<{ ticker: string; bucket_time: string; price: number | string }>(
+    async (offset, limit) => {
+      const url = `${base}&limit=${limit}&offset=${offset}`;
+      const res = await fetch(url, {
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+        signal: AbortSignal.timeout(8_000),
+      });
+      if (!res.ok) return [];
+      const body = await res.json();
+      return Array.isArray(body) ? body : [];
+    },
+  );
 }
 
 // ---------------- Server ----------------
