@@ -49,7 +49,7 @@ const TICKER_DISPLAY_NAMES = {
   'USDCNY=X': 'USD/CNY',
 };
 
-// Indices we still surface a P/E YTD chart for, via the fundamentals
+// Indices we still surface a P/E 1Y chart for, via the fundamentals
 // Edge Function's INDEX_ETF_PROXY mapping (^GSPC→SPY, ^NDX→QQQ,
 // ^RUT→IWM, ^SOX→SOXX). Other ^-prefixed tickers (^VIX, ^TNX) don't
 // have a meaningful EPS so the button stays hidden.
@@ -133,7 +133,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     && !/=X$/.test(ticker)
     && !/[-]USD$/i.test(ticker);
   // Read the prefetched fundamentals row from dp.tickerChart (key
-  // `${ticker}|FUND|v3`) synchronously so the P/E YTD button + Mkt
+  // `${ticker}|FUND|v3`) synchronously so the P/E 1Y button + Mkt
   // Cap line can appear on the very first paint instead of "popping
   // in" 1-2 s after the modal opens. Background revalidate still
   // runs below to refresh the row when stale. Returns null on cache
@@ -148,12 +148,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const cachedHasPe  = typeof fundCached?.pe  === 'number' && fundCached.pe  > 0;
   const cachedHasPs  = typeof fundCached?.ps  === 'number' && fundCached.ps  > 0;
   const [peSupported, setPeSupported] = React.useState(cachedHasEps || cachedHasPe);
-  // P/S YTD button is shown for loss-makers — profitable tickers
+  // P/S 1Y button is shown for loss-makers — profitable tickers
   // (eps > 0) keep the P/E view since price-to-earnings is the
   // standard valuation metric there. Mutually exclusive with PE.
   const [psSupported, setPsSupported] = React.useState(!cachedHasEps && !cachedHasPe && cachedHasPs);
   // pe3yAvg / ps3yAvg drive the dashed reference line on the
-  // P/E YTD / P/S YTD charts respectively. Either can come back
+  // P/E 1Y / P/S 1Y charts respectively. Either can come back
   // null when Finnhub's annual series for that ratio is empty
   // (very new IPOs, or tickers where Finnhub couldn't retrieve
   // historicals) — in that case the chart renders without the
@@ -255,9 +255,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   }, [ticker, supportsPePattern]);
   // P/E and P/S are mutually exclusive — append whichever applies.
   const valuationRange = peSupported ? ['PE'] : (psSupported ? ['PS'] : []);
+  // '1Y' (trailing 12 months) sits right after YTD — a modal-only price
+  // range (see RANGES in ytd.js; it's intentionally not in RANGE_KEYS).
   const visibleRangeKeys = dailyOnly
-    ? ['1M', '3M', 'YTD']
-    : [...RANGE_KEYS, ...valuationRange];
+    ? ['1M', '3M', 'YTD', '1Y']
+    : [...RANGE_KEYS, '1Y', ...valuationRange];
   // CN funds publish 1 NAV / day; .PVT placeholders don't trade on
   // public exchanges. Both default to 1M so the user sees something
   // immediately rather than landing on an intraday view that's empty.
@@ -320,7 +322,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // after fetch.
   const fetchParams = (rk) => {
     if (rk === 'PE' || rk === 'PS') {
-      const p = fetchParamsFor('YTD', extendedHours, phase);
+      // P/E + P/S charts span the trailing 1Y (was YTD) — divide that
+      // 1-year daily price series by the rolling TTM denominator.
+      const p = fetchParamsFor('1Y', extendedHours, phase);
       return { ...p, interval: '1d', includePrePost: false };
     }
     const p = fetchParamsFor(rk, extendedHours, phase);
@@ -395,7 +399,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         }
         return;
       }
-      const params = fetchParamsFor(isRatioRange ? 'YTD' : rangeKey, extendedHours, phase);
+      const params = fetchParamsFor(isRatioRange ? '1Y' : rangeKey, extendedHours, phase);
       if (params.variant === 'closed') data = filterToLatestDay(data);
       else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
       // 'PE' / 'PS' transform: divide each historical close by the
@@ -572,7 +576,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       const isPsRk = rk === 'PS';
       const isRatioRk = isPeRk || isPsRk;
       if (isRatioRk) {
-        const p = fetchParamsFor('YTD', extendedHours, phase);
+        const p = fetchParamsFor('1Y', extendedHours, phase);
         yahooRange = p.yahooRange; interval = '1d'; includePrePost = false; variant = p.variant;
       } else {
         const baseParams = fetchParamsFor(rk, extendedHours, phase);
@@ -892,7 +896,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // inside the chart and getting crossed by the price line. Same
   // treatment for the MA overlay (1W/1M/3M/YTD) — the "MA 50" label
   // sits in the right margin at the level of the latest MA value.
-  const showMa = ['1W', '1M', '3M', 'YTD'].includes(rangeKey);
+  const showMa = ['1W', '1M', '3M', 'YTD', '1Y'].includes(rangeKey);
   // 1D has no MA line but may have a VWAP overlay — same right-margin
   // label treatment, so it needs the same widened padR.
   const showVwap = rangeKey === '1D';
@@ -1342,7 +1346,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                   {fmtAxisDate(tk.date)}
                 </text>
               ))}
-              {/* P/E YTD: 3-year-average reference line. Dashed gray
+              {/* P/E 1Y: 3-year-average reference line. Dashed gray
                   horizontal line spanning the plot area with the
                   value labeled in the right margin (outside the
                   plot) so the price line never crosses through it.
@@ -1496,7 +1500,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               type="button"
               className={`perf-range-btn mono${k === rangeKey ? ' on' : ''}`}
               onClick={() => setRangeKey(k)}
-            >{k === 'PE' ? 'P/E YTD' : k === 'PS' ? 'P/S YTD' : RANGES[k].label}</button>
+            >{k === 'PE' ? 'P/E 1Y' : k === 'PS' ? 'P/S 1Y' : RANGES[k].label}</button>
           ))}
         </div>
       </div>

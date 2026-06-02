@@ -19,7 +19,16 @@ export const RANGES = {
   '1M':  { yahooRange: '1mo', interval: '60m', label: '1M'  },
   '3M':  { yahooRange: '3mo', interval: '1d',  label: '3M'  },
   'YTD': { yahooRange: 'ytd', interval: '1d',  label: 'YTD' },
+  // 1Y (trailing 12 months) is a ticker-MODAL-only range — deliberately
+  // NOT in RANGE_KEYS below, so the portfolio PerfChart (whose math
+  // anchors a Jan-1 cost basis and has no trailing-12-month basis model)
+  // doesn't sprout a 1Y button it can't compute. The chart modal
+  // composes its own button row as [...RANGE_KEYS, '1Y', …]; the chart
+  // Edge Function already accepts range='1y'.
+  '1Y':  { yahooRange: '1y',  interval: '1d',  label: '1Y'  },
 };
+// PerfChart + the perf-side prefetch iterate this; the modal adds '1Y'
+// (and PE/PS) on top of it for its own range row.
 export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
 
 /**
@@ -75,6 +84,9 @@ export function maFetchParamsFor(rangeKey, dailyOnly = false) {
     '1M':  { range: '3mo', interval: '60m' },
     '3M':  { range: '6mo', interval: '1d'  },
     'YTD': { range: '1y',  interval: '1d'  },
+    // 1Y view: pull 2y of daily bars so the 50-day MA is satisfied at
+    // the leftmost (12-months-ago) bar instead of starting blank.
+    '1Y':  { range: '2y',  interval: '1d'  },
   }[rangeKey];
   if (!intraday) return null;
   if (dailyOnly && (rangeKey === '1W' || rangeKey === '1M')) {
