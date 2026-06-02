@@ -1139,21 +1139,23 @@ body {
   }
   .header-actions .btn-ghost,
   .header-actions .btn-toggle {
-    /* Refresh + EDIT share one flex unit each so they're always
-       visually symmetric — incl. editMode (where "✓ EDIT MODE" is
-       wider than "Refresh") and the refreshing state (where
-       "Refreshing" is wider than "EDIT"). LIVE takes 2 units below,
-       so any width Refresh/EDIT save flows to the LIVE pill. */
-    flex: 1 1 0;
-    min-width: 0; font-size: 11px; padding: 6px 8px;
+    /* IDLE-equal-width: same min-width (≈ Refresh + spin-icon's
+       natural width) so the short "EDIT" label is padded out to the
+       Refresh button's idle width — the row reads visually symmetric.
+       flex: 0 0 auto + nowrap lets each button GROW past min-width
+       when its label changes ("✓ EDIT MODE" / "Refreshing"), so the
+       active-state widening users expect is preserved. */
+    flex: 0 0 auto;
+    min-width: 95px;
+    font-size: 11px; padding: 6px 8px;
     white-space: nowrap;
     justify-content: center;
   }
-  /* LIVE pill keeps its original look; `flex: 2` lets it take twice
-     as much of the row as each of Refresh / EDIT, so trimming EDIT
-     down to Refresh's width grows the pill rather than leaving the
-     freed space as gap. */
-  .live-pill { min-width: 0; flex: 2 1 0; }
+  /* LIVE pill keeps its original look; `flex: 1` lets it fill the row,
+     so when EDIT is at its idle min-width the spare px land on the
+     pill, and when EDIT/Refresh grow with active labels the pill just
+     shrinks back. */
+  .live-pill { min-width: 0; flex: 1; }
 
   /* Row 3: scoreboard — show as horizontal scrolling strip */
   .scoreboard {
