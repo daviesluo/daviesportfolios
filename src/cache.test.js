@@ -8,23 +8,25 @@ describe('tickerChartCacheKey — algorithm-version suffixes', () => {
   // particular version numbers matter: a future shrug-and-rename
   // would silently invalidate every existing user's cache for no
   // reason. Pin them.
-  it('PE rangeKey emits |PE|v4|', () => {
-    expect(tickerChartCacheKey('NVDA', 'PE', false, 'regular')).toBe('NVDA|PE|v4|reg|regular');
+  it('PE rangeKey emits |PE|v5| (v4→v5 = YTD→1Y price window)', () => {
+    expect(tickerChartCacheKey('NVDA', 'PE', false, 'regular')).toBe('NVDA|PE|v5|reg|regular');
   });
-  it('PS rangeKey emits |PS|v2|', () => {
+  it('PS rangeKey emits |PS|v3|', () => {
     // v1 -> v2 evicted the const-denominator P/S series (a 1:1
-    // rescale of the price line) so the ttmSalesHistory-based,
-    // steps-on-earnings series replaces it without waiting out the
-    // 12 h TTL.
-    expect(tickerChartCacheKey('NBIS', 'PS', false, 'regular')).toBe('NBIS|PS|v2|reg|regular');
+    // rescale of the price line); v2 -> v3 evicts the YTD-window
+    // series after the ratio charts switched to a trailing-1Y price
+    // window ("P/S YTD" → "P/S 1Y"), without waiting out the 12 h TTL.
+    expect(tickerChartCacheKey('NBIS', 'PS', false, 'regular')).toBe('NBIS|PS|v3|reg|regular');
   });
   it('PE / PS share the variant + phase suffix shape (cross-toggle swap pattern)', () => {
-    expect(tickerChartCacheKey('NVDA', 'PE', true,  'post')).toBe('NVDA|PE|v4|ext|post');
-    expect(tickerChartCacheKey('NBIS', 'PS', true,  'post')).toBe('NBIS|PS|v2|ext|post');
+    expect(tickerChartCacheKey('NVDA', 'PE', true,  'post')).toBe('NVDA|PE|v5|ext|post');
+    expect(tickerChartCacheKey('NBIS', 'PS', true,  'post')).toBe('NBIS|PS|v3|ext|post');
   });
   it('non-ratio ranges leave the variant/phase off — same key across toggles', () => {
     expect(tickerChartCacheKey('NVDA', 'YTD', false, 'pre')).toBe('NVDA|YTD');
     expect(tickerChartCacheKey('NVDA', 'YTD', true,  'pre')).toBe('NVDA|YTD');
+    // 1Y is a plain price range (modal-only) — same shape as YTD.
+    expect(tickerChartCacheKey('NVDA', '1Y', false, 'pre')).toBe('NVDA|1Y');
   });
 });
 
@@ -54,6 +56,7 @@ describe('isFresh', () => {
   it('exports a coherent RANGE_TTL_MS map', () => {
     expect(RANGE_TTL_MS['1D']).toBe(5 * 60 * 1000);
     expect(RANGE_TTL_MS['YTD']).toBe(12 * 60 * 60 * 1000);
+    expect(RANGE_TTL_MS['1Y']).toBe(12 * 60 * 60 * 1000);
   });
 });
 

@@ -40,12 +40,23 @@ import { ChartStore, MaStore, YtdStore, hydrateAllChartStores } from './chart_st
 // silently failed. With IDB the prefetch can warm everything for
 // every (ticker × range × variant × phase) without trim-thrashing.
 
-// Indices we surface a P/E YTD chart for. The fundamentals Edge Function
+// Indices we surface a P/E 1Y chart for. The fundamentals Edge Function
 // maps these to ETF proxies (SPY/QQQ/IWM/SOXX) and serves a cached
 // trailing P/E from Alpha Vantage; everything else under MC (^VIX,
 // ^TNX, BZ=F, FX pairs) has no meaningful EPS so we don't include it
 // in the PE-prefetch candidate list.
 const PE_PROXIED_INDICES = new Set(['^GSPC', '^NDX', '^RUT', '^SOX']);
+
+// Ranges the prefetch warms for the ticker MODAL. RANGE_KEYS drives the
+// PerfChart (portfolio %); the modal additionally offers a trailing-1Y
+// price range, and its P/E / P/S charts now divide that 1Y price series
+// (not YTD). Warming 1Y here means: (a) the modal's `${ticker}|1Y`
+// chart cache is hot on first open, and (b) the P/E / P/S section below
+// reads the SAME 1Y series the modal computes against, so the
+// app-prefetched ratio series can't disagree with the modal's own
+// fetch. The 1Y rows the perf-side YtdStore picks up are harmless —
+// PerfChart only ever reads RANGE_KEYS.
+const CHART_RANGE_KEYS = [...RANGE_KEYS, '1Y'];
 
 /**
  * @param {{
@@ -99,7 +110,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
    * }} RangeMeta */
   /** @type {RangeMeta[]} */
   const rangeMeta = [];
-  for (const rk of RANGE_KEYS) {
+  for (const rk of CHART_RANGE_KEYS) {
     const params = fetchParamsFor(rk, extendedHours, phase);
     const ttl = RANGE_TTL_MS[rk] || RANGE_TTL_MS.YTD;
     const perfVariant = rk === '1D'
@@ -187,7 +198,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   const isFreshMa = (entry) =>
     !!entry && Array.isArray(entry.data) && entry.data.length > 0 &&
     (Date.now() - (entry.ts || 0)) < MA_TTL_MS;
-  const maRangeMeta = RANGE_KEYS
+  const maRangeMeta = CHART_RANGE_KEYS
     .filter(rk => rk !== '1D')
     .map(rk => {
       const maKey = (t) => `${t}|MA|${rk}`;
@@ -230,11 +241,11 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     }
   }));
 
-  // P/E YTD prefetch — two writes per eligible ticker:
+  // P/E 1Y prefetch — two writes per eligible ticker:
   //
   //   1. `${ticker}|FUND|v3` — the raw fundamentals row (eps / pe /
   //      pe3yAvg / ttmEpsHistory). Modal first-render reads this
-  //      synchronously to decide whether to show the P/E YTD button
+  //      synchronously to decide whether to show the P/E 1Y button
   //      and to fill in pe3yAvg, so the button stops "popping in"
   //      a couple of seconds after the modal opens.
   //
@@ -257,8 +268,13 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   const fundKey = (t) => `${t}|FUND|v3`;
   const peKey   = (t) => tickerChartCacheKey(t, 'PE', useExt, phase);
   const psKey   = (t) => tickerChartCacheKey(t, 'PS', useExt, phase);
-  const ytdEntryFor = (t) => YtdStore.get(`y${year}|YTD:std|${t}`);
-  // Only consider tickers that (a) have a freshly-cached YTD daily
+  // The P/E + P/S charts now divide the trailing-1Y price series (was
+  // YTD), so read the SAME 1Y series the modal computes against — the
+  // CHART_RANGE_KEYS loop above wrote it to `y${year}|1Y:std|${t}`.
+  // Keeping these in lockstep is what stops the app-prefetched ratio
+  // series from disagreeing with the modal's own fetch.
+  const px1yEntryFor = (t) => YtdStore.get(`y${year}|1Y:std|${t}`);
+  // Only consider tickers that (a) have a freshly-cached 1Y daily
   // series we can divide, and (b) don't already have a fresh PE
   // entry. Portfolio tickers come from `tickers`; the four big US
   // indices (^GSPC/^NDX/^RUT/^SOX) come in via `mcTickers` and are
@@ -269,7 +285,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     ...mcList.filter(t => PE_PROXIED_INDICES.has(t)),
   ]));
   const peCandidates = peEligible.filter((t) => {
-    if (!isFresh(ytdEntryFor(t), PE_TTL_MS)) return false;
+    if (!isFresh(px1yEntryFor(t), PE_TTL_MS)) return false;
     // Refetch when FUND is stale OR the ticker has neither a fresh
     // PE nor a fresh PS series — we write whichever applies in the
     // same pass so freshness is in lockstep, but profitable tickers
@@ -296,7 +312,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       // (1) Cache the row itself for the modal's first-render gate.
       ChartStore.set(fundKey(t), { ts: peNow, data: row });
       // (2) Compute the TTM-aware PE series for the modal's
-      // P/E YTD chart. ETF-proxy tickers (^GSPC/^NDX/^RUT) come
+      // P/E 1Y chart. ETF-proxy tickers (^GSPC/^NDX/^RUT) come
       // back with eps:0 — reconstruct an implied EPS from the last
       // close ÷ trailing P/E so the const-EPS fallback inside
       // priceDividedByTtmEps still produces drawable values.
@@ -309,28 +325,28 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       // USD price points the chart is going to divide.
       let eps = row.eps;
       const pe = row.pe;
-      const ytdEntry = ytdEntryFor(t);
-      const ytdData = ytdEntry?.data || [];
-      if (typeof pe === 'number' && pe > 0 && ytdData.length > 0) {
-        eps = ytdData[ytdData.length - 1].close / pe;
+      const px1yEntry = px1yEntryFor(t);
+      const px1yData = px1yEntry?.data || [];
+      if (typeof pe === 'number' && pe > 0 && px1yData.length > 0) {
+        eps = px1yData[px1yData.length - 1].close / pe;
       }
       if (typeof eps === 'number' && eps > 0) {
-        const peSeries = priceDividedByTtmEps(ytdData, row.ttmEpsHistory, eps);
+        const peSeries = priceDividedByTtmEps(px1yData, row.ttmEpsHistory, eps);
         ChartStore.set(peKey(t), { ts: peNow, data: peSeries });
-      } else if (typeof row.ps === 'number' && row.ps > 0 && ytdData.length > 0) {
+      } else if (typeof row.ps === 'number' && row.ps > 0 && px1yData.length > 0) {
         // (3) Loss-maker fallback: no usable EPS but the Edge Function
-        // shipped a `ps` — precompute the P/S YTD series so clicking
-        // P/S YTD in the modal hits cache instantly. Derive
+        // shipped a `ps` — precompute the P/S 1Y series so clicking
+        // P/S 1Y in the modal hits cache instantly. Derive
         // sales-per-share from lastClose / ps for the same
         // ADR-currency-safe reason as the EPS path above, and pass
         // `ttmSalesHistory` so the curve steps on earnings — matching
         // the modal's own transform. Passing null here (the old
         // behaviour) wrote a const-denominator series that masked the
-        // real one until the 12 h TTL expired, so the P/S YTD chart
+        // real one until the 12 h TTL expired, so the P/S 1Y chart
         // stayed a 1:1 rescale of the price line.
-        const salesPerShare = ytdData[ytdData.length - 1].close / row.ps;
+        const salesPerShare = px1yData[px1yData.length - 1].close / row.ps;
         if (salesPerShare > 0) {
-          const psSeries = priceDividedByTtmEps(ytdData, row.ttmSalesHistory, salesPerShare);
+          const psSeries = priceDividedByTtmEps(px1yData, row.ttmSalesHistory, salesPerShare);
           ChartStore.set(psKey(t), { ts: peNow, data: psSeries });
         }
       }
