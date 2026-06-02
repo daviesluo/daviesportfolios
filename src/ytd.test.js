@@ -3,7 +3,10 @@
 // reintroduce the +80% / +21% / +9% misreports we hit during the original
 // implementation.
 import { describe, it, expect } from 'vitest';
-import { buildTickerSeries, closeOn, lotsFor, computeAt, ytdPct } from './ytd.js';
+import {
+  buildTickerSeries, closeOn, lotsFor, computeAt, ytdPct,
+  fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS,
+} from './ytd.js';
 
 const yearStart      = '2026-01-01';
 const yearStartDate  = '2026-01-02';
@@ -488,5 +491,29 @@ describe('computeAt — 1D intraday date comparison (Codex #43 regression)', () 
     expect(r.basis).toBeCloseTo(2000, 4);
     expect(r.value).toBeCloseTo(2150, 4);
     expect(ytdPct(r)).toBeCloseTo(7.5, 3);
+  });
+});
+
+describe('1Y range (ticker-modal-only)', () => {
+  it('RANGES carries a 1Y entry: 1y daily bars', () => {
+    expect(RANGES['1Y']).toEqual({ yahooRange: '1y', interval: '1d', label: '1Y' });
+  });
+  it('RANGE_KEYS stays the 5 PerfChart ranges — 1Y is NOT one of them', () => {
+    // The PerfChart maps RANGE_KEYS for its buttons + its Jan-1-basis
+    // math has no trailing-12-month model, so 1Y must stay out of it.
+    expect(RANGE_KEYS).toEqual(['1D', '1W', '1M', '3M', 'YTD']);
+    expect(RANGE_KEYS).not.toContain('1Y');
+  });
+  it('fetchParamsFor("1Y") → 1y / 1d / no pre-post, std variant', () => {
+    expect(fetchParamsFor('1Y', false, 'regular')).toEqual({
+      yahooRange: '1y', interval: '1d', includePrePost: false, variant: 'std',
+    });
+    // Toggle/phase don't change a non-1D daily range.
+    expect(fetchParamsFor('1Y', true, 'overnight')).toEqual({
+      yahooRange: '1y', interval: '1d', includePrePost: false, variant: 'std',
+    });
+  });
+  it('maFetchParamsFor("1Y") pulls 2y of daily bars so the 50-day MA is seeded at the left edge', () => {
+    expect(maFetchParamsFor('1Y')).toEqual({ range: '2y', interval: '1d' });
   });
 });
