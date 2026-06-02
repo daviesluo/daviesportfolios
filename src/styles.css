@@ -1138,11 +1138,22 @@ body {
     min-width: 0;
   }
   .header-actions .btn-ghost,
-  .header-actions .btn-toggle { min-width: 0; font-size: 11px; padding: 6px 10px; }
-  /* LIVE pill keeps its original look; `flex: 1` lets it fill the row,
-     so adding the ☰ button just trims the pill by the button's width —
-     nothing else about the pill changes. */
-  .live-pill { min-width: 0; flex: 1; }
+  .header-actions .btn-toggle {
+    /* Refresh + EDIT share one flex unit each so they're always
+       visually symmetric — incl. editMode (where "✓ EDIT MODE" is
+       wider than "Refresh") and the refreshing state (where
+       "Refreshing" is wider than "EDIT"). LIVE takes 2 units below,
+       so any width Refresh/EDIT save flows to the LIVE pill. */
+    flex: 1 1 0;
+    min-width: 0; font-size: 11px; padding: 6px 8px;
+    white-space: nowrap;
+    justify-content: center;
+  }
+  /* LIVE pill keeps its original look; `flex: 2` lets it take twice
+     as much of the row as each of Refresh / EDIT, so trimming EDIT
+     down to Refresh's width grows the pill rather than leaving the
+     freed space as gap. */
+  .live-pill { min-width: 0; flex: 2 1 0; }
 
   /* Row 3: scoreboard — show as horizontal scrolling strip */
   .scoreboard {
