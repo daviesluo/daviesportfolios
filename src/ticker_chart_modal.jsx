@@ -19,7 +19,7 @@ import {
 } from './indicators.js';
 import { pointerToDataIndex, overnightTrailingGap } from './chart_geometry.js';
 import { computeChartGeometry } from './chart_modal_geometry.js';
-import { getOvernightSeries, mergeOvernightSeries, OVERNIGHT_FETCH_EVENT } from './overnight_intraday.js';
+import { getOvernightSeries, fetchOvernightSeries, mergeOvernightSeries, OVERNIGHT_FETCH_EVENT } from './overnight_intraday.js';
 import { reportError } from './ops_error.js';
 
 const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$' };
@@ -664,11 +664,20 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const [overnightPts, setOvernightPts] = React.useState(() => getOvernightSeries(ticker));
   React.useEffect(() => {
     const read = () => setOvernightPts(getOvernightSeries(ticker));
-    read();
+    read(); // paint from cache immediately (if warm)
+    // ALSO fetch this ticker's overnight series on open, so the line
+    // never depends on whether the background doRefresh happened to
+    // have populated the cache for this symbol yet. Fires the
+    // `overnight:fetched` event on completion → `read()` re-runs.
+    // Gated to the overnight window for US-equity tickers (the only
+    // case the recorder has data for) so we don't fire it pointlessly.
+    if (phase === 'overnight' && hasOvernightSession(ticker)) {
+      fetchOvernightSeries([ticker]);
+    }
     if (typeof window === 'undefined') return undefined;
     window.addEventListener(OVERNIGHT_FETCH_EVENT, read);
     return () => window.removeEventListener(OVERNIGHT_FETCH_EVENT, read);
-  }, [ticker]);
+  }, [ticker, phase]);
   // Yahoo series with the current overnight session's recorded points
   // appended (when eligible — see mergeOvernightSeries). Returns the
   // same `series` ref when there's no overnight line to draw, so

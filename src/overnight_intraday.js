@@ -66,7 +66,12 @@ export async function fetchOvernightSeries(tickers, fetcher = fetch) {
     if (!res.ok) return null;
     const body = await res.json();
     if (!body || typeof body !== 'object') return null;
-    writeCache({ ts: Date.now(), byTicker: body });
+    // Merge into the existing cache rather than replace — so a
+    // single-ticker fetch (the modal fetching its own symbol on open)
+    // doesn't drop the other tickers a prior batch fetch populated.
+    const prev = readCache();
+    const byTicker = { ...(prev && prev.byTicker), ...body };
+    writeCache({ ts: Date.now(), byTicker });
     if (typeof window !== 'undefined' && typeof CustomEvent === 'function') {
       try { window.dispatchEvent(new CustomEvent(FETCH_EVENT)); } catch { /* ignore */ }
     }
