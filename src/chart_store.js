@@ -198,25 +198,6 @@ export const YtdStore = makeChartStore(
   },
 );
 
-/** Rebuild dp.ytd's nested shape from the flat IDB entries. */
-export function ytdSnapshot() {
-  /** @type {{year: number|null, byRange: Record<string, {entries: Record<string, any>}>}} */
-  const out = { year: null, byRange: {} };
-  for (const k of YtdStore.keys()) {
-    const m = /^y(\d+)\|([^|]+)\|(.+)$/.exec(k);
-    if (!m) continue;
-    const year = parseInt(m[1], 10);
-    const rkey = m[2];
-    const ticker = m[3];
-    const v = YtdStore.get(k);
-    if (!v) continue;
-    if (out.year == null) out.year = year;
-    if (!out.byRange[rkey]) out.byRange[rkey] = { entries: {} };
-    out.byRange[rkey].entries[ticker] = v;
-  }
-  return out;
-}
-
 /**
  * Hydrate all chart stores in parallel. Idempotent — each store's
  * `hydrate()` caches its promise, so this can be called multiple
@@ -233,11 +214,39 @@ export function hydrateAllChartStores() {
   ]);
 }
 
+// Retention for the IDB-backed chart caches. Entries are TTL-checked
+// on read (5 m … 12 h per range in cache.js), so anything older than a
+// few days is already refetched on use — pruning past this horizon
+// just evicts entries nothing reads anymore: delisted tickers, stale
+// phase/variant permutations, ranges the user stopped opening. Without
+// it the three IDB stores grow unbounded across months of use (the
+// old localStorage path had a soft LRU cap; the IDB rewrite dropped it
+// and `pruneOlderThan` was defined but never wired up). 30 days is
+// generous headroom over every range's TTL while still bounding growth.
+const PRUNE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * Drop entries older than `maxAgeMs` from every chart store (in-memory
+ * + IDB). Cheap — iterates the in-memory mirror. Called once after the
+ * module-load hydrate, and again at the tail of each prefetch pass, so
+ * a long-lived session stays bounded without a dedicated timer.
+ * @param {number} [maxAgeMs]
+ */
+export function pruneAllChartStores(maxAgeMs = PRUNE_MAX_AGE_MS) {
+  const cutoff = Date.now() - maxAgeMs;
+  ChartStore.pruneOlderThan(cutoff);
+  MaStore.pruneOlderThan(cutoff);
+  YtdStore.pruneOlderThan(cutoff);
+}
+
 // Kick off hydration as soon as this module imports — the modal's
 // useState initializer (synchronous) relies on the in-memory mirror
 // being populated to skip the spinner on warm-cache opens, and any
 // awaitable code path in prefetchAllChartData explicitly waits via
-// hydrateAllChartStores() before touching the mirror.
+// hydrateAllChartStores() before touching the mirror. Prune once
+// hydration lands so accumulated cruft from prior sessions is evicted.
 if (typeof indexedDB !== 'undefined') {
-  hydrateAllChartStores().catch(() => { /* IDB unavailable — mem-only fallback */ });
+  hydrateAllChartStores()
+    .then(() => pruneAllChartStores())
+    .catch(() => { /* IDB unavailable — mem-only fallback */ });
 }

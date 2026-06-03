@@ -4,7 +4,7 @@
 // to block on slow proxies; Codex P2: AbortControllers weren't retained
 // so losing proxies kept eating bandwidth).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchHistoricalBatch } from './utils.js';
+import { fetchHistoricalBatch } from './historical.js';
 
 /** @param {(input: any, init?: any) => any} impl */
 const ANY_FETCH = (impl) => {
@@ -177,12 +177,12 @@ describe('Storage.loadMarketCache / saveMarketCache', () => {
   });
 
   it('returns {} when the row is missing', async () => {
-    const { Storage } = await import('./utils.js');
+    const { Storage } = await import('./storage.js');
     expect(Storage.loadMarketCache()).toEqual({});
   });
 
   it('roundtrips a save → load: every ticker with a positive lastPrice comes back', async () => {
-    const { Storage } = await import('./utils.js');
+    const { Storage } = await import('./storage.js');
     const tick = {
       'GBPUSD=X': { lastPrice: 1.27 },
       'USDCNY=X': { lastPrice: 7.21 },
@@ -199,7 +199,7 @@ describe('Storage.loadMarketCache / saveMarketCache', () => {
   });
 
   it('drops entries with non-positive / invalid lastPrice on both save and load', async () => {
-    const { Storage } = await import('./utils.js');
+    const { Storage } = await import('./storage.js');
     Storage.saveMarketCache({
       OK:    { lastPrice: 100 },
       ZERO:  { lastPrice: 0 },
@@ -214,7 +214,7 @@ describe('Storage.loadMarketCache / saveMarketCache', () => {
   });
 
   it('expires rows older than 7 days', async () => {
-    const { Storage } = await import('./utils.js');
+    const { Storage } = await import('./storage.js');
     // Write directly so we control the ts.
     const stale = {
       ts: Date.now() - (7 * 24 * 60 * 60 * 1000 + 60_000),
@@ -225,7 +225,7 @@ describe('Storage.loadMarketCache / saveMarketCache', () => {
   });
 
   it('keeps rows just under the 7-day threshold', async () => {
-    const { Storage } = await import('./utils.js');
+    const { Storage } = await import('./storage.js');
     const fresh = {
       ts: Date.now() - (6 * 24 * 60 * 60 * 1000),
       data: { 'GBPUSD=X': { lastPrice: 1.27 } },
@@ -235,7 +235,7 @@ describe('Storage.loadMarketCache / saveMarketCache', () => {
   });
 
   it('returns {} on malformed JSON / wrong shape (defensive)', async () => {
-    const { Storage } = await import('./utils.js');
+    const { Storage } = await import('./storage.js');
     // Corrupt JSON
     store['dp.marketCache'] = '{not json';
     expect(Storage.loadMarketCache()).toEqual({});
@@ -251,14 +251,14 @@ describe('Storage.loadMarketCache / saveMarketCache', () => {
   });
 
   it('save returns false on empty / no-usable-tickers input', async () => {
-    const { Storage } = await import('./utils.js');
+    const { Storage } = await import('./storage.js');
     expect(Storage.saveMarketCache(null)).toBe(false);
     expect(Storage.saveMarketCache({})).toBe(false);
     expect(Storage.saveMarketCache({ A: { lastPrice: 0 } })).toBe(false);
   });
 
   it('falls back to the legacy dp.fxCache shape when the new key is empty (Codex P2 #106)', async () => {
-    const { Storage } = await import('./utils.js');
+    const { Storage } = await import('./storage.js');
     // Old shape: { ts, rates: { ... } } — what PR #105 wrote before
     // PR #106 renamed the key.
     const legacy = {
@@ -277,7 +277,7 @@ describe('Storage.loadMarketCache / saveMarketCache', () => {
   });
 
   it('expires the legacy fxCache row too (7-day max age)', async () => {
-    const { Storage } = await import('./utils.js');
+    const { Storage } = await import('./storage.js');
     store['dp.fxCache'] = JSON.stringify({
       ts: Date.now() - (8 * 24 * 60 * 60 * 1000),
       rates: { 'GBPUSD=X': { lastPrice: 1.27 } },
@@ -286,7 +286,7 @@ describe('Storage.loadMarketCache / saveMarketCache', () => {
   });
 
   it('saveMarketCache deletes the legacy dp.fxCache row after a fresh write', async () => {
-    const { Storage } = await import('./utils.js');
+    const { Storage } = await import('./storage.js');
     store['dp.fxCache'] = JSON.stringify({
       ts: Date.now(),
       rates: { 'GBPUSD=X': { lastPrice: 1.27 } },
@@ -306,13 +306,13 @@ describe('Storage.loadMarketCache / saveMarketCache', () => {
 // ---------------------------------------------------------------------------
 describe('proxy backoff', () => {
   it('a fresh proxy index is available', async () => {
-    const { proxyIsAvailable, clearProxyBackoff } = await import('./utils.js');
+    const { proxyIsAvailable, clearProxyBackoff } = await import('./proxy_chain.js');
     clearProxyBackoff();
     expect(proxyIsAvailable(0)).toBe(true);
   });
 
   it('markProxyDead → proxyIsAvailable returns false for the backoff window', async () => {
-    const { proxyIsAvailable, markProxyDead, clearProxyBackoff } = await import('./utils.js');
+    const { proxyIsAvailable, markProxyDead, clearProxyBackoff } = await import('./proxy_chain.js');
     clearProxyBackoff();
     markProxyDead(1, 60_000);
     expect(proxyIsAvailable(1)).toBe(false);
@@ -322,7 +322,7 @@ describe('proxy backoff', () => {
   });
 
   it('expired backoff auto-clears on the next proxyIsAvailable call', async () => {
-    const { proxyIsAvailable, markProxyDead, clearProxyBackoff } = await import('./utils.js');
+    const { proxyIsAvailable, markProxyDead, clearProxyBackoff } = await import('./proxy_chain.js');
     clearProxyBackoff();
     markProxyDead(2, 1);
     // Wait past expiry; in-Vitest there's no fake-timer here so use real sleep.
@@ -331,7 +331,7 @@ describe('proxy backoff', () => {
   });
 
   it('clearProxyBackoff(i) un-pins a single proxy; clearProxyBackoff() un-pins all', async () => {
-    const { proxyIsAvailable, markProxyDead, clearProxyBackoff } = await import('./utils.js');
+    const { proxyIsAvailable, markProxyDead, clearProxyBackoff } = await import('./proxy_chain.js');
     clearProxyBackoff();
     markProxyDead(0);
     markProxyDead(3);

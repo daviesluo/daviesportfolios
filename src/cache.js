@@ -18,21 +18,6 @@ export const RANGE_TTL_MS = {
 /** TTL for the MA overlay's wider-history fetch (dp.maCache). */
 export const MA_TTL_MS = 12 * 60 * 60 * 1000;
 
-/**
- * Soft LRU caps for the two ticker-shaped stores. Originally bumped
- * to 400 to give multi-phase accumulation breathing room, but the
- * user hit localStorage quota (~5-10 MB total per origin): 400
- * entries × ~10 KB avg per entry = ~4 MB just for dp.tickerChart,
- * plus dp.maCache + dp.ytd + the FUND/PE rows = often over quota.
- * Once full, every Storage.saveTickerChart silently failed — no
- * cache writes landed. Dropped back to 200 (~2 MB worst case),
- * which fits with comfortable headroom; the writeJSON quota
- * handler in utils.js does an emergency halving on QuotaExceededError
- * as a backstop.
- */
-export const TICKER_CACHE_CAP = 200;
-export const MA_CACHE_CAP     = 160;
-
 /** TTL for the P/E modal's TTM EPS history fetch. */
 export const PE_TTL_MS = 12 * 60 * 60 * 1000;
 
@@ -108,25 +93,3 @@ export function tickerChartCacheKey(ticker, rangeKey, useExt, phase) {
 export const hasAnyNumericField = (field) =>
   /** @param {any[]} data */
   (data) => Array.isArray(data) && data.some(p => typeof p?.[field] === 'number');
-
-/**
- * Trim the slowest-N entries from an `{ entries: { [k]: { ts } } }`
- * map until the entry count fits under `cap`. Mutates and returns
- * the same object so callers can chain into `Storage.saveX(...)`.
- *
- * @param {{ entries?: Record<string, {ts?: number}> }} store
- * @param {number} cap
- */
-export function trimLru(store, cap) {
-  store.entries = store.entries || {};
-  const keys = Object.keys(store.entries);
-  if (keys.length <= cap) return store;
-  const sorted = keys
-    .map((k) => ({ k, ts: store.entries[k]?.ts || 0 }))
-    .sort((a, b) => b.ts - a.ts);
-  /** @type {Record<string, {ts?: number, data?: any}>} */
-  const trimmed = {};
-  for (let i = 0; i < cap; i++) trimmed[sorted[i].k] = store.entries[sorted[i].k];
-  store.entries = trimmed;
-  return store;
-}

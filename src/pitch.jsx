@@ -7,7 +7,7 @@ import {
   pctColor as pctClr,
   maskDigits,
 } from './formatters.js';
-import { POSITION_COORDS } from './utils.js';
+import { POSITION_COORDS } from './positions.js';
 
 function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpenPosition, onAddToPosition, onUpdatePosition, onSwapPositions, isRefreshing, recentlyUpdated, hideValues }) {
   const coords = POSITION_COORDS;
