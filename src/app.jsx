@@ -11,7 +11,7 @@ import { Storage } from './storage.js';
 import { POSITION_COORDS } from './positions.js';
 import { INITIAL_PORTFOLIO } from './data.js';
 import { collectPassword, decodeAppToken, getAppToken, authenticate } from './auth.js';
-import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL } from './portfolio_remote.js';
+import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL, TAB_ID } from './portfolio_remote.js';
 import { prefetchAllChartData } from './prefetch.js';
 import { hydrateAllChartStores } from './chart_store.js';
 import { Header, Sidebar, MarketConditions, PerfPanel, SidebarFoot, UpcomingEarnings } from './header_sidebar.jsx';
@@ -371,6 +371,14 @@ function Board({ isReadOnly }) {
     const handler = (e) => {
       if (cancelled) return;
       if (e?.data?.kind !== 'portfolio-saved') return;
+      // Ignore our OWN save broadcast. BroadcastChannel delivers a
+      // tab's post to its other channel objects (the listener here is a
+      // different object than savePortfolioRemote's poster), so without
+      // this guard the saving tab reloads from the server right after
+      // saving — and an edit made during that round-trip gets clobbered
+      // by the one-behind server copy. Other tabs (different TAB_ID)
+      // still reload to stay in sync.
+      if (e?.data?.sender === TAB_ID) return;
       loadPortfolioRemote().then((p) => {
         if (cancelled || !p) return;
         lastSavedFingerprintRef.current = portfolioUserFingerprint(p);
