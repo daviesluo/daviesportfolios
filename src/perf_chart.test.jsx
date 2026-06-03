@@ -15,8 +15,8 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 
-vi.mock('./utils.js', async () => {
-  const actual = await vi.importActual('./utils.js');
+vi.mock('./historical.js', async () => {
+  const actual = await vi.importActual('./historical.js');
   return {
     ...actual,
     fetchHistoricalBatch: vi.fn(() => Promise.resolve({})),

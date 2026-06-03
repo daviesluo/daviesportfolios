@@ -36,13 +36,13 @@ vi.mock('./modals.jsx', () => ({
   CashModal: () => null,
 }));
 
-vi.mock('./utils.js', async () => {
-  const actual = await vi.importActual('./utils.js');
-  return {
-    ...actual,
-    fetchHistoricalBatch: vi.fn(() => Promise.resolve({})),
-    fetchFundamentals: vi.fn(() => Promise.resolve({})),
-  };
+vi.mock('./historical.js', async () => {
+  const actual = await vi.importActual('./historical.js');
+  return { ...actual, fetchHistoricalBatch: vi.fn(() => Promise.resolve({})) };
+});
+vi.mock('./yahoo_fetch.js', async () => {
+  const actual = await vi.importActual('./yahoo_fetch.js');
+  return { ...actual, fetchFundamentals: vi.fn(() => Promise.resolve({})) };
 });
 
 vi.mock('./chart_store.js', () => {

@@ -60,14 +60,17 @@ jobs:
         # the same PR if the growth is intentional.
         run: npx --no-install size-limit
 
-      - name: Dead-code / unused-export scan (informational)
-        # knip surfaces exports that no one imports + unused
-        # devDependencies. INFORMATIONAL only (`continue-on-error: true`)
-        # because the project's `utils.js` barrel-export pattern produces
-        # false positives that need per-export annotation to clear, and
-        # we'd rather see the report in the Action log than block PRs on
-        # noise. Turn this into a hard gate once the noise is triaged.
-        continue-on-error: true
+      - name: Dead-code / unused-export scan
+        # knip surfaces exports that no one imports, unused files +
+        # unused devDependencies. Now a HARD gate (was informational):
+        # the `utils.js` barrel that produced the old false positives
+        # was retired in favour of direct per-module imports, and
+        # `ignoreExportsUsedInFile` in knip.json covers the legitimate
+        # internal-only / test-hook exports — so the report is clean and
+        # a newly-orphaned export or dead file goes red instead of
+        # silently accumulating. If a finding is a genuine false
+        # positive, tighten knip.json rather than re-adding
+        # continue-on-error.
         run: npx --no-install knip
 
       - name: Dependency audit (high-severity only)

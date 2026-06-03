@@ -37,12 +37,18 @@ vi.mock('./ops_error_badge.jsx', () => ({
   useIsDesktop: () => true,
 }));
 
-vi.mock('./utils.js', async () => {
-  const actual = await vi.importActual('./utils.js');
+vi.mock('./historical.js', async () => {
+  const actual = await vi.importActual('./historical.js');
   return {
     ...actual,
     fetchHistoricalBatch: vi.fn(() => Promise.resolve({})),
     fetchTodayRegularClose: vi.fn(() => Promise.resolve({})),
+  };
+});
+vi.mock('./yahoo_fetch.js', async () => {
+  const actual = await vi.importActual('./yahoo_fetch.js');
+  return {
+    ...actual,
     fetchTickers: vi.fn(() => Promise.resolve({})),
     refreshPrices: vi.fn(() => Promise.resolve({ updates: {}, source: 'live' })),
   };

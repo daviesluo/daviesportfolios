@@ -198,25 +198,6 @@ export const YtdStore = makeChartStore(
   },
 );
 
-/** Rebuild dp.ytd's nested shape from the flat IDB entries. */
-export function ytdSnapshot() {
-  /** @type {{year: number|null, byRange: Record<string, {entries: Record<string, any>}>}} */
-  const out = { year: null, byRange: {} };
-  for (const k of YtdStore.keys()) {
-    const m = /^y(\d+)\|([^|]+)\|(.+)$/.exec(k);
-    if (!m) continue;
-    const year = parseInt(m[1], 10);
-    const rkey = m[2];
-    const ticker = m[3];
-    const v = YtdStore.get(k);
-    if (!v) continue;
-    if (out.year == null) out.year = year;
-    if (!out.byRange[rkey]) out.byRange[rkey] = { entries: {} };
-    out.byRange[rkey].entries[ticker] = v;
-  }
-  return out;
-}
-
 /**
  * Hydrate all chart stores in parallel. Idempotent — each store's
  * `hydrate()` caches its promise, so this can be called multiple
