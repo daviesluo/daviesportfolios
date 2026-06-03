@@ -55,52 +55,21 @@ function readJSON(key, fallback) {
   } catch (_) { return fallback; }
 }
 
-// localStorage write with quota-fallback. Browsers throw
-// QuotaExceededError when the per-origin quota (~5-10 MB) is hit;
-// the previous version swallowed that silently, which meant a full
-// cache stopped accepting any new entries — the user reported
-// "switch ranges and back, still loads" because no chart entry
-// could persist. Now: on quota failure, halve the largest dp.* row
-// (the chart cache typically) and retry once. If THAT still fails
-// we give up — the worst case is one cold fetch, not silent
-// permanent breakage.
+// localStorage write. Returns false on any failure (including quota)
+// so callers can fall back to a cold fetch rather than assume the
+// write landed. The bulk chart caches (dp.tickerChart / dp.maCache /
+// dp.ytd) moved to IndexedDB (chart_store.js), so the rows that pass
+// through here now are all small + bounded (auth, prefs, the single
+// market-data snapshot, the ops-error ack scalar). The old
+// QuotaExceededError fallback used to halve the chart cache rows to
+// free space; with those gone there's nothing large left in
+// localStorage to trim, so a quota error just means we skip the write.
 function writeJSON(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
     return true;
-  } catch (e) {
-    // Detect quota: name varies by browser ('QuotaExceededError' /
-    // 'NS_ERROR_DOM_QUOTA_REACHED'); code 22 / 1014 also possible.
-    const isQuota = e && (
-      e.name === 'QuotaExceededError' ||
-      e.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
-      e.code === 22 || e.code === 1014
-    );
-    if (!isQuota) return false;
-    // Free space: halve the entries on the cache rows that grow
-    // unboundedly. Keep the freshest half by ts.
-    try {
-      for (const k of ['dp.tickerChart', 'dp.maCache']) {
-        const raw = localStorage.getItem(k);
-        if (!raw) continue;
-        const parsed = JSON.parse(raw);
-        const entries = parsed?.entries || {};
-        const keys = Object.keys(entries);
-        if (keys.length === 0) continue;
-        const half = Math.max(1, Math.floor(keys.length / 2));
-        const sorted = keys
-          .map((kk) => ({ kk, ts: entries[kk]?.ts || 0 }))
-          .sort((a, b) => b.ts - a.ts)
-          .slice(0, half);
-        const trimmed = {};
-        for (const { kk } of sorted) trimmed[kk] = entries[kk];
-        parsed.entries = trimmed;
-        try { localStorage.setItem(k, JSON.stringify(parsed)); } catch { /* ignore */ }
-      }
-      // Retry the original write now that we've freed space.
-      localStorage.setItem(key, JSON.stringify(value));
-      return true;
-    } catch { return false; }
+  } catch {
+    return false;
   }
 }
 
