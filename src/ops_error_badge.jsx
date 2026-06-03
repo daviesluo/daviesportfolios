@@ -16,7 +16,7 @@
 
 import React from 'react';
 import { fetchOpsErrorSummary } from './ops_error.js';
-import { Storage } from './utils.js';
+import { Storage } from './storage.js';
 import { Modal } from './modals.jsx';
 
 const POLL_MS = 60 * 1000;

@@ -1,8 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": [
-    "src/main.jsx",
     "src/*.test.{js,jsx}",
+    "src/test_setup.js",
     "supabase/functions/*/index.ts",
     "supabase/functions/*/index.test.ts"
   ],
@@ -10,12 +10,8 @@
     "src/**/*.{js,jsx,ts}",
     "supabase/functions/**/*.ts"
   ],
-  "ignore": [
-    "src/test_setup.js",
-    "src/utils.js"
+  "ignoreUnresolved": [
+    "./test_setup.js"
   ],
-  "ignoreDependencies": [
-    "@testing-library/jest-dom",
-    "@size-limit/preset-app"
-  ]
+  "ignoreExportsUsedInFile": true
 }

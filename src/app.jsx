@@ -3,17 +3,11 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { fmtMoney, fmtPct, fmtPrice, pctColor } from './formatters.js';
 import { detectCurrency, fxToUSD } from './fx.js';
 import { computeMetrics, detectFormation } from './metrics.js';
-import {
-  refreshPrices,
-  fetchTickers,
-  fetchTodayRegularClose,
-  fetchHistoricalBatch,
-  usMarketPhase,
-  usMarketHoursUtc,
-  isWeekendDeadZone,
-  Storage,
-  POSITION_COORDS,
-} from './utils.js';
+import { refreshPrices, fetchTickers } from './yahoo_fetch.js';
+import { fetchTodayRegularClose, fetchHistoricalBatch } from './historical.js';
+import { usMarketPhase, usMarketHoursUtc, isWeekendDeadZone } from './market_hours.js';
+import { Storage } from './storage.js';
+import { POSITION_COORDS } from './positions.js';
 import { INITIAL_PORTFOLIO } from './data.js';
 import { collectPassword, decodeAppToken, getAppToken, authenticate } from './auth.js';
 import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL } from './portfolio_remote.js';

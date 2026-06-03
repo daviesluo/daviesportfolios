@@ -24,7 +24,8 @@
 //     5 concurrent calls (one per range) is well under what Yahoo /
 //     Cloudflare will queue.
 
-import { fetchHistoricalBatch, fetchFundamentals } from './utils.js';
+import { fetchHistoricalBatch } from './historical.js';
+import { fetchFundamentals } from './yahoo_fetch.js';
 import { fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h, RANGE_KEYS } from './ytd.js';
 import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh, hasAnyNumericField } from './cache.js';
 import { isDailyOnly } from './ticker_class.js';
