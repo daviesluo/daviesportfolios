@@ -22,7 +22,7 @@ import { isCrypto, isUsEquity } from './ticker_class.js';
  * @param {boolean} dailyOnly
  */
 export function maBarsFor(rangeKey, dailyOnly = false) {
-  const days   = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50, '1Y': 50 }[rangeKey] ?? 0;
+  const days   = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50, '1Y': 200 }[rangeKey] ?? 0;
   if (!days) return 0;
   if (dailyOnly) return days;
   const barsPerDay = { '1W': 13, '1M': 7, '3M': 1, 'YTD': 1, '1Y': 1 }[rangeKey] ?? 1;
@@ -35,7 +35,7 @@ export function maBarsFor(rangeKey, dailyOnly = false) {
  * @param {string} rangeKey
  */
 export function maLabelDaysFor(rangeKey) {
-  return { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50, '1Y': 50 }[rangeKey] ?? 0;
+  return { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50, '1Y': 200 }[rangeKey] ?? 0;
 }
 
 /**

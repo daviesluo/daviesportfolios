@@ -84,8 +84,13 @@ export function maFetchParamsFor(rangeKey, dailyOnly = false) {
     '1M':  { range: '3mo', interval: '60m' },
     '3M':  { range: '6mo', interval: '1d'  },
     'YTD': { range: '1y',  interval: '1d'  },
-    // 1Y view: pull 2y of daily bars so the 50-day MA is satisfied at
-    // the leftmost (12-months-ago) bar instead of starting blank.
+    // 1Y view draws a 200-day MA, so the overlay needs ~200 trading
+    // days of lead-in BEFORE the leftmost (12-months-ago) display bar.
+    // 2y of daily bars (~504 td) minus the 1y display window (~252 td)
+    // leaves ~252 td of history ahead of the leftmost bar — comfortably
+    // ≥ 200, so the MA200 is fully populated to the chart's left edge
+    // (a freshly-listed name with < 200 td of prior history correctly
+    // shows the MA line starting where its window first fits).
     '1Y':  { range: '2y',  interval: '1d'  },
   }[rangeKey];
   if (!intraday) return null;
