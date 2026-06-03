@@ -453,7 +453,7 @@ function Board({ isReadOnly }) {
       ? fetchOvernightSeries(extHoldingTickers).catch(() => null)
       : Promise.resolve(null);
     const [{ updates, source: src }, mcResult, todayCloses, extSeries, t212Holdings] = await Promise.all([
-      refreshPrices(portfolio, "live"),
+      refreshPrices(portfolio),
       fetchTickers(MC_TICKERS),
       fetchTodayRegularClose(MC_TICKERS),
       extHoldingTickers.length > 0

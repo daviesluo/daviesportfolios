@@ -29,7 +29,7 @@ import { fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h, R
 import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh, hasAnyNumericField } from './cache.js';
 import { isDailyOnly } from './ticker_class.js';
 import { priceDividedByTtmEps } from './indicators.js';
-import { ChartStore, MaStore, YtdStore, hydrateAllChartStores } from './chart_store.js';
+import { ChartStore, MaStore, YtdStore, hydrateAllChartStores, pruneAllChartStores } from './chart_store.js';
 
 // All chart cache I/O goes through `ChartStore` / `MaStore` /
 // `YtdStore` (chart_store.js) — IndexedDB-backed, synchronous
@@ -352,4 +352,11 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       }
     }
   }
+
+  // Evict long-abandoned cache entries (delisted tickers, stale
+  // phase/variant permutations) so the IDB stores stay bounded across a
+  // long-lived session — this pass runs on initial load + every manual
+  // Refresh, which is frequent enough to keep growth in check without a
+  // dedicated timer.
+  pruneAllChartStores();
 }

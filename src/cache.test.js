@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isFresh, hasAnyNumericField, trimLru, RANGE_TTL_MS, tickerChartCacheKey } from './cache.js';
+import { isFresh, hasAnyNumericField, RANGE_TTL_MS, tickerChartCacheKey } from './cache.js';
 
 describe('tickerChartCacheKey — algorithm-version suffixes', () => {
   // The PE / PS keys carry an algorithm-version suffix so a breaking
@@ -60,30 +60,3 @@ describe('isFresh', () => {
   });
 });
 
-describe('trimLru', () => {
-  it('drops the oldest entries past the cap', () => {
-    const store = {
-      entries: {
-        a: { ts: 100, data: [] },
-        b: { ts: 200, data: [] },
-        c: { ts: 300, data: [] },
-        d: { ts: 50,  data: [] },
-      },
-    };
-    trimLru(store, 2);
-    // Keeps the two most-recent: c (300) and b (200).
-    expect(Object.keys(store.entries).sort()).toEqual(['b', 'c']);
-  });
-
-  it('no-op when under the cap', () => {
-    const store = { entries: { a: { ts: 100 }, b: { ts: 200 } } };
-    trimLru(store, 5);
-    expect(Object.keys(store.entries).sort()).toEqual(['a', 'b']);
-  });
-
-  it('tolerates undefined entries map', () => {
-    const store = /** @type {any} */ ({});
-    trimLru(store, 2);
-    expect(store.entries).toEqual({});
-  });
-});
