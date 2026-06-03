@@ -14,6 +14,7 @@ describe('maBarsFor / maLabelDaysFor', () => {
     expect(maBarsFor('1M', false)).toBe(70);   // 10 days × 7 bars at 60m
     expect(maBarsFor('3M', false)).toBe(20);
     expect(maBarsFor('YTD', false)).toBe(50);
+    expect(maBarsFor('1Y', false)).toBe(200);  // 1Y view draws a 200-day MA
   });
 
   it('dailyOnly tickers (CN funds / .PVT) bypass the bars-per-day scaling', () => {
@@ -21,6 +22,7 @@ describe('maBarsFor / maLabelDaysFor', () => {
     expect(maBarsFor('1M', true)).toBe(10);
     expect(maBarsFor('3M', true)).toBe(20);
     expect(maBarsFor('YTD', true)).toBe(50);
+    expect(maBarsFor('1Y', true)).toBe(200);   // 1d bars already → 200 either way
   });
 
   it('unknown range = 0', () => {
@@ -31,6 +33,7 @@ describe('maBarsFor / maLabelDaysFor', () => {
   it('label always shows day count', () => {
     expect(maLabelDaysFor('1W')).toBe(5);
     expect(maLabelDaysFor('YTD')).toBe(50);
+    expect(maLabelDaysFor('1Y')).toBe(200);   // renders "MA 200" on the 1Y chart
     expect(maLabelDaysFor('1D')).toBe(0);
   });
 });
