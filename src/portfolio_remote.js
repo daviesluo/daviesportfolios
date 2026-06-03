@@ -12,18 +12,31 @@ import { INITIAL_PORTFOLIO } from './data.js';
 import { reportError } from './ops_error.js';
 
 // Cross-tab notification channel. When this tab successfully saves the
-// portfolio, every other tab gets a `portfolio-saved` message and
+// portfolio, every OTHER tab gets a `portfolio-saved` message and
 // refetches its own copy from the server. Without this:
 //   Tab A edits, saves V1 → server = V1
 //   Tab B (idle, still showing V0) does its next 30 s price refresh →
 //     setPortfolio with V0 + fresh prices → debounced save → server = V0
 //   Tab A's edit silently lost.
-// BroadcastChannel doesn't deliver to the sender, so a save in Tab A
-// only wakes Tab B. The `portfolioUserFingerprint` guard below also
-// prevents the price-refresh-triggered re-save in the first place,
-// but the broadcast keeps Tab B's UI in sync so the user doesn't
-// have to refresh manually to see their own edit.
+//
+// IMPORTANT: BroadcastChannel only withholds a message from the exact
+// CHANNEL OBJECT that posted it — NOT from other channel objects in the
+// same tab. `savePortfolioRemote` posts on a throwaway channel while the
+// app.jsx listener is a separate channel, so the SAVING tab also
+// receives its own `portfolio-saved` and would reload from the server
+// mid-edit. In a multi-edit session that self-reload lands during a
+// save's round-trip and overwrites the next edit with the one-behind
+// server copy — the "edited my holdings, gone after a refresh"
+// data-loss. So every message carries a `sender` tab id and the
+// listener ignores its own (see `TAB_ID` + the handler in app.jsx).
 export const PORTFOLIO_BROADCAST_CHANNEL = 'dp.portfolio';
+
+// Stable per-tab / per-page-load id. Lets a tab recognise — and ignore —
+// the `portfolio-saved` broadcast it posted itself (BroadcastChannel
+// delivers a tab's own post to its other channel objects; see above).
+export const TAB_ID = (typeof crypto !== 'undefined' && crypto.randomUUID)
+  ? crypto.randomUUID()
+  : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 function dataHeaders() {
   return {
@@ -199,7 +212,10 @@ export async function savePortfolioRemote(p) {
     try {
       if (typeof BroadcastChannel !== 'undefined') {
         const bc = new BroadcastChannel(PORTFOLIO_BROADCAST_CHANNEL);
-        bc.postMessage({ kind: 'portfolio-saved', ts: Date.now() });
+        // `sender` lets the posting tab ignore its own message (the
+        // listener compares against TAB_ID) so it doesn't self-reload
+        // mid-edit and clobber a follow-up edit.
+        bc.postMessage({ kind: 'portfolio-saved', sender: TAB_ID, ts: Date.now() });
         bc.close();
       }
     } catch { /* swallow — best-effort cross-tab nudge */ }

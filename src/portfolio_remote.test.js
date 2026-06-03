@@ -12,6 +12,7 @@ import {
   savePortfolioRemote,
   _peekLastKnownVersion,
   _resetLastKnownVersion,
+  TAB_ID,
 } from './portfolio_remote.js';
 
 // Both ops_error.js and auth.js read browser-only globals at module
@@ -267,5 +268,45 @@ describe('optimistic concurrency (load → save → conflict)', () => {
     }));
     const result = await savePortfolioRemote({ holdings: { X: { shares: 1, cost: 1 } } });
     expect(result).toEqual({ ok: false });
+  });
+});
+
+describe('save broadcast — self-reload guard (the "edit vanished" data-loss)', () => {
+  beforeEach(() => { _resetLastKnownVersion(); vi.restoreAllMocks(); });
+
+  it('TAB_ID is a stable, non-empty string', () => {
+    expect(typeof TAB_ID).toBe('string');
+    expect(TAB_ID.length).toBeGreaterThan(0);
+  });
+
+  it('a successful save broadcasts `portfolio-saved` tagged with this tab’s sender id', async () => {
+    // Capture the broadcast deterministically (BroadcastChannel
+    // delivery semantics across envs aren’t the thing under test — the
+    // message SHAPE is, so the saving tab’s listener can drop its own).
+    const posted = [];
+    class FakeBC {
+      constructor(name) { this.name = name; }
+      postMessage(m) { posted.push(m); }
+      close() {}
+    }
+    vi.stubGlobal('BroadcastChannel', FakeBC);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true, status: 200, json: async () => ({ ok: true, version: 1 }),
+    }));
+    await savePortfolioRemote({ holdings: { X: { shares: 1, cost: 1 } } });
+    expect(posted).toContainEqual(
+      expect.objectContaining({ kind: 'portfolio-saved', sender: TAB_ID }),
+    );
+  });
+
+  it('a FAILED save does not broadcast (nothing to sync)', async () => {
+    const posted = [];
+    class FakeBC { postMessage(m) { posted.push(m); } close() {} }
+    vi.stubGlobal('BroadcastChannel', FakeBC);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false, status: 500, json: async () => ({ error: 'boom' }),
+    }));
+    await savePortfolioRemote({ holdings: { X: { shares: 1, cost: 1 } } });
+    expect(posted).toHaveLength(0);
   });
 });
