@@ -228,27 +228,7 @@ async function fetchYahoo(tickers) {
   return Object.keys(out).length > 0 ? out : null;
 }
 
-// Gentle random walk fallback (used by `mode === 'sim'` callers that
-// want a no-network demo path — currently nothing in production flows
-// through here, kept around because the demo / video-recording mode
-// reaches for it.)
-function simulateTicks(holdings) {
-  const out = {};
-  for (const [t, h] of Object.entries(holdings)) {
-    const vol = t === "BTC-USD" ? 0.003 : 0.0015;
-    const drift = (Math.random() - 0.5) * 2 * vol;
-    const newPrice = Math.max(0.01, h.lastPrice * (1 + drift));
-    const prev = h.prevClose ?? h.lastPrice;
-    out[t] = {
-      lastPrice: newPrice,
-      prevClose: prev,
-      dayPct: ((newPrice - prev) / prev) * 100,
-    };
-  }
-  return out;
-}
-
-export async function refreshPrices(portfolio, mode = "live") {
+export async function refreshPrices(portfolio) {
   const tickers = Object.keys(portfolio.holdings);
   const result = await fetchYahoo(tickers);
   if (!result || Object.keys(result).length === 0) {

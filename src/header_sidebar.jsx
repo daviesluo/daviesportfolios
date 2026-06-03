@@ -12,12 +12,8 @@ import {
   formatAgo,
   maskDigits as mask,
 } from './formatters.js';
-import {
-  londonTimeParts,
-  usMarketPhase,
-  ukTzAbbr,
-  fetchFundamentals,
-} from './utils.js';
+import { londonTimeParts, usMarketPhase, ukTzAbbr } from './market_hours.js';
+import { fetchFundamentals } from './yahoo_fetch.js';
 import { isIndex } from './ticker_class.js';
 import { PerfPanel } from './perf_chart.jsx';
 import { OpsErrorBadge, useIsDesktop } from './ops_error_badge.jsx';
@@ -530,15 +526,6 @@ function SidebarFoot({ source }) {
   );
 }
 
-function StatRow({ label, value, mono, dim, color }) {
-  return (
-    <div className="stat-row">
-      <span className="stat-label">{label}</span>
-      <span className={`stat-value ${mono ? "mono" : ""} ${dim ? "dim" : ""}`} style={color ? { color } : {}}>{value}</span>
-    </div>
-  );
-}
-
 // ---- Market Conditions column ----
 // Ten cards laid out as a 5-row × 2-column grid on desktop (column-major):
 //   col 1 → S&P 500, NASDAQ 100, Russell 2000, VIX
@@ -790,4 +777,4 @@ function fmtEarningsTime(unixSec, timeName) {
   return `${hh}:${mm}`;
 }
 
-export { Header, Sidebar, SidebarFoot, StatRow, MarketConditions, PerfPanel, UpcomingEarnings };
+export { Header, Sidebar, SidebarFoot, MarketConditions, PerfPanel, UpcomingEarnings };

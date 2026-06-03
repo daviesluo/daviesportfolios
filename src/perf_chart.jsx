@@ -10,11 +10,8 @@
 // chart) are both exported. Renderers in app.jsx import only PerfPanel.
 import React from 'react';
 import { fxToUSD } from './fx.js';
-import {
-  fetchHistorical,
-  fetchHistoricalBatch,
-  usMarketHoursUtc,
-} from './utils.js';
+import { fetchHistorical, fetchHistoricalBatch } from './historical.js';
+import { usMarketHoursUtc } from './market_hours.js';
 import { YtdStore } from './chart_store.js';
 import {
   buildTickerSeries,
@@ -76,9 +73,8 @@ const PERF_CACHE_TTL_MS = {
 
 // PerfChart cache reads/writes go through `YtdStore` (chart_store.js,
 // IndexedDB-backed). One IDB row per (year, rangeKey, ticker) keyed
-// `y${year}|${rangeKey}|${ticker}`. ytdSnapshot() rebuilds the
-// nested {year, byRange:{rkey:{entries:{ticker:...}}}} shape that
-// callers were used to.
+// `y${year}|${rangeKey}|${ticker}`; `loadPerfCache` filters the flat
+// keyspace back down to one (year, range) bucket on demand.
 function loadPerfCache(year, rangeKey) {
   /** @type {Record<string, any>} */
   const out = {};

@@ -42,8 +42,3 @@ export function clearProxyBackoff(i) {
   if (i == null) _proxyBackoff.clear();
   else _proxyBackoff.delete(i);
 }
-export function _proxyBackoffSnapshot() {
-  // Test-only inspector. Returns a plain object so tests can assert
-  // backoff state without poking the Map directly.
-  return Object.fromEntries(_proxyBackoff);
-}
