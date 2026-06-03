@@ -14,6 +14,20 @@ import {
   markProxyDead,
   clearProxyBackoff,
 } from './proxy_chain.js';
+import { isUsEquity, hasOvernightSession } from './ticker_class.js';
+
+// OTC ADRs like SoftBank (SFTBY) quote ONLY their regular US session —
+// no pre-market, no after-hours, no overnight. Yahoo nonetheless ships a
+// `postMarketPrice` for them (the RTH close re-stamped as an "after-hours"
+// quote), which slipped past the ±5% / 3% trust heuristics and surfaced
+// as a phantom overnight move (the recurring "SFTBY 又抽风" bug). They get
+// NO extPrice — the same treatment dotted non-US listings (.L / .HK) get,
+// and exactly the `NO_OVERNIGHT_SESSION` set `hasOvernightSession` encodes
+// among US-shaped tickers. So the price reads flat outside the RTH session
+// and live (regularMarketPrice) during it.
+export function quotesRegularSessionOnly(ticker) {
+  return isUsEquity(ticker) && !hasOvernightSession(ticker);
+}
 
 const EDGE_PRICES_URL = "https://flmvxigozjuizpckllvk.supabase.co/functions/v1/prices";
 const EDGE_ANON_KEY   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbXZ4aWdvemp1aXpwY2tsbHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODM3MjgsImV4cCI6MjA5MjM1OTcyOH0.vFqe6PNsPbVkg7NJmQJBsVECX1S58vAvv5MOjf63Xck";
@@ -48,7 +62,7 @@ async function fetchOneYahooChart(symbol) {
       // open, so `preMarketPrice` is the live LSE price and the ext-hours pct
       // shows real LSE movement when the user expects 0 (those exchanges
       // don't have an after-hours / pre-market session). Suppress.
-      let extPrice  = symbol.includes('.')
+      let extPrice  = (symbol.includes('.') || quotesRegularSessionOnly(symbol))
         ? null
         : (meta.preMarketPrice ?? meta.postMarketPrice ?? null);
       // Yahoo returns London-listed prices in pence (currency "GBp"). Normalize
@@ -153,6 +167,11 @@ function normalizeEdgeResult(result) {
   if (!result) return result;
   for (const [t, r] of Object.entries(result)) {
     if (!r) continue;
+    // SFTBY-shape OTC ADRs: drop the Edge's raw Yahoo postMarketPrice so
+    // the phantom "after-hours" move can't reach the scoreboard / cards /
+    // modal. The proxy fallback path (fetchOneYahooChart) suppresses it
+    // the same way; this covers the primary Edge path.
+    if (quotesRegularSessionOnly(t)) { r.extPrice = null; r.extDayPct = null; }
     if (/^\d{6}$/.test(t) && r.currency == null) r.currency = "CNY";
     else if (/\.L$/i.test(t)) {
       // Edge doesn't report currency; assume London GBp unless values already look like GBP (<50).
