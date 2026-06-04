@@ -8,8 +8,8 @@
 // proxy fallback races danjuanapp.com + xueqiu.com endpoints instead.
 //
 // Split from utils.js to keep the chart-data pipeline together with
-// its CN-fund variants; consumers still import from utils.js for now
-// via the barrel re-exports.
+// its CN-fund variants; the utils.js barrel was since retired, so
+// consumers now import this module directly.
 
 import {
   PROXIES,

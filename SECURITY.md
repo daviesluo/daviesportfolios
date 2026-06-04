@@ -22,7 +22,7 @@ Supabase project. In-scope:
 
   - The React client in `src/` and the static `_headers` it serves
     under.
-  - The seven Supabase Edge Functions in `supabase/functions/`.
+  - The nine Supabase Edge Functions in `supabase/functions/`.
   - The Postgres migrations in `supabase/migrations/` (RLS policies,
     `security definer` RPCs, etc.).
   - The GitHub Actions workflows in `.github/workflows/` (build
@@ -53,9 +53,11 @@ Out of scope:
     verification (anon key) so the function URL alone can't be used
     as a free Yahoo / Finnhub / Alpha Vantage proxy.
   - CSP / HSTS / Permissions-Policy headers in `_headers`.
-  - `security definer` RPCs (`bump_auth_attempt`,
-    `try_claim_t212_refresh`) lock `search_path` to
-    `public, pg_temp` so schema-shadow attacks can't redirect them.
+  - Every `security definer` RPC (`bump_auth_attempt`,
+    `try_claim_t212_refresh`, `try_claim_av_call`, `save_board_data`)
+    locks an explicit `search_path` so schema-shadow attacks can't
+    redirect them, and is `revoke`d from `public` / granted only to
+    `service_role`.
   - Source maps are emitted as `'hidden'` and `.gitignore`d so prod
     JS doesn't ship debug references to the source.
 

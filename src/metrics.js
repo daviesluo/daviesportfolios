@@ -1,7 +1,7 @@
 // Per-position portfolio rollup ("computeMetrics") + formation
 // detection. The numbers on the scoreboard, the heatmap tile sizes,
 // and the position drill modal all come from here. Lifted out of
-// utils.js so a test/file that only cares about the math doesn't
+// the since-retired utils.js barrel so a test/file that only cares about the math doesn't
 // pull in fetch plumbing / market hours / Storage.
 
 import { fxRateToUSD } from './fx.js';

@@ -29,7 +29,7 @@
 #                             * Supabase (auth/data/trading212/ops-error/...)
 #                             * Yahoo Finance (chart + quote endpoints)
 #                             * eastmoney + danjuan + xueqiu for CN funds
-#                             * 5 free CORS proxies (utils.js PROXIES) — any
+#                             * 5 free CORS proxies (proxy_chain.js PROXIES) — any
 #                               proxy host that gets squatted could otherwise
 #                               serve attacker-controlled JSON into the
 #                               portfolio render. The proxies are static so
