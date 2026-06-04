@@ -56,7 +56,9 @@ Out of scope:
   - Every `security definer` RPC (`bump_auth_attempt`,
     `try_claim_t212_refresh`, `try_claim_av_call`, `save_board_data`)
     locks an explicit `search_path` so schema-shadow attacks can't
-    redirect them, and is `revoke`d from `public` / granted only to
+    redirect them. The cache / data-write RPCs
+    (`try_claim_t212_refresh`, `try_claim_av_call`, `save_board_data`)
+    additionally `revoke` execute from `public` and grant it only to
     `service_role`.
   - Source maps are emitted as `'hidden'` and `.gitignore`d so prod
     JS doesn't ship debug references to the source.
