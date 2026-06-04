@@ -88,9 +88,13 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
   React.useEffect(() => {
     const el = canvasRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(() =>
-      setSize({ w: el.clientWidth, h: el.clientHeight })
-    );
+    const ro = new ResizeObserver(() => {
+      // Bail out of the state update (and the treemap recompute it
+      // triggers) when the box didn't actually change size — the
+      // observer fires on every layout pass, not just real resizes.
+      const w = el.clientWidth, h = el.clientHeight;
+      setSize((s) => (s.w === w && s.h === h ? s : { w, h }));
+    });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
