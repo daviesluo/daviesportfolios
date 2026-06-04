@@ -14,14 +14,18 @@
 // overnight session + buffer for a cron-missed firing). Empty array
 // for a ticker with no recorded points.
 //
-// Auth: anon-readable (the Supabase apikey check is enough — these
-// are only price snapshots, the same surface other anon Edge
-// Functions like `chart` expose).
+// Auth: requires the HMAC `x-app-token` (admin OR ro accepted) on top of
+// the Supabase apikey gate. The rows reveal the owner's held tickers, so
+// after migration 0018 revoked direct anon SELECT on the table this Edge
+// Function is the only read path — token-gating it (like `data` /
+// `trading212`) stops it being used as a per-ticker "is X held?"
+// membership oracle by anyone holding the public anon key.
+import { verifyToken } from "../_shared/token.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-app-token",
 };
 
 const SB_URL      = Deno.env.get("SUPABASE_URL") ?? "";
@@ -140,6 +144,15 @@ async function readPoints(
 if (import.meta.main) {
   Deno.serve(async (req) => {
     if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+    // Token gate — the recorded points reveal which tickers the owner
+    // holds overnight, so require a valid app token (admin or ro).
+    const verified = await verifyToken(req.headers.get("x-app-token") ?? "");
+    if (!verified) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), {
+        status: 401,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
     const url = new URL(req.url);
     const tickers = parseTickers(url.searchParams.get("tickers"));
     // 26h: today's overnight session + buffer for a cron-missed tick.
