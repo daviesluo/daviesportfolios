@@ -36,7 +36,7 @@ const CN_FUND_RE = /^\d{6}$/;
 // data — the user noticed because the chart looked identical across
 // range buttons. (The Edge Function applies the same trim server-side
 // for the eastmoney path; this is the client-side equivalent.)
-function trimCnFundToRange(points, range) {
+export function trimCnFundToRange(points, range) {
   if (!Array.isArray(points) || points.length === 0) return points;
   const now = Date.now();
   let cutoffMs = 0;
@@ -185,7 +185,13 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
   // could take 50 s in the worst case (5 proxies × 10 s timeout each)
   // when the first few in random order were dead. Now total wall time
   // ≈ fastest live proxy. First success wins, others get cancelled.
-  const isIntraday = !/^\d+d$|^\dwk$|^\dmo$/.test(interval);
+  // Daily / weekly / monthly bars carry `YYYY-MM-DD` dates; intraday
+  // (1m/5m/30m/60m) keep `YYYY-MM-DDTHH:MM`. Match multi-digit counts on
+  // all three suffixes (`2wk` / `3mo` …) so a future range can't fall
+  // through to the intraday branch and corrupt its date shape — only
+  // 5m/30m/60m/1d are used today, but the old `^\dwk$|^\dmo$` matched a
+  // single leading digit only.
+  const isIntraday = !/^\d+(d|wk|mo)$/.test(interval);
 
   const parseResponse = async (res) => {
     if (!res.ok) return null;
