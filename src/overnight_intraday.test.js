@@ -81,7 +81,7 @@ describe('mergeOvernightSeries — splice eligibility', () => {
   const ctx = (over = {}) => ({ rangeKey: '1D', useExt: true, phase: 'overnight', ticker: 'NVDA', ...over });
 
   it('keeps Yahoo bars before the first recorded point, then the recorded line', () => {
-    const out = mergeOvernightSeries(YAHOO, ON, ctx());
+    const out = /** @type {any} */ (mergeOvernightSeries(YAHOO, ON, ctx()));
     expect(out).not.toBe(YAHOO);                 // merged → new ref
     expect(out.length).toBe(5);                  // 2 Yahoo (< 20:05) + 3 recorded
     expect(out.slice(-3)).toEqual(ON);
@@ -99,7 +99,7 @@ describe('mergeOvernightSeries — splice eligibility', () => {
       PT('2026-05-28T20:10', 999),   // stray Yahoo overnight bar
       PT('2026-05-28T20:30', 998),   // last Yahoo bar is LATE
     ];
-    const out = mergeOvernightSeries(yahooWithOvernight, ON, ctx());
+    const out = /** @type {any} */ (mergeOvernightSeries(yahooWithOvernight, ON, ctx()));
     expect(out).not.toBe(yahooWithOvernight);
     expect(out.map((p) => p.date)).toEqual([
       '2026-05-28T19:55', '2026-05-28T20:00',
@@ -112,7 +112,7 @@ describe('mergeOvernightSeries — splice eligibility', () => {
   it('returns the SAME ref (no merge) when toggle off / not overnight / wrong range', () => {
     expect(mergeOvernightSeries(YAHOO, ON, ctx({ useExt: false }))).toBe(YAHOO);
     expect(mergeOvernightSeries(YAHOO, ON, ctx({ phase: 'afterhours' }))).toBe(YAHOO);
-    expect(mergeOvernightSeries(YAHOO, ON, ctx({ rangeKey: '3M' })).length).toBe(YAHOO.length);
+    expect(/** @type {any} */ (mergeOvernightSeries(YAHOO, ON, ctx({ rangeKey: '3M' }))).length).toBe(YAHOO.length);
     expect(mergeOvernightSeries(YAHOO, ON, ctx({ rangeKey: '3M' }))).toBe(YAHOO);
   });
 
@@ -134,7 +134,7 @@ describe('mergeOvernightSeries — splice eligibility', () => {
       PT('2026-05-27T22:00', 100),   // prior session — before window → dropped
       ...ON,
     ];
-    const out = mergeOvernightSeries(YAHOO, withStale, ctx());
+    const out = /** @type {any} */ (mergeOvernightSeries(YAHOO, withStale, ctx()));
     expect(out.length).toBe(5);                  // stale point excluded
     expect(out.find((p) => p.date === '2026-05-27T22:00')).toBeUndefined();
   });
@@ -146,7 +146,7 @@ describe('mergeOvernightSeries — splice eligibility', () => {
       PT('2026-05-28T20:05', 172),
       PT('2026-05-28T20:10', 173),
     ];
-    const out = mergeOvernightSeries(YAHOO, overlap, ctx());
+    const out = /** @type {any} */ (mergeOvernightSeries(YAHOO, overlap, ctx()));
     // firstRec = 19:55 → no Yahoo bar is < 19:55 → recorded owns the whole window.
     expect(out.length).toBe(4);
     expect(out).toEqual(overlap);
@@ -166,7 +166,7 @@ describe('mergeOvernightSeries — splice eligibility', () => {
     // YAHOO[1].date) base = [YAHOO[0]], result = 4 points.
     const ON12 = Array.from({ length: 12 }, (_, i) =>
       PT(`2026-05-28T20:${String(i * 5).padStart(2, '0')}`, 170 + i));
-    const out = mergeOvernightSeries(YAHOO, ON12, ctx({ rangeKey: '1W', barIntervalMs: 30 * 60_000 }));
+    const out = /** @type {any} */ (mergeOvernightSeries(YAHOO, ON12, ctx({ rangeKey: '1W', barIntervalMs: 30 * 60_000 })));
     expect(out.length).toBe(4);
     expect(out[1]).toBe(ON12[0]);    // step-aligned
     expect(out[2]).toBe(ON12[6]);    // step-aligned
@@ -181,7 +181,7 @@ describe('mergeOvernightSeries — splice eligibility', () => {
       const mm = (i * 5) % 60;
       return PT(`2026-05-28T${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`, 170 + i);
     });
-    const out = mergeOvernightSeries(YAHOO, ON25, ctx({ rangeKey: '1M', barIntervalMs: 60 * 60_000 }));
+    const out = /** @type {any} */ (mergeOvernightSeries(YAHOO, ON25, ctx({ rangeKey: '1M', barIntervalMs: 60 * 60_000 })));
     expect(out.length).toBe(4);
     expect(out[1]).toBe(ON25[0]);
     expect(out[2]).toBe(ON25[12]);
@@ -189,7 +189,7 @@ describe('mergeOvernightSeries — splice eligibility', () => {
   });
 
   it('treats missing barIntervalMs as 5 min (= step 1, no downsample) — keeps the legacy 1D behaviour', () => {
-    const out = mergeOvernightSeries(YAHOO, ON, ctx());   // no barIntervalMs
+    const out = /** @type {any} */ (mergeOvernightSeries(YAHOO, ON, ctx()));   // no barIntervalMs
     expect(out.length).toBe(5);
     expect(out.slice(-3)).toEqual(ON);                    // every rec point kept
   });

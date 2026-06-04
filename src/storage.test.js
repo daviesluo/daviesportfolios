@@ -117,7 +117,7 @@ describe('Storage.saveMarketCache', () => {
   it('filters to usable entries and round-trips through loadMarketCache', () => {
     const ok = Storage.saveMarketCache({ NVDA: { lastPrice: 200 }, ZERO: { lastPrice: 0 } });
     expect(ok).toBe(true);
-    const row = JSON.parse(localStorage.getItem('dp.marketCache'));
+    const row = JSON.parse(localStorage.getItem('dp.marketCache') || '{}');
     expect(row.data.NVDA).toEqual({ lastPrice: 200 });
     expect(row.data.ZERO).toBeUndefined();
     expect(Storage.loadMarketCache().NVDA).toEqual({ lastPrice: 200 });

@@ -124,7 +124,7 @@ function App() {
     return { pwInput: collectPassword(), initialAuth: undefined };
   });
   const pwInput = bootState.pwInput;
-  const [auth, setAuth] = useState(bootState.initialAuth);
+  const [auth, setAuth] = useState(/** @type {import('./types').AppAuth | undefined} */ (bootState.initialAuth));
 
   useEffect(() => {
     if (auth !== undefined) return;            // already authed via existing token
@@ -145,7 +145,7 @@ function App() {
   }
 
   if (auth && auth.locked) {
-    const hoursLeft = Math.ceil((auth.lockUntil - Date.now()) / 1000 / 60 / 60);
+    const hoursLeft = Math.ceil(((auth.lockUntil ?? 0) - Date.now()) / 1000 / 60 / 60);
     return (
       <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' }}>
         <div style={{ textAlign: 'center', padding: '40px', border: '1px solid #2a2a2a', borderRadius: '4px' }}>
@@ -177,15 +177,15 @@ function App() {
 }
 
 function Board({ isReadOnly }) {
-  const [portfolio, setPortfolio] = useState(null);      // null = still loading
-  const [drillPos, setDrillPos] = useState(null);
+  const [portfolio, setPortfolio] = useState(/** @type {import('./types').Portfolio | null} */ (null));      // null = still loading
+  const [drillPos, setDrillPos] = useState(/** @type {string | null} */ (null));
   const [editMode, setEditMode] = useState(false);
-  const [editingTicker, setEditingTicker] = useState(null);
-  const [viewingTicker, setViewingTicker] = useState(null);
+  const [editingTicker, setEditingTicker] = useState(/** @type {string | null} */ (null));
+  const [viewingTicker, setViewingTicker] = useState(/** @type {string | null} */ (null));
   const [showHoldingsList, setShowHoldingsList] = useState(false);
-  const [addingToPos, setAddingToPos] = useState(null);
+  const [addingToPos, setAddingToPos] = useState(/** @type {string | null} */ (null));
   const [editingCash, setEditingCash] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(/** @type {Date | null} */ (null));
   const [source, setSource] = useState("—");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [recentlyUpdated, setRecentlyUpdated] = useState(false);
@@ -290,7 +290,7 @@ function Board({ isReadOnly }) {
   // snapshot back to the server is exactly how an edit made in
   // another tab gets silently reverted — fingerprint-equality
   // short-circuits the save when only ephemeral fields changed.
-  const lastSavedFingerprintRef = useRef(null);
+  const lastSavedFingerprintRef = useRef(/** @type {string | null} */ (null));
   // Fire-and-forget UI timers (flash clear, recently-updated reset,
   // error-retry). Tracked in refs so a refresh that lands inside the
   // previous timer's window clears it first (no stacking / premature
@@ -870,6 +870,8 @@ function Board({ isReadOnly }) {
   const onResetDemo = () => {
     if (!window.confirm("Reset to an empty board? The demo positions will be replaced with a blank pitch (just the Cash slot kept).")) return;
     setPortfolio((p) => {
+      if (!p) return p;
+      /** @type {Record<string, any>} */
       const positions = {};
       for (const [k, pos] of Object.entries(p.positions)) {
         positions[k] = { ...pos, tickers: k === 'GK' ? ['CASH'] : [] };
@@ -880,11 +882,12 @@ function Board({ isReadOnly }) {
           CASH: { shares: 1, cost: 0, lastPrice: 0, prevClose: 0, dayPct: 0, isCash: true, currency: 'USD' },
         },
       };
-      return next; // _isDemo dropped
+      return /** @type {import('./types').Portfolio} */ (next); // _isDemo dropped
     });
   };
   const onKeepDemo = () => {
     setPortfolio((p) => {
+      if (!p) return p;
       const next = { ...p };
       delete next._isDemo;
       return next;
@@ -1082,17 +1085,20 @@ function Board({ isReadOnly }) {
           amount={portfolio.holdings.CASH ? portfolio.holdings.CASH.lastPrice : 0}
           onClose={() => setEditingCash(false)}
           onSave={(amt) => {
-            setPortfolio(p => ({
-              ...p,
-              holdings: {
-                ...p.holdings,
-                CASH: { shares: 1, cost: amt, lastPrice: amt, prevClose: amt, dayPct: 0, isCash: true, currency: 'USD' },
-              },
-              positions: {
-                ...p.positions,
-                GK: { ...p.positions.GK, tickers: ["CASH"] },
-              },
-            }));
+            setPortfolio(p => {
+              if (!p) return p;
+              return {
+                ...p,
+                holdings: {
+                  ...p.holdings,
+                  CASH: { shares: 1, cost: amt, lastPrice: amt, prevClose: amt, dayPct: 0, isCash: true, currency: /** @type {const} */ ('USD') },
+                },
+                positions: {
+                  ...p.positions,
+                  GK: { ...p.positions.GK, tickers: ["CASH"] },
+                },
+              };
+            });
             setEditingCash(false);
           }}
         />

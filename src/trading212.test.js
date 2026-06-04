@@ -143,7 +143,7 @@ describe('applyTrading212NightPrice', () => {
   });
 
   it('null prices / null holdings → no-op', () => {
-    expect(applyTrading212NightPrice(null, { AAPL: 1 }, true)).toBeNull();
+    expect(applyTrading212NightPrice(/** @type {any} */ (null), { AAPL: 1 }, true)).toBeNull();
     const h = { AAPL: usHolding() };
     expect(applyTrading212NightPrice(h, null, true)).toBe(h);
   });

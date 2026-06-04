@@ -20,7 +20,7 @@ if (typeof window !== 'undefined') {
   });
 }
 
-createRoot(document.getElementById('root')).render(
+createRoot(/** @type {HTMLElement} */ (document.getElementById('root'))).render(
   // StrictMode double-renders effects in dev to surface missing-cleanup
   // bugs (most often in `useEffect` fetches). Prod builds run it once;
   // wrapping costs nothing there and surfaces issues during dev that
