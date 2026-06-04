@@ -15,6 +15,7 @@
 import { SB_URL } from './supabase_config.js';
 import { EDGE_ANON_KEY } from './yahoo_fetch.js';
 import { hasOvernightSession } from './ticker_class.js';
+import { getAppToken } from './auth.js';
 
 const STORAGE_KEY = 'dp.overnight.cache';
 const FETCH_URL = `${SB_URL}/functions/v1/overnight-fetch`;
@@ -60,7 +61,15 @@ export async function fetchOvernightSeries(tickers, fetcher = fetch) {
   try {
     const url = `${FETCH_URL}?tickers=${encodeURIComponent(list.join(','))}`;
     const res = await fetcher(url, {
-      headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
+      // overnight-fetch now requires the HMAC app token (the points
+      // reveal held tickers — see migration 0018). Send it alongside the
+      // anon key; a session without a token just gets back an empty
+      // overnight series (the chart falls back to its single-dot path).
+      headers: {
+        Authorization: `Bearer ${EDGE_ANON_KEY}`,
+        apikey: EDGE_ANON_KEY,
+        'x-app-token': getAppToken(),
+      },
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;

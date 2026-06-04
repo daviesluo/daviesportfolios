@@ -14,6 +14,8 @@
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected by the
 // runtime and never need to be set manually.
 
+import { reportServerError } from "../_shared/ops.ts";
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   // `if-match` is included so the browser's CORS preflight doesn't
@@ -101,28 +103,7 @@ const SB_HEADERS = {
 // denies anon). Used by the top-level try/catch wrap so a runtime
 // crash here becomes a row the admin ⚠ badge surfaces instead of a
 // silent 500. Best-effort: never throws.
-async function reportServerError(
-  kind: string,
-  opts: { message?: string; symbol?: string; context?: unknown } = {},
-): Promise<void> {
-  if (!SUPABASE_URL || !SERVICE_KEY) return;
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/ops_errors`, {
-      method: "POST",
-      headers: { ...SB_HEADERS, "Prefer": "return=minimal" },
-      body: JSON.stringify({
-        kind,
-        symbol: opts.symbol ?? null,
-        message: opts.message ? opts.message.slice(0, 512) : null,
-        context: opts.context ?? null,
-        ip: "edge",
-      }),
-      signal: AbortSignal.timeout(3_000),
-    });
-  } catch (e) {
-    console.error("reportServerError failed:", String(e));
-  }
-}
+// reportServerError now lives in ../_shared/ops.ts (imported above).
 
 // Guarded so tests can import the helpers above without spinning up
 // the server. Supabase's runtime executes index.ts as the entry
