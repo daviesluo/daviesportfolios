@@ -44,6 +44,15 @@ do $$ begin
   end if;
 end $$;
 
+-- ⚠️  CROSS-ENVIRONMENT WARNING: the `url` below is the PRODUCTION
+-- project's Edge Function host, hardcoded. If you apply this migration to
+-- any OTHER database (a fork, a staging project, or a `supabase db reset`
+-- on a clone), the cron on THAT database will POST to production's
+-- overnight-record every 5 minutes — cross-env bleed that also burns
+-- prod's T212 rate budget. Before applying to a non-prod DB, change the
+-- host below to that project's ref (and see the forking guide in
+-- README.md). The secret is already per-env via `app.cron_secret`; the
+-- URL is the one value that still needs a manual edit per environment.
 select cron.schedule(
   'overnight-record-every-5min',
   '*/5 0-9 * * *',
