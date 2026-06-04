@@ -90,8 +90,8 @@ function Modal({ children, onClose, size = "md" }) {
 // Same digit-mask helper used everywhere — replaces digits with `*`,
 // keeping currency symbols / signs / punctuation so the placeholder is the
 // same visual width as the real number.
-// `maskDigits` is imported from utils.js — single source of truth shared
-// across header_sidebar / modals / pitch.
+// `maskDigits` is imported from formatters.js — single source of truth
+// shared across header_sidebar / modals / pitch.
 
 function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onClose, onEditTicker, onViewChart, onAddTicker, onRemoveTicker, onUpdatePosition, hideValues }) {
   if (!position) return null;

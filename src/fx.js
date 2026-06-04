@@ -1,5 +1,5 @@
-// Currency detection + native→USD FX conversion. Pulled out of
-// utils.js so the FX-only callers (computeMetrics, the modal's
+// Currency detection + native→USD FX conversion. Pulled out of the
+// since-retired utils.js barrel so the FX-only callers (computeMetrics, the modal's
 // header dollar conversion, the captain-MV ranker) can import a
 // 100-line file instead of a 900-line dump. Same behaviour as
 // before — fxRateToUSD returns the silent-fallback flag and

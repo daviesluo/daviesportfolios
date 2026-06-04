@@ -114,11 +114,14 @@ const SB_HEADERS = {
   "Content-Type": "application/json",
 };
 
-// Cloudflare → cf-connecting-ip; Supabase Edge → x-forwarded-for.
-// First IP in x-forwarded-for is the original client. Fall back to a
+// Per-IP key derivation. See `clientIpFromHeaders` above for the full
+// rationale: prefer the gateway-trusted `x-real-ip`, then the LAST
+// entry of `x-forwarded-for` (proxies append as they forward, so the
+// last hop is the most-trusted; the FIRST entry is the client-supplied
+// value an attacker can rotate to defeat the per-IP lockout), then a
 // sentinel so a missing header still keys per-deploy rather than
-// bypassing the limiter entirely. Exported above as
-// `clientIpFromHeaders` for unit testing.
+// bypassing the limiter entirely. Aliased here (and exported above)
+// for unit testing.
 const clientIp = clientIpFromHeaders;
 
 type LockoutCheck = { lockout_until: number | null };
