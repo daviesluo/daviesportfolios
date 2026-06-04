@@ -164,3 +164,23 @@ export function parseChartDateUTC(d) {
   if (d.length === 16 && d[10] === 'T') return new Date(d + 'Z');
   return new Date(d);
 }
+
+// Index of the bar sitting at exactly the regular-session close
+// (closeHh:closeMm UTC = 20:00 EDT / 21:00 EST), searching backwards
+// from the newest bar. STRICT equality only — a looser `hh < closeHh`
+// fallback would match a post-midnight premarket bar and pin the close
+// anchor / CLOSE marker to the wrong session (the bug both charts'
+// inline comments warned about). Returns -1 when no bar matches, so the
+// caller can fall back to lastPrice. Single source for the backward walk
+// perf_chart.jsx (×2) and ticker_chart_modal.jsx had inlined.
+export function findRegularCloseIdx(series, mh) {
+  if (!Array.isArray(series) || !mh) return -1;
+  for (let i = series.length - 1; i >= 0; i--) {
+    const d = series[i] && series[i].date;
+    if (typeof d !== 'string' || d.length < 16) continue;
+    const hh = parseInt(d.slice(11, 13), 10);
+    const mm = parseInt(d.slice(14, 16), 10);
+    if (hh === mh.closeHh && mm === mh.closeMm) return i;
+  }
+  return -1;
+}

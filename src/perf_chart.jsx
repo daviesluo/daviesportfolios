@@ -22,7 +22,7 @@ import {
   fetchParamsFor,
   applyVariantFilter,
 } from './ytd.js';
-import { pointerToDataIndex, parseChartDateUTC } from './chart_geometry.js';
+import { pointerToDataIndex, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
 import { reportError } from './ops_error.js';
 
 // Tiny placeholder shell so the loading / error / range-button row
@@ -471,16 +471,9 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   let spBase;
   if (rangeKey === '1D') {
     if (useExt) {
-      let closeIdx = -1;
-      for (let i = spWindow.length - 1; i >= 0; i--) {
-        const d = spWindow[i].date;
-        if (d.length < 16) continue;
-        const hh = parseInt(d.slice(11, 13), 10);
-        const mm = parseInt(d.slice(14, 16), 10);
-        // Strict closeHh:closeMm match — see the marker block below for
-        // why a hh<closeHh fallback would mis-select a premarket bar.
-        if (hh === mh.closeHh && mm === mh.closeMm) { closeIdx = i; break; }
-      }
+      // Bar at the regular close (strict closeHh:closeMm — a hh<closeHh
+      // fallback would mis-select a premarket bar; see findRegularCloseIdx).
+      const closeIdx = findRegularCloseIdx(spWindow, mh);
       const gspc = marketData?.['^GSPC'];
       spBase = closeIdx >= 0
         ? spWindow[closeIdx].close
@@ -810,17 +803,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
           // Falls through to the latest bar strictly before close if
           // the exact-close bar is missing.
           if (variantKey === 'ext') {
-            for (let i = spYtd.length - 1; i >= 0; i--) {
-              const d = spYtd[i].date;
-              if (d.length < 16) continue;
-              const hh = parseInt(d.slice(11, 13), 10);
-              const mm = parseInt(d.slice(14, 16), 10);
-              // Strict closeHh:closeMm match. A looser hh<closeHh
-              // fallback matches premarket bars after midnight UTC, so
-              // the CLOSE marker would jump onto a 9:30 ET premarket
-              // bar instead of yesterday's actual 16:00 ET close.
-              if (hh === mh.closeHh && mm === mh.closeMm) { closeIdx = i; break; }
-            }
+            closeIdx = findRegularCloseIdx(spYtd, mh);
           }
           const renderMarker = (idx, label) => {
             if (idx < 0) return null;
