@@ -867,8 +867,16 @@ empty.
 
 Cloudflare Pages → Connect to Git → pick your fork → set:
 
-- Build command: `npm run build`
+- Build command: **(leave empty)**
 - Build output directory: `/`
+
+This repo commits its built output (`assets/`, `index.html`, `sw.js` — see
+`.gitignore`'s note and `wrangler.jsonc`'s `assets.directory: "."`), so
+Cloudflare serves the repo root **as-is** with no build step. You run
+`npm run build` locally and commit the result before pushing (CI's bundle
+check, below, fails the build if you forget). Don't set a CF build command
+— if CF rebuilt on its own it would produce a third, possibly-divergent
+copy of the bundle.
 
 Cloudflare Pages will auto-deploy on every push to `main`.
 

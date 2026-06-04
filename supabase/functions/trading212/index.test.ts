@@ -11,7 +11,7 @@
 //     pinned here so a refactor of `data/index.ts`'s copy doesn't
 //     silently desync this one.
 
-import { assert, assertEquals } from "https://deno.land/std@0.218.0/assert/mod.ts";
+import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   shapeT212Portfolio,
   t212TickerToYahoo,
