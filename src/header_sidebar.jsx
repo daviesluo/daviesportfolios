@@ -225,6 +225,8 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
   const prevMetrics = React.useRef(null);
   /** @type {[Record<string, 'up' | 'down'>, (f: Record<string, 'up' | 'down'>) => void]} */
   const [sbFlash, setSbFlash] = React.useState({});
+  /** @type {React.MutableRefObject<ReturnType<typeof setTimeout> | null>} */
+  const sbFlashTimerRef = React.useRef(null);
   React.useEffect(() => {
     if (!prevMetrics.current) { prevMetrics.current = metrics; return; }
     const prev = prevMetrics.current;
@@ -240,9 +242,14 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
     prevMetrics.current = metrics;
     if (Object.keys(f).length) {
       setSbFlash(f);
-      setTimeout(() => setSbFlash({}), 1400);
+      if (sbFlashTimerRef.current) clearTimeout(sbFlashTimerRef.current);
+      sbFlashTimerRef.current = setTimeout(() => setSbFlash({}), 1400);
     }
   }, [metrics]);
+  // Clear a pending scoreboard-flash reset if Header unmounts mid-window.
+  React.useEffect(() => () => {
+    if (sbFlashTimerRef.current) clearTimeout(sbFlashTimerRef.current);
+  }, []);
 
   // FX badge — surface any holding whose native-USD conversion fell
   // back to 1:1 this tick (the FX pair for its currency was missing
