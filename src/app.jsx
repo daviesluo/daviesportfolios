@@ -10,7 +10,7 @@ import { usMarketPhase, usMarketHoursUtc, isWeekendDeadZone } from './market_hou
 import { Storage } from './storage.js';
 import { POSITION_COORDS } from './positions.js';
 import { INITIAL_PORTFOLIO } from './data.js';
-import { collectPassword, decodeAppToken, getAppToken, authenticate } from './auth.js';
+import { consumeUrlPassword, decodeAppToken, getAppToken, authenticate } from './auth.js';
 import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL, TAB_ID } from './portfolio_remote.js';
 import { prefetchAllChartData } from './prefetch.js';
 import { hydrateAllChartStores } from './chart_store.js';
@@ -92,6 +92,40 @@ const PENDING_SAVE_KEY = 'dp.pendingSave';
 // mode opens an ES=F chart whose cache is cold.
 const MC_PREFETCH_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X", "USDHKD=X", "ES=F", "NQ=F", "RTY=F"];
 
+// Themed in-page password screen — replaces the old `window.prompt` over a
+// blank page (unstyled, off-theme, especially clunky in the iOS PWA). Same
+// dark monospace look as the AUTHENTICATING / ACCESS DENIED screens.
+// Autofocuses the field; Enter or the button submits the typed password.
+function PasswordPrompt({ onSubmit }) {
+  const [pw, setPw] = useState('');
+  /** @type {React.CSSProperties} */
+  const screen = { minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' };
+  /** @type {React.CSSProperties} */
+  const card = { display: 'flex', flexDirection: 'column', gap: '13px', width: '258px', padding: '34px 30px', border: '1px solid #2a2a2a', borderRadius: '4px' };
+  return (
+    <div style={screen}>
+      <form style={card} onSubmit={(e) => { e.preventDefault(); if (pw) onSubmit(pw); }}>
+        <div style={{ color: '#ccc', fontFamily: 'monospace', letterSpacing: '0.18em', fontSize: '13px', textAlign: 'center' }}>DAVIES&rsquo; PORTFOLIOS</div>
+        <div style={{ color: '#666', fontFamily: 'monospace', fontSize: '11px', textAlign: 'center', marginBottom: '3px' }}>Enter password to continue</div>
+        <input
+          type="password"
+          autoFocus
+          value={pw}
+          onChange={(e) => setPw(e.target.value)}
+          placeholder="Password"
+          aria-label="Password"
+          style={{ background: '#0f1815', color: '#eee', border: '1px solid #2a3a33', borderRadius: '3px', padding: '9px 11px', fontFamily: 'monospace', fontSize: '13px', outline: 'none' }}
+        />
+        <button
+          type="submit"
+          disabled={!pw}
+          style={{ background: pw ? '#1e3a30' : '#16211d', color: pw ? '#dfe9e4' : '#4a5a52', border: '1px solid #2e4a3e', borderRadius: '3px', padding: '9px', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.1em', cursor: pw ? 'pointer' : 'default' }}
+        >ENTER</button>
+      </form>
+    </div>
+  );
+}
+
 // Main app ---------------------------------------------------------------
 function App() {
   // Auth lifecycle:
@@ -109,32 +143,35 @@ function App() {
   const [bootState] = useState(() => {
     Storage.migrate();
     const existing = decodeAppToken(getAppToken());
+    // Consume + strip any ?pwd= either way so it never lingers in history.
+    const urlPwd = consumeUrlPassword();
     if (existing) {
-      // Still consume the URL ?pwd if present so it doesn't linger in
-      // browser history; we just don't need its result.
-      const params = new URLSearchParams(window.location.search);
-      if (params.has("pwd")) {
-        params.delete("pwd");
-        const newSearch = params.toString();
-        history.replaceState(null, "",
-          window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
-      }
       return { pwInput: null, initialAuth: { isReadOnly: existing.role === "ro" } };
     }
-    return { pwInput: collectPassword(), initialAuth: undefined };
+    // No token: authenticate the URL pwd if it was present, else null —
+    // which renders the themed password form, whose submit sets pwInput.
+    return { pwInput: urlPwd, initialAuth: undefined };
   });
-  const pwInput = bootState.pwInput;
+  // pwInput is state now (was derived): the in-page password form sets it.
+  const [pwInput, setPwInput] = useState(bootState.pwInput);
   const [auth, setAuth] = useState(/** @type {import('./types').AppAuth | undefined} */ (bootState.initialAuth));
 
   useEffect(() => {
     if (auth !== undefined) return;            // already authed via existing token
-    if (pwInput == null) { setAuth(null); return; }
+    if (pwInput == null) return;               // no password yet — waiting for the form
     let cancelled = false;
-    authenticate(pwInput).then(result => {
-      if (!cancelled) setAuth(result);
-    });
+    authenticate(pwInput)
+      .then(result => { if (!cancelled) setAuth(result); })
+      // A rejection (network blip on the auth call) shouldn't leave the UI
+      // stuck on AUTHENTICATING forever — fall through to ACCESS DENIED.
+      .catch(() => { if (!cancelled) setAuth(null); });
     return () => { cancelled = true; };
   }, [pwInput, auth]);
+
+  // No token, no URL password, nothing typed yet → themed login form.
+  if (auth === undefined && pwInput == null) {
+    return <PasswordPrompt onSubmit={(pw) => setPwInput(pw)} />;
+  }
 
   if (auth === undefined) {
     return (
@@ -163,7 +200,7 @@ function App() {
         <div style={{ textAlign: 'center', padding: '40px', border: '1px solid #2a2a2a', borderRadius: '4px' }}>
           <div style={{ color: '#f55', fontFamily: 'monospace', letterSpacing: '0.2em', fontSize: '14px', marginBottom: '8px' }}>ACCESS DENIED</div>
           <div style={{ color: '#888', fontFamily: 'monospace', fontSize: '12px', marginBottom: '20px' }}>Incorrect password.</div>
-          <button style={{ background: '#1e2d28', color: '#ccc', border: '1px solid #3a3a3a', padding: '8px 20px', cursor: 'pointer', fontFamily: 'monospace', fontSize: '12px', borderRadius: '2px' }} onClick={() => window.location.reload()}>Try again</button>
+          <button style={{ background: '#1e2d28', color: '#ccc', border: '1px solid #3a3a3a', padding: '8px 20px', cursor: 'pointer', fontFamily: 'monospace', fontSize: '12px', borderRadius: '2px' }} onClick={() => { setAuth(undefined); setPwInput(null); }}>Try again</button>
         </div>
       </div>
     );
