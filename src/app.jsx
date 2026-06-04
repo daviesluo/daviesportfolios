@@ -786,6 +786,51 @@ function Board({ isReadOnly }) {
     else setViewingTicker(t);
   }, [editMode, isReadOnly]);
 
+  // Derived board annotations — formation + the three "who's the
+  // captain / hot mover" scans. Memoised so the per-tick refresh churn
+  // (flash flips, the 1 Hz clock, isRefreshing) doesn't re-walk the
+  // whole holdings map / positions on every render — the same reason
+  // `metrics` above is memoised. Declared before the loading
+  // early-return so the hook slots stay unconditional; each guards for
+  // the null-portfolio / null-metrics case the early-return then
+  // handles.
+  const formation = useMemo(
+    () => (portfolio ? detectFormation(portfolio) : null),
+    [portfolio],
+  );
+  // Captain = single largest position by USD market value (native →
+  // USD so a CNY / GBP holding ranks correctly against USD ones).
+  const captainTicker = useMemo(() => {
+    if (!portfolio) return null;
+    let ticker = null, best = 0;
+    for (const [t, h] of Object.entries(portfolio.holdings)) {
+      const mv = h.shares * h.lastPrice * fxToUSD(h.currency, marketData);
+      if (mv > best) { best = mv; ticker = t; }
+    }
+    return ticker;
+  }, [portfolio, marketData]);
+  // Biggest individual mover — drives the hot-badge in drill modals.
+  const hotMoverTicker = useMemo(() => {
+    if (!portfolio) return null;
+    let ticker = null, best = 0;
+    for (const [t, h] of Object.entries(portfolio.holdings)) {
+      const abs = Math.abs(h.dayPct ?? 0);
+      if (abs > best) { best = abs; ticker = t; }
+    }
+    return ticker;
+  }, [portfolio]);
+  // Position (card) with the highest |dayPct| — where the ball sits.
+  const hotMoverPosKey = useMemo(() => {
+    if (!metrics) return null;
+    let key = null, best = 0;
+    for (const [k, pos] of Object.entries(metrics.positions)) {
+      if (!pos.players.length) continue;
+      const abs = Math.abs(pos.dayPct ?? 0);
+      if (abs > best) { best = abs; key = k; }
+    }
+    return key;
+  }, [metrics]);
+
   // FX-rate-missing is already surfaced by the red "FX MISSING N
   // tickers" pill in the header (see Header.jsx, populated from
   // metrics.fxMissingTickers). The user sees a missed FX pair
@@ -805,30 +850,6 @@ function Board({ isReadOnly }) {
         </div>
       </div>
     );
-  }
-
-  const formation = detectFormation(portfolio);
-
-  // Captain is the single largest position by USD market value — convert native
-  // currency to USD so a CNY or GBP holding is ranked correctly against USD ones.
-  let captainTicker = null, captainMV = 0;
-  for (const [t, h] of Object.entries(portfolio.holdings)) {
-    const fx = fxToUSD(h.currency, marketData);
-    const mv = h.shares * h.lastPrice * fx;
-    if (mv > captainMV) { captainMV = mv; captainTicker = t; }
-  }
-  // hotMoverTicker: biggest individual mover, used for the hot-badge inside drill modals
-  let hotMoverTicker = null, hotTickAbs = 0;
-  for (const [t, h] of Object.entries(portfolio.holdings)) {
-    const abs = Math.abs(h.dayPct ?? 0);
-    if (abs > hotTickAbs) { hotTickAbs = abs; hotMoverTicker = t; }
-  }
-  // hotMoverPosKey: position (card) with the highest |dayPct| — determines where the ball sits
-  let hotMoverPosKey = null, hotPosAbs = 0;
-  for (const [k, pos] of Object.entries(metrics.positions)) {
-    if (!pos.players.length) continue;
-    const abs = Math.abs(pos.dayPct ?? 0);
-    if (abs > hotPosAbs) { hotPosAbs = abs; hotMoverPosKey = k; }
   }
 
   // Edit handlers — extracted to portfolio_edits.js (app.jsx was past
