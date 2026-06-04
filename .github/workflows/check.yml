@@ -89,6 +89,17 @@ jobs:
         # vulnerability there doesn't affect the deployed site.
         run: npm audit --audit-level=high --omit=dev
 
+      - name: Dependency audit (full tree, informational)
+        # The gate above omits devDependencies, but the build/test
+        # toolchain (vite, vitest, eslint, …) executes in CI WITH repo
+        # secrets in scope, so a compromised build-time transitive is a
+        # real supply-chain risk. This second pass scans the whole tree
+        # at `critical` and is non-blocking (continue-on-error) — it
+        # surfaces toolchain CVEs without gating every push on a moderate
+        # in a dev-only dep.
+        continue-on-error: true
+        run: npm audit --audit-level=critical
+
   # Separate job purely so it can carry `issues: write` without
   # widening the build job's permission scope. Runs only on push-to-
   # main failures — PR failures already have visible inline status.
