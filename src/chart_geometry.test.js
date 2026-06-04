@@ -5,7 +5,7 @@
 // chart now fails CI before deploy.
 
 import { describe, expect, it } from 'vitest';
-import { pointerToDataIndex, pointsToSvgPath, overnightTrailingGap } from './chart_geometry.js';
+import { pointerToDataIndex, pointsToSvgPath, overnightTrailingGap, parseChartDateUTC } from './chart_geometry.js';
 
 // Fake an SVG element with just the surface the helper touches.
 function fakeSvg(rect) {
@@ -203,5 +203,32 @@ describe('overnightTrailingGap', () => {
     expect(overnightTrailingGap(1, NaN, BAR)).toBe(0);
     expect(overnightTrailingGap(1, 2, 0)).toBe(0);
     expect(overnightTrailingGap(1, 2, -5)).toBe(0);
+  });
+});
+
+describe('parseChartDateUTC', () => {
+  it('appends Z to the 16-char intraday shape so it reads as UTC', () => {
+    // "YYYY-MM-DDTHH:MM" (no zone) must be treated as UTC, not local —
+    // the BST-off-by-an-hour bug both charts hit before this was shared.
+    const d = parseChartDateUTC('2026-06-04T13:30');
+    expect(d.getTime()).toBe(Date.UTC(2026, 5, 4, 13, 30));
+  });
+
+  it('parses a plain YYYY-MM-DD daily date without forcing UTC time', () => {
+    // No 'Z' appended for the 10-char shape — `new Date('2026-06-04')`
+    // is already UTC-midnight by spec, so the value round-trips.
+    const d = parseChartDateUTC('2026-06-04');
+    expect(d.getTime()).toBe(Date.parse('2026-06-04'));
+  });
+
+  it('passes non-strings straight to new Date', () => {
+    const ms = Date.UTC(2026, 0, 1);
+    expect(parseChartDateUTC(ms).getTime()).toBe(ms);
+  });
+
+  it('does not append Z when the 11th char is not T (defensive)', () => {
+    // 16 chars but not the intraday shape → left to new Date as-is.
+    const s = '2026-06-04 13:30';
+    expect(parseChartDateUTC(s).getTime()).toBe(new Date(s).getTime());
   });
 });

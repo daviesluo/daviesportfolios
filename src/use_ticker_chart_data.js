@@ -16,7 +16,7 @@
 import React from 'react';
 import { fetchHistoricalBatch } from './historical.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
-import { fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h } from './ytd.js';
+import { fetchParamsFor, maFetchParamsFor, applyVariantFilter } from './ytd.js';
 import { MA_TTL_MS, tickerChartCacheKey } from './cache.js';
 import { ChartStore, MaStore } from './chart_store.js';
 import { priceDividedByTtmEps } from './indicators.js';
@@ -127,8 +127,7 @@ export function useTickerChartData({
         return;
       }
       const params = fetchParamsFor(isRatioRange ? '1Y' : rangeKey, extendedHours, phase);
-      if (params.variant === 'closed') data = filterToLatestDay(data);
-      else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
+      data = applyVariantFilter(data, params.variant);
       // PE/PS: divide each close by the rolling TTM per-share denominator
       // as of that date so the line steps on earnings instead of being a
       // 1:1 scale of price. Same 3-attempt retry on the fundamentals
@@ -243,8 +242,7 @@ export function useTickerChartData({
       if (cancelled) return;
       let data = out[ticker];
       if (!data || data.length < 2) return;
-      if (variant === 'closed') data = filterToLatestDay(data);
-      else if (variant === 'reg' || variant === 'ext') data = filterToLast24h(data);
+      data = applyVariantFilter(data, variant);
       if (isRatioRk) {
         const f = await fetchFundamentals([ticker], { ttmEpsHistory: true });
         if (cancelled) return;
@@ -279,8 +277,7 @@ export function useTickerChartData({
         if (cancelled) return;
         let data = out[ticker];
         if (data && data.length >= 2) {
-          if (params.variant === 'closed') data = filterToLatestDay(data);
-          else if (params.variant === 'reg' || params.variant === 'ext') data = filterToLast24h(data);
+          data = applyVariantFilter(data, params.variant);
           const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
           modalCacheSet(cacheKey, data);
           setSeries(data);

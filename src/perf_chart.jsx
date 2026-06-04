@@ -20,10 +20,9 @@ import {
   RANGE_KEYS,
   anchorDateFor,
   fetchParamsFor,
-  filterToLatestDay,
-  filterToLast24h,
+  applyVariantFilter,
 } from './ytd.js';
-import { pointerToDataIndex } from './chart_geometry.js';
+import { pointerToDataIndex, parseChartDateUTC } from './chart_geometry.js';
 import { reportError } from './ops_error.js';
 
 // Tiny placeholder shell so the loading / error / range-button row
@@ -99,14 +98,6 @@ function savePerfCache(year, rangeKey, entries) {
   }
 }
 
-// Parse a chart date string. Intraday strings come in as
-// "YYYY-MM-DDTHH:MM" UTC without a Z; without that suffix `new Date`
-// reads them as local. Append Z for the truncated UTC shape.
-function parsePerfDate(d) {
-  if (typeof d !== 'string') return new Date(d);
-  if (d.length === 16 && d[10] === 'T') return new Date(d + 'Z');
-  return new Date(d);
-}
 
 // YTD performance chart: portfolio % return vs S&P 500, computed from
 // per-lot purchase history + historical closes (Yahoo Finance),
@@ -208,8 +199,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       const now = Date.now();
       for (const s of stale) {
         let data = batch[s];
-        if (data && params.variant === 'closed') data = filterToLatestDay(data);
-        else if (data && (params.variant === 'reg' || params.variant === 'ext')) data = filterToLast24h(data);
+        data = applyVariantFilter(data, params.variant);
         if (data) {
           merged[s] = data;
           newEntries[s] = { ts: now, data };
@@ -306,8 +296,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
         const now = Date.now();
         for (const s of stale) {
           let data = batch[s];
-          if (data && params.variant === 'closed') data = filterToLatestDay(data);
-          else if (data && (params.variant === 'reg' || params.variant === 'ext')) data = filterToLast24h(data);
+          data = applyVariantFilter(data, params.variant);
           if (data) newEntries[s] = { ts: now, data };
         }
         savePerfCache(year, cacheKey, newEntries);
@@ -604,7 +593,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       const dateStr = portNorm[safeIdx].date;
       const x = padL + (safeIdx / denom) * cW;
       if (x < padL + 10 || x > W - padR - 8) continue;
-      const d = parsePerfDate(dateStr);
+      const d = parseChartDateUTC(dateStr);
       let label;
       if (rangeKey === '1D') {
         label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -651,7 +640,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const portByIdx = portNorm;
   const spByIdx   = spNorm.length === portNorm.length ? spNorm : null; // aligned in 1D / YTD
   const fmtCrosshairDate = (dateStr) => {
-    const d = parsePerfDate(dateStr);
+    const d = parseChartDateUTC(dateStr);
     if (rangeKey === '1D') {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }

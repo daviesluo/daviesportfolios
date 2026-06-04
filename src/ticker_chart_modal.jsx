@@ -15,7 +15,7 @@ import {
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   extPriceIsRealAh, isPriceAxis,
 } from './indicators.js';
-import { pointerToDataIndex, overnightTrailingGap } from './chart_geometry.js';
+import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC } from './chart_geometry.js';
 import { computeChartGeometry } from './chart_modal_geometry.js';
 import { mergeOvernightSeries } from './overnight_intraday.js';
 import {
@@ -390,20 +390,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     : W - padR + 4;
 
   // Crosshair hover label — keeps minute precision on 1W/1M so the user
-  // can read the exact bar's timestamp. Intraday strings from the chart
-  // Edge Function are UTC ISO truncated to "YYYY-MM-DDTHH:MM" with NO
-  // 'Z' suffix; without that suffix `new Date(...)` parses the value as
-  // *local* time — for a London/BST user that mis-rendered every
-  // intraday bar an hour earlier than it actually was (US market open
-  // 13:30 UTC showed as 1:30 PM instead of 2:30 PM BST). Append the Z
-  // ourselves so the engine treats it as UTC.
-  function parseChartDate(dateStr) {
-    if (typeof dateStr !== 'string') return new Date(dateStr);
-    if (dateStr.length === 16 && dateStr[10] === 'T') return new Date(dateStr + 'Z');
-    return new Date(dateStr);
-  }
+  // can read the exact bar's timestamp. parseChartDateUTC (chart_geometry)
+  // appends the missing 'Z' to the "YYYY-MM-DDTHH:MM" intraday strings so
+  // a London/BST user doesn't see every bar an hour early (US open 13:30
+  // UTC was rendering as 1:30 PM instead of 2:30 PM BST).
   function fmtDate(dateStr) {
-    const d = parseChartDate(dateStr);
+    const d = parseChartDateUTC(dateStr);
     if (rangeKey === '1D') {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
@@ -416,7 +408,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // X-axis tick labels — bare date on 1W/1M (5–6 samples across the row,
   // intraday timestamps would just clutter without adding info).
   function fmtAxisDate(dateStr) {
-    const d = parseChartDate(dateStr);
+    const d = parseChartDateUTC(dateStr);
     if (rangeKey === '1D') {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
