@@ -29,25 +29,46 @@ that need care:
 
 ## One-time reconciliation (before trusting `db push` on the live DB)
 
-Tell Supabase that everything already in prod is "applied", so the next
-push only runs genuinely-new files:
+Tell Supabase that the migrations **already run in prod** are "applied",
+so the next push only runs genuinely-new files. Mark ONLY what actually
+ran — `migration repair --status applied <v>` records a version as done
+**without executing its SQL**, so marking one that never ran silently
+skips it forever.
 
 ```sh
-# Mark every existing migration as already applied (no SQL is run):
+# Adjust this list to what's actually been applied in prod. Do NOT
+# include a migration whose SQL hasn't run yet — see the security note
+# below for 0017 / 0018.
 supabase migration repair --status applied \
   0001 0002 0003 0004 0005 0006 0007 0008 0009 0010 \
-  0011 0012 0013 0014 0015 0016 0017
-# (then a normal `supabase db push` will apply only 0018+ going forward)
+  0011 0012 0013 0014 0015 0016
 ```
 
-…or insert the rows directly:
+…or insert the rows directly (same caveat — list only what actually ran):
 
 ```sql
 insert into supabase_migrations.schema_migrations (version) values
   ('0001'),('0002'),('0003'),('0004'),('0005'),('0006'),('0007'),
   ('0008'),('0009'),('0010'),('0011'),('0012'),('0013'),('0014'),
-  ('0015'),('0016'),('0017')
+  ('0015'),('0016')
 on conflict do nothing;
+```
+
+**Security migrations 0017 + 0018 — RUN them, don't mark them.** Both
+carry `revoke … from public` hardening (0017: `bump_auth_attempt`; 0018:
+the `overnight_intraday_points` anon read). If you mark them "applied"
+without running them, the revoke never happens and the anonymous surface
+stays open. So leave them OUT of the repair list (let `db push` run them)
+or apply their SQL by hand — then verify:
+
+```sql
+-- bump_auth_attempt must NOT be PUBLIC/anon-executable:
+select has_function_privilege('anon',
+  'public.bump_auth_attempt(text,int,bigint)', 'execute');   -- expect: false
+-- the anon overnight-read policy must be gone:
+select count(*) from pg_policies
+  where tablename = 'overnight_intraday_points'
+    and policyname = 'anon_select_overnight_points';          -- expect: 0
 ```
 
 ## Going forward — pick ONE application path

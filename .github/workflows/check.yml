@@ -153,7 +153,7 @@ jobs:
           # comment instead of stacking another issue per push.
           existing=$(gh issue list --repo "${{ github.repository }}" \
             --label ci-failure --state open --limit 1 --json number \
-            --jq '.[0].number')
+            --jq '.[0].number // empty')
           body="❌ \`${{ github.workflow }}\` failed on \`main\` at commit \`${{ github.sha }}\`
           [View run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           if [ -n "$existing" ]; then

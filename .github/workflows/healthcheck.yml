@@ -76,7 +76,7 @@ jobs:
             --description "Production health check failing" 2>/dev/null || true
           existing=$(gh issue list --repo "${{ github.repository }}" \
             --label health-failure --state open --limit 1 --json number \
-            --jq '.[0].number')
+            --jq '.[0].number // empty')
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --repo "${{ github.repository }}" \
               --body "${{ steps.ping.outputs.body }}"
