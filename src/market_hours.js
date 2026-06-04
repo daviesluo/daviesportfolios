@@ -1,6 +1,7 @@
 // Date / market-time helpers. No external deps inside this repo —
-// everything goes through the platform's Intl. Split out of utils.js
-// so the header_sidebar clock + the chart-modal regular-close lookup
+// everything goes through the platform's Intl. Split out of the
+// since-retired utils.js barrel so the header_sidebar clock + the
+// chart-modal regular-close lookup
 // share one location instead of an undifferentiated 933-line module.
 
 // Returns { hh, mm, ss } of Europe/London right now. Used by the

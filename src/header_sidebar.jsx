@@ -126,9 +126,9 @@ function HeaderStatusPill({ lastUpdated, source, isRefreshing }) {
   );
 }
 
-// Hidden-values mask: imported from utils.js as `maskDigits`, aliased
-// to `mask` here so the original short name keeps reading naturally
-// inside the JSX.
+// Hidden-values mask: imported from formatters.js as `maskDigits`,
+// aliased to `mask` here so the original short name keeps reading
+// naturally inside the JSX.
 
 // Currency cycle for the mobile scoreboard. Order is USD → GBP → CNY,
 // wrapping back to USD. The user requested ephemeral state — every

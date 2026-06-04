@@ -1,7 +1,7 @@
 // Persisted-state layer. All `dp.*` localStorage rows live here so a
 // schema bump is a single migrate() step rather than scattered cache-
-// key renames. Imported by the rest of the app via `src/utils.js`
-// re-exports (history-compat) or directly from this module.
+// key renames. Imported directly by the modules that need it (the old
+// `utils.js` barrel that used to re-export it was retired in 2026-06).
 //
 // Chart-bulk caches (dp.tickerChart / dp.maCache / dp.ytd) moved out
 // to IndexedDB (src/chart_store.js) so localStorage now only carries

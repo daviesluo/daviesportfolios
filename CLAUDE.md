@@ -79,12 +79,20 @@ for the affected case so the YTD bugs (+80% / +21% / +9% misreports)
 can't quietly come back. Same rule applies to Edge Function helpers
 — extract the pure logic and pin it in `index.test.ts`.
 
+Note: `vitest` 4 runs the suite under its own bundled Vite (rolldown /
+oxc), which is a different major than the `vite@5` used by `npm run
+build`. That mismatch is the source of the harmless `esbuild option …
+deprecated, please use oxc` warnings at the top of a test run — tests
+and the prod bundle transpile through different pipelines, so a
+transpile-sensitive change is worth eyeballing in a real `npm run
+build` too, not just under vitest.
+
 ## Storage
 
 Persisted state lives under the `dp.*` namespace with a single schema
-version (`Utils.Storage.migrate()`). When the data shape changes, bump
-`CURRENT_SCHEMA_VERSION` in `src/utils.js` and add a migration step
-instead of inventing a new key.
+version (`Storage.migrate()` in `src/storage.js`). When the data shape
+changes, bump `CURRENT_SCHEMA_VERSION` in `src/storage.js` and add a
+migration step instead of inventing a new key.
 
 ## Codex / PR review
 
