@@ -64,7 +64,7 @@ export function latestErrorAt(summary) {
   if (!summary) return 0;
   // Prefer the unsliced, server-computed timestamp; bySymbol is the
   // top-100-by-count slice and can omit a newer one-off error.
-  const direct = Date.parse(summary.latestAt);
+  const direct = Date.parse(summary.latestAt ?? '');
   if (isFinite(direct)) return direct;
   const rows = Array.isArray(summary.bySymbol) ? summary.bySymbol : [];
   let max = 0;
@@ -108,7 +108,7 @@ export function OpsErrorBadge({ isReadOnly }) {
   const enabled = !isReadOnly && isDesktop;
 
   /** @type {[ Awaited<ReturnType<typeof fetchOpsErrorSummary>>, (s: any) => void ]} */
-  const [summary, setSummary] = React.useState(null);
+  const [summary, setSummary] = React.useState(/** @type {{ hours: number, total: number, byKind: any[], bySymbol: any[] } | null} */ (null));
   const [open, setOpen] = React.useState(false);
   // Single-flight guard so the periodic poll and an explicit open-click
   // don't race two concurrent fetches.

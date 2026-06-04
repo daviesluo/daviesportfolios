@@ -464,6 +464,7 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
   );
 }
 
+/** @param {{ label: string, hint?: string | null, children: any }} props */
 function FormRow({ label, hint = null, children }) {
   return (
     <label className="form-row">

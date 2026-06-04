@@ -82,7 +82,7 @@ function tileStyle(pct) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 function Heatmap({ metrics, extendedHours, onTileClick }) {
-  const canvasRef = React.useRef(null);
+  const canvasRef = React.useRef(/** @type {HTMLDivElement | null} */ (null));
   const [size, setSize] = React.useState({ w: 0, h: 0 });
 
   React.useEffect(() => {

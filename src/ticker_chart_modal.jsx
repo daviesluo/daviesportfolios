@@ -146,7 +146,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // SFTBY's bogus +8 % headline disappears.
   const hasExtendedBars = (typeof holding?.extPriceTrusted === 'boolean')
     ? holding.extPriceTrusted
-    : extPriceIsRealAh(series, extPriceLive, openMinsUtc, closeMinsUtc);
+    : extPriceIsRealAh(series || [], extPriceLive, openMinsUtc, closeMinsUtc);
   const liveLast = (
     (useExt && hasExtendedBars && typeof extPriceLive === 'number' && extPriceLive > 0)
       ? extPriceLive
@@ -526,8 +526,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         if (start < 0) return '';
         const segs = [];
         for (let i = start; i < maSeries.length; i++) {
-          if (maSeries[i] == null) continue;
-          segs.push(`${xOfIdx(i).toFixed(1)},${yOf(maSeries[i]).toFixed(1)}`);
+          const v = maSeries[i];
+          if (v == null) continue;
+          segs.push(`${xOfIdx(i).toFixed(1)},${yOf(v).toFixed(1)}`);
         }
         return segs.length >= 2 ? 'M' + segs.join('L') : '';
       })()
@@ -553,10 +554,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         let openSegment = false;
         let prevSession = '';
         for (let i = 0; i < vwapSeries.length; i++) {
-          if (vwapSeries[i] == null) { openSegment = false; continue; }
+          const v = vwapSeries[i];
+          if (v == null) { openSegment = false; continue; }
           const sk = sessionKeyOf(points[i].date);
           const cmd = (openSegment && sk === prevSession) ? 'L' : 'M';
-          out += `${cmd}${xOfIdx(i).toFixed(1)},${yOf(vwapSeries[i]).toFixed(1)}`;
+          out += `${cmd}${xOfIdx(i).toFixed(1)},${yOf(v).toFixed(1)}`;
           openSegment = true;
           prevSession = sk;
         }

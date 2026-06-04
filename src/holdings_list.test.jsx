@@ -31,13 +31,13 @@ describe('buildHoldingsRows', () => {
   it('flattens players, excludes cash, computes exposure / cost / unrl', () => {
     const rows = buildHoldingsRows(METRICS, { NVDA: 'NVIDIA Corporation' });
     expect(rows.map(r => r.ticker).sort()).toEqual(['AAPL', 'MSTR', 'NVDA']); // no CASH
-    const nvda = rows.find(r => r.ticker === 'NVDA');
+    const nvda = /** @type {any} */ (rows.find(r => r.ticker === 'NVDA'));
     expect(nvda.exposure).toBeCloseTo(60, 4);      // 6000 / 10000
     expect(nvda.costBasis).toBeCloseTo(5000, 4);   // 50 * 100 * 1
     expect(nvda.unrlGL).toBeCloseTo(1000, 4);      // 6000 - 5000
     expect(nvda.unrlPct).toBeCloseTo(20, 4);       // 1000 / 5000
     expect(nvda.name).toBe('NVIDIA Corporation');
-    expect(rows.find(r => r.ticker === 'AAPL').name).toBe('--'); // not in the map
+    expect(/** @type {any} */ (rows.find(r => r.ticker === 'AAPL')).name).toBe('--'); // not in the map
   });
 
   it('handles empty / missing metrics', () => {

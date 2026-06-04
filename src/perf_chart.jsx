@@ -117,7 +117,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   // to track futures pricing. The legend label flips to
   // "S&P 500 FUTURES" to match.
   const spSymbol = (rangeKey === '1D' && extendedHours) ? 'ES=F' : '^GSPC';
-  const [hist,    setHist]    = React.useState(null);
+  const [hist,    setHist]    = React.useState(/** @type {Record<string, any[]> | null} */ (null));
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState(false);
 
@@ -373,7 +373,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   // closed-market mode the data spans yesterday, and using "today"
   // would empty the window. For daily ranges we still filter by the
   // calendar cutoff.
-  const allSpRaw = (hist[spSymbol] || [])
+  const allSpRaw = (hist?.[spSymbol] || [])
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date));
   // 1D session-window filter:
@@ -429,7 +429,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     if (!bestKey || bestLen < 2) {
       return renderShell(<div className="sparkline-empty dim mono">No data for this range</div>, rangeKey, setRangeKey);
     }
-    const fallbackSeries = (hist[bestKey] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+    const fallbackSeries = (hist?.[bestKey] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
     spWindow = rangeKey === '1D' ? fallbackSeries : fallbackSeries.filter(p => p.date >= anchorDate);
   }
   const yearStartDate = spWindow[0].date;
@@ -491,7 +491,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 
   /** @type {Record<string, {date:string,close:number}[]>} */
   const histForTickers = {};
-  for (const t of tickers) histForTickers[t] = hist[t] || [];
+  for (const t of tickers) histForTickers[t] = hist?.[t] || [];
   const tickerSeries = buildTickerSeries(histForTickers, anchorDate, rangeKey, tickerMarketData, useExt);
 
   const liveAnchorDate = spWindow[spWindow.length - 1].date;
