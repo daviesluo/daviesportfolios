@@ -69,14 +69,14 @@ describe('reportError dedup', () => {
   it('drops the call when kind is empty', async () => {
     const reportError = await loadReportError();
     reportError('', { symbol: 'NVDA' });
-    reportError(undefined, { symbol: 'NVDA' });
+    reportError(/** @type {any} */ (undefined), { symbol: 'NVDA' });
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
   it('drops the call when no admin token is available (pre-auth render crash)', async () => {
     // getAppToken returns null — simulates the window between mount
     // and the user's pwd round-trip completing.
-    const reportError = await loadReportError(null);
+    const reportError = await loadReportError(/** @type {any} */ (null));
     reportError('render.crash', { symbol: 'NVDA', message: 'pre-auth crash' });
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });

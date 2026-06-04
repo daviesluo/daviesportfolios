@@ -25,6 +25,8 @@
 //   APP_AUTH_SECRET   — long random string used to sign tokens
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected.
 
+import { reportServerError } from "../_shared/ops.ts";
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -171,28 +173,7 @@ async function clearAttempts(ip: string): Promise<void> {
 // the admin ⚠ badge surfaces, instead of a silent 500 the user only
 // notices when the page UX visibly breaks. 3 s timeout + swallowed
 // failure: observability must never make a real error worse.
-async function reportServerError(
-  kind: string,
-  opts: { message?: string; symbol?: string; context?: unknown } = {},
-): Promise<void> {
-  if (!SUPABASE_URL || !SERVICE_KEY) return;
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/ops_errors`, {
-      method: "POST",
-      headers: { ...SB_HEADERS, "Prefer": "return=minimal" },
-      body: JSON.stringify({
-        kind,
-        symbol: opts.symbol ?? null,
-        message: opts.message ? opts.message.slice(0, 512) : null,
-        context: opts.context ?? null,
-        ip: "edge",
-      }),
-      signal: AbortSignal.timeout(3_000),
-    });
-  } catch (e) {
-    console.error("reportServerError failed:", String(e));
-  }
-}
+// reportServerError now lives in ../_shared/ops.ts (imported above).
 
 // Guarded so tests can import the helpers above without spinning up
 // the server. Supabase's runtime executes index.ts as the entry

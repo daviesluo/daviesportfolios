@@ -26,7 +26,7 @@
 
 import { fetchHistoricalBatch } from './historical.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
-import { fetchParamsFor, maFetchParamsFor, filterToLatestDay, filterToLast24h, RANGE_KEYS } from './ytd.js';
+import { fetchParamsFor, maFetchParamsFor, applyVariantFilter, RANGE_KEYS } from './ytd.js';
 import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh, hasAnyNumericField } from './cache.js';
 import { isDailyOnly } from './ticker_class.js';
 import { priceDividedByTtmEps } from './indicators.js';
@@ -176,16 +176,14 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     const now = Date.now();
     for (const s of meta.stale) {
       let data = batch[s];
-      if (data && meta.params.variant === 'closed') data = filterToLatestDay(data);
-      else if (data && (meta.params.variant === 'reg' || meta.params.variant === 'ext')) data = filterToLast24h(data);
+      data = applyVariantFilter(data, meta.params.variant);
       if (data) {
         YtdStore.set(meta.ytdKey(s), { ts: now, data });
       }
     }
     for (const t of modalSymbols) {
       let data = batch[t];
-      if (data && meta.params.variant === 'closed') data = filterToLatestDay(data);
-      else if (data && (meta.params.variant === 'reg' || meta.params.variant === 'ext')) data = filterToLast24h(data);
+      data = applyVariantFilter(data, meta.params.variant);
       if (data && data.length >= 2) {
         ChartStore.set(meta.tickerKey(t), { ts: now, data });
       }

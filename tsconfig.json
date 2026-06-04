@@ -22,10 +22,13 @@
     "resolveJsonModule": true,
 
     // Loose enough that vanilla JS without explicit JSDoc passes; tighten
-    // these as more files get annotated.
+    // these as more files get annotated. strictNullChecks is ON — the
+    // null/undefined-bug class is worth the JSDoc annotations on the
+    // `useState(null)` slots (see app.jsx / perf_chart.jsx). The rest
+    // stay loose until more files carry explicit types.
     "strict": false,
     "noImplicitAny": false,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "noImplicitThis": false,
     "alwaysStrict": false,
 

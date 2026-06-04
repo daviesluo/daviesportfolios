@@ -133,6 +133,21 @@ export function filterToLatestDay(points) {
   return points.filter(p => p.date.startsWith(lastDate));
 }
 
+// Apply the 1D fetch-variant's display window to a fetched series:
+//   'closed' → trim to the latest available trading day
+//   'reg' / 'ext' → trim to the trailing 24 h
+//   anything else (daily ranges) → unchanged
+// Single source for the if/else-if that was inlined identically at 8
+// call sites across perf_chart.jsx, use_ticker_chart_data.js, and
+// prefetch.js. Falsy `data` passes straight through so callers don't
+// each need their own `data &&` guard.
+export function applyVariantFilter(data, variant) {
+  if (!data) return data;
+  if (variant === 'closed') return filterToLatestDay(data);
+  if (variant === 'reg' || variant === 'ext') return filterToLast24h(data);
+  return data;
+}
+
 /** Computes the date string the chart's leftmost edge should sit at, given
  *  a range. For 1D the anchor is "now" so we use today's date with the
  *  earliest practical timestamp; for daily ranges it's a pure YYYY-MM-DD. */

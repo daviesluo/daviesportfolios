@@ -87,9 +87,9 @@ vi.mock('./auth.js', async () => {
   const actual = await vi.importActual('./auth.js');
   return {
     ...actual,
-    // Default: no token → password gate. Individual tests override
-    // by stubbing sessionStorage directly.
-    collectPassword: vi.fn(() => null),
+    // Default: no token + no URL pwd → the in-page password form renders.
+    // Individual tests override by stubbing sessionStorage directly.
+    consumeUrlPassword: vi.fn(() => null),
     authenticate: vi.fn(() => Promise.resolve({ ok: false })),
   };
 });

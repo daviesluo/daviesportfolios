@@ -30,20 +30,21 @@ export function setAppToken(t) {
   else   sessionStorage.removeItem(APP_TOKEN_KEY);
 }
 
-// Synchronous: collect the password and clean up the URL bar. Returns the
-// raw string the user supplied, or null if they cancelled the prompt.
-export function collectPassword() {
+// Synchronous: pull the `?pwd=` out of the URL and strip it from history
+// (so it never lingers in the browser bar / back-stack), returning the raw
+// password or null when absent. The old collectPassword() also popped a
+// raw `window.prompt` when there was no URL pwd — that's gone; App now
+// renders a themed in-page password form instead (the native prompt over a
+// blank page was jarring, unstyled, and especially clunky in the iOS PWA).
+export function consumeUrlPassword() {
   const params = new URLSearchParams(window.location.search);
   const urlPwd = params.get("pwd");
-  if (urlPwd != null) {
-    params.delete("pwd");
-    const newSearch = params.toString();
-    history.replaceState(null, "",
-      window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
-    return urlPwd;
-  }
-  const typed = window.prompt("Enter password:");
-  return typed; // may be null if user cancels
+  if (urlPwd == null) return null;
+  params.delete("pwd");
+  const newSearch = params.toString();
+  history.replaceState(null, "",
+    window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
+  return urlPwd;
 }
 
 // Decode the HMAC-signed token's payload WITHOUT verifying the signature

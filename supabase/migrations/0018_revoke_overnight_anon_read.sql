@@ -1,0 +1,28 @@
+-- Close the holdings-enumeration leak on overnight_intraday_points.
+--
+-- 0015 granted `anon, authenticated` SELECT on this table on the
+-- reasoning that "the table only holds price snapshots". But each row's
+-- `ticker` reveals a symbol the owner holds, and the anon key ships in
+-- the public client bundle (src/supabase_config.js) — so anyone could
+--
+--     GET /rest/v1/overnight_intraday_points?select=ticker
+--
+-- and enumerate the portfolio's US-equity tickers directly via
+-- PostgREST, side-stepping the HMAC-token-gated Edge Functions the rest
+-- of the app deliberately routes holdings through (the `trading212`
+-- function's own comment calls holdings PII for exactly this reason).
+--
+-- The `overnight-fetch` Edge Function reads this table with the
+-- SERVICE-ROLE key (see overnight-fetch/index.ts — `apikey: SERVICE_KEY`),
+-- which bypasses RLS, so dropping the anon policy does NOT affect it.
+-- Writes were already service-role-only (no INSERT/UPDATE/DELETE policy).
+--
+-- After this migration: RLS stays enabled with NO anon/authenticated
+-- policy, so PostgREST denies direct anon reads; only the service-role
+-- Edge Function can read the table. (overnight-fetch additionally gains
+-- an HMAC `x-app-token` gate in this same PR so it can't be used as a
+-- per-ticker membership oracle either.)
+--
+-- Apply via Supabase SQL Editor (or the migrations workflow).
+
+drop policy if exists "anon_select_overnight_points" on public.overnight_intraday_points;

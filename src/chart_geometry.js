@@ -151,3 +151,36 @@ export function pointsToSvgPath(items, xFn, yFn) {
   if (segs.length === 0) return '';
   return 'M' + segs.join('L');
 }
+
+// Parse a chart-series date string to a Date. Intraday bars are
+// `YYYY-MM-DDTHH:MM` (16 chars, no zone) and must be read as UTC — an
+// explicit `Z` is appended so they don't render an hour off for
+// non-UTC users; daily `YYYY-MM-DD` and anything else go straight to
+// `new Date`. Single source for what perf_chart + ticker_chart_modal
+// both used to define inline (byte-identical) as parsePerfDate /
+// parseChartDate.
+export function parseChartDateUTC(d) {
+  if (typeof d !== 'string') return new Date(d);
+  if (d.length === 16 && d[10] === 'T') return new Date(d + 'Z');
+  return new Date(d);
+}
+
+// Index of the bar sitting at exactly the regular-session close
+// (closeHh:closeMm UTC = 20:00 EDT / 21:00 EST), searching backwards
+// from the newest bar. STRICT equality only — a looser `hh < closeHh`
+// fallback would match a post-midnight premarket bar and pin the close
+// anchor / CLOSE marker to the wrong session (the bug both charts'
+// inline comments warned about). Returns -1 when no bar matches, so the
+// caller can fall back to lastPrice. Single source for the backward walk
+// perf_chart.jsx (×2) and ticker_chart_modal.jsx had inlined.
+export function findRegularCloseIdx(series, mh) {
+  if (!Array.isArray(series) || !mh) return -1;
+  for (let i = series.length - 1; i >= 0; i--) {
+    const d = series[i] && series[i].date;
+    if (typeof d !== 'string' || d.length < 16) continue;
+    const hh = parseInt(d.slice(11, 13), 10);
+    const mm = parseInt(d.slice(14, 16), 10);
+    if (hh === mh.closeHh && mm === mh.closeMm) return i;
+  }
+  return -1;
+}

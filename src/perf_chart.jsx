@@ -20,10 +20,9 @@ import {
   RANGE_KEYS,
   anchorDateFor,
   fetchParamsFor,
-  filterToLatestDay,
-  filterToLast24h,
+  applyVariantFilter,
 } from './ytd.js';
-import { pointerToDataIndex } from './chart_geometry.js';
+import { pointerToDataIndex, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
 import { reportError } from './ops_error.js';
 
 // Tiny placeholder shell so the loading / error / range-button row
@@ -99,14 +98,6 @@ function savePerfCache(year, rangeKey, entries) {
   }
 }
 
-// Parse a chart date string. Intraday strings come in as
-// "YYYY-MM-DDTHH:MM" UTC without a Z; without that suffix `new Date`
-// reads them as local. Append Z for the truncated UTC shape.
-function parsePerfDate(d) {
-  if (typeof d !== 'string') return new Date(d);
-  if (d.length === 16 && d[10] === 'T') return new Date(d + 'Z');
-  return new Date(d);
-}
 
 // YTD performance chart: portfolio % return vs S&P 500, computed from
 // per-lot purchase history + historical closes (Yahoo Finance),
@@ -126,7 +117,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   // to track futures pricing. The legend label flips to
   // "S&P 500 FUTURES" to match.
   const spSymbol = (rangeKey === '1D' && extendedHours) ? 'ES=F' : '^GSPC';
-  const [hist,    setHist]    = React.useState(null);
+  const [hist,    setHist]    = React.useState(/** @type {Record<string, any[]> | null} */ (null));
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState(false);
 
@@ -208,8 +199,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       const now = Date.now();
       for (const s of stale) {
         let data = batch[s];
-        if (data && params.variant === 'closed') data = filterToLatestDay(data);
-        else if (data && (params.variant === 'reg' || params.variant === 'ext')) data = filterToLast24h(data);
+        data = applyVariantFilter(data, params.variant);
         if (data) {
           merged[s] = data;
           newEntries[s] = { ts: now, data };
@@ -306,8 +296,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
         const now = Date.now();
         for (const s of stale) {
           let data = batch[s];
-          if (data && params.variant === 'closed') data = filterToLatestDay(data);
-          else if (data && (params.variant === 'reg' || params.variant === 'ext')) data = filterToLast24h(data);
+          data = applyVariantFilter(data, params.variant);
           if (data) newEntries[s] = { ts: now, data };
         }
         savePerfCache(year, cacheKey, newEntries);
@@ -384,7 +373,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   // closed-market mode the data spans yesterday, and using "today"
   // would empty the window. For daily ranges we still filter by the
   // calendar cutoff.
-  const allSpRaw = (hist[spSymbol] || [])
+  const allSpRaw = (hist?.[spSymbol] || [])
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date));
   // 1D session-window filter:
@@ -440,7 +429,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     if (!bestKey || bestLen < 2) {
       return renderShell(<div className="sparkline-empty dim mono">No data for this range</div>, rangeKey, setRangeKey);
     }
-    const fallbackSeries = (hist[bestKey] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+    const fallbackSeries = (hist?.[bestKey] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
     spWindow = rangeKey === '1D' ? fallbackSeries : fallbackSeries.filter(p => p.date >= anchorDate);
   }
   const yearStartDate = spWindow[0].date;
@@ -482,16 +471,9 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   let spBase;
   if (rangeKey === '1D') {
     if (useExt) {
-      let closeIdx = -1;
-      for (let i = spWindow.length - 1; i >= 0; i--) {
-        const d = spWindow[i].date;
-        if (d.length < 16) continue;
-        const hh = parseInt(d.slice(11, 13), 10);
-        const mm = parseInt(d.slice(14, 16), 10);
-        // Strict closeHh:closeMm match — see the marker block below for
-        // why a hh<closeHh fallback would mis-select a premarket bar.
-        if (hh === mh.closeHh && mm === mh.closeMm) { closeIdx = i; break; }
-      }
+      // Bar at the regular close (strict closeHh:closeMm — a hh<closeHh
+      // fallback would mis-select a premarket bar; see findRegularCloseIdx).
+      const closeIdx = findRegularCloseIdx(spWindow, mh);
       const gspc = marketData?.['^GSPC'];
       spBase = closeIdx >= 0
         ? spWindow[closeIdx].close
@@ -509,7 +491,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 
   /** @type {Record<string, {date:string,close:number}[]>} */
   const histForTickers = {};
-  for (const t of tickers) histForTickers[t] = hist[t] || [];
+  for (const t of tickers) histForTickers[t] = hist?.[t] || [];
   const tickerSeries = buildTickerSeries(histForTickers, anchorDate, rangeKey, tickerMarketData, useExt);
 
   const liveAnchorDate = spWindow[spWindow.length - 1].date;
@@ -604,7 +586,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       const dateStr = portNorm[safeIdx].date;
       const x = padL + (safeIdx / denom) * cW;
       if (x < padL + 10 || x > W - padR - 8) continue;
-      const d = parsePerfDate(dateStr);
+      const d = parseChartDateUTC(dateStr);
       let label;
       if (rangeKey === '1D') {
         label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -651,7 +633,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const portByIdx = portNorm;
   const spByIdx   = spNorm.length === portNorm.length ? spNorm : null; // aligned in 1D / YTD
   const fmtCrosshairDate = (dateStr) => {
-    const d = parsePerfDate(dateStr);
+    const d = parseChartDateUTC(dateStr);
     if (rangeKey === '1D') {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
@@ -821,17 +803,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
           // Falls through to the latest bar strictly before close if
           // the exact-close bar is missing.
           if (variantKey === 'ext') {
-            for (let i = spYtd.length - 1; i >= 0; i--) {
-              const d = spYtd[i].date;
-              if (d.length < 16) continue;
-              const hh = parseInt(d.slice(11, 13), 10);
-              const mm = parseInt(d.slice(14, 16), 10);
-              // Strict closeHh:closeMm match. A looser hh<closeHh
-              // fallback matches premarket bars after midnight UTC, so
-              // the CLOSE marker would jump onto a 9:30 ET premarket
-              // bar instead of yesterday's actual 16:00 ET close.
-              if (hh === mh.closeHh && mm === mh.closeMm) { closeIdx = i; break; }
-            }
+            closeIdx = findRegularCloseIdx(spYtd, mh);
           }
           const renderMarker = (idx, label) => {
             if (idx < 0) return null;
