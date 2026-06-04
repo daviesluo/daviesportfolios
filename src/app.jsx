@@ -929,8 +929,6 @@ function Board({ isReadOnly }) {
             }}
             onUpdatePosition={updatePosition}
             onSwapPositions={swapPositions}
-            isRefreshing={isRefreshing}
-            recentlyUpdated={recentlyUpdated}
             hideValues={hideValues}
           />
         )}

@@ -9,7 +9,7 @@ import {
 } from './formatters.js';
 import { POSITION_COORDS } from './positions.js';
 
-function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpenPosition, onAddToPosition, onUpdatePosition, onSwapPositions, isRefreshing, recentlyUpdated, hideValues }) {
+function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpenPosition, onAddToPosition, onUpdatePosition, onSwapPositions, hideValues }) {
   const coords = POSITION_COORDS;
 
   // Edit-mode drag-to-swap. Pointer Events (mouse + touch) rather than
@@ -107,8 +107,6 @@ function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTi
               onOpen={() => onOpenPosition(k)}
               onAdd={() => onAddToPosition(k)}
               onUpdatePosition={(patch) => onUpdatePosition(k, patch)}
-              isRefreshing={isRefreshing}
-              recentlyUpdated={recentlyUpdated}
               hideValues={hideValues}
             />
           );
@@ -179,7 +177,7 @@ function PitchLines() {
   );
 }
 
-function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, dragEnabled, onDragStart, clickGuardRef, onOpen, onAdd, onUpdatePosition, isRefreshing, recentlyUpdated, hideValues }) {
+function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, dragEnabled, onDragStart, clickGuardRef, onOpen, onAdd, onUpdatePosition, hideValues }) {
   const hasPlayers = position.players.length > 0;
   const pctClass = position.dayPct > 0 ? "gain" : position.dayPct < 0 ? "loss" : "flat";
 
@@ -194,9 +192,6 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
     onUpdatePosition && onUpdatePosition({ subtitle: v.trim() });
     setEditingName(false);
   };
-
-  // Show per-chip status overlay during refresh / just after
-  const statusOverlay = isRefreshing ? "refreshing" : recentlyUpdated ? "updated" : null;
 
   return (
     <div
@@ -278,16 +273,6 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
           title="Add ticker to this position"
         >+</button>
       )}
-
-      {statusOverlay && false && (
-        <div className={`chip-status ${statusOverlay}`}>
-          {statusOverlay === "refreshing" ? (
-            <><span className="chip-status-spinner" /> Refreshing…</>
-          ) : (
-            <>✓ Updated</>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -300,11 +285,12 @@ function Ball({ coord, ticker }) {
   );
 }
 
-// NB: deliberately NOT React.memo'd. Pitch takes `isRefreshing` +
-// `recentlyUpdated`, both of which flip on every refresh tick (the
-// shimmer + the flash), so the component re-renders each tick by
-// design — a memo wrapper would compare-then-render-anyway, paying
-// the shallow-compare cost for no skipped render. The Heatmap (which
-// has none of those per-tick props) is the one that benefits from
-// memo; see heatmap.jsx.
+// NB: deliberately NOT React.memo'd. Pitch takes `metrics` (rebuilt by
+// app.jsx's useMemo on every price tick) + `flashTickers` (the flash
+// map, repopulated each refresh) + fresh inline `onOpenPosition` /
+// `onAddToPosition` closures, so at least one prop changes identity
+// every tick by design — a memo wrapper would compare-then-render-
+// anyway, paying the shallow-compare cost for no skipped render. The
+// Heatmap (which has none of those per-tick props) is the one that
+// benefits from memo; see heatmap.jsx.
 export { Pitch };
