@@ -225,6 +225,8 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
   const prevMetrics = React.useRef(null);
   /** @type {[Record<string, 'up' | 'down'>, (f: Record<string, 'up' | 'down'>) => void]} */
   const [sbFlash, setSbFlash] = React.useState({});
+  /** @type {React.MutableRefObject<ReturnType<typeof setTimeout> | null>} */
+  const sbFlashTimerRef = React.useRef(null);
   React.useEffect(() => {
     if (!prevMetrics.current) { prevMetrics.current = metrics; return; }
     const prev = prevMetrics.current;
@@ -240,9 +242,14 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
     prevMetrics.current = metrics;
     if (Object.keys(f).length) {
       setSbFlash(f);
-      setTimeout(() => setSbFlash({}), 1400);
+      if (sbFlashTimerRef.current) clearTimeout(sbFlashTimerRef.current);
+      sbFlashTimerRef.current = setTimeout(() => setSbFlash({}), 1400);
     }
   }, [metrics]);
+  // Clear a pending scoreboard-flash reset if Header unmounts mid-window.
+  React.useEffect(() => () => {
+    if (sbFlashTimerRef.current) clearTimeout(sbFlashTimerRef.current);
+  }, []);
 
   // FX badge — surface any holding whose native-USD conversion fell
   // back to 1:1 this tick (the FX pair for its currency was missing
@@ -402,18 +409,24 @@ function HeaderMenu({ onOpenHoldingsList }) {
 
 
 function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues }) {
-  // top movers: by |dayPct|, both winners and losers, split
-  const allPlayers = [];
-  for (const pos of Object.values(metrics.positions)) {
-    for (const p of pos.players) allPlayers.push({ ...p, pos: pos.label });
-  }
-  const movable = allPlayers.filter(p => !p.isCash && p.ticker !== "CASH");
-  const winners = [...movable].sort((a, b) => (b.dayPct ?? 0) - (a.dayPct ?? 0)).slice(0, 5);
-  const losers  = [...movable].sort((a, b) => (a.dayPct ?? 0) - (b.dayPct ?? 0)).slice(0, 5);
-
-  const positionList = Object.entries(metrics.positions)
-    .filter(([_, p]) => p.players.length > 0)
-    .sort(([, a], [, b]) => b.marketValue - a.marketValue);
+  // Top movers (winners / losers by dayPct) + the by-value position
+  // list. Memoised on metrics so the per-tick refresh churn (clock,
+  // flash) doesn't re-flatten every position's players and re-sort the
+  // book three times on every render.
+  const { winners, losers, positionList } = React.useMemo(() => {
+    const allPlayers = [];
+    for (const pos of Object.values(metrics.positions)) {
+      for (const p of pos.players) allPlayers.push({ ...p, pos: pos.label });
+    }
+    const movable = allPlayers.filter(p => !p.isCash && p.ticker !== "CASH");
+    return {
+      winners: [...movable].sort((a, b) => (b.dayPct ?? 0) - (a.dayPct ?? 0)).slice(0, 5),
+      losers:  [...movable].sort((a, b) => (a.dayPct ?? 0) - (b.dayPct ?? 0)).slice(0, 5),
+      positionList: Object.entries(metrics.positions)
+        .filter(([_, p]) => p.players.length > 0)
+        .sort(([, a], [, b]) => b.marketValue - a.marketValue),
+    };
+  }, [metrics]);
 
   return (
     <aside className="sidebar">
@@ -651,11 +664,11 @@ function MarketConditions({ marketData, extendedHours, phase, className = '', on
               <span className="mono dim mc-card-ticker" style={{ fontSize: '10px' }}>{activeTicker}</span>
             </div>
             <div className="mc-price-row">
-              <div className="mc-price mono" style={ticker === "^VIX" && price != null ? { color: vixRegime(price).color } : {}}>
+              <div className="mc-price mono" style={ticker === "^VIX" && price != null ? { color: vixRegime(price)?.color } : {}}>
                 {fmtMcPrice(price, ticker)}
               </div>
               {ticker === "^VIX" && price != null && (
-                <span className="mc-vix-regime mono" style={{ color: vixRegime(price).color }}>{vixRegime(price).label}</span>
+                <span className="mc-vix-regime mono" style={{ color: vixRegime(price)?.color }}>{vixRegime(price)?.label}</span>
               )}
             </div>
             <div className="mc-footer">

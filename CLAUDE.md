@@ -58,8 +58,14 @@ the function's pure helpers from `index.test.ts` would bind a port.
 
 ## Testing
 
-- `npm run typecheck` — tsc with `checkJs`, no type errors should slip through.
-- `npm test` — vitest. ~200 cases covering: YTD chart math, fetch /
+- `npm run typecheck` — tsc with `checkJs` + `strictNullChecks`, no type
+  errors should slip through. The `useState(null)` / `useRef(null)` slots
+  carry JSDoc `@type` annotations; keep new ones annotated.
+- `npm run lint` — ESLint (flat config, `eslint.config.js`). A bug gate,
+  not a formatter: errors on `react-hooks/rules-of-hooks`, warns on
+  `exhaustive-deps` (a few effects intentionally narrow their deps). Runs
+  in CI between typecheck and test.
+- `npm test` — vitest. ~400 cases covering: YTD chart math, fetch /
   proxy strategy, ticker-shape predicates, cache TTL + LRU, per-proxy
   backoff, market-cache + legacy fallback, SW banner suppression
   window, ops-badge desktop gate, portfolio user-fingerprint diffing,

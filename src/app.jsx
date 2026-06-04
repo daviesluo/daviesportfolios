@@ -10,7 +10,7 @@ import { usMarketPhase, usMarketHoursUtc, isWeekendDeadZone } from './market_hou
 import { Storage } from './storage.js';
 import { POSITION_COORDS } from './positions.js';
 import { INITIAL_PORTFOLIO } from './data.js';
-import { collectPassword, decodeAppToken, getAppToken, authenticate } from './auth.js';
+import { consumeUrlPassword, decodeAppToken, getAppToken, authenticate } from './auth.js';
 import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL, TAB_ID } from './portfolio_remote.js';
 import { prefetchAllChartData } from './prefetch.js';
 import { hydrateAllChartStores } from './chart_store.js';
@@ -92,6 +92,40 @@ const PENDING_SAVE_KEY = 'dp.pendingSave';
 // mode opens an ES=F chart whose cache is cold.
 const MC_PREFETCH_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X", "USDHKD=X", "ES=F", "NQ=F", "RTY=F"];
 
+// Themed in-page password screen — replaces the old `window.prompt` over a
+// blank page (unstyled, off-theme, especially clunky in the iOS PWA). Same
+// dark monospace look as the AUTHENTICATING / ACCESS DENIED screens.
+// Autofocuses the field; Enter or the button submits the typed password.
+function PasswordPrompt({ onSubmit }) {
+  const [pw, setPw] = useState('');
+  /** @type {React.CSSProperties} */
+  const screen = { minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' };
+  /** @type {React.CSSProperties} */
+  const card = { display: 'flex', flexDirection: 'column', gap: '13px', width: '258px', padding: '34px 30px', border: '1px solid #2a2a2a', borderRadius: '4px' };
+  return (
+    <div style={screen}>
+      <form style={card} onSubmit={(e) => { e.preventDefault(); if (pw) onSubmit(pw); }}>
+        <div style={{ color: '#ccc', fontFamily: 'monospace', letterSpacing: '0.18em', fontSize: '13px', textAlign: 'center' }}>DAVIES&rsquo; PORTFOLIOS</div>
+        <div style={{ color: '#666', fontFamily: 'monospace', fontSize: '11px', textAlign: 'center', marginBottom: '3px' }}>Enter password to continue</div>
+        <input
+          type="password"
+          autoFocus
+          value={pw}
+          onChange={(e) => setPw(e.target.value)}
+          placeholder="Password"
+          aria-label="Password"
+          style={{ background: '#0f1815', color: '#eee', border: '1px solid #2a3a33', borderRadius: '3px', padding: '9px 11px', fontFamily: 'monospace', fontSize: '13px', outline: 'none' }}
+        />
+        <button
+          type="submit"
+          disabled={!pw}
+          style={{ background: pw ? '#1e3a30' : '#16211d', color: pw ? '#dfe9e4' : '#4a5a52', border: '1px solid #2e4a3e', borderRadius: '3px', padding: '9px', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.1em', cursor: pw ? 'pointer' : 'default' }}
+        >ENTER</button>
+      </form>
+    </div>
+  );
+}
+
 // Main app ---------------------------------------------------------------
 function App() {
   // Auth lifecycle:
@@ -109,32 +143,35 @@ function App() {
   const [bootState] = useState(() => {
     Storage.migrate();
     const existing = decodeAppToken(getAppToken());
+    // Consume + strip any ?pwd= either way so it never lingers in history.
+    const urlPwd = consumeUrlPassword();
     if (existing) {
-      // Still consume the URL ?pwd if present so it doesn't linger in
-      // browser history; we just don't need its result.
-      const params = new URLSearchParams(window.location.search);
-      if (params.has("pwd")) {
-        params.delete("pwd");
-        const newSearch = params.toString();
-        history.replaceState(null, "",
-          window.location.pathname + (newSearch ? "?" + newSearch : "") + window.location.hash);
-      }
       return { pwInput: null, initialAuth: { isReadOnly: existing.role === "ro" } };
     }
-    return { pwInput: collectPassword(), initialAuth: undefined };
+    // No token: authenticate the URL pwd if it was present, else null —
+    // which renders the themed password form, whose submit sets pwInput.
+    return { pwInput: urlPwd, initialAuth: undefined };
   });
-  const pwInput = bootState.pwInput;
-  const [auth, setAuth] = useState(bootState.initialAuth);
+  // pwInput is state now (was derived): the in-page password form sets it.
+  const [pwInput, setPwInput] = useState(bootState.pwInput);
+  const [auth, setAuth] = useState(/** @type {import('./types').AppAuth | undefined} */ (bootState.initialAuth));
 
   useEffect(() => {
     if (auth !== undefined) return;            // already authed via existing token
-    if (pwInput == null) { setAuth(null); return; }
+    if (pwInput == null) return;               // no password yet — waiting for the form
     let cancelled = false;
-    authenticate(pwInput).then(result => {
-      if (!cancelled) setAuth(result);
-    });
+    authenticate(pwInput)
+      .then(result => { if (!cancelled) setAuth(result); })
+      // A rejection (network blip on the auth call) shouldn't leave the UI
+      // stuck on AUTHENTICATING forever — fall through to ACCESS DENIED.
+      .catch(() => { if (!cancelled) setAuth(null); });
     return () => { cancelled = true; };
   }, [pwInput, auth]);
+
+  // No token, no URL password, nothing typed yet → themed login form.
+  if (auth === undefined && pwInput == null) {
+    return <PasswordPrompt onSubmit={(pw) => setPwInput(pw)} />;
+  }
 
   if (auth === undefined) {
     return (
@@ -145,7 +182,7 @@ function App() {
   }
 
   if (auth && auth.locked) {
-    const hoursLeft = Math.ceil((auth.lockUntil - Date.now()) / 1000 / 60 / 60);
+    const hoursLeft = Math.ceil(((auth.lockUntil ?? 0) - Date.now()) / 1000 / 60 / 60);
     return (
       <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' }}>
         <div style={{ textAlign: 'center', padding: '40px', border: '1px solid #2a2a2a', borderRadius: '4px' }}>
@@ -163,7 +200,7 @@ function App() {
         <div style={{ textAlign: 'center', padding: '40px', border: '1px solid #2a2a2a', borderRadius: '4px' }}>
           <div style={{ color: '#f55', fontFamily: 'monospace', letterSpacing: '0.2em', fontSize: '14px', marginBottom: '8px' }}>ACCESS DENIED</div>
           <div style={{ color: '#888', fontFamily: 'monospace', fontSize: '12px', marginBottom: '20px' }}>Incorrect password.</div>
-          <button style={{ background: '#1e2d28', color: '#ccc', border: '1px solid #3a3a3a', padding: '8px 20px', cursor: 'pointer', fontFamily: 'monospace', fontSize: '12px', borderRadius: '2px' }} onClick={() => window.location.reload()}>Try again</button>
+          <button style={{ background: '#1e2d28', color: '#ccc', border: '1px solid #3a3a3a', padding: '8px 20px', cursor: 'pointer', fontFamily: 'monospace', fontSize: '12px', borderRadius: '2px' }} onClick={() => { setAuth(undefined); setPwInput(null); }}>Try again</button>
         </div>
       </div>
     );
@@ -177,15 +214,15 @@ function App() {
 }
 
 function Board({ isReadOnly }) {
-  const [portfolio, setPortfolio] = useState(null);      // null = still loading
-  const [drillPos, setDrillPos] = useState(null);
+  const [portfolio, setPortfolio] = useState(/** @type {import('./types').Portfolio | null} */ (null));      // null = still loading
+  const [drillPos, setDrillPos] = useState(/** @type {string | null} */ (null));
   const [editMode, setEditMode] = useState(false);
-  const [editingTicker, setEditingTicker] = useState(null);
-  const [viewingTicker, setViewingTicker] = useState(null);
+  const [editingTicker, setEditingTicker] = useState(/** @type {string | null} */ (null));
+  const [viewingTicker, setViewingTicker] = useState(/** @type {string | null} */ (null));
   const [showHoldingsList, setShowHoldingsList] = useState(false);
-  const [addingToPos, setAddingToPos] = useState(null);
+  const [addingToPos, setAddingToPos] = useState(/** @type {string | null} */ (null));
   const [editingCash, setEditingCash] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(/** @type {Date | null} */ (null));
   const [source, setSource] = useState("—");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [recentlyUpdated, setRecentlyUpdated] = useState(false);
@@ -290,7 +327,23 @@ function Board({ isReadOnly }) {
   // snapshot back to the server is exactly how an edit made in
   // another tab gets silently reverted — fingerprint-equality
   // short-circuits the save when only ephemeral fields changed.
-  const lastSavedFingerprintRef = useRef(null);
+  const lastSavedFingerprintRef = useRef(/** @type {string | null} */ (null));
+  // Fire-and-forget UI timers (flash clear, recently-updated reset,
+  // error-retry). Tracked in refs so a refresh that lands inside the
+  // previous timer's window clears it first (no stacking / premature
+  // clears), and so none of them fire a setState after unmount. The
+  // effect below clears whatever is pending when the Board unmounts.
+  /** @type {React.MutableRefObject<ReturnType<typeof setTimeout> | null>} */
+  const flashTimerRef = useRef(null);
+  /** @type {React.MutableRefObject<ReturnType<typeof setTimeout> | null>} */
+  const recentTimerRef = useRef(null);
+  /** @type {React.MutableRefObject<ReturnType<typeof setTimeout> | null>} */
+  const errorRetryTimerRef = useRef(null);
+  useEffect(() => () => {
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+    if (recentTimerRef.current) clearTimeout(recentTimerRef.current);
+    if (errorRetryTimerRef.current) clearTimeout(errorRetryTimerRef.current);
+  }, []);
   useEffect(() => {
     if (!portfolio) return;
     if (isReadOnly) return;
@@ -407,6 +460,12 @@ function Board({ isReadOnly }) {
     const shouldPrefetch =
       opts && typeof opts === 'object' && opts.prefetch === false ? false : true;
     setIsRefreshing(true);
+    // try/finally so the spinner is always cleared — even if one of the
+    // awaited fetches below were to reject (they return error sentinels
+    // today, but a future throw shouldn't strand isRefreshing=true and
+    // wedge the Refresh button). Body indentation left as-is to keep
+    // this a minimal, reviewable diff.
+    try {
     // Parallel fetches:
     //   - live prices for portfolio holdings
     //   - live snapshots for the MC index/futures cards
@@ -542,7 +601,8 @@ function Board({ isReadOnly }) {
       }
       if (Object.keys(flashes).length) {
         setFlashTickers(flashes);
-        setTimeout(() => setFlashTickers({}), 1200);
+        if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+        flashTimerRef.current = setTimeout(() => setFlashTickers({}), 1200);
       }
       // Trading 212 overlays — both run AFTER the live-prices merge so
       // they see the Yahoo lastPrice/prevClose just set.
@@ -582,10 +642,10 @@ function Board({ isReadOnly }) {
     // spliced in instead of waiting on a still-in-flight fetch.
     await overnightPromise;
     setLastUpdated(new Date());
-    setIsRefreshing(false);
     if (src === "live") {
       setRecentlyUpdated(true);
-      setTimeout(() => setRecentlyUpdated(false), 1600);
+      if (recentTimerRef.current) clearTimeout(recentTimerRef.current);
+      recentTimerRef.current = setTimeout(() => setRecentlyUpdated(false), 1600);
       // Background prefetch every (range × ticker) chart payload after the
       // live-prices UI has settled. Fire-and-forget — the cache writes that
       // land before the user navigates away are still useful. Skipped on
@@ -623,7 +683,12 @@ function Board({ isReadOnly }) {
       }
     }
     if (src === "error") {
-      setTimeout(() => doRefreshRef.current(), 3000);
+      if (errorRetryTimerRef.current) clearTimeout(errorRetryTimerRef.current);
+      errorRetryTimerRef.current = setTimeout(() => doRefreshRef.current(), 3000);
+    }
+    } finally {
+      // Always clear the spinner, success or throw.
+      setIsRefreshing(false);
     }
   }, [portfolio, extendedHours]);
 
@@ -758,6 +823,51 @@ function Board({ isReadOnly }) {
     else setViewingTicker(t);
   }, [editMode, isReadOnly]);
 
+  // Derived board annotations — formation + the three "who's the
+  // captain / hot mover" scans. Memoised so the per-tick refresh churn
+  // (flash flips, the 1 Hz clock, isRefreshing) doesn't re-walk the
+  // whole holdings map / positions on every render — the same reason
+  // `metrics` above is memoised. Declared before the loading
+  // early-return so the hook slots stay unconditional; each guards for
+  // the null-portfolio / null-metrics case the early-return then
+  // handles.
+  const formation = useMemo(
+    () => (portfolio ? detectFormation(portfolio) : null),
+    [portfolio],
+  );
+  // Captain = single largest position by USD market value (native →
+  // USD so a CNY / GBP holding ranks correctly against USD ones).
+  const captainTicker = useMemo(() => {
+    if (!portfolio) return null;
+    let ticker = null, best = 0;
+    for (const [t, h] of Object.entries(portfolio.holdings)) {
+      const mv = h.shares * h.lastPrice * fxToUSD(h.currency, marketData);
+      if (mv > best) { best = mv; ticker = t; }
+    }
+    return ticker;
+  }, [portfolio, marketData]);
+  // Biggest individual mover — drives the hot-badge in drill modals.
+  const hotMoverTicker = useMemo(() => {
+    if (!portfolio) return null;
+    let ticker = null, best = 0;
+    for (const [t, h] of Object.entries(portfolio.holdings)) {
+      const abs = Math.abs(h.dayPct ?? 0);
+      if (abs > best) { best = abs; ticker = t; }
+    }
+    return ticker;
+  }, [portfolio]);
+  // Position (card) with the highest |dayPct| — where the ball sits.
+  const hotMoverPosKey = useMemo(() => {
+    if (!metrics) return null;
+    let key = null, best = 0;
+    for (const [k, pos] of Object.entries(metrics.positions)) {
+      if (!pos.players.length) continue;
+      const abs = Math.abs(pos.dayPct ?? 0);
+      if (abs > best) { best = abs; key = k; }
+    }
+    return key;
+  }, [metrics]);
+
   // FX-rate-missing is already surfaced by the red "FX MISSING N
   // tickers" pill in the header (see Header.jsx, populated from
   // metrics.fxMissingTickers). The user sees a missed FX pair
@@ -779,30 +889,6 @@ function Board({ isReadOnly }) {
     );
   }
 
-  const formation = detectFormation(portfolio);
-
-  // Captain is the single largest position by USD market value — convert native
-  // currency to USD so a CNY or GBP holding is ranked correctly against USD ones.
-  let captainTicker = null, captainMV = 0;
-  for (const [t, h] of Object.entries(portfolio.holdings)) {
-    const fx = fxToUSD(h.currency, marketData);
-    const mv = h.shares * h.lastPrice * fx;
-    if (mv > captainMV) { captainMV = mv; captainTicker = t; }
-  }
-  // hotMoverTicker: biggest individual mover, used for the hot-badge inside drill modals
-  let hotMoverTicker = null, hotTickAbs = 0;
-  for (const [t, h] of Object.entries(portfolio.holdings)) {
-    const abs = Math.abs(h.dayPct ?? 0);
-    if (abs > hotTickAbs) { hotTickAbs = abs; hotMoverTicker = t; }
-  }
-  // hotMoverPosKey: position (card) with the highest |dayPct| — determines where the ball sits
-  let hotMoverPosKey = null, hotPosAbs = 0;
-  for (const [k, pos] of Object.entries(metrics.positions)) {
-    if (!pos.players.length) continue;
-    const abs = Math.abs(pos.dayPct ?? 0);
-    if (abs > hotPosAbs) { hotPosAbs = abs; hotMoverPosKey = k; }
-  }
-
   // Edit handlers — extracted to portfolio_edits.js (app.jsx was past
   // 1100 lines). Created per render, same as before: they close over
   // the stable `setPortfolio` and the current `isReadOnly` (each is a
@@ -821,6 +907,8 @@ function Board({ isReadOnly }) {
   const onResetDemo = () => {
     if (!window.confirm("Reset to an empty board? The demo positions will be replaced with a blank pitch (just the Cash slot kept).")) return;
     setPortfolio((p) => {
+      if (!p) return p;
+      /** @type {Record<string, any>} */
       const positions = {};
       for (const [k, pos] of Object.entries(p.positions)) {
         positions[k] = { ...pos, tickers: k === 'GK' ? ['CASH'] : [] };
@@ -831,11 +919,12 @@ function Board({ isReadOnly }) {
           CASH: { shares: 1, cost: 0, lastPrice: 0, prevClose: 0, dayPct: 0, isCash: true, currency: 'USD' },
         },
       };
-      return next; // _isDemo dropped
+      return /** @type {import('./types').Portfolio} */ (next); // _isDemo dropped
     });
   };
   const onKeepDemo = () => {
     setPortfolio((p) => {
+      if (!p) return p;
       const next = { ...p };
       delete next._isDemo;
       return next;
@@ -1033,17 +1122,20 @@ function Board({ isReadOnly }) {
           amount={portfolio.holdings.CASH ? portfolio.holdings.CASH.lastPrice : 0}
           onClose={() => setEditingCash(false)}
           onSave={(amt) => {
-            setPortfolio(p => ({
-              ...p,
-              holdings: {
-                ...p.holdings,
-                CASH: { shares: 1, cost: amt, lastPrice: amt, prevClose: amt, dayPct: 0, isCash: true },
-              },
-              positions: {
-                ...p.positions,
-                GK: { ...p.positions.GK, tickers: ["CASH"] },
-              },
-            }));
+            setPortfolio(p => {
+              if (!p) return p;
+              return {
+                ...p,
+                holdings: {
+                  ...p.holdings,
+                  CASH: { shares: 1, cost: amt, lastPrice: amt, prevClose: amt, dayPct: 0, isCash: true, currency: /** @type {const} */ ('USD') },
+                },
+                positions: {
+                  ...p.positions,
+                  GK: { ...p.positions.GK, tickers: ["CASH"] },
+                },
+              };
+            });
             setEditingCash(false);
           }}
         />

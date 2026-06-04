@@ -5,6 +5,8 @@
 // Returns a unified shape: { lastPrice, extPrice, prevClose, dayPct, extDayPct }
 // Call: GET /functions/v1/prices?tickers=NVDA,017731,GBPUSD=X
 
+import { reportServerError } from "../_shared/ops.ts";
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -214,33 +216,7 @@ function fetchPrice(ticker: string): Promise<PriceResult | null> {
 // denies anon). Used by the top-level try/catch wrap so a runtime
 // crash here becomes a row the admin ⚠ badge surfaces instead of a
 // silent 500. Best-effort: never throws.
-async function reportServerError(
-  kind: string,
-  opts: { message?: string; symbol?: string; context?: unknown } = {},
-): Promise<void> {
-  if (!SUPABASE_URL || !SERVICE_KEY) return;
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/ops_errors`, {
-      method: "POST",
-      headers: {
-        apikey: SERVICE_KEY,
-        Authorization: `Bearer ${SERVICE_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "return=minimal",
-      },
-      body: JSON.stringify({
-        kind,
-        symbol: opts.symbol ?? null,
-        message: opts.message ? opts.message.slice(0, 512) : null,
-        context: opts.context ?? null,
-        ip: "edge",
-      }),
-      signal: AbortSignal.timeout(3_000),
-    });
-  } catch (e) {
-    console.error("reportServerError failed:", String(e));
-  }
-}
+// reportServerError now lives in ../_shared/ops.ts (imported above).
 
 // Guarded so tests can import the helpers above without spinning up
 // the server. Supabase's runtime executes index.ts as the entry
@@ -253,10 +229,18 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
 
     const url   = new URL(req.url);
     const param = url.searchParams.get("tickers") ?? "";
+    // Cap the fan-out. Each ticker spawns one upstream Yahoo / Eastmoney
+    // fetch inside the Promise.all below, so an unbounded `tickers` list
+    // (any caller with the bundle's anon key) could open hundreds of
+    // concurrent upstream connections — a free amplification vector that
+    // risks an upstream IP ban. 100 is well above the app's ~47-ticker
+    // working set.
+    const MAX_TICKERS = 100;
     const tickers = param
       .split(",")
       .map((t) => t.trim())
-      .filter((t) => t && !t.endsWith(".PVT") && t !== "CASH");
+      .filter((t) => t && !t.endsWith(".PVT") && t !== "CASH")
+      .slice(0, MAX_TICKERS);
 
     if (!tickers.length) {
       return new Response(JSON.stringify({ error: "tickers required" }), {

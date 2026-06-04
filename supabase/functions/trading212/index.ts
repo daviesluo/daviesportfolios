@@ -84,6 +84,8 @@
 // Both entries are USD-denominated UCITS ETFs on LSE — see fx.js
 // TICKER_CURRENCY_OVERRIDES for the client-side currency override that
 // stops the suffix-based `detectCurrency` mis-detecting them as GBP.
+import { reportServerError } from "../_shared/ops.ts";
+
 const T212_TO_YAHOO: Record<string, string> = {
   "VUAAl_EQ": "VUAA.L",
   "SAEMl_EQ": "SAEM.L",
@@ -520,33 +522,7 @@ async function fetchT212Portfolio(apiKey: string, apiSecret: string): Promise<un
 // denies anon). Used by the outer try/catch wrap so a runtime crash
 // here becomes a row the admin ⚠ badge surfaces instead of a silent
 // 500. Best-effort: never throws.
-async function reportServerError(
-  kind: string,
-  opts: { message?: string; symbol?: string; context?: unknown } = {},
-): Promise<void> {
-  if (!SB_URL || !SERVICE_KEY) return;
-  try {
-    await fetch(`${SB_URL}/rest/v1/ops_errors`, {
-      method: "POST",
-      headers: {
-        apikey: SERVICE_KEY,
-        Authorization: `Bearer ${SERVICE_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "return=minimal",
-      },
-      body: JSON.stringify({
-        kind,
-        symbol: opts.symbol ?? null,
-        message: opts.message ? opts.message.slice(0, 512) : null,
-        context: opts.context ?? null,
-        ip: "edge",
-      }),
-      signal: AbortSignal.timeout(3_000),
-    });
-  } catch (e) {
-    console.error("reportServerError failed:", String(e));
-  }
-}
+// reportServerError now lives in ../_shared/ops.ts (imported above).
 
 if (import.meta.main) {
   Deno.serve(async (req: Request) => {

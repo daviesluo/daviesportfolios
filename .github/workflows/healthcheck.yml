@@ -1,0 +1,88 @@
+# Lightweight external uptime monitor. The repo had no runtime alerting —
+# the only alarm was "a GitHub Action failed". A dead Cloudflare deploy, a
+# broken bundle, or an Edge Function 500ing in a loop would go unnoticed
+# until the owner happened to open the app. This pings the production
+# surfaces on a schedule and opens (or bumps) a `health-failure` issue
+# when something is down, the same way check.yml's notify-failure does.
+#
+# NOTE: this does NOT cover overnight-record cron freshness (whether the
+# pg_cron job is still recording points) — that needs a service-role read
+# of the points table, so it'd require a SUPABASE_SERVICE_ROLE_KEY repo
+# secret. Left as a follow-up; this covers the site + Edge runtime.
+#
+# Fork-friendly: set repo variables SITE_URL and SUPABASE_ANON_KEY to
+# point at your own deployment (defaults below target the live project).
+
+name: healthcheck
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # every 30 minutes
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Ping production surfaces
+        id: ping
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://daviesluo.com' }}
+          SB_URL: ${{ vars.SUPABASE_URL || 'https://flmvxigozjuizpckllvk.supabase.co' }}
+          ANON: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          fails=""
+          # 1) Site root — Cloudflare Pages + the served (committed) bundle.
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$SITE_URL" || echo 000)
+          echo "site $SITE_URL -> $code"
+          [ "$code" = "200" ] || fails="${fails}- site root ($SITE_URL) returned $code"$'\n'
+          # 2) prices Edge Function — Edge runtime + the live-price path.
+          #    Only when the public anon key is configured as a repo var.
+          if [ -n "$ANON" ]; then
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 \
+              -H "apikey: $ANON" -H "Authorization: Bearer $ANON" \
+              "$SB_URL/functions/v1/prices?tickers=AAPL" || echo 000)
+            echo "prices Edge Function -> $code"
+            [ "$code" = "200" ] || fails="${fails}- prices Edge Function returned $code"$'\n'
+          fi
+          if [ -n "$fails" ]; then
+            echo "down=1" >> "$GITHUB_OUTPUT"
+            {
+              echo "body<<HC_EOF"
+              echo "⚠️ Production health check failed:"
+              echo ""
+              echo "$fails"
+              echo "[run log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+              echo "HC_EOF"
+            } >> "$GITHUB_OUTPUT"
+            echo "One or more surfaces are DOWN."
+          else
+            echo "All surfaces healthy."
+          fi
+
+      - name: Open / bump health-failure issue
+        if: steps.ping.outputs.down == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          # Ensure the label exists (idempotent), then de-dup by it.
+          gh label create health-failure --color B60205 \
+            --description "Production health check failing" 2>/dev/null || true
+          existing=$(gh issue list --repo "${{ github.repository }}" \
+            --label health-failure --state open --limit 1 --json number \
+            --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "${{ github.repository }}" \
+              --body "${{ steps.ping.outputs.body }}"
+          else
+            gh issue create --repo "${{ github.repository }}" \
+              --title "⚠️ Production health check failing" \
+              --body "${{ steps.ping.outputs.body }}" \
+              --label health-failure
+          fi

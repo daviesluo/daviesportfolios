@@ -47,6 +47,12 @@ create table if not exists public.overnight_intraday_points (
 
 alter table public.overnight_intraday_points enable row level security;
 
+-- NOTE: this anon-read policy is REVOKED by migration 0018 (it leaked the
+-- holdings ticker list via direct PostgREST). It's kept here, made
+-- idempotent, only so a `db push --include-all` replay against an
+-- existing DB doesn't fail on "policy already exists" before 0018 runs —
+-- CREATE POLICY has no IF NOT EXISTS form, so guard it with a drop.
+drop policy if exists "anon_select_overnight_points" on public.overnight_intraday_points;
 create policy "anon_select_overnight_points"
   on public.overnight_intraday_points
   for select

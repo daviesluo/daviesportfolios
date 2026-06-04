@@ -15,7 +15,7 @@ import {
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   extPriceIsRealAh, isPriceAxis,
 } from './indicators.js';
-import { pointerToDataIndex, overnightTrailingGap } from './chart_geometry.js';
+import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
 import { computeChartGeometry } from './chart_modal_geometry.js';
 import { mergeOvernightSeries } from './overnight_intraday.js';
 import {
@@ -146,7 +146,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // SFTBY's bogus +8 % headline disappears.
   const hasExtendedBars = (typeof holding?.extPriceTrusted === 'boolean')
     ? holding.extPriceTrusted
-    : extPriceIsRealAh(series, extPriceLive, openMinsUtc, closeMinsUtc);
+    : extPriceIsRealAh(series || [], extPriceLive, openMinsUtc, closeMinsUtc);
   const liveLast = (
     (useExt && hasExtendedBars && typeof extPriceLive === 'number' && extPriceLive > 0)
       ? extPriceLive
@@ -165,18 +165,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   //     comes from md.prevClose so it matches the scoreboard exactly.
   let regularCloseIdx = -1;
   if (rangeKey === '1D' && (useExt || phase === 'regular') && series && series.length > 0) {
-    for (let i = series.length - 1; i >= 0; i--) {
-      const hh = parseInt(series[i].date.slice(11, 13), 10);
-      const mm = parseInt(series[i].date.slice(14, 16), 10);
-      // Match the bar at exactly closeHh:closeMm UTC (= 20:00 EDT /
-      // 21:00 EST). Strict equality only — a looser "hh < closeHh"
-      // fallback would match overnight / premarket bars after midnight
-      // UTC and pin the anchor to the latest premarket tick instead of
-      // yesterday's 16:00 ET close, leaving the modal showing ~0% on
-      // any pre-open holding chart. If the exact bar is missing from
-      // the data the anchor block falls through to lastPrice instead.
-      if (hh === mh.closeHh && mm === mh.closeMm) { regularCloseIdx = i; break; }
-    }
+    // The bar at exactly closeHh:closeMm UTC (= 20:00 EDT / 21:00 EST).
+    // Strict match only (see findRegularCloseIdx) — a looser hh<closeHh
+    // would match an overnight / premarket bar after midnight UTC and pin
+    // the anchor to the latest premarket tick instead of yesterday's
+    // 16:00 ET close, leaving the modal at ~0% on any pre-open chart. -1
+    // (no match) falls through to the lastPrice anchor below.
+    regularCloseIdx = findRegularCloseIdx(series, mh);
   }
 
   // First-regular-open bar in the data — used to draw the OPEN dashed
@@ -390,20 +385,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     : W - padR + 4;
 
   // Crosshair hover label — keeps minute precision on 1W/1M so the user
-  // can read the exact bar's timestamp. Intraday strings from the chart
-  // Edge Function are UTC ISO truncated to "YYYY-MM-DDTHH:MM" with NO
-  // 'Z' suffix; without that suffix `new Date(...)` parses the value as
-  // *local* time — for a London/BST user that mis-rendered every
-  // intraday bar an hour earlier than it actually was (US market open
-  // 13:30 UTC showed as 1:30 PM instead of 2:30 PM BST). Append the Z
-  // ourselves so the engine treats it as UTC.
-  function parseChartDate(dateStr) {
-    if (typeof dateStr !== 'string') return new Date(dateStr);
-    if (dateStr.length === 16 && dateStr[10] === 'T') return new Date(dateStr + 'Z');
-    return new Date(dateStr);
-  }
+  // can read the exact bar's timestamp. parseChartDateUTC (chart_geometry)
+  // appends the missing 'Z' to the "YYYY-MM-DDTHH:MM" intraday strings so
+  // a London/BST user doesn't see every bar an hour early (US open 13:30
+  // UTC was rendering as 1:30 PM instead of 2:30 PM BST).
   function fmtDate(dateStr) {
-    const d = parseChartDate(dateStr);
+    const d = parseChartDateUTC(dateStr);
     if (rangeKey === '1D') {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
@@ -416,7 +403,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // X-axis tick labels — bare date on 1W/1M (5–6 samples across the row,
   // intraday timestamps would just clutter without adding info).
   function fmtAxisDate(dateStr) {
-    const d = parseChartDate(dateStr);
+    const d = parseChartDateUTC(dateStr);
     if (rangeKey === '1D') {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
@@ -539,8 +526,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         if (start < 0) return '';
         const segs = [];
         for (let i = start; i < maSeries.length; i++) {
-          if (maSeries[i] == null) continue;
-          segs.push(`${xOfIdx(i).toFixed(1)},${yOf(maSeries[i]).toFixed(1)}`);
+          const v = maSeries[i];
+          if (v == null) continue;
+          segs.push(`${xOfIdx(i).toFixed(1)},${yOf(v).toFixed(1)}`);
         }
         return segs.length >= 2 ? 'M' + segs.join('L') : '';
       })()
@@ -566,10 +554,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
         let openSegment = false;
         let prevSession = '';
         for (let i = 0; i < vwapSeries.length; i++) {
-          if (vwapSeries[i] == null) { openSegment = false; continue; }
+          const v = vwapSeries[i];
+          if (v == null) { openSegment = false; continue; }
           const sk = sessionKeyOf(points[i].date);
           const cmd = (openSegment && sk === prevSession) ? 'L' : 'M';
-          out += `${cmd}${xOfIdx(i).toFixed(1)},${yOf(vwapSeries[i]).toFixed(1)}`;
+          out += `${cmd}${xOfIdx(i).toFixed(1)},${yOf(v).toFixed(1)}`;
           openSegment = true;
           prevSession = sk;
         }

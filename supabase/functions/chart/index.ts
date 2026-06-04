@@ -7,6 +7,8 @@
 // Returns: { "AAPL": [{date:"2026-01-02",close:245.12}, …], … }
 // Call: GET /functions/v1/chart?tickers=NVDA,017731,SPAX.PVT,^GSPC&range=1y&interval=1d
 
+import { reportServerError } from "../_shared/ops.ts";
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -74,7 +76,10 @@ async function fetchYahooHistorical(
     // Intraday intervals (e.g. 5m, 15m) → keep precision down to the
     // minute so each candle has a unique sortable string. Truncating
     // intraday points to YYYY-MM-DD would collapse them all to one key.
-    const isIntraday = !/^\d+d$|^\dwk$|^\dmo$/.test(interval);
+    // Multi-digit counts on all three suffixes (`2wk` / `12mo` …) so a
+    // future daily-ish range can't fall through to the intraday branch
+    // (the old `^\dwk$|^\dmo$` matched a single leading digit only).
+    const isIntraday = !/^\d+(d|wk|mo)$/.test(interval);
     const points: Point[] = [];
     for (let i = 0; i < timestamps.length; i++) {
       const c = closes[i];
@@ -271,33 +276,7 @@ async function fetchYahooWithPvtFallback(
 // denies anon). Used by the top-level try/catch wrap so a runtime
 // crash here becomes a row the admin ⚠ badge surfaces instead of a
 // silent 500. Best-effort: never throws.
-async function reportServerError(
-  kind: string,
-  opts: { message?: string; symbol?: string; context?: unknown } = {},
-): Promise<void> {
-  if (!SUPABASE_URL || !SERVICE_KEY) return;
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/ops_errors`, {
-      method: "POST",
-      headers: {
-        apikey: SERVICE_KEY,
-        Authorization: `Bearer ${SERVICE_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "return=minimal",
-      },
-      body: JSON.stringify({
-        kind,
-        symbol: opts.symbol ?? null,
-        message: opts.message ? opts.message.slice(0, 512) : null,
-        context: opts.context ?? null,
-        ip: "edge",
-      }),
-      signal: AbortSignal.timeout(3_000),
-    });
-  } catch (e) {
-    console.error("reportServerError failed:", String(e));
-  }
-}
+// reportServerError now lives in ../_shared/ops.ts (imported above).
 
 // Guarded so tests can import the pure helpers above without
 // spinning up the server. Supabase's runtime executes index.ts as
@@ -313,10 +292,14 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     const range = url.searchParams.get("range") ?? "ytd";
     const interval = url.searchParams.get("interval") ?? "1d";
     const includePrePost = url.searchParams.get("includePrePost") === "true";
+    // Cap the fan-out — one upstream fetch per ticker (see prices), so a
+    // huge list could open hundreds of concurrent Yahoo connections.
+    const MAX_TICKERS = 100;
     const tickers = param
       .split(",")
       .map((t) => t.trim())
-      .filter((t) => t && t !== "CASH");
+      .filter((t) => t && t !== "CASH")
+      .slice(0, MAX_TICKERS);
 
     if (!tickers.length) {
       return new Response(JSON.stringify({ error: "tickers required" }), {

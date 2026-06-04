@@ -113,9 +113,21 @@ jobs:
           BEFORE: ${{ github.event.before }}
           AFTER:  ${{ github.sha }}
         run: |
+          # `_`-prefixed entries (e.g. `_shared/`) are NOT functions — they
+          # hold modules sibling functions import, so they must never be
+          # passed to `supabase functions deploy`.
           if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
             echo "No previous tip (branch creation) — deploying every function."
-            CHANGED=$(ls supabase/functions/)
+            CHANGED=$(ls supabase/functions/ | grep -v '^_')
+          elif git diff --name-only "$BEFORE" "$AFTER" | grep -q '^supabase/functions/_'; then
+            # A shared module under `supabase/functions/_shared/` changed.
+            # Every function bundles its imports at deploy time, so the
+            # per-index.ts diff below would MISS the consumers and ship a
+            # stale shared helper. Redeploy all functions to be safe.
+            # (Matches only the top-level `_shared/`, not a function's own
+            # `_`-files like fundamentals/_yahoo.ts.)
+            echo "Shared module changed — deploying every function."
+            CHANGED=$(ls supabase/functions/ | grep -v '^_')
           else
             # `|| true` so a push that touches supabase/functions/** WITHOUT
             # changing any index.ts (e.g. a test-only edit) doesn't trip
