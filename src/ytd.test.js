@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
 import {
   buildTickerSeries, closeOn, lotsFor, computeAt, ytdPct,
   fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS,
+  applyVariantFilter,
 } from './ytd.js';
 
 const yearStart      = '2026-01-01';
@@ -515,5 +516,41 @@ describe('1Y range (ticker-modal-only)', () => {
   });
   it('maFetchParamsFor("1Y") pulls 2y of daily bars so the 50-day MA is seeded at the left edge', () => {
     expect(maFetchParamsFor('1Y')).toEqual({ range: '2y', interval: '1d' });
+  });
+});
+
+describe('applyVariantFilter', () => {
+  // Two days of intraday bars; the trailing one is "now-ish" so the
+  // 24h / latest-day windows have something to keep.
+  const today = new Date().toISOString().slice(0, 10);
+  const yest = new Date(Date.now() - 24 * 3600 * 1000).toISOString().slice(0, 10);
+  const series = [
+    { date: `${yest}T14:00`, close: 1 },
+    { date: `${yest}T15:00`, close: 2 },
+    { date: `${today}T14:00`, close: 3 },
+    { date: `${today}T15:00`, close: 4 },
+  ];
+
+  it("'closed' keeps only the latest trading day", () => {
+    const out = applyVariantFilter(series, 'closed');
+    expect(out.every(p => p.date.startsWith(today))).toBe(true);
+    expect(out).toHaveLength(2);
+  });
+
+  it("'reg' and 'ext' trim to the trailing 24h", () => {
+    // Both route through filterToLast24h, so a bar > 24h old is dropped.
+    const old = [{ date: `${yest}T01:00`, close: 0 }, ...series];
+    expect(applyVariantFilter(old, 'reg').length).toBeLessThan(old.length);
+    expect(applyVariantFilter(old, 'ext')).toEqual(applyVariantFilter(old, 'reg'));
+  });
+
+  it('an unrecognised variant (daily range) returns the series unchanged', () => {
+    expect(applyVariantFilter(series, 'std')).toBe(series);
+    expect(applyVariantFilter(series, undefined)).toBe(series);
+  });
+
+  it('falsy data passes straight through (no per-caller guard needed)', () => {
+    expect(applyVariantFilter(null, 'closed')).toBeNull();
+    expect(applyVariantFilter(undefined, 'reg')).toBeUndefined();
   });
 });

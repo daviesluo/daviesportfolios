@@ -151,3 +151,16 @@ export function pointsToSvgPath(items, xFn, yFn) {
   if (segs.length === 0) return '';
   return 'M' + segs.join('L');
 }
+
+// Parse a chart-series date string to a Date. Intraday bars are
+// `YYYY-MM-DDTHH:MM` (16 chars, no zone) and must be read as UTC — an
+// explicit `Z` is appended so they don't render an hour off for
+// non-UTC users; daily `YYYY-MM-DD` and anything else go straight to
+// `new Date`. Single source for what perf_chart + ticker_chart_modal
+// both used to define inline (byte-identical) as parsePerfDate /
+// parseChartDate.
+export function parseChartDateUTC(d) {
+  if (typeof d !== 'string') return new Date(d);
+  if (d.length === 16 && d[10] === 'T') return new Date(d + 'Z');
+  return new Date(d);
+}
