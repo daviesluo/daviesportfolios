@@ -6,7 +6,8 @@
 // 30 s refresh tick when the Edge Function is healthy.
 //
 // Pulled out of utils.js along with proxy_chain / historical / etc.
-// `utils.js` re-exports the public surface for backwards-compat.
+// when that barrel was retired; consumers now import this module
+// (refreshPrices / fetchTickers / fetchFundamentals) directly.
 
 import {
   PROXIES,

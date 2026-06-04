@@ -1,5 +1,5 @@
 // Pure display formatters and the hidden-values mask. Lifted out of
-// utils.js so a one-line component can `import { fmtMoney } from
+// the since-retired utils.js barrel so a one-line component can `import { fmtMoney } from
 // './formatters.js'` instead of pulling in fetch plumbing /
 // portfolio math / FX / market-hours / etc. Same exports, same
 // behaviour — just narrower scope.

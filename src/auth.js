@@ -10,8 +10,8 @@
 //      payload is `{ role: "admin" | "ro", exp: <ms> }`.
 //
 // Two roles, two secrets — both validated server-side in the `auth`
-// Edge Function (see `APP_PASSWORD_*` env vars there); the actual
-// values intentionally don't appear in this client bundle:
+// Edge Function (see `APP_ADMIN_PWD` / `APP_RO_PWD` env vars there); the
+// actual values intentionally don't appear in this client bundle:
 //   `?pwd=<admin-secret>`     / typing it → admin (full edit)
 //   `?pwd=<read-only-secret>` / typing it → read-only (shareable view)
 //
