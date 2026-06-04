@@ -5,7 +5,7 @@
 // chart now fails CI before deploy.
 
 import { describe, expect, it } from 'vitest';
-import { pointerToDataIndex, pointsToSvgPath, overnightTrailingGap, parseChartDateUTC } from './chart_geometry.js';
+import { pointerToDataIndex, pointsToSvgPath, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
 
 // Fake an SVG element with just the surface the helper touches.
 function fakeSvg(rect) {
@@ -230,5 +230,41 @@ describe('parseChartDateUTC', () => {
     // 16 chars but not the intraday shape → left to new Date as-is.
     const s = '2026-06-04 13:30';
     expect(parseChartDateUTC(s).getTime()).toBe(new Date(s).getTime());
+  });
+});
+
+describe('findRegularCloseIdx', () => {
+  const mh = { closeHh: 20, closeMm: 0 }; // 20:00 UTC = 16:00 EDT close
+  const series = [
+    { date: '2026-06-03T19:30', close: 1 },
+    { date: '2026-06-03T20:00', close: 2 }, // ← the close bar
+    { date: '2026-06-03T20:30', close: 3 }, // after-hours
+    { date: '2026-06-04T08:00', close: 4 }, // next-day premarket
+  ];
+
+  it('returns the index of the exact closeHh:closeMm bar', () => {
+    expect(findRegularCloseIdx(series, mh)).toBe(1);
+  });
+
+  it('picks the LATEST matching close when several days are present', () => {
+    const two = [...series, { date: '2026-06-04T20:00', close: 5 }];
+    expect(findRegularCloseIdx(two, mh)).toBe(4);
+  });
+
+  it('returns -1 when no bar sits exactly on the close (strict match)', () => {
+    // A 20:05 bar must NOT count — the +5min slack bug pinned the marker
+    // to the wrong bar.
+    const slack = [{ date: '2026-06-03T19:55', close: 1 }, { date: '2026-06-03T20:05', close: 2 }];
+    expect(findRegularCloseIdx(slack, mh)).toBe(-1);
+  });
+
+  it('skips short / malformed date strings instead of NaN-matching', () => {
+    const bad = [{ date: '2026-06-03' }, { date: '2026-06-03T20:00', close: 9 }];
+    expect(findRegularCloseIdx(bad, mh)).toBe(1);
+  });
+
+  it('guards null series / mh', () => {
+    expect(findRegularCloseIdx(null, mh)).toBe(-1);
+    expect(findRegularCloseIdx(series, null)).toBe(-1);
   });
 });

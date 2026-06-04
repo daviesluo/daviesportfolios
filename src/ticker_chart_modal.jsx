@@ -15,7 +15,7 @@ import {
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   extPriceIsRealAh, isPriceAxis,
 } from './indicators.js';
-import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC } from './chart_geometry.js';
+import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
 import { computeChartGeometry } from './chart_modal_geometry.js';
 import { mergeOvernightSeries } from './overnight_intraday.js';
 import {
@@ -165,18 +165,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   //     comes from md.prevClose so it matches the scoreboard exactly.
   let regularCloseIdx = -1;
   if (rangeKey === '1D' && (useExt || phase === 'regular') && series && series.length > 0) {
-    for (let i = series.length - 1; i >= 0; i--) {
-      const hh = parseInt(series[i].date.slice(11, 13), 10);
-      const mm = parseInt(series[i].date.slice(14, 16), 10);
-      // Match the bar at exactly closeHh:closeMm UTC (= 20:00 EDT /
-      // 21:00 EST). Strict equality only — a looser "hh < closeHh"
-      // fallback would match overnight / premarket bars after midnight
-      // UTC and pin the anchor to the latest premarket tick instead of
-      // yesterday's 16:00 ET close, leaving the modal showing ~0% on
-      // any pre-open holding chart. If the exact bar is missing from
-      // the data the anchor block falls through to lastPrice instead.
-      if (hh === mh.closeHh && mm === mh.closeMm) { regularCloseIdx = i; break; }
-    }
+    // The bar at exactly closeHh:closeMm UTC (= 20:00 EDT / 21:00 EST).
+    // Strict match only (see findRegularCloseIdx) — a looser hh<closeHh
+    // would match an overnight / premarket bar after midnight UTC and pin
+    // the anchor to the latest premarket tick instead of yesterday's
+    // 16:00 ET close, leaving the modal at ~0% on any pre-open chart. -1
+    // (no match) falls through to the lastPrice anchor below.
+    regularCloseIdx = findRegularCloseIdx(series, mh);
   }
 
   // First-regular-open bar in the data — used to draw the OPEN dashed
