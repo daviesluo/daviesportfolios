@@ -202,10 +202,15 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     // versa, or a SW-cached old response) cleanly degrades to const-EPS
     // instead of mixing raw-quarterly and TTM semantics.
     const includeEpsHistory = url.searchParams.get("ttmEpsHistory") === "true";
+    // Cap the fan-out — each stock can trigger several upstream calls
+    // (Yahoo quoteSummary + chart + Finnhub), so an unbounded list is an
+    // amplification vector. 100 is far above the app's working set.
+    const MAX_TICKERS = 100;
     const tickers = param
       .split(",")
       .map((t) => t.trim())
-      .filter(isFundamentalsTicker);
+      .filter(isFundamentalsTicker)
+      .slice(0, MAX_TICKERS);
     if (tickers.length === 0) {
       return new Response(JSON.stringify({}), {
         headers: { ...CORS, "Content-Type": "application/json" },

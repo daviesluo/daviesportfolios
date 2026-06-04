@@ -253,10 +253,18 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
 
     const url   = new URL(req.url);
     const param = url.searchParams.get("tickers") ?? "";
+    // Cap the fan-out. Each ticker spawns one upstream Yahoo / Eastmoney
+    // fetch inside the Promise.all below, so an unbounded `tickers` list
+    // (any caller with the bundle's anon key) could open hundreds of
+    // concurrent upstream connections — a free amplification vector that
+    // risks an upstream IP ban. 100 is well above the app's ~47-ticker
+    // working set.
+    const MAX_TICKERS = 100;
     const tickers = param
       .split(",")
       .map((t) => t.trim())
-      .filter((t) => t && !t.endsWith(".PVT") && t !== "CASH");
+      .filter((t) => t && !t.endsWith(".PVT") && t !== "CASH")
+      .slice(0, MAX_TICKERS);
 
     if (!tickers.length) {
       return new Response(JSON.stringify({ error: "tickers required" }), {

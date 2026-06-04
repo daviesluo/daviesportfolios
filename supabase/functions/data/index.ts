@@ -159,6 +159,14 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
 
     if (action === "save" && req.method === "POST") {
       if (verified.role !== "admin") return json(403, { error: "read-only" });
+      // Body size guard — the portfolio JSON is tens of KB even for a
+      // large book, so reject anything absurd before parsing: an oversized
+      // save bloats the single board_data row that every load then pays to
+      // read back. 512 KB is ~10× the largest realistic portfolio. Mirrors
+      // the ops-error function's content-length guard.
+      const MAX_BODY_BYTES = 512 * 1024;
+      const cl = req.headers.get("content-length");
+      if (cl && Number(cl) > MAX_BODY_BYTES) return json(413, { error: "payload too large" });
       let body: unknown;
       try { body = await req.json(); } catch { return json(400, { error: "bad json" }); }
 
