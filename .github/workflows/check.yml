@@ -46,6 +46,13 @@ jobs:
       - name: Type check (tsc --noEmit on JS/JSX with checkJs)
         run: npm run typecheck
 
+      - name: Lint (ESLint — react-hooks bug rules)
+        # Gates on errors only — chiefly react-hooks/rules-of-hooks, the
+        # hook-ordering class that shipped the React-#310 crash once.
+        # exhaustive-deps is a non-blocking warning: a handful of effects
+        # intentionally narrow their dep set (documented inline).
+        run: npm run lint
+
       - name: Unit tests (vitest)
         run: npm test
 
