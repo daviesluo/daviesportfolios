@@ -206,6 +206,20 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
         if (clickGuardRef && clickGuardRef.current) return;
         hasPlayers ? onOpen() : onAdd();
       }}
+      // Keyboard activation for the role="button" — Enter / Space open
+      // the drill (or add) the same way a click does, so the chip isn't
+      // focusable-but-inert for keyboard users. The editingName guard
+      // lets the inline rename input own its own keys; the target ===
+      // currentTarget guard keeps a keypress on an inner button (rename /
+      // add) from also bubbling up and double-firing the open.
+      onKeyDown={(e) => {
+        if (editingName) return;
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          hasPlayers ? onOpen() : onAdd();
+        }
+      }}
       role="button"
       tabIndex={0}
     >

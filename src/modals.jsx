@@ -168,7 +168,21 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
   const costUSD   = player.shares * player.cost * fx;
   const m = (s) => hideValues ? maskDigits(s) : s;
   return (
-    <div className={`player-card ${flash ? "flash-" + flash : ""} ${isHot ? "hot" : ""}`} onClick={onClick}>
+    <div
+      className={`player-card ${flash ? "flash-" + flash : ""} ${isHot ? "hot" : ""}`}
+      onClick={onClick}
+      // Only focusable + keyboard-activatable when there's actually a
+      // click action (edit mode → lot editor, otherwise → chart). When
+      // onClick is undefined the card is inert, so it stays out of the
+      // tab order. target === currentTarget keeps the remove button's
+      // Enter/Space from bubbling up and double-firing.
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); }
+      } : undefined}
+    >
       {isCaptain && <div className="armband small">C</div>}
       {isHot && <div className="hot-badge">⚽</div>}
       <div className="pc-top">
