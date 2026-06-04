@@ -291,6 +291,22 @@ function Board({ isReadOnly }) {
   // another tab gets silently reverted — fingerprint-equality
   // short-circuits the save when only ephemeral fields changed.
   const lastSavedFingerprintRef = useRef(null);
+  // Fire-and-forget UI timers (flash clear, recently-updated reset,
+  // error-retry). Tracked in refs so a refresh that lands inside the
+  // previous timer's window clears it first (no stacking / premature
+  // clears), and so none of them fire a setState after unmount. The
+  // effect below clears whatever is pending when the Board unmounts.
+  /** @type {React.MutableRefObject<ReturnType<typeof setTimeout> | null>} */
+  const flashTimerRef = useRef(null);
+  /** @type {React.MutableRefObject<ReturnType<typeof setTimeout> | null>} */
+  const recentTimerRef = useRef(null);
+  /** @type {React.MutableRefObject<ReturnType<typeof setTimeout> | null>} */
+  const errorRetryTimerRef = useRef(null);
+  useEffect(() => () => {
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+    if (recentTimerRef.current) clearTimeout(recentTimerRef.current);
+    if (errorRetryTimerRef.current) clearTimeout(errorRetryTimerRef.current);
+  }, []);
   useEffect(() => {
     if (!portfolio) return;
     if (isReadOnly) return;
@@ -407,6 +423,12 @@ function Board({ isReadOnly }) {
     const shouldPrefetch =
       opts && typeof opts === 'object' && opts.prefetch === false ? false : true;
     setIsRefreshing(true);
+    // try/finally so the spinner is always cleared — even if one of the
+    // awaited fetches below were to reject (they return error sentinels
+    // today, but a future throw shouldn't strand isRefreshing=true and
+    // wedge the Refresh button). Body indentation left as-is to keep
+    // this a minimal, reviewable diff.
+    try {
     // Parallel fetches:
     //   - live prices for portfolio holdings
     //   - live snapshots for the MC index/futures cards
@@ -542,7 +564,8 @@ function Board({ isReadOnly }) {
       }
       if (Object.keys(flashes).length) {
         setFlashTickers(flashes);
-        setTimeout(() => setFlashTickers({}), 1200);
+        if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+        flashTimerRef.current = setTimeout(() => setFlashTickers({}), 1200);
       }
       // Trading 212 overlays — both run AFTER the live-prices merge so
       // they see the Yahoo lastPrice/prevClose just set.
@@ -582,10 +605,10 @@ function Board({ isReadOnly }) {
     // spliced in instead of waiting on a still-in-flight fetch.
     await overnightPromise;
     setLastUpdated(new Date());
-    setIsRefreshing(false);
     if (src === "live") {
       setRecentlyUpdated(true);
-      setTimeout(() => setRecentlyUpdated(false), 1600);
+      if (recentTimerRef.current) clearTimeout(recentTimerRef.current);
+      recentTimerRef.current = setTimeout(() => setRecentlyUpdated(false), 1600);
       // Background prefetch every (range × ticker) chart payload after the
       // live-prices UI has settled. Fire-and-forget — the cache writes that
       // land before the user navigates away are still useful. Skipped on
@@ -623,7 +646,12 @@ function Board({ isReadOnly }) {
       }
     }
     if (src === "error") {
-      setTimeout(() => doRefreshRef.current(), 3000);
+      if (errorRetryTimerRef.current) clearTimeout(errorRetryTimerRef.current);
+      errorRetryTimerRef.current = setTimeout(() => doRefreshRef.current(), 3000);
+    }
+    } finally {
+      // Always clear the spinner, success or throw.
+      setIsRefreshing(false);
     }
   }, [portfolio, extendedHours]);
 
@@ -1037,7 +1065,7 @@ function Board({ isReadOnly }) {
               ...p,
               holdings: {
                 ...p.holdings,
-                CASH: { shares: 1, cost: amt, lastPrice: amt, prevClose: amt, dayPct: 0, isCash: true },
+                CASH: { shares: 1, cost: amt, lastPrice: amt, prevClose: amt, dayPct: 0, isCash: true, currency: 'USD' },
               },
               positions: {
                 ...p.positions,
