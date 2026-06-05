@@ -30,7 +30,12 @@
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+  // `x-app-token` stays in the allow-list even though the handler now
+  // ignores it: clients still on the previously-deployed (PR #176) bundle
+  // keep sending it, and dropping it from the preflight allow-list would
+  // fail their CORS check and strand them on the single-dot fallback
+  // until the SW updates. A header the server ignores is harmless to allow.
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-app-token",
 };
 
 const SB_URL      = Deno.env.get("SUPABASE_URL") ?? "";
