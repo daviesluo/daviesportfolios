@@ -14,17 +14,27 @@
 // overnight session + buffer for a cron-missed firing). Empty array
 // for a ticker with no recorded points.
 //
-// Auth: requires the HMAC `x-app-token` (admin OR ro accepted) on top of
-// the Supabase apikey gate. The rows reveal the owner's held tickers, so
-// after migration 0018 revoked direct anon SELECT on the table this Edge
-// Function is the only read path — token-gating it (like `data` /
-// `trading212`) stops it being used as a per-ticker "is X held?"
-// membership oracle by anyone holding the public anon key.
-import { verifyToken } from "../_shared/token.ts";
+// Auth: anon-readable (the Supabase apikey gate is enough). The function
+// reads the table with the SERVICE-ROLE key, so migration 0018 — which
+// revoked direct anon SELECT on the table to close the holdings-
+// ENUMERATION leak (`?select=ticker` over PostgREST) — doesn't affect it.
+// Enumeration is the real risk; this endpoint requires the caller to
+// already KNOW the tickers to ask about, so it can't list the book.
+//
+// NOTE: a `x-app-token` gate was added here in PR #176 but it regressed
+// the overnight line for the legitimate user, so it was reverted. The
+// enumeration fix (migration 0018) stands; only the read-side gate is
+// gone. (See _shared/token.ts if re-attempting — verify APP_AUTH_SECRET
+// resolves AND the CORS preflight passes the JWT gate before relying on it.)
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
+  // `x-app-token` stays in the allow-list even though the handler now
+  // ignores it: clients still on the previously-deployed (PR #176) bundle
+  // keep sending it, and dropping it from the preflight allow-list would
+  // fail their CORS check and strand them on the single-dot fallback
+  // until the SW updates. A header the server ignores is harmless to allow.
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-app-token",
 };
 
@@ -144,15 +154,6 @@ async function readPoints(
 if (import.meta.main) {
   Deno.serve(async (req) => {
     if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
-    // Token gate — the recorded points reveal which tickers the owner
-    // holds overnight, so require a valid app token (admin or ro).
-    const verified = await verifyToken(req.headers.get("x-app-token") ?? "");
-    if (!verified) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), {
-        status: 401,
-        headers: { ...CORS, "Content-Type": "application/json" },
-      });
-    }
     const url = new URL(req.url);
     const tickers = parseTickers(url.searchParams.get("tickers"));
     // 26h: today's overnight session + buffer for a cron-missed tick.
