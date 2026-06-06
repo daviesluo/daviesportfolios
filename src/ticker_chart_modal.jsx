@@ -5,7 +5,7 @@
 // player in non-edit mode — edit mode keeps opening the EditTickerModal.
 import React from 'react';
 import { Modal } from './modals.jsx';
-import { usMarketHoursUtc } from './market_hours.js';
+import { usMarketHoursUtc, isWeekendDeadZone } from './market_hours.js';
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS } from './ytd.js';
@@ -246,7 +246,14 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // a connected line (hasOvernightLine), so we suppress the dot —
   // the line's last bar, with the live substitution below, IS the
   // current overnight price.
+  // ...and NOT during the weekend dead zone (Fri 20:00 → Sun 20:00 ET).
+  // `usMarketPhase` still reports "overnight" then, but the 24/5 market is
+  // closed, so the broker quote is a frozen Friday-close price that never
+  // moves — a static dot that's just noise. Suppress it; the recorder
+  // resumes at Sun 20:00 ET (the overnight reopen) and the line picks up
+  // from there.
   const nightDotActive = useExt && phase === 'overnight' && hasOvernightSession(ticker)
+    && !isWeekendDeadZone()
     && typeof extPriceLive === 'number' && extPriceLive > 0
     && !!NIGHT_BAR_INTERVAL_MS[rangeKey]
     && !hasOvernightLine

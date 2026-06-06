@@ -632,7 +632,13 @@ function Board({ isReadOnly }) {
       // and re-entering the page repeats it": every load resets the
       // toggle to off, so the mount refresh ran with nightActive=false
       // and never wrote the night price.
-      const nightActive = refreshPhase === 'overnight';
+      // ...but NOT during the weekend dead zone (Fri 20:00 → Sun 20:00 ET):
+      // the 24/5 market is closed, so T212's quote is a frozen Friday-close
+      // price. Don't overlay it as a live overnight quote — matches the
+      // overnight-record cron, which also skips recording on weekends. The
+      // overnight overlay (and the chart's night dot) resume at the Sun
+      // 20:00 ET reopen.
+      const nightActive = refreshPhase === 'overnight' && !isWeekendDeadZone(new Date());
       applyTrading212NightPrice(next.holdings, t212Holdings?.prices, nightActive);
       return next;
     });
