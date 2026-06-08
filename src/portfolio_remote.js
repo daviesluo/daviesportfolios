@@ -291,11 +291,22 @@ export function migrate(p) {
     }
   }
   // Backfill currency on holdings that pre-date the multi-currency migration.
-  // detectCurrency is purely ticker-pattern based, so this is safe to run on
-  // every load without overwriting an explicitly-set currency.
+  // detectCurrency is purely ticker-pattern based (and override-aware), so this
+  // is safe to run on every load. Two passes of logic:
+  //   - no currency yet → stamp the detected one.
+  //   - currency is the USD default but the ticker pattern now resolves to a
+  //     foreign currency → upgrade it. This catches holdings entered before a
+  //     new exchange suffix was added to detectCurrency (e.g. an .PA holding
+  //     stamped USD before EUR support landed). USD-denominated foreign-suffix
+  //     tickers (VUAA.L / SAEM.L) stay USD via TICKER_CURRENCY_OVERRIDES, so
+  //     they're never mis-upgraded.
   for (const [t, h] of Object.entries(p.holdings)) {
-    if (h.currency || h.isCash || t === "CASH") continue;
-    h.currency = detectCurrency(t);
+    if (h.isCash || t === "CASH") continue;
+    if (!h.currency) { h.currency = detectCurrency(t); continue; }
+    if (h.currency === "USD") {
+      const detected = detectCurrency(t);
+      if (detected !== "USD") h.currency = detected;
+    }
   }
 
   // Backfill `lots` (per-purchase history) on any holding that's missing it
