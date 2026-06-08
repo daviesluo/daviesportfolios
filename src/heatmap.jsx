@@ -2,6 +2,18 @@
 // Tiles sized by USD market value; colour-coded by day % change.
 import React from 'react';
 
+// Display label for a heatmap tile — strips the Yahoo exchange suffix
+// (XFAB.PA → XFAB, VUAG.L → VUAG, 0700.HK → 0700) so the tight tiles
+// aren't cluttered by ".PA" / ".L". Display-only: tile.ticker keeps the
+// full symbol everywhere it matters (the React key, the click/keydown
+// handlers, the "Open … chart" title) so the modal still resolves the
+// right instrument. Only a trailing dot + 1–4 letters is stripped, so
+// hyphenated symbols (BRK-B, BTC-USD) and ^-prefixed indices are left
+// intact, and bare CN fund codes (017731) have nothing to strip.
+export function displayTicker(ticker) {
+  return ticker.replace(/\.[A-Za-z]{1,4}$/, '');
+}
+
 // ── Treemap layout (recursive binary split) ──────────────────────────────────
 function treemap(nodes, x, y, w, h) {
   if (!nodes.length) return [];
@@ -186,7 +198,7 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
               >
                 {showTicker && (
                   <span className="hm-ticker mono" style={{ color: tickerClr, fontSize: tickerFs + 'px' }}>
-                    {tile.ticker}
+                    {displayTicker(tile.ticker)}
                   </span>
                 )}
                 {showPct && (
