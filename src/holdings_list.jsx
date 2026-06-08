@@ -8,6 +8,21 @@
 import React from 'react';
 import { Modal } from './modals.jsx';
 import { fmtMoney as fmtM, fmtPct as fmtPc, pctColor as pctClr, maskDigits } from './formatters.js';
+import { holdingsRowsToMatrix, matrixToTsv, matrixToXlsx } from './holdings_export.js';
+
+// Monochrome inline icons (currentColor) for the header copy / download /
+// done buttons — SVG rather than a Unicode glyph so they never render as
+// tofu and match the chalk theme's stroke colour + hover states.
+const ICON_SVG = { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: /** @type {const} */ ('round'), strokeLinejoin: /** @type {const} */ ('round'), 'aria-hidden': true };
+const IconCopy = () => (
+  <svg {...ICON_SVG}><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+);
+const IconDownload = () => (
+  <svg {...ICON_SVG}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+);
+const IconCheck = () => (
+  <svg {...ICON_SVG}><polyline points="20 6 9 17 4 12" /></svg>
+);
 
 // Company names for the holdings table's secondary line. Static map —
 // the app has no client-side name source for equities (Yahoo provides
@@ -142,6 +157,46 @@ function HoldingsListModal({ metrics, hideValues, onTickerClick, onClose }) {
 
   const money = (n, opts) => (hideValues ? maskDigits(fmtM(n, opts)) : fmtM(n, opts));
 
+  // Copy / download export the table EXACTLY as displayed (header + every
+  // row, current sort order) with real values — the hide-values mask is a
+  // screen-only privacy overlay, not data. Disabled when there's nothing
+  // to export.
+  const [copied, setCopied] = React.useState(false);
+  const canExport = sorted.length > 0;
+
+  const onCopy = async () => {
+    if (!canExport) return;
+    const tsv = matrixToTsv(holdingsRowsToMatrix(sorted));
+    let ok = false;
+    if (navigator.clipboard?.writeText) {
+      try { await navigator.clipboard.writeText(tsv); ok = true; } catch { /* fall through to legacy path */ }
+    }
+    if (!ok) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = tsv; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch { ok = false; }
+    }
+    if (ok) { setCopied(true); setTimeout(() => setCopied(false), 1500); }
+  };
+
+  const onDownload = () => {
+    if (!canExport) return;
+    const bytes = matrixToXlsx(holdingsRowsToMatrix(sorted));
+    const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `holdings-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  };
+
   return (
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
@@ -149,7 +204,17 @@ function HoldingsListModal({ metrics, hideValues, onTickerClick, onClose }) {
           <div className="modal-eyebrow mono">HOLDINGS</div>
           <h2 className="modal-title mono">Holding list</h2>
         </div>
-        <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
+        <div className="modal-head-actions">
+          <button className="btn-ghost icon" onClick={onCopy} disabled={!canExport}
+            aria-label="Copy table including header" title={copied ? 'Copied' : 'Copy table (incl. header)'}>
+            {copied ? <IconCheck /> : <IconCopy />}
+          </button>
+          <button className="btn-ghost icon" onClick={onDownload} disabled={!canExport}
+            aria-label="Download as Excel" title="Download as Excel (.xlsx)">
+            <IconDownload />
+          </button>
+          <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
+        </div>
       </header>
 
       <div className="modal-body">

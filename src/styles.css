@@ -405,7 +405,10 @@ body {
   transition: all 0.12s;
 }
 .btn-ghost:hover { background: var(--panel-hi); border-color: var(--chalk-mute); }
+.btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-ghost:disabled:hover { background: transparent; border-color: var(--line); }
 .btn-ghost.icon { padding: 6px 10px; font-size: 14px; }
+.btn-ghost.icon svg { display: block; }
 .btn-primary { background: var(--chalk); color: #0c1310; border-color: var(--chalk); }
 .btn-primary:hover { background: #fff; }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }

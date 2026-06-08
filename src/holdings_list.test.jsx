@@ -90,4 +90,44 @@ describe('HoldingsListModal', () => {
     first = screen.getAllByRole('row').slice(1)[0];
     expect(within(first).getByText('AAPL')).toBeInTheDocument();
   });
+
+  it('copy button writes the TSV (header + every row, current sort) to the clipboard', async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    render(<HoldingsListModal metrics={METRICS} hideValues={false} onTickerClick={vi.fn()} onClose={vi.fn()} />);
+    await user.click(screen.getByLabelText('Copy table including header'));
+    expect(writeText).toHaveBeenCalledTimes(1);
+    const tsv = /** @type {string} */ (writeText.mock.calls[0][0]);
+    expect(tsv.split('\n')[0].split('\t')).toEqual([
+      'Symbol', 'Name', 'Exposure', 'Cost Basis', 'Market Value',
+      'Day Change', 'Day Change %', 'Unrealized G/L', 'Unrealized G/L %',
+    ]);
+    // All three holdings present (cash excluded), default exposure-desc order.
+    const firstCells = tsv.split('\n').slice(1).map(l => l.split('\t')[0]);
+    expect(firstCells).toEqual(['NVDA', 'AAPL', 'MSTR']);
+  });
+
+  it('download button emits a holdings-*.xlsx blob and clicks the anchor', async () => {
+    const user = userEvent.setup();
+    /** @type {Blob[]} */
+    const blobs = [];
+    /** @type {string[]} */
+    const downloads = [];
+    // jsdom ships no object-URL implementation — stub both (cast at the
+    // assignment since the lib.dom signature is wider than our Blob arg).
+    const createURL = vi.fn((/** @type {Blob} */ b) => { blobs.push(b); return 'blob:mock'; });
+    URL.createObjectURL = /** @type {any} */ (createURL);
+    URL.revokeObjectURL = vi.fn();
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function () {
+      downloads.push(/** @type {any} */ (this).download);
+    });
+    render(<HoldingsListModal metrics={METRICS} hideValues={false} onTickerClick={vi.fn()} onClose={vi.fn()} />);
+    await user.click(screen.getByLabelText('Download as Excel'));
+    expect(blobs).toHaveLength(1);
+    expect(blobs[0]).toBeInstanceOf(Blob);
+    expect(blobs[0].type).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    expect(downloads[0]).toMatch(/^holdings-\d{4}-\d{2}-\d{2}\.xlsx$/);
+    clickSpy.mockRestore();
+  });
 });
