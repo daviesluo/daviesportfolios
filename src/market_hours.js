@@ -216,3 +216,42 @@ export function lseIsOpen(now = new Date()) {
   const mins = hh * 60 + mm;
   return mins >= 8 * 60 && mins < 16 * 60 + 30;
 }
+
+// Returns { hh, mm, ss } of Europe/Paris (Central European Time, CET/CEST
+// — DST resolved by Intl) right now. Mirrors londonTimeParts; used by
+// euroExchangeIsOpen to gate the ext-hours toggle for euro-zone tickers.
+export function centralEuropeTimeParts(now = new Date()) {
+  const fmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Paris",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false,
+  });
+  const parts = {};
+  for (const p of fmt.formatToParts(now)) {
+    if (p.type === "hour")   parts.hh = p.value;
+    if (p.type === "minute") parts.mm = p.value;
+    if (p.type === "second") parts.ss = p.value;
+  }
+  return parts;
+}
+
+// Continental-European exchange regular session, 09:00 - 17:30 Central
+// European Time (Mon-Fri). Euronext (Paris/Amsterdam/Brussels/Lisbon/
+// Dublin), XETRA + Frankfurt, Milan, Madrid and Vienna all run this
+// window; Helsinki's 10:00-18:30 EET maps onto the same 09:00-17:30 CET,
+// and Athens (10:30-17:00 EET → 09:30-16:00 CET) sits inside it — so one
+// CET window covers every suffix isEuroExchange matches. Same role as
+// lseIsOpen: these venues have no US-style pre/after session, so the
+// ext-hours toggle should read 0 outside local trading hours and the live
+// intraday pct only while the exchange is genuinely open. Weekends /
+// holidays aren't modelled (Yahoo returns no new bars then, so the pct
+// stays at the prior close — the "Saturday show 0" guard is redundant),
+// matching lseIsOpen.
+export function euroExchangeIsOpen(now = new Date()) {
+  const parts = centralEuropeTimeParts(now);
+  const hh = parseInt(parts.hh, 10);
+  const mm = parseInt(parts.mm, 10);
+  if (!isFinite(hh) || !isFinite(mm)) return false;
+  const mins = hh * 60 + mm;
+  return mins >= 9 * 60 && mins < 17 * 60 + 30;
+}

@@ -13,6 +13,21 @@
 /** @param {string} ticker */ export const isPvt       = (ticker) => /\.PVT$/i.test(ticker);
 
 /**
+ * Continental-European exchange listings (Yahoo suffixes) — the euro-zone
+ * subset of isExchangeListed: Euronext (.PA Paris / .AS Amsterdam / .BR
+ * Brussels / .LS Lisbon / .IR Dublin), XETRA + Frankfurt (.DE / .F),
+ * Milan (.MI), Madrid (.MC), Vienna (.VI), Helsinki (.HE), Athens (.AT).
+ * Single source for the euro suffix list — fx.detectCurrency maps the
+ * SAME set to the EUR currency. Like `.L`, these venues have no US-style
+ * pre/after session, so computeMetrics uses this to gate the ext-hours
+ * toggle to 0 while the local exchange is closed. Deliberately excludes
+ * the non-euro European venues (.ST Stockholm / .OL Oslo / .CO Copenhagen
+ * / .SW Switzerland) — different currencies, no FX pair wired up.
+ * @param {string} ticker
+ */
+export const isEuroExchange = (ticker) => /\.(PA|AS|BR|LS|IR|MI|MC|DE|F|VI|HE|AT)$/i.test(ticker || '');
+
+/**
  * Tickers that only have a single daily NAV / close (no intraday
  * bars from Yahoo). CN mutual funds publish 1 NAV / trading day via
  * eastmoney; .PVT placeholders are user-defined holdings with no

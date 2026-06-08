@@ -5,8 +5,8 @@
 // pull in fetch plumbing / market hours / Storage.
 
 import { fxRateToUSD } from './fx.js';
-import { isUsEquity } from './ticker_class.js';
-import { lseIsOpen } from './market_hours.js';
+import { isUsEquity, isEuroExchange } from './ticker_class.js';
+import { lseIsOpen, euroExchangeIsOpen } from './market_hours.js';
 
 // Yahoo's `postMarketPrice` for OTC ADRs like SFTBY is bogus — it
 // ships today's regular-session OPEN as if it were an after-hours
@@ -101,10 +101,18 @@ export const computeMetrics = (portfolio, opts = {}) => {
       // "VUAG.L / SEGM.L show non-zero ext-hours at midnight" bug.
       const isLse = typeof t === 'string' && t.endsWith('.L');
       const lseSuppress = ext && !isCash && isLse && !lseIsOpen();
+      // Same gate for euro-zone listings (.PA / .DE / .MI / …): no
+      // US-style pre/after session, so when the toggle is on and the
+      // local exchange is closed the row reads 0 instead of the stale
+      // last-close pct. XFAB.PA before the Euronext open is the case
+      // that prompted this — identical treatment to the .L ETFs.
+      const isEuro = isEuroExchange(t);
+      const euroSuppress = ext && !isCash && isEuro && !euroExchangeIsOpen();
+      const sessionSuppress = lseSuppress || euroSuppress;
       let pct;
       if (extActive) {
         pct = (trustExt && h.extDayPct != null ? h.extDayPct : 0);
-      } else if (lseSuppress) {
+      } else if (sessionSuppress) {
         pct = 0;
       } else {
         pct = (h.dayPct ?? 0);
@@ -129,14 +137,15 @@ export const computeMetrics = (portfolio, opts = {}) => {
       //     used to fall back to yesterday's prevClose and show the
       //     regular-session move, but in ext mode that's a stale
       //     number — a non-AH-trading stock IS flat after the close.)
-      //   - lseSuppress (LSE ticker, ext-on, LSE closed) → current
-      //     priceNative → dayChange = 0 too. LSE has no movement
-      //     when its own session is closed, and the toggle visually
-      //     promises "extended-hours" which doesn't exist for these.
+      //   - sessionSuppress (LSE/euro ticker, ext-on, local exchange
+      //     closed) → current priceNative → dayChange = 0 too. These
+      //     venues have no movement when their own session is closed,
+      //     and the toggle visually promises "extended-hours" which
+      //     doesn't exist for them.
       //   - ext-off → yesterday's prevClose, the full-session move.
       const baselinePrice = extActive
         ? (h.lastPrice ?? h.prevClose ?? priceNative)
-        : lseSuppress
+        : sessionSuppress
           ? priceNative
           : (h.prevClose ?? priceNative);
       const prevMV = isCash ? mv : h.shares * baselinePrice * fx;

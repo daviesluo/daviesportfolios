@@ -362,4 +362,71 @@ describe('computeMetrics — degenerate inputs', () => {
       } finally { unfreezeDate(); }
     });
   });
+
+  // Euro-zone listings (.PA / .DE / …) get the identical treatment to
+  // .L: no US-style ext-hours session, so the toggle must read 0 while
+  // the local exchange is closed (XFAB.PA before the Euronext open was
+  // the reported case) and revert to the live intraday pct once it's
+  // open. Times are frozen in January (CET = UTC+1): UTC 02:00 = Paris
+  // 03:00 (closed, pre-open), UTC 12:00 = Paris 13:00 (open), UTC 16:35
+  // = Paris 17:35 (5 min past the 17:30 close).
+  describe('euro ticker (.PA) + ext-hours toggle', () => {
+    const realDate = globalThis.Date;
+    function freezeAt(iso) {
+      class FrozenDate extends realDate {
+        constructor(arg) {
+          if (arg === undefined) { super(iso); return; }
+          super(arg);
+        }
+        static now() { return realDate.parse(iso); }
+      }
+      // @ts-expect-error overriding global Date in this scope
+      globalThis.Date = FrozenDate;
+    }
+    function unfreezeDate() { globalThis.Date = realDate; }
+
+    const holdings = {
+      'XFAB.PA': {
+        shares: 10, lastPrice: 8, prevClose: 7.5, cost: 6,
+        currency: 'EUR', dayPct: 6.6667, // 8 vs 7.5
+      },
+    };
+    const positions = { CB1: { role: 'DEF', tickers: ['XFAB.PA'], label: 'CB1' } };
+    // EUR/USD = 1 keeps the arithmetic clean; the session gate doesn't
+    // touch currency conversion.
+    const md = { 'EURUSD=X': { lastPrice: 1 } };
+
+    it('ext OFF: shows the normal dayPct regardless of the Paris clock', () => {
+      freezeAt('2026-01-15T02:00:00Z'); // Paris 03:00 → closed
+      try {
+        const m = computeMetrics(pf(holdings, positions), { extended: false, marketData: md });
+        expect(m.positions.CB1.players[0].dayPct).toBeCloseTo(6.6667, 4);
+      } finally { unfreezeDate(); }
+    });
+
+    it('ext ON, Euronext closed (Paris 03:00): dayPct + dayChange suppressed to 0', () => {
+      freezeAt('2026-01-15T02:00:00Z'); // Paris 03:00 → closed (pre-open)
+      try {
+        const m = computeMetrics(pf(holdings, positions), { extended: true, marketData: md });
+        expect(m.positions.CB1.players[0].dayPct).toBe(0);
+        expect(m.positions.CB1.players[0].dayChange).toBe(0);
+      } finally { unfreezeDate(); }
+    });
+
+    it('ext ON, Euronext open (Paris 13:00): shows the live intraday pct', () => {
+      freezeAt('2026-01-15T12:00:00Z'); // Paris 13:00 → open
+      try {
+        const m = computeMetrics(pf(holdings, positions), { extended: true, marketData: md });
+        expect(m.positions.CB1.players[0].dayPct).toBeCloseTo(6.6667, 4);
+      } finally { unfreezeDate(); }
+    });
+
+    it('ext ON, Euronext just-closed (Paris 17:35): suppressed to 0', () => {
+      freezeAt('2026-01-15T16:35:00Z'); // Paris 17:35 → 5 min past close
+      try {
+        const m = computeMetrics(pf(holdings, positions), { extended: true, marketData: md });
+        expect(m.positions.CB1.players[0].dayPct).toBe(0);
+      } finally { unfreezeDate(); }
+    });
+  });
 });
