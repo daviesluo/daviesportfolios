@@ -75,6 +75,11 @@ export default defineConfig({
           'workbox-*.js',
           'workbox-*.js.map',
           '**/*.map',
+          // The screenshot library (html2canvas-pro) is a lazy chunk loaded
+          // only when a user clicks copy/save in the chart modal. Keep it
+          // OUT of the precache so it isn't pushed to every install — it's
+          // runtime-cached on first use instead (see runtimeCaching below).
+          'assets/html2canvas-pro*.js',
         ],
         runtimeCaching: [
           {
@@ -99,6 +104,18 @@ export default defineConfig({
               cacheName: 'data-api',
               networkTimeoutSeconds: 6,
               expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 6 },
+            },
+          },
+          {
+            // The lazy screenshot chunk (excluded from precache above).
+            // Content-hashed → immutable, so CacheFirst is safe: a new
+            // build ships a new filename and re-fetches. This makes the
+            // screenshot buttons work offline once they've been used once.
+            urlPattern: /\/assets\/html2canvas-pro[^/]*\.js$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'lazy-chunks',
+              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
         ],

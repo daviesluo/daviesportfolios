@@ -24,6 +24,7 @@ import {
 } from './ticker_chart_helpers.js';
 import { useTickerFundamentals } from './use_ticker_fundamentals.js';
 import { useTickerChartData } from './use_ticker_chart_data.js';
+import { ScreenshotActions } from './screenshot_actions.jsx';
 
 // Ticker classification predicates moved to `src/ticker_class.js` so
 // the modal, prefetch, header_sidebar, etc. all share one definition
@@ -702,7 +703,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             );
           })()}
         </div>
-        <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
+        <div className="modal-head-actions screenshot-skip">
+          <ScreenshotActions filenameBase={ticker} />
+          <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
+        </div>
       </header>
 
       <div className="modal-body">
