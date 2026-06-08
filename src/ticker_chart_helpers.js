@@ -8,7 +8,7 @@
 import { fmtPrice as fmtPr } from './formatters.js';
 import { ChartStore } from './chart_store.js';
 
-export const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$' };
+export const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$', EUR: '€' };
 
 // Bar interval per intraday range, for the overnight live-dot's
 // time-proportional gap (chart_geometry.overnightTrailingGap) and the

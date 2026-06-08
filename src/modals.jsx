@@ -416,7 +416,8 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
   const [lastPrice, setLastPrice] = React.useState("");
   const [buyDate, setBuyDate] = React.useState(() => new Date().toISOString().slice(0, 10));
 
-  // Currency follows the ticker the user is typing — 6-digit → ¥, .L → £, else $.
+  // Currency follows the ticker the user is typing — 6-digit → ¥, .L → £,
+  // euro-zone suffix (.PA/.AS/.DE/…) → €, else $.
   const cur = detectCurrency(ticker.trim());
   const sym = curSym(cur);
   const costHint = cur === "USD"

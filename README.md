@@ -35,8 +35,12 @@ secrets server-side.
 
 - **Live prices** — Yahoo Finance via a Supabase Edge Function. Browser
   never touches Yahoo directly, so no CORS or rate-limit-by-IP issues.
-- **Multi-currency holdings** — USD / GBP / CNY / HKD with live FX
-  conversion against `GBPUSD=X` / `USDCNY=X` / `USDHKD=X`.
+- **Multi-currency holdings** — USD / GBP / EUR / CNY / HKD with live FX
+  conversion against `GBPUSD=X` / `EURUSD=X` / `USDCNY=X` / `USDHKD=X`.
+  Euro-zone tickers are detected by exchange suffix (`.PA` Paris, `.AS`
+  Amsterdam, `.DE` XETRA, `.MI` Milan, `.MC` Madrid, …). Only the price
+  and avg-cost render in the native currency; everything else converts
+  to USD.
 - **Chinese mutual funds** — 6-digit fund codes route to eastmoney's
   `pingzhongdata` endpoint, with `api.fund.eastmoney.com/f10/lsjz`
   and `danjuanapp.com` (Snowball) as JSON fallbacks.
@@ -252,7 +256,7 @@ secrets server-side.
 - **Hide values toggle** — masks dollar amounts with `*` so the page
   is screenshot-safe; percentages stay visible.
 - **FX-missing badge + stale-price indicator** — when a multi-currency
-  holding's FX pair (GBPUSD=X / USDCNY=X / USDHKD=X) is missing from
+  holding's FX pair (GBPUSD=X / EURUSD=X / USDCNY=X / USDHKD=X) is missing from
   the live quote, the header surfaces a red `FX MISSING N tickers`
   pill instead of silently valuing the holding at 1:1 USD (which was
   understating GBP portfolios by ~20 % during brief Yahoo FX

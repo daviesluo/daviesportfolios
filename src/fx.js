@@ -29,6 +29,8 @@ const TICKER_CURRENCY_OVERRIDES = /** @type {const} */ ({
  *        - 6-digit numeric → CNY (Chinese mutual fund)
  *        - ticker ends in .L → GBP (London Stock Exchange)
  *        - ticker ends in .HK → HKD (Hong Kong)
+ *        - ticker ends in a euro-zone exchange suffix (.PA Paris, .AS
+ *          Amsterdam, .DE XETRA, .MI Milan, .MC Madrid, …) → EUR
  *        - everything else → USD
  * @param {string} ticker
  */
@@ -39,20 +41,25 @@ export function detectCurrency(ticker) {
   if (/^\d{6}$/.test(ticker)) return "CNY";
   if (/\.L$/i.test(ticker))   return "GBP";
   if (/\.HK$/i.test(ticker))  return "HKD";
+  // Euro-zone exchanges (Yahoo suffixes). Deliberately excludes the
+  // non-euro European venues (.ST Stockholm = SEK, .OL Oslo = NOK,
+  // .CO Copenhagen = DKK, .SW Switzerland = CHF) — only the EUR ones.
+  if (/\.(PA|AS|BR|LS|IR|MI|MC|DE|F|VI|HE|AT)$/i.test(ticker)) return "EUR";
   return "USD";
 }
 
 // Symbol + decimal rules for the avg-cost field (what the user typed).
 // We keep 4 decimals for GBP/CNY so sub-penny precision isn't lost.
-const CURRENCY_SYMBOLS = { USD: "$", GBP: "£", CNY: "¥", HKD: "HK$" };
+const CURRENCY_SYMBOLS = { USD: "$", GBP: "£", CNY: "¥", HKD: "HK$", EUR: "€" };
 
 /** @param {string} cur */
 export function currencySymbol(cur) { return CURRENCY_SYMBOLS[cur] || "$"; }
 
 /**
  * FX rate: how many USD one unit of `currency` is worth, given current
- * market data. Yahoo's GBPUSD=X is quoted GBP→USD directly. USDCNY=X
- * is USD→CNY (we invert). USDHKD=X same inversion.
+ * market data. Yahoo's GBPUSD=X and EURUSD=X are quoted GBP→USD /
+ * EUR→USD directly. USDCNY=X is USD→CNY (we invert). USDHKD=X same
+ * inversion.
  *
  * Returns `{ rate, missing }` where `missing` is true when the live
  * FX pair couldn't be read and we fell back to 1:1. Callers MUST
@@ -70,6 +77,12 @@ export function fxRateToUSD(currency, marketData) {
   if (!currency || currency === "USD") return { rate: 1, missing: false };
   if (currency === "GBP") {
     const r = marketData?.["GBPUSD=X"]?.lastPrice;
+    return (typeof r === "number" && r > 0)
+      ? { rate: r, missing: false }
+      : { rate: 1, missing: true };
+  }
+  if (currency === "EUR") {
+    const r = marketData?.["EURUSD=X"]?.lastPrice;
     return (typeof r === "number" && r > 0)
       ? { rate: r, missing: false }
       : { rate: 1, missing: true };
