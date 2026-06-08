@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   isCrypto, isFutures, isForex, isIndex, isExchangeListed,
   isCnFund, isPvt, isDailyOnly, isUsEquity, hasOvernightSession,
+  isEuroExchange,
 } from './ticker_class.js';
 
 describe('ticker_class', () => {
@@ -38,6 +39,24 @@ describe('ticker_class', () => {
     expect(isExchangeListed('0700.HK')).toBe(true); // HK
     expect(isExchangeListed('NVDA')).toBe(false);
     expect(isExchangeListed('SPAX.PVT')).toBe(true); // unfortunate overlap; isPvt also true
+  });
+
+  it('euro-zone exchange by Yahoo suffix (drives the ext-hours gate)', () => {
+    // Same list fx.detectCurrency maps to EUR — kept in sync via this
+    // single source. If it regresses, euro holdings either lose EUR
+    // conversion (detectCurrency) or paint a stale close as ext-hours
+    // movement (computeMetrics' euroSuppress).
+    expect(isEuroExchange('XFAB.PA')).toBe(true);  // Euronext Paris
+    expect(isEuroExchange('ASML.AS')).toBe(true);  // Amsterdam
+    expect(isEuroExchange('SAP.DE')).toBe(true);   // XETRA
+    expect(isEuroExchange('ENEL.MI')).toBe(true);  // Milan
+    expect(isEuroExchange('xfab.pa')).toBe(true);  // case-insensitive
+    // Non-euro European venues and other classes are excluded.
+    expect(isEuroExchange('VOLV-B.ST')).toBe(false); // Stockholm / SEK
+    expect(isEuroExchange('NESN.SW')).toBe(false);   // Switzerland / CHF
+    expect(isEuroExchange('VUAG.L')).toBe(false);    // LSE (own gate)
+    expect(isEuroExchange('NVDA')).toBe(false);
+    expect(isEuroExchange('')).toBe(false);
   });
 
   it('CN fund by 6 ASCII digits', () => {

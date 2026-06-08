@@ -5,6 +5,9 @@
 // before — fxRateToUSD returns the silent-fallback flag and
 // fxToUSD is the back-compat shim.
 
+import { isEuroExchange } from './ticker_class.js';
+
+
 // Per-ticker overrides for tickers whose suffix doesn't match their
 // settle currency. LSE lists both GBP-denominated ETFs (VUAG.L /
 // SEGM.L) and USD-denominated UCITS ETFs (VUAA.L / SAEM.L); the
@@ -41,10 +44,9 @@ export function detectCurrency(ticker) {
   if (/^\d{6}$/.test(ticker)) return "CNY";
   if (/\.L$/i.test(ticker))   return "GBP";
   if (/\.HK$/i.test(ticker))  return "HKD";
-  // Euro-zone exchanges (Yahoo suffixes). Deliberately excludes the
-  // non-euro European venues (.ST Stockholm = SEK, .OL Oslo = NOK,
-  // .CO Copenhagen = DKK, .SW Switzerland = CHF) — only the EUR ones.
-  if (/\.(PA|AS|BR|LS|IR|MI|MC|DE|F|VI|HE|AT)$/i.test(ticker)) return "EUR";
+  // Euro-zone exchanges — see isEuroExchange for the suffix list (single
+  // source) and why the non-euro European venues are excluded.
+  if (isEuroExchange(ticker)) return "EUR";
   return "USD";
 }
 
