@@ -51,6 +51,11 @@ describe('ticker_class', () => {
     expect(isEuroExchange('SAP.DE')).toBe(true);   // XETRA
     expect(isEuroExchange('ENEL.MI')).toBe(true);  // Milan
     expect(isEuroExchange('xfab.pa')).toBe(true);  // case-insensitive
+    // German regional venues (all EUR): Stuttgart / Berlin / Munich / …
+    expect(isEuroExchange('2DG.SG')).toBe(true);   // Stuttgart
+    expect(isEuroExchange('BMW.BE')).toBe(true);   // Berlin
+    expect(isEuroExchange('SIE.MU')).toBe(true);   // Munich
+    expect(isEuroExchange('VOW.DU')).toBe(true);   // Düsseldorf
     // Non-euro European venues and other classes are excluded.
     expect(isEuroExchange('VOLV-B.ST')).toBe(false); // Stockholm / SEK
     expect(isEuroExchange('NESN.SW')).toBe(false);   // Switzerland / CHF

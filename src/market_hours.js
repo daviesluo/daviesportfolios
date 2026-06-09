@@ -235,18 +235,21 @@ export function centralEuropeTimeParts(now = new Date()) {
   return parts;
 }
 
-// Continental-European exchange regular session, 09:00 - 17:30 Central
-// European Time (Mon-Fri). Euronext (Paris/Amsterdam/Brussels/Lisbon/
-// Dublin), XETRA + Frankfurt, Milan, Madrid and Vienna all run this
+// Continental-European exchange CORE regular session, 09:00 - 17:30
+// Central European Time (Mon-Fri). Euronext (Paris/Amsterdam/Brussels/
+// Lisbon/Dublin), XETRA + Frankfurt, Milan, Madrid and Vienna all run this
 // window; Helsinki's 10:00-18:30 EET maps onto the same 09:00-17:30 CET,
-// and Athens (10:30-17:00 EET → 09:30-16:00 CET) sits inside it — so one
-// CET window covers every suffix isEuroExchange matches. Same role as
-// lseIsOpen: these venues have no US-style pre/after session, so the
-// ext-hours toggle should read 0 outside local trading hours and the live
-// intraday pct only while the exchange is genuinely open. Weekends /
-// holidays aren't modelled (Yahoo returns no new bars then, so the pct
-// stays at the prior close — the "Saturday show 0" guard is redundant),
-// matching lseIsOpen.
+// and Athens (10:30-17:00 EET → 09:30-16:00 CET) sits inside it. The
+// German RETAIL venues (Stuttgart .SG, Berlin .BE, Munich .MU, … —
+// 08:00-22:00 CET) trade wider than this, so 09:00-17:30 is intentionally
+// the conservative core session: the gate only has to be right during the
+// US ext-hours overlap (after-hours / overnight, when every German venue
+// is also shut), where it correctly reads closed. Same role as lseIsOpen:
+// these venues have no US-style pre/after session, so the ext-hours toggle
+// should read 0 outside local trading hours and the live intraday pct only
+// while the exchange is open. Weekends / holidays aren't modelled (Yahoo
+// returns no new bars then, so the pct stays at the prior close — the
+// "Saturday show 0" guard is redundant), matching lseIsOpen.
 export function euroExchangeIsOpen(now = new Date()) {
   const parts = centralEuropeTimeParts(now);
   const hh = parseInt(parts.hh, 10);
