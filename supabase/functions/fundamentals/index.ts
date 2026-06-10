@@ -205,6 +205,13 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
         while (queue.length > 0) {
           const t = queue.shift();
           if (!t) break;
+          // Per-ticker isolation: the fetch helpers mostly swallow
+          // their own upstream failures, but anything that does throw
+          // (e.g. the PostgREST cache read) would otherwise reject this
+          // worker and — via Promise.all — the whole request, throwing
+          // away every already-fetched ticker over one bad one. Skip
+          // the offender and keep draining the queue instead.
+          try {
           // Cache-first: 2 h TTL for the full per-stock Fundamentals
           // payload. Without this, a 30-ticker page load with the P/E
           // chart open burns ~120 Yahoo calls (4/stock); with it, the
@@ -278,6 +285,9 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
           // Best-effort cache write — fire-and-forget so the response
           // path isn't blocked on a slow PostgREST write.
           writeCachedStockFundamentals(t, includeEpsHistory, f).catch(() => {});
+          } catch (e) {
+            console.error(`[fundamentals] ${t} failed, skipping:`, String(e));
+          }
         }
       });
       await Promise.all(workers);
@@ -287,8 +297,13 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
       const avBlocked = { value: false };
       const isFirstAvCall = { value: true };
       for (const t of indexSymbols) {
-        const f = await resolveIndexPe(t, avBlocked, isFirstAvCall);
-        if (f) out[t] = f;
+        // Same per-ticker isolation as the stocks worker above.
+        try {
+          const f = await resolveIndexPe(t, avBlocked, isFirstAvCall);
+          if (f) out[t] = f;
+        } catch (e) {
+          console.error(`[fundamentals] ${t} failed, skipping:`, String(e));
+        }
       }
     })();
 
