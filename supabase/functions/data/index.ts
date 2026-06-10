@@ -15,6 +15,13 @@
 // runtime and never need to be set manually.
 
 import { reportServerError } from "../_shared/ops.ts";
+import { verifyToken } from "../_shared/token.ts";
+
+// Re-exported so this function's index.test.ts (and auth's cross-check
+// test, which verifies an auth-issued token against this module) keep
+// pinning the exact implementation the gate below trusts.
+export { b64url, constantTimeEqual, sign, verifyToken } from "../_shared/token.ts";
+export type { Verified } from "../_shared/token.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -29,62 +36,12 @@ const CORS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
-const SECRET       = Deno.env.get("APP_AUTH_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-const enc = new TextEncoder();
-
-export function b64url(bytes: Uint8Array | string): string {
-  const buf = typeof bytes === "string" ? enc.encode(bytes) : bytes;
-  let s = btoa(String.fromCharCode(...buf));
-  return s.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
-}
-
-export async function sign(payload: string, secret: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
-  return b64url(new Uint8Array(sig));
-}
-
-export type Verified = { role: "admin" | "ro"; exp: number };
-
-// Constant-time string equality. JS `!==` short-circuits on first
-// byte mismatch, which leaks a timing side-channel an attacker can
-// use to forge tokens byte-by-byte. Walking the full length and
-// OR-ing the per-char xor keeps the comparison time independent of
-// where (if anywhere) the mismatch is. Length mismatch short-circuits
-// only the LENGTH check — not the per-byte content — which is the
-// information we're already willing to leak (a 43-byte vs 44-byte
-// signature isn't a useful guess for the attacker).
-export function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-export async function verifyToken(token: string, secret = SECRET): Promise<Verified | null> {
-  if (!secret) return null;
-  const [payloadB64, sigB64] = token.split(".");
-  if (!payloadB64 || !sigB64) return null;
-  const expected = await sign(payloadB64, secret);
-  if (!constantTimeEqual(expected, sigB64)) return null;
-  try {
-    const padded = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
-    const json = atob(padded + "=".repeat((4 - padded.length % 4) % 4));
-    const obj = JSON.parse(json);
-    if (typeof obj?.exp !== "number" || obj.exp < Date.now()) return null;
-    if (obj?.role !== "admin" && obj?.role !== "ro") return null;
-    return obj as Verified;
-  } catch { return null; }
-}
+// Token verification (b64url / sign / constantTimeEqual / verifyToken)
+// lives in ../_shared/token.ts — the canonical copy this function used
+// to carry inline. The shared module reads APP_AUTH_SECRET itself.
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -108,6 +65,17 @@ const SB_HEADERS = {
 // Guarded so tests can import the helpers above without spinning up
 // the server. Supabase's runtime executes index.ts as the entry
 // module, so `import.meta.main` is true in production.
+//
+// Missing-secret check: verifyToken fails closed (every request 401s)
+// when APP_AUTH_SECRET is unset, which is the safe direction but a
+// silent one — without this log line the only symptom is a wall of
+// 401s with nothing in the function logs to say why.
+if (import.meta.main && !Deno.env.get("APP_AUTH_SECRET")) {
+  console.error(
+    "[data] APP_AUTH_SECRET is not set — every request will be rejected " +
+    "with 401. Set it in Supabase Dashboard → Edge Functions → Secrets.",
+  );
+}
 if (import.meta.main) Deno.serve(async (req: Request) => {
   try {
     if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });

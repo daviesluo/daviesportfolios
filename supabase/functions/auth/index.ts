@@ -26,6 +26,13 @@
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected.
 
 import { reportServerError } from "../_shared/ops.ts";
+import { b64url, sign } from "../_shared/token.ts";
+import { clientIpFromHeaders } from "../_shared/ip.ts";
+
+// Re-exported so this function's index.test.ts keeps pinning the exact
+// implementations the token issue path uses (and so older imports of
+// these helpers from auth keep working).
+export { b64url, sign, clientIpFromHeaders };
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -44,25 +51,9 @@ const SECRET       = Deno.env.get("APP_AUTH_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-const enc = new TextEncoder();
-
-export function b64url(bytes: Uint8Array | string): string {
-  const buf = typeof bytes === "string" ? enc.encode(bytes) : bytes;
-  let s = btoa(String.fromCharCode(...buf));
-  return s.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
-}
-
-export async function sign(payload: string, secret: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
-  return b64url(new Uint8Array(sig));
-}
+// b64url / sign live in ../_shared/token.ts (imported + re-exported
+// above) — the same module the verifying functions (data / trading212 /
+// ops-error) now use, so issue and verify can't drift apart.
 
 export async function makeToken(role: "admin" | "ro", secret = SECRET, ttlMs = TOKEN_TTL_MS): Promise<string> {
   const payload = b64url(JSON.stringify({ role, exp: Date.now() + ttlMs }));
@@ -70,37 +61,10 @@ export async function makeToken(role: "admin" | "ro", secret = SECRET, ttlMs = T
   return `${payload}.${signature}`;
 }
 
-// IP priority (most-trusted first):
-//   1. `x-real-ip` — Supabase's gateway sets this to the actual
-//      client IP; not client-settable end-to-end since the gateway
-//      overwrites whatever the caller sent.
-//   2. **Last** entry of `x-forwarded-for`, NOT the first. Proxies
-//      append their source as they forward, so the last value is the
-//      most-trusted (set by Supabase's edge); the first entry is
-//      whatever the original client sent and is trivially spoofable.
-//      The pre-2026 implementation took `xff[0]`, which let an
-//      attacker rotate `x-forwarded-for: 1.2.3.4` per request and
-//      bypass the per-IP lockout entirely.
-//   3. "unknown" sentinel — keeps the limiter keyed per-deploy so a
-//      missing header doesn't silently bypass everything.
-//
-// `cf-connecting-ip` is NOT honoured here even though it would be the
-// safest header IF Cloudflare were in our path. The browser calls
-// `*.supabase.co` directly — no CF in front — so any incoming
-// `cf-connecting-ip` is purely client-supplied and would let an
-// attacker pin it to a different value per request to defeat the
-// per-IP lockout entirely. Worth re-adding only when the project
-// moves behind a CF-managed origin.
-export function clientIpFromHeaders(req: Request): string {
-  const xri = req.headers.get("x-real-ip");
-  if (xri) return xri;
-  const xff = req.headers.get("x-forwarded-for");
-  if (xff) {
-    const parts = xff.split(",").map((s) => s.trim()).filter(Boolean);
-    if (parts.length > 0) return parts[parts.length - 1];
-  }
-  return "unknown";
-}
+// clientIpFromHeaders lives in ../_shared/ip.ts (imported +
+// re-exported above) so ops-error's error rows and this function's
+// lockout key share one trust order — see that module for the full
+// x-real-ip / last-XFF-entry / sentinel rationale.
 
 function json(status: number, body: Record<string, unknown>): Response {
   return new Response(JSON.stringify(body), {

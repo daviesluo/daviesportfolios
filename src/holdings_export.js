@@ -143,7 +143,7 @@ function concatBytes(arrs) {
  * central directory and the end-of-central-directory record, each with a
  * CRC32. DOS mod time/date are stamped 0 (Excel doesn't care).
  * @param {Array<{name:string, data:Uint8Array}>} files
- * @returns {Uint8Array}
+ * @returns {Uint8Array<ArrayBuffer>}
  */
 function zipStore(files) {
   const enc = new TextEncoder();
@@ -190,8 +190,11 @@ function zipStore(files) {
  * Build a minimal but valid .xlsx workbook (single "Holdings" sheet,
  * every cell an inline string so the export reads exactly like the
  * table). Returns the raw bytes; the caller wraps them in a Blob.
+ * (`Uint8Array<ArrayBuffer>`, not bare `Uint8Array`: since the TS 5.7
+ * TypedArray generics, the bare form means ArrayBufferLike — which
+ * BlobPart rejects because it includes SharedArrayBuffer.)
  * @param {string[][]} matrix
- * @returns {Uint8Array}
+ * @returns {Uint8Array<ArrayBuffer>}
  */
 export function matrixToXlsx(matrix) {
   const enc = new TextEncoder();

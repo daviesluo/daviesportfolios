@@ -260,6 +260,16 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
   // then get a different number after pressing Save (where the bad
   // row gets dropped silently).
   const validLots = cleanLots(lots);
+  // Future-dated rows get dropped by cleanLots on save. The date input's
+  // max=today blocks the picker, but a paste / typed value still gets
+  // through — and used to vanish on Save with no feedback at all. Only
+  // future dates are flagged (not other invalid shapes): every row starts
+  // at date=today, so a future date is always a deliberate-looking entry,
+  // while half-typed shares/cost rows are normal mid-edit states that a
+  // warning would nag on every keystroke.
+  const futureLotCount = lots.filter(
+    (l) => typeof l?.date === 'string' && l.date.trim() > today,
+  ).length;
   const totalShares = validLots.reduce((s, l) => s + l.shares, 0);
   const weightedCost = totalShares > 0
     ? validLots.reduce((s, l) => s + l.shares * l.cost, 0) / totalShares
@@ -318,6 +328,13 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
           <div><span className="lot-summary-label mono">AVG COST ({sym})</span><span className="lot-summary-val mono">{weightedCost.toFixed(2)}</span></div>
         </div>
         {acHint && <div className="lot-hint mono dim">{acHint}</div>}
+        {futureLotCount > 0 && (
+          <div className="lot-warn mono" role="alert">
+            {futureLotCount === 1
+              ? '1 lot is dated in the future and will be dropped on save.'
+              : `${futureLotCount} lots are dated in the future and will be dropped on save.`}
+          </div>
+        )}
 
         <div className="lot-grid">
           <div className="lot-grid-head mono">

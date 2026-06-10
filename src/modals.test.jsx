@@ -98,3 +98,33 @@ describe('EditTickerModal — Move holding', () => {
     confirmSpy.mockRestore();
   });
 });
+
+describe('EditTickerModal — future-dated lot warning', () => {
+  it('shows no warning when every lot is today or earlier', () => {
+    renderModal();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('warns that a future-dated lot will be dropped on save', () => {
+    const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+    renderModal({
+      holding: { ...HOLDING, lots: [...HOLDING.lots, { date: tomorrow, shares: 5, cost: 100 }] },
+    });
+    // cleanLots drops the row silently on save; the modal must say so
+    // up front instead of letting the lot vanish with no feedback.
+    expect(screen.getByRole('alert').textContent).toMatch(/1 lot is dated in the future/);
+  });
+
+  it('pluralises for multiple future-dated lots', () => {
+    const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+    const nextWeek = new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10);
+    renderModal({
+      holding: { ...HOLDING, lots: [
+        ...HOLDING.lots,
+        { date: tomorrow, shares: 5, cost: 100 },
+        { date: nextWeek, shares: 2, cost: 50 },
+      ] },
+    });
+    expect(screen.getByRole('alert').textContent).toMatch(/2 lots are dated in the future/);
+  });
+});

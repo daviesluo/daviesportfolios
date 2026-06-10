@@ -49,7 +49,20 @@ async function fetchOneYahooChart(symbol) {
         continue;
       }
       const data = await res.json();
-      const result = data?.chart?.result?.[0];
+      // 200 + parseable JSON that isn't Yahoo's chart envelope — the
+      // proxy substituted its own body (some free proxies serve their
+      // rate-limit / error JSON with a 200). Without a backoff here
+      // such a proxy never gets benched: every poll re-burns an
+      // attempt slot + up to 8 s of timeout on it. Same short window
+      // as a network error — the proxy may recover quickly.
+      // (`chart` present but result/meta missing is Yahoo itself
+      // answering "no data for this symbol" — not the proxy's fault,
+      // so that path stays backoff-free below.)
+      if (!data?.chart) {
+        markProxyDead(i, 60_000);
+        continue;
+      }
+      const result = data.chart.result?.[0];
       const meta = result?.meta;
       if (!meta) continue;
       let lastPrice = meta.regularMarketPrice;
@@ -112,7 +125,15 @@ async function fetchOneCNFund(code) {
       }
       const text = (await res.text()).trim();
       const m = text.match(/^jsonpgz\((.+?)\)\s*;?\s*$/s);
-      if (!m) continue;
+      if (!m) {
+        // eastmoney always answers in the jsonpgz(...) JSONP wrapper.
+        // An HTML body here is a proxy's own error page served with a
+        // 200 — bench it briefly (same rationale as the Yahoo-envelope
+        // check above). A non-HTML mismatch could be eastmoney itself
+        // misbehaving, so that stays backoff-free.
+        if (text.startsWith("<")) markProxyDead(i, 60_000);
+        continue;
+      }
       let obj;
       try { obj = JSON.parse(m[1]); } catch { continue; }
       const dwjz = parseFloat(obj.dwjz);
@@ -175,8 +196,13 @@ function normalizeEdgeResult(result) {
     if (quotesRegularSessionOnly(t)) { r.extPrice = null; r.extDayPct = null; }
     if (/^\d{6}$/.test(t) && r.currency == null) r.currency = "CNY";
     else if (/\.L$/i.test(t)) {
-      // Edge doesn't report currency; assume London GBp unless values already look like GBP (<50).
-      // Most London ETFs/stocks trade at hundreds of pence, so /100 is the safe default.
+      // Legacy-deploy compatibility: the current prices Edge Function
+      // tags every quote with `currency` and already converts GBp→GBP
+      // server-side, so this branch is dead against a current deploy.
+      // A currency-less .L quote can only come from a pre-currency
+      // Edge build (or a rollback), where values are raw Yahoo pence —
+      // /100 unconditionally; most London listings trade at hundreds
+      // of pence so treating them as GBP would be off by 100×.
       if (r.currency == null) {
         r.lastPrice /= 100;
         if (r.prevClose != null) r.prevClose /= 100;

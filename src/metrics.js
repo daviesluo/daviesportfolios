@@ -13,21 +13,19 @@ import { lseIsOpen, euroExchangeIsOpen } from './market_hours.js';
 // quote, even though SFTBY doesn't actually trade AH. The result on
 // the home page was a +8 % "AH move" the ticker never made.
 //
-// Without an intraday series at this layer (computeMetrics doesn't
-// fetch — it consumes whatever marketData gives it), the strongest
-// signal we have is the absolute divergence between `extPrice` and
-// `lastPrice` (= today's regular close). Real after-hours quotes
-// usually sit within a couple of percent of the regular close; the
-// SFTBY-shape bug spikes 8 %+. 5 % threshold catches it while
-// allowing typical AH movement.
+// FALLBACK ONLY. The primary verdict is `h.extPriceTrusted`, set by
+// the app's refresh path from the real intraday series
+// (`extPriceIsRealAh` in indicators.js — the same check the chart
+// modal runs), which has no divergence cap and accepts an honest
+// >5 % earnings-night AH move. This quote-only heuristic is consulted
+// only while that verdict is missing: the first paint before a
+// refresh completes, or an ext-series fetch failure. Within that
+// window a real >5 % AH move reads as flat on the tactics board —
+// self-correcting on the next refresh tick, and the modal (which
+// fetches its own series) shows the true move all along.
 //
-// Earnings-day false negative: an honest 10 % AH move on a real
-// stock (NVDA after a beat) would also exceed 5 % and fall back to
-// lastPrice on the tactics board. The trade-off is intentional —
-// the user has explicitly asked for SFTBY to stop lying, and they
-// can still see the real AH price in the modal (which has the
-// intraday series to validate). Re-tighten when we have a better
-// per-ticker signal here.
+// 5 % threshold: real AH quotes usually sit within a couple of
+// percent of the regular close; the SFTBY-shape bug spikes 8 %+.
 const EXT_PRICE_MAX_DIVERGENCE = 0.05;
 
 /** @param {number | null | undefined} extPrice @param {number | null | undefined} lastPrice */

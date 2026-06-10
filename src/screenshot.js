@@ -1,7 +1,7 @@
 // Screenshot helpers for the chart modal's "copy image / save image"
 // buttons. Capture goes through html2canvas-pro, pulled in with a DYNAMIC
 // import so the heavy library is a separate lazy chunk — the lean main
-// bundle and its 100 KB size-limit gate stay untouched; the lib only
+// bundle and its 115 KB size-limit gate stay untouched; the lib only
 // downloads when a user actually clicks a screenshot button. It's the
 // `-pro` fork (not the stale original) because the theme's palette is
 // authored in oklch(), which the original html2canvas can't parse.

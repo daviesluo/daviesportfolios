@@ -85,6 +85,11 @@
 // TICKER_CURRENCY_OVERRIDES for the client-side currency override that
 // stops the suffix-based `detectCurrency` mis-detecting them as GBP.
 import { reportServerError } from "../_shared/ops.ts";
+import { verifyToken } from "../_shared/token.ts";
+
+// Re-exported so this function's index.test.ts keeps pinning the exact
+// implementation the token gate below trusts.
+export { b64url, constantTimeEqual, sign, verifyToken } from "../_shared/token.ts";
 
 const T212_TO_YAHOO: Record<string, string> = {
   "VUAAl_EQ": "VUAA.L",
@@ -181,56 +186,10 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-app-token",
 };
 
-// HMAC-signed token verification. Duplicates `data/index.ts`'s
-// `verifyToken` because Supabase Edge Functions don't have a
-// shared-module mechanism — pinned in this file's own
-// `index.test.ts` so refactoring one without the other can't
-// silently land.
-const enc = new TextEncoder();
-
-export function b64url(bytes: Uint8Array | string): string {
-  const buf = typeof bytes === "string" ? enc.encode(bytes) : bytes;
-  return btoa(String.fromCharCode(...buf))
-    .replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
-}
-
-export async function sign(payload: string, secret: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
-  return b64url(new Uint8Array(sig));
-}
-
-// Constant-time string equality — see data/index.ts for the rationale.
-// Duplicated across Edge Function modules because Supabase Deno doesn't
-// share code across functions; the per-function vitest pins keep the
-// copies from drifting.
-export function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-export async function verifyToken(
-  token: string,
-  secret = APP_AUTH_SECRET,
-): Promise<{ role: "admin" | "ro"; exp: number } | null> {
-  if (!secret) return null;
-  const [payloadB64, sigB64] = token.split(".");
-  if (!payloadB64 || !sigB64) return null;
-  const expected = await sign(payloadB64, secret);
-  if (!constantTimeEqual(expected, sigB64)) return null;
-  try {
-    const padded = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
-    const json = atob(padded + "=".repeat((4 - padded.length % 4) % 4));
-    const obj = JSON.parse(json);
-    if (typeof obj?.exp !== "number" || obj.exp < Date.now()) return null;
-    if (obj?.role !== "admin" && obj?.role !== "ro") return null;
-    return obj;
-  } catch { return null; }
-}
+// HMAC-signed token verification lives in ../_shared/token.ts
+// (imported + re-exported at the top of this file) — the canonical
+// copy this function used to duplicate inline. The shared module reads
+// APP_AUTH_SECRET itself; the verifyToken call below passes no secret.
 
 /**
  * Extract T212's internal ticker from one position object, tolerating
@@ -525,6 +484,15 @@ async function fetchT212Portfolio(apiKey: string, apiSecret: string): Promise<un
 // reportServerError now lives in ../_shared/ops.ts (imported above).
 
 if (import.meta.main) {
+  // Missing-secret check: verifyToken fails closed (every request 401s)
+  // when APP_AUTH_SECRET is unset — safe, but silent. Log loudly so the
+  // wall of 401s is explainable from the function logs.
+  if (!APP_AUTH_SECRET) {
+    console.error(
+      "[trading212] APP_AUTH_SECRET is not set — every request will be " +
+      "rejected with 401. Set it in Supabase Dashboard → Edge Functions → Secrets.",
+    );
+  }
   Deno.serve(async (req: Request) => {
     try {
       if (req.method === "OPTIONS") {
