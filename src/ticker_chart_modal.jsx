@@ -7,7 +7,7 @@ import React from 'react';
 import { Modal } from './modals.jsx';
 import { usMarketHoursUtc, isWeekendDeadZone } from './market_hours.js';
 import { fxToUSD } from './fx.js';
-import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, pctColor as pcC, maskDigits } from './formatters.js';
+import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtShares as fmtSh, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS } from './ytd.js';
 import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession } from './ticker_class.js';
 import {
@@ -688,7 +688,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             const m = (s) => hideValues ? maskDigits(s) : s;
             return (
               <div className="modal-meta">
-                <span className="mono dim">{m(String(holding.shares))} shares</span>
+                <span className="mono dim">{m(fmtSh(holding.shares))} shares</span>
                 <span className="mono dim">·</span>
                 <span className="mono dim">AC <span className="mono">{m(`${hSym}${fmtPr(holding.cost)}`)}</span></span>
                 <span className="mono dim">·</span>

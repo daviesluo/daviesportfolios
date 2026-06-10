@@ -6,7 +6,7 @@
 // exactly — only that they carry no magnitude suffix.)
 
 import { describe, it, expect } from 'vitest';
-import { fmtMoney, fmtPct } from './formatters.js';
+import { fmtMoney, fmtPct, fmtShares } from './formatters.js';
 
 describe('fmtMoney — magnitude tiers', () => {
   it('>= $1T → trillions with a T suffix', () => {
@@ -104,5 +104,25 @@ describe('fmtPct', () => {
     expect(fmtPct(null)).toBe('—');
     expect(fmtPct(NaN)).toBe('—');
     expect(fmtPct(undefined)).toBe('—');
+  });
+});
+
+describe('fmtShares', () => {
+  it('caps at 2 decimals without padding whole / single-decimal shares', () => {
+    expect(fmtShares(5)).toBe('5');
+    expect(fmtShares(18.5)).toBe('18.5');
+    expect(fmtShares(5.25)).toBe('5.25');
+  });
+
+  it('rounds longer fractional share counts to 2 decimals', () => {
+    expect(fmtShares(5.123)).toBe('5.12');
+    expect(fmtShares(0.33333)).toBe('0.33');
+    expect(fmtShares(100.005)).toBe('100'); // float: 100.005 → "100.00" → 100
+  });
+
+  it('null / NaN / undefined → em dash', () => {
+    expect(fmtShares(null)).toBe('—');
+    expect(fmtShares(NaN)).toBe('—');
+    expect(fmtShares(undefined)).toBe('—');
   });
 });
