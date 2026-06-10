@@ -1035,6 +1035,7 @@ body {
 .lot-summary-label { font-size: 10px; letter-spacing: 0.12em; color: var(--chalk-dim); }
 .lot-summary-val   { font-size: 18px; font-weight: 500; color: var(--chalk); }
 .lot-hint  { font-size: 11px; margin-bottom: 12px; }
+.lot-warn  { font-size: 11px; margin-bottom: 12px; color: var(--loss); }
 .lot-empty { padding: 16px; text-align: center; font-size: 12px; }
 
 .lot-grid { display: flex; flex-direction: column; gap: 8px; }
