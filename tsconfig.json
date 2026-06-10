@@ -26,11 +26,13 @@
     // null/undefined-bug class is worth the JSDoc annotations on the
     // `useState(null)` slots (see app.jsx / perf_chart.jsx). The rest
     // stay loose until more files carry explicit types.
+    // (alwaysStrict was removed when TS 6.0 deprecated it — every
+    // source file here is an ES module, which is strict-mode anyway,
+    // so the flag never had an effect.)
     "strict": false,
     "noImplicitAny": false,
     "strictNullChecks": true,
     "noImplicitThis": false,
-    "alwaysStrict": false,
 
     // Surface real bugs.
     "noFallthroughCasesInSwitch": true,

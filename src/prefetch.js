@@ -155,8 +155,10 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     if (meta.stale.length === 0) return;
     const ixStale  = meta.stale.filter(s => !dailyOnlySet.has(s));
     const dlyStale = meta.stale.filter(s =>  dailyOnlySet.has(s));
+    // Assigned in the try below; every read is downstream of that
+    // assignment (the catch returns), so no initializer.
     /** @type {Record<string, any[]>} */
-    let batch = {};
+    let batch;
     try {
       const [ixBatch, dlyBatch] = await Promise.all([
         ixStale.length > 0
@@ -214,8 +216,9 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   await Promise.all(maRangeMeta.map(async (meta) => {
     if (meta.ixStaleMa.length === 0 && meta.dlyStaleMa.length === 0) return;
     if (!meta.ixParams && !meta.dlyParams) return;
+    // Same no-initializer shape as the chart-range loop above.
     /** @type {Record<string, any[]>} */
-    let batch = {};
+    let batch;
     try {
       const [ixBatch, dlyBatch] = await Promise.all([
         meta.ixStaleMa.length > 0 && meta.ixParams
