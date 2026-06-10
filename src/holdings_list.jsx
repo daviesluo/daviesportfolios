@@ -9,7 +9,7 @@ import React from 'react';
 import { Modal } from './modals.jsx';
 import { fmtMoney as fmtM, fmtPct as fmtPc, pctColor as pctClr, maskDigits } from './formatters.js';
 import { holdingsRowsToMatrix, matrixToTsv, matrixToXlsx } from './holdings_export.js';
-import { IconCopy, IconDownload, IconCheck } from './icons.jsx';
+import { IconCopy, IconDownload, IconCheck, IconX } from './icons.jsx';
 
 // Company names for the holdings table's secondary line. Static map —
 // the app has no client-side name source for equities (Yahoo provides
@@ -148,7 +148,11 @@ function HoldingsListModal({ metrics, hideValues, onTickerClick, onClose }) {
   // row, current sort order) with real values — the hide-values mask is a
   // screen-only privacy overlay, not data. Disabled when there's nothing
   // to export.
-  const [copied, setCopied] = React.useState(false);
+  // 'idle' | 'done' | 'err' — same transient ✓ / ✕ feedback as the chart
+  // modal's screenshot copy. Before the 'err' state, a copy where BOTH
+  // clipboard paths failed (e.g. clipboard permission denied) just did
+  // nothing — the user clicked Copy and got no signal either way.
+  const [copyState, setCopyState] = React.useState(/** @type {'idle'|'done'|'err'} */ ('idle'));
   const canExport = sorted.length > 0;
 
   const onCopy = async () => {
@@ -167,7 +171,8 @@ function HoldingsListModal({ metrics, hideValues, onTickerClick, onClose }) {
         document.body.removeChild(ta);
       } catch { ok = false; }
     }
-    if (ok) { setCopied(true); setTimeout(() => setCopied(false), 1500); }
+    setCopyState(ok ? 'done' : 'err');
+    setTimeout(() => setCopyState('idle'), ok ? 1500 : 2000);
   };
 
   const onDownload = () => {
@@ -193,8 +198,9 @@ function HoldingsListModal({ metrics, hideValues, onTickerClick, onClose }) {
         </div>
         <div className="modal-head-actions">
           <button className="btn-ghost icon" onClick={onCopy} disabled={!canExport}
-            aria-label="Copy table including header" title={copied ? 'Copied' : 'Copy table (incl. header)'}>
-            {copied ? <IconCheck /> : <IconCopy />}
+            aria-label="Copy table including header"
+            title={copyState === 'done' ? 'Copied' : copyState === 'err' ? 'Copy failed' : 'Copy table (incl. header)'}>
+            {copyState === 'done' ? <IconCheck /> : copyState === 'err' ? <IconX /> : <IconCopy />}
           </button>
           <button className="btn-ghost icon" onClick={onDownload} disabled={!canExport}
             aria-label="Download as Excel" title="Download as Excel (.xlsx)">
