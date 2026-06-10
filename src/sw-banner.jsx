@@ -54,6 +54,48 @@ export function shouldShowBanner(needRefresh, now, suppressUntil) {
   return now >= suppressUntil;
 }
 
+/**
+ * Clean-slate purge before a reload so the new SW mounts as if the page
+ * were opened for the first time. Auth token lives in sessionStorage
+ * (per-tab, survives reload) so the user isn't logged out; everything else
+ * is nuked — Workbox/runtime caches, service workers, localStorage (dp.*
+ * schema / prefs / market cache), and IndexedDB (chart_store). Each step
+ * is isolated so one failure can't skip the rest. Awaited best-effort by
+ * handleReload, which force-reloads on a hard timer even if this hangs.
+ */
+export async function purgeForReload() {
+  try {
+    if (typeof caches !== 'undefined' && typeof caches.keys === 'function') {
+      const names = await caches.keys();
+      await Promise.all(names.map((n) => caches.delete(n)));
+    }
+  } catch { /* ignore — reload still proceeds */ }
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+  } catch { /* ignore — reload still proceeds */ }
+  try { localStorage.clear(); } catch { /* private mode etc. */ }
+  try {
+    if (typeof indexedDB !== 'undefined' && typeof indexedDB.databases === 'function') {
+      const dbs = await indexedDB.databases();
+      await Promise.all(dbs.map((db) => new Promise((resolve) => {
+        if (!db.name) { resolve(undefined); return; }
+        const req = indexedDB.deleteDatabase(db.name);
+        req.onsuccess = req.onerror = req.onblocked = () => resolve(undefined);
+      })));
+    } else if (typeof indexedDB !== 'undefined') {
+      // Older browsers (notably Safari pre-17) lack `databases()`.
+      // Fall back to deleting our known-name DB explicitly.
+      await new Promise((resolve) => {
+        const req = indexedDB.deleteDatabase('daviesportfolios');
+        req.onsuccess = req.onerror = req.onblocked = () => resolve(undefined);
+      });
+    }
+  } catch { /* ignore — reload still proceeds */ }
+}
+
 export function ServiceWorkerBanner() {
   const {
     needRefresh: [needRefresh, setNeedRefresh],
@@ -118,80 +160,46 @@ export function ServiceWorkerBanner() {
     // the next-page-mount useState initializer picks it up even if
     // the cleanup races against the navigation.
     try { sessionStorage.setItem(SW_RELOAD_SUPPRESS_KEY, String(Date.now())); } catch { /* ignore */ }
+
+    // Guarantee the page reloads even if the SW-activation event never
+    // fires AND the purge below wedges (a blocked `indexedDB.deleteDatabase`
+    // whose `onblocked` never resolves, a hung cache API, …). The reload
+    // used to sit AFTER the whole await chain, so any one hung await left
+    // the button stuck on "RELOADING…" forever and the page never
+    // refreshed — the freeze this fixes. Now a hard timer owns the reload
+    // and the purge merely races it: we reload at whichever lands first,
+    // a completed purge or the 1500 ms deadline. `reloaded` guards against
+    // a double reload.
+    let reloaded = false;
+    const doReload = () => {
+      if (reloaded) return;
+      reloaded = true;
+      try { window.location.reload(); } catch { /* nothing else to do */ }
+    };
+    const hardTimer = setTimeout(doReload, 1500);
+
     // Tell the waiting SW to activate. workbox-window registers a
     // `controllerchange` listener that's *supposed* to reload the page
     // once activation completes — but iOS Safari (and some Chrome
     // versions in standalone PWA mode) don't fire that event reliably,
-    // so the click visually did nothing and the user had to refresh
-    // manually. Belt-and-suspenders: kick off updateServiceWorker for
-    // the standard path AND set our own fallback reload after 1500 ms,
-    // well past typical activation time, so the page always refreshes.
+    // so on its own the click visually did nothing. The hard timer above
+    // is the belt-and-suspenders fallback.
     try { updateServiceWorker(true); } catch {}
 
-    // Full clean-slate purge before the reload, so the new SW
-    // mounts as if the user had just opened the page for the first
-    // time. Auth token lives in sessionStorage and survives reload
-    // (sessionStorage is per-tab and persists across reloads within
-    // the same tab), so the user doesn't need to re-login. Everything
-    // else gets nuked:
-    //   - Workbox / runtime caches (asset, fonts, data-api)
-    //   - Service workers (forces a fresh registration on next load)
-    //   - localStorage (dp.* schema, prefs, market cache, opsErrorAck)
-    //   - IndexedDB (chart_store: ChartStore / MaStore / YtdStore)
-    //
-    // Why this strict: the previous lighter purge (caches + SW only)
-    // sometimes left old-shape localStorage / IDB data around that the
-    // new version's code interpreted incorrectly. The reload UX
-    // promise is "just like the first time you opened it", and
-    // explicit guarantee > best-effort.
-    try {
-      if (typeof caches !== 'undefined' && typeof caches.keys === 'function') {
-        const names = await caches.keys();
-        await Promise.all(names.map((n) => caches.delete(n)));
-      }
-    } catch { /* ignore — reload still proceeds */ }
-    try {
-      if ('serviceWorker' in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map((r) => r.unregister()));
-      }
-    } catch { /* ignore — reload still proceeds */ }
-    try { localStorage.clear(); } catch { /* private mode etc. */ }
-    try {
-      if (typeof indexedDB !== 'undefined' && typeof indexedDB.databases === 'function') {
-        const dbs = await indexedDB.databases();
-        await Promise.all(dbs.map((db) => new Promise((resolve) => {
-          if (!db.name) { resolve(undefined); return; }
-          const req = indexedDB.deleteDatabase(db.name);
-          req.onsuccess = req.onerror = req.onblocked = () => resolve(undefined);
-        })));
-      } else if (typeof indexedDB !== 'undefined') {
-        // Older browsers (notably Safari pre-17) lack `databases()`.
-        // Fall back to deleting our known-name DB explicitly.
-        await new Promise((resolve) => {
-          const req = indexedDB.deleteDatabase('daviesportfolios');
-          req.onsuccess = req.onerror = req.onblocked = () => resolve(undefined);
-        });
-      }
-    } catch { /* ignore — reload still proceeds */ }
+    // Best-effort clean-slate purge so the new SW mounts as if the page
+    // were opened fresh. A throw can't skip the reload (wrapped), and a
+    // hang can't either (the hard timer fires regardless).
+    try { await purgeForReload(); } catch { /* ignore — reload still proceeds */ }
 
-    // Re-stash the reload-suppress timestamp since the localStorage
-    // clear above wiped sessionStorage in some browsers (notably
-    // Safari ITP-like behaviour). Lives in sessionStorage normally
-    // but the line is cheap insurance against a quirky purge order.
+    // Re-stash the reload-suppress timestamp since the localStorage clear
+    // inside the purge wiped sessionStorage in some browsers (Safari
+    // ITP-like behaviour). Cheap insurance against a quirky purge order.
     try { sessionStorage.setItem(SW_RELOAD_SUPPRESS_KEY, String(Date.now())); } catch { /* ignore */ }
 
-    setTimeout(() => {
-      // Force-reload regardless of whether `controllerchange` fired —
-      // the new SW is installed either way and the hard reload picks
-      // it up. We used to also report a `sw.activation.timeout` ops
-      // error when the event didn't arrive, but iOS Safari /
-      // standalone-PWA Chrome fire `controllerchange` unreliably even
-      // on a perfectly healthy reload, so that report was pure noise
-      // (two gating attempts couldn't tame the false positives) for a
-      // path that self-heals via this reload. Dropped it.
-      window.location.reload();
-    }, 1500);
+    // Purge finished within the window → reload now instead of waiting
+    // out the rest of the hard-timer delay.
+    clearTimeout(hardTimer);
+    doReload();
   }, [reloading, updateServiceWorker]);
 
   // Force-reload after the update has been pending for 24 h. `prompt`

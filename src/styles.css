@@ -956,6 +956,8 @@ body {
   display: flex; gap: 10px; align-items: center;
 }
 .spacer { flex: 1; }
+/* Detail line under a ConfirmModal's question (e.g. the reset-board copy). */
+.confirm-detail { margin: 0; color: var(--chalk-dim); font-size: 13px; line-height: 1.5; }
 
 .empty-state { text-align: center; padding: 40px; color: var(--chalk-dim); display: flex; flex-direction: column; gap: 16px; align-items: center; }
 .empty-icon { font-size: 48px; color: var(--chalk-mute); }

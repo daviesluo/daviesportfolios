@@ -12,6 +12,7 @@ import {
   readReloadSuppressAt,
   computeSuppressUntil,
   shouldShowBanner,
+  purgeForReload,
 } from './sw-banner.jsx';
 
 describe('readReloadSuppressAt', () => {
@@ -87,5 +88,21 @@ describe('shouldShowBanner', () => {
 
   it('flips back on at the exact instant the window ends', () => {
     expect(shouldShowBanner(true, 2000, 2000)).toBe(true);
+  });
+});
+
+describe('purgeForReload', () => {
+  // The reload path's freeze fix relies on the purge never REJECTING (a
+  // throw would skip the post-purge reload) — each step is isolated in its
+  // own try/catch. A hang is separately covered by handleReload's hard
+  // timer, which can't be unit-tested without the SW hook.
+  it('resolves even when a storage API throws (steps stay isolated)', async () => {
+    const orig = localStorage.clear;
+    localStorage.clear = () => { throw new Error('quota'); };
+    try {
+      await expect(purgeForReload()).resolves.toBeUndefined();
+    } finally {
+      localStorage.clear = orig;
+    }
   });
 });
