@@ -23,6 +23,44 @@ describe('quotesRegularSessionOnly', () => {
   });
 });
 
+// Pins the 200-wrapped-proxy-error backoff: some free CORS proxies
+// serve their own rate-limit / error body with a 200, which used to
+// slip past the !res.ok and res.json()-throw backoff paths entirely —
+// a proxy stuck in that state was never benched and burned an attempt
+// slot (+ up to 8 s of timeout) on every single poll.
+describe('fetchTickers — proxies answering 200 with a non-upstream body get benched', () => {
+  const origFetch = globalThis.fetch;
+  afterEach(async () => {
+    globalThis.fetch = origFetch;
+    const { clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+  });
+
+  it('benches every proxy that wraps a Yahoo quote in its own error JSON', async () => {
+    const { PROXIES, proxyIsAvailable, clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url) => {
+      // Edge Function down → fetchTickers falls back to the proxy chain.
+      if (String(url).includes('supabase.co')) return { ok: false, status: 500, json: async () => ({}) };
+      // Every proxy answers 200 with its own JSON — no `chart` envelope.
+      return { ok: true, json: async () => ({ error: 'rate limited' }), text: async () => '{"error":"rate limited"}' };
+    }));
+    expect(await fetchTickers(['NVDA'])).toBe(null);
+    for (let i = 0; i < PROXIES.length; i++) expect(proxyIsAvailable(i)).toBe(false);
+  });
+
+  it('benches a proxy answering a CN-fund JSONP request with an HTML error page', async () => {
+    const { PROXIES, proxyIsAvailable, clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url) => {
+      if (String(url).includes('supabase.co')) return { ok: false, status: 500, json: async () => ({}) };
+      return { ok: true, json: async () => ({}), text: async () => '<html><body>502</body></html>' };
+    }));
+    expect(await fetchTickers(['000001'])).toBe(null);
+    for (let i = 0; i < PROXIES.length; i++) expect(proxyIsAvailable(i)).toBe(false);
+  });
+});
+
 describe('fetchTickers — SFTBY ext-price suppression (Edge path)', () => {
   const origFetch = globalThis.fetch;
   afterEach(() => { globalThis.fetch = origFetch; });
