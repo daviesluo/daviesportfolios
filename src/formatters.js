@@ -73,6 +73,19 @@ export const fmtPrice = (n) => {
   return n.toFixed(2);
 };
 
+/**
+ * Share quantity for display — at most 2 decimal places, with no forced
+ * trailing zeros (5 → "5", 18.5 → "18.5", 5.125 → "5.13", 0.3333 →
+ * "0.33"). Holdings can carry fractional shares (DRIP / fractional buys)
+ * with long trailing decimals; this trims the noise without padding whole
+ * shares to "5.00".
+ * @param {number | null | undefined} n
+ */
+export const fmtShares = (n) => {
+  if (n == null || isNaN(n)) return "—";
+  return String(Number(n.toFixed(2)));
+};
+
 /** @param {number | null | undefined} n */
 export const pctColor = (n) => {
   if (n == null || isNaN(n) || Math.abs(n) < 0.005) return "var(--chalk-dim)";

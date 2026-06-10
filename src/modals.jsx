@@ -4,6 +4,7 @@ import {
   fmtMoney as fmtMo,
   fmtPct as fmtPe,
   fmtPrice as fmtPri,
+  fmtShares as fmtSh,
   pctColor as pctClo,
   maskDigits,
 } from './formatters.js';
@@ -193,7 +194,7 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
       </div>
       <div className="pc-price mono">{m(`${sym}${fmtPri(player.lastPrice)}`)}</div>
       <div className="pc-rows">
-        <div className="pc-row"><span className="dim">Shares</span><span className="mono">{m(String(player.shares))}</span></div>
+        <div className="pc-row"><span className="dim">Shares</span><span className="mono">{m(fmtSh(player.shares))}</span></div>
         <div className="pc-row"><span className="dim">AC</span><span className="mono">{m(`${sym}${fmtPri(player.cost)}`)}</span></div>
         <div className="pc-row"><span className="dim">Cost</span><span className="mono">{m(fmtMo(costUSD))}</span></div>
         <div className="pc-row"><span className="dim">Value</span><span className="mono">{m(fmtMo(player.marketValue))}</span></div>
