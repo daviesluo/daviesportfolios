@@ -35,7 +35,11 @@ export function ScreenshotActions({ filenameBase }) {
       await copyNodeImage(node, skip);
       setCopyState('done');
       setTimeout(() => setCopyState('idle'), 1500);
-    } catch {
+    } catch (e) {
+      // The ✕ tells the user it failed; the console says WHY (clipboard
+      // permission vs capture throw) — otherwise undiagnosable from a
+      // user report alone.
+      console.error('screenshot copy failed:', e);
       setCopyState('err');
       setTimeout(() => setCopyState('idle'), 2000);
     }
@@ -47,8 +51,11 @@ export function ScreenshotActions({ filenameBase }) {
     setSaveBusy(true);
     try {
       await saveNodeImage(node, filename(), skip);
-    } catch {
-      /* capture / save failed — nothing actionable mid-flow; button re-enables */
+    } catch (e) {
+      // A user-cancelled share never reaches here (saveNodeImage eats
+      // AbortError), so this is a real capture/save failure — log it;
+      // the button re-enabling is the only user-visible signal.
+      console.error('screenshot save failed:', e);
     }
     setSaveBusy(false);
   };

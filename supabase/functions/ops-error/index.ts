@@ -34,6 +34,13 @@
 //     in hand) triage the last N hours' failures without touching
 //     Supabase dashboard.
 
+import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
+import { clientIpFromHeaders } from "../_shared/ip.ts";
+
+// Re-exported so this function's index.test.ts keeps pinning the exact
+// equality the token gate relies on.
+export { constantTimeEqual };
+
 const SB_URL      = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const APP_AUTH_SECRET = Deno.env.get("APP_AUTH_SECRET") ?? "";
@@ -50,52 +57,15 @@ const MAX_SYMBOL     = 32;
 const MAX_MESSAGE    = 512;
 const MAX_CONTEXT    = 2_048; // serialized
 
-// HMAC-SHA256 helper, mirrored from the `auth` function so we can
-// re-derive a token's signature without sharing code across functions
-// (Supabase Edge Functions don't have a shared-module mechanism).
-async function hmacSign(payload: string, secret: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
-  // base64url-encode the signature (no padding, +/- vs /+)
-  let b64 = btoa(String.fromCharCode(...new Uint8Array(sig)));
-  return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
 // Verify an HMAC-signed app token and return the payload's role on
-// success. Mirrors the `data` Edge Function's gate. Returns null for
-// any failure (bad shape, bad signature, expired, unknown role).
-// Constant-time string equality — see data/index.ts for the rationale.
-// Duplicated across Edge Function modules (Supabase Deno can't share
-// code between functions); per-function tests keep the copies pinned.
-export function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
+// success; null for any failure (bad shape, bad signature, expired,
+// unknown role). Thin wrapper over ../_shared/token.ts's verifyToken —
+// the canonical copy this function used to mirror inline (and the
+// inline copy had already drifted: it parsed the payload/sig boundary
+// with indexOf while every other function used split).
 export async function verifyAdminToken(token: string | null, secret = APP_AUTH_SECRET): Promise<"admin" | "ro" | null> {
-  if (!token || !secret) return null;
-  const dot = token.indexOf(".");
-  if (dot <= 0) return null;
-  const payloadB64 = token.slice(0, dot);
-  const sig        = token.slice(dot + 1);
-  const expected   = await hmacSign(payloadB64, secret);
-  if (!constantTimeEqual(sig, expected)) return null;
-  try {
-    const padded = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
-    const json = atob(padded + "=".repeat((4 - padded.length % 4) % 4));
-    const payload = JSON.parse(json);
-    if (typeof payload.exp !== "number" || payload.exp < Date.now()) return null;
-    if (payload.role === "admin" || payload.role === "ro") return payload.role;
-    return null;
-  } catch { return null; }
+  if (!token) return null;
+  return (await verifyToken(token, secret))?.role ?? null;
 }
 
 export function clip(s: string | null | undefined, max: number): string | null {
@@ -107,6 +77,16 @@ export function clip(s: string | null | undefined, max: number): string | null {
 // Guarded so tests can import the helpers above without spinning up
 // the server. Supabase's runtime executes index.ts as the entry
 // module, so `import.meta.main` is true in production.
+//
+// Missing-secret check: verifyAdminToken fails closed (every request
+// 401s) when APP_AUTH_SECRET is unset — safe, but silent. Log loudly
+// so the wall of 401s is explainable from the function logs.
+if (import.meta.main && !APP_AUTH_SECRET) {
+  console.error(
+    "[ops-error] APP_AUTH_SECRET is not set — every request will be " +
+    "rejected with 401. Set it in Supabase Dashboard → Edge Functions → Secrets.",
+  );
+}
 if (import.meta.main) Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
@@ -233,10 +213,13 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     });
   }
 
-  const ip =
-    (req.headers.get("x-forwarded-for") ?? "")
-      .split(",")[0]
-      .trim() || "unknown";
+  // Shared extraction (x-real-ip, then LAST x-forwarded-for entry) —
+  // the previous inline parse took the FIRST entry, which is the
+  // client-supplied value and trivially spoofable. Only a log field
+  // here (the POST is already admin-token-gated), but a forged IP in
+  // an error row misleads triage, and auth/index.ts documents why
+  // first-entry parsing is wrong.
+  const ip = clientIpFromHeaders(req);
 
   let context: unknown = body?.context ?? null;
   if (context != null) {

@@ -61,3 +61,27 @@ describe('trimCnFundToRange', () => {
     expect(trimCnFundToRange(allOld, '1mo')).toBe(allOld);
   });
 });
+
+// Pins the 200-wrapped-proxy-error backoff on the chart-history race:
+// a proxy that answers 200 with its own error JSON (no Yahoo `chart`
+// envelope) must get benched, not silently lose the race and re-enter
+// the next one. See yahoo_fetch.test.js for the quote-path twin.
+describe('fetchHistorical — proxies answering 200 with a non-Yahoo body get benched', () => {
+  it('returns null and backs off every poisoned proxy', async () => {
+    const { fetchHistorical } = await import('./historical.js');
+    const { PROXIES, proxyIsAvailable, clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = /** @type {any} */ (async () => ({
+      ok: true,
+      json: async () => ({ status: 429, message: 'proxy rate limit' }),
+    }));
+    try {
+      expect(await fetchHistorical('NVDA', 'ytd', '1d')).toBe(null);
+      for (let i = 0; i < PROXIES.length; i++) expect(proxyIsAvailable(i)).toBe(false);
+    } finally {
+      globalThis.fetch = origFetch;
+      clearProxyBackoff();
+    }
+  });
+});

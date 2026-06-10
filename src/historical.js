@@ -193,10 +193,20 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
   // single leading digit only.
   const isIntraday = !/^\d+(d|wk|mo)$/.test(interval);
 
-  const parseResponse = async (res) => {
+  const parseResponse = async (res, proxyIdx) => {
     if (!res.ok) return null;
     const data = await res.json();
-    const result = data?.chart?.result?.[0];
+    // 200 + parseable JSON that isn't Yahoo's chart envelope — the
+    // proxy substituted its own body (some free proxies serve their
+    // rate-limit / error JSON with a 200). Bench it briefly, same as a
+    // network error; otherwise such a proxy keeps winning an attempt
+    // slot in every race. (`chart` present but result missing is Yahoo
+    // itself answering — not the proxy's fault, no backoff.)
+    if (!data?.chart) {
+      markProxyDead(proxyIdx, 60_000);
+      return null;
+    }
+    const result = data.chart.result?.[0];
     const timestamps = result?.timestamp;
     const closes = result?.indicators?.quote?.[0]?.close;
     // Volume is per-bar and only meaningful on intraday intervals.
@@ -271,7 +281,7 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
           if (!res.ok && (res.status === 429 || res.status === 403 || res.status >= 500)) {
             markProxyDead(i);
           }
-          settle(await parseResponse(res), i);
+          settle(await parseResponse(res, i), i);
         } catch (_) {
           clearTimeout(tid);
           markProxyDead(i, 60_000);
