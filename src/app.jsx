@@ -23,6 +23,7 @@ import {
   EditTickerModal,
   AddTickerModal,
   CashModal,
+  useConfirm,
 } from './modals.jsx';
 import { TickerChartModal } from './ticker_chart_modal.jsx';
 import { HoldingsListModal } from './holdings_list.jsx';
@@ -215,6 +216,10 @@ function App() {
 }
 
 function Board({ isReadOnly }) {
+  // Themed confirm dialog (replaces window.confirm for destructive actions
+  // — reset board / remove holding). confirmEl is rendered near the other
+  // modals below; it portals to <body>.
+  const { confirm: askConfirm, element: confirmEl } = useConfirm();
   const [portfolio, setPortfolio] = useState(/** @type {import('./types').Portfolio | null} */ (null));      // null = still loading
   const [drillPos, setDrillPos] = useState(/** @type {string | null} */ (null));
   const [editMode, setEditMode] = useState(false);
@@ -911,8 +916,13 @@ function Board({ isReadOnly }) {
   //   Keep these: clears the _isDemo flag, save effect resumes; the
   //     demo positions become the user's portfolio on the next edit.
   // Both clear `_isDemo`, which unblocks the save effect.
-  const onResetDemo = () => {
-    if (!window.confirm("Reset to an empty board? The demo positions will be replaced with a blank pitch (just the Cash slot kept).")) return;
+  const onResetDemo = async () => {
+    if (!(await askConfirm({
+      title: 'RESET BOARD',
+      message: 'Reset to an empty board?',
+      detail: 'The demo positions will be replaced with a blank pitch (just the Cash slot kept).',
+      confirmLabel: 'Reset', danger: true,
+    }))) return;
     setPortfolio((p) => {
       if (!p) return p;
       /** @type {Record<string, any>} */
@@ -1067,7 +1077,7 @@ function Board({ isReadOnly }) {
           onEditTicker={(t) => { if (isReadOnly) return; setEditingTicker(t); }}
           onViewChart={(t) => setViewingTicker(t)}
           onAddTicker={() => { if (isReadOnly) return; setAddingToPos(drillPos); }}
-          onRemoveTicker={(t) => { if (isReadOnly) return; if (confirm(`Remove ${t}?`)) removeHolding(t); }}
+          onRemoveTicker={async (t) => { if (isReadOnly) return; if (await askConfirm({ title: 'REMOVE HOLDING', message: `Remove ${t}?`, confirmLabel: 'Remove', danger: true })) removeHolding(t); }}
           onUpdatePosition={(patch) => updatePosition(drillPos, patch)}
           hideValues={hideValues}
         />
@@ -1107,7 +1117,7 @@ function Board({ isReadOnly }) {
           positions={portfolio.positions}
           onClose={() => setEditingTicker(null)}
           onSave={(patch) => { updateHolding(editingTicker, patch); setEditingTicker(null); }}
-          onDelete={() => { if (confirm(`Remove ${editingTicker}?`)) { removeHolding(editingTicker); setEditingTicker(null); } }}
+          onDelete={async () => { if (await askConfirm({ title: 'REMOVE HOLDING', message: `Remove ${editingTicker}?`, confirmLabel: 'Remove', danger: true })) { removeHolding(editingTicker); setEditingTicker(null); } }}
           onMove={(toPosKey) => { moveHolding(editingTicker, toPosKey); setEditingTicker(null); }}
         />
       )}
@@ -1147,6 +1157,10 @@ function Board({ isReadOnly }) {
           }}
         />
       )}
+
+      {/* Themed confirm dialog for reset-board / remove-holding — portals
+          to <body> so it stacks above whatever modal triggered it. */}
+      {confirmEl}
     </div>
   );
 }

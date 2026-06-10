@@ -1,5 +1,6 @@
 // Modals: position drill-in, edit ticker, add ticker
 import React from 'react';
+import { createPortal } from 'react-dom';
 import {
   fmtMoney as fmtMo,
   fmtPct as fmtPe,
@@ -87,6 +88,82 @@ function Modal({ children, onClose, size = "md" }) {
     </div>
   );
 }
+
+/**
+ * Themed confirm dialog — the in-app replacement for window.confirm
+ * (whose bare system chrome sat outside the dark theme and looked like an
+ * OS error in the iOS PWA). Portaled to <body> so it stacks above any
+ * modal it's invoked from: the other modals sit under a backdrop-filtered
+ * `.modal-backdrop`, which establishes a containing block that would
+ * otherwise trap a nested fixed dialog. Reached via useConfirm(), never
+ * rendered directly. `danger` tints the action button red for
+ * destructive confirms (delete / discard / reset).
+ * @param {{ title?: string, message: string, detail?: string,
+ *   confirmLabel?: string, cancelLabel?: string, danger?: boolean,
+ *   onConfirm: () => void, onCancel: () => void }} props
+ */
+function ConfirmModal({ title, message, detail, confirmLabel, cancelLabel, danger, onConfirm, onCancel }) {
+  return createPortal(
+    <Modal onClose={onCancel} size="sm">
+      <header className="modal-head">
+        <div>
+          <div className="modal-eyebrow mono">{title || 'CONFIRM'}</div>
+          <h2 className="modal-title">{message}</h2>
+        </div>
+      </header>
+      {detail && (
+        <div className="modal-body">
+          <p className="confirm-detail">{detail}</p>
+        </div>
+      )}
+      <footer className="modal-foot">
+        <button className="btn-ghost" onClick={onCancel}>{cancelLabel || 'Cancel'}</button>
+        <span className="spacer" />
+        <button className={danger ? 'btn-danger' : 'btn-primary'} onClick={onConfirm}>
+          {confirmLabel || 'Confirm'}
+        </button>
+      </footer>
+    </Modal>,
+    document.body,
+  );
+}
+
+/**
+ * Themed window.confirm. Returns `{ confirm, element }`: `await confirm(opts)`
+ * resolves to true (confirmed) / false (cancelled or backdrop / Esc), and
+ * `element` must be rendered somewhere in the component so the dialog can
+ * mount (it portals to <body>, so where doesn't matter). `opts` is a
+ * message string or `{ title, message, detail, confirmLabel, cancelLabel,
+ * danger }`. An object (not a tuple) so the destructured types survive the
+ * import into app.jsx. Self-contained per component — no provider to wire.
+ */
+export function useConfirm() {
+  const [state, setState] = React.useState(/** @type {any} */ (null));
+  const confirm = React.useCallback((/** @type {string | object} */ opts) => {
+    const o = typeof opts === 'string' ? { message: opts } : opts;
+    return new Promise((resolve) => setState({ ...o, resolve }));
+  }, []);
+  const element = state ? (
+    <ConfirmModal
+      title={state.title}
+      message={state.message}
+      detail={state.detail}
+      confirmLabel={state.confirmLabel}
+      cancelLabel={state.cancelLabel}
+      danger={state.danger}
+      onConfirm={() => { state.resolve(true); setState(null); }}
+      onCancel={() => { state.resolve(false); setState(null); }}
+    />
+  ) : null;
+  return { confirm, element };
+}
+
+// Shared options for the "Discard unsaved changes?" confirm reused by the
+// edit / cash modals' close + move paths.
+const DISCARD_CONFIRM = /** @type {const} */ ({
+  title: 'UNSAVED CHANGES', message: 'Discard unsaved changes?',
+  confirmLabel: 'Discard', danger: true,
+});
 
 // Same digit-mask helper used everywhere — replaces digits with `*`,
 // keeping currency symbols / signs / punctuation so the placeholder is the
@@ -235,10 +312,11 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
     () => JSON.stringify(lots) !== initialLotsJSON,
     [lots, initialLotsJSON],
   );
-  const safeClose = React.useCallback(() => {
-    if (isDirty && !window.confirm("Discard unsaved changes?")) return;
+  const { confirm, element: confirmEl } = useConfirm();
+  const safeClose = React.useCallback(async () => {
+    if (isDirty && !(await confirm(DISCARD_CONFIRM))) return;
     onClose();
-  }, [isDirty, onClose]);
+  }, [isDirty, onClose, confirm]);
 
   const sym = curSym(holding.currency);
   const acHint = holding.currency && holding.currency !== "USD"
@@ -307,14 +385,15 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
   // with the SAME discard-confirm as Cancel/✕/backdrop (safeClose):
   // unlike Delete (where the whole holding goes anyway), Move keeps
   // the holding, so losing the edits without a prompt is a surprise.
-  const doMove = () => {
+  const doMove = async () => {
     if (!moveTarget) return;
-    if (isDirty && !window.confirm("Discard unsaved changes?")) return;
+    if (isDirty && !(await confirm(DISCARD_CONFIRM))) return;
     onMove(moveTarget);
   };
 
   return (
     <Modal onClose={safeClose} size="md">
+      {confirmEl}
       <header className="modal-head">
         <div>
           <div className="modal-eyebrow mono">EDIT HOLDING</div>
@@ -399,13 +478,15 @@ function CashModal({ amount, onClose, onSave }) {
   // figure then bumping the backdrop / ✕ used to silently discard.
   const [initialVal] = React.useState(String(amount || 0));
   const isDirty = val !== initialVal;
-  const safeClose = React.useCallback(() => {
-    if (isDirty && !window.confirm("Discard unsaved changes?")) return;
+  const { confirm, element: confirmEl } = useConfirm();
+  const safeClose = React.useCallback(async () => {
+    if (isDirty && !(await confirm(DISCARD_CONFIRM))) return;
     onClose();
-  }, [isDirty, onClose]);
+  }, [isDirty, onClose, confirm]);
   const save = () => { onSave(Number(val) || 0); };
   return (
     <Modal onClose={safeClose} size="sm">
+      {confirmEl}
       <header className="modal-head">
         <div>
           <div className="modal-eyebrow mono">GOALKEEPER · CASH</div>

@@ -29,6 +29,7 @@ vi.mock('./modals.jsx', () => ({
   EditTickerModal: () => null,
   AddTickerModal: () => null,
   CashModal: () => null,
+  useConfirm: () => ({ confirm: () => Promise.resolve(true), element: null }),
 }));
 vi.mock('./ticker_chart_modal.jsx', () => ({ TickerChartModal: () => null }));
 vi.mock('./sw-banner.jsx', () => ({ ServiceWorkerBanner: () => null, default: () => null, SWBanner: () => null }));

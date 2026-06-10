@@ -85,17 +85,17 @@ describe('EditTickerModal — Move holding', () => {
       'LW',
     );
 
-    // Decline the discard confirm → move is aborted.
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    // Move now pops the themed discard confirm (no native window.confirm).
+    // Decline via the dialog's Cancel → move is aborted.
     await user.click(screen.getByRole('button', { name: /^Move$/i }));
-    expect(confirmSpy).toHaveBeenCalledWith('Discard unsaved changes?');
+    const dialog = /** @type {HTMLElement} */ (screen.getByText('Discard unsaved changes?').closest('.modal'));
+    await user.click(within(dialog).getByRole('button', { name: /^Cancel$/i }));
     expect(props.onMove).not.toHaveBeenCalled();
 
-    // Accept the discard confirm → move proceeds.
-    confirmSpy.mockReturnValue(true);
+    // Re-open the confirm and accept via Discard → move proceeds.
     await user.click(screen.getByRole('button', { name: /^Move$/i }));
+    await user.click(screen.getByRole('button', { name: /^Discard$/i }));
     expect(props.onMove).toHaveBeenCalledWith('LW');
-    confirmSpy.mockRestore();
   });
 });
 

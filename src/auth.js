@@ -3,7 +3,8 @@
 // helpers the rest of the app uses to read/decode/clear it.
 //
 // Two-stage flow:
-//   1. collectPassword() (sync) reads ?pwd= or pops window.prompt
+//   1. consumeUrlPassword() (sync) reads ?pwd= from the URL (or null);
+//      no URL pwd → App renders the themed <PasswordPrompt> form
 //   2. authenticate(pw) (async) POSTs to /functions/v1/auth, which
 //      validates server-side and returns { token, role } on success.
 //      Token format: `<base64url(payload)>.<base64url(sig)>` where
