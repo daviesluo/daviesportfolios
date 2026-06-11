@@ -9,13 +9,13 @@ import { usMarketHoursUtc, isWeekendDeadZone } from './market_hours.js';
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtShares as fmtSh, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS } from './ytd.js';
-import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession } from './ticker_class.js';
+import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly } from './ticker_class.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   extPriceIsRealAh, isPriceAxis,
 } from './indicators.js';
-import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
+import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findPrevSessionCloseIdx } from './chart_geometry.js';
 import { computeChartGeometry } from './chart_modal_geometry.js';
 import { mergeOvernightSeries } from './overnight_intraday.js';
 import {
@@ -164,35 +164,52 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   //     close bar is YESTERDAY's close (today's close hasn't happened
   //     yet) — used purely as a visual marker; the % anchor still
   //     comes from md.prevClose so it matches the scoreboard exactly.
-  let regularCloseIdx = -1;
-  if (rangeKey === '1D' && (useExt || phase === 'regular') && series && series.length > 0) {
-    // The bar at exactly closeHh:closeMm UTC (= 20:00 EDT / 21:00 EST).
-    // Strict match only (see findRegularCloseIdx) — a looser hh<closeHh
-    // would match an overnight / premarket bar after midnight UTC and pin
-    // the anchor to the latest premarket tick instead of yesterday's
-    // 16:00 ET close, leaving the modal at ~0% on any pre-open chart. -1
-    // (no match) falls through to the lastPrice anchor below.
-    regularCloseIdx = findRegularCloseIdx(series, mh);
-  }
+  // Tickers with no US-style extended-hours session — foreign listings
+  // (.L / .HK / euro) and OTC ADRs (SFTBY / MRAAY), per isRegularSessionOnly.
+  // For these the 1D chart is a single regular session per day: the
+  // US-close-time CLOSE marker never matches their bars and "today's open"
+  // is just where the one session resumes after the overnight gap. So we
+  // mark ONLY the previous session's close — at that market's own close
+  // time, found by the date boundary — and draw no OPEN line. (Previously
+  // they got no CLOSE line at all plus an OPEN line mis-placed on a
+  // mid-afternoon foreign bar by the US-hours rule.)
+  const regularSessionOnly = isRegularSessionOnly(ticker);
 
-  // First-regular-open bar in the data — used to draw the OPEN dashed
-  // line during the in-session view. Visual context only; the % basis
-  // pivots at prevClose so it agrees with the scoreboard / heatmap.
-  // We scope the search to TODAY's calendar date because the 24-h
-  // window includes yesterday's afternoon bars whose UTC hours also
-  // satisfy hh >= openHh — without the day filter, regularOpenIdx
-  // would land on yesterday's first afternoon bar (= chart's left
-  // edge) instead of today's actual open.
+  let regularCloseIdx = -1;
   let regularOpenIdx = -1;
-  if (rangeKey === '1D' && phase === 'regular' && series && series.length > 0) {
-    const todayDay = series[series.length - 1].date.slice(0, 10);
-    for (let i = 0; i < series.length; i++) {
-      const d = series[i].date;
-      if (d.slice(0, 10) !== todayDay) continue;
-      const hh = parseInt(d.slice(11, 13), 10);
-      const mm = parseInt(d.slice(14, 16), 10);
-      // First bar at-or-after openHh:openMm UTC on today's date.
-      if ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh) { regularOpenIdx = i; break; }
+  if (rangeKey === '1D' && series && series.length > 0) {
+    if (regularSessionOnly) {
+      regularCloseIdx = findPrevSessionCloseIdx(series);
+    } else {
+      // US equity with extended hours. The bar at exactly closeHh:closeMm
+      // UTC (= 20:00 EDT / 21:00 EST). Strict match only (see
+      // findRegularCloseIdx) — a looser hh<closeHh would match an overnight
+      // / premarket bar after midnight UTC and pin the anchor to the latest
+      // premarket tick instead of yesterday's 16:00 ET close, leaving the
+      // modal at ~0% on any pre-open chart. -1 (no match) falls through to
+      // the lastPrice anchor below.
+      if (useExt || phase === 'regular') {
+        regularCloseIdx = findRegularCloseIdx(series, mh);
+      }
+      // First-regular-open bar in the data — used to draw the OPEN dashed
+      // line during the in-session view. Visual context only; the % basis
+      // pivots at prevClose so it agrees with the scoreboard / heatmap. We
+      // scope the search to TODAY's calendar date because the 24-h window
+      // includes yesterday's afternoon bars whose UTC hours also satisfy
+      // hh >= openHh — without the day filter, regularOpenIdx would land on
+      // yesterday's first afternoon bar (= chart's left edge) instead of
+      // today's actual open.
+      if (phase === 'regular') {
+        const todayDay = series[series.length - 1].date.slice(0, 10);
+        for (let i = 0; i < series.length; i++) {
+          const d = series[i].date;
+          if (d.slice(0, 10) !== todayDay) continue;
+          const hh = parseInt(d.slice(11, 13), 10);
+          const mm = parseInt(d.slice(14, 16), 10);
+          // First bar at-or-after openHh:openMm UTC on today's date.
+          if ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh) { regularOpenIdx = i; break; }
+        }
+      }
     }
   }
 
