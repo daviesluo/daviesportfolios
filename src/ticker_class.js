@@ -56,13 +56,14 @@ export const isUsEquity = (ticker) =>
   !isPvt(ticker);
 
 // US-shaped tickers that have NO overnight ("night market") session —
-// OTC ADRs like SoftBank (SFTBY) quote only their regular US session,
-// so T212 has no live overnight print for them. Without this exclusion
-// the overnight heartbeat dot + T212 night-price override would surface
-// a stale RTH/AH close as if it were a live overnight quote. Treated
-// like the LSE ETFs: regular-session bars only. Compared upper-cased so
-// case never matters.
-const NO_OVERNIGHT_SESSION = new Set(['SFTBY']);
+// OTC ADRs like SoftBank (SFTBY) / Murata (MRAAY) quote only their
+// regular US session, so T212 has no live overnight print for them.
+// Without this exclusion the overnight heartbeat dot + T212 night-price
+// override would surface a stale RTH/AH close as if it were a live
+// overnight quote. Treated like the LSE ETFs: regular-session bars only.
+// Compared upper-cased so case never matters. Add OTC ADRs here as they
+// enter the book.
+const NO_OVERNIGHT_SESSION = new Set(['SFTBY', 'MRAAY']);
 
 /**
  * True for a US equity that ALSO trades a T212 overnight session — i.e.
@@ -74,3 +75,15 @@ const NO_OVERNIGHT_SESSION = new Set(['SFTBY']);
  */
 export const hasOvernightSession = (ticker) =>
   isUsEquity(ticker) && !NO_OVERNIGHT_SESSION.has((ticker || '').toUpperCase());
+
+/**
+ * True for tickers with NO US-style extended-hours (pre / post / overnight)
+ * session: every foreign exchange listing (`.L` / `.HK` / euro suffixes —
+ * isExchangeListed) AND the US-shaped OTC ADRs above. The chart modal uses
+ * this to mark only the previous-session close on the 1D view (no OPEN
+ * line), since "today's open" is just where the single daily session
+ * resumes and the US-close-time marker doesn't match these markets.
+ * @param {string} ticker
+ */
+export const isRegularSessionOnly = (ticker) =>
+  isExchangeListed(ticker) || (isUsEquity(ticker) && !hasOvernightSession(ticker));

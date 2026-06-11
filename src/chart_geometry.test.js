@@ -5,7 +5,7 @@
 // chart now fails CI before deploy.
 
 import { describe, expect, it } from 'vitest';
-import { pointerToDataIndex, pointsToSvgPath, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
+import { pointerToDataIndex, pointsToSvgPath, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findPrevSessionCloseIdx } from './chart_geometry.js';
 
 // Fake an SVG element with just the surface the helper touches.
 function fakeSvg(rect) {
@@ -266,5 +266,41 @@ describe('findRegularCloseIdx', () => {
   it('guards null series / mh', () => {
     expect(findRegularCloseIdx(null, mh)).toBe(-1);
     expect(findRegularCloseIdx(series, null)).toBe(-1);
+  });
+});
+
+describe('findPrevSessionCloseIdx', () => {
+  it('returns the last bar of the previous calendar day (market-agnostic)', () => {
+    // LSE-style: a 16:30 close, no US-close-time bar. The previous
+    // session is 2026-06-03; its last bar (16:30) is the prev close.
+    const series = [
+      { date: '2026-06-03T15:30', close: 1 },
+      { date: '2026-06-03T16:30', close: 2 }, // ← LSE close (prev session)
+      { date: '2026-06-04T08:00', close: 3 }, // today's open
+      { date: '2026-06-04T09:00', close: 4 }, // today
+    ];
+    expect(findPrevSessionCloseIdx(series)).toBe(1);
+  });
+
+  it('lands on the most recent prior day when several days are present', () => {
+    const series = [
+      { date: '2026-06-02T16:30', close: 1 },
+      { date: '2026-06-03T16:30', close: 2 }, // most recent prior day's close
+      { date: '2026-06-04T09:00', close: 3 }, // today
+    ];
+    expect(findPrevSessionCloseIdx(series)).toBe(1);
+  });
+
+  it('returns -1 for a single-day series (no prior session to mark)', () => {
+    expect(findPrevSessionCloseIdx([
+      { date: '2026-06-04T08:00', close: 1 },
+      { date: '2026-06-04T09:00', close: 2 },
+    ])).toBe(-1);
+  });
+
+  it('guards empty / null / malformed', () => {
+    expect(findPrevSessionCloseIdx(null)).toBe(-1);
+    expect(findPrevSessionCloseIdx([])).toBe(-1);
+    expect(findPrevSessionCloseIdx([{ date: '2026-06-04T09:00' }, { close: 1 }])).toBe(-1);
   });
 });

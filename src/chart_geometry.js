@@ -184,3 +184,26 @@ export function findRegularCloseIdx(series, mh) {
   }
   return -1;
 }
+
+// Index of the previous trading day's LAST bar — the "previous session
+// close" marker for markets with no US-style extended-hours session
+// (LSE / Euronext / HK / OTC ADRs). Market-agnostic on purpose:
+// findRegularCloseIdx keys off the US 16:00-ET close time, which never
+// matches a foreign exchange's bars, so instead we walk back from the
+// newest bar to the first one on an EARLIER calendar day (the bars are
+// UTC-stamped and none of these single-session markets cross midnight
+// UTC, so each exchange's own close lands here). Returns -1 when the
+// series is a single day (caller draws no marker).
+// @param {{date?: string}[]} series
+export function findPrevSessionCloseIdx(series) {
+  if (!Array.isArray(series) || series.length === 0) return -1;
+  const lastBar = series[series.length - 1];
+  const lastDay = (lastBar && typeof lastBar.date === 'string') ? lastBar.date.slice(0, 10) : '';
+  if (!lastDay) return -1;
+  for (let i = series.length - 1; i >= 0; i--) {
+    const d = series[i] && series[i].date;
+    if (typeof d !== 'string' || d.length < 10) continue;
+    if (d.slice(0, 10) !== lastDay) return i; // last bar of the prior day
+  }
+  return -1;
+}
