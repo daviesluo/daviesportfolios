@@ -57,11 +57,22 @@ export function shouldShowBanner(needRefresh, now, suppressUntil) {
 /**
  * Clean-slate purge before a reload so the new SW mounts as if the page
  * were opened for the first time. Auth token lives in sessionStorage
- * (per-tab, survives reload) so the user isn't logged out; everything else
- * is nuked — Workbox/runtime caches, service workers, localStorage (dp.*
- * schema / prefs / market cache), and IndexedDB (chart_store). Each step
- * is isolated so one failure can't skip the rest. Awaited best-effort by
- * handleReload, which force-reloads on a hard timer even if this hangs.
+ * (per-tab, survives reload) so the user isn't logged out. Cleared:
+ * Workbox/runtime caches + every registered SW (so the new bundle's
+ * assets load) and localStorage (dp.* schema / prefs / market cache).
+ *
+ * NOT cleared: the IndexedDB chart cache (chart_store — ChartStore /
+ * MaStore / YtdStore). It's just price bars keyed by ticker + range with
+ * a baked-in TTL and version suffixes (e.g. `|PE|v5|`), so a new version
+ * either reuses fresh rows or evicts stale-shape ones by key — wiping it
+ * gained nothing but made every chart open after a version reload a cold
+ * 1-2 s fetch (the prefetch + boot-hydrate that warm it were thrown
+ * away). Keeping it is what makes the individual-stock / Market
+ * Conditions charts open instantly again.
+ *
+ * Each step is isolated so one failure can't skip the rest. Awaited
+ * best-effort by handleReload, which force-reloads on a hard timer even
+ * if this hangs.
  */
 export async function purgeForReload() {
   try {
@@ -77,23 +88,6 @@ export async function purgeForReload() {
     }
   } catch { /* ignore — reload still proceeds */ }
   try { localStorage.clear(); } catch { /* private mode etc. */ }
-  try {
-    if (typeof indexedDB !== 'undefined' && typeof indexedDB.databases === 'function') {
-      const dbs = await indexedDB.databases();
-      await Promise.all(dbs.map((db) => new Promise((resolve) => {
-        if (!db.name) { resolve(undefined); return; }
-        const req = indexedDB.deleteDatabase(db.name);
-        req.onsuccess = req.onerror = req.onblocked = () => resolve(undefined);
-      })));
-    } else if (typeof indexedDB !== 'undefined') {
-      // Older browsers (notably Safari pre-17) lack `databases()`.
-      // Fall back to deleting our known-name DB explicitly.
-      await new Promise((resolve) => {
-        const req = indexedDB.deleteDatabase('daviesportfolios');
-        req.onsuccess = req.onerror = req.onblocked = () => resolve(undefined);
-      });
-    }
-  } catch { /* ignore — reload still proceeds */ }
 }
 
 export function ServiceWorkerBanner() {
