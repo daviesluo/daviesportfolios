@@ -8,8 +8,8 @@
 import React from 'react';
 import { Modal } from './modals.jsx';
 import { fmtMoney as fmtM, fmtPct as fmtPc, pctColor as pctClr, maskDigits } from './formatters.js';
-import { holdingsRowsToMatrix, matrixToTsv, matrixToXlsx } from './holdings_export.js';
-import { IconCopy, IconDownload, IconCheck, IconX } from './icons.jsx';
+import { holdingsRowsToMatrix } from './holdings_export.js';
+import { TableExportButtons } from './table_export.jsx';
 
 // Company names for the holdings table's secondary line. Static map —
 // the app has no client-side name source for equities (Yahoo provides
@@ -146,48 +146,9 @@ function HoldingsListModal({ metrics, hideValues, onTickerClick, onClose }) {
 
   // Copy / download export the table EXACTLY as displayed (header + every
   // row, current sort order) with real values — the hide-values mask is a
-  // screen-only privacy overlay, not data. Disabled when there's nothing
-  // to export.
-  // 'idle' | 'done' | 'err' — same transient ✓ / ✕ feedback as the chart
-  // modal's screenshot copy. Before the 'err' state, a copy where BOTH
-  // clipboard paths failed (e.g. clipboard permission denied) just did
-  // nothing — the user clicked Copy and got no signal either way.
-  const [copyState, setCopyState] = React.useState(/** @type {'idle'|'done'|'err'} */ ('idle'));
+  // screen-only privacy overlay, not data. Shared with the Transaction
+  // history modal via <TableExportButtons>; disabled when nothing to export.
   const canExport = sorted.length > 0;
-
-  const onCopy = async () => {
-    if (!canExport) return;
-    const tsv = matrixToTsv(holdingsRowsToMatrix(sorted));
-    let ok = false;
-    if (navigator.clipboard?.writeText) {
-      try { await navigator.clipboard.writeText(tsv); ok = true; } catch { /* fall through to legacy path */ }
-    }
-    if (!ok) {
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = tsv; ta.style.position = 'fixed'; ta.style.opacity = '0';
-        document.body.appendChild(ta); ta.select();
-        ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-      } catch { ok = false; }
-    }
-    setCopyState(ok ? 'done' : 'err');
-    setTimeout(() => setCopyState('idle'), ok ? 1500 : 2000);
-  };
-
-  const onDownload = () => {
-    if (!canExport) return;
-    const bytes = matrixToXlsx(holdingsRowsToMatrix(sorted));
-    const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `holdings-${new Date().toISOString().slice(0, 10)}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 0);
-  };
 
   return (
     <Modal onClose={onClose} size="lg">
@@ -197,15 +158,7 @@ function HoldingsListModal({ metrics, hideValues, onTickerClick, onClose }) {
           <h2 className="modal-title mono">Holding list</h2>
         </div>
         <div className="modal-head-actions">
-          <button className="btn-ghost icon" onClick={onCopy} disabled={!canExport}
-            aria-label="Copy table including header"
-            title={copyState === 'done' ? 'Copied' : copyState === 'err' ? 'Copy failed' : 'Copy table (incl. header)'}>
-            {copyState === 'done' ? <IconCheck /> : copyState === 'err' ? <IconX /> : <IconCopy />}
-          </button>
-          <button className="btn-ghost icon" onClick={onDownload} disabled={!canExport}
-            aria-label="Download as Excel" title="Download as Excel (.xlsx)">
-            <IconDownload />
-          </button>
+          <TableExportButtons getMatrix={() => holdingsRowsToMatrix(sorted)} filenameBase="holdings" disabled={!canExport} />
           <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
         </div>
       </header>
