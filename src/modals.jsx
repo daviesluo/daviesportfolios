@@ -11,6 +11,7 @@ import {
 } from './formatters.js';
 import { currencySymbol as curSym, detectCurrency } from './fx.js';
 import { cleanLots } from './lots.js';
+import { cleanSells, netPosition, realizedGain } from './transactions.js';
 
 // Ref-counted body scroll lock. PositionDrill can stack on top of the
 // chart/edit/add modal, so two Modal instances can be mounted at once.
@@ -301,16 +302,27 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
     shares: String(l.shares ?? ''),
     cost: String(l.cost ?? ''),
   })));
+  // Sell records — the SALES side of the ledger. Net position = buys −
+  // sells under the net-cash model (transactions.js); on save these feed
+  // the Transaction History too.
+  /** @type {[Array<{date:string,shares:string|number,price:string|number}>, Function]} */
+  const [sells, setSells] = React.useState(
+    (Array.isArray(holding.sells) ? holding.sells : []).map(s => ({
+      date: s.date || today,
+      shares: String(s.shares ?? ''),
+      price: String(s.price ?? ''),
+    })),
+  );
 
-  // Snapshot the initial lots once at mount so we can detect "dirty"
+  // Snapshot the initial rows once at mount so we can detect "dirty"
   // state on close. Without this, an outside-click on the backdrop
   // (or a stray Cancel/✕) silently discards everything the user just
   // typed — and the symptom only shows up at the next refresh when
   // the user notices old numbers.
-  const [initialLotsJSON] = React.useState(() => JSON.stringify(lots));
+  const [initialJSON] = React.useState(() => JSON.stringify({ lots, sells }));
   const isDirty = React.useMemo(
-    () => JSON.stringify(lots) !== initialLotsJSON,
-    [lots, initialLotsJSON],
+    () => JSON.stringify({ lots, sells }) !== initialJSON,
+    [lots, sells, initialJSON],
   );
   const { confirm, element: confirmEl } = useConfirm();
   const safeClose = React.useCallback(async () => {
@@ -332,35 +344,43 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
   const addLot = () => {
     setLots(/** @param {any[]} ls */ ls => [...ls, { date: today, shares: '', cost: '' }]);
   };
+  const updateSell = (idx, patch) => {
+    setSells(/** @param {any[]} ss */ ss => ss.map((s, i) => i === idx ? { ...s, ...patch } : s));
+  };
+  const removeSell = (idx) => {
+    setSells(/** @param {any[]} ss */ ss => ss.filter((_, i) => i !== idx));
+  };
+  const addSell = () => {
+    setSells(/** @param {any[]} ss */ ss => [...ss, { date: today, shares: '', price: '' }]);
+  };
 
-  // Preview total / weighted AC reflects only rows that would survive
-  // `cleanLots()` on save — otherwise the user could see e.g. a
-  // negative-cost row pulling the weighted average down here and
-  // then get a different number after pressing Save (where the bad
-  // row gets dropped silently).
+  // Preview NET position / AC reflects only rows that survive cleanLots /
+  // cleanSells on save (same coercion), so the on-screen summary can't
+  // disagree with what gets stored. netPosition folds realized P&L into
+  // the basis (net-cash model — see transactions.js); realizedGain is the
+  // banked profit on this ticker, surfaced only once a sale exists.
   const validLots = cleanLots(lots);
-  // Future-dated rows get dropped by cleanLots on save. The date input's
-  // max=today blocks the picker, but a paste / typed value still gets
-  // through — and used to vanish on Save with no feedback at all. Only
-  // future dates are flagged (not other invalid shapes): every row starts
-  // at date=today, so a future date is always a deliberate-looking entry,
-  // while half-typed shares/cost rows are normal mid-edit states that a
-  // warning would nag on every keystroke.
-  const futureLotCount = lots.filter(
-    (l) => typeof l?.date === 'string' && l.date.trim() > today,
+  const validSells = cleanSells(sells);
+  const net = netPosition(lots, sells);
+  const weightedCost = net.avgCost;
+  const realized = realizedGain(lots, sells);
+  const hasSells = validSells.length > 0;
+  // Future-dated rows get dropped on save. The date input's max=today
+  // blocks the picker, but a paste / typed value still gets through — and
+  // used to vanish on Save with no feedback. Only future dates are flagged
+  // (every row starts at date=today, so a future date looks deliberate);
+  // half-typed shares/price rows are normal mid-edit states a warning
+  // would nag on. Counts buy + sell rows.
+  const futureCount = [...lots, ...sells].filter(
+    (r) => typeof r?.date === 'string' && r.date.trim() > today,
   ).length;
-  const totalShares = validLots.reduce((s, l) => s + l.shares, 0);
-  const weightedCost = totalShares > 0
-    ? validLots.reduce((s, l) => s + l.shares * l.cost, 0) / totalShares
-    : 0;
 
-  // `cleanLots` (lots.js) is the single source of truth for which
-  // lots are kept and how their values are coerced. Centralised so
-  // the EditTicker save path and the YTD chart's lot iterator can't
-  // disagree on what counts as a valid lot — and so the per-row
-  // rules (shares > 0, cost ≥ 0, YYYY-MM-DD date) are pinned by
-  // lots.test.js instead of living inline here.
-  const save = () => onSave({ lots: cleanLots(lots) });
+  // `cleanLots` / `cleanSells` are the single source of truth for which
+  // rows are kept and how values are coerced (shares > 0, cost/price ≥ 0,
+  // YYYY-MM-DD date), pinned in lots.test.js / transactions.test.js. The
+  // net-0 close (drop from the board, keep the history) is handled in
+  // updateHolding once these land.
+  const save = () => onSave({ lots: cleanLots(lots), sells: cleanSells(sells) });
 
   // "Move holding" — relocate this ticker to a different tactics-board
   // position. The picker is a two-step reveal (button → select + Move)
@@ -404,27 +424,42 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
 
       <div className="modal-body">
         <div className="lot-summary">
-          <div><span className="lot-summary-label mono">TOTAL SHARES</span><span className="lot-summary-val mono">{totalShares.toFixed(2)}</span></div>
+          <div><span className="lot-summary-label mono">NET SHARES</span><span className="lot-summary-val mono">{fmtSh(net.shares)}</span></div>
           <div><span className="lot-summary-label mono">AVG COST ({sym})</span><span className="lot-summary-val mono">{weightedCost.toFixed(2)}</span></div>
+          {hasSells && (
+            <div><span className="lot-summary-label mono">REALIZED G/L ({sym})</span>
+              <span className="lot-summary-val mono" style={{ color: pctClo(realized) }}>
+                {(realized >= 0 ? '+' : '') + realized.toFixed(2)}
+              </span>
+            </div>
+          )}
         </div>
         {acHint && <div className="lot-hint mono dim">{acHint}</div>}
-        {futureLotCount > 0 && (
+        {futureCount > 0 && (
           <div className="lot-warn mono" role="alert">
-            {futureLotCount === 1
-              ? '1 lot is dated in the future and will be dropped on save.'
-              : `${futureLotCount} lots are dated in the future and will be dropped on save.`}
+            {futureCount === 1
+              ? '1 entry is dated in the future and will be dropped on save.'
+              : `${futureCount} entries are dated in the future and will be dropped on save.`}
           </div>
+        )}
+        {net.shares < 0 && (
+          <div className="lot-warn mono" role="alert">
+            Sales exceed purchases by {fmtSh(-net.shares)} shares — check the numbers.
+          </div>
+        )}
+        {net.shares === 0 && validLots.length > 0 && (
+          <div className="lot-hint mono dim">Net position is 0 — Save closes this holding (its history stays in Transaction history).</div>
         )}
 
         <div className="lot-grid">
           <div className="lot-grid-head mono">
-            <span>Date</span>
+            <span>Bought</span>
             <span>Shares</span>
             <span>Cost / share ({sym})</span>
             <span />
           </div>
           {lots.length === 0 && (
-            <div className="lot-empty mono dim">No lots — click "Add lot" to record a purchase.</div>
+            <div className="lot-empty mono dim">No purchases — click "Add lot" to record a buy.</div>
           )}
           {lots.map((l, i) => (
             <div key={i} className="lot-grid-row">
@@ -437,7 +472,33 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
               <button className="btn-ghost icon" onClick={() => removeLot(i)} aria-label="Remove lot" title="Remove lot">✕</button>
             </div>
           ))}
+        </div>
+
+        {sells.length > 0 && (
+          <div className="lot-grid sell-grid">
+            <div className="lot-grid-head mono">
+              <span>Sold</span>
+              <span>Shares</span>
+              <span>Sell price ({sym})</span>
+              <span />
+            </div>
+            {sells.map((s, i) => (
+              <div key={i} className="lot-grid-row">
+                <input className="inp mono" type="date" value={s.date} max={today}
+                       onChange={(e) => updateSell(i, { date: e.target.value })} />
+                <input className="inp mono" inputMode="decimal" value={s.shares}
+                       onChange={(e) => updateSell(i, { shares: e.target.value })} placeholder="0" />
+                <input className="inp mono" inputMode="decimal" value={s.price}
+                       onChange={(e) => updateSell(i, { price: e.target.value })} placeholder="0" />
+                <button className="btn-ghost icon" onClick={() => removeSell(i)} aria-label="Remove sale" title="Remove sale">✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="lot-add-row">
           <button className="btn-ghost lot-add" onClick={addLot}>+ Add lot</button>
+          <button className="btn-ghost lot-add" onClick={addSell}>+ Sell</button>
         </div>
 
         {showMove && canMove && (

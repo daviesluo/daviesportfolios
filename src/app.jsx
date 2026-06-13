@@ -27,6 +27,7 @@ import {
 } from './modals.jsx';
 import { TickerChartModal } from './ticker_chart_modal.jsx';
 import { HoldingsListModal } from './holdings_list.jsx';
+import { TransactionHistoryModal } from './transaction_history.jsx';
 import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
@@ -226,6 +227,7 @@ function Board({ isReadOnly }) {
   const [editingTicker, setEditingTicker] = useState(/** @type {string | null} */ (null));
   const [viewingTicker, setViewingTicker] = useState(/** @type {string | null} */ (null));
   const [showHoldingsList, setShowHoldingsList] = useState(false);
+  const [showTransactionHistory, setShowTransactionHistory] = useState(false);
   const [addingToPos, setAddingToPos] = useState(/** @type {string | null} */ (null));
   const [editingCash, setEditingCash] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(/** @type {Date | null} */ (null));
@@ -989,6 +991,7 @@ function Board({ isReadOnly }) {
         hideValues={hideValues}
         onToggleHideValues={toggleHideValues}
         onOpenHoldingsList={() => setShowHoldingsList(true)}
+        onOpenTransactionHistory={() => setShowTransactionHistory(true)}
       />
 
       <main className="main">
@@ -1094,6 +1097,15 @@ function Board({ isReadOnly }) {
           hideValues={hideValues}
           onTickerClick={(t) => setViewingTicker(t)}
           onClose={() => setShowHoldingsList(false)}
+        />
+      )}
+
+      {showTransactionHistory && (
+        <TransactionHistoryModal
+          holdings={portfolio.holdings}
+          marketData={marketData}
+          hideValues={hideValues}
+          onClose={() => setShowTransactionHistory(false)}
         />
       )}
 

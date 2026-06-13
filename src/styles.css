@@ -1053,6 +1053,27 @@ body {
 }
 .lot-grid-row .inp { padding: 8px 10px; font-size: 13px; }
 .lot-add { align-self: flex-start; margin-top: 4px; font-size: 12px; }
+/* The two "+ Add lot" / "+ Sell" buttons sit side by side under the grids. */
+.lot-add-row { display: flex; gap: 10px; margin-top: 4px; }
+/* SALES grid: separated from the purchases above and tinted on the loss
+   side so buys vs sells read at a glance. */
+.sell-grid { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.sell-grid .lot-grid-head > span:first-child { color: var(--loss); }
+
+/* Transaction History: the headline Realized G/L banner + the BUY / SELL
+   row badges. The table itself reuses the Holding list's .hl-* styles. */
+.txn-realized {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; padding: 12px 16px; margin-bottom: 14px;
+  background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 4px;
+}
+.txn-realized-val { font-size: 20px; font-weight: 600; }
+.txn-badge {
+  display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+  padding: 2px 6px; border-radius: 3px; border: 1px solid;
+}
+.txn-buy  { color: var(--gain); border-color: var(--gain-dim); background: var(--gain-dim); }
+.txn-sell { color: var(--loss); border-color: var(--loss-dim); background: var(--loss-dim); }
 /* "Move holding" position picker — revealed under the lot grid when
    the user clicks Move holding in the footer. Inline row: label +
    position <select> + Move/Cancel. */
