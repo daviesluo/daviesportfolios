@@ -19,6 +19,14 @@
 
 import { cleanLots } from './lots.js';
 
+// Holdings the user auto-DCAs into via the Trading 212 daily sync. Their
+// lots are machine-written each day (applyTrading212 in trading212.js
+// replaces the lot with a synthetic one every sync), so they aren't real
+// user transactions — the Transaction History is for the user's own
+// buys / sells. Hidden from both the ledger and the realized total. Keep
+// in sync with the T212 auto-sync allow-list (trading212.js).
+const AUTO_DCA_TICKERS = new Set(['VUAA.L', 'SAEM.L']);
+
 /**
  * Sanitise sell rows the same way `cleanLots` does buy rows: drop
  * unfinishable / non-sensical / future-dated entries and coerce to finite
@@ -109,7 +117,7 @@ export function totalRealizedUsd(holdings, fxRate) {
   if (!holdings || typeof holdings !== 'object') return 0;
   let usd = 0;
   for (const [ticker, h] of Object.entries(holdings)) {
-    if (!h || h.isCash || ticker === 'CASH') continue;
+    if (!h || h.isCash || ticker === 'CASH' || AUTO_DCA_TICKERS.has(ticker)) continue;
     const r = realizedGain(h.lots, h.sells);
     if (!r) continue;
     const rate = fxRate(h.currency || 'USD');
@@ -137,7 +145,7 @@ export function buildTransactionLog(holdings) {
   /** @type {TxnRow[]} */
   const rows = [];
   for (const [ticker, h] of Object.entries(holdings)) {
-    if (!h || h.isCash || ticker === 'CASH') continue;
+    if (!h || h.isCash || ticker === 'CASH' || AUTO_DCA_TICKERS.has(ticker)) continue;
     const currency = h.currency || 'USD';
     for (const l of cleanLots(h.lots)) {
       rows.push({ ticker, kind: 'buy', date: l.date, shares: l.shares, price: l.cost, currency });
