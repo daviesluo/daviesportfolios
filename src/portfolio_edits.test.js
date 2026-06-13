@@ -36,6 +36,36 @@ describe('createPortfolioEditHandlers', () => {
     expect(h.cost).toBeCloseTo((10 * 100 + 30 * 200) / 40, 6); // 175
   });
 
+  it('updateHolding applies sells via the net-cash model (net shares + folded AC)', () => {
+    const { handlers, get } = setup(FIXTURE());
+    // 10 @ 100, sell 5 @ 120 → net 5 sh, netCash 1000−600=400, AC 80.
+    handlers.updateHolding('NVDA', {
+      lots: [{ date: '2025-01-01', shares: 10, cost: 100 }],
+      sells: [{ date: '2025-02-01', shares: 5, price: 120 }],
+    });
+    const h = get().holdings.NVDA;
+    expect(h.shares).toBe(5);
+    expect(h.cost).toBe(80);
+    expect(get().positions.ST.tickers).toEqual(['NVDA']); // still on the board
+  });
+
+  it('net 0 closes the holding: off the board, kept in holdings with its ledger', () => {
+    const { handlers, get } = setup(FIXTURE());
+    // Sell the whole 10-share NVDA position.
+    handlers.updateHolding('NVDA', {
+      lots: [{ date: '2025-01-01', shares: 10, cost: 100 }],
+      sells: [{ date: '2025-02-01', shares: 10, price: 130 }],
+    });
+    // Removed from the board…
+    expect(get().positions.ST.tickers).toEqual([]);
+    // …but the holding survives (closed) so its history persists.
+    const h = get().holdings.NVDA;
+    expect(h).toBeDefined();
+    expect(h.shares).toBe(0);
+    expect(h.closed).toBe(true);
+    expect(h.sells).toHaveLength(1);
+  });
+
   it('removeHolding drops the holding AND its position membership', () => {
     const { handlers, get } = setup(FIXTURE());
     handlers.removeHolding('NVDA');

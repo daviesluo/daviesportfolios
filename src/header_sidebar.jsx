@@ -169,7 +169,7 @@ function usdToCcyRate(ccy, marketData) {
   return 1;
 }
 
-function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues, onOpenHoldingsList }) {
+function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues, onOpenHoldingsList, onOpenTransactionHistory }) {
   // Currency cycle for the scoreboard's PORTFOLIO number. Ephemeral
   // by design — every cold load starts on USD per the user's spec.
   // The button itself renders on every breakpoint; the
@@ -361,17 +361,17 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
             {editMode ? "✓ EDIT MODE" : "EDIT"}
           </button>
         )}
-        <HeaderMenu onOpenHoldingsList={onOpenHoldingsList} />
+        <HeaderMenu onOpenHoldingsList={onOpenHoldingsList} onOpenTransactionHistory={onOpenTransactionHistory} />
       </div>
     </header>
   );
 }
 
 // ☰ overflow menu to the right of EDIT. Click to toggle a dropdown;
-// click-away / Escape closes it. One item for now — "Holding list" —
-// but the pattern scales to more. Available in both view + edit mode,
-// read-only included (the holdings table is view-only).
-function HeaderMenu({ onOpenHoldingsList }) {
+// click-away / Escape closes it. Items: "Holding list" + "Transaction
+// history". Available in both view + edit mode, read-only included (both
+// tables are view-only).
+function HeaderMenu({ onOpenHoldingsList, onOpenTransactionHistory }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(/** @type {HTMLDivElement | null} */ (null));
   React.useEffect(() => {
@@ -401,6 +401,11 @@ function HeaderMenu({ onOpenHoldingsList }) {
             role="menuitem"
             onClick={() => { setOpen(false); onOpenHoldingsList && onOpenHoldingsList(); }}
           >Holding list</button>
+          <button
+            className="header-menu-item"
+            role="menuitem"
+            onClick={() => { setOpen(false); onOpenTransactionHistory && onOpenTransactionHistory(); }}
+          >Transaction history</button>
         </div>
       )}
     </div>

@@ -63,6 +63,7 @@ function renderHeader(overrides = {}) {
     hideValues: false,
     onToggleHideValues: vi.fn(),
     onOpenHoldingsList: vi.fn(),
+    onOpenTransactionHistory: vi.fn(),
     ...overrides,
   };
   return render(<Header {...props} />);

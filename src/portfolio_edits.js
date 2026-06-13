@@ -10,6 +10,7 @@
 // book even if a stray click reaches one of these.
 
 import { detectCurrency } from './fx.js';
+import { netPosition } from './transactions.js';
 
 /**
  * @param {{
@@ -26,13 +27,31 @@ export function createPortfolioEditHandlers({ setPortfolio, isReadOnly }) {
       const cur = p.holdings[ticker];
       if (!cur) return p;
       const next = { ...cur, ...patch };
-      // When the modal saves an explicit `lots` array we recompute total shares
-      // and weighted-average cost from it, so the lots stay the source of truth.
-      if (Array.isArray(patch.lots)) {
-        const totalShares = patch.lots.reduce((s, l) => s + (Number(l.shares) || 0), 0);
-        const totalCost   = patch.lots.reduce((s, l) => s + (Number(l.shares) || 0) * (Number(l.cost) || 0), 0);
-        next.shares = totalShares;
-        next.cost   = totalShares > 0 ? totalCost / totalShares : 0;
+      // When the modal saves explicit `lots` / `sells` arrays we recompute
+      // the NET position (buys − sells) and the net-cash average cost — so
+      // a sale's realized P&L folds into the remaining basis (see
+      // transactions.netPosition). `shares`/`cost` stay the board's source
+      // of truth; `lots`/`sells` are the full ledger the history reads.
+      if (Array.isArray(patch.lots) || Array.isArray(patch.sells)) {
+        const lots  = Array.isArray(patch.lots)  ? patch.lots  : (cur.lots  || []);
+        const sells = Array.isArray(patch.sells) ? patch.sells : (cur.sells || []);
+        const np = netPosition(lots, sells);
+        next.shares = np.shares;
+        next.cost   = np.avgCost;
+        // Net 0 (or over-sold) → the position is closed: take it off the
+        // board (remove from every position's `tickers`) but KEEP the
+        // holding in `holdings` so its buy + sell history survives in the
+        // Transaction History. `closed` marks it; nothing prunes orphan
+        // holdings (portfolio_remote.migrate leaves them be).
+        if (np.shares <= 0) {
+          next.closed = true;
+          const positions = {};
+          for (const [k, pos] of Object.entries(p.positions)) {
+            positions[k] = { ...pos, tickers: pos.tickers.filter(t => t !== ticker) };
+          }
+          return { ...p, holdings: { ...p.holdings, [ticker]: next }, positions };
+        }
+        delete next.closed; // re-opened (a fresh buy brought it back positive)
       }
       return { ...p, holdings: { ...p.holdings, [ticker]: next } };
     });
