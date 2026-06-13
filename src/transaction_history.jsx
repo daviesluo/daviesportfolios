@@ -11,9 +11,32 @@ import { Modal } from './modals.jsx';
 import { fmtMoney as fmtM, fmtShares as fmtSh, pctColor as pctClr, maskDigits } from './formatters.js';
 import { currencySymbol, fxRateToUSD } from './fx.js';
 import { buildTransactionLog, totalRealizedUsd } from './transactions.js';
+import { TableExportButtons } from './table_export.jsx';
 
 /** @param {number} n  native amount → 2dp with thousands separators (no symbol) */
 const amt2 = (n) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/**
+ * The ledger as a 2D string matrix (header + rows) for the copy / download
+ * buttons — formatted exactly like the on-screen table (native-currency
+ * price + amount). Real values; the hide-values mask is screen-only.
+ * @param {import('./transactions.js').TxnRow[]} rows
+ * @returns {string[][]}
+ */
+export function transactionRowsToMatrix(rows) {
+  const body = (rows || []).map((r) => {
+    const sym = currencySymbol(r.currency);
+    return [
+      r.date,
+      r.ticker,
+      r.kind === 'buy' ? 'BUY' : 'SELL',
+      fmtSh(r.shares),
+      `${sym}${amt2(r.price)}`,
+      `${sym}${amt2(r.shares * r.price)}`,
+    ];
+  });
+  return [['Date', 'Symbol', 'Type', 'Shares', 'Price', 'Amount'], ...body];
+}
 
 function TransactionHistoryModal({ holdings, marketData, hideValues, onClose }) {
   const rows = React.useMemo(() => buildTransactionLog(holdings), [holdings]);
@@ -30,7 +53,10 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, onClose }) 
           <div className="modal-eyebrow mono">TRANSACTIONS</div>
           <h2 className="modal-title mono">Transaction history</h2>
         </div>
-        <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
+        <div className="modal-head-actions">
+          <TableExportButtons getMatrix={() => transactionRowsToMatrix(rows)} filenameBase="transactions" disabled={rows.length === 0} />
+          <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
+        </div>
       </header>
 
       <div className="modal-body">

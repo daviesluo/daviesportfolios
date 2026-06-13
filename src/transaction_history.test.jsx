@@ -1,7 +1,8 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, within } from '@testing-library/react';
-import { TransactionHistoryModal } from './transaction_history.jsx';
+import { TransactionHistoryModal, transactionRowsToMatrix } from './transaction_history.jsx';
+import { buildTransactionLog } from './transactions.js';
 
 // EUR/USD = 1.1 so the cross-currency realized total can be checked.
 const MARKET = { 'EURUSD=X': { lastPrice: 1.1 } };
@@ -55,5 +56,25 @@ describe('TransactionHistoryModal', () => {
   it('empty state when there are no transactions', () => {
     render(<TransactionHistoryModal holdings={{ CASH: { isCash: true } }} marketData={MARKET} hideValues={false} onClose={vi.fn()} />);
     expect(screen.getByText('No transactions yet.')).toBeInTheDocument();
+  });
+
+  it('renders the copy + download export buttons (shared with Holding list)', () => {
+    render(<TransactionHistoryModal holdings={HOLDINGS} marketData={MARKET} hideValues={false} onClose={vi.fn()} />);
+    expect(screen.getByLabelText('Copy table including header')).toBeInTheDocument();
+    expect(screen.getByLabelText('Download as Excel')).toBeInTheDocument();
+  });
+});
+
+describe('transactionRowsToMatrix', () => {
+  it('header + a row per transaction, native-currency price/amount', () => {
+    const rows = buildTransactionLog(HOLDINGS);
+    const matrix = transactionRowsToMatrix(rows);
+    expect(matrix[0]).toEqual(['Date', 'Symbol', 'Type', 'Shares', 'Price', 'Amount']);
+    expect(matrix).toHaveLength(rows.length + 1);
+    // The EUR buy: 50 sh @ €8 → €400.00 amount.
+    const eur = matrix.find((r) => r[1] === 'XFAB.PA');
+    expect(eur).toEqual(['2026-02-01', 'XFAB.PA', 'BUY', '50', '€8.00', '€400.00']);
+    // A SELL row carries the SELL label.
+    expect(matrix.some((r) => r[1] === 'NVDA' && r[2] === 'SELL')).toBe(true);
   });
 });
