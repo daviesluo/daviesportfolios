@@ -156,6 +156,15 @@ describe('buildTransactionLog', () => {
     expect(sell).toMatchObject({ shares: 4, price: 130, currency: 'USD' });
   });
 
+  it('hides the auto-DCA tickers (VUAA.L / SAEM.L) — machine-written lots', () => {
+    const log = buildTransactionLog({
+      NVDA: { currency: 'USD', lots: [{ date: '2026-01-10', shares: 10, cost: 100 }] },
+      'VUAA.L': { currency: 'USD', lots: [{ date: '2026-01-11', shares: 2, cost: 90 }] },
+      'SAEM.L': { currency: 'USD', lots: [{ date: '2026-01-12', shares: 1, cost: 50 }] },
+    });
+    expect(log.map((r) => r.ticker)).toEqual(['NVDA']);
+  });
+
   it('guards empty / null', () => {
     expect(buildTransactionLog(null)).toEqual([]);
     expect(buildTransactionLog({})).toEqual([]);
@@ -181,6 +190,14 @@ describe('totalRealizedUsd', () => {
       LOSS: { currency: 'USD', closed: true, shares: 0, lots: [{ date: '2026-01-01', shares: 10, cost: 100 }], sells: [{ date: '2026-02-01', shares: 10, price: 80 }] }, // −200
     };
     expect(totalRealizedUsd(holdings, fxRate)).toBe(-200);
+  });
+
+  it('excludes auto-DCA tickers from the realized total', () => {
+    const holdings = {
+      NVDA: { currency: 'USD', lots: [{ date: '2026-01-01', shares: 10, cost: 100 }], sells: [{ date: '2026-02-01', shares: 10, price: 120 }] }, // +200
+      'VUAA.L': { currency: 'USD', lots: [{ date: '2026-01-01', shares: 10, cost: 50 }], sells: [{ date: '2026-02-01', shares: 10, price: 80 }] }, // +300, hidden
+    };
+    expect(totalRealizedUsd(holdings, fxRate)).toBe(200);
   });
 
   it('guards empty / null', () => {
