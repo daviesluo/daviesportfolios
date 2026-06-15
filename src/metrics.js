@@ -5,7 +5,7 @@
 // pull in fetch plumbing / market hours / Storage.
 
 import { fxRateToUSD } from './fx.js';
-import { isUsEquity, isEuroExchange } from './ticker_class.js';
+import { isUsEquity, isEuroExchange, isCnFund } from './ticker_class.js';
 import { lseIsOpen, euroExchangeIsOpen } from './market_hours.js';
 
 // Yahoo's `postMarketPrice` for OTC ADRs like SFTBY is bogus — it
@@ -106,7 +106,14 @@ export const computeMetrics = (portfolio, opts = {}) => {
       // that prompted this — identical treatment to the .L ETFs.
       const isEuro = isEuroExchange(t);
       const euroSuppress = ext && !isCash && isEuro && !euroExchangeIsOpen();
-      const sessionSuppress = lseSuppress || euroSuppress;
+      // CN mutual funds (天天基金, 6-digit codes) have no US extended-hours
+      // session either — their `gsz` is a once-daily NAV estimate, not a live
+      // overnight trade. With the toggle on they used to keep showing that
+      // estimate's day pct (a green tile) while every other no-US-ext name
+      // (SFTBY / .L / euro) read 0, so they alone polluted the heatmap + Top
+      // Movers. Suppress to 0 whenever the toggle is on, matching the others.
+      const cnSuppress = ext && !isCash && isCnFund(t);
+      const sessionSuppress = lseSuppress || euroSuppress || cnSuppress;
       let pct;
       if (extActive) {
         pct = (trustExt && h.extDayPct != null ? h.extDayPct : 0);

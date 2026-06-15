@@ -1329,6 +1329,15 @@ body {
   .modal-head > div:first-child { min-width: 0; overflow: hidden; }
   .modal-head-actions { flex-shrink: 0; align-self: flex-start; }
   .modal-meta { flex-wrap: wrap; gap: 4px; }
+  /* Ticker chart modal only: float the copy / save / close cluster top-right
+     so the title + "Last $price · pct · (basis)" eyebrow get the full header
+     width. The basis label then stays on the price's line instead of wrapping
+     to its own row. Buttons sit above the meta rows, so only the title needs
+     to reserve space for them. Scoped via the modal-head-roomy modifier so
+     every other modal header is untouched. */
+  .modal-head-roomy { position: relative; }
+  .modal-head-roomy > .modal-head-actions { position: absolute; top: 14px; right: 16px; margin: 0; }
+  .modal-head-roomy .modal-title { padding-right: 108px; }
   .modal-title { font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .modal-body { padding: 12px 16px; overflow-y: auto; flex: 1; }
   .modal-foot { padding: 10px 16px; }

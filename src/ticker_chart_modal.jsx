@@ -620,7 +620,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
 
   return (
     <Modal onClose={onClose} size="lg">
-      <header className="modal-head">
+      <header className="modal-head modal-head-roomy">
         <div>
           <h2 className="modal-title mono">
             {TICKER_DISPLAY_NAMES[ticker]

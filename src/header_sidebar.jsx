@@ -424,9 +424,14 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
       for (const p of pos.players) allPlayers.push({ ...p, pos: pos.label });
     }
     const movable = allPlayers.filter(p => !p.isCash && p.ticker !== "CASH");
+    // Only names that ACTUALLY moved rank. A row pinned at 0 — a no-US-ext
+    // venue suppressed during the overnight (SFTBY / .L / euro / CN fund), or
+    // a genuinely flat stock — is neither a winner nor a loser, so it must not
+    // pad either column (the overnight LOSERS list was five red 0.00% rows).
+    // Show however many really gained / fell, up to 5 each.
     return {
-      winners: [...movable].sort((a, b) => (b.dayPct ?? 0) - (a.dayPct ?? 0)).slice(0, 5),
-      losers:  [...movable].sort((a, b) => (a.dayPct ?? 0) - (b.dayPct ?? 0)).slice(0, 5),
+      winners: movable.filter(p => (p.dayPct ?? 0) > 0).sort((a, b) => (b.dayPct ?? 0) - (a.dayPct ?? 0)).slice(0, 5),
+      losers:  movable.filter(p => (p.dayPct ?? 0) < 0).sort((a, b) => (a.dayPct ?? 0) - (b.dayPct ?? 0)).slice(0, 5),
       positionList: Object.entries(metrics.positions)
         .filter(([_, p]) => p.players.length > 0)
         .sort(([, a], [, b]) => b.marketValue - a.marketValue),
@@ -446,6 +451,7 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
                 <span className="mono" style={{ color: "var(--gain)" }}>{fmP(p.dayPct)}</span>
               </div>
             ))}
+            {winners.length === 0 && <div className="mover-row mono dim">—</div>}
           </div>
           <div>
             <div className="movers-heading loss">↓ LOSERS</div>
@@ -455,6 +461,7 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
                 <span className="mono" style={{ color: "var(--loss)" }}>{fmP(p.dayPct)}</span>
               </div>
             ))}
+            {losers.length === 0 && <div className="mover-row mono dim">—</div>}
           </div>
         </div>
       </section>

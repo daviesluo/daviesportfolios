@@ -24,7 +24,7 @@ vi.mock('./perf_chart.jsx', () => ({
   PerfPanel: () => null,
 }));
 
-import { Header } from './header_sidebar.jsx';
+import { Header, Sidebar } from './header_sidebar.jsx';
 
 // marketData with the FX pairs the cycle conversion reads:
 //   GBPUSD=X = USD per GBP  → USD→GBP multiplier is 1/1.27
@@ -128,5 +128,45 @@ describe('Header scoreboard — hide-values eye', () => {
     renderHeader({ hideValues: true });
     // The literal $100,000 must not be present when masked.
     expect(screen.queryByText(/^\$100,000$/)).not.toBeInTheDocument();
+  });
+});
+
+describe('Sidebar — Top Movers ranks only real movers', () => {
+  const moversMetrics = (players) => ({
+    marketValue: 200,
+    positions: {
+      P1: { label: 'FWD', marketValue: 120, unrlPct: 8.5, unrlGL: 800, players: players.slice(0, 2) },
+      P2: { label: 'MID', marketValue: 80, unrlPct: 3.2, unrlGL: 200, players: players.slice(2) },
+    },
+  });
+  const renderSidebar = (players) =>
+    render(<Sidebar metrics={moversMetrics(players)} source="live" portfolio={{}}
+      marketData={{}} extendedHours={true} phase="overnight" hideValues={false} />);
+
+  it('excludes flat / suppressed 0% names from both columns', () => {
+    renderSidebar([
+      { ticker: 'NVDA',   dayPct: 5,  marketValue: 70 },
+      { ticker: 'AAPL',   dayPct: -3, marketValue: 50 },
+      { ticker: 'SFTBY',  dayPct: 0,  marketValue: 40 }, // suppressed overnight
+      { ticker: '017731', dayPct: 0,  marketValue: 40 }, // suppressed overnight
+    ]);
+    // Real movers rank…
+    expect(screen.getByText('NVDA')).toBeInTheDocument();
+    expect(screen.getByText('AAPL')).toBeInTheDocument();
+    // …a name pinned at 0 never does (it used to pad LOSERS with 0.00%).
+    expect(screen.queryByText('SFTBY')).not.toBeInTheDocument();
+    expect(screen.queryByText('017731')).not.toBeInTheDocument();
+  });
+
+  it('renders a — placeholder for a column with no movers', () => {
+    renderSidebar([
+      { ticker: 'NVDA',   dayPct: 5, marketValue: 70 },
+      { ticker: 'AAPL',   dayPct: 2, marketValue: 50 },
+      { ticker: 'SFTBY',  dayPct: 0, marketValue: 40 },
+      { ticker: '017731', dayPct: 0, marketValue: 40 },
+    ]);
+    // Two winners, zero losers → the LOSERS column shows the em-dash.
+    expect(screen.getByText('NVDA')).toBeInTheDocument();
+    expect(screen.getByText('—')).toBeInTheDocument();
   });
 });
