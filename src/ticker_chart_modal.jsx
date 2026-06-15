@@ -15,7 +15,7 @@ import {
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   extPriceIsRealAh, isPriceAxis,
 } from './indicators.js';
-import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findPrevSessionCloseIdx } from './chart_geometry.js';
+import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findPrevSessionCloseIdx, overnightDotWithinReach } from './chart_geometry.js';
 import { computeChartGeometry } from './chart_modal_geometry.js';
 import { mergeOvernightSeries } from './overnight_intraday.js';
 import {
@@ -270,12 +270,22 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // moves — a static dot that's just noise. Suppress it; the recorder
   // resumes at Sun 20:00 ET (the overnight reopen) and the line picks up
   // from there.
+  // ...and NOT when the last real bar is more than one overnight session
+  // back (overnightDotWithinReach). At the Sun-20:00-ET reopen the recorder
+  // has 0-1 points, so the dot — not the line — would render, floating
+  // ~48 h to the right of Friday's close as a giant blank gap. Hold off
+  // until the recorder's ≥2 points draw the gap-free index-based line a few
+  // minutes in (the bug the user hit at 01:00-01:05 UK).
+  const lastBarMsForDot = (Array.isArray(displaySeries) && displaySeries.length > 0)
+    ? parseChartDateUTC(displaySeries[displaySeries.length - 1]?.date).getTime()
+    : NaN;
   const nightDotActive = useExt && phase === 'overnight' && hasOvernightSession(ticker)
     && !isWeekendDeadZone()
     && typeof extPriceLive === 'number' && extPriceLive > 0
     && !!NIGHT_BAR_INTERVAL_MS[rangeKey]
     && !hasOvernightLine
-    && Array.isArray(displaySeries) && displaySeries.length >= 2;
+    && Array.isArray(displaySeries) && displaySeries.length >= 2
+    && overnightDotWithinReach(lastBarMsForDot, Date.now());
 
   // Points drive the line + geometry. Built from `displaySeries` (the
   // Yahoo bars + any spliced overnight line). The live substitution on

@@ -5,7 +5,7 @@
 // chart now fails CI before deploy.
 
 import { describe, expect, it } from 'vitest';
-import { pointerToDataIndex, pointsToSvgPath, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findPrevSessionCloseIdx } from './chart_geometry.js';
+import { pointerToDataIndex, pointsToSvgPath, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findPrevSessionCloseIdx, overnightDotWithinReach } from './chart_geometry.js';
 
 // Fake an SVG element with just the surface the helper touches.
 function fakeSvg(rect) {
@@ -203,6 +203,27 @@ describe('overnightTrailingGap', () => {
     expect(overnightTrailingGap(1, NaN, BAR)).toBe(0);
     expect(overnightTrailingGap(1, 2, 0)).toBe(0);
     expect(overnightTrailingGap(1, 2, -5)).toBe(0);
+  });
+});
+
+describe('overnightDotWithinReach', () => {
+  const H = 60 * 60_000; // 1 h
+  const now = 1_000_000_000_000;
+
+  it('true within one overnight session of the last bar', () => {
+    expect(overnightDotWithinReach(now - 2 * H, now)).toBe(true);  // 2 h ago
+    expect(overnightDotWithinReach(now - 8 * H, now)).toBe(true);  // full 20:00→04:00 ET session
+    expect(overnightDotWithinReach(now, now)).toBe(true);          // brand-new bar
+  });
+
+  it('false when the last bar is a weekend/holiday away (the big-gap bug)', () => {
+    expect(overnightDotWithinReach(now - 48 * H, now)).toBe(false); // Friday close on Sunday reopen
+    expect(overnightDotWithinReach(now - 11 * H, now)).toBe(false); // just past the 10 h cutoff
+  });
+
+  it('false for non-finite inputs', () => {
+    expect(overnightDotWithinReach(NaN, now)).toBe(false);
+    expect(overnightDotWithinReach(now, NaN)).toBe(false);
   });
 });
 
