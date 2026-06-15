@@ -114,6 +114,26 @@ describe('computeChartGeometry — ext-mode anchor selection', () => {
     expect(out.anchorClose).toBe(200); // lastPriceAny, not points[3].close (103)
   });
 
+  it('crypto ignores the ext branch and anchors at prevClose (rolling 24h)', () => {
+    // Crypto has no regular close and the ext-hours toggle must not change
+    // its basis. Even with useExt on AND a lastPriceAny present (which would
+    // win for a stock), isCrypto routes to prevCloseAny so the modal's % ==
+    // the board's rolling-24h day-change instead of a constant ~0%.
+    const points = intradayPoints();
+    const out = computeChartGeometry({
+      series: points,
+      points,
+      rangeKey: '1D',
+      useExt: true,
+      isRatioRange: false,
+      overnightDot: null,
+      regularCloseIdx: 3,
+      dimensions: DIMS,
+      anchorRefs: { ...NO_REFS, isCrypto: true, lastPriceAny: 200, prevCloseAny: 95 },
+    });
+    expect(out.anchorClose).toBe(95); // prevCloseAny, NOT lastPriceAny (200)
+  });
+
   it('uses the intraday close bar when no official lastPrice is available', () => {
     const points = intradayPoints();
     const out = computeChartGeometry({

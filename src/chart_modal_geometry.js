@@ -70,6 +70,7 @@ function niceStep(r) {
  * @typedef {{
  *   lastPriceAny: number | null,
  *   prevCloseAny: number | null,
+ *   isCrypto?:    boolean,
  *   pe3yAvg?:     number | null,
  *   ps3yAvg?:     number | null,
  *   maSeries?:    Array<number | null> | null,
@@ -117,7 +118,7 @@ export function computeChartGeometry({
   anchorRefs,
 }) {
   const { padL, padR: _padR, padT, padB: _padB, cW, cH } = dimensions;
-  const { lastPriceAny, prevCloseAny, pe3yAvg, ps3yAvg, maSeries, vwapSeries } = anchorRefs;
+  const { lastPriceAny, prevCloseAny, isCrypto, pe3yAvg, ps3yAvg, maSeries, vwapSeries } = anchorRefs;
 
   // ----- 1. anchorClose
   // The headline %'s denominator. 1D anchor at today's regular close
@@ -139,7 +140,15 @@ export function computeChartGeometry({
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
-      if (useExt) {
+      // Crypto trades 24/7 — no regular close, and the ext-hours toggle is
+      // meaningless for it. The prices function already anchors crypto on a
+      // rolling past-24h close (`prevClose`), and metrics.js uses that for
+      // the board regardless of the toggle; mirror it here so the modal's %
+      // matches the board and the toggle never flips crypto's basis. Without
+      // the `!isCrypto` guard, ext-on anchored crypto at `lastPriceAny` (the
+      // live price) → a constant ~0.00% headline that disagreed with the
+      // heatmap's real 24h change.
+      if (useExt && !isCrypto) {
         if (lastPriceAny && lastPriceAny > 0) {
           anchorClose = lastPriceAny;
         } else if (regularCloseIdx >= 0) {

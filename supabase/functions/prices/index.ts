@@ -53,6 +53,40 @@ export function pctChange(curr: number, prev: number): number {
   return prev > 0 ? ((curr - prev) / prev) * 100 : 0;
 }
 
+/**
+ * Rolling past-24h anchor for 24/7 assets (crypto). Returns the close of
+ * the candle whose timestamp is nearest to `nowSec - 86400` (same clock
+ * time yesterday), skipping null / non-positive closes. Returns null when
+ * no candle lands within 6 h of the 24h-ago mark — i.e. the fetched window
+ * was too short — so the caller can fall back to the meta previous-close
+ * instead of anchoring on a much nearer (mislabelled) bar. Exported for
+ * tests.
+ *
+ * @param timestamps unix-seconds per candle, ascending (Yahoo `result.timestamp`)
+ * @param closes     per-candle closes aligned to `timestamps` (may hold nulls)
+ * @param nowSec     "now" in unix seconds
+ */
+export function closeNearest24hAgo(
+  timestamps: number[],
+  closes: (number | null)[],
+  nowSec: number,
+): number | null {
+  if (!Array.isArray(timestamps) || !Array.isArray(closes)) return null;
+  const target = nowSec - 86400;
+  let bestIdx = -1;
+  let bestDist = Infinity;
+  for (let i = 0; i < timestamps.length; i++) {
+    const c = closes[i];
+    if (c == null || !(c > 0)) continue;
+    const t = timestamps[i];
+    if (typeof t !== "number" || !Number.isFinite(t)) continue;
+    const dist = Math.abs(t - target);
+    if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+  }
+  if (bestIdx < 0 || bestDist > 6 * 3600) return null;
+  return closes[bestIdx] as number;
+}
+
 type PriceResult = {
   lastPrice: number;
   extPrice: number | null;
@@ -67,11 +101,18 @@ type PriceResult = {
 // ---------------- Yahoo Finance ----------------
 async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
   const nonce = Date.now();
-  // 5-minute candles for today with pre+post market — lets us read extended
-  // hours prices directly from candle closes rather than unreliable meta fields.
+  // Crypto (BTC-USD, ETH-USD, …) trades 24/7 with no regular close and no
+  // extended-hours session, so it gets a wider window: the prevClose
+  // override below reads the candle from a rolling 24 h ago, and 2 days of
+  // 5-min candles always spans that mark even moments after the UTC-midnight
+  // roll. Stocks keep the 1-day pre+post window — that lets us read extended
+  // hours prices directly from candle closes rather than unreliable meta
+  // fields. includePrePost is meaningless for crypto.
+  const isCrypto = /-USD$/i.test(symbol);
   const url =
     `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
-    `?interval=5m&range=1d&includePrePost=true&_=${nonce}`;
+    `?interval=5m&range=${isCrypto ? "2d" : "1d"}` +
+    `&includePrePost=${isCrypto ? "false" : "true"}&_=${nonce}`;
 
   try {
     const res = await fetch(url, {
@@ -117,6 +158,19 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
     const timestamps: number[]       = result?.timestamp ?? [];
     const closes: (number | null)[]  = result?.indicators?.quote?.[0]?.close ?? [];
 
+    // Crypto: override prevClose with the rolling past-24h anchor (the
+    // candle nearest `now - 24h`). Yahoo's regularMarketPreviousClose for a
+    // 24/7 asset is the last UTC-midnight daily close, which makes the
+    // board's day-change disagree with the visible 24h trend whenever a move
+    // straddles midnight — a Sunday-night BTC pump counts as "yesterday",
+    // leaving the tile red while the line and every crypto site read green.
+    // A rolling 24h basis matches "up / down over the last day"; falls back
+    // to the meta prevClose when the fetched window is too short.
+    if (isCrypto) {
+      const c24 = closeNearest24hAgo(timestamps, closes, Math.floor(Date.now() / 1000));
+      if (c24 != null && c24 > 0) prevClose = c24;
+    }
+
     // Walk backwards to find the most recent candle that sits outside regular
     // market hours — that is the current extended-hours price.
     //
@@ -129,9 +183,13 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
     // pre-market. Those exchanges don't have a US-style pre/post
     // session anyway, so skip the scan entirely for them and let
     // extPrice stay null. US-index pseudo-symbols (`^GSPC` etc.) have
-    // no dot so they're correctly NOT skipped.
+    // no dot so they're correctly NOT skipped. Crypto is skipped too
+    // (`isCrypto`): every crypto candle sits outside the 9:30-16:00 ET
+    // window, so the scan would always tag the latest bar as an
+    // "extended-hours" price — but crypto has no such session and the
+    // ext-hours toggle must not affect it anywhere, so extPrice stays null.
     let extPrice: number | null = null;
-    if (!symbol.includes(".")) {
+    if (!symbol.includes(".") && !isCrypto) {
       for (let i = timestamps.length - 1; i >= 0; i--) {
         const close = closes[i];
         if (close == null) continue;
