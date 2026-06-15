@@ -430,3 +430,26 @@ describe('computeMetrics — degenerate inputs', () => {
     });
   });
 });
+
+describe('computeMetrics — CN fund ext-hours suppression', () => {
+  // 017731 (天天基金) has no US extended-hours session — its `gsz` is a daily
+  // NAV estimate, not an overnight trade. With the toggle on it must read 0
+  // like SFTBY / .L / euro, instead of the stale green dayPct that used to
+  // pollute the heatmap + Top Movers. Unconditional (no exchange-clock gate).
+  const holdings = {
+    '017731': { shares: 100, lastPrice: 102, prevClose: 100, cost: 95, currency: 'CNY', dayPct: 2 },
+  };
+  const positions = { MF: { role: 'FWD', tickers: ['017731'], label: 'MF' } };
+  const md = { 'USDCNY=X': { lastPrice: 7.20 } };
+
+  it('ext OFF: shows the fund dayPct', () => {
+    const m = computeMetrics(pf(holdings, positions), { extended: false, marketData: md });
+    expect(m.positions.MF.players[0].dayPct).toBeCloseTo(2, 6);
+  });
+
+  it('ext ON: suppressed to 0 (dayPct + dayChange)', () => {
+    const m = computeMetrics(pf(holdings, positions), { extended: true, marketData: md });
+    expect(m.positions.MF.players[0].dayPct).toBe(0);
+    expect(m.positions.MF.players[0].dayChange).toBe(0);
+  });
+});
