@@ -514,6 +514,17 @@ describe('1Y range (ticker-modal-only)', () => {
       yahooRange: '1y', interval: '1d', includePrePost: false, variant: 'std',
     });
   });
+  it('fetchParamsFor("1D", …, isCrypto) forces the trailing-24h variant in every toggle/phase', () => {
+    // Crypto trades 24/7 — no "closed" latest-calendar-day window. All four
+    // toggle/phase states collapse to the 24h 'reg' variant so the line spans
+    // the same window the rolling-24h header measures.
+    const expected = { yahooRange: '5d', interval: '5m', includePrePost: false, variant: 'reg' };
+    expect(fetchParamsFor('1D', false, 'overnight', true)).toEqual(expected);
+    expect(fetchParamsFor('1D', false, 'regular', true)).toEqual(expected);
+    expect(fetchParamsFor('1D', true, 'afterhours', true)).toEqual(expected);
+    // Non-crypto, ext-OFF + US-closed still gets the latest-day 'closed' variant.
+    expect(fetchParamsFor('1D', false, 'overnight', false).variant).toBe('closed');
+  });
   it('maFetchParamsFor("1Y") pulls 2y of daily bars so the 50-day MA is seeded at the left edge', () => {
     expect(maFetchParamsFor('1Y')).toEqual({ range: '2y', interval: '1d' });
   });

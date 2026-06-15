@@ -146,6 +146,25 @@ describe('TickerChartModal — render decision tree', () => {
     expect(screen.getByText(/Loading|No data/i)).toBeInTheDocument();
   });
 
+  it('labels crypto 1D "(past 24 hours)" even with extended hours on', () => {
+    // The reported scenario: BTC-USD, ext toggle on, US overnight. Crypto
+    // anchors on a rolling 24h close (not "previous close"), and the toggle
+    // must not change that — so the basis label reads "(past 24 hours)".
+    const data = [
+      { date: '2026-05-27T16:00', close: 64000 },
+      { date: '2026-05-28T16:00', close: 65000 },
+    ];
+    seedChartCache('BTC-USD', '1D', true, 'overnight', data);
+    renderModal({
+      ticker: 'BTC-USD',
+      extendedHours: true,
+      phase: 'overnight',
+      holding: { shares: 0.1, cost: 60000, lastPrice: 65000, prevClose: 64500, dayPct: 0.78, currency: 'USD' },
+    });
+    expect(screen.getByText('(past 24 hours)')).toBeInTheDocument();
+    expect(screen.queryByText('(since previous close)')).not.toBeInTheDocument();
+  });
+
   it('honours the hideValues prop (masks dollar amounts but still renders the ticker)', () => {
     seedChartCache('AAPL', '1D', false, 'regular', [
       { date: '2026-05-28T13:30', close: 210 },
