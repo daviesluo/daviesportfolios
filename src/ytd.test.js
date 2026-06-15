@@ -539,7 +539,11 @@ describe('applyVariantFilter', () => {
 
   it("'reg' and 'ext' trim to the trailing 24h", () => {
     // Both route through filterToLast24h, so a bar > 24h old is dropped.
-    const old = [{ date: `${yest}T01:00`, close: 0 }, ...series];
+    // The stale bar uses a FIXED far-past date (not `yest`): `${yest}T01:00`
+    // is only ~23h old when the suite happens to run in the 00:00-01:00 UTC
+    // window, so it slips inside the 24h cutoff and the bar isn't trimmed —
+    // a time-of-day flake. A fixed old date is unambiguously >24h old always.
+    const old = [{ date: '2020-01-01T01:00', close: 0 }, ...series];
     expect(applyVariantFilter(old, 'reg').length).toBeLessThan(old.length);
     expect(applyVariantFilter(old, 'ext')).toEqual(applyVariantFilter(old, 'reg'));
   });
