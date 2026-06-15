@@ -27,6 +27,7 @@ import {
 } from './modals.jsx';
 import { TickerChartModal } from './ticker_chart_modal.jsx';
 import { HoldingsListModal } from './holdings_list.jsx';
+import { SectorsListModal } from './sectors_list.jsx';
 import { TransactionHistoryModal } from './transaction_history.jsx';
 import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
@@ -227,6 +228,7 @@ function Board({ isReadOnly }) {
   const [editingTicker, setEditingTicker] = useState(/** @type {string | null} */ (null));
   const [viewingTicker, setViewingTicker] = useState(/** @type {string | null} */ (null));
   const [showHoldingsList, setShowHoldingsList] = useState(false);
+  const [showSectorsList, setShowSectorsList] = useState(false);
   const [showTransactionHistory, setShowTransactionHistory] = useState(false);
   const [addingToPos, setAddingToPos] = useState(/** @type {string | null} */ (null));
   const [editingCash, setEditingCash] = useState(false);
@@ -294,7 +296,8 @@ function Board({ isReadOnly }) {
   useEffect(() => {
     const anyModalOpen = () =>
       drillPos != null || editingTicker != null || viewingTicker != null
-      || addingToPos != null || editingCash || showHoldingsList;
+      || addingToPos != null || editingCash || showHoldingsList
+      || showSectorsList || showTransactionHistory;
     const onKey = (e) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (anyModalOpen()) return;
@@ -316,7 +319,7 @@ function Board({ isReadOnly }) {
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [isReadOnly, drillPos, editingTicker, viewingTicker, addingToPos, editingCash, showHoldingsList]);
+  }, [isReadOnly, drillPos, editingTicker, viewingTicker, addingToPos, editingCash, showHoldingsList, showSectorsList, showTransactionHistory]);
 
   // Initial load from Supabase (never throws — falls back to INITIAL_PORTFOLIO on any error)
   useEffect(() => {
@@ -991,6 +994,7 @@ function Board({ isReadOnly }) {
         hideValues={hideValues}
         onToggleHideValues={toggleHideValues}
         onOpenHoldingsList={() => setShowHoldingsList(true)}
+        onOpenSectorsList={() => setShowSectorsList(true)}
         onOpenTransactionHistory={() => setShowTransactionHistory(true)}
       />
 
@@ -1097,6 +1101,15 @@ function Board({ isReadOnly }) {
           hideValues={hideValues}
           onTickerClick={(t) => setViewingTicker(t)}
           onClose={() => setShowHoldingsList(false)}
+        />
+      )}
+
+      {showSectorsList && (
+        <SectorsListModal
+          metrics={metrics}
+          hideValues={hideValues}
+          onTickerClick={(t) => setViewingTicker(t)}
+          onClose={() => setShowSectorsList(false)}
         />
       )}
 

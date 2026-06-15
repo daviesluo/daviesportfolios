@@ -169,7 +169,7 @@ function usdToCcyRate(ccy, marketData) {
   return 1;
 }
 
-function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues, onOpenHoldingsList, onOpenTransactionHistory }) {
+function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues, onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory }) {
   // Currency cycle for the scoreboard's PORTFOLIO number. Ephemeral
   // by design — every cold load starts on USD per the user's spec.
   // The button itself renders on every breakpoint; the
@@ -361,17 +361,17 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
             {editMode ? "✓ EDIT MODE" : "EDIT"}
           </button>
         )}
-        <HeaderMenu onOpenHoldingsList={onOpenHoldingsList} onOpenTransactionHistory={onOpenTransactionHistory} />
+        <HeaderMenu onOpenHoldingsList={onOpenHoldingsList} onOpenSectorsList={onOpenSectorsList} onOpenTransactionHistory={onOpenTransactionHistory} />
       </div>
     </header>
   );
 }
 
 // ☰ overflow menu to the right of EDIT. Click to toggle a dropdown;
-// click-away / Escape closes it. Items: "Holding list" + "Transaction
-// history". Available in both view + edit mode, read-only included (both
-// tables are view-only).
-function HeaderMenu({ onOpenHoldingsList, onOpenTransactionHistory }) {
+// click-away / Escape closes it. Items: "Holding list", "Sectors list" +
+// "Transaction history". Available in both view + edit mode, read-only
+// included (all three tables are view-only).
+function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(/** @type {HTMLDivElement | null} */ (null));
   React.useEffect(() => {
@@ -401,6 +401,11 @@ function HeaderMenu({ onOpenHoldingsList, onOpenTransactionHistory }) {
             role="menuitem"
             onClick={() => { setOpen(false); onOpenHoldingsList && onOpenHoldingsList(); }}
           >Holding list</button>
+          <button
+            className="header-menu-item"
+            role="menuitem"
+            onClick={() => { setOpen(false); onOpenSectorsList && onOpenSectorsList(); }}
+          >Sectors list</button>
           <button
             className="header-menu-item"
             role="menuitem"

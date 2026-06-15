@@ -93,4 +93,18 @@ describe('matrixToXlsx', () => {
     const r = new TextDecoder('latin1').decode(x);
     expect(r.includes('A &amp; B &lt;co&gt;')).toBe(true);
   });
+
+  it('adds a column-header autofilter spanning the whole table (header + data)', () => {
+    // 9 columns × (header + 2 rows) → A1:I3. This is what gives Excel the
+    // sort / filter dropdowns on every header, matching the on-screen
+    // sortable columns.
+    expect(raw.includes('<autoFilter ref="A1:I3"/>')).toBe(true);
+    // …positioned after the cell data (CT_Worksheet sequence).
+    expect(raw.indexOf('</sheetData>')).toBeLessThan(raw.indexOf('<autoFilter'));
+  });
+
+  it('autofilter range tracks a single-column / header-only matrix', () => {
+    const r = new TextDecoder('latin1').decode(matrixToXlsx([['Only']]));
+    expect(r.includes('<autoFilter ref="A1:A1"/>')).toBe(true);
+  });
 });
