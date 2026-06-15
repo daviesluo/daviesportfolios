@@ -47,6 +47,26 @@ body {
 .mono { font-family: var(--font-mono); font-feature-settings: "tnum" 1; letter-spacing: 0.01em; }
 .dim { color: var(--chalk-dim); }
 
+/* Touch devices (the mobile PWA): kill the long-press text selection +
+   the iOS callout / magnifier that the user keeps triggering by accident.
+   The UI is entirely tap-driven and every table has dedicated copy /
+   download buttons, so no manual text selection is needed — except form
+   fields, which re-enable it so they stay editable (tap to place the
+   cursor, select-all to replace a value). Desktop (fine pointer) keeps
+   normal selection. Modals portal into <body>, so they're covered too. */
+@media (hover: none) and (pointer: coarse) {
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
+}
+
 /* ============= APP SHELL ============= */
 /* Force the dark theme to actually print instead of being stripped
    to "black text on white paper" by the browser's default ink-saving
