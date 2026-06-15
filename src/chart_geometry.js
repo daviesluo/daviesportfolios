@@ -119,6 +119,30 @@ export function overnightTrailingGap(lastBarMs, nowMs, barIntervalMs) {
   return Math.max(0, (nowMs - lastBarMs) / barIntervalMs);
 }
 
+// The single overnight "heartbeat" dot floats time-proportionally to the
+// RIGHT of the last real bar (overnightTrailingGap). That reads fine on a
+// normal weekday overnight (the last bar is today's 16:00-ET close, a few
+// hours back) — but on the SUNDAY / post-holiday reopen the most recent
+// Yahoo bar is the prior session's close (Friday: the weekend has no bars),
+// ~48 h back, so the gap explodes and the dot lands far off to the right
+// past a giant blank span (the "weekend big gap"). Only show the dot when
+// the last bar is within ONE overnight session of now; past that we wait
+// for the recorder's ≥2 points so the index-based line — which spaces bars
+// evenly and has no such gap — takes over (a few minutes into the session).
+// 10 h comfortably clears the 20:00→04:00-ET session (≤8 h) yet sits well
+// under the ≥48 h weekend gap.
+export const OVERNIGHT_DOT_MAX_GAP_MS = 10 * 60 * 60 * 1000;
+
+/**
+ * @param {number} lastBarMs  epoch ms of the last real bar
+ * @param {number} nowMs      epoch ms of "now"
+ * @returns {boolean} true when the single overnight dot's gap is sane
+ */
+export function overnightDotWithinReach(lastBarMs, nowMs) {
+  return Number.isFinite(lastBarMs) && Number.isFinite(nowMs)
+    && nowMs - lastBarMs <= OVERNIGHT_DOT_MAX_GAP_MS;
+}
+
 /**
  * Build the `d` attribute for an SVG `<path>` from a series of data
  * points + projection functions to chart-space (x, y) coords.
