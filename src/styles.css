@@ -475,6 +475,18 @@ body {
 .hl-name { display: block; color: var(--chalk-dim); font-size: 11px; margin-top: 1px; }
 .hl-empty { text-align: center; padding: 24px; }
 
+/* Sectors list (☰ → Sectors list): the holdings table grouped by
+   tactics-board position. A bold sector-header row (board position +
+   sector name on the left, the sector's aggregate columns on the right)
+   precedes each group; member rows indent their symbol so the nesting
+   reads at a glance. A 2px top rule (rather than a fill) separates the
+   groups — keeps the sticky first column's opaque background untouched. */
+.hl-sector-row td { border-top: 2px solid var(--line); font-weight: 600; }
+.hl-sector-name { white-space: nowrap; }
+.hl-sector-pos { color: var(--chalk); font-weight: 700; letter-spacing: 0.02em; font-size: 13px; }
+.hl-sector-sub { color: var(--chalk-dim); font-size: 12px; }
+.hl-sector-member .hl-sym { padding-left: 22px; }
+
 /* ============= MAIN LAYOUT ============= */
 .main {
   flex: 1;

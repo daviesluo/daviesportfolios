@@ -40,6 +40,40 @@ export function holdingsRowsToMatrix(rows) {
   return [EXPORT_HEADERS.slice(), ...body];
 }
 
+// Sectors list export: the same columns plus a leading "Sector" column
+// that names each holding's tactics-board position (label · sector). The
+// table is FLAT (one row per holding, no interleaved group-header rows) so
+// the column-header autofilter / sort works cleanly in Excel — the on-screen
+// grouping becomes a filterable column. Group order + within-group order
+// follow the modal's current sort.
+const SECTOR_EXPORT_HEADERS = ['Sector', ...EXPORT_HEADERS];
+
+/**
+ * @param {Array<{label:string,subtitle?:string,rows:Array<{ticker:string,name:string,exposure:number,costBasis:number,marketValue:number,dayChange:number,dayPct:number,unrlGL:number,unrlPct:number}>}>} groups
+ * @returns {string[][]}
+ */
+export function sectorGroupsToMatrix(groups) {
+  const body = [];
+  for (const g of (groups || [])) {
+    const sector = g.subtitle ? `${g.label} · ${g.subtitle}` : g.label;
+    for (const r of (g.rows || [])) {
+      body.push([
+        sector,
+        r.ticker,
+        r.name,
+        r.exposure.toFixed(2) + '%',
+        fmtMoney(r.costBasis),
+        fmtMoney(r.marketValue),
+        fmtMoney(r.dayChange, { signed: true }),
+        fmtPct(r.dayPct),
+        fmtMoney(r.unrlGL, { signed: true }),
+        fmtPct(r.unrlPct),
+      ]);
+    }
+  }
+  return [SECTOR_EXPORT_HEADERS.slice(), ...body];
+}
+
 /**
  * Tab-separated rendering for the clipboard — pastes into Excel / Google
  * Sheets as columns and reads cleanly as plain text. Tabs / newlines
@@ -79,9 +113,19 @@ function sheetXml(matrix) {
     }).join('');
     return `<row r="${ri + 1}">${cells}</row>`;
   }).join('');
+  // <autoFilter> over the header + data range puts a sort / filter dropdown
+  // on every column header in Excel — the spreadsheet equivalent of the
+  // table's clickable sort headers. Sequenced AFTER <sheetData> per the
+  // CT_Worksheet schema; the dropdowns appear from the ref alone (Excel
+  // writes the _FilterDatabase defined-name itself on first save).
+  const nRows = matrix.length;
+  const nCols = matrix.reduce((m, r) => Math.max(m, r.length), 0);
+  const autoFilter = (nRows > 0 && nCols > 0)
+    ? `<autoFilter ref="A1:${colLetter(nCols)}${nRows}"/>`
+    : '';
   return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
     + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-    + `<sheetData>${rows}</sheetData></worksheet>`;
+    + `<sheetData>${rows}</sheetData>${autoFilter}</worksheet>`;
 }
 
 const CONTENT_TYPES_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'

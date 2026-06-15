@@ -63,6 +63,7 @@ function renderHeader(overrides = {}) {
     hideValues: false,
     onToggleHideValues: vi.fn(),
     onOpenHoldingsList: vi.fn(),
+    onOpenSectorsList: vi.fn(),
     onOpenTransactionHistory: vi.fn(),
     ...overrides,
   };
@@ -128,6 +129,19 @@ describe('Header scoreboard — hide-values eye', () => {
     renderHeader({ hideValues: true });
     // The literal $100,000 must not be present when masked.
     expect(screen.queryByText(/^\$100,000$/)).not.toBeInTheDocument();
+  });
+});
+
+describe('Header ☰ menu', () => {
+  it('lists Sectors list between Holding list and Transaction history, and fires its callback', async () => {
+    const user = userEvent.setup();
+    const onOpenSectorsList = vi.fn();
+    renderHeader({ onOpenSectorsList });
+    await user.click(screen.getByRole('button', { name: /Menu/i }));
+    const items = screen.getAllByRole('menuitem').map(b => b.textContent);
+    expect(items).toEqual(['Holding list', 'Sectors list', 'Transaction history']);
+    await user.click(screen.getByRole('menuitem', { name: 'Sectors list' }));
+    expect(onOpenSectorsList).toHaveBeenCalledTimes(1);
   });
 });
 

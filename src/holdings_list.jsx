@@ -113,8 +113,10 @@ export function sortHoldingsRows(rows, key, dir) {
 }
 
 // Column definitions: key + header label + numeric flag (drives the
-// default sort direction when the column is first clicked).
-const COLUMNS = [
+// default sort direction when the column is first clicked). Exported so
+// the Sectors list renders the SAME columns (its only difference is the
+// sector grouping) and the two can't drift.
+export const COLUMNS = [
   { key: 'ticker',      label: 'Symbol',          numeric: false, align: 'left' },
   { key: 'exposure',    label: 'Exposure',        numeric: true,  align: 'right' },
   { key: 'costBasis',   label: 'Cost Basis',      numeric: true,  align: 'right' },
