@@ -21,7 +21,7 @@ import { MA_TTL_MS, tickerChartCacheKey } from './cache.js';
 import { ChartStore, MaStore } from './chart_store.js';
 import { priceDividedByTtmEps } from './indicators.js';
 import { getOvernightSeries, fetchOvernightSeries, OVERNIGHT_FETCH_EVENT } from './overnight_intraday.js';
-import { hasOvernightSession } from './ticker_class.js';
+import { hasOvernightSession, isCrypto as isCryptoT } from './ticker_class.js';
 import { reportError } from './ops_error.js';
 import { modalTtl, modalCacheGet, modalCacheSet } from './ticker_chart_helpers.js';
 
@@ -41,6 +41,10 @@ import { modalTtl, modalCacheGet, modalCacheSet } from './ticker_chart_helpers.j
 export function useTickerChartData({
   ticker, rangeKey, useExt, phase, dailyOnly, isRatioRange, extendedHours, visibleRangeKeys,
 }) {
+  // 24/7 asset: forces 1D onto the trailing-24h variant in fetchParamsFor
+  // regardless of the ext toggle / US phase, so the line spans the same
+  // window the rolling-24h header measures (and matches prefetch's store).
+  const isCrypto = isCryptoT(ticker);
   // Seed series + loading from cache up front so a warm-cache open
   // doesn't flash a spinner. On mount `rangeKey` equals this default,
   // so seeding from it reads the same row the modal used to.
@@ -71,7 +75,7 @@ export function useTickerChartData({
       const p = fetchParamsFor('1Y', extendedHours, phase);
       return { ...p, interval: '1d', includePrePost: false };
     }
-    const p = fetchParamsFor(rk, extendedHours, phase);
+    const p = fetchParamsFor(rk, extendedHours, phase, isCrypto);
     return dailyOnly ? { ...p, interval: '1d', includePrePost: false } : p;
   };
 
@@ -126,7 +130,7 @@ export function useTickerChartData({
         }
         return;
       }
-      const params = fetchParamsFor(isRatioRange ? '1Y' : rangeKey, extendedHours, phase);
+      const params = fetchParamsFor(isRatioRange ? '1Y' : rangeKey, extendedHours, phase, isCrypto);
       data = applyVariantFilter(data, params.variant);
       // PE/PS: divide each close by the rolling TTM per-share denominator
       // as of that date so the line steps on earnings instead of being a
@@ -229,7 +233,7 @@ export function useTickerChartData({
         const p = fetchParamsFor('1Y', extendedHours, phase);
         yahooRange = p.yahooRange; interval = '1d'; includePrePost = false; variant = p.variant;
       } else {
-        const baseParams = fetchParamsFor(rk, extendedHours, phase);
+        const baseParams = fetchParamsFor(rk, extendedHours, phase, isCrypto);
         ({ yahooRange, interval, includePrePost, variant } = dailyOnly
           ? { ...baseParams, interval: '1d', includePrePost: false }
           : baseParams);
@@ -270,7 +274,7 @@ export function useTickerChartData({
     async function tick() {
       if (cancelled) return;
       try {
-        const params = fetchParamsFor(rangeKey, extendedHours, phase);
+        const params = fetchParamsFor(rangeKey, extendedHours, phase, isCrypto);
         const out = await fetchHistoricalBatch(
           [ticker], params.yahooRange, params.interval, params.includePrePost,
         );
