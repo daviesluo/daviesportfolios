@@ -5,7 +5,7 @@ import {
   fmtMoney as fmtMo,
   fmtPct as fmtPe,
   fmtPrice as fmtPri,
-  fmtShares as fmtSh,
+  fmtSharesFor as fmtShFor,
   pctColor as pctClo,
   maskDigits,
 } from './formatters.js';
@@ -272,7 +272,7 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
       </div>
       <div className="pc-price mono">{m(`${sym}${fmtPri(player.lastPrice)}`)}</div>
       <div className="pc-rows">
-        <div className="pc-row"><span className="dim">Shares</span><span className="mono">{m(fmtSh(player.shares))}</span></div>
+        <div className="pc-row"><span className="dim">Shares</span><span className="mono">{m(fmtShFor(player.shares, player.ticker))}</span></div>
         <div className="pc-row"><span className="dim">AC</span><span className="mono">{m(`${sym}${fmtPri(player.cost)}`)}</span></div>
         <div className="pc-row"><span className="dim">Cost</span><span className="mono">{m(fmtMo(costUSD))}</span></div>
         <div className="pc-row"><span className="dim">Value</span><span className="mono">{m(fmtMo(player.marketValue))}</span></div>
@@ -424,7 +424,7 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
 
       <div className="modal-body">
         <div className="lot-summary">
-          <div><span className="lot-summary-label mono">NET SHARES</span><span className="lot-summary-val mono">{fmtSh(net.shares)}</span></div>
+          <div><span className="lot-summary-label mono">NET SHARES</span><span className="lot-summary-val mono">{fmtShFor(net.shares, ticker)}</span></div>
           <div><span className="lot-summary-label mono">AVG COST ({sym})</span><span className="lot-summary-val mono">{weightedCost.toFixed(2)}</span></div>
           {hasSells && (
             <div><span className="lot-summary-label mono">REALIZED G/L ({sym})</span>
@@ -444,7 +444,7 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
         )}
         {net.shares < 0 && (
           <div className="lot-warn mono" role="alert">
-            Sales exceed purchases by {fmtSh(-net.shares)} shares — check the numbers.
+            Sales exceed purchases by {fmtShFor(-net.shares, ticker)} shares — check the numbers.
           </div>
         )}
         {net.shares === 0 && validLots.length > 0 && (

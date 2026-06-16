@@ -6,7 +6,7 @@
 // exactly — only that they carry no magnitude suffix.)
 
 import { describe, it, expect } from 'vitest';
-import { fmtMoney, fmtPct, fmtShares } from './formatters.js';
+import { fmtMoney, fmtPct, fmtShares, fmtSharesFor } from './formatters.js';
 
 describe('fmtMoney — magnitude tiers', () => {
   it('>= $1T → trillions with a T suffix', () => {
@@ -124,5 +124,21 @@ describe('fmtShares', () => {
     expect(fmtShares(null)).toBe('—');
     expect(fmtShares(NaN)).toBe('—');
     expect(fmtShares(undefined)).toBe('—');
+  });
+
+  it('honours a custom decimal cap and still strips trailing zeros', () => {
+    expect(fmtShares(0.123, 3)).toBe('0.123');
+    expect(fmtShares(0.5, 3)).toBe('0.5');
+    expect(fmtShares(7, 3)).toBe('7');
+  });
+});
+
+describe('fmtSharesFor', () => {
+  it('crypto (-USD) keeps 3 decimals; everything else 2', () => {
+    expect(fmtSharesFor(0.123, 'BTC-USD')).toBe('0.123');
+    expect(fmtSharesFor(0.123, 'ETH-USD')).toBe('0.123');
+    expect(fmtSharesFor(0.123, 'NVDA')).toBe('0.12');         // non-crypto → 2 dp
+    expect(fmtSharesFor(0.0435, 'BTC-USD')).toBe(fmtShares(0.0435, 3)); // real BTC qty, float-safe
+    expect(fmtSharesFor(18.5, 'AAPL')).toBe('18.5');          // trailing zeros stripped
   });
 });

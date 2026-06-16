@@ -4,6 +4,8 @@
 // portfolio math / FX / market-hours / etc. Same exports, same
 // behaviour — just narrower scope.
 
+import { isCrypto } from './ticker_class.js';
+
 /**
  * Replaces each digit in a formatted string with a centred bullet so
  * the masked text stays vertically aligned with neighbouring real
@@ -80,11 +82,22 @@ export const fmtPrice = (n) => {
  * with long trailing decimals; this trims the noise without padding whole
  * shares to "5.00".
  * @param {number | null | undefined} n
+ * @param {number} [maxDecimals]  cap on decimal places (default 2)
  */
-export const fmtShares = (n) => {
+export const fmtShares = (n, maxDecimals = 2) => {
   if (n == null || isNaN(n)) return "—";
-  return String(Number(n.toFixed(2)));
+  return String(Number(n.toFixed(maxDecimals)));
 };
+
+/**
+ * Shares formatted for a SPECIFIC ticker: crypto (`-USD`) shows up to 3
+ * decimals — coin balances are often small fractions (0.043 BTC) that the
+ * default 2-dp cap would round to a misleading "0.04". Everything else
+ * keeps 2. Trailing zeros are still stripped (1 → "1", not "1.000").
+ * @param {number | null | undefined} n
+ * @param {string} ticker
+ */
+export const fmtSharesFor = (n, ticker) => fmtShares(n, isCrypto(ticker) ? 3 : 2);
 
 /** @param {number | null | undefined} n */
 export const pctColor = (n) => {

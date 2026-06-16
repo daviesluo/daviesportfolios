@@ -8,7 +8,7 @@
 // currency; the masked-values toggle hides the money columns.
 import React from 'react';
 import { Modal } from './modals.jsx';
-import { fmtMoney as fmtM, fmtShares as fmtSh, pctColor as pctClr, maskDigits } from './formatters.js';
+import { fmtMoney as fmtM, fmtSharesFor as fmtShFor, pctColor as pctClr, maskDigits } from './formatters.js';
 import { currencySymbol, fxRateToUSD } from './fx.js';
 import { buildTransactionLog, totalRealizedUsd } from './transactions.js';
 import { TableExportButtons } from './table_export.jsx';
@@ -30,7 +30,7 @@ export function transactionRowsToMatrix(rows) {
       r.date,
       r.ticker,
       r.kind === 'buy' ? 'BUY' : 'SELL',
-      fmtSh(r.shares),
+      fmtShFor(r.shares, r.ticker),
       `${sym}${amt2(r.price)}`,
       `${sym}${amt2(r.shares * r.price)}`,
     ];
@@ -89,7 +89,7 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, onClose }) 
                     <td className="hl-left">
                       <span className={`txn-badge txn-${r.kind}`}>{r.kind === 'buy' ? 'BUY' : 'SELL'}</span>
                     </td>
-                    <td className="hl-right">{fmtSh(r.shares)}</td>
+                    <td className="hl-right">{fmtShFor(r.shares, r.ticker)}</td>
                     <td className="hl-right">{m(`${sym}${amt2(r.price)}`)}</td>
                     <td className="hl-right hl-strong">{m(`${sym}${amt2(r.shares * r.price)}`)}</td>
                   </tr>
