@@ -59,6 +59,15 @@ describe('cleanLots', () => {
     expect(cleanLots(/** @type {any} */ ('not-a-list'))).toEqual([]);
   });
 
+  it('preserves an entry timestamp (ts) when present, omits it otherwise', () => {
+    const out = cleanLots([
+      { date: '2026-01-10', shares: 1, cost: 100, ts: 1717000000000 },
+      { date: '2026-01-11', shares: 2, cost: 90 },
+    ]);
+    expect(out[0]).toEqual({ date: '2026-01-10', shares: 1, cost: 100, ts: 1717000000000 });
+    expect(out[1]).toEqual({ date: '2026-01-11', shares: 2, cost: 90 }); // no ts key
+  });
+
   it('returns a fresh sorted copy — does not mutate the input', () => {
     const input = [
       { date: '2026-03-01', shares: 5, cost: 100 },

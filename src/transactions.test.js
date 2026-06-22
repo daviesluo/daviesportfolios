@@ -41,6 +41,15 @@ describe('cleanSells', () => {
     // @ts-expect-error exercising the guard
     expect(cleanSells(null)).toEqual([]);
   });
+
+  it('preserves an entry timestamp (ts) when present, omits it otherwise', () => {
+    const out = cleanSells([
+      { date: '2026-01-01', shares: 2, price: 5, ts: 1717000000000 },
+      { date: '2026-01-02', shares: 1, price: 6 },
+    ]);
+    expect(out[0]).toEqual({ date: '2026-01-01', shares: 2, price: 5, ts: 1717000000000 });
+    expect(out[1]).toEqual({ date: '2026-01-02', shares: 1, price: 6 }); // no ts key
+  });
 });
 
 describe('netPosition (net-cash model)', () => {
@@ -168,6 +177,38 @@ describe('buildTransactionLog', () => {
   it('guards empty / null', () => {
     expect(buildTransactionLog(null)).toEqual([]);
     expect(buildTransactionLog({})).toEqual([]);
+  });
+
+  it('orders same-day rows by record time (ts), newest entry first', () => {
+    // Three buys all dated the same day, across two tickers, added in a
+    // known order. Date alone ties; ts breaks it by actual record time —
+    // NOT alphabetically-by-ticker (the bug this fixes).
+    const log = buildTransactionLog({
+      ZZZ: { currency: 'USD', lots: [
+        { date: '2026-02-01', shares: 1, cost: 10, ts: 100 }, // added 1st
+        { date: '2026-02-01', shares: 1, cost: 11, ts: 300 }, // added 3rd
+      ] },
+      AAA: { currency: 'USD', lots: [
+        { date: '2026-02-01', shares: 1, cost: 12, ts: 200 }, // added 2nd
+      ] },
+    });
+    expect(log.map((r) => `${r.ticker}@${r.ts}`)).toEqual(['ZZZ@300', 'AAA@200', 'ZZZ@100']);
+  });
+
+  it('a timestamped row sorts above a same-day ts-less (legacy) row', () => {
+    const log = buildTransactionLog({
+      AAA: { currency: 'USD', lots: [{ date: '2026-02-01', shares: 1, cost: 10 }] },          // no ts
+      ZZZ: { currency: 'USD', lots: [{ date: '2026-02-01', shares: 1, cost: 12, ts: 500 }] }, // ts
+    });
+    expect(log.map((r) => r.ticker)).toEqual(['ZZZ', 'AAA']); // ts'd first despite Z > A
+  });
+
+  it('still falls back to the stable order when same-day rows all lack ts', () => {
+    const log = buildTransactionLog({
+      ZZZ: { currency: 'USD', lots: [{ date: '2026-02-01', shares: 1, cost: 10 }] },
+      AAA: { currency: 'USD', lots: [{ date: '2026-02-01', shares: 1, cost: 12 }] },
+    });
+    expect(log.map((r) => r.ticker)).toEqual(['AAA', 'ZZZ']); // alphabetical tie-break unchanged
   });
 });
 

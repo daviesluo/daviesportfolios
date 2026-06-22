@@ -296,21 +296,25 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
     ? holding.lots
     : [{ date: today, shares: holding.shares || 0, cost: holding.cost || 0 }];
 
-  /** @type {[Array<{date:string,shares:string|number,cost:string|number}>, Function]} */
+  /** @type {[Array<{date:string,shares:string|number,cost:string|number,ts?:number}>, Function]} */
   const [lots, setLots] = React.useState(seed.map(l => ({
     date: l.date || today,
     shares: String(l.shares ?? ''),
     cost: String(l.cost ?? ''),
+    // Preserve an existing entry timestamp so re-saving a holding doesn't
+    // strip it (which would lose the Transaction History's same-day order).
+    ...(typeof l.ts === 'number' ? { ts: l.ts } : {}),
   })));
   // Sell records — the SALES side of the ledger. Net position = buys −
   // sells under the net-cash model (transactions.js); on save these feed
   // the Transaction History too.
-  /** @type {[Array<{date:string,shares:string|number,price:string|number}>, Function]} */
+  /** @type {[Array<{date:string,shares:string|number,price:string|number,ts?:number}>, Function]} */
   const [sells, setSells] = React.useState(
     (Array.isArray(holding.sells) ? holding.sells : []).map(s => ({
       date: s.date || today,
       shares: String(s.shares ?? ''),
       price: String(s.price ?? ''),
+      ...(typeof s.ts === 'number' ? { ts: s.ts } : {}),
     })),
   );
 
@@ -342,7 +346,9 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
     setLots(/** @param {any[]} ls */ ls => ls.filter((_, i) => i !== idx));
   };
   const addLot = () => {
-    setLots(/** @param {any[]} ls */ ls => [...ls, { date: today, shares: '', cost: '' }]);
+    // Stamp the record time so the Transaction History can order multiple
+    // same-day entries by when they were actually added, not alphabetically.
+    setLots(/** @param {any[]} ls */ ls => [...ls, { date: today, shares: '', cost: '', ts: Date.now() }]);
   };
   const updateSell = (idx, patch) => {
     setSells(/** @param {any[]} ss */ ss => ss.map((s, i) => i === idx ? { ...s, ...patch } : s));
@@ -351,7 +357,7 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
     setSells(/** @param {any[]} ss */ ss => ss.filter((_, i) => i !== idx));
   };
   const addSell = () => {
-    setSells(/** @param {any[]} ss */ ss => [...ss, { date: today, shares: '', price: '' }]);
+    setSells(/** @param {any[]} ss */ ss => [...ss, { date: today, shares: '', price: '', ts: Date.now() }]);
   };
 
   // Preview NET position / AC reflects only rows that survive cleanLots /

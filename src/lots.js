@@ -21,14 +21,17 @@
  *     date silently breaks lot lookups.
  *
  * Returns a freshly-allocated sorted array (ascending by date) so
- * callers can write it straight back without mutating their input.
+ * callers can write it straight back without mutating their input. An
+ * optional `ts` (epoch ms, stamped when the row was added in the editor)
+ * is preserved when present so the Transaction History can order same-day
+ * rows by actual record time; legacy lots simply lack it.
  *
- * @param {Array<{date?: any, shares?: any, cost?: any}>} lots
- * @returns {Array<{date: string, shares: number, cost: number}>}
+ * @param {Array<{date?: any, shares?: any, cost?: any, ts?: any}>} lots
+ * @returns {Array<{date: string, shares: number, cost: number, ts?: number}>}
  */
 export function cleanLots(lots) {
   if (!Array.isArray(lots)) return [];
-  /** @type {Array<{date: string, shares: number, cost: number}>} */
+  /** @type {Array<{date: string, shares: number, cost: number, ts?: number}>} */
   const out = [];
   // Reject future-dated lots — the EditTickerModal's <input type="date">
   // sets max=today but a paste / programmatic edit can still slip
@@ -46,7 +49,8 @@ export function cleanLots(lots) {
     if (!Number.isFinite(shares) || shares <= 0) continue;
     const cost = Number(l?.cost);
     if (!Number.isFinite(cost) || cost < 0) continue;
-    out.push({ date, shares, cost });
+    const ts = Number(l?.ts);
+    out.push(Number.isFinite(ts) ? { date, shares, cost, ts } : { date, shares, cost });
   }
   return out.sort((a, b) => a.date.localeCompare(b.date));
 }
