@@ -31,13 +31,15 @@ const AUTO_DCA_TICKERS = new Set(['VUAA.L', 'SAEM.L']);
  * Sanitise sell rows the same way `cleanLots` does buy rows: drop
  * unfinishable / non-sensical / future-dated entries and coerce to finite
  * numbers (shares > 0, price ≥ 0, YYYY-MM-DD date ≤ today). Returns a fresh
- * array sorted ascending by date.
- * @param {Array<{date?: any, shares?: any, price?: any}>} sells
- * @returns {Array<{date: string, shares: number, price: number}>}
+ * array sorted ascending by date. An optional `ts` (epoch ms, stamped when
+ * the row was added in the editor) is preserved when present so the
+ * Transaction History can order same-day rows by actual record time.
+ * @param {Array<{date?: any, shares?: any, price?: any, ts?: any}>} sells
+ * @returns {Array<{date: string, shares: number, price: number, ts?: number}>}
  */
 export function cleanSells(sells) {
   if (!Array.isArray(sells)) return [];
-  /** @type {Array<{date: string, shares: number, price: number}>} */
+  /** @type {Array<{date: string, shares: number, price: number, ts?: number}>} */
   const out = [];
   const today = new Date().toISOString().slice(0, 10);
   for (const s of sells) {
@@ -48,7 +50,8 @@ export function cleanSells(sells) {
     if (!Number.isFinite(shares) || shares <= 0) continue;
     const price = Number(s?.price);
     if (!Number.isFinite(price) || price < 0) continue;
-    out.push({ date, shares, price });
+    const ts = Number(s?.ts);
+    out.push(Number.isFinite(ts) ? { date, shares, price, ts } : { date, shares, price });
   }
   return out.sort((a, b) => a.date.localeCompare(b.date));
 }
@@ -128,7 +131,7 @@ export function totalRealizedUsd(holdings, fxRate) {
 
 /**
  * @typedef {{ ticker: string, kind: 'buy'|'sell', date: string,
- *   shares: number, price: number, currency: string }} TxnRow
+ *   shares: number, price: number, currency: string, ts?: number }} TxnRow
  */
 
 /**
@@ -148,16 +151,22 @@ export function buildTransactionLog(holdings) {
     if (!h || h.isCash || ticker === 'CASH' || AUTO_DCA_TICKERS.has(ticker)) continue;
     const currency = h.currency || 'USD';
     for (const l of cleanLots(h.lots)) {
-      rows.push({ ticker, kind: 'buy', date: l.date, shares: l.shares, price: l.cost, currency });
+      rows.push({ ticker, kind: 'buy', date: l.date, shares: l.shares, price: l.cost, currency, ts: l.ts });
     }
     for (const s of cleanSells(h.sells)) {
-      rows.push({ ticker, kind: 'sell', date: s.date, shares: s.shares, price: s.price, currency });
+      rows.push({ ticker, kind: 'sell', date: s.date, shares: s.shares, price: s.price, currency, ts: s.ts });
     }
   }
-  // Most recent first; ties broken by sells-after-buys then ticker so the
-  // order is stable across renders.
+  // Most recent first. Same-day ties: order by actual record time (the `ts`
+  // stamped when the row was added in the editor), newest entry first —
+  // dates alone can't (lots/sells store only YYYY-MM-DD), which is why
+  // same-day rows used to fall back to alphabetical-by-ticker. Rows with no
+  // `ts` (legacy / the synthetic shares→lot seed) sort below the timestamped
+  // ones, then keep the old stable sells-before-buys / ticker order.
+  const tsOf = (/** @type {TxnRow} */ r) => (Number.isFinite(r.ts) ? /** @type {number} */ (r.ts) : 0);
   rows.sort((a, b) => (
     b.date.localeCompare(a.date)
+    || (tsOf(b) - tsOf(a))
     || (a.kind === b.kind ? 0 : a.kind === 'sell' ? -1 : 1)
     || a.ticker.localeCompare(b.ticker)
   ));
