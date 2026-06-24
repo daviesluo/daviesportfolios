@@ -52,6 +52,15 @@ export const COMPANY_NAMES = {
   'VRT': 'Vertiv Holdings',
   'VST': 'Vistra Corp.',
   'BRK-B': 'Berkshire Hathaway',
+  'SPCX': 'Space Exploration Technologies Corp.',
+  'PLTR': 'Palantir Technologies Inc.',
+  'BE': 'Bloom Energy Corporation',
+  'AAOI': 'Applied Optoelectronics, Inc.',
+  'SFTBY': 'SoftBank Group Corp.',
+  'COHR': 'Coherent Corp.',
+  'SAEM.L': 'iShares MSCI EM IMI ESG Screened UCITS ETF',
+  'VUAA.L': 'Vanguard S&P 500 UCITS ETF (USD Acc)',
+  '017731': '嘉实全球产业升级股票(QDII)C',
 };
 
 /**
