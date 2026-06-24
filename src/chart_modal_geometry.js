@@ -140,15 +140,16 @@ export function computeChartGeometry({
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
-      // Crypto trades 24/7 — no regular close, and the ext-hours toggle is
-      // meaningless for it. So it always anchors at `prevClose` (Yahoo's
-      // regularMarketPreviousClose — the standard "since previous close"
-      // basis the board / heatmap show), regardless of the toggle. Without
-      // the `!isCrypto` guard, ext-on anchored crypto at `lastPriceAny` (the
-      // live price) → a constant ~0.00% headline that disagreed with the
-      // heatmap.
-      if (useExt && !isCrypto) {
-        if (lastPriceAny && lastPriceAny > 0) {
+      if (useExt) {
+        // Crypto goes down the SAME ext path as a US stock, with one source
+        // difference: a stock's `lastPriceAny` (regularMarketPrice) is the
+        // FROZEN 16:00 ET close, so it's the right anchor; crypto's
+        // `regularMarketPrice` is the LIVE 24/7 price, which would make the
+        // headline a constant ~0.00%. So crypto skips it and anchors at the
+        // 16:00 ET close BAR (`regularCloseIdx`) instead — giving the same
+        // "extended-hours move since the last US close" a stock shows. Ext-OFF
+        // both fall through to prevClose ("since previous close").
+        if (lastPriceAny && lastPriceAny > 0 && !isCrypto) {
           anchorClose = lastPriceAny;
         } else if (regularCloseIdx >= 0) {
           anchorClose = series[regularCloseIdx].close;

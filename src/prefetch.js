@@ -28,7 +28,7 @@ import { fetchHistoricalBatch } from './historical.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
 import { fetchParamsFor, maFetchParamsFor, applyVariantFilter, RANGE_KEYS } from './ytd.js';
 import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh, hasAnyNumericField } from './cache.js';
-import { isDailyOnly, isCrypto } from './ticker_class.js';
+import { isDailyOnly } from './ticker_class.js';
 import { priceDividedByTtmEps } from './indicators.js';
 import { ChartStore, MaStore, YtdStore, hydrateAllChartStores, pruneAllChartStores } from './chart_store.js';
 
@@ -185,12 +185,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     }
     for (const t of modalSymbols) {
       let data = batch[t];
-      // Crypto 1D always stores the trailing-24h window (matches the modal's
-      // header + its own fetch). The range-level variant would be 'closed'
-      // (latest calendar day) outside US hours with the toggle off, which
-      // the modal then serves as-is — only minutes of bars after UTC midnight.
-      const variant = (meta.rk === '1D' && isCrypto(t)) ? 'reg' : meta.params.variant;
-      data = applyVariantFilter(data, variant);
+      data = applyVariantFilter(data, meta.params.variant);
       if (data && data.length >= 2) {
         ChartStore.set(meta.tickerKey(t), { ts: now, data });
       }
