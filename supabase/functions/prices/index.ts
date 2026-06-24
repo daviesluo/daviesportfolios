@@ -25,6 +25,15 @@ const MARKET_CLOSE_MIN = 16 * 60;       // 4:00 PM
 // 6-digit numeric → assume Chinese mutual fund code
 const CN_FUND_RE = /^\d{6}$/;
 
+// Thin OTC ADRs (SoftBank SFTBY / Murata MRAAY) whose Yahoo
+// `regularMarketPrice` + `regularMarketPreviousClose` revert to the session
+// OPEN (bogus) — the row then reads 0.00 % and the holding is valued at that
+// stale price. For these we override last / prev close with the REAL
+// regular-session candles (`rthSessionCloses`). Mirror of the client's
+// `NO_OVERNIGHT_SESSION` set (ticker_class.js); add OTC ADRs here as they
+// enter the book.
+const OTC_ADR_BOGUS_QUOTE = new Set(["SFTBY", "MRAAY"]);
+
 /**
  * Convert a unix-seconds UTC timestamp + an exchange's UTC offset
  * (also in seconds, can be negative) to the exchange's local
@@ -42,6 +51,48 @@ export function localMinOfDay(utcSec: number, gmtOffsetSec: number): number {
  */
 export function isOutsideRth(localMin: number): boolean {
   return localMin < MARKET_OPEN_MIN || localMin >= MARKET_CLOSE_MIN;
+}
+
+/**
+ * Exchange-local day number (whole days since the Unix epoch) — lets us tell
+ * candles on different local calendar dates apart. Exported for tests.
+ */
+export function localDayNumber(utcSec: number, gmtOffsetSec: number): number {
+  return Math.floor((utcSec + gmtOffsetSec) / 86400);
+}
+
+/**
+ * Real regular-session closes for the thin OTC ADRs whose Yahoo
+ * `regularMarketPrice` is unreliable (it reverts to the session open). Walks
+ * the 5-min candles backward and returns the close of the last candle INSIDE
+ * the 09:30-16:00 ET regular session (`last` — the real price at the 16:00 ET
+ * close) plus the last in-session candle on an EARLIER local day (`prev` — the
+ * real previous close, hence the 2-day fetch). Skips null / non-positive and
+ * out-of-session (pre / post-market) candles. Either field is null when no
+ * in-session candle is found, so the caller keeps the meta value. Exported for
+ * tests.
+ */
+export function rthSessionCloses(
+  timestamps: number[],
+  closes: (number | null)[],
+  gmtOffsetSec: number,
+): { last: number | null; prev: number | null } {
+  if (!Array.isArray(timestamps) || !Array.isArray(closes)) return { last: null, prev: null };
+  let last: number | null = null;
+  let lastDay = NaN;
+  let prev: number | null = null;
+  for (let i = timestamps.length - 1; i >= 0; i--) {
+    const c = closes[i];
+    if (c == null || !(c > 0)) continue;
+    const t = timestamps[i];
+    if (typeof t !== "number" || !Number.isFinite(t)) continue;
+    const m = localMinOfDay(t, gmtOffsetSec);
+    if (m < MARKET_OPEN_MIN || m > MARKET_CLOSE_MIN) continue;
+    const day = localDayNumber(t, gmtOffsetSec);
+    if (last == null) { last = c; lastDay = day; continue; }
+    if (day !== lastDay) { prev = c; break; }
+  }
+  return { last, prev };
 }
 
 /**
@@ -108,10 +159,14 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
   // roll. Stocks keep the 1-day pre+post window — that lets us read extended
   // hours prices directly from candle closes rather than unreliable meta
   // fields. includePrePost is meaningless for crypto.
+  // The bogus-quote OTC ADRs also need a 2-day window: their prevClose is
+  // rebuilt from the PREVIOUS session's real candles (the meta field is bogus
+  // too — see the override below), which a 1-day fetch doesn't reach.
   const isCrypto = /-USD$/i.test(symbol);
+  const isOtcAdr = OTC_ADR_BOGUS_QUOTE.has(symbol);
   const url =
     `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
-    `?interval=5m&range=${isCrypto ? "2d" : "1d"}` +
+    `?interval=5m&range=${(isCrypto || isOtcAdr) ? "2d" : "1d"}` +
     `&includePrePost=${isCrypto ? "false" : "true"}&_=${nonce}`;
 
   try {
@@ -171,6 +226,19 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
       if (c24 != null && c24 > 0) prevClose = c24;
     }
 
+    // OTC ADRs (SFTBY / MRAAY): Yahoo's regularMarketPrice AND previousClose
+    // both revert to the session open (bogus), so the row reads 0.00 % and the
+    // holding is valued at that stale price. Use the REAL regular-session
+    // closes from the intraday candles instead — `last` is the price at the
+    // 16:00 ET close (the user's "actual 21:00" price), `prev` the previous
+    // session's close. Falls back to the meta values when no in-session
+    // candle is present (e.g. a holiday). USD-quoted, so penceFactor is 1.
+    if (isOtcAdr) {
+      const { last, prev } = rthSessionCloses(timestamps, closes, gmtOffset);
+      if (last != null && last > 0) lastPrice = last / penceFactor;
+      if (prev != null && prev > 0) prevClose = prev / penceFactor;
+    }
+
     // Walk backwards to find the most recent candle that sits outside regular
     // market hours — that is the current extended-hours price.
     //
@@ -188,8 +256,11 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
     // window, so the scan would always tag the latest bar as an
     // "extended-hours" price — but crypto has no such session and the
     // ext-hours toggle must not affect it anywhere, so extPrice stays null.
+    // The bogus-quote OTC ADRs are skipped too (`isOtcAdr`): they have no
+    // real pre/post session, and their post-RTH candle is the same bogus
+    // open value, so extPrice stays null rather than a stale fake quote.
     let extPrice: number | null = null;
-    if (!symbol.includes(".") && !isCrypto) {
+    if (!symbol.includes(".") && !isCrypto && !isOtcAdr) {
       for (let i = timestamps.length - 1; i >= 0; i--) {
         const close = closes[i];
         if (close == null) continue;
