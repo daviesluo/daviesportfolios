@@ -141,13 +141,12 @@ export function computeChartGeometry({
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
       // Crypto trades 24/7 — no regular close, and the ext-hours toggle is
-      // meaningless for it. The prices function already anchors crypto on a
-      // rolling past-24h close (`prevClose`), and metrics.js uses that for
-      // the board regardless of the toggle; mirror it here so the modal's %
-      // matches the board and the toggle never flips crypto's basis. Without
+      // meaningless for it. So it always anchors at `prevClose` (Yahoo's
+      // regularMarketPreviousClose — the standard "since previous close"
+      // basis the board / heatmap show), regardless of the toggle. Without
       // the `!isCrypto` guard, ext-on anchored crypto at `lastPriceAny` (the
       // live price) → a constant ~0.00% headline that disagreed with the
-      // heatmap's real 24h change.
+      // heatmap.
       if (useExt && !isCrypto) {
         if (lastPriceAny && lastPriceAny > 0) {
           anchorClose = lastPriceAny;

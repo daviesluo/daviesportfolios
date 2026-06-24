@@ -516,8 +516,8 @@ describe('1Y range (ticker-modal-only)', () => {
   });
   it('fetchParamsFor("1D", …, isCrypto) forces the trailing-24h variant in every toggle/phase', () => {
     // Crypto trades 24/7 — no "closed" latest-calendar-day window. All four
-    // toggle/phase states collapse to the 24h 'reg' variant so the line spans
-    // the same window the rolling-24h header measures.
+    // toggle/phase states collapse to the 24h 'reg' variant so the line always
+    // shows a trailing-24h window (the prevClose anchor sits inside it).
     const expected = { yahooRange: '5d', interval: '5m', includePrePost: false, variant: 'reg' };
     expect(fetchParamsFor('1D', false, 'overnight', true)).toEqual(expected);
     expect(fetchParamsFor('1D', false, 'regular', true)).toEqual(expected);

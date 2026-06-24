@@ -7,7 +7,7 @@
 // Run locally: `deno test --allow-env supabase/functions/prices/`
 
 import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { localMinOfDay, isOutsideRth, pctChange, closeNearest24hAgo, localDayNumber, rthSessionCloses } from "./index.ts";
+import { localMinOfDay, isOutsideRth, pctChange, localDayNumber, rthSessionCloses } from "./index.ts";
 
 Deno.test("localMinOfDay: New York 09:30 ET (EDT, gmtoffset=-14400) at 13:30 UTC = 570 minutes", () => {
   // 2026-05-11 13:30:00 UTC → 09:30:00 EDT (gmtoffset -14400 s)
@@ -54,41 +54,6 @@ Deno.test("pctChange: returns 0 when prevClose is missing / non-positive", () =>
   assertEquals(pctChange(100, 0),   0);
   assertEquals(pctChange(100, -1),  0);
   assertEquals(pctChange(100, NaN), 0);
-});
-
-Deno.test("closeNearest24hAgo: picks the candle closest to 24h ago", () => {
-  const now = 1_700_000_000;        // fixed "now" in unix seconds
-  const t24 = now - 86400;          // exactly 24h ago
-  // 5-min candles straddling the 24h mark; closes encode their identity.
-  const timestamps = [t24 - 600, t24 - 300, t24 + 120, t24 + 600];
-  const closes     = [100,        101,       102,       103];
-  // Offsets from t24 are [600, 300, 120, 600] → index 2 (102) is nearest.
-  assertEquals(closeNearest24hAgo(timestamps, closes, now), 102);
-});
-
-Deno.test("closeNearest24hAgo: skips null / non-positive closes", () => {
-  const now = 1_700_000_000;
-  const t24 = now - 86400;
-  const timestamps = [t24 - 60, t24, t24 + 60];
-  const closes     = [50,       null, 0];   // exact-match bar is null; next is 0
-  // Both nearer bars are unusable → falls back to the 50 candle.
-  assertEquals(closeNearest24hAgo(timestamps, closes, now), 50);
-});
-
-Deno.test("closeNearest24hAgo: null when the window doesn't reach 24h back", () => {
-  const now = 1_700_000_000;
-  // Only the last ~40 min of candles (a calendar-day fetch just after the
-  // UTC roll) — nothing within 6h of the 24h-ago mark, so the caller falls
-  // back to the meta previous-close rather than anchoring on a 40-min-old bar.
-  const timestamps = [now - 2400, now - 1200, now - 300];
-  const closes     = [200,        201,        202];
-  assertEquals(closeNearest24hAgo(timestamps, closes, now), null);
-});
-
-Deno.test("closeNearest24hAgo: null for empty or non-array input", () => {
-  const now = 1_700_000_000;
-  assertEquals(closeNearest24hAgo([], [], now), null);
-  assertEquals(closeNearest24hAgo(null as unknown as number[], [], now), null);
 });
 
 const EDT = -14400; // America/New_York summer offset (seconds)

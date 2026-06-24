@@ -863,26 +863,25 @@ function Board({ isReadOnly }) {
     }
     return ticker;
   }, [portfolio, marketData]);
-  // Biggest individual mover — drives the hot-badge in drill modals.
-  const hotMoverTicker = useMemo(() => {
-    if (!portfolio) return null;
-    let ticker = null, best = 0;
-    for (const [t, h] of Object.entries(portfolio.holdings)) {
-      const abs = Math.abs(h.dayPct ?? 0);
-      if (abs > best) { best = abs; ticker = t; }
-    }
-    return ticker;
-  }, [portfolio]);
-  // Position (card) with the highest |dayPct| — where the ball sits.
-  const hotMoverPosKey = useMemo(() => {
-    if (!metrics) return null;
-    let key = null, best = 0;
+  // Biggest individual mover by the day-change AS DISPLAYED — the
+  // ext-adjusted per-player pct from `metrics` (the same value the tiles /
+  // scoreboard / Top Movers show), so during extended hours the ball tracks
+  // the biggest AFTER-HOURS move, not the stale regular-session one. (The old
+  // code ranked the ticker off the raw `h.dayPct`, which is always the regular
+  // session.) Drives the ball's position + ticker label and the hot-badge in
+  // the drill modals — and the two stay consistent because both come from the
+  // single winning player.
+  const { hotMoverTicker, hotMoverPosKey } = useMemo(() => {
+    if (!metrics) return { hotMoverTicker: null, hotMoverPosKey: null };
+    let ticker = null, posKey = null, best = 0;
     for (const [k, pos] of Object.entries(metrics.positions)) {
-      if (!pos.players.length) continue;
-      const abs = Math.abs(pos.dayPct ?? 0);
-      if (abs > best) { best = abs; key = k; }
+      for (const p of pos.players) {
+        if (p.isCash || p.ticker === 'CASH') continue;
+        const abs = Math.abs(p.dayPct ?? 0);
+        if (abs > best) { best = abs; ticker = p.ticker; posKey = k; }
+      }
     }
-    return key;
+    return { hotMoverTicker: ticker, hotMoverPosKey: posKey };
   }, [metrics]);
 
   // FX-rate-missing is already surfaced by the red "FX MISSING N
