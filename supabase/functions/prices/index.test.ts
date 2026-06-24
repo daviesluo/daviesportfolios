@@ -7,7 +7,7 @@
 // Run locally: `deno test --allow-env supabase/functions/prices/`
 
 import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { localMinOfDay, isOutsideRth, pctChange, closeNearest24hAgo } from "./index.ts";
+import { localMinOfDay, isOutsideRth, pctChange, closeNearest24hAgo, localDayNumber, rthSessionCloses } from "./index.ts";
 
 Deno.test("localMinOfDay: New York 09:30 ET (EDT, gmtoffset=-14400) at 13:30 UTC = 570 minutes", () => {
   // 2026-05-11 13:30:00 UTC → 09:30:00 EDT (gmtoffset -14400 s)
@@ -89,4 +89,51 @@ Deno.test("closeNearest24hAgo: null for empty or non-array input", () => {
   const now = 1_700_000_000;
   assertEquals(closeNearest24hAgo([], [], now), null);
   assertEquals(closeNearest24hAgo(null as unknown as number[], [], now), null);
+});
+
+const EDT = -14400; // America/New_York summer offset (seconds)
+const tsOf = (iso: string) => Math.floor(new Date(iso).getTime() / 1000);
+
+Deno.test("localDayNumber: same local day within RTH, +1 across local midnight", () => {
+  // 09:30 and 16:00 ET on the same date → same day number.
+  assertEquals(
+    localDayNumber(tsOf("2026-06-15T09:30:00-04:00"), EDT),
+    localDayNumber(tsOf("2026-06-15T16:00:00-04:00"), EDT),
+  );
+  // 23:00 ET → next-day 01:00 ET differ by exactly 1.
+  assertEquals(
+    localDayNumber(tsOf("2026-06-16T01:00:00-04:00"), EDT) -
+    localDayNumber(tsOf("2026-06-15T23:00:00-04:00"), EDT),
+    1,
+  );
+});
+
+Deno.test("rthSessionCloses: real 16:00-ET close today + previous session close", () => {
+  // Pre / post-market bars (bogus) must be skipped; a missing (null) 16:00
+  // print falls back to the 15:55 close. Walk picks today's last in-session
+  // close (`last`) and the prior local day's last in-session close (`prev`).
+  const rows: Array<[string, number | null]> = [
+    ["2026-06-12T15:50:00-04:00", 49],   // RTH (prev day)
+    ["2026-06-12T15:55:00-04:00", 50],   // prev-day close ← prev
+    ["2026-06-12T17:00:00-04:00", 99],   // post-market bogus (skip)
+    ["2026-06-15T09:00:00-04:00", 98],   // pre-market bogus (skip)
+    ["2026-06-15T15:50:00-04:00", 51],   // RTH (today)
+    ["2026-06-15T15:55:00-04:00", 52],   // today close ← last
+    ["2026-06-15T16:00:00-04:00", null], // missing close (skip → 15:55 wins)
+    ["2026-06-15T18:00:00-04:00", 97],   // post-market bogus (skip)
+  ];
+  const timestamps = rows.map((r) => tsOf(r[0] as string));
+  const closes = rows.map((r) => r[1]);
+  assertEquals(rthSessionCloses(timestamps, closes, EDT), { last: 52, prev: 50 });
+});
+
+Deno.test("rthSessionCloses: prev null when only one session is present", () => {
+  const timestamps = [tsOf("2026-06-15T15:50:00-04:00"), tsOf("2026-06-15T15:55:00-04:00")];
+  assertEquals(rthSessionCloses(timestamps, [51, 52], EDT), { last: 52, prev: null });
+});
+
+Deno.test("rthSessionCloses: null/null when every candle is out of session", () => {
+  const timestamps = [tsOf("2026-06-15T08:00:00-04:00"), tsOf("2026-06-15T18:00:00-04:00")];
+  assertEquals(rthSessionCloses(timestamps, [10, 11], EDT), { last: null, prev: null });
+  assertEquals(rthSessionCloses(null as unknown as number[], [], EDT), { last: null, prev: null });
 });
