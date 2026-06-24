@@ -146,10 +146,9 @@ describe('TickerChartModal — render decision tree', () => {
     expect(screen.getByText(/Loading|No data/i)).toBeInTheDocument();
   });
 
-  it('labels crypto 1D "(past 24 hours)" even with extended hours on', () => {
-    // The reported scenario: BTC-USD, ext toggle on, US overnight. Crypto
-    // anchors on a rolling 24h close (not "previous close"), and the toggle
-    // must not change that — so the basis label reads "(past 24 hours)".
+  it('labels crypto 1D "(since previous close)" like everything else, even with ext on', () => {
+    // BTC-USD reads the same "since previous close" basis as a US stock; the
+    // ext toggle must not flip it to a 0.00% (lastPrice-anchored) headline.
     const data = [
       { date: '2026-05-27T16:00', close: 64000 },
       { date: '2026-05-28T16:00', close: 65000 },
@@ -161,8 +160,8 @@ describe('TickerChartModal — render decision tree', () => {
       phase: 'overnight',
       holding: { shares: 0.1, cost: 60000, lastPrice: 65000, prevClose: 64500, dayPct: 0.78, currency: 'USD' },
     });
-    expect(screen.getByText('(past 24 hours)')).toBeInTheDocument();
-    expect(screen.queryByText('(since previous close)')).not.toBeInTheDocument();
+    expect(screen.getByText('(since previous close)')).toBeInTheDocument();
+    expect(screen.queryByText('(past 24 hours)')).not.toBeInTheDocument();
   });
 
   it('honours the hideValues prop (masks dollar amounts but still renders the ticker)', () => {

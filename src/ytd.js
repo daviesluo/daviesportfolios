@@ -63,11 +63,12 @@ export function fetchParamsFor(rangeKey, extendedHours, phase, isCrypto = false)
   const r = RANGES[rangeKey] || RANGES.YTD;
   if (rangeKey !== '1D') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'std' };
   // Crypto trades 24/7 — there is no "market closed" calendar-day window for
-  // it. Always trim 1D to the trailing 24 h (variant 'reg' → filterToLast24h)
-  // so the line spans the same window the header's rolling-24h % measures,
-  // regardless of the ext-hours toggle or US phase. Without this, ext-OFF +
-  // US-closed returned the 'closed' variant (latest calendar day), so just
-  // after UTC midnight BTC-USD drew only minutes of bars under a 24h header.
+  // it, so always show the trailing 24 h (variant 'reg' → filterToLast24h),
+  // like a stock that's always in session, regardless of the ext-hours toggle
+  // or US phase. Without this, ext-OFF + US-closed returned the 'closed'
+  // variant (latest calendar day), so just after UTC midnight BTC-USD drew
+  // only minutes of bars. The % itself is still "since previous close"
+  // (anchored at prevClose, which sits inside this 24 h window).
   if (isCrypto)            return { yahooRange: '5d', interval: '5m', includePrePost: false, variant: 'reg' };
   if (phase === 'regular') return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'reg' };
   if (extendedHours)       return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'ext' };
