@@ -53,6 +53,25 @@ describe('EditTickerModal — Move holding', () => {
     expect(optionLabels.some((l) => /Cash/.test(l ?? ''))).toBe(false); // GK
   });
 
+  it('scrolls the revealed picker into view so a long lot list cant hide it below the fold', async () => {
+    // The .move-row mounts at the bottom of the scrollable .modal-body
+    // while its trigger sits in the fixed .modal-foot. For a holding with
+    // a long lot/sell history the body already overflows, so without this
+    // the picker reveals off-screen and the click reads as a no-op. Pin
+    // that opening the picker pulls it into view.
+    const spy = vi.fn();
+    const orig = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = spy;
+    try {
+      const user = userEvent.setup();
+      renderModal();
+      await user.click(screen.getByRole('button', { name: /Move holding/i }));
+      expect(spy).toHaveBeenCalled();
+    } finally {
+      Element.prototype.scrollIntoView = orig;
+    }
+  });
+
   it('fires onMove with the chosen position key, then nothing else', async () => {
     const user = userEvent.setup();
     const { props } = renderModal();
