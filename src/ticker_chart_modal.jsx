@@ -9,7 +9,7 @@ import { usMarketHoursUtc, isWeekendDeadZone } from './market_hours.js';
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS } from './ytd.js';
-import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, isCrypto as isCryptoT, hasOvernightSession, isRegularSessionOnly } from './ticker_class.js';
+import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly } from './ticker_class.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
@@ -36,7 +36,6 @@ import { ScreenshotActions } from './screenshot_actions.jsx';
 export function TickerChartModal({ ticker, holding, marketData, extendedHours, phase, onClose, portfolioTotalValue, hideValues }) {
   const isCnFund = isCnFundT(ticker);
   const isPvt    = isPvtT(ticker);
-  const isCrypto = isCryptoT(ticker);
   const dailyOnly = isDailyOnlyT(ticker);
   // 'PE' is a synthetic range button — same YTD daily prices but the
   // y-axis becomes a P/E ratio (price ÷ current TTM EPS). Two-stage
@@ -402,7 +401,6 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     anchorRefs: {
       lastPriceAny,
       prevCloseAny,
-      isCrypto,
       pe3yAvg,
       ps3yAvg,
       maSeries,
@@ -651,12 +649,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             {/* In 1D the chart's % is anchored at the previous close (the
                 vertical CLOSE line) so it matches the scoreboard / heatmap's
                 DAY CHANGE. Make the basis explicit whether or not extended
-                hours is on — the anchor is the same either way, so a
-                conditional label made the ext-OFF case (most common during
-                the trading day) look like it had a different reference point.
-                Crypto reads the same "since previous close" as everything
-                else (it just stays on that basis regardless of the toggle —
-                see `isCrypto` in chart_modal_geometry). */}
+                hours is on — the label reads the same either way so the
+                ext-OFF case (most common during the trading day) doesn't
+                look like it had a different reference point. */}
             {rangeKey === '1D' && (
               <span className="mono dim" style={{ fontSize: 10 }}>(since previous close)</span>
             )}

@@ -123,11 +123,8 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
   // bogus-quote OTC ADRs (SFTBY / MRAAY) need a 2-day window: their
   // prevClose is rebuilt from the PREVIOUS session's real candles (the meta
   // field is bogus too — see the override below), which a 1-day fetch can't
-  // reach. Crypto stays on the standard window — it's anchored at Yahoo's
-  // regularMarketPreviousClose like everything else (a "since previous close"
-  // day-change), just excluded from the ext-hours scan below since it has no
-  // pre/post session.
-  const isCrypto = /-USD$/i.test(symbol);
+  // reach. Everything else (crypto included) uses the standard 1-day window
+  // and is anchored at Yahoo's regularMarketPreviousClose.
   const isOtcAdr = OTC_ADR_BOGUS_QUOTE.has(symbol);
   const url =
     `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
@@ -202,16 +199,12 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
     // pre-market. Those exchanges don't have a US-style pre/post
     // session anyway, so skip the scan entirely for them and let
     // extPrice stay null. US-index pseudo-symbols (`^GSPC` etc.) have
-    // no dot so they're correctly NOT skipped. Crypto is skipped too
-    // (`isCrypto`): every crypto candle sits outside the 9:30-16:00 ET
-    // window, so the scan would always tag the latest bar as an
-    // "extended-hours" price — but crypto has no such session and the
-    // ext-hours toggle must not affect it anywhere, so extPrice stays null.
-    // The bogus-quote OTC ADRs are skipped too (`isOtcAdr`): they have no
-    // real pre/post session, and their post-RTH candle is the same bogus
-    // open value, so extPrice stays null rather than a stale fake quote.
+    // no dot so they're correctly NOT skipped. The bogus-quote OTC ADRs
+    // are skipped too (`isOtcAdr`): they have no real pre/post session,
+    // and their post-RTH candle is the same bogus open value, so extPrice
+    // stays null rather than a stale fake quote.
     let extPrice: number | null = null;
-    if (!symbol.includes(".") && !isCrypto && !isOtcAdr) {
+    if (!symbol.includes(".") && !isOtcAdr) {
       for (let i = timestamps.length - 1; i >= 0; i--) {
         const close = closes[i];
         if (close == null) continue;
