@@ -114,42 +114,6 @@ describe('computeChartGeometry — ext-mode anchor selection', () => {
     expect(out.anchorClose).toBe(200); // lastPriceAny, not points[3].close (103)
   });
 
-  it('crypto ext-on skips the live lastPriceAny and anchors at the 16:00 ET close bar', () => {
-    // A stock anchors ext-on at lastPriceAny (its FROZEN 16:00 close). Crypto's
-    // lastPriceAny is the LIVE 24/7 price (anchoring there → a constant ~0%),
-    // so crypto skips it and uses the regular-close BAR instead → the change is
-    // "since the last US close", the same as a stock's after-hours move.
-    const points = intradayPoints(); // index 3 = the 20:00 UTC (16:00 ET) bar, close 103
-    const out = computeChartGeometry({
-      series: points,
-      points,
-      rangeKey: '1D',
-      useExt: true,
-      isRatioRange: false,
-      overnightDot: null,
-      regularCloseIdx: 3,
-      dimensions: DIMS,
-      anchorRefs: { ...NO_REFS, isCrypto: true, lastPriceAny: 200, prevCloseAny: 95 },
-    });
-    expect(out.anchorClose).toBe(103); // series[regularCloseIdx], NOT lastPriceAny (200) or prevClose (95)
-  });
-
-  it('crypto ext-OFF anchors at prevClose (since previous close), like a stock', () => {
-    const points = intradayPoints();
-    const out = computeChartGeometry({
-      series: points,
-      points,
-      rangeKey: '1D',
-      useExt: false,
-      isRatioRange: false,
-      overnightDot: null,
-      regularCloseIdx: 3,
-      dimensions: DIMS,
-      anchorRefs: { ...NO_REFS, isCrypto: true, lastPriceAny: 200, prevCloseAny: 95 },
-    });
-    expect(out.anchorClose).toBe(95); // prevCloseAny
-  });
-
   it('uses the intraday close bar when no official lastPrice is available', () => {
     const points = intradayPoints();
     const out = computeChartGeometry({

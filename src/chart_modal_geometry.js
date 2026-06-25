@@ -70,7 +70,6 @@ function niceStep(r) {
  * @typedef {{
  *   lastPriceAny: number | null,
  *   prevCloseAny: number | null,
- *   isCrypto?:    boolean,
  *   pe3yAvg?:     number | null,
  *   ps3yAvg?:     number | null,
  *   maSeries?:    Array<number | null> | null,
@@ -118,7 +117,7 @@ export function computeChartGeometry({
   anchorRefs,
 }) {
   const { padL, padR: _padR, padT, padB: _padB, cW, cH } = dimensions;
-  const { lastPriceAny, prevCloseAny, isCrypto, pe3yAvg, ps3yAvg, maSeries, vwapSeries } = anchorRefs;
+  const { lastPriceAny, prevCloseAny, pe3yAvg, ps3yAvg, maSeries, vwapSeries } = anchorRefs;
 
   // ----- 1. anchorClose
   // The headline %'s denominator. 1D anchor at today's regular close
@@ -141,15 +140,7 @@ export function computeChartGeometry({
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
       if (useExt) {
-        // Crypto goes down the SAME ext path as a US stock, with one source
-        // difference: a stock's `lastPriceAny` (regularMarketPrice) is the
-        // FROZEN 16:00 ET close, so it's the right anchor; crypto's
-        // `regularMarketPrice` is the LIVE 24/7 price, which would make the
-        // headline a constant ~0.00%. So crypto skips it and anchors at the
-        // 16:00 ET close BAR (`regularCloseIdx`) instead — giving the same
-        // "extended-hours move since the last US close" a stock shows. Ext-OFF
-        // both fall through to prevClose ("since previous close").
-        if (lastPriceAny && lastPriceAny > 0 && !isCrypto) {
+        if (lastPriceAny && lastPriceAny > 0) {
           anchorClose = lastPriceAny;
         } else if (regularCloseIdx >= 0) {
           anchorClose = series[regularCloseIdx].close;
