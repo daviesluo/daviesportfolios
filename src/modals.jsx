@@ -395,6 +395,8 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
   // sits in. Moving applies the position change only (like Delete, it
   // doesn't persist unsaved lot edits) and closes.
   const [showMove, setShowMove] = React.useState(false);
+  /** @type {React.MutableRefObject<HTMLDivElement | null>} */
+  const moveRowRef = React.useRef(null);
   const posMap = positions && typeof positions === 'object' ? positions : {};
   const currentPosKey = Object.keys(posMap).find(
     (k) => Array.isArray(posMap[k].tickers) && posMap[k].tickers.includes(ticker),
@@ -416,6 +418,15 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
     if (isDirty && !(await confirm(DISCARD_CONFIRM))) return;
     onMove(moveTarget);
   };
+  // The picker is the last child of the scrollable .modal-body while the
+  // "Move holding" button lives in the fixed .modal-foot. For a holding
+  // with a long lot/sell history the body already overflows, so the
+  // freshly-revealed row mounts below the fold and the click reads as
+  // "Move holding did nothing" (the toggle fired, the reveal was just
+  // off-screen). Pull it on-screen whenever it opens.
+  React.useEffect(() => {
+    if (showMove) moveRowRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+  }, [showMove]);
 
   return (
     <Modal onClose={safeClose} size="md">
@@ -508,7 +519,7 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
         </div>
 
         {showMove && canMove && (
-          <div className="move-row">
+          <div className="move-row" ref={moveRowRef}>
             <span className="lot-summary-label mono">MOVE TO</span>
             <select
               className="inp mono move-select"
