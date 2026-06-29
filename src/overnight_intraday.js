@@ -131,11 +131,13 @@ export function getOvernightSeries(ticker) {
  * the live tail so the line still ends at "now". 1D's cadence equals
  * the recorded interval → step 1 → no-op.
  *
- * `windowStart` scopes the recorded points to the visible chart window
- * (series[0].date) so a prior session's points (still in the 26h fetch)
- * can't leak in. Falls back (returns `series` unchanged) so the
- * caller's single-dot path runs with no regression when there are
- * 0-1 usable points.
+ * The recorded points are scoped to the chart's time window — the last
+ * bar's time minus the range span, clamped no later than series[0] — so
+ * a prior session's tail (still in the 26h fetch) can't leak in, while
+ * last night's points are kept even when they predate series[0] (the
+ * daytime case, where Yahoo's first bar is today's pre-market). Falls
+ * back (returns `series` unchanged) so the caller's single-dot path runs
+ * with no regression when there are 0-1 usable points.
  *
  * Date strings are UTC `YYYY-MM-DDTHH:MM` on both sides, so the
  * lexicographic comparisons are chronological.
@@ -158,8 +160,21 @@ export function mergeOvernightSeries(series, overnightPts, ctx) {
   if (rangeKey !== '1D' && rangeKey !== '1W' && rangeKey !== '1M') return series;
   if (!Array.isArray(series) || series.length === 0) return series;
   if (!Array.isArray(overnightPts) || overnightPts.length < 2) return series;
-  const windowStart = series[0].date;
-  const rec = overnightPts.filter((p) => p && typeof p.date === 'string' && p.date >= windowStart
+  // Lower bound for in-window recorded points. `series[0].date` is WRONG
+  // during the day: Yahoo's first bar is then today's pre-market / RTH
+  // (the overnight has no Yahoo bars), so last night's points sit BEFORE
+  // series[0] and would ALL be dropped — the "flat 0% line until the open"
+  // bug. Key off the window's true left edge instead: the last bar's time
+  // minus the range's span, but never later than series[0] (the live-
+  // overnight case already starts at the window edge). This still bounds
+  // out a prior session's tail left over in the 26h fetch (e.g. a 1D chart
+  // opened just after the overnight ends).
+  const SPAN_MS = { '1D': 24 * 3_600_000, '1W': 5 * 24 * 3_600_000, '1M': 31 * 24 * 3_600_000 };
+  const toMs = (d) => new Date(d + (typeof d === 'string' && d.length === 16 && d[10] === 'T' ? 'Z' : '')).getTime();
+  const lastMs = toMs(series[series.length - 1].date);
+  const startMs = Math.min(toMs(series[0].date), lastMs - (SPAN_MS[rangeKey] || SPAN_MS['1D']));
+  const rec = overnightPts.filter((p) => p && typeof p.date === 'string'
+    && Number.isFinite(toMs(p.date)) && toMs(p.date) >= startMs
     && typeof p.close === 'number' && isFinite(p.close));
   if (rec.length < 2) return series;
   // Match the recorded-point density to the chart's bar cadence —
