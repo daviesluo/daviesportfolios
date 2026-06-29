@@ -24,6 +24,47 @@ import {
 } from './ytd.js';
 import { pointerToDataIndex, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
 import { reportError } from './ops_error.js';
+import {
+  mergeOvernightSeries,
+  fetchOvernightSeries,
+  getOvernightSeries,
+  OVERNIGHT_FETCH_EVENT,
+} from './overnight_intraday.js';
+import { NIGHT_BAR_INTERVAL_MS } from './ticker_chart_helpers.js';
+
+// ---- Range-sensitive wiring helpers (pure, exported for unit pins).
+//
+// The S&P reference symbol: ES=F (futures) whenever the ext-hours toggle
+// is on for an intraday range (1D / 1W). The cash index ^GSPC is RTH-only
+// — it can't carry pre/post-market or the overnight session — so any
+// "night market" view of the benchmark has to ride the future. The legend
+// flips to "S&P 500 FUTURES" to match.
+export function spSymbolFor(rangeKey, extendedHours) {
+  return ((rangeKey === '1D' || rangeKey === '1W') && extendedHours) ? 'ES=F' : '^GSPC';
+}
+
+// Cache-variant discriminator (part of the per-(range) cache key). 1D
+// has reg / ext / closed sub-modes; 1W now splits ext vs std so the
+// prepost-bearing week doesn't collide with the RTH-only one. Other
+// ranges are session-insensitive.
+export function perfVariantKey(rangeKey, extendedHours, phase) {
+  if (rangeKey === '1D') return extendedHours ? 'ext' : (phase === 'regular' ? 'reg' : 'closed');
+  if (rangeKey === '1W') return extendedHours ? 'ext' : 'std';
+  return 'std';
+}
+
+// Fetch params. 1W gains pre/post-market bars when the ext toggle is on
+// (paired with ES=F on the S&P side + the recorded-overnight merge below,
+// this is what puts the night session into the week view); the '1w-ext'
+// variant passes through applyVariantFilter untouched so the full 5-day
+// window is kept. Every other case defers to the shared fetchParamsFor.
+export function perfFetchParams(rangeKey, extendedHours, phase) {
+  if (rangeKey === '1W' && extendedHours) {
+    const r = RANGES['1W'];
+    return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: true, variant: '1w-ext' };
+  }
+  return fetchParamsFor(rangeKey, extendedHours, phase);
+}
 
 // Tiny placeholder shell so the loading / error / range-button row
 // renders the same chrome as the full chart — keeps the layout from
@@ -106,17 +147,16 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   // Default to 1D so the chart opens on today's intraday view; YTD is a
   // single button-click away when the user wants the long view.
   const [rangeKey, setRangeKey] = React.useState('1D');
-  // 1D's fetch params depend on the ext-hours toggle + market phase, so
-  // include those in the cache key. Other ranges are insensitive.
-  const variantKey = rangeKey === '1D'
-    ? (extendedHours ? 'ext' : (phase === 'regular' ? 'reg' : 'closed'))
-    : 'std';
-  // The S&P 500 reference uses the futures contract (ES=F) whenever
-  // the user has the extended-hours toggle on for 1D — even during
-  // regular hours, since "ext on" is the user's signal that they want
-  // to track futures pricing. The legend label flips to
+  // 1D's and (ext-on) 1W's fetch params depend on the ext-hours toggle +
+  // market phase, so they go into the cache key. Other ranges are
+  // session-insensitive. See perfVariantKey.
+  const variantKey = perfVariantKey(rangeKey, extendedHours, phase);
+  // The S&P 500 reference uses the futures contract (ES=F) whenever the
+  // user has the extended-hours toggle on for an intraday range (1D / 1W)
+  // — even during regular hours, since "ext on" is the user's signal that
+  // they want to track futures pricing. The legend label flips to
   // "S&P 500 FUTURES" to match.
-  const spSymbol = (rangeKey === '1D' && extendedHours) ? 'ES=F' : '^GSPC';
+  const spSymbol = spSymbolFor(rangeKey, extendedHours);
   const [hist,    setHist]    = React.useState(/** @type {Record<string, any[]> | null} */ (null));
   const [loading, setLoading] = React.useState(true);
   const [error,   setError]   = React.useState(false);
@@ -141,7 +181,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     let cancelled = false;
     const year = new Date().getFullYear();
     const symbols = [spSymbol, ...tickers];
-    const params = fetchParamsFor(rangeKey, extendedHours, phase);
+    const params = perfFetchParams(rangeKey, extendedHours, phase);
     const ttl = PERF_CACHE_TTL_MS[rangeKey] || PERF_CACHE_TTL_MS.YTD;
     const cacheKey = `${rangeKey}:${variantKey}`;
 
@@ -272,15 +312,16 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   React.useEffect(() => {
     if (!portfolio || loading || error || !hist) return;
     const year = new Date().getFullYear();
-    const symbols = [spSymbol, ...tickers];
     const others = RANGE_KEYS.filter(k => k !== rangeKey);
     let cancelled = false;
     (async () => {
       for (const rk of others) {
         if (cancelled) return;
-        const otherVariant = rk === '1D'
-          ? (extendedHours ? 'ext' : (phase === 'regular' ? 'reg' : 'closed'))
-          : 'std';
+        const otherVariant = perfVariantKey(rk, extendedHours, phase);
+        // The benchmark symbol is per-range (ES=F for ext-on 1D/1W, else
+        // ^GSPC), so warm the row the main effect will actually read when
+        // that range becomes active.
+        const symbols = [spSymbolFor(rk, extendedHours), ...tickers];
         const cacheKey = `${rk}:${otherVariant}`;
         const ttl = PERF_CACHE_TTL_MS[rk] || PERF_CACHE_TTL_MS.YTD;
         const entries = loadPerfCache(year, cacheKey);
@@ -289,7 +330,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
           return !(e && e.data && Array.isArray(e.data) && (Date.now() - (e.ts || 0)) < ttl);
         });
         if (stale.length === 0) continue;
-        const params = fetchParamsFor(rk, extendedHours, phase);
+        const params = perfFetchParams(rk, extendedHours, phase);
         const batch = await fetchHistoricalBatch(stale, params.yahooRange, params.interval, params.includePrePost);
         if (cancelled) return;
         const newEntries = { ...entries };
@@ -304,6 +345,31 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     })();
     return () => { cancelled = true; };
   }, [tickerKey, rangeKey, variantKey, loading, error]);
+
+  // Server-recorded overnight points (T212, 20:00-04:00 ET) for the
+  // portfolio tickers. Recorded even with no tab open (overnight-record
+  // pg_cron) and read here so the PerfChart's 1D / 1W lines carry a real
+  // overnight curve — the same source the ticker modal draws. Only runs
+  // in the overnight phase with the ext toggle on (the merge below is a
+  // no-op otherwise, so there's nothing to fetch). Re-reads on the
+  // `overnight:fetched` event a fetch fires. Above the early returns so
+  // the hook count stays stable.
+  const [overnight, setOvernight] = React.useState(/** @type {Record<string, any[]>} */ ({}));
+  React.useEffect(() => {
+    if (!extendedHours || phase !== 'overnight') { setOvernight({}); return undefined; }
+    const read = () => {
+      /** @type {Record<string, any[]>} */
+      const map = {};
+      for (const t of tickers) map[t] = getOvernightSeries(t);
+      setOvernight(map);
+    };
+    read();                       // paint from cache immediately (if warm)
+    fetchOvernightSeries(tickers); // refresh all portfolio tickers in one call
+    if (typeof window === 'undefined') return undefined;
+    window.addEventListener(OVERNIGHT_FETCH_EVENT, read);
+    return () => window.removeEventListener(OVERNIGHT_FETCH_EVENT, read);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tickerKey, extendedHours, phase]);
 
   // Crosshair refs + effects must run on EVERY render (including the
   // early-return placeholder ones below) so React's hook count stays
@@ -384,8 +450,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   //   - ES=F: futures trade ~23 h, so a 24-h slice would include
   //     Asia-overnight bars where stocks aren't open. Match the rest
   //     of the app (which only has data 4 AM ET → 8 PM ET) by
-  //     dropping bars outside that window.
-  const allSp = (rangeKey === '1D' && (spSymbol === '^GSPC' || spSymbol === 'ES=F'))
+  //     dropping bars outside that window — EXCEPT in the overnight
+  //     phase (ext on), where keeping the 20:00-04:00 ET bars is the
+  //     whole point: the futures line, and the portfolio overnight
+  //     curve sampled at its timestamps, run continuously through the
+  //     night. filterToLast24h already bounds the window upstream.
+  const keepOvernightFutures = extendedHours && phase === 'overnight' && spSymbol === 'ES=F';
+  const allSp = (!keepOvernightFutures && rangeKey === '1D' && (spSymbol === '^GSPC' || spSymbol === 'ES=F'))
     ? allSpRaw.filter(p => {
         if (typeof p.date !== 'string' || p.date.length < 16 || p.date[10] !== 'T') return true;
         const utcMins = parseInt(p.date.slice(11, 13), 10) * 60 + parseInt(p.date.slice(14, 16), 10);
@@ -491,7 +562,27 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 
   /** @type {Record<string, {date:string,close:number}[]>} */
   const histForTickers = {};
-  for (const t of tickers) histForTickers[t] = hist?.[t] || [];
+  // Splice each ticker's server-recorded overnight points onto its Yahoo
+  // bars so closeOn() returns a real 20:00-04:00 ET price at the ES=F
+  // overnight timestamps the portfolio line is sampled at — the same
+  // merge the ticker modal uses. No-op (returns the Yahoo series
+  // untouched) unless ext is on, it's the overnight phase, the ticker
+  // trades overnight, the range is 1D / 1W / 1M, and there are >= 2
+  // recorded points in-window. barIntervalMs matches the recorded-point
+  // density to each range's bar cadence (5 / 30 / 60 min) so 1W isn't
+  // swallowed by today's ~130 five-minute samples.
+  const nightBarMs = NIGHT_BAR_INTERVAL_MS[rangeKey];
+  for (const t of tickers) {
+    // Sort before merging — mergeOvernightSeries keys its window off
+    // series[0].date, so it must be the earliest bar (buildTickerSeries
+    // re-sorts the merged result, so this isn't redundant work there).
+    const base = (hist?.[t] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+    // `?? base` only satisfies the Point[]|null return type — the merge
+    // returns its `series` arg (= base, non-null) in every no-op path.
+    histForTickers[t] = mergeOvernightSeries(base, overnight[t] || [], {
+      rangeKey, useExt, phase, ticker: t, barIntervalMs: nightBarMs,
+    }) ?? base;
+  }
   const tickerSeries = buildTickerSeries(histForTickers, anchorDate, rangeKey, tickerMarketData, useExt);
 
   const liveAnchorDate = spWindow[spWindow.length - 1].date;
