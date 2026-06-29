@@ -66,6 +66,18 @@ export function perfFetchParams(rangeKey, extendedHours, phase) {
   return fetchParamsFor(rangeKey, extendedHours, phase);
 }
 
+// Which crosshair-label format a range uses: bare time for the single
+// intraday day (1D); date + time for the multi-day intraday ranges (1W
+// 30m / 1M 60m) so the pill pins the exact bar — incl. the overnight
+// session — not just the calendar day; date-only for the daily ranges
+// (3M / YTD). Exported so the range→format mapping is pinned by
+// perf_chart.test.jsx.
+export function crosshairFormatFor(rangeKey) {
+  if (rangeKey === '1D') return 'time';
+  if (rangeKey === '1W' || rangeKey === '1M') return 'datetime';
+  return 'date';
+}
+
 // Tiny placeholder shell so the loading / error / range-button row
 // renders the same chrome as the full chart — keeps the layout from
 // jumping when the user flips between ranges.
@@ -725,10 +737,12 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const spByIdx   = spNorm.length === portNorm.length ? spNorm : null; // aligned in 1D / YTD
   const fmtCrosshairDate = (dateStr) => {
     const d = parseChartDateUTC(dateStr);
-    if (rangeKey === '1D') {
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    const date = () => d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    const time = () => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const fmt = crosshairFormatFor(rangeKey);
+    if (fmt === 'time') return time();
+    if (fmt === 'datetime') return `${date()} ${time()}`;
+    return date();
   };
   function paintCrosshair() {
     rafRef.current = 0;
@@ -750,8 +764,18 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     } else if (cSpDot.current) {
       cSpDot.current.style.display = 'none';
     }
-    if (cDateRect.current) cDateRect.current.setAttribute('x', String((x - 22).toFixed(1)));
-    if (cDateText.current) { cDateText.current.setAttribute('x', String(x.toFixed(1))); cDateText.current.textContent = fmtCrosshairDate(p.date); }
+    // Date pill: wider for 1W / 1M (they show "MMM D HH:MM"); clamp the
+    // centre so the pill never spills past the chart edges — at the far
+    // right (the live point, as in the 1W "Jun 29" case) it nudges left
+    // to stay inside instead of overflowing.
+    const datePillW = crosshairFormatFor(rangeKey) === 'datetime' ? 80 : 44;
+    const dpHalf = datePillW / 2;
+    const dpCx = Math.max(padL + dpHalf, Math.min(W - padR - dpHalf, x));
+    if (cDateRect.current) {
+      cDateRect.current.setAttribute('x', (dpCx - dpHalf).toFixed(1));
+      cDateRect.current.setAttribute('width', String(datePillW));
+    }
+    if (cDateText.current) { cDateText.current.setAttribute('x', dpCx.toFixed(1)); cDateText.current.textContent = fmtCrosshairDate(p.date); }
     if (cPortRect.current && cPortText.current) {
       const yTop = (portY - 8).toFixed(1);
       cPortRect.current.setAttribute('y', yTop);

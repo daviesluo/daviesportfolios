@@ -544,7 +544,10 @@ overnight curve rather than a flat carry-forward. Holdings that don't
 trade overnight (CN funds, `.L` ETFs) simply hold flat through the
 night. Hover the chart for a crosshair: vertical dashed line, dots on
 both lines, per-series % chips next to each dot, and a date pill at
-the bottom.
+the bottom — bare time on 1D, **date + time on the intraday 1W / 1M
+ranges** (so the pill pins the exact bar incl. overnight), date-only
+on 3M / YTD (`crosshairFormatFor`). The pill clamps to the chart edges
+so it never overflows past the live point on the right.
 
 ### Market Conditions
 
