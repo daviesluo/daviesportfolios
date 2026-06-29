@@ -56,7 +56,8 @@ vi.mock('./chart_store.js', () => {
 
 vi.mock('./ops_error.js', () => ({ reportError: vi.fn() }));
 
-import { PerfChart, PerfPanel } from './perf_chart.jsx';
+import { PerfChart, PerfPanel, spSymbolFor, perfVariantKey, perfFetchParams } from './perf_chart.jsx';
+import { applyVariantFilter } from './ytd.js';
 import { YtdStore } from './chart_store.js';
 
 beforeEach(() => {
@@ -113,6 +114,58 @@ describe('PerfChart — smoke render', () => {
     // path. Container existing + no thrown render is sufficient
     // smoke-test coverage; the math is pinned in ytd.test.js.
     expect(container).toBeTruthy();
+  });
+});
+
+describe('PerfChart wiring helpers — night-market range sensitivity', () => {
+  it('spSymbolFor: ES=F for ext-on 1D/1W (futures carry pre/post + overnight), ^GSPC otherwise', () => {
+    expect(spSymbolFor('1D', true)).toBe('ES=F');
+    expect(spSymbolFor('1W', true)).toBe('ES=F');
+    expect(spSymbolFor('1D', false)).toBe('^GSPC');
+    expect(spSymbolFor('1W', false)).toBe('^GSPC');
+    // Longer ranges never switch to futures — they're daily/RTH views.
+    expect(spSymbolFor('1M', true)).toBe('^GSPC');
+    expect(spSymbolFor('3M', true)).toBe('^GSPC');
+    expect(spSymbolFor('YTD', true)).toBe('^GSPC');
+  });
+
+  it('perfVariantKey: 1D reg/ext/closed; 1W splits ext vs std; others std', () => {
+    expect(perfVariantKey('1D', true, 'overnight')).toBe('ext');
+    expect(perfVariantKey('1D', false, 'regular')).toBe('reg');
+    expect(perfVariantKey('1D', false, 'afterhours')).toBe('closed');
+    // 1W ext must NOT share the std cache row (prepost vs RTH-only).
+    expect(perfVariantKey('1W', true, 'overnight')).toBe('ext');
+    expect(perfVariantKey('1W', false, 'overnight')).toBe('std');
+    expect(perfVariantKey('1M', true, 'overnight')).toBe('std');
+    expect(perfVariantKey('YTD', true, 'overnight')).toBe('std');
+  });
+
+  it('perfFetchParams: 1W ext pulls prepost bars on the 5d/30m window via the 1w-ext variant', () => {
+    const p = perfFetchParams('1W', true, 'overnight');
+    expect(p.includePrePost).toBe(true);
+    expect(p.variant).toBe('1w-ext');
+    expect(p.yahooRange).toBe('5d');
+    expect(p.interval).toBe('30m');
+  });
+
+  it('perfFetchParams: 1W ext-off defers to shared std params (no prepost)', () => {
+    const p = perfFetchParams('1W', false, 'overnight');
+    expect(p.includePrePost).toBe(false);
+    expect(p.variant).toBe('std');
+  });
+
+  it('perfFetchParams: 1D defers to the shared fetchParamsFor (ext → prepost + ext variant)', () => {
+    const p = perfFetchParams('1D', true, 'overnight');
+    expect(p.includePrePost).toBe(true);
+    expect(p.variant).toBe('ext');
+  });
+
+  it("the 1w-ext variant passes through applyVariantFilter untouched (full week, no 24h trim)", () => {
+    const data = [
+      { date: '2026-06-01T13:30', close: 1 },
+      { date: '2026-06-05T20:00', close: 2 },
+    ];
+    expect(applyVariantFilter(data, '1w-ext')).toBe(data); // same ref → no trim
   });
 });
 
