@@ -156,15 +156,34 @@ describe('mergeOvernightSeries — splice eligibility', () => {
   });
 
   it('drops recorded points before the chart window (a prior session in the 26h fetch)', () => {
-    // windowStart = YAHOO[0].date = 2026-05-28T19:55. A leftover point
-    // from the previous night is before it and must not leak in.
+    // The window's left edge = last bar (2026-05-28T20:00) − 24h =
+    // 2026-05-27T20:00. A point from two nights ago is older than that
+    // and must not leak in.
     const withStale = [
-      PT('2026-05-27T22:00', 100),   // prior session — before window → dropped
+      PT('2026-05-26T22:00', 100),   // > 24h before the last bar → dropped
       ...ON,
     ];
     const out = /** @type {any} */ (mergeOvernightSeries(YAHOO, withStale, ctx()));
     expect(out.length).toBe(5);                  // stale point excluded
-    expect(out.find((p) => p.date === '2026-05-27T22:00')).toBeUndefined();
+    expect(out.find((p) => p.date === '2026-05-26T22:00')).toBeUndefined();
+  });
+
+  it('keeps last night\'s overnight even when the Yahoo series starts AFTER it (the daytime "flat line" bug)', () => {
+    // During the day Yahoo's first bar is today's pre-market / RTH — the
+    // overnight has no Yahoo bars, so it sits BEFORE series[0]. Keying the
+    // window off series[0] dropped every recorded point (→ a flat line
+    // until the open); keying off (last bar − 24h) keeps them.
+    const todayYahoo = [
+      PT('2026-05-29T13:30', 180),   // today's open — AFTER last night's overnight
+      PT('2026-05-29T14:00', 181),
+    ];
+    // ON (2026-05-28T20:05-20:15) is < series[0] (2026-05-29T13:30) but
+    // within 24h of the last bar (2026-05-29T14:00 − 24h = 2026-05-28T14:00).
+    const out = /** @type {any} */ (mergeOvernightSeries(todayYahoo, ON, ctx()));
+    expect(out.map((p) => p.date)).toEqual([
+      '2026-05-28T20:05', '2026-05-28T20:10', '2026-05-28T20:15',
+      '2026-05-29T13:30', '2026-05-29T14:00',
+    ]);
   });
 
   it('recorded points own from their first timestamp; overlapping Yahoo bars are cut', () => {
