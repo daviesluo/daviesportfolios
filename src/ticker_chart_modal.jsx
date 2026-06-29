@@ -423,18 +423,19 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     : W - padR + 4;
 
   // Crosshair hover label — keeps minute precision on 1W/1M so the user
-  // can read the exact bar's timestamp. parseChartDateUTC (chart_geometry)
-  // appends the missing 'Z' to the "YYYY-MM-DDTHH:MM" intraday strings so
-  // a London/BST user doesn't see every bar an hour early (US open 13:30
-  // UTC was rendering as 1:30 PM instead of 2:30 PM BST).
+  // can read the exact bar's timestamp. Times are 24-hour everywhere (no
+  // AM/PM). parseChartDateUTC (chart_geometry) appends the missing 'Z' to
+  // the "YYYY-MM-DDTHH:MM" intraday strings so a London/BST user doesn't
+  // see every bar an hour early (US open 13:30 UTC was rendering as 13:30
+  // instead of 14:30 BST).
   function fmtDate(dateStr) {
     const d = parseChartDateUTC(dateStr);
     if (rangeKey === '1D') {
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }
     if (rangeKey === '1W' || rangeKey === '1M') {
       return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
-             d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+             d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
@@ -443,7 +444,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   function fmtAxisDate(dateStr) {
     const d = parseChartDateUTC(dateStr);
     if (rangeKey === '1D') {
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
