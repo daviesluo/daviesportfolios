@@ -296,13 +296,16 @@ export function useTickerChartData({
   React.useEffect(() => {
     const read = () => setOvernightPts(getOvernightSeries(ticker));
     read(); // paint from cache immediately (if warm)
-    if (phase === 'overnight' && hasOvernightSession(ticker)) {
+    // Fetch whenever the ext toggle is on (any phase) — not just live in
+    // the overnight session — so last night's recorded line is available
+    // during the day too. The server keeps the points for 26h.
+    if (extendedHours && hasOvernightSession(ticker)) {
       fetchOvernightSeries([ticker]);
     }
     if (typeof window === 'undefined') return undefined;
     window.addEventListener(OVERNIGHT_FETCH_EVENT, read);
     return () => window.removeEventListener(OVERNIGHT_FETCH_EVENT, read);
-  }, [ticker, phase]);
+  }, [ticker, phase, extendedHours]);
 
   return { series, loading, error, noPe, maHistory, overnightPts };
 }

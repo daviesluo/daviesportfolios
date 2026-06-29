@@ -97,22 +97,29 @@ export function getOvernightSeries(ticker) {
  * Splice recorded overnight points onto a Yahoo series so the chart
  * draws a connected overnight LINE. Returns the SAME `series`
  * reference (no merge) unless ALL of:
- *   - extended-hours toggle on AND it's the overnight phase,
+ *   - the extended-hours toggle is on (NOT gated on the live overnight
+ *     phase — last night's recorded curve stays visible all of the next
+ *     trading day, since the server keeps a 26h window),
  *   - the ticker has a real overnight session (US equity, not SFTBY),
  *   - the range is 1D / 1W / 1M (the intraday-capable views),
  *   - there are >= 2 recorded points inside the chart's time window.
  *
  * Merge strategy: keep Yahoo bars dated BEFORE the first recorded
- * overnight point, then let the recorded 5-min samples OWN the
- * overnight window from there on. We do NOT cut at "the last Yahoo
- * bar" — Yahoo has started returning sparse overnight prints for the
- * most liquid names (NVDA, ORCL…) but not others (GOOG), so a
- * `> lastBarDate` filter dropped almost all recorded points for the
- * liquid ones (their last Yahoo bar was already deep in the overnight)
- * and the line only appeared for tickers Yahoo had NO overnight data
- * for. Owning the window from the first recorded point makes the line
+ * overnight point, let the recorded 5-min samples OWN the
+ * [firstRec, lastRec] span, then keep Yahoo bars dated AFTER it. We do
+ * NOT cut at "the last Yahoo bar" — Yahoo has started returning sparse
+ * overnight prints for the most liquid names (NVDA, ORCL…) but not
+ * others (GOOG), so a `> lastBarDate` filter dropped almost all recorded
+ * points for the liquid ones (their last Yahoo bar was already deep in
+ * the overnight) and the line only appeared for tickers Yahoo had NO
+ * overnight data for. Owning the [firstRec, lastRec] span makes the line
  * consistent regardless of how much overnight data Yahoo happens to
- * have, and the recorded T212 series is the truth we want anyway.
+ * have, and the recorded T212 series is the truth we want anyway. The
+ * trailing `after` slice is what makes the line visible OUTSIDE the live
+ * overnight session: during the day the recorded points sit in the
+ * middle of the window (last night) with the session's real pre/RTH/post
+ * bars on both sides. In the live overnight nothing is later than
+ * `lastRec`, so `after` is empty and the result is unchanged.
  *
  * **Downsampling for 1W / 1M:** the recorded points are 5-min, but
  * 1W draws at a 30-min cadence and 1M at 60-min. Without sampling,
@@ -124,29 +131,50 @@ export function getOvernightSeries(ticker) {
  * the live tail so the line still ends at "now". 1D's cadence equals
  * the recorded interval → step 1 → no-op.
  *
- * `windowStart` scopes the recorded points to the visible chart window
- * (series[0].date) so a prior session's points (still in the 26h fetch)
- * can't leak in. Falls back (returns `series` unchanged) so the
- * caller's single-dot path runs with no regression when there are
- * 0-1 usable points.
+ * The recorded points are scoped to the chart's time window — the last
+ * bar's time minus the range span, clamped no later than series[0] — so
+ * a prior session's tail (still in the 26h fetch) can't leak in, while
+ * last night's points are kept even when they predate series[0] (the
+ * daytime case, where Yahoo's first bar is today's pre-market). Falls
+ * back (returns `series` unchanged) so the caller's single-dot path runs
+ * with no regression when there are 0-1 usable points.
  *
  * Date strings are UTC `YYYY-MM-DDTHH:MM` on both sides, so the
  * lexicographic comparisons are chronological.
  *
  * @param {Point[] | null} series          Yahoo bars
  * @param {Point[]} overnightPts           recorded overnight points (oldest-first)
- * @param {{ rangeKey: string, useExt: boolean, phase: string, ticker: string, barIntervalMs?: number }} ctx
+ * @param {{ rangeKey: string, extendedHours: boolean, ticker: string, barIntervalMs?: number }} ctx
  * @returns {Point[] | null}
  */
 export function mergeOvernightSeries(series, overnightPts, ctx) {
-  const { rangeKey, useExt, phase, ticker, barIntervalMs } = ctx || {};
-  if (!useExt || phase !== 'overnight') return series;
+  const { rangeKey, extendedHours, ticker, barIntervalMs } = ctx || {};
+  // Gate on the ext-hours TOGGLE only — NOT the live overnight phase.
+  // The recorded points stay in the server's 26h window all of the next
+  // trading day, so the chart draws last night's overnight curve during
+  // regular / pre / after-hours too (the splice below keeps the session's
+  // real bars on both sides of it). `extPrice`-anchoring and the live
+  // heartbeat dot remain phase-gated in the callers; this is the LINE.
+  if (!extendedHours) return series;
   if (!hasOvernightSession(ticker)) return series;
   if (rangeKey !== '1D' && rangeKey !== '1W' && rangeKey !== '1M') return series;
   if (!Array.isArray(series) || series.length === 0) return series;
   if (!Array.isArray(overnightPts) || overnightPts.length < 2) return series;
-  const windowStart = series[0].date;
-  const rec = overnightPts.filter((p) => p && typeof p.date === 'string' && p.date >= windowStart
+  // Lower bound for in-window recorded points. `series[0].date` is WRONG
+  // during the day: Yahoo's first bar is then today's pre-market / RTH
+  // (the overnight has no Yahoo bars), so last night's points sit BEFORE
+  // series[0] and would ALL be dropped — the "flat 0% line until the open"
+  // bug. Key off the window's true left edge instead: the last bar's time
+  // minus the range's span, but never later than series[0] (the live-
+  // overnight case already starts at the window edge). This still bounds
+  // out a prior session's tail left over in the 26h fetch (e.g. a 1D chart
+  // opened just after the overnight ends).
+  const SPAN_MS = { '1D': 24 * 3_600_000, '1W': 5 * 24 * 3_600_000, '1M': 31 * 24 * 3_600_000 };
+  const toMs = (d) => new Date(d + (typeof d === 'string' && d.length === 16 && d[10] === 'T' ? 'Z' : '')).getTime();
+  const lastMs = toMs(series[series.length - 1].date);
+  const startMs = Math.min(toMs(series[0].date), lastMs - (SPAN_MS[rangeKey] || SPAN_MS['1D']));
+  const rec = overnightPts.filter((p) => p && typeof p.date === 'string'
+    && Number.isFinite(toMs(p.date)) && toMs(p.date) >= startMs
     && typeof p.close === 'number' && isFinite(p.close));
   if (rec.length < 2) return series;
   // Match the recorded-point density to the chart's bar cadence —
@@ -166,10 +194,19 @@ export function mergeOvernightSeries(series, overnightPts, ctx) {
   }
   if (sampled.length < 2) return series;
   const firstRec = sampled[0].date;
-  // Yahoo bars before the recorded window's start; recorded samples own
-  // everything from there (incl. any stray Yahoo overnight bars).
-  const base = series.filter((p) => p.date < firstRec);
-  return [...base, ...sampled];
+  const lastRec = sampled[sampled.length - 1].date;
+  // Splice the recorded samples INTO the overnight gap: Yahoo bars before
+  // the recorded window, then the recorded samples OWN the
+  // [firstRec, lastRec] span (cutting any stray Yahoo overnight prints),
+  // then Yahoo bars AFTER the span. The trailing slice is what lets the
+  // line show OUTSIDE the live overnight session — during the day the
+  // recorded points sit in the middle (last night) with the session's
+  // real pre/RTH/post bars on BOTH sides. In the live overnight there are
+  // no bars later than `lastRec` (≈ now), so `after` is empty and the
+  // output is byte-identical to the old `[...before, ...sampled]`.
+  const before = series.filter((p) => p.date < firstRec);
+  const after = series.filter((p) => p.date > lastRec);
+  return [...before, ...sampled, ...after];
 }
 
 /** Event the modal subscribes to so it re-reads after each fetch. */
