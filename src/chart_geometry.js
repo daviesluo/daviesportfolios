@@ -209,6 +209,35 @@ export function findRegularCloseIdx(series, mh) {
   return -1;
 }
 
+// Index of TODAY's first regular-open bar — the "OPEN" marker for the 1D
+// in-session view. Scoped to the most recent calendar day so yesterday's
+// afternoon bars (whose UTC hours also satisfy hh >= openHh) and any
+// spliced overnight points (UTC 00:00-08:00, before the open) can't steal
+// the match. Lifted out of the modal's inline scan so it's pinned by tests
+// AND so it runs against the SAME (possibly overnight-spliced) series the
+// markers are rendered on — keying off the raw Yahoo series would mis-place
+// the marker once the recorded overnight line shifts today's bars right.
+// Returns -1 when no open bar is in the series.
+/**
+ * @param {Array<{date?: string, close?: number}> | null} series
+ * @param {{openHh: number, openMm: number} | null} mh
+ */
+export function findRegularOpenIdx(series, mh) {
+  if (!Array.isArray(series) || series.length === 0 || !mh) return -1;
+  const last = series[series.length - 1];
+  const todayDay = (last && typeof last.date === 'string') ? last.date.slice(0, 10) : '';
+  if (!todayDay) return -1;
+  for (let i = 0; i < series.length; i++) {
+    const d = series[i] && series[i].date;
+    if (typeof d !== 'string' || d.length < 16) continue;
+    if (d.slice(0, 10) !== todayDay) continue;
+    const hh = parseInt(d.slice(11, 13), 10);
+    const mm = parseInt(d.slice(14, 16), 10);
+    if ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh) return i;
+  }
+  return -1;
+}
+
 // Index of the previous trading day's LAST bar — the "previous session
 // close" marker for markets with no US-style extended-hours session
 // (LSE / Euronext / HK / OTC ADRs). Market-agnostic on purpose:

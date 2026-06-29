@@ -368,7 +368,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   // the hook count stays stable.
   const [overnight, setOvernight] = React.useState(/** @type {Record<string, any[]>} */ ({}));
   React.useEffect(() => {
-    if (!extendedHours || phase !== 'overnight') { setOvernight({}); return undefined; }
+    // Whenever the ext toggle is on (any phase) — not just the live
+    // overnight session — so last night's recorded curve is fetched and
+    // drawn through the next trading day. Overnight data is static during
+    // the day (recorded only at night), so one fetch on mount is enough;
+    // during the live session the app-level 30s refresh + OVERNIGHT_FETCH_EVENT
+    // keep it current via the listener below.
+    if (!extendedHours) { setOvernight({}); return undefined; }
     const read = () => {
       /** @type {Record<string, any[]>} */
       const map = {};
@@ -462,12 +468,22 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   //   - ES=F: futures trade ~23 h, so a 24-h slice would include
   //     Asia-overnight bars where stocks aren't open. Match the rest
   //     of the app (which only has data 4 AM ET → 8 PM ET) by
-  //     dropping bars outside that window — EXCEPT in the overnight
-  //     phase (ext on), where keeping the 20:00-04:00 ET bars is the
-  //     whole point: the futures line, and the portfolio overnight
-  //     curve sampled at its timestamps, run continuously through the
-  //     night. filterToLast24h already bounds the window upstream.
-  const keepOvernightFutures = extendedHours && phase === 'overnight' && spSymbol === 'ES=F';
+  //     dropping bars outside that window — EXCEPT when ext is on, where
+  //     keeping the 20:00-04:00 ET bars is the whole point: the futures
+  //     line, and the portfolio overnight curve sampled at its
+  //     timestamps, run continuously through the night so last night's
+  //     overnight shows during the next trading day too (not just live in
+  //     the overnight session). filterToLast24h bounds the window upstream.
+  //
+  // Toggle-gated (not phase-gated) ON PURPOSE: the anchor (`useExt`
+  // below) stays phase-aware, so during regular hours the basis is
+  // prevClose — which is the correct baseline for the WHOLE 24 h window
+  // INCLUDING last night's overnight (the overnight happened after that
+  // close). The portfolio is sampled via closeOn() against each ticker's
+  // overnight-merged series, so overnight timestamps return the real
+  // recorded price, not a flat prevClose. Holdings that don't trade
+  // overnight just hold flat through the night.
+  const keepOvernightFutures = extendedHours && spSymbol === 'ES=F';
   const allSp = (!keepOvernightFutures && rangeKey === '1D' && (spSymbol === '^GSPC' || spSymbol === 'ES=F'))
     ? allSpRaw.filter(p => {
         if (typeof p.date !== 'string' || p.date.length < 16 || p.date[10] !== 'T') return true;
@@ -578,9 +594,10 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   // bars so closeOn() returns a real 20:00-04:00 ET price at the ES=F
   // overnight timestamps the portfolio line is sampled at — the same
   // merge the ticker modal uses. No-op (returns the Yahoo series
-  // untouched) unless ext is on, it's the overnight phase, the ticker
-  // trades overnight, the range is 1D / 1W / 1M, and there are >= 2
-  // recorded points in-window. barIntervalMs matches the recorded-point
+  // untouched) unless ext is on, the ticker trades overnight, the range
+  // is 1D / 1W / 1M, and there are >= 2 recorded points in-window. Gated
+  // on the toggle, NOT the live overnight phase, so last night's curve
+  // shows during the day too. barIntervalMs matches the recorded-point
   // density to each range's bar cadence (5 / 30 / 60 min) so 1W isn't
   // swallowed by today's ~130 five-minute samples.
   const nightBarMs = NIGHT_BAR_INTERVAL_MS[rangeKey];
@@ -592,7 +609,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
     // `?? base` only satisfies the Point[]|null return type — the merge
     // returns its `series` arg (= base, non-null) in every no-op path.
     histForTickers[t] = mergeOvernightSeries(base, overnight[t] || [], {
-      rangeKey, useExt, phase, ticker: t, barIntervalMs: nightBarMs,
+      rangeKey, extendedHours, ticker: t, barIntervalMs: nightBarMs,
     }) ?? base;
   }
   const tickerSeries = buildTickerSeries(histForTickers, anchorDate, rangeKey, tickerMarketData, useExt);
@@ -692,7 +709,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       const d = parseChartDateUTC(dateStr);
       let label;
       if (rangeKey === '1D') {
-        label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       } else if (rangeKey === '1W' || rangeKey === '1M') {
         label = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
       } else {
@@ -738,7 +755,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const fmtCrosshairDate = (dateStr) => {
     const d = parseChartDateUTC(dateStr);
     const date = () => d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    const time = () => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const time = () => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     const fmt = crosshairFormatFor(rangeKey);
     if (fmt === 'time') return time();
     if (fmt === 'datetime') return `${date()} ${time()}`;

@@ -78,7 +78,7 @@ describe('mergeOvernightSeries — splice eligibility', () => {
     PT('2026-05-28T20:10', 173),
     PT('2026-05-28T20:15', 174),
   ];
-  const ctx = (over = {}) => ({ rangeKey: '1D', useExt: true, phase: 'overnight', ticker: 'NVDA', ...over });
+  const ctx = (over = {}) => ({ rangeKey: '1D', extendedHours: true, ticker: 'NVDA', ...over });
 
   it('keeps Yahoo bars before the first recorded point, then the recorded line', () => {
     const out = /** @type {any} */ (mergeOvernightSeries(YAHOO, ON, ctx()));
@@ -87,31 +87,59 @@ describe('mergeOvernightSeries — splice eligibility', () => {
     expect(out.slice(-3)).toEqual(ON);
   });
 
-  it('owns the overnight window even when Yahoo has its own late overnight bars (the NVDA/ORCL bug)', () => {
-    // Yahoo returns sparse overnight prints for liquid names, so its
-    // last bar is LATER than the recorded points. The old
+  it('recorded points own [firstRec,lastRec]: stray Yahoo prints INSIDE the span are cut, bars AFTER it are kept (the NVDA/ORCL bug)', () => {
+    // Yahoo returns sparse overnight prints for liquid names. The old
     // `> lastBarDate` filter dropped nearly all recorded points → no
-    // line (only a dot). Now the recorded series owns from its first
-    // point and Yahoo's stray overnight bars are cut.
+    // line (only a dot). The recorded series owns its [firstRec,lastRec]
+    // span (cutting Yahoo strays inside it), while Yahoo bars AFTER the
+    // span stay (that trailing slice is what carries the next session's
+    // bars during the day — see the daytime test below).
     const yahooWithOvernight = [
       PT('2026-05-28T19:55', 170),
       PT('2026-05-28T20:00', 171),
-      PT('2026-05-28T20:10', 999),   // stray Yahoo overnight bar
-      PT('2026-05-28T20:30', 998),   // last Yahoo bar is LATE
+      PT('2026-05-28T20:10', 999),   // stray Yahoo print INSIDE [20:05,20:15] → cut
+      PT('2026-05-28T20:30', 998),   // Yahoo bar AFTER lastRec → kept (next-session slot)
     ];
     const out = /** @type {any} */ (mergeOvernightSeries(yahooWithOvernight, ON, ctx()));
     expect(out).not.toBe(yahooWithOvernight);
     expect(out.map((p) => p.date)).toEqual([
       '2026-05-28T19:55', '2026-05-28T20:00',
       '2026-05-28T20:05', '2026-05-28T20:10', '2026-05-28T20:15',
+      '2026-05-28T20:30',
     ]);
     // 20:10 is the RECORDED value (173), not Yahoo's stray 999.
     expect(out.find((p) => p.date === '2026-05-28T20:10').close).toBe(173);
   });
 
-  it('returns the SAME ref (no merge) when toggle off / not overnight / wrong range', () => {
-    expect(mergeOvernightSeries(YAHOO, ON, ctx({ useExt: false }))).toBe(YAHOO);
-    expect(mergeOvernightSeries(YAHOO, ON, ctx({ phase: 'afterhours' }))).toBe(YAHOO);
+  it('splices INTO the gap: keeps the next session\'s bars AFTER the overnight window (the daytime fix)', () => {
+    // Last night's recorded overnight (20:05-20:15) sits between
+    // yesterday's bars and TODAY's session. The pre-fix merge truncated
+    // at the recorded window's end and dropped today's bars; now the
+    // trailing `after` slice keeps them so the line shows during the day.
+    const yahooAcrossDay = [
+      PT('2026-05-28T19:55', 170),   // before the overnight → kept
+      PT('2026-05-29T13:30', 180),   // today's session (after the overnight) → kept
+      PT('2026-05-29T14:00', 181),   // today → kept
+    ];
+    const out = /** @type {any} */ (mergeOvernightSeries(yahooAcrossDay, ON, ctx()));
+    expect(out.map((p) => p.date)).toEqual([
+      '2026-05-28T19:55',
+      '2026-05-28T20:05', '2026-05-28T20:10', '2026-05-28T20:15',
+      '2026-05-29T13:30', '2026-05-29T14:00',
+    ]);
+  });
+
+  it('merges regardless of phase — gated on the toggle, not the live overnight session', () => {
+    // The point of the change: last night's recorded line shows during
+    // regular / pre / after-hours too, so the ctx carries no `phase` at
+    // all and the merge still happens whenever extendedHours is on.
+    const out = /** @type {any} */ (mergeOvernightSeries(YAHOO, ON, ctx()));
+    expect(out).not.toBe(YAHOO);
+    expect(out.length).toBe(5);
+  });
+
+  it('returns the SAME ref (no merge) when the ext toggle is off / wrong range', () => {
+    expect(mergeOvernightSeries(YAHOO, ON, ctx({ extendedHours: false }))).toBe(YAHOO);
     expect(/** @type {any} */ (mergeOvernightSeries(YAHOO, ON, ctx({ rangeKey: '3M' }))).length).toBe(YAHOO.length);
     expect(mergeOvernightSeries(YAHOO, ON, ctx({ rangeKey: '3M' }))).toBe(YAHOO);
   });
@@ -128,15 +156,34 @@ describe('mergeOvernightSeries — splice eligibility', () => {
   });
 
   it('drops recorded points before the chart window (a prior session in the 26h fetch)', () => {
-    // windowStart = YAHOO[0].date = 2026-05-28T19:55. A leftover point
-    // from the previous night is before it and must not leak in.
+    // The window's left edge = last bar (2026-05-28T20:00) − 24h =
+    // 2026-05-27T20:00. A point from two nights ago is older than that
+    // and must not leak in.
     const withStale = [
-      PT('2026-05-27T22:00', 100),   // prior session — before window → dropped
+      PT('2026-05-26T22:00', 100),   // > 24h before the last bar → dropped
       ...ON,
     ];
     const out = /** @type {any} */ (mergeOvernightSeries(YAHOO, withStale, ctx()));
     expect(out.length).toBe(5);                  // stale point excluded
-    expect(out.find((p) => p.date === '2026-05-27T22:00')).toBeUndefined();
+    expect(out.find((p) => p.date === '2026-05-26T22:00')).toBeUndefined();
+  });
+
+  it('keeps last night\'s overnight even when the Yahoo series starts AFTER it (the daytime "flat line" bug)', () => {
+    // During the day Yahoo's first bar is today's pre-market / RTH — the
+    // overnight has no Yahoo bars, so it sits BEFORE series[0]. Keying the
+    // window off series[0] dropped every recorded point (→ a flat line
+    // until the open); keying off (last bar − 24h) keeps them.
+    const todayYahoo = [
+      PT('2026-05-29T13:30', 180),   // today's open — AFTER last night's overnight
+      PT('2026-05-29T14:00', 181),
+    ];
+    // ON (2026-05-28T20:05-20:15) is < series[0] (2026-05-29T13:30) but
+    // within 24h of the last bar (2026-05-29T14:00 − 24h = 2026-05-28T14:00).
+    const out = /** @type {any} */ (mergeOvernightSeries(todayYahoo, ON, ctx()));
+    expect(out.map((p) => p.date)).toEqual([
+      '2026-05-28T20:05', '2026-05-28T20:10', '2026-05-28T20:15',
+      '2026-05-29T13:30', '2026-05-29T14:00',
+    ]);
   });
 
   it('recorded points own from their first timestamp; overlapping Yahoo bars are cut', () => {

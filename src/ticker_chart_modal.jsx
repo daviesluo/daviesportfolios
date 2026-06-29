@@ -15,7 +15,7 @@ import {
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   extPriceIsRealAh, isPriceAxis,
 } from './indicators.js';
-import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findPrevSessionCloseIdx, overnightDotWithinReach } from './chart_geometry.js';
+import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findRegularOpenIdx, findPrevSessionCloseIdx, overnightDotWithinReach } from './chart_geometry.js';
 import { computeChartGeometry } from './chart_modal_geometry.js';
 import { mergeOvernightSeries } from './overnight_intraday.js';
 import {
@@ -88,21 +88,22 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // silently miss the close marker Nov–Mar.
   const mh = usMarketHoursUtc(new Date());
 
-  // Yahoo series with the current overnight session's recorded points
-  // appended (when eligible — see mergeOvernightSeries). Returns the
-  // same `series` ref when there's no overnight line to draw, so
-  // `hasOvernightLine` below is a cheap reference check and the
-  // existing single-dot fallback path stays byte-identical.
+  // Yahoo series with the recorded overnight points spliced in (when
+  // eligible — see mergeOvernightSeries). Gated on the ext toggle, not
+  // the live overnight phase, so last night's curve stays drawn through
+  // the next trading day. Returns the same `series` ref when there's no
+  // overnight line to draw, so `hasOvernightLine` below is a cheap
+  // reference check and the single-dot fallback path stays byte-identical.
   const displaySeries = React.useMemo(
     () => mergeOvernightSeries(series, overnightPts, {
-      rangeKey, useExt, phase, ticker,
+      rangeKey, extendedHours, ticker,
       // Match the recorded-point density to the chart's bar cadence
       // so 1W / 1M don't get visually swallowed by today's ~130
       // 5-min overnight pts. NIGHT_BAR_INTERVAL_MS picks 5/30/60 min
       // for 1D/1W/1M respectively; merge uses it to step-sample.
       barIntervalMs: NIGHT_BAR_INTERVAL_MS[rangeKey],
     }),
-    [series, overnightPts, rangeKey, useExt, phase, ticker],
+    [series, overnightPts, rangeKey, extendedHours, ticker],
   );
   const hasOvernightLine = displaySeries !== series;
 
@@ -177,9 +178,19 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
 
   let regularCloseIdx = -1;
   let regularOpenIdx = -1;
-  if (rangeKey === '1D' && series && series.length > 0) {
+  // Compute the markers against `displaySeries` (the spliced series), NOT
+  // the raw Yahoo `series`: the markers are rendered with xOfIdx (which is
+  // index-based on the spliced `points`) and fed to computeChartGeometry
+  // (whose series is displaySeries), so the indices must be into the same
+  // array. When the recorded overnight points are spliced in before
+  // today's bars (ext on, outside the live overnight session) they shift
+  // today's open/close right; keying off `series` would draw the markers
+  // on an overnight sample. The recorded points sit at UTC 00:00-08:00
+  // (20:00-04:00 ET), never the RTH open/close UTC hours, so they don't
+  // false-match the scans below.
+  if (rangeKey === '1D' && displaySeries && displaySeries.length > 0) {
     if (regularSessionOnly) {
-      regularCloseIdx = findPrevSessionCloseIdx(series);
+      regularCloseIdx = findPrevSessionCloseIdx(displaySeries);
     } else {
       // US equity with extended hours. The bar at exactly closeHh:closeMm
       // UTC (= 20:00 EDT / 21:00 EST). Strict match only (see
@@ -189,7 +200,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // modal at ~0% on any pre-open chart. -1 (no match) falls through to
       // the lastPrice anchor below.
       if (useExt || phase === 'regular') {
-        regularCloseIdx = findRegularCloseIdx(series, mh);
+        regularCloseIdx = findRegularCloseIdx(displaySeries, mh);
       }
       // First-regular-open bar in the data — used to draw the OPEN dashed
       // line during the in-session view. Visual context only; the % basis
@@ -200,15 +211,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // yesterday's first afternoon bar (= chart's left edge) instead of
       // today's actual open.
       if (phase === 'regular') {
-        const todayDay = series[series.length - 1].date.slice(0, 10);
-        for (let i = 0; i < series.length; i++) {
-          const d = series[i].date;
-          if (d.slice(0, 10) !== todayDay) continue;
-          const hh = parseInt(d.slice(11, 13), 10);
-          const mm = parseInt(d.slice(14, 16), 10);
-          // First bar at-or-after openHh:openMm UTC on today's date.
-          if ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh) { regularOpenIdx = i; break; }
-        }
+        regularOpenIdx = findRegularOpenIdx(displaySeries, mh);
       }
     }
   }
@@ -420,18 +423,19 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     : W - padR + 4;
 
   // Crosshair hover label — keeps minute precision on 1W/1M so the user
-  // can read the exact bar's timestamp. parseChartDateUTC (chart_geometry)
-  // appends the missing 'Z' to the "YYYY-MM-DDTHH:MM" intraday strings so
-  // a London/BST user doesn't see every bar an hour early (US open 13:30
-  // UTC was rendering as 1:30 PM instead of 2:30 PM BST).
+  // can read the exact bar's timestamp. Times are 24-hour everywhere (no
+  // AM/PM). parseChartDateUTC (chart_geometry) appends the missing 'Z' to
+  // the "YYYY-MM-DDTHH:MM" intraday strings so a London/BST user doesn't
+  // see every bar an hour early (US open 13:30 UTC was rendering as 13:30
+  // instead of 14:30 BST).
   function fmtDate(dateStr) {
     const d = parseChartDateUTC(dateStr);
     if (rangeKey === '1D') {
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }
     if (rangeKey === '1W' || rangeKey === '1M') {
       return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
-             d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+             d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
@@ -440,7 +444,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   function fmtAxisDate(dateStr) {
     const d = parseChartDateUTC(dateStr);
     if (rangeKey === '1D') {
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
