@@ -88,21 +88,22 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // silently miss the close marker Nov–Mar.
   const mh = usMarketHoursUtc(new Date());
 
-  // Yahoo series with the current overnight session's recorded points
-  // appended (when eligible — see mergeOvernightSeries). Returns the
-  // same `series` ref when there's no overnight line to draw, so
-  // `hasOvernightLine` below is a cheap reference check and the
-  // existing single-dot fallback path stays byte-identical.
+  // Yahoo series with the recorded overnight points spliced in (when
+  // eligible — see mergeOvernightSeries). Gated on the ext toggle, not
+  // the live overnight phase, so last night's curve stays drawn through
+  // the next trading day. Returns the same `series` ref when there's no
+  // overnight line to draw, so `hasOvernightLine` below is a cheap
+  // reference check and the single-dot fallback path stays byte-identical.
   const displaySeries = React.useMemo(
     () => mergeOvernightSeries(series, overnightPts, {
-      rangeKey, useExt, phase, ticker,
+      rangeKey, extendedHours, ticker,
       // Match the recorded-point density to the chart's bar cadence
       // so 1W / 1M don't get visually swallowed by today's ~130
       // 5-min overnight pts. NIGHT_BAR_INTERVAL_MS picks 5/30/60 min
       // for 1D/1W/1M respectively; merge uses it to step-sample.
       barIntervalMs: NIGHT_BAR_INTERVAL_MS[rangeKey],
     }),
-    [series, overnightPts, rangeKey, useExt, phase, ticker],
+    [series, overnightPts, rangeKey, extendedHours, ticker],
   );
   const hasOvernightLine = displaySeries !== series;
 
