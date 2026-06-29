@@ -15,7 +15,7 @@ import {
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   extPriceIsRealAh, isPriceAxis,
 } from './indicators.js';
-import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findPrevSessionCloseIdx, overnightDotWithinReach } from './chart_geometry.js';
+import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findRegularOpenIdx, findPrevSessionCloseIdx, overnightDotWithinReach } from './chart_geometry.js';
 import { computeChartGeometry } from './chart_modal_geometry.js';
 import { mergeOvernightSeries } from './overnight_intraday.js';
 import {
@@ -178,9 +178,19 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
 
   let regularCloseIdx = -1;
   let regularOpenIdx = -1;
-  if (rangeKey === '1D' && series && series.length > 0) {
+  // Compute the markers against `displaySeries` (the spliced series), NOT
+  // the raw Yahoo `series`: the markers are rendered with xOfIdx (which is
+  // index-based on the spliced `points`) and fed to computeChartGeometry
+  // (whose series is displaySeries), so the indices must be into the same
+  // array. When the recorded overnight points are spliced in before
+  // today's bars (ext on, outside the live overnight session) they shift
+  // today's open/close right; keying off `series` would draw the markers
+  // on an overnight sample. The recorded points sit at UTC 00:00-08:00
+  // (20:00-04:00 ET), never the RTH open/close UTC hours, so they don't
+  // false-match the scans below.
+  if (rangeKey === '1D' && displaySeries && displaySeries.length > 0) {
     if (regularSessionOnly) {
-      regularCloseIdx = findPrevSessionCloseIdx(series);
+      regularCloseIdx = findPrevSessionCloseIdx(displaySeries);
     } else {
       // US equity with extended hours. The bar at exactly closeHh:closeMm
       // UTC (= 20:00 EDT / 21:00 EST). Strict match only (see
@@ -190,7 +200,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // modal at ~0% on any pre-open chart. -1 (no match) falls through to
       // the lastPrice anchor below.
       if (useExt || phase === 'regular') {
-        regularCloseIdx = findRegularCloseIdx(series, mh);
+        regularCloseIdx = findRegularCloseIdx(displaySeries, mh);
       }
       // First-regular-open bar in the data — used to draw the OPEN dashed
       // line during the in-session view. Visual context only; the % basis
@@ -201,15 +211,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // yesterday's first afternoon bar (= chart's left edge) instead of
       // today's actual open.
       if (phase === 'regular') {
-        const todayDay = series[series.length - 1].date.slice(0, 10);
-        for (let i = 0; i < series.length; i++) {
-          const d = series[i].date;
-          if (d.slice(0, 10) !== todayDay) continue;
-          const hh = parseInt(d.slice(11, 13), 10);
-          const mm = parseInt(d.slice(14, 16), 10);
-          // First bar at-or-after openHh:openMm UTC on today's date.
-          if ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh) { regularOpenIdx = i; break; }
-        }
+        regularOpenIdx = findRegularOpenIdx(displaySeries, mh);
       }
     }
   }

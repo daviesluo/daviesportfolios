@@ -5,7 +5,7 @@
 // chart now fails CI before deploy.
 
 import { describe, expect, it } from 'vitest';
-import { pointerToDataIndex, pointsToSvgPath, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findPrevSessionCloseIdx, overnightDotWithinReach } from './chart_geometry.js';
+import { pointerToDataIndex, pointsToSvgPath, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findRegularOpenIdx, findPrevSessionCloseIdx, overnightDotWithinReach } from './chart_geometry.js';
 
 // Fake an SVG element with just the surface the helper touches.
 function fakeSvg(rect) {
@@ -287,6 +287,51 @@ describe('findRegularCloseIdx', () => {
   it('guards null series / mh', () => {
     expect(findRegularCloseIdx(null, mh)).toBe(-1);
     expect(findRegularCloseIdx(series, null)).toBe(-1);
+  });
+});
+
+describe('findRegularOpenIdx', () => {
+  const mh = { openHh: 13, openMm: 30 }; // 13:30 UTC = 9:30 EDT open
+
+  it("returns today's first bar at/after the open, scoped to the latest day", () => {
+    const series = [
+      { date: '2026-06-03T18:00', close: 1 }, // yesterday afternoon (hh>=open but prior day) → skipped
+      { date: '2026-06-04T12:00', close: 2 }, // today premarket (before open) → skipped
+      { date: '2026-06-04T13:30', close: 3 }, // ← today's open
+      { date: '2026-06-04T14:00', close: 4 },
+    ];
+    expect(findRegularOpenIdx(series, mh)).toBe(2);
+  });
+
+  it('skips spliced overnight points and finds the real open at its shifted index (the marker-shift fix)', () => {
+    // Mirrors the daytime splice: last night's recorded overnight points
+    // (20:00-04:00 ET = 00:00-08:00 UTC, on today's UTC date) sit BEFORE
+    // today's pre-market / RTH. The scan must skip them by hour, so the
+    // OPEN marker lands on the real 13:30 open at its SHIFTED index (3),
+    // not on an overnight sample (which keying off the raw series did).
+    const spliced = [
+      { date: '2026-06-04T00:05', close: 1 }, // overnight
+      { date: '2026-06-04T02:00', close: 2 }, // overnight
+      { date: '2026-06-04T08:05', close: 3 }, // pre-market
+      { date: '2026-06-04T13:30', close: 4 }, // ← real open
+      { date: '2026-06-04T14:00', close: 5 },
+    ];
+    expect(findRegularOpenIdx(spliced, mh)).toBe(3);
+  });
+
+  it('matches hh > openHh when the exact open bar is missing', () => {
+    const series = [
+      { date: '2026-06-04T12:00', close: 1 },
+      { date: '2026-06-04T14:00', close: 2 }, // first bar after the open
+    ];
+    expect(findRegularOpenIdx(series, mh)).toBe(1);
+  });
+
+  it('skips short / malformed dates and guards null / empty / null mh', () => {
+    expect(findRegularOpenIdx([{ date: '2026-06-04' }, { date: '2026-06-04T13:30', close: 9 }], mh)).toBe(1);
+    expect(findRegularOpenIdx(null, mh)).toBe(-1);
+    expect(findRegularOpenIdx([], mh)).toBe(-1);
+    expect(findRegularOpenIdx([{ date: '2026-06-04T13:30' }], null)).toBe(-1);
   });
 });
 
