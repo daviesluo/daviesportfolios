@@ -56,7 +56,7 @@ vi.mock('./chart_store.js', () => {
 
 vi.mock('./ops_error.js', () => ({ reportError: vi.fn() }));
 
-import { PerfChart, PerfPanel, spSymbolFor, perfVariantKey, perfFetchParams } from './perf_chart.jsx';
+import { PerfChart, PerfPanel, spSymbolFor, perfVariantKey, perfFetchParams, crosshairFormatFor } from './perf_chart.jsx';
 import { applyVariantFilter } from './ytd.js';
 import { YtdStore } from './chart_store.js';
 
@@ -166,6 +166,16 @@ describe('PerfChart wiring helpers — night-market range sensitivity', () => {
       { date: '2026-06-05T20:00', close: 2 },
     ];
     expect(applyVariantFilter(data, '1w-ext')).toBe(data); // same ref → no trim
+  });
+
+  it('crosshairFormatFor: 1W/1M show date+time (intraday bars), 1D time-only, 3M/YTD date-only', () => {
+    // The fix: the 1W (and 1M) crosshair pill must carry the time-of-day,
+    // not just "Jun 29", now that those ranges are intraday + overnight.
+    expect(crosshairFormatFor('1W')).toBe('datetime');
+    expect(crosshairFormatFor('1M')).toBe('datetime');
+    expect(crosshairFormatFor('1D')).toBe('time');
+    expect(crosshairFormatFor('3M')).toBe('date');
+    expect(crosshairFormatFor('YTD')).toBe('date');
   });
 });
 
