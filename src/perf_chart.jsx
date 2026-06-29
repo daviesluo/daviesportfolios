@@ -709,7 +709,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
       const d = parseChartDateUTC(dateStr);
       let label;
       if (rangeKey === '1D') {
-        label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       } else if (rangeKey === '1W' || rangeKey === '1M') {
         label = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
       } else {
@@ -755,7 +755,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
   const fmtCrosshairDate = (dateStr) => {
     const d = parseChartDateUTC(dateStr);
     const date = () => d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    const time = () => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const time = () => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     const fmt = crosshairFormatFor(rangeKey);
     if (fmt === 'time') return time();
     if (fmt === 'datetime') return `${date()} ${time()}`;
