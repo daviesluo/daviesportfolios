@@ -129,6 +129,31 @@ describe('mergeOvernightSeries — splice eligibility', () => {
     ]);
   });
 
+  it('keeps the RTH session BETWEEN two overnight clusters (live overnight — 26h fetch spans last night + tonight)', () => {
+    // Live overnight: the 26h fetch holds last night's tail AND tonight,
+    // with a full RTH day in the gap. Those RTH Yahoo bars sit between the
+    // two clusters and must survive — the before/after splice around
+    // [firstRec,lastRec] deleted them, so opening a chart in the overnight
+    // showed ONLY the overnight (no RTH / pre / post).
+    const yahooDaytime = [
+      PT('2026-05-28T13:30', 100),   // yesterday RTH open
+      PT('2026-05-28T18:00', 101),   // yesterday RTH
+    ];
+    const twoNights = [
+      PT('2026-05-28T02:00', 90),    // last night's overnight tail (cluster 1)
+      PT('2026-05-28T03:00', 91),
+      // ~21h daytime gap → a NEW cluster
+      PT('2026-05-29T00:00', 110),   // tonight's overnight (cluster 2)
+      PT('2026-05-29T01:00', 111),
+    ];
+    const out = /** @type {any} */ (mergeOvernightSeries(yahooDaytime, twoNights, ctx()));
+    expect(out.map((p) => p.date)).toEqual([
+      '2026-05-28T02:00', '2026-05-28T03:00',
+      '2026-05-28T13:30', '2026-05-28T18:00',   // ← the RTH survives between the clusters
+      '2026-05-29T00:00', '2026-05-29T01:00',
+    ]);
+  });
+
   it('merges regardless of phase — gated on the toggle, not the live overnight session', () => {
     // The point of the change: last night's recorded line shows during
     // regular / pre / after-hours too, so the ctx carries no `phase` at

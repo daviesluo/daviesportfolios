@@ -104,22 +104,24 @@ export function getOvernightSeries(ticker) {
  *   - the range is 1D / 1W / 1M (the intraday-capable views),
  *   - there are >= 2 recorded points inside the chart's time window.
  *
- * Merge strategy: keep Yahoo bars dated BEFORE the first recorded
- * overnight point, let the recorded 5-min samples OWN the
- * [firstRec, lastRec] span, then keep Yahoo bars dated AFTER it. We do
- * NOT cut at "the last Yahoo bar" — Yahoo has started returning sparse
+ * Merge strategy: split the recorded points into contiguous overnight
+ * SESSIONS (a >3h gap = a new night), let each session's [start,end]
+ * span be OWNED by the recorded samples, and keep every Yahoo bar
+ * OUTSIDE all spans — before the first session, in the daytime gaps
+ * BETWEEN sessions, and after the last — then sort the union. We do NOT
+ * cut at "the last Yahoo bar" — Yahoo has started returning sparse
  * overnight prints for the most liquid names (NVDA, ORCL…) but not
  * others (GOOG), so a `> lastBarDate` filter dropped almost all recorded
  * points for the liquid ones (their last Yahoo bar was already deep in
  * the overnight) and the line only appeared for tickers Yahoo had NO
- * overnight data for. Owning the [firstRec, lastRec] span makes the line
- * consistent regardless of how much overnight data Yahoo happens to
- * have, and the recorded T212 series is the truth we want anyway. The
- * trailing `after` slice is what makes the line visible OUTSIDE the live
- * overnight session: during the day the recorded points sit in the
- * middle of the window (last night) with the session's real pre/RTH/post
- * bars on both sides. In the live overnight nothing is later than
- * `lastRec`, so `after` is empty and the result is unchanged.
+ * overnight data for. Owning each session's span makes the line
+ * consistent regardless of how much overnight data Yahoo happens to have.
+ * The per-session clustering is what keeps the chart correct OUTSIDE the
+ * live overnight: the 26h fetch can hold last night's tail AND tonight,
+ * with a full RTH day between — a plain before/after splice around
+ * [firstRec, lastRec] deleted that middle RTH (the "opening in the
+ * overnight showed only the overnight, no RTH" bug); keeping the daytime
+ * bars in the inter-session gap fixes it.
  *
  * **Downsampling for 1W / 1M:** the recorded points are 5-min, but
  * 1W draws at a 30-min cadence and 1M at 60-min. Without sampling,
@@ -193,20 +195,32 @@ export function mergeOvernightSeries(series, overnightPts, ctx) {
     if (sampled[sampled.length - 1] !== last) sampled.push(last);
   }
   if (sampled.length < 2) return series;
-  const firstRec = sampled[0].date;
-  const lastRec = sampled[sampled.length - 1].date;
-  // Splice the recorded samples INTO the overnight gap: Yahoo bars before
-  // the recorded window, then the recorded samples OWN the
-  // [firstRec, lastRec] span (cutting any stray Yahoo overnight prints),
-  // then Yahoo bars AFTER the span. The trailing slice is what lets the
-  // line show OUTSIDE the live overnight session — during the day the
-  // recorded points sit in the middle (last night) with the session's
-  // real pre/RTH/post bars on BOTH sides. In the live overnight there are
-  // no bars later than `lastRec` (≈ now), so `after` is empty and the
-  // output is byte-identical to the old `[...before, ...sampled]`.
-  const before = series.filter((p) => p.date < firstRec);
-  const after = series.filter((p) => p.date > lastRec);
-  return [...before, ...sampled, ...after];
+  // Split the recorded points into contiguous overnight SESSIONS (a gap
+  // > 3 h between consecutive points = a new night). The server's 26h
+  // fetch can hold LAST night's tail AND tonight — two clusters with a
+  // full RTH day between them. Each cluster's [start,end] span is OWNED by
+  // the recorded samples (Yahoo's sparse overnight prints inside are cut);
+  // every Yahoo bar OUTSIDE all spans is kept — before the first cluster,
+  // in the daytime gaps BETWEEN clusters (so the RTH session isn't dropped
+  // — the "opening in the overnight shows ONLY the overnight" bug), and
+  // after the last. A plain before/after splice around [firstRec,lastRec]
+  // deleted that middle RTH. Cluster off the full-resolution `rec` so the
+  // spans stay accurate regardless of the 1W/1M downsampling, then sort
+  // the union chronologically (date strings sort in time order).
+  const CLUSTER_GAP_MS = 3 * 3_600_000;
+  /** @type {Array<[string, string]>} */
+  const spans = [];
+  let segStart = rec[0].date;
+  let prevMs = toMs(rec[0].date);
+  for (let i = 1; i < rec.length; i++) {
+    const curMs = toMs(rec[i].date);
+    if (curMs - prevMs > CLUSTER_GAP_MS) { spans.push([segStart, rec[i - 1].date]); segStart = rec[i].date; }
+    prevMs = curMs;
+  }
+  spans.push([segStart, rec[rec.length - 1].date]);
+  const kept = series.filter((p) =>
+    p && typeof p.date === 'string' && !spans.some(([s, e]) => p.date >= s && p.date <= e));
+  return [...kept, ...sampled].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
 
 /** Event the modal subscribes to so it re-reads after each fetch. */

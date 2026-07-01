@@ -412,6 +412,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   });
   const { anchorClose, hasData, xOfIdx, yOf, yMin, yMax, ticksY, ticksX, chartXDenom } = geometry;
   const pctNow = (anchorClose && headerPrice) ? ((headerPrice - anchorClose) / anchorClose) * 100 : 0;
+  // Absolute change (currency) shown before the % on the price ranges —
+  // same anchor as pctNow (prevClose in 1D). null on PE/PS (a ratio delta
+  // isn't a "change amount") and when there's no anchor.
+  const changeAmt = (anchorClose && headerPrice) ? headerPrice - anchorClose : null;
 
   // X for the right-margin overlay labels (VWAP / MA). Normally the far
   // right margin, but in the overnight view the line ends at the last
@@ -649,6 +653,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                 ? (isRatioRange ? headerPrice.toFixed(2) : fmtTickerPrice(headerPrice, ticker, sym))
                 : '—'
             }</span>
+            {isPriceAxis(rangeKey) && changeAmt != null && (
+              <span className="mono" style={{ color: pcC(pctNow) }}>
+                {(changeAmt >= 0 ? '+' : '-') + fmtTickerPrice(Math.abs(changeAmt), ticker, sym)}
+              </span>
+            )}
             <span className="mono" style={{ color: pcC(pctNow) }}>{fmP(pctNow)}</span>
             {/* In 1D the chart's % is anchored at the previous close (the
                 vertical CLOSE line) so it matches the scoreboard / heatmap's
