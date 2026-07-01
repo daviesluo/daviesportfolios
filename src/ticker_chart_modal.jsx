@@ -412,15 +412,6 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   });
   const { anchorClose, hasData, xOfIdx, yOf, yMin, yMax, ticksY, ticksX, chartXDenom } = geometry;
   const pctNow = (anchorClose && headerPrice) ? ((headerPrice - anchorClose) / anchorClose) * 100 : 0;
-  // Per-share change (native currency), same anchor as pctNow (prevClose
-  // in 1D) — only an intermediate; the header shows the POSITION TOTAL.
-  const changeAmt = (anchorClose && headerPrice) ? headerPrice - anchorClose : null;
-  // Position's TOTAL change = per-share change × shares held, rendered
-  // (masked) on its own line below the price. null with no position
-  // (non-holding modal) or no anchor.
-  const totalChange = (changeAmt != null && holding && typeof holding.shares === 'number' && holding.shares > 0)
-    ? changeAmt * holding.shares
-    : null;
 
   // X for the right-margin overlay labels (VWAP / MA). Normally the far
   // right margin, but in the overnight view the line ends at the last
@@ -658,23 +649,13 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                 ? (isRatioRange ? headerPrice.toFixed(2) : fmtTickerPrice(headerPrice, ticker, sym))
                 : '—'
             }</span>
-          </div>
-          {/* Change on its OWN line below the price: the position's TOTAL
-              currency change (per-share change × shares held) then the %,
-              both at the same basis as pctNow. The amount is masked under
-              the privacy toggle (it reveals position size) and shows only
-              on the price ranges — a P/E / P/S delta isn't a "change
-              amount". In 1D the basis is the previous close (the vertical
-              CLOSE line) so it matches the scoreboard / heatmap DAY CHANGE,
-              whether or not extended hours is on. */}
-          <div className="modal-meta">
-            {isPriceAxis(rangeKey) && totalChange != null && (
-              <span className="mono" style={{ color: pcC(pctNow) }}>{
-                hideValues ? maskDigits(fmtMo(totalChange, { signed: true, symbol: sym }))
-                           : fmtMo(totalChange, { signed: true, symbol: sym })
-              }</span>
-            )}
             <span className="mono" style={{ color: pcC(pctNow) }}>{fmP(pctNow)}</span>
+            {/* In 1D the chart's % is anchored at the previous close (the
+                vertical CLOSE line) so it matches the scoreboard / heatmap's
+                DAY CHANGE. Make the basis explicit whether or not extended
+                hours is on — the label reads the same either way so the
+                ext-OFF case (most common during the trading day) doesn't
+                look like it had a different reference point. */}
             {rangeKey === '1D' && (
               <span className="mono dim" style={{ fontSize: 10 }}>(since previous close)</span>
             )}
