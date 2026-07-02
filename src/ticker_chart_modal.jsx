@@ -8,7 +8,7 @@ import { Modal } from './modals.jsx';
 import { usMarketHoursUtc, isWeekendDeadZone } from './market_hours.js';
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits } from './formatters.js';
-import { RANGES, RANGE_KEYS, windowSinceLastUsClose } from './ytd.js';
+import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h } from './ytd.js';
 import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly, isCrypto } from './ticker_class.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
@@ -89,12 +89,22 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const mh = usMarketHoursUtc(new Date());
 
   // Crypto 1D window: BTC trades 24/7, but the user wants it to read like a
-  // US stock — ext OFF shows "from the last 16:00-ET close to now", ext ON
-  // shows the full 24 h (the hook keeps the trailing 24 h for crypto 1D so
-  // there's always enough to slice). Recomputed on every render, so the
-  // toggle changes the window immediately without a refetch.
-  const windowedSeries = (isCrypto(ticker) && rangeKey === '1D' && !extendedHours && Array.isArray(series))
-    ? windowSinceLastUsClose(series, mh)
+  // US stock. Three cases, all sliced from the ~60 h the hook keeps for
+  // crypto 1D so the toggle/phase changes the window with no refetch:
+  //   - ext ON               → rolling 24 h (filterToLast24h)
+  //   - ext OFF, market OPEN  → since the last 16:00-ET close to now
+  //                             (windowSinceLastUsClose)
+  //   - ext OFF, market CLOSED (pre / after / overnight) → the last
+  //     COMPLETE close-to-close day (windowBetweenLastTwoUsCloses): from the
+  //     previous US close through the most recent one, ENDING at that close
+  //     — like a US stock's 1D after hours, it stops at the close and hides
+  //     the current overnight move, rather than trailing to "now".
+  const windowedSeries = (isCrypto(ticker) && rangeKey === '1D' && Array.isArray(series))
+    ? (extendedHours
+        ? filterToLast24h(series)
+        : (phase === 'regular'
+            ? windowSinceLastUsClose(series, mh)
+            : windowBetweenLastTwoUsCloses(series, mh)))
     : series;
 
   // Yahoo series with the recorded overnight points spliced in (when

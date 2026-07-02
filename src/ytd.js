@@ -101,25 +101,43 @@ export function maFetchParamsFor(rangeKey, dailyOnly = false) {
 }
 
 /**
- * For the "1D regular" variant the fetch returns up to 5 trading days
- * worth of bars; we only want the last 24 hours so the chart matches
- * the user's "past 24 hours" expectation. Bars are tagged with their
- * UTC timestamp string ("YYYY-MM-DDTHH:MM"); without the trailing Z
- * `new Date()` would parse them as local, so append it explicitly.
+ * Keep only the bars within the trailing `hours` window. Generalises
+ * `filterToLast24h` — crypto 1D keeps a wider (multi-day) window so the
+ * modal can slice a full close-to-close day for the ext-OFF market-closed
+ * view (windowBetweenLastTwoUsCloses) while ext ON still trims to 24 h.
+ * Bars are tagged with a UTC timestamp string ("YYYY-MM-DDTHH:MM");
+ * without the trailing Z `new Date()` would parse them as local, so append
+ * it explicitly.
+ * @template {{date:string}} T
+ * @param {T[]} points
+ * @param {number} hours
+ * @returns {T[]}
  */
-export function filterToLast24h(points) {
+export function filterToLastHours(points, hours) {
   if (!Array.isArray(points) || points.length === 0) return points;
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - hours * 60 * 60 * 1000;
   const out = points.filter(p => {
     const isUtcIso = typeof p.date === 'string' && p.date.length === 16 && p.date[10] === 'T';
     const t = new Date(p.date + (isUtcIso ? 'Z' : '')).getTime();
     return Number.isFinite(t) && t >= cutoff;
   });
   // Defensive: if the filter wiped everything (e.g. clock skew or all
-  // bars older than 24 h because the market was closed for a long
+  // bars older than the window because the market was closed for a long
   // weekend), fall back to the most recent calendar day so the chart
   // still has data to draw rather than going blank.
   return out.length >= 2 ? out : filterToLatestDay(points);
+}
+
+/**
+ * For the "1D regular" variant the fetch returns up to 5 trading days
+ * worth of bars; we only want the last 24 hours so the chart matches
+ * the user's "past 24 hours" expectation.
+ * @template {{date:string}} T
+ * @param {T[]} points
+ * @returns {T[]}
+ */
+export function filterToLast24h(points) {
+  return filterToLastHours(points, 24);
 }
 
 /**
@@ -156,6 +174,42 @@ export function windowSinceLastUsClose(points, mh) {
     const mm = parseInt(d.slice(14, 16), 10);
     if (hh === mh.closeHh && mm === mh.closeMm) return points.slice(i);
   }
+  return points;
+}
+
+/**
+ * BTC-style US-session window for a 24/7 crypto's 1D chart when the
+ * Extended Hours toggle is OFF **and the US market is closed** (pre-market
+ * / after-hours / overnight): show the last COMPLETE close-to-close trading
+ * day — from the previous US regular close (16:00 ET) through the most
+ * recent one, ending AT that close, NOT at "now". So, like a US stock's 1D
+ * after hours, the chart stops at the regular close and hides the current
+ * extended-hours / overnight move (which is exactly what "ext hours on's
+ * start time" — the moment the current after-hours session began — marks).
+ * Crypto trades straight through the close so both close bars exist; the
+ * data hook keeps enough trailing history (see `applyChartWindow`) for the
+ * previous close to be present. `mh.closeHh:closeMm` are UTC, DST-aware.
+ * Fallbacks: one close bar → start→that close (still ends at a close);
+ * none (holiday / gap / no mh / empty) → the input unchanged.
+ * @template {{date:string}} T
+ * @param {T[]|null} points
+ * @param {{closeHh:number, closeMm:number}|null} mh
+ * @returns {T[]|null}
+ */
+export function windowBetweenLastTwoUsCloses(points, mh) {
+  if (!Array.isArray(points) || points.length === 0 || !mh) return points;
+  /** @type {number[]} */
+  const closeIdxs = [];
+  for (let i = points.length - 1; i >= 0 && closeIdxs.length < 2; i--) {
+    const d = points[i] && points[i].date;
+    if (typeof d !== 'string' || d.length < 16 || d[10] !== 'T') continue;
+    const hh = parseInt(d.slice(11, 13), 10);
+    const mm = parseInt(d.slice(14, 16), 10);
+    if (hh === mh.closeHh && mm === mh.closeMm) closeIdxs.push(i);
+  }
+  // Scanned back-to-front: closeIdxs = [lastCloseIdx, prevCloseIdx].
+  if (closeIdxs.length === 2) return points.slice(closeIdxs[1], closeIdxs[0] + 1);
+  if (closeIdxs.length === 1) return points.slice(0, closeIdxs[0] + 1);
   return points;
 }
 

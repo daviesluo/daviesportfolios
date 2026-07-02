@@ -6,7 +6,8 @@ import { describe, it, expect } from 'vitest';
 import {
   buildTickerSeries, closeOn, lotsFor, computeAt, ytdPct,
   fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS,
-  applyVariantFilter, windowSinceLastUsClose,
+  applyVariantFilter, windowSinceLastUsClose, windowBetweenLastTwoUsCloses,
+  filterToLastHours, filterToLast24h,
 } from './ytd.js';
 
 const yearStart      = '2026-01-01';
@@ -559,7 +560,7 @@ describe('applyVariantFilter', () => {
   });
 });
 
-describe('windowSinceLastUsClose (crypto 1D ext-off window)', () => {
+describe('windowSinceLastUsClose (crypto 1D ext-off, market-OPEN window)', () => {
   const mh = { closeHh: 20, closeMm: 0 }; // 16:00 EDT = 20:00 UTC
 
   it('slices from the most recent 16:00-ET (20:00 UTC) close bar to the end', () => {
@@ -592,5 +593,73 @@ describe('windowSinceLastUsClose (crypto 1D ext-off window)', () => {
     expect(windowSinceLastUsClose(pts, mh)).toBe(pts);   // no 20:00 bar
     expect(windowSinceLastUsClose(pts, null)).toBe(pts);
     expect(windowSinceLastUsClose([], mh)).toEqual([]);
+  });
+});
+
+describe('windowBetweenLastTwoUsCloses (crypto 1D ext-off, market-CLOSED window)', () => {
+  const mh = { closeHh: 20, closeMm: 0 }; // 16:00 EDT = 20:00 UTC
+
+  it('slices the last COMPLETE close-to-close day (prev close → last close, inclusive)', () => {
+    const pts = [
+      { date: '2026-06-14T20:00', close: 1 },   // older close (ignored)
+      { date: '2026-06-15T14:00', close: 2 },
+      { date: '2026-06-15T20:00', close: 3 },   // ← prev close (window start)
+      { date: '2026-06-15T22:00', close: 4 },   // overnight inside the day
+      { date: '2026-06-16T14:00', close: 5 },
+      { date: '2026-06-16T20:00', close: 6 },   // ← last close (window end)
+      { date: '2026-06-16T22:00', close: 7 },   // after the last close (dropped)
+    ];
+    expect((windowBetweenLastTwoUsCloses(pts, mh) || []).map((p) => p.date))
+      .toEqual([
+        '2026-06-15T20:00',
+        '2026-06-15T22:00',
+        '2026-06-16T14:00',
+        '2026-06-16T20:00',
+      ]);
+  });
+
+  it('ends AT the last close — bars after it are dropped (ext-off hides the overnight move)', () => {
+    const pts = [
+      { date: '2026-06-15T20:00', close: 1 },   // prev close
+      { date: '2026-06-16T20:00', close: 2 },   // last close
+      { date: '2026-06-16T23:00', close: 3 },   // overnight after the last close
+    ];
+    expect((windowBetweenLastTwoUsCloses(pts, mh) || []).map((p) => p.date))
+      .toEqual(['2026-06-15T20:00', '2026-06-16T20:00']);
+  });
+
+  it('falls back to start→close when only one close bar is present', () => {
+    const pts = [
+      { date: '2026-06-16T14:00', close: 1 },
+      { date: '2026-06-16T20:00', close: 2 },   // the only close
+      { date: '2026-06-16T22:00', close: 3 },   // dropped (after the close)
+    ];
+    expect((windowBetweenLastTwoUsCloses(pts, mh) || []).map((p) => p.date))
+      .toEqual(['2026-06-16T14:00', '2026-06-16T20:00']);
+  });
+
+  it('returns the input unchanged with no close bar / no mh / empty', () => {
+    const pts = [{ date: '2026-06-15T19:55', close: 1 }, { date: '2026-06-15T21:05', close: 2 }];
+    expect(windowBetweenLastTwoUsCloses(pts, mh)).toBe(pts);
+    expect(windowBetweenLastTwoUsCloses(pts, null)).toBe(pts);
+    expect(windowBetweenLastTwoUsCloses([], mh)).toEqual([]);
+  });
+});
+
+describe('filterToLastHours', () => {
+  it('keeps only bars inside the trailing window; filterToLast24h is the 24 h case', () => {
+    const now = Date.now();
+    const iso = (hAgo) => new Date(now - hAgo * 3600 * 1000).toISOString().slice(0, 16);
+    const pts = [
+      { date: iso(50), close: 1 },  // 50 h old
+      { date: iso(40), close: 2 },  // 40 h old
+      { date: iso(2),  close: 3 },  // 2 h old
+      { date: iso(1),  close: 4 },  // 1 h old
+    ];
+    // 48 h window keeps 40/2/1 h, drops the 50 h bar.
+    expect(filterToLastHours(pts, 48).map((p) => p.close)).toEqual([2, 3, 4]);
+    // 24 h delegates identically to filterToLast24h (keeps only 2/1 h).
+    expect(filterToLast24h(pts)).toEqual(filterToLastHours(pts, 24));
+    expect(filterToLast24h(pts).map((p) => p.close)).toEqual([3, 4]);
   });
 });
