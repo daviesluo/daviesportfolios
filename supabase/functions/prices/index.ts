@@ -104,6 +104,64 @@ export function pctChange(curr: number, prev: number): number {
   return prev > 0 ? ((curr - prev) / prev) * 100 : 0;
 }
 
+// Crypto (BTC-USD, ETH-USD, …) trades 24/7 in UTC, but the app anchors its
+// day change to the US equity session (the 16:00 ET close) so it reads
+// exactly like a US stock. Yahoo's crypto gmtoffset is UTC and its
+// regularMarketPreviousClose is a midnight-UTC boundary — neither is the
+// US close — so for these we recompute the anchors against US ET hours
+// from the intraday candles (cryptoUsSessionQuote below).
+const CRYPTO_RE = /-USD$/i;
+
+/**
+ * America/New_York UTC offset in seconds for `nowMs`, DST-aware
+ * (−14400 EDT / −18000 EST). Crypto has no native exchange tz, so we
+ * derive the US-session offset here rather than trusting Yahoo's gmtoffset
+ * (which is UTC for crypto). Exported for tests.
+ */
+export function etOffsetSec(nowMs: number): number {
+  const name = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    timeZoneName: "longOffset",
+  }).formatToParts(nowMs).find((p) => p.type === "timeZoneName")?.value ?? "GMT-05:00";
+  const m = /GMT([+-])(\d{1,2})(?::(\d{2}))?/.exec(name);
+  if (!m) return -5 * 3600;
+  const sign = m[1] === "-" ? -1 : 1;
+  return sign * (parseInt(m[2], 10) * 3600 + parseInt(m[3] ?? "0", 10) * 60);
+}
+
+/**
+ * US-session-anchored quote fields for a 24/7 crypto symbol, derived from
+ * its intraday candles so it reads exactly like a US stock:
+ *   - prevClose = the previous US regular close (16:00 ET of an earlier
+ *                 day) — `rthSessionCloses().prev`.
+ *   - lastPrice = today's 16:00 ET close once the US session is over
+ *                 (`rthSessionCloses().last`, frozen like a stock's
+ *                 regularMarketPrice after the close); the live price while
+ *                 US RTH is in progress (a stock is live intraday too).
+ *   - extPrice  = the live 24/7 price while OUTSIDE US RTH (the "after-
+ *                 hours / overnight" quote); null during RTH (ignored then
+ *                 anyway — the client only trusts extPrice off-session).
+ * Falls back to `regularMarketPrice` / `prevCloseMeta` when no in-session
+ * candle is available (e.g. a US holiday). Pure — exported for tests.
+ */
+export function cryptoUsSessionQuote(
+  timestamps: number[],
+  closes: (number | null)[],
+  regularMarketPrice: number,
+  prevCloseMeta: number,
+  nowSec: number,
+  etOff: number,
+): { lastPrice: number; extPrice: number | null; prevClose: number } {
+  const { last, prev } = rthSessionCloses(timestamps, closes, etOff);
+  const afterClose = isOutsideRth(localMinOfDay(nowSec, etOff));
+  const prevClose = (prev != null && prev > 0) ? prev : prevCloseMeta;
+  const lastPrice = afterClose
+    ? ((last != null && last > 0) ? last : regularMarketPrice)
+    : regularMarketPrice;
+  const extPrice = afterClose ? regularMarketPrice : null;
+  return { lastPrice, extPrice, prevClose };
+}
+
 type PriceResult = {
   lastPrice: number;
   extPrice: number | null;
@@ -126,9 +184,13 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
   // reach. Everything else (crypto included) uses the standard 1-day window
   // and is anchored at Yahoo's regularMarketPreviousClose.
   const isOtcAdr = OTC_ADR_BOGUS_QUOTE.has(symbol);
+  // Crypto needs the 2-day window too: its day change is re-anchored to the
+  // US session (cryptoUsSessionQuote), so prevClose comes from the PREVIOUS
+  // day's 16:00-ET candle — unreachable in a 1-day fetch.
+  const isCryptoSym = CRYPTO_RE.test(symbol);
   const url =
     `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
-    `?interval=5m&range=${isOtcAdr ? "2d" : "1d"}&includePrePost=true&_=${nonce}`;
+    `?interval=5m&range=${(isOtcAdr || isCryptoSym) ? "2d" : "1d"}&includePrePost=true&_=${nonce}`;
 
   try {
     const res = await fetch(url, {
@@ -187,6 +249,24 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
       if (prev != null && prev > 0) prevClose = prev / penceFactor;
     }
 
+    // Crypto: re-anchor to the US session so BTC-USD reads exactly like a
+    // US stock — prevClose = the previous 16:00-ET close, lastPrice =
+    // today's 16:00-ET close once the session's over (live during RTH),
+    // extPrice = the live 24/7 price while off-session. See
+    // cryptoUsSessionQuote. USD-quoted, so penceFactor is 1. `cryptoExt`
+    // feeds the extPrice slot below (the generic outside-RTH scan is
+    // skipped for crypto — it would use Yahoo's UTC gmtoffset, wrong tz).
+    let cryptoExt: number | null = null;
+    if (isCryptoSym) {
+      const q = cryptoUsSessionQuote(
+        timestamps, closes, meta.regularMarketPrice, prevClose,
+        Math.floor(Date.now() / 1000), etOffsetSec(Date.now()),
+      );
+      lastPrice = q.lastPrice;
+      prevClose = q.prevClose;
+      cryptoExt = q.extPrice;
+    }
+
     // Walk backwards to find the most recent candle that sits outside regular
     // market hours — that is the current extended-hours price.
     //
@@ -204,7 +284,12 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
     // and their post-RTH candle is the same bogus open value, so extPrice
     // stays null rather than a stale fake quote.
     let extPrice: number | null = null;
-    if (!symbol.includes(".") && !isOtcAdr) {
+    if (isCryptoSym) {
+      // Crypto's ext quote is the live off-session price (from
+      // cryptoUsSessionQuote), keyed to US hours — not the generic scan,
+      // which reads Yahoo's UTC gmtoffset and would mis-bucket the candles.
+      extPrice = cryptoExt;
+    } else if (!symbol.includes(".") && !isOtcAdr) {
       for (let i = timestamps.length - 1; i >= 0; i--) {
         const close = closes[i];
         if (close == null) continue;
