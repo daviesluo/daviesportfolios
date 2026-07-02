@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import {
   buildTickerSeries, closeOn, lotsFor, computeAt, ytdPct,
   fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS,
-  applyVariantFilter,
+  applyVariantFilter, windowSinceLastUsClose,
 } from './ytd.js';
 
 const yearStart      = '2026-01-01';
@@ -556,5 +556,41 @@ describe('applyVariantFilter', () => {
   it('falsy data passes straight through (no per-caller guard needed)', () => {
     expect(applyVariantFilter(null, 'closed')).toBeNull();
     expect(applyVariantFilter(undefined, 'reg')).toBeUndefined();
+  });
+});
+
+describe('windowSinceLastUsClose (crypto 1D ext-off window)', () => {
+  const mh = { closeHh: 20, closeMm: 0 }; // 16:00 EDT = 20:00 UTC
+
+  it('slices from the most recent 16:00-ET (20:00 UTC) close bar to the end', () => {
+    const pts = [
+      { date: '2026-06-15T18:00', close: 1 },   // before the close (dropped)
+      { date: '2026-06-15T20:00', close: 2 },   // ← the close bar
+      { date: '2026-06-15T22:00', close: 3 },   // after-hours
+      { date: '2026-06-16T01:00', close: 4 },   // overnight
+    ];
+    expect(windowSinceLastUsClose(pts, mh)).toEqual([
+      { date: '2026-06-15T20:00', close: 2 },
+      { date: '2026-06-15T22:00', close: 3 },
+      { date: '2026-06-16T01:00', close: 4 },
+    ]);
+  });
+
+  it('picks the LATEST close bar when two sessions are present', () => {
+    const pts = [
+      { date: '2026-06-15T20:00', close: 1 },   // prev close
+      { date: '2026-06-16T14:00', close: 2 },
+      { date: '2026-06-16T20:00', close: 3 },   // ← latest close bar
+      { date: '2026-06-16T22:00', close: 4 },
+    ];
+    expect((windowSinceLastUsClose(pts, mh) || []).map((p) => p.date))
+      .toEqual(['2026-06-16T20:00', '2026-06-16T22:00']);
+  });
+
+  it('returns the input unchanged when there is no exact-close bar / no mh / empty', () => {
+    const pts = [{ date: '2026-06-15T19:55', close: 1 }, { date: '2026-06-15T20:05', close: 2 }];
+    expect(windowSinceLastUsClose(pts, mh)).toBe(pts);   // no 20:00 bar
+    expect(windowSinceLastUsClose(pts, null)).toBe(pts);
+    expect(windowSinceLastUsClose([], mh)).toEqual([]);
   });
 });

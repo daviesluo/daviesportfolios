@@ -133,6 +133,32 @@ export function filterToLatestDay(points) {
   return points.filter(p => p.date.startsWith(lastDate));
 }
 
+/**
+ * BTC-style US-session window for a 24/7 crypto's 1D chart when the
+ * Extended Hours toggle is OFF: keep bars from the most recent US regular
+ * close (the last bar at `mh.closeHh:mh.closeMm` UTC = 16:00 ET) through
+ * the end, so the chart runs "from the previous US close to now" like a US
+ * stock's 1D instead of a rolling 24 h. Crypto trades straight through the
+ * close so the series has a bar there; falls back to the input unchanged
+ * when no exact-close bar is present (holiday / gap). `mh` =
+ * `usMarketHoursUtc()` (its closeHh/closeMm are UTC, DST-aware).
+ * @template {{date:string}} T
+ * @param {T[]|null} points
+ * @param {{closeHh:number, closeMm:number}|null} mh
+ * @returns {T[]|null}
+ */
+export function windowSinceLastUsClose(points, mh) {
+  if (!Array.isArray(points) || points.length === 0 || !mh) return points;
+  for (let i = points.length - 1; i >= 0; i--) {
+    const d = points[i] && points[i].date;
+    if (typeof d !== 'string' || d.length < 16 || d[10] !== 'T') continue;
+    const hh = parseInt(d.slice(11, 13), 10);
+    const mm = parseInt(d.slice(14, 16), 10);
+    if (hh === mh.closeHh && mm === mh.closeMm) return points.slice(i);
+  }
+  return points;
+}
+
 // Apply the 1D fetch-variant's display window to a fetched series:
 //   'closed' → trim to the latest available trading day
 //   'reg' / 'ext' → trim to the trailing 24 h
