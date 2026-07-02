@@ -26,9 +26,9 @@
 
 import { fetchHistoricalBatch } from './historical.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
-import { fetchParamsFor, maFetchParamsFor, applyVariantFilter, RANGE_KEYS } from './ytd.js';
+import { fetchParamsFor, maFetchParamsFor, applyVariantFilter, filterToLastHours, RANGE_KEYS } from './ytd.js';
 import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh, hasAnyNumericField } from './cache.js';
-import { isDailyOnly } from './ticker_class.js';
+import { isDailyOnly, isCrypto } from './ticker_class.js';
 import { priceDividedByTtmEps } from './indicators.js';
 import { ChartStore, MaStore, YtdStore, hydrateAllChartStores, pruneAllChartStores } from './chart_store.js';
 
@@ -185,7 +185,14 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     }
     for (const t of modalSymbols) {
       let data = batch[t];
-      data = applyVariantFilter(data, meta.params.variant);
+      // Crypto 1D keeps the trailing ~60 h of raw bars (mirrors
+      // use_ticker_chart_data's applyChartWindow) so the modal's US-session
+      // slice — ext OFF + market closed → windowBetweenLastTwoUsCloses —
+      // has the previous US close. The generic 'closed' variant would trim
+      // a 24/7 asset to the UTC calendar day and strip it before first open.
+      data = (meta.rk === '1D' && isCrypto(t) && Array.isArray(data))
+        ? filterToLastHours(data, 60)
+        : applyVariantFilter(data, meta.params.variant);
       if (data && data.length >= 2) {
         ChartStore.set(meta.tickerKey(t), { ts: now, data });
       }
