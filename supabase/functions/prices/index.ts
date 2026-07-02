@@ -184,13 +184,16 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
   // reach. Everything else (crypto included) uses the standard 1-day window
   // and is anchored at Yahoo's regularMarketPreviousClose.
   const isOtcAdr = OTC_ADR_BOGUS_QUOTE.has(symbol);
-  // Crypto needs the 2-day window too: its day change is re-anchored to the
-  // US session (cryptoUsSessionQuote), so prevClose comes from the PREVIOUS
-  // day's 16:00-ET candle — unreachable in a 1-day fetch.
+  // Crypto is re-anchored to the US session (cryptoUsSessionQuote), so its
+  // prevClose comes from the PREVIOUS day's 16:00-ET candle. Yahoo's `range`
+  // counts whole UTC calendar days (a "2d" fetch late in the UTC day reaches
+  // back only ~27 h — from 00:00 UTC of yesterday — which misses the prior
+  // day's 16:00-ET close and leaves prevClose falling back to the bogus
+  // midnight-UTC meta value). 3d guarantees two US closes are in range.
   const isCryptoSym = CRYPTO_RE.test(symbol);
   const url =
     `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
-    `?interval=5m&range=${(isOtcAdr || isCryptoSym) ? "2d" : "1d"}&includePrePost=true&_=${nonce}`;
+    `?interval=5m&range=${isCryptoSym ? "3d" : (isOtcAdr ? "2d" : "1d")}&includePrePost=true&_=${nonce}`;
 
   try {
     const res = await fetch(url, {
