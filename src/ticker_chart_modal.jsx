@@ -25,6 +25,7 @@ import {
 import { useTickerFundamentals } from './use_ticker_fundamentals.js';
 import { useTickerChartData } from './use_ticker_chart_data.js';
 import { ScreenshotActions } from './screenshot_actions.jsx';
+import { COMPANY_NAMES } from './holdings_list.jsx';
 
 // Ticker classification predicates moved to `src/ticker_class.js` so
 // the modal, prefetch, header_sidebar, etc. all share one definition
@@ -648,6 +649,17 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               ? <>{TICKER_DISPLAY_NAMES[ticker]} <span className="dim" style={{ fontSize: '0.7em' }}>{ticker}</span></>
               : ticker}
           </h2>
+          {/* Company full name — same static map as the holdings
+              list's secondary line (COMPANY_NAMES in holdings_list),
+              so the modal and the table can't drift. Own row above
+              Mkt Cap; absent for tickers not in the map (MC indices /
+              futures / FX already show a friendly TICKER_DISPLAY_NAMES
+              title instead). */}
+          {COMPANY_NAMES[ticker] && (
+            <div className="modal-meta">
+              <span className="mono dim">{COMPANY_NAMES[ticker]}</span>
+            </div>
+          )}
           {/* Live market cap (live price × shares outstanding) — sits
               on its own row ABOVE the Last-price line so the eyebrow
               reads "Mkt Cap $X.YT \n Last $price …". Stocks only:
