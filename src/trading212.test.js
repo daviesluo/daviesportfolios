@@ -38,11 +38,11 @@ describe('applyTrading212', () => {
       'VUAA.L': { shares: 12.3, cost: 105.5 },
       'SAEM.L': { shares: 150,  cost: 11.67 },
     };
-    const out = applyTrading212(holdings, t212, '2026-05-15');
+    const out = applyTrading212(holdings, t212, undefined, '2026-05-15');
     expect(out['VUAA.L'].lots).toEqual([{ date: '2026-05-15', shares: 12.3, cost: 105.5 }]);
     expect(out['VUAA.L'].shares).toBe(12.3);
     expect(out['VUAA.L'].cost).toBe(105.5);
-    // Non-T212-managed fields stay untouched.
+    // No prices map passed → price fields stay untouched.
     expect(out['VUAA.L'].currency).toBe('USD');
     expect(out['VUAA.L'].lastPrice).toBe(110);
     expect(out['SAEM.L'].lots).toEqual([{ date: '2026-05-15', shares: 150, cost: 11.67 }]);
@@ -63,12 +63,12 @@ describe('applyTrading212', () => {
   it('T212 ticker not in holdings → ignored (no phantom holdings created)', () => {
     const holdings = { 'NVDA': { lots: [], shares: 0, cost: 0 } };
     const t212 = { 'VUAA.L': { shares: 5, cost: 100 } };
-    applyTrading212(holdings, t212, '2026-05-15');
+    applyTrading212(holdings, t212, undefined, '2026-05-15');
     expect(holdings['VUAA.L']).toBeUndefined();
     expect(holdings['NVDA']).toEqual({ lots: [], shares: 0, cost: 0 });
   });
 
-  it('does NOT touch price fields (price is the night-overlay function\'s job)', () => {
+  it('no prices map → price fields untouched (shares/cost only)', () => {
     const holdings = {
       'VUAA.L': {
         lastPrice: 100, prevClose: 98, dayPct: 2.04, extPrice: null,
@@ -76,11 +76,42 @@ describe('applyTrading212', () => {
       },
     };
     const t212 = { 'VUAA.L': { shares: 6, cost: 95 } };
-    const out = applyTrading212(holdings, t212, '2026-05-21');
+    const out = applyTrading212(holdings, t212, undefined, '2026-05-21');
     expect(out['VUAA.L'].lastPrice).toBe(100);          // untouched
     expect(out['VUAA.L'].dayPct).toBeCloseTo(2.04, 6);  // untouched
     expect(out['VUAA.L'].shares).toBe(6);               // shares/cost synced
     expect(out['VUAA.L'].cost).toBe(95);
+  });
+
+  it('with a prices map → uses the T212 quote as lastPrice + recomputes dayPct vs prevClose (USD)', () => {
+    const holdings = {
+      'VUAA.L': {
+        lastPrice: 144.46,   // stale Yahoo close
+        prevClose: 144.46,   // yesterday's close (USD)
+        dayPct: 0, extPrice: null, currency: 'USD',
+        lots: [{ date: '2024-01-01', shares: 5, cost: 90 }], shares: 5, cost: 90,
+      },
+    };
+    const t212   = { 'VUAA.L': { shares: 6, cost: 95 } };
+    const prices = { 'VUAA.L': 145.08 };   // broker's live quote
+    const out = applyTrading212(holdings, t212, prices, '2026-07-02');
+    expect(out['VUAA.L'].lastPrice).toBe(145.08);           // T212 quote wins
+    expect(out['VUAA.L'].currency).toBe('USD');             // pinned USD
+    expect(out['VUAA.L'].dayPct).toBeCloseTo(0.4292, 3);    // (145.08-144.46)/144.46*100
+    expect(out['VUAA.L'].shares).toBe(6);                   // shares/cost still synced
+    expect(out['VUAA.L'].cost).toBe(95);
+  });
+
+  it('prices map without an entry for the ticker → that ticker keeps its Yahoo price', () => {
+    const holdings = {
+      'VUAA.L': { lastPrice: 110, prevClose: 108, dayPct: 1.85, currency: 'USD',
+        lots: [{ date: '2024-01-01', shares: 5, cost: 90 }], shares: 5, cost: 90 },
+    };
+    const t212   = { 'VUAA.L': { shares: 6, cost: 95 } };
+    const prices = { 'SAEM.L': 10.6 };   // no VUAA.L quote this tick
+    const out = applyTrading212(holdings, t212, prices, '2026-07-02');
+    expect(out['VUAA.L'].lastPrice).toBe(110);             // untouched (Yahoo fallback)
+    expect(out['VUAA.L'].dayPct).toBeCloseTo(1.85, 6);
   });
 });
 

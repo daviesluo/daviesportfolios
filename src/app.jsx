@@ -561,11 +561,8 @@ function Board({ isReadOnly }) {
     setPortfolio(prev => {
       if (!prev) return prev;
       const next = { ...prev, holdings: { ...prev.holdings } };
-      const flashes = {};
       for (const [t, u] of Object.entries(updates)) {
         if (!next.holdings[t]) continue;
-        const old = next.holdings[t].lastPrice;
-        const oldExt = next.holdings[t].extPrice ?? null;
         // Respect the Edge response's `extPrice` verbatim — including
         // an explicit null. The previous `?? prev` fallback was
         // intended for the case where a refresh tick briefly omitted
@@ -601,25 +598,17 @@ function Board({ isReadOnly }) {
           // already stored (from detectCurrency at add time).
           currency: u.currency ?? next.holdings[t].currency,
         };
-        const newExt = u.extPrice ?? null;
-        const priceChanged = Math.abs(u.lastPrice - old) > 0.0001;
-        const extChanged = newExt != null && oldExt != null && Math.abs(newExt - oldExt) > 0.0001;
-        if (priceChanged || extChanged) {
-          const newRef = newExt ?? u.lastPrice;
-          const oldRef = oldExt ?? old;
-          flashes[t] = newRef > oldRef ? "up" : "down";
-        }
-      }
-      if (Object.keys(flashes).length) {
-        setFlashTickers(flashes);
-        if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
-        flashTimerRef.current = setTimeout(() => setFlashTickers({}), 1200);
       }
       // Trading 212 overlays — both run AFTER the live-prices merge so
       // they see the Yahoo lastPrice/prevClose just set.
       //   1. Holdings auto-sync: shares/cost/lots for the allow-list
-      //      ETFs (VUAA.L, SAEM.L). Price untouched — these LSE ETFs
-      //      keep the Yahoo quote.
+      //      ETFs (VUAA.L, SAEM.L) — AND their regular-session price.
+      //      These LSE ETFs sit on Yahoo's ~15-20 min-delayed free feed
+      //      (stale right after the 08:00 UK open), so we take the
+      //      broker's own live `currentPrice` (USD) as lastPrice, in
+      //      lockstep with the shares, on every refresh. dayPct is
+      //      recomputed against the just-set Yahoo prevClose so the tile
+      //      % stays consistent.
       //   2. Overnight price: only during the overnight window
       //      (20:00–04:00 ET) with the Extended Hours toggle on, swap
       //      in T212's `currentPrice` as the extended-hours quote for
@@ -627,7 +616,7 @@ function Board({ isReadOnly }) {
       //      after-hours keep the original Yahoo logic untouched.
       // When the API key isn't set or the upstream errored,
       // t212Holdings is null → both calls no-op.
-      applyTrading212(next.holdings, t212Holdings?.holdings);
+      applyTrading212(next.holdings, t212Holdings?.holdings, t212Holdings?.prices);
       // Apply T212's overnight price into holdings.extPrice whenever
       // it's the overnight window — NOT gated on the Extended Hours
       // toggle. Mirrors the Yahoo extPrice / extSeries fetch above
@@ -651,6 +640,36 @@ function Board({ isReadOnly }) {
       // 20:00 ET reopen.
       const nightActive = refreshPhase === 'overnight' && !isWeekendDeadZone(new Date());
       applyTrading212NightPrice(next.holdings, t212Holdings?.prices, nightActive);
+      // Up/down flash — computed AFTER all overlays (Yahoo merge + both
+      // T212 overlays) so a T212-priced allow-list ETF flashes on its real
+      // broker-price move, not the spurious Yahoo-vs-T212 gap that comparing
+      // against the in-loop Yahoo value would flash on every tick (Yahoo's
+      // stale LSE quote ≠ the T212 lastPrice we store). Compares the
+      // pre-refresh holding (prev) against the final one (next); ext price
+      // wins as the reference when present (overnight US names), else
+      // lastPrice. Untouched holdings share the prev ref → skipped.
+      const flashes = {};
+      for (const t of Object.keys(next.holdings)) {
+        const oldH = prev.holdings[t];
+        const newH = next.holdings[t];
+        if (!oldH || !newH || oldH === newH) continue;
+        const old = oldH.lastPrice;
+        const oldExt = oldH.extPrice ?? null;
+        const nw = newH.lastPrice;
+        const newExt = newH.extPrice ?? null;
+        const priceChanged = typeof nw === 'number' && typeof old === 'number' && Math.abs(nw - old) > 0.0001;
+        const extChanged = newExt != null && oldExt != null && Math.abs(newExt - oldExt) > 0.0001;
+        if (priceChanged || extChanged) {
+          const newRef = newExt ?? nw;
+          const oldRef = oldExt ?? old;
+          flashes[t] = newRef > oldRef ? "up" : "down";
+        }
+      }
+      if (Object.keys(flashes).length) {
+        setFlashTickers(flashes);
+        if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+        flashTimerRef.current = setTimeout(() => setFlashTickers({}), 1200);
+      }
       return next;
     });
     // Make sure the overnight cache write has landed before we mark

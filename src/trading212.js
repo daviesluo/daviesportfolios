@@ -7,9 +7,13 @@
 //     via T212's cashback + Spare-Change auto-invest, both settling in
 //     USD; previously VUAG.L / SEGM.L). Without it the user would have
 //     to type every small buy into EditTickerModal.
-//   - `prices`: the broker's live `currentPrice` for EVERY recognised
-//     T212 holding, used as overnight ("night market") quotes for US
-//     equities the user also holds (see applyTrading212NightPrice).
+//   - `prices`: the broker's live `currentPrice` (USD) for EVERY
+//     recognised T212 holding. Two uses: (a) the regular-session
+//     `lastPrice` for the allow-list LSE ETFs (see applyTrading212 —
+//     Yahoo's free LSE feed lags ~15-20 min at the open, so the broker's
+//     own quote is fresher and already in the right currency), and (b)
+//     overnight ("night market") quotes for US equities the user also
+//     holds (see applyTrading212NightPrice).
 //
 // The Edge Function does the rate-limited upstream call with 30 s
 // caching + an atomic Postgres claim that lets only one worker per
@@ -92,31 +96,54 @@ export async function fetchTrading212Holdings() {
 }
 
 /**
- * Merge the T212 allow-list holdings into an existing `holdings` object
- * by replacing each matching ticker's lots with a single synthetic lot
- * dated today + setting shares/cost. Mutates `holdings` in place and
- * returns it. Only shares/cost/lots — never touches price (that's the
- * job of applyTrading212NightPrice, gated on the overnight window).
+ * Merge the T212 allow-list holdings into an existing `holdings` object:
+ * replace each matching ticker's lots with a single synthetic lot dated
+ * today, set shares/cost, AND — when a live T212 `currentPrice` is passed
+ * for that ticker — use it as `lastPrice` too (recomputing `dayPct` against
+ * the stored prevClose and pinning currency USD). The allow-list ETFs
+ * (VUAA.L / SAEM.L) are USD-settling and Yahoo's free LSE feed lags
+ * ~15-20 min at the open, so the broker's own quote is both fresher and
+ * already in USD — the user wants the price to update in lockstep with the
+ * shares on every refresh instead of sitting on a stale Yahoo print.
+ * (US-equity OVERNIGHT pricing stays with applyTrading212NightPrice, gated
+ * on the overnight window; this is the regular-session price for the LSE
+ * ETFs.) Mutates `holdings` in place and returns it.
  *
  * Pure-ish (Date.now-dependent for the date stamp), exported so the
  * vitest pin can assert the merge shape without spinning up React.
  *
  * @param {Record<string, any>} holdings  live portfolio map (mutated)
  * @param {Record<string, { shares: number, cost: number }> | null | undefined} t212Holdings  the `holdings` map from fetchTrading212Holdings
+ * @param {Record<string, number> | null | undefined} [prices]  the `prices` map (broker currentPrice, USD)
  * @param {string} [today]  ISO date (YYYY-MM-DD) — defaults to today UTC
  * @returns {Record<string, any>}
  */
-export function applyTrading212(holdings, t212Holdings, today) {
+export function applyTrading212(holdings, t212Holdings, prices, today) {
   if (!t212Holdings || !holdings) return holdings;
   const date = today || new Date().toISOString().slice(0, 10);
   for (const [t, row] of Object.entries(t212Holdings)) {
     if (!holdings[t]) continue;
-    holdings[t] = {
+    const merged = {
       ...holdings[t],
       lots: [{ date, shares: row.shares, cost: row.cost }],
       shares: row.shares,
       cost: row.cost,
     };
+    // Broker's live quote for the allow-list ETF (USD). Use it as the
+    // regular-session lastPrice so these LSE names don't sit on Yahoo's
+    // ~15-20 min-delayed feed. dayPct is recomputed against the stored
+    // prevClose (also USD, from the Yahoo merge that ran just before) so
+    // the per-ticker tile % agrees with the price; currency is pinned USD
+    // (the allow-list is USD-settling). Falls back to the Yahoo lastPrice
+    // when T212 has no live quote for the ticker.
+    const px = prices && prices[t];
+    if (typeof px === 'number' && px > 0) {
+      merged.lastPrice = px;
+      merged.currency = 'USD';
+      const pc = merged.prevClose;
+      if (typeof pc === 'number' && pc > 0) merged.dayPct = ((px - pc) / pc) * 100;
+    }
+    holdings[t] = merged;
   }
   return holdings;
 }
