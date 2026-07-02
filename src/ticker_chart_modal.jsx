@@ -8,8 +8,8 @@ import { Modal } from './modals.jsx';
 import { usMarketHoursUtc, isWeekendDeadZone } from './market_hours.js';
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits } from './formatters.js';
-import { RANGES, RANGE_KEYS } from './ytd.js';
-import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly } from './ticker_class.js';
+import { RANGES, RANGE_KEYS, windowSinceLastUsClose } from './ytd.js';
+import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly, isCrypto } from './ticker_class.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
@@ -88,6 +88,15 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // silently miss the close marker Nov–Mar.
   const mh = usMarketHoursUtc(new Date());
 
+  // Crypto 1D window: BTC trades 24/7, but the user wants it to read like a
+  // US stock — ext OFF shows "from the last 16:00-ET close to now", ext ON
+  // shows the full 24 h (the hook keeps the trailing 24 h for crypto 1D so
+  // there's always enough to slice). Recomputed on every render, so the
+  // toggle changes the window immediately without a refetch.
+  const windowedSeries = (isCrypto(ticker) && rangeKey === '1D' && !extendedHours && Array.isArray(series))
+    ? windowSinceLastUsClose(series, mh)
+    : series;
+
   // Yahoo series with the recorded overnight points spliced in (when
   // eligible — see mergeOvernightSeries). Gated on the ext toggle, not
   // the live overnight phase, so last night's curve stays drawn through
@@ -95,7 +104,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // overnight line to draw, so `hasOvernightLine` below is a cheap
   // reference check and the single-dot fallback path stays byte-identical.
   const displaySeries = React.useMemo(
-    () => mergeOvernightSeries(series, overnightPts, {
+    () => mergeOvernightSeries(windowedSeries, overnightPts, {
       rangeKey, extendedHours, ticker,
       // Match the recorded-point density to the chart's bar cadence
       // so 1W / 1M don't get visually swallowed by today's ~130
@@ -103,7 +112,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       // for 1D/1W/1M respectively; merge uses it to step-sample.
       barIntervalMs: NIGHT_BAR_INTERVAL_MS[rangeKey],
     }),
-    [series, overnightPts, rangeKey, extendedHours, ticker],
+    [windowedSeries, overnightPts, rangeKey, extendedHours, ticker],
   );
   const hasOvernightLine = displaySeries !== series;
 

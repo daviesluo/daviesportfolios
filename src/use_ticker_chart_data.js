@@ -16,12 +16,12 @@
 import React from 'react';
 import { fetchHistoricalBatch } from './historical.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
-import { fetchParamsFor, maFetchParamsFor, applyVariantFilter } from './ytd.js';
+import { fetchParamsFor, maFetchParamsFor, applyVariantFilter, filterToLast24h } from './ytd.js';
 import { MA_TTL_MS, tickerChartCacheKey } from './cache.js';
 import { ChartStore, MaStore } from './chart_store.js';
 import { priceDividedByTtmEps } from './indicators.js';
 import { getOvernightSeries, fetchOvernightSeries, OVERNIGHT_FETCH_EVENT } from './overnight_intraday.js';
-import { hasOvernightSession } from './ticker_class.js';
+import { hasOvernightSession, isCrypto } from './ticker_class.js';
 import { reportError } from './ops_error.js';
 import { modalTtl, modalCacheGet, modalCacheSet } from './ticker_chart_helpers.js';
 
@@ -75,6 +75,16 @@ export function useTickerChartData({
     return dailyOnly ? { ...p, interval: '1d', includePrePost: false } : p;
   };
 
+  // Crypto 1D always keeps the trailing 24 h: a 24/7 asset's generic
+  // 'closed' variant (ext-off) would otherwise trim to the UTC calendar
+  // day. The modal then windows this to the US-session view (ext-off →
+  // "since the last 16:00-ET close", via windowSinceLastUsClose) or shows
+  // the full 24 h (ext-on) — so the ext toggle actually changes the window
+  // instead of always reading "past 24 hours".
+  const ensureCrypto1d = (data, rk) => (
+    isCrypto(ticker) && rk === '1D' && Array.isArray(data) ? filterToLast24h(data) : data
+  );
+
   // ---- Main range fetch (stale-while-revalidate + PE/PS transform).
   React.useEffect(() => {
     let cancelled = false;
@@ -127,7 +137,7 @@ export function useTickerChartData({
         return;
       }
       const params = fetchParamsFor(isRatioRange ? '1Y' : rangeKey, extendedHours, phase);
-      data = applyVariantFilter(data, params.variant);
+      data = ensureCrypto1d(applyVariantFilter(data, params.variant), rangeKey);
       // PE/PS: divide each close by the rolling TTM per-share denominator
       // as of that date so the line steps on earnings instead of being a
       // 1:1 scale of price. Same 3-attempt retry on the fundamentals
@@ -242,7 +252,7 @@ export function useTickerChartData({
       if (cancelled) return;
       let data = out[ticker];
       if (!data || data.length < 2) return;
-      data = applyVariantFilter(data, variant);
+      data = ensureCrypto1d(applyVariantFilter(data, variant), rk);
       if (isRatioRk) {
         const f = await fetchFundamentals([ticker], { ttmEpsHistory: true });
         if (cancelled) return;
@@ -277,7 +287,7 @@ export function useTickerChartData({
         if (cancelled) return;
         let data = out[ticker];
         if (data && data.length >= 2) {
-          data = applyVariantFilter(data, params.variant);
+          data = ensureCrypto1d(applyVariantFilter(data, params.variant), rangeKey);
           const cacheKey = `${ticker}|${rangeKey}|${useExt ? 'ext' : 'reg'}|${phase || ''}`;
           modalCacheSet(cacheKey, data);
           setSeries(data);
