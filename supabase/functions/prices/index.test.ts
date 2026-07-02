@@ -7,7 +7,7 @@
 // Run locally: `deno test --allow-env supabase/functions/prices/`
 
 import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { localMinOfDay, isOutsideRth, pctChange, localDayNumber, rthSessionCloses } from "./index.ts";
+import { localMinOfDay, isOutsideRth, pctChange, localDayNumber, rthSessionCloses, etOffsetSec, cryptoUsSessionQuote } from "./index.ts";
 
 Deno.test("localMinOfDay: New York 09:30 ET (EDT, gmtoffset=-14400) at 13:30 UTC = 570 minutes", () => {
   // 2026-05-11 13:30:00 UTC → 09:30:00 EDT (gmtoffset -14400 s)
@@ -101,4 +101,40 @@ Deno.test("rthSessionCloses: null/null when every candle is out of session", () 
   const timestamps = [tsOf("2026-06-15T08:00:00-04:00"), tsOf("2026-06-15T18:00:00-04:00")];
   assertEquals(rthSessionCloses(timestamps, [10, 11], EDT), { last: null, prev: null });
   assertEquals(rthSessionCloses(null as unknown as number[], [], EDT), { last: null, prev: null });
+});
+
+Deno.test("etOffsetSec: DST-aware America/New_York offset (EDT summer, EST winter)", () => {
+  assertEquals(etOffsetSec(new Date("2026-07-01T12:00:00Z").getTime()), -14400); // EDT
+  assertEquals(etOffsetSec(new Date("2026-01-15T12:00:00Z").getTime()), -18000); // EST
+});
+
+// Shared crypto candle fixture: prev-day 16:00-ET close = 50, today's
+// 16:00-ET close = 52, with pre/post bogus bars that must be skipped.
+const CRYPTO_ROWS: Array<[string, number | null]> = [
+  ["2026-06-12T15:55:00-04:00", 50],   // prev-day close ← prev
+  ["2026-06-12T20:00:00-04:00", 70],   // overnight (skipped by rthSessionCloses)
+  ["2026-06-15T09:35:00-04:00", 51],   // today RTH
+  ["2026-06-15T16:00:00-04:00", 52],   // today's 16:00 close ← last
+  ["2026-06-15T18:00:00-04:00", 61],   // post-close (skipped)
+];
+const CRYPTO_TS = CRYPTO_ROWS.map((r) => tsOf(r[0] as string));
+const CRYPTO_CL = CRYPTO_ROWS.map((r) => r[1]);
+
+Deno.test("cryptoUsSessionQuote: after the US close → lastPrice=today 16:00, prevClose=prev close, extPrice=live", () => {
+  const nowSec = tsOf("2026-06-15T18:00:00-04:00"); // 18:00 ET = outside RTH
+  const q = cryptoUsSessionQuote(CRYPTO_TS, CRYPTO_CL, /*live*/ 60, /*prevMeta*/ 40, nowSec, EDT);
+  assertEquals(q, { lastPrice: 52, extPrice: 60, prevClose: 50 });
+});
+
+Deno.test("cryptoUsSessionQuote: during US RTH → lastPrice=live, extPrice=null (ext ignored intraday)", () => {
+  const nowSec = tsOf("2026-06-15T12:00:00-04:00"); // 12:00 ET = inside RTH
+  const q = cryptoUsSessionQuote(CRYPTO_TS, CRYPTO_CL, /*live*/ 55, /*prevMeta*/ 40, nowSec, EDT);
+  assertEquals(q, { lastPrice: 55, extPrice: null, prevClose: 50 });
+});
+
+Deno.test("cryptoUsSessionQuote: no in-session candles (holiday) → falls back to live / prevClose meta", () => {
+  const ts = [tsOf("2026-06-15T08:00:00-04:00"), tsOf("2026-06-15T20:00:00-04:00")]; // all outside RTH
+  const nowSec = tsOf("2026-06-15T20:00:00-04:00");
+  const q = cryptoUsSessionQuote(ts, [10, 11], /*live*/ 60, /*prevMeta*/ 58, nowSec, EDT);
+  assertEquals(q, { lastPrice: 60, extPrice: 60, prevClose: 58 });
 });

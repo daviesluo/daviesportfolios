@@ -260,6 +260,48 @@ describe('computeMetrics — extended-hours toggle', () => {
   });
 });
 
+describe('computeMetrics — crypto (BTC-USD) follows the US-stock ext path', () => {
+  const positions = { FWD: { role: 'FWD', tickers: ['BTC-USD'], label: 'FWD' } };
+
+  it('ext OFF: dayPct = regular dayPct, baseline = prevClose (anchored at the last US close)', () => {
+    const m = computeMetrics(pf(
+      { 'BTC-USD': { shares: 2, lastPrice: 110, prevClose: 100, extPrice: 120, extDayPct: 20,
+                     cost: 90, currency: 'USD', dayPct: 10 } },
+      positions,
+    ), { extended: false });
+    const p = m.positions.FWD.players[0];
+    expect(p.dayPct).toBeCloseTo(10, 6);                    // regular dayPct
+    expect(p.dayChange).toBeCloseTo(2 * (110 - 100), 6);   // (lastPrice − prevClose) × shares
+    expect(p.lastPrice).toBeCloseTo(110, 6);               // regular price, not ext
+  });
+
+  it('ext ON: treated exactly like a US stock — extDayPct shown, dayChange = (extPrice − lastPrice) × shares', () => {
+    const m = computeMetrics(pf(
+      { 'BTC-USD': { shares: 2, lastPrice: 110, prevClose: 100, extPrice: 120, extDayPct: 20,
+                     cost: 90, currency: 'USD', dayPct: 10 } },
+      positions,
+    ), { extended: true });
+    const p = m.positions.FWD.players[0];
+    expect(p.dayPct).toBeCloseTo(20, 6);                   // extDayPct (move since the prev US close)
+    expect(p.dayChange).toBeCloseTo(2 * (120 - 110), 6);  // AH move since today's US close
+    expect(p.lastPrice).toBeCloseTo(120, 6);              // live off-session price used
+  });
+
+  it('ext ON: a >5% overnight move is trusted (24/7 → no SFTBY-style bogus-quote cap)', () => {
+    // extPrice 130 is +18% from lastPrice 110 — a stock would be rejected
+    // by the ±5% heuristic and read flat; crypto's live price is always a
+    // real trade, so it must be used.
+    const m = computeMetrics(pf(
+      { 'BTC-USD': { shares: 1, lastPrice: 110, prevClose: 100, extPrice: 130, extDayPct: 30,
+                     cost: 90, currency: 'USD', dayPct: 10 } },
+      positions,
+    ), { extended: true });
+    const p = m.positions.FWD.players[0];
+    expect(p.lastPrice).toBeCloseTo(130, 6);              // trusted despite >5% divergence
+    expect(p.dayChange).toBeCloseTo(130 - 110, 6);        // AH move used, not 0
+  });
+});
+
 describe('computeMetrics — degenerate inputs', () => {
   it('empty portfolio → zero everywhere, no NaN leaks', () => {
     const m = computeMetrics(pf({}, {}));

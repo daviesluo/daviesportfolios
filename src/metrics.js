@@ -5,7 +5,7 @@
 // pull in fetch plumbing / market hours / Storage.
 
 import { fxRateToUSD } from './fx.js';
-import { isUsEquity, isEuroExchange, isCnFund } from './ticker_class.js';
+import { isUsEquity, isEuroExchange, isCnFund, isCrypto } from './ticker_class.js';
 import { lseIsOpen, euroExchangeIsOpen } from './market_hours.js';
 
 // Yahoo's `postMarketPrice` for OTC ADRs like SFTBY is bogus — it
@@ -74,19 +74,30 @@ export const computeMetrics = (portfolio, opts = {}) => {
       // bug). When that verdict hasn't been computed yet (first paint,
       // or the validation fetch failed) fall back to the lightweight
       // ±5% quote-only heuristic. Cash always uses lastPrice.
-      const extVerdict = typeof h.extPriceTrusted === 'boolean'
-        ? h.extPriceTrusted
-        : extPriceLooksReal(h.extPrice, h.lastPrice);
+      // Crypto trades 24/7, so its extPrice is always a real live trade
+      // (never the SFTBY-style bogus quote the ±5% heuristic guards
+      // against) — trust any positive value. The prices Edge Function has
+      // already re-anchored crypto to the US session (lastPrice = today's
+      // 16:00-ET close, extPrice = the live off-session price), so BTC
+      // flows through the SAME extended-hours path as a US stock below.
+      const extVerdict = isCrypto(t)
+        ? (typeof h.extPrice === 'number' && h.extPrice > 0)
+        : (typeof h.extPriceTrusted === 'boolean'
+            ? h.extPriceTrusted
+            : extPriceLooksReal(h.extPrice, h.lastPrice));
       const trustExt = !isCash && ext && extVerdict;
       const priceNative = trustExt ? h.extPrice : h.lastPrice;
       // `extActive` = "treat this row's day-change as a US extended-
-      // hours move". US equities / ADRs only: crypto trades 24/7 (no
-      // RTH close to anchor at) and London / CN-fund rows keep their
-      // own session's "since previous close", so both are excluded.
-      // When active, the change is measured from today's RTH close —
-      // so a US name that doesn't actually trade AH shows 0%, not a
+      // hours move". US equities AND crypto: the prices Edge Function
+      // re-anchors crypto to the US session (lastPrice = today's 16:00-ET
+      // close, extPrice = the live off-session price), so BTC-USD behaves
+      // exactly like a US stock here — anchored at the last US close, and
+      // the ext toggle drives the same after-hours move. London / CN-fund
+      // rows keep their own session's "since previous close", so they're
+      // excluded. When active, the change is measured from today's RTH
+      // close — a US name that doesn't actually trade AH shows 0%, not a
       // stale regular-session number. Also drives baselinePrice below.
-      const extActive = ext && !isCash && isUsEquity(t);
+      const extActive = ext && !isCash && (isUsEquity(t) || isCrypto(t));
       // LSE-only gate for the ext-hours toggle. LSE has no US-style
       // pre/after session, so when the toggle is on the row should
       // show the live LSE intraday pct ONLY while LSE itself is
