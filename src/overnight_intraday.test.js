@@ -180,6 +180,28 @@ describe('mergeOvernightSeries — splice eligibility', () => {
     expect(mergeOvernightSeries(YAHOO, [], ctx())).toBe(YAHOO);          // 0 points
   });
 
+  it('does NOT splice a frozen overnight (all closes identical → market closed: holiday / weekend)', () => {
+    // On a US holiday / weekend the overnight market is shut, so the
+    // recorder keeps sampling T212's last close and every point is equal.
+    // A dead-flat line reads as "still trading" — the chart should just end
+    // at the last real Yahoo bar instead.
+    const frozen = [
+      PT('2026-05-28T20:05', 171),
+      PT('2026-05-28T20:10', 171),
+      PT('2026-05-28T20:15', 171),
+    ];
+    expect(mergeOvernightSeries(YAHOO, frozen, ctx())).toBe(YAHOO);
+  });
+
+  it('still splices when the overnight has ANY variation (a real trading night)', () => {
+    const barelyMoving = [
+      PT('2026-05-28T20:05', 171),
+      PT('2026-05-28T20:10', 171),
+      PT('2026-05-28T20:15', 171.01),   // one tick of movement → a real session
+    ];
+    expect(mergeOvernightSeries(YAHOO, barelyMoving, ctx())).not.toBe(YAHOO);
+  });
+
   it('drops recorded points before the chart window (a prior session in the 26h fetch)', () => {
     // The window's left edge = last bar (2026-05-28T20:00) − 24h =
     // 2026-05-27T20:00. A point from two nights ago is older than that

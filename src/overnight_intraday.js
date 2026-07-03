@@ -179,6 +179,13 @@ export function mergeOvernightSeries(series, overnightPts, ctx) {
     && Number.isFinite(toMs(p.date)) && toMs(p.date) >= startMs
     && typeof p.close === 'number' && isFinite(p.close));
   if (rec.length < 2) return series;
+  // Frozen overnight = the market was CLOSED for this session (US holiday /
+  // weekend / holiday-eve): the recorder keeps sampling T212's last close,
+  // so every point is identical. A flat carry-forward line conveys nothing
+  // and reads as "still trading", so don't splice it — let the chart end at
+  // the last real bar. A genuinely trading overnight always has some
+  // variation, so this only ever drops a dead-flat line.
+  if (rec.every((p) => p.close === rec[0].close)) return series;
   // Match the recorded-point density to the chart's bar cadence —
   // 1D (5 min) is a no-op; 1W (30 min) keeps every 6th; 1M (60 min)
   // every 12th. Always append the live tail so the line still ends

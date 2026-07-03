@@ -5,7 +5,7 @@
 // player in non-edit mode — edit mode keeps opening the EditTickerModal.
 import React from 'react';
 import { Modal } from './modals.jsx';
-import { usMarketHoursUtc, isWeekendDeadZone } from './market_hours.js';
+import { usMarketHoursUtc, isWeekendDeadZone, isUsMarketHoliday } from './market_hours.js';
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h } from './ytd.js';
@@ -304,6 +304,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     : NaN;
   const nightDotActive = useExt && phase === 'overnight' && hasOvernightSession(ticker)
     && !isWeekendDeadZone()
+    && !isUsMarketHoliday()   // holiday = market closed all day; the frozen T212 close isn't a live overnight quote
     && typeof extPriceLive === 'number' && extPriceLive > 0
     && !!NIGHT_BAR_INTERVAL_MS[rangeKey]
     && !hasOvernightLine
