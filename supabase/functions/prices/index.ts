@@ -61,6 +61,88 @@ export function localDayNumber(utcSec: number, gmtOffsetSec: number): number {
   return Math.floor((utcSec + gmtOffsetSec) / 86400);
 }
 
+// ---- US market holiday calendar (NYSE / Nasdaq full closures) ----
+// Rule-based mirror of the client's src/market_hours.js calendar so the
+// Edge's crypto session anchoring agrees with the client's usMarketPhase
+// (weekends + full-day holidays → "overnight"). Rule-based = no date list
+// to maintain and no chance of a typo marking a REAL trading day closed.
+// Early-close half-days aren't modelled (they ARE trading days; only the
+// 16:00 anchor is ~3 h off on the ~3 such days a year — same concession
+// the client makes). Without this the Edge treated a 24/7 crypto's
+// holiday/weekend candles as "in session" (extPrice=null, lastPrice=live)
+// while the client's phase was "overnight" (useExt on, trusting extPrice)
+// — so BTC's day change collapsed to 0.00% on July 3 / weekends.
+
+/** UTC day-of-week (0=Sun…6=Sat) for a calendar Y-M-D. */
+function dowUTC(y: number, m: number, d: number): number {
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+/** Day-of-month of the nth (1-based; -1 = last) weekday `wd` (0=Sun) in month m. */
+function nthWeekday(y: number, m: number, wd: number, nth: number): number {
+  if (nth > 0) {
+    const offset = (wd - dowUTC(y, m, 1) + 7) % 7;
+    return 1 + offset + (nth - 1) * 7;
+  }
+  const lastDom = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return lastDom - ((dowUTC(y, m, lastDom) - wd + 7) % 7);
+}
+/** Easter Sunday {month,day} via the Anonymous Gregorian algorithm. */
+function easterSunday(y: number): { month: number; day: number } {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100;
+  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const mo = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * mo + 114) / 31);
+  const day = ((h + l - 7 * mo + 114) % 31) + 1;
+  return { month, day };
+}
+/**
+ * Observed `M-D` for a fixed-date holiday. NYSE shifts a Saturday holiday
+ * to the Friday before and a Sunday holiday to the Monday after — except
+ * New Year's Day, which is never pulled onto the prior Friday (shiftSat=false).
+ */
+function observedMD(y: number, m: number, d: number, shiftSat: boolean): string {
+  const dow = dowUTC(y, m, d);
+  if (dow === 6 && shiftSat) return `${m}-${d - 1}`;  // Sat → Fri
+  if (dow === 0) return `${m}-${d + 1}`;               // Sun → Mon
+  return `${m}-${d}`;
+}
+const _holidayCache = new Map<number, Set<string>>();
+function holidaySetFor(y: number): Set<string> {
+  const set = new Set<string>();
+  set.add(observedMD(y, 1, 1, false));                       // New Year's (Sun→Mon only)
+  set.add(`1-${nthWeekday(y, 1, 1, 3)}`);                    // MLK — 3rd Mon Jan
+  set.add(`2-${nthWeekday(y, 2, 1, 3)}`);                    // Presidents — 3rd Mon Feb
+  const e = easterSunday(y);                                 // Good Friday — Easter − 2
+  const gf = new Date(Date.UTC(y, e.month - 1, e.day - 2));
+  set.add(`${gf.getUTCMonth() + 1}-${gf.getUTCDate()}`);
+  set.add(`5-${nthWeekday(y, 5, 1, -1)}`);                   // Memorial — last Mon May
+  set.add(observedMD(y, 6, 19, true));                       // Juneteenth
+  set.add(observedMD(y, 7, 4, true));                        // Independence Day
+  set.add(`9-${nthWeekday(y, 9, 1, 1)}`);                    // Labor — 1st Mon Sep
+  set.add(`11-${nthWeekday(y, 11, 4, 4)}`);                  // Thanksgiving — 4th Thu Nov
+  set.add(observedMD(y, 12, 25, true));                      // Christmas
+  return set;
+}
+
+/**
+ * Is the ET calendar day of `utcSec` (shifted by `etOff`) a US equity
+ * TRADING day — not a weekend and not a full-day market holiday? Shifting
+ * the epoch by the ET offset and reading UTC components decodes the ET
+ * wall-clock date. Exported for tests.
+ */
+export function isUsTradingDay(utcSec: number, etOff: number): boolean {
+  const et = new Date((utcSec + etOff) * 1000);
+  const wd = et.getUTCDay();
+  if (wd === 0 || wd === 6) return false;                    // Sun / Sat
+  const y = et.getUTCFullYear();
+  let set = _holidayCache.get(y);
+  if (!set) { set = holidaySetFor(y); _holidayCache.set(y, set); }
+  return !set.has(`${et.getUTCMonth() + 1}-${et.getUTCDate()}`);
+}
+
 /**
  * Real regular-session closes for the thin OTC ADRs whose Yahoo
  * `regularMarketPrice` is unreliable (it reverts to the session open). Walks
@@ -88,6 +170,11 @@ export function rthSessionCloses(
     if (typeof t !== "number" || !Number.isFinite(t)) continue;
     const m = localMinOfDay(t, gmtOffsetSec);
     if (m < MARKET_OPEN_MIN || m > MARKET_CLOSE_MIN) continue;
+    // Skip candles on non-trading days (weekend / holiday). A 24/7 crypto
+    // has in-session-clock candles every day, but only a real trading
+    // day's 16:00-ET bar is an actual close — without this the last/prev
+    // close would come from a holiday's mid-day price.
+    if (!isUsTradingDay(t, gmtOffsetSec)) continue;
     const day = localDayNumber(t, gmtOffsetSec);
     if (last == null) { last = c; lastDay = day; continue; }
     if (day !== lastDay) { prev = c; break; }
@@ -138,11 +225,17 @@ export function etOffsetSec(nowMs: number): number {
  *                 (`rthSessionCloses().last`, frozen like a stock's
  *                 regularMarketPrice after the close); the live price while
  *                 US RTH is in progress (a stock is live intraday too).
- *   - extPrice  = the live 24/7 price while OUTSIDE US RTH (the "after-
- *                 hours / overnight" quote); null during RTH (ignored then
- *                 anyway — the client only trusts extPrice off-session).
+ *   - extPrice  = the live 24/7 price while OUTSIDE the live US session —
+ *                 after-hours / overnight AND all day on weekends /
+ *                 holidays (the market is closed, so a 24/7 asset is
+ *                 off-session); null only during a real RTH session
+ *                 (ignored then anyway — the client trusts extPrice only
+ *                 off-session). "Off-session" is `isOutsideRth` OR a
+ *                 non-trading day (isUsTradingDay), matching the client's
+ *                 usMarketPhase which buckets weekends/holidays as
+ *                 "overnight".
  * Falls back to `regularMarketPrice` / `prevCloseMeta` when no in-session
- * candle is available (e.g. a US holiday). Pure — exported for tests.
+ * candle is available. Pure — exported for tests.
  */
 export function cryptoUsSessionQuote(
   timestamps: number[],
@@ -153,7 +246,13 @@ export function cryptoUsSessionQuote(
   etOff: number,
 ): { lastPrice: number; extPrice: number | null; prevClose: number } {
   const { last, prev } = rthSessionCloses(timestamps, closes, etOff);
-  const afterClose = isOutsideRth(localMinOfDay(nowSec, etOff));
+  // "Outside the live US session" = outside 9:30-16:00 ET OR a non-trading
+  // day (weekend / holiday). On a holiday the clock can read 13:45 ET but
+  // the market is closed all day, so the 24/7 crypto is off-session and its
+  // live price belongs in extPrice — matching the client's usMarketPhase
+  // (which returns "overnight" then). Without the trading-day term the row
+  // read extPrice=null / lastPrice=live and the day change collapsed to 0%.
+  const afterClose = isOutsideRth(localMinOfDay(nowSec, etOff)) || !isUsTradingDay(nowSec, etOff);
   const prevClose = (prev != null && prev > 0) ? prev : prevCloseMeta;
   const lastPrice = afterClose
     ? ((last != null && last > 0) ? last : regularMarketPrice)
