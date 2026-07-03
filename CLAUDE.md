@@ -31,6 +31,14 @@ A few standing instructions for Claude Code sessions.
 - Never force-push `main` and never bypass hooks (`--no-verify`)
   without explicit user confirmation in the same message.
 - Keep commit messages focused on **why**, not **what**.
+- **Commit as the repo owner, never as Claude / Anthropic.** Every
+  GitHub contribution must land in the owner's name so the graph
+  reflects them. At the start of each session set the git identity
+  before committing:
+  `git config user.name "daviesluo" && git config user.email "daviesluo@gmail.com"`
+  (containers clone fresh, so this resets every session — set it each
+  time). Do NOT author/commit as `Claude <noreply@anthropic.com>`, and
+  do NOT add a `Co-Authored-By: Claude …` trailer.
 
 ## Edge Function deploys
 
