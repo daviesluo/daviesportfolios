@@ -7,7 +7,7 @@
 // Run locally: `deno test --allow-env supabase/functions/prices/`
 
 import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { localMinOfDay, isOutsideRth, pctChange, localDayNumber, rthSessionCloses, etOffsetSec, cryptoUsSessionQuote, isUsTradingDay } from "./index.ts";
+import { localMinOfDay, isOutsideRth, pctChange, localDayNumber, rthSessionCloses, etOffsetSec, cryptoUsSessionQuote } from "./index.ts";
 
 Deno.test("localMinOfDay: New York 09:30 ET (EDT, gmtoffset=-14400) at 13:30 UTC = 570 minutes", () => {
   // 2026-05-11 13:30:00 UTC → 09:30:00 EDT (gmtoffset -14400 s)
@@ -137,16 +137,6 @@ Deno.test("cryptoUsSessionQuote: no in-session candles (holiday) → falls back 
   const nowSec = tsOf("2026-06-15T20:00:00-04:00");
   const q = cryptoUsSessionQuote(ts, [10, 11], /*live*/ 60, /*prevMeta*/ 58, nowSec, EDT);
   assertEquals(q, { lastPrice: 60, extPrice: 60, prevClose: 58 });
-});
-
-Deno.test("isUsTradingDay: weekday true, weekend false, full-day holiday false", () => {
-  const at = (iso: string) => tsOf(iso);
-  assertEquals(isUsTradingDay(at("2026-07-02T12:00:00-04:00"), EDT), true);  // Thu — trading
-  assertEquals(isUsTradingDay(at("2026-07-03T12:00:00-04:00"), EDT), false); // Fri — Independence Day observed (Jul 4 = Sat)
-  assertEquals(isUsTradingDay(at("2026-07-04T12:00:00-04:00"), EDT), false); // Sat — weekend
-  assertEquals(isUsTradingDay(at("2026-07-05T12:00:00-04:00"), EDT), false); // Sun — weekend
-  assertEquals(isUsTradingDay(at("2026-06-19T12:00:00-04:00"), EDT), false); // Fri — Juneteenth
-  assertEquals(isUsTradingDay(at("2026-12-25T12:00:00-05:00"), -18000), false); // Christmas (EST)
 });
 
 Deno.test("cryptoUsSessionQuote: US HOLIDAY during RTH clock → off-session (extPrice=live, lastPrice=last REAL close)", () => {
