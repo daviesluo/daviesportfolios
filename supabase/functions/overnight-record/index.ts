@@ -29,6 +29,8 @@
 //   403 — bad auth
 //   500 — DB write failed
 
+import { isUsMarketHolidayAt } from "../_shared/us_market_calendar.ts";
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -110,9 +112,25 @@ export function isWeekendDeadZone(at: Date): boolean {
   return false;
 }
 
+/**
+ * Is this overnight timestamp part of a session that belongs to a US market
+ * HOLIDAY? The overnight session 20:00 ET (D-1) → 04:00 ET (D) belongs to
+ * trading day D, so an evening bar (≥20:00 ET) keys off TOMORROW and the
+ * 00:00-04:00 tail keys off today. The overnight ATS is shut on full
+ * holidays (like the weekend), so T212 returns a frozen close — recording
+ * it would draw a flat carry-forward line (the "MSTR flat on July 3" bug).
+ * Weekends are the separate isWeekendDeadZone gate. Uses the shared
+ * rule-based calendar (`isUsMarketHolidayAt`).
+ */
+export function isHolidaySession(at: Date): boolean {
+  const { minutes } = etParts(at);
+  const sessionAt = minutes >= 20 * 60 ? new Date(at.getTime() + 24 * 3_600_000) : at;
+  return isUsMarketHolidayAt(sessionAt);
+}
+
 /** True when we should be recording right now. */
 export function shouldRecord(at: Date): boolean {
-  return isOvernightWindow(at) && !isWeekendDeadZone(at);
+  return isOvernightWindow(at) && !isWeekendDeadZone(at) && !isHolidaySession(at);
 }
 
 /**

@@ -5,6 +5,7 @@ import {
   bucketTimeIso,
   isOvernightWindow,
   isWeekendDeadZone,
+  isHolidaySession,
   shouldRecord,
   t212TickerToYahoo,
   hasOvernightSession,
@@ -49,6 +50,23 @@ Deno.test("shouldRecord: overnight AND not weekend-dead-zone", () => {
   assertEquals(shouldRecord(new Date(Date.UTC(2026, 4, 28, 14, 0))), false);
   // Sat overnight → no (dead zone)
   assertEquals(shouldRecord(new Date(Date.UTC(2026, 4, 30, 6, 0))), false);
+});
+
+Deno.test("isHolidaySession / shouldRecord: US HOLIDAY overnight is not recorded (the July-3 flat-line bug)", () => {
+  // Fri 2026-07-03 is the observed Independence Day full closure.
+  // Evening of the holiday EVE (Thu Jul 2, 21:00 ET = Jul 3 01:00 UTC) —
+  // that overnight session runs INTO Jul 3, so it belongs to the holiday.
+  const eve = new Date(Date.UTC(2026, 6, 3, 1, 0));
+  assertEquals(isHolidaySession(eve), true);
+  assertEquals(shouldRecord(eve), false);
+  // Early morning DURING the holiday (Fri Jul 3, 02:00 ET = Jul 3 06:00 UTC).
+  const morn = new Date(Date.UTC(2026, 6, 3, 6, 0));
+  assertEquals(isHolidaySession(morn), true);
+  assertEquals(shouldRecord(morn), false);
+  // Control: a normal weekday overnight (Tue Jul 7, 02:00 ET) still records.
+  const normal = new Date(Date.UTC(2026, 6, 7, 6, 0));
+  assertEquals(isHolidaySession(normal), false);
+  assertEquals(shouldRecord(normal), true);
 });
 
 Deno.test("t212TickerToYahoo: US suffix, LSE suffix, aliases", () => {
