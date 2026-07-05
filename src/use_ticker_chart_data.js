@@ -78,17 +78,20 @@ export function useTickerChartData({
   // Chart display-window dispatch. Crypto 1D BYPASSES the generic variant
   // filter — applyVariantFilter's 'closed' path trims a 24/7 asset to the
   // UTC calendar day, which would strip the previous US close BEFORE the
-  // modal ever sees it — and instead keeps the trailing ~60 h of raw bars.
-  // The modal then slices that per toggle/phase into the US-session view:
-  // ext ON → rolling 24 h; ext OFF + market open → "since the last 16:00-ET
-  // close" (windowSinceLastUsClose); ext OFF + market closed → the last
-  // complete close-to-close day (windowBetweenLastTwoUsCloses). 60 h
-  // guarantees the *previous* US close (up to ~42 h back in pre-market) is
-  // present so the close-to-close slice always has both ends. Everyone else
-  // takes the normal variant dispatch.
+  // modal ever sees it — and instead keeps the trailing raw bars (the fetch
+  // is 5 d). The modal then slices that per toggle/phase into the
+  // US-session view: ext ON → rolling 24 h; ext OFF + market open → "since
+  // the last 16:00-ET close" (windowSinceLastUsClose); ext OFF + market
+  // closed → the last complete close-to-close day
+  // (windowBetweenLastTwoUsCloses). ~120 h (not 60) so the last two US
+  // TRADING-day closes are present even across a long holiday weekend — on
+  // the Sunday of a Fri-holiday weekend the last trading close (Thu) is
+  // ~74 h back and the previous (Wed) ~98 h, both of which a 60 h keep
+  // dropped (leaving the picker to fall through to a weekend bar or "now").
+  // Everyone else takes the normal variant dispatch.
   const applyChartWindow = (data, rk, variant) => (
     isCrypto(ticker) && rk === '1D' && Array.isArray(data)
-      ? filterToLastHours(data, 60)
+      ? filterToLastHours(data, 120)
       : applyVariantFilter(data, variant)
   );
 

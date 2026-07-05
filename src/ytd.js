@@ -160,19 +160,24 @@ export function filterToLatestDay(points) {
  * close so the series has a bar there; falls back to the input unchanged
  * when no exact-close bar is present (holiday / gap). `mh` =
  * `usMarketHoursUtc()` (its closeHh/closeMm are UTC, DST-aware).
+ * `isTradingDay(dateStr)` (optional) rejects a 16:00-ET bar whose date is a
+ * weekend / holiday — crypto has one EVERY day, and over a long holiday
+ * weekend keying off a non-trading day's bar picks a fake "close".
  * @template {{date:string}} T
  * @param {T[]|null} points
  * @param {{closeHh:number, closeMm:number}|null} mh
+ * @param {(dateStr:string)=>boolean} [isTradingDay]
  * @returns {T[]|null}
  */
-export function windowSinceLastUsClose(points, mh) {
+export function windowSinceLastUsClose(points, mh, isTradingDay) {
   if (!Array.isArray(points) || points.length === 0 || !mh) return points;
+  const ok = typeof isTradingDay === 'function' ? isTradingDay : () => true;
   for (let i = points.length - 1; i >= 0; i--) {
     const d = points[i] && points[i].date;
     if (typeof d !== 'string' || d.length < 16 || d[10] !== 'T') continue;
     const hh = parseInt(d.slice(11, 13), 10);
     const mm = parseInt(d.slice(14, 16), 10);
-    if (hh === mh.closeHh && mm === mh.closeMm) return points.slice(i);
+    if (hh === mh.closeHh && mm === mh.closeMm && ok(d)) return points.slice(i);
   }
   return points;
 }
@@ -191,13 +196,18 @@ export function windowSinceLastUsClose(points, mh) {
  * previous close to be present. `mh.closeHh:closeMm` are UTC, DST-aware.
  * Fallbacks: one close bar → start→that close (still ends at a close);
  * none (holiday / gap / no mh / empty) → the input unchanged.
+ * `isTradingDay(dateStr)` (optional) skips a 16:00-ET bar on a weekend /
+ * holiday — crypto has one every day, so over a long holiday weekend the
+ * "last two closes" would otherwise be weekend bars, not real US sessions.
  * @template {{date:string}} T
  * @param {T[]|null} points
  * @param {{closeHh:number, closeMm:number}|null} mh
+ * @param {(dateStr:string)=>boolean} [isTradingDay]
  * @returns {T[]|null}
  */
-export function windowBetweenLastTwoUsCloses(points, mh) {
+export function windowBetweenLastTwoUsCloses(points, mh, isTradingDay) {
   if (!Array.isArray(points) || points.length === 0 || !mh) return points;
+  const ok = typeof isTradingDay === 'function' ? isTradingDay : () => true;
   /** @type {number[]} */
   const closeIdxs = [];
   for (let i = points.length - 1; i >= 0 && closeIdxs.length < 2; i--) {
@@ -205,7 +215,7 @@ export function windowBetweenLastTwoUsCloses(points, mh) {
     if (typeof d !== 'string' || d.length < 16 || d[10] !== 'T') continue;
     const hh = parseInt(d.slice(11, 13), 10);
     const mm = parseInt(d.slice(14, 16), 10);
-    if (hh === mh.closeHh && mm === mh.closeMm) closeIdxs.push(i);
+    if (hh === mh.closeHh && mm === mh.closeMm && ok(d)) closeIdxs.push(i);
   }
   // Scanned back-to-front: closeIdxs = [lastCloseIdx, prevCloseIdx].
   if (closeIdxs.length === 2) return points.slice(closeIdxs[1], closeIdxs[0] + 1);

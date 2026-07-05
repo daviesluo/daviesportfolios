@@ -5,7 +5,7 @@
 // player in non-edit mode — edit mode keeps opening the EditTickerModal.
 import React from 'react';
 import { Modal } from './modals.jsx';
-import { usMarketHoursUtc, isWeekendDeadZone, isUsMarketHoliday } from './market_hours.js';
+import { usMarketHoursUtc, isWeekendDeadZone, isUsMarketHoliday, isUsTradingDateStr } from './market_hours.js';
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h } from './ytd.js';
@@ -104,8 +104,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     ? (extendedHours
         ? filterToLast24h(series)
         : (phase === 'regular'
-            ? windowSinceLastUsClose(series, mh)
-            : windowBetweenLastTwoUsCloses(series, mh)))
+            ? windowSinceLastUsClose(series, mh, isUsTradingDateStr)
+            : windowBetweenLastTwoUsCloses(series, mh, isUsTradingDateStr)))
     : series;
 
   // Yahoo series with the recorded overnight points spliced in (when
