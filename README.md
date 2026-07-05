@@ -65,8 +65,9 @@ secrets server-side.
   pre-warms **both** ext-states' 1D chart caches, so toggling the
   switch is a cache-hit instead of a 1-2 s cold fetch — no manual
   refresh needed. Whenever the toggle is on, the perf-chart legend
-  dot flips to `S&P 500 FUTURES` so the benchmark is unambiguous
-  (panel title stays "PERFORMANCE VS S&P 500" — futures track the S&P).
+  dot flips to `S&P 500 FUTURES` AND the panel title flips to
+  "PERFORMANCE VS S&P FUTURES" so the benchmark is unambiguous (both
+  revert to "S&P 500" on the cash-index ranges).
 - **1D chart spans 24 h** — both in-session and ext-hours views show
   the trailing 24 h. In-session uses Yahoo `range=5d` + a client-side
   `filterToLast24h` cut (Yahoo's `range=1d` only ever covers the
@@ -524,9 +525,10 @@ to the prompt.
 A two-line chart comparing the portfolio's % return against the
 S&P 500 over the same range buttons. With the Extended Hours toggle
 on, BOTH 1D and 1W swap `^GSPC` for `ES=F` (S&P futures) so pre/post-
-market and overnight moves are visible — the legend dot flips to
-`S&P 500 FUTURES` while the panel header stays "PERFORMANCE VS S&P
-500" (futures track the index). 1W additionally pulls Yahoo pre/post
+market and overnight moves are visible — the legend dot AND the panel
+header both flip to `S&P FUTURES` (from "S&P 500") so the benchmark is
+named correctly (`PerfPanel` owns the range so the title can react to
+`spSymbolFor`). 1W additionally pulls Yahoo pre/post
 bars (the `1w-ext` fetch variant) so the week carries the extended
 sessions, not just RTH. The 1D view draws an `OPEN` dashed marker at
 today's regular open in both sub-modes; ext-on additionally renders a
