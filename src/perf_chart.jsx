@@ -155,10 +155,19 @@ function savePerfCache(year, rangeKey, entries) {
 // YTD performance chart: portfolio % return vs S&P 500, computed from
 // per-lot purchase history + historical closes (Yahoo Finance),
 // normalised from the first trading day of the calendar year.
-function PerfChart({ portfolio, marketData, extendedHours, phase }) {
-  // Default to 1D so the chart opens on today's intraday view; YTD is a
-  // single button-click away when the user wants the long view.
-  const [rangeKey, setRangeKey] = React.useState('1D');
+/**
+ * @param {{ portfolio: any, marketData: any, extendedHours: boolean, phase: string,
+ *   rangeKey?: string|null, setRangeKey?: ((k: string) => void)|null }} props
+ */
+function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rangeKeyProp = null, setRangeKey: setRangeKeyProp = null }) {
+  // `rangeKey` can be CONTROLLED by PerfPanel (so the panel title can flip to
+  // "S&P FUTURES" when the active range benchmarks against ES=F) or fall back
+  // to internal state when PerfChart is rendered standalone (tests). The
+  // range buttons drive whichever setter is in play. Defaults to 1D — today's
+  // intraday view; YTD is a click away.
+  const [rangeKeyState, setRangeKeyState] = React.useState('1D');
+  const rangeKey = rangeKeyProp ?? rangeKeyState;
+  const setRangeKey = setRangeKeyProp ?? setRangeKeyState;
   // 1D's and (ext-on) 1W's fetch params depend on the ext-hours toggle +
   // market phase, so they go into the cache key. Other ranges are
   // session-insensitive. See perfVariantKey.
@@ -1015,14 +1024,21 @@ function PerfChart({ portfolio, marketData, extendedHours, phase }) {
 // desktop left column instead of the sidebar. The Sidebar still
 // renders its own copy on tablet/mobile.
 function PerfPanel({ portfolio, marketData, extendedHours, phase, className }) {
+  // Own the range here so the title can name the actual benchmark: ES=F
+  // (ext-on 1D / 1W) → "S&P FUTURES", the cash index otherwise → "S&P 500".
+  // The legend dot inside the chart flips the same way (spSymbolFor).
+  const [rangeKey, setRangeKey] = React.useState('1D');
+  const benchmarksFutures = spSymbolFor(rangeKey, extendedHours) === 'ES=F';
   return (
     <section className={`panel ${className || ""}`.trim()}>
-      <h3 className="panel-title">PERFORMANCE VS S&amp;P 500</h3>
+      <h3 className="panel-title">PERFORMANCE VS {benchmarksFutures ? <>S&amp;P FUTURES</> : <>S&amp;P 500</>}</h3>
       <PerfChart
         portfolio={portfolio}
         marketData={marketData}
         extendedHours={extendedHours}
         phase={phase}
+        rangeKey={rangeKey}
+        setRangeKey={setRangeKey}
       />
     </section>
   );
