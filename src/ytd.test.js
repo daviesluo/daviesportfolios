@@ -9,6 +9,7 @@ import {
   applyVariantFilter, windowSinceLastUsClose, windowBetweenLastTwoUsCloses,
   filterToLastHours, filterToLast24h,
 } from './ytd.js';
+import { isUsTradingDateStr } from './market_hours.js';
 
 const yearStart      = '2026-01-01';
 const yearStartDate  = '2026-01-02';
@@ -643,6 +644,38 @@ describe('windowBetweenLastTwoUsCloses (crypto 1D ext-off, market-CLOSED window)
     expect(windowBetweenLastTwoUsCloses(pts, mh)).toBe(pts);
     expect(windowBetweenLastTwoUsCloses(pts, null)).toBe(pts);
     expect(windowBetweenLastTwoUsCloses([], mh)).toEqual([]);
+  });
+
+  it('with isTradingDay: skips weekend / holiday 16:00 bars, keys off real US closes (long Jul-4 weekend)', () => {
+    // A 24/7 crypto has a 16:00-ET bar every day. Over the Jul-3-2026
+    // Independence-Day weekend (Fri holiday + Sat + Sun) the last two "closes"
+    // would be Sat/Sun bars without the filter; with the real calendar the
+    // window is the Wed→Thu (Jul 1→2) close-to-close trading day.
+    const pts = [
+      { date: '2026-07-01T20:00', close: 100 },  // Wed close (trading) ← prev
+      { date: '2026-07-02T14:00', close: 105 },
+      { date: '2026-07-02T20:00', close: 110 },  // Thu close (trading) ← last
+      { date: '2026-07-03T20:00', close: 120 },  // Fri 16:00 — Independence Day, skip
+      { date: '2026-07-04T20:00', close: 130 },  // Sat 16:00 — weekend, skip
+      { date: '2026-07-05T20:00', close: 125 },  // Sun 16:00 — weekend, skip
+      { date: '2026-07-05T22:00', close: 128 },  // after
+    ];
+    expect((windowBetweenLastTwoUsCloses(pts, mh, isUsTradingDateStr) || []).map((p) => p.date))
+      .toEqual(['2026-07-01T20:00', '2026-07-02T14:00', '2026-07-02T20:00']);
+  });
+});
+
+describe('windowSinceLastUsClose with isTradingDay', () => {
+  const mh = { closeHh: 20, closeMm: 0 };
+  it('slices from the most recent TRADING-day close, skipping weekend/holiday bars', () => {
+    const pts = [
+      { date: '2026-07-02T20:00', close: 110 },  // Thu close (trading) ← real close
+      { date: '2026-07-03T20:00', close: 120 },  // Fri 16:00 — holiday, skip
+      { date: '2026-07-04T20:00', close: 130 },  // Sat 16:00 — weekend, skip
+      { date: '2026-07-05T12:00', close: 125 },  // Sun midday
+    ];
+    expect((windowSinceLastUsClose(pts, mh, isUsTradingDateStr) || []).map((p) => p.date))
+      .toEqual(['2026-07-02T20:00', '2026-07-03T20:00', '2026-07-04T20:00', '2026-07-05T12:00']);
   });
 });
 

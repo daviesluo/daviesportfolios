@@ -6,7 +6,7 @@
 // a fixed winter date (EST = UTC-5) so the offset is deterministic.
 
 import { describe, it, expect } from 'vitest';
-import { isWeekendDeadZone, usMarketPhase, isUsMarketHoliday } from './market_hours.js';
+import { isWeekendDeadZone, usMarketPhase, isUsMarketHoliday, isUsTradingDateStr } from './market_hours.js';
 
 // Helper: a Date at the given UTC wall-clock. In January (EST, UTC-5)
 // ET = UTC - 5h.
@@ -105,5 +105,22 @@ describe('isUsMarketHoliday — NYSE full-day closures', () => {
     expect(usMarketPhase(new Date('2026-07-03T14:00:00Z'))).toBe('overnight');
     // Sanity: the SAME wall-clock on a normal weekday is 'regular'.
     expect(usMarketPhase(new Date('2026-07-06T14:00:00Z'))).toBe('regular'); // Mon
+  });
+});
+
+describe('isUsTradingDateStr — date-string trading-day check (crypto 1D window picker)', () => {
+  it('true for a weekday trading day, false for weekend + full holiday', () => {
+    expect(isUsTradingDateStr('2026-07-02')).toBe(true);   // Thu — trading
+    expect(isUsTradingDateStr('2026-07-03')).toBe(false);  // Fri — Independence Day observed
+    expect(isUsTradingDateStr('2026-07-04')).toBe(false);  // Sat
+    expect(isUsTradingDateStr('2026-07-05')).toBe(false);  // Sun
+    expect(isUsTradingDateStr('2026-07-06')).toBe(true);   // Mon — trading
+    expect(isUsTradingDateStr('2026-11-26')).toBe(false);  // Thanksgiving
+  });
+  it('accepts a longer ISO string (reads the date part) and is permissive on junk', () => {
+    expect(isUsTradingDateStr('2026-07-02T20:00')).toBe(true);
+    expect(isUsTradingDateStr('2026-07-04T20:00')).toBe(false);
+    expect(isUsTradingDateStr('')).toBe(true);        // malformed → permissive
+    expect(isUsTradingDateStr(/** @type {any} */ (null))).toBe(true);
   });
 });

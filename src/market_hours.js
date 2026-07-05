@@ -127,6 +127,27 @@ export function isUsMarketHoliday(now = new Date()) {
   return set.has(`${m}-${d}`);
 }
 
+/**
+ * Is the calendar date of an ISO string (`YYYY-MM-DD…`) a US TRADING day —
+ * not a weekend and not a full-day holiday? A 24/7 crypto has a 16:00-ET
+ * bar EVERY day, so its 1D window picker (windowSinceLastUsClose /
+ * windowBetweenLastTwoUsCloses) uses this to skip the weekend / holiday
+ * bars and key only off real US session closes. The bar date is UTC, but a
+ * 16:00-ET close bar's UTC date equals its ET trading date (16:00 EDT =
+ * 20:00 UTC / EST = 21:00 UTC, same calendar day), so checking the UTC date
+ * at noon (safely mid-morning ET, same day) is correct. Permissive on a
+ * malformed input (returns true) so a bad string never blanks the chart.
+ * @param {string} dateStr
+ */
+export function isUsTradingDateStr(dateStr) {
+  if (typeof dateStr !== 'string' || dateStr.length < 10) return true;
+  const at = new Date(dateStr.slice(0, 10) + 'T12:00:00Z');
+  if (isNaN(at.getTime())) return true;
+  const wd = at.getUTCDay();
+  if (wd === 0 || wd === 6) return false;   // Sun / Sat
+  return !isUsMarketHoliday(at);
+}
+
 // US market phase, based on NY local time.
 // RTH: 09:30–16:00, Premarket: 04:00–09:30, Afterhours: 16:00–20:00, Overnight: 20:00–04:00.
 // Weekends AND full-day holidays → overnight (market closed; same bucket

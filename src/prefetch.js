@@ -185,13 +185,14 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     }
     for (const t of modalSymbols) {
       let data = batch[t];
-      // Crypto 1D keeps the trailing ~60 h of raw bars (mirrors
+      // Crypto 1D keeps the trailing ~120 h of raw bars (mirrors
       // use_ticker_chart_data's applyChartWindow) so the modal's US-session
       // slice — ext OFF + market closed → windowBetweenLastTwoUsCloses —
-      // has the previous US close. The generic 'closed' variant would trim
-      // a 24/7 asset to the UTC calendar day and strip it before first open.
+      // has the last two US TRADING-day closes even across a long holiday
+      // weekend. The generic 'closed' variant would trim a 24/7 asset to the
+      // UTC calendar day and strip them before first open.
       data = (meta.rk === '1D' && isCrypto(t) && Array.isArray(data))
-        ? filterToLastHours(data, 60)
+        ? filterToLastHours(data, 120)
         : applyVariantFilter(data, meta.params.variant);
       if (data && data.length >= 2) {
         ChartStore.set(meta.tickerKey(t), { ts: now, data });
