@@ -73,7 +73,10 @@ class ErrorBoundary extends React.Component {
 // Sun 20:00 ET (overnight reopen) — where nothing trades, not even
 // the 24/5 overnight session, so 5 min avoids burning Yahoo's per-IP
 // budget on round-trips with nothing fresh to show.
-const REFRESH_MS = 30 * 1000;
+// 60 s (was 30 s) — halves the steady live-price / MC / T212 egress that
+// drives the Supabase bandwidth quota. Prices still feel live; the manual
+// Refresh button is always there for an instant pull.
+const REFRESH_MS = 60 * 1000;
 const REFRESH_MS_WEEKEND = 5 * 60 * 1000;
 
 // USDCNY=X / USDHKD=X / EURUSD=X are hidden FX fetches used only for
@@ -87,14 +90,17 @@ const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GB
 // browser crash + relaunch typically does for the tab).
 const PENDING_SAVE_KEY = 'dp.pendingSave';
 
-// MC symbols whose CARDS are clickable. The futures alternates
-// (ES=F / NQ=F / RTY=F) only appear on the card face during
-// ext-hours, but `<MarketConditions>`'s `onCardClick` passes
-// the ACTIVE ticker (= futures during ext-on for indices that
-// have a futures alt), so prefetch needs to warm both canonical
-// and futures tickers — otherwise clicking ^GSPC card in ext
-// mode opens an ES=F chart whose cache is cold.
-const MC_PREFETCH_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X", "USDHKD=X", "EURUSD=X", "ES=F", "NQ=F", "RTY=F"];
+// Market Conditions chart PREFETCH is disabled to cut Supabase egress —
+// MC cards (indices / futures / FX) are drilled into far less often than
+// portfolio stocks, so their chart modal fetches on click (a ~1 s cold
+// load) instead of pre-warming all six ranges × 15 symbols on every load /
+// Refresh. Portfolio-ticker prefetch is UNCHANGED, so drilling into a
+// holding is still instant. Their live prices (the MC panel faces) come
+// from fetchTickers(MC_TICKERS) on each refresh and are unaffected. To
+// restore the pre-warm, put the MC list back here:
+//   ["^GSPC","^NDX","^RUT","^SOX","^VIX","BZ=F","^TNX","GBPUSD=X",
+//    "GBPCNY=X","USDCNY=X","USDHKD=X","EURUSD=X","ES=F","NQ=F","RTY=F"]
+const MC_PREFETCH_TICKERS = [];
 
 // Themed in-page password screen — replaces the old `window.prompt` over a
 // blank page (unstyled, off-theme, especially clunky in the iOS PWA). Same
@@ -350,6 +356,13 @@ function Board({ isReadOnly }) {
   const recentTimerRef = useRef(null);
   /** @type {React.MutableRefObject<ReturnType<typeof setTimeout> | null>} */
   const errorRetryTimerRef = useRef(null);
+  // Cache of the MC tickers' "today's 16:00-ET close" (the ext-on anchor).
+  // fetchTodayRegularClose pulls 5d/5m bars for all 15 MC symbols — a big
+  // egress hit — yet the value only changes once a day at 16:00 ET. So we
+  // fetch it at most every 30 min (and only when ext is on, the only place
+  // it's used), then reuse the cached map on the in-between ticks.
+  /** @type {React.MutableRefObject<{ ts: number, data: Record<string, number> }>} */
+  const todayClosesRef = useRef({ ts: 0, data: {} });
   useEffect(() => () => {
     if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
     if (recentTimerRef.current) clearTimeout(recentTimerRef.current);
@@ -525,10 +538,15 @@ function Board({ isReadOnly }) {
     const overnightPromise = (refreshPhase === 'overnight' && extHoldingTickers.length > 0)
       ? fetchOvernightSeries(extHoldingTickers).catch(() => null)
       : Promise.resolve(null);
-    const [{ updates, source: src }, mcResult, todayCloses, extSeries, t212Holdings] = await Promise.all([
+    // Only pull the MC "today's 16:00-ET close" anchor when ext is on (the
+    // sole consumer) and the 30-min cache is stale — it changes once a day,
+    // so re-fetching 5d/5m bars for 15 symbols every tick was pure egress.
+    const wantTodayCloses = extendedHours
+      && (Date.now() - todayClosesRef.current.ts > 30 * 60 * 1000);
+    const [{ updates, source: src }, mcResult, todayClosesFresh, extSeries, t212Holdings] = await Promise.all([
       refreshPrices(portfolio),
       fetchTickers(MC_TICKERS),
-      fetchTodayRegularClose(MC_TICKERS),
+      wantTodayCloses ? fetchTodayRegularClose(MC_TICKERS) : Promise.resolve(null),
       extHoldingTickers.length > 0
         ? fetchHistoricalBatch(extHoldingTickers, "1d", "5m", true).catch(() => ({}))
         : Promise.resolve({}),
@@ -542,8 +560,12 @@ function Board({ isReadOnly }) {
       // `prices` feeds the overnight US-equity quote overlay below.
       fetchTrading212Holdings(),
     ]);
+    // Refresh the cache when we fetched this tick; otherwise reuse it. Apply
+    // whichever map we have so the MC ext-on anchor stays populated even on
+    // the throttled ticks.
+    if (todayClosesFresh) todayClosesRef.current = { ts: Date.now(), data: todayClosesFresh };
     if (mcResult) {
-      for (const [t, c] of Object.entries(todayCloses || {})) {
+      for (const [t, c] of Object.entries(todayClosesRef.current.data)) {
         if (mcResult[t]) mcResult[t].todayRegularClose = c;
       }
       setMarketData(mcResult);
