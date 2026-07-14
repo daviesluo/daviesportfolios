@@ -73,10 +73,7 @@ class ErrorBoundary extends React.Component {
 // Sun 20:00 ET (overnight reopen) — where nothing trades, not even
 // the 24/5 overnight session, so 5 min avoids burning Yahoo's per-IP
 // budget on round-trips with nothing fresh to show.
-// 60 s (was 30 s) — halves the steady live-price / MC / T212 egress that
-// drives the Supabase bandwidth quota. Prices still feel live; the manual
-// Refresh button is always there for an instant pull.
-const REFRESH_MS = 60 * 1000;
+const REFRESH_MS = 30 * 1000;
 const REFRESH_MS_WEEKEND = 5 * 60 * 1000;
 
 // USDCNY=X / USDHKD=X / EURUSD=X are hidden FX fetches used only for
@@ -90,17 +87,14 @@ const MC_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GB
 // browser crash + relaunch typically does for the tab).
 const PENDING_SAVE_KEY = 'dp.pendingSave';
 
-// Market Conditions chart PREFETCH is disabled to cut Supabase egress —
-// MC cards (indices / futures / FX) are drilled into far less often than
-// portfolio stocks, so their chart modal fetches on click (a ~1 s cold
-// load) instead of pre-warming all six ranges × 15 symbols on every load /
-// Refresh. Portfolio-ticker prefetch is UNCHANGED, so drilling into a
-// holding is still instant. Their live prices (the MC panel faces) come
-// from fetchTickers(MC_TICKERS) on each refresh and are unaffected. To
-// restore the pre-warm, put the MC list back here:
-//   ["^GSPC","^NDX","^RUT","^SOX","^VIX","BZ=F","^TNX","GBPUSD=X",
-//    "GBPCNY=X","USDCNY=X","USDHKD=X","EURUSD=X","ES=F","NQ=F","RTY=F"]
-const MC_PREFETCH_TICKERS = [];
+// MC symbols whose CARDS are clickable. The futures alternates
+// (ES=F / NQ=F / RTY=F) only appear on the card face during
+// ext-hours, but `<MarketConditions>`'s `onCardClick` passes
+// the ACTIVE ticker (= futures during ext-on for indices that
+// have a futures alt), so prefetch needs to warm both canonical
+// and futures tickers — otherwise clicking ^GSPC card in ext
+// mode opens an ES=F chart whose cache is cold.
+const MC_PREFETCH_TICKERS = ["^GSPC", "^NDX", "^RUT", "^SOX", "^VIX", "BZ=F", "^TNX", "GBPUSD=X", "GBPCNY=X", "USDCNY=X", "USDHKD=X", "EURUSD=X", "ES=F", "NQ=F", "RTY=F"];
 
 // Themed in-page password screen — replaces the old `window.prompt` over a
 // blank page (unstyled, off-theme, especially clunky in the iOS PWA). Same

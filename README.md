@@ -373,19 +373,18 @@ to the prompt.
 - **Tactics Board ↔ Heat Map** — switch the central panel between
   the football-pitch view and a treemap heatmap.
 - **Refresh** — manually triggers a price fetch + a background
-  prefetch of the portfolio's chart ranges (Market-Conditions cards are
-  NOT pre-warmed — they fetch on click — to keep Supabase egress down;
-  see `MC_PREFETCH_TICKERS`). The page also auto-refreshes prices
-  every **60 s through the trading week, weekday overnights included**
-  (raised from 30 s to halve the steady live-price / MC / T212 egress
-  that was blowing the Supabase bandwidth quota; the T212 call is still
-  capped at ≤1 / s by the Edge Function's cache + atomic claim, so
-  neither the night cadence nor a manual click can trip T212's
-  1-req-per-second limit on `/equity/positions`). The MC "today's
-  16:00-ET close" anchor (`fetchTodayRegularClose`, a 5d/5m pull for
-  all 15 MC symbols) is fetched at most every 30 min and only when the
-  Extended Hours toggle is on — it changes once a day, so re-pulling it
-  every tick was pure egress. The only slow window is the **weekend dead zone**
+  prefetch of every chart range. The page also auto-refreshes prices
+  every **30 s through the trading week, weekday overnights included**
+  (so the T212 overnight quote for US holdings stays live without a
+  manual refresh — the T212 call is still capped at ≤1 / s by the
+  Edge Function's cache + atomic claim, so neither the 30 s night
+  cadence nor a manual click can trip T212's 1-req-per-second limit on
+  `/equity/positions`). The MC "today's 16:00-ET close" anchor
+  (`fetchTodayRegularClose`, a 5d/5m pull for all 15 MC symbols) is
+  fetched at most every 30 min and only when the Extended Hours toggle
+  is on — it changes once a day, so re-pulling it every 30 s tick was
+  the egress leak that blew the Supabase bandwidth quota (~2.8 GB/day
+  from one open tab) in July 2026. The only slow window is the **weekend dead zone**
   — Fri 20:00 ET (after-hours close) through Sun 20:00 ET (overnight
   reopen), `isWeekendDeadZone()` — where nothing trades (not even the
   24/5 overnight session), so it drops to **5 min** to avoid burning
