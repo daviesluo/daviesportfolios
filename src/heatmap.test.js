@@ -28,4 +28,13 @@ describe('displayTicker', () => {
     expect(displayTicker('BRK-B')).toBe('BRK-B');
     expect(displayTicker('BTC-USD')).toBe('BTC-USD');
   });
+
+  it('maps aliased foreign-listing codes to the home-market symbol (2DG → SIVE)', () => {
+    // Sivers Semiconductors' German listing — heatmap tiles show the
+    // Stockholm home symbol. Applied after the suffix strip so every
+    // listing variant maps; everywhere else in the app keeps 2DG.
+    expect(displayTicker('2DG')).toBe('SIVE');
+    expect(displayTicker('2DG.F')).toBe('SIVE');
+    expect(displayTicker('2DG.DE')).toBe('SIVE');
+  });
 });
