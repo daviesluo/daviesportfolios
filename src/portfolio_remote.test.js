@@ -10,6 +10,7 @@ import {
   portfolioUserFingerprint,
   loadPortfolioRemote,
   savePortfolioRemote,
+  migrate,
   _peekLastKnownVersion,
   _resetLastKnownVersion,
   TAB_ID,
@@ -308,5 +309,46 @@ describe('save broadcast — self-reload guard (the "edit vanished" data-loss)',
     }));
     await savePortfolioRemote({ holdings: { X: { shares: 1, cost: 1 } } });
     expect(posted).toHaveLength(0);
+  });
+});
+
+describe('migrate — heal sold-out-but-never-closed holdings (float-dust full sales)', () => {
+  it('closes a netted-to-dust holding, zeroes it, and strips it from every position', () => {
+    const p = migrate({
+      holdings: {
+        // Sold out via fractional lots: raw float math left ~5.55e-17
+        // shares, so the close flow never fired pre-fix. migrate must
+        // finish the job: closed, shares 0, off the board.
+        ZZZZ: {
+          shares: 5.551115123125783e-17, cost: 105, currency: 'USD',
+          lots:  [{ date: '2026-01-02', shares: 0.1, cost: 100 }, { date: '2026-02-02', shares: 0.2, cost: 110 }],
+          sells: [{ date: '2026-07-10', shares: 0.3, price: 120 }],
+        },
+        // Open holding with a PARTIAL sale — must stay on the board untouched.
+        AAPL: {
+          shares: 5, cost: 100, currency: 'USD',
+          lots:  [{ date: '2026-01-02', shares: 10, cost: 100 }],
+          sells: [{ date: '2026-06-01', shares: 5, price: 120 }],
+        },
+        // Legacy holding with NO ledger — never touched by the heal.
+        NVDA: { shares: 2, cost: 400, currency: 'USD' },
+      },
+      positions: {
+        CM: { label: 'CM', role: 'MID', tickers: ['ZZZZ', 'AAPL'] },
+        ST: { label: 'ST', role: 'FWD', tickers: ['NVDA'] },
+      },
+    });
+    expect(p.holdings.ZZZZ.closed).toBe(true);
+    expect(p.holdings.ZZZZ.shares).toBe(0);
+    for (const pos of Object.values(p.positions)) {
+      expect(pos.tickers).not.toContain('ZZZZ');
+    }
+    // The ledger survives for Transaction History.
+    expect(p.holdings.ZZZZ.sells).toHaveLength(1);
+    // Partial-sale + legacy holdings stay on the board.
+    expect(p.positions.CM.tickers).toContain('AAPL');
+    expect(p.holdings.AAPL.shares).toBe(5);
+    expect(p.positions.ST.tickers).toContain('NVDA');
+    expect(p.holdings.NVDA.shares).toBe(2);
   });
 });

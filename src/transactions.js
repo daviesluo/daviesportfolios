@@ -73,7 +73,15 @@ export function netPosition(lots, sells) {
   for (const l of bl) { buyShares += l.shares; buyCash += l.shares * l.cost; }
   let sellShares = 0, sellCash = 0;
   for (const s of sl) { sellShares += s.shares; sellCash += s.shares * s.price; }
-  const shares = buyShares - sellShares;
+  // Snap float dust to an exact 0. Fractional lots (T212 DCA — 0.1 + 0.2
+  // style quantities) don't subtract cleanly in binary floats, so selling
+  // EVERYTHING could net to ±5e-17 instead of 0 — the caller's
+  // `np.shares <= 0` full-sale check then never fired, the holding was
+  // never closed / taken off the board, and the header ticker count never
+  // dropped. Real fractional holdings are ≥1e-8 shares; accumulated float
+  // error is ≤~1e-12, so 1e-9 separates the two cleanly.
+  const rawShares = buyShares - sellShares;
+  const shares = Math.abs(rawShares) < 1e-9 ? 0 : rawShares;
   const netCash = buyCash - sellCash;
   return { shares, netCash, avgCost: shares > 0 ? netCash / shares : 0 };
 }
