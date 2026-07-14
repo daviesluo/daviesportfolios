@@ -2,6 +2,15 @@
 // Tiles sized by USD market value; colour-coded by day % change.
 import React from 'react';
 
+// Heatmap-only display aliases — holdings whose Yahoo symbol is an opaque
+// foreign-listing code; the tile shows the company's home-market symbol
+// instead. Applied AFTER the suffix strip so every variant of the listing
+// (2DG / 2DG.F / 2DG.DE) maps. Display-only, like the strip itself — the
+// real ticker stays everywhere else in the app (players, lists, modal) and
+// on tile.ticker for keys / clicks. 2DG = Sivers Semiconductors' German
+// listing; its home (Nasdaq Stockholm) symbol is SIVE.
+const HEATMAP_TICKER_ALIASES = { '2DG': 'SIVE' };
+
 // Display label for a heatmap tile — strips the Yahoo exchange suffix
 // (XFAB.PA → XFAB, VUAG.L → VUAG, 0700.HK → 0700) so the tight tiles
 // aren't cluttered by ".PA" / ".L". Display-only: tile.ticker keeps the
@@ -11,7 +20,8 @@ import React from 'react';
 // hyphenated symbols (BRK-B, BTC-USD) and ^-prefixed indices are left
 // intact, and bare CN fund codes (017731) have nothing to strip.
 export function displayTicker(ticker) {
-  return ticker.replace(/\.[A-Za-z]{1,4}$/, '');
+  const stripped = ticker.replace(/\.[A-Za-z]{1,4}$/, '');
+  return HEATMAP_TICKER_ALIASES[stripped] || stripped;
 }
 
 // ── Treemap layout (recursive binary split) ──────────────────────────────────
