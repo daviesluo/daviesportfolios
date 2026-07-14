@@ -95,6 +95,28 @@ describe('computeMetrics — single-currency happy paths', () => {
     expect(m.unrlGL).toBe(0);
     expect(m.tickerCount).toBe(0);                                   // cash doesn't count
   });
+
+  it('tickerCount is board-scoped: a fully-sold (closed) holding kept for its ledger does not count', () => {
+    // Full sale: portfolio_edits marks the holding `closed`, removes it
+    // from every position's tickers, but KEEPS the holdings row so the
+    // buy/sell history survives. The header "N tickers" must reflect the
+    // board, so the closed row is excluded (the old holdings-keys count
+    // never dropped after a full sale). A ticker in TWO positions still
+    // counts once.
+    const m = computeMetrics(pf(
+      {
+        AAPL: { shares: 10, lastPrice: 100, prevClose: 90, cost: 80, currency: 'USD' },
+        SOLD: { shares: 0, lastPrice: 50, prevClose: 50, cost: 40, currency: 'USD', closed: true,
+                lots: [{ date: '2026-01-02', shares: 5, cost: 40 }],
+                sells: [{ date: '2026-07-01', shares: 5, price: 55 }] },
+      },
+      {
+        FWD: { role: 'FWD', tickers: ['AAPL'], label: 'FWD' },
+        MID: { role: 'MID', tickers: ['AAPL'], label: 'MID' },   // duplicate ref — dedupes
+      },
+    ));
+    expect(m.tickerCount).toBe(1);   // AAPL only; SOLD is off the board
+  });
 });
 
 describe('computeMetrics — multi-currency', () => {
