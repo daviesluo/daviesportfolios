@@ -10,6 +10,7 @@ import { getAppToken } from './auth.js';
 import { detectCurrency } from './fx.js';
 import { INITIAL_PORTFOLIO } from './data.js';
 import { reportError } from './ops_error.js';
+import { netPosition } from './transactions.js';
 
 // Cross-tab notification channel. When this tab successfully saves the
 // portfolio, every OTHER tab gets a `portfolio-saved` message and
@@ -333,6 +334,28 @@ export function migrate(p) {
     if (!cur.label || cur.label.length > 4 || cur.label !== defaults.label) cur.label = defaults.label;
     if (cur.subtitle == null || LEGACY_SUBTITLES.has(cur.subtitle)) cur.subtitle = defaults.subtitle || "";
     if (!cur.role) cur.role = defaults.role;
+  }
+
+  // Heal "sold out but never closed" holdings. Before netPosition snapped
+  // float dust, a full sale of fractional lots could net to ~5e-17 shares
+  // instead of 0, so updateHolding's `np.shares <= 0` close never fired —
+  // the holding stayed on the board (and in the header ticker count) with
+  // a ~zero position. Re-run the same close here for any holding that HAS
+  // sells and nets to ≤0 under the (now snapped) netPosition: mark closed,
+  // zero the board fields, strip it from every position's tickers. Only
+  // sold holdings are touched (sells present) — legacy rows without a
+  // ledger are left alone. Idempotent; mirrors portfolio_edits' close.
+  for (const [t, h] of Object.entries(p.holdings)) {
+    if (h.isCash || t === "CASH") continue;
+    if (!Array.isArray(h.sells) || h.sells.length === 0) continue;
+    const np = netPosition(h.lots || [], h.sells);
+    if (np.shares > 0) continue;
+    h.closed = true;
+    h.shares = np.shares;
+    h.cost   = np.avgCost;
+    for (const pos of Object.values(p.positions)) {
+      if (pos && Array.isArray(pos.tickers)) pos.tickers = pos.tickers.filter((x) => x !== t);
+    }
   }
   return p;
 }

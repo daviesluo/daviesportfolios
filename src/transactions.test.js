@@ -82,6 +82,21 @@ describe('netPosition (net-cash model)', () => {
     expect(r.netCash).toBe(200); // spent 1000, recovered 800 at a loss
   });
 
+  it('FRACTIONAL full close nets to an EXACT 0 (float dust snapped)', () => {
+    // 0.1 + 0.2 buys, one 0.3 sell: raw float math gives ±5.55e-17, which
+    // failed updateHolding's `shares <= 0` close check — the sold-out
+    // holding stayed on the board and in the header ticker count.
+    const r = netPosition(
+      [{ date: '2026-01-01', shares: 0.1, cost: 100 }, { date: '2026-02-01', shares: 0.2, cost: 110 }],
+      [{ date: '2026-07-01', shares: 0.3, price: 120 }],
+    );
+    expect(r.shares).toBe(0);       // exactly 0, not 5.55e-17
+    expect(r.avgCost).toBe(0);
+    // ...while a REAL tiny fractional position survives the snap.
+    const tiny = netPosition([{ date: '2026-01-01', shares: 0.0000001, cost: 100 }], []);
+    expect(tiny.shares).toBeCloseTo(0.0000001, 12);
+  });
+
   it('over-sell yields negative shares (caller can flag the data error)', () => {
     const r = netPosition([{ date: '2026-01-01', shares: 5, cost: 100 }], [{ date: '2026-02-01', shares: 8, price: 120 }]);
     expect(r.shares).toBe(-3);
