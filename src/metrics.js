@@ -57,6 +57,15 @@ export const computeMetrics = (portfolio, opts = {}) => {
   let marketValue = 0, totalCost = 0, dayChange = 0;
   /** @type {string[]} tickers whose FX pair couldn't be read live this tick */
   const fxMissingTickers = [];
+  // Distinct non-cash tickers actually ON THE BOARD (referenced by a
+  // position + present in holdings) — the scoreboard's "N tickers".
+  // Counting holdings keys (the old way) kept counting a fully-sold
+  // position: closing a position removes it from every position's
+  // `tickers` but deliberately KEEPS the holding row so its buy/sell
+  // ledger survives (portfolio_edits — `closed: true`), so the header
+  // count never dropped after a full sale. Board scope matches how
+  // marketValue / dayChange are computed (this same positions loop).
+  const countedTickers = new Set();
   const positionsOut = {};
   for (const [posKey, pos] of Object.entries(portfolio.positions)) {
     let posMV = 0, posPrev = 0, posCost = 0;
@@ -66,6 +75,7 @@ export const computeMetrics = (portfolio, opts = {}) => {
       if (!h) continue;
       // Cash entries: MV = lastPrice (held as dollar amount); no P/L, no day change.
       const isCash = !!h.isCash;
+      if (!isCash) countedTickers.add(t);
       // In extended mode use the extended price if it's a real AH
       // quote. The verdict is `h.extPriceTrusted` — set by the app's
       // ext-hours validation fetch, which inspects the intraday
@@ -202,7 +212,7 @@ export const computeMetrics = (portfolio, opts = {}) => {
     dayPct: (marketValue - dayChange) > 0 ? (dayChange / (marketValue - dayChange)) * 100 : 0,
     unrlGL: marketValue - totalCost,
     unrlPct: totalCost > 0 ? ((marketValue - totalCost) / totalCost) * 100 : 0,
-    tickerCount: Object.keys(portfolio.holdings).filter(t => t !== "CASH" && !(portfolio.holdings[t] && portfolio.holdings[t].isCash)).length,
+    tickerCount: countedTickers.size,
     positions: positionsOut,
     // Tickers whose native-currency → USD rate had to fall back to
     // 1:1 because the FX pair wasn't in marketData this tick. The
