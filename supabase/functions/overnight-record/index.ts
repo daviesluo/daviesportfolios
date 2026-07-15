@@ -34,6 +34,7 @@
 //   500 — DB write failed
 
 import { isUsMarketHolidayAt } from "../_shared/us_market_calendar.ts";
+import { reportServerError } from "../_shared/ops.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -235,11 +236,52 @@ export function hasOvernightSession(yahooTicker: string): boolean {
   return true;
 }
 
+// ISIN-based resolution for the DAY-session tickers. T212's internal
+// instrument code for a German/Gettex listing isn't documented (the
+// `<CODE>d_EQ` suffix rule below is a convention guess), but the nested
+// `/equity/positions` row shape carries the instrument's ISIN — globally
+// unique and printed on every listing of the security. Match ISIN +
+// currency instead of guessing the code. Currency matters because a
+// dual-listed security shares its ISIN across venues in DIFFERENT
+// currencies: Sivers' Stockholm line (SIVE, SEK) has the same ISIN as the
+// Gettex/Frankfurt line the app charts (2DG.F, EUR) — recording the SEK
+// quote onto the € chart would be ~11× off, so a SEK match must NOT map.
+const DAY_SESSION_BY_ISIN: Record<string, { currency: string; yahoo: string }> = {
+  "SE0003917798": { currency: "EUR", yahoo: "2DG.F" },  // Sivers Semiconductors — Gettex line
+};
+
+/**
+ * Resolve a positions row to its Yahoo ticker: ISIN+currency first (the
+ * DAY-session instruments, immune to internal-code guessing), then the
+ * code-suffix rules (`t212TickerToYahoo`). Returns null when neither
+ * matches. Exported for tests.
+ */
+export function resolveRowYahoo(row: Record<string, unknown>): string | null {
+  let t212: string | null = typeof row.ticker === "string" ? row.ticker : null;
+  let isin: string | null = null;
+  let rowCurrency: string | null = null;
+  if (row.instrument && typeof row.instrument === "object") {
+    const inst = row.instrument as Record<string, unknown>;
+    if (!t212 && typeof inst.ticker === "string") t212 = inst.ticker;
+    if (typeof inst.isin === "string") isin = inst.isin;
+    if (typeof inst.currencyCode === "string") rowCurrency = inst.currencyCode;
+  }
+  // Flat rows (legacy shape) may carry isin/currencyCode at the top level.
+  if (!isin && typeof row.isin === "string") isin = row.isin;
+  if (!rowCurrency && typeof row.currencyCode === "string") rowCurrency = row.currencyCode;
+  if (isin) {
+    const hit = DAY_SESSION_BY_ISIN[isin.toUpperCase()];
+    if (hit && (!rowCurrency || rowCurrency.toUpperCase() === hit.currency)) return hit.yahoo;
+  }
+  return t212 ? t212TickerToYahoo(t212) : null;
+}
+
 /**
  * Extract { yahooTicker → currentPrice } for every `eligible` ticker in a
  * T212 `/equity/positions` array. Accepts both the flat-`ticker` and
- * nested-`instrument.ticker` row shapes. Drops non-positive / non-finite
- * prices and non-eligible tickers.
+ * nested-`instrument.ticker` row shapes (ISIN+currency resolution for the
+ * DAY-session instruments — see resolveRowYahoo). Drops non-positive /
+ * non-finite prices and non-eligible tickers.
  */
 export function extractPricesFor(
   positions: unknown,
@@ -250,16 +292,35 @@ export function extractPricesFor(
   for (const raw of positions) {
     if (!raw || typeof raw !== "object") continue;
     const p = raw as Record<string, unknown>;
-    let t212 = typeof p.ticker === "string" ? p.ticker : null;
-    if (!t212 && p.instrument && typeof p.instrument === "object") {
-      const inst = p.instrument as Record<string, unknown>;
-      if (typeof inst.ticker === "string") t212 = inst.ticker;
-    }
-    if (!t212) continue;
-    const yahoo = t212TickerToYahoo(t212);
+    const yahoo = resolveRowYahoo(p);
     if (!yahoo || !eligible(yahoo)) continue;
     const cp = Number(p.currentPrice);
     if (Number.isFinite(cp) && cp > 0) out[yahoo] = cp;
+  }
+  return out;
+}
+
+/**
+ * Raw T212 instrument codes (+ ISIN/currency when present) from a
+ * positions payload — the self-diagnosis for a day-session ticker that
+ * failed to map. Exported for tests.
+ */
+export function rawInstrumentCodes(positions: unknown): string[] {
+  const out: string[] = [];
+  if (!Array.isArray(positions)) return out;
+  for (const raw of positions) {
+    if (!raw || typeof raw !== "object") continue;
+    const p = raw as Record<string, unknown>;
+    let code: string | null = typeof p.ticker === "string" ? p.ticker : null;
+    let isin = "";
+    let cur = "";
+    if (p.instrument && typeof p.instrument === "object") {
+      const inst = p.instrument as Record<string, unknown>;
+      if (!code && typeof inst.ticker === "string") code = inst.ticker;
+      if (typeof inst.isin === "string") isin = inst.isin;
+      if (typeof inst.currencyCode === "string") cur = inst.currencyCode;
+    }
+    if (code) out.push([code, isin, cur].filter(Boolean).join("/"));
   }
   return out;
 }
@@ -296,14 +357,17 @@ async function fetchPositions(apiKey: string, apiSecret: string): Promise<unknow
 
 async function fetchAllPrices(
   eligible: (yahooTicker: string) => boolean,
-): Promise<Record<string, number>> {
+): Promise<{ prices: Record<string, number>; positions: unknown[] }> {
   const [invest, isa] = await Promise.all([
     fetchPositions(T212_API_KEY, T212_API_SECRET),
     T212_ISA_API_KEY ? fetchPositions(T212_ISA_API_KEY, T212_ISA_API_SECRET) : Promise.resolve(null),
   ]);
   const investPrices = extractPricesFor(invest, eligible);
   const isaPrices    = extractPricesFor(isa, eligible);
-  return mergePriceMaps(investPrices, isaPrices);
+  return {
+    prices: mergePriceMaps(investPrices, isaPrices),
+    positions: [invest, isa],
+  };
 }
 
 async function upsertPoints(
@@ -356,8 +420,27 @@ if (import.meta.main) {
         { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
     }
 
-    const prices = await fetchAllPrices((yahoo) =>
+    const { prices, positions } = await fetchAllPrices((yahoo) =>
       (wantOvernight && hasOvernightSession(yahoo)) || (wantDay && isDaySessionTicker(yahoo)));
+
+    // Self-diagnosis: the day window is open but NO day-session ticker
+    // resolved from the positions — the ISIN mapping and the code-suffix
+    // rules both missed (wrong internal code convention, or the holding
+    // is a different venue line). Surface the RAW instrument codes (+
+    // ISIN/currency) to ops_errors so the mismatch is visible in the
+    // admin badge / a DB query instead of silently recording nothing.
+    // Throttled to the first tick of each hour (the cron fires every
+    // 5 min; unthrottled this would write ~170 rows/day).
+    if (wantDay && !Object.keys(prices).some((t) => isDaySessionTicker(t))) {
+      const { minutes } = ukParts(now);
+      if (minutes % 60 < 5) {
+        const codes = positions.flatMap((p) => rawInstrumentCodes(p));
+        await reportServerError("overnight.day-unmapped", {
+          message: `day-session ticker resolved from none of: ${codes.join(", ").slice(0, 480)}`,
+        });
+      }
+    }
+
     if (Object.keys(prices).length === 0) {
       return new Response(JSON.stringify({ ok: true, skipped: "no-prices" }),
         { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
