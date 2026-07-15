@@ -14,6 +14,8 @@ import {
   hasOvernightSession,
   extractOvernightPrices,
   extractPricesFor,
+  resolveRowYahoo,
+  rawInstrumentCodes,
   mergePriceMaps,
 } from "./index.ts";
 
@@ -96,6 +98,29 @@ Deno.test("isDaySessionWindow: 07:00-21:00 Europe/London, weekdays only (DST-saf
   assertEquals(isDaySessionWindow(new Date(Date.UTC(2026, 0, 14, 21, 0))), false); // 21:00 UK
   // Weekend: Sat 2026-07-18 midday.
   assertEquals(isDaySessionWindow(new Date(Date.UTC(2026, 6, 18, 12, 0))), false);
+});
+
+Deno.test("resolveRowYahoo: ISIN+currency resolves the day-session instrument regardless of the T212 code", () => {
+  // Nested shape with an UNKNOWN internal code — ISIN (Sivers) + EUR wins.
+  assertEquals(resolveRowYahoo({ instrument: { ticker: "WHATEVER_XX", isin: "SE0003917798", currencyCode: "EUR" } }), "2DG.F");
+  // Same ISIN but the SEK Stockholm line must NOT map (11x currency gap).
+  assertEquals(resolveRowYahoo({ instrument: { ticker: "SIVEs_EQ", isin: "SE0003917798", currencyCode: "SEK" } }), null);
+  // ISIN with no currency on the row → trust the ISIN (single-listing rows).
+  assertEquals(resolveRowYahoo({ instrument: { ticker: "X", isin: "se0003917798" } }), "2DG.F");
+  // No ISIN → falls through to the code-suffix rules.
+  assertEquals(resolveRowYahoo({ ticker: "AAPL_US_EQ" }), "AAPL");
+  assertEquals(resolveRowYahoo({ instrument: { ticker: "2DGd_EQ" } }), "2DG.F");
+  assertEquals(resolveRowYahoo({}), null);
+});
+
+Deno.test("rawInstrumentCodes: surfaces code/isin/currency for the unmapped diagnostic", () => {
+  const positions = [
+    { ticker: "AAPL_US_EQ", currentPrice: 200 },
+    { instrument: { ticker: "2DGx_EQ", isin: "SE0003917798", currencyCode: "EUR" }, currentPrice: 3.8 },
+    null, 42,
+  ];
+  assertEquals(rawInstrumentCodes(positions), ["AAPL_US_EQ", "2DGx_EQ/SE0003917798/EUR"]);
+  assertEquals(rawInstrumentCodes(null), []);
 });
 
 Deno.test("isDaySessionTicker + extractPricesFor: 2DG.F recorded via the day predicate, not the overnight one", () => {
