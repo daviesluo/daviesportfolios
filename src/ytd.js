@@ -223,6 +223,76 @@ export function windowBetweenLastTwoUsCloses(points, mh, isTradingDay) {
   return points;
 }
 
+/**
+ * Lay a sparse Yahoo intraday series onto a FIXED venue-session grid —
+ * 5-min slots from `session.startMin` to `session.endMin` in the venue's
+ * wall-clock `tz` — carrying the last known close flat through slots with
+ * no bar. Illiquid venue listings (2DG.F) only get a Yahoo bar for buckets
+ * with an actual trade, so their 1D line died at the day's last print
+ * (e.g. 17:30) even though the venue trades to 21:00 UK; on the grid the
+ * chart always spans the whole session ("一定要从7:00显示到21:00").
+ *
+ *   - One grid per venue-local calendar day present in the input; days
+ *     iterate in order, so a multi-day window (the 'reg'/'ext' 24 h
+ *     variants) gets each day's session frame back to back.
+ *   - Real bars pass through as-is; gap slots are synthesised as
+ *     `{date, close: <carried>, volume: 0}` (zero volume keeps the VWAP
+ *     overlay's forward-fill honest — no phantom traded volume).
+ *   - Leading slots before the day's first bar carry the previous day's
+ *     last value, or (first day) backfill flat at the first bar's close.
+ *   - The LIVE day's grid is capped at the last completed 5-min slot, so
+ *     the line ends at "now", not at a future-flat 21:00.
+ *   - Bars outside the frame (pre-07:00 auction prints etc.) are dropped —
+ *     the frame owns the day.
+ * DST-safe: the tz offset is sampled per day at local noon via Intl (the
+ * session is nowhere near the 01:00–02:00 transition window).
+ * Falls back to the input untouched on empty/malformed input.
+ *
+ * @param {Array<{date: string, close: number, volume?: number}> | null} points
+ * @param {{tz: string, startMin: number, endMin: number} | null} session
+ * @param {number} [nowMs]
+ * @returns {Array<{date: string, close: number, volume?: number}> | null}
+ */
+export function fillVenueSessionGrid(points, session, nowMs = Date.now()) {
+  if (!Array.isArray(points) || points.length === 0 || !session) return points;
+  const STEP = 5 * 60_000;
+  const bars = points.filter((p) => p && typeof p.date === 'string'
+    && p.date.length === 16 && p.date[10] === 'T' && typeof p.close === 'number');
+  if (bars.length === 0) return points;
+  const byKey = new Map(bars.map((p) => [p.date, p]));
+  const toMs = (d) => new Date(d + 'Z').getTime();
+  const fmtUtc = (ms) => new Date(ms).toISOString().slice(0, 16);
+  const dayFmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: session.tz, year: 'numeric', month: '2-digit', day: '2-digit',
+  });
+  const hourFmt = new Intl.DateTimeFormat('en-GB', {
+    timeZone: session.tz, hour: '2-digit', minute: '2-digit', hour12: false,
+  });
+  // Venue-local calendar days present in the input, ascending.
+  const days = [...new Set(bars.map((p) => dayFmt.format(toMs(p.date))))].sort();
+  const out = [];
+  let carry = bars[0].close;   // leading slots of day 1 backfill flat at the first bar
+  for (const day of days) {
+    const [y, m, d] = day.split('-').map(Number);
+    // tz offset for this day, sampled at local noon (DST-safe for a
+    // 07:00–21:00 frame — transitions happen 01:00–02:00 local).
+    const probe = Date.UTC(y, m - 1, d, 12, 0);
+    const parts = hourFmt.format(probe).split(':').map(Number);
+    const offMs = ((parts[0] * 60 + parts[1]) - 12 * 60) * 60_000;
+    const midnightUtc = Date.UTC(y, m - 1, d) - offMs;
+    const startMs = midnightUtc + session.startMin * 60_000;
+    let endMs = midnightUtc + session.endMin * 60_000;
+    if (endMs > nowMs) endMs = Math.floor(nowMs / STEP) * STEP;   // live day → cap at now
+    for (let t = startMs; t <= endMs; t += STEP) {
+      const key = fmtUtc(t);
+      const real = byKey.get(key);
+      if (real) { carry = real.close; out.push(real); }
+      else out.push({ date: key, close: carry, volume: 0 });
+    }
+  }
+  return out.length >= 2 ? out : points;
+}
+
 // Apply the 1D fetch-variant's display window to a fetched series:
 //   'closed' → trim to the latest available trading day
 //   'reg' / 'ext' → trim to the trailing 24 h

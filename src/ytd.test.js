@@ -7,7 +7,7 @@ import {
   buildTickerSeries, closeOn, lotsFor, computeAt, ytdPct,
   fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS,
   applyVariantFilter, windowSinceLastUsClose, windowBetweenLastTwoUsCloses,
-  filterToLastHours, filterToLast24h,
+  filterToLastHours, filterToLast24h, fillVenueSessionGrid,
 } from './ytd.js';
 import { isUsTradingDateStr } from './market_hours.js';
 
@@ -694,5 +694,65 @@ describe('filterToLastHours', () => {
     // 24 h delegates identically to filterToLast24h (keeps only 2/1 h).
     expect(filterToLast24h(pts)).toEqual(filterToLastHours(pts, 24));
     expect(filterToLast24h(pts).map((p) => p.close)).toEqual([3, 4]);
+  });
+});
+
+describe('fillVenueSessionGrid (sparse-tape venue listing → fixed 07:00–21:00 frame)', () => {
+  const SESSION = { tz: 'Europe/London', startMin: 7 * 60, endMin: 21 * 60 };
+  const P = (date, close, volume = 100) => ({ date, close, volume });
+
+  it('BST day: grid spans 06:00Z–20:00Z (07:00–21:00 UK), gaps carry the last close flat', () => {
+    // Sparse tape: prints at 07:00, 07:20 and 17:30 UK only.
+    const pts = [
+      P('2026-07-15T06:00', 3.9),
+      P('2026-07-15T06:20', 4.0),
+      P('2026-07-15T16:30', 3.8),
+    ];
+    const now = new Date('2026-07-15T22:00:00Z').getTime();   // after the close
+    const out = fillVenueSessionGrid(pts, SESSION, now) || [];
+    // 06:00Z → 20:00Z inclusive at 5-min steps = 169 slots.
+    expect(out.length).toBe(169);
+    expect(out[0]).toEqual(P('2026-07-15T06:00', 3.9));          // real bar passes through
+    expect(out[1]).toEqual({ date: '2026-07-15T06:05', close: 3.9, volume: 0 });  // flat gap
+    expect(out[4]).toEqual(P('2026-07-15T06:20', 4.0));          // next real bar
+    // The tail runs flat at the 17:30-UK print all the way to 21:00 UK.
+    expect(out[out.length - 1]).toEqual({ date: '2026-07-15T20:00', close: 3.8, volume: 0 });
+    expect(out.every((p) => p.date <= '2026-07-15T20:00' && p.date >= '2026-07-15T06:00')).toBe(true);
+  });
+
+  it('LIVE day: the grid is capped at the last completed 5-min slot, not future-flat to 21:00', () => {
+    const pts = [P('2026-07-15T06:00', 3.9)];
+    const now = new Date('2026-07-15T10:03:00Z').getTime();
+    const out = fillVenueSessionGrid(pts, SESSION, now) || [];
+    expect(out[out.length - 1].date).toBe('2026-07-15T10:00');
+    expect(out.length).toBe(49);   // 06:00 → 10:00 inclusive
+  });
+
+  it('leading slots before the first print backfill flat at the first close', () => {
+    const pts = [P('2026-07-15T06:20', 4.0)];
+    const now = new Date('2026-07-15T07:00:00Z').getTime();
+    const out = fillVenueSessionGrid(pts, SESSION, now) || [];
+    expect(out[0]).toEqual({ date: '2026-07-15T06:00', close: 4.0, volume: 0 });
+    expect(out[4]).toEqual(P('2026-07-15T06:20', 4.0));
+  });
+
+  it('GMT (winter) day: 07:00–21:00 UK = 07:00Z–21:00Z', () => {
+    const pts = [P('2026-01-14T07:00', 3.5), P('2026-01-14T12:00', 3.6)];
+    const now = new Date('2026-01-14T22:00:00Z').getTime();
+    const out = fillVenueSessionGrid(pts, SESSION, now) || [];
+    expect(out[0].date).toBe('2026-01-14T07:00');
+    expect(out[out.length - 1]).toEqual({ date: '2026-01-14T21:00', close: 3.6, volume: 0 });
+  });
+
+  it('out-of-frame prints are dropped; empty/malformed input passes through', () => {
+    const pts = [P('2026-07-15T05:00', 9.9), P('2026-07-15T06:00', 3.9), P('2026-07-15T06:05', 3.95)];
+    const now = new Date('2026-07-15T06:10:00Z').getTime();
+    const out = fillVenueSessionGrid(pts, SESSION, now) || [];
+    // 05:00Z (06:00 UK — pre-frame) never appears; frame starts 06:00Z.
+    expect(out.every((p) => p.date >= '2026-07-15T06:00')).toBe(true);
+    expect(fillVenueSessionGrid([], SESSION)).toEqual([]);
+    expect(fillVenueSessionGrid(null, SESSION)).toBeNull();
+    const noSession = [P('2026-07-15T06:00', 1)];
+    expect(fillVenueSessionGrid(noSession, null)).toBe(noSession);
   });
 });
