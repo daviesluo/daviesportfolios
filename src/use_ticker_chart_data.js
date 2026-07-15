@@ -21,7 +21,7 @@ import { MA_TTL_MS, tickerChartCacheKey } from './cache.js';
 import { ChartStore, MaStore } from './chart_store.js';
 import { priceDividedByTtmEps } from './indicators.js';
 import { getOvernightSeries, fetchOvernightSeries, OVERNIGHT_FETCH_EVENT } from './overnight_intraday.js';
-import { hasOvernightSession, isCrypto } from './ticker_class.js';
+import { hasOvernightSession, hasRecordedDaySession, isCrypto } from './ticker_class.js';
 import { reportError } from './ops_error.js';
 import { modalTtl, modalCacheGet, modalCacheSet } from './ticker_chart_helpers.js';
 
@@ -318,8 +318,10 @@ export function useTickerChartData({
     read(); // paint from cache immediately (if warm)
     // Fetch whenever the ext toggle is on (any phase) — not just live in
     // the overnight session — so last night's recorded line is available
-    // during the day too. The server keeps the points for 26h.
-    if (extendedHours && hasOvernightSession(ticker)) {
+    // during the day too. The server keeps the points for 26h. Recorded-
+    // DAY-session tickers (2DG.F) fetch unconditionally: their recording
+    // is the primary session data, not an ext-hours extra.
+    if ((extendedHours && hasOvernightSession(ticker)) || hasRecordedDaySession(ticker)) {
       fetchOvernightSeries([ticker]);
     }
     if (typeof window === 'undefined') return undefined;

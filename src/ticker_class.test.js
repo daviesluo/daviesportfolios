@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   isCrypto, isFutures, isForex, isIndex, isExchangeListed,
   isCnFund, isPvt, isDailyOnly, isUsEquity, hasOvernightSession,
-  isEuroExchange, isRegularSessionOnly,
+  isEuroExchange, isRegularSessionOnly, hasRecordedDaySession,
 } from './ticker_class.js';
 
 describe('ticker_class', () => {
@@ -136,5 +136,13 @@ describe('ticker_class', () => {
     expect(isRegularSessionOnly('BTC-USD')).toBe(false);
     expect(isRegularSessionOnly('^GSPC')).toBe(false);
     expect(isRegularSessionOnly('')).toBe(false);
+  });
+
+  it('hasRecordedDaySession — sparse-tape venue listings whose day is T212-recorded (2DG.F)', () => {
+    expect(hasRecordedDaySession('2DG.F')).toBe(true);
+    expect(hasRecordedDaySession('2dg.f')).toBe(true);   // case-insensitive
+    expect(hasRecordedDaySession('NVDA')).toBe(false);
+    expect(hasRecordedDaySession('VUAA.L')).toBe(false);
+    expect(hasRecordedDaySession('')).toBe(false);
   });
 });
