@@ -144,6 +144,11 @@ export function t212TickerToYahoo(t212Ticker: string): string | null {
   if (us) return us[1].toUpperCase();
   const lse = t212Ticker.match(/^([A-Za-z]+)l_EQ$/);
   if (lse) return lse[1].toUpperCase() + ".L";
+  // Deutsche Börse listings — T212's `d` venue suffix (SAPd_EQ, 2DGd_EQ)
+  // → Yahoo's Frankfurt `.F`. [A-Za-z0-9] because German codes can lead
+  // with digits (2DG). Kept in lockstep with overnight-record's copy.
+  const db = t212Ticker.match(/^([A-Za-z0-9]+)d_EQ$/);
+  if (db) return db[1].toUpperCase() + ".F";
   return null;
 }
 

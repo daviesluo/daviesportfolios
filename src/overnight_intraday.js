@@ -14,7 +14,7 @@
 
 import { SB_URL } from './supabase_config.js';
 import { EDGE_ANON_KEY } from './yahoo_fetch.js';
-import { hasOvernightSession } from './ticker_class.js';
+import { hasOvernightSession, hasRecordedDaySession } from './ticker_class.js';
 
 const STORAGE_KEY = 'dp.overnight.cache';
 const FETCH_URL = `${SB_URL}/functions/v1/overnight-fetch`;
@@ -157,8 +157,15 @@ export function mergeOvernightSeries(series, overnightPts, ctx) {
   // regular / pre / after-hours too (the splice below keeps the session's
   // real bars on both sides of it). `extPrice`-anchoring and the live
   // heartbeat dot remain phase-gated in the callers; this is the LINE.
-  if (!extendedHours) return series;
-  if (!hasOvernightSession(ticker)) return series;
+  //
+  // Recorded-DAY-session tickers (2DG.F — sparse Yahoo tape, T212 sampled
+  // through the venue day) bypass BOTH gates: their recording is the
+  // primary session data, not an extended-hours extra, so it splices in
+  // whatever the toggle says.
+  if (!hasRecordedDaySession(ticker)) {
+    if (!extendedHours) return series;
+    if (!hasOvernightSession(ticker)) return series;
+  }
   if (rangeKey !== '1D' && rangeKey !== '1W' && rangeKey !== '1M') return series;
   if (!Array.isArray(series) || series.length === 0) return series;
   if (!Array.isArray(overnightPts) || overnightPts.length < 2) return series;
