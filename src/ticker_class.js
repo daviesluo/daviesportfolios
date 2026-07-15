@@ -88,23 +88,25 @@ export const hasOvernightSession = (ticker) =>
 export const isRegularSessionOnly = (ticker) =>
   isExchangeListed(ticker) || (isUsEquity(ticker) && !hasOvernightSession(ticker));
 
-// Venue listings whose Yahoo tape is too sparse to chart — Yahoo emits a
-// 5-min bar only for buckets with an actual trade, and an illiquid
-// Frankfurt listing can go hours without one (2DG.F's 1D line ended
-// mid-afternoon while the venue trades to 21:00 UK). The overnight-record
-// cron samples T212's quote for these straight through the venue DAY
-// session (07:00–21:00 Europe/London, weekdays) into the same recorded-
-// points table, and the chart splices the points in like the overnight
-// line — but UNCONDITIONALLY (not gated on the Extended Hours toggle),
-// because for these tickers the recording IS the primary session data.
-// Mirrors DAY_SESSION_TICKERS in supabase/functions/overnight-record.
-const RECORDED_DAY_SESSION = new Set(['2DG.F']);
+// Venue day-session frames for SPARSE-TAPE listings. Yahoo emits a 5-min
+// bar only for buckets with an actual trade, so an illiquid venue listing
+// charts as a line that dies at its last print (2DG.F traded to a 17:30
+// last print on a day its venue was open to 21:00 UK). For these the 1D
+// chart is rendered on a fixed session GRID — `fillVenueSessionGrid`
+// (ytd.js) lays the Yahoo bars onto 5-min slots from `startMin` to
+// `endMin` in the venue's wall-clock `tz` and carries the last close flat
+// through the gaps, so the x-axis always spans the whole session.
+// 2DG.F = Sivers Semiconductors' Frankfurt line; the user-visible session
+// is 07:00–21:00 Europe/London.
+const VENUE_SESSIONS = {
+  '2DG.F': { tz: 'Europe/London', startMin: 7 * 60, endMin: 21 * 60 },
+};
 
 /**
- * True when this ticker's venue day session is server-recorded from T212
- * (sparse Yahoo tape) and the chart should splice the recorded points in
- * regardless of the ext-hours toggle.
+ * The fixed 1D session frame for a sparse-tape venue listing, or null for
+ * everything else (normal tickers keep Yahoo's own bar coverage).
  * @param {string} ticker
+ * @returns {{tz: string, startMin: number, endMin: number} | null}
  */
-export const hasRecordedDaySession = (ticker) =>
-  RECORDED_DAY_SESSION.has((ticker || '').toUpperCase());
+export const venueSessionFor = (ticker) =>
+  VENUE_SESSIONS[(ticker || '').toUpperCase()] || null;

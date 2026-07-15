@@ -1,22 +1,17 @@
 // Supabase Edge Function: overnight-record
 //
-// Cron-triggered every 5 min, 24/7 (see migrations 0016 + 0019). Fetches
-// T212's `/equity/positions` once and upserts the currentPrice of the
-// tickers whose recording window is currently OPEN into
-// `public.overnight_intraday_points`, keyed by (ticker, 5-min bucket).
-// Two windows share the worker:
-//   - US overnight (20:00-04:00 ET, weekdays, not a US holiday): every
-//     US-equity holding — the chart modal's overnight LINE.
-//   - Venue DAY session (07:00-21:00 Europe/London, weekdays): the
-//     sparse-tape venue listings in DAY_SESSION_TICKERS (2DG.F) — Yahoo
-//     only emits bars for 5-min buckets with a real trade, so an illiquid
-//     Frankfurt listing charted as a line ending mid-afternoon; the T212
-//     quote samples give it a continuous session line instead.
+// Cron-triggered every 5 min across the UTC window covering the US
+// overnight session (see migration 0016_overnight_cron.sql). Fetches
+// T212's `/equity/positions` once and upserts the currentPrice of
+// every US-equity holding into `public.overnight_intraday_points`,
+// keyed by (ticker, current 5-min bucket). The ticker chart modal
+// then reads these via `overnight-fetch` to draw a real overnight
+// LINE (20:00-04:00 ET) instead of the single live "heartbeat dot".
 //
-// Why server-side: Yahoo has no bars for these stretches and T212 returns
-// only one realtime point per call, so the only way to get a trend is to
-// sample T212 every few minutes — and that has to run even when no
-// browser tab is open, hence a cron worker.
+// Why server-side: Yahoo has no overnight bars and T212 returns only
+// one realtime point per call, so the only way to get an overnight
+// trend is to sample T212 every few minutes — and that has to run
+// even when no browser tab is open, hence a cron worker.
 //
 // Auth: caller MUST present `Authorization: Bearer <CRON_SECRET>`.
 // The cron job sends it (inlined in the cron.schedule body, or via
@@ -27,14 +22,15 @@
 // JWT gate 401s the cron call before this handler's own check runs.
 //
 // Returns:
-//   200 { ok: true, bucketTime, recorded: <n>, windows }  — n tickers written
-//   200 { ok: true, skipped: "outside-all-windows" }       — no window open
-//   200 { ok: true, skipped: "no-prices" }                  — T212 returned nothing usable
+//   200 { ok: true, bucketTime, recorded: <n> }         — n tickers written
+//   200 { ok: true, skipped: "not-recording-window" }    — outside 20:00-04:00 ET
+//                                                          / weekend dead zone
+//                                                          / US-holiday session
+//   200 { ok: true, skipped: "no-prices" }               — T212 returned nothing usable
 //   403 — bad auth
 //   500 — DB write failed
 
 import { isUsMarketHolidayAt } from "../_shared/us_market_calendar.ts";
-import { reportServerError } from "../_shared/ops.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -133,58 +129,9 @@ export function isHolidaySession(at: Date): boolean {
   return isUsMarketHolidayAt(sessionAt);
 }
 
-/** True when we should be recording the US overnight session right now. */
+/** True when we should be recording right now. */
 export function shouldRecord(at: Date): boolean {
   return isOvernightWindow(at) && !isWeekendDeadZone(at) && !isHolidaySession(at);
-}
-
-// ---------------- Recorded DAY sessions (sparse-tape venue listings) ----
-
-// Venue-listed holdings whose Yahoo tape is too sparse to chart — Yahoo
-// only emits a 5-min bar for buckets with an actual trade, and an illiquid
-// Frankfurt listing can go hours without one (2DG.F printed 22-23 bars on
-// some full days, "line ends at 17:00" while the venue trades to 21:00 UK).
-// For these we sample T212's live quote straight through the venue day,
-// same table / cadence / retention as the overnight recorder, and the
-// client splices the points into the chart the same way. Keyed by Yahoo
-// ticker. 2DG.F = Sivers Semiconductors' Deutsche Börse listing.
-const DAY_SESSION_TICKERS = new Set(["2DG.F"]);
-
-export function isDaySessionTicker(yahooTicker: string): boolean {
-  return typeof yahooTicker === "string" && DAY_SESSION_TICKERS.has(yahooTicker.toUpperCase());
-}
-
-/** Hour/minute/weekday in Europe/London (DST-safe via Intl), like etParts. */
-export function ukParts(at: Date): { weekday: number; minutes: number } {
-  const fmt = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Europe/London",
-    weekday: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  const parts = fmt.formatToParts(at);
-  const wdStr = parts.find((p) => p.type === "weekday")?.value ?? "";
-  const hh = parseInt(parts.find((p) => p.type === "hour")?.value ?? "", 10);
-  const mm = parseInt(parts.find((p) => p.type === "minute")?.value ?? "", 10);
-  const WD: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-  const weekday = WD[wdStr] ?? 0;
-  const hour = hh === 24 ? 0 : hh;
-  return { weekday, minutes: (Number.isFinite(hour) ? hour : 0) * 60 + (Number.isFinite(mm) ? mm : 0) };
-}
-
-/**
- * Is `at` inside the recorded DAY session — 07:00–21:00 Europe/London,
- * Mon–Fri (the user-visible Börse Frankfurt day for 2DG.F)? German market
- * holidays are NOT modelled: a holiday's recording is a dead-flat frozen
- * quote, which the client's all-identical suppression drops from the chart
- * (same guard the US-holiday overnight relied on before the source-side
- * skip), so a spurious holiday recording is invisible noise, never a line.
- */
-export function isDaySessionWindow(at: Date): boolean {
-  const { weekday, minutes } = ukParts(at);
-  if (weekday === 0 || weekday === 6) return false;  // Sat / Sun
-  return minutes >= 7 * 60 && minutes < 21 * 60;
 }
 
 /**
@@ -214,11 +161,6 @@ export function t212TickerToYahoo(t212Ticker: string): string | null {
   if (us) return us[1].toUpperCase();
   const lse = t212Ticker.match(/^([A-Za-z]+)l_EQ$/);
   if (lse) return lse[1].toUpperCase() + ".L";
-  // Deutsche Börse listings — T212's `d` venue suffix (SAPd_EQ, 2DGd_EQ);
-  // the app's tickers use Yahoo's Frankfurt `.F` suffix. [A-Za-z0-9]
-  // because German codes can lead with digits (2DG).
-  const db = t212Ticker.match(/^([A-Za-z0-9]+)d_EQ$/);
-  if (db) return db[1].toUpperCase() + ".F";
   return null;
 }
 
@@ -236,98 +178,30 @@ export function hasOvernightSession(yahooTicker: string): boolean {
   return true;
 }
 
-// ISIN-based resolution for the DAY-session tickers. T212's internal
-// instrument code for a German/Gettex listing isn't documented (the
-// `<CODE>d_EQ` suffix rule below is a convention guess), but the nested
-// `/equity/positions` row shape carries the instrument's ISIN — globally
-// unique and printed on every listing of the security. Match ISIN +
-// currency instead of guessing the code. Currency matters because a
-// dual-listed security shares its ISIN across venues in DIFFERENT
-// currencies: Sivers' Stockholm line (SIVE, SEK) has the same ISIN as the
-// Gettex/Frankfurt line the app charts (2DG.F, EUR) — recording the SEK
-// quote onto the € chart would be ~11× off, so a SEK match must NOT map.
-const DAY_SESSION_BY_ISIN: Record<string, { currency: string; yahoo: string }> = {
-  "SE0003917798": { currency: "EUR", yahoo: "2DG.F" },  // Sivers Semiconductors — Gettex line
-};
-
 /**
- * Resolve a positions row to its Yahoo ticker: ISIN+currency first (the
- * DAY-session instruments, immune to internal-code guessing), then the
- * code-suffix rules (`t212TickerToYahoo`). Returns null when neither
- * matches. Exported for tests.
+ * Extract { yahooTicker → currentPrice } for every overnight-eligible
+ * US equity in a T212 `/equity/positions` array. Accepts both the
+ * flat-`ticker` and nested-`instrument.ticker` row shapes. Drops
+ * non-positive / non-finite prices and non-eligible tickers.
  */
-export function resolveRowYahoo(row: Record<string, unknown>): string | null {
-  let t212: string | null = typeof row.ticker === "string" ? row.ticker : null;
-  let isin: string | null = null;
-  let rowCurrency: string | null = null;
-  if (row.instrument && typeof row.instrument === "object") {
-    const inst = row.instrument as Record<string, unknown>;
-    if (!t212 && typeof inst.ticker === "string") t212 = inst.ticker;
-    if (typeof inst.isin === "string") isin = inst.isin;
-    if (typeof inst.currencyCode === "string") rowCurrency = inst.currencyCode;
-  }
-  // Flat rows (legacy shape) may carry isin/currencyCode at the top level.
-  if (!isin && typeof row.isin === "string") isin = row.isin;
-  if (!rowCurrency && typeof row.currencyCode === "string") rowCurrency = row.currencyCode;
-  if (isin) {
-    const hit = DAY_SESSION_BY_ISIN[isin.toUpperCase()];
-    if (hit && (!rowCurrency || rowCurrency.toUpperCase() === hit.currency)) return hit.yahoo;
-  }
-  return t212 ? t212TickerToYahoo(t212) : null;
-}
-
-/**
- * Extract { yahooTicker → currentPrice } for every `eligible` ticker in a
- * T212 `/equity/positions` array. Accepts both the flat-`ticker` and
- * nested-`instrument.ticker` row shapes (ISIN+currency resolution for the
- * DAY-session instruments — see resolveRowYahoo). Drops non-positive /
- * non-finite prices and non-eligible tickers.
- */
-export function extractPricesFor(
-  positions: unknown,
-  eligible: (yahooTicker: string) => boolean,
-): Record<string, number> {
+export function extractOvernightPrices(positions: unknown): Record<string, number> {
   const out: Record<string, number> = {};
   if (!Array.isArray(positions)) return out;
   for (const raw of positions) {
     if (!raw || typeof raw !== "object") continue;
     const p = raw as Record<string, unknown>;
-    const yahoo = resolveRowYahoo(p);
-    if (!yahoo || !eligible(yahoo)) continue;
+    let t212 = typeof p.ticker === "string" ? p.ticker : null;
+    if (!t212 && p.instrument && typeof p.instrument === "object") {
+      const inst = p.instrument as Record<string, unknown>;
+      if (typeof inst.ticker === "string") t212 = inst.ticker;
+    }
+    if (!t212) continue;
+    const yahoo = t212TickerToYahoo(t212);
+    if (!yahoo || !hasOvernightSession(yahoo)) continue;
     const cp = Number(p.currentPrice);
     if (Number.isFinite(cp) && cp > 0) out[yahoo] = cp;
   }
   return out;
-}
-
-/**
- * Raw T212 instrument codes (+ ISIN/currency when present) from a
- * positions payload — the self-diagnosis for a day-session ticker that
- * failed to map. Exported for tests.
- */
-export function rawInstrumentCodes(positions: unknown): string[] {
-  const out: string[] = [];
-  if (!Array.isArray(positions)) return out;
-  for (const raw of positions) {
-    if (!raw || typeof raw !== "object") continue;
-    const p = raw as Record<string, unknown>;
-    let code: string | null = typeof p.ticker === "string" ? p.ticker : null;
-    let isin = "";
-    let cur = "";
-    if (p.instrument && typeof p.instrument === "object") {
-      const inst = p.instrument as Record<string, unknown>;
-      if (!code && typeof inst.ticker === "string") code = inst.ticker;
-      if (typeof inst.isin === "string") isin = inst.isin;
-      if (typeof inst.currencyCode === "string") cur = inst.currencyCode;
-    }
-    if (code) out.push([code, isin, cur].filter(Boolean).join("/"));
-  }
-  return out;
-}
-
-/** Back-compat name: the US-overnight extraction (test-pinned). */
-export function extractOvernightPrices(positions: unknown): Record<string, number> {
-  return extractPricesFor(positions, hasOvernightSession);
 }
 
 /** Merge two price maps (ISA + invest), invest wins ties. */
@@ -355,19 +229,14 @@ async function fetchPositions(apiKey: string, apiSecret: string): Promise<unknow
   } catch { return null; }
 }
 
-async function fetchAllPrices(
-  eligible: (yahooTicker: string) => boolean,
-): Promise<{ prices: Record<string, number>; positions: unknown[] }> {
+async function fetchAllOvernightPrices(): Promise<Record<string, number>> {
   const [invest, isa] = await Promise.all([
     fetchPositions(T212_API_KEY, T212_API_SECRET),
     T212_ISA_API_KEY ? fetchPositions(T212_ISA_API_KEY, T212_ISA_API_SECRET) : Promise.resolve(null),
   ]);
-  const investPrices = extractPricesFor(invest, eligible);
-  const isaPrices    = extractPricesFor(isa, eligible);
-  return {
-    prices: mergePriceMaps(investPrices, isaPrices),
-    positions: [invest, isa],
-  };
+  const investPrices = extractOvernightPrices(invest);
+  const isaPrices    = extractOvernightPrices(isa);
+  return mergePriceMaps(investPrices, isaPrices);
 }
 
 async function upsertPoints(
@@ -404,43 +273,17 @@ if (import.meta.main) {
     }
 
     const now = new Date();
-    // Two independent recording windows share the cron + this function:
-    //   - US overnight (20:00-04:00 ET, weekdays, not a US holiday) —
-    //     shouldRecord. (Previously the handler re-derived this from the
-    //     two raw gates and never picked up the holiday term shouldRecord
-    //     gained for the Jul-3 flat-line fix; composing here wires it in.)
-    //   - Venue DAY session for the sparse-tape tickers (07:00-21:00
-    //     Europe/London, weekdays) — isDaySessionWindow.
-    // A tick inside either window records just that window's tickers; the
-    // eligibility predicate below unions whatever is active.
-    const wantOvernight = shouldRecord(now);
-    const wantDay = isDaySessionWindow(now);
-    if (!wantOvernight && !wantDay) {
-      return new Response(JSON.stringify({ ok: true, skipped: "outside-all-windows" }),
+    // Composed gate (shouldRecord = overnight window AND not the weekend
+    // dead zone AND not a US-holiday session). The handler previously
+    // re-derived this from the first two raw checks only, so the holiday
+    // term added for the Jul-3 flat-line fix never actually ran in
+    // production — calling the composed predicate wires it in.
+    if (!shouldRecord(now)) {
+      return new Response(JSON.stringify({ ok: true, skipped: "not-recording-window" }),
         { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
     }
 
-    const { prices, positions } = await fetchAllPrices((yahoo) =>
-      (wantOvernight && hasOvernightSession(yahoo)) || (wantDay && isDaySessionTicker(yahoo)));
-
-    // Self-diagnosis: the day window is open but NO day-session ticker
-    // resolved from the positions — the ISIN mapping and the code-suffix
-    // rules both missed (wrong internal code convention, or the holding
-    // is a different venue line). Surface the RAW instrument codes (+
-    // ISIN/currency) to ops_errors so the mismatch is visible in the
-    // admin badge / a DB query instead of silently recording nothing.
-    // Throttled to the first tick of each hour (the cron fires every
-    // 5 min; unthrottled this would write ~170 rows/day).
-    if (wantDay && !Object.keys(prices).some((t) => isDaySessionTicker(t))) {
-      const { minutes } = ukParts(now);
-      if (minutes % 60 < 5) {
-        const codes = positions.flatMap((p) => rawInstrumentCodes(p));
-        await reportServerError("overnight.day-unmapped", {
-          message: `day-session ticker resolved from none of: ${codes.join(", ").slice(0, 480)}`,
-        });
-      }
-    }
-
+    const prices = await fetchAllOvernightPrices();
     if (Object.keys(prices).length === 0) {
       return new Response(JSON.stringify({ ok: true, skipped: "no-prices" }),
         { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
@@ -453,8 +296,7 @@ if (import.meta.main) {
         { status: 500, headers: { ...CORS, "Content-Type": "application/json" } });
     }
     return new Response(
-      JSON.stringify({ ok: true, bucketTime, recorded: Object.keys(prices).length,
-        windows: { overnight: wantOvernight, day: wantDay } }),
+      JSON.stringify({ ok: true, bucketTime, recorded: Object.keys(prices).length }),
       { status: 200, headers: { ...CORS, "Content-Type": "application/json" } },
     );
   });

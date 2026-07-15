@@ -163,16 +163,6 @@ describe('mergeOvernightSeries — splice eligibility', () => {
     expect(out.length).toBe(5);
   });
 
-  it('recorded-DAY-session tickers (2DG.F) merge even with the ext toggle OFF', () => {
-    // Their T212 recording IS the primary session data (sparse Yahoo
-    // tape), not an extended-hours extra — so the splice ignores the
-    // toggle. A normal US ticker with ext off still returns unchanged
-    // (next test).
-    const out = /** @type {any} */ (mergeOvernightSeries(YAHOO, ON, ctx({ ticker: '2DG.F', extendedHours: false })));
-    expect(out).not.toBe(YAHOO);
-    expect(out.slice(-3)).toEqual(ON);
-  });
-
   it('returns the SAME ref (no merge) when the ext toggle is off / wrong range', () => {
     expect(mergeOvernightSeries(YAHOO, ON, ctx({ extendedHours: false }))).toBe(YAHOO);
     expect(/** @type {any} */ (mergeOvernightSeries(YAHOO, ON, ctx({ rangeKey: '3M' }))).length).toBe(YAHOO.length);

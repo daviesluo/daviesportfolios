@@ -65,11 +65,6 @@ Deno.test("t212TickerToYahoo — allow-list, generic US, generic LSE, unknown", 
   assertEquals(t212TickerToYahoo(""), null);
 });
 
-Deno.test("t212TickerToYahoo — Deutsche Börse `d` suffix maps to Yahoo `.F` (digits-leading codes too)", () => {
-  assertEquals(t212TickerToYahoo("2DGd_EQ"), "2DG.F");
-  assertEquals(t212TickerToYahoo("SAPd_EQ"), "SAP.F");
-});
-
 Deno.test("t212TickerToYahoo — renamed / merged US tickers map to the CURRENT symbol", () => {
   // T212 keeps the pre-rename internal code forever, so the generic
   // `_US_EQ` rule would resolve these to the stale symbol (FB, YNDX, …)

@@ -8,8 +8,8 @@ import { Modal } from './modals.jsx';
 import { usMarketHoursUtc, isWeekendDeadZone, isUsMarketHoliday, isUsTradingDateStr } from './market_hours.js';
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits } from './formatters.js';
-import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h } from './ytd.js';
-import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly, isCrypto } from './ticker_class.js';
+import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h, fillVenueSessionGrid } from './ytd.js';
+import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly, isCrypto, venueSessionFor } from './ticker_class.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
@@ -100,13 +100,20 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   //     previous US close through the most recent one, ENDING at that close
   //     — like a US stock's 1D after hours, it stops at the close and hides
   //     the current overnight move, rather than trailing to "now".
+  // Sparse-tape venue listings (2DG.F): render the 1D on the fixed venue
+  // session grid — 07:00–21:00 Europe/London — with flat carry-forward
+  // gaps, so the axis always spans the whole session instead of dying at
+  // the day's last print. Recomputed per render; pure + pinned in ytd.js.
+  const venueSession = venueSessionFor(ticker);
   const windowedSeries = (isCrypto(ticker) && rangeKey === '1D' && Array.isArray(series))
     ? (extendedHours
         ? filterToLast24h(series)
         : (phase === 'regular'
             ? windowSinceLastUsClose(series, mh, isUsTradingDateStr)
             : windowBetweenLastTwoUsCloses(series, mh, isUsTradingDateStr)))
-    : series;
+    : (venueSession && rangeKey === '1D' && Array.isArray(series))
+      ? fillVenueSessionGrid(series, venueSession)
+      : series;
 
   // Yahoo series with the recorded overnight points spliced in (when
   // eligible — see mergeOvernightSeries). Gated on the ext toggle, not
