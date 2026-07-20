@@ -467,8 +467,6 @@ async function tryDanjuan(code: string): Promise<PriceResult | null> {
   }
 }
 
-const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-
 // How long a usable lsjz reply waits for the still-pending fundgz call
 // before preempting it. Long enough that a merely-slower-than-lsjz but
 // healthy fundgz still wins (keeping the intraday estimate), short
@@ -496,15 +494,27 @@ export async function raceCnSources(
   graceMs = FUNDGZ_GRACE_MS,
 ): Promise<PriceResult | null> {
   const PENDING = Symbol("gz-still-pending");
+  // The grace timer must not outlive this call: clear it on every exit
+  // path (fundgz winning inside the grace window used to strand it),
+  // and never start it after the race has already settled (fundgz
+  // winning while lsjz is still in flight). Deno's test sanitizer
+  // rightly flags either as a leak.
+  let settled = false;
+  let graceTimer: ReturnType<typeof setTimeout> | undefined;
   const preempt: Promise<PriceResult | typeof PENDING> = lsjzPromise.then(async (ls) => {
-    if (!ls) return PENDING;   // lsjz useless — it never preempts fundgz
-    await delay(graceMs);
+    if (!ls || settled) return PENDING;   // useless lsjz never preempts fundgz
+    await new Promise<void>((r) => { graceTimer = setTimeout(r, graceMs); });
     return ls;
   });
-  const first = await Promise.race([gzPromise, preempt]);
-  if (first === PENDING) return await gzPromise; // lsjz was useless; fundgz gets its full timeout
-  if (first) return first;                       // usable fundgz, or lsjz preempting a hung fundgz
-  return await lsjzPromise;                      // fundgz settled null → fall back to lsjz
+  try {
+    const first = await Promise.race([gzPromise, preempt]);
+    if (first === PENDING) return await gzPromise; // lsjz was useless; fundgz gets its full timeout
+    if (first) return first;                       // usable fundgz, or lsjz preempting a hung fundgz
+    return await lsjzPromise;                      // fundgz settled null → fall back to lsjz
+  } finally {
+    settled = true;
+    if (graceTimer !== undefined) clearTimeout(graceTimer);
+  }
 }
 
 async function fetchCNFund(code: string): Promise<PriceResult | null> {
