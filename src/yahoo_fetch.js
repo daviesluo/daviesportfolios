@@ -153,6 +153,12 @@ async function fetchOneYahooChart(symbol) {
           settle(await parseOneYahooChart(res, symbol, i), i);
         } catch (e) {
           clearTimeout(tid);
+          // A winner elsewhere already called cleanup(), which aborts
+          // every other in-flight request — that abort lands here too
+          // and must NOT be mistaken for a genuine timeout/network error.
+          // Without this guard, a perfectly healthy proxy that simply
+          // lost the race gets blacklisted for a minute (Codex #201 P2).
+          if (resolved) return;
           // Timeouts / network errors → shorter backoff (1 min); the proxy
           // may be transiently slow rather than rate-limiting us.
           markProxyDead(i, 60_000);

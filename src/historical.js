@@ -165,6 +165,10 @@ async function fetchCnFundHistoryViaProxy(code, range) {
           settle(await parse(res), proxyIdx);
         } catch (_) {
           clearTimeout(tid);
+          // A winner elsewhere already called cleanup(), aborting every
+          // other in-flight attempt — don't mistake that for a genuine
+          // timeout and blacklist an otherwise-healthy proxy (Codex #201 P2).
+          if (resolved) return;
           markProxyDead(proxyIdx, 60_000);
           settle(null);
         }
@@ -284,6 +288,10 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
           settle(await parseResponse(res, i), i);
         } catch (_) {
           clearTimeout(tid);
+          // A winner elsewhere already called cleanup(), aborting every
+          // other in-flight attempt — don't mistake that for a genuine
+          // timeout and blacklist an otherwise-healthy proxy (Codex #201 P2).
+          if (resolved) return;
           markProxyDead(i, 60_000);
           settle(null);
         }

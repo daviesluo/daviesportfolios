@@ -358,20 +358,20 @@ function Board({ isReadOnly }) {
     let cancelled = false;
     loadPortfolioRemote().then(p => {
       if (cancelled) return;
-      hasRealLoadRef.current = true;
       // A genuine load failure (or a truly-empty server row) resolves to
       // the seeded demo portfolio. If a real, cache-primed portfolio is
       // already on screen, keep showing it rather than replacing actual
       // (if briefly stale) holdings with someone else's demo book — the
       // DemoBanner only makes sense when there was nothing better to
-      // show in the first place. The functional updater reads the
-      // LATEST state, so this is correct even though the effect's own
-      // `portfolio` closure is stale by the time this .then() runs.
-      if (p && p._isDemo) {
-        setPortfolio(prev => (prev && !prev._isDemo) ? prev : p);
-      } else {
-        setPortfolio(p);
-      }
+      // show in the first place. Bail out BEFORE opening the save gate
+      // in that case: this failed load never touched portfolio_remote's
+      // `lastKnownVersion`, so a save from here would skip the If-Match
+      // check and could silently clobber newer data written by another
+      // device (Codex #201 P1) — the cached portfolio stays read-only
+      // until a real load actually succeeds.
+      if (p && p._isDemo && hadCachedPortfolioRef.current) return;
+      hasRealLoadRef.current = true;
+      setPortfolio(p);
       // The refresh-loop effect below keys off `[portfolio !== null]` —
       // a stable BOOLEAN, deliberately, so a fresh portfolio object from
       // every 30 s price tick doesn't re-fire the whole effect (cancel +

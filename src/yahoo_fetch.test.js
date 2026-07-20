@@ -100,6 +100,38 @@ describe('fetchTickers — proxy fallback races all proxies in parallel (not seq
     const out = await fetchTickers(['NVDA']);
     expect(out.NVDA.lastPrice).toBe(224.85);
   });
+
+  // Codex #201 P2: cleanup() aborts every losing proxy the instant a
+  // winner lands, and that abort used to fall into the same catch
+  // block as a genuine timeout/network error — blacklisting a proxy
+  // that was perfectly healthy and simply slower this round.
+  it('does not blacklist a healthy proxy that loses the race to cleanup()', async () => {
+    const { proxyIsAvailable, clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+    const goodBody = {
+      chart: { result: [{ meta: { regularMarketPrice: 224.85, regularMarketPreviousClose: 224.5, currency: 'USD' } }] },
+    };
+    globalThis.fetch = /** @type {any} */ (vi.fn((url, opts) => {
+      if (String(url).includes('supabase.co')) {
+        return Promise.resolve({ ok: false, status: 500, json: async () => ({}) });
+      }
+      // The FIRST proxy answers immediately and wins the race, which
+      // triggers cleanup() → aborts every other in-flight proxy.
+      if (String(url).includes('cors.lol')) {
+        return Promise.resolve({ ok: true, json: async () => goodBody });
+      }
+      // Every other proxy is still healthy, just slower — it never
+      // gets a chance to answer because the winner's cleanup() aborts
+      // it first, same as a real-world loser.
+      return new Promise((_resolve, reject) => {
+        opts?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+      });
+    }));
+    await fetchTickers(['NVDA']);
+    // Every losing proxy (index 1+) must still be considered available —
+    // losing a race to a winner is not evidence the proxy is unhealthy.
+    for (let i = 1; i < 5; i++) expect(proxyIsAvailable(i)).toBe(true);
+  });
 });
 
 describe('fetchTickers — SFTBY ext-price suppression (Edge path)', () => {
