@@ -7,7 +7,7 @@
 // Run locally: `deno test --allow-env supabase/functions/prices/`
 
 import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { localMinOfDay, isOutsideRth, pctChange, localDayNumber, rthSessionCloses, etOffsetSec, cryptoUsSessionQuote, parseFundgz, navPairToResult } from "./index.ts";
+import { localMinOfDay, isOutsideRth, pctChange, localDayNumber, rthSessionCloses, etOffsetSec, cryptoUsSessionQuote, parseFundgz, navPairToResult, raceCnSources } from "./index.ts";
 
 Deno.test("localMinOfDay: New York 09:30 ET (EDT, gmtoffset=-14400) at 13:30 UTC = 570 minutes", () => {
   // 2026-05-11 13:30:00 UTC → 09:30:00 EDT (gmtoffset -14400 s)
@@ -212,4 +212,45 @@ Deno.test("navPairToResult: NaN / non-positive rows are skipped; all-bad → nul
   assertEquals(q.prevClose, 1.05);
   assertEquals(navPairToResult([{ nav: NaN }, { nav: 0 }]), null);
   assertEquals(navPairToResult([]), null);
+});
+
+// ---------------- raceCnSources (fundgz-preferred, non-stalling) ----------------
+// Codex #202 P2: a hung (geo-blocked) fundgz must not stall the batched
+// /prices response behind its full timeout when lsjz already answered —
+// but a merely-slower-than-lsjz HEALTHY fundgz must still win, because
+// its intraday-estimate reading differs from lsjz's official-NAV one
+// and letting raw race order decide would flicker the fund's quote
+// between the two on every 30 s refresh.
+
+const QUOTE_GZ = { lastPrice: 1.25, extPrice: null, prevClose: 1.20, currency: "CNY", dayPct: 4.1667, extDayPct: null };
+const QUOTE_LS = { lastPrice: 1.20, extPrice: null, prevClose: 1.18, currency: "CNY", dayPct: 1.6949, extDayPct: null };
+const after = <T,>(ms: number, v: T): Promise<T> => new Promise((r) => setTimeout(() => r(v), ms));
+
+Deno.test("raceCnSources: healthy-but-slower fundgz still wins within the grace window", async () => {
+  // lsjz answers at 5 ms, fundgz at 20 ms — grace (50 ms) covers it.
+  const q = await raceCnSources(after(20, QUOTE_GZ), after(5, QUOTE_LS), 50);
+  assertEquals(q, QUOTE_GZ);
+});
+
+Deno.test("raceCnSources: hung fundgz is preempted by a usable lsjz after the grace", async () => {
+  const t0 = Date.now();
+  // fundgz "hangs" far past everything; lsjz usable at 5 ms, grace 30 ms.
+  const q = await raceCnSources(after(5_000, null), after(5, QUOTE_LS), 30);
+  assertEquals(q, QUOTE_LS);
+  assert(Date.now() - t0 < 1_000, "must resolve on lsjz+grace, not fundgz's timeout");
+});
+
+Deno.test("raceCnSources: fast-null fundgz falls straight back to lsjz (no grace wait)", async () => {
+  const q = await raceCnSources(after(2, null), after(10, QUOTE_LS), 5_000);
+  assertEquals(q, QUOTE_LS);
+});
+
+Deno.test("raceCnSources: useless lsjz never preempts — fundgz gets its full timeout", async () => {
+  // lsjz nulls out immediately; fundgz succeeds later.
+  const q = await raceCnSources(after(30, QUOTE_GZ), after(2, null), 5);
+  assertEquals(q, QUOTE_GZ);
+});
+
+Deno.test("raceCnSources: both sources null → null (caller falls through to danjuan)", async () => {
+  assertEquals(await raceCnSources(after(5, null), after(2, null), 10), null);
 });

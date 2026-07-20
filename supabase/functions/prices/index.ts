@@ -467,10 +467,49 @@ async function tryDanjuan(code: string): Promise<PriceResult | null> {
   }
 }
 
+const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+// How long a usable lsjz reply waits for the still-pending fundgz call
+// before preempting it. Long enough that a merely-slower-than-lsjz but
+// healthy fundgz still wins (keeping the intraday estimate), short
+// enough that a geo-blocked fundgz hanging toward its 4 s timeout can't
+// stall the whole batched /prices response behind it.
+const FUNDGZ_GRACE_MS = 1_000;
+
+/**
+ * Pick between the two eastmoney sources without stalling on either
+ * (Codex #202 P2). fundgz is PREFERRED, not merely raced: its intraday
+ * estimate and lsjz's official-NAV day change read differently, so
+ * letting whichever answers first win would flicker the fund's quote
+ * between the two readings on every 30 s refresh while both are
+ * healthy. Instead a usable lsjz reply gives the pending fundgz call
+ * `graceMs` to answer, then preempts it. Resolution paths:
+ *   - fundgz usable (within lsjz + grace)      → fundgz
+ *   - fundgz hangs, lsjz usable                → lsjz after ~grace
+ *   - fundgz settles null fast                 → lsjz as soon as it lands
+ *   - both null                                → null (caller → danjuan)
+ * Exported for tests (sources injected as promises).
+ */
+export async function raceCnSources(
+  gzPromise: Promise<PriceResult | null>,
+  lsjzPromise: Promise<PriceResult | null>,
+  graceMs = FUNDGZ_GRACE_MS,
+): Promise<PriceResult | null> {
+  const PENDING = Symbol("gz-still-pending");
+  const preempt: Promise<PriceResult | typeof PENDING> = lsjzPromise.then(async (ls) => {
+    if (!ls) return PENDING;   // lsjz useless — it never preempts fundgz
+    await delay(graceMs);
+    return ls;
+  });
+  const first = await Promise.race([gzPromise, preempt]);
+  if (first === PENDING) return await gzPromise; // lsjz was useless; fundgz gets its full timeout
+  if (first) return first;                       // usable fundgz, or lsjz preempting a hung fundgz
+  return await lsjzPromise;                      // fundgz settled null → fall back to lsjz
+}
+
 async function fetchCNFund(code: string): Promise<PriceResult | null> {
-  const [gz, lsjz] = await Promise.all([tryFundgz(code), tryLsjz(code)]);
-  if (gz) return gz;       // richest source: has the intraday estimate
-  if (lsjz) return lsjz;
+  const pick = await raceCnSources(tryFundgz(code), tryLsjz(code));
+  if (pick) return pick;
   return await tryDanjuan(code);
 }
 
