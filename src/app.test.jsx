@@ -8,7 +8,7 @@
 // import shuffle / hook reorder break the App's top-level path?"
 
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup, waitFor } from '@testing-library/react';
 
 // Mock heavy children + network calls so the smoke test doesn't
@@ -99,7 +99,7 @@ import App from './app.jsx';
 import { refreshPrices } from './yahoo_fetch.js';
 import { prefetchAllChartData } from './prefetch.js';
 import { fetchOvernightSeries } from './overnight_intraday.js';
-import { loadPortfolioRemote } from './portfolio_remote.js';
+import { loadPortfolioRemote, savePortfolioRemote } from './portfolio_remote.js';
 
 beforeEach(() => {
   cleanup();
@@ -166,5 +166,74 @@ describe('App — doRefresh on initial load (overnight window)', () => {
     await waitFor(() => expect(prefetchAllChartData).toHaveBeenCalled());
     const prefetchArg = vi.mocked(prefetchAllChartData).mock.calls[0][0];
     expect(prefetchArg.tickers).toEqual(expect.arrayContaining(['NVDA', 'VUAA.L']));
+  });
+});
+
+// Pins the cold-start-latency fix: a cache-primed `portfolio` lets the
+// FIRST price refresh start immediately (using last-known holdings)
+// instead of waiting on loadPortfolioRemote's own network round trip —
+// this IS the actual "first refresh after opening the app is slow"
+// symptom the fix targets. Uses a manually-controlled promise (not
+// mockResolvedValueOnce) so the assertion below runs in the window
+// BEFORE the real load resolves, which is exactly the window that
+// matters here.
+describe('App — cache-primed first paint (Storage.loadPortfolioCache)', () => {
+  function setAdminToken() {
+    const payload = btoa(JSON.stringify({ role: 'admin', exp: Date.now() + 60 * 60 * 1000 }))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    sessionStorage.setItem('dp.token', `${payload}.sig`);
+  }
+
+  const CACHED_PORTFOLIO = {
+    holdings: {
+      ZZZZ: { shares: 7, cost: 50, lastPrice: 55, prevClose: 54, currency: 'USD', lots: [{ date: '2025-03-01', shares: 7, cost: 50 }] },
+    },
+    positions: { ST: { role: 'FWD', subtitle: '', tickers: ['ZZZZ'] } },
+  };
+  const SERVER_PORTFOLIO = {
+    holdings: {
+      NVDA: { shares: 10, cost: 100, lastPrice: 120, prevClose: 118, currency: 'USD', lots: [{ date: '2025-01-01', shares: 10, cost: 100 }] },
+    },
+    positions: { ST: { role: 'FWD', subtitle: '', tickers: ['NVDA'] } },
+  };
+
+  afterEach(() => localStorage.removeItem('dp.portfolioCache'));
+
+  it('doRefresh fires off the CACHED portfolio before loadPortfolioRemote resolves, and the save effect stays a no-op until it does', async () => {
+    localStorage.setItem('dp.portfolioCache', JSON.stringify({ ts: Date.now(), data: CACHED_PORTFOLIO }));
+    setAdminToken();
+
+    /** @type {(p: any) => void} */
+    let resolveLoad = () => {};
+    vi.mocked(loadPortfolioRemote).mockReturnValueOnce(
+      new Promise((resolve) => { resolveLoad = resolve; }),
+    );
+
+    render(<App />);
+
+    // The mount-effect's doRefresh already ran against the cache-primed
+    // portfolio — refreshPrices fired with the CACHED ticker, well before
+    // the still-pending loadPortfolioRemote() promise ever settles.
+    await waitFor(() => expect(refreshPrices).toHaveBeenCalled());
+    expect(refreshPrices).toHaveBeenCalledWith(
+      expect.objectContaining({ holdings: expect.objectContaining({ ZZZZ: expect.anything() }) }),
+    );
+    // The debounced auto-save effect must NOT have fired yet — it's
+    // gated on hasRealLoadRef, which only flips once the real load
+    // resolves. Without that gate, the cache-primed data racing the
+    // effect's fingerprint-seed logic is exactly the "phantom edit"
+    // risk this test would catch.
+    expect(savePortfolioRemote).not.toHaveBeenCalled();
+
+    // Now let the real load land with different (server) holdings.
+    resolveLoad(/** @type {any} */ (SERVER_PORTFOLIO));
+    await waitFor(() => expect(refreshPrices).toHaveBeenCalledWith(
+      expect.objectContaining({ holdings: expect.objectContaining({ NVDA: expect.anything() }) }),
+    ));
+    // Still no save — nothing about the reconcile itself constitutes a
+    // user edit (portfolioUserFingerprint is mocked constant here, so a
+    // real fingerprint mismatch can't fire a save in this harness either
+    // way; this asserts the gate didn't itself trigger one).
+    expect(savePortfolioRemote).not.toHaveBeenCalled();
   });
 });

@@ -139,3 +139,67 @@ describe('Storage.saveMarketCache', () => {
     expect(localStorage.getItem('dp.fxCache')).toBeNull();
   });
 });
+
+// A minimal but shape-valid portfolio for round-trip / rejection tests —
+// doesn't need to satisfy computeMetrics, just Storage's own guards
+// (holdings + positions objects present, no `_isDemo`).
+const realPortfolio = () => ({
+  positions: { ST: { role: 'FWD', label: 'ST', tickers: ['NVDA'] } },
+  holdings: { NVDA: { shares: 5, cost: 100, lastPrice: 200, currency: 'USD' } },
+});
+
+describe('Storage.savePortfolioCache / loadPortfolioCache', () => {
+  it('round-trips a real portfolio', () => {
+    const p = realPortfolio();
+    expect(Storage.savePortfolioCache(p)).toBe(true);
+    expect(Storage.loadPortfolioCache()).toEqual(p);
+  });
+
+  it('refuses to save a demo portfolio (_isDemo: true) — write is a no-op', () => {
+    const demo = { ...realPortfolio(), _isDemo: true };
+    expect(Storage.savePortfolioCache(demo)).toBe(false);
+    expect(localStorage.getItem('dp.portfolioCache')).toBeNull();
+  });
+
+  it('a prior real cache survives a later failed (demo) save attempt', () => {
+    const p = realPortfolio();
+    Storage.savePortfolioCache(p);
+    Storage.savePortfolioCache({ ...realPortfolio(), _isDemo: true }); // refused, no-op
+    expect(Storage.loadPortfolioCache()).toEqual(p); // untouched
+  });
+
+  it('refuses null / non-object / missing-holdings / missing-positions input', () => {
+    expect(Storage.savePortfolioCache(null)).toBe(false);
+    expect(Storage.savePortfolioCache(/** @type {any} */ ('nope'))).toBe(false);
+    expect(Storage.savePortfolioCache(/** @type {any} */ ({ positions: {} }))).toBe(false); // no holdings
+    expect(Storage.savePortfolioCache(/** @type {any} */ ({ holdings: {} }))).toBe(false);  // no positions
+  });
+
+  it('load returns null on a missing row (cold browser / private mode)', () => {
+    expect(Storage.loadPortfolioCache()).toBeNull();
+  });
+
+  it('load returns null past the 30-day staleness cap, and null exactly at the boundary tick', () => {
+    const p = realPortfolio();
+    localStorage.setItem('dp.portfolioCache', JSON.stringify({ ts: Date.now() - 30 * DAY - 1, data: p }));
+    expect(Storage.loadPortfolioCache()).toBeNull();
+    localStorage.setItem('dp.portfolioCache', JSON.stringify({ ts: Date.now() - 29 * DAY, data: p }));
+    expect(Storage.loadPortfolioCache()).toEqual(p);
+  });
+
+  it('load returns null on a malformed row (bad JSON, missing data, non-finite ts)', () => {
+    localStorage.setItem('dp.portfolioCache', 'not json');
+    expect(Storage.loadPortfolioCache()).toBeNull();
+    localStorage.setItem('dp.portfolioCache', JSON.stringify({ ts: 'nope', data: realPortfolio() }));
+    expect(Storage.loadPortfolioCache()).toBeNull();
+    localStorage.setItem('dp.portfolioCache', JSON.stringify({ ts: Date.now(), data: null }));
+    expect(Storage.loadPortfolioCache()).toBeNull();
+    localStorage.setItem('dp.portfolioCache', JSON.stringify({ ts: Date.now(), data: { holdings: {} } })); // no positions
+    expect(Storage.loadPortfolioCache()).toBeNull();
+  });
+
+  it('load returns null for a demo row even if one somehow got written (belt-and-suspenders)', () => {
+    localStorage.setItem('dp.portfolioCache', JSON.stringify({ ts: Date.now(), data: { ...realPortfolio(), _isDemo: true } }));
+    expect(Storage.loadPortfolioCache()).toBeNull();
+  });
+});
