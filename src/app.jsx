@@ -222,7 +222,17 @@ function Board({ isReadOnly }) {
   // — reset board / remove holding). confirmEl is rendered near the other
   // modals below; it portals to <body>.
   const { confirm: askConfirm, element: confirmEl } = useConfirm();
-  const [portfolio, setPortfolio] = useState(/** @type {import('./types').Portfolio | null} */ (null));      // null = still loading
+  // Seed with the last-known full portfolio (Storage.loadPortfolioCache —
+  // written after every successful load/save) so first paint shows the
+  // user's real board instantly instead of a blank "Fetching board from
+  // cloud." screen. Returns null when there's no usable cache (first-ever
+  // visit, private browsing, cache older than 30 days, or a seeded demo
+  // row — savePortfolioCache never persists one), so that case is
+  // byte-for-byte today's "still loading" behaviour. The mount effect
+  // below's loadPortfolioRemote() call ALWAYS runs regardless and
+  // overwrites this the moment it resolves — this is a pre-render seed,
+  // never a substitute for the real fetch.
+  const [portfolio, setPortfolio] = useState(() => Storage.loadPortfolioCache());      // null = still loading
   const [drillPos, setDrillPos] = useState(/** @type {string | null} */ (null));
   const [editMode, setEditMode] = useState(false);
   const [editingTicker, setEditingTicker] = useState(/** @type {string | null} */ (null));
@@ -321,10 +331,61 @@ function Board({ isReadOnly }) {
     return () => document.removeEventListener('keydown', onKey);
   }, [isReadOnly, drillPos, editingTicker, viewingTicker, addingToPos, editingCash, showHoldingsList, showSectorsList, showTransactionHistory]);
 
+  // True once the REAL loadPortfolioRemote() reply has landed (demo or
+  // not) — as opposed to `portfolio` merely being non-null because the
+  // cache-primed useState initializer above seeded it. The debounced
+  // auto-save effect below reads this to stay a no-op until the
+  // authoritative server answer is in, so it can never fingerprint-seed,
+  // replay a pending draft, or save against the optimistic cached
+  // snapshot — only ever against the same real data it always ran
+  // against before the cache-priming existed.
+  const hasRealLoadRef = useRef(false);
+  // Was `portfolio` already non-null on the very first render (i.e. did
+  // the cache-primed useState initializer seed it)? Captured once — a
+  // ref's initial-value expression only takes effect on first render.
+  // Read by the mount-load effect below to decide whether it needs to
+  // force an extra doRefresh once the real data lands (see that
+  // effect's comment for why the refresh-loop effect alone can't be
+  // relied on to do this in the cache-primed case).
+  const hadCachedPortfolioRef = useRef(portfolio !== null);
+  // Bumped once (by the mount-load effect below) when the real load lands
+  // AFTER a cache-primed first paint — a plain boolean-style trigger for
+  // the effect declared right after doRefreshRef's sync effect (see that
+  // effect's comment). Not consumed anywhere else.
+  const [realLoadArrived, setRealLoadArrived] = useState(false);
   // Initial load from Supabase (never throws — falls back to INITIAL_PORTFOLIO on any error)
   useEffect(() => {
     let cancelled = false;
-    loadPortfolioRemote().then(p => { if (!cancelled) setPortfolio(p); });
+    loadPortfolioRemote().then(p => {
+      if (cancelled) return;
+      hasRealLoadRef.current = true;
+      // A genuine load failure (or a truly-empty server row) resolves to
+      // the seeded demo portfolio. If a real, cache-primed portfolio is
+      // already on screen, keep showing it rather than replacing actual
+      // (if briefly stale) holdings with someone else's demo book — the
+      // DemoBanner only makes sense when there was nothing better to
+      // show in the first place. The functional updater reads the
+      // LATEST state, so this is correct even though the effect's own
+      // `portfolio` closure is stale by the time this .then() runs.
+      if (p && p._isDemo) {
+        setPortfolio(prev => (prev && !prev._isDemo) ? prev : p);
+      } else {
+        setPortfolio(p);
+      }
+      // The refresh-loop effect below keys off `[portfolio !== null]` —
+      // a stable BOOLEAN, deliberately, so a fresh portfolio object from
+      // every 30 s price tick doesn't re-fire the whole effect (cancel +
+      // reschedule the timer, re-run doRefresh) on every single refresh.
+      // But that means when the cache-primed initializer already made
+      // `portfolio !== null` true on the very first render, the boolean
+      // never FLIPS once this real load lands — so the refresh-loop
+      // effect won't automatically notice and re-run doRefresh against
+      // the just-loaded real holdings. Without this, any ticker only
+      // present in the real data (e.g. edited from another device since
+      // the cache was written) wouldn't get a live price until the next
+      // 30 s auto-tick. Firing it explicitly here closes that gap.
+      if (hadCachedPortfolioRef.current) setRealLoadArrived(true);
+    });
     return () => { cancelled = true; };
   }, []);
 
@@ -364,6 +425,14 @@ function Board({ isReadOnly }) {
   }, []);
   useEffect(() => {
     if (!portfolio) return;
+    // Stay a no-op until the REAL loadPortfolioRemote() reply has
+    // landed — see hasRealLoadRef's own comment. Without this, a
+    // cache-primed cold start would fingerprint-seed (and replay any
+    // pending sessionStorage draft) against the optimistic snapshot
+    // instead of the server's authoritative copy, and could read a
+    // change made from another device after the cache was written as
+    // a spurious "local edit" once the real load lands and diverges.
+    if (!hasRealLoadRef.current) return;
     if (isReadOnly) return;
     // Don't persist the seeded demo portfolio over the user's Supabase
     // row. The DemoBanner below gives them an explicit choice (Reset
@@ -746,6 +815,25 @@ function Board({ isReadOnly }) {
 
   const doRefreshRef = useRef(doRefresh);
   useEffect(() => { doRefreshRef.current = doRefresh; }, [doRefresh]);
+
+  // Fires the "real load landed after a cache-primed first paint" extra
+  // refresh queued by the mount-load effect above (see its comment).
+  // Declared textually AFTER the doRefreshRef sync effect immediately
+  // above so React runs them in that order within the same commit —
+  // `setPortfolio(realData)` and `setRealLoadArrived(true)` land in the
+  // same batch, so by the time THIS effect's callback runs, `doRefresh`
+  // has already been recreated closing over the real portfolio (its own
+  // `[portfolio, extendedHours]` deps changed) and the sync effect above
+  // has already pointed `doRefreshRef.current` at it — calling
+  // doRefreshRef.current?.() here (instead of directly in the mount-load
+  // effect's .then()) is what guarantees that ordering; calling it
+  // immediately in the .then() would still see the STALE
+  // cache-portfolio-closing doRefresh, since setPortfolio doesn't apply
+  // synchronously inside a promise callback.
+  useEffect(() => {
+    if (!realLoadArrived) return;
+    doRefreshRef.current?.();
+  }, [realLoadArrived]);
 
   // Kick off the refresh loop once the portfolio is loaded.
   useEffect(() => {
