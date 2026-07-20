@@ -57,6 +57,10 @@ describe('fetchTickers — proxies answering 200 with a non-upstream body get be
       return { ok: true, json: async () => ({}), text: async () => '<html><body>502</body></html>' };
     }));
     expect(await fetchTickers(['000001'])).toBe(null);
+    // The CN-fund proxy fallback now runs in the BACKGROUND (it no
+    // longer blocks the refresh) — give its microtask chain one
+    // macrotask to finish before asserting the benching happened.
+    await new Promise((r) => setTimeout(r, 0));
     for (let i = 0; i < PROXIES.length; i++) expect(proxyIsAvailable(i)).toBe(false);
   });
 });
@@ -131,6 +135,98 @@ describe('fetchTickers — proxy fallback races all proxies in parallel (not seq
     // Every losing proxy (index 1+) must still be considered available —
     // losing a race to a winner is not evidence the proxy is unhealthy.
     for (let i = 1; i < 5; i++) expect(proxyIsAvailable(i)).toBe(true);
+  });
+});
+
+// Pins the fix for the "first refresh after opening the app takes ~20 s"
+// bug (2026-07). Root cause: the prices Edge Function's fundgz upstream
+// got geo-blocked from Deno egress IPs, so every response omitted the
+// portfolio's CN fund — and the client then walked the CORS-proxy list
+// SEQUENTIALLY (8 s timeout each, and Western proxies rarely reach
+// eastmoney at all) while the whole refresh awaited it. In-page
+// refreshes were fast only because the failed proxies were benched
+// in-memory; closing and reopening reset the backoff and paid the full
+// gauntlet again. The fallback is now (a) a parallel race and (b) fully
+// backgrounded — one unreachable fund must never hold the other 29
+// fresh quotes and the spinner hostage.
+describe('fetchTickers — CN-fund proxy fallback never blocks the refresh', () => {
+  const origFetch = globalThis.fetch;
+  afterEach(async () => {
+    globalThis.fetch = origFetch;
+    const { clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+  });
+
+  const EDGE_BODY = {
+    NVDA: { lastPrice: 100, extPrice: null, prevClose: 99, currency: 'USD', dayPct: 1.01, extDayPct: null },
+  };
+
+  it('returns the Edge quotes immediately even while every CN proxy hangs', async () => {
+    const { clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+    globalThis.fetch = /** @type {any} */ (vi.fn((url, opts) => {
+      if (String(url).includes('supabase.co')) {
+        return Promise.resolve({ ok: true, json: async () => EDGE_BODY });
+      }
+      // Every proxy hangs until aborted — the old sequential fallback
+      // sat through up to 5 × 8 s of timeouts here, with the refresh
+      // spinner waiting on it the whole time.
+      return new Promise((_resolve, reject) => {
+        opts?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+      });
+    }));
+    const t0 = Date.now();
+    const out = await fetchTickers(['NVDA', '017731']);
+    // Resolves on the Edge round-trip alone — nowhere near even ONE
+    // 8 s proxy timeout.
+    expect(Date.now() - t0).toBeLessThan(3000);
+    expect(out.NVDA.lastPrice).toBe(100);
+    expect(out['017731']).toBeUndefined();
+  });
+
+  it('a background proxy success is merged into the NEXT refresh tick', async () => {
+    const { clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+    const gz = 'jsonpgz({"fundcode":"110011","name":"x","jzrq":"2026-07-17","dwjz":"4.2025","gsz":"3.9509","gszzl":"-5.99","gztime":"2026-07-17 15:00"});';
+    globalThis.fetch = /** @type {any} */ (vi.fn((url) => {
+      if (String(url).includes('supabase.co')) {
+        return Promise.resolve({ ok: true, json: async () => EDGE_BODY });
+      }
+      return Promise.resolve({ ok: true, text: async () => gz });
+    }));
+    const first = await fetchTickers(['NVDA', '110011']);
+    // This tick doesn't wait for the proxies — the fund is simply absent.
+    expect(first['110011']).toBeUndefined();
+    // Let the background race land (it resolves in microtasks here; the
+    // 50 ms grace also proves the race is PARALLEL — a sequential walk
+    // would still be inside the first proxy's 8 s timeout).
+    await new Promise((r) => setTimeout(r, 50));
+    const second = await fetchTickers(['NVDA', '110011']);
+    expect(second['110011'].lastPrice).toBe(3.9509);   // gsz (intraday estimate)
+    expect(second['110011'].prevClose).toBe(4.2025);   // dwjz (official NAV)
+    expect(second['110011'].currency).toBe('CNY');
+  });
+
+  it('multi-ticker fan-out skips doomed proxy races when every proxy is already benched', async () => {
+    const { PROXIES, markProxyDead, clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+    // An earlier wave (simulated here) proved every proxy dead.
+    for (let i = 0; i < PROXIES.length; i++) markProxyDead(i);
+    globalThis.fetch = /** @type {any} */ (vi.fn((url, opts) => {
+      if (String(url).includes('supabase.co')) {
+        return Promise.resolve({ ok: false, status: 500, json: async () => ({}) });
+      }
+      // Any proxy attempt would hang to its full 8 s timeout — with
+      // skipIfAllDead the fan-out must never even get here.
+      return new Promise((_resolve, reject) => {
+        opts?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+      });
+    }));
+    const t0 = Date.now();
+    const out = await fetchTickers(['NVDA', 'PLTR']);
+    // Bails immediately instead of stacking ceil(N/pool) × 8 s waves.
+    expect(Date.now() - t0).toBeLessThan(3000);
+    expect(out).toBe(null);
   });
 });
 

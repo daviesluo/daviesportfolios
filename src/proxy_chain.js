@@ -42,3 +42,23 @@ export function clearProxyBackoff(i) {
   if (i == null) _proxyBackoff.clear();
   else _proxyBackoff.delete(i);
 }
+
+// Bounded-concurrency map for per-ticker proxy fallbacks. Each ticker's
+// fallback races ALL proxies at once, so an unbounded `missing.map(...)`
+// over a 30-ticker portfolio fires 30 × 5 = 150 simultaneous fetches
+// the moment the Edge Function is down — enough for Chromium to start
+// rejecting them outright with net::ERR_INSUFFICIENT_RESOURCES, turning
+// a degraded refresh into a totally failed one. 6 tickers at a time
+// (≤30 in-flight fetches) keeps the fallback fast without the pile-up.
+export async function mapWithConcurrency(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++;
+      out[i] = await fn(items[i], i);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
+}
