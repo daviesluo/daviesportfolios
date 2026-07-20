@@ -4,7 +4,7 @@
 // bug that originally shipped was every range rendering identical
 // multi-year data. (fetchHistoricalBatch's Edge/proxy strategy is
 // pinned separately in utils.test.js.)
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { trimCnFundToRange } from './historical.js';
 
 const DAY = 86_400_000;
@@ -79,6 +79,37 @@ describe('fetchHistorical — proxies answering 200 with a non-Yahoo body get be
     try {
       expect(await fetchHistorical('NVDA', 'ytd', '1d')).toBe(null);
       for (let i = 0; i < PROXIES.length; i++) expect(proxyIsAvailable(i)).toBe(false);
+    } finally {
+      globalThis.fetch = origFetch;
+      clearProxyBackoff();
+    }
+  });
+});
+
+// Codex #201 P2 (see yahoo_fetch.test.js for the quote-path twin): the
+// proxy race's cleanup() aborts every loser the instant a winner lands,
+// and that abort must not be mistaken for a genuine timeout/network
+// error — a proxy that merely lost the race is not unhealthy.
+describe('fetchHistorical — does not blacklist a healthy proxy that loses the race to cleanup()', () => {
+  it('leaves losing proxies available after a winner resolves first', async () => {
+    const { fetchHistorical } = await import('./historical.js');
+    const { proxyIsAvailable, clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+    const origFetch = globalThis.fetch;
+    const goodBody = {
+      chart: { result: [{ timestamp: [1700000000], indicators: { quote: [{ close: [224.85] }] }, meta: { currency: 'USD' } }] },
+    };
+    globalThis.fetch = /** @type {any} */ (vi.fn((url, opts) => {
+      if (String(url).includes('cors.lol')) {
+        return Promise.resolve({ ok: true, json: async () => goodBody });
+      }
+      return new Promise((_resolve, reject) => {
+        opts?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+      });
+    }));
+    try {
+      await fetchHistorical('NVDA', 'ytd', '1d');
+      for (let i = 1; i < 5; i++) expect(proxyIsAvailable(i)).toBe(true);
     } finally {
       globalThis.fetch = origFetch;
       clearProxyBackoff();

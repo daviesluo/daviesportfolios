@@ -11,6 +11,7 @@ import { detectCurrency } from './fx.js';
 import { INITIAL_PORTFOLIO } from './data.js';
 import { reportError } from './ops_error.js';
 import { netPosition } from './transactions.js';
+import { Storage } from './storage.js';
 
 // Cross-tab notification channel. When this tab successfully saves the
 // portfolio, every OTHER tab gets a `portfolio-saved` message and
@@ -128,6 +129,11 @@ export async function loadPortfolioRemote() {
       if (!loaded.holdings || Object.keys(loaded.holdings).length === 0) {
         return demoFallback();
       }
+      // Write-through: seed the next cold start's instant first paint
+      // (Storage.loadPortfolioCache, read by app.jsx's useState
+      // initializer). Best-effort — savePortfolioCache already refuses
+      // demo rows, so this can never seed a stranger's data.
+      Storage.savePortfolioCache(loaded);
       return loaded;
     }
     return demoFallback();
@@ -207,6 +213,11 @@ export async function savePortfolioRemote(p) {
         lastKnownVersion = body.version;
       }
     } catch { /* swallow — server may have returned no body */ }
+    // Write-through the just-saved portfolio to the same first-paint
+    // cache loadPortfolioRemote() seeds — keeps it current for the user's
+    // OWN edits too, not just fresh server loads, so the next cold start
+    // (or a reload right after saving) sees the latest state instantly.
+    Storage.savePortfolioCache(p);
     // Tell every other tab on this origin that the persisted portfolio
     // just changed so they can refetch instead of carrying a stale copy
     // that might overwrite our save on their next price-refresh tick.
