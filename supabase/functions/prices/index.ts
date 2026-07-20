@@ -338,54 +338,140 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
 }
 
 // ---------------- Eastmoney 天天基金 ----------------
-// JSONP endpoint, returns:
+// Primary: fundgz JSONP (has the real-time intraday NAV estimate):
 //   jsonpgz({"fundcode":"017731","name":"…","jzrq":"2026-04-23",
 //            "dwjz":"1.2345","gsz":"1.2456","gszzl":"0.89","gztime":"…"});
 //   dwjz  = 单位净值 (last published official NAV)        →  prevClose
 //   gsz   = 估算净值 (real-time intraday estimate)        →  lastPrice
 //   gszzl = 估算涨跌幅 % (informational; we recompute)
+// Fallbacks: fundgz is intermittently geo-blocked from Deno Deploy
+// egress IPs (observed 2026-07: EVERY prices response omitting the CN
+// fund for hours, which stalled the client behind its slow CORS-proxy
+// fallback). When it fails, take the latest two OFFICIAL NAVs from the
+// same fallback hosts the chart function already uses — f10/lsjz, then
+// danjuanapp — and price the fund off those. That loses the intraday
+// estimate but matches how any US ticker reads on a weekend (last
+// official close vs the one before), and above all keeps the fund from
+// vanishing out of the response. fundgz + lsjz launch concurrently so
+// the fallback costs no extra latency when fundgz is down (its reply
+// simply wins); danjuanapp only runs if both fail.
 // Funds have no extended-hours concept, so extPrice/extDayPct are always null.
-async function fetchCNFund(code: string): Promise<PriceResult | null> {
+
+/** Parse a fundgz jsonpgz(...) body into a PriceResult. Exported for tests. */
+export function parseFundgz(text: string): PriceResult | null {
+  // Strip the jsonpgz(…); wrapper. Some responses omit the trailing semicolon.
+  const m = text.trim().match(/^jsonpgz\((.+?)\)\s*;?\s*$/s);
+  if (!m) return null;
+
+  let obj: Record<string, string>;
+  try { obj = JSON.parse(m[1]); } catch { return null; }
+
+  const dwjz = parseFloat(obj.dwjz);
+  if (!isFinite(dwjz) || dwjz <= 0) return null;
+
+  // gsz may be empty/missing on weekends, holidays, or before estimate is published.
+  // In that case, treat the fund as flat at its last NAV (no day change).
+  const gsz = parseFloat(obj.gsz);
+  const lastPrice = isFinite(gsz) && gsz > 0 ? gsz : dwjz;
+
+  return {
+    lastPrice,
+    extPrice: null,
+    prevClose: dwjz,
+    currency: "CNY",
+    dayPct:    ((lastPrice - dwjz) / dwjz) * 100,
+    extDayPct: null,
+  };
+}
+
+/**
+ * Price a fund off its latest two official NAVs (newest first).
+ * lastPrice = newest NAV, prevClose = the one before — the same
+ * "last official close vs the previous one" reading a US ticker
+ * gives outside market hours. Exported for tests.
+ */
+export function navPairToResult(navs: { nav: number }[]): PriceResult | null {
+  const clean = navs.filter((n) => isFinite(n?.nav) && n.nav > 0);
+  if (clean.length === 0) return null;
+  const lastPrice = clean[0].nav;
+  const prevClose = clean.length > 1 ? clean[1].nav : lastPrice;
+  return {
+    lastPrice,
+    extPrice: null,
+    prevClose,
+    currency: "CNY",
+    dayPct:    prevClose > 0 ? ((lastPrice - prevClose) / prevClose) * 100 : 0,
+    extDayPct: null,
+  };
+}
+
+const CN_HEADERS = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Accept": "*/*",
+};
+
+async function tryFundgz(code: string): Promise<PriceResult | null> {
   const url = `https://fundgz.1234567.com.cn/js/${encodeURIComponent(code)}.js?rt=${Date.now()}`;
   try {
     const res = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Referer": "https://fund.eastmoney.com/",
-        "Accept": "*/*",
-      },
-      signal: AbortSignal.timeout(8_000),
+      headers: { ...CN_HEADERS, "Referer": "https://fund.eastmoney.com/" },
+      signal: AbortSignal.timeout(4_000),
     });
     if (!res.ok) return null;
-
-    const text = (await res.text()).trim();
-    // Strip the jsonpgz(…); wrapper. Some responses omit the trailing semicolon.
-    const m = text.match(/^jsonpgz\((.+?)\)\s*;?\s*$/s);
-    if (!m) return null;
-
-    let obj: Record<string, string>;
-    try { obj = JSON.parse(m[1]); } catch { return null; }
-
-    const dwjz = parseFloat(obj.dwjz);
-    if (!isFinite(dwjz) || dwjz <= 0) return null;
-
-    // gsz may be empty/missing on weekends, holidays, or before estimate is published.
-    // In that case, treat the fund as flat at its last NAV (no day change).
-    const gsz = parseFloat(obj.gsz);
-    const lastPrice = isFinite(gsz) && gsz > 0 ? gsz : dwjz;
-
-    return {
-      lastPrice,
-      extPrice: null,
-      prevClose: dwjz,
-      currency: "CNY",
-      dayPct:    ((lastPrice - dwjz) / dwjz) * 100,
-      extDayPct: null,
-    };
+    return parseFundgz(await res.text());
   } catch {
     return null;
   }
+}
+
+async function tryLsjz(code: string): Promise<PriceResult | null> {
+  // f10/lsjz: official daily NAV history, newest first — 2 rows is all
+  // the price endpoint needs.
+  const url = `https://api.fund.eastmoney.com/f10/lsjz` +
+    `?fundCode=${encodeURIComponent(code)}&pageIndex=1&pageSize=2&_=${Date.now()}`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        ...CN_HEADERS,
+        "Referer": "https://fundf10.eastmoney.com/",
+        "Accept": "application/json,text/plain,*/*",
+      },
+      signal: AbortSignal.timeout(4_000),
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const list = json?.Data?.LSJZList;
+    if (!Array.isArray(list)) return null;
+    return navPairToResult(list.map((row) => ({ nav: parseFloat(row?.DWJZ) })));
+  } catch {
+    return null;
+  }
+}
+
+async function tryDanjuan(code: string): Promise<PriceResult | null> {
+  const url =
+    `https://danjuanapp.com/djapi/fund/nav/history/${encodeURIComponent(code)}?size=2&page=1`;
+  try {
+    const res = await fetch(url, {
+      headers: { ...CN_HEADERS, "Accept": "application/json,*/*" },
+      signal: AbortSignal.timeout(4_000),
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const items = json?.data?.items;
+    if (!Array.isArray(items)) return null;
+    return navPairToResult(items.map((row) => ({ nav: parseFloat(row?.nav) })));
+  } catch {
+    return null;
+  }
+}
+
+async function fetchCNFund(code: string): Promise<PriceResult | null> {
+  const [gz, lsjz] = await Promise.all([tryFundgz(code), tryLsjz(code)]);
+  if (gz) return gz;       // richest source: has the intraday estimate
+  if (lsjz) return lsjz;
+  return await tryDanjuan(code);
 }
 
 // ---------------- Router ----------------
