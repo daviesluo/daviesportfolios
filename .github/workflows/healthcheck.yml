@@ -1,9 +1,19 @@
-# Lightweight external uptime monitor. The repo had no runtime alerting —
-# the only alarm was "a GitHub Action failed". A dead Cloudflare deploy, a
-# broken bundle, or an Edge Function 500ing in a loop would go unnoticed
-# until the owner happened to open the app. This pings the production
-# surfaces on a schedule and opens (or bumps) a `health-failure` issue
-# when something is down, the same way check.yml's notify-failure does.
+# Lightweight external uptime monitor AND Edge Function keep-warm ping.
+# The repo had no runtime alerting — the only alarm was "a GitHub Action
+# failed". A dead Cloudflare deploy, a broken bundle, or an Edge Function
+# 500ing in a loop would go unnoticed until the owner happened to open the
+# app. This pings the production surfaces on a schedule and opens (or
+# bumps) a `health-failure` issue when something is down.
+#
+# Second job: Supabase Edge Functions (Deno Deploy isolates) have no
+# documented "min instances" / provisioned-concurrency knob on hosted
+# Supabase — an idle function goes cold, and a cold isolate on a user's
+# FIRST request of a session can add several seconds per function, which
+# compounds badly when several functions are chained (portfolio load →
+# prices/trading212/chart, all gated behind the portfolio load resolving —
+# see src/app.jsx). Pinging every function on the app's first-load path
+# every 10 min keeps them warm ahead of a real visit, which is the only
+# practical mitigation for cold starts on this platform.
 #
 # NOTE: this does NOT cover overnight-record cron freshness (whether the
 # pg_cron job is still recording points) — that needs a service-role read
@@ -16,15 +26,16 @@
 name: healthcheck
 
 on:
-  # Scheduled pings are DISABLED. Two problems made every 30-min run go
-  # red and email a "Run failed" notice: (1) daviesluo.com returns 403 to
-  # the GitHub runner — Cloudflare bot-protection blocking a UA-less
-  # datacenter request, a false positive, not a real outage; and (2) the
-  # report step's `gh issue create --label health-failure` errored because
-  # the label never got created (`gh label create` is swallowed by
-  # `2>/dev/null || true`), so the job exited non-zero. Kept as
-  # workflow_dispatch-only so the monitor isn't lost — re-enable the
-  # `schedule:` block once the 403 + label-create issues are fixed.
+  # Every 10 min: GH Actions' practical cron floor is ~5 min and scheduled
+  # runs can drift under platform load, so 5 buys little extra warmth
+  # margin over 10 for roughly double the run count. 10 min gives 6
+  # pings/hour per surface — comfortably inside typical serverless
+  # idle-timeout windows — and ~26k Edge Function invocations/month across
+  # the 6 checks below, trivial against Supabase's invocation quotas. This
+  # repo is public, so Action-minutes are unmetered; tighten to */5 if
+  # cold-start symptoms persist at */10.
+  schedule:
+    - cron: '*/10 * * * *'
   workflow_dispatch: {}
 
 permissions:
@@ -44,19 +55,79 @@ jobs:
           ANON: ${{ vars.SUPABASE_ANON_KEY }}
         run: |
           fails=""
+          warns=""
+
           # 1) Site root — Cloudflare Pages + the served (committed) bundle.
-          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$SITE_URL" || echo 000)
+          #    Browser-shaped User-Agent/Accept: curl's default UA reads as
+          #    a bot signature to Cloudflare when the request also comes
+          #    from a GitHub-runner datacenter IP, which was the actual
+          #    cause of the 403 that used to fail every run (not a "UA-less"
+          #    request — curl always sends *a* UA, just a bot-shaped one).
+          #    A 403 that survives the browser UA is still a known
+          #    false-positive class unrelated to Edge Function health, so
+          #    it only warns; 000/5xx (real outage / DNS failure) fails.
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 \
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
+            -H "Accept: text/html,application/xhtml+xml" \
+            "$SITE_URL" || echo 000)
           echo "site $SITE_URL -> $code"
-          [ "$code" = "200" ] || fails="${fails}- site root ($SITE_URL) returned $code"$'\n'
-          # 2) prices Edge Function — Edge runtime + the live-price path.
-          #    Only when the public anon key is configured as a repo var.
-          if [ -n "$ANON" ]; then
-            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 \
-              -H "apikey: $ANON" -H "Authorization: Bearer $ANON" \
-              "$SB_URL/functions/v1/prices?tickers=AAPL" || echo 000)
-            echo "prices Edge Function -> $code"
-            [ "$code" = "200" ] || fails="${fails}- prices Edge Function returned $code"$'\n'
+          if [ "$code" = "403" ]; then
+            warns="${warns}- site root ($SITE_URL) returned 403 (Cloudflare bot-protection false positive on a GH-runner request, not treated as an outage)"$'\n'
+          elif [ "$code" != "200" ]; then
+            fails="${fails}- site root ($SITE_URL) returned $code"$'\n'
           fi
+
+          # 2) Edge Functions. Two shapes:
+          #      check_anon        — expects 200 (anon-readable, matches
+          #                          the app's own client-side calls).
+          #      check_token_gated — expects 401 with NO X-App-Token sent.
+          #      `data` and `trading212` call verifyToken(x-app-token)
+          #      BEFORE touching board_data / T212 upstream (see
+          #      data/index.ts and trading212/index.ts) — a 401 proves
+          #      the isolate booted and ran the auth check, needs no
+          #      privileged secret, and can't touch T212's rate-limited
+          #      quota or the database.
+          #    Surface pinged, beyond the original `prices`:
+          #      - data           (portfolio load — gates first paint,
+          #                        src/app.jsx's only pre-portfolio call)
+          #      - chart           }  both fire during the initial-mount
+          #      - fundamentals    }  prefetch (prefetchAllChartData +
+          #                           UpcomingEarnings)
+          #      - trading212      (fires in the very first doRefresh
+          #                        right after portfolio load resolves)
+          #      - overnight-fetch (fires post-load outside regular
+          #                        market hours)
+          #    NOT pinged: auth (would need real/fake login attempts — no
+          #    warming benefit, some lockout risk), overnight-record
+          #    (already self-warms via its own pg_cron 5-min schedule —
+          #    migrations 0016/0021 — and needs CRON_SECRET, which
+          #    doesn't belong in this anon-only workflow), ops-error
+          #    (write-only sink, nothing to warm for).
+          if [ -n "$ANON" ]; then
+            check_anon() {   # $1=name  $2=path+query -- expects 200
+              local name="$1" path="$2" code
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 \
+                -H "apikey: $ANON" -H "Authorization: Bearer $ANON" \
+                "$SB_URL/functions/v1/$path" || echo 000)
+              echo "$name Edge Function -> $code"
+              [ "$code" = "200" ] || fails="${fails}- $name Edge Function returned $code"$'\n'
+            }
+            check_token_gated() {  # $1=name  $2=path+query -- no app token sent, expects 401
+              local name="$1" path="$2" code
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 \
+                -H "apikey: $ANON" -H "Authorization: Bearer $ANON" \
+                "$SB_URL/functions/v1/$path" || echo 000)
+              echo "$name Edge Function -> $code"
+              [ "$code" = "401" ] || fails="${fails}- $name Edge Function returned $code (expected 401 — no app token sent by design)"$'\n'
+            }
+            check_anon        prices           "prices?tickers=AAPL"
+            check_anon        chart            "chart?tickers=AAPL"
+            check_anon        fundamentals     "fundamentals?tickers=AAPL"
+            check_anon        overnight-fetch  "overnight-fetch?tickers=AAPL"
+            check_token_gated data             "data?action=load"
+            check_token_gated trading212       "trading212"
+          fi
+
           if [ -n "$fails" ]; then
             echo "down=1" >> "$GITHUB_OUTPUT"
             {
@@ -64,10 +135,17 @@ jobs:
               echo "⚠️ Production health check failed:"
               echo ""
               echo "$fails"
+              if [ -n "$warns" ]; then
+                echo "Warnings (non-fatal):"
+                echo ""
+                echo "$warns"
+              fi
               echo "[run log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
               echo "HC_EOF"
             } >> "$GITHUB_OUTPUT"
             echo "One or more surfaces are DOWN."
+          elif [ -n "$warns" ]; then
+            echo "All gating surfaces healthy (warnings: $warns)"
           else
             echo "All surfaces healthy."
           fi
@@ -79,8 +157,18 @@ jobs:
         run: |
           set -e
           # Ensure the label exists (idempotent), then de-dup by it.
-          gh label create health-failure --color B60205 \
-            --description "Production health check failing" 2>/dev/null || true
+          # --repo is REQUIRED here: this job has no actions/checkout
+          # step, so gh can't infer the repo from a git remote the way
+          # every OTHER gh call in this step (which already pass --repo)
+          # can. Without it, `gh label create` errored immediately, that
+          # error was swallowed by `2>/dev/null || true`, the label was
+          # therefore NEVER actually created, and the `gh issue create`
+          # below (which DOES pass --repo and is NOT `|| true`-guarded)
+          # then failed hard on a genuinely-missing label — the actual
+          # reason every scheduled run used to go red.
+          gh label create health-failure --repo "${{ github.repository }}" \
+            --color B60205 --description "Production health check failing" \
+            2>/dev/null || true
           existing=$(gh issue list --repo "${{ github.repository }}" \
             --label health-failure --state open --limit 1 --json number \
             --jq '.[0].number // empty')

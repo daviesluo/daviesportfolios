@@ -29,6 +29,15 @@ const STORAGE_KEYS = {
   // "Loading…" on cold start — they paint the last-known values
   // immediately and refresh once the live tick lands.
   marketCache:   'dp.marketCache', // { ts, data: { ticker: { lastPrice, prevClose?, dayPct?, ... }, ... } }
+  // Last-known FULL portfolio snapshot (positions + holdings), written
+  // after every successful load/save. Hydrated as the initial value of
+  // `portfolio` on mount so first paint shows the user's real board
+  // immediately instead of a blank "Fetching board from cloud." screen —
+  // the actual `loadPortfolioRemote()` call still runs in the background
+  // and reconciles (overwrites) the instant it resolves. Never a demo
+  // portfolio (savePortfolioCache refuses `_isDemo` rows), so a network
+  // hiccup can't seed a stranger's data as if it were the user's own.
+  portfolioCache: 'dp.portfolioCache', // { ts, data: Portfolio }
   // Timestamp (ms epoch) of the newest ops-error the admin has
   // acknowledged via the error-triage badge — the badge stays hidden
   // until a newer error is reported. Admin-only single scalar; no
@@ -47,6 +56,14 @@ const CURRENT_SCHEMA_VERSION = 1;
 // initial state than render values that could be several percent
 // off (and trigger spurious FX MISSING / stale-price warnings).
 const MARKET_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+// Portfolio-cache freshness — generous compared to the market cache
+// because this row is ONLY ever used as a first-paint seed; the real
+// loadPortfolioRemote() call that follows moments later is what actually
+// governs correctness, so a stale portfolio cache costs nothing beyond
+// "the pre-reconcile flash briefly shows an older snapshot." 30 days
+// just keeps a truly ancient / abandoned row from seeding anything at
+// all (e.g. a browser profile that hasn't opened the app in months).
+const PORTFOLIO_CACHE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 function readJSON(key, fallback) {
   try {
@@ -186,6 +203,43 @@ export const Storage = {
       try { localStorage.removeItem('dp.fxCache'); } catch { /* ignore */ }
     }
     return ok;
+  },
+  // Last-known full portfolio snapshot — the first-paint seed described
+  // above STORAGE_KEYS.portfolioCache. Returns null (not `{}`) on a
+  // missing / stale / malformed row so callers can tell "no cache" apart
+  // from a genuinely-loaded empty-ish portfolio and keep today's
+  // null-means-still-loading contract intact.
+  /** @returns {import('./types').Portfolio | null} */
+  loadPortfolioCache: () => {
+    const row = readJSON(STORAGE_KEYS.portfolioCache, null);
+    if (!row || typeof row !== 'object') return null;
+    const ts = Number(row.ts);
+    if (!isFinite(ts) || Date.now() - ts > PORTFOLIO_CACHE_MAX_AGE_MS) return null;
+    const data = row.data;
+    // Minimal shape guard — must look like a real Portfolio (holdings +
+    // positions objects) and must NOT be the seeded demo book, in case
+    // an old build ever wrote one before this guard existed.
+    if (!data || typeof data !== 'object') return null;
+    if (!data.holdings || typeof data.holdings !== 'object') return null;
+    if (!data.positions || typeof data.positions !== 'object') return null;
+    if (data._isDemo === true) return null;
+    return data;
+  },
+  // Persist a full portfolio snapshot (post-load or post-save). Refuses
+  // to cache the seeded demo portfolio — a network hiccup must never
+  // seed a stranger's data as if it were the user's own on the next
+  // cold start, and a real user's genuinely-cached snapshot (if any)
+  // should survive a transient failure rather than being overwritten by
+  // demo data. Deliberately untyped (like saveMarketCache) — callers pass
+  // shapes ranging from a full `Portfolio` to `savePortfolioRemote`'s
+  // narrower `{ holdings? }` param, and the guards below are the actual
+  // source of truth for what's acceptable, not a static type.
+  savePortfolioCache: (p) => {
+    if (!p || typeof p !== 'object') return false;
+    if (p._isDemo === true) return false;
+    if (!p.holdings || typeof p.holdings !== 'object') return false;
+    if (!p.positions || typeof p.positions !== 'object') return false;
+    return writeJSON(STORAGE_KEYS.portfolioCache, { ts: Date.now(), data: p });
   },
   // dp.tickerChart / dp.maCache / dp.ytd moved to IndexedDB
   // (chart_store.js — ChartStore / MaStore / YtdStore). See that
