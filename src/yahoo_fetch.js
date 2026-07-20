@@ -14,6 +14,7 @@ import {
   proxyIsAvailable,
   markProxyDead,
   clearProxyBackoff,
+  mapWithConcurrency,
 } from './proxy_chain.js';
 import { isUsEquity, hasOvernightSession } from './ticker_class.js';
 
@@ -100,14 +101,21 @@ function parseOneYahooChart(res, symbol, proxyIdx) {
 // fallback's already-parallel design. Losing requests are aborted the
 // moment a winner lands so they don't keep burning the proxies' rate
 // limits in the background.
-async function fetchOneYahooChart(symbol) {
+async function fetchOneYahooChart(symbol, { skipIfAllDead = false } = {}) {
   const nonce = Date.now();
   const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d&includePrePost=true&_=${nonce}`;
 
   // If every proxy is currently in backoff, race all of them anyway
   // rather than unconditionally returning null — the alternative freezes
-  // this ticker's price for the rest of the session.
+  // this ticker's price for the rest of the session. EXCEPT inside a
+  // multi-ticker fan-out (skipIfAllDead): there, "all proxies just got
+  // benched" means an earlier wave of the same batch already proved
+  // them dead moments ago, and re-racing them for every remaining
+  // ticker turns one 8 s timeout wave into ceil(N/pool) sequential
+  // ones — the batch caller passes skipIfAllDead so doomed waves fail
+  // over to null instantly instead.
   const liveIndices = PROXIES.map((_, i) => i).filter((i) => proxyIsAvailable(i));
+  if (liveIndices.length === 0 && skipIfAllDead) return null;
   const idxs = liveIndices.length > 0 ? liveIndices : PROXIES.map((_, i) => i);
 
   return new Promise((resolve) => {
@@ -169,51 +177,151 @@ async function fetchOneYahooChart(symbol) {
   });
 }
 
-// Fetch a single CN mutual fund (6-digit code) from eastmoney via CORS proxies.
-// Used as a fallback when the Edge Function is not yet updated to handle CN funds.
-async function fetchOneCNFund(code) {
-  const eastmoneyUrl = `https://fundgz.1234567.com.cn/js/${encodeURIComponent(code)}.js?rt=${Date.now()}`;
-  for (let i = 0; i < PROXIES.length; i++) {
-    if (!proxyIsAvailable(i)) continue;
-    const makeProxy = PROXIES[i];
-    const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), 8000);
-    try {
-      const res = await fetch(makeProxy(eastmoneyUrl), { cache: "no-store", signal: controller.signal });
-      clearTimeout(tid);
-      if (!res.ok) {
-        if (res.status === 429 || res.status === 403 || res.status >= 500) markProxyDead(i);
-        continue;
-      }
-      const text = (await res.text()).trim();
-      const m = text.match(/^jsonpgz\((.+?)\)\s*;?\s*$/s);
-      if (!m) {
-        // eastmoney always answers in the jsonpgz(...) JSONP wrapper.
-        // An HTML body here is a proxy's own error page served with a
-        // 200 — bench it briefly (same rationale as the Yahoo-envelope
-        // check above). A non-HTML mismatch could be eastmoney itself
-        // misbehaving, so that stays backoff-free.
-        if (text.startsWith("<")) markProxyDead(i, 60_000);
-        continue;
-      }
-      let obj;
-      try { obj = JSON.parse(m[1]); } catch { continue; }
-      const dwjz = parseFloat(obj.dwjz);
-      if (!isFinite(dwjz) || dwjz <= 0) continue;
-      const gsz = parseFloat(obj.gsz);
-      const lastPrice = isFinite(gsz) && gsz > 0 ? gsz : dwjz;
-      clearProxyBackoff(i);
-      return {
-        lastPrice, extPrice: null, prevClose: dwjz,
-        currency: "CNY",
-        dayPct: ((lastPrice - dwjz) / dwjz) * 100, extDayPct: null,
-      };
-    } catch {
-      clearTimeout(tid);
-      markProxyDead(i, 60_000);
-    }
+// Parse one proxy's eastmoney fundgz response into a quote, or null.
+// Benches the proxy (via the returned 'bench' marker) when the body is
+// a proxy-substituted HTML error page. Pulled out of the race loop so
+// winning and losing racers share it verbatim.
+function parseOneCNFund(text) {
+  const trimmed = text.trim();
+  const m = trimmed.match(/^jsonpgz\((.+?)\)\s*;?\s*$/s);
+  if (!m) {
+    // eastmoney always answers in the jsonpgz(...) JSONP wrapper.
+    // An HTML body here is a proxy's own error page served with a
+    // 200 — bench it briefly (same rationale as the Yahoo-envelope
+    // check above). A non-HTML mismatch could be eastmoney itself
+    // misbehaving, so that stays backoff-free.
+    return trimmed.startsWith("<") ? "bench" : null;
   }
-  return null;
+  let obj;
+  try { obj = JSON.parse(m[1]); } catch { return null; }
+  const dwjz = parseFloat(obj.dwjz);
+  if (!isFinite(dwjz) || dwjz <= 0) return null;
+  const gsz = parseFloat(obj.gsz);
+  const lastPrice = isFinite(gsz) && gsz > 0 ? gsz : dwjz;
+  return {
+    lastPrice, extPrice: null, prevClose: dwjz,
+    currency: "CNY",
+    dayPct: ((lastPrice - dwjz) / dwjz) * 100, extDayPct: null,
+  };
+}
+
+// Fetch a single CN mutual fund (6-digit code) from eastmoney via CORS
+// proxies, racing every available proxy in parallel — same shape as
+// fetchOneYahooChart above. The previous SEQUENTIAL fall-through was
+// the root cause of the "first refresh after opening takes ~20 s" bug:
+// the prices Edge Function's fundgz upstream is intermittently
+// geo-blocked from Deno egress IPs, so every response omitted the CN
+// fund, and this fallback then walked the proxy list one 8 s timeout
+// at a time (free Western proxies rarely reach eastmoney at all). On a
+// fresh page the in-memory backoff is empty, so every cold open paid
+// the full gauntlet again — exactly matching "reopen = slow again,
+// in-page refresh = fast" (in-page runs skip the already-benched
+// proxies).
+async function fetchOneCNFund(code, { skipIfAllDead = false } = {}) {
+  const eastmoneyUrl = `https://fundgz.1234567.com.cn/js/${encodeURIComponent(code)}.js?rt=${Date.now()}`;
+  const liveIndices = PROXIES.map((_, i) => i).filter((i) => proxyIsAvailable(i));
+  if (liveIndices.length === 0 && skipIfAllDead) return null;
+  const idxs = liveIndices.length > 0 ? liveIndices : PROXIES.map((_, i) => i);
+
+  return new Promise((resolve) => {
+    let resolved = false;
+    let remaining = idxs.length;
+    /** @type {AbortController[]} */
+    const controllers = [];
+    /** @type {ReturnType<typeof setTimeout>[]} */
+    const timers = [];
+
+    const cleanup = () => {
+      for (const c of controllers) {
+        try { c.abort(); } catch (_) { /* already settled */ }
+      }
+      for (const t of timers) clearTimeout(t);
+    };
+
+    const settle = (quote, winnerIdx) => {
+      if (resolved) return;
+      if (quote) {
+        resolved = true;
+        if (winnerIdx != null) clearProxyBackoff(winnerIdx);
+        cleanup();
+        resolve(quote);
+      } else if (--remaining === 0) {
+        resolve(null);
+      }
+    };
+
+    for (const i of idxs) {
+      const makeProxy = PROXIES[i];
+      const controller = new AbortController();
+      controllers.push(controller);
+      const tid = setTimeout(() => controller.abort(), 8000);
+      timers.push(tid);
+      (async () => {
+        try {
+          const res = await fetch(makeProxy(eastmoneyUrl), { cache: "no-store", signal: controller.signal });
+          clearTimeout(tid);
+          if (!res.ok) {
+            if (res.status === 429 || res.status === 403 || res.status >= 500) markProxyDead(i);
+            settle(null);
+            return;
+          }
+          const parsed = parseOneCNFund(await res.text());
+          if (parsed === "bench") {
+            markProxyDead(i, 60_000);
+            settle(null);
+            return;
+          }
+          settle(parsed, i);
+        } catch {
+          clearTimeout(tid);
+          // A winner's cleanup() aborts the other in-flight racers —
+          // don't mistake that for a genuine timeout (same guard as
+          // fetchOneYahooChart above).
+          if (resolved) return;
+          markProxyDead(i, 60_000);
+          settle(null);
+        }
+      })();
+    }
+  });
+}
+
+// Last-good CN-fund quotes from the background proxy fallback, keyed by
+// fund code. A mutual fund NAV changes once per trading day, so a
+// 20-minute-old quote is effectively live — plenty fresh to bridge the
+// gap while the Edge Function's fundgz upstream is geo-blocked.
+const CN_FUND_QUOTE_TTL_MS = 20 * 60_000;
+/** @type {Map<string, {ts: number, quote: any}>} */
+const cnFundQuoteCache = new Map();
+/** @type {Map<string, Promise<any>>} */
+const cnFundInflight = new Map();
+// Cooldown between background attempts per fund. The race falls back
+// to probing even benched proxies (same as fetchOneYahooChart), so
+// without this the 30 s auto-tick would re-hammer all five proxies
+// every tick for as long as the Edge response stays fund-less.
+const CN_FUND_RETRY_COOLDOWN_MS = 60_000;
+/** @type {Map<string, number>} */
+const cnFundLastAttempt = new Map();
+
+// Kick off (or join) a background proxy fetch for a CN fund the Edge
+// response omitted. Deliberately NOT awaited by the refresh path — the
+// whole point is that one unreachable fund must never hold the other
+// 29 fresh quotes (and the refresh spinner) hostage. A success lands in
+// cnFundQuoteCache and is merged into the NEXT refresh tick's result.
+function refreshCNFundInBackground(code) {
+  if (cnFundInflight.has(code)) return;
+  if (Date.now() - (cnFundLastAttempt.get(code) || 0) < CN_FUND_RETRY_COOLDOWN_MS) return;
+  cnFundLastAttempt.set(code, Date.now());
+  // skipIfAllDead: this fetch is opportunistic — when every proxy is
+  // benched, skip the doomed race and let the cooldown retry once the
+  // benches start expiring.
+  const p = fetchOneCNFund(code, { skipIfAllDead: true })
+    .then((quote) => {
+      if (quote) cnFundQuoteCache.set(code, { ts: Date.now(), quote });
+    })
+    .catch(() => { /* proxies exhausted — keep whatever cache we have */ })
+    .finally(() => { cnFundInflight.delete(code); });
+  cnFundInflight.set(code, p);
 }
 
 async function fetchViaEdge(liveTickers) {
@@ -281,29 +389,29 @@ async function fetchYahoo(tickers) {
   if (!liveTickers.length) return {};
 
   // 6-digit numeric tickers are Chinese mutual funds.
-  // Start Edge Function and direct CORS-proxy CN fund fetches in parallel.
-  // If Edge returns everything (newer deployment), return immediately and
-  // don't wait for the slower CORS proxy. Otherwise merge proxy results.
   const cnFunds = liveTickers.filter(t => /^\d{6}$/.test(t));
   const hasCNFund = cnFunds.length > 0;
   if (hasCNFund) {
-    // Edge Function first — it covers CN funds (eastmoney / lsjz /
-    // danjuanapp fallback chain server-side) so the happy path needs
-    // zero CORS-proxy traffic. Previous version fired the proxy chain
-    // in parallel "in case Edge missed some", but browsers don't
-    // cancel in-flight requests when the Promise short-circuits, so
-    // every 30 s auto-refresh burned through `corsproxy.io` /
-    // `api.cors.lol` rate limits and littered the Network tab with
-    // 403 / 429 / cancelled rows. Serial: only fire CORS proxies for
-    // CN funds the Edge call actually missed.
+    // Edge Function first — it covers CN funds (fundgz with lsjz /
+    // danjuanapp fallbacks server-side) so the happy path needs zero
+    // CORS-proxy traffic. When the Edge response still omits a CN fund
+    // (every server upstream failed), the proxy fallback runs in the
+    // BACKGROUND: the refresh returns the fresh quotes it has right
+    // away and the fund's quote (if a proxy ever gets one) is cached
+    // and merged into the next tick. Awaiting the proxies here is what
+    // used to stall the whole first refresh ~20 s — one geo-blocked
+    // fund held 29 live quotes and the spinner hostage, on every cold
+    // open (the in-memory proxy backoff resets per page load, so only
+    // in-page refreshes were fast).
     const edgeResult = normalizeEdgeResult(await fetchViaEdge(liveTickers));
     if (edgeResult && cnFunds.every(t => edgeResult[t])) return edgeResult;
     const missingCn = cnFunds.filter(t => !edgeResult?.[t]);
-    const cnFromProxy = (await Promise.all(
-      missingCn.map(async t => [t, await fetchOneCNFund(t)])
-    )).reduce((acc, [t, r]) => { if (r) acc[t] = r; return acc; }, /** @type {Record<string, any>} */ ({}));
     const out = { ...(edgeResult || {}) };
-    for (const t of cnFunds) if (!out[t] && cnFromProxy[t]) out[t] = cnFromProxy[t];
+    for (const t of missingCn) {
+      const cached = cnFundQuoteCache.get(t);
+      if (cached && Date.now() - cached.ts < CN_FUND_QUOTE_TTL_MS) out[t] = cached.quote;
+      refreshCNFundInBackground(t);
+    }
     return Object.keys(out).length > 0 ? out : null;
   }
 
@@ -330,7 +438,8 @@ async function fetchYahoo(tickers) {
     ? liveTickers.filter(t => !edgeResult[t])
     : liveTickers;
   if (missing.length === 0 && edgeResult) return edgeResult;
-  const proxyPairs = await Promise.all(missing.map(async (t) => [t, await fetchOneYahooChart(t)]));
+  const proxyPairs = await mapWithConcurrency(missing, 6, async (t) =>
+    [t, await fetchOneYahooChart(t, { skipIfAllDead: missing.length > 1 })]);
   const out = { ...(edgeResult || {}) };
   for (const [t, r] of proxyPairs) if (r) out[t] = r;
   return Object.keys(out).length > 0 ? out : null;

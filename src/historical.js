@@ -16,6 +16,7 @@ import {
   proxyIsAvailable,
   markProxyDead,
   clearProxyBackoff,
+  mapWithConcurrency,
 } from './proxy_chain.js';
 import { usMarketHoursUtc } from './market_hours.js';
 import { EDGE_PRICES_URL, EDGE_ANON_KEY } from './yahoo_fetch.js';
@@ -64,7 +65,7 @@ export function trimCnFundToRange(points, range) {
 //   - stock.xueqiu.com kline.json (Snowball public API, F-prefixed code)
 // Both are globally accessible (Cloudflare/AWS) and have a separate IP-
 // path chance vs. the Edge Function reaching eastmoney directly.
-async function fetchCnFundHistoryViaProxy(code, range) {
+async function fetchCnFundHistoryViaProxy(code, range, { skipIfAllDead = false } = {}) {
   const djUrl =
     `https://danjuanapp.com/djapi/fund/nav/history/${encodeURIComponent(code)}` +
     `?size=500&page=1&_=${Date.now()}`;
@@ -117,8 +118,10 @@ async function fetchCnFundHistoryViaProxy(code, range) {
 
   // Skip backed-off proxies; fall back to all if every one is dead
   // (better to retry a maybe-recovered host than freeze CN-fund history
-  // until the user reloads).
+  // until the user reloads). skipIfAllDead (batch fan-outs): an earlier
+  // wave already proved them dead — bail instead of stacking timeouts.
   const liveIndices = PROXIES.map((_, i) => i).filter((i) => proxyIsAvailable(i));
+  if (liveIndices.length === 0 && skipIfAllDead) return null;
   const idxs = liveIndices.length > 0 ? liveIndices : PROXIES.map((_, i) => i);
   const attempts = [];
   for (const i of idxs) {
@@ -180,7 +183,7 @@ async function fetchCnFundHistoryViaProxy(code, range) {
 // Fetch daily historical closes for a single symbol via the CORS proxy chain.
 // Tries proxies in randomised order to spread load across them on bursty
 // multi-ticker calls. Returns [{date,close}, …] or null on total failure.
-export async function fetchHistorical(symbol, range = "ytd", interval = "1d", includePrePost = false) {
+export async function fetchHistorical(symbol, range = "ytd", interval = "1d", includePrePost = false, { skipIfAllDead = false } = {}) {
   const nonce = Date.now();
   const ipp = includePrePost ? "&includePrePost=true" : "";
   const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}${ipp}&_=${nonce}`;
@@ -238,7 +241,11 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
   // Filter out proxies currently in backoff. If they're all dead, fall
   // back to ALL of them — the alternative is unconditionally returning
   // null, which would freeze chart data across the whole session.
+  // Inside a multi-ticker batch fan-out (skipIfAllDead) an earlier wave
+  // already proved them dead moments ago, so re-racing per remaining
+  // ticker just stacks doomed timeout waves — bail to null instead.
   const liveIndices = PROXIES.map((_, i) => i).filter((i) => proxyIsAvailable(i));
+  if (liveIndices.length === 0 && skipIfAllDead) return null;
   const idxs = liveIndices.length > 0 ? liveIndices : PROXIES.map((_, i) => i);
 
   return new Promise((resolve) => {
@@ -358,12 +365,16 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
   // proxies are the only way to get any data for the page.
   if (edgeSucceeded) return out;
 
-  await Promise.all(missing.map(async (s) => {
+  // Bounded fan-out: each per-ticker fallback races all 5 proxies, so an
+  // unbounded map over a 30-ticker portfolio would fire ~150 concurrent
+  // fetches the moment the Edge Function is down — see mapWithConcurrency.
+  const skipIfAllDead = missing.length > 1;
+  await mapWithConcurrency(missing, 6, async (s) => {
     const data = await (CN_FUND_RE.test(s)
-      ? fetchCnFundHistoryViaProxy(s, range)
-      : fetchHistorical(s, range, interval, includePrePost)).catch(() => null);
+      ? fetchCnFundHistoryViaProxy(s, range, { skipIfAllDead })
+      : fetchHistorical(s, range, interval, includePrePost, { skipIfAllDead })).catch(() => null);
     if (data && data.length > 0) out[s] = data;
-  }));
+  });
   return out;
 }
 

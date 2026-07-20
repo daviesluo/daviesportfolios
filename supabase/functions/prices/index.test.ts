@@ -7,7 +7,7 @@
 // Run locally: `deno test --allow-env supabase/functions/prices/`
 
 import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { localMinOfDay, isOutsideRth, pctChange, localDayNumber, rthSessionCloses, etOffsetSec, cryptoUsSessionQuote } from "./index.ts";
+import { localMinOfDay, isOutsideRth, pctChange, localDayNumber, rthSessionCloses, etOffsetSec, cryptoUsSessionQuote, parseFundgz, navPairToResult } from "./index.ts";
 
 Deno.test("localMinOfDay: New York 09:30 ET (EDT, gmtoffset=-14400) at 13:30 UTC = 570 minutes", () => {
   // 2026-05-11 13:30:00 UTC → 09:30:00 EDT (gmtoffset -14400 s)
@@ -158,4 +158,58 @@ Deno.test("cryptoUsSessionQuote: US HOLIDAY during RTH clock → off-session (ex
   // lastPrice = Thu close (110), extPrice = live (125), prevClose = Wed close (100).
   // Client shows (125-110)/110 ≈ +13.6% "since the last close" instead of 0%.
   assertEquals(q, { lastPrice: 110, extPrice: 125, prevClose: 100 });
+});
+
+// ---------------- CN fund parsing (fundgz + NAV-pair fallbacks) ----------------
+// Pins the fetchCNFund upstream chain added when fundgz got geo-blocked
+// from Deno egress IPs: every prices response silently omitted the CN
+// fund, which pushed the client onto its (slow, proxy-based) fallback
+// and stalled the first refresh ~20 s. The pure parsers are pinned here
+// so the deploy gate catches any regression in either path.
+
+Deno.test("parseFundgz: intraday estimate present → gsz is lastPrice, dwjz prevClose", () => {
+  const body = `jsonpgz({"fundcode":"017731","name":"x","jzrq":"2026-07-17","dwjz":"1.2345","gsz":"1.2456","gszzl":"0.89","gztime":"2026-07-17 15:00"});`;
+  const q = parseFundgz(body)!;
+  assertEquals(q.lastPrice, 1.2456);
+  assertEquals(q.prevClose, 1.2345);
+  assertEquals(q.currency, "CNY");
+  assertAlmostEquals(q.dayPct, ((1.2456 - 1.2345) / 1.2345) * 100, 1e-9);
+  assertEquals(q.extPrice, null);
+});
+
+Deno.test("parseFundgz: weekend/holiday (no gsz) → flat at last NAV, dayPct 0", () => {
+  const body = `jsonpgz({"fundcode":"017731","name":"x","jzrq":"2026-07-17","dwjz":"1.2345","gsz":"","gszzl":"","gztime":""})`;
+  const q = parseFundgz(body)!;
+  assertEquals(q.lastPrice, 1.2345);
+  assertEquals(q.prevClose, 1.2345);
+  assertEquals(q.dayPct, 0);
+});
+
+Deno.test("parseFundgz: non-JSONP body (geo-block error page) → null", () => {
+  assertEquals(parseFundgz("<html>blocked</html>"), null);
+  assertEquals(parseFundgz(""), null);
+  assertEquals(parseFundgz(`jsonpgz({"dwjz":"0"});`), null); // non-positive NAV
+});
+
+Deno.test("navPairToResult: two NAVs → last vs prev official close", () => {
+  const q = navPairToResult([{ nav: 1.25 }, { nav: 1.20 }])!;
+  assertEquals(q.lastPrice, 1.25);
+  assertEquals(q.prevClose, 1.20);
+  assertAlmostEquals(q.dayPct, ((1.25 - 1.20) / 1.20) * 100, 1e-9);
+  assertEquals(q.currency, "CNY");
+});
+
+Deno.test("navPairToResult: single NAV → flat (prevClose = lastPrice, dayPct 0)", () => {
+  const q = navPairToResult([{ nav: 1.25 }])!;
+  assertEquals(q.lastPrice, 1.25);
+  assertEquals(q.prevClose, 1.25);
+  assertEquals(q.dayPct, 0);
+});
+
+Deno.test("navPairToResult: NaN / non-positive rows are skipped; all-bad → null", () => {
+  const q = navPairToResult([{ nav: NaN }, { nav: 1.10 }, { nav: 1.05 }])!;
+  assertEquals(q.lastPrice, 1.10);
+  assertEquals(q.prevClose, 1.05);
+  assertEquals(navPairToResult([{ nav: NaN }, { nav: 0 }]), null);
+  assertEquals(navPairToResult([]), null);
 });
