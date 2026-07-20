@@ -21,3 +21,7 @@ node_modules
 # output so Cloudflare Pages can deploy without needing a custom
 # build step in the dashboard. When/if we migrate to CF-managed
 # builds, switch to ignoring the build output here too.
+
+# Deno regenerates this on every local `deno test` run; the repo has
+# never pinned it and Supabase deploys don't read it.
+deno.lock
