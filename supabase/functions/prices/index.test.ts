@@ -224,33 +224,51 @@ Deno.test("navPairToResult: NaN / non-positive rows are skipped; all-bad → nul
 
 const QUOTE_GZ = { lastPrice: 1.25, extPrice: null, prevClose: 1.20, currency: "CNY", dayPct: 4.1667, extDayPct: null };
 const QUOTE_LS = { lastPrice: 1.20, extPrice: null, prevClose: 1.18, currency: "CNY", dayPct: 1.6949, extDayPct: null };
-const after = <T,>(ms: number, v: T): Promise<T> => new Promise((r) => setTimeout(() => r(v), ms));
+// Cancellable delayed promise — Deno's test sanitizer fails any test
+// whose timers are still pending at the end, so every fixture timer
+// must be cleared once the assertion is done.
+const after = <T,>(ms: number, v: T): { promise: Promise<T>; cancel: () => void } => {
+  let id: ReturnType<typeof setTimeout>;
+  const promise = new Promise<T>((r) => { id = setTimeout(() => r(v), ms); });
+  return { promise, cancel: () => clearTimeout(id) };
+};
 
 Deno.test("raceCnSources: healthy-but-slower fundgz still wins within the grace window", async () => {
   // lsjz answers at 5 ms, fundgz at 20 ms — grace (50 ms) covers it.
-  const q = await raceCnSources(after(20, QUOTE_GZ), after(5, QUOTE_LS), 50);
-  assertEquals(q, QUOTE_GZ);
+  const gz = after(20, QUOTE_GZ), ls = after(5, QUOTE_LS);
+  try {
+    assertEquals(await raceCnSources(gz.promise, ls.promise, 50), QUOTE_GZ);
+  } finally { gz.cancel(); ls.cancel(); }
 });
 
 Deno.test("raceCnSources: hung fundgz is preempted by a usable lsjz after the grace", async () => {
   const t0 = Date.now();
   // fundgz "hangs" far past everything; lsjz usable at 5 ms, grace 30 ms.
-  const q = await raceCnSources(after(5_000, null), after(5, QUOTE_LS), 30);
-  assertEquals(q, QUOTE_LS);
-  assert(Date.now() - t0 < 1_000, "must resolve on lsjz+grace, not fundgz's timeout");
+  const gz = after(5_000, null), ls = after(5, QUOTE_LS);
+  try {
+    assertEquals(await raceCnSources(gz.promise, ls.promise, 30), QUOTE_LS);
+    assert(Date.now() - t0 < 1_000, "must resolve on lsjz+grace, not fundgz's timeout");
+  } finally { gz.cancel(); ls.cancel(); }
 });
 
 Deno.test("raceCnSources: fast-null fundgz falls straight back to lsjz (no grace wait)", async () => {
-  const q = await raceCnSources(after(2, null), after(10, QUOTE_LS), 5_000);
-  assertEquals(q, QUOTE_LS);
+  const gz = after(2, null), ls = after(10, QUOTE_LS);
+  try {
+    assertEquals(await raceCnSources(gz.promise, ls.promise, 5_000), QUOTE_LS);
+  } finally { gz.cancel(); ls.cancel(); }
 });
 
 Deno.test("raceCnSources: useless lsjz never preempts — fundgz gets its full timeout", async () => {
   // lsjz nulls out immediately; fundgz succeeds later.
-  const q = await raceCnSources(after(30, QUOTE_GZ), after(2, null), 5);
-  assertEquals(q, QUOTE_GZ);
+  const gz = after(30, QUOTE_GZ), ls = after(2, null);
+  try {
+    assertEquals(await raceCnSources(gz.promise, ls.promise, 5), QUOTE_GZ);
+  } finally { gz.cancel(); ls.cancel(); }
 });
 
 Deno.test("raceCnSources: both sources null → null (caller falls through to danjuan)", async () => {
-  assertEquals(await raceCnSources(after(5, null), after(2, null), 10), null);
+  const gz = after(5, null), ls = after(2, null);
+  try {
+    assertEquals(await raceCnSources(gz.promise, ls.promise, 10), null);
+  } finally { gz.cancel(); ls.cancel(); }
 });
