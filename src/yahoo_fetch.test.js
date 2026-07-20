@@ -61,6 +61,47 @@ describe('fetchTickers — proxies answering 200 with a non-upstream body get be
   });
 });
 
+// Pins the parallel-race redesign of the proxy fallback (fetchOneYahooChart).
+// The previous version fell through PROXIES sequentially — `for (i of
+// idxs) { await fetch(...) }` — so a proxy that never resolves (hangs, or
+// is just slow) blocks every proxy AFTER it in the array from even being
+// tried, and the theoretical worst case was PROXIES.length × the per-proxy
+// timeout (≈40 s for 5 proxies × 8 s). A race launches every proxy at once,
+// so a hung/slow FIRST proxy can no longer starve a fast LATER one.
+describe('fetchTickers — proxy fallback races all proxies in parallel (not sequential fall-through)', () => {
+  const origFetch = globalThis.fetch;
+  afterEach(async () => {
+    globalThis.fetch = origFetch;
+    const { clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+  });
+
+  it('a hung first proxy does not block a later proxy from winning the race', async () => {
+    const { clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+    const goodBody = {
+      chart: { result: [{ meta: { regularMarketPrice: 224.85, regularMarketPreviousClose: 224.5, currency: 'USD' } }] },
+    };
+    globalThis.fetch = /** @type {any} */ (vi.fn((url, opts) => {
+      if (String(url).includes('supabase.co')) {
+        return Promise.resolve({ ok: false, status: 500, json: async () => ({}) });
+      }
+      // The FIRST proxy (api.cors.lol) never settles — its promise hangs
+      // until the caller aborts it. A sequential fall-through would await
+      // this forever and never reach the other proxies.
+      if (String(url).includes('cors.lol')) {
+        return new Promise((_resolve, reject) => {
+          opts?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+        });
+      }
+      // Every other proxy answers immediately with a good quote.
+      return Promise.resolve({ ok: true, json: async () => goodBody });
+    }));
+    const out = await fetchTickers(['NVDA']);
+    expect(out.NVDA.lastPrice).toBe(224.85);
+  });
+});
+
 describe('fetchTickers — SFTBY ext-price suppression (Edge path)', () => {
   const origFetch = globalThis.fetch;
   afterEach(() => { globalThis.fetch = origFetch; });

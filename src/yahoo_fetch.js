@@ -33,78 +33,134 @@ export function quotesRegularSessionOnly(ticker) {
 const EDGE_PRICES_URL = "https://flmvxigozjuizpckllvk.supabase.co/functions/v1/prices";
 const EDGE_ANON_KEY   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbXZ4aWdvemp1aXpwY2tsbHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODM3MjgsImV4cCI6MjA5MjM1OTcyOH0.vFqe6PNsPbVkg7NJmQJBsVECX1S58vAvv5MOjf63Xck";
 
+// Parse one proxy's chart response into the quote shape fetchOneYahooChart
+// returns, or null if the response isn't usable (bad status, non-chart
+// body, or Yahoo has nothing for this symbol). Pulled out of the fetch
+// loop so it can be shared verbatim between a losing and winning racer.
+function parseOneYahooChart(res, symbol, proxyIdx) {
+  if (!res.ok) return null;
+  return res.json().then((data) => {
+    // 200 + parseable JSON that isn't Yahoo's chart envelope — the proxy
+    // substituted its own body (some free proxies serve their rate-limit /
+    // error JSON with a 200). Bench it briefly so it doesn't keep winning
+    // an attempt slot in every future race. (`chart` present but
+    // result/meta missing is Yahoo itself answering "no data for this
+    // symbol" — not the proxy's fault, so that path stays backoff-free.)
+    if (!data?.chart) {
+      markProxyDead(proxyIdx, 60_000);
+      return null;
+    }
+    const result = data.chart.result?.[0];
+    const meta = result?.meta;
+    if (!meta) return null;
+    let lastPrice = meta.regularMarketPrice;
+    if (lastPrice == null) return null;
+    let prevClose = meta.regularMarketPreviousClose ?? meta.previousClose ?? meta.chartPreviousClose ?? lastPrice;
+    // Extended hours price: pre-market or after-hours (null if not available).
+    // For non-US tickers (any dotted-suffix symbol like `.L`, `.HK`, `.SS`,
+    // `.DE`, etc.) Yahoo's `preMarketPrice` / `postMarketPrice` reflect the
+    // local exchange's live intraday quote rather than a US-style ext-hours
+    // session — for example a .L ticker during US pre-market still has LSE
+    // open, so `preMarketPrice` is the live LSE price and the ext-hours pct
+    // shows real LSE movement when the user expects 0 (those exchanges
+    // don't have an after-hours / pre-market session). Suppress.
+    let extPrice  = (symbol.includes('.') || quotesRegularSessionOnly(symbol))
+      ? null
+      : (meta.preMarketPrice ?? meta.postMarketPrice ?? null);
+    // Yahoo returns London-listed prices in pence (currency "GBp"). Normalize
+    // to GBP (divide by 100) so downstream math never has to special-case pence.
+    let currency = meta.currency || null;
+    if (currency === "GBp" || currency === "GBX") {
+      lastPrice /= 100;
+      prevClose /= 100;
+      if (extPrice != null) extPrice /= 100;
+      currency = "GBP";
+    }
+    return {
+      lastPrice,
+      extPrice,
+      prevClose,
+      currency,
+      dayPct: prevClose > 0 ? ((lastPrice - prevClose) / prevClose) * 100 : 0,
+      extDayPct: (extPrice != null && lastPrice > 0) ? ((extPrice - lastPrice) / lastPrice) * 100 : null,
+    };
+  });
+}
+
+// Races every available proxy IN PARALLEL and resolves with the first
+// usable quote — mirrors historical.js's fetchHistorical race. The
+// previous version fell through the proxy list SEQUENTIALLY (one 8 s
+// timeout at a time), so a single ticker's worst case was
+// PROXIES.length × 8 s (≈40 s for 5 proxies) whenever the first few tried
+// happened to be dead — the dominant contributor to "first refresh after
+// opening the app takes tens of seconds" (proxy_chain.js's dead-proxy
+// backoff is in-memory and resets on every page load, so a fresh tab
+// always starts blind). Racing in parallel drops the worst case to
+// ≈ the timeout of the slowest live proxy (8 s), matching the chart
+// fallback's already-parallel design. Losing requests are aborted the
+// moment a winner lands so they don't keep burning the proxies' rate
+// limits in the background.
 async function fetchOneYahooChart(symbol) {
   const nonce = Date.now();
   const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d&includePrePost=true&_=${nonce}`;
-  for (let i = 0; i < PROXIES.length; i++) {
-    if (!proxyIsAvailable(i)) continue;
-    const makeProxy = PROXIES[i];
-    const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), 8000);
-    try {
-      const res = await fetch(makeProxy(yahooUrl), { cache: "no-store", signal: controller.signal });
-      clearTimeout(tid);
-      if (!res.ok) {
-        if (res.status === 429 || res.status === 403 || res.status >= 500) markProxyDead(i);
-        continue;
+
+  // If every proxy is currently in backoff, race all of them anyway
+  // rather than unconditionally returning null — the alternative freezes
+  // this ticker's price for the rest of the session.
+  const liveIndices = PROXIES.map((_, i) => i).filter((i) => proxyIsAvailable(i));
+  const idxs = liveIndices.length > 0 ? liveIndices : PROXIES.map((_, i) => i);
+
+  return new Promise((resolve) => {
+    let resolved = false;
+    let remaining = idxs.length;
+    /** @type {AbortController[]} */
+    const controllers = [];
+    /** @type {ReturnType<typeof setTimeout>[]} */
+    const timers = [];
+
+    const cleanup = () => {
+      for (const c of controllers) {
+        try { c.abort(); } catch (_) { /* already settled */ }
       }
-      const data = await res.json();
-      // 200 + parseable JSON that isn't Yahoo's chart envelope — the
-      // proxy substituted its own body (some free proxies serve their
-      // rate-limit / error JSON with a 200). Without a backoff here
-      // such a proxy never gets benched: every poll re-burns an
-      // attempt slot + up to 8 s of timeout on it. Same short window
-      // as a network error — the proxy may recover quickly.
-      // (`chart` present but result/meta missing is Yahoo itself
-      // answering "no data for this symbol" — not the proxy's fault,
-      // so that path stays backoff-free below.)
-      if (!data?.chart) {
-        markProxyDead(i, 60_000);
-        continue;
+      for (const t of timers) clearTimeout(t);
+    };
+
+    const settle = (quote, winnerIdx) => {
+      if (resolved) return;
+      if (quote) {
+        resolved = true;
+        if (winnerIdx != null) clearProxyBackoff(winnerIdx);
+        cleanup();
+        resolve(quote);
+      } else if (--remaining === 0) {
+        resolve(null);
       }
-      const result = data.chart.result?.[0];
-      const meta = result?.meta;
-      if (!meta) continue;
-      let lastPrice = meta.regularMarketPrice;
-      if (lastPrice == null) continue;
-      let prevClose = meta.regularMarketPreviousClose ?? meta.previousClose ?? meta.chartPreviousClose ?? lastPrice;
-      // Extended hours price: pre-market or after-hours (null if not available).
-      // For non-US tickers (any dotted-suffix symbol like `.L`, `.HK`, `.SS`,
-      // `.DE`, etc.) Yahoo's `preMarketPrice` / `postMarketPrice` reflect the
-      // local exchange's live intraday quote rather than a US-style ext-hours
-      // session — for example a .L ticker during US pre-market still has LSE
-      // open, so `preMarketPrice` is the live LSE price and the ext-hours pct
-      // shows real LSE movement when the user expects 0 (those exchanges
-      // don't have an after-hours / pre-market session). Suppress.
-      let extPrice  = (symbol.includes('.') || quotesRegularSessionOnly(symbol))
-        ? null
-        : (meta.preMarketPrice ?? meta.postMarketPrice ?? null);
-      // Yahoo returns London-listed prices in pence (currency "GBp"). Normalize
-      // to GBP (divide by 100) so downstream math never has to special-case pence.
-      let currency = meta.currency || null;
-      if (currency === "GBp" || currency === "GBX") {
-        lastPrice /= 100;
-        prevClose /= 100;
-        if (extPrice != null) extPrice /= 100;
-        currency = "GBP";
-      }
-      clearProxyBackoff(i);
-      return {
-        lastPrice,
-        extPrice,
-        prevClose,
-        currency,
-        dayPct: prevClose > 0 ? ((lastPrice - prevClose) / prevClose) * 100 : 0,
-        extDayPct: (extPrice != null && lastPrice > 0) ? ((extPrice - lastPrice) / lastPrice) * 100 : null,
-      };
-    } catch (e) {
-      clearTimeout(tid);
-      // Timeouts / network errors → shorter backoff (1 min); the proxy
-      // may be transiently slow rather than rate-limiting us.
-      markProxyDead(i, 60_000);
+    };
+
+    for (const i of idxs) {
+      const makeProxy = PROXIES[i];
+      const controller = new AbortController();
+      controllers.push(controller);
+      const tid = setTimeout(() => controller.abort(), 8000);
+      timers.push(tid);
+      (async () => {
+        try {
+          const res = await fetch(makeProxy(yahooUrl), { cache: "no-store", signal: controller.signal });
+          clearTimeout(tid);
+          if (!res.ok && (res.status === 429 || res.status === 403 || res.status >= 500)) {
+            markProxyDead(i);
+          }
+          settle(await parseOneYahooChart(res, symbol, i), i);
+        } catch (e) {
+          clearTimeout(tid);
+          // Timeouts / network errors → shorter backoff (1 min); the proxy
+          // may be transiently slow rather than rate-limiting us.
+          markProxyDead(i, 60_000);
+          settle(null);
+        }
+      })();
     }
-  }
-  return null;
+  });
 }
 
 // Fetch a single CN mutual fund (6-digit code) from eastmoney via CORS proxies.
