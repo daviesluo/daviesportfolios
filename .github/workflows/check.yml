@@ -149,6 +149,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
+          # Ensure the label exists (idempotent) before the first use ever
+          # references it below — discovered via healthcheck.yml's own
+          # identical bug (a `gh issue create --label <X>` with no prior
+          # `gh label create` fails hard the first time X doesn't already
+          # exist in the repo; `ci-failure` never has).
+          gh label create ci-failure --repo "${{ github.repository }}" \
+            --color B60205 --description "A push to main broke CI" \
+            2>/dev/null || true
           # De-dup: if an open `ci-failure` issue already exists, add a
           # comment instead of stacking another issue per push.
           existing=$(gh issue list --repo "${{ github.repository }}" \
