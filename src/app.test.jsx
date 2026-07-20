@@ -62,7 +62,7 @@ vi.mock('./trading212.js', () => ({
 vi.mock('./portfolio_remote.js', () => ({
   loadPortfolioRemote: vi.fn(() => Promise.resolve(null)),
   savePortfolioRemote: vi.fn(() => Promise.resolve({ ok: true })),
-  portfolioUserFingerprint: () => 'fingerprint',
+  portfolioUserFingerprint: vi.fn(() => 'fingerprint'),
   PORTFOLIO_BROADCAST_CHANNEL: 'dp.portfolio',
 }));
 vi.mock('./prefetch.js', () => ({ prefetchAllChartData: vi.fn() }));
@@ -99,7 +99,7 @@ import App from './app.jsx';
 import { refreshPrices } from './yahoo_fetch.js';
 import { prefetchAllChartData } from './prefetch.js';
 import { fetchOvernightSeries } from './overnight_intraday.js';
-import { loadPortfolioRemote, savePortfolioRemote } from './portfolio_remote.js';
+import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint } from './portfolio_remote.js';
 
 beforeEach(() => {
   cleanup();
@@ -236,4 +236,57 @@ describe('App — cache-primed first paint (Storage.loadPortfolioCache)', () => 
     // way; this asserts the gate didn't itself trigger one).
     expect(savePortfolioRemote).not.toHaveBeenCalled();
   });
+
+  // Codex #201 P1: a real load that resolves to the demo fallback while
+  // a real cache-primed portfolio is already on screen must keep the
+  // cached data AND leave the save gate closed. Before the fix,
+  // hasRealLoadRef.current was set unconditionally in this branch even
+  // though the failed load never touched portfolio_remote's
+  // lastKnownVersion — a subsequent save would have skipped If-Match
+  // and could silently overwrite newer data from another device.
+  it('keeps the cached portfolio and never opens the save gate when the real load falls back to demo', async () => {
+    localStorage.setItem('dp.portfolioCache', JSON.stringify({ ts: Date.now(), data: CACHED_PORTFOLIO }));
+    setAdminToken();
+
+    const DEMO_PORTFOLIO = {
+      holdings: {
+        DEMO: { shares: 1, cost: 1, lastPrice: 1, prevClose: 1, currency: 'USD', lots: [{ date: '2025-01-01', shares: 1, cost: 1 }] },
+      },
+      positions: { ST: { role: 'FWD', subtitle: '', tickers: ['DEMO'] } },
+      _isDemo: true,
+    };
+
+    // A fingerprint that changes on every call would, if the save gate
+    // had wrongly opened, eventually fire a save once the 600 ms
+    // debounce elapses — used here to prove the gate actually stayed
+    // shut, not just that no real edit happened to trigger it.
+    let fpCounter = 0;
+    vi.mocked(portfolioUserFingerprint).mockImplementation(() => `fp-${fpCounter++}`);
+    vi.mocked(loadPortfolioRemote).mockResolvedValueOnce(/** @type {any} */ (DEMO_PORTFOLIO));
+
+    render(<App />);
+
+    // doRefresh fires off the cached (ZZZZ) portfolio immediately.
+    await waitFor(() => expect(refreshPrices).toHaveBeenCalledWith(
+      expect.objectContaining({ holdings: expect.objectContaining({ ZZZZ: expect.anything() }) }),
+    ));
+
+    // Give the real (demo-resolving) load a tick to land and the effects
+    // to settle.
+    await new Promise((r) => setTimeout(r, 0));
+
+    // The cached portfolio must have been kept — refreshPrices is never
+    // called against the demo holdings.
+    expect(refreshPrices).not.toHaveBeenCalledWith(
+      expect.objectContaining({ holdings: expect.objectContaining({ DEMO: expect.anything() }) }),
+    );
+
+    // Past the 600 ms debounce window, still no save — proves
+    // hasRealLoadRef.current stayed false rather than being flipped by
+    // the discarded demo load.
+    await new Promise((r) => setTimeout(r, 700));
+    expect(savePortfolioRemote).not.toHaveBeenCalled();
+
+    vi.mocked(portfolioUserFingerprint).mockImplementation(() => 'fingerprint');
+  }, 10000);
 });
