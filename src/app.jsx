@@ -414,8 +414,10 @@ function Board({ isReadOnly }) {
   // Cache of the MC tickers' "today's 16:00-ET close" (the ext-on anchor).
   // fetchTodayRegularClose pulls 5d/5m bars for all 15 MC symbols — a big
   // egress hit — yet the value only changes once a day at 16:00 ET. So we
-  // fetch it at most every 30 min (and only when ext is on, the only place
-  // it's used), then reuse the cached map on the in-between ticks.
+  // fetch it at most every 30 min (and only outside the regular session,
+  // where it's the ext-on anchor — preloaded regardless of the toggle so
+  // flipping ext on is instant), then reuse the cached map on the
+  // in-between ticks.
   /** @type {React.MutableRefObject<{ ts: number, data: Record<string, number> }>} */
   const todayClosesRef = useRef({ ts: 0, data: {} });
   useEffect(() => () => {
@@ -601,10 +603,18 @@ function Board({ isReadOnly }) {
     const overnightPromise = (refreshPhase === 'overnight' && extHoldingTickers.length > 0)
       ? fetchOvernightSeries(extHoldingTickers).catch(() => null)
       : Promise.resolve(null);
-    // Only pull the MC "today's 16:00-ET close" anchor when ext is on (the
-    // sole consumer) and the 30-min cache is stale — it changes once a day,
-    // so re-fetching 5d/5m bars for 15 symbols every tick was pure egress.
-    const wantTodayCloses = extendedHours
+    // Preload the MC "today's 16:00-ET close" anchor whenever we're
+    // OUTSIDE the regular session — gated on phase, NOT on the Extended
+    // Hours toggle (mirrors wantsExtSeries above). The toggle deliberately
+    // doesn't trigger a refresh, so gating this fetch on `extendedHours`
+    // left every MC card anchored to its own live price (a flat 0.00 %)
+    // from the moment the user flipped ext on until the next 30 s tick
+    // finally fetched the anchor. Phase-gating fetches it before the
+    // toggle is ever touched, so ext-on shows real numbers immediately.
+    // Still only outside RTH (its sole consumer is the ext-on anchor;
+    // regular hours use prevClose), and the 30-min throttle keeps the
+    // 5d/5m pull for 15 symbols off every tick.
+    const wantTodayCloses = refreshPhase !== "regular"
       && (Date.now() - todayClosesRef.current.ts > 30 * 60 * 1000);
     const [{ updates, source: src }, mcResult, todayClosesFresh, extSeries, t212Holdings] = await Promise.all([
       refreshPrices(portfolio),
