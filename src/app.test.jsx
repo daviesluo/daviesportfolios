@@ -99,6 +99,7 @@ import App from './app.jsx';
 import { refreshPrices } from './yahoo_fetch.js';
 import { prefetchAllChartData } from './prefetch.js';
 import { fetchOvernightSeries } from './overnight_intraday.js';
+import { fetchTodayRegularClose } from './historical.js';
 import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint } from './portfolio_remote.js';
 
 beforeEach(() => {
@@ -166,6 +167,16 @@ describe('App — doRefresh on initial load (overnight window)', () => {
     await waitFor(() => expect(prefetchAllChartData).toHaveBeenCalled());
     const prefetchArg = vi.mocked(prefetchAllChartData).mock.calls[0][0];
     expect(prefetchArg.tickers).toEqual(expect.arrayContaining(['NVDA', 'VUAA.L']));
+
+    // MC ext-anchor preload: the Market Conditions cards' ext-on anchor
+    // (today's 16:00-ET close) must be fetched on this overnight refresh
+    // even though the Extended Hours toggle defaults OFF here. It's gated
+    // on the market PHASE, not the toggle — the toggle deliberately
+    // doesn't trigger a refresh, so if this fetch were gated on the
+    // toggle every MC card would read a flat 0.00 % from the instant ext
+    // is switched on until the next 30 s tick (the reported bug). Phase-
+    // gating warms the anchor before the toggle is ever touched.
+    await waitFor(() => expect(fetchTodayRegularClose).toHaveBeenCalled());
   });
 });
 
