@@ -25,9 +25,44 @@ export function displayTicker(ticker) {
 }
 
 // ── Treemap layout (recursive binary split) ──────────────────────────────────
-function treemap(nodes, x, y, w, h) {
+// Exported for the layout pin test.
+export function treemap(nodes, x, y, w, h) {
   if (!nodes.length) return [];
   if (nodes.length === 1) return [{ ...nodes[0], x, y, w, h }];
+
+  // Exactly three tiles: lay them out as three proportional strips along
+  // the region's LONGER axis — rows (top / middle / bottom) when the
+  // region is taller than wide, columns when it's wider. The generic
+  // binary split below turns 3 into a lopsided "two-beside-one": two
+  // tiles share one half side by side and a single tile spans the other
+  // half, and when those two side-by-side tiles differ a lot in size it
+  // reads as unbalanced (the MU / NET / 017731 case). Three even strips
+  // keep them orderly and uniform on the split axis; splitting along the
+  // longer axis (instead of always stacking) stops a strip from
+  // collapsing too thin to show its label in a wide region.
+  if (nodes.length === 3) {
+    const total3 = nodes.reduce((s, n) => s + n.value, 0) || 1;
+    const out = [];
+    if (h >= w) {
+      let yy = y;
+      for (let i = 0; i < 3; i++) {
+        // Last strip takes the exact remainder so rounding leaves no gap.
+        const hh = i === 2 ? (y + h) - yy
+                           : Math.max(1, Math.round(h * nodes[i].value / total3));
+        out.push({ ...nodes[i], x, y: yy, w, h: hh });
+        yy += hh;
+      }
+    } else {
+      let xx = x;
+      for (let i = 0; i < 3; i++) {
+        const ww = i === 2 ? (x + w) - xx
+                           : Math.max(1, Math.round(w * nodes[i].value / total3));
+        out.push({ ...nodes[i], x: xx, y, w: ww, h });
+        xx += ww;
+      }
+    }
+    return out;
+  }
 
   const total = nodes.reduce((s, n) => s + n.value, 0);
   let acc = 0, split = 0;
