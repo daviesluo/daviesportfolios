@@ -63,14 +63,36 @@ describe('treemap — three-tile strip layout', () => {
     expect(last.y + last.h).toBe(300);
   });
 
-  it('a wide (landscape) region splits the 3 tiles into full-height columns', () => {
+  it('a wide (landscape) region puts the biggest tile in a left column and STACKS the other two', () => {
     const tiles = treemap(nodes, 0, 0, 300, 90);
+    const [a, b, c] = tiles;
     expect(tiles.map(t => t.ticker)).toEqual(['A', 'B', 'C']);
-    for (const t of tiles) { expect(t.y).toBe(0); expect(t.h).toBe(90); }
-    expect(tiles.map(t => t.x)).toEqual([0, 180, 270]);
-    expect(tiles.map(t => t.w)).toEqual([180, 90, 30]);
-    const last = tiles[2];
-    expect(last.x + last.w).toBe(300);
+    // A spans the full height on the left; B and C share the right
+    // column, stacked — never three thin columns side by side.
+    expect(a.x).toBe(0);
+    expect(a.h).toBe(90);
+    expect(b.x).toBe(a.w);
+    expect(c.x).toBe(a.w);
+    expect(b.w).toBe(c.w);          // same column width
+    expect(b.y).toBe(0);
+    expect(c.y).toBe(b.h);          // stacked, no overlap
+    // Exact fill of both axes.
+    expect(a.w + b.w).toBe(300);
+    expect(b.h + c.h).toBe(90);
+  });
+
+  it('never leaves a sliver when one tile dominates a wide region (the NVTS case)', () => {
+    // A is ~85 % of the value — by raw proportion the stacked pair would
+    // be a ~45px-wide sliver next to it. The left column is clamped so
+    // both sides stay readable blocks.
+    const dominant = [N('NVTS', 850), N('B', 90), N('C', 60)];
+    const [a, b, c] = treemap(dominant, 0, 0, 300, 90);
+    expect(a.w).toBeLessThanOrEqual(210);   // ≤70 % of 300
+    expect(b.w).toBeGreaterThanOrEqual(90); // right column keeps ≥30 %
+    // Neither stacked tile collapses into a thin band.
+    expect(Math.min(b.h, c.h)).toBeGreaterThanOrEqual(90 * 0.3);
+    expect(b.h + c.h).toBe(90);
+    expect(a.w + b.w).toBe(300);
   });
 
   it('a square region stacks as rows (ties go to horizontal)', () => {
