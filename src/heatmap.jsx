@@ -25,58 +25,9 @@ export function displayTicker(ticker) {
 }
 
 // ── Treemap layout (recursive binary split) ──────────────────────────────────
-// Exported for the layout pin test.
-export function treemap(nodes, x, y, w, h) {
+function treemap(nodes, x, y, w, h) {
   if (!nodes.length) return [];
   if (nodes.length === 1) return [{ ...nodes[0], x, y, w, h }];
-
-  // Exactly three tiles. The generic binary split below turns 3 into a
-  // lopsided "two-beside-one" whose two side-by-side tiles can differ a
-  // lot in size (the MU / NET / 017731 case), so 3 gets its own layout —
-  // shaped by the region, and never producing a sliver:
-  //
-  //   Tall / square region → three full-width ROWS, top / middle /
-  //     bottom, heights proportional to value.
-  //   Wide region → the largest tile takes a full-height LEFT column and
-  //     the other two STACK in a right column. Splitting a wide region
-  //     into three proportional columns instead (the first cut at this)
-  //     made the two smaller tiles into unreadable vertical slivers
-  //     beside a big one — the NVTS case. Stacking them keeps both at
-  //     the full column width.
-  if (nodes.length === 3) {
-    const total3 = nodes.reduce((s, n) => s + n.value, 0) || 1;
-    if (h >= w) {
-      const out = [];
-      let yy = y;
-      for (let i = 0; i < 3; i++) {
-        // Last strip takes the exact remainder so rounding leaves no gap.
-        const hh = i === 2 ? (y + h) - yy
-                           : Math.max(1, Math.round(h * nodes[i].value / total3));
-        out.push({ ...nodes[i], x, y: yy, w, h: hh });
-        yy += hh;
-      }
-      return out;
-    }
-    // Wide: big left column + two stacked on the right. The left column
-    // is clamped to 40–70 % of the width so neither side collapses —
-    // by value alone a dominant tile (NVTS-sized) would leave the
-    // stacked pair a sliver again, and three near-equal tiles would
-    // shave the left column below its own label width.
-    const raw = nodes[0].value / total3;
-    const leftFrac = Math.min(0.7, Math.max(0.4, raw));
-    const w1 = Math.max(1, Math.round(w * leftFrac));
-    const restVal = (nodes[1].value + nodes[2].value) || 1;
-    // Split the right column by the two tiles' relative value, but keep
-    // each at ≥30 % of the column so the smaller one stays a readable
-    // block rather than a thin band.
-    const topFrac = Math.min(0.7, Math.max(0.3, nodes[1].value / restVal));
-    const h1 = Math.max(1, Math.round(h * topFrac));
-    return [
-      { ...nodes[0], x,          y,          w: w1,     h },
-      { ...nodes[1], x: x + w1,  y,          w: w - w1, h: h1 },
-      { ...nodes[2], x: x + w1,  y: y + h1,  w: w - w1, h: h - h1 },
-    ];
-  }
 
   const total = nodes.reduce((s, n) => s + n.value, 0);
   let acc = 0, split = 0;
