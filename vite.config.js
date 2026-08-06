@@ -97,13 +97,35 @@ export default defineConfig({
           },
           {
             // Supabase / Edge Functions / Yahoo — always fresh, fall back to
-            // cached on offline.
+            // cached only for a SHORT window.
+            //
+            // These are live quotes, so a stale hit here is worse than no
+            // hit: NetworkFirst falls back to cache whenever the network
+            // takes longer than `networkTimeoutSeconds`, and the app treats
+            // that response as a completed refresh — it stamps "Last
+            // updated" and keeps the pill on LIVE, which defeats the STALE
+            // indicator entirely. With the old 6-hour `maxAgeSeconds` a
+            // phone on a slow connection could be shown hours-old quotes
+            // labelled LIVE. That reads as an outright data bug: an
+            // hours-stale ext quote fails `extPriceIsRealAh`, so every US
+            // equity collapses to exactly 0.00 % while crypto / non-US rows
+            // (which never take the ext path) still look alive.
+            //
+            // 5 min bounds the damage to roughly one refresh cadence while
+            // still smoothing a single slow request. Genuine offline use is
+            // served by the app's OWN caches (`dp.marketCache`,
+            // `dp.portfolioCache`, the IndexedDB chart stores), which the
+            // UI renders with honest stale/error affordances — so nothing
+            // depends on this cache surviving for hours. The 6 s timeout
+            // also went to 10 s: it sits below the app's own 8–12 s fetch
+            // timeouts, so a merely-slow request now resolves for real
+            // instead of being pre-empted by a cached one.
             urlPattern: /^https:\/\/(.*\.supabase\.co|query[12]\.finance\.yahoo\.com|.*\.cloudflare\.com)\//,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'data-api',
-              networkTimeoutSeconds: 6,
-              expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 6 },
+              networkTimeoutSeconds: 10,
+              expiration: { maxEntries: 80, maxAgeSeconds: 5 * 60 },
             },
           },
           {
