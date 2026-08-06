@@ -34,6 +34,43 @@ export function quotesRegularSessionOnly(ticker) {
 const EDGE_PRICES_URL = "https://flmvxigozjuizpckllvk.supabase.co/functions/v1/prices";
 const EDGE_ANON_KEY   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbXZ4aWdvemp1aXpwY2tsbHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODM3MjgsImV4cCI6MjA5MjM1OTcyOH0.vFqe6PNsPbVkg7NJmQJBsVECX1S58vAvv5MOjf63Xck";
 
+// Regular US session in exchange-local minutes-of-day — the same
+// 9:30-16:00 window the prices Edge Function buckets candles by.
+const RTH_OPEN_MIN = 9 * 60 + 30;
+const RTH_CLOSE_MIN = 16 * 60;
+
+/**
+ * Most recent candle close that sits OUTSIDE the regular session —
+ * i.e. the current pre-market / after-hours price — or null when the
+ * series has no extended-hours candle.
+ *
+ * This is how the proxy fallback recovers `extPrice`. It used to read
+ * `meta.preMarketPrice ?? meta.postMarketPrice`, but Yahoo's v8/chart
+ * `meta` no longer ships either field (verified 2026-08 across every
+ * interval/range combination), so that expression was hard-null for
+ * EVERY ticker. With the Extended Hours toggle on, a null extPrice
+ * makes `extPriceIsRealAh` return false, and computeMetrics' ext
+ * branch then forces the row to exactly 0.00 % — so whenever the app
+ * fell back to the proxies, the whole US side of the board flatlined
+ * at +0.00 % while crypto / non-US rows (which never take the ext
+ * path) kept showing real moves. Deriving it from the candles instead
+ * mirrors what the Edge Function does server-side.
+ *
+ * @param {number[]} timestamps unix seconds
+ * @param {(number|null)[]} closes
+ * @param {number} gmtOffsetSec exchange UTC offset, from `meta.gmtoffset`
+ */
+export function extPriceFromCandles(timestamps, closes, gmtOffsetSec) {
+  if (!Array.isArray(timestamps) || !Array.isArray(closes)) return null;
+  for (let i = timestamps.length - 1; i >= 0; i--) {
+    const close = closes[i];
+    if (close == null || !isFinite(close) || close <= 0) continue;
+    const localMin = Math.floor(((((timestamps[i] + gmtOffsetSec) % 86400) + 86400) % 86400) / 60);
+    if (localMin < RTH_OPEN_MIN || localMin >= RTH_CLOSE_MIN) return close;
+  }
+  return null;
+}
+
 // Parse one proxy's chart response into the quote shape fetchOneYahooChart
 // returns, or null if the response isn't usable (bad status, non-chart
 // body, or Yahoo has nothing for this symbol). Pulled out of the fetch
@@ -56,18 +93,30 @@ function parseOneYahooChart(res, symbol, proxyIdx) {
     if (!meta) return null;
     let lastPrice = meta.regularMarketPrice;
     if (lastPrice == null) return null;
+    // `regularMarketPreviousClose` is absent from v8/chart meta (2026-08),
+    // so the real source is `previousClose` — present on the intraday
+    // request this path now makes. `chartPreviousClose` is the LAST
+    // resort deliberately: on the old `interval=1d&range=5d` request it
+    // was the close from the START of the 5-day window (NVDA: 195.04 vs
+    // the correct 211.94), which silently turned every proxy-served
+    // dayPct into a multi-day move.
     let prevClose = meta.regularMarketPreviousClose ?? meta.previousClose ?? meta.chartPreviousClose ?? lastPrice;
-    // Extended hours price: pre-market or after-hours (null if not available).
+    // Extended hours price: pre-market or after-hours (null if not
+    // available), read off the intraday candles — see
+    // extPriceFromCandles for why meta can't supply it.
     // For non-US tickers (any dotted-suffix symbol like `.L`, `.HK`, `.SS`,
-    // `.DE`, etc.) Yahoo's `preMarketPrice` / `postMarketPrice` reflect the
-    // local exchange's live intraday quote rather than a US-style ext-hours
-    // session — for example a .L ticker during US pre-market still has LSE
-    // open, so `preMarketPrice` is the live LSE price and the ext-hours pct
-    // shows real LSE movement when the user expects 0 (those exchanges
-    // don't have an after-hours / pre-market session). Suppress.
+    // `.DE`, etc.) the exchange-local 9:30-16:00 window is meaningless —
+    // an LSE ticker's whole session would read as "extended hours" and
+    // the ext-hours pct would show real LSE movement when the user
+    // expects 0 (those exchanges have no US-style pre/after session).
+    // Suppress, same as the Edge Function does.
     let extPrice  = (symbol.includes('.') || quotesRegularSessionOnly(symbol))
       ? null
-      : (meta.preMarketPrice ?? meta.postMarketPrice ?? null);
+      : extPriceFromCandles(
+          result.timestamp,
+          result.indicators?.quote?.[0]?.close,
+          meta.gmtoffset ?? 0,
+        );
     // Yahoo returns London-listed prices in pence (currency "GBp"). Normalize
     // to GBP (divide by 100) so downstream math never has to special-case pence.
     let currency = meta.currency || null;
@@ -103,7 +152,15 @@ function parseOneYahooChart(res, symbol, proxyIdx) {
 // limits in the background.
 async function fetchOneYahooChart(symbol, { skipIfAllDead = false } = {}) {
   const nonce = Date.now();
-  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d&includePrePost=true&_=${nonce}`;
+  // 5m/1d, NOT 1d/5d. Daily candles carry no pre/post bars, so the
+  // ext-hours price can't be recovered from them (and `meta` no longer
+  // ships preMarketPrice/postMarketPrice at any interval). The daily
+  // request also had no usable `previousClose` — only
+  // `chartPreviousClose`, which on a 5-day window is the close from
+  // FIVE sessions ago, so every proxy-served dayPct was a multi-day
+  // move. The intraday request fixes both: real pre/post candles for
+  // extPriceFromCandles, and a correct `previousClose`.
+  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=5m&range=1d&includePrePost=true&_=${nonce}`;
 
   // If every proxy is currently in backoff, race all of them anyway
   // rather than unconditionally returning null — the alternative freezes
@@ -445,11 +502,32 @@ async function fetchYahoo(tickers) {
   return Object.keys(out).length > 0 ? out : null;
 }
 
+// A tick that came back with only a fraction of the requested quotes is
+// an outage, not a live refresh. Below this share of the requested
+// tickers we report `error` so the header pill shows the failure and
+// the caller's 3 s retry kicks in.
+const LIVE_COVERAGE_MIN = 0.5;
+
 export async function refreshPrices(portfolio) {
   const tickers = Object.keys(portfolio.holdings);
   const result = await fetchYahoo(tickers);
   if (!result || Object.keys(result).length === 0) {
     return { updates: {}, source: "error" };
+  }
+  // Tickers fetchYahoo actually tries — the same filter it applies
+  // internally, so cash / `.PVT` placeholders don't count as misses.
+  const wanted = tickers.filter(
+    (t) => !t.endsWith(".PVT") && t !== "CASH" && !portfolio.holdings[t]?.isCash,
+  );
+  const got = wanted.filter((t) => result[t]).length;
+  // Why this exists: with a CN fund in the book, a totally unreachable
+  // Edge Function still produced a "successful" tick — the fund's
+  // background proxy cache supplied ONE quote, `fetchYahoo` returned
+  // that single-entry object, and the board went LIVE / "Last updated
+  // 2 s" while all 25 other holdings silently kept their previous
+  // values. The prices looked frozen but nothing surfaced the outage.
+  if (wanted.length > 0 && got / wanted.length < LIVE_COVERAGE_MIN) {
+    return { updates: result, source: "error" };
   }
   return { updates: result, source: "live" };
 }
