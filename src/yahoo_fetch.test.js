@@ -4,7 +4,7 @@
 // the predicate directly + the end-to-end suppression through the public
 // `fetchTickers` (Edge path).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { quotesRegularSessionOnly, fetchTickers } from './yahoo_fetch.js';
+import { quotesRegularSessionOnly, fetchTickers, extPriceFromCandles, refreshPrices } from './yahoo_fetch.js';
 
 describe('quotesRegularSessionOnly', () => {
   it('is true only for US-shaped tickers with no overnight session (SFTBY)', () => {
@@ -249,5 +249,120 @@ describe('fetchTickers — SFTBY ext-price suppression (Edge path)', () => {
     // A real overnight-session equity keeps its ext quote.
     expect(out.NVDA.extPrice).toBe(226.0);
     expect(out.NVDA.extDayPct).toBe(0.51);
+  });
+});
+
+// Pins the proxy-fallback ext-price recovery. Yahoo's v8/chart `meta`
+// stopped shipping preMarketPrice / postMarketPrice (verified 2026-08 at
+// every interval/range), so the fallback's old
+// `meta.preMarketPrice ?? meta.postMarketPrice ?? null` was hard-null for
+// every ticker. With Extended Hours on, a null extPrice makes
+// extPriceIsRealAh false and computeMetrics' ext branch forces the row to
+// exactly 0.00 % — so any time the app fell back to the proxies the whole
+// US side of the board flatlined at +0.00 % while crypto / non-US rows
+// (which never take the ext path) still showed real moves. extPrice is
+// now read off the intraday candles the way the Edge Function does it.
+describe('extPriceFromCandles', () => {
+  const EDT = -4 * 3600;                       // America/New_York in summer
+  // 2026-08-06. 13:00 UTC = 09:00 EDT (pre-market),
+  // 14:00 UTC = 10:00 EDT (in session), 21:00 UTC = 17:00 EDT (after-hours).
+  const at = (utcHH, utcMM = 0) => Date.UTC(2026, 7, 6, utcHH, utcMM) / 1000;
+
+  it('returns the most recent PRE-market candle close', () => {
+    const ts = [at(12, 0), at(12, 30), at(13, 0)];
+    expect(extPriceFromCandles(ts, [100, 101, 102], EDT)).toBe(102);
+  });
+
+  it('returns the most recent AFTER-hours close, ignoring earlier in-session bars', () => {
+    // 14:00 UTC = 10:00 EDT (in session) then 21:00 UTC = 17:00 EDT (AH).
+    const ts = [at(13, 0), at(14, 0), at(21, 0)];
+    expect(extPriceFromCandles(ts, [100, 105, 108], EDT)).toBe(108);
+  });
+
+  it('returns null when every candle is inside the regular session', () => {
+    // 14:00 / 15:00 / 19:00 UTC = 10:00 / 11:00 / 15:00 EDT — all RTH.
+    const ts = [at(14, 0), at(15, 0), at(19, 0)];
+    expect(extPriceFromCandles(ts, [100, 101, 102], EDT)).toBeNull();
+  });
+
+  it('skips null / non-positive closes and tolerates missing input', () => {
+    const ts = [at(12, 0), at(12, 30), at(13, 0)];
+    expect(extPriceFromCandles(ts, [100, 101, null], EDT)).toBe(101);
+    expect(extPriceFromCandles(ts, [100, 0, null], EDT)).toBe(100);
+    expect(extPriceFromCandles(/** @type {any} */ (undefined), /** @type {any} */ (undefined), EDT)).toBeNull();
+    expect(extPriceFromCandles([], [], EDT)).toBeNull();
+  });
+
+  it('buckets by the EXCHANGE-local clock, not UTC', () => {
+    // 13:00 UTC is 09:00 in New York (pre-market) but 14:00 in Paris.
+    // Same timestamp, different verdict — the offset has to drive it.
+    const ts = [at(13, 0)];
+    expect(extPriceFromCandles(ts, [102], EDT)).toBe(102);        // pre-market
+    expect(extPriceFromCandles(ts, [102], 2 * 3600)).toBeNull();  // mid-session
+  });
+});
+
+// Pins the live-coverage guard. With a CN fund in the book, a totally
+// unreachable Edge Function still produced a "successful" tick: the
+// fund's background proxy cache supplied ONE quote, fetchYahoo returned
+// that single-entry object, and the header went LIVE / "Last updated 2s"
+// while every other holding silently kept its previous value — a frozen
+// board with no sign anything was wrong.
+describe('refreshPrices — a tick covering almost nothing is an outage, not LIVE', () => {
+  const origFetch = globalThis.fetch;
+  afterEach(async () => {
+    globalThis.fetch = origFetch;
+    const { clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+  });
+
+  const holdingsOf = (tickers) => {
+    const h = { CASH: { isCash: true, lastPrice: 1000 } };
+    for (const t of tickers) h[t] = { shares: 1, cost: 1, lastPrice: 1, prevClose: 1 };
+    return h;
+  };
+  const quote = (p) => ({ lastPrice: p, extPrice: null, prevClose: p, currency: 'USD', dayPct: 0, extDayPct: null });
+
+  it('reports error when the Edge answers with only a sliver of the book', async () => {
+    const { clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url) => {
+      if (String(url).includes('supabase.co')) {
+        // Only one of the six requested tickers comes back.
+        return { ok: true, json: async () => ({ NVDA: quote(100) }) };
+      }
+      // Proxies are down too, so nothing backfills the rest.
+      return { ok: false, status: 503, json: async () => ({}), text: async () => '' };
+    }));
+    const out = await refreshPrices({ holdings: holdingsOf(['NVDA', 'AAPL', 'MSFT', 'GOOG', 'META', 'AMZN']) });
+    expect(out.source).toBe('error');
+    // The one quote we did get is still applied — the guard changes the
+    // reported status, it doesn't throw data away.
+    expect(out.updates.NVDA.lastPrice).toBe(100);
+  });
+
+  it('still reports live when the Edge covers the book', async () => {
+    const { clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+    const body = { NVDA: quote(100), AAPL: quote(200), MSFT: quote(300) };
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url) => {
+      if (String(url).includes('supabase.co')) return { ok: true, json: async () => body };
+      return { ok: false, status: 503, json: async () => ({}), text: async () => '' };
+    }));
+    const out = await refreshPrices({ holdings: holdingsOf(['NVDA', 'AAPL', 'MSFT']) });
+    expect(out.source).toBe('live');
+  });
+
+  it('cash-only / .PVT placeholders never count as misses', async () => {
+    const { clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url) => {
+      if (String(url).includes('supabase.co')) return { ok: true, json: async () => ({ NVDA: quote(100) }) };
+      return { ok: false, status: 503, json: async () => ({}), text: async () => '' };
+    }));
+    const holdings = holdingsOf(['NVDA']);
+    holdings['SPAX.PVT'] = { shares: 1, cost: 1, lastPrice: 5, prevClose: 5 };
+    const out = await refreshPrices({ holdings });
+    expect(out.source).toBe('live');
   });
 });
