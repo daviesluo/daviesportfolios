@@ -180,7 +180,11 @@ describe('Sidebar — Top Movers ranks only real movers', () => {
       { ticker: '017731', dayPct: 0, marketValue: 40 },
     ]);
     // Two winners, zero losers → the LOSERS column shows the em-dash.
+    // Scoped to `.mover-row` — the sidebar footer also renders an em-dash
+    // (the Quotes diagnostic reads "—" until the first tick lands), so a
+    // bare getByText('—') matches two nodes.
     expect(screen.getByText('NVDA')).toBeInTheDocument();
-    expect(screen.getByText('—')).toBeInTheDocument();
+    const dashes = screen.getAllByText('—').filter(el => el.classList.contains('mover-row'));
+    expect(dashes).toHaveLength(1);
   });
 });

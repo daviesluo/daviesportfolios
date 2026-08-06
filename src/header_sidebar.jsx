@@ -17,6 +17,7 @@ import { fetchFundamentals } from './yahoo_fetch.js';
 import { isIndex } from './ticker_class.js';
 import { PerfPanel } from './perf_chart.jsx';
 import { OpsErrorBadge, useIsDesktop } from './ops_error_badge.jsx';
+import { APP_VERSION } from './version.js';
 
 // Eye icons for the "hide values" toggle in the scoreboard. Inline SVG so
 // they inherit currentColor and don't need an extra HTTP request.
@@ -418,7 +419,7 @@ function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHi
 }
 
 
-function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues }) {
+function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, coverage = /** @type {{got:number,wanted:number}|null} */ (null) }) {
   // Top movers (winners / losers by dayPct) + the by-value position
   // list. Memoised on metrics so the per-tick refresh churn (clock,
   // flash) doesn't re-flatten every position's players and re-sort the
@@ -507,8 +508,13 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
 
       <div className="sidebar-foot sidebar-foot-desktop">
         <div className="foot-kv"><span>Source</span><span className="mono">{sourceLabel(source)}</span></div>
+        {/* Same diagnostics as the mobile foot — see SidebarFoot. */}
+        <div className="foot-kv"><span>Quotes</span><span className="mono">
+          {coverage && coverage.wanted > 0 ? `${coverage.got}/${coverage.wanted}` : '—'}
+        </span></div>
         <div className="foot-kv"><span>Auto Refresh</span><span className="mono">30s</span></div>
         <div className="foot-kv"><span>Stored</span><span className="mono">Supabase</span></div>
+        <div className="foot-kv"><span>Build</span><span className="mono">{APP_VERSION}</span></div>
         {/* Shortcuts row is desktop-only — the r/e/x keys don't exist
             on touch and the row was visual noise on phones. */}
         <div className="foot-kv"><span>Shortcuts</span><span className="mono">R (refresh) · E (edit) · X (ext)</span></div>
@@ -546,12 +552,24 @@ function sourceLabel(source) {
   return "Yahoo · Eastmoney · Finnhub · AV · T212";
 }
 
-function SidebarFoot({ source }) {
+function SidebarFoot({ source, coverage = /** @type {{got:number,wanted:number}|null} */ (null) }) {
+  // Quotes / Build are diagnostics, deliberately always visible.
+  // "Every ticker reads 0.00 %" is ambiguous from the outside — it looks
+  // identical whether the market is flat, the ext quote is missing, or
+  // the fetch silently returned almost nothing. `Quotes` is the number
+  // that separates them (holdings that actually got a price this tick),
+  // and `Build` says which bundle is running, since an installed PWA can
+  // sit on a stale service worker long after a fix ships.
+  const quotes = coverage && coverage.wanted > 0
+    ? `${coverage.got}/${coverage.wanted}`
+    : '—';
   return (
     <div className="sidebar-foot sidebar-foot-mobile">
       <div className="foot-kv"><span>Source</span><span className="mono">{sourceLabel(source)}</span></div>
+      <div className="foot-kv"><span>Quotes</span><span className="mono">{quotes}</span></div>
       <div className="foot-kv"><span>Auto Refresh</span><span className="mono">30s</span></div>
       <div className="foot-kv"><span>Stored</span><span className="mono">Supabase</span></div>
+      <div className="foot-kv"><span>Build</span><span className="mono">{APP_VERSION}</span></div>
     </div>
   );
 }

@@ -512,7 +512,7 @@ export async function refreshPrices(portfolio) {
   const tickers = Object.keys(portfolio.holdings);
   const result = await fetchYahoo(tickers);
   if (!result || Object.keys(result).length === 0) {
-    return { updates: {}, source: "error" };
+    return { updates: {}, source: "error", coverage: { got: 0, wanted: 0 } };
   }
   // Tickers fetchYahoo actually tries — the same filter it applies
   // internally, so cash / `.PVT` placeholders don't count as misses.
@@ -520,6 +520,11 @@ export async function refreshPrices(portfolio) {
     (t) => !t.endsWith(".PVT") && t !== "CASH" && !portfolio.holdings[t]?.isCash,
   );
   const got = wanted.filter((t) => result[t]).length;
+  // Surfaced in the sidebar footer. "How many of my holdings actually
+  // got a quote this tick" is the single number that separates "the
+  // market is flat" from "the fetch is broken" — without it a board
+  // full of 0.00 % is unattributable from the outside.
+  const coverage = { got, wanted: wanted.length };
   // Why this exists: with a CN fund in the book, a totally unreachable
   // Edge Function still produced a "successful" tick — the fund's
   // background proxy cache supplied ONE quote, `fetchYahoo` returned
@@ -527,9 +532,9 @@ export async function refreshPrices(portfolio) {
   // 2 s" while all 25 other holdings silently kept their previous
   // values. The prices looked frozen but nothing surfaced the outage.
   if (wanted.length > 0 && got / wanted.length < LIVE_COVERAGE_MIN) {
-    return { updates: result, source: "error" };
+    return { updates: result, source: "error", coverage };
   }
-  return { updates: result, source: "live" };
+  return { updates: result, source: "live", coverage };
 }
 
 export async function fetchTickers(tickers) {
