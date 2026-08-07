@@ -130,6 +130,60 @@ describe('computeChartGeometry — ext-mode anchor selection', () => {
     expect(out.anchorClose).toBe(103); // points[3].close (lastPrice absent)
   });
 
+  // The SIVE / 2DG.SG bug: a foreign listing trading in its OWN session
+  // during US pre-market. `lastPriceAny` is then a RUNNING quote, so the
+  // usual ext-on rule anchors the price against itself and the modal
+  // reads a permanent 0.00 % — while the heatmap, which anchors that row
+  // at prevClose, showed a real move. `anchorAtPrevClose` opts out.
+  it('anchors a mid-session foreign listing at prevClose, not its live lastPrice', () => {
+    const points = intradayPoints();
+    const out = computeChartGeometry({
+      series: points,
+      points,
+      rangeKey: '1D',
+      useExt: true,
+      isRatioRange: false,
+      overnightDot: null,
+      regularCloseIdx: 3,
+      dimensions: DIMS,
+      // lastPriceAny === the latest print: anchoring here would give 0 %.
+      anchorRefs: { ...NO_REFS, lastPriceAny: 104, prevCloseAny: 95, anchorAtPrevClose: true },
+    });
+    expect(out.anchorClose).toBe(95);
+  });
+
+  it('ignores anchorAtPrevClose when no usable prevClose exists', () => {
+    const points = intradayPoints();
+    const out = computeChartGeometry({
+      series: points,
+      points,
+      rangeKey: '1D',
+      useExt: true,
+      isRatioRange: false,
+      overnightDot: null,
+      regularCloseIdx: 3,
+      dimensions: DIMS,
+      anchorRefs: { ...NO_REFS, lastPriceAny: 200, prevCloseAny: 0, anchorAtPrevClose: true },
+    });
+    expect(out.anchorClose).toBe(200); // falls back to the normal order
+  });
+
+  it('leaves the US-equity path untouched (anchorAtPrevClose absent)', () => {
+    const points = intradayPoints();
+    const out = computeChartGeometry({
+      series: points,
+      points,
+      rangeKey: '1D',
+      useExt: true,
+      isRatioRange: false,
+      overnightDot: null,
+      regularCloseIdx: 3,
+      dimensions: DIMS,
+      anchorRefs: { ...NO_REFS, lastPriceAny: 200, prevCloseAny: 95 },
+    });
+    expect(out.anchorClose).toBe(200);
+  });
+
   it('falls through past lastPrice to prevClose, then to series[0]', () => {
     const points = intradayPoints();
     const out = computeChartGeometry({

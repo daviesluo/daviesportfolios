@@ -6,7 +6,7 @@
 
 import { fxRateToUSD } from './fx.js';
 import { isUsEquity, isEuroExchange, isCnFund, isCrypto } from './ticker_class.js';
-import { lseIsOpen, euroExchangeIsOpen } from './market_hours.js';
+import { foreignSessionIsOpen, isForeignListing } from './market_hours.js';
 
 // Yahoo's `postMarketPrice` for OTC ADRs like SFTBY is bogus — it
 // ships today's regular-session OPEN as if it were an after-hours
@@ -118,23 +118,25 @@ export const computeMetrics = (portfolio, opts = {}) => {
       // this gate the toggle painted the stale LSE close pct as
       // "extended-hours" 24/7, which is what surfaced as the
       // "VUAG.L / SEGM.L show non-zero ext-hours at midnight" bug.
-      const isLse = typeof t === 'string' && t.endsWith('.L');
-      const lseSuppress = ext && !isCash && isLse && !lseIsOpen();
-      // Same gate for euro-zone listings (.PA / .DE / .MI / …): no
-      // US-style pre/after session, so when the toggle is on and the
-      // local exchange is closed the row reads 0 instead of the stale
-      // last-close pct. XFAB.PA before the Euronext open is the case
-      // that prompted this — identical treatment to the .L ETFs.
-      const isEuro = isEuroExchange(t);
-      const euroSuppress = ext && !isCash && isEuro && !euroExchangeIsOpen();
-      // CN mutual funds (天天基金, 6-digit codes) have no US extended-hours
-      // session either — their `gsz` is a once-daily NAV estimate, not a live
-      // overnight trade. With the toggle on they used to keep showing that
-      // estimate's day pct (a green tile) while every other no-US-ext name
-      // (SFTBY / .L / euro) read 0, so they alone polluted the heatmap + Top
-      // Movers. Suppress to 0 whenever the toggle is on, matching the others.
+      // Foreign listings (.L / euro) have no US-style pre/after
+      // session, so with the toggle on they should show the live LOCAL
+      // intraday pct only while their own exchange is actually
+      // trading, and 0 otherwise — there is literally no movement
+      // happening. Without this the toggle painted the stale local
+      // close pct as "extended-hours" 24/7 (the "VUAG.L shows non-zero
+      // ext-hours at midnight" bug, and XFAB.PA before the Euronext
+      // open). `foreignSessionIsOpen` is shared with the chart modal's
+      // 1D anchor so the board and the modal can't disagree about
+      // whether a foreign row is mid-session.
+      const foreignSuppress = ext && !isCash && isForeignListing(t) && !foreignSessionIsOpen(t);
+      // CN mutual funds (天天基金, 6-digit codes) have no intraday
+      // session at all — their `gsz` is a once-daily NAV estimate, not
+      // a live overnight trade — so they're suppressed unconditionally
+      // whenever the toggle is on, matching every other no-US-ext name
+      // (SFTBY / .L / euro) instead of alone polluting the heatmap and
+      // Top Movers with a green tile.
       const cnSuppress = ext && !isCash && isCnFund(t);
-      const sessionSuppress = lseSuppress || euroSuppress || cnSuppress;
+      const sessionSuppress = foreignSuppress || cnSuppress;
       let pct;
       if (extActive) {
         pct = (trustExt && h.extDayPct != null ? h.extDayPct : 0);

@@ -38,3 +38,23 @@ describe('displayTicker', () => {
     expect(displayTicker('2DG.DE')).toBe('SIVE');
   });
 });
+
+// displayTicker now lives in formatters.js because three surfaces label
+// tickers the same way — heatmap tiles, tactics-board chips and Top
+// Movers rows. The chart modal is deliberately the ONE place that keeps
+// showing the true Yahoo symbol, so a tap still resolves the right
+// instrument and the user can see which listing they actually hold.
+describe('displayTicker — shared across heatmap / pitch / top movers', () => {
+  it('maps every 2DG listing variant to SIVE, including .SG', () => {
+    expect(displayTicker('2DG.SG')).toBe('SIVE'); // Stuttgart
+    expect(displayTicker('2DG.F')).toBe('SIVE');  // Frankfurt
+    expect(displayTicker('2DG.DE')).toBe('SIVE'); // XETRA
+    expect(displayTicker('2DG')).toBe('SIVE');
+  });
+
+  it('is null/undefined-safe (chips render before data lands)', () => {
+    expect(displayTicker(/** @type {any} */ (undefined))).toBe('');
+    expect(displayTicker(/** @type {any} */ (null))).toBe('');
+    expect(displayTicker('')).toBe('');
+  });
+});

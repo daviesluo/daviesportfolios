@@ -24,7 +24,7 @@ vi.mock('./perf_chart.jsx', () => ({
   PerfPanel: () => null,
 }));
 
-import { Header, Sidebar } from './header_sidebar.jsx';
+import { Header, Sidebar, UpcomingEarnings } from './header_sidebar.jsx';
 
 // marketData with the FX pairs the cycle conversion reads:
 //   GBPUSD=X = USD per GBP  → USD→GBP multiplier is 1/1.27
@@ -186,5 +186,49 @@ describe('Sidebar — Top Movers ranks only real movers', () => {
     expect(screen.getByText('NVDA')).toBeInTheDocument();
     const dashes = screen.getAllByText('—').filter(el => el.classList.contains('mover-row'));
     expect(dashes).toHaveLength(1);
+  });
+});
+
+// UPCOMING EARNINGS is BOARD-scoped, not holdings-scoped. Selling a
+// position out removes it from every position's `tickers` but KEEPS the
+// holding row so its buy/sell ledger survives (`closed: true`), so
+// keying the panel off `Object.keys(holdings)` kept listing earnings for
+// stocks the user no longer owns.
+vi.mock('./yahoo_fetch.js', () => ({
+  // Both tickers have a future earnings date — only board scope should
+  // decide which one renders.
+  fetchFundamentals: vi.fn(async (tickers) => {
+    const out = {};
+    for (const t of tickers) out[t] = { earningsDate: Math.floor(Date.now() / 1000) + 86400 * 3 };
+    return out;
+  }),
+}));
+
+describe('UpcomingEarnings — only current board holdings', () => {
+  const portfolio = {
+    holdings: {
+      NVDA: { shares: 10, cost: 1 },
+      // Fully sold: ledger kept, removed from the board.
+      OLDCO: { shares: 0, cost: 1, closed: true },
+      CASH: { isCash: true, lastPrice: 1000 },
+    },
+    positions: { ST: { role: 'FWD', tickers: ['NVDA', 'CASH'] } },
+  };
+
+  it('lists a held ticker and never a sold-out one', async () => {
+    render(<UpcomingEarnings portfolio={/** @type {any} */ (portfolio)} />);
+    expect(await screen.findByText('NVDA')).toBeInTheDocument();
+    expect(screen.queryByText('OLDCO')).not.toBeInTheDocument();
+  });
+
+  it('does not request fundamentals for off-board tickers at all', async () => {
+    const { fetchFundamentals } = await import('./yahoo_fetch.js');
+    vi.mocked(fetchFundamentals).mockClear();
+    render(<UpcomingEarnings portfolio={/** @type {any} */ (portfolio)} />);
+    await screen.findByText('NVDA');
+    const asked = vi.mocked(fetchFundamentals).mock.calls[0][0];
+    expect(asked).toContain('NVDA');
+    expect(asked).not.toContain('OLDCO');
+    expect(asked).not.toContain('CASH');   // cash has no earnings
   });
 });

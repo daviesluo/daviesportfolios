@@ -5,7 +5,7 @@
 // player in non-edit mode — edit mode keeps opening the EditTickerModal.
 import React from 'react';
 import { Modal } from './modals.jsx';
-import { usMarketHoursUtc, isWeekendDeadZone, isUsMarketHoliday, isUsTradingDateStr } from './market_hours.js';
+import { usMarketHoursUtc, isWeekendDeadZone, isUsMarketHoliday, isUsTradingDateStr, foreignSessionIsOpen } from './market_hours.js';
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h, fillVenueSessionGrid } from './ytd.js';
@@ -432,6 +432,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     anchorRefs: {
       lastPriceAny,
       prevCloseAny,
+      // Foreign listing trading in its OWN session right now (a .L or
+      // euro line during US pre/after-hours). Its `lastPrice` is a
+      // running quote, so the ext-on close anchor would read 0.00 %;
+      // anchor at prevClose instead, which is the same basis
+      // computeMetrics uses for that row on the board.
+      anchorAtPrevClose: foreignSessionIsOpen(ticker),
       pe3yAvg,
       ps3yAvg,
       maSeries,

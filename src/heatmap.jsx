@@ -1,28 +1,12 @@
 // Heatmap view — binary-split treemap of all holdings.
 // Tiles sized by USD market value; colour-coded by day % change.
 import React from 'react';
+import { displayTicker } from './formatters.js';
 
-// Heatmap-only display aliases — holdings whose Yahoo symbol is an opaque
-// foreign-listing code; the tile shows the company's home-market symbol
-// instead. Applied AFTER the suffix strip so every variant of the listing
-// (2DG / 2DG.F / 2DG.DE) maps. Display-only, like the strip itself — the
-// real ticker stays everywhere else in the app (players, lists, modal) and
-// on tile.ticker for keys / clicks. 2DG = Sivers Semiconductors' German
-// listing; its home (Nasdaq Stockholm) symbol is SIVE.
-const HEATMAP_TICKER_ALIASES = { '2DG': 'SIVE' };
-
-// Display label for a heatmap tile — strips the Yahoo exchange suffix
-// (XFAB.PA → XFAB, VUAG.L → VUAG, 0700.HK → 0700) so the tight tiles
-// aren't cluttered by ".PA" / ".L". Display-only: tile.ticker keeps the
-// full symbol everywhere it matters (the React key, the click/keydown
-// handlers, the "Open … chart" title) so the modal still resolves the
-// right instrument. Only a trailing dot + 1–4 letters is stripped, so
-// hyphenated symbols (BRK-B, BTC-USD) and ^-prefixed indices are left
-// intact, and bare CN fund codes (017731) have nothing to strip.
-export function displayTicker(ticker) {
-  const stripped = ticker.replace(/\.[A-Za-z]{1,4}$/, '');
-  return HEATMAP_TICKER_ALIASES[stripped] || stripped;
-}
+// Re-exported so heatmap.test.js's existing import keeps working; the
+// helper itself now lives in formatters.js because the tactics board
+// and Top Movers label their tickers the same way.
+export { displayTicker };
 
 // ── Treemap layout (recursive binary split) ──────────────────────────────────
 function treemap(nodes, x, y, w, h) {
