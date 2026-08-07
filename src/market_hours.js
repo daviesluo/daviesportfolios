@@ -6,6 +6,8 @@
 
 // Returns { hh, mm, ss } of Europe/London right now. Used by the
 // header clock and the time-chip components.
+import { isEuroExchange } from './ticker_class.js';
+
 export function londonTimeParts(now = new Date()) {
   const fmt = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Europe/London",
@@ -278,4 +280,37 @@ export function euroExchangeIsOpen(now = new Date()) {
   if (!isFinite(hh) || !isFinite(mm)) return false;
   const mins = hh * 60 + mm;
   return mins >= 9 * 60 && mins < 17 * 60 + 30;
+}
+
+/**
+ * "Is this NON-US listing's own exchange trading right now?"
+ *
+ * The single source of truth behind two rules that must agree:
+ *   - computeMetrics suppresses a foreign row's ext-hours pct to 0
+ *     when its own market is shut (there is genuinely no movement),
+ *   - the chart modal picks its 1D anchor — while the local session is
+ *     LIVE, `lastPrice` is a running quote rather than a completed
+ *     close, so the ext-on "anchor at today's regular close" rule
+ *     would divide the price by itself and print a permanent 0.00 %.
+ *
+ * They drifted apart before: the heatmap showed SIVE (2DG.SG) moving
+ * during US pre-market while the modal for the same ticker read 0 %.
+ *
+ * False for anything without a separate local session — US equities,
+ * crypto, CN funds (whose once-daily NAV has no intraday session at
+ * all, and which computeMetrics suppresses unconditionally).
+ *
+ * @param {string} ticker
+ * @param {Date} [now]
+ */
+export function foreignSessionIsOpen(ticker, now = new Date()) {
+  if (typeof ticker !== 'string' || !ticker) return false;
+  if (/\.L$/i.test(ticker)) return lseIsOpen(now);
+  if (isEuroExchange(ticker)) return euroExchangeIsOpen(now);
+  return false;
+}
+
+/** Does this ticker trade on a non-US exchange with its own session? */
+export function isForeignListing(ticker) {
+  return typeof ticker === 'string' && (/\.L$/i.test(ticker) || isEuroExchange(ticker));
 }

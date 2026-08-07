@@ -6,6 +6,7 @@ import {
   fmtPrice as fmtPr,
   pctColor as pctClr,
   maskDigits,
+  displayTicker,
 } from './formatters.js';
 import { POSITION_COORDS } from './positions.js';
 
@@ -269,7 +270,7 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
         {hasPlayers ? (
           <div className="chip-tickers">
             {position.players.slice(0, 3).map(p => (
-              <span key={p.ticker} className="chip-ticker mono">{p.ticker}</span>
+              <span key={p.ticker} className="chip-ticker mono">{displayTicker(p.ticker)}</span>
             ))}
             {position.players.length > 3 && (
               <span className="chip-ticker more mono">+{position.players.length - 3}</span>

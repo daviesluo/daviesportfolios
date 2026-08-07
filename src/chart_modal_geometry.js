@@ -74,6 +74,7 @@ function niceStep(r) {
  *   ps3yAvg?:     number | null,
  *   maSeries?:    Array<number | null> | null,
  *   vwapSeries?:  Array<number | null> | null,
+ *   anchorAtPrevClose?: boolean,
  * }} AnchorRefs
  *
  * @typedef {{
@@ -117,7 +118,8 @@ export function computeChartGeometry({
   anchorRefs,
 }) {
   const { padL, padR: _padR, padT, padB: _padB, cW, cH } = dimensions;
-  const { lastPriceAny, prevCloseAny, pe3yAvg, ps3yAvg, maSeries, vwapSeries } = anchorRefs;
+  const { lastPriceAny, prevCloseAny, pe3yAvg, ps3yAvg, maSeries, vwapSeries,
+          anchorAtPrevClose } = anchorRefs;
 
   // ----- 1. anchorClose
   // The headline %'s denominator. 1D anchor at today's regular close
@@ -136,11 +138,22 @@ export function computeChartGeometry({
   // the modal says +3.85% since previous close". The intraday bar is
   // only used when no quote metadata is available (e.g. an MC card with
   // neither lastPrice nor prevClose).
+  //
+  // `anchorAtPrevClose` opts a ticker out of that ext-on rule. It is set
+  // for a foreign listing whose OWN exchange is mid-session (a .L or
+  // euro line during US pre-market): there `lastPriceAny` is a running
+  // quote, not a completed close, so anchoring on it divides the price
+  // by itself and prints a permanent 0.00 %. That is exactly what made
+  // the heatmap show SIVE (2DG.SG) moving while its modal read 0 %.
+  // prevClose gives the live local-session move, which is what
+  // computeMetrics puts on the tile for the same row.
   let anchorClose = null;
   if (series && series.length > 0) {
     if (rangeKey === '1D') {
       if (useExt) {
-        if (lastPriceAny && lastPriceAny > 0) {
+        if (anchorAtPrevClose && prevCloseAny && prevCloseAny > 0) {
+          anchorClose = prevCloseAny;
+        } else if (lastPriceAny && lastPriceAny > 0) {
           anchorClose = lastPriceAny;
         } else if (regularCloseIdx >= 0) {
           anchorClose = series[regularCloseIdx].close;

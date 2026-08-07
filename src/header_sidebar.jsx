@@ -11,6 +11,7 @@ import {
   pctColor as pcC,
   formatAgo,
   maskDigits as mask,
+  displayTicker,
 } from './formatters.js';
 import { londonTimeParts, usMarketPhase, ukTzAbbr } from './market_hours.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
@@ -453,7 +454,7 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
             <div className="movers-heading gain">↑ WINNERS</div>
             {winners.map(p => (
               <div key={p.ticker} className="mover-row">
-                <span className="mover-ticker mono">{p.ticker}</span>
+                <span className="mover-ticker mono">{displayTicker(p.ticker)}</span>
                 <span className="mono" style={{ color: "var(--gain)" }}>{fmP(p.dayPct)}</span>
               </div>
             ))}
@@ -463,7 +464,7 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
             <div className="movers-heading loss">↓ LOSERS</div>
             {losers.map(p => (
               <div key={p.ticker} className="mover-row">
-                <span className="mover-ticker mono">{p.ticker}</span>
+                <span className="mover-ticker mono">{displayTicker(p.ticker)}</span>
                 <span className="mono" style={{ color: "var(--loss)" }}>{fmP(p.dayPct)}</span>
               </div>
             ))}
@@ -736,9 +737,25 @@ function UpcomingEarnings({ portfolio, className = '' }) {
   const [byTicker, setByTicker] = React.useState({});
   // Bucket the portfolio tickers into a stable join-string for the
   // deps array, so reordering / mutation doesn't trigger a refetch.
-  const tickerJoin = portfolio?.holdings
-    ? Object.keys(portfolio.holdings).sort().join(',')
-    : '';
+  //
+  // BOARD-scoped, not `Object.keys(holdings)`: selling a position out
+  // removes it from every position's `tickers` but deliberately KEEPS
+  // the holding row so its buy/sell ledger survives (`closed: true`),
+  // so keying off holdings kept listing earnings for stocks the user
+  // no longer owns. Same scope `computeMetrics` counts tickers by, so
+  // this panel and the header's "N tickers" always agree.
+  const tickerJoin = React.useMemo(() => {
+    if (!portfolio?.positions || !portfolio?.holdings) return '';
+    const onBoard = new Set();
+    for (const pos of Object.values(portfolio.positions)) {
+      for (const t of pos?.tickers || []) {
+        const h = portfolio.holdings[t];
+        if (!h || h.isCash || t === 'CASH') continue;
+        onBoard.add(t);
+      }
+    }
+    return [...onBoard].sort().join(',');
+  }, [portfolio]);
   React.useEffect(() => {
     if (!tickerJoin) return undefined;
     const tickers = tickerJoin.split(',').filter(Boolean);
@@ -752,9 +769,15 @@ function UpcomingEarnings({ portfolio, className = '' }) {
 
   const upcoming = React.useMemo(() => {
     const nowSec = Math.floor(Date.now() / 1000);
+    // Re-filter against the CURRENT board on every render, not just at
+    // fetch time: `byTicker` holds the previous response until a new
+    // one lands (and keeps it entirely if that fetch fails), so without
+    // this a stock sold out mid-session would linger in the panel.
+    const onBoard = new Set(tickerJoin.split(',').filter(Boolean));
     /** @type {{ticker: string, ts: number, time: string | null}[]} */
     const rows = [];
     for (const [ticker, f] of Object.entries(byTicker || {})) {
+      if (!onBoard.has(ticker)) continue;
       const ts = Number(/** @type {any} */ (f)?.earningsDate);
       if (!isFinite(ts) || ts <= nowSec) continue;
       rows.push({
@@ -765,7 +788,7 @@ function UpcomingEarnings({ portfolio, className = '' }) {
     }
     rows.sort((a, b) => a.ts - b.ts);
     return rows.slice(0, 3);
-  }, [byTicker]);
+  }, [byTicker, tickerJoin]);
 
   return (
     <section className={`panel earnings-panel ${className}`}>
