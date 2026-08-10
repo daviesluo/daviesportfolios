@@ -85,6 +85,10 @@ export type Fundamentals = {
   // earningsDate the "BMO" label is more meaningful to a US trader
   // than the UTC-converted scoreboard time.
   earningsTime?: string;
+  // Fiscal quarter that report covers, e.g. "FY26Q2" — rendered beside
+  // the ticker in the Upcoming Earnings panel. Omitted when Yahoo
+  // didn't publish the fiscal-calendar inputs (see fiscalQuarterLabel).
+  fiscalQuarter?: string;
 };
 
 export type AvResult =
@@ -113,6 +117,9 @@ export type YahooQuoteSummary = {
   // decide whether to render "BMO" / "AMC" or a HH:MM string.
   earningsDateSec: number;
   earningsTime: string | null;
+  // Fiscal-quarter label for that report, e.g. "FY26Q2" — see
+  // fiscalQuarterLabel. null when Yahoo didn't publish the inputs.
+  fiscalQuarter: string | null;
 };
 
 export const INDEX_ETF_PROXY: Record<string, string> = {
@@ -157,4 +164,55 @@ export function isFundamentalsTicker(t: string): boolean {
   if (/[-]USD$/i.test(t)) return false;   // crypto
   if (t.startsWith("^") && !(t in INDEX_ETF_PROXY)) return false;
   return true;
+}
+
+/**
+ * Fiscal-quarter label for an upcoming report, e.g. "FY26Q2".
+ *
+ * Yahoo DOES publish `earnings.earningsChart.currentQuarterEstimate
+ * Date/Year`, but those are CALENDAR quarters: NVDA's quarter ending
+ * Jul 2026 comes back as "2Q 2026" when the company itself calls it
+ * Q2 FY2027, and Apple's Sep-2026 quarter as "3Q 2026" against its own
+ * Q4 FY2026. Only companies whose fiscal year is the calendar year
+ * (RKLB) agree. So we derive the real label from two fields the
+ * quoteSummary call already returns:
+ *
+ *   - `quarterEndISO`  — earningsTrend "0q" entry's `endDate`, the
+ *                        fiscal quarter the upcoming report covers.
+ *   - `fiscalYearEndSec` — defaultKeyStatistics.lastFiscalYearEnd, any
+ *                        past fiscal year end; only its MONTH is used.
+ *
+ * Rules, keyed off months so the few-day drift of 52/53-week calendars
+ * (NVDA lands on Jan 25 / 26) can't move a quarter:
+ *   - quarter index counts 3-month blocks after the fiscal year end,
+ *     with a quarter ending IN the year-end month being Q4;
+ *   - the fiscal year is the calendar year the fiscal year ENDS in,
+ *     which is how companies number them (NVDA's FY2027 ends Jan 2027).
+ *
+ * Caveat: a 52/53-week filer whose year end oscillates across a month
+ * boundary (e.g. Dec 28 one year, Jan 3 the next) can be labelled one
+ * quarter off. Returns null when either input is missing or unparseable
+ * so the client simply omits the suffix.
+ */
+export function fiscalQuarterLabel(
+  quarterEndISO: string | null | undefined,
+  fiscalYearEndSec: number | null | undefined,
+): string | null {
+  if (typeof quarterEndISO !== "string") return null;
+  const m = quarterEndISO.match(/^(\d{4})-(\d{2})-\d{2}/);
+  if (!m) return null;
+  if (!isFinite(Number(fiscalYearEndSec)) || Number(fiscalYearEndSec) <= 0) return null;
+
+  const qYear = Number(m[1]);
+  const qMonth = Number(m[2]) - 1;                    // 0-11
+  const fyEndMonth = new Date(Number(fiscalYearEndSec) * 1000).getUTCMonth();
+  if (!isFinite(qYear) || qMonth < 0 || qMonth > 11) return null;
+
+  const monthsAfterFyEnd = (qMonth - fyEndMonth + 12) % 12;
+  const quarter = monthsAfterFyEnd === 0 ? 4 : Math.ceil(monthsAfterFyEnd / 3);
+  // A quarter ending on or before the year-end month belongs to the
+  // fiscal year ending this calendar year; anything after rolls into
+  // the next one.
+  const fiscalYear = qMonth <= fyEndMonth ? qYear : qYear + 1;
+  return `FY${String(fiscalYear % 100).padStart(2, "0")}Q${quarter}`;
 }

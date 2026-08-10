@@ -199,7 +199,13 @@ vi.mock('./yahoo_fetch.js', () => ({
   // decide which one renders.
   fetchFundamentals: vi.fn(async (tickers) => {
     const out = {};
-    for (const t of tickers) out[t] = { earningsDate: Math.floor(Date.now() / 1000) + 86400 * 3 };
+    for (const t of tickers) {
+      out[t] = { earningsDate: Math.floor(Date.now() / 1000) + 86400 * 3 };
+      // Only NVDA carries a fiscal quarter — the suffix has to be
+      // optional, since Yahoo doesn't publish the fiscal-calendar
+      // inputs for every ticker.
+      if (t === 'NVDA') out[t].fiscalQuarter = 'FY27Q2';
+    }
     return out;
   }),
 }));
@@ -230,5 +236,21 @@ describe('UpcomingEarnings — only current board holdings', () => {
     expect(asked).toContain('NVDA');
     expect(asked).not.toContain('OLDCO');
     expect(asked).not.toContain('CASH');   // cash has no earnings
+  });
+});
+
+describe('UpcomingEarnings — fiscal quarter beside the ticker', () => {
+  const portfolio = {
+    holdings: { NVDA: { shares: 1, cost: 1 }, RKLB: { shares: 1, cost: 1 } },
+    positions: { ST: { role: 'FWD', tickers: ['NVDA', 'RKLB'] } },
+  };
+
+  it('renders the quarter when the server supplied one, and omits it otherwise', async () => {
+    render(<UpcomingEarnings portfolio={/** @type {any} */ (portfolio)} />);
+    const nvda = (await screen.findByText('NVDA')).closest('.earnings-ticker');
+    expect(nvda?.textContent?.replace(/\s+/g, ' ').trim()).toBe('NVDA FY27Q2');
+    // RKLB got no fiscalQuarter from the mock → ticker only, no stray gap.
+    const rklb = screen.getByText('RKLB').closest('.earnings-ticker');
+    expect(rklb?.textContent?.trim()).toBe('RKLB');
   });
 });
