@@ -767,8 +767,13 @@ function UpcomingEarnings({ portfolio, className = '' }) {
     return () => { cancelled = true; };
   }, [tickerJoin]);
 
+  // Recomputed every render (one Intl format — negligible) and fed into
+  // the memo's deps, so the list re-evaluates within a refresh tick of
+  // London midnight instead of freezing whatever day the panel mounted
+  // on. A PWA left open overnight would otherwise keep yesterday's row.
+  const todayKey = londonDayKey(Math.floor(Date.now() / 1000));
+
   const upcoming = React.useMemo(() => {
-    const nowSec = Math.floor(Date.now() / 1000);
     // Re-filter against the CURRENT board on every render, not just at
     // fetch time: `byTicker` holds the previous response until a new
     // one lands (and keeps it entirely if that fetch fails), so without
@@ -779,7 +784,13 @@ function UpcomingEarnings({ portfolio, className = '' }) {
     for (const [ticker, f] of Object.entries(byTicker || {})) {
       if (!onBoard.has(ticker)) continue;
       const ts = Number(/** @type {any} */ (f)?.earningsDate);
-      if (!isFinite(ts) || ts <= nowSec) continue;
+      if (!isFinite(ts) || ts <= 0) continue;
+      // Keep a report for the WHOLE of its day. Comparing against the
+      // instant dropped it the moment the scheduled time passed, so a
+      // 21:00 report vanished at 21:00 even though the numbers land
+      // right then and that's exactly when you want the row. Now it
+      // only leaves once the London day itself is over.
+      if (londonDayKey(ts) < todayKey) continue;
       rows.push({
         ticker,
         ts,
@@ -794,7 +805,7 @@ function UpcomingEarnings({ portfolio, className = '' }) {
     }
     rows.sort((a, b) => a.ts - b.ts);
     return rows.slice(0, 3);
-  }, [byTicker, tickerJoin]);
+  }, [byTicker, tickerJoin, todayKey]);
 
   return (
     <section className={`panel earnings-panel ${className}`}>
@@ -821,6 +832,19 @@ function UpcomingEarnings({ portfolio, className = '' }) {
 // scoreboard clock so the date agrees with the time chip above, and
 // reads more naturally than the previous numeric MM/DD which forced
 // the eye to map 06 → June.
+// London calendar day as `YYYY-MM-DD`, for comparing "is this report's
+// day already over?". Sortable as a plain string. London because that's
+// the timezone the row's date and time are rendered in — the entry
+// should disappear when the day the user is LOOKING at rolls over, not
+// when some other zone's midnight passes.
+const LONDON_DAY_FMT = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/London',
+  year: 'numeric', month: '2-digit', day: '2-digit',
+});
+function londonDayKey(unixSec) {
+  return LONDON_DAY_FMT.format(new Date(unixSec * 1000));
+}
+
 function fmtEarningsDate(unixSec) {
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Europe/London',

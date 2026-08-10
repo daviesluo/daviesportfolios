@@ -9,7 +9,7 @@
 // (pulls in the whole chart stack) so the test exercises only the
 // Header's own scoreboard logic.
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -252,5 +252,37 @@ describe('UpcomingEarnings — fiscal quarter beside the ticker', () => {
     // RKLB got no fiscalQuarter from the mock → ticker only, no stray gap.
     const rklb = screen.getByText('RKLB').closest('.earnings-ticker');
     expect(rklb?.textContent?.trim()).toBe('RKLB');
+  });
+});
+
+// A report should stay listed for the WHOLE of its day. Comparing
+// against the instant dropped it the moment the scheduled time passed,
+// so a 21:00 print vanished at 21:00 — exactly when the numbers land
+// and you most want to see the row.
+describe('UpcomingEarnings — keeps today\'s report until the day is over', () => {
+  const portfolio = {
+    holdings: { TODAY: { shares: 1, cost: 1 }, PAST: { shares: 1, cost: 1 }, SOON: { shares: 1, cost: 1 } },
+    positions: { ST: { role: 'FWD', tickers: ['TODAY', 'PAST', 'SOON'] } },
+  };
+  const sec = (iso) => Math.floor(Date.parse(iso) / 1000);
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('shows a report from earlier today, drops one from yesterday', async () => {
+    // Fixed "now": 2026-08-10 22:30 London (21:30Z, BST = UTC+1).
+    vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-08-10T21:30:00Z'));
+    const { fetchFundamentals } = await import('./yahoo_fetch.js');
+    vi.mocked(fetchFundamentals).mockResolvedValueOnce({
+      // 21:00 London TODAY — already passed, must still render.
+      TODAY: { earningsDate: sec('2026-08-10T20:00:00Z') },
+      // Same clock time YESTERDAY — its day is over, must go.
+      PAST:  { earningsDate: sec('2026-08-09T20:00:00Z') },
+      SOON:  { earningsDate: sec('2026-08-12T12:30:00Z') },
+    });
+
+    render(<UpcomingEarnings portfolio={/** @type {any} */ (portfolio)} />);
+    expect(await screen.findByText('TODAY')).toBeInTheDocument();
+    expect(screen.getByText('SOON')).toBeInTheDocument();
+    expect(screen.queryByText('PAST')).not.toBeInTheDocument();
   });
 });
