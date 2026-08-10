@@ -10,7 +10,7 @@ import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@
 import {
   isFundamentalsTicker, rollingTtmFromRawQuarterly, computePe3yAvg,
   normalizeEpsHistoryToUsd,
-  pickPsFields, computeForwardGrowth, computePeg,
+  pickPsFields, computeForwardGrowth, computePeg, fiscalQuarterLabel,
 } from "./index.ts";
 
 Deno.test("isFundamentalsTicker: keeps US equities", () => {
@@ -351,4 +351,41 @@ Deno.test("computeForwardGrowth → computePeg: AVGO end-to-end (May 2026 probe)
   assert(g !== null);
   const peg = computePeg(23.0, g);
   assertAlmostEquals(peg!, 23.0 / (((0.6753 + 0.5857) / 2) * 100), 1e-9);
+});
+
+// ---------------- fiscalQuarterLabel ----------------
+// Yahoo's own currentQuarterEstimateDate/Year are CALENDAR quarters, so
+// they only agree with the company's own numbering for calendar-year
+// filers. These four cases are real quoteSummary data (probed 2026-08)
+// checked against what each company actually calls the quarter.
+const secs = (iso: string) => Math.floor(Date.parse(iso + "T00:00:00Z") / 1000);
+
+Deno.test("fiscalQuarterLabel: calendar-year filer (RKLB) — Jun-2026 quarter is FY26Q2", () => {
+  assertEquals(fiscalQuarterLabel("2026-06-30", secs("2025-12-31")), "FY26Q2");
+});
+
+Deno.test("fiscalQuarterLabel: Jan year-end (NVDA) — Jul-2026 quarter is FY27Q2, not Yahoo's '2Q 2026'", () => {
+  assertEquals(fiscalQuarterLabel("2026-07-31", secs("2026-01-25")), "FY27Q2");
+  // …and its Apr-2026 quarter is Q1 of that same fiscal year.
+  assertEquals(fiscalQuarterLabel("2026-04-26", secs("2026-01-25")), "FY27Q1");
+});
+
+Deno.test("fiscalQuarterLabel: Sep year-end (AAPL) — the year-end quarter itself is Q4", () => {
+  assertEquals(fiscalQuarterLabel("2026-09-30", secs("2025-09-27")), "FY26Q4");
+  // The June quarter of the same fiscal year is Q3.
+  assertEquals(fiscalQuarterLabel("2026-06-27", secs("2025-09-27")), "FY26Q3");
+});
+
+Deno.test("fiscalQuarterLabel: Aug year-end (MU) — Aug-2026 quarter is FY26Q4", () => {
+  assertEquals(fiscalQuarterLabel("2026-08-31", secs("2025-08-28")), "FY26Q4");
+  // Nov-2026 starts the next fiscal year.
+  assertEquals(fiscalQuarterLabel("2026-11-30", secs("2025-08-28")), "FY27Q1");
+});
+
+Deno.test("fiscalQuarterLabel: null on missing / unparseable inputs", () => {
+  assertEquals(fiscalQuarterLabel(null, secs("2025-12-31")), null);
+  assertEquals(fiscalQuarterLabel(undefined, secs("2025-12-31")), null);
+  assertEquals(fiscalQuarterLabel("not-a-date", secs("2025-12-31")), null);
+  assertEquals(fiscalQuarterLabel("2026-06-30", 0), null);
+  assertEquals(fiscalQuarterLabel("2026-06-30", null), null);
 });

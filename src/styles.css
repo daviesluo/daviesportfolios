@@ -886,6 +886,16 @@ body {
   padding: 3px 0;
 }
 .earnings-ticker { letter-spacing: 0.02em; }
+/* Fiscal quarter beside the ticker ("RKLB FY26Q2"). Dimmed one step so
+   the ticker still leads the row, and allowed to disappear before the
+   date/time columns do — on a narrow phone the ticker column is the
+   flexible one, and the quarter is the least important of the three
+   things in the row. */
+.earnings-fq {
+  opacity: 0.62;
+  font-size: 9px;
+  white-space: nowrap;
+}
 .earnings-date   { text-align: right; }
 .earnings-time   { text-align: right; }
 .earnings-empty  { font-size: 11px; padding: 4px 0; }

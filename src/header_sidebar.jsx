@@ -774,7 +774,7 @@ function UpcomingEarnings({ portfolio, className = '' }) {
     // one lands (and keeps it entirely if that fetch fails), so without
     // this a stock sold out mid-session would linger in the panel.
     const onBoard = new Set(tickerJoin.split(',').filter(Boolean));
-    /** @type {{ticker: string, ts: number, time: string | null}[]} */
+    /** @type {{ticker: string, ts: number, time: string | null, fq: string | null}[]} */
     const rows = [];
     for (const [ticker, f] of Object.entries(byTicker || {})) {
       if (!onBoard.has(ticker)) continue;
@@ -784,6 +784,12 @@ function UpcomingEarnings({ portfolio, className = '' }) {
         ticker,
         ts,
         time: /** @type {any} */ (f)?.earningsTime || null,
+        // "FY26Q2" — which fiscal quarter this report covers. Derived
+        // server-side from the company's own fiscal calendar (Yahoo's
+        // own quarter labels are calendar quarters, so they'd read
+        // FY26Q2 for NVDA's FY27Q2). Absent for tickers where Yahoo
+        // didn't publish the inputs; the suffix is just omitted then.
+        fq: /** @type {any} */ (f)?.fiscalQuarter || null,
       });
     }
     rows.sort((a, b) => a.ts - b.ts);
@@ -798,7 +804,10 @@ function UpcomingEarnings({ portfolio, className = '' }) {
           <div className="earnings-empty mono dim">No scheduled earnings.</div>
         ) : upcoming.map(row => (
           <div key={row.ticker} className="earnings-row">
-            <span className="earnings-ticker mono">{row.ticker}</span>
+            <span className="earnings-ticker mono">
+              {row.ticker}
+              {row.fq && <span className="earnings-fq"> {row.fq}</span>}
+            </span>
             <span className="earnings-date mono">{fmtEarningsDate(row.ts)}</span>
             <span className="earnings-time mono dim">{fmtEarningsTime(row.ts, row.time)}</span>
           </div>

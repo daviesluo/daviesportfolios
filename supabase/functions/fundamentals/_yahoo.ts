@@ -18,6 +18,7 @@
 
 import { computeForwardGrowth } from "./_math.ts";
 import type { YahooQuoteSummary } from "./_shared.ts";
+import { fiscalQuarterLabel } from "./_shared.ts";
 
 // ---- Yahoo crumb auth ----------------------------------------------
 //
@@ -180,6 +181,16 @@ export async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuote
       ? Number(earningsDates[0]?.raw)
       : NaN;
     const earningsDateSec = isFinite(earningsDateRaw) && earningsDateRaw > 0 ? earningsDateRaw : 0;
+    // Fiscal quarter the upcoming report covers. `earningsTrend`'s
+    // "0q" entry carries that quarter's fiscal end date, and
+    // `lastFiscalYearEnd` pins the fiscal calendar — both modules are
+    // already in the request above, so this costs no extra fetch.
+    const q0EndDate = (result?.earningsTrend?.trend ?? [])
+      .find((t: any) => t?.period === '0q')?.endDate ?? null;
+    const fiscalQuarter = fiscalQuarterLabel(
+      q0EndDate,
+      result?.defaultKeyStatistics?.lastFiscalYearEnd?.raw,
+    );
     const earningsTimeName = result?.calendarEvents?.earnings?.earningsCallTimeName;
     const earningsTime = typeof earningsTimeName === 'string' && earningsTimeName.length > 0
       ? earningsTimeName
@@ -217,6 +228,7 @@ export async function fetchYahooQuoteSummary(symbol: string): Promise<YahooQuote
       sharesOutstanding,
       currency: typeof currency === 'string' ? currency : null,
       earningsDateSec,
+      fiscalQuarter,
       earningsTime,
     };
   } catch {

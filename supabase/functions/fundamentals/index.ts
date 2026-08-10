@@ -93,7 +93,7 @@ export {
   normalizeEpsHistoryToUsd,
   computePe3yAvg,
 } from "./_math.ts";
-export { isFundamentalsTicker } from "./_shared.ts";
+export { isFundamentalsTicker, fiscalQuarterLabel } from "./_shared.ts";
 
 /**
  * Combined fundamentals for a single stock symbol. Yahoo's
@@ -139,6 +139,9 @@ export async function fetchStockFundamentals(
       // filter with a simple `if (f.earningsDate)`.
       earningsDate: yahoo.earningsDateSec > 0 ? yahoo.earningsDateSec : undefined,
       earningsTime: yahoo.earningsTime ?? undefined,
+      // "FY26Q2" — the fiscal quarter that report covers, rendered
+      // beside the ticker in the Upcoming Earnings panel.
+      fiscalQuarter: yahoo.fiscalQuarter ?? undefined,
     };
   }
   return finn;
