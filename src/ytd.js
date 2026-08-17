@@ -626,3 +626,125 @@ export function computeAt(opts) {
 export function ytdPct({ value, basis }) {
   return basis > 0 ? ((value - basis) / basis) * 100 : 0;
 }
+
+/**
+ * One point of the Investment Performance chart: what the scoreboard's
+ * PORTFOLIO cell actually read at `date`, and how much had been paid in
+ * by then.
+ *
+ * Deliberately NOT `computeAt`. That one is board-scoped and counts a
+ * holding's full bought quantity, which is right for the vs-S&P chart's
+ * basis maths but wrong for reconstructing history here:
+ *
+ *   - It skips holdings that aren't referenced by a position, and a
+ *     sold-out name is removed from every position while its ledger is
+ *     kept. So a stock you held for two years and sold last month would
+ *     contribute nothing to ANY past point — the line would show a
+ *     portfolio you never had.
+ *   - It doesn't subtract sells, so a partially-sold position would keep
+ *     counting shares you no longer owned at that date.
+ *
+ * Here every holding participates — closed ones included — and the share
+ * count at `date` is buys minus sells up to that date.
+ *
+ * `netDeposit` is money in, not cost basis: cumulative buy cash minus
+ * sale proceeds. When you sell at a profit it drops by more than the
+ * cost of what you sold, which is the point — the gap between the two
+ * lines is what the account actually made.
+ *
+ * Cash is added to BOTH lines (the chosen "match the scoreboard"
+ * reading): the scoreboard's PORTFOLIO includes it, and money sitting in
+ * cash was deposited too, so it lifts value and deposit equally instead
+ * of showing as profit. It has no history of its own — the current
+ * balance is carried back as a constant, exact for today and an
+ * approximation further back, same assumption `computeAt` already makes.
+ *
+ * @param {{
+ *   portfolio: {holdings: Record<string, any>},
+ *   tickerSeries: Record<string, any>,
+ *   date: string,
+ *   marketData?: Record<string, any>,
+ *   liveAnchorDate?: string,
+ *   useExt?: boolean,
+ *   fxToUSD: (currency: string | undefined, marketData: any) => number,
+ * }} opts
+ * @returns {{ value: number, netDeposit: number }}
+ */
+export function investmentPointAt(opts) {
+  const {
+    portfolio, tickerSeries, date, marketData = {},
+    liveAnchorDate, useExt = false, fxToUSD,
+  } = opts;
+  // Lot / sell dates are plain YYYY-MM-DD; chart dates can carry a time
+  // on intraday ranges. Compare day-to-day or "2026-04-28" reads as
+  // BEFORE "2026-04-28T13:30" (10 chars sort under 16) and a lot bought
+  // today would count as not-yet-owned.
+  const day = (date || '').slice(0, 10);
+  const useLive = !!liveAnchorDate && date === liveAnchorDate;
+
+  let value = 0;
+  let netDeposit = 0;
+  let cashUSD = 0;
+
+  for (const [ticker, h] of Object.entries(portfolio?.holdings || {})) {
+    if (h?.isCash || ticker === 'CASH') {
+      if (typeof h?.lastPrice === 'number' && h.lastPrice > 0) cashUSD += h.lastPrice;
+      continue;
+    }
+    const fx = (h?.currency && h.currency !== 'USD') ? fxToUSD(h.currency, marketData) : 1;
+
+    let shares = 0;
+    for (const l of (Array.isArray(h?.lots) ? h.lots : [])) {
+      const d = String(l?.date || '').slice(0, 10);
+      const n = Number(l?.shares);
+      const c = Number(l?.cost);
+      if (!d || d > day || !isFinite(n) || n <= 0) continue;
+      shares += n;
+      if (isFinite(c)) netDeposit += n * c * fx;
+    }
+    for (const sl of (Array.isArray(h?.sells) ? h.sells : [])) {
+      const d = String(sl?.date || '').slice(0, 10);
+      const n = Number(sl?.shares);
+      const px = Number(sl?.price);
+      if (!d || d > day || !isFinite(n) || n <= 0) continue;
+      shares -= n;
+      if (isFinite(px)) netDeposit -= n * px * fx;
+    }
+    // Float dust from fractional lots (T212 DCA quantities) — the same
+    // snap transactions.netPosition applies, so a fully-sold position
+    // reads as exactly flat instead of ±5e-17 shares' worth of value.
+    if (Math.abs(shares) < 1e-9) shares = 0;
+    if (shares <= 0) continue;
+
+    const md = marketData?.[ticker];
+    const live = useLive
+      ? ((useExt && md?.extPrice != null && md.extPrice > 0) ? md.extPrice : md?.lastPrice)
+      : null;
+    const price = (typeof live === 'number' && live > 0)
+      ? live
+      : closeOn(tickerSeries, ticker, date);
+    // No price for that date (a ticker whose history didn't reach back
+    // this far) → contribute nothing rather than guess. Its deposit
+    // still counts: the money did leave the account.
+    if (typeof price !== 'number' || !(price > 0)) continue;
+    value += shares * price * fx;
+  }
+
+  return { value: value + cashUSD, netDeposit: netDeposit + cashUSD };
+}
+
+/**
+ * Net deposited as of right now — cumulative buys minus sale proceeds,
+ * plus cash. What the 5-minute sampler records alongside the portfolio
+ * value.
+ *
+ * Runs the same pass as `investmentPointAt` with the date cutoff opened
+ * all the way, so the two can't drift apart in how they treat a lot, a
+ * sale or a currency. Prices aren't needed — deposits are cash amounts —
+ * so no ticker series is passed and the returned value is discarded.
+ */
+export function netDepositNow({ portfolio, marketData = {}, fxToUSD }) {
+  return investmentPointAt({
+    portfolio, tickerSeries: {}, date: '9999-12-31', marketData, fxToUSD,
+  }).netDeposit;
+}

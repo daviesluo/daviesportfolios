@@ -7,8 +7,7 @@ import {
   buildTickerSeries, closeOn, lotsFor, computeAt, ytdPct,
   fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS,
   applyVariantFilter, windowSinceLastUsClose, windowBetweenLastTwoUsCloses,
-  filterToLastHours, filterToLast24h, fillVenueSessionGrid,
-} from './ytd.js';
+  filterToLastHours, filterToLast24h, fillVenueSessionGrid, investmentPointAt } from './ytd.js';
 import { isUsTradingDateStr } from './market_hours.js';
 
 const yearStart      = '2026-01-01';
@@ -814,5 +813,102 @@ describe('PerfChart rebasing — both series start at 0%', () => {
     const sp = rebaseSp([{ date: 'a', close: 5000 }, { date: 'b', close: 5100 }]);
     expect(port[0].pct).toBe(0);
     expect(sp[0].pct).toBe(0);
+  });
+});
+
+// Investment Performance: what the scoreboard's PORTFOLIO cell actually
+// read at a past date, and how much had been paid in by then. The whole
+// reason this doesn't reuse computeAt is history — computeAt is
+// board-scoped and ignores sells, so a stock you sold last month would
+// contribute nothing to any past point and a partially-sold position
+// would keep counting shares you no longer owned.
+describe('investmentPointAt', () => {
+  const fxToUSD = () => 1;
+  const seriesOf = (rows) => buildTickerSeries(rows, '2026-01-01', 'YTD', {}, false);
+
+  it('counts a SOLD-OUT holding on the dates it was actually held', () => {
+    const portfolio = { holdings: {
+      OLDCO: {
+        currency: 'USD', shares: 0, cost: 0, closed: true,
+        lots:  [{ date: '2026-01-05', shares: 10, cost: 100 }],
+        sells: [{ date: '2026-03-01', shares: 10, price: 150 }],
+      },
+    } };
+    const tickerSeries = seriesOf({ OLDCO: [
+      { date: '2026-01-05', close: 100 },
+      { date: '2026-02-01', close: 120 },
+      { date: '2026-03-01', close: 150 },
+      { date: '2026-04-01', close: 200 },
+    ] });
+    const at = (d) => investmentPointAt({ portfolio, tickerSeries, date: d, fxToUSD });
+
+    // Before the buy: nothing owned, nothing deposited.
+    expect(at('2026-01-01')).toEqual({ value: 0, netDeposit: 0 });
+    // Held: 10 sh × 120 = 1200 on screen, 1000 paid in.
+    expect(at('2026-02-01').value).toBeCloseTo(1200, 9);
+    expect(at('2026-02-01').netDeposit).toBeCloseTo(1000, 9);
+    // After the sale: no position left, and the 1500 of proceeds took
+    // net deposit NEGATIVE — more came out than went in, which is the
+    // profit showing up as it should.
+    expect(at('2026-04-01').value).toBeCloseTo(0, 9);
+    expect(at('2026-04-01').netDeposit).toBeCloseTo(-500, 9);
+  });
+
+  it('honours a PARTIAL sale — shares at a date are buys minus sells', () => {
+    const portfolio = { holdings: {
+      NVDA: {
+        currency: 'USD',
+        lots:  [{ date: '2026-01-05', shares: 10, cost: 100 }],
+        sells: [{ date: '2026-02-15', shares: 4, price: 150 }],
+      },
+    } };
+    const tickerSeries = seriesOf({ NVDA: [
+      { date: '2026-01-05', close: 100 },
+      { date: '2026-02-01', close: 130 },
+      { date: '2026-03-01', close: 200 },
+    ] });
+    const at = (d) => investmentPointAt({ portfolio, tickerSeries, date: d, fxToUSD });
+    expect(at('2026-02-01').value).toBeCloseTo(10 * 130, 9);   // all 10 still held
+    expect(at('2026-03-01').value).toBeCloseTo(6 * 200, 9);    // 6 left after the sale
+    expect(at('2026-03-01').netDeposit).toBeCloseTo(1000 - 600, 9);
+  });
+
+  it('adds cash to BOTH lines so it reads as deposited, never as profit', () => {
+    const portfolio = { holdings: {
+      CASH: { isCash: true, lastPrice: 2500 },
+      NVDA: { currency: 'USD', lots: [{ date: '2026-01-05', shares: 1, cost: 100 }] },
+    } };
+    const tickerSeries = seriesOf({ NVDA: [{ date: '2026-01-05', close: 100 }] });
+    const p = investmentPointAt({ portfolio, tickerSeries, date: '2026-01-05', fxToUSD });
+    expect(p.value).toBeCloseTo(2500 + 100, 9);
+    expect(p.netDeposit).toBeCloseTo(2500 + 100, 9);
+    // Equal contribution → no phantom gain from holding cash.
+    expect(p.value - p.netDeposit).toBeCloseTo(0, 9);
+  });
+
+  it('compares lot dates by DAY, so an intraday chart date includes today\'s buy', () => {
+    const portfolio = { holdings: {
+      NVDA: { currency: 'USD', lots: [{ date: '2026-04-28', shares: 2, cost: 50 }] },
+    } };
+    const tickerSeries = seriesOf({ NVDA: [{ date: '2026-04-28T13:30', close: 60 }] });
+    // '2026-04-28' sorts BEFORE '2026-04-28T13:30' as a raw string, so a
+    // naive compare would treat today's lot as not yet owned.
+    const p = investmentPointAt({ portfolio, tickerSeries, date: '2026-04-28T13:30', fxToUSD });
+    expect(p.value).toBeCloseTo(120, 9);
+  });
+
+  it('uses the live price for the anchor point, and FX-converts non-USD', () => {
+    const portfolio = { holdings: {
+      'VUAA.L': { currency: 'GBP', lots: [{ date: '2026-01-05', shares: 10, cost: 80 }] },
+    } };
+    const tickerSeries = seriesOf({ 'VUAA.L': [{ date: '2026-01-05', close: 80 }] });
+    const p = investmentPointAt({
+      portfolio, tickerSeries, date: '2026-01-05',
+      marketData: { 'VUAA.L': { lastPrice: 90 } },
+      liveAnchorDate: '2026-01-05',
+      fxToUSD: () => 1.25,
+    });
+    expect(p.value).toBeCloseTo(10 * 90 * 1.25, 9);
+    expect(p.netDeposit).toBeCloseTo(10 * 80 * 1.25, 9);
   });
 });

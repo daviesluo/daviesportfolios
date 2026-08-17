@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { fmtMoney, fmtPct, fmtPrice, pctColor } from './formatters.js';
 import { fxToUSD } from './fx.js';
+import { netDepositNow } from './ytd.js';
+import { saveSnapshot, SNAPSHOT_INTERVAL_MS } from './portfolio_snapshots.js';
 import { createPortfolioEditHandlers } from './portfolio_edits.js';
 import { computeMetrics, detectFormation } from './metrics.js';
 import { refreshPrices, fetchTickers } from './yahoo_fetch.js';
@@ -966,6 +968,47 @@ function Board({ isReadOnly }) {
       : null),
     [portfolio, extendedHours, currentPhase, marketData],
   );
+  // Latest metrics + net deposit for the 5-minute sampler below. Held in
+  // a ref so the interval reads current numbers without being torn down
+  // and re-armed on every price tick (which would reset its phase and
+  // could starve the sample entirely on a busy board).
+  const metricsRef = useRef(/** @type {{marketValue:number, netDeposit:number}|null} */ (null));
+  metricsRef.current = metrics
+    ? {
+        marketValue: metrics.marketValue,
+        netDeposit: netDepositNow({ portfolio, marketData, fxToUSD }),
+      }
+    : null;
+
+  // Investment Performance sampler. Records the portfolio's USD value and
+  // net deposited every 5 minutes so the chart has a real recorded series
+  // for the tickers you no longer hold — a sold-out position leaves the
+  // board and the app stops fetching its price history, so a truthful
+  // past value would otherwise mean re-fetching history for every symbol
+  // ever owned.
+  //
+  // Admin only (a read-only viewer must not write to the owner's book),
+  // and skipped while the tab is hidden — a backgrounded phone has
+  // nothing new to record and the next tick is only five minutes away.
+  // Fire-and-forget: this is a background observation, never something
+  // the user waits on, so a failure is dropped rather than retried.
+  useEffect(() => {
+    if (isReadOnly || !portfolio) return undefined;
+    let cancelled = false;
+    const sample = () => {
+      if (cancelled) return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      const m = metricsRef.current;
+      if (!m || !(m.marketValue > 0)) return;
+      saveSnapshot(m.marketValue, m.netDeposit);
+    };
+    // One immediately so a session that never lasts five minutes still
+    // leaves a point behind, then on the interval.
+    sample();
+    const id = setInterval(sample, SNAPSHOT_INTERVAL_MS);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [isReadOnly, portfolio !== null]);
+
   // Stable handler for the Heatmap's tile click — useCallback so the
   // Heatmap's React.memo (heatmap.jsx) isn't defeated by a fresh
   // closure each Board render. Declared here (above the loading
@@ -1143,6 +1186,7 @@ function Board({ isReadOnly }) {
             extendedHours={extendedHours}
             phase={currentPhase}
             className="perf-in-left"
+            hideValues={hideValues}
           />
           {isDesktop && (
             <MarketConditions
