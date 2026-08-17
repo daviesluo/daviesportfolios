@@ -318,12 +318,22 @@ export function InvestmentChart({ series, rangeKey, setRangeKey, hideValues }) {
   const gainColor = gain >= 0 ? 'var(--gain)' : 'var(--loss)';
 
   // Each line's move ACROSS THE WINDOW on screen, which is what the
-  // range buttons select — the same question the vs-S&P view answers for
-  // its two lines, so the two halves of the swap read the same way.
-  // Null from a zero or negative opening figure (a YTD window that opens
-  // on an empty account): a percentage of nothing isn't a number.
+  // range buttons select. Null from a zero or negative opening figure (a
+  // YTD window that opens on an empty account): a percentage of nothing
+  // isn't a number.
   const windowPct = (open, close) => (open > 0 ? ((close - open) / open) * 100 : null);
-  const valuePct = windowPct(first.value, last.value);
+  // The VALUE figure has the window's deposits taken out of it first.
+  // Paying $10k into a $30k account does not make it up 33 % — the
+  // account got bigger, it did not perform — and reading it that way is
+  // what put a wild number beside a week the vs-S&P view called +1.8 %.
+  // Subtracting what came in over the window leaves the part that is
+  // actually a result, which is the only half of this that belongs
+  // beside a green or red sign. The deposit line's own percentage is
+  // right there next to it, so the size change is still on screen.
+  const netAdded = last.deposit - first.deposit;
+  const valuePct = first.value > 0
+    ? ((last.value - first.value - netAdded) / first.value) * 100
+    : null;
   const depositPct = windowPct(first.deposit, last.deposit);
   const fmtP = (n) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`;
 
@@ -469,9 +479,10 @@ export function InvestmentChart({ series, rangeKey, setRangeKey, hideValues }) {
           <span className="inv-dot" style={{ background: 'var(--chalk)' }} />
           Value {money(last.value)}
           {valuePct != null && (
-            <span style={{ color: valuePct >= 0 ? 'var(--gain)' : 'var(--loss)' }}>
-              {fmtP(valuePct)}
-            </span>
+            <span
+              style={{ color: valuePct >= 0 ? 'var(--gain)' : 'var(--loss)' }}
+              title="Return over this window, with anything paid in during it taken out"
+            >{fmtP(valuePct)}</span>
           )}
         </span>
         <span className="inv-legend-item">

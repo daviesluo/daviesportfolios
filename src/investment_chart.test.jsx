@@ -102,17 +102,17 @@ describe('InvestmentChart', () => {
 
   it('reports each line\'s move across the WINDOW, not its lifetime gain', () => {
     // Deposited $800 long ago, now worth $1,250 — a lifetime gain of
-    // +56%. But over the window on screen the value went 1000 → 1250
-    // (+25.00%) and another $200 was paid in, 800 → 1000 (+25.00% of
-    // deposits). The range buttons select the window, so that is what
-    // the legend answers.
+    // +56%. Over the window on screen the value rose 250 while 200 of
+    // that was paid in, so the RESULT is 50 on an opening 1000 (+5.00%)
+    // and the deposits grew 800 → 1000 (+25.00%). The range buttons
+    // select the window, so that is what the legend answers.
     render(
       <InvestmentChart
         series={[pt(1, 1000, 800), pt(2, 1100, 800), pt(3, 1250, 1000)]}
         rangeKey="1M" setRangeKey={vi.fn()}
       />,
     );
-    expect(screen.getByText(/Value/).textContent).toMatch(/\$1,250\+25\.00%/);
+    expect(screen.getByText(/Value/).textContent).toMatch(/\$1,250\+5\.00%/);
     expect(screen.getByText(/Deposited/).textContent).toMatch(/\$1,000\+25\.00%/);
     // The lifetime gain figure is gone from the legend — the band
     // between the lines shows the gap, and the crosshair gives both
@@ -121,6 +121,8 @@ describe('InvestmentChart', () => {
   });
 
   it('tints only the value move — a deposit is not a result', () => {
+    // Value 1000 → 900 while 200 was paid in: the account lost 300, i.e.
+    // −30.00% of what it opened with, and separately grew 25% in size.
     const { container } = render(
       <InvestmentChart
         series={[pt(1, 1000, 800), pt(2, 900, 1000)]}
@@ -128,10 +130,24 @@ describe('InvestmentChart', () => {
       />,
     );
     const spans = [...container.querySelectorAll('.inv-legend-item span')];
-    const valueMove = spans.find(s => s.textContent === '-10.00%');
+    const valueMove = spans.find(s => s.textContent === '-30.00%');
     const depositMove = spans.find(s => s.textContent === '+25.00%');
     expect(valueMove?.getAttribute('style')).toContain('--loss');
     expect(depositMove?.getAttribute('style') || '').not.toContain('--gain');
+  });
+
+  it('does not read money paid in as a gain', () => {
+    // $10,000 into a $30,000 account is not a 33% gain. Counting it as
+    // one is what put +43% beside a window the vs-S&P view called +7.5%.
+    render(
+      <InvestmentChart
+        series={[pt(1, 30_000, 19_000), pt(2, 40_000, 29_000)]}
+        rangeKey="1W" setRangeKey={vi.fn()}
+      />,
+    );
+    // Value grew 10,000, ALL of it paid in → flat.
+    expect(screen.getByText(/Value/).textContent).toMatch(/\+0\.00%/);
+    expect(screen.getByText(/Deposited/).textContent).toMatch(/\+52\.63%/);
   });
 
   it('omits a move it cannot compute rather than dividing by zero', () => {
@@ -218,6 +234,7 @@ describe('InvestmentChart', () => {
     );
     expect(screen.getByText(/Value/).textContent).toMatch(/\+20\.00%/);
     expect(screen.getByText(/Deposited/).textContent).not.toMatch(/%/);
+    // …and with nothing deposited there is nothing to net out of it.
   });
 
   it('masks the figures when hideValues is on — the axis included', () => {
