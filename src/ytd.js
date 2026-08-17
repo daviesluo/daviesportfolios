@@ -716,6 +716,47 @@ export function historyLotsFor(h) {
   }];
 }
 
+/**
+ * Price a holding at `date`, carrying the earliest known close BACKWARDS
+ * when the history doesn't reach that far.
+ *
+ * `closeOn` only ever looks at or before the date, so on any date before
+ * a ticker's first bar it returns null — and the caller used to drop
+ * that holding from the value while still counting its deposit. It read
+ * as "not owned yet" when the truth is "owned, price unknown", and the
+ * damage was large and systematic:
+ *
+ *   - 1D over a weekend: no bar in the window is at or before the
+ *     window's own start, so EVERY holding fell out and the value line
+ *     sat at the cash balance until the recorded samples took over —
+ *     $6.7k under a $181k book.
+ *   - Any range where a few tickers' history starts later than the
+ *     others: those step in one by one as their first bar arrives, so a
+ *     week that really moved +1.8% drew as +7.6%.
+ *
+ * Carrying the first known close backwards says "flat before we have
+ * data", which is the ordinary treatment for a gap and is right far more
+ * often than zero. The holding's own `lastPrice` is the last resort, for
+ * a ticker with no usable series at all (a CN fund or `.PVT` on an
+ * intraday range, or a name sold long enough ago that nothing fetches
+ * its history any more). Exported for tests.
+ *
+ * @param {ReturnType<typeof buildTickerSeries>} tickerSeries
+ * @param {string} ticker
+ * @param {string} date
+ * @param {any} h  the holding, for its last-resort quote
+ * @returns {number | null}
+ */
+export function priceAtOrCarried(tickerSeries, ticker, date, h) {
+  const at = closeOn(tickerSeries, ticker, date);
+  if (typeof at === 'number' && at > 0) return at;
+  const series = tickerSeries?.[ticker]?.series;
+  const first = Array.isArray(series) && series.length > 0 ? series[0].close : null;
+  if (typeof first === 'number' && first > 0) return first;
+  const px = Number(h?.lastPrice);
+  return isFinite(px) && px > 0 ? px : null;
+}
+
 export function investmentPointAt(opts) {
   const {
     portfolio, tickerSeries, date, marketData = {},
@@ -780,10 +821,10 @@ export function investmentPointAt(opts) {
       : null;
     const price = (typeof live === 'number' && live > 0)
       ? live
-      : closeOn(tickerSeries, ticker, date);
-    // No price for that date (a ticker whose history didn't reach back
-    // this far) → contribute nothing rather than guess. Its deposit
-    // still counts: the money did leave the account.
+      : priceAtOrCarried(tickerSeries, ticker, date, h);
+    // Still nothing to price it with — no history and no quote. Skip
+    // rather than invent a number; the deposit still counts, because
+    // the money did leave the account either way.
     if (typeof price !== 'number' || !(price > 0)) continue;
     value += shares * price * fx;
   }
