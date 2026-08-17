@@ -1290,26 +1290,38 @@ function Board({ isReadOnly }) {
           posKey={addingToPos}
           position={portfolio.positions[addingToPos]}
           onClose={() => setAddingToPos(null)}
-          onAdd={async (ticker, shares, cost, lastPrice) => {
+          onAdd={async (ticker, shares, cost, lastPrice, buyDate) => {
             const key = String(ticker || '').toUpperCase().trim();
             const existing = portfolio.holdings[key];
             // Re-adding a ticker you already hold is ambiguous — "I
             // bought more" vs "let me restate this position" — and the
             // old code silently picked restate, wiping every prior lot,
-            // sell and the closed flag along with it. Ask instead. The
-            // `.PVT` revalue flow is the reason restate still exists.
+            // sell and the closed flag along with it. Ask instead.
+            //
+            // Three outcomes, not two: BOTH named actions write, so
+            // Cancel / Esc / backdrop has to mean "do nothing". A binary
+            // confirm would have had to fold those onto one of the
+            // writes — and it folded them onto `replace`, the more
+            // destructive one, so dismissing the dialog silently
+            // restated the position.
             let mode = 'replace';
             if (existing) {
-              const addMore = await askConfirm({
+              const choice = await askConfirm({
                 title: `${key} already in your book`,
                 message: 'Record this as an additional purchase, or replace the existing position?',
-                detail: 'Adding keeps every earlier lot and sell, and recalculates your total shares and average cost. Replacing keeps the transaction history but makes this the only buy lot.',
+                detail: 'Adding keeps every earlier lot and sell and recalculates your total shares and average cost. Replacing makes this the only buy lot; earlier sales stay on the ledger, so the position still nets against them.',
                 confirmLabel: 'Add purchase',
-                cancelLabel: 'Replace position',
+                altLabel: 'Replace position',
+                cancelLabel: 'Cancel',
               });
-              mode = addMore ? 'append' : 'replace';
+              // Dismissed — leave the book untouched AND leave the Add
+              // dialog open so the entry isn't lost.
+              if (choice === false) return;
+              mode = choice === 'alt' ? 'replace' : 'append';
             }
-            addHolding(addingToPos, ticker, shares, cost, lastPrice, undefined, mode);
+            // `buyDate` matters: lots are the YTD chart's basis, so
+            // dropping it silently dated every add today.
+            addHolding(addingToPos, ticker, shares, cost, lastPrice, buyDate, mode);
             setAddingToPos(null);
           }}
         />
