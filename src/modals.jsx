@@ -8,6 +8,7 @@ import {
   fmtSharesFor as fmtShFor,
   pctColor as pctClo,
   maskDigits,
+  normalizeDecimalInput,
 } from './formatters.js';
 import { currencySymbol as curSym, detectCurrency } from './fx.js';
 import { cleanLots } from './lots.js';
@@ -483,9 +484,9 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
               <input className="inp mono" type="date" value={l.date} max={today}
                      onChange={(e) => updateLot(i, { date: e.target.value })} />
               <input className="inp mono" inputMode="decimal" value={l.shares}
-                     onChange={(e) => updateLot(i, { shares: e.target.value })} placeholder="0" />
+                     onChange={(e) => updateLot(i, { shares: normalizeDecimalInput(e.target.value) })} placeholder="0" />
               <input className="inp mono" inputMode="decimal" value={l.cost}
-                     onChange={(e) => updateLot(i, { cost: e.target.value })} placeholder="0" />
+                     onChange={(e) => updateLot(i, { cost: normalizeDecimalInput(e.target.value) })} placeholder="0" />
               <button className="btn-ghost icon" onClick={() => removeLot(i)} aria-label="Remove lot" title="Remove lot">✕</button>
             </div>
           ))}
@@ -504,9 +505,9 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
                 <input className="inp mono" type="date" value={s.date} max={today}
                        onChange={(e) => updateSell(i, { date: e.target.value })} />
                 <input className="inp mono" inputMode="decimal" value={s.shares}
-                       onChange={(e) => updateSell(i, { shares: e.target.value })} placeholder="0" />
+                       onChange={(e) => updateSell(i, { shares: normalizeDecimalInput(e.target.value) })} placeholder="0" />
                 <input className="inp mono" inputMode="decimal" value={s.price}
-                       onChange={(e) => updateSell(i, { price: e.target.value })} placeholder="0" />
+                       onChange={(e) => updateSell(i, { price: normalizeDecimalInput(e.target.value) })} placeholder="0" />
                 <button className="btn-ghost icon" onClick={() => removeSell(i)} aria-label="Remove sale" title="Remove sale">✕</button>
               </div>
             ))}
@@ -574,7 +575,7 @@ function CashModal({ amount, onClose, onSave }) {
       </header>
       <div className="modal-body form">
         <FormRow label="Amount (USD)">
-          <input className="inp mono" autoFocus value={val} onChange={(e) => setVal(e.target.value)} inputMode="decimal" />
+          <input className="inp mono" autoFocus value={val} onChange={(e) => setVal(normalizeDecimalInput(e.target.value))} inputMode="decimal" />
         </FormRow>
       </div>
       <footer className="modal-foot">
@@ -623,10 +624,10 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
         <FormRow label="Ticker" hint="e.g. NVDA · BTC-USD · 017731 (CN fund) · VUAA.L (London)">
           <input className="inp mono upper" autoFocus value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} />
         </FormRow>
-        <FormRow label="Shares"><input className="inp mono" value={shares} onChange={(e) => setShares(e.target.value)} inputMode="decimal" /></FormRow>
-        <FormRow label={`Avg cost (${sym})`} hint={costHint}><input className="inp mono" value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" /></FormRow>
+        <FormRow label="Shares"><input className="inp mono" value={shares} onChange={(e) => setShares(normalizeDecimalInput(e.target.value))} inputMode="decimal" /></FormRow>
+        <FormRow label={`Avg cost (${sym})`} hint={costHint}><input className="inp mono" value={cost} onChange={(e) => setCost(normalizeDecimalInput(e.target.value))} inputMode="decimal" /></FormRow>
         <FormRow label={`Last price (${sym})`} hint="Leave blank to use avg cost until first live refresh">
-          <input className="inp mono" value={lastPrice} onChange={(e) => setLastPrice(e.target.value)} inputMode="decimal" />
+          <input className="inp mono" value={lastPrice} onChange={(e) => setLastPrice(normalizeDecimalInput(e.target.value))} inputMode="decimal" />
         </FormRow>
         <FormRow label="Buy date" hint="Used by the YTD performance chart to compute historical portfolio value">
           <input type="date" className="inp mono" value={buyDate} onChange={(e) => setBuyDate(e.target.value)} max={new Date().toISOString().slice(0, 10)} />

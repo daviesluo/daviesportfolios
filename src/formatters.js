@@ -160,3 +160,21 @@ export function displayTicker(ticker) {
 export function pctIsFlat(pct) {
   return pct == null || !isFinite(pct) || Math.abs(pct) < 0.005;
 }
+
+/**
+ * Normalise a decimal field's raw input as the user types.
+ *
+ * Only job: give a bare leading decimal point its zero, so typing
+ * `.5` in a shares / price box reads back as `0.5`. Everything else is
+ * returned untouched — this runs on every keystroke, so it must never
+ * fight the user mid-entry (a half-typed `0.` or `1.` has to survive).
+ *
+ * Purely cosmetic for the maths: `Number('.5')` is already 0.5. It's
+ * the field that looked wrong, not the value.
+ */
+export function normalizeDecimalInput(raw) {
+  const s = String(raw ?? '');
+  if (s.startsWith('.')) return `0${s}`;
+  if (s.startsWith('-.')) return `-0${s.slice(1)}`;
+  return s;
+}

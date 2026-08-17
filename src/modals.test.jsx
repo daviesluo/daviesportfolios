@@ -183,3 +183,39 @@ describe('EditTickerModal — sell editor', () => {
     expect(screen.getByText('+120.00')).toBeInTheDocument();
   });
 });
+
+// Typing a bare `.5` in a shares box should read back as `0.5`. Asserted
+// through real keystrokes rather than the pure helper alone, because the
+// value is controlled state — a normaliser that fought the user mid-entry
+// would pass a unit test and still make the field unusable.
+describe('EditTickerModal — leading-dot decimals get their zero', () => {
+  it('typing ".5" into buy shares shows 0.5 and saves 0.5', async () => {
+    const user = userEvent.setup();
+    const { props } = renderModal();
+    const numInputs = screen.getAllByPlaceholderText('0');
+    const buyShares = numInputs[0];
+    await user.clear(buyShares);
+    await user.type(buyShares, '.5');
+    expect(buyShares).toHaveValue('0.5');
+    await user.click(screen.getByRole('button', { name: /^Save$/ }));
+    expect(props.onSave.mock.calls[0][0].lots[0].shares).toBe(0.5);
+  });
+
+  it('does not disturb normal entry — "12.75" types through unchanged', async () => {
+    const user = userEvent.setup();
+    renderModal();
+    const buyShares = screen.getAllByPlaceholderText('0')[0];
+    await user.clear(buyShares);
+    await user.type(buyShares, '12.75');
+    expect(buyShares).toHaveValue('12.75');
+  });
+
+  it('applies to the price column too (".25" → 0.25)', async () => {
+    const user = userEvent.setup();
+    renderModal();
+    const buyCost = screen.getAllByPlaceholderText('0')[1];
+    await user.clear(buyCost);
+    await user.type(buyCost, '.25');
+    expect(buyCost).toHaveValue('0.25');
+  });
+});
