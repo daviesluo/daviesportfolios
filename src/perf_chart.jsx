@@ -10,7 +10,7 @@
 // chart) are both exported. Renderers in app.jsx import only PerfPanel.
 import React from 'react';
 import { fxToUSD } from './fx.js';
-import { InvestmentChart, rangeStartMs, mergeSeries, deriveSeries } from './investment_chart.jsx';
+import { InvestmentChart, rangeStartMs, mergeSeries, deriveSeries, withLivePoint } from './investment_chart.jsx';
 import { readCachedSnapshots, refreshSnapshots } from './portfolio_snapshots.js';
 import { fetchHistorical, fetchHistoricalBatch } from './historical.js';
 import { usMarketHoursUtc } from './market_hours.js';
@@ -76,6 +76,61 @@ export function perfFetchParams(rangeKey, extendedHours, phase) {
 // would be a swap-visible inconsistency. Re-exported here so the
 // existing import site (and its pin test) keep working.
 export { crosshairFormatFor } from './chart_geometry.js';
+
+/**
+ * The dates both charts sample the portfolio at: the benchmark series,
+ * session-filtered and cut to the range's window.
+ *
+ * Lifted out of PerfChart so the Investment Performance panel can sample
+ * at exactly the same points. It already shows the same quantity
+ * (`computeAt().value`), but sampling it on a different grid drew a
+ * differently-shaped line for the same week — and on 1D a different
+ * WINDOW entirely, since the cash index is regular-session-only while
+ * the other chart was covering a trailing 24 h. Same values on the same
+ * dates is what makes the two views answer with one voice.
+ *
+ * The session filter is the reason this can't just be "the union of
+ * every ticker's bars": ^GSPC is RTH-only and Yahoo slips the occasional
+ * spurious low-volume bar outside 9:30-16:00 ET, which renders as data
+ * between close and open. ES=F trades ~23 h, so a 24 h slice would
+ * include Asia-overnight bars where stocks aren't open — except with the
+ * ext toggle on, where keeping 20:00-04:00 ET is the whole point.
+ *
+ * @param {{ hist: Record<string, any[]>|null, spSymbol: string, rangeKey: string,
+ *   extendedHours: boolean, mh: any }} opts
+ * @returns {{ window: {date:string, close:number}[], anchorDate: string }}
+ */
+export function benchmarkWindow({ hist, spSymbol, rangeKey, extendedHours, mh }) {
+  const raw = (hist?.[spSymbol] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+  const keepOvernightFutures = extendedHours && spSymbol === 'ES=F';
+  const all = (!keepOvernightFutures && rangeKey === '1D' && (spSymbol === '^GSPC' || spSymbol === 'ES=F'))
+    ? raw.filter(p => {
+        if (typeof p.date !== 'string' || p.date.length < 16 || p.date[10] !== 'T') return true;
+        const utcMins = parseInt(p.date.slice(11, 13), 10) * 60 + parseInt(p.date.slice(14, 16), 10);
+        if (spSymbol === '^GSPC') {
+          return utcMins >= mh.openHh * 60 + mh.openMm
+              && utcMins <= mh.closeHh * 60 + mh.closeMm;
+        }
+        // ES=F: keep bars whose ET time-of-day is in [04:00, 20:00)
+        // (= pre-market start through after-hours end). Convert UTC
+        // to ET via the DST-aware offset embedded in mh.edt.
+        const offsetMins = (mh.edt ? 4 : 5) * 60;
+        let etMins = utcMins - offsetMins;
+        if (etMins < 0) etMins += 24 * 60;
+        return etMins >= 4 * 60 && etMins < 20 * 60;
+      })
+    : raw;
+  // 1D's anchor is whatever calendar day the fetched data actually
+  // covers — the latest UTC date in the series. Yesterday for a closed
+  // market, today for an open one.
+  const anchorDate = rangeKey === '1D'
+    ? (all.length > 0 ? all[all.length - 1].date.slice(0, 10) : anchorDateFor(rangeKey))
+    : anchorDateFor(rangeKey);
+  const window = rangeKey === '1D'
+    ? all                                     // already trimmed at fetch time
+    : all.filter(p => p.date >= anchorDate);
+  return { window, anchorDate };
+}
 
 // Tiny placeholder shell so the loading / error / range-button row
 // renders the same chrome as the full chart — keeps the layout from
@@ -489,9 +544,6 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // closed-market mode the data spans yesterday, and using "today"
   // would empty the window. For daily ranges we still filter by the
   // calendar cutoff.
-  const allSpRaw = (hist?.[spSymbol] || [])
-    .slice()
-    .sort((a, b) => a.date.localeCompare(b.date));
   // 1D session-window filter:
   //   - ^GSPC: drop bars outside 9:30-16:00 ET (RTH only — Yahoo's
   //     prepost=true sometimes slips spurious low-volume bars in,
@@ -515,40 +567,9 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // overnight-merged series, so overnight timestamps return the real
   // recorded price, not a flat prevClose. Holdings that don't trade
   // overnight just hold flat through the night.
-  const keepOvernightFutures = extendedHours && spSymbol === 'ES=F';
-  const allSp = (!keepOvernightFutures && rangeKey === '1D' && (spSymbol === '^GSPC' || spSymbol === 'ES=F'))
-    ? allSpRaw.filter(p => {
-        if (typeof p.date !== 'string' || p.date.length < 16 || p.date[10] !== 'T') return true;
-        const utcMins = parseInt(p.date.slice(11, 13), 10) * 60 + parseInt(p.date.slice(14, 16), 10);
-        if (spSymbol === '^GSPC') {
-          return utcMins >= mh.openHh * 60 + mh.openMm
-              && utcMins <= mh.closeHh * 60 + mh.closeMm;
-        }
-        // ES=F: keep bars whose ET time-of-day is in [04:00, 20:00)
-        // (= pre-market start through after-hours end). Convert UTC
-        // to ET via the DST-aware offset embedded in mh.edt.
-        const offsetMins = (mh.edt ? 4 : 5) * 60;
-        let etMins = utcMins - offsetMins;
-        if (etMins < 0) etMins += 24 * 60;
-        return etMins >= 4 * 60 && etMins < 20 * 60;
-      })
-    : allSpRaw;
-
-  // 1D's anchor date is whatever calendar day the fetched data
-  // actually covers — the latest UTC date in the series. Yesterday
-  // for closed markets, today for open markets.
-  let anchorDate;
-  if (rangeKey === '1D') {
-    anchorDate = allSp.length > 0
-      ? allSp[allSp.length - 1].date.slice(0, 10)
-      : anchorDateFor(rangeKey);
-  } else {
-    anchorDate = anchorDateFor(rangeKey);
-  }
-
-  let spWindow = rangeKey === '1D'
-    ? allSp                                  // already trimmed at fetch time
-    : allSp.filter(p => p.date >= anchorDate);
+  const grid = benchmarkWindow({ hist, spSymbol, rangeKey, extendedHours, mh });
+  const anchorDate = grid.anchorDate;
+  let spWindow = grid.window;
   let hasSp = spWindow.length >= 2;
   if (!hasSp) {
     let bestKey = null, bestLen = 0;
@@ -1049,7 +1070,12 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 // for a ticker sold long ago — which is exactly why the samples are
 // recorded — so before the first sample the line reflects what can still
 // be priced. Once samples cover the window, they are the whole line.
-function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hideValues = false, extendedHours = false, phase = 'regular' }) {
+/**
+ * @param {{ portfolio: any, marketData: any, rangeKey: string, setRangeKey: (k:string)=>void,
+ *   hideValues?: boolean, extendedHours?: boolean, phase?: string,
+ *   live?: {marketValue:number, netDeposit:number}|null }} props
+ */
+function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hideValues = false, extendedHours = false, phase = 'regular', live = null }) {
   // Seed from the prefetch's cache so the FIRST render already has a
   // line — the background prefetch warms every range, so opening the
   // panel or switching ranges is a cache hit rather than an empty state
@@ -1094,21 +1120,30 @@ function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hid
   );
   const histKey = histTickers.join(',');
   const variantKey = perfVariantKey(rangeKey, extendedHours, phase);
+  // The benchmark comes along for the ride: not to draw, but because its
+  // bars ARE the grid the other chart samples the portfolio on, and
+  // sampling the same quantity on a different grid drew a
+  // differently-shaped line for the same week.
+  const spSymbol = spSymbolFor(rangeKey, extendedHours);
+  const fetchList = React.useMemo(
+    () => (histTickers.includes(spSymbol) ? histTickers : [...histTickers, spSymbol]),
+    [histKey, spSymbol],
+  );
   // Price history for the derived half, read from the SAME per-ticker
   // bucket the vs-S&P chart and the background prefetch fill. Seeding
   // synchronously from it is what stops the panel loading every single
   // time it's opened: the fetch below still runs to revalidate, but it
   // now replaces a drawn chart instead of an empty state.
   const [hist, setHist] = React.useState(
-    () => /** @type {Record<string, any[]>} */ (readWarmHistory(histTickers, rangeKey, variantKey)),
+    () => /** @type {Record<string, any[]>} */ (readWarmHistory(fetchList, rangeKey, variantKey)),
   );
   React.useEffect(() => {
     if (histTickers.length === 0) return undefined;
     let cancelled = false;
-    const warm = readWarmHistory(histTickers, rangeKey, variantKey);
+    const warm = readWarmHistory(fetchList, rangeKey, variantKey);
     if (Object.keys(warm).length > 0) setHist(warm);
     const p = perfFetchParams(rangeKey, extendedHours, phase);
-    fetchHistoricalBatch(histTickers, p.yahooRange, p.interval, p.includePrePost)
+    fetchHistoricalBatch(fetchList, p.yahooRange, p.interval, p.includePrePost)
       .then((batch) => {
         if (cancelled || !batch) return;
         // Trim to the range's display window exactly as PerfChart does,
@@ -1117,7 +1152,7 @@ function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hid
         /** @type {Record<string, any[]>} */
         const trimmed = {};
         const now = Date.now();
-        for (const t of histTickers) {
+        for (const t of fetchList) {
           const data = applyVariantFilter(/** @type {any} */ (batch)[t], p.variant);
           if (!Array.isArray(data) || data.length === 0) continue;
           trimmed[t] = data;
@@ -1130,7 +1165,7 @@ function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hid
       })
       .catch(() => { /* the seeded cache stays on screen */ });
     return () => { cancelled = true; };
-  }, [histKey, rangeKey, variantKey, extendedHours, phase]);
+  }, [histKey, spSymbol, rangeKey, variantKey, extendedHours, phase]);
 
   // Ledger-derived points for everything OLDER than the first sample —
   // which, until the sampler has been running a while, is the entire
@@ -1144,10 +1179,13 @@ function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hid
   // its holding row, so the history needed to price a stock you no
   // longer own is already there.
   const derived = React.useMemo(() => {
-    const dates = Object.values(hist)
-      .flat()
-      .map((p) => /** @type {any} */ (p).date)
-      .filter(Boolean);
+    // Sample where the vs-S&P chart samples. Falling back to the union
+    // of every ticker's bars only when the benchmark didn't arrive —
+    // better a differently-shaped line than none.
+    const grid = benchmarkWindow({ hist, spSymbol, rangeKey, extendedHours, mh: usMarketHoursUtc(new Date()) });
+    const dates = grid.window.length >= 2
+      ? grid.window.map(p => p.date)
+      : Object.values(hist).flat().map((p) => /** @type {any} */ (p).date).filter(Boolean);
     if (dates.length === 0) return [];
     const uniqueDates = Array.from(new Set(dates)).sort();
     // `marketData` (parent state) only carries indices / forex — per-stock
@@ -1172,11 +1210,13 @@ function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hid
       portfolio, tickerSeries, marketData: tickerMarketData, fxToUSD,
       dates: uniqueDates, useExt, rangeKey,
     });
-  }, [portfolio, marketData, rangeKey, hist, extendedHours, phase]);
+  }, [portfolio, marketData, rangeKey, hist, extendedHours, phase, spSymbol]);
 
+  // The live figures go on the right-hand end so the legend's Value is
+  // the scoreboard's PORTFOLIO, not a sample up to five minutes old.
   const series = React.useMemo(
-    () => mergeSeries(snapshots, derived, startMs),
-    [snapshots, derived, startMs],
+    () => withLivePoint(mergeSeries(snapshots, derived, startMs), live),
+    [snapshots, derived, startMs, live],
   );
 
   return (
@@ -1189,7 +1229,12 @@ function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hid
   );
 }
 
-function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false }) {
+/**
+ * @param {{ portfolio: any, marketData: any, extendedHours: boolean, phase: string,
+ *   className?: string, hideValues?: boolean,
+ *   live?: {marketValue:number, netDeposit:number}|null }} props
+ */
+function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false, live = null }) {
   // Own the range here so the title can name the actual benchmark: ES=F
   // (ext-on 1D / 1W) → "S&P FUTURES", the cash index otherwise → "S&P 500".
   // The legend dot inside the chart flips the same way (spSymbolFor).
@@ -1235,6 +1280,7 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hid
           hideValues={hideValues}
           extendedHours={extendedHours}
           phase={phase}
+          live={live}
         />
       )}
     </section>
