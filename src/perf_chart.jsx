@@ -11,7 +11,7 @@
 import React from 'react';
 import { fxToUSD } from './fx.js';
 import { InvestmentChart, rangeStartMs, mergeSeries } from './investment_chart.jsx';
-import { loadSnapshots } from './portfolio_snapshots.js';
+import { readCachedSnapshots, refreshSnapshots } from './portfolio_snapshots.js';
 import { fetchHistorical, fetchHistoricalBatch } from './historical.js';
 import { usMarketHoursUtc } from './market_hours.js';
 import { YtdStore } from './chart_store.js';
@@ -1031,18 +1031,28 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 // recorded — so before the first sample the line reflects what can still
 // be priced. Once samples cover the window, they are the whole line.
 function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hideValues = false }) {
-  const [snapshots, setSnapshots] = React.useState(/** @type {any[]} */ ([]));
+  // Seed from the prefetch's cache so the FIRST render already has a
+  // line — the background prefetch warms every range, so opening the
+  // panel or switching ranges is a cache hit rather than an empty state
+  // waiting on a request. Then revalidate in the background.
+  const [snapshots, setSnapshots] = React.useState(
+    () => /** @type {any[]} */ (readCachedSnapshots(rangeKey) || []),
+  );
   const nowMs = Date.now();
   const startMs = rangeStartMs(rangeKey, nowMs);
 
   React.useEffect(() => {
     let cancelled = false;
-    loadSnapshots(startMs).then((rows) => {
-      if (!cancelled) setSnapshots(rows);
+    const cached = readCachedSnapshots(rangeKey);
+    if (cached) setSnapshots(cached);
+    refreshSnapshots(rangeKey, rangeStartMs(rangeKey, Date.now())).then((rows) => {
+      // Keep the cached line rather than blanking on an empty read — an
+      // empty result is ambiguous (no samples yet, or a failed request).
+      if (!cancelled && rows.length > 0) setSnapshots(rows);
     });
     return () => { cancelled = true; };
-    // Re-fetch when the window changes; `startMs` moves with the clock so
-    // it's rounded to the range key to avoid a fetch on every render.
+    // Keyed on the range only: `startMs` moves with the clock, so
+    // including it would refetch on every render.
   }, [rangeKey]);
 
   const series = React.useMemo(

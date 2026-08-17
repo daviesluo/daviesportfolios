@@ -38,3 +38,48 @@ create table if not exists public.portfolio_snapshots (
 alter table public.portfolio_snapshots enable row level security;
 -- No policies → anon / authenticated reads and writes are denied. The
 -- `data` Edge Function uses the service-role key, which bypasses RLS.
+
+-- Bucketed read for the chart.
+--
+-- A plain range scan does not work here: at 5-minute sampling a YTD
+-- window is ~60k rows, so any LIMIT either truncates the window (an
+-- ascending limit returns January and drops everything recent) or ships
+-- a payload no phone should parse. The chart never needs that density
+-- anyway — it draws a few hundred points.
+--
+-- So the caller passes the bucket it wants (5 min for 1D, a day for YTD)
+-- and gets the LAST sample in each bucket: the closing value of that
+-- slice, which is what a chart point means. Row count then follows the
+-- chart, not the sampling rate.
+create or replace function public.portfolio_snapshot_series(
+  _since          timestamptz,
+  _bucket_seconds int
+)
+returns table (
+  ts          timestamptz,
+  value_usd   double precision,
+  deposit_usd double precision
+)
+language sql
+stable
+security definer
+-- Explicit search_path so a shadowing schema can't redirect the table
+-- reference — same hardening every other security-definer RPC here uses.
+set search_path = public
+as $$
+  select
+    to_timestamp(
+      floor(extract(epoch from s.ts) / greatest(_bucket_seconds, 1)) * greatest(_bucket_seconds, 1)
+    ) as ts,
+    (array_agg(s.value_usd   order by s.ts desc))[1] as value_usd,
+    (array_agg(s.deposit_usd order by s.ts desc))[1] as deposit_usd
+  from public.portfolio_snapshots s
+  where s.ts >= _since
+  group by 1
+  order by 1
+$$;
+
+-- The `data` Edge Function calls this with the service-role key. Nobody
+-- else should reach it.
+revoke execute on function public.portfolio_snapshot_series(timestamptz, int) from public;
+grant  execute on function public.portfolio_snapshot_series(timestamptz, int) to service_role;
