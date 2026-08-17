@@ -17,8 +17,9 @@
 //     predates this feature, is all of it.
 
 import React from 'react';
-import { fmtMoney } from './formatters.js';
+import { fmtMoney, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, investmentPointAt } from './ytd.js';
+import { pointerToDataIndex, crosshairFormatFor } from './chart_geometry.js';
 
 /** Window length per range, in ms. Mirrors the vs-S&P chart's ranges. */
 const RANGE_SPAN_MS = {
@@ -64,6 +65,108 @@ export function mergeSeries(snapshots, derived, startMs) {
   return [...older, ...snaps];
 }
 
+/**
+ * Round axis bounds + ticks for a dollar range.
+ *
+ * The first version padded the data range by a flat 12 % and drew no
+ * axis at all, which meant the vertical extent was whatever the data
+ * happened to be — you could see the shape of the line but not read a
+ * value off it. Snapping to a 1 / 2 / 2.5 / 5 × 10ⁿ step instead gives
+ * gridlines on round numbers ($130k, $140k, …), which is what makes the
+ * axis worth having: every label is a number a person would say out
+ * loud.
+ *
+ * The 8 % pre-pad is what keeps the line off the frame — without it a
+ * series whose maximum lands exactly on a tick draws along the top
+ * gridline. A dead-flat series (a board that hasn't moved, or one
+ * single deposit level across the window) has no range to snap, so it
+ * gets a band manufactured around it and sits in the middle instead of
+ * on the floor.
+ *
+ * Exported for tests.
+ *
+ * @param {number} min
+ * @param {number} max
+ * @param {number} [target] roughly how many gaps to aim for
+ * @returns {{ticks:number[], step:number, min:number, max:number}}
+ */
+export function niceMoneyTicks(min, max, target = 4) {
+  if (!isFinite(min) || !isFinite(max)) return { ticks: [0, 1], step: 1, min: 0, max: 1 };
+  let lo = Math.min(min, max);
+  let hi = Math.max(min, max);
+  const dataLo = lo, dataHi = hi;
+  if (hi - lo < Math.max(1e-9, Math.abs(hi) * 1e-9)) {
+    const band = Math.max(Math.abs(hi) * 0.02, 1);
+    lo -= band;
+    hi += band;
+  } else {
+    const pad = (hi - lo) * 0.08;
+    // Headroom must not invent a sign the account never had. An axis
+    // that runs to −$100k because a $5k floor got padded down spends
+    // half its height on money that was never owed, and squashes the
+    // part that moved into the top corner.
+    lo = dataLo >= 0 ? Math.max(0, lo - pad) : lo - pad;
+    hi = dataHi <= 0 ? Math.min(0, hi + pad) : hi + pad;
+  }
+  // Pick the FINEST round step whose snapped bounds still fit inside the
+  // tick budget. Rounding the ideal spacing to the nearest rung and
+  // stopping there reads the padded range, not the snapped one, so it
+  // overshoots: a $0–$216k window rounded up to a $100k step drew
+  // $0/$100k/$200k/$300k and left a third of the height empty above the
+  // data. Walking up from the finest rung instead lands on $50k — same
+  // round labels, a third less waste.
+  const maxTicks = Math.max(3, target + 2);
+  const ideal = (hi - lo) / Math.max(1, target);
+  const mag = Math.pow(10, Math.floor(Math.log10(ideal)));
+  // Every rung divides into labels a person would say: 2, 2.5, 4, 5.
+  const rungs = [1, 2, 2.5, 4, 5];
+  const candidates = [mag, mag * 10, mag * 100]
+    .flatMap(m => rungs.map(r => r * m))
+    .sort((a, b) => a - b);
+  const fits = (s) => Math.round((Math.ceil(hi / s) * s - Math.floor(lo / s) * s) / s) + 1 <= maxTicks;
+  const step = candidates.find(fits) ?? candidates[candidates.length - 1];
+  const first = Math.floor(lo / step) * step;
+  const last = Math.ceil(hi / step) * step;
+  const ticks = [];
+  // Half-step slack on the loop bound absorbs the float drift that
+  // accumulates over ~5 additions; without it the top tick is
+  // intermittently dropped.
+  for (let t = first; t <= last + step * 0.5; t += step) ticks.push(t);
+  return { ticks, step, min: first, max: ticks[ticks.length - 1] ?? last };
+}
+
+/**
+ * Axis tick label — compact, because a full "$181,874" is wider than
+ * the whole left gutter.
+ *
+ * The unit comes from the axis magnitude rather than each value, so
+ * every label on the axis reads in the same scale ($130k / $140k, never
+ * $950 / $1.0k), and the decimal count comes from the STEP, so adjacent
+ * ticks can't collapse to the same string — a $2,500 step has to render
+ * "$132.5k" or two rows both say "$132k". Exported for tests.
+ *
+ * @param {number} v
+ * @param {number} step  the axis step, which decides the precision
+ * @param {number} magnitude  largest absolute value on the axis
+ */
+export function axisMoneyLabel(v, step, magnitude) {
+  // Zero carries no scale — "$0k" is just noise where "$0" is the line
+  // that separates having money from owing it.
+  if (v === 0) return '$0';
+  const abs = Math.abs(magnitude);
+  const div = abs >= 1e9 ? 1e9 : abs >= 1e6 ? 1e6 : abs >= 1e3 ? 1e3 : 1;
+  const suffix = div === 1e9 ? 'B' : div === 1e6 ? 'M' : div === 1e3 ? 'k' : '';
+  // Decimals are whatever it takes to render the STEP exactly in the
+  // axis unit: a 2,500 step on a "k" axis has to read "$132.5k", because
+  // at 0 decimals two neighbouring rows would both say "$132k".
+  const scaled = Math.abs(step) / div;
+  const whole = (n) => Math.abs(n - Math.round(n)) < 1e-9;
+  const dp = whole(scaled) ? 0 : whole(scaled * 10) ? 1 : 2;
+  // Minus U+2212 rather than a hyphen: it matches the digit width in the
+  // mono face, so a negative label doesn't shift left of the others.
+  return `${v < 0 ? '−' : ''}$${Math.abs(v / div).toFixed(dp)}${suffix}`;
+}
+
 function RangeButtons({ rangeKey, onChange }) {
   return (
     <div className="perf-range-row">
@@ -88,6 +191,52 @@ function RangeButtons({ rangeKey, onChange }) {
  * }} props
  */
 export function InvestmentChart({ series, rangeKey, setRangeKey, hideValues }) {
+  // Crosshair refs + their effects run on EVERY render, including the
+  // insufficient-data early return below, so React's hook count stays
+  // stable across the empty → loaded transition. Getting this wrong is
+  // minified error #310, which this app has shipped once already — keep
+  // them above the early return.
+  const svgRef      = React.useRef(/** @type {SVGSVGElement|null}   */ (null));
+  const crossRef    = React.useRef(/** @type {SVGGElement|null}     */ (null));
+  const cVlineRef   = React.useRef(/** @type {SVGLineElement|null}  */ (null));
+  const cValDotRef  = React.useRef(/** @type {SVGCircleElement|null}*/ (null));
+  const cDepDotRef  = React.useRef(/** @type {SVGCircleElement|null}*/ (null));
+  const cDateRect   = React.useRef(/** @type {SVGRectElement|null}  */ (null));
+  const cDateText   = React.useRef(/** @type {SVGTextElement|null}  */ (null));
+  const cValRect    = React.useRef(/** @type {SVGRectElement|null}  */ (null));
+  const cValText    = React.useRef(/** @type {SVGTextElement|null}  */ (null));
+  const cDepRect    = React.useRef(/** @type {SVGRectElement|null}  */ (null));
+  const cDepText    = React.useRef(/** @type {SVGTextElement|null}  */ (null));
+  const rafRef        = React.useRef(0);
+  const pendingIdxRef = React.useRef(/** @type {number|null} */ (null));
+  React.useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
+  // A crosshair left pinned to index 40 of the old series would point at
+  // an unrelated moment once the range changes under it.
+  React.useEffect(() => {
+    if (crossRef.current) crossRef.current.style.display = 'none';
+  }, [rangeKey, series]);
+
+  // Native non-passive touchmove, for the same reason PerfChart needs
+  // one: React registers its synthetic onTouchMove passively at the
+  // root, so preventDefault there is a no-op, and iOS Safari ignores
+  // `touch-action` on an inline <svg> whose ancestor scrolls — which is
+  // this chart's exact situation inside the sidebar. Without this a
+  // finger drag scrolls the page instead of moving the crosshair.
+  const handleMoveRef = React.useRef(/** @type {(e: any) => void} */ (() => {}));
+  const touchCleanupRef = React.useRef(/** @type {(() => void) | null} */ (null));
+  const setSvgNode = React.useCallback((/** @type {SVGSVGElement | null} */ node) => {
+    if (touchCleanupRef.current) { touchCleanupRef.current(); touchCleanupRef.current = null; }
+    svgRef.current = node;
+    if (node) {
+      const onTouchMove = (/** @type {TouchEvent} */ e) => {
+        e.preventDefault();
+        handleMoveRef.current(e);
+      };
+      node.addEventListener('touchmove', onTouchMove, { passive: false });
+      touchCleanupRef.current = () => node.removeEventListener('touchmove', onTouchMove);
+    }
+  }, []);
+
   if (!Array.isArray(series) || series.length < 2) {
     return (
       <div className="perf-chart-wrap">
@@ -97,30 +246,40 @@ export function InvestmentChart({ series, rangeKey, setRangeKey, hideValues }) {
     );
   }
 
-  // Same SVG box and index-based x spacing as PerfChart, so the two
-  // panels line up when the header swaps them: weekend / overnight gaps
-  // don't draw empty stretches, and a short window still fills the width.
+  // Same SVG box, padding and index-based x spacing as PerfChart, so the
+  // two views are interchangeable in the panel slot — swapping them
+  // moves no chrome and the gridlines land in the same places. Index
+  // spacing (rather than time) means weekend / overnight gaps draw no
+  // empty stretches and a short window still fills the width.
+  //
+  // The left gutter is wider than PerfChart's 34: that axis labels
+  // "+20%", this one "$182.5k".
   const W = 300, H = 106;
-  const padL = 44, padR = 8, padT = 10, padB = 20;
+  const padL = 40, padR = 8, padT = 10, padB = 20;
   const cW = W - padL - padR;
   const cH = H - padT - padB;
 
-  const xOf = (i) => padL + (i / Math.max(1, series.length - 1)) * cW;
+  const denom = Math.max(1, series.length - 1);
+  const xOf = (i) => padL + (i / denom) * cW;
 
   // Both lines share one axis — they're the same unit, and the whole
-  // point is reading the gap between them.
+  // point of the chart is reading the gap between them.
   const vals = series.flatMap(p => [p.value, p.deposit]);
-  const rawMin = Math.min(...vals);
-  const rawMax = Math.max(...vals);
-  const pad = Math.max(1, (rawMax - rawMin) * 0.12);
-  const yMin = rawMin - pad;
-  const yMax = rawMax + pad;
-  const yRange = (yMax - yMin) || 1;
-  const yOf = (v) => padT + ((yMax - v) / yRange) * cH;
+  const axis = niceMoneyTicks(Math.min(...vals), Math.max(...vals));
+  const yRange = (axis.max - axis.min) || 1;
+  const yOf = (v) => padT + ((axis.max - v) / yRange) * cH;
+  const axisMagnitude = Math.max(Math.abs(axis.min), Math.abs(axis.max));
 
   const pathOf = (pick) => series
     .map((p, i) => `${i === 0 ? 'M' : 'L'}${xOf(i).toFixed(1)},${yOf(pick(p)).toFixed(1)}`)
     .join(' ');
+  // The band between the lines IS the money made, so it's worth seeing
+  // as an area and not just as a distance to eyeball: value out, deposit
+  // back. Tinted by where the account stands now — when the lines cross
+  // mid-window the fill still marks the region between them.
+  const bandPath = `${pathOf(p => p.value)} L${[...series].reverse()
+    .map((p, i) => `${xOf(denom - i).toFixed(1)},${yOf(p.deposit).toFixed(1)}`)
+    .join(' L')} Z`;
 
   const last = series[series.length - 1];
   const gain = last.value - last.deposit;
@@ -130,31 +289,240 @@ export function InvestmentChart({ series, rangeKey, setRangeKey, hideValues }) {
   // anything and only the dollar figure is shown.
   const gainPct = last.deposit > 0 ? (gain / last.deposit) * 100 : null;
   const money = (n) => (hideValues ? '••••' : fmtMoney(n));
+  const gainColor = gain >= 0 ? 'var(--gain)' : 'var(--loss)';
+
+  // X labels: a handful of equally-spaced indices, the same sampling
+  // PerfChart uses. Time-of-day for the intraday day, "Mon D" for the
+  // multi-day intraday ranges (bar-level precision belongs on the
+  // crosshair, not repeated six times along the axis), bare month for
+  // the daily ones.
+  const fmtAxisDate = (ts) => {
+    const d = new Date(ts);
+    if (rangeKey === '1D') return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    // 3M joins 1W / 1M on "Mon D": six samples across a quarter land in
+    // four calendar months, so bare month names come out as
+    // "May Jun Jun Jul Aug Aug" — a repeat says nothing. YTD is long
+    // enough that the months are genuinely distinct.
+    if (rangeKey !== 'YTD') return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    return d.toLocaleString('default', { month: 'short' });
+  };
+  /** @type {{x:number, anchor:'start'|'middle'|'end', grid:boolean, label:string}[]} */
+  const xLabels = [];
+  {
+    const labelCount = rangeKey === '1D' ? 4 : 5;
+    const seen = new Set();
+    for (let i = 0; i <= labelCount; i++) {
+      const idx = Math.max(0, Math.min(series.length - 1, Math.round(denom * (i / labelCount))));
+      // A short series (day one, two samples) maps several sampled slots
+      // onto the same point — draw it once.
+      if (seen.has(idx)) continue;
+      seen.add(idx);
+      const x = xOf(idx);
+      // The first and last labels bound the window, which is the most
+      // useful thing the axis says, so they anchor inward instead of
+      // being dropped for sitting on the edge. Only their own gridline
+      // is skipped — it would just double the frame.
+      const label = fmtAxisDate(series[idx].ts);
+      // A repeat of the label already to its left adds nothing but ink.
+      if (xLabels.length > 0 && xLabels[xLabels.length - 1].label === label) continue;
+      const atStart = x <= padL + 12;
+      const atEnd = x >= W - padR - 12;
+      xLabels.push({
+        x,
+        anchor: atStart ? 'start' : atEnd ? 'end' : 'middle',
+        grid: !atStart && !atEnd,
+        label,
+      });
+    }
+  }
+
+  // Crosshair — DOM refs + setAttribute inside a rAF rather than React
+  // state, because a state update per mousemove would reconcile a path
+  // of up to ~290 points on every frame.
+  const fmtCrosshairDate = (ts) => {
+    const d = new Date(ts);
+    const date = () => d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    const time = () => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    const fmt = crosshairFormatFor(rangeKey);
+    if (fmt === 'time') return time();
+    if (fmt === 'datetime') return `${date()} ${time()}`;
+    return date();
+  };
+  const CHIP_W = 46, CHIP_H = 11;
+  function paintCrosshair() {
+    rafRef.current = 0;
+    const idx = pendingIdxRef.current;
+    const g = crossRef.current;
+    if (!g) return;
+    const p = idx == null ? null : series[idx];
+    if (!p) { g.style.display = 'none'; return; }
+    g.style.display = '';
+    const x = xOf(idx);
+    const valY = yOf(p.value);
+    const depY = yOf(p.deposit);
+    if (cVlineRef.current) {
+      cVlineRef.current.setAttribute('x1', x.toFixed(1));
+      cVlineRef.current.setAttribute('x2', x.toFixed(1));
+    }
+    if (cValDotRef.current) {
+      cValDotRef.current.setAttribute('cx', x.toFixed(1));
+      cValDotRef.current.setAttribute('cy', valY.toFixed(1));
+    }
+    if (cDepDotRef.current) {
+      cDepDotRef.current.setAttribute('cx', x.toFixed(1));
+      cDepDotRef.current.setAttribute('cy', depY.toFixed(1));
+    }
+    // Date pill: wider for the ranges that show "MMM D HH:MM", and its
+    // centre clamped so it never spills past either edge — at the live
+    // point on the right it nudges inward instead of overflowing.
+    const datePillW = crosshairFormatFor(rangeKey) === 'datetime' ? 80 : 44;
+    const dpCx = Math.max(padL + datePillW / 2, Math.min(W - padR - datePillW / 2, x));
+    if (cDateRect.current) {
+      cDateRect.current.setAttribute('x', (dpCx - datePillW / 2).toFixed(1));
+      cDateRect.current.setAttribute('width', String(datePillW));
+    }
+    if (cDateText.current) {
+      cDateText.current.setAttribute('x', dpCx.toFixed(1));
+      cDateText.current.textContent = fmtCrosshairDate(p.ts);
+    }
+    // Both chips ride the left gutter's inner edge and track their line
+    // vertically. When the two lines nearly touch — the ordinary case
+    // early in a window — the labels would stack on top of each other,
+    // so the lower-value one is pushed clear.
+    let valTop = valY - CHIP_H / 2;
+    let depTop = depY - CHIP_H / 2;
+    if (Math.abs(valTop - depTop) < CHIP_H + 1) {
+      const mid = (valTop + depTop) / 2;
+      const half = (CHIP_H + 1) / 2;
+      valTop = valY <= depY ? mid - half : mid + half;
+      depTop = valY <= depY ? mid + half : mid - half;
+    }
+    const place = (rect, text, top, label) => {
+      if (!rect || !text) return;
+      const clamped = Math.max(padT, Math.min(H - padB - CHIP_H, top));
+      rect.setAttribute('y', clamped.toFixed(1));
+      text.setAttribute('y', (clamped + CHIP_H / 2).toFixed(1));
+      text.textContent = label;
+    };
+    place(cValRect.current, cValText.current, valTop, money(p.value));
+    place(cDepRect.current, cDepText.current, depTop, money(p.deposit));
+  }
+  function handleMove(e) {
+    const idx = pointerToDataIndex(e, svgRef.current, { W, H, padL, padR, cW }, series.length);
+    if (idx == null) return;
+    pendingIdxRef.current = idx;
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(paintCrosshair);
+  }
+  // Keep the native touchmove listener pointing at this render's closure
+  // (and therefore this render's geometry) without re-binding it.
+  handleMoveRef.current = handleMove;
+  function handleLeave() {
+    pendingIdxRef.current = null;
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = 0; }
+    if (crossRef.current) crossRef.current.style.display = 'none';
+  }
 
   return (
     <div className="perf-chart-wrap">
-      <div className="perf-legend mono">
-        <span className="perf-legend-item">
-          <span className="perf-dot" style={{ background: 'var(--chalk)' }} />
+      <div className="inv-legend mono">
+        <span className="inv-legend-item">
+          <span className="inv-dot" style={{ background: 'var(--chalk)' }} />
           Value {money(last.value)}
         </span>
-        <span className="perf-legend-item">
-          <span className="perf-dot" style={{ background: 'var(--chalk-dim)' }} />
+        <span className="inv-legend-item">
+          <span className="inv-dot" style={{ background: 'var(--chalk-dim)' }} />
           Deposited {money(last.deposit)}
         </span>
-        <span className="perf-legend-item" style={{ color: gain >= 0 ? 'var(--gain)' : 'var(--loss)' }}>
+        <span className="inv-legend-item" style={{ color: gainColor }}>
           {gain >= 0 ? '+' : '−'}{money(Math.abs(gain))}
           {gainPct != null && ` (${gain >= 0 ? '+' : ''}${gainPct.toFixed(2)}%)`}
         </span>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="perf-svg" preserveAspectRatio="none">
+      <svg
+        ref={setSvgNode}
+        viewBox={`0 0 ${W} ${H}`}
+        width="100%"
+        height={H}
+        // touchAction:none claims horizontal finger drags for the
+        // crosshair rather than the browser's scroll gesture; the native
+        // listener in setSvgNode is what makes that stick on iOS.
+        style={{ display: 'block', touchAction: 'none' }}
+        onMouseMove={handleMove}
+        onMouseLeave={handleLeave}
+        onTouchStart={handleMove}
+      >
+        {/* Y axis — gridline per round dollar step. The labels are
+            masked (not dropped) under hideValues so the axis keeps its
+            shape while the numbers stay private. */}
+        {axis.ticks.map((t) => {
+          const y = yOf(t);
+          if (y < padT - 0.5 || y > H - padB + 0.5) return null;
+          const label = axisMoneyLabel(t, axis.step, axisMagnitude);
+          return (
+            <g key={t}>
+              <line x1={padL} y1={y.toFixed(1)} x2={W - padR} y2={y.toFixed(1)}
+                    stroke="var(--line-2)" strokeWidth="0.5" strokeDasharray="2,3" />
+              <text x={padL - 3} y={y.toFixed(1)} textAnchor="end" dominantBaseline="middle"
+                    fontSize="7" fill="rgba(244,239,227,0.38)" fontFamily="var(--font-mono)">
+                {hideValues ? maskDigits(label) : label}
+              </text>
+            </g>
+          );
+        })}
+        {/* X axis — baseline plus a label every few points. */}
+        <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB}
+              stroke="var(--line)" strokeWidth="0.8" />
+        {xLabels.map((m, i) => (
+          <g key={i}>
+            {m.grid && (
+              <line x1={m.x.toFixed(1)} y1={padT} x2={m.x.toFixed(1)} y2={H - padB}
+                    stroke="var(--line-2)" strokeWidth="0.4" />
+            )}
+            <text x={m.x.toFixed(1)} y={H - padB + 9} textAnchor={m.anchor}
+                  fontSize="7" fill="rgba(244,239,227,0.38)" fontFamily="var(--font-mono)">
+              {m.label}
+            </text>
+          </g>
+        ))}
+        <path className="inv-band" d={bandPath} fill={gainColor} opacity="0.1" stroke="none" />
         {/* Deposited sits underneath — it's the reference the value line
             is read against, so the value line stays on top and legible
             wherever they cross. */}
-        <path d={pathOf(p => p.deposit)} fill="none" stroke="var(--chalk-dim)"
+        <path className="inv-line inv-line-deposit" d={pathOf(p => p.deposit)}
+              fill="none" stroke="var(--chalk-dim)"
               strokeWidth="1" strokeDasharray="3 2" vectorEffect="non-scaling-stroke" />
-        <path d={pathOf(p => p.value)} fill="none" stroke="var(--chalk)"
-              strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+        <path className="inv-line inv-line-value" d={pathOf(p => p.value)}
+              fill="none" stroke="var(--chalk)"
+              strokeWidth="1.5" vectorEffect="non-scaling-stroke"
+              strokeLinejoin="round" strokeLinecap="round" />
+        {/* Live point */}
+        <circle cx={xOf(series.length - 1).toFixed(1)} cy={yOf(last.value).toFixed(1)}
+                r="2.5" fill="var(--chalk)" stroke="#0c1310" strokeWidth="1.2" />
+        {/* Crosshair — hidden until the pointer enters, then updated
+            imperatively. */}
+        <g className="inv-crosshair" ref={crossRef} style={{ display: 'none' }}>
+          <line ref={cVlineRef} x1={padL} y1={padT} x2={padL} y2={H - padB}
+                stroke="rgba(244,239,227,0.5)" strokeWidth="0.6" strokeDasharray="2,2" />
+          <circle ref={cValDotRef} cx={padL} cy={padT} r="2.5"
+                  fill="var(--chalk)" stroke="#0c1310" strokeWidth="1" />
+          <circle ref={cDepDotRef} cx={padL} cy={padT} r="2.5"
+                  fill="var(--chalk-dim)" stroke="#0c1310" strokeWidth="1" />
+          <rect ref={cDateRect} x={padL} y={H - padB + 1} width={44} height={CHIP_H}
+                fill="#0c1310" stroke="var(--chalk-dim)" strokeWidth="0.5" />
+          <text ref={cDateText} x={padL} y={H - padB + 9} textAnchor="middle"
+                fontSize="7" fill="var(--chalk)" fontFamily="var(--font-mono)" />
+          <rect ref={cValRect} x={padL + 4} y={padT} width={CHIP_W} height={CHIP_H} rx={1.5}
+                fill="rgba(244,239,227,0.9)" />
+          <text ref={cValText} x={padL + 4 + CHIP_W / 2} y={padT} dominantBaseline="middle"
+                textAnchor="middle" fontSize="7" fill="#0c1310"
+                fontFamily="var(--font-mono)" fontWeight="600" />
+          <rect ref={cDepRect} x={padL + 4} y={padT} width={CHIP_W} height={CHIP_H} rx={1.5}
+                fill="rgba(12,19,16,0.9)" stroke="var(--chalk-dim)" strokeWidth="0.5" />
+          <text ref={cDepText} x={padL + 4 + CHIP_W / 2} y={padT} dominantBaseline="middle"
+                textAnchor="middle" fontSize="7" fill="var(--chalk)"
+                fontFamily="var(--font-mono)" />
+        </g>
       </svg>
       <RangeButtons rangeKey={rangeKey} onChange={setRangeKey} />
     </div>
