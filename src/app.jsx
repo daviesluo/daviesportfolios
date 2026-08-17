@@ -1290,8 +1290,26 @@ function Board({ isReadOnly }) {
           posKey={addingToPos}
           position={portfolio.positions[addingToPos]}
           onClose={() => setAddingToPos(null)}
-          onAdd={(ticker, shares, cost, lastPrice) => {
-            addHolding(addingToPos, ticker, shares, cost, lastPrice);
+          onAdd={async (ticker, shares, cost, lastPrice) => {
+            const key = String(ticker || '').toUpperCase().trim();
+            const existing = portfolio.holdings[key];
+            // Re-adding a ticker you already hold is ambiguous — "I
+            // bought more" vs "let me restate this position" — and the
+            // old code silently picked restate, wiping every prior lot,
+            // sell and the closed flag along with it. Ask instead. The
+            // `.PVT` revalue flow is the reason restate still exists.
+            let mode = 'replace';
+            if (existing) {
+              const addMore = await askConfirm({
+                title: `${key} already in your book`,
+                message: 'Record this as an additional purchase, or replace the existing position?',
+                detail: 'Adding keeps every earlier lot and sell, and recalculates your total shares and average cost. Replacing keeps the transaction history but makes this the only buy lot.',
+                confirmLabel: 'Add purchase',
+                cancelLabel: 'Replace position',
+              });
+              mode = addMore ? 'append' : 'replace';
+            }
+            addHolding(addingToPos, ticker, shares, cost, lastPrice, undefined, mode);
             setAddingToPos(null);
           }}
         />

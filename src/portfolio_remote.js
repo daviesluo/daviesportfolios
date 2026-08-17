@@ -268,7 +268,18 @@ export function portfolioUserFingerprint(p) {
     const lots = Array.isArray(h.lots)
       ? h.lots.map(l => `${l?.date || ''},${l?.shares ?? ''},${l?.cost ?? ''}`).join(';')
       : '';
-    parts.push(`h:${t}=${h.shares ?? ''}|${h.cost ?? ''}|${h.currency || ''}|${!!h.isCash}|${lots}`);
+    // Sells and `closed` are part of the user-edited ledger, so they
+    // belong in the fingerprint. Without them a CLOSED holding
+    // (shares 0, cost 0, ledger retained) was invisible to the diff:
+    // correcting a sell's date or price, or adding an offsetting sell,
+    // left every fingerprinted field identical, so the debounced save
+    // treated a real edit as a no-op and the change was silently lost
+    // on the next load. Live positions usually moved shares/cost too,
+    // which is why this only bit the closed ones.
+    const sells = Array.isArray(h.sells)
+      ? h.sells.map(x => `${x?.date || ''},${x?.shares ?? ''},${x?.price ?? ''},${x?.ts ?? ''}`).join(';')
+      : '';
+    parts.push(`h:${t}=${h.shares ?? ''}|${h.cost ?? ''}|${h.currency || ''}|${!!h.isCash}|${!!h.closed}|${lots}|s:${sells}`);
   }
   return parts.join('\n');
 }
@@ -321,16 +332,25 @@ export function migrate(p) {
     }
   }
 
-  // Backfill `lots` (per-purchase history) on any holding that's missing it
-  // (legacy data from before the lot editor existed). Just stamps a single
-  // lot dated 2025-01-01 with current shares + avg cost — the user can then
-  // refine via the EditTickerModal lot editor. Lots are the source of truth
-  // for the YTD chart, so post-migration nothing else should mutate them
-  // outside that modal.
+  // Backfill `lots` (per-purchase history) on any holding that's missing
+  // it (legacy data from before the lot editor existed), stamping a
+  // single lot with current shares + avg cost so the user can refine it
+  // in the EditTickerModal lot editor.
+  //
+  // The date is TODAY, not a hardcoded 2025-01-01. Lots are the source
+  // of truth for the YTD chart: a lot dated before Jan 1 is treated as
+  // held-since-last-year and anchored at the Jan-1 close, so once the
+  // calendar rolled past 2025 that constant quietly recategorised every
+  // backfilled holding as a prior-year position and skewed both sides of
+  // the YTD ratio — the same class of bug as the +80% / +21% / +9%
+  // misreports. Dating it today makes the holding an in-year buy at its
+  // own cost basis, which contributes 0 to YTD rather than a fabricated
+  // return, so an unedited backfill understates rather than invents.
+  const backfillDate = new Date().toISOString().slice(0, 10);
   for (const [t, h] of Object.entries(p.holdings)) {
     if (h.isCash || t === "CASH") continue;
     if (Array.isArray(h.lots) && h.lots.length > 0) continue;
-    h.lots = [{ date: "2025-01-01", shares: h.shares, cost: h.cost }];
+    h.lots = [{ date: backfillDate, shares: h.shares, cost: h.cost }];
   }
 
   // v2 → v3: refresh labels + default subtitles from INITIAL_PORTFOLIO for untouched slots.

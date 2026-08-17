@@ -111,7 +111,24 @@ export function createPortfolioEditHandlers({ setPortfolio, isReadOnly }) {
     });
   });
 
-  const addHolding = guard((posKey, ticker, shares, cost, lastPrice, buyDate) => {
+  /**
+   * Add a ticker to a slot, or restate/extend one already held.
+   *
+   * `mode` decides what happens to an EXISTING holding's ledger:
+   *   - 'append'  — record this as an ADDITIONAL buy: the new lot is
+   *                 appended and shares/cost are recomputed from the
+   *                 full lot+sell ledger (weighted average).
+   *   - 'replace' — restate the position: lots become just this entry.
+   *                 The `.PVT` revalue flow relies on this (those
+   *                 holdings are never price-refreshed, so re-adding is
+   *                 the only way to update their price).
+   * Either way `sells` and `closed` are CARRIED OVER. The previous
+   * implementation rebuilt the holding from scratch, so re-adding a
+   * ticker silently destroyed its entire transaction history — sells,
+   * closed flag and every prior lot — and Transaction History / YTD
+   * went with it, with no warning and no undo.
+   */
+  const addHolding = guard((posKey, ticker, shares, cost, lastPrice, buyDate, mode = 'replace') => {
     ticker = ticker.toUpperCase().trim();
     if (!ticker) return;
     const currency = detectCurrency(ticker);
@@ -133,16 +150,30 @@ export function createPortfolioEditHandlers({ setPortfolio, isReadOnly }) {
           && existing.lastPrice > 0 && existing.lastPrice !== newLast)
         ? existing.lastPrice
         : newLast;
+      const newLot = { date: lotDate, shares: Number(shares) || 0, cost: Number(cost) || 0 };
+      const priorLots = Array.isArray(existing?.lots) ? existing.lots : [];
+      const appending = mode === 'append' && priorLots.length > 0;
+      const lots = appending ? [...priorLots, newLot] : [newLot];
+      // When appending, the typed shares/cost describe THIS buy only —
+      // the holding's totals come from the whole ledger so they stay
+      // consistent with the lots (and with any sells already recorded).
+      const net = appending
+        // netPosition returns the net-cash weighted average as `avgCost`.
+        ? (({ shares: s, avgCost }) => ({ shares: s, cost: avgCost }))(netPosition(lots, existing?.sells))
+        : { shares: Number(shares) || 0, cost: Number(cost) || 0 };
       const holdings = {
         ...p.holdings,
         [ticker]: {
-          shares: Number(shares) || 0,
-          cost: Number(cost) || 0,
+          // Spread first so ledger fields we don't manage here
+          // (`sells`, `closed`, and anything added later) survive.
+          ...(existing || {}),
+          shares: net.shares,
+          cost: net.cost,
           lastPrice: newLast,
           prevClose,
           dayPct: prevClose > 0 ? ((newLast - prevClose) / prevClose) * 100 : 0,
           currency,
-          lots: [{ date: lotDate, shares: Number(shares) || 0, cost: Number(cost) || 0 }],
+          lots,
         },
       };
       const positions = {};

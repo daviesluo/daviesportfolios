@@ -122,3 +122,60 @@ describe('createPortfolioEditHandlers', () => {
     expect(get().positions.ST.subtitle).toBe('Growth');
   });
 });
+
+// addHolding used to rebuild the holding from scratch, so re-adding a
+// ticker you already own silently destroyed its whole ledger — every
+// prior lot, every sell, and the `closed` flag — taking Transaction
+// History and the YTD basis with it, with no warning and no undo.
+describe('addHolding — never destroys the transaction ledger', () => {
+  const withLedger = () => ({
+    positions: {
+      ST: { role: 'FWD', label: '', subtitle: '', tickers: ['NVDA'] },
+      CM: { role: 'MID', label: '', subtitle: '', tickers: [] },
+    },
+    holdings: {
+      NVDA: {
+        shares: 10, cost: 100, lastPrice: 120, currency: 'USD',
+        lots: [{ date: '2025-01-01', shares: 10, cost: 100 }],
+        sells: [{ date: '2025-06-01', shares: 2, price: 150 }],
+        closed: false,
+      },
+    },
+  });
+
+  it("'replace' keeps sells + closed, and restates lots to the new entry", () => {
+    const { handlers, get } = setup(withLedger());
+    handlers.addHolding('ST', 'NVDA', 8, 110, 130, '2026-02-01', 'replace');
+    const h = get().holdings.NVDA;
+    // The ledger survives…
+    expect(h.sells).toEqual([{ date: '2025-06-01', shares: 2, price: 150 }]);
+    expect(h.closed).toBe(false);
+    // …and the restate did what it says.
+    expect(h.lots).toEqual([{ date: '2026-02-01', shares: 8, cost: 110 }]);
+    expect(h.shares).toBe(8);
+    expect(h.cost).toBe(110);
+  });
+
+  it("'append' adds a lot and recomputes totals from the whole ledger", () => {
+    const { handlers, get } = setup(withLedger());
+    handlers.addHolding('ST', 'NVDA', 10, 200, 210, '2026-02-01', 'append');
+    const h = get().holdings.NVDA;
+    expect(h.lots).toEqual([
+      { date: '2025-01-01', shares: 10, cost: 100 },
+      { date: '2026-02-01', shares: 10, cost: 200 },
+    ]);
+    expect(h.sells).toHaveLength(1);
+    // 20 bought − 2 sold = 18 net shares, not the 10 that were typed.
+    expect(h.shares).toBeCloseTo(18, 9);
+    expect(h.cost).toBeGreaterThan(0);
+  });
+
+  it('a brand-new ticker still seeds a single lot (no ledger to keep)', () => {
+    const { handlers, get } = setup(withLedger());
+    handlers.addHolding('CM', 'TSLA', 3, 300, 310, '2026-02-01', 'append');
+    const h = get().holdings.TSLA;
+    expect(h.lots).toEqual([{ date: '2026-02-01', shares: 3, cost: 300 }]);
+    expect(h.shares).toBe(3);
+    expect(h.sells).toBeUndefined();
+  });
+});

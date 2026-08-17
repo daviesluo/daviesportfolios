@@ -145,3 +145,18 @@ export function displayTicker(ticker) {
   const stripped = String(ticker || '').replace(/\.[A-Za-z]{1,4}$/, '');
   return TICKER_DISPLAY_ALIASES[stripped] || stripped;
 }
+
+/**
+ * "Did this row actually move?" — one threshold, shared by every
+ * surface that ranks or colours a day change.
+ *
+ * 0.005 is the rounding boundary of the two-decimal percent the UI
+ * prints: anything under it renders as "0.00%". The heatmap already
+ * painted those tiles flat/neutral, but Top Movers ranked them with a
+ * bare `> 0` / `< 0`, so a -0.004 % row showed up as a dark "no change"
+ * tile AND as a red LOSERS entry reading "-0.00%" at the same time
+ * (MSFT, 2026-08). Same number, two different verdicts.
+ */
+export function pctIsFlat(pct) {
+  return pct == null || !isFinite(pct) || Math.abs(pct) < 0.005;
+}
