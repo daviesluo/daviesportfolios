@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   snapshotBucket, saveSnapshot, loadSnapshots, SNAPSHOT_INTERVAL_MS,
   RANGE_BUCKET_SECONDS, snapshotCacheKey, readCachedSnapshots, refreshSnapshots,
+  dropDepositSpikes,
 } from './portfolio_snapshots.js';
 import { YtdStore } from './chart_store.js';
 
@@ -178,5 +179,41 @@ describe('refreshSnapshots — a coarse bucket must not erase a sparse series', 
     }));
     await refreshSnapshots('1D', 1000);
     expect(buckets).toEqual([300]);
+  });
+});
+
+describe('dropDepositSpikes', () => {
+  const row = (ts, deposit, value = 100) => ({ ts, value, deposit });
+
+  it('drops a reading that jumps and comes straight back', () => {
+    // Real rows from 17 Aug: an FX pair Yahoo didn't return made
+    // fxRateToUSD fall back to 1:1, so a CNY position landed at seven
+    // times its size for one sample.
+    const out = dropDepositSpikes([
+      row(1, 132_000), row(2, 132_000), row(3, 900_000), row(4, 132_000), row(5, 132_000),
+    ]);
+    expect(out.map(r => r.deposit)).toEqual([132_000, 132_000, 132_000, 132_000]);
+  });
+
+  it('leaves a genuine deposit alone — money in is a STEP, not a spike', () => {
+    // The neighbours have to agree with EACH OTHER before the middle is
+    // judged, and a real deposit makes them disagree permanently.
+    const rows = [row(1, 132_000), row(2, 132_000), row(3, 142_000), row(4, 142_000)];
+    expect(dropDepositSpikes(rows)).toEqual(rows);
+  });
+
+  it('keeps ordinary drift and the endpoints', () => {
+    const rows = [row(1, 100), row(2, 100.5), row(3, 101), row(4, 101.2)];
+    expect(dropDepositSpikes(rows)).toEqual(rows);
+    // Too short to judge anything.
+    expect(dropDepositSpikes([row(1, 1), row(2, 999)])).toHaveLength(2);
+    expect(dropDepositSpikes([])).toEqual([]);
+  });
+
+  it('drops several separate spikes in one window', () => {
+    const out = dropDepositSpikes([
+      row(1, 100), row(2, 700), row(3, 100), row(4, 100), row(5, 700), row(6, 100),
+    ]);
+    expect(out.map(r => r.deposit)).toEqual([100, 100, 100, 100]);
   });
 });

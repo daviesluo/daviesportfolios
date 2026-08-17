@@ -132,6 +132,47 @@ export async function refreshSnapshots(rangeKey, sinceMs) {
 }
 
 /**
+ * Drop one-sample spikes in the deposit column.
+ *
+ * Money paid in is a STEP: it moves once and stays. A figure that jumps
+ * and comes straight back on the next sample is not a cash movement, it
+ * is a bad reading — and there are real ones in the table, written on 17
+ * Aug before the sampler learned to skip a tick with a missing FX pair.
+ * A CNY position converted at a fallback 1:1 instead of ~0.14 lands
+ * seven times its real size, so the spikes are enormous and unmistakable
+ * next to their neighbours.
+ *
+ * Deliberately narrow: the neighbours must agree with EACH OTHER to
+ * within 1 % before the middle is judged, so a genuine deposit (which
+ * makes the two sides disagree permanently) is never touched. First and
+ * last samples have no pair to be judged against and are always kept.
+ *
+ * This is display-side repair, not a substitute for deleting the rows —
+ * it just means nobody has to.
+ *
+ * @template {{value:number, deposit:number}} T
+ * @param {T[]} rows ascending
+ * @returns {T[]}
+ */
+export function dropDepositSpikes(rows) {
+  if (!Array.isArray(rows) || rows.length < 3) return rows || [];
+  const rel = (a, b) => {
+    const hi = Math.max(Math.abs(a), Math.abs(b));
+    return hi > 0 ? Math.abs(a - b) / hi : 0;
+  };
+  const out = [rows[0]];
+  for (let i = 1; i < rows.length - 1; i++) {
+    const prev = rows[i - 1], cur = rows[i], next = rows[i + 1];
+    const isolated = rel(prev.deposit, next.deposit) <= 0.01
+      && rel(cur.deposit, prev.deposit) > 0.02
+      && rel(cur.deposit, next.deposit) > 0.02;
+    if (!isolated) out.push(cur);
+  }
+  out.push(rows[rows.length - 1]);
+  return out;
+}
+
+/**
  * Stored samples from `sinceMs` to now, oldest first, as
  * `[{ ts, value, deposit }]` with `ts` in epoch ms. Empty on any
  * failure — the chart falls back to deriving the window from the
@@ -155,14 +196,16 @@ export async function loadSnapshots(sinceMs, bucketSeconds = RANGE_BUCKET_SECOND
     // would turn a null column into a real-looking zero and punch a hole
     // in the chart. Require an actual number before converting.
     const num = (v) => (typeof v === 'number' && isFinite(v) ? v : NaN);
-    return rows
-      .map((r) => ({
-        ts: Date.parse(r?.ts),
-        value: num(r?.value_usd),
-        deposit: num(r?.deposit_usd),
-      }))
-      .filter((r) => isFinite(r.ts) && isFinite(r.value) && isFinite(r.deposit))
-      .sort((a, b) => a.ts - b.ts);
+    return dropDepositSpikes(
+      rows
+        .map((r) => ({
+          ts: Date.parse(r?.ts),
+          value: num(r?.value_usd),
+          deposit: num(r?.deposit_usd),
+        }))
+        .filter((r) => isFinite(r.ts) && isFinite(r.value) && isFinite(r.deposit))
+        .sort((a, b) => a.ts - b.ts),
+    );
   } catch {
     return [];
   }
