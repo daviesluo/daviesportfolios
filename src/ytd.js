@@ -15,7 +15,14 @@ export const RANGES = {
   // Yahoo limits 30m bars to 60 days and 60m bars to 730 days, both well
   // within these ranges.
   '1D':  { yahooRange: '1d',  interval: '5m',  label: '1D'  },
-  '1W':  { yahooRange: '5d',  interval: '30m', label: '1W'  },
+  // 1W fetches a MONTH and trims to the trailing 168 h (see
+  // fetchParamsFor / applyVariantFilter). Yahoo's `5d` is five TRADING
+  // sessions, which spans Mon→Fri — 4.3 days, not a week — so the "1W"
+  // button was showing noticeably less than it claimed. There is no
+  // Yahoo range between `5d` and `1mo`, so the week has to be cut out of
+  // the month client-side. `60m` keeps that download the same shape the
+  // 1M range already pulls rather than doubling it at 30m.
+  '1W':  { yahooRange: '1mo', interval: '60m', label: '1W'  },
   '1M':  { yahooRange: '1mo', interval: '60m', label: '1M'  },
   '3M':  { yahooRange: '3mo', interval: '1d',  label: '3M'  },
   'YTD': { yahooRange: 'ytd', interval: '1d',  label: 'YTD' },
@@ -60,6 +67,7 @@ export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
  */
 export function fetchParamsFor(rangeKey, extendedHours, phase) {
   const r = RANGES[rangeKey] || RANGES.YTD;
+  if (rangeKey === '1W') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'w1' };
   if (rangeKey !== '1D') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'std' };
   if (phase === 'regular') return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'reg' };
   if (extendedHours)       return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'ext' };
@@ -303,8 +311,22 @@ export function fillVenueSessionGrid(points, session, nowMs = Date.now()) {
 // each need their own `data &&` guard.
 export function applyVariantFilter(data, variant) {
   if (!data) return data;
-  if (variant === 'closed') return filterToLatestDay(data);
-  if (variant === 'reg' || variant === 'ext') return filterToLast24h(data);
+  // 1W: cut the trailing week out of the fetched month. Both variants
+  // trim — `1w-ext` (PerfChart's ext-on week, which additionally pulls
+  // pre/post bars) used to pass through untouched because the fetch was
+  // already a 5-day window; now that 1W fetches a MONTH to cover a real
+  // week, letting it through would draw a month under a "1W" button.
+  if (variant === 'w1' || variant === '1w-ext') return filterToLastHours(data, 24 * 7);
+  // Every 1D variant is the same trailing 24 h. `closed` used to take
+  // the latest CALENDAR day instead, so with the Extended Hours toggle
+  // off the "1D" window silently changed length depending on the phase
+  // — a few hours just after the open, a full session later on — and
+  // disagreed with what the same button showed with the toggle on. The
+  // benchmark and whether pre/post bars are included still follow the
+  // toggle; only the window length is now the same either way.
+  if (variant === 'closed' || variant === 'reg' || variant === 'ext') {
+    return filterToLast24h(data);
+  }
   return data;
 }
 

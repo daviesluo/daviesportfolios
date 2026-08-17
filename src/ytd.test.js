@@ -533,10 +533,30 @@ describe('applyVariantFilter', () => {
     { date: `${today}T15:00`, close: 4 },
   ];
 
-  it("'closed' keeps only the latest trading day", () => {
-    const out = applyVariantFilter(series, 'closed');
-    expect(out.every(p => p.date.startsWith(today))).toBe(true);
-    expect(out).toHaveLength(2);
+  it("'closed' trims to the trailing 24h, same as 'reg' / 'ext'", () => {
+    // It used to keep only the latest CALENDAR day, so with the Extended
+    // Hours toggle off the 1D window's length changed with the phase — a
+    // couple of hours just after the open, a full session later — and
+    // disagreed with what the same button showed with the toggle on.
+    // Every 1D variant is one trailing 24 h now; only the benchmark and
+    // whether pre/post bars are fetched still follow the toggle.
+    const stale = [{ date: '2020-01-01T01:00', close: 0 }, ...series];
+    expect(applyVariantFilter(stale, 'closed')).toEqual(applyVariantFilter(stale, 'reg'));
+    // …and the >24h-old bar is gone.
+    expect(applyVariantFilter(stale, 'closed').some(p => p.date.startsWith('2020'))).toBe(false);
+  });
+
+  it("'w1' / '1w-ext' cut the trailing week out of the fetched month", () => {
+    // 1W fetches a MONTH (Yahoo has no range between 5d and 1mo) so the
+    // window has to be trimmed back to a real week; leaving '1w-ext'
+    // untrimmed would have drawn a month under the 1W button.
+    const monthAgo = new Date(Date.now() - 20 * 86400_000).toISOString().slice(0, 16);
+    const wide = [{ date: monthAgo, close: 0 }, ...series];
+    for (const v of ['w1', '1w-ext']) {
+      const out = applyVariantFilter(wide, v);
+      expect(out.some(p => p.date === monthAgo)).toBe(false);
+      expect(out.length).toBeGreaterThanOrEqual(2);
+    }
   });
 
   it("'reg' and 'ext' trim to the trailing 24h", () => {
@@ -754,5 +774,45 @@ describe('fillVenueSessionGrid (sparse-tape venue listing → fixed 07:00–21:0
     expect(fillVenueSessionGrid(null, SESSION)).toBeNull();
     const noSession = [P('2026-07-15T06:00', 1)];
     expect(fillVenueSessionGrid(noSession, null)).toBe(noSession);
+  });
+});
+
+// Every range's chart is an INDEXED comparison: both lines are rebased to
+// 0 % at the window's first point, so the left edge is a common origin
+// and "who is ahead over this window" is readable directly. They used to
+// be measured against a basis OUTSIDE the window — the S&P against the
+// last close before it, the portfolio against cost / prevClose — so a
+// chart of "the last week" opened at whatever the move happened to be
+// and the two lines started at different heights.
+describe('PerfChart rebasing — both series start at 0%', () => {
+  // The two transforms perf_chart.jsx applies, kept here as executable
+  // documentation of the contract the component has to satisfy.
+  const rebasePort = (pts) => pts.map(p => ({ ...p, pct: p.pct - pts[0].pct }));
+  const rebaseSp = (pts) => pts.map(p => ({ ...p, pct: ((p.close - pts[0].close) / pts[0].close) * 100 }));
+
+  it('the portfolio line starts at exactly 0 and keeps its shape', () => {
+    const raw = [{ date: 'a', pct: 12.5 }, { date: 'b', pct: 14.5 }, { date: 'c', pct: 11.5 }];
+    const out = rebasePort(raw);
+    expect(out[0].pct).toBe(0);
+    // A shift, not a reshape: every gap between points is unchanged, so
+    // the underlying basis maths (including how in-period buys are
+    // folded into the basis) still drives the curve.
+    expect(out[1].pct - out[0].pct).toBeCloseTo(raw[1].pct - raw[0].pct, 12);
+    expect(out[2].pct - out[1].pct).toBeCloseTo(raw[2].pct - raw[1].pct, 12);
+  });
+
+  it('the S&P line starts at exactly 0 and reads as a return over the window', () => {
+    const raw = [{ date: 'a', close: 200 }, { date: 'b', close: 210 }, { date: 'c', close: 190 }];
+    const out = rebaseSp(raw);
+    expect(out[0].pct).toBe(0);
+    expect(out[1].pct).toBeCloseTo(5, 12);    // 200 → 210
+    expect(out[2].pct).toBeCloseTo(-5, 12);   // 200 → 190
+  });
+
+  it('both lines share the origin, whatever their pre-window basis was', () => {
+    const port = rebasePort([{ date: 'a', pct: -3.2 }, { date: 'b', pct: 1.1 }]);
+    const sp = rebaseSp([{ date: 'a', close: 5000 }, { date: 'b', close: 5100 }]);
+    expect(port[0].pct).toBe(0);
+    expect(sp[0].pct).toBe(0);
   });
 });
