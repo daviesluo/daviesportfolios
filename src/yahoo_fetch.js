@@ -18,6 +18,7 @@ import {
 } from './proxy_chain.js';
 import { isUsEquity, hasOvernightSession } from './ticker_class.js';
 import { SB_URL, SB_ANON } from './supabase_config.js';
+import { getAppToken } from './auth.js';
 
 // OTC ADRs like SoftBank (SFTBY) quote ONLY their regular US session —
 // no pre-market, no after-hours, no overnight. Yahoo nonetheless ships a
@@ -38,6 +39,19 @@ export function quotesRegularSessionOnly(ticker) {
 // path while auth/data kept working.
 const EDGE_PRICES_URL = `${SB_URL}/functions/v1/prices`;
 const EDGE_ANON_KEY   = SB_ANON;
+
+// Every Edge call carries the app token as well as the anon key. The
+// anon key ships inside the public bundle, so on its own it gated
+// nothing — these endpoints hit paid / rate-limited upstreams and were
+// usable by anyone who read the key out of the JS. The token is
+// per-user and derived from the password, so it's the actual control.
+function edgeHeaders() {
+  return {
+    Authorization: `Bearer ${EDGE_ANON_KEY}`,
+    apikey: EDGE_ANON_KEY,
+    'X-App-Token': getAppToken(),
+  };
+}
 
 // Regular US session in exchange-local minutes-of-day — the same
 // 9:30-16:00 window the prices Edge Function buckets candles by.
@@ -393,10 +407,7 @@ async function fetchViaEdge(liveTickers) {
     const res = await fetch(
       `${EDGE_PRICES_URL}?tickers=${liveTickers.map(encodeURIComponent).join(",")}`,
       {
-        headers: {
-          "Authorization": `Bearer ${EDGE_ANON_KEY}`,
-          "apikey": EDGE_ANON_KEY,
-        },
+        headers: edgeHeaders(),
         cache: "no-store",
         signal: controller.signal,
       }
@@ -573,7 +584,7 @@ export async function fetchFundamentals(symbols, opts = {}) {
     const url =
       `${EDGE_PRICES_URL.replace(/\/prices$/, "/fundamentals")}${qs}`;
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
+      headers: edgeHeaders(),
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return {};
