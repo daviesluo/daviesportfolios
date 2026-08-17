@@ -55,9 +55,11 @@ export function perfVariantKey(rangeKey, extendedHours, phase) {
 
 // Fetch params. 1W gains pre/post-market bars when the ext toggle is on
 // (paired with ES=F on the S&P side + the recorded-overnight merge below,
-// this is what puts the night session into the week view); the '1w-ext'
-// variant passes through applyVariantFilter untouched so the full 5-day
-// window is kept. Every other case defers to the shared fetchParamsFor.
+// this is what puts the night session into the week view). Both 1W
+// variants are trimmed to the trailing 168 h by applyVariantFilter — the
+// fetch is a MONTH because Yahoo has no range between `5d` (five trading
+// sessions = 4.3 days, less than the week the button claims) and `1mo`.
+// Every other case defers to the shared fetchParamsFor.
 export function perfFetchParams(rangeKey, extendedHours, phase) {
   if (rangeKey === '1W' && extendedHours) {
     const r = RANGES['1W'];
@@ -565,37 +567,10 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 
   const useExt = !!(extendedHours && phase && phase !== "regular");
 
-  // S&P 500 baseline. 1D anchors at "the most recent 16:00 ET regular
-  // close that has occurred":
-  //   - regular hours → prevClose (yesterday's close from marketData)
-  //   - ext-on AH/PM  → today's 16:00 ET bar from the fetched ES=F
-  //                     window (= the bar at exactly closeHh:closeMm
-  //                     UTC), so the chart's right-edge % is the move
-  //                     since today's just-finished cash close. The
-  //                     ticker-drill modal uses the same anchor and
-  //                     the MC card's todayRegularClose field is filled
-  //                     from the same bar lookup, so all three agree.
-  // For daily ranges the basis is the last close strictly before anchorDate.
-  let spBase;
-  if (rangeKey === '1D') {
-    if (useExt) {
-      // Bar at the regular close (strict closeHh:closeMm — a hh<closeHh
-      // fallback would mis-select a premarket bar; see findRegularCloseIdx).
-      const closeIdx = findRegularCloseIdx(spWindow, mh);
-      const gspc = marketData?.['^GSPC'];
-      spBase = closeIdx >= 0
-        ? spWindow[closeIdx].close
-        : (gspc && gspc.lastPrice && gspc.lastPrice > 0
-            ? gspc.lastPrice
-            : (marketData?.[spSymbol]?.prevClose ?? spWindow[0].close));
-    } else {
-      const md = marketData?.[spSymbol];
-      spBase = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : spWindow[0].close;
-    }
-  } else {
-    const spPrior = hasSp ? allSp.filter(p => p.date < anchorDate) : [];
-    spBase = spPrior.length > 0 ? spPrior[spPrior.length - 1].close : spWindow[0].close;
-  }
+  // (The S&P line no longer needs a basis picked from OUTSIDE the
+  // window — prevClose, today's 16:00 ET bar, the last close before the
+  // anchor. Both lines are rebased to the window's own first point
+  // further down, so the old per-range basis selection went with it.)
 
   /** @type {Record<string, {date:string,close:number}[]>} */
   const histForTickers = {};
@@ -652,8 +627,30 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // S&P 500 normalised from prior-year-end close (computed earlier as
   // spBase). Empty when hasSp is false; downstream rendering already
   // guards against empty spNorm arrays via .length checks.
-  const portNorm = portYtd;
-  const spNorm   = hasSp ? spYtd.map(p => ({ date: p.date, pct: ((p.close - spBase) / spBase) * 100 })) : [];
+  // Both lines are REBASED to 0 % at the window's first point, on every
+  // range. Previously each was measured against a basis that sat OUTSIDE
+  // the window — the S&P against the last close before it, the portfolio
+  // against cost / prevClose — so a chart of "the last week" opened at
+  // whatever the move happened to be at that moment (often several
+  // percent) and the two lines started at different heights. You could
+  // not read "who is ahead over this window" off the left edge, which is
+  // the entire point of an indexed comparison chart.
+  //
+  // Rebasing is a shift, not a reshape: every point keeps the same
+  // spacing it had, so nothing about the underlying basis maths changes
+  // — including how in-period buys are handled (`computeAt` still folds
+  // their cost into the basis; a mid-window purchase does not read as
+  // performance). It just moves the origin onto the left edge.
+  //
+  // For 1D this is also what makes the reading a genuine trailing-24 h
+  // change rather than the scoreboard's day change: the right edge is
+  // now "since this point 24 h ago", not "since the previous close".
+  const portBase = portYtd[0].pct;
+  const portNorm = portYtd.map(p => ({ date: p.date, pct: p.pct - portBase }));
+  const spOpen   = hasSp && spYtd.length > 0 ? spYtd[0].close : 0;
+  const spNorm   = (hasSp && spOpen > 0)
+    ? spYtd.map(p => ({ date: p.date, pct: ((p.close - spOpen) / spOpen) * 100 }))
+    : [];
 
   // SVG coordinate helpers
   const W = 300, H = 106;
