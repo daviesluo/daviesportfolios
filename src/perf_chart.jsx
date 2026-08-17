@@ -1150,9 +1150,29 @@ function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hid
       .filter(Boolean);
     if (dates.length === 0) return [];
     const uniqueDates = Array.from(new Set(dates)).sort();
-    const tickerSeries = buildTickerSeries(hist, uniqueDates[0], rangeKey, marketData, false);
-    return deriveSeries({ portfolio, tickerSeries, marketData, fxToUSD, dates: uniqueDates });
-  }, [portfolio, marketData, rangeKey, hist]);
+    // `marketData` (parent state) only carries indices / forex — per-stock
+    // prices live on the holdings. The vs-S&P chart merges the two before
+    // it computes anything, and the value here is the same computation, so
+    // it has to see the same map: without the merge every stock's
+    // prevClose / lastPrice reads undefined, which changes the 1D anchor
+    // and the live right-edge point.
+    /** @type {Record<string, any>} */
+    const tickerMarketData = { ...marketData };
+    for (const [t, h] of Object.entries(portfolio?.holdings || {})) {
+      const hh = /** @type {any} */ (h);
+      if (hh?.isCash || t === 'CASH') continue;
+      tickerMarketData[t] = {
+        prevClose: hh?.prevClose, lastPrice: hh?.lastPrice,
+        extPrice: hh?.extPrice ?? null, dayPct: hh?.dayPct,
+      };
+    }
+    const useExt = !!(extendedHours && phase && phase !== 'regular');
+    const tickerSeries = buildTickerSeries(hist, uniqueDates[0], rangeKey, tickerMarketData, useExt);
+    return deriveSeries({
+      portfolio, tickerSeries, marketData: tickerMarketData, fxToUSD,
+      dates: uniqueDates, useExt, rangeKey,
+    });
+  }, [portfolio, marketData, rangeKey, hist, extendedHours, phase]);
 
   const series = React.useMemo(
     () => mergeSeries(snapshots, derived, startMs),

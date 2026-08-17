@@ -552,8 +552,23 @@ export function computeAt(opts) {
         ? livePrice
         : (ts ? closeOn(tickerSeries, ticker, date) : null);
       if (priceAtD == null) {
-        // No historical data: linearly interpolate from cost @ lot.date to
-        // current lastPrice @ today.
+        // Before the series starts, carry its FIRST known close
+        // backwards. `closeOn` only looks at or before the date, so a
+        // ticker whose history begins inside the window returns null for
+        // everything to its left — and the interpolation below then
+        // guessed a price from lot cost, which invents a move the stock
+        // never made. Measured against closed-form arithmetic: a holding
+        // whose history starts late read 4.2 % on a window that really
+        // did 5.83 %, and one with no history at all read 5 % on a true
+        // 4.17 %. "Flat before we have data" is the ordinary treatment
+        // for a gap and is right far more often.
+        const known = ts && Array.isArray(ts.series) && ts.series.length > 0
+          ? ts.series[0].close : null;
+        priceAtD = (typeof known === 'number' && known > 0) ? known : null;
+      }
+      if (priceAtD == null) {
+        // Genuinely no series at all (a CN fund or `.PVT` on an intraday
+        // range): interpolate from cost @ lot.date to today's price.
         const lotMs = new Date(lot.date).getTime();
         const dMs = new Date(date).getTime();
         const tgtPrice = (lastPrice != null && lastPrice > 0) ? lastPrice : lot.cost;
@@ -582,8 +597,18 @@ export function computeAt(opts) {
         // the day %.
         basisPrice = (janPrice != null && janPrice > 0) ? janPrice : priceAtD;
       } else if (lot.date < anchorDay) {
-        if (janPrice == null) continue; // skip — no Jan 1 baseline available
-        basisPrice = janPrice;
+        // No baseline for this lot → count it FLAT (basis = its price at
+        // this date) instead of dropping it. The `continue` here removed
+        // the holding from the value AND the basis at every point, so a
+        // position with no fetchable price history — a CN fund or `.PVT`
+        // on an intraday range — simply wasn't in the portfolio as far as
+        // either chart was concerned. That understated the Investment
+        // chart's value line by the whole holding, and skewed the vs-S&P
+        // percentage by leaving it out of the denominator too (5 % on a
+        // window that really did 4.17 %). Same principle the
+        // prevCloseBasis branch above already applies when prevClose is
+        // missing: flat, not absent.
+        basisPrice = (janPrice != null && janPrice > 0) ? janPrice : priceAtD;
       } else {
         basisPrice = lot.cost;
       }

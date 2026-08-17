@@ -18,7 +18,7 @@
 
 import React from 'react';
 import { fmtMoney, maskDigits } from './formatters.js';
-import { RANGES, RANGE_KEYS, investmentPointAt } from './ytd.js';
+import { RANGES, RANGE_KEYS, investmentPointAt, computeAt } from './ytd.js';
 import { pointerToDataIndex, crosshairFormatFor } from './chart_geometry.js';
 
 /** Window length per range, in ms. Mirrors the vs-S&P chart's ranges. */
@@ -612,20 +612,50 @@ export function InvestmentChart({ series, rangeKey, setRangeKey, hideValues }) {
  * Derive the ledger-only series over a window. Used for everything older
  * than the first stored sample.
  *
+ * The VALUE comes from `computeAt` — the very same call the vs-S&P chart
+ * makes for its PORTFOLIO line, given the same inputs. That is the whole
+ * point: this chart is that line in dollars, so it has no business
+ * arriving at a different number for the same moment. Two independent
+ * reconstructions of one quantity drift, and did: one priced a missing
+ * bar by carrying the last close, the other by interpolating from lot
+ * cost, and the two charts disagreed about the same week.
+ *
+ * The DEPOSIT still comes from `investmentPointAt`, which is a different
+ * question — money in, not market value — and needs the sells that
+ * `computeAt` has no reason to track.
+ *
  * @param {{
  *   portfolio: any, tickerSeries: any, marketData: any,
- *   fxToUSD: any, dates: string[],
+ *   fxToUSD: any, dates: string[], useExt?: boolean, rangeKey?: string,
  * }} opts
  * @returns {{ts:number, value:number, deposit:number}[]}
  */
-export function deriveSeries({ portfolio, tickerSeries, marketData, fxToUSD, dates }) {
+export function deriveSeries({ portfolio, tickerSeries, marketData, fxToUSD, dates, useExt = false, rangeKey = 'YTD' }) {
   const out = [];
-  for (const d of (dates || [])) {
+  const all = dates || [];
+  if (all.length === 0) return out;
+  const yearStart = all[0];
+  const liveAnchorDate = all[all.length - 1];
+  const todayMs = Date.now();
+  for (const d of all) {
     const ts = Date.parse(d.length > 10 ? `${d}:00Z` : `${d}T00:00:00Z`);
     if (!isFinite(ts)) continue;
-    const { value, netDeposit } = investmentPointAt({
+    const { value } = computeAt({
+      portfolio, tickerSeries, marketData, fxToUSD, date: d,
+      yearStart, yearStartDate: yearStart, todayMs, liveAnchorDate, useExt,
+      // The vs-S&P line forces a prevClose basis on 1D so its right edge
+      // equals the scoreboard's DAY CHANGE. That only moves the BASIS,
+      // never the value, so it's irrelevant here — passed anyway so the
+      // two calls stay literally identical.
+      prevCloseBasis: rangeKey === '1D',
+    });
+    const { netDeposit } = investmentPointAt({
       portfolio, tickerSeries, date: d, marketData, fxToUSD,
     });
+    // One NaN would take the whole axis with it — a holding whose
+    // `shares` never got filled in is enough to produce one, via the
+    // stand-in lot `lotsFor` swaps in. Drop the point instead.
+    if (!isFinite(value) || !isFinite(netDeposit)) continue;
     out.push({ ts, value, deposit: netDeposit });
   }
   return out;
