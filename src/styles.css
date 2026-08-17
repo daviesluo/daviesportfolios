@@ -936,6 +936,19 @@ body {
   transition: background 0.12s, color 0.12s, border 0.12s;
 }
 .perf-range-btn:hover { color: var(--chalk); border-color: var(--chalk-dim); }
+/* 1D baseline switch — sits in the range row but reads as a modifier of
+   it, not a sixth range, so it's dimmer and dashed. */
+.perf-basis-btn {
+  background: transparent;
+  border: 1px dashed var(--line);
+  color: var(--chalk-mute);
+  font-size: 9px; letter-spacing: 0.08em;
+  padding: 3px 6px;
+  cursor: pointer;
+  border-radius: 3px;
+  margin-left: 4px;
+}
+.perf-basis-btn:hover { color: var(--chalk-dim); border-color: var(--chalk-dim); }
 .perf-range-btn.on {
   background: rgba(255,255,255,0.06);
   color: var(--chalk);

@@ -56,7 +56,7 @@ vi.mock('./chart_store.js', () => {
 
 vi.mock('./ops_error.js', () => ({ reportError: vi.fn() }));
 
-import { PerfChart, PerfPanel, spSymbolFor, perfVariantKey, perfFetchParams, crosshairFormatFor } from './perf_chart.jsx';
+import { PerfChart, PerfPanel, spSymbolFor, perfVariantKey, perfFetchParams, crosshairFormatFor, perfBaseline } from './perf_chart.jsx';
 import { applyVariantFilter } from './ytd.js';
 import { YtdStore } from './chart_store.js';
 
@@ -205,5 +205,45 @@ describe('PerfPanel — chrome wrapper', () => {
       />,
     );
     expect(container.querySelector('.x')).toBeTruthy();
+  });
+});
+
+describe('perfBaseline — what each line is measured from', () => {
+  const args = { windowFirstClose: 7100, portFirstPct: 3.0, spPrevClose: 7000 };
+
+  it('1D measures from the PREVIOUS CLOSE, so the chart agrees with the scoreboard', () => {
+    // Rebasing 1D to the window's own first bar made this chart disagree
+    // with the scoreboard's DAY CHANGE and the Market Conditions card by
+    // the size of the overnight gap — three numbers for one day on one
+    // screen. computeAt is already handed prevCloseBasis on 1D, so the
+    // portfolio series IS the day change and needs no shift at all.
+    const out = perfBaseline({ rangeKey: '1D', ...args });
+    expect(out.dayMode).toBe(true);
+    expect(out.portShift).toBe(0);
+    expect(out.spBase).toBe(7000);
+  });
+
+  it('falls back to the window when there is no previous close to quote', () => {
+    // The bars are trimmed to a trailing 24 h before they're cached, so
+    // on a Monday the last close isn't among them — it has to come from
+    // the quote, and when that's missing the window is all there is.
+    expect(perfBaseline({ rangeKey: '1D', ...args, spPrevClose: undefined }).spBase).toBe(7100);
+    expect(perfBaseline({ rangeKey: '1D', ...args, spPrevClose: 0 }).spBase).toBe(7100);
+  });
+
+  it('the 24h toggle rebases to the window, as every other range does', () => {
+    const out = perfBaseline({ rangeKey: '1D', dayBasis: '24h', ...args });
+    expect(out.dayMode).toBe(false);
+    expect(out.portShift).toBe(3.0);
+    expect(out.spBase).toBe(7100);
+  });
+
+  it('leaves every other range rebased to its own first point', () => {
+    for (const rk of ['1W', '1M', '3M', 'YTD']) {
+      const out = perfBaseline({ rangeKey: rk, ...args });
+      expect(out.dayMode).toBe(false);
+      expect(out.portShift).toBe(3.0);
+      expect(out.spBase).toBe(7100);
+    }
   });
 });
