@@ -134,3 +134,49 @@ describe('range buckets + cache', () => {
     expect(readCachedSnapshots('1W')).toBeNull();
   });
 });
+
+describe('refreshSnapshots — a coarse bucket must not erase a sparse series', () => {
+  it('retries at the finest bucket when the coarse read can\'t make a line', async () => {
+    // Day one: two samples five minutes apart. A 30-minute bucket (1W)
+    // folds them into one point, so the panel showed "Insufficient data"
+    // with the data sitting right there.
+    const buckets = [];
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url) => {
+      const b = Number(new URL(String(url), 'https://x').searchParams.get('bucket'));
+      buckets.push(b);
+      const rows = b >= 1800
+        ? [{ ts: '2026-08-17T03:30:00Z', value_usd: 100, deposit_usd: 90 }]
+        : [
+            { ts: '2026-08-17T03:45:00Z', value_usd: 100, deposit_usd: 90 },
+            { ts: '2026-08-17T03:55:00Z', value_usd: 101, deposit_usd: 90 },
+          ];
+      return { ok: true, json: async () => ({ snapshots: rows }) };
+    }));
+    const out = await refreshSnapshots('1W', 1000);
+    expect(buckets).toEqual([1800, 300]);   // coarse first, then finest
+    expect(out).toHaveLength(2);
+  });
+
+  it('does not double-fetch once the coarse read already has a line', async () => {
+    const buckets = [];
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url) => {
+      buckets.push(Number(new URL(String(url), 'https://x').searchParams.get('bucket')));
+      return { ok: true, json: async () => ({ snapshots: [
+        { ts: '2026-08-17T03:00:00Z', value_usd: 100, deposit_usd: 90 },
+        { ts: '2026-08-17T03:30:00Z', value_usd: 101, deposit_usd: 90 },
+      ] }) };
+    }));
+    await refreshSnapshots('1W', 1000);
+    expect(buckets).toEqual([1800]);
+  });
+
+  it('1D never retries — it is already the finest bucket', async () => {
+    const buckets = [];
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url) => {
+      buckets.push(Number(new URL(String(url), 'https://x').searchParams.get('bucket')));
+      return { ok: true, json: async () => ({ snapshots: [] }) };
+    }));
+    await refreshSnapshots('1D', 1000);
+    expect(buckets).toEqual([300]);
+  });
+});

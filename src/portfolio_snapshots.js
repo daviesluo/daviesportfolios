@@ -112,7 +112,18 @@ export function readCachedSnapshots(rangeKey) {
  * to revalidate.
  */
 export async function refreshSnapshots(rangeKey, sinceMs) {
-  const rows = await loadSnapshots(sinceMs, RANGE_BUCKET_SECONDS[rangeKey]);
+  const bucket = RANGE_BUCKET_SECONDS[rangeKey] ?? RANGE_BUCKET_SECONDS['1D'];
+  let rows = await loadSnapshots(sinceMs, bucket);
+  // A coarse bucket must not erase a sparse series. With only a handful
+  // of samples recorded so far, a 30-minute bucket collapses two
+  // 5-minute-apart rows into ONE point and the panel reads "Insufficient
+  // data" while the data is sitting right there — which is exactly what
+  // 1W and up showed on day one. Retry at the finest bucket when the
+  // coarse read can't make a line; once sampling has been running a
+  // while the first read already has plenty and this never fires.
+  if (rows.length < 2 && bucket > RANGE_BUCKET_SECONDS['1D']) {
+    rows = await loadSnapshots(sinceMs, RANGE_BUCKET_SECONDS['1D']);
+  }
   // Only cache a non-empty read. An empty one is ambiguous — no samples
   // yet, or a failed request — and caching it would blank a panel that
   // had perfectly good points a moment ago.
