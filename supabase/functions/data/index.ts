@@ -106,6 +106,71 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
       });
     }
 
+    // ---- Investment Performance time series -------------------------
+    // Both numbers are derivable from the ledger, and the chart still
+    // derives everything from before the first stored row. Recording
+    // them anyway is about the tickers you no longer hold: a sold-out
+    // position leaves the board and the app stops fetching its price
+    // history, so a truthful past value would otherwise mean re-fetching
+    // history for every symbol ever owned.
+
+    if (action === "snapshots" && req.method === "GET") {
+      // Trailing window only — the chart never wants the whole table.
+      const sinceRaw = url.searchParams.get("since") ?? "";
+      const sinceMs = Number(sinceRaw);
+      if (!Number.isFinite(sinceMs) || sinceMs <= 0) {
+        return json(400, { error: "bad since" });
+      }
+      const sinceIso = new Date(sinceMs).toISOString();
+      // Cap the row count so a very old `since` can't stream a year of
+      // 5-minute samples into a phone. 5000 rows ≈ 17 days at full
+      // density, and the daily ranges downsample anyway.
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/portfolio_snapshots` +
+        `?ts=gte.${encodeURIComponent(sinceIso)}` +
+        `&select=ts,value_usd,deposit_usd&order=ts.asc&limit=5000`,
+        { headers: SB_HEADERS, signal: AbortSignal.timeout(5_000) },
+      );
+      if (!res.ok) return json(res.status, { error: "snapshots load failed" });
+      const rows = await res.json();
+      return json(200, { snapshots: Array.isArray(rows) ? rows : [] });
+    }
+
+    if (action === "snapshot" && req.method === "POST") {
+      // Read-only viewers watch the same book; they must not write to it.
+      if (verified.role !== "admin") return json(403, { error: "read-only" });
+      let body: any;
+      try { body = await req.json(); } catch { return json(400, { error: "bad json" }); }
+      const tsMs = Number(body?.ts);
+      const value = Number(body?.valueUsd);
+      const deposit = Number(body?.depositUsd);
+      if (!Number.isFinite(tsMs) || tsMs <= 0) return json(400, { error: "bad ts" });
+      if (!Number.isFinite(value) || !Number.isFinite(deposit)) {
+        return json(400, { error: "bad numbers" });
+      }
+      // `ts` is the client's 5-minute bucket and the table's primary
+      // key, so merge-duplicates makes this idempotent: two devices
+      // sampling in the same bucket overwrite one row instead of
+      // stacking two near-identical points, and a retry can't double
+      // insert.
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/portfolio_snapshots`, {
+        method: "POST",
+        headers: {
+          ...SB_HEADERS,
+          "Content-Type": "application/json",
+          Prefer: "resolution=merge-duplicates,return=minimal",
+        },
+        body: JSON.stringify({
+          ts: new Date(tsMs).toISOString(),
+          value_usd: value,
+          deposit_usd: deposit,
+        }),
+        signal: AbortSignal.timeout(5_000),
+      });
+      if (!res.ok) return json(res.status, { error: "snapshot save failed" });
+      return json(200, { ok: true });
+    }
+
     if (action === "save" && req.method === "POST") {
       if (verified.role !== "admin") return json(403, { error: "read-only" });
       // Body size guard — the portfolio JSON is tens of KB even for a

@@ -10,6 +10,8 @@
 // chart) are both exported. Renderers in app.jsx import only PerfPanel.
 import React from 'react';
 import { fxToUSD } from './fx.js';
+import { InvestmentChart, rangeStartMs, mergeSeries } from './investment_chart.jsx';
+import { loadSnapshots } from './portfolio_snapshots.js';
 import { fetchHistorical, fetchHistoricalBatch } from './historical.js';
 import { usMarketHoursUtc } from './market_hours.js';
 import { YtdStore } from './chart_store.js';
@@ -1020,23 +1022,90 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 // FORMATION VALUE, rendered separately so we can place it in the
 // desktop left column instead of the sidebar. The Sidebar still
 // renders its own copy on tablet/mobile.
-function PerfPanel({ portfolio, marketData, extendedHours, phase, className }) {
+// Data side of the Investment Performance view: stored 5-minute samples
+// for the recent window, ledger-derived points for everything older.
+//
+// The derived half deliberately uses the price history the vs-S&P chart
+// has already cached for the board's tickers. It will not have history
+// for a ticker sold long ago — which is exactly why the samples are
+// recorded — so before the first sample the line reflects what can still
+// be priced. Once samples cover the window, they are the whole line.
+function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hideValues = false }) {
+  const [snapshots, setSnapshots] = React.useState(/** @type {any[]} */ ([]));
+  const nowMs = Date.now();
+  const startMs = rangeStartMs(rangeKey, nowMs);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    loadSnapshots(startMs).then((rows) => {
+      if (!cancelled) setSnapshots(rows);
+    });
+    return () => { cancelled = true; };
+    // Re-fetch when the window changes; `startMs` moves with the clock so
+    // it's rounded to the range key to avoid a fetch on every render.
+  }, [rangeKey]);
+
+  const series = React.useMemo(
+    () => mergeSeries(snapshots, [], startMs),
+    [snapshots, startMs],
+  );
+
+  return (
+    <InvestmentChart
+      series={series}
+      rangeKey={rangeKey}
+      setRangeKey={setRangeKey}
+      hideValues={hideValues}
+    />
+  );
+}
+
+function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false }) {
   // Own the range here so the title can name the actual benchmark: ES=F
   // (ext-on 1D / 1W) → "S&P FUTURES", the cash index otherwise → "S&P 500".
   // The legend dot inside the chart flips the same way (spSymbolFor).
   const [rangeKey, setRangeKey] = React.useState('1D');
+  // Two charts share this slot: the vs-S&P view (relative, in percent)
+  // and Investment Performance (absolute, in dollars). The range carries
+  // across the swap so flipping the view doesn't also change the period
+  // you were looking at.
+  const [view, setView] = React.useState(/** @type {'sp'|'investment'} */ ('sp'));
   const benchmarksFutures = spSymbolFor(rangeKey, extendedHours) === 'ES=F';
+  const isSp = view === 'sp';
   return (
     <section className={`panel ${className || ""}`.trim()}>
-      <h3 className="panel-title">PERFORMANCE VS {benchmarksFutures ? <>S&amp;P FUTURES</> : <>S&amp;P 500</>}</h3>
-      <PerfChart
-        portfolio={portfolio}
-        marketData={marketData}
-        extendedHours={extendedHours}
-        phase={phase}
-        rangeKey={rangeKey}
-        setRangeKey={setRangeKey}
-      />
+      <div className="panel-title-row">
+        <h3 className="panel-title">
+          {isSp
+            ? <>PERFORMANCE VS {benchmarksFutures ? <>S&amp;P FUTURES</> : <>S&amp;P 500</>}</>
+            : <>INVESTMENT PERFORMANCE</>}
+        </h3>
+        <button
+          type="button"
+          className="panel-swap mono"
+          onClick={() => setView(isSp ? 'investment' : 'sp')}
+          title={isSp ? 'Show portfolio value vs net deposited' : 'Show performance vs the S&P'}
+          aria-label={isSp ? 'Switch to Investment Performance' : 'Switch to Performance vs S&P'}
+        >⇄</button>
+      </div>
+      {isSp ? (
+        <PerfChart
+          portfolio={portfolio}
+          marketData={marketData}
+          extendedHours={extendedHours}
+          phase={phase}
+          rangeKey={rangeKey}
+          setRangeKey={setRangeKey}
+        />
+      ) : (
+        <InvestmentPanelBody
+          portfolio={portfolio}
+          marketData={marketData}
+          rangeKey={rangeKey}
+          setRangeKey={setRangeKey}
+          hideValues={hideValues}
+        />
+      )}
     </section>
   );
 }
