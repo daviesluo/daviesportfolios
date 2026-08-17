@@ -8,7 +8,7 @@ import {
   fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS,
   applyVariantFilter, windowSinceLastUsClose, windowBetweenLastTwoUsCloses,
   filterToLastHours, filterToLast24h, fillVenueSessionGrid, investmentPointAt,
-  historyLotsFor } from './ytd.js';
+  historyLotsFor, priceAtOrCarried } from './ytd.js';
 import { isUsTradingDateStr } from './market_hours.js';
 
 const yearStart      = '2026-01-01';
@@ -929,6 +929,49 @@ describe('investmentPointAt', () => {
     }
   });
 
+  it('carries the first known price backwards instead of dropping the holding', () => {
+    // closeOn only ever looks at or BEFORE the date, so before a
+    // ticker's first bar it returns null — and the holding used to fall
+    // out of the value while its deposit kept counting. On a 1D window
+    // over a weekend that emptied the whole book and the value line sat
+    // at the cash balance.
+    const portfolio = { holdings: {
+      NVDA: { currency: 'USD', shares: 10, cost: 100, lastPrice: 130,
+              lots: [{ date: '2026-01-05', shares: 10, cost: 100 }] },
+      CASH: { isCash: true, lastPrice: 500 },
+    } };
+    const tickerSeries = seriesOf({ NVDA: [
+      { date: '2026-08-17T13:30', close: 120 },
+      { date: '2026-08-17T14:30', close: 125 },
+    ] });
+    // A timestamp BEFORE the first bar: 10 sh carried at 120, not zero.
+    const before = investmentPointAt({ portfolio, tickerSeries, date: '2026-08-16T20:00', fxToUSD });
+    expect(before.value).toBeCloseTo(10 * 120 + 500, 9);
+    expect(before.netDeposit).toBeCloseTo(1000 + 500, 9);
+    // …and once the bars start, the real close is used.
+    expect(investmentPointAt({ portfolio, tickerSeries, date: '2026-08-17T14:30', fxToUSD }).value)
+      .toBeCloseTo(10 * 125 + 500, 9);
+  });
+
+  it('does not let a late-starting ticker fake a rally', () => {
+    // Two holdings, one whose history begins mid-window. It used to
+    // appear out of nowhere at its first bar, so a flat week drew as a
+    // steep climb.
+    const portfolio = { holdings: {
+      A: { currency: 'USD', shares: 10, cost: 10, lastPrice: 10,
+           lots: [{ date: '2026-01-01', shares: 10, cost: 10 }] },
+      B: { currency: 'USD', shares: 10, cost: 10, lastPrice: 10,
+           lots: [{ date: '2026-01-01', shares: 10, cost: 10 }] },
+    } };
+    const tickerSeries = seriesOf({
+      A: [{ date: '2026-08-10', close: 10 }, { date: '2026-08-14', close: 10 }],
+      B: [{ date: '2026-08-14', close: 10 }],   // history starts late
+    });
+    const at = (d) => investmentPointAt({ portfolio, tickerSeries, date: d, fxToUSD }).value;
+    expect(at('2026-08-10')).toBeCloseTo(200, 9);
+    expect(at('2026-08-14')).toBeCloseTo(200, 9);
+  });
+
   it('uses the live price for the anchor point, and FX-converts non-USD', () => {
     const portfolio = { holdings: {
       'VUAA.L': { currency: 'GBP', lots: [{ date: '2026-01-05', shares: 10, cost: 80 }] },
@@ -971,5 +1014,28 @@ describe('historyLotsFor', () => {
     expect(historyLotsFor({ shares: 2 })[0].cost).toBe(0);
     // Nothing held → nothing to stand in for.
     expect(historyLotsFor({ shares: 0 })).toEqual([]);
+  });
+});
+
+
+describe('priceAtOrCarried', () => {
+  const series = (rows) => buildTickerSeries(rows, '2026-01-01', 'YTD', {}, false);
+
+  it('prefers the real close at or before the date', () => {
+    const ts = series({ X: [{ date: '2026-01-05', close: 100 }, { date: '2026-02-01', close: 130 }] });
+    expect(priceAtOrCarried(ts, 'X', '2026-02-01', {})).toBe(130);
+    expect(priceAtOrCarried(ts, 'X', '2026-01-20', {})).toBe(100);
+  });
+
+  it('carries the first close backwards before the series starts', () => {
+    const ts = series({ X: [{ date: '2026-01-05', close: 100 }] });
+    expect(priceAtOrCarried(ts, 'X', '2025-12-01', {})).toBe(100);
+  });
+
+  it('falls back to the holding\'s own quote when there is no series at all', () => {
+    // A CN fund or .PVT on an intraday range, or a name sold long enough
+    // ago that nothing fetches its history any more.
+    expect(priceAtOrCarried({}, 'X', '2026-01-05', { lastPrice: 42 })).toBe(42);
+    expect(priceAtOrCarried({}, 'X', '2026-01-05', {})).toBeNull();
   });
 });
