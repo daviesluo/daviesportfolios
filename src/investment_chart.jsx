@@ -127,11 +127,16 @@ export function niceMoneyTicks(min, max, target = 4) {
   const step = candidates.find(fits) ?? candidates[candidates.length - 1];
   const first = Math.floor(lo / step) * step;
   const last = Math.ceil(hi / step) * step;
+  // Multiply out rather than accumulate: repeated addition of a step
+  // that isn't binary-exact drifts, which both drops the top tick
+  // intermittently and lands the zero crossing on −1.4e-14 — labelled
+  // "−$0". Anything within a rounding error of zero IS zero.
+  const count = Math.round((last - first) / step);
   const ticks = [];
-  // Half-step slack on the loop bound absorbs the float drift that
-  // accumulates over ~5 additions; without it the top tick is
-  // intermittently dropped.
-  for (let t = first; t <= last + step * 0.5; t += step) ticks.push(t);
+  for (let i = 0; i <= count; i++) {
+    const t = first + i * step;
+    ticks.push(Math.abs(t) < step * 1e-9 ? 0 : t);
+  }
   return { ticks, step, min: first, max: ticks[ticks.length - 1] ?? last };
 }
 

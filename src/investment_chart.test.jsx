@@ -350,6 +350,17 @@ describe('niceMoneyTicks', () => {
     }
   });
 
+  it('lands the zero crossing on exactly zero', () => {
+    // A step that isn't binary-exact leaves it at −1.4e-14, which labels
+    // as "−$0" — a minus sign on nothing.
+    for (const [lo, hi] of [[-0.3, 0.9], [-30, 90], [-2_500, 7_500]]) {
+      const { ticks } = niceMoneyTicks(lo, hi);
+      const zero = ticks.find(t => Math.abs(t) < 1e-6);
+      expect(zero).toBe(0);
+      expect(Object.is(zero, -0)).toBe(false);
+    }
+  });
+
   it('manufactures a band for a dead-flat series instead of a zero range', () => {
     // A board that hasn't moved has nothing to snap to; without this the
     // line divides by a zero range and pins to the top of the frame.
