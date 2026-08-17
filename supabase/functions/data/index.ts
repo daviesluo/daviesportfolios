@@ -122,14 +122,25 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
         return json(400, { error: "bad since" });
       }
       const sinceIso = new Date(sinceMs).toISOString();
-      // Cap the row count so a very old `since` can't stream a year of
-      // 5-minute samples into a phone. 5000 rows ≈ 17 days at full
-      // density, and the daily ranges downsample anyway.
+      // Bucket size the caller wants a point for. Reading the raw table
+      // does not work: at 5-minute sampling a YTD window is ~60k rows, so
+      // a plain LIMIT either truncates the window (an ascending limit
+      // returns January and drops everything recent — the bug this
+      // replaced) or ships a payload no phone should parse. The RPC
+      // returns the LAST sample per bucket, so the row count follows the
+      // chart's point count instead of the sampling rate.
+      const bucketRaw = Number(url.searchParams.get("bucket") ?? "300");
+      const bucketSeconds = Number.isFinite(bucketRaw)
+        ? Math.min(86_400, Math.max(60, Math.floor(bucketRaw)))
+        : 300;
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/portfolio_snapshots` +
-        `?ts=gte.${encodeURIComponent(sinceIso)}` +
-        `&select=ts,value_usd,deposit_usd&order=ts.asc&limit=5000`,
-        { headers: SB_HEADERS, signal: AbortSignal.timeout(5_000) },
+        `${SUPABASE_URL}/rest/v1/rpc/portfolio_snapshot_series`,
+        {
+          method: "POST",
+          headers: { ...SB_HEADERS, "Content-Type": "application/json" },
+          body: JSON.stringify({ _since: sinceIso, _bucket_seconds: bucketSeconds }),
+          signal: AbortSignal.timeout(5_000),
+        },
       );
       if (!res.ok) return json(res.status, { error: "snapshots load failed" });
       const rows = await res.json();

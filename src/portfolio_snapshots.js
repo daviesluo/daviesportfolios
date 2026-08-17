@@ -15,6 +15,7 @@
 
 import { EDGE_DATA_URL, SB_ANON } from './supabase_config.js';
 import { getAppToken } from './auth.js';
+import { YtdStore } from './chart_store.js';
 
 /** Sampling cadence. Also the bucket the timestamp is floored to. */
 export const SNAPSHOT_INTERVAL_MS = 5 * 60 * 1000;
@@ -76,6 +77,50 @@ export async function saveSnapshot(valueUsd, depositUsd, nowMs = Date.now()) {
 }
 
 /**
+ * Seconds-per-point for each range. The server returns the LAST sample
+ * in each bucket, so this is what keeps a YTD read to a few hundred rows
+ * instead of the ~60k that 5-minute sampling actually stores.
+ */
+export const RANGE_BUCKET_SECONDS = {
+  '1D':  5 * 60,       // raw sampling rate
+  '1W':  30 * 60,
+  '1M':  60 * 60,
+  '3M':  4 * 60 * 60,
+  'YTD': 24 * 60 * 60,
+};
+
+/**
+ * Cache key for a range's series. Shares `YtdStore` (IndexedDB with a
+ * synchronous in-memory mirror) with the vs-S&P chart, so the panel can
+ * paint from cache on its FIRST render instead of flashing an empty
+ * state while a fetch runs — the same stale-while-revalidate the other
+ * chart already gets, and what makes the ⇄ swap feel instant.
+ */
+export function snapshotCacheKey(rangeKey) {
+  return `snap|${rangeKey}`;
+}
+
+/** Cached series for a range, or null. Synchronous. */
+export function readCachedSnapshots(rangeKey) {
+  const entry = YtdStore.get(snapshotCacheKey(rangeKey));
+  return Array.isArray(entry?.data) ? entry.data : null;
+}
+
+/**
+ * Fetch a range's series and cache it. Used by the background prefetch
+ * (so the panel is warm before it's ever opened) and by the panel itself
+ * to revalidate.
+ */
+export async function refreshSnapshots(rangeKey, sinceMs) {
+  const rows = await loadSnapshots(sinceMs, RANGE_BUCKET_SECONDS[rangeKey]);
+  // Only cache a non-empty read. An empty one is ambiguous — no samples
+  // yet, or a failed request — and caching it would blank a panel that
+  // had perfectly good points a moment ago.
+  if (rows.length > 0) YtdStore.set(snapshotCacheKey(rangeKey), { ts: Date.now(), data: rows });
+  return rows;
+}
+
+/**
  * Stored samples from `sinceMs` to now, oldest first, as
  * `[{ ts, value, deposit }]` with `ts` in epoch ms. Empty on any
  * failure — the chart falls back to deriving the window from the
@@ -83,10 +128,12 @@ export async function saveSnapshot(valueUsd, depositUsd, nowMs = Date.now()) {
  *
  * @param {number} sinceMs
  */
-export async function loadSnapshots(sinceMs) {
+export async function loadSnapshots(sinceMs, bucketSeconds = RANGE_BUCKET_SECONDS['1D']) {
   if (!isFinite(sinceMs) || sinceMs <= 0) return [];
   try {
-    const res = await fetch(`${EDGE_DATA_URL}?action=snapshots&since=${Math.floor(sinceMs)}`, {
+    const url = `${EDGE_DATA_URL}?action=snapshots&since=${Math.floor(sinceMs)}`
+      + `&bucket=${Math.floor(bucketSeconds)}`;
+    const res = await fetch(url, {
       headers: headers(),
       signal: AbortSignal.timeout(8000),
     });
