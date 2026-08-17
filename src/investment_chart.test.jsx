@@ -12,7 +12,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import {
   InvestmentChart, mergeSeries, rangeStartMs, deriveSeries,
-  niceMoneyTicks, axisMoneyLabel,
+  niceMoneyTicks, axisMoneyLabel, withLivePoint,
 } from './investment_chart.jsx';
 
 beforeEach(cleanup);
@@ -54,6 +54,43 @@ describe('mergeSeries', () => {
 
   it('is empty when neither source has anything in the window', () => {
     expect(mergeSeries([], [], 0)).toEqual([]);
+  });
+});
+
+describe('withLivePoint', () => {
+  const live = { marketValue: 1250, netDeposit: 1000 };
+  const now = Date.parse('2026-08-17T12:00:00Z');
+
+  it('pins the right edge to the board rather than a five-minute-old sample', () => {
+    // Samples land every five minutes and derived points stop at the
+    // last fetched bar, so the line's last point trailed the scoreboard
+    // sitting right next to it — one account, two numbers, one screen.
+    const out = withLivePoint([pt(now - 40 * 60_000, 1100, 1000)], live, now);
+    expect(out).toHaveLength(2);
+    expect(out[1].value).toBe(1250);
+    expect(out[1].ts).toBe(now);
+  });
+
+  it('replaces a point inside the current bucket instead of stacking one beside it', () => {
+    const out = withLivePoint([pt(now - 9 * 60_000, 1100, 1000), pt(now - 60_000, 1200, 1000)], live, now);
+    expect(out).toHaveLength(2);
+    expect(out[1].value).toBe(1250);
+  });
+
+  it('inherits the trailing stretch\'s provenance', () => {
+    // Marking it recorded while everything before is reconstructed would
+    // split the line one point from its right edge — a one-vertex
+    // segment that draws nothing, behind a rule sitting on the frame.
+    const est = [{ ts: now - 60_000, value: 1100, deposit: 1000, estimated: true }];
+    expect(withLivePoint(est, live, now)[0].estimated).toBe(true);
+    expect(withLivePoint([pt(now - 60_000, 1100, 1000)], live, now)[0].estimated).toBeUndefined();
+  });
+
+  it('leaves the series alone when the board has nothing to say', () => {
+    const rows = [pt(1, 100, 100), pt(2, 110, 100)];
+    expect(withLivePoint(rows, null, now)).toBe(rows);
+    expect(withLivePoint(rows, { marketValue: 0, netDeposit: 100 }, now)).toBe(rows);
+    expect(withLivePoint(rows, { marketValue: 100, netDeposit: NaN }, now)).toBe(rows);
   });
 });
 

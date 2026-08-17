@@ -972,13 +972,33 @@ function Board({ isReadOnly }) {
   // a ref so the interval reads current numbers without being torn down
   // and re-armed on every price tick (which would reset its phase and
   // could starve the sample entirely on a busy board).
-  const metricsRef = useRef(/** @type {{marketValue:number, netDeposit:number}|null} */ (null));
+  const metricsRef = useRef(/** @type {{marketValue:number, netDeposit:number, fxMissing:boolean}|null} */ (null));
   metricsRef.current = metrics
     ? {
         marketValue: metrics.marketValue,
         netDeposit: netDepositNow({ portfolio, marketData, fxToUSD }),
+        // A pair Yahoo didn't return means `fxRateToUSD` fell back to
+        // 1:1 for that currency. Both figures above then convert a
+        // non-USD holding at the wrong rate — and in the direction that
+        // matters here, a CNY position at 1.0 instead of ~0.14 is SEVEN
+        // TIMES its real size. Recording that writes a spike into a
+        // permanent table which then "corrects" itself on the next tick,
+        // which is exactly what a stray step in the deposit line is.
+        fxMissing: (metrics.fxMissingTickers || []).length > 0,
       }
     : null;
+
+  // The same two figures for the Investment Performance chart's right
+  // edge, so its legend reads the scoreboard's PORTFOLIO rather than a
+  // sample up to five minutes old. Held as primitives so the identity
+  // only changes when the numbers do — the chart memoises on it. Null
+  // while an FX pair is missing, for the same reason the sampler skips.
+  const liveMV = metricsRef.current && !metricsRef.current.fxMissing ? metricsRef.current.marketValue : null;
+  const liveND = metricsRef.current && !metricsRef.current.fxMissing ? metricsRef.current.netDeposit : null;
+  const liveInvestment = useMemo(
+    () => (liveMV != null && liveND != null && liveMV > 0 ? { marketValue: liveMV, netDeposit: liveND } : null),
+    [liveMV, liveND],
+  );
 
   // Investment Performance sampler. Records the portfolio's USD value and
   // net deposited every 5 minutes so the chart has a real recorded series
@@ -1000,6 +1020,11 @@ function Board({ isReadOnly }) {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       const m = metricsRef.current;
       if (!m || !(m.marketValue > 0)) return;
+      // Skip the tick entirely rather than record a figure converted at
+      // a fallback 1:1 rate. The next tick is five minutes away and the
+      // FX pair is usually back by then; a bad row, by contrast, is
+      // permanent.
+      if (m.fxMissing) return;
       saveSnapshot(m.marketValue, m.netDeposit);
     };
     // One immediately so a session that never lasts five minutes still
@@ -1187,6 +1212,7 @@ function Board({ isReadOnly }) {
             phase={currentPhase}
             className="perf-in-left"
             hideValues={hideValues}
+            live={liveInvestment}
           />
           {isDesktop && (
             <MarketConditions
@@ -1235,6 +1261,7 @@ function Board({ isReadOnly }) {
           phase={currentPhase}
           hideValues={hideValues}
           coverage={quoteCoverage}
+          live={liveInvestment}
         />
         {/* Mobile-only Market Conditions strip — rendered as a separate
             sibling because the desktop instance lives inside .left-col,

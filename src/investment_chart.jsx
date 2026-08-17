@@ -77,6 +77,41 @@ export function mergeSeries(snapshots, derived, startMs) {
 }
 
 /**
+ * Put the board's CURRENT figures on the right-hand end.
+ *
+ * Samples land every five minutes and derived points stop at the last
+ * fetched bar, so the line's last point was up to five minutes stale
+ * while the scoreboard beside it was live — the same account reading two
+ * different numbers on one screen. This pins the right edge to exactly
+ * what the scoreboard shows.
+ *
+ * Replaces the last point rather than appending when that point is
+ * already inside the current sample bucket: it's the same observation,
+ * just fresher, and appending would draw a second point a pixel away.
+ *
+ * Exported for tests.
+ *
+ * @param {{ts:number, value:number, deposit:number, estimated?:boolean}[]} series
+ * @param {{marketValue:number, netDeposit:number}|null|undefined} live
+ * @param {number} [nowMs]
+ */
+export function withLivePoint(series, live, nowMs = Date.now()) {
+  const rows = series || [];
+  if (!live || !(live.marketValue > 0) || !isFinite(live.netDeposit)) return rows;
+  const last = rows[rows.length - 1];
+  // Inherit the trailing stretch's provenance. Marking the live point as
+  // recorded when everything before it is reconstructed would split the
+  // line one point from its right edge: a one-vertex segment that draws
+  // nothing, behind a handover rule sitting on the frame.
+  const point = {
+    ts: nowMs, value: live.marketValue, deposit: live.netDeposit,
+    ...(last?.estimated ? { estimated: true } : {}),
+  };
+  if (last && nowMs - last.ts < 5 * 60 * 1000) return [...rows.slice(0, -1), point];
+  return [...rows, point];
+}
+
+/**
  * Round axis bounds + ticks for a dollar range.
  *
  * The first version padded the data range by a flat 12 % and drew no
