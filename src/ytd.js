@@ -660,7 +660,7 @@ export function ytdPct({ value, basis }) {
  * approximation further back, same assumption `computeAt` already makes.
  *
  * @param {{
- *   portfolio: {holdings: Record<string, any>},
+ *   portfolio: {holdings: Record<string, any>, positions?: Record<string, any>},
  *   tickerSeries: Record<string, any>,
  *   date: string,
  *   marketData?: Record<string, any>,
@@ -681,6 +681,17 @@ export function investmentPointAt(opts) {
   // today would count as not-yet-owned.
   const day = (date || '').slice(0, 10);
   const useLive = !!liveAnchorDate && date === liveAnchorDate;
+  // Cash follows the same BOARD scope computeMetrics uses (only a cash
+  // holding referenced by a position counts), so this line and the
+  // scoreboard's PORTFOLIO agree on it. Securities deliberately do NOT:
+  // a sold-out position is off the board but its money moved, and that
+  // history is the point. With no positions at all (unit fixtures) the
+  // scope opens up, matching computeAt's own escape hatch.
+  const positioned = new Set();
+  for (const pos of Object.values(portfolio?.positions || {})) {
+    for (const t of (pos?.tickers || [])) positioned.add(t);
+  }
+  const scopeAllCash = positioned.size === 0;
 
   let value = 0;
   let netDeposit = 0;
@@ -688,6 +699,7 @@ export function investmentPointAt(opts) {
 
   for (const [ticker, h] of Object.entries(portfolio?.holdings || {})) {
     if (h?.isCash || ticker === 'CASH') {
+      if (!scopeAllCash && !positioned.has(ticker)) continue;
       if (typeof h?.lastPrice === 'number' && h.lastPrice > 0) cashUSD += h.lastPrice;
       continue;
     }

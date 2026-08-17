@@ -10,7 +10,7 @@
 // chart) are both exported. Renderers in app.jsx import only PerfPanel.
 import React from 'react';
 import { fxToUSD } from './fx.js';
-import { InvestmentChart, rangeStartMs, mergeSeries } from './investment_chart.jsx';
+import { InvestmentChart, rangeStartMs, mergeSeries, deriveSeries } from './investment_chart.jsx';
 import { readCachedSnapshots, refreshSnapshots } from './portfolio_snapshots.js';
 import { fetchHistorical, fetchHistoricalBatch } from './historical.js';
 import { usMarketHoursUtc } from './market_hours.js';
@@ -1030,7 +1030,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 // for a ticker sold long ago — which is exactly why the samples are
 // recorded — so before the first sample the line reflects what can still
 // be priced. Once samples cover the window, they are the whole line.
-function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hideValues = false }) {
+function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hideValues = false, extendedHours = false, phase = 'regular' }) {
   // Seed from the prefetch's cache so the FIRST render already has a
   // line — the background prefetch warms every range, so opening the
   // panel or switching ranges is a cache hit rather than an empty state
@@ -1055,9 +1055,61 @@ function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hid
     // including it would refetch on every render.
   }, [rangeKey]);
 
+  // Price history for the derived half. Fetched here rather than read
+  // out of the vs-S&P chart's cache: that bucket only exists if THAT
+  // chart has already run for this exact (year, range, variant), which
+  // depends on render order, the ext toggle and the market phase — so
+  // the panel would show an empty state whenever it happened to open
+  // first. The prefetch has usually warmed the same upstream request, so
+  // this is typically a fast repeat rather than a cold fetch.
+  //
+  // Covers sold-out names: the ticker list walks every holding and only
+  // skips cash, and a closed position keeps its holding row, so the
+  // history needed to price a stock no longer owned is included.
+  const [hist, setHist] = React.useState(/** @type {Record<string, any[]>} */ ({}));
+  const histTickers = React.useMemo(
+    () => Object.entries(portfolio?.holdings || {})
+      .filter(([t, h]) => !(/** @type {any} */ (h)?.isCash) && t !== 'CASH')
+      .map(([t]) => t)
+      .sort(),
+    [portfolio],
+  );
+  const histKey = histTickers.join(',');
+  React.useEffect(() => {
+    if (histTickers.length === 0) return undefined;
+    let cancelled = false;
+    const p = perfFetchParams(rangeKey, extendedHours, phase);
+    fetchHistoricalBatch(histTickers, p.yahooRange, p.interval, p.includePrePost)
+      .then((batch) => { if (!cancelled) setHist(/** @type {any} */ (batch) || {}); })
+      .catch(() => { /* derived half just stays empty */ });
+    return () => { cancelled = true; };
+  }, [histKey, rangeKey, extendedHours, phase]);
+
+  // Ledger-derived points for everything OLDER than the first sample —
+  // which, until the sampler has been running a while, is the entire
+  // chart. Built from the per-ticker price history the vs-S&P chart and
+  // the background prefetch have already cached for this range, so this
+  // costs no extra request; when a ticker isn't in the cache its value
+  // is simply absent from those points rather than guessed.
+  //
+  // `loadPerfCache` covers sold-out names too: PerfChart's ticker list
+  // walks every holding and only skips cash, and a closed position keeps
+  // its holding row, so the history needed to price a stock you no
+  // longer own is already there.
+  const derived = React.useMemo(() => {
+    const dates = Object.values(hist)
+      .flat()
+      .map((p) => /** @type {any} */ (p).date)
+      .filter(Boolean);
+    if (dates.length === 0) return [];
+    const uniqueDates = Array.from(new Set(dates)).sort();
+    const tickerSeries = buildTickerSeries(hist, uniqueDates[0], rangeKey, marketData, false);
+    return deriveSeries({ portfolio, tickerSeries, marketData, fxToUSD, dates: uniqueDates });
+  }, [portfolio, marketData, rangeKey, hist]);
+
   const series = React.useMemo(
-    () => mergeSeries(snapshots, [], startMs),
-    [snapshots, startMs],
+    () => mergeSeries(snapshots, derived, startMs),
+    [snapshots, derived, startMs],
   );
 
   return (
@@ -1114,6 +1166,8 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hid
           rangeKey={rangeKey}
           setRangeKey={setRangeKey}
           hideValues={hideValues}
+          extendedHours={extendedHours}
+          phase={phase}
         />
       )}
     </section>
