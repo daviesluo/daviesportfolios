@@ -164,6 +164,43 @@ describe('computeAt — single pre-year lot', () => {
   });
 });
 
+describe('computeAt — a holding with no usable price history', () => {
+  it('carries the first known close backwards rather than guessing from cost', () => {
+    // The series starts INSIDE the window, so closeOn returns null to its
+    // left. Interpolating from lot cost there invents a move the stock
+    // never made: measured against closed-form arithmetic, a window that
+    // really did 5.83% read 4.2%.
+    const tickerSeries = buildTickerSeries({
+      AAPL: [{ date: '2026-04-20', close: 200 }, { date: '2026-04-27', close: 220 }],
+    }, yearStart, 'YTD');
+    const portfolio = { holdings: {
+      AAPL: { shares: 10, cost: 100, lastPrice: 220, currency: 'USD',
+              lots: [{ date: '2025-04-01', shares: 10, cost: 100 }] },
+    } };
+    // A date before the first bar: 10 x 200, not 10 x something-near-cost.
+    const out = computeAt({ ...baseOpts, date: '2026-01-05', portfolio, tickerSeries,
+                            marketData: { AAPL: { lastPrice: 220 } } });
+    expect(out.value).toBeCloseTo(2000, 4);
+  });
+
+  it('counts a holding with NO series at all instead of dropping it', () => {
+    // The `continue` here removed the holding from the value AND the
+    // basis at every point, so a position with no fetchable history — a
+    // CN fund or .PVT on an intraday range — was simply not in the
+    // portfolio as far as either chart was concerned.
+    const portfolio = { holdings: {
+      'SPAX.PVT': { shares: 100, cost: 30, lastPrice: 40, currency: 'USD',
+                    lots: [{ date: '2025-04-01', shares: 100, cost: 30 }] },
+    } };
+    const out = computeAt({ ...baseOpts, date: liveAnchorDate, portfolio,
+                            tickerSeries: {}, marketData: {} });
+    expect(out.value).toBeGreaterThan(0);
+    // Flat, not absent: it lands in the denominator too, so it dilutes
+    // the percentage the same way cash does.
+    expect(out.basis).toBeCloseTo(out.value, 4);
+  });
+});
+
 describe('computeAt — cash dilutes the return (matches header DAY CHANGE)', () => {
   it('adds cash to BOTH value and basis so % reflects the whole account', () => {
     // 10 AAPL @ basis 245 (Jan-1) → today 270: invested gain $250 on
@@ -396,10 +433,16 @@ describe('computeAt — mixed pre-year + year lots in one ticker', () => {
   });
 });
 
-describe('computeAt — pre-year lot with no Jan-1 baseline is skipped', () => {
-  it('contributes 0 to both numerator and denominator', () => {
+describe('computeAt — pre-year lot with no Jan-1 baseline counts FLAT', () => {
+  it('lands in both numerator and denominator instead of vanishing', () => {
     // Ticker has NO historical data → tickerSeries entry has janPrice=null.
-    // Pre-year lot must be skipped (we can't make up a basis).
+    // It used to be SKIPPED, on the reasoning that we can't make up a
+    // basis. But skipping removed the holding from the value as well, so
+    // a CN fund the chart endpoint returns nothing for was simply not in
+    // the portfolio — it understated the Investment chart's value line by
+    // the whole position and skewed the vs-S&P percentage by leaving it
+    // out of the denominator too. Flat (basis = its price at this date)
+    // keeps it in both, which is what cash already does.
     const tickerSeries = buildTickerSeries({
       AAPL: [
         { date: '2025-12-31', close: 245 },
@@ -423,9 +466,10 @@ describe('computeAt — pre-year lot with no Jan-1 baseline is skipped', () => {
       ...baseOpts, date: liveAnchorDate, portfolio, tickerSeries,
       marketData: { AAPL: { lastPrice: 270 } },
     });
-    // Only AAPL contributes; 017731's pre-year lot is silently dropped.
-    expect(r.basis).toBeCloseTo(2450, 4);
-    expect(r.value).toBeCloseTo(2700, 4);
+    // AAPL 10 x 270 = 2700 on a Jan-1 basis of 2450, plus 017731 flat at
+    // its own last price: 1000 x 1.6 = 1600 in BOTH.
+    expect(r.value).toBeCloseTo(2700 + 1600, 4);
+    expect(r.basis).toBeCloseTo(2450 + 1600, 4);
   });
 });
 

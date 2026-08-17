@@ -71,7 +71,10 @@ describe('rangeStartMs', () => {
 describe('deriveSeries', () => {
   it('turns ledger points into a timestamped value / deposit series', () => {
     const portfolio = { holdings: {
-      NVDA: { currency: 'USD', lots: [{ date: '2026-01-05', shares: 10, cost: 100 }] },
+      // `shares` matters now that the value comes from computeAt: its
+      // lotsFor swaps in a stand-in lot when the lots don't sum to it.
+      NVDA: { currency: 'USD', shares: 10, lastPrice: 130,
+              lots: [{ date: '2026-01-05', shares: 10, cost: 100 }] },
     } };
     const tickerSeries = {
       NVDA: {
@@ -87,6 +90,18 @@ describe('deriveSeries', () => {
     expect(out.map(p => p.value)).toEqual([1000, 1300]);
     expect(out.map(p => p.deposit)).toEqual([1000, 1000]);
     expect(out[0].ts).toBe(Date.parse('2026-01-05T00:00:00Z'));
+  });
+
+  it('drops a point it cannot put a number on rather than blanking the chart', () => {
+    // A holding whose `shares` never got filled in makes lotsFor produce
+    // a NaN-share stand-in; one NaN in the series would take the whole
+    // axis with it.
+    const out = deriveSeries({
+      portfolio: { holdings: { X: { currency: 'USD', lots: [] } } },
+      tickerSeries: {}, marketData: {}, fxToUSD: () => 1,
+      dates: ['2026-01-05', '2026-02-01'],
+    });
+    expect(out.every(p => isFinite(p.value) && isFinite(p.deposit))).toBe(true);
   });
 });
 
