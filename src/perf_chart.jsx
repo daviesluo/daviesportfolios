@@ -132,6 +132,48 @@ export function benchmarkWindow({ hist, spSymbol, rangeKey, extendedHours, mh })
   return { window, anchorDate };
 }
 
+/**
+ * What each line is measured FROM.
+ *
+ * Every range but 1D rebases to the window's own first point, so the two
+ * lines start together and "who is ahead over this window" reads off the
+ * left edge. 1D is the exception, and `dayBasis` picks which way:
+ *
+ *   'prevclose' (default) — the PREVIOUS CLOSE, the same baseline the
+ *     scoreboard's DAY CHANGE and the Market Conditions cards use.
+ *     Rebasing to the window's first bar quietly made this chart
+ *     disagree with both by the size of the overnight gap: PORTFOLIO
+ *     read −0.04 % beside a scoreboard saying +0.29 %, and S&P 500 read
+ *     −0.38 % beside a card saying −0.52 %. Neither was wrong on its
+ *     own; they were answering different questions on one screen. On a
+ *     Monday the gap is unavoidable — the previous close is three days
+ *     back, so no trailing-24 h window can contain it, which is also why
+ *     the S&P's baseline has to come from the quote rather than the
+ *     bars (they're trimmed to 24 h before caching).
+ *
+ *     `computeAt` is already handed `prevCloseBasis` on 1D, so the
+ *     portfolio series is ALREADY the day change — the rebase was the
+ *     only thing moving it off that, hence a shift of zero.
+ *
+ *   '24h' — rebase as usual, for reading a genuine trailing day. That's
+ *     what the ext-hours / futures view is for.
+ *
+ * Exported for tests.
+ *
+ * @param {{ rangeKey: string, dayBasis?: 'prevclose'|'24h',
+ *   spPrevClose?: number, windowFirstClose: number, portFirstPct: number }} opts
+ * @returns {{ dayMode: boolean, portShift: number, spBase: number }}
+ */
+export function perfBaseline({ rangeKey, dayBasis = 'prevclose', spPrevClose, windowFirstClose, portFirstPct }) {
+  const dayMode = rangeKey === '1D' && dayBasis !== '24h';
+  const usePrev = dayMode && typeof spPrevClose === 'number' && spPrevClose > 0;
+  return {
+    dayMode,
+    portShift: dayMode ? 0 : portFirstPct,
+    spBase: usePrev ? /** @type {number} */ (spPrevClose) : windowFirstClose,
+  };
+}
+
 // Tiny placeholder shell so the loading / error / range-button row
 // renders the same chrome as the full chart — keeps the layout from
 // jumping when the user flips between ranges.
@@ -144,7 +186,11 @@ function renderShell(child, rangeKey, setRangeKey) {
   );
 }
 
-function RangeButtons({ rangeKey, onChange }) {
+/**
+ * @param {{ rangeKey: string, onChange: (k: string) => void,
+ *   extra?: React.ReactNode }} props
+ */
+function RangeButtons({ rangeKey, onChange, extra = null }) {
   return (
     <div className="perf-range-row">
       {RANGE_KEYS.map(k => (
@@ -155,7 +201,28 @@ function RangeButtons({ rangeKey, onChange }) {
           onClick={() => onChange(k)}
         >{RANGES[k].label}</button>
       ))}
+      {extra}
     </div>
+  );
+}
+
+/**
+ * The 1D baseline switch. Only rendered on 1D, where the two readings
+ * genuinely differ: "since the previous close" is what the scoreboard
+ * and the Market Conditions cards show, "trailing 24 h" is a real day
+ * and is what the futures / ext-hours view is for.
+ */
+function DayBasisButton({ dayBasis, onChange }) {
+  const isDay = dayBasis !== '24h';
+  return (
+    <button
+      type="button"
+      className="perf-basis-btn mono"
+      onClick={() => onChange(isDay ? '24h' : 'prevclose')}
+      title={isDay
+        ? 'Measured from the previous close — same baseline as the scoreboard. Click for a trailing 24 hours.'
+        : 'Measured from 24 hours ago. Click to measure from the previous close, as the scoreboard does.'}
+    >{isDay ? 'DAY' : '24H'}</button>
   );
 }
 
@@ -235,9 +302,10 @@ function savePerfCache(year, rangeKey, entries) {
 // normalised from the first trading day of the calendar year.
 /**
  * @param {{ portfolio: any, marketData: any, extendedHours: boolean, phase: string,
- *   rangeKey?: string|null, setRangeKey?: ((k: string) => void)|null }} props
+ *   rangeKey?: string|null, setRangeKey?: ((k: string) => void)|null,
+ *   dayBasis?: 'prevclose'|'24h', setDayBasis?: ((b: 'prevclose'|'24h') => void)|null }} props
  */
-function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rangeKeyProp = null, setRangeKey: setRangeKeyProp = null }) {
+function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rangeKeyProp = null, setRangeKey: setRangeKeyProp = null, dayBasis = 'prevclose', setDayBasis = null }) {
   // `rangeKey` can be CONTROLLED by PerfPanel (so the panel title can flip to
   // "S&P FUTURES" when the active range benchmarks against ES=F) or fall back
   // to internal state when PerfChart is rendered standalone (tests). The
@@ -687,9 +755,35 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // For 1D this is also what makes the reading a genuine trailing-24 h
   // change rather than the scoreboard's day change: the right edge is
   // now "since this point 24 h ago", not "since the previous close".
-  const portBase = portYtd[0].pct;
+  //
+  // 1D is the exception, and `dayBasis` picks which way it reads:
+  //
+  //   'prevclose' (default) — measure from the PREVIOUS CLOSE, the same
+  //     baseline the scoreboard's DAY CHANGE and the Market Conditions
+  //     cards use. Rebasing to the window's own first bar quietly made
+  //     this chart disagree with both of them by the size of the
+  //     overnight gap: on the Monday this was reported, PORTFOLIO read
+  //     −0.04 % beside a scoreboard saying +0.29 %, and S&P 500 read
+  //     −0.38 % beside a card saying −0.52 %. Neither number was wrong
+  //     on its own; they were answering different questions on one
+  //     screen. The gap is unavoidable on a Monday in particular — the
+  //     previous close is three days back, so no trailing-24 h window
+  //     can contain it.
+  //
+  //     Both lines still share one origin, and it's the zero line rather
+  //     than the left edge: each starts at its own overnight gap, which
+  //     is a real difference between them and worth seeing.
+  //
+  //   '24h' — the rebase above, kept behind the toggle for reading a
+  //     genuine trailing day, which is what the ext-hours / futures view
+  //     is for.
+  const { portShift: portBase, spBase: spOpen } = perfBaseline({
+    rangeKey, dayBasis,
+    spPrevClose: /** @type {any} */ (marketData || {})[spSymbol]?.prevClose,
+    windowFirstClose: hasSp && spYtd.length > 0 ? spYtd[0].close : 0,
+    portFirstPct: portYtd[0].pct,
+  });
   const portNorm = portYtd.map(p => ({ date: p.date, pct: p.pct - portBase }));
-  const spOpen   = hasSp && spYtd.length > 0 ? spYtd[0].close : 0;
   const spNorm   = (hasSp && spOpen > 0)
     ? spYtd.map(p => ({ date: p.date, pct: ((p.close - spOpen) / spOpen) * 100 }))
     : [];
@@ -1053,7 +1147,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
         </g>
       </svg>
 
-      <RangeButtons rangeKey={rangeKey} onChange={setRangeKey} />
+      <RangeButtons
+        rangeKey={rangeKey}
+        onChange={setRangeKey}
+        extra={rangeKey === '1D' && setDayBasis
+          ? <DayBasisButton dayBasis={dayBasis} onChange={setDayBasis} />
+          : null}
+      />
     </div>
   );
 }
@@ -1244,6 +1344,10 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hid
   // across the swap so flipping the view doesn't also change the period
   // you were looking at.
   const [view, setView] = React.useState(/** @type {'sp'|'investment'} */ ('sp'));
+  // 1D's baseline. Defaults to the previous close so the chart, the
+  // scoreboard and the Market Conditions cards all answer the same
+  // question; '24h' reads a genuine trailing day instead.
+  const [dayBasis, setDayBasis] = React.useState(/** @type {'prevclose'|'24h'} */ ('prevclose'));
   const benchmarksFutures = spSymbolFor(rangeKey, extendedHours) === 'ES=F';
   const isSp = view === 'sp';
   return (
@@ -1270,6 +1374,8 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hid
           phase={phase}
           rangeKey={rangeKey}
           setRangeKey={setRangeKey}
+          dayBasis={dayBasis}
+          setDayBasis={setDayBasis}
         />
       ) : (
         <InvestmentPanelBody
