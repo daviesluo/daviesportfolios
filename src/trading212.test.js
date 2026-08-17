@@ -39,16 +39,41 @@ describe('applyTrading212', () => {
       'SAEM.L': { shares: 150,  cost: 11.67 },
     };
     const out = applyTrading212(holdings, t212, undefined, '2026-05-15');
-    expect(out['VUAA.L'].lots).toEqual([{ date: '2026-05-15', shares: 12.3, cost: 105.5 }]);
+    // Shares + cost come from the broker, but the DATE is the one the
+    // holding already carried. Re-stamping today's made the position
+    // read as bought this morning, every morning — and anything
+    // reconstructing the past from the ledger (the Investment
+    // Performance chart's derived half, and the net-deposit figure the
+    // sampler records) then saw the money arriving today.
+    expect(out['VUAA.L'].lots).toEqual([{ date: '2024-01-01', shares: 12.3, cost: 105.5 }]);
     expect(out['VUAA.L'].shares).toBe(12.3);
     expect(out['VUAA.L'].cost).toBe(105.5);
     // No prices map passed → price fields stay untouched.
     expect(out['VUAA.L'].currency).toBe('USD');
     expect(out['VUAA.L'].lastPrice).toBe(110);
-    expect(out['SAEM.L'].lots).toEqual([{ date: '2026-05-15', shares: 150, cost: 11.67 }]);
+    expect(out['SAEM.L'].lots).toEqual([{ date: '2024-06-01', shares: 150, cost: 11.67 }]);
     // NVDA isn't in the T212 response — leave it exactly as it was.
     expect(out['NVDA']).toBe(holdings['NVDA']);
     expect(out['NVDA'].lots).toEqual([{ date: '2024-01-01', shares: 10, cost: 150 }]);
+  });
+
+  it('stamps today only on the FIRST sync, when there is nothing to preserve', () => {
+    const out = applyTrading212(
+      { 'VUAA.L': { currency: 'USD', lastPrice: 110 } },
+      { 'VUAA.L': { shares: 1, cost: 100 } }, undefined, '2026-05-15',
+    );
+    expect(out['VUAA.L'].lots).toEqual([{ date: '2026-05-15', shares: 1, cost: 100 }]);
+  });
+
+  it('keeps the EARLIEST date when the holding carries several lots', () => {
+    const out = applyTrading212(
+      { 'VUAA.L': { lots: [
+        { date: '2025-03-04', shares: 2, cost: 90 },
+        { date: '2024-02-02', shares: 3, cost: 80 },
+      ] } },
+      { 'VUAA.L': { shares: 5, cost: 84 } }, undefined, '2026-05-15',
+    );
+    expect(out['VUAA.L'].lots[0].date).toBe('2024-02-02');
   });
 
   it('null T212 input → holdings untouched (network failure / API key absent)', () => {

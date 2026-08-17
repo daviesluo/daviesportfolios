@@ -7,7 +7,8 @@ import {
   buildTickerSeries, closeOn, lotsFor, computeAt, ytdPct,
   fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS,
   applyVariantFilter, windowSinceLastUsClose, windowBetweenLastTwoUsCloses,
-  filterToLastHours, filterToLast24h, fillVenueSessionGrid, investmentPointAt } from './ytd.js';
+  filterToLastHours, filterToLast24h, fillVenueSessionGrid, investmentPointAt,
+  historyLotsFor } from './ytd.js';
 import { isUsTradingDateStr } from './market_hours.js';
 
 const yearStart      = '2026-01-01';
@@ -897,6 +898,37 @@ describe('investmentPointAt', () => {
     expect(p.value).toBeCloseTo(120, 9);
   });
 
+  it('does not silently drop a holding that has no lot history', () => {
+    // The walk starts at shares = 0 and adds only what the lots say, so
+    // a holding whose lots were never filled in contributed NOTHING to
+    // either line at every date — it read as an account that didn't own
+    // the thing, and the deposit line started far below what had
+    // actually been paid in.
+    const portfolio = { holdings: {
+      NOLOTS: { currency: 'USD', shares: 10, cost: 90, lastPrice: 120 },
+    } };
+    const tickerSeries = seriesOf({ NOLOTS: [
+      { date: '2026-01-05', close: 100 },
+      { date: '2026-04-01', close: 120 },
+    ] });
+    const p = investmentPointAt({ portfolio, tickerSeries, date: '2026-01-05', fxToUSD });
+    expect(p.value).toBeCloseTo(1000, 9);
+    // 10 sh at the recorded average cost of 90 — money that went in
+    // before any window we chart, not today.
+    expect(p.netDeposit).toBeCloseTo(900, 9);
+  });
+
+  it('treats an undated holding as held throughout, not bought today', () => {
+    const portfolio = { holdings: {
+      NOLOTS: { currency: 'USD', shares: 4, cost: 50, lastPrice: 60 },
+    } };
+    const tickerSeries = seriesOf({ NOLOTS: [{ date: '2020-01-01', close: 50 }] });
+    for (const d of ['2020-01-01', '2023-06-30', '2026-04-01']) {
+      expect(investmentPointAt({ portfolio, tickerSeries, date: d, fxToUSD }).netDeposit)
+        .toBeCloseTo(200, 9);
+    }
+  });
+
   it('uses the live price for the anchor point, and FX-converts non-USD', () => {
     const portfolio = { holdings: {
       'VUAA.L': { currency: 'GBP', lots: [{ date: '2026-01-05', shares: 10, cost: 80 }] },
@@ -910,5 +942,34 @@ describe('investmentPointAt', () => {
     });
     expect(p.value).toBeCloseTo(10 * 90 * 1.25, 9);
     expect(p.netDeposit).toBeCloseTo(10 * 80 * 1.25, 9);
+  });
+});
+
+describe('historyLotsFor', () => {
+  it('passes real lots straight through', () => {
+    const lots = [{ date: '2026-01-05', shares: 3, cost: 10 }];
+    expect(historyLotsFor({ shares: 3, lots })).toBe(lots);
+  });
+
+  it('keeps a sold-out holding\'s lots even though they do not match its shares', () => {
+    // A closed position's lots legitimately don't sum to its zero
+    // `shares` — the sells account for the difference — and that history
+    // is exactly what the chart exists to show. `lotsFor` would swap
+    // them for a zero-share stand-in and erase the position's past.
+    const lots = [{ date: '2026-01-05', shares: 5, cost: 10 }];
+    expect(historyLotsFor({ shares: 0, closed: true, lots, sells: [{ date: '2026-03-01', shares: 5, price: 20 }] }))
+      .toBe(lots);
+  });
+
+  it('stands in for an empty ledger at the recorded average cost', () => {
+    const out = historyLotsFor({ shares: 10, cost: 90, lastPrice: 120, lots: [] });
+    expect(out).toEqual([{ date: '1970-01-01', shares: 10, cost: 90 }]);
+  });
+
+  it('falls back to lastPrice — break-even beats free — then to nothing', () => {
+    expect(historyLotsFor({ shares: 2, lastPrice: 55 })[0].cost).toBe(55);
+    expect(historyLotsFor({ shares: 2 })[0].cost).toBe(0);
+    // Nothing held → nothing to stand in for.
+    expect(historyLotsFor({ shares: 0 })).toEqual([]);
   });
 });

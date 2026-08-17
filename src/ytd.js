@@ -670,6 +670,52 @@ export function ytdPct({ value, basis }) {
  * }} opts
  * @returns {{ value: number, netDeposit: number }}
  */
+/**
+ * The lots to reconstruct a holding's HISTORY from.
+ *
+ * Normally just `h.lots`. The fallback matters: a holding with no lot
+ * history at all — an older row, a hand-added ticker, anything the lot
+ * editor never filled in — used to contribute nothing to either line at
+ * every date, because the walk below starts at `shares = 0` and adds
+ * only what the lots say. It didn't read as an unknown, it read as an
+ * account that didn't own the thing, so the deposit line started far
+ * below what had actually been paid in.
+ *
+ * The stand-in says "held since before any window we chart, at the
+ * recorded average cost". Purchase-date accuracy is what's missing, and
+ * assuming the position predates the chart is the least-wrong reading:
+ * the alternative — dating it today — would redraw the entire past as if
+ * the money had only just arrived. `cost` is the per-share average the
+ * holding already carries, so the deposit figure stays right even when
+ * the date isn't; `lastPrice` is a last resort (it makes the position
+ * read as break-even rather than as free).
+ *
+ * `computeAt` has the same shape via `lotsFor`, which anchors its
+ * stand-in at the chart's own year start — right for a basis, wrong
+ * here, where a deposit made years ago must not appear inside the
+ * window as fresh money. Exported for tests.
+ *
+ * @param {any} h
+ * @returns {Array<{date: string, shares: number, cost: number}>}
+ */
+export function historyLotsFor(h) {
+  const lots = Array.isArray(h?.lots) ? h.lots : [];
+  // Present but drifted lots are still kept: a sold-out position's lots
+  // legitimately don't sum to its zero `shares` (the sells account for
+  // the difference), and that history is exactly what this chart exists
+  // to show. Only a genuinely empty ledger falls through.
+  if (lots.some(l => Number(l?.shares) > 0)) return lots;
+  const shares = Number(h?.shares);
+  if (!isFinite(shares) || shares <= 0) return lots;
+  const cost = Number(h?.cost);
+  const px = Number(h?.lastPrice);
+  return [{
+    date: '1970-01-01',
+    shares,
+    cost: isFinite(cost) && cost > 0 ? cost : (isFinite(px) && px > 0 ? px : 0),
+  }];
+}
+
 export function investmentPointAt(opts) {
   const {
     portfolio, tickerSeries, date, marketData = {},
@@ -706,7 +752,7 @@ export function investmentPointAt(opts) {
     const fx = (h?.currency && h.currency !== 'USD') ? fxToUSD(h.currency, marketData) : 1;
 
     let shares = 0;
-    for (const l of (Array.isArray(h?.lots) ? h.lots : [])) {
+    for (const l of historyLotsFor(h)) {
       const d = String(l?.date || '').slice(0, 10);
       const n = Number(l?.shares);
       const c = Number(l?.cost);
