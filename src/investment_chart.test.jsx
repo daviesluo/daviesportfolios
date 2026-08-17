@@ -82,13 +82,58 @@ describe('deriveSeries', () => {
 describe('InvestmentChart', () => {
   const series = [pt(1, 1000, 1000), pt(2, 1100, 1000), pt(3, 1250, 1000)];
 
-  it('draws both lines and reports the gap as the gain', () => {
+  it('draws both lines', () => {
     const { container } = render(
       <InvestmentChart series={series} rangeKey="1M" setRangeKey={vi.fn()} />,
     );
     expect(container.querySelectorAll('path.inv-line')).toHaveLength(2);
-    // 1250 value − 1000 deposited = +250, i.e. +25% on what was paid in.
-    expect(screen.getByText(/\+25\.00%/)).toBeInTheDocument();
+  });
+
+  it('reports each line\'s move across the WINDOW, not its lifetime gain', () => {
+    // Deposited $800 long ago, now worth $1,250 — a lifetime gain of
+    // +56%. But over the window on screen the value went 1000 → 1250
+    // (+25.00%) and another $200 was paid in, 800 → 1000 (+25.00% of
+    // deposits). The range buttons select the window, so that is what
+    // the legend answers.
+    render(
+      <InvestmentChart
+        series={[pt(1, 1000, 800), pt(2, 1100, 800), pt(3, 1250, 1000)]}
+        rangeKey="1M" setRangeKey={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/Value/).textContent).toMatch(/\$1,250\+25\.00%/);
+    expect(screen.getByText(/Deposited/).textContent).toMatch(/\$1,000\+25\.00%/);
+    // The lifetime gain figure is gone from the legend — the band
+    // between the lines shows the gap, and the crosshair gives both
+    // numbers at any point.
+    expect(screen.queryByText(/\+\$250/)).not.toBeInTheDocument();
+  });
+
+  it('tints only the value move — a deposit is not a result', () => {
+    const { container } = render(
+      <InvestmentChart
+        series={[pt(1, 1000, 800), pt(2, 900, 1000)]}
+        rangeKey="1M" setRangeKey={vi.fn()}
+      />,
+    );
+    const spans = [...container.querySelectorAll('.inv-legend-item span')];
+    const valueMove = spans.find(s => s.textContent === '-10.00%');
+    const depositMove = spans.find(s => s.textContent === '+25.00%');
+    expect(valueMove?.getAttribute('style')).toContain('--loss');
+    expect(depositMove?.getAttribute('style') || '').not.toContain('--gain');
+  });
+
+  it('omits a move it cannot compute rather than dividing by zero', () => {
+    // A YTD window that opens on an empty account: a percentage of
+    // nothing isn't a number.
+    render(
+      <InvestmentChart
+        series={[pt(1, 0, 0), pt(2, 600, 500)]}
+        rangeKey="YTD" setRangeKey={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/Value/).textContent).not.toMatch(/%/);
+    expect(screen.getByText(/Deposited/).textContent).not.toMatch(/%/);
   });
 
   it('fills the band between the lines, closed and tinted by the result', () => {
@@ -115,17 +160,18 @@ describe('InvestmentChart', () => {
     expect(screen.getByText(/Insufficient data/i)).toBeInTheDocument();
   });
 
-  it('omits the percentage when nothing is deposited (profits exceed cash in)', () => {
+  it('still reports the value move when nothing is deposited', () => {
     // Net deposit can legitimately reach 0 or go negative once realised
-    // gains exceed everything ever paid in — a percentage of that is
-    // meaningless, so only the dollar figure is shown.
+    // gains exceed everything ever paid in. That kills the deposit
+    // percentage, not the value one.
     render(
       <InvestmentChart
         series={[pt(1, 500, 0), pt(2, 600, 0)]}
         rangeKey="1M" setRangeKey={vi.fn()}
       />,
     );
-    expect(screen.queryByText(/%/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Value/).textContent).toMatch(/\+20\.00%/);
+    expect(screen.getByText(/Deposited/).textContent).not.toMatch(/%/);
   });
 
   it('masks the figures when hideValues is on — the axis included', () => {

@@ -286,15 +286,21 @@ export function InvestmentChart({ series, rangeKey, setRangeKey, hideValues }) {
     .map((p, i) => `${xOf(denom - i).toFixed(1)},${yOf(p.deposit).toFixed(1)}`)
     .join(' L')} Z`;
 
+  const first = series[0];
   const last = series[series.length - 1];
   const gain = last.value - last.deposit;
-  // Return on what was actually paid in. Guarded because net deposit can
-  // legitimately reach zero or go negative once realised profits exceed
-  // the cash ever put in — at which point a percentage stops meaning
-  // anything and only the dollar figure is shown.
-  const gainPct = last.deposit > 0 ? (gain / last.deposit) * 100 : null;
   const money = (n) => (hideValues ? '••••' : fmtMoney(n));
   const gainColor = gain >= 0 ? 'var(--gain)' : 'var(--loss)';
+
+  // Each line's move ACROSS THE WINDOW on screen, which is what the
+  // range buttons select — the same question the vs-S&P view answers for
+  // its two lines, so the two halves of the swap read the same way.
+  // Null from a zero or negative opening figure (a YTD window that opens
+  // on an empty account): a percentage of nothing isn't a number.
+  const windowPct = (open, close) => (open > 0 ? ((close - open) / open) * 100 : null);
+  const valuePct = windowPct(first.value, last.value);
+  const depositPct = windowPct(first.deposit, last.deposit);
+  const fmtP = (n) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`;
 
   // X labels: a handful of equally-spaced indices, the same sampling
   // PerfChart uses. Time-of-day for the intraday day, "Mon D" for the
@@ -434,14 +440,19 @@ export function InvestmentChart({ series, rangeKey, setRangeKey, hideValues }) {
         <span className="inv-legend-item">
           <span className="inv-dot" style={{ background: 'var(--chalk)' }} />
           Value {money(last.value)}
+          {valuePct != null && (
+            <span style={{ color: valuePct >= 0 ? 'var(--gain)' : 'var(--loss)' }}>
+              {fmtP(valuePct)}
+            </span>
+          )}
         </span>
         <span className="inv-legend-item">
           <span className="inv-dot" style={{ background: 'var(--chalk-dim)' }} />
           Deposited {money(last.deposit)}
-        </span>
-        <span className="inv-legend-item" style={{ color: gainColor }}>
-          {gain >= 0 ? '+' : '−'}{money(Math.abs(gain))}
-          {gainPct != null && ` (${gain >= 0 ? '+' : ''}${gainPct.toFixed(2)}%)`}
+          {/* Deliberately NOT tinted green / red: more deposited is
+              money moving in, not a result. Only the value line's move
+              is a gain or a loss. */}
+          {depositPct != null && <span>{fmtP(depositPct)}</span>}
         </span>
       </div>
       <svg
