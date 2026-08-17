@@ -143,17 +143,38 @@ describe('addHolding — never destroys the transaction ledger', () => {
     },
   });
 
-  it("'replace' keeps sells + closed, and restates lots to the new entry", () => {
+  it("'replace' restates the buy side but still nets against earlier sells", () => {
     const { handlers, get } = setup(withLedger());
     handlers.addHolding('ST', 'NVDA', 8, 110, 130, '2026-02-01', 'replace');
     const h = get().holdings.NVDA;
     // The ledger survives…
     expect(h.sells).toEqual([{ date: '2025-06-01', shares: 2, price: 150 }]);
-    expect(h.closed).toBe(false);
-    // …and the restate did what it says.
+    // …lots are restated to just this entry…
     expect(h.lots).toEqual([{ date: '2026-02-01', shares: 8, cost: 110 }]);
-    expect(h.shares).toBe(8);
-    expect(h.cost).toBe(110);
+    // …and shares come from the LEDGER, not the typed number: 8 bought
+    // − 2 already sold = 6. Taking the 8 verbatim let the tile disagree
+    // with the transaction history, and the next Save from the edit
+    // modal (which always nets) would then "correct" it out from under
+    // the user.
+    expect(h.shares).toBeCloseTo(6, 9);
+  });
+
+  it('buying back into a sold-out name clears `closed`', () => {
+    const sold = withLedger();
+    sold.holdings.NVDA = {
+      ...sold.holdings.NVDA, shares: 0, cost: 0, closed: true,
+      sells: [{ date: '2025-06-01', shares: 10, price: 150 }],
+    };
+    const { handlers, get } = setup(sold);
+    handlers.addHolding('ST', 'NVDA', 5, 120, 125, '2026-02-01', 'replace');
+    const h = get().holdings.NVDA;
+    // 5 bought − 10 sold is still negative, so it stays closed…
+    expect(h.closed).toBe(true);
+    // …but a buy that actually restores a positive position re-opens it.
+    handlers.addHolding('ST', 'NVDA', 20, 120, 125, '2026-02-02', 'replace');
+    const h2 = get().holdings.NVDA;
+    expect(h2.closed).toBeUndefined();
+    expect(h2.shares).toBeCloseTo(10, 9);
   });
 
   it("'append' adds a lot and recomputes totals from the whole ledger", () => {

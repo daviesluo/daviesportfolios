@@ -101,10 +101,16 @@ function Modal({ children, onClose, size = "md" }) {
  * rendered directly. `danger` tints the action button red for
  * destructive confirms (delete / discard / reset).
  * @param {{ title?: string, message: string, detail?: string,
- *   confirmLabel?: string, cancelLabel?: string, danger?: boolean,
- *   onConfirm: () => void, onCancel: () => void }} props
+ *   confirmLabel?: string, cancelLabel?: string, altLabel?: string,
+ *   danger?: boolean, onConfirm: () => void, onAlt?: () => void,
+ *   onCancel: () => void }} props
  */
-function ConfirmModal({ title, message, detail, confirmLabel, cancelLabel, danger, onConfirm, onCancel }) {
+// `altLabel` turns this into a three-outcome dialog: confirm / alt /
+// cancel. Needed when BOTH named actions write something and cancel has
+// to mean "do nothing" — a binary confirm would have to map Esc, the
+// backdrop and Cancel onto one of the two writes, which is how "Cancel"
+// ended up silently performing the more destructive branch.
+function ConfirmModal({ title, message, detail, confirmLabel, cancelLabel, altLabel, danger, onConfirm, onAlt, onCancel }) {
   return createPortal(
     <Modal onClose={onCancel} size="sm">
       <header className="modal-head">
@@ -121,6 +127,9 @@ function ConfirmModal({ title, message, detail, confirmLabel, cancelLabel, dange
       <footer className="modal-foot">
         <button className="btn-ghost" onClick={onCancel}>{cancelLabel || 'Cancel'}</button>
         <span className="spacer" />
+        {altLabel && (
+          <button className="btn-ghost" onClick={onAlt}>{altLabel}</button>
+        )}
         <button className={danger ? 'btn-danger' : 'btn-primary'} onClick={onConfirm}>
           {confirmLabel || 'Confirm'}
         </button>
@@ -152,8 +161,10 @@ export function useConfirm() {
       detail={state.detail}
       confirmLabel={state.confirmLabel}
       cancelLabel={state.cancelLabel}
+      altLabel={state.altLabel}
       danger={state.danger}
       onConfirm={() => { state.resolve(true); setState(null); }}
+      onAlt={() => { state.resolve('alt'); setState(null); }}
       onCancel={() => { state.resolve(false); setState(null); }}
     />
   ) : null;
