@@ -1,7 +1,7 @@
 // Heatmap view — binary-split treemap of all holdings.
 // Tiles sized by USD market value; colour-coded by day % change.
 import React from 'react';
-import { displayTicker } from './formatters.js';
+import { displayTicker, pctIsFlat } from './formatters.js';
 
 // Re-exported so heatmap.test.js's existing import keeps working; the
 // helper itself now lives in formatters.js because the tactics board
@@ -42,7 +42,7 @@ function treemap(nodes, x, y, w, h) {
 // Text colour flips automatically — dark glyphs on the light pastel tiles,
 // light glyphs on the deep tiles — so percentages stay legible at every level.
 function tileStyle(pct) {
-  if (pct == null || Math.abs(pct) < 0.005) {
+  if (pctIsFlat(pct)) {
     return {
       bg: 'linear-gradient(180deg, rgb(34,40,38) 0%, rgb(26,32,30) 100%)',
       tickerClr: 'var(--chalk-dim)',

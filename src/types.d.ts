@@ -9,6 +9,16 @@
 
 export type Currency = 'USD' | 'GBP' | 'CNY' | 'HKD' | 'EUR';
 
+/** A single sale — shape persisted on Holding.sells. */
+export interface Sell {
+  date: string;
+  shares: number;
+  price: number;
+  /** Epoch ms stamped when the row was added, so same-day rows keep
+   *  their entry order in the transaction log. Absent on legacy rows. */
+  ts?: number;
+}
+
 /** A single purchase batch — shape persisted on Holding.lots. */
 export interface Lot {
   /** ISO date YYYY-MM-DD. */
@@ -16,6 +26,10 @@ export interface Lot {
   shares: number;
   /** Per-share cost in the holding's native currency. */
   cost: number;
+  /** Epoch ms stamped when the row was added — orders same-day entries
+   *  in the transaction log, which otherwise only has a date. Absent on
+   *  legacy rows. */
+  ts?: number;
 }
 
 export interface Holding {
@@ -43,6 +57,14 @@ export interface Holding {
   /** True for the GK / cash bucket; lastPrice doubles as the cash balance. */
   isCash?: boolean;
   lots?: Lot[];
+  /** Sale rows — the other half of the transaction ledger. Present at
+   *  runtime since the sell editor shipped; without it here `checkJs`
+   *  couldn't type-check any of the accounting that reads them. */
+  sells?: Sell[];
+  /** Set when a full sale closes the position off the board. The
+   *  holding row is deliberately RETAINED so its ledger survives, so
+   *  this flag is what distinguishes "sold out" from "still held". */
+  closed?: boolean;
 }
 
 export interface Position {

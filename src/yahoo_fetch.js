@@ -17,6 +17,7 @@ import {
   mapWithConcurrency,
 } from './proxy_chain.js';
 import { isUsEquity, hasOvernightSession } from './ticker_class.js';
+import { SB_URL, SB_ANON } from './supabase_config.js';
 
 // OTC ADRs like SoftBank (SFTBY) quote ONLY their regular US session —
 // no pre-market, no after-hours, no overnight. Yahoo nonetheless ships a
@@ -31,8 +32,12 @@ export function quotesRegularSessionOnly(ticker) {
   return isUsEquity(ticker) && !hasOvernightSession(ticker);
 }
 
-const EDGE_PRICES_URL = "https://flmvxigozjuizpckllvk.supabase.co/functions/v1/prices";
-const EDGE_ANON_KEY   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbXZ4aWdvemp1aXpwY2tsbHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODM3MjgsImV4cCI6MjA5MjM1OTcyOH0.vFqe6PNsPbVkg7NJmQJBsVECX1S58vAvv5MOjf63Xck";
+// Derived from the shared project constants rather than re-typed: a
+// second hardcoded copy of the URL and anon key meant rotating the key
+// (or pointing at another project) silently missed the entire live-price
+// path while auth/data kept working.
+const EDGE_PRICES_URL = `${SB_URL}/functions/v1/prices`;
+const EDGE_ANON_KEY   = SB_ANON;
 
 // Regular US session in exchange-local minutes-of-day — the same
 // 9:30-16:00 window the prices Edge Function buckets candles by.
