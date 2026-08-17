@@ -49,9 +49,15 @@ Out of scope:
     NOT client-supplied `cf-connecting-ip`).
   - `trading212` requires the HMAC `x-app-token` (admin or ro) — the
     function URL alone is not a credential.
-  - `prices`, `chart`, `fundamentals` require Supabase platform JWT
-    verification (anon key) so the function URL alone can't be used
-    as a free Yahoo / Finnhub / Alpha Vantage proxy.
+  - `prices`, `chart`, `fundamentals` require the HMAC `x-app-token`
+    (same check as `data` / `trading212`), verified BEFORE any upstream
+    call so a rejected request costs nothing. They previously relied on
+    Supabase platform JWT verification alone, but that anon key ships
+    inside the public JS bundle — anyone could read it out and run these
+    as a free Yahoo / Finnhub / Alpha Vantage proxy on this project's
+    egress and invocation quota. CORS is deliberately NOT the control
+    here: `Access-Control-Allow-Origin` only constrains browsers, so it
+    does nothing against curl or a server-side scraper.
   - CSP / HSTS / Permissions-Policy headers in `_headers`.
   - Every `security definer` RPC (`bump_auth_attempt`,
     `try_claim_t212_refresh`, `try_claim_av_call`, `save_board_data`)
