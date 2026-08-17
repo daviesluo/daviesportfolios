@@ -24,7 +24,7 @@ import {
   fetchParamsFor,
   applyVariantFilter,
 } from './ytd.js';
-import { pointerToDataIndex, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
+import { pointerToDataIndex, parseChartDateUTC, findRegularCloseIdx, crosshairFormatFor } from './chart_geometry.js';
 import { reportError } from './ops_error.js';
 import {
   mergeOvernightSeries,
@@ -70,17 +70,12 @@ export function perfFetchParams(rangeKey, extendedHours, phase) {
   return fetchParamsFor(rangeKey, extendedHours, phase);
 }
 
-// Which crosshair-label format a range uses: bare time for the single
-// intraday day (1D); date + time for the multi-day intraday ranges (1W
-// 30m / 1M 60m) so the pill pins the exact bar — incl. the overnight
-// session — not just the calendar day; date-only for the daily ranges
-// (3M / YTD). Exported so the range→format mapping is pinned by
-// perf_chart.test.jsx.
-export function crosshairFormatFor(rangeKey) {
-  if (rangeKey === '1D') return 'time';
-  if (rangeKey === '1W' || rangeKey === '1M') return 'datetime';
-  return 'date';
-}
+// The range→crosshair-label mapping now lives in chart_geometry.js —
+// the Investment Performance chart labels the same five ranges, and a
+// pill that read "Jun 29" on one view and "Jun 29 14:30" on the other
+// would be a swap-visible inconsistency. Re-exported here so the
+// existing import site (and its pin test) keep working.
+export { crosshairFormatFor } from './chart_geometry.js';
 
 // Tiny placeholder shell so the loading / error / range-button row
 // renders the same chrome as the full chart — keeps the layout from

@@ -176,6 +176,20 @@ export function pointsToSvgPath(items, xFn, yFn) {
   return 'M' + segs.join('L');
 }
 
+// Which crosshair-label format a range uses: bare time for the single
+// intraday day (1D); date + time for the multi-day intraday ranges (1W
+// 30m / 1M 60m) so the pill pins the exact bar — incl. the overnight
+// session — not just the calendar day; date-only for the daily ranges
+// (3M / YTD). Lives here rather than in either chart because both the
+// vs-S&P chart and the Investment Performance chart label the same five
+// ranges, and a pill that reads "Jun 29" on one and "Jun 29 14:30" on
+// the other for the same range would be a swap-visible inconsistency.
+export function crosshairFormatFor(rangeKey) {
+  if (rangeKey === '1D') return 'time';
+  if (rangeKey === '1W' || rangeKey === '1M') return 'datetime';
+  return 'date';
+}
+
 // Parse a chart-series date string to a Date. Intraday bars are
 // `YYYY-MM-DDTHH:MM` (16 chars, no zone) and must be read as UTC — an
 // explicit `Z` is appended so they don't render an hour off for

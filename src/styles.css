@@ -1413,10 +1413,17 @@ body {
 
 /* Investment Performance legend — value / deposited / the gap between
    them. Wraps on a narrow phone rather than clipping the gain figure,
-   which is the number worth reading. */
-.perf-legend {
+   which is the number worth reading.
+
+   Its own `inv-` names, NOT the `perf-` ones: these rules sit after the
+   YTD chart's block, so reusing the class names silently restyled the
+   vs-S&P legend too — its round 7px dots became 6×2 dashes. */
+.inv-legend {
   display: flex; flex-wrap: wrap; gap: 4px 10px;
   font-size: 9px; color: var(--chalk-dim); padding: 0 0 2px 2px;
+  margin-bottom: 2px;
 }
-.perf-legend-item { display: inline-flex; align-items: center; gap: 4px; }
-.perf-dot { width: 6px; height: 2px; border-radius: 1px; display: inline-block; }
+.inv-legend-item { display: inline-flex; align-items: center; gap: 4px; }
+/* A short dash rather than a dot: it reads as the line it labels, and
+   the dashed one is visibly the dashed line. */
+.inv-dot { width: 6px; height: 2px; border-radius: 1px; display: inline-block; }
