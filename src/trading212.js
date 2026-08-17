@@ -123,9 +123,23 @@ export function applyTrading212(holdings, t212Holdings, prices, today) {
   const date = today || new Date().toISOString().slice(0, 10);
   for (const [t, row] of Object.entries(t212Holdings)) {
     if (!holdings[t]) continue;
+    // Keep the EARLIEST date the holding already carried rather than
+    // re-stamping today's. The broker reports a position, not a purchase
+    // history, so the single synthetic lot can only ever be an
+    // approximation — but re-dating it on every sync made the position
+    // read as bought today, every day. Anything reconstructing the past
+    // from the ledger (the Investment Performance chart's derived half,
+    // and the net-deposit figure the sampler records) then saw the money
+    // arriving this morning and drew the deposit line starting from
+    // nothing. Today's date is only used the first time, when there is
+    // genuinely nothing better to go on.
+    const prior = (Array.isArray(holdings[t].lots) ? holdings[t].lots : [])
+      .map(l => (typeof l?.date === 'string' ? l.date.slice(0, 10) : ''))
+      .filter(Boolean)
+      .sort()[0];
     const merged = {
       ...holdings[t],
-      lots: [{ date, shares: row.shares, cost: row.cost }],
+      lots: [{ date: prior || date, shares: row.shares, cost: row.cost }],
       shares: row.shares,
       cost: row.cost,
     };

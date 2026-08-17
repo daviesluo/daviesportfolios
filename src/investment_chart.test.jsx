@@ -38,7 +38,18 @@ describe('mergeSeries', () => {
 
   it('falls back to the derived series when nothing was ever sampled', () => {
     const derived = [pt(100, 90, 100), pt(200, 105, 100)];
-    expect(mergeSeries([], derived, 0)).toEqual(derived);
+    expect(mergeSeries([], derived, 0))
+      .toEqual(derived.map(p => ({ ...p, estimated: true })));
+  });
+
+  it('marks the reconstructed points and not the recorded ones', () => {
+    // The handover is one-way: every sample recorded pushes the boundary
+    // left, so the estimated stretch shrinks on its own until there is
+    // none of it left. The chart needs to know which is which — a
+    // reconstruction from the ledger must not read as a record of what
+    // the account actually showed.
+    const out = mergeSeries([pt(500, 110, 100)], [pt(300, 90, 100), pt(400, 95, 100)], 0);
+    expect(out.map(p => !!p.estimated)).toEqual([true, true, false]);
   });
 
   it('is empty when neither source has anything in the window', () => {
@@ -134,6 +145,41 @@ describe('InvestmentChart', () => {
     );
     expect(screen.getByText(/Value/).textContent).not.toMatch(/%/);
     expect(screen.getByText(/Deposited/).textContent).not.toMatch(/%/);
+  });
+
+  it('fades the reconstructed stretch and rules off where recording starts', () => {
+    // Left of the rule is computed from the lot ledger; right of it is
+    // what the sampler actually recorded. Every sample moves the rule
+    // left, so the faded stretch shrinks on its own.
+    const mixed = [
+      { ts: 1, value: 900, deposit: 800, estimated: true },
+      { ts: 2, value: 950, deposit: 800, estimated: true },
+      pt(3, 1000, 800),
+      pt(4, 1100, 800),
+    ];
+    const { container } = render(
+      <InvestmentChart series={mixed} rangeKey="1M" setRangeKey={vi.fn()} />,
+    );
+    expect(container.querySelectorAll('path.inv-line-est')).toHaveLength(2);
+    expect(container.querySelectorAll('path.inv-line-value')).toHaveLength(1);
+    expect(container.querySelector('line.inv-handover')).toBeTruthy();
+    // The two stretches meet — the faded one runs THROUGH the first
+    // recorded point, so the line has no gap at the handover.
+    const est = container.querySelector('path.inv-line-est')?.getAttribute('d') || '';
+    expect(est.split(/[ML]/).filter(Boolean)).toHaveLength(3);
+  });
+
+  it('draws no handover rule when nothing has been recorded yet', () => {
+    const { container } = render(
+      <InvestmentChart
+        series={[{ ts: 1, value: 900, deposit: 800, estimated: true },
+                 { ts: 2, value: 950, deposit: 800, estimated: true }]}
+        rangeKey="YTD" setRangeKey={vi.fn()}
+      />,
+    );
+    expect(container.querySelectorAll('path.inv-line-est')).toHaveLength(2);
+    expect(container.querySelectorAll('path.inv-line-value')).toHaveLength(0);
+    expect(container.querySelector('line.inv-handover')).toBeNull();
   });
 
   it('fills the band between the lines, closed and tinted by the result', () => {
@@ -289,9 +335,12 @@ describe('crosshair', () => {
   const move = (svg, clientX) => { fireEvent.mouseMove(svg, { clientX }); frame(); };
   afterEach(() => { queued = null; vi.unstubAllGlobals(); });
 
-  const chips = (svg) => [...svg.querySelectorAll('text')]
+  // Scoped to the crosshair group: the y-axis tick labels are also
+  // <text> starting with "$", and a loose selector quietly folded them
+  // into the assertions.
+  const chips = (svg) => [...svg.querySelectorAll('g.inv-crosshair text')]
     .map(t => t.textContent || '')
-    .filter(t => /^[$•]/.test(t));
+    .filter(t => /^[~$•]/.test(t));
 
   it('reads the point under the pointer onto both chips', () => {
     const { svg } = mount();
@@ -319,6 +368,17 @@ describe('crosshair', () => {
     fireEvent.mouseLeave(svg);
     const cross = /** @type {SVGGElement} */ (svg.querySelector('g.inv-crosshair'));
     expect(cross.style.display).toBe('none');
+  });
+
+  it('marks a reconstructed point so it does not read as a record', () => {
+    const { svg } = mount([
+      { ts: Date.parse('2026-08-14T13:30:00Z'), value: 100_000, deposit: 90_000, estimated: true },
+      { ts: Date.parse('2026-08-14T17:30:00Z'), value: 130_000, deposit: 95_000 },
+    ]);
+    move(svg, 40);
+    expect(chips(svg).every(t => t.startsWith('~'))).toBe(true);
+    move(svg, 292);
+    expect(chips(svg).some(t => t.startsWith('~'))).toBe(false);
   });
 
   it('keeps the chips masked under hideValues', () => {

@@ -138,6 +138,30 @@ function loadPerfCache(year, rangeKey) {
   }
   return out;
 }
+/**
+ * Whatever price history is already cached for these tickers at this
+ * (range, variant) — the bucket PerfChart writes and the background
+ * prefetch warms. Synchronous (IndexedDB with an in-memory mirror), so
+ * the Investment panel can paint its derived half on its FIRST render
+ * instead of showing an empty state until a fetch returns. Stale rows
+ * are included on purpose: a stale chart now, replaced when the
+ * revalidation lands, beats a spinner.
+ *
+ * @param {string[]} tickers
+ * @param {string} rangeKey
+ * @param {string} variantKey
+ */
+function readWarmHistory(tickers, rangeKey, variantKey) {
+  /** @type {Record<string, any[]>} */
+  const out = {};
+  const prefix = `y${new Date().getFullYear()}|${rangeKey}:${variantKey}|`;
+  for (const t of tickers) {
+    const e = YtdStore.get(`${prefix}${t}`);
+    if (e && Array.isArray(e.data) && e.data.length > 0) out[t] = e.data;
+  }
+  return out;
+}
+
 function savePerfCache(year, rangeKey, entries) {
   // Replace the entire (year, rangeKey) bucket — drop any existing
   // entries first so a ticker removed from `entries` doesn't linger.
@@ -1061,7 +1085,6 @@ function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hid
   // Covers sold-out names: the ticker list walks every holding and only
   // skips cash, and a closed position keeps its holding row, so the
   // history needed to price a stock no longer owned is included.
-  const [hist, setHist] = React.useState(/** @type {Record<string, any[]>} */ ({}));
   const histTickers = React.useMemo(
     () => Object.entries(portfolio?.holdings || {})
       .filter(([t, h]) => !(/** @type {any} */ (h)?.isCash) && t !== 'CASH')
@@ -1070,15 +1093,44 @@ function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hid
     [portfolio],
   );
   const histKey = histTickers.join(',');
+  const variantKey = perfVariantKey(rangeKey, extendedHours, phase);
+  // Price history for the derived half, read from the SAME per-ticker
+  // bucket the vs-S&P chart and the background prefetch fill. Seeding
+  // synchronously from it is what stops the panel loading every single
+  // time it's opened: the fetch below still runs to revalidate, but it
+  // now replaces a drawn chart instead of an empty state.
+  const [hist, setHist] = React.useState(
+    () => /** @type {Record<string, any[]>} */ (readWarmHistory(histTickers, rangeKey, variantKey)),
+  );
   React.useEffect(() => {
     if (histTickers.length === 0) return undefined;
     let cancelled = false;
+    const warm = readWarmHistory(histTickers, rangeKey, variantKey);
+    if (Object.keys(warm).length > 0) setHist(warm);
     const p = perfFetchParams(rangeKey, extendedHours, phase);
     fetchHistoricalBatch(histTickers, p.yahooRange, p.interval, p.includePrePost)
-      .then((batch) => { if (!cancelled) setHist(/** @type {any} */ (batch) || {}); })
-      .catch(() => { /* derived half just stays empty */ });
+      .then((batch) => {
+        if (cancelled || !batch) return;
+        // Trim to the range's display window exactly as PerfChart does,
+        // so the two charts hold the same bars for the same key and
+        // whichever runs first warms the other.
+        /** @type {Record<string, any[]>} */
+        const trimmed = {};
+        const now = Date.now();
+        for (const t of histTickers) {
+          const data = applyVariantFilter(/** @type {any} */ (batch)[t], p.variant);
+          if (!Array.isArray(data) || data.length === 0) continue;
+          trimmed[t] = data;
+          // Write per-ticker rather than through savePerfCache, which
+          // REPLACES the whole (year, range, variant) bucket — that
+          // would drop the S&P anchor row the other chart depends on.
+          YtdStore.set(`y${new Date().getFullYear()}|${rangeKey}:${variantKey}|${t}`, { ts: now, data });
+        }
+        if (Object.keys(trimmed).length > 0) setHist(trimmed);
+      })
+      .catch(() => { /* the seeded cache stays on screen */ });
     return () => { cancelled = true; };
-  }, [histKey, rangeKey, extendedHours, phase]);
+  }, [histKey, rangeKey, variantKey, extendedHours, phase]);
 
   // Ledger-derived points for everything OLDER than the first sample —
   // which, until the sampler has been running a while, is the entire

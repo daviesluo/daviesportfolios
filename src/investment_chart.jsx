@@ -49,11 +49,20 @@ export function rangeStartMs(rangeKey, nowMs) {
  * earliest sample, so a book that predates the sampler still charts its
  * whole history instead of starting at the day the feature shipped.
  *
+ * The handover is one-way and permanent: every sample recorded pushes
+ * the boundary left, so the reconstructed stretch shrinks on its own as
+ * the sampler runs and eventually there is none of it left. Derived
+ * points carry `estimated: true` so the chart can draw the two stretches
+ * differently — the reconstruction is a best effort from the lot ledger
+ * and today's price history, and it should not be read as a record of
+ * what the account actually showed.
+ *
  * Exported for tests.
  *
  * @param {{ts:number, value:number, deposit:number}[]} snapshots ascending
  * @param {{ts:number, value:number, deposit:number}[]} derived   ascending
  * @param {number} startMs
+ * @returns {{ts:number, value:number, deposit:number, estimated?:boolean}[]}
  */
 export function mergeSeries(snapshots, derived, startMs) {
   const snaps = (snapshots || []).filter(p => p.ts >= startMs);
@@ -61,7 +70,9 @@ export function mergeSeries(snapshots, derived, startMs) {
   // Only the derived points OLDER than the first sample — otherwise the
   // two sources would interleave and the line would visibly jitter
   // between a recomputation and the recorded figure.
-  const older = (derived || []).filter(p => p.ts >= startMs && p.ts < firstSnapTs);
+  const older = (derived || [])
+    .filter(p => p.ts >= startMs && p.ts < firstSnapTs)
+    .map(p => ({ ...p, estimated: true }));
   return [...older, ...snaps];
 }
 
@@ -189,7 +200,7 @@ function RangeButtons({ rangeKey, onChange }) {
 
 /**
  * @param {{
- *   series: {ts:number, value:number, deposit:number}[],
+ *   series: {ts:number, value:number, deposit:number, estimated?:boolean}[],
  *   rangeKey: string,
  *   setRangeKey: (k: string) => void,
  *   hideValues?: boolean,
@@ -275,9 +286,23 @@ export function InvestmentChart({ series, rangeKey, setRangeKey, hideValues }) {
   const yOf = (v) => padT + ((axis.max - v) / yRange) * cH;
   const axisMagnitude = Math.max(Math.abs(axis.min), Math.abs(axis.max));
 
-  const pathOf = (pick) => series
-    .map((p, i) => `${i === 0 ? 'M' : 'L'}${xOf(i).toFixed(1)},${yOf(pick(p)).toFixed(1)}`)
+  const pathOf = (pick, from = 0, to = series.length - 1) => series
+    .slice(from, to + 1)
+    .map((p, i) => `${i === 0 ? 'M' : 'L'}${xOf(from + i).toFixed(1)},${yOf(pick(p)).toFixed(1)}`)
     .join(' ');
+
+  // Where the recorded samples take over from the reconstruction. The
+  // stretch to its left is derived from the lot ledger and today's price
+  // history — a best effort at a past nobody was recording — and is
+  // drawn faded so it doesn't read as a record of what the account
+  // actually showed. Every sample the 5-minute sampler writes moves this
+  // boundary left, so the faded stretch shrinks on its own until there
+  // is none of it left. -1 (no recorded point in the window) means the
+  // whole line is a reconstruction; 0 means all of it is recorded.
+  const firstRecorded = series.findIndex(p => !p.estimated);
+  const splitAt = firstRecorded === -1 ? series.length - 1 : firstRecorded;
+  const hasEstimate = splitAt > 0;
+  const allEstimated = firstRecorded === -1;
   // The band between the lines IS the money made, so it's worth seeing
   // as an area and not just as a distance to eyeball: value out, deposit
   // back. Tinted by where the account stands now — when the lines cross
@@ -415,8 +440,11 @@ export function InvestmentChart({ series, rangeKey, setRangeKey, hideValues }) {
       text.setAttribute('y', (clamped + CHIP_H / 2).toFixed(1));
       text.textContent = label;
     };
-    place(cValRect.current, cValText.current, valTop, money(p.value));
-    place(cDepRect.current, cDepText.current, depTop, money(p.deposit));
+    // "~" on a reconstructed point: that figure was computed from the
+    // ledger just now, not read off the board at the time.
+    const mark = (n) => (p.estimated ? `~${money(n)}` : money(n));
+    place(cValRect.current, cValText.current, valTop, mark(p.value));
+    place(cDepRect.current, cDepText.current, depTop, mark(p.deposit));
   }
   function handleMove(e) {
     const idx = pointerToDataIndex(e, svgRef.current, { W, H, padL, padR, cW }, series.length);
@@ -502,19 +530,43 @@ export function InvestmentChart({ series, rangeKey, setRangeKey, hideValues }) {
           </g>
         ))}
         <path className="inv-band" d={bandPath} fill={gainColor} opacity="0.1" stroke="none" />
+        {/* The reconstructed stretch, faded, plus a rule at the handover
+            — left of it is computed from the ledger, right of it is what
+            was actually recorded. */}
+        {hasEstimate && (
+          <>
+            <path className="inv-line inv-line-est" d={pathOf(p => p.deposit, 0, splitAt)}
+                  fill="none" stroke="var(--chalk-dim)" opacity="0.4"
+                  strokeWidth="1" strokeDasharray="3 2" vectorEffect="non-scaling-stroke" />
+            <path className="inv-line inv-line-est" d={pathOf(p => p.value, 0, splitAt)}
+                  fill="none" stroke="var(--chalk)" opacity="0.4"
+                  strokeWidth="1.5" vectorEffect="non-scaling-stroke"
+                  strokeLinejoin="round" strokeLinecap="round" />
+            {!allEstimated && (
+              <line className="inv-handover" x1={xOf(splitAt).toFixed(1)} y1={padT}
+                    x2={xOf(splitAt).toFixed(1)} y2={H - padB}
+                    stroke="var(--chalk-dim)" strokeWidth="0.5" strokeDasharray="1,2" />
+            )}
+          </>
+        )}
         {/* Deposited sits underneath — it's the reference the value line
             is read against, so the value line stays on top and legible
             wherever they cross. */}
-        <path className="inv-line inv-line-deposit" d={pathOf(p => p.deposit)}
-              fill="none" stroke="var(--chalk-dim)"
-              strokeWidth="1" strokeDasharray="3 2" vectorEffect="non-scaling-stroke" />
-        <path className="inv-line inv-line-value" d={pathOf(p => p.value)}
-              fill="none" stroke="var(--chalk)"
-              strokeWidth="1.5" vectorEffect="non-scaling-stroke"
-              strokeLinejoin="round" strokeLinecap="round" />
+        {!allEstimated && (
+          <>
+            <path className="inv-line inv-line-deposit" d={pathOf(p => p.deposit, splitAt)}
+                  fill="none" stroke="var(--chalk-dim)"
+                  strokeWidth="1" strokeDasharray="3 2" vectorEffect="non-scaling-stroke" />
+            <path className="inv-line inv-line-value" d={pathOf(p => p.value, splitAt)}
+                  fill="none" stroke="var(--chalk)"
+                  strokeWidth="1.5" vectorEffect="non-scaling-stroke"
+                  strokeLinejoin="round" strokeLinecap="round" />
+          </>
+        )}
         {/* Live point */}
         <circle cx={xOf(series.length - 1).toFixed(1)} cy={yOf(last.value).toFixed(1)}
-                r="2.5" fill="var(--chalk)" stroke="#0c1310" strokeWidth="1.2" />
+                r="2.5" fill="var(--chalk)" stroke="#0c1310" strokeWidth="1.2"
+                opacity={allEstimated ? 0.4 : 1} />
         {/* Crosshair — hidden until the pointer enters, then updated
             imperatively. */}
         <g className="inv-crosshair" ref={crossRef} style={{ display: 'none' }}>
