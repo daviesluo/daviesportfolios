@@ -43,19 +43,23 @@ export function rangeStartMs(rangeKey, nowMs) {
  * Merge stored samples with points derived from the ledger into one
  * series over `[startMs, nowMs]`.
  *
- * Stored samples win wherever they exist: they're what the scoreboard
- * actually read at the time, and they cover tickers whose price history
- * is no longer fetched. Derived points fill everything before the
- * earliest sample, so a book that predates the sampler still charts its
- * whole history instead of starting at the day the feature shipped.
+ * The OUTPUT timestamps are the derived grid — the same bars the vs-S&P
+ * chart samples on. Stored samples win on VALUE wherever they exist
+ * (they're what the scoreboard read at the time, and they cover tickers
+ * whose price history is no longer fetched), but they are overlaid onto
+ * those bars rather than appended as extra x-slots. Concatenating the
+ * 5-minute samples onto a daily/hourly axis is what stretched "today"
+ * across half the 1W / 1M / 3M / YTD chart: index spacing gives every
+ * point equal width, so seventeen samples on the last day occupied
+ * seventeen times the space of every other day. vs-S&P never did that.
  *
- * The handover is one-way and permanent: every sample recorded pushes
- * the boundary left, so the reconstructed stretch shrinks on its own as
- * the sampler runs and eventually there is none of it left. Derived
- * points carry `estimated: true` so the chart can draw the two stretches
- * differently — the reconstruction is a best effort from the lot ledger
- * and today's price history, and it should not be read as a record of
- * what the account actually showed.
+ * Derived points fill everything before the first sample, so a book
+ * that predates the sampler still charts its whole history. The
+ * handover is one-way: every sample recorded pushes the boundary left.
+ * Derived points carry `estimated: true`.
+ *
+ * When there is no derived grid (the history hasn't arrived yet), the
+ * samples are returned as-is — better a 5-minute line than none.
  *
  * Exported for tests.
  *
@@ -65,15 +69,34 @@ export function rangeStartMs(rangeKey, nowMs) {
  * @returns {{ts:number, value:number, deposit:number, estimated?:boolean}[]}
  */
 export function mergeSeries(snapshots, derived, startMs) {
-  const snaps = (snapshots || []).filter(p => p.ts >= startMs);
-  const firstSnapTs = snaps.length > 0 ? snaps[0].ts : Infinity;
-  // Only the derived points OLDER than the first sample — otherwise the
-  // two sources would interleave and the line would visibly jitter
-  // between a recomputation and the recorded figure.
-  const older = (derived || [])
-    .filter(p => p.ts >= startMs && p.ts < firstSnapTs)
-    .map(p => ({ ...p, estimated: true }));
-  return [...older, ...snaps];
+  const snaps = (snapshots || []).filter(p => p.ts >= startMs).slice().sort((a, b) => a.ts - b.ts);
+  const grid = (derived || []).filter(p => p.ts >= startMs).slice().sort((a, b) => a.ts - b.ts);
+  if (grid.length === 0) return snaps;
+  if (snaps.length === 0) return grid.map(p => ({ ...p, estimated: true }));
+
+  let si = 0;
+  /** @type {{ts:number, value:number, deposit:number}|null} */
+  let lastSnap = null;
+  const out = [];
+  for (const g of grid) {
+    while (si < snaps.length && snaps[si].ts <= g.ts) {
+      lastSnap = snaps[si];
+      si++;
+    }
+    if (lastSnap) {
+      out.push({ ts: g.ts, value: lastSnap.value, deposit: lastSnap.deposit });
+    } else {
+      out.push({ ...g, estimated: true });
+    }
+  }
+  // Samples after the last bar still belong on the right edge — they
+  // are the recorded "now" — but they must not become extra x-slots.
+  if (out.length > 0 && si < snaps.length) {
+    const latest = snaps[snaps.length - 1];
+    const last = out[out.length - 1];
+    out[out.length - 1] = { ts: last.ts, value: latest.value, deposit: latest.deposit };
+  }
+  return out;
 }
 
 /**

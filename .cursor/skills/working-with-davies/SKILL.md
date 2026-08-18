@@ -143,6 +143,10 @@ Changing any of these means re-opening a decision he has already made.
   in (steps, not spikes). The legend shows each line's move over the
   window as a %, not a "gain" figure. Axes, grid and crosshair match
   the other chart.
+- On 1W / 1M / 3M / YTD, overlay 5-minute snapshots onto the vs-S&P
+  timestamp grid. Do not concatenate them: index spacing gives every
+  point equal width, so a day of 5-minute samples stretched "today"
+  across half the chart. 24H is already on that 5-minute grid.
 - Both panels are in the preload path. Opening either must not cold-
   fetch. A panel that paints "Insufficient data" and then fills in is
   not preloaded.
@@ -195,6 +199,12 @@ Changing any of these means re-opening a decision he has already made.
 - The API key is already in Supabase secrets and is reused as-is. A
   403 on history means the key needs regenerating with the History
   scope; retrying will never fix it.
+- History items are nested `{ fill, order }` (fill.id / fill.price /
+  fill.quantity / fill.filledAt, order.instrument.ticker / order.side).
+  A flat ticker/filledQuantity shaper parsed every page to 0 rows and
+  still advanced the cursor, walking the history into the void. Don't
+  advance the cursor when a page has items and none parse — that's a
+  shape bug, not an empty page.
 
 ### Labels and other surfaces
 

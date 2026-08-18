@@ -20,15 +20,31 @@ beforeEach(cleanup);
 const pt = (ts, value, deposit) => ({ ts, value, deposit });
 
 describe('mergeSeries', () => {
-  it('prefers stored samples and fills only OLDER gaps from the ledger', () => {
+  it('overlays stored samples onto the derived grid, and does not invent x-slots', () => {
+    // vs-S&P samples on its own bars. Concatenating 5-minute snapshots
+    // onto that grid made "today" occupy one slot per sample — seventeen
+    // times the width of every other day on an index-spaced chart.
     const snaps = [pt(500, 110, 100), pt(600, 120, 100)];
     const derived = [pt(300, 90, 100), pt(400, 95, 100), pt(550, 999, 999)];
     const out = mergeSeries(snaps, derived, 0);
-    // The derived point at 550 sits INSIDE the sampled span and is
-    // dropped — interleaving a recomputation with recorded figures makes
-    // the line visibly jitter between two answers for the same moment.
-    expect(out.map(p => p.ts)).toEqual([300, 400, 500, 600]);
-    expect(out.map(p => p.value)).toEqual([90, 95, 110, 120]);
+    expect(out.map(p => p.ts)).toEqual([300, 400, 550]);
+    // 300/400 are before any sample. 550 takes the last sample at or
+    // before it (500 → 110), then the leftover 600 is folded into the
+    // right edge rather than becoming a fourth point.
+    expect(out.map(p => p.value)).toEqual([90, 95, 120]);
+    expect(out.map(p => !!p.estimated)).toEqual([true, true, false]);
+  });
+
+  it('does not stretch the last day of a daily window with 5-minute samples', () => {
+    const day = 24 * 3600_000;
+    const derived = Array.from({ length: 10 }, (_, i) => pt(i * day, 100 + i, 100));
+    const snaps = Array.from({ length: 17 }, (_, i) => pt(9 * day + i * 5 * 60_000, 200, 100));
+    const out = mergeSeries(snaps, derived, 0);
+    // Same 10 bars as vs-S&P. The old concat was 9 + 17 = 26.
+    expect(out).toHaveLength(10);
+    expect(out.slice(0, 9).every(p => p.estimated && p.value < 200)).toBe(true);
+    expect(out[9].estimated).toBeUndefined();
+    expect(out[9].value).toBe(200);
   });
 
   it('drops everything before the window start', () => {
@@ -49,7 +65,8 @@ describe('mergeSeries', () => {
     // reconstruction from the ledger must not read as a record of what
     // the account actually showed.
     const out = mergeSeries([pt(500, 110, 100)], [pt(300, 90, 100), pt(400, 95, 100)], 0);
-    expect(out.map(p => !!p.estimated)).toEqual([true, true, false]);
+    expect(out.map(p => !!p.estimated)).toEqual([true, false]);
+    expect(out.map(p => p.value)).toEqual([90, 110]);
   });
 
   it('is empty when neither source has anything in the window', () => {

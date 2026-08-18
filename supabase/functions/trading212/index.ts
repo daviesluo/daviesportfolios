@@ -165,10 +165,56 @@ export const T212_ORDERS_URL = "https://live.trading212.com/api/v0/equity/histor
  * `fillPrice` is absent, and takes the earliest of the execution
  * timestamps that is actually present.
  *
+ * The published payload is nested `{ fill, order }` (fill.id / price /
+ * quantity / filledAt, order.instrument.ticker / order.side) — not the
+ * flat ticker/filledQuantity row the first shaper expected. A page of
+ * that nested shape parsed to 0 rows while the cursor still advanced,
+ * so the backfill walked the history storing nothing. `flattenT212OrderItem`
+ * unwraps it; the original flat fixtures still round-trip.
+ *
  * Returns null for anything that isn't a completed fill with a real
  * quantity and price — an open, cancelled or rejected order didn't move
  * any money and has no place in the ledger.
  */
+export function flattenT212OrderItem(raw: unknown): Record<string, unknown> | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const fill = (o.fill && typeof o.fill === "object") ? o.fill as Record<string, unknown> : null;
+  const order = (o.order && typeof o.order === "object") ? o.order as Record<string, unknown> : null;
+  if (!fill && !order) return o;
+
+  const ord = order ?? {};
+  const fl = fill ?? {};
+  const instrument = (ord.instrument && typeof ord.instrument === "object")
+    ? ord.instrument as Record<string, unknown>
+    : {};
+  const wallet = (fl.walletImpact && typeof fl.walletImpact === "object")
+    ? fl.walletImpact as Record<string, unknown>
+    : {};
+  const ticker = (typeof instrument.ticker === "string" && instrument.ticker)
+    || (typeof ord.ticker === "string" && ord.ticker)
+    || (typeof o.ticker === "string" && o.ticker)
+    || "";
+  return {
+    ticker,
+    status: ord.status ?? o.status,
+    side: ord.side ?? o.side,
+    filledQuantity: fl.quantity ?? ord.filledQuantity ?? o.filledQuantity,
+    fillPrice: fl.price ?? o.fillPrice ?? ord.limitPrice,
+    fillCost: wallet.netValue ?? ord.filledValue ?? o.fillCost,
+    fillId: fl.id ?? o.fillId,
+    id: ord.id ?? o.id,
+    dateExecuted: fl.filledAt ?? o.dateExecuted,
+    dateCreated: ord.createdAt ?? o.dateCreated,
+    dateModified: ord.modifiedAt ?? o.dateModified,
+  };
+}
+
+/** True when a page arrived but nothing in it could be stored. */
+export function ordersPageShapeMismatch(itemCount: number, parsedCount: number): boolean {
+  return itemCount > 0 && parsedCount === 0;
+}
+
 export function shapeT212Order(raw: unknown, account: string): {
   id: string;
   account: string;
@@ -179,8 +225,8 @@ export function shapeT212Order(raw: unknown, account: string): {
   shares: number;
   price: number;
 } | null {
-  if (!raw || typeof raw !== "object") return null;
-  const o = raw as Record<string, unknown>;
+  const o = flattenT212OrderItem(raw);
+  if (!o) return null;
   const num = (v: unknown): number | null =>
     (typeof v === "number" && isFinite(v)) ? v
       : (typeof v === "string" && v.trim() !== "" && isFinite(Number(v)) ? Number(v) : null);
@@ -197,11 +243,11 @@ export function shapeT212Order(raw: unknown, account: string): {
   const qty = num(o.filledQuantity) ?? num(o.orderedQuantity) ?? num(o.quantity);
   if (qty == null || qty === 0) return null;
 
-  // T212 signs a sale's quantity negative. `fillResult` (realised P/L)
-  // only appears on sells, so it's a second witness when the sign is
-  // absent — but never the primary one: a sale that broke even reports
-  // zero, not nothing.
-  const side: "buy" | "sell" = qty < 0 ? "sell" : "buy";
+  // Nested history reports `order.side` (BUY/SELL) with a positive
+  // quantity. The older flat payload signed a sale negative. Either
+  // witness is enough; a sale that broke even still has a side.
+  const declared = typeof o.side === "string" ? o.side.toUpperCase() : "";
+  const side: "buy" | "sell" = qty < 0 || declared === "SELL" ? "sell" : "buy";
   const shares = Math.abs(qty);
 
   const cost = num(o.fillCost) ?? num(o.filledValue) ?? num(o.orderedValue);
@@ -748,6 +794,25 @@ async function syncOrdersOnce(
   const rows = items
     .map((it) => shapeT212Order(it, account))
     .filter((r): r is NonNullable<ReturnType<typeof shapeT212Order>> => r !== null);
+  // A page that arrived but parsed to nothing is a shape bug, not an
+  // empty history. Advancing the cursor here walked the real nested
+  // `{ fill, order }` payload into the void (fetched stayed 0).
+  if (ordersPageShapeMismatch(items.length, rows.length)) {
+    const sampleKeys = items[0] && typeof items[0] === "object"
+      ? Object.keys(items[0] as object).sort().join(",")
+      : "";
+    const msg = `shape mismatch: ${items.length} items, 0 parsed`
+      + (sampleKeys ? ` (top-level keys: ${sampleKeys})` : "");
+    console.error(`T212 orders ${account}: ${msg}`);
+    await writeOrdersSync({
+      account, cursor, complete: false,
+      fetched: state?.fetched ?? 0, last_error: msg,
+    });
+    return {
+      account, added: 0, skipped: items.length,
+      fetched: state?.fetched ?? 0, complete: false, error: msg,
+    };
+  }
   const wrote = await writeOrders(rows);
   const next = nextOrdersCursor(page.body);
   // A finished walk stays finished — the top-up pass above deliberately
