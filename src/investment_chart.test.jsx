@@ -152,6 +152,14 @@ describe('InvestmentChart', () => {
     expect(container.querySelectorAll('path.inv-line')).toHaveLength(2);
   });
 
+  it('labels the shortest range 24H, matching the vs-S&P row', () => {
+    const { container } = render(
+      <InvestmentChart series={series} rangeKey="1D" setRangeKey={vi.fn()} />,
+    );
+    expect([...container.querySelectorAll('.perf-range-btn')].map(b => b.textContent))
+      .toEqual(['24H', '1W', '1M', '3M', 'YTD']);
+  });
+
   it('reports each line\'s move across the WINDOW, not its lifetime gain', () => {
     // Deposited $800 long ago, now worth $1,250 — a lifetime gain of
     // +56%. Over the window on screen the value rose 250 while 200 of

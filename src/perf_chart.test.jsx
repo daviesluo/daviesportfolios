@@ -206,42 +206,40 @@ describe('PerfPanel — chrome wrapper', () => {
     );
     expect(container.querySelector('.x')).toBeTruthy();
   });
+
+  it('labels the shortest range 24H and has no DAY / 1D toggle', () => {
+    const { container } = render(
+      <PerfPanel
+        portfolio={PORTFOLIO}
+        marketData={MARKET_DATA}
+        extendedHours={true}
+        phase="overnight"
+      />,
+    );
+    const labels = [...container.querySelectorAll('.perf-range-btn')].map(b => b.textContent);
+    expect(labels).toEqual(['24H', '1W', '1M', '3M', 'YTD']);
+    expect(container.querySelector('.perf-basis-btn')).toBeNull();
+    expect(labels).not.toContain('1D');
+    expect(labels).not.toContain('DAY');
+  });
 });
 
 describe('perfBaseline — what each line is measured from', () => {
-  const args = { windowFirstClose: 7100, portFirstPct: 3.0, spPrevClose: 7000 };
+  const args = { windowFirstClose: 7100, portFirstPct: 3.0 };
 
-  it('1D measures from the PREVIOUS CLOSE, so the chart agrees with the scoreboard', () => {
-    // Rebasing 1D to the window's own first bar made this chart disagree
-    // with the scoreboard's DAY CHANGE and the Market Conditions card by
-    // the size of the overnight gap — three numbers for one day on one
-    // screen. computeAt is already handed prevCloseBasis on 1D, so the
-    // portfolio series IS the day change and needs no shift at all.
-    const out = perfBaseline({ rangeKey: '1D', ...args });
-    expect(out.dayMode).toBe(true);
-    expect(out.portShift).toBe(0);
-    expect(out.spBase).toBe(7000);
-  });
-
-  it('falls back to the window when there is no previous close to quote', () => {
-    // The bars are trimmed to a trailing 24 h before they're cached, so
-    // on a Monday the last close isn't among them — it has to come from
-    // the quote, and when that's missing the window is all there is.
-    expect(perfBaseline({ rangeKey: '1D', ...args, spPrevClose: undefined }).spBase).toBe(7100);
-    expect(perfBaseline({ rangeKey: '1D', ...args, spPrevClose: 0 }).spBase).toBe(7100);
-  });
-
-  it('the 24h toggle rebases to the window, as every other range does', () => {
-    const out = perfBaseline({ rangeKey: '1D', dayBasis: '24h', ...args });
-    expect(out.dayMode).toBe(false);
+  it('the 24H range (internal 1D) rebases to the window, not the previous close', () => {
+    // Pin against the old default: measuring from prevClose (spBase =
+    // 7000, portShift = 0) made PORTFOLIO disagree with a trailing-24 h
+    // reading by the overnight gap. The DAY / 24H toggle is gone; the
+    // panel's shortest range is only that trailing day.
+    const out = perfBaseline({ rangeKey: '1D', spPrevClose: 7000, ...args });
     expect(out.portShift).toBe(3.0);
     expect(out.spBase).toBe(7100);
   });
 
-  it('leaves every other range rebased to its own first point', () => {
-    for (const rk of ['1W', '1M', '3M', 'YTD']) {
+  it('rebases every range to its own first point', () => {
+    for (const rk of ['1D', '1W', '1M', '3M', 'YTD']) {
       const out = perfBaseline({ rangeKey: rk, ...args });
-      expect(out.dayMode).toBe(false);
       expect(out.portShift).toBe(3.0);
       expect(out.spBase).toBe(7100);
     }

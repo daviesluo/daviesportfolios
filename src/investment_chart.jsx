@@ -18,7 +18,7 @@
 
 import React from 'react';
 import { fmtMoney, maskDigits } from './formatters.js';
-import { RANGES, RANGE_KEYS, investmentPointAt, computeAt } from './ytd.js';
+import { RANGE_KEYS, investmentPointAt, computeAt, panelRangeLabel } from './ytd.js';
 import { pointerToDataIndex, crosshairFormatFor } from './chart_geometry.js';
 
 /** Window length per range, in ms. Mirrors the vs-S&P chart's ranges. */
@@ -227,7 +227,7 @@ function RangeButtons({ rangeKey, onChange }) {
           type="button"
           className={`perf-range-btn mono${k === rangeKey ? ' on' : ''}`}
           onClick={() => onChange(k)}
-        >{RANGES[k].label}</button>
+        >{panelRangeLabel(k)}</button>
       ))}
     </div>
   );

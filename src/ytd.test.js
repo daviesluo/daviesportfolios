@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildTickerSeries, closeOn, lotsFor, computeAt, ytdPct,
-  fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS,
+  fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS, panelRangeLabel,
   applyVariantFilter, windowSinceLastUsClose, windowBetweenLastTwoUsCloses,
   filterToLastHours, filterToLast24h, fillVenueSessionGrid, investmentPointAt,
   historyLotsFor, priceAtOrCarried } from './ytd.js';
@@ -550,6 +550,14 @@ describe('1Y range (ticker-modal-only)', () => {
     // math has no trailing-12-month model, so 1Y must stay out of it.
     expect(RANGE_KEYS).toEqual(['1D', '1W', '1M', '3M', 'YTD']);
     expect(RANGE_KEYS).not.toContain('1Y');
+  });
+  it('the panel labels the shortest range 24H; the modal keeps 1D', () => {
+    // Same internal key, two surfaces, two names. Relabelling RANGES
+    // itself would rename the ticker-modal day chart, which still
+    // means "since the previous close" with OPEN/CLOSE markers.
+    expect(panelRangeLabel('1D')).toBe('24H');
+    expect(RANGES['1D'].label).toBe('1D');
+    expect(RANGE_KEYS.map(panelRangeLabel)).toEqual(['24H', '1W', '1M', '3M', 'YTD']);
   });
   it('fetchParamsFor("1Y") → 1y / 1d / no pre-post, std variant', () => {
     expect(fetchParamsFor('1Y', false, 'regular')).toEqual({
