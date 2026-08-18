@@ -314,24 +314,25 @@ export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
     const hasPriorSlice = isFinite(oldT212Shares) && oldT212Shares >= 0
       && isFinite(oldT212Cost) && oldT212Cost >= 0;
 
-    // On the FIRST sync of a ticker — no `t212Shares` tag yet — the
-    // broker is taken as the whole position.
+    // A board position LARGER than the broker's is another platform's
+    // shares, and they are never taken away.
     //
-    // The alternative, treating any board excess as another platform's
-    // slice, sounds safer and is not: it preserves whatever number the
-    // board happened to be carrying, forever, with no way back. Measured
-    // on the real book, the board said 24 shares of GOOG against the
-    // broker's 22, and had PLTR recorded as sold out while 55 shares sat
-    // in the account. Both would have stayed wrong under that rule.
+    // This book holds SPCX, RKLB and HOOD at Trading 212 *and*
+    // elsewhere: 130 / 160 / 50 on the board against 59 / 148.5 / 20 at
+    // the broker. Taking the broker as the whole position on a ticker's
+    // first sync — which this briefly did — deleted 71, 11.5 and 30
+    // shares respectively. The excess is not stale data to be corrected;
+    // it is the rest of the position.
     //
-    // What made the original overwrite dangerous was that it also
-    // destroyed lots and sells. This one does not touch either, and from
-    // the second sync onward only the tagged slice's DELTA is applied —
-    // so a position genuinely split between T212 and another broker is
-    // built by editing it once, after which the tag protects it.
+    // Nothing is lost by being conservative here. A holding the board
+    // records as sold out (PLTR at 0 against 55 held) still comes back
+    // in full, because `max(0, 0 - 55)` is 0 and the broker's slice is
+    // the whole of it. From the second sync onward only the tagged
+    // slice's DELTA moves, so the other platform's shares ride along
+    // untouched forever after.
     const otherShares = hasPriorSlice
       ? Math.max(0, currentShares - oldT212Shares)
-      : 0;
+      : Math.max(0, currentShares - row.shares);
     let otherCash = 0;
     if (otherShares > 0 && isFinite(currentCost) && currentCost >= 0) {
       const totalCash = Math.max(0, currentShares * currentCost);
