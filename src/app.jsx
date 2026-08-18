@@ -33,7 +33,7 @@ import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
-import { fetchTrading212Holdings, applyTrading212, applyTrading212NightPrice } from './trading212.js';
+import { fetchTrading212Holdings, syncTrading212History, applyTrading212, applyTrading212NightPrice } from './trading212.js';
 import { fetchOvernightSeries } from './overnight_intraday.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
@@ -966,6 +966,38 @@ function Board({ isReadOnly }) {
       : null),
     [portfolio, extendedHours, currentPhase, marketData],
   );
+  // Walk the Trading 212 executed-order history a page at a time until
+  // both account cursors latch, then top up page one every ten minutes.
+  // `/equity/positions` reports a POSITION — quantity and average price,
+  // with no dates — so this is the only source of real purchase dates,
+  // and nothing drives it unless a tab asks.
+  useEffect(() => {
+    if (isReadOnly) return undefined;
+    let cancelled = false;
+    let timer = /** @type {any} */ (null);
+    const step = async () => {
+      if (cancelled) return;
+      const res = await syncTrading212History();
+      if (cancelled || !res) return;
+      const denied = (Array.isArray(res.accounts) ? res.accounts : [])
+        .filter((a) => a && a.scopeDenied);
+      if (denied.length > 0) {
+        // Not a missing-scope prompt: the stored key already carries
+        // Portfolio, History: orders and History: transactions. Report
+        // and stop rather than grinding against a 403 that can't change.
+        reportError('t212.history.scope', {
+          message: 'Trading 212 refused the history endpoint (403). The stored key '
+            + 'already has Portfolio, History: orders and History: transactions.',
+          context: { accounts: denied.map((a) => a.account) },
+        });
+        return;
+      }
+      timer = setTimeout(step, res.ordersComplete === true ? 10 * 60 * 1000 : 20000);
+    };
+    timer = setTimeout(step, 8000);
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
+  }, [isReadOnly]);
+
   // Stable handler for the Heatmap's tile click — useCallback so the
   // Heatmap's React.memo (heatmap.jsx) isn't defeated by a fresh
   // closure each Board render. Declared here (above the loading

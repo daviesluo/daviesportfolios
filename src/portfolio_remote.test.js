@@ -352,3 +352,64 @@ describe('migrate — heal sold-out-but-never-closed holdings (float-dust full s
     expect(p.holdings.NVDA.shares).toBe(2);
   });
 });
+
+describe('migrate — the sold-out heal must not zero a real position', () => {
+  // PLTR, exactly as it sat in the live book: a complete 2024 round trip
+  // in the ledger (6.5 bought, 6.5 sold) while 55 shares were held in
+  // the account. The heal read the ledger, called it sold out, wrote
+  // shares 0 and stripped it off the board — on EVERY load, so typing
+  // the shares back in survived until the next reload.
+  const pltrLedger = () => ({
+    shares: 55, cost: 123.29, lastPrice: 171.54, currency: 'USD',
+    lots: [
+      { date: '2024-07-24', shares: 1.75, cost: 26.78 },
+      { date: '2024-07-24', shares: 0.25, cost: 26.6 },
+      { date: '2024-07-30', shares: 2, cost: 26.35 },
+      { date: '2024-08-02', shares: 2.5, cost: 24.8 },
+    ],
+    sells: [{ date: '2024-08-08', shares: 6.5, price: 28.1 }],
+  });
+
+  it('leaves a holding the board says it still owns', () => {
+    const out = migrate({
+      holdings: { PLTR: pltrLedger() },
+      positions: { CM: { label: 'CM', role: 'MID', subtitle: 'AI Appli', tickers: ['PLTR'] } },
+    });
+    expect(out.holdings.PLTR.shares).toBe(55);
+    expect(out.holdings.PLTR.closed).toBeUndefined();
+    expect(out.positions.CM.tickers).toContain('PLTR');
+  });
+
+  it('still heals the float dust it was built for', () => {
+    // A full sale of fractional lots that netted to ~5e-17 instead of 0:
+    // the board already reads ~empty, so the heal is the right call.
+    const out = migrate({
+      holdings: {
+        DUST: {
+          shares: 5e-17, cost: 0, currency: 'USD',
+          lots: [{ date: '2025-01-02', shares: 1.1, cost: 10 }],
+          sells: [{ date: '2025-06-01', shares: 1.1, price: 12 }],
+        },
+      },
+      positions: { ST: { label: 'ST', role: 'FWD', subtitle: '', tickers: ['DUST'] } },
+    });
+    expect(out.holdings.DUST.closed).toBe(true);
+    expect(out.holdings.DUST.shares).toBe(0);
+    expect(out.positions.ST.tickers).not.toContain('DUST');
+  });
+
+  it('still heals an outright zero the ledger agrees with', () => {
+    const out = migrate({
+      holdings: {
+        GONE: {
+          shares: 0, cost: 0, currency: 'USD',
+          lots: [{ date: '2025-01-02', shares: 3, cost: 10 }],
+          sells: [{ date: '2025-06-01', shares: 3, price: 12 }],
+        },
+      },
+      positions: { ST: { label: 'ST', role: 'FWD', subtitle: '', tickers: ['GONE'] } },
+    });
+    expect(out.holdings.GONE.closed).toBe(true);
+    expect(out.positions.ST.tickers).not.toContain('GONE');
+  });
+});

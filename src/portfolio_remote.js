@@ -359,6 +359,28 @@ export function migrate(p) {
   for (const [t, h] of Object.entries(p.holdings)) {
     if (h.isCash || t === "CASH") continue;
     if (!Array.isArray(h.sells) || h.sells.length === 0) continue;
+    // The board's share count wins over the ledger's.
+    //
+    // This heal exists for float dust — a full sale of fractional lots
+    // netting to ~5e-17 instead of 0 — so it only ever needed to fire on
+    // a holding the board ALREADY considers empty. Without that guard it
+    // reads a short ledger as a sold-out position and zeroes a real one,
+    // on every load, silently, with no way for the user to fix it: type
+    // the shares into the edit modal and the next reload takes them
+    // straight back out.
+    //
+    // That is not hypothetical. PLTR's ledger is a complete 2024 round
+    // trip (6.5 bought, 6.5 sold) while 55 shares sat in the account;
+    // the heal stripped it off the board and held it there. And it is
+    // not a one-off risk: 16 of 26 holdings on this book carry lots that
+    // do not add up to their board shares (BMNR 7 against 225, RKLB 30
+    // against 160), so any of them acquiring a sell would have been
+    // next.
+    //
+    // A genuine full sale already writes `shares: 0` through
+    // `netPosition`, so every case this was built for still heals.
+    const boardShares = Number(h.shares);
+    if (Number.isFinite(boardShares) && boardShares > 1e-6) continue;
     const np = netPosition(h.lots || [], h.sells);
     if (np.shares > 0) continue;
     h.closed = true;
