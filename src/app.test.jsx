@@ -66,6 +66,8 @@ vi.mock('./portfolio_remote.js', () => ({
   loadPortfolioRemote: vi.fn(() => Promise.resolve(null)),
   savePortfolioRemote: vi.fn(() => Promise.resolve({ ok: true })),
   portfolioUserFingerprint: vi.fn(() => 'fingerprint'),
+  migrate: (p) => p,
+  restoreLeftoverClosedHoldings: (p) => p,
   PORTFOLIO_BROADCAST_CHANNEL: 'dp.portfolio',
 }));
 vi.mock('./prefetch.js', () => ({ prefetchAllChartData: vi.fn() }));

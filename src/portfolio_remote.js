@@ -428,7 +428,8 @@ export function migrate(p) {
  */
 function defaultPositionKeyForTicker(ticker) {
   for (const [key, pos] of Object.entries(INITIAL_PORTFOLIO.positions)) {
-    if ((pos.tickers || []).includes(ticker)) return key;
+    const tickers = /** @type {string[]} */ (pos.tickers || []);
+    if (tickers.includes(ticker)) return key;
   }
   return null;
 }
