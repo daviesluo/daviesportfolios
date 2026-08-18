@@ -36,6 +36,29 @@ const APP_VERSION = computeAppVersion();
 export default defineConfig({
   root: 'src',
   publicDir: '../public',
+  // Pre-bundle every runtime dependency in the dev optimizer's FIRST
+  // pass. `react-dom` (modals.jsx's createPortal) was picked up by the
+  // initial scan, but `react-dom/client` (main.jsx's createRoot),
+  // `idb-keyval` (chart_store.js) and `html2canvas-pro` (screenshot.js's
+  // lazy import) were only discovered in later runtime waves. Each late
+  // discovery re-hashed the shared react-dom chunk, leaving already-loaded
+  // modules importing an export name that no longer existed ("does not
+  // provide an export named …") — a blank page on `vite dev` that never
+  // self-heals. Listing them here forces a single, consistent optimize
+  // pass. Dev-only: `optimizeDeps` has no effect on `vite build` (Rollup)
+  // or the committed production bundle, and prod still code-splits the
+  // lazy html2canvas-pro chunk.
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-dom/client',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'idb-keyval',
+      'html2canvas-pro',
+    ],
+  },
   plugins: [
     react(),
     // Service worker via Workbox. registerType:'prompt' installs the new
