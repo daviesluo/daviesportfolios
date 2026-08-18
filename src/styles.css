@@ -1094,6 +1094,13 @@ body {
   padding: 0 4px;
 }
 .lot-grid-row .inp { padding: 8px 10px; font-size: 13px; }
+/* Grid items default to `min-width: auto`, which refuses to shrink a
+   child below its intrinsic width — and a bare <input> asks for ~177px
+   (size=20), a date input more. Two of those plus the 150px date column
+   overflowed the row by 80px at EVERY desktop width, pushing the ✕
+   remove-lot button outside the modal body where it could not be
+   clicked. Only the ≤760px stacked layout escaped it. */
+.lot-grid-row > * { min-width: 0; }
 .lot-add { align-self: flex-start; margin-top: 4px; font-size: 12px; }
 /* The two "+ Add lot" / "+ Sell" buttons sit side by side under the grids. */
 .lot-add-row { display: flex; gap: 10px; margin-top: 4px; }
