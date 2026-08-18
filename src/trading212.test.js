@@ -4,7 +4,7 @@
 // the Edge Function's deno tests, not retested here.
 
 import { describe, it, expect } from 'vitest';
-import { applyTrading212, applyTrading212NightPrice } from './trading212.js';
+import { applyTrading212, applyTrading212NightPrice, lotsFromOrders } from './trading212.js';
 
 describe('applyTrading212', () => {
   it('replaces lots / shares / cost (per-share AC) for matching tickers; leaves others alone', () => {
@@ -202,5 +202,74 @@ describe('applyTrading212NightPrice', () => {
     expect(applyTrading212NightPrice(/** @type {any} */ (null), { AAPL: 1 }, true)).toBeNull();
     const h = { AAPL: usHolding() };
     expect(applyTrading212NightPrice(h, null, true)).toBe(h);
+  });
+});
+
+describe('lotsFromOrders — real purchase history replacing the guess', () => {
+  const fills = [
+    { ticker: 'VUAA.L', executed_at: '2024-02-02T09:00:00Z', side: 'buy',  shares: 3, price: 80, account: 'invest' },
+    { ticker: 'VUAA.L', executed_at: '2025-03-04T10:30:00Z', side: 'buy',  shares: 2, price: 90, account: 'isa' },
+    { ticker: 'VUAA.L', executed_at: '2025-06-01T11:00:00Z', side: 'sell', shares: 1, price: 95, account: 'invest' },
+    { ticker: 'AAPL',   executed_at: '2025-01-01T00:00:00Z', side: 'buy',  shares: 9, price: 10, account: 'invest' },
+  ];
+
+  it('builds dated lots and sells, oldest first, across both accounts', () => {
+    // The board has one row per ticker; which T212 account a share sits
+    // in isn't something the ledger models.
+    const out = /** @type {any} */ (lotsFromOrders(fills, 'VUAA.L'));
+    expect(out.lots).toEqual([
+      { date: '2024-02-02', shares: 3, cost: 80 },
+      { date: '2025-03-04', shares: 2, cost: 90 },
+    ]);
+    expect(out.sells).toEqual([{ date: '2025-06-01', shares: 1, price: 95 }]);
+  });
+
+  it('returns null when there is nothing to rebuild from', () => {
+    // The caller keeps whatever it had — an unfinished backfill must not
+    // empty a position's ledger.
+    expect(lotsFromOrders(fills, 'NVDA')).toBeNull();
+    expect(lotsFromOrders([], 'VUAA.L')).toBeNull();
+    expect(lotsFromOrders(/** @type {any} */ (null), 'VUAA.L')).toBeNull();
+    // Sells alone can't make a ledger either.
+    expect(lotsFromOrders([{ ticker: 'X', executed_at: '2025-01-01T00:00:00Z', side: 'sell', shares: 1, price: 5 }], 'X'))
+      .toBeNull();
+  });
+
+  it('skips malformed fills rather than poisoning the ledger', () => {
+    const out = /** @type {any} */ (lotsFromOrders([
+      { ticker: 'X', executed_at: '2025-01-01T00:00:00Z', side: 'buy', shares: 1, price: 5 },
+      { ticker: 'X', executed_at: '2025-01-02T00:00:00Z', side: 'buy', shares: 0, price: 5 },
+      { ticker: 'X', executed_at: '', side: 'buy', shares: 1, price: 5 },
+      { ticker: 'X', executed_at: '2025-01-03T00:00:00Z', side: 'buy', shares: 1, price: 0 },
+    ], 'X'));
+    expect(out.lots).toEqual([{ date: '2025-01-01', shares: 1, cost: 5 }]);
+  });
+});
+
+describe('applyTrading212 — real fills supersede the synthetic lot', () => {
+  it('uses the dated history when the backfill has reached the ticker', () => {
+    const holdings = { 'VUAA.L': { currency: 'USD', lastPrice: 110,
+                                   lots: [{ date: '2024-01-01', shares: 5, cost: 100 }], shares: 5, cost: 100 } };
+    const out = applyTrading212(
+      holdings, { 'VUAA.L': { shares: 5, cost: 84 } }, undefined, '2026-05-15',
+      [
+        { ticker: 'VUAA.L', executed_at: '2024-02-02T00:00:00Z', side: 'buy', shares: 3, price: 80 },
+        { ticker: 'VUAA.L', executed_at: '2025-03-04T00:00:00Z', side: 'buy', shares: 2, price: 90 },
+      ],
+    );
+    // Every buy on its own date at its own price — what the single
+    // synthetic lot was only ever approximating.
+    expect(out['VUAA.L'].lots).toHaveLength(2);
+    expect(out['VUAA.L'].lots[0]).toEqual({ date: '2024-02-02', shares: 3, cost: 80 });
+    // Shares and cost still come from the broker's own position figure,
+    // which is authoritative for what is held right now.
+    expect(out['VUAA.L'].shares).toBe(5);
+    expect(out['VUAA.L'].cost).toBe(84);
+  });
+
+  it('falls back to the synthetic lot while the backfill is unfinished', () => {
+    const holdings = { 'VUAA.L': { lots: [{ date: '2024-01-01', shares: 5, cost: 100 }], shares: 5, cost: 100 } };
+    const out = applyTrading212(holdings, { 'VUAA.L': { shares: 5, cost: 84 } }, undefined, '2026-05-15', []);
+    expect(out['VUAA.L'].lots).toEqual([{ date: '2024-01-01', shares: 5, cost: 84 }]);
   });
 });

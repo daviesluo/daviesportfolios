@@ -35,7 +35,7 @@ import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
-import { fetchTrading212Holdings, applyTrading212, applyTrading212NightPrice } from './trading212.js';
+import { fetchTrading212Holdings, fetchTrading212Orders, syncTrading212Orders, applyTrading212, applyTrading212NightPrice } from './trading212.js';
 import { fetchOvernightSeries } from './overnight_intraday.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
@@ -622,7 +622,7 @@ function Board({ isReadOnly }) {
     // 5d/5m pull for 15 symbols off every tick.
     const wantTodayCloses = refreshPhase !== "regular"
       && (Date.now() - todayClosesRef.current.ts > 30 * 60 * 1000);
-    const [{ updates, source: src, coverage }, mcResult, todayClosesFresh, extSeries, t212Holdings] = await Promise.all([
+    const [{ updates, source: src, coverage }, mcResult, todayClosesFresh, extSeries, t212Holdings, t212Orders] = await Promise.all([
       refreshPrices(portfolio),
       fetchTickers(MC_TICKERS),
       wantTodayCloses ? fetchTodayRegularClose(MC_TICKERS) : Promise.resolve(null),
@@ -638,6 +638,10 @@ function Board({ isReadOnly }) {
       // `holdings` drives the VUAA.L / SAEM.L shares-cost auto-sync,
       // `prices` feeds the overnight US-equity quote overlay below.
       fetchTrading212Holdings(),
+      // Executed-fill history, for real purchase dates on the synced
+      // tickers. Cached client-side for ten minutes — the history is
+      // immutable, so this costs nothing on the 30-second tick.
+      fetchTrading212Orders(),
     ]);
     // Refresh the cache when we fetched this tick; otherwise reuse it. Apply
     // whichever map we have so the MC ext-on anchor stays populated even on
@@ -718,7 +722,7 @@ function Board({ isReadOnly }) {
       //      after-hours keep the original Yahoo logic untouched.
       // When the API key isn't set or the upstream errored,
       // t212Holdings is null → both calls no-op.
-      applyTrading212(next.holdings, t212Holdings?.holdings, t212Holdings?.prices);
+      applyTrading212(next.holdings, t212Holdings?.holdings, t212Holdings?.prices, undefined, t212Orders);
       // Apply T212's overnight price into holdings.extPrice whenever
       // it's the overnight window — NOT gated on the Extended Hours
       // toggle. Mirrors the Yahoo extPrice / extSeries fetch above
@@ -999,6 +1003,49 @@ function Board({ isReadOnly }) {
     () => (liveMV != null && liveND != null && liveMV > 0 ? { marketValue: liveMV, netDeposit: liveND } : null),
     [liveMV, liveND],
   );
+
+  // Trading 212 order-history backfill.
+  //
+  // The positions endpoint reports a POSITION with no dates, which is
+  // why every synced ticker has carried a single synthetic lot whose
+  // date could only ever be a guess. The history endpoint has the real
+  // fills — but it's rate limited to a handful of calls a minute, so it
+  // has to be walked a page at a time rather than pulled in one go.
+  //
+  // Self-completing: pages every 20 s until the server reports the walk
+  // finished, then stops. `complete` latches server-side, so on every
+  // later session this is a single request that tops up any new fills
+  // and ends. Admin only — it writes, and it spends a rate-limited
+  // upstream budget a read-only viewer has no business spending.
+  useEffect(() => {
+    if (isReadOnly) return undefined;
+    let cancelled = false;
+    let timer = /** @type {any} */ (null);
+    const step = async () => {
+      if (cancelled) return;
+      const res = await syncTrading212Orders();
+      if (cancelled || !res) return;
+      const accounts = Array.isArray(res.accounts) ? res.accounts : [];
+      // A key without T212's History scope authenticates fine and then
+      // refuses this endpoint. No amount of retrying fixes that, so say
+      // so once and stop rather than grinding against it every 20 s.
+      const denied = accounts.filter((a) => a && a.scopeDenied);
+      if (denied.length > 0) {
+        reportError('t212.orders.scope', {
+          message: 'Trading 212 API key lacks the History scope — regenerate it in '
+            + 'Trading 212 with History enabled to backfill real purchase dates.',
+          context: { accounts: denied.map((a) => a.account) },
+        });
+        return;
+      }
+      if (res.complete) return;
+      timer = setTimeout(step, 20000);
+    };
+    // A beat after load so the backfill never competes with the first
+    // paint or the opening price refresh.
+    timer = setTimeout(step, 8000);
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
+  }, [isReadOnly]);
 
   // Investment Performance sampler. Records the portfolio's USD value and
   // net deposited every 5 minutes so the chart has a real recorded series

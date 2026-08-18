@@ -96,6 +96,122 @@ export async function fetchTrading212Holdings() {
 }
 
 /**
+ * Executed-fill history, oldest first, as
+ * `[{ ticker, executed_at, side, shares, price, account }]`.
+ *
+ * This is the one thing `/equity/positions` cannot tell us: it reports a
+ * POSITION — quantity and average price — with no dates, which is why
+ * the synced tickers have only ever carried a single synthetic lot whose
+ * date was a guess. Served from `t212_orders`, which the backfill fills
+ * a page at a time; empty until that has run.
+ *
+ * @returns {Promise<Array<{ticker: string|null, executed_at: string, side: string, shares: number, price: number, account: string}>>}
+ */
+let ordersCache = /** @type {{ts: number, rows: any[]} | null} */ (null);
+// Executed history is immutable — a fill from 2024 is never going to
+// change — so this only needs re-reading often enough to notice a NEW
+// fill. Ten minutes keeps it off the 30-second refresh tick entirely.
+const ORDERS_TTL_MS = 10 * 60 * 1000;
+
+export async function fetchTrading212Orders() {
+  if (ordersCache && Date.now() - ordersCache.ts < ORDERS_TTL_MS) return ordersCache.rows;
+  try {
+    const res = await fetch(`${EDGE_TRADING212_URL}?action=orders`, {
+      method: 'GET',
+      headers: {
+        'apikey': SB_ANON,
+        'Authorization': `Bearer ${SB_ANON}`,
+        'X-App-Token': getAppToken(),
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return ordersCache?.rows || [];
+    const body = await res.json();
+    const rows = Array.isArray(body?.orders) ? body.orders : [];
+    // Never cache an empty read over a good one: empty is ambiguous
+    // between "the backfill hasn't run" and "the request failed", and
+    // caching it would drop every synced ticker back to its synthetic
+    // lot for ten minutes.
+    if (rows.length > 0 || !ordersCache) ordersCache = { ts: Date.now(), rows };
+    return ordersCache.rows;
+  } catch {
+    return ordersCache?.rows || [];
+  }
+}
+
+/** Drop the cached history — used after a backfill page lands. */
+export function clearTrading212OrdersCache() {
+  ordersCache = null;
+}
+
+/**
+ * Advance the order-history backfill by one page per account.
+ *
+ * One page per call because the history endpoint is rate limited to a
+ * handful of requests a minute — the caller keeps going until
+ * `complete` comes back true. Admin only; a 403 with a `403` status on
+ * an account means the API key authenticates but lacks T212's History
+ * scope, which no amount of retrying will fix.
+ *
+ * @returns {Promise<{accounts: any[], complete: boolean} | null>}
+ */
+export async function syncTrading212Orders() {
+  try {
+    const res = await fetch(`${EDGE_TRADING212_URL}?action=orders-sync`, {
+      method: 'GET',
+      headers: {
+        'apikey': SB_ANON,
+        'Authorization': `Bearer ${SB_ANON}`,
+        'X-App-Token': getAppToken(),
+      },
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!res.ok) return null;
+    clearTrading212OrdersCache();
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Rebuild one ticker's lot ledger from its executed fills.
+ *
+ * Returns `{ lots, sells }` in the shape the rest of the app already
+ * uses, or null when there is nothing to rebuild from — the caller then
+ * keeps whatever it had rather than replacing real data with an empty
+ * ledger.
+ *
+ * Fills for the SAME ticker across both T212 accounts are merged: the
+ * board has one row per ticker, and which account a share sits in isn't
+ * something the ledger models. Same-day fills are kept as separate lots
+ * rather than averaged — the cost basis is identical either way, and
+ * keeping them means a partial sale can be reconciled against what
+ * actually happened.
+ *
+ * @param {Array<{ticker?: string|null, executed_at?: string, side?: string, shares?: any, price?: any}>} orders
+ * @param {string} ticker
+ */
+export function lotsFromOrders(orders, ticker) {
+  if (!Array.isArray(orders) || !ticker) return null;
+  const lots = [];
+  const sells = [];
+  for (const o of orders) {
+    if (!o || o.ticker !== ticker) continue;
+    const shares = Number(o.shares);
+    const price = Number(o.price);
+    const date = String(o.executed_at || '').slice(0, 10);
+    if (!date || !isFinite(shares) || shares <= 0 || !isFinite(price) || price <= 0) continue;
+    if (o.side === 'sell') sells.push({ date, shares, price });
+    else lots.push({ date, shares, cost: price });
+  }
+  if (lots.length === 0) return null;
+  lots.sort((a, b) => a.date.localeCompare(b.date));
+  sells.sort((a, b) => a.date.localeCompare(b.date));
+  return { lots, sells };
+}
+
+/**
  * Merge the T212 allow-list holdings into an existing `holdings` object:
  * replace each matching ticker's lots with a single synthetic lot dated
  * today, set shares/cost, AND — when a live T212 `currentPrice` is passed
@@ -116,9 +232,10 @@ export async function fetchTrading212Holdings() {
  * @param {Record<string, { shares: number, cost: number }> | null | undefined} t212Holdings  the `holdings` map from fetchTrading212Holdings
  * @param {Record<string, number> | null | undefined} [prices]  the `prices` map (broker currentPrice, USD)
  * @param {string} [today]  ISO date (YYYY-MM-DD) — defaults to today UTC
+ * @param {Array<any> | null | undefined} [orders]  executed fills from fetchTrading212Orders
  * @returns {Record<string, any>}
  */
-export function applyTrading212(holdings, t212Holdings, prices, today) {
+export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
   if (!t212Holdings || !holdings) return holdings;
   const date = today || new Date().toISOString().slice(0, 10);
   for (const [t, row] of Object.entries(t212Holdings)) {
@@ -137,12 +254,22 @@ export function applyTrading212(holdings, t212Holdings, prices, today) {
       .map(l => (typeof l?.date === 'string' ? l.date.slice(0, 10) : ''))
       .filter(Boolean)
       .sort()[0];
-    const merged = {
-      ...holdings[t],
-      lots: [{ date: prior || date, shares: row.shares, cost: row.cost }],
-      shares: row.shares,
-      cost: row.cost,
-    };
+    // The real purchase history, when the order backfill has reached
+    // this ticker. It supersedes the synthetic lot outright: every buy
+    // on its own date at its own price is what the ledger was always
+    // approximating, and it's what anything reconstructing the past
+    // needs. Falls back to the single synthetic lot when there are no
+    // fills for this ticker — an unfinished backfill must not empty a
+    // position's ledger.
+    const real = lotsFromOrders(orders || [], t);
+    const merged = real
+      ? { ...holdings[t], lots: real.lots, sells: real.sells, shares: row.shares, cost: row.cost }
+      : {
+          ...holdings[t],
+          lots: [{ date: prior || date, shares: row.shares, cost: row.cost }],
+          shares: row.shares,
+          cost: row.cost,
+        };
     // Broker's live quote for the allow-list ETF (USD). Use it as the
     // regular-session lastPrice so these LSE names don't sit on Yahoo's
     // ~15-20 min-delayed feed. dayPct is recomputed against the stored
