@@ -13,7 +13,8 @@ import {
   quoteTickersNeeded,
   snapshotMarketValue,
   snapshotDeposit,
-  t212CashIsReady,
+  snapshotDepositFxMissing,
+  historyLedgerFor,
   skipReason,
   lastPerBucket,
   pruneSnapshotTimestamps,
@@ -158,40 +159,37 @@ Deno.test("snapshotMarketValue: a positioned ticker with no print is unrecordabl
   assertEquals(skipReason(v), "no-price");
 });
 
-Deno.test("skipReason: refuse a zero / non-finite book", () => {
-  assertEquals(skipReason({ value: 0, fxMissing: false, missingPrice: false }), "no-value");
+Deno.test("skipReason: zero is valid; negative/non-finite is not", () => {
+  assertEquals(skipReason({ value: 0, fxMissing: false, missingPrice: false }), null);
+  assertEquals(skipReason({ value: -1, fxMissing: false, missingPrice: false }), "no-value");
   assertEquals(skipReason({ value: 1, fxMissing: false, missingPrice: false }), null);
 });
 
-Deno.test("t212CashIsReady: complete + at least one deposit/withdraw", () => {
-  assertEquals(t212CashIsReady({ complete: true, transactions: [{ type: "deposit" }] }), true);
-  assertEquals(t212CashIsReady({ complete: false, transactions: [{ type: "deposit" }] }), false);
-  assertEquals(t212CashIsReady({ complete: true, transactions: [{ type: "fee" }] }), false);
-  assertEquals(t212CashIsReady({ complete: true, transactions: [] }), false);
-});
-
-Deno.test("snapshotDeposit: lots + cash until T212 cash history is complete", () => {
+Deno.test("snapshotDeposit: actual fills and board cash, never T212 card top-ups", () => {
   const quotes = {};
   assertEquals(snapshotDeposit(board, quotes, null), 10 * 70 + 1000);
   const t212 = {
     complete: true,
-    orders: [{ ticker: "NVDA" }],
+    orders: [
+      { ticker: "NVDA", executed_at: "2026-01-15T00:00:00Z", side: "buy", shares: 10, price: 70 },
+    ],
     transactions: [{ type: "deposit", amount: 4000, currency: "USD" }],
   };
-  // 4000 money-in; do not also add lot cost or idle cash.
-  assertEquals(snapshotDeposit(board, quotes, t212), 4000);
+  assertEquals(snapshotDeposit(board, quotes, t212), 10 * 70 + 1000);
 });
 
-Deno.test("snapshotDeposit: unfinished T212 walk keeps the ledger formula", () => {
+Deno.test("snapshotDeposit: incomplete order history keeps the board ledger", () => {
   const t212 = {
     complete: false,
-    orders: [{ ticker: "NVDA" }],
+    orders: [
+      { ticker: "NVDA", executed_at: "2026-01-15T00:00:00Z", side: "buy", shares: 1, price: 999 },
+    ],
     transactions: [{ type: "deposit", amount: 4000, currency: "USD" }],
   };
   assertEquals(snapshotDeposit(board, {}, t212), 10 * 70 + 1000);
 });
 
-Deno.test("snapshotDeposit: live FX does not move the deposit figure", () => {
+Deno.test("snapshotDeposit: missing frozen FX is unrecordable, never 1:1", () => {
   const gbpBoard = {
     positions: { FWD: { tickers: ["VUAA.L"] } },
     holdings: {
@@ -200,14 +198,178 @@ Deno.test("snapshotDeposit: live FX does not move the deposit figure", () => {
   };
   const low = { "GBPUSD=X": { lastPrice: 1.25 } };
   const high = { "GBPUSD=X": { lastPrice: 1.40 } };
-  assertEquals(snapshotDeposit(gbpBoard, low, null), 800);
-  assertEquals(snapshotDeposit(gbpBoard, high, null), 800);
+  assertEquals(snapshotDepositFxMissing(gbpBoard), true);
+  assertEquals(Number.isNaN(snapshotDeposit(gbpBoard, low, null)), true);
+  assertEquals(Number.isNaN(snapshotDeposit(gbpBoard, high, null)), true);
   const t212 = {
     complete: true,
     orders: [{ ticker: "VUAA.L" }],
     transactions: [{ type: "deposit", amount: 800, currency: "GBP" }],
   };
-  assertEquals(snapshotDeposit(gbpBoard, high, t212), 800);
+  assertEquals(Number.isNaN(snapshotDeposit(gbpBoard, high, t212)), true);
+});
+
+Deno.test("snapshotDeposit: persisted deposit FX converts once and stays fixed", () => {
+  const gbpBoard = {
+    depositFxRates: { GBP: 1.25 },
+    positions: { FWD: { tickers: ["VUAA.L"] } },
+    holdings: {
+      "VUAA.L": {
+        currency: "GBP",
+        shares: 10,
+        cost: 80,
+        lots: [{ date: "2026-01-05", shares: 10, cost: 80 }],
+      },
+    },
+  };
+  assertEquals(snapshotDepositFxMissing(gbpBoard), false);
+  assertEquals(snapshotDeposit(gbpBoard, { "GBPUSD=X": { lastPrice: 1.40 } }, null), 1000);
+});
+
+Deno.test("snapshotDeposit: mixed ticker keeps its other-platform money", () => {
+  const mixed = {
+    positions: { FWD: { tickers: ["NVDA"] } },
+    holdings: {
+      NVDA: {
+        currency: "USD",
+        shares: 10,
+        cost: 176,
+        lots: [
+          { date: "2025-06-01", shares: 6, cost: 200 },
+          { date: "2026-01-08", shares: 4, cost: 140 },
+        ],
+      },
+    },
+  };
+  const t212 = {
+    complete: true,
+    orders: [
+      { ticker: "NVDA", executed_at: "2026-01-08T00:00:00Z", side: "buy", shares: 4, price: 140 },
+    ],
+    transactions: [{ type: "deposit", amount: 4000, currency: "USD" }],
+  };
+  assertEquals(snapshotDeposit(mixed, {}, t212), 4 * 140 + 6 * 200);
+});
+
+Deno.test("snapshotDeposit: short machine ledger stands in the board at AC", () => {
+  const wiped = {
+    positions: { FWD: { tickers: ["NVDA"] } },
+    holdings: {
+      NVDA: {
+        currency: "USD",
+        shares: 10,
+        cost: 150,
+        lots: [{ date: "2026-08-10", shares: 4, cost: 140 }],
+      },
+    },
+  };
+  assertEquals(snapshotDeposit(wiped, {}, null), 10 * 150);
+  const repaired = historyLedgerFor(wiped.holdings.NVDA);
+  assertEquals(repaired.lots, [{ date: "1970-01-01", shares: 10, cost: 150 }]);
+  assertEquals(repaired.sells, []);
+});
+
+Deno.test("snapshotDeposit: mixed cost split uses remembered T212 AC", () => {
+  const mixed = {
+    positions: { FWD: { tickers: ["ETF"] } },
+    holdings: {
+      ETF: {
+        currency: "USD",
+        shares: 10,
+        cost: 90,
+        t212Shares: 4,
+        t212Cost: 80,
+        lots: [{ date: "2025-01-01", shares: 10, cost: 90 }],
+      },
+    },
+  };
+  const t212 = {
+    orders: [
+      { ticker: "ETF", executed_at: "2025-02-01T00:00:00Z", side: "buy", shares: 5, price: 100 },
+      { ticker: "ETF", executed_at: "2025-03-01T00:00:00Z", side: "sell", shares: 1, price: 120 },
+    ],
+    transactions: [],
+    complete: true,
+  };
+  assertEquals(snapshotDeposit(mixed, {}, t212), 580 + 380);
+});
+
+Deno.test("snapshotDeposit: closed other-broker history survives beside T212", () => {
+  const closed = {
+    positions: {},
+    holdings: {
+      OLD: {
+        currency: "USD",
+        shares: 0,
+        cost: 0,
+        closed: true,
+        lots: [
+          { date: "2025-01-01", shares: 5, cost: 100 },
+          { date: "2025-02-01", shares: 2, cost: 50 },
+        ],
+        sells: [
+          { date: "2025-03-01", shares: 5, price: 120 },
+          { date: "2025-04-01", shares: 2, price: 60 },
+        ],
+      },
+    },
+  };
+  const t212 = {
+    complete: true,
+    orders: [
+      { ticker: "OLD", executed_at: "2025-02-01T10:00:00Z", side: "buy", shares: 2, price: 50 },
+      { ticker: "OLD", executed_at: "2025-04-01T10:00:00Z", side: "sell", shares: 2, price: 60 },
+    ],
+  };
+  assertEquals(snapshotDeposit(closed, {}, t212), -120);
+});
+
+Deno.test("snapshotDeposit: closed legacy synthetic lot is not double-counted", () => {
+  const closed = {
+    positions: {},
+    holdings: {
+      OLD: {
+        currency: "USD",
+        shares: 0,
+        cost: 0,
+        closed: true,
+        lots: [{ date: "1970-01-01", shares: 4, cost: 80 }],
+        sells: [],
+      },
+    },
+  };
+  const t212 = {
+    complete: true,
+    orders: [
+      { ticker: "OLD", executed_at: "2025-02-01T10:00:00Z", side: "buy", shares: 4, price: 80 },
+      { ticker: "OLD", executed_at: "2025-04-01T10:00:00Z", side: "sell", shares: 4, price: 95 },
+    ],
+  };
+  assertEquals(snapshotDeposit(closed, {}, t212), -60);
+});
+
+Deno.test("snapshotDeposit: synthetic residue drops without losing other round trip", () => {
+  const closed = {
+    positions: {},
+    holdings: {
+      OLD: {
+        currency: "USD", shares: 0, cost: 0, closed: true,
+        lots: [
+          { date: "2026-01-01", shares: 4, cost: 80, source: "t212-synthetic" },
+          { date: "2024-01-01", shares: 1, cost: 100 },
+        ],
+        sells: [{ date: "2024-02-01", shares: 1, price: 120 }],
+      },
+    },
+  };
+  const t212 = {
+    complete: true,
+    orders: [
+      { ticker: "OLD", executed_at: "2025-02-01T10:00:00Z", side: "buy", shares: 4, price: 80 },
+      { ticker: "OLD", executed_at: "2025-04-01T10:00:00Z", side: "sell", shares: 4, price: 95 },
+    ],
+  };
+  assertEquals(snapshotDeposit(closed, {}, t212), -80);
 });
 
 Deno.test("lastPerBucket: keeps the last sample in each slice", () => {

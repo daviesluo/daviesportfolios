@@ -351,6 +351,29 @@ describe('migrate — heal sold-out-but-never-closed holdings (float-dust full s
     expect(p.positions.ST.tickers).toContain('NVDA');
     expect(p.holdings.NVDA.shares).toBe(2);
   });
+
+  it('does not close a live board position from a shorter machine ledger', () => {
+    const p = migrate({
+      holdings: {
+        MIXED: {
+          shares: 10,
+          cost: 150,
+          currency: 'USD',
+          // The T212 slice sold out, but ten shares still exist at
+          // another broker. The board is authoritative for the live
+          // position; this mismatch needs reconciliation, not closure.
+          lots: [{ date: '2026-01-02', shares: 4, cost: 100 }],
+          sells: [{ date: '2026-07-10', shares: 4, price: 120 }],
+        },
+      },
+      positions: {
+        CM: { label: 'CM', role: 'MID', tickers: ['MIXED'] },
+      },
+    });
+    expect(p.holdings.MIXED.closed).not.toBe(true);
+    expect(p.holdings.MIXED.shares).toBe(10);
+    expect(p.positions.CM.tickers).toContain('MIXED');
+  });
 });
 
 // The fingerprint drives the debounced save's "did the user actually

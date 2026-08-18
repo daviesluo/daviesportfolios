@@ -12,7 +12,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import {
   InvestmentChart, mergeSeries, rangeStartMs, deriveSeries,
-  niceMoneyTicks, axisMoneyLabel, withLivePoint,
+  niceMoneyTicks, axisMoneyLabel, withLivePoint, snapshotDepositMatches,
 } from './investment_chart.jsx';
 
 beforeEach(cleanup);
@@ -33,6 +33,27 @@ describe('mergeSeries', () => {
     // right edge rather than becoming a fourth point.
     expect(out.map(p => p.value)).toEqual([90, 95, 120]);
     expect(out.map(p => !!p.estimated)).toEqual([true, true, false]);
+  });
+
+  it('rejects a stored deposit written by the T212 lot-wipe', () => {
+    const snaps = [pt(500, 110, 75), pt(600, 120, 75)];
+    const derived = [pt(300, 90, 132), pt(400, 95, 132), pt(550, 999, 132)];
+    const out = mergeSeries(snaps, derived, 0);
+    // Recorded Value still wins. Deposited stays on the accounting
+    // formula instead of reproducing the corrupted 75-level snapshot.
+    expect(out.map(p => p.value)).toEqual([90, 95, 120]);
+    expect(out.map(p => p.deposit)).toEqual([132, 132, 132]);
+  });
+
+  it('keeps a recorded deposit when it agrees with the derived formula', () => {
+    const out = mergeSeries(
+      [pt(500, 110, 100.5)],
+      [pt(500, 999, 100)],
+      0,
+    );
+    expect(out[0]).toEqual({ ts: 500, value: 110, deposit: 100.5 });
+    expect(snapshotDepositMatches(100.5, 100)).toBe(true);
+    expect(snapshotDepositMatches(75, 132)).toBe(false);
   });
 
   it('does not stretch the last day of a daily window with 5-minute samples', () => {
@@ -108,6 +129,16 @@ describe('withLivePoint', () => {
     expect(out[1].value).toBe(1250);
   });
 
+  it('pins a fully-sold portfolio to a legitimate zero right edge', () => {
+    const out = withLivePoint(
+      [pt(now - 60_000, 100, 50)],
+      { marketValue: 0, netDeposit: -20 },
+      now,
+    );
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({ value: 0, deposit: -20, ts: now });
+  });
+
   it('inherits the trailing stretch\'s provenance', () => {
     // Marking it recorded while everything before is reconstructed would
     // split the line one point from its right edge — a one-vertex
@@ -120,7 +151,6 @@ describe('withLivePoint', () => {
   it('leaves the series alone when the board has nothing to say', () => {
     const rows = [pt(1, 100, 100), pt(2, 110, 100)];
     expect(withLivePoint(rows, null, now)).toBe(rows);
-    expect(withLivePoint(rows, { marketValue: 0, netDeposit: 100 }, now)).toBe(rows);
     expect(withLivePoint(rows, { marketValue: 100, netDeposit: NaN }, now)).toBe(rows);
   });
 });

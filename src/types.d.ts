@@ -30,6 +30,8 @@ export interface Lot {
    *  in the transaction log, which otherwise only has a date. Absent on
    *  legacy rows. */
   ts?: number;
+  /** Machine provenance for the pre-fill-history T212 stand-in. */
+  source?: 't212-synthetic';
 }
 
 export interface Holding {
@@ -65,6 +67,14 @@ export interface Holding {
    *  holding row is deliberately RETAINED so its ledger survives, so
    *  this flag is what distinguishes "sold out" from "still held". */
   closed?: boolean;
+  /** Quantity/cost of the T212 slice on an allow-list holding. Kept
+   *  separate from the user ledger so another broker's shares cannot
+   *  be overwritten by the T212 position endpoint. */
+  t212Shares?: number;
+  t212Cost?: number;
+  /** Last tactics-board slot before an auto-synced full sale; used to
+   *  restore the holding if a later T212 fill reopens it. */
+  t212PositionKey?: string;
 }
 
 export interface Position {
@@ -77,6 +87,9 @@ export interface Position {
 export interface Portfolio {
   positions: Record<string, Position>;
   holdings: Record<string, Holding>;
+  /** One-time native→USD rates used only for historical money-in.
+   *  Portfolio market value deliberately continues to use live FX. */
+  depositFxRates?: Partial<Record<Currency, number>>;
   snapshots?: PortfolioSnapshot[];
   /** Set by portfolio_remote.demoFallback() when the seed (not the
    *  user's saved book) is being shown — gates the demo banner + the

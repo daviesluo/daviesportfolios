@@ -56,11 +56,11 @@ vi.mock('./yahoo_fetch.js', async () => {
 });
 vi.mock('./trading212.js', () => ({
   fetchTrading212Holdings: vi.fn(() => Promise.resolve(null)),
-  fetchTrading212Orders: vi.fn(() => Promise.resolve([])),
-  fetchTrading212Transactions: vi.fn(() => Promise.resolve({ rows: [], complete: false })),
-  syncTrading212History: vi.fn(() => Promise.resolve({ accounts: [], complete: true })),
+  fetchTrading212Orders: vi.fn(() => Promise.resolve({ rows: [], complete: true })),
+  syncTrading212History: vi.fn(() => Promise.resolve({ accounts: [], complete: true, ordersComplete: true })),
   applyTrading212: (h) => h,
   applyTrading212NightPrice: (h) => h,
+  stripClosedFromPositions: (p) => p,
 }));
 vi.mock('./portfolio_remote.js', () => ({
   loadPortfolioRemote: vi.fn(() => Promise.resolve(null)),

@@ -253,11 +253,22 @@ export async function savePortfolioRemote(p) {
  * falls back to the previous behaviour (first valid render seeds the
  * ref, subsequent reads match by string equality).
  *
- * @param {{ positions: Record<string, any>, holdings: Record<string, any> } | null | undefined} p
+ * @param {{
+ *   positions: Record<string, any>,
+ *   holdings: Record<string, any>,
+ *   depositFxRates?: Record<string, number>,
+ * } | null | undefined} p
  */
 export function portfolioUserFingerprint(p) {
   if (!p || typeof p !== 'object' || !p.holdings || !p.positions) return '';
   const parts = [];
+  const rates = p.depositFxRates;
+  const depositFxRates = rates && typeof rates === 'object'
+    ? Object.keys(rates).sort()
+      .map((currency) => `${currency}:${rates[currency]}`)
+      .join(',')
+    : '';
+  parts.push(`deposit-fx:${depositFxRates}`);
   for (const k of Object.keys(p.positions).sort()) {
     const pos = p.positions[k] || {};
     const tickers = Array.isArray(pos.tickers) ? [...pos.tickers].sort() : [];
@@ -266,7 +277,9 @@ export function portfolioUserFingerprint(p) {
   for (const t of Object.keys(p.holdings).sort()) {
     const h = p.holdings[t] || {};
     const lots = Array.isArray(h.lots)
-      ? h.lots.map(l => `${l?.date || ''},${l?.shares ?? ''},${l?.cost ?? ''}`).join(';')
+      ? h.lots.map(l =>
+          `${l?.date || ''},${l?.shares ?? ''},${l?.cost ?? ''},${l?.source || ''}`
+        ).join(';')
       : '';
     // Sells and `closed` are part of the user-edited ledger, so they
     // belong in the fingerprint. Without them a CLOSED holding
@@ -279,7 +292,11 @@ export function portfolioUserFingerprint(p) {
     const sells = Array.isArray(h.sells)
       ? h.sells.map(x => `${x?.date || ''},${x?.shares ?? ''},${x?.price ?? ''},${x?.ts ?? ''}`).join(';')
       : '';
-    parts.push(`h:${t}=${h.shares ?? ''}|${h.cost ?? ''}|${h.currency || ''}|${!!h.isCash}|${!!h.closed}|${lots}|s:${sells}`);
+    parts.push(
+      `h:${t}=${h.shares ?? ''}|${h.cost ?? ''}|${h.currency || ''}|${!!h.isCash}|${!!h.closed}`
+      + `|t212:${h.t212Shares ?? ''},${h.t212Cost ?? ''},${h.t212PositionKey ?? ''}`
+      + `|${lots}|s:${sells}`,
+    );
   }
   return parts.join('\n');
 }
@@ -381,6 +398,13 @@ export function migrate(p) {
     if (!Array.isArray(h.sells) || h.sells.length === 0) continue;
     const np = netPosition(h.lots || [], h.sells);
     if (np.shares > 0) continue;
+    const boardShares = Number(h.shares);
+    // Only heal float dust when the board ALREADY agrees that this is
+    // effectively a zero position. A machine-written / incomplete
+    // ledger can net to zero while the board still holds shares at
+    // another broker. Closing that mismatch is what removed live
+    // positions from the scoreboard after the T212 backfill landed.
+    if (Number.isFinite(boardShares) && Math.abs(boardShares) >= 1e-9) continue;
     h.closed = true;
     h.shares = np.shares;
     h.cost   = np.avgCost;

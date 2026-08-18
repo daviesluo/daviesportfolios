@@ -223,17 +223,21 @@ export function pickLivePrice(
 
 type Holding = {
   isCash?: boolean;
+  closed?: boolean;
   shares?: number;
   cost?: number;
   lastPrice?: number;
   currency?: string;
-  lots?: Array<{ date?: string; shares?: number; cost?: number }>;
+  t212Shares?: number;
+  t212Cost?: number;
+  lots?: Array<{ date?: string; shares?: number; cost?: number; source?: string }>;
   sells?: Array<{ date?: string; shares?: number; price?: number }>;
 };
 
 type Portfolio = {
   holdings?: Record<string, Holding>;
   positions?: Record<string, { tickers?: string[] }>;
+  depositFxRates?: Record<string, number>;
 };
 
 export function positionedTickers(portfolio: Portfolio | null | undefined): Set<string> {
@@ -304,24 +308,58 @@ export function snapshotMarketValue(
   return { value, fxMissing, missingPrice };
 }
 
-function historyLotsFor(h: Holding): Array<{ date: string; shares: number; cost: number }> {
-  const lots = Array.isArray(h?.lots) ? h.lots : [];
-  if (lots.some((l) => Number(l?.shares) > 0)) {
-    return lots.map((l) => ({
-      date: String(l?.date || ""),
-      shares: Number(l?.shares),
-      cost: Number(l?.cost),
-    }));
+type DepositLot = { date?: string; shares?: number; cost?: number; source?: string };
+type DepositSell = { date?: string; shares?: number; price?: number };
+type DepositLedger = { lots: DepositLot[]; sells: DepositSell[] };
+
+function ledgerPosition(lots: DepositLot[], sells: DepositSell[]): {
+  shares: number;
+  netCash: number;
+} {
+  let shares = 0;
+  let netCash = 0;
+  for (const l of lots) {
+    const n = Number(l?.shares);
+    const cost = Number(l?.cost);
+    if (!Number.isFinite(n) || n <= 0 || !Number.isFinite(cost)) continue;
+    shares += n;
+    netCash += n * cost;
   }
+  for (const s of sells) {
+    const n = Number(s?.shares);
+    const price = Number(s?.price);
+    if (!Number.isFinite(n) || n <= 0 || !Number.isFinite(price)) continue;
+    shares -= n;
+    netCash -= n * price;
+  }
+  if (Math.abs(shares) < 1e-9) shares = 0;
+  return { shares, netCash };
+}
+
+export function historyLedgerFor(h: Holding): DepositLedger {
+  const lots = Array.isArray(h?.lots) ? h.lots : [];
+  const sells = Array.isArray(h?.sells) ? h.sells : [];
   const shares = Number(h?.shares);
-  if (!Number.isFinite(shares) || shares <= 0) return [];
+  if (h?.closed || !Number.isFinite(shares) || shares <= 0) {
+    return { lots, sells };
+  }
+  if (lots.some((l) => Number(l?.shares) > 0)) {
+    const ledgerShares = ledgerPosition(lots, sells).shares;
+    const tolerance = Math.max(1e-6, Math.abs(shares) * 1e-6);
+    if (Math.abs(ledgerShares - shares) <= tolerance) {
+      return { lots, sells };
+    }
+  }
   const cost = Number(h?.cost);
   const px = Number(h?.lastPrice);
-  return [{
-    date: "1970-01-01",
-    shares,
-    cost: Number.isFinite(cost) && cost > 0 ? cost : (Number.isFinite(px) && px > 0 ? px : 0),
-  }];
+  return {
+    lots: [{
+      date: "1970-01-01",
+      shares,
+      cost: Number.isFinite(cost) && cost > 0 ? cost : (Number.isFinite(px) && px > 0 ? px : 0),
+    }],
+    sells: [],
+  };
 }
 
 function t212FillTickers(orders: Array<{ ticker?: string | null }> | null | undefined): Set<string> {
@@ -333,52 +371,159 @@ function t212FillTickers(orders: Array<{ ticker?: string | null }> | null | unde
   return out;
 }
 
-export function t212CashIsReady(t212Cash: {
-  complete?: boolean;
-  transactions?: unknown[];
-} | null | undefined): boolean {
-  if (!t212Cash || t212Cash.complete !== true) return false;
-  const txs = t212Cash.transactions;
-  if (!Array.isArray(txs) || txs.length === 0) return false;
-  return txs.some((tx) => {
-    const t = String((tx as { type?: string })?.type || "").toLowerCase();
-    return t === "deposit" || t === "withdraw";
-  });
-}
-
-export function t212MoneyInNow(
-  transactions: Array<{ type?: string; amount?: number; currency?: string }> | null | undefined,
-): number {
-  if (!Array.isArray(transactions) || transactions.length === 0) return 0;
-  let sum = 0;
-  for (const tx of transactions) {
-    const type = String(tx?.type || "").toLowerCase();
-    const amount = Number(tx?.amount);
-    if (!Number.isFinite(amount) || amount === 0) continue;
-    if (type === "deposit") sum += Math.abs(amount);
-    else if (type === "withdraw") sum -= Math.abs(amount);
-  }
-  return sum;
-}
-
 export type T212Cash = {
   complete?: boolean;
-  transactions?: Array<{ type?: string; amount?: number; currency?: string }>;
-  orders?: Array<{ ticker?: string | null }>;
+  orders?: Array<{
+    ticker?: string | null;
+    executed_at?: string;
+    side?: string;
+    shares?: number;
+    price?: number;
+  }>;
 };
+
+function frozenDepositFxRate(
+  currency: string | null | undefined,
+  rates: Record<string, number> | null | undefined,
+): number {
+  if (!currency || currency === "USD") return 1;
+  const rate = rates?.[currency];
+  return typeof rate === "number" && rate > 0 ? rate : 1;
+}
+
+export function snapshotDepositFxMissing(
+  portfolio: Portfolio | null | undefined,
+): boolean {
+  for (const [ticker, h] of Object.entries(portfolio?.holdings || {})) {
+    if (h?.isCash || ticker === "CASH") continue;
+    const currency = detectCurrency(ticker, h?.currency);
+    if (currency === "USD") continue;
+    const rate = portfolio?.depositFxRates?.[currency];
+    if (!(typeof rate === "number" && rate > 0)) return true;
+  }
+  return false;
+}
+
+function t212LedgerForTicker(
+  orders: T212Cash["orders"],
+  ticker: string,
+): DepositLedger {
+  const lots: DepositLot[] = [];
+  const sells: DepositSell[] = [];
+  for (const o of orders || []) {
+    if (o?.ticker !== ticker) continue;
+    const executedAt = String(o?.executed_at || "");
+    const date = executedAt.length >= 16
+      ? executedAt.slice(0, 16)
+      : executedAt.slice(0, 10);
+    const shares = Number(o?.shares);
+    const price = Number(o?.price);
+    if (!date || !Number.isFinite(shares) || shares <= 0 || !Number.isFinite(price) || price <= 0) continue;
+    if (o?.side === "sell") sells.push({ date, shares, price });
+    else lots.push({ date, shares, cost: price });
+  }
+  return { lots, sells };
+}
+
+function depositLedgerForHolding(h: Holding, t212Ledger: DepositLedger): DepositLedger {
+  if (t212Ledger.lots.length === 0) return historyLedgerFor(h);
+  const rowKey = (row: DepositLot | DepositSell, field: "cost" | "price"): string => {
+    const value = field === "cost"
+      ? (row as DepositLot).cost
+      : (row as DepositSell).price;
+    return `${String(row?.date || "").slice(0, 10)}|${Number(row?.shares)}|${Number(value)}`;
+  };
+  const lotCounts = new Map<string, number>();
+  const sellCounts = new Map<string, number>();
+  for (const l of t212Ledger.lots) {
+    const k = rowKey(l, "cost");
+    lotCounts.set(k, (lotCounts.get(k) || 0) + 1);
+  }
+  for (const s of t212Ledger.sells) {
+    const k = rowKey(s, "price");
+    sellCounts.set(k, (sellCounts.get(k) || 0) + 1);
+  }
+  const unmatched = <T extends DepositLot | DepositSell>(
+    rows: T[],
+    counts: Map<string, number>,
+    field: "cost" | "price",
+  ): T[] => rows.filter((row) => {
+    const k = rowKey(row, field);
+    const n = counts.get(k) || 0;
+    if (n <= 0) return true;
+    counts.set(k, n - 1);
+    return false;
+  });
+  const otherLots = unmatched(Array.isArray(h?.lots) ? h.lots : [], lotCounts, "cost");
+  const otherSells = unmatched(Array.isArray(h?.sells) ? h.sells : [], sellCounts, "price");
+  const exactOther = ledgerPosition(otherLots, otherSells);
+  const combinedExact = {
+    lots: [...otherLots, ...t212Ledger.lots],
+    sells: [...otherSells, ...t212Ledger.sells],
+  };
+
+  const boardShares = Number(h?.shares);
+  const boardCost = Number(h?.cost);
+  if (!Number.isFinite(boardShares) || boardShares <= 0 || !Number.isFinite(boardCost) || boardCost < 0) {
+    if (Math.abs(exactOther.shares) <= 1e-6) return combinedExact;
+    const syntheticIndex = otherLots.findIndex((lot) =>
+      Math.abs(Number(lot?.shares) - exactOther.shares) <= 1e-6
+      && (lot?.source === "t212-synthetic" || String(lot?.date || "").startsWith("1970-"))
+    );
+    if (syntheticIndex >= 0) {
+      const preservedLots = otherLots.filter((_, index) => index !== syntheticIndex);
+      const preserved = ledgerPosition(preservedLots, otherSells);
+      if (Math.abs(preserved.shares) <= 1e-6) {
+        return {
+          lots: [...preservedLots, ...t212Ledger.lots],
+          sells: [...otherSells, ...t212Ledger.sells],
+        };
+      }
+    }
+    return t212Ledger;
+  }
+  const taggedShares = Number(h?.t212Shares);
+  const t212Shares = Number.isFinite(taggedShares) && taggedShares >= 0
+    ? taggedShares
+    : Math.max(0, ledgerPosition(t212Ledger.lots, t212Ledger.sells).shares);
+  const residualShares = Math.max(0, boardShares - t212Shares);
+  const tolerance = Math.max(1e-6, residualShares * 1e-6);
+  if (Math.abs(exactOther.shares - residualShares) <= tolerance) {
+    return combinedExact;
+  }
+  if (residualShares <= 1e-6) return t212Ledger;
+  const t212Position = ledgerPosition(t212Ledger.lots, t212Ledger.sells);
+  const taggedCost = Number(h?.t212Cost);
+  const t212CashForSplit = Number.isFinite(taggedShares) && taggedShares >= 0
+      && Number.isFinite(taggedCost) && taggedCost >= 0
+    ? taggedShares * taggedCost
+    : t212Position.netCash;
+  let otherCash = boardShares * boardCost - t212CashForSplit;
+  if (!(otherCash > 0)) otherCash = residualShares * boardCost;
+  return {
+    lots: [
+      {
+        date: "1970-01-01",
+        shares: residualShares,
+        cost: otherCash / residualShares,
+      },
+      ...t212Ledger.lots,
+    ],
+    sells: t212Ledger.sells,
+  };
+}
 
 /**
  * Net deposited as of now — same question `netDepositNow` answers on
- * the client. T212 cash history, once complete, is money paid in;
- * otherwise lot costs minus sale proceeds plus board cash.
+ * the client. T212 contributes actual fill quantity × price, net of
+ * sells; account/card cash transactions never enter this figure.
  */
 export function snapshotDeposit(
   portfolio: Portfolio | null | undefined,
   quotes: Record<string, Quote>,
   t212Cash: T212Cash | null | undefined,
 ): number {
-  const useT212 = t212CashIsReady(t212Cash);
-  const t212Tickers = useT212 ? t212FillTickers(t212Cash?.orders) : new Set<string>();
+  if (snapshotDepositFxMissing(portfolio)) return Number.NaN;
   const positioned = positionedTickers(portfolio);
   const scopeAllCash = positioned.size === 0;
   let netDeposit = 0;
@@ -390,29 +535,38 @@ export function snapshotDeposit(
       if (Number.isFinite(cash) && cash > 0) cashUSD += cash;
       continue;
     }
-    const skipLotDeposit = useT212 && t212Tickers.has(ticker);
-    for (const l of historyLotsFor(h || {})) {
+    const ledger = depositLedgerForHolding(
+      h || {},
+      t212LedgerForTicker(
+        t212Cash?.complete === true ? t212Cash?.orders : [],
+        ticker,
+      ),
+    );
+    const depositFx = frozenDepositFxRate(
+      detectCurrency(ticker, h?.currency),
+      portfolio?.depositFxRates,
+    );
+    for (const l of ledger.lots) {
       const n = Number(l.shares);
       const c = Number(l.cost);
       if (!Number.isFinite(n) || n <= 0) continue;
       // Same rule as the client: deposit is not revalued at live FX.
-      if (!skipLotDeposit && Number.isFinite(c)) netDeposit += n * c;
+      if (Number.isFinite(c)) netDeposit += n * c * depositFx;
     }
-    for (const sl of (Array.isArray(h?.sells) ? h.sells : [])) {
+    for (const sl of ledger.sells) {
       const n = Number(sl?.shares);
       const px = Number(sl?.price);
       if (!Number.isFinite(n) || n <= 0) continue;
-      if (!skipLotDeposit && Number.isFinite(px)) netDeposit -= n * px;
+      if (Number.isFinite(px)) netDeposit -= n * px * depositFx;
     }
   }
-  if (useT212) return netDeposit + t212MoneyInNow(t212Cash?.transactions);
   return netDeposit + cashUSD;
 }
 
 export function skipReason(v: SnapshotValue): "fx-missing" | "no-price" | "no-value" | null {
   if (v.fxMissing) return "fx-missing";
   if (v.missingPrice) return "no-price";
-  if (!(v.value > 0) || !Number.isFinite(v.value)) return "no-value";
+  if (!Number.isFinite(v.value) || v.value < 0) return "no-value";
   return null;
 }
 
@@ -539,10 +693,17 @@ async function fetchQuotes(tickers: string[]): Promise<Record<string, Quote>> {
   return out;
 }
 
-type TxRow = { type?: string; amount?: number; currency?: string; ticker?: string | null };
+type TxRow = {
+  id?: string;
+  ticker?: string | null;
+  executed_at?: string;
+  side?: string;
+  shares?: number;
+  price?: number;
+};
 
-async function loadJsonArray(path: string): Promise<unknown[] | null> {
-  if (!SB_URL || !SERVICE_KEY) return null;
+async function loadJsonArray(path: string): Promise<{ rows: unknown[]; ok: boolean }> {
+  if (!SB_URL || !SERVICE_KEY) return { rows: [], ok: false };
   const PAGE = 1000;
   const all: unknown[] = [];
   let offset = 0;
@@ -559,33 +720,47 @@ async function loadJsonArray(path: string): Promise<unknown[] | null> {
           signal: AbortSignal.timeout(8_000),
         },
       );
-      if (!res.ok) return offset === 0 ? null : all;
+      if (!res.ok) return { rows: [], ok: false };
       const body = await res.json();
-      const rows = Array.isArray(body) ? body : [];
+      if (!Array.isArray(body)) return { rows: [], ok: false };
+      const rows = body;
       all.push(...rows);
-      if (rows.length < PAGE) break;
+      if (rows.length < PAGE) return { rows: all, ok: true };
       offset += PAGE;
-      if (offset >= 50_000) break;
+      if (offset >= 50_000) return { rows: [], ok: false };
     }
-    return all;
   } catch {
-    return offset === 0 ? null : all;
+    return { rows: [], ok: false };
   }
 }
 
 async function loadT212Cash(): Promise<T212Cash> {
-  const [tx, orders, txSync] = await Promise.all([
-    loadJsonArray("t212_transactions?select=type,amount,currency"),
-    loadJsonArray("t212_orders?select=ticker"),
-    loadJsonArray("t212_transactions_sync?select=complete"),
-  ]);
-  const complete = Array.isArray(txSync)
-    && txSync.length > 0
-    && txSync.every((r) => (r as { complete?: boolean })?.complete === true);
+  const syncPath = "t212_orders_sync"
+    + "?select=account,complete,fetched,cursor,updated_at&order=account.asc";
+  const before = await loadJsonArray(syncPath);
+  let orderRead = await loadJsonArray(
+    "t212_orders?select=id,ticker,executed_at,side,shares,price"
+      + "&order=executed_at.asc,id.asc",
+  );
+  const after = await loadJsonArray(syncPath);
+  let stableSync = after;
+  if (JSON.stringify(before.rows) !== JSON.stringify(after.rows)) {
+    orderRead = await loadJsonArray(
+      "t212_orders?select=id,ticker,executed_at,side,shares,price"
+        + "&order=executed_at.asc,id.asc",
+    );
+    const final = await loadJsonArray(syncPath);
+    stableSync = JSON.stringify(after.rows) === JSON.stringify(final.rows)
+      ? final
+      : { rows: [], ok: false };
+  }
+  const expectedAccounts = T212_ISA_API_KEY ? 2 : 1;
+  const complete = before.ok && after.ok && stableSync.ok && orderRead.ok
+    && stableSync.rows.length === expectedAccounts
+    && stableSync.rows.every((row) => (row as { complete?: boolean })?.complete === true);
   return {
     complete,
-    transactions: (tx || []) as TxRow[],
-    orders: (orders || []) as TxRow[],
+    orders: orderRead.rows as TxRow[],
   };
 }
 
@@ -647,6 +822,9 @@ if (import.meta.main) {
       const skip = skipReason(valued);
       if (skip) return json(200, { ok: true, skipped: skip });
 
+      if (snapshotDepositFxMissing(portfolio)) {
+        return json(200, { ok: true, skipped: "deposit-fx-missing" });
+      }
       const depositUsd = snapshotDeposit(portfolio, quotes, t212Cash);
       if (!Number.isFinite(depositUsd)) {
         return json(200, { ok: true, skipped: "no-value" });

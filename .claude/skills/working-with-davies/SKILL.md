@@ -214,14 +214,16 @@ Changing any of these means re-opening a decision he has already made.
   envelope itself is unknown. Do advance when every item is a
   recognised order envelope that simply didn't produce a storeable
   fill — freezing that parked the ISA walk and blocked cash history.
-- Once `/equity/history/transactions` has been walked to completion
-  on both accounts, the deposit line is T212 money paid in (deposit −
-  withdraw), not summed lot costs. Each account walks cash movements
-  as soon as *its* orders latch — a finished invest walk is not held
-  behind ISA. An unfinished newest-first walk must keep the ledger
-  formula or it understates old deposits. The keys already have
-  History: transactions. Deposit amounts are not revalued at live FX;
-  a month with no cash-in is a horizontal step.
+- T212's public account-summary API does not expose the app's `Net
+  deposits` field, and the transactions endpoint mixes T212 Card cash
+  activity into deposit/withdraw rows. Investment Performance therefore
+  uses actual fills: quantity × fill price on `filledAt`, with sell
+  proceeds subtracted. Card top-ups/spending never move Deposited.
+  Fills are read from `t212_orders` but NEVER written over the user's
+  lots/sells; a same-ticker other-broker ledger stays intact. When an
+  old machine ledger is shorter than `h.shares`, stand in the missing
+  slice at board AC before every chart window. Native→USD deposit FX is
+  frozen once; Portfolio value keeps live FX.
 
 ### Labels and other surfaces
 
