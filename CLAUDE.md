@@ -2,6 +2,12 @@
 
 A few standing instructions for Claude Code sessions.
 
+How the owner actually works — what "done" means, what counts as
+evidence, settled chart/ledger rules, past mistakes — is
+`.claude/skills/working-with-davies/SKILL.md` (auto-loaded). Cursor
+loads the same text from `.cursor/rules/working-with-davies.mdc`. The
+raw session is `handover.md`.
+
 ## Documentation
 
 - **Keep `README.md` in sync as part of every change** — don't wait to
