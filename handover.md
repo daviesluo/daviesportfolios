@@ -1,7 +1,328 @@
 # Handover — daviesportfolios
 
-Full session transcript: every message, tool call and tool result, in order.
+**This file is the running record of work on this repo, and it is
+maintained in real time.** Every session updates it as it goes: the plan
+before the work, the state as it changes, the reviews as they come back.
+The point is that a session can die mid-task — context exhaustion, a
+crashed container, a closed tab — and whoever picks it up next, human or
+model, can read this file and know exactly where things stand without
+reconstructing it from commit messages.
 
+The rule is in `CLAUDE.md`, `AGENTS.md` and the `working-with-davies`
+skill. Update **as you go**, not at the end: an update written after the
+session ends is one that never got written.
+
+- **Part 1 — Current state** is the live section. Rewrite it.
+- **Part 2 — Decision log** is append-only. Never rewrite a past entry;
+  add a new one that supersedes it, and say which.
+- **Part 3 — Session transcripts** is the archive. Append, never edit.
+
+Never copy live balances out of this file into new files, issues, or
+anything public. The repo is private; this file quotes real positions.
+
+---
+
+# Part 1 — Current state
+
+_Last updated: 2026-08-18, by the session repairing the share-count
+overwrite and the stale per-stock transaction histories._
+
+## Where the code is
+
+| | |
+|---|---|
+| `main` | Carries the rollback to `8d869fe` plus four data-loss repairs pushed straight to it (see below). All gates green. |
+| Working branch | `claude/repo-audit-restore-uverhn` → **PR #209**, open, not reviewed by the owner yet. It rebuilds the chart + T212 work on top of the restored base. **It still carries the first-sync overwrite rule that `main` has since reverted — merge `main` into it before doing anything else with it.** |
+| Supabase | project `flmvxigozjuizpckllvk`, ACTIVE_HEALTHY. Migrations through `0031`. `trading212` Edge Function deployed and byte-identical to the repo as of this session. |
+
+## Repairs that went straight to `main` (2026-08-18)
+
+Four changes bypassed PR #209 because each was actively losing data.
+
+1. **`migrate()`'s sold-out heal was zeroing a live position** (`123985f`).
+   It fires on any holding with sells whose lot ledger nets to ≤0, then
+   overwrites `shares` with 0, zeroes the cost and strips the ticker out
+   of every position. PLTR's ledger is a complete 2024 round trip (6.5
+   bought, 6.5 sold) while 55 shares sat in the account — so it deleted
+   it, silently, on every reload. Now gated on the BOARD already reading
+   ~0 shares, the only case the float-dust bug it was written for ever
+   produced.
+2. **PLTR put back on the board** (`214626e`, migration `0028`): 55
+   shares at 123.29, `closed` removed, ledger intact, restored to the
+   `CM` slot the owner named.
+3. **The broker may never shrink a position held at two platforms**
+   (`517a7d0`, migration `0030`). See the decision log — this reverts
+   item 6 of the same day.
+4. **The order backfill stops parking, and its fills reach the editor**
+   (this session). See "The transaction-history fix" below.
+
+## The share-count overwrite (2026-08-18) — what happened
+
+`123985f` widened the T212 sync from a two-ETF allow-list to every
+position the broker reports, which is right: it is what brought PLTR's
+55 shares back. Shipped alongside it was a rule that on a ticker's FIRST
+sync the broker's share count REPLACES the board's, on the reasoning
+that a board excess was stale data.
+
+For this book that reasoning is false. Three holdings sit at Trading 212
+*and* elsewhere, and the rule deleted the elsewhere half:
+
+| | board | broker | deleted |
+|---|---|---|---|
+| SPCX | 130 | 59 | 71 |
+| RKLB | 160 | 148.5 | 11.5 |
+| HOOD | 50 | 20 | 30 |
+
+The owner's own records for the other platform match the deleted
+amounts exactly — SPCX 50 @ 105.40 (2026-04-19) + 21 @ 135 (2026-06-12),
+RKLB 11.5 @ 48.18 (2025-11-07), HOOD 30 @ 81.09 (2026-02-02) — and the
+board's blended average cost reconciles against broker slice + other
+platform to within a few cents on all three. The board was right the
+whole time.
+
+The change was also unnecessary. PLTR would have come back in full under
+the old rule anyway: `max(0, 0 − 55)` is 0, so the broker's slice is the
+whole position when the board reads sold-out.
+
+Reverted in `517a7d0`, pinned by `NEVER shrinks a position held at more
+than one platform` in `src/trading212.test.js` with these exact numbers.
+Migration `0030` restored the three totals, leaving `t212Shares` at the
+broker's true slice so the delta path resumes correctly. Verified in the
+database: 130 / 160 / 50 with t212 slices 59 / 148.5 / 20.
+
+## The transaction-history fix (2026-08-18)
+
+The owner: "我点开每个股票的交易记录为什么都只有很久以前的". Three
+separate reasons, all now addressed.
+
+1. **Nothing has ever written to the ledger except the owner.**
+   `applyTrading212` deliberately `void`s its `orders` argument and
+   preserves `lots` / `sells` untouched — the guard put in after the
+   original sync destroyed them. So a holding not hand-edited since
+   April shows nothing since April.
+2. **The order backfill was parked, in both accounts.** `t212_orders`
+   held 70 rows, all `buy`, all `invest`, all between 2026-07-20 and
+   2026-08-17; ISA had stored nothing at all, ever. Cause:
+   `ordersPageShapeMismatch` treated ONE fill it couldn't shape as an
+   unreadable page and froze the cursor, discarding the other 49 rows
+   with it. The rows it couldn't shape were `negative-quantity` — real
+   fills whose quantity arrives signed — and a frozen walk never
+   latches `complete`, so the top-up pass that re-reads page one for
+   today's fills never runs either. Both fixed: the sign is read as a
+   sale with `order.side` overriding it, and a page only freezes when
+   NOTHING on it parsed.
+3. **Nothing in the app read `t212_orders`.** Even the 70 stored fills
+   were invisible. `EditTickerModal` now shows the broker's fills for
+   that ticker under the lot grid, ticks the ones the ledger already
+   carries, and offers the rest as one click. Read-only until pressed —
+   folding them in is the owner's call, not a sync's.
+
+The editor also warns now when the rows account for fewer shares than
+the board holds, because **Save recomputes `shares` from the ledger**
+(`updateHolding` → `netPosition`). On this book that is a loaded gun: 16
+of 26 holdings carry lots short of their board count, so a single Save
+on RKLB would have dropped it from 160 to 30.
+
+## The rollback (2026-08-18)
+
+`main` was rolled back to the tree of `8d869fe` in `8a7d418`, with three
+deliberate exceptions: `supabase/migrations/**` (a database cannot be
+reverted by reverting a file), `handover.md`, and the repo docs.
+
+## Settled design decisions (do not re-open without asking)
+
+- **The value line is `computeAt(...).value`.** Not a reconstruction,
+  not a recorded figure — the identical call the vs-S&P view makes on
+  the identical grid. The single most important structural rule here.
+- **The recorder records inputs, never answers.** `price_snapshots`
+  holds `{ticker → native price}` per 5-minute bucket. The server must
+  never learn what the portfolio is worth.
+- **Deposits are steps, on frozen FX, over the value line's board
+  scope.** An exact FX rate of `1` for a non-USD currency is refused —
+  that is the missing-pair fallback that once valued a CNY position at
+  seven times its size.
+- **`portfolio_snapshots` is retired, not dropped.** Its rows stay for
+  reference; nothing reads or writes them.
+- **The ledger supplies DATES, the board supplies QUANTITY.**
+- **A board position larger than the broker's is another platform's.**
+
+## Live-data findings (2026-08-18, measured against `board_data`)
+
+The owner said the scoreboard's $167,003 looked low. It is not a
+computation error — summing the 26 on-board holdings at their stored
+prices and stored FX gives **$167,004.31**. What was missing was missing
+from the *book*: PLTR closed at 0 while the account held 55 (~$9,435),
+which is the bulk of the gap. Reconciliation against the owner's own
+account statement came out within $1.
+
+Other findings that still stand:
+
+- The ~$182k figures in `portfolio_snapshots` were the FX 1:1 fallback:
+  14,131 CNY valued at 1.0 instead of 0.1485 is ~$12k of thin air.
+- **16 of 26 holdings have lot ledgers short of their board share
+  count**, always short (BMNR 7 vs 225, RKLB 41.5 vs 160, AMZN 2.5 vs
+  42.5). Harmless to the vs-S&P percentage — `lotsFor` substitutes a
+  whole-position lot — but it would understate a deposit line by the
+  un-lotted slice, and it makes Save in the lot editor destructive.
+- `SAEM.L` / `VUAA.L` lots carry today's date rather than their real
+  first fill, because `applyTrading212` writes a synthetic lot when a
+  holding has none. Bounded (~$673, lot dates only).
+
+## Open items
+
+- [ ] **Confirm the backfill actually unstuck.** After the owner's next
+      visit, read `t212_orders_sync` — both accounts should be moving
+      and `last_error` null. Then check `t212_orders` covers ISA and
+      reaches back past 2026-07-20, and that sells appear at all (there
+      were none before, which is itself the symptom).
+- [ ] **Merge `main` into `claude/repo-audit-restore-uverhn`.** The PR
+      branch still carries the first-sync overwrite rule that deleted
+      the shares. Do not merge PR #209 before that.
+- [ ] `2DGd_EQ` — 10 T212 fills, 100 shares net — maps to no Yahoo
+      ticker, so those fills never reach the ledger or the deposit line.
+      The board's equivalent row is `2DG.SG`. Needs an alias.
+- [ ] The remaining 118.5 RKLB shares (and every other holding's
+      shortfall) are still absent from the ledger. They arrive as the
+      backfill walks back; nothing to do but let it, then use the
+      editor's "Add missing" once per ticker.
+- [ ] After a day of recording, check that the `RECORDED` rule has
+      walked left across the 24H window (PR #209 work).
+- [ ] Codex reported "usage limits reached" on PR #209, so there is no
+      third-party review of that diff.
+
+---
+
+# Part 2 — Decision log
+
+Append-only. Newest last.
+
+### 2026-08-18 — roll `main` back to `8d869fe` rather than patch forward
+
+Thirty commits of chart and T212 work had accumulated without
+closed-form fixtures or browser verification, each one patching the
+previous. Patching forward from a base that could not be trusted would
+have kept compounding it. Cost: the features come back on a PR instead
+of being live. Rejected alternative: a force-push, which `CLAUDE.md`
+forbids without explicit confirmation and which would have lost the
+history the audit needed.
+
+### 2026-08-18 — keep `supabase/migrations/**` out of the rollback
+
+A database cannot be reverted by reverting a file. Deleting a migration
+whose version is recorded in the remote history breaks `supabase db
+push` permanently. Stated explicitly to the owner rather than done
+silently.
+
+### 2026-08-18 — record prices, not portfolio values
+
+Recording the ANSWER forces a second implementation of the ledger maths
+onto the server, and the two implementations demonstrably diverged in
+production. Recording the INPUTS makes the divergence unreachable, and
+is strictly more useful: Yahoo has no 5-minute bars a month back and
+none at all for a CN fund or a `.PVT` holding. Cost: past values move if
+the ledger is edited retroactively — which matches how the owner
+described the feature ("历史数据请根据所有股票的买入时间算出").
+
+### 2026-08-18 — the board's share count outranks the lot ledger
+
+Two independent bugs came from trusting the ledger over the board: the
+heal zeroing PLTR, and the deposit line under-reporting by the whole
+un-lotted slice. On this book the ledger is routinely incomplete (16 of
+26 holdings) while the board's share count is what the broker and the
+scoreboard agree on. So: the ledger supplies DATES, the board supplies
+QUANTITY, and anything reading lots reconciles the residue rather than
+believing the shortfall. Rejected alternative: back-filling the missing
+lots, which would invent purchase dates that never happened.
+
+### 2026-08-18 — the panel anchors at its window, the modal at the previous close
+
+`buildTickerSeries`'s 1D branch anchors on the previous close, which is
+right for a day chart with a previous-close marker (the ticker modal)
+and wrong for a panel whose shortest window is a trailing 24 h measured
+from its own first point. Keeping one function and adding an explicit
+`anchorAtWindowStart` flag beat forking it: the flag is named after what
+it does and both behaviours stay pinned. Cost: one more parameter on a
+function with six of them.
+
+### 2026-08-18 — trust the broker on a ticker's first sync
+
+**SUPERSEDED the same day — see "a board position larger than the
+broker's is another platform's" below. Do not follow this entry.**
+
+The alternative — treat any board excess as another platform's slice —
+preserves whatever the board happened to be carrying with no way back,
+and would have frozen both live errors (PLTR at 0 against 55 held, GOOG
+at 24 against 22) permanently. What made the original overwrite
+dangerous was that it also destroyed lots and sells; that part is not
+repeated. Cost: a position genuinely split across brokers has to be
+edited once after its first sync, after which the `t212Shares` tag
+protects it.
+
+### 2026-08-18 — one component, two views
+
+The Investment panel is a `view` prop on `PerfChart`, not a sibling
+component with its own data path. Sharing the drawing code is a bonus;
+sharing the *pipeline* is the point, because that is what makes the two
+panels structurally incapable of disagreeing.
+
+### 2026-08-18 — a board position larger than the broker's is another platform's
+
+**Supersedes "trust the broker on a ticker's first sync" above.** That
+rule deleted 71 SPCX, 11.5 RKLB and 30 HOOD shares from a live book on
+its first run, and the owner caught it by looking at the site. The
+excess was never stale data; it was the rest of the position, and his
+own records for the other platform match the deleted amounts to the
+share.
+
+The reasoning that justified the overwrite was wrong on its own terms
+too: PLTR came back in full either way, because `max(0, 0 − 55)` is 0
+and the broker's slice is the whole position when the board reads
+sold-out. The rule bought nothing and cost three holdings.
+
+So: on a ticker's first sync the board keeps `max(0, board − broker)`
+and adds the broker's slice on top. Cost: a board that is genuinely
+stale HIGH stays high until the owner edits it — which is a number he
+can see and fix, unlike shares that vanish.
+
+Rejected alternative: keeping the overwrite and adding a confirmation
+step. A sync that runs on every refresh tick has no one to confirm with.
+
+### 2026-08-18 — a skipped fill must not park the whole backfill
+
+`ordersPageShapeMismatch` froze the cursor whenever one item on a page
+carried a `fill` the shaper couldn't read, so that the walk could never
+advance past a shape nobody had seen. In production the opposite
+happened: two unreadable rows per page held both account cursors still
+for the entire life of the feature — ISA stored nothing at all, invest
+stopped a month back — and because the walk never latches `complete`,
+the top-up pass that fetches TODAY's fills never ran either. Protecting
+one row cost the whole history.
+
+Now a page freezes only when NOTHING on it parsed, which is the signal
+that the shaper rather than the row is at fault. A `fill` that isn't an
+object at all still freezes unconditionally. Cost: a genuinely
+unreadable row on an otherwise-good page is skipped silently rather than
+stopping the world; the skip reason is still tallied into `last_error`.
+
+### 2026-08-18 — broker fills are shown, not merged
+
+The lot editor lists Trading 212's fills for the ticker and marks which
+ones the ledger already has, but folding them in takes a click. An
+automatic merge would have to de-duplicate machine rows against
+hand-typed ones on a book where 16 of 26 ledgers are incomplete, and
+getting that wrong writes double lots into the YTD chart's input. Every
+data loss on this repo has come from a sync deciding it knew better.
+Cost: the ledger only catches up when the owner asks it to.
+
+---
+
+# Part 3 — Session transcripts
+
+Append-only archive. Newest sessions go at the bottom.
+
+## Session 1 — 2026-07-20 → 2026-08-18 (Claude Code)
+
+Full transcript: every message, tool call and tool result, in order.
 Rendered from the Claude Code session log (3557 records). Long tool
 outputs are clipped to 3000 characters; the clip is marked inline.
 
@@ -1573,7 +1894,8 @@ All 567 tests pass (3 new). Now the production build:
 (!) build.outDir must not be the same directory of root or a parent directory of root as this could cause Vite to overwriting source files with build outputs.
 
 vite v8.0.16 building client environment for production...
-[2Ktransforming...✓ 68 modules transformed.
+[2K
+transforming...✓ 68 modules transformed.
 
 (!) The public directory feature may not work correctly. outDir /home/user/daviesportfolios and publicDir /home/user/daviesportfolios/public are not separate folders.
 

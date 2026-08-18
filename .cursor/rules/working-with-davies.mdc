@@ -206,6 +206,28 @@ Changing any of these means re-opening a decision he has already made.
   storeable fill — freezing that parked the ISA walk and blocked cash
   history. Deposit amounts are not revalued at live FX.
 
+- **He holds the same ticker at Trading 212 and elsewhere.** SPCX,
+  RKLB and HOOD all are. A board position LARGER than the broker's is
+  the other platform's shares — never stale data to be corrected. On a
+  ticker's first sync keep `max(0, board − broker)` and add the broker's
+  slice on top; from then on the `t212Shares` tag means only that
+  slice's delta moves. Taking the broker as the whole position deleted
+  71 / 11.5 / 30 shares from a live book, and bought nothing: a
+  sold-out holding still comes back whole under the conservative rule.
+- **A skipped fill must not park the walk.** One page item the shaper
+  can't read is not an unreadable page. Freezing on that held both
+  account cursors still for the whole life of the feature — ISA stored
+  nothing at all — and because the walk never latches `complete`, the
+  top-up pass that fetches today's fills never ran either. Freeze only
+  when NOTHING on the page parsed.
+- **A negative fill quantity is a sale, not a broken row.** Live pages
+  carry them. `order.side` is the authority when stated; the sign
+  decides only when it isn't.
+- **Fills are shown, never merged.** The lot editor lists the broker's
+  fills for the ticker, ticks the ones the ledger already has, and
+  folds the rest in only when he clicks. Every data loss in this repo
+  came from a sync deciding it knew better.
+
 ### Labels and other surfaces
 
 - `displayTicker('2DG.SG')` (and `.F` / `.DE` / bare `2DG`) is `SIVE`
@@ -237,6 +259,13 @@ Changing any of these means re-opening a decision he has already made.
 - `replace` restates the position through `netPosition` (or clears
   lots *and* sells and `closed`). Don't leave the board showing the
   typed shares while the ledger still has old sells.
+
+- **Saving the lot editor recomputes `shares` from the rows.** On this
+  book that is destructive by default: 16 of 26 holdings carry lots
+  short of their board count, so Save on RKLB would drop it from 160 to
+  30. The editor warns when the rows don't account for the board's
+  shares. Don't remove that warning; don't add a code path that saves
+  a ledger without it.
 
 ### Security / Edge
 
@@ -301,6 +330,16 @@ Read these as a checklist before pushing.
   blocked" were both confidently wrong. Measure.
 - **Stopping at "the panel will load when opened".** If he said
   preload, the empty state on first open is the bug.
+
+- **Inferring a global rule from one sentence about two tickers.** He
+  said GOOG and PLTR are both held in his two T212 accounts. That
+  became "T212 is authoritative for every ticker", which deleted the
+  non-T212 half of three other positions. Ask what a statement covers
+  before generalising it into a sync rule.
+- **Shipping a rule that wasn't needed for the bug it was justified
+  by.** The overwrite was defended as the only way to bring PLTR back.
+  It wasn't — the conservative rule restores PLTR identically. Check
+  that the risky half of a change is actually load-bearing.
 
 ## Third-party reviews
 
