@@ -31,8 +31,6 @@ import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh, hasAn
 import { isDailyOnly, isCrypto } from './ticker_class.js';
 import { priceDividedByTtmEps } from './indicators.js';
 import { ChartStore, MaStore, YtdStore, hydrateAllChartStores, pruneAllChartStores } from './chart_store.js';
-import { refreshSnapshots } from './portfolio_snapshots.js';
-import { rangeStartMs } from './investment_chart.jsx';
 
 // All chart cache I/O goes through `ChartStore` / `MaStore` /
 // `YtdStore` (chart_store.js) — IndexedDB-backed, synchronous
@@ -362,22 +360,6 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
           ChartStore.set(psKey(t), { ts: peNow, data: psSeries });
         }
       }
-    }
-  }
-
-  // Investment Performance series — warmed for every range so the ⇄ swap
-  // and the range buttons inside it are cache hits, the same way the
-  // vs-S&P chart's ranges already are. Cheap: the server buckets each
-  // window down to a few hundred points, so this is five small reads,
-  // not five copies of the raw 5-minute table. Failures are ignored —
-  // the panel revalidates on open and falls back to the ledger.
-  // NOT awaited: these are independent of the chart caches above, and
-  // blocking on them would hold up the prune below behind a network
-  // round-trip for a panel the user may never open.
-  {
-    const nowMs = Date.now();
-    for (const rk of RANGE_KEYS) {
-      refreshSnapshots(rk, rangeStartMs(rk, nowMs)).catch(() => null);
     }
   }
 

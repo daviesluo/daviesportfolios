@@ -8,14 +8,7 @@
 // HK detection.
 
 import { describe, it, expect } from 'vitest';
-import {
-  currencySymbol,
-  depositFxMissing,
-  depositFxRate,
-  detectCurrency,
-  freezeDepositFxRates,
-  fxRateToUSD,
-} from './fx.js';
+import { detectCurrency, fxRateToUSD, currencySymbol } from './fx.js';
 
 describe('detectCurrency', () => {
   it('per-ticker overrides win over suffix rules — USD-denominated LSE ETFs', () => {
@@ -93,34 +86,5 @@ describe('fxRateToUSD — EUR', () => {
 
   it('€ symbol resolves for the price + avg-cost display', () => {
     expect(currencySymbol('EUR')).toBe('€');
-  });
-});
-
-describe('frozen deposit FX', () => {
-  it('captures a live rate once and never reprices it', () => {
-    const first = freezeDepositFxRates({}, {
-      'GBPUSD=X': { lastPrice: 1.25 },
-      'EURUSD=X': { lastPrice: 1.08 },
-      'USDCNY=X': { lastPrice: 7.2 },
-      'USDHKD=X': { lastPrice: 7.8 },
-    });
-    const later = freezeDepositFxRates(first, {
-      'GBPUSD=X': { lastPrice: 1.4 },
-      'EURUSD=X': { lastPrice: 1.2 },
-    });
-    expect(later).toEqual(first);
-    expect(depositFxRate('GBP', later)).toBe(1.25);
-    expect(depositFxRate('USD', later)).toBe(1);
-  });
-
-  it('requires frozen FX even for a closed foreign holding', () => {
-    const portfolio = /** @type {any} */ ({
-      holdings: {
-        CLOSED: { shares: 0, closed: true, currency: 'GBP' },
-      },
-    });
-    expect(depositFxMissing(portfolio)).toBe(true);
-    portfolio.depositFxRates = { GBP: 1.25 };
-    expect(depositFxMissing(portfolio)).toBe(false);
   });
 });

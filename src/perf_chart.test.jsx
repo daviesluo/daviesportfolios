@@ -56,7 +56,7 @@ vi.mock('./chart_store.js', () => {
 
 vi.mock('./ops_error.js', () => ({ reportError: vi.fn() }));
 
-import { PerfChart, PerfPanel, spSymbolFor, perfVariantKey, perfFetchParams, crosshairFormatFor, perfBaseline } from './perf_chart.jsx';
+import { PerfChart, PerfPanel, spSymbolFor, perfVariantKey, perfFetchParams, crosshairFormatFor } from './perf_chart.jsx';
 import { applyVariantFilter } from './ytd.js';
 import { YtdStore } from './chart_store.js';
 
@@ -140,24 +140,18 @@ describe('PerfChart wiring helpers — night-market range sensitivity', () => {
     expect(perfVariantKey('YTD', true, 'overnight')).toBe('std');
   });
 
-  it('perfFetchParams: 1W ext pulls prepost bars on the month window via the 1w-ext variant', () => {
+  it('perfFetchParams: 1W ext pulls prepost bars on the 5d/30m window via the 1w-ext variant', () => {
     const p = perfFetchParams('1W', true, 'overnight');
     expect(p.includePrePost).toBe(true);
     expect(p.variant).toBe('1w-ext');
-    // A MONTH, trimmed to the trailing week by applyVariantFilter —
-    // Yahoo's `5d` is five trading sessions (Mon→Fri = 4.3 days), which
-    // is less than the week the button claims.
-    expect(p.yahooRange).toBe('1mo');
-    expect(p.interval).toBe('60m');
+    expect(p.yahooRange).toBe('5d');
+    expect(p.interval).toBe('30m');
   });
 
-  it('perfFetchParams: 1W ext-off defers to the shared week params (no prepost)', () => {
+  it('perfFetchParams: 1W ext-off defers to shared std params (no prepost)', () => {
     const p = perfFetchParams('1W', false, 'overnight');
     expect(p.includePrePost).toBe(false);
-    // Its own variant now, because the fetched month has to be trimmed
-    // back to a week — 'std' would have drawn the whole month.
-    expect(p.variant).toBe('w1');
-    expect(p.yahooRange).toBe('1mo');
+    expect(p.variant).toBe('std');
   });
 
   it('perfFetchParams: 1D defers to the shared fetchParamsFor (ext → prepost + ext variant)', () => {
@@ -166,20 +160,12 @@ describe('PerfChart wiring helpers — night-market range sensitivity', () => {
     expect(p.variant).toBe('ext');
   });
 
-  it("the 1w-ext variant is trimmed to a week, not the 24h the 1D variants use", () => {
-    // It used to pass straight through, which was right while 1W fetched
-    // a 5-day window. 1W now fetches a MONTH (Yahoo has nothing between
-    // `5d` and `1mo`), so passing through would draw a month under the
-    // 1W button. It must trim to 168 h — and NOT to the 24 h that the
-    // 1D variants use.
-    const hoursAgo = (h) => new Date(Date.now() - h * 3600_000).toISOString().slice(0, 16);
+  it("the 1w-ext variant passes through applyVariantFilter untouched (full week, no 24h trim)", () => {
     const data = [
-      { date: hoursAgo(24 * 20), close: 1 },  // 20 days — outside the week
-      { date: hoursAgo(24 * 5),  close: 2 },  // 5 days  — inside the week, outside 24h
-      { date: hoursAgo(2),       close: 3 },
+      { date: '2026-06-01T13:30', close: 1 },
+      { date: '2026-06-05T20:00', close: 2 },
     ];
-    const out = applyVariantFilter(data, '1w-ext');
-    expect(out.map(p => p.close)).toEqual([2, 3]);
+    expect(applyVariantFilter(data, '1w-ext')).toBe(data); // same ref → no trim
   });
 
   it('crosshairFormatFor: 1W/1M show date+time (intraday bars), 1D time-only, 3M/YTD date-only', () => {
@@ -205,43 +191,5 @@ describe('PerfPanel — chrome wrapper', () => {
       />,
     );
     expect(container.querySelector('.x')).toBeTruthy();
-  });
-
-  it('labels the shortest range 24H and has no DAY / 1D toggle', () => {
-    const { container } = render(
-      <PerfPanel
-        portfolio={PORTFOLIO}
-        marketData={MARKET_DATA}
-        extendedHours={true}
-        phase="overnight"
-      />,
-    );
-    const labels = [...container.querySelectorAll('.perf-range-btn')].map(b => b.textContent);
-    expect(labels).toEqual(['24H', '1W', '1M', '3M', 'YTD']);
-    expect(container.querySelector('.perf-basis-btn')).toBeNull();
-    expect(labels).not.toContain('1D');
-    expect(labels).not.toContain('DAY');
-  });
-});
-
-describe('perfBaseline — what each line is measured from', () => {
-  const args = { windowFirstClose: 7100, portFirstPct: 3.0 };
-
-  it('the 24H range (internal 1D) rebases to the window, not the previous close', () => {
-    // Pin against the old default: measuring from prevClose (spBase =
-    // 7000, portShift = 0) made PORTFOLIO disagree with a trailing-24 h
-    // reading by the overnight gap. The DAY / 24H toggle is gone; the
-    // panel's shortest range is only that trailing day.
-    const out = perfBaseline({ rangeKey: '1D', spPrevClose: 7000, ...args });
-    expect(out.portShift).toBe(3.0);
-    expect(out.spBase).toBe(7100);
-  });
-
-  it('rebases every range to its own first point', () => {
-    for (const rk of ['1D', '1W', '1M', '3M', 'YTD']) {
-      const out = perfBaseline({ rangeKey: rk, ...args });
-      expect(out.portShift).toBe(3.0);
-      expect(out.spBase).toBe(7100);
-    }
   });
 });

@@ -10,8 +10,6 @@
 // chart) are both exported. Renderers in app.jsx import only PerfPanel.
 import React from 'react';
 import { fxToUSD } from './fx.js';
-import { InvestmentChart, rangeStartMs, mergeSeries, deriveSeries, withLivePoint } from './investment_chart.jsx';
-import { readCachedSnapshots, refreshSnapshots } from './portfolio_snapshots.js';
 import { fetchHistorical, fetchHistoricalBatch } from './historical.js';
 import { usMarketHoursUtc } from './market_hours.js';
 import { YtdStore } from './chart_store.js';
@@ -23,9 +21,8 @@ import {
   anchorDateFor,
   fetchParamsFor,
   applyVariantFilter,
-  panelRangeLabel,
 } from './ytd.js';
-import { pointerToDataIndex, parseChartDateUTC, findRegularCloseIdx, crosshairFormatFor } from './chart_geometry.js';
+import { pointerToDataIndex, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
 import { reportError } from './ops_error.js';
 import {
   mergeOvernightSeries,
@@ -58,11 +55,9 @@ export function perfVariantKey(rangeKey, extendedHours, phase) {
 
 // Fetch params. 1W gains pre/post-market bars when the ext toggle is on
 // (paired with ES=F on the S&P side + the recorded-overnight merge below,
-// this is what puts the night session into the week view). Both 1W
-// variants are trimmed to the trailing 168 h by applyVariantFilter — the
-// fetch is a MONTH because Yahoo has no range between `5d` (five trading
-// sessions = 4.3 days, less than the week the button claims) and `1mo`.
-// Every other case defers to the shared fetchParamsFor.
+// this is what puts the night session into the week view); the '1w-ext'
+// variant passes through applyVariantFilter untouched so the full 5-day
+// window is kept. Every other case defers to the shared fetchParamsFor.
 export function perfFetchParams(rangeKey, extendedHours, phase) {
   if (rangeKey === '1W' && extendedHours) {
     const r = RANGES['1W'];
@@ -71,93 +66,16 @@ export function perfFetchParams(rangeKey, extendedHours, phase) {
   return fetchParamsFor(rangeKey, extendedHours, phase);
 }
 
-// The range→crosshair-label mapping now lives in chart_geometry.js —
-// the Investment Performance chart labels the same five ranges, and a
-// pill that read "Jun 29" on one view and "Jun 29 14:30" on the other
-// would be a swap-visible inconsistency. Re-exported here so the
-// existing import site (and its pin test) keep working.
-export { crosshairFormatFor } from './chart_geometry.js';
-
-/**
- * The dates both charts sample the portfolio at: the benchmark series,
- * session-filtered and cut to the range's window.
- *
- * Lifted out of PerfChart so the Investment Performance panel can sample
- * at exactly the same points. It already shows the same quantity
- * (`computeAt().value`), but sampling it on a different grid drew a
- * differently-shaped line for the same week — and on 1D a different
- * WINDOW entirely, since the cash index is regular-session-only while
- * the other chart was covering a trailing 24 h. Same values on the same
- * dates is what makes the two views answer with one voice.
- *
- * The session filter is the reason this can't just be "the union of
- * every ticker's bars": ^GSPC is RTH-only and Yahoo slips the occasional
- * spurious low-volume bar outside 9:30-16:00 ET, which renders as data
- * between close and open. ES=F trades ~23 h, so a 24 h slice would
- * include Asia-overnight bars where stocks aren't open — except with the
- * ext toggle on, where keeping 20:00-04:00 ET is the whole point.
- *
- * @param {{ hist: Record<string, any[]>|null, spSymbol: string, rangeKey: string,
- *   extendedHours: boolean, mh: any }} opts
- * @returns {{ window: {date:string, close:number}[], anchorDate: string }}
- */
-export function benchmarkWindow({ hist, spSymbol, rangeKey, extendedHours, mh }) {
-  const raw = (hist?.[spSymbol] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
-  const keepOvernightFutures = extendedHours && spSymbol === 'ES=F';
-  const all = (!keepOvernightFutures && rangeKey === '1D' && (spSymbol === '^GSPC' || spSymbol === 'ES=F'))
-    ? raw.filter(p => {
-        if (typeof p.date !== 'string' || p.date.length < 16 || p.date[10] !== 'T') return true;
-        const utcMins = parseInt(p.date.slice(11, 13), 10) * 60 + parseInt(p.date.slice(14, 16), 10);
-        if (spSymbol === '^GSPC') {
-          return utcMins >= mh.openHh * 60 + mh.openMm
-              && utcMins <= mh.closeHh * 60 + mh.closeMm;
-        }
-        // ES=F: keep bars whose ET time-of-day is in [04:00, 20:00)
-        // (= pre-market start through after-hours end). Convert UTC
-        // to ET via the DST-aware offset embedded in mh.edt.
-        const offsetMins = (mh.edt ? 4 : 5) * 60;
-        let etMins = utcMins - offsetMins;
-        if (etMins < 0) etMins += 24 * 60;
-        return etMins >= 4 * 60 && etMins < 20 * 60;
-      })
-    : raw;
-  // 1D's anchor is whatever calendar day the fetched data actually
-  // covers — the latest UTC date in the series. Yesterday for a closed
-  // market, today for an open one.
-  const anchorDate = rangeKey === '1D'
-    ? (all.length > 0 ? all[all.length - 1].date.slice(0, 10) : anchorDateFor(rangeKey))
-    : anchorDateFor(rangeKey);
-  const window = rangeKey === '1D'
-    ? all                                     // already trimmed at fetch time
-    : all.filter(p => p.date >= anchorDate);
-  return { window, anchorDate };
-}
-
-/**
- * What each line is measured FROM.
- *
- * Every range rebases to the window's own first point, so the two
- * lines start together at 0 % and "who is ahead over this window"
- * reads off the left edge. The shortest range is a trailing 24 h
- * (labelled 24H on the panel, still keyed `1D` internally) — same
- * rebase as 1W / 1M / 3M / YTD.
- *
- * Measuring that window from the previous close used to be the
- * default, so PORTFOLIO equalled the scoreboard's DAY CHANGE. That
- * reading — and the DAY / 24H toggle that switched between them —
- * is gone. Don't put it back.
- *
- * Exported for tests.
- *
- * @param {{ windowFirstClose: number, portFirstPct: number,
- *   rangeKey?: string, spPrevClose?: number }} opts
- * @returns {{ portShift: number, spBase: number }}
- */
-export function perfBaseline({ windowFirstClose, portFirstPct }) {
-  return {
-    portShift: portFirstPct,
-    spBase: windowFirstClose,
-  };
+// Which crosshair-label format a range uses: bare time for the single
+// intraday day (1D); date + time for the multi-day intraday ranges (1W
+// 30m / 1M 60m) so the pill pins the exact bar — incl. the overnight
+// session — not just the calendar day; date-only for the daily ranges
+// (3M / YTD). Exported so the range→format mapping is pinned by
+// perf_chart.test.jsx.
+export function crosshairFormatFor(rangeKey) {
+  if (rangeKey === '1D') return 'time';
+  if (rangeKey === '1W' || rangeKey === '1M') return 'datetime';
+  return 'date';
 }
 
 // Tiny placeholder shell so the loading / error / range-button row
@@ -172,9 +90,6 @@ function renderShell(child, rangeKey, setRangeKey) {
   );
 }
 
-/**
- * @param {{ rangeKey: string, onChange: (k: string) => void }} props
- */
 function RangeButtons({ rangeKey, onChange }) {
   return (
     <div className="perf-range-row">
@@ -184,7 +99,7 @@ function RangeButtons({ rangeKey, onChange }) {
           type="button"
           className={`perf-range-btn mono${k === rangeKey ? ' on' : ''}`}
           onClick={() => onChange(k)}
-        >{panelRangeLabel(k)}</button>
+        >{RANGES[k].label}</button>
       ))}
     </div>
   );
@@ -224,30 +139,6 @@ function loadPerfCache(year, rangeKey) {
   }
   return out;
 }
-/**
- * Whatever price history is already cached for these tickers at this
- * (range, variant) — the bucket PerfChart writes and the background
- * prefetch warms. Synchronous (IndexedDB with an in-memory mirror), so
- * the Investment panel can paint its derived half on its FIRST render
- * instead of showing an empty state until a fetch returns. Stale rows
- * are included on purpose: a stale chart now, replaced when the
- * revalidation lands, beats a spinner.
- *
- * @param {string[]} tickers
- * @param {string} rangeKey
- * @param {string} variantKey
- */
-function readWarmHistory(tickers, rangeKey, variantKey) {
-  /** @type {Record<string, any[]>} */
-  const out = {};
-  const prefix = `y${new Date().getFullYear()}|${rangeKey}:${variantKey}|`;
-  for (const t of tickers) {
-    const e = YtdStore.get(`${prefix}${t}`);
-    if (e && Array.isArray(e.data) && e.data.length > 0) out[t] = e.data;
-  }
-  return out;
-}
-
 function savePerfCache(year, rangeKey, entries) {
   // Replace the entire (year, rangeKey) bucket — drop any existing
   // entries first so a ticker removed from `entries` doesn't linger.
@@ -575,6 +466,9 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // closed-market mode the data spans yesterday, and using "today"
   // would empty the window. For daily ranges we still filter by the
   // calendar cutoff.
+  const allSpRaw = (hist?.[spSymbol] || [])
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date));
   // 1D session-window filter:
   //   - ^GSPC: drop bars outside 9:30-16:00 ET (RTH only — Yahoo's
   //     prepost=true sometimes slips spurious low-volume bars in,
@@ -598,9 +492,40 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // overnight-merged series, so overnight timestamps return the real
   // recorded price, not a flat prevClose. Holdings that don't trade
   // overnight just hold flat through the night.
-  const grid = benchmarkWindow({ hist, spSymbol, rangeKey, extendedHours, mh });
-  const anchorDate = grid.anchorDate;
-  let spWindow = grid.window;
+  const keepOvernightFutures = extendedHours && spSymbol === 'ES=F';
+  const allSp = (!keepOvernightFutures && rangeKey === '1D' && (spSymbol === '^GSPC' || spSymbol === 'ES=F'))
+    ? allSpRaw.filter(p => {
+        if (typeof p.date !== 'string' || p.date.length < 16 || p.date[10] !== 'T') return true;
+        const utcMins = parseInt(p.date.slice(11, 13), 10) * 60 + parseInt(p.date.slice(14, 16), 10);
+        if (spSymbol === '^GSPC') {
+          return utcMins >= mh.openHh * 60 + mh.openMm
+              && utcMins <= mh.closeHh * 60 + mh.closeMm;
+        }
+        // ES=F: keep bars whose ET time-of-day is in [04:00, 20:00)
+        // (= pre-market start through after-hours end). Convert UTC
+        // to ET via the DST-aware offset embedded in mh.edt.
+        const offsetMins = (mh.edt ? 4 : 5) * 60;
+        let etMins = utcMins - offsetMins;
+        if (etMins < 0) etMins += 24 * 60;
+        return etMins >= 4 * 60 && etMins < 20 * 60;
+      })
+    : allSpRaw;
+
+  // 1D's anchor date is whatever calendar day the fetched data
+  // actually covers — the latest UTC date in the series. Yesterday
+  // for closed markets, today for open markets.
+  let anchorDate;
+  if (rangeKey === '1D') {
+    anchorDate = allSp.length > 0
+      ? allSp[allSp.length - 1].date.slice(0, 10)
+      : anchorDateFor(rangeKey);
+  } else {
+    anchorDate = anchorDateFor(rangeKey);
+  }
+
+  let spWindow = rangeKey === '1D'
+    ? allSp                                  // already trimmed at fetch time
+    : allSp.filter(p => p.date >= anchorDate);
   let hasSp = spWindow.length >= 2;
   if (!hasSp) {
     let bestKey = null, bestLen = 0;
@@ -640,10 +565,37 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 
   const useExt = !!(extendedHours && phase && phase !== "regular");
 
-  // (The S&P line no longer needs a basis picked from OUTSIDE the
-  // window — prevClose, today's 16:00 ET bar, the last close before the
-  // anchor. Both lines are rebased to the window's own first point
-  // further down, so the old per-range basis selection went with it.)
+  // S&P 500 baseline. 1D anchors at "the most recent 16:00 ET regular
+  // close that has occurred":
+  //   - regular hours → prevClose (yesterday's close from marketData)
+  //   - ext-on AH/PM  → today's 16:00 ET bar from the fetched ES=F
+  //                     window (= the bar at exactly closeHh:closeMm
+  //                     UTC), so the chart's right-edge % is the move
+  //                     since today's just-finished cash close. The
+  //                     ticker-drill modal uses the same anchor and
+  //                     the MC card's todayRegularClose field is filled
+  //                     from the same bar lookup, so all three agree.
+  // For daily ranges the basis is the last close strictly before anchorDate.
+  let spBase;
+  if (rangeKey === '1D') {
+    if (useExt) {
+      // Bar at the regular close (strict closeHh:closeMm — a hh<closeHh
+      // fallback would mis-select a premarket bar; see findRegularCloseIdx).
+      const closeIdx = findRegularCloseIdx(spWindow, mh);
+      const gspc = marketData?.['^GSPC'];
+      spBase = closeIdx >= 0
+        ? spWindow[closeIdx].close
+        : (gspc && gspc.lastPrice && gspc.lastPrice > 0
+            ? gspc.lastPrice
+            : (marketData?.[spSymbol]?.prevClose ?? spWindow[0].close));
+    } else {
+      const md = marketData?.[spSymbol];
+      spBase = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : spWindow[0].close;
+    }
+  } else {
+    const spPrior = hasSp ? allSp.filter(p => p.date < anchorDate) : [];
+    spBase = spPrior.length > 0 ? spPrior[spPrior.length - 1].close : spWindow[0].close;
+  }
 
   /** @type {Record<string, {date:string,close:number}[]>} */
   const histForTickers = {};
@@ -700,34 +652,8 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // S&P 500 normalised from prior-year-end close (computed earlier as
   // spBase). Empty when hasSp is false; downstream rendering already
   // guards against empty spNorm arrays via .length checks.
-  // Both lines are REBASED to 0 % at the window's first point, on every
-  // range including the panel's 24H (internal 1D). Previously each was
-  // measured against a basis that sat OUTSIDE the window — the S&P
-  // against the last close before it, the portfolio against cost /
-  // prevClose — so a chart of "the last week" opened at whatever the
-  // move happened to be at that moment (often several percent) and the
-  // two lines started at different heights. You could not read "who is
-  // ahead over this window" off the left edge, which is the entire
-  // point of an indexed comparison chart.
-  //
-  // Rebasing is a shift, not a reshape: every point keeps the same
-  // spacing it had, so nothing about the underlying basis maths changes
-  // — including how in-period buys are handled (`computeAt` still folds
-  // their cost into the basis; a mid-window purchase does not read as
-  // performance). It just moves the origin onto the left edge.
-  //
-  // For 24H this is also what makes the reading a genuine trailing-24 h
-  // change rather than the scoreboard's day change: the right edge is
-  // "since this point 24 h ago", not "since the previous close". The
-  // DAY / 24H toggle that used to switch between those two is gone.
-  const { portShift: portBase, spBase: spOpen } = perfBaseline({
-    windowFirstClose: hasSp && spYtd.length > 0 ? spYtd[0].close : 0,
-    portFirstPct: portYtd[0].pct,
-  });
-  const portNorm = portYtd.map(p => ({ date: p.date, pct: p.pct - portBase }));
-  const spNorm   = (hasSp && spOpen > 0)
-    ? spYtd.map(p => ({ date: p.date, pct: ((p.close - spOpen) / spOpen) * 100 }))
-    : [];
+  const portNorm = portYtd;
+  const spNorm   = hasSp ? spYtd.map(p => ({ date: p.date, pct: ((p.close - spBase) / spBase) * 100 })) : [];
 
   // SVG coordinate helpers
   const W = 300, H = 106;
@@ -1097,230 +1023,23 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 // FORMATION VALUE, rendered separately so we can place it in the
 // desktop left column instead of the sidebar. The Sidebar still
 // renders its own copy on tablet/mobile.
-// Data side of the Investment Performance view: stored 5-minute samples
-// for the recent window, ledger-derived points for everything older.
-//
-// The derived half deliberately uses the price history the vs-S&P chart
-// has already cached for the board's tickers. It will not have history
-// for a ticker sold long ago — which is exactly why the samples are
-// recorded — so before the first sample the line reflects what can still
-// be priced. Once samples cover the window, they are the whole line.
-/**
- * @param {{ portfolio: any, marketData: any, rangeKey: string, setRangeKey: (k:string)=>void,
- *   hideValues?: boolean, extendedHours?: boolean, phase?: string,
- *   live?: {marketValue:number, netDeposit:number}|null,
- *   t212Cash?: {transactions: any[], orders?: any[], complete: boolean}|null }} props
- */
-function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hideValues = false, extendedHours = false, phase = 'regular', live = null, t212Cash = null }) {
-  // Seed from the prefetch's cache so the FIRST render already has a
-  // line — the background prefetch warms every range, so opening the
-  // panel or switching ranges is a cache hit rather than an empty state
-  // waiting on a request. Then revalidate in the background.
-  const [snapshots, setSnapshots] = React.useState(
-    () => /** @type {any[]} */ (readCachedSnapshots(rangeKey) || []),
-  );
-  const nowMs = Date.now();
-  const startMs = rangeStartMs(rangeKey, nowMs);
-
-  React.useEffect(() => {
-    let cancelled = false;
-    const cached = readCachedSnapshots(rangeKey);
-    if (cached) setSnapshots(cached);
-    refreshSnapshots(rangeKey, rangeStartMs(rangeKey, Date.now())).then((rows) => {
-      // Keep the cached line rather than blanking on an empty read — an
-      // empty result is ambiguous (no samples yet, or a failed request).
-      if (!cancelled && rows.length > 0) setSnapshots(rows);
-    });
-    return () => { cancelled = true; };
-    // Keyed on the range only: `startMs` moves with the clock, so
-    // including it would refetch on every render.
-  }, [rangeKey]);
-
-  // Price history for the derived half. Fetched here rather than read
-  // out of the vs-S&P chart's cache: that bucket only exists if THAT
-  // chart has already run for this exact (year, range, variant), which
-  // depends on render order, the ext toggle and the market phase — so
-  // the panel would show an empty state whenever it happened to open
-  // first. The prefetch has usually warmed the same upstream request, so
-  // this is typically a fast repeat rather than a cold fetch.
-  //
-  // Covers sold-out names: the ticker list walks every holding and only
-  // skips cash, and a closed position keeps its holding row, so the
-  // history needed to price a stock no longer owned is included.
-  const histTickers = React.useMemo(
-    () => Object.entries(portfolio?.holdings || {})
-      .filter(([t, h]) => !(/** @type {any} */ (h)?.isCash) && t !== 'CASH')
-      .map(([t]) => t)
-      .sort(),
-    [portfolio],
-  );
-  const histKey = histTickers.join(',');
-  const variantKey = perfVariantKey(rangeKey, extendedHours, phase);
-  // The benchmark comes along for the ride: not to draw, but because its
-  // bars ARE the grid the other chart samples the portfolio on, and
-  // sampling the same quantity on a different grid drew a
-  // differently-shaped line for the same week.
-  const spSymbol = spSymbolFor(rangeKey, extendedHours);
-  const fetchList = React.useMemo(
-    () => (histTickers.includes(spSymbol) ? histTickers : [...histTickers, spSymbol]),
-    [histKey, spSymbol],
-  );
-  // Price history for the derived half, read from the SAME per-ticker
-  // bucket the vs-S&P chart and the background prefetch fill. Seeding
-  // synchronously from it is what stops the panel loading every single
-  // time it's opened: the fetch below still runs to revalidate, but it
-  // now replaces a drawn chart instead of an empty state.
-  const [hist, setHist] = React.useState(
-    () => /** @type {Record<string, any[]>} */ (readWarmHistory(fetchList, rangeKey, variantKey)),
-  );
-  React.useEffect(() => {
-    if (histTickers.length === 0) return undefined;
-    let cancelled = false;
-    const warm = readWarmHistory(fetchList, rangeKey, variantKey);
-    if (Object.keys(warm).length > 0) setHist(warm);
-    const p = perfFetchParams(rangeKey, extendedHours, phase);
-    fetchHistoricalBatch(fetchList, p.yahooRange, p.interval, p.includePrePost)
-      .then((batch) => {
-        if (cancelled || !batch) return;
-        // Trim to the range's display window exactly as PerfChart does,
-        // so the two charts hold the same bars for the same key and
-        // whichever runs first warms the other.
-        /** @type {Record<string, any[]>} */
-        const trimmed = {};
-        const now = Date.now();
-        for (const t of fetchList) {
-          const data = applyVariantFilter(/** @type {any} */ (batch)[t], p.variant);
-          if (!Array.isArray(data) || data.length === 0) continue;
-          trimmed[t] = data;
-          // Write per-ticker rather than through savePerfCache, which
-          // REPLACES the whole (year, range, variant) bucket — that
-          // would drop the S&P anchor row the other chart depends on.
-          YtdStore.set(`y${new Date().getFullYear()}|${rangeKey}:${variantKey}|${t}`, { ts: now, data });
-        }
-        if (Object.keys(trimmed).length > 0) setHist(trimmed);
-      })
-      .catch(() => { /* the seeded cache stays on screen */ });
-    return () => { cancelled = true; };
-  }, [histKey, spSymbol, rangeKey, variantKey, extendedHours, phase]);
-
-  // Ledger-derived points for everything OLDER than the first sample —
-  // which, until the sampler has been running a while, is the entire
-  // chart. Built from the per-ticker price history the vs-S&P chart and
-  // the background prefetch have already cached for this range, so this
-  // costs no extra request; when a ticker isn't in the cache its value
-  // is simply absent from those points rather than guessed.
-  //
-  // `loadPerfCache` covers sold-out names too: PerfChart's ticker list
-  // walks every holding and only skips cash, and a closed position keeps
-  // its holding row, so the history needed to price a stock you no
-  // longer own is already there.
-  const derived = React.useMemo(() => {
-    // Sample where the vs-S&P chart samples. Falling back to the union
-    // of every ticker's bars only when the benchmark didn't arrive —
-    // better a differently-shaped line than none.
-    const grid = benchmarkWindow({ hist, spSymbol, rangeKey, extendedHours, mh: usMarketHoursUtc(new Date()) });
-    const dates = grid.window.length >= 2
-      ? grid.window.map(p => p.date)
-      : Object.values(hist).flat().map((p) => /** @type {any} */ (p).date).filter(Boolean);
-    if (dates.length === 0) return [];
-    const uniqueDates = Array.from(new Set(dates)).sort();
-    // `marketData` (parent state) only carries indices / forex — per-stock
-    // prices live on the holdings. The vs-S&P chart merges the two before
-    // it computes anything, and the value here is the same computation, so
-    // it has to see the same map: without the merge every stock's
-    // prevClose / lastPrice reads undefined, which changes the 1D anchor
-    // and the live right-edge point.
-    /** @type {Record<string, any>} */
-    const tickerMarketData = { ...marketData };
-    for (const [t, h] of Object.entries(portfolio?.holdings || {})) {
-      const hh = /** @type {any} */ (h);
-      if (hh?.isCash || t === 'CASH') continue;
-      tickerMarketData[t] = {
-        prevClose: hh?.prevClose, lastPrice: hh?.lastPrice,
-        extPrice: hh?.extPrice ?? null, dayPct: hh?.dayPct,
-      };
-    }
-    const useExt = !!(extendedHours && phase && phase !== 'regular');
-    const tickerSeries = buildTickerSeries(hist, uniqueDates[0], rangeKey, tickerMarketData, useExt);
-    return deriveSeries({
-      portfolio, tickerSeries, marketData: tickerMarketData, fxToUSD,
-      dates: uniqueDates, useExt, rangeKey, t212Cash,
-    });
-  }, [portfolio, marketData, rangeKey, hist, extendedHours, phase, spSymbol, t212Cash]);
-
-  // The live figures go on the right-hand end so the legend's Value is
-  // the scoreboard's PORTFOLIO, not a sample up to five minutes old.
-  const series = React.useMemo(
-    () => withLivePoint(mergeSeries(snapshots, derived, startMs), live),
-    [snapshots, derived, startMs, live],
-  );
-
-  return (
-    <InvestmentChart
-      series={series}
-      rangeKey={rangeKey}
-      setRangeKey={setRangeKey}
-      hideValues={hideValues}
-    />
-  );
-}
-
-/**
- * @param {{ portfolio: any, marketData: any, extendedHours: boolean, phase: string,
- *   className?: string, hideValues?: boolean,
- *   live?: {marketValue:number, netDeposit:number}|null,
- *   t212Cash?: {transactions: any[], orders?: any[], complete: boolean}|null }} props
- */
-function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false, live = null, t212Cash = null }) {
+function PerfPanel({ portfolio, marketData, extendedHours, phase, className }) {
   // Own the range here so the title can name the actual benchmark: ES=F
   // (ext-on 1D / 1W) → "S&P FUTURES", the cash index otherwise → "S&P 500".
   // The legend dot inside the chart flips the same way (spSymbolFor).
   const [rangeKey, setRangeKey] = React.useState('1D');
-  // Two charts share this slot: the vs-S&P view (relative, in percent)
-  // and Investment Performance (absolute, in dollars). The range carries
-  // across the swap so flipping the view doesn't also change the period
-  // you were looking at.
-  const [view, setView] = React.useState(/** @type {'sp'|'investment'} */ ('sp'));
   const benchmarksFutures = spSymbolFor(rangeKey, extendedHours) === 'ES=F';
-  const isSp = view === 'sp';
   return (
     <section className={`panel ${className || ""}`.trim()}>
-      <div className="panel-title-row">
-        <h3 className="panel-title">
-          {isSp
-            ? <>PERFORMANCE VS {benchmarksFutures ? <>S&amp;P FUTURES</> : <>S&amp;P 500</>}</>
-            : <>INVESTMENT PERFORMANCE</>}
-        </h3>
-        <button
-          type="button"
-          className="panel-swap mono"
-          onClick={() => setView(isSp ? 'investment' : 'sp')}
-          title={isSp ? 'Show portfolio value vs net deposited' : 'Show performance vs the S&P'}
-          aria-label={isSp ? 'Switch to Investment Performance' : 'Switch to Performance vs S&P'}
-        >⇄</button>
-      </div>
-      {isSp ? (
-        <PerfChart
-          portfolio={portfolio}
-          marketData={marketData}
-          extendedHours={extendedHours}
-          phase={phase}
-          rangeKey={rangeKey}
-          setRangeKey={setRangeKey}
-        />
-      ) : (
-        <InvestmentPanelBody
-          portfolio={portfolio}
-          marketData={marketData}
-          rangeKey={rangeKey}
-          setRangeKey={setRangeKey}
-          hideValues={hideValues}
-          extendedHours={extendedHours}
-          phase={phase}
-          live={live}
-          t212Cash={t212Cash}
-        />
-      )}
+      <h3 className="panel-title">PERFORMANCE VS {benchmarksFutures ? <>S&amp;P FUTURES</> : <>S&amp;P 500</>}</h3>
+      <PerfChart
+        portfolio={portfolio}
+        marketData={marketData}
+        extendedHours={extendedHours}
+        phase={phase}
+        rangeKey={rangeKey}
+        setRangeKey={setRangeKey}
+      />
     </section>
   );
 }

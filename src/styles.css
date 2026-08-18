@@ -1395,35 +1395,3 @@ body {
     50%       { transform: translate(calc(-50% + 18px), calc(-50% - 58px)) rotate(8deg); }
   }
 }
-
-/* Panel header row for the swappable chart slot: title on the left, the
-   ⇄ swap affordance on the right. Only this panel has two views, so the
-   row is scoped rather than applied to every .panel-title. */
-.panel-title-row {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 8px;
-}
-.panel-swap {
-  background: none; border: 1px solid var(--line);
-  color: var(--chalk-dim); border-radius: 4px;
-  padding: 1px 6px; font-size: 11px; line-height: 1.4;
-  cursor: pointer;
-}
-.panel-swap:hover { color: var(--chalk); border-color: var(--chalk-dim); }
-
-/* Investment Performance legend — value / deposited / the gap between
-   them. Wraps on a narrow phone rather than clipping the gain figure,
-   which is the number worth reading.
-
-   Its own `inv-` names, NOT the `perf-` ones: these rules sit after the
-   YTD chart's block, so reusing the class names silently restyled the
-   vs-S&P legend too — its round 7px dots became 6×2 dashes. */
-.inv-legend {
-  display: flex; flex-wrap: wrap; gap: 4px 10px;
-  font-size: 9px; color: var(--chalk-dim); padding: 0 0 2px 2px;
-  margin-bottom: 2px;
-}
-.inv-legend-item { display: inline-flex; align-items: center; gap: 4px; }
-/* A short dash rather than a dot: it reads as the line it labels, and
-   the dashed one is visibly the dashed line. */
-.inv-dot { width: 6px; height: 2px; border-radius: 1px; display: inline-block; }

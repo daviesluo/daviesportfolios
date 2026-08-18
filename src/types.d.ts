@@ -9,16 +9,6 @@
 
 export type Currency = 'USD' | 'GBP' | 'CNY' | 'HKD' | 'EUR';
 
-/** A single sale — shape persisted on Holding.sells. */
-export interface Sell {
-  date: string;
-  shares: number;
-  price: number;
-  /** Epoch ms stamped when the row was added, so same-day rows keep
-   *  their entry order in the transaction log. Absent on legacy rows. */
-  ts?: number;
-}
-
 /** A single purchase batch — shape persisted on Holding.lots. */
 export interface Lot {
   /** ISO date YYYY-MM-DD. */
@@ -26,12 +16,6 @@ export interface Lot {
   shares: number;
   /** Per-share cost in the holding's native currency. */
   cost: number;
-  /** Epoch ms stamped when the row was added — orders same-day entries
-   *  in the transaction log, which otherwise only has a date. Absent on
-   *  legacy rows. */
-  ts?: number;
-  /** Machine provenance for the pre-fill-history T212 stand-in. */
-  source?: 't212-synthetic';
 }
 
 export interface Holding {
@@ -59,22 +43,6 @@ export interface Holding {
   /** True for the GK / cash bucket; lastPrice doubles as the cash balance. */
   isCash?: boolean;
   lots?: Lot[];
-  /** Sale rows — the other half of the transaction ledger. Present at
-   *  runtime since the sell editor shipped; without it here `checkJs`
-   *  couldn't type-check any of the accounting that reads them. */
-  sells?: Sell[];
-  /** Set when a full sale closes the position off the board. The
-   *  holding row is deliberately RETAINED so its ledger survives, so
-   *  this flag is what distinguishes "sold out" from "still held". */
-  closed?: boolean;
-  /** Quantity/cost of the T212 slice on an allow-list holding. Kept
-   *  separate from the user ledger so another broker's shares cannot
-   *  be overwritten by the T212 position endpoint. */
-  t212Shares?: number;
-  t212Cost?: number;
-  /** Last tactics-board slot before an auto-synced full sale; used to
-   *  restore the holding if a later T212 fill reopens it. */
-  t212PositionKey?: string;
 }
 
 export interface Position {
@@ -87,9 +55,6 @@ export interface Position {
 export interface Portfolio {
   positions: Record<string, Position>;
   holdings: Record<string, Holding>;
-  /** One-time native→USD rates used only for historical money-in.
-   *  Portfolio market value deliberately continues to use live FX. */
-  depositFxRates?: Partial<Record<Currency, number>>;
   snapshots?: PortfolioSnapshot[];
   /** Set by portfolio_remote.demoFallback() when the seed (not the
    *  user's saved book) is being shown — gates the demo banner + the

@@ -5,7 +5,6 @@
 // guarding it; a regression here misreports the user's portfolio
 // value silently, which is the worst class of bug for this app.
 
-import { pctIsFlat } from './formatters.js';
 import { describe, it, expect } from 'vitest';
 import { computeMetrics } from './metrics.js';
 import { fxRateToUSD, fxToUSD } from './fx.js';
@@ -516,33 +515,5 @@ describe('computeMetrics — CN fund ext-hours suppression', () => {
     const m = computeMetrics(pf(holdings, positions), { extended: true, marketData: md });
     expect(m.positions.MF.players[0].dayPct).toBe(0);
     expect(m.positions.MF.players[0].dayChange).toBe(0);
-  });
-});
-
-// One "did it move" threshold, shared by the heatmap tile colour, the
-// tactics-board chip class and Top Movers. They disagreed: the heatmap
-// treated |pct| < 0.005 (anything that prints as 0.00%) as flat and
-// painted a neutral tile, while Top Movers ranked on a bare < 0 — so a
-// -0.004% row was a dark "no change" tile AND a red LOSERS entry
-// reading "-0.00%" at the same time (MSFT, 2026-08).
-describe('pctIsFlat — one flat threshold for every surface', () => {
-  it('treats anything that prints as 0.00% as flat', () => {
-    expect(pctIsFlat(0)).toBe(true);
-    expect(pctIsFlat(0.004)).toBe(true);
-    expect(pctIsFlat(-0.004)).toBe(true);
-    expect(pctIsFlat(0.0049)).toBe(true);
-  });
-
-  it('treats a move that rounds to a visible number as real', () => {
-    expect(pctIsFlat(0.005)).toBe(false);
-    expect(pctIsFlat(-0.005)).toBe(false);
-    expect(pctIsFlat(1.94)).toBe(false);
-    expect(pctIsFlat(-0.13)).toBe(false);
-  });
-
-  it('is null / NaN safe', () => {
-    expect(pctIsFlat(null)).toBe(true);
-    expect(pctIsFlat(undefined)).toBe(true);
-    expect(pctIsFlat(NaN)).toBe(true);
   });
 });

@@ -14,27 +14,9 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   shapeT212Portfolio,
-  shapeT212Order,
-  shapeT212Transaction,
-  flattenT212OrderItem,
-  t212FillEnvelope,
-  t212MalformedFillEnvelope,
-  t212OrderItemRecognized,
-  ordersPageShapeMismatch,
-  ordersPageEnvelopeRecognized,
-  nextHistoryKind,
-  pickAccountTopUp,
-  nextOrdersCursor,
-  nextTransactionsCursor,
-  transactionsPageUrl,
-  transactionCursorAdvanced,
-  T212_TRANSACTIONS_URL,
-  ordersItemsOf,
   t212TickerToYahoo,
   unpackCache,
   mergeShaped,
-  mergeShapedWithFallback,
-  attachPreviousHoldingSlices,
   cacheIsFresh,
   basicAuthHeader,
   b64url,
@@ -42,11 +24,6 @@ import {
   verifyToken,
   constantTimeEqual,
 } from "./index.ts";
-
-const EMPTY_SYNC_HOLDINGS = {
-  "VUAA.L": { shares: 0, cost: 0 },
-  "SAEM.L": { shares: 0, cost: 0 },
-};
 
 Deno.test("mergeShaped — unions prices; passes through disjoint holdings (invest + ISA)", () => {
   const invest = {
@@ -76,36 +53,6 @@ Deno.test("mergeShaped — empty ISA side is a no-op (invest-only / ISA key abse
   const invest = { holdings: { "VUAA.L": { shares: 5, cost: 90 } }, prices: { "VUAA.L": 92 } };
   const out = mergeShaped(invest, { holdings: {}, prices: {} });
   assertEquals(out, invest);
-});
-
-Deno.test("mergeShapedWithFallback — an ISA outage cannot shrink combined shares", () => {
-  const invest = {
-    holdings: { "VUAA.L": { shares: 4, cost: 80 } },
-    prices: { "VUAA.L": 100 },
-  };
-  const previous = {
-    holdings: { "VUAA.L": { shares: 10, cost: 90 } },
-    prices: { "VUAA.L": 99, AAPL: 200 },
-  };
-  const out = mergeShapedWithFallback(invest, null, previous, true);
-  assertEquals(out.holdings, previous.holdings);
-  assertEquals(out.prices, { "VUAA.L": 100, AAPL: 200 });
-});
-
-Deno.test("attachPreviousHoldingSlices — carries authority through a zero snapshot", () => {
-  const first = attachPreviousHoldingSlices(
-    { "VUAA.L": { shares: 0, cost: 0 } },
-    { "VUAA.L": { shares: 4, cost: 80 } },
-  );
-  assertEquals(first["VUAA.L"], {
-    shares: 0, cost: 0, previousShares: 4, previousCost: 80,
-  });
-  const second = attachPreviousHoldingSlices(
-    { "VUAA.L": { shares: 0, cost: 0 } },
-    first,
-  );
-  assertEquals(second["VUAA.L"].previousShares, 4);
-  assertEquals(second["VUAA.L"].previousCost, 80);
 });
 
 Deno.test("t212TickerToYahoo — allow-list, generic US, generic LSE, unknown", () => {
@@ -166,43 +113,36 @@ Deno.test("shapeT212Portfolio — prices = EVERY recognised holding's currentPri
   const raw = [
     { ticker: "VUAAl_EQ", quantity: 12.5, averagePrice: 96.00, currentPrice: 98.42 },
     { ticker: "AAPL_US_EQ", quantity: 3, averagePrice: 200, currentPrice: 234.5 },
-    { ticker: "HOOD_US_EQ", quantity: 9, averagePrice: 30, currentPrice: 31 },
+    { ticker: "HOOD_US_EQ", quantity: 9, averagePrice: 30, currentPrice: 0 },   // non-positive → no price
   ];
   const { holdings, prices } = shapeT212Portfolio(raw);
   // Price map carries the allow-list ETF AND the US stock.
   assertEquals(prices["VUAA.L"], 98.42);
   assertEquals(prices["AAPL"], 234.5);
-  assertEquals(prices["HOOD"], 31);
+  assertEquals("HOOD" in prices, false);  // 0 currentPrice dropped
   // But holdings (shares/cost sync) is still allow-list only — AAPL is
   // priced but NOT shares/cost-synced.
-  assertEquals(Object.keys(holdings).sort(), ["SAEM.L", "VUAA.L"]);
+  assertEquals(Object.keys(holdings), ["VUAA.L"]);
   assertEquals("AAPL" in holdings, false);
 });
 
-Deno.test("shapeT212Portfolio — malformed numeric rows are not authoritative zeros", () => {
+Deno.test("shapeT212Portfolio — non-positive quantity / averagePrice drop the allow-list holding (price may still surface)", () => {
   const raw = [
     { ticker: "VUAAl_EQ", quantity: 0,   averagePrice: 96, currentPrice: 98 },
     { ticker: "VUAAl_EQ", quantity: 10,  averagePrice: 0,  currentPrice: 98 },
   ];
-  const shaped = shapeT212Portfolio(raw);
-  assertEquals(shaped, { holdings: {}, prices: {}, valid: false });
-  assertEquals(shapeT212Portfolio([
-    { ticker: "VUAAl_EQ", quantity: 4, currentPrice: 98 },
-  ]).valid, false);
-  assertEquals(shapeT212Portfolio([]), {
-    holdings: EMPTY_SYNC_HOLDINGS,
-    prices: {},
-    valid: true,
-  });
+  const { holdings, prices } = shapeT212Portfolio(raw);
+  assertEquals(holdings, {});         // no valid shares/cost
+  assertEquals(prices["VUAA.L"], 98); // price still recognised
 });
 
 Deno.test("shapeT212Portfolio — malformed input returns empty maps (not throws)", () => {
-  assertEquals(shapeT212Portfolio(null), { holdings: {}, prices: {}, valid: false });
-  assertEquals(shapeT212Portfolio(undefined), { holdings: {}, prices: {}, valid: false });
-  assertEquals(shapeT212Portfolio({}), { holdings: {}, prices: {}, valid: false });
-  assertEquals(shapeT212Portfolio("nope"), { holdings: {}, prices: {}, valid: false });
-  assertEquals(shapeT212Portfolio([null, undefined, "x", 42]), { holdings: {}, prices: {}, valid: false });
-  assertEquals(shapeT212Portfolio([{ ticker: 42 }, { quantity: 5 }]), { holdings: {}, prices: {}, valid: false });
+  assertEquals(shapeT212Portfolio(null), { holdings: {}, prices: {} });
+  assertEquals(shapeT212Portfolio(undefined), { holdings: {}, prices: {} });
+  assertEquals(shapeT212Portfolio({}), { holdings: {}, prices: {} });
+  assertEquals(shapeT212Portfolio("nope"), { holdings: {}, prices: {} });
+  assertEquals(shapeT212Portfolio([null, undefined, "x", 42]), { holdings: {}, prices: {} });
+  assertEquals(shapeT212Portfolio([{ ticker: 42 }, { quantity: 5 }]), { holdings: {}, prices: {} });
 });
 
 Deno.test("shapeT212Portfolio — /equity/positions nested instrument shape (ticker + averagePricePaid)", () => {
@@ -246,7 +186,7 @@ Deno.test("shapeT212Portfolio — malformed nested instrument is skipped (not th
     { instrument: null, quantity: 5, averagePricePaid: 9 },             // null instrument
     { instrument: {}, quantity: 5, averagePricePaid: 9 },               // no ticker key
   ];
-  assertEquals(shapeT212Portfolio(raw), { holdings: {}, prices: {}, valid: false });
+  assertEquals(shapeT212Portfolio(raw), { holdings: {}, prices: {} });
 });
 
 Deno.test("unpackCache — new {holdings, prices} shape passes through", () => {
@@ -331,363 +271,4 @@ Deno.test("constantTimeEqual: identical / non-identical / length-mismatched", ()
   assert(constantTimeEqual("abc", "abc"));
   assert(!constantTimeEqual("abc", "abd"));
   assert(!constantTimeEqual("abc", "abcd"));
-});
-
-// ---------------------------------------------------------------------
-// Executed-fill history. The positions endpoint reports a POSITION with
-// no dates, which is why the lot ledger has been guessing; these rows
-// are the real purchase history.
-
-Deno.test("shapeT212Order — a plain buy becomes a lot-shaped row", () => {
-  const out = shapeT212Order({
-    id: 123, fillId: 987, ticker: "AAPL_US_EQ", status: "FILLED",
-    filledQuantity: 3, fillPrice: 210.5, fillCost: 631.5,
-    dateExecuted: "2025-04-01T13:45:00.000+00:00",
-  }, "invest");
-  assertEquals(out?.id, "invest:987");
-  assertEquals(out?.ticker, "AAPL");
-  assertEquals(out?.t212_ticker, "AAPL_US_EQ");
-  assertEquals(out?.side, "buy");
-  assertEquals(out?.shares, 3);
-  assertEquals(out?.price, 210.5);
-  assertEquals(out?.executed_at, "2025-04-01T13:45:00.000Z");
-});
-
-Deno.test("shapeT212Order — a negative quantity is a sale, stored positive", () => {
-  // T212 signs a sale's quantity negative; `side` carries the direction
-  // so the ledger doesn't have to re-derive it from a sign.
-  const out = shapeT212Order({
-    fillId: 5, ticker: "VUAAl_EQ", status: "FILLED",
-    filledQuantity: -2.5, fillPrice: 100, dateExecuted: "2025-06-01T08:00:00Z",
-  }, "isa");
-  assertEquals(out?.side, "sell");
-  assertEquals(out?.shares, 2.5);
-  assertEquals(out?.ticker, "VUAA.L");
-  assertEquals(out?.id, "isa:5");
-});
-
-Deno.test("shapeT212Order — keys on the FILL, so a part-filled order keeps both halves", () => {
-  const base = { id: 42, ticker: "AAPL_US_EQ", status: "FILLED", fillPrice: 10,
-                 dateExecuted: "2025-01-01T00:00:00Z" };
-  const a = shapeT212Order({ ...base, fillId: 1, filledQuantity: 4 }, "invest");
-  const b = shapeT212Order({ ...base, fillId: 2, filledQuantity: 6 }, "invest");
-  // Keying on the ORDER id would collapse these into one row and lose
-  // six shares.
-  assert(a!.id !== b!.id);
-});
-
-Deno.test("shapeT212Order — derives the price from cost when no fill price is given", () => {
-  const out = shapeT212Order({
-    fillId: 7, ticker: "AAPL_US_EQ", filledQuantity: 4, fillCost: 88,
-    dateExecuted: "2025-01-01T00:00:00Z",
-  }, "invest");
-  assertEquals(out?.price, 22);
-});
-
-Deno.test("shapeT212Order — drops orders that never moved any money", () => {
-  const base = { fillId: 1, ticker: "AAPL_US_EQ", filledQuantity: 1, fillPrice: 10,
-                 dateExecuted: "2025-01-01T00:00:00Z" };
-  assertEquals(shapeT212Order({ ...base, status: "CANCELLED" }, "invest"), null);
-  assertEquals(shapeT212Order({ ...base, status: "REJECTED" }, "invest"), null);
-  assertEquals(shapeT212Order({ ...base, filledQuantity: 0 }, "invest"), null);
-  assertEquals(shapeT212Order({ ...base, fillPrice: 0, fillCost: 0 }, "invest"), null);
-  assertEquals(shapeT212Order({ ...base, dateExecuted: "not a date", dateCreated: undefined }, "invest"), null);
-  assertEquals(shapeT212Order({ ...base, ticker: "" }, "invest"), null);
-  assertEquals(shapeT212Order(null, "invest"), null);
-});
-
-Deno.test("shapeT212Order — an unfamiliar status is kept, not silently dropped", () => {
-  // A status field only rules a row OUT. Dropping every row of a shape
-  // we don't recognise would produce an empty history rather than an
-  // error anyone would notice.
-  const out = shapeT212Order({
-    fillId: 9, ticker: "AAPL_US_EQ", filledQuantity: 1, fillPrice: 10,
-    dateExecuted: "2025-01-01T00:00:00Z",
-  }, "invest");
-  assert(out !== null);
-});
-
-Deno.test("shapeT212Order — an unmapped listing is stored with a null ticker", () => {
-  // The broker symbol is kept either way, so a mapping that's wrong
-  // today can be re-derived later without re-fetching the history.
-  const out = shapeT212Order({
-    fillId: 3, ticker: "ASML_NL_EQ", filledQuantity: 1, fillPrice: 600,
-    dateExecuted: "2025-01-01T00:00:00Z",
-  }, "invest");
-  assertEquals(out?.ticker, null);
-  assertEquals(out?.t212_ticker, "ASML_NL_EQ");
-});
-
-Deno.test("shapeT212Order — the published nested {fill, order} payload becomes a lot-shaped row", () => {
-  // docs.trading212.com/api/historical-events/orders_1. The first
-  // shaper expected a flat ticker/filledQuantity row; production sent
-  // this envelope, every page parsed to 0, and the cursor still advanced.
-  const out = shapeT212Order({
-    fill: {
-      id: 987,
-      price: 210.5,
-      quantity: 3,
-      filledAt: "2025-04-01T13:45:00.000+00:00",
-    },
-    order: {
-      id: 123,
-      status: "FILLED",
-      side: "BUY",
-      ticker: "AAPL_US_EQ",
-      instrument: { ticker: "AAPL_US_EQ" },
-      filledQuantity: 3,
-      filledValue: 631.5,
-      createdAt: "2025-04-01T13:40:00.000+00:00",
-    },
-  }, "invest");
-  assertEquals(out?.id, "invest:987");
-  assertEquals(out?.ticker, "AAPL");
-  assertEquals(out?.t212_ticker, "AAPL_US_EQ");
-  assertEquals(out?.side, "buy");
-  assertEquals(out?.shares, 3);
-  assertEquals(out?.price, 210.5);
-  assertEquals(out?.executed_at, "2025-04-01T13:45:00.000Z");
-});
-
-Deno.test("shapeT212Order — nested SELL with a positive fill quantity is still a sale", () => {
-  const out = shapeT212Order({
-    fill: { id: 5, price: 100, quantity: 2.5, filledAt: "2025-06-01T08:00:00Z" },
-    order: {
-      status: "FILLED", side: "SELL", ticker: "VUAAl_EQ",
-      instrument: { ticker: "VUAAl_EQ" },
-    },
-  }, "isa");
-  assertEquals(out?.side, "sell");
-  assertEquals(out?.shares, 2.5);
-  assertEquals(out?.ticker, "VUAA.L");
-});
-
-Deno.test("shapeT212Order — real partial fill survives final CANCELLED status", () => {
-  const out = shapeT212Order({
-    fill: { id: 7, price: 90, quantity: 1.5, filledAt: "2025-06-01T08:05:00Z" },
-    order: {
-      status: "CANCELLED", side: "BUY",
-      instrument: { ticker: "VUAAl_EQ" },
-    },
-  }, "isa");
-  assertEquals(out?.shares, 1.5);
-  assertEquals(out?.price, 90);
-  assertEquals(out?.executed_at, "2025-06-01T08:05:00.000Z");
-});
-
-Deno.test("malformed nested fill blocks the page instead of being guessed or skipped", () => {
-  const malformed = {
-    fill: { id: 8, quantity: 1, filledAt: "2025-06-01T08:05:00Z" },
-    order: {
-      status: "FILLED", side: "BUY", limitPrice: 99,
-      instrument: { ticker: "VUAAl_EQ" },
-    },
-  };
-  assertEquals(t212FillEnvelope(malformed), true);
-  assertEquals(shapeT212Order(malformed, "isa"), null);
-  // Even if another row parsed, losing this explicit fill is a hard
-  // page-shape error and the cursor must not advance.
-  assertEquals(ordersPageShapeMismatch(2, 1, 2, 1), true);
-});
-
-Deno.test("nested fill requires an explicit BUY/SELL side", () => {
-  const missingSide = {
-    fill: { id: 9, quantity: 1, price: 90, filledAt: "2025-06-01T08:05:00Z" },
-    order: { status: "FILLED", instrument: { ticker: "VUAAl_EQ" } },
-  };
-  assertEquals(shapeT212Order(missingSide, "isa"), null);
-  const negativeBuy = {
-    fill: { id: 10, quantity: -1, price: 90, filledAt: "2025-06-01T08:05:00Z" },
-    order: { status: "FILLED", side: "BUY", instrument: { ticker: "VUAAl_EQ" } },
-  };
-  assertEquals(shapeT212Order(negativeBuy, "isa"), null);
-});
-
-Deno.test("flattenT212OrderItem — a flat payload passes through unchanged", () => {
-  const flat = { ticker: "AAPL_US_EQ", filledQuantity: 1, fillPrice: 10 };
-  assertEquals(flattenT212OrderItem(flat)?.ticker, "AAPL_US_EQ");
-  assertEquals(flattenT212OrderItem(null), null);
-});
-
-Deno.test("shapeT212Order — order-only FILLED is recognised but not fabricated", () => {
-  // limitPrice / createdAt are not fill price / filledAt. ISA pages of
-  // these must advance, but they must never become Deposited.
-  const out = shapeT212Order({
-    order: {
-      id: 123,
-      status: "FILLED",
-      side: "BUY",
-      ticker: "AAPL_US_EQ",
-      instrument: { ticker: "AAPL_US_EQ" },
-      quantity: 3,
-      filledQuantity: 3,
-      filledValue: 631.5,
-      createdAt: "2025-04-01T13:40:00.000+00:00",
-    },
-  }, "isa");
-  assertEquals(out, null);
-  assertEquals(t212OrderItemRecognized({
-    order: { status: "FILLED", ticker: "AAPL_US_EQ" },
-  }), true);
-});
-
-Deno.test("shapeT212Order — a cancelled order-only row is skipped, not a shape bug", () => {
-  assertEquals(shapeT212Order({
-    order: {
-      status: "CANCELLED", ticker: "AAPL_US_EQ", quantity: 1,
-      createdAt: "2025-04-01T13:40:00.000+00:00",
-    },
-  }, "isa"), null);
-  assertEquals(t212OrderItemRecognized({
-    order: { status: "CANCELLED", ticker: "AAPL_US_EQ" },
-  }), true);
-});
-
-Deno.test("t212OrderItemRecognized — nested order, nested fill, flat ticker", () => {
-  assertEquals(t212OrderItemRecognized({ order: { ticker: "AAPL_US_EQ" } }), true);
-  assertEquals(t212OrderItemRecognized({ fill: { quantity: 1 }, order: {} }), true);
-  assertEquals(t212OrderItemRecognized({ ticker: "AAPL_US_EQ", filledQuantity: 1 }), true);
-  assertEquals(t212OrderItemRecognized({ foo: 1 }), false);
-  assertEquals(t212OrderItemRecognized(null), false);
-  assertEquals(t212MalformedFillEnvelope({ fill: "broken", order: {} }), true);
-});
-
-Deno.test("ordersPageEnvelopeRecognized — unknown whole pages never complete a walk", () => {
-  assertEquals(ordersPageEnvelopeRecognized({ items: [] }), true);
-  assertEquals(ordersPageEnvelopeRecognized({ data: [] }), true);
-  assertEquals(ordersPageEnvelopeRecognized([]), true);
-  assertEquals(ordersPageEnvelopeRecognized({}), false);
-  assertEquals(ordersPageEnvelopeRecognized({ items: {} }), false);
-  assertEquals(ordersPageEnvelopeRecognized(null), false);
-});
-
-Deno.test("ordersPageShapeMismatch — a populated page that parsed to nothing must not advance", () => {
-  // Advancing here is how the nested payload walked the history into
-  // the void: fetched stayed 0, cursor became the next page anyway.
-  assertEquals(ordersPageShapeMismatch(50, 0), true);
-  assertEquals(ordersPageShapeMismatch(0, 0), false);
-  assertEquals(ordersPageShapeMismatch(50, 3), false);
-});
-
-Deno.test("ordersPageShapeMismatch — recognised order-only skips must advance", () => {
-  // ISA parked on a page of `{ order }` with no fill (cancelled /
-  // never filled). All 50 recognised, 0 stored — that is not an
-  // unknown envelope, and freezing it blocked transactions forever.
-  assertEquals(ordersPageShapeMismatch(50, 0, 50), false);
-  assertEquals(ordersPageShapeMismatch(50, 0, 49), true);
-  assertEquals(ordersPageShapeMismatch(50, 2, 50), false);
-  // One valid row must not hide an unknown second envelope.
-  assertEquals(ordersPageShapeMismatch(2, 1, 1), true);
-});
-
-Deno.test("nextHistoryKind — a finished account yields the slot while another is still walking", () => {
-  // Invest orders are done; ISA is not. Invest must start cash history
-  // rather than re-read page one of fills, and must not wait for ISA.
-  assertEquals(nextHistoryKind(false, false, true), "orders");
-  assertEquals(nextHistoryKind(true, false, true), "transactions");
-  assertEquals(nextHistoryKind(true, true, true), "skip");
-  assertEquals(nextHistoryKind(true, true, false), "topup");
-});
-
-Deno.test("pickAccountTopUp — the staler stream goes next", () => {
-  assertEquals(pickAccountTopUp("2026-08-18T00:00:00Z", "2026-08-18T01:00:00Z"), "orders");
-  assertEquals(pickAccountTopUp("2026-08-18T02:00:00Z", "2026-08-18T01:00:00Z"), "transactions");
-});
-
-Deno.test("nextOrdersCursor — pulls the cursor out of the path T212 returns", () => {
-  assertEquals(
-    nextOrdersCursor({ nextPagePath: "/api/v0/equity/history/orders?cursor=abc123&limit=50" }),
-    "abc123",
-  );
-  assertEquals(nextOrdersCursor({ nextPagePath: { path: "/x?limit=50&cursor=z%2F9" } }), "z/9");
-  // No next page is what latches the backfill complete.
-  assertEquals(nextOrdersCursor({ items: [] }), null);
-  assertEquals(nextOrdersCursor({ nextPagePath: "/x?limit=50" }), null);
-  assertEquals(nextOrdersCursor(null), null);
-});
-
-Deno.test("ordersItemsOf — tolerates the envelope names wrappers use", () => {
-  assertEquals(ordersItemsOf({ items: [1, 2] }), [1, 2]);
-  assertEquals(ordersItemsOf({ data: [3] }), [3]);
-  assertEquals(ordersItemsOf({ transactions: [6] }), [6]);
-  assertEquals(ordersItemsOf([4, 5]), [4, 5]);
-  assertEquals(ordersItemsOf({}), []);
-  assertEquals(ordersItemsOf(null), []);
-});
-
-Deno.test("shapeT212Transaction — published deposit/withdraw rows round-trip", () => {
-  const dep = shapeT212Transaction({
-    amount: 1000, currency: "GBP", dateTime: "2025-04-01T12:00:00Z",
-    reference: "dep-1", type: "DEPOSIT",
-  }, "invest");
-  assertEquals(dep?.id, "invest:dep-1");
-  assertEquals(dep?.type, "deposit");
-  assertEquals(dep?.amount, 1000);
-  assertEquals(dep?.currency, "GBP");
-  assertEquals(dep?.occurred_at, "2025-04-01T12:00:00.000Z");
-
-  const wd = shapeT212Transaction({
-    amount: 250, currency: "USD", dateTime: "2025-05-01T08:00:00Z",
-    reference: "wd-1", type: "WITHDRAW",
-  }, "isa");
-  assertEquals(wd?.type, "withdraw");
-  assertEquals(wd?.id, "isa:wd-1");
-  assertEquals(wd?.amount, 250);
-});
-
-Deno.test("shapeT212Transaction — keeps fee/interest/transfer rather than dropping them", () => {
-  // The deposit line ignores these, but dropping them at ingest would
-  // mean a later reading has to re-walk the history.
-  const fee = shapeT212Transaction({
-    amount: 1.5, currency: "USD", dateTime: "2025-04-02T00:00:00Z",
-    reference: "fee-1", type: "FEE",
-  }, "invest");
-  assertEquals(fee?.type, "fee");
-  const interest = shapeT212Transaction({
-    amount: 0.4, currency: "USD", dateTime: "2025-04-03T00:00:00Z",
-    reference: "int-1", type: "INTEREST_ON_FREE_CASH",
-  }, "invest");
-  assertEquals(interest?.type, "interest_on_free_cash");
-});
-
-Deno.test("shapeT212Transaction — drops rows that never moved any money", () => {
-  const base = { amount: 10, currency: "USD", dateTime: "2025-01-01T00:00:00Z", reference: "x", type: "DEPOSIT" };
-  assertEquals(shapeT212Transaction({ ...base, amount: 0 }, "invest"), null);
-  assertEquals(shapeT212Transaction({ ...base, type: "" }, "invest"), null);
-  assertEquals(shapeT212Transaction({ ...base, dateTime: "not a date" }, "invest"), null);
-  assertEquals(shapeT212Transaction(null, "invest"), null);
-});
-
-Deno.test("nextTransactionsCursor — keeps cursorId and time together", () => {
-  const path = "/api/v0/equity/history/transactions?cursorId=abc&time=2025-01-01T00:00:00Z&limit=50";
-  assertEquals(nextTransactionsCursor({ nextPagePath: path }), path);
-  assertEquals(nextTransactionsCursor({ items: [] }), null);
-});
-
-Deno.test("transactionsPageUrl — full path passes through; a bare leftover cursor starts at page one", () => {
-  const path = "/api/v0/equity/history/transactions?cursorId=abc&time=2025-01-01T00:00:00Z";
-  assertEquals(transactionsPageUrl(path), `https://live.trading212.com${path}`);
-  // The orders shaper stored only `cursor=`. Replaying that is the 400
-  // "Both or none of cursorId and time must be provided".
-  const first = transactionsPageUrl("tx99");
-  assertEquals(first.startsWith(T212_TRANSACTIONS_URL), true);
-  assertEquals(first.includes("cursor="), false);
-  assertEquals(first.includes("cursorId="), false);
-  assertEquals(transactionsPageUrl(null).includes("limit=50"), true);
-});
-
-Deno.test("transactionsPageUrl — production query-only nextPagePath advances", () => {
-  const path = "limit=50&cursor=next-2&time=2026-05-05T02:22:55.231Z";
-  assertEquals(
-    transactionsPageUrl(path),
-    `${T212_TRANSACTIONS_URL}?${path}`,
-  );
-  assertEquals(
-    transactionCursorAdvanced(
-      "limit=50&cursor=page-1&time=2026-08-10T13:22:15.261Z",
-      path,
-    ),
-    true,
-  );
-  assertEquals(transactionCursorAdvanced(path, path), false);
 });

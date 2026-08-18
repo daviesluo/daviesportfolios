@@ -12,7 +12,6 @@ import {
   formatAgo,
   maskDigits as mask,
   displayTicker,
-  pctIsFlat,
 } from './formatters.js';
 import { londonTimeParts, usMarketPhase, ukTzAbbr } from './market_hours.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
@@ -421,7 +420,7 @@ function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHi
 }
 
 
-function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, coverage = /** @type {{got:number,wanted:number}|null} */ (null), live = /** @type {{marketValue:number,netDeposit:number}|null} */ (null), t212Cash = /** @type {{transactions: any[], orders?: any[], complete: boolean}|null} */ (null) }) {
+function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, coverage = /** @type {{got:number,wanted:number}|null} */ (null) }) {
   // Top movers (winners / losers by dayPct) + the by-value position
   // list. Memoised on metrics so the per-tick refresh churn (clock,
   // flash) doesn't re-flatten every position's players and re-sort the
@@ -438,12 +437,8 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
     // pad either column (the overnight LOSERS list was five red 0.00% rows).
     // Show however many really gained / fell, up to 5 each.
     return {
-      // `pctIsFlat` (not a bare > 0 / < 0) so a row the heatmap paints
-      // as a flat neutral tile can't simultaneously rank here — a
-      // -0.004 % move rendered as a dark "no change" tile AND a red
-      // LOSERS row reading "-0.00%".
-      winners: movable.filter(p => !pctIsFlat(p.dayPct) && (p.dayPct ?? 0) > 0).sort((a, b) => (b.dayPct ?? 0) - (a.dayPct ?? 0)).slice(0, 5),
-      losers:  movable.filter(p => !pctIsFlat(p.dayPct) && (p.dayPct ?? 0) < 0).sort((a, b) => (a.dayPct ?? 0) - (b.dayPct ?? 0)).slice(0, 5),
+      winners: movable.filter(p => (p.dayPct ?? 0) > 0).sort((a, b) => (b.dayPct ?? 0) - (a.dayPct ?? 0)).slice(0, 5),
+      losers:  movable.filter(p => (p.dayPct ?? 0) < 0).sort((a, b) => (a.dayPct ?? 0) - (b.dayPct ?? 0)).slice(0, 5),
       positionList: Object.entries(metrics.positions)
         .filter(([_, p]) => p.players.length > 0)
         .sort(([, a], [, b]) => b.marketValue - a.marketValue),
@@ -510,9 +505,6 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
         extendedHours={extendedHours}
         phase={phase}
         className="perf-in-sidebar"
-        hideValues={hideValues}
-        live={live}
-        t212Cash={t212Cash}
       />
 
       <div className="sidebar-foot sidebar-foot-desktop">
