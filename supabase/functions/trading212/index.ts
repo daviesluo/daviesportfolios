@@ -117,6 +117,12 @@ const T212_TO_YAHOO: Record<string, string> = {
 //   GOOGL→ GOOG   (T212 lists Alphabet's class-A line; the board tracks
 //                  the class-C GOOG ticker — the two track within a
 //                  fraction of a % so it's a faithful overnight proxy)
+//
+// It also carries codes the generic suffix rules simply can't derive.
+//   2DGd_EQ → 2DG.SG  (a German listing: the `d` suffix has no rule, and
+//                      29 fills netting to exactly the board's 580 shares
+//                      had no ticker at all, so the whole position's
+//                      history was invisible)
 const T212_US_ALIASES: Record<string, string> = {
   "FB_US_EQ": "META",
   "YNDX_US_EQ": "NBIS",
@@ -124,6 +130,7 @@ const T212_US_ALIASES: Record<string, string> = {
   "VACQ_US_EQ": "RKLB",
   "LOKB_US_EQ": "NVTS",
   "GOOGL_US_EQ": "GOOG",
+  "2DGd_EQ": "2DG.SG",
 };
 
 // Generic T212-internal → Yahoo ticker mapping, used to build the
@@ -140,8 +147,11 @@ export function t212TickerToYahoo(t212Ticker: string): string | null {
   if (typeof t212Ticker !== "string" || !t212Ticker) return null;
   if (T212_TO_YAHOO[t212Ticker]) return T212_TO_YAHOO[t212Ticker];
   if (T212_US_ALIASES[t212Ticker]) return T212_US_ALIASES[t212Ticker];
-  const us = t212Ticker.match(/^([A-Za-z]+)_US_EQ$/);
-  if (us) return us[1].toUpperCase();
+  // `BRK_B_US_EQ` is Berkshire's class-B line, and Yahoo spells a share
+  // class with a hyphen. Without the inner group the whole code failed to
+  // match and five fills went unmapped.
+  const us = t212Ticker.match(/^([A-Za-z]+(?:_[A-Za-z])?)_US_EQ$/);
+  if (us) return us[1].toUpperCase().replace("_", "-");
   const lse = t212Ticker.match(/^([A-Za-z]+)l_EQ$/);
   if (lse) return lse[1].toUpperCase() + ".L";
   return null;
