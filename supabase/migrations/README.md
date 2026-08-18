@@ -27,6 +27,42 @@ that need care:
   The files are individually idempotent / order-independent in practice,
   but don't assume "push == the prose recipe."
 
+## Don't apply migrations out of band (2026-08-17)
+
+`migrations.yml` owns `db push`. While it does, the only way to apply a
+migration is to push the file to main.
+
+What happened when that was ignored: the workflow applied
+`0022_portfolio_snapshots.sql` at 03:40, recording version `0022`. Seven
+minutes later the same DDL was applied again through the **Supabase MCP
+connector**, which records a version under its own timestamp name —
+`20260817034719`. The remote history then held a version no local file
+matched, and `db push` refuses to run at all in that state:
+
+```
+Remote migration versions not found in local migrations directory.
+```
+
+Every subsequent push failed. `0023_t212_orders.sql` never reached prod,
+and main sat red for a day — the workflow opened its tracking issue and
+nobody read it.
+
+Two ways out, and the repo has taken the second:
+
+1. Repair the remote: `supabase migration repair --status reverted
+   20260817034719`. Correct, but needs the CLI and the DB password.
+2. Add a local file carrying that version, which is what
+   `20260817034719_portfolio_snapshots_out_of_band.sql` is. `db push`
+   matches on the version prefix, finds it already recorded, and skips
+   it. On a fresh DB it's a no-op and `0022` (which sorts first) does the
+   real work.
+
+The lint job's filename pattern accepts both `0000_name.sql` and
+Supabase's `YYYYMMDDHHMMSS_name.sql` for exactly this reason.
+
+The same trap applies to the dashboard SQL Editor, which records
+*nothing* — see the gotcha above.
+
 ## One-time reconciliation (before trusting `db push` on the live DB)
 
 Tell Supabase that the migrations **already run in prod** are "applied",

@@ -14,7 +14,12 @@
 -- Written through the `data` Edge Function (service-role key), same as
 -- board_data — the table is RLS-denied so the function is the only path.
 --
--- To apply: paste this SQL into Supabase Dashboard → SQL Editor → Run.
+-- Applied automatically: `migrations.yml` runs `supabase db push` on
+-- every push to main that touches this directory. Do NOT also apply it
+-- by hand — a dashboard paste records nothing in
+-- `supabase_migrations.schema_migrations`, and the MCP connector records
+-- a version under its own name; either one desyncs the history and the
+-- next push fails outright.
 
 create table if not exists public.portfolio_snapshots (
   -- Sample time, floored by the CLIENT to a 5-minute bucket. Being the
