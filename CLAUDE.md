@@ -20,15 +20,13 @@ raw session is `handover.md`.
 
 ## Git workflow
 
-- **Default to direct push on `main`.** No feature branches needed for
-  small / mechanical changes (typo, copy-edit, dep bump, single-file
-  fix). Each commit is its own logical unit; if the work spans multiple
-  concerns, split into multiple commits before pushing.
-- **Open a PR for larger / multi-file changes** where you want Codex
-  review (`@codex` bot only triggers on PRs) — e.g. new Edge Function,
-  cross-cutting refactor, anything that touches `auth` or migration
-  state. When a PR is open the post-merge commit map is fine to land
-  through it.
+- **Push `main` directly.** No feature branch, no PR, unless he
+  explicitly asks for Codex review. Each commit is its own logical
+  unit; if the work spans multiple concerns, split into multiple
+  commits before pushing.
+- **PR only when he asks.** `@codex` only reviews PRs — e.g. a new
+  Edge Function, anything that touches `auth` or migration state, if
+  he wants that second look. Don't open one otherwise.
 - Run `npm test`, `npm run typecheck`, and `npm run build` locally
   before every push — only push if all three are green.
 - Cloudflare Pages and the `typecheck-and-build` GitHub Action run on
@@ -117,9 +115,9 @@ migration step instead of inventing a new key.
 ## Codex / PR review
 
 Codex's `@codex` bot reviews PRs only, not direct commits to `main`.
-For direct-push changes the human user catches issues via Cloudflare
-preview deploys and real-world testing. When you DO open a PR (for
-larger work — see "Git workflow" above), wait for Codex's review and
-respond to its `get_review_comments` before merging. The recent T212
-rollout (PR #129) caught both the per-share-vs-total cost bug and the
-boundary-race concern this way.
+Default is direct push; the owner catches issues via Cloudflare
+preview deploys and real-world testing. Open a PR only when he asks
+for Codex — then wait for the review and respond to
+`get_review_comments` before merging. The T212 rollout (PR #129)
+caught both the per-share-vs-total cost bug and the boundary-race
+concern this way.
