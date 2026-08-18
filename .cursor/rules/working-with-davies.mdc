@@ -25,8 +25,9 @@ and everything committed to the repo stay in English.
 back for permission. He is not looking for a plan or a set of options;
 he is looking for the thing to be fixed. Ask only when two readings of
 his request lead to genuinely different work, and then ask once, with
-the consequences of each spelled out. (Cursor Cloud agents still open a
-PR — that is the environment's constraint, not his preference.)
+the consequences of each spelled out. Cursor included: push `main`
+directly, do not open a PR. Open one only when he explicitly wants
+Codex (`@codex` only reviews PRs).
 
 **All gates green, every time.** `npm test`, `npm run typecheck`,
 `npm run build`, plus `npm run lint`, `npx knip` and `npx size-limit`
