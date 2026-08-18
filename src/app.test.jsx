@@ -56,6 +56,11 @@ vi.mock('./yahoo_fetch.js', async () => {
 });
 vi.mock('./trading212.js', () => ({
   fetchTrading212Holdings: vi.fn(() => Promise.resolve(null)),
+  // The backfill driver runs from a Board effect, so a mock that omits
+  // it throws inside a passive effect — which vitest reports as an
+  // unhandled error rather than a failing assertion, so it can hide
+  // behind a green-looking summary. Check the exit code, not the line.
+  syncTrading212History: vi.fn(() => Promise.resolve(null)),
   applyTrading212: (h) => h,
   applyTrading212NightPrice: (h) => h,
 }));
