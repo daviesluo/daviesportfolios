@@ -22,6 +22,9 @@ import {
   nextHistoryKind,
   pickAccountTopUp,
   nextOrdersCursor,
+  nextTransactionsCursor,
+  transactionsPageUrl,
+  T212_TRANSACTIONS_URL,
   ordersItemsOf,
   t212TickerToYahoo,
   unpackCache,
@@ -556,9 +559,20 @@ Deno.test("shapeT212Transaction — drops rows that never moved any money", () =
   assertEquals(shapeT212Transaction(null, "invest"), null);
 });
 
-Deno.test("nextOrdersCursor — also reads a transactions nextPagePath", () => {
-  assertEquals(
-    nextOrdersCursor({ nextPagePath: "/api/v0/equity/history/transactions?cursor=tx99&limit=50" }),
-    "tx99",
-  );
+Deno.test("nextTransactionsCursor — keeps cursorId and time together", () => {
+  const path = "/api/v0/equity/history/transactions?cursorId=abc&time=2025-01-01T00:00:00Z&limit=50";
+  assertEquals(nextTransactionsCursor({ nextPagePath: path }), path);
+  assertEquals(nextTransactionsCursor({ items: [] }), null);
+});
+
+Deno.test("transactionsPageUrl — full path passes through; a bare leftover cursor starts at page one", () => {
+  const path = "/api/v0/equity/history/transactions?cursorId=abc&time=2025-01-01T00:00:00Z";
+  assertEquals(transactionsPageUrl(path), `https://live.trading212.com${path}`);
+  // The orders shaper stored only `cursor=`. Replaying that is the 400
+  // "Both or none of cursorId and time must be provided".
+  const first = transactionsPageUrl("tx99");
+  assertEquals(first.startsWith(T212_TRANSACTIONS_URL), true);
+  assertEquals(first.includes("cursor="), false);
+  assertEquals(first.includes("cursorId="), false);
+  assertEquals(transactionsPageUrl(null).includes("limit=50"), true);
 });

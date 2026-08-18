@@ -316,7 +316,25 @@ export function shapeT212Order(raw: unknown, account: string): {
 }
 
 /**
- * The cursor for the next page, or null at the end of the history.
+ * The `nextPagePath` T212 returned, or null at the end of the history.
+ *
+ * T212's own pagination rule is to request that path as-is. Orders
+ * historically stored only the `cursor=` query value; transactions
+ * require `cursorId` *and* `time` together, so stripping the path
+ * down to `cursor=` 400s the next page ("Both or none of cursorId
+ * and time must be provided") after the first 50 rows.
+ */
+export function nextPagePathOf(body: unknown): string | null {
+  if (!body || typeof body !== "object") return null;
+  const b = body as Record<string, unknown>;
+  const raw = b.nextPagePath ?? b.nextPage ?? b.next;
+  const path = typeof raw === "string" ? raw
+    : (raw && typeof raw === "object" ? String((raw as Record<string, unknown>).path ?? "") : "");
+  return path || null;
+}
+
+/**
+ * The cursor for the next ORDERS page, or null at the end of the history.
  *
  * T212 hands back a whole path (`/api/v0/equity/history/orders?cursor=…`)
  * rather than a bare cursor, and some wrappers expose `nextPagePath` as
@@ -324,14 +342,30 @@ export function shapeT212Order(raw: unknown, account: string): {
  * means the walk is finished, which is what latches `complete`.
  */
 export function nextOrdersCursor(body: unknown): string | null {
-  if (!body || typeof body !== "object") return null;
-  const b = body as Record<string, unknown>;
-  const raw = b.nextPagePath ?? b.nextPage ?? b.next;
-  const path = typeof raw === "string" ? raw
-    : (raw && typeof raw === "object" ? String((raw as Record<string, unknown>).path ?? "") : "");
+  const path = nextPagePathOf(body);
   if (!path) return null;
   const m = path.match(/[?&]cursor=([^&]+)/);
   return m ? decodeURIComponent(m[1]) : null;
+}
+
+/** Store the whole transactions nextPagePath — cursorId and time travel together. */
+export function nextTransactionsCursor(body: unknown): string | null {
+  return nextPagePathOf(body);
+}
+
+/**
+ * URL for one transactions page. A leftover bare `cursor=` token from
+ * the orders shaper is ignored: sending it without `time` is the 400
+ * that parked both accounts after the first page.
+ */
+export function transactionsPageUrl(stored: string | null, limit = 50): string {
+  const s = (stored || "").trim();
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  if (s.startsWith("/")) return `https://live.trading212.com${s}`;
+  if (s.startsWith("?")) return `${T212_TRANSACTIONS_URL}${s}`;
+  const url = new URL(T212_TRANSACTIONS_URL);
+  url.searchParams.set("limit", String(limit));
+  return url.toString();
 }
 
 /** The `items` array, whatever the envelope calls it. */
@@ -779,9 +813,7 @@ async function fetchT212TransactionsPage(
   cursor: string | null,
   limit = 50,
 ): Promise<{ ok: true; body: unknown } | { ok: false; status: number; message: string }> {
-  const url = new URL(T212_TRANSACTIONS_URL);
-  url.searchParams.set("limit", String(limit));
-  if (cursor) url.searchParams.set("cursor", cursor);
+  const url = transactionsPageUrl(cursor, limit);
   const attempts = apiSecret ? [basicAuthHeader(apiKey, apiSecret), apiKey] : [apiKey];
   let res!: Response;
   for (const authorization of attempts) {
@@ -1115,7 +1147,7 @@ async function syncTransactionsOnce(
     };
   }
   const wrote = await writeTransactions(rows);
-  const next = nextOrdersCursor(page.body);
+  const next = nextTransactionsCursor(page.body);
   const complete = done || (wrote && next === null);
   const fetched = done
     ? (typeof state?.fetched === "number" ? state.fetched : rows.length)
