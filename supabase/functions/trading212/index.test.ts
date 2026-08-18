@@ -17,6 +17,7 @@ import {
   shapeT212Order,
   shapeT212Transaction,
   flattenT212OrderItem,
+  t212OrderItemRecognized,
   ordersPageShapeMismatch,
   nextOrdersCursor,
   ordersItemsOf,
@@ -414,12 +415,65 @@ Deno.test("flattenT212OrderItem — a flat payload passes through unchanged", ()
   assertEquals(flattenT212OrderItem(null), null);
 });
 
+Deno.test("shapeT212Order — order-only (no fill) still becomes a lot-shaped row", () => {
+  // ISA history pages arrived as `{ order: … }` with no fill. The
+  // shaper treated that as unreadable, parsed 0 of 50, and froze the
+  // cursor — cash history never started. Quantity, value and createdAt
+  // live on the order; that's enough.
+  const out = shapeT212Order({
+    order: {
+      id: 123,
+      status: "FILLED",
+      side: "BUY",
+      ticker: "AAPL_US_EQ",
+      instrument: { ticker: "AAPL_US_EQ" },
+      quantity: 3,
+      filledQuantity: 3,
+      filledValue: 631.5,
+      createdAt: "2025-04-01T13:40:00.000+00:00",
+    },
+  }, "isa");
+  assertEquals(out?.ticker, "AAPL");
+  assertEquals(out?.shares, 3);
+  assertEquals(out?.price, 210.5);
+  assertEquals(out?.side, "buy");
+});
+
+Deno.test("shapeT212Order — a cancelled order-only row is skipped, not a shape bug", () => {
+  assertEquals(shapeT212Order({
+    order: {
+      status: "CANCELLED", ticker: "AAPL_US_EQ", quantity: 1,
+      createdAt: "2025-04-01T13:40:00.000+00:00",
+    },
+  }, "isa"), null);
+  assertEquals(t212OrderItemRecognized({
+    order: { status: "CANCELLED", ticker: "AAPL_US_EQ" },
+  }), true);
+});
+
+Deno.test("t212OrderItemRecognized — nested order, nested fill, flat ticker", () => {
+  assertEquals(t212OrderItemRecognized({ order: { ticker: "AAPL_US_EQ" } }), true);
+  assertEquals(t212OrderItemRecognized({ fill: { quantity: 1 }, order: {} }), true);
+  assertEquals(t212OrderItemRecognized({ ticker: "AAPL_US_EQ", filledQuantity: 1 }), true);
+  assertEquals(t212OrderItemRecognized({ foo: 1 }), false);
+  assertEquals(t212OrderItemRecognized(null), false);
+});
+
 Deno.test("ordersPageShapeMismatch — a populated page that parsed to nothing must not advance", () => {
   // Advancing here is how the nested payload walked the history into
   // the void: fetched stayed 0, cursor became the next page anyway.
   assertEquals(ordersPageShapeMismatch(50, 0), true);
   assertEquals(ordersPageShapeMismatch(0, 0), false);
   assertEquals(ordersPageShapeMismatch(50, 3), false);
+});
+
+Deno.test("ordersPageShapeMismatch — recognised order-only skips must advance", () => {
+  // ISA parked on a page of `{ order }` with no fill (cancelled /
+  // never filled). All 50 recognised, 0 stored — that is not an
+  // unknown envelope, and freezing it blocked transactions forever.
+  assertEquals(ordersPageShapeMismatch(50, 0, 50), false);
+  assertEquals(ordersPageShapeMismatch(50, 0, 49), true);
+  assertEquals(ordersPageShapeMismatch(50, 2, 50), false);
 });
 
 Deno.test("nextOrdersCursor — pulls the cursor out of the path T212 returns", () => {

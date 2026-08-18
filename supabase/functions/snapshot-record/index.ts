@@ -348,7 +348,6 @@ export function t212CashIsReady(t212Cash: {
 
 export function t212MoneyInNow(
   transactions: Array<{ type?: string; amount?: number; currency?: string }> | null | undefined,
-  quotes: Record<string, Quote>,
 ): number {
   if (!Array.isArray(transactions) || transactions.length === 0) return 0;
   let sum = 0;
@@ -356,10 +355,8 @@ export function t212MoneyInNow(
     const type = String(tx?.type || "").toLowerCase();
     const amount = Number(tx?.amount);
     if (!Number.isFinite(amount) || amount === 0) continue;
-    const cur = typeof tx?.currency === "string" && tx.currency ? tx.currency : "USD";
-    const fx = fxRateToUSD(cur, quotes);
-    if (type === "deposit") sum += Math.abs(amount) * fx.rate;
-    else if (type === "withdraw") sum -= Math.abs(amount) * fx.rate;
+    if (type === "deposit") sum += Math.abs(amount);
+    else if (type === "withdraw") sum -= Math.abs(amount);
   }
   return sum;
 }
@@ -393,22 +390,22 @@ export function snapshotDeposit(
       if (Number.isFinite(cash) && cash > 0) cashUSD += cash;
       continue;
     }
-    const fx = fxRateToUSD(detectCurrency(ticker, h?.currency), quotes);
     const skipLotDeposit = useT212 && t212Tickers.has(ticker);
     for (const l of historyLotsFor(h || {})) {
       const n = Number(l.shares);
       const c = Number(l.cost);
       if (!Number.isFinite(n) || n <= 0) continue;
-      if (!skipLotDeposit && Number.isFinite(c)) netDeposit += n * c * fx.rate;
+      // Same rule as the client: deposit is not revalued at live FX.
+      if (!skipLotDeposit && Number.isFinite(c)) netDeposit += n * c;
     }
     for (const sl of (Array.isArray(h?.sells) ? h.sells : [])) {
       const n = Number(sl?.shares);
       const px = Number(sl?.price);
       if (!Number.isFinite(n) || n <= 0) continue;
-      if (!skipLotDeposit && Number.isFinite(px)) netDeposit -= n * px * fx.rate;
+      if (!skipLotDeposit && Number.isFinite(px)) netDeposit -= n * px;
     }
   }
-  if (useT212) return netDeposit + t212MoneyInNow(t212Cash?.transactions, quotes);
+  if (useT212) return netDeposit + t212MoneyInNow(t212Cash?.transactions);
   return netDeposit + cashUSD;
 }
 
