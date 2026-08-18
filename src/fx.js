@@ -139,7 +139,7 @@ export function freezeDepositFxRates(existing, marketData) {
 export function depositFxRate(currency, rates) {
   if (!currency || currency === 'USD') return 1;
   const rate = rates?.[currency];
-  return typeof rate === 'number' && rate > 0 ? rate : 1;
+  return typeof rate === 'number' && rate > 0 ? rate : null;
 }
 
 /**

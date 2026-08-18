@@ -352,6 +352,49 @@ describe('migrate — heal sold-out-but-never-closed holdings (float-dust full s
     expect(p.holdings.NVDA.shares).toBe(2);
   });
 
+  it('restores leftover closed lots onto the board and does not raise an open mixed row', () => {
+    // NET-shaped: closed, no sells, leftover 3.5. The T212 backfill
+    // dropped these leftovers off every tactics slot, so PORTFOLIO
+    // silently lost the shares. migrate must put them back at lot-net.
+    const p = migrate({
+      holdings: {
+        NET: {
+          shares: 0, cost: 0, closed: true, currency: 'USD',
+          lastPrice: 300,
+          lots: [
+            { date: '2025-01-02', shares: 2, cost: 100 },
+            { date: '2025-06-01', shares: 1.5, cost: 120 },
+          ],
+        },
+        // Fully sold — lot-net 0. Do not reopen.
+        PLTR: {
+          shares: 0, cost: 0, closed: true, currency: 'USD',
+          lots: [{ date: '2025-01-02', shares: 10, cost: 20 }],
+          sells: [{ date: '2026-03-01', shares: 10, price: 30 }],
+        },
+        // Open mixed-broker row whose machine ledger is shorter than
+        // the board. Never raise it to the lot-net (that undercounts).
+        MIXED: {
+          shares: 10, cost: 150, currency: 'USD', lastPrice: 200,
+          lots: [{ date: '2026-01-02', shares: 4, cost: 100 }],
+          sells: [{ date: '2026-07-10', shares: 4, price: 120 }],
+        },
+      },
+      positions: {
+        CAM: { label: 'CAM', role: 'MID', tickers: ['AVGO'] },
+        CM: { label: 'CM', role: 'MID', tickers: ['MIXED'] },
+      },
+    });
+    expect(p.holdings.NET.closed).toBe(false);
+    expect(p.holdings.NET.shares).toBeCloseTo(3.5, 9);
+    expect(p.positions.CAM.tickers).toContain('NET');
+    expect(p.holdings.PLTR.closed).toBe(true);
+    expect(p.holdings.PLTR.shares).toBe(0);
+    expect(p.holdings.MIXED.closed).not.toBe(true);
+    expect(p.holdings.MIXED.shares).toBe(10);
+    expect(p.positions.CM.tickers).toContain('MIXED');
+  });
+
   it('does not close a live board position from a shorter machine ledger', () => {
     const p = migrate({
       holdings: {

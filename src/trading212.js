@@ -300,7 +300,9 @@ export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
     const parsedShares = Number(current.shares);
     const parsedCost = Number(current.cost);
     const currentShares = isFinite(parsedShares) && parsedShares > 0 ? parsedShares : 0;
-    const currentCost = isFinite(parsedCost) && parsedCost >= 0 ? parsedCost : 0;
+    // Net-cash AC can be negative after a profitable sale. Clamping it
+    // to ≥ 0 invented cost and then persisted it via the fingerprint.
+    const currentCost = isFinite(parsedCost) ? parsedCost : 0;
     const storedT212Shares = Number(current.t212Shares);
     const storedT212Cost = Number(current.t212Cost);
     const priorResponseShares = Number(row.previousShares);
@@ -308,11 +310,11 @@ export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
     const oldT212Shares = isFinite(storedT212Shares) && storedT212Shares >= 0
       ? storedT212Shares
       : priorResponseShares;
-    const oldT212Cost = isFinite(storedT212Cost) && storedT212Cost >= 0
+    const oldT212Cost = isFinite(storedT212Cost)
       ? storedT212Cost
       : priorResponseCost;
     const hasPriorSlice = isFinite(oldT212Shares) && oldT212Shares >= 0
-      && isFinite(oldT212Cost) && oldT212Cost >= 0;
+      && isFinite(oldT212Cost);
 
     // First provenance-aware sync: if the board is already larger than
     // T212, the difference is another platform. Otherwise this is the
@@ -321,16 +323,13 @@ export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
       ? Math.max(0, currentShares - oldT212Shares)
       : Math.max(0, currentShares - row.shares);
     let otherCash = 0;
-    if (otherShares > 0 && isFinite(currentCost) && currentCost >= 0) {
-      const totalCash = Math.max(0, currentShares * currentCost);
+    if (otherShares > 0 && isFinite(currentCost)) {
+      const totalCash = currentShares * currentCost;
       const knownT212Cash = hasPriorSlice
         ? oldT212Shares * oldT212Cost
         : row.shares * row.cost;
-      otherCash = Math.max(0, totalCash - knownT212Cash);
-      // A legacy weighted average can be too small to subtract the new
-      // T212 slice cleanly. Keeping the other shares at the board AC is
-      // safer than turning their cost negative.
-      if (!(otherCash > 0)) otherCash = otherShares * currentCost;
+      otherCash = totalCash - knownT212Cash;
+      if (!isFinite(otherCash)) otherCash = otherShares * currentCost;
     }
     const shares = otherShares + row.shares;
     const totalCash = otherCash + row.shares * row.cost;
@@ -359,11 +358,11 @@ export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
           }],
       sells: currentSells,
       shares,
-      cost: shares > 0 ? totalCash / shares : 0,
+      cost: shares > 0 && isFinite(totalCash) ? totalCash / shares : currentCost,
       t212Shares: row.shares,
       t212Cost: row.cost,
     };
-    if (shares > 0) delete merged.closed;
+    if (shares > 1e-9 || otherShares > 1e-9) delete merged.closed;
     else merged.closed = true;
     // Broker's live quote for the allow-list ETF (USD). Use it as the
     // regular-session lastPrice so these LSE names don't sit on Yahoo's

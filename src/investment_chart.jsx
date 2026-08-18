@@ -110,16 +110,18 @@ export function mergeSeries(snapshots, derived, startMs) {
 }
 
 /**
- * A snapshot and the current formula should be numerically identical
- * apart from rounding. A 1% tolerance accepts that noise while rejecting
- * the production 40%+ T212-ledger collapse.
+ * A snapshot and the current formula should agree to the cent.
+ * The old 1% band accepted a $1k error on a $180k book — larger
+ * than the August ETF fills Deposited is supposed to show.
+ * A missing / non-finite sampled deposit is Value-only: the
+ * recorder writes NULL while T212 history is still walking.
  *
  * @param {number} sampled
  * @param {number} derived
  */
 export function snapshotDepositMatches(sampled, derived) {
   if (!isFinite(sampled) || !isFinite(derived)) return false;
-  return Math.abs(sampled - derived) <= Math.max(1, Math.max(Math.abs(sampled), Math.abs(derived)) * 0.01);
+  return Math.abs(sampled - derived) <= 0.02;
 }
 
 /**

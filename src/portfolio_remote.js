@@ -412,5 +412,63 @@ export function migrate(p) {
       if (pos && Array.isArray(pos.tickers)) pos.tickers = pos.tickers.filter((x) => x !== t);
     }
   }
+
+  // Inverse heal: a closed / zeroed board row whose lot ledger still
+  // nets long. The T212 backfill closed live leftovers (NET / TSLA /
+  // VST) and dropped them from every tactics slot, so PORTFOLIO
+  // silently lost those shares. Put them back. Never raise an OPEN
+  // mixed-broker row to its shorter lot-net — that undercounts.
+  restoreLeftoverClosedHoldings(p);
+  return p;
+}
+
+/**
+ * Default tactics slot for a leftover ticker, from the seed book.
+ * @param {string} ticker
+ */
+function defaultPositionKeyForTicker(ticker) {
+  for (const [key, pos] of Object.entries(INITIAL_PORTFOLIO.positions)) {
+    if ((pos.tickers || []).includes(ticker)) return key;
+  }
+  return null;
+}
+
+/**
+ * Re-open closed holdings that still have a leftover long lot-net and
+ * put them back on the board. Used by `migrate` so the scoreboard and
+ * the tactics board see the same shares.
+ *
+ * @param {{
+ *   holdings?: Record<string, any>,
+ *   positions?: Record<string, { tickers?: string[] }>,
+ * }} p
+ */
+export function restoreLeftoverClosedHoldings(p) {
+  if (!p?.holdings || !p?.positions) return p;
+  for (const [ticker, holding] of Object.entries(p.holdings)) {
+    if (!holding || holding.isCash || ticker === 'CASH') continue;
+    const leftover = netPosition(holding.lots || [], holding.sells || []);
+    if (!(leftover.shares > 1e-6)) continue;
+    const boardShares = Number(holding.shares);
+    const markedClosed = holding.closed === true
+      || !(Number.isFinite(boardShares) && boardShares > 0);
+    if (!markedClosed) continue;
+    holding.closed = false;
+    holding.shares = leftover.shares;
+    holding.cost = leftover.avgCost;
+    const alreadyOnBoard = Object.values(p.positions).some(
+      (pos) => Array.isArray(pos?.tickers) && pos.tickers.includes(ticker),
+    );
+    const remembered = typeof holding.t212PositionKey === 'string'
+      ? holding.t212PositionKey
+      : '';
+    const key = (remembered && p.positions[remembered])
+      ? remembered
+      : defaultPositionKeyForTicker(ticker);
+    if (!alreadyOnBoard && key && p.positions[key] && Array.isArray(p.positions[key].tickers)) {
+      p.positions[key].tickers = [...p.positions[key].tickers, ticker];
+    }
+    if ('t212PositionKey' in holding) delete holding.t212PositionKey;
+  }
   return p;
 }

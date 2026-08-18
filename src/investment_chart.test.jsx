@@ -47,12 +47,14 @@ describe('mergeSeries', () => {
 
   it('keeps a recorded deposit when it agrees with the derived formula', () => {
     const out = mergeSeries(
-      [pt(500, 110, 100.5)],
+      [pt(500, 110, 100.01)],
       [pt(500, 999, 100)],
       0,
     );
-    expect(out[0]).toEqual({ ts: 500, value: 110, deposit: 100.5 });
-    expect(snapshotDepositMatches(100.5, 100)).toBe(true);
+    expect(out[0]).toEqual({ ts: 500, value: 110, deposit: 100.01 });
+    expect(snapshotDepositMatches(100.01, 100)).toBe(true);
+    expect(snapshotDepositMatches(100.5, 100)).toBe(false);
+    expect(snapshotDepositMatches(179000, 180000)).toBe(false);
     expect(snapshotDepositMatches(75, 132)).toBe(false);
   });
 

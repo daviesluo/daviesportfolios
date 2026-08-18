@@ -13,7 +13,7 @@ import { Storage } from './storage.js';
 import { POSITION_COORDS } from './positions.js';
 import { INITIAL_PORTFOLIO } from './data.js';
 import { consumeUrlPassword, decodeAppToken, getAppToken, authenticate } from './auth.js';
-import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL, TAB_ID } from './portfolio_remote.js';
+import { loadPortfolioRemote, savePortfolioRemote, migrate, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL, TAB_ID } from './portfolio_remote.js';
 import { prefetchAllChartData } from './prefetch.js';
 import { hydrateAllChartStores } from './chart_store.js';
 import { Header, Sidebar, MarketConditions, PerfPanel, SidebarFoot, UpcomingEarnings } from './header_sidebar.jsx';
@@ -234,7 +234,10 @@ function Board({ isReadOnly }) {
   // below's loadPortfolioRemote() call ALWAYS runs regardless and
   // overwrites this the moment it resolves — this is a pre-render seed,
   // never a substitute for the real fetch.
-  const [portfolio, setPortfolio] = useState(() => Storage.loadPortfolioCache());      // null = still loading
+  const [portfolio, setPortfolio] = useState(() => {
+    const cached = Storage.loadPortfolioCache();
+    return cached ? migrate(cached) : null;
+  });      // null = still loading
   const [drillPos, setDrillPos] = useState(/** @type {string | null} */ (null));
   const [editMode, setEditMode] = useState(false);
   const [editingTicker, setEditingTicker] = useState(/** @type {string | null} */ (null));
@@ -1050,7 +1053,11 @@ function Board({ isReadOnly }) {
     const step = async () => {
       if (cancelled) return;
       const res = await syncTrading212History();
-      if (cancelled || !res) return;
+      if (cancelled) return;
+      if (!res) {
+        timer = setTimeout(step, 8000);
+        return;
+      }
       const accounts = Array.isArray(res.accounts) ? res.accounts : [];
       const denied = accounts.filter((a) => a && a.scopeDenied);
       if (denied.length > 0) {

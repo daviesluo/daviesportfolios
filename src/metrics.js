@@ -97,6 +97,12 @@ export const computeMetrics = (portfolio, opts = {}) => {
             : extPriceLooksReal(h.extPrice, h.lastPrice));
       const trustExt = !isCash && ext && extVerdict;
       const priceNative = trustExt ? h.extPrice : h.lastPrice;
+      // Unknown / non-positive price is not $0. Counting it as zero
+      // shrinks PORTFOLIO and books a fake 100% loss against cost.
+      // Skip the row until a real print arrives. Cash of $0 is real.
+      if (!isCash && !(typeof priceNative === 'number' && Number.isFinite(priceNative) && priceNative > 0)) {
+        continue;
+      }
       // `extActive` = "treat this row's day-change as a US extended-
       // hours move". US equities AND crypto: the prices Edge Function
       // re-anchors crypto to the US session (lastPrice = today's 16:00-ET

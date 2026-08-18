@@ -10,6 +10,7 @@ import {
   filterToLastHours, filterToLast24h, fillVenueSessionGrid, investmentPointAt,
   historyLotsFor, historyLedgerFor, priceAtOrCarried, netDepositNow,
 } from './ytd.js';
+import { depositLedgerForHolding } from './deposit_math.js';
 import { isUsTradingDateStr } from './market_hours.js';
 
 const yearStart      = '2026-01-01';
@@ -1026,9 +1027,12 @@ describe('investmentPointAt', () => {
   });
 
   it('uses the live price for the anchor point, and FX-converts non-USD', () => {
-    const portfolio = { holdings: {
-      'VUAA.L': { currency: 'GBP', lots: [{ date: '2026-01-05', shares: 10, cost: 80 }] },
-    } };
+    const portfolio = {
+      depositFxRates: { GBP: 1.25 },
+      holdings: {
+        'VUAA.L': { currency: 'GBP', lots: [{ date: '2026-01-05', shares: 10, cost: 80 }] },
+      },
+    };
     const tickerSeries = seriesOf({ 'VUAA.L': [{ date: '2026-01-05', close: 80 }] });
     const p = investmentPointAt({
       portfolio, tickerSeries, date: '2026-01-05',
@@ -1037,20 +1041,34 @@ describe('investmentPointAt', () => {
       fxToUSD: () => 1.25,
     });
     expect(p.value).toBeCloseTo(10 * 90 * 1.25, 9);
-    // Deposit is the native cash paid for the lots, not 80×1.25.
-    expect(p.netDeposit).toBeCloseTo(10 * 80, 9);
+    expect(p.netDeposit).toBeCloseTo(10 * 80 * 1.25, 9);
   });
 
   it('does not reprice a past deposit when live FX moves', () => {
-    const portfolio = { holdings: {
-      'VUAA.L': { currency: 'GBP', lots: [{ date: '2026-01-05', shares: 10, cost: 80 }] },
-    } };
+    const portfolio = {
+      depositFxRates: { GBP: 1.25 },
+      holdings: {
+        'VUAA.L': { currency: 'GBP', lots: [{ date: '2026-01-05', shares: 10, cost: 80 }] },
+      },
+    };
     const tickerSeries = seriesOf({ 'VUAA.L': [{ date: '2026-01-05', close: 80 }] });
     const at = (fx) => investmentPointAt({
       portfolio, tickerSeries, date: '2026-08-18', fxToUSD: fx,
     }).netDeposit;
-    expect(at(() => 1.25)).toBeCloseTo(800, 9);
-    expect(at(() => 1.40)).toBeCloseTo(800, 9);
+    expect(at(() => 1.25)).toBeCloseTo(1000, 9);
+    expect(at(() => 1.40)).toBeCloseTo(1000, 9);
+  });
+
+  it('leaves Deposited blank when frozen FX is missing — never 1:1', () => {
+    const portfolio = { holdings: {
+      'VUAA.L': { currency: 'GBP', lots: [{ date: '2026-01-05', shares: 10, cost: 80 }] },
+    } };
+    const tickerSeries = seriesOf({ 'VUAA.L': [{ date: '2026-01-05', close: 80 }] });
+    const p = investmentPointAt({
+      portfolio, tickerSeries, date: '2026-08-18', fxToUSD: () => 1.25,
+    });
+    expect(p.value).toBeCloseTo(10 * 80 * 1.25, 9);
+    expect(Number.isNaN(p.netDeposit)).toBe(true);
   });
 
   it('keeps August flat when no cash was paid in that month', () => {
@@ -1407,17 +1425,63 @@ describe('historyLotsFor', () => {
     expect(out).toEqual([{ date: '1970-01-01', shares: 10, cost: 90 }]);
   });
 
-  it('stands in the full board position when a machine ledger is shorter', () => {
+  it('keeps known lots on a short machine ledger and appends only the residual', () => {
     const h = {
       shares: 10,
       cost: 150,
       lots: [{ date: '2026-08-10', shares: 4, cost: 140 }],
       sells: [],
     };
-    expect(historyLotsFor(h)).toEqual([
-      { date: '1970-01-01', shares: 10, cost: 150 },
+    const repaired = historyLedgerFor(h);
+    expect(repaired.lots).toEqual([
+      { date: '2026-08-10', shares: 4, cost: 140 },
+      { date: '1970-01-01', shares: 6, cost: (1500 - 560) / 6, source: 'opening-residual' },
     ]);
-    expect(historyLedgerFor(h).sells).toEqual([]);
+    expect(repaired.sells).toEqual([]);
+    expect(historyLotsFor(h).reduce((sum, lot) => sum + lot.shares * lot.cost, 0))
+      .toBeCloseTo(1500, 9);
+  });
+
+  it('keeps the August other-broker step beside a January T212 fill', () => {
+    // Board 10 @ 75. T212 4 @ 50 in January. Other 4 @ 100 on Aug 10.
+    // Missing 2 @ 75. Wiping to one 1970 lot of 10 @ 75 erased the
+    // August step: both Aug 9 and Aug 10 would read $750.
+    const h = {
+      shares: 10,
+      cost: 75,
+      t212Shares: 4,
+      t212Cost: 50,
+      lots: [{ date: '2026-08-10', shares: 4, cost: 100 }],
+    };
+    const t212 = {
+      lots: [{ date: '2026-01-15', shares: 4, cost: 50 }],
+      sells: [],
+    };
+    const ledger = depositLedgerForHolding(h, t212);
+    expect(ledger.lots).toEqual([
+      { date: '2026-08-10', shares: 4, cost: 100 },
+      { date: '2026-01-15', shares: 4, cost: 50 },
+      { date: '1970-01-01', shares: 2, cost: 75, source: 'opening-residual' },
+    ]);
+    const portfolio = { holdings: { ETF: { ...h, currency: 'USD' } } };
+    const tickerSeries = buildTickerSeries(
+      { ETF: [{ date: '2026-01-15', close: 75 }] },
+      '2026-01-01',
+      'YTD',
+      {},
+      false,
+    );
+    const t212Cash = {
+      complete: true,
+      orders: [
+        { ticker: 'ETF', executed_at: '2026-01-15T00:00:00Z', side: 'buy', shares: 4, price: 50 },
+      ],
+    };
+    const at = (date) => investmentPointAt({
+      portfolio, tickerSeries, date, fxToUSD: () => 1, t212Cash,
+    }).netDeposit;
+    expect(at('2026-08-09')).toBeCloseTo(350, 9);
+    expect(at('2026-08-10')).toBeCloseTo(750, 9);
   });
 
   it('falls back to lastPrice — break-even beats free — then to nothing', () => {

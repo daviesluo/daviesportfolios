@@ -198,18 +198,33 @@ export function flattenT212OrderItem(raw: unknown): Record<string, unknown> | nu
     || (typeof ord.ticker === "string" && ord.ticker)
     || (typeof o.ticker === "string" && o.ticker)
     || "";
+  const asNum = (v: unknown): number | null =>
+    (typeof v === "number" && isFinite(v)) ? v
+      : (typeof v === "string" && v.trim() !== "" && isFinite(Number(v)) ? Number(v) : null);
+  const fillQty = fill ? asNum(fl.quantity) : null;
+  const fillPrice = fill ? asNum(fl.price) : null;
+  const fillValue = fill ? asNum(fl.value ?? fl.filledValue ?? wallet.netValue) : null;
+  let derivedFillQty = fillQty;
+  if (derivedFillQty == null && fillValue != null && fillPrice != null && fillPrice > 0) {
+    derivedFillQty = fillValue / fillPrice;
+  }
   return {
     hasExplicitFill: fill !== null,
-    explicitFillQuantity: fill?.quantity,
-    explicitFillPrice: fill?.price,
+    explicitFillQuantity: derivedFillQty,
+    explicitFillPrice: fillPrice,
     explicitFilledAt: fill?.filledAt,
     ticker,
     status: ord.status ?? o.status,
     side: ord.side ?? o.side,
-    filledQuantity: fl.quantity ?? ord.filledQuantity ?? o.filledQuantity,
-    quantity: fl.quantity ?? ord.quantity ?? o.quantity,
+    // Nested fills never inherit the ordered quantity. A partial fill
+    // of 6 on an order of 10 used to store 10 when fill.quantity was
+    // missing. Derive from value/price or leave empty so the shaper skips.
+    filledQuantity: fill
+      ? derivedFillQty
+      : (ord.filledQuantity ?? o.filledQuantity),
+    quantity: fill ? derivedFillQty : o.quantity,
     orderedQuantity: ord.quantity ?? o.orderedQuantity,
-    fillPrice: fl.price ?? o.fillPrice ?? ord.limitPrice,
+    fillPrice: fill ? (fillPrice ?? undefined) : (o.fillPrice ?? ord.limitPrice),
     fillCost: wallet.netValue ?? ord.filledValue ?? o.fillCost ?? o.filledValue,
     filledValue: ord.filledValue ?? o.filledValue,
     fillId: fl.id ?? o.fillId,
@@ -892,7 +907,19 @@ async function fetchT212Portfolio(apiKey: string, apiSecret: string): Promise<un
     const snippet = (await res.text().catch(() => "")).slice(0, 200);
     throw new Error(`T212 ${res.status} ${res.statusText} :: ${snippet}`);
   }
-  return await res.json();
+  return requireT212PortfolioArray(await res.json());
+}
+
+/**
+ * Positions must be a JSON array. An ISA `{error:…}` body is not an
+ * empty book — treating it as one would wipe the cached combined
+ * holdings on the next merge.
+ */
+export function requireT212PortfolioArray(payload: unknown): unknown[] {
+  if (!Array.isArray(payload)) {
+    throw new Error("T212 portfolio payload is not an array");
+  }
+  return payload;
 }
 
 /**

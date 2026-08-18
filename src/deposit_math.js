@@ -36,12 +36,35 @@ function shapedLedgerPosition(lots, sells) {
 }
 
 /**
- * Full historical ledger for one holding. A short machine ledger cannot
- * reduce an OPEN board position: stand in the board quantity at AC,
- * before every chart window. Closed rows keep their actual history.
+ * Cost for a missing opening slice. Prefer the cash that makes the
+ * known lots plus this residual match the board AC; otherwise the
+ * board AC / lastPrice.
  *
  * @param {any} h
- * @returns {{lots: Array<{date: string, shares: number, cost: number}>, sells: Array<any>}}
+ * @param {number} missingShares
+ * @param {number} existingNetCash
+ */
+function residualLotCost(h, missingShares, existingNetCash) {
+  const cost = Number(h?.cost);
+  const px = Number(h?.lastPrice);
+  const shares = Number(h?.shares);
+  if (isFinite(cost) && isFinite(shares) && missingShares > 0) {
+    return (shares * cost - existingNetCash) / missingShares;
+  }
+  if (isFinite(cost) && cost !== 0) return cost;
+  if (isFinite(px) && px > 0) return px;
+  return isFinite(cost) ? cost : 0;
+}
+
+/**
+ * Full historical ledger for one holding. A short machine ledger cannot
+ * reduce an OPEN board position: keep the known lots/sells and append
+ * only the missing shares before every chart window. Replacing the
+ * whole book with one 1970 lot erases real dates (the August step).
+ * Closed rows keep their actual history.
+ *
+ * @param {any} h
+ * @returns {{lots: Array<{date: string, shares: number, cost: number, source?: string}>, sells: Array<any>}}
  */
 export function historyLedgerFor(h) {
   const lots = Array.isArray(h?.lots) ? h.lots : [];
@@ -51,22 +74,34 @@ export function historyLedgerFor(h) {
   if (h?.closed || !(isFinite(shares) && shares > 0)) {
     return { lots, sells };
   }
-  if (hasLots) {
-    const ledgerShares = netPosition(lots, sells).shares;
-    const tolerance = Math.max(1e-6, Math.abs(shares) * 1e-6);
-    if (Math.abs(ledgerShares - shares) <= tolerance) {
-      return { lots, sells };
-    }
+  if (!hasLots) {
+    const cost = Number(h?.cost);
+    const px = Number(h?.lastPrice);
+    return {
+      lots: [{
+        date: '1970-01-01',
+        shares,
+        cost: isFinite(cost) && cost > 0 ? cost : (isFinite(px) && px > 0 ? px : 0),
+      }],
+      sells: [],
+    };
   }
-  const cost = Number(h?.cost);
-  const px = Number(h?.lastPrice);
+  const pos = shapedLedgerPosition(lots, sells);
+  const missingShares = shares - pos.shares;
+  if (missingShares <= 1e-6) {
+    return { lots, sells };
+  }
   return {
-    lots: [{
-      date: '1970-01-01',
-      shares,
-      cost: isFinite(cost) && cost > 0 ? cost : (isFinite(px) && px > 0 ? px : 0),
-    }],
-    sells: [],
+    lots: [
+      ...lots,
+      {
+        date: '1970-01-01',
+        shares: missingShares,
+        cost: residualLotCost(h, missingShares, pos.netCash),
+        source: 'opening-residual',
+      },
+    ],
+    sells,
   };
 }
 
@@ -179,7 +214,7 @@ export function depositLedgerForHolding(h, t212Ledger) {
   // historical cash flows. Preserve it. A non-zero unmatched residue is
   // the old synthetic T212 lot with no matching manual sell; adding it
   // beside the complete T212 round trip would double-count the buy.
-  if (!isFinite(boardShares) || boardShares <= 0 || !isFinite(boardCost) || boardCost < 0) {
+  if (!isFinite(boardShares) || boardShares <= 0 || !isFinite(boardCost)) {
     if (Math.abs(exactOther.shares) <= 1e-6) return combinedExact;
     const syntheticIndex = otherLots.findIndex((lot) =>
       Math.abs(Number(lot?.shares) - exactOther.shares) <= 1e-6
@@ -207,20 +242,44 @@ export function depositLedgerForHolding(h, t212Ledger) {
   if (Math.abs(exactOther.shares - residualShares) <= tolerance) {
     return combinedExact;
   }
-  if (residualShares <= 1e-6) return t212Ledger;
 
   const taggedCost = Number(h?.t212Cost);
   const t212CashForSplit = isFinite(taggedShares) && taggedShares >= 0
-      && isFinite(taggedCost) && taggedCost >= 0
+      && isFinite(taggedCost)
     ? taggedShares * taggedCost
     : t212Position.netCash;
   let otherCash = boardShares * boardCost - t212CashForSplit;
-  if (!(otherCash > 0)) otherCash = residualShares * boardCost;
+  if (!isFinite(otherCash)) otherCash = residualShares * boardCost;
+
+  const missingShares = residualShares - exactOther.shares;
+  if (missingShares > 1e-6) {
+    const missingCash = otherCash - exactOther.netCash;
+    return {
+      lots: [
+        ...otherLots,
+        ...t212Ledger.lots,
+        {
+          date: '1970-01-01',
+          shares: missingShares,
+          cost: isFinite(missingCash) ? missingCash / missingShares : boardCost,
+          source: 'opening-residual',
+        },
+      ],
+      sells: [...otherSells, ...t212Ledger.sells],
+    };
+  }
+
+  // Other lots longer than the residual: a blended board lot that
+  // still contains the T212 slice. Cannot unblend those dates; stand
+  // in the residual cash only. A SHORT other ledger must not take
+  // this path — that was the August-step wipe.
+  if (residualShares <= 1e-6) return combinedExact;
   return {
     lots: [{
       date: '1970-01-01',
       shares: residualShares,
-      cost: otherCash / residualShares,
+      cost: residualShares > 0 ? otherCash / residualShares : 0,
+      source: 'opening-residual',
     }, ...t212Ledger.lots],
     sells: t212Ledger.sells,
   };

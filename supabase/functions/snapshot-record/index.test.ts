@@ -15,6 +15,7 @@ import {
   snapshotDeposit,
   snapshotDepositFxMissing,
   historyLedgerFor,
+  depositLedgerForHolding,
   skipReason,
   lastPerBucket,
   pruneSnapshotTimestamps,
@@ -148,6 +149,33 @@ Deno.test("snapshotMarketValue: T212 overlay values an overnight US name", () =>
   assertEquals(v.value, 10 * 110 + 1000);
 });
 
+Deno.test("snapshotMarketValue: leftover closed lots still count toward Value", () => {
+  const rth = new Date(Date.UTC(2026, 4, 28, 14, 0));
+  const leftover = {
+    positions: { FWD: { tickers: ["NVDA"] } },
+    holdings: {
+      NVDA: { currency: "USD", shares: 10, lastPrice: 100 },
+      NET: {
+        currency: "USD",
+        shares: 0,
+        closed: true,
+        lastPrice: 300,
+        lots: [{ date: "2025-01-02", shares: 3.5, cost: 100 }],
+      },
+    },
+  };
+  const needed = quoteTickersNeeded(leftover);
+  assertEquals(needed.includes("NET"), true);
+  const v = snapshotMarketValue(
+    leftover,
+    { NVDA: { lastPrice: 100 }, NET: { lastPrice: 300 } },
+    {},
+    rth,
+  );
+  assertEquals(v.value, 10 * 100 + 3.5 * 300);
+  assertEquals(v.missingPrice, false);
+});
+
 Deno.test("snapshotMarketValue: a positioned ticker with no print is unrecordable", () => {
   const rth = new Date(Date.UTC(2026, 4, 28, 14, 0));
   const empty = {
@@ -251,8 +279,8 @@ Deno.test("snapshotDeposit: mixed ticker keeps its other-platform money", () => 
   assertEquals(snapshotDeposit(mixed, {}, t212), 4 * 140 + 6 * 200);
 });
 
-Deno.test("snapshotDeposit: short machine ledger stands in the board at AC", () => {
-  const wiped = {
+Deno.test("snapshotDeposit: short machine ledger keeps known lots and appends residual", () => {
+  const short = {
     positions: { FWD: { tickers: ["NVDA"] } },
     holdings: {
       NVDA: {
@@ -263,10 +291,45 @@ Deno.test("snapshotDeposit: short machine ledger stands in the board at AC", () 
       },
     },
   };
-  assertEquals(snapshotDeposit(wiped, {}, null), 10 * 150);
-  const repaired = historyLedgerFor(wiped.holdings.NVDA);
-  assertEquals(repaired.lots, [{ date: "1970-01-01", shares: 10, cost: 150 }]);
+  assertEquals(snapshotDeposit(short, {}, null), 10 * 150);
+  const repaired = historyLedgerFor(short.holdings.NVDA);
+  assertEquals(repaired.lots, [
+    { date: "2026-08-10", shares: 4, cost: 140 },
+    { date: "1970-01-01", shares: 6, cost: (1500 - 560) / 6, source: "opening-residual" },
+  ]);
   assertEquals(repaired.sells, []);
+});
+
+Deno.test("snapshotDeposit: August other-broker step survives beside a January T212 fill", () => {
+  const mixed = {
+    positions: { FWD: { tickers: ["ETF"] } },
+    holdings: {
+      ETF: {
+        currency: "USD",
+        shares: 10,
+        cost: 75,
+        t212Shares: 4,
+        t212Cost: 50,
+        lots: [{ date: "2026-08-10", shares: 4, cost: 100 }],
+      },
+    },
+  };
+  const t212 = {
+    complete: true,
+    orders: [
+      { ticker: "ETF", executed_at: "2026-01-15T00:00:00Z", side: "buy", shares: 4, price: 50 },
+    ],
+  };
+  assertEquals(snapshotDeposit(mixed, {}, t212), 750);
+  const ledger = depositLedgerForHolding(mixed.holdings.ETF, {
+    lots: [{ date: "2026-01-15", shares: 4, cost: 50 }],
+    sells: [],
+  });
+  assertEquals(ledger.lots, [
+    { date: "2026-08-10", shares: 4, cost: 100 },
+    { date: "2026-01-15", shares: 4, cost: 50 },
+    { date: "1970-01-01", shares: 2, cost: 75, source: "opening-residual" },
+  ]);
 });
 
 Deno.test("snapshotDeposit: mixed cost split uses remembered T212 AC", () => {

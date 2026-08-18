@@ -168,6 +168,10 @@ export function dropDepositSpikes(rows) {
   const out = [rows[0]];
   for (let i = 1; i < rows.length - 1; i++) {
     const prev = rows[i - 1], cur = rows[i], next = rows[i + 1];
+    if (![prev.deposit, cur.deposit, next.deposit].every(Number.isFinite)) {
+      out.push(cur);
+      continue;
+    }
     const isolated = rel(prev.deposit, next.deposit) <= 0.01
       && rel(cur.deposit, prev.deposit) > 0.02
       && rel(cur.deposit, next.deposit) > 0.02;
@@ -208,7 +212,9 @@ export async function loadSnapshots(sinceMs, bucketSeconds = RANGE_BUCKET_SECOND
           value: num(r?.value_usd),
           deposit: num(r?.deposit_usd),
         }))
-        .filter((r) => isFinite(r.ts) && isFinite(r.value) && isFinite(r.deposit))
+        // Value-only rows (NULL deposit while T212 history is still
+        // walking) stay: the chart uses derived Deposited for those.
+        .filter((r) => isFinite(r.ts) && isFinite(r.value))
         .sort((a, b) => a.ts - b.ts),
     );
   } catch {

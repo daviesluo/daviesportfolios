@@ -19,9 +19,12 @@
 // CRON_SECRET is not a Supabase JWT, so the platform gate would 401
 // the cron call before this check ran.
 //
-// Skip (200, recorded nothing) when FX is missing or a positioned
-// ticker has no usable price — a 1:1 FX fallback or a zeroed holding
-// writes a permanent spike. The next tick is five minutes away.
+// Skip (200, recorded nothing) when live FX is missing or a priced
+// ticker has no usable print — a 1:1 FX fallback writes a permanent
+// spike. Leftover closed lots that still net long are included in
+// Value so cron matches the scoreboard heal without writing board_data.
+// Incomplete T212 history writes Value with deposit_usd NULL.
+// The next tick is five minutes away.
 //
 // Returns:
 //   200 { ok: true, bucketTime, valueUsd, depositUsd }
@@ -248,12 +251,28 @@ export function positionedTickers(portfolio: Portfolio | null | undefined): Set<
   return out;
 }
 
+function leftoverLotShares(h: Holding | null | undefined): number {
+  let shares = 0;
+  for (const lot of h?.lots || []) {
+    const n = Number(lot?.shares);
+    if (Number.isFinite(n) && n > 0) shares += n;
+  }
+  for (const sell of h?.sells || []) {
+    const n = Number(sell?.shares);
+    if (Number.isFinite(n) && n > 0) shares -= n;
+  }
+  if (Math.abs(shares) < 1e-9) shares = 0;
+  return shares;
+}
+
 export function quoteTickersNeeded(portfolio: Portfolio | null | undefined): string[] {
   const positioned = positionedTickers(portfolio);
   const tickers = new Set<string>();
-  for (const t of positioned) {
-    const h = portfolio?.holdings?.[t];
+  for (const [t, h] of Object.entries(portfolio?.holdings || {})) {
     if (!h || h.isCash || t === "CASH") continue;
+    const boardShares = Number(h.shares);
+    const onBoard = positioned.has(t) && Number.isFinite(boardShares) && boardShares > 0;
+    if (!onBoard && leftoverLotShares(h) <= 1e-6) continue;
     tickers.add(t);
     const cur = detectCurrency(t, h.currency);
     const pair = fxPairFor(cur);
@@ -286,6 +305,12 @@ export function snapshotMarketValue(
   let missingPrice = false;
   const holdings = portfolio?.holdings || {};
   const keys = scopeAll ? Object.keys(holdings) : [...positioned];
+  if (!scopeAll) {
+    for (const [t, h] of Object.entries(holdings)) {
+      if (!h || h.isCash || t === "CASH" || positioned.has(t)) continue;
+      if (leftoverLotShares(h) > 1e-6) keys.push(t);
+    }
+  }
   for (const t of keys) {
     const h = holdings[t];
     if (!h) continue;
@@ -301,7 +326,10 @@ export function snapshotMarketValue(
       missingPrice = true;
       continue;
     }
-    const shares = Number(h.shares);
+    let shares = Number(h.shares);
+    if (!Number.isFinite(shares) || shares <= 0) {
+      shares = leftoverLotShares(h);
+    }
     if (!Number.isFinite(shares) || shares <= 0) continue;
     value += shares * price * fx.rate;
   }
@@ -336,29 +364,52 @@ function ledgerPosition(lots: DepositLot[], sells: DepositSell[]): {
   return { shares, netCash };
 }
 
+function residualLotCost(h: Holding, missingShares: number, existingNetCash: number): number {
+  const cost = Number(h?.cost);
+  const px = Number(h?.lastPrice);
+  const shares = Number(h?.shares);
+  if (Number.isFinite(cost) && Number.isFinite(shares) && missingShares > 0) {
+    return (shares * cost - existingNetCash) / missingShares;
+  }
+  if (Number.isFinite(cost) && cost !== 0) return cost;
+  if (Number.isFinite(px) && px > 0) return px;
+  return Number.isFinite(cost) ? cost : 0;
+}
+
 export function historyLedgerFor(h: Holding): DepositLedger {
   const lots = Array.isArray(h?.lots) ? h.lots : [];
   const sells = Array.isArray(h?.sells) ? h.sells : [];
   const shares = Number(h?.shares);
+  const hasLots = lots.some((l) => Number(l?.shares) > 0);
   if (h?.closed || !Number.isFinite(shares) || shares <= 0) {
     return { lots, sells };
   }
-  if (lots.some((l) => Number(l?.shares) > 0)) {
-    const ledgerShares = ledgerPosition(lots, sells).shares;
-    const tolerance = Math.max(1e-6, Math.abs(shares) * 1e-6);
-    if (Math.abs(ledgerShares - shares) <= tolerance) {
-      return { lots, sells };
-    }
+  if (!hasLots) {
+    const cost = Number(h?.cost);
+    const px = Number(h?.lastPrice);
+    return {
+      lots: [{
+        date: "1970-01-01",
+        shares,
+        cost: Number.isFinite(cost) && cost > 0 ? cost : (Number.isFinite(px) && px > 0 ? px : 0),
+      }],
+      sells: [],
+    };
   }
-  const cost = Number(h?.cost);
-  const px = Number(h?.lastPrice);
+  const pos = ledgerPosition(lots, sells);
+  const missingShares = shares - pos.shares;
+  if (missingShares <= 1e-6) return { lots, sells };
   return {
-    lots: [{
-      date: "1970-01-01",
-      shares,
-      cost: Number.isFinite(cost) && cost > 0 ? cost : (Number.isFinite(px) && px > 0 ? px : 0),
-    }],
-    sells: [],
+    lots: [
+      ...lots,
+      {
+        date: "1970-01-01",
+        shares: missingShares,
+        cost: residualLotCost(h, missingShares, pos.netCash),
+        source: "opening-residual",
+      },
+    ],
+    sells,
   };
 }
 
@@ -385,10 +436,23 @@ export type T212Cash = {
 function frozenDepositFxRate(
   currency: string | null | undefined,
   rates: Record<string, number> | null | undefined,
-): number {
+): number | null {
   if (!currency || currency === "USD") return 1;
   const rate = rates?.[currency];
-  return typeof rate === "number" && rate > 0 ? rate : 1;
+  return typeof rate === "number" && rate > 0 ? rate : null;
+}
+
+function freezeDepositFxFromQuotes(
+  existing: Record<string, number> | null | undefined,
+  quotes: Record<string, Quote>,
+): Record<string, number> {
+  const out: Record<string, number> = { USD: 1, ...(existing || {}) };
+  for (const currency of ["GBP", "EUR", "CNY", "HKD"] as const) {
+    if (typeof out[currency] === "number" && out[currency] > 0) continue;
+    const fx = fxRateToUSD(currency, quotes);
+    if (!fx.missing && fx.rate > 0) out[currency] = fx.rate;
+  }
+  return out;
 }
 
 export function snapshotDepositFxMissing(
@@ -425,7 +489,7 @@ function t212LedgerForTicker(
   return { lots, sells };
 }
 
-function depositLedgerForHolding(h: Holding, t212Ledger: DepositLedger): DepositLedger {
+export function depositLedgerForHolding(h: Holding, t212Ledger: DepositLedger): DepositLedger {
   if (t212Ledger.lots.length === 0) return historyLedgerFor(h);
   const rowKey = (row: DepositLot | DepositSell, field: "cost" | "price"): string => {
     const value = field === "cost"
@@ -464,7 +528,7 @@ function depositLedgerForHolding(h: Holding, t212Ledger: DepositLedger): Deposit
 
   const boardShares = Number(h?.shares);
   const boardCost = Number(h?.cost);
-  if (!Number.isFinite(boardShares) || boardShares <= 0 || !Number.isFinite(boardCost) || boardCost < 0) {
+  if (!Number.isFinite(boardShares) || boardShares <= 0 || !Number.isFinite(boardCost)) {
     if (Math.abs(exactOther.shares) <= 1e-6) return combinedExact;
     const syntheticIndex = otherLots.findIndex((lot) =>
       Math.abs(Number(lot?.shares) - exactOther.shares) <= 1e-6
@@ -491,21 +555,39 @@ function depositLedgerForHolding(h: Holding, t212Ledger: DepositLedger): Deposit
   if (Math.abs(exactOther.shares - residualShares) <= tolerance) {
     return combinedExact;
   }
-  if (residualShares <= 1e-6) return t212Ledger;
   const t212Position = ledgerPosition(t212Ledger.lots, t212Ledger.sells);
   const taggedCost = Number(h?.t212Cost);
   const t212CashForSplit = Number.isFinite(taggedShares) && taggedShares >= 0
-      && Number.isFinite(taggedCost) && taggedCost >= 0
+      && Number.isFinite(taggedCost)
     ? taggedShares * taggedCost
     : t212Position.netCash;
   let otherCash = boardShares * boardCost - t212CashForSplit;
-  if (!(otherCash > 0)) otherCash = residualShares * boardCost;
+  if (!Number.isFinite(otherCash)) otherCash = residualShares * boardCost;
+  const missingShares = residualShares - exactOther.shares;
+  if (missingShares > 1e-6) {
+    const missingCash = otherCash - exactOther.netCash;
+    return {
+      lots: [
+        ...otherLots,
+        ...t212Ledger.lots,
+        {
+          date: "1970-01-01",
+          shares: missingShares,
+          cost: Number.isFinite(missingCash) ? missingCash / missingShares : boardCost,
+          source: "opening-residual",
+        },
+      ],
+      sells: [...otherSells, ...t212Ledger.sells],
+    };
+  }
+  if (residualShares <= 1e-6) return combinedExact;
   return {
     lots: [
       {
         date: "1970-01-01",
         shares: residualShares,
-        cost: otherCash / residualShares,
+        cost: residualShares > 0 ? otherCash / residualShares : 0,
+        source: "opening-residual",
       },
       ...t212Ledger.lots,
     ],
@@ -546,6 +628,7 @@ export function snapshotDeposit(
       detectCurrency(ticker, h?.currency),
       portfolio?.depositFxRates,
     );
+    if (depositFx == null) return Number.NaN;
     for (const l of ledger.lots) {
       const n = Number(l.shares);
       const c = Number(l.cost);
@@ -764,7 +847,11 @@ async function loadT212Cash(): Promise<T212Cash> {
   };
 }
 
-async function upsertSnapshot(bucketTime: string, valueUsd: number, depositUsd: number): Promise<boolean> {
+async function upsertSnapshot(
+  bucketTime: string,
+  valueUsd: number,
+  depositUsd: number | null,
+): Promise<boolean> {
   if (!SB_URL || !SERVICE_KEY) return false;
   try {
     const res = await fetch(`${SB_URL}/rest/v1/portfolio_snapshots`, {
@@ -822,18 +909,32 @@ if (import.meta.main) {
       const skip = skipReason(valued);
       if (skip) return json(200, { ok: true, skipped: skip });
 
+      let portfolioForDeposit = portfolio;
       if (snapshotDepositFxMissing(portfolio)) {
+        const frozen = freezeDepositFxFromQuotes(portfolio.depositFxRates, quotes);
+        portfolioForDeposit = { ...portfolio, depositFxRates: frozen };
+      }
+      if (snapshotDepositFxMissing(portfolioForDeposit)) {
         return json(200, { ok: true, skipped: "deposit-fx-missing" });
       }
-      const depositUsd = snapshotDeposit(portfolio, quotes, t212Cash);
-      if (!Number.isFinite(depositUsd)) {
+      const ordersReady = t212Cash.complete === true;
+      const depositUsd = ordersReady
+        ? snapshotDeposit(portfolioForDeposit, quotes, t212Cash)
+        : null;
+      if (ordersReady && !Number.isFinite(depositUsd)) {
         return json(200, { ok: true, skipped: "no-value" });
       }
 
       const bucketTime = bucketTimeIso(now.getTime());
       const ok = await upsertSnapshot(bucketTime, valued.value, depositUsd);
       if (!ok) return json(500, { ok: false, error: "db-write-failed" });
-      return json(200, { ok: true, bucketTime, valueUsd: valued.value, depositUsd });
+      return json(200, {
+        ok: true,
+        bucketTime,
+        valueUsd: valued.value,
+        depositUsd,
+        depositComplete: ordersReady,
+      });
     } catch (e) {
       const msg = e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e);
       await reportServerError("snapshot-record.unhandled", { message: msg });

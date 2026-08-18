@@ -34,6 +34,7 @@ import {
   unpackCache,
   mergeShaped,
   mergeShapedWithFallback,
+  requireT212PortfolioArray,
   attachPreviousHoldingSlices,
   cacheIsFresh,
   basicAuthHeader,
@@ -507,6 +508,50 @@ Deno.test("flattenT212OrderItem — a flat payload passes through unchanged", ()
   const flat = { ticker: "AAPL_US_EQ", filledQuantity: 1, fillPrice: 10 };
   assertEquals(flattenT212OrderItem(flat)?.ticker, "AAPL_US_EQ");
   assertEquals(flattenT212OrderItem(null), null);
+});
+
+Deno.test("flattenT212OrderItem — nested fill qty never inherits the ordered size", () => {
+  // Fill $600 @ $100 on an order of 10. Missing fill.quantity used to
+  // store 10 shares. Derive 6 from value/price.
+  const partial = {
+    fill: { id: 11, price: 100, value: 600, filledAt: "2026-08-10T10:00:00Z" },
+    order: {
+      status: "FILLED",
+      side: "BUY",
+      quantity: 10,
+      instrument: { ticker: "AAPL_US_EQ" },
+    },
+  };
+  const flat = flattenT212OrderItem(partial);
+  assertEquals(flat?.explicitFillQuantity, 6);
+  assertEquals(flat?.filledQuantity, 6);
+  const shaped = shapeT212Order(partial, "invest");
+  assertEquals(shaped?.shares, 6);
+  assertEquals(shaped?.price, 100);
+
+  const missingQty = {
+    fill: { id: 12, price: 100, filledAt: "2026-08-10T10:00:00Z" },
+    order: {
+      status: "FILLED",
+      side: "BUY",
+      quantity: 10,
+      instrument: { ticker: "AAPL_US_EQ" },
+    },
+  };
+  assertEquals(flattenT212OrderItem(missingQty)?.explicitFillQuantity, null);
+  assertEquals(shapeT212Order(missingQty, "invest"), null);
+});
+
+Deno.test("requireT212PortfolioArray — an {error} body is not an empty book", () => {
+  let threw = false;
+  try {
+    requireT212PortfolioArray({ error: "upstream" });
+  } catch {
+    threw = true;
+  }
+  assertEquals(threw, true);
+  assertEquals(requireT212PortfolioArray([]), []);
+  assertEquals(shapeT212Portfolio({ error: "upstream" }).valid, false);
 });
 
 Deno.test("shapeT212Order — order-only FILLED is recognised but not fabricated", () => {

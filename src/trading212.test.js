@@ -248,6 +248,32 @@ describe('applyTrading212', () => {
     expect(out['VUAA.L'].shares).toBe(0);
     expect(out['VUAA.L'].closed).toBe(true);
   });
+
+  it('keeps a negative other-broker average cost after a profitable sale', () => {
+    // Other 6@100, sell 5@200 → remaining 1 share, net cash −400.
+    // Plus T212 4@80. Clamping otherCash to ≥0 invented AC 64.
+    const holdings = {
+      'VUAA.L': {
+        shares: 1,
+        cost: -400,
+        t212Shares: 0,
+        t212Cost: 0,
+        lots: [{ date: '2025-01-01', shares: 6, cost: 100 }],
+        sells: [{ date: '2026-01-01', shares: 5, price: 200 }],
+      },
+    };
+    const out = applyTrading212(
+      holdings,
+      { 'VUAA.L': { shares: 4, cost: 80 } },
+      undefined,
+      '2026-08-20',
+    );
+    expect(out['VUAA.L'].shares).toBe(5);
+    expect(out['VUAA.L'].cost).toBeCloseTo(-16, 9);
+    expect(out['VUAA.L'].closed).not.toBe(true);
+    expect(out['VUAA.L'].lots).toEqual([{ date: '2025-01-01', shares: 6, cost: 100 }]);
+    expect(out['VUAA.L'].sells).toEqual([{ date: '2026-01-01', shares: 5, price: 200 }]);
+  });
 });
 
 describe('stripClosedFromPositions', () => {

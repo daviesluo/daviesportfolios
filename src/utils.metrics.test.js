@@ -345,6 +345,35 @@ describe('computeMetrics — degenerate inputs', () => {
     expect(m.marketValue).toBe(100);
   });
 
+  it('skips a non-cash row whose price is unknown — that is not a $0 holding', () => {
+    // A ghost with lastPrice 0 used to shrink PORTFOLIO and book a
+    // fake 100% loss against its cost. Skip until a real print arrives.
+    const m = computeMetrics(pf(
+      {
+        AAPL: { shares: 10, lastPrice: 100, prevClose: 100, cost: 100, currency: 'USD' },
+        GHOST: { shares: 5, lastPrice: 0, prevClose: 0, cost: 200, currency: 'USD' },
+      },
+      { FWD: { role: 'FWD', tickers: ['AAPL', 'GHOST'], label: 'FWD' } },
+    ));
+    expect(m.marketValue).toBe(1000);
+    expect(m.totalCost).toBe(1000);
+    expect(m.unrlGL).toBe(0);
+    expect(m.positions.FWD.players.map((p) => p.ticker)).toEqual(['AAPL']);
+  });
+
+  it('two holdings with no lastPrice do not NaN the scoreboard total', () => {
+    const m = computeMetrics(pf(
+      {
+        A: { shares: 2, cost: 10, currency: 'USD' },
+        B: { shares: 3, cost: 20, currency: 'USD' },
+      },
+      { FWD: { role: 'FWD', tickers: ['A', 'B'], label: 'FWD' } },
+    ));
+    expect(Number.isFinite(m.marketValue)).toBe(true);
+    expect(m.marketValue).toBe(0);
+    expect(m.positions.FWD.players).toEqual([]);
+  });
+
   it('all-cash portfolio: dayPct = 0, not NaN (was a /0 bug before the guard)', () => {
     const m = computeMetrics(pf(
       { CASH: { isCash: true, shares: 1, lastPrice: 1000, prevClose: 1000, cost: 1000, currency: 'USD' } },

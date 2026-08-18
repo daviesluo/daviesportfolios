@@ -111,6 +111,8 @@ describe('frozen deposit FX', () => {
     expect(later).toEqual(first);
     expect(depositFxRate('GBP', later)).toBe(1.25);
     expect(depositFxRate('USD', later)).toBe(1);
+    expect(depositFxRate('GBP', {})).toBeNull();
+    expect(depositFxRate('CNY', { GBP: 1.25 })).toBeNull();
   });
 
   it('requires frozen FX even for a closed foreign holding', () => {

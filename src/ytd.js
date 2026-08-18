@@ -5,7 +5,7 @@
 // "starting value") differs.
 //
 
-import { depositFxRate } from './fx.js';
+import { depositFxMissing, depositFxRate } from './fx.js';
 import {
   depositLedgerForHolding,
   ledgerEventIsAfter,
@@ -799,6 +799,7 @@ export function investmentPointAt(opts) {
   let value = 0;
   let netDeposit = 0;
   let cashUSD = 0;
+  let depositFxGap = depositFxMissing(portfolio);
 
   for (const [ticker, h] of Object.entries(portfolio?.holdings || {})) {
     if (h?.isCash || ticker === 'CASH') {
@@ -808,6 +809,7 @@ export function investmentPointAt(opts) {
     }
     const fx = (h?.currency && h.currency !== 'USD') ? fxToUSD(h.currency, marketData) : 1;
     const depositFx = depositFxRate(h?.currency, portfolio?.depositFxRates);
+    if (depositFx == null) depositFxGap = true;
     const ledger = depositLedgerForHolding(
       h,
       t212LedgerForTicker(t212Cash?.complete === true ? t212Cash?.orders : [], ticker),
@@ -828,13 +830,13 @@ export function investmentPointAt(opts) {
       const n = Number(l?.shares);
       const c = Number(l?.cost);
       if (ledgerEventIsAfter(l?.date, date) || !isFinite(n) || n <= 0 || !isFinite(c)) continue;
-      netDeposit += n * c * depositFx;
+      if (depositFx != null) netDeposit += n * c * depositFx;
     }
     for (const sl of ledger.sells) {
       const n = Number(sl?.shares);
       const px = Number(sl?.price);
       if (ledgerEventIsAfter(sl?.date, date) || !isFinite(n) || n <= 0 || !isFinite(px)) continue;
-      netDeposit -= n * px * depositFx;
+      if (depositFx != null) netDeposit -= n * px * depositFx;
     }
     // Float dust from fractional lots (T212 DCA quantities) — the same
     // snap transactions.netPosition applies, so a fully-sold position
@@ -856,7 +858,10 @@ export function investmentPointAt(opts) {
     value += shares * price * fx;
   }
 
-  return { value: value + cashUSD, netDeposit: netDeposit + cashUSD };
+  return {
+    value: value + cashUSD,
+    netDeposit: depositFxGap ? Number.NaN : netDeposit + cashUSD,
+  };
 }
 
 /**
