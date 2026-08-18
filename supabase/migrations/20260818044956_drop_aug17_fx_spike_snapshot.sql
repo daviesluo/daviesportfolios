@@ -1,0 +1,17 @@
+-- Reconciliation placeholder. Intentionally contains no DDL.
+--
+-- The 17 Aug FX-spike snapshot row (a missing CNY pair made
+-- `fxRateToUSD` fall back to 1:1 for one 5-minute sample) was deleted
+-- out of band through the Supabase MCP connector, which recorded
+-- version `20260818044956`. Without a local file carrying that
+-- version, `supabase db push` refuses to run.
+--
+-- This file is the local half of that pair. `db push` matches on the
+-- version prefix, sees it already recorded remotely, and skips it —
+-- correct, because the DELETE already ran. On a FRESH database it is
+-- a no-op (there is no row to delete). Display-side `dropDepositSpikes`
+-- still repairs any future one-sample jump.
+--
+-- While `migrations.yml` owns `db push`, apply migrations by pushing
+-- the file to main and nothing else. Do not DELETE through the MCP
+-- connector — it desyncs the history the same way applying DDL does.
