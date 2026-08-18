@@ -33,7 +33,7 @@ import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
-import { fetchTrading212Holdings, syncTrading212History, applyTrading212, applyTrading212NightPrice } from './trading212.js';
+import { fetchTrading212Holdings, fetchTrading212Orders, syncTrading212History, applyTrading212, applyTrading212NightPrice } from './trading212.js';
 import { fetchOvernightSeries } from './overnight_intraday.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
@@ -236,6 +236,10 @@ function Board({ isReadOnly }) {
   const [drillPos, setDrillPos] = useState(/** @type {string | null} */ (null));
   const [editMode, setEditMode] = useState(false);
   const [editingTicker, setEditingTicker] = useState(/** @type {string | null} */ (null));
+  // The broker's executed fills, read from the backfill table. Only the
+  // lot editor uses them (see EditTickerModal) — they are shown against
+  // the hand-kept ledger, never merged into it behind the owner's back.
+  const [t212Orders, setT212Orders] = useState(/** @type {any[]} */ ([]));
   const [viewingTicker, setViewingTicker] = useState(/** @type {string | null} */ (null));
   const [showHoldingsList, setShowHoldingsList] = useState(false);
   const [showSectorsList, setShowSectorsList] = useState(false);
@@ -992,6 +996,11 @@ function Board({ isReadOnly }) {
         });
         return;
       }
+      // A page just landed, so re-read the table the editor shows. The
+      // fetch is cached for ten minutes and the sync clears that cache
+      // on every page, so this costs one request per page, not per tick.
+      const orders = await fetchTrading212Orders();
+      if (!cancelled && Array.isArray(orders?.rows)) setT212Orders(orders.rows);
       timer = setTimeout(step, res.ordersComplete === true ? 10 * 60 * 1000 : 20000);
     };
     timer = setTimeout(step, 8000);
@@ -1310,6 +1319,7 @@ function Board({ isReadOnly }) {
           ticker={editingTicker}
           holding={portfolio.holdings[editingTicker]}
           positions={portfolio.positions}
+          t212Orders={t212Orders}
           onClose={() => setEditingTicker(null)}
           onSave={(patch) => { updateHolding(editingTicker, patch); setEditingTicker(null); }}
           onDelete={async () => { if (await askConfirm({ title: 'REMOVE HOLDING', message: `Remove ${editingTicker}?`, confirmLabel: 'Remove', danger: true })) { removeHolding(editingTicker); setEditingTicker(null); } }}

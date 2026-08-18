@@ -210,6 +210,11 @@ export function flattenT212OrderItem(raw: unknown): Record<string, unknown> | nu
     quantity: fl.quantity ?? ord.quantity ?? o.quantity,
     orderedQuantity: ord.quantity ?? o.orderedQuantity,
     fillPrice: fl.price ?? o.fillPrice ?? ord.limitPrice,
+    // The wallet impact is what the fill actually moved — a real
+    // execution figure, unlike `limitPrice` / `filledValue`. Kept on its
+    // own key so a nested fill can fall back to it for price without
+    // ever reaching the order-level estimates beside it.
+    explicitFillValue: wallet.netValue,
     fillCost: wallet.netValue ?? ord.filledValue ?? o.fillCost ?? o.filledValue,
     filledValue: ord.filledValue ?? o.filledValue,
     fillId: fl.id ?? o.fillId,
@@ -263,16 +268,30 @@ export function ordersPageEnvelopeRecognized(body: unknown): boolean {
  * cancelled / never filled / value-only is NOT this — advancing is
  * what unsticks the ISA walk that parked on `{ order }` with no fill
  * and blocked cash history from ever starting.
+ *
+ * A page where SOME fills shaped and others didn't is not this either,
+ * and treating it as such is what parked both walks in production: one
+ * unreadable fill per page held the cursor still forever, so the ISA
+ * account stored nothing at all and the invest account stopped a month
+ * back and never returned for newer fills. Freezing the walk to protect
+ * one row costs the entire history — the trade only makes sense when
+ * NOTHING on the page parsed, which is the signal that the shaper, not
+ * the row, is what's wrong.
+ *
+ * A `fill` that isn't an object at all still freezes unconditionally:
+ * that is a shape nobody has ever read, not a row we chose to skip.
  */
 export function ordersPageShapeMismatch(
   itemCount: number,
   parsedCount: number,
   recognizedCount: number | null = null,
   malformedFillCount = 0,
+  unreadableFillCount = 0,
 ): boolean {
-  if (malformedFillCount > 0) return true;
+  if (unreadableFillCount > 0) return true;
   if (recognizedCount != null && recognizedCount < itemCount) return true;
   if (itemCount <= 0 || parsedCount > 0) return false;
+  if (malformedFillCount > 0) return true;
   if (recognizedCount != null && recognizedCount >= itemCount) return false;
   return true;
 }
@@ -322,18 +341,30 @@ export function shapeT212Order(raw: unknown, account: string, skips?: string[]):
     || (o.fillId != null && typeof o.dateExecuted === "string");
   if (!explicitFill) return skip("no-explicit-fill");
 
-  const cost = nestedFill ? null : (num(o.fillCost) ?? num(o.filledValue));
+  // A nested fill prices itself off `fill.price`, or failing that off
+  // `walletImpact.netValue` — the cash the fill actually moved. Order-level
+  // `limitPrice` / `filledValue` stay out of reach here: they are what was
+  // ASKED for, and price improvement makes them observably wrong.
+  const cost = nestedFill ? num(o.explicitFillValue) : (num(o.fillCost) ?? num(o.filledValue));
   const statedPrice = nestedFill ? num(o.explicitFillPrice) : num(o.fillPrice);
   const qty = nestedFill ? num(o.explicitFillQuantity) : num(o.filledQuantity);
   if (qty == null || qty === 0) return skip("no-quantity");
-  if (nestedFill && qty < 0) return skip("negative-quantity");
 
-  // Nested history reports `order.side` (BUY/SELL) with a positive
-  // quantity. The older flat payload signed a sale negative. Either
-  // witness is enough; a sale that broke even still has a side.
+  // Which way the trade went. `order.side` is the authority when T212
+  // states it; the sign of the quantity only decides when it doesn't.
+  //
+  // A negative nested quantity used to be dropped outright, on the
+  // reading that nested history always signs sales positive and states
+  // the side. Production disagreed: real pages carry negative fill
+  // quantities, and dropping them cost far more than the row — a
+  // dropped fill counted as an unreadable page, which parked the whole
+  // backfill (see `ordersPageShapeMismatch`). Reading the sign as a
+  // sale, with the declared side overriding it, keeps every fill.
   const declared = typeof o.side === "string" ? o.side.toUpperCase() : "";
   if (nestedFill && declared !== "BUY" && declared !== "SELL") return skip("no-side:" + (declared || "missing"));
-  const side: "buy" | "sell" = qty < 0 || declared === "SELL" ? "sell" : "buy";
+  const side: "buy" | "sell" = declared === "SELL" ? "sell"
+    : declared === "BUY" ? "buy"
+      : (qty < 0 ? "sell" : "buy");
   const shares = Math.abs(qty);
 
   const price = statedPrice
@@ -1209,11 +1240,16 @@ async function syncOrdersOnce(
   // and advance, or the walk parks forever and cash history never
   // starts.
   const recognized = items.filter(t212OrderItemRecognized).length;
+  // A fill envelope we recognised but couldn't shape. On a page where
+  // nothing parsed this is the shaper failing; on a page where other
+  // fills came through it is one skipped row, and the walk goes on.
   const malformedFills = items.filter((item, index) =>
-    (t212FillEnvelope(item) && shapedItems[index] === null)
-      || t212MalformedFillEnvelope(item)
+    t212FillEnvelope(item) && shapedItems[index] === null
   ).length;
-  if (ordersPageShapeMismatch(items.length, rows.length, recognized, malformedFills)) {
+  // A `fill` that isn't an object — a shape no reader here has ever
+  // seen. This one always stops the walk.
+  const unreadableFills = items.filter(t212MalformedFillEnvelope).length;
+  if (ordersPageShapeMismatch(items.length, rows.length, recognized, malformedFills, unreadableFills)) {
     const sampleKeys = items[0] && typeof items[0] === "object"
       ? Object.keys(items[0] as object).sort().join(",")
       : "";
@@ -1227,7 +1263,7 @@ async function syncOrdersOnce(
       .slice(0, 4)
       .map(([reason, n]) => `${reason} x${n}`)
       .join(", ");
-    const msg = `shape mismatch: ${items.length} items, 0 parsed`
+    const msg = `shape mismatch: ${items.length} items, ${rows.length} parsed`
       + (sampleKeys ? ` (top-level keys: ${sampleKeys})` : "")
       + (why ? ` [${why}]` : "");
     console.error(`T212 orders ${account}: ${msg}`);
@@ -1417,7 +1453,7 @@ async function syncTransactionsOnce(
     const sampleKeys = items[0] && typeof items[0] === "object"
       ? Object.keys(items[0] as object).sort().join(",")
       : "";
-    const msg = `shape mismatch: ${items.length} items, 0 parsed`
+    const msg = `shape mismatch: ${items.length} items, ${rows.length} parsed`
       + (sampleKeys ? ` (top-level keys: ${sampleKeys})` : "");
     console.error(`T212 transactions ${account}: ${msg}`);
     await writeTransactionsSync({
