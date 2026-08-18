@@ -183,3 +183,93 @@ describe('EditTickerModal — sell editor', () => {
     expect(screen.getByText('+120.00')).toBeInTheDocument();
   });
 });
+
+describe('EditTickerModal — Trading 212 fills', () => {
+  // What the backfill stores: one row per executed fill, both accounts.
+  const ORDERS = [
+    { ticker: 'AVGO', executed_at: '2025-04-01T13:45:00.000Z', side: 'buy', shares: 18.5, price: 172.62 },
+    { ticker: 'AVGO', executed_at: '2026-08-18T13:45:00.000Z', side: 'buy', shares: 2, price: 340.5 },
+    { ticker: 'TSM',  executed_at: '2026-08-18T13:45:00.000Z', side: 'buy', shares: 1, price: 300 },
+  ];
+
+  it('lists the broker\'s fills newest first and ticks the ones already recorded', () => {
+    renderModal({ t212Orders: ORDERS });
+    expect(screen.getByText('TRADING 212 FILLS')).toBeInTheDocument();
+    // The 2025-04-01 fill is the lot already in HOLDING; the 2026-08-18
+    // one is not. Another ticker's fill never appears.
+    expect(screen.getByText('2026-08-18')).toBeInTheDocument();
+    expect(screen.getByText('2025-04-01')).toBeInTheDocument();
+    expect(screen.getByText('new')).toBeInTheDocument();
+    expect(screen.getByText('✓')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Add 1 missing/ })).toBeInTheDocument();
+  });
+
+  it('says nothing is missing when the ledger already has every fill', () => {
+    renderModal({ t212Orders: [ORDERS[0]] });
+    expect(screen.getByText('All recorded above.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Add \d+ missing/ })).not.toBeInTheDocument();
+  });
+
+  it('stays hidden for a ticker the broker never traded', () => {
+    renderModal({ t212Orders: [ORDERS[2]] });
+    expect(screen.queryByText('TRADING 212 FILLS')).not.toBeInTheDocument();
+  });
+
+  it('adds only the missing fills, keeping the rows already there', async () => {
+    const user = userEvent.setup();
+    const { props } = renderModal({ t212Orders: ORDERS });
+    await user.click(screen.getByRole('button', { name: /Add 1 missing/ }));
+    await user.click(screen.getByRole('button', { name: /^Save$/ }));
+    const patch = props.onSave.mock.calls[0][0];
+    expect(patch.lots).toEqual([
+      { date: '2025-04-01', shares: 18.5, cost: 172.62 },
+      { date: '2026-08-18', shares: 2, cost: 340.5 },
+    ]);
+  });
+
+  it('never drops a lot the broker has no record of', async () => {
+    // SPCX's real shape: 71 shares bought at another platform, 59 at
+    // Trading 212. The broker's history mentions only its own 59.
+    const user = userEvent.setup();
+    const { props } = renderModal({
+      ticker: 'SPCX',
+      holding: {
+        shares: 130, cost: 127.84, currency: 'USD',
+        lots: [
+          { date: '2026-04-19', shares: 50, cost: 105.4 },
+          { date: '2026-06-12', shares: 21, cost: 135 },
+        ],
+      },
+      t212Orders: [
+        { ticker: 'SPCX', executed_at: '2026-06-22T13:45:00.000Z', side: 'buy', shares: 59, price: 144.31 },
+      ],
+    });
+    await user.click(screen.getByRole('button', { name: /Add 1 missing/ }));
+    await user.click(screen.getByRole('button', { name: /^Save$/ }));
+    const patch = props.onSave.mock.calls[0][0];
+    expect(patch.lots).toHaveLength(3);
+    expect(patch.lots.reduce((n, l) => n + l.shares, 0)).toBe(130);
+  });
+});
+
+describe('EditTickerModal — saving can shrink the position', () => {
+  it('warns when the rows account for fewer shares than the board holds', () => {
+    // RKLB: 160 on the board, 30 in the ledger. Save would delete 130.
+    renderModal({
+      ticker: 'RKLB',
+      holding: {
+        shares: 160, cost: 65.38, currency: 'USD',
+        lots: [{ date: '2025-11-13', shares: 30, cost: 45 }],
+      },
+    });
+    const warn = screen.getByRole('alert');
+    expect(warn.textContent).toMatch(/board holds 160/);
+    expect(warn.textContent).toMatch(/only account for 30/);
+    expect(warn.textContent).toMatch(/drops the other 130/);
+  });
+
+  it('stays quiet when the ledger matches the board', () => {
+    renderModal();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+});

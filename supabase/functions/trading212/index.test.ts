@@ -479,19 +479,46 @@ Deno.test("shapeT212Order — real partial fill survives final CANCELLED status"
   assertEquals(out?.executed_at, "2025-06-01T08:05:00.000Z");
 });
 
-Deno.test("malformed nested fill blocks the page instead of being guessed or skipped", () => {
-  const malformed = {
+Deno.test("an order-priced fill is skipped, and never guessed from limitPrice", () => {
+  const noFillPrice = {
     fill: { id: 8, quantity: 1, filledAt: "2025-06-01T08:05:00Z" },
     order: {
       status: "FILLED", side: "BUY", limitPrice: 99,
       instrument: { ticker: "VUAAl_EQ" },
     },
   };
-  assertEquals(t212FillEnvelope(malformed), true);
-  assertEquals(shapeT212Order(malformed, "isa"), null);
-  // Even if another row parsed, losing this explicit fill is a hard
-  // page-shape error and the cursor must not advance.
-  assertEquals(ordersPageShapeMismatch(2, 1, 2, 1), true);
+  assertEquals(t212FillEnvelope(noFillPrice), true);
+  assertEquals(shapeT212Order(noFillPrice, "isa"), null);
+});
+
+Deno.test("a fill with no price is still priced by what it moved", () => {
+  // `walletImpact.netValue` is cash that actually changed hands, unlike
+  // the order-level estimates beside it. Without this fallback the fill
+  // is dropped and its shares vanish from the ledger.
+  const out = shapeT212Order({
+    fill: {
+      id: 11, quantity: 4, filledAt: "2025-06-01T08:05:00Z",
+      walletImpact: { netValue: -360 },
+    },
+    order: { status: "FILLED", side: "BUY", instrument: { ticker: "VUAAl_EQ" } },
+  }, "isa");
+  assertEquals(out?.shares, 4);
+  assertEquals(out?.price, 90);
+  assertEquals(out?.side, "buy");
+});
+
+Deno.test("one skipped fill never parks a page that others parsed", () => {
+  // Freezing the cursor to protect a single unreadable row is what
+  // stopped both walks in production: the ISA account stored nothing at
+  // all and the invest account stalled a month back, so no new fill
+  // could ever arrive. Only a page where NOTHING parsed points at the
+  // shaper rather than the row.
+  assertEquals(ordersPageShapeMismatch(2, 1, 2, 1), false);
+  assertEquals(ordersPageShapeMismatch(50, 34, 50, 2), false);
+  assertEquals(ordersPageShapeMismatch(2, 0, 2, 1), true);
+  // A `fill` that isn't an object is a shape nobody has read. It stops
+  // the walk however many neighbours came through.
+  assertEquals(ordersPageShapeMismatch(2, 1, 2, 1, 1), true);
 });
 
 Deno.test("nested fill requires an explicit BUY/SELL side", () => {
@@ -500,11 +527,26 @@ Deno.test("nested fill requires an explicit BUY/SELL side", () => {
     order: { status: "FILLED", instrument: { ticker: "VUAAl_EQ" } },
   };
   assertEquals(shapeT212Order(missingSide, "isa"), null);
-  const negativeBuy = {
-    fill: { id: 10, quantity: -1, price: 90, filledAt: "2025-06-01T08:05:00Z" },
+});
+
+Deno.test("shapeT212Order — a negative fill quantity is a sale, not a dropped row", () => {
+  // Live pages carry these; dropping them cost the whole backfill.
+  const sold = shapeT212Order({
+    fill: { id: 10, quantity: -1.5, price: 90, filledAt: "2025-06-01T08:05:00Z" },
+    order: { status: "FILLED", side: "SELL", instrument: { ticker: "VUAAl_EQ" } },
+  }, "isa");
+  assertEquals(sold?.side, "sell");
+  assertEquals(sold?.shares, 1.5);
+  assertEquals(sold?.price, 90);
+
+  // The declared side wins over the sign when the two disagree — a
+  // stated BUY stays a buy, and the fill is kept either way.
+  const contradictory = shapeT212Order({
+    fill: { id: 12, quantity: -1, price: 90, filledAt: "2025-06-01T08:05:00Z" },
     order: { status: "FILLED", side: "BUY", instrument: { ticker: "VUAAl_EQ" } },
-  };
-  assertEquals(shapeT212Order(negativeBuy, "isa"), null);
+  }, "isa");
+  assertEquals(contradictory?.side, "buy");
+  assertEquals(contradictory?.shares, 1);
 });
 
 Deno.test("flattenT212OrderItem — a flat payload passes through unchanged", () => {
