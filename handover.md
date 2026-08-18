@@ -55,6 +55,12 @@ Four changes bypassed PR #209 because each was actively losing data.
    item 6 of the same day.
 4. **The order backfill stops parking, and its fills reach the editor**
    (this session). See "The transaction-history fix" below.
+5. **The remove-lot ✕ was outside the modal on every desktop width.**
+   Grid children default to `min-width: auto`, so the two `1fr` columns
+   refused to shrink below a bare input's ~177px intrinsic width and
+   pushed the button 80px past the body. Only the ≤760px stacked layout
+   escaped it. Found by measuring the modal in a browser while checking
+   the new panel, not by looking at the CSS.
 
 ## The share-count overwrite (2026-08-18) — what happened
 
@@ -168,23 +174,45 @@ Other findings that still stand:
   first fill, because `applyTrading212` writes a synthetic lot when a
   holding has none. Bounded (~$673, lot dates only).
 
+## Verified after the fix (2026-08-18, ~23:31 UTC)
+
+The backfill unstuck the moment the Edge Function redeployed, and the
+numbers it produced independently confirm the diagnosis.
+
+- `t212_orders` went from **70 rows to 1,348**, `last_error` null on
+  both accounts. ISA had never stored a single row before and now holds
+  312+; the invest cursor walked back from 2026-07-20 to 2025-12-05 and
+  ISA's to 2025-10-17. Neither walk is finished — they resume whenever a
+  tab is open.
+- **83 sells appeared where there had been zero.** Every sale in the
+  history was being dropped as `negative-quantity`, and each dropped
+  sale condemned its whole page. That is the entire bug in one number.
+- Fill totals match the broker's own position tags exactly: SPCX 59,
+  RKLB 148.5, HOOD 20, 2DG.SG 580 — the last being the whole board
+  position, whose 29 fills had no ticker at all until the alias landed.
+- **PLTR's real purchase dates finally exist**: 19 fills from 2026-02-04
+  to 2026-06-25 netting exactly 55 shares. That is the re-entry nothing
+  on this side knew the date of, and `0028` had to restore by hand.
+- Browser-verified at nine widths (390–1920): the fills panel renders,
+  "+ Add N missing" folds the missing rows in (2 lots → 4 lots + 1 sell,
+  net 12.5 → 15, the other platform's 2025-11-07 lot untouched), the
+  header flips to "All recorded above.", and the shrink warning tracks
+  live. No console errors.
+
 ## Open items
 
-- [ ] **Confirm the backfill actually unstuck.** After the owner's next
-      visit, read `t212_orders_sync` — both accounts should be moving
-      and `last_error` null. Then check `t212_orders` covers ISA and
-      reaches back past 2026-07-20, and that sells appear at all (there
-      were none before, which is itself the symptom).
+- [ ] **Let the walk finish.** Both cursors are still moving backward
+      through 2025. Nothing to do but open the site; check
+      `t212_orders_sync.complete` latches on both accounts.
 - [ ] **Merge `main` into `claude/repo-audit-restore-uverhn`.** The PR
       branch still carries the first-sync overwrite rule that deleted
       the shares. Do not merge PR #209 before that.
-- [ ] `2DGd_EQ` — 10 T212 fills, 100 shares net — maps to no Yahoo
-      ticker, so those fills never reach the ledger or the deposit line.
-      The board's equivalent row is `2DG.SG`. Needs an alias.
-- [ ] The remaining 118.5 RKLB shares (and every other holding's
-      shortfall) are still absent from the ledger. They arrive as the
-      backfill walks back; nothing to do but let it, then use the
-      editor's "Add missing" once per ticker.
+- [ ] The ledgers are still short of their board counts (RKLB 41.5 of
+      160, and so on). The fills are in the table now; folding them in
+      is one click per ticker in the lot editor, deliberately manual.
+- [ ] `XFABp_EQ` — 8 fills, net 0 — is still unmapped. No board row
+      corresponds to it and guessing its exchange suffix would be
+      inventing a mapping rather than correcting one.
 - [ ] After a day of recording, check that the `RECORDED` rule has
       walked left across the 24H window (PR #209 work).
 - [ ] Codex reported "usage limits reached" on PR #209, so there is no
