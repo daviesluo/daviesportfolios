@@ -149,46 +149,51 @@ describe('applyTrading212', () => {
     expect(out['VUAA.L'].dayPct).toBeCloseTo(1.85, 6);
   });
 
-  it('takes the broker as the whole position on FIRST sync, then applies deltas', () => {
-    // Measured on the real book: the board said 24 shares of GOOG
-    // against the broker's 22, and had PLTR recorded as sold out while
-    // 55 shares sat in the account. Preserving the board's excess as an
-    // assumed other-broker slice would have frozen both errors in place
-    // with no way back — so an untagged ticker takes the broker's number.
-    const holdings = {
-      'VUAA.L': {
-        lastPrice: 100,
-        shares: 10,
-        cost: 90,
-        lots: [{ date: '2024-01-01', shares: 10, cost: 90 }],
-      },
+  it('NEVER shrinks a position held at more than one platform', () => {
+    // Real numbers off the live book. SPCX / RKLB / HOOD sit at Trading
+    // 212 AND elsewhere; the board totals are 130 / 160 / 50 while the
+    // broker reports 59 / 148.5 / 20. Taking the broker as the whole
+    // position on the first sync deleted 71, 11.5 and 30 shares. The
+    // excess is not stale data — it is the rest of the position.
+    const board = {
+      SPCX: { shares: 130, cost: 127.840692307692, lots: [{ date: '2025-05-01', shares: 130, cost: 127.84 }] },
+      RKLB: { shares: 160, cost: 65.377125, lots: [{ date: '2025-05-01', shares: 160, cost: 65.377125 }] },
+      HOOD: { shares: 50, cost: 85.762, lots: [{ date: '2025-05-01', shares: 50, cost: 85.762 }] },
     };
-    const first = applyTrading212(
-      holdings,
-      { 'VUAA.L': { shares: 4, cost: 80 } },
+    const out = applyTrading212(
+      structuredClone(board),
+      {
+        SPCX: { shares: 59, cost: 144.31457627 },
+        RKLB: { shares: 148.5, cost: 66.70962963 },
+        HOOD: { shares: 20, cost: 92.769 },
+      },
       undefined,
       '2026-08-18',
     );
-    expect(first['VUAA.L'].shares).toBe(4);
-    expect(first['VUAA.L'].cost).toBe(80);
-    expect(first['VUAA.L'].t212Shares).toBe(4);
-    // What made the original overwrite destructive was that it also took
-    // the ledger with it. The lots are untouched.
-    expect(first['VUAA.L'].lots).toEqual([{ date: '2024-01-01', shares: 10, cost: 90 }]);
+    expect(out.SPCX.shares).toBe(130);
+    expect(out.RKLB.shares).toBe(160);
+    expect(out.HOOD.shares).toBe(50);
+    // The broker's slice is remembered so later syncs move only IT.
+    expect(out.SPCX.t212Shares).toBe(59);
+    expect(out.RKLB.t212Shares).toBe(148.5);
+    expect(out.HOOD.t212Shares).toBe(20);
+    // Ledgers untouched.
+    expect(out.SPCX.lots).toEqual(board.SPCX.lots);
+  });
 
-    // Once tagged, only the slice's DELTA moves. A six-share
-    // other-broker slice added by hand afterwards survives every later
-    // sync.
-    const mixed = { 'VUAA.L': { ...first['VUAA.L'], shares: 10, cost: 86 } };
-    const second = applyTrading212(
-      mixed,
-      { 'VUAA.L': { shares: 5, cost: 82 } },
-      undefined,
-      '2026-08-19',
-    );
-    expect(second['VUAA.L'].shares).toBe(11);
-    expect(second['VUAA.L'].t212Shares).toBe(5);
-    expect(second['VUAA.L'].lots).toEqual([{ date: '2024-01-01', shares: 10, cost: 90 }]);
+  it('applies only the broker slice\'s delta once tagged', () => {
+    // Buying 1 more HOOD at T212 adds 1 to the board. The 30 shares held
+    // elsewhere never move again.
+    const holdings = {
+      HOOD: {
+        shares: 50, cost: 85.762, t212Shares: 20, t212Cost: 92.769,
+        lots: [{ date: '2025-05-01', shares: 50, cost: 85.762 }],
+      },
+    };
+    const out = applyTrading212(holdings, { HOOD: { shares: 21, cost: 92.8 } }, undefined, '2026-08-19');
+    expect(out.HOOD.shares).toBe(51);
+    expect(out.HOOD.t212Shares).toBe(21);
+    expect(out.HOOD.lots).toEqual([{ date: '2025-05-01', shares: 50, cost: 85.762 }]);
   });
 
   it('revives a position the board had recorded as sold out', () => {
