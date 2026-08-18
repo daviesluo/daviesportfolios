@@ -706,6 +706,11 @@ export function ytdPct({ value, basis }) {
  *   liveAnchorDate?: string,
  *   useExt?: boolean,
  *   fxToUSD: (currency: string | undefined, marketData: any) => number,
+ *   t212Cash?: {
+ *     transactions: Array<{type?: string, amount?: number, currency?: string, occurred_at?: string}>,
+ *     orders?: Array<{ticker?: string|null}>,
+ *     complete: boolean,
+ *   } | null,
  * }} opts
  * @returns {{ value: number, netDeposit: number }}
  */
@@ -796,10 +801,69 @@ export function priceAtOrCarried(tickerSeries, ticker, date, h) {
   return isFinite(px) && px > 0 ? px : null;
 }
 
+/**
+ * Tickers that have at least one stored T212 fill. The deposit line
+ * treats those as T212-sourced once cash history is complete, so their
+ * lot costs are not also counted as money paid in.
+ *
+ * @param {Array<{ticker?: string|null}> | null | undefined} orders
+ * @returns {Set<string>}
+ */
+function t212FillTickers(orders) {
+  const out = new Set();
+  if (!Array.isArray(orders)) return out;
+  for (const o of orders) {
+    if (typeof o?.ticker === 'string' && o.ticker) out.add(o.ticker);
+  }
+  return out;
+}
+
+/**
+ * T212 money paid in up to `day`: deposits minus withdrawals, in USD.
+ *
+ * Fees and interest are not money the user paid in — they are
+ * performance — so they are ignored here. TRANSFER between the two
+ * accounts nets out once both sides are stored; until the sign
+ * convention is pinned it is ignored rather than counted twice.
+ *
+ * @param {Array<{type?: string, amount?: number, currency?: string, occurred_at?: string, dateTime?: string}>} transactions
+ * @param {string} day YYYY-MM-DD (intraday chart dates are sliced)
+ * @param {(currency: string, marketData: any) => number} fxToUSD
+ * @param {any} marketData
+ */
+export function t212MoneyInAt(transactions, day, fxToUSD, marketData) {
+  if (!Array.isArray(transactions) || transactions.length === 0) return 0;
+  const cutoff = (day || '').slice(0, 10);
+  let sum = 0;
+  for (const tx of transactions) {
+    const d = String(tx?.occurred_at || tx?.dateTime || '').slice(0, 10);
+    if (!d || d > cutoff) continue;
+    const type = String(tx?.type || '').toLowerCase();
+    const amount = Number(tx?.amount);
+    if (!isFinite(amount) || amount === 0) continue;
+    const cur = typeof tx?.currency === 'string' && tx.currency ? tx.currency : 'USD';
+    const fx = (cur !== 'USD') ? fxToUSD(cur, marketData) : 1;
+    if (!isFinite(fx)) continue;
+    if (type === 'deposit') sum += Math.abs(amount) * fx;
+    else if (type === 'withdraw') sum -= Math.abs(amount) * fx;
+  }
+  return sum;
+}
+
+function t212CashIsReady(t212Cash) {
+  if (!t212Cash || t212Cash.complete !== true) return false;
+  const txs = t212Cash.transactions;
+  if (!Array.isArray(txs) || txs.length === 0) return false;
+  return txs.some((tx) => {
+    const t = String(tx?.type || '').toLowerCase();
+    return t === 'deposit' || t === 'withdraw';
+  });
+}
+
 export function investmentPointAt(opts) {
   const {
     portfolio, tickerSeries, date, marketData = {},
-    liveAnchorDate, useExt = false, fxToUSD,
+    liveAnchorDate, useExt = false, fxToUSD, t212Cash,
   } = opts;
   // Lot / sell dates are plain YYYY-MM-DD; chart dates can carry a time
   // on intraday ranges. Compare day-to-day or "2026-04-28" reads as
@@ -807,12 +871,21 @@ export function investmentPointAt(opts) {
   // today would count as not-yet-owned.
   const day = (date || '').slice(0, 10);
   const useLive = !!liveAnchorDate && date === liveAnchorDate;
+  const useT212 = t212CashIsReady(t212Cash);
+  const t212Tickers = useT212 ? t212FillTickers(t212Cash?.orders) : new Set();
   // Cash follows the same BOARD scope computeMetrics uses (only a cash
   // holding referenced by a position counts), so this line and the
   // scoreboard's PORTFOLIO agree on it. Securities deliberately do NOT:
   // a sold-out position is off the board but its money moved, and that
   // history is the point. With no positions at all (unit fixtures) the
   // scope opens up, matching computeAt's own escape hatch.
+  //
+  // When T212 cash history is complete, board cash is NOT added to
+  // deposit: those dollars already arrived as DEPOSIT rows. Adding them
+  // again would double-count idle cash. Value still includes cash so a
+  // caller that uses this for both lines (netDepositNow doesn't) stays
+  // consistent; deriveSeries takes VALUE from computeAt and only DEPOSIT
+  // from here.
   const positioned = new Set();
   for (const pos of Object.values(portfolio?.positions || {})) {
     for (const t of (pos?.tickers || [])) positioned.add(t);
@@ -830,6 +903,7 @@ export function investmentPointAt(opts) {
       continue;
     }
     const fx = (h?.currency && h.currency !== 'USD') ? fxToUSD(h.currency, marketData) : 1;
+    const skipLotDeposit = useT212 && t212Tickers.has(ticker);
 
     let shares = 0;
     for (const l of historyLotsFor(h)) {
@@ -838,7 +912,7 @@ export function investmentPointAt(opts) {
       const c = Number(l?.cost);
       if (!d || d > day || !isFinite(n) || n <= 0) continue;
       shares += n;
-      if (isFinite(c)) netDeposit += n * c * fx;
+      if (!skipLotDeposit && isFinite(c)) netDeposit += n * c * fx;
     }
     for (const sl of (Array.isArray(h?.sells) ? h.sells : [])) {
       const d = String(sl?.date || '').slice(0, 10);
@@ -846,7 +920,7 @@ export function investmentPointAt(opts) {
       const px = Number(sl?.price);
       if (!d || d > day || !isFinite(n) || n <= 0) continue;
       shares -= n;
-      if (isFinite(px)) netDeposit -= n * px * fx;
+      if (!skipLotDeposit && isFinite(px)) netDeposit -= n * px * fx;
     }
     // Float dust from fractional lots (T212 DCA quantities) — the same
     // snap transactions.netPosition applies, so a fully-sold position
@@ -868,21 +942,31 @@ export function investmentPointAt(opts) {
     value += shares * price * fx;
   }
 
+  if (useT212) {
+    netDeposit += t212MoneyInAt(t212Cash.transactions, day, fxToUSD, marketData);
+    return { value: value + cashUSD, netDeposit };
+  }
   return { value: value + cashUSD, netDeposit: netDeposit + cashUSD };
 }
 
 /**
  * Net deposited as of right now — cumulative buys minus sale proceeds,
- * plus cash. What the 5-minute sampler records alongside the portfolio
+ * plus cash; or T212 deposits minus withdrawals once that history is
+ * complete. What the 5-minute sampler records alongside the portfolio
  * value.
  *
  * Runs the same pass as `investmentPointAt` with the date cutoff opened
  * all the way, so the two can't drift apart in how they treat a lot, a
  * sale or a currency. Prices aren't needed — deposits are cash amounts —
  * so no ticker series is passed and the returned value is discarded.
+ *
+ * @param {{
+ *   portfolio: any, marketData?: any, fxToUSD: Function,
+ *   t212Cash?: {transactions: any[], orders?: any[], complete: boolean}|null,
+ * }} opts
  */
-export function netDepositNow({ portfolio, marketData = {}, fxToUSD }) {
+export function netDepositNow({ portfolio, marketData = {}, fxToUSD, t212Cash }) {
   return investmentPointAt({
-    portfolio, tickerSeries: {}, date: '9999-12-31', marketData, fxToUSD,
+    portfolio, tickerSeries: {}, date: '9999-12-31', marketData, fxToUSD, t212Cash,
   }).netDeposit;
 }

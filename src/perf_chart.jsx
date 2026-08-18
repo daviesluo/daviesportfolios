@@ -1108,9 +1108,10 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 /**
  * @param {{ portfolio: any, marketData: any, rangeKey: string, setRangeKey: (k:string)=>void,
  *   hideValues?: boolean, extendedHours?: boolean, phase?: string,
- *   live?: {marketValue:number, netDeposit:number}|null }} props
+ *   live?: {marketValue:number, netDeposit:number}|null,
+ *   t212Cash?: {transactions: any[], orders?: any[], complete: boolean}|null }} props
  */
-function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hideValues = false, extendedHours = false, phase = 'regular', live = null }) {
+function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hideValues = false, extendedHours = false, phase = 'regular', live = null, t212Cash = null }) {
   // Seed from the prefetch's cache so the FIRST render already has a
   // line — the background prefetch warms every range, so opening the
   // panel or switching ranges is a cache hit rather than an empty state
@@ -1243,9 +1244,9 @@ function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hid
     const tickerSeries = buildTickerSeries(hist, uniqueDates[0], rangeKey, tickerMarketData, useExt);
     return deriveSeries({
       portfolio, tickerSeries, marketData: tickerMarketData, fxToUSD,
-      dates: uniqueDates, useExt, rangeKey,
+      dates: uniqueDates, useExt, rangeKey, t212Cash,
     });
-  }, [portfolio, marketData, rangeKey, hist, extendedHours, phase, spSymbol]);
+  }, [portfolio, marketData, rangeKey, hist, extendedHours, phase, spSymbol, t212Cash]);
 
   // The live figures go on the right-hand end so the legend's Value is
   // the scoreboard's PORTFOLIO, not a sample up to five minutes old.
@@ -1267,9 +1268,10 @@ function InvestmentPanelBody({ portfolio, marketData, rangeKey, setRangeKey, hid
 /**
  * @param {{ portfolio: any, marketData: any, extendedHours: boolean, phase: string,
  *   className?: string, hideValues?: boolean,
- *   live?: {marketValue:number, netDeposit:number}|null }} props
+ *   live?: {marketValue:number, netDeposit:number}|null,
+ *   t212Cash?: {transactions: any[], orders?: any[], complete: boolean}|null }} props
  */
-function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false, live = null }) {
+function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false, live = null, t212Cash = null }) {
   // Own the range here so the title can name the actual benchmark: ES=F
   // (ext-on 1D / 1W) → "S&P FUTURES", the cash index otherwise → "S&P 500".
   // The legend dot inside the chart flips the same way (spSymbolFor).
@@ -1316,6 +1318,7 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hid
           extendedHours={extendedHours}
           phase={phase}
           live={live}
+          t212Cash={t212Cash}
         />
       )}
     </section>

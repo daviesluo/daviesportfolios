@@ -144,20 +144,66 @@ export function clearTrading212OrdersCache() {
   ordersCache = null;
 }
 
+let txCache = /** @type {{ts: number, rows: any[], complete: boolean} | null} */ (null);
+const TX_TTL_MS = 10 * 60 * 1000;
+
 /**
- * Advance the order-history backfill by one page per account.
+ * Cash movements from `/equity/history/transactions`, oldest first.
  *
- * One page per call because the history endpoint is rate limited to a
- * handful of requests a minute — the caller keeps going until
- * `complete` comes back true. Admin only; a 403 with a `403` status on
- * an account means the API key authenticates but lacks T212's History
- * scope, which no amount of retrying will fix.
+ * This is "money paid in / taken out" — DEPOSIT and WITHDRAW — which is
+ * what the Investment Performance deposit line is asking, as opposed to
+ * the fills in `t212_orders` (when that money was deployed into a
+ * ticker). Empty until the backfill has run; `complete` is false until
+ * both accounts have been walked, so a partial newest-first read is not
+ * treated as the whole history.
  *
- * @returns {Promise<{accounts: any[], complete: boolean} | null>}
+ * @returns {Promise<{rows: Array<{type: string, amount: number, currency: string, occurred_at: string, account: string}>, complete: boolean}>}
  */
-export async function syncTrading212Orders() {
+export async function fetchTrading212Transactions() {
+  if (txCache && Date.now() - txCache.ts < TX_TTL_MS) {
+    return { rows: txCache.rows, complete: txCache.complete };
+  }
   try {
-    const res = await fetch(`${EDGE_TRADING212_URL}?action=orders-sync`, {
+    const res = await fetch(`${EDGE_TRADING212_URL}?action=transactions`, {
+      method: 'GET',
+      headers: {
+        'apikey': SB_ANON,
+        'Authorization': `Bearer ${SB_ANON}`,
+        'X-App-Token': getAppToken(),
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return { rows: txCache?.rows || [], complete: !!txCache?.complete };
+    const body = await res.json();
+    const rows = Array.isArray(body?.transactions) ? body.transactions : [];
+    const complete = body?.complete === true;
+    if (rows.length > 0 || !txCache) txCache = { ts: Date.now(), rows, complete };
+    else if (complete) txCache = { ...txCache, complete: true, ts: Date.now() };
+    return { rows: txCache.rows, complete: txCache.complete };
+  } catch {
+    return { rows: txCache?.rows || [], complete: !!txCache?.complete };
+  }
+}
+
+export function clearTrading212TransactionsCache() {
+  txCache = null;
+}
+
+/**
+ * Advance the history backfill by one page.
+ *
+ * Walks fills first (`/equity/history/orders`), then cash movements
+ * (`/equity/history/transactions`) once the fill walk latches — the two
+ * endpoints share a tight per-minute budget, so they must not run in
+ * the same call. The caller keeps going until `complete` is true.
+ * Admin only. A 403 with `scopeDenied` means the key authenticates but
+ * lacks that History scope, which no amount of retrying will fix.
+ *
+ * @returns {Promise<{accounts: any[], complete: boolean, stream?: string, scopeDenied?: boolean} | null>}
+ */
+export async function syncTrading212History() {
+  try {
+    const res = await fetch(`${EDGE_TRADING212_URL}?action=history-sync`, {
       method: 'GET',
       headers: {
         'apikey': SB_ANON,
@@ -168,6 +214,7 @@ export async function syncTrading212Orders() {
     });
     if (!res.ok) return null;
     clearTrading212OrdersCache();
+    clearTrading212TransactionsCache();
     return await res.json();
   } catch {
     return null;
@@ -236,9 +283,10 @@ export function lotsFromOrders(orders, ticker) {
  * @returns {Record<string, any>}
  */
 export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
-  if (!t212Holdings || !holdings) return holdings;
+  if (!holdings) return holdings;
+  const overlay = t212Holdings && typeof t212Holdings === 'object' ? t212Holdings : {};
   const date = today || new Date().toISOString().slice(0, 10);
-  for (const [t, row] of Object.entries(t212Holdings)) {
+  for (const [t, row] of Object.entries(overlay)) {
     if (!holdings[t]) continue;
     // Keep the EARLIEST date the holding already carried rather than
     // re-stamping today's. The broker reports a position, not a purchase
@@ -285,6 +333,21 @@ export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
       if (typeof pc === 'number' && pc > 0) merged.dayPct = ((px - pc) / pc) * 100;
     }
     holdings[t] = merged;
+  }
+  // Real fills for every other ticker on the board, not just the
+  // allow-list ETFs. Most of the book is T212; leaving those lots as a
+  // hand-typed guess is what made the derived deposit line a
+  // reconstruction. Shares/cost on non-allow-list rows stay as the board
+  // already has them (those aren't auto-synced from positions) — only
+  // the dated ledger is replaced. An unfinished backfill that hasn't
+  // reached a ticker returns null and the existing lots stay.
+  if (Array.isArray(orders)) {
+    for (const t of Object.keys(holdings)) {
+      if (overlay[t]) continue;
+      const real = lotsFromOrders(orders, t);
+      if (!real) continue;
+      holdings[t] = { ...holdings[t], lots: real.lots, sells: real.sells };
+    }
   }
   return holdings;
 }

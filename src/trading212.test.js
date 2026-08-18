@@ -272,4 +272,25 @@ describe('applyTrading212 — real fills supersede the synthetic lot', () => {
     const out = applyTrading212(holdings, { 'VUAA.L': { shares: 5, cost: 84 } }, undefined, '2026-05-15', []);
     expect(out['VUAA.L'].lots).toEqual([{ date: '2024-01-01', shares: 5, cost: 84 }]);
   });
+
+  it('stamps real fills onto a non-allow-list ticker already on the board', () => {
+    const holdings = {
+      NVDA: { currency: 'USD', lastPrice: 200, lots: [{ date: '2024-01-01', shares: 10, cost: 150 }], shares: 10, cost: 150 },
+    };
+    const out = applyTrading212(
+      holdings, {}, undefined, '2026-05-15',
+      [
+        { ticker: 'NVDA', executed_at: '2025-10-30T00:00:00Z', side: 'buy', shares: 4, price: 140 },
+        { ticker: 'NVDA', executed_at: '2026-01-08T00:00:00Z', side: 'buy', shares: 6, price: 160 },
+      ],
+    );
+    expect(out.NVDA.lots).toEqual([
+      { date: '2025-10-30', shares: 4, cost: 140 },
+      { date: '2026-01-08', shares: 6, cost: 160 },
+    ]);
+    // Shares/cost stay with the board — only the allow-list is
+    // position-synced. The dated ledger is what the deposit line needs.
+    expect(out.NVDA.shares).toBe(10);
+    expect(out.NVDA.cost).toBe(150);
+  });
 });

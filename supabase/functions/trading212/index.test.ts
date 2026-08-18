@@ -15,6 +15,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   shapeT212Portfolio,
   shapeT212Order,
+  shapeT212Transaction,
   flattenT212OrderItem,
   ordersPageShapeMismatch,
   nextOrdersCursor,
@@ -436,7 +437,58 @@ Deno.test("nextOrdersCursor — pulls the cursor out of the path T212 returns", 
 Deno.test("ordersItemsOf — tolerates the envelope names wrappers use", () => {
   assertEquals(ordersItemsOf({ items: [1, 2] }), [1, 2]);
   assertEquals(ordersItemsOf({ data: [3] }), [3]);
+  assertEquals(ordersItemsOf({ transactions: [6] }), [6]);
   assertEquals(ordersItemsOf([4, 5]), [4, 5]);
   assertEquals(ordersItemsOf({}), []);
   assertEquals(ordersItemsOf(null), []);
+});
+
+Deno.test("shapeT212Transaction — published deposit/withdraw rows round-trip", () => {
+  const dep = shapeT212Transaction({
+    amount: 1000, currency: "GBP", dateTime: "2025-04-01T12:00:00Z",
+    reference: "dep-1", type: "DEPOSIT",
+  }, "invest");
+  assertEquals(dep?.id, "invest:dep-1");
+  assertEquals(dep?.type, "deposit");
+  assertEquals(dep?.amount, 1000);
+  assertEquals(dep?.currency, "GBP");
+  assertEquals(dep?.occurred_at, "2025-04-01T12:00:00.000Z");
+
+  const wd = shapeT212Transaction({
+    amount: 250, currency: "USD", dateTime: "2025-05-01T08:00:00Z",
+    reference: "wd-1", type: "WITHDRAW",
+  }, "isa");
+  assertEquals(wd?.type, "withdraw");
+  assertEquals(wd?.id, "isa:wd-1");
+  assertEquals(wd?.amount, 250);
+});
+
+Deno.test("shapeT212Transaction — keeps fee/interest/transfer rather than dropping them", () => {
+  // The deposit line ignores these, but dropping them at ingest would
+  // mean a later reading has to re-walk the history.
+  const fee = shapeT212Transaction({
+    amount: 1.5, currency: "USD", dateTime: "2025-04-02T00:00:00Z",
+    reference: "fee-1", type: "FEE",
+  }, "invest");
+  assertEquals(fee?.type, "fee");
+  const interest = shapeT212Transaction({
+    amount: 0.4, currency: "USD", dateTime: "2025-04-03T00:00:00Z",
+    reference: "int-1", type: "INTEREST_ON_FREE_CASH",
+  }, "invest");
+  assertEquals(interest?.type, "interest_on_free_cash");
+});
+
+Deno.test("shapeT212Transaction — drops rows that never moved any money", () => {
+  const base = { amount: 10, currency: "USD", dateTime: "2025-01-01T00:00:00Z", reference: "x", type: "DEPOSIT" };
+  assertEquals(shapeT212Transaction({ ...base, amount: 0 }, "invest"), null);
+  assertEquals(shapeT212Transaction({ ...base, type: "" }, "invest"), null);
+  assertEquals(shapeT212Transaction({ ...base, dateTime: "not a date" }, "invest"), null);
+  assertEquals(shapeT212Transaction(null, "invest"), null);
+});
+
+Deno.test("nextOrdersCursor — also reads a transactions nextPagePath", () => {
+  assertEquals(
+    nextOrdersCursor({ nextPagePath: "/api/v0/equity/history/transactions?cursor=tx99&limit=50" }),
+    "tx99",
+  );
 });

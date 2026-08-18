@@ -57,9 +57,8 @@ vi.mock('./yahoo_fetch.js', async () => {
 vi.mock('./trading212.js', () => ({
   fetchTrading212Holdings: vi.fn(() => Promise.resolve(null)),
   fetchTrading212Orders: vi.fn(() => Promise.resolve([])),
-  // Reports the walk already finished, so the backfill driver makes one
-  // call and stops instead of leaving a timer running past the test.
-  syncTrading212Orders: vi.fn(() => Promise.resolve({ accounts: [], complete: true })),
+  fetchTrading212Transactions: vi.fn(() => Promise.resolve({ rows: [], complete: false })),
+  syncTrading212History: vi.fn(() => Promise.resolve({ accounts: [], complete: true })),
   applyTrading212: (h) => h,
   applyTrading212NightPrice: (h) => h,
 }));

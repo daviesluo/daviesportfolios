@@ -35,7 +35,7 @@ import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
-import { fetchTrading212Holdings, fetchTrading212Orders, syncTrading212Orders, applyTrading212, applyTrading212NightPrice } from './trading212.js';
+import { fetchTrading212Holdings, fetchTrading212Orders, fetchTrading212Transactions, syncTrading212History, applyTrading212, applyTrading212NightPrice } from './trading212.js';
 import { fetchOvernightSeries } from './overnight_intraday.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
@@ -242,6 +242,11 @@ function Board({ isReadOnly }) {
   const [showHoldingsList, setShowHoldingsList] = useState(false);
   const [showSectorsList, setShowSectorsList] = useState(false);
   const [showTransactionHistory, setShowTransactionHistory] = useState(false);
+  const [t212Cash, setT212Cash] = useState(
+    /** @type {{transactions: any[], orders: any[], complete: boolean}} */ (
+      { transactions: [], orders: [], complete: false }
+    ),
+  );
   const [addingToPos, setAddingToPos] = useState(/** @type {string | null} */ (null));
   const [editingCash, setEditingCash] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(/** @type {Date | null} */ (null));
@@ -622,7 +627,7 @@ function Board({ isReadOnly }) {
     // 5d/5m pull for 15 symbols off every tick.
     const wantTodayCloses = refreshPhase !== "regular"
       && (Date.now() - todayClosesRef.current.ts > 30 * 60 * 1000);
-    const [{ updates, source: src, coverage }, mcResult, todayClosesFresh, extSeries, t212Holdings, t212Orders] = await Promise.all([
+    const [{ updates, source: src, coverage }, mcResult, todayClosesFresh, extSeries, t212Holdings, t212Orders, t212Tx] = await Promise.all([
       refreshPrices(portfolio),
       fetchTickers(MC_TICKERS),
       wantTodayCloses ? fetchTodayRegularClose(MC_TICKERS) : Promise.resolve(null),
@@ -642,7 +647,17 @@ function Board({ isReadOnly }) {
       // tickers. Cached client-side for ten minutes — the history is
       // immutable, so this costs nothing on the 30-second tick.
       fetchTrading212Orders(),
+      // Cash movements (DEPOSIT/WITHDRAW). Same 10-minute client cache
+      // as fills — the history is immutable. `complete` stays false
+      // until both accounts have been walked, so a partial newest-first
+      // read is not treated as the whole deposit history.
+      fetchTrading212Transactions(),
     ]);
+    setT212Cash({
+      transactions: Array.isArray(t212Tx?.rows) ? t212Tx.rows : [],
+      orders: Array.isArray(t212Orders) ? t212Orders : [],
+      complete: t212Tx?.complete === true,
+    });
     // Refresh the cache when we fetched this tick; otherwise reuse it. Apply
     // whichever map we have so the MC ext-on anchor stays populated even on
     // the throttled ticks.
@@ -980,7 +995,7 @@ function Board({ isReadOnly }) {
   metricsRef.current = metrics
     ? {
         marketValue: metrics.marketValue,
-        netDeposit: netDepositNow({ portfolio, marketData, fxToUSD }),
+        netDeposit: netDepositNow({ portfolio, marketData, fxToUSD, t212Cash }),
         // A pair Yahoo didn't return means `fxRateToUSD` fell back to
         // 1:1 for that currency. Both figures above then convert a
         // non-USD holding at the wrong rate — and in the direction that
@@ -1004,67 +1019,59 @@ function Board({ isReadOnly }) {
     [liveMV, liveND],
   );
 
-  // Trading 212 order-history backfill.
+  // Trading 212 history backfill: fills first, then cash movements.
   //
-  // The positions endpoint reports a POSITION with no dates, which is
-  // why every synced ticker has carried a single synthetic lot whose
-  // date could only ever be a guess. The history endpoint has the real
-  // fills — but it's rate limited to a handful of calls a minute, so it
-  // has to be walked a page at a time rather than pulled in one go.
-  //
-  // Self-completing: pages every 20 s until the server reports the walk
-  // finished, then stops. `complete` latches server-side, so on every
-  // later session this is a single request that tops up any new fills
-  // and ends. Admin only — it writes, and it spends a rate-limited
-  // upstream budget a read-only viewer has no business spending.
+  // Positions have no dates; `/equity/history/orders` does, and
+  // `/equity/history/transactions` has the deposits. Both endpoints
+  // allow only a handful of calls a minute, so the server walks one
+  // page of ONE stream per call. Self-completing: pages every 20 s
+  // until both walks latch, then stops. Admin only.
   useEffect(() => {
     if (isReadOnly) return undefined;
     let cancelled = false;
     let timer = /** @type {any} */ (null);
     const step = async () => {
       if (cancelled) return;
-      const res = await syncTrading212Orders();
+      const res = await syncTrading212History();
       if (cancelled || !res) return;
       const accounts = Array.isArray(res.accounts) ? res.accounts : [];
-      // A key without T212's History scope authenticates fine and then
-      // refuses this endpoint. No amount of retrying fixes that, so say
-      // so once and stop rather than grinding against it every 20 s.
       const denied = accounts.filter((a) => a && a.scopeDenied);
       if (denied.length > 0) {
-        reportError('t212.orders.scope', {
-          message: 'Trading 212 API key lacks the History scope — regenerate it in '
-            + 'Trading 212 with History enabled to backfill real purchase dates.',
-          context: { accounts: denied.map((a) => a.account) },
+        reportError('t212.history.scope', {
+          message: 'Trading 212 refused the history endpoint (403). '
+            + 'The stored key already has Portfolio, History: orders and '
+            + 'History: transactions — this is not a missing-scope prompt.',
+          context: { accounts: denied.map((a) => a.account), stream: res.stream },
         });
         return;
       }
       if (res.complete) return;
       timer = setTimeout(step, 20000);
     };
-    // A beat after load so the backfill never competes with the first
-    // paint or the opening price refresh.
     timer = setTimeout(step, 8000);
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, [isReadOnly]);
 
-  // Investment Performance sampler. Records the portfolio's USD value and
-  // net deposited every 5 minutes so the chart has a real recorded series
-  // for the tickers you no longer hold — a sold-out position leaves the
-  // board and the app stops fetching its price history, so a truthful
-  // past value would otherwise mean re-fetching history for every symbol
-  // ever owned.
+  // Investment Performance sampler — client BACKUP only. The 24/7
+  // 5-minute series is written by `snapshot-record` on pg_cron, the
+  // same way overnight prices are. This tab still records during the
+  // US regular session so a missed cron tick (cold isolate, brief
+  // 403) doesn't leave a hole, but it must NOT run after hours: the
+  // scoreboard then follows the ext-hours toggle, and writing that
+  // number would overwrite the server's live overnight/AH sample in
+  // the same 5-minute primary key.
   //
   // Admin only (a read-only viewer must not write to the owner's book),
-  // and skipped while the tab is hidden — a backgrounded phone has
-  // nothing new to record and the next tick is only five minutes away.
-  // Fire-and-forget: this is a background observation, never something
-  // the user waits on, so a failure is dropped rather than retried.
+  // and skipped while the tab is hidden. Fire-and-forget.
+  const phaseRef = useRef(currentPhase);
+  phaseRef.current = currentPhase;
   useEffect(() => {
     if (isReadOnly || !portfolio) return undefined;
     let cancelled = false;
     const sample = () => {
       if (cancelled) return;
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      if (phaseRef.current !== 'regular') return;
       const m = metricsRef.current;
       if (!m || !(m.marketValue > 0)) return;
       // Skip the tick entirely rather than record a figure converted at
@@ -1260,6 +1267,7 @@ function Board({ isReadOnly }) {
             className="perf-in-left"
             hideValues={hideValues}
             live={liveInvestment}
+            t212Cash={t212Cash}
           />
           {isDesktop && (
             <MarketConditions
@@ -1309,6 +1317,7 @@ function Board({ isReadOnly }) {
           hideValues={hideValues}
           coverage={quoteCoverage}
           live={liveInvestment}
+          t212Cash={t212Cash}
         />
         {/* Mobile-only Market Conditions strip — rendered as a separate
             sibling because the desktop instance lives inside .left-col,

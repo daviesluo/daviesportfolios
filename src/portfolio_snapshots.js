@@ -1,7 +1,14 @@
 // Investment Performance time series — the portfolio's USD value and the
-// net amount deposited into it, sampled every 5 minutes.
+// net amount deposited into it.
 //
-// Both numbers are derivable from the lot/sell ledger (see
+// Written every 5 minutes by the `snapshot-record` Edge Function on
+// pg_cron (24/7, same machinery as overnight-record). The admin tab
+// still posts a backup sample during the US regular session so a missed
+// cron tick doesn't leave a hole; after hours the server is the only
+// writer, so the ext-hours toggle can't overwrite a live overnight
+// print. Both paths upsert the same 5-minute primary key.
+//
+// Both numbers are also derivable from the lot/sell ledger (see
 // `investmentPointAt` in ytd.js), and the chart still derives everything
 // from before the first stored sample. Recording them is about the
 // tickers you no longer hold: a sold-out position leaves the board and
@@ -10,7 +17,7 @@
 // A stored sample also pins the number that was actually on screen,
 // rather than a later recomputation of it.
 //
-// Storage goes through the `data` Edge Function (service-role key) —
+// Reads go through the `data` Edge Function (service-role key) —
 // `portfolio_snapshots` is RLS-denied, so the function is the only path.
 
 import { EDGE_DATA_URL, SB_ANON } from './supabase_config.js';

@@ -153,6 +153,7 @@ export function t212TickerToYahoo(t212Ticker: string): string | null {
 // guessing. Rate limited far harder than positions, so it's backfilled
 // one page at a time into `t212_orders` and read from there afterwards.
 export const T212_ORDERS_URL = "https://live.trading212.com/api/v0/equity/history/orders";
+export const T212_TRANSACTIONS_URL = "https://live.trading212.com/api/v0/equity/history/transactions";
 
 /**
  * Normalise one row of T212's order history into a lot-shaped record.
@@ -299,10 +300,61 @@ export function ordersItemsOf(body: unknown): unknown[] {
   if (Array.isArray(body)) return body;
   if (!body || typeof body !== "object") return [];
   const b = body as Record<string, unknown>;
-  for (const k of ["items", "data", "orders", "results"]) {
+  for (const k of ["items", "data", "orders", "results", "transactions"]) {
     if (Array.isArray(b[k])) return b[k] as unknown[];
   }
   return [];
+}
+
+/**
+ * One cash-movement row from `/equity/history/transactions`.
+ *
+ * Published fields are `amount`, `currency`, `dateTime`, `reference`,
+ * `type` (DEPOSIT / WITHDRAW / FEE / TRANSFER / INTEREST_ON_FREE_CASH /
+ * LENDING_INTEREST). Defensive about aliases the same way the order
+ * shaper is: a silently-dropped deposit is a hole in "money paid in".
+ * Unknown types are stored, not dropped — the deposit line ignores
+ * everything except deposit/withdraw, and a later reading can use the
+ * rest without re-fetching.
+ */
+export function shapeT212Transaction(raw: unknown, account: string): {
+  id: string;
+  account: string;
+  type: string;
+  amount: number;
+  currency: string;
+  occurred_at: string;
+} | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const num = (v: unknown): number | null =>
+    (typeof v === "number" && isFinite(v)) ? v
+      : (typeof v === "string" && v.trim() !== "" && isFinite(Number(v)) ? Number(v) : null);
+
+  const typeRaw = typeof o.type === "string" ? o.type
+    : (typeof o.transactionType === "string" ? o.transactionType : "");
+  const type = typeRaw.trim().toLowerCase();
+  if (!type) return null;
+
+  const amount = num(o.amount);
+  if (amount == null || amount === 0) return null;
+
+  const currencyRaw = typeof o.currency === "string" ? o.currency.trim() : "";
+  const currency = (currencyRaw || "USD").toUpperCase();
+
+  const when = [o.dateTime, o.time, o.date, o.createdAt]
+    .find((d) => typeof d === "string" && !isNaN(Date.parse(d as string)));
+  if (!when) return null;
+
+  const reference = String(o.reference ?? o.id ?? `${type}:${when}:${amount}`);
+  return {
+    id: `${account}:${reference}`,
+    account,
+    type,
+    amount,
+    currency,
+    occurred_at: new Date(when as string).toISOString(),
+  };
 }
 
 // 1 s cache. `/equity/positions` allows 1 req / second, so this is the
@@ -677,6 +729,42 @@ async function fetchT212OrdersPage(
   return { ok: true, body: await res.json() };
 }
 
+/**
+ * One page of cash movements for one account. Same auth dance and 403
+ * distinction as the orders page — History: transactions is a separate
+ * T212 scope, but a key that already reads orders almost always has it.
+ */
+async function fetchT212TransactionsPage(
+  apiKey: string,
+  apiSecret: string,
+  cursor: string | null,
+  limit = 50,
+): Promise<{ ok: true; body: unknown } | { ok: false; status: number; message: string }> {
+  const url = new URL(T212_TRANSACTIONS_URL);
+  url.searchParams.set("limit", String(limit));
+  if (cursor) url.searchParams.set("cursor", cursor);
+  const attempts = apiSecret ? [basicAuthHeader(apiKey, apiSecret), apiKey] : [apiKey];
+  let res!: Response;
+  for (const authorization of attempts) {
+    res = await fetch(url.toString(), {
+      headers: { authorization, accept: "application/json" },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (res.status !== 401) break;
+  }
+  if (!res.ok) {
+    const snippet = (await res.text().catch(() => "")).slice(0, 200);
+    const hint = res.status === 403
+      ? " — the API key authenticates but is not permitted to read transactions. " +
+        "Regenerate it in Trading 212 with History: transactions enabled."
+      : res.status === 429
+      ? " — rate limited; this endpoint allows only a few calls a minute. Try again shortly."
+      : "";
+    return { ok: false, status: res.status, message: `T212 ${res.status} ${res.statusText}${hint} :: ${snippet}` };
+  }
+  return { ok: true, body: await res.json() };
+}
+
 /** Upsert a batch of shaped fills. Idempotent on the fill id. */
 async function writeOrders(rows: unknown[]): Promise<boolean> {
   if (rows.length === 0) return true;
@@ -841,6 +929,191 @@ async function syncOrdersOnce(
   };
 }
 
+async function writeTransactions(rows: unknown[]): Promise<boolean> {
+  if (rows.length === 0) return true;
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/t212_transactions`, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE_KEY,
+        authorization: `Bearer ${SERVICE_KEY}`,
+        "content-type": "application/json",
+        prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify(rows),
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) {
+      const snippet = (await res.text().catch(() => "")).slice(0, 200);
+      const hint = snippet.includes("42P01")
+        ? " — apply migration 0025 (t212_transactions) via supabase db push."
+        : "";
+      console.error(`T212 transactions write ${res.status}: ${snippet}${hint}`);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error("T212 transactions write error:", e instanceof Error ? e.message : e);
+    return false;
+  }
+}
+
+async function readTransactionsSync(account: string): Promise<Record<string, unknown> | null> {
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/t212_transactions_sync?account=eq.${encodeURIComponent(account)}&select=*`,
+      { headers: { apikey: SERVICE_KEY, authorization: `Bearer ${SERVICE_KEY}`, accept: "application/json" },
+        signal: AbortSignal.timeout(5_000) },
+    );
+    if (!res.ok) return null;
+    const arr = await res.json();
+    return Array.isArray(arr) && arr[0] ? arr[0] : null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeTransactionsSync(row: Record<string, unknown>): Promise<void> {
+  try {
+    await fetch(`${SB_URL}/rest/v1/t212_transactions_sync`, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE_KEY,
+        authorization: `Bearer ${SERVICE_KEY}`,
+        "content-type": "application/json",
+        prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({ ...row, updated_at: new Date().toISOString() }),
+      signal: AbortSignal.timeout(5_000),
+    });
+  } catch (e) {
+    console.error("T212 transactions sync-state write error:", e instanceof Error ? e.message : e);
+  }
+}
+
+async function readTransactions(): Promise<unknown[]> {
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/t212_transactions?select=type,amount,currency,occurred_at,account&order=occurred_at.asc&limit=5000`,
+      { headers: { apikey: SERVICE_KEY, authorization: `Bearer ${SERVICE_KEY}`, accept: "application/json" },
+        signal: AbortSignal.timeout(8_000) },
+    );
+    if (!res.ok) {
+      const snippet = (await res.text().catch(() => "")).slice(0, 200);
+      console.error(`T212 transactions read ${res.status}: ${snippet}`);
+      return [];
+    }
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+async function transactionsSyncComplete(): Promise<boolean> {
+  const invest = await readTransactionsSync("invest");
+  if (invest?.complete !== true) return false;
+  if (T212_ISA_API_KEY) {
+    const isa = await readTransactionsSync("isa");
+    if (isa?.complete !== true) return false;
+  }
+  return true;
+}
+
+async function ordersSyncComplete(): Promise<boolean> {
+  const invest = await readOrdersSync("invest");
+  if (invest?.complete !== true) return false;
+  if (T212_ISA_API_KEY) {
+    const isa = await readOrdersSync("isa");
+    if (isa?.complete !== true) return false;
+  }
+  return true;
+}
+
+async function syncTransactionsOnce(
+  account: string,
+  apiKey: string,
+  apiSecret: string,
+): Promise<Record<string, unknown>> {
+  const state = await readTransactionsSync(account);
+  const done = state?.complete === true;
+  const cursor = done ? null : (typeof state?.cursor === "string" ? state.cursor : null);
+  const page = await fetchT212TransactionsPage(apiKey, apiSecret, cursor);
+  if (!page.ok) {
+    await writeTransactionsSync({ account, cursor, complete: done, fetched: state?.fetched ?? 0, last_error: page.message });
+    return {
+      account, error: page.message, status: page.status,
+      complete: done, added: 0, scopeDenied: page.status === 403,
+    };
+  }
+  const items = ordersItemsOf(page.body);
+  const rows = items
+    .map((it) => shapeT212Transaction(it, account))
+    .filter((r): r is NonNullable<ReturnType<typeof shapeT212Transaction>> => r !== null);
+  if (ordersPageShapeMismatch(items.length, rows.length)) {
+    const sampleKeys = items[0] && typeof items[0] === "object"
+      ? Object.keys(items[0] as object).sort().join(",")
+      : "";
+    const msg = `shape mismatch: ${items.length} items, 0 parsed`
+      + (sampleKeys ? ` (top-level keys: ${sampleKeys})` : "");
+    console.error(`T212 transactions ${account}: ${msg}`);
+    await writeTransactionsSync({
+      account, cursor, complete: false,
+      fetched: state?.fetched ?? 0, last_error: msg,
+    });
+    return {
+      account, added: 0, skipped: items.length,
+      fetched: state?.fetched ?? 0, complete: false, error: msg,
+    };
+  }
+  const wrote = await writeTransactions(rows);
+  const next = nextOrdersCursor(page.body);
+  const complete = done || (wrote && next === null);
+  const fetched = done
+    ? (typeof state?.fetched === "number" ? state.fetched : rows.length)
+    : (typeof state?.fetched === "number" ? state.fetched : 0) + rows.length;
+  await writeTransactionsSync({
+    account,
+    cursor: done ? null : next,
+    complete,
+    fetched,
+    last_error: wrote ? null : "storage write failed",
+  });
+  return {
+    account,
+    added: rows.length,
+    skipped: items.length - rows.length,
+    fetched,
+    complete,
+    ...(wrote ? {} : { error: "storage write failed — apply migration 0025" }),
+  };
+}
+
+async function pickTopUpStream(): Promise<"orders" | "transactions"> {
+  const o = await readOrdersSync("invest");
+  const t = await readTransactionsSync("invest");
+  const oAt = Date.parse(String(o?.updated_at || 0)) || 0;
+  const tAt = Date.parse(String(t?.updated_at || 0)) || 0;
+  return oAt <= tAt ? "orders" : "transactions";
+}
+
+function t212HistoryAccounts(): Array<[string, string, string]> {
+  const accounts: Array<[string, string, string]> = [["invest", T212_API_KEY, T212_API_SECRET]];
+  if (T212_ISA_API_KEY) accounts.push(["isa", T212_ISA_API_KEY, T212_ISA_API_SECRET]);
+  return accounts;
+}
+
+async function syncHistoryAccounts(
+  kind: "orders" | "transactions",
+): Promise<Record<string, unknown>[]> {
+  const results: Record<string, unknown>[] = [];
+  for (const [name, key, secret] of t212HistoryAccounts()) {
+    results.push(kind === "orders"
+      ? await syncOrdersOnce(name, key, secret)
+      : await syncTransactionsOnce(name, key, secret));
+  }
+  return results;
+}
+
 // Direct insert into public.ops_errors via the service-role key (RLS
 // denies anon). Used by the outer try/catch wrap so a runtime crash
 // here becomes a row the admin ⚠ badge surfaces instead of a silent
@@ -890,33 +1163,54 @@ if (import.meta.main) {
 
       const action = new URL(req.url).searchParams.get("action") ?? "";
 
-      // Executed-fill history. `orders` is a plain read of what's been
-      // backfilled; `orders-sync` advances the backfill by one page per
-      // account and is admin-only, because it writes and because it
-      // spends a rate-limited upstream budget a viewer has no business
-      // spending.
+      // History backfill. `orders` / `transactions` are plain reads of
+      // what's been stored; `orders-sync` / `history-sync` advance a
+      // page and are admin-only (they write, and they spend a
+      // rate-limited upstream budget a viewer has no business spending).
+      //
+      // `history-sync` walks orders first, then cash movements — the
+      // two endpoints share a tight per-minute budget, so doing both
+      // in one call is the fastest way to a 429. After both walks
+      // latch, a later session tops up orders (new fills) and leaves
+      // transactions for the next session.
       if (action === "orders") {
         return new Response(JSON.stringify({ orders: await readOrders() }), {
           headers: { ...CORS, "content-type": "application/json" },
         });
       }
-      if (action === "orders-sync") {
+      if (action === "transactions") {
+        const rows = await readTransactions();
+        return new Response(JSON.stringify({
+          transactions: rows,
+          complete: await transactionsSyncComplete(),
+        }), { headers: { ...CORS, "content-type": "application/json" } });
+      }
+      if (action === "orders-sync" || action === "history-sync") {
         if (verified.role !== "admin") {
           return new Response(JSON.stringify({ error: "admin only" }), {
             status: 403, headers: { ...CORS, "content-type": "application/json" },
           });
         }
-        const accounts: Array<[string, string, string]> = [["invest", T212_API_KEY, T212_API_SECRET]];
-        if (T212_ISA_API_KEY) accounts.push(["isa", T212_ISA_API_KEY, T212_ISA_API_SECRET]);
-        // Sequential, not parallel: the two accounts share one upstream
-        // rate limit and firing both at once is the fastest way to a 429.
-        const results: Record<string, unknown>[] = [];
-        for (const [name, key, secret] of accounts) {
-          results.push(await syncOrdersOnce(name, key, secret));
-        }
+        // Sequential, not parallel: two accounts on one endpoint already
+        // sit on the 6/min ceiling.
+        const ordersDone = action === "history-sync" ? await ordersSyncComplete() : false;
+        const txDone = action === "history-sync" ? await transactionsSyncComplete() : false;
+        const stream = action !== "history-sync"
+          ? "orders"
+          : (!ordersDone ? "orders" : (!txDone ? "transactions" : await pickTopUpStream()));
+        const results = await syncHistoryAccounts(stream);
+        const streamComplete = results.every((r) => r.complete === true);
+        const ordersComplete = stream === "orders" ? streamComplete : ordersDone;
+        const transactionsComplete = stream === "transactions" ? streamComplete : txDone;
+        const bothComplete = action === "history-sync"
+          ? (ordersComplete && transactionsComplete)
+          : streamComplete;
         return new Response(JSON.stringify({
+          stream,
           accounts: results,
-          complete: results.every((r) => r.complete === true),
+          complete: bothComplete,
+          ordersComplete,
+          transactionsComplete,
         }), { headers: { ...CORS, "content-type": "application/json" } });
       }
 

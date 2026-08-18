@@ -685,10 +685,11 @@ export function InvestmentChart({ series, rangeKey, setRangeKey, hideValues }) {
  * @param {{
  *   portfolio: any, tickerSeries: any, marketData: any,
  *   fxToUSD: any, dates: string[], useExt?: boolean, rangeKey?: string,
+ *   t212Cash?: {transactions: any[], orders?: any[], complete: boolean}|null,
  * }} opts
  * @returns {{ts:number, value:number, deposit:number}[]}
  */
-export function deriveSeries({ portfolio, tickerSeries, marketData, fxToUSD, dates, useExt = false, rangeKey = 'YTD' }) {
+export function deriveSeries({ portfolio, tickerSeries, marketData, fxToUSD, dates, useExt = false, rangeKey = 'YTD', t212Cash }) {
   const out = [];
   const all = dates || [];
   if (all.length === 0) return out;
@@ -708,7 +709,7 @@ export function deriveSeries({ portfolio, tickerSeries, marketData, fxToUSD, dat
       prevCloseBasis: rangeKey === '1D',
     });
     const { netDeposit } = investmentPointAt({
-      portfolio, tickerSeries, date: d, marketData, fxToUSD,
+      portfolio, tickerSeries, date: d, marketData, fxToUSD, t212Cash,
     });
     // One NaN would take the whole axis with it — a holding whose
     // `shares` never got filled in is enough to produce one, via the
