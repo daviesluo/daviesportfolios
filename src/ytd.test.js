@@ -1037,32 +1037,64 @@ describe('investmentPointAt', () => {
       fxToUSD: () => 1.25,
     });
     expect(p.value).toBeCloseTo(10 * 90 * 1.25, 9);
-    expect(p.netDeposit).toBeCloseTo(10 * 80 * 1.25, 9);
+    // Deposit is the native cash paid for the lots, not 80×1.25.
+    expect(p.netDeposit).toBeCloseTo(10 * 80, 9);
+  });
+
+  it('does not reprice a past deposit when live FX moves', () => {
+    const portfolio = { holdings: {
+      'VUAA.L': { currency: 'GBP', lots: [{ date: '2026-01-05', shares: 10, cost: 80 }] },
+    } };
+    const tickerSeries = seriesOf({ 'VUAA.L': [{ date: '2026-01-05', close: 80 }] });
+    const at = (fx) => investmentPointAt({
+      portfolio, tickerSeries, date: '2026-08-18', fxToUSD: fx,
+    }).netDeposit;
+    expect(at(() => 1.25)).toBeCloseTo(800, 9);
+    expect(at(() => 1.40)).toBeCloseTo(800, 9);
+  });
+
+  it('keeps August flat when no cash was paid in that month', () => {
+    const portfolio = { holdings: {
+      NVDA: { currency: 'USD', lots: [{ date: '2026-01-05', shares: 10, cost: 100 }] },
+      CASH: { isCash: true, lastPrice: 500 },
+    } };
+    const tickerSeries = seriesOf({ NVDA: [{ date: '2026-01-05', close: 100 }] });
+    const t212Cash = {
+      complete: true,
+      orders: [{ ticker: 'NVDA' }],
+      transactions: [
+        { type: 'deposit', amount: 1500, currency: 'USD', occurred_at: '2026-01-05T00:00:00Z' },
+      ],
+    };
+    const at = (d, fx = () => 1) => investmentPointAt({
+      portfolio, tickerSeries, date: d, fxToUSD: fx, t212Cash,
+    }).netDeposit;
+    expect(at('2026-07-31')).toBeCloseTo(1500, 9);
+    expect(at('2026-08-01')).toBeCloseTo(1500, 9);
+    expect(at('2026-08-18', () => 1.40)).toBeCloseTo(1500, 9);
   });
 });
 
 describe('t212MoneyInAt', () => {
-  const fx = (cur) => (cur === 'GBP' ? 1.25 : 1);
-
-  it('sums deposits minus withdrawals up to the day, in USD', () => {
+  it('sums deposits minus withdrawals up to the day, without live FX', () => {
     const txs = [
       { type: 'deposit', amount: 1000, currency: 'USD', occurred_at: '2026-01-10T12:00:00Z' },
       { type: 'deposit', amount: 800, currency: 'GBP', occurred_at: '2026-02-01T12:00:00Z' },
       { type: 'withdraw', amount: 200, currency: 'USD', occurred_at: '2026-03-01T12:00:00Z' },
       { type: 'fee', amount: 5, currency: 'USD', occurred_at: '2026-02-15T12:00:00Z' },
     ];
-    expect(t212MoneyInAt(txs, '2026-01-01', fx, {})).toBe(0);
-    expect(t212MoneyInAt(txs, '2026-01-10', fx, {})).toBeCloseTo(1000, 9);
-    // 1000 + 800×1.25
-    expect(t212MoneyInAt(txs, '2026-02-01', fx, {})).toBeCloseTo(2000, 9);
+    expect(t212MoneyInAt(txs, '2026-01-01')).toBe(0);
+    expect(t212MoneyInAt(txs, '2026-01-10')).toBeCloseTo(1000, 9);
+    // GBP 800 is not multiplied by live GBPUSD.
+    expect(t212MoneyInAt(txs, '2026-02-01')).toBeCloseTo(1800, 9);
     // fee ignored; withdraw 200
-    expect(t212MoneyInAt(txs, '2026-03-01', fx, {})).toBeCloseTo(1800, 9);
+    expect(t212MoneyInAt(txs, '2026-03-01')).toBeCloseTo(1600, 9);
   });
 
   it('treats a withdraw amount as an outflow even if T212 signs it positive', () => {
     expect(t212MoneyInAt(
       [{ type: 'withdraw', amount: 50, currency: 'USD', occurred_at: '2026-01-01T00:00:00Z' }],
-      '2026-01-01', () => 1, {},
+      '2026-01-01',
     )).toBeCloseTo(-50, 9);
   });
 });

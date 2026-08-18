@@ -687,9 +687,12 @@ export function ytdPct({ value, basis }) {
  * count at `date` is buys minus sells up to that date.
  *
  * `netDeposit` is money in, not cost basis: cumulative buy cash minus
- * sale proceeds. When you sell at a profit it drops by more than the
- * cost of what you sold, which is the point — the gap between the two
- * lines is what the account actually made.
+ * sale proceeds (or T212 deposit − withdraw once that history is
+ * complete). It is NOT revalued at live FX — a past GBP lot or a
+ * GBP deposit does not wiggle when GBPUSD ticks. When you sell at a
+ * profit it drops by more than the cost of what you sold, which is
+ * the point — the gap between the two lines is what the account
+ * actually made.
  *
  * Cash is added to BOTH lines (the chosen "match the scoreboard"
  * reading): the scoreboard's PORTFOLIO includes it, and money sitting in
@@ -819,19 +822,18 @@ function t212FillTickers(orders) {
 }
 
 /**
- * T212 money paid in up to `day`: deposits minus withdrawals, in USD.
+ * T212 money paid in up to `day`: deposits minus withdrawals.
  *
- * Fees and interest are not money the user paid in — they are
- * performance — so they are ignored here. TRANSFER between the two
- * accounts nets out once both sides are stored; until the sign
- * convention is pinned it is ignored rather than counted twice.
+ * Amounts stay as T212 recorded them. Live FX must not reprice a
+ * past deposit — that's a step that stays, not a marked-to-market
+ * USD figure. Fees and interest are performance, not money paid in.
+ * TRANSFER between the two accounts is ignored until the sign
+ * convention is pinned.
  *
  * @param {Array<{type?: string, amount?: number, currency?: string, occurred_at?: string, dateTime?: string}>} transactions
  * @param {string} day YYYY-MM-DD (intraday chart dates are sliced)
- * @param {(currency: string, marketData: any) => number} fxToUSD
- * @param {any} marketData
  */
-export function t212MoneyInAt(transactions, day, fxToUSD, marketData) {
+export function t212MoneyInAt(transactions, day) {
   if (!Array.isArray(transactions) || transactions.length === 0) return 0;
   const cutoff = (day || '').slice(0, 10);
   let sum = 0;
@@ -841,11 +843,8 @@ export function t212MoneyInAt(transactions, day, fxToUSD, marketData) {
     const type = String(tx?.type || '').toLowerCase();
     const amount = Number(tx?.amount);
     if (!isFinite(amount) || amount === 0) continue;
-    const cur = typeof tx?.currency === 'string' && tx.currency ? tx.currency : 'USD';
-    const fx = (cur !== 'USD') ? fxToUSD(cur, marketData) : 1;
-    if (!isFinite(fx)) continue;
-    if (type === 'deposit') sum += Math.abs(amount) * fx;
-    else if (type === 'withdraw') sum -= Math.abs(amount) * fx;
+    if (type === 'deposit') sum += Math.abs(amount);
+    else if (type === 'withdraw') sum -= Math.abs(amount);
   }
   return sum;
 }
@@ -912,7 +911,10 @@ export function investmentPointAt(opts) {
       const c = Number(l?.cost);
       if (!d || d > day || !isFinite(n) || n <= 0) continue;
       shares += n;
-      if (!skipLotDeposit && isFinite(c)) netDeposit += n * c * fx;
+      // Deposit is money paid in, not a live FX conversion of cost.
+      // Repricing GBP lots at today's GBPUSD is what made August
+      // wiggle on the deposit line with no cash paid in.
+      if (!skipLotDeposit && isFinite(c)) netDeposit += n * c;
     }
     for (const sl of (Array.isArray(h?.sells) ? h.sells : [])) {
       const d = String(sl?.date || '').slice(0, 10);
@@ -920,7 +922,7 @@ export function investmentPointAt(opts) {
       const px = Number(sl?.price);
       if (!d || d > day || !isFinite(n) || n <= 0) continue;
       shares -= n;
-      if (!skipLotDeposit && isFinite(px)) netDeposit -= n * px * fx;
+      if (!skipLotDeposit && isFinite(px)) netDeposit -= n * px;
     }
     // Float dust from fractional lots (T212 DCA quantities) — the same
     // snap transactions.netPosition applies, so a fully-sold position
@@ -943,7 +945,7 @@ export function investmentPointAt(opts) {
   }
 
   if (useT212) {
-    netDeposit += t212MoneyInAt(t212Cash.transactions, day, fxToUSD, marketData);
+    netDeposit += t212MoneyInAt(t212Cash.transactions, day);
     return { value: value + cashUSD, netDeposit };
   }
   return { value: value + cashUSD, netDeposit: netDeposit + cashUSD };

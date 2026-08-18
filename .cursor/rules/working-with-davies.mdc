@@ -200,10 +200,11 @@ Changing any of these means re-opening a decision he has already made.
   scope; retrying will never fix it.
 - History items are nested `{ fill, order }` (fill.id / fill.price /
   fill.quantity / fill.filledAt, order.instrument.ticker / order.side).
-  A flat ticker/filledQuantity shaper parsed every page to 0 rows and
-  still advanced the cursor, walking the history into the void. Don't
-  advance the cursor when a page has items and none parse — that's a
-  shape bug, not an empty page.
+  ISA pages also arrive as `{ order }` with no fill. Don't advance the
+  cursor when the envelope itself is unknown. Do advance when every
+  item is a recognised order envelope that simply didn't produce a
+  storeable fill — freezing that parked the ISA walk and blocked cash
+  history. Deposit amounts are not revalued at live FX.
 
 ### Labels and other surfaces
 

@@ -191,20 +191,23 @@ Deno.test("snapshotDeposit: unfinished T212 walk keeps the ledger formula", () =
   assertEquals(snapshotDeposit(board, {}, t212), 10 * 70 + 1000);
 });
 
-Deno.test("snapshotDeposit: a non-T212 holding still counts from its lots", () => {
-  const mixed = {
-    positions: { FWD: { tickers: ["NVDA", "PVT"] } },
+Deno.test("snapshotDeposit: live FX does not move the deposit figure", () => {
+  const gbpBoard = {
+    positions: { FWD: { tickers: ["VUAA.L"] } },
     holdings: {
-      NVDA: { currency: "USD", shares: 10, lots: [{ date: "2026-01-15", shares: 10, cost: 70 }] },
-      PVT: { currency: "USD", shares: 1, lots: [{ date: "2026-01-10", shares: 1, cost: 500 }] },
+      "VUAA.L": { currency: "GBP", shares: 10, lots: [{ date: "2026-01-05", shares: 10, cost: 80 }] },
     },
   };
+  const low = { "GBPUSD=X": { lastPrice: 1.25 } };
+  const high = { "GBPUSD=X": { lastPrice: 1.40 } };
+  assertEquals(snapshotDeposit(gbpBoard, low, null), 800);
+  assertEquals(snapshotDeposit(gbpBoard, high, null), 800);
   const t212 = {
     complete: true,
-    orders: [{ ticker: "NVDA" }],
-    transactions: [{ type: "deposit", amount: 4000, currency: "USD" }],
+    orders: [{ ticker: "VUAA.L" }],
+    transactions: [{ type: "deposit", amount: 800, currency: "GBP" }],
   };
-  assertEquals(snapshotDeposit(mixed, {}, t212), 4000 + 500);
+  assertEquals(snapshotDeposit(gbpBoard, high, t212), 800);
 });
 
 Deno.test("lastPerBucket: keeps the last sample in each slice", () => {

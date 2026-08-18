@@ -207,14 +207,19 @@ Changing any of these means re-opening a decision he has already made.
   missing-scope prompt.
 - History items are nested `{ fill, order }` (fill.id / fill.price /
   fill.quantity / fill.filledAt, order.instrument.ticker / order.side).
-  A flat ticker/filledQuantity shaper parsed every page to 0 rows and
-  still advanced the cursor, walking the history into the void. Don't
-  advance the cursor when a page has items and none parse — that's a
-  shape bug, not an empty page.
-- Once `/equity/history/transactions` has been walked to completion,
-  the deposit line is T212 money paid in (deposit − withdraw), not
-  summed lot costs. An unfinished newest-first walk must keep the
-  ledger formula or it understates old deposits.
+  ISA pages also arrive as `{ order }` with no fill (cancelled / never
+  filled have nothing to fill). A flat ticker/filledQuantity shaper
+  parsed every page to 0 rows and still advanced the cursor, walking
+  the history into the void. Don't advance the cursor when the
+  envelope itself is unknown. Do advance when every item is a
+  recognised order envelope that simply didn't produce a storeable
+  fill — freezing that parked the ISA walk and blocked cash history.
+- Once `/equity/history/transactions` has been walked to completion
+  on both accounts, the deposit line is T212 money paid in (deposit −
+  withdraw), not summed lot costs. An unfinished newest-first walk
+  must keep the ledger formula or it understates old deposits. The
+  keys already have History: transactions. Deposit amounts are not
+  revalued at live FX; a month with no cash-in is a horizontal step.
 
 ### Labels and other surfaces
 

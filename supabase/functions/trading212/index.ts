@@ -171,7 +171,9 @@ export const T212_TRANSACTIONS_URL = "https://live.trading212.com/api/v0/equity/
  * flat ticker/filledQuantity row the first shaper expected. A page of
  * that nested shape parsed to 0 rows while the cursor still advanced,
  * so the backfill walked the history storing nothing. `flattenT212OrderItem`
- * unwraps it; the original flat fixtures still round-trip.
+ * unwraps it; the original flat fixtures still round-trip. ISA also
+ * sends `{ order }` with no fill (cancelled / never filled); those
+ * must skip and advance, not freeze the cursor.
  *
  * Returns null for anything that isn't a completed fill with a real
  * quantity and price — an open, cancelled or rejected order didn't move
@@ -201,8 +203,11 @@ export function flattenT212OrderItem(raw: unknown): Record<string, unknown> | nu
     status: ord.status ?? o.status,
     side: ord.side ?? o.side,
     filledQuantity: fl.quantity ?? ord.filledQuantity ?? o.filledQuantity,
+    quantity: fl.quantity ?? ord.quantity ?? o.quantity,
+    orderedQuantity: ord.quantity ?? o.orderedQuantity,
     fillPrice: fl.price ?? o.fillPrice ?? ord.limitPrice,
-    fillCost: wallet.netValue ?? ord.filledValue ?? o.fillCost,
+    fillCost: wallet.netValue ?? ord.filledValue ?? o.fillCost ?? o.filledValue,
+    filledValue: ord.filledValue ?? o.filledValue,
     fillId: fl.id ?? o.fillId,
     id: ord.id ?? o.id,
     dateExecuted: fl.filledAt ?? o.dateExecuted,
@@ -211,9 +216,36 @@ export function flattenT212OrderItem(raw: unknown): Record<string, unknown> | nu
   };
 }
 
-/** True when a page arrived but nothing in it could be stored. */
-export function ordersPageShapeMismatch(itemCount: number, parsedCount: number): boolean {
-  return itemCount > 0 && parsedCount === 0;
+/**
+ * True when the item is a T212 history-order envelope we know how to
+ * read — nested `{ fill, order }`, order-only (cancelled / never
+ * filled have no fill), or the older flat ticker row. A page of these
+ * that stores nothing is skipped fills, not a shape we don't
+ * recognise.
+ */
+export function t212OrderItemRecognized(raw: unknown): boolean {
+  if (!raw || typeof raw !== "object") return false;
+  const o = raw as Record<string, unknown>;
+  if (o.order && typeof o.order === "object") return true;
+  if (o.fill && typeof o.fill === "object") return true;
+  return typeof o.ticker === "string" && o.ticker.length > 0;
+}
+
+/**
+ * True when a page arrived in an envelope we cannot read, so the
+ * cursor must not advance. A page of recognised orders that were all
+ * cancelled / never filled / value-only is NOT this — advancing is
+ * what unsticks the ISA walk that parked on `{ order }` with no fill
+ * and blocked cash history from ever starting.
+ */
+export function ordersPageShapeMismatch(
+  itemCount: number,
+  parsedCount: number,
+  recognizedCount = 0,
+): boolean {
+  if (itemCount <= 0 || parsedCount > 0) return false;
+  if (recognizedCount >= itemCount) return false;
+  return true;
 }
 
 export function shapeT212Order(raw: unknown, account: string): {
@@ -241,7 +273,15 @@ export function shapeT212Order(raw: unknown, account: string): {
   const t212Ticker = typeof o.ticker === "string" ? o.ticker : "";
   if (!t212Ticker) return null;
 
-  const qty = num(o.filledQuantity) ?? num(o.orderedQuantity) ?? num(o.quantity);
+  const cost = num(o.fillCost) ?? num(o.filledValue) ?? num(o.orderedValue);
+  const statedPrice = num(o.fillPrice) ?? num(o.limitPrice);
+  let qty = num(o.filledQuantity) ?? num(o.orderedQuantity) ?? num(o.quantity);
+  // Value-strategy orders (pies / spare-change) often have filledValue
+  // and a price but no share quantity. Derive shares rather than drop
+  // the row — dropping a whole page of those parked the ISA walk.
+  if ((qty == null || qty === 0) && cost != null && statedPrice != null && statedPrice > 0) {
+    qty = Math.abs(cost) / statedPrice;
+  }
   if (qty == null || qty === 0) return null;
 
   // Nested history reports `order.side` (BUY/SELL) with a positive
@@ -251,8 +291,7 @@ export function shapeT212Order(raw: unknown, account: string): {
   const side: "buy" | "sell" = qty < 0 || declared === "SELL" ? "sell" : "buy";
   const shares = Math.abs(qty);
 
-  const cost = num(o.fillCost) ?? num(o.filledValue) ?? num(o.orderedValue);
-  const price = num(o.fillPrice) ?? num(o.limitPrice)
+  const price = statedPrice
     ?? (cost != null && shares > 0 ? Math.abs(cost) / shares : null);
   if (price == null || !(price > 0)) return null;
 
@@ -882,10 +921,14 @@ async function syncOrdersOnce(
   const rows = items
     .map((it) => shapeT212Order(it, account))
     .filter((r): r is NonNullable<ReturnType<typeof shapeT212Order>> => r !== null);
-  // A page that arrived but parsed to nothing is a shape bug, not an
-  // empty history. Advancing the cursor here walked the real nested
-  // `{ fill, order }` payload into the void (fetched stayed 0).
-  if (ordersPageShapeMismatch(items.length, rows.length)) {
+  // A page that arrived in an UNKNOWN envelope must not advance —
+  // that's how the nested `{ fill, order }` payload walked the
+  // history into the void. A page of recognised `{ order }` rows
+  // that were all cancelled / never filled is the opposite: skip
+  // and advance, or the walk parks forever and cash history never
+  // starts.
+  const recognized = items.filter(t212OrderItemRecognized).length;
+  if (ordersPageShapeMismatch(items.length, rows.length, recognized)) {
     const sampleKeys = items[0] && typeof items[0] === "object"
       ? Object.keys(items[0] as object).sort().join(",")
       : "";
@@ -1049,7 +1092,13 @@ async function syncTransactionsOnce(
   const rows = items
     .map((it) => shapeT212Transaction(it, account))
     .filter((r): r is NonNullable<ReturnType<typeof shapeT212Transaction>> => r !== null);
-  if (ordersPageShapeMismatch(items.length, rows.length)) {
+  const recognized = items.filter((it) => {
+    if (!it || typeof it !== "object") return false;
+    const o = it as Record<string, unknown>;
+    return typeof o.type === "string" || typeof o.amount === "number"
+      || typeof o.dateTime === "string";
+  }).length;
+  if (ordersPageShapeMismatch(items.length, rows.length, recognized)) {
     const sampleKeys = items[0] && typeof items[0] === "object"
       ? Object.keys(items[0] as object).sort().join(",")
       : "";
