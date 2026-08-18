@@ -1,7 +1,7 @@
 // Main portfolio tactics board app
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { fmtMoney, fmtPct, fmtPrice, pctColor } from './formatters.js';
-import { fxToUSD } from './fx.js';
+import { depositFxMissing, freezeDepositFxRates, fxToUSD } from './fx.js';
 import { netDepositNow } from './ytd.js';
 import { saveSnapshot, SNAPSHOT_INTERVAL_MS } from './portfolio_snapshots.js';
 import { createPortfolioEditHandlers } from './portfolio_edits.js';
@@ -35,7 +35,7 @@ import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
-import { fetchTrading212Holdings, fetchTrading212Orders, fetchTrading212Transactions, syncTrading212History, applyTrading212, applyTrading212NightPrice } from './trading212.js';
+import { fetchTrading212Holdings, fetchTrading212Orders, syncTrading212History, applyTrading212, applyTrading212NightPrice, stripClosedFromPositions } from './trading212.js';
 import { fetchOvernightSeries } from './overnight_intraday.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
@@ -627,7 +627,7 @@ function Board({ isReadOnly }) {
     // 5d/5m pull for 15 symbols off every tick.
     const wantTodayCloses = refreshPhase !== "regular"
       && (Date.now() - todayClosesRef.current.ts > 30 * 60 * 1000);
-    const [{ updates, source: src, coverage }, mcResult, todayClosesFresh, extSeries, t212Holdings, t212Orders, t212Tx] = await Promise.all([
+    const [{ updates, source: src, coverage }, mcResult, todayClosesFresh, extSeries, t212Holdings, t212Orders] = await Promise.all([
       refreshPrices(portfolio),
       fetchTickers(MC_TICKERS),
       wantTodayCloses ? fetchTodayRegularClose(MC_TICKERS) : Promise.resolve(null),
@@ -647,16 +647,12 @@ function Board({ isReadOnly }) {
       // tickers. Cached client-side for ten minutes — the history is
       // immutable, so this costs nothing on the 30-second tick.
       fetchTrading212Orders(),
-      // Cash movements (DEPOSIT/WITHDRAW). Same 10-minute client cache
-      // as fills — the history is immutable. `complete` stays false
-      // until both accounts have been walked, so a partial newest-first
-      // read is not treated as the whole deposit history.
-      fetchTrading212Transactions(),
     ]);
+    const t212OrderRows = Array.isArray(t212Orders?.rows) ? t212Orders.rows : [];
     setT212Cash({
-      transactions: Array.isArray(t212Tx?.rows) ? t212Tx.rows : [],
-      orders: Array.isArray(t212Orders) ? t212Orders : [],
-      complete: t212Tx?.complete === true,
+      transactions: [],
+      orders: t212OrderRows,
+      complete: t212Orders?.complete === true,
     });
     // Refresh the cache when we fetched this tick; otherwise reuse it. Apply
     // whichever map we have so the MC ext-on anchor stays populated even on
@@ -681,7 +677,14 @@ function Board({ isReadOnly }) {
     const extCloseMins = extMh.closeHh * 60 + extMh.closeMm;
     setPortfolio(prev => {
       if (!prev) return prev;
-      const next = { ...prev, holdings: { ...prev.holdings } };
+      let next = {
+        ...prev,
+        holdings: { ...prev.holdings },
+        depositFxRates: freezeDepositFxRates(
+          prev.depositFxRates,
+          mcResult,
+        ),
+      };
       for (const [t, u] of Object.entries(updates)) {
         if (!next.holdings[t]) continue;
         // Respect the Edge response's `extPrice` verbatim — including
@@ -737,7 +740,8 @@ function Board({ isReadOnly }) {
       //      after-hours keep the original Yahoo logic untouched.
       // When the API key isn't set or the upstream errored,
       // t212Holdings is null → both calls no-op.
-      applyTrading212(next.holdings, t212Holdings?.holdings, t212Holdings?.prices, undefined, t212Orders);
+      applyTrading212(next.holdings, t212Holdings?.holdings, t212Holdings?.prices, undefined, t212OrderRows);
+      next = stripClosedFromPositions(next);
       // Apply T212's overnight price into holdings.extPrice whenever
       // it's the overnight window — NOT gated on the Extended Hours
       // toggle. Mirrors the Yahoo extPrice / extSeries fetch above
@@ -991,7 +995,12 @@ function Board({ isReadOnly }) {
   // a ref so the interval reads current numbers without being torn down
   // and re-armed on every price tick (which would reset its phase and
   // could starve the sample entirely on a busy board).
-  const metricsRef = useRef(/** @type {{marketValue:number, netDeposit:number, fxMissing:boolean}|null} */ (null));
+  const metricsRef = useRef(/** @type {{
+   *   marketValue:number,
+   *   netDeposit:number,
+   *   fxMissing:boolean,
+   *   depositFxMissing:boolean,
+   * }|null} */ (null));
   metricsRef.current = metrics
     ? {
         marketValue: metrics.marketValue,
@@ -1004,6 +1013,7 @@ function Board({ isReadOnly }) {
         // permanent table which then "corrects" itself on the next tick,
         // which is exactly what a stray step in the deposit line is.
         fxMissing: (metrics.fxMissingTickers || []).length > 0,
+        depositFxMissing: depositFxMissing(portfolio),
       }
     : null;
 
@@ -1012,18 +1022,27 @@ function Board({ isReadOnly }) {
   // sample up to five minutes old. Held as primitives so the identity
   // only changes when the numbers do — the chart memoises on it. Null
   // while an FX pair is missing, for the same reason the sampler skips.
-  const liveMV = metricsRef.current && !metricsRef.current.fxMissing ? metricsRef.current.marketValue : null;
-  const liveND = metricsRef.current && !metricsRef.current.fxMissing ? metricsRef.current.netDeposit : null;
+  const liveMetrics = metricsRef.current;
+  const liveSnapshot = liveMetrics
+      && !liveMetrics.fxMissing
+      && !liveMetrics.depositFxMissing
+    ? liveMetrics
+    : null;
+  const liveMV = liveSnapshot?.marketValue ?? null;
+  const liveND = liveSnapshot?.netDeposit ?? null;
   const liveInvestment = useMemo(
-    () => (liveMV != null && liveND != null && liveMV > 0 ? { marketValue: liveMV, netDeposit: liveND } : null),
+    () => (typeof liveMV === 'number' && Number.isFinite(liveMV) && liveMV >= 0
+        && typeof liveND === 'number' && Number.isFinite(liveND)
+      ? { marketValue: liveMV, netDeposit: liveND }
+      : null),
     [liveMV, liveND],
   );
 
-  // Trading 212 history backfill: each account's fills first, then
-  // that account's cash movements. A finished account does not steal
-  // a rate-limit slot from one that's still walking. Both endpoints
-  // allow only a handful of calls a minute. Self-completing: pages
-  // every 20 s until both walks latch, then stops. Admin only.
+  // Trading 212 fill backfill. Deposited is reconstructed from the
+  // actual filled quantity × price × timestamp, so cash/card
+  // transactions are deliberately not part of the chart. Once both
+  // ORDER walks latch, top up page one every ten minutes so a fill made
+  // while this tab stays open still reaches Deposited without a reload.
   useEffect(() => {
     if (isReadOnly) return undefined;
     let cancelled = false;
@@ -1043,8 +1062,10 @@ function Board({ isReadOnly }) {
         });
         return;
       }
-      if (res.complete) return;
-      timer = setTimeout(step, 20000);
+      timer = setTimeout(
+        step,
+        res.ordersComplete === true ? 10 * 60 * 1000 : 20000,
+      );
     };
     timer = setTimeout(step, 8000);
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
@@ -1071,12 +1092,13 @@ function Board({ isReadOnly }) {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       if (phaseRef.current !== 'regular') return;
       const m = metricsRef.current;
-      if (!m || !(m.marketValue > 0)) return;
+      if (!m || !Number.isFinite(m.marketValue) || m.marketValue < 0) return;
       // Skip the tick entirely rather than record a figure converted at
       // a fallback 1:1 rate. The next tick is five minutes away and the
       // FX pair is usually back by then; a bad row, by contrast, is
       // permanent.
       if (m.fxMissing) return;
+      if (m.depositFxMissing) return;
       saveSnapshot(m.marketValue, m.netDeposit);
     };
     // One immediately so a session that never lasts five minutes still

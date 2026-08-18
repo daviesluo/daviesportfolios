@@ -62,10 +62,8 @@ function headers() {
  */
 export async function saveSnapshot(valueUsd, depositUsd, nowMs = Date.now()) {
   if (!isFinite(valueUsd) || !isFinite(depositUsd)) return false;
-  // A zero-value board means the portfolio hasn't loaded yet — recording
-  // it would punch a hole in the chart at exactly the moment the user
-  // opened the app.
-  if (!(valueUsd > 0)) return false;
+  // Zero is a real fully-sold portfolio. A negative market value is not.
+  if (valueUsd < 0) return false;
   try {
     const res = await fetch(`${EDGE_DATA_URL}?action=snapshot`, {
       method: 'POST',

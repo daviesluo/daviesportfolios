@@ -52,13 +52,12 @@ describe('saveSnapshot', () => {
     expect(body.depositUsd).toBe(1000);
   });
 
-  it('refuses to record a not-yet-loaded board', async () => {
-    // A zero value means the portfolio hasn't landed; recording it would
-    // punch a hole in the chart at the moment the user opened the app.
-    globalThis.fetch = /** @type {any} */ (vi.fn());
-    expect(await saveSnapshot(0, 0)).toBe(false);
+  it('records a fully-sold zero and rejects invalid/negative values', async () => {
+    globalThis.fetch = /** @type {any} */ (vi.fn(async () => ({ ok: true })));
+    expect(await saveSnapshot(0, 0)).toBe(true);
+    expect(await saveSnapshot(-1, 0)).toBe(false);
     expect(await saveSnapshot(NaN, 100)).toBe(false);
-    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   });
 
   it('swallows a failed write — the next tick carries an equally good number', async () => {

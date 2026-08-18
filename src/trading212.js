@@ -45,7 +45,15 @@ import { hasOvernightSession } from './ticker_class.js';
  * function 401s anonymous callers so holdings aren't leaked via the
  * function URL. Both admin and ro tokens are accepted.
  *
- * @returns {Promise<{ holdings: Record<string, { shares: number, cost: number }>, prices: Record<string, number> } | null>}
+ * @returns {Promise<{
+ *   holdings: Record<string, {
+ *     shares: number,
+ *     cost: number,
+ *     previousShares?: number,
+ *     previousCost?: number,
+ *   }>,
+ *   prices: Record<string, number>,
+ * } | null>}
  */
 export async function fetchTrading212Holdings() {
   try {
@@ -66,17 +74,34 @@ export async function fetchTrading212Holdings() {
     if (!json || typeof json !== 'object') return null;
     if (json.source === 'disabled') return null;
 
-    const holdings = /** @type {Record<string, { shares: number, cost: number }>} */ ({});
+    const holdings = /** @type {Record<string, {
+     *   shares: number,
+     *   cost: number,
+     *   previousShares?: number,
+     *   previousCost?: number,
+     * }>} */ ({});
     const h = json.holdings;
     if (h && typeof h === 'object') {
       for (const [t, row] of Object.entries(h)) {
         if (!row || typeof row !== 'object') continue;
-        const r = /** @type {{shares?: unknown, cost?: unknown}} */ (row);
+        const r = /** @type {{
+         *   shares?: unknown,
+         *   cost?: unknown,
+         *   previousShares?: unknown,
+         *   previousCost?: unknown,
+         * }} */ (row);
         const shares = Number(r.shares);
         const cost   = Number(r.cost);
-        if (!isFinite(shares) || shares <= 0) continue;
+        if (!isFinite(shares) || shares < 0) continue;
         if (!isFinite(cost)   || cost   < 0)  continue;
-        holdings[t] = { shares, cost };
+        const previousShares = Number(r.previousShares);
+        const previousCost = Number(r.previousCost);
+        holdings[t] = {
+          shares,
+          cost,
+          ...(isFinite(previousShares) && previousShares >= 0 ? { previousShares } : {}),
+          ...(isFinite(previousCost) && previousCost >= 0 ? { previousCost } : {}),
+        };
       }
     }
 
@@ -105,16 +130,21 @@ export async function fetchTrading212Holdings() {
  * date was a guess. Served from `t212_orders`, which the backfill fills
  * a page at a time; empty until that has run.
  *
- * @returns {Promise<Array<{ticker: string|null, executed_at: string, side: string, shares: number, price: number, account: string}>>}
+ * @returns {Promise<{
+ *   rows: Array<{ticker: string|null, executed_at: string, side: string, shares: number, price: number, account: string}>,
+ *   complete: boolean,
+ * }>}
  */
-let ordersCache = /** @type {{ts: number, rows: any[]} | null} */ (null);
+let ordersCache = /** @type {{ts: number, rows: any[], complete: boolean} | null} */ (null);
 // Executed history is immutable — a fill from 2024 is never going to
 // change — so this only needs re-reading often enough to notice a NEW
 // fill. Ten minutes keeps it off the 30-second refresh tick entirely.
 const ORDERS_TTL_MS = 10 * 60 * 1000;
 
 export async function fetchTrading212Orders() {
-  if (ordersCache && Date.now() - ordersCache.ts < ORDERS_TTL_MS) return ordersCache.rows;
+  if (ordersCache && Date.now() - ordersCache.ts < ORDERS_TTL_MS) {
+    return { rows: ordersCache.rows, complete: ordersCache.complete };
+  }
   try {
     const res = await fetch(`${EDGE_TRADING212_URL}?action=orders`, {
       method: 'GET',
@@ -125,17 +155,26 @@ export async function fetchTrading212Orders() {
       },
       signal: AbortSignal.timeout(10000),
     });
-    if (!res.ok) return ordersCache?.rows || [];
+    if (!res.ok) {
+      return { rows: ordersCache?.rows || [], complete: ordersCache?.complete === true };
+    }
     const body = await res.json();
     const rows = Array.isArray(body?.orders) ? body.orders : [];
+    const complete = body?.complete === true;
     // Never cache an empty read over a good one: empty is ambiguous
     // between "the backfill hasn't run" and "the request failed", and
     // caching it would drop every synced ticker back to its synthetic
     // lot for ten minutes.
-    if (rows.length > 0 || !ordersCache) ordersCache = { ts: Date.now(), rows };
-    return ordersCache.rows;
+    ordersCache = {
+      ts: Date.now(),
+      rows: rows.length > 0 || !ordersCache ? rows : ordersCache.rows,
+      // A successful response is authoritative in BOTH directions. A
+      // reset migration must be able to downgrade a cached `true`.
+      complete,
+    };
+    return { rows: ordersCache.rows, complete: ordersCache.complete };
   } catch {
-    return ordersCache?.rows || [];
+    return { rows: ordersCache?.rows || [], complete: ordersCache?.complete === true };
   }
 }
 
@@ -144,67 +183,24 @@ export function clearTrading212OrdersCache() {
   ordersCache = null;
 }
 
-let txCache = /** @type {{ts: number, rows: any[], complete: boolean} | null} */ (null);
-const TX_TTL_MS = 10 * 60 * 1000;
-
 /**
- * Cash movements from `/equity/history/transactions`, oldest first.
+ * Advance the executed-order backfill by one page.
  *
- * This is "money paid in / taken out" — DEPOSIT and WITHDRAW — which is
- * what the Investment Performance deposit line is asking, as opposed to
- * the fills in `t212_orders` (when that money was deployed into a
- * ticker). Empty until the backfill has run; `complete` is false until
- * both accounts have been walked, so a partial newest-first read is not
- * treated as the whole history.
+ * Deposited uses filled quantity × price × timestamp, not cash/card
+ * movements, so the client deliberately spends the rate-limited budget
+ * on orders only. Admin only.
  *
- * @returns {Promise<{rows: Array<{type: string, amount: number, currency: string, occurred_at: string, account: string}>, complete: boolean}>}
- */
-export async function fetchTrading212Transactions() {
-  if (txCache && Date.now() - txCache.ts < TX_TTL_MS) {
-    return { rows: txCache.rows, complete: txCache.complete };
-  }
-  try {
-    const res = await fetch(`${EDGE_TRADING212_URL}?action=transactions`, {
-      method: 'GET',
-      headers: {
-        'apikey': SB_ANON,
-        'Authorization': `Bearer ${SB_ANON}`,
-        'X-App-Token': getAppToken(),
-      },
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!res.ok) return { rows: txCache?.rows || [], complete: !!txCache?.complete };
-    const body = await res.json();
-    const rows = Array.isArray(body?.transactions) ? body.transactions : [];
-    const complete = body?.complete === true;
-    if (rows.length > 0 || !txCache) txCache = { ts: Date.now(), rows, complete };
-    else if (complete) txCache = { ...txCache, complete: true, ts: Date.now() };
-    return { rows: txCache.rows, complete: txCache.complete };
-  } catch {
-    return { rows: txCache?.rows || [], complete: !!txCache?.complete };
-  }
-}
-
-export function clearTrading212TransactionsCache() {
-  txCache = null;
-}
-
-/**
- * Advance the history backfill by one page.
- *
- * Each account walks fills first, then cash movements. A finished
- * account does not occupy a rate-limit slot while another is still
- * backfilling, so invest can start `/equity/history/transactions`
- * while ISA is still chewing cancelled orders. The caller keeps going
- * until `complete` is true. Admin only. A 403 with `scopeDenied` means
- * the key authenticates but lacks that History scope, which no amount
- * of retrying will fix.
- *
- * @returns {Promise<{accounts: any[], complete: boolean, stream?: string, scopeDenied?: boolean} | null>}
+ * @returns {Promise<{
+ *   accounts: any[],
+ *   complete: boolean,
+ *   ordersComplete?: boolean,
+ *   stream?: string,
+ *   scopeDenied?: boolean,
+ * } | null>}
  */
 export async function syncTrading212History() {
   try {
-    const res = await fetch(`${EDGE_TRADING212_URL}?action=history-sync`, {
+    const res = await fetch(`${EDGE_TRADING212_URL}?action=orders-sync`, {
       method: 'GET',
       headers: {
         'apikey': SB_ANON,
@@ -215,7 +211,6 @@ export async function syncTrading212History() {
     });
     if (!res.ok) return null;
     clearTrading212OrdersCache();
-    clearTrading212TransactionsCache();
     return await res.json();
   } catch {
     return null;
@@ -260,11 +255,18 @@ export function lotsFromOrders(orders, ticker) {
 }
 
 /**
- * Merge the T212 allow-list holdings into an existing `holdings` object:
- * replace each matching ticker's lots with a single synthetic lot dated
- * today, set shares/cost, AND — when a live T212 `currentPrice` is passed
- * for that ticker — use it as `lastPrice` too (recomputing `dayPct` against
- * the stored prevClose and pinning currency USD). The allow-list ETFs
+ * Merge the T212 allow-list positions into an existing `holdings` object.
+ *
+ * The board can contain the SAME ticker at T212 and another broker. The
+ * first implementation treated the T212 slice as the whole position:
+ * it overwrote shares/cost/lots/sells, which both shrank PORTFOLIO and
+ * destroyed the other broker's ledger. Keep the user ledger untouched.
+ * `t212Shares` / `t212Cost` remember which slice came from T212 so later
+ * refreshes apply only that slice's delta.
+ *
+ * When a live T212 `currentPrice` is passed for the ticker, use it as
+ * `lastPrice` too (recomputing `dayPct` against the stored prevClose and
+ * pinning currency USD). The allow-list ETFs
  * (VUAA.L / SAEM.L) are USD-settling and Yahoo's free LSE feed lags
  * ~15-20 min at the open, so the broker's own quote is both fresher and
  * already in USD — the user wants the price to update in lockstep with the
@@ -277,7 +279,12 @@ export function lotsFromOrders(orders, ticker) {
  * vitest pin can assert the merge shape without spinning up React.
  *
  * @param {Record<string, any>} holdings  live portfolio map (mutated)
- * @param {Record<string, { shares: number, cost: number }> | null | undefined} t212Holdings  the `holdings` map from fetchTrading212Holdings
+ * @param {Record<string, {
+ *   shares: number,
+ *   cost: number,
+ *   previousShares?: number,
+ *   previousCost?: number,
+ * }> | null | undefined} t212Holdings  the `holdings` map from fetchTrading212Holdings
  * @param {Record<string, number> | null | undefined} [prices]  the `prices` map (broker currentPrice, USD)
  * @param {string} [today]  ISO date (YYYY-MM-DD) — defaults to today UTC
  * @param {Array<any> | null | undefined} [orders]  executed fills from fetchTrading212Orders
@@ -289,36 +296,75 @@ export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
   const date = today || new Date().toISOString().slice(0, 10);
   for (const [t, row] of Object.entries(overlay)) {
     if (!holdings[t]) continue;
-    // Keep the EARLIEST date the holding already carried rather than
-    // re-stamping today's. The broker reports a position, not a purchase
-    // history, so the single synthetic lot can only ever be an
-    // approximation — but re-dating it on every sync made the position
-    // read as bought today, every day. Anything reconstructing the past
-    // from the ledger (the Investment Performance chart's derived half,
-    // and the net-deposit figure the sampler records) then saw the money
-    // arriving this morning and drew the deposit line starting from
-    // nothing. Today's date is only used the first time, when there is
-    // genuinely nothing better to go on.
-    const prior = (Array.isArray(holdings[t].lots) ? holdings[t].lots : [])
-      .map(l => (typeof l?.date === 'string' ? l.date.slice(0, 10) : ''))
-      .filter(Boolean)
-      .sort()[0];
-    // The real purchase history, when the order backfill has reached
-    // this ticker. It supersedes the synthetic lot outright: every buy
-    // on its own date at its own price is what the ledger was always
-    // approximating, and it's what anything reconstructing the past
-    // needs. Falls back to the single synthetic lot when there are no
-    // fills for this ticker — an unfinished backfill must not empty a
-    // position's ledger.
-    const real = lotsFromOrders(orders || [], t);
-    const merged = real
-      ? { ...holdings[t], lots: real.lots, sells: real.sells, shares: row.shares, cost: row.cost }
-      : {
-          ...holdings[t],
-          lots: [{ date: prior || date, shares: row.shares, cost: row.cost }],
-          shares: row.shares,
-          cost: row.cost,
-        };
+    const current = holdings[t];
+    const parsedShares = Number(current.shares);
+    const parsedCost = Number(current.cost);
+    const currentShares = isFinite(parsedShares) && parsedShares > 0 ? parsedShares : 0;
+    const currentCost = isFinite(parsedCost) && parsedCost >= 0 ? parsedCost : 0;
+    const storedT212Shares = Number(current.t212Shares);
+    const storedT212Cost = Number(current.t212Cost);
+    const priorResponseShares = Number(row.previousShares);
+    const priorResponseCost = Number(row.previousCost);
+    const oldT212Shares = isFinite(storedT212Shares) && storedT212Shares >= 0
+      ? storedT212Shares
+      : priorResponseShares;
+    const oldT212Cost = isFinite(storedT212Cost) && storedT212Cost >= 0
+      ? storedT212Cost
+      : priorResponseCost;
+    const hasPriorSlice = isFinite(oldT212Shares) && oldT212Shares >= 0
+      && isFinite(oldT212Cost) && oldT212Cost >= 0;
+
+    // First provenance-aware sync: if the board is already larger than
+    // T212, the difference is another platform. Otherwise this is the
+    // dedicated T212 position and the broker remains authoritative.
+    const otherShares = hasPriorSlice
+      ? Math.max(0, currentShares - oldT212Shares)
+      : Math.max(0, currentShares - row.shares);
+    let otherCash = 0;
+    if (otherShares > 0 && isFinite(currentCost) && currentCost >= 0) {
+      const totalCash = Math.max(0, currentShares * currentCost);
+      const knownT212Cash = hasPriorSlice
+        ? oldT212Shares * oldT212Cost
+        : row.shares * row.cost;
+      otherCash = Math.max(0, totalCash - knownT212Cash);
+      // A legacy weighted average can be too small to subtract the new
+      // T212 slice cleanly. Keeping the other shares at the board AC is
+      // safer than turning their cost negative.
+      if (!(otherCash > 0)) otherCash = otherShares * currentCost;
+    }
+    const shares = otherShares + row.shares;
+    const totalCash = otherCash + row.shares * row.cost;
+    const currentLots = Array.isArray(current.lots) ? current.lots : [];
+    const currentSells = Array.isArray(current.sells) ? current.sells : [];
+    const looksLikeLegacySynthetic = hasPriorSlice
+      && currentLots.length === 1
+      && currentSells.length === 0
+      && Math.abs(Number(currentLots[0]?.shares) - oldT212Shares) <= 1e-6
+      && Math.abs(Number(currentLots[0]?.cost) - oldT212Cost) <= 1e-6;
+    const preservedLots = looksLikeLegacySynthetic
+      ? [{ ...currentLots[0], source: 't212-synthetic' }]
+      : currentLots;
+    const merged = {
+      ...current,
+      // Never replace user lots/sells with machine history. T212 orders
+      // already live in their own table and are passed separately to
+      // the deposit calculation.
+      lots: preservedLots.length > 0
+        ? preservedLots
+        : [{
+            date,
+            shares,
+            cost: shares > 0 ? totalCash / shares : row.cost,
+            source: 't212-synthetic',
+          }],
+      sells: currentSells,
+      shares,
+      cost: shares > 0 ? totalCash / shares : 0,
+      t212Shares: row.shares,
+      t212Cost: row.cost,
+    };
+    if (shares > 0) delete merged.closed;
+    else merged.closed = true;
     // Broker's live quote for the allow-list ETF (USD). Use it as the
     // regular-session lastPrice so these LSE names don't sit on Yahoo's
     // ~15-20 min-delayed feed. dayPct is recomputed against the stored
@@ -335,22 +381,67 @@ export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
     }
     holdings[t] = merged;
   }
-  // Real fills for every other ticker on the board, not just the
-  // allow-list ETFs. Most of the book is T212; leaving those lots as a
-  // hand-typed guess is what made the derived deposit line a
-  // reconstruction. Shares/cost on non-allow-list rows stay as the board
-  // already has them (those aren't auto-synced from positions) — only
-  // the dated ledger is replaced. An unfinished backfill that hasn't
-  // reached a ticker returns null and the existing lots stay.
-  if (Array.isArray(orders)) {
-    for (const t of Object.keys(holdings)) {
-      if (overlay[t]) continue;
-      const real = lotsFromOrders(orders, t);
-      if (!real) continue;
-      holdings[t] = { ...holdings[t], lots: real.lots, sells: real.sells };
-    }
-  }
+  // `orders` deliberately does not mutate any other holding. Those
+  // tickers can combine T212 with Robinhood / a hand-entered broker.
+  // Replacing their ledger was the production data-loss bug.
+  void orders;
   return holdings;
+}
+
+/**
+ * Remove closed holdings from every tactics-board slot. Returns the
+ * original object when nothing changes.
+ *
+ * @param {any} portfolio
+ */
+export function stripClosedFromPositions(portfolio) {
+  if (!portfolio?.holdings || !portfolio?.positions) return portfolio;
+  const closed = new Set(Object.entries(portfolio.holdings)
+    .filter(([, holding]) => holding?.closed === true)
+    .map(([ticker]) => ticker));
+  let positionsChanged = false;
+  let holdingsChanged = false;
+  let holdings = portfolio.holdings;
+  const positions = Object.fromEntries(
+    Object.entries(portfolio.positions).map(([key, position]) => {
+      for (const ticker of position.tickers) {
+        if (!closed.has(ticker)) continue;
+        const holding = holdings[ticker];
+        if (holding && holding.t212PositionKey !== key) {
+          if (!holdingsChanged) holdings = { ...holdings };
+          holdings[ticker] = { ...holding, t212PositionKey: key };
+          holdingsChanged = true;
+        }
+      }
+      const tickers = position.tickers.filter((ticker) => !closed.has(ticker));
+      const positionChanged = tickers.length !== position.tickers.length;
+      if (positionChanged) positionsChanged = true;
+      return [key, positionChanged ? { ...position, tickers } : position];
+    }),
+  );
+
+  const positioned = new Set(
+    Object.values(positions).flatMap((position) => position.tickers),
+  );
+  for (const [ticker, holding] of Object.entries(holdings)) {
+    if (holding?.closed || !(Number(holding?.shares) > 0)) continue;
+    const key = holding?.t212PositionKey;
+    if (!key || !positions[key] || positioned.has(ticker)) continue;
+    positions[key] = {
+      ...positions[key],
+      tickers: [...positions[key].tickers, ticker],
+    };
+    if (!holdingsChanged) holdings = { ...holdings };
+    const restored = { ...holding };
+    delete restored.t212PositionKey;
+    holdings[ticker] = restored;
+    holdingsChanged = true;
+    positioned.add(ticker);
+    positionsChanged = true;
+  }
+  return positionsChanged || holdingsChanged
+    ? { ...portfolio, holdings, positions }
+    : portfolio;
 }
 
 /**

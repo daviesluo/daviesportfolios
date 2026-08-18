@@ -4,6 +4,18 @@
 // is the same for all of them, only the anchor price (chart's leftmost
 // "starting value") differs.
 //
+
+import { depositFxRate } from './fx.js';
+import {
+  depositLedgerForHolding,
+  ledgerEventIsAfter,
+  t212LedgerForTicker,
+} from './deposit_math.js';
+export {
+  historyLedgerFor,
+  historyLotsFor,
+} from './deposit_math.js';
+
 // Range catalogue:
 
 /**
@@ -686,13 +698,10 @@ export function ytdPct({ value, basis }) {
  * Here every holding participates — closed ones included — and the share
  * count at `date` is buys minus sells up to that date.
  *
- * `netDeposit` is money in, not cost basis: cumulative buy cash minus
- * sale proceeds (or T212 deposit − withdraw once that history is
- * complete). It is NOT revalued at live FX — a past GBP lot or a
- * GBP deposit does not wiggle when GBPUSD ticks. When you sell at a
- * profit it drops by more than the cost of what you sold, which is
- * the point — the gap between the two lines is what the account
- * actually made.
+ * `netDeposit` is cumulative buy cash minus sale proceeds. T212 uses
+ * the broker's actual fill quantity × price × timestamp; cash/card
+ * top-ups are deliberately irrelevant. It is NOT revalued at live FX:
+ * native→USD conversion is frozen once in `portfolio.depositFxRates`.
  *
  * Cash is added to BOTH lines (the chosen "match the scoreboard"
  * reading): the scoreboard's PORTFOLIO includes it, and money sitting in
@@ -702,7 +711,11 @@ export function ytdPct({ value, basis }) {
  * approximation further back, same assumption `computeAt` already makes.
  *
  * @param {{
- *   portfolio: {holdings: Record<string, any>, positions?: Record<string, any>},
+ *   portfolio: {
+ *     holdings: Record<string, any>,
+ *     positions?: Record<string, any>,
+ *     depositFxRates?: Record<string, number>,
+ *   },
  *   tickerSeries: Record<string, any>,
  *   date: string,
  *   marketData?: Record<string, any>,
@@ -711,58 +724,12 @@ export function ytdPct({ value, basis }) {
  *   fxToUSD: (currency: string | undefined, marketData: any) => number,
  *   t212Cash?: {
  *     transactions: Array<{type?: string, amount?: number, currency?: string, occurred_at?: string}>,
- *     orders?: Array<{ticker?: string|null}>,
+ *     orders?: Array<{ticker?: string|null, executed_at?: string, side?: string, shares?: number, price?: number}>,
  *     complete: boolean,
  *   } | null,
  * }} opts
  * @returns {{ value: number, netDeposit: number }}
  */
-/**
- * The lots to reconstruct a holding's HISTORY from.
- *
- * Normally just `h.lots`. The fallback matters: a holding with no lot
- * history at all — an older row, a hand-added ticker, anything the lot
- * editor never filled in — used to contribute nothing to either line at
- * every date, because the walk below starts at `shares = 0` and adds
- * only what the lots say. It didn't read as an unknown, it read as an
- * account that didn't own the thing, so the deposit line started far
- * below what had actually been paid in.
- *
- * The stand-in says "held since before any window we chart, at the
- * recorded average cost". Purchase-date accuracy is what's missing, and
- * assuming the position predates the chart is the least-wrong reading:
- * the alternative — dating it today — would redraw the entire past as if
- * the money had only just arrived. `cost` is the per-share average the
- * holding already carries, so the deposit figure stays right even when
- * the date isn't; `lastPrice` is a last resort (it makes the position
- * read as break-even rather than as free).
- *
- * `computeAt` has the same shape via `lotsFor`, which anchors its
- * stand-in at the chart's own year start — right for a basis, wrong
- * here, where a deposit made years ago must not appear inside the
- * window as fresh money. Exported for tests.
- *
- * @param {any} h
- * @returns {Array<{date: string, shares: number, cost: number}>}
- */
-export function historyLotsFor(h) {
-  const lots = Array.isArray(h?.lots) ? h.lots : [];
-  // Present but drifted lots are still kept: a sold-out position's lots
-  // legitimately don't sum to its zero `shares` (the sells account for
-  // the difference), and that history is exactly what this chart exists
-  // to show. Only a genuinely empty ledger falls through.
-  if (lots.some(l => Number(l?.shares) > 0)) return lots;
-  const shares = Number(h?.shares);
-  if (!isFinite(shares) || shares <= 0) return lots;
-  const cost = Number(h?.cost);
-  const px = Number(h?.lastPrice);
-  return [{
-    date: '1970-01-01',
-    shares,
-    cost: isFinite(cost) && cost > 0 ? cost : (isFinite(px) && px > 0 ? px : 0),
-  }];
-}
-
 /**
  * Price a holding at `date`, carrying the earliest known close BACKWARDS
  * when the history doesn't reach that far.
@@ -804,61 +771,6 @@ export function priceAtOrCarried(tickerSeries, ticker, date, h) {
   return isFinite(px) && px > 0 ? px : null;
 }
 
-/**
- * Tickers that have at least one stored T212 fill. The deposit line
- * treats those as T212-sourced once cash history is complete, so their
- * lot costs are not also counted as money paid in.
- *
- * @param {Array<{ticker?: string|null}> | null | undefined} orders
- * @returns {Set<string>}
- */
-function t212FillTickers(orders) {
-  const out = new Set();
-  if (!Array.isArray(orders)) return out;
-  for (const o of orders) {
-    if (typeof o?.ticker === 'string' && o.ticker) out.add(o.ticker);
-  }
-  return out;
-}
-
-/**
- * T212 money paid in up to `day`: deposits minus withdrawals.
- *
- * Amounts stay as T212 recorded them. Live FX must not reprice a
- * past deposit — that's a step that stays, not a marked-to-market
- * USD figure. Fees and interest are performance, not money paid in.
- * TRANSFER between the two accounts is ignored until the sign
- * convention is pinned.
- *
- * @param {Array<{type?: string, amount?: number, currency?: string, occurred_at?: string, dateTime?: string}>} transactions
- * @param {string} day YYYY-MM-DD (intraday chart dates are sliced)
- */
-export function t212MoneyInAt(transactions, day) {
-  if (!Array.isArray(transactions) || transactions.length === 0) return 0;
-  const cutoff = (day || '').slice(0, 10);
-  let sum = 0;
-  for (const tx of transactions) {
-    const d = String(tx?.occurred_at || tx?.dateTime || '').slice(0, 10);
-    if (!d || d > cutoff) continue;
-    const type = String(tx?.type || '').toLowerCase();
-    const amount = Number(tx?.amount);
-    if (!isFinite(amount) || amount === 0) continue;
-    if (type === 'deposit') sum += Math.abs(amount);
-    else if (type === 'withdraw') sum -= Math.abs(amount);
-  }
-  return sum;
-}
-
-function t212CashIsReady(t212Cash) {
-  if (!t212Cash || t212Cash.complete !== true) return false;
-  const txs = t212Cash.transactions;
-  if (!Array.isArray(txs) || txs.length === 0) return false;
-  return txs.some((tx) => {
-    const t = String(tx?.type || '').toLowerCase();
-    return t === 'deposit' || t === 'withdraw';
-  });
-}
-
 export function investmentPointAt(opts) {
   const {
     portfolio, tickerSeries, date, marketData = {},
@@ -868,10 +780,7 @@ export function investmentPointAt(opts) {
   // on intraday ranges. Compare day-to-day or "2026-04-28" reads as
   // BEFORE "2026-04-28T13:30" (10 chars sort under 16) and a lot bought
   // today would count as not-yet-owned.
-  const day = (date || '').slice(0, 10);
   const useLive = !!liveAnchorDate && date === liveAnchorDate;
-  const useT212 = t212CashIsReady(t212Cash);
-  const t212Tickers = useT212 ? t212FillTickers(t212Cash?.orders) : new Set();
   // Cash follows the same BOARD scope computeMetrics uses (only a cash
   // holding referenced by a position counts), so this line and the
   // scoreboard's PORTFOLIO agree on it. Securities deliberately do NOT:
@@ -879,12 +788,8 @@ export function investmentPointAt(opts) {
   // history is the point. With no positions at all (unit fixtures) the
   // scope opens up, matching computeAt's own escape hatch.
   //
-  // When T212 cash history is complete, board cash is NOT added to
-  // deposit: those dollars already arrived as DEPOSIT rows. Adding them
-  // again would double-count idle cash. Value still includes cash so a
-  // caller that uses this for both lines (netDepositNow doesn't) stays
-  // consistent; deriveSeries takes VALUE from computeAt and only DEPOSIT
-  // from here.
+  // Board cash is carried as a constant on both lines. T212 card cash is
+  // not imported; only filled orders enter the T212 deposit ledger.
   const positioned = new Set();
   for (const pos of Object.values(portfolio?.positions || {})) {
     for (const t of (pos?.tickers || [])) positioned.add(t);
@@ -902,27 +807,34 @@ export function investmentPointAt(opts) {
       continue;
     }
     const fx = (h?.currency && h.currency !== 'USD') ? fxToUSD(h.currency, marketData) : 1;
-    const skipLotDeposit = useT212 && t212Tickers.has(ticker);
+    const depositFx = depositFxRate(h?.currency, portfolio?.depositFxRates);
+    const ledger = depositLedgerForHolding(
+      h,
+      t212LedgerForTicker(t212Cash?.complete === true ? t212Cash?.orders : [], ticker),
+    );
 
     let shares = 0;
-    for (const l of historyLotsFor(h)) {
-      const d = String(l?.date || '').slice(0, 10);
+    for (const l of ledger.lots) {
+      const n = Number(l?.shares);
+      if (ledgerEventIsAfter(l?.date, date) || !isFinite(n) || n <= 0) continue;
+      shares += n;
+    }
+    for (const sl of ledger.sells) {
+      const n = Number(sl?.shares);
+      if (ledgerEventIsAfter(sl?.date, date) || !isFinite(n) || n <= 0) continue;
+      shares -= n;
+    }
+    for (const l of ledger.lots) {
       const n = Number(l?.shares);
       const c = Number(l?.cost);
-      if (!d || d > day || !isFinite(n) || n <= 0) continue;
-      shares += n;
-      // Deposit is money paid in, not a live FX conversion of cost.
-      // Repricing GBP lots at today's GBPUSD is what made August
-      // wiggle on the deposit line with no cash paid in.
-      if (!skipLotDeposit && isFinite(c)) netDeposit += n * c;
+      if (ledgerEventIsAfter(l?.date, date) || !isFinite(n) || n <= 0 || !isFinite(c)) continue;
+      netDeposit += n * c * depositFx;
     }
-    for (const sl of (Array.isArray(h?.sells) ? h.sells : [])) {
-      const d = String(sl?.date || '').slice(0, 10);
+    for (const sl of ledger.sells) {
       const n = Number(sl?.shares);
       const px = Number(sl?.price);
-      if (!d || d > day || !isFinite(n) || n <= 0) continue;
-      shares -= n;
-      if (!skipLotDeposit && isFinite(px)) netDeposit -= n * px;
+      if (ledgerEventIsAfter(sl?.date, date) || !isFinite(n) || n <= 0 || !isFinite(px)) continue;
+      netDeposit -= n * px * depositFx;
     }
     // Float dust from fractional lots (T212 DCA quantities) — the same
     // snap transactions.netPosition applies, so a fully-sold position
@@ -944,18 +856,13 @@ export function investmentPointAt(opts) {
     value += shares * price * fx;
   }
 
-  if (useT212) {
-    netDeposit += t212MoneyInAt(t212Cash.transactions, day);
-    return { value: value + cashUSD, netDeposit };
-  }
   return { value: value + cashUSD, netDeposit: netDeposit + cashUSD };
 }
 
 /**
- * Net deposited as of right now — cumulative buys minus sale proceeds,
- * plus cash; or T212 deposits minus withdrawals once that history is
- * complete. What the 5-minute sampler records alongside the portfolio
- * value.
+ * Net deposited as of right now — cumulative buys minus sale proceeds
+ * plus board cash. T212 contributes actual fills, never cash/card
+ * transactions. What the 5-minute sampler records alongside value.
  *
  * Runs the same pass as `investmentPointAt` with the date cutoff opened
  * all the way, so the two can't drift apart in how they treat a lot, a

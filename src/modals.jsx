@@ -308,7 +308,13 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
     ? holding.lots
     : [{ date: today, shares: holding.shares || 0, cost: holding.cost || 0 }];
 
-  /** @type {[Array<{date:string,shares:string|number,cost:string|number,ts?:number}>, Function]} */
+  /** @type {[Array<{
+   *   date:string,
+   *   shares:string|number,
+   *   cost:string|number,
+   *   ts?:number,
+   *   source?:'t212-synthetic',
+   * }>, Function]} */
   const [lots, setLots] = React.useState(seed.map(l => ({
     date: l.date || today,
     shares: String(l.shares ?? ''),
@@ -316,6 +322,7 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
     // Preserve an existing entry timestamp so re-saving a holding doesn't
     // strip it (which would lose the Transaction History's same-day order).
     ...(typeof l.ts === 'number' ? { ts: l.ts } : {}),
+    ...(l.source === 't212-synthetic' ? { source: l.source } : {}),
   })));
   // Sell records — the SALES side of the ledger. Net position = buys −
   // sells under the net-cash model (transactions.js); on save these feed

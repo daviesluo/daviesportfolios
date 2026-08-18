@@ -8,7 +8,7 @@ import {
   fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS, panelRangeLabel,
   applyVariantFilter, windowSinceLastUsClose, windowBetweenLastTwoUsCloses,
   filterToLastHours, filterToLast24h, fillVenueSessionGrid, investmentPointAt,
-  historyLotsFor, priceAtOrCarried, t212MoneyInAt, netDepositNow,
+  historyLotsFor, historyLedgerFor, priceAtOrCarried, netDepositNow,
 } from './ytd.js';
 import { isUsTradingDateStr } from './market_hours.js';
 
@@ -1075,38 +1075,11 @@ describe('investmentPointAt', () => {
   });
 });
 
-describe('t212MoneyInAt', () => {
-  it('sums deposits minus withdrawals up to the day, without live FX', () => {
-    const txs = [
-      { type: 'deposit', amount: 1000, currency: 'USD', occurred_at: '2026-01-10T12:00:00Z' },
-      { type: 'deposit', amount: 800, currency: 'GBP', occurred_at: '2026-02-01T12:00:00Z' },
-      { type: 'withdraw', amount: 200, currency: 'USD', occurred_at: '2026-03-01T12:00:00Z' },
-      { type: 'fee', amount: 5, currency: 'USD', occurred_at: '2026-02-15T12:00:00Z' },
-    ];
-    expect(t212MoneyInAt(txs, '2026-01-01')).toBe(0);
-    expect(t212MoneyInAt(txs, '2026-01-10')).toBeCloseTo(1000, 9);
-    // GBP 800 is not multiplied by live GBPUSD.
-    expect(t212MoneyInAt(txs, '2026-02-01')).toBeCloseTo(1800, 9);
-    // fee ignored; withdraw 200
-    expect(t212MoneyInAt(txs, '2026-03-01')).toBeCloseTo(1600, 9);
-  });
-
-  it('treats a withdraw amount as an outflow even if T212 signs it positive', () => {
-    expect(t212MoneyInAt(
-      [{ type: 'withdraw', amount: 50, currency: 'USD', occurred_at: '2026-01-01T00:00:00Z' }],
-      '2026-01-01',
-    )).toBeCloseTo(-50, 9);
-  });
-});
-
-describe('investmentPointAt — T212 cash history', () => {
+describe('investmentPointAt — T212 fills', () => {
   const fxToUSD = () => 1;
   const seriesOf = (rows) => buildTickerSeries(rows, '2026-01-01', 'YTD', {}, false);
 
-  it('uses deposits, not fill costs, once the cash walk is complete', () => {
-    // Deposited 10k on Jan 1, bought NVDA for 8k on Jan 15. Lot-derived
-    // deposit would step on the 15th; money-in steps on the 1st. Counting
-    // both would read 18k paid in.
+  it('uses actual fill quantity × price × time, not cash/card deposits', () => {
     const portfolio = { holdings: {
       NVDA: { currency: 'USD', shares: 80, cost: 100,
               lots: [{ date: '2026-01-15', shares: 80, cost: 100 }] },
@@ -1124,13 +1097,13 @@ describe('investmentPointAt — T212 cash history', () => {
       ],
     };
     const at = (d) => investmentPointAt({ portfolio, tickerSeries, date: d, fxToUSD, t212Cash });
-    expect(at('2026-01-01').netDeposit).toBeCloseTo(10000, 9);
+    // The raw account top-up is ignored. Only board cash exists before
+    // the stock fill.
+    expect(at('2026-01-01').netDeposit).toBeCloseTo(2000, 9);
     expect(at('2026-01-15').netDeposit).toBeCloseTo(10000, 9);
-    // Idle cash is already inside the 10k — do not add the 2k CASH row.
-    expect(at('2026-01-15').netDeposit).not.toBeCloseTo(12000, 9);
   });
 
-  it('keeps the lot-derived deposit while the cash walk is unfinished', () => {
+  it('falls back to the board ledger when no usable fill is available', () => {
     const portfolio = { holdings: {
       NVDA: { currency: 'USD', shares: 80, cost: 100,
               lots: [{ date: '2026-01-15', shares: 80, cost: 100 }] },
@@ -1139,7 +1112,9 @@ describe('investmentPointAt — T212 cash history', () => {
     const tickerSeries = seriesOf({ NVDA: [{ date: '2026-01-15', close: 100 }] });
     const t212Cash = {
       complete: false,
-      orders: [{ ticker: 'NVDA' }],
+      orders: [
+        { ticker: 'NVDA', executed_at: '2026-01-15T00:00:00Z', side: 'buy', shares: 10, price: 100 },
+      ],
       transactions: [
         { type: 'deposit', amount: 5000, currency: 'USD', occurred_at: '2026-03-01T12:00:00Z' },
       ],
@@ -1147,8 +1122,7 @@ describe('investmentPointAt — T212 cash history', () => {
     const p = investmentPointAt({
       portfolio, tickerSeries, date: '2026-01-15', fxToUSD, t212Cash,
     });
-    // Unfinished newest-first backfill must not replace the ledger: 8000
-    // lots + 2000 cash. The 5000 row is only the newest page.
+    // 8000 lots + 2000 board cash. The transaction row is irrelevant.
     expect(p.netDeposit).toBeCloseTo(10000, 9);
   });
 
@@ -1171,23 +1145,244 @@ describe('investmentPointAt — T212 cash history', () => {
     const p = investmentPointAt({
       portfolio, tickerSeries, date: '2026-01-15', fxToUSD, t212Cash,
     });
-    expect(p.netDeposit).toBeCloseTo(10000 + 500, 9);
+    expect(p.netDeposit).toBeCloseTo(8000 + 500, 9);
+  });
+
+  it('counts other-platform lots on a ticker that also has T212 fills', () => {
+    const portfolio = { holdings: {
+      NVDA: {
+        currency: 'USD',
+        shares: 10,
+        cost: 176,
+        lots: [
+          { date: '2025-06-01', shares: 6, cost: 200 },
+          { date: '2026-01-08', shares: 4, cost: 140 },
+        ],
+      },
+    } };
+    const tickerSeries = seriesOf({ NVDA: [{ date: '2026-01-08', close: 140 }] });
+    const t212Cash = {
+      complete: true,
+      orders: [
+        { ticker: 'NVDA', executed_at: '2026-01-08T00:00:00Z', side: 'buy', shares: 4, price: 140 },
+      ],
+      transactions: [
+        { type: 'deposit', amount: 4000, currency: 'USD', occurred_at: '2025-12-01T00:00:00Z' },
+      ],
+    };
+    const p = investmentPointAt({
+      portfolio, tickerSeries, date: '2026-08-18', fxToUSD, t212Cash,
+    });
+    expect(p.netDeposit).toBeCloseTo(4 * 140 + 6 * 200, 9);
+    expect(p.value).toBeCloseTo(10 * 140, 9);
+  });
+
+  it('restores inferred other-platform capital after a T212-only ledger wipe', () => {
+    const portfolio = { holdings: {
+      NVDA: {
+        currency: 'USD',
+        shares: 10,
+        cost: 150,
+        // Only the four-share T212 slice survived the old overwrite.
+        lots: [{ date: '2026-01-08', shares: 4, cost: 140 }],
+      },
+    } };
+    const tickerSeries = seriesOf({ NVDA: [{ date: '2026-01-08', close: 140 }] });
+    const t212Cash = {
+      complete: true,
+      orders: [
+        { ticker: 'NVDA', executed_at: '2026-01-08T00:00:00Z', side: 'buy', shares: 4, price: 140 },
+      ],
+      transactions: [
+        { type: 'deposit', amount: 4000, currency: 'USD', occurred_at: '2025-12-01T00:00:00Z' },
+      ],
+    };
+    const p = investmentPointAt({
+      portfolio, tickerSeries, date: '2026-08-18', fxToUSD, t212Cash,
+    });
+    // Four exact T212 shares + inferred residual. Total stays on the
+    // board's recorded net cash, without card deposits.
+    expect(p.netDeposit).toBeCloseTo(10 * 150, 9);
+    // Value still uses all ten board shares, not the four surviving lots.
+    expect(p.value).toBeCloseTo(10 * 140, 9);
+  });
+
+  it('August moves only by the small stock fill, not T212 card cash flows', () => {
+    const portfolio = { holdings: {
+      ETF: {
+        currency: 'USD',
+        shares: 12,
+        cost: 99.1666666667,
+        lots: [{ date: '2025-01-05', shares: 10, cost: 100 }],
+      },
+    } };
+    const tickerSeries = seriesOf({ ETF: [{ date: '2025-01-05', close: 100 }] });
+    const t212Cash = {
+      complete: true,
+      orders: [
+        { ticker: 'ETF', executed_at: '2026-08-10T00:00:00Z', side: 'buy', shares: 2, price: 95 },
+      ],
+      transactions: [
+        { type: 'deposit', amount: 5000, currency: 'USD', occurred_at: '2026-08-09T00:00:00Z' },
+        { type: 'withdraw', amount: 4900, currency: 'USD', occurred_at: '2026-08-10T00:00:00Z' },
+      ],
+    };
+    const at = (date) => investmentPointAt({
+      portfolio, tickerSeries, date, fxToUSD, t212Cash,
+    }).netDeposit;
+    expect(at('2026-08-09')).toBeCloseTo(1000, 9);
+    expect(at('2026-08-10')).toBeCloseTo(1000 + 2 * 95, 9);
+  });
+
+  it('steps an intraday deposit at the actual T212 fill minute', () => {
+    const portfolio = { holdings: {
+      ETF: { currency: 'USD', shares: 2, cost: 95, lots: [] },
+    } };
+    const tickerSeries = seriesOf({ ETF: [
+      { date: '2026-08-10T09:55', close: 100 },
+      { date: '2026-08-10T10:00', close: 100 },
+    ] });
+    const t212Cash = {
+      complete: true,
+      orders: [
+        { ticker: 'ETF', executed_at: '2026-08-10T10:00:00Z', side: 'buy', shares: 2, price: 95 },
+      ],
+      transactions: [],
+    };
+    const at = (date) => investmentPointAt({
+      portfolio, tickerSeries, date, fxToUSD, t212Cash,
+    });
+    expect(at('2026-08-10T09:55')).toEqual({ value: 0, netDeposit: 0 });
+    expect(at('2026-08-10T10:00').value).toBeCloseTo(200, 9);
+    expect(at('2026-08-10T10:00').netDeposit).toBeCloseTo(190, 9);
+  });
+
+  it('splits mixed-platform cost with the remembered T212 position AC', () => {
+    const portfolio = { holdings: {
+      ETF: {
+        currency: 'USD',
+        shares: 10,
+        cost: 90,
+        t212Shares: 4,
+        t212Cost: 80,
+        lots: [{ date: '2025-01-01', shares: 10, cost: 90 }],
+      },
+    } };
+    const tickerSeries = seriesOf({ ETF: [{ date: '2025-01-01', close: 100 }] });
+    const t212Cash = {
+      complete: true,
+      orders: [
+        { ticker: 'ETF', executed_at: '2025-02-01T00:00:00Z', side: 'buy', shares: 5, price: 100 },
+        { ticker: 'ETF', executed_at: '2025-03-01T00:00:00Z', side: 'sell', shares: 1, price: 120 },
+      ],
+      transactions: [],
+    };
+    const p = investmentPointAt({
+      portfolio, tickerSeries, date: '2026-08-18', fxToUSD, t212Cash,
+    });
+    // Other broker: 900 total board cost − 4×80 T212 current cost = 580.
+    // T212 fills net: 5×100 − 1×120 = 380.
+    expect(p.netDeposit).toBeCloseTo(580 + 380, 9);
+  });
+
+  it('keeps a closed other-broker round trip beside closed T212 fills', () => {
+    const portfolio = { holdings: {
+      OLD: {
+        currency: 'USD',
+        shares: 0,
+        cost: 0,
+        closed: true,
+        lots: [
+          { date: '2025-01-01', shares: 5, cost: 100 },
+          { date: '2025-02-01', shares: 2, cost: 50 },
+        ],
+        sells: [
+          { date: '2025-03-01', shares: 5, price: 120 },
+          { date: '2025-04-01', shares: 2, price: 60 },
+        ],
+      },
+    } };
+    const t212Cash = {
+      complete: true,
+      orders: [
+        { ticker: 'OLD', executed_at: '2025-02-01T10:00:00Z', side: 'buy', shares: 2, price: 50 },
+        { ticker: 'OLD', executed_at: '2025-04-01T10:00:00Z', side: 'sell', shares: 2, price: 60 },
+      ],
+      transactions: [],
+    };
+    const p = investmentPointAt({
+      portfolio, tickerSeries: {}, date: '2026-08-18', fxToUSD, t212Cash,
+    });
+    expect(p.value).toBe(0);
+    expect(p.netDeposit).toBeCloseTo((5 * 100 - 5 * 120) + (2 * 50 - 2 * 60), 9);
+  });
+
+  it('drops an unmatched legacy synthetic lot beside a closed T212 round trip', () => {
+    const portfolio = { holdings: {
+      OLD: {
+        currency: 'USD',
+        shares: 0,
+        cost: 0,
+        closed: true,
+        lots: [{ date: '1970-01-01', shares: 4, cost: 80 }],
+        sells: [],
+      },
+    } };
+    const t212Cash = {
+      complete: true,
+      orders: [
+        { ticker: 'OLD', executed_at: '2025-02-01T10:00:00Z', side: 'buy', shares: 4, price: 80 },
+        { ticker: 'OLD', executed_at: '2025-04-01T10:00:00Z', side: 'sell', shares: 4, price: 95 },
+      ],
+      transactions: [],
+    };
+    const p = investmentPointAt({
+      portfolio, tickerSeries: {}, date: '2026-08-18', fxToUSD, t212Cash,
+    });
+    expect(p.netDeposit).toBeCloseTo(4 * 80 - 4 * 95, 9);
+  });
+
+  it('drops only the synthetic residue and keeps a real closed round trip', () => {
+    const portfolio = { holdings: {
+      OLD: {
+        currency: 'USD', shares: 0, cost: 0, closed: true,
+        lots: [
+          { date: '2026-01-01', shares: 4, cost: 80, source: 't212-synthetic' },
+          { date: '2024-01-01', shares: 1, cost: 100 },
+        ],
+        sells: [{ date: '2024-02-01', shares: 1, price: 120 }],
+      },
+    } };
+    const t212Cash = {
+      complete: true,
+      orders: [
+        { ticker: 'OLD', executed_at: '2025-02-01T10:00:00Z', side: 'buy', shares: 4, price: 80 },
+        { ticker: 'OLD', executed_at: '2025-04-01T10:00:00Z', side: 'sell', shares: 4, price: 95 },
+      ],
+      transactions: [],
+    };
+    const p = investmentPointAt({
+      portfolio, tickerSeries: {}, date: '2026-08-18', fxToUSD, t212Cash,
+    });
+    expect(p.netDeposit).toBeCloseTo(-60 - 20, 9);
   });
 });
 
 describe('netDepositNow', () => {
-  it('passes t212Cash through so the sampler and the chart agree', () => {
+  it('passes T212 fills through so the sampler and chart agree', () => {
     const portfolio = { holdings: {
       NVDA: { currency: 'USD', lots: [{ date: '2026-01-15', shares: 10, cost: 100 }] },
     } };
     const t212Cash = {
       complete: true,
-      orders: [{ ticker: 'NVDA' }],
+      orders: [
+        { ticker: 'NVDA', executed_at: '2026-01-15T00:00:00Z', side: 'buy', shares: 10, price: 100 },
+      ],
       transactions: [
         { type: 'deposit', amount: 4000, currency: 'USD', occurred_at: '2025-12-01T00:00:00Z' },
       ],
     };
-    expect(netDepositNow({ portfolio, fxToUSD: () => 1, t212Cash })).toBeCloseTo(4000, 9);
+    expect(netDepositNow({ portfolio, fxToUSD: () => 1, t212Cash })).toBeCloseTo(1000, 9);
   });
 });
 
@@ -1210,6 +1405,19 @@ describe('historyLotsFor', () => {
   it('stands in for an empty ledger at the recorded average cost', () => {
     const out = historyLotsFor({ shares: 10, cost: 90, lastPrice: 120, lots: [] });
     expect(out).toEqual([{ date: '1970-01-01', shares: 10, cost: 90 }]);
+  });
+
+  it('stands in the full board position when a machine ledger is shorter', () => {
+    const h = {
+      shares: 10,
+      cost: 150,
+      lots: [{ date: '2026-08-10', shares: 4, cost: 140 }],
+      sells: [],
+    };
+    expect(historyLotsFor(h)).toEqual([
+      { date: '1970-01-01', shares: 10, cost: 150 },
+    ]);
+    expect(historyLedgerFor(h).sells).toEqual([]);
   });
 
   it('falls back to lastPrice — break-even beats free — then to nothing', () => {

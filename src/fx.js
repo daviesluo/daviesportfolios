@@ -113,3 +113,48 @@ export function fxRateToUSD(currency, marketData) {
 export function fxToUSD(currency, marketData) {
   return fxRateToUSD(currency, marketData).rate;
 }
+
+/**
+ * Freeze deposit conversion rates once. Portfolio VALUE keeps using live
+ * FX; historical money-in uses this persisted map so a past GBP deposit
+ * does not move every time GBPUSD ticks.
+ *
+ * @param {Record<string, number> | null | undefined} existing
+ * @param {Record<string, {lastPrice?: number}> | null | undefined} marketData
+ */
+export function freezeDepositFxRates(existing, marketData) {
+  const out = /** @type {Record<string, number>} */ ({ USD: 1, ...(existing || {}) });
+  for (const currency of ['GBP', 'EUR', 'CNY', 'HKD']) {
+    if (typeof out[currency] === 'number' && out[currency] > 0) continue;
+    const rate = fxRateToUSD(currency, marketData);
+    if (!rate.missing && rate.rate > 0) out[currency] = rate.rate;
+  }
+  return out;
+}
+
+/**
+ * @param {string | null | undefined} currency
+ * @param {Record<string, number> | null | undefined} rates
+ */
+export function depositFxRate(currency, rates) {
+  if (!currency || currency === 'USD') return 1;
+  const rate = rates?.[currency];
+  return typeof rate === 'number' && rate > 0 ? rate : 1;
+}
+
+/**
+ * @param {{
+ *   holdings?: Record<string, {isCash?: boolean, currency?: string}>,
+ *   depositFxRates?: Record<string, number>,
+ * } | null | undefined} portfolio
+ */
+export function depositFxMissing(portfolio) {
+  for (const [ticker, holding] of Object.entries(portfolio?.holdings || {})) {
+    if (holding?.isCash || ticker === 'CASH') continue;
+    const currency = holding?.currency || detectCurrency(ticker);
+    if (currency === 'USD') continue;
+    const rate = portfolio?.depositFxRates?.[currency];
+    if (!(typeof rate === 'number' && rate > 0)) return true;
+  }
+  return false;
+}

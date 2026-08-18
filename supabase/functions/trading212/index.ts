@@ -199,6 +199,10 @@ export function flattenT212OrderItem(raw: unknown): Record<string, unknown> | nu
     || (typeof o.ticker === "string" && o.ticker)
     || "";
   return {
+    hasExplicitFill: fill !== null,
+    explicitFillQuantity: fill?.quantity,
+    explicitFillPrice: fill?.price,
+    explicitFilledAt: fill?.filledAt,
     ticker,
     status: ord.status ?? o.status,
     side: ord.side ?? o.side,
@@ -231,6 +235,28 @@ export function t212OrderItemRecognized(raw: unknown): boolean {
   return typeof o.ticker === "string" && o.ticker.length > 0;
 }
 
+export function t212FillEnvelope(raw: unknown): boolean {
+  if (!raw || typeof raw !== "object") return false;
+  const fill = (raw as Record<string, unknown>).fill;
+  return !!fill && typeof fill === "object";
+}
+
+export function t212MalformedFillEnvelope(raw: unknown): boolean {
+  if (!raw || typeof raw !== "object") return false;
+  const o = raw as Record<string, unknown>;
+  return "fill" in o && o.fill != null && typeof o.fill !== "object";
+}
+
+export function ordersPageEnvelopeRecognized(body: unknown): boolean {
+  if (Array.isArray(body)) return true;
+  if (!body || typeof body !== "object") return false;
+  const b = body as Record<string, unknown>;
+  for (const key of ["items", "data", "orders", "results", "transactions"]) {
+    if (key in b) return Array.isArray(b[key]);
+  }
+  return false;
+}
+
 /**
  * True when a page arrived in an envelope we cannot read, so the
  * cursor must not advance. A page of recognised orders that were all
@@ -241,10 +267,13 @@ export function t212OrderItemRecognized(raw: unknown): boolean {
 export function ordersPageShapeMismatch(
   itemCount: number,
   parsedCount: number,
-  recognizedCount = 0,
+  recognizedCount: number | null = null,
+  malformedFillCount = 0,
 ): boolean {
+  if (malformedFillCount > 0) return true;
+  if (recognizedCount != null && recognizedCount < itemCount) return true;
   if (itemCount <= 0 || parsedCount > 0) return false;
-  if (recognizedCount >= itemCount) return false;
+  if (recognizedCount != null && recognizedCount >= itemCount) return false;
   return true;
 }
 
@@ -268,26 +297,35 @@ export function shapeT212Order(raw: unknown, account: string): {
   // dropping every row of an unfamiliar shape would silently produce an
   // empty history rather than an error anyone would notice.
   const status = typeof o.status === "string" ? o.status.toUpperCase() : "";
-  if (status && !/FILL|EXECUT|COMPLET/.test(status)) return null;
+  const nestedFill = o.hasExplicitFill === true;
+  // A partially-filled order can end CANCELLED after a real fill. The
+  // fill is authoritative; final order status only gates legacy flat
+  // rows that have no nested fill witness.
+  if (!nestedFill && status && !/FILL|EXECUT|COMPLET/.test(status)) return null;
 
   const t212Ticker = typeof o.ticker === "string" ? o.ticker : "";
   if (!t212Ticker) return null;
 
-  const cost = num(o.fillCost) ?? num(o.filledValue) ?? num(o.orderedValue);
-  const statedPrice = num(o.fillPrice) ?? num(o.limitPrice);
-  let qty = num(o.filledQuantity) ?? num(o.orderedQuantity) ?? num(o.quantity);
-  // Value-strategy orders (pies / spare-change) often have filledValue
-  // and a price but no share quantity. Derive shares rather than drop
-  // the row — dropping a whole page of those parked the ISA walk.
-  if ((qty == null || qty === 0) && cost != null && statedPrice != null && statedPrice > 0) {
-    qty = Math.abs(cost) / statedPrice;
-  }
+  // Deposited is built from REAL fills. An order-only envelope can say
+  // FILLED and carry a limit / aggregate value, but it has neither the
+  // execution price nor the execution time (price improvement makes
+  // `limitPrice` observably wrong). Recognise-and-skip it so pagination
+  // advances; persist only nested fills or the legacy flat fill shape.
+  const explicitFill = nestedFill
+    || (o.fillId != null && typeof o.dateExecuted === "string");
+  if (!explicitFill) return null;
+
+  const cost = nestedFill ? null : (num(o.fillCost) ?? num(o.filledValue));
+  const statedPrice = nestedFill ? num(o.explicitFillPrice) : num(o.fillPrice);
+  const qty = nestedFill ? num(o.explicitFillQuantity) : num(o.filledQuantity);
   if (qty == null || qty === 0) return null;
+  if (nestedFill && qty < 0) return null;
 
   // Nested history reports `order.side` (BUY/SELL) with a positive
   // quantity. The older flat payload signed a sale negative. Either
   // witness is enough; a sale that broke even still has a side.
   const declared = typeof o.side === "string" ? o.side.toUpperCase() : "";
+  if (nestedFill && declared !== "BUY" && declared !== "SELL") return null;
   const side: "buy" | "sell" = qty < 0 || declared === "SELL" ? "sell" : "buy";
   const shares = Math.abs(qty);
 
@@ -295,8 +333,13 @@ export function shapeT212Order(raw: unknown, account: string): {
     ?? (cost != null && shares > 0 ? Math.abs(cost) / shares : null);
   if (price == null || !(price > 0)) return null;
 
-  const when = [o.dateExecuted, o.dateModified, o.dateCreated]
-    .find((d) => typeof d === "string" && !isNaN(Date.parse(d as string)));
+  const when = nestedFill
+    ? (typeof o.explicitFilledAt === "string" && !isNaN(Date.parse(o.explicitFilledAt))
+      ? o.explicitFilledAt
+      : null)
+    : (typeof o.dateExecuted === "string" && !isNaN(Date.parse(o.dateExecuted))
+      ? o.dateExecuted
+      : null);
   if (!when) return null;
 
   // Prefer the FILL id: one order can fill in several parts, and keying
@@ -363,9 +406,29 @@ export function transactionsPageUrl(stored: string | null, limit = 50): string {
   if (s.startsWith("http://") || s.startsWith("https://")) return s;
   if (s.startsWith("/")) return `https://live.trading212.com${s}`;
   if (s.startsWith("?")) return `${T212_TRANSACTIONS_URL}${s}`;
+  // Production also returns JUST the query string (no leading "?"):
+  // `limit=50&cursor=…&time=…`. Treat it as a page path only when the
+  // required cursor + time pair is present. The previous code mistook
+  // it for a legacy bare token, silently requested page one again, and
+  // incremented `fetched` forever while the stored row count stayed 50.
+  if (s.includes("=")) {
+    const params = new URLSearchParams(s);
+    const hasCursor = params.has("cursor") || params.has("cursorId");
+    if (hasCursor && params.has("time")) {
+      return `${T212_TRANSACTIONS_URL}?${s}`;
+    }
+  }
   const url = new URL(T212_TRANSACTIONS_URL);
   url.searchParams.set("limit", String(limit));
   return url.toString();
+}
+
+export function transactionCursorAdvanced(
+  current: string | null,
+  next: string | null,
+): boolean {
+  if (!next || !current) return true;
+  return transactionsPageUrl(current) !== transactionsPageUrl(next);
 }
 
 /** The `items` array, whatever the envelope calls it. */
@@ -516,15 +579,39 @@ function positionTicker(p: object): string | null {
  * flat shapes both work. Pure function so `index.test.ts` can pin the
  * mapping + filtering without needing the network.
  */
+type T212HoldingSlice = {
+  shares: number;
+  cost: number;
+  previousShares?: number;
+  previousCost?: number;
+};
+
 export function shapeT212Portfolio(
   positions: unknown,
 ): {
-  holdings: Record<string, { shares: number; cost: number }>;
+  holdings: Record<string, T212HoldingSlice>;
   prices: Record<string, number>;
+  valid: boolean;
 } {
-  const holdings: Record<string, { shares: number; cost: number }> = {};
+  const holdings: Record<string, T212HoldingSlice> = {};
   const prices: Record<string, number> = {};
-  if (!Array.isArray(positions)) return { holdings, prices };
+  if (!Array.isArray(positions)) return { holdings, prices, valid: false };
+  const structurallyValid = positions.length === 0 || positions.every((p) => {
+    if (!p || typeof p !== "object" || positionTicker(p) === null) return false;
+    const quantity = Number((p as { quantity?: unknown }).quantity);
+    const cost = Number(
+      (p as { averagePricePaid?: unknown }).averagePricePaid
+        ?? (p as { averagePrice?: unknown }).averagePrice,
+    );
+    const currentPrice = Number((p as { currentPrice?: unknown }).currentPrice);
+    return isFinite(quantity) && quantity > 0
+      && isFinite(cost) && cost > 0
+      && isFinite(currentPrice) && currentPrice > 0;
+  });
+  if (!structurallyValid) return { holdings, prices, valid: false };
+  for (const ticker of new Set(Object.values(T212_TO_YAHOO))) {
+    holdings[ticker] = { shares: 0, cost: 0 };
+  }
   for (const p of positions) {
     if (!p || typeof p !== "object") continue;
     const t212Ticker = positionTicker(p);
@@ -552,7 +639,7 @@ export function shapeT212Portfolio(
       }
     }
   }
-  return { holdings, prices };
+  return { holdings, prices, valid: true };
 }
 
 /**
@@ -580,11 +667,11 @@ export function unpackCache(
  * split across accounts mirrors its combined size. Pure, for testing.
  */
 export function mergeShaped(
-  a: { holdings: Record<string, { shares: number; cost: number }>; prices: Record<string, number> },
-  b: { holdings: Record<string, { shares: number; cost: number }>; prices: Record<string, number> },
-): { holdings: Record<string, { shares: number; cost: number }>; prices: Record<string, number> } {
+  a: { holdings: Record<string, T212HoldingSlice>; prices: Record<string, number> },
+  b: { holdings: Record<string, T212HoldingSlice>; prices: Record<string, number> },
+): { holdings: Record<string, T212HoldingSlice>; prices: Record<string, number> } {
   const prices = { ...a.prices, ...b.prices };
-  const holdings: Record<string, { shares: number; cost: number }> = { ...a.holdings };
+  const holdings: Record<string, T212HoldingSlice> = { ...a.holdings };
   for (const [t, h] of Object.entries(b.holdings)) {
     const ex = holdings[t];
     if (ex) {
@@ -596,6 +683,54 @@ export function mergeShaped(
     }
   }
   return { holdings, prices };
+}
+
+/**
+ * Preserve combined position authority when the optional second account
+ * fails. Invest-only prices can still refresh, but its smaller position
+ * map must not erase the ISA slice.
+ */
+export function mergeShapedWithFallback(
+  invest: { holdings: Record<string, T212HoldingSlice>; prices: Record<string, number> },
+  isa: { holdings: Record<string, T212HoldingSlice>; prices: Record<string, number> } | null,
+  previous: { holdings: Record<string, unknown>; prices: Record<string, number> } | null,
+  isaRequired: boolean,
+): { holdings: Record<string, unknown>; prices: Record<string, number> } {
+  if (isaRequired && !isa) {
+    return {
+      holdings: previous?.holdings ?? {},
+      prices: { ...(previous?.prices ?? {}), ...invest.prices },
+    };
+  }
+  return mergeShaped(
+    invest,
+    isa ?? { holdings: {}, prices: {} },
+  );
+}
+
+export function attachPreviousHoldingSlices(
+  current: Record<string, T212HoldingSlice>,
+  previous: Record<string, unknown> | null | undefined,
+): Record<string, T212HoldingSlice> {
+  const out: Record<string, T212HoldingSlice> = {};
+  for (const [ticker, row] of Object.entries(current)) {
+    const old = previous?.[ticker];
+    const oldRow = old && typeof old === "object"
+      ? old as Partial<T212HoldingSlice>
+      : {};
+    const previousShares = Number(oldRow.previousShares ?? oldRow.shares);
+    const previousCost = Number(oldRow.previousCost ?? oldRow.cost);
+    out[ticker] = {
+      ...row,
+      ...(isFinite(previousShares) && previousShares >= 0
+        ? { previousShares }
+        : {}),
+      ...(isFinite(previousCost) && previousCost >= 0
+        ? { previousCost }
+        : {}),
+    };
+  }
+  return out;
 }
 
 /**
@@ -881,9 +1016,9 @@ async function readOrdersSync(account: string): Promise<Record<string, unknown> 
   }
 }
 
-async function writeOrdersSync(row: Record<string, unknown>): Promise<void> {
+async function writeOrdersSync(row: Record<string, unknown>): Promise<boolean> {
   try {
-    await fetch(`${SB_URL}/rest/v1/t212_orders_sync`, {
+    const res = await fetch(`${SB_URL}/rest/v1/t212_orders_sync`, {
       method: "POST",
       headers: {
         apikey: SERVICE_KEY,
@@ -894,28 +1029,100 @@ async function writeOrdersSync(row: Record<string, unknown>): Promise<void> {
       body: JSON.stringify({ ...row, updated_at: new Date().toISOString() }),
       signal: AbortSignal.timeout(5_000),
     });
+    if (!res.ok) {
+      const snippet = (await res.text().catch(() => "")).slice(0, 200);
+      console.error(`T212 orders sync-state write ${res.status}: ${snippet}`);
+      return false;
+    }
+    return true;
   } catch (e) {
     console.error("T212 orders sync-state write error:", e instanceof Error ? e.message : e);
+    return false;
   }
 }
 
 /** Every stored fill, oldest first, for the client to rebuild lots from. */
-async function readOrders(): Promise<unknown[]> {
+async function readOrders(): Promise<{ rows: unknown[]; ok: boolean }> {
+  const rows: unknown[] = [];
+  const pageSize = 1000;
+  for (let offset = 0; offset < 50_000; offset += pageSize) {
+    try {
+      const res = await fetch(
+        `${SB_URL}/rest/v1/t212_orders`
+          + "?select=id,ticker,executed_at,side,shares,price,account"
+          + `&order=executed_at.asc,id.asc&limit=${pageSize}&offset=${offset}`,
+        {
+          headers: {
+            apikey: SERVICE_KEY,
+            authorization: `Bearer ${SERVICE_KEY}`,
+            accept: "application/json",
+          },
+          signal: AbortSignal.timeout(8_000),
+        },
+      );
+      if (!res.ok) {
+        const snippet = (await res.text().catch(() => "")).slice(0, 200);
+        console.error(`T212 orders read ${res.status}: ${snippet}`);
+        return { rows: [], ok: false };
+      }
+      const page = await res.json();
+      if (!Array.isArray(page)) return { rows: [], ok: false };
+      rows.push(...page);
+      if (page.length < pageSize) return { rows, ok: true };
+    } catch {
+      return { rows: [], ok: false };
+    }
+  }
+  // Hitting the safety cap is truncation, not a complete snapshot.
+  return { rows: [], ok: false };
+}
+
+async function readOrdersSyncSnapshot(): Promise<{
+  complete: boolean;
+  fingerprint: string;
+}> {
   try {
     const res = await fetch(
-      `${SB_URL}/rest/v1/t212_orders?select=ticker,executed_at,side,shares,price,account&order=executed_at.asc&limit=5000`,
-      { headers: { apikey: SERVICE_KEY, authorization: `Bearer ${SERVICE_KEY}`, accept: "application/json" },
-        signal: AbortSignal.timeout(8_000) },
+      `${SB_URL}/rest/v1/t212_orders_sync`
+        + "?select=account,complete,fetched,cursor,updated_at&order=account.asc",
+      {
+        headers: {
+          apikey: SERVICE_KEY,
+          authorization: `Bearer ${SERVICE_KEY}`,
+          accept: "application/json",
+        },
+        signal: AbortSignal.timeout(5_000),
+      },
     );
-    if (!res.ok) {
-      const snippet = (await res.text().catch(() => "")).slice(0, 200);
-      console.error(`T212 orders read ${res.status}: ${snippet}`);
-      return [];
-    }
-    return await res.json();
+    if (!res.ok) return { complete: false, fingerprint: "" };
+    const rows = await res.json();
+    const expected = T212_ISA_API_KEY ? 2 : 1;
+    const complete = Array.isArray(rows) && rows.length === expected
+      && rows.every((row) => row?.complete === true);
+    return { complete, fingerprint: JSON.stringify(rows) };
   } catch {
-    return [];
+    return { complete: false, fingerprint: "" };
   }
+}
+
+async function readStableOrders(): Promise<{ orders: unknown[]; complete: boolean }> {
+  const before = await readOrdersSyncSnapshot();
+  let read = await readOrders();
+  const after = await readOrdersSyncSnapshot();
+  if (before.fingerprint !== after.fingerprint) {
+    // A page landed during the read. Re-read after that write, and only
+    // call it complete if the sync state stayed still around this copy.
+    read = await readOrders();
+    const final = await readOrdersSyncSnapshot();
+    return {
+      orders: read.rows,
+      complete: read.ok && after.complete && after.fingerprint === final.fingerprint,
+    };
+  }
+  return {
+    orders: read.rows,
+    complete: read.ok && before.complete && after.complete,
+  };
 }
 
 /**
@@ -950,8 +1157,19 @@ async function syncOrdersOnce(
     };
   }
   const items = ordersItemsOf(page.body);
-  const rows = items
-    .map((it) => shapeT212Order(it, account))
+  if (!ordersPageEnvelopeRecognized(page.body)) {
+    const msg = "shape mismatch: unrecognised page envelope";
+    await writeOrdersSync({
+      account, cursor, complete: false,
+      fetched: state?.fetched ?? 0, last_error: msg,
+    });
+    return {
+      account, added: 0, skipped: 0,
+      fetched: state?.fetched ?? 0, complete: false, error: msg,
+    };
+  }
+  const shapedItems = items.map((it) => shapeT212Order(it, account));
+  const rows = shapedItems
     .filter((r): r is NonNullable<ReturnType<typeof shapeT212Order>> => r !== null);
   // A page that arrived in an UNKNOWN envelope must not advance —
   // that's how the nested `{ fill, order }` payload walked the
@@ -960,7 +1178,11 @@ async function syncOrdersOnce(
   // and advance, or the walk parks forever and cash history never
   // starts.
   const recognized = items.filter(t212OrderItemRecognized).length;
-  if (ordersPageShapeMismatch(items.length, rows.length, recognized)) {
+  const malformedFills = items.filter((item, index) =>
+    (t212FillEnvelope(item) && shapedItems[index] === null)
+      || t212MalformedFillEnvelope(item)
+  ).length;
+  if (ordersPageShapeMismatch(items.length, rows.length, recognized, malformedFills)) {
     const sampleKeys = items[0] && typeof items[0] === "object"
       ? Object.keys(items[0] as object).sort().join(",")
       : "";
@@ -981,26 +1203,34 @@ async function syncOrdersOnce(
   // A finished walk stays finished — the top-up pass above deliberately
   // re-reads page one, and letting its `next` cursor restart the walk
   // would loop the whole history forever.
-  const complete = done || (wrote && next === null);
-  const fetched = done
+  const complete = wrote && (done || next === null);
+  const previousFetched = typeof state?.fetched === "number" ? state.fetched : 0;
+  const fetched = !wrote
+    ? previousFetched
+    : done
     ? (typeof state?.fetched === "number" ? state.fetched : rows.length)
-    : (typeof state?.fetched === "number" ? state.fetched : 0) + rows.length;
-  await writeOrdersSync({
+    : previousFetched + rows.length;
+  const stateWrote = await writeOrdersSync({
     account,
-    cursor: done ? null : next,
+    cursor: wrote ? (done ? null : next) : cursor,
     // Only latch complete once the page landed — otherwise a failed
     // write would end the walk having stored nothing.
     complete,
     fetched,
     last_error: wrote ? null : "storage write failed",
   });
+  const reportedComplete = complete && stateWrote;
   return {
     account,
     added: rows.length,
     skipped: items.length - rows.length,
     fetched,
-    complete,
-    ...(wrote ? {} : { error: "storage write failed — apply migration 0023" }),
+    complete: reportedComplete,
+    ...(!wrote
+      ? { error: "storage write failed — apply migration 0023" }
+      : !stateWrote
+      ? { error: "sync-state write failed" }
+      : {}),
   };
 }
 
@@ -1121,6 +1351,17 @@ async function syncTransactionsOnce(
     };
   }
   const items = ordersItemsOf(page.body);
+  if (!ordersPageEnvelopeRecognized(page.body)) {
+    const msg = "shape mismatch: unrecognised page envelope";
+    await writeTransactionsSync({
+      account, cursor, complete: false,
+      fetched: state?.fetched ?? 0, last_error: msg,
+    });
+    return {
+      account, added: 0, skipped: 0,
+      fetched: state?.fetched ?? 0, complete: false, error: msg,
+    };
+  }
   const rows = items
     .map((it) => shapeT212Transaction(it, account))
     .filter((r): r is NonNullable<ReturnType<typeof shapeT212Transaction>> => r !== null);
@@ -1148,6 +1389,24 @@ async function syncTransactionsOnce(
   }
   const wrote = await writeTransactions(rows);
   const next = nextTransactionsCursor(page.body);
+  if (!done && wrote && next && !transactionCursorAdvanced(cursor, next)) {
+    const msg = "pagination cursor did not advance";
+    await writeTransactionsSync({
+      account,
+      cursor,
+      complete: false,
+      fetched: state?.fetched ?? 0,
+      last_error: msg,
+    });
+    return {
+      account,
+      added: 0,
+      skipped: items.length,
+      fetched: state?.fetched ?? 0,
+      complete: false,
+      error: msg,
+    };
+  }
   const complete = done || (wrote && next === null);
   const fetched = done
     ? (typeof state?.fetched === "number" ? state.fetched : rows.length)
@@ -1311,7 +1570,11 @@ if (import.meta.main) {
       // backfilling. After both walks latch, a later session tops up
       // the staler stream.
       if (action === "orders") {
-        return new Response(JSON.stringify({ orders: await readOrders() }), {
+        const snapshot = await readStableOrders();
+        return new Response(JSON.stringify({
+          orders: snapshot.orders,
+          complete: snapshot.complete,
+        }), {
           headers: { ...CORS, "content-type": "application/json" },
         });
       }
@@ -1335,7 +1598,10 @@ if (import.meta.main) {
         const results = action === "history-sync"
           ? await syncHistoryPerAccount()
           : await syncHistoryAccounts("orders");
-        const ordersComplete = await ordersSyncComplete();
+        const ordersStateComplete = await ordersSyncComplete();
+        const ordersComplete = action === "orders-sync"
+          ? ordersStateComplete && results.every((row) => row.complete === true && !row.error)
+          : ordersStateComplete;
         const transactionsComplete = action === "history-sync"
           ? await transactionsSyncComplete()
           : false;
@@ -1410,10 +1676,28 @@ if (import.meta.main) {
             isaResult.reason instanceof Error ? isaResult.reason.message : isaResult.reason);
         }
         const investShaped = shapeT212Portfolio(investResult.value);
-        const isaShaped = (isaResult.status === "fulfilled" && isaResult.value != null)
+        if (!investShaped.valid) throw new Error("T212 invest positions returned an invalid shape");
+        let isaShaped = (isaResult.status === "fulfilled" && isaResult.value != null)
           ? shapeT212Portfolio(isaResult.value)
-          : { holdings: {}, prices: {} };
-        const shaped = mergeShaped(investShaped, isaShaped);
+          : null;
+        if (isaShaped && !isaShaped.valid) {
+          console.error("T212 ISA positions returned an invalid shape; preserving cached combined holdings");
+          isaShaped = null;
+        }
+        const previous = cached ? unpackCache(cached.data) : null;
+        const merged = mergeShapedWithFallback(
+          investShaped,
+          isaShaped,
+          previous,
+          !!T212_ISA_API_KEY,
+        );
+        const shaped = {
+          ...merged,
+          holdings: attachPreviousHoldingSlices(
+            merged.holdings as Record<string, T212HoldingSlice>,
+            previous?.holdings,
+          ),
+        };
         await writeCacheRow(shaped);
         return new Response(JSON.stringify({
           holdings: shaped.holdings,

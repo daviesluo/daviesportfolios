@@ -27,18 +27,18 @@ describe('Storage.migrate', () => {
     expect(localStorage.getItem('auth_lockout_until')).toBeNull();
     expect(localStorage.getItem('auth_attempts')).toBeNull();
     expect(localStorage.getItem('ytd-perf-cache-v12')).toBeNull();
-    expect(localStorage.getItem('dp.schema')).toBe('1');
+    expect(localStorage.getItem('dp.schema')).toBe('2');
 
     // Second run is a no-op (and must not throw).
     Storage.migrate();
-    expect(localStorage.getItem('dp.schema')).toBe('1');
+    expect(localStorage.getItem('dp.schema')).toBe('2');
   });
 
   it('treats a missing schema key as version 0 and migrates', () => {
     localStorage.setItem('ytd-perf-cache-v1', '[]');
     Storage.migrate();
     expect(localStorage.getItem('ytd-perf-cache-v1')).toBeNull();
-    expect(localStorage.getItem('dp.schema')).toBe('1');
+    expect(localStorage.getItem('dp.schema')).toBe('2');
   });
 
   it('no-ops (early return) when already at the current version', () => {

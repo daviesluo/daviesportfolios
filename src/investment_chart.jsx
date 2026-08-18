@@ -46,8 +46,11 @@ export function rangeStartMs(rangeKey, nowMs) {
  * The OUTPUT timestamps are the derived grid — the same bars the vs-S&P
  * chart samples on. Stored samples win on VALUE wherever they exist
  * (they're what the scoreboard read at the time, and they cover tickers
- * whose price history is no longer fetched), but they are overlaid onto
- * those bars rather than appended as extra x-slots. Concatenating the
+ * whose price history is no longer fetched). A stored DEPOSIT is used
+ * only when it agrees with the current accounting formula; rows written
+ * during the T212 lot-wipe are rejected in favour of the derived amount.
+ * Samples are overlaid onto those bars rather than appended as extra
+ * x-slots. Concatenating the
  * 5-minute samples onto a daily/hourly axis is what stretched "today"
  * across half the 1W / 1M / 3M / YTD chart: index spacing gives every
  * point equal width, so seventeen samples on the last day occupied
@@ -84,7 +87,10 @@ export function mergeSeries(snapshots, derived, startMs) {
       si++;
     }
     if (lastSnap) {
-      out.push({ ts: g.ts, value: lastSnap.value, deposit: lastSnap.deposit });
+      const deposit = snapshotDepositMatches(lastSnap.deposit, g.deposit)
+        ? lastSnap.deposit
+        : g.deposit;
+      out.push({ ts: g.ts, value: lastSnap.value, deposit });
     } else {
       out.push({ ...g, estimated: true });
     }
@@ -94,9 +100,26 @@ export function mergeSeries(snapshots, derived, startMs) {
   if (out.length > 0 && si < snaps.length) {
     const latest = snaps[snaps.length - 1];
     const last = out[out.length - 1];
-    out[out.length - 1] = { ts: last.ts, value: latest.value, deposit: latest.deposit };
+    const derivedLast = grid[grid.length - 1];
+    const deposit = derivedLast && snapshotDepositMatches(latest.deposit, derivedLast.deposit)
+      ? latest.deposit
+      : (derivedLast?.deposit ?? last.deposit);
+    out[out.length - 1] = { ts: last.ts, value: latest.value, deposit };
   }
   return out;
+}
+
+/**
+ * A snapshot and the current formula should be numerically identical
+ * apart from rounding. A 1% tolerance accepts that noise while rejecting
+ * the production 40%+ T212-ledger collapse.
+ *
+ * @param {number} sampled
+ * @param {number} derived
+ */
+export function snapshotDepositMatches(sampled, derived) {
+  if (!isFinite(sampled) || !isFinite(derived)) return false;
+  return Math.abs(sampled - derived) <= Math.max(1, Math.max(Math.abs(sampled), Math.abs(derived)) * 0.01);
 }
 
 /**
@@ -120,7 +143,7 @@ export function mergeSeries(snapshots, derived, startMs) {
  */
 export function withLivePoint(series, live, nowMs = Date.now()) {
   const rows = series || [];
-  if (!live || !(live.marketValue > 0) || !isFinite(live.netDeposit)) return rows;
+  if (!live || !isFinite(live.marketValue) || live.marketValue < 0 || !isFinite(live.netDeposit)) return rows;
   const last = rows[rows.length - 1];
   // Inherit the trailing stretch's provenance. Marking the live point as
   // recorded when everything before it is reconstructed would split the

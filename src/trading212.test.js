@@ -3,11 +3,18 @@
 // fetchTrading212Holdings path is just a fetch wrapper — covered by
 // the Edge Function's deno tests, not retested here.
 
-import { describe, it, expect } from 'vitest';
-import { applyTrading212, applyTrading212NightPrice, lotsFromOrders } from './trading212.js';
+import { describe, it, expect, vi } from 'vitest';
+import {
+  applyTrading212,
+  applyTrading212NightPrice,
+  clearTrading212OrdersCache,
+  fetchTrading212Orders,
+  lotsFromOrders,
+  stripClosedFromPositions,
+} from './trading212.js';
 
 describe('applyTrading212', () => {
-  it('replaces lots / shares / cost (per-share AC) for matching tickers; leaves others alone', () => {
+  it('syncs the T212 slice without replacing the user ledger; leaves other tickers alone', () => {
     const holdings = {
       'VUAA.L': {
         currency: 'USD',
@@ -39,19 +46,17 @@ describe('applyTrading212', () => {
       'SAEM.L': { shares: 150,  cost: 11.67 },
     };
     const out = applyTrading212(holdings, t212, undefined, '2026-05-15');
-    // Shares + cost come from the broker, but the DATE is the one the
-    // holding already carried. Re-stamping today's made the position
-    // read as bought this morning, every morning — and anything
-    // reconstructing the past from the ledger (the Investment
-    // Performance chart's derived half, and the net-deposit figure the
-    // sampler records) then saw the money arriving today.
-    expect(out['VUAA.L'].lots).toEqual([{ date: '2024-01-01', shares: 12.3, cost: 105.5 }]);
+    // The broker is authoritative for its slice, but not for another
+    // broker's lots/sells on the same board ticker.
+    expect(out['VUAA.L'].lots).toEqual([{ date: '2024-01-01', shares: 5, cost: 100 }]);
     expect(out['VUAA.L'].shares).toBe(12.3);
     expect(out['VUAA.L'].cost).toBe(105.5);
+    expect(out['VUAA.L'].t212Shares).toBe(12.3);
+    expect(out['VUAA.L'].t212Cost).toBe(105.5);
     // No prices map passed → price fields stay untouched.
     expect(out['VUAA.L'].currency).toBe('USD');
     expect(out['VUAA.L'].lastPrice).toBe(110);
-    expect(out['SAEM.L'].lots).toEqual([{ date: '2024-06-01', shares: 150, cost: 11.67 }]);
+    expect(out['SAEM.L'].lots).toEqual([{ date: '2024-06-01', shares: 100, cost: 10 }]);
     // NVDA isn't in the T212 response — leave it exactly as it was.
     expect(out['NVDA']).toBe(holdings['NVDA']);
     expect(out['NVDA'].lots).toEqual([{ date: '2024-01-01', shares: 10, cost: 150 }]);
@@ -62,7 +67,9 @@ describe('applyTrading212', () => {
       { 'VUAA.L': { currency: 'USD', lastPrice: 110 } },
       { 'VUAA.L': { shares: 1, cost: 100 } }, undefined, '2026-05-15',
     );
-    expect(out['VUAA.L'].lots).toEqual([{ date: '2026-05-15', shares: 1, cost: 100 }]);
+    expect(out['VUAA.L'].lots).toEqual([{
+      date: '2026-05-15', shares: 1, cost: 100, source: 't212-synthetic',
+    }]);
   });
 
   it('keeps the EARLIEST date when the holding carries several lots', () => {
@@ -73,7 +80,10 @@ describe('applyTrading212', () => {
       ] } },
       { 'VUAA.L': { shares: 5, cost: 84 } }, undefined, '2026-05-15',
     );
-    expect(out['VUAA.L'].lots[0].date).toBe('2024-02-02');
+    expect(out['VUAA.L'].lots).toEqual([
+      { date: '2025-03-04', shares: 2, cost: 90 },
+      { date: '2024-02-02', shares: 3, cost: 80 },
+    ]);
   });
 
   it('null T212 input → holdings untouched (network failure / API key absent)', () => {
@@ -137,6 +147,149 @@ describe('applyTrading212', () => {
     const out = applyTrading212(holdings, t212, prices, '2026-07-02');
     expect(out['VUAA.L'].lastPrice).toBe(110);             // untouched (Yahoo fallback)
     expect(out['VUAA.L'].dayPct).toBeCloseTo(1.85, 6);
+  });
+
+  it('never shrinks a mixed-platform allow-list holding, and applies later T212 deltas', () => {
+    const holdings = {
+      'VUAA.L': {
+        lastPrice: 100,
+        shares: 10,
+        cost: 90,
+        lots: [{ date: '2024-01-01', shares: 10, cost: 90 }],
+      },
+    };
+    const first = applyTrading212(
+      holdings,
+      { 'VUAA.L': { shares: 4, cost: 80 } },
+      undefined,
+      '2026-08-18',
+    );
+    expect(first['VUAA.L'].shares).toBe(10);
+    expect(first['VUAA.L'].cost).toBe(90);
+    expect(first['VUAA.L'].lots).toEqual([{ date: '2024-01-01', shares: 10, cost: 90 }]);
+    expect(first['VUAA.L'].t212Shares).toBe(4);
+
+    // One more T212 share means one more board share. The six-share
+    // other-broker slice stays put.
+    const second = applyTrading212(
+      first,
+      { 'VUAA.L': { shares: 5, cost: 82 } },
+      undefined,
+      '2026-08-19',
+    );
+    expect(second['VUAA.L'].shares).toBe(11);
+    expect(second['VUAA.L'].t212Shares).toBe(5);
+    expect(second['VUAA.L'].lots).toEqual([{ date: '2024-01-01', shares: 10, cost: 90 }]);
+  });
+
+  it('removes a sold T212 slice while preserving other-broker shares', () => {
+    const holdings = {
+      'VUAA.L': {
+        shares: 10,
+        cost: 90,
+        t212Shares: 4,
+        t212Cost: 80,
+        lots: [{ date: '2024-01-01', shares: 10, cost: 90 }],
+      },
+    };
+    const out = applyTrading212(
+      holdings,
+      { 'VUAA.L': { shares: 0, cost: 0 } },
+      undefined,
+      '2026-08-20',
+    );
+    expect(out['VUAA.L'].shares).toBe(6);
+    expect(out['VUAA.L'].cost).toBeCloseTo((10 * 90 - 4 * 80) / 6, 9);
+    expect(out['VUAA.L'].closed).not.toBe(true);
+  });
+
+  it('marks a T212-only allow-list position closed after a full sale', () => {
+    const holdings = {
+      'VUAA.L': {
+        shares: 4,
+        cost: 80,
+        t212Shares: 4,
+        t212Cost: 80,
+        lots: [{ date: '2026-01-01', shares: 4, cost: 80 }],
+      },
+    };
+    const out = applyTrading212(
+      holdings,
+      { 'VUAA.L': { shares: 0, cost: 0 } },
+      undefined,
+      '2026-08-20',
+    );
+    expect(out['VUAA.L'].shares).toBe(0);
+    expect(out['VUAA.L'].closed).toBe(true);
+    expect(out['VUAA.L'].lots[0].source).toBe('t212-synthetic');
+  });
+
+  it('uses the server-carried previous slice for a legacy full sale', () => {
+    const holdings = {
+      'VUAA.L': {
+        shares: 4,
+        cost: 80,
+        lots: [{ date: '2026-01-01', shares: 4, cost: 80 }],
+      },
+    };
+    const out = applyTrading212(
+      holdings,
+      {
+        'VUAA.L': {
+          shares: 0,
+          cost: 0,
+          previousShares: 4,
+          previousCost: 80,
+        },
+      },
+      undefined,
+      '2026-08-20',
+    );
+    expect(out['VUAA.L'].shares).toBe(0);
+    expect(out['VUAA.L'].closed).toBe(true);
+  });
+});
+
+describe('stripClosedFromPositions', () => {
+  it('removes a newly closed T212-only holding from the board', () => {
+    const portfolio = {
+      holdings: {
+        ETF: { shares: 0, closed: true },
+        KEEP: { shares: 2 },
+      },
+      positions: {
+        CB1: { tickers: ['ETF'] },
+        CM: { tickers: ['KEEP'] },
+      },
+    };
+    const out = stripClosedFromPositions(portfolio);
+    expect(out.positions.CB1.tickers).toEqual([]);
+    expect(out.positions.CM).toBe(portfolio.positions.CM);
+    expect(out.holdings.ETF.t212PositionKey).toBe('CB1');
+
+    const reopened = stripClosedFromPositions({
+      ...out,
+      holdings: {
+        ...out.holdings,
+        ETF: { ...out.holdings.ETF, shares: 1, closed: false },
+      },
+    });
+    expect(reopened.positions.CB1.tickers).toEqual(['ETF']);
+    expect(reopened.holdings.ETF.t212PositionKey).toBeUndefined();
+
+    const movedThenClosed = stripClosedFromPositions({
+      ...reopened,
+      holdings: {
+        ...reopened.holdings,
+        ETF: { ...reopened.holdings.ETF, shares: 0, closed: true, t212PositionKey: 'CB1' },
+      },
+      positions: {
+        ...reopened.positions,
+        CB1: { tickers: [] },
+        CM: { tickers: ['KEEP', 'ETF'] },
+      },
+    });
+    expect(movedThenClosed.holdings.ETF.t212PositionKey).toBe('CM');
   });
 });
 
@@ -246,8 +399,33 @@ describe('lotsFromOrders — real purchase history replacing the guess', () => {
   });
 });
 
-describe('applyTrading212 — real fills supersede the synthetic lot', () => {
-  it('uses the dated history when the backfill has reached the ticker', () => {
+describe('fetchTrading212Orders — completion cache', () => {
+  it('downgrades complete after a server-side reset without dropping good rows', async () => {
+    clearTrading212OrdersCache();
+    const fill = {
+      ticker: 'NVDA', executed_at: '2026-01-01T00:00:00Z',
+      side: 'buy', shares: 1, price: 100,
+    };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ orders: [fill], complete: true }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ orders: [], complete: false }) });
+    vi.stubGlobal('fetch', fetchMock);
+    const now = Date.now();
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(now);
+    try {
+      expect(await fetchTrading212Orders()).toEqual({ rows: [fill], complete: true });
+      nowSpy.mockReturnValue(now + 11 * 60 * 1000);
+      expect(await fetchTrading212Orders()).toEqual({ rows: [fill], complete: false });
+    } finally {
+      nowSpy.mockRestore();
+      vi.unstubAllGlobals();
+      clearTrading212OrdersCache();
+    }
+  });
+});
+
+describe('applyTrading212 — orders never replace the board ledger', () => {
+  it('keeps allow-list manual history when the backfill has reached the ticker', () => {
     const holdings = { 'VUAA.L': { currency: 'USD', lastPrice: 110,
                                    lots: [{ date: '2024-01-01', shares: 5, cost: 100 }], shares: 5, cost: 100 } };
     const out = applyTrading212(
@@ -257,23 +435,20 @@ describe('applyTrading212 — real fills supersede the synthetic lot', () => {
         { ticker: 'VUAA.L', executed_at: '2025-03-04T00:00:00Z', side: 'buy', shares: 2, price: 90 },
       ],
     );
-    // Every buy on its own date at its own price — what the single
-    // synthetic lot was only ever approximating.
-    expect(out['VUAA.L'].lots).toHaveLength(2);
-    expect(out['VUAA.L'].lots[0]).toEqual({ date: '2024-02-02', shares: 3, cost: 80 });
+    expect(out['VUAA.L'].lots).toEqual([{ date: '2024-01-01', shares: 5, cost: 100 }]);
     // Shares and cost still come from the broker's own position figure,
     // which is authoritative for what is held right now.
     expect(out['VUAA.L'].shares).toBe(5);
     expect(out['VUAA.L'].cost).toBe(84);
   });
 
-  it('falls back to the synthetic lot while the backfill is unfinished', () => {
+  it('keeps the manual lot while the backfill is unfinished', () => {
     const holdings = { 'VUAA.L': { lots: [{ date: '2024-01-01', shares: 5, cost: 100 }], shares: 5, cost: 100 } };
     const out = applyTrading212(holdings, { 'VUAA.L': { shares: 5, cost: 84 } }, undefined, '2026-05-15', []);
-    expect(out['VUAA.L'].lots).toEqual([{ date: '2024-01-01', shares: 5, cost: 84 }]);
+    expect(out['VUAA.L'].lots).toEqual([{ date: '2024-01-01', shares: 5, cost: 100 }]);
   });
 
-  it('stamps real fills onto a non-allow-list ticker already on the board', () => {
+  it('does not stamp T212 fills onto a non-allow-list ticker', () => {
     const holdings = {
       NVDA: { currency: 'USD', lastPrice: 200, lots: [{ date: '2024-01-01', shares: 10, cost: 150 }], shares: 10, cost: 150 },
     };
@@ -284,13 +459,29 @@ describe('applyTrading212 — real fills supersede the synthetic lot', () => {
         { ticker: 'NVDA', executed_at: '2026-01-08T00:00:00Z', side: 'buy', shares: 6, price: 160 },
       ],
     );
-    expect(out.NVDA.lots).toEqual([
-      { date: '2025-10-30', shares: 4, cost: 140 },
-      { date: '2026-01-08', shares: 6, cost: 160 },
-    ]);
-    // Shares/cost stay with the board — only the allow-list is
-    // position-synced. The dated ledger is what the deposit line needs.
+    expect(out.NVDA.lots).toEqual([{ date: '2024-01-01', shares: 10, cost: 150 }]);
     expect(out.NVDA.shares).toBe(10);
     expect(out.NVDA.cost).toBe(150);
+  });
+
+  it('preserves other-platform lots and sells on a mixed ticker', () => {
+    const holdings = {
+      NVDA: {
+        currency: 'USD',
+        shares: 10,
+        cost: 176,
+        lots: [{ date: '2024-06-01', shares: 6, cost: 200 }],
+        sells: [{ date: '2025-02-01', shares: 1, price: 220 }],
+      },
+    };
+    const before = structuredClone(holdings.NVDA);
+    applyTrading212(
+      holdings,
+      {},
+      undefined,
+      '2026-08-18',
+      [{ ticker: 'NVDA', executed_at: '2026-01-08T00:00:00Z', side: 'buy', shares: 4, price: 140 }],
+    );
+    expect(holdings.NVDA).toEqual(before);
   });
 });
