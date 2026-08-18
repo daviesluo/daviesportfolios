@@ -1137,11 +1137,30 @@ async function syncTransactionsOnce(
   };
 }
 
-async function pickTopUpStream(): Promise<"orders" | "transactions"> {
-  const o = await readOrdersSync("invest");
-  const t = await readTransactionsSync("invest");
-  const oAt = Date.parse(String(o?.updated_at || 0)) || 0;
-  const tAt = Date.parse(String(t?.updated_at || 0)) || 0;
+/**
+ * What this account should do on this history-sync tick.
+ *
+ * Orders still go first *for that account* — cash history must not
+ * replace the deposit line until fills are in, or ISA lots get counted
+ * twice. A finished account does not steal the rate-limit slot while
+ * another account is still backfilling (that was parking cash history
+ * behind ISA cancelled-order pages, and topping up invest page one
+ * every 20 s).
+ */
+export function nextHistoryKind(
+  ordersComplete: boolean,
+  txComplete: boolean,
+  anyBackfillOpen: boolean,
+): "orders" | "transactions" | "skip" | "topup" {
+  if (!ordersComplete) return "orders";
+  if (!txComplete) return "transactions";
+  if (anyBackfillOpen) return "skip";
+  return "topup";
+}
+
+export function pickAccountTopUp(ordersUpdatedAt: unknown, txUpdatedAt: unknown): "orders" | "transactions" {
+  const oAt = Date.parse(String(ordersUpdatedAt || 0)) || 0;
+  const tAt = Date.parse(String(txUpdatedAt || 0)) || 0;
   return oAt <= tAt ? "orders" : "transactions";
 }
 
@@ -1156,9 +1175,46 @@ async function syncHistoryAccounts(
 ): Promise<Record<string, unknown>[]> {
   const results: Record<string, unknown>[] = [];
   for (const [name, key, secret] of t212HistoryAccounts()) {
-    results.push(kind === "orders"
-      ? await syncOrdersOnce(name, key, secret)
-      : await syncTransactionsOnce(name, key, secret));
+    results.push({
+      ...(kind === "orders"
+        ? await syncOrdersOnce(name, key, secret)
+        : await syncTransactionsOnce(name, key, secret)),
+      stream: kind,
+    });
+  }
+  return results;
+}
+
+async function syncHistoryPerAccount(): Promise<Record<string, unknown>[]> {
+  const accounts = t212HistoryAccounts();
+  const states: Array<{
+    name: string; key: string; secret: string;
+    oDone: boolean; tDone: boolean;
+    oAt: unknown; tAt: unknown;
+  }> = [];
+  for (const [name, key, secret] of accounts) {
+    const o = await readOrdersSync(name);
+    const t = await readTransactionsSync(name);
+    states.push({
+      name, key, secret,
+      oDone: o?.complete === true,
+      tDone: t?.complete === true,
+      oAt: o?.updated_at, tAt: t?.updated_at,
+    });
+  }
+  const anyOpen = states.some((s) => !s.oDone || !s.tDone);
+  const results: Record<string, unknown>[] = [];
+  for (const s of states) {
+    const kind = nextHistoryKind(s.oDone, s.tDone, anyOpen);
+    if (kind === "skip") {
+      results.push({ account: s.name, stream: "skip", complete: true, added: 0 });
+      continue;
+    }
+    const stream = kind === "topup" ? pickAccountTopUp(s.oAt, s.tAt) : kind;
+    const row = stream === "orders"
+      ? await syncOrdersOnce(s.name, s.key, s.secret)
+      : await syncTransactionsOnce(s.name, s.key, s.secret);
+    results.push({ ...row, stream });
   }
   return results;
 }
@@ -1217,11 +1273,11 @@ if (import.meta.main) {
       // page and are admin-only (they write, and they spend a
       // rate-limited upstream budget a viewer has no business spending).
       //
-      // `history-sync` walks orders first, then cash movements — the
-      // two endpoints share a tight per-minute budget, so doing both
-      // in one call is the fastest way to a 429. After both walks
-      // latch, a later session tops up orders (new fills) and leaves
-      // transactions for the next session.
+      // `history-sync` walks each account independently: that account's
+      // orders first, then its cash movements. A finished account does
+      // not consume a rate-limit slot while another is still
+      // backfilling. After both walks latch, a later session tops up
+      // the staler stream.
       if (action === "orders") {
         return new Response(JSON.stringify({ orders: await readOrders() }), {
           headers: { ...CORS, "content-type": "application/json" },
@@ -1241,19 +1297,21 @@ if (import.meta.main) {
           });
         }
         // Sequential, not parallel: two accounts on one endpoint already
-        // sit on the 6/min ceiling.
-        const ordersDone = action === "history-sync" ? await ordersSyncComplete() : false;
-        const txDone = action === "history-sync" ? await transactionsSyncComplete() : false;
-        const stream = action !== "history-sync"
-          ? "orders"
-          : (!ordersDone ? "orders" : (!txDone ? "transactions" : await pickTopUpStream()));
-        const results = await syncHistoryAccounts(stream);
-        const streamComplete = results.every((r) => r.complete === true);
-        const ordersComplete = stream === "orders" ? streamComplete : ordersDone;
-        const transactionsComplete = stream === "transactions" ? streamComplete : txDone;
+        // sit on the 6/min ceiling. history-sync picks the next page
+        // *per account* so a finished invest walk can start cash
+        // history while ISA is still chewing cancelled orders.
+        const results = action === "history-sync"
+          ? await syncHistoryPerAccount()
+          : await syncHistoryAccounts("orders");
+        const ordersComplete = await ordersSyncComplete();
+        const transactionsComplete = action === "history-sync"
+          ? await transactionsSyncComplete()
+          : false;
         const bothComplete = action === "history-sync"
           ? (ordersComplete && transactionsComplete)
-          : streamComplete;
+          : results.every((r) => r.complete === true);
+        const stream = results.find((r) => r.stream && r.stream !== "skip")?.stream
+          ?? (action === "history-sync" ? "none" : "orders");
         return new Response(JSON.stringify({
           stream,
           accounts: results,

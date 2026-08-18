@@ -1019,13 +1019,11 @@ function Board({ isReadOnly }) {
     [liveMV, liveND],
   );
 
-  // Trading 212 history backfill: fills first, then cash movements.
-  //
-  // Positions have no dates; `/equity/history/orders` does, and
-  // `/equity/history/transactions` has the deposits. Both endpoints
-  // allow only a handful of calls a minute, so the server walks one
-  // page of ONE stream per call. Self-completing: pages every 20 s
-  // until both walks latch, then stops. Admin only.
+  // Trading 212 history backfill: each account's fills first, then
+  // that account's cash movements. A finished account does not steal
+  // a rate-limit slot from one that's still walking. Both endpoints
+  // allow only a handful of calls a minute. Self-completing: pages
+  // every 20 s until both walks latch, then stops. Admin only.
   useEffect(() => {
     if (isReadOnly) return undefined;
     let cancelled = false;
