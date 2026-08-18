@@ -848,7 +848,11 @@ trading day open or a holiday closed.
 | `.github/workflows/edge-functions.yml` | Edge Function CI/CD. Runs `deno test supabase/functions/` on every PR; on push to `main` it also deploys every changed `supabase/functions/<name>/index.ts` via the Supabase CLI (requires `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF` repo secrets). Replaces the manual paste-into-dashboard workflow that CLAUDE.md still mentions — once those secrets are set the workflow takes over and the dashboard step is optional. |
 | `.github/workflows/migrations.yml` | Postgres migration CI/CD. PR-time SQL lint over `supabase/migrations/*.sql`; on push to `main`, `supabase db push` against the linked project (requires `SUPABASE_ACCESS_TOKEN` / `SUPABASE_PROJECT_REF` / `SUPABASE_DB_PASSWORD` repo secrets — the first two are shared with `edge-functions.yml`). |
 | `.github/workflows/healthcheck.yml` | Scheduled (`*/10 * * * *`) uptime monitor **and Edge Function keep-warm ping** — opens/bumps a `health-failure` issue when a surface is down. Pings the site root plus every Edge Function on the app's first-load critical path: `prices` / `chart` / `fundamentals` / `overnight-fetch` (anon-readable, expect 200) and `data` / `trading212` (token-gated — pinged with NO app token on purpose, so a 401 proves the isolate booted without touching the DB or T212's rate-limited upstream; see `data/index.ts` / `trading212/index.ts`'s `verifyToken` ordering). Exists because Supabase Edge Functions have no documented min-instances/keep-warm config — an idle isolate goes cold, and cold starts chained across several functions (portfolio load → prices/chart/trading212, all gated behind the load resolving in `app.jsx`) were the dominant cause of "the first refresh after opening the app takes tens of seconds" while a second refresh inside the same session was fast. Not pinged: `auth` (lockout risk, no benefit), `overnight-record` (self-warms via its own pg_cron schedule), `ops-error` (write-only). |
-| `CLAUDE.md` | Conventions for Claude Code sessions working on this repo. |
+| `CLAUDE.md` | Mechanical conventions for Claude Code sessions (git identity, gates, README, Edge Function deploys). |
+| `AGENTS.md` | Cursor Cloud caveats (Deno 1.x, password-gated prod, don't brute-force auth, `npm run build` dirties the tree). |
+| `.cursor/rules/working-with-davies.mdc` | Always-on working agreement for Cursor: what "done" means, what counts as evidence, settled chart/ledger rules, past mistakes. Same text as the skills below. |
+| `.cursor/skills/working-with-davies/SKILL.md` / `.claude/skills/working-with-davies/SKILL.md` | Loadable copy of that agreement for Cursor skills and Claude Code. Distilled from the 67-turn session in `handover.md`. |
+| `handover.md` | Full Claude Code session transcript (every message and tool result). Contains live account numbers; the repo is private. |
 
 ---
 
@@ -1049,9 +1053,17 @@ Cloudflare Pages will auto-deploy on every push to `main`.
 
 ## Working conventions
 
-See [`CLAUDE.md`](./CLAUDE.md) for repo conventions (push directly to
-`main`, run tests + typecheck + build before every push,
+See [`CLAUDE.md`](./CLAUDE.md) for mechanical repo conventions (push
+directly to `main`, run tests + typecheck + build before every push,
 schema-version migrations under `Storage.migrate()` in `storage.js`).
+How the owner actually works — evidence, settled domain rules, the
+mistakes already paid for — is
+[`.cursor/skills/working-with-davies/SKILL.md`](./.cursor/skills/working-with-davies/SKILL.md)
+(always applied in Cursor via
+[`.cursor/rules/working-with-davies.mdc`](./.cursor/rules/working-with-davies.mdc);
+Claude Code loads
+[`.claude/skills/working-with-davies/SKILL.md`](./.claude/skills/working-with-davies/SKILL.md)).
+The raw session is [`handover.md`](./handover.md).
 Edge Functions auto-deploy via `.github/workflows/edge-functions.yml`
 on every push to `main` that changes a `supabase/functions/*/index.ts`
 (gated by `deno test`); manual paste-into-dashboard is only needed

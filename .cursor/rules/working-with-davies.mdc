@@ -1,8 +1,7 @@
 ---
-name: working-with-davies
-description: How the owner of daviesportfolios works, what he means by done, and the mistakes past sessions already paid for. Load at the start of every session on this repo — before chart maths, Investment Performance / vs-S&P, the lot ledger, Trading 212, earnings, heatmap/tactics/top-movers numbers, or anything that puts a number on screen. Also load before pushing, whenever he says a number is 不对, asks for verification, or brings back a review from another AI.
+description: How Davies works on daviesportfolios — done, evidence, settled domain rules, past mistakes. Always load.
+alwaysApply: true
 ---
-
 # Working with Davies on daviesportfolios
 
 `CLAUDE.md` and `AGENTS.md` have the mechanical rules (git identity,

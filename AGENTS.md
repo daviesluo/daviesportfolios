@@ -44,3 +44,14 @@ Non-obvious caveats:
   `git checkout -- assets index.html sw.js` and `git clean -fd`. Per the
   CI "bundle freshness" gate, any change to `src/*.{js,jsx,css}` MUST be
   committed together with a rebuilt bundle or CI goes red.
+
+## How the owner works
+
+Mechanical gates live in `CLAUDE.md`. The working agreement — Chinese
+replies, push-when-done, what counts as evidence, two-numbers-on-one-
+screen is a bug, settled chart/ledger/T212 rules, and the mistakes
+already paid for — is always-on at
+`.cursor/rules/working-with-davies.mdc` (same text as
+`.cursor/skills/working-with-davies/SKILL.md`). The 67-turn Claude Code
+session it was distilled from is `handover.md` at the repo root; that
+file has live balances, so do not copy numbers out of it.
