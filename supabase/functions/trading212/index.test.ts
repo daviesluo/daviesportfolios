@@ -15,6 +15,8 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import {
   shapeT212Portfolio,
   shapeT212Order,
+  flattenT212OrderItem,
+  ordersPageShapeMismatch,
   nextOrdersCursor,
   ordersItemsOf,
   t212TickerToYahoo,
@@ -359,6 +361,64 @@ Deno.test("shapeT212Order — an unmapped listing is stored with a null ticker",
   }, "invest");
   assertEquals(out?.ticker, null);
   assertEquals(out?.t212_ticker, "ASML_NL_EQ");
+});
+
+Deno.test("shapeT212Order — the published nested {fill, order} payload becomes a lot-shaped row", () => {
+  // docs.trading212.com/api/historical-events/orders_1. The first
+  // shaper expected a flat ticker/filledQuantity row; production sent
+  // this envelope, every page parsed to 0, and the cursor still advanced.
+  const out = shapeT212Order({
+    fill: {
+      id: 987,
+      price: 210.5,
+      quantity: 3,
+      filledAt: "2025-04-01T13:45:00.000+00:00",
+    },
+    order: {
+      id: 123,
+      status: "FILLED",
+      side: "BUY",
+      ticker: "AAPL_US_EQ",
+      instrument: { ticker: "AAPL_US_EQ" },
+      filledQuantity: 3,
+      filledValue: 631.5,
+      createdAt: "2025-04-01T13:40:00.000+00:00",
+    },
+  }, "invest");
+  assertEquals(out?.id, "invest:987");
+  assertEquals(out?.ticker, "AAPL");
+  assertEquals(out?.t212_ticker, "AAPL_US_EQ");
+  assertEquals(out?.side, "buy");
+  assertEquals(out?.shares, 3);
+  assertEquals(out?.price, 210.5);
+  assertEquals(out?.executed_at, "2025-04-01T13:45:00.000Z");
+});
+
+Deno.test("shapeT212Order — nested SELL with a positive fill quantity is still a sale", () => {
+  const out = shapeT212Order({
+    fill: { id: 5, price: 100, quantity: 2.5, filledAt: "2025-06-01T08:00:00Z" },
+    order: {
+      status: "FILLED", side: "SELL", ticker: "VUAAl_EQ",
+      instrument: { ticker: "VUAAl_EQ" },
+    },
+  }, "isa");
+  assertEquals(out?.side, "sell");
+  assertEquals(out?.shares, 2.5);
+  assertEquals(out?.ticker, "VUAA.L");
+});
+
+Deno.test("flattenT212OrderItem — a flat payload passes through unchanged", () => {
+  const flat = { ticker: "AAPL_US_EQ", filledQuantity: 1, fillPrice: 10 };
+  assertEquals(flattenT212OrderItem(flat)?.ticker, "AAPL_US_EQ");
+  assertEquals(flattenT212OrderItem(null), null);
+});
+
+Deno.test("ordersPageShapeMismatch — a populated page that parsed to nothing must not advance", () => {
+  // Advancing here is how the nested payload walked the history into
+  // the void: fetched stayed 0, cursor became the next page anyway.
+  assertEquals(ordersPageShapeMismatch(50, 0), true);
+  assertEquals(ordersPageShapeMismatch(0, 0), false);
+  assertEquals(ordersPageShapeMismatch(50, 3), false);
 });
 
 Deno.test("nextOrdersCursor — pulls the cursor out of the path T212 returns", () => {
