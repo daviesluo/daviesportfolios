@@ -6,7 +6,7 @@
 // exactly — only that they carry no magnitude suffix.)
 
 import { describe, it, expect } from 'vitest';
-import { fmtMoney, fmtPct, fmtShares, fmtSharesFor, normalizeDecimalInput } from './formatters.js';
+import { fmtMoney, fmtPct, fmtShares, fmtSharesFor } from './formatters.js';
 
 describe('fmtMoney — magnitude tiers', () => {
   it('>= $1T → trillions with a T suffix', () => {
@@ -140,36 +140,5 @@ describe('fmtSharesFor', () => {
     expect(fmtSharesFor(0.123, 'NVDA')).toBe('0.12');         // non-crypto → 2 dp
     expect(fmtSharesFor(0.0435, 'BTC-USD')).toBe(fmtShares(0.0435, 3)); // real BTC qty, float-safe
     expect(fmtSharesFor(18.5, 'AAPL')).toBe('18.5');          // trailing zeros stripped
-  });
-});
-
-// Typing `.5` in a shares / price box should read back as `0.5`. Runs on
-// every keystroke, so the hard requirement is that it never fights the
-// user mid-entry — a half-typed "0." or "1." has to survive untouched.
-describe('normalizeDecimalInput', () => {
-  it('gives a bare leading point its zero', () => {
-    expect(normalizeDecimalInput('.5')).toBe('0.5');
-    expect(normalizeDecimalInput('.')).toBe('0.');
-    expect(normalizeDecimalInput('.125')).toBe('0.125');
-    expect(normalizeDecimalInput('-.5')).toBe('-0.5');
-  });
-
-  it('leaves anything already well-formed alone', () => {
-    for (const v of ['', '0', '5', '0.5', '1.', '12.34', '-1.5', '100']) {
-      expect(normalizeDecimalInput(v)).toBe(v);
-    }
-  });
-
-  it('is null / undefined safe and never invents digits', () => {
-    expect(normalizeDecimalInput(null)).toBe('');
-    expect(normalizeDecimalInput(undefined)).toBe('');
-    // Not this helper's job to validate — it only fixes the leading dot.
-    expect(normalizeDecimalInput('abc')).toBe('abc');
-  });
-
-  it('the normalised text parses to the same number the raw text did', () => {
-    for (const v of ['.5', '.125', '-.5']) {
-      expect(Number(normalizeDecimalInput(v))).toBe(Number(v));
-    }
   });
 });

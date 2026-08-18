@@ -17,8 +17,6 @@ import {
   mapWithConcurrency,
 } from './proxy_chain.js';
 import { isUsEquity, hasOvernightSession } from './ticker_class.js';
-import { SB_URL, SB_ANON } from './supabase_config.js';
-import { getAppToken } from './auth.js';
 
 // OTC ADRs like SoftBank (SFTBY) quote ONLY their regular US session —
 // no pre-market, no after-hours, no overnight. Yahoo nonetheless ships a
@@ -33,25 +31,8 @@ export function quotesRegularSessionOnly(ticker) {
   return isUsEquity(ticker) && !hasOvernightSession(ticker);
 }
 
-// Derived from the shared project constants rather than re-typed: a
-// second hardcoded copy of the URL and anon key meant rotating the key
-// (or pointing at another project) silently missed the entire live-price
-// path while auth/data kept working.
-const EDGE_PRICES_URL = `${SB_URL}/functions/v1/prices`;
-const EDGE_ANON_KEY   = SB_ANON;
-
-// Every Edge call carries the app token as well as the anon key. The
-// anon key ships inside the public bundle, so on its own it gated
-// nothing — these endpoints hit paid / rate-limited upstreams and were
-// usable by anyone who read the key out of the JS. The token is
-// per-user and derived from the password, so it's the actual control.
-function edgeHeaders() {
-  return {
-    Authorization: `Bearer ${EDGE_ANON_KEY}`,
-    apikey: EDGE_ANON_KEY,
-    'X-App-Token': getAppToken(),
-  };
-}
+const EDGE_PRICES_URL = "https://flmvxigozjuizpckllvk.supabase.co/functions/v1/prices";
+const EDGE_ANON_KEY   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbXZ4aWdvemp1aXpwY2tsbHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODM3MjgsImV4cCI6MjA5MjM1OTcyOH0.vFqe6PNsPbVkg7NJmQJBsVECX1S58vAvv5MOjf63Xck";
 
 // Regular US session in exchange-local minutes-of-day — the same
 // 9:30-16:00 window the prices Edge Function buckets candles by.
@@ -407,7 +388,10 @@ async function fetchViaEdge(liveTickers) {
     const res = await fetch(
       `${EDGE_PRICES_URL}?tickers=${liveTickers.map(encodeURIComponent).join(",")}`,
       {
-        headers: edgeHeaders(),
+        headers: {
+          "Authorization": `Bearer ${EDGE_ANON_KEY}`,
+          "apikey": EDGE_ANON_KEY,
+        },
         cache: "no-store",
         signal: controller.signal,
       }
@@ -584,7 +568,7 @@ export async function fetchFundamentals(symbols, opts = {}) {
     const url =
       `${EDGE_PRICES_URL.replace(/\/prices$/, "/fundamentals")}${qs}`;
     const res = await fetch(url, {
-      headers: edgeHeaders(),
+      headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return {};

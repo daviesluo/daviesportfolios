@@ -8,7 +8,6 @@ import {
   fmtSharesFor as fmtShFor,
   pctColor as pctClo,
   maskDigits,
-  normalizeDecimalInput,
 } from './formatters.js';
 import { currencySymbol as curSym, detectCurrency } from './fx.js';
 import { cleanLots } from './lots.js';
@@ -101,16 +100,10 @@ function Modal({ children, onClose, size = "md" }) {
  * rendered directly. `danger` tints the action button red for
  * destructive confirms (delete / discard / reset).
  * @param {{ title?: string, message: string, detail?: string,
- *   confirmLabel?: string, cancelLabel?: string, altLabel?: string,
- *   danger?: boolean, onConfirm: () => void, onAlt?: () => void,
- *   onCancel: () => void }} props
+ *   confirmLabel?: string, cancelLabel?: string, danger?: boolean,
+ *   onConfirm: () => void, onCancel: () => void }} props
  */
-// `altLabel` turns this into a three-outcome dialog: confirm / alt /
-// cancel. Needed when BOTH named actions write something and cancel has
-// to mean "do nothing" — a binary confirm would have to map Esc, the
-// backdrop and Cancel onto one of the two writes, which is how "Cancel"
-// ended up silently performing the more destructive branch.
-function ConfirmModal({ title, message, detail, confirmLabel, cancelLabel, altLabel, danger, onConfirm, onAlt, onCancel }) {
+function ConfirmModal({ title, message, detail, confirmLabel, cancelLabel, danger, onConfirm, onCancel }) {
   return createPortal(
     <Modal onClose={onCancel} size="sm">
       <header className="modal-head">
@@ -127,9 +120,6 @@ function ConfirmModal({ title, message, detail, confirmLabel, cancelLabel, altLa
       <footer className="modal-foot">
         <button className="btn-ghost" onClick={onCancel}>{cancelLabel || 'Cancel'}</button>
         <span className="spacer" />
-        {altLabel && (
-          <button className="btn-ghost" onClick={onAlt}>{altLabel}</button>
-        )}
         <button className={danger ? 'btn-danger' : 'btn-primary'} onClick={onConfirm}>
           {confirmLabel || 'Confirm'}
         </button>
@@ -161,10 +151,8 @@ export function useConfirm() {
       detail={state.detail}
       confirmLabel={state.confirmLabel}
       cancelLabel={state.cancelLabel}
-      altLabel={state.altLabel}
       danger={state.danger}
       onConfirm={() => { state.resolve(true); setState(null); }}
-      onAlt={() => { state.resolve('alt'); setState(null); }}
       onCancel={() => { state.resolve(false); setState(null); }}
     />
   ) : null;
@@ -308,13 +296,7 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
     ? holding.lots
     : [{ date: today, shares: holding.shares || 0, cost: holding.cost || 0 }];
 
-  /** @type {[Array<{
-   *   date:string,
-   *   shares:string|number,
-   *   cost:string|number,
-   *   ts?:number,
-   *   source?:'t212-synthetic',
-   * }>, Function]} */
+  /** @type {[Array<{date:string,shares:string|number,cost:string|number,ts?:number}>, Function]} */
   const [lots, setLots] = React.useState(seed.map(l => ({
     date: l.date || today,
     shares: String(l.shares ?? ''),
@@ -322,7 +304,6 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
     // Preserve an existing entry timestamp so re-saving a holding doesn't
     // strip it (which would lose the Transaction History's same-day order).
     ...(typeof l.ts === 'number' ? { ts: l.ts } : {}),
-    ...(l.source === 't212-synthetic' ? { source: l.source } : {}),
   })));
   // Sell records — the SALES side of the ledger. Net position = buys −
   // sells under the net-cash model (transactions.js); on save these feed
@@ -502,9 +483,9 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
               <input className="inp mono" type="date" value={l.date} max={today}
                      onChange={(e) => updateLot(i, { date: e.target.value })} />
               <input className="inp mono" inputMode="decimal" value={l.shares}
-                     onChange={(e) => updateLot(i, { shares: normalizeDecimalInput(e.target.value) })} placeholder="0" />
+                     onChange={(e) => updateLot(i, { shares: e.target.value })} placeholder="0" />
               <input className="inp mono" inputMode="decimal" value={l.cost}
-                     onChange={(e) => updateLot(i, { cost: normalizeDecimalInput(e.target.value) })} placeholder="0" />
+                     onChange={(e) => updateLot(i, { cost: e.target.value })} placeholder="0" />
               <button className="btn-ghost icon" onClick={() => removeLot(i)} aria-label="Remove lot" title="Remove lot">✕</button>
             </div>
           ))}
@@ -523,9 +504,9 @@ function EditTickerModal({ ticker, holding, positions, onClose, onSave, onDelete
                 <input className="inp mono" type="date" value={s.date} max={today}
                        onChange={(e) => updateSell(i, { date: e.target.value })} />
                 <input className="inp mono" inputMode="decimal" value={s.shares}
-                       onChange={(e) => updateSell(i, { shares: normalizeDecimalInput(e.target.value) })} placeholder="0" />
+                       onChange={(e) => updateSell(i, { shares: e.target.value })} placeholder="0" />
                 <input className="inp mono" inputMode="decimal" value={s.price}
-                       onChange={(e) => updateSell(i, { price: normalizeDecimalInput(e.target.value) })} placeholder="0" />
+                       onChange={(e) => updateSell(i, { price: e.target.value })} placeholder="0" />
                 <button className="btn-ghost icon" onClick={() => removeSell(i)} aria-label="Remove sale" title="Remove sale">✕</button>
               </div>
             ))}
@@ -593,7 +574,7 @@ function CashModal({ amount, onClose, onSave }) {
       </header>
       <div className="modal-body form">
         <FormRow label="Amount (USD)">
-          <input className="inp mono" autoFocus value={val} onChange={(e) => setVal(normalizeDecimalInput(e.target.value))} inputMode="decimal" />
+          <input className="inp mono" autoFocus value={val} onChange={(e) => setVal(e.target.value)} inputMode="decimal" />
         </FormRow>
       </div>
       <footer className="modal-foot">
@@ -642,10 +623,10 @@ function AddTickerModal({ posKey, position, onClose, onAdd }) {
         <FormRow label="Ticker" hint="e.g. NVDA · BTC-USD · 017731 (CN fund) · VUAA.L (London)">
           <input className="inp mono upper" autoFocus value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} />
         </FormRow>
-        <FormRow label="Shares"><input className="inp mono" value={shares} onChange={(e) => setShares(normalizeDecimalInput(e.target.value))} inputMode="decimal" /></FormRow>
-        <FormRow label={`Avg cost (${sym})`} hint={costHint}><input className="inp mono" value={cost} onChange={(e) => setCost(normalizeDecimalInput(e.target.value))} inputMode="decimal" /></FormRow>
+        <FormRow label="Shares"><input className="inp mono" value={shares} onChange={(e) => setShares(e.target.value)} inputMode="decimal" /></FormRow>
+        <FormRow label={`Avg cost (${sym})`} hint={costHint}><input className="inp mono" value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" /></FormRow>
         <FormRow label={`Last price (${sym})`} hint="Leave blank to use avg cost until first live refresh">
-          <input className="inp mono" value={lastPrice} onChange={(e) => setLastPrice(normalizeDecimalInput(e.target.value))} inputMode="decimal" />
+          <input className="inp mono" value={lastPrice} onChange={(e) => setLastPrice(e.target.value)} inputMode="decimal" />
         </FormRow>
         <FormRow label="Buy date" hint="Used by the YTD performance chart to compute historical portfolio value">
           <input type="date" className="inp mono" value={buyDate} onChange={(e) => setBuyDate(e.target.value)} max={new Date().toISOString().slice(0, 10)} />

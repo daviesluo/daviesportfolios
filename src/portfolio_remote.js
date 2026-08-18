@@ -253,22 +253,11 @@ export async function savePortfolioRemote(p) {
  * falls back to the previous behaviour (first valid render seeds the
  * ref, subsequent reads match by string equality).
  *
- * @param {{
- *   positions: Record<string, any>,
- *   holdings: Record<string, any>,
- *   depositFxRates?: Record<string, number>,
- * } | null | undefined} p
+ * @param {{ positions: Record<string, any>, holdings: Record<string, any> } | null | undefined} p
  */
 export function portfolioUserFingerprint(p) {
   if (!p || typeof p !== 'object' || !p.holdings || !p.positions) return '';
   const parts = [];
-  const rates = p.depositFxRates;
-  const depositFxRates = rates && typeof rates === 'object'
-    ? Object.keys(rates).sort()
-      .map((currency) => `${currency}:${rates[currency]}`)
-      .join(',')
-    : '';
-  parts.push(`deposit-fx:${depositFxRates}`);
   for (const k of Object.keys(p.positions).sort()) {
     const pos = p.positions[k] || {};
     const tickers = Array.isArray(pos.tickers) ? [...pos.tickers].sort() : [];
@@ -277,26 +266,9 @@ export function portfolioUserFingerprint(p) {
   for (const t of Object.keys(p.holdings).sort()) {
     const h = p.holdings[t] || {};
     const lots = Array.isArray(h.lots)
-      ? h.lots.map(l =>
-          `${l?.date || ''},${l?.shares ?? ''},${l?.cost ?? ''},${l?.source || ''}`
-        ).join(';')
+      ? h.lots.map(l => `${l?.date || ''},${l?.shares ?? ''},${l?.cost ?? ''}`).join(';')
       : '';
-    // Sells and `closed` are part of the user-edited ledger, so they
-    // belong in the fingerprint. Without them a CLOSED holding
-    // (shares 0, cost 0, ledger retained) was invisible to the diff:
-    // correcting a sell's date or price, or adding an offsetting sell,
-    // left every fingerprinted field identical, so the debounced save
-    // treated a real edit as a no-op and the change was silently lost
-    // on the next load. Live positions usually moved shares/cost too,
-    // which is why this only bit the closed ones.
-    const sells = Array.isArray(h.sells)
-      ? h.sells.map(x => `${x?.date || ''},${x?.shares ?? ''},${x?.price ?? ''},${x?.ts ?? ''}`).join(';')
-      : '';
-    parts.push(
-      `h:${t}=${h.shares ?? ''}|${h.cost ?? ''}|${h.currency || ''}|${!!h.isCash}|${!!h.closed}`
-      + `|t212:${h.t212Shares ?? ''},${h.t212Cost ?? ''},${h.t212PositionKey ?? ''}`
-      + `|${lots}|s:${sells}`,
-    );
+    parts.push(`h:${t}=${h.shares ?? ''}|${h.cost ?? ''}|${h.currency || ''}|${!!h.isCash}|${lots}`);
   }
   return parts.join('\n');
 }
@@ -349,25 +321,16 @@ export function migrate(p) {
     }
   }
 
-  // Backfill `lots` (per-purchase history) on any holding that's missing
-  // it (legacy data from before the lot editor existed), stamping a
-  // single lot with current shares + avg cost so the user can refine it
-  // in the EditTickerModal lot editor.
-  //
-  // The date is TODAY, not a hardcoded 2025-01-01. Lots are the source
-  // of truth for the YTD chart: a lot dated before Jan 1 is treated as
-  // held-since-last-year and anchored at the Jan-1 close, so once the
-  // calendar rolled past 2025 that constant quietly recategorised every
-  // backfilled holding as a prior-year position and skewed both sides of
-  // the YTD ratio — the same class of bug as the +80% / +21% / +9%
-  // misreports. Dating it today makes the holding an in-year buy at its
-  // own cost basis, which contributes 0 to YTD rather than a fabricated
-  // return, so an unedited backfill understates rather than invents.
-  const backfillDate = new Date().toISOString().slice(0, 10);
+  // Backfill `lots` (per-purchase history) on any holding that's missing it
+  // (legacy data from before the lot editor existed). Just stamps a single
+  // lot dated 2025-01-01 with current shares + avg cost — the user can then
+  // refine via the EditTickerModal lot editor. Lots are the source of truth
+  // for the YTD chart, so post-migration nothing else should mutate them
+  // outside that modal.
   for (const [t, h] of Object.entries(p.holdings)) {
     if (h.isCash || t === "CASH") continue;
     if (Array.isArray(h.lots) && h.lots.length > 0) continue;
-    h.lots = [{ date: backfillDate, shares: h.shares, cost: h.cost }];
+    h.lots = [{ date: "2025-01-01", shares: h.shares, cost: h.cost }];
   }
 
   // v2 → v3: refresh labels + default subtitles from INITIAL_PORTFOLIO for untouched slots.
@@ -398,13 +361,6 @@ export function migrate(p) {
     if (!Array.isArray(h.sells) || h.sells.length === 0) continue;
     const np = netPosition(h.lots || [], h.sells);
     if (np.shares > 0) continue;
-    const boardShares = Number(h.shares);
-    // Only heal float dust when the board ALREADY agrees that this is
-    // effectively a zero position. A machine-written / incomplete
-    // ledger can net to zero while the board still holds shares at
-    // another broker. Closing that mismatch is what removed live
-    // positions from the scoreboard after the T212 backfill landed.
-    if (Number.isFinite(boardShares) && Math.abs(boardShares) >= 1e-9) continue;
     h.closed = true;
     h.shares = np.shares;
     h.cost   = np.avgCost;

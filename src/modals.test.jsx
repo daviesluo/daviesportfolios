@@ -4,10 +4,10 @@
 // current slot) and the onMove callback wiring.
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
+import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { EditTickerModal, AddTickerModal, useConfirm } from './modals.jsx';
+import { EditTickerModal } from './modals.jsx';
 
 const POSITIONS = {
   GK:  { label: 'GK',  subtitle: 'Cash',     role: 'GK',  tickers: ['CASH'] },
@@ -181,100 +181,5 @@ describe('EditTickerModal — sell editor', () => {
     expect(screen.getByText('6')).toBeInTheDocument();
     expect(screen.getByText(/REALIZED G\/L/)).toBeInTheDocument();
     expect(screen.getByText('+120.00')).toBeInTheDocument();
-  });
-});
-
-// Typing a bare `.5` in a shares box should read back as `0.5`. Asserted
-// through real keystrokes rather than the pure helper alone, because the
-// value is controlled state — a normaliser that fought the user mid-entry
-// would pass a unit test and still make the field unusable.
-describe('EditTickerModal — leading-dot decimals get their zero', () => {
-  it('typing ".5" into buy shares shows 0.5 and saves 0.5', async () => {
-    const user = userEvent.setup();
-    const { props } = renderModal();
-    const numInputs = screen.getAllByPlaceholderText('0');
-    const buyShares = numInputs[0];
-    await user.clear(buyShares);
-    await user.type(buyShares, '.5');
-    expect(buyShares).toHaveValue('0.5');
-    await user.click(screen.getByRole('button', { name: /^Save$/ }));
-    expect(props.onSave.mock.calls[0][0].lots[0].shares).toBe(0.5);
-  });
-
-  it('does not disturb normal entry — "12.75" types through unchanged', async () => {
-    const user = userEvent.setup();
-    renderModal();
-    const buyShares = screen.getAllByPlaceholderText('0')[0];
-    await user.clear(buyShares);
-    await user.type(buyShares, '12.75');
-    expect(buyShares).toHaveValue('12.75');
-  });
-
-  it('applies to the price column too (".25" → 0.25)', async () => {
-    const user = userEvent.setup();
-    renderModal();
-    const buyCost = screen.getAllByPlaceholderText('0')[1];
-    await user.clear(buyCost);
-    await user.type(buyCost, '.25');
-    expect(buyCost).toHaveValue('0.25');
-  });
-});
-
-// The Buy date drives the lot date, which is the YTD chart's basis — so
-// the whole 5-argument onAdd contract has to survive. A consumer that
-// declares only four parameters silently dates every add today, which
-// is exactly the regression this pins.
-describe('AddTickerModal — passes the buy date to onAdd', () => {
-  it('calls onAdd(ticker, shares, cost, lastPrice, buyDate)', async () => {
-    const user = userEvent.setup();
-    const onAdd = vi.fn();
-    render(<AddTickerModal posKey="ST" position={{ label: 'Striker', tickers: [] }}
-             onClose={vi.fn()} onAdd={onAdd} />);
-    const tickerInput = /** @type {HTMLInputElement} */ (document.querySelector('input.upper'));
-    await user.type(tickerInput, 'NVDA');
-    const decimals = document.querySelectorAll('input[inputmode="decimal"]');
-    await user.type(decimals[0], '10');
-    await user.type(decimals[1], '100');
-    const dateInput = /** @type {HTMLInputElement} */ (document.querySelector('input[type="date"]'));
-    fireEvent.change(dateInput, { target: { value: '2026-03-15' } });
-    await user.click(screen.getByRole('button', { name: /^Sign$/ }));
-    expect(onAdd).toHaveBeenCalledTimes(1);
-    expect(onAdd.mock.calls[0][0]).toBe('NVDA');
-    // 5th argument — the date the user picked, not today.
-    expect(onAdd.mock.calls[0][4]).toBe('2026-03-15');
-  });
-});
-
-// A binary confirm has to fold Esc / backdrop / Cancel onto one of its
-// two outcomes. When BOTH outcomes write, that silently performs one of
-// them — here it performed `replace`, the destructive one. The dialog
-// grew a third button so cancel can mean "do nothing".
-describe('useConfirm — three-outcome dialog', () => {
-  function Harness({ onResult }) {
-    const { confirm, element } = useConfirm();
-    return (
-      <>
-        <button onClick={async () => onResult(await confirm({
-          message: 'Add or replace?',
-          confirmLabel: 'Add purchase',
-          altLabel: 'Replace position',
-          cancelLabel: 'Cancel',
-        }))}>ask</button>
-        {element}
-      </>
-    );
-  }
-
-  it.each([
-    ['Add purchase', true],
-    ['Replace position', 'alt'],
-    ['Cancel', false],
-  ])('resolves %s → %s', async (label, expected) => {
-    const user = userEvent.setup();
-    const onResult = vi.fn();
-    render(<Harness onResult={onResult} />);
-    await user.click(screen.getByRole('button', { name: 'ask' }));
-    await user.click(screen.getByRole('button', { name: label }));
-    expect(onResult).toHaveBeenCalledWith(expected);
   });
 });

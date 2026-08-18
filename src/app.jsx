@@ -1,9 +1,7 @@
 // Main portfolio tactics board app
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { fmtMoney, fmtPct, fmtPrice, pctColor } from './formatters.js';
-import { depositFxMissing, freezeDepositFxRates, fxToUSD } from './fx.js';
-import { netDepositNow } from './ytd.js';
-import { saveSnapshot, SNAPSHOT_INTERVAL_MS } from './portfolio_snapshots.js';
+import { fxToUSD } from './fx.js';
 import { createPortfolioEditHandlers } from './portfolio_edits.js';
 import { computeMetrics, detectFormation } from './metrics.js';
 import { refreshPrices, fetchTickers } from './yahoo_fetch.js';
@@ -35,7 +33,7 @@ import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
-import { fetchTrading212Holdings, fetchTrading212Orders, syncTrading212History, applyTrading212, applyTrading212NightPrice, stripClosedFromPositions } from './trading212.js';
+import { fetchTrading212Holdings, applyTrading212, applyTrading212NightPrice } from './trading212.js';
 import { fetchOvernightSeries } from './overnight_intraday.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
@@ -242,11 +240,6 @@ function Board({ isReadOnly }) {
   const [showHoldingsList, setShowHoldingsList] = useState(false);
   const [showSectorsList, setShowSectorsList] = useState(false);
   const [showTransactionHistory, setShowTransactionHistory] = useState(false);
-  const [t212Cash, setT212Cash] = useState(
-    /** @type {{transactions: any[], orders: any[], complete: boolean}} */ (
-      { transactions: [], orders: [], complete: false }
-    ),
-  );
   const [addingToPos, setAddingToPos] = useState(/** @type {string | null} */ (null));
   const [editingCash, setEditingCash] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(/** @type {Date | null} */ (null));
@@ -627,7 +620,7 @@ function Board({ isReadOnly }) {
     // 5d/5m pull for 15 symbols off every tick.
     const wantTodayCloses = refreshPhase !== "regular"
       && (Date.now() - todayClosesRef.current.ts > 30 * 60 * 1000);
-    const [{ updates, source: src, coverage }, mcResult, todayClosesFresh, extSeries, t212Holdings, t212Orders] = await Promise.all([
+    const [{ updates, source: src, coverage }, mcResult, todayClosesFresh, extSeries, t212Holdings] = await Promise.all([
       refreshPrices(portfolio),
       fetchTickers(MC_TICKERS),
       wantTodayCloses ? fetchTodayRegularClose(MC_TICKERS) : Promise.resolve(null),
@@ -643,17 +636,7 @@ function Board({ isReadOnly }) {
       // `holdings` drives the VUAA.L / SAEM.L shares-cost auto-sync,
       // `prices` feeds the overnight US-equity quote overlay below.
       fetchTrading212Holdings(),
-      // Executed-fill history, for real purchase dates on the synced
-      // tickers. Cached client-side for ten minutes — the history is
-      // immutable, so this costs nothing on the 30-second tick.
-      fetchTrading212Orders(),
     ]);
-    const t212OrderRows = Array.isArray(t212Orders?.rows) ? t212Orders.rows : [];
-    setT212Cash({
-      transactions: [],
-      orders: t212OrderRows,
-      complete: t212Orders?.complete === true,
-    });
     // Refresh the cache when we fetched this tick; otherwise reuse it. Apply
     // whichever map we have so the MC ext-on anchor stays populated even on
     // the throttled ticks.
@@ -677,14 +660,7 @@ function Board({ isReadOnly }) {
     const extCloseMins = extMh.closeHh * 60 + extMh.closeMm;
     setPortfolio(prev => {
       if (!prev) return prev;
-      let next = {
-        ...prev,
-        holdings: { ...prev.holdings },
-        depositFxRates: freezeDepositFxRates(
-          prev.depositFxRates,
-          mcResult,
-        ),
-      };
+      const next = { ...prev, holdings: { ...prev.holdings } };
       for (const [t, u] of Object.entries(updates)) {
         if (!next.holdings[t]) continue;
         // Respect the Edge response's `extPrice` verbatim — including
@@ -740,8 +716,7 @@ function Board({ isReadOnly }) {
       //      after-hours keep the original Yahoo logic untouched.
       // When the API key isn't set or the upstream errored,
       // t212Holdings is null → both calls no-op.
-      applyTrading212(next.holdings, t212Holdings?.holdings, t212Holdings?.prices, undefined, t212OrderRows);
-      next = stripClosedFromPositions(next);
+      applyTrading212(next.holdings, t212Holdings?.holdings, t212Holdings?.prices);
       // Apply T212's overnight price into holdings.extPrice whenever
       // it's the overnight window — NOT gated on the Extended Hours
       // toggle. Mirrors the Yahoo extPrice / extSeries fetch above
@@ -991,123 +966,6 @@ function Board({ isReadOnly }) {
       : null),
     [portfolio, extendedHours, currentPhase, marketData],
   );
-  // Latest metrics + net deposit for the 5-minute sampler below. Held in
-  // a ref so the interval reads current numbers without being torn down
-  // and re-armed on every price tick (which would reset its phase and
-  // could starve the sample entirely on a busy board).
-  const metricsRef = useRef(/** @type {{
-   *   marketValue:number,
-   *   netDeposit:number,
-   *   fxMissing:boolean,
-   *   depositFxMissing:boolean,
-   * }|null} */ (null));
-  metricsRef.current = metrics
-    ? {
-        marketValue: metrics.marketValue,
-        netDeposit: netDepositNow({ portfolio, marketData, fxToUSD, t212Cash }),
-        // A pair Yahoo didn't return means `fxRateToUSD` fell back to
-        // 1:1 for that currency. Both figures above then convert a
-        // non-USD holding at the wrong rate — and in the direction that
-        // matters here, a CNY position at 1.0 instead of ~0.14 is SEVEN
-        // TIMES its real size. Recording that writes a spike into a
-        // permanent table which then "corrects" itself on the next tick,
-        // which is exactly what a stray step in the deposit line is.
-        fxMissing: (metrics.fxMissingTickers || []).length > 0,
-        depositFxMissing: depositFxMissing(portfolio),
-      }
-    : null;
-
-  // The same two figures for the Investment Performance chart's right
-  // edge, so its legend reads the scoreboard's PORTFOLIO rather than a
-  // sample up to five minutes old. Held as primitives so the identity
-  // only changes when the numbers do — the chart memoises on it. Null
-  // while an FX pair is missing, for the same reason the sampler skips.
-  const liveMetrics = metricsRef.current;
-  const liveSnapshot = liveMetrics
-      && !liveMetrics.fxMissing
-      && !liveMetrics.depositFxMissing
-    ? liveMetrics
-    : null;
-  const liveMV = liveSnapshot?.marketValue ?? null;
-  const liveND = liveSnapshot?.netDeposit ?? null;
-  const liveInvestment = useMemo(
-    () => (typeof liveMV === 'number' && Number.isFinite(liveMV) && liveMV >= 0
-        && typeof liveND === 'number' && Number.isFinite(liveND)
-      ? { marketValue: liveMV, netDeposit: liveND }
-      : null),
-    [liveMV, liveND],
-  );
-
-  // Trading 212 fill backfill. Deposited is reconstructed from the
-  // actual filled quantity × price × timestamp, so cash/card
-  // transactions are deliberately not part of the chart. Once both
-  // ORDER walks latch, top up page one every ten minutes so a fill made
-  // while this tab stays open still reaches Deposited without a reload.
-  useEffect(() => {
-    if (isReadOnly) return undefined;
-    let cancelled = false;
-    let timer = /** @type {any} */ (null);
-    const step = async () => {
-      if (cancelled) return;
-      const res = await syncTrading212History();
-      if (cancelled || !res) return;
-      const accounts = Array.isArray(res.accounts) ? res.accounts : [];
-      const denied = accounts.filter((a) => a && a.scopeDenied);
-      if (denied.length > 0) {
-        reportError('t212.history.scope', {
-          message: 'Trading 212 refused the history endpoint (403). '
-            + 'The stored key already has Portfolio, History: orders and '
-            + 'History: transactions — this is not a missing-scope prompt.',
-          context: { accounts: denied.map((a) => a.account), stream: res.stream },
-        });
-        return;
-      }
-      timer = setTimeout(
-        step,
-        res.ordersComplete === true ? 10 * 60 * 1000 : 20000,
-      );
-    };
-    timer = setTimeout(step, 8000);
-    return () => { cancelled = true; if (timer) clearTimeout(timer); };
-  }, [isReadOnly]);
-
-  // Investment Performance sampler — client BACKUP only. The 24/7
-  // 5-minute series is written by `snapshot-record` on pg_cron, the
-  // same way overnight prices are. This tab still records during the
-  // US regular session so a missed cron tick (cold isolate, brief
-  // 403) doesn't leave a hole, but it must NOT run after hours: the
-  // scoreboard then follows the ext-hours toggle, and writing that
-  // number would overwrite the server's live overnight/AH sample in
-  // the same 5-minute primary key.
-  //
-  // Admin only (a read-only viewer must not write to the owner's book),
-  // and skipped while the tab is hidden. Fire-and-forget.
-  const phaseRef = useRef(currentPhase);
-  phaseRef.current = currentPhase;
-  useEffect(() => {
-    if (isReadOnly || !portfolio) return undefined;
-    let cancelled = false;
-    const sample = () => {
-      if (cancelled) return;
-      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
-      if (phaseRef.current !== 'regular') return;
-      const m = metricsRef.current;
-      if (!m || !Number.isFinite(m.marketValue) || m.marketValue < 0) return;
-      // Skip the tick entirely rather than record a figure converted at
-      // a fallback 1:1 rate. The next tick is five minutes away and the
-      // FX pair is usually back by then; a bad row, by contrast, is
-      // permanent.
-      if (m.fxMissing) return;
-      if (m.depositFxMissing) return;
-      saveSnapshot(m.marketValue, m.netDeposit);
-    };
-    // One immediately so a session that never lasts five minutes still
-    // leaves a point behind, then on the interval.
-    sample();
-    const id = setInterval(sample, SNAPSHOT_INTERVAL_MS);
-    return () => { cancelled = true; clearInterval(id); };
-  }, [isReadOnly, portfolio !== null]);
-
   // Stable handler for the Heatmap's tile click — useCallback so the
   // Heatmap's React.memo (heatmap.jsx) isn't defeated by a fresh
   // closure each Board render. Declared here (above the loading
@@ -1285,9 +1143,6 @@ function Board({ isReadOnly }) {
             extendedHours={extendedHours}
             phase={currentPhase}
             className="perf-in-left"
-            hideValues={hideValues}
-            live={liveInvestment}
-            t212Cash={t212Cash}
           />
           {isDesktop && (
             <MarketConditions
@@ -1336,8 +1191,6 @@ function Board({ isReadOnly }) {
           phase={currentPhase}
           hideValues={hideValues}
           coverage={quoteCoverage}
-          live={liveInvestment}
-          t212Cash={t212Cash}
         />
         {/* Mobile-only Market Conditions strip — rendered as a separate
             sibling because the desktop instance lives inside .left-col,
@@ -1437,38 +1290,8 @@ function Board({ isReadOnly }) {
           posKey={addingToPos}
           position={portfolio.positions[addingToPos]}
           onClose={() => setAddingToPos(null)}
-          onAdd={async (ticker, shares, cost, lastPrice, buyDate) => {
-            const key = String(ticker || '').toUpperCase().trim();
-            const existing = portfolio.holdings[key];
-            // Re-adding a ticker you already hold is ambiguous — "I
-            // bought more" vs "let me restate this position" — and the
-            // old code silently picked restate, wiping every prior lot,
-            // sell and the closed flag along with it. Ask instead.
-            //
-            // Three outcomes, not two: BOTH named actions write, so
-            // Cancel / Esc / backdrop has to mean "do nothing". A binary
-            // confirm would have had to fold those onto one of the
-            // writes — and it folded them onto `replace`, the more
-            // destructive one, so dismissing the dialog silently
-            // restated the position.
-            let mode = 'replace';
-            if (existing) {
-              const choice = await askConfirm({
-                title: `${key} already in your book`,
-                message: 'Record this as an additional purchase, or replace the existing position?',
-                detail: 'Adding keeps every earlier lot and sell and recalculates your total shares and average cost. Replacing makes this the only buy lot; earlier sales stay on the ledger, so the position still nets against them.',
-                confirmLabel: 'Add purchase',
-                altLabel: 'Replace position',
-                cancelLabel: 'Cancel',
-              });
-              // Dismissed — leave the book untouched AND leave the Add
-              // dialog open so the entry isn't lost.
-              if (choice === false) return;
-              mode = choice === 'alt' ? 'replace' : 'append';
-            }
-            // `buyDate` matters: lots are the YTD chart's basis, so
-            // dropping it silently dated every add today.
-            addHolding(addingToPos, ticker, shares, cost, lastPrice, buyDate, mode);
+          onAdd={(ticker, shares, cost, lastPrice) => {
+            addHolding(addingToPos, ticker, shares, cost, lastPrice);
             setAddingToPos(null);
           }}
         />

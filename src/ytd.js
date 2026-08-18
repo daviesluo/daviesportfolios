@@ -4,18 +4,6 @@
 // is the same for all of them, only the anchor price (chart's leftmost
 // "starting value") differs.
 //
-
-import { depositFxRate } from './fx.js';
-import {
-  depositLedgerForHolding,
-  ledgerEventIsAfter,
-  t212LedgerForTicker,
-} from './deposit_math.js';
-export {
-  historyLedgerFor,
-  historyLotsFor,
-} from './deposit_math.js';
-
 // Range catalogue:
 
 /**
@@ -27,14 +15,7 @@ export const RANGES = {
   // Yahoo limits 30m bars to 60 days and 60m bars to 730 days, both well
   // within these ranges.
   '1D':  { yahooRange: '1d',  interval: '5m',  label: '1D'  },
-  // 1W fetches a MONTH and trims to the trailing 168 h (see
-  // fetchParamsFor / applyVariantFilter). Yahoo's `5d` is five TRADING
-  // sessions, which spans Mon→Fri — 4.3 days, not a week — so the "1W"
-  // button was showing noticeably less than it claimed. There is no
-  // Yahoo range between `5d` and `1mo`, so the week has to be cut out of
-  // the month client-side. `60m` keeps that download the same shape the
-  // 1M range already pulls rather than doubling it at 30m.
-  '1W':  { yahooRange: '1mo', interval: '60m', label: '1W'  },
+  '1W':  { yahooRange: '5d',  interval: '30m', label: '1W'  },
   '1M':  { yahooRange: '1mo', interval: '60m', label: '1M'  },
   '3M':  { yahooRange: '3mo', interval: '1d',  label: '3M'  },
   'YTD': { yahooRange: 'ytd', interval: '1d',  label: 'YTD' },
@@ -49,20 +30,6 @@ export const RANGES = {
 // PerfChart + the perf-side prefetch iterate this; the modal adds '1Y'
 // (and PE/PS) on top of it for its own range row.
 export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
-
-/**
- * Label on the vs-S&P / Investment panel range row. The shortest window
- * is a trailing 24 h, so it reads 24H rather than 1D. The ticker modal
- * still uses `RANGES['1D'].label` (`1D`) — that's a day chart with a
- * previous-close marker, not this panel. Internal key stays `1D` so
- * cache / fetch / prefetch don't fork.
- *
- * @param {string} rangeKey
- * @returns {string}
- */
-export function panelRangeLabel(rangeKey) {
-  return rangeKey === '1D' ? '24H' : (RANGES[rangeKey]?.label ?? rangeKey);
-}
 
 /**
  * Pick (yahooRange, interval, includePrePost) for a given chart range.
@@ -93,7 +60,6 @@ export function panelRangeLabel(rangeKey) {
  */
 export function fetchParamsFor(rangeKey, extendedHours, phase) {
   const r = RANGES[rangeKey] || RANGES.YTD;
-  if (rangeKey === '1W') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'w1' };
   if (rangeKey !== '1D') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'std' };
   if (phase === 'regular') return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'reg' };
   if (extendedHours)       return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'ext' };
@@ -337,22 +303,8 @@ export function fillVenueSessionGrid(points, session, nowMs = Date.now()) {
 // each need their own `data &&` guard.
 export function applyVariantFilter(data, variant) {
   if (!data) return data;
-  // 1W: cut the trailing week out of the fetched month. Both variants
-  // trim — `1w-ext` (PerfChart's ext-on week, which additionally pulls
-  // pre/post bars) used to pass through untouched because the fetch was
-  // already a 5-day window; now that 1W fetches a MONTH to cover a real
-  // week, letting it through would draw a month under a "1W" button.
-  if (variant === 'w1' || variant === '1w-ext') return filterToLastHours(data, 24 * 7);
-  // Every 1D variant is the same trailing 24 h. `closed` used to take
-  // the latest CALENDAR day instead, so with the Extended Hours toggle
-  // off the "1D" window silently changed length depending on the phase
-  // — a few hours just after the open, a full session later on — and
-  // disagreed with what the same button showed with the toggle on. The
-  // benchmark and whether pre/post bars are included still follow the
-  // toggle; only the window length is now the same either way.
-  if (variant === 'closed' || variant === 'reg' || variant === 'ext') {
-    return filterToLast24h(data);
-  }
+  if (variant === 'closed') return filterToLatestDay(data);
+  if (variant === 'reg' || variant === 'ext') return filterToLast24h(data);
   return data;
 }
 
@@ -578,23 +530,8 @@ export function computeAt(opts) {
         ? livePrice
         : (ts ? closeOn(tickerSeries, ticker, date) : null);
       if (priceAtD == null) {
-        // Before the series starts, carry its FIRST known close
-        // backwards. `closeOn` only looks at or before the date, so a
-        // ticker whose history begins inside the window returns null for
-        // everything to its left — and the interpolation below then
-        // guessed a price from lot cost, which invents a move the stock
-        // never made. Measured against closed-form arithmetic: a holding
-        // whose history starts late read 4.2 % on a window that really
-        // did 5.83 %, and one with no history at all read 5 % on a true
-        // 4.17 %. "Flat before we have data" is the ordinary treatment
-        // for a gap and is right far more often.
-        const known = ts && Array.isArray(ts.series) && ts.series.length > 0
-          ? ts.series[0].close : null;
-        priceAtD = (typeof known === 'number' && known > 0) ? known : null;
-      }
-      if (priceAtD == null) {
-        // Genuinely no series at all (a CN fund or `.PVT` on an intraday
-        // range): interpolate from cost @ lot.date to today's price.
+        // No historical data: linearly interpolate from cost @ lot.date to
+        // current lastPrice @ today.
         const lotMs = new Date(lot.date).getTime();
         const dMs = new Date(date).getTime();
         const tgtPrice = (lastPrice != null && lastPrice > 0) ? lastPrice : lot.cost;
@@ -623,18 +560,8 @@ export function computeAt(opts) {
         // the day %.
         basisPrice = (janPrice != null && janPrice > 0) ? janPrice : priceAtD;
       } else if (lot.date < anchorDay) {
-        // No baseline for this lot → count it FLAT (basis = its price at
-        // this date) instead of dropping it. The `continue` here removed
-        // the holding from the value AND the basis at every point, so a
-        // position with no fetchable price history — a CN fund or `.PVT`
-        // on an intraday range — simply wasn't in the portfolio as far as
-        // either chart was concerned. That understated the Investment
-        // chart's value line by the whole holding, and skewed the vs-S&P
-        // percentage by leaving it out of the denominator too (5 % on a
-        // window that really did 4.17 %). Same principle the
-        // prevCloseBasis branch above already applies when prevClose is
-        // missing: flat, not absent.
-        basisPrice = (janPrice != null && janPrice > 0) ? janPrice : priceAtD;
+        if (janPrice == null) continue; // skip — no Jan 1 baseline available
+        basisPrice = janPrice;
       } else {
         basisPrice = lot.cost;
       }
@@ -676,206 +603,4 @@ export function computeAt(opts) {
  */
 export function ytdPct({ value, basis }) {
   return basis > 0 ? ((value - basis) / basis) * 100 : 0;
-}
-
-/**
- * One point of the Investment Performance chart: what the scoreboard's
- * PORTFOLIO cell actually read at `date`, and how much had been paid in
- * by then.
- *
- * Deliberately NOT `computeAt`. That one is board-scoped and counts a
- * holding's full bought quantity, which is right for the vs-S&P chart's
- * basis maths but wrong for reconstructing history here:
- *
- *   - It skips holdings that aren't referenced by a position, and a
- *     sold-out name is removed from every position while its ledger is
- *     kept. So a stock you held for two years and sold last month would
- *     contribute nothing to ANY past point — the line would show a
- *     portfolio you never had.
- *   - It doesn't subtract sells, so a partially-sold position would keep
- *     counting shares you no longer owned at that date.
- *
- * Here every holding participates — closed ones included — and the share
- * count at `date` is buys minus sells up to that date.
- *
- * `netDeposit` is cumulative buy cash minus sale proceeds. T212 uses
- * the broker's actual fill quantity × price × timestamp; cash/card
- * top-ups are deliberately irrelevant. It is NOT revalued at live FX:
- * native→USD conversion is frozen once in `portfolio.depositFxRates`.
- *
- * Cash is added to BOTH lines (the chosen "match the scoreboard"
- * reading): the scoreboard's PORTFOLIO includes it, and money sitting in
- * cash was deposited too, so it lifts value and deposit equally instead
- * of showing as profit. It has no history of its own — the current
- * balance is carried back as a constant, exact for today and an
- * approximation further back, same assumption `computeAt` already makes.
- *
- * @param {{
- *   portfolio: {
- *     holdings: Record<string, any>,
- *     positions?: Record<string, any>,
- *     depositFxRates?: Record<string, number>,
- *   },
- *   tickerSeries: Record<string, any>,
- *   date: string,
- *   marketData?: Record<string, any>,
- *   liveAnchorDate?: string,
- *   useExt?: boolean,
- *   fxToUSD: (currency: string | undefined, marketData: any) => number,
- *   t212Cash?: {
- *     transactions: Array<{type?: string, amount?: number, currency?: string, occurred_at?: string}>,
- *     orders?: Array<{ticker?: string|null, executed_at?: string, side?: string, shares?: number, price?: number}>,
- *     complete: boolean,
- *   } | null,
- * }} opts
- * @returns {{ value: number, netDeposit: number }}
- */
-/**
- * Price a holding at `date`, carrying the earliest known close BACKWARDS
- * when the history doesn't reach that far.
- *
- * `closeOn` only ever looks at or before the date, so on any date before
- * a ticker's first bar it returns null — and the caller used to drop
- * that holding from the value while still counting its deposit. It read
- * as "not owned yet" when the truth is "owned, price unknown", and the
- * damage was large and systematic:
- *
- *   - 1D over a weekend: no bar in the window is at or before the
- *     window's own start, so EVERY holding fell out and the value line
- *     sat at the cash balance until the recorded samples took over —
- *     $6.7k under a $181k book.
- *   - Any range where a few tickers' history starts later than the
- *     others: those step in one by one as their first bar arrives, so a
- *     week that really moved +1.8% drew as +7.6%.
- *
- * Carrying the first known close backwards says "flat before we have
- * data", which is the ordinary treatment for a gap and is right far more
- * often than zero. The holding's own `lastPrice` is the last resort, for
- * a ticker with no usable series at all (a CN fund or `.PVT` on an
- * intraday range, or a name sold long enough ago that nothing fetches
- * its history any more). Exported for tests.
- *
- * @param {ReturnType<typeof buildTickerSeries>} tickerSeries
- * @param {string} ticker
- * @param {string} date
- * @param {any} h  the holding, for its last-resort quote
- * @returns {number | null}
- */
-export function priceAtOrCarried(tickerSeries, ticker, date, h) {
-  const at = closeOn(tickerSeries, ticker, date);
-  if (typeof at === 'number' && at > 0) return at;
-  const series = tickerSeries?.[ticker]?.series;
-  const first = Array.isArray(series) && series.length > 0 ? series[0].close : null;
-  if (typeof first === 'number' && first > 0) return first;
-  const px = Number(h?.lastPrice);
-  return isFinite(px) && px > 0 ? px : null;
-}
-
-export function investmentPointAt(opts) {
-  const {
-    portfolio, tickerSeries, date, marketData = {},
-    liveAnchorDate, useExt = false, fxToUSD, t212Cash,
-  } = opts;
-  // Lot / sell dates are plain YYYY-MM-DD; chart dates can carry a time
-  // on intraday ranges. Compare day-to-day or "2026-04-28" reads as
-  // BEFORE "2026-04-28T13:30" (10 chars sort under 16) and a lot bought
-  // today would count as not-yet-owned.
-  const useLive = !!liveAnchorDate && date === liveAnchorDate;
-  // Cash follows the same BOARD scope computeMetrics uses (only a cash
-  // holding referenced by a position counts), so this line and the
-  // scoreboard's PORTFOLIO agree on it. Securities deliberately do NOT:
-  // a sold-out position is off the board but its money moved, and that
-  // history is the point. With no positions at all (unit fixtures) the
-  // scope opens up, matching computeAt's own escape hatch.
-  //
-  // Board cash is carried as a constant on both lines. T212 card cash is
-  // not imported; only filled orders enter the T212 deposit ledger.
-  const positioned = new Set();
-  for (const pos of Object.values(portfolio?.positions || {})) {
-    for (const t of (pos?.tickers || [])) positioned.add(t);
-  }
-  const scopeAllCash = positioned.size === 0;
-
-  let value = 0;
-  let netDeposit = 0;
-  let cashUSD = 0;
-
-  for (const [ticker, h] of Object.entries(portfolio?.holdings || {})) {
-    if (h?.isCash || ticker === 'CASH') {
-      if (!scopeAllCash && !positioned.has(ticker)) continue;
-      if (typeof h?.lastPrice === 'number' && h.lastPrice > 0) cashUSD += h.lastPrice;
-      continue;
-    }
-    const fx = (h?.currency && h.currency !== 'USD') ? fxToUSD(h.currency, marketData) : 1;
-    const depositFx = depositFxRate(h?.currency, portfolio?.depositFxRates);
-    const ledger = depositLedgerForHolding(
-      h,
-      t212LedgerForTicker(t212Cash?.complete === true ? t212Cash?.orders : [], ticker),
-    );
-
-    let shares = 0;
-    for (const l of ledger.lots) {
-      const n = Number(l?.shares);
-      if (ledgerEventIsAfter(l?.date, date) || !isFinite(n) || n <= 0) continue;
-      shares += n;
-    }
-    for (const sl of ledger.sells) {
-      const n = Number(sl?.shares);
-      if (ledgerEventIsAfter(sl?.date, date) || !isFinite(n) || n <= 0) continue;
-      shares -= n;
-    }
-    for (const l of ledger.lots) {
-      const n = Number(l?.shares);
-      const c = Number(l?.cost);
-      if (ledgerEventIsAfter(l?.date, date) || !isFinite(n) || n <= 0 || !isFinite(c)) continue;
-      netDeposit += n * c * depositFx;
-    }
-    for (const sl of ledger.sells) {
-      const n = Number(sl?.shares);
-      const px = Number(sl?.price);
-      if (ledgerEventIsAfter(sl?.date, date) || !isFinite(n) || n <= 0 || !isFinite(px)) continue;
-      netDeposit -= n * px * depositFx;
-    }
-    // Float dust from fractional lots (T212 DCA quantities) — the same
-    // snap transactions.netPosition applies, so a fully-sold position
-    // reads as exactly flat instead of ±5e-17 shares' worth of value.
-    if (Math.abs(shares) < 1e-9) shares = 0;
-    if (shares <= 0) continue;
-
-    const md = marketData?.[ticker];
-    const live = useLive
-      ? ((useExt && md?.extPrice != null && md.extPrice > 0) ? md.extPrice : md?.lastPrice)
-      : null;
-    const price = (typeof live === 'number' && live > 0)
-      ? live
-      : priceAtOrCarried(tickerSeries, ticker, date, h);
-    // Still nothing to price it with — no history and no quote. Skip
-    // rather than invent a number; the deposit still counts, because
-    // the money did leave the account either way.
-    if (typeof price !== 'number' || !(price > 0)) continue;
-    value += shares * price * fx;
-  }
-
-  return { value: value + cashUSD, netDeposit: netDeposit + cashUSD };
-}
-
-/**
- * Net deposited as of right now — cumulative buys minus sale proceeds
- * plus board cash. T212 contributes actual fills, never cash/card
- * transactions. What the 5-minute sampler records alongside value.
- *
- * Runs the same pass as `investmentPointAt` with the date cutoff opened
- * all the way, so the two can't drift apart in how they treat a lot, a
- * sale or a currency. Prices aren't needed — deposits are cash amounts —
- * so no ticker series is passed and the returned value is discarded.
- *
- * @param {{
- *   portfolio: any, marketData?: any, fxToUSD: Function,
- *   t212Cash?: {transactions: any[], orders?: any[], complete: boolean}|null,
- * }} opts
- */
-export function netDepositNow({ portfolio, marketData = {}, fxToUSD, t212Cash }) {
-  return investmentPointAt({
-    portfolio, tickerSeries: {}, date: '9999-12-31', marketData, fxToUSD, t212Cash,
-  }).netDeposit;
 }

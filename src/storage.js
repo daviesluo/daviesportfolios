@@ -48,7 +48,7 @@ const STORAGE_KEYS = {
   // the legacy-localStorage migration so these names are referenced
   // there, not here.
 };
-const CURRENT_SCHEMA_VERSION = 2;
+const CURRENT_SCHEMA_VERSION = 1;
 // Market-cache freshness — accept rows up to 7 days old. FX moves
 // <1 % over a typical week and index / futures levels move a few
 // percent at most, so the cold-start render is still well within
@@ -111,13 +111,7 @@ function migrateStorage() {
     legacy.push('ytd-perf-cache-v2'); // alias kept for safety
     for (const k of legacy) localStorage.removeItem(k);
   }
-  if (stored < 2) {
-    // v2: Portfolio may carry `depositFxRates`. It is intentionally
-    // backfilled only after a successful live FX read, so no cached
-    // value is rewritten here; advancing the schema records that this
-    // browser understands the optional field.
-  }
-  // Future migrations: if (stored < 3) { ... }
+  // Future migrations: if (stored < 2) { ... }
 
   localStorage.setItem(STORAGE_KEYS.schemaVersion, String(CURRENT_SCHEMA_VERSION));
 }
