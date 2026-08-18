@@ -19,7 +19,12 @@
 -- from 2024 is never going to change. Fetch it once, page by page, and
 -- keep it.
 --
--- To apply: paste this SQL into Supabase Dashboard → SQL Editor → Run.
+-- Applied automatically: `migrations.yml` runs `supabase db push` on
+-- every push to main that touches this directory. Do NOT also apply it
+-- by hand — a dashboard paste records nothing in
+-- `supabase_migrations.schema_migrations`, and the MCP connector records
+-- a version under its own name; either one desyncs the history and the
+-- next push fails outright.
 
 create table if not exists public.t212_orders (
   -- T212's own fill id. Being the primary key is what makes the backfill

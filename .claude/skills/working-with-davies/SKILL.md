@@ -170,6 +170,22 @@ Changing any of these means re-opening a decision he has already made.
   with no deposit is this bug, not a real deposit.
 - Deposits are steps, not spikes.
 
+### Migrations
+
+- `migrations.yml` runs `supabase db push` on every push to main that
+  touches `supabase/migrations/**`. Pushing the file IS applying it.
+- Never apply the same SQL out of band as well. The MCP connector
+  records a version under its own timestamp name; the dashboard SQL
+  Editor records nothing. Either one desyncs
+  `supabase_migrations.schema_migrations`, and then *every later push*
+  fails outright with "Remote migration versions not found in local
+  migrations directory". This has already happened — it cost a day of
+  red main and a migration that never reached prod, while I told him
+  twice to paste the SQL in by hand.
+- Read `supabase/migrations/README.md` before touching migration state.
+- If a workflow run is the thing that applies your change, go and read
+  the run. Pushing is not the same as landing.
+
 ### Trading 212
 
 - The positions endpoint has no dates; `/equity/history/orders` does.

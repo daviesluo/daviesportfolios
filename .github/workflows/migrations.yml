@@ -70,8 +70,14 @@ jobs:
           fail=0
           for f in supabase/migrations/*.sql; do
             base=$(basename "$f")
-            if [[ ! "$base" =~ ^[0-9]{4}_.*\.sql$ ]]; then
-              echo "::error file=$f::Migration file does not match 0000_name.sql pattern"
+            # Two naming conventions coexist: this repo's own `0000_name`
+            # sequence, and Supabase's `YYYYMMDDHHMMSS_name` — which is
+            # what anything applying a migration out of band (the MCP
+            # connector, the CLI) writes into the remote history. A
+            # reconciliation file has to be able to carry that version or
+            # `db push` can never be made to agree with the remote again.
+            if [[ ! "$base" =~ ^[0-9]{4}(_|[0-9]{10}_).*\.sql$ ]]; then
+              echo "::error file=$f::Migration file does not match 0000_name.sql or 20260101000000_name.sql"
               fail=1
             fi
             # Strip line comments so `--`-prefixed quotes don't trip the count.

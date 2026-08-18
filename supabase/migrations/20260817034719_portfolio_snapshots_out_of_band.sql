@@ -1,0 +1,29 @@
+-- Reconciliation placeholder. Intentionally contains no DDL.
+--
+-- On 2026-08-17 the `migrations` workflow applied
+-- `0022_portfolio_snapshots.sql` correctly at 03:40 (recorded as version
+-- `0022`). Seven minutes later the same DDL was applied a SECOND time
+-- through the Supabase MCP connector, which records its own
+-- timestamp-named version — `20260817034719` — into
+-- `supabase_migrations.schema_migrations`.
+--
+-- That left the remote history with a version no local file matched, and
+-- `supabase db push` refuses to run at all in that state:
+--
+--     Remote migration versions not found in local migrations directory.
+--
+-- So every push after it failed, `0023_t212_orders.sql` never reached
+-- prod, and `main` sat red on the migrations workflow without anyone
+-- reading the issue it opened.
+--
+-- This file is the local half of that pair. `db push` matches on the
+-- version prefix, sees `20260817034719` already recorded remotely, and
+-- skips it — which is correct, because its DDL did run. On a FRESH
+-- database it executes as a no-op, and the table it would have created
+-- is created by `0022`, which sorts ahead of it ('0' < '2').
+--
+-- The rule this is here to enforce: while `migrations.yml` owns
+-- `db push`, apply migrations by pushing the file to main and nothing
+-- else. Applying the same SQL out of band — MCP connector, dashboard SQL
+-- Editor, psql — either desyncs the history like this or records nothing
+-- at all, and both break the next push.
