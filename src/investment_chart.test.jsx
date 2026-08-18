@@ -72,6 +72,20 @@ describe('mergeSeries', () => {
   it('is empty when neither source has anything in the window', () => {
     expect(mergeSeries([], [], 0)).toEqual([]);
   });
+
+  it('lets a continuous recorded series replace the whole derived stretch', () => {
+    // Once cron has been sampling for the length of the window, every
+    // grid bar has a real sample at or before it and nothing is estimated.
+    // That is the point of 24/7 server sampling: the reconstructed half
+    // shrinks until there is none of it left, without inventing extra
+    // x-slots from the 5-minute density.
+    const derived = [pt(300, 90, 100), pt(400, 95, 100), pt(500, 99, 100)];
+    const snaps = [pt(300, 110, 100), pt(400, 120, 100), pt(500, 130, 100)];
+    const out = mergeSeries(snaps, derived, 0);
+    expect(out.map(p => p.ts)).toEqual([300, 400, 500]);
+    expect(out.map(p => p.value)).toEqual([110, 120, 130]);
+    expect(out.every(p => !p.estimated)).toBe(true);
+  });
 });
 
 describe('withLivePoint', () => {

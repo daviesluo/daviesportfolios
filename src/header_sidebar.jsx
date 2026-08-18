@@ -421,7 +421,7 @@ function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHi
 }
 
 
-function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, coverage = /** @type {{got:number,wanted:number}|null} */ (null), live = /** @type {{marketValue:number,netDeposit:number}|null} */ (null) }) {
+function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, coverage = /** @type {{got:number,wanted:number}|null} */ (null), live = /** @type {{marketValue:number,netDeposit:number}|null} */ (null), t212Cash = /** @type {{transactions: any[], orders?: any[], complete: boolean}|null} */ (null) }) {
   // Top movers (winners / losers by dayPct) + the by-value position
   // list. Memoised on metrics so the per-tick refresh churn (clock,
   // flash) doesn't re-flatten every position's players and re-sort the
@@ -512,6 +512,7 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
         className="perf-in-sidebar"
         hideValues={hideValues}
         live={live}
+        t212Cash={t212Cash}
       />
 
       <div className="sidebar-foot sidebar-foot-desktop">

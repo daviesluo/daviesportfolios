@@ -167,7 +167,12 @@ Changing any of these means re-opening a decision he has already made.
 - Recorded 5-minute snapshots progressively replace the derived
   history; the derived stretch is drawn faded with a dotted rule at
   the handover and a `~` on the crosshair. He asked for this
-  explicitly.
+  explicitly. Sampling is the `snapshot-record` Edge Function on
+  pg_cron, 24/7 every 5 minutes — not "leave the tab open". Only the
+  24H window keeps 5-minute density; the daily prune coarsens older
+  rows (30 min / 1 h / 4 h / 1 day) the same way overnight-points
+  thins, without a 30-day wipe that would erase the 1M / 3M / YTD
+  replacement series. The admin tab is a US-RTH backup writer only.
 - Never record a snapshot while an FX pair is missing — `fxRateToUSD`
   falls back to 1:1 and a CNY position lands at seven times its size,
   permanently, in a table. A one-sample jump that reverts the same day
@@ -196,15 +201,20 @@ Changing any of these means re-opening a decision he has already made.
   Real fills beat the synthetic lot. Never re-date a lot to today on
   every sync — that made the whole book look bought this morning and
   dumped the deposit line.
-- The API key is already in Supabase secrets and is reused as-is. A
-  403 on history means the key needs regenerating with the History
-  scope; retrying will never fix it.
+- The API key is already in Supabase secrets and is reused as-is. It
+  already has Portfolio, History: orders, and History: transactions.
+  Do not tell him to regenerate it. A 403 on history is not a
+  missing-scope prompt.
 - History items are nested `{ fill, order }` (fill.id / fill.price /
   fill.quantity / fill.filledAt, order.instrument.ticker / order.side).
   A flat ticker/filledQuantity shaper parsed every page to 0 rows and
   still advanced the cursor, walking the history into the void. Don't
   advance the cursor when a page has items and none parse — that's a
   shape bug, not an empty page.
+- Once `/equity/history/transactions` has been walked to completion,
+  the deposit line is T212 money paid in (deposit − withdraw), not
+  summed lot costs. An unfinished newest-first walk must keep the
+  ledger formula or it understates old deposits.
 
 ### Labels and other surfaces
 

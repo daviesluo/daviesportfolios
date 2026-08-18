@@ -161,16 +161,17 @@ jobs:
           # (auth — needs to receive the password challenge before any
           # token exists; data / trading212 / ops-error — gated by
           # their own HMAC x-app-token inside the function body;
-          # overnight-record — cron-triggered, gated by its own
-          # `Authorization: Bearer <CRON_SECRET>` check, and CRON_SECRET
-          # is NOT a Supabase JWT so the platform's verify_jwt would
-          # 401 the cron call before our gate runs) get --no-verify-jwt
+          # overnight-record / snapshot-record — cron-triggered, gated
+          # by their own `Authorization: Bearer <CRON_SECRET>` check,
+          # and CRON_SECRET is NOT a Supabase JWT so the platform's
+          # verify_jwt would 401 the cron call before our gate runs)
+          # get --no-verify-jwt
           # so the Supabase platform doesn't reject the call first. The
           # rest (prices / chart / fundamentals / overnight-fetch) keep
           # Supabase's JWT check on — the client sends a valid anon
           # Bearer, and leaving it on stops unauthenticated visitors
           # using them as a free upstream proxy (burning rate quotas).
-          PUBLIC_FNS="auth data trading212 ops-error overnight-record"
+          PUBLIC_FNS="auth data trading212 ops-error overnight-record snapshot-record"
           for fn in ${{ steps.changed.outputs.functions }}; do
             FLAGS="--project-ref $SUPABASE_PROJECT_REF"
             case " $PUBLIC_FNS " in
