@@ -192,12 +192,13 @@ export function clearTrading212TransactionsCache() {
 /**
  * Advance the history backfill by one page.
  *
- * Walks fills first (`/equity/history/orders`), then cash movements
- * (`/equity/history/transactions`) once the fill walk latches — the two
- * endpoints share a tight per-minute budget, so they must not run in
- * the same call. The caller keeps going until `complete` is true.
- * Admin only. A 403 with `scopeDenied` means the key authenticates but
- * lacks that History scope, which no amount of retrying will fix.
+ * Each account walks fills first, then cash movements. A finished
+ * account does not occupy a rate-limit slot while another is still
+ * backfilling, so invest can start `/equity/history/transactions`
+ * while ISA is still chewing cancelled orders. The caller keeps going
+ * until `complete` is true. Admin only. A 403 with `scopeDenied` means
+ * the key authenticates but lacks that History scope, which no amount
+ * of retrying will fix.
  *
  * @returns {Promise<{accounts: any[], complete: boolean, stream?: string, scopeDenied?: boolean} | null>}
  */

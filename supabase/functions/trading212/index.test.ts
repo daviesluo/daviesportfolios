@@ -19,6 +19,8 @@ import {
   flattenT212OrderItem,
   t212OrderItemRecognized,
   ordersPageShapeMismatch,
+  nextHistoryKind,
+  pickAccountTopUp,
   nextOrdersCursor,
   ordersItemsOf,
   t212TickerToYahoo,
@@ -474,6 +476,20 @@ Deno.test("ordersPageShapeMismatch — recognised order-only skips must advance"
   assertEquals(ordersPageShapeMismatch(50, 0, 50), false);
   assertEquals(ordersPageShapeMismatch(50, 0, 49), true);
   assertEquals(ordersPageShapeMismatch(50, 2, 50), false);
+});
+
+Deno.test("nextHistoryKind — a finished account yields the slot while another is still walking", () => {
+  // Invest orders are done; ISA is not. Invest must start cash history
+  // rather than re-read page one of fills, and must not wait for ISA.
+  assertEquals(nextHistoryKind(false, false, true), "orders");
+  assertEquals(nextHistoryKind(true, false, true), "transactions");
+  assertEquals(nextHistoryKind(true, true, true), "skip");
+  assertEquals(nextHistoryKind(true, true, false), "topup");
+});
+
+Deno.test("pickAccountTopUp — the staler stream goes next", () => {
+  assertEquals(pickAccountTopUp("2026-08-18T00:00:00Z", "2026-08-18T01:00:00Z"), "orders");
+  assertEquals(pickAccountTopUp("2026-08-18T02:00:00Z", "2026-08-18T01:00:00Z"), "transactions");
 });
 
 Deno.test("nextOrdersCursor — pulls the cursor out of the path T212 returns", () => {
