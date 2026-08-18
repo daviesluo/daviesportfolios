@@ -39,6 +39,20 @@ export const RANGES = {
 export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
 
 /**
+ * Label on the vs-S&P / Investment panel range row. The shortest window
+ * is a trailing 24 h, so it reads 24H rather than 1D. The ticker modal
+ * still uses `RANGES['1D'].label` (`1D`) — that's a day chart with a
+ * previous-close marker, not this panel. Internal key stays `1D` so
+ * cache / fetch / prefetch don't fork.
+ *
+ * @param {string} rangeKey
+ * @returns {string}
+ */
+export function panelRangeLabel(rangeKey) {
+  return rangeKey === '1D' ? '24H' : (RANGES[rangeKey]?.label ?? rangeKey);
+}
+
+/**
  * Pick (yahooRange, interval, includePrePost) for a given chart range.
  * 1D has three sub-modes per the user spec:
  *   - phase === 'regular' (market is open) → fetch 5d / 5m / prepost,

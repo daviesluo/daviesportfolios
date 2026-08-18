@@ -90,9 +90,10 @@ consistent before believing it.
 consistent complaint and it is always worth treating as a defect, even
 when each number is defensible on its own:
 
-- The vs-S&P chart's PORTFOLIO must equal the scoreboard's DAY CHANGE
-  (1D default / `DAY` basis).
-- Its S&P line must equal the Market Conditions card.
+- The vs-S&P chart's 24H PORTFOLIO will not equal the scoreboard's
+  DAY CHANGE, and its S&P line will not equal the Market Conditions
+  card — those were the previous-close reading, and he dropped it.
+  Don't "fix" 24H back onto yesterday's close.
 - The Investment chart's Value must equal the scoreboard's PORTFOLIO.
 - With deposits flat, the Investment value line and the vs-S&P
   portfolio line must have the same shape and the same reading.
@@ -121,15 +122,16 @@ Changing any of these means re-opening a decision he has already made.
 
 ### Charts — vs-S&P and Investment Performance
 
-- Every range rebases both lines to 0% at the window's first point —
-  **except 1D**, which measures from the previous close, so the chart
-  agrees with the scoreboard and the MC cards. He first asked for a
-  literal trailing 24 h (explicitly *not* matching the scoreboard),
-  then flagged the mismatch as a bug. The settled answer is
-  **"两个都要"**: default 1D is `DAY` (prev close); a dashed `DAY` /
-  `24H` button in the range row switches to a genuine trailing day.
-- `computeAt` is handed `prevCloseBasis` on 1D, so its series already
-  IS the day change. Don't rebase it again on the `DAY` basis.
+- Every range rebases both lines to 0% at the window's first point,
+  including the shortest range. That button is labelled **24H**
+  (internal key still `1D`; the ticker modal still says 1D). There is
+  no DAY / 24H toggle and no previous-close reading on this panel — a
+  trailing 24 h is the only 1-day view. He first asked for a literal
+  trailing 24 h, then for both, then dropped the DAY reading. Don't
+  put the toggle back.
+- `computeAt` is handed `prevCloseBasis` on the 24H window (internal
+  `1D`), then the series is rebased to the first point. Don't skip the
+  rebase to "make it match the scoreboard".
 - 1W is a real trailing week, not "since last Monday" or a coarse
   bucket that erases the series.
 - 1D is one point per five minutes over the window. Extended-hours on
