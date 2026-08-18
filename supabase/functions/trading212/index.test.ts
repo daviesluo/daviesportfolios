@@ -14,6 +14,9 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   shapeT212Portfolio,
+  shapeT212Order,
+  nextOrdersCursor,
+  ordersItemsOf,
   t212TickerToYahoo,
   unpackCache,
   mergeShaped,
@@ -271,4 +274,109 @@ Deno.test("constantTimeEqual: identical / non-identical / length-mismatched", ()
   assert(constantTimeEqual("abc", "abc"));
   assert(!constantTimeEqual("abc", "abd"));
   assert(!constantTimeEqual("abc", "abcd"));
+});
+
+// ---------------------------------------------------------------------
+// Executed-fill history. The positions endpoint reports a POSITION with
+// no dates, which is why the lot ledger has been guessing; these rows
+// are the real purchase history.
+
+Deno.test("shapeT212Order — a plain buy becomes a lot-shaped row", () => {
+  const out = shapeT212Order({
+    id: 123, fillId: 987, ticker: "AAPL_US_EQ", status: "FILLED",
+    filledQuantity: 3, fillPrice: 210.5, fillCost: 631.5,
+    dateExecuted: "2025-04-01T13:45:00.000+00:00",
+  }, "invest");
+  assertEquals(out?.id, "invest:987");
+  assertEquals(out?.ticker, "AAPL");
+  assertEquals(out?.t212_ticker, "AAPL_US_EQ");
+  assertEquals(out?.side, "buy");
+  assertEquals(out?.shares, 3);
+  assertEquals(out?.price, 210.5);
+  assertEquals(out?.executed_at, "2025-04-01T13:45:00.000Z");
+});
+
+Deno.test("shapeT212Order — a negative quantity is a sale, stored positive", () => {
+  // T212 signs a sale's quantity negative; `side` carries the direction
+  // so the ledger doesn't have to re-derive it from a sign.
+  const out = shapeT212Order({
+    fillId: 5, ticker: "VUAAl_EQ", status: "FILLED",
+    filledQuantity: -2.5, fillPrice: 100, dateExecuted: "2025-06-01T08:00:00Z",
+  }, "isa");
+  assertEquals(out?.side, "sell");
+  assertEquals(out?.shares, 2.5);
+  assertEquals(out?.ticker, "VUAA.L");
+  assertEquals(out?.id, "isa:5");
+});
+
+Deno.test("shapeT212Order — keys on the FILL, so a part-filled order keeps both halves", () => {
+  const base = { id: 42, ticker: "AAPL_US_EQ", status: "FILLED", fillPrice: 10,
+                 dateExecuted: "2025-01-01T00:00:00Z" };
+  const a = shapeT212Order({ ...base, fillId: 1, filledQuantity: 4 }, "invest");
+  const b = shapeT212Order({ ...base, fillId: 2, filledQuantity: 6 }, "invest");
+  // Keying on the ORDER id would collapse these into one row and lose
+  // six shares.
+  assert(a!.id !== b!.id);
+});
+
+Deno.test("shapeT212Order — derives the price from cost when no fill price is given", () => {
+  const out = shapeT212Order({
+    fillId: 7, ticker: "AAPL_US_EQ", filledQuantity: 4, fillCost: 88,
+    dateExecuted: "2025-01-01T00:00:00Z",
+  }, "invest");
+  assertEquals(out?.price, 22);
+});
+
+Deno.test("shapeT212Order — drops orders that never moved any money", () => {
+  const base = { fillId: 1, ticker: "AAPL_US_EQ", filledQuantity: 1, fillPrice: 10,
+                 dateExecuted: "2025-01-01T00:00:00Z" };
+  assertEquals(shapeT212Order({ ...base, status: "CANCELLED" }, "invest"), null);
+  assertEquals(shapeT212Order({ ...base, status: "REJECTED" }, "invest"), null);
+  assertEquals(shapeT212Order({ ...base, filledQuantity: 0 }, "invest"), null);
+  assertEquals(shapeT212Order({ ...base, fillPrice: 0, fillCost: 0 }, "invest"), null);
+  assertEquals(shapeT212Order({ ...base, dateExecuted: "not a date", dateCreated: undefined }, "invest"), null);
+  assertEquals(shapeT212Order({ ...base, ticker: "" }, "invest"), null);
+  assertEquals(shapeT212Order(null, "invest"), null);
+});
+
+Deno.test("shapeT212Order — an unfamiliar status is kept, not silently dropped", () => {
+  // A status field only rules a row OUT. Dropping every row of a shape
+  // we don't recognise would produce an empty history rather than an
+  // error anyone would notice.
+  const out = shapeT212Order({
+    fillId: 9, ticker: "AAPL_US_EQ", filledQuantity: 1, fillPrice: 10,
+    dateExecuted: "2025-01-01T00:00:00Z",
+  }, "invest");
+  assert(out !== null);
+});
+
+Deno.test("shapeT212Order — an unmapped listing is stored with a null ticker", () => {
+  // The broker symbol is kept either way, so a mapping that's wrong
+  // today can be re-derived later without re-fetching the history.
+  const out = shapeT212Order({
+    fillId: 3, ticker: "ASML_NL_EQ", filledQuantity: 1, fillPrice: 600,
+    dateExecuted: "2025-01-01T00:00:00Z",
+  }, "invest");
+  assertEquals(out?.ticker, null);
+  assertEquals(out?.t212_ticker, "ASML_NL_EQ");
+});
+
+Deno.test("nextOrdersCursor — pulls the cursor out of the path T212 returns", () => {
+  assertEquals(
+    nextOrdersCursor({ nextPagePath: "/api/v0/equity/history/orders?cursor=abc123&limit=50" }),
+    "abc123",
+  );
+  assertEquals(nextOrdersCursor({ nextPagePath: { path: "/x?limit=50&cursor=z%2F9" } }), "z/9");
+  // No next page is what latches the backfill complete.
+  assertEquals(nextOrdersCursor({ items: [] }), null);
+  assertEquals(nextOrdersCursor({ nextPagePath: "/x?limit=50" }), null);
+  assertEquals(nextOrdersCursor(null), null);
+});
+
+Deno.test("ordersItemsOf — tolerates the envelope names wrappers use", () => {
+  assertEquals(ordersItemsOf({ items: [1, 2] }), [1, 2]);
+  assertEquals(ordersItemsOf({ data: [3] }), [3]);
+  assertEquals(ordersItemsOf([4, 5]), [4, 5]);
+  assertEquals(ordersItemsOf({}), []);
+  assertEquals(ordersItemsOf(null), []);
 });

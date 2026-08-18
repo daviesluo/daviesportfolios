@@ -147,6 +147,118 @@ export function t212TickerToYahoo(t212Ticker: string): string | null {
   return null;
 }
 
+// Executed-fill history. Unlike `/equity/positions` (a snapshot of what
+// is held) this carries the DATES — which is the one thing the position
+// endpoint can't tell us and the whole reason the lot ledger has been
+// guessing. Rate limited far harder than positions, so it's backfilled
+// one page at a time into `t212_orders` and read from there afterwards.
+export const T212_ORDERS_URL = "https://live.trading212.com/api/v0/equity/history/orders";
+
+/**
+ * Normalise one row of T212's order history into a lot-shaped record.
+ *
+ * Defensive about field names on purpose: this endpoint has never been
+ * exercised here, the shape isn't pinned by anything we control, and a
+ * silently-dropped fill is a hole in someone's purchase history. Reads
+ * the filled quantity in preference to the ordered one (a partial fill
+ * bought what it bought), derives the price from `fillCost` when
+ * `fillPrice` is absent, and takes the earliest of the execution
+ * timestamps that is actually present.
+ *
+ * Returns null for anything that isn't a completed fill with a real
+ * quantity and price — an open, cancelled or rejected order didn't move
+ * any money and has no place in the ledger.
+ */
+export function shapeT212Order(raw: unknown, account: string): {
+  id: string;
+  account: string;
+  t212_ticker: string;
+  ticker: string | null;
+  executed_at: string;
+  side: "buy" | "sell";
+  shares: number;
+  price: number;
+} | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const num = (v: unknown): number | null =>
+    (typeof v === "number" && isFinite(v)) ? v
+      : (typeof v === "string" && v.trim() !== "" && isFinite(Number(v)) ? Number(v) : null);
+
+  // A status field only rules a row OUT — absent means we can't tell, and
+  // dropping every row of an unfamiliar shape would silently produce an
+  // empty history rather than an error anyone would notice.
+  const status = typeof o.status === "string" ? o.status.toUpperCase() : "";
+  if (status && !/FILL|EXECUT|COMPLET/.test(status)) return null;
+
+  const t212Ticker = typeof o.ticker === "string" ? o.ticker : "";
+  if (!t212Ticker) return null;
+
+  const qty = num(o.filledQuantity) ?? num(o.orderedQuantity) ?? num(o.quantity);
+  if (qty == null || qty === 0) return null;
+
+  // T212 signs a sale's quantity negative. `fillResult` (realised P/L)
+  // only appears on sells, so it's a second witness when the sign is
+  // absent — but never the primary one: a sale that broke even reports
+  // zero, not nothing.
+  const side: "buy" | "sell" = qty < 0 ? "sell" : "buy";
+  const shares = Math.abs(qty);
+
+  const cost = num(o.fillCost) ?? num(o.filledValue) ?? num(o.orderedValue);
+  const price = num(o.fillPrice) ?? num(o.limitPrice)
+    ?? (cost != null && shares > 0 ? Math.abs(cost) / shares : null);
+  if (price == null || !(price > 0)) return null;
+
+  const when = [o.dateExecuted, o.dateModified, o.dateCreated]
+    .find((d) => typeof d === "string" && !isNaN(Date.parse(d as string)));
+  if (!when) return null;
+
+  // Prefer the FILL id: one order can fill in several parts, and keying
+  // on the order id would collapse them into one row and lose shares.
+  const id = String(o.fillId ?? o.id ?? `${account}:${t212Ticker}:${when}:${qty}`);
+
+  return {
+    id: `${account}:${id}`,
+    account,
+    t212_ticker: t212Ticker,
+    ticker: t212TickerToYahoo(t212Ticker),
+    executed_at: new Date(when as string).toISOString(),
+    side,
+    shares,
+    price: Math.abs(price),
+  };
+}
+
+/**
+ * The cursor for the next page, or null at the end of the history.
+ *
+ * T212 hands back a whole path (`/api/v0/equity/history/orders?cursor=…`)
+ * rather than a bare cursor, and some wrappers expose `nextPagePath` as
+ * an object. Pull the parameter out of whichever shape arrived; null
+ * means the walk is finished, which is what latches `complete`.
+ */
+export function nextOrdersCursor(body: unknown): string | null {
+  if (!body || typeof body !== "object") return null;
+  const b = body as Record<string, unknown>;
+  const raw = b.nextPagePath ?? b.nextPage ?? b.next;
+  const path = typeof raw === "string" ? raw
+    : (raw && typeof raw === "object" ? String((raw as Record<string, unknown>).path ?? "") : "");
+  if (!path) return null;
+  const m = path.match(/[?&]cursor=([^&]+)/);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+/** The `items` array, whatever the envelope calls it. */
+export function ordersItemsOf(body: unknown): unknown[] {
+  if (Array.isArray(body)) return body;
+  if (!body || typeof body !== "object") return [];
+  const b = body as Record<string, unknown>;
+  for (const k of ["items", "data", "orders", "results"]) {
+    if (Array.isArray(b[k])) return b[k] as unknown[];
+  }
+  return [];
+}
+
 // 1 s cache. `/equity/positions` allows 1 req / second, so this is the
 // floor that keeps us within the limit while making a manual refresh
 // feel instant (a click lands fresh data unless the last call was <1 s
@@ -477,6 +589,193 @@ async function fetchT212Portfolio(apiKey: string, apiSecret: string): Promise<un
   return await res.json();
 }
 
+/**
+ * One page of executed-fill history for one account.
+ *
+ * Same auth dance as the positions call — Basic first when a secret is
+ * configured, raw key as the 401 fallback. A 403 is called out
+ * separately because it means something a retry will never fix: T212
+ * scopes its API keys, and a key generated without the History
+ * permission authenticates fine and then refuses this endpoint. Without
+ * the distinction that reads as "the sync is broken" rather than "tick
+ * the box and regenerate the key".
+ */
+async function fetchT212OrdersPage(
+  apiKey: string,
+  apiSecret: string,
+  cursor: string | null,
+  limit = 50,
+): Promise<{ ok: true; body: unknown } | { ok: false; status: number; message: string }> {
+  const url = new URL(T212_ORDERS_URL);
+  url.searchParams.set("limit", String(limit));
+  if (cursor) url.searchParams.set("cursor", cursor);
+  const attempts = apiSecret ? [basicAuthHeader(apiKey, apiSecret), apiKey] : [apiKey];
+  let res!: Response;
+  for (const authorization of attempts) {
+    res = await fetch(url.toString(), {
+      headers: { authorization, accept: "application/json" },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (res.status !== 401) break;
+  }
+  if (!res.ok) {
+    const snippet = (await res.text().catch(() => "")).slice(0, 200);
+    const hint = res.status === 403
+      ? " — the API key authenticates but is not permitted to read history. " +
+        "Regenerate it in Trading 212 with the History scope enabled."
+      : res.status === 429
+      ? " — rate limited; this endpoint allows only a few calls a minute. Try again shortly."
+      : "";
+    return { ok: false, status: res.status, message: `T212 ${res.status} ${res.statusText}${hint} :: ${snippet}` };
+  }
+  return { ok: true, body: await res.json() };
+}
+
+/** Upsert a batch of shaped fills. Idempotent on the fill id. */
+async function writeOrders(rows: unknown[]): Promise<boolean> {
+  if (rows.length === 0) return true;
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/t212_orders`, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE_KEY,
+        authorization: `Bearer ${SERVICE_KEY}`,
+        "content-type": "application/json",
+        prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify(rows),
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) {
+      const snippet = (await res.text().catch(() => "")).slice(0, 200);
+      const hint = snippet.includes("42P01")
+        ? " — apply migration 0023 (t212_orders) via Supabase SQL Editor."
+        : "";
+      console.error(`T212 orders write ${res.status}: ${snippet}${hint}`);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error("T212 orders write error:", e instanceof Error ? e.message : e);
+    return false;
+  }
+}
+
+async function readOrdersSync(account: string): Promise<Record<string, unknown> | null> {
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/t212_orders_sync?account=eq.${encodeURIComponent(account)}&select=*`,
+      { headers: { apikey: SERVICE_KEY, authorization: `Bearer ${SERVICE_KEY}`, accept: "application/json" },
+        signal: AbortSignal.timeout(5_000) },
+    );
+    if (!res.ok) return null;
+    const arr = await res.json();
+    return Array.isArray(arr) && arr[0] ? arr[0] : null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeOrdersSync(row: Record<string, unknown>): Promise<void> {
+  try {
+    await fetch(`${SB_URL}/rest/v1/t212_orders_sync`, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE_KEY,
+        authorization: `Bearer ${SERVICE_KEY}`,
+        "content-type": "application/json",
+        prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({ ...row, updated_at: new Date().toISOString() }),
+      signal: AbortSignal.timeout(5_000),
+    });
+  } catch (e) {
+    console.error("T212 orders sync-state write error:", e instanceof Error ? e.message : e);
+  }
+}
+
+/** Every stored fill, oldest first, for the client to rebuild lots from. */
+async function readOrders(): Promise<unknown[]> {
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/t212_orders?select=ticker,executed_at,side,shares,price,account&order=executed_at.asc&limit=5000`,
+      { headers: { apikey: SERVICE_KEY, authorization: `Bearer ${SERVICE_KEY}`, accept: "application/json" },
+        signal: AbortSignal.timeout(8_000) },
+    );
+    if (!res.ok) {
+      const snippet = (await res.text().catch(() => "")).slice(0, 200);
+      console.error(`T212 orders read ${res.status}: ${snippet}`);
+      return [];
+    }
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Advance the backfill by ONE page for one account.
+ *
+ * One page per invocation because the history endpoint allows only a
+ * handful of calls a minute — walking the whole history inside a single
+ * request would spend most of it rate limited and time out. The cursor
+ * is remembered between calls, so the client just keeps asking until
+ * `complete` comes back true.
+ */
+async function syncOrdersOnce(
+  account: string,
+  apiKey: string,
+  apiSecret: string,
+): Promise<Record<string, unknown>> {
+  const state = await readOrdersSync(account);
+  const done = state?.complete === true;
+  // Once the walk has finished, keep re-reading the FIRST page rather
+  // than stopping for good: it holds the newest fills, and the upsert
+  // makes re-reading it free. Without this a completed backfill would
+  // never notice another purchase.
+  const cursor = done ? null : (typeof state?.cursor === "string" ? state.cursor : null);
+  const page = await fetchT212OrdersPage(apiKey, apiSecret, cursor);
+  if (!page.ok) {
+    await writeOrdersSync({ account, cursor, complete: done, fetched: state?.fetched ?? 0, last_error: page.message });
+    // `scopeDenied` is the one failure a retry can never fix, so the
+    // caller can stop rather than grind against it.
+    return {
+      account, error: page.message, status: page.status,
+      complete: done, added: 0, scopeDenied: page.status === 403,
+    };
+  }
+  const items = ordersItemsOf(page.body);
+  const rows = items
+    .map((it) => shapeT212Order(it, account))
+    .filter((r): r is NonNullable<ReturnType<typeof shapeT212Order>> => r !== null);
+  const wrote = await writeOrders(rows);
+  const next = nextOrdersCursor(page.body);
+  // A finished walk stays finished — the top-up pass above deliberately
+  // re-reads page one, and letting its `next` cursor restart the walk
+  // would loop the whole history forever.
+  const complete = done || (wrote && next === null);
+  const fetched = done
+    ? (typeof state?.fetched === "number" ? state.fetched : rows.length)
+    : (typeof state?.fetched === "number" ? state.fetched : 0) + rows.length;
+  await writeOrdersSync({
+    account,
+    cursor: done ? null : next,
+    // Only latch complete once the page landed — otherwise a failed
+    // write would end the walk having stored nothing.
+    complete,
+    fetched,
+    last_error: wrote ? null : "storage write failed",
+  });
+  return {
+    account,
+    added: rows.length,
+    skipped: items.length - rows.length,
+    fetched,
+    complete,
+    ...(wrote ? {} : { error: "storage write failed — apply migration 0023" }),
+  };
+}
+
 // Direct insert into public.ops_errors via the service-role key (RLS
 // denies anon). Used by the outer try/catch wrap so a runtime crash
 // here becomes a row the admin ⚠ badge surfaces instead of a silent
@@ -521,6 +820,38 @@ if (import.meta.main) {
           prices: {},
           updatedAt: new Date().toISOString(),
           source: "disabled",
+        }), { headers: { ...CORS, "content-type": "application/json" } });
+      }
+
+      const action = new URL(req.url).searchParams.get("action") ?? "";
+
+      // Executed-fill history. `orders` is a plain read of what's been
+      // backfilled; `orders-sync` advances the backfill by one page per
+      // account and is admin-only, because it writes and because it
+      // spends a rate-limited upstream budget a viewer has no business
+      // spending.
+      if (action === "orders") {
+        return new Response(JSON.stringify({ orders: await readOrders() }), {
+          headers: { ...CORS, "content-type": "application/json" },
+        });
+      }
+      if (action === "orders-sync") {
+        if (verified.role !== "admin") {
+          return new Response(JSON.stringify({ error: "admin only" }), {
+            status: 403, headers: { ...CORS, "content-type": "application/json" },
+          });
+        }
+        const accounts: Array<[string, string, string]> = [["invest", T212_API_KEY, T212_API_SECRET]];
+        if (T212_ISA_API_KEY) accounts.push(["isa", T212_ISA_API_KEY, T212_ISA_API_SECRET]);
+        // Sequential, not parallel: the two accounts share one upstream
+        // rate limit and firing both at once is the fastest way to a 429.
+        const results: Record<string, unknown>[] = [];
+        for (const [name, key, secret] of accounts) {
+          results.push(await syncOrdersOnce(name, key, secret));
+        }
+        return new Response(JSON.stringify({
+          accounts: results,
+          complete: results.every((r) => r.complete === true),
         }), { headers: { ...CORS, "content-type": "application/json" } });
       }
 
