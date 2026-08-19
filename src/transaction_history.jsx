@@ -11,6 +11,7 @@ import { Modal } from './modals.jsx';
 import { fmtMoney as fmtM, fmtSharesFor as fmtShFor, pctColor as pctClr, maskDigits } from './formatters.js';
 import { currencySymbol, fxRateToUSD } from './fx.js';
 import { buildTransactionLog, totalRealizedUsd } from './transactions.js';
+import { withClosedFromFills } from './t212_fills.js';
 import { TableExportButtons } from './table_export.jsx';
 
 /** @param {number} n  native amount → 2dp with thousands separators (no symbol) */
@@ -116,14 +117,21 @@ export function nextSortState(sort, colId) {
   return null;
 }
 
-function TransactionHistoryModal({ holdings, marketData, hideValues, onClose }) {
-  const log = React.useMemo(() => buildTransactionLog(holdings), [holdings]);
+function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders = /** @type {any[]} */ ([]), onTickerClick = /** @type {((t: string) => void) | null} */ (null), onClose }) {
+  // Closed positions are gone from the board but not from the record —
+  // 41 tickers and ~950 executed trades on this book. See
+  // `withClosedFromFills`.
+  const allHoldings = React.useMemo(
+    () => withClosedFromFills(holdings, t212Orders),
+    [holdings, t212Orders],
+  );
+  const log = React.useMemo(() => buildTransactionLog(allHoldings), [allHoldings]);
   /** @type {[{col: string, dir: 'desc'|'asc'} | null, Function]} */
   const [sort, setSort] = React.useState(/** @type {any} */ (null));
   const rows = React.useMemo(() => sortTransactionRows(log, sort), [log, sort]);
   const realizedUsd = React.useMemo(
-    () => totalRealizedUsd(holdings, (cur) => fxRateToUSD(cur, marketData).rate),
-    [holdings, marketData],
+    () => totalRealizedUsd(allHoldings, (cur) => fxRateToUSD(cur, marketData).rate),
+    [allHoldings, marketData],
   );
   const m = (s) => (hideValues ? maskDigits(s) : s);
 
@@ -190,7 +198,15 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, onClose }) 
                       <span className={`txn-badge txn-${r.kind}`}>{r.kind === 'buy' ? 'BUY' : 'SELL'}</span>
                     </td>
                     <td className="hl-left txn-date" data-col="date">{r.date}</td>
-                    <td className="hl-left txn-sym" data-col="symbol">{r.ticker}</td>
+                    <td className="hl-left txn-sym" data-col="symbol">
+                      {onTickerClick && holdings?.[r.ticker]
+                        ? (
+                          <button className="txn-sym-btn" onClick={() => onTickerClick(r.ticker)}>
+                            {r.ticker}
+                          </button>
+                        )
+                        : r.ticker}
+                    </td>
                     <td className="hl-right" data-col="shares">{fmtShFor(r.shares, r.ticker)}</td>
                     <td className="hl-right" data-col="price">{m(`${sym}${amt2(r.price)}`)}</td>
                     <td className="hl-right hl-strong" data-col="amount">{m(`${sym}${amt2(r.shares * r.price)}`)}</td>

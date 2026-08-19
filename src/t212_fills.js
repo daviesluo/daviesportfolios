@@ -29,6 +29,7 @@
 // 2 is that sentence written as code: this module can change what the
 // ledger SAYS, never what the position IS.
 
+import { detectCurrency } from './fx.js';
 import { cleanLots } from './lots.js';
 import { cleanSells, netPosition } from './transactions.js';
 import { lotsFromOrders } from './trading212.js';
@@ -191,4 +192,43 @@ export function ledgerProvenance(holding, orders, ticker, backfillComplete) {
   if (!Number.isFinite(Number(holding?.t212Shares))) return { state: 'manual', fills, other };
   if (rebuildLedgerFromFills(holding, orders, ticker)) return { state: 'synced', fills, other };
   return { state: backfillComplete ? 'manual' : 'pending', fills, other };
+}
+
+/**
+ * The board plus every ticker the broker has fills for that the board
+ * no longer carries.
+ *
+ * The transaction history walks `holdings`, so a position that was
+ * closed and taken off the board has no row to hang its trades on and
+ * simply isn't in the record. On this book that is 41 tickers and
+ * around 950 executed trades — NFLX 105, IREN 96, CRCL 70, SOUN 70 —
+ * every one of them a real decision, and all of them invisible.
+ *
+ * The synthesised entries are closed by construction: they exist only
+ * where the board has nothing, they carry `shares: 0`, and nothing
+ * writes them back. Currency comes from the ticker's own suffix, the
+ * same way a hand-added holding gets one.
+ *
+ * @param {Record<string, any> | null | undefined} holdings
+ * @param {Array<any> | null | undefined} orders
+ * @returns {Record<string, any>}
+ */
+export function withClosedFromFills(holdings, orders) {
+  const base = holdings && typeof holdings === 'object' ? holdings : {};
+  if (!Array.isArray(orders) || orders.length === 0) return base;
+  const out = { ...base };
+  const done = new Set();
+  for (const o of orders) {
+    const t = o?.ticker;
+    if (typeof t !== 'string' || !t || out[t] || done.has(t)) continue;
+    done.add(t);
+    const led = brokerLedgerFor(orders, t);
+    if (led.lots.length === 0 && led.sells.length === 0) continue;
+    out[t] = {
+      shares: 0, cost: 0, closed: true,
+      currency: detectCurrency(t),
+      lots: led.lots, sells: led.sells,
+    };
+  }
+  return out;
 }

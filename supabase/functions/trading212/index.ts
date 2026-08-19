@@ -123,6 +123,11 @@ const T212_TO_YAHOO: Record<string, string> = {
 //                      29 fills netting to exactly the board's 580 shares
 //                      had no ticker at all, so the whole position's
 //                      history was invisible)
+//   XFABp_EQ → XFAB.PA (X-FAB on Euronext Paris; the `p` suffix has no
+//                      rule either, and its 8 fills are a closed round
+//                      trip the transaction history was missing)
+//   CSPX_EQ  → CSPX.L  (an LSE UCITS ETF with no exchange suffix at all,
+//                      so the generic `_EQ` rules don't reach it)
 const T212_US_ALIASES: Record<string, string> = {
   "FB_US_EQ": "META",
   "YNDX_US_EQ": "NBIS",
@@ -131,6 +136,8 @@ const T212_US_ALIASES: Record<string, string> = {
   "LOKB_US_EQ": "NVTS",
   "GOOGL_US_EQ": "GOOG",
   "2DGd_EQ": "2DG.SG",
+  "XFABp_EQ": "XFAB.PA",
+  "CSPX_EQ": "CSPX.L",
 };
 
 // Generic T212-internal → Yahoo ticker mapping, used to build the
@@ -152,7 +159,9 @@ export function t212TickerToYahoo(t212Ticker: string): string | null {
   // match and five fills went unmapped.
   const us = t212Ticker.match(/^([A-Za-z]+(?:_[A-Za-z])?)_US_EQ$/);
   if (us) return us[1].toUpperCase().replace("_", "-");
-  const lse = t212Ticker.match(/^([A-Za-z]+)l_EQ$/);
+  // Digits belong in a ticker: `QQQ3l_EQ` is WisdomTree's 3x NASDAQ 100
+  // on the LSE, and a letters-only pattern skipped it entirely.
+  const lse = t212Ticker.match(/^([A-Za-z0-9]+)l_EQ$/);
   if (lse) return lse[1].toUpperCase() + ".L";
   return null;
 }
