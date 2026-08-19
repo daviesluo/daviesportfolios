@@ -157,12 +157,20 @@ Migration `0033` marks the four that predate it (SPCX 50 + 21, RKLB 11.5,
 HOOD 30), which are exactly each holding's excess over its broker slice,
 so all three still net to 130 / 160 / 50.
 
+**Verified once both walks finished (2026-08-19 00:29).** `invest`
+latched at 919 fills, `isa` at 1,054. All **24** Trading 212 holdings
+now rebuild — every one of them nets to the board's own share count
+exactly, from 2DG.SG's 580 down to VUAA.L's 2.2468. The two that don't
+rebuild are the two that shouldn't: `017731` (a CN fund) and `BTC-USD`,
+neither of which the broker has ever seen.
+
 **`cost` follows the ledger; `shares` never moves.** The board's figure
 was T212's `averagePricePaid` — the average of what was BOUGHT — while
-this app's basis is the net-cash model the owner specified. Eight of the
-fourteen covered holdings agree to the cent. ORCL, sold down from 123
-fills to 70 shares, differs by $28.68/share (~$2,007 of total cost). He
-was shown the numbers and chose to follow the trades.
+this app's basis is the net-cash model the owner specified. Seventeen of the
+twenty-four covered holdings agree to within $20 of total cost. The
+whole shift is +$1,831, and ORCL is +$2,007 of it: sold down from 123
+fills to 70 shares, $28.68/share apart. He was shown the numbers and
+chose to follow the trades.
 
 ## The rollback (2026-08-18)
 
@@ -236,11 +244,9 @@ numbers it produced independently confirm the diagnosis.
 
 ## Open items
 
-- [ ] **Let the ISA walk finish.** `invest` latched `complete` at 919
-      fills; `isa` is at ~737 and still moving back through 2025-07.
-      Ten holdings (AAPL, AMZN, GOOG, MSFT, NBIS, NVDA, NVTS, APLD, AVGO,
-      CRWV) are waiting on it and read "still downloading" in the editor
-      until then. Nothing to do but open the site.
+- [x] **Both walks finished** at 00:29 on 2026-08-19 — 919 + 1,054
+      fills, no errors. All 24 T212 holdings rebuild to the board's own
+      share count.
 - [x] **Merge `main` into `claude/repo-audit-restore-uverhn`** — done in
       `f58b11b`. See the note under Open items below.
 - [ ] `XFABp_EQ` — 8 fills, net 0 — is still unmapped. No board row
