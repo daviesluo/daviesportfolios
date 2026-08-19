@@ -141,7 +141,8 @@ export function totalRealizedUsd(holdings, fxRate) {
 
 /**
  * @typedef {{ ticker: string, kind: 'buy'|'sell', date: string,
- *   shares: number, price: number, currency: string, ts?: number }} TxnRow
+ *   shares: number, price: number, currency: string, ts?: number,
+ *   acAfter?: number, gain?: number | null, gainPct?: number | null }} TxnRow
  */
 
 /**
@@ -153,6 +154,55 @@ export function totalRealizedUsd(holdings, fxRate) {
  * @param {Record<string, any> | null | undefined} holdings
  * @returns {TxnRow[]}
  */
+/**
+ * Walk one holding's ledger in order and say what each row DID.
+ *
+ * A sale's realized gain and a purchase's resulting average cost are the
+ * same question asked from two sides — "what did this trade do to the
+ * position?" — and neither can be read off the row itself: both depend
+ * on every trade before it. Under the net-cash model a sale banks
+ * `shares × (price − AC)` where AC is the running net cost at that
+ * moment, and the cash it returns lowers what the remaining shares cost.
+ *
+ * Returns one entry per row, in date order, keyed by index into the
+ * chronological sequence so the caller can attach them to its own rows.
+ *
+ * @param {Array<any>} lots
+ * @param {Array<any>} sells
+ * @returns {Array<{date: string, kind: 'buy'|'sell', shares: number, price: number, ts?: number,
+ *                  acAfter: number, gain: number | null, gainPct: number | null}>}
+ */
+export function annotateLedger(lots, sells) {
+  const txns = [
+    ...cleanLots(lots).map((l) => ({ date: l.date, shares: l.shares, price: l.cost, ts: l.ts, kind: /** @type {const} */ ('buy') })),
+    ...cleanSells(sells).map((sl) => ({ date: sl.date, shares: sl.shares, price: sl.price, ts: sl.ts, kind: /** @type {const} */ ('sell') })),
+  ].sort((a, b) => a.date.localeCompare(b.date) || ((a.ts ?? 0) - (b.ts ?? 0)));
+  let netCash = 0, shares = 0;
+  const out = [];
+  for (const t of txns) {
+    if (t.kind === 'buy') {
+      netCash += t.shares * t.price;
+      shares += t.shares;
+      out.push({ ...t, acAfter: shares > 0 ? netCash / shares : 0, gain: null, gainPct: null });
+    } else {
+      const ac = shares > 0 ? netCash / shares : 0;
+      const gain = t.shares * (t.price - ac);
+      netCash -= t.shares * t.price;
+      shares -= t.shares;
+      out.push({
+        ...t,
+        acAfter: shares > 1e-9 ? netCash / shares : 0,
+        gain,
+        // Against what the sold shares cost, which is the only basis the
+        // percentage can mean. A sale out of a zero-cost position (a
+        // spinoff, a fully banked round trip) has no percentage at all.
+        gainPct: ac > 0 ? ((t.price - ac) / ac) * 100 : null,
+      });
+    }
+  }
+  return out;
+}
+
 export function buildTransactionLog(holdings) {
   if (!holdings || typeof holdings !== 'object') return [];
   /** @type {TxnRow[]} */
@@ -160,11 +210,14 @@ export function buildTransactionLog(holdings) {
   for (const [ticker, h] of Object.entries(holdings)) {
     if (!h || h.isCash || ticker === 'CASH' || AUTO_DCA_TICKERS.has(ticker)) continue;
     const currency = h.currency || 'USD';
-    for (const l of cleanLots(h.lots)) {
-      rows.push({ ticker, kind: 'buy', date: l.date, shares: l.shares, price: l.cost, currency, ts: l.ts });
-    }
-    for (const s of cleanSells(h.sells)) {
-      rows.push({ ticker, kind: 'sell', date: s.date, shares: s.shares, price: s.price, currency, ts: s.ts });
+    // `annotateLedger` walks this holding in order, so each row arrives
+    // knowing what it did to the position: a sale's banked gain, a
+    // purchase's resulting average cost.
+    for (const t of annotateLedger(h.lots, h.sells)) {
+      rows.push({
+        ticker, kind: t.kind, date: t.date, shares: t.shares, price: t.price,
+        currency, ts: t.ts, acAfter: t.acAfter, gain: t.gain, gainPct: t.gainPct,
+      });
     }
   }
   // Most recent first. Same-day ties: order by actual record time (the `ts`

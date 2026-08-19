@@ -1130,6 +1130,12 @@ body {
   background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 4px;
 }
 .txn-realized-val { font-size: 20px; font-weight: 600; }
+/* Every header sorts: descending, ascending, then back to the log's own
+   newest-first order — without that third state there is no way back
+   short of closing the modal. The arrow marks the column in play. */
+.hl-th-sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+.hl-th-sortable:hover { color: var(--chalk); }
+.hl-sort-arrow { display: inline-block; width: 10px; margin-left: 4px; font-size: 8px; }
 .txn-badge {
   display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
   padding: 2px 6px; border-radius: 3px; border: 1px solid;

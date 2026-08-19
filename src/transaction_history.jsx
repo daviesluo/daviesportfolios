@@ -27,19 +27,90 @@ export function transactionRowsToMatrix(rows) {
   const body = (rows || []).map((r) => {
     const sym = currencySymbol(r.currency);
     return [
+      r.kind === 'buy' ? 'BUY' : 'SELL',
       r.date,
       r.ticker,
-      r.kind === 'buy' ? 'BUY' : 'SELL',
       fmtShFor(r.shares, r.ticker),
       `${sym}${amt2(r.price)}`,
       `${sym}${amt2(r.shares * r.price)}`,
+      outcomeText(r, sym),
     ];
   });
-  return [['Date', 'Symbol', 'Type', 'Shares', 'Price', 'Amount'], ...body];
+  return [['Type', 'Date', 'Symbol', 'Shares', 'Price', 'Amount', 'G/L · AC'], ...body];
+}
+
+/**
+ * What the row did to the position, as one string: a sale's banked gain
+ * with the percentage it made, or a purchase's resulting average cost.
+ * The same question from two sides, so they share a column.
+ * @param {import('./transactions.js').TxnRow} r
+ * @param {string} sym
+ */
+function outcomeText(r, sym) {
+  if (r.kind === 'sell') {
+    if (typeof r.gain !== 'number') return '';
+    const g = `${r.gain >= 0 ? '+' : '-'}${sym}${amt2(Math.abs(r.gain))}`;
+    return typeof r.gainPct === 'number'
+      ? `${g} (${r.gainPct >= 0 ? '+' : ''}${r.gainPct.toFixed(2)}%)`
+      : g;
+  }
+  return typeof r.acAfter === 'number' ? `${sym}${amt2(r.acAfter)}` : '';
+}
+
+// Column order and how each one sorts. `key` reads the value to compare;
+// a string key sorts lexically, a number key numerically.
+const COLUMNS = [
+  { id: 'type',    label: 'Type',     align: 'hl-left',  key: (/** @type {any} */ r) => r.kind },
+  { id: 'date',    label: 'Date',     align: 'hl-left',  key: (/** @type {any} */ r) => `${r.date} ${String(r.ts ?? 0).padStart(16, '0')}` },
+  { id: 'symbol',  label: 'Symbol',   align: 'hl-left',  key: (/** @type {any} */ r) => r.ticker },
+  { id: 'shares',  label: 'Shares',   align: 'hl-right', key: (/** @type {any} */ r) => r.shares },
+  { id: 'price',   label: 'Price',    align: 'hl-right', key: (/** @type {any} */ r) => r.price },
+  { id: 'amount',  label: 'Amount',   align: 'hl-right', key: (/** @type {any} */ r) => r.shares * r.price },
+  // A buy has no gain and a sell has no AC, so one comparable per row:
+  // whichever the row actually carries. Sorting this column groups the
+  // sales by how they did without stranding the purchases.
+  { id: 'outcome', label: 'G/L · AC', align: 'hl-right', key: (/** @type {any} */ r) => (r.kind === 'sell' ? (r.gain ?? 0) : (r.acAfter ?? 0)) },
+];
+
+/**
+ * Sort rows by one column, or hand back the default order untouched.
+ *
+ * Three states per header rather than two: descending, ascending, then
+ * back to the chronological order the log is built in. Without the third
+ * there is no way back to "most recent first" once you've sorted by
+ * anything else, short of closing the modal.
+ *
+ * @template {Record<string, any>} T
+ * @param {T[]} rows
+ * @param {{col: string, dir: 'desc'|'asc'} | null} sort
+ * @returns {T[]}
+ */
+export function sortTransactionRows(rows, sort) {
+  if (!sort) return rows;
+  const col = COLUMNS.find((c) => c.id === sort.col);
+  if (!col) return rows;
+  const sign = sort.dir === 'asc' ? 1 : -1;
+  return rows.slice().sort((a, b) => {
+    const ka = col.key(a), kb = col.key(b);
+    const cmp = typeof ka === 'number' && typeof kb === 'number'
+      ? ka - kb
+      : String(ka).localeCompare(String(kb));
+    return cmp * sign;
+  });
+}
+
+/** desc → asc → off, then round again. */
+export function nextSortState(sort, colId) {
+  if (!sort || sort.col !== colId) return { col: colId, dir: /** @type {const} */ ('desc') };
+  if (sort.dir === 'desc') return { col: colId, dir: /** @type {const} */ ('asc') };
+  return null;
 }
 
 function TransactionHistoryModal({ holdings, marketData, hideValues, onClose }) {
-  const rows = React.useMemo(() => buildTransactionLog(holdings), [holdings]);
+  const log = React.useMemo(() => buildTransactionLog(holdings), [holdings]);
+  /** @type {[{col: string, dir: 'desc'|'asc'} | null, Function]} */
+  const [sort, setSort] = React.useState(/** @type {any} */ (null));
+  const rows = React.useMemo(() => sortTransactionRows(log, sort), [log, sort]);
   const realizedUsd = React.useMemo(
     () => totalRealizedUsd(holdings, (cur) => fxRateToUSD(cur, marketData).rate),
     [holdings, marketData],
@@ -71,12 +142,19 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, onClose }) 
           <table className="hl-table mono">
             <thead>
               <tr>
-                <th className="hl-th hl-left">Date</th>
-                <th className="hl-th hl-left">Symbol</th>
-                <th className="hl-th hl-left">Type</th>
-                <th className="hl-th hl-right">Shares</th>
-                <th className="hl-th hl-right">Price</th>
-                <th className="hl-th hl-right">Amount</th>
+                {COLUMNS.map((c) => (
+                  <th
+                    key={c.id}
+                    className={`hl-th ${c.align} hl-th-sortable`}
+                    onClick={() => setSort(nextSortState(sort, c.id))}
+                    title="Sort descending, ascending, then back to newest first"
+                  >
+                    {c.label}
+                    <span className="hl-sort-arrow">
+                      {sort?.col === c.id ? (sort.dir === 'desc' ? '▼' : '▲') : ''}
+                    </span>
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -84,19 +162,23 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, onClose }) 
                 const sym = currencySymbol(r.currency);
                 return (
                   <tr key={i}>
-                    <td className="hl-left">{r.date}</td>
-                    <td className="hl-left hl-sym"><span className="hl-ticker mono">{r.ticker}</span></td>
                     <td className="hl-left">
                       <span className={`txn-badge txn-${r.kind}`}>{r.kind === 'buy' ? 'BUY' : 'SELL'}</span>
                     </td>
+                    <td className="hl-left">{r.date}</td>
+                    <td className="hl-left hl-sym"><span className="hl-ticker mono">{r.ticker}</span></td>
                     <td className="hl-right">{fmtShFor(r.shares, r.ticker)}</td>
                     <td className="hl-right">{m(`${sym}${amt2(r.price)}`)}</td>
                     <td className="hl-right hl-strong">{m(`${sym}${amt2(r.shares * r.price)}`)}</td>
+                    <td
+                      className="hl-right"
+                      style={r.kind === 'sell' ? { color: pctClr(r.gain ?? 0) } : undefined}
+                    >{m(outcomeText(r, sym))}</td>
                   </tr>
                 );
               })}
               {rows.length === 0 && (
-                <tr><td className="hl-empty dim" colSpan={6}>No transactions yet.</td></tr>
+                <tr><td className="hl-empty dim" colSpan={COLUMNS.length}>No transactions yet.</td></tr>
               )}
             </tbody>
           </table>
