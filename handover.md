@@ -24,15 +24,15 @@ anything public. The repo is private; this file quotes real positions.
 
 # Part 1 — Current state
 
-_Last updated: 2026-08-19, by the session that found the preflight
-outage behind the preview's three symptoms._
+_Last updated: 2026-08-19, after PR #209 merged and its rollout was
+verified against production._
 
 ## Where the code is
 
 | | |
 |---|---|
-| `main` | Carries the rollback to `8d869fe` plus four data-loss repairs pushed straight to it (see below). All gates green. Two further pushes: the `x-app-token` CORS allow-header on `prices`/`chart`/`fundamentals`, and a deploy-workflow fix so a function's own sibling modules trigger its deploy. |
-| Working branch | `claude/repo-audit-restore-uverhn` → **PR #209**, open, not reviewed by the owner yet. Rebuilt on 2026-08-19 as **four commits directly on `main`** — the two merge commits are gone, so the PR's commit list no longer carries `main`'s own history. The tree is unchanged by that rebuild. Preview: `https://claude-repo-audit-restore-uv.daviesportfolios.pages.dev`. |
+| `main` | **PR #209 merged at `3f3aa11`.** Carries everything: the rollback to `8d869fe`, the four data-loss repairs, the CORS allow-header + deploy-workflow fix, and the six PR commits (token gate, board self-consistency, Investment Performance, docs, view tabs, CN-fund ranking). `check` / `edge-functions` / `migrations` all green on the merge commit. |
+| Working branch | `claude/repo-audit-restore-uverhn` — **merged and done**. Nothing is outstanding on it; new work starts from `main`. |
 | Supabase | project `flmvxigozjuizpckllvk`, ACTIVE_HEALTHY. Migrations through `0031`. `trading212` Edge Function deployed and byte-identical to the repo as of this session. |
 
 ## Repairs that went straight to `main` (2026-08-18)
@@ -339,6 +339,25 @@ numbers it produced independently confirm the diagnosis.
       was never today's market. Still counted in the scoreboard and
       still a heat-map tile — excluded from the ranking, not the book.
       Pin fails on the old code (checked).
+- [x] **PR #209 merged (`3f3aa11`) and the rollout verified against
+      production**, not assumed:
+      - migration `0029 price_snapshots` is in
+        `supabase_migrations.schema_migrations`; the table exists with
+        RLS on and 0 rows (it fills on `snapshot-record`'s cron);
+      - `prices` / `chart` / `fundamentals` now answer **401** without
+        an app token, and still advertise `x-app-token` on the
+        preflight, so the shipped bundle gets through and a bare anon
+        key does not;
+      - `overnight-fetch` still answers 200 — anon by design, unchanged;
+      - the live site serves `assets/app-82b51ea0.js`, the bundle
+        committed on `main`;
+      - `check`, `edge-functions` and `migrations` all green on the
+        merge commit.
+      The one live consequence: a tab still holding the previous bundle
+      from its service worker gets 401 on those three until it reloads.
+- [ ] Issue #207 (`edge-functions failed on main`, 2026-08-18) is still
+      open but stale — that workflow has been green on every push
+      since. Close it or let the next failure bump it.
 - [ ] After a day of recording, check that the `RECORDED` rule has
       walked left across the 24H window (PR #209 work).
 - [ ] Codex reported "usage limits reached" on PR #209, so there is no
