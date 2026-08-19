@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { fmtMoney, fmtPct, fmtPrice, pctColor } from './formatters.js';
 import { fxToUSD } from './fx.js';
+import { freezeDepositFxRates } from './deposit_series.js';
 import { createPortfolioEditHandlers } from './portfolio_edits.js';
 import { computeMetrics, detectFormation } from './metrics.js';
 import { refreshPrices, fetchTickers } from './yahoo_fetch.js';
@@ -245,6 +246,13 @@ function Board({ isReadOnly }) {
   // history. A ledger the fills don't cover reads "still downloading"
   // while this is false and "yours to keep" once it's true.
   const [t212OrdersComplete, setT212OrdersComplete] = useState(false);
+  // The chart reads `{rows, complete}` — a half-walked history must not be
+  // presented as the whole story on the deposit line — while the lot editor
+  // takes the rows and the verdict separately. Derived, not a third slot.
+  const t212OrderRead = React.useMemo(
+    () => ({ rows: t212Orders, complete: t212OrdersComplete }),
+    [t212Orders, t212OrdersComplete],
+  );
   const [viewingTicker, setViewingTicker] = useState(/** @type {string | null} */ (null));
   const [showHoldingsList, setShowHoldingsList] = useState(false);
   const [showSectorsList, setShowSectorsList] = useState(false);
@@ -996,11 +1004,12 @@ function Board({ isReadOnly }) {
       : null),
     [portfolio, extendedHours, currentPhase, marketData],
   );
-  // Walk the Trading 212 executed-order history a page at a time until
-  // both account cursors latch, then top up page one every ten minutes.
-  // `/equity/positions` reports a POSITION — quantity and average price,
-  // with no dates — so this is the only source of real purchase dates,
-  // and nothing drives it unless a tab asks.
+  // Walk the T212 executed-order history a page at a time until both
+  // account cursors latch, then top up page one every ten minutes so a
+  // fill made while this tab stays open still reaches the deposit line
+  // without a reload. `/equity/positions` reports a POSITION — quantity
+  // and average price, no dates — which is why a synced ticker could
+  // only ever carry a lot whose date was a guess.
   useEffect(() => {
     if (isReadOnly) return undefined;
     let cancelled = false;
@@ -1013,8 +1022,8 @@ function Board({ isReadOnly }) {
         .filter((a) => a && a.scopeDenied);
       if (denied.length > 0) {
         // Not a missing-scope prompt: the stored key already carries
-        // Portfolio, History: orders and History: transactions. Report
-        // and stop rather than grinding against a 403 that can't change.
+        // Portfolio, History: orders and History: transactions. Report it
+        // and stop rather than telling anyone to regenerate a key.
         reportError('t212.history.scope', {
           message: 'Trading 212 refused the history endpoint (403). The stored key '
             + 'already has Portfolio, History: orders and History: transactions.',
@@ -1039,6 +1048,25 @@ function Board({ isReadOnly }) {
     timer = setTimeout(step, 8000);
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, [isReadOnly]);
+
+  // Freeze the native→USD rate each non-USD currency is first seen at,
+  // once, and persist it. The deposit line is a sum of dated cash flows;
+  // re-converting a purchase at today's FX every render makes it move on
+  // days no money changed hands, which is exactly the "deposit went up
+  // and then came back down with no deposit" the chart was reported for.
+  // Live FX still drives the VALUE line — that one is a mark-to-market
+  // and should follow the market.
+  //
+  // Read-only viewers never write to the owner's book, so they skip it;
+  // the rates are already in the loaded portfolio by then in practice.
+  useEffect(() => {
+    if (isReadOnly || !portfolio || !marketData) return;
+    const next = freezeDepositFxRates(portfolio, fxToUSD, marketData);
+    // Same reference back means nothing was missing — no state churn.
+    if (next === (portfolio.depositFxRates || {})) return;
+    if (Object.keys(next).length === 0) return;
+    setPortfolio(p => (p ? { ...p, depositFxRates: next } : p));
+  }, [portfolio, marketData, isReadOnly]);
 
   // Stable handler for the Heatmap's tile click — useCallback so the
   // Heatmap's React.memo (heatmap.jsx) isn't defeated by a fresh
@@ -1217,6 +1245,8 @@ function Board({ isReadOnly }) {
             extendedHours={extendedHours}
             phase={currentPhase}
             className="perf-in-left"
+            hideValues={hideValues}
+            t212Orders={t212OrderRead}
           />
           {isDesktop && (
             <MarketConditions
@@ -1368,8 +1398,38 @@ function Board({ isReadOnly }) {
           posKey={addingToPos}
           position={portfolio.positions[addingToPos]}
           onClose={() => setAddingToPos(null)}
-          onAdd={(ticker, shares, cost, lastPrice) => {
-            addHolding(addingToPos, ticker, shares, cost, lastPrice);
+          onAdd={async (ticker, shares, cost, lastPrice, buyDate) => {
+            const key = String(ticker || '').toUpperCase().trim();
+            const existing = portfolio.holdings[key];
+            // Re-adding a ticker you already hold is ambiguous — "I
+            // bought more" vs "let me restate this position" — and the
+            // old code silently picked restate, wiping every prior lot,
+            // sell and the closed flag along with it. Ask instead.
+            //
+            // Three outcomes, not two: BOTH named actions write, so
+            // Cancel / Esc / backdrop has to mean "do nothing". A binary
+            // confirm would have had to fold those onto one of the
+            // writes — and it folded them onto `replace`, the more
+            // destructive one, so dismissing the dialog silently
+            // restated the position.
+            let mode = 'replace';
+            if (existing) {
+              const choice = await askConfirm({
+                title: `${key} already in your book`,
+                message: 'Record this as an additional purchase, or replace the existing position?',
+                detail: 'Adding keeps every earlier lot and sell and recalculates your total shares and average cost. Replacing makes this the only buy lot; earlier sales stay on the ledger, so the position still nets against them.',
+                confirmLabel: 'Add purchase',
+                altLabel: 'Replace position',
+                cancelLabel: 'Cancel',
+              });
+              // Dismissed — leave the book untouched AND leave the Add
+              // dialog open so the entry isn't lost.
+              if (choice === false) return;
+              mode = choice === 'alt' ? 'replace' : 'append';
+            }
+            // `buyDate` matters: lots are the YTD chart's basis, so
+            // dropping it silently dated every add today.
+            addHolding(addingToPos, ticker, shares, cost, lastPrice, buyDate, mode);
             setAddingToPos(null);
           }}
         />

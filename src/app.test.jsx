@@ -56,15 +56,12 @@ vi.mock('./yahoo_fetch.js', async () => {
 });
 vi.mock('./trading212.js', () => ({
   fetchTrading212Holdings: vi.fn(() => Promise.resolve(null)),
-  // The backfill driver runs from a Board effect, so a mock that omits
-  // it throws inside a passive effect — which vitest reports as an
-  // unhandled error rather than a failing assertion, so it can hide
-  // behind a green-looking summary. Check the exit code, not the line.
-  syncTrading212History: vi.fn(() => Promise.resolve(null)),
-  // Same trap, second door: doRefresh reads the executed fills in its
-  // parallel fetch, so leaving this out rejects inside the refresh
-  // promise instead of failing an assertion.
+  // The executed-fill read and the backfill driver both run from Board
+  // effects, so a mock that omits either throws inside a passive effect
+  // — which vitest reports as an unhandled error rather than a failing
+  // assertion, so it can hide behind a green-looking summary.
   fetchTrading212Orders: vi.fn(() => Promise.resolve({ rows: [], complete: false })),
+  syncTrading212History: vi.fn(() => Promise.resolve(null)),
   applyTrading212: (h) => h,
   applyTrading212NightPrice: (h) => h,
 }));

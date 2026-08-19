@@ -4,11 +4,12 @@
 // implementation.
 import { describe, it, expect } from 'vitest';
 import {
-  buildTickerSeries, closeOn, lotsFor, computeAt, ytdPct,
+  buildTickerSeries, closeOn, ledgerFor, computeAt, ytdPct,
   fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS,
   applyVariantFilter, windowSinceLastUsClose, windowBetweenLastTwoUsCloses,
   filterToLastHours, filterToLast24h, fillVenueSessionGrid,
 } from './ytd.js';
+import { netPosition } from './transactions.js';
 import { isUsTradingDateStr } from './market_hours.js';
 
 const yearStart      = '2026-01-01';
@@ -112,27 +113,48 @@ describe('closeOn', () => {
   });
 });
 
-describe('lotsFor', () => {
-  it('returns h.lots verbatim when share totals match', () => {
+describe('ledgerFor', () => {
+  it('returns h.lots verbatim when the net position matches', () => {
     const lots = [
       { date: '2025-04-01', shares: 10, cost: 100 },
       { date: '2026-01-15', shares: 5,  cost: 110 },
     ];
-    expect(lotsFor({ shares: 15, lots, lastPrice: 200 }, yearStart)).toBe(lots);
+    expect(ledgerFor({ shares: 15, lots, lastPrice: 200 }, yearStart).lots).toBe(lots);
+  });
+
+  it('keeps a ledger that only reconciles once its SALES are counted', () => {
+    // The old check summed the BUYS alone, so every holding that had
+    // ever been trimmed fell back to one undated block — throwing away
+    // the real purchase dates the fills were fetched for. ORCL is 123
+    // fills netted to 70 shares.
+    const lots = [{ date: '2025-09-26', shares: 100, cost: 150 }];
+    const sells = [{ date: '2026-01-05', shares: 30, price: 160 }];
+    const out = ledgerFor({ shares: 70, lots, sells, lastPrice: 141.75 }, yearStart);
+    expect(out.lots).toBe(lots);
+    expect(out.sells).toBe(sells);
   });
 
   it('falls back to a single yearStart lot when h.lots is missing or stale', () => {
-    const out = lotsFor({ shares: 8, lastPrice: 50 }, yearStart);
-    expect(out).toEqual([{ date: yearStart, shares: 8, cost: 50 }]);
+    const out = ledgerFor({ shares: 8, lastPrice: 50 }, yearStart);
+    expect(out).toEqual({ lots: [{ date: yearStart, shares: 8, cost: 50 }], sells: [] });
   });
 
-  it('falls back when h.lots share total drifted from h.shares', () => {
-    const out = lotsFor({
+  it('falls back when the net position drifted from h.shares', () => {
+    const out = ledgerFor({
       shares: 10,
       lastPrice: 50,
       lots: [{ date: '2025-01-01', shares: 8, cost: 100 }], // mismatched
     }, yearStart);
-    expect(out).toEqual([{ date: yearStart, shares: 10, cost: 50 }]);
+    expect(out).toEqual({ lots: [{ date: yearStart, shares: 10, cost: 50 }], sells: [] });
+  });
+
+  it('drops a stale ledger\'s sales too — the fallback is one clean lot', () => {
+    const out = ledgerFor({
+      shares: 10, lastPrice: 50,
+      lots: [{ date: '2025-01-01', shares: 20, cost: 100 }],
+      sells: [{ date: '2025-06-01', shares: 5, price: 120 }],   // nets to 15, not 10
+    }, yearStart);
+    expect(out.sells).toEqual([]);
   });
 });
 
@@ -396,16 +418,23 @@ describe('computeAt — mixed pre-year + year lots in one ticker', () => {
   });
 });
 
-describe('computeAt — pre-year lot with no Jan-1 baseline is skipped', () => {
-  it('contributes 0 to both numerator and denominator', () => {
-    // Ticker has NO historical data → tickerSeries entry has janPrice=null.
-    // Pre-year lot must be skipped (we can't make up a basis).
+describe('computeAt — a holding with no baseline counts FLAT, not absent', () => {
+  it('lands in BOTH numerator and denominator at its own price', () => {
+    // Closed form. AAPL: 10 sh, Jan-1 baseline 245, now 270.
+    //   basis 2450, value 2700 → +10.20 % on its own.
+    // 017731: a CN fund with no fetchable history at all. It did not
+    // move as far as this chart can tell, so it is worth 1000 x 1.6 =
+    // 1600 in BOTH numerator and denominator.
+    //   true combined return = 250 / 4050 = +6.17 %
+    // The old code hit `continue` and dropped the fund from both sums,
+    // reporting +10.20 % — the whole holding missing from the value line
+    // and from the denominator of the percentage.
     const tickerSeries = buildTickerSeries({
       AAPL: [
         { date: '2025-12-31', close: 245 },
         { date: '2026-04-27', close: 270 },
       ],
-      // 017731: no entry — simulating no Yahoo history for a CN fund
+      // 017731: no entry — no Yahoo history for a CN fund
     }, yearStart, "YTD");
     const portfolio = {
       holdings: {
@@ -423,9 +452,49 @@ describe('computeAt — pre-year lot with no Jan-1 baseline is skipped', () => {
       ...baseOpts, date: liveAnchorDate, portfolio, tickerSeries,
       marketData: { AAPL: { lastPrice: 270 } },
     });
-    // Only AAPL contributes; 017731's pre-year lot is silently dropped.
-    expect(r.basis).toBeCloseTo(2450, 4);
-    expect(r.value).toBeCloseTo(2700, 4);
+    expect(r.basis).toBeCloseTo(4050, 4);
+    expect(r.value).toBeCloseTo(4300, 4);
+    expect(ytdPct(r)).toBeCloseTo(6.1728, 3);
+  });
+});
+
+describe('computeAt — a series that starts inside the window carries its first close backwards', () => {
+  it('does not invent a move from lot cost before the first bar', () => {
+    // Closed form. One holding, 10 shares bought at 50 in 2025. Its
+    // fetchable history only starts on 2026-04-20 at 100 and ends at 110.
+    // On 2026-04-01 the honest answer is "flat at the first close we
+    // have" = 100/share, so value = 1000.
+    //
+    // The old code had no bar at or before that date, so it interpolated
+    // between lot cost (50) and today's price (110) on the calendar —
+    // manufacturing a price the stock never printed and a move it never
+    // made.
+    const tickerSeries = buildTickerSeries({
+      NEWCO: [
+        { date: '2026-04-20', close: 100 },
+        { date: '2026-04-27', close: 110 },
+      ],
+    }, yearStart, "YTD");
+    const portfolio = {
+      holdings: {
+        NEWCO: {
+          shares: 10, cost: 50, lastPrice: 110, currency: 'USD',
+          lots: [{ date: '2025-06-01', shares: 10, cost: 50 }],
+        },
+      },
+    };
+    const early = computeAt({
+      ...baseOpts, date: '2026-04-01', portfolio, tickerSeries, marketData: {},
+    });
+    expect(early.value).toBeCloseTo(1000, 4);
+    // Counterfactual: the interpolation the old code used would have put
+    // this point at 50 + (110-50) * (Apr 1 - Jun 1 2025)/(Apr 27 - Jun 1
+    // 2025) per share — well above 100 — so a carried-back 1000 is only
+    // reachable with the fix in place.
+    const known = computeAt({
+      ...baseOpts, date: '2026-04-20', portfolio, tickerSeries, marketData: {},
+    });
+    expect(known.value).toBeCloseTo(1000, 4);
   });
 });
 
@@ -533,10 +602,17 @@ describe('applyVariantFilter', () => {
     { date: `${today}T15:00`, close: 4 },
   ];
 
-  it("'closed' keeps only the latest trading day", () => {
-    const out = applyVariantFilter(series, 'closed');
-    expect(out.every(p => p.date.startsWith(today))).toBe(true);
-    expect(out).toHaveLength(2);
+  it("'closed' is the same trailing 24h as reg/ext, not the latest calendar day", () => {
+    // It used to take the latest CALENDAR day. The two agree for most of
+    // the day and disagree right after UTC midnight — which is exactly
+    // when this assertion started failing, on a bar from "yesterday"
+    // that is still inside the trailing 24 h. The sibling test below
+    // already learned this lesson; asserting against `reg` plus a FIXED
+    // far-past bar makes it independent of the clock.
+    const withStale = [{ date: '2020-01-01T01:00', close: 0 }, ...series];
+    const out = applyVariantFilter(withStale, 'closed');
+    expect(out).toEqual(applyVariantFilter(withStale, 'reg'));
+    expect(out.some(p => p.date.startsWith('2020'))).toBe(false);
   });
 
   it("'reg' and 'ext' trim to the trailing 24h", () => {
@@ -754,5 +830,158 @@ describe('fillVenueSessionGrid (sparse-tape venue listing → fixed 07:00–21:0
     expect(fillVenueSessionGrid(null, SESSION)).toBeNull();
     const noSession = [P('2026-07-15T06:00', 1)];
     expect(fillVenueSessionGrid(noSession, null)).toBe(noSession);
+  });
+});
+
+describe('buildTickerSeries — the performance panel anchors at the window start', () => {
+  const hist = {
+    ACME: [
+      { date: '2026-08-18T14:00', close: 200 },
+      { date: '2026-08-18T17:00', close: 220 },
+      { date: '2026-08-18T19:55', close: 240 },
+    ],
+  };
+  const marketData = { ACME: { prevClose: 220, lastPrice: 240 } };
+
+  it('1D still anchors on the previous close by default (the day-chart convention)', () => {
+    const ts = buildTickerSeries(hist, '2026-08-18', '1D', marketData, false);
+    expect(ts.ACME.janPrice).toBe(220);
+  });
+
+  it('…but takes the window\'s first bar when asked to', () => {
+    const ts = buildTickerSeries(hist, '2026-08-18', '1D', marketData, false, true);
+    expect(ts.ACME.janPrice).toBe(200);
+  });
+
+  it('the difference is a whole percentage point on the panel', () => {
+    // Closed form. 10 shares + $500 cash, window 200 -> 240:
+    //   value      2500 -> 2900, a clean +16.00 % move
+    //   prevClose basis 10 x 220 + 500 = 2700
+    //     first point (2500-2700)/2700 = -7.41 %
+    //     last  point (2900-2700)/2700 = +7.41 %
+    //     rebased                       = +14.81 %   <- not the move
+    //   window-start basis 10 x 200 + 500 = 2500
+    //     first point 0.00 %, last point +16.00 %    <- the move
+    // The Investment view of the same window reads +16.00 % either way,
+    // so the first reading put two numbers for one quantity on one
+    // screen — which is the bug class that matters most here.
+    const portfolio = {
+      holdings: {
+        ACME: { shares: 10, cost: 200, lastPrice: 240, currency: 'USD',
+                lots: [{ date: '2026-01-02', shares: 10, cost: 200 }] },
+        CASH: { shares: 1, cost: 0, lastPrice: 500, isCash: true },
+      },
+    };
+    const opts = {
+      ...baseOpts, portfolio, marketData,
+      yearStart: '2026-08-18', yearStartDate: '2026-08-18T14:00',
+      liveAnchorDate: '2026-08-18T19:55', todayMs: Date.parse('2026-08-18T19:55Z'),
+    };
+    const pctFor = (anchorAtWindowStart) => {
+      const ts = buildTickerSeries(hist, '2026-08-18', '1D', marketData, false, anchorAtWindowStart);
+      const at = (date) => {
+        const r = computeAt({ ...opts, tickerSeries: ts, date });
+        return r.basis > 0 ? ((r.value - r.basis) / r.basis) * 100 : 0;
+      };
+      return at('2026-08-18T19:55') - at('2026-08-18T14:00');
+    };
+    expect(pctFor(false)).toBeCloseTo(14.81, 2);
+    expect(pctFor(true)).toBeCloseTo(16.00, 2);
+  });
+});
+
+// The value line has to survive a position being sold DOWN, not just
+// bought into. Skipping sales said a trimmed holding was still whole —
+// and the ledger is the broker's executed fills now, so this is the
+// ordinary case rather than an edge one.
+//
+// Each case is checked against arithmetic done by hand, because the
+// alternative is a formula that agrees with itself.
+describe('computeAt — sales', () => {
+  const series = (pts) => ({
+    X: {
+      janPrice: 120,
+      series: pts.map(([d, c]) => ({ date: d, close: c })),
+      map: Object.fromEntries(pts),
+    },
+  });
+  const BARS = [['2026-01-01', 120], ['2026-06-01', 140], ['2026-08-18', 150]];
+  const base = {
+    tickerSeries: series(BARS), marketData: {}, yearStart: '2026-01-01',
+    yearStartDate: '2026-01-01', todayMs: Date.parse('2026-08-18'),
+    liveAnchorDate: '', useExt: false, fxToUSD: () => 1,
+  };
+  const portfolio = (lots, sells) => ({
+    holdings: { X: { shares: lots.reduce((n, l) => n + l.shares, 0) - sells.reduce((n, s) => n + s.shares, 0), lots, sells, lastPrice: 150 } },
+    positions: { P: { tickers: ['X'] } },
+  });
+
+  it('a sale before the window removes those shares at the anchor price', () => {
+    // Bought 10 @ 100 in 2025, sold 4 @ 130 in 2025. Six shares enter the
+    // window at 120 and are worth 150 now: 720 → 900, +25%.
+    const out = computeAt({
+      ...base, date: '2026-08-18',
+      portfolio: portfolio(
+        [{ date: '2025-03-01', shares: 10, cost: 100 }],
+        [{ date: '2025-09-01', shares: 4, price: 130 }],
+      ),
+    });
+    expect(out.value).toBeCloseTo(900, 9);
+    expect(out.basis).toBeCloseTo(720, 9);
+  });
+
+  it('a sale inside the window takes its proceeds out of the basis', () => {
+    // Ten shares enter at 120 (=1200). Selling 4 @ 130 takes 520 out, so
+    // 680 of capital is left standing behind six shares now worth 900.
+    const out = computeAt({
+      ...base, date: '2026-08-18',
+      portfolio: portfolio(
+        [{ date: '2025-03-01', shares: 10, cost: 100 }],
+        [{ date: '2026-06-01', shares: 4, price: 130 }],
+      ),
+    });
+    expect(out.value).toBeCloseTo(900, 9);
+    expect(out.basis).toBeCloseTo(680, 9);
+  });
+
+  it('bought and sold inside the window nets to what netPosition says', () => {
+    // Buy 10 @ 100 and sell 4 @ 130, both inside: 1000 in, 520 back out,
+    // 480 behind six shares — a net cost of 80 each, which is exactly
+    // what `netPosition` reports for the same ledger.
+    const out = computeAt({
+      ...base, date: '2026-08-18',
+      portfolio: portfolio(
+        [{ date: '2026-02-01', shares: 10, cost: 100 }],
+        [{ date: '2026-06-01', shares: 4, price: 130 }],
+      ),
+    });
+    expect(out.value).toBeCloseTo(900, 9);
+    expect(out.basis).toBeCloseTo(480, 9);
+    expect(out.basis / 6).toBeCloseTo(netPosition(
+      [{ date: '2026-02-01', shares: 10, cost: 100 }],
+      [{ date: '2026-06-01', shares: 4, price: 130 }],
+    ).avgCost, 9);
+  });
+
+  it('a sale still to come is not counted early', () => {
+    const ledger = [
+      [{ date: '2025-03-01', shares: 10, cost: 100 }],
+      [{ date: '2026-08-01', shares: 4, price: 130 }],
+    ];
+    const before = computeAt({ ...base, date: '2026-06-01', portfolio: portfolio(...ledger) });
+    expect(before.value).toBeCloseTo(10 * 140, 9);   // all ten still held
+    const after = computeAt({ ...base, date: '2026-08-18', portfolio: portfolio(...ledger) });
+    expect(after.value).toBeCloseTo(6 * 150, 9);
+  });
+
+  it('a fully sold-out position is worth nothing, not its old size', () => {
+    const out = computeAt({
+      ...base, date: '2026-08-18',
+      portfolio: portfolio(
+        [{ date: '2025-03-01', shares: 10, cost: 100 }],
+        [{ date: '2026-06-01', shares: 10, price: 130 }],
+      ),
+    });
+    expect(out.value).toBeCloseTo(0, 9);
   });
 });

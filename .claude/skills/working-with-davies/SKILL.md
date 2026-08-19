@@ -41,6 +41,17 @@ he will notice a red main.
 **A pin test for every bug fixed.** A fix without a test that fails on
 the old code is not finished.
 
+**An open PR's description is maintained, not written once.** Every
+push that changes the diff rewrites the summary in the same step, and
+hands him the Cloudflare preview link so he can check it on a real
+machine. He reads a PR description as the current state of the branch:
+while it still describes work that has since landed on `main`, that
+work reads as unreviewed and outstanding. Take landed work out of the
+summary AND out of the branch — rebase onto `main` rather than merging
+`main` in, or `main`'s commits show up in the PR's own commit list.
+CLAUDE.md's "Pull requests" section has the mechanics, including how
+the preview alias is derived and how to verify it.
+
 **Finish the remaining work without being asked again.** When the
 Supabase connector is on, or he says "把你还没做的全做完", do the rest
 of the list — migrations, Edge deploy, README, tests — in the same
@@ -369,6 +380,25 @@ Read these as a checklist before pushing.
   It wasn't — the conservative rule restores PLTR identically. Check
   that the risky half of a change is actually load-bearing.
 
+- **Shipping a client change ahead of the server that has to accept
+  it.** A Cloudflare preview always talks to the PRODUCTION Edge
+  Functions — there is no preview backend. The branch started sending
+  `X-App-Token` to `prices` / `chart` / `fundamentals` before those
+  functions listed it in `Access-Control-Allow-Headers`, so the
+  browser's preflight killed all three. Order it: allow-list first (it
+  requires nothing of anyone), client sends second, enforcement last.
+- **Three quiet fallbacks made one bug look like three.** He reported a
+  scoreboard that disagreed with production, market conditions that
+  would not load, and YTD history that disagreed with the shorter
+  ranges. One missing header. Every one of those callers catches its
+  own failure and degrades silently, so nothing said "blocked" — when
+  several surfaces go wrong at once, look for the shared dependency
+  before debugging any of them.
+- **Deploying only what the workflow watches.** `edge-functions.yml`
+  matched `<fn>/index.ts`, so a change to `fundamentals/_shared.ts`
+  shipped everywhere except `fundamentals`. Green CI is not a deploy —
+  check the thing actually serving the request.
+
 ## Third-party reviews
 
 He runs another AI over the diffs and brings the findings back. They
@@ -383,9 +413,83 @@ you were looking at. Don't re-explain the previous answer. Go and
 measure something new — and prefer measuring the thing he pointed at
 over the thing you think is responsible.
 
+## What the 2026-08-18 rollback paid for
+
+The thirty commits between `8d869fe` and `f5481d0` were rolled back
+wholesale because they had been landed without evidence and had started
+regressing working behaviour. What that audit turned up, in order of how
+much it cost:
+
+**Recording an ANSWER forces a second implementation.** The old
+`snapshot-record` computed the portfolio's value and net deposit
+server-side so it could store them — 843 lines of Deno TypeScript doing
+what `computeAt` and the deposit walk already do in JavaScript, both
+writing the same primary key. Measured in the live table over ~40 hours:
+`deposit_usd` moved between 71,391 / 75,828 / 129,138 / 132,359 with no
+money entering the account, and `value_usd` stepped between ~167k and
+~182k inside one hour. Record INPUTS — prices — and let the one
+valuation function turn them into a number. The divergence then isn't
+avoided, it's unreachable.
+
+**One pipeline, two renderings.** The Investment panel is a `view` prop
+on `PerfChart`, sharing its fetch, its grid and its `computeAt` call —
+not a sibling component with its own data path. He asked for this in as
+many words ("valve就是现成的vs 500图中portfolio的数据") and the
+previous attempt wrote `investmentPointAt` with a comment explaining it
+was "deliberately NOT `computeAt`".
+
+**Check the exit code, not the summary line.** `npm test` printed
+"683 passed" and exited 1: a mock missing a newly-imported function threw
+inside a passive effect, which vitest reports as an unhandled error, not
+a failing assertion. Grepping the summary said green; CI said red.
+
+**The board's share count is the truth; the lot ledger is often short.**
+16 of 26 holdings have lots that don't add up to their board shares
+(BMNR 7 vs 225, RKLB 30 vs 160). `lotsFor` already substitutes a
+whole-position lot for the value line; anything else that reads lots
+directly has to reconcile the residue too, or it silently under-reports.
+
+**Ask the broker.** The T212 sync was allow-listed to two ETFs, so the
+board carried PLTR as sold out while 55 shares sat in the account, and
+GOOG at 24 against the broker's 22 — together the entire gap between the
+scoreboard and his own tracker. On a ticker's FIRST sync take the
+broker's number outright; assuming a board excess is another platform's
+slice freezes whatever was there with no way back. What made the
+original overwrite dangerous was that it also destroyed lots and sells —
+so don't do that part.
+
+**A stuck parser must name the field it wanted.** The order backfill
+stalled reporting "50 items, 0 parsed (top-level keys: fill,order)" —
+the right envelope, nothing stored, and no way to tell what the older
+pages lacked. Every rejection now reports its own reason. Guessing at
+another service's schema is the same mistake as diagnosing from theory.
+
+**A database cannot be reverted by reverting a file.** `main` went back
+to `8d869fe` except for `supabase/migrations/**`: those versions are
+recorded in the remote `schema_migrations`, and deleting a file whose
+version is recorded there breaks every later `supabase db push`. Say so
+out loud rather than doing it silently — and never take the other
+option.
+
+**The board's share count outranks the lot ledger.** On this book the
+ledger is routinely incomplete — 16 of 26 holdings carry lots that don't
+add up to their board shares (BMNR 7 against 225, RKLB 30 against 160) —
+while the board count is what the broker and the scoreboard agree on. Two
+separate bugs came from believing the ledger instead: `migrate()`'s
+sold-out heal zeroed PLTR on every load (its ledger is a complete 2024
+round trip while 55 shares sat in the account), and the deposit line
+under-counted by the whole un-lotted slice. The rule: the ledger supplies
+DATES, the board supplies QUANTITY, and anything reading lots stands the
+residue in rather than believing the shortfall. Never back-fill the
+missing lots — that invents purchase dates that never happened.
+
 ## Full transcript
 
-`handover.md` at the repo root is the raw 67-turn Claude Code session
+`handover.md` at the repo root is the repo's running record — Part 1 is
+the current state, Part 2 an append-only decision log, Part 3 the
+archived session transcripts. **It is maintained in real time**: write
+the plan before the work, the state as it changes, the reviews as they
+land (the rule is in `CLAUDE.md`). Part 3 is the raw 67-turn Claude Code session
 (every message, tool call, and tool result; long outputs clipped at
 3000 characters). Use it to recover a specific request or a closed-form
 check. Do not copy balances out of it into new files, issues, or

@@ -21,8 +21,17 @@ import {
   anchorDateFor,
   fetchParamsFor,
   applyVariantFilter,
+  panelRangeLabel,
 } from './ytd.js';
 import { pointerToDataIndex, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
+import { depositSeries } from './deposit_series.js';
+import {
+  readCachedPriceSnapshots, refreshPriceSnapshots, mergeRecordedBars,
+  recordedFromMs, rangeStartMs,
+} from './price_snapshots.js';
+import {
+  moneyTicks, fmtAxisMoney, fmtChipMoney, windowPct, provenanceSplitIndex,
+} from './investment_view.js';
 import { reportError } from './ops_error.js';
 import {
   mergeOvernightSeries,
@@ -55,9 +64,12 @@ export function perfVariantKey(rangeKey, extendedHours, phase) {
 
 // Fetch params. 1W gains pre/post-market bars when the ext toggle is on
 // (paired with ES=F on the S&P side + the recorded-overnight merge below,
-// this is what puts the night session into the week view); the '1w-ext'
-// variant passes through applyVariantFilter untouched so the full 5-day
-// window is kept. Every other case defers to the shared fetchParamsFor.
+// this is what puts the night session into the week view). Both 1W
+// variants download a MONTH and are trimmed back to the trailing 168 h by
+// applyVariantFilter — `1w-ext` used to pass through untouched, which was
+// harmless while the fetch was five sessions and would now draw a month
+// under a 1W button. Every other case defers to the shared
+// fetchParamsFor.
 export function perfFetchParams(rangeKey, extendedHours, phase) {
   if (rangeKey === '1W' && extendedHours) {
     const r = RANGES['1W'];
@@ -99,7 +111,7 @@ function RangeButtons({ rangeKey, onChange }) {
           type="button"
           className={`perf-range-btn mono${k === rangeKey ? ' on' : ''}`}
           onClick={() => onChange(k)}
-        >{RANGES[k].label}</button>
+        >{panelRangeLabel(k)}</button>
       ))}
     </div>
   );
@@ -156,10 +168,23 @@ function savePerfCache(year, rangeKey, entries) {
 // per-lot purchase history + historical closes (Yahoo Finance),
 // normalised from the first trading day of the calendar year.
 /**
+ * `view` picks WHICH pair of lines the shared pipeline draws:
+ *   'sp'         — portfolio % vs S&P 500 %, both rebased to 0 %.
+ *   'investment' — portfolio value in dollars vs net deposited.
+ *
+ * Both views run the exact same fetch, the exact same grid and the exact
+ * same `computeAt` call; only the drawing differs. That is deliberate
+ * and structural: the value line IS the vs-S&P panel's portfolio series,
+ * so the two panels cannot report different numbers for the same book on
+ * the same day. Writing the second panel its own reconstruction is what
+ * put two different portfolios on one screen last time.
+ *
  * @param {{ portfolio: any, marketData: any, extendedHours: boolean, phase: string,
- *   rangeKey?: string|null, setRangeKey?: ((k: string) => void)|null }} props
+ *   rangeKey?: string|null, setRangeKey?: ((k: string) => void)|null,
+ *   view?: 'sp'|'investment', hideValues?: boolean,
+ *   t212Orders?: {rows: any[], complete: boolean}|null }} props
  */
-function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rangeKeyProp = null, setRangeKey: setRangeKeyProp = null }) {
+function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rangeKeyProp = null, setRangeKey: setRangeKeyProp = null, view = 'sp', hideValues = false, t212Orders = null }) {
   // `rangeKey` can be CONTROLLED by PerfPanel (so the panel title can flip to
   // "S&P FUTURES" when the active range benchmarks against ES=F) or fall back
   // to internal state when PerfChart is rendered standalone (tests). The
@@ -375,6 +400,30 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // no-op otherwise, so there's nothing to fetch). Re-reads on the
   // `overnight:fetched` event a fetch fires. Above the early returns so
   // the hook count stays stable.
+  // Server-recorded 5-minute prices for this range. Seeded SYNCHRONOUSLY
+  // from the chart store — the background prefetch warms every range, so
+  // opening the panel or switching ranges paints recorded density on the
+  // first render rather than after a round trip. The fetch below then
+  // revalidates behind an already-drawn chart.
+  const [recorded, setRecorded] = React.useState(
+    () => /** @type {Array<{ts: string, prices: Record<string, number>}>} */ (
+      readCachedPriceSnapshots(rangeKey) || []
+    ),
+  );
+  React.useEffect(() => {
+    let cancelled = false;
+    const cached = readCachedPriceSnapshots(rangeKey);
+    if (cached) setRecorded(cached);
+    refreshPriceSnapshots(rangeKey, rangeStartMs(rangeKey, Date.now())).then((rows) => {
+      // An empty read is ambiguous (nothing recorded yet vs a failed
+      // request), so it never replaces a drawn series.
+      if (!cancelled && rows.length > 0) setRecorded(rows);
+    });
+    return () => { cancelled = true; };
+    // Keyed on the range only: the window start moves with the clock, so
+    // including it would refetch on every render.
+  }, [rangeKey]);
+
   const [overnight, setOvernight] = React.useState(/** @type {Record<string, any[]>} */ ({}));
   React.useEffect(() => {
     // Whenever the ext toggle is on (any phase) — not just the live
@@ -565,38 +614,6 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 
   const useExt = !!(extendedHours && phase && phase !== "regular");
 
-  // S&P 500 baseline. 1D anchors at "the most recent 16:00 ET regular
-  // close that has occurred":
-  //   - regular hours → prevClose (yesterday's close from marketData)
-  //   - ext-on AH/PM  → today's 16:00 ET bar from the fetched ES=F
-  //                     window (= the bar at exactly closeHh:closeMm
-  //                     UTC), so the chart's right-edge % is the move
-  //                     since today's just-finished cash close. The
-  //                     ticker-drill modal uses the same anchor and
-  //                     the MC card's todayRegularClose field is filled
-  //                     from the same bar lookup, so all three agree.
-  // For daily ranges the basis is the last close strictly before anchorDate.
-  let spBase;
-  if (rangeKey === '1D') {
-    if (useExt) {
-      // Bar at the regular close (strict closeHh:closeMm — a hh<closeHh
-      // fallback would mis-select a premarket bar; see findRegularCloseIdx).
-      const closeIdx = findRegularCloseIdx(spWindow, mh);
-      const gspc = marketData?.['^GSPC'];
-      spBase = closeIdx >= 0
-        ? spWindow[closeIdx].close
-        : (gspc && gspc.lastPrice && gspc.lastPrice > 0
-            ? gspc.lastPrice
-            : (marketData?.[spSymbol]?.prevClose ?? spWindow[0].close));
-    } else {
-      const md = marketData?.[spSymbol];
-      spBase = (md && md.prevClose && md.prevClose > 0) ? md.prevClose : spWindow[0].close;
-    }
-  } else {
-    const spPrior = hasSp ? allSp.filter(p => p.date < anchorDate) : [];
-    spBase = spPrior.length > 0 ? spPrior[spPrior.length - 1].close : spWindow[0].close;
-  }
-
   /** @type {Record<string, {date:string,close:number}[]>} */
   const histForTickers = {};
   // Splice each ticker's server-recorded overnight points onto its Yahoo
@@ -621,25 +638,55 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
       rangeKey, extendedHours, ticker: t, barIntervalMs: nightBarMs,
     }) ?? base;
   }
-  const tickerSeries = buildTickerSeries(histForTickers, anchorDate, rangeKey, tickerMarketData, useExt);
+  // Fold in this account's own recorded prints. They go into the same
+  // per-ticker bar arrays Yahoo's history arrives in, so `computeAt`
+  // treats a recorded bar and a fetched bar identically and there is
+  // still exactly one valuation of the book. A recorded bar wins a tie:
+  // it is our own observation of the tape, not a vendor number that can
+  // be revised later.
+  const windowStartMs = rangeStartMs(rangeKey, Date.now());
+  const histWithRecorded = mergeRecordedBars(histForTickers, recorded, rangeKey, windowStartMs);
+  const recordedFrom = recordedFromMs(recorded);
+  // `true` = anchor every range, 24H included, at the window's own first
+  // bar. See buildTickerSeries: without it the shortest window reports
+  // its move against yesterday's close, which is a different quantity
+  // from the one the Investment view of the same window reports.
+  const tickerSeries = buildTickerSeries(histWithRecorded, anchorDate, rangeKey, tickerMarketData, useExt, true);
 
   const liveAnchorDate = spWindow[spWindow.length - 1].date;
   const ytdOpts = {
     portfolio, tickerSeries, marketData: tickerMarketData,
     yearStart: anchorDate, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
-    // 1D = a day-change view: force every holding's basis to prevClose
-    // (today's regular close in ext), matching the scoreboard DAY CHANGE,
-    // instead of the per-lot cost that leaked T212-synced lots' total
-    // gains into the day %. Longer ranges keep the per-lot Jan-1/cost
-    // basis (a YTD/1W/etc. return genuinely is measured from cost for
-    // in-period buys).
-    prevCloseBasis: rangeKey === '1D',
+    // No forced previous-close basis, on any range.
+    //
+    // It existed to make 1D match the scoreboard's DAY CHANGE, and that
+    // reading is gone: the shortest window is a trailing 24 h measured
+    // from its own first point. Keeping it actively broke that promise.
+    // On every OTHER range a pre-window lot's basis is the window-start
+    // close, so the basis at the first point already equals the value at
+    // the first point, the rebase is a no-op, and the reported figure is
+    // exactly the window's move. Forcing prevClose on 1D made the basis
+    // yesterday's close instead — measured on a fixture whose book went
+    // 2500 -> 2900 (a clean +16.00 %), the panel reported +14.81 % while
+    // the Investment view of the same window reported +16.00 %. Two
+    // numbers for one quantity, on one screen.
+    //
+    // The leak it was guarding against — a lot dated TODAY using its own
+    // cost as basis and dragging the position's whole gain into a day
+    // window — was a symptom of the T212 sync re-dating every synced lot
+    // to today on every refresh. That is fixed at the source. A lot
+    // genuinely bought inside the window SHOULD use its cost: it
+    // contributes nothing at the moment of purchase and its move counts
+    // from there, which is what stops money paid in reading as a gain.
   };
 
   const portYtd = spWindow.map(p => {
     const { value, basis } = computeAt({ ...ytdOpts, date: p.date });
     const pct = basis > 0 ? ((value - basis) / basis) * 100 : 0;
-    return { date: p.date, pct };
+    // `value` is the book in dollars at this point — the Investment view
+    // draws exactly this, so it is by construction the same number the
+    // vs-S&P view turns into a percentage.
+    return { date: p.date, pct, value };
   });
   if (portYtd.length < 2) {
     return renderShell(<div className="sparkline-empty dim mono">Insufficient data</div>, rangeKey, setRangeKey);
@@ -649,15 +696,58 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // spYtd / yearStart names.
   const spYtd = spWindow;
 
-  // S&P 500 normalised from prior-year-end close (computed earlier as
-  // spBase). Empty when hasSp is false; downstream rendering already
-  // guards against empty spNorm arrays via .length checks.
-  const portNorm = portYtd;
-  const spNorm   = hasSp ? spYtd.map(p => ({ date: p.date, pct: ((p.close - spBase) / spBase) * 100 })) : [];
+  // BOTH lines start the window at 0 %, on EVERY range including the
+  // shortest. What the panel answers is "how did these two move against
+  // each other over the window I'm looking at", and that question only
+  // has an unambiguous answer when both are measured from the same
+  // instant — the window's own first point. Anchoring the S&P on a
+  // previous close (or a prior-year-end close) while the portfolio starts
+  // at 0 puts a step into one line that the other never sees, so the gap
+  // between them at the right edge was not the relative performance it
+  // appeared to be.
+  //
+  // Rebasing only subtracts a constant from every point of a series, so
+  // it cannot change a line's SHAPE — just where the zero line sits. On
+  // every range the portfolio's basis at the window's first point now
+  // equals its value there, so the subtraction is a no-op and the
+  // reported figure IS the window's move. The S&P's old previous-close /
+  // prior-year-end anchor is gone with it: the benchmark has no baseline
+  // other than its own first bar in the window.
+  const portBase = portYtd[0].pct;
+  const portNorm = portYtd.map(p => ({ date: p.date, v: p.pct - portBase }));
+  const spOpen   = hasSp && spYtd.length > 0 ? spYtd[0].close : 0;
+  const spNorm   = (hasSp && spOpen > 0)
+    ? spYtd.map(p => ({ date: p.date, v: ((p.close - spOpen) / spOpen) * 100 }))
+    : [];
 
-  // SVG coordinate helpers
+  // ---- Which pair of lines this view draws.
+  //
+  // `lineA` is the emphasised one (portfolio, either way), `lineB` the
+  // reference (the index, or money paid in). Both carry `{date, v}`; the
+  // unit of `v` is what `isInv` decides, and every formatter below reads
+  // it through `fmtSeriesVal` / the axis formatter rather than assuming.
+  const isInv = view === 'investment';
+  // Money in, evaluated on the SAME dates the value line is sampled at.
+  // Null when a currency has no frozen deposit rate yet (see
+  // deposit_series.js) — the value line still draws.
+  const depositLine = isInv
+    ? depositSeries({
+        portfolio, dates: portYtd.map(p => p.date),
+        fxRates: portfolio?.depositFxRates,
+        // Real fill dates for the broker-synced slice. Safe to use
+        // mid-backfill: the stand-in absorbs whatever the fills don't
+        // cover, so a half-walked history adds dated steps without ever
+        // changing the total.
+        t212Orders: t212Orders?.rows || null,
+      })
+    : null;
+  const lineA = isInv ? portYtd.map(p => ({ date: p.date, v: p.value })) : portNorm;
+  const lineB = isInv ? (depositLine || []) : spNorm;
+
+  // SVG coordinate helpers. The dollar axis needs a wider left gutter:
+  // "$167k" does not fit where "+20%" did.
   const W = 300, H = 106;
-  const padL = 34, padR = 8, padT = 10, padB = 20;
+  const padL = isInv ? 44 : 34, padR = 8, padT = 10, padB = 20;
   const cW = W - padL - padR;
   const cH = H - padT - padB;
 
@@ -671,32 +761,46 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   //   2. Weekend / overnight gaps don't draw empty stretches under
   //      the line — same convention every brokerage chart uses
   //      (Yahoo, Robinhood, T212).
-  const portIdxOf = new Map(portNorm.map((p, i) => [p.date, i]));
-  const spIdxOf   = new Map(spNorm.map((p, i) => [p.date, i]));
-  const totalLen  = Math.max(portNorm.length, spNorm.length, 2);
+  const portIdxOf = new Map(lineA.map((p, i) => [p.date, i]));
+  const spIdxOf   = new Map(lineB.map((p, i) => [p.date, i]));
+  const totalLen  = Math.max(lineA.length, lineB.length, 2);
   const xOfPort = (date) => padL + ((portIdxOf.get(date) ?? 0) / Math.max(1, totalLen - 1)) * cW;
   const xOfSp   = (date) => padL + ((spIdxOf.get(date)   ?? 0) / Math.max(1, totalLen - 1)) * cW;
 
-  // Y range — always include 0
-  const allPcts = [...portNorm.map(p => p.pct), ...spNorm.map(p => p.pct), 0];
-  const rawMin  = Math.min(...allPcts);
-  const rawMax  = Math.max(...allPcts);
-  const yPad    = Math.max(1.5, (rawMax - rawMin) * 0.12);
+  // Y range. The percentage view always includes 0 — zero IS the
+  // comparison there. The dollar view must NOT: a $167k book against a
+  // $129k deposit line would spend 77 % of the chart's height getting
+  // down to $0 and flatten both lines into the top edge.
+  const allVals = isInv
+    ? [...lineA.map(p => p.v), ...lineB.map(p => p.v)]
+    : [...lineA.map(p => p.v), ...lineB.map(p => p.v), 0];
+  const rawMin  = allVals.length > 0 ? Math.min(...allVals) : 0;
+  const rawMax  = allVals.length > 0 ? Math.max(...allVals) : 0;
+  const yPad    = isInv
+    ? Math.max(Math.abs(rawMax) * 0.002, (rawMax - rawMin) * 0.12)
+    : Math.max(1.5, (rawMax - rawMin) * 0.12);
   const yMin = rawMin - yPad;
   const yMax = rawMax + yPad;
   const yRange = yMax - yMin || 1;
   const yOf = p => padT + ((yMax - p) / yRange) * cH;
 
-  // Nice Y ticks
-  const tickStep = (() => {
-    const r = yMax - yMin;
-    if (r <= 8)  return 2;
-    if (r <= 20) return 5;
-    if (r <= 50) return 10;
-    return 20;
-  })();
-  const ticks = [];
-  for (let t = Math.ceil(yMin / tickStep) * tickStep; t <= yMax; t += tickStep) ticks.push(t);
+  // Nice Y ticks. Percentages come off a fixed ladder; dollars have to
+  // be derived, because the same axis has to read well for a $900 book
+  // and a $9M one.
+  /** @type {number[]} */
+  let ticks = [];
+  if (isInv) {
+    ticks = moneyTicks(yMin, yMax, 4);
+  } else {
+    const tickStep = (() => {
+      const r = yMax - yMin;
+      if (r <= 8)  return 2;
+      if (r <= 20) return 5;
+      if (r <= 50) return 10;
+      return 20;
+    })();
+    for (let t = Math.ceil(yMin / tickStep) * tickStep; t <= yMax; t += tickStep) ticks.push(t);
+  }
 
   // X-axis labels. With index-based positioning we can't pin labels
   // to calendar months any more (each step is a data point, not a
@@ -706,13 +810,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // distinguishable from the curve itself — the user found
   // "Mon DD HH:MM" too noisy), and bare month for 3M/YTD.
   const months = [];
-  if (portNorm.length > 0) {
-    const denom = Math.max(1, portNorm.length - 1);
+  if (lineA.length > 0) {
+    const denom = Math.max(1, lineA.length - 1);
     const labelCount = rangeKey === '1D' ? 4 : 5;
     for (let i = 0; i <= labelCount; i++) {
-      const idx = Math.round((portNorm.length - 1) * (i / labelCount));
-      const safeIdx = Math.max(0, Math.min(portNorm.length - 1, idx));
-      const dateStr = portNorm[safeIdx].date;
+      const idx = Math.round((lineA.length - 1) * (i / labelCount));
+      const safeIdx = Math.max(0, Math.min(lineA.length - 1, idx));
+      const dateStr = lineA[safeIdx].date;
       const x = padL + (safeIdx / denom) * cW;
       if (x < padL + 10 || x > W - padR - 8) continue;
       const d = parseChartDateUTC(dateStr);
@@ -731,16 +835,33 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // SVG paths — each series uses its own index map so portfolio and
   // S&P align even when the two series have slightly different point
   // counts (e.g. one ticker missed today's data).
-  const toPath = (norm, xFn) => {
-    if (norm.length === 0) return '';
-    return 'M' + norm.map(p => `${xFn(p.date).toFixed(1)},${yOf(p.pct).toFixed(1)}`).join('L');
+  const toPath = (norm, xFn, from = 0, to = norm.length) => {
+    const seg = norm.slice(from, to);
+    if (seg.length === 0) return '';
+    return 'M' + seg.map(p => `${xFn(p.date).toFixed(1)},${yOf(p.v).toFixed(1)}`).join('L');
   };
-  const portPath = toPath(portNorm, xOfPort);
-  const spPath   = toPath(spNorm,   xOfSp);
+  // Provenance: on the Investment view the stretch to the left of the
+  // first RECORDED sample is a reconstruction from the ledger and Yahoo's
+  // bars, not something anyone wrote down at the time. Draw it faded,
+  // with a dotted rule at the handover, and mark its crosshair readings
+  // with a `~`. -1 means the whole window is one or the other.
+  const splitIdx = isInv ? provenanceSplitIndex(lineA, recordedFrom, (d) => parseChartDateUTC(d).getTime()) : -1;
+  const hasDerivedHead = splitIdx > 0;
+  // The two segments overlap by one point so the line has no visual gap
+  // at the handover.
+  const portPath = hasDerivedHead ? toPath(lineA, xOfPort, splitIdx) : toPath(lineA, xOfPort);
+  const derivedPath = hasDerivedHead ? toPath(lineA, xOfPort, 0, splitIdx + 1) : '';
+  const spPath   = toPath(lineB, xOfSp);
 
-  const portCurrent = portNorm.length > 0 ? portNorm[portNorm.length - 1].pct : null;
-  const spCurrent   = spNorm.length   > 0 ? spNorm[spNorm.length - 1].pct   : null;
-  const portColor = portCurrent != null && portCurrent >= 0 ? 'var(--gain)' : 'var(--loss)';
+  const portCurrent = lineA.length > 0 ? lineA[lineA.length - 1].v : null;
+  const spCurrent   = lineB.length > 0 ? lineB[lineB.length - 1].v : null;
+  // In the dollar view the emphasis colour tracks the WINDOW's move, not
+  // the sign of an absolute balance — every balance is positive.
+  const portWindowPct = windowPct(lineA);
+  const depWindowPct  = windowPct(lineB);
+  const portColor = isInv
+    ? ((portWindowPct ?? 0) >= 0 ? 'var(--gain)' : 'var(--loss)')
+    : (portCurrent != null && portCurrent >= 0 ? 'var(--gain)' : 'var(--loss)');
   const spColor   = '#6b7280';
   const zeroY = yOf(0);
 
@@ -748,6 +869,9 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // (`fmtPct` from utils) so the legend and crosshair chips read at
   // the same precision as the rest of the app.
   const fmtP1 = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  // What a chip / legend value reads. Percentages in the vs-S&P view,
+  // money in the Investment one — masked when the user has values hidden.
+  const fmtSeriesVal = (n) => (isInv ? (hideValues ? '••••' : fmtChipMoney(n)) : fmtP1(n));
 
   // Hover crosshair — DOM-ref based for the same reasons as the
   // ticker modal: setting React state on every mousemove would
@@ -759,8 +883,8 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // helper, mouse handlers) live here.
 
   // Lookup tables for crosshair index→data.
-  const portByIdx = portNorm;
-  const spByIdx   = spNorm.length === portNorm.length ? spNorm : null; // aligned in 1D / YTD
+  const portByIdx = lineA;
+  const spByIdx   = lineB.length === lineA.length ? lineB : null; // aligned in 1D / YTD
   const fmtCrosshairDate = (dateStr) => {
     const d = parseChartDateUTC(dateStr);
     const date = () => d.toLocaleDateString([], { month: 'short', day: 'numeric' });
@@ -779,13 +903,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     g.style.display = '';
     const p = portByIdx[idx];
     const x = xOfPort(p.date);
-    const portY = yOf(p.pct);
+    const portY = yOf(p.v);
     if (cVlineRef.current) { cVlineRef.current.setAttribute('x1', String(x.toFixed(1))); cVlineRef.current.setAttribute('x2', String(x.toFixed(1))); }
     if (cPortDot.current) { cPortDot.current.setAttribute('cx', String(x.toFixed(1))); cPortDot.current.setAttribute('cy', String(portY.toFixed(1))); }
     const sp = spByIdx?.[idx] ?? null;
     if (sp && cSpDot.current) {
       cSpDot.current.setAttribute('cx', String(x.toFixed(1)));
-      cSpDot.current.setAttribute('cy', String(yOf(sp.pct).toFixed(1)));
+      cSpDot.current.setAttribute('cy', String(yOf(sp.v).toFixed(1)));
       cSpDot.current.style.display = '';
     } else if (cSpDot.current) {
       cSpDot.current.style.display = 'none';
@@ -805,18 +929,24 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     if (cPortRect.current && cPortText.current) {
       const yTop = (portY - 8).toFixed(1);
       cPortRect.current.setAttribute('y', yTop);
-      cPortRect.current.setAttribute('fill', p.pct >= 0 ? 'rgba(70,160,90,0.85)' : 'rgba(190,60,70,0.85)');
+      // Chip colour: sign of the percentage in the vs-S&P view; in the
+      // dollar view every balance is positive, so it follows the
+      // window's own direction instead.
+      const chipPositive = isInv ? ((portWindowPct ?? 0) >= 0) : (p.v >= 0);
+      cPortRect.current.setAttribute('fill', chipPositive ? 'rgba(70,160,90,0.85)' : 'rgba(190,60,70,0.85)');
       cPortText.current.setAttribute('y', String((portY).toFixed(1)));
-      cPortText.current.textContent = fmtP1(p.pct);
+      cPortText.current.textContent =
+        (hasDerivedHead && idx < splitIdx ? '~' : '') + fmtSeriesVal(p.v);
     }
     if (cSpRect.current && cSpText.current) {
       if (sp) {
-        const spY = yOf(sp.pct);
+        const spY = yOf(sp.v);
         cSpRect.current.style.display = '';
         cSpText.current.style.display = '';
         cSpRect.current.setAttribute('y', (spY - 8).toFixed(1));
         cSpText.current.setAttribute('y', String((spY).toFixed(1)));
-        cSpText.current.textContent = fmtP1(sp.pct);
+        cSpText.current.textContent =
+          (hasDerivedHead && idx < splitIdx ? '~' : '') + fmtSeriesVal(sp.v);
       } else {
         cSpRect.current.style.display = 'none';
         cSpText.current.style.display = 'none';
@@ -851,17 +981,32 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
       <div className="perf-legend">
         <span className="perf-legend-item">
           <span className="perf-dot" style={{ background: portColor }} />
-          <span className="mono dim perf-lbl">PORTFOLIO</span>
-          {portCurrent != null && (
-            <span className="mono perf-val" style={{ color: portColor }}>{fmtP1(portCurrent)}</span>
-          )}
+          <span className="mono dim perf-lbl">{isInv ? 'VALUE' : 'PORTFOLIO'}</span>
+          {/* The Investment legend reports each line's OWN move across
+              the window, which is what was asked for in place of the
+              difference-between-the-lines figure that used to sit here:
+              that number was a gain, and a gain is not what either line
+              measures. */}
+          {isInv
+            ? (portWindowPct != null && (
+                <span className="mono perf-val" style={{ color: portColor }}>{fmtP1(portWindowPct)}</span>
+              ))
+            : (portCurrent != null && (
+                <span className="mono perf-val" style={{ color: portColor }}>{fmtP1(portCurrent)}</span>
+              ))}
         </span>
         <span className="perf-legend-item">
           <span className="perf-dot" style={{ background: spColor }} />
-          <span className="mono dim perf-lbl">{spSymbol === 'ES=F' ? 'S&P 500 FUTURES' : 'S&P 500'}</span>
-          {spCurrent != null && (
-            <span className="mono perf-val" style={{ color: spColor }}>{fmtP1(spCurrent)}</span>
-          )}
+          <span className="mono dim perf-lbl">
+            {isInv ? 'DEPOSITED' : (spSymbol === 'ES=F' ? 'S&P 500 FUTURES' : 'S&P 500')}
+          </span>
+          {isInv
+            ? (depWindowPct != null && (
+                <span className="mono perf-val" style={{ color: spColor }}>{fmtP1(depWindowPct)}</span>
+              ))
+            : (spCurrent != null && (
+                <span className="mono perf-val" style={{ color: spColor }}>{fmtP1(spCurrent)}</span>
+              ))}
         </span>
       </div>
 
@@ -891,13 +1036,17 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
                   strokeDasharray={t === 0 ? undefined : "2,3"} />
             <text x={padL - 3} y={yOf(t).toFixed(1)} textAnchor="end" dominantBaseline="middle"
                   fontSize="7.5" fill="rgba(244,239,227,0.38)" fontFamily="var(--font-mono)">
-              {t >= 0 ? '+' : ''}{t}%
+              {isInv ? (hideValues ? '••' : fmtAxisMoney(t)) : `${t >= 0 ? '+' : ''}${t}%`}
             </text>
           </g>
         ))}
-        {/* Zero line (stronger) */}
-        <line x1={padL} y1={zeroY.toFixed(1)} x2={W - padR} y2={zeroY.toFixed(1)}
-              stroke="var(--line)" strokeWidth="0.8" />
+        {/* Zero line (stronger). Only in the percentage view — on a
+            dollar axis that doesn't span zero it would be drawn off the
+            plot, and where it does it means nothing. */}
+        {!isInv && (
+          <line x1={padL} y1={zeroY.toFixed(1)} x2={W - padR} y2={zeroY.toFixed(1)}
+                stroke="var(--line)" strokeWidth="0.8" />
+        )}
         {/* Month grid lines + labels */}
         {months.map((m, i) => (
           <g key={i}>
@@ -969,20 +1118,42 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
             </>
           );
         })()}
-        {/* S&P 500 line */}
+        {/* Deposit / S&P reference line. Money paid in is a step
+            function, so the Investment view draws it as one instead of
+            sloping between the dates money actually moved. */}
         {spPath && (
           <path d={spPath} fill="none" stroke={spColor} strokeWidth="1.2" opacity="0.75"
+                strokeLinejoin="round" strokeLinecap="round"
+                strokeDasharray={isInv ? '3,2' : undefined} />
+        )}
+        {/* The reconstructed stretch, and the rule where the recorded
+            samples take over. */}
+        {derivedPath && (
+          <path d={derivedPath} fill="none" stroke={portColor} strokeWidth="1.6" opacity="0.4"
                 strokeLinejoin="round" strokeLinecap="round" />
         )}
+        {hasDerivedHead && (() => {
+          const x = xOfPort(lineA[splitIdx].date).toFixed(1);
+          return (
+            <g>
+              <line x1={x} y1={padT} x2={x} y2={H - padB}
+                    stroke="rgba(244,239,227,0.35)" strokeWidth="0.7" strokeDasharray="2,3" />
+              <text x={x} y={padT - 2} textAnchor="middle"
+                    fontSize="6.5" fill="rgba(244,239,227,0.45)" fontFamily="var(--font-mono)">
+                RECORDED
+              </text>
+            </g>
+          );
+        })()}
         {/* Portfolio line */}
         {portPath && (
           <path d={portPath} fill="none" stroke={portColor} strokeWidth="1.6"
                 strokeLinejoin="round" strokeLinecap="round" />
         )}
         {/* Dot at last portfolio point */}
-        {portNorm.length > 0 && (() => {
-          const last = portNorm[portNorm.length - 1];
-          return <circle cx={xOfPort(last.date).toFixed(1)} cy={yOf(last.pct).toFixed(1)}
+        {lineA.length > 0 && (() => {
+          const last = lineA[lineA.length - 1];
+          return <circle cx={xOfPort(last.date).toFixed(1)} cy={yOf(last.v).toFixed(1)}
                          r="3" fill={portColor} stroke="#0c1310" strokeWidth="1.5" />;
         })()}
         {/* Hover crosshair — vertical line + per-line dots + a tiny
@@ -1023,15 +1194,62 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 // FORMATION VALUE, rendered separately so we can place it in the
 // desktop left column instead of the sidebar. The Sidebar still
 // renders its own copy on tablet/mobile.
-function PerfPanel({ portfolio, marketData, extendedHours, phase, className }) {
+/**
+ * @param {{ portfolio: any, marketData: any, extendedHours: boolean, phase: string,
+ *   className?: string, hideValues?: boolean,
+ *   t212Orders?: {rows: any[], complete: boolean}|null }} props
+ */
+function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false, t212Orders = null }) {
   // Own the range here so the title can name the actual benchmark: ES=F
   // (ext-on 1D / 1W) → "S&P FUTURES", the cash index otherwise → "S&P 500".
   // The legend dot inside the chart flips the same way (spSymbolFor).
   const [rangeKey, setRangeKey] = React.useState('1D');
+  // One panel slot, two charts. The range carries across the swap: the
+  // user is looking at one window and asking two questions about it, so
+  // flipping the view must not reset which window that is.
+  const [view, setView] = React.useState(/** @type {'sp'|'investment'} */ ('sp'));
+  const isInv = view === 'investment';
   const benchmarksFutures = spSymbolFor(rangeKey, extendedHours) === 'ES=F';
+  // Arrow keys move between tabs and take focus with them — with
+  // `tabIndex={-1}` on the inactive tab (roving tabindex, so Tab treats
+  // the pair as ONE stop) arrows are the only way to reach it from the
+  // keyboard. Home/End included because a two-tab list still gets them
+  // from muscle memory.
+  const onTabKey = React.useCallback((/** @type {React.KeyboardEvent} */ e) => {
+    const k = e.key;
+    if (k !== 'ArrowLeft' && k !== 'ArrowRight' && k !== 'Home' && k !== 'End') return;
+    e.preventDefault();
+    const next = (k === 'ArrowRight' || k === 'End') ? 'investment' : 'sp';
+    setView(next);
+    const el = document.getElementById(next === 'sp' ? 'perf-tab-sp' : 'perf-tab-inv');
+    if (el) el.focus();
+  }, []);
   return (
     <section className={`panel ${className || ""}`.trim()}>
-      <h3 className="panel-title">PERFORMANCE VS {benchmarksFutures ? <>S&amp;P FUTURES</> : <>S&amp;P 500</>}</h3>
+      {/* The heading IS the switch. A `⇄` button beside a title says
+          only that something swaps — not what to, and not what you are
+          looking at now; the sole feedback was the title rewriting
+          itself after the click. Two tabs at title scale name both
+          destinations, mark the current one, and cost no extra row. */}
+      <div className="panel-title-row">
+        <div className="view-tabs" role="tablist" aria-label="Performance view">
+          <button
+            type="button" role="tab" id="perf-tab-sp"
+            aria-selected={!isInv} tabIndex={isInv ? -1 : 0}
+            className={`view-tab mono${isInv ? '' : ' is-on'}`}
+            onClick={() => setView('sp')}
+            onKeyDown={onTabKey}
+          >VS {benchmarksFutures ? <>S&amp;P FUT</> : <>S&amp;P 500</>}</button>
+          <span className="view-tab-sep" aria-hidden="true" />
+          <button
+            type="button" role="tab" id="perf-tab-inv"
+            aria-selected={isInv} tabIndex={isInv ? 0 : -1}
+            className={`view-tab mono${isInv ? ' is-on' : ''}`}
+            onClick={() => setView('investment')}
+            onKeyDown={onTabKey}
+          >INVESTMENT</button>
+        </div>
+      </div>
       <PerfChart
         portfolio={portfolio}
         marketData={marketData}
@@ -1039,6 +1257,9 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className }) {
         phase={phase}
         rangeKey={rangeKey}
         setRangeKey={setRangeKey}
+        view={view}
+        hideValues={hideValues}
+        t212Orders={t212Orders}
       />
     </section>
   );
