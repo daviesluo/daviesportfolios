@@ -256,7 +256,7 @@ async function run() {
 
     for (const view of ['sp', 'investment']) {
       if (view === 'investment') {
-        await page.click('.left-col .panel-swap');
+        await page.click('.left-col #perf-tab-inv');
         await page.waitForTimeout(150);
       }
       for (const rangeKey of RANGES) {
@@ -275,7 +275,7 @@ async function run() {
               points: (p.getAttribute('d') || '').split('L').length,
             }));
           return {
-            title: panel.querySelector('.panel-title')?.textContent || '',
+            tabOn: panel.querySelector('.view-tab.is-on')?.textContent || '',
             empty: !!panel.querySelector('.sparkline-empty'),
             labels: [...panel.querySelectorAll('.perf-lbl')].map((e) => e.textContent),
             values: [...panel.querySelectorAll('.perf-val')].map((e) => e.textContent),
@@ -291,6 +291,11 @@ async function run() {
         if (!read) { fail('panel missing'); continue; }
         if (read.empty) fail('drew the Insufficient-data empty state');
         if (read.paths.length < 2) fail(`only ${read.paths.length} line(s) drawn`);
+        // The switch has to agree with the lines actually drawn: the
+        // active tab IS the panel heading now, so a mismatch would put
+        // one view's title over the other view's chart.
+        const wantTab = view === 'investment' ? 'INVESTMENT' : 'VS S&P';
+        if (!(read.tabOn || '').includes(wantTab)) fail(`active tab "${read.tabOn}" (want ${wantTab})`);
         if (view === 'investment') {
           if (read.labels.join(',') !== 'VALUE,DEPOSITED') fail(`legend labels ${read.labels}`);
           if (read.values[0] !== book.move) fail(`value move ${read.values[0]} (want ${book.move})`);
@@ -310,7 +315,7 @@ async function run() {
         }
       }
       if (view === 'investment') {
-        await page.click('.left-col .panel-swap');
+        await page.click('.left-col #perf-tab-sp');
         await page.waitForTimeout(150);
       }
     }

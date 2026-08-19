@@ -380,6 +380,25 @@ Read these as a checklist before pushing.
   It wasn't — the conservative rule restores PLTR identically. Check
   that the risky half of a change is actually load-bearing.
 
+- **Shipping a client change ahead of the server that has to accept
+  it.** A Cloudflare preview always talks to the PRODUCTION Edge
+  Functions — there is no preview backend. The branch started sending
+  `X-App-Token` to `prices` / `chart` / `fundamentals` before those
+  functions listed it in `Access-Control-Allow-Headers`, so the
+  browser's preflight killed all three. Order it: allow-list first (it
+  requires nothing of anyone), client sends second, enforcement last.
+- **Three quiet fallbacks made one bug look like three.** He reported a
+  scoreboard that disagreed with production, market conditions that
+  would not load, and YTD history that disagreed with the shorter
+  ranges. One missing header. Every one of those callers catches its
+  own failure and degrades silently, so nothing said "blocked" — when
+  several surfaces go wrong at once, look for the shared dependency
+  before debugging any of them.
+- **Deploying only what the workflow watches.** `edge-functions.yml`
+  matched `<fn>/index.ts`, so a change to `fundamentals/_shared.ts`
+  shipped everywhere except `fundamentals`. Green CI is not a deploy —
+  check the thing actually serving the request.
+
 ## Third-party reviews
 
 He runs another AI over the diffs and brings the findings back. They

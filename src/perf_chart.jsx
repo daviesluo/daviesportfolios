@@ -1210,21 +1210,45 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hid
   const [view, setView] = React.useState(/** @type {'sp'|'investment'} */ ('sp'));
   const isInv = view === 'investment';
   const benchmarksFutures = spSymbolFor(rangeKey, extendedHours) === 'ES=F';
+  // Arrow keys move between tabs and take focus with them — with
+  // `tabIndex={-1}` on the inactive tab (roving tabindex, so Tab treats
+  // the pair as ONE stop) arrows are the only way to reach it from the
+  // keyboard. Home/End included because a two-tab list still gets them
+  // from muscle memory.
+  const onTabKey = React.useCallback((/** @type {React.KeyboardEvent} */ e) => {
+    const k = e.key;
+    if (k !== 'ArrowLeft' && k !== 'ArrowRight' && k !== 'Home' && k !== 'End') return;
+    e.preventDefault();
+    const next = (k === 'ArrowRight' || k === 'End') ? 'investment' : 'sp';
+    setView(next);
+    const el = document.getElementById(next === 'sp' ? 'perf-tab-sp' : 'perf-tab-inv');
+    if (el) el.focus();
+  }, []);
   return (
     <section className={`panel ${className || ""}`.trim()}>
+      {/* The heading IS the switch. A `⇄` button beside a title says
+          only that something swaps — not what to, and not what you are
+          looking at now; the sole feedback was the title rewriting
+          itself after the click. Two tabs at title scale name both
+          destinations, mark the current one, and cost no extra row. */}
       <div className="panel-title-row">
-        <h3 className="panel-title">
-          {isInv
-            ? <>INVESTMENT PERFORMANCE</>
-            : <>PERFORMANCE VS {benchmarksFutures ? <>S&amp;P FUTURES</> : <>S&amp;P 500</>}</>}
-        </h3>
-        <button
-          type="button"
-          className="panel-swap mono"
-          onClick={() => setView(v => (v === 'sp' ? 'investment' : 'sp'))}
-          aria-label={isInv ? 'Show performance vs S&P 500' : 'Show investment performance'}
-          title={isInv ? 'Performance vs S&P 500' : 'Investment Performance'}
-        >⇄</button>
+        <div className="view-tabs" role="tablist" aria-label="Performance view">
+          <button
+            type="button" role="tab" id="perf-tab-sp"
+            aria-selected={!isInv} tabIndex={isInv ? -1 : 0}
+            className={`view-tab mono${isInv ? '' : ' is-on'}`}
+            onClick={() => setView('sp')}
+            onKeyDown={onTabKey}
+          >VS {benchmarksFutures ? <>S&amp;P FUT</> : <>S&amp;P 500</>}</button>
+          <span className="view-tab-sep" aria-hidden="true" />
+          <button
+            type="button" role="tab" id="perf-tab-inv"
+            aria-selected={isInv} tabIndex={isInv ? 0 : -1}
+            className={`view-tab mono${isInv ? ' is-on' : ''}`}
+            onClick={() => setView('investment')}
+            onKeyDown={onTabKey}
+          >INVESTMENT</button>
+        </div>
       </div>
       <PerfChart
         portfolio={portfolio}
