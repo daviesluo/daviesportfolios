@@ -129,16 +129,27 @@ jobs:
             echo "Shared module changed — deploying every function."
             CHANGED=$(ls supabase/functions/ | grep -v '^_')
           else
-            # `|| true` so a push that touches supabase/functions/** WITHOUT
-            # changing any index.ts (e.g. a test-only edit) doesn't trip
-            # bash's pipefail when grep finds no matches.
+            # ANY file inside a function's own directory, not just its
+            # index.ts. A function may keep sibling modules next to it
+            # (`fundamentals/_shared.ts`, `fundamentals/_yahoo.ts`) that
+            # index.ts imports and the deploy bundles; matching only
+            # index.ts skipped those silently — CI green, production
+            # left on the previous version. That is exactly how a CORS
+            # header added to `fundamentals/_shared.ts` shipped
+            # everywhere except the function that serves it.
+            # `.test.ts` is excluded so a test-only edit still deploys
+            # nothing. `[^_]` skips the top-level `_shared/`, already
+            # handled by the branch above.
+            # `|| true` so a push touching supabase/functions/** with no
+            # deployable file doesn't trip bash's pipefail.
             CHANGED=$(git diff --name-only "$BEFORE" "$AFTER" \
-              | { grep '^supabase/functions/[^/]*/index\.ts$' || true; } \
+              | { grep '^supabase/functions/[^_][^/]*/' || true; } \
+              | { grep -v '\.test\.ts$' || true; } \
               | awk -F/ '{print $3}' \
               | sort -u)
           fi
           if [ -z "$CHANGED" ]; then
-            echo "No Edge Function index.ts changes; nothing to deploy."
+            echo "No deployable Edge Function changes; nothing to deploy."
             echo "functions=" >> "$GITHUB_OUTPUT"
           else
             echo "Changed Edge Functions: $CHANGED"
