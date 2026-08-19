@@ -1030,7 +1030,11 @@ function Board({ isReadOnly }) {
         setT212Orders(orders.rows);
         setT212OrdersComplete(orders.complete === true);
       }
-      timer = setTimeout(step, res.ordersComplete === true ? 10 * 60 * 1000 : 20000);
+      // Once the walk has latched, each pass re-reads page one — which is
+      // where a trade made minutes ago lands. Two minutes rather than
+      // ten: one call per account, so ~1 request/min against T212's 6,
+      // and a fill shows up on the board while it still feels recent.
+      timer = setTimeout(step, res.ordersComplete === true ? 2 * 60 * 1000 : 20000);
     };
     timer = setTimeout(step, 8000);
     return () => { cancelled = true; if (timer) clearTimeout(timer); };

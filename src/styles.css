@@ -1085,7 +1085,8 @@ body {
 .lot-grid { display: flex; flex-direction: column; gap: 8px; }
 .lot-grid-head, .lot-grid-row {
   display: grid;
-  grid-template-columns: 150px 1fr 1fr 28px;
+  /* date · buy/sell · shares · price · remove */
+  grid-template-columns: 150px 52px 1fr 1fr 28px;
   gap: 10px;
   align-items: center;
 }
@@ -1104,10 +1105,13 @@ body {
 .lot-add { align-self: flex-start; margin-top: 4px; font-size: 12px; }
 /* The two "+ Add lot" / "+ Sell" buttons sit side by side under the grids. */
 .lot-add-row { display: flex; gap: 10px; margin-top: 4px; }
-/* SALES grid: separated from the purchases above and tinted on the loss
-   side so buys vs sells read at a glance. */
-.sell-grid { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
-.sell-grid .lot-grid-head > span:first-child { color: var(--loss); }
+/* The BUY / SELL badge doubles as the control that flips a row between
+   the two. Buys and sells share one date-ordered list, so the direction
+   has to be per row rather than per grid. */
+.kind-toggle {
+  cursor: pointer; text-align: center; font-family: var(--font-mono);
+  padding: 6px 0; width: 100%;
+}
 
 /* One line under the lot grid saying where the rows came from — the
    broker's own trades, or a backfill still running. Deliberately not a
@@ -1144,18 +1148,21 @@ body {
 @media (max-width: 760px) {
   .lot-grid-head { display: none; }
   .lot-grid-row {
-    grid-template-columns: 1fr 28px;
+    grid-template-columns: 56px 1fr 28px;
     grid-template-rows: auto auto auto;
     grid-template-areas:
-      "date  remove"
-      "shares remove"
-      "cost  remove";
+      "kind date   remove"
+      "kind shares remove"
+      "kind cost   remove";
     gap: 6px;
   }
   .lot-grid-row > input:nth-of-type(1) { grid-area: date; }
   .lot-grid-row > input:nth-of-type(2) { grid-area: shares; }
   .lot-grid-row > input:nth-of-type(3) { grid-area: cost; }
-  .lot-grid-row > button             { grid-area: remove; align-self: start; }
+  .lot-grid-row > .kind-toggle { grid-area: kind; align-self: stretch; }
+  .lot-grid-row > .btn-ghost.icon { grid-area: remove; align-self: start; }
+  /* Rows now stack into a block each, so they need a line between them. */
+  .lot-grid-row + .lot-grid-row { border-top: 1px solid var(--line); padding-top: 8px; }
 }
 
 /* Extended hours toggle switch */

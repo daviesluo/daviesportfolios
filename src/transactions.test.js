@@ -6,7 +6,9 @@
 // quietly drift the cost basis or realized G/L.
 
 import { describe, it, expect } from 'vitest';
-import { cleanSells, netPosition, realizedGain, buildTransactionLog, totalRealizedUsd } from './transactions.js';
+import { cleanSells, netPosition, realizedGain, buildTransactionLog, totalRealizedUsd,
+         toLedgerRows, fromLedgerRows } from './transactions.js';
+import { cleanLots } from './lots.js';
 
 describe('cleanSells', () => {
   it('keeps finite shares>0 / price>=0 / valid past dates, sorted ascending', () => {
@@ -259,5 +261,45 @@ describe('totalRealizedUsd', () => {
   it('guards empty / null', () => {
     expect(totalRealizedUsd(null, fxRate)).toBe(0);
     expect(totalRealizedUsd({}, fxRate)).toBe(0);
+  });
+});
+
+describe('toLedgerRows / fromLedgerRows', () => {
+  const HOLDING = {
+    lots: [
+      { date: '2025-11-13', shares: 1, cost: 45.97 },
+      { date: '2026-08-18', shares: 3, cost: 71.2, src: 'other' },
+    ],
+    sells: [{ date: '2026-08-17', shares: 2, price: 70, ts: 5 }],
+  };
+
+  it('merges buys and sells into one list, newest first', () => {
+    expect(toLedgerRows(HOLDING).map((r) => `${r.date}:${r.kind}`)).toEqual([
+      '2026-08-18:buy',
+      '2026-08-17:sell',
+      '2025-11-13:buy',
+    ]);
+  });
+
+  it('breaks a same-day tie by entry time, newest first', () => {
+    const rows = toLedgerRows({
+      lots: [{ date: '2026-08-18', shares: 1, cost: 10, ts: 100 }],
+      sells: [{ date: '2026-08-18', shares: 1, price: 12, ts: 200 }],
+    });
+    expect(rows.map((r) => r.kind)).toEqual(['sell', 'buy']);
+  });
+
+  it('round-trips back to lots and sells, keeping src and ts', () => {
+    const { lots, sells } = fromLedgerRows(toLedgerRows(HOLDING));
+    expect(cleanLots(lots)).toEqual([
+      { date: '2025-11-13', shares: 1, cost: 45.97 },
+      { date: '2026-08-18', shares: 3, cost: 71.2, src: 'other' },
+    ]);
+    expect(cleanSells(sells)).toEqual([{ date: '2026-08-17', shares: 2, price: 70, ts: 5 }]);
+  });
+
+  it('survives a holding with no ledger at all', () => {
+    expect(toLedgerRows({})).toEqual([]);
+    expect(fromLedgerRows(undefined)).toEqual({ lots: [], sells: [] });
   });
 });

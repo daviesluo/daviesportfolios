@@ -149,23 +149,51 @@ describe('EditTickerModal — future-dated lot warning', () => {
   });
 });
 
-describe('EditTickerModal — sell editor', () => {
-  it('"+ Sell" adds a sale row and Save records lots + sells', async () => {
+describe('EditTickerModal — one list, newest first', () => {
+  it('"+ Add sell" puts the new row at the TOP and Save splits it out', async () => {
     const user = userEvent.setup();
     const { props } = renderModal(); // HOLDING = 18.5 sh @ 172.62, no sells
-    await user.click(screen.getByRole('button', { name: /^\+ Sell$/ }));
-    // The new sale row's inputs (date/shares/price). Buy row inputs come
-    // first; the sale row's shares+price are the next two '0'-placeholders.
+    await user.click(screen.getByRole('button', { name: /^\+ Add sell$/ }));
+    // Newest belongs at the top, so the fresh row's inputs come FIRST.
     const numInputs = screen.getAllByPlaceholderText('0');
-    // [0]=buy shares, [1]=buy cost, [2]=sale shares, [3]=sale price
-    await user.clear(numInputs[2]); await user.type(numInputs[2], '8');
-    await user.clear(numInputs[3]); await user.type(numInputs[3], '200');
+    await user.clear(numInputs[0]); await user.type(numInputs[0], '8');
+    await user.clear(numInputs[1]); await user.type(numInputs[1], '200');
     await user.click(screen.getByRole('button', { name: /^Save$/ }));
     expect(props.onSave).toHaveBeenCalledTimes(1);
     const patch = props.onSave.mock.calls[0][0];
     expect(patch.lots).toHaveLength(1);
     expect(patch.sells).toHaveLength(1);
     expect(patch.sells[0]).toMatchObject({ shares: 8, price: 200 });
+  });
+
+  it('shows buys and sells interleaved by date, most recent at the top', () => {
+    renderModal({
+      holding: {
+        ...HOLDING, shares: 5,
+        lots: [
+          { date: '2025-01-02', shares: 10, cost: 100 },
+          { date: '2026-03-04', shares: 2, cost: 300 },
+        ],
+        sells: [{ date: '2025-06-05', shares: 7, price: 200 }],
+      },
+    });
+    const kinds = [...document.querySelectorAll('.lot-grid-row .kind-toggle')]
+      .map((b) => b.textContent);
+    const dates = [...document.querySelectorAll('.lot-grid-row input[type=date]')]
+      .map((i) => /** @type {HTMLInputElement} */ (i).value);
+    expect(dates).toEqual(['2026-03-04', '2025-06-05', '2025-01-02']);
+    expect(kinds).toEqual(['BUY', 'SELL', 'BUY']);
+  });
+
+  it('flips a row between buy and sell in place', async () => {
+    const user = userEvent.setup();
+    const { props } = renderModal();
+    await user.click(screen.getByRole('button', { name: /Buy — click to switch/ }));
+    await user.click(screen.getByRole('button', { name: /^Save$/ }));
+    const patch = props.onSave.mock.calls[0][0];
+    expect(patch.lots).toHaveLength(0);
+    expect(patch.sells).toHaveLength(1);
+    expect(patch.sells[0]).toMatchObject({ shares: 18.5, price: 172.62 });
   });
 
   it('shows REALIZED G/L + NET SHARES once a holding has sells', () => {
@@ -200,7 +228,7 @@ describe('EditTickerModal — where the rows came from', () => {
 
   it('says the rows are the broker\'s own trades once they are', () => {
     renderModal({ holding: SYNCED, t212Orders: FILLS });
-    expect(screen.getByText(/Trading 212's own 2 executed trades/)).toBeInTheDocument();
+    expect(screen.getByText(/Synced from Trading 212/)).toBeInTheDocument();
   });
 
   it('counts the ones bought elsewhere separately', () => {
@@ -211,7 +239,7 @@ describe('EditTickerModal — where the rows came from', () => {
       },
       t212Orders: FILLS,
     });
-    expect(screen.getByText(/plus 1 bought elsewhere/)).toBeInTheDocument();
+    expect(screen.getByText(/plus your Robinhood buys/)).toBeInTheDocument();
   });
 
   it('says the history is still downloading when the fills do not cover the position', () => {
@@ -222,7 +250,7 @@ describe('EditTickerModal — where the rows came from', () => {
       holding: { shares: 60, cost: 136.1, currency: 'USD', t212Shares: 60, lots: [{ date: '2025-01-01', shares: 60, cost: 136.1 }] },
       t212Orders: [{ ticker: 'NVDA', executed_at: '2026-03-27T13:45:00.000Z', side: 'buy', shares: 33.5, price: 157.19 }],
     });
-    expect(screen.getByText(/still downloading/)).toBeInTheDocument();
+    expect(screen.getByText(/Still loading from Trading 212/)).toBeInTheDocument();
   });
 
   it('stops saying that once the backfill has finished', () => {
@@ -232,7 +260,7 @@ describe('EditTickerModal — where the rows came from', () => {
       t212Orders: [{ ticker: 'NVDA', executed_at: '2026-03-27T13:45:00.000Z', side: 'buy', shares: 33.5, price: 157.19 }],
       t212OrdersComplete: true,
     });
-    expect(screen.queryByText(/still downloading/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Still loading from Trading 212/)).not.toBeInTheDocument();
   });
 
   it('says nothing for a holding the broker never had', () => {
@@ -247,10 +275,10 @@ describe('EditTickerModal — where the rows came from', () => {
   it('marks a hand-added lot as the owner\'s so the sync cannot replace it', async () => {
     const user = userEvent.setup();
     const { props } = renderModal({ holding: SYNCED, t212Orders: FILLS });
-    await user.click(screen.getByRole('button', { name: /\+ Add lot/ }));
-    const nums = screen.getAllByPlaceholderText('0');
-    await user.type(nums[nums.length - 2], '3');
-    await user.type(nums[nums.length - 1], '400');
+    await user.click(screen.getByRole('button', { name: /\+ Add buy/ }));
+    const nums = screen.getAllByPlaceholderText('0');   // new row is FIRST
+    await user.type(nums[0], '3');
+    await user.type(nums[1], '400');
     await user.click(screen.getByRole('button', { name: /^Save$/ }));
     const added = props.onSave.mock.calls[0][0].lots.find((l) => l.shares === 3);
     expect(added.src).toBe('other');
@@ -268,8 +296,8 @@ describe('EditTickerModal — saving can shrink the position', () => {
       },
     });
     const warn = screen.getByRole('alert');
-    expect(warn.textContent).toMatch(/board holds 160/);
-    expect(warn.textContent).toMatch(/only account for 30/);
+    expect(warn.textContent).toMatch(/add up to 30 shares/);
+    expect(warn.textContent).toMatch(/not the 160 you hold/);
     expect(warn.textContent).toMatch(/drops the other 130/);
   });
 

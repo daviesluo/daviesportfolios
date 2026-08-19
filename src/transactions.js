@@ -182,3 +182,69 @@ export function buildTransactionLog(holdings) {
   ));
   return rows;
 }
+
+/**
+ * One holding's buys and sells as a SINGLE list, newest first.
+ *
+ * The lot editor used to show two grids — purchases, then sales below —
+ * which reads fine on a hand-kept ledger of four rows and not at all on
+ * a broker history of a hundred, where what you want is simply "what
+ * happened, most recent at the top". Buys and sells are one story told
+ * in date order.
+ *
+ * Values come back as STRINGS because they go straight into controlled
+ * inputs; `fromLedgerRows` coerces them back. Same-day rows fall back to
+ * `ts` (stamped when a row was added in the editor) so a pair typed
+ * minutes apart keeps its order.
+ *
+ * @param {{lots?: any, sells?: any}} holding
+ * @returns {Array<{kind: 'buy'|'sell', date: string, shares: string, price: string, ts?: number, src?: string}>}
+ */
+export function toLedgerRows(holding) {
+  const rows = [
+    ...(Array.isArray(holding?.lots) ? holding.lots : []).map((l) => ({
+      kind: /** @type {const} */ ('buy'),
+      date: String(l?.date || ''),
+      shares: String(l?.shares ?? ''),
+      price: String(l?.cost ?? ''),
+      ...(Number.isFinite(Number(l?.ts)) ? { ts: Number(l.ts) } : {}),
+      ...(typeof l?.src === 'string' && l.src ? { src: l.src } : {}),
+    })),
+    ...(Array.isArray(holding?.sells) ? holding.sells : []).map((s) => ({
+      kind: /** @type {const} */ ('sell'),
+      date: String(s?.date || ''),
+      shares: String(s?.shares ?? ''),
+      price: String(s?.price ?? ''),
+      ...(Number.isFinite(Number(s?.ts)) ? { ts: Number(s.ts) } : {}),
+      ...(typeof s?.src === 'string' && s.src ? { src: s.src } : {}),
+    })),
+  ];
+  return rows.sort((a, b) => {
+    if (a.date !== b.date) return b.date.localeCompare(a.date);
+    return (b.ts ?? 0) - (a.ts ?? 0);
+  });
+}
+
+/**
+ * The inverse: one editor list back into the `{ lots, sells }` the rest
+ * of the app stores. Order within each side doesn't matter — `cleanLots`
+ * / `cleanSells` sort by date on the way in — so this only has to split.
+ *
+ * @param {Array<{kind?: string, date?: any, shares?: any, price?: any, ts?: any, src?: any}> | null | undefined} rows
+ * @returns {{lots: any[], sells: any[]}}
+ */
+export function fromLedgerRows(rows) {
+  const lots = [];
+  const sells = [];
+  for (const r of Array.isArray(rows) ? rows : []) {
+    const keep = {
+      date: r?.date,
+      shares: r?.shares,
+      ...(Number.isFinite(Number(r?.ts)) ? { ts: Number(r.ts) } : {}),
+      ...(typeof r?.src === 'string' && r.src ? { src: r.src } : {}),
+    };
+    if (r?.kind === 'sell') sells.push({ ...keep, price: r?.price });
+    else lots.push({ ...keep, cost: r?.price });
+  }
+  return { lots, sells };
+}
