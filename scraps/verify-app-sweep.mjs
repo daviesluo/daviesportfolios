@@ -80,7 +80,7 @@ const dayAgo = (n) => new Date(Date.now() - n * 86400_000).toISOString().slice(0
 const PORTFOLIO = {
   positions: {
     GK: { label: 'Keeper', subtitle: '', role: 'GK', tickers: ['CASH'] },
-    CB: { label: 'Centre back', subtitle: '', role: 'DEF', tickers: ['BRIT.L', 'VUAA.L'] },
+    CB: { label: 'Centre back', subtitle: '', role: 'DEF', tickers: ['BRIT.L', 'VUAA.L', '017731'] },
     CM: { label: 'Midfield', subtitle: '', role: 'MID', tickers: ['ACME'] },
     ST: { label: 'Striker', subtitle: '', role: 'FWD', tickers: ['NOVA'] },
   },
@@ -116,12 +116,23 @@ const PORTFOLIO = {
       currency: 'GBP',
       lots: [{ date: dayAgo(30), shares: 3, cost: 80 }],
     },
+    // A CN fund. Its quote is a NAV published after its own close, so
+    // the +9.9 % is a real number about a DIFFERENT day — it must count
+    // in the scoreboard and appear on the heat map, but never rank in
+    // TOP MOVERS - TODAY, where it would sit at the top of WINNERS
+    // against stocks measured on today's tape.
+    '017731': {
+      shares: 200, cost: 1, lastPrice: 1.5, prevClose: 1.365, dayPct: 9.9,
+      currency: 'CNY',
+      lots: [{ date: dayAgo(45), shares: 200, cost: 1 }],
+    },
     CASH: { shares: 1, cost: 0, lastPrice: 500, dayPct: 0, isCash: true },
   },
-  depositFxRates: { USD: 1, GBP: 1.25 },
+  depositFxRates: { USD: 1, GBP: 1.25, CNY: 0.1 },
 };
 
-const TOTAL_USD = 1440 + 600 + 312.5 + 300 + 500; // 3152.50
+//   017731 200 @ 1.50 CNY = 300.00 CNY x 0.10 USDCNY = 30.00 USD
+const TOTAL_USD = 1440 + 600 + 312.5 + 300 + 30 + 500; // 3182.50
 
 // A closed round trip the board no longer carries. Only the fills know
 // it existed, which is the whole point: the history used to walk
@@ -135,15 +146,31 @@ const T212_ORDERS = [
 ];
 
 const QUOTES = {
-  ACME: { lastPrice: 240, prevClose: 238, currency: 'USD', dayPct: 0.84 },
+  // A real after-hours print: 240 -> 247.20 is +3.00 %, and
+  // `extPriceTrusted` says so outright so the +-5 % heuristic isn't
+  // what the assertion depends on.
+  ACME: {
+    lastPrice: 240, prevClose: 238, currency: 'USD', dayPct: 0.84,
+    extPrice: 247.2, extDayPct: 3, extPriceTrusted: true,
+  },
   NOVA: { lastPrice: 120, prevClose: 120, currency: 'USD', dayPct: -0.004 },
   'BRIT.L': { lastPrice: 2.5, prevClose: 2.4, currency: 'GBP', dayPct: 4.17 },
   'VUAA.L': { lastPrice: 80, prevClose: 79, currency: 'GBP', dayPct: 1.27 },
   '^GSPC': { lastPrice: 5200, prevClose: 5150, currency: 'USD', dayPct: 0.97 },
   'GBPUSD=X': { lastPrice: 1.25, prevClose: 1.25, currency: 'USD', dayPct: 0 },
+  // 10 CNY to the dollar, so the fund's 300 CNY is a clean $30.
+  'USDCNY=X': { lastPrice: 10, prevClose: 10, currency: 'USD', dayPct: 0 },
+  '017731': { lastPrice: 1.5, prevClose: 1.365, currency: 'CNY', dayPct: 9.9 },
 };
 
-const barsFor = (t, daily) => {
+// After-hours print per ticker. `extPriceIsRealAh` will not trust an
+// ext quote unless the intraday series actually CONTAINS bars outside
+// regular hours and its last close sits within 3 % of the quote — a
+// series that stops at 19:55 UTC means "no after-hours tape", and the
+// app is right to answer "nobody knows" rather than "unchanged".
+const EXT_PRINT = { ACME: 247.2 };
+
+const barsFor = (t, daily, includePrePost = false) => {
   const base = { ACME: 200, NOVA: 100, 'BRIT.L': 2, 'VUAA.L': 80, '^GSPC': 5000 }[t] ?? 100;
   const last = { ACME: 240, NOVA: 120, 'BRIT.L': 2.5, 'VUAA.L': 80, '^GSPC': 5200 }[t] ?? 100;
   const mid = (base + last) / 2;
@@ -162,11 +189,16 @@ const barsFor = (t, daily) => {
     d.setUTCHours(hh, mm, 0, 0);
     return d.toISOString().slice(0, 16);
   };
-  return [
+  const bars = [
     { date: at(14, 0), close: base },
     { date: at(17, 0), close: mid },
     { date: at(19, 55), close: last },
   ];
+  if (includePrePost && EXT_PRINT[t] != null) {
+    bars.push({ date: at(21, 0), close: EXT_PRINT[t] });
+    bars.push({ date: at(22, 30), close: EXT_PRINT[t] });
+  }
+  return bars;
 };
 
 const b64url = (s) => Buffer.from(s).toString('base64')
@@ -221,9 +253,10 @@ async function newPage(browser, { width, height }, errors, tokenMisses) {
       const u = new URL(url);
       const interval = u.searchParams.get('interval') || '1d';
       const daily = /^\d+(d|wk|mo)$/.test(interval);
+      const pp = u.searchParams.get('includePrePost') === 'true';
       const out = {};
       for (const t of (u.searchParams.get('tickers') || '').split(',').filter(Boolean)) {
-        out[t] = barsFor(t, daily);
+        out[t] = barsFor(t, daily, pp);
       }
       return json(out);
     }
@@ -374,18 +407,21 @@ async function run() {
       }
     }
 
-    // ---- 5. heat map: the flat threshold, and no all-zero board -----
-    await page.locator('.view-toggle .view-switch').first().click();
+    // ---- 5. heat map, with extended hours off and then on -----------
+    await page.locator('.view-toggle .view-switch:visible').first().click();
     await page.waitForTimeout(700);
-    const hm = await page.evaluate(() => {
-      const tiles = [...document.querySelectorAll('.hm-tile')];
-      return tiles.map((t) => ({
+    const readTiles = () => page.evaluate(() =>
+      [...document.querySelectorAll('.hm-tile')].map((t) => ({
         ticker: t.querySelector('.hm-ticker')?.textContent || '',
         pct: t.querySelector('.hm-pct')?.textContent || '',
-      }));
-    });
-    if (hm.length >= 4) ok(S('heatmap'), `${hm.length} tiles`);
+      })));
+
+    const hm = await readTiles();
+    if (hm.length >= 5) ok(S('heatmap'), `${hm.length} tiles`);
     else fail(S('heatmap'), `only ${hm.length} tiles`);
+    if (hm.some((x) => x.ticker === '017731')) {
+      ok(S('heatmap'), 'the CN fund is still a tile — excluded from ranking, not from the book');
+    } else fail(S('heatmap'), 'the CN fund vanished from the heat map');
     const nonZero = hm.filter((t) => t.pct && !/^[+-]?0\.00%$/.test(t.pct) && t.pct !== '—');
     if (nonZero.length > 0) ok(S('heatmap'), `${nonZero.length} tiles show a real move`);
     else fail(S('heatmap'), 'every tile reads 0.00% — the all-zero board is back');
@@ -395,8 +431,40 @@ async function run() {
     } else if (novaTile) {
       fail(S('heatmap'), `NOVA renders "${novaTile.pct}"`);
     }
+
+    // Extended hours ON. This whole board once went to +0.00% at once,
+    // because the T212 sync had widened past its two DCA'd ETFs and
+    // overwritten `lastPrice` with the broker's quote — so the ext
+    // comparison was the broker's number against itself. The two
+    // halves of the contract:
+    //   ACME has a trusted after-hours print -> its OWN ext move;
+    //   NOVA has none               -> an em dash, NOT a flat 0.00%,
+    //                                  because "nobody knows yet" is
+    //                                  not the same fact as "unchanged".
+    await page.locator('.ext-switch:visible').first().click();
+    await page.waitForTimeout(900);
+    const hmExt = await readTiles();
+    const allFlat = hmExt.length > 0
+      && hmExt.every((t) => !t.pct || /^[+-]?0\.00%$/.test(t.pct));
+    if (!allFlat) ok(S('heatmap/ext'), `tiles ${hmExt.map((t) => `${t.ticker} ${t.pct}`).join(', ')}`);
+    else fail(S('heatmap/ext'), 'every tile reads 0.00% with extended hours on');
+    const acmeExt = hmExt.find((t) => t.ticker === 'ACME');
+    if (acmeExt && /\+3\.00%/.test(acmeExt.pct)) {
+      ok(S('heatmap/ext'), `ACME shows its after-hours move ${acmeExt.pct}`);
+    } else if (acmeExt) {
+      fail(S('heatmap/ext'), `ACME shows "${acmeExt.pct}" (want +3.00%)`);
+    }
+    const novaExt = hmExt.find((t) => t.ticker === 'NOVA');
+    if (novaExt && novaExt.pct === '—') {
+      ok(S('heatmap/ext'), 'NOVA has no ext print and reads an em dash, not 0.00%');
+    } else if (novaExt) {
+      fail(S('heatmap/ext'), `NOVA reads "${novaExt.pct}" with no ext data (want —)`);
+    }
+    await page.locator('.ext-switch:visible').first().click();
+    await page.waitForTimeout(700);
+
     // Back to the tactics board.
-    await page.locator('.view-toggle .view-switch').first().click();
+    await page.locator('.view-toggle .view-switch:visible').first().click();
     await page.waitForTimeout(500);
 
     // ---- 6. Top Movers agrees with that same threshold --------------
@@ -406,6 +474,11 @@ async function run() {
     const zeroMover = movers.find((m) => /[+-]0\.00%/.test(m));
     if (!zeroMover) ok(S('top-movers'), `${movers.length} rows, none reading ±0.00%`);
     else fail(S('top-movers'), `a flat row ranked as a mover: ${zeroMover}`);
+    // The CN fund's +9.90 % would top WINNERS outright, and it is not a
+    // move that happened today.
+    const cnMover = movers.find((m) => /017731/.test(m));
+    if (!cnMover) ok(S('top-movers'), 'the CN fund does not rank, despite a +9.90% NAV print');
+    else fail(S('top-movers'), `CN fund ranked in TODAY: ${cnMover}`);
 
     // ---- 7. transaction history -------------------------------------
     await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});

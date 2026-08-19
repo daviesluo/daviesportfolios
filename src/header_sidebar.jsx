@@ -15,6 +15,7 @@ import {
   pctIsFlat,
 } from './formatters.js';
 import { londonTimeParts, usMarketPhase, ukTzAbbr } from './market_hours.js';
+import { isCnFund } from './ticker_class.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
 import { isIndex } from './ticker_class.js';
 import { PerfPanel } from './perf_chart.jsx';
@@ -431,7 +432,16 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
     for (const pos of Object.values(metrics.positions)) {
       for (const p of pos.players) allPlayers.push({ ...p, pos: pos.label });
     }
-    const movable = allPlayers.filter(p => !p.isCash && p.ticker !== "CASH");
+    // Cash never ranks, and neither does a CN fund. This panel is
+    // TOP MOVERS · **TODAY**, and a CN fund quotes a NAV published
+    // after its own close rather than a live price — its `dayPct` is a
+    // real number about a different day, so putting it beside stocks
+    // measured against today's tape compares two different things.
+    // Suppressed only during extended hours before this (`cnSuppress`
+    // in metrics.js), which left it ranking all day against a figure
+    // that was never today's market.
+    const movable = allPlayers.filter(p =>
+      !p.isCash && p.ticker !== "CASH" && !isCnFund(p.ticker));
     // Only names that ACTUALLY moved rank. A row pinned at 0 — a no-US-ext
     // venue suppressed during the overnight (SFTBY / .L / euro / CN fund), or
     // a genuinely flat stock — is neither a winner nor a loser, so it must not
