@@ -294,6 +294,12 @@ export function lotsFromOrders(orders, ticker) {
  * @param {Array<any> | null | undefined} [orders]  executed fills from fetchTrading212Orders
  * @returns {Record<string, any>}
  */
+// The only tickers whose `lastPrice` the broker may overwrite: two
+// USD-settling UCITS ETFs on the LSE, where Yahoo's free feed runs
+// ~15-20 minutes behind and the broker's own quote is both fresher and
+// already in the right currency. Everything else keeps Yahoo's.
+const T212_LIVE_PRICE_TICKERS = new Set(['VUAA.L', 'SAEM.L']);
+
 export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
   if (!holdings) return holdings;
   const overlay = t212Holdings && typeof t212Holdings === 'object' ? t212Holdings : {};
@@ -384,12 +390,22 @@ export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
     else merged.closed = true;
     // Broker's live quote for the allow-list ETF (USD). Use it as the
     // regular-session lastPrice so these LSE names don't sit on Yahoo's
-    // ~15-20 min-delayed feed. dayPct is recomputed against the stored
+    // ~15-20 min-delayed feed.
+    //
+    // ONLY those two. The sync used to cover just them, so this ran on
+    // exactly the rows it was written for; widening the sync to every
+    // reported position widened this with it, and quietly broke the
+    // extended-hours board. `applyTrading212NightPrice` measures the
+    // overnight move against `lastPrice` as today's regular close — so
+    // once the broker's own quote WAS the lastPrice, the overnight
+    // overlay compared that quote against itself and every US holding
+    // read exactly 0.00 %. Yahoo is live for US equities; there was
+    // never a reason to overwrite them here. dayPct is recomputed against the stored
     // prevClose (also USD, from the Yahoo merge that ran just before) so
     // the per-ticker tile % agrees with the price; currency is pinned USD
     // (the allow-list is USD-settling). Falls back to the Yahoo lastPrice
     // when T212 has no live quote for the ticker.
-    const px = prices && prices[t];
+    const px = T212_LIVE_PRICE_TICKERS.has(t) ? (prices && prices[t]) : null;
     if (typeof px === 'number' && px > 0) {
       merged.lastPrice = px;
       merged.currency = 'USD';
