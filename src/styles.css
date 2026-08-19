@@ -1085,8 +1085,8 @@ body {
 .lot-grid { display: flex; flex-direction: column; gap: 8px; }
 .lot-grid-head, .lot-grid-row {
   display: grid;
-  /* date · buy/sell · shares · price · remove */
-  grid-template-columns: 150px 52px 1fr 1fr 28px;
+  /* buy/sell · date · shares · price · remove */
+  grid-template-columns: 52px 150px 1fr 1fr 28px;
   gap: 10px;
   align-items: center;
 }
