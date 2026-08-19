@@ -8,9 +8,17 @@
 import { reportServerError } from "../_shared/ops.ts";
 import { isUsTradingDay } from "../_shared/us_market_calendar.ts";
 
-const CORS = {
+// `x-app-token` is advertised here BEFORE anything requires it, on
+// purpose. A custom request header makes the call non-simple, so the
+// browser preflights, and a preflight that doesn't list the header
+// blocks the request outright — the function never sees it. Any client
+// that starts sending the token therefore needs this deployed FIRST,
+// including a Cloudflare preview build, which always talks to the
+// production functions. Accepting a header nobody requires yet costs
+// nothing; rejecting one costs a release.
+export const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-app-token",
 };
 
 // Auto-injected by the Supabase runtime — used only by the

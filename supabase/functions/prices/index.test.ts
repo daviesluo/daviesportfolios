@@ -272,3 +272,15 @@ Deno.test("raceCnSources: both sources null → null (caller falls through to da
     assertEquals(await raceCnSources(gz.promise, ls.promise, 10), null);
   } finally { gz.cancel(); ls.cancel(); }
 });
+
+// A client that sends the app token must survive the CORS preflight.
+// A custom header makes the request non-simple, so the browser asks
+// first, and a preflight response that doesn't list the header blocks
+// the call before this function ever runs — which is how a Cloudflare
+// preview build (always pointed at the PRODUCTION functions) lost live
+// prices, the market-conditions panel and every historical series at
+// once. Advertising the header has to ship before anything sends it.
+import { CORS as CORS_PREFLIGHT } from "./index.ts";
+Deno.test("CORS preflight advertises x-app-token", () => {
+  assert(CORS_PREFLIGHT["Access-Control-Allow-Headers"].includes("x-app-token"));
+});
