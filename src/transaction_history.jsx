@@ -33,28 +33,37 @@ export function transactionRowsToMatrix(rows) {
       fmtShFor(r.shares, r.ticker),
       `${sym}${amt2(r.price)}`,
       `${sym}${amt2(r.shares * r.price)}`,
-      outcomeText(r, sym),
+      avgCostText(r, sym),
+      realizedText(r, sym),
     ];
   });
-  return [['Type', 'Date', 'Symbol', 'Shares', 'Price', 'Amount', 'G/L · AC'], ...body];
+  return [['Type', 'Date', 'Symbol', 'Shares', 'Price', 'Amount', 'Avg Cost', 'Realised G/L'], ...body];
 }
 
 /**
- * What the row did to the position, as one string: a sale's banked gain
- * with the percentage it made, or a purchase's resulting average cost.
- * The same question from two sides, so they share a column.
+ * What the position cost per share once this row had happened. A sale
+ * changes it too — the cash it returns comes off the basis of what's
+ * left — so the column reads for both kinds, which is the point of it.
+ * Blank once a position is fully closed: nothing left to have a cost.
  * @param {import('./transactions.js').TxnRow} r
  * @param {string} sym
  */
-function outcomeText(r, sym) {
-  if (r.kind === 'sell') {
-    if (typeof r.gain !== 'number') return '';
-    const g = `${r.gain >= 0 ? '+' : '-'}${sym}${amt2(Math.abs(r.gain))}`;
-    return typeof r.gainPct === 'number'
-      ? `${g} (${r.gainPct >= 0 ? '+' : ''}${r.gainPct.toFixed(2)}%)`
-      : g;
-  }
-  return typeof r.acAfter === 'number' ? `${sym}${amt2(r.acAfter)}` : '';
+export function avgCostText(r, sym) {
+  return typeof r.acAfter === 'number' && r.acAfter > 0 ? `${sym}${amt2(r.acAfter)}` : '';
+}
+
+/**
+ * What a sale banked, and the percent it made on what those shares cost.
+ * Empty on a purchase — a buy realizes nothing.
+ * @param {import('./transactions.js').TxnRow} r
+ * @param {string} sym
+ */
+export function realizedText(r, sym) {
+  if (r.kind !== 'sell' || typeof r.gain !== 'number') return '';
+  const g = `${r.gain >= 0 ? '+' : '-'}${sym}${amt2(Math.abs(r.gain))}`;
+  return typeof r.gainPct === 'number'
+    ? `${g} (${r.gainPct >= 0 ? '+' : ''}${r.gainPct.toFixed(2)}%)`
+    : g;
 }
 
 // Column order and how each one sorts. `key` reads the value to compare;
@@ -66,10 +75,11 @@ const COLUMNS = [
   { id: 'shares',  label: 'Shares',   align: 'hl-right', key: (/** @type {any} */ r) => r.shares },
   { id: 'price',   label: 'Price',    align: 'hl-right', key: (/** @type {any} */ r) => r.price },
   { id: 'amount',  label: 'Amount',   align: 'hl-right', key: (/** @type {any} */ r) => r.shares * r.price },
-  // A buy has no gain and a sell has no AC, so one comparable per row:
-  // whichever the row actually carries. Sorting this column groups the
-  // sales by how they did without stranding the purchases.
-  { id: 'outcome', label: 'G/L · AC', align: 'hl-right', key: (/** @type {any} */ r) => (r.kind === 'sell' ? (r.gain ?? 0) : (r.acAfter ?? 0)) },
+  { id: 'avgcost', label: 'Avg Cost',     align: 'hl-right', key: (/** @type {any} */ r) => r.acAfter ?? 0 },
+  // Purchases realize nothing, so they sort as zero and settle between
+  // the profitable sales and the losing ones — which is where a row that
+  // banked nothing belongs.
+  { id: 'gain',    label: 'Realised G/L', align: 'hl-right', key: (/** @type {any} */ r) => (r.kind === 'sell' ? (r.gain ?? 0) : 0) },
 ];
 
 /**
@@ -170,10 +180,11 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, onClose }) 
                     <td className="hl-right">{fmtShFor(r.shares, r.ticker)}</td>
                     <td className="hl-right">{m(`${sym}${amt2(r.price)}`)}</td>
                     <td className="hl-right hl-strong">{m(`${sym}${amt2(r.shares * r.price)}`)}</td>
+                    <td className="hl-right">{m(avgCostText(r, sym))}</td>
                     <td
                       className="hl-right"
                       style={r.kind === 'sell' ? { color: pctClr(r.gain ?? 0) } : undefined}
-                    >{m(outcomeText(r, sym))}</td>
+                    >{m(realizedText(r, sym))}</td>
                   </tr>
                 );
               })}
