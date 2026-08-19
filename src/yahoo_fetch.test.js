@@ -366,3 +366,64 @@ describe('refreshPrices — a tick covering almost nothing is an outage, not LIV
     expect(out.source).toBe('live');
   });
 });
+
+// The anon JWT ships inside the public bundle, so it gated nothing —
+// anyone could read it out and run prices / chart / fundamentals as a
+// free market-data proxy on this project's quota. Those endpoints now
+// require the same per-user X-App-Token the `data` function does, so
+// every client call has to carry it or the whole live-data path 401s.
+describe('Edge calls carry the app token', () => {
+  const origFetch = globalThis.fetch;
+  afterEach(async () => {
+    globalThis.fetch = origFetch;
+    sessionStorage.clear();
+    const { clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+  });
+
+  const headersOf = (call) => call?.[1]?.headers ?? {};
+
+  it('sends X-App-Token on the prices call', async () => {
+    sessionStorage.setItem('dp.token', 'tok.sig');
+    const calls = [];
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url, opts) => {
+      calls.push([String(url), opts]);
+      if (String(url).includes('supabase.co')) {
+        return { ok: true, json: async () => ({ NVDA: { lastPrice: 1, extPrice: null, prevClose: 1, currency: 'USD', dayPct: 0, extDayPct: null } }) };
+      }
+      return { ok: false, status: 503, json: async () => ({}), text: async () => '' };
+    }));
+    await fetchTickers(['NVDA']);
+    const edge = calls.find(c => c[0].includes('/functions/v1/prices'));
+    expect(edge).toBeTruthy();
+    expect(headersOf(edge)['X-App-Token']).toBe('tok.sig');
+    // The anon key still rides along — Supabase's gateway needs it.
+    expect(headersOf(edge).apikey).toBeTruthy();
+  });
+
+  it('sends X-App-Token on the fundamentals call', async () => {
+    sessionStorage.setItem('dp.token', 'tok.sig');
+    const calls = [];
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url, opts) => {
+      calls.push([String(url), opts]);
+      return { ok: true, json: async () => ({}) };
+    }));
+    const { fetchFundamentals } = await import('./yahoo_fetch.js');
+    await fetchFundamentals(['NVDA']);
+    const edge = calls.find(c => c[0].includes('/functions/v1/fundamentals'));
+    expect(headersOf(edge)['X-App-Token']).toBe('tok.sig');
+  });
+
+  it('sends X-App-Token on the chart (historical batch) call', async () => {
+    sessionStorage.setItem('dp.token', 'tok.sig');
+    const calls = [];
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url, opts) => {
+      calls.push([String(url), opts]);
+      return { ok: true, json: async () => ({ NVDA: [{ date: '2026-08-06', close: 1 }] }) };
+    }));
+    const { fetchHistoricalBatch } = await import('./historical.js');
+    await fetchHistoricalBatch(['NVDA'], 'ytd', '1d', false);
+    const edge = calls.find(c => c[0].includes('/functions/v1/chart'));
+    expect(headersOf(edge)['X-App-Token']).toBe('tok.sig');
+  });
+});
