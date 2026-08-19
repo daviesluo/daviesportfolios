@@ -138,8 +138,16 @@ export const computeMetrics = (portfolio, opts = {}) => {
       const cnSuppress = ext && !isCash && isCnFund(t);
       const sessionSuppress = foreignSuppress || cnSuppress;
       let pct;
+      // `pctUnknown` separates "hasn't moved" from "nobody knows yet".
+      // Both used to render as a flat 0.00%, which reads as a fact and
+      // isn't one: a US name in the overnight window with no broker
+      // quote yet has NO extended-hours figure, and painting it 0.00%
+      // says it's unchanged. Surfaces on the heatmap as an em dash.
+      let pctUnknown = false;
       if (extActive) {
-        pct = (trustExt && h.extDayPct != null ? h.extDayPct : 0);
+        const known = trustExt && h.extDayPct != null;
+        pct = known ? h.extDayPct : 0;
+        pctUnknown = !known;
       } else if (sessionSuppress) {
         pct = 0;
       } else {
@@ -192,6 +200,7 @@ export const computeMetrics = (portfolio, opts = {}) => {
         fx,
         fxMissing,
         dayPct: pct,
+        dayPctUnknown: pctUnknown,
       });
     }
     marketValue += posMV; totalCost += posCost;

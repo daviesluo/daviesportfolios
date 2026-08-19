@@ -120,7 +120,10 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
       // Reading raw `p.extDayPct` bypassed that gate and was the
       // reason the heatmap kept reporting the bogus number after
       // PR #81 fixed the cards.
-      const pct = p.dayPct ?? 0;
+      // `dayPctUnknown` means the extended-hours figure doesn't exist
+      // for this row yet, not that it's flat. Carried through as a null
+      // pct so the tile can say so instead of claiming 0.00%.
+      const pct = p.dayPctUnknown ? null : (p.dayPct ?? 0);
       items.push({ ticker: p.ticker, value, pct });
     }
   }
@@ -145,9 +148,11 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
             // to the ticker — "+15.26%" needs ~30px at 7px mono, but
             // "+15%" fits in ~22px. Without this, BMNR/NET-sized tiles
             // showed the ticker and silently swallowed the day move.
-            const pctStr = tw < 36
-              ? (tile.pct >= 0 ? '+' : '') + Math.round(tile.pct) + '%'
-              : (tile.pct >= 0 ? '+' : '') + tile.pct.toFixed(2) + '%';
+            const pctStr = tile.pct == null
+              ? '—'
+              : tw < 36
+                ? (tile.pct >= 0 ? '+' : '') + Math.round(tile.pct) + '%'
+                : (tile.pct >= 0 ? '+' : '') + tile.pct.toFixed(2) + '%';
 
             const showTicker = tw >= 22 && th >= 16;
             // Drop the pct threshold so medium-small tiles (BMNR / NET
