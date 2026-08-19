@@ -226,3 +226,40 @@ describe('applyFillLedgers — cost follows the trades', () => {
     expect(holdings.SPCX.cost).toBeCloseTo(127.8427, 4);
   });
 });
+
+describe('rebuildLedgerFromFills — sold-out holdings', () => {
+  // Trading 212 stops reporting a position once it's closed, so a
+  // sold-out holding has no `t212Shares` tag. Those were exactly the
+  // ones the history was missing most: NET showed eight purchases and
+  // not one sale, against a board reading zero shares.
+  const NET_FILLS = [
+    fill('NET', '2025-11-18', 'buy', 2, 300),
+    fill('NET', '2025-11-21', 'buy', 1.5, 310),
+    fill('NET', '2025-12-02', 'sell', 3.5, 340),
+  ];
+
+  it('rebuilds a closed position from its fills even with no tag', () => {
+    const holding = {
+      shares: 0, cost: 0, closed: true,
+      lots: [{ date: '2025-11-18', shares: 3.5, cost: 305 }],
+      sells: [],
+    };
+    const out = /** @type {NonNullable<ReturnType<typeof rebuildLedgerFromFills>>} */ (
+      rebuildLedgerFromFills(holding, NET_FILLS, 'NET'));
+    expect(out).not.toBeNull();
+    expect(out.lots).toHaveLength(2);
+    expect(out.sells).toHaveLength(1);
+    expect(netPosition(out.lots, out.sells).shares).toBe(0);
+  });
+
+  it('still refuses when the fills do not net to the closed position', () => {
+    const holding = { shares: 0, cost: 0, lots: [], sells: [] };
+    expect(rebuildLedgerFromFills(holding, [fill('NET', '2025-11-18', 'buy', 2, 300)], 'NET'))
+      .toBeNull();
+  });
+
+  it('leaves an untagged OPEN holding alone — the wallet stays the owner\'s', () => {
+    const wallet = { shares: 0.075, cost: 65495, lots: [{ date: '2026-02-11', shares: 0.075, cost: 65495 }] };
+    expect(rebuildLedgerFromFills(wallet, NET_FILLS, 'BTC-USD')).toBeNull();
+  });
+});

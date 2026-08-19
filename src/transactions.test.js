@@ -182,13 +182,16 @@ describe('buildTransactionLog', () => {
     expect(sell).toMatchObject({ shares: 4, price: 130, currency: 'USD' });
   });
 
-  it('hides the auto-DCA tickers (VUAA.L / SAEM.L) — machine-written lots', () => {
+  it('includes the auto-invested ETFs — their lots are real fills now', () => {
+    // These two were hidden while their lots were a synthetic stand-in
+    // the sync rewrote daily. The ledger is rebuilt from executed fills,
+    // so hiding them would hide purchases that actually happened.
     const log = buildTransactionLog({
       NVDA: { currency: 'USD', lots: [{ date: '2026-01-10', shares: 10, cost: 100 }] },
       'VUAA.L': { currency: 'USD', lots: [{ date: '2026-01-11', shares: 2, cost: 90 }] },
       'SAEM.L': { currency: 'USD', lots: [{ date: '2026-01-12', shares: 1, cost: 50 }] },
     });
-    expect(log.map((r) => r.ticker)).toEqual(['NVDA']);
+    expect(log.map((r) => r.ticker)).toEqual(['SAEM.L', 'VUAA.L', 'NVDA']);
   });
 
   it('guards empty / null', () => {
@@ -250,12 +253,12 @@ describe('totalRealizedUsd', () => {
     expect(totalRealizedUsd(holdings, fxRate)).toBe(-200);
   });
 
-  it('excludes auto-DCA tickers from the realized total', () => {
+  it('counts a sale of an auto-invested ETF like any other', () => {
     const holdings = {
       NVDA: { currency: 'USD', lots: [{ date: '2026-01-01', shares: 10, cost: 100 }], sells: [{ date: '2026-02-01', shares: 10, price: 120 }] }, // +200
-      'VUAA.L': { currency: 'USD', lots: [{ date: '2026-01-01', shares: 10, cost: 50 }], sells: [{ date: '2026-02-01', shares: 10, price: 80 }] }, // +300, hidden
+      'VUAA.L': { currency: 'USD', lots: [{ date: '2026-01-01', shares: 10, cost: 50 }], sells: [{ date: '2026-02-01', shares: 10, price: 80 }] }, // +300
     };
-    expect(totalRealizedUsd(holdings, fxRate)).toBe(200);
+    expect(totalRealizedUsd(holdings, fxRate)).toBe(500);
   });
 
   it('guards empty / null', () => {

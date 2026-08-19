@@ -76,9 +76,19 @@ const byDate = (rows) =>
  */
 export function rebuildLedgerFromFills(holding, orders, ticker) {
   if (!holding || !ticker) return null;
+  const boardShares = Number(holding.shares);
   // Rule 1: only a tagged T212 position, and only once fills exist.
+  //
+  // A SOLD-OUT holding has no tag — Trading 212 stops reporting a
+  // position once it's closed, so `t212Shares` was never written or has
+  // gone stale — and those are exactly the ones the history modal was
+  // missing most: NET showed eight purchases and not one sale against a
+  // board reading zero shares. A closed holding earns the rebuild on the
+  // strength of its fills alone; rule 2 still has to agree, and for a
+  // closed position that means the fills must net to zero.
   const t212Shares = Number(holding.t212Shares);
-  if (!Number.isFinite(t212Shares)) return null;
+  const isClosed = Number.isFinite(boardShares) && Math.abs(boardShares) <= SHARE_EPS;
+  if (!Number.isFinite(t212Shares) && !isClosed) return null;
   const broker = brokerLedgerFor(orders, ticker);
   if (broker.lots.length === 0 && broker.sells.length === 0) return null;
 
@@ -89,7 +99,6 @@ export function rebuildLedgerFromFills(holding, orders, ticker) {
 
   // Rule 2: the board decides the quantity. A ledger that disagrees with
   // it is a ledger built from an incomplete backfill, not a correction.
-  const boardShares = Number(holding.shares);
   if (!Number.isFinite(boardShares)) return null;
   if (Math.abs(netPosition(lots, sells).shares - boardShares) > SHARE_EPS) return null;
 
