@@ -517,3 +517,42 @@ describe('applyTrading212 — orders never replace the board ledger', () => {
     expect(holdings.NVDA).toEqual(before);
   });
 });
+
+describe('applyTrading212 — whose price is lastPrice', () => {
+  // The broker's quote replaces Yahoo's ONLY for the two LSE ETFs, where
+  // the free feed runs ~15-20 minutes behind. It used to run on whatever
+  // the sync covered, which was those two — then the sync widened to
+  // every reported position and took this with it.
+  //
+  // The damage showed up one layer down: applyTrading212NightPrice
+  // measures the overnight move against `lastPrice` as today's regular
+  // close, so once the broker's quote WAS the lastPrice it compared that
+  // quote against itself and every US holding read exactly 0.00 %.
+  it("leaves a US equity's Yahoo price alone", () => {
+    const out = applyTrading212(
+      { NVDA: { shares: 60, cost: 136, lastPrice: 219.74, prevClose: 225.01, currency: 'USD' } },
+      { NVDA: { shares: 60, cost: 136 } },
+      { NVDA: 219.05 },
+      '2026-08-18',
+    );
+    expect(out.NVDA.lastPrice).toBe(219.74);
+  });
+
+  it('still takes the broker quote for the delayed LSE ETFs', () => {
+    const out = applyTrading212(
+      { 'VUAA.L': { shares: 2, cost: 144, lastPrice: 147.1, prevClose: 150.2, currency: 'USD' } },
+      { 'VUAA.L': { shares: 2, cost: 144 } },
+      { 'VUAA.L': 148.78 },
+      '2026-08-18',
+    );
+    expect(out['VUAA.L'].lastPrice).toBe(148.78);
+  });
+
+  it('so the overnight overlay has a real close to measure against', () => {
+    const holdings = { NVDA: { shares: 60, cost: 136, lastPrice: 219.74, prevClose: 225.01, currency: 'USD' } };
+    applyTrading212(holdings, { NVDA: { shares: 60, cost: 136 } }, { NVDA: 219.05 }, '2026-08-18');
+    applyTrading212NightPrice(holdings, { NVDA: 219.05 }, true);
+    expect(holdings.NVDA.extDayPct).toBeCloseTo(-0.31401, 4);   // (219.05 - 219.74) / 219.74
+    expect(holdings.NVDA.extDayPct).not.toBe(0);
+  });
+});
