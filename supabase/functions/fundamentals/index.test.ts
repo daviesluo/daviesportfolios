@@ -389,3 +389,15 @@ Deno.test("fiscalQuarterLabel: null on missing / unparseable inputs", () => {
   assertEquals(fiscalQuarterLabel("2026-06-30", 0), null);
   assertEquals(fiscalQuarterLabel("2026-06-30", null), null);
 });
+
+// A client that sends the app token must survive the CORS preflight.
+// A custom header makes the request non-simple, so the browser asks
+// first, and a preflight response that doesn't list the header blocks
+// the call before this function ever runs — which is how a Cloudflare
+// preview build (always pointed at the PRODUCTION functions) lost live
+// prices, the market-conditions panel and every historical series at
+// once. Advertising the header has to ship before anything sends it.
+import { CORS as CORS_PREFLIGHT } from "./_shared.ts";
+Deno.test("CORS preflight advertises x-app-token", () => {
+  assert(CORS_PREFLIGHT["Access-Control-Allow-Headers"].includes("x-app-token"));
+});
