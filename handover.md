@@ -24,15 +24,15 @@ anything public. The repo is private; this file quotes real positions.
 
 # Part 1 — Current state
 
-_Last updated: 2026-08-18, by the session repairing the share-count
-overwrite and the stale per-stock transaction histories._
+_Last updated: 2026-08-19, by the session that rebuilt PR #209 on top
+of `main` and made the PR description a maintained document._
 
 ## Where the code is
 
 | | |
 |---|---|
 | `main` | Carries the rollback to `8d869fe` plus four data-loss repairs pushed straight to it (see below). All gates green. |
-| Working branch | `claude/repo-audit-restore-uverhn` → **PR #209**, open, not reviewed by the owner yet. `main` was merged in at `f58b11b` (all checks green there), so it carries the conservative first-sync rule and the backfill fix. It has NOT been merged again since the ledger rebuild landed on `main` — do that before touching it. |
+| Working branch | `claude/repo-audit-restore-uverhn` → **PR #209**, open, not reviewed by the owner yet. Rebuilt on 2026-08-19 as **four commits directly on `main`** — the two merge commits are gone, so the PR's commit list no longer carries `main`'s own history. The tree is unchanged by that rebuild. Preview: `https://claude-repo-audit-restore-uv.daviesportfolios.pages.dev`. |
 | Supabase | project `flmvxigozjuizpckllvk`, ACTIVE_HEALTHY. Migrations through `0031`. `trading212` Edge Function deployed and byte-identical to the repo as of this session. |
 
 ## Repairs that went straight to `main` (2026-08-18)
@@ -297,9 +297,23 @@ numbers it produced independently confirm the diagnosis.
       share count.
 - [x] **Merge `main` into `claude/repo-audit-restore-uverhn`** — done in
       `f58b11b`. See the note under Open items below.
-- [ ] `XFABp_EQ` — 8 fills, net 0 — is still unmapped. No board row
-      corresponds to it and guessing its exchange suffix would be
-      inventing a mapping rather than correcting one.
+- [x] Every T212 code now maps. `XFABp_EQ` → `XFAB.PA`, `CSPX_EQ` →
+      `CSPX.L`, `QQQ3l_EQ` → `QQQ3.L` (migration `0034`). The transaction
+      history lists closed positions now, so an unmapped round trip is a
+      stretch of history that isn't there — which is what forced the
+      call. All three net to zero, so no holding is affected.
+- [x] **Browser matrix re-run at 60 cases**, both books × 3 snapshot
+      modes × 2 views × 5 ranges, against the production bundle. The
+      second book is the same position sold down, which is the half of
+      `computeAt` the original fixture never reached: 6 shares × 240 +
+      500 cash against 6 × 200 + 500 = **+14.12%**, worked out on paper
+      before the run and read back out of the DOM.
+- [x] **PR #209 rebuilt on `main`** as four commits (token gate / board
+      self-consistency / Investment Performance / docs). Nothing already
+      on `main` is left in the diff or the commit list, and the summary
+      was rewritten to match. Verified the tree came out byte-identical
+      to the old tip before force-pushing, so the bundle and the preview
+      deployment are unchanged.
 - [ ] After a day of recording, check that the `RECORDED` rule has
       walked left across the 24H window (PR #209 work).
 - [ ] Codex reported "usage limits reached" on PR #209, so there is no
@@ -455,6 +469,50 @@ by $28.68/share. Put to the owner with the numbers; he chose the trades.
 
 Cost: a holding the backfill hasn't reached keeps a ledger that looks
 stale, and says so, until the walk gets there.
+
+
+### 2026-08-19 — a PR branch is rebuilt on `main`, not merged with it
+
+Merging `main` into PR #209 twice (`f58b11b`, `9db7e1d`) kept the diff
+honest — a three-dot diff can't show anything already on `main` — but it
+put `main`'s own commits into the PR's commit list, where they read as
+nineteen commits of unreviewed work the PR was proposing. The owner read
+it that way and asked for the landed content to be deleted.
+
+Rebuilt as four commits straight on top of `main`, split by concern.
+The tree was checked byte-identical to the old tip before the
+force-push, so the committed bundle, the Cloudflare preview and the CI
+outcome all carry over; only the history changed. The alternative —
+leaving the merges and only rewriting the summary — was rejected
+because the commit list is part of what a reviewer reads, and no wording
+in the description makes nineteen commits look like four.
+
+Cost: the per-commit history from the original build is gone, and the
+four commits are split by file, so an intermediate one is not
+independently green. Acceptable on a branch that merges as a unit; it
+would not be on `main`.
+
+### 2026-08-19 — the PR description is maintained like this file
+
+`handover.md` was already required to be true in real time. The PR
+description was not, and it drifted the moment work started landing on
+`main` separately: by 2026-08-19 most of its length described the T212
+backfill fix, the PLTR restore and migrations `0028`/`0030`–`0032`, all
+of which had shipped. Someone reading it would have thought that work
+was still up for review.
+
+The rule now sits in `CLAUDE.md` and `AGENTS.md` under "Pull requests",
+and in the working-with-davies skill: every push that changes the diff
+rewrites the description in the same step, the description covers only
+what the PR would add to `main` right now, and it carries the
+Cloudflare preview link so the branch can be checked on a real machine.
+
+The preview alias is derivable — branch name lowercased,
+non-alphanumeric runs collapsed to `-`, truncated to 28 characters —
+but it is derived and then **verified**, by fetching it and checking the
+`assets/app-<hash>.js` it serves is the branch's committed bundle and
+not `main`'s. Guessing the URL and quoting it unverified is the failure
+mode this replaces.
 
 ---
 
