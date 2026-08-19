@@ -7,6 +7,7 @@ import {
   pctColor as pctClr,
   maskDigits,
   displayTicker,
+  pctIsFlat,
 } from './formatters.js';
 import { POSITION_COORDS } from './positions.js';
 
@@ -180,7 +181,9 @@ function PitchLines() {
 
 function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, dragEnabled, onDragStart, clickGuardRef, onOpen, onAdd, onUpdatePosition, hideValues }) {
   const hasPlayers = position.players.length > 0;
-  const pctClass = position.dayPct > 0 ? "gain" : position.dayPct < 0 ? "loss" : "flat";
+  // Same flat threshold as the heatmap tile and Top Movers, so a
+  // sub-0.005 % move reads as "flat" on every surface at once.
+  const pctClass = pctIsFlat(position.dayPct) ? "flat" : position.dayPct > 0 ? "gain" : "loss";
 
   const hasCaptain = captainTicker && position.tickers.includes(captainTicker);
   const hasHot = posKey === hotMoverPosKey;

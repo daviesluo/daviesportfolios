@@ -111,7 +111,26 @@ export function createPortfolioEditHandlers({ setPortfolio, isReadOnly }) {
     });
   });
 
-  const addHolding = guard((posKey, ticker, shares, cost, lastPrice, buyDate) => {
+  /**
+   * Add a ticker to a slot, or restate/extend one already held.
+   *
+   * `mode` decides what happens to an EXISTING holding's ledger:
+   *   - 'append'  — record this as an ADDITIONAL buy: the new lot is
+   *                 appended and shares/cost are recomputed from the
+   *                 full lot+sell ledger (weighted average).
+   *   - 'replace' — restate the BUY side: lots become just this entry,
+   *                 earlier sells stay on the ledger and still net
+   *                 against it. The `.PVT` revalue flow relies on this
+   *                 (those holdings are never price-refreshed, so
+   *                 re-adding is the only way to update their price);
+   *                 having no sells, they net to the typed values.
+   * Either way `sells` and `closed` are CARRIED OVER. The previous
+   * implementation rebuilt the holding from scratch, so re-adding a
+   * ticker silently destroyed its entire transaction history — sells,
+   * closed flag and every prior lot — and Transaction History / YTD
+   * went with it, with no warning and no undo.
+   */
+  const addHolding = guard((posKey, ticker, shares, cost, lastPrice, buyDate, mode = 'replace') => {
     ticker = ticker.toUpperCase().trim();
     if (!ticker) return;
     const currency = detectCurrency(ticker);
@@ -133,18 +152,40 @@ export function createPortfolioEditHandlers({ setPortfolio, isReadOnly }) {
           && existing.lastPrice > 0 && existing.lastPrice !== newLast)
         ? existing.lastPrice
         : newLast;
+      const newLot = { date: lotDate, shares: Number(shares) || 0, cost: Number(cost) || 0 };
+      const priorLots = Array.isArray(existing?.lots) ? existing.lots : [];
+      const appending = mode === 'append' && priorLots.length > 0;
+      const lots = appending ? [...priorLots, newLot] : [newLot];
+      // BOTH modes derive the totals from the ledger, exactly like
+      // updateHolding does — the typed shares/cost describe the LOT, and
+      // the holding's shares are always lots minus sells. Taking the
+      // typed number verbatim let the board disagree with the ledger:
+      // sell 2 of 10, then replace with 8, and the tile said 8 while the
+      // history said 8 − 2 = 6; the next Save from the edit modal would
+      // then "correct" it and could close the position outright.
+      // A holding with no sells (every `.PVT`, every first buy) nets to
+      // exactly the typed values, so the revalue flow is unchanged.
+      const np = netPosition(lots, existing?.sells);
       const holdings = {
         ...p.holdings,
         [ticker]: {
-          shares: Number(shares) || 0,
-          cost: Number(cost) || 0,
+          // Spread first so ledger fields we don't manage here
+          // (`sells`, `closed`, and anything added later) survive.
+          ...(existing || {}),
+          shares: np.shares,
+          cost: np.avgCost,
           lastPrice: newLast,
           prevClose,
           dayPct: prevClose > 0 ? ((newLast - prevClose) / prevClose) * 100 : 0,
           currency,
-          lots: [{ date: lotDate, shares: Number(shares) || 0, cost: Number(cost) || 0 }],
+          lots,
         },
       };
+      // Buying back into a sold-out name re-opens it. Without this the
+      // holding kept `closed: true` while sitting on the board — the
+      // exact state migrate()'s heal exists to clean up.
+      if (np.shares > 0) delete holdings[ticker].closed;
+      else holdings[ticker].closed = true;
       const positions = {};
       for (const [k, pos] of Object.entries(p.positions)) {
         const tickers = pos.tickers.filter(t => t !== ticker);
