@@ -18,6 +18,40 @@ raw session is `handover.md`.
   there. The README is the source-of-truth map of the system; a change
   that lands without its README update is incomplete.
 
+## The handover document
+
+`handover.md` is the running record of work on this repo, and it is
+**maintained in real time** — not written up at the end. A session that
+dies mid-task (context exhausted, container reclaimed, tab closed) has
+to leave the next one, human or model, able to pick up from that file
+alone.
+
+Update it as you go, at these moments:
+
+- **Before starting** substantive work — write the plan into Part 1's
+  open items, so an interrupted session leaves an intention behind, not
+  a mystery.
+- **When state changes** — a branch moved, a PR opened, a migration
+  applied, a gate went red. Rewrite Part 1 to be true right now.
+- **When a decision is made** — append to Part 2 with the reason and the
+  cost, and name the alternative you rejected. Never rewrite a past
+  entry; add one that supersedes it and say which.
+- **When a review comes back** — Codex, another AI, or the owner saying
+  a number is wrong. Record what was claimed, what you accepted, what
+  you rejected, and why.
+- **Before you finish** — reconcile Part 1 against what actually
+  happened, and leave the open items honest. "I didn't get to X" is
+  worth more than silence.
+
+Keep `.claude/skills/working-with-davies/SKILL.md` (and its two Cursor
+copies) in step whenever a session learns something durable about how
+the owner works, or pays for a mistake worth not repeating. The skill is
+the distilled agreement; `handover.md` is the evidence behind it.
+
+Do not copy live balances out of `handover.md` into new files, issues,
+or anything public. The repo is private; that file quotes real
+positions.
+
 ## Git workflow
 
 - **Push `main` directly.** No feature branch, no PR, unless he
@@ -112,7 +146,7 @@ version (`Storage.migrate()` in `src/storage.js`). When the data shape
 changes, bump `CURRENT_SCHEMA_VERSION` in `src/storage.js` and add a
 migration step instead of inventing a new key.
 
-## Codex / PR review
+## Pull requests
 
 Codex's `@codex` bot reviews PRs only, not direct commits to `main`.
 Default is direct push; the owner catches issues via Cloudflare
@@ -121,3 +155,35 @@ for Codex — then wait for the review and respond to
 `get_review_comments` before merging. The T212 rollout (PR #129)
 caught both the per-share-vs-total cost bug and the boundary-race
 concern this way.
+
+**While a PR is open its description is part of the branch, and it is
+maintained the way `handover.md` is — in real time.** Every push that
+changes the diff rewrites the description in the same step, before the
+turn ends. Never leave it describing the previous push: it is read as
+the current state of the branch, so a stale one actively misinforms.
+
+Each rewrite has to leave these true:
+
+- **It describes only what the PR would add to `main` right now.** Work
+  that lands on `main` separately stops being this PR's work — take it
+  out of the summary, and out of the branch. **Rebase onto `main`;
+  don't merge `main` in.** A merge drags `main`'s own commits into the
+  PR's commit list, where they read as unreviewed work the PR is
+  proposing.
+- The commit table matches the commits. Rewrite it whenever the history
+  is rewritten.
+- The test plan names what was actually run against the tree being
+  pushed — the gates, the browser verification, the counterfactuals.
+- Risks say what merging does to production: a migration
+  `migrations.yml` will apply, an Edge Function that redeploys, a
+  behaviour change that touches live data.
+- **The Cloudflare Pages preview link is in it**, near the top, so the
+  branch can be checked on a real machine before it merges.
+
+Cloudflare Pages aliases every branch to
+`https://<slug>.daviesportfolios.pages.dev`, where `<slug>` is the
+branch name lowercased with every non-alphanumeric run collapsed to `-`
+and truncated to 28 characters — `claude/repo-audit-restore-uverhn`
+becomes `claude-repo-audit-restore-uv`. Verify it before quoting it:
+fetch the URL and check the `assets/app-<hash>.js` it references is the
+one committed on the branch, not the one on `main`.
