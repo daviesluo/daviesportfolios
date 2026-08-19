@@ -130,7 +130,7 @@ export function totalRealizedUsd(holdings, fxRate) {
   if (!holdings || typeof holdings !== 'object') return 0;
   let usd = 0;
   for (const [ticker, h] of Object.entries(holdings)) {
-    if (!h || h.isCash || ticker === 'CASH') continue;
+    if (!h || h.isCash || ticker === 'CASH' || AUTO_DCA_TICKERS.has(ticker)) continue;
     const r = realizedGain(h.lots, h.sells);
     if (!r) continue;
     const rate = fxRate(h.currency || 'USD');
@@ -158,7 +158,7 @@ export function buildTransactionLog(holdings) {
   /** @type {TxnRow[]} */
   const rows = [];
   for (const [ticker, h] of Object.entries(holdings)) {
-    if (!h || h.isCash || ticker === 'CASH') continue;
+    if (!h || h.isCash || ticker === 'CASH' || AUTO_DCA_TICKERS.has(ticker)) continue;
     const currency = h.currency || 'USD';
     for (const l of cleanLots(h.lots)) {
       rows.push({ ticker, kind: 'buy', date: l.date, shares: l.shares, price: l.cost, currency, ts: l.ts });
