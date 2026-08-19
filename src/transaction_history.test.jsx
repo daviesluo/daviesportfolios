@@ -174,3 +174,34 @@ describe('sortTransactionRows / nextSortState', () => {
     expect(nextSortState(b, 'price')).toEqual({ col: 'price', dir: 'desc' });
   });
 });
+
+describe('layout', () => {
+  // The table shares the Holding list's `.hl-*` scaffolding but not its
+  // proportions: that one is a row per holding, this one is every trade
+  // ever made. The defaults wrapped `2026-07-22` onto two lines, which
+  // doubled every row and turned eighteen rows into eight on screen, and
+  // ran 760px wide on a 356px phone.
+  beforeEach(() => cleanup());
+
+  it('marks each cell with its column so the phone can lay them out', () => {
+    render(<TransactionHistoryModal holdings={HOLDINGS} marketData={MARKET} hideValues={false} onClose={vi.fn()} />);
+    const first = document.querySelector('.txn-table tbody tr');
+    expect([...(first?.children || [])].map((c) => c.getAttribute('data-col'))).toEqual(
+      ['type', 'date', 'symbol', 'shares', 'price', 'amount', 'avgcost', 'gain'],
+    );
+  });
+
+  it('tags the row with its direction, for the colour rail', () => {
+    render(<TransactionHistoryModal holdings={HOLDINGS} marketData={MARKET} hideValues={false} onClose={vi.fn()} />);
+    const rows = [...document.querySelectorAll('.txn-table tbody tr')];
+    expect(rows.every((r) => r.className.includes('txn-row-buy') || r.className.includes('txn-row-sell'))).toBe(true);
+  });
+
+  it('offers the same sort cycle as chips, for the card layout', () => {
+    // Card mode has no header row to click; CSS shows exactly one of
+    // the two, so both have to exist in the markup.
+    render(<TransactionHistoryModal holdings={HOLDINGS} marketData={MARKET} hideValues={false} onClose={vi.fn()} />);
+    const chips = [...document.querySelectorAll('.txn-sort-chip')].map((c) => c.textContent);
+    expect(chips).toEqual(['Type', 'Date', 'Symbol', 'Shares', 'Price', 'Amount', 'Avg Cost', 'Realised G/L']);
+  });
+});

@@ -148,8 +148,22 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, onClose }) 
           </span>
         </div>
 
+        {/* Card mode has no header row, so the same desc → asc → default
+            cycle gets a row of chips. CSS shows exactly one of the two. */}
+        <div className="txn-sort-bar">
+          {COLUMNS.map((c) => (
+            <button
+              key={c.id}
+              className={`txn-sort-chip${sort?.col === c.id ? ' is-active' : ''}`}
+              onClick={() => setSort(nextSortState(sort, c.id))}
+            >
+              {c.label}{sort?.col === c.id ? (sort.dir === 'desc' ? ' ▼' : ' ▲') : ''}
+            </button>
+          ))}
+        </div>
+
         <div className="hl-scroll">
-          <table className="hl-table mono">
+          <table className="hl-table txn-table mono">
             <thead>
               <tr>
                 {COLUMNS.map((c) => (
@@ -171,18 +185,19 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, onClose }) 
               {rows.map((r, i) => {
                 const sym = currencySymbol(r.currency);
                 return (
-                  <tr key={i}>
-                    <td className="hl-left">
+                  <tr key={i} className={`txn-row txn-row-${r.kind}`}>
+                    <td className="hl-left" data-col="type">
                       <span className={`txn-badge txn-${r.kind}`}>{r.kind === 'buy' ? 'BUY' : 'SELL'}</span>
                     </td>
-                    <td className="hl-left">{r.date}</td>
-                    <td className="hl-left hl-sym"><span className="hl-ticker mono">{r.ticker}</span></td>
-                    <td className="hl-right">{fmtShFor(r.shares, r.ticker)}</td>
-                    <td className="hl-right">{m(`${sym}${amt2(r.price)}`)}</td>
-                    <td className="hl-right hl-strong">{m(`${sym}${amt2(r.shares * r.price)}`)}</td>
-                    <td className="hl-right">{m(avgCostText(r, sym))}</td>
+                    <td className="hl-left txn-date" data-col="date">{r.date}</td>
+                    <td className="hl-left txn-sym" data-col="symbol">{r.ticker}</td>
+                    <td className="hl-right" data-col="shares">{fmtShFor(r.shares, r.ticker)}</td>
+                    <td className="hl-right" data-col="price">{m(`${sym}${amt2(r.price)}`)}</td>
+                    <td className="hl-right hl-strong" data-col="amount">{m(`${sym}${amt2(r.shares * r.price)}`)}</td>
+                    <td className="hl-right txn-dim" data-col="avgcost">{m(avgCostText(r, sym))}</td>
                     <td
                       className="hl-right"
+                      data-col="gain"
                       style={r.kind === 'sell' ? { color: pctClr(r.gain ?? 0) } : undefined}
                     >{m(realizedText(r, sym))}</td>
                   </tr>
