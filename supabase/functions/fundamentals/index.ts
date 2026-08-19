@@ -66,6 +66,7 @@ import {
   type Fundamentals,
 } from "./_shared.ts";
 import { reportServerError } from "../_shared/ops.ts";
+import { verifyToken } from "../_shared/token.ts";
 import {
   readCachedStockFundamentals,
   writeCachedStockFundamentals,
@@ -166,6 +167,23 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
   try {
     if (req.method === "OPTIONS") {
       return new Response("ok", { headers: CORS });
+    }
+
+    // Gate on the same X-App-Token the `data` function requires.
+    // These endpoints hit paid/rate-limited upstreams (Yahoo, Finnhub,
+    // Alpha Vantage) and the anon JWT that used to be the only
+    // credential ships inside the public JS bundle, so anyone could
+    // read it out and run this as a free market-data proxy on the
+    // project's egress and invocation quota. CORS does NOT prevent
+    // that — it only constrains browsers, not curl — so the token is
+    // the actual control. Checked BEFORE any upstream call so a
+    // rejected request costs nothing.
+    const appToken = req.headers.get("x-app-token") ?? "";
+    if (!(await verifyToken(appToken))) {
+      return new Response(JSON.stringify({ error: "invalid token" }), {
+        status: 401,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
     }
     if (req.method !== "GET") {
       return new Response(JSON.stringify({ error: "method not allowed" }), {

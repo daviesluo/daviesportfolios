@@ -120,9 +120,14 @@ jobs:
               echo "$name Edge Function -> $code"
               [ "$code" = "401" ] || fails="${fails}- $name Edge Function returned $code (expected 401 — no app token sent by design)"$'\n'
             }
-            check_anon        prices           "prices?tickers=AAPL"
-            check_anon        chart            "chart?tickers=AAPL"
-            check_anon        fundamentals     "fundamentals?tickers=AAPL"
+            # prices / chart / fundamentals now require the same
+            # X-App-Token as data: the anon JWT ships in the public
+            # bundle, so on its own it let anyone run them as a free
+            # market-data proxy on this project's quota. A 401 here is
+            # the healthy answer and still proves the isolate booted.
+            check_token_gated prices           "prices?tickers=AAPL"
+            check_token_gated chart            "chart?tickers=AAPL"
+            check_token_gated fundamentals     "fundamentals?tickers=AAPL"
             check_anon        overnight-fetch  "overnight-fetch?tickers=AAPL"
             check_token_gated data             "data?action=load"
             check_token_gated trading212       "trading212"
