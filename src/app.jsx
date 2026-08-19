@@ -34,6 +34,7 @@ import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
 import { isUsEquity } from './ticker_class.js';
 import { fetchTrading212Holdings, fetchTrading212Orders, syncTrading212History, applyTrading212, applyTrading212NightPrice } from './trading212.js';
+import { applyFillLedgers } from './t212_fills.js';
 import { fetchOvernightSeries } from './overnight_intraday.js';
 
 // Catches any render-time crash and shows a readable error instead of a blank page.
@@ -240,6 +241,10 @@ function Board({ isReadOnly }) {
   // lot editor uses them (see EditTickerModal) — they are shown against
   // the hand-kept ledger, never merged into it behind the owner's back.
   const [t212Orders, setT212Orders] = useState(/** @type {any[]} */ ([]));
+  // The backfill's own verdict on whether it has walked the whole
+  // history. A ledger the fills don't cover reads "still downloading"
+  // while this is false and "yours to keep" once it's true.
+  const [t212OrdersComplete, setT212OrdersComplete] = useState(false);
   const [viewingTicker, setViewingTicker] = useState(/** @type {string | null} */ (null));
   const [showHoldingsList, setShowHoldingsList] = useState(false);
   const [showSectorsList, setShowSectorsList] = useState(false);
@@ -624,7 +629,7 @@ function Board({ isReadOnly }) {
     // 5d/5m pull for 15 symbols off every tick.
     const wantTodayCloses = refreshPhase !== "regular"
       && (Date.now() - todayClosesRef.current.ts > 30 * 60 * 1000);
-    const [{ updates, source: src, coverage }, mcResult, todayClosesFresh, extSeries, t212Holdings] = await Promise.all([
+    const [{ updates, source: src, coverage }, mcResult, todayClosesFresh, extSeries, t212Holdings, t212OrderRead] = await Promise.all([
       refreshPrices(portfolio),
       fetchTickers(MC_TICKERS),
       wantTodayCloses ? fetchTodayRegularClose(MC_TICKERS) : Promise.resolve(null),
@@ -640,7 +645,15 @@ function Board({ isReadOnly }) {
       // `holdings` drives the VUAA.L / SAEM.L shares-cost auto-sync,
       // `prices` feeds the overnight US-equity quote overlay below.
       fetchTrading212Holdings(),
+      // The broker's executed fills. Cached client-side for ten minutes
+      // — executed history is immutable — so this costs nothing on the
+      // 30-second tick, and the backfill clears that cache whenever a
+      // page lands.
+      fetchTrading212Orders(),
     ]);
+    const t212OrderRows = Array.isArray(t212OrderRead?.rows) ? t212OrderRead.rows : [];
+    setT212Orders(t212OrderRows);
+    setT212OrdersComplete(t212OrderRead?.complete === true);
     // Refresh the cache when we fetched this tick; otherwise reuse it. Apply
     // whichever map we have so the MC ext-on anchor stays populated even on
     // the throttled ticks.
@@ -721,6 +734,19 @@ function Board({ isReadOnly }) {
       // When the API key isn't set or the upstream errored,
       // t212Holdings is null → both calls no-op.
       applyTrading212(next.holdings, t212Holdings?.holdings, t212Holdings?.prices);
+      // Then give each synced holding the broker's own trade history in
+      // place of whatever stood in for it. The board carried ONE lot of
+      // `59 @ 144.31` for SPCX — T212's average price, not a trade that
+      // ever happened — while twelve real fills ran 165.58 down to
+      // 115.48 over a month. That is what "the history only shows very
+      // old records" was.
+      //
+      // Refuses to touch a holding unless the result nets to the share
+      // count already on the board, so a half-walked backfill leaves the
+      // ledger exactly as it found it, and rows marked `src: 'other'`
+      // (another platform's, or hand-typed) are never the broker's to
+      // replace. See t212_fills.js.
+      applyFillLedgers(next.holdings, t212OrderRows);
       // Apply T212's overnight price into holdings.extPrice whenever
       // it's the overnight window — NOT gated on the Extended Hours
       // toggle. Mirrors the Yahoo extPrice / extSeries fetch above
@@ -1000,7 +1026,10 @@ function Board({ isReadOnly }) {
       // fetch is cached for ten minutes and the sync clears that cache
       // on every page, so this costs one request per page, not per tick.
       const orders = await fetchTrading212Orders();
-      if (!cancelled && Array.isArray(orders?.rows)) setT212Orders(orders.rows);
+      if (!cancelled && Array.isArray(orders?.rows)) {
+        setT212Orders(orders.rows);
+        setT212OrdersComplete(orders.complete === true);
+      }
       timer = setTimeout(step, res.ordersComplete === true ? 10 * 60 * 1000 : 20000);
     };
     timer = setTimeout(step, 8000);
@@ -1320,6 +1349,7 @@ function Board({ isReadOnly }) {
           holding={portfolio.holdings[editingTicker]}
           positions={portfolio.positions}
           t212Orders={t212Orders}
+          t212OrdersComplete={t212OrdersComplete}
           onClose={() => setEditingTicker(null)}
           onSave={(patch) => { updateHolding(editingTicker, patch); setEditingTicker(null); }}
           onDelete={async () => { if (await askConfirm({ title: 'REMOVE HOLDING', message: `Remove ${editingTicker}?`, confirmLabel: 'Remove', danger: true })) { removeHolding(editingTicker); setEditingTicker(null); } }}

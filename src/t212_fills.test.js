@@ -1,20 +1,48 @@
 import { describe, it, expect } from 'vitest';
-import { brokerLedgerFor, splitAgainstLedger, reconcileFills, withFillsApplied } from './t212_fills.js';
+import {
+  SRC_OTHER, brokerLedgerFor, rebuildLedgerFromFills, ledgerDiffers,
+  applyFillLedgers, ledgerProvenance,
+} from './t212_fills.js';
+import { netPosition } from './transactions.js';
 
-const order = (ticker, executed_at, side, shares, price) => ({
-  ticker, executed_at, side, shares, price,
+const fill = (ticker, date, side, shares, price) => ({
+  ticker, executed_at: `${date}T14:30:00.000Z`, side, shares, price,
+});
+
+// SPCX as it really is: 59 shares at Trading 212 across twelve fills,
+// 71 more bought at another platform in two lots, 130 on the board.
+const SPCX_FILLS = [
+  fill('SPCX', '2026-06-22', 'buy', 15, 165.58),
+  fill('SPCX', '2026-06-22', 'buy', 2, 162.45),
+  fill('SPCX', '2026-06-22', 'buy', 3, 158.74),
+  fill('SPCX', '2026-06-22', 'buy', 4, 156.39),
+  fill('SPCX', '2026-07-08', 'buy', 4, 145.55),
+  fill('SPCX', '2026-07-08', 'buy', 0.5, 145.65),
+  fill('SPCX', '2026-07-13', 'buy', 5.5, 140.5),
+  fill('SPCX', '2026-07-13', 'buy', 5, 140.28),
+  fill('SPCX', '2026-07-15', 'buy', 5, 133.39),
+  fill('SPCX', '2026-07-17', 'buy', 5, 125.65),
+  fill('SPCX', '2026-07-20', 'buy', 5, 120.48),
+  fill('SPCX', '2026-07-22', 'buy', 5, 115.48),
+];
+const spcxHolding = () => ({
+  shares: 130, cost: 127.840692307692, currency: 'USD',
+  t212Shares: 59, t212Cost: 144.31457627,
+  lots: [
+    { date: '2026-04-19', shares: 50, cost: 105.4, src: SRC_OTHER },
+    { date: '2026-06-12', shares: 21, cost: 135, src: SRC_OTHER },
+  ],
 });
 
 describe('brokerLedgerFor', () => {
   it('splits a ticker\'s fills into buys and sales', () => {
-    const orders = [
-      order('RKLB', '2025-11-13T14:30:00Z', 'buy', 1, 45.97),
-      order('RKLB', '2025-11-21T15:00:00Z', 'sell', 0.5, 39.5),
-      order('AAPL', '2025-11-13T14:30:00Z', 'buy', 2, 200),
-    ];
-    const out = brokerLedgerFor(orders, 'RKLB');
+    const out = brokerLedgerFor([
+      fill('RKLB', '2025-11-13', 'buy', 1, 45.97),
+      fill('RKLB', '2026-08-17', 'sell', 0.5, 70),
+      fill('AAPL', '2025-11-13', 'buy', 2, 200),
+    ], 'RKLB');
     expect(out.lots).toEqual([{ date: '2025-11-13', shares: 1, cost: 45.97 }]);
-    expect(out.sells).toEqual([{ date: '2025-11-21', shares: 0.5, price: 39.5 }]);
+    expect(out.sells).toEqual([{ date: '2026-08-17', shares: 0.5, price: 70 }]);
   });
 
   it('is empty rather than null when the backfill has nothing yet', () => {
@@ -23,108 +51,138 @@ describe('brokerLedgerFor', () => {
   });
 });
 
-describe('splitAgainstLedger', () => {
-  const priceOf = (r) => Number(r.cost);
-
-  it('matches a hand-typed row to the fill it recorded', () => {
-    const broker = [{ date: '2025-11-13', shares: 1, cost: 45.97 }];
-    const own = [{ date: '2025-11-13', shares: 1, cost: 45.97 }];
-    const { matched, missing } = splitAgainstLedger(broker, own, priceOf);
-    expect(matched).toHaveLength(1);
-    expect(missing).toHaveLength(0);
+describe('rebuildLedgerFromFills', () => {
+  it('replaces an averaged stand-in lot with the trades that really happened', () => {
+    // The board's `59 @ 144.31` is T212's average price, not a trade.
+    // Row-by-row reconciliation can never fix that — twelve fills from
+    // 165.58 down to 115.48 correspond to no single row.
+    const holding = spcxHolding();
+    holding.lots.push(/** @type {any} */ ({ date: '2026-06-22', shares: 59, cost: 144.31 }));
+    const out = /** @type {NonNullable<ReturnType<typeof rebuildLedgerFromFills>>} */ (
+      rebuildLedgerFromFills(holding, SPCX_FILLS, 'SPCX'));
+    expect(out).not.toBeNull();
+    expect(out.lots).toHaveLength(14);           // 12 fills + 2 other-platform
+    expect(netPosition(out.lots, out.sells).shares).toBe(130);
+    expect(out.lots.filter((l) => l.cost === 144.31)).toHaveLength(0);
   });
 
-  it('tolerates a cent of rounding on price but not a different trade', () => {
-    const own = [{ date: '2025-11-13', shares: 1, cost: 45.97 }];
-    expect(splitAgainstLedger(
-      [{ date: '2025-11-13', shares: 1, cost: 45.9712 }], own, priceOf,
-    ).missing).toHaveLength(0);
-    expect(splitAgainstLedger(
-      [{ date: '2025-11-13', shares: 1, cost: 52.4 }], own, priceOf,
-    ).missing).toHaveLength(1);
-  });
-
-  it('needs two ledger rows to absorb two identical fills', () => {
-    // RKLB really does carry two 0.5-share rows at 39.50 on the same
-    // day. One ledger row swallowing both would lose half the position.
-    const broker = [
-      { date: '2025-11-21', shares: 0.5, cost: 39.5 },
-      { date: '2025-11-21', shares: 0.5, cost: 39.5 },
-    ];
-    const one = splitAgainstLedger(broker, [{ date: '2025-11-21', shares: 0.5, cost: 39.5 }], priceOf);
-    expect(one.matched).toHaveLength(1);
-    expect(one.missing).toHaveLength(1);
-    const two = splitAgainstLedger(broker, [
-      { date: '2025-11-21', shares: 0.5, cost: 39.5 },
-      { date: '2025-11-21', shares: 0.5, cost: 39.5 },
-    ], priceOf);
-    expect(two.missing).toHaveLength(0);
-  });
-
-  it('treats a different date as a different trade', () => {
-    const { missing } = splitAgainstLedger(
-      [{ date: '2025-11-14', shares: 1, cost: 45.97 }],
-      [{ date: '2025-11-13', shares: 1, cost: 45.97 }],
-      priceOf,
-    );
-    expect(missing).toHaveLength(1);
-  });
-});
-
-describe('reconcileFills', () => {
-  it('flags the fills already in the ledger and lists the rest newest first', () => {
-    const orders = [
-      order('RKLB', '2025-11-13T14:30:00Z', 'buy', 1, 45.97),
-      order('RKLB', '2026-08-18T14:30:00Z', 'buy', 3, 71.2),
-      order('RKLB', '2026-08-17T14:30:00Z', 'sell', 2, 70),
-    ];
-    const holding = { lots: [{ date: '2025-11-13', shares: 1, cost: 45.97 }], sells: [] };
-    const { rows, missingLots, missingSells } = reconcileFills(orders, 'RKLB', holding);
-    expect(rows.map(r => `${r.date}:${r.kind}:${r.known}`)).toEqual([
-      '2026-08-18:buy:false',
-      '2026-08-17:sell:false',
-      '2025-11-13:buy:true',
+  it('never drops a lot held at another platform', () => {
+    const out = /** @type {NonNullable<ReturnType<typeof rebuildLedgerFromFills>>} */ (
+      rebuildLedgerFromFills(spcxHolding(), SPCX_FILLS, 'SPCX'));
+    expect(out.lots.filter((l) => l.src === SRC_OTHER)).toEqual([
+      { date: '2026-04-19', shares: 50, cost: 105.4, src: SRC_OTHER },
+      { date: '2026-06-12', shares: 21, cost: 135, src: SRC_OTHER },
     ]);
-    expect(missingLots).toEqual([{ date: '2026-08-18', shares: 3, cost: 71.2 }]);
-    expect(missingSells).toEqual([{ date: '2026-08-17', shares: 2, price: 70 }]);
   });
 
-  it('reports nothing for a ticker the broker never traded', () => {
-    const out = reconcileFills([order('AAPL', '2026-08-18T14:30:00Z', 'buy', 1, 200)], 'BTC-USD', {});
-    expect(out.rows).toEqual([]);
-    expect(out.missingLots).toEqual([]);
+  it('keeps the ledger in date order', () => {
+    const out = /** @type {NonNullable<ReturnType<typeof rebuildLedgerFromFills>>} */ (
+      rebuildLedgerFromFills(spcxHolding(), SPCX_FILLS, 'SPCX'));
+    const dates = out.lots.map((l) => l.date);
+    expect(dates).toEqual([...dates].sort());
+    expect(dates[0]).toBe('2026-04-19');
   });
-});
 
-describe('withFillsApplied', () => {
-  it('keeps every row the ledger already had — including another platform\'s', () => {
-    // SPCX's 2026-04-19 and 2026-06-12 lots were bought elsewhere; the
-    // broker's history will never mention them and must never drop them.
+  it('refuses when the fills do not add up to the board — a half-walked backfill', () => {
+    // NVDA: the board holds 60, the walk has only reached 33.5 of them.
+    // Rewriting here would publish a ledger that contradicts the board.
     const holding = {
-      lots: [
-        { date: '2026-04-19', shares: 50, cost: 105.4 },
-        { date: '2026-06-12', shares: 21, cost: 135 },
-      ],
-      sells: [],
+      shares: 60, cost: 136.1, t212Shares: 60,
+      lots: [{ date: '2025-01-01', shares: 60, cost: 136.1 }],
     };
-    const out = withFillsApplied(holding, [{ date: '2026-06-22', shares: 59, cost: 144.31 }], []);
-    expect(out.lots).toEqual([
-      { date: '2026-04-19', shares: 50, cost: 105.4 },
-      { date: '2026-06-12', shares: 21, cost: 135 },
-      { date: '2026-06-22', shares: 59, cost: 144.31 },
-    ]);
+    expect(rebuildLedgerFromFills(holding, [
+      fill('NVDA', '2026-03-27', 'buy', 33.5, 157.19),
+    ], 'NVDA')).toBeNull();
   });
 
-  it('leaves the ledger untouched when nothing is missing', () => {
-    const holding = { lots: [{ date: '2026-04-19', shares: 50, cost: 105.4 }], sells: [] };
-    expect(withFillsApplied(holding, [], [])).toEqual({
-      lots: [{ date: '2026-04-19', shares: 50, cost: 105.4 }],
-      sells: [],
-    });
+  it('leaves a holding the broker knows nothing about alone', () => {
+    // A CN fund and a cold wallet have no `t212Shares` tag and no fills.
+    // Neither may ever be emptied by this.
+    const cnFund = { shares: 3336.39, cost: 1.68, lots: [{ date: '2026-05-13', shares: 3336.39, cost: 1.68 }] };
+    expect(rebuildLedgerFromFills(cnFund, SPCX_FILLS, '017731')).toBeNull();
+    const tagged = { ...cnFund, t212Shares: 3336.39 };
+    expect(rebuildLedgerFromFills(tagged, SPCX_FILLS, '017731')).toBeNull();
   });
 
-  it('survives a holding with no ledger at all', () => {
-    expect(withFillsApplied(undefined, [{ date: '2026-08-18', shares: 1, cost: 10 }], []))
-      .toEqual({ lots: [{ date: '2026-08-18', shares: 1, cost: 10 }], sells: [] });
+  it('carries sales through, and prices the remainder from them', () => {
+    const holding = { shares: 1, cost: 0, t212Shares: 1, lots: [], sells: [] };
+    const out = /** @type {NonNullable<ReturnType<typeof rebuildLedgerFromFills>>} */ (
+      rebuildLedgerFromFills(holding, [
+        fill('X', '2026-01-02', 'buy', 3, 100),
+        fill('X', '2026-02-02', 'sell', 2, 130),
+      ], 'X'));
+    expect(out.sells).toEqual([{ date: '2026-02-02', shares: 2, price: 130 }]);
+    // Net-cash model: the banked gain lowers what the kept share cost.
+    expect(netPosition(out.lots, out.sells).avgCost).toBeCloseTo(40, 9);
+  });
+});
+
+describe('ledgerDiffers', () => {
+  it('is false once the ledger already equals the rebuild', () => {
+    const holding = spcxHolding();
+    const nn = /** @type {(h: any) => NonNullable<ReturnType<typeof rebuildLedgerFromFills>>} */ (
+      (h) => /** @type {any} */ (rebuildLedgerFromFills(h, SPCX_FILLS, 'SPCX')));
+    const next = nn(holding);
+    expect(ledgerDiffers(holding, next)).toBe(true);
+    const settled = { ...holding, lots: next.lots, sells: next.sells };
+    expect(ledgerDiffers(settled, nn(settled))).toBe(false);
+  });
+});
+
+describe('applyFillLedgers', () => {
+  it('rewrites what it can and reports it, leaving the rest untouched', () => {
+    const holdings = {
+      SPCX: spcxHolding(),
+      NVDA: { shares: 60, cost: 136.1, t212Shares: 60, lots: [{ date: '2025-01-01', shares: 60, cost: 136.1 }] },
+      'BTC-USD': { shares: 0.075, cost: 65495, lots: [{ date: '2026-02-11', shares: 0.075, cost: 65495 }] },
+    };
+    const changed = applyFillLedgers(holdings, [...SPCX_FILLS, fill('NVDA', '2026-03-27', 'buy', 33.5, 157.19)]);
+    expect(changed).toEqual(['SPCX']);
+    expect(holdings.NVDA.lots).toHaveLength(1);
+    expect(holdings['BTC-USD'].lots).toHaveLength(1);
+    expect(netPosition(holdings.SPCX.lots, holdings.SPCX.sells).shares).toBe(130);
+  });
+
+  it('is idempotent — a second pass reports nothing', () => {
+    const holdings = { SPCX: spcxHolding() };
+    expect(applyFillLedgers(holdings, SPCX_FILLS)).toEqual(['SPCX']);
+    expect(applyFillLedgers(holdings, SPCX_FILLS)).toEqual([]);
+  });
+
+  it('does nothing at all before the backfill has produced anything', () => {
+    const holdings = { SPCX: spcxHolding() };
+    expect(applyFillLedgers(holdings, [])).toEqual([]);
+    expect(holdings.SPCX.lots).toHaveLength(2);
+  });
+
+  it('never changes a share count', () => {
+    const holdings = { SPCX: spcxHolding() };
+    applyFillLedgers(holdings, SPCX_FILLS);
+    expect(holdings.SPCX.shares).toBe(130);
+    expect(holdings.SPCX.cost).toBe(127.840692307692);
+  });
+});
+
+describe('ledgerProvenance', () => {
+  it('says synced once the rows are the broker\'s own history', () => {
+    expect(ledgerProvenance(spcxHolding(), SPCX_FILLS, 'SPCX'))
+      .toEqual({ state: 'synced', fills: 12, other: 2 });
+  });
+
+  it('says pending while the walk is still running', () => {
+    const holding = { shares: 60, cost: 136.1, t212Shares: 60, lots: [] };
+    expect(ledgerProvenance(holding, [fill('NVDA', '2026-03-27', 'buy', 33.5, 157.19)], 'NVDA').state)
+      .toBe('pending');
+  });
+
+  it('says manual for a holding the broker never had', () => {
+    const cnFund = { shares: 3336.39, cost: 1.68, lots: [] };
+    expect(ledgerProvenance(cnFund, SPCX_FILLS, '017731').state).toBe('manual');
+  });
+
+  it('stops saying pending once the walk has finished', () => {
+    const holding = { shares: 60, cost: 136.1, t212Shares: 60, lots: [] };
+    const orders = [fill('NVDA', '2026-03-27', 'buy', 33.5, 157.19)];
+    expect(ledgerProvenance(holding, orders, 'NVDA', true).state).toBe('manual');
   });
 });

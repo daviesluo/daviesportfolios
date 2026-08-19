@@ -26,12 +26,18 @@
  * is preserved when present so the Transaction History can order same-day
  * rows by actual record time; legacy lots simply lack it.
  *
- * @param {Array<{date?: any, shares?: any, cost?: any, ts?: any}>} lots
- * @returns {Array<{date: string, shares: number, cost: number, ts?: number}>}
+ * `src` survives too. `src: 'other'` marks a row the Trading 212 sync has
+ * no claim over — shares held at another platform, or anything typed into
+ * the lot editor — and the rebuild in `t212_fills.js` reads it to decide
+ * what it may replace. Dropping it here would hand those rows to the
+ * broker on the next refresh.
+ *
+ * @param {Array<{date?: any, shares?: any, cost?: any, ts?: any, src?: any}>} lots
+ * @returns {Array<{date: string, shares: number, cost: number, ts?: number, src?: string}>}
  */
 export function cleanLots(lots) {
   if (!Array.isArray(lots)) return [];
-  /** @type {Array<{date: string, shares: number, cost: number, ts?: number}>} */
+  /** @type {Array<{date: string, shares: number, cost: number, ts?: number, src?: string}>} */
   const out = [];
   // Reject future-dated lots — the EditTickerModal's <input type="date">
   // sets max=today but a paste / programmatic edit can still slip
@@ -50,7 +56,8 @@ export function cleanLots(lots) {
     const cost = Number(l?.cost);
     if (!Number.isFinite(cost) || cost < 0) continue;
     const ts = Number(l?.ts);
-    out.push(Number.isFinite(ts) ? { date, shares, cost, ts } : { date, shares, cost });
+    const src = typeof l?.src === 'string' && l.src ? { src: l.src } : {};
+    out.push(Number.isFinite(ts) ? { date, shares, cost, ts, ...src } : { date, shares, cost, ...src });
   }
   return out.sort((a, b) => a.date.localeCompare(b.date));
 }

@@ -1109,30 +1109,14 @@ body {
 .sell-grid { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
 .sell-grid .lot-grid-head > span:first-child { color: var(--loss); }
 
-/* The broker's own fill history for this ticker, under the lot editor.
-   Read-only: it says what Trading 212 executed, ticks the rows the
-   ledger above already carries, and offers the rest as one click. Dim
-   for the known ones so the NEW rows — the whole point of the panel —
-   are what the eye lands on. */
-.t212-fills { margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--line); }
-.t212-fills-head {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: 12px; flex-wrap: wrap; margin-bottom: 8px;
+/* One line under the lot grid saying where the rows came from — the
+   broker's own trades, or a backfill still running. Deliberately not a
+   panel: the rows themselves ARE the history now, so anything more would
+   be a second copy of what's already on screen. */
+.ledger-src {
+  margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line);
+  font-size: 11px; line-height: 1.5;
 }
-.t212-fills-head .lot-add, .t212-fills-head .lot-hint { margin: 0; }
-/* Capped so a ticker with a hundred fills doesn't push Save off-screen. */
-.t212-fills-scroll { max-height: 220px; overflow-y: auto; }
-.t212-fill-row {
-  display: grid;
-  grid-template-columns: 100px 48px 1fr 1fr 40px;
-  gap: 10px; align-items: center;
-  padding: 5px 4px; font-size: 12px;
-  border-bottom: 1px solid var(--line);
-}
-.t212-fill-row:last-child { border-bottom: 0; }
-.t212-fill-row.is-known { opacity: 0.45; }
-.t212-fill-num  { text-align: right; }
-.t212-fill-flag { text-align: right; font-size: 10px; letter-spacing: 0.08em; }
 
 /* Transaction History: the headline Realized G/L banner + the BUY / SELL
    row badges. The table itself reuses the Holding list's .hl-* styles. */
@@ -1172,9 +1156,6 @@ body {
   .lot-grid-row > input:nth-of-type(2) { grid-area: shares; }
   .lot-grid-row > input:nth-of-type(3) { grid-area: cost; }
   .lot-grid-row > button             { grid-area: remove; align-self: start; }
-  /* Fill rows stay one line on a phone — drop the date to the day and
-     let the numbers take the space they need. */
-  .t212-fill-row { grid-template-columns: 84px 44px 1fr 1fr 32px; gap: 6px; font-size: 11px; }
 }
 
 /* Extended hours toggle switch */

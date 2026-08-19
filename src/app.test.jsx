@@ -61,6 +61,10 @@ vi.mock('./trading212.js', () => ({
   // unhandled error rather than a failing assertion, so it can hide
   // behind a green-looking summary. Check the exit code, not the line.
   syncTrading212History: vi.fn(() => Promise.resolve(null)),
+  // Same trap, second door: doRefresh reads the executed fills in its
+  // parallel fetch, so leaving this out rejects inside the refresh
+  // promise instead of failing an assertion.
+  fetchTrading212Orders: vi.fn(() => Promise.resolve({ rows: [], complete: false })),
   applyTrading212: (h) => h,
   applyTrading212NightPrice: (h) => h,
 }));

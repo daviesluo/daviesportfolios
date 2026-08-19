@@ -33,13 +33,14 @@ const AUTO_DCA_TICKERS = new Set(['VUAA.L', 'SAEM.L']);
  * numbers (shares > 0, price ≥ 0, YYYY-MM-DD date ≤ today). Returns a fresh
  * array sorted ascending by date. An optional `ts` (epoch ms, stamped when
  * the row was added in the editor) is preserved when present so the
- * Transaction History can order same-day rows by actual record time.
- * @param {Array<{date?: any, shares?: any, price?: any, ts?: any}>} sells
- * @returns {Array<{date: string, shares: number, price: number, ts?: number}>}
+ * Transaction History can order same-day rows by actual record time, and
+ * `src` survives for the same reason it does on lots — see `cleanLots`.
+ * @param {Array<{date?: any, shares?: any, price?: any, ts?: any, src?: any}>} sells
+ * @returns {Array<{date: string, shares: number, price: number, ts?: number, src?: string}>}
  */
 export function cleanSells(sells) {
   if (!Array.isArray(sells)) return [];
-  /** @type {Array<{date: string, shares: number, price: number, ts?: number}>} */
+  /** @type {Array<{date: string, shares: number, price: number, ts?: number, src?: string}>} */
   const out = [];
   const today = new Date().toISOString().slice(0, 10);
   for (const s of sells) {
@@ -51,7 +52,8 @@ export function cleanSells(sells) {
     const price = Number(s?.price);
     if (!Number.isFinite(price) || price < 0) continue;
     const ts = Number(s?.ts);
-    out.push(Number.isFinite(ts) ? { date, shares, price, ts } : { date, shares, price });
+    const src = typeof s?.src === 'string' && s.src ? { src: s.src } : {};
+    out.push(Number.isFinite(ts) ? { date, shares, price, ts, ...src } : { date, shares, price, ...src });
   }
   return out.sort((a, b) => a.date.localeCompare(b.date));
 }

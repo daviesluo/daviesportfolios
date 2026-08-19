@@ -184,71 +184,76 @@ describe('EditTickerModal — sell editor', () => {
   });
 });
 
-describe('EditTickerModal — Trading 212 fills', () => {
-  // What the backfill stores: one row per executed fill, both accounts.
-  const ORDERS = [
-    { ticker: 'AVGO', executed_at: '2025-04-01T13:45:00.000Z', side: 'buy', shares: 18.5, price: 172.62 },
-    { ticker: 'AVGO', executed_at: '2026-08-18T13:45:00.000Z', side: 'buy', shares: 2, price: 340.5 },
-    { ticker: 'TSM',  executed_at: '2026-08-18T13:45:00.000Z', side: 'buy', shares: 1, price: 300 },
+describe('EditTickerModal — where the rows came from', () => {
+  // AVGO on the board: 18.5 shares, all of them at Trading 212.
+  const SYNCED = {
+    ...HOLDING, shares: 18.5, t212Shares: 18.5,
+    lots: [
+      { date: '2025-04-01', shares: 10, cost: 170 },
+      { date: '2025-04-07', shares: 8.5, cost: 175.7 },
+    ],
+  };
+  const FILLS = [
+    { ticker: 'AVGO', executed_at: '2025-04-01T13:45:00.000Z', side: 'buy', shares: 10, price: 170 },
+    { ticker: 'AVGO', executed_at: '2025-04-07T13:45:00.000Z', side: 'buy', shares: 8.5, price: 175.7 },
   ];
 
-  it('lists the broker\'s fills newest first and ticks the ones already recorded', () => {
-    renderModal({ t212Orders: ORDERS });
-    expect(screen.getByText('TRADING 212 FILLS')).toBeInTheDocument();
-    // The 2025-04-01 fill is the lot already in HOLDING; the 2026-08-18
-    // one is not. Another ticker's fill never appears.
-    expect(screen.getByText('2026-08-18')).toBeInTheDocument();
-    expect(screen.getByText('2025-04-01')).toBeInTheDocument();
-    expect(screen.getByText('new')).toBeInTheDocument();
-    expect(screen.getByText('✓')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Add 1 missing/ })).toBeInTheDocument();
+  it('says the rows are the broker\'s own trades once they are', () => {
+    renderModal({ holding: SYNCED, t212Orders: FILLS });
+    expect(screen.getByText(/Trading 212's own 2 executed trades/)).toBeInTheDocument();
   });
 
-  it('says nothing is missing when the ledger already has every fill', () => {
-    renderModal({ t212Orders: [ORDERS[0]] });
-    expect(screen.getByText('All recorded above.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Add \d+ missing/ })).not.toBeInTheDocument();
-  });
-
-  it('stays hidden for a ticker the broker never traded', () => {
-    renderModal({ t212Orders: [ORDERS[2]] });
-    expect(screen.queryByText('TRADING 212 FILLS')).not.toBeInTheDocument();
-  });
-
-  it('adds only the missing fills, keeping the rows already there', async () => {
-    const user = userEvent.setup();
-    const { props } = renderModal({ t212Orders: ORDERS });
-    await user.click(screen.getByRole('button', { name: /Add 1 missing/ }));
-    await user.click(screen.getByRole('button', { name: /^Save$/ }));
-    const patch = props.onSave.mock.calls[0][0];
-    expect(patch.lots).toEqual([
-      { date: '2025-04-01', shares: 18.5, cost: 172.62 },
-      { date: '2026-08-18', shares: 2, cost: 340.5 },
-    ]);
-  });
-
-  it('never drops a lot the broker has no record of', async () => {
-    // SPCX's real shape: 71 shares bought at another platform, 59 at
-    // Trading 212. The broker's history mentions only its own 59.
-    const user = userEvent.setup();
-    const { props } = renderModal({
-      ticker: 'SPCX',
+  it('counts the ones bought elsewhere separately', () => {
+    renderModal({
       holding: {
-        shares: 130, cost: 127.84, currency: 'USD',
-        lots: [
-          { date: '2026-04-19', shares: 50, cost: 105.4 },
-          { date: '2026-06-12', shares: 21, cost: 135 },
-        ],
+        ...SYNCED, shares: 20.5, t212Shares: 18.5,
+        lots: [...SYNCED.lots, { date: '2025-01-02', shares: 2, cost: 150, src: 'other' }],
       },
-      t212Orders: [
-        { ticker: 'SPCX', executed_at: '2026-06-22T13:45:00.000Z', side: 'buy', shares: 59, price: 144.31 },
-      ],
+      t212Orders: FILLS,
     });
-    await user.click(screen.getByRole('button', { name: /Add 1 missing/ }));
+    expect(screen.getByText(/plus 1 bought elsewhere/)).toBeInTheDocument();
+  });
+
+  it('says the history is still downloading when the fills do not cover the position', () => {
+    // The board holds 60, the walk has reached 33.5. Nothing is rewritten
+    // and the modal says why rather than showing a stale ledger silently.
+    renderModal({
+      ticker: 'NVDA',
+      holding: { shares: 60, cost: 136.1, currency: 'USD', t212Shares: 60, lots: [{ date: '2025-01-01', shares: 60, cost: 136.1 }] },
+      t212Orders: [{ ticker: 'NVDA', executed_at: '2026-03-27T13:45:00.000Z', side: 'buy', shares: 33.5, price: 157.19 }],
+    });
+    expect(screen.getByText(/still downloading/)).toBeInTheDocument();
+  });
+
+  it('stops saying that once the backfill has finished', () => {
+    renderModal({
+      ticker: 'NVDA',
+      holding: { shares: 60, cost: 136.1, currency: 'USD', t212Shares: 60, lots: [{ date: '2025-01-01', shares: 60, cost: 136.1 }] },
+      t212Orders: [{ ticker: 'NVDA', executed_at: '2026-03-27T13:45:00.000Z', side: 'buy', shares: 33.5, price: 157.19 }],
+      t212OrdersComplete: true,
+    });
+    expect(screen.queryByText(/still downloading/)).not.toBeInTheDocument();
+  });
+
+  it('says nothing for a holding the broker never had', () => {
+    renderModal({
+      ticker: 'BTC-USD',
+      holding: { shares: 0.075, cost: 65495, currency: 'USD', lots: [{ date: '2026-02-11', shares: 0.075, cost: 65495 }] },
+      t212Orders: FILLS,
+    });
+    expect(screen.queryByText(/Trading 212/)).not.toBeInTheDocument();
+  });
+
+  it('marks a hand-added lot as the owner\'s so the sync cannot replace it', async () => {
+    const user = userEvent.setup();
+    const { props } = renderModal({ holding: SYNCED, t212Orders: FILLS });
+    await user.click(screen.getByRole('button', { name: /\+ Add lot/ }));
+    const nums = screen.getAllByPlaceholderText('0');
+    await user.type(nums[nums.length - 2], '3');
+    await user.type(nums[nums.length - 1], '400');
     await user.click(screen.getByRole('button', { name: /^Save$/ }));
-    const patch = props.onSave.mock.calls[0][0];
-    expect(patch.lots).toHaveLength(3);
-    expect(patch.lots.reduce((n, l) => n + l.shares, 0)).toBe(130);
+    const added = props.onSave.mock.calls[0][0].lots.find((l) => l.shares === 3);
+    expect(added.src).toBe('other');
   });
 });
 

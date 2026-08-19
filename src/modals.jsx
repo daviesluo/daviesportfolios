@@ -11,7 +11,7 @@ import {
 } from './formatters.js';
 import { currencySymbol as curSym, detectCurrency } from './fx.js';
 import { cleanLots } from './lots.js';
-import { reconcileFills, withFillsApplied } from './t212_fills.js';
+import { ledgerProvenance, SRC_OTHER } from './t212_fills.js';
 import { cleanSells, netPosition, realizedGain } from './transactions.js';
 
 // Ref-counted body scroll lock. PositionDrill can stack on top of the
@@ -291,7 +291,7 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
 // Per-lot editor. Each row is a single purchase batch; total shares and
 // weighted-average cost are derived from the rows on save and become the
 // holding's `shares`/`cost` (lots are the source of truth for the YTD chart).
-function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {any[]} */ ([]), onClose, onSave, onDelete, onMove }) {
+function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {any[]} */ ([]), t212OrdersComplete = false, onClose, onSave, onDelete, onMove }) {
   const today = new Date().toISOString().slice(0, 10);
   const seed = (Array.isArray(holding.lots) && holding.lots.length > 0)
     ? holding.lots
@@ -305,6 +305,7 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
     // Preserve an existing entry timestamp so re-saving a holding doesn't
     // strip it (which would lose the Transaction History's same-day order).
     ...(typeof l.ts === 'number' ? { ts: l.ts } : {}),
+    ...(typeof l.src === 'string' ? { src: l.src } : {}),
   })));
   // Sell records — the SALES side of the ledger. Net position = buys −
   // sells under the net-cash model (transactions.js); on save these feed
@@ -316,6 +317,7 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
       shares: String(s.shares ?? ''),
       price: String(s.price ?? ''),
       ...(typeof s.ts === 'number' ? { ts: s.ts } : {}),
+      ...(typeof s.src === 'string' ? { src: s.src } : {}),
     })),
   );
 
@@ -349,7 +351,10 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
   const addLot = () => {
     // Stamp the record time so the Transaction History can order multiple
     // same-day entries by when they were actually added, not alphabetically.
-    setLots(/** @param {any[]} ls */ ls => [...ls, { date: today, shares: '', cost: '', ts: Date.now() }]);
+    // `src: 'other'` marks it as the owner's — a purchase made somewhere
+    // the broker can't see. Without it the next refresh would rebuild the
+    // ledger from Trading 212's fills and this row would vanish.
+    setLots(/** @param {any[]} ls */ ls => [...ls, { date: today, shares: '', cost: '', ts: Date.now(), src: SRC_OTHER }]);
   };
   const updateSell = (idx, patch) => {
     setSells(/** @param {any[]} ss */ ss => ss.map((s, i) => i === idx ? { ...s, ...patch } : s));
@@ -358,7 +363,7 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
     setSells(/** @param {any[]} ss */ ss => ss.filter((_, i) => i !== idx));
   };
   const addSell = () => {
-    setSells(/** @param {any[]} ss */ ss => [...ss, { date: today, shares: '', price: '', ts: Date.now() }]);
+    setSells(/** @param {any[]} ss */ ss => [...ss, { date: today, shares: '', price: '', ts: Date.now(), src: SRC_OTHER }]);
   };
 
   // Preview NET position / AC reflects only rows that survive cleanLots /
@@ -382,30 +387,18 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
     (r) => typeof r?.date === 'string' && r.date.trim() > today,
   ).length;
 
-  // The broker's own record of what it executed for this ticker, matched
-  // row by row against what's typed above. This is the answer to "why
-  // does the history stop months ago": nothing has ever written to the
-  // ledger except the owner, so a holding bought since the last manual
-  // edit shows no trades at all. Read-only until "Add" is pressed —
-  // folding them in is the owner's call, not a sync's.
-  // Memoised on the state arrays, not on the cleaned copies — those are
+  // Where the rows above came from. The refresh tick rebuilds a synced
+  // holding's ledger out of the broker's own fills (t212_fills.js), so
+  // most of the time the answer is simply "these ARE the trades" — worth
+  // saying once, because the ledger used to be whatever was last typed
+  // in and looked stale for months at a time.
+  //
+  // Memoised on the state arrays, not the cleaned copies — those are
   // fresh objects every render, and this walks the whole order table.
-  const fills = React.useMemo(
-    () => reconcileFills(t212Orders, ticker, { lots, sells }),
-    [t212Orders, ticker, lots, sells],
+  const provenance = React.useMemo(
+    () => ledgerProvenance({ ...holding, lots, sells }, t212Orders, ticker, t212OrdersComplete),
+    [holding, lots, sells, t212Orders, ticker, t212OrdersComplete],
   );
-  const missingCount = fills.missingLots.length + fills.missingSells.length;
-  const addMissingFills = () => {
-    const next = withFillsApplied({ lots, sells }, fills.missingLots, fills.missingSells);
-    setLots(next.lots.map(l => ({
-      date: l.date, shares: String(l.shares ?? ''), cost: String(l.cost ?? ''),
-      ...(typeof l.ts === 'number' ? { ts: l.ts } : {}),
-    })));
-    setSells(next.sells.map(sl => ({
-      date: sl.date, shares: String(sl.shares ?? ''), price: String(sl.price ?? ''),
-      ...(typeof sl.ts === 'number' ? { ts: sl.ts } : {}),
-    })));
-  };
 
   // Saving rewrites `shares` from the rows above (updateHolding →
   // netPosition), and on this book the ledger is routinely SHORT of the
@@ -564,30 +557,20 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
           <button className="btn-ghost lot-add" onClick={addSell}>+ Sell</button>
         </div>
 
-        {fills.rows.length > 0 && (
-          <div className="t212-fills">
-            <div className="t212-fills-head">
-              <span className="lot-summary-label mono">TRADING 212 FILLS</span>
-              {missingCount > 0 && (
-                <button className="btn-ghost lot-add" onClick={addMissingFills}>
-                  + Add {missingCount} missing
-                </button>
-              )}
-              {missingCount === 0 && (
-                <span className="lot-hint mono dim">All recorded above.</span>
-              )}
-            </div>
-            <div className="t212-fills-scroll">
-              {fills.rows.map((f, i) => (
-                <div key={`${f.date}-${f.kind}-${i}`} className={`t212-fill-row mono${f.known ? ' is-known' : ''}`}>
-                  <span>{f.date}</span>
-                  <span className={`txn-badge txn-${f.kind}`}>{f.kind === 'buy' ? 'BUY' : 'SELL'}</span>
-                  <span className="t212-fill-num">{fmtShFor(f.shares, ticker)}</span>
-                  <span className="t212-fill-num">{sym}{f.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  <span className="t212-fill-flag dim">{f.known ? '✓' : 'new'}</span>
-                </div>
-              ))}
-            </div>
+        {provenance.state === 'synced' && (
+          <div className="ledger-src mono dim">
+            These are Trading 212's own {provenance.fills} executed trades
+            {provenance.other > 0
+              ? `, plus ${provenance.other} bought elsewhere.`
+              : '.'}{' '}
+            They refresh themselves; edits you make here are kept.
+          </div>
+        )}
+        {provenance.state === 'pending' && (
+          <div className="ledger-src mono dim">
+            Trading 212's trade history is still downloading
+            {provenance.fills > 0 ? ` (${provenance.fills} so far)` : ''} — these
+            rows will fill themselves in once it reaches this holding.
           </div>
         )}
 
