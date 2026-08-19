@@ -54,6 +54,10 @@
 //   }
 
 import {
+  // NOTE: this function's CORS block (including the `x-app-token`
+  // allow-header) lives in `_shared.ts`, not here. Changing it there
+  // must still redeploy THIS function — see the changed-function
+  // detection in `.github/workflows/edge-functions.yml`.
   CORS,
   INDEX_ETF_PROXY,
   isFundamentalsTicker,
