@@ -69,12 +69,12 @@ describe('transactionRowsToMatrix', () => {
   it('header + a row per transaction, native-currency price/amount', () => {
     const rows = buildTransactionLog(HOLDINGS);
     const matrix = transactionRowsToMatrix(rows);
-    expect(matrix[0]).toEqual(['Type', 'Date', 'Symbol', 'Shares', 'Price', 'Amount', 'G/L · AC']);
+    expect(matrix[0]).toEqual(['Type', 'Date', 'Symbol', 'Shares', 'Price', 'Amount', 'Avg Cost', 'Realised G/L']);
     expect(matrix).toHaveLength(rows.length + 1);
     // The EUR buy: 50 sh @ €8 → €400.00 amount, and the average cost it
     // leaves behind in the last column.
     const eur = matrix.find((r) => r[2] === 'XFAB.PA');
-    expect(eur).toEqual(['BUY', '2026-02-01', 'XFAB.PA', '50', '€8.00', '€400.00', '€8.00']);
+    expect(eur).toEqual(['BUY', '2026-02-01', 'XFAB.PA', '50', '€8.00', '€400.00', '€8.00', '']);
     // A SELL row carries the SELL label.
     expect(matrix.some((r) => r[2] === 'NVDA' && r[0] === 'SELL')).toBe(true);
   });
@@ -98,22 +98,32 @@ describe('what each row did to the position', () => {
   it('annotates a purchase with the average cost it leaves behind', () => {
     const rows = buildTransactionLog(LEDGER);
     const second = rows.find((r) => r.date === '2026-02-01');
-    expect(second.acAfter).toBeCloseTo(120, 9);
-    expect(second.gain).toBeNull();
+    expect(second?.acAfter).toBeCloseTo(120, 9);
+    expect(second?.gain).toBeNull();
   });
 
   it("annotates a sale with what it banked, and the percent it made", () => {
     const sale = buildTransactionLog(LEDGER).find((r) => r.kind === 'sell');
-    expect(sale.gain).toBeCloseTo(400, 9);
-    expect(sale.gainPct).toBeCloseTo(66.6667, 4);
+    expect(sale?.gain).toBeCloseTo(400, 9);
+    expect(sale?.gainPct).toBeCloseTo(66.6667, 4);
   });
 
-  it('shows the gain on a sale and the average cost on a buy, in one column', () => {
+  it('gives the average cost its own column, filled for buys AND sells', () => {
     const matrix = transactionRowsToMatrix(buildTransactionLog(LEDGER));
-    const sale = matrix.find((r) => r[0] === 'SELL');
-    expect(sale[6]).toBe('+$400.00 (+66.67%)');
     const buy = matrix.find((r) => r[1] === '2026-02-01');
-    expect(buy[6]).toBe('$120.00');
+    expect(buy?.[6]).toBe('$120.00');
+    // A sale changes the average cost too — the cash it returns comes
+    // off the basis of what's left — so this column reads for both.
+    // 2,400 of net cash behind 20 shares; the sale returns 1,000 and
+    // takes 5 away, leaving 1,400 over 15 = 93.33.
+    const sale = matrix.find((r) => r[0] === 'SELL');
+    expect(sale?.[6]).toBe('$93.33');
+  });
+
+  it('puts the realized gain last, and leaves it blank on a purchase', () => {
+    const matrix = transactionRowsToMatrix(buildTransactionLog(LEDGER));
+    expect(matrix.find((r) => r[0] === 'SELL')?.[7]).toBe('+$400.00 (+66.67%)');
+    expect(matrix.find((r) => r[1] === '2026-02-01')?.[7]).toBe('');
   });
 
   it('leaves the percentage off a sale out of a zero-cost position', () => {
@@ -121,9 +131,9 @@ describe('what each row did to the position', () => {
       Y: { currency: 'USD', lots: [{ date: '2026-01-01', shares: 5, cost: 0 }], sells: [{ date: '2026-02-01', shares: 5, price: 30 }] },
     });
     const sale = rows.find((r) => r.kind === 'sell');
-    expect(sale.gain).toBeCloseTo(150, 9);
-    expect(sale.gainPct).toBeNull();
-    expect(transactionRowsToMatrix(rows).find((r) => r[0] === 'SELL')[6]).toBe('+$150.00');
+    expect(sale?.gain).toBeCloseTo(150, 9);
+    expect(sale?.gainPct).toBeNull();
+    expect(transactionRowsToMatrix(rows).find((r) => r[0] === 'SELL')?.[7]).toBe('+$150.00');
   });
 });
 
@@ -145,11 +155,13 @@ describe('sortTransactionRows / nextSortState', () => {
       .toEqual([3, 2, 1]);
   });
 
-  it('sorts the outcome column on whichever figure the row carries', () => {
-    // A sale sorts on its gain, a purchase on its average cost, so the
-    // two kinds share one comparable instead of stranding the buys.
-    expect(sortTransactionRows(rows, { col: 'outcome', dir: 'desc' }).map((r) => r.ticker))
-      .toEqual(['A', 'C', 'B']);
+  it('sorts the two outcome columns independently', () => {
+    // Purchases realize nothing, so they sort as zero — between the
+    // profitable sales and the losing ones, which is where they belong.
+    expect(sortTransactionRows(rows, { col: 'gain', dir: 'desc' }).map((r) => r.ticker))
+      .toEqual(['A', 'B', 'C']);
+    expect(sortTransactionRows(rows, { col: 'avgcost', dir: 'desc' }).map((r) => r.ticker))
+      .toEqual(['C', 'B', 'A']);
   });
 
   it('cycles a header desc → asc → back to the default', () => {
