@@ -145,3 +145,36 @@ export function displayTicker(ticker) {
   const stripped = String(ticker || '').replace(/\.[A-Za-z]{1,4}$/, '');
   return TICKER_DISPLAY_ALIASES[stripped] || stripped;
 }
+
+/**
+ * "Did this row actually move?" — one threshold, shared by every
+ * surface that ranks or colours a day change.
+ *
+ * 0.005 is the rounding boundary of the two-decimal percent the UI
+ * prints: anything under it renders as "0.00%". The heatmap already
+ * painted those tiles flat/neutral, but Top Movers ranked them with a
+ * bare `> 0` / `< 0`, so a -0.004 % row showed up as a dark "no change"
+ * tile AND as a red LOSERS entry reading "-0.00%" at the same time
+ * (MSFT, 2026-08). Same number, two different verdicts.
+ */
+export function pctIsFlat(pct) {
+  return pct == null || !isFinite(pct) || Math.abs(pct) < 0.005;
+}
+
+/**
+ * Normalise a decimal field's raw input as the user types.
+ *
+ * Only job: give a bare leading decimal point its zero, so typing
+ * `.5` in a shares / price box reads back as `0.5`. Everything else is
+ * returned untouched — this runs on every keystroke, so it must never
+ * fight the user mid-entry (a half-typed `0.` or `1.` has to survive).
+ *
+ * Purely cosmetic for the maths: `Number('.5')` is already 0.5. It's
+ * the field that looked wrong, not the value.
+ */
+export function normalizeDecimalInput(raw) {
+  const s = String(raw ?? '');
+  if (s.startsWith('.')) return `0${s}`;
+  if (s.startsWith('-.')) return `-0${s.slice(1)}`;
+  return s;
+}
