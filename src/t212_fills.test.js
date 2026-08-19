@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   SRC_OTHER, brokerLedgerFor, rebuildLedgerFromFills, ledgerDiffers,
-  applyFillLedgers, ledgerProvenance,
+  applyFillLedgers, ledgerProvenance, withClosedFromFills,
 } from './t212_fills.js';
 import { netPosition } from './transactions.js';
 
@@ -41,8 +41,8 @@ describe('brokerLedgerFor', () => {
       fill('RKLB', '2026-08-17', 'sell', 0.5, 70),
       fill('AAPL', '2025-11-13', 'buy', 2, 200),
     ], 'RKLB');
-    expect(out.lots).toEqual([{ date: '2025-11-13', shares: 1, cost: 45.97 }]);
-    expect(out.sells).toEqual([{ date: '2026-08-17', shares: 0.5, price: 70 }]);
+    expect(out.lots.map((l) => [l.date, l.shares, l.cost])).toEqual([['2025-11-13', 1, 45.97]]);
+    expect(out.sells.map((x) => [x.date, x.shares, x.price])).toEqual([['2026-08-17', 0.5, 70]]);
   });
 
   it('is empty rather than null when the backfill has nothing yet', () => {
@@ -111,7 +111,8 @@ describe('rebuildLedgerFromFills', () => {
         fill('X', '2026-01-02', 'buy', 3, 100),
         fill('X', '2026-02-02', 'sell', 2, 130),
       ], 'X'));
-    expect(out.sells).toEqual([{ date: '2026-02-02', shares: 2, price: 130 }]);
+    expect(out.sells.map((/** @type {any} */ x) => [x.date, x.shares, x.price]))
+      .toEqual([['2026-02-02', 2, 130]]);
     // Net-cash model: the banked gain lowers what the kept share cost.
     expect(netPosition(out.lots, out.sells).avgCost).toBeCloseTo(40, 9);
   });
@@ -261,5 +262,42 @@ describe('rebuildLedgerFromFills — sold-out holdings', () => {
   it('leaves an untagged OPEN holding alone — the wallet stays the owner\'s', () => {
     const wallet = { shares: 0.075, cost: 65495, lots: [{ date: '2026-02-11', shares: 0.075, cost: 65495 }] };
     expect(rebuildLedgerFromFills(wallet, NET_FILLS, 'BTC-USD')).toBeNull();
+  });
+});
+
+describe('withClosedFromFills', () => {
+  const ORDERS = [
+    fill('NFLX', '2025-12-02', 'buy', 3, 900),
+    fill('NFLX', '2026-06-22', 'sell', 3, 1100),
+    fill('SPCX', '2026-06-22', 'buy', 15, 165.58),
+    { ticker: null, executed_at: '2026-01-01T00:00:00Z', side: 'buy', shares: 1, price: 5 },
+  ];
+
+  it('adds a ticker the board no longer carries, with its whole history', () => {
+    // 41 tickers and ~950 executed trades were invisible to the
+    // transaction history for want of a row to hang them on.
+    const out = withClosedFromFills({ SPCX: spcxHolding() }, ORDERS);
+    expect(Object.keys(out).sort()).toEqual(['NFLX', 'SPCX']);
+    expect(out.NFLX.lots).toHaveLength(1);
+    expect(out.NFLX.sells).toHaveLength(1);
+    expect(out.NFLX.shares).toBe(0);
+    expect(out.NFLX.closed).toBe(true);
+  });
+
+  it('never touches a ticker the board still has', () => {
+    const board = { SPCX: spcxHolding() };
+    const out = withClosedFromFills(board, ORDERS);
+    expect(out.SPCX).toBe(board.SPCX);
+  });
+
+  it('skips a fill the mapper could not name', () => {
+    const out = withClosedFromFills({}, ORDERS);
+    expect(Object.keys(out).sort()).toEqual(['NFLX', 'SPCX']);
+  });
+
+  it('hands the board straight back when there are no fills', () => {
+    const board = { SPCX: spcxHolding() };
+    expect(withClosedFromFills(board, [])).toBe(board);
+    expect(withClosedFromFills(board, null)).toBe(board);
   });
 });

@@ -247,14 +247,26 @@ export function lotsFromOrders(orders, ticker) {
     if (!o || o.ticker !== ticker) continue;
     const shares = Number(o.shares);
     const price = Number(o.price);
-    const date = String(o.executed_at || '').slice(0, 10);
+    const raw = String(o.executed_at || '');
+    const date = raw.slice(0, 10);
     if (!date || !isFinite(shares) || shares <= 0 || !isFinite(price) || price <= 0) continue;
-    if (o.side === 'sell') sells.push({ date, shares, price });
-    else lots.push({ date, shares, cost: price });
+    // Keep the moment as well as the day. A lot's `date` is YYYY-MM-DD
+    // by contract — every comparison in the chart maths depends on that
+    // — so the time goes in `ts`, the same epoch-ms field the editor
+    // stamps, which the transaction history already sorts same-day rows
+    // by. Without it a day's fills sit in whatever order the two
+    // accounts happened to merge in: ORCL bought nineteen times on one
+    // day and they read as an unordered heap.
+    const ms = Date.parse(raw);
+    const ts = Number.isFinite(ms) ? { ts: ms } : {};
+    if (o.side === 'sell') sells.push({ date, shares, price, ...ts });
+    else lots.push({ date, shares, cost: price, ...ts });
   }
-  if (lots.length === 0) return null;
-  lots.sort((a, b) => a.date.localeCompare(b.date));
-  sells.sort((a, b) => a.date.localeCompare(b.date));
+  if (lots.length === 0 && sells.length === 0) return null;
+  const chronological = (/** @type {any} */ a, /** @type {any} */ b) =>
+    a.date.localeCompare(b.date) || ((a.ts ?? 0) - (b.ts ?? 0));
+  lots.sort(chronological);
+  sells.sort(chronological);
   return { lots, sells };
 }
 

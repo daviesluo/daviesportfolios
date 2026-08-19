@@ -1156,6 +1156,14 @@ body {
    this table — so it reads as text rather than borrowing the Holding
    list's blue affordance and its 150px column. */
 .txn-table .txn-sym { font-weight: 600; color: var(--chalk); }
+/* A ticker the board still holds opens its chart. One that was closed
+   out has no holding behind the modal, so it stays plain text — an
+   affordance that leads nowhere is worse than none. */
+.txn-sym-btn {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  font: inherit; color: var(--link, #4a8fd8);
+}
+.txn-sym-btn:hover { text-decoration: underline; }
 /* Average cost is context for the row, not its subject. */
 .txn-table .txn-dim { color: var(--chalk-dim); }
 .txn-table .txn-badge { font-size: 8px; padding: 1px 5px; }

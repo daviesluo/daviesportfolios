@@ -1330,6 +1330,8 @@ function Board({ isReadOnly }) {
           holdings={portfolio.holdings}
           marketData={marketData}
           hideValues={hideValues}
+          t212Orders={t212Orders}
+          onTickerClick={(t) => { setShowTransactionHistory(false); setViewingTicker(t); }}
           onClose={() => setShowTransactionHistory(false)}
         />
       )}

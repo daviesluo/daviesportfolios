@@ -402,11 +402,28 @@ describe('lotsFromOrders — real purchase history replacing the guess', () => {
     // The board has one row per ticker; which T212 account a share sits
     // in isn't something the ledger models.
     const out = /** @type {any} */ (lotsFromOrders(fills, 'VUAA.L'));
-    expect(out.lots).toEqual([
-      { date: '2024-02-02', shares: 3, cost: 80 },
-      { date: '2025-03-04', shares: 2, cost: 90 },
+    expect(out.lots.map((/** @type {any} */ l) => [l.date, l.shares, l.cost])).toEqual([
+      ['2024-02-02', 3, 80],
+      ['2025-03-04', 2, 90],
     ]);
-    expect(out.sells).toEqual([{ date: '2025-06-01', shares: 1, price: 95 }]);
+    expect(out.sells.map((/** @type {any} */ x) => [x.date, x.shares, x.price]))
+      .toEqual([['2025-06-01', 1, 95]]);
+  });
+
+  it('carries the moment of each fill, not just the day', () => {
+    // `date` stays YYYY-MM-DD — every date comparison in the chart maths
+    // depends on that — so the time rides along in `ts`, the same field
+    // the lot editor stamps and the transaction history sorts same-day
+    // rows by. ORCL was bought nineteen times in one day; without this
+    // they arrive in whatever order the two accounts merged in.
+    const sameDay = [
+      { ticker: 'X', executed_at: '2026-08-18T18:30:00Z', side: 'buy', shares: 1, price: 12 },
+      { ticker: 'X', executed_at: '2026-08-18T13:45:00Z', side: 'buy', shares: 1, price: 10 },
+      { ticker: 'X', executed_at: '2026-08-18T15:00:00Z', side: 'buy', shares: 1, price: 11 },
+    ];
+    const out = /** @type {any} */ (lotsFromOrders(sameDay, 'X'));
+    expect(out.lots.map((/** @type {any} */ l) => l.cost)).toEqual([10, 11, 12]);
+    expect(out.lots[0].ts).toBe(Date.parse('2026-08-18T13:45:00Z'));
   });
 
   it('returns null when there is nothing to rebuild from', () => {
@@ -415,9 +432,14 @@ describe('lotsFromOrders — real purchase history replacing the guess', () => {
     expect(lotsFromOrders(fills, 'NVDA')).toBeNull();
     expect(lotsFromOrders([], 'VUAA.L')).toBeNull();
     expect(lotsFromOrders(/** @type {any} */ (null), 'VUAA.L')).toBeNull();
-    // Sells alone can't make a ledger either.
-    expect(lotsFromOrders([{ ticker: 'X', executed_at: '2025-01-01T00:00:00Z', side: 'sell', shares: 1, price: 5 }], 'X'))
-      .toBeNull();
+    // Sells alone DO make a ledger: a position closed out before the
+    // backfill reached its purchases still has sales worth showing, and
+    // `rebuildLedgerFromFills` refuses anything that doesn't net to the
+    // board's own count, so a one-sided ledger can never be published.
+    const sellsOnly = /** @type {any} */ (lotsFromOrders(
+      [{ ticker: 'X', executed_at: '2025-01-01T00:00:00Z', side: 'sell', shares: 1, price: 5 }], 'X'));
+    expect(sellsOnly.lots).toEqual([]);
+    expect(sellsOnly.sells).toHaveLength(1);
   });
 
   it('skips malformed fills rather than poisoning the ledger', () => {
@@ -427,7 +449,9 @@ describe('lotsFromOrders — real purchase history replacing the guess', () => {
       { ticker: 'X', executed_at: '', side: 'buy', shares: 1, price: 5 },
       { ticker: 'X', executed_at: '2025-01-03T00:00:00Z', side: 'buy', shares: 1, price: 0 },
     ], 'X'));
-    expect(out.lots).toEqual([{ date: '2025-01-01', shares: 1, cost: 5 }]);
+    expect(out.lots).toEqual([
+      { date: '2025-01-01', shares: 1, cost: 5, ts: Date.parse('2025-01-01T00:00:00Z') },
+    ]);
   });
 });
 

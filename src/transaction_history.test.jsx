@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { TransactionHistoryModal, transactionRowsToMatrix, sortTransactionRows, nextSortState } from './transaction_history.jsx';
 import { buildTransactionLog } from './transactions.js';
 
@@ -203,5 +204,35 @@ describe('layout', () => {
     render(<TransactionHistoryModal holdings={HOLDINGS} marketData={MARKET} hideValues={false} onClose={vi.fn()} />);
     const chips = [...document.querySelectorAll('.txn-sort-chip')].map((c) => c.textContent);
     expect(chips).toEqual(['Type', 'Date', 'Symbol', 'Shares', 'Price', 'Amount', 'Avg Cost', 'Realised G/L']);
+  });
+});
+
+describe('closed positions and the clickable symbol', () => {
+  beforeEach(() => cleanup());
+  const FILLS = [
+    { ticker: 'NFLX', executed_at: '2025-12-02T14:30:00.000Z', side: 'buy', shares: 3, price: 900 },
+    { ticker: 'NFLX', executed_at: '2026-06-22T14:30:00.000Z', side: 'sell', shares: 3, price: 1100 },
+  ];
+
+  it('lists trades in a ticker the board no longer carries', () => {
+    render(<TransactionHistoryModal holdings={HOLDINGS} marketData={MARKET} hideValues={false}
+             t212Orders={FILLS} onClose={vi.fn()} />);
+    const syms = [...document.querySelectorAll('[data-col="symbol"]')].map((c) => c.textContent);
+    expect(syms).toContain('NFLX');
+  });
+
+  it('opens the chart for a ticker still on the board', async () => {
+    const user = userEvent.setup();
+    const onTickerClick = vi.fn();
+    render(<TransactionHistoryModal holdings={HOLDINGS} marketData={MARKET} hideValues={false}
+             t212Orders={FILLS} onTickerClick={onTickerClick} onClose={vi.fn()} />);
+    await user.click(screen.getAllByRole('button', { name: 'NVDA' })[0]);
+    expect(onTickerClick).toHaveBeenCalledWith('NVDA');
+  });
+
+  it('leaves a closed ticker as plain text — its chart has no holding', () => {
+    render(<TransactionHistoryModal holdings={HOLDINGS} marketData={MARKET} hideValues={false}
+             t212Orders={FILLS} onTickerClick={vi.fn()} onClose={vi.fn()} />);
+    expect(screen.queryByRole('button', { name: 'NFLX' })).not.toBeInTheDocument();
   });
 });
