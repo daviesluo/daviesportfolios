@@ -8,6 +8,8 @@
 //
 //   GET  /functions/v1/data?action=load            → { data | null }
 //   POST /functions/v1/data?action=save  body=portfolio
+//   GET  /functions/v1/data?action=price-snapshots&since=<ms>&bucket=<sec>
+//                                                  → { rows: [{ts, prices}] }
 //        (admin role required; read-only tokens are 403'd here)
 //
 // REQUIRED secret: APP_AUTH_SECRET (same value as in `auth/index.ts`).
@@ -104,6 +106,42 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
         data: rows[0].data,
         version: typeof rows[0].version === "number" ? rows[0].version : 0,
       });
+    }
+
+    // Server-recorded 5-minute prices for the performance charts.
+    //
+    // Goes through the bucketed RPC rather than a raw table read: at
+    // 5-minute sampling a YTD window is ~60k rows, and a plain ascending
+    // LIMIT returns January and drops everything recent — which is
+    // exactly how an earlier version of this read ended up drawing a
+    // chart made entirely of the oldest samples it had.
+    //
+    // Read is allowed for BOTH roles: a read-only viewer sees the same
+    // charts. The rows still never leave the token gate, because their
+    // keys enumerate the holdings.
+    if (action === "price-snapshots" && req.method === "GET") {
+      const sinceMs = Number(url.searchParams.get("since"));
+      const since = Number.isFinite(sinceMs) && sinceMs > 0
+        ? new Date(sinceMs).toISOString()
+        // No `since` → the trailing 24 h, the shortest window a chart
+        // asks for. Never "everything": that is the 60k-row read.
+        : new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const bucketRaw = Number(url.searchParams.get("bucket"));
+      // Clamped to [1 min, 1 day]: below a minute the bucket is finer
+      // than the sampling rate and buys nothing, above a day it collapses
+      // a YTD window into a handful of points.
+      const bucket = Number.isFinite(bucketRaw)
+        ? Math.min(86_400, Math.max(60, Math.floor(bucketRaw)))
+        : 300;
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/price_snapshot_series`, {
+        method: "POST",
+        headers: { ...SB_HEADERS, "Content-Type": "application/json" },
+        body: JSON.stringify({ _since: since, _bucket_seconds: bucket }),
+        signal: AbortSignal.timeout(8_000),
+      });
+      if (!res.ok) return json(res.status, { error: "price snapshots failed" });
+      const rows = await res.json();
+      return json(200, { rows: Array.isArray(rows) ? rows : [] });
     }
 
     if (action === "save" && req.method === "POST") {

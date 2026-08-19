@@ -1525,3 +1525,28 @@ body {
     50%       { transform: translate(calc(-50% + 18px), calc(-50% - 58px)) rotate(8deg); }
   }
 }
+
+/* ---- Performance panel header: title + the ⇄ view swap.
+   Prefixed `panel-` rather than reusing the `perf-` family: an earlier
+   attempt at a second chart reused `perf-` class names, landed later in
+   the cascade, and silently restyled the vs-S&P legend's dots. */
+.panel-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.panel-title-row .panel-title { margin-bottom: 0; }
+.panel-swap {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--chalk-dim);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 6px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.panel-swap:hover { color: var(--chalk); border-color: var(--chalk-dim); }
+.panel-swap:focus-visible { outline: 1px solid var(--chalk-dim); outline-offset: 1px; }
