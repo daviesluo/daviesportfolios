@@ -156,10 +156,11 @@ describe('applyFillLedgers', () => {
   });
 
   it('never changes a share count', () => {
+    // The cost DOES move to the ledger's own figure (see below); the
+    // share count is the one thing this may not touch.
     const holdings = { SPCX: spcxHolding() };
     applyFillLedgers(holdings, SPCX_FILLS);
     expect(holdings.SPCX.shares).toBe(130);
-    expect(holdings.SPCX.cost).toBe(127.840692307692);
   });
 });
 
@@ -184,5 +185,44 @@ describe('ledgerProvenance', () => {
     const holding = { shares: 60, cost: 136.1, t212Shares: 60, lots: [] };
     const orders = [fill('NVDA', '2026-03-27', 'buy', 33.5, 157.19)];
     expect(ledgerProvenance(holding, orders, 'NVDA', true).state).toBe('manual');
+  });
+});
+
+describe('applyFillLedgers — cost follows the trades', () => {
+  it('sets the average cost from the rebuilt ledger, not the broker\'s buy-only average', () => {
+    // A holding sold down: T212 reports the average of what was BOUGHT
+    // and says nothing about the sale. The net-cash model this app uses
+    // folds the realized loss into what the kept shares cost.
+    const holdings = {
+      X: {
+        shares: 1, cost: 100, t212Shares: 1,
+        lots: [{ date: '2026-01-02', shares: 1, cost: 100 }],
+      },
+    };
+    applyFillLedgers(holdings, [
+      fill('X', '2026-01-02', 'buy', 3, 100),
+      fill('X', '2026-02-02', 'sell', 2, 80),
+    ]);
+    // 300 paid − 160 taken back = 140 of net cash behind 1 share.
+    expect(holdings.X.cost).toBeCloseTo(140, 9);
+    expect(holdings.X.shares).toBe(1);
+  });
+
+  it('leaves the cost alone on a holding that was only ever bought', () => {
+    const holdings = { SPCX: spcxHolding() };
+    applyFillLedgers(holdings, SPCX_FILLS);
+    // 71 elsewhere at 8,105 + 59 at T212 = 16,619.56 over 130 shares.
+    expect(holdings.SPCX.cost).toBeCloseTo(127.8427, 4);
+  });
+
+  it('re-applies the cost even when the ledger is already settled', () => {
+    // The position sync writes its own average first on every tick, so
+    // a rebuild that skipped an unchanged ledger would let the two
+    // alternate on screen.
+    const holdings = { SPCX: spcxHolding() };
+    applyFillLedgers(holdings, SPCX_FILLS);
+    holdings.SPCX.cost = 999;
+    expect(applyFillLedgers(holdings, SPCX_FILLS)).toEqual([]);
+    expect(holdings.SPCX.cost).toBeCloseTo(127.8427, 4);
   });
 });

@@ -114,8 +114,21 @@ export function ledgerDiffers(holding, next) {
 
 /**
  * Rebuild every holding the broker has a complete record of. Mutates
- * `holdings` in place and returns the tickers it rewrote, so the caller
- * can tell a real change from a no-op tick.
+ * `holdings` in place and returns the tickers whose ledger actually
+ * changed, so the caller can tell a real change from a no-op tick.
+ *
+ * `cost` follows the rebuilt ledger. The board's own figure comes from
+ * T212's `averagePricePaid`, which is the average of what was BOUGHT and
+ * says nothing about what was sold — while this app's cost basis is the
+ * net-cash model the owner specified, where a sale's realized P&L folds
+ * into the remaining basis. On a holding that was only ever bought the
+ * two agree to the cent (eight of them do here); on ORCL, sold down from
+ * 123 fills to 70 shares, they differ by $28.68 a share. Leaving the two
+ * side by side would put a different average cost in the lot editor than
+ * on the board, for the same holding, forever.
+ *
+ * `shares` is never touched: `rebuildLedgerFromFills` has already refused
+ * anything that wouldn't net to the board's own count.
  *
  * @param {Record<string, any>} holdings
  * @param {Array<any> | null | undefined} orders
@@ -126,9 +139,18 @@ export function applyFillLedgers(holdings, orders) {
   /** @type {string[]} */ const changed = [];
   for (const [ticker, holding] of Object.entries(holdings)) {
     const next = rebuildLedgerFromFills(holding, orders, ticker);
-    if (!next || !ledgerDiffers(holding, next)) continue;
-    holdings[ticker] = { ...holding, lots: next.lots, sells: next.sells };
-    changed.push(ticker);
+    if (!next) continue;
+    const differs = ledgerDiffers(holding, next);
+    // Always re-apply the cost, even when the ledger is unchanged: the
+    // T212 position sync runs first and writes its own average over it
+    // on every tick, so skipping here would leave the two alternating.
+    holdings[ticker] = {
+      ...holding,
+      lots: next.lots,
+      sells: next.sells,
+      cost: netPosition(next.lots, next.sells).avgCost,
+    };
+    if (differs) changed.push(ticker);
   }
   return changed;
 }
