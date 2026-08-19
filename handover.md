@@ -172,6 +172,54 @@ whole shift is +$1,831, and ORCL is +$2,007 of it: sold down from 123
 fills to 70 shares, $28.68/share apart. He was shown the numbers and
 chose to follow the trades.
 
+## The extended-hours board read 0.00 %, and why (2026-08-19)
+
+Every US holding showed exactly 0.00 % under the toggle, and it survived
+a hard refresh. Not a missing figure — a real, computed zero, which is
+why the em-dash fix (below) didn't touch it.
+
+`applyTrading212` replaces Yahoo's `lastPrice` with the broker's live
+quote. That exists for `VUAA.L` / `SAEM.L`, whose free Yahoo feed runs
+15-20 minutes behind, and it ran on exactly those two while the sync
+covered only them. `123985f` widened the sync to every reported position
+and widened this with it. One layer down,
+`applyTrading212NightPrice` measures the overnight move against
+`lastPrice` as today's regular close — so once the broker's quote WAS
+the lastPrice, it compared that quote against itself.
+
+Found by comparing what the browser had SAVED (`lastPrice` and
+`extPrice` identical) against what the prices Edge Function returns
+directly (different). Scoped back to `T212_LIVE_PRICE_TICKERS`.
+
+Two lessons for the next session:
+
+- A probe that mocks the thing you're debugging proves nothing. The
+  first one returned `{holdings: {}, prices: …}`, so `applyTrading212`
+  had nothing to overlay and the bug couldn't reproduce.
+- `board_data`'s saved prices are real evidence — the fingerprint only
+  covers user data, so they're whatever was last written for another
+  reason, but when they contradict a live fetch that contradiction is
+  the bug.
+
+Alongside it: the heatmap now shows an em dash rather than `+0.00%` when
+a row has no extended figure at all, because painting "nobody knows" as
+"unchanged" states a fact that isn't one.
+
+## The transaction table is its own table now (2026-08-19)
+
+It borrowed the Holding list's `.hl-*` proportions, which are for one
+row per holding. This one is every trade ever made. `Date` wrapped onto
+two lines, doubling every row so eighteen showed eight; Symbol reserved
+150px and painted link-blue though nothing opens from here; the frozen
+first column pinned `Type`. Now 12px rows, tabular figures, a green/red
+rail down the left edge, and below 760px each trade is a three-line card
+(it ran 760px wide on a 356px phone) with sort chips replacing the
+header row. Verified in a browser at 1440 and 390.
+
+Columns: Type · Date · Symbol · Shares · Price · Amount · Avg Cost ·
+Realised G/L. The last two come from `annotateLedger`, which walks each
+holding in order — neither figure can be read off a row on its own.
+
 ## The rollback (2026-08-18)
 
 `main` was rolled back to the tree of `8d869fe` in `8a7d418`, with three

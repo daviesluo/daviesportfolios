@@ -247,6 +247,15 @@ Changing any of these means re-opening a decision he has already made.
   folds the rest in only when he clicks. Every data loss in this repo
   came from a sync deciding it knew better.
 
+- **Only `VUAA.L` / `SAEM.L` may take the broker's quote as
+  `lastPrice`.** Their Yahoo feed lags 15-20 min; every other holding's
+  is live. Letting it widen with the sync made
+  `applyTrading212NightPrice` compare the broker's quote against itself,
+  and the whole extended-hours board read 0.00 %.
+- **A probe that mocks the thing you're debugging proves nothing.** The
+  first attempt at that bug returned an empty `holdings` map, so the
+  overlay had nothing to overwrite and it couldn't reproduce.
+
 ### Labels and other surfaces
 
 - `displayTicker('2DG.SG')` (and `.F` / `.DE` / bare `2DG`) is `SIVE`
