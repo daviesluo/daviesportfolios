@@ -32,7 +32,7 @@ overwrite and the stale per-stock transaction histories._
 | | |
 |---|---|
 | `main` | Carries the rollback to `8d869fe` plus four data-loss repairs pushed straight to it (see below). All gates green. |
-| Working branch | `claude/repo-audit-restore-uverhn` → **PR #209**, open, not reviewed by the owner yet. It rebuilds the chart + T212 work on top of the restored base. **It still carries the first-sync overwrite rule that `main` has since reverted — merge `main` into it before doing anything else with it.** |
+| Working branch | `claude/repo-audit-restore-uverhn` → **PR #209**, open, not reviewed by the owner yet. `main` was merged in at `f58b11b` (all checks green there), so it carries the conservative first-sync rule and the backfill fix. It has NOT been merged again since the ledger rebuild landed on `main` — do that before touching it. |
 | Supabase | project `flmvxigozjuizpckllvk`, ACTIVE_HEALTHY. Migrations through `0031`. `trading212` Edge Function deployed and byte-identical to the repo as of this session. |
 
 ## Repairs that went straight to `main` (2026-08-18)
@@ -129,6 +129,41 @@ the board holds, because **Save recomputes `shares` from the ledger**
 of 26 holdings carry lots short of their board count, so a single Save
 on RKLB would have dropped it from 160 to 30.
 
+## The ledger is the broker's history now (2026-08-19)
+
+The owner opened the lot editor and couldn't read it: "两个t212账户的
+记录不是已经全都有了吗，为什么会有missing". He was right, and the panel
+that asked him to fold fills in one by one was wrong twice over.
+
+**The two records don't correspond row for row.** SPCX carried ONE lot of
+`59 @ 144.31` — T212's reported average price, not a trade that ever
+happened — while the twelve real fills ran 165.58 down to 115.48 over a
+month. A 1:1 matcher makes all twelve look new, so "+ Add 12 missing"
+would have booked 118 shares where 59 were held. No tolerance fixes that.
+
+So the refresh tick REBUILDS instead (`applyFillLedgers` in
+`src/t212_fills.js`). A synced holding's ledger becomes the broker's own
+fills, in date order, at the real prices. Two rules:
+
+1. Only a ticker with a `t212Shares` tag AND fills to its name. A CN fund
+   and a cold wallet are untouchable by construction.
+2. The result must net to the board's own share count, or nothing is
+   written. A half-walked backfill leaves the ledger exactly as it was
+   and the editor says the history is still downloading.
+
+`src: 'other'` marks what the broker has no claim over — another
+platform's shares, and anything typed into the editor from now on.
+Migration `0033` marks the four that predate it (SPCX 50 + 21, RKLB 11.5,
+HOOD 30), which are exactly each holding's excess over its broker slice,
+so all three still net to 130 / 160 / 50.
+
+**`cost` follows the ledger; `shares` never moves.** The board's figure
+was T212's `averagePricePaid` — the average of what was BOUGHT — while
+this app's basis is the net-cash model the owner specified. Eight of the
+fourteen covered holdings agree to the cent. ORCL, sold down from 123
+fills to 70 shares, differs by $28.68/share (~$2,007 of total cost). He
+was shown the numbers and chose to follow the trades.
+
 ## The rollback (2026-08-18)
 
 `main` was rolled back to the tree of `8d869fe` in `8a7d418`, with three
@@ -201,15 +236,13 @@ numbers it produced independently confirm the diagnosis.
 
 ## Open items
 
-- [ ] **Let the walk finish.** Both cursors are still moving backward
-      through 2025. Nothing to do but open the site; check
-      `t212_orders_sync.complete` latches on both accounts.
-- [ ] **Merge `main` into `claude/repo-audit-restore-uverhn`.** The PR
-      branch still carries the first-sync overwrite rule that deleted
-      the shares. Do not merge PR #209 before that.
-- [ ] The ledgers are still short of their board counts (RKLB 41.5 of
-      160, and so on). The fills are in the table now; folding them in
-      is one click per ticker in the lot editor, deliberately manual.
+- [ ] **Let the ISA walk finish.** `invest` latched `complete` at 919
+      fills; `isa` is at ~737 and still moving back through 2025-07.
+      Ten holdings (AAPL, AMZN, GOOG, MSFT, NBIS, NVDA, NVTS, APLD, AVGO,
+      CRWV) are waiting on it and read "still downloading" in the editor
+      until then. Nothing to do but open the site.
+- [x] **Merge `main` into `claude/repo-audit-restore-uverhn`** — done in
+      `f58b11b`. See the note under Open items below.
 - [ ] `XFABp_EQ` — 8 fills, net 0 — is still unmapped. No board row
       corresponds to it and guessing its exchange suffix would be
       inventing a mapping rather than correcting one.
@@ -334,6 +367,9 @@ stopping the world; the skip reason is still tallied into `last_error`.
 
 ### 2026-08-18 — broker fills are shown, not merged
 
+**SUPERSEDED the next day — see "the ledger IS the broker's history"
+below. Do not follow this entry.**
+
 The lot editor lists Trading 212's fills for the ticker and marks which
 ones the ledger already has, but folding them in takes a click. An
 automatic merge would have to de-duplicate machine rows against
@@ -341,6 +377,30 @@ hand-typed ones on a book where 16 of 26 ledgers are incomplete, and
 getting that wrong writes double lots into the YTD chart's input. Every
 data loss on this repo has come from a sync deciding it knew better.
 Cost: the ledger only catches up when the owner asks it to.
+
+### 2026-08-19 — the ledger IS the broker's history
+
+**Supersedes "broker fills are shown, not merged" above.** That design
+assumed the two records correspond row for row. They don't: SPCX carried
+one lot of `59 @ 144.31` — T212's reported AVERAGE, not a trade — against
+twelve real fills running 165.58 down to 115.48. A 1:1 matcher calls all
+twelve new, so the "add missing" button would have booked 118 shares
+where 59 were held. The owner read the panel and couldn't tell what it
+was claiming, which was the first symptom.
+
+So a synced holding's ledger is rebuilt from the fills outright. The
+caution that motivated the old entry is kept as two rules rather than as
+a click: only a ticker with a `t212Shares` tag and fills to its name is
+touched, and the result must net to the board's own share count or
+nothing is written. `src: 'other'` protects what the broker can't see.
+
+`cost` follows the rebuilt ledger too — the board's figure was T212's
+buy-only average, which disagrees with this app's net-cash basis on any
+holding that was sold. Eight of fourteen agree to the cent; ORCL differs
+by $28.68/share. Put to the owner with the numbers; he chose the trades.
+
+Cost: a holding the backfill hasn't reached keeps a ledger that looks
+stale, and says so, until the walk gets there.
 
 ---
 
