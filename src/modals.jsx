@@ -12,7 +12,7 @@ import {
 import { currencySymbol as curSym, detectCurrency } from './fx.js';
 import { cleanLots } from './lots.js';
 import { ledgerProvenance, SRC_OTHER } from './t212_fills.js';
-import { cleanSells, netPosition, realizedGain } from './transactions.js';
+import { cleanSells, netPosition, realizedGain, toLedgerRows, fromLedgerRows } from './transactions.js';
 
 // Ref-counted body scroll lock. PositionDrill can stack on top of the
 // chart/edit/add modal, so two Modal instances can be mounted at once.
@@ -293,43 +293,37 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
 // holding's `shares`/`cost` (lots are the source of truth for the YTD chart).
 function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {any[]} */ ([]), t212OrdersComplete = false, onClose, onSave, onDelete, onMove }) {
   const today = new Date().toISOString().slice(0, 10);
-  const seed = (Array.isArray(holding.lots) && holding.lots.length > 0)
-    ? holding.lots
-    : [{ date: today, shares: holding.shares || 0, cost: holding.cost || 0 }];
-
-  /** @type {[Array<{date:string,shares:string|number,cost:string|number,ts?:number}>, Function]} */
-  const [lots, setLots] = React.useState(seed.map(l => ({
-    date: l.date || today,
-    shares: String(l.shares ?? ''),
-    cost: String(l.cost ?? ''),
-    // Preserve an existing entry timestamp so re-saving a holding doesn't
-    // strip it (which would lose the Transaction History's same-day order).
-    ...(typeof l.ts === 'number' ? { ts: l.ts } : {}),
-    ...(typeof l.src === 'string' ? { src: l.src } : {}),
-  })));
-  // Sell records — the SALES side of the ledger. Net position = buys −
-  // sells under the net-cash model (transactions.js); on save these feed
-  // the Transaction History too.
-  /** @type {[Array<{date:string,shares:string|number,price:string|number,ts?:number}>, Function]} */
-  const [sells, setSells] = React.useState(
-    (Array.isArray(holding.sells) ? holding.sells : []).map(s => ({
-      date: s.date || today,
-      shares: String(s.shares ?? ''),
-      price: String(s.price ?? ''),
-      ...(typeof s.ts === 'number' ? { ts: s.ts } : {}),
-      ...(typeof s.src === 'string' ? { src: s.src } : {}),
-    })),
-  );
+  // ONE list, newest at the top, buys and sells together — a holding's
+  // history read in the order it happened, which is how it reads on the
+  // broker's own statement. Two grids was fine for four hand-typed rows
+  // and unusable for a hundred synced fills.
+  //
+  // Sorted once, at mount. Re-sorting on every keystroke would make a row
+  // jump out from under the cursor the moment its date changed.
+  /** @type {[Array<{kind:'buy'|'sell',date:string,shares:string,price:string,ts?:number,src?:string}>, Function]} */
+  const [rows, setRows] = React.useState(() => {
+    const seeded = toLedgerRows(holding);
+    return seeded.length > 0 ? seeded : [{
+      kind: /** @type {const} */ ('buy'),
+      date: today,
+      shares: String(holding.shares || 0),
+      price: String(holding.cost || 0),
+    }];
+  });
+  // The rest of the app stores `{ lots, sells }`; the editor is the only
+  // place they're one list. Derived rather than duplicated so there is no
+  // second copy to keep in step.
+  const { lots, sells } = React.useMemo(() => fromLedgerRows(rows), [rows]);
 
   // Snapshot the initial rows once at mount so we can detect "dirty"
   // state on close. Without this, an outside-click on the backdrop
   // (or a stray Cancel/✕) silently discards everything the user just
   // typed — and the symptom only shows up at the next refresh when
   // the user notices old numbers.
-  const [initialJSON] = React.useState(() => JSON.stringify({ lots, sells }));
+  const [initialJSON] = React.useState(() => JSON.stringify(rows));
   const isDirty = React.useMemo(
-    () => JSON.stringify({ lots, sells }) !== initialJSON,
-    [lots, sells, initialJSON],
+    () => JSON.stringify(rows) !== initialJSON,
+    [rows, initialJSON],
   );
   const { confirm, element: confirmEl } = useConfirm();
   const safeClose = React.useCallback(async () => {
@@ -342,28 +336,22 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
     ? `Costs are in ${holding.currency} (${sym}). Board values use live FX to convert to USD.`
     : null;
 
-  const updateLot = (idx, patch) => {
-    setLots(/** @param {any[]} ls */ ls => ls.map((l, i) => i === idx ? { ...l, ...patch } : l));
+  const updateRow = (idx, patch) => {
+    setRows(/** @param {any[]} rs */ rs => rs.map((r, i) => i === idx ? { ...r, ...patch } : r));
   };
-  const removeLot = (idx) => {
-    setLots(/** @param {any[]} ls */ ls => ls.filter((_, i) => i !== idx));
+  const removeRow = (idx) => {
+    setRows(/** @param {any[]} rs */ rs => rs.filter((_, i) => i !== idx));
   };
-  const addLot = () => {
-    // Stamp the record time so the Transaction History can order multiple
-    // same-day entries by when they were actually added, not alphabetically.
-    // `src: 'other'` marks it as the owner's — a purchase made somewhere
-    // the broker can't see. Without it the next refresh would rebuild the
-    // ledger from Trading 212's fills and this row would vanish.
-    setLots(/** @param {any[]} ls */ ls => [...ls, { date: today, shares: '', cost: '', ts: Date.now(), src: SRC_OTHER }]);
-  };
-  const updateSell = (idx, patch) => {
-    setSells(/** @param {any[]} ss */ ss => ss.map((s, i) => i === idx ? { ...s, ...patch } : s));
-  };
-  const removeSell = (idx) => {
-    setSells(/** @param {any[]} ss */ ss => ss.filter((_, i) => i !== idx));
-  };
-  const addSell = () => {
-    setSells(/** @param {any[]} ss */ ss => [...ss, { date: today, shares: '', price: '', ts: Date.now(), src: SRC_OTHER }]);
+  // New rows go to the TOP, where the newest belong, and carry
+  // `src: 'other'` — a trade made somewhere Trading 212 can't see.
+  // Without that mark the next refresh would rebuild the ledger from the
+  // broker's fills and this row would vanish. `ts` keeps same-day rows in
+  // the order they were entered.
+  const addRow = (kind) => {
+    setRows(/** @param {any[]} rs */ rs => [
+      { kind, date: today, shares: '', price: '', ts: Date.now(), src: SRC_OTHER },
+      ...rs,
+    ]);
   };
 
   // Preview NET position / AC reflects only rows that survive cleanLots /
@@ -383,7 +371,7 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
   // (every row starts at date=today, so a future date looks deliberate);
   // half-typed shares/price rows are normal mid-edit states a warning
   // would nag on. Counts buy + sell rows.
-  const futureCount = [...lots, ...sells].filter(
+  const futureCount = rows.filter(
     (r) => typeof r?.date === 'string' && r.date.trim() > today,
   ).length;
 
@@ -501,76 +489,56 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
         )}
         {willShrink && net.shares > 0 && (
           <div className="lot-warn mono" role="alert">
-            The board holds {fmtShFor(boardShares, ticker)} shares but these rows only account for{' '}
-            {fmtShFor(net.shares, ticker)}. Saving drops the other {fmtShFor(shortfall, ticker)} —
-            add the missing purchases first if they were bought elsewhere.
+            These rows add up to {fmtShFor(net.shares, ticker)} shares, not the{' '}
+            {fmtShFor(boardShares, ticker)} you hold. Saving now drops the other{' '}
+            {fmtShFor(shortfall, ticker)}.
           </div>
         )}
 
         <div className="lot-grid">
           <div className="lot-grid-head mono">
-            <span>Bought</span>
+            <span>Date</span>
+            <span />
             <span>Shares</span>
-            <span>Cost / share ({sym})</span>
+            <span>Price ({sym})</span>
             <span />
           </div>
-          {lots.length === 0 && (
-            <div className="lot-empty mono dim">No purchases — click "Add lot" to record a buy.</div>
+          {rows.length === 0 && (
+            <div className="lot-empty mono dim">No trades yet — click "Add buy" to record one.</div>
           )}
-          {lots.map((l, i) => (
+          {rows.map((r, i) => (
             <div key={i} className="lot-grid-row">
-              <input className="inp mono" type="date" value={l.date} max={today}
-                     onChange={(e) => updateLot(i, { date: e.target.value })} />
-              <input className="inp mono" inputMode="decimal" value={l.shares}
-                     onChange={(e) => updateLot(i, { shares: e.target.value })} placeholder="0" />
-              <input className="inp mono" inputMode="decimal" value={l.cost}
-                     onChange={(e) => updateLot(i, { cost: e.target.value })} placeholder="0" />
-              <button className="btn-ghost icon" onClick={() => removeLot(i)} aria-label="Remove lot" title="Remove lot">✕</button>
+              <input className="inp mono" type="date" value={r.date} max={today}
+                     onChange={(e) => updateRow(i, { date: e.target.value })} />
+              <button
+                className={`txn-badge txn-${r.kind} kind-toggle`}
+                onClick={() => updateRow(i, { kind: r.kind === 'buy' ? 'sell' : 'buy' })}
+                title="Switch between buy and sell"
+                aria-label={`${r.kind === 'buy' ? 'Buy' : 'Sell'} — click to switch`}
+              >{r.kind === 'buy' ? 'BUY' : 'SELL'}</button>
+              <input className="inp mono" inputMode="decimal" value={r.shares}
+                     onChange={(e) => updateRow(i, { shares: e.target.value })} placeholder="0" />
+              <input className="inp mono" inputMode="decimal" value={r.price}
+                     onChange={(e) => updateRow(i, { price: e.target.value })} placeholder="0" />
+              <button className="btn-ghost icon" onClick={() => removeRow(i)} aria-label="Remove row" title="Remove row">✕</button>
             </div>
           ))}
         </div>
 
-        {sells.length > 0 && (
-          <div className="lot-grid sell-grid">
-            <div className="lot-grid-head mono">
-              <span>Sold</span>
-              <span>Shares</span>
-              <span>Sell price ({sym})</span>
-              <span />
-            </div>
-            {sells.map((s, i) => (
-              <div key={i} className="lot-grid-row">
-                <input className="inp mono" type="date" value={s.date} max={today}
-                       onChange={(e) => updateSell(i, { date: e.target.value })} />
-                <input className="inp mono" inputMode="decimal" value={s.shares}
-                       onChange={(e) => updateSell(i, { shares: e.target.value })} placeholder="0" />
-                <input className="inp mono" inputMode="decimal" value={s.price}
-                       onChange={(e) => updateSell(i, { price: e.target.value })} placeholder="0" />
-                <button className="btn-ghost icon" onClick={() => removeSell(i)} aria-label="Remove sale" title="Remove sale">✕</button>
-              </div>
-            ))}
-          </div>
-        )}
-
         <div className="lot-add-row">
-          <button className="btn-ghost lot-add" onClick={addLot}>+ Add lot</button>
-          <button className="btn-ghost lot-add" onClick={addSell}>+ Sell</button>
+          <button className="btn-ghost lot-add" onClick={() => addRow('buy')}>+ Add buy</button>
+          <button className="btn-ghost lot-add" onClick={() => addRow('sell')}>+ Add sell</button>
         </div>
 
         {provenance.state === 'synced' && (
           <div className="ledger-src mono dim">
-            These are Trading 212's own {provenance.fills} executed trades
-            {provenance.other > 0
-              ? `, plus ${provenance.other} bought elsewhere.`
-              : '.'}{' '}
-            They refresh themselves; edits you make here are kept.
+            Synced from Trading 212
+            {provenance.other > 0 ? ', plus your Robinhood buys.' : '.'}
           </div>
         )}
         {provenance.state === 'pending' && (
           <div className="ledger-src mono dim">
-            Trading 212's trade history is still downloading
-            {provenance.fills > 0 ? ` (${provenance.fills} so far)` : ''} — these
-            rows will fill themselves in once it reaches this holding.
+            Still loading from Trading 212.
           </div>
         )}
 

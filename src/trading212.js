@@ -138,8 +138,12 @@ export async function fetchTrading212Holdings() {
 let ordersCache = /** @type {{ts: number, rows: any[], complete: boolean} | null} */ (null);
 // Executed history is immutable — a fill from 2024 is never going to
 // change — so this only needs re-reading often enough to notice a NEW
-// fill. Ten minutes keeps it off the 30-second refresh tick entirely.
-const ORDERS_TTL_MS = 10 * 60 * 1000;
+// one. It reads our own `t212_orders` table, not Trading 212, so the
+// cost is one Edge call; 60 s keeps it off most of the 30-second refresh
+// ticks while letting a trade reach the board within a minute of the
+// backfill storing it. `clearTrading212OrdersCache()` shortcuts even
+// that whenever a sync page lands.
+const ORDERS_TTL_MS = 60 * 1000;
 
 export async function fetchTrading212Orders() {
   if (ordersCache && Date.now() - ordersCache.ts < ORDERS_TTL_MS) {
