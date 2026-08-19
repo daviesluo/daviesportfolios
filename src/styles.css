@@ -1133,6 +1133,99 @@ body {
 /* Every header sorts: descending, ascending, then back to the log's own
    newest-first order — without that third state there is no way back
    short of closing the modal. The arrow marks the column in play. */
+/* Transaction history table.
+   ---------------------------------------------------------------
+   Shares the Holding list's `.hl-*` scaffolding but not its
+   proportions: that table shows one row per holding — twenty-odd rows
+   of a company each — while this one is every trade ever made, which
+   on this book is hundreds. Density is the whole job.
+
+   What the default cost: `Date` wrapped `2026-07-22` onto two lines,
+   which doubled every row's height, so eighteen rows showed eight. */
+.txn-table { font-size: 12px; }
+.txn-table td { padding: 5px 10px; white-space: nowrap; }
+/* Figures line up column-wise only if the digits are the same width. */
+.txn-table td[data-col="shares"],
+.txn-table td[data-col="price"],
+.txn-table td[data-col="amount"],
+.txn-table td[data-col="avgcost"],
+.txn-table td[data-col="gain"],
+.txn-table td[data-col="date"] { font-variant-numeric: tabular-nums; }
+.txn-table .txn-date { color: var(--chalk-dim); }
+/* The ticker is an identifier here, not a link — nothing opens from
+   this table — so it reads as text rather than borrowing the Holding
+   list's blue affordance and its 150px column. */
+.txn-table .txn-sym { font-weight: 600; color: var(--chalk); }
+/* Average cost is context for the row, not its subject. */
+.txn-table .txn-dim { color: var(--chalk-dim); }
+.txn-table .txn-badge { font-size: 8px; padding: 1px 5px; }
+/* A colour rail down the left edge: direction is readable before the
+   eye reaches the badge, and it survives sorting by any other column. */
+.txn-table .txn-row td:first-child { border-left: 2px solid transparent; }
+.txn-table .txn-row-buy  td:first-child { border-left-color: var(--gain-dim); }
+.txn-table .txn-row-sell td:first-child { border-left-color: var(--loss-dim); }
+/* This table's first column is Type, which is worth nothing frozen —
+   drop the Holding list's sticky-first-column treatment. */
+.txn-table td:first-child,
+.txn-table th:first-child { position: static; box-shadow: none; background: none; }
+.txn-table tbody tr:nth-child(even) { background: rgba(244,239,227,0.022); }
+.txn-table tbody tr:hover { background: rgba(244,239,227,0.06); }
+
+/* Sorting on a phone: the headers are the sort control on desktop and
+   there are no headers in card mode, so the same cycle gets a row of
+   chips. Hidden on desktop, where the headers already do it. */
+.txn-sort-bar { display: none; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.txn-sort-chip {
+  background: transparent; border: 1px solid var(--line); border-radius: 3px;
+  color: var(--chalk-dim); font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.04em; padding: 4px 8px; cursor: pointer;
+}
+.txn-sort-chip.is-active { color: var(--chalk); border-color: var(--chalk-dim); }
+
+@media (max-width: 760px) {
+  /* One card per trade instead of a table twice the width of the
+     screen. Every field survives — hiding Amount or Avg Cost would
+     make the phone view a different, lesser record — laid out in the
+     order they answer: what and in what, for how much; then when, and
+     at what size and price; then the cost basis it left behind and
+     what it banked. */
+  .txn-table, .txn-table tbody, .txn-table tr, .txn-table td { display: block; width: auto; }
+  .txn-table thead { display: none; }
+  .txn-table .txn-row {
+    display: grid;
+    grid-template-columns: 46px 1fr auto;
+    grid-template-areas:
+      "type    symbol  amount"
+      "date    shares  price"
+      "avgcost gain    gain";
+    gap: 2px 8px;
+    padding: 8px 10px 8px 8px;
+    border-bottom: 1px solid rgba(244,239,227,0.06);
+    border-left: 2px solid transparent;
+    align-items: baseline;
+  }
+  .txn-table .txn-row-buy  { border-left-color: var(--gain-dim); }
+  .txn-table .txn-row-sell { border-left-color: var(--loss-dim); }
+  .txn-table .txn-row td { padding: 0; border: 0; }
+  .txn-table td[data-col="type"]    { grid-area: type; }
+  .txn-table td[data-col="symbol"]  { grid-area: symbol; font-size: 13px; }
+  .txn-table td[data-col="amount"]  { grid-area: amount; }
+  .txn-table td[data-col="date"]    { grid-area: date; font-size: 11px; }
+  .txn-table td[data-col="shares"]  { grid-area: shares; font-size: 11px; }
+  .txn-table td[data-col="price"]   { grid-area: price; font-size: 11px; }
+  .txn-table td[data-col="avgcost"] { grid-area: avgcost; font-size: 11px; }
+  /* On its own line a bare figure says nothing. Desktop has a header
+     for this; the card has to carry its own. */
+  .txn-table td[data-col="avgcost"]:not(:empty)::before { content: 'AC '; opacity: 0.65; }
+  .txn-table td[data-col="gain"]    { grid-area: gain; font-size: 11px; }
+  /* An empty cell would still claim its grid row and leave a gap on
+     every purchase — three quarters of the rows. */
+  .txn-table .txn-row td:empty { display: none; }
+  /* A card is its own block, so the rail replaces the striping. */
+  .txn-table tbody tr:nth-child(even) { background: none; }
+  /* The header row is gone, so sorting needs its own control. */
+  .txn-sort-bar { display: flex; }
+}
 .hl-th-sortable { cursor: pointer; user-select: none; white-space: nowrap; }
 .hl-th-sortable:hover { color: var(--chalk); }
 .hl-sort-arrow { display: inline-block; width: 10px; margin-left: 4px; font-size: 8px; }
