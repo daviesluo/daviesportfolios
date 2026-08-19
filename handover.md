@@ -332,6 +332,13 @@ numbers it produced independently confirm the diagnosis.
 - [x] **Whole-app browser sweep** added — `scraps/verify-app-sweep.mjs`,
       64 checks over both breakpoints, with two whole-run invariants:
       zero console errors, and every Edge call carrying the app token.
+- [x] **CN funds no longer rank in TOP MOVERS · TODAY.** `017731`
+      quotes a NAV published after its own close, so its `dayPct` is a
+      real number about a different day. It was suppressed only during
+      extended hours before, so it ranked all day against a figure that
+      was never today's market. Still counted in the scoreboard and
+      still a heat-map tile — excluded from the ranking, not the book.
+      Pin fails on the old code (checked).
 - [ ] After a day of recording, check that the `RECORDED` rule has
       walked left across the 24H window (PR #209 work).
 - [ ] Codex reported "usage limits reached" on PR #209, so there is no
@@ -567,6 +574,22 @@ The underline is a pseudo-element rather than a `border-bottom`: at
 0.2em tracking the last glyph carries a trailing letter-space inside
 its box, and the border ran under it, overshooting the final character
 by about 2px.
+
+
+### 2026-08-19 — a lagged NAV is not a mover
+
+`017731` is a CN fund: its quote is a NAV published after its own close,
+not a live price. `TOP MOVERS · TODAY` ranked it anyway for the whole
+session — `cnSuppress` in `metrics.js` only zeroes it while the
+extended-hours toggle is on — so a +9.9 % NAV print could top WINNERS
+against stocks measured on today's tape. Two different questions in one
+list.
+
+Excluded from the ranking only. It still counts in the scoreboard and
+still draws a heat-map tile: the number is real, it just isn't an answer
+to "what moved today". The alternative — hiding it from the heat map too
+— was rejected because the tile is about what the book holds, not about
+today.
 
 ---
 
