@@ -20,6 +20,7 @@ import {
 } from './proxy_chain.js';
 import { usMarketHoursUtc } from './market_hours.js';
 import { EDGE_PRICES_URL, EDGE_ANON_KEY } from './yahoo_fetch.js';
+import { getAppToken } from './auth.js';
 
 // 6-digit numeric tickers are CN mutual funds (天天基金 / pingzhongdata) —
 // they don't exist on Yahoo, so the CORS-proxy Yahoo fetch is guaranteed
@@ -335,7 +336,13 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
       `?tickers=${encodeURIComponent(list.join(","))}` +
       `&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}${ipp}`;
     const res = await fetch(edgeUrl, {
-      headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
+      // App token as well as the anon key — see edgeHeaders in
+      // yahoo_fetch.js for why the anon key alone gated nothing.
+      headers: {
+        Authorization: `Bearer ${EDGE_ANON_KEY}`,
+        apikey: EDGE_ANON_KEY,
+        'X-App-Token': getAppToken(),
+      },
       signal: AbortSignal.timeout(8000),
     });
     if (res.ok) {

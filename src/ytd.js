@@ -6,6 +6,8 @@
 //
 // Range catalogue:
 
+import { netPosition } from './transactions.js';
+
 /**
  * @typedef {'1D'|'1W'|'1M'|'3M'|'YTD'} RangeKey
  */
@@ -15,7 +17,14 @@ export const RANGES = {
   // Yahoo limits 30m bars to 60 days and 60m bars to 730 days, both well
   // within these ranges.
   '1D':  { yahooRange: '1d',  interval: '5m',  label: '1D'  },
-  '1W':  { yahooRange: '5d',  interval: '30m', label: '1W'  },
+  // 1W fetches a MONTH and trims to the trailing 168 h (see
+  // `fetchParamsFor` / `applyVariantFilter`). Yahoo's `5d` means five
+  // TRADING sessions — Mon 09:30 to Fri 16:00 is 4.3 days, not a week —
+  // so the button was showing noticeably less than it claimed. There is
+  // no Yahoo range between `5d` and `1mo`, so the week has to be cut out
+  // of the month client-side. `60m` keeps the download the same shape 1M
+  // already pulls instead of doubling it at 30m.
+  '1W':  { yahooRange: '1mo', interval: '60m', label: '1W'  },
   '1M':  { yahooRange: '1mo', interval: '60m', label: '1M'  },
   '3M':  { yahooRange: '3mo', interval: '1d',  label: '3M'  },
   'YTD': { yahooRange: 'ytd', interval: '1d',  label: 'YTD' },
@@ -30,6 +39,21 @@ export const RANGES = {
 // PerfChart + the perf-side prefetch iterate this; the modal adds '1Y'
 // (and PE/PS) on top of it for its own range row.
 export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
+
+/**
+ * Button label on the vs-S&P / Investment panel range row. That panel's
+ * shortest window is a trailing 24 hours measured from its own first
+ * point, not a session measured from yesterday's close, so it reads
+ * `24H`. The ticker-detail modal keeps `RANGES['1D'].label` (`1D`) —
+ * that one really is a day chart with a previous-close marker. The
+ * internal key stays `1D` so fetch / cache / prefetch don't fork.
+ *
+ * @param {string} rangeKey
+ * @returns {string}
+ */
+export function panelRangeLabel(rangeKey) {
+  return rangeKey === '1D' ? '24H' : (RANGES[rangeKey]?.label ?? rangeKey);
+}
 
 /**
  * Pick (yahooRange, interval, includePrePost) for a given chart range.
@@ -60,6 +84,9 @@ export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
  */
 export function fetchParamsFor(rangeKey, extendedHours, phase) {
   const r = RANGES[rangeKey] || RANGES.YTD;
+  // 1W downloads a month (see RANGES) and must be trimmed back to a week
+  // — hence its own variant rather than the pass-through 'std'.
+  if (rangeKey === '1W') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'w1' };
   if (rangeKey !== '1D') return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: false, variant: 'std' };
   if (phase === 'regular') return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'reg' };
   if (extendedHours)       return { yahooRange: '5d', interval: '5m', includePrePost: true,  variant: 'ext' };
@@ -303,8 +330,20 @@ export function fillVenueSessionGrid(points, session, nowMs = Date.now()) {
 // each need their own `data &&` guard.
 export function applyVariantFilter(data, variant) {
   if (!data) return data;
-  if (variant === 'closed') return filterToLatestDay(data);
-  if (variant === 'reg' || variant === 'ext') return filterToLast24h(data);
+  // 1W: cut the trailing week out of the fetched month. Both variants
+  // trim — `1w-ext` (the ext-on week, which additionally pulls pre/post
+  // bars) used to pass through untouched because the fetch was already a
+  // 5-day window; now that 1W fetches a MONTH, letting it through would
+  // draw a month under a button labelled 1W.
+  if (variant === 'w1' || variant === '1w-ext') return filterToLastHours(data, 24 * 7);
+  // Every 1D variant is the same trailing 24 h. `closed` used to take the
+  // latest CALENDAR day instead, so with Extended Hours off the window
+  // silently changed length with the clock — a couple of hours just after
+  // the open, a full session later on — and disagreed with what the same
+  // button showed with the toggle on. Which bars are fetched (pre/post or
+  // not) and which benchmark is drawn still follow the toggle; only the
+  // window length is now the same either way.
+  if (variant === 'closed' || variant === 'reg' || variant === 'ext') return filterToLast24h(data);
   return data;
 }
 
@@ -367,7 +406,7 @@ export function anchorDateFor(rangeKey, now = new Date()) {
  * @param {boolean} [useExt]     - extendedHours and phase not 'regular'
  * @returns {Record<string, {series:{date:string,close:number}[], map:Record<string,number>, janPrice:number|null}>}
  */
-export function buildTickerSeries(hist, anchorDate, rangeKey = 'YTD', marketData = {}, useExt = false) {
+export function buildTickerSeries(hist, anchorDate, rangeKey = 'YTD', marketData = {}, useExt = false, anchorAtWindowStart = false) {
   /** @type {Record<string, {series:{date:string,close:number}[], map:Record<string,number>, janPrice:number|null}>} */
   const out = {};
   for (const [t, raw] of Object.entries(hist || {})) {
@@ -377,7 +416,16 @@ export function buildTickerSeries(hist, anchorDate, rangeKey = 'YTD', marketData
     for (const p of series) map[p.date] = p.close;
 
     let janPrice = null;
-    if (rangeKey === '1D') {
+    // `anchorAtWindowStart` makes EVERY range take its baseline from the
+    // window's own first bar, 1D included. That is what the performance
+    // panel wants: its shortest window is a trailing 24 h measured from
+    // its first point, so anchoring on yesterday's close instead reports
+    // the change in return-vs-prevClose rather than the window's move —
+    // measured on a fixture whose book went 2500 -> 2900 (a clean
+    // +16.00 %), the panel read +14.81 % while the Investment view of
+    // the same window read +16.00 %. The day-chart convention below is
+    // still right for a chart that draws a previous-close marker.
+    if (rangeKey === '1D' && !anchorAtWindowStart) {
       // 1D anchors at "the most recent 16:00 ET regular close that has
       // occurred". During regular hours that's yesterday's close (=
       // marketData.prevClose). In ext-on AH/PM that's today's regular
@@ -435,22 +483,38 @@ export function closeOn(tickerSeries, ticker, date) {
 }
 
 /**
- * Decide which lots to use for a holding. Lots are the source of truth
- * (managed via the lot editor in EditTickerModal); we only fall back to a
- * single yearStart-dated lot if h.lots is empty or its share total has
- * drifted from h.shares (which shouldn't happen but is defensible).
+ * One holding's dated ledger for the chart: the buys AND the sales.
  *
- * @param {{shares:number, lastPrice?:number, lots?:Array<{date:string,shares:number,cost:number}>}} h
+ * Sales are not a detail. `computeAt` walks this to decide what was held
+ * on a given date, and a ledger of buys alone says a position that was
+ * sold down is still whole — on this book ORCL alone is 123 fills netted
+ * to 70 shares.
+ *
+ * The old form returned lots only and vetted them by summing the BUYS
+ * against the board's share count. That worked while the ledger was
+ * hand-kept and rarely had sales in it; now that it is rebuilt from the
+ * broker's executed fills, every holding that was ever trimmed fails
+ * that check and falls back to one undated block — losing the real
+ * purchase dates the fills were fetched for in the first place. The
+ * check is the NET position now, which is what the board's count means.
+ *
+ * The fallback stands: a ledger that doesn't reconcile is replaced by a
+ * single lot at the board's share count, dated at the window start, so
+ * the value is right even when the timing isn't knowable.
+ *
+ * @param {any} h
  * @param {string} yearStart
- * @returns {Array<{date:string,shares:number,cost:number}>}
+ * @returns {{lots: Array<{date: string, shares: number, cost: number}>,
+ *            sells: Array<{date: string, shares: number, price: number}>}}
  */
-export function lotsFor(h, yearStart) {
-  const sumShares = (lots) => lots.reduce((s, l) => s + (l.shares || 0), 0);
-  if (Array.isArray(h.lots) && h.lots.length > 0
-      && Math.abs(sumShares(h.lots) - h.shares) < 0.0001) {
-    return h.lots;
+export function ledgerFor(h, yearStart) {
+  const lots = Array.isArray(h.lots) ? h.lots : [];
+  const sells = Array.isArray(h.sells) ? h.sells : [];
+  if (lots.length > 0) {
+    const net = netPosition(lots, sells);
+    if (Math.abs(net.shares - h.shares) < 0.0001) return { lots, sells };
   }
-  return [{ date: yearStart, shares: h.shares, cost: h.lastPrice || 0 }];
+  return { lots: [{ date: yearStart, shares: h.shares, cost: h.lastPrice || 0 }], sells: [] };
 }
 
 /**
@@ -510,7 +574,7 @@ export function computeAt(opts) {
   for (const [ticker, h] of Object.entries(portfolio.holdings)) {
     if (h.isCash || ticker === 'CASH') continue;
     if (!scopeAll && !positioned.has(ticker)) continue; // orphaned holding — not on the board
-    const lots = lotsFor(h, yearStart);
+    const { lots, sells } = ledgerFor(h, yearStart);
     const fx = (h.currency && h.currency !== 'USD') ? fxToUSD(h.currency, marketData) : 1;
     const ts = tickerSeries[ticker];
     const janPrice = ts ? ts.janPrice : null;
@@ -521,8 +585,10 @@ export function computeAt(opts) {
          : (md?.lastPrice ?? lastPrice))
       : null;
 
-    for (const lot of lots) {
-      if (lot.date > dateDay) continue; // not yet held
+    // Price for this ticker on `date`. Lifted out of the lot loop so the
+    // SALES below can price themselves the same way — a sale has to be
+    // valued at the same number the shares it removed were.
+    const priceOn = (/** @type {string} */ refDate, /** @type {number} */ refCost) => {
 
       // Current price at date — prefer live for the latest chart point.
       // Computed first so the prevCloseBasis flat-fallback can reuse it.
@@ -530,18 +596,38 @@ export function computeAt(opts) {
         ? livePrice
         : (ts ? closeOn(tickerSeries, ticker, date) : null);
       if (priceAtD == null) {
-        // No historical data: linearly interpolate from cost @ lot.date to
-        // current lastPrice @ today.
-        const lotMs = new Date(lot.date).getTime();
+        // Before the series starts, carry its FIRST known close backwards.
+        // `closeOn` only ever looks at or before the date, so on any date
+        // to the left of a ticker's first bar it returns null — and the
+        // interpolation below then guessed a price from the lot's cost,
+        // inventing a move the stock never made. Measured against
+        // closed-form arithmetic: a holding whose history starts late read
+        // 4.20 % on a window that really did 5.83 %. "Flat before we have
+        // data" is the ordinary treatment for a gap and is right far more
+        // often.
+        const known = ts && Array.isArray(ts.series) && ts.series.length > 0
+          ? ts.series[0].close : null;
+        if (typeof known === 'number' && known > 0) priceAtD = known;
+      }
+      if (priceAtD == null) {
+        // Genuinely no series at all (a CN fund or `.PVT` on an intraday
+        // range): interpolate from cost @ refDate to today's price.
+        const lotMs = new Date(refDate).getTime();
         const dMs = new Date(date).getTime();
-        const tgtPrice = (lastPrice != null && lastPrice > 0) ? lastPrice : lot.cost;
+        const tgtPrice = (lastPrice != null && lastPrice > 0) ? lastPrice : refCost;
         if (todayMs <= lotMs || dMs >= todayMs) priceAtD = tgtPrice;
-        else if (dMs <= lotMs) priceAtD = lot.cost;
+        else if (dMs <= lotMs) priceAtD = refCost;
         else {
           const t = (dMs - lotMs) / (todayMs - lotMs);
-          priceAtD = lot.cost + (tgtPrice - lot.cost) * t;
+          priceAtD = refCost + (tgtPrice - refCost) * t;
         }
       }
+      return priceAtD;
+    };
+
+    for (const lot of lots) {
+      if (lot.date > dateDay) continue; // not yet held
+      const priceAtD = priceOn(lot.date, lot.cost);
 
       // Basis price for this lot.
       let basisPrice;
@@ -560,14 +646,49 @@ export function computeAt(opts) {
         // the day %.
         basisPrice = (janPrice != null && janPrice > 0) ? janPrice : priceAtD;
       } else if (lot.date < anchorDay) {
-        if (janPrice == null) continue; // skip — no Jan 1 baseline available
-        basisPrice = janPrice;
+        // No baseline for this lot → count it FLAT (basis = its price at
+        // this date) rather than dropping it. The `continue` here removed
+        // the holding from the value AND the basis at every point, so a
+        // position with no fetchable price history — a CN fund or a
+        // `.PVT` on an intraday range — was simply not in the portfolio
+        // as far as this chart was concerned. That understated the value
+        // line by the whole holding and skewed the percentage by leaving
+        // it out of the denominator too (5.00 % on a window that really
+        // did 4.17 %). Same principle the prevCloseBasis branch above
+        // already applies when prevClose is missing: flat, not absent.
+        basisPrice = (janPrice != null && janPrice > 0) ? janPrice : priceAtD;
       } else {
         basisPrice = lot.cost;
       }
 
       value += lot.shares * priceAtD * fx;
       basis += lot.shares * basisPrice * fx;
+    }
+
+    // Sales. Skipping them said a position that was sold down is still
+    // whole — and the ledger is the broker's executed fills now, so ORCL
+    // alone is 123 of them netted to 70 shares.
+    //
+    // Value is the easy half: the shares are gone, so they come off at
+    // the same price the lots went on at. The basis follows the net-cash
+    // model this book uses everywhere else:
+    //
+    //   - sold BEFORE the window opened → those shares were never part
+    //     of what the window started with, so remove them at the anchor
+    //     price, exactly as the lots that bought them were added.
+    //   - sold INSIDE the window → the sale took cash out of the
+    //     position, so the basis drops by the proceeds. Buy 10 @ 100 and
+    //     sell 4 @ 130 inside one window and the remaining 6 carry a net
+    //     cost of 80 — which is what `netPosition` says too.
+    const refLot = lots.length > 0 ? lots[0] : null;
+    for (const sell of sells) {
+      if (sell.date > dateDay) continue;              // not yet sold
+      const priceAtD = priceOn(sell.date, refLot ? refLot.cost : sell.price);
+      const anchorPrice = (janPrice != null && janPrice > 0) ? janPrice : priceAtD;
+      value -= sell.shares * priceAtD * fx;
+      basis -= sell.shares
+        * ((prevCloseBasis || sell.date < anchorDay) ? anchorPrice : sell.price)
+        * fx;
     }
   }
 

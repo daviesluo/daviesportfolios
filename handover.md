@@ -24,15 +24,15 @@ anything public. The repo is private; this file quotes real positions.
 
 # Part 1 — Current state
 
-_Last updated: 2026-08-18, by the session repairing the share-count
-overwrite and the stale per-stock transaction histories._
+_Last updated: 2026-08-19, by the session that found the preflight
+outage behind the preview's three symptoms._
 
 ## Where the code is
 
 | | |
 |---|---|
-| `main` | Carries the rollback to `8d869fe` plus four data-loss repairs pushed straight to it (see below). All gates green. |
-| Working branch | `claude/repo-audit-restore-uverhn` → **PR #209**, open, not reviewed by the owner yet. `main` was merged in at `f58b11b` (all checks green there), so it carries the conservative first-sync rule and the backfill fix. It has NOT been merged again since the ledger rebuild landed on `main` — do that before touching it. |
+| `main` | Carries the rollback to `8d869fe` plus four data-loss repairs pushed straight to it (see below). All gates green. Two further pushes: the `x-app-token` CORS allow-header on `prices`/`chart`/`fundamentals`, and a deploy-workflow fix so a function's own sibling modules trigger its deploy. |
+| Working branch | `claude/repo-audit-restore-uverhn` → **PR #209**, open, not reviewed by the owner yet. Rebuilt on 2026-08-19 as **four commits directly on `main`** — the two merge commits are gone, so the PR's commit list no longer carries `main`'s own history. The tree is unchanged by that rebuild. Preview: `https://claude-repo-audit-restore-uv.daviesportfolios.pages.dev`. |
 | Supabase | project `flmvxigozjuizpckllvk`, ACTIVE_HEALTHY. Migrations through `0031`. `trading212` Edge Function deployed and byte-identical to the repo as of this session. |
 
 ## Repairs that went straight to `main` (2026-08-18)
@@ -297,9 +297,48 @@ numbers it produced independently confirm the diagnosis.
       share count.
 - [x] **Merge `main` into `claude/repo-audit-restore-uverhn`** — done in
       `f58b11b`. See the note under Open items below.
-- [ ] `XFABp_EQ` — 8 fills, net 0 — is still unmapped. No board row
-      corresponds to it and guessing its exchange suffix would be
-      inventing a mapping rather than correcting one.
+- [x] Every T212 code now maps. `XFABp_EQ` → `XFAB.PA`, `CSPX_EQ` →
+      `CSPX.L`, `QQQ3l_EQ` → `QQQ3.L` (migration `0034`). The transaction
+      history lists closed positions now, so an unmapped round trip is a
+      stretch of history that isn't there — which is what forced the
+      call. All three net to zero, so no holding is affected.
+- [x] **Browser matrix re-run at 60 cases**, both books × 3 snapshot
+      modes × 2 views × 5 ranges, against the production bundle. The
+      second book is the same position sold down, which is the half of
+      `computeAt` the original fixture never reached: 6 shares × 240 +
+      500 cash against 6 × 200 + 500 = **+14.12%**, worked out on paper
+      before the run and read back out of the DOM.
+- [x] **PR #209 rebuilt on `main`** as four commits (token gate / board
+      self-consistency / Investment Performance / docs). Nothing already
+      on `main` is left in the diff or the commit list, and the summary
+      was rewritten to match. Verified the tree came out byte-identical
+      to the old tip before force-pushing, so the bundle and the preview
+      deployment are unchanged.
+- [x] **The preview's three complaints were one bug.** The owner
+      reported a scoreboard total that disagreed with production,
+      market conditions that would not load, and YTD history that
+      disagreed with the shorter ranges. All three were the branch's
+      client sending `X-App-Token` to `prices` / `chart` /
+      `fundamentals` while the DEPLOYED functions did not list it in
+      `Access-Control-Allow-Headers` — the browser's preflight killed
+      every call, and each caller has its own quiet fallback. Measured
+      with `curl -X OPTIONS` against production before changing
+      anything. Fixed on `main` (`ba440aa`), and the enforcement half
+      stays in the PR so the two never ship in the wrong order.
+- [x] **The deploy workflow only watched `<fn>/index.ts`.** The CORS
+      header lives in `fundamentals/_shared.ts`, so that function alone
+      stayed on the old version with CI green. Detector widened to any
+      file in a function's own directory (`204362e`).
+- [x] **Whole-app browser sweep** added — `scraps/verify-app-sweep.mjs`,
+      64 checks over both breakpoints, with two whole-run invariants:
+      zero console errors, and every Edge call carrying the app token.
+- [x] **CN funds no longer rank in TOP MOVERS · TODAY.** `017731`
+      quotes a NAV published after its own close, so its `dayPct` is a
+      real number about a different day. It was suppressed only during
+      extended hours before, so it ranked all day against a figure that
+      was never today's market. Still counted in the scoreboard and
+      still a heat-map tile — excluded from the ranking, not the book.
+      Pin fails on the old code (checked).
 - [ ] After a day of recording, check that the `RECORDED` rule has
       walked left across the 24H window (PR #209 work).
 - [ ] Codex reported "usage limits reached" on PR #209, so there is no
@@ -455,6 +494,102 @@ by $28.68/share. Put to the owner with the numbers; he chose the trades.
 
 Cost: a holding the backfill hasn't reached keeps a ledger that looks
 stale, and says so, until the walk gets there.
+
+
+### 2026-08-19 — a PR branch is rebuilt on `main`, not merged with it
+
+Merging `main` into PR #209 twice (`f58b11b`, `9db7e1d`) kept the diff
+honest — a three-dot diff can't show anything already on `main` — but it
+put `main`'s own commits into the PR's commit list, where they read as
+nineteen commits of unreviewed work the PR was proposing. The owner read
+it that way and asked for the landed content to be deleted.
+
+Rebuilt as four commits straight on top of `main`, split by concern.
+The tree was checked byte-identical to the old tip before the
+force-push, so the committed bundle, the Cloudflare preview and the CI
+outcome all carry over; only the history changed. The alternative —
+leaving the merges and only rewriting the summary — was rejected
+because the commit list is part of what a reviewer reads, and no wording
+in the description makes nineteen commits look like four.
+
+Cost: the per-commit history from the original build is gone, and the
+four commits are split by file, so an intermediate one is not
+independently green. Acceptable on a branch that merges as a unit; it
+would not be on `main`.
+
+### 2026-08-19 — the PR description is maintained like this file
+
+`handover.md` was already required to be true in real time. The PR
+description was not, and it drifted the moment work started landing on
+`main` separately: by 2026-08-19 most of its length described the T212
+backfill fix, the PLTR restore and migrations `0028`/`0030`–`0032`, all
+of which had shipped. Someone reading it would have thought that work
+was still up for review.
+
+The rule now sits in `CLAUDE.md` and `AGENTS.md` under "Pull requests",
+and in the working-with-davies skill: every push that changes the diff
+rewrites the description in the same step, the description covers only
+what the PR would add to `main` right now, and it carries the
+Cloudflare preview link so the branch can be checked on a real machine.
+
+The preview alias is derivable — branch name lowercased,
+non-alphanumeric runs collapsed to `-`, truncated to 28 characters —
+but it is derived and then **verified**, by fetching it and checking the
+`assets/app-<hash>.js` it serves is the branch's committed bundle and
+not `main`'s. Guessing the URL and quoting it unverified is the failure
+mode this replaces.
+
+
+### 2026-08-19 — a client change ships only after the server accepts it
+
+A Cloudflare preview always talks to the PRODUCTION Edge Functions;
+there is no preview backend. So a branch that starts sending a new
+request header cannot be previewed at all until the deployed functions
+allow that header — and worse, it looks like it works, because the
+three callers involved all degrade quietly rather than erroring.
+
+The rule taken from it: the CORS allow-list ships FIRST, on its own, in
+a change that requires nothing; the client starts sending the header
+second; enforcement lands last. Advertising a header nobody requires
+costs nothing. Requiring one before it is advertised costs the release
+— and, on a preview, costs the ability to check the release at all.
+
+Rejected alternative: shipping both halves together on merge. It would
+have worked for a fresh page load and broken every tab still holding
+the previous bundle from its service worker, with the same silent
+degradation instead of an error.
+
+### 2026-08-19 — the heading is the view switch
+
+The panel's two views were swapped by a `⇄` button beside the title.
+It named neither destination and gave no state: the only feedback was
+the title rewriting itself after the click. Replaced with two tabs at
+panel-title scale — the active one in full chalk over a chalk
+underline, the other dim behind a hairline — so the control says where
+it goes and what you are looking at, in the space the title already
+occupied. Roving tabindex and arrow keys, because a tablist that is a
+heading still has to be reachable without a mouse.
+
+The underline is a pseudo-element rather than a `border-bottom`: at
+0.2em tracking the last glyph carries a trailing letter-space inside
+its box, and the border ran under it, overshooting the final character
+by about 2px.
+
+
+### 2026-08-19 — a lagged NAV is not a mover
+
+`017731` is a CN fund: its quote is a NAV published after its own close,
+not a live price. `TOP MOVERS · TODAY` ranked it anyway for the whole
+session — `cnSuppress` in `metrics.js` only zeroes it while the
+extended-hours toggle is on — so a +9.9 % NAV print could top WINNERS
+against stocks measured on today's tape. Two different questions in one
+list.
+
+Excluded from the ranking only. It still counts in the scoreboard and
+still draws a heat-map tile: the number is real, it just isn't an answer
+to "what moved today". The alternative — hiding it from the heat map too
+— was rejected because the tile is about what the book holds, not about
+today.
 
 ---
 

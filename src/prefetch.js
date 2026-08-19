@@ -27,6 +27,7 @@
 import { fetchHistoricalBatch } from './historical.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
 import { fetchParamsFor, maFetchParamsFor, applyVariantFilter, filterToLastHours, RANGE_KEYS } from './ytd.js';
+import { refreshPriceSnapshots, rangeStartMs } from './price_snapshots.js';
 import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh, hasAnyNumericField } from './cache.js';
 import { isDailyOnly, isCrypto } from './ticker_class.js';
 import { priceDividedByTtmEps } from './indicators.js';
@@ -362,6 +363,16 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
       }
     }
   }
+
+  // Warm the server-recorded 5-minute prices for every performance
+  // range. Both panel views read the same rows out of the same cache
+  // synchronously on their first render, so this is what makes opening
+  // either one — or switching ranges inside it — a cache hit instead of
+  // an empty state that fills in a moment later. Deliberately NOT
+  // awaited: these rows only add density to a chart the Yahoo bars can
+  // already draw, so a slow or failed read must not hold up the board.
+  Promise.all(RANGE_KEYS.map((rk) => refreshPriceSnapshots(rk, rangeStartMs(rk, Date.now()))))
+    .catch(() => { /* the chart falls back to fetched bars */ });
 
   // Evict long-abandoned cache entries (delisted tickers, stale
   // phase/variant permutations) so the IDB stores stay bounded across a
