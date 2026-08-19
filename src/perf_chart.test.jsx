@@ -432,17 +432,59 @@ describe('PerfChart — the Investment view is the SAME series, drawn in dollars
 });
 
 describe('PerfPanel — one slot, two charts', () => {
+  /** @param {HTMLElement} container */
+  const tabs = (container) => /** @type {HTMLElement[]} */ ([...container.querySelectorAll('.view-tab')]);
+  const selected = (/** @type {HTMLElement} */ container) =>
+    tabs(container).filter(b => b.getAttribute('aria-selected') === 'true').map(b => b.textContent);
+
   it('swaps the view and keeps the range', () => {
     const { container } = render(
       <PerfPanel portfolio={PORTFOLIO} marketData={MARKET_DATA} extendedHours={false} phase="regular" />,
     );
-    const title = () => container.querySelector('.panel-title')?.textContent || '';
-    expect(title()).toContain('PERFORMANCE VS');
-    const swap = container.querySelector('.panel-swap');
-    expect(swap).toBeTruthy();
-    act(() => { /** @type {HTMLElement} */ (swap).click(); });
-    expect(title()).toContain('INVESTMENT PERFORMANCE');
-    act(() => { /** @type {HTMLElement} */ (container.querySelector('.panel-swap')).click(); });
-    expect(title()).toContain('PERFORMANCE VS');
+    const [sp, inv] = tabs(/** @type {HTMLElement} */ (container));
+    expect(sp.textContent).toContain('VS S&P');
+    expect(inv.textContent).toContain('INVESTMENT');
+    expect(selected(/** @type {HTMLElement} */ (container))).toEqual([sp.textContent]);
+
+    act(() => { inv.click(); });
+    expect(selected(/** @type {HTMLElement} */ (container))).toEqual([inv.textContent]);
+    // The range row is the same one either way — flipping the view must
+    // not reset which window is on screen.
+    expect([...container.querySelectorAll('.perf-range-btn')].map(b => b.textContent))
+      .toEqual(['24H', '1W', '1M', '3M', 'YTD']);
+
+    act(() => { sp.click(); });
+    expect(selected(/** @type {HTMLElement} */ (container))).toEqual([sp.textContent]);
+  });
+
+  it('names both destinations at once — the old ⇄ named neither', () => {
+    const { container } = render(
+      <PerfPanel portfolio={PORTFOLIO} marketData={MARKET_DATA} extendedHours={false} phase="regular" />,
+    );
+    // Every tab label is on screen in BOTH states, so the control says
+    // where it goes rather than only what it currently shows.
+    const labels = () => tabs(/** @type {HTMLElement} */ (container)).map(b => b.textContent);
+    const before = labels();
+    act(() => { tabs(/** @type {HTMLElement} */ (container))[1].click(); });
+    expect(labels()).toEqual(before);
+  });
+
+  it('is one tab stop, with arrow keys moving between the tabs', () => {
+    const { container } = render(
+      <PerfPanel portfolio={PORTFOLIO} marketData={MARKET_DATA} extendedHours={false} phase="regular" />,
+    );
+    const el = tabs(/** @type {HTMLElement} */ (container));
+    // Roving tabindex: exactly one reachable by Tab at any moment.
+    expect(el.map(b => b.getAttribute('tabindex'))).toEqual(['0', '-1']);
+    act(() => {
+      el[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    });
+    expect(selected(/** @type {HTMLElement} */ (container))).toEqual([el[1].textContent]);
+    expect(tabs(/** @type {HTMLElement} */ (container)).map(b => b.getAttribute('tabindex')))
+      .toEqual(['-1', '0']);
+    act(() => {
+      el[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    });
+    expect(selected(/** @type {HTMLElement} */ (container))).toEqual([el[0].textContent]);
   });
 });

@@ -24,14 +24,14 @@ anything public. The repo is private; this file quotes real positions.
 
 # Part 1 — Current state
 
-_Last updated: 2026-08-19, by the session that rebuilt PR #209 on top
-of `main` and made the PR description a maintained document._
+_Last updated: 2026-08-19, by the session that found the preflight
+outage behind the preview's three symptoms._
 
 ## Where the code is
 
 | | |
 |---|---|
-| `main` | Carries the rollback to `8d869fe` plus four data-loss repairs pushed straight to it (see below). All gates green. |
+| `main` | Carries the rollback to `8d869fe` plus four data-loss repairs pushed straight to it (see below). All gates green. Two further pushes: the `x-app-token` CORS allow-header on `prices`/`chart`/`fundamentals`, and a deploy-workflow fix so a function's own sibling modules trigger its deploy. |
 | Working branch | `claude/repo-audit-restore-uverhn` → **PR #209**, open, not reviewed by the owner yet. Rebuilt on 2026-08-19 as **four commits directly on `main`** — the two merge commits are gone, so the PR's commit list no longer carries `main`'s own history. The tree is unchanged by that rebuild. Preview: `https://claude-repo-audit-restore-uv.daviesportfolios.pages.dev`. |
 | Supabase | project `flmvxigozjuizpckllvk`, ACTIVE_HEALTHY. Migrations through `0031`. `trading212` Edge Function deployed and byte-identical to the repo as of this session. |
 
@@ -314,6 +314,24 @@ numbers it produced independently confirm the diagnosis.
       was rewritten to match. Verified the tree came out byte-identical
       to the old tip before force-pushing, so the bundle and the preview
       deployment are unchanged.
+- [x] **The preview's three complaints were one bug.** The owner
+      reported a scoreboard total that disagreed with production,
+      market conditions that would not load, and YTD history that
+      disagreed with the shorter ranges. All three were the branch's
+      client sending `X-App-Token` to `prices` / `chart` /
+      `fundamentals` while the DEPLOYED functions did not list it in
+      `Access-Control-Allow-Headers` — the browser's preflight killed
+      every call, and each caller has its own quiet fallback. Measured
+      with `curl -X OPTIONS` against production before changing
+      anything. Fixed on `main` (`ba440aa`), and the enforcement half
+      stays in the PR so the two never ship in the wrong order.
+- [x] **The deploy workflow only watched `<fn>/index.ts`.** The CORS
+      header lives in `fundamentals/_shared.ts`, so that function alone
+      stayed on the old version with CI green. Detector widened to any
+      file in a function's own directory (`204362e`).
+- [x] **Whole-app browser sweep** added — `scraps/verify-app-sweep.mjs`,
+      64 checks over both breakpoints, with two whole-run invariants:
+      zero console errors, and every Edge call carrying the app token.
 - [ ] After a day of recording, check that the `RECORDED` rule has
       walked left across the 24H window (PR #209 work).
 - [ ] Codex reported "usage limits reached" on PR #209, so there is no
@@ -513,6 +531,42 @@ but it is derived and then **verified**, by fetching it and checking the
 `assets/app-<hash>.js` it serves is the branch's committed bundle and
 not `main`'s. Guessing the URL and quoting it unverified is the failure
 mode this replaces.
+
+
+### 2026-08-19 — a client change ships only after the server accepts it
+
+A Cloudflare preview always talks to the PRODUCTION Edge Functions;
+there is no preview backend. So a branch that starts sending a new
+request header cannot be previewed at all until the deployed functions
+allow that header — and worse, it looks like it works, because the
+three callers involved all degrade quietly rather than erroring.
+
+The rule taken from it: the CORS allow-list ships FIRST, on its own, in
+a change that requires nothing; the client starts sending the header
+second; enforcement lands last. Advertising a header nobody requires
+costs nothing. Requiring one before it is advertised costs the release
+— and, on a preview, costs the ability to check the release at all.
+
+Rejected alternative: shipping both halves together on merge. It would
+have worked for a fresh page load and broken every tab still holding
+the previous bundle from its service worker, with the same silent
+degradation instead of an error.
+
+### 2026-08-19 — the heading is the view switch
+
+The panel's two views were swapped by a `⇄` button beside the title.
+It named neither destination and gave no state: the only feedback was
+the title rewriting itself after the click. Replaced with two tabs at
+panel-title scale — the active one in full chalk over a chalk
+underline, the other dim behind a hairline — so the control says where
+it goes and what you are looking at, in the space the title already
+occupied. Roving tabindex and arrow keys, because a tablist that is a
+heading still has to be reachable without a mouse.
+
+The underline is a pseudo-element rather than a `border-bottom`: at
+0.2em tracking the last glyph carries a trailing letter-space inside
+its box, and the border ran under it, overshooting the final character
+by about 2px.
 
 ---
 

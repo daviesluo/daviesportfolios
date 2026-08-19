@@ -1526,27 +1526,95 @@ body {
   }
 }
 
-/* ---- Performance panel header: title + the ⇄ view swap.
-   Prefixed `panel-` rather than reusing the `perf-` family: an earlier
-   attempt at a second chart reused `perf-` class names, landed later in
-   the cascade, and silently restyled the vs-S&P legend's dots. */
+/* ---- Performance panel header.
+   The heading IS the view switch: two tabs at panel-title scale, the
+   active one written in full chalk over a chalk underline, the other
+   dim. Prefixed `view-`/`panel-title-` rather than reusing the `perf-`
+   family: an earlier attempt at a second chart reused `perf-` class
+   names, landed later in the cascade, and silently restyled the vs-S&P
+   legend's dots.
+
+   `margin-bottom` lives on the ROW because the tabs replace the `h3`
+   that used to carry the panel's 12 px title gap — without it this
+   panel's chart sits tighter under its heading than every other
+   panel's content does. */
 .panel-title-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
+  margin-bottom: 12px;
 }
 .panel-title-row .panel-title { margin-bottom: 0; }
-.panel-swap {
-  background: none;
-  border: 1px solid var(--line);
-  color: var(--chalk-dim);
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 11px;
-  line-height: 1;
-  padding: 2px 6px;
-  transition: color 0.15s, border-color 0.15s;
+
+.view-tabs {
+  display: flex;
+  align-items: stretch;
+  /* No gap: the separator hairline owns the space between the two, so
+     the underlines stay tight to their own labels. */
+  gap: 0;
+  min-width: 0;
 }
-.panel-swap:hover { color: var(--chalk); border-color: var(--chalk-dim); }
-.panel-swap:focus-visible { outline: 1px solid var(--chalk-dim); outline-offset: 1px; }
+.view-tab {
+  position: relative;
+  background: none;
+  border: 0;
+  padding: 0 0 5px 0;
+  font-family: var(--font-mono);
+  /* Matches .panel-title exactly — these ARE the panel title. */
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--chalk-dim);
+  opacity: 0.6;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, opacity 0.15s, border-color 0.15s;
+}
+/* The underline is a pseudo-element, not a border, so it can stop
+   0.2em short on the right: at this tracking the last glyph carries a
+   trailing letter-space INSIDE the text box, and a plain border-bottom
+   runs under it — the rule visibly overshot the final character. */
+.view-tab::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0.2em;
+  bottom: 0;
+  height: 1px;
+  background: transparent;
+  transition: background 0.15s;
+}
+.view-tab:hover { color: var(--chalk); opacity: 0.85; }
+.view-tab.is-on {
+  color: var(--chalk);
+  opacity: 1;
+  cursor: default;
+}
+.view-tab.is-on::after { background: var(--chalk); }
+.view-tab:focus-visible {
+  outline: 1px solid var(--chalk-dim);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+/* Hairline between the two labels, inset from the baseline rule so it
+   reads as a divider and not as part of either underline. */
+.view-tab-sep {
+  width: 1px;
+  margin: 1px 12px 5px;
+  background: var(--line);
+  flex: 0 0 auto;
+}
+
+/* The board is 320 px wide at its narrowest. "VS S&P 500 | INVESTMENT"
+   at 0.2em tracking does not fit there next to nothing else, so the
+   tracking and the divider gap tighten rather than letting the row
+   wrap into two lines under the chart. */
+@media (max-width: 400px) {
+  .view-tab { letter-spacing: 0.12em; }
+  .view-tab-sep { margin-left: 8px; margin-right: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-tab, .view-tab::after { transition: none; }
+}
