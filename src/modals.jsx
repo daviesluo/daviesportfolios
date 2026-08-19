@@ -497,8 +497,8 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
 
         <div className="lot-grid">
           <div className="lot-grid-head mono">
-            <span>Date</span>
             <span />
+            <span>Date</span>
             <span>Shares</span>
             <span>Price ({sym})</span>
             <span />
@@ -508,14 +508,14 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
           )}
           {rows.map((r, i) => (
             <div key={i} className="lot-grid-row">
-              <input className="inp mono" type="date" value={r.date} max={today}
-                     onChange={(e) => updateRow(i, { date: e.target.value })} />
               <button
                 className={`txn-badge txn-${r.kind} kind-toggle`}
                 onClick={() => updateRow(i, { kind: r.kind === 'buy' ? 'sell' : 'buy' })}
                 title="Switch between buy and sell"
                 aria-label={`${r.kind === 'buy' ? 'Buy' : 'Sell'} — click to switch`}
               >{r.kind === 'buy' ? 'BUY' : 'SELL'}</button>
+              <input className="inp mono" type="date" value={r.date} max={today}
+                     onChange={(e) => updateRow(i, { date: e.target.value })} />
               <input className="inp mono" inputMode="decimal" value={r.shares}
                      onChange={(e) => updateRow(i, { shares: e.target.value })} placeholder="0" />
               <input className="inp mono" inputMode="decimal" value={r.price}
