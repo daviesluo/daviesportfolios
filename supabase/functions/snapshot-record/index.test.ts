@@ -2,11 +2,12 @@
 // PRICES, so what has to be pinned is which price it picks and which
 // tickers it asks about — never a portfolio value, because it does not
 // compute one (see the file header for why that matters).
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   bucketTimeIso,
   buildPriceRow,
   extractT212Prices,
+  isUsOvernightSession,
   isUsRegularSession,
   mergePriceMaps,
   recordablePrice,
@@ -116,4 +117,47 @@ Deno.test("buildPriceRow — only the tickers that could be priced", () => {
     ),
     { AAPL: 231.5, "017731": 1.63 },
   );
+});
+
+// ---- the overnight stale-quote bug -------------------------------
+//
+// Overnight, Yahoo publishes no tape: `lastPrice` / `extPrice` are a
+// frozen carry of the last regular print. T212 is the only live source,
+// and it is ONE fetch for the whole book — so when it times out, every
+// holding in that sample fell back to the same stale number at once and
+// the next sample lifted them all back. Live, on 2026-08-25, MSTR was
+// recorded at 122.60 (its overnight open) at 01:05, 01:15, 01:20, 01:40,
+// 01:45 and 02:15 while the overnight tape had it at 124.8-126.0 — and
+// NVDA showed 208.80 at exactly the same six ticks. The 24H chart with
+// Extended Hours on drew that as the portfolio tearing up and down by
+// more than a percent, all night.
+const OVERNIGHT = new Date("2026-08-25T01:05:00Z"); // 21:05 ET, mid-overnight
+const AFTER_HOURS = new Date("2026-08-25T22:30:00Z"); // 18:30 ET
+const REGULAR = new Date("2026-08-25T18:00:00Z"); // 14:00 ET
+
+Deno.test("isUsOvernightSession spans midnight", () => {
+  assert(isUsOvernightSession(OVERNIGHT));
+  assert(isUsOvernightSession(new Date("2026-08-25T05:30:00Z"))); // 01:30 ET
+  assert(!isUsOvernightSession(AFTER_HOURS));
+  assert(!isUsOvernightSession(REGULAR));
+});
+
+Deno.test("recordablePrice: T212 is the overnight tape and still wins", () => {
+  assertEquals(recordablePrice({ lastPrice: 122.6 }, 125.95, OVERNIGHT), 125.95);
+});
+
+Deno.test("recordablePrice: overnight with no T212 records NOTHING, not Yahoo's frozen close", () => {
+  // The exact shape of the live bug: T212 missing for this sample,
+  // Yahoo still offering the previous close.
+  assertEquals(recordablePrice({ lastPrice: 122.6, extPrice: 122.6 }, undefined, OVERNIGHT), null);
+});
+
+Deno.test("recordablePrice: after-hours still takes Yahoo's ext print", () => {
+  // Only the OVERNIGHT is unquotable by Yahoo — after-hours is a real
+  // tape and must keep working, or the fix would blank 16:00-20:00 ET.
+  assertEquals(recordablePrice({ lastPrice: 120, extPrice: 121.5 }, undefined, AFTER_HOURS), 121.5);
+});
+
+Deno.test("recordablePrice: regular session takes lastPrice", () => {
+  assertEquals(recordablePrice({ lastPrice: 124, extPrice: 999 }, undefined, REGULAR), 124);
 });

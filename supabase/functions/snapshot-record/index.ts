@@ -108,6 +108,26 @@ export function isUsRegularSession(at: Date): boolean {
   return minutes >= 9 * 60 + 30 && minutes < 16 * 60;
 }
 
+/**
+ * The US OVERNIGHT session, 20:00-04:00 ET — the stretch Blue Ocean /
+ * Trading 212 quote and Yahoo does not.
+ *
+ * Yahoo publishes no bars and no live quote here: its `lastPrice` and
+ * `extPrice` are both a carry of the last regular / after-hours print,
+ * and they do not move until 04:00 ET. That is why this window needs
+ * naming — a number that never changes still LOOKS like a quote, and
+ * `recordablePrice` has to know not to trust it.
+ *
+ * Spans midnight, so the test is an OR, not a range. Weekend and
+ * holiday handling is deliberately absent: the overnight tape follows
+ * the next session, and `recordablePrice` only ever uses this to REFUSE
+ * a stale Yahoo quote, which is the safe answer on a closed day too.
+ */
+export function isUsOvernightSession(at: Date): boolean {
+  const { minutes } = etParts(at);
+  return minutes >= 20 * 60 || minutes < 4 * 60;
+}
+
 export function t212TickerToYahoo(t212Ticker: string): string | null {
   if (typeof t212Ticker !== "string" || !t212Ticker) return null;
   if (T212_TO_YAHOO[t212Ticker]) return T212_TO_YAHOO[t212Ticker];
@@ -201,6 +221,23 @@ export function recordablePrice(
   at: Date,
 ): number | null {
   if (typeof t212Price === "number" && t212Price > 0) return t212Price;
+  // Overnight, T212 is the ONLY live tape. Yahoo's quote here is the
+  // last regular / after-hours print, frozen until 04:00 ET, so falling
+  // through to it does exactly what the note above forbids: stamps a
+  // stale figure with a fresh timestamp.
+  //
+  // And it does it to EVERY ticker at once, because T212 is one fetch
+  // for the whole book: when that fetch times out, every holding in
+  // that sample drops to its previous close together and the next
+  // sample lifts them all back. On the 24H chart with Extended Hours on
+  // that read as the portfolio line tearing up and down by more than a
+  // percent, several times an hour, all night. The book had not moved;
+  // the sample had.
+  //
+  // Recording nothing is the honest answer. A ticker absent from the
+  // row leaves the chart on the overnight recorder's own series, which
+  // is the authoritative overnight source anyway.
+  if (isUsOvernightSession(at)) return null;
   const rth = isUsRegularSession(at);
   if (!rth && typeof quote?.extPrice === "number" && quote.extPrice > 0) return quote.extPrice;
   if (typeof quote?.lastPrice === "number" && quote.lastPrice > 0) return quote.lastPrice;
