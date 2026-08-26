@@ -24,8 +24,8 @@ anything public. The repo is private; this file quotes real positions.
 
 # Part 1 — Current state
 
-_Last updated: 2026-08-19, after PR #209 merged and its rollout was
-verified against production._
+_Last updated: 2026-08-26, after the ext-on 24H chart was found to be
+tearing overnight and the recorder behind it was fixed._
 
 ## Where the code is
 
@@ -355,6 +355,19 @@ numbers it produced independently confirm the diagnosis.
         merge commit.
       The one live consequence: a tab still holding the previous bundle
       from its service worker gets 401 on those three until it reloads.
+- [x] **The ext-on 24H chart tore overnight — `snapshot-record`, not
+      the chart.** Overnight (20:00-04:00 ET) Yahoo publishes no tape;
+      `lastPrice` / `extPrice` are a frozen carry of the last regular
+      print. `recordablePrice` fell through to them whenever the T212
+      call — ONE fetch for the whole book — timed out, so every holding
+      in that sample dropped to its previous close together and the next
+      sample lifted them all back. Measured on 2026-08-25: MSTR stored
+      at 122.60 (its overnight open) at 01:05 / 01:15 / 01:20 / 01:40 /
+      01:45 / 02:15 UTC while the overnight tape had it 124.81-126.00,
+      and NVDA frozen at 208.80 on exactly the same six ticks. Fixed at
+      the source (`isUsOvernightSession` refuses the Yahoo fallback),
+      pinned with a counterfactual, and migration `0035` strips the rows
+      already written.
 - [ ] Issue #207 (`edge-functions failed on main`, 2026-08-18) is still
       open but stale — that workflow has been green on every push
       since. Close it or let the next failure bump it.
@@ -609,6 +622,39 @@ still draws a heat-map tile: the number is real, it just isn't an answer
 to "what moved today". The alternative — hiding it from the heat map too
 — was rejected because the tile is about what the book holds, not about
 today.
+
+
+### 2026-08-26 — a source that cannot see the tape must record nothing
+
+`snapshot-record` records what it can price. Its fallback order was
+T212, then Yahoo's ext print, then Yahoo's last price — and the third
+step is wrong overnight, because Yahoo has no overnight tape at all:
+its quote is the last regular print, frozen until 04:00 ET. So a
+missing T212 sample did not produce a gap, it produced a fabricated
+bar, and because T212 is one fetch for the entire book it fabricated
+the SAME kind of bar for all 21 US holdings at once. That is why it
+showed up as the portfolio line tearing rather than one ticker
+wobbling.
+
+The rule taken from it: a price source that is asleep is not a fallback.
+`recordablePrice` already said so about the board's stored `lastPrice`
+("recording it would stamp a stale figure with a fresh timestamp") —
+the mistake was not carrying that reasoning to Yahoo in a window where
+Yahoo is equally asleep. Recording nothing leaves the chart on the
+overnight recorder's own series, which is authoritative there anyway.
+
+Rejected alternative: defending in the client, by having
+`mergeRecordedBars` refuse recorded bars inside a span the overnight
+recorder owns. It would have hidden the tearing without fixing the
+stored data, and the stored data is what every later window reads.
+
+Diagnosis note worth keeping: the offline reconstruction is what found
+this. Running the repo's own `mergeOvernightSeries` / `buildTickerSeries`
+/ `computeAt` over the REAL recorded points, REAL Yahoo bars and the
+REAL share counts produced a smooth line — 0.308 pp as the largest step
+across 272 points. The line being smooth in reconstruction while jagged
+on screen is what proved the fault was in an input the reconstruction
+had left out, and the only one left out was `price_snapshots`.
 
 ---
 
