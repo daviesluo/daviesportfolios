@@ -8,35 +8,34 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
+**The full plan is `docs/improvement-plan.md`** — 28 items in four
+tiers, written 2026-09-05 from a whole-repository review, with cost,
+risk and a verification step on each. It is a PROPOSAL: nothing in it
+has been executed, and nothing should be until Davies confirms. This
+list stays the short version; the plan is the reasoning behind it.
+
 1. **THE LIVE SITE PUBLISHES THE WHOLE REPOSITORY, AND STILL DOES.**
-   `daviesportfolios.pages.dev` serves every file in the repo root,
-   including `handover.md` with the real position history and
-   `supabase/migrations/0033_mark_other_platform_lots.sql` with the
-   actual purchase records. The app is password-gated; the files beside
-   it are not. This predates the ledger install and was found while
-   checking whether the install's own additions had become public.
+   Re-measured 2026-09-05: `handover.md`, `LEDGER.md`, all of `src/`,
+   `supabase/functions/*` and the migration carrying purchase records
+   all return 200 to an unauthenticated fetch, with
+   `Access-Control-Allow-Origin: *`.
 
-   Two in-repo fixes were tried and MEASURED INEFFECTIVE, so do not
-   retry them: `.assetsignore` (the platform served that file itself —
-   it belongs to Workers static assets, and this project deploys as
-   Pages from the repo root) and `_redirects` 404 rules (static assets
-   win over redirects on Pages; `/handover.md` stayed 200 across seven
-   minutes of polling after the deploy landed). Both were removed rather
-   than left in place, because a control that does not control is worse
-   than none.
+   The earlier diagnosis in this ledger was WRONG, and that is why two
+   fixes failed. `wrangler.jsonc`'s `assets.directory` is a **Workers**
+   key; this is a **Pages** project and ignores it (wrangler is not even
+   a dependency). The root serves because NO build output directory is
+   configured anywhere and the Pages default is the repository root.
+   Same reason `.assetsignore` (a Workers mechanism) and `_redirects`
+   (cannot beat a real static asset) both did nothing.
 
-   THE FIX IS CLOUDFLARE DASHBOARD CONFIGURATION, which a session cannot
-   make. In the Pages project settings, set
-
-       Build command:      mkdir -p dist && cp -r index.html assets sw.js workbox-*.js manifest.webmanifest _headers dist/
-       Output directory:   dist
-
-   so only the site is uploaded rather than the repository. Davies has
-   to make that change. The in-repo alternative is a Pages Function with
-   an explicit `_routes.json` include-list returning 404 for those
-   paths; it works, but a malformed `_routes.json` routes EVERYTHING to
-   the function and takes the site down, so it was not done unilaterally
-   on a live site.
+   It is fixable IN-REPO after all, without the dashboard: point Vite's
+   `outDir` at `../dist`, move the committed bundle there, and add
+   `"pages_build_output_dir": "./dist"` to `wrangler.jsonc`. Verify on
+   the branch PREVIEW first — app loads with the branch's asset hash,
+   and `/handover.md` returns 404 — then merge. Plan item 1 has the
+   steps. Afterwards, rotate both app passwords and the token-signing
+   secret: the Edge sources were public. No sign anyone found it — five
+   failed logins in the auth table's whole history, none in 30 days.
 
 2. **After a full day of `price_snapshots` recording, check the
    `RECORDED` provenance rule has walked left across the 24H window** on
@@ -101,6 +100,44 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-05 22:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+Whole-repository review, recorded as `docs/improvement-plan.md` and NOT
+executed — Davies asked for the plan before any of the work.
+
+Two things the review changed about what this ledger already said.
+
+The exposure diagnosis in item 1 was wrong. `assets.directory` in
+`wrangler.jsonc` is a Cloudflare WORKERS key and a Pages project ignores
+it; wrangler is not a dependency here and that file's `$schema` points
+at a path that does not exist. Nothing in the repository was configuring
+the upload at all — the Pages default is the repository root. Which
+means `pages_build_output_dir` (the Pages key, absent) is an in-repo fix
+after all, verifiable on a branch preview, and the dashboard is not
+required. It also explains both failed attempts in one sentence rather
+than two.
+
+And the exposure is worse than "the position history is public": the
+Edge Function sources are public too, including a header comment that
+describes the app's own credential design. Rotation is part of the fix,
+not a precaution.
+
+Four findings were verified in the source rather than taken from the
+review: the two ledger reconciliations in `ytd.js` and
+`deposit_series.js` genuinely differ (run both on one synthetic holding
+and the value line dates the whole position at the window start while
+the deposited line keeps the real lots); the save path advances its
+saved-fingerprint marker before awaiting the save, so a non-conflict
+failure is never retried in that tab; the cross-tab reload lacks the
+demo-book guard the mount path has; and the snapshot recorder is missing
+from `PUBLIC_FNS` while its own header says it must be there. That last
+one is latent, not live — `price_snapshots` had a row one minute old
+when checked, so the CLI is still preserving the setting.
+
+Measured baseline for the next session to compare against: 764 unit
+cases and 208 Edge cases green, knip clean, 120.29 kB gzipped against
+the 122 kB budget, six cron jobs with no failures in 24 h.
 
 ### [2026-09-05 10:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
