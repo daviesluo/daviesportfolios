@@ -275,13 +275,51 @@ export function hasExtendedHoursBars(series, openMinsUtc, closeMinsUtc) {
  * @param {number} openMinsUtc
  * @param {number} closeMinsUtc
  */
+/**
+ * How far apart two samples of the SAME tape can plausibly be, taken a
+ * few minutes apart, given how hard this particular name is moving.
+ *
+ * The quote and the last bar come from two different fetches, so the
+ * gap between them is not error — it is elapsed time. A flat 3 % asks
+ * "did the price change more than 3 %", which on a quiet stock means
+ * "is this quote from somewhere else" (what we want to catch) and on a
+ * fast one just means "yes, it is moving" (what we do not).
+ *
+ * Scaled off the stock's own recent bars: twice the largest step in the
+ * last hour, floored at the original 3 % so nothing gets LOOSER than
+ * before, and capped so one freak print can't switch the guard off
+ * entirely.
+ *
+ * @param {Array<{close?: number}>} series
+ * @returns {number} fractional tolerance
+ */
+export function ahQuoteTolerance(series) {
+  const FLOOR = 0.03, CAP = 0.15, LOOKBACK = 12; // 12 x 5 min = 1 hour
+  if (!Array.isArray(series) || series.length < 2) return FLOOR;
+  const tail = series.slice(-(LOOKBACK + 1));
+  let biggest = 0;
+  for (let i = 1; i < tail.length; i++) {
+    const a = tail[i - 1]?.close, b = tail[i]?.close;
+    if (typeof a !== 'number' || typeof b !== 'number' || !(a > 0)) continue;
+    const step = Math.abs(b - a) / a;
+    if (step > biggest) biggest = step;
+  }
+  return Math.min(CAP, Math.max(FLOOR, biggest * 2));
+}
+
 export function extPriceIsRealAh(series, extPrice, openMinsUtc, closeMinsUtc) {
   if (typeof extPrice !== 'number' || !isFinite(extPrice) || extPrice <= 0) return false;
   if (!hasExtendedHoursBars(series, openMinsUtc, closeMinsUtc)) return false;
   const latest = Array.isArray(series) && series.length > 0
     ? series[series.length - 1] : null;
   if (!latest || typeof latest.close !== 'number' || latest.close <= 0) return false;
-  return Math.abs(extPrice - latest.close) / latest.close < 0.03;
+  // Tolerance follows the tape, not a fixed number. BE ran 8.96 % across
+  // Friday's after-hours with a single 8.76 % five-minute bar; the quote
+  // and the last bar were more than 3 % apart for the ordinary reason
+  // that time had passed, and the flat threshold called a real print
+  // fake. The heat-map tile went to an em dash while every slower
+  // holding beside it read fine.
+  return Math.abs(extPrice - latest.close) / latest.close < ahQuoteTolerance(series);
 }
 
 /**
