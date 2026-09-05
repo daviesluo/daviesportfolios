@@ -8,16 +8,23 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-1. **VERIFY the asset exclusion actually took.** `.assetsignore` was
-   added in this sitting because the live site was publishing the whole
-   repository. Nothing is fixed until the deploy is fetched and the
-   paths come back 404: `/handover.md`, `/LEDGER.md`,
+1. **VERIFY the site has stopped publishing the repository, and if
+   `_redirects` did not do it, change the Cloudflare build settings.**
+   `.assetsignore` was tried and is IGNORED by this project — the
+   platform served that file too, which is the proof. `_redirects` 404
+   rules are the second attempt and are unverified as written. Fetch
+   `/handover.md`, `/LEDGER.md`,
    `/supabase/migrations/0033_mark_other_platform_lots.sql`,
-   `/src/app.jsx`, `/CLAUDE.md`. If they still return 200, the platform
-   is not reading `.assetsignore` on this project and the fallback is
-   `_redirects` rules, which route around the files without stopping
-   the upload. And whatever the outcome: those files WERE public, for
-   as long as they have existed in the repo.
+   `/src/app.jsx` and `/CLAUDE.md` and require 404 on every one.
+   If they still return 200, `_redirects` does not override an existing
+   asset on Pages and the only remaining fix is DASHBOARD
+   CONFIGURATION, which a session cannot make: set the project's build
+   command to copy the site into a clean directory and set the output
+   directory to it, e.g.
+   `mkdir -p dist && cp -r index.html assets sw.js workbox-*.js manifest.webmanifest _headers dist/`
+   with output `dist`. Davies has to make that change.
+   Whatever the outcome: those files WERE public for as long as they
+   have existed in the repo, and `handover.md` quotes real positions.
 2. **After a full day of `price_snapshots` recording, check the
    `RECORDED` provenance rule has walked left across the 24H window** on
    the Investment Performance panel. The table has been filling since
