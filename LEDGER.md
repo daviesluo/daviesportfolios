@@ -8,23 +8,33 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-1. **After a full day of `price_snapshots` recording, check the
+1. **VERIFY the asset exclusion actually took.** `.assetsignore` was
+   added in this sitting because the live site was publishing the whole
+   repository. Nothing is fixed until the deploy is fetched and the
+   paths come back 404: `/handover.md`, `/LEDGER.md`,
+   `/supabase/migrations/0033_mark_other_platform_lots.sql`,
+   `/src/app.jsx`, `/CLAUDE.md`. If they still return 200, the platform
+   is not reading `.assetsignore` on this project and the fallback is
+   `_redirects` rules, which route around the files without stopping
+   the upload. And whatever the outcome: those files WERE public, for
+   as long as they have existed in the repo.
+2. **After a full day of `price_snapshots` recording, check the
    `RECORDED` provenance rule has walked left across the 24H window** on
    the Investment Performance panel. The table has been filling since
    2026-08-19; nothing has confirmed the panel draws the recorded
    stretch at the width it should.
-2. **Re-check the AH-trust fix against a live fast mover.** `5ddd1ac`
+3. **Re-check the AH-trust fix against a live fast mover.** `5ddd1ac`
    made `ahQuoteTolerance` scale with the tape after BE read an em dash
    on the heat map. It was verified against Friday's frozen after-hours
    data only — the market was shut. The first real test is the Sunday
    20:00 ET overnight reopen, on a name actually moving.
-3. **Decide what `Model:` carries in this ledger's source headers.** The
+4. **Decide what `Model:` carries in this ledger's source headers.** The
    protocol wants the exact model in every header. This session runs
    under an operator rule that forbids putting a model identifier into
    anything pushed to a repository, so its headers say
    `not recorded (session policy)`. A session without that rule should
    write the real model. Davies decides whether to backfill.
-4. **Issue #207** (`edge-functions failed on main`, opened 2026-08-18)
+5. **Issue #207** (`edge-functions failed on main`, opened 2026-08-18)
    is stale — that workflow has been green on every push since. Close it
    or leave it for the next real failure to bump.
 
@@ -71,6 +81,28 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-05 09:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+The live site was publishing the whole repository, and had been for as
+long as these files existed. `wrangler.jsonc` sets `assets.directory`
+to `.`, so Cloudflare uploads the repo root and serves it. Measured
+against production, not inferred: `/handover.md` returned 200 with the
+real position history, `/supabase/migrations/0033_mark_other_platform_lots.sql`
+returned the actual purchase records in its comments, and `/src/*`,
+`/supabase/functions/*`, `/CLAUDE.md` and `/.env.example` were all
+readable by anyone. `.git/` was not served. The app is password-gated;
+the files sitting beside it were not.
+
+Found while checking whether today's own additions (`hooks/`,
+`.ledger/`) had become public — they had, which is how the older and
+much worse exposure surfaced.
+
+`.assetsignore` now names what must not ship. Written as a DENY-list
+rather than an allow-list deliberately: a missed exclusion leaves one
+file public and takes a minute to fix, a missed allow takes the live
+site down. It is unverified at the time of writing — item 1 of what
+remains is fetching the deploy and requiring 404.
 
 ### [2026-09-05 09:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
