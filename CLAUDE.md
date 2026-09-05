@@ -6,7 +6,7 @@ How the owner actually works — what "done" means, what counts as
 evidence, settled chart/ledger rules, past mistakes — is
 `.claude/skills/working-with-davies/SKILL.md` (auto-loaded). Cursor
 loads the same text from `.cursor/rules/working-with-davies.mdc`. The
-raw session is `handover.md`.
+live handover record is `LEDGER.md`; `handover.md` is its archive.
 
 ## Documentation
 
@@ -18,40 +18,64 @@ raw session is `handover.md`.
   there. The README is the source-of-truth map of the system; a change
   that lands without its README update is incomplete.
 
-## The handover document
+## The ledger
 
-`handover.md` is the running record of work on this repo, and it is
-**maintained in real time** — not written up at the end. A session that
-dies mid-task (context exhausted, container reclaimed, tab closed) has
-to leave the next one, human or model, able to pick up from that file
-alone.
+This repository runs the **ledger protocol**, whose full text is
+`.ledger/SKILL.md` (invoke it as `/ledger`; pointers sit at
+`.claude/skills/ledger/`, `.cursor/skills/ledger/` and
+`.agents/skills/ledger/`). Read it before your first ledger entry. What
+follows is only this repository's half of the arrangement.
 
-Update it as you go, at these moments:
+**`LEDGER.md` at the root is the live record.** Three parts in order:
+what remains right now, machine and platform setup, then history newest
+first. A resuming session reads it first and works down the list. It is
+kept SMALL on purpose — every session on every platform pays context for
+it on every wake.
 
-- **Before starting** substantive work — write the plan into Part 1's
-  open items, so an interrupted session leaves an intention behind, not
-  a mystery.
-- **When state changes** — a branch moved, a PR opened, a migration
-  applied, a gate went red. Rewrite Part 1 to be true right now.
-- **When a decision is made** — append to Part 2 with the reason and the
-  cost, and name the alternative you rejected. Never rewrite a past
-  entry; add one that supersedes it and say which.
-- **When a review comes back** — Codex, another AI, or the owner saying
-  a number is wrong. Record what was claimed, what you accepted, what
-  you rejected, and why.
-- **Before you finish** — reconcile Part 1 against what actually
-  happened, and leave the open items honest. "I didn't get to X" is
-  worth more than silence.
+**`handover.md` is its ARCHIVE**, not a second live document. It holds
+the decision log and the raw session transcripts, 35k lines of them, and
+is opened only when a closed item is reopened or audited. When an
+operation closes, its block moves there verbatim and one line at the head
+of the ledger's history records the move. Do not maintain both as
+running records: two handover documents drifting apart is the exact
+failure the protocol exists to prevent.
+
+**The rule: the ledger moves with the work.** Every commit that changes
+anything a later session would need to know about carries its ledger line
+in the SAME commit, or the very next one. Never at the end of the day.
+The session that plans to write it later is the session a usage limit
+cuts off first.
+
+**The hook enforces it.** `hooks/pre-commit`, reached through
+`core.hooksPath`, refuses a commit whose ledger is two behind, and
+refuses a new history section that does not open with a source header.
+Both are per-clone config a rebuilt container loses — the commands are
+in `LEDGER.md`'s machine-setup section. The escape hatch is
+`LEDGER_OK=1 git commit`, for the three cases the refusal names; reach
+for it before `--no-verify`, which switches off every gate rather than
+the one that does not fit.
+
+**Source headers.** Each history section opens with a timestamped header
+naming the platform and the model, in the exact shape the hook checks —
+see `.ledger/SKILL.md`, and `.ledger/EXAMPLE.md` for a filled-in one.
+Sessions running under an operator rule that forbids model identifiers in
+pushed artifacts write `Model: not recorded (session policy)`; that
+satisfies the gate and says why the field is empty.
+
+**Before you finish**, and the moment a usage limit looks near: stop
+opening new work, land the smallest COMPLETE unit, write its ledger line,
+push, and spend what is left making the what-remains list exact. That
+list is the entire briefing the next session gets.
 
 Keep `.claude/skills/working-with-davies/SKILL.md` (and its two Cursor
-copies) in step whenever a session learns something durable about how
-the owner works, or pays for a mistake worth not repeating. The skill is
-the distilled agreement; `handover.md` is the evidence behind it.
+copies) in step whenever a session learns something durable about how the
+owner works, or pays for a mistake worth not repeating. The skill is the
+distilled agreement; the ledger and its archive are the evidence behind
+it.
 
-Do not copy live balances out of `handover.md` into new files, issues,
-or anything public. The repo is private; that file quotes real
-positions.
-
+Do not copy live balances out of `LEDGER.md` or `handover.md` into new
+files, issues, or anything public. The repo is private; those files quote
+real positions.
 ## Git workflow
 
 - **Push `main` directly.** No feature branch, no PR, unless he
@@ -157,7 +181,7 @@ caught both the per-share-vs-total cost bug and the boundary-race
 concern this way.
 
 **While a PR is open its description is part of the branch, and it is
-maintained the way `handover.md` is — in real time.** Every push that
+maintained the way `LEDGER.md` is — in real time.** Every push that
 changes the diff rewrites the description in the same step, before the
 turn ends. Never leave it describing the previous push: it is read as
 the current state of the branch, so a stale one actively misinforms.
