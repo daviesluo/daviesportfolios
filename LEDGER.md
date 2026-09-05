@@ -8,23 +8,36 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-1. **VERIFY the site has stopped publishing the repository, and if
-   `_redirects` did not do it, change the Cloudflare build settings.**
-   `.assetsignore` was tried and is IGNORED by this project — the
-   platform served that file too, which is the proof. `_redirects` 404
-   rules are the second attempt and are unverified as written. Fetch
-   `/handover.md`, `/LEDGER.md`,
-   `/supabase/migrations/0033_mark_other_platform_lots.sql`,
-   `/src/app.jsx` and `/CLAUDE.md` and require 404 on every one.
-   If they still return 200, `_redirects` does not override an existing
-   asset on Pages and the only remaining fix is DASHBOARD
-   CONFIGURATION, which a session cannot make: set the project's build
-   command to copy the site into a clean directory and set the output
-   directory to it, e.g.
-   `mkdir -p dist && cp -r index.html assets sw.js workbox-*.js manifest.webmanifest _headers dist/`
-   with output `dist`. Davies has to make that change.
-   Whatever the outcome: those files WERE public for as long as they
-   have existed in the repo, and `handover.md` quotes real positions.
+1. **THE LIVE SITE PUBLISHES THE WHOLE REPOSITORY, AND STILL DOES.**
+   `daviesportfolios.pages.dev` serves every file in the repo root,
+   including `handover.md` with the real position history and
+   `supabase/migrations/0033_mark_other_platform_lots.sql` with the
+   actual purchase records. The app is password-gated; the files beside
+   it are not. This predates the ledger install and was found while
+   checking whether the install's own additions had become public.
+
+   Two in-repo fixes were tried and MEASURED INEFFECTIVE, so do not
+   retry them: `.assetsignore` (the platform served that file itself —
+   it belongs to Workers static assets, and this project deploys as
+   Pages from the repo root) and `_redirects` 404 rules (static assets
+   win over redirects on Pages; `/handover.md` stayed 200 across seven
+   minutes of polling after the deploy landed). Both were removed rather
+   than left in place, because a control that does not control is worse
+   than none.
+
+   THE FIX IS CLOUDFLARE DASHBOARD CONFIGURATION, which a session cannot
+   make. In the Pages project settings, set
+
+       Build command:      mkdir -p dist && cp -r index.html assets sw.js workbox-*.js manifest.webmanifest _headers dist/
+       Output directory:   dist
+
+   so only the site is uploaded rather than the repository. Davies has
+   to make that change. The in-repo alternative is a Pages Function with
+   an explicit `_routes.json` include-list returning 404 for those
+   paths; it works, but a malformed `_routes.json` routes EVERYTHING to
+   the function and takes the site down, so it was not done unilaterally
+   on a live site.
+
 2. **After a full day of `price_snapshots` recording, check the
    `RECORDED` provenance rule has walked left across the 24H window** on
    the Investment Performance panel. The table has been filling since
@@ -88,6 +101,28 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-05 10:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+Both in-repo attempts at stopping the repo-wide publication failed, and
+the measurements are worth keeping so nobody repeats them.
+
+`.assetsignore` (f010fed): ignored. The proof is that the platform
+served `/.assetsignore` itself with a 200 — it treated the exclusion
+list as one more asset. That mechanism belongs to Workers static
+assets; this project deploys as Pages from the repo root, and the
+`wrangler.jsonc` beside it is not what drives the upload.
+
+`_redirects` 404 rules (e78431b): ignored for these paths. `_headers`
+IS applied on this project, so the special files are parsed; a redirect
+simply does not override an existing static asset on Pages.
+`/handover.md` and `/src/app.jsx` both stayed 200 across fourteen polls
+over seven minutes, with the deploy confirmed live (the site's own copy
+of `LEDGER.md` already carried this sitting's newest entry). The site
+itself stayed healthy throughout, which is the only good news here.
+
+Both files removed in this commit. What remains is a dashboard change,
+written out in item 1, and it needs Davies.
 
 ### [2026-09-05 09:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
