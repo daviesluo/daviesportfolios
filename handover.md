@@ -24,8 +24,8 @@ anything public. The repo is private; this file quotes real positions.
 
 # Part 1 — Current state
 
-_Last updated: 2026-08-26, after the ext-on 24H chart was found to be
-tearing overnight and the recorder behind it was fixed._
+_Last updated: 2026-09-05, after a heat-map tile read an em dash and
+the AH-trust guard turned out to be the reason._
 
 ## Where the code is
 
@@ -368,6 +368,22 @@ numbers it produced independently confirm the diagnosis.
       the source (`isUsOvernightSession` refuses the Yahoo fallback),
       pinned with a counterfactual, and migration `0035` strips the rows
       already written.
+- [x] **BE showed an em dash on the heat map; the AH-trust guard was
+      why.** `extPriceIsRealAh` trusted a quote only within a flat 3 % of
+      the last bar. The quote and the bar are two fetches of the same
+      tape, so the gap between them is elapsed time — and BE ran 8.96 %
+      across 2026-09-04's after-hours with a single 8.76 % five-minute
+      bar, putting them 3.16 % apart for the ordinary reason. The guard
+      called a real print fake. Tolerance now scales with the tape
+      (`ahQuoteTolerance`), floored at 3 % and capped at 15 %. Pin fails
+      on the flat threshold; the quiet-name control passes both ways, so
+      the SFTBY protection is intact.
+- [x] **NOT a fault, recorded because I called it one:** the overnight
+      recorder writing nothing since Fri 03:55 ET is the WEEKEND DEAD
+      ZONE working. I reported it as a ~24 h outage before checking the
+      weekday — my container clock was ~90 min off and 2026-09-05 is a
+      Saturday. cron fired 360/360, every HTTP response 200, and
+      `shouldRecord` correctly returned false from Fri 20:00 ET.
 - [ ] Issue #207 (`edge-functions failed on main`, 2026-08-18) is still
       open but stale — that workflow has been green on every push
       since. Close it or let the next failure bump it.

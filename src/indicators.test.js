@@ -4,7 +4,7 @@ import {
   rollingSma, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   priceDividedByTtmEps,
-  hasExtendedHoursBars, extPriceIsRealAh,
+  hasExtendedHoursBars, extPriceIsRealAh, ahQuoteTolerance,
   isPriceAxis,
 } from './indicators.js';
 
@@ -281,6 +281,51 @@ describe('extPriceIsRealAh (shared card/modal AH-trust verdict)', () => {
       { date: '2026-05-11T20:30', close: 18.65 },  // padded AH bar, flat
     ];
     expect(extPriceIsRealAh(series, 20.15, OPEN, CLOSE)).toBe(false);
+  });
+
+  it('a genuinely fast name is not called fake for moving (BE, 2026-09-04)', () => {
+    // BE ran 8.96 % across Friday's after-hours, including one 8.76 %
+    // five-minute bar. The quote and the last bar are two fetches of the
+    // same tape minutes apart, so on a name moving like that they sit
+    // more than 3 % apart for the ordinary reason that time passed — and
+    // the flat threshold called a real print fake. The heat-map tile
+    // dropped to an em dash while every slower holding beside it read
+    // fine.
+    //
+    //   249.90 -> 271.80 is the +8.76 % bar
+    //   quote 266.14 vs last bar 258.00 = 3.16 % apart -> over the old 3 %
+    const series = [
+      { date: '2026-09-04T19:55', close: 252.21 },  // RTH close
+      { date: '2026-09-04T20:05', close: 249.90 },
+      { date: '2026-09-04T20:10', close: 271.80 },  // the 8.76 % bar
+      { date: '2026-09-04T23:59', close: 258.00 },  // last AH bar
+    ];
+    expect(extPriceIsRealAh(series, 266.14, OPEN, CLOSE)).toBe(true);
+  });
+
+  it('the same 3.16 % gap on a QUIET name is still rejected', () => {
+    // The control for the case above: identical gap between quote and
+    // last bar, but the tape itself barely moves, so nothing justifies
+    // the distance and the guard still fires. This is what stops the
+    // fix from becoming "trust everything".
+    const series = [
+      { date: '2026-09-04T19:55', close: 258.10 },
+      { date: '2026-09-04T20:05', close: 258.05 },
+      { date: '2026-09-04T20:10', close: 257.95 },
+      { date: '2026-09-04T23:59', close: 258.00 },
+    ];
+    expect(extPriceIsRealAh(series, 266.14, OPEN, CLOSE)).toBe(false);
+  });
+
+  it('ahQuoteTolerance: floors at 3 %, follows the tape, and is capped', () => {
+    const flat = [{ close: 100 }, { close: 100 }, { close: 100 }];
+    expect(ahQuoteTolerance(flat)).toBeCloseTo(0.03, 6);      // floor
+    const moving = [{ close: 100 }, { close: 105 }];           // 5 % step
+    expect(ahQuoteTolerance(moving)).toBeCloseTo(0.10, 6);     // 2x
+    const wild = [{ close: 100 }, { close: 200 }];             // 100 % step
+    expect(ahQuoteTolerance(wild)).toBeCloseTo(0.15, 6);       // cap
+    expect(ahQuoteTolerance([])).toBeCloseTo(0.03, 6);
+    expect(ahQuoteTolerance(/** @type {any} */ (null))).toBeCloseTo(0.03, 6);
   });
 
   it('no AH bars at all → false', () => {
