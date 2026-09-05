@@ -10,7 +10,7 @@ gates, README, Edge Function deploys, Cloud caveats). This is the part
 that is not mechanical: what he actually asks for, what he accepts as
 an answer, and the mistakes that have already cost a round trip.
 
-Distilled from the full Claude Code session in `handover.md` (67 turns,
+Distilled from the Claude Code sessions archived in `handover.md` (67 turns,
 2026-07-20 → 2026-08-18). Prefer this skill over re-reading that file
 unless you need a specific measurement or the exact wording of a
 request. The transcript contains live balances; the repo is private.
@@ -483,13 +483,20 @@ DATES, the board supplies QUANTITY, and anything reading lots stands the
 residue in rather than believing the shortfall. Never back-fill the
 missing lots — that invents purchase dates that never happened.
 
-## Full transcript
+## The record: `LEDGER.md` live, `handover.md` archived
 
-`handover.md` at the repo root is the repo's running record — Part 1 is
-the current state, Part 2 an append-only decision log, Part 3 the
-archived session transcripts. **It is maintained in real time**: write
-the plan before the work, the state as it changes, the reviews as they
-land (the rule is in `CLAUDE.md`). Part 3 is the raw 67-turn Claude Code session
+`LEDGER.md` at the repo root is the LIVE record, under the ledger
+protocol in `.ledger/SKILL.md`: what remains, the machine setup, then
+history newest first, each section opening with a source header. **It is
+maintained in real time and in the same commit as the work** — a
+pre-commit hook refuses a commit whose ledger is two behind. Read it
+first on any resume and work down the what-remains list.
+
+`handover.md` is its ARCHIVE, not a second live document — Part 1 the
+state as it stood when the ledger took over, Part 2 an append-only
+decision log, Part 3 the raw session transcripts. Open it when a closed
+item is reopened or audited, and move closed operations into it so the
+live ledger stays cheap to read on every wake. Part 3 is the raw 67-turn Claude Code session
 (every message, tool call, and tool result; long outputs clipped at
 3000 characters). Use it to recover a specific request or a closed-form
 check. Do not copy balances out of it into new files, issues, or

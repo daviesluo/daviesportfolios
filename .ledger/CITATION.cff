@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+title: "ledger: one live ledger that keeps a task alive across sessions and platforms"
+message: "If you use this protocol or build on it, please cite it."
+type: software
+authors:
+  - family-names: Luo
+    given-names: Zheng
+    alias: Davies Luo
+    orcid: ""
+repository-code: "https://github.com/daviesluo/ledger-skill"
+license: Apache-2.0
+version: "1.0"
+date-released: "2026-09-01"
+abstract: >-
+  ledger: one live ledger that keeps a task alive across sessions and platforms. The protocol, its shipped scripts and a self-test that drives
+  every one of them against throwaway repositories. Written from a live
+  deployment across Claude Code, Cursor and Codex, where every rule that
+  reads like a hard rule is one a run broke without.
+keywords:
+  - ai-agents
+  - multi-agent
+  - agent-orchestration
+  - claude-code
+  - cursor
+  - codex
+  - git
+  - developer-tools

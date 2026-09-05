@@ -1,0 +1,121 @@
+#!/bin/sh
+# Ledger gates. Set up once with: git config core.hooksPath <hooks-dir>
+#
+# The ledger path is read from LOCAL config, with the project default as
+# the fallback, because the hook file itself is committed and shared. A
+# clone that owns a different ledger, which is what happens when this
+# protocol runs beside the sub-session protocol and each seat owns its
+# own outbox, sets its own path once:
+#   git config --local ledger.path <path>
+# --local matters: a plain `git config` reads system and global too, so a
+# global entry would retarget the gates in every repository on the machine.
+LEDGER=$(git config --local ledger.path 2>/dev/null || echo "LEDGER.md")
+
+# AND A CLONE STILL CARRYING THE OLD KEY IS TOLD, ONCE, LOUDLY. This key
+# was named `relay.ledger` before the protocol was renamed, and the key
+# lives in each clone rather than in this file, so a rename here does not
+# reach one. Silently falling back to the default is the bad case: the
+# gates would then guard the project ledger while the clone believes they
+# guard its own, which is exactly what the per-clone key exists to avoid.
+# Carrying the old name as a fallback would work and would put a dead name
+# in a first release, so the hook refuses instead and says what to type.
+if [ -z "$(git config --local ledger.path 2>/dev/null)" ] &&
+   [ -n "$(git config --local relay.ledger 2>/dev/null)" ]; then
+  # THE COMMAND IS QUOTED, because the path it names is the reader's and may
+  # hold a space or an apostrophe. Unquoted, `Seat Ledger.md` migrated as
+  # `Seat` and `Seat's Ledger.md` failed outright, so the advice broke exactly
+  # the clones least like the author's.
+  printf '%s\n' 'this clone sets relay.ledger, the name this protocol used before it was renamed, and nothing reads that key any more. Run: git config --local ledger.path "$(git config --local relay.ledger)"' >&2
+  exit 1
+fi
+
+# quotePath escapes non-ASCII names, and an escaped name matches nothing.
+# The flag guards EVERY line whose output is compared against the ledger's
+# name as text, here and in the diff-tree read below: the first omission
+# disabled gate 2 outright, and the second refused the one-commit allowance
+# to any ledger named outside ASCII, telling its user the record was two
+# commits behind when it was one. The pathspec reads need no flag, since a
+# pathspec matches bytes and only a status letter is read from the output.
+changed=$(git -c core.quotePath=false diff --cached --name-only)
+
+# Gate 1: the ledger moves with the work. A commit that changes
+# anything else must add to or modify the ledger, or the previous
+# commit must have carried it. A staged deletion of the ledger never
+# counts as carrying it. Merges are exempt; LEDGER_OK=1 skips THREE cases,
+# the same three the refusal below names: a commit that genuinely records
+# nothing a later session would need, an amend of a commit riding the slack,
+# where pre-commit cannot tell an amend from a fresh commit and reads the
+# ledger as two commits back, and a change confined to the ledger's own
+# archive file. The comment listed two while the message listed three, which
+# is the reader learning the hatch from whichever of them they happened to
+# read first.
+if [ -z "$LEDGER_OK" ] && [ ! -e "$(git rev-parse --git-dir)/MERGE_HEAD" ]; then
+  substantive=$(printf '%s\n' "$changed" | grep -vFx -- "$LEDGER")
+  carries=$(git diff --cached --name-status -- "$LEDGER" | grep -E '^[AM]')
+  if [ -n "$substantive" ] && [ -z "$carries" ] && git rev-parse -q --verify HEAD >/dev/null; then
+    if ! git ls-files --error-unmatch -- "$LEDGER" >/dev/null 2>&1; then
+      echo
+      echo "commit stopped: the ledger $LEDGER does not exist in this"
+      echo "repository. Create it, write the first entry, stage it with"
+      echo "this work, and commit again. If you have just RENAMED it,"
+      echo "point the hook at the new path and repeat this commit: read"
+      echo "against the new path, the rename carries its own ledger."
+      exit 1
+    fi
+    if ! git -c core.quotePath=false diff-tree -m --root --no-commit-id --name-only -r HEAD | grep -qFx -- "$LEDGER"; then
+      echo
+      echo "commit stopped: $LEDGER is two commits behind the work."
+      echo "The ledger is the repository's handover document: every change"
+      echo "goes into it as it happens, in the same commit as the work or"
+      echo "the very next one. Write the line for this change, stage the"
+      echo "ledger, commit again."
+      echo
+      echo "THREE CASES TAKE THE HATCH INSTEAD, as: LEDGER_OK=1 git commit"
+      echo "  an AMEND of a commit that was riding the slack, since this"
+      echo "  gate counts the commit it is about to replace and so reads"
+      echo "  one commit of slack as two,"
+      echo "  a commit that genuinely records nothing a later session"
+      echo "  would need,"
+      echo "  and a change confined to the ledger's own archive file."
+      echo "Reach for that before --no-verify, which switches off every"
+      echo "gate here rather than the one that does not fit."
+      exit 1
+    fi
+  fi
+fi
+
+# Gate 2: a commit that adds THIRD-LEVEL headings to the ledger must add
+# at least one well-formed source header among them. Requiring every one
+# to be a source header was tried and rejected: real ledgers carry titled
+# subheadings inside their sections, and a gate that refuses the
+# file's own conventions teaches people to bypass hooks. Deeper headings
+# are left alone entirely, so a subheading written on its own passes. The residual
+# is accepted knowingly: a malformed section can ride along with a
+# good one in the same commit.
+if [ -n "$(git diff --cached --name-only -- "$LEDGER")" ]; then
+  # only third-level headings: a source header is by definition a ###, so a
+  # deeper titled subheading is none of this gate's business. Matching #{3,}
+  # refused a subheading committed on its own, which is exactly the case the
+  # note below says the design allows.
+  heads=$(git diff --cached -U0 -- "$LEDGER" | grep -E '^\+### ')
+  new_heads=$(printf '%s' "$heads" | grep -c .)
+  good_heads=$(printf '%s' "$heads" \
+    | grep -cE '^\+### \[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} UTC\] Platform: [^|]+ \| Model: .+')
+  if [ "$new_heads" -gt 0 ] && [ "$good_heads" -eq 0 ]; then
+    echo
+    echo "commit stopped: a heading added to $LEDGER is not a source header."
+    echo "Every history section opens with exactly:"
+    echo "### [YYYY-MM-DD HH:MM UTC] Platform: <tool> | Model: <exact model>"
+    echo
+    echo "Two ordinary reasons to see this without having written a bad"
+    echo "header. Writing that FORMAT into the ledger as documentation"
+    echo "trips it, because this gate reads the diff and pays no"
+    echo "attention to markdown fences: indent the template by four"
+    echo "spaces or put it in backticks. And a titled subheading of your"
+    echo "own belongs at four hashes or deeper, which this gate leaves"
+    echo "alone entirely."
+    exit 1
+  fi
+fi
+
+exit 0

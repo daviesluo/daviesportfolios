@@ -1,6 +1,16 @@
 # Handover — daviesportfolios
 
-**This file is the running record of work on this repo, and it is
+> **ARCHIVE, since 2026-09-05.** The live record is now `LEDGER.md` at
+> the repo root, under the ledger protocol in `.ledger/SKILL.md`. Read
+> that first on any resume; a pre-commit hook keeps it moving with the
+> work. This file keeps the deep history — the decision log below and
+> the raw session transcripts — and closed operations move into it from
+> the ledger, so the live file stays cheap to read on every wake. It is
+> 35k lines: open it when a closed item is reopened or audited, not on
+> every start. Everything below describes how it was maintained while it
+> WAS the live record, and is kept for that context.
+
+**This file was the running record of work on this repo, and it was
 maintained in real time.** Every session updates it as it goes: the plan
 before the work, the state as it changes, the reviews as they come back.
 The point is that a session can die mid-task — context exhaustion, a
