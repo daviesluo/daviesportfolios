@@ -101,6 +101,55 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-17 20:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+Two things the owner pointed at on screen.
+
+**Heat-map tickers no longer break 3 + 1.** `SAEM` rendered as "SAE" over
+a lone "M". The sizing read `max(8, min(11, floor(min(tw, th) / 3)))`,
+which never looks at how many characters the label has; below about 25px
+of tile width the 8px floor stopped it shrinking while the tile kept
+narrowing, so the label overflowed and `word-break: break-all` wrapped it
+wherever it ran out of room. Sizing is now width-and-label aware
+(`fitTicker`, a pure exported helper), and the only legal break point is
+a `<wbr>` at the label's midpoint, so anything that still cannot fit
+splits balanced.
+
+Measured, not predicted: sweeping tw 22→60 for a four-character label,
+the OLD formula overflowed at 22, 23, 24 and 27 (at 27, floor(27/3) = 9
+needs 23.04px of a 23px line). The new one fits on one line at every
+width from 22 up — 22 being the width at which the ticker is drawn at
+all — because it can reach 7px and 4 × 0.64 × 7 = 17.9 ≤ 18.
+
+I could NOT reproduce his exact tile in the browser: the squarify layout
+would not hand me a tile narrower than 25px however small I made the
+holdings. The screenshot did give the size away, though — those tiles
+print `+1%` rather than `+1.01%`, and only tiles under 36px wide round
+the percentage. Hence the range sweep instead of one fixture tile.
+
+**`Quotes` and `Build` are gone from the sidebar foot**, at his request —
+he reads them as noise. Worth knowing before restoring them: `Quotes`
+separated "the market is flat" from "the fetch silently returned almost
+nothing", and `Build` answered "is this PWA on a stale service worker",
+which this repo has paid for once. The build stamp still rides on every
+ops-error report (`ops_error.js`), so that question stays answerable from
+the table. `quoteCoverage` state and the `coverage` props are removed
+with them; `yahoo_fetch`'s coverage return is untouched and still pinned.
+
+**Correction to the entry below.** It records the sweep's four
+`heatmap/ext` failures as the open AH-trust item (3 in the list above).
+That attribution is WRONG. They are the harness's own clock dependence:
+the app reads the real clock, and section 5's extended-hours assertions
+only hold while the US session is actually in after-hours. The same
+sweep, same build, ran 4-red at 16:31 UTC and ALL GREEN — 82 checks at
+20:15 UTC, after the 20:00 UTC close. Forcing the fixture's
+`session`-is-yesterday branch does NOT reproduce it, so it is the phase,
+not the bar dates. The AH-trust item is untouched and still open.
+
+This is the blocker for making the sweep a CI gate (plan item 8, which he
+has now asked for): a gate that only passes after 20:00 UTC is not a
+gate. The fixture needs a pinned clock before that work can land.
+
 ### [2026-09-17 16:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 TOP MOVERS · TODAY now answers two questions instead of one. A `%` / `$`

@@ -264,7 +264,6 @@ function Board({ isReadOnly }) {
   // Holdings that actually got a quote on the last tick — shown in the
   // sidebar footer so a board full of 0.00 % can be told apart from a
   // fetch that quietly came back nearly empty.
-  const [quoteCoverage, setQuoteCoverage] = useState(/** @type {{got:number,wanted:number}|null} */ (null));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [recentlyUpdated, setRecentlyUpdated] = useState(false);
   const [flashTickers, setFlashTickers] = useState({});
@@ -637,7 +636,7 @@ function Board({ isReadOnly }) {
     // 5d/5m pull for 15 symbols off every tick.
     const wantTodayCloses = refreshPhase !== "regular"
       && (Date.now() - todayClosesRef.current.ts > 30 * 60 * 1000);
-    const [{ updates, source: src, coverage }, mcResult, todayClosesFresh, extSeries, t212Holdings, t212OrderRead] = await Promise.all([
+    const [{ updates, source: src }, mcResult, todayClosesFresh, extSeries, t212Holdings, t212OrderRead] = await Promise.all([
       refreshPrices(portfolio),
       fetchTickers(MC_TICKERS),
       wantTodayCloses ? fetchTodayRegularClose(MC_TICKERS) : Promise.resolve(null),
@@ -677,7 +676,6 @@ function Board({ isReadOnly }) {
       Storage.saveMarketCache(mcResult);
     }
     setSource(src);
-    if (coverage) setQuoteCoverage(coverage);
     // Open/close minutes for the ext-hours verdict below — computed
     // once per refresh, not per holding.
     const extMh = usMarketHoursUtc(new Date());
@@ -1294,7 +1292,6 @@ function Board({ isReadOnly }) {
           extendedHours={extendedHours}
           phase={currentPhase}
           hideValues={hideValues}
-          coverage={quoteCoverage}
         />
         {/* Mobile-only Market Conditions strip — rendered as a separate
             sibling because the desktop instance lives inside .left-col,
@@ -1310,7 +1307,7 @@ function Board({ isReadOnly }) {
           />
         )}
         {!isDesktop && <UpcomingEarnings portfolio={portfolio} className="earnings-panel-mobile" />}
-        <SidebarFoot source={source} coverage={quoteCoverage} />
+        <SidebarFoot source={source} />
       </main>
 
       {drillPos && (
