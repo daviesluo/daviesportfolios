@@ -501,6 +501,15 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     }
   }, []);
 
+  // Cache for the expensive series build below. It has to be a ref, not
+  // a `useMemo`, because the computation cannot run until after the
+  // guards on the next three lines — and a hook after an early return is
+  // how this component shipped React error #310 once already. The HOOK
+  // is here, unconditional; only the cache LOOKUP happens down there,
+  // and a lookup is not a hook.
+  const seriesCacheRef = React.useRef(
+    /** @type {{deps: any[], val: {portYtd: any[], recordedFrom: number|null}}|null} */ (null));
+
   if (!portfolio) return renderShell(<div className="sparkline-empty dim mono">Loading…</div>, rangeKey, setRangeKey);
   if (loading)    return renderShell(<div className="sparkline-empty dim mono">Computing…</div>, rangeKey, setRangeKey);
   if (error)      return renderShell(<div className="sparkline-empty dim mono">Couldn't load history</div>, rangeKey, setRangeKey);
@@ -600,94 +609,141 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // Without this, marketData[<stock>] was undefined and the 1D
   // chart's basis collapsed to null → chart drew a flat 0% line, not
   // matching the scoreboard's DAY CHANGE.
-  /** @type {Record<string, {prevClose?:number, lastPrice?:number, extPrice?:number|null, dayPct?:number}>} */
-  const tickerMarketData = { ...marketData };
-  for (const [t, h] of Object.entries(portfolio.holdings || {})) {
-    if (h.isCash || t === 'CASH') continue;
-    tickerMarketData[t] = {
-      prevClose: h.prevClose,
-      lastPrice: h.lastPrice,
-      extPrice: h.extPrice ?? null,
-      dayPct: h.dayPct,
+  // ---- The expensive half of this render, memoised.
+  //
+  // Everything from here to `portYtd` walks every ticker's bars and then
+  // calls `computeAt` once per point — on a 150-bar range that is 150
+  // valuations of the whole book, and it sat in the render body. A
+  // single 30-second refresh tick re-renders this panel four or five
+  // times (clock leaf, flash set, hover state, the parent's own tick),
+  // so the same 150 valuations ran four or five times for one new price.
+  // On a phone that is the difference between a smooth toggle and a
+  // visibly janky one.
+  //
+  // Deps are the inputs that can change the answer. `Date.now()` is read
+  // inside (via `rangeStartMs`) and deliberately NOT a dep: the window
+  // start only matters at the granularity of a refresh, and `marketData`
+  // changes on every one of those, so the memo already re-runs then.
+  //
+  // MUST sit above the `portYtd.length < 2` early return below — this
+  // component has shipped React error #310 once by putting a hook after
+  // one. Nothing here is conditional.
+  // Identity for the props and state that genuinely gate the answer, plus
+  // a SIGNATURE for `spWindow` — it is rebuilt by `.filter()` on every
+  // render, so its identity always differs and keying on it made the
+  // cache miss every time (measured: 3 valuations became 15 across five
+  // renders). Length + both ends + the right-edge close move whenever
+  // the window really moves; anything subtler is followed by a
+  // `marketData` change on the same 30-second tick anyway.
+  //
+  // `todayMs` is deliberately NOT a dep: it is `Date.now()`, so it
+  // changes on every render by construction and would defeat the cache
+  // outright. It is read for day-granularity comparisons, and the cached
+  // value is at most one refresh tick old. `yearStartDate` is
+  // `spWindow[0].date`, already covered by the signature.
+  const spEnd = spWindow[spWindow.length - 1];
+  const seriesDeps = [portfolio, marketData, extendedHours, phase, tickers, hist,
+    overnight, recorded, rangeKey, anchorDate, fxToUSD,
+    spWindow.length, spWindow[0]?.date, spEnd?.date, spEnd?.close];
+  let series = seriesCacheRef.current;
+  if (!series
+      || series.deps.length !== seriesDeps.length
+      || seriesDeps.some((d, i) => !Object.is(d, /** @type {any} */ (series).deps[i]))) {
+    series = { deps: seriesDeps, val: (() => {
+    /** @type {Record<string, {prevClose?:number, lastPrice?:number, extPrice?:number|null, dayPct?:number}>} */
+    const tickerMarketData = { ...marketData };
+    for (const [t, h] of Object.entries(portfolio.holdings || {})) {
+      if (h.isCash || t === 'CASH') continue;
+      tickerMarketData[t] = {
+        prevClose: h.prevClose,
+        lastPrice: h.lastPrice,
+        extPrice: h.extPrice ?? null,
+        dayPct: h.dayPct,
+      };
+    }
+
+    const useExt = !!(extendedHours && phase && phase !== "regular");
+
+    /** @type {Record<string, {date:string,close:number}[]>} */
+    const histForTickers = {};
+    // Splice each ticker's server-recorded overnight points onto its Yahoo
+    // bars so closeOn() returns a real 20:00-04:00 ET price at the ES=F
+    // overnight timestamps the portfolio line is sampled at — the same
+    // merge the ticker modal uses. No-op (returns the Yahoo series
+    // untouched) unless ext is on, the ticker trades overnight, the range
+    // is 1D / 1W / 1M, and there are >= 2 recorded points in-window. Gated
+    // on the toggle, NOT the live overnight phase, so last night's curve
+    // shows during the day too. barIntervalMs matches the recorded-point
+    // density to each range's bar cadence (5 / 30 / 60 min) so 1W isn't
+    // swallowed by today's ~130 five-minute samples.
+    const nightBarMs = NIGHT_BAR_INTERVAL_MS[rangeKey];
+    for (const t of tickers) {
+      // Sort before merging — mergeOvernightSeries keys its window off
+      // series[0].date, so it must be the earliest bar (buildTickerSeries
+      // re-sorts the merged result, so this isn't redundant work there).
+      const base = (hist?.[t] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+      // `?? base` only satisfies the Point[]|null return type — the merge
+      // returns its `series` arg (= base, non-null) in every no-op path.
+      histForTickers[t] = mergeOvernightSeries(base, overnight[t] || [], {
+        rangeKey, extendedHours, ticker: t, barIntervalMs: nightBarMs,
+      }) ?? base;
+    }
+    // Fold in this account's own recorded prints. They go into the same
+    // per-ticker bar arrays Yahoo's history arrives in, so `computeAt`
+    // treats a recorded bar and a fetched bar identically and there is
+    // still exactly one valuation of the book. A recorded bar wins a tie:
+    // it is our own observation of the tape, not a vendor number that can
+    // be revised later.
+    const windowStartMs = rangeStartMs(rangeKey, Date.now());
+    const histWithRecorded = mergeRecordedBars(histForTickers, recorded, rangeKey, windowStartMs);
+    const recordedFrom = recordedFromMs(recorded);
+    // `true` = anchor every range, 24H included, at the window's own first
+    // bar. See buildTickerSeries: without it the shortest window reports
+    // its move against yesterday's close, which is a different quantity
+    // from the one the Investment view of the same window reports.
+    const tickerSeries = buildTickerSeries(histWithRecorded, anchorDate, rangeKey, tickerMarketData, useExt, true);
+
+    const liveAnchorDate = spWindow[spWindow.length - 1].date;
+    const ytdOpts = {
+      portfolio, tickerSeries, marketData: tickerMarketData,
+      yearStart: anchorDate, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
+      // No forced previous-close basis, on any range.
+      //
+      // It existed to make 1D match the scoreboard's DAY CHANGE, and that
+      // reading is gone: the shortest window is a trailing 24 h measured
+      // from its own first point. Keeping it actively broke that promise.
+      // On every OTHER range a pre-window lot's basis is the window-start
+      // close, so the basis at the first point already equals the value at
+      // the first point, the rebase is a no-op, and the reported figure is
+      // exactly the window's move. Forcing prevClose on 1D made the basis
+      // yesterday's close instead — measured on a fixture whose book went
+      // 2500 -> 2900 (a clean +16.00 %), the panel reported +14.81 % while
+      // the Investment view of the same window reported +16.00 %. Two
+      // numbers for one quantity, on one screen.
+      //
+      // The leak it was guarding against — a lot dated TODAY using its own
+      // cost as basis and dragging the position's whole gain into a day
+      // window — was a symptom of the T212 sync re-dating every synced lot
+      // to today on every refresh. That is fixed at the source. A lot
+      // genuinely bought inside the window SHOULD use its cost: it
+      // contributes nothing at the moment of purchase and its move counts
+      // from there, which is what stops money paid in reading as a gain.
     };
+
+    const portYtd = spWindow.map(p => {
+      const { value, basis } = computeAt({ ...ytdOpts, date: p.date });
+      const pct = basis > 0 ? ((value - basis) / basis) * 100 : 0;
+      // `value` is the book in dollars at this point — the Investment view
+      // draws exactly this, so it is by construction the same number the
+      // vs-S&P view turns into a percentage.
+      return { date: p.date, pct, value };
+    });
+    return { portYtd, recordedFrom };
+    })() };
+    seriesCacheRef.current = series;
   }
+  const { portYtd, recordedFrom } = series.val;
 
-  const useExt = !!(extendedHours && phase && phase !== "regular");
-
-  /** @type {Record<string, {date:string,close:number}[]>} */
-  const histForTickers = {};
-  // Splice each ticker's server-recorded overnight points onto its Yahoo
-  // bars so closeOn() returns a real 20:00-04:00 ET price at the ES=F
-  // overnight timestamps the portfolio line is sampled at — the same
-  // merge the ticker modal uses. No-op (returns the Yahoo series
-  // untouched) unless ext is on, the ticker trades overnight, the range
-  // is 1D / 1W / 1M, and there are >= 2 recorded points in-window. Gated
-  // on the toggle, NOT the live overnight phase, so last night's curve
-  // shows during the day too. barIntervalMs matches the recorded-point
-  // density to each range's bar cadence (5 / 30 / 60 min) so 1W isn't
-  // swallowed by today's ~130 five-minute samples.
-  const nightBarMs = NIGHT_BAR_INTERVAL_MS[rangeKey];
-  for (const t of tickers) {
-    // Sort before merging — mergeOvernightSeries keys its window off
-    // series[0].date, so it must be the earliest bar (buildTickerSeries
-    // re-sorts the merged result, so this isn't redundant work there).
-    const base = (hist?.[t] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
-    // `?? base` only satisfies the Point[]|null return type — the merge
-    // returns its `series` arg (= base, non-null) in every no-op path.
-    histForTickers[t] = mergeOvernightSeries(base, overnight[t] || [], {
-      rangeKey, extendedHours, ticker: t, barIntervalMs: nightBarMs,
-    }) ?? base;
-  }
-  // Fold in this account's own recorded prints. They go into the same
-  // per-ticker bar arrays Yahoo's history arrives in, so `computeAt`
-  // treats a recorded bar and a fetched bar identically and there is
-  // still exactly one valuation of the book. A recorded bar wins a tie:
-  // it is our own observation of the tape, not a vendor number that can
-  // be revised later.
-  const windowStartMs = rangeStartMs(rangeKey, Date.now());
-  const histWithRecorded = mergeRecordedBars(histForTickers, recorded, rangeKey, windowStartMs);
-  const recordedFrom = recordedFromMs(recorded);
-  // `true` = anchor every range, 24H included, at the window's own first
-  // bar. See buildTickerSeries: without it the shortest window reports
-  // its move against yesterday's close, which is a different quantity
-  // from the one the Investment view of the same window reports.
-  const tickerSeries = buildTickerSeries(histWithRecorded, anchorDate, rangeKey, tickerMarketData, useExt, true);
-
-  const liveAnchorDate = spWindow[spWindow.length - 1].date;
-  const ytdOpts = {
-    portfolio, tickerSeries, marketData: tickerMarketData,
-    yearStart: anchorDate, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
-    // No forced previous-close basis, on any range.
-    //
-    // It existed to make 1D match the scoreboard's DAY CHANGE, and that
-    // reading is gone: the shortest window is a trailing 24 h measured
-    // from its own first point. Keeping it actively broke that promise.
-    // On every OTHER range a pre-window lot's basis is the window-start
-    // close, so the basis at the first point already equals the value at
-    // the first point, the rebase is a no-op, and the reported figure is
-    // exactly the window's move. Forcing prevClose on 1D made the basis
-    // yesterday's close instead — measured on a fixture whose book went
-    // 2500 -> 2900 (a clean +16.00 %), the panel reported +14.81 % while
-    // the Investment view of the same window reported +16.00 %. Two
-    // numbers for one quantity, on one screen.
-    //
-    // The leak it was guarding against — a lot dated TODAY using its own
-    // cost as basis and dragging the position's whole gain into a day
-    // window — was a symptom of the T212 sync re-dating every synced lot
-    // to today on every refresh. That is fixed at the source. A lot
-    // genuinely bought inside the window SHOULD use its cost: it
-    // contributes nothing at the moment of purchase and its move counts
-    // from there, which is what stops money paid in reading as a gain.
-  };
-
-  const portYtd = spWindow.map(p => {
-    const { value, basis } = computeAt({ ...ytdOpts, date: p.date });
-    const pct = basis > 0 ? ((value - basis) / basis) * 100 : 0;
-    // `value` is the book in dollars at this point — the Investment view
-    // draws exactly this, so it is by construction the same number the
-    // vs-S&P view turns into a percentage.
-    return { date: p.date, pct, value };
-  });
   if (portYtd.length < 2) {
     return renderShell(<div className="sparkline-empty dim mono">Insufficient data</div>, rangeKey, setRangeKey);
   }

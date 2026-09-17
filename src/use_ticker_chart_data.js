@@ -278,9 +278,33 @@ export function useTickerChartData({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticker, rangeKey, useExt, phase, loading, error]);
 
+  // ---- Is the page actually being looked at? A modal left open in a
+  // background tab kept polling every 5 s forever; over a weekend that is
+  // tens of thousands of Edge calls and a measurable amount of the
+  // phone's battery, for a chart nobody can see. `visibilitychange` is
+  // the only signal that separates "open" from "being read".
+  const [docVisible, setDocVisible] = React.useState(
+    () => (typeof document === 'undefined' ? true : !document.hidden));
+  React.useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const onVis = () => setDocVisible(!document.hidden);
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
+
   // ---- 1D continuous polling so the chart tracks intraday moves.
   React.useEffect(() => {
     if (rangeKey !== '1D' || !series) return;
+    // Nothing to track when nothing is trading. Crypto runs 24/7; a US
+    // name moves in pre / regular / after; in the overnight window only
+    // the names that carry a T212 overnight session can print. Outside
+    // those the poll was re-fetching an unchanged series every 5 s all
+    // night and all weekend. The effect re-runs when `phase` changes, so
+    // the open modal picks the tape back up by itself.
+    const tapeCouldMove = isCrypto(ticker)
+      || phase !== 'overnight'
+      || hasOvernightSession(ticker);
+    if (!docVisible || !tapeCouldMove) return;
     let cancelled = false;
     let timer = null;
     const POLL_MIN_MS = 5000;
@@ -305,7 +329,7 @@ export function useTickerChartData({
     timer = setTimeout(tick, POLL_MIN_MS);
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ticker, rangeKey, useExt, phase, series === null]);
+  }, [ticker, rangeKey, useExt, phase, series === null, docVisible]);
 
   // ---- Overnight recorded points (read sync for first paint, re-read
   // on the `overnight:fetched` event, fetch this ticker on open).

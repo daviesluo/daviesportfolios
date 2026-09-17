@@ -20,9 +20,13 @@
 // passed. Lifetime is 24 h.
 //
 // REQUIRED secrets (set via Supabase Dashboard → Edge Functions → Secrets):
-//   APP_ADMIN_PWD     — e.g. "7119"
-//   APP_RO_PWD        — e.g. "8848"
+//   APP_ADMIN_PWD     — the admin password (full edit rights)
+//   APP_RO_PWD        — the read-only password
 //   APP_AUTH_SECRET   — long random string used to sign tokens
+// No example values here, deliberately. This file was readable from the
+// public site for months (the repository root was being served), and the
+// two it used to carry read as the real ones. Rotating a secret does not
+// un-publish the shape of it.
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected.
 
 import { reportServerError } from "../_shared/ops.ts";
