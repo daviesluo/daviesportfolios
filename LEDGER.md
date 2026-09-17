@@ -105,6 +105,28 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-17 23:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The recorder's own density had to follow 1W too.** Same sweep as the
+entry below, other half: `RANGE_BUCKET_SECONDS['1W']` was still reading
+recorded rows at 30-minute buckets, and `prune_price_snapshots`'s
+26 h - 8 d band was still coarsening stored rows to 30 minutes. A
+recorded point and a fetched point are the same kind of thing on one
+line, so a coarser read draws the left half of a 1W chart at half the
+resolution of the right half and the seam is visible. Both now 15 min
+(`0036_price_snapshot_15m_band.sql`; that band roughly doubles, ~330
+rows to ~660, against a 400-day retention).
+
+Checked the other bands rather than assuming: 1D reads 5 min, 1M 1 h,
+YTD 1 day, and 3M reads 4 h, which is already the slot grid it is about
+to sample on. Only 1W was out. The test now derives the bucket from
+`RANGES[k].interval` for the three minute-interval ranges, so this
+cannot drift again either; 3M is pinned separately because its bucket
+tracks its SAMPLING cadence (4 h), not its bar interval (60 m).
+
+Rows already coarsened to 30 minutes are gone for good — the seam heals
+as the eight-day window rolls forward, not retroactively.
+
 ### [2026-09-17 23:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Correction to the entry below: the 15-minute switch broke the 1W MA
