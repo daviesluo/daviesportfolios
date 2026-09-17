@@ -26,10 +26,33 @@ import {
   CashModal,
   useConfirm,
 } from './modals.jsx';
-import { TickerChartModal } from './ticker_chart_modal.jsx';
-import { HoldingsListModal } from './holdings_list.jsx';
-import { SectorsListModal } from './sectors_list.jsx';
-import { TransactionHistoryModal } from './transaction_history.jsx';
+// The four modals nobody can reach without a click, split out of the main
+// bundle. Together with everything only they pull in — the chart modal's
+// data hook, its geometry and the indicator maths — they were a fifth of
+// a bundle that had 0.97 kB of headroom left against its 122 kB budget,
+// which meant the next feature would be paid for by raising the number
+// rather than by making a choice.
+//
+// Lazy, but NOT lazily fetched: `prefetchModalChunks` below starts the
+// download right after first paint, so the code is in memory long before
+// any click. Opening a panel that then has to fetch its own code is the
+// same defect as one that paints an empty state and fills in afterwards.
+const TickerChartModal = React.lazy(() =>
+  import('./ticker_chart_modal.jsx').then(m => ({ default: m.TickerChartModal })));
+const HoldingsListModal = React.lazy(() =>
+  import('./holdings_list.jsx').then(m => ({ default: m.HoldingsListModal })));
+const SectorsListModal = React.lazy(() =>
+  import('./sectors_list.jsx').then(m => ({ default: m.SectorsListModal })));
+const TransactionHistoryModal = React.lazy(() =>
+  import('./transaction_history.jsx').then(m => ({ default: m.TransactionHistoryModal })));
+
+/** Warm every split chunk. Idempotent — the module cache dedupes. */
+function prefetchModalChunks() {
+  import('./ticker_chart_modal.jsx');
+  import('./holdings_list.jsx');
+  import('./sectors_list.jsx');
+  import('./transaction_history.jsx');
+}
 import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from './indicators.js';
@@ -312,6 +335,14 @@ function Board({ isReadOnly }) {
       return next;
     });
   }, []);
+  // Warm the split modal chunks as soon as the first paint is out of the
+  // way. They are off the critical path for rendering the board, but
+  // they must be in memory before the first click, not after it.
+  useEffect(() => {
+    const id = setTimeout(prefetchModalChunks, 0);
+    return () => clearTimeout(id);
+  }, []);
+
   // In read-only mode or history mode, force-disable edit mode.
   useEffect(() => { if (isReadOnly && editMode) setEditMode(false); }, [isReadOnly, editMode]);
 
@@ -1329,52 +1360,59 @@ function Board({ isReadOnly }) {
         />
       )}
 
-      {/* Holdings list renders BEFORE the ticker modal so that when a
-          symbol is tapped from the list, the ticker modal stacks ON
-          TOP (later in the DOM wins at equal z-index) and the list
-          stays mounted behind it — closing the ticker modal returns
-          to the list, not all the way home. */}
-      {showHoldingsList && (
-        <HoldingsListModal
-          metrics={metrics}
-          hideValues={hideValues}
-          onTickerClick={(t) => setViewingTicker(t)}
-          onClose={() => setShowHoldingsList(false)}
-        />
-      )}
+      {/* One boundary for all four split chunks. `fallback={null}` on
+          purpose: they are prefetched right after first paint, so the
+          only way to land here is a click inside the first moments of a
+          cold load, and a blank frame is less alarming than a spinner
+          that flashes for 50 ms. */}
+      <React.Suspense fallback={null}>
+        {/* Holdings list renders BEFORE the ticker modal so that when a
+            symbol is tapped from the list, the ticker modal stacks ON
+            TOP (later in the DOM wins at equal z-index) and the list
+            stays mounted behind it — closing the ticker modal returns
+            to the list, not all the way home. */}
+        {showHoldingsList && (
+          <HoldingsListModal
+            metrics={metrics}
+            hideValues={hideValues}
+            onTickerClick={(t) => setViewingTicker(t)}
+            onClose={() => setShowHoldingsList(false)}
+          />
+        )}
 
-      {showSectorsList && (
-        <SectorsListModal
-          metrics={metrics}
-          hideValues={hideValues}
-          onTickerClick={(t) => setViewingTicker(t)}
-          onClose={() => setShowSectorsList(false)}
-        />
-      )}
+        {showSectorsList && (
+          <SectorsListModal
+            metrics={metrics}
+            hideValues={hideValues}
+            onTickerClick={(t) => setViewingTicker(t)}
+            onClose={() => setShowSectorsList(false)}
+          />
+        )}
 
-      {showTransactionHistory && (
-        <TransactionHistoryModal
-          holdings={portfolio.holdings}
-          marketData={marketData}
-          hideValues={hideValues}
-          t212Orders={t212Orders}
-          onTickerClick={(t) => { setShowTransactionHistory(false); setViewingTicker(t); }}
-          onClose={() => setShowTransactionHistory(false)}
-        />
-      )}
+        {showTransactionHistory && (
+          <TransactionHistoryModal
+            holdings={portfolio.holdings}
+            marketData={marketData}
+            hideValues={hideValues}
+            t212Orders={t212Orders}
+            onTickerClick={(t) => { setShowTransactionHistory(false); setViewingTicker(t); }}
+            onClose={() => setShowTransactionHistory(false)}
+          />
+        )}
 
-      {viewingTicker && (
-        <TickerChartModal
-          ticker={viewingTicker}
-          holding={portfolio.holdings[viewingTicker] ?? null}
-          marketData={marketData}
-          extendedHours={extendedHours}
-          phase={currentPhase}
-          portfolioTotalValue={metrics.marketValue}
-          hideValues={hideValues}
-          onClose={() => setViewingTicker(null)}
-        />
-      )}
+        {viewingTicker && (
+          <TickerChartModal
+            ticker={viewingTicker}
+            holding={portfolio.holdings[viewingTicker] ?? null}
+            marketData={marketData}
+            extendedHours={extendedHours}
+            phase={currentPhase}
+            portfolioTotalValue={metrics.marketValue}
+            hideValues={hideValues}
+            onClose={() => setViewingTicker(null)}
+          />
+        )}
+      </React.Suspense>
 
       {editingTicker && !isReadOnly && portfolio.holdings[editingTicker] && (
         <EditTickerModal

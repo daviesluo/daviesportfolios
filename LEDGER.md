@@ -101,6 +101,36 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-17 21:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Plan item 24 — the modal cluster is out of the main bundle.** The four
+panels nobody can reach without a click (ticker chart, holdings list,
+sectors list, transaction history) are `React.lazy` chunks now.
+
+Measured: main bundle 121.03 kB gzipped → **109.07 kB**, so headroom
+against the 122 kB budget goes from 0.97 kB to 12.93 kB. The chart modal
+alone is 8.25 kB of it; the other three are 1.7–2.2 kB each.
+
+They are lazy but NOT lazily fetched. A `setTimeout(…, 0)` after first
+paint warms all four, so the split buys a smaller critical path without
+buying a modal that has to download itself when you click it — which is
+the same defect as a panel that paints an empty state and fills in
+after. `Suspense fallback` is `null` deliberately: the only way to reach
+it is a click in the first moments of a cold load, and a blank frame
+beats a spinner that flashes for 50 ms.
+
+The sweep now asserts this rather than trusting it: before any modal is
+opened, all four chunk names must already appear in
+`performance.getEntriesByType('resource')`. Counterfactual — disabling
+the prefetch turns that check red at both breakpoints, naming all four.
+
+`auth` redeployed for real at 20:48:03 UTC (v24), checked against the
+project's function list rather than against a green workflow.
+
+Sweep is 84 checks, still ALL GREEN at both breakpoints. Note that it
+only passes after 20:00 UTC — see two entries below; that clock
+dependence is still the blocker for using it as a CI gate.
+
 ### [2026-09-17 21:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 Three things, all measured rather than reasoned.
