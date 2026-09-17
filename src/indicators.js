@@ -11,12 +11,39 @@
 // modal still owns the data pipelines that feed these.
 
 import { isCrypto, isUsEquity } from './ticker_class.js';
+import { RANGES } from './ytd.js';
+
+/** US regular session length, 09:30–16:00 ET, in minutes. */
+const SESSION_MINUTES = 390;
+
+/**
+ * How many bars one regular session holds at a given Yahoo interval.
+ * Rounded UP because the session doesn't divide evenly into every
+ * interval and Yahoo emits the remainder as a short final bar: 60 m
+ * gives 7 (09:30…09:30+6h, then a half-hour stub), 30 m gives 13,
+ * 15 m gives 26. A daily (or any non-minute) interval is one bar.
+ *
+ * @param {string|undefined} interval
+ * @returns {number}
+ */
+export function barsPerSession(interval) {
+  const m = /^(\d+)m$/.exec(String(interval || ''));
+  if (!m) return 1;
+  return Math.ceil(SESSION_MINUTES / Number(m[1]));
+}
 
 /**
  * Bar window for a simple moving average overlay. Daily-only
  * tickers (CN funds / .PVT) get a plain N-day window; intraday
- * ranges scale by bars-per-day so a "5-day MA on a 30 m chart"
- * is actually 5 × 13 = 65 bars wide.
+ * ranges scale by bars-per-day so a "5-day MA on a 15 m chart"
+ * is actually 5 × 26 = 130 bars wide.
+ *
+ * The bars-per-day factor is DERIVED from `RANGES[rangeKey].interval`
+ * rather than tabulated beside it. It used to be its own literal map,
+ * and when 1W moved from 30 m to 15 m bars the map kept saying 13 — so
+ * a line labelled "MA 5" silently covered two and a half days. One
+ * source for the interval means the label cannot drift from the maths
+ * again.
  *
  * @param {string} rangeKey
  * @param {boolean} dailyOnly
@@ -25,8 +52,7 @@ export function maBarsFor(rangeKey, dailyOnly = false) {
   const days   = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50, '1Y': 200 }[rangeKey] ?? 0;
   if (!days) return 0;
   if (dailyOnly) return days;
-  const barsPerDay = { '1W': 13, '1M': 7, '3M': 1, 'YTD': 1, '1Y': 1 }[rangeKey] ?? 1;
-  return days * barsPerDay;
+  return days * barsPerSession(RANGES[rangeKey]?.interval);
 }
 
 /**

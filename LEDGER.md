@@ -105,6 +105,30 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-17 23:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Correction to the entry below: the 15-minute switch broke the 1W MA
+overlay, and the drift test written with it did not catch that.** That
+test pinned the five places that say how long a 1W BAR is. The MA
+window is a sixth number of the same kind and it was not in the set:
+`maBarsFor` held its own `{'1W': 13}` bars-a-day literal, correct for
+30-minute bars, so after the switch a line labelled "MA 5" covered
+5 x 13 = 65 fifteen-minute bars — two and a half days, half of what it
+said.
+
+Fixed by deleting the literal rather than editing it. `barsPerSession`
+derives bars-a-day from `RANGES[rangeKey].interval` (ceil(390 / N): a
+390-minute session, rounded up because Yahoo emits the remainder as a
+short final bar — 7 at 60m, 13 at 30m, 26 at 15m), so the MA window is
+now a function of the chart's own cadence and cannot disagree with it.
+1W's MA is 130 bars. Counterfactual: restoring the old literal map
+fails both the new pin and the new derived-window test.
+
+The general lesson, which is the reason this is written down: a
+cadence change has to be swept for every number DERIVED from the
+cadence, not just for the places that restate it. Restating is easy to
+grep; deriving is not.
+
 ### [2026-09-17 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **1W is 15-minute bars.** Davies said 1W and 3M looked sparse beside the

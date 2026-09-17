@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { RANGES } from './ytd.js';
 import {
-  maBarsFor, maLabelDaysFor,
+  maBarsFor, maLabelDaysFor, barsPerSession,
   rollingSma, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   priceDividedByTtmEps,
@@ -10,11 +11,31 @@ import {
 
 describe('maBarsFor / maLabelDaysFor', () => {
   it('intraday ranges scale by bars/day; daily ranges stay 1:1', () => {
-    expect(maBarsFor('1W', false)).toBe(65);   // 5 days × 13 bars at 30m
+    expect(maBarsFor('1W', false)).toBe(130);  // 5 days × 26 bars at 15m
     expect(maBarsFor('1M', false)).toBe(70);   // 10 days × 7 bars at 60m
-    expect(maBarsFor('3M', false)).toBe(20);
     expect(maBarsFor('YTD', false)).toBe(50);
     expect(maBarsFor('1Y', false)).toBe(200);  // 1Y view draws a 200-day MA
+  });
+
+  it('bars/session comes from the interval, not a second table', () => {
+    expect(barsPerSession('5m')).toBe(78);
+    expect(barsPerSession('15m')).toBe(26);
+    expect(barsPerSession('30m')).toBe(13);
+    expect(barsPerSession('60m')).toBe(7);     // 6.5 h, rounded up
+    expect(barsPerSession('1d')).toBe(1);
+    expect(barsPerSession(undefined)).toBe(1);
+  });
+
+  // The drift this guards against actually happened: 1W moved to 15 m
+  // bars and the hard-coded 13 bars/day stayed, so "MA 5" covered 2.5
+  // days. Reading the interval back out of RANGES makes the window a
+  // function of the chart's own cadence.
+  it('every MA range spans the days its label claims, at its own interval', () => {
+    for (const k of ['1W', '1M', '3M', 'YTD', '1Y']) {
+      const perDay = barsPerSession(RANGES[k].interval);
+      expect(maBarsFor(k, false)).toBe(maLabelDaysFor(k) * perDay);
+      expect(maBarsFor(k, true)).toBe(maLabelDaysFor(k));
+    }
   });
 
   it('dailyOnly tickers (CN funds / .PVT) bypass the bars-per-day scaling', () => {
