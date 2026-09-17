@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   recordedBarDate, mergeRecordedBars, recordedFromMs, rangeStartMs, RANGE_BUCKET_SECONDS,
 } from './price_snapshots.js';
+import { RANGES } from './ytd.js';
 
 describe('recordedBarDate — recorded bars must sort against fetched ones', () => {
   const ts = Date.parse('2026-08-18T14:35:00Z');
@@ -92,7 +93,21 @@ describe('range windows', () => {
     // Asking for 5-minute rows over a YTD window would return ~60k of
     // them to draw a couple of hundred points with.
     expect(RANGE_BUCKET_SECONDS['1D']).toBe(300);
+    expect(RANGE_BUCKET_SECONDS['1W']).toBe(900);
+    expect(RANGE_BUCKET_SECONDS['1M']).toBe(3600);
+    expect(RANGE_BUCKET_SECONDS['3M']).toBe(14400);
     expect(RANGE_BUCKET_SECONDS['YTD']).toBe(86400);
+  });
+
+  // The recorded stretch of a chart and its fetched stretch are the
+  // same line, so a read bucket coarser than the bar interval draws the
+  // left half at half the resolution of the right half and the seam
+  // shows. 1W spent a while like that after moving to 15-minute bars.
+  it('the minute-interval ranges derive their bucket from the interval', () => {
+    for (const k of ['1D', '1W', '1M']) {
+      const mins = Number(/^(\d+)m$/.exec(RANGES[k].interval)?.[1]);
+      expect(RANGE_BUCKET_SECONDS[k]).toBe(mins * 60);
+    }
   });
 
   it('the shortest window is a trailing 24 h, and YTD starts at Jan 1', () => {

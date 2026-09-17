@@ -26,11 +26,18 @@ import { YtdStore } from './chart_store.js';
  * Read bucket per range, matching each range's bar cadence. Asking for
  * 5-minute rows over a YTD window would return ~60k of them to draw 250
  * points with.
+ *
+ * 1D / 1W / 1M are their `RANGES[k].interval` in seconds, and
+ * `price_snapshots.test.js` derives them that way so a bar-interval
+ * change drags the bucket with it. 3M is the odd one out on purpose:
+ * its bars are 60m but it SAMPLES on a four-hour grid (see
+ * `fourHourSlots`), and it is the sampling cadence a read bucket has to
+ * match, not the bar interval.
  * @type {Record<string, number>}
  */
 export const RANGE_BUCKET_SECONDS = {
   '1D': 300,
-  '1W': 1800,
+  '1W': 900,
   '1M': 3600,
   '3M': 14400,
   'YTD': 86400,
