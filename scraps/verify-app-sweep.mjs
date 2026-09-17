@@ -529,6 +529,23 @@ async function run() {
     await page.locator('#movers-tab-pct:visible').first().click();
     await page.waitForTimeout(250);
 
+    // ---- 6c. the split modal chunks are PREFETCHED, not fetched on click
+    // The four modals live in their own chunks so the main bundle stays
+    // under budget. That is only acceptable if the code is already in
+    // memory when the user clicks: a panel that has to fetch itself
+    // first is the same defect as one that paints an empty state and
+    // fills in afterwards. Nothing below has opened a modal yet, so a
+    // resource entry here can only have come from the prefetch.
+    const prefetched = await page.evaluate(() =>
+      performance.getEntriesByType('resource')
+        .map((e) => e.name)
+        .filter((n) => /\/assets\/(ticker_chart_modal|transaction_history|holdings_list|sectors_list)-/.test(n))
+        .map((n) => n.split('/').pop().replace(/-[a-f0-9]+\.js$/, '')));
+    const want = ['ticker_chart_modal', 'transaction_history', 'holdings_list', 'sectors_list'];
+    const missing = want.filter((w) => !prefetched.includes(w));
+    if (missing.length === 0) ok(S('chunks'), `all four modal chunks prefetched before any click`);
+    else fail(S('chunks'), `not prefetched: ${missing.join(', ')}`);
+
     // ---- 7. transaction history -------------------------------------
     await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
     await page.waitForTimeout(200);
