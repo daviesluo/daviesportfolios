@@ -14,7 +14,11 @@ export const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$', EUR: 
 // time-proportional gap (chart_geometry.overnightTrailingGap) and the
 // 1W/1M overnight-point downsample. Only these three ranges get the
 // dot; ratio ranges / 3M / YTD / 1Y don't.
-export const NIGHT_BAR_INTERVAL_MS = { '1D': 5 * 60_000, '1W': 30 * 60_000, '1M': 60 * 60_000 };
+// 1W is 15 min to match `RANGES['1W'].interval`: these two have to move
+// together or the recorded overnight points are drawn at a different
+// density from the Yahoo bars they are spliced into, and the seam shows
+// as a visible change of resolution partway across the night.
+export const NIGHT_BAR_INTERVAL_MS = { '1D': 5 * 60_000, '1W': 15 * 60_000, '1M': 60 * 60_000 };
 
 // Friendly modal-title names for non-stock tickers. Stocks just show
 // the ticker symbol since the company name isn't carried anywhere in
@@ -59,10 +63,10 @@ export function fmtTickerPrice(price, ticker, sym) {
 
 // Per-range cache TTL, matched to each range's bar interval so we don't
 // refetch faster than the source can publish a new bar:
-//   1D → 5 m · 1W → 30 m · 1M → 1 h · 3M/YTD/1Y → 12 h
+//   1D → 5 m · 1W → 15 m · 1M → 1 h · 3M/YTD/1Y → 12 h
 export function modalTtl(rangeKey) {
   if (rangeKey === '1D') return  5 * 60 * 1000;
-  if (rangeKey === '1W') return 30 * 60 * 1000;
+  if (rangeKey === '1W') return 15 * 60 * 1000;
   if (rangeKey === '1M') return 60 * 60 * 1000;
   return                       12 * 60 * 60 * 1000;
 }

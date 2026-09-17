@@ -120,7 +120,7 @@ function RangeButtons({ rangeKey, onChange }) {
 // Cache TTLs aligned to each range's bar interval so we don't re-fetch
 // faster than Yahoo can publish a new bar:
 //   1D   → 5  m bars  →  5 m TTL
-//   1W   → 30 m bars  → 30 m TTL
+//   1W   → 15 m bars  → 15 m TTL
 //   1M   → 60 m bars  →  1 h TTL
 //   3M   →  1 d bars  → 12 h TTL
 //   YTD  →  1 d bars  → 12 h TTL
@@ -129,7 +129,7 @@ function RangeButtons({ rangeKey, onChange }) {
 // govern when the silent refetch fires.
 const PERF_CACHE_TTL_MS = {
   '1D':  5  * 60 * 1000,
-  '1W':  30 * 60 * 1000,
+  '1W':  15 * 60 * 1000,
   '1M':  60 * 60 * 1000,
   '3M':  12 * 60 * 60 * 1000,
   'YTD': 12 * 60 * 60 * 1000,

@@ -8,7 +8,7 @@
 /** Per-range TTL for chart data — must match both modal + prefetch. */
 export const RANGE_TTL_MS = {
   '1D':  5  * 60 * 1000,
-  '1W':  30 * 60 * 1000,
+  '1W':  15 * 60 * 1000,
   '1M':  60 * 60 * 1000,
   '3M':  12 * 60 * 60 * 1000,
   'YTD': 12 * 60 * 60 * 1000,

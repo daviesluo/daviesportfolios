@@ -148,7 +148,11 @@ describe('PerfChart wiring helpers — night-market range sensitivity', () => {
     // 4.3 days), and there is no range in between, so 1W downloads a
     // month and trims. See the 168 h trim test below.
     expect(p.yahooRange).toBe('1mo');
-    expect(p.interval).toBe('60m');
+    // 15m, not 60m: at 60m a trailing week held ~35 points against 1M's
+    // ~154, so the two buttons drew the same book at four times the
+    // density. The ext path must move with the standard one or the two
+    // 1W variants disagree about what a bar is.
+    expect(p.interval).toBe('15m');
   });
 
   it('perfFetchParams: 1W ext-off uses the trimming w1 variant (no prepost)', () => {
