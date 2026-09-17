@@ -8,6 +8,42 @@ import { displayTicker, pctIsFlat } from './formatters.js';
 // and Top Movers label their tickers the same way.
 export { displayTicker };
 
+/**
+ * How to draw a ticker inside a tile: the font size that lets it sit on
+ * ONE line, and where it may break if it still cannot.
+ *
+ * The old sizing read `min(tw, th) / 3`, which ignores how many
+ * characters the label has. A four-character ticker on a narrow tile
+ * (SAEM, VUAA) therefore kept its 11px, overflowed the line, and — with
+ * `word-break: break-all` — wrapped wherever it ran out of room, which
+ * is 3 + 1: a lone "M" on its own line with the % squeezed underneath.
+ *
+ * Width is the binding constraint and it depends on the label:
+ *   - JetBrains Mono advances 0.6em per glyph,
+ *   - `.hm-ticker` adds 0.04em of tracking and 2px of padding per side.
+ * Height has to hold the ticker line AND the % line beneath it (a 3px
+ * flex gap, ticker line-height 1.05), or the % clips at the tile edge.
+ *
+ * `mid` is the ONE place the string may break — the caller emits a
+ * `<wbr>` there and the stylesheet forbids breaking anywhere else, so a
+ * label that genuinely cannot fit splits balanced (SA/EM), never
+ * orphaning a single character.
+ *
+ * @param {string} label  already through `displayTicker`
+ * @param {number} tw     tile width in px
+ * @param {number} th     tile height in px
+ * @returns {{ label: string, fontSize: number, mid: number }}
+ */
+export function fitTicker(label, tw, th) {
+  const text = typeof label === 'string' ? label : '';
+  const len = Math.max(1, text.length);
+  const avail = Math.max(0, tw - 4);
+  const byWidth = Math.floor(avail / (len * 0.64));
+  const byHeight = Math.floor(((th - 3) * 0.55) / 1.05);
+  const fontSize = Math.max(7, Math.min(11, byWidth, byHeight));
+  return { label: text, fontSize, mid: Math.ceil(len / 2) };
+}
+
 // ── Treemap layout (recursive binary split) ──────────────────────────────────
 function treemap(nodes, x, y, w, h) {
   if (!nodes.length) return [];
@@ -161,10 +197,7 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
             // Allowed down to 24×22 px; below that we'd be stacking two
             // lines on a tile too small for either to be legible.
             const showPct    = tw >= 24 && th >= 22;
-            // Auto-shrink ticker font on tight tiles so 4-char tickers
-            // (BMNR etc.) wrap to two lines instead of being clipped.
-            // Clamp 8–11px based on the smaller tile dimension.
-            const tickerFs = Math.max(8, Math.min(11, Math.floor(Math.min(tw, th) / 3)));
+            const { label, fontSize: tickerFs, mid } = fitTicker(displayTicker(tile.ticker), tw, th);
             // Pct text is wider than the ticker (e.g. "+15.26%" is 7
             // chars), so it needs to scale on tile *width* and shrink
             // smaller (down to 7px) than the ticker so both lines stay
@@ -197,7 +230,7 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
               >
                 {showTicker && (
                   <span className="hm-ticker mono" style={{ color: tickerClr, fontSize: tickerFs + 'px' }}>
-                    {displayTicker(tile.ticker)}
+                    {label.slice(0, mid)}<wbr />{label.slice(mid)}
                   </span>
                 )}
                 {showPct && (

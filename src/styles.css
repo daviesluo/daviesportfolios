@@ -248,12 +248,15 @@ body {
   text-align: center;
   line-height: 1.05;
   padding: 0 2px;
-  /* Wrap long tickers (e.g. BMNR -> BM/NR) instead of ellipsising —
-     ellipsis on a 4-char ticker collapsed to "BM…" which hid more
-     than it revealed. Auto-shrink font is set inline by the JSX. */
+  /* Long tickers wrap rather than ellipsise — "BM…" on a 4-char ticker
+     hid more than it revealed. But they must wrap BALANCED: break-all
+     let the line end wherever it ran out of room, which put a lone "M"
+     under "SAE". The JSX emits a single <wbr> at the label's midpoint
+     and sizes the font to fit one line where it can, so the only legal
+     break is 2 + 2 (or 3 + 2 on five characters). */
   white-space: normal;
-  word-break: break-all;
-  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow-wrap: normal;
   max-width: 100%;
 }
 .hm-pct {
