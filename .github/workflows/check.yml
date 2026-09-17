@@ -93,6 +93,27 @@ jobs:
       - name: Build (Vite production bundle)
         run: npm run build
 
+      - name: Install Chromium for the browser sweep
+        # Browsers only, no system deps: ubuntu-latest already carries
+        # what headless Chromium needs, and `--with-deps` costs a sudo
+        # apt install on every run.
+        run: npx --no-install playwright install chromium
+
+      - name: Browser sweep (the built bundle, driven in a real browser)
+        # Promoted from a by-hand script in `scraps/` to a gate. Every
+        # bug it has caught — the scoreboard/heat-map mismatch, the
+        # missing preflight header, the overnight sawtooth, the heat-map
+        # em dash — was live while the unit and Edge suites were green,
+        # because each was an integration failure. It serves the
+        # COMMITTED bundle over http and drives it at both breakpoints.
+        #
+        # It can only gate because its clock is pinned: the app reads
+        # the real clock to decide whether an after-hours print can
+        # exist, so before pinning this suite passed only between 20:00
+        # and 24:00 UTC and was red the rest of the day. See the CLOCK
+        # constant in the sweep.
+        run: npm run verify:browser
+
       - name: Bundle size budget (gzipped main bundle)
         # Hard cap on `assets/app-*.js` gzipped size — see `.size-limit.json`
         # for the current limit. A PR that doubles the bundle (lazy chunks

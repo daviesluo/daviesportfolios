@@ -52,7 +52,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
 
-const ROOT = process.argv[2] || '/home/user/daviesportfolios';
+// Absolute, always: the path-traversal guard on line ~69 compares the
+// resolved file against ROOT with `startsWith`, so a relative ROOT like
+// "." rejected every request and the page never loaded. Defaults to the
+// repo containing this file, so `npm run verify:browser` works from any
+// working directory.
+const ROOT = path.resolve(
+  process.argv[2] || path.join(path.dirname(new URL(import.meta.url).pathname), '..', '..'));
 const PORT = 8932;
 
 const MIME = {
@@ -75,7 +81,28 @@ const server = http.createServer((req, res) => {
 
 // ---- fixture -------------------------------------------------------
 
-const dayAgo = (n) => new Date(Date.now() - n * 86400_000).toISOString().slice(0, 10);
+// ---- the clock ------------------------------------------------------
+//
+// This sweep used to pass only after 20:00 UTC. The APP reads the real
+// clock — `usMarketPhase` decides whether an after-hours print is a
+// thing that can exist — so section 5's extended-hours assertions held
+// during US after-hours and failed every other hour of the day. Same
+// build, same code: 4 red at 16:31 UTC, all green at 20:15 UTC. A suite
+// that only agrees with itself for four hours a day cannot gate
+// anything.
+//
+// So the instant is pinned, in BOTH places that read a clock: the
+// fixture's bar dates (here, in Node) and the page's own `Date`
+// (`page.clock.setFixedTime`, in newPage). They have to be the same
+// instant or the app is reasoning about bars from a different day.
+//
+// Thursday 2026-09-17 23:00 UTC = 19:00 ET: a weekday, inside US
+// after-hours (16:00-20:00 ET), and late enough that both of ACME's
+// after-hours bars (21:00 and 22:30 UTC) are already in the past.
+const CLOCK = new Date('2026-09-17T23:00:00Z');
+const NOW_MS = CLOCK.getTime();
+
+const dayAgo = (n) => new Date(NOW_MS - n * 86400_000).toISOString().slice(0, 10);
 
 const PORTFOLIO = {
   positions: {
@@ -181,7 +208,7 @@ const barsFor = (t, daily, includePrePost = false) => {
       { date: dayAgo(1), close: last },
     ];
   }
-  const now = new Date();
+  const now = new Date(NOW_MS);
   const session = new Date(now);
   if (now.getUTCHours() < 20) session.setUTCDate(session.getUTCDate() - 1);
   const at = (hh, mm) => {
@@ -203,7 +230,7 @@ const barsFor = (t, daily, includePrePost = false) => {
 
 const b64url = (s) => Buffer.from(s).toString('base64')
   .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-const TOKEN = `${b64url(JSON.stringify({ role: 'admin', exp: Date.now() + 3600_000 }))}.sig`;
+const TOKEN = `${b64url(JSON.stringify({ role: 'admin', exp: NOW_MS + 3600_000 }))}.sig`;
 
 // ---- run -----------------------------------------------------------
 
@@ -221,6 +248,19 @@ async function newPage(browser, { width, height }, errors, tokenMisses) {
   const ctx = await browser.newContext({ viewport: { width, height } });
   await ctx.addInitScript(([token]) => { sessionStorage.setItem('dp.token', token); }, [TOKEN]);
   const page = await ctx.newPage();
+  // Freeze `Date` for the page at the same instant the fixture's bars
+  // were generated for. Timers still run, so the app's 30 s refresh and
+  // the chart's poll behave normally — only "what time is it" is fixed.
+  await page.clock.setFixedTime(CLOCK);
+
+  // Every URL the page asks for, recorded OUTSIDE the page. The obvious
+  // in-page check — `performance.getEntriesByType('resource')` — reads
+  // empty once the clock is pinned, because Playwright's clock takes
+  // over the Performance timeline along with `Date`.
+  /** @type {string[]} */
+  const requested = [];
+  page.on('request', (r) => requested.push(r.url()));
+  /** @type {any} */ (page).__requested = requested;
 
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   page.on('console', (m) => {
@@ -291,8 +331,15 @@ async function newPage(browser, { width, height }, errors, tokenMisses) {
 
 async function run() {
   await new Promise((r) => server.listen(PORT, r));
+  // Let Playwright resolve its own browser (what CI does after
+  // `playwright install chromium`). A container that ships a prebuilt
+  // Chromium instead can point at it with PLAYWRIGHT_CHROMIUM_PATH —
+  // hardcoding one container's path here made this unrunnable anywhere
+  // else, which is part of why it lived in `scraps/` and ran by hand.
   const browser = await chromium.launch({
-    executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+    ...(process.env.PLAYWRIGHT_CHROMIUM_PATH
+      ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH }
+      : {}),
     args: ['--no-sandbox'],
   });
 
@@ -536,14 +583,12 @@ async function run() {
     // first is the same defect as one that paints an empty state and
     // fills in afterwards. Nothing below has opened a modal yet, so a
     // resource entry here can only have come from the prefetch.
-    const prefetched = await page.evaluate(() =>
-      performance.getEntriesByType('resource')
-        .map((e) => e.name)
-        .filter((n) => /\/assets\/(ticker_chart_modal|transaction_history|holdings_list|sectors_list)-/.test(n))
-        .map((n) => n.split('/').pop().replace(/-[a-f0-9]+\.js$/, '')));
+    const requestedChunks = (/** @type {any} */ (page).__requested || [])
+      .filter((/** @type {string} */ n) => /\/assets\/(ticker_chart_modal|transaction_history|holdings_list|sectors_list)-/.test(n))
+      .map((/** @type {string} */ n) => (n.split('/').pop() || '').replace(/-[a-f0-9]+\.js$/, ''));
     const want = ['ticker_chart_modal', 'transaction_history', 'holdings_list', 'sectors_list'];
-    const missing = want.filter((w) => !prefetched.includes(w));
-    if (missing.length === 0) ok(S('chunks'), `all four modal chunks prefetched before any click`);
+    const missing = want.filter((w) => !requestedChunks.includes(w));
+    if (missing.length === 0) ok(S('chunks'), 'all four modal chunks prefetched before any click');
     else fail(S('chunks'), `not prefetched: ${missing.join(', ')}`);
 
     // ---- 7. transaction history -------------------------------------

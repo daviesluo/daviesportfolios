@@ -144,6 +144,15 @@ the function's pure helpers from `index.test.ts` would bind a port.
   test whenever a regression is fixed so the bug can't quietly come
   back.
 - `npm run build` — Vite production bundle, output to repo root.
+- `npm run verify:browser` — the whole-app browser sweep in
+  `test/browser/app-sweep.mjs`: serves the COMMITTED bundle over http and
+  drives it in real Chromium at both breakpoints (84 checks). A hard CI
+  gate since 2026-09-17. Its clock is pinned, so it gives the same answer
+  at any hour — do not replace `CLOCK` with a live `Date`. Needs
+  `npx playwright install chromium` once per machine; a container that
+  ships its own Chromium can set `PLAYWRIGHT_CHROMIUM_PATH` instead.
+  Every bug it has caught was live while `npm test` and the Edge suite
+  were green, because each was an integration failure.
 - `deno test --allow-env supabase/functions/` — Edge Function pin
   tests. Required locally before pushing changes to any
   `supabase/functions/<name>/index.ts`; CI runs the same on every PR
