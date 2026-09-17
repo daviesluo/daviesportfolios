@@ -101,6 +101,65 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-17 16:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+TOP MOVERS · TODAY now answers two questions instead of one. A `%` / `$`
+switch in the panel's title row ranks the same names by percentage move
+or by what they did to the BOOK in dollars, and the orders genuinely
+differ — on the sweep fixture `%` reads BRIT > VUAA > ACME and `$` reads
+BRIT > ACME > VUAA, because ACME's small percentage sits on six times
+the position.
+
+The dollar figure is `player.dayChange`, which `metrics.js` has always
+computed (mv − prevMV in USD, from the same baseline the heat map and
+the tactics chip use). Nothing here recomputes it. That was the whole
+design constraint: a second valuation in this panel is the exact shape
+of the most expensive bug class this repo has.
+
+Membership is identical in both modes — `pctIsFlat`, the same predicate
+that paints a neutral tile — so a ticker cannot rank here while reading
+flat there. The one thing NOT shared is the sub-50¢ cut-off: it applies
+to the dollar list only. Putting it in the shared gate (which is what I
+wrote first) would have dropped a small holding that really moved 6 %
+out of the PERCENTAGE list too, leaving a green heat-map tile with no
+row beside it.
+
+Each row carries a magnitude wash behind the text — no extra height —
+scaled against the largest absolute move across BOTH columns. Per-column
+scaling would draw a −$50 top loser as wide as a +$462 top winner.
+
+Evidence, not reasoning:
+
+- Counterfactual. Forcing the sort back to percentage-only fails exactly
+  3 of the 9 new unit cases and leaves the other 18 green. A harness
+  that passed both ways would have proved nothing.
+- Browser sweep against the built bundle, both breakpoints, closed-form
+  from the fixture: BRIT 100 × 0.10 × 1.25 GBPUSD = +$12.50, ACME
+  6 × 2.00 = +$12.00, VUAA 3 × 1.00 × 1.25 = +$3.75 — the panel renders
+  +$13 / +$12 / +$4 in that order and draws bars at 100 % / 96 % / 30 %,
+  which is 12.5 / 12 / 3.75 over 12.5.
+- Regression check for "does this break anything working": the SAME
+  sweep run against a worktree of `main` fails the SAME 4 checks
+  (`heatmap/ext` ACME / NOVA, both breakpoints — the open AH-trust item
+  3 below, not this change) and no others. `verify-perf-matrix` reports
+  18 failures across 60 cases on both trees, identical. Full unit suite
+  46 files / 773 cases / exit 0.
+
+Two sweep checks DID break and were fixed in the harness rather than the
+app: it read `.view-tab.is-on:visible` first-match to decide which
+performance view was selected, and TOP MOVERS now renders a `.view-tabs`
+of its own ABOVE that panel in the sidebar. The failure text gave it
+away — it reported the wrong tab name next to `legend=VALUE,DEPOSITED`,
+the expected legend. Both tablists are now addressed by `aria-label`.
+
+`dp.prefs` gains `moversMetric`. It is written back through a spread of
+the existing bag, with a test pinning that toggling the metric cannot
+drop `hideValues` — a new feature reaching through a shared key to
+un-hide a hidden board is exactly the kind of breakage that gets found
+in production.
+
+Bundle 120.84 kB gzipped against the 122 kB budget (was 120.29).
+
 ### [2026-09-05 22:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 Whole-repository review, recorded as `docs/improvement-plan.md` and NOT

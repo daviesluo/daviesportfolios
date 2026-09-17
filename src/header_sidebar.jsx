@@ -16,6 +16,7 @@ import {
 } from './formatters.js';
 import { londonTimeParts, usMarketPhase, ukTzAbbr } from './market_hours.js';
 import { isCnFund } from './ticker_class.js';
+import { Storage } from './storage.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
 import { isIndex } from './ticker_class.js';
 import { PerfPanel } from './perf_chart.jsx';
@@ -422,15 +423,55 @@ function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHi
 }
 
 
-function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, coverage = /** @type {{got:number,wanted:number}|null} */ (null) }) {
-  // Top movers (winners / losers by dayPct) + the by-value position
-  // list. Memoised on metrics so the per-tick refresh churn (clock,
+/**
+ * TOP MOVERS · TODAY — one set of names, ranked two ways.
+ *
+ * `%` answers "what moved"; `$` answers "what moved the BOOK". They are
+ * different questions about the same day, and the answers genuinely
+ * differ: a 7.9 % pop on a small position tops the percentage list and
+ * sits nowhere near the top of the dollar one, while a 1 % drift on the
+ * largest holding is the day's real drag. Showing only percentages hid
+ * that half.
+ *
+ * Both rankings read the SAME fields metrics.js already computes for
+ * every player — `dayPct` and `dayChange` (mv − prevMV in USD, measured
+ * from the same baseline the heat map and the tactics chip use). No
+ * second valuation lives here, so the two lists cannot drift from each
+ * other or from the tile for the same ticker.
+ *
+ * Membership is identical in both modes: a name ranks only if it really
+ * moved (`pctIsFlat` — the same predicate the heat map uses to paint a
+ * neutral tile) AND its dollar impact rounds to something. What the
+ * metric changes is the ORDER, the number, and which side a row falls
+ * on — the column is always the sign of the figure being ranked, so a
+ * row can never show a minus inside WINNERS.
+ *
+ * @param {{
+ *   metrics: any,
+ *   hideValues?: boolean,
+ * }} props
+ */
+function TopMovers({ metrics, hideValues = false }) {
+  // Persisted in the same `dp.prefs` bag as hideValues: the choice of
+  // question is a preference, not a per-visit mode, and re-picking `$`
+  // on every reload is exactly the kind of friction that makes a
+  // toggle go unused. `loadPrefs` defaults a missing key, so no schema
+  // bump is needed to add one.
+  const [metric, setMetric] = React.useState(
+    () => /** @type {'pct'|'usd'} */ (
+      Storage.loadPrefs().moversMetric === 'usd' ? 'usd' : 'pct'));
+  const pickMetric = React.useCallback((/** @type {'pct'|'usd'} */ next) => {
+    setMetric(next);
+    Storage.savePrefs({ ...Storage.loadPrefs(), moversMetric: next });
+  }, []);
+
+  // Memoised on metrics + metric so the per-tick refresh churn (clock,
   // flash) doesn't re-flatten every position's players and re-sort the
-  // book three times on every render.
-  const { winners, losers, positionList } = React.useMemo(() => {
+  // book on every render.
+  const { winners, losers, scale } = React.useMemo(() => {
     const allPlayers = [];
     for (const pos of Object.values(metrics.positions)) {
-      for (const p of pos.players) allPlayers.push({ ...p, pos: pos.label });
+      for (const p of /** @type {any} */ (pos).players) allPlayers.push(p);
     }
     // Cash never ranks, and neither does a CN fund. This panel is
     // TOP MOVERS · **TODAY**, and a CN fund quotes a NAV published
@@ -440,53 +481,156 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
     // Suppressed only during extended hours before this (`cnSuppress`
     // in metrics.js), which left it ranking all day against a figure
     // that was never today's market.
+    //
+    // Only names that ACTUALLY moved rank. A row pinned at 0 — a
+    // no-US-ext venue suppressed during the overnight (SFTBY / .L /
+    // euro / CN fund), a quote nobody has yet (`dayPctUnknown`, which
+    // metrics.js reports as pct 0 and dayChange 0), or a genuinely flat
+    // stock — is neither a winner nor a loser, so it must not pad
+    // either column (the overnight LOSERS list was five red 0.00%
+    // rows). `pctIsFlat` rather than a bare > 0 / < 0, so a row the
+    // heat map paints as a flat neutral tile can't simultaneously rank
+    // here — a -0.004 % move rendered as a dark "no change" tile AND a
+    // red LOSERS row reading "-0.00%".
     const movable = allPlayers.filter(p =>
-      !p.isCash && p.ticker !== "CASH" && !isCnFund(p.ticker));
-    // Only names that ACTUALLY moved rank. A row pinned at 0 — a no-US-ext
-    // venue suppressed during the overnight (SFTBY / .L / euro / CN fund), or
-    // a genuinely flat stock — is neither a winner nor a loser, so it must not
-    // pad either column (the overnight LOSERS list was five red 0.00% rows).
-    // Show however many really gained / fell, up to 5 each.
-    return {
-      // `pctIsFlat` (not a bare > 0 / < 0) so a row the heatmap paints
-      // as a flat neutral tile can't simultaneously rank here — a
-      // -0.004 % move rendered as a dark "no change" tile AND a red
-      // LOSERS row reading "-0.00%".
-      winners: movable.filter(p => !pctIsFlat(p.dayPct) && (p.dayPct ?? 0) > 0).sort((a, b) => (b.dayPct ?? 0) - (a.dayPct ?? 0)).slice(0, 5),
-      losers:  movable.filter(p => !pctIsFlat(p.dayPct) && (p.dayPct ?? 0) < 0).sort((a, b) => (a.dayPct ?? 0) - (b.dayPct ?? 0)).slice(0, 5),
-      positionList: Object.entries(metrics.positions)
-        .filter(([_, p]) => p.players.length > 0)
-        .sort(([, a], [, b]) => b.marketValue - a.marketValue),
-    };
-  }, [metrics]);
+      !p.isCash && p.ticker !== "CASH" && !isCnFund(p.ticker)
+      && !pctIsFlat(p.dayPct));
+    const valueOf = (/** @type {any} */ p) =>
+      metric === 'usd' ? (p.dayChange ?? 0) : (p.dayPct ?? 0);
+    // Sub-50¢ of impact is noise on a book this size and would print as
+    // "+$0", so the DOLLAR list drops it. The percentage list keeps it:
+    // a small holding that really moved 6 % is a green tile on the heat
+    // map, and a name the heat map paints green with no row here is the
+    // same two-surfaces-disagree bug the `pctIsFlat` gate above exists
+    // to prevent. The epsilon belongs to the metric, not to membership.
+    const ranks = metric === 'usd'
+      ? movable.filter(p => Math.abs(p.dayChange ?? 0) >= 0.5)
+      : movable;
+    const up = ranks.filter(p => valueOf(p) > 0)
+      .sort((a, b) => valueOf(b) - valueOf(a)).slice(0, 5);
+    const down = ranks.filter(p => valueOf(p) < 0)
+      .sort((a, b) => valueOf(a) - valueOf(b)).slice(0, 5);
+    // ONE scale across both columns, not one per column. Normalising
+    // each side to its own leader would draw a −$50 top loser as wide
+    // as a +$462 top winner and flatly misreport the shape of the day;
+    // shared, the bars say which side actually owns it.
+    const scale = Math.max(
+      0, ...up.map(p => Math.abs(valueOf(p))), ...down.map(p => Math.abs(valueOf(p))));
+    return { winners: up, losers: down, scale };
+  }, [metrics, metric]);
+
+  // Arrow keys move between tabs and take focus with them — with
+  // `tabIndex={-1}` on the inactive tab (roving tabindex, so Tab treats
+  // the pair as ONE stop) arrows are the only way to reach it from the
+  // keyboard. Matches the performance panel's view switch exactly.
+  const onTabKey = React.useCallback((/** @type {React.KeyboardEvent} */ e) => {
+    const k = e.key;
+    if (k !== 'ArrowLeft' && k !== 'ArrowRight' && k !== 'Home' && k !== 'End') return;
+    e.preventDefault();
+    const next = /** @type {'pct'|'usd'} */ ((k === 'ArrowRight' || k === 'End') ? 'usd' : 'pct');
+    pickMetric(next);
+    const el = document.getElementById(next === 'pct' ? 'movers-tab-pct' : 'movers-tab-usd');
+    if (el) el.focus();
+  }, [pickMetric]);
+
+  const isUsd = metric === 'usd';
+  /** The figure this row leads with, already formatted and masked. */
+  const lead = (/** @type {any} */ p) => isUsd
+    ? (hideValues
+        ? mask(fmM(p.dayChange, { signed: true, precision: 0 }))
+        : fmM(p.dayChange, { signed: true, precision: 0 }))
+    : fmP(p.dayPct);
+  // The other measure, on hover. It costs no layout and answers the
+  // question each list leaves open — "+7.94 % of how much?" one way,
+  // "+$462 off what move?" the other.
+  const bothOf = (/** @type {any} */ p) => {
+    const usd = hideValues
+      ? mask(fmM(p.dayChange, { signed: true, precision: 0 }))
+      : fmM(p.dayChange, { signed: true, precision: 0 });
+    return `${displayTicker(p.ticker)} · ${fmP(p.dayPct)} · ${usd}`;
+  };
+  const widthOf = (/** @type {any} */ p) => {
+    const v = Math.abs(isUsd ? (p.dayChange ?? 0) : (p.dayPct ?? 0));
+    if (!(scale > 0)) return 0;
+    // Floor at 6 % so the smallest bar is still a mark rather than a
+    // sliver that reads as "no bar drawn".
+    return Math.max(6, (v / scale) * 100);
+  };
+
+  const column = (/** @type {any[]} */ rows, /** @type {'gain'|'loss'} */ side) => (
+    <div>
+      <div className={`movers-heading ${side}`}>
+        {side === 'gain' ? '↑ WINNERS' : '↓ LOSERS'}
+      </div>
+      {rows.map(p => (
+        <div key={p.ticker} className="mover-row" title={bothOf(p)}>
+          {/* Magnitude behind the row, not beside it: the ranking
+              becomes visible at a glance and the panel does not grow a
+              single pixel taller. */}
+          <span
+            className={`mover-bar ${side}`}
+            style={{ width: widthOf(p) + "%" }}
+            aria-hidden="true"
+          />
+          <span className="mover-ticker mono">{displayTicker(p.ticker)}</span>
+          <span className="mono mover-val" style={{ color: `var(--${side})` }}>{lead(p)}</span>
+        </div>
+      ))}
+      {rows.length === 0 && <div className="mover-row mono dim">—</div>}
+    </div>
+  );
+
+  return (
+    <section className="panel">
+      <div className="panel-title-row">
+        <h3 className="panel-title">TOP MOVERS · TODAY</h3>
+        {/* Same switch idiom as the performance panel's VS S&P 500 /
+            INVESTMENT tabs — one panel slot, two questions about the
+            same window. Subordinate here rather than title-scale,
+            because unlike that panel this one has a name worth
+            keeping. */}
+        <div className="view-tabs movers-metric" role="tablist" aria-label="Top movers ranking">
+          <button
+            type="button" role="tab" id="movers-tab-pct"
+            aria-selected={!isUsd} tabIndex={isUsd ? -1 : 0}
+            aria-label="Rank by percent move"
+            className={`view-tab mono${isUsd ? '' : ' is-on'}`}
+            onClick={() => pickMetric('pct')}
+            onKeyDown={onTabKey}
+          >%</button>
+          <span className="view-tab-sep" aria-hidden="true" />
+          <button
+            type="button" role="tab" id="movers-tab-usd"
+            aria-selected={isUsd} tabIndex={isUsd ? 0 : -1}
+            aria-label="Rank by value change"
+            className={`view-tab mono${isUsd ? ' is-on' : ''}`}
+            onClick={() => pickMetric('usd')}
+            onKeyDown={onTabKey}
+          >$</button>
+        </div>
+      </div>
+      <div className="movers-grid">
+        {column(winners, 'gain')}
+        {column(losers, 'loss')}
+      </div>
+    </section>
+  );
+}
+
+function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, coverage = /** @type {{got:number,wanted:number}|null} */ (null) }) {
+  // The by-value position list. Memoised on metrics so the per-tick
+  // refresh churn (clock, flash) doesn't re-sort the book on every
+  // render. Top movers moved into TopMovers, which owns its own
+  // ranking because the metric it ranks by is user state.
+  const positionList = React.useMemo(() => (
+    Object.entries(metrics.positions)
+      .filter(([_, p]) => /** @type {any} */ (p).players.length > 0)
+      .sort(([, a], [, b]) => /** @type {any} */ (b).marketValue - /** @type {any} */ (a).marketValue)
+  ), [metrics]);
 
   return (
     <aside className="sidebar">
-      <section className="panel">
-        <h3 className="panel-title">TOP MOVERS · TODAY</h3>
-        <div className="movers-grid">
-          <div>
-            <div className="movers-heading gain">↑ WINNERS</div>
-            {winners.map(p => (
-              <div key={p.ticker} className="mover-row">
-                <span className="mover-ticker mono">{displayTicker(p.ticker)}</span>
-                <span className="mono" style={{ color: "var(--gain)" }}>{fmP(p.dayPct)}</span>
-              </div>
-            ))}
-            {winners.length === 0 && <div className="mover-row mono dim">—</div>}
-          </div>
-          <div>
-            <div className="movers-heading loss">↓ LOSERS</div>
-            {losers.map(p => (
-              <div key={p.ticker} className="mover-row">
-                <span className="mover-ticker mono">{displayTicker(p.ticker)}</span>
-                <span className="mono" style={{ color: "var(--loss)" }}>{fmP(p.dayPct)}</span>
-              </div>
-            ))}
-            {losers.length === 0 && <div className="mover-row mono dim">—</div>}
-          </div>
-        </div>
-      </section>
+      <TopMovers metrics={metrics} hideValues={hideValues} />
 
       <section className="panel">
         <h3 className="panel-title">FORMATION VALUE</h3>

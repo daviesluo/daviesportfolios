@@ -208,6 +208,158 @@ describe('Sidebar — Top Movers ranks only real movers', () => {
   });
 });
 
+// TOP MOVERS · TODAY ranks the same names two ways, and the whole point
+// is that the two answers DIFFER: percentage asks "what moved", dollars
+// ask "what moved the book". The fixture below is built so the two
+// orders are exact reverses of each other — a test that passed in both
+// modes would prove nothing about which metric is driving the sort.
+//
+//   ticker   dayPct   dayChange     % rank      $ rank
+//   SIVE     +7.94       +120       1st         3rd
+//   APLD     +6.89       +284       2nd         2nd
+//   ORCL     +5.55       +462       3rd         1st
+//   CRWV     -3.68       -171       1st         2nd
+//   NBIS     -1.20       -402       2nd         1st
+describe('Sidebar — Top Movers % / $ ranking', () => {
+  const MOVERS = [
+    { ticker: '2DG.SG', dayPct: 7.94, dayChange: 120, marketValue: 1500 },
+    { ticker: 'APLD',   dayPct: 6.89, dayChange: 284, marketValue: 4100 },
+    { ticker: 'ORCL',   dayPct: 5.55, dayChange: 462, marketValue: 8300 },
+    { ticker: 'CRWV',   dayPct: -3.68, dayChange: -171, marketValue: 4600 },
+    { ticker: 'NBIS',   dayPct: -1.20, dayChange: -402, marketValue: 33500 },
+  ];
+  const metricsFor = (players) => ({
+    marketValue: 52000,
+    positions: {
+      P1: { label: 'FWD', marketValue: 30000, unrlPct: 8.5, unrlGL: 800, players: players.slice(0, 3) },
+      P2: { label: 'MID', marketValue: 22000, unrlPct: 3.2, unrlGL: 200, players: players.slice(3) },
+    },
+  });
+  const renderSidebar = (players = MOVERS, hideValues = false) =>
+    render(<Sidebar metrics={metricsFor(players)} source="live" portfolio={{}}
+      marketData={{}} extendedHours={false} phase="regular" hideValues={hideValues} />);
+
+  /** Tickers, in render order, from one of the two columns. */
+  const columnTickers = (side) => {
+    const col = document.querySelectorAll('.movers-grid > div')[side === 'gain' ? 0 : 1];
+    return [...col.querySelectorAll('.mover-ticker')].map(el => el.textContent);
+  };
+  const columnValues = (side) => {
+    const col = document.querySelectorAll('.movers-grid > div')[side === 'gain' ? 0 : 1];
+    return [...col.querySelectorAll('.mover-val')].map(el => el.textContent);
+  };
+  const barWidths = (side) => {
+    const col = document.querySelectorAll('.movers-grid > div')[side === 'gain' ? 0 : 1];
+    return [...col.querySelectorAll('.mover-bar')].map(
+      el => parseFloat(/** @type {HTMLElement} */ (el).style.width));
+  };
+
+  beforeEach(() => { try { localStorage.clear(); } catch { /* ignore */ } });
+
+  it('defaults to % and ranks by percentage, largest move first', () => {
+    renderSidebar();
+    // 2DG.SG renders as SIVE everywhere but the ticker-detail modal.
+    expect(columnTickers('gain')).toEqual(['SIVE', 'APLD', 'ORCL']);
+    expect(columnTickers('loss')).toEqual(['CRWV', 'NBIS']);
+    expect(columnValues('gain')).toEqual(['+7.94%', '+6.89%', '+5.55%']);
+  });
+
+  it('ranks by dollars once $ is picked — the reverse order, and the reverse for losers too', async () => {
+    const user = userEvent.setup();
+    renderSidebar();
+    await user.click(screen.getByRole('tab', { name: /value change/i }));
+    expect(columnTickers('gain')).toEqual(['ORCL', 'APLD', 'SIVE']);
+    expect(columnTickers('loss')).toEqual(['NBIS', 'CRWV']);
+    expect(columnValues('gain')).toEqual(['+$462', '+$284', '+$120']);
+    expect(columnValues('loss')).toEqual(['-$402', '-$171']);
+  });
+
+  it('never prints a minus inside WINNERS — the column follows the sign of the figure being ranked', async () => {
+    const user = userEvent.setup();
+    renderSidebar();
+    for (const v of columnValues('gain')) expect(v.startsWith('+')).toBe(true);
+    for (const v of columnValues('loss')) expect(v.startsWith('-')).toBe(true);
+    await user.click(screen.getByRole('tab', { name: /value change/i }));
+    for (const v of columnValues('gain')) expect(v.startsWith('+')).toBe(true);
+    for (const v of columnValues('loss')) expect(v.startsWith('-')).toBe(true);
+  });
+
+  it('scales every bar against the largest move across BOTH columns, not per column', async () => {
+    const user = userEvent.setup();
+    renderSidebar();
+    await user.click(screen.getByRole('tab', { name: /value change/i }));
+    // Top winner is the day's biggest absolute move ($462) → full width.
+    expect(barWidths('gain')[0]).toBeCloseTo(100, 5);
+    // The top LOSER is -$402 against that same $462, not against its own
+    // column's leader — per-column scaling would draw it at 100 too and
+    // report a day whose winners led as an even one.
+    expect(barWidths('loss')[0]).toBeCloseTo((402 / 462) * 100, 5);
+    expect(barWidths('gain')[2]).toBeCloseTo((120 / 462) * 100, 5);
+  });
+
+  it('masks the dollar figures when hide-values is on, and leaves percentages alone', async () => {
+    const user = userEvent.setup();
+    renderSidebar(MOVERS, true);
+    // Percentages are not a balance — they stay readable.
+    expect(columnValues('gain')).toEqual(['+7.94%', '+6.89%', '+5.55%']);
+    await user.click(screen.getByRole('tab', { name: /value change/i }));
+    for (const v of columnValues('gain')) {
+      expect(v).not.toMatch(/\d/);
+      expect(v).toContain('$');
+    }
+  });
+
+  it('remembers the chosen metric across a remount', async () => {
+    const user = userEvent.setup();
+    const first = renderSidebar();
+    await user.click(screen.getByRole('tab', { name: /value change/i }));
+    first.unmount();
+    renderSidebar();
+    expect(screen.getByRole('tab', { name: /value change/i })).toHaveAttribute('aria-selected', 'true');
+    expect(columnTickers('gain')).toEqual(['ORCL', 'APLD', 'SIVE']);
+  });
+
+  it('keeps a sub-50¢ mover in the % list and out of the $ list', async () => {
+    const user = userEvent.setup();
+    // A real 6% move on a position so small it shifts 4 cents. The heat
+    // map paints it green, so it must have a row in the percentage
+    // list; "+$0" in the dollar list would read as a bug.
+    renderSidebar([
+      { ticker: 'TINY', dayPct: 6.0, dayChange: 0.04, marketValue: 0.7 },
+      { ticker: 'ORCL', dayPct: 5.55, dayChange: 462, marketValue: 8300 },
+      { ticker: 'CRWV', dayPct: -3.68, dayChange: -171, marketValue: 4600 },
+    ]);
+    expect(columnTickers('gain')).toEqual(['TINY', 'ORCL']);
+    await user.click(screen.getByRole('tab', { name: /value change/i }));
+    expect(columnTickers('gain')).toEqual(['ORCL']);
+  });
+
+  it('writes into the shared dp.prefs bag without dropping hideValues', async () => {
+    // `moversMetric` lives in the same slot as the scoreboard's eye. A
+    // bare savePrefs({moversMetric}) here would silently un-hide a
+    // board the user had hidden — a new feature breaking a working one
+    // through a shared key.
+    localStorage.setItem('dp.prefs', JSON.stringify({ hideValues: true }));
+    const user = userEvent.setup();
+    renderSidebar();
+    await user.click(screen.getByRole('tab', { name: /value change/i }));
+    const prefs = JSON.parse(localStorage.getItem('dp.prefs') || '{}');
+    expect(prefs).toEqual({ hideValues: true, moversMetric: 'usd' });
+  });
+
+  it('moves between the two tabs with the arrow keys', async () => {
+    const user = userEvent.setup();
+    renderSidebar();
+    const pct = screen.getByRole('tab', { name: /percent move/i });
+    pct.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByRole('tab', { name: /value change/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: /value change/i })).toHaveFocus();
+    await user.keyboard('{ArrowLeft}');
+    expect(screen.getByRole('tab', { name: /percent move/i })).toHaveAttribute('aria-selected', 'true');
+  });
+});
+
 // UPCOMING EARNINGS is BOARD-scoped, not holdings-scoped. Selling a
 // position out removes it from every position's `tickers` but KEEPS the
 // holding row so its buy/sell ledger survives (`closed: true`), so
