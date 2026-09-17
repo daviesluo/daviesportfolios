@@ -76,13 +76,17 @@ Facts a fresh session would otherwise rediscover:
   here: `npx deno test --allow-env supabase/functions/`. `AGENTS.md` says
   to prefer Deno 1.x to match Supabase's runtime; the npx path is what
   actually works in this container and what every gate run below used.
-- **The browser harnesses need Playwright, which the app does not depend
-  on.** Chromium is preinstalled at `/opt/pw-browsers`; do not run
-  `playwright install`. Set them up once per container:
+- **The app sweep is now a normal gate**: `npm run verify:browser`.
+  Playwright is a devDependency, so `npm ci` brings it. Chromium is
+  preinstalled at `/opt/pw-browsers` in this container — do NOT run
+  `playwright install` here; point the sweep at it instead:
 
-        mkdir -p /tmp/h && cd /tmp/h && echo '{"type":"module"}' > package.json
-        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i playwright
-        cp /path/to/repo/scraps/verify-*.mjs . && node verify-app-sweep.mjs /path/to/repo
+        PLAYWRIGHT_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run verify:browser
+
+  CI runs `npx playwright install chromium` and needs no such variable.
+  `scraps/verify-perf-matrix.mjs` is still by hand and still needs the
+  throwaway-package-dir setup — it has 18 failures across 60 cases on
+  `main` and cannot gate anything until those are understood.
 
 - **The container clock has been wrong before.** On 2026-09-05 it read
   91 minutes behind the database, and that alone produced a false outage
@@ -100,6 +104,42 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-17 22:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Plan item 8 — the browser sweep is a CI gate.** `scraps/verify-app-sweep.mjs`
+is now `test/browser/app-sweep.mjs`, run by `npm run verify:browser`, and
+`check.yml` runs it on every PR and every push to main, after the build.
+
+It could not gate before because it was only true for four hours a day.
+That is now PROVEN rather than suspected: the clock is pinned in both
+places that read one — the fixture's bar dates in Node, and the page's
+own `Date` via `page.clock.setFixedTime` — and moving the pinned instant
+from 23:00 UTC (19:00 ET, after-hours) to 17:00 UTC (13:00 ET, mid
+session) reproduces EXACTLY the four `heatmap/ext` failures that used to
+appear and disappear on their own. So they were never a bug: the app is
+right that an after-hours print cannot exist mid-session, and the
+harness had simply assumed after-hours.
+
+Two things the move exposed, both of which had kept this script
+hand-run:
+
+- The Chromium path was hardcoded to this container
+  (`/opt/pw-browsers/chromium-1194/...`). Now Playwright resolves its
+  own, with `PLAYWRIGHT_CHROMIUM_PATH` as the override this container
+  uses.
+- `ROOT` defaulted to an absolute path and the traversal guard compares
+  with `startsWith`, so passing a relative root (`.`, which is what an
+  npm script passes) rejected every request and the page never loaded.
+  ROOT is resolved absolutely now, and the sweep runs from any cwd.
+
+Also: pinning the clock broke the chunk-prefetch check, because
+Playwright's clock takes over the Performance timeline and
+`performance.getEntriesByType('resource')` reads empty. Rewired to
+record requests from OUTSIDE the page (`page.on('request')`), which no
+clock can affect.
+
+Playwright is a devDependency now. knip stays green.
 
 ### [2026-09-17 21:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
