@@ -317,7 +317,12 @@ async function run() {
     else fail(S('layout'), `page scrolls ${over}px horizontally`);
 
     // ---- 3. the view switch -----------------------------------------
-    const tabSel = '.view-tabs .view-tab';
+    // Scoped to the PERFORMANCE tablist by its aria-label: TOP MOVERS
+    // carries a `.view-tabs` of its own (%/$) and, in the sidebar,
+    // renders above this panel — an unscoped first-match reads that
+    // one and reports the perf switch broken while it is working.
+    const perfTabs = '.view-tabs[aria-label="Performance view"]';
+    const tabSel = `${perfTabs} .view-tab`;
     const tabCount = await page.locator(tabSel).count();
     if (tabCount >= 2) {
       const labels = [...new Set(await page.locator(tabSel).allTextContents())];
@@ -326,10 +331,10 @@ async function run() {
         ok(S('view-tabs'), `labels ${JSON.stringify(labels)}`);
       } else fail(S('view-tabs'), `labels ${JSON.stringify(labels)}`);
 
-      const onBefore = await page.locator('.view-tab.is-on:visible').first().textContent();
+      const onBefore = await page.locator(`${perfTabs} .view-tab.is-on:visible`).first().textContent();
       await page.locator('#perf-tab-inv:visible').first().click();
       await page.waitForTimeout(400);
-      const onAfter = await page.locator('.view-tab.is-on:visible').first().textContent();
+      const onAfter = await page.locator(`${perfTabs} .view-tab.is-on:visible`).first().textContent();
       const legend = await page.locator('.perf-lbl:visible').allTextContents();
       if (/INVESTMENT/.test(onAfter || '') && legend.slice(0, 2).join(',') === 'VALUE,DEPOSITED') {
         ok(S('view-tabs'), `switch marks "${onAfter}" and draws ${legend.slice(0, 2)}`);
@@ -353,7 +358,7 @@ async function run() {
       await page.locator('#perf-tab-inv:visible').first().focus();
       await page.keyboard.press('ArrowLeft');
       await page.waitForTimeout(300);
-      const onKb = await page.locator('.view-tab.is-on:visible').first().textContent();
+      const onKb = await page.locator(`${perfTabs} .view-tab.is-on:visible`).first().textContent();
       if (/VS S&P/.test(onKb || '')) ok(S('view-tabs'), 'ArrowLeft returns to vs-S&P');
       else fail(S('view-tabs'), `ArrowLeft left it on "${onKb}" (was "${onBefore}")`);
     } else fail(S('view-tabs'), `found ${tabCount} tabs`);
@@ -479,6 +484,50 @@ async function run() {
     const cnMover = movers.find((m) => /017731/.test(m));
     if (!cnMover) ok(S('top-movers'), 'the CN fund does not rank, despite a +9.90% NAV print');
     else fail(S('top-movers'), `CN fund ranked in TODAY: ${cnMover}`);
+
+    // ---- 6b. the %/$ switch reorders on a DIFFERENT metric ----------
+    // Closed-form from the fixture, regular session (ext is back off):
+    //   dayChange = shares x (lastPrice - prevClose) x fx
+    //   BRIT.L  100 x 0.10 x 1.25 GBPUSD = +$12.50   dayPct +4.17
+    //   ACME      6 x 2.00 x 1           = +$12.00   dayPct +0.84
+    //   VUAA.L    3 x 1.00 x 1.25        = + $3.75   dayPct +1.27
+    // So the two rankings are NOT the same list in a different skin —
+    // ACME and VUAA trade places. A panel that showed one order in both
+    // modes would be ranking on one metric and mislabelling the other.
+    const readMovers = () => page.evaluate(() => {
+      const col = [...document.querySelectorAll('.movers-grid')]
+        .find((g) => g.getBoundingClientRect().width > 0)?.children[0];
+      return {
+        tickers: [...(col?.querySelectorAll('.mover-ticker') || [])].map((e) => e.textContent),
+        vals: [...(col?.querySelectorAll('.mover-val') || [])].map((e) => e.textContent),
+        bars: [...(col?.querySelectorAll('.mover-bar') || [])].map((e) => parseFloat(e.style.width)),
+      };
+    });
+    const byPct = await readMovers();
+    if (byPct.tickers.join(',') === 'BRIT,VUAA,ACME') {
+      ok(S('top-movers'), `% ranks ${byPct.tickers.join(' > ')} (${byPct.vals.join(' ')})`);
+    } else fail(S('top-movers'), `% ranks ${byPct.tickers.join(',')} (want BRIT,VUAA,ACME)`);
+
+    await page.locator('#movers-tab-usd:visible').first().click();
+    await page.waitForTimeout(350);
+    const byUsd = await readMovers();
+    if (byUsd.tickers.join(',') === 'BRIT,ACME,VUAA') {
+      ok(S('top-movers'), `$ ranks ${byUsd.tickers.join(' > ')} (${byUsd.vals.join(' ')})`);
+    } else fail(S('top-movers'), `$ ranks ${byUsd.tickers.join(',')} (want BRIT,ACME,VUAA)`);
+    // Every figure is money, signed, and the column's sign is uniform.
+    if (byUsd.vals.length && byUsd.vals.every((v) => /^\+\$[\d,]+$/.test(v || ''))) {
+      ok(S('top-movers'), `$ figures ${byUsd.vals.join(' ')}`);
+    } else fail(S('top-movers'), `$ figures malformed: ${byUsd.vals.join(' ')}`);
+    // The leader fills the row; the rest are proportional to it, not to
+    // their own neighbours.
+    const barsOk = byUsd.bars.length === 3
+      && Math.abs(byUsd.bars[0] - 100) < 0.5
+      && byUsd.bars[0] > byUsd.bars[1] && byUsd.bars[1] > byUsd.bars[2];
+    if (barsOk) ok(S('top-movers'), `bars ${byUsd.bars.map((b) => b.toFixed(0) + '%').join(' ')}`);
+    else fail(S('top-movers'), `bars ${JSON.stringify(byUsd.bars)}`);
+    // Back to % so the rest of the run sees the default state.
+    await page.locator('#movers-tab-pct:visible').first().click();
+    await page.waitForTimeout(250);
 
     // ---- 7. transaction history -------------------------------------
     await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
