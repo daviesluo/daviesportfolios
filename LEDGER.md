@@ -101,6 +101,56 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-17 21:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+Three things, all measured rather than reasoned.
+
+**The auth function's example password values are gone** from its header
+comment. Davies has rotated both application passwords. Whether
+`APP_AUTH_SECRET` was rotated too is NOT confirmed — he named the two
+passwords only. Ask before assuming the token-signing key changed.
+
+**Plan item 18 — the chart no longer re-values the book on every
+render.** The per-bar build (merge overnight, fold recorded,
+`buildTickerSeries`, then one `computeAt` per point) sat in PerfChart's
+render body. Cached behind `seriesCacheRef`.
+
+It is a REF, not a `useMemo`, and that is not a style choice: the
+computation cannot run until after the loading / error guards, a
+`useMemo` there is a hook after an early return, and eslint's
+rules-of-hooks caught exactly that on the first attempt. The hook
+(`useRef`) is now above every return; only the cache lookup is down
+there, and a lookup is not a hook.
+
+The first working version cached NOTHING, and only a test showed it: the
+dep list held `todayMs` (`Date.now()`, so it differs every render) and
+`spWindow` (rebuilt by `.filter()`, so its identity differs every
+render). Measured 3 valuations → 15 across five renders, i.e. no saving
+at all. Keying on a signature of `spWindow` (length, both ends,
+right-edge close) and dropping `todayMs` gives 3 → 3. Counterfactual:
+forcing a cache miss puts it back to 15.
+
+**Plan item 22 — the ticker modal's 1D poll is gated.** It ran every 5
+seconds for as long as the modal stayed open: no visibility gate, no
+market gate. Now it stops while `document.hidden` (resuming on
+`visibilitychange`) and stops in the overnight window for anything that
+cannot print then. Crypto is exempt, and so is any US ticker with a T212
+overnight session — `hasOvernightSession('NVDA')` is TRUE, which killed
+the first version of the test: a plain US equity is supposed to keep
+polling all night.
+
+Gates: 47 files / 785 cases / exit 0, deno 208, typecheck and knip clean,
+lint 0 errors, browser sweep ALL GREEN 82 checks at both breakpoints.
+Bundle 121.03 kB against the 122 kB budget — 0.97 kB of headroom left,
+which is the argument for plan item 24 before the next feature.
+
+Still open from his list: the 1W / 3M density change (he has chosen the
+3M cadence — six points a day at 01:00 / 05:00 / 09:00 / 13:00 / 17:00 /
+21:00, mirroring the T212 app, which is a FOUR-HOUR grid and therefore
+the recorded-snapshot tiers, not Yahoo bars, since Yahoo has no
+overnight); the bundle split; the sweep as a CI gate (blocked on its
+clock dependence, see the entry below); and the Top Movers window.
+
 ### [2026-09-17 20:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 Two things the owner pointed at on screen.
