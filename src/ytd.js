@@ -22,9 +22,17 @@ export const RANGES = {
   // TRADING sessions — Mon 09:30 to Fri 16:00 is 4.3 days, not a week —
   // so the button was showing noticeably less than it claimed. There is
   // no Yahoo range between `5d` and `1mo`, so the week has to be cut out
-  // of the month client-side. `60m` keeps the download the same shape 1M
-  // already pulls instead of doubling it at 30m.
-  '1W':  { yahooRange: '1mo', interval: '60m', label: '1W'  },
+  // of the month client-side.
+  //
+  // `15m`, not `60m`. At 60m a trailing week held ~35 points (7 bars a
+  // session x 5 sessions) against 1M's ~154, so the two buttons drew
+  // the same book at four times the density and 1W read as a sparse,
+  // angular sketch beside it. 15m gives ~130 — the same order as 1M.
+  // Yahoo serves 15m bars back 60 days, comfortably inside the month
+  // this fetches. The cost is a ~3.7x bigger download per ticker, which
+  // is why the cache TTL in perf_chart.jsx drops to 15 m in step: no
+  // point re-fetching faster than Yahoo publishes a bar.
+  '1W':  { yahooRange: '1mo', interval: '15m', label: '1W'  },
   '1M':  { yahooRange: '1mo', interval: '60m', label: '1M'  },
   '3M':  { yahooRange: '3mo', interval: '1d',  label: '3M'  },
   'YTD': { yahooRange: 'ytd', interval: '1d',  label: 'YTD' },
@@ -107,7 +115,12 @@ export function fetchParamsFor(rangeKey, extendedHours, phase) {
  */
 export function maFetchParamsFor(rangeKey, dailyOnly = false) {
   const intraday = {
-    '1W':  { range: '1mo', interval: '30m' },
+    // 15m to match `RANGES['1W'].interval`. The overlay is computed in
+    // BARS ("MA20" = 20 of them), so a cadence that differs from the
+    // chart's makes the line cover a different span of time than the
+    // bars it is drawn over. 1mo at 15m still leaves ~440 bars of
+    // lead-in before the 130-bar display window.
+    '1W':  { range: '1mo', interval: '15m' },
     '1M':  { range: '3mo', interval: '60m' },
     '3M':  { range: '6mo', interval: '1d'  },
     'YTD': { range: '1y',  interval: '1d'  },

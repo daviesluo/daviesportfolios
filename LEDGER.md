@@ -105,6 +105,47 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-17 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**1W is 15-minute bars.** Davies said 1W and 3M looked sparse beside the
+other ranges, and the arithmetic agrees: at 60m a trailing week holds
+about 35 points (7 bars a session x 5 sessions) against 1M's ~154. 15m
+gives ~130. Yahoo serves 15m back 60 days, inside the month 1W already
+fetches; the cost is roughly 3.7x the bars per ticker, which is why
+every 1W cache TTL drops to 15 minutes in step.
+
+Five places encode "how long is a 1W bar", for five different consumers,
+and they were ALREADY out of step: `RANGES` said 60m while
+`maFetchParamsFor` used 30m, so the MA overlay was computed over bars
+the chart never drew and "MA20" covered twice the span it appeared to.
+All five now say 15m — `RANGES`, `maFetchParamsFor`,
+`NIGHT_BAR_INTERVAL_MS` (the recorded-overnight downsample, which has to
+match or the splice changes resolution mid-night),
+`ticker_chart_helpers.modalTtl` and `cache.RANGE_TTL_MS` — and a test
+asserts they agree so the next change cannot drift one of them again.
+
+**3M is NOT done, and the reason is worth writing down.** He wants the
+T212 shape: six points a day at 01 / 05 / 09 / 13 / 17 / 21 London, with
+the last pinned to the actual US close (21:00 London in both DST regimes
+EXCEPT the two weeks a year when the UK and US switch on different
+dates, when the close falls at 20:00 London).
+
+The blocker is not the bucketing, it is the GRID. The portfolio line is
+sampled at the benchmark's timestamps, and 3M's benchmark is `^GSPC` at
+1d — so there are no intraday timestamps to sample at, and changing
+`recordedBarDate`'s 3M bucketing alone adds nothing. `^GSPC` cannot
+supply them either: its intraday bars only exist 14:30-21:00 London, so
+of the six slots it covers two. The only series that spans 24 h is ES=F,
+which the app already uses as the benchmark for ext-on 1D / 1W.
+
+So 3M means switching that range's benchmark to futures. And the
+portfolio side has its own artefact: individual US stocks have no
+overnight tape, so at 01 / 05 / 09 London `closeOn` carries the previous
+close forward and the line is a staircase — EXCEPT across the last ~30
+days, where `price_snapshots` (24/7 since 2026-08-19) fill it in. The
+window heals itself as recording accumulates; in about two months the
+whole 3M span is real.
+
 ### [2026-09-17 22:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Plan item 8 — the browser sweep is a CI gate.** `scraps/verify-app-sweep.mjs`
