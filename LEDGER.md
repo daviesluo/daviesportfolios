@@ -118,6 +118,44 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-18 19:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The seam was not gone, and the ramp itself was putting it there.**
+Davies pushed back on my "the hard line is gone" — correctly. He sent a
+pulled-down screenshot; measuring the left gutter's luminance row by
+row reads 102 CSS px of flat 17 (which is exactly `#0c1310`) and then a
+step straight to 0.
+
+That is the ramp. `background-attachment: fixed` is not fixed to the
+viewport on iOS during the rubber-band — Safari slides it with the
+content — so a pull-down dragged the ramp's pure-black head down into
+the middle of the screen, where it met the revealed canvas colour as a
+hard edge. The fix for a seam had manufactured a second one.
+
+Now a real `position: fixed` layer (`body::before`, `z-index: -1`),
+which does not move, plus `overscroll-behavior: none` so the
+rubber-band stops revealing the canvas at all. Re-measured on the
+rendered board: first rows exactly `0,0,0` across the width, largest
+step between adjacent rows **1**/255, settling to `#0c1310`. Better
+than the background version on both counts.
+
+**On the blur he decided: leave the spacing alone.** Measured the band
+first so the choice was informed — the same title renders at peak edge
+contrast 76 inside it and 213 once pulled clear, so it costs about 65 %
+of edge definition, and it covers roughly the first 80 CSS px of the
+web view. Clearing it would have meant 80px of top padding, about 9 %
+of the screen. He would rather have the pixels. Nothing more to do:
+two independent sources confirm there is no CSS or meta switch, and
+`env(safe-area-inset-*)` does not grow to account for it.
+
+**Timing note worth having.** His screenshots were stamped 19:38 BST
+and the ramp commit landed 19:35:20 BST, so they sat right on the edge
+of the deploy AND of the service worker's update prompt
+(`registerType: 'prompt'` serves the cached `index.html` until the
+banner is tapped). Two of the three shots could not be attributed to a
+build with confidence. When a change can only be judged from a photo
+of a phone, the version it is running has to be established first.
+
 ### [2026-09-18 18:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The opaque status bar fixed the scrim and bought a seam; the seam is

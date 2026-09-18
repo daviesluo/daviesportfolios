@@ -833,7 +833,13 @@ before this guard landed).
   `@media (display-mode: standalone)` the page starts black too and
   climbs out of it — a 96px ramp whose stops approximate an ease-out,
   because a linear fade ends on a corner and the corner is itself a
-  faint line. The header's own 3 % cream sheen is dropped there as
+  faint line. It is a `position: fixed` layer (`body::before`,
+  `z-index: -1`), NOT a `background-attachment: fixed` on `body`: iOS
+  slides a fixed-attachment background along with the content during
+  the rubber-band, which dragged the ramp's black head into the middle
+  of the screen on a pull-down and met the revealed canvas colour as a
+  hard edge. `overscroll-behavior: none` there too, so the rubber-band
+  stops revealing the canvas at all. The header's own 3 % cream sheen is dropped there as
   well: it starts on the page's very first row and lifted it to about
   `#090909`, which on an OLED (where `#000` is the pixel off) still
   reads as an edge. Measured on the rendered page: first row `0,0,0`,
