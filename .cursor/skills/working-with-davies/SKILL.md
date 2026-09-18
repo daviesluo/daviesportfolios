@@ -412,6 +412,12 @@ Read these as a checklist before pushing.
   days. Restated constants are greppable; derived ones are not. After a
   cadence change, hunt for what is COMPUTED from the cadence, and
   prefer deriving it from the one source over adding a sixth copy.
+- **Probing a resource to prove it is exposed — on a CDN a request is
+  a write.** Fetching `/handover.md` five times to measure the leak
+  cached the real file at Cloudflare's edge for seven days, so it kept
+  being served after the origin was fixed. Every path never fetched was
+  clean. Measure with a cache-busting query string, or on a sibling
+  nobody has touched.
 - **Reading a status code as evidence that a path is blocked.**
   Cloudflare Pages does not 404 an unmatched path — it serves
   `index.html` with a **200**. So a repo being published and a repo

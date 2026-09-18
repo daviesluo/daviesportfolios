@@ -14,7 +14,23 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-1. **Rotate both app passwords and `APP_AUTH_SECRET`.** The site
+1. **Cloudflare's edge still serves five cached copies of the old
+   exposure, for up to seven days.** The ORIGIN is fixed — every path
+   not in `dist/` now returns the app's HTML shell, confirmed on paths
+   never requested before and on cache-busted requests to the five.
+   But `/LEDGER.md`, `/handover.md`, `/src/app.jsx`, `/package.json`
+   and `/supabase/functions/auth/index.ts` were cached at the edge with
+   `s-maxage=604800` while they were still real files, and
+   `cf-cache-status: HIT` says they are still being served from there.
+   They were cached BY THIS SESSION'S OWN VERIFICATION FETCHES — no
+   other path shows a cache entry at all.
+   Nothing can evict them from here: `*.pages.dev` has no zone to purge
+   and Cloudflare ignores a client's `no-cache`. They expire on their
+   own within seven days of 2026-09-18 08:50 UTC. Re-check with a plain
+   `curl https://daviesportfolios.pages.dev/LEDGER.md | head -1` — the
+   app's `<!DOCTYPE html>` means clear.
+
+2. **Rotate both app passwords and `APP_AUTH_SECRET`.** The site
    stopped publishing the repository on 2026-09-18 (see history), but
    `supabase/functions/*` sources — including `auth` — were readable by
    anyone for months before that. Nothing suggests they were: five
@@ -24,7 +40,7 @@ list stays the short version; the plan is the reasoning behind it.
    dashboard's Edge Function secrets. Changing the secret invalidates
    every issued token, so every device re-prompts once.
 
-2. ~~Check the `RECORDED` provenance rule has walked left across the
+3. ~~Check the `RECORDED` provenance rule has walked left across the
    24H window.~~ **Confirmed 2026-09-18.** The browser sweep now serves
    recorded rows shaped like the real feed (recording starts 30 days
    back) and asserts the pair that carries the evidence: 24H draws NO
@@ -32,7 +48,7 @@ list stays the short version; the plan is the reasoning behind it.
    one, because its window opens before recording began. The 3M half is
    what proves data reached the panel at all; run against an empty feed,
    3M fails and 24H passes vacuously.
-3. **The AH-trust fix has not been exercised, because nothing has moved
+4. **The AH-trust fix has not been exercised, because nothing has moved
    fast enough.** Measured 2026-09-18 over every recorded sample: the
    largest single five-minute step in THIRTY days of after-hours is
    1.77 % (2DG.SG, 09-16), and overnight it is 0.79 %. `ahQuoteTolerance`
@@ -43,13 +59,13 @@ list stays the short version; the plan is the reasoning behind it.
    the BE case is pinned with its real numbers, with a control (same gap,
    quiet tape, still rejected) and now a third pin for WHY the lookback
    is a bar count — see the history entry.
-4. **Decide what `Model:` carries in this ledger's source headers.** The
+5. **Decide what `Model:` carries in this ledger's source headers.** The
    protocol wants the exact model in every header. This session runs
    under an operator rule that forbids putting a model identifier into
    anything pushed to a repository, so its headers say
    `not recorded (session policy)`. A session without that rule should
    write the real model. Davies decides whether to backfill.
-5. **Issue #207** (`edge-functions failed on main`, opened 2026-08-18)
+6. ~~Issue #207~~ **Closed 2026-09-18.** Was (`edge-functions failed on main`, opened 2026-08-18)
    is stale — that workflow has been green on every push since. Close it
    or leave it for the next real failure to bump. Still open and
    still stale, re-checked 2026-09-18.
@@ -101,6 +117,45 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-18 08:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Merged, and production's ORIGIN is fixed — but the edge is still
+serving five cached copies of the old exposure, and this session put
+them there.**
+
+After the merge, a plain fetch of production showed `/LEDGER.md`,
+`/handover.md`, `/src/app.jsx`, `/package.json` and
+`/supabase/functions/auth/index.ts` still returning their real
+contents, while `/supabase/migrations/0029_price_snapshots.sql` —
+requested for the first time in that same command — came back as the
+app's shell. That asymmetry is the whole diagnosis: the difference
+between those paths is not what they are, it is that I had fetched the
+first five repeatedly while verifying, and each fetch cached the real
+file at the edge with `public, s-maxage=604800`.
+
+Confirmed three ways: `cf-cache-status: HIT` with a climbing `age`;
+the same five paths with a `?cb=` query string (a different cache key)
+all return the shell; and six paths never fetched this session
+— `/src/metrics.js`, `/supabase/functions/data/index.ts`, `/README.md`
+and others — return the shell with no cache entry at all.
+
+Nothing here can evict them. `*.pages.dev` is not a zone this account
+can purge, a new deployment does not invalidate paths that are no
+longer part of any deployment, and Cloudflare ignores `Cache-Control:
+no-cache` and `Pragma: no-cache` from a client. They expire on their
+own inside seven days.
+
+**The lesson is not about Cloudflare.** Probing a resource to prove it
+is exposed is itself a request, and on a CDN a request is a write. The
+check extended the exposure it was measuring. Where the same check can
+be made against a path nobody has touched — as `?cb=` or an unfetched
+sibling does here — use that instead.
+
+Scope, stated plainly: five paths, at whichever colo this container's
+proxy egresses through, for up to a week. `auth/index.ts` was already
+public for months, which is why rotating the secrets is the item above
+it and not a new one.
 
 ### [2026-09-18 08:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
