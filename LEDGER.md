@@ -118,6 +118,57 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-18 20:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The heat map's top half was a grid because the split rule always cut
+down the middle.** Davies: the eight repeated shapes at the top are
+boring, the varied bottom half is fine, stop drawing the top like that.
+
+The cause is one line. `treemap` took the first index whose running
+total crossed half the value — and for a run of near-equal holdings
+that index IS the exact middle, every time. The halving then repeated
+all the way down. Measured on a 338x612 canvas: the eight largest all
+landed within 15 % of 110x170 px, three to a row. Only the uneven tail
+below them had enough spread in its values to draw anything else, which
+is exactly why the bottom looked better than the top.
+
+The cut point is a free choice — area is set by value and nothing here
+touches that — so it now comes from every index inside a balanced band
+(0.22-0.78), scored against a per-branch target: a golden-ratio
+low-discrepancy sequence over the recursion tree (left `2s+1`, right
+`2s+2`, so siblings differ), pushed away from the middle because a
+near-half cut is precisely the cut that draws a grid.
+
+**The lesson worth keeping is about the guards, not the rule.** I first
+wrote both as vetoes — too small, rejected; too elongated, rejected —
+and the browser sweep went red on a check I had not touched: the CN
+fund had lost its label. The cut that would have given it a readable
+141x34 strip was refused for being 4.15:1, and the fallback stranded
+the same holding in a 275x18 band with no room for a label at all. A
+veto with no comparison is how a guard makes the thing worse. So size
+stayed a veto (27x25 px, the render gate plus the component's 3 px
+gutter — below it a holding shows neither ticker nor %) and elongation
+became a price the chooser weighs against the variety it buys. A child
+holding exactly two nodes also gets looked at one step ahead: a pair
+has no freedom left, so pairing a dominant holding with a small one
+always splinters the small one, and by the time the recursion arrives
+the alternative is gone.
+
+Measured over seven differently-shaped books at five canvas sizes,
+before vs after: longest run of look-alike tiles among the top eight
+5.31 -> 3.97, worst aspect ratio anywhere 4.39:1 -> 3.96:1, tiles too
+small to carry a label 4/605 -> 1/605. Better on all three — the
+rectangle the old rule kept repeating was not a good one.
+
+Verified by rendering both rules side by side in real Chromium at both
+canvas sizes and looking at them, not only by the metric. Six pin tests
+added; the counterfactual is run, and the old rule fails exactly two of
+them (8 look-alikes, a 19 px-wide tile).
+
+Gates, all green on the pushed tree: typecheck 0, lint 0 errors,
+856 vitest, knip clean, bundle 111.02 kB of 122, `verify:browser` 98
+checks. No Edge Function touched, so no deno run.
+
 ### [2026-09-18 19:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The seam was not gone, and the ramp itself was putting it there.**

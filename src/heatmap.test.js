@@ -5,7 +5,7 @@
 // change which instrument the click resolves.
 
 import { describe, it, expect } from 'vitest';
-import { displayTicker, fitTicker } from './heatmap.jsx';
+import { displayTicker, fitTicker, treemap } from './heatmap.jsx';
 
 describe('displayTicker', () => {
   it('strips the exchange suffix from foreign-listed tickers', () => {
@@ -129,5 +129,142 @@ describe('fitTicker — a ticker fits its tile, or breaks in the middle', () => 
   it('never goes below 7px, however small the tile', () => {
     expect(fitTicker('LONGEST', 24, 22).fontSize).toBe(7);
     expect(fitTicker('', 24, 22).fontSize).toBeGreaterThanOrEqual(7);
+  });
+});
+
+// The boring-grid bug: the split rule took the first index whose running
+// total crossed half, which for a run of near-equal holdings is always the
+// exact middle. The halving then repeated all the way down, so the biggest
+// eight positions drew a rigid grid of near-identical rectangles while the
+// uneven tail below them drew the varied map the board is supposed to be.
+//
+// The rule now picks among every index that lands in a balanced band, using a
+// per-branch target pushed away from the middle. Everything below pins the
+// two halves of that bargain: the shapes must vary, and the thing the layout
+// actually promises — area proportional to market value — must not move.
+describe('treemap — area is the contract, shape is the variety', () => {
+  const book = (values) => values.map((value, i) => ({ ticker: 'T' + i, value }));
+  // The screenshot's book: eight leaders within a whisker of each other, then
+  // a decaying tail. This is the shape that produced the grid.
+  const LEADERS = [9.9, 9.4, 9.1, 8.8, 8.5, 8.2, 8.0, 7.7];
+  const SCREENSHOT = [...LEADERS, 5.6, 4.4, 4.1, 3.0, 2.6, 1.9, 1.5, 1.2, 0.9, 0.7, 0.6, 0.4];
+  // Phone and desktop canvases: `.heatmap` is min(100%, 560px) x 840/640
+  // minus 14px of padding on each side.
+  const PHONE = [338, 612], DESKTOP = [532, 812];
+
+  // Two tiles "look the same" if both sides are within 15 % of each other —
+  // the tolerance at which a row of them reads as a repeated shape.
+  const alike = (a, b) =>
+    Math.abs(a.w - b.w) / Math.max(a.w, b.w) <= 0.15 &&
+    Math.abs(a.h - b.h) / Math.max(a.h, b.h) <= 0.15;
+  const longestLookAlikeRun = (tiles) =>
+    Math.max(1, ...tiles.map((a) => tiles.filter((b) => alike(a, b)).length));
+  const aspect = (t) => Math.max(t.w / t.h, t.h / t.w);
+
+  it('keeps every tile\'s area proportional to its value', () => {
+    // This is the whole point of a heat map and nothing above may bend it.
+    for (const [W, H] of [PHONE, DESKTOP]) {
+      const nodes = book(SCREENSHOT);
+      const total = SCREENSHOT.reduce((s, x) => s + x, 0);
+      for (const tile of treemap(nodes, 0, 0, W, H)) {
+        const want = (nodes.find((n) => n.ticker === tile.ticker).value / total) * W * H;
+        // 3 % covers the integer rounding each split does to land tiles on
+        // whole pixels; anything larger would be the layout lying.
+        expect(Math.abs(tile.w * tile.h - want) / want).toBeLessThan(0.03);
+      }
+    }
+  });
+
+  it('stops eight near-equal holdings drawing the same rectangle eight times', () => {
+    for (const [W, H] of [PHONE, DESKTOP]) {
+      const top8 = treemap(book(SCREENSHOT), 0, 0, W, H).slice(0, 8);
+      // Measured: the old rule put all eight inside one look-alike run at
+      // both sizes (8 on the phone, 6 on the desktop). Half of them is the
+      // most that may still match, which is what the new rule measures at.
+      expect(longestLookAlikeRun(top8)).toBeLessThanOrEqual(4);
+    }
+  });
+
+  it('tiles the box exactly — no gap, no overlap, nothing off the canvas', () => {
+    const [W, H] = PHONE;
+    const tiles = treemap(book(SCREENSHOT), 0, 0, W, H);
+    expect(tiles).toHaveLength(SCREENSHOT.length);
+    for (const t of tiles) {
+      expect(t.x).toBeGreaterThanOrEqual(0);
+      expect(t.y).toBeGreaterThanOrEqual(0);
+      expect(t.x + t.w).toBeLessThanOrEqual(W);
+      expect(t.y + t.h).toBeLessThanOrEqual(H);
+    }
+    // Areas sum to the canvas: rounding can lose a pixel per split, not more.
+    const covered = tiles.reduce((s, t) => s + t.w * t.h, 0);
+    expect(Math.abs(covered - W * H) / (W * H)).toBeLessThan(0.01);
+  });
+
+  it('never trades a readable tile for a prettier mosaic', () => {
+    // Size is the veto: a cut may only move off-centre while every holding it
+    // strands on its own still clears 27 x 25 px, which is what the render
+    // gate needs once the component takes its 3px gutter off. The old rule had
+    // no such guard and left a 19px-wide tile on this book, too narrow to
+    // print a ticker on.
+    //
+    // Shape is NOT a veto, only a price. Vetoing it is what lost the CN fund
+    // in the browser sweep: the cut that would have given it a readable
+    // 141 x 34 strip was refused for being 4.15:1, and the fallback stranded
+    // the same holding in a 275 x 18 band with no room for a label at all.
+    for (const [W, H] of [PHONE, DESKTOP]) {
+      const tiles = treemap(book(SCREENSHOT), 0, 0, W, H);
+      expect(Math.min(...tiles.map((t) => t.w))).toBeGreaterThanOrEqual(27);
+      // Every tile prints its ticker AND its percentage (24 x 22 plus the
+      // gutter). The old rule left one of these twenty blank on the phone.
+      for (const t of tiles) {
+        expect(t.w - 3).toBeGreaterThanOrEqual(24);
+        expect(t.h - 3).toBeGreaterThanOrEqual(16);
+      }
+    }
+  });
+
+  it('keeps the tiny, awkward holdings labelled — the shape guard\'s real job', () => {
+    // The browser sweep's book: a 54 % position, then a tail, then a CN fund
+    // worth 1.1 % of it. That fund is the tile a split rule strands, and the
+    // sweep asserts its ticker renders on both canvases.
+    for (const [W, H] of [PHONE, DESKTOP]) {
+      const fund = treemap(book([1440, 600, 312.5, 300, 30]), 0, 0, W, H)
+        .find((t) => t.ticker === 'T4');
+      expect(fund.w - 3).toBeGreaterThanOrEqual(22);
+      expect(fund.h - 3).toBeGreaterThanOrEqual(16);
+    }
+  });
+
+  it('still hands a dominant holding its own slab, and never a splinter', () => {
+    // One position at half the book, then a tail. The cut that pairs the
+    // giant with a single small holding is the trap: that pair has no freedom
+    // left and the small one ends up a full-width sliver. Pinning the worst
+    // aspect ratio catches it — before the pair look-ahead this book drew a
+    // 338 x 50 band, 6.76:1.
+    const vals = [50, 8, 7, 6, 5, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1];
+    const tiles = treemap(book(vals), 0, 0, 338, 612);
+    expect(Math.max(...tiles.map(aspect))).toBeLessThan(3.0);
+    const giant = tiles.find((t) => t.ticker === 'T0');
+    expect(giant.w * giant.h).toBeGreaterThan(338 * 612 * 0.45);
+  });
+
+  it('draws the same map for the same book every time', () => {
+    // The variety comes from a golden-ratio sequence over the recursion tree,
+    // not from randomness — a board that reshuffled itself on every render
+    // would be unusable.
+    const a = treemap(book(SCREENSHOT), 0, 0, 338, 612);
+    const b = treemap(book(SCREENSHOT), 0, 0, 338, 612);
+    expect(b).toEqual(a);
+  });
+
+  it('degenerates gracefully: one holding, two holdings, none', () => {
+    expect(treemap([], 0, 0, 300, 400)).toEqual([]);
+    expect(treemap(book([1]), 0, 0, 300, 400))
+      .toEqual([{ ticker: 'T0', value: 1, x: 0, y: 0, w: 300, h: 400 }]);
+    // A pair has exactly one cut available, so it splits at its value ratio
+    // whatever the target wants.
+    const pair = treemap(book([3, 1]), 0, 0, 400, 200);
+    expect(pair.map((t) => t.w)).toEqual([300, 100]);
+    expect(pair.every((t) => t.h === 200)).toBe(true);
   });
 });
