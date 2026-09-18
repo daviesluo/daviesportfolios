@@ -425,6 +425,15 @@ Read these as a checklist before pushing.
   '%{http_code}'` cannot tell them apart. A whole verification pass was
   wasted concluding a working fix had failed. Compare CONTENT: fetch the
   path and look at the first line.
+- **Adding a guard that only rejects, with nothing to compare against.**
+  The heat map's new split rule vetoed a cut whose tile would be too
+  elongated. The fallback it dropped to was worse: the CN fund lost the
+  141x34 strip it could have been labelled in and got a 275x18 band it
+  could not. The browser sweep caught it on a check I had not touched.
+  A veto is only safe where the thing it refuses is unusable outright —
+  a tile too small for its own ticker. Where the objection is "that is
+  less handsome", price it into the score and let the chooser weigh it,
+  because a rejection with no alternative in hand is a blind swap.
 - **Running the browser sweep against a stale bundle.** It serves the
   COMMITTED bundle from the repo root, so without `npm run build` first
   it tests the previous commit. Cost most of an hour chasing a "3M is
