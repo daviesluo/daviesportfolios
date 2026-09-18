@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   fmtTickerPrice, modalTtl, NIGHT_BAR_INTERVAL_MS, INDEX_PE_ALLOWED, TICKER_DISPLAY_NAMES,
+  crosshairFormatFor,
 } from './ticker_chart_helpers.js';
 import { RANGES, maFetchParamsFor } from './ytd.js';
 import { RANGE_TTL_MS } from './cache.js';
@@ -82,6 +83,21 @@ describe('3M cadence — bars at 60 m, samples every 4 h', () => {
     // overnight_intraday_points would be a second source at a second
     // resolution over 30 days of a 93-day window.
     expect(NIGHT_BAR_INTERVAL_MS['3M']).toBeUndefined();
+  });
+});
+
+// The crosshair pill's format lives beside the other pure helpers
+// because BOTH charts ask for it. It used to be inlined in the ticker
+// modal as `1W || 1M`, so when 3M became intraday the performance
+// panel's pill grew a time and the modal's kept showing a bare date
+// under six points a day.
+describe('crosshairFormatFor', () => {
+  it('a minute-interval range other than 1D always carries a time', () => {
+    for (const k of ['1W', '1M', '3M', 'YTD', '1Y']) {
+      const intraday = /^\d+m$/.test(RANGES[k].interval);
+      expect(crosshairFormatFor(k)).toBe(intraday ? 'datetime' : 'date');
+    }
+    expect(crosshairFormatFor('1D')).toBe('time');
   });
 });
 

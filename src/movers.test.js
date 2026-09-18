@@ -13,10 +13,14 @@ const player = (ticker, o = {}) => ({
 
 describe('windows', () => {
   it('TODAY is the live day move; the rest name chart ranges', () => {
-    expect(MOVER_WINDOWS).toEqual(['TODAY', '1W', '1M', '3M', 'YTD']);
+    expect(MOVER_WINDOWS).toEqual(['TODAY', '1W', '1M']);
     expect(rangeKeyForWindow('TODAY')).toBe(null);
     expect(rangeKeyForWindow('1M')).toBe('1M');
     expect(rangeKeyForWindow('nonsense')).toBe(null);
+    // A window saved before the set shrank prices nothing, so the
+    // panel falls back to TODAY rather than ranking off a null anchor.
+    expect(rangeKeyForWindow('3M')).toBe(null);
+    expect(rangeKeyForWindow('YTD')).toBe(null);
   });
 });
 
