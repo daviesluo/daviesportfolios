@@ -163,26 +163,46 @@ body {
      is the radial glow's #14201b. Butted together that is a hard
      horizontal line directly under the clock — the seam you get for
      free the moment the system owns a band above you.
-     
+
      So start the page black too and climb out of it. The join is then
      black meeting black and there is nothing to see; by the time the
      header's text sits on it the glow is back. The stops approximate
      an ease-out rather than a straight ramp, because a linear fade
      ends on a corner and that corner is itself a faint line.
-     
+
+     A FIXED LAYER, not a `background-attachment: fixed` on `body`.
+     That was the first attempt and it moved the seam rather than
+     removing it: iOS slides a fixed-attachment background along with
+     the content during the rubber-band, so a pull-down dragged this
+     ramp's black head into the middle of the screen, where it met the
+     revealed canvas colour as a hard edge. Measured off a screenshot
+     of exactly that: 102 CSS px of flat #0c1310, then a step straight
+     to #000. A real fixed element does not move.
+
+     `z-index: -1` keeps it behind everything the page draws and in
+     front of the canvas — nothing here is over content, so no text is
+     dimmed by it.
+
      Standalone only: in a browser tab nothing sits above the page, and
      on the desktop this would just be an unexplained dark cap. */
-  body {
-    background:
-      linear-gradient(180deg,
-        #000 0,
-        rgba(0,0,0,0.72) 18px,
-        rgba(0,0,0,0.28) 48px,
-        rgba(0,0,0,0) 96px),
-      radial-gradient(ellipse at top, #14201b 0%, #0c1310 70%),
-      #0c1310;
-    background-attachment: fixed;
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 96px;
+    background: linear-gradient(180deg,
+      #000 0,
+      rgba(0,0,0,0.72) 18px,
+      rgba(0,0,0,0.28) 48px,
+      rgba(0,0,0,0) 100%);
+    pointer-events: none;
+    z-index: -1;
   }
+
+  /* And stop the rubber-band from revealing the canvas at all, which
+     is what put a second edge on screen in the first place. The app
+     has its own Refresh control, so nothing depends on the pull. */
+  html, body { overscroll-behavior: none; }
 
   /* The header carries a 3 % cream sheen down its first 64px. Anywhere
      else that is a nice edge-light; here it starts at the page's very
