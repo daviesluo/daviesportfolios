@@ -2,11 +2,19 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "daviesportfolios",
   "compatibility_date": "2026-04-22",
+  // The published artefact. WITHOUT this key Cloudflare Pages falls back
+  // to its default output directory — the repository root — and publishes
+  // the entire repo, which is how `handover.md`, `LEDGER.md`, all of
+  // `src/` and every Edge Function source came to return 200 to an
+  // unauthenticated fetch.
+  //
+  // The key this file used to carry, `assets.directory`, is a WORKERS
+  // key. This is a Pages project and ignored it completely; wrangler is
+  // not even a dependency here. Two fixes were built on that
+  // misreading and neither changed anything.
+  "pages_build_output_dir": "./dist",
   "observability": {
     "enabled": true
-  },
-  "assets": {
-    "directory": "."
   },
   "compatibility_flags": [
     "nodejs_compat"

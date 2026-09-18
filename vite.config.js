@@ -7,9 +7,9 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 // Build-time CalVer with minute-precision timestamp → `YYYY.M.D.HHMM`.
-// Deliberately SHA-less: Cloudflare Pages serves the repo root as-is
-// (wrangler.jsonc `assets.directory = "."` — no build at deploy time),
-// so the build SHA we'd bake in would be the parent commit's SHA, not
+// Deliberately SHA-less: Cloudflare Pages serves the committed `dist/`
+// as-is (no build at deploy time), so the build SHA we'd bake in would
+// be the parent commit's SHA, not
 // the commit that actually ships the bundle (chicken-and-egg: writing
 // the bundle into git changes the SHA the bundle references). After
 // squash-merge the PR-commit SHA also disappears from main entirely.
@@ -24,15 +24,23 @@ function computeAppVersion() {
 }
 const APP_VERSION = computeAppVersion();
 
-// Source root is `src/` and Vite emits the production bundle to the
-// project root (repo root). Cloudflare Pages serves the project root,
-// so the deploy works without any dashboard build-output config — index.html
-// and the hashed `assets/` end up exactly where CF expects.
+// Source root is `src/` and Vite emits the production bundle to
+// `dist/`. Cloudflare Pages publishes that one directory and nothing
+// else — `wrangler.jsonc`'s `pages_build_output_dir`.
 //
-// `emptyOutDir: false` means Vite won't wipe the project root on each
-// build (which would delete src/, package.json, etc.). The trade-off is
-// stale hashed bundles can pile up under `assets/` over time; the
-// `prebuild` npm script handles that by clearing it before each build.
+// It used to emit to the REPO ROOT, which is why the live site served
+// `handover.md`, `LEDGER.md`, all of `src/` and every Edge Function
+// source to anyone who asked: with no output directory configured
+// anywhere, the Pages default is the repository root, and the whole
+// repo was the published artefact. Two earlier fixes failed because
+// they assumed a Workers mechanism would apply to a Pages project
+// (`assets.directory`, `.assetsignore`) or that `_redirects` could
+// beat a real static asset. This is the fix that addresses the actual
+// cause.
+//
+// `emptyOutDir: true` is safe now that the target is a directory Vite
+// owns; the `prebuild` script removes it anyway so a rename can't leave
+// a stale hashed bundle behind.
 export default defineConfig({
   root: 'src',
   publicDir: '../public',
@@ -74,25 +82,18 @@ export default defineConfig({
       injectRegister: 'auto',
       devOptions: { enabled: false },
       workbox: {
-        // outDir is the repo root, so the default `**/*` glob would scoop up
-        // src/, vite.config.js, random PNGs, etc. Scope the precache to the
-        // actual built artefacts only and ignore everything else under the
-        // outDir. Runtime caches (network-first for Supabase, stale-while-
-        // revalidate for fonts) are picked up via `runtimeCaching` so the
-        // chart's live data never gets stuck on a stale snapshot.
+        // outDir is `dist/` and holds only build output, but the precache
+        // stays explicitly scoped: the point is which files a device is
+        // PUSHED on install, not which files exist. Runtime caches
+        // (network-first for Supabase, stale-while-revalidate for fonts)
+        // are picked up via `runtimeCaching` so the chart's live data never
+        // gets stuck on a stale snapshot.
         globPatterns: [
           'index.html',
           'manifest.webmanifest',
           'assets/*.{js,css}',
         ],
         globIgnores: [
-          '**/node_modules/**/*',
-          'src/**/*',
-          'public/**/*',
-          'supabase/**/*',
-          'scraps/**/*',
-          'uploads/**/*',
-          '_*.png',
           'sw.js',
           'sw.js.map',
           'workbox-*.js',
@@ -183,8 +184,8 @@ export default defineConfig({
     }),
   ],
   build: {
-    outDir: '..',
-    emptyOutDir: false,
+    outDir: '../dist',
+    emptyOutDir: true,
     // `'hidden'` emits .map files for local debugging but strips the
     // `//# sourceMappingURL=` comment from the JS so the browser
     // never fetches them in production. Combined with .gitignore'ing

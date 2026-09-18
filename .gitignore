@@ -16,11 +16,14 @@ node_modules
 # each, so committing them inflates every push for no shipping benefit.
 *.js.map
 
-# Note: the JS / CSS / HTML bundle IS intentionally committed (no
-# `dist/` ignore). We pre-build with `npm run build` and commit the
-# output so Cloudflare Pages can deploy without needing a custom
-# build step in the dashboard. When/if we migrate to CF-managed
-# builds, switch to ignoring the build output here too.
+# Note: `dist/` IS intentionally committed, and must not be ignored.
+# We pre-build with `npm run build` and commit the output so Cloudflare
+# Pages can deploy without a build step in the dashboard, and
+# `wrangler.jsonc`'s `pages_build_output_dir` makes `dist/` the ONLY
+# directory it publishes — which is what stops the live site serving
+# handover.md, LEDGER.md and every Edge Function source. If we ever
+# migrate to CF-managed builds, ignore the output here AND keep
+# `pages_build_output_dir`: the second is what scopes the deploy.
 
 # Deno regenerates this on every local `deno test` run; the repo has
 # never pinned it and Supabase deploys don't read it.

@@ -9,14 +9,14 @@
   "packageManager": "npm@10.9.7",
   "scripts": {
     "dev": "vite",
-    "prebuild": "rm -rf assets sw.js sw.js.map workbox-*.js workbox-*.js.map",
+    "prebuild": "rm -rf dist",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify:browser": "node test/browser/app-sweep.mjs ."
+    "verify:browser": "node test/browser/app-sweep.mjs dist"
   },
   "dependencies": {
     "html2canvas-pro": "^2.0.4",
