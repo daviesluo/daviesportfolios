@@ -679,17 +679,23 @@ async function run() {
     else fail(S('top-movers'), `bars ${JSON.stringify(byUsd.bars)}`);
 
     // ---- 6b-2. the WINDOW row re-ranks, and leaves the chart alone --
-    // Still on $. Over a month the fixture's daily series opens at
-    // `base` and the live quote closes it, so:
+    // Still on $. A longer window measures the HOLDING period, not the
+    // stock: a lot bought before the window opens carries the
+    // window-start close as its basis, one bought inside it carries its
+    // own cost. Every lot in this fixture predates the 1M window AND was
+    // bought at that window's opening price, so the two readings give
+    // the same numbers here — the case where they DIVERGE is pinned
+    // closed-form in movers.test.js and header_sidebar.test.jsx
+    // (a position bought two days ago reads +7.14 %, not the +50.00 %
+    // the stock itself did). What this checks is that the window
+    // control drives the panel at all.
+    //
     //   ACME    6 x (240 - 200) x 1        = +$240
     //   NOVA    5 x (120 - 100) x 1        = +$100
     //   BRIT.L  100 x (2.5 - 2) x 1.25     =  +$63
     //   VUAA.L  opens and closes at 80     — flat, so it does not rank
-    // A different list, in a different order, from TODAY's
-    // BRIT > ACME > VUAA. A window control that changed the label and
-    // not the ranking would still pass every check above this one.
     const windows = await page.locator('.movers-window .view-tab:visible').allTextContents();
-    if (windows.join(',') === 'TODAY,1W,1M') {
+    if (windows.join(',') === 'TODAY,1W,1M,3M') {
       ok(S('movers-window'), `offers ${windows.join(' ')}`);
     } else fail(S('movers-window'), `window row reads ${windows.join(',')}`);
 

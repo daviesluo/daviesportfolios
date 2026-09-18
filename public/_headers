@@ -51,6 +51,19 @@
 /*
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   X-Content-Type-Options: nosniff
+  # Keep the whole site out of search indexes and out of the crawlers
+  # that feed AI assistants. It is a password-gated personal ledger;
+  # there is nothing here that should be findable, quotable or
+  # summarised from a link. Sent as a HEADER as well as robots.txt
+  # because a header applies to every response including the JS bundle,
+  # which robots.txt alone does not reliably cover.
+  #
+  # This is not access control and must not be mistaken for it: a
+  # fetcher that ignores the directive still gets the bytes. What stops
+  # a stranger reading the PORTFOLIO is the token gate on every Edge
+  # Function — an unauthenticated call returns 401, and so does a
+  # forged token.
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet, noimageindex
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://fundgz.1234567.com.cn https://api.fund.eastmoney.com https://danjuanapp.com https://stock.xueqiu.com https://api.cors.lol https://corsproxy.io https://api.allorigins.win https://api.codetabs.com https://cors.eu.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'

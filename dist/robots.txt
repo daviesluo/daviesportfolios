@@ -1,0 +1,11 @@
+# A password-gated personal portfolio ledger. Nothing here is meant to
+# be indexed, archived, quoted or summarised from a link — by a search
+# engine or by an AI assistant following one.
+#
+# The app's data is not reachable from here in any case: every Edge
+# Function call requires a signed app token and returns 401 without
+# one. This file is the polite half of the same intent, and the
+# `X-Robots-Tag` header in `_headers` is the half that also covers the
+# JavaScript bundle.
+User-agent: *
+Disallow: /
