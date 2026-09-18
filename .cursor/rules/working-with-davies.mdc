@@ -355,6 +355,13 @@ Read these as a checklist before pushing.
   mapped to Replace.
 - **Bypassing the shared helper.** A `replace` path recomputed totals
   itself instead of going through `netPosition`.
+- **Reusing a class so two controls answer to one selector.** The Top
+  Movers window row borrowed the chart's `.perf-range-btn` to inherit
+  its look. A `:visible:text-is("1M")` click then hit whichever came
+  first in the DOM: the chart on desktop, the SIDEBAR on a phone. The
+  sweep was fully green on desktop and failed four checks on phone.
+  Share the CSS rule, never the class — and a green desktop run is not
+  a green run.
 - **A CSS class collision restyling another component.** Investment
   legend rules reused `perf-` names, sat later in the cascade, and
   silently changed the vs-S&P legend's dots. Prefix new component
@@ -398,6 +405,18 @@ Read these as a checklist before pushing.
   matched `<fn>/index.ts`, so a change to `fundamentals/_shared.ts`
   shipped everywhere except `fundamentals`. Green CI is not a deploy —
   check the thing actually serving the request.
+- **Sweeping the restated constants and missing the derived one.**
+  Moving 1W to 15-minute bars updated the five places that SAY how long
+  a 1W bar is, and left `maBarsFor`'s own `{'1W': 13}` bars-a-day
+  literal behind, so a line labelled "MA 5" covered two and a half
+  days. Restated constants are greppable; derived ones are not. After a
+  cadence change, hunt for what is COMPUTED from the cadence, and
+  prefer deriving it from the one source over adding a sixth copy.
+- **Running the browser sweep against a stale bundle.** It serves the
+  COMMITTED bundle from the repo root, so without `npm run build` first
+  it tests the previous commit. Cost most of an hour chasing a "3M is
+  still drawing daily bars" that had already been fixed. Build, then
+  sweep — every time.
 
 ## Third-party reviews
 
