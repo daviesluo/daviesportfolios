@@ -118,6 +118,42 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-18 18:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The opaque status bar fixed the scrim and bought a seam; the seam is
+now gone too.** Davies reported it straight away: a hard horizontal
+line under the clock. Predictable in hindsight — the system's bar is
+pure `#000`, the page's first pixel was the radial glow's `#14201b`,
+and I had named that cost without doing anything about it.
+
+The page now starts black as well and climbs out over 96px, so the two
+meet at the same colour and there is nothing to see. The stops
+approximate an ease-out rather than a straight ramp: a linear fade ends
+on a corner, and the corner is itself a faint line. The full-screen
+mobile modal gets the same treatment — `#0f1815` against `#000` is a
+softer line than the board's, but it is still a line.
+
+**Getting to EXACTLY black took one more step, and it is the kind of
+thing only measuring finds.** With the ramp in, the page's first row
+rendered `#090909`, not `#000`: the header carries a 3 % cream sheen
+down its first 64px, which in standalone starts on row zero. Three per
+cent is invisible anywhere else; against a bar that is pixel-off on an
+OLED it is an edge. Dropped in standalone only — the ramp is already
+giving that band a tone, in the opposite direction.
+
+Verified by rendering, not by eye: drove the real board in the sweep's
+harness with the standalone declaration applied, screenshotted the top
+150px at phone width and read the pixels back. First row `0,0,0` across
+the width; largest step between adjacent rows 2/255, so no banding. The
+`@media (display-mode: standalone)` rule itself cannot be emulated from
+here — its presence in the shipped CSS is checked by grep, and the
+injected declaration is byte-identical to it.
+
+Still true, and still worth repeating: no gate in this repo can check
+any of this, and I cannot run iOS 26. Reverting is `black-translucent`
+back in `src/index.html` plus deleting the two standalone blocks in
+`styles.css`.
+
 ### [2026-09-18 18:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **iOS status bar is opaque now — SHIPPED UNVERIFIED, and Davies is

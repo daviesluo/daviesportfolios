@@ -158,6 +158,41 @@ body {
    value on a platform that still hands one over. */
 @media (display-mode: standalone) {
   .app { padding-top: env(safe-area-inset-top); }
+
+  /* An opaque status bar is PURE BLACK, and the page's own first pixel
+     is the radial glow's #14201b. Butted together that is a hard
+     horizontal line directly under the clock — the seam you get for
+     free the moment the system owns a band above you.
+     
+     So start the page black too and climb out of it. The join is then
+     black meeting black and there is nothing to see; by the time the
+     header's text sits on it the glow is back. The stops approximate
+     an ease-out rather than a straight ramp, because a linear fade
+     ends on a corner and that corner is itself a faint line.
+     
+     Standalone only: in a browser tab nothing sits above the page, and
+     on the desktop this would just be an unexplained dark cap. */
+  body {
+    background:
+      linear-gradient(180deg,
+        #000 0,
+        rgba(0,0,0,0.72) 18px,
+        rgba(0,0,0,0.28) 48px,
+        rgba(0,0,0,0) 96px),
+      radial-gradient(ellipse at top, #14201b 0%, #0c1310 70%),
+      #0c1310;
+    background-attachment: fixed;
+  }
+
+  /* The header carries a 3 % cream sheen down its first 64px. Anywhere
+     else that is a nice edge-light; here it starts at the page's very
+     first row and lifts it off black to about #090909 — which on an
+     OLED, where #000 is the pixel simply off, is still enough to read
+     as a line against the status bar. The ramp above already gives
+     this exact band a top-to-bottom tone, so the sheen is doing the
+     same job in the opposite direction. Drop it, and the page's first
+     row is #000 against the system's #000. */
+  .header { background: none; }
 }
 
 /* Viewer (read-only) badge replacing the EDIT button */
@@ -1708,4 +1743,23 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .view-tab, .view-tab::after { transition: none; }
+}
+
+/* The full-screen mobile modal butts against that same opaque system
+   status bar, so it gets the same ramp out of black for the same
+   reason — `#0f1815` against `#000` is a softer line than the board's
+   `#14201b`, but it is still a line. Shorter fade: the modal's title
+   sits closer to its top edge than the board's does. */
+@media (max-width: 760px) and (display-mode: standalone) {
+  .modal,
+  .modal.size-sm,
+  .modal.size-md,
+  .modal.size-lg {
+    background:
+      linear-gradient(180deg,
+        #000 0,
+        rgba(0,0,0,0.55) 12px,
+        rgba(0,0,0,0) 56px),
+      #0f1815;
+  }
 }

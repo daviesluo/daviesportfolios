@@ -825,13 +825,27 @@ before this guard landed).
   bar; iOS 26 draws a glass scrim over that band, which washed out the
   app title and the clock row. No CSS or meta controls the effect
   (Safari 26 ignores `theme-color` and derives edge colours itself), so
-  the only fix is to stop asking for a translucent bar. `.app` then
-  takes `env(safe-area-inset-top)` exactly under
-  `@media (display-mode: standalone)` instead of the usual
-  `max(8px, env − 8px)`: the system has already reserved that band, and
-  stacking the app's own 8px under it would move the header down by
-  that much. To go back, restore `black-translucent` in
-  `src/index.html` and delete the standalone rule in `styles.css`.
+  the only fix is to stop asking for a translucent bar.
+
+  That trades the scrim for a SEAM: the system's bar is pure `#000` and
+  the page's first pixel was the radial glow's `#14201b`, which butted
+  together is a hard line under the clock. So under
+  `@media (display-mode: standalone)` the page starts black too and
+  climbs out of it — a 96px ramp whose stops approximate an ease-out,
+  because a linear fade ends on a corner and the corner is itself a
+  faint line. The header's own 3 % cream sheen is dropped there as
+  well: it starts on the page's very first row and lifted it to about
+  `#090909`, which on an OLED (where `#000` is the pixel off) still
+  reads as an edge. Measured on the rendered page: first row `0,0,0`,
+  largest step between adjacent rows 2/255. The full-screen mobile
+  modal gets the same ramp for the same reason.
+
+  `.app` also takes `env(safe-area-inset-top)` exactly there, instead
+  of the usual `max(8px, env − 8px)`: the system has already reserved
+  that band, and stacking the app's own 8px under it would move the
+  header down. To go back, restore `black-translucent` in
+  `src/index.html` and delete the two standalone blocks in
+  `styles.css`.
 - **Frontend** — React 19 + Vite 8, JSX with `checkJs` + JSDoc for type
   safety (no `.tsx`). Bundle output to `dist/` (`/assets/*.js` once
   published), which is the only directory Cloudflare Pages serves. Runtime deps stay minimal (`react`,
