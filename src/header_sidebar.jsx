@@ -20,7 +20,7 @@ import { Storage } from './storage.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
 import { isIndex } from './ticker_class.js';
 import { PerfPanel } from './perf_chart.jsx';
-import { MOVER_WINDOWS, rangeKeyForWindow, rankMovers, barWidthPct } from './movers.js';
+import { MOVER_WINDOWS, rangeKeyForWindow, rankMovers, barWidthPct, holdingMoveOver } from './movers.js';
 import { loadRangeCache, CHARTS_UPDATED_EVENT } from './cache.js';
 import { buildTickerSeries, anchorDateFor } from './ytd.js';
 import { OpsErrorBadge, useIsDesktop } from './ops_error_badge.jsx';
@@ -488,12 +488,12 @@ function TopMovers({ metrics, hideValues = false }) {
     return () => window.removeEventListener(CHARTS_UPDATED_EVENT, onUpdate);
   }, []);
 
-  // Window-start close per ticker, or null where the cache has nothing
-  // yet. Memoised on the window and the cache tick — NOT on `metrics`,
-  // which changes every refresh and would otherwise re-anchor every
-  // holding four times a minute for an answer that only moves when a
-  // new bar lands.
-  const basePriceOf = React.useMemo(() => {
+  // How a longer window measures one holding, or null on TODAY (which
+  // keeps metrics.js's own day figures). Memoised on the window and the
+  // cache tick — NOT on `metrics`, which changes every refresh and
+  // would otherwise rebuild every ticker's series four times a minute
+  // for an answer that only moves when a new bar lands.
+  const moveOf = React.useMemo(() => {
     const rangeKey = rangeKeyForWindow(window_);
     if (!rangeKey) return null;
     const entries = loadRangeCache(new Date().getFullYear(), `${rangeKey}:std`);
@@ -502,11 +502,11 @@ function TopMovers({ metrics, hideValues = false }) {
     for (const [ticker, entry] of Object.entries(entries)) {
       if (Array.isArray(entry?.data) && entry.data.length > 0) hist[ticker] = entry.data;
     }
-    const series = buildTickerSeries(hist, anchorDateFor(rangeKey), rangeKey, {}, false, true);
-    return (/** @type {string} */ ticker) => {
-      const anchor = series[ticker]?.janPrice;
-      return typeof anchor === 'number' && anchor > 0 ? anchor : null;
-    };
+    const anchorDate = anchorDateFor(rangeKey);
+    const tickerSeries = buildTickerSeries(hist, anchorDate, rangeKey, {}, false, true);
+    const todayDate = new Date().toISOString().slice(0, 10);
+    const ctx = { tickerSeries, anchorDate, todayDate };
+    return (/** @type {any} */ player) => holdingMoveOver(player, ctx);
   }, [window_, cacheTick]);
 
   // Memoised on metrics + the two controls so the per-tick refresh
@@ -517,8 +517,8 @@ function TopMovers({ metrics, hideValues = false }) {
     for (const pos of Object.values(metrics.positions)) {
       for (const p of /** @type {any} */ (pos).players) allPlayers.push(p);
     }
-    return rankMovers(allPlayers, { window: window_, metric, basePriceOf });
-  }, [metrics, metric, window_, basePriceOf]);
+    return rankMovers(allPlayers, { window: window_, metric, moveOf });
+  }, [metrics, metric, window_, moveOf]);
 
   // Arrow keys move between tabs and take focus with them — with
   // `tabIndex={-1}` on every inactive tab (roving tabindex, so Tab

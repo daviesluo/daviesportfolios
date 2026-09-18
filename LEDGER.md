@@ -118,6 +118,62 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-18 18:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Top Movers' longer windows now measure the HOLDING period, and 3M is
+back because of it.** Davies: a stock bought yesterday must show one
+day of move on the 1W and 1M lists, not a week or a month of the share
+price. He had deleted 3M once already for exactly this — many positions
+are a month or so old, so a quarter window credited them with a quarter
+they were not in for.
+
+Not implemented twice. `computeAt` already applies the rule per lot for
+the performance chart: a lot bought BEFORE the window opens carries the
+window-start close as its basis, one bought inside it carries its own
+cost. So `holdingMoveOver` builds a one-holding portfolio and asks
+`computeAt`, then reads `(value - basis)`. Sales, FX, a missing price
+history and a ticker with no series at all are handled there already.
+FX comes from `player.fx` — the rate `metrics.js` resolved — so the
+panel cannot disagree with the scoreboard about a GBP position.
+
+Pinned closed-form at both levels. Same stock, 110 at the window's
+open and 120 now: held throughout it reads +9.09 %; bought two days ago
+at 115 it reads +4.35 %, not +9.09 %; a mixed holding (10 from before,
+5 added inside) reads 110/1690. At the panel, three tickers all opening
+the month at 100 render `+50.00% / +7.14% / +5.00%` — the middle one is
+the discriminator, since measuring the stock would print +50.00 % there
+too.
+
+**TODAY deliberately stays out of it.** A day change is measured
+against yesterday's close for every holding regardless of when it was
+bought — that is what the heat map, the scoreboard and the tactics
+chips all show, and re-basing it on cost would put two numbers for one
+ticker on one screen. Worth flagging to him as a judgement call.
+
+**Source exposure, the remaining half.** With the repo no longer
+published, what a link still hands out is the minified bundle —
+unavoidable for any web app. Checked rather than assumed: `dist/` holds
+14 files and no `src/`; sourcemap requests are blocked; the only
+secret-shaped string in the bundle decodes to the Supabase **anon**
+key, `role: anon`, which is public by design and RLS-gated; and the
+data is genuinely gated — `data?action=board` returns 401 with no
+token AND with a forged one. Added `robots.txt` plus `X-Robots-Tag` on
+every path, which is the standard way to keep a link out of search
+indexes and out of the crawlers that feed AI assistants. Stated in the
+README as what it is: a directive, not access control.
+
+**The iOS 26 top-of-screen haze is NOT fixable from CSS, and I did not
+guess at it.** Searched rather than invented: Safari 26 ignores
+`theme-color` and derives edge colours itself, there is no property
+that controls the standalone status-bar treatment, and the only fix the
+community has found is dropping `apple-mobile-web-app-status-bar-style:
+black-translucent` — which hands the band to the system and moves
+content down by the status-bar height, i.e. exactly the top spacing he
+asked to preserve. Put to him as a choice rather than shipped blind: I
+cannot verify an iOS 26 change from this container, and an unverified
+fix to the deploy chrome is how the Pages exposure survived two
+attempts.
+
 ### [2026-09-18 08:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Merged, and production's ORIGIN is fixed — but the edge is still

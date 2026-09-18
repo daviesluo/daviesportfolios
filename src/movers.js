@@ -18,20 +18,23 @@
 
 import { isCnFund } from './ticker_class.js';
 import { pctIsFlat } from './formatters.js';
+import { computeAt } from './ytd.js';
 
 /**
  * Windows the panel offers, in order. `TODAY` is the live day move;
  * the rest name the chart ranges whose cached history prices them, so
  * the two panels in the sidebar speak one vocabulary.
  *
- * Three, not five. These sit in the panel's TITLE row beside the
- * `%` / `$` switch, and a "what moved" list stops being a movers list
- * somewhere past a month — over a quarter it is really a performance
- * ranking, which is the other panel's job. A stored window outside
- * this set (one saved before it shrank) falls back to TODAY.
+ * 3M is here only because the longer windows now measure the HOLDING
+ * period rather than the stock's price: a quarter window on a position
+ * opened five weeks ago shows five weeks, not a quarter. Without that
+ * it was actively misleading and was removed once already. YTD stays
+ * out — past a quarter this stops being "what moved" and becomes the
+ * performance panel's question. A stored window outside this set falls
+ * back to TODAY.
  * @type {readonly string[]}
  */
-export const MOVER_WINDOWS = ['TODAY', '1W', '1M'];
+export const MOVER_WINDOWS = ['TODAY', '1W', '1M', '3M'];
 
 /** The chart range key a window is priced from, or null for TODAY. */
 export function rangeKeyForWindow(window) {
@@ -41,31 +44,67 @@ export function rangeKeyForWindow(window) {
 /**
  * One name's move over the window, in both measures.
  *
- * The dollar figure is the move valued on TODAY'S holding — shares now
- * x the price move across the window. That is the honest reading of
- * the question this panel asks ("what did this name's move do to me"),
- * and it is deliberately NOT a P/L attribution: a position opened
- * halfway through the window did not earn the whole window's move, and
- * the number that accounts for that is the performance panel's, which
- * walks the lot ledger. Percent is the primary measure here for that
- * reason.
+ * **Measured over the time the position was actually HELD, not over the
+ * window.** A name bought two days ago shows two days of move on the
+ * 1M list, not a month of the stock's price. Anything else credits the
+ * book with a rise it was not in for — which is the whole reason the
+ * longer windows were pulled from this panel once before.
  *
- * @param {any} player     a `computeMetrics` player (native `lastPrice`, USD `fx`)
- * @param {number|null} base  window-start close, native currency; null for TODAY
+ * That rule is not implemented here. `computeAt` already applies it,
+ * per lot, for the performance chart: a lot bought BEFORE the window
+ * opens carries the window-start close as its basis, and a lot bought
+ * inside it carries its own cost. Sales, FX, a missing price history
+ * and a ticker with no series at all are all handled there too. So
+ * this asks `computeAt` about ONE holding and reads the answer, rather
+ * than writing a second version of the same arithmetic — the mistake
+ * this repository has paid for more than any other.
+ *
+ * TODAY does not come through here at all: a day change is measured
+ * against yesterday's close for every holding regardless of when it
+ * was bought, which is what the heat map, the scoreboard and the
+ * tactics chips all show. Re-basing it on purchase cost would put two
+ * different numbers for one ticker on one screen.
+ *
+ * @param {any} player  a `computeMetrics` player (carries `lots`, `fx`,
+ *                      and an ext-aware native `lastPrice`)
+ * @param {{
+ *   tickerSeries: Record<string, any>,
+ *   anchorDate: string,
+ *   todayDate: string,
+ *   nowMs?: number,
+ * }} ctx
  * @returns {{pct: number, usd: number} | null}
  */
-export function moveOver(player, base) {
+export function holdingMoveOver(player, ctx) {
+  if (!player || !ctx) return null;
+  const { tickerSeries, anchorDate, todayDate, nowMs = Date.now() } = ctx;
+  const { value, basis } = computeAt({
+    date: todayDate,
+    liveAnchorDate: todayDate,          // so the current price is used
+    portfolio: { holdings: { [player.ticker]: player }, positions: {} },
+    tickerSeries,
+    marketData: {},                     // player.lastPrice is already live
+    yearStart: anchorDate,
+    yearStartDate: anchorDate,
+    todayMs: nowMs,
+    useExt: false,
+    // metrics.js already resolved this holding's rate against the live
+    // FX pairs; reusing it keeps the panel from disagreeing with the
+    // scoreboard over what a GBP position is worth in dollars.
+    fxToUSD: () => (Number.isFinite(player.fx) ? player.fx : 1),
+  });
+  if (!(basis > 0) || !Number.isFinite(value)) return null;
+  return { pct: ((value - basis) / basis) * 100, usd: value - basis };
+}
+
+/**
+ * TODAY's move: metrics.js's own day figures, passed straight through.
+ * @param {any} player
+ * @returns {{pct: number, usd: number} | null}
+ */
+export function dayMoveOf(player) {
   if (!player) return null;
-  if (base == null) {
-    return { pct: player.dayPct ?? 0, usd: player.dayChange ?? 0 };
-  }
-  const now = Number(player.lastPrice);
-  if (!Number.isFinite(base) || base <= 0 || !Number.isFinite(now) || now <= 0) return null;
-  const shares = Number(player.shares);
-  const fx = Number(player.fx);
-  const pct = ((now - base) / base) * 100;
-  const usd = (Number.isFinite(shares) && Number.isFinite(fx)) ? shares * (now - base) * fx : 0;
-  return { pct, usd };
+  return { pct: player.dayPct ?? 0, usd: player.dayChange ?? 0 };
 }
 
 /**
@@ -78,29 +117,28 @@ export function moveOver(player, base) {
  * to paint a neutral tile. A name the heat map calls flat must not
  * simultaneously rank here.
  *
- * `basePriceOf` returns the window-start close for a ticker, or null
- * when the cache has nothing for it yet; such a name simply doesn't
- * rank, rather than ranking off a price the panel had to invent.
+ * `moveOf` answers the window for one player, or null when it cannot
+ * — no cached history yet, or a holding whose ledger does not
+ * reconcile. Such a name simply doesn't rank, rather than ranking off
+ * a number the panel had to invent.
  *
  * @param {any[]} players
  * @param {{
  *   window: string,
  *   metric: 'pct'|'usd',
- *   basePriceOf?: ((ticker: string) => number|null) | null,
+ *   moveOf?: ((player: any) => {pct: number, usd: number}|null) | null,
  *   limit?: number,
  * }} opts
  * @returns {{winners: any[], losers: any[], scale: number, priced: number}}
  */
 export function rankMovers(players, opts) {
-  const { window, metric, basePriceOf, limit = 5 } = opts;
+  const { window, metric, moveOf, limit = 5 } = opts;
   const isToday = rangeKeyForWindow(window) === null;
   /** @type {any[]} */
   const rows = [];
   for (const p of players || []) {
     if (!p || p.isCash || p.ticker === 'CASH' || isCnFund(p.ticker)) continue;
-    const base = isToday ? null : (basePriceOf ? basePriceOf(p.ticker) : null);
-    if (!isToday && base == null) continue;
-    const move = moveOver(p, base);
+    const move = isToday ? dayMoveOf(p) : (moveOf ? moveOf(p) : null);
     if (!move || pctIsFlat(move.pct)) continue;
     rows.push({ ...p, movePct: move.pct, moveUsd: move.usd });
   }

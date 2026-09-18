@@ -470,11 +470,17 @@ describe('UpcomingEarnings — keeps today\'s report until the day is over', () 
 //   NVDA      +5.00       100       +5.00    (1st today, 2nd over 1M)
 //   BRIT.L    +1.00       100       +50.00   (2nd today, 1st over 1M)
 describe('Sidebar — Top Movers window', () => {
+  const dAgo = (n) => new Date(Date.now() - n * 86400_000).toISOString().slice(0, 10);
+  // Both held since long before any window opens, so a longer window
+  // measures them from its own opening close (100, seeded below).
+  // OLDBUY is the third case: same stock path, bought two days ago.
   const WINDOW_MOVERS = [
     { ticker: 'NVDA',   dayPct: 5, dayChange: 50,  marketValue: 1050,
-      shares: 10, fx: 1,   lastPrice: 105 },
+      shares: 10, fx: 1,   currency: 'USD', lastPrice: 105,
+      lots: [{ date: dAgo(60), shares: 10, cost: 50 }] },
     { ticker: 'BRIT.L', dayPct: 1, dayChange: 13,  marketValue: 1950,
-      shares: 10, fx: 1.3, lastPrice: 150 },
+      shares: 10, fx: 1.3, currency: 'GBP', lastPrice: 150,
+      lots: [{ date: dAgo(60), shares: 10, cost: 50 }] },
   ];
   const metricsFor = (players) => ({
     marketValue: 3000,
@@ -488,6 +494,10 @@ describe('Sidebar — Top Movers window', () => {
   const columnTickers = (side) => {
     const col = document.querySelectorAll('.movers-grid > div')[side === 'gain' ? 0 : 1];
     return [...col.querySelectorAll('.mover-ticker')].map(el => el.textContent);
+  };
+  const columnValues = (side) => {
+    const col = document.querySelectorAll('.movers-grid > div')[side === 'gain' ? 0 : 1];
+    return [...col.querySelectorAll('.mover-val')].map(el => el.textContent);
   };
 
   /** Seed the same per-(year, range) rows the performance panel writes. */
@@ -503,10 +513,10 @@ describe('Sidebar — Top Movers window', () => {
 
   beforeEach(() => { for (const k of YtdStore.keys()) YtdStore.del(k); });
 
-  it('offers three windows in the title row and starts on TODAY', () => {
+  it('offers four windows in the title row and starts on TODAY', () => {
     renderSidebar();
     expect([...document.querySelectorAll('.movers-window .view-tab')]
-      .map(b => b.textContent)).toEqual(['TODAY', '1W', '1M']);
+      .map(b => b.textContent)).toEqual(['TODAY', '1W', '1M', '3M']);
     // The selected tab IS the label, so the heading stays a name.
     expect(screen.getByText('TOP MOVERS')).toBeInTheDocument();
     expect(document.querySelector('.movers-window .view-tab.is-on')?.textContent).toBe('TODAY');
@@ -521,6 +531,27 @@ describe('Sidebar — Top Movers window', () => {
     expect(document.querySelector('.movers-window .view-tab.is-on')?.textContent).toBe('1M');
     // 100 -> 150 beats 100 -> 105, which is the reverse of today.
     expect(columnTickers('gain')).toEqual(['BRIT', 'NVDA']);
+  });
+
+  it('a holding bought inside the window shows only its move SINCE the buy', async () => {
+    // The requirement, end to end. All three tickers opened the month
+    // at 100. NVDA and BRIT.L have been held throughout, so they are
+    // measured from there. FRESH was bought two days ago at 140 and is
+    // now 150 — the book made 10 a share, not 50, and the row has to
+    // say so. A panel measuring the STOCK rather than the HOLDING would
+    // print +50.00% here, identical to BRIT.L.
+    seedMonthHistory({ NVDA: 100, 'BRIT.L': 100, FRESH: 100 });
+    const user = userEvent.setup();
+    render(<Sidebar metrics={metricsFor([...WINDOW_MOVERS, {
+      ticker: 'FRESH', dayPct: 2, dayChange: 20, marketValue: 1500,
+      shares: 10, fx: 1, currency: 'USD', lastPrice: 150,
+      lots: [{ date: dAgo(2), shares: 10, cost: 140 }],
+    }])} source="live" portfolio={{}} marketData={{}}
+      extendedHours={false} phase="regular" hideValues={false} />);
+    await user.click(screen.getByRole('tab', { name: /Rank movers over 1M/i }));
+    expect(columnTickers('gain')).toEqual(['BRIT', 'FRESH', 'NVDA']);
+    //            1300 -> 1950     1400 -> 1500     1000 -> 1050
+    expect(columnValues('gain')).toEqual(['+50.00%', '+7.14%', '+5.00%']);
   });
 
   it('says it is waiting rather than claiming nothing moved', async () => {
