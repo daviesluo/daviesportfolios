@@ -93,3 +93,66 @@ export function tickerChartCacheKey(ticker, rangeKey, useExt, phase) {
 export const hasAnyNumericField = (field) =>
   /** @param {any[]} data */
   (data) => Array.isArray(data) && data.some(p => typeof p?.[field] === 'number');
+
+// ---- The per-(year, range) chart-cache bucket ------------------------
+//
+// `YtdStore` is a FLAT keyspace, one row per (year, range, ticker)
+// keyed `y${year}|${rangeKey}|${ticker}`. These two fold it back into
+// a bucket. They live here rather than inside the performance panel
+// because the Top Movers panel reads the same rows to price its
+// non-TODAY windows, and a second copy of the key parser is exactly
+// the kind of near-identical hand-rolled duplicate this module exists
+// to end.
+
+import { YtdStore } from './chart_store.js';
+
+/**
+ * Every cached entry for one (year, range), keyed by ticker.
+ * @param {number} year
+ * @param {string} rangeKey  the cache-variant key, e.g. `1M:std`
+ * @returns {Record<string, any>}
+ */
+export function loadRangeCache(year, rangeKey) {
+  /** @type {Record<string, any>} */
+  const out = {};
+  for (const k of YtdStore.keys()) {
+    const m = /^y(\d+)\|([^|]+)\|(.+)$/.exec(k);
+    if (!m) continue;
+    if (parseInt(m[1], 10) !== year || m[2] !== rangeKey) continue;
+    const v = YtdStore.get(k);
+    if (v) out[m[3]] = v;
+  }
+  return out;
+}
+
+/**
+ * Replace the whole (year, range) bucket — existing rows are dropped
+ * first, so a ticker no longer in `entries` doesn't linger.
+ * @param {number} year
+ * @param {string} rangeKey
+ * @param {Record<string, any>} entries
+ */
+export function saveRangeCache(year, rangeKey, entries) {
+  const prefix = `y${year}|${rangeKey}|`;
+  for (const k of YtdStore.keys()) {
+    if (k.startsWith(prefix)) YtdStore.del(k);
+  }
+  for (const [ticker, entry] of Object.entries(entries)) {
+    YtdStore.set(`${prefix}${ticker}`, /** @type {any} */ (entry));
+  }
+}
+
+/**
+ * Fired on `window` after a background prefetch writes a range's rows.
+ * The performance panel refetches on its own, but the sidebar's Top
+ * Movers reads the cache synchronously and has no fetch of its own —
+ * without this it would show an empty window until the next 30-second
+ * refresh tick happened to re-render it.
+ */
+export const CHARTS_UPDATED_EVENT = 'dp:charts-updated';
+
+/** Best-effort notify; silent where there is no DOM (tests, SSR). */
+export function announceChartsUpdated() {
+  if (typeof window === 'undefined' || typeof CustomEvent !== 'function') return;
+  try { window.dispatchEvent(new CustomEvent(CHARTS_UPDATED_EVENT)); } catch { /* ignore */ }
+}

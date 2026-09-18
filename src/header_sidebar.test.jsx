@@ -10,7 +10,7 @@
 // Header's own scoreboard logic.
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, within } from '@testing-library/react';
+import { render, screen, cleanup, within, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 vi.mock('./ops_error_badge.jsx', () => ({
@@ -25,6 +25,8 @@ vi.mock('./perf_chart.jsx', () => ({
 }));
 
 import { Header, Sidebar, UpcomingEarnings } from './header_sidebar.jsx';
+import { YtdStore } from './chart_store.js';
+import { CHARTS_UPDATED_EVENT } from './cache.js';
 
 // marketData with the FX pairs the cycle conversion reads:
 //   GBPUSD=X = USD per GBP  → USD→GBP multiplier is 1/1.27
@@ -455,5 +457,101 @@ describe('UpcomingEarnings — keeps today\'s report until the day is over', () 
     expect(await screen.findByText('TODAY')).toBeInTheDocument();
     expect(screen.getByText('SOON')).toBeInTheDocument();
     expect(screen.queryByText('PAST')).not.toBeInTheDocument();
+  });
+});
+
+// The window row: the panel used to answer one question ("what moved
+// TODAY") and the same book ranks differently over a month. The
+// fixture below is built so the two orders are exact reverses, for the
+// same reason the % / $ fixture above is: a test that passed on both
+// windows would prove nothing about which window is driving the sort.
+//
+//   ticker    today %     1M base   1M %
+//   NVDA      +5.00       100       +5.00    (1st today, 2nd over 1M)
+//   BRIT.L    +1.00       100       +50.00   (2nd today, 1st over 1M)
+describe('Sidebar — Top Movers window', () => {
+  const WINDOW_MOVERS = [
+    { ticker: 'NVDA',   dayPct: 5, dayChange: 50,  marketValue: 1050,
+      shares: 10, fx: 1,   lastPrice: 105 },
+    { ticker: 'BRIT.L', dayPct: 1, dayChange: 13,  marketValue: 1950,
+      shares: 10, fx: 1.3, lastPrice: 150 },
+  ];
+  const metricsFor = (players) => ({
+    marketValue: 3000,
+    positions: {
+      P1: { label: 'FWD', marketValue: 3000, unrlPct: 8.5, unrlGL: 800, players },
+    },
+  });
+  const renderSidebar = () =>
+    render(<Sidebar metrics={metricsFor(WINDOW_MOVERS)} source="live" portfolio={{}}
+      marketData={{}} extendedHours={false} phase="regular" hideValues={false} />);
+  const columnTickers = (side) => {
+    const col = document.querySelectorAll('.movers-grid > div')[side === 'gain' ? 0 : 1];
+    return [...col.querySelectorAll('.mover-ticker')].map(el => el.textContent);
+  };
+
+  /** Seed the same per-(year, range) rows the performance panel writes. */
+  const seedMonthHistory = (closes) => {
+    const year = new Date().getFullYear();
+    const before = new Date(Date.now() - 40 * 86400_000).toISOString().slice(0, 10);
+    for (const [ticker, close] of Object.entries(closes)) {
+      YtdStore.set(`y${year}|1M:std|${ticker}`, /** @type {any} */ ({
+        ts: Date.now(), data: [{ date: before, close }],
+      }));
+    }
+  };
+
+  beforeEach(() => { for (const k of YtdStore.keys()) YtdStore.del(k); });
+
+  it('offers every window and starts on TODAY', () => {
+    renderSidebar();
+    expect([...document.querySelectorAll('.movers-range-btn')]
+      .map(b => b.textContent)).toEqual(['TODAY', '1W', '1M', '3M', 'YTD']);
+    expect(screen.getByText(/TOP MOVERS/).textContent).toBe('TOP MOVERS · TODAY');
+  });
+
+  it('a longer window re-ranks the same book off the cached history', async () => {
+    seedMonthHistory({ NVDA: 100, 'BRIT.L': 100 });
+    const user = userEvent.setup();
+    renderSidebar();
+    expect(columnTickers('gain')).toEqual(['NVDA', 'BRIT']);   // displayTicker drops .L
+    await user.click(screen.getByRole('button', { name: /Rank movers over 1M/i }));
+    expect(screen.getByText(/TOP MOVERS/).textContent).toBe('TOP MOVERS · 1M');
+    // 100 -> 150 beats 100 -> 105, which is the reverse of today.
+    expect(columnTickers('gain')).toEqual(['BRIT', 'NVDA']);
+  });
+
+  it('says it is waiting rather than claiming nothing moved', async () => {
+    // No seeded history: the window can price nothing. "—" would read
+    // as "a quiet month", which is a different and wrong statement.
+    const user = userEvent.setup();
+    renderSidebar();
+    await user.click(screen.getByRole('button', { name: /Rank movers over 1M/i }));
+    expect(columnTickers('gain')).toEqual([]);
+    expect(screen.getAllByText('loading…')).toHaveLength(2);
+  });
+
+  it('remembers the window without dropping the rest of dp.prefs', async () => {
+    localStorage.setItem('dp.prefs', JSON.stringify({ hideValues: true, moversMetric: 'usd' }));
+    seedMonthHistory({ NVDA: 100, 'BRIT.L': 100 });
+    const user = userEvent.setup();
+    renderSidebar();
+    await user.click(screen.getByRole('button', { name: /Rank movers over 3M/i }));
+    expect(JSON.parse(localStorage.getItem('dp.prefs') || '{}'))
+      .toEqual({ hideValues: true, moversMetric: 'usd', moversWindow: '3M' });
+  });
+
+  it('fills the moment a background prefetch lands, not on the next refresh', async () => {
+    // The panel has no fetch of its own — without the event it would
+    // sit empty until something else re-rendered the sidebar.
+    const user = userEvent.setup();
+    renderSidebar();
+    await user.click(screen.getByRole('button', { name: /Rank movers over 1M/i }));
+    expect(columnTickers('gain')).toEqual([]);
+    await act(async () => {
+      seedMonthHistory({ NVDA: 100, 'BRIT.L': 100 });
+      window.dispatchEvent(new CustomEvent(CHARTS_UPDATED_EVENT));
+    });
+    expect(columnTickers('gain')).toEqual(['BRIT', 'NVDA']);
   });
 });

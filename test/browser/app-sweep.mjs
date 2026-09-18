@@ -608,7 +608,54 @@ async function run() {
       && byUsd.bars[0] > byUsd.bars[1] && byUsd.bars[1] > byUsd.bars[2];
     if (barsOk) ok(S('top-movers'), `bars ${byUsd.bars.map((b) => b.toFixed(0) + '%').join(' ')}`);
     else fail(S('top-movers'), `bars ${JSON.stringify(byUsd.bars)}`);
-    // Back to % so the rest of the run sees the default state.
+
+    // ---- 6b-2. the WINDOW row re-ranks, and leaves the chart alone --
+    // Still on $. Over a month the fixture's daily series opens at
+    // `base` and the live quote closes it, so:
+    //   ACME    6 x (240 - 200) x 1        = +$240
+    //   NOVA    5 x (120 - 100) x 1        = +$100
+    //   BRIT.L  100 x (2.5 - 2) x 1.25     =  +$63
+    //   VUAA.L  opens and closes at 80     — flat, so it does not rank
+    // A different list, in a different order, from TODAY's
+    // BRIT > ACME > VUAA. A window control that changed the label and
+    // not the ranking would still pass every check above this one.
+    const windows = await page.locator('.movers-range-btn:visible').allTextContents();
+    if (windows.join(',') === 'TODAY,1W,1M,3M,YTD') {
+      ok(S('movers-window'), `offers ${windows.join(' ')}`);
+    } else fail(S('movers-window'), `window row reads ${windows.join(',')}`);
+
+    const activeChartRange = () => page.evaluate(() => {
+      const row = [...document.querySelectorAll('.perf-range-row')]
+        .find((r) => r.getBoundingClientRect().width > 0);
+      return row?.querySelector('.perf-range-btn.on')?.textContent || '';
+    });
+    const chartRangeBefore = await activeChartRange();
+    await page.locator('.movers-range-btn:visible:text-is("1M")').first().click();
+    await page.waitForTimeout(500);
+    const overMonth = await readMovers();
+    if (overMonth.tickers.join(',') === 'ACME,NOVA,BRIT'
+        && overMonth.vals.join(' ') === '+$240 +$100 +$63') {
+      ok(S('movers-window'), `1M ranks ${overMonth.tickers.join(' > ')} (${overMonth.vals.join(' ')})`);
+    } else {
+      fail(S('movers-window'),
+        `1M ranks ${overMonth.tickers.join(',')} ${overMonth.vals.join(' ')}`
+        + ' (want ACME,NOVA,BRIT +$240 +$100 +$63)');
+    }
+    // The two range rows look alike on purpose; they must not BE alike.
+    // Both once carried `.perf-range-btn`, and a `:text-is("1M")` click
+    // landed on whichever came first in the DOM — the chart on desktop,
+    // the sidebar on a phone. The panels disagreed by breakpoint.
+    const chartRangeAfter = await activeChartRange();
+    if (chartRangeAfter === chartRangeBefore) {
+      ok(S('movers-window'), `the chart stayed on ${chartRangeAfter || '(none)'}`);
+    } else {
+      fail(S('movers-window'),
+        `picking a movers window moved the chart from ${chartRangeBefore} to ${chartRangeAfter}`);
+    }
+
+    // Back to TODAY / % so the rest of the run sees the default state.
+    await page.locator('.movers-range-btn:visible:text-is("TODAY")').first().click();
+    await page.waitForTimeout(250);
     await page.locator('#movers-tab-pct:visible').first().click();
     await page.waitForTimeout(250);
 

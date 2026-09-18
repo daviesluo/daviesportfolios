@@ -12,7 +12,7 @@ import React from 'react';
 import { fxToUSD } from './fx.js';
 import { fetchHistorical, fetchHistoricalBatch } from './historical.js';
 import { usMarketHoursUtc, fourHourSlots } from './market_hours.js';
-import { YtdStore } from './chart_store.js';
+import { loadRangeCache, saveRangeCache } from './cache.js';
 import {
   buildTickerSeries,
   computeAt,
@@ -145,31 +145,11 @@ const PERF_CACHE_TTL_MS = {
 
 // PerfChart cache reads/writes go through `YtdStore` (chart_store.js,
 // IndexedDB-backed). One IDB row per (year, rangeKey, ticker) keyed
-// `y${year}|${rangeKey}|${ticker}`; `loadPerfCache` filters the flat
-// keyspace back down to one (year, range) bucket on demand.
-function loadPerfCache(year, rangeKey) {
-  /** @type {Record<string, any>} */
-  const out = {};
-  for (const k of YtdStore.keys()) {
-    const m = /^y(\d+)\|([^|]+)\|(.+)$/.exec(k);
-    if (!m) continue;
-    if (parseInt(m[1], 10) !== year || m[2] !== rangeKey) continue;
-    const v = YtdStore.get(k);
-    if (v) out[m[3]] = v;
-  }
-  return out;
-}
-function savePerfCache(year, rangeKey, entries) {
-  // Replace the entire (year, rangeKey) bucket — drop any existing
-  // entries first so a ticker removed from `entries` doesn't linger.
-  const prefix = `y${year}|${rangeKey}|`;
-  for (const k of YtdStore.keys()) {
-    if (k.startsWith(prefix)) YtdStore.del(k);
-  }
-  for (const [ticker, entry] of Object.entries(entries)) {
-    YtdStore.set(`${prefix}${ticker}`, /** @type {any} */ (entry));
-  }
-}
+// `y${year}|${rangeKey}|${ticker}`; the bucket readers live in
+// `cache.js` because Top Movers prices its non-TODAY windows off the
+// same rows, and two copies of the key parser is how they drift.
+const loadPerfCache = loadRangeCache;
+const savePerfCache = saveRangeCache;
 
 
 // YTD performance chart: portfolio % return vs S&P 500, computed from
