@@ -9,7 +9,7 @@ import { usMarketHoursUtc, isWeekendDeadZone, isUsMarketHoliday, isUsTradingDate
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits } from './formatters.js';
 import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h, fillVenueSessionGrid, resampleToSlots } from './ytd.js';
-import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly, isCrypto, venueSessionFor, tradesAllWeekdayHours } from './ticker_class.js';
+import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly, isCrypto, venueSessionFor, tradingWeekOf } from './ticker_class.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
@@ -110,18 +110,22 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const venueSession = venueSessionFor(ticker);
 
   // 3M on a round-the-clock instrument draws the SAME four-hour London
-  // grid the portfolio panel draws: six samples a weekday at 01 / 05 /
-  // 09 / 13 / 17 London and the day's actual US close. A futures or FX
-  // chart at 60m is ~23 bars a day for three months, which is both
-  // denser than the panel beside it and on different instants, so the
-  // two disagreed about what "3M" means. An index or a listed equity
-  // stays on its hourly session bars — it prints in two of the six
-  // slots, so a grid would give it four flat carry-forwards a day.
+  // grid the portfolio panel draws: six samples a trading day at 01 /
+  // 05 / 09 / 13 / 17 London and the day's US close. At 60m such a
+  // chart is ~23 bars a day for three months, both denser than the
+  // panel beside it and on different instants, so the two disagreed
+  // about what "3M" means.
+  //
+  // The grid spans the days the instrument actually trades: every day
+  // for crypto, weekdays for futures and FX. An index or a listed
+  // equity stays on its hourly session bars — it prints in two of the
+  // six slots, so a grid would give it four flat carry-forwards a day.
+  const tradingWeek = tradingWeekOf(ticker);
   const slotGrid3M = React.useMemo(
-    () => (rangeKey === '3M' && tradesAllWeekdayHours(ticker)
-      ? fourHourSlots(rangeStartMs('3M', Date.now()), Date.now())
+    () => (rangeKey === '3M' && tradingWeek !== 'session'
+      ? fourHourSlots(rangeStartMs('3M', Date.now()), Date.now(), tradingWeek === 'all')
       : null),
-    [rangeKey, ticker],
+    [rangeKey, tradingWeek],
   );
   const windowedSeries = (slotGrid3M && Array.isArray(series))
     ? resampleToSlots(series, slotGrid3M)
@@ -415,8 +419,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     const d0 = maHistory[0].date;
     const firstMs = Date.parse(d0.length === 16 && d0[10] === 'T' ? `${d0}Z` : d0);
     if (!Number.isFinite(firstMs)) return maHistory;
-    return resampleToSlots(maHistory, fourHourSlots(firstMs, Date.now()));
-  }, [maHistory, slotGrid3M]);
+    return resampleToSlots(maHistory, fourHourSlots(firstMs, Date.now(), tradingWeek === 'all'));
+  }, [maHistory, slotGrid3M, tradingWeek]);
   const MA_BARS = maBarsFor(rangeKey, dailyOnly, slotGrid3M ? SLOTS_PER_DAY : 0);
   const MA_DAYS = maLabelDaysFor(rangeKey);
   const maSeries = MA_BARS > 0 ? computeMaSeries(points, maForChart, MA_BARS) : null;

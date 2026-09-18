@@ -200,6 +200,35 @@ describe('fourHourSlots — the grid a 3M chart samples on', () => {
     for (let i = 1; i < slots.length; i++) expect(slots[i]).toBeGreaterThan(slots[i - 1]);
   });
 
+  it('a 24/7 tape keeps the weekend, at the same four-hour step', () => {
+    // Crypto's Saturday is real trading; dropping it would lose two
+    // days in seven. There is no US close on a Saturday, so the sixth
+    // sample is 21:00 London — 20:00 UTC under BST, which keeps the
+    // step a clean four hours right through the weekend.
+    const slots = fourHourSlots(Date.UTC(2026, 8, 18, 18, 0), Date.UTC(2026, 8, 21, 10, 0), true)
+      .map(iso);
+    expect(slots).toEqual([
+      '2026-09-18T20:00',
+      '2026-09-19T00:00', '2026-09-19T04:00', '2026-09-19T08:00',
+      '2026-09-19T12:00', '2026-09-19T16:00', '2026-09-19T20:00',
+      '2026-09-20T00:00', '2026-09-20T04:00', '2026-09-20T08:00',
+      '2026-09-20T12:00', '2026-09-20T16:00', '2026-09-20T20:00',
+      '2026-09-21T00:00', '2026-09-21T04:00', '2026-09-21T08:00',
+      '2026-09-21T10:00',
+    ]);
+    // Every step across the weekend is four hours.
+    const raw = fourHourSlots(Date.UTC(2026, 8, 19), Date.UTC(2026, 8, 21), true);
+    for (let i = 1; i < raw.length; i++) expect(raw[i] - raw[i - 1]).toBe(4 * 3600_000);
+  });
+
+  it('the weekday and weekend grids are cached apart', () => {
+    const a = fourHourSlots(Date.UTC(2026, 8, 14), Date.UTC(2026, 8, 21, 10));
+    const b = fourHourSlots(Date.UTC(2026, 8, 14), Date.UTC(2026, 8, 21, 10), true);
+    expect(b).not.toBe(a);
+    expect(b.length).toBeGreaterThan(a.length);
+    expect(fourHourSlots(Date.UTC(2026, 8, 14), Date.UTC(2026, 8, 21, 10))).toBe(a);
+  });
+
   it('skips the weekend rather than drawing two flat days', () => {
     // Fri 18 Sep 18:00 -> Mon 21 Sep 10:00. The x axis is index-based,
     // so twelve flat weekend points would spend real chart width on a
