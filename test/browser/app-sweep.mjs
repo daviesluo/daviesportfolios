@@ -634,6 +634,7 @@ async function run() {
     await page.waitForTimeout(500);
     const overMonth = await readMovers();
 
+
     if (overMonth.tickers.join(',') === 'ACME,NOVA,BRIT'
         && overMonth.vals.join(' ') === '+$240 +$100 +$63') {
       ok(S('movers-window'), `1M ranks ${overMonth.tickers.join(' > ')} (${overMonth.vals.join(' ')})`);

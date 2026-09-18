@@ -710,8 +710,12 @@ prefix so the y-axis matches each instrument's natural scale.
   percentage row and stays consistent with its green heat-map tile.
 
   **The window** — `TODAY / 1W / 1M` — is a second tab group in the
-  panel's TITLE row, beside the `%` / `$` switch and in the same idiom:
-  over which window, by which measure. Three, not five — a "what moved"
+  panel's TITLE row, sitting against the heading where the old
+  `· TODAY` suffix did, because it finishes the panel's name: this is
+  TOP MOVERS, over this window. The `%` / `$` measure switch stays at
+  the far right, in the same idiom the performance panel uses for its
+  view switch — two unrelated choices, so they read as two rather than
+  as one clump in the corner. Three, not five — a "what moved"
   list stops being a movers list somewhere past a month; over a quarter
   it is a performance ranking, which is the panel below it. TODAY is
   the live day move `metrics.js` already publishes; the longer windows

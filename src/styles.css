@@ -878,8 +878,12 @@ body {
    idiom and differ only in metrics — the window labels are words and
    need a touch more room than the single `%` / `$` glyphs. The gap is
    what keeps them readable as two groups rather than one long row. */
-.movers-controls {
-  display: flex; align-items: baseline; gap: 14px;
+/* The window switch hugs the heading — it finishes the panel's name,
+   the way the old "· TODAY" suffix did. The measure switch stays at the
+   far right, so the two unrelated choices read as two, not as one
+   clump in the corner. */
+.movers-title {
+  display: flex; align-items: baseline; gap: 10px;
   min-width: 0;
 }
 .movers-window .view-tab {
