@@ -40,7 +40,7 @@ import {
   getOvernightSeries,
   OVERNIGHT_FETCH_EVENT,
 } from './overnight_intraday.js';
-import { NIGHT_BAR_INTERVAL_MS } from './ticker_chart_helpers.js';
+import { NIGHT_BAR_INTERVAL_MS, crosshairFormatFor } from './ticker_chart_helpers.js';
 
 // ---- Range-sensitive wiring helpers (pure, exported for unit pins).
 //
@@ -77,21 +77,6 @@ export function perfFetchParams(rangeKey, extendedHours, phase) {
     return { yahooRange: r.yahooRange, interval: r.interval, includePrePost: true, variant: '1w-ext' };
   }
   return fetchParamsFor(rangeKey, extendedHours, phase);
-}
-
-// Which crosshair-label format a range uses: bare time for the single
-// intraday day (1D); date + time for the multi-day intraday ranges (1W
-// 30m / 1M 60m) so the pill pins the exact bar — incl. the overnight
-// session — not just the calendar day; date-only for the daily ranges
-// (3M / YTD). Exported so the range→format mapping is pinned by
-// perf_chart.test.jsx.
-export function crosshairFormatFor(rangeKey) {
-  if (rangeKey === '1D') return 'time';
-  // 3M joined this set when it went to six points a day: date alone
-  // would label six consecutive points identically, so the pill could
-  // no longer say which point it was on.
-  if (rangeKey === '1W' || rangeKey === '1M' || rangeKey === '3M') return 'datetime';
-  return 'date';
 }
 
 // Tiny placeholder shell so the loading / error / range-button row

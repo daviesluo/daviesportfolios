@@ -20,6 +20,7 @@ import { computeChartGeometry } from './chart_modal_geometry.js';
 import { mergeOvernightSeries } from './overnight_intraday.js';
 import {
   SYMBOL_BY_CUR, NIGHT_BAR_INTERVAL_MS, TICKER_DISPLAY_NAMES, INDEX_PE_ALLOWED,
+  crosshairFormatFor,
   fmtTickerPrice,
 } from './ticker_chart_helpers.js';
 import { useTickerFundamentals } from './use_ticker_fundamentals.js';
@@ -456,18 +457,22 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     ? xOfIdx(points.length - 1) + 4
     : W - padR + 4;
 
-  // Crosshair hover label — keeps minute precision on 1W/1M so the user
-  // can read the exact bar's timestamp. Times are 24-hour everywhere (no
+  // Crosshair hover label — keeps minute precision on every intraday
+  // range (1W / 1M / 3M) so the user can read the exact bar's
+  // timestamp. The range→format rule is shared with the performance
+  // panel (`crosshairFormatFor`); it used to be inlined here, and when
+  // 3M went intraday only the panel learned about it. Times are 24-hour everywhere (no
   // AM/PM). parseChartDateUTC (chart_geometry) appends the missing 'Z' to
   // the "YYYY-MM-DDTHH:MM" intraday strings so a London/BST user doesn't
   // see every bar an hour early (US open 13:30 UTC was rendering as 13:30
   // instead of 14:30 BST).
   function fmtDate(dateStr) {
     const d = parseChartDateUTC(dateStr);
-    if (rangeKey === '1D') {
+    const fmt = crosshairFormatFor(rangeKey);
+    if (fmt === 'time') {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }
-    if (rangeKey === '1W' || rangeKey === '1M') {
+    if (fmt === 'datetime') {
       return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
              d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }

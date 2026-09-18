@@ -503,11 +503,13 @@ describe('Sidebar — Top Movers window', () => {
 
   beforeEach(() => { for (const k of YtdStore.keys()) YtdStore.del(k); });
 
-  it('offers every window and starts on TODAY', () => {
+  it('offers three windows in the title row and starts on TODAY', () => {
     renderSidebar();
-    expect([...document.querySelectorAll('.movers-range-btn')]
-      .map(b => b.textContent)).toEqual(['TODAY', '1W', '1M', '3M', 'YTD']);
-    expect(screen.getByText(/TOP MOVERS/).textContent).toBe('TOP MOVERS · TODAY');
+    expect([...document.querySelectorAll('.movers-window .view-tab')]
+      .map(b => b.textContent)).toEqual(['TODAY', '1W', '1M']);
+    // The selected tab IS the label, so the heading stays a name.
+    expect(screen.getByText('TOP MOVERS')).toBeInTheDocument();
+    expect(document.querySelector('.movers-window .view-tab.is-on')?.textContent).toBe('TODAY');
   });
 
   it('a longer window re-ranks the same book off the cached history', async () => {
@@ -515,8 +517,8 @@ describe('Sidebar — Top Movers window', () => {
     const user = userEvent.setup();
     renderSidebar();
     expect(columnTickers('gain')).toEqual(['NVDA', 'BRIT']);   // displayTicker drops .L
-    await user.click(screen.getByRole('button', { name: /Rank movers over 1M/i }));
-    expect(screen.getByText(/TOP MOVERS/).textContent).toBe('TOP MOVERS · 1M');
+    await user.click(screen.getByRole('tab', { name: /Rank movers over 1M/i }));
+    expect(document.querySelector('.movers-window .view-tab.is-on')?.textContent).toBe('1M');
     // 100 -> 150 beats 100 -> 105, which is the reverse of today.
     expect(columnTickers('gain')).toEqual(['BRIT', 'NVDA']);
   });
@@ -526,7 +528,7 @@ describe('Sidebar — Top Movers window', () => {
     // as "a quiet month", which is a different and wrong statement.
     const user = userEvent.setup();
     renderSidebar();
-    await user.click(screen.getByRole('button', { name: /Rank movers over 1M/i }));
+    await user.click(screen.getByRole('tab', { name: /Rank movers over 1M/i }));
     expect(columnTickers('gain')).toEqual([]);
     expect(screen.getAllByText('loading…')).toHaveLength(2);
   });
@@ -536,9 +538,9 @@ describe('Sidebar — Top Movers window', () => {
     seedMonthHistory({ NVDA: 100, 'BRIT.L': 100 });
     const user = userEvent.setup();
     renderSidebar();
-    await user.click(screen.getByRole('button', { name: /Rank movers over 3M/i }));
+    await user.click(screen.getByRole('tab', { name: /Rank movers over 1M/i }));
     expect(JSON.parse(localStorage.getItem('dp.prefs') || '{}'))
-      .toEqual({ hideValues: true, moversMetric: 'usd', moversWindow: '3M' });
+      .toEqual({ hideValues: true, moversMetric: 'usd', moversWindow: '1M' });
   });
 
   it('fills the moment a background prefetch lands, not on the next refresh', async () => {
@@ -546,7 +548,7 @@ describe('Sidebar — Top Movers window', () => {
     // sit empty until something else re-rendered the sidebar.
     const user = userEvent.setup();
     renderSidebar();
-    await user.click(screen.getByRole('button', { name: /Rank movers over 1M/i }));
+    await user.click(screen.getByRole('tab', { name: /Rank movers over 1M/i }));
     expect(columnTickers('gain')).toEqual([]);
     await act(async () => {
       seedMonthHistory({ NVDA: 100, 'BRIT.L': 100 });

@@ -619,8 +619,8 @@ async function run() {
     // A different list, in a different order, from TODAY's
     // BRIT > ACME > VUAA. A window control that changed the label and
     // not the ranking would still pass every check above this one.
-    const windows = await page.locator('.movers-range-btn:visible').allTextContents();
-    if (windows.join(',') === 'TODAY,1W,1M,3M,YTD') {
+    const windows = await page.locator('.movers-window .view-tab:visible').allTextContents();
+    if (windows.join(',') === 'TODAY,1W,1M') {
       ok(S('movers-window'), `offers ${windows.join(' ')}`);
     } else fail(S('movers-window'), `window row reads ${windows.join(',')}`);
 
@@ -630,9 +630,10 @@ async function run() {
       return row?.querySelector('.perf-range-btn.on')?.textContent || '';
     });
     const chartRangeBefore = await activeChartRange();
-    await page.locator('.movers-range-btn:visible:text-is("1M")').first().click();
+    await page.locator('.movers-window .view-tab:visible:text-is("1M")').first().click();
     await page.waitForTimeout(500);
     const overMonth = await readMovers();
+
     if (overMonth.tickers.join(',') === 'ACME,NOVA,BRIT'
         && overMonth.vals.join(' ') === '+$240 +$100 +$63') {
       ok(S('movers-window'), `1M ranks ${overMonth.tickers.join(' > ')} (${overMonth.vals.join(' ')})`);
@@ -641,10 +642,12 @@ async function run() {
         `1M ranks ${overMonth.tickers.join(',')} ${overMonth.vals.join(' ')}`
         + ' (want ACME,NOVA,BRIT +$240 +$100 +$63)');
     }
-    // The two range rows look alike on purpose; they must not BE alike.
-    // Both once carried `.perf-range-btn`, and a `:text-is("1M")` click
-    // landed on whichever came first in the DOM — the chart on desktop,
-    // the sidebar on a phone. The panels disagreed by breakpoint.
+    // The movers window switch and the chart's range row both answer to
+    // a "1M" label. They must not answer to one SELECTOR: the window
+    // buttons once carried `.perf-range-btn` too, and a
+    // `:text-is("1M")` click landed on whichever came first in the DOM
+    // — the chart on desktop, the sidebar on a phone. The panels
+    // disagreed by breakpoint.
     const chartRangeAfter = await activeChartRange();
     if (chartRangeAfter === chartRangeBefore) {
       ok(S('movers-window'), `the chart stayed on ${chartRangeAfter || '(none)'}`);
@@ -654,7 +657,7 @@ async function run() {
     }
 
     // Back to TODAY / % so the rest of the run sees the default state.
-    await page.locator('.movers-range-btn:visible:text-is("TODAY")').first().click();
+    await page.locator('.movers-window .view-tab:visible:text-is("TODAY")').first().click();
     await page.waitForTimeout(250);
     await page.locator('#movers-tab-pct:visible').first().click();
     await page.waitForTimeout(250);

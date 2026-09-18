@@ -56,7 +56,8 @@ vi.mock('./chart_store.js', () => {
 
 vi.mock('./ops_error.js', () => ({ reportError: vi.fn() }));
 
-import { PerfChart, PerfPanel, spSymbolFor, perfVariantKey, perfFetchParams, crosshairFormatFor } from './perf_chart.jsx';
+import { PerfChart, PerfPanel, spSymbolFor, perfVariantKey, perfFetchParams } from './perf_chart.jsx';
+import { crosshairFormatFor } from './ticker_chart_helpers.js';
 import { applyVariantFilter } from './ytd.js';
 import { YtdStore } from './chart_store.js';
 

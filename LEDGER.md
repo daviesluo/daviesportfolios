@@ -104,6 +104,57 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-18 04:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+Three reports from Davies, all three real.
+
+**1W's points were unevenly spaced, and the cause was measurable.**
+He said some gaps looked 15 minutes and some 20. Queried the live RPC
+at the 900-second bucket the chart reads with, and the returned
+timestamps gap 15, 15, 15, 25, 5, 15, 20, 15, 20 — at :05, :25, :50,
+off Yahoo's :00/:15/:30/:45 grid entirely. The bucket guarantees at
+most ONE row per fifteen minutes but hands it back at the moment it was
+WRITTEN, so a recorder tick near a boundary (or a missed one) drifts.
+
+`recordedBarDate` now floors the sample onto the range's bar grid for
+the ranges that DRAW it as a bar — 1D 5 m, 1W 15 m, 1M 1 h. That is
+not a rounding convenience: Yahoo stamps a bar by its START and carries
+the price at its END, which is exactly what the last sample inside a
+bucket is, so flooring is the honest label AND puts recorded bars on
+the same instants Yahoo's occupy. Fed the real measured timestamps
+through it: `5 20 15 20 15 5 25 ...` becomes `15` throughout. Pinned
+with those same timestamps.
+
+3M is deliberately exempt. Its chart SAMPLES with `closeOn` at the
+four-hour slot grid, where a bar's date is read as "the price at this
+moment" — flooring a 19:55 observation to a 16:00 key would make it
+the 16:00 price, a four-hour lookahead.
+
+**Caveat he should know**: rows already coarsened to 30 minutes by the
+OLD prune band are still 30 minutes apart, so the recorded stretch of a
+1W chart shows even 30-minute gaps in its older half until the 8-day
+window rolls past them. Even, not ragged, and self-healing.
+
+**The 3M crosshair showed a date and no time**, and the reason is the
+same shape as every other bug this week: two copies of one rule. The
+performance panel called `crosshairFormatFor`; the ticker modal had its
+own inlined `rangeKey === '1W' || rangeKey === '1M'`. 3M went intraday
+and only the panel noticed. The function moved to
+`ticker_chart_helpers.js`, both charts call it, and a test derives the
+expected answer from `RANGES[k].interval` so a future intraday range
+drags the pill with it.
+
+**Top Movers: three windows, in the title row.** He cut it to TODAY /
+1W / 1M and asked for the window switch beside the `%` / `$` one rather
+than in a range row at the foot. Done, same `view-tabs` idiom, one
+shared arrow-key handler for both groups, and the heading goes back to
+a plain name because the selected tab states the window. Checked at
+both breakpoints with a real screenshot, not just a passing selector:
+`TOP MOVERS` + `TODAY|1W|1M` + `%|$` fits the 380 px sidebar with room.
+
+Gates: typecheck 0, lint 0 errors, 835 tests, knip clean, sweep ALL
+GREEN 94 checks.
+
 ### [2026-09-18 02:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Top Movers opens past TODAY.** Last item of the 2026-09-17 batch.

@@ -57,17 +57,39 @@ export function rangeStartMs(rangeKey, nowMs = Date.now()) {
  * The bar date a recorded sample becomes.
  *
  * Intraday ranges use Yahoo's `YYYY-MM-DDTHH:MM` UTC form so a recorded
- * bar sorts and compares against a fetched one; daily ranges use
- * `YYYY-MM-DD` for the same reason. Mixing the two in one series would
- * break `closeOn`, which is a plain string comparison.
+ * bar sorts and compares against a fetched one; YTD uses `YYYY-MM-DD`
+ * for the same reason. Mixing the two in one series would break
+ * `closeOn`, which is a plain string comparison.
+ *
+ * **The ranges that DRAW these points as bars snap them to the bar
+ * grid.** The read bucket already guarantees at most one row per
+ * bucket, but it returns that row at the moment it was WRITTEN, not at
+ * the bucket's edge — so when the recorder's tick lands near a boundary
+ * or misses one, consecutive rows drift off the grid. Measured on live
+ * data at a 15-minute bucket: 15, 15, 15, 25, 5, 15, 20, 15, 20 — and
+ * Yahoo's bars sit at :00 / :15 / :30 / :45 while those sit at :05 /
+ * :25 / :50, so the merged 1W line had visibly uneven spacing on both
+ * counts. Flooring to the bucket fixes both at once, and it is also the
+ * honest label: Yahoo timestamps a bar by its START and carries the
+ * price at its END, which is exactly what the last sample inside a
+ * bucket is.
+ *
+ * **3M deliberately keeps the true instant.** Its chart does not draw
+ * these as bars — it SAMPLES them with `closeOn` at the four-hour slot
+ * grid, where a bar's date is read as "the price at this moment". A
+ * 19:55 observation floored to a 16:00 key would be read as the 16:00
+ * price: a four-hour lookahead. YTD keeps the day for the same reason
+ * it always has — one bar a day, the day's last print.
  *
  * @param {number} tsMs
  * @param {string} rangeKey
  * @returns {string}
  */
 export function recordedBarDate(tsMs, rangeKey) {
-  const iso = new Date(tsMs).toISOString();
-  return (rangeKey === '3M' || rangeKey === 'YTD') ? iso.slice(0, 10) : iso.slice(0, 16);
+  if (rangeKey === 'YTD') return new Date(tsMs).toISOString().slice(0, 10);
+  if (rangeKey === '3M')  return new Date(tsMs).toISOString().slice(0, 16);
+  const bucketMs = (RANGE_BUCKET_SECONDS[rangeKey] ?? 300) * 1000;
+  return new Date(Math.floor(tsMs / bucketMs) * bucketMs).toISOString().slice(0, 16);
 }
 
 const cacheKey = (rangeKey) => `pxsnap|${rangeKey}`;

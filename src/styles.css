@@ -873,19 +873,23 @@ body {
    gap has to stay wider than twice that or the two columns' washes
    touch in the middle. */
 .movers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-/* The window row at the FOOT of the panel, reusing the performance
-   panel's range buttons so "which window" reads the same way in both
-   sidebar panels. Below the lists rather than above them: a second
-   control strip stacked over the content would push the names — the
-   thing the panel is for — down the screen on a phone. The hairline
-   is what the chart's own frame provides over there. */
-.movers-range-row {
-  display: flex; gap: 4px; justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--line);
+/* Both switches sit in the title row: the WINDOW, then the MEASURE.
+   They are the same control twice, so they share the `.view-tabs`
+   idiom and differ only in metrics — the window labels are words and
+   need a touch more room than the single `%` / `$` glyphs. The gap is
+   what keeps them readable as two groups rather than one long row. */
+.movers-controls {
+  display: flex; align-items: baseline; gap: 14px;
+  min-width: 0;
 }
+.movers-window .view-tab {
+  letter-spacing: 0.04em;
+  font-size: 10px;
+  padding: 0 2px 4px;
+  text-align: center;
+}
+.movers-window .view-tab::after { right: 0; }
+.movers-window .view-tab-sep { margin: 2px 6px 4px; }
 .movers-heading {
   font-size: 10px; letter-spacing: 0.15em;
   font-family: var(--font-mono); margin-bottom: 6px;
@@ -997,8 +1001,7 @@ body {
   margin-top: 6px;
   flex-wrap: wrap;
 }
-.perf-range-btn,
-.movers-range-btn {
+.perf-range-btn {
   background: transparent;
   border: 1px solid var(--line);
   color: var(--chalk-dim);
@@ -1008,10 +1011,8 @@ body {
   border-radius: 3px;
   transition: background 0.12s, color 0.12s, border 0.12s;
 }
-.perf-range-btn:hover,
-.movers-range-btn:hover { color: var(--chalk); border-color: var(--chalk-dim); }
-.perf-range-btn.on,
-.movers-range-btn.on {
+.perf-range-btn:hover { color: var(--chalk); border-color: var(--chalk-dim); }
+.perf-range-btn.on {
   background: rgba(255,255,255,0.06);
   color: var(--chalk);
   border-color: var(--chalk-dim);

@@ -66,6 +66,27 @@ export function fmtTickerPrice(price, ticker, sym) {
   return `${sym}${fmtPr(price)}`;
 }
 
+// Which crosshair-label format a range uses: bare time for the single
+// intraday day (1D); date + time for every multi-day INTRADAY range
+// (1W 15m / 1M 60m / 3M on its four-hour grid) so the pill pins the
+// exact point — incl. the overnight — and not just the calendar day;
+// date-only for the daily ranges (YTD / 1Y).
+//
+// It lives here, beside the other pure modal helpers, because BOTH
+// charts ask the question and they must answer it the same way. They
+// did not: the performance panel read this function while the ticker
+// modal had its own inlined `rangeKey === '1W' || rangeKey === '1M'`,
+// so when 3M became intraday the panel's pill grew a time and the
+// modal's did not. One rule, one place.
+//
+// @param {string} rangeKey
+// @returns {'time'|'datetime'|'date'}
+export function crosshairFormatFor(rangeKey) {
+  if (rangeKey === '1D') return 'time';
+  if (rangeKey === '1W' || rangeKey === '1M' || rangeKey === '3M') return 'datetime';
+  return 'date';
+}
+
 // Per-range cache TTL, matched to each range's bar interval so we don't
 // refetch faster than the source can publish a new bar:
 //   1D → 5 m · 1W → 15 m · 1M/3M → 1 h · YTD/1Y → 12 h

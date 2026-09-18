@@ -8,15 +8,56 @@ describe('recordedBarDate — recorded bars must sort against fetched ones', () 
   const ts = Date.parse('2026-08-18T14:35:00Z');
   it('intraday ranges use Yahoo\'s YYYY-MM-DDTHH:MM UTC form', () => {
     expect(recordedBarDate(ts, '1D')).toBe('2026-08-18T14:35');
-    expect(recordedBarDate(ts, '1W')).toBe('2026-08-18T14:35');
-    expect(recordedBarDate(ts, '1M')).toBe('2026-08-18T14:35');
+    expect(recordedBarDate(ts, '1W')).toBe('2026-08-18T14:30');
+    expect(recordedBarDate(ts, '1M')).toBe('2026-08-18T14:00');
+    expect(recordedBarDate(ts, '3M')).toBe('2026-08-18T14:35');
   });
-  it('daily ranges use YYYY-MM-DD', () => {
+  it('YTD uses YYYY-MM-DD', () => {
     // `closeOn` is a plain string comparison, so mixing a 16-char
     // recorded bar into a series of 10-char daily bars would sort it
     // after every same-day bar and break the lookup.
-    expect(recordedBarDate(ts, '3M')).toBe('2026-08-18');
     expect(recordedBarDate(ts, 'YTD')).toBe('2026-08-18');
+  });
+
+  it('a drawn range snaps the sample onto its own bar grid', () => {
+    // Yahoo labels a bar by its START and carries the price at its END,
+    // and the last sample inside a bucket is exactly that price — so
+    // flooring is the honest label, not a rounding convenience. It also
+    // puts recorded bars on the same :00 / :15 / :30 / :45 instants
+    // Yahoo's 15m bars use, instead of interleaving a second cadence.
+    const at = (t) => Date.parse(`2026-09-17T${t}:00Z`);
+    for (const [sample, bar] of [['13:30', '13:30'], ['13:40', '13:30'],
+                                 ['13:44', '13:30'], ['13:45', '13:45']]) {
+      expect(recordedBarDate(at(sample), '1W')).toBe(`2026-09-17T${bar}`);
+    }
+  });
+
+  it('evens out the spacing the read bucket actually returns', () => {
+    // These are the timestamps the live `price_snapshot_series(_, 900)`
+    // RPC returned on 2026-09-18. The bucket guarantees one row per 15
+    // minutes but hands it back at the moment it was WRITTEN, so a tick
+    // near a boundary (or a missed one) drifts off the grid. That
+    // raggedness is what showed on the 1W chart.
+    const REAL = ['01:25', '01:30', '01:50', '02:05', '02:25', '02:40', '02:45',
+                  '03:10', '03:25', '03:40', '03:55', '04:10', '04:25', '04:30'];
+    const at = (t) => Date.parse(`2026-09-17T${t}:00Z`);
+    const gaps = (list) => {
+      const u = [...new Set(list)].sort((a, b) => a - b);
+      return u.slice(1).map((v, i) => (v - u[i]) / 60_000);
+    };
+    // What the raw timestamps draw — the reported bug, verbatim.
+    expect(gaps(REAL.map(at))).toEqual([5, 20, 15, 20, 15, 5, 25, 15, 15, 15, 15, 15, 5]);
+    // What the snapped bars draw.
+    const snapped = REAL.map(t => Date.parse(`${recordedBarDate(at(t), '1W')}:00Z`));
+    expect(gaps(snapped)).toEqual([15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15]);
+  });
+
+  it('3M keeps the true instant, because its chart SAMPLES rather than draws', () => {
+    // Its grid is `fourHourSlots` and `closeOn` reads a bar's date as
+    // "the price at this moment". Flooring a 19:55 observation to a
+    // 16:00 key would make it the 16:00 price — a four-hour lookahead.
+    const t = Date.parse('2026-09-17T19:55:00Z');
+    expect(recordedBarDate(t, '3M')).toBe('2026-09-17T19:55');
   });
 });
 

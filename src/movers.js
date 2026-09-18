@@ -23,9 +23,15 @@ import { pctIsFlat } from './formatters.js';
  * Windows the panel offers, in order. `TODAY` is the live day move;
  * the rest name the chart ranges whose cached history prices them, so
  * the two panels in the sidebar speak one vocabulary.
+ *
+ * Three, not five. These sit in the panel's TITLE row beside the
+ * `%` / `$` switch, and a "what moved" list stops being a movers list
+ * somewhere past a month — over a quarter it is really a performance
+ * ranking, which is the other panel's job. A stored window outside
+ * this set (one saved before it shrank) falls back to TODAY.
  * @type {readonly string[]}
  */
-export const MOVER_WINDOWS = ['TODAY', '1W', '1M', '3M', 'YTD'];
+export const MOVER_WINDOWS = ['TODAY', '1W', '1M'];
 
 /** The chart range key a window is priced from, or null for TODAY. */
 export function rangeKeyForWindow(window) {

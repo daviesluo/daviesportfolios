@@ -521,18 +521,32 @@ function TopMovers({ metrics, hideValues = false }) {
   }, [metrics, metric, window_, basePriceOf]);
 
   // Arrow keys move between tabs and take focus with them — with
-  // `tabIndex={-1}` on the inactive tab (roving tabindex, so Tab treats
-  // the pair as ONE stop) arrows are the only way to reach it from the
-  // keyboard. Matches the performance panel's view switch exactly.
-  const onTabKey = React.useCallback((/** @type {React.KeyboardEvent} */ e) => {
-    const k = e.key;
-    if (k !== 'ArrowLeft' && k !== 'ArrowRight' && k !== 'Home' && k !== 'End') return;
-    e.preventDefault();
-    const next = /** @type {'pct'|'usd'} */ ((k === 'ArrowRight' || k === 'End') ? 'usd' : 'pct');
-    pickMetric(next);
-    const el = document.getElementById(next === 'pct' ? 'movers-tab-pct' : 'movers-tab-usd');
-    if (el) el.focus();
-  }, [pickMetric]);
+  // `tabIndex={-1}` on every inactive tab (roving tabindex, so Tab
+  // treats each group as ONE stop) arrows are the only way to reach
+  // them from the keyboard. Matches the performance panel's view
+  // switch. One handler for both groups: they are the same control
+  // twice, and two copies would let one grow a Home/End the other
+  // lacks.
+  const tabKeyHandler = (/** @type {readonly string[]} */ values,
+                         /** @type {string} */ current,
+                         /** @type {(v: any) => void} */ pick,
+                         /** @type {(v: string) => string} */ idOf) =>
+    (/** @type {React.KeyboardEvent} */ e) => {
+      const k = e.key;
+      if (k !== 'ArrowLeft' && k !== 'ArrowRight' && k !== 'Home' && k !== 'End') return;
+      e.preventDefault();
+      const i = Math.max(0, values.indexOf(current));
+      const next = k === 'Home' ? values[0]
+        : k === 'End' ? values[values.length - 1]
+        : values[Math.min(values.length - 1, Math.max(0, i + (k === 'ArrowRight' ? 1 : -1)))];
+      pick(next);
+      const el = document.getElementById(idOf(next));
+      if (el) el.focus();
+    };
+  const onMetricKey = tabKeyHandler(
+    ['pct', 'usd'], metric, pickMetric, v => `movers-tab-${v}`);
+  const onWindowKey = tabKeyHandler(
+    MOVER_WINDOWS, window_, pickWindow, v => `movers-win-${v}`);
 
   const isUsd = metric === 'usd';
   /** The figure this row leads with, already formatted and masked. */
@@ -584,12 +598,30 @@ function TopMovers({ metrics, hideValues = false }) {
   return (
     <section className="panel">
       <div className="panel-title-row">
-        <h3 className="panel-title">TOP MOVERS · {window_}</h3>
-        {/* Same switch idiom as the performance panel's VS S&P 500 /
-            INVESTMENT tabs — one panel slot, two questions about the
-            same window. Subordinate here rather than title-scale,
-            because unlike that panel this one has a name worth
-            keeping. */}
+        <h3 className="panel-title">TOP MOVERS</h3>
+        {/* Both choices live in the title row, in the same switch idiom
+            as the performance panel's VS S&P 500 / INVESTMENT tabs:
+            over WHICH window, and by WHICH measure. They read as one
+            control strip because they are one question asked twice —
+            and putting the window here rather than in a range row at
+            the panel's foot means the heading always states what is
+            being shown, with nothing below the names. */}
+        <div className="movers-controls">
+        <div className="view-tabs movers-window" role="tablist" aria-label="Top movers window">
+          {MOVER_WINDOWS.map((w, i) => (
+            <React.Fragment key={w}>
+              {i > 0 && <span className="view-tab-sep" aria-hidden="true" />}
+              <button
+                type="button" role="tab" id={`movers-win-${w}`}
+                aria-selected={w === window_} tabIndex={w === window_ ? 0 : -1}
+                aria-label={`Rank movers over ${w === 'TODAY' ? 'today' : w}`}
+                className={`view-tab mono${w === window_ ? ' is-on' : ''}`}
+                onClick={() => pickWindow(w)}
+                onKeyDown={onWindowKey}
+              >{w}</button>
+            </React.Fragment>
+          ))}
+        </div>
         <div className="view-tabs movers-metric" role="tablist" aria-label="Top movers ranking">
           <button
             type="button" role="tab" id="movers-tab-pct"
@@ -597,7 +629,7 @@ function TopMovers({ metrics, hideValues = false }) {
             aria-label="Rank by percent move"
             className={`view-tab mono${isUsd ? '' : ' is-on'}`}
             onClick={() => pickMetric('pct')}
-            onKeyDown={onTabKey}
+            onKeyDown={onMetricKey}
           >%</button>
           <span className="view-tab-sep" aria-hidden="true" />
           <button
@@ -606,32 +638,14 @@ function TopMovers({ metrics, hideValues = false }) {
             aria-label="Rank by value change"
             className={`view-tab mono${isUsd ? ' is-on' : ''}`}
             onClick={() => pickMetric('usd')}
-            onKeyDown={onTabKey}
+            onKeyDown={onMetricKey}
           >$</button>
+        </div>
         </div>
       </div>
       <div className="movers-grid">
         {column(winners, 'gain')}
         {column(losers, 'loss')}
-      </div>
-      {/* Its OWN class, not the performance panel's `perf-range-btn`,
-          though it shares that button's look through one CSS rule. The
-          browser sweep caught why: with both rows carrying the same
-          class, a `:visible:text-is("1W")` click landed on whichever
-          came first in the DOM — the chart's row on desktop, this one
-          on a phone, where the sidebar is above the chart. Two
-          different controls must not answer to one selector. */}
-      <div className="movers-range-row">
-        {MOVER_WINDOWS.map(w => (
-          <button
-            key={w}
-            type="button"
-            className={`movers-range-btn mono${w === window_ ? ' on' : ''}`}
-            aria-pressed={w === window_}
-            aria-label={`Rank movers over ${w === 'TODAY' ? 'today' : w}`}
-            onClick={() => pickWindow(w)}
-          >{w}</button>
-        ))}
       </div>
     </section>
   );
