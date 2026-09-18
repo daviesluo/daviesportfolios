@@ -3,6 +3,7 @@ import {
   isCrypto, isFutures, isForex, isIndex, isExchangeListed,
   isCnFund, isPvt, isDailyOnly, isUsEquity, hasOvernightSession,
   isEuroExchange, isRegularSessionOnly, venueSessionFor,
+  tradesAllWeekdayHours,
 } from './ticker_class.js';
 
 describe('ticker_class', () => {
@@ -144,5 +145,23 @@ describe('ticker_class', () => {
     expect(venueSessionFor('NVDA')).toBeNull();
     expect(venueSessionFor('VUAA.L')).toBeNull();
     expect(venueSessionFor('')).toBeNull();
+  });
+});
+
+describe('tradesAllWeekdayHours — who the four-hour 3M grid fits', () => {
+  it('futures and spot FX print through a weekday night', () => {
+    for (const t of ['ES=F', 'NQ=F', 'RTY=F', 'BZ=F', 'GBPUSD=X', 'USDCNY=X']) {
+      expect(tradesAllWeekdayHours(t)).toBe(true);
+    }
+  });
+  it('an index or a listed equity prints in one session', () => {
+    // On a six-slot grid these would land on two live prices and carry
+    // the previous close through the other four.
+    for (const t of ['^GSPC', '^VIX', '^TNX', '^SOX', 'NVDA', 'VUAA.L', '0700.HK']) {
+      expect(tradesAllWeekdayHours(t)).toBe(false);
+    }
+  });
+  it('crypto is excluded although it trades the most — the grid skips weekends', () => {
+    expect(tradesAllWeekdayHours('BTC-USD')).toBe(false);
   });
 });

@@ -21,6 +21,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 // vi.mock has to run before the SUT imports — declared at module top.
 vi.mock('./modals.jsx', () => ({
@@ -79,6 +80,8 @@ vi.mock('./ops_error.js', () => ({
 import { TickerChartModal } from './ticker_chart_modal.jsx';
 import { ChartStore } from './chart_store.js';
 import { tickerChartCacheKey } from './cache.js';
+import { fourHourSlots } from './market_hours.js';
+import { rangeStartMs } from './price_snapshots.js';
 
 const NOW = new Date('2026-05-28T16:00:00Z');
 
@@ -171,5 +174,72 @@ describe('TickerChartModal — render decision tree', () => {
     ]);
     renderModal({ hideValues: true });
     expect(screen.getByText('AAPL')).toBeInTheDocument();
+  });
+});
+
+// 3M draws on the portfolio panel's four-hour London grid when — and
+// only when — the instrument actually prints through a weekday night.
+// The distinction is the whole point: on that grid a futures or FX
+// chart lands on six live prices a day, while an index would land on
+// two and carry the previous close through the other four.
+describe('TickerChartModal — 3M sampling grid', () => {
+  /** N recent weekdays of hourly UTC bars, ending at the current hour. */
+  const hourlyBars = (weekdays) => {
+    const out = [];
+    const day = new Date();
+    day.setUTCHours(0, 0, 0, 0);
+    /** @type {string[]} */
+    const days = [];
+    while (days.length < weekdays) {
+      const dow = day.getUTCDay();
+      if (dow !== 0 && dow !== 6) days.unshift(day.toISOString().slice(0, 10));
+      day.setUTCDate(day.getUTCDate() - 1);
+    }
+    let px = 100;
+    for (const d of days) {
+      for (let h = 0; h < 24; h++) {
+        out.push({ date: `${d}T${String(h).padStart(2, '0')}:00`, close: (px += 0.5) });
+      }
+    }
+    return out;
+  };
+
+  /** Points on the densest path the chart drew. */
+  const pointCount = (container) => Math.max(0, ...[...container.querySelectorAll('svg path[d^="M"]')]
+    .map((el) => (el.getAttribute('d') || '').split(/[ML]/).length - 1));
+
+  const drawAt3M = async (ticker, bars) => {
+    seedChartCache(ticker, '3M', false, 'regular', bars);
+    const user = userEvent.setup();
+    const { container } = renderModal({
+      ticker,
+      holding: { shares: 1, cost: 100, lastPrice: 120, prevClose: 119, dayPct: 0.8, currency: 'USD' },
+    });
+    await user.click(screen.getByRole('button', { name: '3M' }));
+    return pointCount(container);
+  };
+
+  it('a futures chart samples six times a weekday; an index keeps its hourly bars', async () => {
+    const bars = hourlyBars(4);           // 4 weekdays x 24 hourly bars
+    const futures = await drawAt3M('ES=F', bars);
+    cleanup();
+    const index = await drawAt3M('^GSPC', bars);
+    // Exactly the grid's own slots from the first bar onward — computed
+    // here rather than written down, because the newest weekday is
+    // partial and how partial depends on the hour the suite runs at.
+    const firstMs = Date.parse(`${bars[0].date}Z`);
+    const expected = fourHourSlots(rangeStartMs('3M', Date.now()), Date.now())
+      .filter((ms) => ms >= firstMs).length;
+    expect(futures).toBe(expected);
+    expect(index).toBe(bars.length);
+    // The claim in one line: the same bars, drawn at a quarter of the
+    // density, because one instrument's night is real and the other's
+    // is a carried-forward close.
+    expect(index / futures).toBeGreaterThan(3);
+  });
+
+  it('crypto stays on hourly bars — the grid skips weekends and its tape does not', async () => {
+    const crypto = await drawAt3M('BTC-USD', hourlyBars(4));
+    expect(crypto).toBeGreaterThan(4 * 20);
   });
 });

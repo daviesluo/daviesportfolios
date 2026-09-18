@@ -37,6 +37,25 @@ export const isEuroExchange = (ticker) => /\.(PA|AS|BR|LS|IR|MI|MC|DE|F|SG|BE|DU
  * daily-only fetch shape.
  * @param {string} ticker
  */
+/**
+ * Does this instrument print right through a WEEKDAY night?
+ *
+ * Futures and spot FX do: their week runs from Sunday evening to Friday
+ * evening with no nightly close, so a grid of six samples a weekday
+ * lands on six live prices. An index (`^GSPC`, `^VIX`, `^TNX`) and a
+ * listed equity do not — they print in one session, and on such a grid
+ * four of the six points would be the previous close carried forward.
+ *
+ * CRYPTO IS EXCLUDED ON PURPOSE, though it trades the most of all. The
+ * four-hour grid skips weekends — correct for anything whose venue
+ * shuts on Friday, and wrong for a 24/7 tape, where it would drop two
+ * days in seven of real movement. Crypto keeps its hourly bars, where
+ * the weekend is visible.
+ *
+ * @param {string} ticker
+ */
+export const tradesAllWeekdayHours = (ticker) => isFutures(ticker) || isForex(ticker);
+
 export const isDailyOnly = (ticker) => isCnFund(ticker) || isPvt(ticker);
 
 /**

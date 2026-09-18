@@ -109,6 +109,44 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-18 06:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The four-hour grid now follows the TAPE, not the panel.** Davies
+pushed back on the entry below, correctly: with extended hours on, the
+Market Conditions cards open futures and FX charts, those trade right
+through the night, and at 60m their 3M was ~23 bars a day — denser than
+the portfolio panel beside them and on entirely different instants.
+
+The scoping rule I had ("grid on the panel, hourly bars in the modal")
+was the wrong axis. The real question is whether the INSTRUMENT prints
+through a weekday night, and `tradesAllWeekdayHours` (futures OR spot
+FX) now answers it in one place. 3M for such a ticker is resampled onto
+the same `fourHourSlots` grid the panel uses; an index, a listed equity
+and a US stock keep hourly session bars, because on that grid they land
+on two live prices a day and carry the previous close through the other
+four.
+
+**Crypto is deliberately NOT in the predicate**, though it trades the
+most of all: the grid skips weekends — right for anything whose venue
+shuts on Friday, wrong for a 24/7 tape, where it would drop two days in
+seven of real movement.
+
+Two things had to move with it or the overlay would have lied. The MA's
+wider history is resampled onto the same grid (`computeMaSeries` unions
+history and display BY DATE, so 60-minute history bars beside
+six-a-day display bars would make "MA 20" cover a span that drifts from
+20 days at the left edge to 23 at the right), and `maBarsFor` takes an
+explicit `SLOTS_PER_DAY`. Also hoisted the Intl formatter out of
+`usMarketHoursUtc` and gave `fourHourSlots` a 4-entry cache: the chart
+asks for a 3-month grid while its MA asks for a 6-month one, and a
+single-slot cache had them evicting each other ~1200 Intl lookups a
+render.
+
+Pinned by a modal render test that draws the SAME four weekdays of
+hourly bars twice: ES=F comes out at exactly the grid's slot count,
+^GSPC at exactly the bar count (96), BTC-USD likewise. Counterfactual
+run — disabling the predicate turns 21 into 96 and the test fails.
+
 ### [2026-09-18 05:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Top Movers' window switch moved to the heading.** It was grouped with

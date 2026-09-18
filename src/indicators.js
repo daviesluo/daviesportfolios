@@ -45,14 +45,21 @@ export function barsPerSession(interval) {
  * source for the interval means the label cannot drift from the maths
  * again.
  *
+ * `barsPerDay` overrides the derivation for a chart drawn on a GRID
+ * rather than on the interval's own bars — 3M for a round-the-clock
+ * instrument samples six times a weekday, so "MA 20" is 120 of those,
+ * not 20 x the seven bars a US session holds at 60m. The caller passes
+ * `SLOTS_PER_DAY`; there is still one number per cadence.
+ *
  * @param {string} rangeKey
  * @param {boolean} dailyOnly
+ * @param {number} [barsPerDay]
  */
-export function maBarsFor(rangeKey, dailyOnly = false) {
+export function maBarsFor(rangeKey, dailyOnly = false, barsPerDay = 0) {
   const days   = { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50, '1Y': 200 }[rangeKey] ?? 0;
   if (!days) return 0;
   if (dailyOnly) return days;
-  return days * barsPerSession(RANGES[rangeKey]?.interval);
+  return days * (barsPerDay > 0 ? barsPerDay : barsPerSession(RANGES[rangeKey]?.interval));
 }
 
 /**

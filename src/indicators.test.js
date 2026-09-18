@@ -46,6 +46,17 @@ describe('maBarsFor / maLabelDaysFor', () => {
     expect(maBarsFor('1Y', true)).toBe(200);   // 1d bars already → 200 either way
   });
 
+  it('an explicit bars-per-day overrides the interval derivation', () => {
+    // 3M for a round-the-clock instrument is drawn on a six-a-weekday
+    // GRID, not on the seven bars a US session holds at 60m, so "MA 20"
+    // is 120 of those points.
+    expect(maBarsFor('3M', false, 6)).toBe(120);
+    expect(maBarsFor('3M', false, 0)).toBe(20 * barsPerSession(RANGES['3M'].interval));
+    // dailyOnly still wins — a CN fund has one NAV a day whatever grid
+    // the chart is drawn on.
+    expect(maBarsFor('3M', true, 6)).toBe(20);
+  });
+
   it('unknown range = 0', () => {
     expect(maBarsFor('1D', false)).toBe(0);
     expect(maBarsFor('PE', false)).toBe(0);
