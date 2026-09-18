@@ -14,6 +14,11 @@ export const SYMBOL_BY_CUR = { USD: '$', GBP: '£', CNY: '¥', HKD: 'HK$', EUR: 
 // time-proportional gap (chart_geometry.overnightTrailingGap) and the
 // 1W/1M overnight-point downsample. Only these three ranges get the
 // dot; ratio ranges / 3M / YTD / 1Y don't.
+// 3M is intraday now too, and still deliberately absent: its overnight
+// comes from `price_snapshots`, which already records on the four-hour
+// grid 3M samples. Splicing `overnight_intraday_points` in as well
+// would give one stretch of the night two sources at two resolutions,
+// and that table only keeps 30 days of a 93-day window anyway.
 // 1W is 15 min to match `RANGES['1W'].interval`: these two have to move
 // together or the recorded overnight points are drawn at a different
 // density from the Yahoo bars they are spliced into, and the seam shows
@@ -63,11 +68,11 @@ export function fmtTickerPrice(price, ticker, sym) {
 
 // Per-range cache TTL, matched to each range's bar interval so we don't
 // refetch faster than the source can publish a new bar:
-//   1D → 5 m · 1W → 15 m · 1M → 1 h · 3M/YTD/1Y → 12 h
+//   1D → 5 m · 1W → 15 m · 1M/3M → 1 h · YTD/1Y → 12 h
 export function modalTtl(rangeKey) {
   if (rangeKey === '1D') return  5 * 60 * 1000;
   if (rangeKey === '1W') return 15 * 60 * 1000;
-  if (rangeKey === '1M') return 60 * 60 * 1000;
+  if (rangeKey === '1M' || rangeKey === '3M') return 60 * 60 * 1000;
   return                       12 * 60 * 60 * 1000;
 }
 

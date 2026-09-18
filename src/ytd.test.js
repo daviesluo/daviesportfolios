@@ -7,7 +7,7 @@ import {
   buildTickerSeries, closeOn, ledgerFor, computeAt, ytdPct,
   fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS,
   applyVariantFilter, windowSinceLastUsClose, windowBetweenLastTwoUsCloses,
-  filterToLastHours, filterToLast24h, fillVenueSessionGrid,
+  filterToLastHours, filterToLast24h, fillVenueSessionGrid, resampleToSlots,
 } from './ytd.js';
 import { netPosition } from './transactions.js';
 import { isUsTradingDateStr } from './market_hours.js';
@@ -983,5 +983,159 @@ describe('computeAt — sales', () => {
       ),
     });
     expect(out.value).toBeCloseTo(0, 9);
+  });
+});
+
+describe('resampleToSlots — the 3M chart\'s explicit grid', () => {
+  const at = (iso) => Date.parse(iso + 'Z');
+  // One September weekday's six slots, in UTC (BST + EDT: London
+  // 01/05/09/13/17 and a 21:00 London close).
+  const SLOTS = ['2026-09-17T00:00', '2026-09-17T04:00', '2026-09-17T08:00',
+                 '2026-09-17T12:00', '2026-09-17T16:00', '2026-09-17T20:00'].map(at);
+
+  it('each slot takes the last bar at or before it', () => {
+    const bars = [
+      { date: '2026-09-16T19:30', close: 100 },
+      { date: '2026-09-16T20:30', close: 101 },   // yesterday's last print
+      { date: '2026-09-17T13:30', close: 110 },   // US open, EDT
+      { date: '2026-09-17T19:30', close: 120 },   // closing bar
+    ];
+    expect(resampleToSlots(bars, SLOTS)).toEqual([
+      { date: '2026-09-17T00:00', close: 101 },
+      { date: '2026-09-17T04:00', close: 101 },
+      { date: '2026-09-17T08:00', close: 101 },
+      { date: '2026-09-17T12:00', close: 101 },   // US hasn't opened
+      { date: '2026-09-17T16:00', close: 110 },
+      { date: '2026-09-17T20:00', close: 120 },   // the close
+    ]);
+  });
+
+  it('the overnight slots carry the previous close — they do not interpolate', () => {
+    const out = resampleToSlots(
+      [{ date: '2026-09-16T20:30', close: 101 }, { date: '2026-09-17T19:30', close: 141 }],
+      SLOTS,
+    );
+    // A 40-point gap; four slots sit inside it and every one reads 101.
+    expect(out.slice(0, 5).map(p => p.close)).toEqual([101, 101, 101, 101, 101]);
+    expect(out[5].close).toBe(141);
+  });
+
+  it('a date-only bar counts as that day\'s CLOSE, not its 00:00', () => {
+    // A CN fund's NAV is published once, in the evening. Plain string
+    // comparison puts '2026-09-17' before '2026-09-17T01:00', so without
+    // this the 01:00 slot would read a price set nineteen hours later.
+    const nav = [{ date: '2026-09-16', close: 9 }, { date: '2026-09-17', close: 10 }];
+    expect(resampleToSlots(nav, SLOTS).map(p => p.close)).toEqual([9, 9, 9, 9, 9, 9]);
+    // It does become available on the NEXT day's grid.
+    expect(resampleToSlots(nav, [at('2026-09-18T00:00')])).toEqual([
+      { date: '2026-09-18T00:00', close: 10 },
+    ]);
+  });
+
+  it('slots before the series starts emit nothing rather than a guess', () => {
+    expect(resampleToSlots([{ date: '2026-09-17T19:00', close: 5 }], SLOTS)).toEqual([
+      { date: '2026-09-17T20:00', close: 5 },
+    ]);
+  });
+
+  it('unsorted input is sorted, and empty input stays empty', () => {
+    const shuffled = [
+      { date: '2026-09-17T19:30', close: 120 },
+      { date: '2026-09-16T20:30', close: 101 },
+    ];
+    expect(resampleToSlots(shuffled, SLOTS).map(p => p.close)).toEqual([101, 101, 101, 101, 101, 120]);
+    expect(resampleToSlots([], SLOTS)).toEqual([]);
+    expect(resampleToSlots(/** @type {any} */ (null), SLOTS)).toEqual([]);
+    expect(resampleToSlots([{ date: '2026-09-17T19:30', close: 1 }], /** @type {any} */ (null))).toEqual([]);
+  });
+});
+
+describe('the four-hour grid on a multi-venue book — why 3M samples overnight at all', () => {
+  // A September weekday: the UK is on BST and the US on EDT, so the
+  // London slots 01/05/09/13/17 are UTC 00/04/08/12/16 and the US close
+  // (21:00 London) is 20:00 UTC.
+  const SLOTS = ['2026-09-17T00:00', '2026-09-17T04:00', '2026-09-17T08:00',
+                 '2026-09-17T12:00', '2026-09-17T16:00', '2026-09-17T20:00'];
+
+  // 60-minute bars, each venue printing only while it is open.
+  const HIST = {
+    // US regular session, 13:30-20:00 UTC under EDT.
+    NVDA: [
+      { date: '2026-09-16T19:30', close: 100 },   // yesterday's last bar
+      { date: '2026-09-17T13:30', close: 100 },
+      { date: '2026-09-17T15:30', close: 104 },
+      { date: '2026-09-17T19:30', close: 110 },   // the closing bar
+    ],
+    // Hong Kong, 01:30-08:00 UTC under HKT.
+    '0700.HK': [
+      { date: '2026-09-16T07:30', close: 400 },   // yesterday's HK close
+      { date: '2026-09-17T01:30', close: 400 },
+      { date: '2026-09-17T03:30', close: 420 },
+      { date: '2026-09-17T07:30', close: 440 },
+    ],
+  };
+  const PORTFOLIO = {
+    holdings: {
+      NVDA:      { shares: 10,  cost: 50,  currency: 'USD', lastPrice: 110,
+                   lots: [{ date: '2026-01-05', shares: 10,  cost: 50 }] },
+      '0700.HK': { shares: 100, cost: 300, currency: 'HKD', lastPrice: 440,
+                   lots: [{ date: '2026-01-05', shares: 100, cost: 300 }] },
+    },
+  };
+  const FX = (/** @type {string} */ cur) => (cur === 'HKD' ? 0.128 : 1);
+  const anchor = '2026-06-16';
+
+  const valueAt = (hist, date) => computeAt({
+    portfolio: PORTFOLIO,
+    tickerSeries: buildTickerSeries(hist, anchor, '3M', {}, false, true),
+    marketData: {},
+    yearStart: anchor,
+    yearStartDate: SLOTS[0],
+    todayMs: Date.parse('2026-09-17T20:00Z'),
+    liveAnchorDate: 'never',     // no live substitution: pure history
+    useExt: false,
+    fxToUSD: FX,
+    date,
+  }).value;
+
+  it('the book moves at slots where the US tape is shut, because other venues are not', () => {
+    const vals = SLOTS.map(d => valueAt(HIST, d));
+    // Closed form, 10 NVDA in USD + 100 0700.HK at HKD 0.128:
+    //   00:00  10x100 + 100x400x0.128 = 1000 + 5120 = 6120
+    //   04:00  10x100 + 100x420x0.128 = 1000 + 5376 = 6376   HK open
+    //   08:00  10x100 + 100x440x0.128 = 1000 + 5632 = 6632   HK closed at 440
+    //   12:00  unchanged — HK shut, US not open yet          = 6632
+    //   16:00  10x104 + 5632                                 = 6672   US open
+    //   20:00  10x110 + 5632                                 = 6732   US close
+    expect(vals.map(v => Math.round(v * 100) / 100))
+      .toEqual([6120, 6376, 6632, 6632, 6672, 6732]);
+  });
+
+  it('a daily grid collapses all of that into one point', () => {
+    // The counterfactual for the whole change. Give the same book the
+    // bars 3M USED to fetch — one close a day — and sample it the way
+    // 3M used to be sampled, and the day is a single number: every
+    // overnight move above is simply not in the series.
+    const daily = {
+      NVDA:      [{ date: '2026-09-16', close: 100 }, { date: '2026-09-17', close: 110 }],
+      '0700.HK': [{ date: '2026-09-16', close: 400 }, { date: '2026-09-17', close: 440 }],
+    };
+    expect(valueAt(daily, '2026-09-17')).toBeCloseTo(6732, 2);
+    expect(new Set(SLOTS.map(d => valueAt(HIST, d))).size).toBe(5);
+  });
+
+  it('the benchmark is flat across those same overnight slots, and honestly so', () => {
+    // ^GSPC has no tape at 01:00 London. The index's value there IS its
+    // previous close, so carrying it forward is not a drawing artifact
+    // — it is the difference the panel exists to show: the book moved
+    // overnight and the S&P did not.
+    const gspc = [
+      { date: '2026-09-16T19:30', close: 5000 },
+      { date: '2026-09-17T13:30', close: 5000 },
+      { date: '2026-09-17T15:30', close: 5050 },
+      { date: '2026-09-17T19:30', close: 5100 },
+    ];
+    expect(resampleToSlots(gspc, SLOTS.map(d => Date.parse(d + 'Z'))).map(p => p.close))
+      .toEqual([5000, 5000, 5000, 5000, 5050, 5100]);
   });
 });

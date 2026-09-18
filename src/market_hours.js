@@ -314,3 +314,135 @@ export function foreignSessionIsOpen(ticker, now = new Date()) {
 export function isForeignListing(ticker) {
   return typeof ticker === 'string' && (/\.L$/i.test(ticker) || isEuroExchange(ticker));
 }
+
+// ---------------------------------------------------------------------
+// The four-hour London sampling grid (the 3M chart)
+// ---------------------------------------------------------------------
+//
+// Six samples a calendar day, on the London clock, at 01 / 05 / 09 / 13
+// / 17 and the day's actual US regular close. The shape is Trading
+// 212's; what makes it the right grid for THIS book is that the book is
+// not one venue. Each slot lands in a session that is genuinely open:
+//
+//   01:00  US futures reopened, Asia about to
+//   05:00  Hong Kong and the mainland trading
+//   09:00  London open
+//   13:00  London afternoon, US pre-market
+//   17:00  US regular session, mid-afternoon
+//   close  the US close itself
+//
+// The sixth slot is PINNED to the close rather than written down as
+// 21:00, because 21:00 London is only the close while the UK and the US
+// are in the same DST regime. For the ~3 weeks in March and the ~1 week
+// around the start of November when they are not, the US closes at
+// 20:00 London and a fixed 21:00 would sample an hour of after-hours
+// into the "close" point. `usMarketHoursUtc` already resolves that
+// through Intl, so the grid asks it per day instead of assuming.
+//
+// Weekends are skipped. Every venue in the book is shut, so six flat
+// points a day for two days out of seven would spend a quarter of the
+// chart's width — the x axis is index-based, not time-based — saying
+// nothing. That also keeps 3M consistent with 1W / 1M, whose grids come
+// from Yahoo bars and so have never had weekend points either.
+
+/** London wall-clock hours sampled before the day's US close. */
+export const LONDON_SLOT_HOURS = [1, 5, 9, 13, 17];
+
+// Hoisted: these are constructed once and reused. Building an
+// Intl.DateTimeFormat costs ~10-50 us, and a 93-day grid asks ~1100
+// times per rebuild.
+const LONDON_HOUR_FMT = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Europe/London', hour: '2-digit', hour12: false,
+});
+
+/**
+ * Minutes London is ahead of UTC at an instant — 0 (GMT) or 60 (BST).
+ * @param {number} ms
+ * @returns {number}
+ */
+function londonOffsetMinutes(ms) {
+  const d = new Date(ms);
+  const lonH = parseInt(LONDON_HOUR_FMT.format(d), 10) % 24;
+  let diff = lonH - d.getUTCHours();
+  if (diff > 12)  diff -= 24;
+  if (diff < -12) diff += 24;
+  return diff * 60;
+}
+
+/**
+ * Epoch ms of a London wall-clock hour on a calendar day.
+ *
+ * Two passes, because the offset has to be measured at the answer, not
+ * at the guess. On the two cutover Sundays a wall-clock hour can be
+ * missing or doubled; the second pass resolves the missing one forward
+ * (01:00 BST-start reads as 02:00) and the doubled one to its second
+ * occurrence, which is the usual convention and lands on a Sunday
+ * anyway, where the grid emits nothing.
+ *
+ * @param {string} dateStr  YYYY-MM-DD
+ * @param {number} hour     London wall-clock hour
+ * @returns {number}
+ */
+export function londonHourUtcMs(dateStr, hour) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const guess = Date.UTC(y, m - 1, d, hour);
+  const off1 = londonOffsetMinutes(guess);
+  const t = guess - off1 * 60_000;
+  const off2 = londonOffsetMinutes(t);
+  return off2 === off1 ? t : guess - off2 * 60_000;
+}
+
+/**
+ * Epoch ms of the US regular close on a calendar day — 20:00 UTC under
+ * EDT, 21:00 UTC under EST. Sampled at 18:00 UTC, which is early
+ * afternoon in New York in either regime and nowhere near the 02:00
+ * local cutover, so the regime read back is that day's.
+ *
+ * @param {string} dateStr  YYYY-MM-DD
+ * @returns {number}
+ */
+export function usCloseUtcMs(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const mh = usMarketHoursUtc(new Date(Date.UTC(y, m - 1, d, 18)));
+  return Date.UTC(y, m - 1, d, mh.closeHh, mh.closeMm);
+}
+
+// Rebuilt at most once an hour: the grid only gains a point when the
+// wall clock does, and returning the SAME array identity keeps the
+// chart's memo signature stable across renders.
+let slotCache = { key: '', slots: /** @type {number[]} */ ([]) };
+
+/**
+ * The sampling grid over a window, ascending, in epoch ms.
+ *
+ * The last entry is always the current hour, so the chart has a live
+ * right edge instead of one up to four hours stale — the same shape 1M
+ * has, where Yahoo's newest bar is the partial current hour. It
+ * coincides with a grid slot (and dedupes) whenever the hour is one.
+ *
+ * @param {number} startMs
+ * @param {number} endMs
+ * @returns {number[]}
+ */
+export function fourHourSlots(startMs, endMs) {
+  const HOUR = 3600_000, DAY = 24 * HOUR;
+  if (!(endMs > startMs)) return [];
+  const key = `${Math.floor(startMs / HOUR)}|${Math.floor(endMs / HOUR)}`;
+  if (slotCache.key === key) return slotCache.slots;
+
+  /** @type {number[]} */
+  const raw = [];
+  for (let t = startMs - DAY; t <= endMs + DAY; t += DAY) {
+    const day = new Date(t).toISOString().slice(0, 10);
+    const dow = new Date(`${day}T00:00:00Z`).getUTCDay();
+    if (dow === 0 || dow === 6) continue;
+    for (const h of LONDON_SLOT_HOURS) raw.push(londonHourUtcMs(day, h));
+    raw.push(usCloseUtcMs(day));
+  }
+  raw.push(Math.floor(endMs / HOUR) * HOUR);
+
+  const slots = [...new Set(raw.filter(ms => ms >= startMs && ms <= endMs))]
+    .sort((a, b) => a - b);
+  slotCache = { key, slots };
+  return slots;
+}

@@ -6,7 +6,10 @@
 // a fixed winter date (EST = UTC-5) so the offset is deterministic.
 
 import { describe, it, expect } from 'vitest';
-import { isWeekendDeadZone, usMarketPhase, isUsMarketHoliday, isUsTradingDateStr } from './market_hours.js';
+import {
+  isWeekendDeadZone, usMarketPhase, isUsMarketHoliday, isUsTradingDateStr,
+  LONDON_SLOT_HOURS, londonHourUtcMs, usCloseUtcMs, fourHourSlots,
+} from './market_hours.js';
 
 // Helper: a Date at the given UTC wall-clock. In January (EST, UTC-5)
 // ET = UTC - 5h.
@@ -122,5 +125,121 @@ describe('isUsTradingDateStr — date-string trading-day check (crypto 1D window
     expect(isUsTradingDateStr('2026-07-04T20:00')).toBe(false);
     expect(isUsTradingDateStr('')).toBe(true);        // malformed → permissive
     expect(isUsTradingDateStr(/** @type {any} */ (null))).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------
+// The four-hour London sampling grid (3M)
+// ---------------------------------------------------------------------
+
+/** UTC HH:MM of every slot on one calendar day, in order. */
+const slotTimes = (day) => [
+  ...LONDON_SLOT_HOURS.map(h => londonHourUtcMs(day, h)),
+  usCloseUtcMs(day),
+].map(ms => new Date(ms).toISOString().slice(11, 16));
+
+describe('londonHourUtcMs / usCloseUtcMs — the grid across all four DST regimes', () => {
+  // The whole point of pinning the sixth slot to the close rather than
+  // writing 21:00 down: for ~3 weeks in March and ~1 week around the
+  // start of November the UK and the US are in DIFFERENT regimes, and
+  // the US close lands at 20:00 London, not 21:00.
+  it('UK and US both on standard time: London 01/05/09/13/17 + a 21:00 close', () => {
+    expect(slotTimes('2026-01-15'))
+      .toEqual(['01:00', '05:00', '09:00', '13:00', '17:00', '21:00']);
+    expect(slotTimes('2026-11-03'))
+      .toEqual(['01:00', '05:00', '09:00', '13:00', '17:00', '21:00']);
+  });
+
+  it('UK and US both on summer time: the same London hours, an hour earlier in UTC', () => {
+    // BST, so 00:00 UTC IS 01:00 London and the 20:00 UTC close IS
+    // 21:00 London — a perfect four-hour grid either way.
+    expect(slotTimes('2026-07-15'))
+      .toEqual(['00:00', '04:00', '08:00', '12:00', '16:00', '20:00']);
+  });
+
+  it('US on summer time, UK not: the close moves to 20:00 London', () => {
+    // US switches 2nd Sun March (2026-03-08), UK the last (2026-03-29).
+    expect(slotTimes('2026-03-16'))
+      .toEqual(['01:00', '05:00', '09:00', '13:00', '17:00', '20:00']);
+    expect(slotTimes('2026-03-26'))
+      .toEqual(['01:00', '05:00', '09:00', '13:00', '17:00', '20:00']);
+    // UK switches back last Sun Oct (2026-10-25), US 1st Sun Nov
+    // (2026-11-01) — the same mismatch, the other way round the year.
+    expect(slotTimes('2026-10-26'))
+      .toEqual(['01:00', '05:00', '09:00', '13:00', '17:00', '20:00']);
+    expect(slotTimes('2026-10-30'))
+      .toEqual(['01:00', '05:00', '09:00', '13:00', '17:00', '20:00']);
+  });
+
+  it('the first five slots are always four hours apart, in London time', () => {
+    for (const day of ['2026-01-15', '2026-03-16', '2026-07-15', '2026-10-26', '2026-11-03']) {
+      const ms = LONDON_SLOT_HOURS.map(h => londonHourUtcMs(day, h));
+      for (let i = 1; i < ms.length; i++) expect(ms[i] - ms[i - 1]).toBe(4 * 3600_000);
+    }
+  });
+});
+
+describe('fourHourSlots — the grid a 3M chart samples on', () => {
+  const iso = (ms) => new Date(ms).toISOString().slice(0, 16);
+
+  it('six points a weekday, ascending, inside the window', () => {
+    const start = Date.UTC(2026, 8, 14);            // Mon 14 Sep
+    const end   = Date.UTC(2026, 8, 17, 22, 45);    // Thu 17 Sep 22:45
+    const slots = fourHourSlots(start, end);
+    expect(slots.map(iso)).toEqual([
+      '2026-09-14T00:00', '2026-09-14T04:00', '2026-09-14T08:00',
+      '2026-09-14T12:00', '2026-09-14T16:00', '2026-09-14T20:00',
+      '2026-09-15T00:00', '2026-09-15T04:00', '2026-09-15T08:00',
+      '2026-09-15T12:00', '2026-09-15T16:00', '2026-09-15T20:00',
+      '2026-09-16T00:00', '2026-09-16T04:00', '2026-09-16T08:00',
+      '2026-09-16T12:00', '2026-09-16T16:00', '2026-09-16T20:00',
+      '2026-09-17T00:00', '2026-09-17T04:00', '2026-09-17T08:00',
+      '2026-09-17T12:00', '2026-09-17T16:00', '2026-09-17T20:00',
+      '2026-09-17T22:00',   // the live edge, quantised to the hour
+    ]);
+    for (let i = 1; i < slots.length; i++) expect(slots[i]).toBeGreaterThan(slots[i - 1]);
+  });
+
+  it('skips the weekend rather than drawing two flat days', () => {
+    // Fri 18 Sep 18:00 -> Mon 21 Sep 10:00. The x axis is index-based,
+    // so twelve flat weekend points would spend real chart width on a
+    // stretch where every venue in the book is shut.
+    const slots = fourHourSlots(Date.UTC(2026, 8, 18, 18, 0), Date.UTC(2026, 8, 21, 10, 0))
+      .map(iso);
+    expect(slots).toEqual([
+      '2026-09-18T20:00',   // Friday's US close
+      '2026-09-21T00:00', '2026-09-21T04:00', '2026-09-21T08:00',
+      '2026-09-21T10:00',   // live edge
+    ]);
+    expect(slots.some(d => d.startsWith('2026-09-19') || d.startsWith('2026-09-20'))).toBe(false);
+  });
+
+  it('the live edge dedupes when the hour is already a slot', () => {
+    // 20:00 UTC on a September weekday is both the US close and the
+    // current hour; it must appear once.
+    const slots = fourHourSlots(Date.UTC(2026, 8, 17, 12), Date.UTC(2026, 8, 17, 20, 30));
+    expect(slots.map(iso)).toEqual(['2026-09-17T12:00', '2026-09-17T16:00', '2026-09-17T20:00']);
+  });
+
+  it('returns the same array identity within the hour, so the chart memo holds', () => {
+    const a = fourHourSlots(Date.UTC(2026, 8, 14), Date.UTC(2026, 8, 17, 22, 10));
+    const b = fourHourSlots(Date.UTC(2026, 8, 14), Date.UTC(2026, 8, 17, 22, 50));
+    expect(b).toBe(a);
+    const c = fourHourSlots(Date.UTC(2026, 8, 14), Date.UTC(2026, 8, 17, 23, 10));
+    expect(c).not.toBe(a);
+  });
+
+  it('an empty or inverted window is empty', () => {
+    expect(fourHourSlots(Date.UTC(2026, 8, 17), Date.UTC(2026, 8, 17))).toEqual([]);
+    expect(fourHourSlots(Date.UTC(2026, 8, 17), Date.UTC(2026, 8, 16))).toEqual([]);
+  });
+
+  it('a 93-day window holds ~6 points a weekday — the density the daily grid lacked', () => {
+    const end = Date.UTC(2026, 8, 17, 20, 0);
+    const slots = fourHourSlots(end - 93 * 86400_000, end);
+    // 93 days spans 66 weekdays here; the old daily-close grid drew one
+    // point per TRADING day, ~65 for the whole window.
+    expect(slots.length).toBeGreaterThan(380);
+    expect(slots.length).toBeLessThan(410);
   });
 });

@@ -189,13 +189,15 @@ describe('PerfChart wiring helpers — night-market range sensitivity', () => {
     }
   });
 
-  it('crosshairFormatFor: 1W/1M show date+time (intraday bars), 1D time-only, 3M/YTD date-only', () => {
+  it('crosshairFormatFor: intraday ranges show date+time, 1D time-only, YTD date-only', () => {
     // The fix: the 1W (and 1M) crosshair pill must carry the time-of-day,
     // not just "Jun 29", now that those ranges are intraday + overnight.
+    // 3M joined them when it went to six points a day — "Jun 29" would
+    // label six consecutive points identically.
     expect(crosshairFormatFor('1W')).toBe('datetime');
     expect(crosshairFormatFor('1M')).toBe('datetime');
+    expect(crosshairFormatFor('3M')).toBe('datetime');
     expect(crosshairFormatFor('1D')).toBe('time');
-    expect(crosshairFormatFor('3M')).toBe('date');
     expect(crosshairFormatFor('YTD')).toBe('date');
   });
 });
