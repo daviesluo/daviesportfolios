@@ -38,23 +38,28 @@ export const isEuroExchange = (ticker) => /\.(PA|AS|BR|LS|IR|MI|MC|DE|F|SG|BE|DU
  * @param {string} ticker
  */
 /**
- * Does this instrument print right through a WEEKDAY night?
+ * How much of the week does this instrument actually trade?
  *
- * Futures and spot FX do: their week runs from Sunday evening to Friday
- * evening with no nightly close, so a grid of six samples a weekday
- * lands on six live prices. An index (`^GSPC`, `^VIX`, `^TNX`) and a
- * listed equity do not — they print in one session, and on such a grid
- * four of the six points would be the previous close carried forward.
+ *   'all'      — round the clock, seven days: crypto.
+ *   'weekdays' — round the clock Monday to Friday, no nightly close:
+ *                 futures and spot FX.
+ *   'session'  — one session a day: indices, listed equities, funds.
  *
- * CRYPTO IS EXCLUDED ON PURPOSE, though it trades the most of all. The
- * four-hour grid skips weekends — correct for anything whose venue
- * shuts on Friday, and wrong for a 24/7 tape, where it would drop two
- * days in seven of real movement. Crypto keeps its hourly bars, where
- * the weekend is visible.
+ * The 3M chart reads this to choose its x grid. `all` and `weekdays`
+ * are drawn on the four-hour London grid — six samples per trading day,
+ * every one of them a live price — over the days that instrument trades.
+ * A `session` instrument is left on its hourly bars: on that grid it
+ * would land on two live prices a day and carry the previous close
+ * through the other four, which is a staircase, not a chart.
  *
  * @param {string} ticker
+ * @returns {'all'|'weekdays'|'session'}
  */
-export const tradesAllWeekdayHours = (ticker) => isFutures(ticker) || isForex(ticker);
+export function tradingWeekOf(ticker) {
+  if (isCrypto(ticker)) return 'all';
+  if (isFutures(ticker) || isForex(ticker)) return 'weekdays';
+  return 'session';
+}
 
 export const isDailyOnly = (ticker) => isCnFund(ticker) || isPvt(ticker);
 

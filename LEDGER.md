@@ -109,6 +109,44 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-18 06:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Crypto joins the grid, and the grid learned about weekends.** Davies
+set the rule flat: no 3M chart anywhere should record every hour around
+the clock. Crypto was the last one doing it.
+
+I had excluded crypto in the entry below for a real reason — the grid
+skipped weekends, and a 24/7 tape would have lost two days in seven. The
+answer was to fix the grid, not to exempt the instrument.
+`fourHourSlots` takes `includeWeekends`; on a weekend day there is no US
+close, so the sixth sample is 21:00 London, which is the hour the close
+falls on in both matched DST regimes and keeps the step a clean four
+hours right through Saturday and Sunday.
+
+`tradesAllWeekdayHours` is gone, replaced by `tradingWeekOf` returning
+`all` / `weekdays` / `session`. One classifier instead of a predicate
+plus an exception, and it says what it means: the grid spans the days
+the instrument trades.
+
+After this, the full inventory — checked, not assumed:
+
+  portfolio panel 3M    slot grid, weekdays
+  crypto modal 3M       slot grid, every day
+  futures / FX modal    slot grid, weekdays
+  index / equity modal  hourly, but only across its OWN session
+
+Nothing draws 24 hourly bars a day at 3M any more.
+
+**The panel stays weekday-only even if the book holds crypto.** Its x
+axis is index-based, so six points a day for two days in seven would
+spend a quarter of the width on a stretch where only a crypto sliver
+moves. It is already six-a-day, so it was never what he was objecting
+to — but it is a judgement call and he should know it was made.
+
+Pinned: the weekend grid's exact slots and its uniform four-hour step;
+crypto's modal point count equals the weekend-inclusive grid while
+ES=F's equals the weekday one, on the SAME nine days of bars.
+
 ### [2026-09-18 06:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The four-hour grid now follows the TAPE, not the panel.** Davies

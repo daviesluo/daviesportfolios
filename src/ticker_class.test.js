@@ -3,7 +3,7 @@ import {
   isCrypto, isFutures, isForex, isIndex, isExchangeListed,
   isCnFund, isPvt, isDailyOnly, isUsEquity, hasOvernightSession,
   isEuroExchange, isRegularSessionOnly, venueSessionFor,
-  tradesAllWeekdayHours,
+  tradingWeekOf,
 } from './ticker_class.js';
 
 describe('ticker_class', () => {
@@ -148,20 +148,24 @@ describe('ticker_class', () => {
   });
 });
 
-describe('tradesAllWeekdayHours — who the four-hour 3M grid fits', () => {
-  it('futures and spot FX print through a weekday night', () => {
+describe('tradingWeekOf — how much of the week a tape actually runs', () => {
+  it('crypto trades every day, so its grid covers every day', () => {
+    // The distinction that matters: the four-hour grid skips weekends
+    // for everything else, and for a 24/7 tape that would drop two days
+    // in seven of real movement.
+    expect(tradingWeekOf('BTC-USD')).toBe('all');
+    expect(tradingWeekOf('ETH-USD')).toBe('all');
+  });
+  it('futures and spot FX run through a weekday night, and stop at the weekend', () => {
     for (const t of ['ES=F', 'NQ=F', 'RTY=F', 'BZ=F', 'GBPUSD=X', 'USDCNY=X']) {
-      expect(tradesAllWeekdayHours(t)).toBe(true);
+      expect(tradingWeekOf(t)).toBe('weekdays');
     }
   });
   it('an index or a listed equity prints in one session', () => {
     // On a six-slot grid these would land on two live prices and carry
     // the previous close through the other four.
-    for (const t of ['^GSPC', '^VIX', '^TNX', '^SOX', 'NVDA', 'VUAA.L', '0700.HK']) {
-      expect(tradesAllWeekdayHours(t)).toBe(false);
+    for (const t of ['^GSPC', '^VIX', '^TNX', '^SOX', 'NVDA', 'VUAA.L', '0700.HK', '017731']) {
+      expect(tradingWeekOf(t)).toBe('session');
     }
-  });
-  it('crypto is excluded although it trades the most — the grid skips weekends', () => {
-    expect(tradesAllWeekdayHours('BTC-USD')).toBe(false);
   });
 });

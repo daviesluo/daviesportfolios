@@ -177,26 +177,27 @@ describe('TickerChartModal — render decision tree', () => {
   });
 });
 
-// 3M draws on the portfolio panel's four-hour London grid when — and
-// only when — the instrument actually prints through a weekday night.
-// The distinction is the whole point: on that grid a futures or FX
-// chart lands on six live prices a day, while an index would land on
-// two and carry the previous close through the other four.
+// 3M draws on the portfolio panel's four-hour London grid whenever the
+// instrument's tape actually runs overnight, and the grid spans the
+// days that tape runs: every day for crypto, weekdays for futures and
+// FX. An index keeps its hourly session bars — on that grid it would
+// land on two live prices a day and carry the previous close through
+// the other four.
 describe('TickerChartModal — 3M sampling grid', () => {
-  /** N recent weekdays of hourly UTC bars, ending at the current hour. */
-  const hourlyBars = (weekdays) => {
-    const out = [];
+  /** N consecutive calendar days of hourly UTC bars, ending today. */
+  const hourlyBars = (days, weekdaysOnly = false) => {
+    /** @type {string[]} */
+    const dates = [];
     const day = new Date();
     day.setUTCHours(0, 0, 0, 0);
-    /** @type {string[]} */
-    const days = [];
-    while (days.length < weekdays) {
+    while (dates.length < days) {
       const dow = day.getUTCDay();
-      if (dow !== 0 && dow !== 6) days.unshift(day.toISOString().slice(0, 10));
+      if (!weekdaysOnly || (dow !== 0 && dow !== 6)) dates.unshift(day.toISOString().slice(0, 10));
       day.setUTCDate(day.getUTCDate() - 1);
     }
+    const out = [];
     let px = 100;
-    for (const d of days) {
+    for (const d of dates) {
       for (let h = 0; h < 24; h++) {
         out.push({ date: `${d}T${String(h).padStart(2, '0')}:00`, close: (px += 0.5) });
       }
@@ -216,30 +217,41 @@ describe('TickerChartModal — 3M sampling grid', () => {
       holding: { shares: 1, cost: 100, lastPrice: 120, prevClose: 119, dayPct: 0.8, currency: 'USD' },
     });
     await user.click(screen.getByRole('button', { name: '3M' }));
-    return pointCount(container);
+    const n = pointCount(container);
+    cleanup();
+    return n;
+  };
+
+  /** Slots the grid holds from the first bar onward — computed, not
+   *  written down, because the newest day is partial and how partial
+   *  depends on the hour the suite runs at. */
+  const slotsFrom = (bars, includeWeekends) => {
+    const firstMs = Date.parse(`${bars[0].date}Z`);
+    return fourHourSlots(rangeStartMs('3M', Date.now()), Date.now(), includeWeekends)
+      .filter((ms) => ms >= firstMs).length;
   };
 
   it('a futures chart samples six times a weekday; an index keeps its hourly bars', async () => {
-    const bars = hourlyBars(4);           // 4 weekdays x 24 hourly bars
+    const bars = hourlyBars(4, true);     // 4 weekdays x 24 hourly bars
     const futures = await drawAt3M('ES=F', bars);
-    cleanup();
     const index = await drawAt3M('^GSPC', bars);
-    // Exactly the grid's own slots from the first bar onward — computed
-    // here rather than written down, because the newest weekday is
-    // partial and how partial depends on the hour the suite runs at.
-    const firstMs = Date.parse(`${bars[0].date}Z`);
-    const expected = fourHourSlots(rangeStartMs('3M', Date.now()), Date.now())
-      .filter((ms) => ms >= firstMs).length;
-    expect(futures).toBe(expected);
+    expect(futures).toBe(slotsFrom(bars, false));
     expect(index).toBe(bars.length);
-    // The claim in one line: the same bars, drawn at a quarter of the
+    // The claim in one line: the same bars, drawn at a fraction of the
     // density, because one instrument's night is real and the other's
     // is a carried-forward close.
     expect(index / futures).toBeGreaterThan(3);
   });
 
-  it('crypto stays on hourly bars — the grid skips weekends and its tape does not', async () => {
-    const crypto = await drawAt3M('BTC-USD', hourlyBars(4));
-    expect(crypto).toBeGreaterThan(4 * 20);
+  it('crypto is on the grid too, and its grid keeps the weekend', async () => {
+    // Nine consecutive calendar days always contain a full weekend.
+    const bars = hourlyBars(9);
+    const crypto = await drawAt3M('BTC-USD', bars);
+    const futures = await drawAt3M('ES=F', bars);
+    expect(crypto).toBe(slotsFrom(bars, true));
+    expect(futures).toBe(slotsFrom(bars, false));
+    // Saturday and Sunday are real trading for one of them and not for
+    // the other, so the same window holds more points for crypto.
+    expect(crypto).toBeGreaterThan(futures);
   });
 });

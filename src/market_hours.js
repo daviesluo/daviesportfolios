@@ -340,11 +340,18 @@ export function isForeignListing(ticker) {
 // into the "close" point. `usMarketHoursUtc` already resolves that
 // through Intl, so the grid asks it per day instead of assuming.
 //
-// Weekends are skipped. Every venue in the book is shut, so six flat
-// points a day for two days out of seven would spend a quarter of the
-// chart's width — the x axis is index-based, not time-based — saying
-// nothing. That also keeps 3M consistent with 1W / 1M, whose grids come
-// from Yahoo bars and so have never had weekend points either.
+// Weekends are skipped BY DEFAULT. For a book of equities, or for
+// futures and FX, every venue is shut, so six flat points a day for two
+// days in seven would spend a quarter of the chart's width — the x axis
+// is index-based, not time-based — saying nothing. That also keeps 3M
+// consistent with 1W / 1M, whose grids come from Yahoo bars and so have
+// never had weekend points either.
+//
+// `includeWeekends` is for a 24/7 tape (crypto), where Saturday is real
+// trading and dropping it would lose two days in seven of actual
+// movement. A weekend day has no US close, so its sixth sample is
+// 21:00 London — the hour the close falls on in both matched DST
+// regimes, which keeps the spacing a clean four hours right through.
 
 /** London wall-clock hours sampled before the day's US close. */
 export const LONDON_SLOT_HOURS = [1, 5, 9, 13, 17];
@@ -433,12 +440,13 @@ const slotCache = new Map();
  *
  * @param {number} startMs
  * @param {number} endMs
+ * @param {boolean} [includeWeekends]  true for a 24/7 tape
  * @returns {number[]}
  */
-export function fourHourSlots(startMs, endMs) {
+export function fourHourSlots(startMs, endMs, includeWeekends = false) {
   const HOUR = 3600_000, DAY = 24 * HOUR;
   if (!(endMs > startMs)) return [];
-  const key = `${Math.floor(startMs / HOUR)}|${Math.floor(endMs / HOUR)}`;
+  const key = `${Math.floor(startMs / HOUR)}|${Math.floor(endMs / HOUR)}|${includeWeekends ? 'w' : ''}`;
   const hit = slotCache.get(key);
   if (hit) return hit;
 
@@ -447,9 +455,11 @@ export function fourHourSlots(startMs, endMs) {
   for (let t = startMs - DAY; t <= endMs + DAY; t += DAY) {
     const day = new Date(t).toISOString().slice(0, 10);
     const dow = new Date(`${day}T00:00:00Z`).getUTCDay();
-    if (dow === 0 || dow === 6) continue;
+    const weekend = dow === 0 || dow === 6;
+    if (weekend && !includeWeekends) continue;
     for (const h of LONDON_SLOT_HOURS) raw.push(londonHourUtcMs(day, h));
-    raw.push(usCloseUtcMs(day));
+    // No US close on a Saturday; 21:00 London keeps the four-hour step.
+    raw.push(weekend ? londonHourUtcMs(day, 21) : usCloseUtcMs(day));
   }
   raw.push(Math.floor(endMs / HOUR) * HOUR);
 
