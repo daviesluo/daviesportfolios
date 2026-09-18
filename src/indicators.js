@@ -327,7 +327,23 @@ export function hasExtendedHoursBars(series, openMinsUtc, closeMinsUtc) {
  * @returns {number} fractional tolerance
  */
 export function ahQuoteTolerance(series) {
-  const FLOOR = 0.03, CAP = 0.15, LOOKBACK = 12; // 12 x 5 min = 1 hour
+  // LOOKBACK is a bar COUNT on purpose, and this is the third comment
+  // in this file that exists to stop a well-meaning rewrite.
+  //
+  // "12 x 5 min = 1 hour" describes the path the guard was written for
+  // (`app.jsx` validates against a `1d`/`5m` fetch), not a rule. Making
+  // it a wall-clock hour looks more honest and is WRONG, because the
+  // after-hours tape is sparse: BE's 8.76 % bar printed at 20:10 and
+  // its last AH bar at 23:59, so an hour-long window holds one bar, no
+  // step at all, and the guard falls to its 3 % floor and calls a real
+  // print fake — the exact bug it was written to fix. Verified by
+  // trying it: the BE pin in indicators.test.js goes red.
+  //
+  // The count also behaves correctly where the modal hands this a
+  // coarser series than 5 m. Coarser bars mean the last bar is staler,
+  // so the quote can legitimately sit further from it — and a count
+  // window over coarser bars finds bigger steps and widens in step.
+  const FLOOR = 0.03, CAP = 0.15, LOOKBACK = 12;
   if (!Array.isArray(series) || series.length < 2) return FLOOR;
   const tail = series.slice(-(LOOKBACK + 1));
   let biggest = 0;
