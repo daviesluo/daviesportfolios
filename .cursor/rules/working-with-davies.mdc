@@ -412,6 +412,13 @@ Read these as a checklist before pushing.
   days. Restated constants are greppable; derived ones are not. After a
   cadence change, hunt for what is COMPUTED from the cadence, and
   prefer deriving it from the one source over adding a sixth copy.
+- **Reading a status code as evidence that a path is blocked.**
+  Cloudflare Pages does not 404 an unmatched path — it serves
+  `index.html` with a **200**. So a repo being published and a repo
+  being blocked return the same code, and `curl -o /dev/null -w
+  '%{http_code}'` cannot tell them apart. A whole verification pass was
+  wasted concluding a working fix had failed. Compare CONTENT: fetch the
+  path and look at the first line.
 - **Running the browser sweep against a stale bundle.** It serves the
   COMMITTED bundle from the repo root, so without `npm run build` first
   it tests the previous commit. Cost most of an hour chasing a "3M is

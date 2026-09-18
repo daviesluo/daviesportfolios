@@ -14,31 +14,15 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-1. **THE LIVE SITE PUBLISHES THE WHOLE REPOSITORY, AND STILL DOES.**
-   Re-measured 2026-09-18: `/LEDGER.md`, `/handover.md`, `/src/app.jsx`
-   and `/supabase/functions/auth/index.ts` all still return 200 to an
-   unauthenticated fetch of the production host. First measured
-   2026-09-05: `handover.md`, `LEDGER.md`, all of `src/`,
-   `supabase/functions/*` and the migration carrying purchase records
-   all return 200 to an unauthenticated fetch, with
-   `Access-Control-Allow-Origin: *`.
-
-   The earlier diagnosis in this ledger was WRONG, and that is why two
-   fixes failed. `wrangler.jsonc`'s `assets.directory` is a **Workers**
-   key; this is a **Pages** project and ignores it (wrangler is not even
-   a dependency). The root serves because NO build output directory is
-   configured anywhere and the Pages default is the repository root.
-   Same reason `.assetsignore` (a Workers mechanism) and `_redirects`
-   (cannot beat a real static asset) both did nothing.
-
-   It is fixable IN-REPO after all, without the dashboard: point Vite's
-   `outDir` at `../dist`, move the committed bundle there, and add
-   `"pages_build_output_dir": "./dist"` to `wrangler.jsonc`. Verify on
-   the branch PREVIEW first — app loads with the branch's asset hash,
-   and `/handover.md` returns 404 — then merge. Plan item 1 has the
-   steps. Afterwards, rotate both app passwords and the token-signing
-   secret: the Edge sources were public. No sign anyone found it — five
+1. **Rotate both app passwords and `APP_AUTH_SECRET`.** The site
+   stopped publishing the repository on 2026-09-18 (see history), but
+   `supabase/functions/*` sources — including `auth` — were readable by
+   anyone for months before that. Nothing suggests they were: five
    failed logins in the auth table's whole history, none in 30 days.
+   Rotating is cheap insurance, and it is Davies' to do: change
+   `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` in the Supabase
+   dashboard's Edge Function secrets. Changing the secret invalidates
+   every issued token, so every device re-prompts once.
 
 2. ~~Check the `RECORDED` provenance rule has walked left across the
    24H window.~~ **Confirmed 2026-09-18.** The browser sweep now serves
@@ -117,6 +101,40 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-18 08:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Verified on the preview, and it works. The live site will stop
+publishing the repository when this merges.**
+
+Proof, preview against production, same paths, same minute:
+
+  path                               preview (dist/)   production (main)
+  /LEDGER.md                         html shell        the ledger's text
+  /handover.md                       html shell        the archive's text
+  /src/app.jsx                       html shell        the source
+  /package.json                      html shell        the file
+  /supabase/functions/auth/index.ts  html shell        the function's source
+
+`/` serves the branch's own bundle (`app-8bc6414d.js`, against main's
+`app-d32e096f.js`), every asset returns the right MIME type, and all
+five security headers are present and identical to production — so
+`_headers` is being read out of `dist/`, which is where it now lands.
+
+**The acceptance criterion this item carried for two weeks was WRONG,
+and it is the reason to read this entry.** It said to check that
+`/handover.md` returns 404. Cloudflare Pages does not 404 an unmatched
+path — it serves `index.html` with a 200. So the exposed and the fixed
+states return the SAME status code, and a status-code check cannot tell
+them apart. My first pass at verifying this ran exactly that check, saw
+eleven 200s, and concluded the fix had failed. It had not. Compare
+CONTENT.
+
+The same mistake is in this ledger's earlier measurements of the
+exposure: they were reported as "returns 200", which on its own proves
+nothing. The exposure is real — confirmed above by reading what
+production actually sends back — but it was being asserted on the wrong
+evidence the whole time.
 
 ### [2026-09-18 08:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
