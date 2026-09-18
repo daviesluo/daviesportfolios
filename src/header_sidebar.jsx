@@ -598,29 +598,30 @@ function TopMovers({ metrics, hideValues = false }) {
   return (
     <section className="panel">
       <div className="panel-title-row">
-        <h3 className="panel-title">TOP MOVERS</h3>
-        {/* Both choices live in the title row, in the same switch idiom
-            as the performance panel's VS S&P 500 / INVESTMENT tabs:
-            over WHICH window, and by WHICH measure. They read as one
-            control strip because they are one question asked twice —
-            and putting the window here rather than in a range row at
-            the panel's foot means the heading always states what is
-            being shown, with nothing below the names. */}
-        <div className="movers-controls">
-        <div className="view-tabs movers-window" role="tablist" aria-label="Top movers window">
-          {MOVER_WINDOWS.map((w, i) => (
-            <React.Fragment key={w}>
-              {i > 0 && <span className="view-tab-sep" aria-hidden="true" />}
-              <button
-                type="button" role="tab" id={`movers-win-${w}`}
-                aria-selected={w === window_} tabIndex={w === window_ ? 0 : -1}
-                aria-label={`Rank movers over ${w === 'TODAY' ? 'today' : w}`}
-                className={`view-tab mono${w === window_ ? ' is-on' : ''}`}
-                onClick={() => pickWindow(w)}
-                onKeyDown={onWindowKey}
-              >{w}</button>
-            </React.Fragment>
-          ))}
+        {/* The WINDOW sits against the heading, where the old
+            "· TODAY" suffix did, because it finishes the panel's name:
+            this is TOP MOVERS, over this window. The MEASURE stays at
+            the far right where the performance panel keeps its view
+            switch. Grouping both on the right crowded two unrelated
+            choices into one clump and left the heading looking
+            unfinished. */}
+        <div className="movers-title">
+          <h3 className="panel-title">TOP MOVERS</h3>
+          <div className="view-tabs movers-window" role="tablist" aria-label="Top movers window">
+            {MOVER_WINDOWS.map((w, i) => (
+              <React.Fragment key={w}>
+                {i > 0 && <span className="view-tab-sep" aria-hidden="true" />}
+                <button
+                  type="button" role="tab" id={`movers-win-${w}`}
+                  aria-selected={w === window_} tabIndex={w === window_ ? 0 : -1}
+                  aria-label={`Rank movers over ${w === 'TODAY' ? 'today' : w}`}
+                  className={`view-tab mono${w === window_ ? ' is-on' : ''}`}
+                  onClick={() => pickWindow(w)}
+                  onKeyDown={onWindowKey}
+                >{w}</button>
+              </React.Fragment>
+            ))}
+          </div>
         </div>
         <div className="view-tabs movers-metric" role="tablist" aria-label="Top movers ranking">
           <button
@@ -640,7 +641,6 @@ function TopMovers({ metrics, hideValues = false }) {
             onClick={() => pickMetric('usd')}
             onKeyDown={onMetricKey}
           >$</button>
-        </div>
         </div>
       </div>
       <div className="movers-grid">

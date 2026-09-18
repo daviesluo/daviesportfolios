@@ -109,6 +109,39 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-18 05:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Top Movers' window switch moved to the heading.** It was grouped with
+the `%` / `$` switch on the right; Davies said the two crowded each
+other. It now sits against the title, where the old `· TODAY` suffix
+did — which is what it is: the panel's name, finished. The measure
+switch stays at the far right. Checked at both breakpoints with real
+screenshots.
+
+**He also asked why 3M looks hourly rather than six points a day.
+Because I scoped the grid to the portfolio panel and did not say so.**
+`fourHourSlots` / `resampleToSlots` are wired ONLY in `perf_chart.jsx`;
+the ticker modal's 3M just moved from daily to 60-minute bars, so it
+draws Yahoo's session bars — hourly, and nothing overnight. The panel
+IS on the six-slot grid (the sweep pins 261 points where it drew 3).
+
+The reasoning, which stands but should have been stated when it was
+made: the four-hour London grid is right for the BOOK, which is
+multi-venue and moves around the clock, and wrong for a single US
+instrument, which prints in only two of the six slots (17:00 London is
+mid-session, plus the close; 13:00 London is pre-market and the fetch
+is regular-hours only). On a slot grid a single US stock would be four
+flat carry-forwards a day — a staircase where hourly session bars give
+a clean, dense line. Left as it is, and Davies knows the choice now.
+
+**Separately, and worth not re-deriving:** even on the panel, the
+overnight slots only carry real movement where a holding's own venue
+trades then or where `price_snapshots` has a print. Recording starts
+2026-08-19 — 30 days as of today — against a 93-day window, so the
+oldest 63 days of a 3M chart have no recorded overnight at all and
+those slots carry the previous close forward. That stretch fills in on
+its own as recording accumulates; it is not a bug and needs no fix.
+
 ### [2026-09-18 04:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 Three reports from Davies, all three real.
