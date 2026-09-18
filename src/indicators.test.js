@@ -349,6 +349,21 @@ describe('extPriceIsRealAh (shared card/modal AH-trust verdict)', () => {
     expect(extPriceIsRealAh(series, 266.14, OPEN, CLOSE)).toBe(false);
   });
 
+  it('the lookback is a bar COUNT, because the after-hours tape is sparse', () => {
+    // The standing trap. A wall-clock hour reads as the more honest
+    // window and breaks the case this guard exists for: BE's 8.76 %
+    // bar printed at 20:10 and its last AH bar at 23:59, so an hour
+    // back from the last bar holds ONE bar, finds no step, falls to the
+    // 3 % floor, and calls a real print fake. Counted instead, the fast
+    // bar is still in view and the tolerance caps out.
+    const sparse = [
+      { date: '2026-09-04T20:05', close: 249.90 },
+      { date: '2026-09-04T20:10', close: 271.80 },   // +8.76 %
+      { date: '2026-09-04T23:59', close: 258.00 },   // 3h49m later
+    ];
+    expect(ahQuoteTolerance(sparse)).toBeCloseTo(0.15, 6);   // 2 x 8.76 %, capped
+  });
+
   it('ahQuoteTolerance: floors at 3 %, follows the tape, and is capped', () => {
     const flat = [{ close: 100 }, { close: 100 }, { close: 100 }];
     expect(ahQuoteTolerance(flat)).toBeCloseTo(0.03, 6);      // floor

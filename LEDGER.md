@@ -40,16 +40,25 @@ list stays the short version; the plan is the reasoning behind it.
    secret: the Edge sources were public. No sign anyone found it — five
    failed logins in the auth table's whole history, none in 30 days.
 
-2. **After a full day of `price_snapshots` recording, check the
-   `RECORDED` provenance rule has walked left across the 24H window** on
-   the Investment Performance panel. The table has been filling since
-   2026-08-19; nothing has confirmed the panel draws the recorded
-   stretch at the width it should.
-3. **Re-check the AH-trust fix against a live fast mover.** `5ddd1ac`
-   made `ahQuoteTolerance` scale with the tape after BE read an em dash
-   on the heat map. It was verified against Friday's frozen after-hours
-   data only — the market was shut. The first real test is the Sunday
-   20:00 ET overnight reopen, on a name actually moving.
+2. ~~Check the `RECORDED` provenance rule has walked left across the
+   24H window.~~ **Confirmed 2026-09-18.** The browser sweep now serves
+   recorded rows shaped like the real feed (recording starts 30 days
+   back) and asserts the pair that carries the evidence: 24H draws NO
+   handover rule — the window is wholly recorded — while 3M still draws
+   one, because its window opens before recording began. The 3M half is
+   what proves data reached the panel at all; run against an empty feed,
+   3M fails and 24H passes vacuously.
+3. **The AH-trust fix has not been exercised, because nothing has moved
+   fast enough.** Measured 2026-09-18 over every recorded sample: the
+   largest single five-minute step in THIRTY days of after-hours is
+   1.77 % (2DG.SG, 09-16), and overnight it is 0.79 %. `ahQuoteTolerance`
+   doubles the biggest step and floors at 3 %, so it has sat on its
+   floor the whole time — the scaling engaged once, at 3.54 %, and never
+   mattered. The fix is dormant, not wrong, and the field test this item
+   was waiting for has simply not occurred. Nothing to do but leave it;
+   the BE case is pinned with its real numbers, with a control (same gap,
+   quiet tape, still rejected) and now a third pin for WHY the lookback
+   is a bar count — see the history entry.
 4. **Decide what `Model:` carries in this ledger's source headers.** The
    protocol wants the exact model in every header. This session runs
    under an operator rule that forbids putting a model identifier into
@@ -108,6 +117,53 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-18 07:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+Davies cleared items 1-3 of the what-remains list for verify-and-fix.
+Items 2 and 3 are done; item 1 is next and goes on a branch.
+
+**Item 2 — the RECORDED rule has walked left, and there is now a gate
+saying so.** The sweep had been serving `{rows: []}` for
+`action=price-snapshots`, so the whole provenance path — fetch,
+`recordedFromMs`, `provenanceSplitIndex`, the faded stretch and the
+dotted rule — had never run in an integration test. It now serves rows
+shaped like the real feed, recording starting 30 days back, ending
+before the fixture's current session so no drawn value can move.
+
+The check is a PAIR and only the pair is evidence: 24H must draw no
+handover rule, 3M must draw one. A window with nothing recorded also
+draws no rule, so "no rule on 24H" passes vacuously — confirmed by
+running the suite against an empty feed, where 24H still passed and 3M
+failed. 98 checks now.
+
+**Item 3 — the answer is that the test it was waiting for has not
+happened.** Measured across every recorded sample rather than waiting
+for one: the largest single five-minute step in THIRTY days of
+after-hours is 1.77 % (2DG.SG, 09-16); overnight over seven days it is
+0.79 %. `ahQuoteTolerance` doubles the biggest step and floors at 3 %,
+so it has been pinned to its floor the entire time. The scaling engaged
+exactly once, at 3.54 %, on a name whose quote never needed it. The fix
+is dormant, which for a guard-loosening change is the right resting
+state.
+
+**And I broke it while checking it, which is the part worth recording.**
+Reading the code I noticed `LOOKBACK = 12` is a bar COUNT while the
+comment claims "the last hour" — true on `app.jsx`'s `1d`/`5m`
+validation fetch, false on the chart modal's fallback path, which hands
+it whatever range is on screen. I rewrote it as a wall-clock hour. The
+BE pin went red immediately: the after-hours tape is SPARSE, BE's
+8.76 % bar printed at 20:10 and its last AH bar at 23:59, so an hour
+back from the last bar holds one bar, finds no step, falls to the 3 %
+floor and calls a real print fake — the exact bug the fix was written
+for.
+
+Reverted. The count is also right where the modal hands it coarser
+bars: a coarser bar means a staler last bar, so the quote can
+legitimately sit further from it, and a count window over coarser bars
+widens in step. Both the reasoning and the counterfactual are now in
+the function's comment and in a third test, because this is the second
+time this file has had to defend a deliberate-looking-wrong constant.
 
 ### [2026-09-18 06:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

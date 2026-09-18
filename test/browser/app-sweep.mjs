@@ -205,6 +205,22 @@ const EXT_PRINT = { ACME: 247.2 };
 // unchanged. Only 3M asks for more than one: it draws on a four-hour
 // grid now, and against a single day of bars it would have had six
 // points to draw three months with.
+// The session `barsFor` builds its intraday bars in, and that session's
+// first bar — 14:00 UTC on it. Recorded rows stop here.
+const SESSION_OPEN_MS = (() => {
+  const d = new Date(NOW_MS);
+  if (d.getUTCHours() < 20) d.setUTCDate(d.getUTCDate() - 1);
+  d.setUTCHours(14, 0, 0, 0);
+  return d.getTime();
+})();
+
+// Each ticker at the price `barsFor` holds it flat at before the current
+// session, so a recorded row states exactly what the fetched bars
+// already say and no drawn number can move.
+const BASE_PRICES = {
+  ACME: 200, NOVA: 100, 'BRIT.L': 2, 'VUAA.L': 80, '017731': 100, '^GSPC': 5000,
+};
+
 const barsFor = (t, daily, includePrePost = false, sessions = 1) => {
   const base = { ACME: 200, NOVA: 100, 'BRIT.L': 2, 'VUAA.L': 80, '^GSPC': 5000 }[t] ?? 100;
   const last = { ACME: 240, NOVA: 120, 'BRIT.L': 2.5, 'VUAA.L': 80, '^GSPC': 5200 }[t] ?? 100;
@@ -305,7 +321,28 @@ async function newPage(browser, { width, height }, errors, tokenMisses) {
       body: JSON.stringify(body),
     });
     if (url.includes('/data?') && url.includes('action=load')) return json({ data: PORTFOLIO, version: 1 });
-    if (url.includes('action=price-snapshots')) return json({ rows: [] });
+    if (url.includes('action=price-snapshots')) {
+      // Recording began 30 days ago, as it really did (2026-08-19).
+      // That is long before the 24H window opens and part-way into the
+      // 3-month one, which is exactly what makes the panel's RECORDED
+      // rule worth checking: it should have walked all the way left on
+      // 24H and should still show a handover on 3M.
+      //
+      // Every row stops BEFORE the current session's first bar, so
+      // these can never change a drawn value — `mergeRecordedBars` is
+      // pinned in price_snapshots.test.js and is not what this fixture
+      // is for. What it exercises is the PROVENANCE width: the fetch,
+      // `recordedFromMs`, `provenanceSplitIndex` and the rendering.
+      const u = new URL(url);
+      const since = Number(u.searchParams.get('since')) || 0;
+      const bucketMs = (Number(u.searchParams.get('bucket')) || 300) * 1000;
+      const from = Math.max(since, NOW_MS - 30 * 86400_000);
+      const rows = [];
+      for (let t = Math.ceil(from / bucketMs) * bucketMs; t <= SESSION_OPEN_MS; t += bucketMs) {
+        rows.push({ ts: new Date(t).toISOString(), prices: BASE_PRICES });
+      }
+      return json({ rows });
+    }
     if (url.includes('/data?')) return json({ ok: true, version: 2 });
     if (url.includes('/chart?')) {
       const u = new URL(url);
@@ -470,6 +507,38 @@ async function run() {
           else fail(S(`grid/${view}/3M`), `${state.pts} points, expected the ~6-a-weekday grid`);
         }
         seen[view][label] = state.vals.map((v) => Number(String(v).replace('%', '')));
+        // Provenance: the Investment view fades the stretch it had to
+        // RECONSTRUCT from the ledger and Yahoo's bars, and rules off
+        // where this account's own recorded samples take over. With
+        // recording running for 30 days the 24H window is wholly
+        // recorded — no rule at all — while 3M still straddles the
+        // start of recording and must show one.
+        //
+        // The two checks are evidence only TOGETHER, and the 3M one is
+        // what carries it. A window with nothing recorded also draws no
+        // rule, so "no rule on 24H" passes vacuously against an empty
+        // feed — verified by running this suite against `rows: []`,
+        // where 24H still passed and 3M failed. 3M passing is what says
+        // recorded data reached the panel at all; 24H passing then
+        // means its window really is wholly on the recorded side.
+        if (view === 'investment' && (label === '24H' || label === '3M')) {
+          const ruled = await page.evaluate(() => {
+            const panel = [...document.querySelectorAll('.perf-chart-wrap')]
+              .find((w) => w.getBoundingClientRect().width > 0)?.closest('.panel');
+            return [...(panel?.querySelectorAll('svg text') || [])]
+              .some((t) => (t.textContent || '').trim() === 'RECORDED');
+          });
+          const want = label === '3M';
+          if (ruled === want) {
+            ok(S(`provenance/${label}`), want
+              ? 'RECORDED rule marks the handover'
+              : 'no rule — the whole window is recorded');
+          } else {
+            fail(S(`provenance/${label}`), want
+              ? 'no RECORDED rule, but the window starts before recording did'
+              : 'a RECORDED rule is still drawn inside a wholly recorded window');
+          }
+        }
       }
     }
 
