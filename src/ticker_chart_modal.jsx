@@ -8,8 +8,8 @@ import { Modal } from './modals.jsx';
 import { usMarketHoursUtc, isWeekendDeadZone, isUsMarketHoliday, isUsTradingDateStr, foreignSessionIsOpen } from './market_hours.js';
 import { fxToUSD } from './fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits } from './formatters.js';
-import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h, fillVenueSessionGrid } from './ytd.js';
-import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly, isCrypto, venueSessionFor } from './ticker_class.js';
+import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h, fillVenueSessionGrid, resampleToSlots } from './ytd.js';
+import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly, isCrypto, venueSessionFor, tradesAllWeekdayHours } from './ticker_class.js';
 import {
   maBarsFor, maLabelDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
@@ -18,6 +18,8 @@ import {
 import { pointerToDataIndex, overnightTrailingGap, parseChartDateUTC, findRegularCloseIdx, findRegularOpenIdx, findPrevSessionCloseIdx, overnightDotWithinReach } from './chart_geometry.js';
 import { computeChartGeometry } from './chart_modal_geometry.js';
 import { mergeOvernightSeries } from './overnight_intraday.js';
+import { fourHourSlots, SLOTS_PER_DAY } from './market_hours.js';
+import { rangeStartMs } from './price_snapshots.js';
 import {
   SYMBOL_BY_CUR, NIGHT_BAR_INTERVAL_MS, TICKER_DISPLAY_NAMES, INDEX_PE_ALLOWED,
   crosshairFormatFor,
@@ -106,7 +108,24 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // gaps, so the axis always spans the whole session instead of dying at
   // the day's last print. Recomputed per render; pure + pinned in ytd.js.
   const venueSession = venueSessionFor(ticker);
-  const windowedSeries = (isCrypto(ticker) && rangeKey === '1D' && Array.isArray(series))
+
+  // 3M on a round-the-clock instrument draws the SAME four-hour London
+  // grid the portfolio panel draws: six samples a weekday at 01 / 05 /
+  // 09 / 13 / 17 London and the day's actual US close. A futures or FX
+  // chart at 60m is ~23 bars a day for three months, which is both
+  // denser than the panel beside it and on different instants, so the
+  // two disagreed about what "3M" means. An index or a listed equity
+  // stays on its hourly session bars — it prints in two of the six
+  // slots, so a grid would give it four flat carry-forwards a day.
+  const slotGrid3M = React.useMemo(
+    () => (rangeKey === '3M' && tradesAllWeekdayHours(ticker)
+      ? fourHourSlots(rangeStartMs('3M', Date.now()), Date.now())
+      : null),
+    [rangeKey, ticker],
+  );
+  const windowedSeries = (slotGrid3M && Array.isArray(series))
+    ? resampleToSlots(series, slotGrid3M)
+    : (isCrypto(ticker) && rangeKey === '1D' && Array.isArray(series))
     ? (extendedHours
         ? filterToLast24h(series)
         : (phase === 'regular'
@@ -384,9 +403,23 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // Bars-per-day scaling on intraday ranges (5d × 13 bars/day at 30m,
   // 10d × 7 at 60m) is encapsulated in `maBarsFor`; dailyOnly tickers
   // (CN funds / .PVT) take the plain day count via the same call.
-  const MA_BARS = maBarsFor(rangeKey, dailyOnly);
+  //
+  // On the four-hour grid both halves have to be resampled or the SMA
+  // averages two cadences: `computeMaSeries` unions history and display
+  // by date, and 60-minute history bars beside six-a-day display bars
+  // would make "MA 20" cover a span that drifts across the chart. The
+  // wider fetch goes onto the same grid, extended back to its own first
+  // bar, and the window becomes 20 x SLOTS_PER_DAY.
+  const maForChart = React.useMemo(() => {
+    if (!slotGrid3M || !Array.isArray(maHistory) || maHistory.length === 0) return maHistory;
+    const d0 = maHistory[0].date;
+    const firstMs = Date.parse(d0.length === 16 && d0[10] === 'T' ? `${d0}Z` : d0);
+    if (!Number.isFinite(firstMs)) return maHistory;
+    return resampleToSlots(maHistory, fourHourSlots(firstMs, Date.now()));
+  }, [maHistory, slotGrid3M]);
+  const MA_BARS = maBarsFor(rangeKey, dailyOnly, slotGrid3M ? SLOTS_PER_DAY : 0);
   const MA_DAYS = maLabelDaysFor(rangeKey);
-  const maSeries = MA_BARS > 0 ? computeMaSeries(points, maHistory, MA_BARS) : null;
+  const maSeries = MA_BARS > 0 ? computeMaSeries(points, maForChart, MA_BARS) : null;
 
   // Volume-weighted average price (1D only). Per-asset reset anchor —
   //   - US equity: 09:30 ET when ext off; 04:00 ET pre-market open

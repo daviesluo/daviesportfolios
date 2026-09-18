@@ -205,13 +205,14 @@ export function ukTzAbbr(now = new Date()) {
 // Detection: ask the runtime for the NY hour, compare to the UTC hour;
 // the offset is 4 (EDT) or 5 (EST). Avoids hard-coded DST cutover
 // dates.
+const NY_HOUR_FMT = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/New_York', hour: '2-digit', hour12: false,
+});
 export function usMarketHoursUtc(now = new Date()) {
   const utcHour = now.getUTCHours();
-  const nyHour = parseInt(new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
-    hour: '2-digit',
-    hour12: false,
-  }).format(now), 10) % 24;
+  // Formatter hoisted: this is called once per DAY of a 6-month slot
+  // grid, and constructing an Intl.DateTimeFormat costs ~10-50 us.
+  const nyHour = parseInt(NY_HOUR_FMT.format(now), 10) % 24;
   let diff = utcHour - nyHour;
   if (diff > 12)  diff -= 24;
   if (diff < -12) diff += 24;
@@ -348,6 +349,9 @@ export function isForeignListing(ticker) {
 /** London wall-clock hours sampled before the day's US close. */
 export const LONDON_SLOT_HOURS = [1, 5, 9, 13, 17];
 
+/** Samples the grid takes on a weekday: the hours above, plus the close. */
+export const SLOTS_PER_DAY = LONDON_SLOT_HOURS.length + 1;
+
 // Hoisted: these are constructed once and reused. Building an
 // Intl.DateTimeFormat costs ~10-50 us, and a 93-day grid asks ~1100
 // times per rebuild.
@@ -410,7 +414,14 @@ export function usCloseUtcMs(dateStr) {
 // Rebuilt at most once an hour: the grid only gains a point when the
 // wall clock does, and returning the SAME array identity keeps the
 // chart's memo signature stable across renders.
-let slotCache = { key: '', slots: /** @type {number[]} */ ([]) };
+//
+// A handful of entries, not one: a chart drawing a 3-month window while
+// its moving average reads a 6-month one asks for two different grids
+// on every render, and a single slot would let them evict each other
+// and rebuild ~1200 Intl lookups a render between them.
+const SLOT_CACHE_MAX = 4;
+/** @type {Map<string, number[]>} */
+const slotCache = new Map();
 
 /**
  * The sampling grid over a window, ascending, in epoch ms.
@@ -428,7 +439,8 @@ export function fourHourSlots(startMs, endMs) {
   const HOUR = 3600_000, DAY = 24 * HOUR;
   if (!(endMs > startMs)) return [];
   const key = `${Math.floor(startMs / HOUR)}|${Math.floor(endMs / HOUR)}`;
-  if (slotCache.key === key) return slotCache.slots;
+  const hit = slotCache.get(key);
+  if (hit) return hit;
 
   /** @type {number[]} */
   const raw = [];
@@ -443,6 +455,7 @@ export function fourHourSlots(startMs, endMs) {
 
   const slots = [...new Set(raw.filter(ms => ms >= startMs && ms <= endMs))]
     .sort((a, b) => a - b);
-  slotCache = { key, slots };
+  if (slotCache.size >= SLOT_CACHE_MAX) slotCache.delete(slotCache.keys().next().value);
+  slotCache.set(key, slots);
   return slots;
 }
