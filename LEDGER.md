@@ -56,13 +56,6 @@ list stays the short version; the plan is the reasoning behind it.
 5. **Issue #207** (`edge-functions failed on main`, opened 2026-08-18)
    is stale — that workflow has been green on every push since. Close it
    or leave it for the next real failure to bump.
-6. **Top Movers still only reads TODAY.** The last open item of the
-   2026-09-17 batch: Davies asked for the window to open up beyond the
-   day, "with design sense and the best visual and interaction effect".
-   Nothing has been built. The bundle headroom was freed for it on
-   purpose — 12.4 kB under the 122 kB budget as of the four-hour-grid
-   commit.
-
 Nothing else is in flight. `main` is clean and pushed.
 
 ## Machine and platform setup
@@ -110,6 +103,53 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-18 02:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Top Movers opens past TODAY.** Last item of the 2026-09-17 batch.
+A window row — TODAY / 1W / 1M / 3M / YTD — at the FOOT of the panel,
+where the performance chart's range row sits. Below the lists, not
+above: a second control strip stacked over the content pushes the
+names, which are the point of the panel, down the screen on a phone.
+
+The feature costs no network. The longer windows are priced from the
+per-range history the performance panel ALREADY prefetches, anchored by
+the same `buildTickerSeries(..., anchorAtWindowStart = true)` call the
+chart makes — so "NVDA over 1M" means one thing in that sidebar, and
+there is no second anchor rule to drift. TODAY still passes
+`metrics.js`'s own `dayPct` / `dayChange` straight through rather than
+recomputing them from prices: a second implementation of the day move
+is what would put the heat map and this panel at odds.
+
+The ranking itself moved OUT of the component into `movers.js`, pure
+and pinned by 16 closed-form cases. Eligibility is unchanged and now
+stated once: never cash, never a CN fund, and only names `pctIsFlat`
+agrees actually moved.
+
+The $ figure over a window is the price move valued on TODAY's holding
+— deliberately not a P/L attribution. A position opened mid-window did
+not earn the whole move, and the number that accounts for that is the
+performance panel's, which walks the lot ledger. Written down in the
+module and the README so it is a decision, not an oversight.
+
+**The sweep caught a real one, and it is the kind worth remembering.**
+The window buttons first reused `.perf-range-btn`, the chart's class,
+to inherit its look. Both rows then answered to the same selector, so
+`:visible:text-is("1M")` hit whichever came first in the DOM — the
+chart on desktop, the SIDEBAR on a phone. Desktop stayed fully green;
+phone failed four checks, and the numbers it printed (+$240 / +$100 /
++$63 instead of +$13 / +$12 / +$4) were the movers panel obediently
+showing a YTD window nobody asked for. Fixed with its own
+`.movers-range-btn`, sharing only the CSS rule, and a new sweep check
+asserts picking a movers window leaves the chart's range alone.
+
+Two controls that look alike must not BE alike to a selector. Nothing
+in `npm test` could have found this: both panels render correctly in
+isolation, and only a real layout at a real breakpoint puts them in an
+order where one shadows the other.
+
+Gates: typecheck 0, lint 0 errors, 831 tests, knip clean, bundle
+110.19 kB of 122, sweep ALL GREEN at 94 checks.
 
 ### [2026-09-18 01:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -28,7 +28,10 @@ import { fetchHistoricalBatch } from './historical.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
 import { fetchParamsFor, maFetchParamsFor, applyVariantFilter, filterToLastHours, RANGE_KEYS } from './ytd.js';
 import { refreshPriceSnapshots, rangeStartMs } from './price_snapshots.js';
-import { RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh, hasAnyNumericField } from './cache.js';
+import {
+  RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh,
+  hasAnyNumericField, announceChartsUpdated,
+} from './cache.js';
 import { isDailyOnly, isCrypto } from './ticker_class.js';
 import { priceDividedByTtmEps } from './indicators.js';
 import { ChartStore, MaStore, YtdStore, hydrateAllChartStores, pruneAllChartStores } from './chart_store.js';
@@ -200,6 +203,12 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
         ChartStore.set(meta.tickerKey(t), { ts: now, data });
       }
     }
+    // Top Movers reads these rows synchronously to price its non-TODAY
+    // windows and has no fetch of its own, so it needs telling that a
+    // range just landed. Per-range, matching the per-range writes: the
+    // window the user is looking at fills the moment ITS range
+    // resolves, not when the slowest one does.
+    announceChartsUpdated();
   }));
 
   // ---- Moving-average history prefetch (writes to MaStore /

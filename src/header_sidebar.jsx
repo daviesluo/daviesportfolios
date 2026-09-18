@@ -20,6 +20,9 @@ import { Storage } from './storage.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
 import { isIndex } from './ticker_class.js';
 import { PerfPanel } from './perf_chart.jsx';
+import { MOVER_WINDOWS, rangeKeyForWindow, rankMovers, barWidthPct } from './movers.js';
+import { loadRangeCache, CHARTS_UPDATED_EVENT } from './cache.js';
+import { buildTickerSeries, anchorDateFor } from './ytd.js';
 import { OpsErrorBadge, useIsDesktop } from './ops_error_badge.jsx';
 
 // Eye icons for the "hide values" toggle in the scoreboard. Inline SVG so
@@ -423,27 +426,29 @@ function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHi
 
 
 /**
- * TOP MOVERS · TODAY — one set of names, ranked two ways.
+ * TOP MOVERS — one set of names, ranked two ways, over a window you pick.
  *
  * `%` answers "what moved"; `$` answers "what moved the BOOK". They are
- * different questions about the same day, and the answers genuinely
+ * different questions about the same window, and the answers genuinely
  * differ: a 7.9 % pop on a small position tops the percentage list and
  * sits nowhere near the top of the dollar one, while a 1 % drift on the
- * largest holding is the day's real drag. Showing only percentages hid
- * that half.
+ * largest holding is the real drag. Showing only percentages hid that
+ * half.
  *
- * Both rankings read the SAME fields metrics.js already computes for
- * every player — `dayPct` and `dayChange` (mv − prevMV in USD, measured
- * from the same baseline the heat map and the tactics chip use). No
- * second valuation lives here, so the two lists cannot drift from each
- * other or from the tile for the same ticker.
+ * TODAY reads the SAME fields metrics.js already computes for every
+ * player — `dayPct` and `dayChange` (mv − prevMV in USD, measured from
+ * the same baseline the heat map and the tactics chip use) — so the two
+ * lists cannot drift from each other or from the tile for the same
+ * ticker. The longer windows are priced from the per-range history the
+ * performance panel already prefetches, anchored at the window's first
+ * bar by `buildTickerSeries(..., anchorAtWindowStart = true)`: the same
+ * function, the same anchor rule and the same cached rows the chart
+ * draws, so "NVDA over 1M" means one thing in this sidebar.
  *
- * Membership is identical in both modes: a name ranks only if it really
- * moved (`pctIsFlat` — the same predicate the heat map uses to paint a
- * neutral tile) AND its dollar impact rounds to something. What the
- * metric changes is the ORDER, the number, and which side a row falls
- * on — the column is always the sign of the figure being ranked, so a
- * row can never show a minus inside WINNERS.
+ * The window row sits at the FOOT of the panel, where the performance
+ * panel's range row sits, rather than above the lists: one more control
+ * strip stacked over the content would push the names — the thing the
+ * panel is for — below the fold on a phone.
  *
  * @param {{
  *   metrics: any,
@@ -451,72 +456,69 @@ function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHi
  * }} props
  */
 function TopMovers({ metrics, hideValues = false }) {
-  // Persisted in the same `dp.prefs` bag as hideValues: the choice of
-  // question is a preference, not a per-visit mode, and re-picking `$`
-  // on every reload is exactly the kind of friction that makes a
-  // toggle go unused. `loadPrefs` defaults a missing key, so no schema
-  // bump is needed to add one.
+  // Both controls persist in the same `dp.prefs` bag as hideValues: the
+  // choice of question, and of window, is a preference rather than a
+  // per-visit mode, and re-picking it on every reload is exactly the
+  // kind of friction that makes a control go unused. `loadPrefs`
+  // defaults a missing key, so no schema bump is needed to add one.
   const [metric, setMetric] = React.useState(
     () => /** @type {'pct'|'usd'} */ (
       Storage.loadPrefs().moversMetric === 'usd' ? 'usd' : 'pct'));
+  const [window_, setWindow] = React.useState(() => {
+    const saved = Storage.loadPrefs().moversWindow;
+    return MOVER_WINDOWS.includes(saved) ? saved : 'TODAY';
+  });
   const pickMetric = React.useCallback((/** @type {'pct'|'usd'} */ next) => {
     setMetric(next);
     Storage.savePrefs({ ...Storage.loadPrefs(), moversMetric: next });
   }, []);
+  const pickWindow = React.useCallback((/** @type {string} */ next) => {
+    setWindow(next);
+    Storage.savePrefs({ ...Storage.loadPrefs(), moversWindow: next });
+  }, []);
 
-  // Memoised on metrics + metric so the per-tick refresh churn (clock,
-  // flash) doesn't re-flatten every position's players and re-sort the
-  // book on every render.
-  const { winners, losers, scale } = React.useMemo(() => {
+  // The cached history this panel reads has no fetch of its own — the
+  // background prefetch fills it. Without this the first switch to 1M
+  // on a cold start would show an empty window until the next 30-second
+  // refresh happened to re-render the sidebar.
+  const [cacheTick, setCacheTick] = React.useState(0);
+  React.useEffect(() => {
+    const onUpdate = () => setCacheTick(t => t + 1);
+    window.addEventListener(CHARTS_UPDATED_EVENT, onUpdate);
+    return () => window.removeEventListener(CHARTS_UPDATED_EVENT, onUpdate);
+  }, []);
+
+  // Window-start close per ticker, or null where the cache has nothing
+  // yet. Memoised on the window and the cache tick — NOT on `metrics`,
+  // which changes every refresh and would otherwise re-anchor every
+  // holding four times a minute for an answer that only moves when a
+  // new bar lands.
+  const basePriceOf = React.useMemo(() => {
+    const rangeKey = rangeKeyForWindow(window_);
+    if (!rangeKey) return null;
+    const entries = loadRangeCache(new Date().getFullYear(), `${rangeKey}:std`);
+    /** @type {Record<string, any[]>} */
+    const hist = {};
+    for (const [ticker, entry] of Object.entries(entries)) {
+      if (Array.isArray(entry?.data) && entry.data.length > 0) hist[ticker] = entry.data;
+    }
+    const series = buildTickerSeries(hist, anchorDateFor(rangeKey), rangeKey, {}, false, true);
+    return (/** @type {string} */ ticker) => {
+      const anchor = series[ticker]?.janPrice;
+      return typeof anchor === 'number' && anchor > 0 ? anchor : null;
+    };
+  }, [window_, cacheTick]);
+
+  // Memoised on metrics + the two controls so the per-tick refresh
+  // churn (clock, flash) doesn't re-flatten every position's players
+  // and re-sort the book on every render.
+  const { winners, losers, scale, priced } = React.useMemo(() => {
     const allPlayers = [];
     for (const pos of Object.values(metrics.positions)) {
       for (const p of /** @type {any} */ (pos).players) allPlayers.push(p);
     }
-    // Cash never ranks, and neither does a CN fund. This panel is
-    // TOP MOVERS · **TODAY**, and a CN fund quotes a NAV published
-    // after its own close rather than a live price — its `dayPct` is a
-    // real number about a different day, so putting it beside stocks
-    // measured against today's tape compares two different things.
-    // Suppressed only during extended hours before this (`cnSuppress`
-    // in metrics.js), which left it ranking all day against a figure
-    // that was never today's market.
-    //
-    // Only names that ACTUALLY moved rank. A row pinned at 0 — a
-    // no-US-ext venue suppressed during the overnight (SFTBY / .L /
-    // euro / CN fund), a quote nobody has yet (`dayPctUnknown`, which
-    // metrics.js reports as pct 0 and dayChange 0), or a genuinely flat
-    // stock — is neither a winner nor a loser, so it must not pad
-    // either column (the overnight LOSERS list was five red 0.00%
-    // rows). `pctIsFlat` rather than a bare > 0 / < 0, so a row the
-    // heat map paints as a flat neutral tile can't simultaneously rank
-    // here — a -0.004 % move rendered as a dark "no change" tile AND a
-    // red LOSERS row reading "-0.00%".
-    const movable = allPlayers.filter(p =>
-      !p.isCash && p.ticker !== "CASH" && !isCnFund(p.ticker)
-      && !pctIsFlat(p.dayPct));
-    const valueOf = (/** @type {any} */ p) =>
-      metric === 'usd' ? (p.dayChange ?? 0) : (p.dayPct ?? 0);
-    // Sub-50¢ of impact is noise on a book this size and would print as
-    // "+$0", so the DOLLAR list drops it. The percentage list keeps it:
-    // a small holding that really moved 6 % is a green tile on the heat
-    // map, and a name the heat map paints green with no row here is the
-    // same two-surfaces-disagree bug the `pctIsFlat` gate above exists
-    // to prevent. The epsilon belongs to the metric, not to membership.
-    const ranks = metric === 'usd'
-      ? movable.filter(p => Math.abs(p.dayChange ?? 0) >= 0.5)
-      : movable;
-    const up = ranks.filter(p => valueOf(p) > 0)
-      .sort((a, b) => valueOf(b) - valueOf(a)).slice(0, 5);
-    const down = ranks.filter(p => valueOf(p) < 0)
-      .sort((a, b) => valueOf(a) - valueOf(b)).slice(0, 5);
-    // ONE scale across both columns, not one per column. Normalising
-    // each side to its own leader would draw a −$50 top loser as wide
-    // as a +$462 top winner and flatly misreport the shape of the day;
-    // shared, the bars say which side actually owns it.
-    const scale = Math.max(
-      0, ...up.map(p => Math.abs(valueOf(p))), ...down.map(p => Math.abs(valueOf(p))));
-    return { winners: up, losers: down, scale };
-  }, [metrics, metric]);
+    return rankMovers(allPlayers, { window: window_, metric, basePriceOf });
+  }, [metrics, metric, window_, basePriceOf]);
 
   // Arrow keys move between tabs and take focus with them — with
   // `tabIndex={-1}` on the inactive tab (roving tabindex, so Tab treats
@@ -536,25 +538,23 @@ function TopMovers({ metrics, hideValues = false }) {
   /** The figure this row leads with, already formatted and masked. */
   const lead = (/** @type {any} */ p) => isUsd
     ? (hideValues
-        ? mask(fmM(p.dayChange, { signed: true, precision: 0 }))
-        : fmM(p.dayChange, { signed: true, precision: 0 }))
-    : fmP(p.dayPct);
+        ? mask(fmM(p.moveUsd, { signed: true, precision: 0 }))
+        : fmM(p.moveUsd, { signed: true, precision: 0 }))
+    : fmP(p.movePct);
   // The other measure, on hover. It costs no layout and answers the
   // question each list leaves open — "+7.94 % of how much?" one way,
   // "+$462 off what move?" the other.
   const bothOf = (/** @type {any} */ p) => {
     const usd = hideValues
-      ? mask(fmM(p.dayChange, { signed: true, precision: 0 }))
-      : fmM(p.dayChange, { signed: true, precision: 0 });
-    return `${displayTicker(p.ticker)} · ${fmP(p.dayPct)} · ${usd}`;
+      ? mask(fmM(p.moveUsd, { signed: true, precision: 0 }))
+      : fmM(p.moveUsd, { signed: true, precision: 0 });
+    return `${displayTicker(p.ticker)} · ${fmP(p.movePct)} · ${usd} · ${window_}`;
   };
-  const widthOf = (/** @type {any} */ p) => {
-    const v = Math.abs(isUsd ? (p.dayChange ?? 0) : (p.dayPct ?? 0));
-    if (!(scale > 0)) return 0;
-    // Floor at 6 % so the smallest bar is still a mark rather than a
-    // sliver that reads as "no bar drawn".
-    return Math.max(6, (v / scale) * 100);
-  };
+
+  // A window with no priced names at all is not the same as a window
+  // where nothing moved, and saying so is the difference between "the
+  // market was quiet" and "your cache is still filling".
+  const waiting = priced === 0 && rangeKeyForWindow(window_) !== null;
 
   const column = (/** @type {any[]} */ rows, /** @type {'gain'|'loss'} */ side) => (
     <div>
@@ -568,21 +568,23 @@ function TopMovers({ metrics, hideValues = false }) {
               single pixel taller. */}
           <span
             className={`mover-bar ${side}`}
-            style={{ width: widthOf(p) + "%" }}
+            style={{ width: barWidthPct(isUsd ? p.moveUsd : p.movePct, scale) + "%" }}
             aria-hidden="true"
           />
           <span className="mover-ticker mono">{displayTicker(p.ticker)}</span>
           <span className="mono mover-val" style={{ color: `var(--${side})` }}>{lead(p)}</span>
         </div>
       ))}
-      {rows.length === 0 && <div className="mover-row mono dim">—</div>}
+      {rows.length === 0 && (
+        <div className="mover-row mono dim">{waiting ? 'loading…' : '—'}</div>
+      )}
     </div>
   );
 
   return (
     <section className="panel">
       <div className="panel-title-row">
-        <h3 className="panel-title">TOP MOVERS · TODAY</h3>
+        <h3 className="panel-title">TOP MOVERS · {window_}</h3>
         {/* Same switch idiom as the performance panel's VS S&P 500 /
             INVESTMENT tabs — one panel slot, two questions about the
             same window. Subordinate here rather than title-scale,
@@ -611,6 +613,25 @@ function TopMovers({ metrics, hideValues = false }) {
       <div className="movers-grid">
         {column(winners, 'gain')}
         {column(losers, 'loss')}
+      </div>
+      {/* Its OWN class, not the performance panel's `perf-range-btn`,
+          though it shares that button's look through one CSS rule. The
+          browser sweep caught why: with both rows carrying the same
+          class, a `:visible:text-is("1W")` click landed on whichever
+          came first in the DOM — the chart's row on desktop, this one
+          on a phone, where the sidebar is above the chart. Two
+          different controls must not answer to one selector. */}
+      <div className="movers-range-row">
+        {MOVER_WINDOWS.map(w => (
+          <button
+            key={w}
+            type="button"
+            className={`movers-range-btn mono${w === window_ ? ' on' : ''}`}
+            aria-pressed={w === window_}
+            aria-label={`Rank movers over ${w === 'TODAY' ? 'today' : w}`}
+            onClick={() => pickWindow(w)}
+          >{w}</button>
+        ))}
       </div>
     </section>
   );
