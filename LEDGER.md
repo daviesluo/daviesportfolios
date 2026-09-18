@@ -118,6 +118,35 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-18 18:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**iOS status bar is opaque now — SHIPPED UNVERIFIED, and Davies is
+checking it on the phone.** He picked this over living with the haze
+after I put the trade-off to him.
+
+`apple-mobile-web-app-status-bar-style` goes from `black-translucent`
+to `black`, so the system owns that band and there is nothing of ours
+under the iOS 26 scrim to dim. `.app` then takes
+`env(safe-area-inset-top)` exactly inside
+`@media (display-mode: standalone)` rather than `max(8px, env - 8px)`:
+with an opaque bar the inset reads 0 because the system already
+reserved the space, and the old expression would have stacked our 8px
+on top of it and pushed the header down. Net movement should be about
+8px, not 16.
+
+Two things I could not do from here, both worth stating: I cannot run
+iOS 26, and I could not find any CSS or meta that disables the effect
+(Safari 26 ignores `theme-color` and derives edge colours itself; the
+only fix in circulation is dropping `black-translucent`). So this is a
+change to the app's chrome that no gate in this repo can check.
+
+**Reverting is two edits**: `black` back to `black-translucent` in
+`src/index.html`, and delete the `@media (display-mode: standalone)`
+block in `styles.css`. Rebuild and commit `dist/`.
+
+Cost he accepted: the band is system black rather than the app's dark
+green gradient.
+
 ### [2026-09-18 18:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Top Movers' longer windows now measure the HOLDING period, and 3M is

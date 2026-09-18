@@ -819,6 +819,19 @@ before this guard landed).
 
 ## Stack
 
+- **iOS status bar** — the installed PWA asks for an **opaque** status
+  bar (`apple-mobile-web-app-status-bar-style: black`). It used to ask
+  for `black-translucent` and paint its own background up through the
+  bar; iOS 26 draws a glass scrim over that band, which washed out the
+  app title and the clock row. No CSS or meta controls the effect
+  (Safari 26 ignores `theme-color` and derives edge colours itself), so
+  the only fix is to stop asking for a translucent bar. `.app` then
+  takes `env(safe-area-inset-top)` exactly under
+  `@media (display-mode: standalone)` instead of the usual
+  `max(8px, env − 8px)`: the system has already reserved that band, and
+  stacking the app's own 8px under it would move the header down by
+  that much. To go back, restore `black-translucent` in
+  `src/index.html` and delete the standalone rule in `styles.css`.
 - **Frontend** — React 19 + Vite 8, JSX with `checkJs` + JSDoc for type
   safety (no `.tsx`). Bundle output to `dist/` (`/assets/*.js` once
   published), which is the only directory Cloudflare Pages serves. Runtime deps stay minimal (`react`,

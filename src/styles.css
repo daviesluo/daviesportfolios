@@ -148,6 +148,17 @@ body {
   padding-left:   env(safe-area-inset-left);
   padding-right:  env(safe-area-inset-right);
 }
+/* Installed to the home screen, the status bar is opaque (`black` in
+   index.html) and the system owns that band, so the page starts below
+   it and `env(safe-area-inset-top)` reads 0. The `max(8px, …)` above
+   would then stack OUR 8px under the system's bar and push the header
+   a further 8px down — and the point of dropping `black-translucent`
+   was to lose the scrim, not to move the layout. Take the inset
+   exactly: 0 where the system already reserved the space, and the real
+   value on a platform that still hands one over. */
+@media (display-mode: standalone) {
+  .app { padding-top: env(safe-area-inset-top); }
+}
 
 /* Viewer (read-only) badge replacing the EDIT button */
 .ro-badge {

@@ -5,9 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Davies' Portfolios</title>
 
-<!-- iOS PWA: add-to-home-screen runs full-screen with a translucent status bar -->
+<!-- iOS PWA: add-to-home-screen runs full-screen.
+     `black`, NOT `black-translucent`. iOS 26 draws a glass scrim over
+     the top of a translucent status bar, dimming whatever the page
+     paints under it — the app title and the clock row washed out. No
+     CSS or meta controls that effect; Safari 26 ignores `theme-color`
+     and derives edge colours itself, and the only fix is to stop
+     asking for a translucent bar. `black` gives the system an opaque
+     band it owns, so there is nothing of ours underneath to dim.
+     The cost is that the band is system black rather than the app's
+     dark green, and the page now starts below it — see `.app`'s
+     standalone padding rule, which gives the 8px back so the header
+     lands within 8px of where it used to. -->
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Davies's Portfolio">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0c1310">
