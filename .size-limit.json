@@ -1,7 +1,7 @@
 [
   {
     "name": "main bundle (gzipped)",
-    "path": "assets/app-*.js",
+    "path": "dist/assets/app-*.js",
     "limit": "122 KB",
     "gzip": true
   }

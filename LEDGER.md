@@ -118,6 +118,51 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-18 08:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Item 1: built on a branch, NOT yet merged — the preview has to
+confirm it first.** This is the third attempt at the root-publishing
+problem and the first that addresses the cause, so it does not go
+straight to `main`.
+
+The change: Vite's `outDir` moves from `..` (the repo root) to
+`../dist`, the committed bundle moves with it, and `wrangler.jsonc`
+gains `"pages_build_output_dir": "./dist"`. The old `assets.directory`
+key is deleted — it is a WORKERS key, this is a Pages project, and it
+has never done anything; leaving it would preserve the misreading that
+cost two previous fixes.
+
+Everything that named the old paths moved too, and missing one of these
+is how this lands broken: `package.json` (`prebuild`, `verify:browser`),
+`.size-limit.json`, `.gitattributes`' linguist markers, `.gitignore`'s
+note, and the CI bundle-freshness gate in `check.yml`, whose grep for
+`^(assets/|index.html$|sw.js$)` would otherwise never match again — it
+would stop failing on a stale bundle silently, which is worse than
+failing loudly.
+
+Local gates all green against the new layout: typecheck 0, lint 0, 844
+tests, knip clean, size-limit reads `dist/assets/app-*.js` at 110.45 kB,
+and the browser sweep serves `dist` instead of `.` — 98 checks.
+
+**What the preview has to show before this merges:**
+
+  /                                200, and its HTML references the
+                                   asset hash committed on THIS branch
+  /assets/app-<branch hash>.js     200
+  /manifest.webmanifest, /sw.js    200
+  /LEDGER.md                       404
+  /handover.md                     404
+  /src/app.jsx                     404
+  /supabase/functions/auth/index.ts 404
+
+The failure mode is loud, which is the one good thing about it: if
+Pages ignores `pages_build_output_dir` it serves the repo root, and the
+repo root no longer has an `index.html`, so the preview is simply dead
+rather than quietly still publishing everything.
+
+Afterwards, per the item's own plan: rotate both app passwords and
+`APP_AUTH_SECRET` again. The Edge sources were readable for months.
+
 ### [2026-09-18 07:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 Davies cleared items 1-3 of the what-remains list for verify-and-fix.

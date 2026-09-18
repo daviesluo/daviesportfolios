@@ -8,7 +8,7 @@
 # minified app-*.js / index-*.css count as JS / CSS and dominate
 # the bar). The .gitignore explanation in this repo notes why the
 # bundle is committed at all — short version: Cloudflare Pages
-# deploys without a build step, so the artefact rides along.
-assets/* linguist-generated=true
-sw.js linguist-generated=true
-workbox-*.js linguist-generated=true
+# deploys without a build step, so the artefact rides along. It
+# lives in `dist/`, which is also the only directory Pages
+# publishes.
+dist/** linguist-generated=true

@@ -41,8 +41,8 @@ jobs:
           fetch-depth: 0
 
       - name: Bundle freshness — src changes must rebuild the committed bundle
-        # The built bundle (assets/, index.html, sw.js) is committed and
-        # served as-is by Cloudflare (no CF build step), so a change that
+        # The built bundle (dist/) is committed and published as-is by
+        # Cloudflare (no CF build step), so a change that
         # edits src/ but forgets `npm run build` + commit ships STALE JS
         # while CI stays green — the single biggest fragility in the
         # commit-the-bundle model. This catches it: if the PR/push changed
@@ -62,9 +62,9 @@ jobs:
           fi
           CHANGED=$(git diff --name-only $RANGE)
           SRC=$(echo "$CHANGED" | { grep -E '^src/.*\.(js|jsx|css)$' || true; } | { grep -v '\.test\.' || true; })
-          BUNDLE=$(echo "$CHANGED" | { grep -E '^(assets/|index\.html$|sw\.js$)' || true; })
+          BUNDLE=$(echo "$CHANGED" | { grep -E '^dist/' || true; })
           if [ -n "$SRC" ] && [ -z "$BUNDLE" ]; then
-            echo "::error::src/ changed but the committed bundle was not rebuilt. Run 'npm run build' and commit assets/ + index.html + sw.js."
+            echo "::error::src/ changed but the committed bundle was not rebuilt. Run 'npm run build' and commit dist/."
             echo "Changed source files without a bundle rebuild:"; echo "$SRC"
             exit 1
           fi
@@ -115,7 +115,7 @@ jobs:
         run: npm run verify:browser
 
       - name: Bundle size budget (gzipped main bundle)
-        # Hard cap on `assets/app-*.js` gzipped size — see `.size-limit.json`
+        # Hard cap on `dist/assets/app-*.js` gzipped size — see `.size-limit.json`
         # for the current limit. A PR that doubles the bundle (lazy chunks
         # added back to the main chunk, a heavy dep imported eagerly,
         # etc.) goes red instead of silently shipping. Bump the limit in
