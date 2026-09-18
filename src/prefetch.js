@@ -142,11 +142,12 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   // range writing its OWN chunk of dp.ytd / dp.tickerChart as soon
   // as its fetch resolves. Earlier the writes were coalesced into a
   // single Phase C after `Promise.all` — but Promise.all waits for
-  // the SLOWEST range (1M intraday with `range=3mo, interval=60m` is
-  // usually it; that's ~1k bars × 20 tickers from Yahoo), so a 15-20s
-  // 1M response was leaving the user's cache empty for every range
-  // until then. Writing per-range means 1D/3M/YTD land in localStorage
-  // within a couple of seconds even while 1M is still in flight.
+  // the SLOWEST range (the intraday 60-minute pulls, `range=3mo` for
+  // both 1M's MA history and 3M's own bars; that's ~1k bars × 20
+  // tickers from Yahoo), so a 15-20s response was leaving the user's
+  // cache empty for every range until then. Writing per-range means
+  // 1D/1W/YTD land in localStorage within a couple of seconds even
+  // while the 3-month pulls are still in flight.
   //
   // Race safety: JS is single-threaded — every `.then()` callback
   // below runs atomically wrt the others (load → mutate → save is

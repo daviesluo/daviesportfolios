@@ -5,6 +5,7 @@ import {
 } from './ticker_chart_helpers.js';
 import { RANGES, maFetchParamsFor } from './ytd.js';
 import { RANGE_TTL_MS } from './cache.js';
+import { RANGE_BUCKET_SECONDS } from './price_snapshots.js';
 
 describe('fmtTickerPrice', () => {
   it('renders ^TNX as a 2-dp percentage', () => {
@@ -33,7 +34,7 @@ describe('modalTtl', () => {
     expect(modalTtl('1D')).toBe(5 * 60 * 1000);
     expect(modalTtl('1W')).toBe(15 * 60 * 1000);
     expect(modalTtl('1M')).toBe(60 * 60 * 1000);
-    expect(modalTtl('3M')).toBe(12 * 60 * 60 * 1000);
+    expect(modalTtl('3M')).toBe(60 * 60 * 1000);
     expect(modalTtl('YTD')).toBe(12 * 60 * 60 * 1000);
     expect(modalTtl('1Y')).toBe(12 * 60 * 60 * 1000);
   });
@@ -53,6 +54,34 @@ describe('1W cadence — one interval, five call sites', () => {
     expect(NIGHT_BAR_INTERVAL_MS['1W']).toBe(15 * 60_000);
     expect(modalTtl('1W')).toBe(15 * 60 * 1000);
     expect(RANGE_TTL_MS['1W']).toBe(15 * 60 * 1000);
+  });
+});
+
+// Same discipline for 3M, which moved from daily bars to a four-hour
+// sampling grid over 60-minute bars. Its numbers are of TWO kinds and
+// the distinction is the point: the fetch/TTL family tracks the BAR
+// interval (60 m), while the recorded-snapshot read bucket tracks the
+// SAMPLING cadence (4 h), because that is what decides how many stored
+// rows a grid point needs to choose between.
+describe('3M cadence — bars at 60 m, samples every 4 h', () => {
+  it('everything that means "how long is a 3M bar" says 60 minutes', () => {
+    expect(RANGES['3M'].interval).toBe('60m');
+    expect(maFetchParamsFor('3M')?.interval).toBe('60m');
+    expect(modalTtl('3M')).toBe(60 * 60 * 1000);
+    expect(RANGE_TTL_MS['3M']).toBe(60 * 60 * 1000);
+  });
+
+  it('the recorded-row read bucket is the four-hour sampling cadence', () => {
+    expect(RANGE_BUCKET_SECONDS['3M']).toBe(4 * 3600);
+    // Six of them a day, which is what the grid asks for.
+    expect(24 * 3600 / RANGE_BUCKET_SECONDS['3M']).toBe(6);
+  });
+
+  it('3M stays out of the overnight-dot / overnight-splice set', () => {
+    // Its overnight comes from price_snapshots, already on this grid;
+    // overnight_intraday_points would be a second source at a second
+    // resolution over 30 days of a 93-day window.
+    expect(NIGHT_BAR_INTERVAL_MS['3M']).toBeUndefined();
   });
 });
 

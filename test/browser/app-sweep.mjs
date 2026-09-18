@@ -197,7 +197,15 @@ const QUOTES = {
 // app is right to answer "nobody knows" rather than "unchanged".
 const EXT_PRINT = { ACME: 247.2 };
 
-const barsFor = (t, daily, includePrePost = false) => {
+// `sessions` is how many trading days of intraday bars to emit. The
+// LAST one is always the three-bar base/mid/last shape the 1D checks
+// read, plus its ext prints; earlier ones are flat at `base`, so a
+// window opening on any of them opens at the same price the one-day
+// fixture opened at and every percentage this harness asserts is
+// unchanged. Only 3M asks for more than one: it draws on a four-hour
+// grid now, and against a single day of bars it would have had six
+// points to draw three months with.
+const barsFor = (t, daily, includePrePost = false, sessions = 1) => {
   const base = { ACME: 200, NOVA: 100, 'BRIT.L': 2, 'VUAA.L': 80, '^GSPC': 5000 }[t] ?? 100;
   const last = { ACME: 240, NOVA: 120, 'BRIT.L': 2.5, 'VUAA.L': 80, '^GSPC': 5200 }[t] ?? 100;
   const mid = (base + last) / 2;
@@ -211,19 +219,29 @@ const barsFor = (t, daily, includePrePost = false) => {
   const now = new Date(NOW_MS);
   const session = new Date(now);
   if (now.getUTCHours() < 20) session.setUTCDate(session.getUTCDate() - 1);
-  const at = (hh, mm) => {
-    const d = new Date(session);
-    d.setUTCHours(hh, mm, 0, 0);
-    return d.toISOString().slice(0, 16);
-  };
-  const bars = [
-    { date: at(14, 0), close: base },
-    { date: at(17, 0), close: mid },
-    { date: at(19, 55), close: last },
-  ];
-  if (includePrePost && EXT_PRINT[t] != null) {
-    bars.push({ date: at(21, 0), close: EXT_PRINT[t] });
-    bars.push({ date: at(22, 30), close: EXT_PRINT[t] });
+  const bars = [];
+  for (let back = sessions - 1; back >= 0; back--) {
+    const day = new Date(session);
+    day.setUTCDate(day.getUTCDate() - back);
+    if (day.getUTCDay() === 0 || day.getUTCDay() === 6) continue;
+    const at = (hh, mm) => {
+      const d = new Date(day);
+      d.setUTCHours(hh, mm, 0, 0);
+      return d.toISOString().slice(0, 16);
+    };
+    if (back > 0) {
+      bars.push({ date: at(14, 0), close: base });
+      bars.push({ date: at(17, 0), close: base });
+      bars.push({ date: at(19, 55), close: base });
+      continue;
+    }
+    bars.push({ date: at(14, 0), close: base });
+    bars.push({ date: at(17, 0), close: mid });
+    bars.push({ date: at(19, 55), close: last });
+    if (includePrePost && EXT_PRINT[t] != null) {
+      bars.push({ date: at(21, 0), close: EXT_PRINT[t] });
+      bars.push({ date: at(22, 30), close: EXT_PRINT[t] });
+    }
   }
   return bars;
 };
@@ -294,9 +312,17 @@ async function newPage(browser, { width, height }, errors, tokenMisses) {
       const interval = u.searchParams.get('interval') || '1d';
       const daily = /^\d+(d|wk|mo)$/.test(interval);
       const pp = u.searchParams.get('includePrePost') === 'true';
+      // Only the 3-month window gets a multi-day intraday series, and
+      // it starts exactly where the DAILY fixture starts (60 days
+      // back) — so the 3M chart covers the same span, over the same
+      // lots, that it did when it drew daily bars, and every existing
+      // assertion about it still measures what it measured. Every
+      // other range keeps its single session.
+      const range = u.searchParams.get('range') || '1d';
+      const sessions = range === '3mo' ? 61 : 1;
       const out = {};
       for (const t of (u.searchParams.get('tickers') || '').split(',').filter(Boolean)) {
-        out[t] = barsFor(t, daily, pp);
+        out[t] = barsFor(t, daily, pp, sessions);
       }
       return json(out);
     }
@@ -424,15 +450,25 @@ async function run() {
           // was never laid out, so every path has zero width.
           const panel = [...document.querySelectorAll('.perf-chart-wrap')]
             .find((w) => w.getBoundingClientRect().width > 0)?.closest('.panel');
+          const paths = [...(panel?.querySelectorAll('svg path[d^="M"]') || [])];
           return {
             empty: !!panel?.querySelector('.sparkline-empty'),
-            lines: panel?.querySelectorAll('svg path[d^="M"]').length ?? 0,
+            lines: paths.length,
+            pts: Math.max(0, ...paths.map((p) => (p.getAttribute('d') || '').split(/[ML]/).length - 1)),
             vals: [...(panel?.querySelectorAll('.perf-val') || [])].map((e) => e.textContent),
           };
         });
         if (state.empty) fail(S(`range/${view}/${label}`), 'Insufficient data');
         else if (state.lines < 2) fail(S(`range/${view}/${label}`), `${state.lines} line(s)`);
-        else ok(S(`range/${view}/${label}`), `${state.lines} lines, legend ${state.vals.join(' / ')}`);
+        else ok(S(`range/${view}/${label}`), `${state.lines} lines, ${state.pts} pts, legend ${state.vals.join(' / ')}`);
+        // 3M draws on the four-hour London grid: six points per weekday
+        // rather than one per trading day. The fixture serves 40
+        // sessions of intraday bars, so ~6 x 40 is the floor here; a
+        // regression to a daily grid would put this at ~40.
+        if (label === '3M' && !state.empty) {
+          if (state.pts >= 150) ok(S(`grid/${view}/3M`), `${state.pts} points — four-hour grid`);
+          else fail(S(`grid/${view}/3M`), `${state.pts} points, expected the ~6-a-weekday grid`);
+        }
         seen[view][label] = state.vals.map((v) => Number(String(v).replace('%', '')));
       }
     }

@@ -56,6 +56,12 @@ list stays the short version; the plan is the reasoning behind it.
 5. **Issue #207** (`edge-functions failed on main`, opened 2026-08-18)
    is stale — that workflow has been green on every push since. Close it
    or leave it for the next real failure to bump.
+6. **Top Movers still only reads TODAY.** The last open item of the
+   2026-09-17 batch: Davies asked for the window to open up beyond the
+   day, "with design sense and the best visual and interaction effect".
+   Nothing has been built. The bundle headroom was freed for it on
+   purpose — 12.4 kB under the 122 kB budget as of the four-hour-grid
+   commit.
 
 Nothing else is in flight. `main` is clean and pushed.
 
@@ -104,6 +110,84 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-18 01:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**3M draws on a four-hour London grid.** Davies asked for the T212
+shape: six points a day at 01 / 05 / 09 / 13 / 17 London plus one
+pinned to the actual US close. Done, and the blocker written down in
+the 22:55 entry below turned out to be the wrong frame.
+
+That entry said the grid had to come from the benchmark, so 3M would
+need a 24 h benchmark (ES=F) and would stop being a comparison against
+the cash index. It does not. The grid is now an EXPLICIT list of
+instants — `fourHourSlots` in `market_hours.js` — and BOTH lines are
+read at those instants by "last print at or before", the same rule
+`closeOn` already applied to the book. `^GSPC` stays the benchmark; it
+simply reads flat at 01 / 05 / 09 London, which is not a drawing
+artifact but the truth about an index whose market is shut, and it is
+the difference the panel exists to show: the book moved overnight and
+the S&P did not.
+
+What made the grid worth having on THIS book is that it is not one
+venue. 05:00 London is Hong Kong and the mainland trading; 09:00 is the
+London open; 13:00 is London's afternoon and US pre-market; 17:00 is
+mid-afternoon in New York. `ytd.test.js` pins that closed-form: 10
+NVDA + 100 0700.HK, and the value walks 6120 / 6376 / 6632 / 6632 /
+6672 / 6732 across the six slots — moving where Hong Kong is open and
+the US is shut, flat at 12:00 UTC where both are, moving again once New
+York opens. On the old daily grid that whole day is ONE number.
+
+**The sixth slot is pinned, not written down as 21:00.** 21:00 London
+is the close only while the UK and the US are in the same DST regime.
+For the ~3 weeks from the second Sunday in March and the ~1 week from
+the last Sunday in October, the US closes at 20:00 London, and a fixed
+21:00 would fold an hour of after-hours into the "close" point.
+`usCloseUtcMs` asks `usMarketHoursUtc` per day; all four regimes are
+pinned by test.
+
+Weekends emit nothing. The x axis is index-based, so six flat points a
+day for two days in seven would spend a quarter of the chart's width
+saying nothing — and 1W / 1M have never had weekend points either,
+their grids being Yahoo bars.
+
+Everything downstream moved with it: `RANGES['3M']` to 60m bars (a grid
+finer than the bars would sample one daily close six times AND read it
+twenty hours early), the MA fetch to 6mo/60m, both cache TTLs to an
+hour, and `crosshairFormatFor('3M')` to date+time — six points a day
+under a bare date would label six consecutive points identically.
+`RANGE_BUCKET_SECONDS['3M']` and the 35 d - 100 d prune band were
+already at four hours and needed nothing.
+
+**Evidence.** All gates green, plus the browser sweep, which now
+asserts the grid: 3M draws **261 points where it drew 3**, at both
+breakpoints and on both views, while every percentage it reports is
+byte-identical to before (vs-S&P +20.09 % / +4.00 %, Investment
++27.30 % / +6.00 %, reconcile exact). Same window, same numbers, 87x
+the resolution. The counterfactual came free — the sweep was run once
+against a stale bundle and the new check failed with "3 points".
+
+Two things learned while getting there, both worth not re-deriving:
+
+- The sweep's intraday fixture served ONE session of bars whatever
+  window was asked for, so 1W / 1M / 3M were all drawn from three
+  bars. 3M now gets 61 sessions, starting exactly where the daily
+  fixture started, so its span and its lots are unchanged and every
+  existing assertion still measures what it measured.
+- The sweep's `reconcile` identity, `(1 + value%) / (1 + deposited%)
+  == 1 + portfolio%`, is exact only when nothing was bought inside the
+  window OR the deposit line's level equals the book's value at the
+  window start. Widening the fixture's other windows put a lot inside
+  them and broke it by 3.6 points, which looked like a chart bug and is
+  not: the app reports `V1 / (V0 + C)` and the identity assumes
+  `D0 == V0`. Left alone; a future session widening that fixture should
+  expect it.
+
+Known and deliberate: a date-only bar (a CN fund's once-a-day NAV) is
+treated by `resampleToSlots` as that day's CLOSE, so it cannot be read
+at the 01:00 slot hours before it is published. `closeOn` itself still
+has the older version of that leak on 1W / 1M, where it has always
+been; not touched here.
 
 ### [2026-09-17 23:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

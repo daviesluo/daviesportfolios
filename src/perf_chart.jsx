@@ -11,7 +11,7 @@
 import React from 'react';
 import { fxToUSD } from './fx.js';
 import { fetchHistorical, fetchHistoricalBatch } from './historical.js';
-import { usMarketHoursUtc } from './market_hours.js';
+import { usMarketHoursUtc, fourHourSlots } from './market_hours.js';
 import { YtdStore } from './chart_store.js';
 import {
   buildTickerSeries,
@@ -22,6 +22,7 @@ import {
   fetchParamsFor,
   applyVariantFilter,
   panelRangeLabel,
+  resampleToSlots,
 } from './ytd.js';
 import { pointerToDataIndex, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
 import { depositSeries } from './deposit_series.js';
@@ -86,7 +87,10 @@ export function perfFetchParams(rangeKey, extendedHours, phase) {
 // perf_chart.test.jsx.
 export function crosshairFormatFor(rangeKey) {
   if (rangeKey === '1D') return 'time';
-  if (rangeKey === '1W' || rangeKey === '1M') return 'datetime';
+  // 3M joined this set when it went to six points a day: date alone
+  // would label six consecutive points identically, so the pill could
+  // no longer say which point it was on.
+  if (rangeKey === '1W' || rangeKey === '1M' || rangeKey === '3M') return 'datetime';
   return 'date';
 }
 
@@ -122,8 +126,12 @@ function RangeButtons({ rangeKey, onChange }) {
 //   1D   → 5  m bars  →  5 m TTL
 //   1W   → 15 m bars  → 15 m TTL
 //   1M   → 60 m bars  →  1 h TTL
-//   3M   →  1 d bars  → 12 h TTL
+//   3M   → 60 m bars  →  1 h TTL
 //   YTD  →  1 d bars  → 12 h TTL
+// 3M samples every four hours but READS 60-minute bars, and it is the
+// bar interval a TTL has to match: at a four-hour TTL the newest grid
+// point can fall due before the bar it should read has been fetched,
+// and the line's right edge carries the previous slot forward.
 // Stale-while-revalidate (below) renders the chart instantly past TTL
 // while a fresh fetch runs silently in background — these caps just
 // govern when the silent refetch fires.
@@ -131,7 +139,7 @@ const PERF_CACHE_TTL_MS = {
   '1D':  5  * 60 * 1000,
   '1W':  15 * 60 * 1000,
   '1M':  60 * 60 * 1000,
-  '3M':  12 * 60 * 60 * 1000,
+  '3M':  60 * 60 * 1000,
   'YTD': 12 * 60 * 60 * 1000,
 };
 
@@ -581,9 +589,23 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     anchorDate = anchorDateFor(rangeKey);
   }
 
+  // The x grid. 1D arrives pre-trimmed; 3M is sampled onto an explicit
+  // four-hour London grid (see `fourHourSlots`) instead of taking
+  // whatever instants the benchmark happens to publish bars at; every
+  // other range uses the benchmark's own bars.
+  //
+  // Sampling the GRID is the whole change: the portfolio is valued at
+  // each grid point by the same `computeAt` as before, so there is
+  // still exactly one valuation and the benchmark line and the book are
+  // read by the same "last print at or before" rule.
+  const windowSlots = rangeKey === '3M'
+    ? fourHourSlots(rangeStartMs('3M', Date.now()), Date.now())
+    : null;
   let spWindow = rangeKey === '1D'
     ? allSp                                  // already trimmed at fetch time
-    : allSp.filter(p => p.date >= anchorDate);
+    : windowSlots
+      ? resampleToSlots(allSp, windowSlots)
+      : allSp.filter(p => p.date >= anchorDate);
   let hasSp = spWindow.length >= 2;
   if (!hasSp) {
     let bestKey = null, bestLen = 0;
@@ -596,7 +618,11 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
       return renderShell(<div className="sparkline-empty dim mono">No data for this range</div>, rangeKey, setRangeKey);
     }
     const fallbackSeries = (hist?.[bestKey] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
-    spWindow = rangeKey === '1D' ? fallbackSeries : fallbackSeries.filter(p => p.date >= anchorDate);
+    spWindow = rangeKey === '1D'
+      ? fallbackSeries
+      : windowSlots
+        ? resampleToSlots(fallbackSeries, windowSlots)
+        : fallbackSeries.filter(p => p.date >= anchorDate);
   }
   const yearStartDate = spWindow[0].date;
   const todayMs = Date.now();

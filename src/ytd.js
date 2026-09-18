@@ -34,7 +34,15 @@ export const RANGES = {
   // point re-fetching faster than Yahoo publishes a bar.
   '1W':  { yahooRange: '1mo', interval: '15m', label: '1W'  },
   '1M':  { yahooRange: '1mo', interval: '60m', label: '1M'  },
-  '3M':  { yahooRange: '3mo', interval: '1d',  label: '3M'  },
+  // `60m`, not `1d`. 3M draws on an explicit four-hour London grid
+  // (`fourHourSlots`) rather than on whatever bars the benchmark
+  // happens to have, and a grid finer than the bars would sample the
+  // same daily close six times over — a staircase, and a lookahead:
+  // the 01:00 slot would already be reading a close printed twenty
+  // hours later. 60m is the coarsest interval that gives every slot
+  // inside a session its own bar, and Yahoo serves it back 730 days,
+  // well past this range's 93.
+  '3M':  { yahooRange: '3mo', interval: '60m', label: '3M'  },
   'YTD': { yahooRange: 'ytd', interval: '1d',  label: 'YTD' },
   // 1Y (trailing 12 months) is a ticker-MODAL-only range — deliberately
   // NOT in RANGE_KEYS below, so the portfolio PerfChart (whose math
@@ -122,7 +130,10 @@ export function maFetchParamsFor(rangeKey, dailyOnly = false) {
     // lead-in before the 130-bar display window.
     '1W':  { range: '1mo', interval: '15m' },
     '1M':  { range: '3mo', interval: '60m' },
-    '3M':  { range: '6mo', interval: '1d'  },
+    // 6mo at 60m is ~910 bars against a ~455-bar display window, so
+    // the MA has ~455 bars of lead-in for a window `maBarsFor` puts at
+    // 20 days x 7 bars = 140.
+    '3M':  { range: '6mo', interval: '60m' },
     'YTD': { range: '1y',  interval: '1d'  },
     // 1Y view draws a 200-day MA, so the overlay needs ~200 trading
     // days of lead-in BEFORE the leftmost (12-months-ago) display bar.
@@ -134,7 +145,7 @@ export function maFetchParamsFor(rangeKey, dailyOnly = false) {
     '1Y':  { range: '2y',  interval: '1d'  },
   }[rangeKey];
   if (!intraday) return null;
-  if (dailyOnly && (rangeKey === '1W' || rangeKey === '1M')) {
+  if (dailyOnly && (rangeKey === '1W' || rangeKey === '1M' || rangeKey === '3M')) {
     return { range: intraday.range, interval: '1d' };
   }
   return intraday;
@@ -166,6 +177,41 @@ export function filterToLastHours(points, hours) {
   // weekend), fall back to the most recent calendar day so the chart
   // still has data to draw rather than going blank.
   return out.length >= 2 ? out : filterToLatestDay(points);
+}
+
+/**
+ * Resample a bar series onto an explicit grid of instants.
+ *
+ * Each slot takes the last bar AT OR BEFORE it — the same "last print
+ * so far" rule `closeOn` applies to the portfolio, so the benchmark and
+ * the book are read the same way and cannot drift apart. A slot before
+ * the series starts emits nothing.
+ *
+ * A DATE-ONLY bar (`YYYY-MM-DD`, what a CN fund's once-a-day NAV
+ * arrives as) is treated as that day's close, not as its 00:00 — string
+ * comparison would otherwise make the day's NAV available at the 01:00
+ * slot, hours before it is published.
+ *
+ * @template {{date: string, close: number}} T
+ * @param {T[]} points
+ * @param {number[]} slots  epoch ms, ascending
+ * @returns {{date: string, close: number}[]}
+ */
+export function resampleToSlots(points, slots) {
+  if (!Array.isArray(points) || points.length === 0 || !Array.isArray(slots)) return [];
+  const sorted = points.slice().sort((a, b) => a.date.localeCompare(b.date));
+  const keyOf = (d) => (typeof d === 'string' && d.length === 10 ? `${d}T23:59` : d);
+  /** @type {{date: string, close: number}[]} */
+  const out = [];
+  let i = 0;
+  /** @type {{date: string, close: number} | null} */
+  let last = null;
+  for (const ms of slots) {
+    const slotKey = new Date(ms).toISOString().slice(0, 16);
+    while (i < sorted.length && keyOf(sorted[i].date) <= slotKey) last = sorted[i++];
+    if (last) out.push({ date: slotKey, close: last.close });
+  }
+  return out;
 }
 
 /**
