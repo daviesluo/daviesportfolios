@@ -15,7 +15,10 @@ has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
 1. **THE LIVE SITE PUBLISHES THE WHOLE REPOSITORY, AND STILL DOES.**
-   Re-measured 2026-09-05: `handover.md`, `LEDGER.md`, all of `src/`,
+   Re-measured 2026-09-18: `/LEDGER.md`, `/handover.md`, `/src/app.jsx`
+   and `/supabase/functions/auth/index.ts` all still return 200 to an
+   unauthenticated fetch of the production host. First measured
+   2026-09-05: `handover.md`, `LEDGER.md`, all of `src/`,
    `supabase/functions/*` and the migration carrying purchase records
    all return 200 to an unauthenticated fetch, with
    `Access-Control-Allow-Origin: *`.
@@ -55,7 +58,9 @@ list stays the short version; the plan is the reasoning behind it.
    write the real model. Davies decides whether to backfill.
 5. **Issue #207** (`edge-functions failed on main`, opened 2026-08-18)
    is stale — that workflow has been green on every push since. Close it
-   or leave it for the next real failure to bump.
+   or leave it for the next real failure to bump. Still open and
+   still stale, re-checked 2026-09-18.
+
 Nothing else is in flight. `main` is clean and pushed.
 
 ## Machine and platform setup
