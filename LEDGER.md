@@ -118,6 +118,43 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-19 01:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Both heat-map layout rewrites reverted. The board is back to the
+binary-split treemap as it stood at `afe3f98`**, the commit that finished
+the iOS top ramp. Davies, after seeing the second one: 还是不满意 — revert
+to how it was before I touched it, 原来那样挺好的.
+
+`src/heatmap.jsx`, `src/heatmap.test.js` and `README.md` are checked out
+from `afe3f98` and are byte-identical to it. `dist/` is a fresh build of
+that source: same 357,740 bytes, the only textual difference the build
+stamp (`2026.9.18.1850` -> `2026.9.19.0126`), which is what drives the
+service-worker update prompt and should be new so devices actually pick
+the revert up. The vitest count is back to 848 — the ten treemap pins went
+with the code they pinned.
+
+**The two entries below stay: they record what happened, not what is in
+the tree.** Neither rewrite was wrong in the way it was measured — the
+first cut the repeated rectangles, the second cut the worst aspect ratio
+from 21.2:1 to 5.4:1 and laid clean edge-to-edge seams. He liked both
+less than what they replaced. That is the whole lesson and it is now in
+`working-with-davies`: taste is not a bug report, one attempt is fair,
+and if the second misses, STOP and offer the revert instead of shipping a
+third. The two engineering notes that came out of those rewrites
+(veto-with-no-comparison, judging-a-cut-by-its-own-halves) were pulled
+from the skill in the same commit — they described machinery that no
+longer exists, and a lesson pointing at absent code sends the next
+session hunting.
+
+Nothing is left open on the heat map. If it is ever revisited, the thing
+to establish FIRST is a picture of the target he agrees with; both
+attempts here were built from a description and measured against numbers
+he never asked for.
+
+Gates on the pushed tree: typecheck 0, lint 0 errors, 848 vitest, knip
+clean, bundle 110.52 kB of 122, verify:browser 98 checks. No Edge
+Function touched.
+
 ### [2026-09-19 01:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The fix for the boring grid overshot into a mess, and the real ask was

@@ -425,23 +425,17 @@ Read these as a checklist before pushing.
   '%{http_code}'` cannot tell them apart. A whole verification pass was
   wasted concluding a working fix had failed. Compare CONTENT: fetch the
   path and look at the first line.
-- **Judging a cut only by its own two halves.** Twice in one session.
-  The heat map's split rule checked the tiles a cut produced and never
-  what it left behind, so a perfectly well-shaped band took all the room
-  and stranded the next holding in a 13 x 246 splinter. Then the count
-  that takes ALL the remaining holdings, exempted from the guards
-  because it has to be legal, won on score instead and swallowed a whole
-  book. A candidate has to be costed by the state it hands on, and an
-  option that exists only as a last resort must not compete on score.
-- **Adding a guard that only rejects, with nothing to compare against.**
-  The heat map's new split rule vetoed a cut whose tile would be too
-  elongated. The fallback it dropped to was worse: the CN fund lost the
-  141x34 strip it could have been labelled in and got a 275x18 band it
-  could not. The browser sweep caught it on a check I had not touched.
-  A veto is only safe where the thing it refuses is unusable outright —
-  a tile too small for its own ticker. Where the objection is "that is
-  less handsome", price it into the score and let the chooser weigh it,
-  because a rejection with no alternative in hand is a blind swap.
+- **Iterating on a LOOK he has already rejected twice.** He asked for
+  the heat map's repeated top-row rectangles to stop being boring. Two
+  redesigns went out — an off-centre split, then full-width bands — each
+  measured, rendered, gated and pushed, and each one he liked less than
+  what it replaced. The third answer was his: revert to the layout from
+  before any of it. Both rewrites were reverted whole (2026-09-19).
+  Taste is not a bug report. One attempt is fair; if the second misses,
+  STOP and offer the revert rather than shipping a third — and when a
+  change is purely about how something looks, get a picture of the
+  target agreed before rewriting the algorithm behind it. An
+  aspect-ratio number improving is not him liking it more.
 - **Running the browser sweep against a stale bundle.** It serves the
   COMMITTED bundle from the repo root, so without `npm run build` first
   it tests the previous commit. Cost most of an hour chasing a "3M is
