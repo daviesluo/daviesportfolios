@@ -425,6 +425,14 @@ Read these as a checklist before pushing.
   '%{http_code}'` cannot tell them apart. A whole verification pass was
   wasted concluding a working fix had failed. Compare CONTENT: fetch the
   path and look at the first line.
+- **Judging a cut only by its own two halves.** Twice in one session.
+  The heat map's split rule checked the tiles a cut produced and never
+  what it left behind, so a perfectly well-shaped band took all the room
+  and stranded the next holding in a 13 x 246 splinter. Then the count
+  that takes ALL the remaining holdings, exempted from the guards
+  because it has to be legal, won on score instead and swallowed a whole
+  book. A candidate has to be costed by the state it hands on, and an
+  option that exists only as a last resort must not compete on score.
 - **Adding a guard that only rejects, with nothing to compare against.**
   The heat map's new split rule vetoed a cut whose tile would be too
   elongated. The fallback it dropped to was worse: the CN fund lost the

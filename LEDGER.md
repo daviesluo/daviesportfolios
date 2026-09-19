@@ -118,6 +118,69 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-19 01:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The fix for the boring grid overshot into a mess, and the real ask was
+about SEAMS.** Davies on the pushed board: 太乱了 — he wants the effect of
+the lower half of the ORIGINAL screenshot, 多元但还是整齐.
+
+Measuring his screenshot says exactly what was wrong. MSTR's bottom edge
+sat at y=1005, ORCL / RKLB / PLTR's at 1075: two seams 70 px apart, each
+crossing only part of the board. The eye follows a line and finds a step
+in it. That is what an off-centre cut buys you — it does break the
+repetition, and it leaves every region ending on a coordinate of its own.
+The old layout looked orderly because its top-level cuts happened to
+produce bands that ran the full width.
+
+So the layout is bands by construction. Each pass lays ONE band across
+the full width (or full height) of the space left; the leftover is a
+rectangle and the next band fills it the same way, so every seam runs
+edge to edge inside its own region. Variety moved into the band: how many
+holdings share it, hence its thickness and its tile widths. The count is
+scored against a shape the band is asked for — tile width over band
+thickness, 0.62 to 1.75 along a golden-ratio walk — so consecutive bands
+never come out the same. On his book that is two, then three, then a
+column of three.
+
+**Two guards, and both were learned the hard way in this session.** A
+count is refused if it puts a tile under the label size, past 3:1, OR
+leaves a strip too thin for another band. That third one is the same
+lesson as yesterday's veto-with-no-comparison, one level up: judging a
+cut only by its own two halves and never by what it leaves behind is how
+the CN fund ended in a 13 x 246 splinter. And the count that takes
+everything remaining is NOT exempt from the guards — left competing on
+score it won on the fixture's five-holding book and swept the lot into
+one band. It reaches the layout only as the last-resort fallback.
+
+The tail hands over to the ORIGINAL binary split, below 90 px of short
+side or 6 holdings left: a band can only span the full width, so a 1 %
+tail becomes a row of slivers, while a nested corner can still give the
+same holdings squarish tiles. That corner is the part of the old board
+he liked, kept as it was.
+
+Measured over eight book shapes at eight canvas sizes, against what was
+pushed at 20:00: worst aspect ratio anywhere 21.2:1 -> 5.4:1 (the 21.2
+was a 275 x 13 sliver at 532 x 612 — a latent defect in yesterday's push
+that only shows at intermediate widths, which is why the size set now
+covers the real range instead of two points). Tiles too small to label
+19 -> 17. Longest run of look-alike tiles among the top eight 3.44 ->
+3.93, against 4.68 for the original rule — slightly more repetition than
+the messy version, which is the trade he asked for.
+
+**A metric that disagrees with the eye is worth saying out loud.** I
+built a "mis-aligned step" count and it rated the bands WORSE than both
+predecessors. It counts pairs, so whichever layout packs more small tiles
+into one corner loses; and its window was 2-28 px while the seams he
+objected to were 70 px apart. Rebuilt per-edge it still did not separate
+them. The decision rests on the rendered comparison at both breakpoints
+plus aspect ratio and label coverage, which do measure cleanly — not on
+that number.
+
+Gates on the pushed tree: typecheck 0, lint 0 errors, 858 vitest, knip
+clean, bundle 111.08 kB of 122, verify:browser 98 checks. Counterfactual
+run: the original split fails four of the new pins. No Edge Function
+touched.
+
 ### [2026-09-18 20:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The heat map's top half was a grid because the split rule always cut
