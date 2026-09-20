@@ -76,16 +76,19 @@ it.
 Do not copy live balances out of `LEDGER.md` or `handover.md` into new
 files, issues, or anything public. The repo is private; those files quote
 real positions.
-## Agents (crypto, Revolut X + TypeSafe Jev)
+## Agents (crypto, Revolut X + Kraken + TypeSafe Jev)
 
 Read `docs/agents/reference.md` before touching anything under the
 agents feature. It holds every verified fact about **TypeSafe: Jev 1.13**
 (a System One decision model, released 2026-09-17 — it answers typed
 questions with probabilities and cannot generate text; it is in no
-model's training data, so nothing about it may be written from memory)
-and the **Revolut X REST API** (Ed25519-signed, 0 % maker / 0.09 %
-taker, a 1,000-per-day token bucket on the place-order endpoint), plus the live measurements the design rests
-on. The rules that follow from that evidence, in short:
+model's training data, so nothing about it may be written from memory),
+the **Revolut X REST API** (Ed25519-signed, 0 % maker / 0.09 % taker,
+1,000 orders a day) and the **Kraken spot REST API** (HMAC-SHA512-signed,
+0.40 % maker / 0.80 % taker at this account's tier, OHLC capped at the
+720 most recent candles, `validate=true` dry run), plus the live
+measurements and the two read-only probes the design rests on. The rules
+that follow from that evidence, in short:
 
 - Jev is a decision node inside a rulebook, never the source of the
   edge. Code computes every number; Jev sees a short categorical state;
@@ -101,7 +104,16 @@ on. The rules that follow from that evidence, in short:
   first live order needs his confirmation in the same conversation.
 - Record inputs (state, answers, order request/response, fills), not
   conclusions; P&L is computed in one place.
-- Secrets already in Supabase: `Revolut_X_API_kEY`, `openrouter_api_key`,
+- One venue per strategy row (`agent_strategies.venue`): Revolut X for
+  live money (maker is free), Kraken for data and for the paper twins
+  (its 0.40 % maker fee takes 8–14 points a year off these rules —
+  reference §3.3). Paper fills pay the venue's real maker fee. Caps in
+  `agent_risk` are per venue account.
+- Verify a key read-only before anything depends on it: the `probe`
+  action (balances, pair config, a signed call with a query, Kraken
+  `AddOrder validate=true`, Jev on both transports). It places nothing.
+- Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
+  `KRAKEN_PRO_API_KEY` + `KRAKEN_PRO_PRIVATE_KEY`, `openrouter_api_key`,
   `typesafe_API_KEY` (fallback). Never print them, never move them.
 
 ## Git workflow

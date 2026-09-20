@@ -14,19 +14,25 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-0. **Agents (crypto auto-trading) — research done, build NOT started,
-   blocked on four answers from Davies.** Everything verified about
-   TypeSafe Jev 1.13 and the Revolut X API, with the live measurements,
-   is in `docs/agents/reference.md`; CLAUDE.md has the short rules. The
-   feature goes on a PR branch (he asked for one). Before any code that
-   touches money: (1) is the Ed25519 PRIVATE key in Supabase secrets, and
-   under what name — the 64-char `Revolut_X_API_kEY` cannot sign a
-   request; (2) is the "$100 sub-account" a separate Revolut X login or a
-   sub-portfolio the same key can trade across; (3) key permission and IP
-   allowlist; (4) paper-first confirmed. Design already decided by the
-   evidence: Jev as a decision node on categorical state, 5-minute loop,
-   closed 1h/4h bars, limit orders, BTC/ETH/SOL only, hard caps in code,
-   inputs recorded not conclusions. See the 2026-09-20 03:15 entry.
+0. **Agents (crypto auto-trading) — built on the PR branch
+   `claude/repo-audit-restore-uverhn`, paper only, waiting on the PR.**
+   Server: `supabase/functions/agents/` (tick / dashboard / log / probe),
+   `_shared/{jev,revx,kraken,venue,agents_strategy,bytes}.ts`, migration
+   `0037_agents.sql` (four PAPER strategies: two rulebooks × two venues,
+   per-venue caps, the 5-minute cron), the walk-forward backtester and
+   `docs/agents/backtests/`. Client: the ☰ → Agents page. All gates green
+   incl. the browser sweep (116 checks). Both key pairs verified by the
+   read-only probe (reference §6): the Revolut X key sees the sub-account
+   only; the Kraken key has trading permission, `validate=true` placed
+   nothing, the account is empty and its currencies are USDC and GBP.
+   Merging applies 0037 (the cron starts ticking, paper) and deploys the
+   function. What is still open, in order: (1) Davies decides whether to
+   fund Kraken with $100 USD — the paper twins run without it; (2) after
+   a few weeks of paper on both venues, review fills and Jev's vote from
+   the decision log (`agent_decisions`) before any strategy goes live;
+   (3) live is three switches, all his — `agent_strategies.mode`,
+   `agent_risk.live_confirmed_at`, the gate — and the first live order
+   needs his confirmation in the conversation. Never apply 0037 by hand.
 
 1. **Cloudflare's edge still serves five cached copies of the old
    exposure, for up to seven days.** The ORIGIN is fixed — every path
@@ -131,6 +137,52 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-20 04:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Agents built, on the PR branch, paper only; Kraken added as a second
+venue; both key pairs verified read-only.** Davies answered the four
+questions (private key is `REVOLUT_X_PRIVATE_KEY`; the key was made under
+Revolut X's Sub-accounts feature; no IP allowlist; paper first) and mid-way
+added a Kraken Pro key pair (`KRAKEN_PRO_API_KEY` / `KRAKEN_PRO_PRIVATE_KEY`,
+trading permission, unfunded) asking whether Kraken is better in some
+respects and whether the two can coexist.
+
+- **Probes** (`GET agents?action=probe`, read-only, fired from the database
+  with the Vault `cron_secret` at 03:49 and 04:08 UTC): the Revolut X key's
+  signed `/balances` shows exactly one USD row — the sub-account, nothing of
+  the main account; the private key is bare PKCS#8 base64; a signed call
+  WITH a query string returned 200, so the "query without ?" signing is
+  right. Kraken: secret decodes to 64 bytes; `Balance` shows an empty account
+  whose currencies are USDC and GBP; `TradeVolume` puts this account at
+  0.40 % maker / 0.80 % taker; `OpenOrders` works; **`AddOrder validate=true`
+  returned the order description and no txid** — trading permission proven
+  without an order. Jev answered on both transports in 460–690 ms for
+  $0.000018 a call; the `score` answer is the expected level index on a
+  0…(levels−1) scale. Full record: `docs/agents/reference.md` §6.
+- **Kraken verdict** (reference §2b): its book is 100× tighter and orders of
+  magnitude deeper, its history is complete (quarterly CSV bundle) and
+  `validate=true` is a real dry run — but at this account's tier a maker
+  round trip costs 80 bps against ~0 on Revolut X. The same rules priced on
+  Kraken lose 8–14 points a year out of sample (§3.3, `backtest.ts` now
+  prices both venues). So: Revolut X for live money, Kraken for data and for
+  paper twins that measure what the deeper book gives back. A venue
+  interface (`_shared/venue.ts`) with two adapters; every strategy row names
+  its venue and its paper fills pay that venue's maker fee.
+- **Built:** `tick.ts` (candles → settle → decide → order, per venue),
+  `index.ts` (tick / dashboard / log / probe; cron bearer or app token, ro
+  may read), `db.ts`, `kraken.ts` (documented signing vector pinned),
+  `revx.ts` (keyless public market data + venue adapter), migration 0037
+  (venue/kind columns, per-venue caps, four paper strategies, the cron),
+  `edge-functions.yml` PUBLIC_FNS += agents, the Agents page
+  (`src/agents.{js,jsx}`, ☰ menu item, styles, prefetched chunk), sweep
+  checks for it, README, CLAUDE.md. Gates: typecheck, lint, vitest 864,
+  deno 256, build (main bundle 110.7 kB of 122), knip, browser sweep 116
+  checks — all green.
+- **Not done, by design:** nothing live. `live_confirmed_at` is null, every
+  strategy is `paper`, and the tick refuses a live order on either switch.
+  The prod `agents` function is at the probe-only build (v4, deployed by
+  MCP for the probes); the repo version deploys on merge.
 
 ### [2026-09-20 03:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
