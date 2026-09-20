@@ -38,6 +38,13 @@ he will notice a red main.
 
 **The README is part of the change**, not a follow-up.
 
+**Usage is a budget he watches.** Never spend the main model on
+polling: no scheduled PR re-checks, no "quiet hold" wake-ups on
+Fable/Opus-class sessions. If a check is genuinely needed, run it in a
+cheap subagent (Opus 5 at most) and wake the main session only when
+there is real work to do. He said it in so many words on 2026-09-20
+after four re-checks found nothing: "以后千万不要用fable模型跑这个复查".
+
 **A pin test for every bug fixed.** A fix without a test that fails on
 the old code is not finished.
 

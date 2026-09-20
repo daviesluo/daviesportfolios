@@ -233,3 +233,81 @@ Deno.test("riskGate: the daily loss limit blocks new risk, never an exit; the pa
   assertEquals(gate("exit", 20, bad, { ...limits, globalPause: true }).allowed, false);
   assertEquals(gate("exit", 20, { ...bad, mode: "paused" }, limits).allowed, false);
 });
+
+// ---- protective stops and the dislocation rule (the one-minute loop) -----
+import {
+  DEFAULT_DISLOCATION, dislocationState, highWaterSince, protectiveExit, ruleDecisionDislocation, type Position as P,
+} from "../_shared/agents_strategy.ts";
+
+const longPos = (avgCost: number, openedAt: number, highWater: number | null = null): P => ({ base: 0.1, avgCost, realisedUsd: 0, feesUsd: 0, openedAt, highWater });
+
+Deno.test("highWaterSince trails the closed bars' highs from the entry on; flat means null", () => {
+  const bars: C[] = [bar(0, 100), bar(1, 105), bar(2, 110), bar(3, 120), bar(4, 90)];
+  assertEquals(highWaterSince(FLAT_POS, bars, 4), null);
+  const pos = longPos(100, bars[1].start, 101);
+  assertEquals(highWaterSince(pos, bars, 3), bars[3].high);               // bar 0 is before the entry and does not count
+  assertEquals(highWaterSince(pos, bars, 2), bars[2].high);               // only CLOSED bars: index 3 is still forming here
+  assertEquals(highWaterSince(longPos(100, bars[4].start + 1, 130), bars, 4), 130);   // nothing closed since entry: the fills' own high
+});
+
+Deno.test("protectiveExit: the floor under cost for every rule, the ATR trail from the high for the trend rules", () => {
+  const pos = longPos(100, 0, 100);
+  assertEquals(protectiveExit(93, pos, 98, 2, { atrStop: 3, maxLossPct: 0.08 }), null);             // −7 %: above the floor, inside 3×ATR of the high
+  assert(protectiveExit(91.9, pos, 98, 2, { atrStop: 3, maxLossPct: 0.08 })?.startsWith("protective floor"));
+  assert(protectiveExit(105, pos, 112, 2, { atrStop: 3, maxLossPct: 0.08 })?.includes("ATR trailing stop"));   // 112 − 6 = 106 > 105
+  assertEquals(protectiveExit(105, pos, 112, 2, { atrStop: null, maxLossPct: 0.08 }), null);        // the daily rules have no ATR trail
+  assertEquals(protectiveExit(105, FLAT_POS, 112, 2, { atrStop: 3, maxLossPct: 0.08 }), null);      // flat: nothing to protect
+  assertEquals(protectiveExit(0, pos, 112, 2, { atrStop: 3, maxLossPct: 0.08 }), null);             // no mark, no verdict
+});
+
+Deno.test("dislocationState reads the basis against the reference mid and classifies the reference's own move", () => {
+  const ref = { bid: 100, ask: 100.1 };                                     // mid 100.05
+  const cheap = dislocationState("BTC/USD", { bid: 99.8, ask: 99.9 }, ref, 0, FLAT_POS, 0);
+  assert(Math.abs(cheap.basisBps - (99.85 / 100.05 - 1) * 1e4) < 1e-9);
+  assertEquals(cheap.fair, 100.05);
+  assertEquals([cheap.state.basis, cheap.state.basis_size, cheap.state.reference_move_5m, cheap.state.position, cheap.state.time_in_position], ["revx_cheap", "medium", "flat", "flat", "none"]);
+  assertEquals(dislocationState("BTC/USD", { bid: 99.5, ask: 99.6 }, ref, -20, FLAT_POS, 0).state.basis_size, "large");
+  assertEquals(dislocationState("BTC/USD", { bid: 99.5, ask: 99.6 }, ref, -20, FLAT_POS, 0).state.reference_move_5m, "sharp_down");
+  assertEquals(dislocationState("BTC/USD", { bid: 100.3, ask: 100.4 }, ref, 5, FLAT_POS, 0).state.basis, "revx_rich");
+  assertEquals(dislocationState("BTC/USD", { bid: 100.3, ask: 100.4 }, ref, 5, FLAT_POS, 0).state.reference_move_5m, "up");
+  assertEquals(dislocationState("BTC/USD", ref, ref, null, FLAT_POS, 0).state.basis, "fair");
+  const held = dislocationState("BTC/USD", ref, ref, 0, longPos(100, 0), 31 * 60e3);
+  assertEquals([held.state.position, held.state.time_in_position], ["long", "long"]);
+  assertEquals(dislocationState("BTC/USD", ref, ref, 0, longPos(100, 0), 5 * 60e3).state.time_in_position, "minutes");
+});
+
+Deno.test("ruleDecisionDislocation: lift the ask on a cheap print, rest the exit at the reference, stops sell at the bid, cooldown holds", () => {
+  const ref = { bid: 100, ask: 100.1 };
+  const p = DEFAULT_DISLOCATION;
+  const cheapQ = { bid: 99.8, ask: 99.9 };
+  const enter = ruleDecisionDislocation(dislocationState("BTC/USD", cheapQ, ref, 0, FLAT_POS, 0), cheapQ, FLAT_POS, 0, p);
+  assertEquals([enter.action, enter.marketable, enter.price], ["enter", true, 99.9]);
+  // The same print while the reference is moving sharply, or within the cooldown: hold.
+  assertEquals(ruleDecisionDislocation(dislocationState("BTC/USD", cheapQ, ref, 20, FLAT_POS, 0), cheapQ, FLAT_POS, 0, p).action, "hold");
+  assertEquals(ruleDecisionDislocation(dislocationState("BTC/USD", cheapQ, ref, 0, FLAT_POS, 0), cheapQ, FLAT_POS, 120e3, p, 0).action, "hold");
+  assertEquals(ruleDecisionDislocation(dislocationState("BTC/USD", cheapQ, ref, 0, FLAT_POS, 0), cheapQ, FLAT_POS, 181e3, p, 0).action, "enter");
+  // A fair print: nothing to do.
+  assertEquals(ruleDecisionDislocation(dislocationState("BTC/USD", ref, ref, 0, FLAT_POS, 0), ref, FLAT_POS, 0, p).action, "hold");
+  // Long from 99.9, the basis back to fair: rest an ask at max(own ask, fair + half spread) — a maker order.
+  const pos = longPos(99.9, 0);
+  const back = { bid: 100.02, ask: 100.12 };
+  const exit = ruleDecisionDislocation(dislocationState("BTC/USD", back, ref, 0, pos, 5 * 60e3), back, pos, 5 * 60e3, p);
+  const hs = (back.ask - back.bid) / 2 / ((back.ask + back.bid) / 2);
+  assertEquals([exit.action, exit.marketable], ["exit", false]);
+  assertEquals(exit.price, Math.max(back.ask, 100.05 * (1 + hs)));
+  // Still cheap and young: wait.
+  assertEquals(ruleDecisionDislocation(dislocationState("BTC/USD", cheapQ, ref, 0, pos, 5 * 60e3), cheapQ, pos, 5 * 60e3, p).action, "hold");
+  // 40 bps under cost: sell at the bid now.
+  const down = { bid: 99.49, ask: 99.59 };
+  const stop = ruleDecisionDislocation(dislocationState("BTC/USD", down, ref, 0, pos, 5 * 60e3), down, pos, 5 * 60e3, p);
+  assertEquals([stop.action, stop.marketable, stop.price], ["exit", true, 99.49]);
+  assert(stop.reason.includes("dislocation stop"));
+  // Past the time stop, still cheap: sell at the bid now.
+  const timed = ruleDecisionDislocation(dislocationState("BTC/USD", cheapQ, ref, 0, pos, 31 * 60e3), cheapQ, pos, 31 * 60e3, p);
+  assertEquals([timed.action, timed.marketable, timed.price], ["exit", true, 99.8]);
+  assert(timed.reason.includes("time stop"));
+});
+
+Deno.test("DEFAULT_DISLOCATION is the shape the 1-minute data supported: 15 bps in, back within 2, 30 minutes, 40 bps stop", () => {
+  assertEquals(DEFAULT_DISLOCATION, { entryBps: 15, exitBps: -2, maxHoldMin: 30, stopBps: 40, sharpMoveBps: 15, cooldownMin: 3 });
+});

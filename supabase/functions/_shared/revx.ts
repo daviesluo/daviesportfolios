@@ -208,16 +208,31 @@ export function toCandle(c: VenueCandle): { start: number; open: number; high: n
 // ----------------------------------------------------------- keyless reads
 
 /** The market-data endpoints under /public need no key. Same envelope handling as the signed calls. */
-export async function revxPublic<T = unknown>(path: string, fetchImpl: typeof fetch = fetch, timeoutMs = 8_000): Promise<RevxResponse<T>> {
-  const res = await fetchImpl(`${REVX_BASE}${path}`, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(timeoutMs) });
-  const raw = await res.text();
-  if (!res.ok) {
-    let msg = raw.slice(0, 300);
-    try { const j = JSON.parse(raw); if (typeof j?.message === "string") msg = j.message; } catch { /* keep raw */ }
-    return { ok: false, status: res.status, error: msg, raw };
+/** How long a 429 on the public bucket (about one token a second, reference §2) is waited out before the retry. */
+export const PUBLIC_RETRY_MS = 1_100;
+export const PUBLIC_RETRIES = 2;
+
+/**
+ * A keyless public call. The one-minute loop makes half a dozen of these
+ * in a row each turn, and the public bucket refills at about a token a
+ * second, so a 429 is waited out and retried (twice at most) rather than
+ * reported as the venue being down.
+ */
+export async function revxPublic<T = unknown>(
+  path: string, fetchImpl: typeof fetch = fetch, timeoutMs = 8_000, pause: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+): Promise<RevxResponse<T>> {
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetchImpl(`${REVX_BASE}${path}`, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(timeoutMs) });
+    const raw = await res.text();
+    if (res.status === 429 && attempt < PUBLIC_RETRIES) { await pause(PUBLIC_RETRY_MS * (attempt + 1)); continue; }
+    if (!res.ok) {
+      let msg = raw.slice(0, 300);
+      try { const j = JSON.parse(raw); if (typeof j?.message === "string") msg = j.message; } catch { /* keep raw */ }
+      return { ok: false, status: res.status, error: msg, raw };
+    }
+    try { return { ok: true, status: res.status, data: JSON.parse(raw) as T, raw }; }
+    catch { return { ok: false, status: res.status, error: "non-JSON body", raw }; }
   }
-  try { return { ok: true, status: res.status, data: JSON.parse(raw) as T, raw }; }
-  catch { return { ok: false, status: res.status, error: "non-JSON body", raw }; }
 }
 
 export const publicCandles = (symbol: string, intervalMin: number, sinceMs: number, untilMs: number, f?: typeof fetch) =>
@@ -281,7 +296,7 @@ export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch):
       if (!env) return { ok: false, status: 0, error: "no Revolut X credentials", response: null };
       const request: LimitOrderRequest = {
         client_order_id: o.clientOrderId, symbol: toPathSymbol(o.symbol), side: o.side,
-        order_configuration: { limit: { base_size: o.base, price: o.price, execution_instructions: ["post_only"], time_in_force: "gtc" } },
+        order_configuration: { limit: { base_size: o.base, price: o.price, execution_instructions: [o.marketable ? "allow_taker" : "post_only"], time_in_force: o.marketable ? "ioc" : "gtc" } },
       };
       const r = await placeOrder(env, request, fetchImpl);
       if (!r.ok) return { ok: false, status: r.status, error: r.error, response: { request, raw: r.raw.slice(0, 500) } };

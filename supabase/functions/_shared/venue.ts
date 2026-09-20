@@ -18,7 +18,14 @@ export type PlaceResult =
 
 export type OrderView = { state: VenueOrderState; filledBase: number; avgPrice: number | null; feeUsd: number; raw: unknown };
 
-export type LimitOrder = { clientOrderId: string; symbol: string; side: "buy" | "sell"; base: string; price: string };
+/**
+ * A resting post-only limit by default. `marketable` is for protective
+ * exits that must fill: on Revolut X that means allowing a taker fill
+ * (0.09 %), on Kraken it stays post-only at the touch — its 0.80 % taker
+ * fee is not worth certainty at this size, so the order is re-quoted
+ * instead.
+ */
+export type LimitOrder = { clientOrderId: string; symbol: string; side: "buy" | "sell"; base: string; price: string; marketable?: boolean };
 
 export type Venue = {
   id: VenueId;

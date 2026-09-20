@@ -649,5 +649,644 @@
     }
    }
   }
+ },
+ "dislocation": {
+  "source": "30 days of 1-minute closes: Revolut X public candles against Coinbase Exchange (the Kraken proxy with a 1-minute history), 2026-08-22 \u2192 2026-09-20; taker entry at the ask (+9 bps), resting exit at the reference once the basis is back within 2 bps, 30-minute time stop and 40 bps loss stop at the bid, 3-minute cooldown",
+  "params": {
+   "entryBps": 15,
+   "exitBps": -2,
+   "maxHoldMin": 30,
+   "stopBps": 40,
+   "sharpMoveBps": 15,
+   "cooldownMin": 3
+  },
+  "results": {
+   "BTC/USD": {
+    "days": 28.5,
+    "k12_h30": {
+     "full": {
+      "k": 12,
+      "hold": 30,
+      "trades": 72,
+      "per_day": 2.52,
+      "avg_bps": 2.9,
+      "med_bps": 3.2,
+      "win": 71,
+      "sum_bps": 205,
+      "worst": -60,
+      "sd": 16.0
+     },
+     "firstHalf": {
+      "k": 12,
+      "hold": 30,
+      "trades": 46,
+      "per_day": 3.22,
+      "avg_bps": 4.4,
+      "med_bps": 4.0,
+      "win": 76,
+      "sum_bps": 204,
+      "worst": -60,
+      "sd": 16.0
+     },
+     "secondHalf": {
+      "k": 12,
+      "hold": 30,
+      "trades": 26,
+      "per_day": 1.82,
+      "avg_bps": 0.1,
+      "med_bps": 2.5,
+      "win": 62,
+      "sum_bps": 2,
+      "worst": -39,
+      "sd": 15.8
+     }
+    },
+    "k15_h30": {
+     "full": {
+      "k": 15,
+      "hold": 30,
+      "trades": 27,
+      "per_day": 0.95,
+      "avg_bps": 8.1,
+      "med_bps": 7.1,
+      "win": 81,
+      "sum_bps": 219,
+      "worst": -60,
+      "sd": 21.7
+     },
+     "firstHalf": {
+      "k": 15,
+      "hold": 30,
+      "trades": 18,
+      "per_day": 1.26,
+      "avg_bps": 9.1,
+      "med_bps": 7.0,
+      "win": 89,
+      "sum_bps": 163,
+      "worst": -60,
+      "sd": 22.9
+     },
+     "secondHalf": {
+      "k": 15,
+      "hold": 30,
+      "trades": 9,
+      "per_day": 0.63,
+      "avg_bps": 6.1,
+      "med_bps": 7.6,
+      "win": 67,
+      "sum_bps": 55,
+      "worst": -31,
+      "sd": 18.9
+     }
+    },
+    "k20_h30": {
+     "full": {
+      "k": 20,
+      "hold": 30,
+      "trades": 8,
+      "per_day": 0.28,
+      "avg_bps": 14.9,
+      "med_bps": 10.6,
+      "win": 75,
+      "sum_bps": 120,
+      "worst": -14,
+      "sd": 23.4
+     },
+     "firstHalf": {
+      "k": 20,
+      "hold": 30,
+      "trades": 4,
+      "per_day": 0.28,
+      "avg_bps": 27.5,
+      "med_bps": 16.0,
+      "win": 100,
+      "sum_bps": 110,
+      "worst": 7,
+      "sd": 25.3
+     },
+     "secondHalf": {
+      "k": 20,
+      "hold": 30,
+      "trades": 4,
+      "per_day": 0.28,
+      "avg_bps": 2.4,
+      "med_bps": 3.0,
+      "win": 50,
+      "sum_bps": 10,
+      "worst": -14,
+      "sd": 11.9
+     }
+    }
+   },
+   "ETH/USD": {
+    "days": 28.5,
+    "k12_h30": {
+     "full": {
+      "k": 12,
+      "hold": 30,
+      "trades": 204,
+      "per_day": 7.15,
+      "avg_bps": -0.4,
+      "med_bps": 5.1,
+      "win": 70,
+      "sum_bps": -74,
+      "worst": -81,
+      "sd": 23.2
+     },
+     "firstHalf": {
+      "k": 12,
+      "hold": 30,
+      "trades": 112,
+      "per_day": 7.85,
+      "avg_bps": 1.7,
+      "med_bps": 6.0,
+      "win": 76,
+      "sum_bps": 195,
+      "worst": -77,
+      "sd": 22.2
+     },
+     "secondHalf": {
+      "k": 12,
+      "hold": 30,
+      "trades": 92,
+      "per_day": 6.45,
+      "avg_bps": -2.9,
+      "med_bps": 4.1,
+      "win": 63,
+      "sum_bps": -268,
+      "worst": -81,
+      "sd": 24.0
+     }
+    },
+    "k15_h30": {
+     "full": {
+      "k": 15,
+      "hold": 30,
+      "trades": 95,
+      "per_day": 3.33,
+      "avg_bps": 4.3,
+      "med_bps": 7.5,
+      "win": 81,
+      "sum_bps": 413,
+      "worst": -81,
+      "sd": 22.6
+     },
+     "firstHalf": {
+      "k": 15,
+      "hold": 30,
+      "trades": 52,
+      "per_day": 3.64,
+      "avg_bps": 10.9,
+      "med_bps": 9.1,
+      "win": 94,
+      "sum_bps": 568,
+      "worst": -53,
+      "sd": 13.1
+     },
+     "secondHalf": {
+      "k": 15,
+      "hold": 30,
+      "trades": 43,
+      "per_day": 3.01,
+      "avg_bps": -3.6,
+      "med_bps": 4.3,
+      "win": 65,
+      "sum_bps": -154,
+      "worst": -81,
+      "sd": 28.3
+     }
+    },
+    "k20_h30": {
+     "full": {
+      "k": 20,
+      "hold": 30,
+      "trades": 32,
+      "per_day": 1.12,
+      "avg_bps": 9.2,
+      "med_bps": 13.2,
+      "win": 88,
+      "sum_bps": 293,
+      "worst": -81,
+      "sd": 24.4
+     },
+     "firstHalf": {
+      "k": 20,
+      "hold": 30,
+      "trades": 18,
+      "per_day": 1.26,
+      "avg_bps": 15.3,
+      "med_bps": 13.4,
+      "win": 94,
+      "sum_bps": 276,
+      "worst": 0,
+      "sd": 10.5
+     },
+     "secondHalf": {
+      "k": 20,
+      "hold": 30,
+      "trades": 14,
+      "per_day": 0.98,
+      "avg_bps": 1.2,
+      "med_bps": 12.4,
+      "win": 79,
+      "sum_bps": 17,
+      "worst": -81,
+      "sd": 33.3
+     }
+    }
+   },
+   "SOL/USD": {
+    "days": 28.5,
+    "k12_h30": {
+     "full": {
+      "k": 12,
+      "hold": 30,
+      "trades": 466,
+      "per_day": 16.33,
+      "avg_bps": -2.6,
+      "med_bps": 4.2,
+      "win": 62,
+      "sum_bps": -1229,
+      "worst": -86,
+      "sd": 27.2
+     },
+     "firstHalf": {
+      "k": 12,
+      "hold": 30,
+      "trades": 268,
+      "per_day": 18.78,
+      "avg_bps": -2.5,
+      "med_bps": 4.4,
+      "win": 59,
+      "sum_bps": -675,
+      "worst": -86,
+      "sd": 28.0
+     },
+     "secondHalf": {
+      "k": 12,
+      "hold": 30,
+      "trades": 198,
+      "per_day": 13.87,
+      "avg_bps": -2.8,
+      "med_bps": 3.8,
+      "win": 66,
+      "sum_bps": -554,
+      "worst": -73,
+      "sd": 26.0
+     }
+    },
+    "k15_h30": {
+     "full": {
+      "k": 15,
+      "hold": 30,
+      "trades": 245,
+      "per_day": 8.58,
+      "avg_bps": -0.6,
+      "med_bps": 6.6,
+      "win": 67,
+      "sum_bps": -148,
+      "worst": -94,
+      "sd": 29.7
+     },
+     "firstHalf": {
+      "k": 15,
+      "hold": 30,
+      "trades": 152,
+      "per_day": 10.65,
+      "avg_bps": -0.3,
+      "med_bps": 7.0,
+      "win": 68,
+      "sum_bps": -47,
+      "worst": -94,
+      "sd": 31.2
+     },
+     "secondHalf": {
+      "k": 15,
+      "hold": 30,
+      "trades": 93,
+      "per_day": 6.52,
+      "avg_bps": -1.1,
+      "med_bps": 6.0,
+      "win": 67,
+      "sum_bps": -101,
+      "worst": -68,
+      "sd": 27.0
+     }
+    },
+    "k20_h30": {
+     "full": {
+      "k": 20,
+      "hold": 30,
+      "trades": 90,
+      "per_day": 3.15,
+      "avg_bps": 0.3,
+      "med_bps": 12.7,
+      "win": 68,
+      "sum_bps": 27,
+      "worst": -94,
+      "sd": 37.6
+     },
+     "firstHalf": {
+      "k": 20,
+      "hold": 30,
+      "trades": 59,
+      "per_day": 4.13,
+      "avg_bps": 2.3,
+      "med_bps": 15.0,
+      "win": 69,
+      "sum_bps": 135,
+      "worst": -94,
+      "sd": 38.8
+     },
+     "secondHalf": {
+      "k": 20,
+      "hold": 30,
+      "trades": 31,
+      "per_day": 2.17,
+      "avg_bps": -3.5,
+      "med_bps": 11.0,
+      "win": 65,
+      "sum_bps": -108,
+      "worst": -68,
+      "sd": 34.9
+     }
+    }
+   },
+   "XRP/USD": {
+    "days": 28.5,
+    "k12_h30": {
+     "full": {
+      "k": 12,
+      "hold": 30,
+      "trades": 630,
+      "per_day": 22.07,
+      "avg_bps": -8.3,
+      "med_bps": 0.4,
+      "win": 51,
+      "sum_bps": -5230,
+      "worst": -106,
+      "sd": 32.7
+     },
+     "firstHalf": {
+      "k": 12,
+      "hold": 30,
+      "trades": 378,
+      "per_day": 26.49,
+      "avg_bps": -8.0,
+      "med_bps": 0.5,
+      "win": 51,
+      "sum_bps": -3034,
+      "worst": -106,
+      "sd": 34.0
+     },
+     "secondHalf": {
+      "k": 12,
+      "hold": 30,
+      "trades": 252,
+      "per_day": 17.66,
+      "avg_bps": -8.7,
+      "med_bps": 0.4,
+      "win": 51,
+      "sum_bps": -2196,
+      "worst": -84,
+      "sd": 30.5
+     }
+    },
+    "k15_h30": {
+     "full": {
+      "k": 15,
+      "hold": 30,
+      "trades": 362,
+      "per_day": 12.68,
+      "avg_bps": -6.5,
+      "med_bps": 3.2,
+      "win": 56,
+      "sum_bps": -2361,
+      "worst": -106,
+      "sd": 35.9
+     },
+     "firstHalf": {
+      "k": 15,
+      "hold": 30,
+      "trades": 215,
+      "per_day": 15.07,
+      "avg_bps": -6.2,
+      "med_bps": 3.3,
+      "win": 56,
+      "sum_bps": -1330,
+      "worst": -106,
+      "sd": 38.1
+     },
+     "secondHalf": {
+      "k": 15,
+      "hold": 30,
+      "trades": 147,
+      "per_day": 10.3,
+      "avg_bps": -7.0,
+      "med_bps": 2.4,
+      "win": 55,
+      "sum_bps": -1031,
+      "worst": -84,
+      "sd": 32.3
+     }
+    },
+    "k20_h30": {
+     "full": {
+      "k": 20,
+      "hold": 30,
+      "trades": 156,
+      "per_day": 5.47,
+      "avg_bps": -0.0,
+      "med_bps": 9.4,
+      "win": 67,
+      "sum_bps": -6,
+      "worst": -105,
+      "sd": 41.3
+     },
+     "firstHalf": {
+      "k": 20,
+      "hold": 30,
+      "trades": 101,
+      "per_day": 7.08,
+      "avg_bps": 0.2,
+      "med_bps": 9.9,
+      "win": 68,
+      "sum_bps": 24,
+      "worst": -105,
+      "sd": 43.4
+     },
+     "secondHalf": {
+      "k": 20,
+      "hold": 30,
+      "trades": 55,
+      "per_day": 3.85,
+      "avg_bps": -0.5,
+      "med_bps": 7.5,
+      "win": 64,
+      "sum_bps": -30,
+      "worst": -84,
+      "sd": 36.9
+     }
+    }
+   }
+  },
+  "restingBid": "negative on every setting tried (adverse selection: the bid fills only when the move continues)",
+  "seeded": "paper, Revolut X, BTC/USD + ETH/USD, entryBps 15"
+ },
+ "patterns": {
+  "source": "three years of Coinbase hourly \u2192 4h candles, Revolut X costs, next-bar-open fills, walk-forward split at two thirds, 3\u00d7ATR stop; return / maxDD / trades",
+  "trend-baseline": {
+   "BTC/USD": {
+    "oos": [
+     -0.054,
+     0.21,
+     32
+    ],
+    "full": [
+     0.423,
+     0.237,
+     110
+    ]
+   },
+   "ETH/USD": {
+    "oos": [
+     -0.247,
+     0.345,
+     32
+    ],
+    "full": [
+     1.17,
+     0.419,
+     88
+    ]
+   },
+   "SOL/USD": {
+    "oos": [
+     0.064,
+     0.319,
+     22
+    ],
+    "full": [
+     0.741,
+     0.428,
+     106
+    ]
+   }
+  },
+  "trend+volume1.5x": {
+   "BTC/USD": {
+    "oos": [
+     -0.105,
+     0.244,
+     30
+    ],
+    "full": [
+     0.27,
+     0.293,
+     104
+    ]
+   },
+   "ETH/USD": {
+    "oos": [
+     -0.242,
+     0.341,
+     30
+    ],
+    "full": [
+     0.716,
+     0.415,
+     84
+    ]
+   },
+   "SOL/USD": {
+    "oos": [
+     0.005,
+     0.341,
+     20
+    ],
+    "full": [
+     0.658,
+     0.487,
+     96
+    ]
+   }
+  },
+  "squeeze-breakout": {
+   "BTC/USD": {
+    "oos": [
+     0.197,
+     0.128,
+     30
+    ],
+    "full": [
+     0.151,
+     0.196,
+     70
+    ]
+   },
+   "ETH/USD": {
+    "oos": [
+     -0.189,
+     0.189,
+     26
+    ],
+    "full": [
+     -0.339,
+     0.477,
+     74
+    ]
+   },
+   "SOL/USD": {
+    "oos": [
+     -0.019,
+     0.277,
+     26
+    ],
+    "full": [
+     -0.265,
+     0.486,
+     64
+    ]
+   }
+  },
+  "double-bottom": {
+   "BTC/USD": {
+    "oos": [
+     0.054,
+     0.04,
+     12
+    ],
+    "full": [
+     0.191,
+     0.092,
+     42
+    ]
+   },
+   "ETH/USD": {
+    "oos": [
+     -0.139,
+     0.202,
+     32
+    ],
+    "full": [
+     0.109,
+     0.202,
+     92
+    ]
+   },
+   "SOL/USD": {
+    "oos": [
+     -0.248,
+     0.275,
+     10
+    ],
+    "full": [
+     -0.343,
+     0.367,
+     44
+    ]
+   }
+  },
+  "verdict": "none adopted: volume confirmation worsens the trend rule everywhere; the squeeze breakout is one good BTC window; the double bottom is quiet on BTC and negative elsewhere"
  }
 }

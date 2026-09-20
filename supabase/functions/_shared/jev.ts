@@ -53,7 +53,7 @@ export type Answer =
   | { type: "choice"; choice: string; probabilities: Record<string, number>; confidence: number }
   | { type: "score"; score: number; probabilities: Record<string, number>; confidence: number; legend?: Record<string, string> };
 
-export type JevProvider = "openrouter" | "typesafe" | "none";
+export type JevProvider = "openrouter" | "typesafe" | "none" | "rule";
 
 export type JevResult = {
   provider: JevProvider;
@@ -148,7 +148,7 @@ export function parseAnswers(raw: unknown): Record<string, Answer> {
 }
 
 type Transport = {
-  provider: Exclude<JevProvider, "none">;
+  provider: Exclude<JevProvider, "none" | "rule">;
   url: string;
   model: string;
   key: string;

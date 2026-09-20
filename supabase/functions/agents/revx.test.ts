@@ -114,3 +114,19 @@ Deno.test("revxFetch — three auth headers, the URL keeps its '?', the body goe
   assertEquals(q.ok, false);                                          // "<html>" is not JSON
   if (!q.ok) assertEquals(q.error, "non-JSON body");
 });
+
+Deno.test("revxPublic — a 429 on the public bucket is waited out and retried, twice at most, then reported", async () => {
+  const { revxPublic, PUBLIC_RETRIES, PUBLIC_RETRY_MS } = await import("../_shared/revx.ts");
+  const waits: number[] = [];
+  const pause = (ms: number) => { waits.push(ms); return Promise.resolve(); };
+  let calls = 0;
+  const flaky: typeof fetch = () => { calls++; return Promise.resolve(new Response(calls < 3 ? "{\"message\":\"Too Many Requests\"}" : "{\"data\":[]}", { status: calls < 3 ? 429 : 200 })); };
+  const ok = await revxPublic<{ data: unknown[] }>("/api/1.0/public/tickers?symbols=BTC-USD", flaky, 1_000, pause);
+  assertEquals([ok.ok, ok.status, calls], [true, 200, 3]);
+  assertEquals(waits, [PUBLIC_RETRY_MS, 2 * PUBLIC_RETRY_MS]);            // the second wait is longer
+  calls = 0;
+  const always429: typeof fetch = () => { calls++; return Promise.resolve(new Response("{\"message\":\"Too Many Requests\"}", { status: 429 })); };
+  const bad = await revxPublic("/api/1.0/public/tickers?symbols=BTC-USD", always429, 1_000, pause);
+  assertEquals([bad.ok, bad.status, calls], [false, 429, PUBLIC_RETRIES + 1]);
+  assertEquals(!bad.ok && bad.error, "Too Many Requests");
+});

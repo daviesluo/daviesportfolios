@@ -7,11 +7,19 @@
 // CLAUDE.md's Agents section is a consequence of what is measured there.
 //
 //   POST ?action=tick       — one turn of the loop (tick.ts). pg_cron every
-//                             five minutes (migration 0037). Cron or admin.
+//                             minute (migration 0037). Cron or admin.
 //   GET  ?action=dashboard  — everything the Agents page shows: strategies
 //                             with positions and P&L derived from fills,
-//                             the caps, venue health, Jev spend, recent
-//                             decisions and orders. Admin or read-only.
+//                             the latest observation per symbol, the caps,
+//                             venue health, Jev spend, recent decisions and
+//                             orders. Admin or read-only. Before migration
+//                             0037 has run it answers `{ notReady: true }`
+//                             rather than a 500, so the page can say so.
+//   GET  ?action=chart      — one strategy × symbol for the detail page:
+//                             the signal venue's candles over the window the
+//                             rule works in, every fill and open order on it,
+//                             the decisions and the latest observation
+//                             (`&strategy=<id>&symbol=<sym>`). Admin or ro.
 //   GET  ?action=log        — more history for one strategy
 //                             (`&strategy=<id>&limit=<n>`). Admin or ro.
 //   GET  ?action=probe      — read-only self-check of every credential and
@@ -56,7 +64,7 @@ import { b64ToBytes } from "../_shared/bytes.ts";
 import { positionFromFills, unrealisedUsd, type Position } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { makeDb, type Db } from "./db.ts";
-import { decisionBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
+import { decisionBarMs, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 
@@ -73,7 +81,13 @@ export function envAny(names: string[], read: (n: string) => string | undefined 
 }
 
 export const SYMBOLS = ["BTC/USD", "ETH/USD", "SOL/USD"] as const;
-const ONE_D = 86400e3;
+const ONE_D = 86400e3, ONE_H = 3600e3;
+
+/** PostgREST's way of saying the schema is not there yet: the tables arrive with migration 0037 on merge. */
+export function isNotReady(e: unknown): boolean {
+  const m = e instanceof Error ? e.message : String(e);
+  return /PGRST205|42P01|Could not find the table|relation .* does not exist/i.test(m);
+}
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
@@ -177,11 +191,22 @@ function jevStats(rows: { provider: string; cost_usd: number | null; latency_ms:
  * positions and P&L come from `positionFromFills` over the filled orders,
  * marked at each venue's current mid. Money is USD throughout.
  */
+type ObservationRow = { strategy_id: string; symbol: string; ts: string; bar_start: string; state: Record<string, unknown>; numbers: Record<string, unknown> };
+
 export async function runDashboard(now = Date.now()) {
+  try {
+    return await dashboard(now);
+  } catch (e) {
+    if (isNotReady(e)) return { at: new Date(now).toISOString(), notReady: true, reason: "the agents tables are not in this database yet (migration 0037 runs on merge)" };
+    throw e;
+  }
+}
+
+async function dashboard(now: number) {
   const d = db();
   const dayStart = new Date(Math.floor(now / ONE_D) * ONE_D).toISOString();
   const since24h = new Date(now - ONE_D).toISOString();
-  const [strategies, riskRows, filled, open, today, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }] = await Promise.all([
+  const [strategies, riskRows, filled, open, today, decisions24h, recentDecisions, recentOrders, backtests, basis24h, observations, { venues, notes }] = await Promise.all([
     d.select<StrategyRow & { description: string; updated_at: string }>("agent_strategies", "select=*&order=id.asc"),
     d.select<RiskRow & { updated_at: string }>("agent_risk", "id=eq.1&select=*"),
     d.select<OrderRow>("agent_orders", "state=eq.filled&select=*&order=ts.asc"),
@@ -192,8 +217,12 @@ export async function runDashboard(now = Date.now()) {
     d.select<OrderRow & { request: unknown; response: unknown; cancelled_at: string | null; decision_id: number | null }>("agent_orders", "select=*&order=ts.desc&limit=120"),
     d.select<{ id: string; strategy_id: string; ran_at: string; method: string; summary: unknown }>("agent_backtests", "select=id,strategy_id,ran_at,method,summary&order=ran_at.desc"),
     d.select<{ ts: string; symbol: string; basis_bps: number; revx_bid: number; revx_ask: number; kraken_bid: number; kraken_ask: number }>("agent_basis", `ts=gte.${since24h}&select=ts,symbol,basis_bps,revx_bid,revx_ask,kraken_bid,kraken_ask&order=ts.desc&limit=2000`),
+    d.select<ObservationRow>("agent_observations", "select=strategy_id,symbol,ts,bar_start,state,numbers&order=ts.desc&limit=400"),
     loadVenues(),
   ]);
+  // The latest observation per strategy × symbol: what the rule sees on the forming bar, right now.
+  const latestObs = new Map<string, ObservationRow>();
+  for (const o of observations) { const k = `${o.strategy_id}|${o.symbol}`; if (!latestObs.has(k)) latestObs.set(k, o); }
 
   // Marks: each venue's mid for every symbol any strategy or position touches.
   const symbolsByVenue = new Map<VenueId, Set<string>>();
@@ -224,10 +253,12 @@ export async function runDashboard(now = Date.now()) {
       const rows = byKey.get(`${s.id}|${sym}`) ?? [];
       const pos: Position = positionFromFills(rows.map(toFill));
       const mark = marks[s.venue]?.[sym] ?? pos.avgCost;
+      const obs = latestObs.get(`${s.id}|${sym}`) ?? null;
       return {
         symbol: sym, base: pos.base, avgCost: pos.avgCost, mark,
         costUsd: pos.base * pos.avgCost, valueUsd: pos.base * mark, unrealisedUsd: unrealisedUsd(pos, mark),
         realisedUsd: pos.realisedUsd, feesUsd: pos.feesUsd, openedAt: pos.openedAt, highWater: pos.highWater, fills: rows.length,
+        observation: obs ? { ts: obs.ts, barStart: obs.bar_start, state: obs.state, numbers: obs.numbers } : null,
       };
     });
     const sum = (k: "costUsd" | "valueUsd" | "unrealisedUsd" | "realisedUsd" | "feesUsd") => positions.reduce((a, p) => a + p[k], 0);
@@ -286,6 +317,55 @@ export async function runDashboard(now = Date.now()) {
     strategies: out,
     openOrders: open,
     jev24h: jevStats(decisions24h),
+  };
+}
+
+/** The window the detail chart shows, by the rule's own bar: a minute rule shows the last 12 hours, an hourly one a week, a 4-hour one a month. */
+export function chartWindow(kind: StrategyRow["kind"]): { intervalMin: number; spanMs: number } {
+  if (kind === "dislocation-1m") return { intervalMin: 1, spanMs: 12 * ONE_H };
+  const barMs = stateBarMs(kind);
+  return barMs === ONE_H ? { intervalMin: 60, spanMs: 7 * ONE_D } : { intervalMin: 240, spanMs: 30 * ONE_D };
+}
+
+/**
+ * One strategy × symbol for the detail page: the signal venue's candles
+ * over the rule's window, every order on the pair in that window (fills
+ * become the buy/sell marks, resting orders the dashed lines), its
+ * decisions, and the latest observation. Candles come from the cache the
+ * tick keeps, so this costs the venue nothing.
+ */
+export async function runChart(strategyId: string, symbol: string, now = Date.now()) {
+  const d = db();
+  const [s] = await d.select<StrategyRow>("agent_strategies", `id=eq.${encodeURIComponent(strategyId)}&select=*`);
+  if (!s) return { error: "unknown strategy" };
+  if (!s.symbols.includes(symbol)) return { error: "symbol not in strategy" };
+  const { intervalMin, spanMs } = chartWindow(s.kind);
+  const since = new Date(now - spanMs).toISOString();
+  const sym = encodeURIComponent(symbol);
+  const [candles, orders, decisions, observations] = await Promise.all([
+    d.select<{ start: string; open: number; high: number; low: number; close: number; volume: number }>("agent_candles",
+      `venue=eq.${s.signal_venue}&symbol=eq.${sym}&interval_min=eq.${intervalMin}&start=gte.${since}&select=start,open,high,low,close,volume&order=start.asc&limit=2000`),
+    d.select<OrderRow & { cancelled_at: string | null }>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&ts=gte.${since}&select=*&order=ts.asc&limit=500`),
+    d.select<{ id: number; ts: string; bar_start: string; final_action: string; rule_action: string; final_reason: string; provider: string; risk_allowed: boolean; numbers: Record<string, unknown> }>("agent_decisions",
+      `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&ts=gte.${since}&select=id,ts,bar_start,final_action,rule_action,final_reason,provider,risk_allowed,numbers&order=ts.asc&limit=500`),
+    d.select<ObservationRow>("agent_observations", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&select=strategy_id,symbol,ts,bar_start,state,numbers&order=ts.desc&limit=1`),
+  ]);
+  const allFilled = await d.select<OrderRow>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&state=eq.filled&select=*&order=ts.asc`);
+  const pos = positionFromFills(allFilled.map(toFill));
+  return {
+    strategyId, symbol, venue: s.venue, signalVenue: s.signal_venue, kind: s.kind, mode: s.mode, intervalMin, since, at: new Date(now).toISOString(),
+    candles: candles.map((c) => [Date.parse(c.start), Number(c.open), Number(c.high), Number(c.low), Number(c.close)] as [number, number, number, number, number]),
+    fills: orders.filter((o) => o.state === "filled").map((o) => ({
+      id: o.id, ts: o.filled_at ?? o.ts, side: o.side, price: Number(o.avg_fill_price ?? o.price), base: Number(o.filled_base || o.base_size), feeUsd: Number(o.fee_usd || 0),
+      venue: o.venue, mode: o.mode, marketable: !!o.request?.marketable, decisionId: o.decision_id,
+    })),
+    orders: orders.map((o) => ({
+      id: o.id, ts: o.ts, side: o.side, price: Number(o.price), base: Number(o.base_size), state: o.state, venue: o.venue, mode: o.mode, requotes: Number(o.requotes ?? 0),
+      marketable: !!o.request?.marketable, filledAt: o.filled_at, cancelledAt: o.cancelled_at ?? null, decisionId: o.decision_id,
+    })),
+    decisions: decisions.map((x) => ({ id: x.id, ts: x.ts, barStart: x.bar_start, action: x.final_action, ruleAction: x.rule_action, reason: x.final_reason, provider: x.provider, riskAllowed: x.risk_allowed, kind: (x.numbers?.kind as string) ?? "bar", mark: Number(x.numbers?.mark ?? 0) || null })),
+    position: { base: pos.base, avgCost: pos.avgCost, realisedUsd: pos.realisedUsd, feesUsd: pos.feesUsd, openedAt: pos.openedAt },
+    observation: observations[0] ? { ts: observations[0].ts, barStart: observations[0].bar_start, state: observations[0].state, numbers: observations[0].numbers } : null,
   };
 }
 
@@ -420,6 +500,11 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     if (action === "tick" && req.method === "POST" && operator) return json(200, await runTick());
     if (action === "probe" && req.method === "GET" && operator) return json(200, await runProbe());
     if (action === "dashboard" && req.method === "GET") return json(200, await runDashboard());
+    if (action === "chart" && req.method === "GET") {
+      const strategy = url.searchParams.get("strategy") ?? "", symbol = url.searchParams.get("symbol") ?? "";
+      if (!strategy || !symbol) return json(400, { error: "strategy and symbol required" });
+      return json(200, await runChart(strategy, symbol));
+    }
     if (action === "log" && req.method === "GET") {
       const strategy = url.searchParams.get("strategy") ?? "";
       if (!strategy) return json(400, { error: "strategy required" });
