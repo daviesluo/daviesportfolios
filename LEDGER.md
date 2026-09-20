@@ -34,9 +34,14 @@ list stays the short version; the plan is the reasoning behind it.
    and the first live order needs his confirmation in the conversation.
    Nothing under `agent_*` is edited by hand; the reference §3.3a numbers
    are the honest expectation (every rule beat buy-and-hold in the bear
-   year, two beat cash). **Usage rule**: no main-model polling; a few
-   spaced check-ins were agreed for the rollout itself, then nothing
-   scheduled.
+   year, two beat cash). **Usage rule**: no main-model polling and no
+   scheduled check-ins (the two agreed for the rollout were deleted on
+   Davies' word at 19:05 UTC); he asks when he wants a look.
+   **Kraken holds £75 of GBP, not USD** (probe 19:08 UTC: `ZGBP 75.0000`;
+   the app's "$100.47" is its USD-equivalent view) — the earlier note that
+   it was credited as USD was wrong. Paper is unaffected; a live Kraken
+   order needs USD, so the GBP → USD conversion (≈ $0.20 fee) is the
+   account's first real order and waits for his word.
 
 1. **Cloudflare's edge still serves five cached copies of the old
    exposure, for up to seven days.** The ORIGIN is fixed — every path
@@ -141,6 +146,34 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-20 19:21 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies' first look at the live page, and the Kraken pounds.** He asked
+for: no HOW IT WORKS, no notes beside section titles, no description
+paragraph on a detail; the strategy name once (the sub-line repeated the
+rulebook and ran into the venue badge); the venue card's head on one line;
+"WHAT THE RULE SEES" explained (it is the words the rule reads on the
+forming bar — written down only when they CHANGE, which is why "seen 33
+min ago" read wrongly; now "unchanged for 33 min" / "changed 40 s ago",
+title LIVE STATE); the countdown to the next decision at the top of a
+detail, to the second; the held positions designed (tiles under the
+realised figure); Kraken's "funded —" explained; the page opening without
+a wait (the app now fetches the dashboard and one chart per strategy after
+first paint; the modal paints the cached copy and refreshes); no
+scrollbars (hidden; the strategy table is a fixed layout that fits the
+modal). All done; sweep 180 checks.
+- **Kraken holds £75 GBP, not USD** — the probe (fired read-only through
+  pg_net so the cron secret never left the database) reports `ZGBP
+  75.0000`; the app's "$100.47" is its USD-equivalent view. The card now
+  names every balance in its own currency (`KRAKEN_ASSET` maps ZGBP / ZEUR
+  / USDC / USDT). Reference §2b and item 0 corrected: a live Kraken order
+  needs USD, so the GBP → USD conversion is the account's first real order
+  and waits for his word; paper is unaffected.
+- The two rollout check-ins were deleted on his word; he asks when he
+  wants a look. First 45 minutes: 26 decisions, 10 orders (8 fills, 2
+  Kraken bids re-quoted once and filled), basis every fifth minute, max
+  touch |basis| 2.6 bps, 0 errors, 45 / 45 cron runs.
 
 ### [2026-09-20 18:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

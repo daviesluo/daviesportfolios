@@ -127,6 +127,7 @@ Deno.test("krakenVenue signs private calls: API-Key/API-Sign headers, form body 
 Deno.test("XRP/USD is a Kraken pair too (XRPUSD / XXRPZUSD / XXRP), and a batch call drops unknown symbols instead of failing whole", async () => {
   const { KRAKEN_ALTNAME, KRAKEN_PAIR_ID, KRAKEN_ASSET, fromKrakenPair, krakenSupports, krakenVenue } = await import("../_shared/kraken.ts");
   assertEquals([KRAKEN_ALTNAME["XRP/USD"], KRAKEN_PAIR_ID["XRP/USD"], KRAKEN_ASSET.XXRP], ["XRPUSD", "XXRPZUSD", "XRP"]);
+  assertEquals([KRAKEN_ASSET.ZGBP, KRAKEN_ASSET.ZEUR, KRAKEN_ASSET.USDC], ["GBP", "EUR", "USDC"]);   // a UK deposit arrives as ZGBP and must be named, not dropped
   assertEquals(fromKrakenPair("XXRPZUSD"), "XRP/USD");
   assertEquals([krakenSupports("XRP/USD"), krakenSupports("DOGE/USD")], [true, false]);
   const urls: string[] = [];
