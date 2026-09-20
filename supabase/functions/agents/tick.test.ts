@@ -262,6 +262,17 @@ Deno.test("the state on the forming bar is an observation, written when it chang
   assertEquals(w.mem.tables.agent_observations.length, 2);
 });
 
+Deno.test("an observation read back with its keys in the database's order is still the same state: nothing is re-written", async () => {
+  // jsonb returns keys in its own order. The first tick's row is handed back reversed; the second tick must see no change.
+  const w = world({ oneMin: { low: 130, high: 130.1 } });
+  await tick(w.deps);
+  const row = w.mem.tables.agent_observations[0];
+  row.state = Object.fromEntries(Object.entries(row.state as Record<string, unknown>).reverse());
+  const r2 = await tick({ ...w.deps, now: NOW + ONE_M });
+  assertEquals(r2.observations, 0);
+  assertEquals(w.mem.tables.agent_observations.length, 1);
+});
+
 Deno.test("the basis between the venues is recorded for every symbol on every fifth minute, and reported every turn", async () => {
   const w = world();
   const r = await tick(w.deps);

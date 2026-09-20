@@ -113,6 +113,8 @@ type Market = { c1m: Candle | null; mark: number; quote?: Quote; pair?: PairConf
 type Signal = { bars: Candle[]; barMs: number; c1d: Candle[] };
 
 const mk = (venue: string, symbol: string) => `${venue}|${symbol}`;
+/** A state as one comparable string: jsonb hands keys back in its own order, so a plain stringify never matches what was written. */
+export const canon = (x: unknown): string => JSON.stringify(x, (_k, v) => (v && typeof v === "object" && !Array.isArray(v) ? Object.fromEntries(Object.entries(v as Record<string, unknown>).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : v));
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const enc = encodeURIComponent;
 
@@ -475,7 +477,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
   const latestObs = new Map<string, string>();     // `${strategy}|${symbol}` → JSON of the last recorded state
   await Promise.all(strategies.flatMap((s) => s.symbols.map(async (sym) => {
     const rows = await d.db.select<{ state: unknown }>("agent_observations", `strategy_id=eq.${s.id}&symbol=eq.${enc(sym)}&select=state&order=ts.desc&limit=1`);
-    if (rows[0]) latestObs.set(`${s.id}|${sym}`, JSON.stringify(rows[0].state));
+    if (rows[0]) latestObs.set(`${s.id}|${sym}`, canon(rows[0].state));
   })));
   /** Has this bar (or minute) already been decided for the pair? Looked up by the bar itself, not by "the newest row". */
   const decided = async (s: StrategyRow, sym: string, barStart: number) =>
@@ -620,7 +622,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
           if (!rq || !kq) { report.skipped.push(`${key}: no quotes on both venues`); continue; }
           const view = dislocationState(sym, rq, kq, move5, pos, d.now, dp);
           const prevObs = latestObs.get(key);
-          const stateJson = JSON.stringify(view.state);
+          const stateJson = canon(view.state);
           if (prevObs !== stateJson) {
             await d.db.insert("agent_observations", { strategy_id: s.id, symbol: sym, ts: nowIso, bar_start: new Date(minuteStart).toISOString(), state: view.state, numbers: { basisBps: view.basisBps, fair: view.fair, move5, revx: rq, reference: kq, mark: m.mark } }, false);
             latestObs.set(key, stateJson); report.observations++;
@@ -651,7 +653,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
 
         // --- observation on the forming bar, every minute -------------------
         const obs = buildSnapshot(sym, bars, forming, closedDaily, pos, d.now, p, undefined, barsPerYear);
-        const stateJson = JSON.stringify(obs.state);
+        const stateJson = canon(obs.state);
         if (latestObs.get(key) !== stateJson) {
           await d.db.insert("agent_observations", { strategy_id: s.id, symbol: sym, ts: nowIso, bar_start: new Date(bars[forming].start).toISOString(), state: obs.state, numbers: { ...obs.numbers, mark: m.mark } }, false);
           latestObs.set(key, stateJson); report.observations++;

@@ -142,6 +142,21 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-20 18:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**First ticks watched; one flaw found and fixed.** Four minutes after
+the merge: 23 decisions on the first tick (Jev answered every entry via
+OpenRouter in 250–440 ms, vetoed BTC momentum at P = 0.15, agreed on ETH
+and SOL at ≈ 0.92; rotation ranked SOL 1, ETH 2), eight paper orders —
+Revolut X marketable at the ask, filled next minute at the 9 bps taker
+fee; Kraken post-only at the bid, ETH filled at 40 bps, SOL still
+resting — the basis stored on the fifth minute (all four symbols within
+1.1 bps), the lease taken and released each turn, zero `ops_errors`.
+The flaw: `agent_observations` grew by 25 rows a minute because jsonb
+hands keys back in its own order and the change check compared plain
+strings; states are now compared canonically (`canon`, pinned). Pushed
+to `main` directly; the function redeploys on push.
+
 ### [2026-09-20 18:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **PR #211 merged on Davies' word; paper trading begins.** Merge commit
