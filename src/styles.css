@@ -1783,3 +1783,235 @@ body {
       #0f1815;
   }
 }
+
+/* ── Agents page ──────────────────────────────────────────────────────
+   Opened from the ☰ menu below Transaction history. Shares the
+   transaction history's headline block and the holding list's table
+   scaffolding; the `ag-*` classes are only what those do not cover:
+   mode badges, the running dot, action words, the venue/caps strip and
+   the detail view's sections. */
+.ag-body { padding-top: 16px; }
+.ag-totals { align-items: center; }
+.ag-total-val { font-size: 26px; }
+.ag-totals-sm .txn-realized-val { font-size: 20px; }
+.ag-subline { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; font-size: 11px; color: var(--chalk-dim); }
+.ag-subline > span > span { color: var(--chalk); }
+.ag-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.ag-chip {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
+  padding: 6px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 11px;
+  background: rgba(255,255,255,0.02); font-family: var(--font-mono);
+}
+.ag-chip.is-warn { border-color: var(--loss-dim); }
+.ag-chip-name { color: var(--chalk); font-weight: 600; letter-spacing: 0.04em; }
+.ag-warn { color: var(--loss); font-weight: 700; }
+.ag-table { font-size: 12px; }
+.ag-table td { padding: 7px 10px; white-space: nowrap; }
+.ag-table td:first-child, .ag-table th:first-child { position: static; box-shadow: none; background: none; }
+.ag-row { cursor: pointer; }
+.ag-row:focus-visible { outline: 1px solid var(--chalk-mute); outline-offset: -1px; }
+.ag-name { display: block; color: var(--chalk); font-weight: 600; }
+.ag-name-cell .hl-sub { white-space: nowrap; }
+.ag-badge {
+  display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+  padding: 2px 6px; border-radius: 3px; border: 1px solid var(--line); color: var(--chalk-dim);
+}
+.ag-badge-live { color: var(--gain); border-color: var(--gain-dim); background: var(--gain-dim); }
+.ag-badge-paper { color: #d9c37a; border-color: rgba(217,195,122,0.35); background: rgba(217,195,122,0.12); }
+.ag-badge-paused { color: var(--chalk-dim); }
+.ag-status { display: inline-flex; align-items: center; gap: 6px; color: var(--chalk-dim); }
+.ag-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--chalk-mute); flex: none; }
+.ag-status.is-running .ag-dot { background: var(--gain); box-shadow: 0 0 0 3px var(--gain-dim); animation: ag-pulse 2.4s ease-in-out infinite; }
+.ag-status.is-running .ag-status-text { color: var(--chalk); }
+@keyframes ag-pulse { 0%, 100% { box-shadow: 0 0 0 2px var(--gain-dim); } 50% { box-shadow: 0 0 0 5px transparent; } }
+.ag-action { font-weight: 600; }
+.ag-action-enter { color: var(--gain); }
+.ag-action-exit { color: var(--loss); }
+.ag-action-hold { color: var(--chalk-dim); }
+.ag-blocked { color: var(--loss); font-weight: 600; }
+.ag-state { max-width: 320px; white-space: normal !important; line-height: 1.3; color: var(--chalk-dim); }
+.ag-state-pill { font-size: 10px; letter-spacing: 0.04em; color: var(--chalk-dim); }
+.ag-state-filled { color: var(--gain); }
+.ag-state-rejected, .ag-state-cancelled { color: var(--chalk-mute); }
+.ag-state-new, .ag-state-partially_filled { color: #d9c37a; }
+.ag-updated { font-size: 10px; margin: 8px 0 18px; text-align: right; }
+/* Venue badges: Revolut X cool blue, Kraken violet — the same two colours
+   in the share bar, the venue cards, the table and every order row. */
+.ag-venue {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  padding: 2px 7px; border-radius: 3px; border: 1px solid; white-space: nowrap; font-family: var(--font-mono);
+}
+.ag-venue-revx { color: #8ec5ff; border-color: rgba(142,197,255,0.35); background: rgba(142,197,255,0.1); }
+.ag-venue-kraken { color: #c4b5fd; border-color: rgba(196,181,253,0.35); background: rgba(196,181,253,0.1); }
+.ag-venue-signal { font-weight: 500; letter-spacing: 0; opacity: 0.8; }
+.ag-venues { margin-bottom: 14px; }
+.ag-share-bar { display: flex; height: 18px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.04); border: 1px solid var(--line); margin-bottom: 8px; }
+.ag-share { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; transition: width 0.4s; font-family: var(--font-mono); }
+.ag-share-revx { background: rgba(142,197,255,0.35); color: #e6f2ff; }
+.ag-share-kraken { background: rgba(196,181,253,0.35); color: #f3efff; }
+.ag-venue-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ag-venue-card { padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,0.02); border-left-width: 3px; }
+.ag-venue-card-revx { border-left-color: rgba(142,197,255,0.7); }
+.ag-venue-card-kraken { border-left-color: rgba(196,181,253,0.7); }
+.ag-venue-card.is-warn { border-color: var(--loss-dim); }
+.ag-venue-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 11px; margin-bottom: 8px; }
+.ag-venue-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 12px; align-items: baseline; }
+.ag-venue-grid > span:nth-child(even) { text-align: right; }
+.ag-warn-line { margin-top: 6px; font-size: 11px; color: var(--loss); }
+.ag-next { white-space: nowrap; }
+.ag-basis .ag-table td { padding: 6px 10px; }
+.ag-state-pending { color: #d9c37a; }
+.ag-how { border-top: 1px solid var(--line); padding-top: 14px; font-size: 12px; line-height: 1.55; color: var(--chalk-dim); }
+.ag-how p { margin: 8px 0 0; }
+.ag-how b { color: var(--chalk); font-weight: 600; }
+.ag-section { margin-top: 18px; }
+.ag-section-title { font-size: 10px; letter-spacing: 0.2em; color: var(--chalk-dim); margin-bottom: 8px; }
+.ag-section-title .dim { letter-spacing: 0; text-transform: none; }
+.ag-detail-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ag-back { padding: 4px 10px; font-size: 12px; }
+.ag-detail-title { margin: 12px 0 6px; font-size: 18px; font-weight: 600; }
+.ag-kv { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--chalk); margin-bottom: 8px; }
+.ag-desc { font-size: 12px; line-height: 1.5; color: var(--chalk-dim); margin: 0 0 12px; }
+.ag-note { font-size: 11px; line-height: 1.5; margin: 8px 0 0; }
+.ag-more { margin-top: 10px; font-size: 12px; }
+.ag-error { color: var(--loss); font-size: 12px; padding: 10px 12px; border: 1px solid var(--loss-dim); border-radius: 4px; margin-bottom: 12px; }
+.ag-empty { padding: 24px; text-align: center; }
+.ag-kv-kind { color: var(--chalk); font-weight: 600; }
+.ag-strategies { margin-top: 0; }
+
+/* ── What the rule sees ──────────────────────────────────────────────
+   One row per symbol, the observation the tick writes every minute: the
+   state words as pills, how old the reading is, and — for the minute rule
+   — the basis in bps. A row is also the chart's symbol picker. */
+.ag-live-row {
+  display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; grid-template-areas: "sym pills age";
+  align-items: center; gap: 4px 12px; width: 100%; text-align: left;
+  padding: 7px 10px; border: 1px solid transparent; border-radius: 4px;
+  background: transparent; color: inherit; font: inherit; cursor: pointer;
+}
+.ag-live-row + .ag-live-row { border-top-color: var(--line-2); border-radius: 0 0 4px 4px; }
+.ag-live-row:hover { background: rgba(244,239,227,0.04); }
+.ag-live-row.is-on { background: rgba(244,239,227,0.05); border-color: var(--line); }
+.ag-live-row:focus-visible { outline: 1px solid var(--chalk-mute); outline-offset: -1px; }
+.ag-live-sym { grid-area: sym; display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; color: var(--chalk); }
+.ag-live-row .ag-pills { grid-area: pills; }
+.ag-live-age { grid-area: age; display: inline-flex; align-items: baseline; justify-content: flex-end; gap: 10px; font-size: 10px; white-space: nowrap; color: var(--chalk-dim); }
+.ag-live-fresh { color: var(--chalk); }
+.ag-live-empty { font-size: 12px; line-height: 1.5; padding: 12px; border: 1px dashed var(--line); border-radius: 4px; }
+.ag-held { width: 6px; height: 6px; border-radius: 50%; background: var(--gain); display: inline-block; margin-left: 6px; flex: none; }
+.ag-pills { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.ag-pill {
+  display: inline-flex; align-items: baseline; gap: 5px; padding: 2px 7px; border-radius: 10px;
+  border: 1px solid var(--line); background: rgba(244,239,227,0.03);
+  font-family: var(--font-mono); font-size: 10px; white-space: nowrap;
+}
+.ag-pill-k { color: var(--chalk-mute); letter-spacing: 0.03em; }
+.ag-pill-v { color: var(--chalk); font-weight: 600; }
+.ag-pill-up .ag-pill-v { color: var(--gain); }
+.ag-pill-down .ag-pill-v { color: var(--loss); }
+.ag-pill-warn .ag-pill-v { color: #d9c37a; }
+
+/* ── The detail chart ────────────────────────────────────────────────
+   One symbol at a time: the signal venue's closes, this strategy's fills
+   as buy / sell marks, resting orders dashed at their price. */
+.ag-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 2px; margin-bottom: 8px; border-bottom: 1px solid var(--line-2); }
+.ag-sym-tab {
+  appearance: none; background: transparent; border: 0; cursor: pointer;
+  display: inline-flex; align-items: center; white-space: nowrap;
+  padding: 6px 11px 7px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--chalk-dim);
+}
+.ag-sym-tab:hover { color: var(--chalk); background: rgba(244,239,227,0.04); }
+.ag-sym-tab.is-on { color: var(--chalk); box-shadow: inset 0 -2px 0 var(--chalk); }
+.ag-sym-tab:focus-visible { outline: 1px solid var(--chalk-mute); outline-offset: -2px; }
+.ag-chart-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 14px; font-size: 11px; color: var(--chalk-dim); margin-bottom: 7px; }
+.ag-chart-sym { font-size: 13px; letter-spacing: 0.02em; }
+.ag-chart { border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,0.02); padding: 6px 4px 0; }
+.ag-chart-svg { cursor: crosshair; }
+.ag-axis { font-family: var(--font-mono); font-size: 9.5px; fill: var(--chalk-dim); }
+.ag-axis-resting { fill: #d9c37a; }
+.ag-tip { font-family: var(--font-mono); font-size: 9.5px; fill: var(--chalk); }
+.ag-tip-head { fill: var(--chalk-dim); }
+.ag-chart-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; padding: 4px 8px 7px; font-size: 10px; color: var(--chalk-dim); }
+.ag-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.ag-legend-mark { display: block; overflow: visible; flex: none; }
+.ag-legend-hint { margin-left: auto; }
+.ag-chart-blank { padding: 30px 16px 34px; text-align: center; }
+.ag-chart-blank-title { font-size: 12px; letter-spacing: 0.06em; color: var(--chalk); margin-bottom: 6px; }
+.ag-chart-blank p { margin: 0 auto; max-width: 380px; font-size: 11px; line-height: 1.55; }
+.ag-chart-skeleton {
+  height: 230px; border: 1px solid var(--line); border-radius: 4px;
+  background: linear-gradient(100deg, rgba(244,239,227,0.02) 30%, rgba(244,239,227,0.06) 50%, rgba(244,239,227,0.02) 70%);
+  background-size: 300% 100%; animation: ag-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes ag-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+
+/* The fills the chart marks, as rows. The side wears the same triangle. */
+.ag-fills { margin-top: 12px; }
+.ag-fills-sum { display: flex; flex-wrap: wrap; gap: 3px 16px; font-size: 11px; margin-top: 8px; }
+.ag-fills-sum .hl-strong { color: var(--chalk); }
+.ag-side { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.ag-side-mark { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; flex: none; }
+.ag-side-buy { color: var(--gain); }
+.ag-side-buy .ag-side-mark { border-bottom: 8px solid var(--gain); }
+.ag-side-sell { color: var(--loss); }
+.ag-side-sell .ag-side-mark { border-top: 8px solid var(--loss); }
+
+/* Before the migration lands there are no tables to read: say so plainly. */
+.ag-notready { max-width: 520px; margin: 0 auto; padding: 44px 20px 48px; text-align: center; }
+.ag-notready-dot {
+  display: block; width: 10px; height: 10px; border-radius: 50%; margin: 0 auto 18px; background: var(--chalk-mute);
+  box-shadow: 0 0 0 6px rgba(244,239,227,0.05), 0 0 0 13px rgba(244,239,227,0.025);
+}
+.ag-notready-title { font-size: 16px; font-weight: 600; letter-spacing: 0.02em; margin: 0 0 10px; }
+.ag-notready-reason { font-size: 13px; line-height: 1.5; color: var(--chalk); margin: 0 0 12px; }
+.ag-notready-note { font-size: 12px; line-height: 1.6; margin: 0 0 20px; }
+.ag-notready-foot { font-size: 10px; letter-spacing: 0.08em; }
+
+@media (max-width: 760px) {
+  .ag-venue-cards { grid-template-columns: 1fr; }
+  .ag-total-val { font-size: 20px; }
+  .ag-subline { font-size: 10px; gap: 2px 10px; }
+  .ag-table { font-size: 11px; }
+  .ag-table td { padding: 6px 8px; }
+  .ag-name-cell .hl-sub { white-space: normal; max-width: 160px; }
+  .ag-live-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "sym age" "pills pills"; gap: 6px 10px; padding: 8px; }
+  .ag-live-age { font-size: 9.5px; gap: 8px; }
+  .ag-chart-legend { gap: 4px 10px; font-size: 9.5px; }
+  .ag-legend-hint { display: none; }
+  .ag-chart-skeleton { height: 190px; }
+  .ag-chart-head { font-size: 10px; gap: 2px 10px; }
+  .ag-notready { padding: 32px 4px 36px; }
+}
+
+/* ── agents: review round (alerts, error card, position lines, phone columns) ── */
+.ag-alerts { display: flex; flex-direction: column; gap: 6px; margin: 10px 0 2px; }
+.ag-alert { display: flex; align-items: baseline; gap: 10px; padding: 9px 12px; border: 1px solid var(--line); border-left-width: 3px; border-radius: 6px; font-size: 12px; line-height: 1.45; background: rgba(255,255,255,0.02); }
+.ag-alert.is-stop { border-left-color: #d9c37a; }
+.ag-alert.is-fault { border-left-color: var(--loss); }
+.ag-alert-icon { flex: 0 0 auto; }
+.ag-alert.is-stop .ag-alert-icon, .ag-alert.is-stop .ag-alert-label { color: #d9c37a; }
+.ag-alert.is-fault .ag-alert-icon, .ag-alert.is-fault .ag-alert-label { color: var(--loss); }
+.ag-alert-label { flex: 0 0 auto; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; font-size: 11px; }
+.ag-alert-text { color: var(--chalk-dim); }
+.ag-errorcard { margin: 14px 0; padding: 16px 18px; border: 1px solid var(--line); border-left: 3px solid var(--loss); border-radius: 8px; background: rgba(255,255,255,0.02); }
+.ag-errorcard.is-compact { margin: 8px 0; padding: 10px 12px; }
+.ag-errorcard-title { font-size: 13px; font-weight: 700; color: var(--chalk); letter-spacing: 0.02em; }
+.ag-errorcard-text { margin: 6px 0 0; font-size: 12px; line-height: 1.5; color: var(--chalk-dim); }
+.ag-errorcard-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; font-size: 12px; }
+.ag-errorcard-details summary { cursor: pointer; font-size: 11px; }
+.ag-errorcard-details pre { margin: 6px 0 0; max-height: 160px; overflow: auto; font-size: 11px; white-space: pre-wrap; word-break: break-word; color: var(--chalk-dim); }
+.ag-retry { font-size: 12px; padding: 4px 10px; }
+.ag-poslines { margin: 8px 0 2px; font-size: 12px; line-height: 1.6; color: var(--chalk-dim); }
+.ag-posline .hl-strong { color: var(--chalk); }
+.ag-name-btn { all: unset; cursor: pointer; font: inherit; color: inherit; display: inline; }
+.ag-name-btn:focus-visible { outline: 1px solid var(--chalk-dim); outline-offset: 2px; border-radius: 2px; }
+.ag-basis-now { font-variant-numeric: tabular-nums; }
+.ag-basis-now.is-wide { color: var(--chalk); font-weight: 700; }
+.ag-basis-word { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #d9c37a; }
+.ag-venue-meta { display: block; margin-top: 2px; }
+.ag-venue-head { min-height: 44px; }
+.ag-kv > span + span::before { content: "·"; color: var(--chalk-dim); opacity: 0.6; margin: 0 6px 0 0; }
+@media (max-width: 760px) {
+  .ag-table .ag-col-wide { display: none; }
+  .ag-alert { flex-wrap: wrap; }
+}

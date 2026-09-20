@@ -269,7 +269,148 @@ const TOKEN = `${b64url(JSON.stringify({ role: 'admin', exp: NOW_MS + 3600_000 }
 // ---- run -----------------------------------------------------------
 
 /** Functions whose calls MUST carry the app token. */
-const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading212'];
+const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading212', '/agents'];
+
+/**
+ * The Agents dashboard as the Edge Function shapes it (`runDashboard`):
+ * four paper strategies, one of them long BTC on Kraken with a fill on
+ * record, so the page has a position, a decision and an order to draw.
+ */
+const AGENTS_DASHBOARD = (() => {
+  const at = new Date(CLOCK).toISOString();
+  const KIND_NAME = { 'trend-4h': 'Trend 4h', 'momentum-1d': 'Momentum 30d', 'dislocation-1m': 'Dislocation' };
+  // The observation the tick writes every minute on the FORMING bar: the
+  // same categorical words a decision would see. 40 s old, so every row
+  // reads as running even though the last DECISION is 35 min behind.
+  const seen = (symbol, over = {}) => ({
+    ts: new Date(CLOCK - 40e3).toISOString(), barStart: new Date(CLOCK - 40e3 - 3600e3).toISOString(),
+    state: { symbol, trend_4h: 'up', trend_strength: 'strong', breakout: 'inside_range', volatility: 'normal', momentum_30d: 'positive', position: 'flat', unrealised: 'none', time_in_position: 'none', ...over },
+    numbers: { mark: 86000, close: 85900 },
+  });
+  const strat = (id, kind, venue, over = {}) => ({
+    id, kind, venue, signalVenue: 'kraken', nextDecisionAt: new Date(NOW_MS + 2 * 3600e3 + 13 * 60e3).toISOString(),
+    name: `${KIND_NAME[kind]} · ${venue === 'revx' ? 'Revolut X' : 'Kraken'}`,
+    description: 'Fixture strategy.', symbols: ['BTC/USD', 'ETH/USD', 'SOL/USD'], mode: 'paper', capitalUsd: 60,
+    params: { fast: 20, slow: 100 }, updatedAt: at,
+    costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0,
+    positions: ['BTC/USD', 'ETH/USD', 'SOL/USD'].map((symbol) => ({ symbol, base: 0, avgCost: 0, mark: 100, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0, observation: seen(symbol) })),
+    openOrders: 0, ordersToday: 0, jev24h: { calls: 6, costUsd: 0.00011, avgLatencyMs: 480, providers: { openrouter: 6 } },
+    lastDecision: { ts: new Date(CLOCK - 35 * 60e3).toISOString(), symbol: 'BTC/USD', action: 'hold', ruleAction: 'hold', reason: 'in position', provider: 'openrouter', riskAllowed: true, riskReason: 'hold' },
+    backtest: null, recentDecisions: [], recentOrders: [], ...over,
+  });
+  const kraken = strat('trend-4h-kraken', 'trend-4h', 'kraken', {
+    costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, ordersToday: 1,
+    positions: [
+      { symbol: 'BTC/USD', base: 0.00025, avgCost: 80000, mark: 86000, costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, openedAt: CLOCK - 86400e3, highWater: 86500, fills: 3, observation: seen('BTC/USD', { position: 'long', unrealised: 'gain', time_in_position: 'days' }) },
+      { symbol: 'ETH/USD', base: 0, avgCost: 0, mark: 2500, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0, observation: seen('ETH/USD') },
+      { symbol: 'SOL/USD', base: 0, avgCost: 0, mark: 110, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0, observation: seen('SOL/USD') },
+    ],
+    recentDecisions: [{
+      id: 1, ts: new Date(CLOCK - 35 * 60e3).toISOString(), strategy_id: 'trend-4h-kraken', venue: 'kraken', symbol: 'BTC/USD', mode: 'paper',
+      state: { trend_4h: 'up', breakout_4h: 'inside_range', volatility: 'normal', momentum_30d: 'positive', position: 'long' },
+      answers: { healthy_trend: { type: 'noul', probability: 0.91 }, caution: { type: 'score', score: 0.1 }, _state: { type: 'choice', choice: 'BTC/USD' } },
+      provider: 'openrouter', model: 'typesafe/jev-1.13-20260917', latency_ms: 470, cost_usd: 0.0000184,
+      rule_action: 'hold', rule_reason: 'in position', final_action: 'hold', final_reason: 'in position [healthy=0.91]', risk_allowed: true, risk_reason: 'hold',
+    }],
+    recentOrders: [{
+      id: 1, ts: new Date(CLOCK - 86400e3).toISOString(), strategy_id: 'trend-4h-kraken', venue: 'kraken', symbol: 'BTC/USD', mode: 'paper', side: 'buy',
+      price: 80000, base_size: 0.00025, state: 'filled', filled_base: 0.00025, avg_fill_price: 80000, fee_usd: 0.08, filled_at: new Date(CLOCK - 86400e3 + 300e3).toISOString(),
+    }],
+  });
+  // The minute rule: two pairs, its own vocabulary, and a "next decision"
+  // that is a rhythm rather than a countdown.
+  const dislocation = strat('dislocation-1m', 'dislocation-1m', 'revx', {
+    symbols: ['BTC/USD', 'ETH/USD'], capitalUsd: 20, params: { enterBps: 12, stopBps: 25 },
+    nextDecisionAt: new Date(NOW_MS + 60e3).toISOString(),
+    positions: ['BTC/USD', 'ETH/USD'].map((symbol) => ({
+      symbol, base: 0, avgCost: 0, mark: 86000, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0,
+      observation: {
+        ts: new Date(CLOCK - 20e3).toISOString(), barStart: new Date(CLOCK - 20e3 - 60e3).toISOString(),
+        state: { symbol, basis: 'revx_cheap', basis_size: 'small', reference_move_5m: 'flat', position: 'flat', time_in_position: 'none' },
+        numbers: { basisBps: -3.42, mark: 86000, close: 85900 },
+      },
+    })),
+    lastDecision: { ts: new Date(CLOCK - 2 * 60e3).toISOString(), symbol: 'BTC/USD', action: 'hold', ruleAction: 'hold', reason: 'basis -3.4 bps, no dislocation', provider: 'openrouter', riskAllowed: true, riskReason: 'hold' },
+  });
+  const strategies = [strat('trend-4h', 'trend-4h', 'revx'), strat('momentum-1d', 'momentum-1d', 'revx'), kraken, strat('momentum-1d-kraken', 'momentum-1d', 'kraken'), dislocation];
+  const totals = { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, byMode: { paper: { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08 }, live: { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0 } } };
+  return {
+    at,
+    risk: { id: 1, global_pause: false, max_order_usd: 20, max_exposure_usd: 100, daily_loss_limit_usd: 5, max_orders_per_day: 40, live_confirmed_at: null, updated_at: at },
+    totals,
+    venues: [
+      { id: 'revx', canTrade: true, feeBps: { maker: 0, taker: 9 }, balances: { USD: 100 }, note: null, marks: { 'BTC/USD': 86000 } },
+      { id: 'kraken', canTrade: true, feeBps: { maker: 40, taker: 80 }, balances: { USD: 0 }, note: null, marks: { 'BTC/USD': 86000 } },
+    ],
+    strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
+    byVenue: {
+      revx: { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, capitalUsd: 140, strategies: 3, live: 0 },
+      kraken: { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, capitalUsd: 120, strategies: 2, live: 0 },
+    },
+    basis: {
+      'BTC/USD': { latest: 0.31, latestAt: at, n: 288, absP50: 0.4, absP95: 1.2, absMax: 2.1, over20: 0, over40: 0, over80: 0 },
+      'ETH/USD': { latest: -0.12, latestAt: at, n: 288, absP50: 0.3, absP95: 1.1, absMax: 1.9, over20: 0, over40: 0, over80: 0 },
+      'SOL/USD': { latest: 0.64, latestAt: at, n: 288, absP50: 0.7, absP95: 1.8, absMax: 3.4, over20: 0, over40: 0, over80: 0 },
+    },
+  };
+})();
+
+/**
+ * `?action=chart` for one strategy x symbol: 40 hourly candles ending on the
+ * current bar, one buy and one sell on record, an order still resting and the
+ * decision that opened the position. Pinned to CLOCK like every other
+ * fixture, so the chart draws the same picture at any hour of the day.
+ */
+const AGENTS_CHART = (() => {
+  const interval = 3600e3, bars = 40;
+  const start = NOW_MS - (bars - 1) * interval;
+  const candles = [];
+  for (let i = 0; i < bars; i++) {
+    const t = start + i * interval;
+    const close = 84000 + Math.round(Math.sin(i / 4) * 1500) + i * 40;
+    candles.push([t, close - 20, close + 180, close - 200, close]);
+  }
+  const buy = candles[8], sell = candles[26], restingPrice = candles[bars - 1][4] - 600;
+  return {
+    strategyId: 'trend-4h-kraken', symbol: 'BTC/USD', venue: 'kraken', signalVenue: 'kraken', kind: 'trend-4h', mode: 'paper',
+    intervalMin: 60, since: new Date(start).toISOString(), at: new Date(CLOCK).toISOString(),
+    candles,
+    fills: [
+      { id: 11, ts: new Date(buy[0]).toISOString(), side: 'buy', price: buy[4], base: 0.00025, feeUsd: 0.08, venue: 'kraken', mode: 'paper', marketable: false, decisionId: 21 },
+      { id: 12, ts: new Date(sell[0]).toISOString(), side: 'sell', price: sell[4], base: 0.0001, feeUsd: 0.03, venue: 'kraken', mode: 'paper', marketable: true, decisionId: 22 },
+    ],
+    orders: [
+      { id: 11, ts: new Date(buy[0]).toISOString(), side: 'buy', price: buy[4], base: 0.00025, state: 'filled', venue: 'kraken', mode: 'paper', requotes: 0, marketable: false, filledAt: new Date(buy[0]).toISOString(), cancelledAt: null, decisionId: 21 },
+      { id: 12, ts: new Date(sell[0]).toISOString(), side: 'sell', price: sell[4], base: 0.0001, state: 'filled', venue: 'kraken', mode: 'paper', requotes: 0, marketable: true, filledAt: new Date(sell[0]).toISOString(), cancelledAt: null, decisionId: 22 },
+      { id: 13, ts: new Date(NOW_MS - 2 * interval).toISOString(), side: 'buy', price: restingPrice, base: 0.00015, state: 'new', venue: 'kraken', mode: 'paper', requotes: 1, marketable: false, filledAt: null, cancelledAt: null, decisionId: 23 },
+    ],
+    decisions: [{ id: 21, ts: new Date(buy[0]).toISOString(), barStart: new Date(buy[0]).toISOString(), action: 'enter', ruleAction: 'enter', reason: 'trend up; model agrees', provider: 'openrouter', riskAllowed: true, kind: 'bar', mark: buy[4] }],
+    position: { base: 0.00015, avgCost: buy[4], realisedUsd: 12.34, feesUsd: 0.11, openedAt: new Date(buy[0]).toISOString() },
+    observation: {
+      ts: new Date(CLOCK - 40e3).toISOString(), barStart: new Date(CLOCK - 40e3 - interval).toISOString(),
+      state: { symbol: 'BTC/USD', trend_4h: 'up', trend_strength: 'strong', breakout: 'inside_range', volatility: 'normal', momentum_30d: 'positive', position: 'long', unrealised: 'gain', time_in_position: 'days' },
+      numbers: { mark: 86000, close: 85900 },
+    },
+  };
+})();
+
+/** What the dashboard returns before the agents migration has run. */
+const AGENTS_NOT_READY = {
+  at: new Date(CLOCK).toISOString(), notReady: true,
+  reason: 'the agents tables are not in this database yet (migration 0037 runs on merge)',
+};
+/**
+ * Flipped by the agents section to prove the page renders its other
+ * states too: `notReady` (the tables are not there yet), `error` (the
+ * function fell over: a 500 with the server's envelope), `paused` (the
+ * dashboard with a global pause set and a venue reporting a fault).
+ */
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused'} */ ('ok');
+const AGENTS_PAUSED = () => ({
+  ...AGENTS_DASHBOARD,
+  risk: { ...AGENTS_DASHBOARD.risk, global_pause: true },
+  venues: AGENTS_DASHBOARD.venues.map((v) => (v.id === 'kraken' ? { ...v, note: 'balances: 403 EAPI:Invalid key' } : v)),
+});
 
 let failures = 0;
 const log = [];
@@ -321,6 +462,21 @@ async function newPage(browser, { width, height }, errors, tokenMisses) {
       body: JSON.stringify(body),
     });
     if (url.includes('/data?') && url.includes('action=load')) return json({ data: PORTFOLIO, version: 1 });
+    if (url.includes('/agents?') && url.includes('action=dashboard')) {
+      if (agentsMode === 'notReady') return json(AGENTS_NOT_READY);
+      if (agentsMode === 'paused') return json(AGENTS_PAUSED());
+      if (agentsMode === 'error') {
+        return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
+      }
+      return json(AGENTS_DASHBOARD);
+    }
+    if (url.includes('/agents?') && url.includes('action=chart')) {
+      const u = new URL(url);
+      // The same series whichever pair is asked for — what the checks are
+      // about is the drawing, not the prices.
+      return json({ ...AGENTS_CHART, strategyId: u.searchParams.get('strategy'), symbol: u.searchParams.get('symbol') });
+    }
+    if (url.includes('/agents?') && url.includes('action=log')) return json({ strategyId: 'trend-4h', decisions: [], orders: [] });
     if (url.includes('action=price-snapshots')) {
       // Recording began 30 days ago, as it really did (2026-08-19).
       // That is long before the 24H window opens and part-way into the
@@ -746,11 +902,11 @@ async function run() {
     // fills in afterwards. Nothing below has opened a modal yet, so a
     // resource entry here can only have come from the prefetch.
     const requestedChunks = (/** @type {any} */ (page).__requested || [])
-      .filter((/** @type {string} */ n) => /\/assets\/(ticker_chart_modal|transaction_history|holdings_list|sectors_list)-/.test(n))
+      .filter((/** @type {string} */ n) => /\/assets\/(ticker_chart_modal|transaction_history|holdings_list|sectors_list|agents)-/.test(n))
       .map((/** @type {string} */ n) => (n.split('/').pop() || '').replace(/-[a-f0-9]+\.js$/, ''));
-    const want = ['ticker_chart_modal', 'transaction_history', 'holdings_list', 'sectors_list'];
+    const want = ['ticker_chart_modal', 'transaction_history', 'holdings_list', 'sectors_list', 'agents'];
     const missing = want.filter((w) => !requestedChunks.includes(w));
-    if (missing.length === 0) ok(S('chunks'), 'all four modal chunks prefetched before any click');
+    if (missing.length === 0) ok(S('chunks'), 'all five modal chunks prefetched before any click');
     else fail(S('chunks'), `not prefetched: ${missing.join(', ')}`);
 
     // ---- 7. transaction history -------------------------------------
@@ -823,6 +979,219 @@ async function run() {
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
     } else fail(S('history'), 'Transaction history menu item not found');
+
+    // ---- 8. agents ----------------------------------------------------
+    // The page is the Edge Function's dashboard, formatted: the headline
+    // must be the fixture's realised total, every strategy a row, and a
+    // row must open the detail with the position and the decision the
+    // fixture carries. The mask toggle is not exercised here; it reuses
+    // maskDigits, which the transaction history already proves.
+    await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+    await page.waitForTimeout(200);
+    const agentsBtn = page.locator('.header-menu-item:text-is("Agents")');
+    if (await agentsBtn.count()) {
+      await agentsBtn.first().click();
+      await page.waitForSelector('.ag-table', { timeout: 10_000 });
+      const head = await page.locator('.ag-total-val').first().textContent().catch(() => '');
+      if (money(head) === 12.34 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total (${(head || '').trim()})`);
+      else fail(S('agents'), `headline read "${head}", wanted +$12.34`);
+      const rows = await page.locator('.ag-row').count();
+      if (rows === 5) ok(S('agents'), 'five strategy rows, one per rulebook per venue');
+      else fail(S('agents'), `expected 5 strategy rows, got ${rows}`);
+      // Every row's last DECISION is 35 min old — two of the trend rule's
+      // bars would call that stale. What keeps them running is the
+      // observation the tick wrote 40 s ago.
+      const running = await page.locator('.ag-row .ag-status.is-running').count();
+      if (running === 5) ok(S('agents'), 'a 40 s-old observation keeps every row running, not the decision clock');
+      else fail(S('agents'), `running dots: ${running} of 5`);
+      const watching = await page.locator('.ag-row .ag-status').first().getAttribute('title');
+      if (/watching · seen \d+s ago/.test(watching || '')) ok(S('agents'), `the status says what it is doing ("${watching}")`);
+      else fail(S('agents'), `status title reads "${watching}"`);
+      const chips = await page.locator('.ag-chip .ag-chip-name').allTextContents();
+      if (chips.includes('Caps') && chips.some((c) => /^Jev/.test(c)) && !chips.includes('Revolut X') && !chips.includes('Kraken')) {
+        ok(S('agents'), 'the strip carries the caps and the model\'s bill, and no longer repeats the venue cards');
+      } else fail(S('agents'), `chips: ${chips.join(', ')}`);
+      const how = await page.locator('.ag-how').textContent().catch(() => '');
+      if (/Every minute/.test(how || '') && !/five minutes/.test(how || '') && /Dislocation/.test(how || '') && /asked on entries only/.test(how || '')) {
+        ok(S('agents'), 'the explainer describes the one-minute loop, all five rulebooks and the model\'s entry-only role');
+      } else fail(S('agents'), `explainer reads "${(how || '').trim().slice(0, 100)}…"`);
+      const nowStyle = await page.locator('.ag-basis-now').first().getAttribute('style').catch(() => null);
+      const nowText = await page.locator('.ag-basis-now').first().textContent().catch(() => '');
+      if (!nowStyle && /^[+-]\d/.test((nowText || '').trim())) ok(S('agents'), `the basis "Now" cell keeps its sign as text and wears no P&L colour ("${(nowText || '').trim()}")`);
+      else fail(S('agents'), `basis now cell: style "${nowStyle}", text "${nowText}"`);
+      const nameBtns = await page.locator('.ag-row .ag-name-btn').count();
+      if (nameBtns === rows) ok(S('agents'), 'every strategy name is a real button');
+      else fail(S('agents'), `name buttons ${nameBtns} of ${rows}`);
+      const vpWidth = page.viewportSize()?.width ?? 0;
+      const wideShown = await page.locator('.ag-table th.ag-col-wide').evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length);
+      const statusShown = await page.locator('.ag-table th.ag-col-status').evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length);
+      const returnShown = await page.locator('.ag-table th.ag-col-return').evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length);
+      if (vpWidth <= 760 ? (wideShown === 0 && statusShown === 1 && returnShown === 1) : (wideShown === 5 && statusShown === 1 && returnShown === 1)) {
+        ok(S('agents'), vpWidth <= 760 ? 'a phone sees status and return without the money detail columns' : 'a desktop sees every column, status and return first');
+      } else fail(S('agents'), `columns at ${vpWidth}px: wide ${wideShown}, status ${statusShown}, return ${returnShown}`);
+      const alertsAtRest = await page.locator('.ag-alert').count();
+      if (alertsAtRest === 0) ok(S('agents'), 'no banner when nothing blocks trading');
+      else fail(S('agents'), `${alertsAtRest} alert banners on a healthy dashboard`);
+      // Every row says where it trades; the split says how the book divides.
+      const badges = await page.locator('.ag-row .ag-venue').allTextContents();
+      const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, krakenRows = badges.filter((b) => b.startsWith('Kraken')).length;
+      if (revxRows === 3 && krakenRows === 2) ok(S('agents'), 'venue badge on every row: 3 Revolut X, 2 Kraken');
+      else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
+      const shares = await page.locator('.ag-share').allTextContents();
+      if (shares.some((t) => /Kraken 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Kraken');
+      else fail(S('agents'), `share bar reads ${shares.join(' | ')}`);
+      const cards = await page.locator('.ag-venue-card').count();
+      if (cards === 2) ok(S('agents'), 'one venue card per account');
+      else fail(S('agents'), `venue cards ${cards}`);
+      const funded = await page.locator('.ag-venue-card-revx .ag-venue-grid').textContent().catch(() => '');
+      if (/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card shows its funding');
+      else fail(S('agents'), `revx card reads "${funded}"`);
+      // Four rules count down to a bar close; the minute rule decides every
+      // minute, which is a rhythm, not a countdown.
+      const nexts = await page.locator('.ag-row .ag-next').allTextContents();
+      if (nexts.filter((t) => t === 'in 2h 13m').length === 4 && nexts.filter((t) => t === 'every minute').length === 1) {
+        ok(S('agents'), 'each bar rule counts down; the minute rule reads "every minute"');
+      } else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
+      const kinds = await page.locator('.ag-row .hl-sub').allTextContents();
+      if (kinds.some((t) => /^Dislocation ·/.test(t))) ok(S('agents'), 'the dislocation rulebook is named on its row');
+      else fail(S('agents'), `kind column: ${kinds.join(' | ')}`);
+      const basisRowsN = await page.locator('.ag-basis-row').count();
+      if (basisRowsN === 3) ok(S('agents'), 'cross-venue basis table has the three symbols');
+      else fail(S('agents'), `basis rows ${basisRowsN}`);
+      await page.locator('.ag-row').nth(2).click();
+      await page.waitForSelector('.ag-detail', { timeout: 5_000 });
+      const title = await page.locator('.ag-detail-title').first().textContent().catch(() => '');
+      if (/Kraken/.test(title || '')) ok(S('agents'), `third row opens its detail (${(title || '').trim()})`);
+      else fail(S('agents'), `detail title "${title}"`);
+      const posCells = await page.locator('.ag-positions tbody tr').count();
+      const decRows = await page.locator('.ag-log').nth(0).locator('tbody tr').count();
+      const ordRows = await page.locator('.ag-log').nth(1).locator('tbody tr').count();
+      if (posCells === 1 && decRows === 1 && ordRows === 1) ok(S('agents'), 'detail shows the position, the decision and the order');
+      else fail(S('agents'), `detail rows: positions ${posCells}, decisions ${decRows}, orders ${ordRows}`);
+      const orderVenue = await page.locator('.ag-log').nth(1).locator('tbody .ag-venue').first().textContent().catch(() => '');
+      if (/^Kraken/.test(orderVenue || '')) ok(S('agents'), 'the order row names its venue');
+      else fail(S('agents'), `order venue badge "${orderVenue}"`);
+      const stateTxt = await page.locator('.ag-log').nth(0).locator('.ag-state').first().textContent().catch(() => '');
+      if (/trend up/.test(stateTxt || '') && /mom positive/.test(stateTxt || '')) ok(S('agents'), 'decision row shows the words the model saw');
+      else fail(S('agents'), `state text "${stateTxt}"`);
+      // ---- the detail chart --------------------------------------
+      // Symbol tabs, the chart for the one selected, its fills as rows, and
+      // the words the rule is reading on the forming bar.
+      // A missing chart is a FAIL like any other, not a thrown timeout that
+      // takes the rest of the run (and both invariants) down with it — which
+      // is what a stale committed bundle would otherwise do.
+      const chartUp = await page.waitForSelector('.ag-chart-svg', { timeout: 5_000 }).then(() => true).catch(() => false);
+      if (!chartUp) fail(S('agents'), 'the detail never drew its chart svg');
+      const tabs = await page.locator('.ag-sym-tab').allTextContents();
+      const tabOn = await page.locator('.ag-sym-tab.is-on').allTextContents();
+      if (tabs.length === 3 && tabOn.length === 1 && /^BTC\/USD/.test(tabOn[0] || '')) {
+        ok(S('agents'), 'one symbol tab per pair, opening on the one that is held');
+      } else fail(S('agents'), `tabs ${tabs.join(' | ')}, selected ${tabOn.join(' | ')}`);
+      const marks = await page.locator('.ag-chart-svg .ag-fill-mark').count();
+      const buyMarks = await page.locator('.ag-chart-svg .ag-fill-buy').count();
+      const sellMarks = await page.locator('.ag-chart-svg .ag-fill-sell').count();
+      if (marks === 2 && buyMarks === 1 && sellMarks === 1) ok(S('agents'), 'the chart marks both fills, buy and sell apart');
+      else fail(S('agents'), `fill marks: ${marks} (${buyMarks} buy, ${sellMarks} sell)`);
+      const gridlines = await page.locator('.ag-chart-svg text.ag-axis').count();
+      if (gridlines >= 4) ok(S('agents'), `the chart is labelled on both axes (${gridlines} axis labels)`);
+      else fail(S('agents'), `only ${gridlines} axis labels`);
+      const legend = await page.locator('.ag-chart-legend .ag-legend-item').allTextContents();
+      if (legend.includes('buy fill') && legend.includes('sell fill') && legend.includes('resting order')) {
+        ok(S('agents'), 'the two mark kinds and the resting order are named in words');
+      } else fail(S('agents'), `legend: ${legend.join(' | ')}`);
+      const fillRowsN = await page.locator('.ag-fills tbody tr').count();
+      const sides = await page.locator('.ag-fills .ag-side').allTextContents();
+      if (fillRowsN === 2 && sides.join(',') === 'sell,buy') ok(S('agents'), 'the fills table lists both fills, newest first');
+      else fail(S('agents'), `fills table: ${fillRowsN} rows, sides ${sides.join(' | ')}`);
+      const sum = await page.locator('.ag-fills-sum').textContent().catch(() => '');
+      if (/2 fills/.test(sum || '') && /1 resting/.test(sum || '')) ok(S('agents'), `the fills line sums the window ("${(sum || '').trim().slice(0, 48)}…")`);
+      else fail(S('agents'), `fills summary reads "${sum}"`);
+      const liveRows = await page.locator('.ag-live-row').count();
+      const pills = await page.locator('.ag-live-row .ag-pill').count();
+      const firstPills = await page.locator('.ag-live-row').first().locator('.ag-pill').allTextContents();
+      if (liveRows === 3 && pills >= 9 && firstPills.some((t) => /trend4hup/.test(t.replace(/\s+/g, '')))) {
+        ok(S('agents'), `the live state renders as pills, one row per symbol (${pills} pills)`);
+      } else fail(S('agents'), `live state: ${liveRows} rows, ${pills} pills, first ${firstPills.join(' | ')}`);
+      const ages = await page.locator('.ag-live-row .ag-live-age').allTextContents();
+      // `.every` on an empty list is vacuously true, so the length is part of the check.
+      if (ages.length === 3 && ages.every((t) => /seen \d+ s ago/.test(t))) ok(S('agents'), 'each reading says how old it is');
+      else fail(S('agents'), `observation ages: ${ages.join(' | ')}`);
+      // A second pair swaps the chart without leaving the detail.
+      await page.locator('.ag-sym-tab').nth(1).click({ timeout: 2_000 }).catch(() => {});
+      await page.waitForTimeout(400);
+      const swapped = await page.locator('.ag-chart-sym').textContent().catch(() => '');
+      if (/ETH\/USD/.test(swapped || '')) ok(S('agents'), 'a tab swaps the pair the chart draws');
+      else fail(S('agents'), `after the tab click the chart reads "${swapped}"`);
+      await page.locator('.ag-sym-tab').first().click({ timeout: 2_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+
+      const bt = await page.locator('.ag-detail .ag-section').last().locator('tbody tr').count().catch(() => 0);
+      if (bt === 3) ok(S('agents'), 'backtest table has the three symbols');
+      else fail(S('agents'), `backtest rows ${bt}`);
+      await page.locator('.ag-back').click();
+      await page.waitForSelector('.ag-table', { timeout: 5_000 });
+      ok(S('agents'), 'back returns to the overview');
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
+      // ---- the same page before the migration has run ------------
+      // `runDashboard` answers 200 with `{ notReady, reason }` while the
+      // agents tables do not exist. That has to be a designed state, not
+      // an error: a fresh database is the normal first minute of a deploy.
+      agentsMode = 'notReady';
+      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+      await page.waitForTimeout(200);
+      await page.locator('.header-menu-item:text-is("Agents")').first().click();
+      await page.waitForSelector('.ag-notready', { timeout: 10_000 }).catch(() => {});
+      const nr = await page.locator('.ag-notready').textContent().catch(() => '');
+      const nrErrors = await page.locator('.ag-error').count();
+      const nrTables = await page.locator('.ag-table').count();
+      if (/Not deployed yet/.test(nr || '') && /migration 0037/.test(nr || '') && nrErrors === 0 && nrTables === 0) {
+        ok(S('agents'), 'a notReady dashboard renders the designed empty state, not an error');
+      } else fail(S('agents'), `not-ready state: errors ${nrErrors}, tables ${nrTables}, text "${(nr || '').trim().slice(0, 80)}"`);
+      agentsMode = 'ok';
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
+      // ---- the function falling over ------------------------------
+      // A 500 is words, a retry and a fold — never the raw envelope in
+      // the body of the page. The retry is proven: the stub recovers and
+      // the table appears without leaving the modal.
+      agentsMode = 'error';
+      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+      await page.waitForTimeout(200);
+      await page.locator('.header-menu-item:text-is("Agents")').first().click();
+      await page.waitForSelector('.ag-errorcard', { timeout: 10_000 }).catch(() => {});
+      const ecTitle = await page.locator('.ag-errorcard-title').textContent().catch(() => '');
+      const ecText = await page.locator('.ag-errorcard-text').textContent().catch(() => '');
+      const ecRaw = await page.locator('.ag-error').count();
+      const ecRetry = await page.locator('.ag-retry').count();
+      const ecDetails = await page.locator('.ag-errorcard-details pre').textContent().catch(() => '');
+      if ((ecTitle || '').trim() && !/[{]/.test(ecText || '') && ecRaw === 0 && ecRetry === 1 && /57014/.test(ecDetails || '')) {
+        ok(S('agents'), `a 500 renders as words with a retry ("${(ecTitle || '').trim()}"), the envelope folded away`);
+      } else fail(S('agents'), `error state: title "${ecTitle}", text "${(ecText || '').trim().slice(0, 60)}", raw ${ecRaw}, retry ${ecRetry}`);
+      agentsMode = 'ok';
+      await page.locator('.ag-retry').first().click({ timeout: 2_000 }).catch(() => {});
+      const recovered = await page.waitForSelector('.ag-table', { timeout: 5_000 }).then(() => true).catch(() => false);
+      if (recovered) ok(S('agents'), 'Try again reloads the dashboard in place');
+      else fail(S('agents'), 'Try again did not bring the table back');
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
+      // ---- a global pause and a venue fault --------------------------
+      agentsMode = 'paused';
+      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+      await page.waitForTimeout(200);
+      await page.locator('.header-menu-item:text-is("Agents")').first().click();
+      await page.waitForSelector('.ag-alert', { timeout: 10_000 }).catch(() => {});
+      const stopBanner = await page.locator('.ag-alert.is-stop .ag-alert-label').textContent().catch(() => '');
+      const faultBanner = await page.locator('.ag-alert.is-fault .ag-alert-text').textContent().catch(() => '');
+      if (/Global pause/i.test(stopBanner || '') && /403/.test(faultBanner || '')) ok(S('agents'), 'a global pause and a venue fault are banners above the table, each with its label and words');
+      else fail(S('agents'), `banners: stop "${stopBanner}", fault "${faultBanner}"`);
+      agentsMode = 'ok';
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+    } else fail(S('agents'), 'Agents menu item not found');
 
     await ctx.close();
   }

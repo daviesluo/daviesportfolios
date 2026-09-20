@@ -14,19 +14,37 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-0. **Agents (crypto auto-trading) — research done, build NOT started,
-   blocked on four answers from Davies.** Everything verified about
-   TypeSafe Jev 1.13 and the Revolut X API, with the live measurements,
-   is in `docs/agents/reference.md`; CLAUDE.md has the short rules. The
-   feature goes on a PR branch (he asked for one). Before any code that
-   touches money: (1) is the Ed25519 PRIVATE key in Supabase secrets, and
-   under what name — the 64-char `Revolut_X_API_kEY` cannot sign a
-   request; (2) is the "$100 sub-account" a separate Revolut X login or a
-   sub-portfolio the same key can trade across; (3) key permission and IP
-   allowlist; (4) paper-first confirmed. Design already decided by the
-   evidence: Jev as a decision node on categorical state, 5-minute loop,
-   closed 1h/4h bars, limit orders, BTC/ETH/SOL only, hard caps in code,
-   inputs recorded not conclusions. See the 2026-09-20 03:15 entry.
+0. **Agents (crypto auto-trading) — on PR #211, paper only, waiting on
+   the PR.** Server: `supabase/functions/agents/` (tick / dashboard /
+   chart / log / probe), `_shared/{jev,revx,kraken,venue,agents_strategy,
+   bytes}.ts`, migration `0037_agents.sql` (eight PAPER strategies:
+   rotation / trend-4h / trend-1h / momentum-1d / dislocation-1m on
+   Revolut X reading Kraken's candles, rotation (7-day hold) / momentum-1d
+   / trend-4h on Kraken; per-venue-and-mode caps with a separate paper
+   exposure cap; the ONE-MINUTE cron; the basis and observation tables),
+   the walk-forward backtester and `docs/agents/backtests/`. Client: the
+   ☰ → Agents page — venue split, badges, basis table, live state per
+   symbol, and a detail per strategy with the price chart, buy/sell marks
+   and the fills list. Codex's three P1s fixed. Both key pairs verified
+   by the read-only probe (reference §6). Both accounts hold ≈ $100 USD
+   (Kraken credited the £75 as USD on arrival; no conversion needed).
+   Merging applies 0037 (the cron starts ticking every minute, paper) and
+   deploys the function; until then production runs the same code but
+   without tables, and the page says so (`notReady`). Then: (1) weeks of
+   paper on both venues — fills, Jev's vote from `agent_decisions`, the
+   dislocation record (reference §3.5 names what would make it live), the
+   basis record — before any strategy goes live; (2) live is three
+   switches, all his (`agent_strategies.mode`, `agent_risk.live_confirmed_at`,
+   the gate) and the first live order needs his confirmation in the
+   conversation. Never apply 0037 by hand. **Usage rule**: no main-model
+   PR polling; an Opus-class subagent reviews when a review is needed.
+   **Production's `agents` function is still the probe-only build (v4)**:
+   the repo build could not be deployed from this container (the MCP
+   deploy takes inline source and 62 KB does not fit one call; a manual
+   `workflow_dispatch` path for `edge-functions.yml` was refused by the
+   session's own permission gate). Merging deploys it; or
+   `supabase functions deploy agents --no-verify-jwt` from a machine with
+   the CLI. Until then the preview's Agents page shows the old 404.
 
 1. **Cloudflare's edge still serves five cached copies of the old
    exposure, for up to seven days.** The ORIGIN is fixed — every path
@@ -131,6 +149,216 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-20 18:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The independent review round: two P0s and five P1s on the money path
+fixed, the backtests re-run with the loop's own fills, the dislocation
+"edge" withdrawn as a stale-print artefact.** An Opus subagent reviewed
+PR #211 (code, strategy, design) and found: XRP had no Kraken pair
+mapping, which broke every Kraken batch call and with it four strategies,
+the dislocation rule and the basis record; a live order that filled on
+arrival was recorded with no size and no fee; the order-count cap refused
+exits; a Kraken stop was a post-only sell at the bid (always rejected); a
+resting exit blocked the stop for the bar rules; a stop was tried once per
+bar; partial fills were invisible; no single-flight guard on the tick; the
+backtests priced a guaranteed maker fill the loop never places and ran
+none of the stops; the dislocation study read closes while the rule reads
+the touch. All fixed and pinned (`tick.test.ts` 29, `kraken.test.ts` 11,
+Edge suite 287):
+
+- Kraken maps XRP (`XRPUSD` / `XXRPZUSD`), batch calls drop unknown
+  symbols, `placeLimit` honours `marketable` (IOC, no post-only).
+- A placement reply never settles an order: the row stays `new` and the
+  venue's own view settles it next turn. Partial fills count as positions;
+  a cancel after a partial fill is a fill of that part.
+- `riskGate`: the order-count cap, like the loss limit, stops new risk
+  only. Stops are evaluated before the in-flight guard, claim the MINUTE,
+  cancel a resting order they outrank (Revolut X) or leave a resting ask
+  to work (Kraken, priced at the ask). One pair's throw is caught per
+  pair. `agent_locks` lease (55 s) — one tick at a time. Observations
+  looked up per pair. `chart` / `log` answer `notReady`; the fee tier is
+  cached an hour.
+- **Execution model, decided and pinned:** Revolut X takes the touch on
+  every order (9 bps, the backtests' fill; a resting bid on a breakout
+  fills when the breakout fails); Kraken rests post-only. After any exit a
+  rule waits two bars — without it momentum made 155 trades a year in the
+  re-run, 45 with it.
+- **Backtests re-run** (reference §3.3a; the backtester now writes
+  `summary.json` itself, XRP at its measured spread): trend-4h OOS on
+  Revolut X BTC −16.5 % / ETH −1.0 % / SOL +17.3 % with stops (−19.3 /
+  −3.9 / +27.0 without); momentum-1d −17.0 / +10.4 / −29.2; trend-1h −9.3
+  / −6.9 / +14.1; rotation −14.4 % (no bear filter −47.4 %). Buy-and-hold
+  −28 / −40 / −50 %.
+- **Dislocation** (reference §3.5): 60–73 % of the study's "cheap"
+  Revolut X minutes had zero volume and the reference's forward return
+  after them is ≈ 0 — the +8 bps was a stale last-trade print catching
+  up. The seed stays, paper, reading the touch basis, as a measurement
+  with no return claimed; the page's backtest note says so.
+- **Page** (from the review's design pass): status and return right
+  after the name and the money detail hidden under 760 px; an error card
+  in words with Try again and the envelope folded away; banners for a
+  global pause and a venue fault; the explainer says every minute, five
+  rulebooks, model on entries only; the basis "Now" column wears no P&L
+  colour; venue chips no longer repeat the cards; the held position under
+  the realised figure; strategy names are real buttons. Sweep 170 checks.
+- **Not done here:** production still runs the probe-only `agents` (see
+  item 0); the friend's Rust engine question is answered in the
+  conversation, not in the repo.
+
+### [2026-09-20 13:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The loop observes every minute and enters on closed bars; the friend's
+three ideas tested, one earned a paper seed; the preview's 404 fixed; the
+detail page draws the trades.** Davies asked for the smallest decision
+interval that still makes sense, a study of "breakout trade, double bottom
+and illiquidity events", a fix for the preview's `unknown action
+'dashboard'`, a price chart with the buy/sell points and a fills list per
+strategy, a refined design throughout, and proof that the agents' book is
+isolated from the rest of the site. He also closed the PR re-checks: no
+main-model polling from now on.
+
+- **Cadence** (tick v3, `tick.ts`): pg_cron every minute. Each turn:
+  both venues' quotes (basis stored every fifth minute), order management
+  with re-quotes (a resting order the touch has left by ≥ 5 bps after
+  3 minutes is cancelled and re-quoted, five times at most; nothing rests
+  past an hour), protective stops against the live mark (ATR trail from
+  the high since entry, floor under cost — no model call, marketable on
+  Revolut X), and the categorical state on the FORMING bar written to
+  `agent_observations` when it changes. Entries still wait for a closed
+  bar. Revolut X's public client now waits out a 429 (the loop makes six
+  public calls a turn against a one-token-a-second bucket).
+- **Patterns** (reference §3.5, `patterns_bt.py` in scratch): volume
+  confirmation worsens the trend rule on every symbol; the squeeze
+  breakout is one good BTC window and losses elsewhere; the double bottom
+  is quiet on BTC and negative on ETH/SOL. None adopted.
+- **Illiquidity events** (reference §3.5): 30 days of 1-minute Revolut X
+  vs Coinbase closes. After a ≥ 10 bps cheap print the next 5–60 minutes
+  average +14–22 bps on BTC/ETH; a RESTING bid loses on every setting
+  (adverse selection); lifting the ask and resting the exit at the
+  reference is +8.1 bps a trade on BTC and +4.3 on ETH at 15 bps (win 81 %),
+  weaker in the second half of the sample, negative on SOL/XRP (their
+  spreads). Seeded as `dislocation-1m`, PAPER, Revolut X, BTC + ETH,
+  `entryBps: 15`; the rule (`ruleDecisionDislocation`) sells at the bid on
+  a 40 bps loss or after 30 minutes and cancels a resting exit first.
+  Pinned in `tick.test.ts` (23) and `strategy.test.ts`.
+- **Preview 404**: production's `agents` was the probe-only build. The
+  repo build is deployed (flattened imports, MCP); `runDashboard` answers
+  `{ notReady: true }` while the tables are missing (they arrive with 0037
+  on merge), and the page renders that state instead of an error.
+- **Page**: `?action=chart` serves one strategy × symbol (cached candles
+  over the rule's window, fills, orders, decisions, latest observation);
+  the detail draws the close line with buy/sell marks, resting orders and
+  average cost, a crosshair and tooltip, symbol tabs, the fills list and
+  the live state pills; the strategy table's running dot follows the
+  observations. Agents data lives only in `agent_*` tables and the modal;
+  nothing else on the site reads it.
+- **Paper exposure**: `agent_risk.paper_exposure_usd` (default 300) so the
+  paper twins do not crowd each other out of the $100 live cap.
+- **Client** (`src/agents_chart.js` new, `agents.{js,jsx}`): the chart's
+  geometry is pure and pinned (34 cases in `agents.test.js`); a strategy
+  is "running" when any of its observations is under 3 minutes old, else
+  by a per-rulebook decision clock (`DECISION_STALE_MS`); the dislocation
+  detail shows the 1-minute study with both halves beside the headline.
+  The browser sweep is 154 checks (28 on Agents per viewport), all green
+  on the rebuilt bundle. Production `agents` deployed from this branch
+  by MCP (flattened imports) so the preview answers `notReady`.
+
+### [2026-09-20 07:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Two venues made complementary by measurement; the arbitrage question
+answered with data; capital utilisation addressed by a rotation rule;
+Codex's three P1s fixed; the page shows the book by venue.** Davies
+deposited £75 in Kraken and asked for complementary strategies, possibly
+different coins, cross-venue coordination and "arbitrage", a page that
+shows which venue every position and trade is on, and most of the money
+active most of the time. Another AI's advice (Kraken as signal source,
+Revolut X as free execution, cross-venue arbitrage) was checked, not taken.
+
+- **Measured** (reference §2c): at the touch, every 4 s for 10 minutes,
+  |basis| p50 0.3–0.9 bps and max 1.8–3.1 bps on the majors (8 bps on
+  AVAX); the books cross on BTC/ETH one sample in seven, by under 1 bp. At
+  1- and 5-minute closes over 12–60 h the basis never reached 80 bps and
+  reached 40 once (SOL). Kraken leads Revolut X by seconds (lag-1
+  correlation 0.2–0.3 at 1 min, ≈ 0 at 4 s). Kraken's fee is 40–80 bps a
+  side. **No arbitrage exists at any cadence this system can run**; the
+  basis is now recorded every tick (`agent_basis`) and shown on the page.
+  What the lead does license: `signal_venue` — the Revolut X strategies
+  read Kraken's candles and fill on Revolut X's free maker side.
+- **Rotation** (reference §3.4): top two of BTC/ETH/SOL/XRP by 30-day
+  return above their 100-day average, walk-forward on both venues' costs.
+  The bear filter saved 33 points in the bear year for 14 points of the
+  three-year return; with it off the rule is always invested and lost 45 %
+  out of sample (buy-and-hold −47 %). So "most of the money active most of
+  the time" is true in a bull market and false by design in a bear; the
+  `bearFilter` switch exists and is his. XRP joined the universe (Revolut X
+  3.6 bps / $3.5M a day, Kraken 1.1 bps). `trend-1h` kept up with the
+  4-hour rule on Revolut X costs at three times the trade count and is
+  seeded paper-only for feedback speed.
+- **Codex P1s** (PR #211 review): a live order is written as `pending`
+  before the venue is called and reconciled by client id next turn
+  (`Venue.activeOrders`); a decision is the tick's claim on a bar
+  (unique index on strategy, symbol, `bar_start`; a 409 means another
+  tick got there); `dayPnl` counts only today — realised since the day
+  began plus the change in unrealised from the day's open; and the daily
+  loss limit blocks new risk only, never an exit. All pinned in
+  `tick.test.ts` (16) and `strategy.test.ts`.
+- **Page**: venue badges on every strategy row, position and order
+  (blue Revolut X, violet Kraken, "← Kraken signals" when the candles
+  come from the other venue), a share bar and one card per account
+  (funded, deployed, allotted, P&L, fees), a countdown to each strategy's
+  next bar close, the 24 h basis table with the fee verdict, the rotation
+  backtest with its variants. Sweep checks for each.
+- **Kraken funding**: the £75 is GBP; the strategies trade USD. GBP/USD
+  on Kraken is 0.5 bps wide, $3.4M a day, 0.20 % fee (≈ $0.20). The
+  conversion is the account's first real order and is not placed without
+  his word.
+
+### [2026-09-20 04:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Agents built, on the PR branch, paper only; Kraken added as a second
+venue; both key pairs verified read-only.** Davies answered the four
+questions (private key is `REVOLUT_X_PRIVATE_KEY`; the key was made under
+Revolut X's Sub-accounts feature; no IP allowlist; paper first) and mid-way
+added a Kraken Pro key pair (`KRAKEN_PRO_API_KEY` / `KRAKEN_PRO_PRIVATE_KEY`,
+trading permission, unfunded) asking whether Kraken is better in some
+respects and whether the two can coexist.
+
+- **Probes** (`GET agents?action=probe`, read-only, fired from the database
+  with the Vault `cron_secret` at 03:49 and 04:08 UTC): the Revolut X key's
+  signed `/balances` shows exactly one USD row — the sub-account, nothing of
+  the main account; the private key is bare PKCS#8 base64; a signed call
+  WITH a query string returned 200, so the "query without ?" signing is
+  right. Kraken: secret decodes to 64 bytes; `Balance` shows an empty account
+  whose currencies are USDC and GBP; `TradeVolume` puts this account at
+  0.40 % maker / 0.80 % taker; `OpenOrders` works; **`AddOrder validate=true`
+  returned the order description and no txid** — trading permission proven
+  without an order. Jev answered on both transports in 460–690 ms for
+  $0.000018 a call; the `score` answer is the expected level index on a
+  0…(levels−1) scale. Full record: `docs/agents/reference.md` §6.
+- **Kraken verdict** (reference §2b): its book is 100× tighter and orders of
+  magnitude deeper, its history is complete (quarterly CSV bundle) and
+  `validate=true` is a real dry run — but at this account's tier a maker
+  round trip costs 80 bps against ~0 on Revolut X. The same rules priced on
+  Kraken lose 8–14 points a year out of sample (§3.3, `backtest.ts` now
+  prices both venues). So: Revolut X for live money, Kraken for data and for
+  paper twins that measure what the deeper book gives back. A venue
+  interface (`_shared/venue.ts`) with two adapters; every strategy row names
+  its venue and its paper fills pay that venue's maker fee.
+- **Built:** `tick.ts` (candles → settle → decide → order, per venue),
+  `index.ts` (tick / dashboard / log / probe; cron bearer or app token, ro
+  may read), `db.ts`, `kraken.ts` (documented signing vector pinned),
+  `revx.ts` (keyless public market data + venue adapter), migration 0037
+  (venue/kind columns, per-venue caps, four paper strategies, the cron),
+  `edge-functions.yml` PUBLIC_FNS += agents, the Agents page
+  (`src/agents.{js,jsx}`, ☰ menu item, styles, prefetched chunk), sweep
+  checks for it, README, CLAUDE.md. Gates: typecheck, lint, vitest 864,
+  deno 256, build (main bundle 110.7 kB of 122), knip, browser sweep 116
+  checks — all green.
+- **Not done, by design:** nothing live. `live_confirmed_at` is null, every
+  strategy is `paper`, and the tick refuses a live order on either switch.
+  The prod `agents` function is at the probe-only build (v4, deployed by
+  MCP for the probes); the repo version deploys on merge.
 
 ### [2026-09-20 03:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
