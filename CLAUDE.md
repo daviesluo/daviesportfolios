@@ -84,7 +84,7 @@ agents feature. It holds every verified fact about **TypeSafe: Jev 1.13**
 questions with probabilities and cannot generate text; it is in no
 model's training data, so nothing about it may be written from memory)
 and the **Revolut X REST API** (Ed25519-signed, 0 % maker / 0.09 %
-taker, 1,000 orders a day), plus the live measurements the design rests
+taker, a 1,000-per-day token bucket on the place-order endpoint), plus the live measurements the design rests
 on. The rules that follow from that evidence, in short:
 
 - Jev is a decision node inside a rulebook, never the source of the
