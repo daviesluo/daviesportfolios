@@ -36,7 +36,10 @@ export const KRAKEN_ALTNAME: Record<string, string> = { "BTC/USD": "XBTUSD", "ET
 /** Slash symbol → the primary id responses are keyed by. */
 export const KRAKEN_PAIR_ID: Record<string, string> = { "BTC/USD": "XXBTZUSD", "ETH/USD": "XETHZUSD", "SOL/USD": "SOLUSD", "XRP/USD": "XXRPZUSD" };
 /** Asset code on the wire → the currency the site names. */
-export const KRAKEN_ASSET: Record<string, string> = { XXBT: "BTC", XBT: "BTC", XETH: "ETH", ETH: "ETH", SOL: "SOL", XXRP: "XRP", XRP: "XRP", ZUSD: "USD", USD: "USD" };
+export const KRAKEN_ASSET: Record<string, string> = {
+  XXBT: "BTC", XBT: "BTC", XETH: "ETH", ETH: "ETH", SOL: "SOL", XXRP: "XRP", XRP: "XRP",
+  ZUSD: "USD", USD: "USD", ZGBP: "GBP", GBP: "GBP", ZEUR: "EUR", EUR: "EUR", USDC: "USDC", USDT: "USDT",
+};
 
 export function toAltname(symbol: string): string {
   const a = KRAKEN_ALTNAME[symbol];

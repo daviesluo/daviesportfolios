@@ -215,11 +215,16 @@ read-only probe in §6.
   twins (`trend-4h` / `trend-4h-kraken`, `momentum-1d` / `momentum-1d-kraken`)
   on the same rules with each venue's own candles, touch and fee.
 - **Funding.** The Kraken account is a UK account: Davies deposited £75 on
-  2026-09-20 and Kraken credited it as USD (≈ $100) on arrival, so no
-  conversion order was needed. Both accounts now hold ≈ $100 of USD. The
-  `*/GBP` pairs exist (BTC/GBP 0.02 bps, ETH/GBP 1.3, SOL/GBP 3.7) but are
-  thin and would put a second quote currency into a book that is USD
-  everywhere; everything stays `*/USD`.
+  2026-09-20. Kraken's app shows it as ≈ $100 (its USD-equivalent view),
+  but the API says what the account holds: `ZGBP 75.0000`, no USD (probe,
+  19:08 UTC, via the read-only `probe` action). The strategies trade
+  `*/USD`, so a LIVE Kraken order would fail for lack of USD until the
+  pounds are converted — one GBP/USD order (0.5 bps wide, $3.4M a day,
+  0.20 % FX fee ≈ $0.20), the account's first real order, on Davies' word.
+  Paper is unaffected. The `*/GBP` pairs exist (BTC/GBP 0.02 bps, ETH/GBP
+  1.3, SOL/GBP 3.7) but are thin and would put a second quote currency into
+  a book that is USD everywhere; everything stays `*/USD`. The page names
+  every balance the venue reports (GBP, USD, USDC …), not USD alone.
 
 ### 2c. The cross-venue basis — measured, and the arbitrage question answered
 
