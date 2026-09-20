@@ -15,25 +15,29 @@ has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
 0. **Agents (crypto auto-trading) — on PR #211, paper only, waiting on
-   the PR.** Server: `supabase/functions/agents/` (tick / dashboard / log
-   / probe), `_shared/{jev,revx,kraken,venue,agents_strategy,bytes}.ts`,
-   migration `0037_agents.sql` (seven PAPER strategies: rotation / trend-4h
-   / trend-1h / momentum-1d on Revolut X reading Kraken's candles, rotation
-   (7-day hold) / momentum-1d / trend-4h on Kraken; per-venue-and-mode
-   caps; the 5-minute cron; the basis table), the walk-forward backtester
-   and `docs/agents/backtests/`. Client: the ☰ → Agents page with the venue
-   split, badges, basis table and countdowns. Codex's three P1s fixed
-   (durable order intent, bar claim by unique index, day-boundary P&L).
-   Both key pairs verified by the read-only probe (reference §6). Kraken
-   holds £75 (deposited 2026-09-20) that still has to become USD — one
-   GBP/USD order, the account's first real one, waits for Davies' word.
-   Merging applies 0037 (the cron starts ticking, paper) and deploys the
-   function. Then: (1) the GBP → USD conversion on his say-so; (2) weeks
-   of paper on both venues — fills, Jev's vote from `agent_decisions`,
-   the basis record — before any strategy goes live; (3) live is three
+   the PR.** Server: `supabase/functions/agents/` (tick / dashboard /
+   chart / log / probe), `_shared/{jev,revx,kraken,venue,agents_strategy,
+   bytes}.ts`, migration `0037_agents.sql` (eight PAPER strategies:
+   rotation / trend-4h / trend-1h / momentum-1d / dislocation-1m on
+   Revolut X reading Kraken's candles, rotation (7-day hold) / momentum-1d
+   / trend-4h on Kraken; per-venue-and-mode caps with a separate paper
+   exposure cap; the ONE-MINUTE cron; the basis and observation tables),
+   the walk-forward backtester and `docs/agents/backtests/`. Client: the
+   ☰ → Agents page — venue split, badges, basis table, live state per
+   symbol, and a detail per strategy with the price chart, buy/sell marks
+   and the fills list. Codex's three P1s fixed. Both key pairs verified
+   by the read-only probe (reference §6). Both accounts hold ≈ $100 USD
+   (Kraken credited the £75 as USD on arrival; no conversion needed).
+   Merging applies 0037 (the cron starts ticking every minute, paper) and
+   deploys the function; until then production runs the same code but
+   without tables, and the page says so (`notReady`). Then: (1) weeks of
+   paper on both venues — fills, Jev's vote from `agent_decisions`, the
+   dislocation record (reference §3.5 names what would make it live), the
+   basis record — before any strategy goes live; (2) live is three
    switches, all his (`agent_strategies.mode`, `agent_risk.live_confirmed_at`,
    the gate) and the first live order needs his confirmation in the
-   conversation. Never apply 0037 by hand.
+   conversation. Never apply 0037 by hand. **Usage rule**: no main-model
+   PR polling; an Opus-class subagent reviews when a review is needed.
 
 1. **Cloudflare's edge still serves five cached copies of the old
    exposure, for up to seven days.** The ORIGIN is fixed — every path
@@ -138,6 +142,56 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-20 13:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The loop observes every minute and enters on closed bars; the friend's
+three ideas tested, one earned a paper seed; the preview's 404 fixed; the
+detail page draws the trades.** Davies asked for the smallest decision
+interval that still makes sense, a study of "breakout trade, double bottom
+and illiquidity events", a fix for the preview's `unknown action
+'dashboard'`, a price chart with the buy/sell points and a fills list per
+strategy, a refined design throughout, and proof that the agents' book is
+isolated from the rest of the site. He also closed the PR re-checks: no
+main-model polling from now on.
+
+- **Cadence** (tick v3, `tick.ts`): pg_cron every minute. Each turn:
+  both venues' quotes (basis stored every fifth minute), order management
+  with re-quotes (a resting order the touch has left by ≥ 5 bps after
+  3 minutes is cancelled and re-quoted, five times at most; nothing rests
+  past an hour), protective stops against the live mark (ATR trail from
+  the high since entry, floor under cost — no model call, marketable on
+  Revolut X), and the categorical state on the FORMING bar written to
+  `agent_observations` when it changes. Entries still wait for a closed
+  bar. Revolut X's public client now waits out a 429 (the loop makes six
+  public calls a turn against a one-token-a-second bucket).
+- **Patterns** (reference §3.5, `patterns_bt.py` in scratch): volume
+  confirmation worsens the trend rule on every symbol; the squeeze
+  breakout is one good BTC window and losses elsewhere; the double bottom
+  is quiet on BTC and negative on ETH/SOL. None adopted.
+- **Illiquidity events** (reference §3.5): 30 days of 1-minute Revolut X
+  vs Coinbase closes. After a ≥ 10 bps cheap print the next 5–60 minutes
+  average +14–22 bps on BTC/ETH; a RESTING bid loses on every setting
+  (adverse selection); lifting the ask and resting the exit at the
+  reference is +8.1 bps a trade on BTC and +4.3 on ETH at 15 bps (win 81 %),
+  weaker in the second half of the sample, negative on SOL/XRP (their
+  spreads). Seeded as `dislocation-1m`, PAPER, Revolut X, BTC + ETH,
+  `entryBps: 15`; the rule (`ruleDecisionDislocation`) sells at the bid on
+  a 40 bps loss or after 30 minutes and cancels a resting exit first.
+  Pinned in `tick.test.ts` (23) and `strategy.test.ts`.
+- **Preview 404**: production's `agents` was the probe-only build. The
+  repo build is deployed (flattened imports, MCP); `runDashboard` answers
+  `{ notReady: true }` while the tables are missing (they arrive with 0037
+  on merge), and the page renders that state instead of an error.
+- **Page**: `?action=chart` serves one strategy × symbol (cached candles
+  over the rule's window, fills, orders, decisions, latest observation);
+  the detail draws the close line with buy/sell marks, resting orders and
+  average cost, a crosshair and tooltip, symbol tabs, the fills list and
+  the live state pills; the strategy table's running dot follows the
+  observations. Agents data lives only in `agent_*` tables and the modal;
+  nothing else on the site reads it.
+- **Paper exposure**: `agent_risk.paper_exposure_usd` (default 300) so the
+  paper twins do not crowd each other out of the $100 live cap.
 
 ### [2026-09-20 07:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

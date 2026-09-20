@@ -186,7 +186,7 @@ read-only probe in §6.
 | Candles | `GET /0/public/OHLC?pair=&interval=<minutes>` — intervals 1,5,15,30,60,240,1440,10080,21600; rows `[time_s, open, high, low, close, vwap, volume, count]`, last row is the open candle, `last` = start of the last closed one. **"Returns up to 720 of the most recent entries (older data cannot be retrieved, regardless of the value of `since`)"** — 120 days of 4h, ~2 years of daily. | get-ohlc-data, *measured* |
 | Full history | Quarterly OHLCVT CSV bundle, every pair from its first trade to 2026-06-30, intervals 1/5/15/60/240/720/1440, free (`assets.kraken.com/marketing/institutions/Kraken_OHLCVT_Full_2026Q2.zip.part00-04`); `GET /0/public/Trades` pages 1,000 trades a call. The best backtest data of the three venues we can reach. | support.kraken.com OHLCVT article; get-recent-trades |
 | Orders | `AddOrder` — `pair`, `type` buy/sell, `ordertype=limit`, `volume` (base), `price`, `oflags=post` (post-only), `timeinforce` GTC/IOC/GTD/FOK, `cl_ord_id` (UUID or ≤ 18 chars, unique per open order), **`validate=true` — "the order will be validated only, it will not trade in the matching engine"**; reply `{ descr: { order }, txid?: [...] }` (no `txid` when validating). `CancelOrder {txid}`; `QueryOrders {txid}` → `status` pending/open/closed/canceled/expired, `vol`, `vol_exec`, `cost`, `fee` (quote), `price` (average); `OpenOrders`; `AmendOrder`. Permission needed: "Orders and trades – Create & modify orders". | add-order, get-orders-info |
-| Rate limits | REST call counter 15 (Starter) / 20 (Intermediate, Pro), decaying 0.33 / 0.5 / 1 per second; ledger and trade-history calls cost 2, AddOrder and CancelOrder are on a separate limiter (`EAPI:Rate limit exceeded`). Matching-engine counter per pair 60 / 125 / 180, decaying 1 / 2.34 / 3.75 per second; AddOrder +1, a cancel costs up to +8 when the order is younger than 5 s and +1 under 300 s (`EOrder:Rate limit exceeded`). Max open orders per pair 60 / 80 / 225. **No daily order cap.** A 5-minute loop with a few orders a day never approaches any of this. | spot-ratelimits, spot-rest-ratelimits |
+| Rate limits | REST call counter 15 (Starter) / 20 (Intermediate, Pro), decaying 0.33 / 0.5 / 1 per second; ledger and trade-history calls cost 2, AddOrder and CancelOrder are on a separate limiter (`EAPI:Rate limit exceeded`). Matching-engine counter per pair 60 / 125 / 180, decaying 1 / 2.34 / 3.75 per second; AddOrder +1, a cancel costs up to +8 when the order is younger than 5 s and +1 under 300 s (`EOrder:Rate limit exceeded`). Max open orders per pair 60 / 80 / 225. **No daily order cap.** A one-minute loop with a few orders a day never approaches any of this. | spot-ratelimits, spot-rest-ratelimits |
 | Key permissions | Funds: Query / Deposit / Withdraw. Orders & trades: Query open, Query closed, Modify (= create), Cancel/close. Other: ledger, export, WebSockets. Settings: nonce window, IP allowlist, expiry, query date window. Withdraw must stay OFF on ours. | support: how-to-create-an-API-key |
 | Sandbox | None for spot; `validate=true` is the dry run. | |
 | Deno | HMAC-SHA512 and SHA-256 native in `crypto.subtle`; nothing to install. | *measured* |
@@ -215,13 +215,11 @@ read-only probe in §6.
   twins (`trend-4h` / `trend-4h-kraken`, `momentum-1d` / `momentum-1d-kraken`)
   on the same rules with each venue's own candles, touch and fee.
 - **Funding.** The Kraken account is a UK account: Davies deposited £75 on
-  2026-09-20 (≈ $100). The strategies trade `*/USD`, so the pounds need one
-  conversion — GBP/USD on Kraken is 0.5 bps wide and $3.4M deep a day, on the
-  0.20 % FX fee schedule (≈ $0.20 on $100). That conversion is the account's
-  first real order and waits for his say-so, in the app or by the API. The
+  2026-09-20 and Kraken credited it as USD (≈ $100) on arrival, so no
+  conversion order was needed. Both accounts now hold ≈ $100 of USD. The
   `*/GBP` pairs exist (BTC/GBP 0.02 bps, ETH/GBP 1.3, SOL/GBP 3.7) but are
   thin and would put a second quote currency into a book that is USD
-  everywhere.
+  everywhere; everything stays `*/USD`.
 
 ### 2c. The cross-venue basis — measured, and the arbitrage question answered
 
@@ -257,7 +255,7 @@ hedge leg — 80 bps taker, 40 bps maker if it rests and fills — plus Revolut
 X's half-spread. The basis never reached 80 bps in 60 hours and reached 40
 once, on SOL. At the touch it is under 3 bps. **There is no arbitrage
 between these two accounts at any cadence this system can run**, and the
-lead Kraken has over Revolut X is seconds, invisible to a 5-minute loop
+lead Kraken has over Revolut X is seconds, invisible to a one-minute loop
 that may place at most 1,000 orders a day. What the measurement does
 license: Kraken's quotes and candles are the cleaner signal (a 0.01 bps
 spread against 1.7), so the Revolut X strategies read Kraken's candles
@@ -394,10 +392,70 @@ count; on Kraken's fee it would not. It is seeded paper-only on Revolut X
 because it produces decisions and fills fast enough to judge the loop and
 the model within days, which the daily rules cannot.
 
+### 3.5 The friend's three ideas — breakouts, double bottoms, illiquidity events — tested (2026-09-20)
+
+Same data and harness as §3.3 for the two chart patterns (three years of
+Coinbase hourly → 4-hour candles, Revolut X costs, next-bar-open fills,
+walk-forward split at two thirds, 3×ATR stop); a separate 1-minute study
+for the illiquidity idea. Numbers are OOS return / max drawdown / trades,
+then the full period. Scratch scripts, not shipped: `patterns_bt.py`,
+`m1/disloc_final.py`.
+
+| variant | BTC OOS | BTC full | ETH OOS | ETH full | SOL OOS | SOL full |
+|---|---|---|---|---|---|---|
+| trend baseline (the 4h rule, default params) | −5.4 % / 21 % / 32 | +42 % / 110 | −24.7 % / 35 % / 32 | +117 % / 88 | +6.4 % / 32 % / 22 | +74 % / 106 |
+| **breakout + volume ≥ 1.5× its 20-bar average** | −10.5 % / 24 % / 30 | +27 % / 104 | −24.2 % / 34 % / 30 | +72 % / 84 | +0.5 % / 34 % / 20 | +66 % / 96 |
+| **Bollinger-squeeze breakout** (band width at a 100-bar low, close above the upper band) | +19.7 % / 13 % / 30 | +15 % / 70 | −18.9 % / 19 % / 26 | −34 % / 74 | −1.9 % / 28 % / 26 | −27 % / 64 |
+| **double bottom** (two lows within 1.5 % of each other 10–60 bars apart, entry on the close above the neckline) | +5.4 % / 4 % / 12 | +19 % / 42 | −13.9 % / 20 % / 32 | +11 % / 92 | −24.8 % / 28 % / 10 | −34 % / 44 |
+
+- **Volume confirmation makes the trend rule worse** on every symbol in
+  both windows: the breakouts it filters out were the ones that worked.
+  Not adopted.
+- **The squeeze breakout** is one good BTC window and losses everywhere
+  else, including the full period on ETH and SOL. Not robust; not adopted.
+- **Double bottom** is quiet on BTC (12 trades, 4 % drawdown) and negative
+  on the other two; the full-period ETH result comes from one 2024 stretch.
+  Not adopted as a rule. Both pattern ideas can be revisited once the
+  loop has months of its own fills to compare against.
+- **Illiquidity events are real, and the shape matters.** 30 days of
+  1-minute closes on Revolut X against Coinbase (the Kraken proxy with a
+  1-minute history; Kraken's own 1-minute cache is what the loop now
+  keeps): after Revolut X prints ≥ 10 bps under the reference, its next
+  1 / 5 / 15 / 60 minutes average **+11 / +16 / +18 / +22 bps on BTC** and
+  **+11 / +14 / +14 / +18 bps on ETH**, symmetric and negative after a rich
+  print, unconditional ≈ 0. A **resting bid** at that moment loses money
+  on every setting tried (it fills only when the move continues — adverse
+  selection). **Lifting the ask** at once and resting the exit at the
+  reference once the basis is back within 2 bps, with a 30-minute time
+  stop and a 40 bps loss stop taken at the bid (both cost the 9 bps taker
+  fee), 3-minute cooldown:
+
+| symbol (28.5 days) | k = 12 bps | k = 15 bps | k = 20 bps |
+|---|---|---|---|
+| BTC | 72 trades, 2.52/day, **+2.9 bps** avg, win 71 %, worst -60 (halves +4.4 / +0.1) | 27 trades, 0.95/day, **+8.1 bps** avg, win 81 %, worst -60 (halves +9.1 / +6.1) | 8 trades, 0.28/day, **+14.9 bps** avg, win 75 %, worst -14 (halves +27.5 / +2.4) |
+| ETH | 204 trades, 7.15/day, **-0.4 bps** avg, win 70 %, worst -81 (halves +1.7 / -2.9) | 95 trades, 3.33/day, **+4.3 bps** avg, win 81 %, worst -81 (halves +10.9 / -3.6) | 32 trades, 1.12/day, **+9.2 bps** avg, win 88 %, worst -81 (halves +15.3 / +1.2) |
+| SOL | 466 trades, 16.33/day, **-2.6 bps** avg, win 62 %, worst -86 (halves -2.5 / -2.8) | 245 trades, 8.58/day, **-0.6 bps** avg, win 67 %, worst -94 (halves -0.3 / -1.1) | 90 trades, 3.15/day, **+0.3 bps** avg, win 68 %, worst -94 (halves +2.3 / -3.5) |
+| XRP | 630 trades, 22.07/day, **-8.3 bps** avg, win 51 %, worst -106 (halves -8.0 / -8.7) | 362 trades, 12.68/day, **-6.5 bps** avg, win 56 %, worst -106 (halves -6.2 / -7.0) | 156 trades, 5.47/day, **-0.0 bps** avg, win 67 %, worst -105 (halves +0.2 / -0.5) |
+
+  Read honestly: BTC and ETH are positive at 15 and 20 bps, SOL and XRP
+  are not at any setting (Revolut X's own spread there, 41 and 72 bps, is
+  wider than the edge). The **second half of the sample is weaker** —
+  ETH at 15 bps is negative in it, BTC at 15 bps stays positive on nine
+  trades — so this is a small edge on a small sample, worth a paper run
+  and not a live one. The `dislocation-1m` seed is paper on Revolut X,
+  BTC and ETH, `entryBps: 15` (the 20 bps setting is the one that held in
+  both halves; 15 produces the trades that will tell us within weeks
+  rather than months). Expected, if the sample holds: **~4 trades a day
+  across the two symbols at +4 to +8 bps each, ≈ $0.02 on a $20 clip** —
+  a measurement, not an income. What would make it live: the paper
+  record's average after fees positive over ≥ 100 trades, and its worst
+  trade no worse than the backtest's (−60 bps BTC, −81 ETH: the stop is
+  read on the minute and a fast market gaps through it).
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
-2. **Cadence is minutes-to-hours, not seconds.** Signals on closed 1h/4h bars; the loop wakes every 5 minutes (the existing `snapshot-record` cadence) to manage resting orders and stops; a trade decision at most a few times a day. "Every second" would cost nothing on Jev and everything on fees and the 1,000-order cap.
+2. **Observe every minute, decide on closed bars.** The loop wakes every minute (pg_cron; one minute is where Revolut X's public token bucket and the Edge budget both stay comfortable): it refreshes both venues' quotes, manages and re-quotes resting orders, checks the protective stops against the live mark, and writes the categorical state on the FORMING bar down when it changes (`agent_observations`) — so the page shows what the market is doing between decisions. Entries still wait for a closed 1h / 4h / 1d bar; the one rule that decides on the minute is the dislocation rule (§3.5), and its entries are events, not a cadence. "Every second" would cost nothing on Jev and everything on fees and the 1,000-order cap.
 3. **Limit orders by default, `post_only`**, taker only for stop-loss exits where certainty of fill matters more than 9 bps.
 4. **BTC, ETH, SOL only** — the only pairs on this venue with ≤ 3 bps spreads and real volume. Everything else costs 3–8× more per round trip.
 5. **Paper first.** Every strategy runs in shadow mode against live prices, recording the orders it *would* have placed, until its paper record is shown; the switch to live is a per-strategy flag Davies flips, and the first live order requires his explicit confirmation.
@@ -405,7 +463,8 @@ the model within days, which the daily rules cannot.
 7. **Record inputs, not conclusions** (the `snapshot-record` lesson): every Jev call's state, questions and answers, and every order's request/response, are stored; P&L is computed in one place from fills and marks.
 8. **Two venues, each for what it is good at** (§2b, §2c). Revolut X executes (0 % maker); Kraken supplies the signal (`signal_venue`: its candles are the cleaner series) and runs paper twins whose fills pay its real fee. There is no arbitrage between them at any cadence available here — measured, not assumed — and the basis keeps being recorded so that stays true or is seen to change. Caps in `agent_risk` are per venue account and per mode.
 9. **Capital utilisation is a consequence of regime, not a target.** The rotation rule holds the strongest two of four whenever they trend; in a broad bear it holds cash, because the alternative lost 45 % out of sample (§3.4). The switch that makes it always-invested exists and is Davies' to flip, with the number beside it.
-10. **Nothing fast.** A 5-minute loop, a 1,000-order day on Revolut X and 40–80 bps a side on Kraken rule out market-making and cross-venue trading; the fastest rule that survived costs is the 1-hour trend variant, paper-only, kept for feedback speed rather than for return.
+10. **Nothing fast, except what the data earned.** A 1,000-order day on Revolut X and 40–80 bps a side on Kraken rule out market-making and cross-venue trading. The fastest rules are the 1-hour trend variant (paper, for feedback speed) and the dislocation rule (§3.5: a few taker entries a day when Revolut X prints ≥ 15 bps under Kraken, exits resting at the reference) — the latter because 30 days of minutes showed the snap-back and showed that the cheap version of the trade, a resting bid, loses. Both are paper until their own record says otherwise.
+11. **Stops run between bars, entries do not.** The ATR trail and the floor under cost are checked every minute against the live mark and sell without asking the model; an entry is never taken between bar closes. A resting exit order never outranks a stop: when the stop fires it is cancelled first and the sale is marketable.
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 

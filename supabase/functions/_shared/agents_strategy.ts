@@ -294,7 +294,7 @@ export function ruleDecisionMomentum(snap: Snapshot, position: Position): { acti
   return { action: "enter", reason: "30-day momentum positive" };
 }
 
-export type StrategyKind = "trend-4h" | "trend-1h" | "momentum-1d" | "rotation-1d";
+export type StrategyKind = "trend-4h" | "trend-1h" | "momentum-1d" | "rotation-1d" | "dislocation-1m";
 
 // ---------------------------------------------------------- the rotation rule
 
@@ -356,6 +356,149 @@ export function ruleDecisionRotation(view: RankView, position: Position, nowMs: 
     return { action: "hold", reason: p.bearFilter && view.aboveSlow === false ? `below the ${p.slowDays}-day average` : `not in the top ${p.topN} (rank ${view.rank + 1})` };
   }
   return { action: "enter", reason: `rank ${view.rank + 1} by ${p.lookbackDays}-day return${p.bearFilter ? `, above the ${p.slowDays}-day average` : ""}` };
+}
+
+// ------------------------------------------------------ protective stops
+
+/**
+ * The highest price seen since the position was opened: the entry fills
+ * and every closed bar's high after them. `Position.highWater` from fills
+ * alone never rises with the market, which would make a trailing stop
+ * that never trails — this is the number the stop trails from.
+ */
+export function highWaterSince(position: Position, bars: Candle[], lastClosedIdx: number): number | null {
+  if (position.base <= 0 || position.openedAt == null) return null;
+  let hw = position.highWater ?? position.avgCost;
+  for (let i = 0; i <= lastClosedIdx && i < bars.length; i++) if (bars[i].start >= position.openedAt) hw = Math.max(hw, bars[i].high);
+  return hw;
+}
+
+export type StopParams = { atrStop: number | null; maxLossPct: number };
+
+/**
+ * Checked EVERY turn against the live mark, between bar closes: the ATR
+ * trailing stop from the high-water mark (the trend rules) and a hard
+ * floor under the average cost (every rule). Returns the reason to exit
+ * now, or null. Entries never happen here — only the way out.
+ */
+export function protectiveExit(mark: number, position: Position, highWater: number | null, atr: number | null, p: StopParams): string | null {
+  if (position.base <= 0 || !(mark > 0)) return null;
+  const floor = position.avgCost * (1 - p.maxLossPct);
+  if (mark < floor) return `protective floor: mark ${mark.toFixed(2)} < ${(100 * p.maxLossPct).toFixed(0)} % under cost ${position.avgCost.toFixed(2)}`;
+  if (p.atrStop != null && atr != null && highWater != null && mark < highWater - p.atrStop * atr) {
+    return `intra-bar ATR trailing stop: mark ${mark.toFixed(2)} < high ${highWater.toFixed(2)} − ${p.atrStop}×ATR ${atr.toFixed(2)}`;
+  }
+  return null;
+}
+
+// ------------------------------------------------ the dislocation rule
+
+/**
+ * Illiquidity events, the one thing the basis measurement (reference §2c)
+ * left open: Revolut X's thin book prints away from Kraken's price for a
+ * minute or two and snaps back. Decided every minute from both venues'
+ * quotes, long only.
+ *
+ * The shape is what 30 days of 1-minute data supported (reference §3.5),
+ * not what sounded cheapest: after Revolut X prints ≥ k bps under the
+ * reference the next 15–60 minutes are positive on average, but a RESTING
+ * bid only fills when the move keeps going and loses money (adverse
+ * selection). So the entry lifts the ask at once and pays the taker fee;
+ * the exit rests an ask at the reference once the gap has closed, at 0 %
+ * maker. Bounded by a time stop and a loss stop, both taken at the bid;
+ * never a hedge on Kraken, whose fee is why a hedged arbitrage does not
+ * exist here. BTC and ETH only: on SOL and XRP Revolut X's own spread
+ * (41 / 72 bps) is wider than the edge.
+ */
+export type DislocationParams = { entryBps: number; exitBps: number; maxHoldMin: number; stopBps: number; sharpMoveBps: number; cooldownMin: number };
+export const DEFAULT_DISLOCATION: DislocationParams = { entryBps: 15, exitBps: -2, maxHoldMin: 30, stopBps: 40, sharpMoveBps: 15, cooldownMin: 3 };
+
+export type DislocationState = {
+  symbol: string;
+  basis: "revx_cheap" | "fair" | "revx_rich";
+  basis_size: "small" | "medium" | "large";
+  reference_move_5m: "flat" | "up" | "down" | "sharp_up" | "sharp_down";
+  position: "flat" | "long";
+  time_in_position: "none" | "minutes" | "long";
+};
+
+export type DislocationView = { state: DislocationState; basisBps: number; fair: number };
+
+export function dislocationState(
+  symbol: string, revx: { bid: number; ask: number }, reference: { bid: number; ask: number }, refMove5mBps: number | null,
+  position: Position, nowMs: number, p: DislocationParams = DEFAULT_DISLOCATION,
+): DislocationView {
+  const fair = (reference.bid + reference.ask) / 2;
+  const basisBps = ((revx.bid + revx.ask) / 2 - fair) / fair * 1e4;
+  const a = Math.abs(basisBps);
+  const held = position.openedAt != null ? nowMs - position.openedAt : 0;
+  const m = refMove5mBps ?? 0;
+  return {
+    basisBps,
+    fair,
+    state: {
+      symbol,
+      basis: basisBps <= -p.entryBps ? "revx_cheap" : basisBps >= p.entryBps ? "revx_rich" : "fair",
+      basis_size: a < p.entryBps ? "small" : a < 2 * p.entryBps ? "medium" : "large",
+      reference_move_5m: Math.abs(m) >= p.sharpMoveBps ? (m > 0 ? "sharp_up" : "sharp_down") : m > 3 ? "up" : m < -3 ? "down" : "flat",
+      position: position.base > 0 ? "long" : "flat",
+      time_in_position: position.base <= 0 ? "none" : held < p.maxHoldMin * 60e3 ? "minutes" : "long",
+    },
+  };
+}
+
+export type DislocationDecision = { action: Action; reason: string; marketable: boolean; price: number | null };
+
+/**
+ * Long: the loss stop and the time stop sell at the bid now (`marketable`);
+ * once the basis is back within `exitBps` an ask rests at the reference
+ * price, or at Revolut X's own ask if that is higher. Flat: enter only when
+ * Revolut X is `entryBps` under the reference, the reference is not moving
+ * sharply (a stale quote, not the front of a move) and the last exit is at
+ * least `cooldownMin` old — lifting the ask, since a resting bid is the
+ * losing version of the trade.
+ */
+export function ruleDecisionDislocation(
+  view: DislocationView, revx: { bid: number; ask: number }, position: Position, nowMs: number,
+  p: DislocationParams = DEFAULT_DISLOCATION, lastExitMs: number | null = null,
+): DislocationDecision {
+  const s = view.state;
+  const mid = (revx.bid + revx.ask) / 2;
+  const halfSpread = mid > 0 ? (revx.ask - revx.bid) / 2 / mid : 0;
+  if (position.base > 0) {
+    const pnlBps = (revx.bid / position.avgCost - 1) * 1e4;
+    if (pnlBps <= -p.stopBps) return { action: "exit", reason: `dislocation stop: ${pnlBps.toFixed(0)} bps under cost, sell at the bid`, marketable: true, price: revx.bid };
+    if (s.time_in_position === "long") return { action: "exit", reason: `time stop after ${p.maxHoldMin} min: sell at the bid`, marketable: true, price: revx.bid };
+    if (view.basisBps >= p.exitBps) {
+      const price = Math.max(revx.ask, view.fair * (1 + halfSpread));
+      return { action: "exit", reason: `basis closed (${view.basisBps.toFixed(1)} bps): rest an ask at the reference`, marketable: false, price };
+    }
+    return { action: "hold", reason: `long, basis ${view.basisBps.toFixed(1)} bps, waiting for the snap-back`, marketable: false, price: null };
+  }
+  if (lastExitMs != null && nowMs - lastExitMs < p.cooldownMin * 60e3) return { action: "hold", reason: `cooling down for ${p.cooldownMin} min after the last exit`, marketable: false, price: null };
+  if (s.basis !== "revx_cheap") return { action: "hold", reason: `basis ${view.basisBps.toFixed(1)} bps, no dislocation`, marketable: false, price: null };
+  if (s.reference_move_5m === "sharp_down" || s.reference_move_5m === "sharp_up") return { action: "hold", reason: `reference moving sharply (${s.reference_move_5m}); not a stale quote`, marketable: false, price: null };
+  return { action: "enter", reason: `Revolut X ${(-view.basisBps).toFixed(1)} bps under the reference: lift the ask`, marketable: true, price: revx.ask };
+}
+
+/** What Jev is asked about a dislocation: is this a stale quote worth buying, or the front of a move? */
+export function dislocationQuestions(state: DislocationState) {
+  return {
+    healthy_trend: {
+      type: "noul" as const,
+      instructions:
+        "The state describes one crypto pair quoted on two venues. Revolut X is the slower, thinner venue; the reference is the deeper one. " +
+        "Answer yes only if buying on Revolut X now reads as a stale quote likely to snap back to the reference: basis is revx_cheap, " +
+        "basis_size is medium or large, and reference_move_5m is flat, up or down — not sharp_down or sharp_up.",
+      criteria: { true: "A stale, cheap quote on the slow venue worth buying now.", false: "Not a dislocation worth buying: fair, rich, or the reference is moving sharply." },
+    },
+    caution: {
+      type: "score" as const,
+      instructions: "How much caution does this call for? calm = reference flat and basis small or medium; elevated = reference up or down or basis large; extreme = reference moving sharply.",
+      criteria: ["calm", "elevated", "extreme"],
+    },
+    _state: { type: "choice" as const, instructions: "Which symbol does the state describe?", criteria: { [state.symbol]: null, other: "Any other symbol or none." } },
+  };
 }
 
 /** One entry point for the rulebooks, keyed by the strategy row's kind. Rotation needs the cross-section (`extra.rank`). */

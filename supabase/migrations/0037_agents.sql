@@ -45,7 +45,7 @@ create extension if not exists supabase_vault with schema vault;
 create table if not exists public.agent_strategies (
   id           text primary key,                 -- 'trend-4h', 'momentum-1d-kraken', …
   kind         text not null
-               check (kind in ('trend-4h', 'trend-1h', 'momentum-1d', 'rotation-1d')),   -- which rulebook
+               check (kind in ('trend-4h', 'trend-1h', 'momentum-1d', 'rotation-1d', 'dislocation-1m')),   -- which rulebook
   venue        text not null default 'revx'
                check (venue in ('revx', 'kraken')),           -- where it trades
   -- Where its candles come from. Kraken's book is ~100× tighter and its
@@ -71,7 +71,8 @@ create table if not exists public.agent_risk (
   id                    integer primary key default 1 check (id = 1),
   global_pause          boolean not null default false,
   max_order_usd         numeric not null default 20,
-  max_exposure_usd      numeric not null default 100,   -- per venue
+  max_exposure_usd      numeric not null default 100,   -- per venue, live
+  paper_exposure_usd    numeric not null default 300,   -- per venue, paper: the twins measure independently and must not crowd each other out
   daily_loss_limit_usd  numeric not null default 5,     -- per venue, realised + unrealised
   max_orders_per_day    integer not null default 40,    -- per venue
   -- Null until Davies says go, in his own words, in the conversation that
@@ -144,6 +145,7 @@ create table if not exists public.agent_orders (
   filled_base      numeric not null default 0,
   avg_fill_price   numeric,
   fee_usd          numeric not null default 0,
+  requotes         integer not null default 0,   -- how many times this decision's order was re-placed at a moved touch
   filled_at        timestamptz,
   cancelled_at     timestamptz,
   updated_at       timestamptz not null default now()
@@ -167,6 +169,26 @@ create table if not exists public.agent_candles (
   close         numeric not null,
   volume        numeric not null default 0,
   primary key (venue, symbol, interval_min, start)
+);
+
+-- ── observations: the state, every minute, written when it changes ─────
+--
+-- The loop runs every minute and rebuilds each strategy's categorical
+-- state on the FORMING bar from live candles. A row is written only when
+-- the words change, so the table is a timeline of regime changes, not a
+-- heartbeat log: this is how the page shows what the market is doing
+-- between decisions, and how a later review can see what the rule saw
+-- before it acted. Decisions still happen on closed bars; a protective
+-- exit is the one action taken between them.
+
+create table if not exists public.agent_observations (
+  strategy_id   text not null references public.agent_strategies (id),
+  symbol        text not null,
+  ts            timestamptz not null,
+  bar_start     timestamptz not null,   -- the forming bar the state was read on
+  state         jsonb not null,
+  numbers       jsonb not null,
+  primary key (strategy_id, symbol, ts)
 );
 
 -- ── the cross-venue basis, every tick ──────────────────────────────────
@@ -207,6 +229,7 @@ alter table public.agent_decisions  enable row level security;
 alter table public.agent_orders     enable row level security;
 alter table public.agent_candles    enable row level security;
 alter table public.agent_basis      enable row level security;
+alter table public.agent_observations enable row level security;
 alter table public.agent_backtests  enable row level security;
 
 -- ── seed: the two rulebooks on each venue, all PAPER, and the caps ─────
@@ -221,6 +244,10 @@ insert into public.agent_strategies (id, kind, venue, signal_venue, name, descri
    'Long-only trend following on 4-hour candles. Enters when the 20-bar average is above the 100-bar average, the close breaks the prior 55-bar high and 30-day momentum is positive; exits on a trend cross-down, a close below the prior 20-bar low, or a 3×ATR trailing stop. Jev may veto an entry or advise an exit; it can never open a position the rule would not. Reads Kraken''s candles, rests post-only limits on Revolut X.',
    '{BTC/USD,ETH/USD,SOL/USD}', 'paper', 40,
    '{"fast":20,"slow":100,"breakoutUp":55,"breakoutDown":20,"atrN":14,"atrStop":3,"volN":42,"enterMin":0.6,"exitMax":0.3}'::jsonb),
+  ('dislocation-1m', 'dislocation-1m', 'revx', 'kraken', 'Dislocation · Revolut X',
+   'Illiquidity events, decided every minute from both venues'' quotes. When Revolut X''s thin book prints 15 bps or more under Kraken''s mid while Kraken itself is not moving sharply, buy at Revolut X''s ask at once — the taker fee is the price of being there before the snap-back; a resting bid only fills when the move continues and loses (reference §3.5) — then rest an ask at Kraken''s price once the gap has closed, at 0 % maker. Out after 30 minutes or 40 bps against, whichever comes first. BTC and ETH only: on SOL and XRP Revolut X''s own spread is wider than the edge.',
+   '{BTC/USD,ETH/USD}', 'paper', 40,
+   '{"entryBps":15,"exitBps":-2,"maxHoldMin":30,"stopBps":40,"sharpMoveBps":15,"cooldownMin":3,"enterMin":0.6,"exitMax":0.3}'::jsonb),
   ('trend-1h', 'trend-1h', 'revx', 'kraken', 'Trend 1h · Revolut X',
    'The 4-hour trend rulebook on 1-hour candles, paper only: the same averages, breakouts and trailing stop, deciding four times as often. In the walk-forward test it kept up with the 4-hour rule on Revolut X''s free maker fee (reference §3.4); it exists to produce decisions and fills fast enough to judge the loop and the model within days rather than weeks.',
    '{BTC/USD,ETH/USD,SOL/USD}', 'paper', 40,
@@ -246,7 +273,13 @@ on conflict (id) do nothing;
 
 insert into public.agent_risk (id) values (1) on conflict (id) do nothing;
 
--- ── the loop: every 5 minutes, same machinery as snapshot-record ───────
+-- ── the loop: every minute, same machinery as snapshot-record ──────────
+--
+-- One minute is the observation cadence: quotes, basis, order management,
+-- protective stops and the state on the forming bar. Entries still wait
+-- for a closed bar. pg_cron 1.6 could go to seconds; a minute is where the
+-- public rate limits (Revolut X: one token a second) and the Edge Function
+-- budget both stay comfortable.
 --
 -- ⚠️  CROSS-ENVIRONMENT WARNING (as 0016/0021/0026): the `url` is the
 -- PRODUCTION project's Edge Function host, hardcoded. Applying this to
@@ -257,11 +290,14 @@ do $$ begin
   if exists (select 1 from cron.job where jobname = 'agents-tick-every-5min') then
     perform cron.unschedule('agents-tick-every-5min');
   end if;
+  if exists (select 1 from cron.job where jobname = 'agents-tick-every-minute') then
+    perform cron.unschedule('agents-tick-every-minute');
+  end if;
 end $$;
 
 select cron.schedule(
-  'agents-tick-every-5min',
-  '*/5 * * * *',
+  'agents-tick-every-minute',
+  '* * * * *',
   $cron$
     select net.http_post(
       url     := 'https://flmvxigozjuizpckllvk.supabase.co/functions/v1/agents?action=tick',
@@ -271,12 +307,12 @@ select cron.schedule(
         'Content-Type', 'application/json'
       ),
       body    := '{}'::jsonb,
-      timeout_milliseconds := 25000
+      timeout_milliseconds := 50000
     );
   $cron$
 );
 
--- Keep the basis and candle tables small: 30 days of basis, 120 days of candles.
+-- Keep the basis, observation and candle tables small.
 do $$ begin
   if exists (select 1 from cron.job where jobname = 'agents-prune-daily') then
     perform cron.unschedule('agents-prune-daily');
@@ -287,7 +323,9 @@ select cron.schedule(
   'agents-prune-daily',
   '15 10 * * *',
   $cron$
-    delete from public.agent_basis   where ts    < now() - interval '30 days';
-    delete from public.agent_candles where start < now() - interval '120 days';
+    delete from public.agent_basis        where ts    < now() - interval '30 days';
+    delete from public.agent_observations where ts    < now() - interval '30 days';
+    delete from public.agent_candles      where start < now() - interval '120 days';
+    delete from public.agent_candles      where interval_min = 1 and start < now() - interval '3 days';
   $cron$
 );

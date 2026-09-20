@@ -95,9 +95,19 @@ that follow from that evidence, in short:
   a deterministic risk layer it cannot override has the last word. The
   vendor's own jaggedness page says it cannot reason about numbers or
   dates.
-- Decisions on closed 1h/4h bars, a loop every 5 minutes, at most a few
-  trades a day. At taker cost one round trip an hour burns ~75 % of the
-  account a month. Limit orders, `post_only`, by default.
+- The loop runs every minute and does four things each turn: quotes on
+  both venues (basis recorded every fifth minute), order management
+  (fills, reconcile, re-quote a resting order the touch has left — five
+  times at most, nothing rests past an hour), protective stops against
+  the live mark (ATR trail from the high since entry, a hard floor under
+  cost — sold without asking the model, marketable on Revolut X), and
+  the categorical state on the FORMING bar written to `agent_observations`
+  when it changes. **Entries happen only on a newly closed 1h / 4h / 1d
+  bar**, at most a few a day; the one exception is the dislocation rule,
+  whose entries are events. At taker cost one round trip an hour burns
+  ~75 % of the account a month. Limit orders, `post_only`, by default;
+  marketable only for stops and the dislocation entry, where the data
+  says the resting version loses.
 - BTC / ETH / SOL only — the only pairs on the venue with ≤ 3 bps
   spreads.
 - Paper first, per strategy; live only on Davies' explicit go, and the
@@ -111,16 +121,24 @@ that follow from that evidence, in short:
   never came near Kraken's fee in 60 h of 5-minute closes or 10 minutes
   at the touch (reference §2c), and `agent_basis` keeps measuring it
   every turn. Caps in `agent_risk` are per venue account and per mode.
-- Four rulebooks, all in `_shared/agents_strategy.ts`: trend-4h,
+- Five rulebooks, all in `_shared/agents_strategy.ts`: trend-4h,
   trend-1h (paper-only, for feedback speed), momentum-1d, rotation-1d
   (top two of BTC/ETH/SOL/XRP by 30-day return, above their 100-day
   average — the bear filter is what saved 33 points in the bear year;
   `bearFilter:false` makes it always invested, and that is Davies'
-  switch, not a default). Backtests: reference §3.3–§3.4.
+  switch, not a default), and dislocation-1m (Revolut X ≥ 15 bps under
+  Kraken's mid with Kraken not moving sharply → lift the ask, rest the
+  exit at the reference, 30-minute / 40 bps stops; BTC and ETH only,
+  paper). Breakout-with-volume, squeeze breakouts and double bottoms
+  were tested and rejected with numbers. Backtests: reference §3.3–§3.5.
 - The tick claims a bar by inserting its decision (unique index on
-  strategy, symbol, bar_start); a live order is written as `pending`
-  BEFORE the venue is called and reconciled by client id next turn.
-  The daily loss limit blocks new risk only, never an exit.
+  strategy, symbol, bar_start; a protective decision claims the forming
+  bar, a dislocation decision the minute); a live order is written as
+  `pending` BEFORE the venue is called and reconciled by client id next
+  turn. The daily loss limit blocks new risk only, never an exit; a
+  resting exit order never outranks a stop (it is cancelled first).
+  Paper twins have their own exposure cap (`paper_exposure_usd`) so they
+  measure independently.
 - Verify a key read-only before anything depends on it: the `probe`
   action (balances, pair config, a signed call with a query, Kraken
   `AddOrder validate=true`, Jev on both transports). It places nothing.
