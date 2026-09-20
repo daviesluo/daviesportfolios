@@ -12,13 +12,17 @@ export function londonTimeParts(now = new Date()) {
   const fmt = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Europe/London",
     hour: "2-digit", minute: "2-digit", second: "2-digit",
-    hour12: false,
+    weekday: "short", hour12: false,
   });
   const parts = {};
   for (const p of fmt.formatToParts(now)) {
-    if (p.type === "hour")   parts.hh = p.value;
-    if (p.type === "minute") parts.mm = p.value;
-    if (p.type === "second") parts.ss = p.value;
+    if (p.type === "hour")    parts.hh = p.value;
+    if (p.type === "minute")  parts.mm = p.value;
+    if (p.type === "second")  parts.ss = p.value;
+    // `wd` is the en-GB short weekday ("Mon"…"Sun"), read in LONDON rather
+    // than the viewer's zone — for a user in Asia the local date can
+    // already be Saturday while London is still on Friday's session.
+    if (p.type === "weekday") parts.wd = p.value;
   }
   return parts;
 }
@@ -222,18 +226,33 @@ export function usMarketHoursUtc(now = new Date()) {
     : { openHh: 14, openMm: 30, closeHh: 21, closeMm: 0, edt: false };
 }
 
-// LSE regular session: 08:00 - 16:30 London time (Mon-Fri). Returns
-// true when the given moment falls inside that window. Weekends and
-// public holidays are NOT modelled — Yahoo simply doesn't return new
-// bars then, and the dayPct stays at the previous trading day's
-// close, so a "Saturday show 0" guard is redundant. Used by
-// computeMetrics to gate the ext-hours toggle's display for .L
-// tickers: LSE has no US-style pre/after session, so the toggle
-// should read 0 outside LSE trading hours and the live intraday
-// pct only when LSE is actually open (i.e. during US pre-market
-// where LSE has been trading for ~1-6h and is genuinely moving).
+/** Saturday or Sunday, per a short weekday name already read in the
+ *  exchange's OWN zone. Unknown / missing reads as a weekday, so a locale
+ *  surprise can only leave the gate as permissive as it was before. */
+const isWeekendName = (wd) => wd === 'Sat' || wd === 'Sun';
+
+// LSE regular session: 08:00 - 16:30 London time, Monday to Friday.
+// Returns true when the given moment falls inside that window.
+//
+// The weekday half of that was missing until 2026-09-20, and the comment
+// here argued it was unnecessary: "Yahoo simply doesn't return new bars
+// then, and the dayPct stays at the previous trading day's close, so a
+// 'Saturday show 0' guard is redundant." The stale pct IS the bug, not a
+// reason there isn't one — see `euroExchangeIsOpen` for the measurement
+// that settled it.
+//
+// Used by computeMetrics to gate the ext-hours toggle's display for `.L`
+// tickers: LSE has no US-style pre/after session, so the toggle should
+// read 0 outside LSE trading hours and the live intraday pct only when
+// LSE is actually open (i.e. during US pre-market, where LSE has been
+// trading for ~1-6h and is genuinely moving).
+//
+// UK public holidays are still not modelled. Unlike the weekend they need
+// a per-country calendar, and marking a real trading day shut is the more
+// expensive error — it would blank a moving row.
 export function lseIsOpen(now = new Date()) {
   const parts = londonTimeParts(now);
+  if (isWeekendName(parts.wd)) return false;
   const hh = parseInt(parts.hh, 10);
   const mm = parseInt(parts.mm, 10);
   if (!isFinite(hh) || !isFinite(mm)) return false;
@@ -248,13 +267,14 @@ export function centralEuropeTimeParts(now = new Date()) {
   const fmt = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Europe/Paris",
     hour: "2-digit", minute: "2-digit", second: "2-digit",
-    hour12: false,
+    weekday: "short", hour12: false,
   });
   const parts = {};
   for (const p of fmt.formatToParts(now)) {
-    if (p.type === "hour")   parts.hh = p.value;
-    if (p.type === "minute") parts.mm = p.value;
-    if (p.type === "second") parts.ss = p.value;
+    if (p.type === "hour")    parts.hh = p.value;
+    if (p.type === "minute")  parts.mm = p.value;
+    if (p.type === "second")  parts.ss = p.value;
+    if (p.type === "weekday") parts.wd = p.value;
   }
   return parts;
 }
@@ -271,11 +291,23 @@ export function centralEuropeTimeParts(now = new Date()) {
 // is also shut), where it correctly reads closed. Same role as lseIsOpen:
 // these venues have no US-style pre/after session, so the ext-hours toggle
 // should read 0 outside local trading hours and the live intraday pct only
-// while the exchange is open. Weekends / holidays aren't modelled (Yahoo
-// returns no new bars then, so the pct stays at the prior close — the
-// "Saturday show 0" guard is redundant), matching lseIsOpen.
+// while the exchange is open.
+//
+// Monday to Friday only. It used to check the clock alone, on the written
+// assumption that a weekend guard was redundant "because Yahoo returns no
+// new bars then, so the pct stays at the prior close". That is precisely
+// what goes wrong: the pct does stay at the prior close, and the gate then
+// reports the exchange as OPEN, so computeMetrics hands the board Friday's
+// move as an extended-hours number. Measured on 2026-09-20: the board read
+// SIVE (2DG.SG) +6.13% with the toggle on at 13:01 BST on a Saturday, while
+// the recorder showed its price last moved at 21:05 London on the Friday
+// and unchanged at 2.804 for the 28 hours since.
+//
+// European public holidays are still not modelled — they need a per-venue
+// calendar, and blanking a real trading day is the worse error.
 export function euroExchangeIsOpen(now = new Date()) {
   const parts = centralEuropeTimeParts(now);
+  if (isWeekendName(parts.wd)) return false;
   const hh = parseInt(parts.hh, 10);
   const mm = parseInt(parts.mm, 10);
   if (!isFinite(hh) || !isFinite(mm)) return false;

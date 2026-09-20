@@ -9,6 +9,7 @@ import { describe, it, expect } from 'vitest';
 import {
   isWeekendDeadZone, usMarketPhase, isUsMarketHoliday, isUsTradingDateStr,
   LONDON_SLOT_HOURS, londonHourUtcMs, usCloseUtcMs, fourHourSlots,
+  lseIsOpen, euroExchangeIsOpen, foreignSessionIsOpen,
 } from './market_hours.js';
 
 // Helper: a Date at the given UTC wall-clock. In January (EST, UTC-5)
@@ -270,5 +271,58 @@ describe('fourHourSlots — the grid a 3M chart samples on', () => {
     // point per TRADING day, ~65 for the whole window.
     expect(slots.length).toBeGreaterThan(380);
     expect(slots.length).toBeLessThan(410);
+  });
+});
+
+// The weekend hole. Both foreign-exchange gates read only the clock, and
+// both carried a comment arguing a weekend guard was redundant "because
+// Yahoo returns no new bars then, so the dayPct stays at the previous
+// trading day's close". That is exactly the failure, not a reason there
+// isn't one: the stale pct is what gets painted, and with the extended-
+// hours toggle on a shut exchange must read 0, not Friday's move.
+//
+// Measured, 2026-09-20: the board showed SIVE (2DG.SG, Stuttgart) at
+// +6.13% with the toggle on, at 13:01 BST on a SATURDAY. The recorder
+// says its price last moved at 21:05 London on the Friday and sat at
+// 2.804 for the 28 hours since — so +6.13% was Friday's move, three
+// quarters of a day stale, presented as an after-hours number.
+//
+// 2026-09-18 is a Friday, -19 a Saturday, -20 a Sunday. 12:01 UTC is
+// 13:01 London (BST) and 14:01 Paris (CEST) — inside both windows on the
+// clock alone, which is the whole point.
+describe('lseIsOpen / euroExchangeIsOpen — a shut exchange on a weekend', () => {
+  const FRI = new Date('2026-09-18T12:01:00Z');
+  const SAT = new Date('2026-09-19T12:01:00Z');
+  const SUN = new Date('2026-09-20T12:01:00Z');
+
+  it('is open mid-session on a weekday', () => {
+    expect(lseIsOpen(FRI)).toBe(true);
+    expect(euroExchangeIsOpen(FRI)).toBe(true);
+  });
+
+  it('is SHUT at the same clock time on Saturday and Sunday', () => {
+    expect(lseIsOpen(SAT)).toBe(false);
+    expect(lseIsOpen(SUN)).toBe(false);
+    expect(euroExchangeIsOpen(SAT)).toBe(false);
+    expect(euroExchangeIsOpen(SUN)).toBe(false);
+  });
+
+  it('still reads shut outside the window on a weekday', () => {
+    // 02:45 London / 03:45 Paris on the Friday — the hours the gate
+    // already got right, which must not change.
+    const night = new Date('2026-09-18T01:45:00Z');
+    expect(lseIsOpen(night)).toBe(false);
+    expect(euroExchangeIsOpen(night)).toBe(false);
+  });
+
+  it('carries through to foreignSessionIsOpen for every held foreign listing', () => {
+    // The three on the book: Stuttgart, and two London listings.
+    for (const t of ['2DG.SG', 'VUAA.L', 'SAEM.L']) {
+      expect(foreignSessionIsOpen(t, FRI)).toBe(true);
+      expect(foreignSessionIsOpen(t, SAT)).toBe(false);
+      expect(foreignSessionIsOpen(t, SUN)).toBe(false);
+    }
+    // A US ticker has no local session either way.
+    expect(foreignSessionIsOpen('NVDA', FRI)).toBe(false);
   });
 });

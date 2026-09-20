@@ -6,7 +6,7 @@
 // value silently, which is the worst class of bug for this app.
 
 import { pctIsFlat } from './formatters.js';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { computeMetrics } from './metrics.js';
 import { fxRateToUSD, fxToUSD } from './fx.js';
 
@@ -544,5 +544,62 @@ describe('pctIsFlat — one flat threshold for every surface', () => {
     expect(pctIsFlat(null)).toBe(true);
     expect(pctIsFlat(undefined)).toBe(true);
     expect(pctIsFlat(NaN)).toBe(true);
+  });
+});
+
+// The weekend hole in the foreign-exchange gate, pinned where it is
+// actually visible. `computeMetrics` asks `foreignSessionIsOpen` whether a
+// non-US listing's own market is trading, and that gate read only the
+// clock — so at 13:01 BST on a SATURDAY it reported Stuttgart and London
+// as open, and the board painted Friday's move as an after-hours number.
+//
+// Measured, 2026-09-20: SIVE (2DG.SG) read +6.13% with the toggle on,
+// while the price recorder had it unchanged at 2.804 since 21:05 London on
+// the Friday — 28 hours stale. The test drives real dates because the gate
+// resolves the weekday through Intl in the exchange's own zone; 2026-09-18
+// is a Friday and -19 a Saturday.
+describe('computeMetrics — ext hours on a foreign listing over the weekend', () => {
+  afterEach(() => { vi.useRealTimers(); });
+
+  // 12:01 UTC = 13:01 London (BST) = 14:01 Paris (CEST): mid-session by
+  // the clock on both venues, which is what made the bug invisible.
+  const at = (iso) => { vi.useFakeTimers(); vi.setSystemTime(new Date(iso)); };
+
+  // One Stuttgart listing and one London listing, both carrying a stale
+  // day move the way Yahoo leaves them over a weekend.
+  const book = () => pf(
+    {
+      '2DG.SG': { shares: 100, lastPrice: 2.804, prevClose: 2.642, cost: 2,
+                  currency: 'EUR', dayPct: 6.13 },
+      'VUAA.L': { shares: 3, lastPrice: 80, prevClose: 79, cost: 70,
+                  currency: 'GBP', dayPct: 1.27 },
+    },
+    { FWD: { role: 'FWD', tickers: ['2DG.SG', 'VUAA.L'], label: 'FWD' } },
+  );
+  const md = { 'GBPUSD=X': { lastPrice: 1.25 }, 'EURUSD=X': { lastPrice: 1.1 } };
+  const pctOf = (m, ticker) =>
+    Object.values(m.positions).flatMap((p) => p.players).find((x) => x.ticker === ticker).dayPct;
+
+  it('Saturday, toggle ON: both read 0 — their exchanges are shut', () => {
+    at('2026-09-19T12:01:00Z');
+    const m = computeMetrics(book(), { extended: true, marketData: md });
+    expect(pctOf(m, '2DG.SG')).toBe(0);
+    expect(pctOf(m, 'VUAA.L')).toBe(0);
+  });
+
+  it('Friday at the same clock time, toggle ON: both show the live local move', () => {
+    at('2026-09-18T12:01:00Z');
+    const m = computeMetrics(book(), { extended: true, marketData: md });
+    expect(pctOf(m, '2DG.SG')).toBeCloseTo(6.13, 6);
+    expect(pctOf(m, 'VUAA.L')).toBeCloseTo(1.27, 6);
+  });
+
+  it('Saturday, toggle OFF: the regular day move is still the right answer', () => {
+    // Toggle off means "show the last completed session", so the weekend
+    // gate must not touch it — blanking this would be a second bug.
+    at('2026-09-19T12:01:00Z');
+    const m = computeMetrics(book(), { extended: false, marketData: md });
+    expect(pctOf(m, '2DG.SG')).toBeCloseTo(6.13, 6);
+    expect(pctOf(m, 'VUAA.L')).toBeCloseTo(1.27, 6);
   });
 });

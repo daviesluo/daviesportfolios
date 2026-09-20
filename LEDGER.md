@@ -118,6 +118,52 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-20 01:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The foreign ext-hours gate had no weekend, so a shut exchange read as
+open and the board showed a stale Friday move as an after-hours number.**
+Davies, with the toggle on: SIVE has no after-market, shouldn't it be 0 %?
+
+He was right, and the screenshots are stronger evidence than they look.
+The clock in them says 13:01 BST, and the database says it is now Sunday
+02:26 London — so they were taken on SATURDAY. Every European venue was
+shut. Measured in `price_snapshots`: `2DG.SG` last moved at 21:05 London
+on the Friday and sat at 2.804 for the 28 hours after, so the +6.13 % on
+the tile was Friday's move, three quarters of a day stale.
+
+`lseIsOpen` and `euroExchangeIsOpen` both read only the hour and minute.
+Both carried the same comment arguing the weekend guard was unnecessary
+— "Yahoo returns no new bars then, so the dayPct stays at the previous
+trading day's close, so a 'Saturday show 0' guard is redundant". The
+stale pct IS the failure. At 14:01 CET on a Saturday the gate said the
+venue was open, `foreignSuppress` stayed false, and `computeMetrics`
+handed the board `dayPct` untouched. `usMarketPhase` has handled weekends
+all along; only the two foreign gates skipped it.
+
+Each gate now reads the weekday through `Intl` in its OWN zone — for a
+viewer in Asia the local date can already be Saturday while London is
+still trading Friday, so the viewer's clock is the wrong one to ask. An
+unrecognised weekday name falls through as a weekday, so a locale
+surprise can only leave the gate as permissive as it was before.
+
+Holidays are still not modelled, deliberately: they need a per-venue
+calendar, and marking a real trading day shut is the more expensive error
+— it blanks a row that is genuinely moving.
+
+**Neither gate had a single test.** That is how a conclusion reached in a
+comment survived: nothing ever asked it a question. Now pinned twice —
+`market_hours.test.js` at the gate, and `utils.metrics.test.js` on what
+the board actually shows, for BOTH toggle states (with the toggle off the
+weekend must NOT blank the row, since off means "the last completed
+session"). Counterfactual run: without the weekday check three of them go
+red. `foreignSessionIsOpen` also drives the chart modal's 1D anchor, and
+the fix keeps the two in agreement — over a weekend the modal now anchors
+at the regular close and reads 0 too, which is what the board says.
+
+Gates on the pushed tree: typecheck 0, lint 0 errors, 855 vitest, knip
+clean, bundle 110.56 kB of 122, verify:browser 98 checks. No Edge Function
+touched, no migration.
+
 ### [2026-09-19 01:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Both heat-map layout rewrites reverted. The board is back to the
