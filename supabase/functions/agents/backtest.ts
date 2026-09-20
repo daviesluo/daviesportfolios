@@ -31,7 +31,8 @@
 // exactly the kind of number this repository has learned not to trust.
 
 import {
-  applyFill, buildSnapshot, DEFAULT_TREND, FLAT, precompute, ruleFor, type Candle, type Position, type StrategyKind, type TrendParams,
+  applyFill, buildSnapshot, DEFAULT_ROTATION, DEFAULT_TREND, FLAT, precompute, rotationTargets, ruleDecisionRotation, ruleFor,
+  type Candle, type Position, type RotationParams, type StrategyKind, type TrendParams,
 } from "../_shared/agents_strategy.ts";
 
 export type Costs = { venue: string; makerBps: number; takerBps: number; halfSpread: Record<string, number> };
@@ -73,7 +74,7 @@ export type RunResult = {
  * goes to market. Capital is fully deployed on entry (the live loop caps
  * this in dollars; the backtest measures the rule).
  */
-export function run(kind: StrategyKind, symbol: string, c4h: Candle[], daily: Candle[], from: number, to: number, p: TrendParams, costs: Costs = COSTS.revx): RunResult {
+export function run(kind: StrategyKind, symbol: string, c4h: Candle[], daily: Candle[], from: number, to: number, p: TrendParams, costs: Costs = COSTS.revx, barHours = 4): RunResult {
   const hs = costs.halfSpread[symbol] ?? 1e-4;
   const maker = costs.makerBps / 1e4, taker = costs.takerBps / 1e4;
   let pos: Position = FLAT;
@@ -82,8 +83,8 @@ export function run(kind: StrategyKind, symbol: string, c4h: Candle[], daily: Ca
   const pre = precompute(c4h, p);
   let dk = 0; // daily candles closed at or before the current 4h bar (moves forward only)
   for (let i = Math.max(from, p.slow + 1); i < to - 1; i++) {
-    while (dk < daily.length && daily[dk].start + 86400e3 <= c4h[i].start + 4 * 3600e3) dk++;
-    const snap = buildSnapshot(symbol, c4h, i, daily.slice(0, dk), pos, c4h[i].start + 4 * 3600e3, p, pre);
+    while (dk < daily.length && daily[dk].start + 86400e3 <= c4h[i].start + barHours * 3600e3) dk++;
+    const snap = buildSnapshot(symbol, c4h, i, daily.slice(0, dk), pos, c4h[i].start + barHours * 3600e3, p, pre, (24 / barHours) * 365);
     const rule = ruleFor(kind, snap, pos, p);
     const next = c4h[i + 1];
     if (rule.action === "enter" && pos.base === 0) {
@@ -110,6 +111,72 @@ export function run(kind: StrategyKind, symbol: string, c4h: Candle[], daily: Ca
   return { ret: eqEnd - 1, maxDD, trades, days, exposure: barsLong / Math.max(1, to - from), equity, realised: pos.realisedUsd, fees: pos.feesUsd };
 }
 
+export type RotationResult = RunResult & { turnover: number };
+
+/**
+ * The rotation rulebook over a basket, on daily candles aligned by start
+ * (`from`..`to` are daily indices). At each close the cross-section is
+ * ranked, each symbol decided, and fills happen at the next day's open at
+ * the venue's half-spread and maker fee. Each held slot gets an equal share
+ * of equity at entry. Turnover is traded notional over average equity per
+ * year — the number that says what a venue's fee will cost.
+ */
+export function runRotation(
+  daily: Record<string, Candle[]>, from: number, to: number, p: RotationParams, costs: Costs = COSTS.revx,
+): RotationResult {
+  const symbols = Object.keys(daily);
+  const pos: Record<string, Position> = Object.fromEntries(symbols.map((s) => [s, FLAT]));
+  let cash = 1.0, trades = 0, peak = 1.0, maxDD = 0, traded = 0, daysInvested = 0;
+  const equity: [number, number][] = [];
+  const maker = costs.makerBps / 1e4;
+  const start = Math.max(from, p.slowDays + 1, p.lookbackDays + 1);
+  for (let i = start; i < to - 1; i++) {
+    const closed: Record<string, Candle[]> = Object.fromEntries(symbols.map((s) => [s, daily[s].slice(0, i + 1)]));
+    const views = rotationTargets(closed, p);
+    const nowMs = daily[symbols[0]][i].start + 86400e3;
+    const eqNow = cash + symbols.reduce((a, s) => a + pos[s].base * daily[s][i].close, 0);
+    for (const s of symbols) {
+      const hs = costs.halfSpread[s] ?? 1e-4;
+      const next = daily[s][i + 1];
+      const d = ruleDecisionRotation(views[s], pos[s], nowMs, p);
+      if (d.action === "enter" && pos[s].base === 0 && cash > 0) {
+        const slot = Math.min(cash, eqNow / p.topN);
+        const price = next.open * (1 + hs);
+        const base = slot / (price * (1 + maker));
+        const fee = base * price * maker;
+        pos[s] = applyFill(pos[s], { ts: next.start, side: "buy", base, price, feeUsd: fee });
+        cash -= slot; trades++; traded += slot;
+      } else if (d.action === "exit" && pos[s].base > 0) {
+        const price = next.open * (1 - hs);
+        const fee = pos[s].base * price * maker;
+        const proceeds = pos[s].base * price - fee;
+        pos[s] = applyFill(pos[s], { ts: next.start, side: "sell", base: pos[s].base, price, feeUsd: fee });
+        cash += proceeds; trades++; traded += proceeds;
+      }
+    }
+    const eq = cash + symbols.reduce((a, s) => a + pos[s].base * daily[s][i + 1].close, 0);
+    if (eq < cash + 1e-9 === false) daysInvested++;
+    peak = Math.max(peak, eq); maxDD = Math.max(maxDD, 1 - eq / peak);
+    equity.push([daily[symbols[0]][i + 1].start, Number(eq.toFixed(5))]);
+  }
+  const last = to - 1;
+  const eqEnd = cash + symbols.reduce((a, s) => a + pos[s].base * daily[s][last].close, 0);
+  const days = (daily[symbols[0]][last].start - daily[symbols[0]][start].start) / 86400e3;
+  const realised = symbols.reduce((a, s) => a + pos[s].realisedUsd, 0), fees = symbols.reduce((a, s) => a + pos[s].feesUsd, 0);
+  return { ret: eqEnd - 1, maxDD, trades, days, exposure: daysInvested / Math.max(1, last - start), equity, realised, fees, turnover: traded / Math.max(1, days / 365) };
+}
+
+/** Equal-weight buy and hold of the basket, entered as a taker on day `from`, for the comparison line. */
+export function buyHoldBasket(daily: Record<string, Candle[]>, from: number, to: number, costs: Costs = COSTS.revx): number {
+  const symbols = Object.keys(daily);
+  let eq = 0;
+  for (const s of symbols) {
+    const hs = costs.halfSpread[s] ?? 1e-4;
+    eq += (1 / symbols.length) * daily[s][to - 1].close / (daily[s][from].open * (1 + hs + costs.takerBps / 1e4));
+  }
+  return eq - 1;
+}
+
 function buyHold(c4h: Candle[], from: number, to: number, symbol: string, costs: Costs = COSTS.revx): number {
   const hs = costs.halfSpread[symbol] ?? 1e-4;
   return c4h[to - 1].close / (c4h[from].open * (1 + hs + costs.takerBps / 1e4)) - 1;
@@ -120,6 +187,7 @@ if (import.meta.main) {
   const dataDir = args.data, outDir = args.out ?? "docs/agents/backtests";
   await Deno.mkdir(outDir, { recursive: true });
   const symbols = ["BTC/USD", "ETH/USD", "SOL/USD"];
+  const basketSymbols = ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD"];
   const report: Record<string, unknown> = {
     ran_at: new Date().toISOString(),
     source: "Coinbase Exchange 1h → 4h/1d; parameters chosen on Revolut X costs, then the same rule priced on each venue: Revolut X (maker 0 %, taker 9 bps, half-spread per side) and Kraken (maker 40 bps, taker 80 bps, half-spread per side)",
@@ -172,6 +240,55 @@ if (import.meta.main) {
     console.log(`${symbol}: trend-4h chosen ${JSON.stringify((per["trend-4h"] as { chosen: unknown }).chosen)} | OOS ${fmt(oos)} | default-params OOS ${fmt(dflt)} | buy&hold OOS ${(buyHold(c4h, split, n, symbol) * 100).toFixed(1)}%`);
     console.log(`${symbol}: momentum-1d OOS ${fmt(mo)} | full ${fmt(moFull)}`);
   }
+  // The rotation basket: daily candles for all four symbols aligned by day.
+  const dailyBy: Record<string, Candle[]> = {};
+  const hourlyBy: Record<string, Candle[]> = {};
+  for (const symbol of basketSymbols) {
+    const raw: Raw[] = JSON.parse(await Deno.readTextFile(`${dataDir}/${symbol.replace("/", "-")}_1h_3y.json`));
+    hourlyBy[symbol] = raw.map(([t, o, h, l, c, v]) => ({ start: t * 1000, open: o, high: h, low: l, close: c, volume: v }));
+    dailyBy[symbol] = resample(hourlyBy[symbol], 24);
+  }
+  const common = basketSymbols.map((s) => new Set(dailyBy[s].map((c) => c.start))).reduce((a, b) => new Set([...a].filter((x) => b.has(x))));
+  for (const s of basketSymbols) dailyBy[s] = dailyBy[s].filter((c) => common.has(c.start));
+  const nd = dailyBy[basketSymbols[0]].length, dsplit = Math.floor(nd * 2 / 3);
+  const variants: Record<string, RotationParams> = {
+    default: DEFAULT_ROTATION,
+    noBearFilter: { ...DEFAULT_ROTATION, bearFilter: false },
+    minHold7: { ...DEFAULT_ROTATION, minHoldDays: 7 },
+    top1: { ...DEFAULT_ROTATION, topN: 1 },
+    top3: { ...DEFAULT_ROTATION, topN: 3 },
+    lookback60: { ...DEFAULT_ROTATION, lookbackDays: 60 },
+  };
+  const basket: Record<string, unknown> = {
+    symbols: basketSymbols, days: nd, from: new Date(dailyBy[basketSymbols[0]][0].start).toISOString().slice(0, 10),
+    split: new Date(dailyBy[basketSymbols[0]][dsplit].start).toISOString().slice(0, 10), to: new Date(dailyBy[basketSymbols[0]][nd - 1].start).toISOString().slice(0, 10),
+    buyHoldEqualWeightOutOfSample: Number(buyHoldBasket(dailyBy, dsplit, nd).toFixed(4)),
+    buyHoldEqualWeightFull: Number(buyHoldBasket(dailyBy, 0, nd).toFixed(4)),
+  };
+  for (const [name, p] of Object.entries(variants)) {
+    const per: Record<string, unknown> = { params: p };
+    for (const [venue, costs] of Object.entries(COSTS)) {
+      const oos = runRotation(dailyBy, dsplit, nd, p, costs), full = runRotation(dailyBy, 0, nd, p, costs);
+      per[venue] = { outOfSample: { ...pick(oos), turnover: Number(oos.turnover.toFixed(2)) }, fullPeriod: { ...pick(full), turnover: Number(full.turnover.toFixed(2)) }, equityOutOfSample: oos.equity };
+      console.log(`rotation ${name} on ${venue}: OOS ${fmt(oos)} exposure ${(oos.exposure * 100).toFixed(0)}% turnover ${oos.turnover.toFixed(1)}×/y | full ${fmt(full)}`);
+    }
+    basket[name] = per;
+  }
+  console.log(`basket buy&hold equal-weight OOS ${(basket.buyHoldEqualWeightOutOfSample as number * 100).toFixed(1)}% | full ${(basket.buyHoldEqualWeightFull as number * 100).toFixed(1)}%`);
+  (report.results as Record<string, unknown>)["basket"] = basket;
+
+  // Would the trend rule on 1-hour candles have survived? (It decides four times as often.)
+  const trend1h: Record<string, unknown> = {};
+  for (const symbol of symbols) {
+    const c1h = hourlyBy[symbol], daily = dailyBy[symbol];
+    const n = c1h.length, split = Math.floor(n * 2 / 3);
+    const r = run("trend-1h", symbol, c1h, daily, split, n, DEFAULT_TREND, COSTS.revx, 1);
+    const full = run("trend-1h", symbol, c1h, daily, 0, n, DEFAULT_TREND, COSTS.revx, 1);
+    trend1h[symbol] = { outOfSample: pick(r), fullPeriod: pick(full) };
+    console.log(`${symbol}: the same trend rule on 1h candles, Revolut X costs, OOS ${fmt(r)}`);
+  }
+  (report.results as Record<string, unknown>)["trend-1h-check"] = trend1h;
+
   await Deno.writeTextFile(`${outDir}/latest.json`, JSON.stringify(report, null, 1));
   console.log(`wrote ${outDir}/latest.json`);
 }

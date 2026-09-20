@@ -45,9 +45,14 @@ create extension if not exists supabase_vault with schema vault;
 create table if not exists public.agent_strategies (
   id           text primary key,                 -- 'trend-4h', 'momentum-1d-kraken', …
   kind         text not null
-               check (kind in ('trend-4h', 'momentum-1d')),   -- which rulebook
+               check (kind in ('trend-4h', 'trend-1h', 'momentum-1d', 'rotation-1d')),   -- which rulebook
   venue        text not null default 'revx'
-               check (venue in ('revx', 'kraken')),
+               check (venue in ('revx', 'kraken')),           -- where it trades
+  -- Where its candles come from. Kraken's book is ~100× tighter and its
+  -- history complete, so a strategy that executes on Revolut X can still
+  -- read Kraken's candles: the venue for the signal, the venue for the fill.
+  signal_venue text not null default 'revx'
+               check (signal_venue in ('revx', 'kraken')),
   name         text not null,
   description  text not null,                    -- shown on the site: what it does and why
   symbols      text[] not null,                  -- slash form: {'BTC/USD',…}
@@ -85,6 +90,7 @@ create table if not exists public.agent_decisions (
   venue         text not null check (venue in ('revx', 'kraken')),
   symbol        text not null,
   mode          text not null,
+  bar_start     timestamptz not null, -- the closed bar this decision is about
   state         jsonb not null,      -- the categorical state (words only)
   numbers       jsonb not null,      -- the indicator values behind it
   questions     jsonb,               -- what Jev was asked
@@ -104,6 +110,14 @@ create table if not exists public.agent_decisions (
 create index if not exists agent_decisions_strategy_ts_idx
   on public.agent_decisions (strategy_id, ts desc);
 
+-- One decision per strategy, symbol and bar. The INSERT is the claim: two
+-- ticks overlapping on the same bar (cron plus an admin call) cannot both
+-- pass a read-then-write, so the second insert fails and that tick skips
+-- the bar — the only way a duplicate live order for one bar is impossible
+-- rather than unlikely.
+create unique index if not exists agent_decisions_one_per_bar
+  on public.agent_decisions (strategy_id, symbol, bar_start);
+
 -- ── every order, paper or live ─────────────────────────────────────────
 
 create table if not exists public.agent_orders (
@@ -120,8 +134,11 @@ create table if not exists public.agent_orders (
   base_size        numeric not null check (base_size > 0),
   client_order_id  uuid not null unique,
   venue_order_id   text,
+  -- `pending` is the row written BEFORE a live order is sent: if the venue
+  -- accepts it and the isolate dies before the reply is recorded, the next
+  -- tick still knows an order may exist and looks for it by client id.
   state            text not null default 'new'
-                   check (state in ('new', 'partially_filled', 'filled', 'cancelled', 'rejected')),
+                   check (state in ('pending', 'new', 'partially_filled', 'filled', 'cancelled', 'rejected')),
   request          jsonb,              -- the order as placed (venue-neutral shape), live or paper
   response         jsonb,              -- the venue's reply (wire request + result), or the paper fill's candle
   filled_base      numeric not null default 0,
@@ -135,7 +152,7 @@ create table if not exists public.agent_orders (
 create index if not exists agent_orders_strategy_symbol_ts_idx
   on public.agent_orders (strategy_id, symbol, ts);
 create index if not exists agent_orders_open_idx
-  on public.agent_orders (state) where state in ('new', 'partially_filled');
+  on public.agent_orders (state) where state in ('pending', 'new', 'partially_filled');
 
 -- ── venue candles the loop reads (4h and daily; small) ─────────────────
 
@@ -150,6 +167,25 @@ create table if not exists public.agent_candles (
   close         numeric not null,
   volume        numeric not null default 0,
   primary key (venue, symbol, interval_min, start)
+);
+
+-- ── the cross-venue basis, every tick ──────────────────────────────────
+--
+-- Revolut X's mid against Kraken's for every symbol the strategies read,
+-- written each turn from the keyless public quotes. The arbitrage question
+-- ("is there ever a spread worth crossing after Kraken's fee?") is answered
+-- by this table, not by opinion: reference §2c measured 60 hours and found
+-- nothing near 80 bps; this keeps measuring. Pruned to 30 days.
+
+create table if not exists public.agent_basis (
+  ts            timestamptz not null,
+  symbol        text not null,
+  revx_bid      numeric not null,
+  revx_ask      numeric not null,
+  kraken_bid    numeric not null,
+  kraken_ask    numeric not null,
+  basis_bps     numeric not null,   -- (revx mid − kraken mid) / kraken mid × 1e4
+  primary key (ts, symbol)
 );
 
 -- ── backtests shown on the site ────────────────────────────────────────
@@ -170,27 +206,42 @@ alter table public.agent_risk       enable row level security;
 alter table public.agent_decisions  enable row level security;
 alter table public.agent_orders     enable row level security;
 alter table public.agent_candles    enable row level security;
+alter table public.agent_basis      enable row level security;
 alter table public.agent_backtests  enable row level security;
 
 -- ── seed: the two rulebooks on each venue, all PAPER, and the caps ─────
 
-insert into public.agent_strategies (id, kind, venue, name, description, symbols, mode, capital_usd, params) values
-  ('trend-4h', 'trend-4h', 'revx', 'Trend 4h · Revolut X',
-   'Long-only trend following on 4-hour candles. Enters when the 20-bar average is above the 100-bar average, the close breaks the prior 55-bar high and 30-day momentum is positive; exits on a trend cross-down, a close below the prior 20-bar low, or a 3×ATR trailing stop. Jev may veto an entry or advise an exit; it can never open a position the rule would not. Resting post-only limits on Revolut X, where maker fees are 0 %.',
-   '{BTC/USD,ETH/USD,SOL/USD}', 'paper', 60,
+insert into public.agent_strategies (id, kind, venue, signal_venue, name, description, symbols, mode, capital_usd, params) values
+  -- Revolut X: 0 % maker, so the rules that trade more often live here. Signals read Kraken's candles.
+  ('rotation-1d', 'rotation-1d', 'revx', 'kraken', 'Rotation · Revolut X',
+   'Relative-strength rotation, decided once a day: rank BTC, ETH, SOL and XRP by 30-day return and hold the top two, equal-weighted, while each is above its 100-day average; a symbol below its average is not held. Capital is deployed whenever anything is trending and sits in cash only in a broad bear. Reads Kraken''s candles (the deeper book), fills on Revolut X (0 % maker).',
+   '{BTC/USD,ETH/USD,SOL/USD,XRP/USD}', 'paper', 60,
+   '{"lookbackDays":30,"topN":2,"slowDays":100,"bearFilter":true,"minHoldDays":0,"enterMin":0.6,"exitMax":0.3}'::jsonb),
+  ('trend-4h', 'trend-4h', 'revx', 'kraken', 'Trend 4h · Revolut X',
+   'Long-only trend following on 4-hour candles. Enters when the 20-bar average is above the 100-bar average, the close breaks the prior 55-bar high and 30-day momentum is positive; exits on a trend cross-down, a close below the prior 20-bar low, or a 3×ATR trailing stop. Jev may veto an entry or advise an exit; it can never open a position the rule would not. Reads Kraken''s candles, rests post-only limits on Revolut X.',
+   '{BTC/USD,ETH/USD,SOL/USD}', 'paper', 40,
    '{"fast":20,"slow":100,"breakoutUp":55,"breakoutDown":20,"atrN":14,"atrStop":3,"volN":42,"enterMin":0.6,"exitMax":0.3}'::jsonb),
-  ('momentum-1d', 'momentum-1d', 'revx', 'Momentum 30d · Revolut X',
-   'Time-series momentum on daily closes, decided once a day: long while the close is above its close 30 days earlier, flat otherwise. The slowest rule that survived costs in the backtests. Jev applies the same veto and exit advice. Revolut X, 0 % maker.',
+  ('trend-1h', 'trend-1h', 'revx', 'kraken', 'Trend 1h · Revolut X',
+   'The 4-hour trend rulebook on 1-hour candles, paper only: the same averages, breakouts and trailing stop, deciding four times as often. In the walk-forward test it kept up with the 4-hour rule on Revolut X''s free maker fee (reference §3.4); it exists to produce decisions and fills fast enough to judge the loop and the model within days rather than weeks.',
+   '{BTC/USD,ETH/USD,SOL/USD}', 'paper', 40,
+   '{"fast":20,"slow":100,"breakoutUp":55,"breakoutDown":20,"atrN":14,"atrStop":3,"volN":42,"enterMin":0.6,"exitMax":0.3}'::jsonb),
+  ('momentum-1d', 'momentum-1d', 'revx', 'kraken', 'Momentum 30d · Revolut X',
+   'Time-series momentum on daily closes, decided once a day: long while the close is above its close 30 days earlier, flat otherwise. The slowest rule that survived costs in the backtests. Jev applies the same veto and exit advice.',
    '{BTC/USD,ETH/USD,SOL/USD}', 'paper', 40,
    '{"lookbackDays":30,"enterMin":0.6,"exitMax":0.3}'::jsonb),
-  ('trend-4h-kraken', 'trend-4h', 'kraken', 'Trend 4h · Kraken',
-   'The same 4-hour trend rulebook run against Kraken''s candles and book. Kraken''s maker fee at this account''s tier is 0.40 % a side, so every paper fill here pays it — the point of the twin is to measure what the deeper book gives back against what the fee takes.',
-   '{BTC/USD,ETH/USD,SOL/USD}', 'paper', 60,
-   '{"fast":20,"slow":100,"breakoutUp":55,"breakoutDown":20,"atrN":14,"atrStop":3,"volN":42,"enterMin":0.6,"exitMax":0.3}'::jsonb),
-  ('momentum-1d-kraken', 'momentum-1d', 'kraken', 'Momentum 30d · Kraken',
+  -- Kraken: 0.40 % maker at this account''s tier, so only the slow rules, damped further.
+  ('rotation-1w-kraken', 'rotation-1d', 'kraken', 'kraken', 'Rotation · Kraken',
+   'The same rotation rulebook on Kraken with a seven-day minimum hold, because every fill there costs 0.40 %. Deployed whenever anything is trending; the paper twin of the Revolut X rotation, so the two venues'' fills and fees can be compared on the same signal.',
+   '{BTC/USD,ETH/USD,SOL/USD,XRP/USD}', 'paper', 60,
+   '{"lookbackDays":30,"topN":2,"slowDays":100,"bearFilter":true,"minHoldDays":7,"enterMin":0.6,"exitMax":0.3}'::jsonb),
+  ('momentum-1d-kraken', 'momentum-1d', 'kraken', 'kraken', 'Momentum 30d · Kraken',
    'The same 30-day momentum rulebook on Kraken. Its low turnover — a handful of round trips a year — is the shape most likely to carry Kraken''s 0.40 % maker fee.',
    '{BTC/USD,ETH/USD,SOL/USD}', 'paper', 40,
-   '{"lookbackDays":30,"enterMin":0.6,"exitMax":0.3}'::jsonb)
+   '{"lookbackDays":30,"enterMin":0.6,"exitMax":0.3}'::jsonb),
+  ('trend-4h-kraken', 'trend-4h', 'kraken', 'kraken', 'Trend 4h · Kraken',
+   'The 4-hour trend rulebook against Kraken''s book, paper only: it trades often enough that the 0.40 % maker fee shows — the point of keeping it is to measure exactly that against the Revolut X twin.',
+   '{BTC/USD,ETH/USD,SOL/USD}', 'paper', 40,
+   '{"fast":20,"slow":100,"breakoutUp":55,"breakoutDown":20,"atrN":14,"atrStop":3,"volN":42,"enterMin":0.6,"exitMax":0.3}'::jsonb)
 on conflict (id) do nothing;
 
 insert into public.agent_risk (id) values (1) on conflict (id) do nothing;
@@ -222,5 +273,21 @@ select cron.schedule(
       body    := '{}'::jsonb,
       timeout_milliseconds := 25000
     );
+  $cron$
+);
+
+-- Keep the basis and candle tables small: 30 days of basis, 120 days of candles.
+do $$ begin
+  if exists (select 1 from cron.job where jobname = 'agents-prune-daily') then
+    perform cron.unschedule('agents-prune-daily');
+  end if;
+end $$;
+
+select cron.schedule(
+  'agents-prune-daily',
+  '15 10 * * *',
+  $cron$
+    delete from public.agent_basis   where ts    < now() - interval '30 days';
+    delete from public.agent_candles where start < now() - interval '120 days';
   $cron$
 );

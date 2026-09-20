@@ -104,11 +104,23 @@ that follow from that evidence, in short:
   first live order needs his confirmation in the same conversation.
 - Record inputs (state, answers, order request/response, fills), not
   conclusions; P&L is computed in one place.
-- One venue per strategy row (`agent_strategies.venue`): Revolut X for
-  live money (maker is free), Kraken for data and for the paper twins
-  (its 0.40 % maker fee takes 8–14 points a year off these rules —
-  reference §3.3). Paper fills pay the venue's real maker fee. Caps in
-  `agent_risk` are per venue account.
+- Two venues, each for what it is good at: Revolut X executes (0 %
+  maker); Kraken supplies the signal (`signal_venue` — its candles are
+  the cleaner series) and runs the slow rules plus paper twins whose
+  fills pay its real 0.40 %. **No cross-venue arbitrage**: the basis
+  never came near Kraken's fee in 60 h of 5-minute closes or 10 minutes
+  at the touch (reference §2c), and `agent_basis` keeps measuring it
+  every turn. Caps in `agent_risk` are per venue account and per mode.
+- Four rulebooks, all in `_shared/agents_strategy.ts`: trend-4h,
+  trend-1h (paper-only, for feedback speed), momentum-1d, rotation-1d
+  (top two of BTC/ETH/SOL/XRP by 30-day return, above their 100-day
+  average — the bear filter is what saved 33 points in the bear year;
+  `bearFilter:false` makes it always invested, and that is Davies'
+  switch, not a default). Backtests: reference §3.3–§3.4.
+- The tick claims a bar by inserting its decision (unique index on
+  strategy, symbol, bar_start); a live order is written as `pending`
+  BEFORE the venue is called and reconciled by client id next turn.
+  The daily loss limit blocks new risk only, never an exit.
 - Verify a key read-only before anything depends on it: the `probe`
   action (balances, pair config, a signed call with a query, Kraken
   `AddOrder validate=true`, Jev on both transports). It places nothing.

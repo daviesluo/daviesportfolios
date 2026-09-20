@@ -1,5 +1,5 @@
 {
- "ran_at": "2026-09-20T04:15:55.537Z",
+ "ran_at": "2026-09-20T07:33:17.170Z",
  "source": "Coinbase Exchange 1h \u2192 4h/1d; parameters chosen on Revolut X costs, then the same rule priced on each venue: Revolut X (maker 0 %, taker 9 bps, half-spread per side) and Kraken (maker 40 bps, taker 80 bps, half-spread per side)",
  "costs": {
   "revx": {
@@ -117,6 +117,24 @@
       "exposure": 0.573
      }
     }
+   },
+   "trend-1h": {
+    "revx": {
+     "outOfSample": {
+      "ret": -0.1008,
+      "maxDD": 0.1979,
+      "trades": 74,
+      "days": 375,
+      "exposure": 0.087
+     },
+     "fullPeriod": {
+      "ret": 0.0029,
+      "maxDD": 0.301,
+      "trades": 246,
+      "days": 1121,
+      "exposure": 0.11
+     }
+    }
    }
   },
   "ETH/USD": {
@@ -212,6 +230,24 @@
       "exposure": 0.491
      }
     }
+   },
+   "trend-1h": {
+    "revx": {
+     "outOfSample": {
+      "ret": 0.0959,
+      "maxDD": 0.2167,
+      "trades": 62,
+      "days": 375,
+      "exposure": 0.083
+     },
+     "fullPeriod": {
+      "ret": 0.3147,
+      "maxDD": 0.285,
+      "trades": 218,
+      "days": 1121,
+      "exposure": 0.105
+     }
+    }
    }
   },
   "SOL/USD": {
@@ -305,6 +341,310 @@
       "trades": 69,
       "days": 1108,
       "exposure": 0.535
+     }
+    }
+   },
+   "trend-1h": {
+    "revx": {
+     "outOfSample": {
+      "ret": 0.1791,
+      "maxDD": 0.1774,
+      "trades": 58,
+      "days": 375,
+      "exposure": 0.093
+     },
+     "fullPeriod": {
+      "ret": 2.9785,
+      "maxDD": 0.2387,
+      "trades": 188,
+      "days": 1121,
+      "exposure": 0.112
+     }
+    }
+   }
+  }
+ },
+ "basket": {
+  "symbols": [
+   "BTC/USD",
+   "ETH/USD",
+   "SOL/USD",
+   "XRP/USD"
+  ],
+  "days": 1101,
+  "from": "2023-09-16",
+  "split": "2025-09-19",
+  "to": "2026-09-20",
+  "buyHoldEqualWeightOutOfSample": -0.4666,
+  "buyHoldEqualWeightFull": 2.2513,
+  "variants": {
+   "default": {
+    "params": {
+     "lookbackDays": 30,
+     "topN": 2,
+     "slowDays": 100,
+     "bearFilter": true,
+     "minHoldDays": 0
+    },
+    "revx": {
+     "outOfSample": {
+      "ret": -0.1215,
+      "maxDD": 0.304,
+      "trades": 64,
+      "days": 366,
+      "exposure": 0.328,
+      "turnover": 21.73
+     },
+     "fullPeriod": {
+      "ret": 1.2837,
+      "maxDD": 0.5196,
+      "trades": 226,
+      "days": 999,
+      "exposure": 0.672,
+      "turnover": 52.38
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.2089,
+      "maxDD": 0.3563,
+      "trades": 64,
+      "days": 366,
+      "exposure": 0.328,
+      "turnover": 20.62
+     },
+     "fullPeriod": {
+      "ret": 0.5551,
+      "maxDD": 0.5733,
+      "trades": 226,
+      "days": 999,
+      "exposure": 0.672,
+      "turnover": 41.92
+     }
+    }
+   },
+   "noBearFilter": {
+    "params": {
+     "lookbackDays": 30,
+     "topN": 2,
+     "slowDays": 100,
+     "bearFilter": false,
+     "minHoldDays": 0
+    },
+    "revx": {
+     "outOfSample": {
+      "ret": -0.4553,
+      "maxDD": 0.6204,
+      "trades": 102,
+      "days": 366,
+      "exposure": 1,
+      "turnover": 23.26
+     },
+     "fullPeriod": {
+      "ret": 1.4162,
+      "maxDD": 0.6204,
+      "trades": 282,
+      "days": 999,
+      "exposure": 1,
+      "turnover": 80.37
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.5296,
+      "maxDD": 0.6586,
+      "trades": 102,
+      "days": 366,
+      "exposure": 1,
+      "turnover": 21.83
+     },
+     "fullPeriod": {
+      "ret": 0.5641,
+      "maxDD": 0.6598,
+      "trades": 280,
+      "days": 999,
+      "exposure": 1,
+      "turnover": 62.35
+     }
+    }
+   },
+   "minHold7": {
+    "params": {
+     "lookbackDays": 30,
+     "topN": 2,
+     "slowDays": 100,
+     "bearFilter": true,
+     "minHoldDays": 7
+    },
+    "revx": {
+     "outOfSample": {
+      "ret": -0.158,
+      "maxDD": 0.3413,
+      "trades": 40,
+      "days": 366,
+      "exposure": 0.388,
+      "turnover": 13.1
+     },
+     "fullPeriod": {
+      "ret": 0.7216,
+      "maxDD": 0.4442,
+      "trades": 158,
+      "days": 999,
+      "exposure": 0.715,
+      "turnover": 34.29
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.1612,
+      "maxDD": 0.3705,
+      "trades": 40,
+      "days": 366,
+      "exposure": 0.388,
+      "turnover": 13.23
+     },
+     "fullPeriod": {
+      "ret": 0.4137,
+      "maxDD": 0.5011,
+      "trades": 158,
+      "days": 999,
+      "exposure": 0.715,
+      "turnover": 30.12
+     }
+    }
+   },
+   "top1": {
+    "params": {
+     "lookbackDays": 30,
+     "topN": 1,
+     "slowDays": 100,
+     "bearFilter": true,
+     "minHoldDays": 0
+    },
+    "revx": {
+     "outOfSample": {
+      "ret": -0.3376,
+      "maxDD": 0.4375,
+      "trades": 51,
+      "days": 366,
+      "exposure": 0.301,
+      "turnover": 36.54
+     },
+     "fullPeriod": {
+      "ret": 0.3856,
+      "maxDD": 0.6849,
+      "trades": 189,
+      "days": 999,
+      "exposure": 0.63,
+      "turnover": 81
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.4575,
+      "maxDD": 0.519,
+      "trades": 51,
+      "days": 366,
+      "exposure": 0.301,
+      "turnover": 33.36
+     },
+     "fullPeriod": {
+      "ret": -0.341,
+      "maxDD": 0.747,
+      "trades": 189,
+      "days": 999,
+      "exposure": 0.63,
+      "turnover": 54.33
+     }
+    }
+   },
+   "top3": {
+    "params": {
+     "lookbackDays": 30,
+     "topN": 3,
+     "slowDays": 100,
+     "bearFilter": true,
+     "minHoldDays": 0
+    },
+    "revx": {
+     "outOfSample": {
+      "ret": -0.0442,
+      "maxDD": 0.2754,
+      "trades": 63,
+      "days": 366,
+      "exposure": 0.328,
+      "turnover": 16.11
+     },
+     "fullPeriod": {
+      "ret": 1.0983,
+      "maxDD": 0.4534,
+      "trades": 249,
+      "days": 999,
+      "exposure": 0.672,
+      "turnover": 43.59
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.069,
+      "maxDD": 0.2875,
+      "trades": 63,
+      "days": 366,
+      "exposure": 0.328,
+      "turnover": 15.47
+     },
+     "fullPeriod": {
+      "ret": 0.5522,
+      "maxDD": 0.5099,
+      "trades": 249,
+      "days": 999,
+      "exposure": 0.672,
+      "turnover": 37.01
+     }
+    }
+   },
+   "lookback60": {
+    "params": {
+     "lookbackDays": 60,
+     "topN": 2,
+     "slowDays": 100,
+     "bearFilter": true,
+     "minHoldDays": 0
+    },
+    "revx": {
+     "outOfSample": {
+      "ret": -0.1556,
+      "maxDD": 0.3528,
+      "trades": 44,
+      "days": 366,
+      "exposure": 0.328,
+      "turnover": 16.51
+     },
+     "fullPeriod": {
+      "ret": 0.7535,
+      "maxDD": 0.5129,
+      "trades": 194,
+      "days": 999,
+      "exposure": 0.672,
+      "turnover": 37.76
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.2237,
+      "maxDD": 0.3905,
+      "trades": 44,
+      "days": 366,
+      "exposure": 0.328,
+      "turnover": 15.8
+     },
+     "fullPeriod": {
+      "ret": 0.3121,
+      "maxDD": 0.5565,
+      "trades": 190,
+      "days": 999,
+      "exposure": 0.672,
+      "turnover": 33.3
      }
     }
    }

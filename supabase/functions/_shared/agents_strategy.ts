@@ -197,6 +197,7 @@ export function buildSnapshot(
   nowMs: number,
   p: TrendParams = DEFAULT_TREND,
   pre?: Precomputed,
+  barsPerYear = BARS_4H_PER_YEAR,
 ): Snapshot {
   // The live loop hands in a short window and lets this compute; the
   // backtester precomputes once. Both read the same arithmetic.
@@ -207,7 +208,7 @@ export function buildSnapshot(
   const range = priorRange(c4h, i, p.breakoutUp);
   const exitRange = priorRange(c4h, i, p.breakoutDown);
   const atr = atrAt(c4h, i, p.atrN);
-  const vol = realisedVol(closes, i, p.volN, BARS_4H_PER_YEAR);
+  const vol = realisedVol(closes, i, p.volN, barsPerYear);
   // 30-day momentum from daily closes: the last daily close vs the one 30 days earlier.
   const d = daily.length;
   const ret30d = d > 30 ? daily[d - 1].close / daily[d - 31].close - 1 : null;
@@ -293,11 +294,80 @@ export function ruleDecisionMomentum(snap: Snapshot, position: Position): { acti
   return { action: "enter", reason: "30-day momentum positive" };
 }
 
-export type StrategyKind = "trend-4h" | "momentum-1d";
+export type StrategyKind = "trend-4h" | "trend-1h" | "momentum-1d" | "rotation-1d";
 
-/** One entry point for both rulebooks, keyed by the strategy row's id. */
-export function ruleFor(kind: StrategyKind, snap: Snapshot, position: Position, p: TrendParams = DEFAULT_TREND) {
-  return kind === "momentum-1d" ? ruleDecisionMomentum(snap, position) : ruleDecision(snap, position, p);
+// ---------------------------------------------------------- the rotation rule
+
+/**
+ * The third rulebook: relative-strength rotation, decided once a day on
+ * daily closes across the strategy's symbols. Rank them by `lookbackDays`
+ * return; hold the top `topN`, equal-weighted, and only those above their
+ * `slowDays` moving average when the bear filter is on (dual momentum: the
+ * relative leg picks what to hold, the absolute leg says whether to hold
+ * anything). Capital is therefore deployed whenever at least one symbol
+ * is trending — most of the time in a bull market, and not at all in a
+ * broad bear, which is the whole point of the filter. `minHoldDays` damps
+ * churn for the venue whose fees make churn expensive.
+ */
+export type RotationParams = { lookbackDays: number; topN: number; slowDays: number; bearFilter: boolean; minHoldDays: number };
+export const DEFAULT_ROTATION: RotationParams = { lookbackDays: 30, topN: 2, slowDays: 100, bearFilter: true, minHoldDays: 0 };
+
+export type RankView = { symbol: string; ret: number | null; aboveSlow: boolean | null; rank: number; inTop: boolean };
+
+/**
+ * The cross-section at one daily close. `daily` holds each symbol's CLOSED
+ * daily candles, oldest first; the last one is the close being decided on.
+ */
+export function rotationTargets(daily: Record<string, Candle[]>, p: RotationParams = DEFAULT_ROTATION): Record<string, RankView> {
+  const views: RankView[] = Object.entries(daily).map(([symbol, d]) => {
+    const n = d.length;
+    const ret = n > p.lookbackDays ? d[n - 1].close / d[n - 1 - p.lookbackDays].close - 1 : null;
+    let aboveSlow: boolean | null = null;
+    if (n >= p.slowDays) {
+      let sum = 0;
+      for (let k = n - p.slowDays; k < n; k++) sum += d[k].close;
+      aboveSlow = d[n - 1].close > sum / p.slowDays;
+    }
+    return { symbol, ret, aboveSlow, rank: Infinity, inTop: false };
+  });
+  const ranked = views.filter((v) => v.ret != null).sort((a, b) => b.ret! - a.ret!);
+  ranked.forEach((v, i) => { v.rank = i; });
+  // The top N by return, each also above its slow average when the filter is on
+  // (an average that cannot be computed yet does not block — there is nothing to compare).
+  let taken = 0;
+  for (const v of ranked) {
+    if (taken >= p.topN) break;
+    if (p.bearFilter && v.aboveSlow === false) continue;
+    v.inTop = true; taken++;
+  }
+  return Object.fromEntries(views.map((v) => [v.symbol, v]));
+}
+
+export function ruleDecisionRotation(view: RankView, position: Position, nowMs: number, p: RotationParams = DEFAULT_ROTATION): { action: Action; reason: string } {
+  if (position.base > 0) {
+    if (view.inTop) return { action: "hold", reason: `in the top ${p.topN} by ${p.lookbackDays}-day return` };
+    if (p.minHoldDays > 0 && position.openedAt != null && nowMs - position.openedAt < p.minHoldDays * 86400e3) {
+      return { action: "hold", reason: `out of the top ${p.topN} but inside the ${p.minHoldDays}-day minimum hold` };
+    }
+    return { action: "exit", reason: view.aboveSlow === false ? `below the ${p.slowDays}-day average` : `dropped out of the top ${p.topN}` };
+  }
+  if (view.ret == null) return { action: "hold", reason: `fewer than ${p.lookbackDays + 1} daily closes` };
+  if (!view.inTop) {
+    return { action: "hold", reason: p.bearFilter && view.aboveSlow === false ? `below the ${p.slowDays}-day average` : `not in the top ${p.topN} (rank ${view.rank + 1})` };
+  }
+  return { action: "enter", reason: `rank ${view.rank + 1} by ${p.lookbackDays}-day return${p.bearFilter ? `, above the ${p.slowDays}-day average` : ""}` };
+}
+
+/** One entry point for the rulebooks, keyed by the strategy row's kind. Rotation needs the cross-section (`extra.rank`). */
+export function ruleFor(
+  kind: StrategyKind, snap: Snapshot, position: Position, p: TrendParams = DEFAULT_TREND,
+  extra: { rank?: RankView; nowMs?: number; rotation?: RotationParams } = {},
+) {
+  if (kind === "rotation-1d") {
+    if (!extra.rank) return { action: "hold" as Action, reason: "no cross-section for the rotation rule" };
+    return ruleDecisionRotation(extra.rank, position, extra.nowMs ?? Date.now(), extra.rotation ?? DEFAULT_ROTATION);
+  }
+  return kind === "momentum-1d" ? ruleDecisionMomentum(snap, position) : ruleDecision(snap, position, p);   // trend-4h and trend-1h share the rule
 }
 
 // ------------------------------------------------------- the model's questions
@@ -378,27 +448,34 @@ export function combineDecision(
 
 export type RiskLimits = {
   maxOrderUsd: number;        // per order
-  maxExposureUsd: number;     // all strategies, all symbols
-  dailyLossLimitUsd: number;  // realised + unrealised, per day, across all
-  maxOrdersPerDay: number;    // ours, well under the venue's 1,000
+  maxExposureUsd: number;     // per venue account and mode
+  dailyLossLimitUsd: number;  // today's realised + change in unrealised, per venue account and mode
+  maxOrdersPerDay: number;    // per venue account and mode, well under Revolut X's 1,000
   globalPause: boolean;
 };
 
 export type RiskContext = {
-  exposureUsd: number;   // current open notional across everything
+  exposureUsd: number;   // open notional on this venue in this mode
   ordersToday: number;
-  dayPnlUsd: number;     // today's realised + unrealised change
+  dayPnlUsd: number;     // today's realised + change in unrealised since the day's open
   mode: "paper" | "live" | "paused";
 };
 
-/** The last word. Anything but "allow" turns the action into a hold, with the reason recorded. */
+/**
+ * The last word. Anything but "allow" turns the action into a hold, with
+ * the reason recorded. The daily loss limit and the exposure cap stop NEW
+ * risk only: an exit reduces risk, and a gate that refused exits once the
+ * day was already bad would lock a losing position in — the opposite of
+ * what a loss limit is for. The pause switches stop everything; they are
+ * explicit, and a paused book is the operator's to unwind.
+ */
 export function riskGate(action: Action, orderUsd: number, ctx: RiskContext, limits: RiskLimits): { allowed: boolean; reason: string } {
   if (action === "hold") return { allowed: true, reason: "hold" };
   if (ctx.mode === "paused") return { allowed: false, reason: "strategy paused" };
   if (limits.globalPause) return { allowed: false, reason: "global pause" };
   if (ctx.ordersToday >= limits.maxOrdersPerDay) return { allowed: false, reason: `orders today ${ctx.ordersToday} ≥ ${limits.maxOrdersPerDay}` };
-  if (ctx.dayPnlUsd <= -limits.dailyLossLimitUsd) return { allowed: false, reason: `daily loss limit hit (${ctx.dayPnlUsd.toFixed(2)} ≤ -${limits.dailyLossLimitUsd})` };
   if (action === "enter") {
+    if (ctx.dayPnlUsd <= -limits.dailyLossLimitUsd) return { allowed: false, reason: `daily loss limit hit (${ctx.dayPnlUsd.toFixed(2)} ≤ -${limits.dailyLossLimitUsd}); no new risk today` };
     if (orderUsd > limits.maxOrderUsd) return { allowed: false, reason: `order ${orderUsd.toFixed(2)} > max ${limits.maxOrderUsd}` };
     if (ctx.exposureUsd + orderUsd > limits.maxExposureUsd) return { allowed: false, reason: `exposure ${(ctx.exposureUsd + orderUsd).toFixed(2)} > max ${limits.maxExposureUsd}` };
   }
