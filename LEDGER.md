@@ -14,37 +14,29 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-0. **Agents (crypto auto-trading) — on PR #211, paper only, waiting on
-   the PR.** Server: `supabase/functions/agents/` (tick / dashboard /
-   chart / log / probe), `_shared/{jev,revx,kraken,venue,agents_strategy,
-   bytes}.ts`, migration `0037_agents.sql` (eight PAPER strategies:
-   rotation / trend-4h / trend-1h / momentum-1d / dislocation-1m on
-   Revolut X reading Kraken's candles, rotation (7-day hold) / momentum-1d
-   / trend-4h on Kraken; per-venue-and-mode caps with a separate paper
-   exposure cap; the ONE-MINUTE cron; the basis and observation tables),
-   the walk-forward backtester and `docs/agents/backtests/`. Client: the
-   ☰ → Agents page — venue split, badges, basis table, live state per
-   symbol, and a detail per strategy with the price chart, buy/sell marks
-   and the fills list. Codex's three P1s fixed. Both key pairs verified
-   by the read-only probe (reference §6). Both accounts hold ≈ $100 USD
-   (Kraken credited the £75 as USD on arrival; no conversion needed).
-   Merging applies 0037 (the cron starts ticking every minute, paper) and
-   deploys the function; until then production runs the same code but
-   without tables, and the page says so (`notReady`). Then: (1) weeks of
-   paper on both venues — fills, Jev's vote from `agent_decisions`, the
-   dislocation record (reference §3.5 names what would make it live), the
-   basis record — before any strategy goes live; (2) live is three
-   switches, all his (`agent_strategies.mode`, `agent_risk.live_confirmed_at`,
-   the gate) and the first live order needs his confirmation in the
-   conversation. Never apply 0037 by hand. **Usage rule**: no main-model
-   PR polling; an Opus-class subagent reviews when a review is needed.
-   **Production's `agents` function is still the probe-only build (v4)**:
-   the repo build could not be deployed from this container (the MCP
-   deploy takes inline source and 62 KB does not fit one call; a manual
-   `workflow_dispatch` path for `edge-functions.yml` was refused by the
-   session's own permission gate). Merging deploys it; or
-   `supabase functions deploy agents --no-verify-jwt` from a machine with
-   the CLI. Until then the preview's Agents page shows the old 404.
+0. **Agents (crypto auto-trading) — MERGED 2026-09-20 18:23 UTC (#211,
+   `23d2fdd`); paper trading is starting.** Merging applied migration
+   `0037` (eight PAPER strategies, the one-minute cron
+   `agents-tick-every-minute`, the caps row, `agent_locks`) and deployed
+   the `agents` Edge Function from the repo. What to watch in the first
+   days, in this order: (1) `ops_errors` rows of kind `agents.tick` /
+   `agents.crash` — a venue 429, a missing pair config, a lease never
+   released; (2) `agent_observations` filling within a minute for every
+   strategy × symbol, and the page's running dots; (3) the first
+   decisions at the next closed hour (trend-1h), 4-hour bar, and daily
+   close (00:00 UTC: momentum, rotation) — `agent_decisions` with
+   `provider` openrouter, not `none`; (4) paper fills on Revolut X being
+   marketable and paying the taker fee, Kraken twins resting; (5) how
+   often the touch basis crosses 15 bps (`agent_basis`, the dislocation
+   observations) — the measurement that decides whether that rule is
+   anything. Live is still three switches, all Davies'
+   (`agent_strategies.mode`, `agent_risk.live_confirmed_at`, the gate),
+   and the first live order needs his confirmation in the conversation.
+   Nothing under `agent_*` is edited by hand; the reference §3.3a numbers
+   are the honest expectation (every rule beat buy-and-hold in the bear
+   year, two beat cash). **Usage rule**: no main-model polling; a few
+   spaced check-ins were agreed for the rollout itself, then nothing
+   scheduled.
 
 1. **Cloudflare's edge still serves five cached copies of the old
    exposure, for up to seven days.** The ORIGIN is fixed — every path
@@ -149,6 +141,14 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-20 18:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**PR #211 merged on Davies' word; paper trading begins.** Merge commit
+`23d2fdd` (merge, not squash: eight logical commits kept). The three
+post-merge workflows (`migrations`, `edge-functions`, `check`) started at
+18:23 UTC; their outcome and the first ticks are the next entry. Item 0
+now lists what to watch and in what order.
 
 ### [2026-09-20 18:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
