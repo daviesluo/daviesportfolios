@@ -214,10 +214,56 @@ read-only probe in §6.
   actually fill on a thin book versus a deep one? The dashboard shows the two
   twins (`trend-4h` / `trend-4h-kraken`, `momentum-1d` / `momentum-1d-kraken`)
   on the same rules with each venue's own candles, touch and fee.
-- **Funding.** The Kraken account's balance rows are USDC and GBP (a UK
-  account). The strategies trade `*/USD`; to test like for like the account
-  needs USD — deposit USD, or deposit GBP and convert once (GBP/USD is on the
-  0.20 % FX schedule, ~$0.20 on $100). USDC would need `*/USDC` pairs added.
+- **Funding.** The Kraken account is a UK account: Davies deposited £75 on
+  2026-09-20 (≈ $100). The strategies trade `*/USD`, so the pounds need one
+  conversion — GBP/USD on Kraken is 0.5 bps wide and $3.4M deep a day, on the
+  0.20 % FX fee schedule (≈ $0.20 on $100). That conversion is the account's
+  first real order and waits for his say-so, in the app or by the API. The
+  `*/GBP` pairs exist (BTC/GBP 0.02 bps, ETH/GBP 1.3, SOL/GBP 3.7) but are
+  thin and would put a second quote currency into a book that is USD
+  everywhere.
+
+### 2c. The cross-venue basis — measured, and the arbitrage question answered
+
+Davies asked whether the two venues could be played against each other
+("跨所价差与套利"). Three measurements, all 2026-09-20, all keyless public data:
+
+**At the touch, every ~4 s for 10 minutes (149 samples, 07:27–07:37 UTC, a Sunday morning):**
+
+| Pair | Revolut X spread | Kraken spread | \|basis\| p50 / p95 / max | Books crossed |
+|---|---|---|---|---|
+| BTC/USD | 1.72 bps | 0.01 bps | 0.36 / 1.08 / 1.83 bps | 14.8 % of samples |
+| ETH/USD | 1.63 | 0.04 | 0.31 / 1.05 / 1.77 | 10.1 % |
+| SOL/USD | 4.14 | 0.92 | 0.64 / 1.56 / 2.48 | 0 % |
+| XRP/USD | 7.23 | 1.01 | 0.94 / 1.99 / 3.11 | 0 % |
+| DOGE / ADA / LINK / AVAX | 7–10 | 0.1–5 | 0.6–1.5 / 1.5–3.3 / 2.5–8.2 | 0–0.7 % |
+
+"Crossed" means Revolut X's bid stood above Kraken's ask or its ask below
+Kraken's bid — a riskless trade before fees. It happens on BTC and ETH one
+sample in seven, by well under 1 bp. Revolut X follows Kraken within one
+4-second sample on BTC/ETH (lag-1 correlation ≈ 0); SOL/XRP/ADA show a
+small one-sample lag (0.14–0.18).
+
+**At 1-minute closes over 12 h and 5-minute closes over 60 h** (Revolut X
+public candles against Kraken OHLC): BTC \|basis\| p95 6 bps, p99 10, max 18;
+ETH p95 8.5, p99 14–16, max 33; SOL p95 13–16, p99 21–28, max 49. Counts
+above 20 bps in 720 bars: BTC 0, ETH 4, SOL 12–22; above 40 bps: SOL once;
+above 80 bps: none. Revolut X's 1-minute returns correlate with Kraken's
+previous minute at 0.2–0.3 (the reverse ≈ 0): Kraken leads by seconds to a
+minute.
+
+**What it means.** A hedged cross-venue arbitrage pays Kraken's fee on the
+hedge leg — 80 bps taker, 40 bps maker if it rests and fills — plus Revolut
+X's half-spread. The basis never reached 80 bps in 60 hours and reached 40
+once, on SOL. At the touch it is under 3 bps. **There is no arbitrage
+between these two accounts at any cadence this system can run**, and the
+lead Kraken has over Revolut X is seconds, invisible to a 5-minute loop
+that may place at most 1,000 orders a day. What the measurement does
+license: Kraken's quotes and candles are the cleaner signal (a 0.01 bps
+spread against 1.7), so the Revolut X strategies read Kraken's candles
+(`signal_venue`) and fill on Revolut X's free maker side — that is the
+"1 + 1", and the basis keeps being recorded every turn (`agent_basis`, on
+the page) so the verdict stays a measurement rather than a memory.
 
 ## 3. What the numbers say (measured, real data)
 
@@ -312,6 +358,42 @@ book gives back — fewer unfilled resting orders, no adverse selection on a
 thin touch — is not in a backtest at all; that is what the paper twins
 measure.
 
+### 3.4 The rotation rulebook and the 1-hour trend variant (walk-forward, both venues)
+
+`rotation-1d`: rank BTC, ETH, SOL and XRP by 30-day return at each daily
+close, hold the top two equal-weighted, and only those above their
+100-day average (dual momentum). Same data and split as §3.3 (XRP from
+Coinbase, 2023-09 →); fills at the next day's open at the venue's
+half-spread and maker fee. Out of sample is the bear year.
+
+| Variant | Revolut X OOS | Kraken OOS | Exposure | Turnover | Revolut X full | Kraken full |
+|---|---|---|---|---|---|---|
+| default (top 2, filter on) | −12.2 % (DD 30 %) | −20.9 % | 33 % | 22×/y | +128 % | +56 % |
+| filter OFF (always in) | −45.5 % (DD 62 %) | −53.0 % | 100 % | 23×/y | +142 % | +56 % |
+| 7-day minimum hold | −15.8 % | **−16.1 %** | 39 % | 13×/y | +72 % | +41 % |
+| top 1 | −33.8 % | −45.8 % | 30 % | 37×/y | +39 % | −34 % |
+| top 3 | −4.4 % | −6.9 % | 33 % | 16×/y | +110 % | +55 % |
+| 60-day lookback | −15.6 % | −22.4 % | 33 % | 17×/y | +75 % | +31 % |
+| equal-weight buy & hold | −46.7 % | | 100 % | | +225 % | |
+
+Reading: the bear filter is what protects capital — it gives up 14
+points of the three-year return and saves 33 in the bear year. "Capital
+active most of the time" is therefore a bull-market property of this rule,
+not a setting: with the filter off it is always invested and follows the
+market down. The filter is a parameter (`bearFilter`) Davies can switch
+off, with these numbers in front of him. Kraken's fee costs 4–12 points a
+year at 22 round trips; the 7-day hold halves the turnover and is the
+Kraken seed. Top 3 did best out of sample, top 2 over the full period —
+one bear year cannot separate them, so the seed keeps top 2.
+
+`trend-1h` (the 4-hour trend rule on 1-hour candles, volatility annualised
+for 24 bars a day): OOS on Revolut X costs BTC −10.1 % / ETH +9.6 % / SOL
++17.9 % over 58–74 trades, against the 4-hour rule's −9.6 / −7.0 / +18.5 %
+with the same default parameters. It kept up, at three times the trade
+count; on Kraken's fee it would not. It is seeded paper-only on Revolut X
+because it produces decisions and fills fast enough to judge the loop and
+the model within days, which the daily rules cannot.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
@@ -321,7 +403,9 @@ measure.
 5. **Paper first.** Every strategy runs in shadow mode against live prices, recording the orders it *would* have placed, until its paper record is shown; the switch to live is a per-strategy flag Davies flips, and the first live order requires his explicit confirmation.
 6. **Hard, code-enforced caps** the model cannot touch: max notional per order, max open exposure, daily loss limit (kill switch), max orders per day well under 1,000, and a global pause flag in the database.
 7. **Record inputs, not conclusions** (the `snapshot-record` lesson): every Jev call's state, questions and answers, and every order's request/response, are stored; P&L is computed in one place from fills and marks.
-8. **One venue per strategy row; Revolut X for live money, Kraken for data and for the paper twins** (§2b). Each strategy reads its own venue's candles and touch and pays its own venue's maker fee in paper, so the two venues are compared on the same rules and not on assumptions. Caps in `agent_risk` are per venue account.
+8. **Two venues, each for what it is good at** (§2b, §2c). Revolut X executes (0 % maker); Kraken supplies the signal (`signal_venue`: its candles are the cleaner series) and runs paper twins whose fills pay its real fee. There is no arbitrage between them at any cadence available here — measured, not assumed — and the basis keeps being recorded so that stays true or is seen to change. Caps in `agent_risk` are per venue account and per mode.
+9. **Capital utilisation is a consequence of regime, not a target.** The rotation rule holds the strongest two of four whenever they trend; in a broad bear it holds cash, because the alternative lost 45 % out of sample (§3.4). The switch that makes it always-invested exists and is Davies' to flip, with the number beside it.
+10. **Nothing fast.** A 5-minute loop, a 1,000-order day on Revolut X and 40–80 bps a side on Kraken rule out market-making and cross-venue trading; the fastest rule that survived costs is the 1-hour trend variant, paper-only, kept for feedback speed rather than for return.
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 

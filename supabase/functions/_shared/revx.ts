@@ -195,6 +195,9 @@ export const cancelOrder = (env: RevxEnv, venueOrderId: string, f?: typeof fetch
 export const getOrder = (env: RevxEnv, venueOrderId: string, f?: typeof fetch) =>
   revxFetch<{ data: VenueOrder }>(env, "GET", `/api/1.0/orders/${venueOrderId}`, undefined, f);
 
+export const activeOrders = (env: RevxEnv, f?: typeof fetch) =>
+  revxFetch<{ data: VenueOrder[] }>(env, "GET", "/api/1.0/orders/active", undefined, f);
+
 
 
 /** Venue candle (strings) → the numeric candle the strategy maths reads. */
@@ -305,6 +308,14 @@ export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch):
       const out: Record<string, number> = {};
       for (const b of r.data ?? []) out[b.currency] = Number(b.total);
       return out;
+    },
+    async activeOrders() {
+      if (!env) return { ok: false, error: "no Revolut X credentials" };
+      const r = await activeOrders(env, fetchImpl);
+      if (!r.ok) return { ok: false, error: `${r.status} ${r.error}` };
+      const byClientId: Record<string, { venueOrderId: string; view: OrderView }> = {};
+      for (const vo of r.data?.data ?? []) if (vo.client_order_id) byClientId[vo.client_order_id] = { venueOrderId: vo.venue_order_id, view: toOrderView(vo) };
+      return { ok: true, byClientId };
     },
   };
 }

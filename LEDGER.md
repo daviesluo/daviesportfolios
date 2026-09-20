@@ -14,25 +14,26 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-0. **Agents (crypto auto-trading) — built on the PR branch
-   `claude/repo-audit-restore-uverhn`, paper only, waiting on the PR.**
-   Server: `supabase/functions/agents/` (tick / dashboard / log / probe),
-   `_shared/{jev,revx,kraken,venue,agents_strategy,bytes}.ts`, migration
-   `0037_agents.sql` (four PAPER strategies: two rulebooks × two venues,
-   per-venue caps, the 5-minute cron), the walk-forward backtester and
-   `docs/agents/backtests/`. Client: the ☰ → Agents page. All gates green
-   incl. the browser sweep (116 checks). Both key pairs verified by the
-   read-only probe (reference §6): the Revolut X key sees the sub-account
-   only; the Kraken key has trading permission, `validate=true` placed
-   nothing, the account is empty and its currencies are USDC and GBP.
+0. **Agents (crypto auto-trading) — on PR #211, paper only, waiting on
+   the PR.** Server: `supabase/functions/agents/` (tick / dashboard / log
+   / probe), `_shared/{jev,revx,kraken,venue,agents_strategy,bytes}.ts`,
+   migration `0037_agents.sql` (seven PAPER strategies: rotation / trend-4h
+   / trend-1h / momentum-1d on Revolut X reading Kraken's candles, rotation
+   (7-day hold) / momentum-1d / trend-4h on Kraken; per-venue-and-mode
+   caps; the 5-minute cron; the basis table), the walk-forward backtester
+   and `docs/agents/backtests/`. Client: the ☰ → Agents page with the venue
+   split, badges, basis table and countdowns. Codex's three P1s fixed
+   (durable order intent, bar claim by unique index, day-boundary P&L).
+   Both key pairs verified by the read-only probe (reference §6). Kraken
+   holds £75 (deposited 2026-09-20) that still has to become USD — one
+   GBP/USD order, the account's first real one, waits for Davies' word.
    Merging applies 0037 (the cron starts ticking, paper) and deploys the
-   function. What is still open, in order: (1) Davies decides whether to
-   fund Kraken with $100 USD — the paper twins run without it; (2) after
-   a few weeks of paper on both venues, review fills and Jev's vote from
-   the decision log (`agent_decisions`) before any strategy goes live;
-   (3) live is three switches, all his — `agent_strategies.mode`,
-   `agent_risk.live_confirmed_at`, the gate — and the first live order
-   needs his confirmation in the conversation. Never apply 0037 by hand.
+   function. Then: (1) the GBP → USD conversion on his say-so; (2) weeks
+   of paper on both venues — fills, Jev's vote from `agent_decisions`,
+   the basis record — before any strategy goes live; (3) live is three
+   switches, all his (`agent_strategies.mode`, `agent_risk.live_confirmed_at`,
+   the gate) and the first live order needs his confirmation in the
+   conversation. Never apply 0037 by hand.
 
 1. **Cloudflare's edge still serves five cached copies of the old
    exposure, for up to seven days.** The ORIGIN is fixed — every path
@@ -137,6 +138,56 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-20 07:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Two venues made complementary by measurement; the arbitrage question
+answered with data; capital utilisation addressed by a rotation rule;
+Codex's three P1s fixed; the page shows the book by venue.** Davies
+deposited £75 in Kraken and asked for complementary strategies, possibly
+different coins, cross-venue coordination and "arbitrage", a page that
+shows which venue every position and trade is on, and most of the money
+active most of the time. Another AI's advice (Kraken as signal source,
+Revolut X as free execution, cross-venue arbitrage) was checked, not taken.
+
+- **Measured** (reference §2c): at the touch, every 4 s for 10 minutes,
+  |basis| p50 0.3–0.9 bps and max 1.8–3.1 bps on the majors (8 bps on
+  AVAX); the books cross on BTC/ETH one sample in seven, by under 1 bp. At
+  1- and 5-minute closes over 12–60 h the basis never reached 80 bps and
+  reached 40 once (SOL). Kraken leads Revolut X by seconds (lag-1
+  correlation 0.2–0.3 at 1 min, ≈ 0 at 4 s). Kraken's fee is 40–80 bps a
+  side. **No arbitrage exists at any cadence this system can run**; the
+  basis is now recorded every tick (`agent_basis`) and shown on the page.
+  What the lead does license: `signal_venue` — the Revolut X strategies
+  read Kraken's candles and fill on Revolut X's free maker side.
+- **Rotation** (reference §3.4): top two of BTC/ETH/SOL/XRP by 30-day
+  return above their 100-day average, walk-forward on both venues' costs.
+  The bear filter saved 33 points in the bear year for 14 points of the
+  three-year return; with it off the rule is always invested and lost 45 %
+  out of sample (buy-and-hold −47 %). So "most of the money active most of
+  the time" is true in a bull market and false by design in a bear; the
+  `bearFilter` switch exists and is his. XRP joined the universe (Revolut X
+  3.6 bps / $3.5M a day, Kraken 1.1 bps). `trend-1h` kept up with the
+  4-hour rule on Revolut X costs at three times the trade count and is
+  seeded paper-only for feedback speed.
+- **Codex P1s** (PR #211 review): a live order is written as `pending`
+  before the venue is called and reconciled by client id next turn
+  (`Venue.activeOrders`); a decision is the tick's claim on a bar
+  (unique index on strategy, symbol, `bar_start`; a 409 means another
+  tick got there); `dayPnl` counts only today — realised since the day
+  began plus the change in unrealised from the day's open; and the daily
+  loss limit blocks new risk only, never an exit. All pinned in
+  `tick.test.ts` (16) and `strategy.test.ts`.
+- **Page**: venue badges on every strategy row, position and order
+  (blue Revolut X, violet Kraken, "← Kraken signals" when the candles
+  come from the other venue), a share bar and one card per account
+  (funded, deployed, allotted, P&L, fees), a countdown to each strategy's
+  next bar close, the 24 h basis table with the fee verdict, the rotation
+  backtest with its variants. Sweep checks for each.
+- **Kraken funding**: the £75 is GBP; the strategies trade USD. GBP/USD
+  on Kraken is 0.5 bps wide, $3.4M a day, 0.20 % fee (≈ $0.20). The
+  conversion is the account's first real order and is not placed without
+  his word.
 
 ### [2026-09-20 04:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

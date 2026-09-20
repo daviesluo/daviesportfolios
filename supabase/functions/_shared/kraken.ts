@@ -280,6 +280,14 @@ export function krakenVenue(env: KrakenEnv | null, fetchImpl: typeof fetch = fet
       for (const [code, amt] of Object.entries(r.data ?? {})) out[fromKrakenAsset(code)] = (out[fromKrakenAsset(code)] ?? 0) + Number(amt);
       return out;
     },
+    async activeOrders() {
+      if (!env) return { ok: false, error: "no Kraken credentials" };
+      const r = await openOrders(env, fetchImpl);
+      if (!r.ok) return { ok: false, error: r.error };
+      const byClientId: Record<string, { venueOrderId: string; view: OrderView }> = {};
+      for (const [txid, o] of Object.entries(r.data?.open ?? {})) if (o.cl_ord_id) byClientId[o.cl_ord_id] = { venueOrderId: txid, view: toOrderView(o) };
+      return { ok: true, byClientId };
+    },
     async refreshFees() {
       if (!env) return;
       const r = await tradeVolume(env, ["BTC/USD"], fetchImpl);

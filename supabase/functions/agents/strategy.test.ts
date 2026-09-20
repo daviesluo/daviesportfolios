@@ -149,9 +149,10 @@ Deno.test("riskGate — every limit blocks, holds always pass, exits ignore the 
   assertEquals(riskGate("enter", 20, { ...ctx, mode: "paused" }, limits).allowed, false);
   assertEquals(riskGate("enter", 20, ctx, { ...limits, globalPause: true }).allowed, false);
   assertEquals(riskGate("hold", 999, { ...ctx, mode: "paused" }, { ...limits, globalPause: true }).allowed, true);
-  // An exit never adds exposure, so the size caps do not apply — but the pause and loss limit still do.
+  // An exit never adds exposure, so neither the size caps nor the daily loss limit apply — only the pauses do.
   assertEquals(riskGate("exit", 999, { ...ctx, exposureUsd: 100 }, limits).allowed, true);
-  assertEquals(riskGate("exit", 1, { ...ctx, dayPnlUsd: -6 }, limits).allowed, false);
+  assertEquals(riskGate("exit", 1, { ...ctx, dayPnlUsd: -6 }, limits).allowed, true);
+  assertEquals(riskGate("exit", 1, { ...ctx, mode: "paused" }, limits).allowed, false);
 });
 
 Deno.test("floorToStep / sizeBase — floors to the venue step and refuses sub-minimum orders", () => {
@@ -180,4 +181,55 @@ Deno.test("DEFAULT_TREND is the backtested shape: 20/100 on 4h, 55/20 breakout, 
   assertEquals(DEFAULT_TREND, { fast: 20, slow: 100, breakoutUp: 55, breakoutDown: 20, atrN: 14, atrStop: 3, volN: 42 });
   const _typeCheck: Snapshot | null = null;
   assertEquals(_typeCheck, null);
+});
+
+// ── rotation and the gate's exit rule ──────────────────────────────────
+
+import { riskGate as gate, rotationTargets, ruleDecisionRotation, DEFAULT_ROTATION, FLAT as FLAT_POS, type Candle as C } from "../_shared/agents_strategy.ts";
+
+function dailyRun(rate: number, n = 130, start = 0): C[] {
+  const out: C[] = [];
+  for (let i = 0; i < n; i++) { const close = 100 * Math.pow(rate, i); out.push({ start: start + i * 86400e3, open: close / rate, high: close * 1.001, low: close / rate * 0.999, close, volume: 1 }); }
+  return out;
+}
+
+Deno.test("rotationTargets ranks by lookback return and drops what sits below its slow average", () => {
+  const up = dailyRun(1.01), flat = dailyRun(1.0005), down = dailyRun(0.995);
+  const t = rotationTargets({ "BTC/USD": up, "ETH/USD": flat, "SOL/USD": down }, DEFAULT_ROTATION);
+  assertEquals([t["BTC/USD"].rank, t["ETH/USD"].rank, t["SOL/USD"].rank], [0, 1, 2]);
+  assertEquals([t["BTC/USD"].inTop, t["ETH/USD"].inTop, t["SOL/USD"].inTop], [true, true, false]);
+  assertEquals(t["SOL/USD"].aboveSlow, false);
+  // Without the filter the top two are the top two, whatever the average says.
+  const nf = rotationTargets({ "BTC/USD": down, "ETH/USD": dailyRun(0.99) }, { ...DEFAULT_ROTATION, bearFilter: false });
+  assertEquals([nf["BTC/USD"].inTop, nf["ETH/USD"].inTop], [true, true]);
+  // A symbol below its average is skipped and the slot goes to the next one.
+  const skip = rotationTargets({ "BTC/USD": down, "ETH/USD": flat, "SOL/USD": dailyRun(1.002) }, { ...DEFAULT_ROTATION, topN: 1 });
+  assertEquals([skip["BTC/USD"].inTop, skip["ETH/USD"].inTop, skip["SOL/USD"].inTop], [false, false, true]);
+  // Too little history: no return, nothing held.
+  const short = rotationTargets({ "BTC/USD": dailyRun(1.01, 20) }, DEFAULT_ROTATION);
+  assertEquals([short["BTC/USD"].ret, short["BTC/USD"].inTop], [null, false]);
+});
+
+Deno.test("ruleDecisionRotation: enter the top, exit what drops out, hold inside the minimum hold", () => {
+  const inTop = { symbol: "BTC/USD", ret: 0.3, aboveSlow: true, rank: 0, inTop: true };
+  const out = { ...inTop, rank: 2, inTop: false };
+  const below = { ...out, aboveSlow: false };
+  const long = { ...FLAT_POS, base: 1, avgCost: 100, openedAt: Date.parse("2026-09-15T00:00:00Z") };
+  const now = Date.parse("2026-09-20T00:00:00Z");
+  assertEquals(ruleDecisionRotation(inTop, FLAT_POS, now).action, "enter");
+  assertEquals(ruleDecisionRotation(out, FLAT_POS, now).action, "hold");
+  assertEquals(ruleDecisionRotation(inTop, long, now).action, "hold");
+  assertEquals(ruleDecisionRotation(out, long, now), { action: "exit", reason: "dropped out of the top 2" });
+  assertEquals(ruleDecisionRotation(below, long, now).reason, "below the 100-day average");
+  assertEquals(ruleDecisionRotation(out, long, now, { ...DEFAULT_ROTATION, minHoldDays: 7 }).action, "hold");
+  assertEquals(ruleDecisionRotation(out, long, now + 3 * 86400e3, { ...DEFAULT_ROTATION, minHoldDays: 7 }).action, "exit");
+});
+
+Deno.test("riskGate: the daily loss limit blocks new risk, never an exit; the pauses block everything", () => {
+  const limits = { maxOrderUsd: 20, maxExposureUsd: 100, dailyLossLimitUsd: 5, maxOrdersPerDay: 40, globalPause: false };
+  const bad = { exposureUsd: 40, ordersToday: 3, dayPnlUsd: -6, mode: "live" as const };
+  assertEquals(gate("enter", 20, bad, limits).allowed, false);
+  assertEquals(gate("exit", 20, bad, limits).allowed, true);
+  assertEquals(gate("exit", 20, bad, { ...limits, globalPause: true }).allowed, false);
+  assertEquals(gate("exit", 20, { ...bad, mode: "paused" }, limits).allowed, false);
 });

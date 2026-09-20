@@ -56,7 +56,7 @@ import { b64ToBytes } from "../_shared/bytes.ts";
 import { positionFromFills, unrealisedUsd, type Position } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { makeDb, type Db } from "./db.ts";
-import { tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
+import { decisionBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 
@@ -181,16 +181,17 @@ export async function runDashboard(now = Date.now()) {
   const d = db();
   const dayStart = new Date(Math.floor(now / ONE_D) * ONE_D).toISOString();
   const since24h = new Date(now - ONE_D).toISOString();
-  const [strategies, riskRows, filled, open, today, decisions24h, recentDecisions, recentOrders, backtests, { venues, notes }] = await Promise.all([
+  const [strategies, riskRows, filled, open, today, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }] = await Promise.all([
     d.select<StrategyRow & { description: string; updated_at: string }>("agent_strategies", "select=*&order=id.asc"),
     d.select<RiskRow & { updated_at: string }>("agent_risk", "id=eq.1&select=*"),
     d.select<OrderRow>("agent_orders", "state=eq.filled&select=*&order=ts.asc"),
-    d.select<OrderRow & { request: unknown }>("agent_orders", "state=in.(new,partially_filled)&select=*&order=ts.desc"),
+    d.select<OrderRow & { request: unknown }>("agent_orders", "state=in.(pending,new,partially_filled)&select=*&order=ts.desc"),
     d.select<{ id: number; strategy_id: string; venue: VenueId; state: string }>("agent_orders", `ts=gte.${dayStart}&select=id,strategy_id,venue,state`),
     d.select<{ strategy_id: string; provider: string; cost_usd: number | null; latency_ms: number | null }>("agent_decisions", `ts=gte.${since24h}&select=strategy_id,provider,cost_usd,latency_ms`),
     d.select<DecisionRow>("agent_decisions", "select=id,ts,strategy_id,venue,symbol,mode,state,numbers,answers,provider,model,latency_ms,cost_usd,rule_action,rule_reason,final_action,final_reason,risk_allowed,risk_reason&order=ts.desc&limit=120"),
     d.select<OrderRow & { request: unknown; response: unknown; cancelled_at: string | null; decision_id: number | null }>("agent_orders", "select=*&order=ts.desc&limit=120"),
     d.select<{ id: string; strategy_id: string; ran_at: string; method: string; summary: unknown }>("agent_backtests", "select=id,strategy_id,ran_at,method,summary&order=ran_at.desc"),
+    d.select<{ ts: string; symbol: string; basis_bps: number; revx_bid: number; revx_ask: number; kraken_bid: number; kraken_ask: number }>("agent_basis", `ts=gte.${since24h}&select=ts,symbol,basis_bps,revx_bid,revx_ask,kraken_bid,kraken_ask&order=ts.desc&limit=2000`),
     loadVenues(),
   ]);
 
@@ -238,9 +239,11 @@ export async function runDashboard(now = Date.now()) {
     }
     const mine = (r: { strategy_id: string }) => r.strategy_id === s.id;
     const last = recentDecisions.find(mine) ?? null;
+    const barMs = decisionBarMs(s.kind);
     return {
-      id: s.id, kind: s.kind, venue: s.venue, name: s.name, description: s.description, symbols: s.symbols, mode: s.mode,
+      id: s.id, kind: s.kind, venue: s.venue, signalVenue: s.signal_venue, name: s.name, description: s.description, symbols: s.symbols, mode: s.mode,
       capitalUsd: Number(s.capital_usd), params: s.params, updatedAt: s.updated_at,
+      nextDecisionAt: new Date(Math.floor(now / barMs) * barMs + barMs).toISOString(),   // the next bar close
       ...agg, positions,
       openOrders: open.filter(mine).length, ordersToday: today.filter(mine).length,
       jev24h: jevStats(decisions24h.filter(mine)),
@@ -251,10 +254,32 @@ export async function runDashboard(now = Date.now()) {
     };
   });
 
+  // The book by venue: what each account holds and has made, live and paper apart.
+  const byVenue: Record<string, { costUsd: number; valueUsd: number; unrealisedUsd: number; realisedUsd: number; feesUsd: number; capitalUsd: number; strategies: number; live: number }> = {};
+  for (const s of out) {
+    const v = (byVenue[s.venue] ??= { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, capitalUsd: 0, strategies: 0, live: 0 });
+    v.costUsd += s.costUsd; v.valueUsd += s.valueUsd; v.unrealisedUsd += s.unrealisedUsd; v.realisedUsd += s.realisedUsd; v.feesUsd += s.feesUsd;
+    v.capitalUsd += s.capitalUsd; v.strategies += 1; if (s.mode === "live") v.live += 1;
+  }
+  // The cross-venue basis over the last 24 h, per symbol: the arbitrage question, kept answered.
+  const basisBySymbol: Record<string, { latest: number | null; latestAt: string | null; n: number; absP50: number | null; absP95: number | null; absMax: number | null; over20: number; over40: number; over80: number }> = {};
+  const grouped = new Map<string, number[]>();
+  for (const b of basis24h) {
+    if (!grouped.has(b.symbol)) { grouped.set(b.symbol, []); basisBySymbol[b.symbol] = { latest: Number(b.basis_bps), latestAt: b.ts, n: 0, absP50: null, absP95: null, absMax: null, over20: 0, over40: 0, over80: 0 }; }
+    grouped.get(b.symbol)!.push(Math.abs(Number(b.basis_bps)));
+  }
+  for (const [sym, abs] of grouped) {
+    abs.sort((a, b) => a - b);
+    const q = (p: number) => abs[Math.min(abs.length - 1, Math.floor(p * abs.length))];
+    Object.assign(basisBySymbol[sym], { n: abs.length, absP50: q(0.5), absP95: q(0.95), absMax: abs[abs.length - 1], over20: abs.filter((x) => x > 20).length, over40: abs.filter((x) => x > 40).length, over80: abs.filter((x) => x > 80).length });
+  }
+
   return {
     at: new Date(now).toISOString(),
     risk: riskRows[0] ?? null,
     totals: { ...totals, byMode },
+    byVenue,
+    basis: basisBySymbol,
     venues: (["revx", "kraken"] as VenueId[]).map((vid) => ({
       id: vid, canTrade: venues[vid].canTrade, feeBps: venues[vid].feeBps, balances: balancesByVenue[vid], note: venueErrors[vid], marks: marks[vid] ?? {},
     })),
