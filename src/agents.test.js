@@ -1,8 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-  backtestRows, basisRows, decisionView, fetchAgentsDashboard, fmtBps, fmtFees, fmtFrac, fmtUsd, orderView, strategyRows, strategyStatus,
-  rotationBacktestRows, totalsView, untilText, venueRows,
+  backtestRows, basisRows, decisionView, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fillRows, fillsSummary, fmtBps, fmtFees,
+  fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
+  strategyRows, strategyStatus, rotationBacktestRows, totalsView, untilText, venueHue, venueRows,
+  dislocationBacktestRows,
 } from './agents.js';
+import {
+  chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText,
+} from './agents_chart.js';
 
 const NOW = Date.parse('2026-09-20T12:00:00Z');
 
@@ -145,5 +150,295 @@ describe('rotationBacktestRows', () => {
     expect(r.rows).toEqual([{ name: 'default', label: 'top 2, bear filter on', oosRet: -0.122, oosDD: 0.3, exposure: 0.33, turnover: 21.7, fullRet: 1.284, otherOosRet: -0.209 }]);
     expect(rotationBacktestRows(summary, 'kraken').rows[0]).toMatchObject({ oosRet: -0.209, otherOosRet: -0.122 });
     expect(rotationBacktestRows(null, 'revx')).toEqual({ rows: [], buyHoldOos: null, buyHoldFull: null, symbols: [] });
+  });
+});
+
+// ── What the rule sees, and the minute rule ─────────────────────────────
+
+const obsAt = (ms, state = {}, numbers = {}) => ({
+  ts: new Date(ms).toISOString(), barStart: new Date(Math.floor(ms / 60e3) * 60e3).toISOString(), state, numbers,
+});
+
+describe('observations as the liveness signal', () => {
+  const trendState = { symbol: 'BTC/USD', trend_4h: 'up', trend_strength: 'strong', breakout: 'above_range', volatility: 'normal', momentum_30d: 'positive', position: 'flat', unrealised: 'none', time_in_position: 'none' };
+
+  it('a reading in the last three minutes means running, whatever the decision clock says', () => {
+    const s = strategy({
+      lastDecision: { ts: '2026-09-19T20:00:00Z', symbol: 'BTC/USD', action: 'hold' },   // 16 h old: stale on its own
+      positions: [{ symbol: 'BTC/USD', base: 0.00025, observation: obsAt(NOW - 40e3, trendState) }, { symbol: 'ETH/USD', base: 0 }],
+    });
+    expect(strategyStatus(s, null, NOW)).toEqual({ label: 'paper', running: true, detail: 'watching · seen 40s ago' });
+    expect(observationAgeMs(s, NOW)).toBe(40e3);
+  });
+
+  it('falls back to the decision clock once the readings stop', () => {
+    const s = strategy({
+      lastDecision: { ts: '2026-09-19T20:00:00Z', symbol: 'BTC/USD', action: 'hold' },
+      positions: [{ symbol: 'BTC/USD', base: 0, observation: obsAt(NOW - 11 * 60e3, trendState) }],
+    });
+    expect(strategyStatus(s, null, NOW)).toMatchObject({ running: false, detail: 'last decision 16h 00m ago' });
+    const never = strategy({ lastDecision: null, positions: [{ symbol: 'BTC/USD', base: 0, observation: obsAt(NOW - 11 * 60e3, trendState) }] });
+    expect(strategyStatus(never, null, NOW)).toMatchObject({ running: false, detail: 'last reading 11m 00s ago' });
+    expect(observationAgeMs({ positions: [{ symbol: 'BTC/USD', base: 0 }] }, NOW)).toBeNull();
+  });
+
+  it('the paused row and the global pause still win over a fresh reading', () => {
+    const live = { positions: [{ symbol: 'BTC/USD', base: 0, observation: obsAt(NOW - 5e3, trendState) }] };
+    expect(strategyStatus(strategy({ mode: 'paused', ...live }), null, NOW).running).toBe(false);
+    expect(strategyStatus(strategy({ mode: 'live', ...live }), { global_pause: true }, NOW).running).toBe(false);
+  });
+
+  it('the minute rule goes stale after a quarter of an hour, not after two of its bars', () => {
+    const fresh = strategy({ kind: 'dislocation-1m', lastDecision: { ts: new Date(NOW - 5 * 60e3).toISOString() } });
+    expect(strategyStatus(fresh, null, NOW)).toMatchObject({ running: true, detail: 'decided 5m 00s ago' });
+    const cold = strategy({ kind: 'dislocation-1m', lastDecision: { ts: new Date(NOW - 20 * 60e3).toISOString() } });
+    expect(strategyStatus(cold, null, NOW).running).toBe(false);
+  });
+
+  it('labels the minute rule and reads its next decision as a rhythm, not a countdown', () => {
+    expect(kindLabel('dislocation-1m')).toBe('Dislocation');
+    expect(kindLabel('rotation-1d')).toBe('Rotation');
+    expect(nextDecisionText('dislocation-1m', '2026-09-20T12:01:00Z', NOW)).toBe('every minute');
+    expect(nextDecisionText('trend-4h', '2026-09-20T16:00:00Z', NOW)).toBe('in 4h 00m');
+    expect(strategyRows({ strategies: [strategy({ kind: 'dislocation-1m', nextDecisionAt: '2026-09-20T12:01:00Z' })] }, NOW)[0])
+      .toMatchObject({ kind: 'Dislocation', kindId: 'dislocation-1m', nextText: 'every minute' });
+  });
+
+  it('turns one observation into pills, an age and the numbers behind it', () => {
+    const v = /** @type {any} */ (observationView(obsAt(NOW - 40e3,
+      { symbol: 'BTC/USD', basis: 'revx_cheap', basis_size: 'small', reference_move_5m: 'sharp_up', position: 'flat', time_in_position: 'none' },
+      { basisBps: -3.42, mark: 86000 }), NOW));
+    expect(v.ageText).toBe('seen 40 s ago');
+    expect(v.fresh).toBe(true);
+    expect(v.basisBps).toBe(-3.42);
+    expect(v.mark).toBe(86000);
+    expect(v.pills.map((p) => `${p.label} ${p.value}`)).toEqual(['basis revx cheap', 'basis size small', 'reference 5m sharp up', 'position flat', 'held none']);
+    expect(v.pills.map((p) => p.tone)).toEqual(['up', 'flat', 'warn', 'flat', 'flat']);
+    // The symbol is the row's own label, never a pill.
+    expect(v.pills.some((p) => p.key === 'symbol')).toBe(false);
+    expect(observationView(null, NOW)).toBeNull();
+  });
+
+  it('the age reads in seconds while it is seconds old, then minutes, then hours', () => {
+    expect(observationAgeText(0)).toBe('seen 0 s ago');
+    expect(observationAgeText(89e3)).toBe('seen 89 s ago');
+    expect(observationAgeText(4 * 60e3)).toBe('seen 4 min ago');
+    expect(observationAgeText(125 * 60e3)).toBe('seen 2 h 05 min ago');
+    expect(observationAgeText(null)).toBe('no reading yet');
+  });
+
+  it('one live-state row per symbol, in the strategy\'s own order, held or not', () => {
+    const s = strategy({
+      symbols: ['BTC/USD', 'ETH/USD', 'SOL/USD'],
+      positions: [{ symbol: 'ETH/USD', base: 0.01, observation: obsAt(NOW - 20e3, { trend_4h: 'down' }) }, { symbol: 'BTC/USD', base: 0 }],
+    });
+    const rows = liveStateRows(s, NOW);
+    expect(rows.map((r) => r.symbol)).toEqual(['BTC/USD', 'ETH/USD', 'SOL/USD']);
+    expect(rows[0].observation).toBeNull();
+    expect(rows[1]).toMatchObject({ base: 0.01 });
+    expect(/** @type {any} */ (rows[1].observation).pills).toEqual([{ key: 'trend_4h', label: 'trend 4h', value: 'down', tone: 'down' }]);
+    expect(rows[2]).toEqual({ symbol: 'SOL/USD', base: 0, observation: null });
+  });
+
+  it('opens the chart on what is held, else on what has traded, else on the first pair', () => {
+    const symbols = ['BTC/USD', 'ETH/USD', 'SOL/USD'];
+    expect(defaultChartSymbol({ symbols, positions: [{ symbol: 'BTC/USD', base: 0, fills: 2 }, { symbol: 'ETH/USD', base: 0.01, fills: 1 }] })).toBe('ETH/USD');
+    expect(defaultChartSymbol({ symbols, positions: [{ symbol: 'BTC/USD', base: 0, fills: 0 }, { symbol: 'ETH/USD', base: 0, fills: 3 }] })).toBe('ETH/USD');
+    expect(defaultChartSymbol({ symbols, positions: [] })).toBe('BTC/USD');
+    expect(defaultChartSymbol({ symbols: [], positions: [] })).toBeNull();
+  });
+});
+
+// ── The detail chart ────────────────────────────────────────────────────
+
+const T0 = Date.parse('2026-09-20T08:00:00Z');
+const H = 3600e3;
+const CANDLES = [100, 110, 105, 120, 115].map((c, i) => [T0 + i * H, c, c + 5, c - 5, c]);
+const CHART = {
+  strategyId: 'trend-4h-kraken', symbol: 'BTC/USD', venue: 'kraken', signalVenue: 'kraken', kind: 'trend-4h', mode: 'paper',
+  intervalMin: 60, since: new Date(T0).toISOString(), at: new Date(T0 + 5 * H).toISOString(),
+  candles: CANDLES,
+  fills: [
+    { id: 1, ts: new Date(T0 + H).toISOString(), side: 'buy', price: 110, base: 0.25, feeUsd: 0.11, venue: 'kraken', mode: 'paper', marketable: false, decisionId: 7 },
+    { id: 2, ts: new Date(T0 + 3 * H).toISOString(), side: 'sell', price: 120, base: 0.1, feeUsd: 0.05, venue: 'kraken', mode: 'paper', marketable: true, decisionId: 9 },
+  ],
+  orders: [
+    { id: 1, ts: new Date(T0 + H).toISOString(), side: 'buy', price: 110, base: 0.25, state: 'filled', venue: 'kraken', mode: 'paper', requotes: 0, marketable: false, filledAt: new Date(T0 + H).toISOString(), cancelledAt: null, decisionId: 7 },
+    { id: 3, ts: new Date(T0 + 2 * H).toISOString(), side: 'buy', price: 108, base: 0.2, state: 'new', venue: 'kraken', mode: 'paper', requotes: 1, marketable: false, filledAt: null, cancelledAt: null, decisionId: 8 },
+  ],
+  decisions: [{ id: 7, ts: new Date(T0 + H).toISOString(), barStart: new Date(T0 + H).toISOString(), action: 'enter', ruleAction: 'enter', reason: 'trend up', provider: 'openrouter', riskAllowed: true, kind: 'bar', mark: 110 }],
+  position: { base: 0.15, avgCost: 110, realisedUsd: 1, feesUsd: 0.16, openedAt: new Date(T0 + H).toISOString() },
+  observation: null,
+};
+const PAD = { padL: 50, padR: 10, padT: 10, padB: 20 };
+const geo = () => chartGeometry({
+  candles: CHART.candles, fills: CHART.fills, orders: CHART.orders, position: CHART.position,
+  intervalMin: 60, width: 400, height: 200, nowMs: T0 + 5 * H, pad: PAD,
+});
+
+describe('chart geometry', () => {
+  it('scales time across the plot and price down it, padded so nothing sits on the frame', () => {
+    const g = geo();
+    expect(g.hasData).toBe(true);
+    expect([g.x0, g.x1, g.y0, g.y1]).toEqual([50, 390, 10, 180]);
+    // The window runs from the first candle to one bar past the last.
+    expect([g.t0, g.t1]).toEqual([T0, T0 + 5 * H]);
+    expect(g.xOf(T0)).toBe(50);
+    expect(g.xOf(T0 + 5 * H)).toBe(390);
+    expect(g.xOf(T0 + 4 * H)).toBeCloseTo(322, 6);
+    // Highs and lows set the range: 95 … 125, plus 8 % of air each side.
+    expect(g.p0).toBeCloseTo(92.6, 6);
+    expect(g.p1).toBeCloseTo(127.4, 6);
+    expect(g.yOf(110)).toBeCloseTo(95, 6);          // the midpoint sits in the middle
+    expect(g.yOf(1e9)).toBe(10);                     // clamped, never off the top
+    expect(g.yOf(-1e9)).toBe(180);
+    expect(g.linePath.startsWith('M50.0 ')).toBe(true);
+    expect(g.linePath.split('L').length).toBe(5);    // one segment per candle
+    expect(g.bandPath.endsWith('Z')).toBe(true);
+  });
+
+  it('marks every fill, rests the open order at its price and dots the average cost', () => {
+    const g = geo();
+    expect(g.fillMarks.map((f) => f.side)).toEqual(['buy', 'sell']);
+    expect(g.fillMarks[0].x).toBeCloseTo(118, 6);
+    expect(g.fillMarks[0].y).toBeCloseTo(95, 6);     // bought at 110, the middle
+    expect(g.restingLines).toHaveLength(1);          // the filled order is not resting
+    expect(g.restingLines[0]).toMatchObject({ id: 3, side: 'buy', price: 108 });
+    expect(g.restingLines[0].xa).toBeCloseTo(186, 6);
+    expect(g.restingLines[0].xb).toBe(390);          // …to the right edge, which is now
+    expect(g.avgCost.price).toBe(110);
+    expect(g.avgCost.y).toBeCloseTo(95, 6);
+    expect(chartGeometry({ candles: CHART.candles, position: { base: 0, avgCost: 0 }, width: 400, height: 200, pad: PAD }).avgCost).toBeNull();
+    expect(isResting({ state: 'new' })).toBe(true);
+    expect([isResting({ state: 'filled' }), isResting({ state: 'cancelled' }), isResting(null)]).toEqual([false, false, false]);
+  });
+
+  it('puts three to five recessive gridlines on one axis and dates under it', () => {
+    const g = geo();
+    expect(g.yTicks.map((t) => t.v)).toEqual([100, 110, 120]);
+    expect(g.yTicks.map((t) => t.label)).toEqual(['100.0', '110.0', '120.0']);   // one decimal is all a 30-wide range needs
+    expect(g.yTicks[1].y).toBeCloseTo(95, 6);
+    expect(g.xTicks.map((t) => t.label)).toEqual(['20 Sep 08:00', '20 Sep 10:00', '20 Sep 12:00']);
+    // A wider plot earns more ticks, never more than five.
+    const wide = chartGeometry({ candles: CHART.candles, intervalMin: 60, width: 1200, height: 230, nowMs: T0 + 5 * H });
+    expect(wide.xTicks.length).toBeLessThanOrEqual(5);
+    expect(wide.xTicks.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('is empty, not broken, when the candle cache has nothing in it yet', () => {
+    for (const candles of [[], [[T0, 1, 1, 1, 1]], null]) {
+      const g = chartGeometry({ candles: candles ?? undefined, width: 400, height: 200, pad: PAD });
+      expect(g.hasData).toBe(false);
+      expect(g.linePath).toBe('');
+      expect(g.fillMarks).toEqual([]);
+      expect(g.yTicks).toEqual([]);
+      expect(hoverPoint(g, 100)).toBeNull();
+    }
+    expect(chartGeometry()).toMatchObject({ hasData: false });
+  });
+
+  it('the crosshair snaps to the nearest candle and picks up a fill under the cursor', () => {
+    const g = geo();
+    /** @param {number} px */
+    const at = (px) => /** @type {any} */ (hoverPoint(g, px));
+    const at190 = at(190);
+    expect(at190).toMatchObject({ i: 2, close: 105, fills: [] });
+    expect(at190.x).toBeCloseTo(186, 6);
+    const onFill = at(120);
+    expect(onFill.i).toBe(1);
+    expect(onFill.fills.map((/** @type {any} */ f) => f.id)).toEqual([1]);
+    // Off either end it clamps to the first and last candle rather than vanishing.
+    expect(at(-500).i).toBe(0);
+    expect(at(5000).i).toBe(4);
+  });
+
+  it('keeps the tooltip inside the plot, flipping it left at the right-hand edge', () => {
+    const g = geo();
+    const lines = ['20 Sep 11:00 UTC', 'close  115.00'];
+    const left = tooltipBox(g, 100, 95, lines);
+    expect(left.x).toBe(110);
+    expect(left.y + left.h).toBeLessThanOrEqual(g.y1);
+    const flipped = tooltipBox(g, 380, 95, lines);
+    expect(flipped.x).toBeLessThan(380);
+    expect(flipped.x + flipped.w).toBeLessThanOrEqual(380);
+    // Never off the top or the bottom either.
+    expect(tooltipBox(g, 100, 12, lines).y).toBeGreaterThanOrEqual(g.y0);
+    expect(tooltipBox(g, 100, 179, lines).y + tooltipBox(g, 100, 179, lines).h).toBeLessThanOrEqual(g.y1);
+  });
+
+  it('buys point up, sells point down, both centred on the fill', () => {
+    expect(markPath('buy', 10, 10, 5)).toBe('M4.3 15.0L10.0 5.0L15.8 15.0Z');
+    expect(markPath('sell', 10, 10, 5)).toBe('M4.3 5.0L10.0 15.0L15.8 5.0Z');
+  });
+
+  it('axis and tooltip formatting follows the bar, and the window reads in words', () => {
+    expect(niceStep(30, 4)).toBe(10);
+    expect(niceStep(100, 4)).toBe(20);
+    expect(niceStep(0, 4)).toBe(1);
+    expect(priceTicks(95, 125, 4)).toEqual([100, 110, 120]);
+    expect(priceTicks(5, 5)).toEqual([5]);
+    expect(priceTicks(NaN, 1)).toEqual([]);
+    expect(fmtChartPrice(86000.4, 400)).toBe('86,000');
+    expect(fmtChartPrice(110.25, 12)).toBe('110.25');
+    expect(fmtChartPrice(0.5123, 0.05)).toBe('0.5123');
+    expect(fmtChartPrice(null, 1)).toBe('—');
+    expect(fmtChartTime(Date.parse('2026-09-20T08:05:00Z'), 1)).toBe('08:05');
+    expect(fmtChartTime(Date.parse('2026-09-20T08:05:00Z'), 60)).toBe('20 Sep 08:05');
+    expect(fmtChartTime(Date.parse('2026-09-20T08:05:00Z'), 240)).toBe('20 Sep');
+    expect(fmtChartStamp('2026-09-20T08:05:00Z')).toBe('20 Sep 08:05');
+    expect(fmtChartStamp('nonsense')).toBe('—');
+    expect(windowText(1, 12 * H)).toBe('1-minute candles · last 12 h');
+    expect(windowText(60, 7 * 24 * H)).toBe('1-hour candles · last 7 d');
+    expect(windowText(240, 30 * 24 * H)).toBe('4-hour candles · last 30 d');
+  });
+});
+
+describe('fillRows / fillsSummary / fetchAgentsChart', () => {
+  it('lists the fills newest first, with the notional and whether they paid the taker fee', () => {
+    const rows = fillRows(CHART);
+    expect(rows.map((r) => r.id)).toEqual([2, 1]);
+    expect(rows[0]).toMatchObject({ side: 'sell', price: 120, base: 0.1, notionalUsd: 12, feeUsd: 0.05, venue: 'kraken', liquidity: 'taker' });
+    expect(rows[1]).toMatchObject({ side: 'buy', notionalUsd: 27.5, liquidity: 'maker', decisionId: 7 });
+    expect(fillRows(null)).toEqual([]);
+  });
+  it('sums what the chart shows: how many fills, what they cost, what is still resting', () => {
+    expect(fillsSummary(CHART)).toEqual({ count: 2, buys: 1, sells: 1, feesUsd: 0.16, realisedUsd: 1, base: 0.15, avgCost: 110, openOrders: 1, decisions: 1 });
+    expect(fillsSummary(null)).toMatchObject({ count: 0, buys: 0, sells: 0, feesUsd: 0, realisedUsd: 0, openOrders: 0, decisions: 0 });
+  });
+  it('asks the Edge Function for one strategy × symbol, with the app token', async () => {
+    sessionStorage.setItem('dp.token', 'tok.sig');
+    const fetchImpl = vi.fn(async (url, init) => {
+      expect(String(url)).toMatch(/\/agents\?action=chart&strategy=trend-4h-kraken&symbol=BTC%2FUSD$/);
+      expect(init.headers['X-App-Token']).toBe('tok.sig');
+      return new Response(JSON.stringify(CHART), { status: 200 });
+    });
+    expect((await fetchAgentsChart('trend-4h-kraken', 'BTC/USD', fetchImpl)).symbol).toBe('BTC/USD');
+    const bad = vi.fn(async () => new Response('{"error":"unknown strategy"}', { status: 500 }));
+    await expect(fetchAgentsChart('nope', 'BTC/USD', bad)).rejects.toThrow(/500 .*unknown strategy/);
+  });
+  it('the two venue hues are the ones the badges wear', () => {
+    expect([venueHue('revx'), venueHue('kraken')]).toEqual(['#8ec5ff', '#c4b5fd']);
+    expect(venueHue('other')).toBe('rgba(244,239,227,0.6)');
+  });
+});
+
+describe('dislocationBacktestRows', () => {
+  const summary = {
+    dislocation: {
+      results: {
+        'BTC/USD': { days: 28.5, k15_h30: { full: { trades: 27, per_day: 0.95, avg_bps: 8.1, win: 81, worst: -60 }, firstHalf: { trades: 18, avg_bps: 9.1 }, secondHalf: { trades: 9, avg_bps: 6.1 } } },
+        'XRP/USD': { days: 28.5, k15_h30: { full: { trades: 0 }, firstHalf: { trades: 0 }, secondHalf: { trades: 0 } } },
+      },
+    },
+  };
+  it('distils the seeded setting per symbol with both halves beside the headline', () => {
+    const rows = dislocationBacktestRows(summary);
+    expect(rows.map((r) => r.symbol)).toEqual(['BTC/USD', 'XRP/USD']);
+    expect(rows[0]).toMatchObject({ trades: 27, perDay: 0.95, avgBps: 8.1, win: 81, worst: -60, firstHalfAvg: 9.1, secondHalfAvg: 6.1, days: 28.5 });
+    expect(rows[1]).toMatchObject({ trades: 0, avgBps: null, win: null, firstHalfAvg: null });
+  });
+  it('is empty without the study, and for an unknown setting the numbers are null', () => {
+    expect(dislocationBacktestRows({})).toEqual([]);
+    expect(dislocationBacktestRows(summary, 'k99_h1')[0]).toMatchObject({ symbol: 'BTC/USD', trades: 0, avgBps: null });
   });
 });

@@ -192,6 +192,14 @@ main-model polling from now on.
   nothing else on the site reads it.
 - **Paper exposure**: `agent_risk.paper_exposure_usd` (default 300) so the
   paper twins do not crowd each other out of the $100 live cap.
+- **Client** (`src/agents_chart.js` new, `agents.{js,jsx}`): the chart's
+  geometry is pure and pinned (34 cases in `agents.test.js`); a strategy
+  is "running" when any of its observations is under 3 minutes old, else
+  by a per-rulebook decision clock (`DECISION_STALE_MS`); the dislocation
+  detail shows the 1-minute study with both halves beside the headline.
+  The browser sweep is 154 checks (28 on Agents per viewport), all green
+  on the rebuilt bundle. Production `agents` deployed from this branch
+  by MCP (flattened imports) so the preview answers `notReady`.
 
 ### [2026-09-20 07:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

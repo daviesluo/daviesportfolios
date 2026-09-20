@@ -7,12 +7,16 @@ import { getAppToken } from './auth.js';
 import { fmtMoney, formatAgo } from './formatters.js';
 
 export const VENUE_LABELS = { revx: 'Revolut X', kraken: 'Kraken' };
-export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'momentum-1d': 'Momentum 30d', 'rotation-1d': 'Rotation' };
+export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'momentum-1d': 'Momentum 30d', 'rotation-1d': 'Rotation', 'dislocation-1m': 'Dislocation' };
+/** The two venue hues the badges, the share bar and the detail chart all share. */
+export const VENUE_HUES = { revx: '#8ec5ff', kraken: '#c4b5fd' };
 
 /** @param {string} id */
 export const venueLabel = (id) => VENUE_LABELS[id] ?? id;
 /** @param {string} kind */
 export const kindLabel = (kind) => KIND_LABELS[kind] ?? kind;
+/** @param {string} id */
+export const venueHue = (id) => VENUE_HUES[id] ?? 'rgba(244,239,227,0.6)';
 
 /** Signed USD with cents — the whole book is a couple of hundred dollars, so "$1.23K" would hide the movement. */
 export const fmtUsd = (n, signed = false) => fmtMoney(n, { signed, compact: false });
@@ -49,13 +53,54 @@ export async function fetchAgentsLog(strategyId, limit = 200, fetchImpl = fetch)
   return JSON.parse(text);
 }
 
-const FOUR_H = 4 * 3600e3, ONE_D = 86400e3;
+/**
+ * More history for one strategy × symbol, for the detail chart: the signal
+ * venue's candles over the rule's window, the fills, every order, the
+ * decisions and the latest observation.
+ * @param {string} strategyId
+ * @param {string} symbol
+ * @param {typeof fetch} [fetchImpl]
+ */
+export async function fetchAgentsChart(strategyId, symbol, fetchImpl = fetch) {
+  const res = await fetchImpl(
+    `${EDGE_AGENTS_URL}?action=chart&strategy=${encodeURIComponent(strategyId)}&symbol=${encodeURIComponent(symbol)}`,
+    { headers: headers() });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`agents chart: ${res.status} ${text.slice(0, 200)}`);
+  return JSON.parse(text);
+}
+
+const ONE_H = 3600e3, FOUR_H = 4 * 3600e3, ONE_D = 86400e3;
+
+/** How long a strategy may go without a decision before its row stops claiming to run — two of its own bars, and a quarter of an hour for the minute rule, which holds far more bars than it trades. */
+export const DECISION_STALE_MS = {
+  'trend-4h': 2 * FOUR_H, 'trend-1h': 2 * ONE_H, 'momentum-1d': 2 * ONE_D, 'rotation-1d': 2 * ONE_D, 'dislocation-1m': 15 * 60e3,
+};
+/** An observation is written every minute; three minutes without one means the loop stopped. */
+export const OBSERVATION_FRESH_MS = 3 * 60e3;
 
 /**
- * Is the loop still deciding for this strategy? It decides once per closed
- * bar, so a 4h strategy that has gone two bars without a decision, or a
- * daily one that has gone two days, is not running whatever its row says.
- * @param {{ mode: string, kind: string, lastDecision: { ts: string } | null }} s
+ * The age of the newest thing the strategy has SEEN, across its symbols.
+ * Observations land every minute on the forming bar, so this is the liveness
+ * signal — a rule can legitimately go hours between decisions.
+ * @param {any} s  a strategy from the dashboard payload
+ * @param {number} nowMs
+ */
+export function observationAgeMs(s, nowMs) {
+  let newest = null;
+  for (const p of s?.positions ?? []) {
+    const t = p?.observation?.ts ? Date.parse(p.observation.ts) : NaN;
+    if (!isNaN(t) && (newest == null || t > newest)) newest = t;
+  }
+  return newest == null ? null : Math.max(0, nowMs - newest);
+}
+
+/**
+ * Is the loop still running this strategy? A fresh observation says yes
+ * outright: the tick writes one every minute whether or not the rule acts.
+ * Without observations — an older row, or a database that has none yet — it
+ * falls back to the decision clock, which allows two of the rule's own bars.
+ * @param {{ mode: string, kind: string, lastDecision: { ts: string } | null, positions?: any[] }} s  the strategy row
  * @param {{ global_pause?: boolean } | null} risk
  * @param {number} nowMs
  * @returns {{ label: 'live' | 'paper' | 'paused', running: boolean, detail: string }}
@@ -64,9 +109,11 @@ export function strategyStatus(s, risk, nowMs) {
   const label = /** @type {'live' | 'paper' | 'paused'} */ (s.mode === 'live' ? 'live' : s.mode === 'paused' ? 'paused' : 'paper');
   if (s.mode === 'paused') return { label, running: false, detail: 'paused' };
   if (risk?.global_pause) return { label, running: false, detail: 'global pause' };
-  if (!s.lastDecision) return { label, running: false, detail: 'no decision yet' };
+  const obs = observationAgeMs(s, nowMs);
+  if (obs != null && obs < OBSERVATION_FRESH_MS) return { label, running: true, detail: `watching · seen ${formatAgo(obs)} ago` };
+  if (!s.lastDecision) return { label, running: false, detail: obs == null ? 'no decision yet' : `last reading ${formatAgo(obs)} ago` };
   const age = nowMs - Date.parse(s.lastDecision.ts);
-  const stale = s.kind === 'momentum-1d' ? 2 * ONE_D : 2 * FOUR_H;
+  const stale = DECISION_STALE_MS[s.kind] ?? 2 * FOUR_H;
   if (age > stale) return { label, running: false, detail: `last decision ${formatAgo(age)} ago` };
   return { label, running: true, detail: `decided ${formatAgo(age)} ago` };
 }
@@ -87,6 +134,8 @@ export function strategyRows(dash, nowMs) {
       venueId: s.venue,
       signalVenue: s.signalVenue ?? s.venue,
       nextDecisionAt: s.nextDecisionAt ?? null,
+      nextText: nextDecisionText(s.kind, s.nextDecisionAt, nowMs),
+      kindId: s.kind,
       kind: kindLabel(s.kind),
       mode: s.mode,
       capitalUsd: capital,
@@ -190,6 +239,27 @@ export function backtestRows(summary, kind, venue) {
   return out;
 }
 
+/**
+ * The dislocation study distilled for the page (`summary.dislocation`):
+ * per symbol, the seeded setting on the full sample and on each half of
+ * it, so the reader sees the weakness of the second half beside the
+ * headline instead of in a footnote.
+ * @param {any} summary
+ * @param {string} [key] which setting, e.g. 'k15_h30' (entry 15 bps, 30-minute time stop)
+ */
+export function dislocationBacktestRows(summary, key = 'k15_h30') {
+  const d = summary?.dislocation;
+  if (!d?.results) return [];
+  return Object.entries(d.results).map(([symbol, r]) => {
+    const v = /** @type {any} */ (r)[key] ?? {};
+    const f = v.full ?? {}, a = v.firstHalf ?? {}, b = v.secondHalf ?? {};
+    return {
+      symbol, days: /** @type {any} */ (r).days ?? null, trades: f.trades ?? 0, perDay: f.per_day ?? null, avgBps: f.avg_bps ?? null,
+      win: f.win ?? null, worst: f.worst ?? null, firstHalfAvg: a.avg_bps ?? null, secondHalfAvg: b.avg_bps ?? null,
+    };
+  });
+}
+
 /** Fraction → signed percent string, one decimal. @param {number | null} f */
 export const fmtFrac = (f) => (f == null ? '—' : fmtPctSigned(f * 100, 1));
 
@@ -215,6 +285,119 @@ export function untilText(iso, nowMs) {
   const h = Math.floor(m / 60), rm = m % 60;
   if (h < 24) return `in ${h}h ${String(rm).padStart(2, '0')}m`;
   return `in ${Math.floor(h / 24)}d ${h % 24}h`;
+}
+
+/**
+ * What the "next" column says. A minute rule is always about to decide, so a
+ * countdown to the next minute is noise — it decides every minute.
+ * @param {string} kind
+ * @param {string | null | undefined} iso
+ * @param {number} nowMs
+ */
+export function nextDecisionText(kind, iso, nowMs) {
+  return kind === 'dislocation-1m' ? 'every minute' : untilText(iso, nowMs);
+}
+
+// ── What the rule is looking at right now ────────────────────────────────
+// The tick writes one observation per strategy × symbol every minute: the
+// same categorical words the decision would see, on the FORMING bar. It is
+// what makes a 4-hour rule visibly alive between its decisions.
+
+const STATE_LABELS = {
+  trend_4h: 'trend 4h', trend_1h: 'trend 1h', trend: 'trend', trend_strength: 'strength',
+  breakout: 'breakout', breakout_4h: 'breakout', volatility: 'volatility', momentum_30d: 'momentum 30d',
+  position: 'position', unrealised: 'unrealised', time_in_position: 'held', drawdown: 'drawdown',
+  basis: 'basis', basis_size: 'basis size', reference_move_5m: 'reference 5m', rank: 'rank',
+};
+const UP_WORDS = new Set(['up', 'positive', 'above_range', 'revx_cheap', 'long', 'gain']);
+const DOWN_WORDS = new Set(['down', 'negative', 'below_range', 'revx_rich', 'loss']);
+const WARN_WORDS = new Set(['high', 'extreme', 'sharp_up', 'sharp_down', 'large', 'wide']);
+
+/** @param {string} k */
+export const stateLabel = (k) => STATE_LABELS[k] ?? k.replace(/_/g, ' ');
+/** @param {string} v */
+export const stateTone = (v) => (UP_WORDS.has(v) ? 'up' : DOWN_WORDS.has(v) ? 'down' : WARN_WORDS.has(v) ? 'warn' : 'flat');
+
+/** "seen 40 s ago" — the observation clock, which runs in seconds, not the decision clock. @param {number | null} ms */
+export function observationAgeText(ms) {
+  if (ms == null || isNaN(ms) || ms < 0) return 'no reading yet';
+  const s = Math.round(ms / 1000);
+  if (s < 90) return `seen ${s} s ago`;
+  const m = Math.round(s / 60);
+  if (m < 90) return `seen ${m} min ago`;
+  const h = Math.floor(m / 60);
+  return `seen ${h} h ${String(m % 60).padStart(2, '0')} min ago`;
+}
+
+/**
+ * One observation as the detail renders it: the state words as pills, how old
+ * the reading is, and the numbers behind it.
+ * @param {{ ts: string, barStart?: string, state?: Record<string, unknown>, numbers?: Record<string, unknown> } | null | undefined} obs
+ * @param {number} nowMs
+ */
+export function observationView(obs, nowMs) {
+  if (!obs) return null;
+  const t = Date.parse(obs.ts);
+  const ageMs = isNaN(t) ? null : Math.max(0, nowMs - t);
+  const pills = Object.entries(obs.state ?? {})
+    .filter(([k, v]) => k !== 'symbol' && typeof v === 'string' && v !== '')
+    .map(([k, v]) => ({ key: k, label: stateLabel(k), value: String(v).replace(/_/g, ' '), tone: stateTone(String(v)) }));
+  const numbers = /** @type {Record<string, any>} */ (obs.numbers ?? {});
+  return {
+    ts: obs.ts, barStart: obs.barStart ?? null, ageMs, ageText: observationAgeText(ageMs),
+    fresh: ageMs != null && ageMs < OBSERVATION_FRESH_MS, pills, numbers,
+    basisBps: typeof numbers.basisBps === 'number' ? numbers.basisBps : null,
+    mark: typeof numbers.mark === 'number' ? numbers.mark : typeof numbers.close === 'number' ? numbers.close : null,
+  };
+}
+
+/** One live-state row per symbol, in the strategy's own symbol order. @param {any} s @param {number} nowMs */
+export function liveStateRows(s, nowMs) {
+  const bySymbol = new Map((s?.positions ?? []).map((p) => [p.symbol, p]));
+  return (s?.symbols ?? []).map((symbol) => {
+    const p = bySymbol.get(symbol) ?? null;
+    return { symbol, base: p?.base ?? 0, observation: observationView(p?.observation ?? null, nowMs) };
+  });
+}
+
+/** The symbol the detail opens on: what is held, else what has traded, else the first. @param {any} s */
+export function defaultChartSymbol(s) {
+  const positions = s?.positions ?? [];
+  const held = positions.find((p) => Number(p.base) > 0);
+  if (held) return held.symbol;
+  const traded = positions.find((p) => Number(p.fills) > 0);
+  if (traded) return traded.symbol;
+  return (s?.symbols ?? [])[0] ?? null;
+}
+
+/**
+ * The fills under the chart, newest first — the same events the chart marks,
+ * read as a table.
+ * @param {any} chart
+ */
+export function fillRows(chart) {
+  return (chart?.fills ?? [])
+    .map((f) => ({
+      id: f.id, ts: f.ts, side: f.side, price: Number(f.price), base: Number(f.base),
+      notionalUsd: Number(f.price) * Number(f.base), feeUsd: Number(f.feeUsd ?? 0),
+      venue: f.venue, mode: f.mode, liquidity: f.marketable ? 'taker' : 'maker', decisionId: f.decisionId ?? null,
+    }))
+    .sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts));
+}
+
+/** The line under the fills table: how many, what they cost, what they made. @param {any} chart */
+export function fillsSummary(chart) {
+  const fills = chart?.fills ?? [];
+  const buys = fills.filter((f) => f.side === 'buy').length;
+  const pos = chart?.position ?? null;
+  return {
+    count: fills.length, buys, sells: fills.length - buys,
+    feesUsd: fills.reduce((a, f) => a + Number(f.feeUsd ?? 0), 0),
+    realisedUsd: Number(pos?.realisedUsd ?? 0),
+    base: Number(pos?.base ?? 0), avgCost: Number(pos?.avgCost ?? 0),
+    openOrders: (chart?.orders ?? []).filter((o) => o.state === 'new' || o.state === 'pending' || o.state === 'partially_filled').length,
+    decisions: (chart?.decisions ?? []).length,
+  };
 }
 
 /**
