@@ -399,8 +399,18 @@ const AGENTS_NOT_READY = {
   at: new Date(CLOCK).toISOString(), notReady: true,
   reason: 'the agents tables are not in this database yet (migration 0037 runs on merge)',
 };
-/** Flipped by the agents section to prove the page renders that state too. */
-let agentsNotReady = false;
+/**
+ * Flipped by the agents section to prove the page renders its other
+ * states too: `notReady` (the tables are not there yet), `error` (the
+ * function fell over: a 500 with the server's envelope), `paused` (the
+ * dashboard with a global pause set and a venue reporting a fault).
+ */
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused'} */ ('ok');
+const AGENTS_PAUSED = () => ({
+  ...AGENTS_DASHBOARD,
+  risk: { ...AGENTS_DASHBOARD.risk, global_pause: true },
+  venues: AGENTS_DASHBOARD.venues.map((v) => (v.id === 'kraken' ? { ...v, note: 'balances: 403 EAPI:Invalid key' } : v)),
+});
 
 let failures = 0;
 const log = [];
@@ -452,7 +462,14 @@ async function newPage(browser, { width, height }, errors, tokenMisses) {
       body: JSON.stringify(body),
     });
     if (url.includes('/data?') && url.includes('action=load')) return json({ data: PORTFOLIO, version: 1 });
-    if (url.includes('/agents?') && url.includes('action=dashboard')) return json(agentsNotReady ? AGENTS_NOT_READY : AGENTS_DASHBOARD);
+    if (url.includes('/agents?') && url.includes('action=dashboard')) {
+      if (agentsMode === 'notReady') return json(AGENTS_NOT_READY);
+      if (agentsMode === 'paused') return json(AGENTS_PAUSED());
+      if (agentsMode === 'error') {
+        return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
+      }
+      return json(AGENTS_DASHBOARD);
+    }
     if (url.includes('/agents?') && url.includes('action=chart')) {
       const u = new URL(url);
       // The same series whichever pair is asked for — what the checks are
@@ -991,8 +1008,30 @@ async function run() {
       if (/watching · seen \d+s ago/.test(watching || '')) ok(S('agents'), `the status says what it is doing ("${watching}")`);
       else fail(S('agents'), `status title reads "${watching}"`);
       const chips = await page.locator('.ag-chip .ag-chip-name').allTextContents();
-      if (chips.includes('Revolut X') && chips.includes('Kraken') && chips.includes('Caps')) ok(S('agents'), 'venue and caps chips present');
-      else fail(S('agents'), `chips: ${chips.join(', ')}`);
+      if (chips.includes('Caps') && chips.some((c) => /^Jev/.test(c)) && !chips.includes('Revolut X') && !chips.includes('Kraken')) {
+        ok(S('agents'), 'the strip carries the caps and the model\'s bill, and no longer repeats the venue cards');
+      } else fail(S('agents'), `chips: ${chips.join(', ')}`);
+      const how = await page.locator('.ag-how').textContent().catch(() => '');
+      if (/Every minute/.test(how || '') && !/five minutes/.test(how || '') && /Dislocation/.test(how || '') && /asked on entries only/.test(how || '')) {
+        ok(S('agents'), 'the explainer describes the one-minute loop, all five rulebooks and the model\'s entry-only role');
+      } else fail(S('agents'), `explainer reads "${(how || '').trim().slice(0, 100)}…"`);
+      const nowStyle = await page.locator('.ag-basis-now').first().getAttribute('style').catch(() => null);
+      const nowText = await page.locator('.ag-basis-now').first().textContent().catch(() => '');
+      if (!nowStyle && /^[+-]\d/.test((nowText || '').trim())) ok(S('agents'), `the basis "Now" cell keeps its sign as text and wears no P&L colour ("${(nowText || '').trim()}")`);
+      else fail(S('agents'), `basis now cell: style "${nowStyle}", text "${nowText}"`);
+      const nameBtns = await page.locator('.ag-row .ag-name-btn').count();
+      if (nameBtns === rows) ok(S('agents'), 'every strategy name is a real button');
+      else fail(S('agents'), `name buttons ${nameBtns} of ${rows}`);
+      const vpWidth = page.viewportSize()?.width ?? 0;
+      const wideShown = await page.locator('.ag-table th.ag-col-wide').evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length);
+      const statusShown = await page.locator('.ag-table th.ag-col-status').evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length);
+      const returnShown = await page.locator('.ag-table th.ag-col-return').evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length);
+      if (vpWidth <= 760 ? (wideShown === 0 && statusShown === 1 && returnShown === 1) : (wideShown === 5 && statusShown === 1 && returnShown === 1)) {
+        ok(S('agents'), vpWidth <= 760 ? 'a phone sees status and return without the money detail columns' : 'a desktop sees every column, status and return first');
+      } else fail(S('agents'), `columns at ${vpWidth}px: wide ${wideShown}, status ${statusShown}, return ${returnShown}`);
+      const alertsAtRest = await page.locator('.ag-alert').count();
+      if (alertsAtRest === 0) ok(S('agents'), 'no banner when nothing blocks trading');
+      else fail(S('agents'), `${alertsAtRest} alert banners on a healthy dashboard`);
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, krakenRows = badges.filter((b) => b.startsWith('Kraken')).length;
@@ -1099,7 +1138,7 @@ async function run() {
       // `runDashboard` answers 200 with `{ notReady, reason }` while the
       // agents tables do not exist. That has to be a designed state, not
       // an error: a fresh database is the normal first minute of a deploy.
-      agentsNotReady = true;
+      agentsMode = 'notReady';
       await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
       await page.waitForTimeout(200);
       await page.locator('.header-menu-item:text-is("Agents")').first().click();
@@ -1110,7 +1149,46 @@ async function run() {
       if (/Not deployed yet/.test(nr || '') && /migration 0037/.test(nr || '') && nrErrors === 0 && nrTables === 0) {
         ok(S('agents'), 'a notReady dashboard renders the designed empty state, not an error');
       } else fail(S('agents'), `not-ready state: errors ${nrErrors}, tables ${nrTables}, text "${(nr || '').trim().slice(0, 80)}"`);
-      agentsNotReady = false;
+      agentsMode = 'ok';
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
+      // ---- the function falling over ------------------------------
+      // A 500 is words, a retry and a fold — never the raw envelope in
+      // the body of the page. The retry is proven: the stub recovers and
+      // the table appears without leaving the modal.
+      agentsMode = 'error';
+      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+      await page.waitForTimeout(200);
+      await page.locator('.header-menu-item:text-is("Agents")').first().click();
+      await page.waitForSelector('.ag-errorcard', { timeout: 10_000 }).catch(() => {});
+      const ecTitle = await page.locator('.ag-errorcard-title').textContent().catch(() => '');
+      const ecText = await page.locator('.ag-errorcard-text').textContent().catch(() => '');
+      const ecRaw = await page.locator('.ag-error').count();
+      const ecRetry = await page.locator('.ag-retry').count();
+      const ecDetails = await page.locator('.ag-errorcard-details pre').textContent().catch(() => '');
+      if ((ecTitle || '').trim() && !/[{]/.test(ecText || '') && ecRaw === 0 && ecRetry === 1 && /57014/.test(ecDetails || '')) {
+        ok(S('agents'), `a 500 renders as words with a retry ("${(ecTitle || '').trim()}"), the envelope folded away`);
+      } else fail(S('agents'), `error state: title "${ecTitle}", text "${(ecText || '').trim().slice(0, 60)}", raw ${ecRaw}, retry ${ecRetry}`);
+      agentsMode = 'ok';
+      await page.locator('.ag-retry').first().click({ timeout: 2_000 }).catch(() => {});
+      const recovered = await page.waitForSelector('.ag-table', { timeout: 5_000 }).then(() => true).catch(() => false);
+      if (recovered) ok(S('agents'), 'Try again reloads the dashboard in place');
+      else fail(S('agents'), 'Try again did not bring the table back');
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
+      // ---- a global pause and a venue fault --------------------------
+      agentsMode = 'paused';
+      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+      await page.waitForTimeout(200);
+      await page.locator('.header-menu-item:text-is("Agents")').first().click();
+      await page.waitForSelector('.ag-alert', { timeout: 10_000 }).catch(() => {});
+      const stopBanner = await page.locator('.ag-alert.is-stop .ag-alert-label').textContent().catch(() => '');
+      const faultBanner = await page.locator('.ag-alert.is-fault .ag-alert-text').textContent().catch(() => '');
+      if (/Global pause/i.test(stopBanner || '') && /403/.test(faultBanner || '')) ok(S('agents'), 'a global pause and a venue fault are banners above the table, each with its label and words');
+      else fail(S('agents'), `banners: stop "${stopBanner}", fault "${faultBanner}"`);
+      agentsMode = 'ok';
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
     } else fail(S('agents'), 'Agents menu item not found');

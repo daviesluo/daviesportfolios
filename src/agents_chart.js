@@ -205,18 +205,63 @@ export function hoverPoint(geo, px) {
 }
 
 /**
- * The tooltip box: where it goes so it never leaves the plot, and how wide it
- * has to be for the longest line it carries.
- * @param {any} geo @param {number} x @param {number} y @param {string[]} lines
+ * Does a box cover any of these points? Used to keep the tooltip off the
+ * fill marks and the average-cost label — the three things a reader opens
+ * this chart to look at.
+ * @param {{x: number, y: number, w: number, h: number}} box
+ * @param {{x: number, y: number}[]} marks
+ * @param {number} [pad]
  */
-export function tooltipBox(geo, x, y, lines) {
+export function boxHitsMarks(box, marks, pad = 6) {
+  return (marks ?? []).some((m) => m && isFinite(m.x) && isFinite(m.y)
+    && m.x >= box.x - pad && m.x <= box.x + box.w + pad
+    && m.y >= box.y - pad && m.y <= box.y + box.h + pad);
+}
+
+/**
+ * The tooltip box: where it goes so it never leaves the plot, how wide it
+ * has to be for the longest line it carries, and — given `avoid` — which of
+ * the six places around the cursor leaves the marks visible. Preference
+ * order is the one a reader expects (beside the cursor first, the side with
+ * room first), so an empty `avoid` puts it exactly where it always was.
+ * @param {any} geo @param {number} x @param {number} y @param {string[]} lines
+ * @param {{x: number, y: number}[]} [avoid]
+ */
+export function tooltipBox(geo, x, y, lines, avoid = []) {
   const charW = 5.5, lineH = 12.5;
   const w = Math.max(74, Math.max(...lines.map((l) => l.length)) * charW + 14);
   const h = lines.length * lineH + 10;
-  const right = x + 10 + w <= geo.x1;
-  const bx = right ? x + 10 : Math.max(geo.x0, x - 10 - w);
-  const by = clamp(y - h / 2, geo.y0 + 1, geo.y1 - h - 1);
-  return { x: bx, y: by, w, h, lineH, textX: bx + 7, firstY: by + 14 };
+  const top = geo.y0 + 1, bottom = geo.y1 - h - 1;
+  const ys = [clamp(y - h / 2, top, bottom), clamp(y + 12, top, bottom), clamp(y - h - 12, top, bottom)];
+  const xs = x + 10 + w <= geo.x1 ? [x + 10, x - 10 - w] : [x - 10 - w, x + 10];
+  const cands = [];
+  for (const bx of xs) {
+    if (bx < geo.x0 || bx + w > geo.x1) continue;
+    for (const by of ys) cands.push({ x: bx, y: by });
+  }
+  if (!cands.length) cands.push({ x: clamp(x + 10, geo.x0, Math.max(geo.x0, geo.x1 - w)), y: ys[0] });
+  const pick = cands.find((c) => !boxHitsMarks({ ...c, w, h }, avoid)) ?? cands[0];
+  return { x: pick.x, y: pick.y, w, h, lineH, textX: pick.x + 7, firstY: pick.y + 14 };
+}
+
+/**
+ * Where an in-plot label sits so it does not read as part of the axis. The
+ * average-cost label starts at the left edge of the plot, a few pixels from
+ * the y-axis labels; when its baseline lands within `gap` of a gridline the
+ * two collide into one line of text, so it drops half a line — and back up
+ * if down would leave the plot.
+ * @param {number} y the label's baseline
+ * @param {{y: number}[]} ticks the y gridlines
+ * @param {{gap?: number, nudge?: number, y0?: number, y1?: number}} [opts]
+ */
+export function plotLabelY(y, ticks, opts = {}) {
+  const { gap = 10, nudge = 7, y0 = -Infinity, y1 = Infinity } = opts;
+  const clash = (/** @type {number} */ yy) => (ticks ?? []).some((t) => t && isFinite(t.y) && Math.abs(t.y - yy) < gap);
+  if (!clash(y)) return y;
+  const down = y + nudge, up = y - nudge;
+  if (down <= y1 && !clash(down)) return down;
+  if (up >= y0 && !clash(up)) return up;
+  return clamp(down, y0, y1);
 }
 
 /** The triangle a buy or a sell wears, centred on (x, y) at `r` half-height. @param {'buy'|'sell'|string} side @param {number} x @param {number} y @param {number} [r] */

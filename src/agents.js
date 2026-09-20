@@ -28,6 +28,47 @@ function headers() {
   return { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}`, 'X-App-Token': getAppToken() };
 }
 
+// ── What a failure says ─────────────────────────────────────────────────
+// The Edge Function answers a failure as JSON — `{ error, message }` — and
+// a stack of proxies can answer it as anything at all. The page must never
+// show either verbatim: a reader wants to know what broke, whether their
+// money is affected and how to try again, and `{"code":"57014"}` answers
+// none of those. So the fetchers keep the whole reply on the error object
+// and `agentsErrorView` turns it into the four things the card renders.
+
+/**
+ * The server's own sentence out of a failed reply: `message`, else `error`,
+ * else whatever the body was. Never throws on a body that is not JSON.
+ * @param {string} text
+ */
+export function parseAgentsErrorBody(text) {
+  const raw = String(text ?? '').trim();
+  if (!raw) return '';
+  try {
+    const body = JSON.parse(raw);
+    if (body && typeof body === 'object') {
+      for (const k of ['message', 'error']) {
+        const v = /** @type {any} */ (body)[k];
+        if (typeof v === 'string' && v.trim()) return v.trim();
+        if (v && typeof v === 'object' && typeof v.message === 'string' && v.message.trim()) return v.message.trim();
+      }
+    }
+    if (typeof body === 'string' && body.trim()) return body.trim();
+  } catch { /* not JSON: the body is all there is */ }
+  return raw;
+}
+
+/** The error a failed agents call throws: the status and the body ride along. @param {string} scope @param {number} status @param {string} text */
+function agentsFetchError(scope, status, text) {
+  const message = parseAgentsErrorBody(text);
+  const err = /** @type {any} */ (new Error(`agents ${scope}: ${status} ${message.slice(0, 200)}`));
+  err.status = status;
+  err.body = String(text ?? '');
+  err.scope = scope;
+  err.serverMessage = message;
+  return err;
+}
+
 /**
  * The dashboard payload. Throws with the server's message on anything but
  * a 200, so the modal can show it instead of an empty table.
@@ -36,7 +77,7 @@ function headers() {
 export async function fetchAgentsDashboard(fetchImpl = fetch) {
   const res = await fetchImpl(`${EDGE_AGENTS_URL}?action=dashboard`, { headers: headers() });
   const text = await res.text();
-  if (!res.ok) throw new Error(`agents dashboard: ${res.status} ${text.slice(0, 200)}`);
+  if (!res.ok) throw agentsFetchError('dashboard', res.status, text);
   return JSON.parse(text);
 }
 
@@ -49,7 +90,7 @@ export async function fetchAgentsDashboard(fetchImpl = fetch) {
 export async function fetchAgentsLog(strategyId, limit = 200, fetchImpl = fetch) {
   const res = await fetchImpl(`${EDGE_AGENTS_URL}?action=log&strategy=${encodeURIComponent(strategyId)}&limit=${limit}`, { headers: headers() });
   const text = await res.text();
-  if (!res.ok) throw new Error(`agents log: ${res.status} ${text.slice(0, 200)}`);
+  if (!res.ok) throw agentsFetchError('log', res.status, text);
   return JSON.parse(text);
 }
 
@@ -66,8 +107,77 @@ export async function fetchAgentsChart(strategyId, symbol, fetchImpl = fetch) {
     `${EDGE_AGENTS_URL}?action=chart&strategy=${encodeURIComponent(strategyId)}&symbol=${encodeURIComponent(symbol)}`,
     { headers: headers() });
   const text = await res.text();
-  if (!res.ok) throw new Error(`agents chart: ${res.status} ${text.slice(0, 200)}`);
+  if (!res.ok) throw agentsFetchError('chart', res.status, text);
   return JSON.parse(text);
+}
+
+/** What each class of failure is called and what it means, in one plain sentence each. */
+const ERROR_WORDS = {
+  offline: {
+    title: 'Could not reach the server',
+    sentence: 'The request never got a reply, so the page has nothing to show — the strategies keep running on the server either way.',
+  },
+  auth: {
+    title: 'Signed out',
+    sentence: 'This browser is no longer signed in, so the server would not answer — reload the page and sign in again.',
+  },
+  missing: {
+    title: 'Nothing there to read',
+    sentence: 'The server has no record to answer this with, which usually means it has not been written yet.',
+  },
+  busy: {
+    title: 'Too many requests',
+    sentence: 'The server is being asked for too much at once — wait a moment and try again.',
+  },
+  server: {
+    title: 'The server could not answer',
+    sentence: 'The server failed while answering, so nothing could be read; this is the page failing to read, not the loop failing to run.',
+  },
+  client: {
+    title: 'The request was refused',
+    sentence: 'The server refused the request, so nothing was read.',
+  },
+};
+
+/** The one-liner the card shows: the server's sentence with any JSON cut off it. @param {string} m */
+export function shortErrorMessage(m) {
+  const cut = String(m ?? '').split(/[{[]/)[0].trim().replace(/[\s:,\-–—]+$/, '');
+  if (!cut) return '';
+  return cut.length > 120 ? `${cut.slice(0, 119)}…` : cut;
+}
+
+/**
+ * A failed agents call, as the error card reads it: what to call it, one
+ * sentence a person can act on, the server's own line with the JSON cut
+ * off, and the whole raw reply for the `<details>` underneath.
+ *
+ * Takes anything a `catch` can hand it — the error the fetchers throw, a
+ * bare `Error`, a string, `null` — because a page that cannot show its
+ * failure is worse than the failure.
+ * @param {unknown} err
+ * @returns {{ status: number | null, kind: keyof typeof ERROR_WORDS, title: string, sentence: string, message: string, short: string, detail: string }}
+ */
+export function agentsErrorView(err) {
+  const e = /** @type {any} */ (err ?? {});
+  const text = typeof err === 'string' ? err : String(e?.message ?? (err == null ? '' : err));
+  const fromErr = Number(e?.status);
+  const inText = /\b(\d{3})\b/.exec(text);
+  const status = Number.isFinite(fromErr) && fromErr >= 100 ? fromErr : inText ? Number(inText[1]) : null;
+  const body = typeof e?.body === 'string' ? e.body : '';
+  const message = (typeof e?.serverMessage === 'string' && e.serverMessage)
+    || parseAgentsErrorBody(body) || text || 'No details came back.';
+  const kind = /** @type {keyof typeof ERROR_WORDS} */ (
+    status == null ? 'offline'
+      : status === 401 || status === 403 ? 'auth'
+        : status === 404 ? 'missing'
+          : status === 429 ? 'busy'
+            : status >= 500 ? 'server' : 'client');
+  const words = ERROR_WORDS[kind];
+  return {
+    status, kind, title: words.title, sentence: words.sentence, message,
+    short: shortErrorMessage(message),
+    detail: [text, body && body !== text ? body : null].filter(Boolean).join('\n'),
+  };
 }
 
 const ONE_H = 3600e3, FOUR_H = 4 * 3600e3, ONE_D = 86400e3;
@@ -429,6 +539,57 @@ export function venueRows(dash) {
   });
 }
 
+/** What the share bar is a share OF — the bar is meaningless without it. @param {{shareOf?: string}[]} rows */
+export const shareBasisText = (rows) => `share of ${rows?.[0]?.shareOf === 'capital' ? 'allotted capital' : 'deployed value'}`;
+
+/**
+ * The share bar's segments. Each one names its basis in the visible label
+ * when it is wide enough to carry the words, and always in its title, so
+ * "Kraken 100%" can never read as "Kraken holds everything you have".
+ * @param {ReturnType<typeof venueRows>} rows
+ */
+export function shareSegments(rows) {
+  const basis = rows?.[0]?.shareOf === 'capital' ? 'allotted capital' : 'deployed value';
+  return (rows ?? []).map((r) => {
+    const pct = Math.round(r.share * 100);
+    const widthPct = Math.max(0, Math.min(100, r.share * 100));
+    return {
+      id: r.id, label: r.label, pct, widthPct,
+      text: r.share < 0.12 ? '' : r.share >= 0.45 ? `${r.label} ${pct}% of ${basis}` : `${r.label} ${pct}%`,
+      title: `${r.label}: ${pct}% of ${basis}`,
+    };
+  });
+}
+
+/**
+ * Everything that stops an order being placed, as banner rows. A global
+ * pause and a venue fault both mean NOTHING can trade, and neither may be
+ * whispered in the same grey as a fee.
+ * @param {any} dash
+ */
+export function agentsAlerts(dash) {
+  const out = [];
+  if (dash?.risk?.global_pause) {
+    out.push({
+      id: 'global-pause', tone: 'stop', label: 'Global pause',
+      text: 'Every strategy is held. The loop keeps reading and recording; it places no order, on either venue, until the pause is lifted.',
+    });
+  }
+  for (const v of dash?.venues ?? []) {
+    if (!v?.id) continue;
+    if (v.note) {
+      out.push({ id: `venue-${v.id}`, tone: 'fault', label: `${venueLabel(v.id)} fault`, text: String(v.note) });
+    } else if (v.canTrade === false && (dash?.strategies ?? []).some((s) => s?.venue === v.id && s?.mode === 'live')) {
+      // Paper needs no key; a LIVE row on a venue without one is the fault worth a banner.
+      out.push({
+        id: `nokey-${v.id}`, tone: 'fault', label: `${venueLabel(v.id)} has no key`,
+        text: `Nothing can trade on ${venueLabel(v.id)}: this deployment has no signing key for it, so its live strategies can only watch.`,
+      });
+    }
+  }
+  return out;
+}
+
 /**
  * The cross-venue basis per symbol over the last 24 h, plus the verdict the
  * fees impose: an arbitrage needs the basis to clear Kraken's taker fee
@@ -438,6 +599,46 @@ export function venueRows(dash) {
 export function basisRows(dash) {
   const b = dash?.basis ?? {};
   return Object.keys(b).sort().map((symbol) => ({ symbol, ...b[symbol] }));
+}
+
+/**
+ * The basis right now, as the table reads it. NOT in the P&L palette: a
+ * negative basis means Revolut X is the cheap side, which is the
+ * dislocation rule's BUY signal, and red would read as a loss. What earns
+ * a colour is the size against the rule's own entry threshold, and the
+ * word beside it says which side of that threshold it is on.
+ * @param {number | null | undefined} latest
+ * @param {number} [entryBps] the dislocation rule's entry, in bps
+ */
+export function basisNowView(latest, entryBps = 15) {
+  const n = typeof latest === 'number' && isFinite(latest) ? latest : null;
+  const wide = n != null && Math.abs(n) >= entryBps;
+  return {
+    text: fmtBps(n), wide,
+    word: n == null ? '' : wide ? 'wide' : 'inside',
+    title: n == null ? 'no quote pair yet'
+      : `${Math.abs(n).toFixed(2)} bps ${wide ? 'at or over' : 'under'} the ${entryBps} bps entry · ${n < 0 ? 'Revolut X cheap' : n > 0 ? 'Kraken cheap' : 'level'}`,
+  };
+}
+
+/**
+ * What a strategy is actually holding, for the line under its realised
+ * figure: a number in the header must not be the only live fact on a page
+ * about a position.
+ * @param {any} s
+ */
+export function positionLines(s) {
+  return (s?.positions ?? [])
+    .filter((p) => Number(p?.base) > 0)
+    .map((p) => ({
+      symbol: p.symbol,
+      base: Number(p.base) || 0,
+      avgCost: Number(p.avgCost) || 0,
+      mark: Number(p.mark) || 0,
+      valueUsd: Number(p.valueUsd) || 0,
+      unrealisedUsd: Number(p.unrealisedUsd) || 0,
+      returnPct: Number(p.costUsd) > 0 ? (Number(p.unrealisedUsd) / Number(p.costUsd)) * 100 : null,
+    }));
 }
 
 /**

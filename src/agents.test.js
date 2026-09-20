@@ -4,9 +4,10 @@ import {
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, rotationBacktestRows, totalsView, untilText, venueHue, venueRows,
   dislocationBacktestRows,
+  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, shareBasisText, basisNowView,
 } from './agents.js';
 import {
-  chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText,
+  chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
 
 const NOW = Date.parse('2026-09-20T12:00:00Z');
@@ -440,5 +441,92 @@ describe('dislocationBacktestRows', () => {
   it('is empty without the study, and for an unknown setting the numbers are null', () => {
     expect(dislocationBacktestRows({})).toEqual([]);
     expect(dislocationBacktestRows(summary, 'k99_h1')[0]).toMatchObject({ symbol: 'BTC/USD', trades: 0, avgBps: null });
+  });
+});
+
+describe('agentsErrorView / parseAgentsErrorBody / shortErrorMessage', () => {
+  it('reads the server envelope and names the failure in words, with the raw text kept for the details fold', () => {
+    const raw = 'agents dashboard: 500 {"error":"agents crashed","message":"db GET agent_strategies → 500: code 57014"}';
+    const v = agentsErrorView(new Error(raw));
+    expect(v.status).toBe(500);
+    expect(v.kind).toBe('server');
+    expect(v.title.length).toBeGreaterThan(0);
+    expect(v.sentence.length).toBeGreaterThan(0);
+    expect(v.short).not.toMatch(/[{]/);            // the sentence never shows the JSON
+    expect(v.detail).toContain('57014');            // the details fold keeps everything
+    expect(agentsErrorView(new Error('agents dashboard: 401 {"error":"unauthorised"}')).kind).toBe('auth');
+    expect(agentsErrorView(new Error('Failed to fetch')).kind).toBe('offline');
+    expect(agentsErrorView(null).message.length).toBeGreaterThan(0);
+  });
+  it('parses message or error out of a JSON body and leaves plain text alone', () => {
+    expect(parseAgentsErrorBody('{"error":"x","message":"the message"}')).toBe('the message');
+    expect(parseAgentsErrorBody('{"error":{"message":"nested"}}')).toBe('nested');
+    expect(parseAgentsErrorBody('plain')).toBe('plain');
+    expect(parseAgentsErrorBody('')).toBe('');
+    expect(shortErrorMessage('db GET agent_strategies → 500: {"code":"57014"}')).toBe('db GET agent_strategies → 500');
+    expect(shortErrorMessage('x'.repeat(200)).length).toBe(120);
+  });
+});
+
+describe('agentsAlerts', () => {
+  const venues = [{ id: 'revx', canTrade: true, note: null }, { id: 'kraken', canTrade: true, note: null }];
+  it('is silent when nothing blocks trading', () => {
+    expect(agentsAlerts({ risk: { global_pause: false }, venues, strategies: [] })).toEqual([]);
+  });
+  it('raises the global pause and a venue fault as banners with a tone and a label', () => {
+    const out = agentsAlerts({ risk: { global_pause: true }, venues: [venues[0], { id: 'kraken', canTrade: true, note: 'balances: 403' }], strategies: [] });
+    expect(out.map((a) => [a.id, a.tone])).toEqual([['global-pause', 'stop'], ['venue-kraken', 'fault']]);
+    expect(out[1].text).toContain('403');
+  });
+  it('flags a venue without a key only when a LIVE strategy trades there — paper needs no key', () => {
+    const noKey = [{ id: 'revx', canTrade: false, note: null }];
+    expect(agentsAlerts({ risk: {}, venues: noKey, strategies: [{ venue: 'revx', mode: 'paper' }] })).toEqual([]);
+    expect(agentsAlerts({ risk: {}, venues: noKey, strategies: [{ venue: 'revx', mode: 'live' }] }).map((a) => a.id)).toEqual(['nokey-revx']);
+  });
+});
+
+describe('positionLines', () => {
+  it('lists only the held symbols, with the return on cost', () => {
+    const s = { positions: [
+      { symbol: 'BTC/USD', base: 0.00025, avgCost: 80000, mark: 86000, valueUsd: 21.5, unrealisedUsd: 1.5, costUsd: 20 },
+      { symbol: 'ETH/USD', base: 0, avgCost: 0, mark: 2500, valueUsd: 0, unrealisedUsd: 0, costUsd: 0 },
+    ] };
+    const lines = positionLines(s);
+    expect(lines.map((l) => l.symbol)).toEqual(['BTC/USD']);
+    expect(lines[0].returnPct).toBeCloseTo(7.5, 6);
+    expect(positionLines({})).toEqual([]);
+  });
+});
+
+describe('shareSegments / shareBasisText', () => {
+  it('labels a wide segment with what the share is of, a narrow one with the percentage only, a sliver with nothing', () => {
+    const rows = /** @type {any} */ ([{ id: 'kraken', label: 'Kraken', share: 0.8, shareOf: 'value' }, { id: 'revx', label: 'Revolut X', share: 0.2, shareOf: 'value' }]);
+    const seg = shareSegments(rows);
+    expect(seg[0].text).toBe('Kraken 80% of deployed value');
+    expect(seg[1].text).toBe('Revolut X 20%');
+    expect(seg[0].widthPct).toBe(80);
+    expect(shareSegments(/** @type {any} */ ([{ id: 'x', label: 'X', share: 0.05, shareOf: 'value' }]))[0].text).toBe('');
+    expect(shareBasisText(rows)).toBe('share of deployed value');
+    expect(shareBasisText(/** @type {any} */ ([{ shareOf: 'capital' }]))).toBe('share of allotted capital');
+  });
+});
+
+describe('basisNowView', () => {
+  it('keeps the sign as text and marks only a basis beyond the entry threshold as wide — never the P&L palette', () => {
+    expect(basisNowView(0.31)).toMatchObject({ wide: false });
+    expect(basisNowView(0.31).text).toContain('+0.31');
+    expect(basisNowView(-16)).toMatchObject({ wide: true });
+    expect(basisNowView(-16).title).toMatch(/15/);
+    expect(basisNowView(null).text).toBe('—');
+  });
+});
+
+describe('plotLabelY', () => {
+  it('leaves a label alone unless it sits on a tick, then nudges it away, inside the plot', () => {
+    const ticks = [{ y: 100 }, { y: 200 }];
+    expect(plotLabelY(150, ticks)).toBe(150);
+    expect(plotLabelY(103, ticks)).toBe(110);                      // down by the nudge
+    expect(plotLabelY(197, ticks)).toBe(190);                      // down would still clash with the tick: up instead
+    expect(plotLabelY(103, ticks, { y0: 100, y1: 105 })).toBe(105); // no room either way: clamped to the plot
   });
 });
