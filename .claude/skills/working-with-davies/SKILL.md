@@ -425,6 +425,14 @@ Read these as a checklist before pushing.
   '%{http_code}'` cannot tell them apart. A whole verification pass was
   wasted concluding a working fix had failed. Compare CONTENT: fetch the
   path and look at the first line.
+- **Trusting a conclusion written in a comment over a test.** Both
+  foreign-exchange gates argued, in prose, that a weekend guard was
+  redundant "because Yahoo returns no new bars then, so the pct stays
+  at the previous close". The stale pct was the bug. Neither function
+  had a single test, so nothing ever asked the comment a question, and
+  it survived until he spotted a Saturday tile reading Friday's +6.13%.
+  A comment that reasons its way OUT of a guard is the exact place to
+  put a test instead.
 - **Iterating on a LOOK he has already rejected twice.** He asked for
   the heat map's repeated top-row rectangles to stop being boring. Two
   redesigns went out — an off-centre split, then full-width bands — each
