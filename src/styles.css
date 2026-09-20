@@ -2003,15 +2003,65 @@ body {
 .ag-retry { font-size: 12px; padding: 4px 10px; }
 .ag-poslines { margin: 8px 0 2px; font-size: 12px; line-height: 1.6; color: var(--chalk-dim); }
 .ag-posline .hl-strong { color: var(--chalk); }
-.ag-name-btn { all: unset; cursor: pointer; font: inherit; color: inherit; display: inline; }
+.ag-name-btn { all: unset; cursor: pointer; font: inherit; color: inherit; display: block; }
 .ag-name-btn:focus-visible { outline: 1px solid var(--chalk-dim); outline-offset: 2px; border-radius: 2px; }
 .ag-basis-now { font-variant-numeric: tabular-nums; }
 .ag-basis-now.is-wide { color: var(--chalk); font-weight: 700; }
 .ag-basis-word { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #d9c37a; }
-.ag-venue-meta { display: block; margin-top: 2px; }
-.ag-venue-head { min-height: 44px; }
+.ag-venue-meta { display: inline; }
+.ag-venue-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; min-height: 24px; }
 .ag-kv > span + span::before { content: "·"; color: var(--chalk-dim); opacity: 0.6; margin: 0 6px 0 0; }
 @media (max-width: 760px) {
   .ag-table .ag-col-wide { display: none; }
   .ag-alert { flex-wrap: wrap; }
+}
+/* ── agents: the owner's pass (no scrollbars, countdown, position tiles, balances) ── */
+.modal:has(.ag-body), .modal:has(.ag-body) .modal-body, .ag-body { scrollbar-width: none; }
+.modal:has(.ag-body)::-webkit-scrollbar, .modal:has(.ag-body) .modal-body::-webkit-scrollbar, .ag-body::-webkit-scrollbar { display: none; }
+.ag-strategies .hl-scroll { overflow-x: auto; scrollbar-width: none; }
+.ag-strategies .hl-scroll::-webkit-scrollbar { display: none; }
+.ag-strategies .ag-table th, .ag-strategies .ag-table td { padding-left: 8px; padding-right: 8px; }
+.ag-countdown { margin-left: auto; font-size: 12px; display: inline-flex; gap: 6px; align-items: baseline; }
+.ag-countdown-val { font-weight: 700; color: var(--chalk); font-variant-numeric: tabular-nums; min-width: 8ch; }
+.ag-postiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin: 10px 0 4px; }
+.ag-postile { border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: 8px; padding: 10px 12px; background: rgba(255,255,255,0.02); }
+.ag-postile.is-up { border-left-color: var(--gain); }
+.ag-postile.is-down { border-left-color: var(--loss); }
+.ag-postile-head { display: flex; justify-content: space-between; align-items: baseline; }
+.ag-postile-sym { font-weight: 700; color: var(--chalk); font-size: 13px; }
+.ag-postile-ret { font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; }
+.ag-postile-size { font-size: 18px; font-weight: 700; color: var(--chalk); margin: 4px 0 6px; font-variant-numeric: tabular-nums; }
+.ag-postile-grid { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; row-gap: 2px; font-size: 11px; }
+.ag-postile-grid > :nth-child(even) { text-align: right; font-variant-numeric: tabular-nums; }
+.ag-postile-held { margin-top: 6px; font-size: 10px; letter-spacing: 0.04em; }
+.ag-funded { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+@media (max-width: 760px) {
+  .ag-countdown { margin-left: 0; width: 100%; }
+  .ag-postiles { grid-template-columns: 1fr; }
+}
+/* the strategy table must fit the modal without a scrollbar: tighter type, the signal on its own line, names that wrap */
+.ag-strategies .ag-table { font-size: 11px; }
+.ag-strategies .ag-table th, .ag-strategies .ag-table td { padding-left: 6px; padding-right: 6px; }
+.ag-strategies .ag-name-btn { white-space: normal; line-height: 1.25; }
+.ag-strategies .ag-venue-signal { display: block; font-size: 10px; }
+.ag-strategies .ag-next { white-space: nowrap; }
+/* fixed layout: the table takes exactly the modal's width and wraps inside it, whatever the labels say */
+.ag-strategies .ag-table { table-layout: fixed; width: 100%; }
+.ag-strategies .ag-table .ag-col-name { width: 23%; }
+.ag-strategies .ag-table .ag-col-venue { width: 13%; }
+.ag-strategies .ag-table .ag-col-mode { width: 8%; }
+.ag-strategies .ag-table .ag-col-status { width: 11%; }
+.ag-strategies .ag-table .ag-col-return { width: 9%; }
+.ag-strategies .ag-table .ag-col-pnl { width: 12%; }
+.ag-strategies .ag-table .ag-col-last { width: 14%; }
+.ag-strategies .ag-table .ag-col-next { width: 10%; }
+.ag-strategies .ag-table td, .ag-strategies .ag-table th { overflow: hidden; text-overflow: ellipsis; }
+.ag-strategies .ag-table td.ag-col-name, .ag-strategies .ag-table td.ag-col-last, .ag-strategies .ag-table td.ag-col-venue { white-space: normal; }
+@media (max-width: 760px) {
+  .ag-strategies .ag-table .ag-col-name { width: 34%; }
+  .ag-strategies .ag-table .ag-col-venue { width: 20%; }
+  .ag-strategies .ag-table .ag-col-mode { width: 12%; }
+  .ag-strategies .ag-table .ag-col-status { width: 12%; }
+  .ag-strategies .ag-table .ag-col-return { width: 11%; }
+  .ag-strategies .ag-table .ag-col-next { width: 11%; }
 }

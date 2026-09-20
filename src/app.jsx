@@ -55,6 +55,8 @@ function prefetchModalChunks() {
   import('./sectors_list.jsx');
   import('./transaction_history.jsx');
   import('./agents.jsx');
+  // The Agents page's data too, so it opens on a drawn page rather than a spinner.
+  import('./agents.js').then((m) => m.prefetchAgentsDashboard()).catch(() => {});
 }
 import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';

@@ -340,7 +340,7 @@ const AGENTS_DASHBOARD = (() => {
     totals,
     venues: [
       { id: 'revx', canTrade: true, feeBps: { maker: 0, taker: 9 }, balances: { USD: 100 }, note: null, marks: { 'BTC/USD': 86000 } },
-      { id: 'kraken', canTrade: true, feeBps: { maker: 40, taker: 80 }, balances: { USD: 0 }, note: null, marks: { 'BTC/USD': 86000 } },
+      { id: 'kraken', canTrade: true, feeBps: { maker: 40, taker: 80 }, balances: { USD: 0, GBP: 75 }, note: null, marks: { 'BTC/USD': 86000 } },
     ],
     strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
     byVenue: {
@@ -1005,16 +1005,16 @@ async function run() {
       if (running === 5) ok(S('agents'), 'a 40 s-old observation keeps every row running, not the decision clock');
       else fail(S('agents'), `running dots: ${running} of 5`);
       const watching = await page.locator('.ag-row .ag-status').first().getAttribute('title');
-      if (/watching · seen \d+s ago/.test(watching || '')) ok(S('agents'), `the status says what it is doing ("${watching}")`);
+      if (/watching · changed \d+s ago/.test(watching || '')) ok(S('agents'), `the status says what it is doing ("${watching}")`);
       else fail(S('agents'), `status title reads "${watching}"`);
       const chips = await page.locator('.ag-chip .ag-chip-name').allTextContents();
       if (chips.includes('Caps') && chips.some((c) => /^Jev/.test(c)) && !chips.includes('Revolut X') && !chips.includes('Kraken')) {
         ok(S('agents'), 'the strip carries the caps and the model\'s bill, and no longer repeats the venue cards');
       } else fail(S('agents'), `chips: ${chips.join(', ')}`);
-      const how = await page.locator('.ag-how').textContent().catch(() => '');
-      if (/Every minute/.test(how || '') && !/five minutes/.test(how || '') && /Dislocation/.test(how || '') && /asked on entries only/.test(how || '')) {
-        ok(S('agents'), 'the explainer describes the one-minute loop, all five rulebooks and the model\'s entry-only role');
-      } else fail(S('agents'), `explainer reads "${(how || '').trim().slice(0, 100)}…"`);
+      const howCount = await page.locator('.ag-how').count();
+      const titleNotes = await page.locator('.ag-section-title .dim').count();
+      if (howCount === 0 && titleNotes === 0) ok(S('agents'), 'no explainer and no annotation beside any section title');
+      else fail(S('agents'), `explainer blocks ${howCount}, annotated titles ${titleNotes}`);
       const nowStyle = await page.locator('.ag-basis-now').first().getAttribute('style').catch(() => null);
       const nowText = await page.locator('.ag-basis-now').first().textContent().catch(() => '');
       if (!nowStyle && /^[+-]\d/.test((nowText || '').trim())) ok(S('agents'), `the basis "Now" cell keeps its sign as text and wears no P&L colour ("${(nowText || '').trim()}")`);
@@ -1023,10 +1023,11 @@ async function run() {
       if (nameBtns === rows) ok(S('agents'), 'every strategy name is a real button');
       else fail(S('agents'), `name buttons ${nameBtns} of ${rows}`);
       const vpWidth = page.viewportSize()?.width ?? 0;
+      const wideTotal = await page.locator('.ag-table th.ag-col-wide').count();
       const wideShown = await page.locator('.ag-table th.ag-col-wide').evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length);
       const statusShown = await page.locator('.ag-table th.ag-col-status').evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length);
       const returnShown = await page.locator('.ag-table th.ag-col-return').evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length);
-      if (vpWidth <= 760 ? (wideShown === 0 && statusShown === 1 && returnShown === 1) : (wideShown === 5 && statusShown === 1 && returnShown === 1)) {
+      if (vpWidth <= 760 ? (wideShown === 0 && statusShown === 1 && returnShown === 1) : (wideTotal > 0 && wideShown === wideTotal && statusShown === 1 && returnShown === 1)) {
         ok(S('agents'), vpWidth <= 760 ? 'a phone sees status and return without the money detail columns' : 'a desktop sees every column, status and return first');
       } else fail(S('agents'), `columns at ${vpWidth}px: wide ${wideShown}, status ${statusShown}, return ${returnShown}`);
       const alertsAtRest = await page.locator('.ag-alert').count();
@@ -1046,15 +1047,23 @@ async function run() {
       const funded = await page.locator('.ag-venue-card-revx .ag-venue-grid').textContent().catch(() => '');
       if (/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card shows its funding');
       else fail(S('agents'), `revx card reads "${funded}"`);
+      const krFunded = await page.locator('.ag-venue-card-kraken .ag-funded').textContent().catch(() => '');
+      if (/£75\.00 GBP/.test(krFunded || '')) ok(S('agents'), 'the Kraken card names a GBP balance as pounds');
+      else fail(S('agents'), `kraken funded reads "${krFunded}"`);
       // Four rules count down to a bar close; the minute rule decides every
       // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
       if (nexts.filter((t) => t === 'in 2h 13m').length === 4 && nexts.filter((t) => t === 'every minute').length === 1) {
         ok(S('agents'), 'each bar rule counts down; the minute rule reads "every minute"');
       } else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
-      const kinds = await page.locator('.ag-row .hl-sub').allTextContents();
-      if (kinds.some((t) => /^Dislocation ·/.test(t))) ok(S('agents'), 'the dislocation rulebook is named on its row');
-      else fail(S('agents'), `kind column: ${kinds.join(' | ')}`);
+      const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
+      const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();
+      if (names.some((t) => /^Dislocation ·/.test(t)) && subs.length === names.length && subs.every((t) => /^\d+ open · /.test(t))) {
+        ok(S('agents'), 'the dislocation rulebook is named on its row, once, with the sub-line under it');
+      } else fail(S('agents'), `names ${names.join(' | ')}; sub-lines ${subs.join(' | ')}`);
+      const tableScroll = await page.locator('.ag-strategies .hl-scroll').evaluate((el) => el.scrollWidth - el.clientWidth);
+      if (vpWidth > 760 ? tableScroll <= 0 : true) ok(S('agents'), `the strategy table fits its width on desktop (overflow ${tableScroll}px)`);
+      else fail(S('agents'), `the strategy table overflows by ${tableScroll}px at ${vpWidth}px`);
       const basisRowsN = await page.locator('.ag-basis-row').count();
       if (basisRowsN === 3) ok(S('agents'), 'cross-venue basis table has the three symbols');
       else fail(S('agents'), `basis rows ${basisRowsN}`);
@@ -1114,8 +1123,18 @@ async function run() {
       } else fail(S('agents'), `live state: ${liveRows} rows, ${pills} pills, first ${firstPills.join(' | ')}`);
       const ages = await page.locator('.ag-live-row .ag-live-age').allTextContents();
       // `.every` on an empty list is vacuously true, so the length is part of the check.
-      if (ages.length === 3 && ages.every((t) => /seen \d+ s ago/.test(t))) ok(S('agents'), 'each reading says how old it is');
+      if (ages.length === 3 && ages.every((t) => /changed \d+ s ago/.test(t))) ok(S('agents'), 'each reading says when its words last changed');
       else fail(S('agents'), `observation ages: ${ages.join(' | ')}`);
+      const countdown = await page.locator('.ag-countdown-val').textContent().catch(() => '');
+      if (/^\d+h \d{2}m \d{2}s$/.test((countdown || '').trim())) ok(S('agents'), `the detail counts down to the next decision to the second (${(countdown || '').trim()})`);
+      else fail(S('agents'), `countdown reads "${countdown}"`);
+      const tiles = await page.locator('.ag-postile').count();
+      const tileSym = await page.locator('.ag-postile-sym').first().textContent().catch(() => '');
+      if (tiles === 1 && /BTC\/USD/.test(tileSym || '')) ok(S('agents'), 'the held position is a tile under the headline');
+      else fail(S('agents'), `position tiles ${tiles}, first "${tileSym}"`);
+      const desc = await page.locator('.ag-desc').count();
+      if (desc === 0) ok(S('agents'), 'no description paragraph on the detail');
+      else fail(S('agents'), `${desc} description paragraphs`);
       // A second pair swaps the chart without leaving the detail.
       await page.locator('.ag-sym-tab').nth(1).click({ timeout: 2_000 }).catch(() => {});
       await page.waitForTimeout(400);

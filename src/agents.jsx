@@ -16,7 +16,7 @@ import {
   agentsAlerts, agentsErrorView, backtestRows, basisNowView, basisRows, decisionView, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard,
   fetchAgentsLog, fillRows, fillsSummary, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationView,
   orderView, positionLines, rotationBacktestRows, shareBasisText, shareSegments, strategyRows, totalsView, venueHue, venueLabel, venueRows,
-  dislocationBacktestRows,
+  dislocationBacktestRows, balanceLines, countdownText, readAgentsCache, readChartCache,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -66,7 +66,7 @@ function ModeBadge({ mode }) {
 function VenueBadge({ id, signal = null }) {
   return (
     <span className={`ag-venue ag-venue-${id}`} title={signal && signal !== id ? `signals from ${venueLabel(signal)}` : undefined}>
-      {venueLabel(id)}{signal && signal !== id ? <span className="ag-venue-signal"> ← {venueLabel(signal)} signals</span> : null}
+      {venueLabel(id)}{signal && signal !== id ? <span className="ag-venue-signal"> ← {venueLabel(signal)}</span> : null}
     </span>
   );
 }
@@ -142,7 +142,7 @@ function VenueSplit({ dash, m }) {
   const basis = shareBasisText(rows);
   return (
     <section className="ag-venues">
-      <div className="ag-section-title mono">VENUES <span className="dim">· {basis}, and what each account holds</span></div>
+      <div className="ag-section-title mono">VENUES</div>
       <div className="ag-share-bar" title={basis}>
         {segments.map((s) => (
           <span key={s.id} className={`ag-share ag-share-${s.id}`} style={{ width: `${s.widthPct}%` }} title={s.title}>
@@ -153,17 +153,15 @@ function VenueSplit({ dash, m }) {
       <div className="ag-venue-cards">
         {rows.map((r) => (
           <div key={r.id} className={`ag-venue-card ag-venue-card-${r.id}${r.note ? ' is-warn' : ''}`}>
-            {/* The badge on its own line, the meta under it: when one head
-                wrapped and the other did not, the two cards' grids started
-                at different heights and the figures stopped lining up. */}
             <div className="ag-venue-head">
               <VenueBadge id={r.id} />
               <span className="dim mono ag-venue-meta">{r.strategies} strategies · {r.live} live · maker/taker {fmtFees(r.feeBps)}</span>
             </div>
             <div className="ag-venue-grid mono">
-              <span className="dim">funded</span><span>{r.canTrade ? (r.balanceUsd != null ? `${m(fmtUsd(r.balanceUsd))} USD` : '—') : 'no key'}</span>
+              <span className="dim">funded</span>
+              <span className="ag-funded">{r.canTrade ? (balanceLines(r.balances).length ? balanceLines(r.balances).map((b) => <span key={b.code} className="ag-funded-line">{m(b.text)}</span>) : '—') : 'no key'}</span>
               <span className="dim">deployed</span><span className="hl-strong">{m(fmtUsd(r.valueUsd))}</span>
-              <span className="dim">allotted</span><span>{m(fmtUsd(r.capitalUsd))}</span>
+              <span className="dim" title="the notional each paper strategy may deploy; paper money, so the sum can exceed the real balance">paper capital</span><span>{m(fmtUsd(r.capitalUsd))}</span>
               <span className="dim">unrealised</span><Money v={r.unrealisedUsd} m={m} />
               <span className="dim">realised</span><Money v={r.realisedUsd} m={m} />
               <span className="dim">fees</span><span className="dim">{m(fmtUsd(r.feesUsd))}</span>
@@ -184,7 +182,7 @@ function Basis({ dash }) {
   const over40 = rows.reduce((a, r) => a + (r.over40 ?? 0), 0);
   return (
     <section className="ag-section ag-basis">
-      <div className="ag-section-title mono">CROSS-VENUE BASIS <span className="dim">· Revolut X mid vs Kraken mid, last 24 h · Kraken taker 80 bps / maker 40 bps</span></div>
+      <div className="ag-section-title mono">CROSS-VENUE BASIS</div>
       <div className="hl-scroll">
         <table className="hl-table ag-table mono">
           <thead><tr>
@@ -238,11 +236,7 @@ const COLUMNS = [
   { id: 'mode', label: 'Mode', cls: 'hl-left', phone: true },
   { id: 'status', label: 'Status', cls: 'hl-left', phone: true },
   { id: 'return', label: 'Return', cls: 'hl-right', phone: true },
-  { id: 'realised', label: 'Realised', cls: 'hl-right', phone: true },
-  { id: 'unrealised', label: 'Unrealised', cls: 'hl-right', phone: false },
-  { id: 'value', label: 'Value', cls: 'hl-right', phone: false },
-  { id: 'cost', label: 'Cost', cls: 'hl-right', phone: false },
-  { id: 'orders', label: 'Orders today', cls: 'hl-right', phone: false },
+  { id: 'pnl', label: 'P&L', cls: 'hl-right', phone: false },
   { id: 'last', label: 'Last decision', cls: 'hl-left', phone: false },
   { id: 'next', label: 'Next', cls: 'hl-left', phone: true },
 ];
@@ -252,20 +246,16 @@ function StrategyCell({ id, r, m, onOpen }) {
     case 'name': return (
       <>
         <button type="button" className="ag-name-btn ag-name" onClick={() => onOpen(r.id)}>{r.name}</button>
-        <span className="hl-sub dim">{r.kind} · {r.openPositions} open · {m(fmtUsd(r.capitalUsd))} cap</span>
+        <span className="hl-sub dim">{r.openPositions} open · {m(fmtUsd(r.capitalUsd))} cap</span>
       </>
     );
     case 'venue': return <VenueBadge id={r.venueId} signal={r.signalVenue} />;
     case 'mode': return <ModeBadge mode={r.mode} />;
     case 'status': return <StatusDot status={r.status} />;
     case 'return': return <span style={{ color: pctColor(r.returnPct) }}>{m(fmtPctSigned(r.returnPct, 2))}</span>;
-    case 'realised': return <Money v={r.realisedUsd} m={m} />;
-    case 'unrealised': return <Money v={r.unrealisedUsd} m={m} />;
-    case 'value': return <span className="hl-strong">{m(fmtUsd(r.valueUsd))}</span>;
-    case 'cost': return <>{m(fmtUsd(r.costUsd))}</>;
-    case 'orders': return <>{r.ordersToday}{r.openOrders ? <span className="dim"> · {r.openOrders} open</span> : null}</>;
+    case 'pnl': return <><Money v={r.realisedUsd} m={m} /><span className="hl-sub dim">unrealised <Money v={r.unrealisedUsd} m={m} /></span></>;
     case 'last': return r.lastAction
-      ? <><span className={`ag-action ag-action-${r.lastAction}`}>{r.lastAction}</span> <span className="dim">{r.lastSymbol} · {ago(r.lastAgeMs)}</span></>
+      ? <><span className={`ag-action ag-action-${r.lastAction}`}>{r.lastAction}</span> <span className="dim">{r.lastSymbol}</span><span className="hl-sub dim">{ago(r.lastAgeMs)}</span></>
       : <span className="dim">—</span>;
     case 'next': return <span className="dim ag-next">{r.nextText}</span>;
     default: return null;
@@ -333,43 +323,12 @@ function AgentsError({ err, onRetry = null, compact = false }) {
   );
 }
 
-function HowItWorks() {
-  return (
-    <div className="ag-how">
-      <div className="ag-section-title mono">HOW IT WORKS</div>
-      <p>
-        <b>Every minute</b> the loop reads both venues' quotes, manages what is resting (an order the touch has left is
-        re-quoted, a few times, then dropped), checks each position's <b>protective stops</b> against the live mark — a
-        trailing stop from the high since entry on the trend rules, a hard floor under cost on every rule — and writes
-        down the words each rule sees on the forming bar (the live state on every strategy's page). <b>Entries wait for a
-        closed bar</b> of the rule's own size: an hour for Trend 1h, four hours for Trend 4h, a day for Momentum 30d and
-        Rotation; the Dislocation rule decides from the two venues' quotes minute by minute. <b>The rulebook decides from
-        the numbers.</b> <b>Jev</b>, TypeSafe's decision model, sees only the words and is asked on entries only — is this a
-        healthy trend, how much caution — and can veto one; it never opens a position on its own, and exits are the rule's
-        alone. A deterministic <b>risk gate</b> (per-order cap, per-venue exposure, daily loss limit, order count, global
-        pause) has the last word on new risk and never refuses an exit, and every decision is stored with what the model
-        saw, what it answered, what the rule said and what was done.
-      </p>
-      <p>
-        <b>Two venues, each for what it is good at.</b> Kraken's book is a hundred times tighter, so the Revolut X strategies
-        read Kraken's candles and fill on Revolut X, where an order that <b>takes the touch</b> costs 9 bps — the fill the
-        backtests assume, and the one that does not wait for the breakout to fail before it fills; Kraken runs the slow rules
-        and paper twins that rest post-only, because 80 bps a side is not worth the certainty at this size. The basis between
-        the two is recorded (above): it never comes near Kraken's fee, so there is no arbitrage to run, and the record keeps
-        saying so. After any exit a rule waits two of its own bars before buying again. Every strategy starts in
-        <b> paper</b>; live needs its row flipped, an explicit confirmation recorded, and the gate — three switches, none of
-        them the model's. Backtests are walk-forward with the loop's own fills and stops: parameters chosen on two years,
-        the third year reported out of sample, buy-and-hold beside it, the same rule priced on both venues.
-      </p>
-    </div>
-  );
-}
 
 function Positions({ s, m }) {
   const rows = (s.positions ?? []).filter((p) => p.base > 0 || p.fills > 0);
   return (
     <section className="ag-section ag-positions">
-      <div className="ag-section-title mono">POSITIONS <span className="dim">· marked at {venueLabel(s.venue)}'s mid</span></div>
+      <div className="ag-section-title mono">POSITIONS</div>
       <div className="hl-scroll">
         <table className="hl-table ag-table mono">
           <thead><tr>
@@ -403,7 +362,7 @@ function Positions({ s, m }) {
 function Decisions({ rows }) {
   return (
     <section className="ag-section">
-      <div className="ag-section-title mono">DECISIONS <span className="dim">· newest first · what the model saw, what the rule said, what was done</span></div>
+      <div className="ag-section-title mono">DECISIONS</div>
       <div className="hl-scroll">
         <table className="hl-table ag-table ag-log mono">
           <thead><tr>
@@ -436,7 +395,7 @@ function Decisions({ rows }) {
 function Orders({ rows, m, venue }) {
   return (
     <section className="ag-section">
-      <div className="ag-section-title mono">ORDERS <span className="dim">· resting post-only limits at the touch</span></div>
+      <div className="ag-section-title mono">ORDERS</div>
       <div className="hl-scroll">
         <table className="hl-table ag-table ag-log mono">
           <thead><tr>
@@ -473,7 +432,7 @@ function RotationBacktest({ venue }) {
   const other = venue === 'revx' ? 'kraken' : 'revx';
   return (
     <section className="ag-section">
-      <div className="ag-section-title mono">BACKTEST <span className="dim">· walk-forward on the {symbols.join(' / ')} basket, {backtestSummary.ran_at.slice(0, 10)}</span></div>
+      <div className="ag-section-title mono">BACKTEST</div>
       <div className="hl-scroll">
         <table className="hl-table ag-table mono">
           <thead><tr>
@@ -519,7 +478,7 @@ function DislocationBacktest() {
   const bps = (/** @type {number | null} */ v) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toFixed(1)}`);
   return (
     <section className="ag-section">
-      <div className="ag-section-title mono">BACKTEST <span className="dim">· 1-minute study, {rows[0].days ?? '—'} days · entry {d.params?.entryBps} bps, {d.params?.maxHoldMin} min, stop {d.params?.stopBps} bps</span></div>
+      <div className="ag-section-title mono">BACKTEST</div>
       <div className="hl-scroll">
         <table className="hl-table ag-table mono">
           <thead><tr>
@@ -567,7 +526,7 @@ function Backtest({ kind, venue }) {
   }
   return (
     <section className="ag-section">
-      <div className="ag-section-title mono">BACKTEST <span className="dim">· walk-forward, {backtestSummary.ran_at.slice(0, 10)}</span></div>
+      <div className="ag-section-title mono">BACKTEST</div>
       <div className="hl-scroll">
         <table className="hl-table ag-table mono">
           <thead><tr>
@@ -798,14 +757,14 @@ function Fills({ chart, m, venue }) {
 
 /** The chart card: symbol tabs, the chart for the one selected, and its fills. */
 function SymbolChart({ s, symbol, onSelect, m, nowMs, at }) {
-  const [chart, setChart] = React.useState(/** @type {any} */ (null));
+  const [chart, setChart] = React.useState(/** @type {any} */ (() => readChartCache(s.id, symbol)?.chart ?? null));
   const [error, setError] = React.useState(/** @type {string | null} */ (null));
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(() => !readChartCache(s.id, symbol));
   const held = new Map((s.positions ?? []).map((p) => [p.symbol, p]));
 
   // A new pair empties the card; the dashboard's own minute refresh (`at`)
   // only refetches — the frame stays, the way a live chart should.
-  React.useEffect(() => { setChart(null); setError(null); setLoading(true); }, [s.id, symbol]);
+  React.useEffect(() => { const c = readChartCache(s.id, symbol); setChart(c?.chart ?? null); setError(null); setLoading(!c); }, [s.id, symbol]);
   React.useEffect(() => {
     if (!symbol) return undefined;
     let alive = true;
@@ -829,7 +788,7 @@ function SymbolChart({ s, symbol, onSelect, m, nowMs, at }) {
   const book = chart?.position ?? held.get(symbol) ?? null;
   return (
     <section className="ag-section ag-chart-card">
-      <div className="ag-section-title mono">PRICE &amp; FILLS <span className="dim">· {venueLabel(chart?.signalVenue ?? s.signalVenue ?? s.venue)}'s candles, this strategy's own orders</span></div>
+      <div className="ag-section-title mono">PRICE &amp; FILLS</div>
       <div className="ag-tabs" role="tablist" aria-label="Symbols">
         {(s.symbols ?? []).map((sym) => {
           const p = held.get(sym);
@@ -870,8 +829,7 @@ function LiveState({ s, nowMs, selected, onSelect }) {
   return (
     <section className="ag-section ag-live">
       <div className="ag-section-title mono">
-        WHAT THE RULE SEES <span className="dim">· the forming bar, read every minute — not a decision</span>
-      </div>
+        LIVE STATE</div>
       {!any && <div className="ag-live-empty dim">No reading yet. The loop writes one a minute for each symbol; the first lands within the minute.</div>}
       {any && rows.map((r) => (
         <button key={r.symbol} type="button" aria-pressed={r.symbol === selected}
@@ -916,8 +874,37 @@ function NotReady({ dash }) {
   );
 }
 
+/** The held positions as tiles: the operative fact of a running strategy, designed rather than typed out. */
+function PositionTiles({ s, m, nowMs }) {
+  const lines = positionLines(s);
+  if (!lines.length) return null;
+  return (
+    <div className="ag-postiles">
+      {lines.map((p) => (
+        <div key={p.symbol} className={`ag-postile ${p.unrealisedUsd >= 0 ? 'is-up' : 'is-down'}`}>
+          <div className="ag-postile-head mono">
+            <span className="ag-postile-sym">{p.symbol}</span>
+            <span className="ag-postile-ret" style={{ color: pctColor(p.returnPct) }}>{m(fmtPctSigned(p.returnPct, 2))}</span>
+          </div>
+          <div className="ag-postile-size mono">{m(p.base.toFixed(6))} <span className="dim">{p.symbol.split('/')[0]}</span></div>
+          <div className="ag-postile-grid mono">
+            <span className="dim">avg cost</span><span>{m(fmtUsd(p.avgCost))}</span>
+            <span className="dim">mark</span><span>{m(fmtUsd(p.mark))}</span>
+            <span className="dim">value</span><span>{m(fmtUsd(p.valueUsd))}</span>
+            <span className="dim">unrealised</span><Money v={p.unrealisedUsd} m={m} />
+          </div>
+          {p.openedAt != null && <div className="ag-postile-held dim mono">held {ago(nowMs - p.openedAt)}</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Detail({ s, dash, m, onBack, nowMs }) {
   const [more, setMore] = React.useState(/** @type {{ decisions: any[], orders: any[] } | null} */ (null));
+  // The countdown moves every second; everything else keeps the modal's slower clock.
+  const [sec, setSec] = React.useState(() => Date.now());
+  React.useEffect(() => { const id = setInterval(() => setSec(Date.now()), 1000); return () => clearInterval(id); }, []);
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [symbol, setSymbol] = React.useState(() => defaultChartSymbol(s));
   React.useEffect(() => { setSymbol(defaultChartSymbol(s)); }, [s.id]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -935,16 +922,17 @@ function Detail({ s, dash, m, onBack, nowMs }) {
         <button className="btn-ghost ag-back" onClick={onBack}>← All strategies</button>
         <ModeBadge mode={s.mode} />
         <StatusDot status={status} />
+        <span className="ag-countdown mono" title={s.nextDecisionAt ? `${new Date(s.nextDecisionAt).toISOString().replace('T', ' ').slice(0, 19)} UTC` : undefined}>
+          <span className="dim">{s.kind === 'dislocation-1m' ? 'next read' : 'next decision'}</span> <span className="ag-countdown-val">{countdownText(s.nextDecisionAt, sec)}</span>
+        </span>
       </div>
       <h3 className="ag-detail-title mono">{s.name}</h3>
       <div className="ag-kv mono">
         <span className="ag-kv-kind">{kindLabel(s.kind)}</span><VenueBadge id={s.venue} signal={s.signalVenue} />
         <span className="dim">{s.symbols.join(' · ')}</span>
-        <span className="dim">next decision <span className="hl-strong">{nextDecisionText(s.kind, s.nextDecisionAt, nowMs)}</span></span>
         <span className="dim">capital <span className="hl-strong">{m(fmtUsd(Number(s.capitalUsd)))}</span></span>
         {params.map(([k, v]) => <span key={k} className="dim">{k} <span className="hl-strong">{String(v)}</span></span>)}
       </div>
-      <p className="ag-desc">{s.description}</p>
       <div className="txn-realized ag-totals ag-totals-sm">
         <div>
           <span className="lot-summary-label mono">REALIZED G/L (USD)</span>
@@ -958,17 +946,7 @@ function Detail({ s, dash, m, onBack, nowMs }) {
         </div>
         <span className="txn-realized-val mono" style={{ color: pctColor(s.realisedUsd) }}>{m(fmtUsd(s.realisedUsd, true))}</span>
       </div>
-      {positionLines(s).length > 0 && (
-        <div className="ag-poslines mono">
-          {positionLines(s).map((p) => (
-            <div key={p.symbol} className="ag-posline">
-              <span className="hl-strong">{p.symbol}</span> holding <span className="hl-strong">{m(p.base.toFixed(6))}</span> @ {m(fmtUsd(p.avgCost))}
-              <span className="dim"> · mark {m(fmtUsd(p.mark))} · </span><Money v={p.unrealisedUsd} m={m} />
-              <span className="dim"> ({m(fmtPctSigned(p.returnPct, 2))})</span>
-            </div>
-          ))}
-        </div>
-      )}
+      <PositionTiles s={s} m={m} nowMs={nowMs} />
       <LiveState s={s} nowMs={nowMs} selected={symbol} onSelect={setSymbol} />
       <SymbolChart s={s} symbol={symbol} onSelect={setSymbol} m={m} nowMs={nowMs} at={dash?.at} />
       <Positions s={s} m={m} />
@@ -986,9 +964,10 @@ function Detail({ s, dash, m, onBack, nowMs }) {
  * @param {{ hideValues: boolean, onClose: () => void }} props
  */
 function AgentsModal({ hideValues, onClose }) {
-  const [dash, setDash] = React.useState(/** @type {any} */ (null));
+  // Opens on the copy the app fetched at start (or the last refresh), then refreshes.
+  const [dash, setDash] = React.useState(/** @type {any} */ (() => readAgentsCache()?.dash ?? null));
   const [error, setError] = React.useState(/** @type {string | null} */ (null));
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(() => !readAgentsCache());
   const [selected, setSelected] = React.useState(/** @type {string | null} */ (null));
   const [now, setNow] = React.useState(() => Date.now());
   const m = React.useCallback((s) => (hideValues ? maskDigits(s) : s), [hideValues]);
@@ -1037,12 +1016,11 @@ function AgentsModal({ hideValues, onClose }) {
             <VenueStrip dash={dash} />
             <Alerts dash={dash} />
             <section className="ag-section ag-strategies">
-              <div className="ag-section-title mono">STRATEGIES <span className="dim">· one rulebook per venue · a row opens its chart, its fills and its log</span></div>
+              <div className="ag-section-title mono">STRATEGIES</div>
               <StrategyTable rows={rows} m={m} onOpen={setSelected} />
             </section>
             <div className="ag-updated dim mono">as of {when(dash.at)} UTC · refreshes every minute</div>
             <Basis dash={dash} />
-            <HowItWorks />
           </>
         )}
         {dash && !notReady && current && <Detail s={current} dash={dash} m={m} onBack={() => setSelected(null)} nowMs={now} />}
