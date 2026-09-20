@@ -78,7 +78,41 @@ export async function fetchAgentsDashboard(fetchImpl = fetch) {
   const res = await fetchImpl(`${EDGE_AGENTS_URL}?action=dashboard`, { headers: headers() });
   const text = await res.text();
   if (!res.ok) throw agentsFetchError('dashboard', res.status, text);
-  return JSON.parse(text);
+  const dash = JSON.parse(text);
+  agentsCache = { at: Date.now(), dash };
+  return dash;
+}
+
+// The page must open the way the rest of the site does: on what is already
+// here. The app fetches the dashboard once after first paint and the modal
+// paints that copy at once, then refreshes; each strategy's default chart
+// is fetched behind it, spaced out, so a detail opens drawn.
+/** @type {{ at: number, dash: any } | null} */
+let agentsCache = null;
+/** @type {Map<string, { at: number, chart: any }>} */
+const chartCache = new Map();
+const chartKey = (strategyId, symbol) => `${strategyId}|${symbol}`;
+
+export function readAgentsCache() { return agentsCache; }
+/** @param {string} strategyId @param {string} symbol */
+export function readChartCache(strategyId, symbol) { return chartCache.get(chartKey(strategyId, symbol)) ?? null; }
+
+/**
+ * Warm the page: the dashboard, then one chart per strategy 250 ms apart.
+ * Never throws — before login the call is a 401 and the cache stays empty.
+ * @param {typeof fetch} [fetchImpl]
+ * @param {(fn: () => void, ms: number) => unknown} [later]
+ */
+export async function prefetchAgentsDashboard(fetchImpl = fetch, later = (fn, ms) => setTimeout(fn, ms)) {
+  let dash;
+  try { dash = await fetchAgentsDashboard(fetchImpl); } catch { return null; }
+  if (!dash || dash.notReady) return dash ?? null;
+  (dash.strategies ?? []).forEach((st, i) => {
+    const sym = defaultChartSymbol(st);
+    if (!sym) return;
+    later(() => { fetchAgentsChart(st.id, sym, fetchImpl).catch(() => {}); }, 250 * (i + 1));
+  });
+  return dash;
 }
 
 /**
@@ -108,7 +142,9 @@ export async function fetchAgentsChart(strategyId, symbol, fetchImpl = fetch) {
     { headers: headers() });
   const text = await res.text();
   if (!res.ok) throw agentsFetchError('chart', res.status, text);
-  return JSON.parse(text);
+  const chart = JSON.parse(text);
+  if (chart && !chart.error) chartCache.set(chartKey(strategyId, symbol), { at: Date.now(), chart });
+  return chart;
 }
 
 /** What each class of failure is called and what it means, in one plain sentence each. */
@@ -220,7 +256,7 @@ export function strategyStatus(s, risk, nowMs) {
   if (s.mode === 'paused') return { label, running: false, detail: 'paused' };
   if (risk?.global_pause) return { label, running: false, detail: 'global pause' };
   const obs = observationAgeMs(s, nowMs);
-  if (obs != null && obs < OBSERVATION_FRESH_MS) return { label, running: true, detail: `watching · seen ${formatAgo(obs)} ago` };
+  if (obs != null && obs < OBSERVATION_FRESH_MS) return { label, running: true, detail: `watching · changed ${formatAgo(obs)} ago` };
   if (!s.lastDecision) return { label, running: false, detail: obs == null ? 'no decision yet' : `last reading ${formatAgo(obs)} ago` };
   const age = nowMs - Date.parse(s.lastDecision.ts);
   const stale = DECISION_STALE_MS[s.kind] ?? 2 * FOUR_H;
@@ -432,11 +468,11 @@ export const stateTone = (v) => (UP_WORDS.has(v) ? 'up' : DOWN_WORDS.has(v) ? 'd
 export function observationAgeText(ms) {
   if (ms == null || isNaN(ms) || ms < 0) return 'no reading yet';
   const s = Math.round(ms / 1000);
-  if (s < 90) return `seen ${s} s ago`;
+  if (s < 90) return `changed ${s} s ago`;
   const m = Math.round(s / 60);
-  if (m < 90) return `seen ${m} min ago`;
+  if (m < 90) return `unchanged for ${m} min`;
   const h = Math.floor(m / 60);
-  return `seen ${h} h ${String(m % 60).padStart(2, '0')} min ago`;
+  return `unchanged for ${h} h ${String(m % 60).padStart(2, '0')} min`;
 }
 
 /**
@@ -532,7 +568,7 @@ export function venueRows(dash) {
       id, label: venueLabel(id),
       capitalUsd: capital, valueUsd: value, costUsd: b.costUsd ?? 0, unrealisedUsd: b.unrealisedUsd ?? 0, realisedUsd: b.realisedUsd ?? 0, feesUsd: b.feesUsd ?? 0,
       strategies: b.strategies ?? 0, live: b.live ?? 0,
-      balanceUsd: v.balances?.USD ?? null, canTrade: !!v.canTrade, feeBps: v.feeBps ?? null, note: v.note ?? null,
+      balanceUsd: v.balances?.USD ?? null, balances: v.balances ?? null, canTrade: !!v.canTrade, feeBps: v.feeBps ?? null, note: v.note ?? null,
       share: useValue ? (totalValue > 0 ? value / totalValue : 0) : (totalCapital > 0 ? capital / totalCapital : 0),
       shareOf: useValue ? 'value' : 'capital',
     };
@@ -638,7 +674,48 @@ export function positionLines(s) {
       valueUsd: Number(p.valueUsd) || 0,
       unrealisedUsd: Number(p.unrealisedUsd) || 0,
       returnPct: Number(p.costUsd) > 0 ? (Number(p.unrealisedUsd) / Number(p.costUsd)) * 100 : null,
+      openedAt: p.openedAt != null ? Number(p.openedAt) : null,
     }));
+}
+
+const CURRENCY_SIGN = { USD: '$', GBP: '£', EUR: '€' };
+/**
+ * What an account holds, every currency the venue reported, non-zero
+ * only, money first: a UK deposit that arrived as pounds must read as
+ * pounds, not as a blank where dollars were expected.
+ * @param {Record<string, number> | null | undefined} balances
+ */
+export function balanceLines(balances) {
+  const order = (c) => (c === 'USD' ? 0 : c in CURRENCY_SIGN ? 1 : 2);
+  /** @type {{ code: string, amount: number }[]} */
+  const held = Object.entries(balances ?? {}).map(([code, v]) => ({ code: String(code), amount: Number(v) }));
+  return held
+    .filter((b) => Number.isFinite(b.amount) && Math.abs(b.amount) >= (b.code in CURRENCY_SIGN || /^USD[CT]$/.test(b.code) ? 0.005 : 1e-8))   // a fraction of a coin is money
+    .sort((a, b) => order(a.code) - order(b.code) || a.code.localeCompare(b.code))
+    .map((b) => {
+      const sign = CURRENCY_SIGN[b.code];
+      const text = sign ? `${sign}${b.amount.toFixed(2)} ${b.code}` : `${b.amount.toFixed(Math.abs(b.amount) >= 1 ? 4 : 6)} ${b.code}`;
+      return { code: b.code, amount: b.amount, text };
+    });
+}
+
+/**
+ * A countdown to the second, for the detail page's header: "1h 12m 05s",
+ * "12m 05s", "5s"; "due" once the moment has passed.
+ * @param {string | null | undefined} iso
+ * @param {number} nowMs
+ */
+export function countdownText(iso, nowMs) {
+  if (!iso) return '—';
+  const ms = Date.parse(iso) - nowMs;
+  if (!Number.isFinite(ms)) return '—';
+  if (ms <= 0) return 'due';
+  const total = Math.ceil(ms / 1000);
+  const h = Math.floor(total / 3600), mm = Math.floor((total % 3600) / 60), ss = total % 60;
+  const two = (n) => String(n).padStart(2, '0');
+  if (h > 0) return `${h}h ${two(mm)}m ${two(ss)}s`;
+  if (mm > 0) return `${mm}m ${two(ss)}s`;
+  return `${ss}s`;
 }
 
 /**

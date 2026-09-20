@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, rotationBacktestRows, totalsView, untilText, venueHue, venueRows,
   dislocationBacktestRows,
-  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, shareBasisText, basisNowView,
+  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, shareBasisText, basisNowView, balanceLines, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache,
 } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -168,7 +168,7 @@ describe('observations as the liveness signal', () => {
       lastDecision: { ts: '2026-09-19T20:00:00Z', symbol: 'BTC/USD', action: 'hold' },   // 16 h old: stale on its own
       positions: [{ symbol: 'BTC/USD', base: 0.00025, observation: obsAt(NOW - 40e3, trendState) }, { symbol: 'ETH/USD', base: 0 }],
     });
-    expect(strategyStatus(s, null, NOW)).toEqual({ label: 'paper', running: true, detail: 'watching · seen 40s ago' });
+    expect(strategyStatus(s, null, NOW)).toEqual({ label: 'paper', running: true, detail: 'watching · changed 40s ago' });
     expect(observationAgeMs(s, NOW)).toBe(40e3);
   });
 
@@ -209,7 +209,7 @@ describe('observations as the liveness signal', () => {
     const v = /** @type {any} */ (observationView(obsAt(NOW - 40e3,
       { symbol: 'BTC/USD', basis: 'revx_cheap', basis_size: 'small', reference_move_5m: 'sharp_up', position: 'flat', time_in_position: 'none' },
       { basisBps: -3.42, mark: 86000 }), NOW));
-    expect(v.ageText).toBe('seen 40 s ago');
+    expect(v.ageText).toBe('changed 40 s ago');
     expect(v.fresh).toBe(true);
     expect(v.basisBps).toBe(-3.42);
     expect(v.mark).toBe(86000);
@@ -221,10 +221,10 @@ describe('observations as the liveness signal', () => {
   });
 
   it('the age reads in seconds while it is seconds old, then minutes, then hours', () => {
-    expect(observationAgeText(0)).toBe('seen 0 s ago');
-    expect(observationAgeText(89e3)).toBe('seen 89 s ago');
-    expect(observationAgeText(4 * 60e3)).toBe('seen 4 min ago');
-    expect(observationAgeText(125 * 60e3)).toBe('seen 2 h 05 min ago');
+    expect(observationAgeText(0)).toBe('changed 0 s ago');
+    expect(observationAgeText(89e3)).toBe('changed 89 s ago');
+    expect(observationAgeText(4 * 60e3)).toBe('unchanged for 4 min');
+    expect(observationAgeText(125 * 60e3)).toBe('unchanged for 2 h 05 min');
     expect(observationAgeText(null)).toBe('no reading yet');
   });
 
@@ -528,5 +528,47 @@ describe('plotLabelY', () => {
     expect(plotLabelY(103, ticks)).toBe(110);                      // down by the nudge
     expect(plotLabelY(197, ticks)).toBe(190);                      // down would still clash with the tick: up instead
     expect(plotLabelY(103, ticks, { y0: 100, y1: 105 })).toBe(105); // no room either way: clamped to the plot
+  });
+});
+
+describe('balanceLines', () => {
+  it('names every non-zero balance in its own currency, money first, and never invents dollars', () => {
+    const lines = balanceLines({ USDC: 0, GBP: 75, BTC: 0.00025 });
+    expect(lines.map((l) => l.text)).toEqual(['£75.00 GBP', '0.000250 BTC']);
+    expect(balanceLines({ USD: 100, GBP: 75 }).map((l) => l.code)).toEqual(['USD', 'GBP']);
+    expect(balanceLines(null)).toEqual([]);
+  });
+});
+
+describe('countdownText', () => {
+  const now = Date.parse('2026-09-20T18:00:00Z');
+  it('counts down to the second and says due once the moment has passed', () => {
+    expect(countdownText('2026-09-20T19:12:05Z', now)).toBe('1h 12m 05s');
+    expect(countdownText('2026-09-20T18:12:05Z', now)).toBe('12m 05s');
+    expect(countdownText('2026-09-20T18:00:05Z', now)).toBe('5s');
+    expect(countdownText('2026-09-20T17:59:00Z', now)).toBe('due');
+    expect(countdownText(null, now)).toBe('—');
+  });
+});
+
+describe('prefetchAgentsDashboard', () => {
+  it('fills the dashboard cache and schedules one chart per strategy, spaced out; a failure leaves the cache alone', async () => {
+    const calls = [];
+    const fetchImpl = /** @type {any} */ (async (url) => {
+      calls.push(String(url));
+      if (String(url).includes('action=dashboard')) return new Response(JSON.stringify({ at: 'x', strategies: [{ id: 's1', symbols: ['BTC/USD'], positions: [] }, { id: 's2', symbols: ['ETH/USD'], positions: [] }] }), { status: 200 });
+      return new Response(JSON.stringify({ candles: [], fills: [] }), { status: 200 });
+    });
+    const scheduled = [];
+    const later = (fn, ms) => { scheduled.push(ms); fn(); };
+    const dash = await prefetchAgentsDashboard(fetchImpl, later);
+    expect(dash.strategies.length).toBe(2);
+    expect(readAgentsCache()?.dash).toBe(dash);
+    expect(scheduled).toEqual([250, 500]);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(readChartCache('s1', 'BTC/USD')?.chart).toBeTruthy();
+    const failing = /** @type {any} */ (async () => new Response('{"error":"unauthorised"}', { status: 401 }));
+    expect(await prefetchAgentsDashboard(failing, later)).toBeNull();
+    expect(readAgentsCache()?.dash).toBe(dash);
   });
 });
