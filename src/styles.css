@@ -1783,3 +1783,77 @@ body {
       #0f1815;
   }
 }
+
+/* ── Agents page ──────────────────────────────────────────────────────
+   Opened from the ☰ menu below Transaction history. Shares the
+   transaction history's headline block and the holding list's table
+   scaffolding; the `ag-*` classes are only what those do not cover:
+   mode badges, the running dot, action words, the venue/caps strip and
+   the detail view's sections. */
+.ag-body { padding-top: 16px; }
+.ag-totals { align-items: center; }
+.ag-total-val { font-size: 26px; }
+.ag-totals-sm .txn-realized-val { font-size: 20px; }
+.ag-subline { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; font-size: 11px; color: var(--chalk-dim); }
+.ag-subline > span > span { color: var(--chalk); }
+.ag-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.ag-chip {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
+  padding: 6px 10px; border: 1px solid var(--line); border-radius: 4px; font-size: 11px;
+  background: rgba(255,255,255,0.02); font-family: var(--font-mono);
+}
+.ag-chip.is-warn { border-color: var(--loss-dim); }
+.ag-chip-name { color: var(--chalk); font-weight: 600; letter-spacing: 0.04em; }
+.ag-warn { color: var(--loss); font-weight: 700; }
+.ag-table { font-size: 12px; }
+.ag-table td { padding: 7px 10px; white-space: nowrap; }
+.ag-table td:first-child, .ag-table th:first-child { position: static; box-shadow: none; background: none; }
+.ag-row { cursor: pointer; }
+.ag-row:focus-visible { outline: 1px solid var(--chalk-mute); outline-offset: -1px; }
+.ag-name { display: block; color: var(--chalk); font-weight: 600; }
+.ag-name-cell .hl-sub { white-space: nowrap; }
+.ag-badge {
+  display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+  padding: 2px 6px; border-radius: 3px; border: 1px solid var(--line); color: var(--chalk-dim);
+}
+.ag-badge-live { color: var(--gain); border-color: var(--gain-dim); background: var(--gain-dim); }
+.ag-badge-paper { color: #d9c37a; border-color: rgba(217,195,122,0.35); background: rgba(217,195,122,0.12); }
+.ag-badge-paused { color: var(--chalk-dim); }
+.ag-status { display: inline-flex; align-items: center; gap: 6px; color: var(--chalk-dim); }
+.ag-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--chalk-mute); flex: none; }
+.ag-status.is-running .ag-dot { background: var(--gain); box-shadow: 0 0 0 3px var(--gain-dim); animation: ag-pulse 2.4s ease-in-out infinite; }
+.ag-status.is-running .ag-status-text { color: var(--chalk); }
+@keyframes ag-pulse { 0%, 100% { box-shadow: 0 0 0 2px var(--gain-dim); } 50% { box-shadow: 0 0 0 5px transparent; } }
+.ag-action { font-weight: 600; }
+.ag-action-enter { color: var(--gain); }
+.ag-action-exit { color: var(--loss); }
+.ag-action-hold { color: var(--chalk-dim); }
+.ag-blocked { color: var(--loss); font-weight: 600; }
+.ag-state { max-width: 320px; white-space: normal !important; line-height: 1.3; color: var(--chalk-dim); }
+.ag-state-pill { font-size: 10px; letter-spacing: 0.04em; color: var(--chalk-dim); }
+.ag-state-filled { color: var(--gain); }
+.ag-state-rejected, .ag-state-cancelled { color: var(--chalk-mute); }
+.ag-state-new, .ag-state-partially_filled { color: #d9c37a; }
+.ag-updated { font-size: 10px; margin: 8px 0 18px; text-align: right; }
+.ag-how { border-top: 1px solid var(--line); padding-top: 14px; font-size: 12px; line-height: 1.55; color: var(--chalk-dim); }
+.ag-how p { margin: 8px 0 0; }
+.ag-how b { color: var(--chalk); font-weight: 600; }
+.ag-section { margin-top: 18px; }
+.ag-section-title { font-size: 10px; letter-spacing: 0.2em; color: var(--chalk-dim); margin-bottom: 8px; }
+.ag-section-title .dim { letter-spacing: 0; text-transform: none; }
+.ag-detail-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ag-back { padding: 4px 10px; font-size: 12px; }
+.ag-detail-title { margin: 12px 0 6px; font-size: 18px; font-weight: 600; }
+.ag-kv { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--chalk); margin-bottom: 8px; }
+.ag-desc { font-size: 12px; line-height: 1.5; color: var(--chalk-dim); margin: 0 0 12px; }
+.ag-note { font-size: 11px; line-height: 1.5; margin: 8px 0 0; }
+.ag-more { margin-top: 10px; font-size: 12px; }
+.ag-error { color: var(--loss); font-size: 12px; padding: 10px 12px; border: 1px solid var(--loss-dim); border-radius: 4px; margin-bottom: 12px; }
+.ag-empty { padding: 24px; text-align: center; }
+@media (max-width: 760px) {
+  .ag-total-val { font-size: 20px; }
+  .ag-subline { font-size: 10px; gap: 2px 10px; }
+  .ag-table { font-size: 11px; }
+  .ag-table td { padding: 6px 8px; }
+  .ag-name-cell .hl-sub { white-space: normal; max-width: 160px; }
+}
