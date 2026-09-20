@@ -165,6 +165,60 @@ Daily candles paginate back to **2023-08-19 (BTC), 2023-09-05 (ETH), 2023-09-11 
 
 Two years of hourly BTC/ETH/SOL (17,511 bars each, 2 gaps) were pulled from Coinbase in 20 s per asset for the measurements below.
 
+## 2b. Kraken (Kraken Pro) — the second exchange
+
+Davies added a Kraken key pair to the secrets store on 2026-09-20
+(`KRAKEN_PRO_API_KEY`, `KRAKEN_PRO_PRIVATE_KEY`); trading permission, no
+funds yet. Everything below was read from Kraken's own pages or measured
+against the live API the same day; the account-specific facts come from the
+read-only probe in §6.
+
+| Fact | Value | Source |
+|---|---|---|
+| Base URL | `https://api.kraken.com`, API version `0`: public `GET /0/public/<Method>`, private `POST /0/private/<Method>` | docs.kraken.com (spot REST intro) |
+| Auth | Headers `API-Key` and `API-Sign`; body form-encoded with `nonce` first. `API-Sign = base64( HMAC-SHA512( key = base64-decoded secret, message = path + SHA256(nonce + body) ) )`, path from `/0/private`. The documented test vector reproduces byte for byte — pinned in `supabase/functions/agents/kraken.test.ts`. | spot REST auth page |
+| Nonce | "always increasing, unsigned 64-bit integer for each request", per key; optional nonce window; repeated bad nonces → temporary ban. We send microseconds, monotonic inside an isolate. | spot REST auth page |
+| Envelope | `{ error: [], result: {…} }` with HTTP 200 even for a refused request; errors are `E<Category>:<description>` (`EGeneral`, `EAPI`, `EOrder`, `EService`, `EQuery`, `EFunding`…) | spot REST intro |
+| Naming | Requests take the pair's `altname` (`XBTUSD`, `ETHUSD`, `SOLUSD`); responses are keyed by the primary id (`XXBTZUSD`, `XETHZUSD`, `SOLUSD`); balances by asset code (`XXBT`, `XETH`, `SOL`, `ZUSD`, `ZGBP`, `USDC`). `kraken.ts` translates both ways at the wire. | AssetPairs, *measured* |
+| Pair limits | XBT/USD: tick 0.1, lot 8 dp, `ordermin` 0.00005 BTC, `costmin` $0.5. ETH/USD: tick 0.01, `ordermin` 0.001. SOL/USD: tick 0.01, `ordermin` 0.06. `fees`/`fees_maker` arrays in AssetPairs are now EMPTY — the schedule comes from TradeVolume. | `GET /0/public/AssetPairs`, *measured 2026-09-20* |
+| Fees — this account | **maker 0.40 % / taker 0.80 %** on all three pairs (`TradeVolume` with `fee-info`, live): tier 1 of the published table; next tier 0.30 / 0.60 at $2,500 of 30-day volume; maker reaches 0 % only at $10M. Revolut X is 0 / 0.09 with no tiers. | `POST /0/private/TradeVolume` *measured*; kraken.com/features/fee-schedule |
+| Spread & depth | BTC 0.01 bps, ETH 0.04 bps, SOL 0.92 bps (Revolut X: 1.5 / 2.1 / 3.1). Resting within 5 bps of mid: BTC ≈ $2.5M ask / $2.3M bid, ETH $1.5M / $0.6M, SOL $36k / $52k. 24 h volume BTC 1,562 (≈ $126M), ETH 28.2k (≈ $73M), SOL 567k (≈ $62M). | `Ticker`, `Depth`, *measured 2026-09-20 03:55 UTC* |
+| Candles | `GET /0/public/OHLC?pair=&interval=<minutes>` — intervals 1,5,15,30,60,240,1440,10080,21600; rows `[time_s, open, high, low, close, vwap, volume, count]`, last row is the open candle, `last` = start of the last closed one. **"Returns up to 720 of the most recent entries (older data cannot be retrieved, regardless of the value of `since`)"** — 120 days of 4h, ~2 years of daily. | get-ohlc-data, *measured* |
+| Full history | Quarterly OHLCVT CSV bundle, every pair from its first trade to 2026-06-30, intervals 1/5/15/60/240/720/1440, free (`assets.kraken.com/marketing/institutions/Kraken_OHLCVT_Full_2026Q2.zip.part00-04`); `GET /0/public/Trades` pages 1,000 trades a call. The best backtest data of the three venues we can reach. | support.kraken.com OHLCVT article; get-recent-trades |
+| Orders | `AddOrder` — `pair`, `type` buy/sell, `ordertype=limit`, `volume` (base), `price`, `oflags=post` (post-only), `timeinforce` GTC/IOC/GTD/FOK, `cl_ord_id` (UUID or ≤ 18 chars, unique per open order), **`validate=true` — "the order will be validated only, it will not trade in the matching engine"**; reply `{ descr: { order }, txid?: [...] }` (no `txid` when validating). `CancelOrder {txid}`; `QueryOrders {txid}` → `status` pending/open/closed/canceled/expired, `vol`, `vol_exec`, `cost`, `fee` (quote), `price` (average); `OpenOrders`; `AmendOrder`. Permission needed: "Orders and trades – Create & modify orders". | add-order, get-orders-info |
+| Rate limits | REST call counter 15 (Starter) / 20 (Intermediate, Pro), decaying 0.33 / 0.5 / 1 per second; ledger and trade-history calls cost 2, AddOrder and CancelOrder are on a separate limiter (`EAPI:Rate limit exceeded`). Matching-engine counter per pair 60 / 125 / 180, decaying 1 / 2.34 / 3.75 per second; AddOrder +1, a cancel costs up to +8 when the order is younger than 5 s and +1 under 300 s (`EOrder:Rate limit exceeded`). Max open orders per pair 60 / 80 / 225. **No daily order cap.** A 5-minute loop with a few orders a day never approaches any of this. | spot-ratelimits, spot-rest-ratelimits |
+| Key permissions | Funds: Query / Deposit / Withdraw. Orders & trades: Query open, Query closed, Modify (= create), Cancel/close. Other: ledger, export, WebSockets. Settings: nonce window, IP allowlist, expiry, query date window. Withdraw must stay OFF on ours. | support: how-to-create-an-API-key |
+| Sandbox | None for spot; `validate=true` is the dry run. | |
+| Deno | HMAC-SHA512 and SHA-256 native in `crypto.subtle`; nothing to install. | *measured* |
+
+**What it means, next to Revolut X:**
+
+- **Cost is the whole difference.** A resting-limit round trip on Revolut X
+  costs the two half-spreads (≈ 1.5–3 bps); on Kraken it costs 80 bps of
+  maker fee plus nothing for spread. On $100 that is $0.02 against $0.80 a
+  round trip. §3.3 prices the same rules on both: over the out-of-sample
+  year the fee alone takes 8–14 points off the trend rule and 10–14 off the
+  momentum rule. Kraken is not the venue for live money at this size and
+  turnover; it might be at the $2.5k / $10k volume tiers, which $100 will
+  never reach.
+- **Data is Kraken's strength.** Its book is 100× tighter and orders of
+  magnitude deeper, so its mid is the cleaner "fair price" for marking and
+  for spotting a stale Revolut X quote; and its quarterly CSV bundle is full
+  history from each pair's listing — the right source for the next round of
+  backtests (Coinbase's 3 years stand in today).
+- **`validate=true` is a real gift**: every key's trading permission, and
+  every order's shape, can be checked without an order. Revolut X has no
+  equivalent; its first live order is the test.
+- **Both venues in paper, side by side, is free** and answers the one
+  question a backtest cannot: how often does a post-only order at the touch
+  actually fill on a thin book versus a deep one? The dashboard shows the two
+  twins (`trend-4h` / `trend-4h-kraken`, `momentum-1d` / `momentum-1d-kraken`)
+  on the same rules with each venue's own candles, touch and fee.
+- **Funding.** The Kraken account's balance rows are USDC and GBP (a UK
+  account). The strategies trade `*/USD`; to test like for like the account
+  needs USD — deposit USD, or deposit GBP and convert once (GBP/USD is on the
+  0.20 % FX schedule, ~$0.20 on $100). USDC would need `*/USDC` pairs added.
+
 ## 3. What the numbers say (measured, real data)
 
 ### 3.1 Cost of a round trip on Revolut X, $100 account
@@ -193,6 +247,71 @@ Buy-and-hold over the window: BTC +26 %, ETH +2 %, SOL −25 %. Selected rows (f
 
 Read it the honest way: (a) the same signal that is positive gross is deeply negative at taker cost once it trades more than ~0.3 times a day; (b) slow trend/momentum rules on 4h–1d bars kept most of their gross return and cut the drawdown versus holding, including staying flat through SOL's −25 %; (c) **this is one two-year window with parameters chosen after looking**, so these are proof of the *cost structure*, not a promise of return. The real backtest in the feature will be walk-forward over the full three-year venue history with out-of-sample parameter selection.
 
+### 3.3 Walk-forward backtest of the two rulebooks (the code the site runs)
+
+`supabase/functions/agents/backtest.ts` drives the SAME functions the live
+loop runs (`_shared/agents_strategy.ts`) over three years of Coinbase hourly
+candles resampled to 4h and daily, net of Revolut X's costs, no look-ahead
+(decide on the closed bar, fill at the next open). Coinbase stands in for the
+venue's price: over the year both cover, Revolut X's 4h closes sit within a
+median 1.6 / 2.2 / 2.7 bps of Coinbase's (BTC / ETH / SOL; p95 6–13 bps; 2,244
+common bars). Parameters are chosen on the first two years and the last year
+(2025-09-10 → 2026-09-20) is reported OUT of sample. Full output:
+`docs/agents/backtests/latest.json`.
+
+That out-of-sample year was a bear market — buy-and-hold BTC −28 %, ETH −40 %,
+SOL −50 % — which is the fairest kind of test for a long/flat trend rule.
+
+| | BTC | ETH | SOL |
+|---|---|---|---|
+| Buy & hold, OOS year | −28.1 % | −40.1 % | −50.2 % |
+| trend-4h, grid-chosen params, OOS | −18.0 % (DD 24 %, 26 trades) | **+3.7 %** (DD 19 %, 16) | **+27.8 %** (DD 11 %, 14) |
+| trend-4h, default 20/100/3×ATR, OOS | −9.6 % (DD 18 %, 28) | −7.0 % (DD 20 %, 22) | +18.5 % (DD 23 %, 14) |
+| momentum-1d (30 d), OOS | −13.6 % (DD 31 %, 45) | +6.1 % (DD 38 %, 33) | −29.4 % (DD 57 %, 37) |
+| trend-4h, full 3 y (in-sample params) | +47 % | +233 % | +215 % |
+| momentum-1d, full 3 y | +119 % | +272 % | +505 % |
+
+Read it honestly:
+
+- **The trend rule did its job in the bear year**: it cut the loss from
+  −28 / −40 / −50 % to −10..−18 / −7..+4 / +19..+28 %, spending 5–17 % of the
+  time in the market. It did not make money on BTC that year under any
+  parameters.
+- **The grid-chosen parameters were worse than the defaults on BTC and ETH**
+  out of sample and better on SOL — the textbook signature of fitting noise.
+  Parameter choice matters less than the rule's existence; the strategy ships
+  with the defaults, and the walk-forward exists so a future "improvement" has
+  to beat this table out of sample, not in it.
+- **momentum-1d is the weaker rule out of sample** (whipsawed on SOL, 37 round
+  trips for −29 %). It stays in paper until its paper record earns anything
+  else.
+- **The three-year totals are in-sample and include the 2023–25 bull run.**
+  They are shown because the site will show them, with the same caveat, never
+  as the headline.
+- **Jev is not in the backtest.** Its vote is measured live in paper by
+  recording every decision with and without it; a backtest that pretended to
+  know what it would have said would be a number this repository has learned
+  not to trust.
+
+
+**The same rules priced on Kraken** (`docs/agents/backtests/latest.json` →
+`results.<symbol>.kraken`; parameters unchanged, only the venue's fees and
+half-spread differ — maker 40 bps / taker 80 bps at this account's tier, spread
+≈ 0). Out-of-sample year, then the full three years:
+
+| | BTC | ETH | SOL |
+|---|---|---|---|
+| trend-4h OOS — Revolut X → Kraken | −18.0 % → **−27.8 %** | +3.7 % → **−4.7 %** | +27.8 % → **+18.4 %** |
+| momentum-1d OOS — Revolut X → Kraken | −13.6 % → **−27.6 %** | +6.1 % → **−6.7 %** | −29.4 % → **−38.9 %** |
+| trend-4h full — Revolut X → Kraken | +47 % → +3 % | +233 % → +156 % | +215 % → +113 % |
+| momentum-1d full — Revolut X → Kraken | +119 % → +43 % | +272 % → +173 % | +505 % → +362 % |
+
+Reading: at 14–45 round trips a year the Kraken fee costs 8–14 points of
+return a year on the trend rule and 10–14 on momentum. What Kraken's deeper
+book gives back — fewer unfilled resting orders, no adverse selection on a
+thin touch — is not in a backtest at all; that is what the paper twins
+measure.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
@@ -202,13 +321,38 @@ Read it the honest way: (a) the same signal that is positive gross is deeply neg
 5. **Paper first.** Every strategy runs in shadow mode against live prices, recording the orders it *would* have placed, until its paper record is shown; the switch to live is a per-strategy flag Davies flips, and the first live order requires his explicit confirmation.
 6. **Hard, code-enforced caps** the model cannot touch: max notional per order, max open exposure, daily loss limit (kill switch), max orders per day well under 1,000, and a global pause flag in the database.
 7. **Record inputs, not conclusions** (the `snapshot-record` lesson): every Jev call's state, questions and answers, and every order's request/response, are stored; P&L is computed in one place from fills and marks.
+8. **One venue per strategy row; Revolut X for live money, Kraken for data and for the paper twins** (§2b). Each strategy reads its own venue's candles and touch and pays its own venue's maker fee in paper, so the two venues are compared on the same rules and not on assumptions. Caps in `agent_risk` are per venue account.
 
-## 5. Open questions that block the build (for Davies)
+## 5. Questions that blocked the build — answered 2026-09-20
 
-1. **The Ed25519 private key.** Revolut X signs every authenticated request with the private half of the key pair generated at key creation. `Revolut_X_API_kEY` alone (the 64-char id) cannot sign anything. Was the private key (the `private.pem` from `openssl genpkey`) also stored as a Supabase secret? Under what name?
-2. **The sub-account.** Revolut X's API binds a key to the whole user account; the docs describe no sub-account scoping. Is the "$100 sub-account" a separate Revolut X login (then its key sees only that account — ideal), or a sub-portfolio inside the main account (then the key can see and trade the main account's balances too, and the isolation has to be enforced by our own caps)?
-3. **Key permission** — created as full trading, with the IP allowlist off (Supabase Edge egress IPs are not fixed)?
-4. Confirm **paper-trading first**, live only after his explicit go per strategy.
+1. **The Ed25519 private key** is in the secrets store as `REVOLUT_X_PRIVATE_KEY`, pasted as the bare base64 of the 48-byte PKCS#8 DER (the probe reports `keyForm: pkcs8-b64`). `Revolut_X_API_kEY` is the 64-char id; both spellings are read.
+2. **The sub-account.** Davies created the key under Revolut X's Sub-accounts feature, and the signed `GET /1.0/balances` shows exactly ONE row — USD, equal to the sub-account's funding — and nothing of the main account. The key sees the sub-account only; isolation holds at the venue, not just in our caps.
+3. **Key permission** trading; **IP allowlist** left blank at creation (no allowlist), which is what Edge egress needs.
+4. **Paper first** confirmed ("确认，paper 先行").
+5. **Kraken** (added the same day): key pair `KRAKEN_PRO_API_KEY` / `KRAKEN_PRO_PRIVATE_KEY`, trading permission, unfunded. Verified by the probe below; the design consequence is §2b.
+
+## 6. Live probes — what the real keys said (2026-09-20)
+
+Two runs of `GET /functions/v1/agents?action=probe` (read-only; nothing can
+place an order), fired from the database with the Vault `cron_secret`
+through `net.http_get`, 03:49 and 04:08 UTC. Balances are not copied here.
+
+| Check | Result |
+|---|---|
+| Revolut X key form | `pkcs8-b64` — bare base64 PKCS#8, imports straight into WebCrypto Ed25519 |
+| Revolut X `/balances` (signed, no query) | 200; one USD row (the sub-account's funding), no other currency |
+| Revolut X `/configuration/pairs` | 200; 394 pairs; BTC/ETH `base_step` 1e-8 / `quote_step` 0.01, SOL 1e-6 / 0.001; `min_order_size_quote` $0.1 |
+| Revolut X `/candles/BTC-USD?interval=240&since=&until=` (signed WITH a query) | 200, 5 candles → the "query without ?" signing is right |
+| Kraken secret | decodes to 64 bytes, as issued |
+| Kraken `Balance` / `BalanceEx` | 200; rows `USDC 0`, `ZGBP 0` — the account is empty and its currencies are USDC and GBP |
+| Kraken `TradeVolume` | 200; `fees.fee` 0.8000 and `fees_maker.fee` 0.4000 on XXBTZUSD / XETHZUSD / SOLUSD; `nextvolume` 2,500 → 0.6 / 0.3 |
+| Kraken `OpenOrders` | 200; 0 open — "Query open orders" permission works |
+| Kraken `AddOrder` with `validate=true` (buy 0.0001 XBT @ $10,000, post-only, GTC, UUID `cl_ord_id`) | 200; `descr.order = "buy 0.00010 XBTUSD @ limit 10000.0"`, **no `txid`** — trading permission works, nothing placed |
+| Kraken `OHLC` 240 | 721 rows, first 2026-05-23 — the 720 ceiling, live |
+| Kraken spreads at the probe | BTC 0.01 bps, ETH 0.04, SOL 0.92 |
+| Jev via OpenRouter | model resolves to `typesafe/jev-1.13-20260917`, provider "TypeSafe"; 437 input / 66 output tokens; `usage.cost` 0.000018354 = 437 × $0.042/M exactly; 464–476 ms |
+| Jev direct | `jev-1.13.0`; same 437 tokens, no `cost` field; 687–690 ms |
+| Answer shapes (both) | `noul` → `{ type, noul: 0.98 }`; `choice` → `{ type, choice, probabilities, confidence }`; `score` over `["calm","elevated","extreme"]` → `{ type, score: 0.07–0.08, legend: {0:calm,1:elevated,2:extreme}, probabilities: {0:0.93,1:0.07,2:0}, confidence: 0.89 }` — **the score is the expected level index on a 0…(levels−1) scale**, so `cautionExit: 1.75` in `combineDecision` means "mostly extreme". Confidence matches `(count×peak−1)/(count−1)` to rounding. The two transports agree within 0.01–0.02. |
 
 ## Sources
 
@@ -216,3 +360,4 @@ Read it the honest way: (a) the same signal that is positive gross is deeply neg
 - OpenRouter: https://openrouter.ai/typesafe/jev-1.13 · https://openrouter.ai/labs/jev · https://openrouter.ai/api/v1/models/typesafe/jev-1.13/endpoints · https://openrouter.ai/docs/client-sdks/go/sdks/decisions/README
 - Integrations: https://github.com/prismhq/jev-router · https://github.com/typesafe-ai/typesafe-sdk-js · https://pydantic.dev/docs/ai/models/typesafe/ · https://docs.litellm.ai/docs/pass_through/typesafe · https://github.com/samchon/typia/issues/2409 · https://github.com/can1357/oh-my-pi/issues/12458 · https://github.com/vinaychawla-ops/jev-openrouter-example
 - Revolut X: https://developer.revolut.com/docs/x-api/revolut-x-crypto-exchange-rest-api · https://developer.revolut.com/docs/x-api/authentication · https://developer.revolut.com/docs/x-api/place-order · https://developer.revolut.com/docs/x-api/get-candles · https://developer.revolut.com/docs/x-api/get-all-balances · https://github.com/revolut-engineering/revolut-x-api (incl. `revolut-x-api-for-llm.md`) · https://www.revolut.com/legal/crypto-exchange-fees/ · https://help.revolut.com/en-FR/help/wealth/cryptocurrencies/crypto-exchange/api-trading/question-what-api-does-revolut-x-provide/
+- Kraken: https://docs.kraken.com/api/docs/guides/spot-rest-intro/ · https://docs.kraken.com/api/docs/guides/spot-rest-auth/ · https://docs.kraken.com/api/docs/rest-api/add-order/ · https://docs.kraken.com/api/docs/rest-api/get-orders-info/ · https://docs.kraken.com/api/docs/rest-api/get-trade-volume/ · https://docs.kraken.com/api/docs/rest-api/get-extended-balance/ · https://docs.kraken.com/api/docs/rest-api/get-ohlc-data/ · https://docs.kraken.com/api/docs/rest-api/get-recent-trades/ · https://docs.kraken.com/api/docs/guides/spot-ratelimits/ · https://docs.kraken.com/api/docs/guides/spot-rest-ratelimits/ · https://www.kraken.com/features/fee-schedule · https://support.kraken.com/hc/en-us/articles/360000919966-How-to-create-an-API-key · https://support.kraken.com/articles/360047124832-downloadable-historical-ohlcvt-open-high-low-close-volume-trades-data

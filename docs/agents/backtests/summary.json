@@ -1,0 +1,313 @@
+{
+ "ran_at": "2026-09-20T04:15:55.537Z",
+ "source": "Coinbase Exchange 1h \u2192 4h/1d; parameters chosen on Revolut X costs, then the same rule priced on each venue: Revolut X (maker 0 %, taker 9 bps, half-spread per side) and Kraken (maker 40 bps, taker 80 bps, half-spread per side)",
+ "costs": {
+  "revx": {
+   "venue": "revx",
+   "makerBps": 0,
+   "takerBps": 9,
+   "halfSpread": {
+    "BTC/USD": 7.5e-05,
+    "ETH/USD": 0.000105,
+    "SOL/USD": 0.000155
+   }
+  },
+  "kraken": {
+   "venue": "kraken",
+   "makerBps": 40,
+   "takerBps": 80,
+   "halfSpread": {
+    "BTC/USD": 5e-07,
+    "ETH/USD": 2e-06,
+    "SOL/USD": 4.6e-05
+   }
+  }
+ },
+ "results": {
+  "BTC/USD": {
+   "bars4h": 6750,
+   "from": "2023-08-22",
+   "split": "2025-09-10",
+   "to": "2026-09-20",
+   "buyHoldOutOfSample": -0.2806,
+   "buyHoldFull": 2.0796,
+   "trend-4h": {
+    "chosen": {
+     "fast": 30,
+     "slow": 100,
+     "atrStop": 4
+    },
+    "revx": {
+     "inSample": {
+      "ret": 0.7956,
+      "maxDD": 0.1859,
+      "trades": 48,
+      "days": 733,
+      "exposure": 0.235
+     },
+     "outOfSample": {
+      "ret": -0.1801,
+      "maxDD": 0.2355,
+      "trades": 26,
+      "days": 375,
+      "exposure": 0.168
+     },
+     "fullPeriod": {
+      "ret": 0.4722,
+      "maxDD": 0.3004,
+      "trades": 74,
+      "days": 1108,
+      "exposure": 0.213
+     },
+     "defaultParamsOutOfSample": {
+      "ret": -0.0955,
+      "maxDD": 0.1806,
+      "trades": 28,
+      "days": 375,
+      "exposure": 0.133
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.2779,
+      "maxDD": 0.3036,
+      "trades": 26,
+      "days": 375,
+      "exposure": 0.168
+     },
+     "fullPeriod": {
+      "ret": 0.0279,
+      "maxDD": 0.4326,
+      "trades": 74,
+      "days": 1108,
+      "exposure": 0.213
+     }
+    }
+   },
+   "momentum-1d": {
+    "revx": {
+     "outOfSample": {
+      "ret": -0.1361,
+      "maxDD": 0.3113,
+      "trades": 45,
+      "days": 375,
+      "exposure": 0.459
+     },
+     "fullPeriod": {
+      "ret": 1.1936,
+      "maxDD": 0.3491,
+      "trades": 109,
+      "days": 1108,
+      "exposure": 0.573
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.276,
+      "maxDD": 0.4028,
+      "trades": 45,
+      "days": 375,
+      "exposure": 0.459
+     },
+     "fullPeriod": {
+      "ret": 0.43,
+      "maxDD": 0.4692,
+      "trades": 109,
+      "days": 1108,
+      "exposure": 0.573
+     }
+    }
+   }
+  },
+  "ETH/USD": {
+   "bars4h": 6750,
+   "from": "2023-08-22",
+   "split": "2025-09-10",
+   "to": "2026-09-20",
+   "buyHoldOutOfSample": -0.4013,
+   "buyHoldFull": 0.5503,
+   "trend-4h": {
+    "chosen": {
+     "fast": 30,
+     "slow": 50,
+     "atrStop": 3
+    },
+    "revx": {
+     "inSample": {
+      "ret": 2.2085,
+      "maxDD": 0.1333,
+      "trades": 34,
+      "days": 741,
+      "exposure": 0.166
+     },
+     "outOfSample": {
+      "ret": 0.0366,
+      "maxDD": 0.1918,
+      "trades": 16,
+      "days": 375,
+      "exposure": 0.088
+     },
+     "fullPeriod": {
+      "ret": 2.326,
+      "maxDD": 0.1918,
+      "trades": 50,
+      "days": 1117,
+      "exposure": 0.14
+     },
+     "defaultParamsOutOfSample": {
+      "ret": -0.0704,
+      "maxDD": 0.1964,
+      "trades": 22,
+      "days": 375,
+      "exposure": 0.112
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.0471,
+      "maxDD": 0.2377,
+      "trades": 16,
+      "days": 375,
+      "exposure": 0.088
+     },
+     "fullPeriod": {
+      "ret": 1.5633,
+      "maxDD": 0.2482,
+      "trades": 50,
+      "days": 1117,
+      "exposure": 0.14
+     }
+    }
+   },
+   "momentum-1d": {
+    "revx": {
+     "outOfSample": {
+      "ret": 0.0613,
+      "maxDD": 0.3837,
+      "trades": 33,
+      "days": 375,
+      "exposure": 0.475
+     },
+     "fullPeriod": {
+      "ret": 2.7192,
+      "maxDD": 0.4118,
+      "trades": 79,
+      "days": 1108,
+      "exposure": 0.491
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.0668,
+      "maxDD": 0.4316,
+      "trades": 33,
+      "days": 375,
+      "exposure": 0.475
+     },
+     "fullPeriod": {
+      "ret": 1.7337,
+      "maxDD": 0.4658,
+      "trades": 79,
+      "days": 1108,
+      "exposure": 0.491
+     }
+    }
+   }
+  },
+  "SOL/USD": {
+   "bars4h": 6750,
+   "from": "2023-08-22",
+   "split": "2025-09-10",
+   "to": "2026-09-20",
+   "buyHoldOutOfSample": -0.5023,
+   "buyHoldFull": 4.122,
+   "trend-4h": {
+    "chosen": {
+     "fast": 30,
+     "slow": 150,
+     "atrStop": 2
+    },
+    "revx": {
+     "inSample": {
+      "ret": 1.4104,
+      "maxDD": 0.1631,
+      "trades": 59,
+      "days": 725,
+      "exposure": 0.121
+     },
+     "outOfSample": {
+      "ret": 0.2777,
+      "maxDD": 0.1108,
+      "trades": 14,
+      "days": 375,
+      "exposure": 0.052
+     },
+     "fullPeriod": {
+      "ret": 2.1504,
+      "maxDD": 0.1631,
+      "trades": 72,
+      "days": 1100,
+      "exposure": 0.098
+     },
+     "defaultParamsOutOfSample": {
+      "ret": 0.1852,
+      "maxDD": 0.2302,
+      "trades": 14,
+      "days": 375,
+      "exposure": 0.098
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": 0.1837,
+      "maxDD": 0.1442,
+      "trades": 14,
+      "days": 375,
+      "exposure": 0.052
+     },
+     "fullPeriod": {
+      "ret": 1.1275,
+      "maxDD": 0.2258,
+      "trades": 72,
+      "days": 1100,
+      "exposure": 0.098
+     }
+    }
+   },
+   "momentum-1d": {
+    "revx": {
+     "outOfSample": {
+      "ret": -0.2945,
+      "maxDD": 0.5662,
+      "trades": 37,
+      "days": 375,
+      "exposure": 0.405
+     },
+     "fullPeriod": {
+      "ret": 5.0474,
+      "maxDD": 0.5662,
+      "trades": 69,
+      "days": 1108,
+      "exposure": 0.535
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.3891,
+      "maxDD": 0.6229,
+      "trades": 37,
+      "days": 375,
+      "exposure": 0.405
+     },
+     "fullPeriod": {
+      "ret": 3.6235,
+      "maxDD": 0.643,
+      "trades": 69,
+      "days": 1108,
+      "exposure": 0.535
+     }
+    }
+   }
+  }
+ }
+}
