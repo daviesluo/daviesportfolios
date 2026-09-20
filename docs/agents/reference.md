@@ -115,8 +115,7 @@ From docs.typesafe.ai/model-jaggedness/jev-1.13:
 | Fees | **0 % maker, 0.09 % taker**, flat, no tiers | revolut.com/legal/crypto-exchange-fees |
 | Order types | `market`, `limit` (with `post_only` / `allow_taker`, `time_in_force` gtc/ioc/fok), `conditional`, `tpsl` | docs |
 | Place order | `POST /1.0/orders` `{ client_order_id (uuid), symbol "BTC-USD", side, order_configuration: { limit: { base_size \| quote_size, price, execution_instructions, time_in_force } \| market: { base_size \| quote_size } } }` → `{ data: [{ venue_order_id, client_order_id, state }] }` | docs/x-api/place-order |
-| Trading limits | **10 orders/s, 1,000 orders/day** per key | docs |
-| Other limits | authenticated 1,000 req/min; public ~20 req/10 s; public candles ≈ 1 req/s | docs; measured |
+| Rate limits | Token buckets, **per endpoint**, verbatim from each endpoint's table on developer.revolut.com. `POST /1.0/orders` (place order): *Per-second limit 10 — 10 tokens/second — 1 token/request* AND *Per-day limit 1,000 — 1,000 tokens/day — 1 token/request*. Other authenticated endpoints: 100 tokens/s + 1,000 tokens/minute (the general “1,000 requests per minute” rule in the LLM reference). Public endpoints: 1 token/second. Authenticated candles: 500,000 tokens/s, cost `min(5,000, candle count)`. Historical queries cost 1 token per day in the requested range. 429 carries `Retry-After` in milliseconds. The day bucket refills continuously at 1,000/day rather than resetting at midnight, so it is a sustained-throughput cap of **1,000 orders per 24 h**, not a midnight lock — the constraint on the design is the same. | docs (literal table, checked 2026-09-20) |
 | Money values | strings, never floats | docs |
 | Symbols | dash in paths/requests (`BTC-USD`), slash in responses (`BTC/USD`) | docs |
 | Cancel | `DELETE /1.0/orders/{venue_order_id}` → 204; `DELETE /1.0/orders` cancels all | docs |

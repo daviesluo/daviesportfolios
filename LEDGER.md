@@ -166,8 +166,12 @@ rulebook, not the edge.
 pair 6–12 bps and thin — the universe is those three. Candles in
 MINUTES (my first probe sent milliseconds and got 400s), capped at 1,000
 per call, history back to Aug/Sep 2023 for all three. Ed25519 signing
-works natively in Deno 2.9.6. Trading cap 1,000 orders a day. Min
-notional $0.10. No sandbox. **An API key maps to the whole user
+works natively in Deno 2.9.6. Rate limits are token buckets per endpoint: the place-order endpoint
+has a 10/s bucket AND a 1,000-per-day bucket (verbatim from its own
+table, re-checked after Davies brought a source describing the general
+1,000-per-MINUTE rule — both are on the page, for different endpoints;
+the day bucket refills continuously, so it is a sustained cap, not a
+midnight lock). Min notional $0.10. No sandbox. **An API key maps to the whole user
 account** — the docs describe no sub-account scoping, so his "$100
 sub-account" is either a separate login (fine) or a sub-portfolio the
 same key can trade across (then isolation is our caps' job). And a key
