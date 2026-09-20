@@ -176,7 +176,7 @@ function usdToCcyRate(ccy, marketData) {
   return 1;
 }
 
-function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues, onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory }) {
+function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues, onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory, onOpenAgents }) {
   // Currency cycle for the scoreboard's PORTFOLIO number. Ephemeral
   // by design — every cold load starts on USD per the user's spec.
   // The button itself renders on every breakpoint; the
@@ -368,7 +368,7 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
             {editMode ? "✓ EDIT MODE" : "EDIT"}
           </button>
         )}
-        <HeaderMenu onOpenHoldingsList={onOpenHoldingsList} onOpenSectorsList={onOpenSectorsList} onOpenTransactionHistory={onOpenTransactionHistory} />
+        <HeaderMenu onOpenHoldingsList={onOpenHoldingsList} onOpenSectorsList={onOpenSectorsList} onOpenTransactionHistory={onOpenTransactionHistory} onOpenAgents={onOpenAgents} />
       </div>
     </header>
   );
@@ -376,9 +376,10 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
 
 // ☰ overflow menu to the right of EDIT. Click to toggle a dropdown;
 // click-away / Escape closes it. Items: "Holding list", "Sectors list" +
-// "Transaction history". Available in both view + edit mode, read-only
-// included (all three tables are view-only).
-function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory }) {
+// "Transaction history", then "Agents" (the crypto strategies page).
+// Available in both view + edit mode, read-only included (every page
+// behind the menu is view-only).
+function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory, onOpenAgents }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(/** @type {HTMLDivElement | null} */ (null));
   React.useEffect(() => {
@@ -418,6 +419,11 @@ function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHi
             role="menuitem"
             onClick={() => { setOpen(false); onOpenTransactionHistory && onOpenTransactionHistory(); }}
           >Transaction history</button>
+          <button
+            className="header-menu-item"
+            role="menuitem"
+            onClick={() => { setOpen(false); onOpenAgents && onOpenAgents(); }}
+          >Agents</button>
         </div>
       )}
     </div>

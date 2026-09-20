@@ -38,6 +38,13 @@ he will notice a red main.
 
 **The README is part of the change**, not a follow-up.
 
+**Usage is a budget he watches.** Never spend the main model on
+polling: no scheduled PR re-checks, no "quiet hold" wake-ups on
+Fable/Opus-class sessions. If a check is genuinely needed, run it in a
+cheap subagent (Opus 5 at most) and wake the main session only when
+there is real work to do. He said it in so many words on 2026-09-20
+after four re-checks found nothing: "以后千万不要用fable模型跑这个复查".
+
 **A pin test for every bug fixed.** A fix without a test that fails on
 the old code is not finished.
 
@@ -312,6 +319,16 @@ Changing any of these means re-opening a decision he has already made.
   CORS `Access-Control-Allow-Origin` is not a security boundary — it
   does not constrain curl. He accepted that disagreement with another
   AI's review. Don't "fix" CORS as if it were the control plane.
+- A new API key is verified READ-ONLY before anything depends on it,
+  from where the secret lives (a deployed probe action fired with the
+  Vault `cron_secret`), and the record goes in the reference doc: which
+  account the key sees, the key's form, a signed call with a query,
+  each transport's answer shape. Kraken's `AddOrder validate=true`
+  proves trading permission without an order; Revolut X has no dry run,
+  so its first live order is the test and needs his confirmation. The
+  2026-09-20 probes found the sub-account isolation and the Kraken
+  account's currencies (USDC / GBP, not USD) before a line of the loop
+  could act on either.
 - Don't refactor `app.jsx` into hooks, and don't stop committing the
   hashed bundle, unless he asks. Both were offered as P2 cleanups and
   explicitly deferred.

@@ -76,32 +76,80 @@ it.
 Do not copy live balances out of `LEDGER.md` or `handover.md` into new
 files, issues, or anything public. The repo is private; those files quote
 real positions.
-## Agents (crypto, Revolut X + TypeSafe Jev)
+## Agents (crypto, Revolut X + Kraken + TypeSafe Jev)
 
 Read `docs/agents/reference.md` before touching anything under the
 agents feature. It holds every verified fact about **TypeSafe: Jev 1.13**
 (a System One decision model, released 2026-09-17 — it answers typed
 questions with probabilities and cannot generate text; it is in no
-model's training data, so nothing about it may be written from memory)
-and the **Revolut X REST API** (Ed25519-signed, 0 % maker / 0.09 %
-taker, a 1,000-per-day token bucket on the place-order endpoint), plus the live measurements the design rests
-on. The rules that follow from that evidence, in short:
+model's training data, so nothing about it may be written from memory),
+the **Revolut X REST API** (Ed25519-signed, 0 % maker / 0.09 % taker,
+1,000 orders a day) and the **Kraken spot REST API** (HMAC-SHA512-signed,
+0.40 % maker / 0.80 % taker at this account's tier, OHLC capped at the
+720 most recent candles, `validate=true` dry run), plus the live
+measurements and the two read-only probes the design rests on. The rules
+that follow from that evidence, in short:
 
 - Jev is a decision node inside a rulebook, never the source of the
   edge. Code computes every number; Jev sees a short categorical state;
   a deterministic risk layer it cannot override has the last word. The
   vendor's own jaggedness page says it cannot reason about numbers or
   dates.
-- Decisions on closed 1h/4h bars, a loop every 5 minutes, at most a few
-  trades a day. At taker cost one round trip an hour burns ~75 % of the
-  account a month. Limit orders, `post_only`, by default.
+- The loop runs every minute and does four things each turn: quotes on
+  both venues (basis recorded every fifth minute), order management
+  (fills, reconcile, re-quote a resting order the touch has left — five
+  times at most, nothing rests past an hour), protective stops against
+  the live mark (ATR trail from the high since entry, a hard floor under
+  cost — sold without asking the model, marketable on Revolut X), and
+  the categorical state on the FORMING bar written to `agent_observations`
+  when it changes. **Entries happen only on a newly closed 1h / 4h / 1d
+  bar**, at most a few a day; the one exception is the dislocation rule,
+  whose entries are events. At taker cost one round trip an hour burns
+  ~75 % of the account a month. **Revolut X takes the touch** on every
+  order (9 bps — the fill the backtests assume; a resting bid on a
+  breakout fills when the breakout fails); **Kraken rests post-only**,
+  stops included (at the ask). After any exit a rule waits two of its own
+  bars before re-entering. One tick at a time: `agent_locks` lease.
 - BTC / ETH / SOL only — the only pairs on the venue with ≤ 3 bps
   spreads.
 - Paper first, per strategy; live only on Davies' explicit go, and the
   first live order needs his confirmation in the same conversation.
 - Record inputs (state, answers, order request/response, fills), not
   conclusions; P&L is computed in one place.
-- Secrets already in Supabase: `Revolut_X_API_kEY`, `openrouter_api_key`,
+- Two venues, each for what it is good at: Revolut X executes (0 %
+  maker); Kraken supplies the signal (`signal_venue` — its candles are
+  the cleaner series) and runs the slow rules plus paper twins whose
+  fills pay its real 0.40 %. **No cross-venue arbitrage**: the basis
+  never came near Kraken's fee in 60 h of 5-minute closes or 10 minutes
+  at the touch (reference §2c), and `agent_basis` keeps measuring it
+  every turn. Caps in `agent_risk` are per venue account and per mode.
+- Five rulebooks, all in `_shared/agents_strategy.ts`: trend-4h,
+  trend-1h (paper-only, for feedback speed), momentum-1d, rotation-1d
+  (top two of BTC/ETH/SOL/XRP by 30-day return, above their 100-day
+  average — the bear filter is what saved 33 points in the bear year;
+  `bearFilter:false` makes it always invested, and that is Davies'
+  switch, not a default), and dislocation-1m (Revolut X's TOUCH ≥ 15 bps
+  under Kraken's mid with Kraken not moving sharply → lift the ask, rest
+  the exit at the reference, 30-minute / 40 bps stops; BTC and ETH only,
+  paper, **a measurement first**: the 1-minute study's edge turned out to
+  be stale last-trade prints, reference §3.5 — never quote its bps as an
+  expectation). Breakout-with-volume, squeeze breakouts and double bottoms
+  were tested and rejected with numbers. Backtests: reference §3.3a–§3.5,
+  run with the loop's own fills, stops and cooldown; the backtester writes
+  `docs/agents/backtests/summary.json` itself.
+- The tick claims a bar by inserting its decision (unique index on
+  strategy, symbol, bar_start; a protective decision claims the forming
+  bar, a dislocation decision the minute); a live order is written as
+  `pending` BEFORE the venue is called and reconciled by client id next
+  turn. The daily loss limit blocks new risk only, never an exit; a
+  resting exit order never outranks a stop (it is cancelled first).
+  Paper twins have their own exposure cap (`paper_exposure_usd`) so they
+  measure independently.
+- Verify a key read-only before anything depends on it: the `probe`
+  action (balances, pair config, a signed call with a query, Kraken
+  `AddOrder validate=true`, Jev on both transports). It places nothing.
+- Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
+  `KRAKEN_PRO_API_KEY` + `KRAKEN_PRO_PRIVATE_KEY`, `openrouter_api_key`,
   `typesafe_API_KEY` (fallback). Never print them, never move them.
 
 ## Git workflow
@@ -174,7 +222,7 @@ the function's pure helpers from `index.test.ts` would bind a port.
 - `npm run build` — Vite production bundle, output to repo root.
 - `npm run verify:browser` — the whole-app browser sweep in
   `test/browser/app-sweep.mjs`: serves the COMMITTED bundle over http and
-  drives it in real Chromium at both breakpoints (84 checks). A hard CI
+  drives it in real Chromium at both breakpoints (154 checks). A hard CI
   gate since 2026-09-17. Its clock is pinned, so it gives the same answer
   at any hour — do not replace `CLOCK` with a live `Date`. Needs
   `npx playwright install chromium` once per machine; a container that
