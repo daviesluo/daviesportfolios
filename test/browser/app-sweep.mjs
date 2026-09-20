@@ -279,7 +279,8 @@ const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading
 const AGENTS_DASHBOARD = (() => {
   const at = new Date(CLOCK).toISOString();
   const strat = (id, kind, venue, over = {}) => ({
-    id, kind, venue, name: `${kind === 'trend-4h' ? 'Trend 4h' : 'Momentum 30d'} · ${venue === 'revx' ? 'Revolut X' : 'Kraken'}`,
+    id, kind, venue, signalVenue: 'kraken', nextDecisionAt: new Date(NOW_MS + 2 * 3600e3 + 13 * 60e3).toISOString(),
+    name: `${kind === 'trend-4h' ? 'Trend 4h' : 'Momentum 30d'} · ${venue === 'revx' ? 'Revolut X' : 'Kraken'}`,
     description: 'Fixture strategy.', symbols: ['BTC/USD', 'ETH/USD', 'SOL/USD'], mode: 'paper', capitalUsd: 60,
     params: { fast: 20, slow: 100 }, updatedAt: at,
     costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0,
@@ -318,6 +319,15 @@ const AGENTS_DASHBOARD = (() => {
       { id: 'kraken', canTrade: true, feeBps: { maker: 40, taker: 80 }, balances: { USD: 0 }, note: null, marks: { 'BTC/USD': 86000 } },
     ],
     strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
+    byVenue: {
+      revx: { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, capitalUsd: 120, strategies: 2, live: 0 },
+      kraken: { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, capitalUsd: 120, strategies: 2, live: 0 },
+    },
+    basis: {
+      'BTC/USD': { latest: 0.31, latestAt: at, n: 288, absP50: 0.4, absP95: 1.2, absMax: 2.1, over20: 0, over40: 0, over80: 0 },
+      'ETH/USD': { latest: -0.12, latestAt: at, n: 288, absP50: 0.3, absP95: 1.1, absMax: 1.9, over20: 0, over40: 0, over80: 0 },
+      'SOL/USD': { latest: 0.64, latestAt: at, n: 288, absP50: 0.7, absP95: 1.8, absMax: 3.4, over20: 0, over40: 0, over80: 0 },
+    },
   };
 })();
 
@@ -900,6 +910,26 @@ async function run() {
       const chips = await page.locator('.ag-chip .ag-chip-name').allTextContents();
       if (chips.includes('Revolut X') && chips.includes('Kraken') && chips.includes('Caps')) ok(S('agents'), 'venue and caps chips present');
       else fail(S('agents'), `chips: ${chips.join(', ')}`);
+      // Every row says where it trades; the split says how the book divides.
+      const badges = await page.locator('.ag-row .ag-venue').allTextContents();
+      const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, krakenRows = badges.filter((b) => b.startsWith('Kraken')).length;
+      if (revxRows === 2 && krakenRows === 2) ok(S('agents'), 'venue badge on every row: 2 Revolut X, 2 Kraken');
+      else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
+      const shares = await page.locator('.ag-share').allTextContents();
+      if (shares.some((t) => /Kraken 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Kraken');
+      else fail(S('agents'), `share bar reads ${shares.join(' | ')}`);
+      const cards = await page.locator('.ag-venue-card').count();
+      if (cards === 2) ok(S('agents'), 'one venue card per account');
+      else fail(S('agents'), `venue cards ${cards}`);
+      const funded = await page.locator('.ag-venue-card-revx .ag-venue-grid').textContent().catch(() => '');
+      if (/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card shows its funding');
+      else fail(S('agents'), `revx card reads "${funded}"`);
+      const nexts = await page.locator('.ag-row .ag-next').allTextContents();
+      if (nexts.length === 4 && nexts.every((t) => t === 'in 2h 13m')) ok(S('agents'), 'each row counts down to its next decision');
+      else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
+      const basisRowsN = await page.locator('.ag-basis-row').count();
+      if (basisRowsN === 3) ok(S('agents'), 'cross-venue basis table has the three symbols');
+      else fail(S('agents'), `basis rows ${basisRowsN}`);
       await page.locator('.ag-row').nth(2).click();
       await page.waitForSelector('.ag-detail', { timeout: 5_000 });
       const title = await page.locator('.ag-detail-title').first().textContent().catch(() => '');
@@ -910,6 +940,9 @@ async function run() {
       const ordRows = await page.locator('.ag-log').nth(1).locator('tbody tr').count();
       if (posCells === 1 && decRows === 1 && ordRows === 1) ok(S('agents'), 'detail shows the position, the decision and the order');
       else fail(S('agents'), `detail rows: positions ${posCells}, decisions ${decRows}, orders ${ordRows}`);
+      const orderVenue = await page.locator('.ag-log').nth(1).locator('tbody .ag-venue').first().textContent().catch(() => '');
+      if (/^Kraken/.test(orderVenue || '')) ok(S('agents'), 'the order row names its venue');
+      else fail(S('agents'), `order venue badge "${orderVenue}"`);
       const stateTxt = await page.locator('.ag-log').nth(0).locator('.ag-state').first().textContent().catch(() => '');
       if (/trend up/.test(stateTxt || '') && /mom positive/.test(stateTxt || '')) ok(S('agents'), 'decision row shows the words the model saw');
       else fail(S('agents'), `state text "${stateTxt}"`);

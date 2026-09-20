@@ -7,7 +7,7 @@ import { getAppToken } from './auth.js';
 import { fmtMoney, formatAgo } from './formatters.js';
 
 export const VENUE_LABELS = { revx: 'Revolut X', kraken: 'Kraken' };
-export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'momentum-1d': 'Momentum 30d' };
+export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'momentum-1d': 'Momentum 30d', 'rotation-1d': 'Rotation' };
 
 /** @param {string} id */
 export const venueLabel = (id) => VENUE_LABELS[id] ?? id;
@@ -84,6 +84,9 @@ export function strategyRows(dash, nowMs) {
       id: s.id,
       name: s.name,
       venue: venueLabel(s.venue),
+      venueId: s.venue,
+      signalVenue: s.signalVenue ?? s.venue,
+      nextDecisionAt: s.nextDecisionAt ?? null,
       kind: kindLabel(s.kind),
       mode: s.mode,
       capitalUsd: capital,
@@ -192,3 +195,88 @@ export const fmtFrac = (f) => (f == null ? '—' : fmtPctSigned(f * 100, 1));
 
 /** @param {{ maker: number, taker: number } | undefined} bps */
 export const fmtFees = (bps) => (bps ? `${bps.maker / 100}% / ${bps.taker / 100}%` : '—');
+
+/** Signed basis points with two decimals, the way the basis reads. @param {number | null | undefined} n */
+export const fmtBps = (n) => (n == null || isNaN(n) ? '—' : `${n > 0 ? '+' : ''}${n.toFixed(2)} bps`);
+
+/**
+ * "in 2h 13m" until an ISO time, "due" once it has passed — the next bar
+ * close a strategy will decide on.
+ * @param {string | null | undefined} iso
+ * @param {number} nowMs
+ */
+export function untilText(iso, nowMs) {
+  if (!iso) return '—';
+  const ms = Date.parse(iso) - nowMs;
+  if (isNaN(ms)) return '—';
+  if (ms <= 0) return 'due';
+  const m = Math.ceil(ms / 60e3);
+  if (m < 60) return `in ${m}m`;
+  const h = Math.floor(m / 60), rm = m % 60;
+  if (h < 24) return `in ${h}h ${String(rm).padStart(2, '0')}m`;
+  return `in ${Math.floor(h / 24)}d ${h % 24}h`;
+}
+
+/**
+ * One row per venue for the split: what each account holds, has made and
+ * is funded with, and its share of the book. Shares are of deployed value
+ * when anything is deployed, else of allotted capital, so the bar always
+ * says something.
+ * @param {any} dash
+ */
+export function venueRows(dash) {
+  const ids = ['revx', 'kraken'];
+  const by = dash?.byVenue ?? {};
+  const venues = Object.fromEntries((dash?.venues ?? []).map((v) => [v.id, v]));
+  const totalValue = ids.reduce((a, id) => a + (by[id]?.valueUsd ?? 0), 0);
+  const totalCapital = ids.reduce((a, id) => a + (by[id]?.capitalUsd ?? 0), 0);
+  const useValue = totalValue > 0;
+  return ids.map((id) => {
+    const b = by[id] ?? {};
+    const v = venues[id] ?? {};
+    const value = b.valueUsd ?? 0, capital = b.capitalUsd ?? 0;
+    return {
+      id, label: venueLabel(id),
+      capitalUsd: capital, valueUsd: value, costUsd: b.costUsd ?? 0, unrealisedUsd: b.unrealisedUsd ?? 0, realisedUsd: b.realisedUsd ?? 0, feesUsd: b.feesUsd ?? 0,
+      strategies: b.strategies ?? 0, live: b.live ?? 0,
+      balanceUsd: v.balances?.USD ?? null, canTrade: !!v.canTrade, feeBps: v.feeBps ?? null, note: v.note ?? null,
+      share: useValue ? (totalValue > 0 ? value / totalValue : 0) : (totalCapital > 0 ? capital / totalCapital : 0),
+      shareOf: useValue ? 'value' : 'capital',
+    };
+  });
+}
+
+/**
+ * The cross-venue basis per symbol over the last 24 h, plus the verdict the
+ * fees impose: an arbitrage needs the basis to clear Kraken's taker fee
+ * (or its maker fee with a resting hedge), and the counts say how often it did.
+ * @param {any} dash
+ */
+export function basisRows(dash) {
+  const b = dash?.basis ?? {};
+  return Object.keys(b).sort().map((symbol) => ({ symbol, ...b[symbol] }));
+}
+
+/**
+ * The rotation backtest is a basket, not a symbol: one row per variant on
+ * the venue asked for, with the other venue's out-of-sample figure beside
+ * it and the equal-weight buy-and-hold line for scale.
+ * @param {any} summary
+ * @param {string} venue
+ */
+export function rotationBacktestRows(summary, venue) {
+  const basket = summary?.basket;
+  if (!basket) return { rows: [], buyHoldOos: null, buyHoldFull: null, symbols: [] };
+  const other = venue === 'revx' ? 'kraken' : 'revx';
+  const labels = { default: 'top 2, bear filter on', noBearFilter: 'bear filter off (always in)', minHold7: '7-day minimum hold', top1: 'top 1', top3: 'top 3', lookback60: '60-day lookback' };
+  const rows = Object.entries(basket.variants ?? {}).map(([name, v]) => {
+    const mine = /** @type {any} */ (v)[venue] ?? {};
+    const theirs = /** @type {any} */ (v)[other] ?? {};
+    return {
+      name, label: labels[name] ?? name,
+      oosRet: mine.outOfSample?.ret ?? null, oosDD: mine.outOfSample?.maxDD ?? null, exposure: mine.outOfSample?.exposure ?? null, turnover: mine.outOfSample?.turnover ?? null,
+      fullRet: mine.fullPeriod?.ret ?? null, otherOosRet: theirs.outOfSample?.ret ?? null,
+    };
+  });
+  return { rows, buyHoldOos: basket.buyHoldEqualWeightOutOfSample ?? null, buyHoldFull: basket.buyHoldEqualWeightFull ?? null, symbols: basket.symbols ?? [] };
+}

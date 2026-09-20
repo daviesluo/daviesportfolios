@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-  backtestRows, decisionView, fetchAgentsDashboard, fmtFees, fmtFrac, fmtUsd, orderView, strategyRows, strategyStatus, totalsView,
+  backtestRows, basisRows, decisionView, fetchAgentsDashboard, fmtBps, fmtFees, fmtFrac, fmtUsd, orderView, strategyRows, strategyStatus,
+  rotationBacktestRows, totalsView, untilText, venueRows,
 } from './agents.js';
 
 const NOW = Date.parse('2026-09-20T12:00:00Z');
@@ -98,5 +99,51 @@ describe('fetchAgentsDashboard', () => {
     expect(await fetchAgentsDashboard(fetchImpl)).toEqual({ at: 'x', strategies: [] });
     const bad = vi.fn(async () => new Response('{"error":"unauthorised"}', { status: 401 }));
     await expect(fetchAgentsDashboard(bad)).rejects.toThrow(/401 .*unauthorised/);
+  });
+});
+
+describe('venueRows / basisRows / untilText', () => {
+  it('splits the book by venue and takes the share of deployed value, or of capital while nothing is deployed', () => {
+    const dash = {
+      byVenue: { revx: { valueUsd: 30, capitalUsd: 140, realisedUsd: 1, strategies: 4, live: 0 }, kraken: { valueUsd: 10, capitalUsd: 140, realisedUsd: -2, strategies: 3, live: 1 } },
+      venues: [{ id: 'revx', canTrade: true, balances: { USD: 100 }, feeBps: { maker: 0, taker: 9 } }, { id: 'kraken', canTrade: true, balances: { USD: 0, GBP: 75 }, feeBps: { maker: 40, taker: 80 } }],
+    };
+    const rows = venueRows(dash);
+    expect(rows.map((r) => r.label)).toEqual(['Revolut X', 'Kraken']);
+    expect(rows[0]).toMatchObject({ valueUsd: 30, balanceUsd: 100, share: 0.75, shareOf: 'value', live: 0 });
+    expect(rows[1]).toMatchObject({ valueUsd: 10, balanceUsd: 0, share: 0.25, live: 1 });
+    const idle = venueRows({ byVenue: { revx: { valueUsd: 0, capitalUsd: 60 }, kraken: { valueUsd: 0, capitalUsd: 140 } }, venues: [] });
+    expect(idle.map((r) => [r.share, r.shareOf])).toEqual([[0.3, 'capital'], [0.7, 'capital']]);
+    expect(venueRows(null).map((r) => r.share)).toEqual([0, 0]);
+  });
+  it('basis rows are sorted by symbol and carry the 24 h counts', () => {
+    const rows = basisRows({ basis: { 'SOL/USD': { latest: -0.6, n: 200, absP95: 1.5, over40: 0 }, 'BTC/USD': { latest: 0.3, n: 200, absP95: 1.1, over40: 0 } } });
+    expect(rows.map((r) => r.symbol)).toEqual(['BTC/USD', 'SOL/USD']);
+    expect(rows[0]).toMatchObject({ latest: 0.3, over40: 0 });
+    expect(basisRows(null)).toEqual([]);
+  });
+  it('untilText counts down to the next bar close', () => {
+    const now = Date.parse('2026-09-20T04:05:00Z');
+    expect(untilText('2026-09-20T08:00:00Z', now)).toBe('in 3h 55m');
+    expect(untilText('2026-09-20T04:20:00Z', now)).toBe('in 15m');
+    expect(untilText('2026-09-22T06:00:00Z', now)).toBe('in 2d 1h');
+    expect(untilText('2026-09-20T04:00:00Z', now)).toBe('due');
+    expect(untilText(null, now)).toBe('—');
+    expect(fmtBps(-0.61)).toBe('-0.61 bps');
+    expect(fmtBps(null)).toBe('—');
+  });
+});
+
+describe('rotationBacktestRows', () => {
+  it('lists the basket variants for one venue with the other venue beside them', () => {
+    const summary = { basket: { symbols: ['BTC/USD', 'ETH/USD'], buyHoldEqualWeightOutOfSample: -0.467, buyHoldEqualWeightFull: 2.25, variants: {
+      default: { params: {}, revx: { outOfSample: { ret: -0.122, maxDD: 0.3, exposure: 0.33, turnover: 21.7 }, fullPeriod: { ret: 1.284 } }, kraken: { outOfSample: { ret: -0.209 }, fullPeriod: { ret: 0.555 } } },
+    } } };
+    const r = rotationBacktestRows(summary, 'revx');
+    expect(r.symbols).toEqual(['BTC/USD', 'ETH/USD']);
+    expect(r.buyHoldOos).toBe(-0.467);
+    expect(r.rows).toEqual([{ name: 'default', label: 'top 2, bear filter on', oosRet: -0.122, oosDD: 0.3, exposure: 0.33, turnover: 21.7, fullRet: 1.284, otherOosRet: -0.209 }]);
+    expect(rotationBacktestRows(summary, 'kraken').rows[0]).toMatchObject({ oosRet: -0.209, otherOosRet: -0.122 });
+    expect(rotationBacktestRows(null, 'revx')).toEqual({ rows: [], buyHoldOos: null, buyHoldFull: null, symbols: [] });
   });
 });
