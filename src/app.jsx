@@ -45,6 +45,8 @@ const SectorsListModal = React.lazy(() =>
   import('./sectors_list.jsx').then(m => ({ default: m.SectorsListModal })));
 const TransactionHistoryModal = React.lazy(() =>
   import('./transaction_history.jsx').then(m => ({ default: m.TransactionHistoryModal })));
+const AgentsModal = React.lazy(() =>
+  import('./agents.jsx').then(m => ({ default: m.AgentsModal })));
 
 /** Warm every split chunk. Idempotent — the module cache dedupes. */
 function prefetchModalChunks() {
@@ -52,6 +54,7 @@ function prefetchModalChunks() {
   import('./holdings_list.jsx');
   import('./sectors_list.jsx');
   import('./transaction_history.jsx');
+  import('./agents.jsx');
 }
 import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
@@ -280,6 +283,7 @@ function Board({ isReadOnly }) {
   const [showHoldingsList, setShowHoldingsList] = useState(false);
   const [showSectorsList, setShowSectorsList] = useState(false);
   const [showTransactionHistory, setShowTransactionHistory] = useState(false);
+  const [showAgents, setShowAgents] = useState(false);
   const [addingToPos, setAddingToPos] = useState(/** @type {string | null} */ (null));
   const [editingCash, setEditingCash] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(/** @type {Date | null} */ (null));
@@ -358,7 +362,7 @@ function Board({ isReadOnly }) {
     const anyModalOpen = () =>
       drillPos != null || editingTicker != null || viewingTicker != null
       || addingToPos != null || editingCash || showHoldingsList
-      || showSectorsList || showTransactionHistory;
+      || showSectorsList || showTransactionHistory || showAgents;
     const onKey = (e) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (anyModalOpen()) return;
@@ -380,7 +384,7 @@ function Board({ isReadOnly }) {
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [isReadOnly, drillPos, editingTicker, viewingTicker, addingToPos, editingCash, showHoldingsList, showSectorsList, showTransactionHistory]);
+  }, [isReadOnly, drillPos, editingTicker, viewingTicker, addingToPos, editingCash, showHoldingsList, showSectorsList, showTransactionHistory, showAgents]);
 
   // True once the REAL loadPortfolioRemote() reply has landed (demo or
   // not) — as opposed to `portfolio` merely being non-null because the
@@ -1264,6 +1268,7 @@ function Board({ isReadOnly }) {
         onOpenHoldingsList={() => setShowHoldingsList(true)}
         onOpenSectorsList={() => setShowSectorsList(true)}
         onOpenTransactionHistory={() => setShowTransactionHistory(true)}
+        onOpenAgents={() => setShowAgents(true)}
       />
 
       <main className="main">
@@ -1397,6 +1402,13 @@ function Board({ isReadOnly }) {
             t212Orders={t212Orders}
             onTickerClick={(t) => { setShowTransactionHistory(false); setViewingTicker(t); }}
             onClose={() => setShowTransactionHistory(false)}
+          />
+        )}
+
+        {showAgents && (
+          <AgentsModal
+            hideValues={hideValues}
+            onClose={() => setShowAgents(false)}
           />
         )}
 

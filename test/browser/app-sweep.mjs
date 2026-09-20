@@ -269,7 +269,57 @@ const TOKEN = `${b64url(JSON.stringify({ role: 'admin', exp: NOW_MS + 3600_000 }
 // ---- run -----------------------------------------------------------
 
 /** Functions whose calls MUST carry the app token. */
-const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading212'];
+const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading212', '/agents'];
+
+/**
+ * The Agents dashboard as the Edge Function shapes it (`runDashboard`):
+ * four paper strategies, one of them long BTC on Kraken with a fill on
+ * record, so the page has a position, a decision and an order to draw.
+ */
+const AGENTS_DASHBOARD = (() => {
+  const at = new Date(CLOCK).toISOString();
+  const strat = (id, kind, venue, over = {}) => ({
+    id, kind, venue, name: `${kind === 'trend-4h' ? 'Trend 4h' : 'Momentum 30d'} · ${venue === 'revx' ? 'Revolut X' : 'Kraken'}`,
+    description: 'Fixture strategy.', symbols: ['BTC/USD', 'ETH/USD', 'SOL/USD'], mode: 'paper', capitalUsd: 60,
+    params: { fast: 20, slow: 100 }, updatedAt: at,
+    costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0,
+    positions: ['BTC/USD', 'ETH/USD', 'SOL/USD'].map((symbol) => ({ symbol, base: 0, avgCost: 0, mark: 100, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0 })),
+    openOrders: 0, ordersToday: 0, jev24h: { calls: 6, costUsd: 0.00011, avgLatencyMs: 480, providers: { openrouter: 6 } },
+    lastDecision: { ts: new Date(CLOCK - 35 * 60e3).toISOString(), symbol: 'BTC/USD', action: 'hold', ruleAction: 'hold', reason: 'in position', provider: 'openrouter', riskAllowed: true, riskReason: 'hold' },
+    backtest: null, recentDecisions: [], recentOrders: [], ...over,
+  });
+  const kraken = strat('trend-4h-kraken', 'trend-4h', 'kraken', {
+    costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, ordersToday: 1,
+    positions: [
+      { symbol: 'BTC/USD', base: 0.00025, avgCost: 80000, mark: 86000, costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, openedAt: CLOCK - 86400e3, highWater: 86500, fills: 3 },
+      { symbol: 'ETH/USD', base: 0, avgCost: 0, mark: 2500, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0 },
+      { symbol: 'SOL/USD', base: 0, avgCost: 0, mark: 110, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0 },
+    ],
+    recentDecisions: [{
+      id: 1, ts: new Date(CLOCK - 35 * 60e3).toISOString(), strategy_id: 'trend-4h-kraken', venue: 'kraken', symbol: 'BTC/USD', mode: 'paper',
+      state: { trend_4h: 'up', breakout_4h: 'inside_range', volatility: 'normal', momentum_30d: 'positive', position: 'long' },
+      answers: { healthy_trend: { type: 'noul', probability: 0.91 }, caution: { type: 'score', score: 0.1 }, _state: { type: 'choice', choice: 'BTC/USD' } },
+      provider: 'openrouter', model: 'typesafe/jev-1.13-20260917', latency_ms: 470, cost_usd: 0.0000184,
+      rule_action: 'hold', rule_reason: 'in position', final_action: 'hold', final_reason: 'in position [healthy=0.91]', risk_allowed: true, risk_reason: 'hold',
+    }],
+    recentOrders: [{
+      id: 1, ts: new Date(CLOCK - 86400e3).toISOString(), strategy_id: 'trend-4h-kraken', venue: 'kraken', symbol: 'BTC/USD', mode: 'paper', side: 'buy',
+      price: 80000, base_size: 0.00025, state: 'filled', filled_base: 0.00025, avg_fill_price: 80000, fee_usd: 0.08, filled_at: new Date(CLOCK - 86400e3 + 300e3).toISOString(),
+    }],
+  });
+  const strategies = [strat('trend-4h', 'trend-4h', 'revx'), strat('momentum-1d', 'momentum-1d', 'revx'), kraken, strat('momentum-1d-kraken', 'momentum-1d', 'kraken')];
+  const totals = { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, byMode: { paper: { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08 }, live: { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0 } } };
+  return {
+    at,
+    risk: { id: 1, global_pause: false, max_order_usd: 20, max_exposure_usd: 100, daily_loss_limit_usd: 5, max_orders_per_day: 40, live_confirmed_at: null, updated_at: at },
+    totals,
+    venues: [
+      { id: 'revx', canTrade: true, feeBps: { maker: 0, taker: 9 }, balances: { USD: 100 }, note: null, marks: { 'BTC/USD': 86000 } },
+      { id: 'kraken', canTrade: true, feeBps: { maker: 40, taker: 80 }, balances: { USD: 0 }, note: null, marks: { 'BTC/USD': 86000 } },
+    ],
+    strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
+  };
+})();
 
 let failures = 0;
 const log = [];
@@ -321,6 +371,8 @@ async function newPage(browser, { width, height }, errors, tokenMisses) {
       body: JSON.stringify(body),
     });
     if (url.includes('/data?') && url.includes('action=load')) return json({ data: PORTFOLIO, version: 1 });
+    if (url.includes('/agents?') && url.includes('action=dashboard')) return json(AGENTS_DASHBOARD);
+    if (url.includes('/agents?') && url.includes('action=log')) return json({ strategyId: 'trend-4h', decisions: [], orders: [] });
     if (url.includes('action=price-snapshots')) {
       // Recording began 30 days ago, as it really did (2026-08-19).
       // That is long before the 24H window opens and part-way into the
@@ -746,11 +798,11 @@ async function run() {
     // fills in afterwards. Nothing below has opened a modal yet, so a
     // resource entry here can only have come from the prefetch.
     const requestedChunks = (/** @type {any} */ (page).__requested || [])
-      .filter((/** @type {string} */ n) => /\/assets\/(ticker_chart_modal|transaction_history|holdings_list|sectors_list)-/.test(n))
+      .filter((/** @type {string} */ n) => /\/assets\/(ticker_chart_modal|transaction_history|holdings_list|sectors_list|agents)-/.test(n))
       .map((/** @type {string} */ n) => (n.split('/').pop() || '').replace(/-[a-f0-9]+\.js$/, ''));
-    const want = ['ticker_chart_modal', 'transaction_history', 'holdings_list', 'sectors_list'];
+    const want = ['ticker_chart_modal', 'transaction_history', 'holdings_list', 'sectors_list', 'agents'];
     const missing = want.filter((w) => !requestedChunks.includes(w));
-    if (missing.length === 0) ok(S('chunks'), 'all four modal chunks prefetched before any click');
+    if (missing.length === 0) ok(S('chunks'), 'all five modal chunks prefetched before any click');
     else fail(S('chunks'), `not prefetched: ${missing.join(', ')}`);
 
     // ---- 7. transaction history -------------------------------------
@@ -823,6 +875,53 @@ async function run() {
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
     } else fail(S('history'), 'Transaction history menu item not found');
+
+    // ---- 8. agents ----------------------------------------------------
+    // The page is the Edge Function's dashboard, formatted: the headline
+    // must be the fixture's realised total, every strategy a row, and a
+    // row must open the detail with the position and the decision the
+    // fixture carries. The mask toggle is not exercised here; it reuses
+    // maskDigits, which the transaction history already proves.
+    await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+    await page.waitForTimeout(200);
+    const agentsBtn = page.locator('.header-menu-item:text-is("Agents")');
+    if (await agentsBtn.count()) {
+      await agentsBtn.first().click();
+      await page.waitForSelector('.ag-table', { timeout: 10_000 });
+      const head = await page.locator('.ag-total-val').first().textContent().catch(() => '');
+      if (money(head) === 12.34 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total (${(head || '').trim()})`);
+      else fail(S('agents'), `headline read "${head}", wanted +$12.34`);
+      const rows = await page.locator('.ag-row').count();
+      if (rows === 4) ok(S('agents'), 'four strategy rows, one per rulebook per venue');
+      else fail(S('agents'), `expected 4 strategy rows, got ${rows}`);
+      const running = await page.locator('.ag-row .ag-status.is-running').count();
+      if (running === 4) ok(S('agents'), 'every strategy shows as running (decided 35 min ago)');
+      else fail(S('agents'), `running dots: ${running} of 4`);
+      const chips = await page.locator('.ag-chip .ag-chip-name').allTextContents();
+      if (chips.includes('Revolut X') && chips.includes('Kraken') && chips.includes('Caps')) ok(S('agents'), 'venue and caps chips present');
+      else fail(S('agents'), `chips: ${chips.join(', ')}`);
+      await page.locator('.ag-row').nth(2).click();
+      await page.waitForSelector('.ag-detail', { timeout: 5_000 });
+      const title = await page.locator('.ag-detail-title').first().textContent().catch(() => '');
+      if (/Kraken/.test(title || '')) ok(S('agents'), `third row opens its detail (${(title || '').trim()})`);
+      else fail(S('agents'), `detail title "${title}"`);
+      const posCells = await page.locator('.ag-detail .ag-section').nth(0).locator('tbody tr').count();
+      const decRows = await page.locator('.ag-log').nth(0).locator('tbody tr').count();
+      const ordRows = await page.locator('.ag-log').nth(1).locator('tbody tr').count();
+      if (posCells === 1 && decRows === 1 && ordRows === 1) ok(S('agents'), 'detail shows the position, the decision and the order');
+      else fail(S('agents'), `detail rows: positions ${posCells}, decisions ${decRows}, orders ${ordRows}`);
+      const stateTxt = await page.locator('.ag-log').nth(0).locator('.ag-state').first().textContent().catch(() => '');
+      if (/trend up/.test(stateTxt || '') && /mom positive/.test(stateTxt || '')) ok(S('agents'), 'decision row shows the words the model saw');
+      else fail(S('agents'), `state text "${stateTxt}"`);
+      const bt = await page.locator('.ag-detail .ag-section').last().locator('tbody tr').count();
+      if (bt === 3) ok(S('agents'), 'backtest table has the three symbols');
+      else fail(S('agents'), `backtest rows ${bt}`);
+      await page.locator('.ag-back').click();
+      await page.waitForSelector('.ag-table', { timeout: 5_000 });
+      ok(S('agents'), 'back returns to the overview');
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+    } else fail(S('agents'), 'Agents menu item not found');
 
     await ctx.close();
   }
