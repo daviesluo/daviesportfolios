@@ -38,6 +38,13 @@ list stays the short version; the plan is the reasoning behind it.
    the gate) and the first live order needs his confirmation in the
    conversation. Never apply 0037 by hand. **Usage rule**: no main-model
    PR polling; an Opus-class subagent reviews when a review is needed.
+   **Production's `agents` function is still the probe-only build (v4)**:
+   the repo build could not be deployed from this container (the MCP
+   deploy takes inline source and 62 KB does not fit one call; a manual
+   `workflow_dispatch` path for `edge-functions.yml` was refused by the
+   session's own permission gate). Merging deploys it; or
+   `supabase functions deploy agents --no-verify-jwt` from a machine with
+   the CLI. Until then the preview's Agents page shows the old 404.
 
 1. **Cloudflare's edge still serves five cached copies of the old
    exposure, for up to seven days.** The ORIGIN is fixed — every path
@@ -142,6 +149,62 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-20 18:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The independent review round: two P0s and five P1s on the money path
+fixed, the backtests re-run with the loop's own fills, the dislocation
+"edge" withdrawn as a stale-print artefact.** An Opus subagent reviewed
+PR #211 (code, strategy, design) and found: XRP had no Kraken pair
+mapping, which broke every Kraken batch call and with it four strategies,
+the dislocation rule and the basis record; a live order that filled on
+arrival was recorded with no size and no fee; the order-count cap refused
+exits; a Kraken stop was a post-only sell at the bid (always rejected); a
+resting exit blocked the stop for the bar rules; a stop was tried once per
+bar; partial fills were invisible; no single-flight guard on the tick; the
+backtests priced a guaranteed maker fill the loop never places and ran
+none of the stops; the dislocation study read closes while the rule reads
+the touch. All fixed and pinned (`tick.test.ts` 29, `kraken.test.ts` 11,
+Edge suite 287):
+
+- Kraken maps XRP (`XRPUSD` / `XXRPZUSD`), batch calls drop unknown
+  symbols, `placeLimit` honours `marketable` (IOC, no post-only).
+- A placement reply never settles an order: the row stays `new` and the
+  venue's own view settles it next turn. Partial fills count as positions;
+  a cancel after a partial fill is a fill of that part.
+- `riskGate`: the order-count cap, like the loss limit, stops new risk
+  only. Stops are evaluated before the in-flight guard, claim the MINUTE,
+  cancel a resting order they outrank (Revolut X) or leave a resting ask
+  to work (Kraken, priced at the ask). One pair's throw is caught per
+  pair. `agent_locks` lease (55 s) — one tick at a time. Observations
+  looked up per pair. `chart` / `log` answer `notReady`; the fee tier is
+  cached an hour.
+- **Execution model, decided and pinned:** Revolut X takes the touch on
+  every order (9 bps, the backtests' fill; a resting bid on a breakout
+  fills when the breakout fails); Kraken rests post-only. After any exit a
+  rule waits two bars — without it momentum made 155 trades a year in the
+  re-run, 45 with it.
+- **Backtests re-run** (reference §3.3a; the backtester now writes
+  `summary.json` itself, XRP at its measured spread): trend-4h OOS on
+  Revolut X BTC −16.5 % / ETH −1.0 % / SOL +17.3 % with stops (−19.3 /
+  −3.9 / +27.0 without); momentum-1d −17.0 / +10.4 / −29.2; trend-1h −9.3
+  / −6.9 / +14.1; rotation −14.4 % (no bear filter −47.4 %). Buy-and-hold
+  −28 / −40 / −50 %.
+- **Dislocation** (reference §3.5): 60–73 % of the study's "cheap"
+  Revolut X minutes had zero volume and the reference's forward return
+  after them is ≈ 0 — the +8 bps was a stale last-trade print catching
+  up. The seed stays, paper, reading the touch basis, as a measurement
+  with no return claimed; the page's backtest note says so.
+- **Page** (from the review's design pass): status and return right
+  after the name and the money detail hidden under 760 px; an error card
+  in words with Try again and the envelope folded away; banners for a
+  global pause and a venue fault; the explainer says every minute, five
+  rulebooks, model on entries only; the basis "Now" column wears no P&L
+  colour; venue chips no longer repeat the cards; the held position under
+  the realised figure; strategy names are real buttons. Sweep 170 checks.
+- **Not done here:** production still runs the probe-only `agents` (see
+  item 0); the friend's Rust engine question is answered in the
+  conversation, not in the repo.
 
 ### [2026-09-20 13:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

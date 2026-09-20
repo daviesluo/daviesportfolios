@@ -8,6 +8,8 @@ export type Db = {
   insert: <T = unknown>(table: string, rows: unknown, returning?: boolean) => Promise<T[]>;
   upsert: (table: string, rows: unknown, onConflict: string) => Promise<void>;
   update: (table: string, query: string, patch: unknown) => Promise<void>;
+  /** An update that returns the rows it changed — a compare-and-set when the filter names the expected state (the tick's lease). */
+  claim: <T = unknown>(table: string, query: string, patch: unknown) => Promise<T[]>;
 };
 
 export function makeDb(supabaseUrl: string, serviceKey: string, fetchImpl: typeof fetch = fetch, timeoutMs = 8_000): Db {
@@ -30,5 +32,6 @@ export function makeDb(supabaseUrl: string, serviceKey: string, fetchImpl: typeo
       await call("POST", `${table}?on_conflict=${onConflict}`, rows, { Prefer: "resolution=merge-duplicates,return=minimal" });
     },
     update: async (table, query, patch) => { await call("PATCH", `${table}?${query}`, patch, { Prefer: "return=minimal" }); },
+    claim: (table, query, patch) => call("PATCH", `${table}?${query}`, patch, { Prefer: "return=representation" }),
   };
 }

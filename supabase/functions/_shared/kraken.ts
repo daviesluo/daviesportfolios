@@ -31,18 +31,21 @@ export const KRAKEN_BASE = "https://api.kraken.com";
 /** Lowest volume tier of the published schedule, 2026-09-20. TradeVolume overrides at run time. */
 export const KRAKEN_DEFAULT_FEE_BPS = { maker: 40, taker: 80 };
 
-/** Slash symbol → request altname. Only the pairs the agents trade; anything else throws on purpose. */
-export const KRAKEN_ALTNAME: Record<string, string> = { "BTC/USD": "XBTUSD", "ETH/USD": "ETHUSD", "SOL/USD": "SOLUSD" };
+/** Slash symbol → request altname. Only the pairs the agents trade (reference §2b); anything else throws on purpose. */
+export const KRAKEN_ALTNAME: Record<string, string> = { "BTC/USD": "XBTUSD", "ETH/USD": "ETHUSD", "SOL/USD": "SOLUSD", "XRP/USD": "XRPUSD" };
 /** Slash symbol → the primary id responses are keyed by. */
-export const KRAKEN_PAIR_ID: Record<string, string> = { "BTC/USD": "XXBTZUSD", "ETH/USD": "XETHZUSD", "SOL/USD": "SOLUSD" };
+export const KRAKEN_PAIR_ID: Record<string, string> = { "BTC/USD": "XXBTZUSD", "ETH/USD": "XETHZUSD", "SOL/USD": "SOLUSD", "XRP/USD": "XXRPZUSD" };
 /** Asset code on the wire → the currency the site names. */
-export const KRAKEN_ASSET: Record<string, string> = { XXBT: "BTC", XBT: "BTC", XETH: "ETH", ETH: "ETH", SOL: "SOL", ZUSD: "USD", USD: "USD" };
+export const KRAKEN_ASSET: Record<string, string> = { XXBT: "BTC", XBT: "BTC", XETH: "ETH", ETH: "ETH", SOL: "SOL", XXRP: "XRP", XRP: "XRP", ZUSD: "USD", USD: "USD" };
 
 export function toAltname(symbol: string): string {
   const a = KRAKEN_ALTNAME[symbol];
   if (!a) throw new Error(`no Kraken altname for ${symbol}`);
   return a;
 }
+
+/** Does this venue trade the symbol? A batch call (quotes, pairs, fees) drops what it does not know rather than failing whole. */
+export const krakenSupports = (symbol: string): boolean => symbol in KRAKEN_ALTNAME;
 
 /** A response key (XXBTZUSD / XBTUSD / XBT/USD) → the slash symbol, or null when it is not one of ours. */
 export function fromKrakenPair(key: string): string | null {
@@ -231,7 +234,9 @@ export function krakenVenue(env: KrakenEnv | null, fetchImpl: typeof fetch = fet
       return toCandles(rows).filter((c) => c.start >= sinceMs).sort((a, b) => a.start - b.start);
     },
     async quotes(symbols) {
-      const r = await ticker(symbols, fetchImpl);
+      const known = symbols.filter(krakenSupports);
+      if (!known.length) return {};
+      const r = await ticker(known, fetchImpl);
       if (!r.ok) throw new Error(`kraken Ticker → ${r.error}`);
       const out: Record<string, Quote> = {};
       for (const [key, t] of Object.entries(r.data)) {
@@ -241,7 +246,9 @@ export function krakenVenue(env: KrakenEnv | null, fetchImpl: typeof fetch = fet
       return out;
     },
     async pairs(symbols) {
-      const r = await assetPairs(symbols, fetchImpl);
+      const known = symbols.filter(krakenSupports);
+      if (!known.length) return {};
+      const r = await assetPairs(known, fetchImpl);
       if (!r.ok) throw new Error(`kraken AssetPairs → ${r.error}`);
       const out: Record<string, PairConfig> = {};
       for (const [key, p] of Object.entries(r.data)) {
@@ -252,7 +259,11 @@ export function krakenVenue(env: KrakenEnv | null, fetchImpl: typeof fetch = fet
     },
     async placeLimit(o): Promise<PlaceResult> {
       if (!env) return { ok: false, status: 0, error: "no Kraken credentials", response: null };
-      const req: AddOrderRequest = { pair: toAltname(o.symbol), type: o.side, ordertype: "limit", volume: o.base, price: o.price, oflags: "post", timeinforce: "GTC", cl_ord_id: o.clientOrderId };
+      // Resting: post-only, good till cancelled. Marketable (a stop that must fill): no post-only flag and
+      // immediate-or-cancel, so it takes what is there at the price and the rest is cancelled, never left resting.
+      const req: AddOrderRequest = o.marketable
+        ? { pair: toAltname(o.symbol), type: o.side, ordertype: "limit", volume: o.base, price: o.price, timeinforce: "IOC", cl_ord_id: o.clientOrderId }
+        : { pair: toAltname(o.symbol), type: o.side, ordertype: "limit", volume: o.base, price: o.price, oflags: "post", timeinforce: "GTC", cl_ord_id: o.clientOrderId };
       const r = await addOrder(env, req, fetchImpl);
       if (!r.ok) return { ok: false, status: r.status, error: r.error, response: { request: req, raw: r.raw.slice(0, 500) } };
       const txid = r.data?.txid?.[0];

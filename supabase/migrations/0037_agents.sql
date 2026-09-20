@@ -241,11 +241,11 @@ insert into public.agent_strategies (id, kind, venue, signal_venue, name, descri
    '{BTC/USD,ETH/USD,SOL/USD,XRP/USD}', 'paper', 60,
    '{"lookbackDays":30,"topN":2,"slowDays":100,"bearFilter":true,"minHoldDays":0,"enterMin":0.6,"exitMax":0.3}'::jsonb),
   ('trend-4h', 'trend-4h', 'revx', 'kraken', 'Trend 4h · Revolut X',
-   'Long-only trend following on 4-hour candles. Enters when the 20-bar average is above the 100-bar average, the close breaks the prior 55-bar high and 30-day momentum is positive; exits on a trend cross-down, a close below the prior 20-bar low, or a 3×ATR trailing stop. Jev may veto an entry or advise an exit; it can never open a position the rule would not. Reads Kraken''s candles, rests post-only limits on Revolut X.',
+   'Long-only trend following on 4-hour candles. Enters when the 20-bar average is above the 100-bar average, the close breaks the prior 55-bar high and 30-day momentum is positive; exits on a trend cross-down, a close below the prior 20-bar low, or a 3×ATR trailing stop (checked every minute against the live mark, with a hard floor under cost). Jev is asked on entries only and may veto one; it can never open a position the rule would not, and exits are the rule''s alone. Reads Kraken''s candles, rests post-only limits on Revolut X.',
    '{BTC/USD,ETH/USD,SOL/USD}', 'paper', 40,
    '{"fast":20,"slow":100,"breakoutUp":55,"breakoutDown":20,"atrN":14,"atrStop":3,"volN":42,"enterMin":0.6,"exitMax":0.3}'::jsonb),
   ('dislocation-1m', 'dislocation-1m', 'revx', 'kraken', 'Dislocation · Revolut X',
-   'Illiquidity events, decided every minute from both venues'' quotes. When Revolut X''s thin book prints 15 bps or more under Kraken''s mid while Kraken itself is not moving sharply, buy at Revolut X''s ask at once — the taker fee is the price of being there before the snap-back; a resting bid only fills when the move continues and loses (reference §3.5) — then rest an ask at Kraken''s price once the gap has closed, at 0 % maker. Out after 30 minutes or 40 bps against, whichever comes first. BTC and ETH only: on SOL and XRP Revolut X''s own spread is wider than the edge.',
+   'Illiquidity events, decided every minute from both venues'' live quotes — a measurement first. When Revolut X''s own touch (its mid) sits 15 bps or more under Kraken''s mid while Kraken is not moving sharply, buy at Revolut X''s ask at once, rest an ask at Kraken''s price once the gap has closed, and be out after 30 minutes or 40 bps against, cancelling the resting exit first. The 1-minute study that suggested an edge here measured stale last-trade prints, not quotes (reference §3.5): this row exists to find out how often the touch itself dislocates, and claims no return until its own fills say otherwise. BTC and ETH only, paper.',
    '{BTC/USD,ETH/USD}', 'paper', 40,
    '{"entryBps":15,"exitBps":-2,"maxHoldMin":30,"stopBps":40,"sharpMoveBps":15,"cooldownMin":3,"enterMin":0.6,"exitMax":0.3}'::jsonb),
   ('trend-1h', 'trend-1h', 'revx', 'kraken', 'Trend 1h · Revolut X',
@@ -253,7 +253,7 @@ insert into public.agent_strategies (id, kind, venue, signal_venue, name, descri
    '{BTC/USD,ETH/USD,SOL/USD}', 'paper', 40,
    '{"fast":20,"slow":100,"breakoutUp":55,"breakoutDown":20,"atrN":14,"atrStop":3,"volN":42,"enterMin":0.6,"exitMax":0.3}'::jsonb),
   ('momentum-1d', 'momentum-1d', 'revx', 'kraken', 'Momentum 30d · Revolut X',
-   'Time-series momentum on daily closes, decided once a day: long while the close is above its close 30 days earlier, flat otherwise. The slowest rule that survived costs in the backtests. Jev applies the same veto and exit advice.',
+   'Time-series momentum on daily closes, decided once a day: long while the close is above its close 30 days earlier, flat otherwise. The slowest rule that survived costs in the backtests. Jev applies the same entry veto.',
    '{BTC/USD,ETH/USD,SOL/USD}', 'paper', 40,
    '{"lookbackDays":30,"enterMin":0.6,"exitMax":0.3}'::jsonb),
   -- Kraken: 0.40 % maker at this account''s tier, so only the slow rules, damped further.
@@ -272,6 +272,24 @@ insert into public.agent_strategies (id, kind, venue, signal_venue, name, descri
 on conflict (id) do nothing;
 
 insert into public.agent_risk (id) values (1) on conflict (id) do nothing;
+
+-- ── one tick at a time ──────────────────────────────────────────────────
+--
+-- pg_cron fires the tick every minute through pg_net, which does not wait
+-- for the previous call: a slow turn (the model answering late, a venue
+-- timing out) would overlap the next one. The unique index on decisions
+-- protects orders that come from a decision; this lease protects the rest
+-- (re-quotes, settlement, observations). A turn takes the lease with a
+-- compare-and-set (`lease_until < now()`) and gives it back when it ends;
+-- a turn that dies keeps it for at most 55 seconds.
+
+create table if not exists public.agent_locks (
+  name         text primary key,
+  lease_until  timestamptz not null default 'epoch',
+  holder       text
+);
+alter table public.agent_locks enable row level security;
+insert into public.agent_locks (name) values ('tick') on conflict (name) do nothing;
 
 -- ── the loop: every minute, same machinery as snapshot-record ──────────
 --
@@ -325,7 +343,7 @@ select cron.schedule(
   $cron$
     delete from public.agent_basis        where ts    < now() - interval '30 days';
     delete from public.agent_observations where ts    < now() - interval '30 days';
-    delete from public.agent_candles      where start < now() - interval '120 days';
+    delete from public.agent_candles      where start < now() - interval '200 days';   -- the loop keeps 130 daily bars warm
     delete from public.agent_candles      where interval_min = 1 and start < now() - interval '3 days';
   $cron$
 );

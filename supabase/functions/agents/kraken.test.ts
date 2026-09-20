@@ -123,3 +123,36 @@ Deno.test("krakenVenue signs private calls: API-Key/API-Sign headers, form body 
   const nonce = c.body.match(/^nonce=(\d+)/)![1];
   assertEquals(c.headers["API-Sign"], await krakenSign("/0/private/AddOrder", nonce, c.body, VECTOR.secret));
 });
+
+Deno.test("XRP/USD is a Kraken pair too (XRPUSD / XXRPZUSD / XXRP), and a batch call drops unknown symbols instead of failing whole", async () => {
+  const { KRAKEN_ALTNAME, KRAKEN_PAIR_ID, KRAKEN_ASSET, fromKrakenPair, krakenSupports, krakenVenue } = await import("../_shared/kraken.ts");
+  assertEquals([KRAKEN_ALTNAME["XRP/USD"], KRAKEN_PAIR_ID["XRP/USD"], KRAKEN_ASSET.XXRP], ["XRPUSD", "XXRPZUSD", "XRP"]);
+  assertEquals(fromKrakenPair("XXRPZUSD"), "XRP/USD");
+  assertEquals([krakenSupports("XRP/USD"), krakenSupports("DOGE/USD")], [true, false]);
+  const urls: string[] = [];
+  const f: typeof fetch = (url) => {
+    urls.push(String(url));
+    return Promise.resolve(new Response(JSON.stringify({ error: [], result: { XXRPZUSD: { a: ["0.5001", "1", "1"], b: ["0.5000", "1", "1"] } } })));
+  };
+  const v = krakenVenue(null, f);
+  const q = await v.quotes(["XRP/USD", "DOGE/USD"]);                     // DOGE is not ours: filtered, not thrown
+  assertEquals(Object.keys(q), ["XRP/USD"]);
+  assert(urls[0].includes("pair=XRPUSD") && !urls[0].includes("DOGE"), urls[0]);
+  assertEquals(await v.quotes(["DOGE/USD"]), {});                        // nothing known: no call at all
+  assertEquals(urls.length, 1);
+});
+
+Deno.test("a marketable Kraken order drops the post-only flag and is immediate-or-cancel; a resting one stays post-only GTC", async () => {
+  const { krakenVenue } = await import("../_shared/kraken.ts");
+  const bodies: string[] = [];
+  const f: typeof fetch = async (_url, init) => {
+    bodies.push(String(init?.body));
+    return new Response(JSON.stringify({ error: [], result: { txid: ["T-1"], descr: { order: "x" } } }));
+  };
+  const env = { apiKey: "k", secret: btoa("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"), nonce: () => "1" };
+  const v = krakenVenue(env, f);
+  await v.placeLimit({ clientOrderId: "c1", symbol: "BTC/USD", side: "sell", base: "0.001", price: "50000.0", marketable: true });
+  await v.placeLimit({ clientOrderId: "c2", symbol: "BTC/USD", side: "sell", base: "0.001", price: "50000.0" });
+  assert(bodies[0].includes("timeinforce=IOC") && !bodies[0].includes("oflags=post"), bodies[0]);
+  assert(bodies[1].includes("timeinforce=GTC") && bodies[1].includes("oflags=post"), bodies[1]);
+});

@@ -105,9 +105,11 @@ that follow from that evidence, in short:
   when it changes. **Entries happen only on a newly closed 1h / 4h / 1d
   bar**, at most a few a day; the one exception is the dislocation rule,
   whose entries are events. At taker cost one round trip an hour burns
-  ~75 % of the account a month. Limit orders, `post_only`, by default;
-  marketable only for stops and the dislocation entry, where the data
-  says the resting version loses.
+  ~75 % of the account a month. **Revolut X takes the touch** on every
+  order (9 bps — the fill the backtests assume; a resting bid on a
+  breakout fills when the breakout fails); **Kraken rests post-only**,
+  stops included (at the ask). After any exit a rule waits two of its own
+  bars before re-entering. One tick at a time: `agent_locks` lease.
 - BTC / ETH / SOL only — the only pairs on the venue with ≤ 3 bps
   spreads.
 - Paper first, per strategy; live only on Davies' explicit go, and the
@@ -126,11 +128,15 @@ that follow from that evidence, in short:
   (top two of BTC/ETH/SOL/XRP by 30-day return, above their 100-day
   average — the bear filter is what saved 33 points in the bear year;
   `bearFilter:false` makes it always invested, and that is Davies'
-  switch, not a default), and dislocation-1m (Revolut X ≥ 15 bps under
-  Kraken's mid with Kraken not moving sharply → lift the ask, rest the
-  exit at the reference, 30-minute / 40 bps stops; BTC and ETH only,
-  paper). Breakout-with-volume, squeeze breakouts and double bottoms
-  were tested and rejected with numbers. Backtests: reference §3.3–§3.5.
+  switch, not a default), and dislocation-1m (Revolut X's TOUCH ≥ 15 bps
+  under Kraken's mid with Kraken not moving sharply → lift the ask, rest
+  the exit at the reference, 30-minute / 40 bps stops; BTC and ETH only,
+  paper, **a measurement first**: the 1-minute study's edge turned out to
+  be stale last-trade prints, reference §3.5 — never quote its bps as an
+  expectation). Breakout-with-volume, squeeze breakouts and double bottoms
+  were tested and rejected with numbers. Backtests: reference §3.3a–§3.5,
+  run with the loop's own fills, stops and cooldown; the backtester writes
+  `docs/agents/backtests/summary.json` itself.
 - The tick claims a bar by inserting its decision (unique index on
   strategy, symbol, bar_start; a protective decision claims the forming
   bar, a dislocation decision the minute); a live order is written as
