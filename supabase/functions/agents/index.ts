@@ -141,13 +141,20 @@ function jevEnv() {
   };
 }
 
+/** Kraken's fee tier moves with 30-day volume, not with the minute: read once an hour per isolate, not on every page load. */
+let feeTier: { at: number; feeBps: { maker: number; taker: number } } | null = null;
+const FEE_TIER_TTL_MS = 3600e3;
+
 /** Both venues, each with credentials when the store has them and keyless market data when it does not. */
 async function loadVenues(): Promise<{ venues: Record<VenueId, Venue>; notes: Record<VenueId, string | null> }> {
   const rx = await loadRevx();
   const kk = loadKraken();
   const revx = revxVenue("error" in rx ? null : rx.env);
   const kraken = krakenVenue("error" in kk ? null : kk.env);
-  if (!("error" in kk)) await kraken.refreshFees();     // the account's own tier, not the published table
+  if (!("error" in kk)) {                                 // the account's own tier, not the published table
+    if (feeTier && Date.now() - feeTier.at < FEE_TIER_TTL_MS) Object.assign(kraken.feeBps, feeTier.feeBps);
+    else { await kraken.refreshFees(); feeTier = { at: Date.now(), feeBps: { ...kraken.feeBps } }; }
+  }
   return {
     venues: { revx, kraken },
     notes: { revx: "error" in rx ? rx.error : null, kraken: "error" in kk ? kk.error : null },
@@ -209,7 +216,7 @@ async function dashboard(now: number) {
   const [strategies, riskRows, filled, open, today, decisions24h, recentDecisions, recentOrders, backtests, basis24h, observations, { venues, notes }] = await Promise.all([
     d.select<StrategyRow & { description: string; updated_at: string }>("agent_strategies", "select=*&order=id.asc"),
     d.select<RiskRow & { updated_at: string }>("agent_risk", "id=eq.1&select=*"),
-    d.select<OrderRow>("agent_orders", "state=eq.filled&select=*&order=ts.asc"),
+    d.select<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc"),   // the filled part of a working order is a position too
     d.select<OrderRow & { request: unknown }>("agent_orders", "state=in.(pending,new,partially_filled)&select=*&order=ts.desc"),
     d.select<{ id: number; strategy_id: string; venue: VenueId; state: string }>("agent_orders", `ts=gte.${dayStart}&select=id,strategy_id,venue,state`),
     d.select<{ strategy_id: string; provider: string; cost_usd: number | null; latency_ms: number | null }>("agent_decisions", `ts=gte.${since24h}&select=strategy_id,provider,cost_usd,latency_ms`),
@@ -335,6 +342,13 @@ export function chartWindow(kind: StrategyRow["kind"]): { intervalMin: number; s
  * tick keeps, so this costs the venue nothing.
  */
 export async function runChart(strategyId: string, symbol: string, now = Date.now()) {
+  try { return await chart(strategyId, symbol, now); } catch (e) {
+    if (isNotReady(e)) return { at: new Date(now).toISOString(), notReady: true, reason: "the agents tables are not in this database yet (migration 0037 runs on merge)" };
+    throw e;
+  }
+}
+
+async function chart(strategyId: string, symbol: string, now: number) {
   const d = db();
   const [s] = await d.select<StrategyRow>("agent_strategies", `id=eq.${encodeURIComponent(strategyId)}&select=*`);
   if (!s) return { error: "unknown strategy" };
@@ -350,12 +364,12 @@ export async function runChart(strategyId: string, symbol: string, now = Date.no
       `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&ts=gte.${since}&select=id,ts,bar_start,final_action,rule_action,final_reason,provider,risk_allowed,numbers&order=ts.asc&limit=500`),
     d.select<ObservationRow>("agent_observations", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&select=strategy_id,symbol,ts,bar_start,state,numbers&order=ts.desc&limit=1`),
   ]);
-  const allFilled = await d.select<OrderRow>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&state=eq.filled&select=*&order=ts.asc`);
+  const allFilled = await d.select<OrderRow>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&state=in.(filled,partially_filled)&select=*&order=ts.asc`);
   const pos = positionFromFills(allFilled.map(toFill));
   return {
     strategyId, symbol, venue: s.venue, signalVenue: s.signal_venue, kind: s.kind, mode: s.mode, intervalMin, since, at: new Date(now).toISOString(),
     candles: candles.map((c) => [Date.parse(c.start), Number(c.open), Number(c.high), Number(c.low), Number(c.close)] as [number, number, number, number, number]),
-    fills: orders.filter((o) => o.state === "filled").map((o) => ({
+    fills: orders.filter((o) => o.state === "filled" || (o.state === "partially_filled" && Number(o.filled_base) > 0)).map((o) => ({
       id: o.id, ts: o.filled_at ?? o.ts, side: o.side, price: Number(o.avg_fill_price ?? o.price), base: Number(o.filled_base || o.base_size), feeUsd: Number(o.fee_usd || 0),
       venue: o.venue, mode: o.mode, marketable: !!o.request?.marketable, decisionId: o.decision_id,
     })),
@@ -370,6 +384,13 @@ export async function runChart(strategyId: string, symbol: string, now = Date.no
 }
 
 export async function runLog(strategyId: string, limit: number) {
+  try { return await log(strategyId, limit); } catch (e) {
+    if (isNotReady(e)) return { strategyId, notReady: true, decisions: [], orders: [] };
+    throw e;
+  }
+}
+
+async function log(strategyId: string, limit: number) {
   const d = db();
   const n = Math.max(1, Math.min(500, limit || 100));
   const q = `strategy_id=eq.${encodeURIComponent(strategyId)}&select=*&order=ts.desc&limit=${n}`;

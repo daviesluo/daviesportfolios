@@ -356,6 +356,44 @@ book gives back — fewer unfilled resting orders, no adverse selection on a
 thin touch — is not in a backtest at all; that is what the paper twins
 measure.
 
+### 3.3a Re-run with the loop's own fills, stops and cooldown (2026-09-20, evening)
+
+The review of PR #211 found the tables above priced a fill the loop never
+places (a guaranteed next-open maker fill) and ran none of the protective
+exits the loop checks every minute. The backtester now fills the way the
+loop fills — Revolut X **takes the touch** (9 bps taker + half-spread;
+a bid resting on a breakout fills exactly when the breakout fails), Kraken
+rests post-only (40 bps maker) — reads the **8 % floor under cost and the
+3×ATR(14) trail** against each bar's low, and waits **two bars after any
+exit** before re-entering (without which a floor stop under a rule that is
+still "on" sells and re-buys every bar: momentum on BTC made 155 trades in
+the out-of-sample year before the cooldown, 45 after). XRP now carries its
+measured spread (Revolut X 5.8 bps, Kraken 1.0) in the basket. Same data,
+same split; `noStops` is the same fill model without the protective exits.
+`docs/agents/backtests/summary.json` is written by the backtester itself.
+
+| symbol | rule | Revolut X OOS (shipped) | without stops | Kraken OOS | buy & hold OOS |
+|---|---|---|---|---|---|
+| BTC | trend-4h | -16.5 %, DD 21 %, 26 trades, 11 stops | -19.3 %, DD 24 %, 26 trades | -22.8 %, 26 trades | -28.1 % |
+| BTC | momentum-1d | -17.0 %, DD 33 %, 45 trades, 0 stops | -17.0 %, DD 33 %, 45 trades | -27.6 %, 45 trades | -28.1 % |
+| BTC | trend-1h | -9.3 %, DD 18 %, 78 trades, 36 stops | -13.3 %, DD 22 %, 74 trades | — (paper only on Revolut X) | -28.1 % |
+| ETH | trend-4h | -1.0 %, DD 23 %, 16 trades, 6 stops | -3.9 %, DD 25 %, 16 trades | -5.7 %, 16 trades | -40.1 % |
+| ETH | momentum-1d | +10.4 %, DD 35 %, 33 trades, 3 stops | +3.0 %, DD 39 %, 33 trades | +0.0 %, 33 trades | -40.1 % |
+| ETH | trend-1h | -6.9 %, DD 22 %, 70 trades, 33 stops | +6.0 %, DD 23 %, 62 trades | — (paper only on Revolut X) | -40.1 % |
+| SOL | trend-4h | +17.3 %, DD 15 %, 14 trades, 6 stops | +27.0 %, DD 17 %, 12 trades | +12.5 %, 14 trades | -50.2 % |
+| SOL | momentum-1d | -29.2 %, DD 56 %, 43 trades, 6 stops | -31.8 %, DD 58 %, 37 trades | -37.8 %, 43 trades | -50.2 % |
+| SOL | trend-1h | +14.1 %, DD 23 %, 66 trades, 31 stops | +14.1 %, DD 19 %, 58 trades | — (paper only on Revolut X) | -50.2 % |
+
+Trend-4h parameters chosen in-sample under the new model: BTC {'fast': 30, 'slow': 100, 'atrStop': 4}, ETH {'fast': 30, 'slow': 50, 'atrStop': 4}, SOL {'fast': 30, 'slow': 150, 'atrStop': 3}. Full-period (in-sample, never the headline) Revolut X: trend-4h +15.3 % / +179.0 % / +206.4 %, momentum-1d +112.2 % / +268.3 % / +460.6 %.
+
+Read: the stops cost a little in the year they were not needed (SOL trend
++17 vs +27 without) and saved a little where they were (BTC trend −16.5
+vs −19.3; ETH momentum +10.4 vs +3.0); the taker fee on Revolut X is worth
+about two points a year on the 4-hour rules and more on the hourly one. No
+rule beat cash in the bear year except SOL's trend and ETH's momentum;
+every rule beat buy-and-hold. The rotation basket under the same model:
+default -14.4 % OOS on Revolut X (exposure 33 %, 21.45×/y), no bear filter -47.4 %, top 3 -6.2 %, 7-day hold on Kraken -16.1 %; equal-weight buy-and-hold -46.7 %; full period default +108.2 %.
+
 ### 3.4 The rotation rulebook and the 1-hour trend variant (walk-forward, both venues)
 
 `rotation-1d`: rank BTC, ETH, SOL and XRP by 30-day return at each daily
@@ -417,46 +455,44 @@ then the full period. Scratch scripts, not shipped: `patterns_bt.py`,
   on the other two; the full-period ETH result comes from one 2024 stretch.
   Not adopted as a rule. Both pattern ideas can be revisited once the
   loop has months of its own fills to compare against.
-- **Illiquidity events are real, and the shape matters.** 30 days of
-  1-minute closes on Revolut X against Coinbase (the Kraken proxy with a
-  1-minute history; Kraken's own 1-minute cache is what the loop now
-  keeps): after Revolut X prints ≥ 10 bps under the reference, its next
-  1 / 5 / 15 / 60 minutes average **+11 / +16 / +18 / +22 bps on BTC** and
-  **+11 / +14 / +14 / +18 bps on ETH**, symmetric and negative after a rich
-  print, unconditional ≈ 0. A **resting bid** at that moment loses money
-  on every setting tried (it fills only when the move continues — adverse
-  selection). **Lifting the ask** at once and resting the exit at the
-  reference once the basis is back within 2 bps, with a 30-minute time
-  stop and a 40 bps loss stop taken at the bid (both cost the 9 bps taker
-  fee), 3-minute cooldown:
+- **Illiquidity events: the study found an artefact, and the rule is now
+  a measurement.** 30 days of 1-minute closes on Revolut X against
+  Coinbase (the Kraken proxy with a 1-minute history): after Revolut X's
+  close prints ≥ 15 bps under the reference, Revolut X's own close
+  "recovers" +20–30 bps over the next half hour, and a rule that lifted the
+  ask at once and rested its exit at the reference showed +8.1 bps a trade
+  on BTC (27 trades) and +4.3 on ETH (95), weaker in the second half of the
+  sample, negative on SOL and XRP. **That number does not survive one more
+  question.** In 60–73 % of those "cheap" minutes Revolut X traded NOTHING
+  (`m1/stale_check.py`): the close is a carried last trade, not a quote.
+  And the REFERENCE's own forward return after a cheap print is about zero
+  (BTC k = 15: −1.9 / +4.1 / +1.9 bps at 5 / 15 / 30 min; ETH +0.8 / +0.2 /
+  +5.3). What the study measured is a stale print catching up with the
+  market — which no order at the live touch can capture, because the touch
+  never left. A resting bid at the print, the cheap version of the trade,
+  fills almost never (BTC k = 10: 4 fills in 28 days, −14.7 bps each; ETH
+  16 fills, −9.5) and loses when it does.
 
-| symbol (28.5 days) | k = 12 bps | k = 15 bps | k = 20 bps |
-|---|---|---|---|
-| BTC | 72 trades, 2.52/day, **+2.9 bps** avg, win 71 %, worst -60 (halves +4.4 / +0.1) | 27 trades, 0.95/day, **+8.1 bps** avg, win 81 %, worst -60 (halves +9.1 / +6.1) | 8 trades, 0.28/day, **+14.9 bps** avg, win 75 %, worst -14 (halves +27.5 / +2.4) |
-| ETH | 204 trades, 7.15/day, **-0.4 bps** avg, win 70 %, worst -81 (halves +1.7 / -2.9) | 95 trades, 3.33/day, **+4.3 bps** avg, win 81 %, worst -81 (halves +10.9 / -3.6) | 32 trades, 1.12/day, **+9.2 bps** avg, win 88 %, worst -81 (halves +15.3 / +1.2) |
-| SOL | 466 trades, 16.33/day, **-2.6 bps** avg, win 62 %, worst -86 (halves -2.5 / -2.8) | 245 trades, 8.58/day, **-0.6 bps** avg, win 67 %, worst -94 (halves -0.3 / -1.1) | 90 trades, 3.15/day, **+0.3 bps** avg, win 68 %, worst -94 (halves +2.3 / -3.5) |
-| XRP | 630 trades, 22.07/day, **-8.3 bps** avg, win 51 %, worst -106 (halves -8.0 / -8.7) | 362 trades, 12.68/day, **-6.5 bps** avg, win 56 %, worst -106 (halves -6.2 / -7.0) | 156 trades, 5.47/day, **-0.0 bps** avg, win 67 %, worst -105 (halves +0.2 / -0.5) |
-
-  Read honestly: BTC and ETH are positive at 15 and 20 bps, SOL and XRP
-  are not at any setting (Revolut X's own spread there, 41 and 72 bps, is
-  wider than the edge). The **second half of the sample is weaker** —
-  ETH at 15 bps is negative in it, BTC at 15 bps stays positive on nine
-  trades — so this is a small edge on a small sample, worth a paper run
-  and not a live one. The `dislocation-1m` seed is paper on Revolut X,
-  BTC and ETH, `entryBps: 15` (the 20 bps setting is the one that held in
-  both halves; 15 produces the trades that will tell us within weeks
-  rather than months). Expected, if the sample holds: **~4 trades a day
-  across the two symbols at +4 to +8 bps each, ≈ $0.02 on a $20 clip** —
-  a measurement, not an income. What would make it live: the paper
-  record's average after fees positive over ≥ 100 trades, and its worst
-  trade no worse than the backtest's (−60 bps BTC, −81 ETH: the stop is
-  read on the minute and a fast market gaps through it).
+  What survives: the mechanism itself (a thin book can sit under the deep
+  one) is worth watching, and the touch is the only thing worth trading.
+  `dislocation-1m` is seeded PAPER on Revolut X, BTC and ETH, reading the
+  **touch basis** (both venues' live mids, the quantity `agent_basis` and
+  the observations record every minute): it buys only when the ask itself
+  sits 15 bps under Kraken's mid with Kraken not moving sharply, rests the
+  exit at the reference, and is out after 30 minutes or 40 bps at the bid.
+  The 10-minute touch sample in §2c (max |basis| 1.8 bps on the majors)
+  says this may be rare; a week of the loop's own record will say how rare,
+  and whether the touch ever dislocates the way the closes did. **Expected
+  return: none claimed.** What would make it more than a measurement: the
+  touch basis crossing 15 bps a few times a week in the record, and the
+  paper fills that follow averaging positive after the 9 bps taker fee over
+  ≥ 100 trades.
 
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
 2. **Observe every minute, decide on closed bars.** The loop wakes every minute (pg_cron; one minute is where Revolut X's public token bucket and the Edge budget both stay comfortable): it refreshes both venues' quotes, manages and re-quotes resting orders, checks the protective stops against the live mark, and writes the categorical state on the FORMING bar down when it changes (`agent_observations`) — so the page shows what the market is doing between decisions. Entries still wait for a closed 1h / 4h / 1d bar; the one rule that decides on the minute is the dislocation rule (§3.5), and its entries are events, not a cadence. "Every second" would cost nothing on Jev and everything on fees and the 1,000-order cap.
-3. **Limit orders by default, `post_only`**, taker only for stop-loss exits where certainty of fill matters more than 9 bps.
+3. **Each venue fills the way its fee allows.** On Revolut X every order takes the touch (9 bps): that is the fill the backtests assume, and a bid resting on a breakout fills exactly when the breakout fails (§3.5 measured that adverse selection). On Kraken orders rest post-only at the touch, stops included (at the ask, walked down by the re-quote), because 80 bps a side is not worth certainty at this size.
 4. **BTC, ETH, SOL only** — the only pairs on this venue with ≤ 3 bps spreads and real volume. Everything else costs 3–8× more per round trip.
 5. **Paper first.** Every strategy runs in shadow mode against live prices, recording the orders it *would* have placed, until its paper record is shown; the switch to live is a per-strategy flag Davies flips, and the first live order requires his explicit confirmation.
 6. **Hard, code-enforced caps** the model cannot touch: max notional per order, max open exposure, daily loss limit (kill switch), max orders per day well under 1,000, and a global pause flag in the database.
@@ -464,7 +500,9 @@ then the full period. Scratch scripts, not shipped: `patterns_bt.py`,
 8. **Two venues, each for what it is good at** (§2b, §2c). Revolut X executes (0 % maker); Kraken supplies the signal (`signal_venue`: its candles are the cleaner series) and runs paper twins whose fills pay its real fee. There is no arbitrage between them at any cadence available here — measured, not assumed — and the basis keeps being recorded so that stays true or is seen to change. Caps in `agent_risk` are per venue account and per mode.
 9. **Capital utilisation is a consequence of regime, not a target.** The rotation rule holds the strongest two of four whenever they trend; in a broad bear it holds cash, because the alternative lost 45 % out of sample (§3.4). The switch that makes it always-invested exists and is Davies' to flip, with the number beside it.
 10. **Nothing fast, except what the data earned.** A 1,000-order day on Revolut X and 40–80 bps a side on Kraken rule out market-making and cross-venue trading. The fastest rules are the 1-hour trend variant (paper, for feedback speed) and the dislocation rule (§3.5: a few taker entries a day when Revolut X prints ≥ 15 bps under Kraken, exits resting at the reference) — the latter because 30 days of minutes showed the snap-back and showed that the cheap version of the trade, a resting bid, loses. Both are paper until their own record says otherwise.
-11. **Stops run between bars, entries do not.** The ATR trail and the floor under cost are checked every minute against the live mark and sell without asking the model; an entry is never taken between bar closes. A resting exit order never outranks a stop: when the stop fires it is cancelled first and the sale is marketable.
+11. **Stops run between bars, entries do not.** The ATR trail and the floor under cost are checked every minute against the live mark and sell without asking the model; an entry is never taken between bar closes. A resting exit order never outranks a stop: when the stop fires it is cancelled first (on Revolut X the sale is then marketable; on Kraken a stop already resting at the ask is left to work). A stop is claimed on the minute, so one that lapses is tried again next minute, not next bar. After ANY exit a rule waits two of its own bars before buying again — §3.3a shows why. The backtester runs the same stops and the same cooldown, so the tables describe the shipped rule.
+12. **One turn at a time.** pg_net fires the next minute's tick whether or not the last one finished; a turn takes a lease (`agent_locks`, compare-and-set on its expiry, 55 s) and a turn that finds it held does nothing. The bar claim protects decisions; the lease protects everything else.
+13. **The model is asked on entries only.** It can veto one; it never advises an exit, and the seeds, the page and the README say exactly that. A partially filled live order is a position from its first fill (stops and caps see it); a venue-cancelled order that had filled in part is recorded as a fill of that part; a live order that filled on arrival is settled from the venue's own view next turn, fee included — never from the placement reply.
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 

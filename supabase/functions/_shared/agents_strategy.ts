@@ -616,8 +616,10 @@ export function riskGate(action: Action, orderUsd: number, ctx: RiskContext, lim
   if (action === "hold") return { allowed: true, reason: "hold" };
   if (ctx.mode === "paused") return { allowed: false, reason: "strategy paused" };
   if (limits.globalPause) return { allowed: false, reason: "global pause" };
-  if (ctx.ordersToday >= limits.maxOrdersPerDay) return { allowed: false, reason: `orders today ${ctx.ordersToday} ≥ ${limits.maxOrdersPerDay}` };
   if (action === "enter") {
+    // Every cap below stops NEW risk only. An exit reduces risk and is never refused here: a day that has
+    // spent its order budget or its loss budget is exactly the day a position must still be allowed out.
+    if (ctx.ordersToday >= limits.maxOrdersPerDay) return { allowed: false, reason: `orders today ${ctx.ordersToday} ≥ ${limits.maxOrdersPerDay}; no new risk today` };
     if (ctx.dayPnlUsd <= -limits.dailyLossLimitUsd) return { allowed: false, reason: `daily loss limit hit (${ctx.dayPnlUsd.toFixed(2)} ≤ -${limits.dailyLossLimitUsd}); no new risk today` };
     if (orderUsd > limits.maxOrderUsd) return { allowed: false, reason: `order ${orderUsd.toFixed(2)} > max ${limits.maxOrderUsd}` };
     if (ctx.exposureUsd + orderUsd > limits.maxExposureUsd) return { allowed: false, reason: `exposure ${(ctx.exposureUsd + orderUsd).toFixed(2)} > max ${limits.maxExposureUsd}` };
@@ -636,6 +638,15 @@ export function floorToStep(x: number, step: string): string {
   if (!(s > 0)) return x.toFixed(decimals);
   const units = Math.floor(x / s + 1e-9);
   return (units * s).toFixed(decimals);
+}
+
+/** The same, rounding UP: a marketable buy priced at the ask must not land a tick under it. */
+export function ceilToStep(x: number, step: string): string {
+  const decimals = (step.split(".")[1] ?? "").length;
+  const q = Number(step);
+  if (!(q > 0)) return x.toFixed(decimals);
+  const n = Math.ceil(Math.round(x / q * 1e6) / 1e6);
+  return (n * q).toFixed(decimals);
 }
 
 /**

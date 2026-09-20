@@ -31,16 +31,31 @@
 // exactly the kind of number this repository has learned not to trust.
 
 import {
+  atrAt,
   applyFill, buildSnapshot, DEFAULT_ROTATION, DEFAULT_TREND, FLAT, precompute, rotationTargets, ruleDecisionRotation, ruleFor,
   type Candle, type Position, type RotationParams, type StrategyKind, type TrendParams,
 } from "../_shared/agents_strategy.ts";
 
-export type Costs = { venue: string; makerBps: number; takerBps: number; halfSpread: Record<string, number> };
+/**
+ * A venue's costs and, with them, HOW the live loop fills there: `fillFee`
+ * is the fee an ordinary entry or exit pays. On Revolut X the loop takes
+ * the touch (marketable, 9 bps) because a resting bid on a breakout fills
+ * exactly when the breakout fails; on Kraken it rests post-only (40 bps),
+ * because 80 bps a side is not worth the certainty at this size.
+ */
+export type Costs = { venue: string; makerBps: number; takerBps: number; fillFee: "maker" | "taker"; halfSpread: Record<string, number> };
 
 /** Spreads measured 2026-09-20 (docs/agents/reference.md §2.2 and §2b); fees per venue at the account's tier. */
+/** What the live loop runs (tick.ts): an 8 % floor under cost on every rule, the ATR trail on the trend rules. */
+export const SHIPPED_STOPS: StopParams = { maxLossPct: 0.08, atrStop: 3, atrN: 14, reentryBars: 2 };
+/** The stops as the loop applies them to a rulebook: the ATR trail belongs to the trend rules only. */
+export function stopsForKind(kind: StrategyKind, p: TrendParams, base: StopParams = SHIPPED_STOPS): StopParams {
+  return { ...base, atrStop: kind === "trend-4h" || kind === "trend-1h" ? p.atrStop : null };
+}
+
 export const COSTS: Record<string, Costs> = {
-  revx: { venue: "revx", makerBps: 0, takerBps: 9, halfSpread: { "BTC/USD": 0.75e-4, "ETH/USD": 1.05e-4, "SOL/USD": 1.55e-4 } },
-  kraken: { venue: "kraken", makerBps: 40, takerBps: 80, halfSpread: { "BTC/USD": 0.005e-4, "ETH/USD": 0.02e-4, "SOL/USD": 0.46e-4 } },
+  revx: { venue: "revx", makerBps: 0, takerBps: 9, fillFee: "taker", halfSpread: { "BTC/USD": 0.75e-4, "ETH/USD": 1.05e-4, "SOL/USD": 1.55e-4, "XRP/USD": 2.9e-4 } },
+  kraken: { venue: "kraken", makerBps: 40, takerBps: 80, fillFee: "maker", halfSpread: { "BTC/USD": 0.005e-4, "ETH/USD": 0.02e-4, "SOL/USD": 0.46e-4, "XRP/USD": 0.5e-4 } },
 };
 
 type Raw = [number, number, number, number, number, number]; // [t_sec, o, h, l, c, v] (Coinbase)
@@ -62,23 +77,49 @@ export function resample(hourly: Candle[], hours: number): Candle[] {
   return out;
 }
 
+/** The half-spread a venue charges per side, or a loud failure: a symbol priced at a made-up spread is worse than none. */
+export function spreadOf(costs: Costs, symbol: string): number {
+  const hs = costs.halfSpread[symbol];
+  if (hs == null) throw new Error(`no half-spread for ${symbol} on ${costs.venue}`);
+  return hs;
+}
+
+/**
+ * The protective exits the live loop checks every minute, read here
+ * against each bar's low; and the loop's re-entry cooldown after ANY exit
+ * (`reentryBars` of the rule's own bar), without which a floor stop under a
+ * rule that is still "on" — momentum, rotation — sells and re-buys the
+ * next bar, over and over.
+ */
+export type StopParams = { maxLossPct: number; atrStop: number | null; atrN: number; reentryBars: number };
+
 export type RunResult = {
   ret: number; maxDD: number; trades: number; days: number; exposure: number;
-  equity: [number, number][]; realised: number; fees: number;
+  equity: [number, number][]; realised: number; fees: number; stopsHit?: number;
 };
 
 /**
  * Drive one rulebook over `c4h` with matching `daily`, from bar `from` to
- * `to` (exclusive). Entry fills at the next bar's open as a maker; exits
- * fill at the next open, as a maker unless `reason` names the stop, which
- * goes to market. Capital is fully deployed on entry (the live loop caps
- * this in dollars; the backtest measures the rule).
+ * `to` (exclusive), the way the live loop fills: an entry or a rule exit
+ * at the next bar's open plus the half-spread, paying the venue's
+ * `fillFee`; and, when `stops` is given, the protective exits the loop
+ * checks every minute — the floor under cost and the ATR trail from the
+ * high since entry — read against each bar's low, filled at the level (or
+ * the open when the bar gaps through it) as a taker on Revolut X and a
+ * maker on Kraken, where the stop rests at the ask. Capital is fully
+ * deployed on entry (the live loop caps this in dollars; the backtest
+ * measures the rule).
  */
-export function run(kind: StrategyKind, symbol: string, c4h: Candle[], daily: Candle[], from: number, to: number, p: TrendParams, costs: Costs = COSTS.revx, barHours = 4): RunResult {
-  const hs = costs.halfSpread[symbol] ?? 1e-4;
+export function run(
+  kind: StrategyKind, symbol: string, c4h: Candle[], daily: Candle[], from: number, to: number, p: TrendParams,
+  costs: Costs = COSTS.revx, barHours = 4, stops: StopParams | null = null,
+): RunResult {
+  const hs = spreadOf(costs, symbol);
   const maker = costs.makerBps / 1e4, taker = costs.takerBps / 1e4;
+  const fill = costs.fillFee === "taker" ? taker : maker;
+  const stopFee = costs.fillFee === "taker" ? taker : maker;
   let pos: Position = FLAT;
-  let cash = 1.0, trades = 0, peak = 1.0, maxDD = 0, barsLong = 0;
+  let cash = 1.0, trades = 0, peak = 1.0, maxDD = 0, barsLong = 0, stopsHit = 0, lastExitBar = -Infinity;
   const equity: [number, number][] = [];
   const pre = precompute(c4h, p);
   let dk = 0; // daily candles closed at or before the current 4h bar (moves forward only)
@@ -87,19 +128,33 @@ export function run(kind: StrategyKind, symbol: string, c4h: Candle[], daily: Ca
     const snap = buildSnapshot(symbol, c4h, i, daily.slice(0, dk), pos, c4h[i].start + barHours * 3600e3, p, pre, (24 / barHours) * 365);
     const rule = ruleFor(kind, snap, pos, p);
     const next = c4h[i + 1];
-    if (rule.action === "enter" && pos.base === 0) {
-      const price = next.open * (1 + hs);                    // resting bid crossed to the touch
-      const base = cash / (price * (1 + maker));             // the maker fee comes out of the same cash
-      const fee = base * price * maker;
+    const coolingDown = stops != null && i - lastExitBar < stops.reentryBars;
+    if (rule.action === "enter" && pos.base === 0 && !coolingDown) {
+      const price = next.open * (1 + hs);                    // the touch, at the next open
+      const base = cash / (price * (1 + fill));              // the fee comes out of the same cash
+      const fee = base * price * fill;
       pos = applyFill(pos, { ts: next.start, side: "buy", base, price, feeUsd: fee });
       cash = 0; trades++;
     } else if (rule.action === "exit" && pos.base > 0) {
-      const market = rule.reason.startsWith("ATR trailing stop");
       const price = next.open * (1 - hs);
-      const fee = pos.base * price * (market ? taker : maker);
+      const fee = pos.base * price * fill;
       cash = pos.base * price - fee;
       pos = applyFill(pos, { ts: next.start, side: "sell", base: pos.base, price, feeUsd: fee });
-      trades++;
+      trades++; lastExitBar = i + 1;
+    } else if (stops && pos.base > 0) {
+      // Between bar closes: the loop's protective exits against the live mark, here against the bar's low.
+      const hw = Math.max(pos.highWater ?? pos.avgCost, pos.avgCost);
+      const atr = stops.atrStop != null ? atrAt(c4h, i, stops.atrN) : null;
+      const floor = pos.avgCost * (1 - stops.maxLossPct);
+      const trail = stops.atrStop != null && atr != null ? hw - stops.atrStop * atr : -Infinity;
+      const level = Math.max(floor, trail);
+      if (next.low <= level) {
+        const price = Math.min(level, next.open) * (1 - hs);
+        const fee = pos.base * price * stopFee;
+        cash = pos.base * price - fee;
+        pos = applyFill(pos, { ts: next.start, side: "sell", base: pos.base, price, feeUsd: fee });
+        trades++; stopsHit++; lastExitBar = i + 1;
+      }
     }
     if (pos.base > 0) { barsLong++; pos = { ...pos, highWater: Math.max(pos.highWater ?? next.high, next.high) }; }
     const eq = cash + pos.base * next.close;
@@ -108,7 +163,7 @@ export function run(kind: StrategyKind, symbol: string, c4h: Candle[], daily: Ca
   }
   const eqEnd = cash + pos.base * c4h[to - 1].close;
   const days = (c4h[to - 1].start - c4h[Math.max(from, p.slow + 1)].start) / 86400e3;
-  return { ret: eqEnd - 1, maxDD, trades, days, exposure: barsLong / Math.max(1, to - from), equity, realised: pos.realisedUsd, fees: pos.feesUsd };
+  return { ret: eqEnd - 1, maxDD, trades, days, exposure: barsLong / Math.max(1, to - from), equity, realised: pos.realisedUsd, fees: pos.feesUsd, stopsHit };
 }
 
 export type RotationResult = RunResult & { turnover: number };
@@ -128,7 +183,7 @@ export function runRotation(
   const pos: Record<string, Position> = Object.fromEntries(symbols.map((s) => [s, FLAT]));
   let cash = 1.0, trades = 0, peak = 1.0, maxDD = 0, traded = 0, daysInvested = 0;
   const equity: [number, number][] = [];
-  const maker = costs.makerBps / 1e4;
+  const maker = (costs.fillFee === "taker" ? costs.takerBps : costs.makerBps) / 1e4;   // the fee an ordinary fill pays on this venue
   const start = Math.max(from, p.slowDays + 1, p.lookbackDays + 1);
   for (let i = start; i < to - 1; i++) {
     const closed: Record<string, Candle[]> = Object.fromEntries(symbols.map((s) => [s, daily[s].slice(0, i + 1)]));
@@ -136,7 +191,7 @@ export function runRotation(
     const nowMs = daily[symbols[0]][i].start + 86400e3;
     const eqNow = cash + symbols.reduce((a, s) => a + pos[s].base * daily[s][i].close, 0);
     for (const s of symbols) {
-      const hs = costs.halfSpread[s] ?? 1e-4;
+      const hs = spreadOf(costs, s);
       const next = daily[s][i + 1];
       const d = ruleDecisionRotation(views[s], pos[s], nowMs, p);
       if (d.action === "enter" && pos[s].base === 0 && cash > 0) {
@@ -171,14 +226,14 @@ export function buyHoldBasket(daily: Record<string, Candle[]>, from: number, to:
   const symbols = Object.keys(daily);
   let eq = 0;
   for (const s of symbols) {
-    const hs = costs.halfSpread[s] ?? 1e-4;
+    const hs = spreadOf(costs, s);
     eq += (1 / symbols.length) * daily[s][to - 1].close / (daily[s][from].open * (1 + hs + costs.takerBps / 1e4));
   }
   return eq - 1;
 }
 
 function buyHold(c4h: Candle[], from: number, to: number, symbol: string, costs: Costs = COSTS.revx): number {
-  const hs = costs.halfSpread[symbol] ?? 1e-4;
+  const hs = spreadOf(costs, symbol);
   return c4h[to - 1].close / (c4h[from].open * (1 + hs + costs.takerBps / 1e4)) - 1;
 }
 
@@ -190,10 +245,12 @@ if (import.meta.main) {
   const basketSymbols = ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD"];
   const report: Record<string, unknown> = {
     ran_at: new Date().toISOString(),
-    source: "Coinbase Exchange 1h → 4h/1d; parameters chosen on Revolut X costs, then the same rule priced on each venue: Revolut X (maker 0 %, taker 9 bps, half-spread per side) and Kraken (maker 40 bps, taker 80 bps, half-spread per side)",
+    source: "Coinbase Exchange 1h → 4h/1d; parameters chosen on Revolut X costs, then the same rule priced on each venue the way the loop fills there: Revolut X takes the touch (9 bps taker + half-spread per side), Kraken rests post-only (40 bps maker + half-spread). Headline figures include the loop's protective exits (8 % floor under cost, 3×ATR(14) trail from the high since entry, read against each bar's low); `noStops` is the same rule without them",
+    stops: SHIPPED_STOPS,
     costs: COSTS,
     results: {},
   };
+  const stopsFor = (p: TrendParams, kind: StrategyKind = "trend-4h"): StopParams => stopsForKind(kind, p);
   const grid: TrendParams[] = [];
   for (const fast of [10, 20, 30]) for (const slow of [50, 100, 150]) for (const atrStop of [2, 3, 4]) grid.push({ ...DEFAULT_TREND, fast, slow, atrStop });
 
@@ -207,29 +264,34 @@ if (import.meta.main) {
     // trend-4h: pick the grid point by in-sample return/drawdown, report it out of sample.
     let best: { p: TrendParams; score: number; is: RunResult } | null = null;
     for (const p of grid) {
-      const r = run("trend-4h", symbol, c4h, daily, 0, split, p);
+      const r = run("trend-4h", symbol, c4h, daily, 0, split, p, COSTS.revx, 4, stopsFor(p));
       const score = r.ret / Math.max(0.05, r.maxDD);
       if (!best || score > best.score) best = { p, score, is: r };
     }
-    const oos = run("trend-4h", symbol, c4h, daily, split, n, best!.p);
-    const full = run("trend-4h", symbol, c4h, daily, 0, n, best!.p);
-    const dflt = run("trend-4h", symbol, c4h, daily, split, n, DEFAULT_TREND);
+    const bp = best!.p, bs = stopsFor(bp), ds = stopsFor(DEFAULT_TREND), ms = stopsFor(DEFAULT_TREND, "momentum-1d");
+    const oos = run("trend-4h", symbol, c4h, daily, split, n, bp, COSTS.revx, 4, bs);
+    const full = run("trend-4h", symbol, c4h, daily, 0, n, bp, COSTS.revx, 4, bs);
+    const dflt = run("trend-4h", symbol, c4h, daily, split, n, DEFAULT_TREND, COSTS.revx, 4, ds);
     per["trend-4h"] = {
-      chosen: { fast: best!.p.fast, slow: best!.p.slow, atrStop: best!.p.atrStop },
+      chosen: { fast: bp.fast, slow: bp.slow, atrStop: bp.atrStop },
       inSample: pick(best!.is), outOfSample: pick(oos), fullPeriod: pick(full),
       defaultParamsOutOfSample: pick(dflt),
+      noStops: { outOfSample: pick(run("trend-4h", symbol, c4h, daily, split, n, bp)), fullPeriod: pick(run("trend-4h", symbol, c4h, daily, 0, n, bp)) },
       buyHoldOutOfSample: Number(buyHold(c4h, split, n, symbol).toFixed(4)),
       buyHoldFull: Number(buyHold(c4h, 0, n, symbol).toFixed(4)),
       equityOutOfSample: oos.equity,
     };
-    const mo = run("momentum-1d", symbol, c4h, daily, split, n, DEFAULT_TREND);
-    const moFull = run("momentum-1d", symbol, c4h, daily, 0, n, DEFAULT_TREND);
-    per["momentum-1d"] = { outOfSample: pick(mo), fullPeriod: pick(moFull), equityOutOfSample: mo.equity };
+    const mo = run("momentum-1d", symbol, c4h, daily, split, n, DEFAULT_TREND, COSTS.revx, 4, ms);
+    const moFull = run("momentum-1d", symbol, c4h, daily, 0, n, DEFAULT_TREND, COSTS.revx, 4, ms);
+    per["momentum-1d"] = {
+      outOfSample: pick(mo), fullPeriod: pick(moFull), equityOutOfSample: mo.equity,
+      noStops: { outOfSample: pick(run("momentum-1d", symbol, c4h, daily, split, n, DEFAULT_TREND)), fullPeriod: pick(run("momentum-1d", symbol, c4h, daily, 0, n, DEFAULT_TREND)) },
+    };
     // The same rules priced on Kraken: same parameters, that venue's fees and spread.
-    const kt = run("trend-4h", symbol, c4h, daily, split, n, best!.p, COSTS.kraken);
-    const ktFull = run("trend-4h", symbol, c4h, daily, 0, n, best!.p, COSTS.kraken);
-    const km = run("momentum-1d", symbol, c4h, daily, split, n, DEFAULT_TREND, COSTS.kraken);
-    const kmFull = run("momentum-1d", symbol, c4h, daily, 0, n, DEFAULT_TREND, COSTS.kraken);
+    const kt = run("trend-4h", symbol, c4h, daily, split, n, bp, COSTS.kraken, 4, bs);
+    const ktFull = run("trend-4h", symbol, c4h, daily, 0, n, bp, COSTS.kraken, 4, bs);
+    const km = run("momentum-1d", symbol, c4h, daily, split, n, DEFAULT_TREND, COSTS.kraken, 4, ms);
+    const kmFull = run("momentum-1d", symbol, c4h, daily, 0, n, DEFAULT_TREND, COSTS.kraken, 4, ms);
     per["kraken"] = {
       "trend-4h": { outOfSample: pick(kt), fullPeriod: pick(ktFull), equityOutOfSample: kt.equity },
       "momentum-1d": { outOfSample: pick(km), fullPeriod: pick(kmFull), equityOutOfSample: km.equity },
@@ -282,19 +344,55 @@ if (import.meta.main) {
   for (const symbol of symbols) {
     const c1h = hourlyBy[symbol], daily = dailyBy[symbol];
     const n = c1h.length, split = Math.floor(n * 2 / 3);
-    const r = run("trend-1h", symbol, c1h, daily, split, n, DEFAULT_TREND, COSTS.revx, 1);
-    const full = run("trend-1h", symbol, c1h, daily, 0, n, DEFAULT_TREND, COSTS.revx, 1);
-    trend1h[symbol] = { outOfSample: pick(r), fullPeriod: pick(full) };
+    const r = run("trend-1h", symbol, c1h, daily, split, n, DEFAULT_TREND, COSTS.revx, 1, stopsFor(DEFAULT_TREND, "trend-1h"));
+    const full = run("trend-1h", symbol, c1h, daily, 0, n, DEFAULT_TREND, COSTS.revx, 1, stopsFor(DEFAULT_TREND, "trend-1h"));
+    trend1h[symbol] = {
+      outOfSample: pick(r), fullPeriod: pick(full),
+      noStops: { outOfSample: pick(run("trend-1h", symbol, c1h, daily, split, n, DEFAULT_TREND, COSTS.revx, 1)), fullPeriod: pick(run("trend-1h", symbol, c1h, daily, 0, n, DEFAULT_TREND, COSTS.revx, 1)) },
+    };
     console.log(`${symbol}: the same trend rule on 1h candles, Revolut X costs, OOS ${fmt(r)}`);
   }
   (report.results as Record<string, unknown>)["trend-1h-check"] = trend1h;
 
   await Deno.writeTextFile(`${outDir}/latest.json`, JSON.stringify(report, null, 1));
   console.log(`wrote ${outDir}/latest.json`);
+  // The page's copy: no equity curves, each rule nested by venue, and the two studies the backtester does not
+  // produce (the dislocation minutes, the pattern variants) carried over from the previous summary untouched.
+  let previous: Record<string, unknown> = {};
+  try { previous = JSON.parse(await Deno.readTextFile(`${outDir}/summary.json`)); } catch { /* first run */ }
+  const summary = distill(report);
+  for (const k of ["dislocation", "patterns"]) if (previous[k] != null) summary[k] = previous[k];
+  await Deno.writeTextFile(`${outDir}/summary.json`, JSON.stringify(summary, null, 1));
+  console.log(`wrote ${outDir}/summary.json`);
+}
+
+/** The report in the shape `src/agents.js` reads: per symbol, per rule, per venue; the basket beside it; equity curves dropped. */
+export function distill(report: Record<string, unknown>): Record<string, unknown> {
+  const strip = (x: unknown): unknown => {
+    if (Array.isArray(x)) return x.map(strip);
+    if (x && typeof x === "object") return Object.fromEntries(Object.entries(x as Record<string, unknown>).filter(([k]) => k !== "equityOutOfSample").map(([k, v]) => [k, strip(v)]));
+    return x;
+  };
+  const results = strip(report.results) as Record<string, Record<string, unknown>>;
+  const trend1h = (results["trend-1h-check"] ?? {}) as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const [symbol, per] of Object.entries(results)) {
+    if (symbol === "basket" || symbol === "trend-1h-check") continue;
+    const t = per["trend-4h"] as Record<string, unknown>, m = per["momentum-1d"] as Record<string, unknown>, k = per["kraken"] as Record<string, Record<string, unknown>>;
+    const { chosen, buyHoldOutOfSample, buyHoldFull, ...trendRevx } = t;
+    out[symbol] = {
+      bars4h: per.bars4h, from: per.from, split: per.split, to: per.to, buyHoldOutOfSample, buyHoldFull,
+      "trend-4h": { chosen, revx: trendRevx, kraken: k["trend-4h"] },
+      "momentum-1d": { revx: m, kraken: k["momentum-1d"] },
+      "trend-1h": { revx: trend1h[symbol] ?? null },
+      krakenBuyHoldOutOfSample: k.buyHoldOutOfSample,
+    };
+  }
+  return { ran_at: report.ran_at, source: report.source, stops: report.stops, costs: report.costs, results: out, basket: results.basket };
 }
 
 function pick(r: RunResult) {
-  return { ret: Number(r.ret.toFixed(4)), maxDD: Number(r.maxDD.toFixed(4)), trades: r.trades, days: Math.round(r.days), exposure: Number(r.exposure.toFixed(3)) };
+  return { ret: Number(r.ret.toFixed(4)), maxDD: Number(r.maxDD.toFixed(4)), trades: r.trades, days: Math.round(r.days), exposure: Number(r.exposure.toFixed(3)), ...(r.stopsHit != null ? { stopsHit: r.stopsHit } : {}) };
 }
 function fmt(r: RunResult) {
   return `${(r.ret * 100).toFixed(1)}% (maxDD ${(r.maxDD * 100).toFixed(0)}%, ${r.trades} trades / ${Math.round(r.days)} d)`;
