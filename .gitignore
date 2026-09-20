@@ -28,3 +28,6 @@ node_modules
 # Deno regenerates this on every local `deno test` run; the repo has
 # never pinned it and Supabase deploys don't read it.
 deno.lock
+
+# Hourly candles the baseline backtest caches (3 MB, re-pullable)
+scraps/.ohlcv/

@@ -14,6 +14,20 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+0. **Agents (crypto auto-trading) — research done, build NOT started,
+   blocked on four answers from Davies.** Everything verified about
+   TypeSafe Jev 1.13 and the Revolut X API, with the live measurements,
+   is in `docs/agents/reference.md`; CLAUDE.md has the short rules. The
+   feature goes on a PR branch (he asked for one). Before any code that
+   touches money: (1) is the Ed25519 PRIVATE key in Supabase secrets, and
+   under what name — the 64-char `Revolut_X_API_kEY` cannot sign a
+   request; (2) is the "$100 sub-account" a separate Revolut X login or a
+   sub-portfolio the same key can trade across; (3) key permission and IP
+   allowlist; (4) paper-first confirmed. Design already decided by the
+   evidence: Jev as a decision node on categorical state, 5-minute loop,
+   closed 1h/4h bars, limit orders, BTC/ETH/SOL only, hard caps in code,
+   inputs recorded not conclusions. See the 2026-09-20 03:15 entry.
+
 1. **Cloudflare's edge still serves five cached copies of the old
    exposure, for up to seven days.** The ORIGIN is fixed — every path
    not in `dist/` now returns the app's HTML shell, confirmed on paths
@@ -117,6 +131,72 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-20 03:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Research for the agents feature: TypeSafe Jev 1.13 and Revolut X,
+verified, measured, recorded.** Davies wants an "Agents" page behind the
+☰ menu — strategies trading crypto on a Revolut X sub-account he has
+funded, decisions by "TypeSafe: Jev 1.13" through OpenRouter with
+TypeSafe direct as fallback; the model is too new for any training set,
+so he asked for the research first and the build in a fresh PR after.
+
+**Jev exists and is not what the request assumed.** Listed on OpenRouter
+2026-09-18 with modality `text->decisions` (confirmed from the endpoints
+JSON, it is absent from the chat-model list because it is not one). It
+is a System One model: state + typed questions in, typed answers with
+probabilities out; it cannot generate text. $0.042 per million input
+tokens, output free — a 1,000-token call is $0.000042, one a minute is
+$0.06 a day. 70–500 ms. Native `POST api.typesafe.ai/v1/systemone`;
+OpenRouter `POST /api/alpha/decisions` with `typesafe/jev-1.13` and a
+stricter `noul.criteria` (both keys required). Full wire format, limits,
+confidence semantics and the official SDK's types are in the reference.
+
+**The vendor's own jaggedness page decides the architecture.** Jev
+cannot reason about numbers, cannot judge proximity between values,
+reads dates as text, and "should not be used for tasks code can compute
+exactly". Handing it candles and asking whether the market goes up is
+exactly the documented failure. So: code computes everything, Jev
+classifies a short categorical state, a deterministic risk layer it
+cannot override decides what is allowed. It is a decision node inside a
+rulebook, not the edge.
+
+**Revolut X, measured on the public endpoints tonight.** 0 % maker /
+0.09 % taker, flat. Spreads BTC 1.5 bps, ETH 2.1, SOL 3.1; every other
+pair 6–12 bps and thin — the universe is those three. Candles in
+MINUTES (my first probe sent milliseconds and got 400s), capped at 1,000
+per call, history back to Aug/Sep 2023 for all three. Ed25519 signing
+works natively in Deno 2.9.6. Trading cap 1,000 orders a day. Min
+notional $0.10. No sandbox. **An API key maps to the whole user
+account** — the docs describe no sub-account scoping, so his "$100
+sub-account" is either a separate login (fine) or a sub-portfolio the
+same key can trade across (then isolation is our caps' job). And a key
+alone cannot sign: the Ed25519 PRIVATE key must be in secrets too.
+Both are questions for him, not assumptions.
+
+**Two years of real hourly data, net of those costs.** Pulled BTC/ETH/SOL
+from Coinbase Exchange (reachable, keyless; api.binance.com is 451
+geo-blocked, the Vision mirror is not). One taker round trip an hour
+burns ~75 % of the account a month before any edge. Simple long/flat
+rules: everything on 1h bars that trades > 0.3×/day is deeply negative
+after fees (SMA 10/50 BTC +16 % gross → −28 % taker); slow trend rules
+on 4h/1d keep almost all their gross and cut drawdown (SMA 20/100 4h
+BTC +54 % net vs +26 % hold; 30-day momentum ETH +127 % vs +2 %; SOL
+stayed mostly flat through −25 %). One window, in-sample parameters —
+recorded as evidence of the COST STRUCTURE, not a forecast. Script under
+`scraps/agents-baseline-backtest.py`. Three of my own mistakes on the
+way, all caught before anything was written down: the first draft
+mis-scaled Jev's daily cost by 1,000×; the Donchian rule compared the
+close to a high that included itself and never fired; and the stateful
+rules shared one position dict across the gross / maker / taker passes,
+so a later pass inherited an earlier pass's final position and printed
+a maker return above gross. The saved script builds a fresh rule per
+pass and asserts gross ≥ maker ≥ taker on every row.
+
+Nothing built. Reference at `docs/agents/reference.md`, pointer section
+in CLAUDE.md. Next session: get the four answers, then the PR — schema
+and migration, `agents-tick` Edge Function on the 5-minute cron, Revolut
+X and Jev clients with pinned tests, paper mode, the Agents modal.
 
 ### [2026-09-20 01:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
