@@ -13,12 +13,13 @@ import React from 'react';
 import { Modal } from './modals.jsx';
 import { maskDigits, pctColor } from './formatters.js';
 import {
-  backtestRows, basisRows, decisionView, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fillRows, fillsSummary,
-  fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationView,
-  orderView, rotationBacktestRows, strategyRows, totalsView, venueHue, venueLabel, venueRows, dislocationBacktestRows,
+  agentsAlerts, agentsErrorView, backtestRows, basisNowView, basisRows, decisionView, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard,
+  fetchAgentsLog, fillRows, fillsSummary, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationView,
+  orderView, positionLines, rotationBacktestRows, shareBasisText, shareSegments, strategyRows, totalsView, venueHue, venueLabel, venueRows,
+  dislocationBacktestRows,
 } from './agents.js';
 import {
-  CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, tooltipBox, windowText,
+  CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
 } from './agents_chart.js';
 import backtestSummary from '../docs/agents/backtests/summary.json';
 
@@ -35,6 +36,27 @@ const when = (iso) => {
 const sentence = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
 /** @param {number | null} ms */
 const ago = (ms) => (ms == null ? '—' : ms < 3600e3 ? `${Math.max(0, Math.floor(ms / 60e3))}m ago` : ms < 86400e3 ? `${Math.floor(ms / 3600e3)}h ago` : `${Math.floor(ms / 86400e3)}d ago`);
+
+/**
+ * Is this the phone layout? The same 760 px the stylesheet breaks at, so
+ * the table and the cards can never both be the wrong one: below it the
+ * twelve-column table is replaced by a card per strategy rather than
+ * clipped down to two columns and a horizontal scroll.
+ * @param {string} query
+ */
+function useMediaQuery(query) {
+  const read = () => (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(query).matches);
+  const [on, setOn] = React.useState(read);
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
+    const mq = window.matchMedia(query);
+    const onChange = () => setOn(mq.matches);
+    onChange();
+    mq.addEventListener?.('change', onChange);
+    return () => mq.removeEventListener?.('change', onChange);
+  }, [query]);
+  return on;
+}
 
 function ModeBadge({ mode }) {
   return <span className={`ag-badge ag-badge-${mode}`}>{mode.toUpperCase()}</span>;
@@ -82,20 +104,16 @@ function Totals({ dash, m }) {
   );
 }
 
-function VenueStrip({ dash, m }) {
+/**
+ * The two chips the venue cards do NOT already carry. The venue chips used
+ * to repeat the cards' maker/taker and funding word for word, a duplicate
+ * that cost a phone two hundred pixels above the strategies; the cards keep
+ * those facts, and what is left here is the risk ceiling and the model's
+ * running bill, which appear nowhere else.
+ */
+function VenueStrip({ dash }) {
   return (
     <div className="ag-strip">
-      {(dash.venues ?? []).map((v) => {
-        const usd = v.balances?.USD;
-        return (
-          <div key={v.id} className={`ag-chip${v.note ? ' is-warn' : ''}`} title={v.note ?? ''}>
-            <span className="ag-chip-name">{venueLabel(v.id)}</span>
-            <span className="dim">maker/taker {fmtFees(v.feeBps)}</span>
-            <span className="dim">{v.canTrade ? (usd != null ? `${m(fmtUsd(usd))} USD` : 'funded: —') : 'no key'}</span>
-            {v.note && <span className="ag-warn">!</span>}
-          </div>
-        );
-      })}
       {dash.risk && (
         <div className={`ag-chip${dash.risk.global_pause ? ' is-warn' : ''}`}>
           <span className="ag-chip-name">Caps</span>
@@ -120,21 +138,27 @@ function VenueStrip({ dash, m }) {
 /** Each account's slice of the book, with a share bar — the split Davies asked to see. */
 function VenueSplit({ dash, m }) {
   const rows = venueRows(dash);
+  const segments = shareSegments(rows);
+  const basis = shareBasisText(rows);
   return (
     <section className="ag-venues">
-      <div className="ag-share-bar" title={`share of ${rows[0]?.shareOf ?? 'value'}`}>
-        {rows.map((r) => (
-          <span key={r.id} className={`ag-share ag-share-${r.id}`} style={{ width: `${Math.max(0, Math.min(100, r.share * 100))}%` }}>
-            {r.share >= 0.12 ? `${r.label} ${(r.share * 100).toFixed(0)}%` : ''}
+      <div className="ag-section-title mono">VENUES <span className="dim">· {basis}, and what each account holds</span></div>
+      <div className="ag-share-bar" title={basis}>
+        {segments.map((s) => (
+          <span key={s.id} className={`ag-share ag-share-${s.id}`} style={{ width: `${s.widthPct}%` }} title={s.title}>
+            {s.text}
           </span>
         ))}
       </div>
       <div className="ag-venue-cards">
         {rows.map((r) => (
           <div key={r.id} className={`ag-venue-card ag-venue-card-${r.id}${r.note ? ' is-warn' : ''}`}>
+            {/* The badge on its own line, the meta under it: when one head
+                wrapped and the other did not, the two cards' grids started
+                at different heights and the figures stopped lining up. */}
             <div className="ag-venue-head">
               <VenueBadge id={r.id} />
-              <span className="dim mono">{r.strategies} strategies · {r.live} live · maker/taker {fmtFees(r.feeBps)}</span>
+              <span className="dim mono ag-venue-meta">{r.strategies} strategies · {r.live} live · maker/taker {fmtFees(r.feeBps)}</span>
             </div>
             <div className="ag-venue-grid mono">
               <span className="dim">funded</span><span>{r.canTrade ? (r.balanceUsd != null ? `${m(fmtUsd(r.balanceUsd))} USD` : '—') : 'no key'}</span>
@@ -164,15 +188,23 @@ function Basis({ dash }) {
       <div className="hl-scroll">
         <table className="hl-table ag-table mono">
           <thead><tr>
-            <th className="hl-th hl-left">Symbol</th><th className="hl-th hl-right">Now</th><th className="hl-th hl-right">|basis| p50</th>
+            <th className="hl-th hl-left">Symbol</th><th className="hl-th hl-right">Now <span className="dim">vs 15 bps</span></th><th className="hl-th hl-right">|basis| p50</th>
             <th className="hl-th hl-right">p95</th><th className="hl-th hl-right">max</th><th className="hl-th hl-right">&gt; 20 bps</th>
             <th className="hl-th hl-right">&gt; 40</th><th className="hl-th hl-right">&gt; 80</th><th className="hl-th hl-right">samples</th>
           </tr></thead>
           <tbody>
-            {rows.map((r) => (
+            {rows.map((r) => {
+              // NOT the P&L palette: a negative basis is Revolut X cheap,
+              // which is the dislocation rule's buy signal, and red would
+              // call its best entry a loss. What earns a colour here is
+              // size against the rule's own 15 bps entry, with the word.
+              const now = basisNowView(r.latest);
+              return (
               <tr key={r.symbol} className="ag-basis-row">
                 <td className="hl-left hl-strong">{r.symbol}</td>
-                <td className="hl-right" style={{ color: pctColor(r.latest) }}>{fmtBps(r.latest)}</td>
+                <td className={`hl-right ag-basis-now${now.wide ? ' is-wide' : ''}`} title={now.title}>
+                  {now.text}{now.wide ? <span className="ag-basis-word"> wide</span> : null}
+                </td>
                 <td className="hl-right">{r.absP50 == null ? '—' : r.absP50.toFixed(2)}</td>
                 <td className="hl-right">{r.absP95 == null ? '—' : r.absP95.toFixed(2)}</td>
                 <td className="hl-right">{r.absMax == null ? '—' : r.absMax.toFixed(2)}</td>
@@ -181,7 +213,8 @@ function Basis({ dash }) {
                 <td className="hl-right dim">{r.over80 ?? 0}</td>
                 <td className="hl-right dim">{r.n ?? 0}</td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -194,54 +227,108 @@ function Basis({ dash }) {
   );
 }
 
+// Status and return first: the two facts that say whether a strategy is
+// alive and making money sit right after its name at every width. The
+// money detail (cost, value, unrealised, orders, last decision) hides
+// under 760 px — it is all on the detail page — so a phone sees a whole
+// row without scrolling.
 const COLUMNS = [
-  { id: 'name', label: 'Strategy', cls: 'hl-left' },
-  { id: 'venue', label: 'Venue', cls: 'hl-left' },
-  { id: 'mode', label: 'Mode', cls: 'hl-left' },
-  { id: 'cost', label: 'Cost', cls: 'hl-right' },
-  { id: 'value', label: 'Value', cls: 'hl-right' },
-  { id: 'unrealised', label: 'Unrealised', cls: 'hl-right' },
-  { id: 'realised', label: 'Realised', cls: 'hl-right' },
-  { id: 'return', label: 'Return', cls: 'hl-right' },
-  { id: 'orders', label: 'Orders today', cls: 'hl-right' },
-  { id: 'last', label: 'Last decision', cls: 'hl-left' },
-  { id: 'next', label: 'Next', cls: 'hl-left' },
-  { id: 'status', label: 'Status', cls: 'hl-left' },
+  { id: 'name', label: 'Strategy', cls: 'hl-left', phone: true },
+  { id: 'venue', label: 'Venue', cls: 'hl-left', phone: true },
+  { id: 'mode', label: 'Mode', cls: 'hl-left', phone: true },
+  { id: 'status', label: 'Status', cls: 'hl-left', phone: true },
+  { id: 'return', label: 'Return', cls: 'hl-right', phone: true },
+  { id: 'realised', label: 'Realised', cls: 'hl-right', phone: true },
+  { id: 'unrealised', label: 'Unrealised', cls: 'hl-right', phone: false },
+  { id: 'value', label: 'Value', cls: 'hl-right', phone: false },
+  { id: 'cost', label: 'Cost', cls: 'hl-right', phone: false },
+  { id: 'orders', label: 'Orders today', cls: 'hl-right', phone: false },
+  { id: 'last', label: 'Last decision', cls: 'hl-left', phone: false },
+  { id: 'next', label: 'Next', cls: 'hl-left', phone: true },
 ];
+
+function StrategyCell({ id, r, m, onOpen }) {
+  switch (id) {
+    case 'name': return (
+      <>
+        <button type="button" className="ag-name-btn ag-name" onClick={() => onOpen(r.id)}>{r.name}</button>
+        <span className="hl-sub dim">{r.kind} · {r.openPositions} open · {m(fmtUsd(r.capitalUsd))} cap</span>
+      </>
+    );
+    case 'venue': return <VenueBadge id={r.venueId} signal={r.signalVenue} />;
+    case 'mode': return <ModeBadge mode={r.mode} />;
+    case 'status': return <StatusDot status={r.status} />;
+    case 'return': return <span style={{ color: pctColor(r.returnPct) }}>{m(fmtPctSigned(r.returnPct, 2))}</span>;
+    case 'realised': return <Money v={r.realisedUsd} m={m} />;
+    case 'unrealised': return <Money v={r.unrealisedUsd} m={m} />;
+    case 'value': return <span className="hl-strong">{m(fmtUsd(r.valueUsd))}</span>;
+    case 'cost': return <>{m(fmtUsd(r.costUsd))}</>;
+    case 'orders': return <>{r.ordersToday}{r.openOrders ? <span className="dim"> · {r.openOrders} open</span> : null}</>;
+    case 'last': return r.lastAction
+      ? <><span className={`ag-action ag-action-${r.lastAction}`}>{r.lastAction}</span> <span className="dim">{r.lastSymbol} · {ago(r.lastAgeMs)}</span></>
+      : <span className="dim">—</span>;
+    case 'next': return <span className="dim ag-next">{r.nextText}</span>;
+    default: return null;
+  }
+}
 
 function StrategyTable({ rows, m, onOpen }) {
   return (
     <div className="hl-scroll">
       <table className="hl-table ag-table mono">
         <thead>
-          <tr>{COLUMNS.map((c) => <th key={c.id} className={`hl-th ${c.cls}`}>{c.label}</th>)}</tr>
+          <tr>{COLUMNS.map((c) => <th key={c.id} className={`hl-th ${c.cls} ag-col-${c.id}${c.phone ? '' : ' ag-col-wide'}`}>{c.label}</th>)}</tr>
         </thead>
         <tbody>
           {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={COLUMNS.length}>No strategies yet.</td></tr>}
           {rows.map((r) => (
-            <tr key={r.id} className="ag-row" onClick={() => onOpen(r.id)} role="button" tabIndex={0}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(r.id); } }}>
-              <td className="hl-left ag-name-cell">
-                <span className="ag-name">{r.name}</span>
-                <span className="hl-sub dim">{r.kind} · {r.openPositions} open · {m(fmtUsd(r.capitalUsd))} cap</span>
-              </td>
-              <td className="hl-left"><VenueBadge id={r.venueId} signal={r.signalVenue} /></td>
-              <td className="hl-left"><ModeBadge mode={r.mode} /></td>
-              <td className="hl-right">{m(fmtUsd(r.costUsd))}</td>
-              <td className="hl-right hl-strong">{m(fmtUsd(r.valueUsd))}</td>
-              <td className="hl-right"><Money v={r.unrealisedUsd} m={m} /></td>
-              <td className="hl-right"><Money v={r.realisedUsd} m={m} /></td>
-              <td className="hl-right" style={{ color: pctColor(r.returnPct) }}>{m(fmtPctSigned(r.returnPct, 2))}</td>
-              <td className="hl-right">{r.ordersToday}{r.openOrders ? <span className="dim"> · {r.openOrders} open</span> : null}</td>
-              <td className="hl-left">
-                {r.lastAction ? <><span className={`ag-action ag-action-${r.lastAction}`}>{r.lastAction}</span> <span className="dim">{r.lastSymbol} · {ago(r.lastAgeMs)}</span></> : <span className="dim">—</span>}
-              </td>
-              <td className="hl-left dim ag-next">{r.nextText}</td>
-              <td className="hl-left"><StatusDot status={r.status} /></td>
+            <tr key={r.id} className="ag-row" onClick={() => onOpen(r.id)}>
+              {COLUMNS.map((c) => (
+                <td key={c.id} className={`${c.cls} ag-col-${c.id}${c.phone ? '' : ' ag-col-wide'}${c.id === 'name' ? ' ag-name-cell' : ''}`}>
+                  <StrategyCell id={c.id} r={r} m={m} onOpen={onOpen} />
+                </td>
+              ))}
             </tr>
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/** What stops everything trading, said out loud above the table: a global pause, a venue fault, a live venue with no key. */
+function Alerts({ dash }) {
+  const alerts = agentsAlerts(dash);
+  if (!alerts.length) return null;
+  return (
+    <div className="ag-alerts">
+      {alerts.map((a) => (
+        <div key={a.id} className={`ag-alert is-${a.tone}`} role="status">
+          <span className="ag-alert-icon" aria-hidden="true">{a.tone === 'stop' ? '⏸' : '⚠'}</span>
+          <span className="ag-alert-label mono">{a.label}</span>
+          <span className="ag-alert-text">{a.text}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * A failure in words, with the way back: what kind of failure, one plain
+ * sentence, the server's own message shortened, a retry, and the raw text
+ * folded away for whoever needs it. The sibling of `NotReady`.
+ */
+/** @param {{ err: any, onRetry?: (() => void | Promise<void>) | null, compact?: boolean }} props */
+function AgentsError({ err, onRetry = null, compact = false }) {
+  const v = agentsErrorView(err);
+  return (
+    <div className={`ag-errorcard${compact ? ' is-compact' : ''}`} role="alert">
+      <div className="ag-errorcard-title mono">{v.title}</div>
+      <p className="ag-errorcard-text">{v.sentence}{v.short ? <> <span className="dim">{v.short}</span></> : null}</p>
+      <div className="ag-errorcard-actions">
+        {onRetry ? <button type="button" className="btn-ghost ag-retry" onClick={onRetry}>Try again</button> : <span className="dim">Retries with the next refresh.</span>}
+        <details className="ag-errorcard-details"><summary className="dim mono">details</summary><pre className="mono">{v.detail}</pre></details>
+      </div>
     </div>
   );
 }
@@ -251,22 +338,28 @@ function HowItWorks() {
     <div className="ag-how">
       <div className="ag-section-title mono">HOW IT WORKS</div>
       <p>
-        Every five minutes the loop reads each strategy's own venue — closed 4-hour and daily candles, the touch,
-        the pair limits — and turns the numbers into a dozen words: trend, breakout, volatility, momentum, position,
-        drawdown. <b>The rulebook decides from the numbers.</b> <b>Jev</b>, TypeSafe's decision model, sees only the
-        words and answers two typed questions — is this a healthy trend, how much caution — and can veto an entry or
-        advise an exit, never open a position on its own. A deterministic <b>risk gate</b> (per-order cap, per-venue
-        exposure, daily loss limit, order count, global pause) has the last word, and every decision is stored with
-        what the model saw, what it answered, what the rule said and what was done.
+        <b>Every minute</b> the loop reads both venues' quotes, manages what is resting (an order the touch has left is
+        re-quoted, a few times, then dropped), checks each position's <b>protective stops</b> against the live mark — a
+        trailing stop from the high since entry on the trend rules, a hard floor under cost on every rule — and writes
+        down the words each rule sees on the forming bar (the live state on every strategy's page). <b>Entries wait for a
+        closed bar</b> of the rule's own size: an hour for Trend 1h, four hours for Trend 4h, a day for Momentum 30d and
+        Rotation; the Dislocation rule decides from the two venues' quotes minute by minute. <b>The rulebook decides from
+        the numbers.</b> <b>Jev</b>, TypeSafe's decision model, sees only the words and is asked on entries only — is this a
+        healthy trend, how much caution — and can veto one; it never opens a position on its own, and exits are the rule's
+        alone. A deterministic <b>risk gate</b> (per-order cap, per-venue exposure, daily loss limit, order count, global
+        pause) has the last word on new risk and never refuses an exit, and every decision is stored with what the model
+        saw, what it answered, what the rule said and what was done.
       </p>
       <p>
         <b>Two venues, each for what it is good at.</b> Kraken's book is a hundred times tighter, so the Revolut X strategies
-        read Kraken's candles and rest their orders on Revolut X, where the maker fee is 0 %; Kraken runs the slow rules and
-        paper twins whose fills pay its real 0.40 %. The basis between the two is recorded every turn (above): it never comes
-        near Kraken's fee, so there is no arbitrage to run, and the record keeps saying so. Orders rest <b>post-only at the
-        touch</b>. Every strategy starts in <b>paper</b>; live needs its row flipped, an explicit confirmation recorded, and
-        the gate — three switches, none of them the model's. Backtests are walk-forward: parameters chosen on two years,
-        the third year reported out of sample, buy-and-hold beside it, and the same rule priced on both venues.
+        read Kraken's candles and fill on Revolut X, where an order that <b>takes the touch</b> costs 9 bps — the fill the
+        backtests assume, and the one that does not wait for the breakout to fail before it fills; Kraken runs the slow rules
+        and paper twins that rest post-only, because 80 bps a side is not worth the certainty at this size. The basis between
+        the two is recorded (above): it never comes near Kraken's fee, so there is no arbitrage to run, and the record keeps
+        saying so. After any exit a rule waits two of its own bars before buying again. Every strategy starts in
+        <b> paper</b>; live needs its row flipped, an explicit confirmation recorded, and the gate — three switches, none of
+        them the model's. Backtests are walk-forward with the loop's own fills and stops: parameters chosen on two years,
+        the third year reported out of sample, buy-and-hold beside it, the same rule priced on both venues.
       </p>
     </div>
   );
@@ -451,9 +544,8 @@ function DislocationBacktest() {
         </table>
       </div>
       <p className="ag-note dim">
-        {d.source}. A resting bid at the same moment is {d.restingBid}. Seeded {d.seeded}: BTC and ETH carry the edge,
-        SOL and XRP do not (their own spread is wider than it), and the second half of the sample is the weaker one — this
-        rule is paper until its own fills say otherwise (reference §3.5 names the bar).
+        {d.source}. <b>Read with care:</b> {d.caveat} {typeof d.restingBid === 'string' ? d.restingBid : d.restingBid?.note}.
+        Seeded {d.seeded}. SOL and XRP showed nothing after costs at any setting.
       </p>
     </section>
   );
@@ -759,7 +851,7 @@ function SymbolChart({ s, symbol, onSelect, m, nowMs, at }) {
           : <span className="dim">flat</span>}
         {loading && !chart && <span className="dim">loading…</span>}
       </div>
-      {error && <div className="ag-chart-blank"><div className="ag-chart-blank-title mono">Chart unavailable</div><p className="dim">{error}</p></div>}
+      {error && <AgentsError err={error} compact />}
       {!error && !chart && loading && <div className="ag-chart-skeleton" aria-hidden="true" />}
       {!error && chart && (
         <>
@@ -866,6 +958,17 @@ function Detail({ s, dash, m, onBack, nowMs }) {
         </div>
         <span className="txn-realized-val mono" style={{ color: pctColor(s.realisedUsd) }}>{m(fmtUsd(s.realisedUsd, true))}</span>
       </div>
+      {positionLines(s).length > 0 && (
+        <div className="ag-poslines mono">
+          {positionLines(s).map((p) => (
+            <div key={p.symbol} className="ag-posline">
+              <span className="hl-strong">{p.symbol}</span> holding <span className="hl-strong">{m(p.base.toFixed(6))}</span> @ {m(fmtUsd(p.avgCost))}
+              <span className="dim"> · mark {m(fmtUsd(p.mark))} · </span><Money v={p.unrealisedUsd} m={m} />
+              <span className="dim"> ({m(fmtPctSigned(p.returnPct, 2))})</span>
+            </div>
+          ))}
+        </div>
+      )}
       <LiveState s={s} nowMs={nowMs} selected={symbol} onSelect={setSymbol} />
       <SymbolChart s={s} symbol={symbol} onSelect={setSymbol} m={m} nowMs={nowMs} at={dash?.at} />
       <Positions s={s} m={m} />
@@ -923,14 +1026,16 @@ function AgentsModal({ hideValues, onClose }) {
         </div>
       </header>
       <div className="modal-body ag-body">
-        {error && <div className="ag-error mono">{error}</div>}
+        {error && !dash && <AgentsError err={error} onRetry={load} />}
+        {error && dash && <AgentsError err={error} onRetry={load} compact />}
         {!dash && !error && <div className="ag-empty dim">Loading…</div>}
         {notReady && <NotReady dash={dash} />}
         {dash && !notReady && !current && (
           <>
             <Totals dash={dash} m={m} />
             <VenueSplit dash={dash} m={m} />
-            <VenueStrip dash={dash} m={m} />
+            <VenueStrip dash={dash} />
+            <Alerts dash={dash} />
             <section className="ag-section ag-strategies">
               <div className="ag-section-title mono">STRATEGIES <span className="dim">· one rulebook per venue · a row opens its chart, its fills and its log</span></div>
               <StrategyTable rows={rows} m={m} onOpen={setSelected} />
