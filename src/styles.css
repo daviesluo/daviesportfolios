@@ -1876,6 +1876,97 @@ body {
 .ag-more { margin-top: 10px; font-size: 12px; }
 .ag-error { color: var(--loss); font-size: 12px; padding: 10px 12px; border: 1px solid var(--loss-dim); border-radius: 4px; margin-bottom: 12px; }
 .ag-empty { padding: 24px; text-align: center; }
+.ag-kv-kind { color: var(--chalk); font-weight: 600; }
+.ag-strategies { margin-top: 0; }
+
+/* ── What the rule sees ──────────────────────────────────────────────
+   One row per symbol, the observation the tick writes every minute: the
+   state words as pills, how old the reading is, and — for the minute rule
+   — the basis in bps. A row is also the chart's symbol picker. */
+.ag-live-row {
+  display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; grid-template-areas: "sym pills age";
+  align-items: center; gap: 4px 12px; width: 100%; text-align: left;
+  padding: 7px 10px; border: 1px solid transparent; border-radius: 4px;
+  background: transparent; color: inherit; font: inherit; cursor: pointer;
+}
+.ag-live-row + .ag-live-row { border-top-color: var(--line-2); border-radius: 0 0 4px 4px; }
+.ag-live-row:hover { background: rgba(244,239,227,0.04); }
+.ag-live-row.is-on { background: rgba(244,239,227,0.05); border-color: var(--line); }
+.ag-live-row:focus-visible { outline: 1px solid var(--chalk-mute); outline-offset: -1px; }
+.ag-live-sym { grid-area: sym; display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; color: var(--chalk); }
+.ag-live-row .ag-pills { grid-area: pills; }
+.ag-live-age { grid-area: age; display: inline-flex; align-items: baseline; justify-content: flex-end; gap: 10px; font-size: 10px; white-space: nowrap; color: var(--chalk-dim); }
+.ag-live-fresh { color: var(--chalk); }
+.ag-live-empty { font-size: 12px; line-height: 1.5; padding: 12px; border: 1px dashed var(--line); border-radius: 4px; }
+.ag-held { width: 6px; height: 6px; border-radius: 50%; background: var(--gain); display: inline-block; margin-left: 6px; flex: none; }
+.ag-pills { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.ag-pill {
+  display: inline-flex; align-items: baseline; gap: 5px; padding: 2px 7px; border-radius: 10px;
+  border: 1px solid var(--line); background: rgba(244,239,227,0.03);
+  font-family: var(--font-mono); font-size: 10px; white-space: nowrap;
+}
+.ag-pill-k { color: var(--chalk-mute); letter-spacing: 0.03em; }
+.ag-pill-v { color: var(--chalk); font-weight: 600; }
+.ag-pill-up .ag-pill-v { color: var(--gain); }
+.ag-pill-down .ag-pill-v { color: var(--loss); }
+.ag-pill-warn .ag-pill-v { color: #d9c37a; }
+
+/* ── The detail chart ────────────────────────────────────────────────
+   One symbol at a time: the signal venue's closes, this strategy's fills
+   as buy / sell marks, resting orders dashed at their price. */
+.ag-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 2px; margin-bottom: 8px; border-bottom: 1px solid var(--line-2); }
+.ag-sym-tab {
+  appearance: none; background: transparent; border: 0; cursor: pointer;
+  display: inline-flex; align-items: center; white-space: nowrap;
+  padding: 6px 11px 7px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--chalk-dim);
+}
+.ag-sym-tab:hover { color: var(--chalk); background: rgba(244,239,227,0.04); }
+.ag-sym-tab.is-on { color: var(--chalk); box-shadow: inset 0 -2px 0 var(--chalk); }
+.ag-sym-tab:focus-visible { outline: 1px solid var(--chalk-mute); outline-offset: -2px; }
+.ag-chart-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 14px; font-size: 11px; color: var(--chalk-dim); margin-bottom: 7px; }
+.ag-chart-sym { font-size: 13px; letter-spacing: 0.02em; }
+.ag-chart { border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,0.02); padding: 6px 4px 0; }
+.ag-chart-svg { cursor: crosshair; }
+.ag-axis { font-family: var(--font-mono); font-size: 9.5px; fill: var(--chalk-dim); }
+.ag-axis-resting { fill: #d9c37a; }
+.ag-tip { font-family: var(--font-mono); font-size: 9.5px; fill: var(--chalk); }
+.ag-tip-head { fill: var(--chalk-dim); }
+.ag-chart-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; padding: 4px 8px 7px; font-size: 10px; color: var(--chalk-dim); }
+.ag-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.ag-legend-mark { display: block; overflow: visible; flex: none; }
+.ag-legend-hint { margin-left: auto; }
+.ag-chart-blank { padding: 30px 16px 34px; text-align: center; }
+.ag-chart-blank-title { font-size: 12px; letter-spacing: 0.06em; color: var(--chalk); margin-bottom: 6px; }
+.ag-chart-blank p { margin: 0 auto; max-width: 380px; font-size: 11px; line-height: 1.55; }
+.ag-chart-skeleton {
+  height: 230px; border: 1px solid var(--line); border-radius: 4px;
+  background: linear-gradient(100deg, rgba(244,239,227,0.02) 30%, rgba(244,239,227,0.06) 50%, rgba(244,239,227,0.02) 70%);
+  background-size: 300% 100%; animation: ag-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes ag-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+
+/* The fills the chart marks, as rows. The side wears the same triangle. */
+.ag-fills { margin-top: 12px; }
+.ag-fills-sum { display: flex; flex-wrap: wrap; gap: 3px 16px; font-size: 11px; margin-top: 8px; }
+.ag-fills-sum .hl-strong { color: var(--chalk); }
+.ag-side { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.ag-side-mark { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; flex: none; }
+.ag-side-buy { color: var(--gain); }
+.ag-side-buy .ag-side-mark { border-bottom: 8px solid var(--gain); }
+.ag-side-sell { color: var(--loss); }
+.ag-side-sell .ag-side-mark { border-top: 8px solid var(--loss); }
+
+/* Before the migration lands there are no tables to read: say so plainly. */
+.ag-notready { max-width: 520px; margin: 0 auto; padding: 44px 20px 48px; text-align: center; }
+.ag-notready-dot {
+  display: block; width: 10px; height: 10px; border-radius: 50%; margin: 0 auto 18px; background: var(--chalk-mute);
+  box-shadow: 0 0 0 6px rgba(244,239,227,0.05), 0 0 0 13px rgba(244,239,227,0.025);
+}
+.ag-notready-title { font-size: 16px; font-weight: 600; letter-spacing: 0.02em; margin: 0 0 10px; }
+.ag-notready-reason { font-size: 13px; line-height: 1.5; color: var(--chalk); margin: 0 0 12px; }
+.ag-notready-note { font-size: 12px; line-height: 1.6; margin: 0 0 20px; }
+.ag-notready-foot { font-size: 10px; letter-spacing: 0.08em; }
+
 @media (max-width: 760px) {
   .ag-venue-cards { grid-template-columns: 1fr; }
   .ag-total-val { font-size: 20px; }
@@ -1883,4 +1974,11 @@ body {
   .ag-table { font-size: 11px; }
   .ag-table td { padding: 6px 8px; }
   .ag-name-cell .hl-sub { white-space: normal; max-width: 160px; }
+  .ag-live-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "sym age" "pills pills"; gap: 6px 10px; padding: 8px; }
+  .ag-live-age { font-size: 9.5px; gap: 8px; }
+  .ag-chart-legend { gap: 4px 10px; font-size: 9.5px; }
+  .ag-legend-hint { display: none; }
+  .ag-chart-skeleton { height: 190px; }
+  .ag-chart-head { font-size: 10px; gap: 2px 10px; }
+  .ag-notready { padding: 32px 4px 36px; }
 }

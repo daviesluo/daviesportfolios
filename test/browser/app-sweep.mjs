@@ -278,13 +278,22 @@ const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading
  */
 const AGENTS_DASHBOARD = (() => {
   const at = new Date(CLOCK).toISOString();
+  const KIND_NAME = { 'trend-4h': 'Trend 4h', 'momentum-1d': 'Momentum 30d', 'dislocation-1m': 'Dislocation' };
+  // The observation the tick writes every minute on the FORMING bar: the
+  // same categorical words a decision would see. 40 s old, so every row
+  // reads as running even though the last DECISION is 35 min behind.
+  const seen = (symbol, over = {}) => ({
+    ts: new Date(CLOCK - 40e3).toISOString(), barStart: new Date(CLOCK - 40e3 - 3600e3).toISOString(),
+    state: { symbol, trend_4h: 'up', trend_strength: 'strong', breakout: 'inside_range', volatility: 'normal', momentum_30d: 'positive', position: 'flat', unrealised: 'none', time_in_position: 'none', ...over },
+    numbers: { mark: 86000, close: 85900 },
+  });
   const strat = (id, kind, venue, over = {}) => ({
     id, kind, venue, signalVenue: 'kraken', nextDecisionAt: new Date(NOW_MS + 2 * 3600e3 + 13 * 60e3).toISOString(),
-    name: `${kind === 'trend-4h' ? 'Trend 4h' : 'Momentum 30d'} · ${venue === 'revx' ? 'Revolut X' : 'Kraken'}`,
+    name: `${KIND_NAME[kind]} · ${venue === 'revx' ? 'Revolut X' : 'Kraken'}`,
     description: 'Fixture strategy.', symbols: ['BTC/USD', 'ETH/USD', 'SOL/USD'], mode: 'paper', capitalUsd: 60,
     params: { fast: 20, slow: 100 }, updatedAt: at,
     costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0,
-    positions: ['BTC/USD', 'ETH/USD', 'SOL/USD'].map((symbol) => ({ symbol, base: 0, avgCost: 0, mark: 100, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0 })),
+    positions: ['BTC/USD', 'ETH/USD', 'SOL/USD'].map((symbol) => ({ symbol, base: 0, avgCost: 0, mark: 100, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0, observation: seen(symbol) })),
     openOrders: 0, ordersToday: 0, jev24h: { calls: 6, costUsd: 0.00011, avgLatencyMs: 480, providers: { openrouter: 6 } },
     lastDecision: { ts: new Date(CLOCK - 35 * 60e3).toISOString(), symbol: 'BTC/USD', action: 'hold', ruleAction: 'hold', reason: 'in position', provider: 'openrouter', riskAllowed: true, riskReason: 'hold' },
     backtest: null, recentDecisions: [], recentOrders: [], ...over,
@@ -292,9 +301,9 @@ const AGENTS_DASHBOARD = (() => {
   const kraken = strat('trend-4h-kraken', 'trend-4h', 'kraken', {
     costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, ordersToday: 1,
     positions: [
-      { symbol: 'BTC/USD', base: 0.00025, avgCost: 80000, mark: 86000, costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, openedAt: CLOCK - 86400e3, highWater: 86500, fills: 3 },
-      { symbol: 'ETH/USD', base: 0, avgCost: 0, mark: 2500, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0 },
-      { symbol: 'SOL/USD', base: 0, avgCost: 0, mark: 110, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0 },
+      { symbol: 'BTC/USD', base: 0.00025, avgCost: 80000, mark: 86000, costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, openedAt: CLOCK - 86400e3, highWater: 86500, fills: 3, observation: seen('BTC/USD', { position: 'long', unrealised: 'gain', time_in_position: 'days' }) },
+      { symbol: 'ETH/USD', base: 0, avgCost: 0, mark: 2500, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0, observation: seen('ETH/USD') },
+      { symbol: 'SOL/USD', base: 0, avgCost: 0, mark: 110, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0, observation: seen('SOL/USD') },
     ],
     recentDecisions: [{
       id: 1, ts: new Date(CLOCK - 35 * 60e3).toISOString(), strategy_id: 'trend-4h-kraken', venue: 'kraken', symbol: 'BTC/USD', mode: 'paper',
@@ -308,7 +317,22 @@ const AGENTS_DASHBOARD = (() => {
       price: 80000, base_size: 0.00025, state: 'filled', filled_base: 0.00025, avg_fill_price: 80000, fee_usd: 0.08, filled_at: new Date(CLOCK - 86400e3 + 300e3).toISOString(),
     }],
   });
-  const strategies = [strat('trend-4h', 'trend-4h', 'revx'), strat('momentum-1d', 'momentum-1d', 'revx'), kraken, strat('momentum-1d-kraken', 'momentum-1d', 'kraken')];
+  // The minute rule: two pairs, its own vocabulary, and a "next decision"
+  // that is a rhythm rather than a countdown.
+  const dislocation = strat('dislocation-1m', 'dislocation-1m', 'revx', {
+    symbols: ['BTC/USD', 'ETH/USD'], capitalUsd: 20, params: { enterBps: 12, stopBps: 25 },
+    nextDecisionAt: new Date(NOW_MS + 60e3).toISOString(),
+    positions: ['BTC/USD', 'ETH/USD'].map((symbol) => ({
+      symbol, base: 0, avgCost: 0, mark: 86000, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0,
+      observation: {
+        ts: new Date(CLOCK - 20e3).toISOString(), barStart: new Date(CLOCK - 20e3 - 60e3).toISOString(),
+        state: { symbol, basis: 'revx_cheap', basis_size: 'small', reference_move_5m: 'flat', position: 'flat', time_in_position: 'none' },
+        numbers: { basisBps: -3.42, mark: 86000, close: 85900 },
+      },
+    })),
+    lastDecision: { ts: new Date(CLOCK - 2 * 60e3).toISOString(), symbol: 'BTC/USD', action: 'hold', ruleAction: 'hold', reason: 'basis -3.4 bps, no dislocation', provider: 'openrouter', riskAllowed: true, riskReason: 'hold' },
+  });
+  const strategies = [strat('trend-4h', 'trend-4h', 'revx'), strat('momentum-1d', 'momentum-1d', 'revx'), kraken, strat('momentum-1d-kraken', 'momentum-1d', 'kraken'), dislocation];
   const totals = { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, byMode: { paper: { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08 }, live: { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0 } } };
   return {
     at,
@@ -320,7 +344,7 @@ const AGENTS_DASHBOARD = (() => {
     ],
     strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
     byVenue: {
-      revx: { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, capitalUsd: 120, strategies: 2, live: 0 },
+      revx: { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, capitalUsd: 140, strategies: 3, live: 0 },
       kraken: { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, capitalUsd: 120, strategies: 2, live: 0 },
     },
     basis: {
@@ -330,6 +354,53 @@ const AGENTS_DASHBOARD = (() => {
     },
   };
 })();
+
+/**
+ * `?action=chart` for one strategy x symbol: 40 hourly candles ending on the
+ * current bar, one buy and one sell on record, an order still resting and the
+ * decision that opened the position. Pinned to CLOCK like every other
+ * fixture, so the chart draws the same picture at any hour of the day.
+ */
+const AGENTS_CHART = (() => {
+  const interval = 3600e3, bars = 40;
+  const start = NOW_MS - (bars - 1) * interval;
+  const candles = [];
+  for (let i = 0; i < bars; i++) {
+    const t = start + i * interval;
+    const close = 84000 + Math.round(Math.sin(i / 4) * 1500) + i * 40;
+    candles.push([t, close - 20, close + 180, close - 200, close]);
+  }
+  const buy = candles[8], sell = candles[26], restingPrice = candles[bars - 1][4] - 600;
+  return {
+    strategyId: 'trend-4h-kraken', symbol: 'BTC/USD', venue: 'kraken', signalVenue: 'kraken', kind: 'trend-4h', mode: 'paper',
+    intervalMin: 60, since: new Date(start).toISOString(), at: new Date(CLOCK).toISOString(),
+    candles,
+    fills: [
+      { id: 11, ts: new Date(buy[0]).toISOString(), side: 'buy', price: buy[4], base: 0.00025, feeUsd: 0.08, venue: 'kraken', mode: 'paper', marketable: false, decisionId: 21 },
+      { id: 12, ts: new Date(sell[0]).toISOString(), side: 'sell', price: sell[4], base: 0.0001, feeUsd: 0.03, venue: 'kraken', mode: 'paper', marketable: true, decisionId: 22 },
+    ],
+    orders: [
+      { id: 11, ts: new Date(buy[0]).toISOString(), side: 'buy', price: buy[4], base: 0.00025, state: 'filled', venue: 'kraken', mode: 'paper', requotes: 0, marketable: false, filledAt: new Date(buy[0]).toISOString(), cancelledAt: null, decisionId: 21 },
+      { id: 12, ts: new Date(sell[0]).toISOString(), side: 'sell', price: sell[4], base: 0.0001, state: 'filled', venue: 'kraken', mode: 'paper', requotes: 0, marketable: true, filledAt: new Date(sell[0]).toISOString(), cancelledAt: null, decisionId: 22 },
+      { id: 13, ts: new Date(NOW_MS - 2 * interval).toISOString(), side: 'buy', price: restingPrice, base: 0.00015, state: 'new', venue: 'kraken', mode: 'paper', requotes: 1, marketable: false, filledAt: null, cancelledAt: null, decisionId: 23 },
+    ],
+    decisions: [{ id: 21, ts: new Date(buy[0]).toISOString(), barStart: new Date(buy[0]).toISOString(), action: 'enter', ruleAction: 'enter', reason: 'trend up; model agrees', provider: 'openrouter', riskAllowed: true, kind: 'bar', mark: buy[4] }],
+    position: { base: 0.00015, avgCost: buy[4], realisedUsd: 12.34, feesUsd: 0.11, openedAt: new Date(buy[0]).toISOString() },
+    observation: {
+      ts: new Date(CLOCK - 40e3).toISOString(), barStart: new Date(CLOCK - 40e3 - interval).toISOString(),
+      state: { symbol: 'BTC/USD', trend_4h: 'up', trend_strength: 'strong', breakout: 'inside_range', volatility: 'normal', momentum_30d: 'positive', position: 'long', unrealised: 'gain', time_in_position: 'days' },
+      numbers: { mark: 86000, close: 85900 },
+    },
+  };
+})();
+
+/** What the dashboard returns before the agents migration has run. */
+const AGENTS_NOT_READY = {
+  at: new Date(CLOCK).toISOString(), notReady: true,
+  reason: 'the agents tables are not in this database yet (migration 0037 runs on merge)',
+};
+/** Flipped by the agents section to prove the page renders that state too. */
+let agentsNotReady = false;
 
 let failures = 0;
 const log = [];
@@ -381,7 +452,13 @@ async function newPage(browser, { width, height }, errors, tokenMisses) {
       body: JSON.stringify(body),
     });
     if (url.includes('/data?') && url.includes('action=load')) return json({ data: PORTFOLIO, version: 1 });
-    if (url.includes('/agents?') && url.includes('action=dashboard')) return json(AGENTS_DASHBOARD);
+    if (url.includes('/agents?') && url.includes('action=dashboard')) return json(agentsNotReady ? AGENTS_NOT_READY : AGENTS_DASHBOARD);
+    if (url.includes('/agents?') && url.includes('action=chart')) {
+      const u = new URL(url);
+      // The same series whichever pair is asked for — what the checks are
+      // about is the drawing, not the prices.
+      return json({ ...AGENTS_CHART, strategyId: u.searchParams.get('strategy'), symbol: u.searchParams.get('symbol') });
+    }
     if (url.includes('/agents?') && url.includes('action=log')) return json({ strategyId: 'trend-4h', decisions: [], orders: [] });
     if (url.includes('action=price-snapshots')) {
       // Recording began 30 days ago, as it really did (2026-08-19).
@@ -902,18 +979,24 @@ async function run() {
       if (money(head) === 12.34 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total (${(head || '').trim()})`);
       else fail(S('agents'), `headline read "${head}", wanted +$12.34`);
       const rows = await page.locator('.ag-row').count();
-      if (rows === 4) ok(S('agents'), 'four strategy rows, one per rulebook per venue');
-      else fail(S('agents'), `expected 4 strategy rows, got ${rows}`);
+      if (rows === 5) ok(S('agents'), 'five strategy rows, one per rulebook per venue');
+      else fail(S('agents'), `expected 5 strategy rows, got ${rows}`);
+      // Every row's last DECISION is 35 min old — two of the trend rule's
+      // bars would call that stale. What keeps them running is the
+      // observation the tick wrote 40 s ago.
       const running = await page.locator('.ag-row .ag-status.is-running').count();
-      if (running === 4) ok(S('agents'), 'every strategy shows as running (decided 35 min ago)');
-      else fail(S('agents'), `running dots: ${running} of 4`);
+      if (running === 5) ok(S('agents'), 'a 40 s-old observation keeps every row running, not the decision clock');
+      else fail(S('agents'), `running dots: ${running} of 5`);
+      const watching = await page.locator('.ag-row .ag-status').first().getAttribute('title');
+      if (/watching · seen \d+s ago/.test(watching || '')) ok(S('agents'), `the status says what it is doing ("${watching}")`);
+      else fail(S('agents'), `status title reads "${watching}"`);
       const chips = await page.locator('.ag-chip .ag-chip-name').allTextContents();
       if (chips.includes('Revolut X') && chips.includes('Kraken') && chips.includes('Caps')) ok(S('agents'), 'venue and caps chips present');
       else fail(S('agents'), `chips: ${chips.join(', ')}`);
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, krakenRows = badges.filter((b) => b.startsWith('Kraken')).length;
-      if (revxRows === 2 && krakenRows === 2) ok(S('agents'), 'venue badge on every row: 2 Revolut X, 2 Kraken');
+      if (revxRows === 3 && krakenRows === 2) ok(S('agents'), 'venue badge on every row: 3 Revolut X, 2 Kraken');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       const shares = await page.locator('.ag-share').allTextContents();
       if (shares.some((t) => /Kraken 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Kraken');
@@ -924,9 +1007,15 @@ async function run() {
       const funded = await page.locator('.ag-venue-card-revx .ag-venue-grid').textContent().catch(() => '');
       if (/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card shows its funding');
       else fail(S('agents'), `revx card reads "${funded}"`);
+      // Four rules count down to a bar close; the minute rule decides every
+      // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
-      if (nexts.length === 4 && nexts.every((t) => t === 'in 2h 13m')) ok(S('agents'), 'each row counts down to its next decision');
-      else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
+      if (nexts.filter((t) => t === 'in 2h 13m').length === 4 && nexts.filter((t) => t === 'every minute').length === 1) {
+        ok(S('agents'), 'each bar rule counts down; the minute rule reads "every minute"');
+      } else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
+      const kinds = await page.locator('.ag-row .hl-sub').allTextContents();
+      if (kinds.some((t) => /^Dislocation ·/.test(t))) ok(S('agents'), 'the dislocation rulebook is named on its row');
+      else fail(S('agents'), `kind column: ${kinds.join(' | ')}`);
       const basisRowsN = await page.locator('.ag-basis-row').count();
       if (basisRowsN === 3) ok(S('agents'), 'cross-venue basis table has the three symbols');
       else fail(S('agents'), `basis rows ${basisRowsN}`);
@@ -935,7 +1024,7 @@ async function run() {
       const title = await page.locator('.ag-detail-title').first().textContent().catch(() => '');
       if (/Kraken/.test(title || '')) ok(S('agents'), `third row opens its detail (${(title || '').trim()})`);
       else fail(S('agents'), `detail title "${title}"`);
-      const posCells = await page.locator('.ag-detail .ag-section').nth(0).locator('tbody tr').count();
+      const posCells = await page.locator('.ag-positions tbody tr').count();
       const decRows = await page.locator('.ag-log').nth(0).locator('tbody tr').count();
       const ordRows = await page.locator('.ag-log').nth(1).locator('tbody tr').count();
       if (posCells === 1 && decRows === 1 && ordRows === 1) ok(S('agents'), 'detail shows the position, the decision and the order');
@@ -946,12 +1035,82 @@ async function run() {
       const stateTxt = await page.locator('.ag-log').nth(0).locator('.ag-state').first().textContent().catch(() => '');
       if (/trend up/.test(stateTxt || '') && /mom positive/.test(stateTxt || '')) ok(S('agents'), 'decision row shows the words the model saw');
       else fail(S('agents'), `state text "${stateTxt}"`);
-      const bt = await page.locator('.ag-detail .ag-section').last().locator('tbody tr').count();
+      // ---- the detail chart --------------------------------------
+      // Symbol tabs, the chart for the one selected, its fills as rows, and
+      // the words the rule is reading on the forming bar.
+      // A missing chart is a FAIL like any other, not a thrown timeout that
+      // takes the rest of the run (and both invariants) down with it — which
+      // is what a stale committed bundle would otherwise do.
+      const chartUp = await page.waitForSelector('.ag-chart-svg', { timeout: 5_000 }).then(() => true).catch(() => false);
+      if (!chartUp) fail(S('agents'), 'the detail never drew its chart svg');
+      const tabs = await page.locator('.ag-sym-tab').allTextContents();
+      const tabOn = await page.locator('.ag-sym-tab.is-on').allTextContents();
+      if (tabs.length === 3 && tabOn.length === 1 && /^BTC\/USD/.test(tabOn[0] || '')) {
+        ok(S('agents'), 'one symbol tab per pair, opening on the one that is held');
+      } else fail(S('agents'), `tabs ${tabs.join(' | ')}, selected ${tabOn.join(' | ')}`);
+      const marks = await page.locator('.ag-chart-svg .ag-fill-mark').count();
+      const buyMarks = await page.locator('.ag-chart-svg .ag-fill-buy').count();
+      const sellMarks = await page.locator('.ag-chart-svg .ag-fill-sell').count();
+      if (marks === 2 && buyMarks === 1 && sellMarks === 1) ok(S('agents'), 'the chart marks both fills, buy and sell apart');
+      else fail(S('agents'), `fill marks: ${marks} (${buyMarks} buy, ${sellMarks} sell)`);
+      const gridlines = await page.locator('.ag-chart-svg text.ag-axis').count();
+      if (gridlines >= 4) ok(S('agents'), `the chart is labelled on both axes (${gridlines} axis labels)`);
+      else fail(S('agents'), `only ${gridlines} axis labels`);
+      const legend = await page.locator('.ag-chart-legend .ag-legend-item').allTextContents();
+      if (legend.includes('buy fill') && legend.includes('sell fill') && legend.includes('resting order')) {
+        ok(S('agents'), 'the two mark kinds and the resting order are named in words');
+      } else fail(S('agents'), `legend: ${legend.join(' | ')}`);
+      const fillRowsN = await page.locator('.ag-fills tbody tr').count();
+      const sides = await page.locator('.ag-fills .ag-side').allTextContents();
+      if (fillRowsN === 2 && sides.join(',') === 'sell,buy') ok(S('agents'), 'the fills table lists both fills, newest first');
+      else fail(S('agents'), `fills table: ${fillRowsN} rows, sides ${sides.join(' | ')}`);
+      const sum = await page.locator('.ag-fills-sum').textContent().catch(() => '');
+      if (/2 fills/.test(sum || '') && /1 resting/.test(sum || '')) ok(S('agents'), `the fills line sums the window ("${(sum || '').trim().slice(0, 48)}…")`);
+      else fail(S('agents'), `fills summary reads "${sum}"`);
+      const liveRows = await page.locator('.ag-live-row').count();
+      const pills = await page.locator('.ag-live-row .ag-pill').count();
+      const firstPills = await page.locator('.ag-live-row').first().locator('.ag-pill').allTextContents();
+      if (liveRows === 3 && pills >= 9 && firstPills.some((t) => /trend4hup/.test(t.replace(/\s+/g, '')))) {
+        ok(S('agents'), `the live state renders as pills, one row per symbol (${pills} pills)`);
+      } else fail(S('agents'), `live state: ${liveRows} rows, ${pills} pills, first ${firstPills.join(' | ')}`);
+      const ages = await page.locator('.ag-live-row .ag-live-age').allTextContents();
+      // `.every` on an empty list is vacuously true, so the length is part of the check.
+      if (ages.length === 3 && ages.every((t) => /seen \d+ s ago/.test(t))) ok(S('agents'), 'each reading says how old it is');
+      else fail(S('agents'), `observation ages: ${ages.join(' | ')}`);
+      // A second pair swaps the chart without leaving the detail.
+      await page.locator('.ag-sym-tab').nth(1).click({ timeout: 2_000 }).catch(() => {});
+      await page.waitForTimeout(400);
+      const swapped = await page.locator('.ag-chart-sym').textContent().catch(() => '');
+      if (/ETH\/USD/.test(swapped || '')) ok(S('agents'), 'a tab swaps the pair the chart draws');
+      else fail(S('agents'), `after the tab click the chart reads "${swapped}"`);
+      await page.locator('.ag-sym-tab').first().click({ timeout: 2_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+
+      const bt = await page.locator('.ag-detail .ag-section').last().locator('tbody tr').count().catch(() => 0);
       if (bt === 3) ok(S('agents'), 'backtest table has the three symbols');
       else fail(S('agents'), `backtest rows ${bt}`);
       await page.locator('.ag-back').click();
       await page.waitForSelector('.ag-table', { timeout: 5_000 });
       ok(S('agents'), 'back returns to the overview');
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
+      // ---- the same page before the migration has run ------------
+      // `runDashboard` answers 200 with `{ notReady, reason }` while the
+      // agents tables do not exist. That has to be a designed state, not
+      // an error: a fresh database is the normal first minute of a deploy.
+      agentsNotReady = true;
+      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+      await page.waitForTimeout(200);
+      await page.locator('.header-menu-item:text-is("Agents")').first().click();
+      await page.waitForSelector('.ag-notready', { timeout: 10_000 }).catch(() => {});
+      const nr = await page.locator('.ag-notready').textContent().catch(() => '');
+      const nrErrors = await page.locator('.ag-error').count();
+      const nrTables = await page.locator('.ag-table').count();
+      if (/Not deployed yet/.test(nr || '') && /migration 0037/.test(nr || '') && nrErrors === 0 && nrTables === 0) {
+        ok(S('agents'), 'a notReady dashboard renders the designed empty state, not an error');
+      } else fail(S('agents'), `not-ready state: errors ${nrErrors}, tables ${nrTables}, text "${(nr || '').trim().slice(0, 80)}"`);
+      agentsNotReady = false;
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
     } else fail(S('agents'), 'Agents menu item not found');
