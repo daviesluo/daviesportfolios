@@ -137,8 +137,9 @@ that follow from that evidence, in short:
   its one live-touch trade lifted an ask from Revolut X's EEA book, which
   this UK account cannot trade (the client mixed the two regions'
   tickers — since fixed, `REVX_REGION`), and was stopped out 50 bps lower
-  a minute later. Its code stays, dormant without a row; its records
-  stay as evidence.
+  a minute later. Its row stays, retired in place (`retired_at`, paused:
+  hidden from the page, never ticked) so its records stay under their
+  foreign keys; its code stays, dormant.
   Breakout-with-volume, squeeze breakouts, double bottoms (§3.5) and
   15-minute / 1-hour trend and RSI(2) pullback rules (§3.6: nothing below
   an hour survives the 20 bps round trip) were tested and rejected with

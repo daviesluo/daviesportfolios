@@ -39,7 +39,9 @@ list stays the short version; the plan is the reasoning behind it.
    at the signal venue's bid) is the guard; decide once the region-correct
    record shows whether the UK book ever does that.
    (c) The phone shows five columns per detail table (`ag-ph`); the rest
-   need a wider screen. (d) Live is still three switches, all Davies'
+   need a wider screen. A retired strategy (`agent_strategies.retired_at`,
+   `0038`) is hidden by the dashboard and skipped by the tick; its records
+   stay. Un-retiring is a migration. (d) Live is still three switches, all Davies'
    (`agent_strategies.mode`, `agent_risk.live_confirmed_at`, the gate),
    and the first live order needs his confirmation in the conversation.
    Kraken holds £75 GBP, not USD (probe 09-20 19:08 UTC); a live Kraken
@@ -186,8 +188,13 @@ knip, Deno 290, sweep 184.
   bill), and the 60-minute fits all lose in sample, so their positive OOS
   rows are selection noise. Below an hour the round-trip cost is the
   whole result; Jev's speed is not the constraint.
-- **Dislocation retired (`0038` — the strategy row only; its records
-  stay).** It fired once, 01:26 UTC: lifted an ask "29.5 bps under
+- **Dislocation retired (`0038`: `retired_at` set and the row paused,
+  hidden from the page and never ticked; its records stay under their
+  foreign keys).** The file's first cut deleted the row; the migrations
+  workflow refused it on `agent_decisions_strategy_id_fkey` and `main`
+  was red from 02:00 UTC until the fix-up commit that follows — the
+  file's own claim that nothing references a strategy row was wrong,
+  and the FK was right. It fired once, 01:26 UTC: lifted an ask "29.5 bps under
   Kraken", stopped at the bid 50 bps lower a minute later, −68 bps
   all-in. Chasing that found the real fault: **Revolut X publishes two
   books per pair (UK / EEA), the client kept whichever ticker row came

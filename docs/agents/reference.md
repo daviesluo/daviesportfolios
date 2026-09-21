@@ -527,11 +527,13 @@ then the full period. Scratch scripts, not shipped: `patterns_bt.py`,
   the UK book, the one this account can trade, sat 0.1–6 bps wide. Fixed
   the same night (§2.2, §4.14): the client asks for the account's region
   on tickers and candles and drops any other region's row. Davies had
-  already asked for the rule to go rather than sit on the page. The
-  rulebook stays in `_shared/agents_strategy.ts` and the tick, dormant
-  without a row (a re-seed is a migration); its decision, order and
-  observation rows stay as the record; `agent_basis` keeps measuring
-  every turn (rows before the fix mix the two books).
+  already asked for the rule to go rather than sit on the page. The row
+  is retired in place (`retired_at`, paused — the first cut of `0038`
+  deleted it and the foreign key from `agent_decisions` refused, which
+  is the right answer: the records are the evidence); the rulebook stays
+  in `_shared/agents_strategy.ts` and the tick, dormant; un-retiring is
+  a migration. `agent_basis` keeps measuring every turn (rows before the
+  fix mix the two books).
 
 ### 3.6 Faster rules — 15-minute and 1-hour bars, walk-forward, the loop's own fills (2026-09-21)
 
