@@ -198,6 +198,30 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-21 22:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Quoting one coin's failure without the other four's is how a portfolio
+argument gets read as a coin argument.** Davies asked why AVAX is in the
+live recommendation when §3.8 says the tightened bar would not admit it,
+and why POL, which §3.8 passes, is in no row at all. Both documents were
+right and neither was readable: the portfolio study's "not one of 21
+members clears the bar on both windows" and §3.8's note on AVAX sit
+chapters apart, so AVAX reads as the one bad coin in a clean set when in
+fact BTC, ETH, SOL and SUI are in exactly the same position — one window
+each, disagreeing about which, which is the only reason the sleeve is
+steadier than its parts. §4.15 now says the bar ADMITS and does not
+certify, and that money is governed by the sleeve's own numbers and
+leave-one-out; the go-live brief names AVAX with the four others and
+carries the leave-one-out price of removing it (bear −0.3 % → −3.9 %,
+bull +12.6 % → +15.6 %; with SOL it is one of only two coins that made
+money in the bear year). POL's real blocker was never its record: its
+Revolut X UK book is $11k a day against a $100k floor. Its Kraken book
+is $2.30m, measured since §3.12, and on the seeded parameters it is
++33.0 % / 100 % plateau in window A and −5.2 % in window B — AVAX's
+shape exactly. One window is not two, so the bar does not admit it and
+nothing was added; §4.16 records it, names the asymmetry, and leaves the
+paper-seat question where it belongs, with Davies.
+
 ### [2026-09-21 21:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **A test whose answer depends on the clock is not a test, and it turned
