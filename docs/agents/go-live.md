@@ -139,7 +139,16 @@ set I recommend below:
 
 Each coin clears the bar in exactly one window and fails the other, and
 they disagree about which — which is why the sleeve is steadier than any
-of its parts. The sleeve line is from the allocation study (§3.11),
+of its parts. **Every one of the five, AVAX included** — so §3.8's note that
+AVAX would not clear the tightened bar today is not a mark against AVAX
+in particular; the same is true of BTC, ETH, SOL and SUI, and AVAX's
+failure is simply the one that got written down, because `0039` added it
+the morning the bar tightened. What the sleeve rests on is the sleeve's
+own two numbers and leave-one-out, not any coin's pass. On leave-one-out
+AVAX is the most expensive coin to remove in the bear window: without it
+the sleeve goes from −0.3 % to **−3.9 %** (return / drawdown −0.03 →
+−0.28), while the bull window improves from +12.6 % to +15.6 %. It is
+one of only two coins — with SOL — that made money in the bear year. The sleeve line is from the allocation study (§3.11),
 which simulates the five slots as ONE book on one calendar; adding the
 per-coin rows above gives −$1.81 and +$11.05 instead, because each coin
 there is split on its own bar count rather than on the sleeve's. The
