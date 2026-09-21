@@ -1044,6 +1044,124 @@ Caveats are the report's own, all of them, and the sharpest is that the
 recommendation is chosen by the worse of two windows, which is one number
 from each of two single draws; a third window could reorder the table.
 
+### 3.12 Kraken, now that it can trade — the venue study (2026-09-21)
+
+Davies converted the Kraken account to USD and set a nonce window on the
+key, which removed the two reasons Kraken COULD not trade and left the
+question of whether it SHOULD. §3.11 had answered "no" for the rules it
+runs; this asks the harder version: is there a rulebook, a holding
+period, a coin or a fee tier at which 80–96 bps a round trip pays for
+itself? Run by an independent agent as
+`supabase/functions/agents/backtest_kraken.ts` (imports `run`,
+`runRotation`, `COSTS`, `SHIPPED_STOPS`, `stopsForKind`, `spreadOf` and
+`resample`; the trend rule on daily and weekly bars and the slow rotation
+need NO copy — they are `run` and `runRotation` with different arguments
+— and the one copy, `runLogged`, is checked against `run` on **60 checks
+at zero difference**). Output `docs/agents/backtests/kraken.json`, report
+`docs/agents/reviews/2026-09-21-kraken-study.md`. Verified before
+integrating: the re-run reproduces its JSON exactly apart from the live
+book reading, and the harness re-derived §3.11's recommended set, §3.11's
+Kraken twin, the 7-day rotation seed and §3.8's two-window clearers
+without being told any of them.
+
+**1. A slower rulebook does fix the cost and destroys the sample doing
+it.** Seven rulebooks (the shipped 4-hour rule; the same with slow
+200/300, breakout 100/200 and ATR 4/6; a daily trend including the
+200-day; a weekly trend; Donchian on daily and on weekly closes;
+3/6/12-month momentum) over 27 coins and two windows:
+
+| | shipped 4h | the slow rulebooks |
+|---|---|---|
+| median hold | 3.2 d | 9.5 / 14.0 / 21.0 / 35.0 d |
+| Kraken break-even at a 30 % drift | 9.73 d | cleared |
+| fee, % of the slot a year | 7.81 % | 1.15–1.85 % |
+| trades a window | 5–20 | **1–5** |
+| coin-windows with no trade at all | — | **51 of 353** |
+
+**And the count that decides it: 12 two-window passes where chance alone
+gives 14.6.** Fewer than noise, over 12,492 out-of-sample evaluations.
+Five of the twelve rest on a single entry that never closed inside its
+window. §3.9's weekly-bar finding is confirmed and extended: a longer
+look-back does not rescue weekly bars, and the same is now true of daily
+bars, of bare Donchian channels and of 3/6/12-month momentum. A slower
+rotation is worse on both windows than the 7-day seed already in paper.
+
+**2. What a round trip needs, and what the mean is worth.** The median
+gross round trip is NEGATIVE on all seven rulebooks (−174 to −800 bps).
+`trend-4h` clears 96 bps at its 66th percentile, `donchian-1d` at its
+81st, `momentum-long` at its 82nd. The share clearing 96 bps is within
+four points of the share clearing 20 bps everywhere — the distribution is
+bimodal (a floor stop, or a long run), so Kraken's extra 60 bps does not
+remove the marginal winners, it is subtracted from all 9.76 round trips a
+year (5.9 % of the slot). "The mean beats the cost" is not a
+measurement: with a standard deviation of 2,058–6,668 bps the mean's
+standard error is 108–1,144, so **t against an 82 bps round trip is 1.33
+for `trend-4h`, 0.43 for `trend-1d`, −0.09 for `donchian-1d`, −0.25 for
+`momentum-long`** — and 2.17 for `trend-4h-wide`, the one exception.
+
+**3. The fee tier never arrives.** The recommended shape generates $160
+of 30-day volume; tier 2 needs $2,500 — 15.6× the turnover, or $1,558 of
+capital against an account holding about $100. The slow rulebooks
+generate $24–$38, further away. Trading to reach it is an identity
+rather than a strategy: $2,500 a month on $100 is 304× turnover a year,
+which at the DISCOUNTED 0.30 % maker is **91.2 % of the account a year in
+fees**. Re-priced at 0.30/0.60 the twelve clearers gain 0.11 to 2.13
+points a window and not one changes side.
+
+**4. Kraken's book, measured for the first time** (keyless `AssetPairs`
+plus eleven `Ticker` calls 60 s apart, 20:47–20:57 UTC): all 27 coins in
+`COSTS` are listed, **all 27 clear §4.16's $100k a day** (thinnest ETC at
+$327k), `costmin` is $0.50 and `ordermin` $2.53–$16.26, so a $20 slot is
+placeable on every one. §4.16's liquidity test can finally be applied
+there. **Eight coins clear on Kraken while failing Revolut X's UK book**
+— BNB, LTC, TON, SHIB, AAVE, ETC, POL, ATOM — and on the seeded
+parameters a row would actually run, **zero of the eight clear the bar on
+both windows**: POL +33.0 % / −5.2 % and BNB +7.7 % / −17.4 % fail window
+B, TON and SHIB fail window A, the other four fail both.
+
+**5. Put nothing on Kraken.** The decisive number is that **Revolut X
+beats Kraken in 18 of 18 paired comparisons, both windows, without one
+exception** — same rulebook, same coins, same parameters, 60 bps cheaper.
+The Kraken rows that do improve the set are the ones the study chose by
+looking at the windows it then scored them on; the one Kraken
+configuration seeded BEFORE the search, the `trend-4h` twin, makes the
+set worse on both windows (−0.4 % / +8.7 % against −0.3 % / +12.6 %).
+Nothing in `agent_risk` needs raising — and note that its caps are per
+venue account, so even a five-slot Kraken row would have fitted $20 and
+$100 without a change. The cap was never the constraint on Kraken; 80 bps
+is.
+
+**What would change this**, in either direction: a third window, a
+sideways year, on which `trend-4h-wide` holds up on SOL and AVAX (the one
+rulebook whose mean clears a Kraken round trip at t > 2 and whose passes
+are 7–19 trades wide rather than one); a fee tier reached by capital the
+account actually has rather than by turnover; a quarter of paper in which
+the Kraken twins' FILLS beat the backtest's post-only assumption, which
+is the one thing a backtest cannot see and exactly what the twins were
+seeded to measure; or a coin Kraken lists and Revolut X's UK book cannot
+carry that clears the bar on both windows on SEEDED parameters — POL is
+the nearest and it is 26 points away from itself.
+
+**A cost correction.** Kraken's measured LINK spread is 3.03 bps today
+against `COSTS`' 0.10: §3.8's twenty-minute window caught an unusually
+tight moment. `COSTS` now carries the WIDER of the two measurements,
+because a cost assumption should not flatter. Every study JSON committed
+before 2026-09-21 21:15 UTC charges the tighter one, so their
+LINK-on-Kraken figures are about 3 bps optimistic on a round trip, which
+changes nothing against 80 bps of fee. The other 26 agree within a basis
+point or two.
+
+**Does Coinbase's series stand in for Kraken's price?** Nothing had ever
+answered that for Kraken. Median |Δclose| over ~710–719 overlapping
+4-hour bars is 0.93–1.33 bps on BTC / ETH / SOL / XRP and 3.42–6.11 on
+LINK / AVAX / SUI / NEAR (p95 3.2–22.9). Small against 80–96 bps of cost.
+Kraken's own quarterly OHLCVT bundle (§2b) has still never been pulled;
+it is the right source for the next round.
+
+Caveats are the report's own, all of them, and the first is that the
+whole study is a search scored on the windows it searched — which is why
+the chance column is the control and why the answer is no.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

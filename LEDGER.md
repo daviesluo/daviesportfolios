@@ -198,6 +198,48 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-21 21:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Kraken can trade now, and still should not.** Davies did the two
+operational things (GBP → USD, a nonce window on the key), so the study
+that had been impossible became possible: what rule, hold, coin or fee
+tier makes an 80–96 bps round trip pay for itself? An independent agent
+ran it (`backtest_kraken.ts` → `kraken.json`, report in
+`docs/agents/reviews/`); §3.12 is the record. Verified here first: the
+re-run reproduces its JSON exactly apart from the live book reading, its
+`runLogged` copy matches `run` on 60 checks at zero difference, and it
+re-derived §3.11's recommended set (A −0.3 % DD 11.8 %, B +12.6 % DD
+10.2 %) without being given it.
+- **Slower does fix the cost and destroys the sample doing it.** Median
+  hold 3.2 d → 9.5 / 14.0 / 21.0 / 35.0 d, clearing the 9.73-day
+  break-even; fee 7.81 % of the slot a year → 1.15–1.85 %. But 1–5
+  trades a window, 51 of 353 coin-windows with NO trade, and **12
+  two-window passes where chance alone gives 14.6** — fewer than noise.
+  §3.9's weekly-bar finding now extends to daily bars, bare Donchian and
+  3/6/12-month momentum.
+- **Revolut X beats Kraken in 18 of 18 paired comparisons**, both
+  windows, same rule, same coins, same parameters, 60 bps cheaper. The
+  one Kraken configuration seeded before the search — the `trend-4h`
+  twin — makes the set WORSE on both windows.
+- **The fee tier never arrives**: $160 of 30-day volume against $2,500,
+  and trading to reach it is 304× turnover a year = 91.2 % of the
+  account a year in fees at the discounted rate.
+- **Kraken's book measured for the first time** (keyless, 11 samples):
+  all 27 coins clear $100k a day, `costmin` $0.50, `ordermin`
+  $2.53–$16.26, so a $20 slot is placeable everywhere. Eight coins clear
+  on Kraken while failing Revolut X's UK book; **zero of the eight clear
+  the bar on both windows** on the seeded parameters a row would run.
+- **A cost correction**: Kraken's LINK spread is 3.03 bps today against
+  `COSTS`' 0.10 — §3.8 caught an unusually tight snapshot. `COSTS` now
+  carries the wider of the two measurements, because a cost assumption
+  should not flatter; the committed study JSONs predate the change and
+  every LINK-on-Kraken figure in them is ~3 bps optimistic on a round
+  trip, which changes nothing against 80 bps of fee.
+- **Written down as the one candidate worth a third window**:
+  `trend-4h-wide` on SOL and AVAX, the only rulebook whose mean round
+  trip clears a Kraken round trip at t > 2 and whose passes are 7–19
+  trades wide rather than one.
+
 ### [2026-09-21 20:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Two live bugs, and the orders table put back the way he asked for it.**
