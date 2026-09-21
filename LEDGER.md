@@ -14,34 +14,38 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-0. **Agents (crypto auto-trading) — MERGED 2026-09-20 18:23 UTC (#211,
-   `23d2fdd`); paper trading is starting.** Merging applied migration
-   `0037` (eight PAPER strategies, the one-minute cron
-   `agents-tick-every-minute`, the caps row, `agent_locks`) and deployed
-   the `agents` Edge Function from the repo. What to watch in the first
-   days, in this order: (1) `ops_errors` rows of kind `agents.tick` /
-   `agents.crash` — a venue 429, a missing pair config, a lease never
-   released; (2) `agent_observations` filling within a minute for every
-   strategy × symbol, and the page's running dots; (3) the first
-   decisions at the next closed hour (trend-1h), 4-hour bar, and daily
-   close (00:00 UTC: momentum, rotation) — `agent_decisions` with
-   `provider` openrouter, not `none`; (4) paper fills on Revolut X being
-   marketable and paying the taker fee, Kraken twins resting; (5) how
-   often the touch basis crosses 15 bps (`agent_basis`, the dislocation
-   observations) — the measurement that decides whether that rule is
-   anything. Live is still three switches, all Davies'
+0. **Agents (crypto auto-trading) — paper since 2026-09-20 18:23 UTC
+   (#211, `23d2fdd`).** Two review rounds from Davies landed (history,
+   09-20 19:21 and 09-21 01:57 UTC). What the record says after the first
+   night: 0 errors, 437 / 437 cron runs, ~90 observations an hour, Jev
+   answering on every entry (no `provider: none`); positions: momentum
+   BTC / ETH / SOL on both venues, rotation ETH + SOL on both, trend-1h
+   ETH; trend-4h flat on both (no close above the prior 55-bar high yet —
+   not a fault). Open:
+   (a) **Every Revolut X quote before the region fix was one of the
+   venue's two books at random** (UK / EEA: the client kept whichever
+   ticker row came last, and the region-less candles are the EEA book's),
+   so pre-fix marks, `agent_basis` rows and paper fills are not all this
+   account's book; nothing is re-priced. Fixed in `_shared/revx.ts`
+   (`REVX_REGION = "UK"`, `quotesForRegion`, `region=` on every public
+   call; the probe reports the rows). What to watch: the probe's
+   `revx.region.tickers` showing ONE UK row per symbol with single-digit
+   spreads, and `agent_basis` after the fix staying inside a few bps p95.
+   (b) **Thin-book guard, not built.** The stop's mark is the execution
+   venue's mid and a Revolut X stop hits the bid — the backtests' fill on
+   the right book. If the UK book ever goes as wide as the EEA one did
+   (SOL 1.8 % at 01:35 UTC), a trail stop could sell into it. A spread
+   ceiling on marketable orders (skip an entry for a minute; rest a stop
+   at the signal venue's bid) is the guard; decide once the region-correct
+   record shows whether the UK book ever does that.
+   (c) The phone shows five columns per detail table (`ag-ph`); the rest
+   need a wider screen. (d) Live is still three switches, all Davies'
    (`agent_strategies.mode`, `agent_risk.live_confirmed_at`, the gate),
    and the first live order needs his confirmation in the conversation.
-   Nothing under `agent_*` is edited by hand; the reference §3.3a numbers
-   are the honest expectation (every rule beat buy-and-hold in the bear
-   year, two beat cash). **Usage rule**: no main-model polling and no
-   scheduled check-ins (the two agreed for the rollout were deleted on
-   Davies' word at 19:05 UTC); he asks when he wants a look.
-   **Kraken holds £75 of GBP, not USD** (probe 19:08 UTC: `ZGBP 75.0000`;
-   the app's "$100.47" is its USD-equivalent view) — the earlier note that
-   it was credited as USD was wrong. Paper is unaffected; a live Kraken
-   order needs USD, so the GBP → USD conversion (≈ $0.20 fee) is the
-   account's first real order and waits for his word.
+   Kraken holds £75 GBP, not USD (probe 09-20 19:08 UTC); a live Kraken
+   order needs the GBP → USD conversion first, and that waits for his
+   word. **Usage rule**: no main-model polling and no scheduled check-ins;
+   he asks when he wants a look.
 
 1. **Cloudflare's edge still serves five cached copies of the old
    exposure, for up to seven days.** The ORIGIN is fixed — every path
@@ -146,6 +150,59 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-21 01:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies' second pass, the first night of paper, and the venue's two
+books.** He asked for: no "of deployed value" on the share bar; the venue
+card's head on TWO lines (the first pass had merged them — read the wrong
+way, now in the skill); the basis table off the overview and the
+dislocation rule gone if it was not worth keeping; the strategy table
+without the P&L and last-decision columns, the venue badge naming the
+venue only, "in" dropped from NEXT, return split into UNREALISED G/L (on
+cost) and REALISED G/L (on capital) in the scoreboard's "+$1,521 (+0.86%)"
+shape; the scoreboard, the detail's head and the venue cards redesigned
+with today's change (UTC day) beside the total; the detail opening as a
+modal over the list and closed by ✕ back to the same scroll, no back
+button, no backtest section, no caps / Jev strip; every pair preloaded; a
+phone design verified with screenshots. All done: `scoreboardView` /
+`strategyScoreboard` / `glText` on the client, `dayPnl` per strategy and
+venue on the server (`todayUsd`, `dayStart`), the detail a second stacked
+`Modal`, phone rows as cards (`useMediaQuery`), the detail's tables down
+to five columns at phone width (`ag-ph`), `prefetchAgentsDashboard`
+warming every strategy × symbol chart 200 ms apart; six helpers only the
+removed sections used are gone with their tests, and three stacked layers
+of stale column widths with them. Screenshots at 1400 and 390 reviewed
+(`SWEEP_SHOTS`). Gates: typecheck, lint, vitest 900, build, size-limit,
+knip, Deno 290, sweep 184.
+- **Why the table's return % differed from the detail's unrealised %**:
+  the table divided (unrealised + realised) by capital, the tile divided
+  unrealised by cost. Now each column says its base.
+- **Faster rules, tested and rejected** (reference §3.6,
+  `docs/agents/backtests/frequency.json`): a year of 15-minute candles,
+  the loop's own fills and stops, walk-forward. The trend rule's best
+  in-sample parameters lose on every coin at 15 minutes (OOS −21 / −4 /
+  −15 %), the RSI(2) pullback loses 60–70 % (600 round trips is the fee
+  bill), and the 60-minute fits all lose in sample, so their positive OOS
+  rows are selection noise. Below an hour the round-trip cost is the
+  whole result; Jev's speed is not the constraint.
+- **Dislocation retired (`0038` — the strategy row only; its records
+  stay).** It fired once, 01:26 UTC: lifted an ask "29.5 bps under
+  Kraken", stopped at the bid 50 bps lower a minute later, −68 bps
+  all-in. Chasing that found the real fault: **Revolut X publishes two
+  books per pair (UK / EEA), the client kept whichever ticker row came
+  last, and the region-less public candles are the EEA book's.** The
+  trade's prices were EEA — a UK account cannot lift them. Measured at
+  01:48 UTC: UK SOL 0.1 bps wide, EEA 45; UK ETH 0.0, EEA 63. Fixed in
+  this push's third commit (`REVX_REGION`, `quotesForRegion`, `region=`
+  on every public call, the probe reporting the rows; Deno pins);
+  reference §2.2 / §3.5 / §4.14; skill: a fact in the reference that the
+  code did not implement.
+- **First night of paper (to 01:40 UTC):** 72 decisions (13 acted, none
+  with provider none), 15 orders (13 fills, 2 Kraken re-quotes), fees
+  $0.44, 0 errors, 437 / 437 cron runs. trend-1h ETH entered at 01:00
+  (P = 0.95); trend-4h flat on both venues — no close above the prior
+  55-bar high yet; not a fault.
 
 ### [2026-09-20 19:21 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

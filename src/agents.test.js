@@ -1,10 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-  backtestRows, basisRows, decisionView, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fillRows, fillsSummary, fmtBps, fmtFees,
+  decisionView, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fillRows, fillsSummary, fmtBps, fmtFees,
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
-  strategyRows, strategyStatus, rotationBacktestRows, totalsView, untilText, venueHue, venueRows,
-  dislocationBacktestRows,
-  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, shareBasisText, basisNowView, balanceLines, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache,
+  strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
+  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, balanceLines, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
 } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -70,19 +69,6 @@ describe('decisionView / orderView', () => {
   });
 });
 
-describe('backtestRows', () => {
-  const summary = {
-    results: {
-      'BTC/USD': { buyHoldOutOfSample: -0.2806, 'trend-4h': { chosen: { fast: 30, slow: 100, atrStop: 4 }, revx: { outOfSample: { ret: -0.18, maxDD: 0.24, trades: 26 }, fullPeriod: { ret: 0.47, maxDD: 0.3 } }, kraken: { outOfSample: { ret: -0.278, maxDD: 0.3, trades: 26 }, fullPeriod: { ret: 0.028, maxDD: 0.35 } } }, 'momentum-1d': { revx: { outOfSample: { ret: -0.136 }, fullPeriod: { ret: 1.19 } } } },
-    },
-  };
-  it('picks one rulebook on one venue, keeping the chosen parameters for the trend rule only', () => {
-    expect(backtestRows(summary, 'trend-4h', 'kraken')).toEqual([{ symbol: 'BTC/USD', oosRet: -0.278, oosDD: 0.3, oosTrades: 26, fullRet: 0.028, fullDD: 0.35, buyHoldOos: -0.2806, chosen: { fast: 30, slow: 100, atrStop: 4 } }]);
-    expect(backtestRows(summary, 'momentum-1d', 'revx')[0]).toMatchObject({ oosRet: -0.136, chosen: null });
-    expect(backtestRows(summary, 'momentum-1d', 'kraken')).toEqual([]);
-  });
-});
-
 describe('formatting', () => {
   it('keeps cents on a small book and signs gains', () => {
     expect(fmtUsd(1.5, true)).toBe('+$1.50');
@@ -108,7 +94,7 @@ describe('fetchAgentsDashboard', () => {
   });
 });
 
-describe('venueRows / basisRows / untilText', () => {
+describe('venueRows / untilText', () => {
   it('splits the book by venue and takes the share of deployed value, or of capital while nothing is deployed', () => {
     const dash = {
       byVenue: { revx: { valueUsd: 30, capitalUsd: 140, realisedUsd: 1, strategies: 4, live: 0 }, kraken: { valueUsd: 10, capitalUsd: 140, realisedUsd: -2, strategies: 3, live: 1 } },
@@ -122,12 +108,6 @@ describe('venueRows / basisRows / untilText', () => {
     expect(idle.map((r) => [r.share, r.shareOf])).toEqual([[0.3, 'capital'], [0.7, 'capital']]);
     expect(venueRows(null).map((r) => r.share)).toEqual([0, 0]);
   });
-  it('basis rows are sorted by symbol and carry the 24 h counts', () => {
-    const rows = basisRows({ basis: { 'SOL/USD': { latest: -0.6, n: 200, absP95: 1.5, over40: 0 }, 'BTC/USD': { latest: 0.3, n: 200, absP95: 1.1, over40: 0 } } });
-    expect(rows.map((r) => r.symbol)).toEqual(['BTC/USD', 'SOL/USD']);
-    expect(rows[0]).toMatchObject({ latest: 0.3, over40: 0 });
-    expect(basisRows(null)).toEqual([]);
-  });
   it('untilText counts down to the next bar close', () => {
     const now = Date.parse('2026-09-20T04:05:00Z');
     expect(untilText('2026-09-20T08:00:00Z', now)).toBe('in 3h 55m');
@@ -137,20 +117,6 @@ describe('venueRows / basisRows / untilText', () => {
     expect(untilText(null, now)).toBe('—');
     expect(fmtBps(-0.61)).toBe('-0.61 bps');
     expect(fmtBps(null)).toBe('—');
-  });
-});
-
-describe('rotationBacktestRows', () => {
-  it('lists the basket variants for one venue with the other venue beside them', () => {
-    const summary = { basket: { symbols: ['BTC/USD', 'ETH/USD'], buyHoldEqualWeightOutOfSample: -0.467, buyHoldEqualWeightFull: 2.25, variants: {
-      default: { params: {}, revx: { outOfSample: { ret: -0.122, maxDD: 0.3, exposure: 0.33, turnover: 21.7 }, fullPeriod: { ret: 1.284 } }, kraken: { outOfSample: { ret: -0.209 }, fullPeriod: { ret: 0.555 } } },
-    } } };
-    const r = rotationBacktestRows(summary, 'revx');
-    expect(r.symbols).toEqual(['BTC/USD', 'ETH/USD']);
-    expect(r.buyHoldOos).toBe(-0.467);
-    expect(r.rows).toEqual([{ name: 'default', label: 'top 2, bear filter on', oosRet: -0.122, oosDD: 0.3, exposure: 0.33, turnover: 21.7, fullRet: 1.284, otherOosRet: -0.209 }]);
-    expect(rotationBacktestRows(summary, 'kraken').rows[0]).toMatchObject({ oosRet: -0.209, otherOosRet: -0.122 });
-    expect(rotationBacktestRows(null, 'revx')).toEqual({ rows: [], buyHoldOos: null, buyHoldFull: null, symbols: [] });
   });
 });
 
@@ -200,7 +166,7 @@ describe('observations as the liveness signal', () => {
     expect(kindLabel('dislocation-1m')).toBe('Dislocation');
     expect(kindLabel('rotation-1d')).toBe('Rotation');
     expect(nextDecisionText('dislocation-1m', '2026-09-20T12:01:00Z', NOW)).toBe('every minute');
-    expect(nextDecisionText('trend-4h', '2026-09-20T16:00:00Z', NOW)).toBe('in 4h 00m');
+    expect(nextDecisionText('trend-4h', '2026-09-20T16:00:00Z', NOW)).toBe('4h 00m');
     expect(strategyRows({ strategies: [strategy({ kind: 'dislocation-1m', nextDecisionAt: '2026-09-20T12:01:00Z' })] }, NOW)[0])
       .toMatchObject({ kind: 'Dislocation', kindId: 'dislocation-1m', nextText: 'every minute' });
   });
@@ -423,27 +389,6 @@ describe('fillRows / fillsSummary / fetchAgentsChart', () => {
   });
 });
 
-describe('dislocationBacktestRows', () => {
-  const summary = {
-    dislocation: {
-      results: {
-        'BTC/USD': { days: 28.5, k15_h30: { full: { trades: 27, per_day: 0.95, avg_bps: 8.1, win: 81, worst: -60 }, firstHalf: { trades: 18, avg_bps: 9.1 }, secondHalf: { trades: 9, avg_bps: 6.1 } } },
-        'XRP/USD': { days: 28.5, k15_h30: { full: { trades: 0 }, firstHalf: { trades: 0 }, secondHalf: { trades: 0 } } },
-      },
-    },
-  };
-  it('distils the seeded setting per symbol with both halves beside the headline', () => {
-    const rows = dislocationBacktestRows(summary);
-    expect(rows.map((r) => r.symbol)).toEqual(['BTC/USD', 'XRP/USD']);
-    expect(rows[0]).toMatchObject({ trades: 27, perDay: 0.95, avgBps: 8.1, win: 81, worst: -60, firstHalfAvg: 9.1, secondHalfAvg: 6.1, days: 28.5 });
-    expect(rows[1]).toMatchObject({ trades: 0, avgBps: null, win: null, firstHalfAvg: null });
-  });
-  it('is empty without the study, and for an unknown setting the numbers are null', () => {
-    expect(dislocationBacktestRows({})).toEqual([]);
-    expect(dislocationBacktestRows(summary, 'k99_h1')[0]).toMatchObject({ symbol: 'BTC/USD', trades: 0, avgBps: null });
-  });
-});
-
 describe('agentsErrorView / parseAgentsErrorBody / shortErrorMessage', () => {
   it('reads the server envelope and names the failure in words, with the raw text kept for the details fold', () => {
     const raw = 'agents dashboard: 500 {"error":"agents crashed","message":"db GET agent_strategies → 500: code 57014"}';
@@ -498,26 +443,15 @@ describe('positionLines', () => {
   });
 });
 
-describe('shareSegments / shareBasisText', () => {
-  it('labels a wide segment with what the share is of, a narrow one with the percentage only, a sliver with nothing', () => {
+describe('shareSegments', () => {
+  it('labels a segment with the venue and its share, a sliver with nothing, and keeps what the share is of in the title', () => {
     const rows = /** @type {any} */ ([{ id: 'kraken', label: 'Kraken', share: 0.8, shareOf: 'value' }, { id: 'revx', label: 'Revolut X', share: 0.2, shareOf: 'value' }]);
     const seg = shareSegments(rows);
-    expect(seg[0].text).toBe('Kraken 80% of deployed value');
+    expect(seg[0].text).toBe('Kraken 80%');
+    expect(seg[0].title).toBe('Kraken: 80% of deployed value');
     expect(seg[1].text).toBe('Revolut X 20%');
     expect(seg[0].widthPct).toBe(80);
     expect(shareSegments(/** @type {any} */ ([{ id: 'x', label: 'X', share: 0.05, shareOf: 'value' }]))[0].text).toBe('');
-    expect(shareBasisText(rows)).toBe('share of deployed value');
-    expect(shareBasisText(/** @type {any} */ ([{ shareOf: 'capital' }]))).toBe('share of allotted capital');
-  });
-});
-
-describe('basisNowView', () => {
-  it('keeps the sign as text and marks only a basis beyond the entry threshold as wide — never the P&L palette', () => {
-    expect(basisNowView(0.31)).toMatchObject({ wide: false });
-    expect(basisNowView(0.31).text).toContain('+0.31');
-    expect(basisNowView(-16)).toMatchObject({ wide: true });
-    expect(basisNowView(-16).title).toMatch(/15/);
-    expect(basisNowView(null).text).toBe('—');
   });
 });
 
@@ -564,11 +498,47 @@ describe('prefetchAgentsDashboard', () => {
     const dash = await prefetchAgentsDashboard(fetchImpl, later);
     expect(dash.strategies.length).toBe(2);
     expect(readAgentsCache()?.dash).toBe(dash);
-    expect(scheduled).toEqual([250, 500]);
+    expect(scheduled).toEqual([200, 400]);
     await new Promise((r) => setTimeout(r, 0));
     expect(readChartCache('s1', 'BTC/USD')?.chart).toBeTruthy();
     const failing = /** @type {any} */ (async () => new Response('{"error":"unauthorised"}', { status: 401 }));
     expect(await prefetchAgentsDashboard(failing, later)).toBeNull();
     expect(readAgentsCache()?.dash).toBe(dash);
+  });
+});
+
+describe('glText / scoreboardView / strategyScoreboard', () => {
+  it('writes a gain the way the home scoreboard does, and drops the percent without a base', () => {
+    expect(glText(1521.4, 0.86)).toBe('+$1,521 (+0.86%)');
+    expect(glText(-0.09, -0.47)).toBe('-$0.09 (-0.47%)');
+    expect(glText(0, null)).toBe('$0.00');
+  });
+  it('puts today, total, unrealised and realised on their stated bases', () => {
+    const dash = { dayStart: '2026-09-21T00:00:00.000Z', totals: { costUsd: 40, valueUsd: 41, unrealisedUsd: 1, realisedUsd: 3, feesUsd: 0.1, todayUsd: 2, byMode: { live: { realisedUsd: 0 }, paper: { realisedUsd: 3 } } },
+      strategies: [{ capitalUsd: 60 }, { capitalUsd: 40 }] };
+    const v = scoreboardView(dash);
+    expect(v.capitalUsd).toBe(100);
+    expect(v.todayPct).toBeCloseTo(2, 6);           // 2 on 100 of capital
+    expect(v.totalUsd).toBe(4);
+    expect(v.totalPct).toBeCloseTo(4, 6);
+    expect(v.unrealisedPct).toBeCloseTo(2.5, 6);    // 1 on 40 of cost
+    expect(v.realisedPct).toBeCloseTo(3, 6);
+    expect(v.deployedPct).toBeCloseTo(41, 6);
+    expect(v.dayStart).toBe('2026-09-21T00:00:00.000Z');
+    const one = strategyScoreboard({ capitalUsd: 40, costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 0.5, todayUsd: -0.2 });
+    expect(one.unrealisedPct).toBeCloseTo(7.5, 6);
+    expect(one.todayPct).toBeCloseTo(-0.5, 6);
+    expect(scoreboardView(null).totalPct).toBeNull();
+  });
+});
+
+describe('strategyRows G/L columns and the next column', () => {
+  it('carries unrealised on cost, realised on capital, today, and a countdown without "in"', () => {
+    const dash = { strategies: [{ id: 'x', kind: 'trend-4h', venue: 'revx', name: 'X', symbols: ['BTC/USD'], mode: 'paper', capitalUsd: 40, costUsd: 20, unrealisedUsd: 1.5, realisedUsd: 0.5, todayUsd: 0.25, positions: [], nextDecisionAt: new Date(Date.parse('2026-09-21T00:00:00Z') + 2 * 3600e3 + 13 * 60e3).toISOString(), lastDecision: null }] };
+    const r = strategyRows(dash, Date.parse('2026-09-21T00:00:00Z'))[0];
+    expect(r.unrealisedPct).toBeCloseTo(7.5, 6);
+    expect(r.realisedPct).toBeCloseTo(1.25, 6);
+    expect(r.todayUsd).toBe(0.25);
+    expect(r.nextText).toBe('2h 13m');
   });
 });

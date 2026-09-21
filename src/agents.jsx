@@ -11,17 +11,13 @@
 // way the transaction history leads with the book's.
 import React from 'react';
 import { Modal } from './modals.jsx';
-import { maskDigits, pctColor } from './formatters.js';
+import { fmtMoney, maskDigits, pctColor } from './formatters.js';
 import {
-  agentsAlerts, agentsErrorView, backtestRows, basisNowView, basisRows, decisionView, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard,
-  fetchAgentsLog, fillRows, fillsSummary, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationView,
-  orderView, positionLines, rotationBacktestRows, shareBasisText, shareSegments, strategyRows, totalsView, venueHue, venueLabel, venueRows,
-  dislocationBacktestRows, balanceLines, countdownText, readAgentsCache, readChartCache,
+  agentsAlerts, agentsErrorView, balanceLines, countdownText, decisionView, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fillRows, fillsSummary, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, liveStateRows, observationView, orderView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, strategyRows, strategyScoreboard, totalsView, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
 } from './agents_chart.js';
-import backtestSummary from '../docs/agents/backtests/summary.json';
 
 const REFRESH_MS = 60_000;
 const TICK_MS = 20_000;
@@ -84,66 +80,83 @@ function Money({ v, signed = true, m }) {
   return <span className="mono" style={{ color: pctColor(v) }}>{m(fmtUsd(v, signed))}</span>;
 }
 
-function Totals({ dash, m }) {
-  const t = totalsView(dash);
+/**
+ * One cell of the scoreboard: a label, a signed amount, its percent — the home page's own shape.
+ * @param {{ label: string, usd: number, pct: number | null, m: (s: string) => string, note?: string | null, cls?: string }} props
+ */
+function GlCell({ label, usd, pct, m, note = null, cls = '' }) {
   return (
-    <div className="txn-realized ag-totals">
-      <div>
-        <span className="lot-summary-label mono">TOTAL REALIZED G/L (USD)</span>
-        <div className="ag-subline mono">
-          <span>live <Money v={t.liveRealisedUsd} m={m} /></span>
-          <span>paper <Money v={t.paperRealisedUsd} m={m} /></span>
-          <span>unrealised <Money v={t.unrealisedUsd} m={m} /></span>
-          <span>fees <span className="dim">{m(fmtUsd(t.feesUsd))}</span></span>
-        </div>
+    <div className={`ag-sb-cell ${cls}`}>
+      <div className="sb-label">{label}</div>
+      <div className="sb-value mono sb-change-row" style={{ color: pctColor(usd) }}>
+        <span className="ag-sb-usd">{m(fmtMoney(usd ?? 0, { signed: true, compact: false }))}</span>
+        {pct != null && Number.isFinite(pct) ? <span className="sb-pct">({fmtPctSigned(pct, 2)})</span> : null}
       </div>
-      <span className="txn-realized-val mono ag-total-val" style={{ color: pctColor(t.realisedUsd) }}>
-        {m(fmtUsd(t.realisedUsd, true))}
-      </span>
+      {note ? <div className="ag-sb-note mono dim">{note}</div> : null}
     </div>
   );
 }
 
 /**
- * The two chips the venue cards do NOT already carry. The venue chips used
- * to repeat the cards' maker/taker and funding word for word, a duplicate
- * that cost a phone two hundred pixels above the strategies; the cards keep
- * those facts, and what is left here is the risk ceiling and the model's
- * running bill, which appear nowhere else.
+ * The agents' scoreboard, in the home scoreboard's cells: what is deployed,
+ * today's change (the UTC day), the total, unrealised and realised.
  */
-function VenueStrip({ dash }) {
+function Scoreboard({ dash, m }) {
+  const v = scoreboardView(dash);
   return (
-    <div className="ag-strip">
-      {dash.risk && (
-        <div className={`ag-chip${dash.risk.global_pause ? ' is-warn' : ''}`}>
-          <span className="ag-chip-name">Caps</span>
-          <span className="dim">order ≤ {fmtUsd(Number(dash.risk.max_order_usd))}</span>
-          <span className="dim">exposure ≤ {fmtUsd(Number(dash.risk.max_exposure_usd))}/venue</span>
-          <span className="dim">day loss ≤ {fmtUsd(Number(dash.risk.daily_loss_limit_usd))}</span>
-          <span className="dim">{dash.risk.global_pause ? 'GLOBAL PAUSE' : dash.risk.live_confirmed_at ? 'live confirmed' : 'live not yet confirmed'}</span>
-        </div>
-      )}
-      {dash.jev24h && (
-        <div className="ag-chip">
-          <span className="ag-chip-name">Jev 24h</span>
-          <span className="dim">{dash.jev24h.calls} calls</span>
-          <span className="dim">{fmtUsd(dash.jev24h.costUsd)}</span>
-          <span className="dim">{dash.jev24h.avgLatencyMs != null ? `${dash.jev24h.avgLatencyMs} ms` : '—'}</span>
-        </div>
-      )}
+    <>
+    <div className="ag-scoreboard">
+      <div className="ag-sb-cell ag-sb-cell-main">
+        <div className="sb-label">DEPLOYED</div>
+        <div className="sb-value sb-value-lg mono">{m(fmtUsd(v.valueUsd))}</div>
+      </div>
+      <div className="ag-sb-divider" />
+      <GlCell label="TODAY" usd={v.todayUsd} pct={v.todayPct} m={m} />
+      <div className="ag-sb-divider" />
+      <GlCell label="TOTAL G/L" usd={v.totalUsd} pct={v.totalPct} m={m} />
+      <div className="ag-sb-divider" />
+      <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} />
+      <div className="ag-sb-divider" />
+      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} cls="ag-sb-realised" />
     </div>
+    <div className="ag-sb-under mono dim">
+      {m(fmtUsd(v.capitalUsd))} paper capital · today since 00:00 UTC · percentages on capital, unrealised on the cost of what is held · fees {m(fmtUsd(v.feesUsd))}
+    </div>
+    </>
   );
 }
 
-/** Each account's slice of the book, with a share bar — the split Davies asked to see. */
+/** The same cells for one strategy, at the top of its page. */
+function StrategyScoreboard({ s, m }) {
+  const v = strategyScoreboard(s);
+  return (
+    <>
+    <div className="ag-scoreboard ag-scoreboard-sm">
+      <div className="ag-sb-cell ag-sb-cell-main">
+        <div className="sb-label">DEPLOYED</div>
+        <div className="sb-value sb-value-lg mono">{m(fmtUsd(v.valueUsd))}</div>
+      </div>
+      <div className="ag-sb-divider" />
+      <GlCell label="TODAY" usd={v.todayUsd} pct={v.todayPct} m={m} />
+      <div className="ag-sb-divider" />
+      <GlCell label="TOTAL G/L" usd={v.totalUsd} pct={v.totalPct} m={m} />
+      <div className="ag-sb-divider" />
+      <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} />
+      <div className="ag-sb-divider" />
+      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} />
+    </div>
+    <div className="ag-sb-under mono dim">of {m(fmtUsd(v.capitalUsd))} capital · today since 00:00 UTC · fees {m(fmtUsd(v.feesUsd))}</div>
+    </>
+  );
+}
+
 function VenueSplit({ dash, m }) {
   const rows = venueRows(dash);
   const segments = shareSegments(rows);
-  const basis = shareBasisText(rows);
   return (
     <section className="ag-venues">
       <div className="ag-section-title mono">VENUES</div>
-      <div className="ag-share-bar" title={basis}>
+      <div className="ag-share-bar">
         {segments.map((s) => (
           <span key={s.id} className={`ag-share ag-share-${s.id}`} style={{ width: `${s.widthPct}%` }} title={s.title}>
             {s.text}
@@ -155,15 +168,15 @@ function VenueSplit({ dash, m }) {
           <div key={r.id} className={`ag-venue-card ag-venue-card-${r.id}${r.note ? ' is-warn' : ''}`}>
             <div className="ag-venue-head">
               <VenueBadge id={r.id} />
-              <span className="dim mono ag-venue-meta">{r.strategies} strategies · {r.live} live · maker/taker {fmtFees(r.feeBps)}</span>
+              <div className="dim mono ag-venue-meta">{r.strategies} strategies · {r.live} live · maker/taker {fmtFees(r.feeBps)}</div>
             </div>
             <div className="ag-venue-grid mono">
               <span className="dim">funded</span>
               <span className="ag-funded">{r.canTrade ? (balanceLines(r.balances).length ? balanceLines(r.balances).map((b) => <span key={b.code} className="ag-funded-line">{m(b.text)}</span>) : '—') : 'no key'}</span>
               <span className="dim">deployed</span><span className="hl-strong">{m(fmtUsd(r.valueUsd))}</span>
               <span className="dim" title="the notional each paper strategy may deploy; paper money, so the sum can exceed the real balance">paper capital</span><span>{m(fmtUsd(r.capitalUsd))}</span>
-              <span className="dim">unrealised</span><Money v={r.unrealisedUsd} m={m} />
-              <span className="dim">realised</span><Money v={r.realisedUsd} m={m} />
+              <span className="dim">today</span><span className="ag-gl" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.capitalUsd > 0 ? (r.todayUsd / r.capitalUsd) * 100 : null))}</span>
+              <span className="dim">total G/L</span><span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd + r.realisedUsd) }}>{m(glText(r.unrealisedUsd + r.realisedUsd, r.capitalUsd > 0 ? ((r.unrealisedUsd + r.realisedUsd) / r.capitalUsd) * 100 : null))}</span>
               <span className="dim">fees</span><span className="dim">{m(fmtUsd(r.feesUsd))}</span>
             </div>
             {r.note && <div className="ag-warn-line">{r.note}</div>}
@@ -174,56 +187,6 @@ function VenueSplit({ dash, m }) {
   );
 }
 
-/** The cross-venue basis over the last 24 h: the arbitrage question, answered by the record rather than by opinion. */
-function Basis({ dash }) {
-  const rows = basisRows(dash);
-  if (!rows.length) return null;
-  const maxAbs = Math.max(...rows.map((r) => r.absMax ?? 0));
-  const over40 = rows.reduce((a, r) => a + (r.over40 ?? 0), 0);
-  return (
-    <section className="ag-section ag-basis">
-      <div className="ag-section-title mono">CROSS-VENUE BASIS</div>
-      <div className="hl-scroll">
-        <table className="hl-table ag-table mono">
-          <thead><tr>
-            <th className="hl-th hl-left">Symbol</th><th className="hl-th hl-right">Now <span className="dim">vs 15 bps</span></th><th className="hl-th hl-right">|basis| p50</th>
-            <th className="hl-th hl-right">p95</th><th className="hl-th hl-right">max</th><th className="hl-th hl-right">&gt; 20 bps</th>
-            <th className="hl-th hl-right">&gt; 40</th><th className="hl-th hl-right">&gt; 80</th><th className="hl-th hl-right">samples</th>
-          </tr></thead>
-          <tbody>
-            {rows.map((r) => {
-              // NOT the P&L palette: a negative basis is Revolut X cheap,
-              // which is the dislocation rule's buy signal, and red would
-              // call its best entry a loss. What earns a colour here is
-              // size against the rule's own 15 bps entry, with the word.
-              const now = basisNowView(r.latest);
-              return (
-              <tr key={r.symbol} className="ag-basis-row">
-                <td className="hl-left hl-strong">{r.symbol}</td>
-                <td className={`hl-right ag-basis-now${now.wide ? ' is-wide' : ''}`} title={now.title}>
-                  {now.text}{now.wide ? <span className="ag-basis-word"> wide</span> : null}
-                </td>
-                <td className="hl-right">{r.absP50 == null ? '—' : r.absP50.toFixed(2)}</td>
-                <td className="hl-right">{r.absP95 == null ? '—' : r.absP95.toFixed(2)}</td>
-                <td className="hl-right">{r.absMax == null ? '—' : r.absMax.toFixed(2)}</td>
-                <td className="hl-right dim">{r.over20 ?? 0}</td>
-                <td className="hl-right dim">{r.over40 ?? 0}</td>
-                <td className="hl-right dim">{r.over80 ?? 0}</td>
-                <td className="hl-right dim">{r.n ?? 0}</td>
-              </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      <p className="ag-note dim">
-        An arbitrage between the two accounts has to clear Kraken's fee on the hedge leg. In the last 24 h the widest basis was
-        {' '}{maxAbs.toFixed(1)} bps and {over40} samples exceeded 40 bps — {over40 === 0 ? 'nothing to cross.' : 'rare, and still under the taker fee.'}
-        {' '}What the gap does show is which venue moves first: Kraken, by seconds — so the Revolut X strategies read Kraken's candles.
-      </p>
-    </section>
-  );
-}
 
 // Status and return first: the two facts that say whether a strategy is
 // alive and making money sit right after its name at every width. The
@@ -231,14 +194,13 @@ function Basis({ dash }) {
 // under 760 px — it is all on the detail page — so a phone sees a whole
 // row without scrolling.
 const COLUMNS = [
-  { id: 'name', label: 'Strategy', cls: 'hl-left', phone: true },
-  { id: 'venue', label: 'Venue', cls: 'hl-left', phone: true },
-  { id: 'mode', label: 'Mode', cls: 'hl-left', phone: true },
-  { id: 'status', label: 'Status', cls: 'hl-left', phone: true },
-  { id: 'return', label: 'Return', cls: 'hl-right', phone: true },
-  { id: 'pnl', label: 'P&L', cls: 'hl-right', phone: false },
-  { id: 'last', label: 'Last decision', cls: 'hl-left', phone: false },
-  { id: 'next', label: 'Next', cls: 'hl-left', phone: true },
+  { id: 'name', label: 'Strategy', cls: 'hl-left' },
+  { id: 'venue', label: 'Venue', cls: 'hl-left' },
+  { id: 'mode', label: 'Mode', cls: 'hl-left' },
+  { id: 'status', label: 'Status', cls: 'hl-left' },
+  { id: 'unrealised', label: 'Unrealised G/L', cls: 'hl-right' },
+  { id: 'realised', label: 'Realised G/L', cls: 'hl-right' },
+  { id: 'next', label: 'Next', cls: 'hl-left' },
 ];
 
 function StrategyCell({ id, r, m, onOpen }) {
@@ -249,14 +211,11 @@ function StrategyCell({ id, r, m, onOpen }) {
         <span className="hl-sub dim">{r.openPositions} open · {m(fmtUsd(r.capitalUsd))} cap</span>
       </>
     );
-    case 'venue': return <VenueBadge id={r.venueId} signal={r.signalVenue} />;
+    case 'venue': return <VenueBadge id={r.venueId} />;
     case 'mode': return <ModeBadge mode={r.mode} />;
     case 'status': return <StatusDot status={r.status} />;
-    case 'return': return <span style={{ color: pctColor(r.returnPct) }}>{m(fmtPctSigned(r.returnPct, 2))}</span>;
-    case 'pnl': return <><Money v={r.realisedUsd} m={m} /><span className="hl-sub dim">unrealised <Money v={r.unrealisedUsd} m={m} /></span></>;
-    case 'last': return r.lastAction
-      ? <><span className={`ag-action ag-action-${r.lastAction}`}>{r.lastAction}</span> <span className="dim">{r.lastSymbol}</span><span className="hl-sub dim">{ago(r.lastAgeMs)}</span></>
-      : <span className="dim">—</span>;
+    case 'unrealised': return <span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>;
+    case 'realised': return <span className="ag-gl" style={{ color: pctColor(r.realisedUsd) }}>{m(glText(r.realisedUsd, r.realisedPct))}</span>;
     case 'next': return <span className="dim ag-next">{r.nextText}</span>;
     default: return null;
   }
@@ -267,14 +226,14 @@ function StrategyTable({ rows, m, onOpen }) {
     <div className="hl-scroll">
       <table className="hl-table ag-table mono">
         <thead>
-          <tr>{COLUMNS.map((c) => <th key={c.id} className={`hl-th ${c.cls} ag-col-${c.id}${c.phone ? '' : ' ag-col-wide'}`}>{c.label}</th>)}</tr>
+          <tr>{COLUMNS.map((c) => <th key={c.id} className={`hl-th ${c.cls} ag-col-${c.id}`}>{c.label}</th>)}</tr>
         </thead>
         <tbody>
           {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={COLUMNS.length}>No strategies yet.</td></tr>}
           {rows.map((r) => (
             <tr key={r.id} className="ag-row" onClick={() => onOpen(r.id)}>
               {COLUMNS.map((c) => (
-                <td key={c.id} className={`${c.cls} ag-col-${c.id}${c.phone ? '' : ' ag-col-wide'}${c.id === 'name' ? ' ag-name-cell' : ''}`}>
+                <td key={c.id} className={`${c.cls} ag-col-${c.id}${c.id === 'name' ? ' ag-name-cell' : ''}`}>
                   <StrategyCell id={c.id} r={r} m={m} onOpen={onOpen} />
                 </td>
               ))}
@@ -282,6 +241,29 @@ function StrategyTable({ rows, m, onOpen }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/** A phone gets a card per strategy instead of a seven-column table: the same facts, stacked. */
+function StrategyCards({ rows, m, onOpen }) {
+  if (!rows.length) return <div className="ag-empty dim">No strategies yet.</div>;
+  return (
+    <div className="ag-cards">
+      {rows.map((r) => (
+        <div key={r.id} className="ag-card-strategy ag-row" onClick={() => onOpen(r.id)}>
+          <div className="ag-card-head ag-name-cell">
+            <button type="button" className="ag-name-btn ag-name" onClick={() => onOpen(r.id)}>{r.name}</button>
+            <span className="hl-sub dim">{r.openPositions} open · {m(fmtUsd(r.capitalUsd))} cap</span>
+          </div>
+          <div className="ag-card-badges"><VenueBadge id={r.venueId} /><ModeBadge mode={r.mode} /><StatusDot status={r.status} /></div>
+          <div className="ag-card-gl mono">
+            <span className="dim">unrealised</span><span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>
+            <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(r.realisedUsd) }}>{m(glText(r.realisedUsd, r.realisedPct))}</span>
+            <span className="dim">next</span><span className="ag-next">{r.nextText}</span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -332,24 +314,24 @@ function Positions({ s, m }) {
       <div className="hl-scroll">
         <table className="hl-table ag-table mono">
           <thead><tr>
-            <th className="hl-th hl-left">Symbol</th><th className="hl-th hl-left">Venue</th><th className="hl-th hl-right">Size</th><th className="hl-th hl-right">Avg cost</th>
-            <th className="hl-th hl-right">Mark</th><th className="hl-th hl-right">Value</th><th className="hl-th hl-right">Unrealised</th>
-            <th className="hl-th hl-right">Realised</th><th className="hl-th hl-right">Fees</th><th className="hl-th hl-right">Fills</th>
+            <th className="hl-th hl-left">Symbol</th><th className="hl-th hl-left ag-ph">Venue</th><th className="hl-th hl-right">Size</th><th className="hl-th hl-right">Avg cost</th>
+            <th className="hl-th hl-right ag-ph">Mark</th><th className="hl-th hl-right">Value</th><th className="hl-th hl-right">Unrealised</th>
+            <th className="hl-th hl-right ag-ph">Realised</th><th className="hl-th hl-right ag-ph">Fees</th><th className="hl-th hl-right ag-ph">Fills</th>
           </tr></thead>
           <tbody>
             {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={10}>Flat — nothing held yet.</td></tr>}
             {rows.map((p) => (
               <tr key={p.symbol}>
                 <td className="hl-left hl-strong">{p.symbol}</td>
-                <td className="hl-left"><VenueBadge id={s.venue} /></td>
+                <td className="hl-left ag-ph"><VenueBadge id={s.venue} /></td>
                 <td className="hl-right">{p.base > 0 ? p.base.toFixed(6) : <span className="dim">flat</span>}</td>
                 <td className="hl-right">{p.base > 0 ? m(fmtUsd(p.avgCost)) : '—'}</td>
-                <td className="hl-right">{m(fmtUsd(p.mark))}</td>
+                <td className="hl-right ag-ph">{m(fmtUsd(p.mark))}</td>
                 <td className="hl-right hl-strong">{m(fmtUsd(p.valueUsd))}</td>
                 <td className="hl-right"><Money v={p.unrealisedUsd} m={m} /></td>
-                <td className="hl-right"><Money v={p.realisedUsd} m={m} /></td>
-                <td className="hl-right dim">{m(fmtUsd(p.feesUsd))}</td>
-                <td className="hl-right dim">{p.fills}</td>
+                <td className="hl-right ag-ph"><Money v={p.realisedUsd} m={m} /></td>
+                <td className="hl-right dim ag-ph">{m(fmtUsd(p.feesUsd))}</td>
+                <td className="hl-right dim ag-ph">{p.fills}</td>
               </tr>
             ))}
           </tbody>
@@ -367,8 +349,8 @@ function Decisions({ rows }) {
         <table className="hl-table ag-table ag-log mono">
           <thead><tr>
             <th className="hl-th hl-left">When (UTC)</th><th className="hl-th hl-left">Symbol</th><th className="hl-th hl-left">State</th>
-            <th className="hl-th hl-left">Rule</th><th className="hl-th hl-left">Final</th><th className="hl-th hl-right">P(healthy)</th>
-            <th className="hl-th hl-right">Caution</th><th className="hl-th hl-left">Model</th><th className="hl-th hl-left">Risk</th>
+            <th className="hl-th hl-left">Rule</th><th className="hl-th hl-left">Final</th><th className="hl-th hl-right ag-ph">P(healthy)</th>
+            <th className="hl-th hl-right ag-ph">Caution</th><th className="hl-th hl-left ag-ph">Model</th><th className="hl-th hl-left ag-ph">Risk</th>
           </tr></thead>
           <tbody>
             {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={9}>No decisions yet — the first comes at the next closed bar.</td></tr>}
@@ -379,10 +361,10 @@ function Decisions({ rows }) {
                 <td className="hl-left ag-state">{d.stateText}</td>
                 <td className="hl-left"><span className={`ag-action ag-action-${d.ruleAction}`}>{d.ruleAction}</span></td>
                 <td className="hl-left"><span className={`ag-action ag-action-${d.finalAction}`}>{d.finalAction}</span></td>
-                <td className="hl-right">{d.healthy == null ? <span className="dim">—</span> : d.healthy.toFixed(2)}</td>
-                <td className="hl-right">{d.caution == null ? <span className="dim">—</span> : d.caution.toFixed(2)}</td>
-                <td className="hl-left dim">{d.provider}{d.latencyMs ? ` · ${d.latencyMs} ms` : ''}</td>
-                <td className="hl-left">{d.allowed ? <span className="dim">ok</span> : <span className="ag-blocked" title={d.riskReason}>blocked</span>}</td>
+                <td className="hl-right ag-ph">{d.healthy == null ? <span className="dim">—</span> : d.healthy.toFixed(2)}</td>
+                <td className="hl-right ag-ph">{d.caution == null ? <span className="dim">—</span> : d.caution.toFixed(2)}</td>
+                <td className="hl-left dim ag-ph">{d.provider}{d.latencyMs ? ` · ${d.latencyMs} ms` : ''}</td>
+                <td className="hl-left ag-ph">{d.allowed ? <span className="dim">ok</span> : <span className="ag-blocked" title={d.riskReason}>blocked</span>}</td>
               </tr>
             ))}
           </tbody>
@@ -399,9 +381,9 @@ function Orders({ rows, m, venue }) {
       <div className="hl-scroll">
         <table className="hl-table ag-table ag-log mono">
           <thead><tr>
-            <th className="hl-th hl-left">When (UTC)</th><th className="hl-th hl-left">Symbol</th><th className="hl-th hl-left">Venue</th><th className="hl-th hl-left">Side</th>
-            <th className="hl-th hl-right">Price</th><th className="hl-th hl-right">Size</th><th className="hl-th hl-right">Notional</th>
-            <th className="hl-th hl-left">State</th><th className="hl-th hl-right">Fill</th><th className="hl-th hl-right">Fee</th><th className="hl-th hl-left">Mode</th>
+            <th className="hl-th hl-left">When (UTC)</th><th className="hl-th hl-left">Symbol</th><th className="hl-th hl-left ag-ph">Venue</th><th className="hl-th hl-left">Side</th>
+            <th className="hl-th hl-right">Price</th><th className="hl-th hl-right ag-ph">Size</th><th className="hl-th hl-right ag-ph">Notional</th>
+            <th className="hl-th hl-left">State</th><th className="hl-th hl-right ag-ph">Fill</th><th className="hl-th hl-right ag-ph">Fee</th><th className="hl-th hl-left ag-ph">Mode</th>
           </tr></thead>
           <tbody>
             {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={11}>No orders yet.</td></tr>}
@@ -409,15 +391,15 @@ function Orders({ rows, m, venue }) {
               <tr key={o.id} className={`txn-row txn-row-${o.side}`}>
                 <td className="hl-left dim">{when(o.ts)}</td>
                 <td className="hl-left hl-strong">{o.symbol}</td>
-                <td className="hl-left"><VenueBadge id={o.venue ?? venue} /></td>
+                <td className="hl-left ag-ph"><VenueBadge id={o.venue ?? venue} /></td>
                 <td className="hl-left"><span className={`txn-badge txn-${o.side}`}>{o.side.toUpperCase()}</span></td>
                 <td className="hl-right">{m(fmtUsd(o.price))}</td>
-                <td className="hl-right">{o.base.toFixed(6)}</td>
-                <td className="hl-right">{m(fmtUsd(o.notionalUsd))}</td>
+                <td className="hl-right ag-ph">{o.base.toFixed(6)}</td>
+                <td className="hl-right ag-ph">{m(fmtUsd(o.notionalUsd))}</td>
                 <td className="hl-left"><span className={`ag-state-pill ag-state-${o.state}`}>{o.state.replace('_', ' ')}</span></td>
-                <td className="hl-right">{o.fillPrice != null ? m(fmtUsd(o.fillPrice)) : <span className="dim">—</span>}</td>
-                <td className="hl-right dim">{m(fmtUsd(o.feeUsd))}</td>
-                <td className="hl-left"><ModeBadge mode={o.mode} /></td>
+                <td className="hl-right ag-ph">{o.fillPrice != null ? m(fmtUsd(o.fillPrice)) : <span className="dim">—</span>}</td>
+                <td className="hl-right dim ag-ph">{m(fmtUsd(o.feeUsd))}</td>
+                <td className="hl-left ag-ph"><ModeBadge mode={o.mode} /></td>
               </tr>
             ))}
           </tbody>
@@ -427,141 +409,8 @@ function Orders({ rows, m, venue }) {
   );
 }
 
-function RotationBacktest({ venue }) {
-  const { rows, buyHoldOos, buyHoldFull, symbols } = rotationBacktestRows(backtestSummary, venue);
-  const other = venue === 'revx' ? 'kraken' : 'revx';
-  return (
-    <section className="ag-section">
-      <div className="ag-section-title mono">BACKTEST</div>
-      <div className="hl-scroll">
-        <table className="hl-table ag-table mono">
-          <thead><tr>
-            <th className="hl-th hl-left">Variant</th><th className="hl-th hl-right">Out of sample</th><th className="hl-th hl-right">Max DD</th>
-            <th className="hl-th hl-right">Invested</th><th className="hl-th hl-right">Turnover</th><th className="hl-th hl-right">Full 3y</th><th className="hl-th hl-right">on {venueLabel(other)}</th>
-          </tr></thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.name}>
-                <td className="hl-left hl-strong">{r.label}</td>
-                <td className="hl-right" style={{ color: pctColor(r.oosRet) }}>{fmtFrac(r.oosRet)}</td>
-                <td className="hl-right dim">{r.oosDD == null ? '—' : `${(r.oosDD * 100).toFixed(0)}%`}</td>
-                <td className="hl-right dim">{r.exposure == null ? '—' : `${(r.exposure * 100).toFixed(0)}%`}</td>
-                <td className="hl-right dim">{r.turnover == null ? '—' : `${r.turnover.toFixed(0)}×/y`}</td>
-                <td className="hl-right" style={{ color: pctColor(r.fullRet) }}>{fmtFrac(r.fullRet)}</td>
-                <td className="hl-right dim">{fmtFrac(r.otherOosRet)}</td>
-              </tr>
-            ))}
-            <tr>
-              <td className="hl-left dim">equal-weight buy &amp; hold</td>
-              <td className="hl-right" style={{ color: pctColor(buyHoldOos) }}>{fmtFrac(buyHoldOos)}</td>
-              <td className="hl-right dim">—</td><td className="hl-right dim">100%</td><td className="hl-right dim">—</td>
-              <td className="hl-right" style={{ color: pctColor(buyHoldFull) }}>{fmtFrac(buyHoldFull)}</td><td className="hl-right dim">—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p className="ag-note dim">
-        Rank the basket by 30-day return at each daily close, hold the top two equal-weighted while each sits above its 100-day
-        average. The out-of-sample year is a bear market: the bear filter is what kept the loss at a third of buy-and-hold, at the
-        price of being invested a third of the time. With the filter off the rule is always invested and follows the market down.
-        Fills at the next day's open with {venueLabel(venue)}'s fees and half-spread; the model is not in the backtest.
-      </p>
-    </section>
-  );
-}
 
-/** The dislocation rule earned its seed from the 1-minute study, not the 4h backtester: say so, with the halves beside the headline. */
-function DislocationBacktest() {
-  const d = /** @type {any} */ (backtestSummary).dislocation;
-  const rows = dislocationBacktestRows(backtestSummary);
-  if (!d || !rows.length) return null;
-  const bps = (/** @type {number | null} */ v) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toFixed(1)}`);
-  return (
-    <section className="ag-section">
-      <div className="ag-section-title mono">BACKTEST</div>
-      <div className="hl-scroll">
-        <table className="hl-table ag-table mono">
-          <thead><tr>
-            <th className="hl-th hl-left">Symbol</th><th className="hl-th hl-right">Trades</th><th className="hl-th hl-right">/ day</th>
-            <th className="hl-th hl-right">Avg bps</th><th className="hl-th hl-right">Win</th><th className="hl-th hl-right">Worst</th>
-            <th className="hl-th hl-right">1st half</th><th className="hl-th hl-right">2nd half</th>
-          </tr></thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.symbol}>
-                <td className="hl-left hl-strong">{r.symbol}</td>
-                <td className="hl-right dim">{r.trades}</td>
-                <td className="hl-right dim">{r.perDay ?? '—'}</td>
-                <td className="hl-right" style={{ color: pctColor(r.avgBps) }}>{bps(r.avgBps)}</td>
-                <td className="hl-right dim">{r.win == null ? '—' : `${r.win}%`}</td>
-                <td className="hl-right dim">{r.worst ?? '—'}</td>
-                <td className="hl-right" style={{ color: pctColor(r.firstHalfAvg) }}>{bps(r.firstHalfAvg)}</td>
-                <td className="hl-right" style={{ color: pctColor(r.secondHalfAvg) }}>{bps(r.secondHalfAvg)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="ag-note dim">
-        {d.source}. <b>Read with care:</b> {d.caveat} {typeof d.restingBid === 'string' ? d.restingBid : d.restingBid?.note}.
-        Seeded {d.seeded}. SOL and XRP showed nothing after costs at any setting.
-      </p>
-    </section>
-  );
-}
 
-function Backtest({ kind, venue }) {
-  if (kind === 'rotation-1d') return <RotationBacktest venue={venue} />;
-  if (kind === 'dislocation-1m') return <DislocationBacktest />;
-  const rows = backtestRows(backtestSummary, kind, venue);
-  const other = venue === 'revx' ? 'kraken' : 'revx';
-  const otherRows = backtestRows(backtestSummary, kind, other);
-  if (!rows.length) {
-    return (
-      <section className="ag-section">
-        <div className="ag-section-title mono">BACKTEST</div>
-        <p className="ag-note dim">Not run on {venueLabel(venue)}'s costs: this rule trades too often for a 0.40 % maker fee, which is why it is paper-only there.</p>
-      </section>
-    );
-  }
-  return (
-    <section className="ag-section">
-      <div className="ag-section-title mono">BACKTEST</div>
-      <div className="hl-scroll">
-        <table className="hl-table ag-table mono">
-          <thead><tr>
-            <th className="hl-th hl-left">Symbol</th><th className="hl-th hl-right">Out of sample</th><th className="hl-th hl-right">Max DD</th>
-            <th className="hl-th hl-right">Trades</th><th className="hl-th hl-right">Buy &amp; hold</th><th className="hl-th hl-right">Full 3y</th>
-            <th className="hl-th hl-right">on {venueLabel(other)}</th><th className="hl-th hl-left">Params</th>
-          </tr></thead>
-          <tbody>
-            {rows.map((r) => {
-              const o = otherRows.find((x) => x.symbol === r.symbol);
-              return (
-                <tr key={r.symbol}>
-                  <td className="hl-left hl-strong">{r.symbol}</td>
-                  <td className="hl-right" style={{ color: pctColor(r.oosRet) }}>{fmtFrac(r.oosRet)}</td>
-                  <td className="hl-right dim">{r.oosDD == null ? '—' : `${(r.oosDD * 100).toFixed(0)}%`}</td>
-                  <td className="hl-right dim">{r.oosTrades ?? '—'}</td>
-                  <td className="hl-right" style={{ color: pctColor(r.buyHoldOos) }}>{fmtFrac(r.buyHoldOos)}</td>
-                  <td className="hl-right" style={{ color: pctColor(r.fullRet) }}>{fmtFrac(r.fullRet)}</td>
-                  <td className="hl-right dim">{o ? fmtFrac(o.oosRet) : '—'}</td>
-                  <td className="hl-left dim">{r.chosen ? `fast ${r.chosen.fast} · slow ${r.chosen.slow} · stop ${r.chosen.atrStop}×ATR` : kind === 'trend-1h' ? 'default, 1h bars' : 'lookback 30d'}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      <p className="ag-note dim">
-        Three years of Coinbase hourly candles (the venues' own 4h closes sit within a median 1.6–2.7 bps of them),
-        resampled to 4h and daily. Parameters were chosen on the first two years and the last year — a bear market —
-        is reported out of sample; the full-period figure is in-sample and never the headline. Fills at the next
-        bar's open with {venueLabel(venue)}'s fees and half-spread. The model is not in the backtest: its vote is measured live, in paper.
-      </p>
-    </section>
-  );
-}
 
 // ── The detail chart ────────────────────────────────────────────────────
 // One strategy × symbol: the signal venue's closes, the strategy's own fills
@@ -722,8 +571,8 @@ function Fills({ chart, m, venue }) {
         <table className="hl-table ag-table mono">
           <thead><tr>
             <th className="hl-th hl-left">When (UTC)</th><th className="hl-th hl-left">Side</th><th className="hl-th hl-right">Price</th>
-            <th className="hl-th hl-right">Size</th><th className="hl-th hl-right">Notional</th><th className="hl-th hl-right">Fee</th>
-            <th className="hl-th hl-left">Venue</th><th className="hl-th hl-left">Liquidity</th>
+            <th className="hl-th hl-right">Size</th><th className="hl-th hl-right">Notional</th><th className="hl-th hl-right ag-ph">Fee</th>
+            <th className="hl-th hl-left ag-ph">Venue</th><th className="hl-th hl-left ag-ph">Liquidity</th>
           </tr></thead>
           <tbody>
             {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={8}>No fills on this pair in the window.</td></tr>}
@@ -736,9 +585,9 @@ function Fills({ chart, m, venue }) {
                 <td className="hl-right hl-strong">{m(fmtUsd(f.price))}</td>
                 <td className="hl-right">{f.base.toFixed(6)}</td>
                 <td className="hl-right">{m(fmtUsd(f.notionalUsd))}</td>
-                <td className="hl-right dim">{m(fmtUsd(f.feeUsd))}</td>
-                <td className="hl-left"><VenueBadge id={f.venue ?? venue} /></td>
-                <td className="hl-left dim">{f.liquidity}</td>
+                <td className="hl-right dim ag-ph">{m(fmtUsd(f.feeUsd))}</td>
+                <td className="hl-left ag-ph"><VenueBadge id={f.venue ?? venue} /></td>
+                <td className="hl-left dim ag-ph">{f.liquidity}</td>
               </tr>
             ))}
           </tbody>
@@ -874,7 +723,6 @@ function NotReady({ dash }) {
   );
 }
 
-/** The held positions as tiles: the operative fact of a running strategy, designed rather than typed out. */
 function PositionTiles({ s, m, nowMs }) {
   const lines = positionLines(s);
   if (!lines.length) return null;
@@ -900,7 +748,7 @@ function PositionTiles({ s, m, nowMs }) {
   );
 }
 
-function Detail({ s, dash, m, onBack, nowMs }) {
+function Detail({ s, dash, m, nowMs }) {
   const [more, setMore] = React.useState(/** @type {{ decisions: any[], orders: any[] } | null} */ (null));
   // The countdown moves every second; everything else keeps the modal's slower clock.
   const [sec, setSec] = React.useState(() => Date.now());
@@ -919,33 +767,20 @@ function Detail({ s, dash, m, onBack, nowMs }) {
   return (
     <div className="ag-detail">
       <div className="ag-detail-head">
-        <button className="btn-ghost ag-back" onClick={onBack}>← All strategies</button>
         <ModeBadge mode={s.mode} />
         <StatusDot status={status} />
         <span className="ag-countdown mono" title={s.nextDecisionAt ? `${new Date(s.nextDecisionAt).toISOString().replace('T', ' ').slice(0, 19)} UTC` : undefined}>
           <span className="dim">{s.kind === 'dislocation-1m' ? 'next read' : 'next decision'}</span> <span className="ag-countdown-val">{countdownText(s.nextDecisionAt, sec)}</span>
         </span>
       </div>
-      <h3 className="ag-detail-title mono">{s.name}</h3>
+      <h3 className="ag-detail-title mono sr-only">{s.name}</h3>
       <div className="ag-kv mono">
         <span className="ag-kv-kind">{kindLabel(s.kind)}</span><VenueBadge id={s.venue} signal={s.signalVenue} />
         <span className="dim">{s.symbols.join(' · ')}</span>
         <span className="dim">capital <span className="hl-strong">{m(fmtUsd(Number(s.capitalUsd)))}</span></span>
         {params.map(([k, v]) => <span key={k} className="dim">{k} <span className="hl-strong">{String(v)}</span></span>)}
       </div>
-      <div className="txn-realized ag-totals ag-totals-sm">
-        <div>
-          <span className="lot-summary-label mono">REALIZED G/L (USD)</span>
-          <div className="ag-subline mono">
-            <span>cost <span>{m(fmtUsd(s.costUsd))}</span></span>
-            <span>value <span>{m(fmtUsd(s.valueUsd))}</span></span>
-            <span>unrealised <Money v={s.unrealisedUsd} m={m} /></span>
-            <span>fees <span className="dim">{m(fmtUsd(s.feesUsd))}</span></span>
-            <span>Jev 24h <span className="dim">{s.jev24h?.calls ?? 0} calls · {fmtUsd(s.jev24h?.costUsd ?? 0)}</span></span>
-          </div>
-        </div>
-        <span className="txn-realized-val mono" style={{ color: pctColor(s.realisedUsd) }}>{m(fmtUsd(s.realisedUsd, true))}</span>
-      </div>
+      <StrategyScoreboard s={s} m={m} />
       <PositionTiles s={s} m={m} nowMs={nowMs} />
       <LiveState s={s} nowMs={nowMs} selected={symbol} onSelect={setSymbol} />
       <SymbolChart s={s} symbol={symbol} onSelect={setSymbol} m={m} nowMs={nowMs} at={dash?.at} />
@@ -955,7 +790,6 @@ function Detail({ s, dash, m, onBack, nowMs }) {
       {!more && (
         <button className="btn-ghost ag-more" onClick={loadMore} disabled={loadingMore}>{loadingMore ? 'Loading…' : 'Load full history'}</button>
       )}
-      <Backtest kind={s.kind} venue={s.venue} />
     </div>
   );
 }
@@ -989,10 +823,12 @@ function AgentsModal({ hideValues, onClose }) {
   }, [load]);
 
   const rows = React.useMemo(() => strategyRows(dash, now), [dash, now]);
+  const phone = useMediaQuery('(max-width: 760px)');
   const current = selected ? (dash?.strategies ?? []).find((s) => s.id === selected) ?? null : null;
   const notReady = !!dash?.notReady;
 
   return (
+    <>
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
         <div>
@@ -1009,23 +845,37 @@ function AgentsModal({ hideValues, onClose }) {
         {error && dash && <AgentsError err={error} onRetry={load} compact />}
         {!dash && !error && <div className="ag-empty dim">Loading…</div>}
         {notReady && <NotReady dash={dash} />}
-        {dash && !notReady && !current && (
+        {dash && !notReady && (
           <>
-            <Totals dash={dash} m={m} />
+            <Scoreboard dash={dash} m={m} />
             <VenueSplit dash={dash} m={m} />
-            <VenueStrip dash={dash} />
             <Alerts dash={dash} />
             <section className="ag-section ag-strategies">
               <div className="ag-section-title mono">STRATEGIES</div>
-              <StrategyTable rows={rows} m={m} onOpen={setSelected} />
+              {phone ? <StrategyCards rows={rows} m={m} onOpen={setSelected} /> : <StrategyTable rows={rows} m={m} onOpen={setSelected} />}
             </section>
             <div className="ag-updated dim mono">as of {when(dash.at)} UTC · refreshes every minute</div>
-            <Basis dash={dash} />
           </>
         )}
-        {dash && !notReady && current && <Detail s={current} dash={dash} m={m} onBack={() => setSelected(null)} nowMs={now} />}
       </div>
     </Modal>
+    {current && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <div className="modal-eyebrow mono">AGENTS · {kindLabel(current.kind).toUpperCase()}</div>
+            <h2 className="modal-title mono">{current.name}</h2>
+          </div>
+          <div className="modal-head-actions">
+            <button className="btn-ghost icon ag-detail-close" onClick={() => setSelected(null)} aria-label="Close">✕</button>
+          </div>
+        </header>
+        <div className="modal-body ag-body">
+          <Detail s={current} dash={dash} m={m} nowMs={now} />
+        </div>
+      </Modal>
+    )}
+    </>
   );
 }
 
