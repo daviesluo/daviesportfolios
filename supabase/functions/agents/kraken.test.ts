@@ -130,6 +130,8 @@ Deno.test("XRP/USD is a Kraken pair too (XRPUSD / XXRPZUSD / XXRP), and a batch 
   assertEquals([KRAKEN_ASSET.ZGBP, KRAKEN_ASSET.ZEUR, KRAKEN_ASSET.USDC], ["GBP", "EUR", "USDC"]);   // a UK deposit arrives as ZGBP and must be named, not dropped
   assertEquals(fromKrakenPair("XXRPZUSD"), "XRP/USD");
   assertEquals([krakenSupports("XRP/USD"), krakenSupports("DOGE/USD")], [true, false]);
+  // AVAX/USD joined the 4-hour trend rule with migration 0039 (reference §3.7): Kraken's pair id is its altname, the asset code is plain.
+  assertEquals([KRAKEN_ALTNAME["AVAX/USD"], KRAKEN_PAIR_ID["AVAX/USD"], KRAKEN_ASSET.AVAX, fromKrakenPair("AVAXUSD"), krakenSupports("AVAX/USD")], ["AVAXUSD", "AVAXUSD", "AVAX", "AVAX/USD", true]);
   const urls: string[] = [];
   const f: typeof fetch = (url) => {
     urls.push(String(url));

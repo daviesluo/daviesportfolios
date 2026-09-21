@@ -580,6 +580,81 @@ chosen set → OOS return / max drawdown / trades. Raw output and method:
   on Revolut X and 80 on Kraken. Speed is bought with fees, and at this
   spread the fee wins below an hour.
 
+### 3.7 A wider universe — four more coins, a bar written first, one addition (2026-09-21)
+
+Davies asked for more coins to be tested and the good ones added. The
+candidates were every Revolut X pair whose UK book was under 10 bps wide
+with real volume at 12:47 UTC: XRP (4.7 bps, already in the rotation
+basket), DOGE 6.4, LINK 8.4, ADA 8.5 and AVAX 9.6. TON's 0.7 bps sat on
+$8.6k of daily volume and was ignored; the next tier (SHIB, BNB, HBAR,
+PEPE, XLM) is 11–15 bps, DOT 16, NEAR / SUI / BCH / ARB 19–24, the rest
+25–40 — a round trip there costs 40–100 bps before the rule is right once.
+Three years of Coinbase hourly candles per coin (from 2023-09-22), the
+shipped backtester (`--symbols`, `--basket`, `--study universe`), the
+loop's own fills, stops and cooldown, parameters chosen on the first two
+years and the last year reported out of sample — a year in which holding
+any of these coins lost 28–72 %. Kraken's spreads for the candidates were
+read from its public ticker the same hour (ADA 4.1 bps, AVAX 1.7, LINK
+0.0, DOGE 4.4). Raw output: `docs/agents/backtests/universe.json`.
+
+**The bar, written down before the numbers were looked at.** A coin joins
+the 4-hour trend rule only if, out of sample: (1) the rule is positive net
+of Revolut X costs; (2) its drawdown is under 35 %; (3) at least half of
+the 27-point parameter grid (fast 10/20/30 × slow 50/100/150 × ATR stop
+2/3/4) is positive out of sample — a **plateau**, not a fitted spike, which
+is the honest answer to "every strategy is sensitive to its parameters":
+an edge has neighbours, a fit does not; (4) the same rule is positive on
+Kraken costs, so the result is not an artefact of one fee schedule. The
+backtester now reports the plateau for every coin (`plateau`: share of the
+grid positive out of sample, the grid's median, where the chosen point
+ranks). Momentum-1d would take a coin only if positive out of sample with
+drawdown under 35 %; the wider rotation basket would replace the four-coin
+one only if it beat it on both return and drawdown.
+
+Trend-4h on Revolut X costs, out of sample 2025-09 → 2026-09; "seeded" is
+the parameter set the live rows run (fast 20, slow 100, ATR 3):
+
+| coin | chosen params OOS / DD / trades | seeded OOS | grid positive / median | Kraken costs chosen / seeded | buy & hold | momentum-1d OOS |
+|---|---|---|---|---|---|---|
+| BTC | −16.5 % / 21 % / 26 | −13.6 % | 0 % / −13.8 % | −22.8 % / −21.6 % | −28.1 % | −17.0 % |
+| ETH | −1.0 % / 23 % / 16 | −10.3 % | 7 % / −10.3 % | −5.7 % / −16.5 % | −40.1 % | +10.4 % |
+| SOL | +17.3 % / 15 % / 14 | +13.3 % | 100 % / +14.0 % | +12.5 % / +8.0 % | −50.2 % | −29.2 % |
+| XRP | −11.2 % / 17 % / 14 | −3.1 % | 41 % / −3.1 % | −14.7 % / −5.8 % | −56.0 % | −47.3 % |
+| DOGE | −12.5 % / 18 % / 12 | +4.7 % | 11 % / −7.0 % | −15.6 % / +1.6 % | −64.9 % | −31.4 % |
+| LINK | +4.3 % / 18 % / 21 | +3.8 % | 89 % / +4.3 % | −1.5 % / −1.3 % | −43.5 % | −13.6 % |
+| ADA | −9.4 % / 16 % / 14 | −14.6 % | 15 % / −9.4 % | −13.0 % / −18.0 % | −72.2 % | −38.4 % |
+| **AVAX** | **+40.3 % / 12 % / 9** | **+12.1 %** | **85 % / +13.9 %** | **+36.9 % / +9.1 %** | −65.1 % | −37.6 % |
+
+- **AVAX clears all four and joins trend-4h on both venues, paper**
+  (migration `0039`; the rows' paper capital goes from $60 to $80 so each
+  of four symbols keeps its $20 slot). Its plateau is the strongest in the
+  table after SOL's, the seeded parameters make money on both venues, and
+  the drawdown is the smallest. Nine trades in the year is thin, and the
+  UK book is 9.6 bps wide (one snapshot), so a round trip costs about 28
+  bps against the majors' 20: paper first, and the paper record decides.
+- **LINK clears three of four** — positive on Revolut X with an 89 %
+  plateau, but −1.5 % / −1.3 % on Kraken costs — and stays a watch. If a
+  quarter of paper on AVAX goes as the backtest says, LINK on Revolut X
+  alone is the next candidate; the bar is not lowered for it now.
+- **DOGE is the fitted spike in person**: the parameters chosen in sample
+  ranked 26th of 27 out of sample (11 % of the grid positive) while the
+  seeded ones happened to make +4.7 %. **ADA** fails everything; **XRP**'s
+  plateau is 41 %, its seeded result −3.1 %.
+- **Momentum-1d takes no coin**: the daily momentum rule lost 31–47 % on
+  every alt in the bear year and made money only on ETH (+10.4 %); its
+  full-period figures come from the 2024 run. Nothing changes.
+- **The 8-coin rotation basket is worse than the 4-coin one**: default
+  variant OOS −24.2 % with 46 % drawdown against −14.4 % / 32 % (top 3:
+  −17.6 % against −6.2 %). More coins gave the ranking more ways to be
+  wrong. Nothing changes.
+- **On 1-hour candles** the same trend rule read LINK +7.2 %, AVAX +3.9 %,
+  DOGE −17.9 %, ADA −6.8 % out of sample — nothing joins trend-1h.
+- **Caveats, all of them.** One out-of-sample year, and a bear one, so a
+  rule that only had to stay out of the way looks good; nine AVAX trades;
+  spreads from a single snapshot; and the plateau is measured on the same
+  year the chosen point is judged on. The bar is what keeps this honest,
+  and the paper record is what it has to match.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
@@ -596,6 +671,7 @@ chosen set → OOS return / max drawdown / trades. Raw output and method:
 12. **One turn at a time.** pg_net fires the next minute's tick whether or not the last one finished; a turn takes a lease (`agent_locks`, compare-and-set on its expiry, 55 s) and a turn that finds it held does nothing. The bar claim protects decisions; the lease protects everything else.
 13. **The model is asked on entries only.** It can veto one; it never advises an exit, and the seeds, the page and the README say exactly that. A partially filled live order is a position from its first fill (stops and caps see it); a venue-cancelled order that had filled in part is recorded as a fill of that part; a live order that filled on arrival is settled from the venue's own view next turn, fee included — never from the placement reply.
 14. **The venue's market data is the account's region, always.** Revolut X keeps two books per pair (UK / EEA) and this account trades the UK one; a quote or a candle from the other book is not a price this account can get, and reading one produced the only trade the dislocation rule ever made (§3.5). Every public call names `region=UK`, a row from another region is dropped, and the probe shows which book the loop is reading. The same discipline applies to any venue that publishes more than one book, and any fact of that kind written into this reference is a requirement on the client with a pin, the day it is written.
+15. **A coin joins a rule by a bar written before the numbers, never after.** §3.7's four tests — positive out of sample on Revolut X costs, drawdown under 35 %, at least half the parameter grid positive out of sample, positive on Kraken costs — decided AVAX in and LINK, DOGE, ADA out; the same bar applies to the next candidate, and lowering it for a coin that nearly clears it is the overfit the friend's message warns about. The plateau share is reported for every coin and is the number to quote when someone says every strategy is sensitive to its parameters: sensitivity is a spike, robustness is a plateau, and both are measurable.
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 
