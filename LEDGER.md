@@ -205,6 +205,11 @@ four menu pages (dialogs keep theirs).
   out-of-sample set, "more art than science", backtests being expensive)
   answered in the chat with the plateau numbers; nothing in the repo
   claims more than the table says.
+- **The small white dot beside "Revolut X" in the table** was the first
+  dot of an ellipsis: at 10 % the venue column was a pixel or two
+  narrower than the badge and the table's `text-overflow` drew "…"
+  clipped to one dot. The column is 12 % again, the venue cell may never
+  ellipsise, and the sweep now measures every venue cell's overflow.
 - **Verified after the push (13:14 UTC):** `0039` applied at 13:10:39
   (both trend-4h rows carry AVAX/USD, capital 80); the function
   redeployed at 13:11:36; AVAX observations from 13:12 on both rows
