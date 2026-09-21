@@ -849,8 +849,11 @@ Deno.test("the state's drawdown word reads the high since entry, trailed with th
   const r = await tick(w.deps);
   const obs = w.mem.tables.agent_observations[0].state as { drawdown_from_high: string; position: string };
   assertEquals([obs.position, obs.drawdown_from_high], ["long", "large"]);         // from the fills alone the high is 100 and the word "none"
-  assertEquals([r.decisions[0].kind, r.decisions[0].action], ["protective", "exit"]);
-  assert(r.decisions[0].reason.includes("ATR trailing stop"), r.decisions[0].reason);
+  // The high-water IS trailed — that is what the word above proves — but since 2026-09-21 nothing sells on it between
+  // bars: the intra-bar ATR trail was the rulebook's own trail read on wicks instead of closes (§3.13), so 36 % off the
+  // high is now a state the rulebook decides on at the next close, not a per-minute exit. The floor is 8 % under COST,
+  // and at a mark of ~129 against a cost of 100 the position is well clear of it.
+  assertEquals(r.decisions.filter((d) => d.kind === "protective"), []);
 });
 
 Deno.test("no quote and no minute candle means no mark — not a mark of 0: no stop fires on it and no day loss is made of it", async () => {

@@ -46,11 +46,29 @@ import {
 export type Costs = { venue: string; makerBps: number; takerBps: number; fillFee: "maker" | "taker"; halfSpread: Record<string, number> };
 
 /** Spreads measured 2026-09-20 (docs/agents/reference.md §2.2 and §2b); fees per venue at the account's tier. */
-/** What the live loop runs (tick.ts): an 8 % floor under cost on every rule, the ATR trail on the trend rules. */
-export const SHIPPED_STOPS: StopParams = { maxLossPct: 0.08, atrStop: 3, atrN: 14, reentryBars: 2 };
-/** The stops as the loop applies them to a rulebook: the ATR trail belongs to the trend rules only. */
-export function stopsForKind(kind: StrategyKind, p: TrendParams, base: StopParams = SHIPPED_STOPS): StopParams {
-  return { ...base, atrStop: kind === "trend-4h" || kind === "trend-1h" ? p.atrStop : null };
+/**
+ * What the live loop runs (tick.ts): an 8 % floor under cost on every rule, checked every
+ * minute against the live mark, and NO intra-bar ATR trail on any rule.
+ *
+ * The trail was here until 2026-09-21, and it was the same trail the rulebook already
+ * applies: `ruleDecision` exits when the CLOSE falls `atrStop × ATR(atrN)` below the
+ * high-water mark, and this one exited when the bar's LOW — the live mark, every minute —
+ * fell below the identical level from the identical anchor. Two correct implementations of
+ * one idea, and the intra-bar copy always fired first, because a bar that closes through a
+ * level traded through it first: it took 48 of 49 protective exits in one walk-forward
+ * window and 67 of 68 in the other, leaving the rulebook's own trail very nearly dead code
+ * (reference §3.13). Switching it off is better on 8 of 10 coin-windows. The floor stays
+ * intra-bar — it is the crash protection, and neither window contains a gap-down, so the
+ * case for keeping it rests on the absence of evidence rather than on a measurement.
+ */
+export const SHIPPED_STOPS: StopParams = { maxLossPct: 0.08, atrStop: null, atrN: 14, reentryBars: 2 };
+/**
+ * The stops as the loop applies them to a rulebook. Since 2026-09-21 that is the floor
+ * alone for every rulebook; `p` is kept in the signature because the trail belongs to the
+ * trend rules if it is ever restored, and because every caller already passes it.
+ */
+export function stopsForKind(_kind: StrategyKind, _p: TrendParams, base: StopParams = SHIPPED_STOPS): StopParams {
+  return { ...base, atrStop: null };
 }
 
 // Half-spreads as fractions of price, per side. The majors are §2.2's measurements; the four candidates

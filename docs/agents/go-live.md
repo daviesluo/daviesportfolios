@@ -48,10 +48,13 @@ Davies' word in the conversation.
    re-quotes a resting order the touch has walked away from (five times
    at most, nothing rests past an hour).
 3. **Every minute** it checks protective exits against the live mark: an
-   **8 % floor under the position's own cost** on every rule, and a
-   **3×ATR(14) trailing stop from the high since entry** on the trend
-   rules. A stop sells without asking the model, and cancels a resting
-   exit first if one is in the way.
+   **8 % floor under the position's own cost**, on every rule, and
+   nothing else: the 3×ATR(14) trail that ran here until 2026-09-21 was
+   the rulebook's own trail read on wicks instead of closes, and it took
+   48 of 49 protective exits in the bear window (reference §3.13). The
+   rulebook still trails by 3×ATR from the high since entry — on the
+   close, at the bar boundary. A stop sells without asking the model, and
+   cancels a resting exit first if one is in the way.
 4. **Every minute** it writes the categorical state of the forming bar
    to `agent_observations` when it changes — that is what the page shows
    as the live state between decisions.
@@ -101,6 +104,15 @@ share nothing. The bar is: positive out of sample on that venue's costs,
 drawdown under 35 %, at least half the parameter grid positive out of
 sample, positive on the other venue's costs too — on **both** windows.
 
+**That verdict was reached under the duplicated stop** (reference §3.13)
+and has NOT been re-run: the portfolio study's 39 cells each need their
+own parameter grid, which is the third-window study's work, not a
+re-read of `summary.json`. What the re-run does show is that the return
+leg of the bar now passes on both windows for AVAX and SOL, where it
+passed on one before. **Until that study lands, treat the verdict as
+still standing**: it is the conservative reading, and the number this
+brief's recommendation rests on is the sleeve's, not any member's.
+
 That is the single most important sentence in this document. What the
 backtests establish is that this set does not blow up and behaves like a
 damped version of the market. What they do **not** establish is an edge
@@ -113,16 +125,23 @@ Window A is 2025-09 → 2026-09, a bear year. Window B is 2024-09 →
 and the window itself is held out. Every figure is net of fees, spreads,
 stops and the cooldown.
 
+> **Re-run 2026-09-21** after the duplicated intra-bar ATR trail was
+> removed (reference §3.13, §4.11). Every figure in this section is the
+> re-run; the numbers this brief carried before it are named at the end of
+> §4 so the change is on the record. Nothing about the recommendation
+> changes — the same plan wins on the worse window — and every number is
+> better.
+
 **The whole set, on its $400:**
 
 | | window A (bear) | window B (bull) |
 |---|---|---|
-| P&L | −$21.54 | +$155.21 |
-| return | −5.4 % | +38.8 % |
-| max drawdown | 25 % | 12 % |
-| return / drawdown | −0.22 | 3.19 |
-| Revolut X rows only ($220) | −3.5 % (DD 22 %) | +43.5 % (DD 11 %) |
-| Kraken rows only ($180) | −7.6 % (DD 29 %) | +33.0 % (DD 14 %) |
+| P&L | −$2.38 | +$166.38 |
+| return | −0.6 % | +41.6 % |
+| max drawdown | 24 % | 11 % |
+| return / drawdown | −0.03 | 3.65 |
+| Revolut X rows only ($220) | +0.5 % (DD 21 %) | +45.7 % (DD 10 %) |
+| Kraken rows only ($180) | −1.9 % (DD 27 %) | +36.6 % (DD 13 %) |
 | holding BTC/ETH/SOL/XRP equally | **−46.7 %** | **+178.1 %** |
 
 **The `trend-4h` sleeve on Revolut X alone ($100, five $20 slots)** — the
@@ -130,42 +149,54 @@ set I recommend below:
 
 | coin | A: return / DD / trades | B: return / DD / trades |
 |---|---|---|
-| BTC | −13.6 % / 21 % / 32 | +17.0 % / 15 % / 40 |
-| ETH | −10.3 % / 20 % / 24 | +49.4 % / 22 % / 28 |
-| SOL | +13.3 % / 18 % / 16 | −10.9 % / 37 % / 35 |
-| AVAX | +12.1 % / 9 % / 10 | −3.3 % / 24 % / 24 |
-| SUI | −10.5 % / 25 % / 16 | +3.0 % / 26 % / 10 |
-| **sleeve as one book, $100** | **−$0.33 (−0.3 %), DD 11.8 %** | **+$12.64 (+12.6 %), DD 10.2 %** |
+| BTC | −10.7 % / 19 % / 28 | +12.4 % / 17 % / 36 |
+| ETH | −8.0 % / 20 % / 22 | +80.1 % / 19 % / 20 |
+| SOL | +17.6 % / 23 % / 14 | +3.0 % / 29 % / 29 |
+| AVAX | +34.1 % / 9 % / 9 | +6.8 % / 25 % / 20 |
+| SUI | +1.4 % / 29 % / 12 | −2.5 % / 31 % / 10 |
+| **sleeve as one book, $100** | **+$8.03 (+8.0 %), DD 11.3 %** | **+$20.08 (+20.1 %), DD 10.5 %** |
 
-Each coin clears the bar in exactly one window and fails the other, and
-they disagree about which — which is why the sleeve is steadier than any
-of its parts. **Every one of the five, AVAX included** — so §3.8's note that
-AVAX would not clear the tightened bar today is not a mark against AVAX
-in particular; the same is true of BTC, ETH, SOL and SUI, and AVAX's
-failure is simply the one that got written down, because `0039` added it
-the morning the bar tightened. What the sleeve rests on is the sleeve's
-own two numbers and leave-one-out, not any coin's pass. On leave-one-out
-AVAX is the most expensive coin to remove in the bear window: without it
-the sleeve goes from −0.3 % to **−3.9 %** (return / drawdown −0.03 →
-−0.28), while the bull window improves from +12.6 % to +15.6 %. It is
-one of only two coins — with SOL — that made money in the bear year. The sleeve line is from the allocation study (§3.11),
-which simulates the five slots as ONE book on one calendar; adding the
-per-coin rows above gives −$1.81 and +$11.05 instead, because each coin
-there is split on its own bar count rather than on the sleeve's. The
-sleeve figure is the one to read: it is the book this row would have
-run.
+The coins disagree about which window suits them, which is why the sleeve
+is steadier than any of its parts: BTC and ETH still lose in the bear
+window and carry the bull one, SUI is the only coin negative in the bull
+window. **AVAX and SOL are now positive in both** — AVAX +34.1 % / +6.8 %,
+SOL +17.6 % / +3.0 % — where under the duplicated stop AVAX read +12.1 %
+/ −3.3 %. That does not mean either "clears the bar": the bar is four
+tests including a parameter plateau and the other venue's costs, scored
+with parameters re-chosen per window, and re-running it is the
+third-window study's job, not this brief's. It does mean §3.8's note that
+AVAX would not clear the tightened bar was written against a stop that no
+longer runs, and that the note was never a mark against AVAX in
+particular — the same one-window record was true of BTC, ETH, SOL and
+SUI, and AVAX's was simply the one written down, because `0039` added it
+the morning the bar tightened.
+
+What the sleeve rests on is still the sleeve's own two numbers and
+leave-one-out, not any coin's pass. On leave-one-out AVAX is the most
+expensive coin to remove in the bear window: without it the sleeve's
+return over drawdown falls by 0.56, the largest of the five; in the bull
+window removing it would gain 0.13, and removing SOL 0.59. No removal
+helps both windows, so nothing is removed. The sleeve line is from the allocation study (§3.11),
+which simulates the five slots as ONE book on one calendar; the per-coin rows above are each split on their own bar
+count rather than on the sleeve's, so they do not add to it. The sleeve
+figure is the one to read: it is the book this row would have run.
 
 So the honest expectation for a live `trend-4h` sleeve is: **roughly
-flat to slightly negative in a bad year, roughly +10 % in a good one, on
-the money deployed, with drawdowns in the 20 % range** — and a sample far
-too small to call that an edge rather than a draw.
++8 % in a bad year and +20 % in a good one, on $100 of row capital, with
+the sleeve's own drawdown near 11 %** — deployed only 9–14 % of the time,
+so most of the year it is cash. That is a real improvement on what this
+brief said a day earlier (flat to slightly negative, +10 % in a good
+year), and it comes entirely from removing one duplicated stop, not from
+a new edge. The sample is still far too small to call it an edge rather
+than a draw: 9–36 trades a coin a window, two windows, one of each
+regime.
 
 **What the other rulebooks look like** (Revolut X, out of sample):
 
 - `momentum-1d`: A — BTC −17.0 %, ETH +10.4 %, SOL −29.2 %, drawdowns
   33–56 %. B — +38.7 %, +116.0 %, +52.9 %. The largest single winner and
   the largest single loser in the set, with the deepest drawdowns.
-- `trend-1h`: A — −9.3 %, −6.9 %, +14.1 % over 66–78 trades. B — −7.3 %,
+- `trend-1h`: A — −14.1 %, +8.2 %, +13.1 % over 58–74 trades. B — −7.3 %,
   +33.0 %, −15.8 %. On a plateau on **no** coin in both windows. Its job
   is feedback speed, not return.
 - `rotation-1d`: **every out-of-sample figure is negative**, both venues,
@@ -180,6 +211,16 @@ into a dip a rank rule would have held through, and the cooldown keeps
 the slot out of the rebound (§3.4). The stop is not being re-chosen
 because of it; that would be fitting. But it is a reason rotation is not
 on my live list.
+
+**What §4 said before the 2026-09-21 stop correction**, so the change is
+on the record: the whole set −5.4 % / +38.8 % (DD 25 % / 12 %); the
+`trend-4h` sleeve −0.3 % (DD 11.8 %) and +12.6 % (DD 10.2 %); per coin in
+the bear window BTC −13.6 %, ETH −10.3 %, SOL +13.3 %, AVAX +12.1 %, SUI
+−10.5 %, and in the bull window +17.0 %, +49.4 %, −10.9 %, −3.3 %,
++3.0 %; deployment 6.5 % of the bear year; and the expectation "roughly
+flat to slightly negative in a bad year, roughly +10 % in a good one".
+Every one of those figures included an intra-bar ATR trail that
+duplicated the rulebook's own and fired on wicks (§3.13).
 
 ## 5. What it costs
 
@@ -210,9 +251,11 @@ From `agent_risk`, per venue account and per mode:
 | orders per day | 40 | new risk only |
 | global pause | off | everything, both venues |
 
-Plus: an 8 % floor under every position's cost and a 3×ATR trail on the
-trend rules, checked every minute against the live mark and taken
-without asking the model; a decision claims its bar so two ticks cannot
+Plus: an 8 % floor under every position's cost, checked every minute
+against the live mark and taken without asking the model — the one thing
+that sells between bars. The trend rules also trail by 3×ATR from the
+high since entry, but that is the rulebook's own exit, decided on the
+close like every other rule exit; a decision claims its bar so two ticks cannot
 both order; one tick at a time by lease; a live order is written down
 before the venue is called; and a live order whose outcome cannot be
 established is **left alone for a person to settle**, never guessed at.
@@ -246,7 +289,8 @@ Why that row and nothing else:
 
 - It is the rulebook with the most evidence behind it and the tightest
   drawdowns, and the only one with members clearing the bar in each
-  window.
+  window. After the 2026-09-21 stop correction it is also the only row
+  whose sleeve is positive in BOTH windows.
 - Its trade count (10–40 a year per coin) is the only frequency in the
   set that a 20 bps round trip clearly survives.
 - The Revolut X sub-account holds USD, so nothing has to be converted
@@ -268,8 +312,10 @@ Revolut X twin on both windows and is blocked anyway until the account
 holds USD and the key has a nonce window.
 
 **One number worth sitting with before you decide.** In the bear year
-this row is in the market **6.5 % of the time**. Most of what it does is
-stay in cash; the −0.3 % is what it costs to be ready.
+this row is in the market **8.8 % of the time** (14.4 % in the bull).
+Most of what it does is stay in cash, and the +8.0 % is earned in those
+few weeks — which cuts both ways: it is a small number of trades
+carrying the whole result.
 
 **Both Kraken prerequisites are now done** — the account holds USD and
 the key has a nonce window — **and the answer did not change.** Asked

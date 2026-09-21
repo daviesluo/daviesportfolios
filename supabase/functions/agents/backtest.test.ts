@@ -21,11 +21,16 @@ function seriesOf(closes: number[], lowFrac = 1): Candle[] {
 }
 
 Deno.test("the rotation stops are the loop's: a slot through its 8 % floor is sold, and not re-entered for two days", () => {
-  // A: 200 days climbing (so it ranks first and sits above its 100-day average), then one day whose LOW is 15 % under the
+  // A climbs gently (so it ranks first and sits above its 100-day average), then one day whose LOW is far under the
   // entry — through the floor — and a close that recovers, so the rank rule itself never says exit. B never qualifies.
-  const closes = Array.from({ length: 260 }, (_, i) => 100 * Math.pow(1.01, i));
+  //
+  // The series used to compound at 1 % a day, which made the entry cost a fraction of the late price and put the 8 %
+  // floor ~75 % below the market: the exit this test asserted was actually the ATR TRAIL, from `SHIPPED_STOPS` when it
+  // still carried one. The test named the floor and measured the trail — which is the same confusion §3.13 found in the
+  // loop itself. A gentle ramp keeps the floor within reach of the market, so the floor is what fires.
+  const closes = Array.from({ length: 260 }, (_, i) => 100 * (1 + 0.001 * i));
   const a = seriesOf(closes);
-  a[240] = { ...a[240], low: a[240].open * 0.8 };                       // the day that takes out the floor
+  a[240] = { ...a[240], low: 95 };                                      // under any entry cost on this ramp × 0.92
   const b = seriesOf(Array.from({ length: 260 }, () => 50));            // flat: below its own average, never ranked in
   const p = { ...DEFAULT_ROTATION, topN: 1 };
   const bare = runRotation({ "A/USD": a, "B/USD": b }, 0, 260, p, FREE);
@@ -46,11 +51,17 @@ Deno.test("with no stops the rotation loop is the bare rank rule it has always b
   assertAlmostEquals(a.ret, b.ret, 1e-12);
 });
 
-Deno.test("the rotation rows get the floor and the cooldown but no ATR trail — the trail belongs to the trend rules", () => {
+Deno.test("no rulebook gets an intra-bar ATR trail: the floor and the cooldown are the whole protective layer", () => {
+  // Until 2026-09-21 the trend rules carried `atrStop: p.atrStop` here, which duplicated the trail
+  // `ruleDecision` already applies to the close, from the same anchor with the same multiplier — and
+  // the intra-bar copy pre-empted it on all but one protective exit per window (reference §3.13).
+  for (const kind of ["trend-4h", "trend-1h", "momentum-1d", "rotation-1d"] as const) {
+    assertEquals(stopsForKind(kind, DEFAULT_TREND).atrStop, null, kind);
+  }
   assertEquals(stopsForKind("rotation-1d", DEFAULT_TREND), { ...SHIPPED_STOPS, atrStop: null });
-  assertEquals(stopsForKind("momentum-1d", DEFAULT_TREND).atrStop, null);
-  assertEquals(stopsForKind("trend-4h", DEFAULT_TREND).atrStop, DEFAULT_TREND.atrStop);
-  assertEquals([SHIPPED_STOPS.maxLossPct, SHIPPED_STOPS.reentryBars], [0.08, 2]);
+  assertEquals([SHIPPED_STOPS.maxLossPct, SHIPPED_STOPS.atrStop, SHIPPED_STOPS.reentryBars], [0.08, null, 2]);
+  // The rulebook's own trail is untouched: it is DEFAULT_TREND's, read on the close, not on the wick.
+  assertEquals(DEFAULT_TREND.atrStop, 3);
 });
 
 Deno.test("each venue's fills are its own: the same basket costs more on Kraken's 40 bps than on Revolut X's touch", () => {
