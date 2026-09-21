@@ -466,6 +466,11 @@ Read these as a checklist before pushing.
   it tests the previous commit. Cost most of an hour chasing a "3M is
   still drawing daily bars" that had already been fixed. Build, then
   sweep — every time.
+- **Check the ledger entry LANDED before committing.** A python heredoc
+  with a syntax error does not run at all, and one with a stale anchor
+  stops at the assertion; both left a commit on `main` with no ledger
+  line on 2026-09-21 (twice). Write the ledger first, then `grep` for
+  the header you just wrote, and only then stage.
 - **`git add -A` with an agent writing in the same tree.** A study
   script a background agent was still building was swept into an
   unrelated UI commit (2026-09-21) and turned `main` red: the snapshot
