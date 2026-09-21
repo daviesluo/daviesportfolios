@@ -58,43 +58,23 @@ list stays the short version; the plan is the reasoning behind it.
    re-tested on a non-bear window first. (d) Live is still three switches, all Davies'
    (`agent_strategies.mode`, `agent_risk.live_confirmed_at`, the gate),
    and the first live order needs his confirmation in the conversation.
-   (f) **Pre-live review being integrated — IN PROGRESS; the container's
-   working tree held UNCOMMITTED code at 16:13 UTC.** The independent
-   review (`docs/agents/reviews/2026-09-21-prelive-review.md`: blockers
-   B1–B7, should-fixes S1–S16, twelve missing tests, doc gaps) and the
-   portfolio study (`docs/agents/reviews/2026-09-21-portfolio-study.md`;
-   raw `backtests/portfolio.json`; script `backtest_portfolio.ts`) are in
-   the repo. Written but not committed (if this container is gone, redo
-   each from the review — every fix is a few lines): `db.ts` `selectAll`
-   (B3); `tick.ts` second half — B1 a pending row the venue does not list
-   STAYS pending, reported with the venue's balance beside the record; B2
-   a cancel whose read-back fails leaves the row open; B3 paged fills; B5
-   re-quotes through `riskGate`; B6 an allowed decision with no order is
-   placed on a later turn (needs migration `0041`: unique index on
-   `agent_orders (decision_id, requotes) where decision_id is not null` —
-   live data checked 15:3x UTC, no duplicates — NOT yet written); B7
-   holder-filtered lease release, renewal at half lease, 70 % turn budget
-   (`TURN_BUDGET_MS`, `clock` dep); S1 trailed high-water into snapshot
-   and rule; S3 null marks, `dayPnl` falls back on a zero mark; S4 the
-   protective claim sits at minute + 1 s (`PROTECTIVE_CLAIM_OFFSET_MS`);
-   S5 open buys count as exposure; S8 `lookbackDays`; S9 series must be
-   contiguous to be warm; S10 the 1-minute candle only where a paper order
-   rests; S16 day-open per signal venue, today's P&L summed per strategy;
-   `agents_strategy.ts` S6 exit-advice branch deleted (`combineDecision`
-   thresholds lose `exitMax`), `buildSnapshot(..., lookbackDays)`;
-   `revx.ts` `orderViewProblem` (B4) refused in `order()`; `kraken.ts`
-   `closedOrders`. `deno check` clean. NOT yet done: tests (tick.test.ts
-   expects pending→rejected and the old claim key; `memDb` needs
-   `selectAll`, `offset` and a 1,000-row cap; strategy.test.ts pins the
-   deleted branch) and the review's new tests 1–10 and 12; `index.ts`
-   (`selectAll`, day-open per signal venue, probe symbols from the
-   strategy rows plus Revolut X `activeOrders` and Kraken `closedOrders`
-   reads — S12/B4/S16) and `index.test.ts` (test 11); migration `0041`;
-   client S11/S13/S14/S15 and the sweep fixture (the client agent never
-   started — do by hand); S2 (`runRotation` gets the floor stop and the
-   cooldown, §3.4 re-run); S7 (Kraken nonce window is a key setting for
-   Davies — document); docs (reference §4.17 review, §4.11 correction,
-   §4.2 call count, §2 order endpoints; README; CLAUDE.md).
+   (f) **Pre-live review: the server half is SHIPPED (this commit) —
+   every blocker B1–B7 and should-fixes S1, S3, S4, S5, S6, S8, S9, S10,
+   S12, S16, each pinned; reference §4.17 is the itemised record, §3.10
+   the portfolio study's verdicts.** Migration `0041` (unique index on
+   `agent_orders (decision_id, requotes)`) applies on this push; the
+   agents function redeploys. STILL TO DO: the page — S11 (a paused row
+   holding a position gets an alert), S13 (dashboard refresh: newest
+   response wins), S14 (mask sizes under hide-values), S15 (alert when a
+   live row exists and `live_confirmed_at` is null) and the sweep fixture
+   (`app-sweep.mjs` ~279–354: retired dislocation still modelled, no
+   `todayUsd` / `dayStart`, three symbols on trend-4h); S2 — `runRotation`
+   in `backtest.ts` gets the 8 % floor and the two-bar cooldown the live
+   rotation rows run, then §3.4 / §3.3a's rotation line are re-run and
+   rewritten (until then they describe a rule the loop does not run); S7 —
+   the Kraken key's nonce window is Davies' setting at Kraken, before any
+   Kraken live row; the review's doc gaps for retention of
+   `agent_decisions` / `agent_orders` (unbounded; ~150 + ~25 rows a day).
    (g) **Davies, 16:0x UTC: finish, make live-ready, then present the
    final set — strategies, coins, mechanics, edge, expected returns — in
    the conversation; on his confirm, live at once.** Going live is a
@@ -216,6 +196,33 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-21 16:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The review's seven blockers and ten of its should-fixes shipped, with
+309 Deno pins (was 291).** What changed for a reader of the record: a
+`pending` live order the venue does not list is never again marked
+rejected — it stays pending, reported every turn with the venue's
+balance beside the record, for a person to settle; a cancel whose
+read-back fails leaves its row open; the book is read page by page; a
+filled Revolut X order whose reply lacks the settlement fields is refused
+(the probe now reports the field names both venues return, and the first
+live order's read-back is the test); re-quotes pass the risk gate; an
+allowed decision whose order never reached the book is placed on a later
+turn (`0041` makes the order insert the claim on the attempt); the lease
+is released by its holder only, renewed at half, and a turn past 70 % of
+it opens no new bar decision. The state's drawdown word and the bar
+rule's ATR clause now read the trailed high (the per-minute stop always
+did); a symbol with no quote has no mark rather than a mark of 0; a stop
+claims one second into its minute; open buys are exposure; the model's
+exit-advice branch is gone; today's P&L is one arithmetic in the tick and
+on the page. Reference §4.17 lists each with its pin; §3.10 records the
+portfolio study's verdicts (no shipped member clears the bar on both
+windows; the set made −5.4 % in the bear year and +38.8 % in the bull
+year on $400; the Kraken twins are 0.92–1.00 correlated with their
+Revolut X rows and earn less; the stops are not on a plateau; POL is a
+Kraken-only candidate by liquidity; the regime filter clears both windows
+on LINK, NEAR, SUI, ALGO). Remaining: item 0 (f).
 
 ### [2026-09-21 16:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

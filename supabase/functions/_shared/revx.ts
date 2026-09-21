@@ -278,6 +278,23 @@ export const publicPairs = (f?: typeof fetch) =>
 /** Fees verified in docs/agents/reference.md §2: 0 % maker, 0.09 % taker. */
 export const REVX_FEE_BPS = { maker: 0, taker: 9 };
 
+/**
+ * A filled order whose reply lacks the fields settlement reads is an ERROR,
+ * not a zero. `filled_size`, `average_fill_price` and `fees` are the names
+ * the client expects; until a live order has been read back they are
+ * unverified (reference §2 documents neither order read), and a fee
+ * recorded as 0 because the field was called something else would flatter
+ * every live P&L and the daily loss breaker with it. The message names the
+ * fields the reply DID carry, so the first live order tells us the truth.
+ */
+export function orderViewProblem(vo: VenueOrder): string | null {
+  const filled = vo.state === "filled" || Number(vo.filled_size ?? 0) > 0;
+  if (!filled) return null;
+  const missing = (["filled_size", "average_fill_price", "fees"] as const).filter((k) => vo[k] == null);
+  if (!missing.length) return null;
+  return `order ${vo.venue_order_id} is ${vo.state} but its reply has no ${missing.join(", ")} (fields present: ${Object.keys(vo).join(", ")}); not settled`;
+}
+
 /** A venue order → the settlement view the tick acts on. A cancelled order with fills counts as filled for that volume. */
 export function toOrderView(vo: VenueOrder): OrderView {
   const filledBase = Number(vo.filled_size ?? 0);
@@ -341,6 +358,8 @@ export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch, 
       const r = await getOrder(env, venueOrderId, fetchImpl);
       if (!r.ok) return { ok: false, error: `${r.status} ${r.error}` };
       if (!r.data?.data) return { ok: false, error: "empty order reply" };
+      const problem = orderViewProblem(r.data.data);
+      if (problem) return { ok: false, error: problem };
       return { ok: true, view: toOrderView(r.data.data) };
     },
     async balances() {

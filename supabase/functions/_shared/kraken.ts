@@ -173,6 +173,9 @@ export const tradeVolume = (env: KrakenEnv, symbols: string[], f?: typeof fetch)
 
 export const openOrders = (env: KrakenEnv, f?: typeof fetch) =>
   krakenPrivate<{ open: Record<string, KrakenOrder> }>(env, "OpenOrders", {}, f);
+/** The account's closed orders (most recent page). Read-only; the probe uses it to see the settled shape a live order will have. */
+export const closedOrders = (env: KrakenEnv, f?: typeof fetch) =>
+  krakenPrivate<{ closed: Record<string, KrakenOrder>; count: number }>(env, "ClosedOrders", {}, f);
 
 export const queryOrders = (env: KrakenEnv, txids: string[], f?: typeof fetch) =>
   krakenPrivate<Record<string, KrakenOrder>>(env, "QueryOrders", { txid: txids.join(",") }, f);

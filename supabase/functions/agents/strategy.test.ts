@@ -119,7 +119,7 @@ Deno.test("ruleDecision — enter on the breakout, hold without momentum, exit o
   assertEquals(ruleDecision(snap, calm).action, "hold");
 });
 
-Deno.test("combineDecision — the model can veto an entry and advise an exit, never open one alone", () => {
+Deno.test("combineDecision — the model can veto an entry and nothing else: a hold passes through whatever it thinks, and it never opens one alone", () => {
   const enter = { action: "enter" as const, reason: "breakout" };
   const hold = { action: "hold" as const, reason: "in position" };
   const yes = { healthy: 0.9, caution: 0.2, echoOk: true, provider: "openrouter" };
@@ -128,7 +128,7 @@ Deno.test("combineDecision — the model can veto an entry and advise an exit, n
   assertEquals(combineDecision(enter, yes).action, "enter");
   assertEquals(combineDecision(enter, no).action, "hold");
   assertEquals(combineDecision(enter, none).action, "hold");        // no vote, no entry
-  assertEquals(combineDecision(hold, no).action, "exit");           // advises out
+  assertEquals(combineDecision(hold, no).action, "hold");           // exits are the rule's and the stops' alone (reference §4.13) — the model is never asked on a hold, and could not move one if it were
   assertEquals(combineDecision(hold, yes).action, "hold");
   assertEquals(combineDecision(hold, none).action, "hold");
   // Caution "extreme" (score ≥ 1.75) blocks an entry the rule and P(healthy) both like.

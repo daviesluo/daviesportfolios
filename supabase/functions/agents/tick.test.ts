@@ -19,8 +19,8 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { Candle } from "../_shared/agents_strategy.ts";
 import type { OrderView, Quote, Venue, VenueId } from "../_shared/venue.ts";
-import type { Db } from "./db.ts";
-import { dayPnl, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, REQUOTE_AFTER_MS, tick, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
+import { PAGE_ROWS, type Db } from "./db.ts";
+import { dayPnl, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 const FOUR_H = 4 * 3600e3, ONE_H = 3600e3, ONE_D = 86400e3, ONE_M = 60e3;
 const NOW = Date.parse("2026-09-20T04:05:00Z");                 // minute 245 of the day: a fifth minute, so the basis is recorded
@@ -47,19 +47,25 @@ function series(dailyRate = 1.01, barMs = FOUR_H): { bars: Candle[]; c1d: Candle
 
 type Row = Record<string, unknown>;
 
-/** Enough of PostgREST's query syntax for what tick.ts asks, plus the one uniqueness the schema has. */
-function memDb(seed: Record<string, Row[]>, hooks: { beforeDecisionInsert?: (tables: Record<string, Row[]>, row: Row) => void } = {}) {
+/**
+ * Enough of PostgREST's query syntax for what tick.ts asks, plus the two
+ * uniquenesses the schema has (one decision per bar, one order per decision
+ * attempt) and PostgREST's silent cap: a select with no `limit` returns at
+ * most `PAGE_ROWS` rows, exactly as Supabase's `max-rows` does.
+ */
+function memDb(seed: Record<string, Row[]>, hooks: { beforeDecisionInsert?: (tables: Record<string, Row[]>, row: Row) => void; beforeOrderInsert?: (tables: Record<string, Row[]>, row: Row) => void } = {}) {
   const tables: Record<string, Row[]> = JSON.parse(JSON.stringify(seed));
   let nextId = 1000;
   const parse = (query: string) => {
     const filters: ((r: Row) => boolean)[] = [];
-    let order: { col: string; dir: "asc" | "desc" } | null = null, limit = Infinity, select: string[] | null = null;
+    let order: { col: string; dir: "asc" | "desc" } | null = null, limit = PAGE_ROWS, offset = 0, select: string[] | null = null;
     for (const part of query.split("&")) {
       const i = part.indexOf("=");
       const k = part.slice(0, i), v = part.slice(i + 1);
       if (k === "select") { select = v === "*" ? null : v.split(","); continue; }
       if (k === "order") { const [col, dir] = v.split("."); order = { col, dir: dir === "desc" ? "desc" : "asc" }; continue; }
-      if (k === "limit") { limit = Number(v); continue; }
+      if (k === "limit") { limit = Math.min(Number(v), PAGE_ROWS); continue; }
+      if (k === "offset") { offset = Number(v); continue; }
       const m = v.match(/^(eq|in|gte|lt|is)\.(.*)$/);
       if (!m) throw new Error(`stub db: unsupported filter ${part}`);
       const val = decodeURIComponent(m[2]);
@@ -69,17 +75,17 @@ function memDb(seed: Record<string, Row[]>, hooks: { beforeDecisionInsert?: (tab
       if (m[1] === "gte") filters.push((r) => String(r[k]) >= val);
       if (m[1] === "lt") filters.push((r) => String(r[k]) < val);
     }
-    return { filters, order, limit, select };
+    return { filters, order, limit, offset, select };
   };
   const db: Db = {
     select: (table, query) => {
-      const { filters, order, limit, select } = parse(query);
+      const { filters, order, limit, offset, select } = parse(query);
       let rows = (tables[table] ?? []).filter((r) => filters.every((f) => f(r)));
       if (order) {
         const { col, dir } = order;
         rows = rows.slice().sort((a, b) => ((a[col] as number) < (b[col] as number) ? -1 : (a[col] as number) > (b[col] as number) ? 1 : 0) * (dir === "desc" ? -1 : 1));
       }
-      rows = rows.slice(0, limit);
+      rows = rows.slice(offset, offset + limit);
       // deno-lint-ignore no-explicit-any
       return Promise.resolve((select ? rows.map((r) => Object.fromEntries(select!.map((c) => [c, r[c]]))) : rows.map((r) => ({ ...r }))) as any);
     },
@@ -90,6 +96,14 @@ function memDb(seed: Record<string, Row[]>, hooks: { beforeDecisionInsert?: (tab
           hooks.beforeDecisionInsert?.(tables, r);
           const dup = (tables[table] ?? []).some((x) => x.strategy_id === r.strategy_id && x.symbol === r.symbol && x.bar_start === r.bar_start);
           if (dup) return Promise.reject(new Error("db POST agent_decisions → 409: duplicate key value violates unique constraint \"agent_decisions_one_per_bar\""));
+        }
+      }
+      if (table === "agent_orders") {
+        for (const r of list) {
+          hooks.beforeOrderInsert?.(tables, r);
+          if (r.decision_id == null) continue;
+          const dup = (tables[table] ?? []).some((x) => x.decision_id === r.decision_id && Number(x.requotes ?? 0) === Number(r.requotes ?? 0));
+          if (dup) return Promise.reject(new Error("db POST agent_orders → 409: duplicate key value violates unique constraint \"agent_orders_one_per_decision_attempt\""));
         }
       }
       const out = list.map((r) => ({ id: nextId++, ts: new Date(NOW).toISOString(), ...r }));
@@ -110,6 +124,16 @@ function memDb(seed: Record<string, Row[]>, hooks: { beforeDecisionInsert?: (tab
       // deno-lint-ignore no-explicit-any
       return Promise.resolve(hit.map((r) => ({ ...r })) as any);
     },
+    selectAll: async (table, query) => {
+      const out: unknown[] = [];
+      for (let offset = 0; ; offset += PAGE_ROWS) {
+        const page = await db.select(table, `${query}&limit=${PAGE_ROWS}&offset=${offset}`);
+        out.push(...page);
+        if (page.length < PAGE_ROWS) break;
+      }
+      // deno-lint-ignore no-explicit-any
+      return out as any;
+    },
   };
   return { db, tables };
 }
@@ -119,7 +143,7 @@ type SeriesBySymbol = Record<string, { bars: Candle[]; c1d: Candle[]; bars1h?: C
 function stubVenue(id: VenueId, o: {
   series: SeriesBySymbol; c1m: Candle[]; quote: Quote; feeBps: { maker: number; taker: number }; canTrade: boolean;
   orderView?: OrderView; cancelOk?: boolean; active?: Record<string, { venueOrderId: string; view: OrderView }>;
-  onPlace?: () => void; placedState?: "new" | "filled";
+  onPlace?: () => void; placedState?: "new" | "filled"; noQuote?: boolean;
 }) {
   const calls: string[] = [];
   const v: Venue = {
@@ -129,7 +153,7 @@ function stubVenue(id: VenueId, o: {
       const s = o.series[sym] ?? o.series["BTC/USD"];
       return Promise.resolve(iv === 240 ? s.bars : iv === 60 ? (s.bars1h ?? s.bars) : iv === 1440 ? s.c1d : o.c1m);
     },
-    quotes: (syms) => Promise.resolve(Object.fromEntries(syms.map((s) => [s, o.quote]))),
+    quotes: (syms) => Promise.resolve(o.noQuote ? {} : Object.fromEntries(syms.map((s) => [s, o.quote]))),
     pairs: (syms) => Promise.resolve(Object.fromEntries(syms.map((s) => [s, PAIR]))),
     placeLimit: (req) => { o.onPlace?.(); calls.push(`place ${req.side} ${req.base}@${req.price}${req.marketable ? " taker" : ""}`); return Promise.resolve({ ok: true as const, venueOrderId: "V-1", state: o.placedState ?? "new" as const, response: { echo: req } }); },
     cancel: (vid) => { calls.push(`cancel ${vid}`); return Promise.resolve({ ok: o.cancelOk ?? true }); },
@@ -172,6 +196,7 @@ function world(opts: {
   strategies?: StrategyRow[]; orders?: Row[]; decisions?: Row[]; observations?: Row[]; risk?: Partial<RiskRow>; oneMin?: Partial<Candle>; canTrade?: boolean;
   orderView?: OrderView; jevDown?: boolean; active?: Record<string, { venueOrderId: string; view: OrderView }>; onPlace?: () => void;
   series?: SeriesBySymbol; revxQuote?: Quote; now?: number; krakenMinutes?: Candle[]; leaseUntil?: string; raceClaim?: boolean; placedState?: "new" | "filled";
+  krakenNoQuote?: boolean; raceOrder?: boolean; takeover?: boolean;
 } = {}) {
   const now = opts.now ?? NOW;
   const base = series();
@@ -180,7 +205,7 @@ function world(opts: {
   const m1start = Math.floor(now / ONE_M) * ONE_M - ONE_M;
   const c1m: Candle[] = [{ start: m1start, open: quote.bid, high: quote.bid + 0.05, low: quote.bid - 0.05, close: quote.bid, volume: 1, ...opts.oneMin }];
   const jevLog: string[] = [];
-  const kraken = stubVenue("kraken", { series: ser, c1m: opts.krakenMinutes ?? c1m, quote, feeBps: { maker: 40, taker: 80 }, canTrade: opts.canTrade ?? false, orderView: opts.orderView, active: opts.active, onPlace: opts.onPlace, placedState: opts.placedState });
+  const kraken = stubVenue("kraken", { series: ser, c1m: opts.krakenMinutes ?? c1m, quote, feeBps: { maker: 40, taker: 80 }, canTrade: opts.canTrade ?? false, orderView: opts.orderView, active: opts.active, onPlace: opts.onPlace, placedState: opts.placedState, noQuote: opts.krakenNoQuote });
   const revxQuote = opts.revxQuote ?? { bid: quote.bid + 0.02, ask: quote.ask + 0.02 };
   const revx = stubVenue("revx", { series: ser, c1m, quote: revxQuote, feeBps: { maker: 0, taker: 9 }, canTrade: false });
   const mem = memDb({
@@ -191,8 +216,13 @@ function world(opts: {
     agent_observations: opts.observations ?? [],
     agent_locks: [{ name: "tick", lease_until: opts.leaseUntil ?? "1970-01-01T00:00:00.000Z", holder: null }],
   }, {
-    // The race: another tick claims the same bar between this tick's fast check and its insert.
-    beforeDecisionInsert: opts.raceClaim ? (tables, row) => { (tables.agent_decisions ??= []).push({ id: 1, ts: new Date(NOW - 1000).toISOString(), strategy_id: row.strategy_id, symbol: row.symbol, bar_start: row.bar_start }); } : undefined,
+    // The race: another tick claims the same bar between this tick's fast check and its insert — or, with `takeover`, the next
+    // turn takes the LEASE over while this one is still running (as it would once this one's lease had expired).
+    beforeDecisionInsert: opts.raceClaim ? (tables, row) => { (tables.agent_decisions ??= []).push({ id: 1, ts: new Date(NOW - 1000).toISOString(), strategy_id: row.strategy_id, symbol: row.symbol, bar_start: row.bar_start }); }
+      : opts.takeover ? (tables) => { tables.agent_locks = [{ name: "tick", lease_until: new Date(NOW + 90e3).toISOString(), holder: "the next turn" }]; }
+      : undefined,
+    // Another turn places this decision's order between this turn's check and its insert.
+    beforeOrderInsert: opts.raceOrder ? (tables, row) => { if (row.decision_id != null) (tables.agent_orders ??= []).push({ id: 1, ts: new Date(NOW - 1000).toISOString(), strategy_id: row.strategy_id, venue: row.venue, symbol: row.symbol, mode: row.mode, side: row.side, price: row.price, base_size: row.base_size, client_order_id: "racer", decision_id: row.decision_id, requotes: row.requotes, state: "new", filled_base: 0, fee_usd: 0, request: row.request }); } : undefined,
   });
   const deps = { db: mem.db, venues: { kraken: kraken.v, revx: revx.v }, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch(opts.jevDown, jevLog), uuid: () => "00000000-0000-4000-8000-000000000001" };
   return { deps, mem, kraken, revx, quote, revxQuote, lastClosedBarStart: base.bars[128].start, c1m, jevLog };
@@ -226,7 +256,7 @@ Deno.test("a fresh closed bar becomes one decision and one resting paper order a
   assert(!w.kraken.calls.some((c) => c.startsWith("place")));           // paper: the venue is never asked to place
   assert(w.mem.tables.agent_candles.length > 200);
   assertEquals(w.mem.tables.agent_candles[0].venue, "kraken");
-  assert(w.kraken.calls.includes("candles BTC/USD 1"));                 // the execution venue's last minute, for paper fills
+  assert(!w.kraken.calls.includes("candles BTC/USD 1"));                // no paper order rests, so the execution venue's minute — whose one reader is a resting paper fill — is not fetched
   const lock = w.mem.tables.agent_locks[0];
   assertEquals([lock.lease_until, lock.holder], [new Date(NOW).toISOString(), null]);   // the lease was taken and given back
 });
@@ -309,7 +339,7 @@ Deno.test("a Revolut X strategy reads Kraken's candles and quotes Revolut X's to
   assertEquals(r.errors, []);
   assert(w.kraken.calls.includes("candles BTC/USD 240") && w.kraken.calls.includes("candles BTC/USD 1440"), w.kraken.calls.join(","));
   assert(!w.kraken.calls.includes("candles BTC/USD 1"));                 // Kraken is not the execution venue here …
-  assert(w.revx.calls.includes("candles BTC/USD 1"));                    // … Revolut X is
+  assert(!w.revx.calls.includes("candles BTC/USD 1"));                   // … Revolut X is, and with no paper order resting its minute is not needed either
   assertEquals(w.mem.tables.agent_candles[0].venue, "kraken");
   const o = w.mem.tables.agent_orders[0] as Row & { request: { marketable: boolean; timeInForce: string } };
   assertEquals([o.venue, o.price], ["revx", w.quote.ask + 0.02]);          // Revolut X takes its own ask: the backtest's fill, 9 bps
@@ -472,11 +502,16 @@ Deno.test("a pending live order whose reply never landed is reconciled by client
   assert(r.skipped.some((s) => s.includes("order in flight")));            // the pair is busy, nothing new is placed
   assertEquals(w.mem.tables.agent_orders.length, 1);
 
-  // Not at the venue: marked rejected and reported, never silently forgotten.
+  // Not at the venue: the outcome is UNKNOWN — a marketable order fills or dies inside the turn, a post-only bid can be lifted
+  // seconds after it rests — so the row STAYS pending, keeps the pair in flight, and is reported with the venue's balance
+  // beside what the record holds. Never marked rejected on a guess: a real position nobody protects is the worst outcome.
   const w2 = world({ strategies: [strategy({ mode: "live" })], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, orders: [pending], active: {} });
   const r2 = await tick(w2.deps);
-  assertEquals(r2.settled, [{ id: 5, state: "rejected" }]);
-  assert(r2.errors.some((e) => e.includes("not found at kraken")), r2.errors.join("; "));
+  assertEquals(r2.settled, []);
+  assertEquals(w2.mem.tables.agent_orders[0].state, "pending");
+  assert(r2.errors.some((e) => e.includes("outcome unknown") && e.includes("kraken holds 0 BTC against 0 on record")), r2.errors.join("; "));
+  assert(r2.skipped.some((s) => s.includes("order in flight")));
+  assertEquals(w2.mem.tables.agent_orders.length, 1);
 });
 
 Deno.test("a live order settles from the venue's own view: filled volume, average price and fee", async () => {
@@ -574,7 +609,7 @@ Deno.test("the protective floor sells between bars, without the model: marketabl
   const sell = w.mem.tables.agent_orders[1] as Row & { request: { marketable: boolean } };
   assertEquals([sell.side, sell.venue, sell.price, sell.base_size, sell.request.marketable], ["sell", "revx", w.revxQuote.bid, 0.1, true]);
   const dec = w.mem.tables.agent_decisions[0];
-  assertEquals(dec.bar_start, new Date(Math.floor(NOW / ONE_M) * ONE_M).toISOString());   // claimed on the MINUTE: a stop that lapses is tried again next minute
+  assertEquals(dec.bar_start, new Date(Math.floor(NOW / ONE_M) * ONE_M + PROTECTIVE_CLAIM_OFFSET_MS).toISOString());   // claimed one second INTO the minute: a stop that lapses is tried again next minute, and a bar start (always on the minute) is never taken
   assertEquals((dec.numbers as { kind: string }).kind, "protective");
 
   // The same on Kraken rests at the ASK, post-only: a post-only sell at the bid would cross and be rejected.
@@ -717,4 +752,149 @@ Deno.test("dayPnl counts only today: realised since the day began plus the CHANG
   const sale: OrderRow = { ...(seedOrder({ id: 2, ts: "2026-09-20T03:00:00Z", filled_at: "2026-09-20T03:00:00Z", state: "filled", side: "sell", filled_base: 1, avg_fill_price: 108, base_size: 1, price: 108, fee_usd: 0.5 }) as unknown as OrderRow) };
   // Realised today: (108 − 100) − 0.5 = 7.5. Unrealised now: 0 (flat). Unrealised at day open: 1 × (110 − 100) = 10. Today = 7.5 + (0 − 10) = −2.5.
   assertAlmostEquals(dayPnl([old, sale], { "BTC/USD": 105 }, { "BTC/USD": 110 }, dayStart), -2.5, 1e-9);
+});
+
+// ------------------------------------------------------------ the pre-live review's findings, pinned (docs/agents/reviews/2026-09-21-prelive-review.md)
+
+Deno.test("a live order cancelled but not readable afterwards stays OPEN: the cancel is done, what filled is the venue's to say, the next turn settles it", async () => {
+  // An hour old at the touch, so the turn cancels it; the venue's order read fails both before and after the cancel.
+  const live = seedOrder({ id: 12, ts: new Date(NOW - MAX_ORDER_AGE_MS).toISOString(), mode: "live", client_order_id: "c12", venue_order_id: "V-12" });
+  const w = world({ strategies: [strategy({ mode: "live" })], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, orders: [live] });
+  const r = await tick(w.deps);
+  assert(w.kraken.calls.includes("cancel V-12"), w.kraken.calls.join(","));
+  assertEquals(r.settled, []);
+  assertEquals(w.mem.tables.agent_orders.map((o) => o.state), ["new"]);            // not "cancelled, nothing filled" on a guess
+  assert(r.errors.some((e) => e.includes("could not read it back")), r.errors.join("; "));
+  assert(r.skipped.some((s) => s.includes("order in flight")));
+});
+
+Deno.test("a book of more than a thousand fills is read whole: PostgREST's page is not the position", async () => {
+  // 1,001 tiny buys earlier today — 1.001 BTC at 100. One page holds 1.000, and a book built from it would be wrong from then on.
+  const fills: Row[] = [];
+  for (let k = 0; k < PAGE_ROWS + 1; k++) fills.push(longSince(3 * ONE_H + k * 1000, 100, 0.001, { id: 5000 + k, client_order_id: `f${k}` }));
+  const w = world({ orders: fills });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  const dec = w.mem.tables.agent_decisions.find((d) => (d.numbers as { kind: string }).kind === "bar")!;
+  const n = dec.numbers as { exposureUsd: number; mark: number };
+  assertAlmostEquals(n.exposureUsd, 1.001 * n.mark, 1e-6);
+});
+
+Deno.test("a re-quote is an order like any other: the global pause and the order-count cap refuse it, and the resting order is still taken off", async () => {
+  const stale = () => seedOrder({ id: 13, ts: new Date(NOW - REQUOTE_AFTER_MS).toISOString(), price: 120, base_size: 0.1, client_order_id: "c13", requotes: 1 });
+  const w = world({ orders: [stale()], risk: { global_pause: true } });
+  const r = await tick(w.deps);
+  assertEquals(r.settled, [{ id: 13, state: "cancelled" }]);
+  assertEquals(w.mem.tables.agent_orders.map((o) => o.state), ["cancelled"]);       // nothing re-placed under the pause
+  assert(r.skipped.some((s) => s.includes("re-quote refused") && s.includes("global pause")), r.skipped.join("; "));
+  // The day's order budget spent (the resting order itself is today's one order): no re-quote either.
+  const w2 = world({ orders: [stale()], risk: { max_orders_per_day: 1 } });
+  const r2 = await tick(w2.deps);
+  assertEquals(w2.mem.tables.agent_orders.map((o) => o.state), ["cancelled"]);
+  assert(r2.skipped.some((s) => s.includes("re-quote refused") && s.includes("orders today")), r2.skipped.join("; "));
+});
+
+Deno.test("a decision whose order never reached the book is placed on a later turn; one with an order, or one the gate now refuses, is not; two turns place once", async () => {
+  // Long and healthy; an EXIT decided on this very bar, allowed, with no order row behind it (no pair config that minute, say).
+  const barStart = new Date(world().lastClosedBarStart).toISOString();
+  const orphan: Row = { id: 900, ts: new Date(NOW - ONE_M).toISOString(), strategy_id: "trend-4h-kraken", venue: "kraken", symbol: "BTC/USD", mode: "paper", bar_start: barStart, state: {}, numbers: { orderUsd: 0, kind: "bar" }, provider: "rule", rule_action: "exit", rule_reason: "4h trend turned down", final_action: "exit", final_reason: "x", risk_allowed: true, risk_reason: "within limits" };
+  const w = world({ orders: [longSince(2 * ONE_D, 128, 0.1)], decisions: [orphan] });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.decisions, []);                                                       // no new decision: the bar's claim stands with the old one
+  assert(r.skipped.some((s) => s.includes("had no order; placing it now")), r.skipped.join("; "));
+  const sell = w.mem.tables.agent_orders.find((o) => o.side === "sell")!;
+  assertEquals([sell.decision_id, sell.requotes, sell.state], [900, 0, "new"]);
+  // Next minute the order exists, so the bar is simply decided (and the pair in flight).
+  const r2 = await tick({ ...w.deps, now: NOW + ONE_M });
+  assertEquals(w.mem.tables.agent_orders.filter((o) => o.side === "sell").length, 1);
+  assert(r2.skipped.some((s) => s.includes("already decided") || s.includes("order in flight")), r2.skipped.join("; "));
+  // An orphaned ENTER meets the gate again; one the gate refuses is closed for good.
+  const enter: Row = { ...orphan, id: 901, rule_action: "enter", final_action: "enter", numbers: { orderUsd: 20, kind: "bar" } };
+  const w3 = world({ decisions: [enter], risk: { global_pause: true } });
+  const r3 = await tick(w3.deps);
+  assertEquals(w3.mem.tables.agent_orders.length, 0);
+  assertEquals(w3.mem.tables.agent_decisions[0].risk_allowed, false);
+  assert(r3.skipped.some((s) => s.includes("the gate now refuses it")), r3.skipped.join("; "));
+  // Two turns on the same orphan: the order insert is the claim on the attempt (0041), so the second places nothing and does not throw.
+  const w4 = world({ orders: [longSince(2 * ONE_D, 128, 0.1)], decisions: [orphan], raceOrder: true });
+  const r4 = await tick(w4.deps);
+  assertEquals(r4.errors, []);
+  assertEquals(w4.mem.tables.agent_orders.filter((o) => o.decision_id === 900).map((o) => o.client_order_id), ["racer"]);
+  assert(r4.skipped.some((s) => s.includes("already placed by another turn")), r4.skipped.join("; "));
+});
+
+Deno.test("a turn releases only the lease it holds: one that ran long cannot free the lease the next turn has taken", async () => {
+  const w = world({ takeover: true });
+  await tick(w.deps);
+  const lock = w.mem.tables.agent_locks[0];
+  assertEquals([lock.holder, lock.lease_until], ["the next turn", new Date(NOW + 90e3).toISOString()]);
+});
+
+Deno.test("a turn past its budget opens no new bar decision, and still runs the stops", async () => {
+  // The clock jumps past the budget once the turn has started: BTC's stop (35 % under cost) still fires; ETH's bar waits a minute.
+  let reads = 0;
+  const clock = () => NOW + (reads++ === 0 ? 0 : TURN_BUDGET_MS + 1);
+  const w = world({ strategies: [strategy({ symbols: ["BTC/USD", "ETH/USD"] })], orders: [longSince(2 * ONE_D, 200, 0.1)], series: { "BTC/USD": series(), "ETH/USD": series(1.02) } });
+  const r = await tick({ ...w.deps, clock });
+  assertEquals(r.decisions.map((d) => [d.symbol, d.kind, d.action]), [["BTC/USD", "protective", "exit"]]);
+  assert(r.skipped.some((s) => s.includes("ETH/USD") && s.includes("over its budget")), r.skipped.join("; "));
+});
+
+Deno.test("the state's drawdown word reads the high since entry, trailed with the market — not the entry price", async () => {
+  // Long from 100 two days ago; one bar inside the position's life spiked to 200; the market is near 129: 36 % off that high.
+  const s = series();
+  s.bars[120] = { ...s.bars[120], high: 200 };
+  const w = world({ orders: [longSince(2 * ONE_D, 100, 0.1)], series: { "BTC/USD": s } });
+  const r = await tick(w.deps);
+  const obs = w.mem.tables.agent_observations[0].state as { drawdown_from_high: string; position: string };
+  assertEquals([obs.position, obs.drawdown_from_high], ["long", "large"]);         // from the fills alone the high is 100 and the word "none"
+  assertEquals([r.decisions[0].kind, r.decisions[0].action], ["protective", "exit"]);
+  assert(r.decisions[0].reason.includes("ATR trailing stop"), r.decisions[0].reason);
+});
+
+Deno.test("no quote and no minute candle means no mark — not a mark of 0: no stop fires on it and no day loss is made of it", async () => {
+  const w = world({ orders: [longSince(2 * ONE_D, 128, 0.1)], krakenNoQuote: true, krakenMinutes: [] });
+  const r = await tick(w.deps);
+  assertEquals(r.decisions.filter((d) => d.kind === "protective"), []);            // a mark of 0 would read as 100 % under cost
+  // Against the same world WITH a quote: the missing mark costs nothing beyond the day's own move (a 0 would have added the
+  // whole $12.80 position as a loss and tripped the $5 daily limit).
+  const control = world({ orders: [longSince(2 * ONE_D, 128, 0.1)] });
+  await tick(control.deps);
+  const pnl = (w0: typeof w) => (w0.mem.tables.agent_decisions[0].numbers as { pnlToday: number }).pnlToday;
+  assert(Math.abs(pnl(w) - pnl(control)) < 1, `${pnl(w)} vs ${pnl(control)}`);
+});
+
+Deno.test("a stop in the first minute of a bar does not take the bar's claim: the bar is still decided when it closes", async () => {
+  const boundary = Math.floor(NOW / FOUR_H) * FOUR_H;                                 // 04:00 — the forming bar began here
+  const w = world({ strategies: [strategy({ id: "trend-4h", venue: "revx" })], orders: [longSince(2 * ONE_D, 200, 0.1, { strategy_id: "trend-4h", venue: "revx" })], now: boundary + 30e3 });
+  const r = await tick(w.deps);
+  assertEquals([r.decisions[0].kind, r.decisions[0].action], ["protective", "exit"]);
+  assertEquals(w.mem.tables.agent_decisions[0].bar_start, new Date(boundary + PROTECTIVE_CLAIM_OFFSET_MS).toISOString());
+  // Four hours on, flat again (the marketable paper sell filled): the bar that began at the boundary has closed, and it is decided.
+  const r2 = await tick({ ...w.deps, now: boundary + FOUR_H + 30e3 });
+  const bar = w.mem.tables.agent_decisions.find((d) => (d.numbers as { kind: string }).kind === "bar");
+  assert(bar, [...r2.skipped, ...r2.errors].join("; "));
+  assertEquals(bar!.bar_start, new Date(boundary).toISOString());
+});
+
+Deno.test("a bid resting at the venue is exposure now: the cap counts it before it fills", async () => {
+  // ETH has a $289 paper bid resting under the market; the paper cap is $300; BTC's $20 entry would take the book past it.
+  const restingEth = seedOrder({ id: 14, ts: new Date(NOW - ONE_M).toISOString(), symbol: "ETH/USD", price: 128.5, base_size: 2.25, client_order_id: "c14" });
+  const w = world({ strategies: [strategy({ symbols: ["BTC/USD", "ETH/USD"] })], orders: [restingEth], series: { "BTC/USD": series(), "ETH/USD": series() } });
+  const r = await tick(w.deps);
+  const btc = r.decisions.find((d) => d.symbol === "BTC/USD")!;
+  assertEquals([btc.action, btc.allowed], ["enter", false]);
+  assert(w.mem.tables.agent_decisions.some((d) => String(d.risk_reason).includes("exposure")), JSON.stringify(w.mem.tables.agent_decisions.map((d) => d.risk_reason)));
+  assertEquals(w.mem.tables.agent_orders.length, 1);                                  // the resting bid only
+});
+
+Deno.test("the execution venue's minute candle is fetched only where a paper order rests, never for a marketable one", async () => {
+  const w = world({ orders: [seedOrder({ price: 120 })] });
+  await tick(w.deps);
+  assert(w.kraken.calls.includes("candles BTC/USD 1"), w.kraken.calls.join(","));
+  const w2 = world({ orders: [seedOrder({ request: { marketable: true } })] });
+  await tick(w2.deps);
+  assert(!w2.kraken.calls.includes("candles BTC/USD 1"), w2.kraken.calls.join(","));
+  assertEquals(w2.mem.tables.agent_orders[0].state, "filled");                        // a marketable paper order fills without it
 });

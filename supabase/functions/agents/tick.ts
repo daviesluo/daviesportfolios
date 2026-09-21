@@ -47,6 +47,19 @@
 // compare-and-set on its expiry) and a turn that finds it held does
 // nothing. The bar claim below still protects decisions on its own.
 //
+// What the loop refuses to guess. A `pending` row the venue does not list
+// is left pending and reported every turn with the venue's balance beside
+// the record — a marketable order fills or dies inside the turn, so its
+// absence from the active list proves nothing, and a person settles it from
+// the venue's history. A cancelled order that cannot be read back stays
+// open for the next turn to settle from the venue. A decision whose order
+// never reached the book (no pair config, a size under the venue minimum,
+// the confirmation or the credentials missing) is placed on a later turn:
+// the claim stays with the decision, and the unique index on (decision,
+// attempt) from migration 0041 makes two turns' retries one order. A turn
+// that runs long stops opening bar decisions past its budget and never
+// releases a lease another turn has since taken.
+//
 // A live order needs THREE things at once: the strategy row says `live`,
 // `agent_risk.live_confirmed_at` is set, and the risk gate allows it —
 // plus credentials for that venue. Paper needs the gate only. The caps in
@@ -70,6 +83,8 @@ export const MAX_REQUOTES = 5;                    // then the decision lapses un
 export const MAX_ORDER_AGE_MS = 60 * 60e3;        // nothing rests longer than an hour
 export const LEASE_MS = 55e3;                     // one turn holds the tick lease this long at most (under the cron minute)
 export const REENTRY_BARS = 2;                    // after ANY exit, no entry for this many of the rule's own bars
+export const TURN_BUDGET_MS = Math.round(LEASE_MS * 0.7);   // past this, no NEW bar decision is opened this turn (a Jev round trip is up to 16 s)
+export const PROTECTIVE_CLAIM_OFFSET_MS = 1000;   // a protective decision claims one second INTO its minute: a bar starts on the minute, so the two never collide
 const ONE_M = 60e3, ONE_H = 3600e3, FOUR_H = 4 * 3600e3, ONE_D = 86400e3;
 const DAILY_BARS = 130;                           // SMA 100 + the 30-day lookback, with room
 const SIGNAL_BARS = 210;                          // SMA 100 + breakout 55, with room
@@ -96,6 +111,8 @@ export type TickDeps = {
   now: number;
   fetchImpl?: typeof fetch;
   uuid: () => string;
+  /** Wall clock for the turn budget and the lease renewal; injectable so a test can make a turn run long. */
+  clock?: () => number;
 };
 
 export type TickReport = {
@@ -109,7 +126,7 @@ export type TickReport = {
   errors: string[];
 };
 
-type Market = { c1m: Candle | null; mark: number; quote?: Quote; pair?: PairConfig };
+type Market = { c1m: Candle | null; mark: number | null; quote?: Quote; pair?: PairConfig };   // mark null when neither a quote nor a candle gave one — never 0
 type Signal = { bars: Candle[]; barMs: number; c1d: Candle[] };
 
 const mk = (venue: string, symbol: string) => `${venue}|${symbol}`;
@@ -153,8 +170,8 @@ export function dayPnl(allFilled: OrderRow[], marks: Record<string, number>, day
     const fills = rows.map(toFill);
     const now = positionFromFills(fills);
     const before = positionFromFills(fills.filter((f) => f.ts < dayStartMs));
-    const mark = marks[sym] ?? now.avgCost;
-    const open = dayOpen[sym] ?? mark;
+    const mark = marks[sym] || now.avgCost;         // a missing OR zero mark falls back to cost: 0 is not a price, and a $100 book marked at 0 would read as a $100 loss
+    const open = dayOpen[sym] || mark;
     out += (now.realisedUsd - before.realisedUsd) + (unrealisedUsd(now, mark) - unrealisedUsd(before, open));
   }
   return out;
@@ -208,7 +225,11 @@ async function loadSeries(d: TickDeps, venue: Venue, symbol: string, intervalMin
   const have: Candle[] = stored.map((r) => ({ start: Date.parse(r.start), open: Number(r.open), high: Number(r.high), low: Number(r.low), close: Number(r.close), volume: Number(r.volume) }))
     .sort((a, b) => a.start - b.start);
   const newest = have.at(-1)?.start ?? 0;
-  const warm = have.length >= count - 2 && newest >= d.now - 3 * spanMs;
+  // Warm means complete: a gap in the middle (a venue outage, a failed turn) would otherwise stay forever, and every indicator
+  // indexes by position, so a 100-bar average would quietly span 104 bars. Hour bars and up must be contiguous; minutes may
+  // legitimately skip (no trade, no candle) and are not held to it.
+  const contiguous = spanMs < ONE_H || have.every((c, j) => j === 0 || c.start - have[j - 1].start === spanMs);
+  const warm = have.length >= count - 2 && newest >= d.now - 3 * spanMs && contiguous;
   const since = warm ? newest - spanMs : d.now - count * spanMs;
   const tail = await venue.candles(symbol, intervalMin, since, d.now);
   const byStart = new Map<number, Candle>(have.map((c) => [c.start, c]));
@@ -225,17 +246,39 @@ async function loadSeries(d: TickDeps, venue: Venue, symbol: string, intervalMin
 export async function tick(d: TickDeps): Promise<TickReport> {
   const report: TickReport = { at: new Date(d.now).toISOString(), strategies: 0, markets: [], basis: {}, observations: 0, decisions: [], orders: [], settled: [], skipped: [], errors: [] };
   const nowIso = new Date(d.now).toISOString();
-  const held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.tick&lease_until=lt.${enc(nowIso)}`, { lease_until: new Date(d.now + LEASE_MS).toISOString(), holder: nowIso });
+  const holder = `${nowIso} ${d.uuid()}`;
+  const held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.tick&lease_until=lt.${enc(nowIso)}`, { lease_until: new Date(d.now + LEASE_MS).toISOString(), holder });
   if (!held.length) { report.skipped.push("another tick holds the lease; nothing done this minute"); return report; }
   try {
-    await turn(d, report, nowIso);
+    await turn(d, report, nowIso, holder);
   } finally {
-    try { await d.db.update("agent_locks", "name=eq.tick", { lease_until: nowIso, holder: null }); } catch (e) { report.errors.push(`lease release: ${msg(e)}`); }
+    // Released by its holder only: a turn that overran its lease must not free the lease the NEXT turn has since taken —
+    // one overrun would otherwise cascade into every later turn overlapping its successor.
+    try { await d.db.update("agent_locks", `name=eq.tick&holder=eq.${enc(holder)}`, { lease_until: nowIso, holder: null }); } catch (e) { report.errors.push(`lease release: ${msg(e)}`); }
   }
   return report;
 }
 
-async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<void> {
+/** The position with its high-water trailed to the market: the fills' own high never rises, and a stop or a state word read from it would not trail. */
+function trailed(pos: Position, bars: Candle[], lastClosedIdx: number): Position {
+  if (pos.base <= 0) return pos;
+  const hw = highWaterSince(pos, bars, lastClosedIdx);
+  return hw == null ? pos : { ...pos, highWater: hw };
+}
+
+async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: string): Promise<void> {
+  const clock = d.clock ?? (() => Date.now());
+  const started = clock();
+  const elapsed = () => clock() - started;
+  const overBudget = () => elapsed() > TURN_BUDGET_MS;
+  let renewed = false;
+  /** Once, past half the lease: keep the lock while this turn finishes, so the next cron minute skips rather than overlaps. */
+  const renewLease = async () => {
+    if (renewed) return;
+    renewed = true;
+    try { await d.db.update("agent_locks", `name=eq.tick&holder=eq.${enc(holder)}`, { lease_until: new Date(clock() + LEASE_MS).toISOString() }); }
+    catch (e) { report.errors.push(`lease renewal: ${msg(e)}`); }
+  };
   const [riskRows, strategies, open] = await Promise.all([
     d.db.select<RiskRow>("agent_risk", "id=eq.1&select=*"),
     d.db.select<StrategyRow>("agent_strategies", "mode=in.(paper,live)&retired_at=is.null&select=*&order=id.asc"),
@@ -280,6 +323,11 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
     try { await d.db.upsert("agent_basis", basisRows, "ts,symbol"); } catch (e) { report.errors.push(`basis: ${msg(e)}`); }
   }
 
+  // The execution venue's last closed minute has ONE reader: a paper order resting at a price, which fills when the minute
+  // trades through it. It is fetched only where such an order rests (or where no quote gave a mark) — every other call would
+  // be spent from Revolut X's one-token-a-second public budget for nothing, and paid for in seconds of turn time.
+  const needsMinute = new Set<string>();
+  for (const o of open) if (o.mode === "paper" && !o.request?.marketable) needsMinute.add(mk(o.venue, o.symbol));
   const markets = new Map<string, Market>();
   for (const [vid, syms] of execWanted) {
     const venue = d.venues[vid];
@@ -288,10 +336,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
     try { pairs = await venue.pairs([...syms]); } catch (e) { report.errors.push(`${vid}: pairs ${msg(e)}`); }
     for (const sym of syms) {
       try {
-        const m1 = await venue.candles(sym, 1, d.now - 3 * ONE_M, d.now);
-        const closed = m1.filter((c) => c.start + ONE_M <= d.now);
         const q = quotes[vid]?.[sym];
-        const mark = q ? (q.bid + q.ask) / 2 : closed.at(-1)?.close ?? 0;
+        const m1 = needsMinute.has(mk(vid, sym)) || !q ? await venue.candles(sym, 1, d.now - 3 * ONE_M, d.now) : [];
+        const closed = m1.filter((c) => c.start + ONE_M <= d.now);
+        const mark = q ? (q.bid + q.ask) / 2 : closed.at(-1)?.close ?? null;
         markets.set(mk(vid, sym), { c1m: closed.at(-1) ?? null, mark, quote: q, pair: pairs[sym] });
         report.markets.push(mk(vid, sym));
       } catch (e) {
@@ -321,15 +369,21 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
   // 2. open orders --------------------------------------------------------
   const inFlight = new Set<string>();
   const requoteWanted: { o: OrderRow; touch: number }[] = [];
+  const settledIds = new Set<number>();            // rows this turn closed: no longer risk
   const settle = async (o: OrderRow, patch: Record<string, unknown>, state: string) => {
     await d.db.update("agent_orders", `id=eq.${o.id}`, { ...patch, state, updated_at: nowIso });
+    settledIds.add(o.id);
     report.settled.push({ id: o.id, state });
   };
   const resting = new Map<string, OrderRow>();     // `${strategy}|${symbol}` → an order still resting after this turn's settlement
   /**
    * Take a resting order off the book. Live: the venue cancels, then says
    * what filled before the cancel landed — that is the venue's to say, and
-   * a fill wins over the cancel. Paper: the row is closed.
+   * a fill wins over the cancel. If the order cannot be read back after the
+   * cancel, the row stays OPEN: the cancel is done and cannot be undone, so
+   * settling the row blind would write "nothing filled" over a fill the
+   * venue may have made; the next turn reads the order and settles it from
+   * the venue's own view. Paper: the row is closed.
    */
   const cancelOrder = async (o: OrderRow, why: string): Promise<"cancelled" | "filled" | "failed"> => {
     const key = `${o.strategy_id}|${o.symbol}`;
@@ -339,7 +393,8 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
       const c = await venue.cancel(o.venue_order_id);
       if (!c.ok) { report.errors.push(`${key}: cancel ${o.venue_order_id} → ${c.error}`); return "failed"; }
       const after = await venue.order(o.venue_order_id);
-      if (after.ok && after.view.filledBase > 0) {
+      if (!after.ok) { report.errors.push(`${key}: cancelled ${o.venue_order_id} but could not read it back (${after.error}); left open for the next turn to settle from the venue`); return "failed"; }
+      if (after.view.filledBase > 0) {
         await settle(o, { filled_base: after.view.filledBase, avg_fill_price: after.view.avgPrice ?? o.price, fee_usd: after.view.feeUsd, filled_at: nowIso, cancelled_at: nowIso, response: after.view.raw }, "filled");
         return "filled";
       }
@@ -370,11 +425,21 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
           inFlight.add(key);
           continue;
         }
-        // Not resting at the venue. A post-only order cannot have filled on arrival, so it was never
-        // accepted — or it filled inside the turn and is gone from the active list, which the venue
-        // balances on the dashboard would show. Either way a human looks: the row is marked and reported.
-        await settle(o, { cancelled_at: nowIso, response: { reconciled: false, note: "not among the venue's active orders one turn later" } }, "rejected");
-        report.errors.push(`${key}: pending order ${o.client_order_id} not found at ${o.venue}; marked rejected — check the venue's balances`);
+        // Not resting at the venue, and no reply on record: the outcome is UNKNOWN. A marketable IOC order — every Revolut X
+        // order — fills or dies inside the turn, so absence from the active list proves nothing; a post-only bid at the touch
+        // can be lifted seconds after it rests. Nothing here guesses. The row stays `pending`: it keeps the pair in flight and
+        // counts as exposure, and it is reported every turn, with the venue's balance beside what the record says is held,
+        // until a person settles it from the venue's own history (write the fill in, or mark it rejected).
+        let heldNote = "";
+        try {
+          const bal = await venue.balances();
+          const asset = o.symbol.split("/")[0];
+          const known = positionFromFills((await d.db.selectAll<OrderRow>("agent_orders",
+            `venue=eq.${o.venue}&mode=eq.live&symbol=eq.${enc(o.symbol)}&state=in.(filled,partially_filled)&select=*&order=ts.asc`)).map(toFill)).base;
+          heldNote = `; ${o.venue} holds ${bal[asset] ?? 0} ${asset} against ${known} on record`;
+        } catch (e) { heldNote = `; balances unreadable (${msg(e)})`; }
+        report.errors.push(`${key}: pending ${o.side} ${o.base_size} ${o.symbol} (${o.client_order_id}) is not among ${o.venue}'s active orders ${Math.round(ageMs / 60e3)} min on — outcome unknown; the row stays pending for a person to settle from the venue's history${heldNote}`);
+        inFlight.add(key);
         continue;
       }
       const marketable = !!o.request?.marketable;
@@ -433,23 +498,32 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
   }
 
   // 3. the book, per venue and mode -------------------------------------
-  // What filled, including the filled part of a live order still working: real base the stops and the caps must see.
-  const filled = await d.db.select<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc");
+  // What filled, including the filled part of a live order still working: real base the stops and the caps must see. Read
+  // page by page: PostgREST stops at 1,000 rows without a word, and a book built from the OLDEST thousand fills would freeze
+  // every position at a state weeks old — sells gone, so a flat book reads long; buys gone, so a held position reads flat.
+  const filled = await d.db.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc");
   const dayStart = Math.floor(d.now / ONE_D) * ONE_D;
-  const todayRows = await d.db.select<{ venue: VenueId; mode: string }>("agent_orders", `ts=gte.${new Date(dayStart).toISOString()}&select=venue,mode`);
+  const todayRows = await d.db.selectAll<{ venue: VenueId; mode: string }>("agent_orders", `ts=gte.${new Date(dayStart).toISOString()}&select=venue,mode`);
   const ordersToday: Record<string, number> = {};
   for (const r of todayRows) ordersToday[mk(r.venue, r.mode)] = (ordersToday[mk(r.venue, r.mode)] ?? 0) + 1;
+  /** This venue's marks by symbol. A symbol that got no mark this turn is left out — never written as 0, which is not a price. */
   const marksFor = (vid: VenueId): Record<string, number> => {
     const out: Record<string, number> = {};
-    for (const [k, m] of markets) if (k.startsWith(`${vid}|`)) out[k.slice(vid.length + 1)] = m.mark;
+    for (const [k, m] of markets) if (k.startsWith(`${vid}|`) && m.mark != null) out[k.slice(vid.length + 1)] = m.mark;
     return out;
   };
-  const dayOpen: Record<string, number> = {};
+  // Today's open per SIGNAL venue and symbol — the rule's own daily candles, the series the dashboard reads for its "today" too.
+  const dayOpenBy = new Map<VenueId, Record<string, number>>();
+  const dayOpenAny: Record<string, number> = {};
   for (const [key, c1d] of dailyBy) {
-    const sym = key.split("|")[1];
+    const [vid, sym] = key.split("|") as [VenueId, string];
     const today = c1d.find((c) => c.start === dayStart) ?? c1d.at(-1);
-    if (today && dayOpen[sym] == null) dayOpen[sym] = today.open;
+    if (!today) continue;
+    if (!dayOpenBy.has(vid)) dayOpenBy.set(vid, {});
+    dayOpenBy.get(vid)![sym] = today.open;
+    if (dayOpenAny[sym] == null) dayOpenAny[sym] = today.open;
   }
+  const byId = new Map(strategies.map((s) => [s.id, s]));
   const positions = new Map<string, Position>();
   const exposure: Record<string, number> = {};
   const byKey = new Map<string, OrderRow[]>();
@@ -460,10 +534,23 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
     const bucket = mk(rows[0].venue, rows[0].mode);
     exposure[bucket] = (exposure[bucket] ?? 0) + pos.base * (marksFor(rows[0].venue)[rows[0].symbol] || pos.avgCost);
   }
+  // An open buy is risk too: a bid resting at the venue, or a `pending` row whose outcome is unknown, becomes a position the
+  // moment it fills, so its unfilled notional counts against the cap now, not a turn late.
+  for (const o of open) {
+    if (o.side !== "buy" || settledIds.has(o.id)) continue;
+    const bucket = mk(o.venue, o.mode);
+    exposure[bucket] = (exposure[bucket] ?? 0) + Math.max(0, Number(o.base_size) - Number(o.filled_base || 0)) * Number(o.price);
+  }
+  // Today's P&L per venue and mode, summed one strategy at a time so each is marked from ITS signal venue's day open. The
+  // dashboard computes its "today" the same way, so the page and the daily loss breaker read one figure.
   const pnlToday: Record<string, number> = {};
-  for (const bucket of new Set(filled.map((o) => mk(o.venue, o.mode)))) {
-    const [vid] = bucket.split("|") as [VenueId, string];
-    pnlToday[bucket] = dayPnl(filled.filter((o) => mk(o.venue, o.mode) === bucket), marksFor(vid), dayOpen, dayStart);
+  const groups = new Map<string, OrderRow[]>();
+  for (const o of filled) { const g = `${o.strategy_id}|${o.venue}|${o.mode}`; if (!groups.has(g)) groups.set(g, []); groups.get(g)!.push(o); }
+  for (const [g, rows] of groups) {
+    const [sid, vid, mode] = g.split("|") as [string, VenueId, string];
+    const s = byId.get(sid);
+    const opens = (s && dayOpenBy.get(s.signal_venue)) ?? dayOpenAny;
+    pnlToday[mk(vid, mode)] = (pnlToday[mk(vid, mode)] ?? 0) + dayPnl(rows, marksFor(vid), opens, dayStart);
   }
   // The caps, per venue account and per mode. Paper twins measure independently, so their
   // exposure cap is its own number: with the live cap they would crowd each other out of the book.
@@ -472,6 +559,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
     maxExposureUsd: mode === "paper" && risk.paper_exposure_usd != null ? Number(risk.paper_exposure_usd) : Number(risk.max_exposure_usd),
     dailyLossLimitUsd: Number(risk.daily_loss_limit_usd), maxOrdersPerDay: Number(risk.max_orders_per_day), globalPause: !!risk.global_pause,
   });
+  const ctxFor = (s: StrategyRow) => {
+    const bucket = mk(s.venue, s.mode);
+    return { exposureUsd: exposure[bucket] ?? 0, ordersToday: ordersToday[bucket] ?? 0, dayPnlUsd: pnlToday[bucket] ?? 0, mode: s.mode };
+  };
   // The last recorded state per strategy × symbol, each its own tiny query: one window over all of them
   // would let a busy pair push a quiet pair's row out and turn the change log into a heartbeat.
   const latestObs = new Map<string, string>();     // `${strategy}|${symbol}` → JSON of the last recorded state
@@ -479,9 +570,13 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
     const rows = await d.db.select<{ state: unknown }>("agent_observations", `strategy_id=eq.${s.id}&symbol=eq.${enc(sym)}&select=state&order=ts.desc&limit=1`);
     if (rows[0]) latestObs.set(`${s.id}|${sym}`, canon(rows[0].state));
   })));
-  /** Has this bar (or minute) already been decided for the pair? Looked up by the bar itself, not by "the newest row". */
-  const decided = async (s: StrategyRow, sym: string, barStart: number) =>
-    (await d.db.select<{ id: number }>("agent_decisions", `strategy_id=eq.${s.id}&symbol=eq.${enc(sym)}&bar_start=eq.${enc(new Date(barStart).toISOString())}&select=id&limit=1`)).length > 0;
+  type Prior = { id: number; final_action: Action; risk_allowed: boolean; numbers: { orderUsd?: number } | null };
+  /** The decision already recorded for this pair and bar (or minute), if any — looked up by the bar itself, not by "the newest row". */
+  const priorDecision = async (s: StrategyRow, sym: string, barStart: number): Promise<Prior | null> =>
+    (await d.db.select<Prior>("agent_decisions", `strategy_id=eq.${s.id}&symbol=eq.${enc(sym)}&bar_start=eq.${enc(new Date(barStart).toISOString())}&select=id,final_action,risk_allowed,numbers&limit=1`))[0] ?? null;
+  /** Did any order — placed, rejected or cancelled — ever come out of this decision? */
+  const hasOrder = async (decisionId: number) =>
+    (await d.db.select<{ id: number }>("agent_orders", `decision_id=eq.${decisionId}&select=id&limit=1`)).length > 0;
 
   // The one way an order is placed: paper → a row; live → a pending row, the venue, the row again.
   const place = async (s: StrategyRow, sym: string, side: "buy" | "sell", base: string, price: number, decisionId: number | null, marketable: boolean, requotes: number) => {
@@ -497,11 +592,22 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
       strategy_id: s.id, decision_id: decisionId, venue: s.venue, symbol: sym, mode: s.mode, side, order_type: "limit",
       price: Number(priceStr), base_size: Number(base), client_order_id, request, requotes, state: "new",
     };
+    // The order INSERT is the claim on this decision's attempt (unique on decision_id + requotes, 0041): when a decision's
+    // order is placed on a later turn, two turns overlapping on that retry cannot both place — the second insert fails here.
+    const insertOrder = async (r: Record<string, unknown>, returning: boolean): Promise<{ id: number }[] | null> => {
+      try { return await d.db.insert<{ id: number }>("agent_orders", r, returning); }
+      catch (e) {
+        if (/409|duplicate|unique/i.test(msg(e))) { report.skipped.push(`${s.id}|${sym}: order for decision ${decisionId ?? "—"} (attempt ${requotes}) already placed by another turn`); return null; }
+        throw e;
+      }
+    };
     if (s.mode === "live") {
       if (!risk.live_confirmed_at) { report.errors.push(`${s.id}|${sym}: live order refused — live_confirmed_at is null`); return; }
       if (!venue?.canTrade) { report.errors.push(`${s.id}|${sym}: live order refused — no ${s.venue} credentials`); return; }
       // The intent is durable BEFORE the venue is called: if the reply never lands, the next turn reconciles by client id.
-      const [pending] = await d.db.insert<{ id: number }>("agent_orders", { ...row, state: "pending" });
+      const inserted = await insertOrder({ ...row, state: "pending" }, true);
+      if (!inserted) return;
+      const [pending] = inserted;
       const placed = await venue.placeLimit({ clientOrderId: client_order_id, symbol: sym, side, base, price: priceStr, marketable });
       if (!placed.ok) {
         await d.db.update("agent_orders", `id=eq.${pending.id}`, { state: "rejected", cancelled_at: nowIso, response: { status: placed.status, error: placed.error, response: placed.response }, updated_at: nowIso });
@@ -515,7 +621,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
       await d.db.update("agent_orders", `id=eq.${pending.id}`, { state: "new", venue_order_id: placed.venueOrderId, response: placed.response, updated_at: nowIso });
       report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode: s.mode, side, price, base: Number(base), state: placed.state === "filled" ? "new (filled on arrival; settles next turn)" : placed.state });
     } else {
-      await d.db.insert("agent_orders", row, false);
+      if (!(await insertOrder(row, false))) return;
       report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode: s.mode, side, price, base: Number(base), state: "new" });
     }
     ordersToday[bucket] = (ordersToday[bucket] ?? 0) + 1;
@@ -523,20 +629,23 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
     inFlight.add(`${s.id}|${sym}`);
   };
 
-  // Re-quotes first: the same decision, the new touch, one more try.
-  const byId = new Map(strategies.map((s) => [s.id, s]));
+  // Re-quotes first: the same decision, the new touch, one more try — through the same gate as any order. A re-quote is a
+  // new order, so the pause, the loss limit and the caps apply to it; the resting one it replaces was cancelled above and is
+  // no longer counted, so the gate sees the book as it is.
   for (const { o, touch } of requoteWanted) {
     const s = byId.get(o.strategy_id);
     if (!s) continue;
+    const gate = riskGate(o.side === "buy" ? "enter" : "exit", Number(o.base_size) * touch, ctxFor(s), limitsFor(s.mode));
+    if (!gate.allowed) { report.skipped.push(`${o.strategy_id}|${o.symbol}: re-quote refused — ${gate.reason}`); continue; }
     await place(s, o.symbol, o.side, String(o.base_size), touch, o.decision_id ?? null, false, Number(o.requotes ?? 0) + 1);
   }
 
   // 4–6. per strategy -----------------------------------------------------
+  type Decided = { action: Action; allowed: boolean; decisionId: number | null; orderUsd: number };
   const decide = async (
     s: StrategyRow, sym: string, barStart: number, snapState: unknown, numbers: Record<string, unknown>, questions: Questions | null,
     rule: { action: Action; reason: string }, kind: "bar" | "protective", jevOverride?: JevResult,
-  ): Promise<{ action: Action; allowed: boolean; decisionId: number | null; orderUsd: number } | null> => {
-    const bucket = mk(s.venue, s.mode);
+  ): Promise<Decided | null> => {
     const m = markets.get(mk(s.venue, sym))!;
     const pos = positions.get(`${s.id}|${sym}`) ?? positionFromFills([]);
     let jr: JevResult = jevOverride ?? { provider: "rule", model: null, answers: {}, inputTokens: 0, costUsd: 0, latencyMs: 0, errors: [] };
@@ -553,13 +662,13 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
     };
     // An exit passes the model untouched; an entry needs its vote.
     const final = rule.action === "enter"
-      ? combineDecision(rule, view, { enterMin: num(s.params?.enterMin, 0.6), exitMax: num(s.params?.exitMax, 0.3), cautionExit: 1.75 })
+      ? combineDecision(rule, view, { enterMin: num(s.params?.enterMin, 0.6), cautionExit: 1.75 })
       : { ...rule, jevSaid: jr.provider === "rule" ? "rule only" : `${jr.provider}: ${view.healthy == null ? "no answer" : `healthy=${view.healthy.toFixed(2)}`}` };
-    const mark = m.mark || Number(numbers.close ?? 0);
+    const mark = m.mark ?? Number(numbers.close ?? 0);
     const limits = limitsFor(s.mode);
     const slots = s.kind === "rotation-1d" ? Math.max(1, rotationParamsOf(s).topN) : Math.max(1, s.symbols.length);
     const orderUsd = final.action === "enter" ? Math.min(Number(s.capital_usd) / slots, limits.maxOrderUsd) : pos.base * mark;
-    const ctx = { exposureUsd: exposure[bucket] ?? 0, ordersToday: ordersToday[bucket] ?? 0, dayPnlUsd: pnlToday[bucket] ?? 0, mode: s.mode };
+    const ctx = ctxFor(s);
     const gate = riskGate(final.action, orderUsd, ctx, limits);
     let dec: { id: number } | undefined;
     try {
@@ -582,6 +691,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
   for (const s of strategies) {
     const p = trendParamsOf(s);
     const rotation = rotationParamsOf(s);
+    const lookbackDays = num(s.params?.lookbackDays, 30);   // the momentum word's window; a row without the parameter reads the 30 days its name says
     const barMs = decisionBarMs(s.kind);
     const stops = { atrStop: s.kind === "trend-4h" || s.kind === "trend-1h" ? p.atrStop : null, maxLossPct: num(s.params?.maxLossPct, 0.08) };
 
@@ -599,6 +709,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
     for (const sym of s.symbols) {
       const key = `${s.id}|${sym}`;
       try {
+        if (elapsed() > LEASE_MS / 2) await renewLease();
         const m = markets.get(mk(s.venue, sym));
         const sig = signalFor(s, sym);
         if (!m || !sig || sig.bars.length < p.slow + 2 || !sig.c1d.length) { report.skipped.push(`${key}: not enough candles`); continue; }
@@ -611,6 +722,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
         const barsPerYear = (ONE_D / sig.barMs) * 365;
         const forming = bars.length - 1;
         const minuteStart = Math.floor(d.now / ONE_M) * ONE_M;
+        const protectiveClaim = minuteStart + PROTECTIVE_CLAIM_OFFSET_MS;
 
         // --- dislocation: quotes, every minute, no bar to wait for ---------
         if (s.kind === "dislocation-1m") {
@@ -638,8 +750,8 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
             inFlight.delete(key);
           }
           if (rule.action === "hold") continue;                       // a minute with nothing to do is not a decision
-          if (await decided(s, sym, minuteStart)) continue;
-          const r = await decide(s, sym, minuteStart, view.state, { basisBps: view.basisBps, fair: view.fair, move5, close: m.mark, revx: rq, reference: kq }, dislocationQuestions(view.state), rule, rule.action === "exit" && rule.marketable ? "protective" : "bar");
+          if (await priorDecision(s, sym, minuteStart)) continue;
+          const r = await decide(s, sym, minuteStart, view.state, { basisBps: view.basisBps, fair: view.fair, move5, close: m.mark ?? (rq.bid + rq.ask) / 2, revx: rq, reference: kq }, dislocationQuestions(view.state), rule, rule.action === "exit" && rule.marketable ? "protective" : "bar");
           if (!r || r.action === "hold" || !r.allowed) continue;
           const cfg = m.pair;
           if (!cfg) { report.errors.push(`${key}: no pair config`); continue; }
@@ -652,7 +764,9 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
         }
 
         // --- observation on the forming bar, every minute -------------------
-        const obs = buildSnapshot(sym, bars, forming, closedDaily, pos, d.now, p, undefined, barsPerYear);
+        // The position's high-water is trailed to the market first: from the fills alone it never rises, and the state's
+        // drawdown word (and the bar rule's ATR clause below) would read the entry price where the backtester read the high.
+        const obs = buildSnapshot(sym, bars, forming, closedDaily, trailed(pos, bars, forming), d.now, p, undefined, barsPerYear, lookbackDays);
         const stateJson = canon(obs.state);
         if (latestObs.get(key) !== stateJson) {
           await d.db.insert("agent_observations", { strategy_id: s.id, symbol: sym, ts: nowIso, bar_start: new Date(bars[forming].start).toISOString(), state: obs.state, numbers: { ...obs.numbers, mark: m.mark } }, false);
@@ -660,11 +774,12 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
         }
 
         // --- protective stop against the live mark, every minute, before anything else -----
-        // Claimed on the MINUTE, so a stop whose order was rejected or lapsed is tried again next minute, not next bar.
+        // Claimed one second INTO the minute, so a stop whose order was rejected or lapsed is tried again next minute, not next
+        // bar — and so a stop in the first minute of a bar can never take the bar's own claim (a bar starts on the minute).
         if (pos.base > 0) {
           const hw = highWaterSince(pos, bars, i);
           const atr = atrAt(bars, i, p.atrN);
-          const why = protectiveExit(m.mark, pos, hw, atr, stops);
+          const why = protectiveExit(m.mark ?? 0, pos, hw, atr, stops);
           if (why) {
             const marketable = s.venue === "revx";                    // Kraken's taker fee is not worth certainty at this size: rest at the ask and let the re-quote walk it down
             if (inFlight.has(key)) {
@@ -675,8 +790,8 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
               if (c !== "cancelled") { report.skipped.push(`${key}: resting order ${c === "filled" ? "filled on cancel" : "could not be cancelled"}`); continue; }
               inFlight.delete(key);
             }
-            if (await decided(s, sym, minuteStart)) { report.skipped.push(`${key}: stop already decided this minute`); continue; }
-            const r = await decide(s, sym, minuteStart, obs.state, { ...obs.numbers, highWater: hw, atr }, null, { action: "exit", reason: why }, "protective");
+            if (await priorDecision(s, sym, protectiveClaim)) { report.skipped.push(`${key}: stop already decided this minute`); continue; }
+            const r = await decide(s, sym, protectiveClaim, obs.state, { ...obs.numbers, highWater: hw, atr }, null, { action: "exit", reason: why }, "protective");
             if (r && r.allowed) {
               const cfg = m.pair, q = m.quote;
               if (cfg && q) {
@@ -694,26 +809,51 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<vo
 
         // --- the bar decision, once per closed bar --------------------------
         const barStart = barMs === ONE_D ? dd[di].start : bars[i].start;
-        if (await decided(s, sym, barStart)) { report.skipped.push(`${key}: bar ${new Date(barStart).toISOString()} already decided`); continue; }
-        const snap = buildSnapshot(sym, bars, i, closedDaily, pos, d.now, p, undefined, barsPerYear);
-        let rule = ruleFor(s.kind, snap, pos, p, { rank: ranks?.[sym], nowMs: d.now, rotation });
-        // After any exit the rule waits REENTRY_BARS of its own bars before buying again: a floor stop under a rule that is
-        // still "on" (momentum, rotation) would otherwise sell and re-buy every bar. Same rule in the backtester.
-        const lastExitTs = (byKey.get(key) ?? []).filter((o) => o.side === "sell").map((o) => toFill(o).ts).at(-1) ?? null;
-        if (rule.action === "enter" && lastExitTs != null && d.now - lastExitTs < REENTRY_BARS * barMs) {
-          rule = { action: "hold", reason: `cooling down: exited ${Math.round((d.now - lastExitTs) / 60e3)} min ago, no re-entry for ${REENTRY_BARS} bars` };
+        const prior = await priorDecision(s, sym, barStart);
+        let r: Decided;
+        if (prior) {
+          if (prior.final_action === "hold" || !prior.risk_allowed || await hasOrder(prior.id)) { report.skipped.push(`${key}: bar ${new Date(barStart).toISOString()} already decided`); continue; }
+          // Decided, allowed, and no order ever came of it — no pair config, a size under the venue minimum, the confirmation
+          // or the credentials missing at the time. The bar's claim stays with the decision; the order gets another try at
+          // today's touch. (A venue rejection made an order row, so it is not retried here: the venue said no.) An entry is
+          // put through the gate again — the book may have moved — and one the gate now refuses is closed for good.
+          const orderUsd = Number(prior.numbers?.orderUsd ?? 0);
+          if (prior.final_action === "enter") {
+            const gate = riskGate("enter", orderUsd, ctxFor(s), limitsFor(s.mode));
+            if (!gate.allowed) {
+              await d.db.update("agent_decisions", `id=eq.${prior.id}`, { risk_allowed: false, risk_reason: `on the retry: ${gate.reason}` });
+              report.skipped.push(`${key}: decision ${prior.id} had no order and the gate now refuses it — ${gate.reason}`);
+              continue;
+            }
+          }
+          report.skipped.push(`${key}: decision ${prior.id} (${prior.final_action}) had no order; placing it now`);
+          r = { action: prior.final_action, allowed: true, decisionId: prior.id, orderUsd };
+        } else {
+          // A new decision may ask the model, up to 16 s a time; past the budget the bar waits for the next minute, when it is
+          // still the last closed bar. Stops and observations above are never deferred.
+          if (overBudget()) { report.skipped.push(`${key}: turn ${Math.round(elapsed() / 1000)} s in, over its budget; the bar waits for the next minute`); continue; }
+          const posBar = trailed(pos, bars, i);
+          const snap = buildSnapshot(sym, bars, i, closedDaily, posBar, d.now, p, undefined, barsPerYear, lookbackDays);
+          let rule = ruleFor(s.kind, snap, posBar, p, { rank: ranks?.[sym], nowMs: d.now, rotation });
+          // After any exit the rule waits REENTRY_BARS of its own bars before buying again: a floor stop under a rule that is
+          // still "on" (momentum, rotation) would otherwise sell and re-buy every bar. Same rule in the backtester.
+          const lastExitTs = (byKey.get(key) ?? []).filter((o) => o.side === "sell").map((o) => toFill(o).ts).at(-1) ?? null;
+          if (rule.action === "enter" && lastExitTs != null && d.now - lastExitTs < REENTRY_BARS * barMs) {
+            rule = { action: "hold", reason: `cooling down: exited ${Math.round((d.now - lastExitTs) / 60e3)} min ago, no re-entry for ${REENTRY_BARS} bars` };
+          }
+          const dec = await decide(s, sym, barStart, snap.state, { ...snap.numbers, rank: ranks?.[sym] ?? null }, jevQuestions(snap.state), rule, "bar");
+          if (!dec || dec.action === "hold" || !dec.allowed) continue;
+          r = dec;
         }
-        const r = await decide(s, sym, barStart, snap.state, { ...snap.numbers, rank: ranks?.[sym] ?? null }, jevQuestions(snap.state), rule, "bar");
-        if (!r || r.action === "hold" || !r.allowed) continue;
         const q = m.quote, cfg = m.pair;
-        if (!q || !cfg) { report.errors.push(`${key}: no quote/pair config on ${s.venue}`); continue; }
+        if (!q || !cfg) { report.errors.push(`${key}: no quote/pair config on ${s.venue}; the order waits for the next minute`); continue; }
         const side: "buy" | "sell" = r.action === "enter" ? "buy" : "sell";
         // Revolut X takes the touch (9 bps): a bid resting on a breakout fills exactly when the breakout fails, which is the
         // backtest's fill model turned inside out. Kraken rests post-only at the touch: 80 bps a side is not worth certainty here.
         const marketable = s.venue === "revx";
         const price = side === "buy" ? (marketable ? q.ask : q.bid) : (marketable ? q.bid : q.ask);
         const base = side === "buy" ? sizeBase(r.orderUsd, price, cfg) : sizeBase(pos.base * price, price, cfg);
-        if (!base) { report.errors.push(`${key}: size under venue minimum`); continue; }
+        if (!base) { report.errors.push(`${key}: size under venue minimum; the order waits for the next minute`); continue; }
         await place(s, sym, side, base, price, r.decisionId, marketable, 0);
       } catch (e) {
         // One pair's failure is one pair's failure: the other strategies still get their stops and their turn.

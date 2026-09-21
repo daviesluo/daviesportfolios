@@ -5,7 +5,7 @@
 // venue.
 import { assert, assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  loadPrivateKey, privateKeyDer, publicCandles, publicTickers, quotesForRegion, REVX_BASE, REVX_REGION, revxFetch, revxVenue, signingMessage, signMessage, splitPath,
+  loadPrivateKey, orderViewProblem, privateKeyDer, publicCandles, publicTickers, quotesForRegion, REVX_BASE, REVX_REGION, revxFetch, revxVenue, signingMessage, signMessage, splitPath,
   toCandle, toPathSymbol, toSlashSymbol,
 } from "../_shared/revx.ts";
 
@@ -179,4 +179,15 @@ Deno.test("public market data names the region on every call, and the venue's qu
   const c = await v.candles("SOL/USD", 1, 1, 2);
   assertEquals(c.length, 1);
   assert(seen[3].endsWith("&region=UK"));
+});
+
+Deno.test("orderViewProblem — a filled order whose reply lacks the settlement fields is an error, never a fill at fee 0", () => {
+  const ok = { venue_order_id: "V1", symbol: "BTC-USD", side: "buy" as const, state: "filled", filled_size: "0.001", average_fill_price: "80000", fees: "0.072" };
+  assertEquals(orderViewProblem(ok), null);
+  assertEquals(orderViewProblem({ ...ok, state: "new", filled_size: "0", fees: undefined }), null);             // nothing filled: nothing to read yet
+  const noFee = orderViewProblem({ venue_order_id: "V1", symbol: "BTC-USD", side: "buy", state: "filled", filled_size: "0.001", average_fill_price: "80000" });
+  assert(noFee?.includes("no fees") && noFee.includes("fields present: venue_order_id, symbol, side, state, filled_size, average_fill_price"), String(noFee));
+  assert(orderViewProblem({ venue_order_id: "V2", symbol: "BTC-USD", side: "sell", state: "filled" })?.includes("no filled_size, average_fill_price, fees"));
+  // A partial fill is a fill: the same fields are required of it.
+  assert(orderViewProblem({ venue_order_id: "V3", symbol: "BTC-USD", side: "buy", state: "open", filled_size: "0.0004" })?.includes("average_fill_price, fees"));
 });
