@@ -5,7 +5,7 @@
 // venue.
 import { assert, assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  loadPrivateKey, privateKeyDer, REVX_BASE, revxFetch, signingMessage, signMessage, splitPath,
+  loadPrivateKey, privateKeyDer, publicCandles, publicTickers, quotesForRegion, REVX_BASE, REVX_REGION, revxFetch, revxVenue, signingMessage, signMessage, splitPath,
   toCandle, toPathSymbol, toSlashSymbol,
 } from "../_shared/revx.ts";
 
@@ -129,4 +129,54 @@ Deno.test("revxPublic — a 429 on the public bucket is waited out and retried, 
   const bad = await revxPublic("/api/1.0/public/tickers?symbols=BTC-USD", always429, 1_000, pause);
   assertEquals([bad.ok, bad.status, calls], [false, 429, PUBLIC_RETRIES + 1]);
   assertEquals(!bad.ok && bad.error, "Too Many Requests");
+});
+
+// ── Two books per pair: the account's region, never the other one ─────────
+// Measured 2026-09-21 01:48 UTC: without `region` the tickers endpoint
+// returns a UK and an EEA row per symbol in arbitrary order, and the loop
+// had been keeping whichever came last. That night the EEA SOL/USD book was
+// 111.865 / 112.371 while the UK book, the one this account trades, was
+// 112.180 / 112.181; a paper rule lifted an EEA ask (reference §3.5).
+
+Deno.test("quotesForRegion — the other region's row is dropped whatever its position, a region-less row is trusted", () => {
+  const rows = [
+    { symbol: "SOL/USD", bid: "111.865", ask: "112.371", mid: "112.118", last_price: "111.865", region: "EEA" },
+    { symbol: "BTC/USD", bid: "81330.26", ask: "81379.08", mid: "81354.67", last_price: "81354.67", region: "UK" },
+    { symbol: "SOL/USD", bid: "112.180", ask: "112.181", mid: "112.180", last_price: "112.181", region: "UK" },
+    { symbol: "BTC/USD", bid: "81336.37", ask: "81525.84", mid: "81431.10", last_price: "81525.86", region: "EEA" },
+    { symbol: "ETH/USD", bid: "2680.0", ask: "2680.01", mid: "2680.00", last_price: "2680.01" },
+  ];
+  assertEquals(REVX_REGION, "UK");
+  assertEquals(quotesForRegion(rows), {
+    "SOL/USD": { bid: 112.18, ask: 112.181 },
+    "BTC/USD": { bid: 81330.26, ask: 81379.08 },
+    "ETH/USD": { bid: 2680, ask: 2680.01 },
+  });
+  // The same list read for the other region gives the other book — the choice is the account's, not the row order's.
+  assertEquals(quotesForRegion(rows, "EEA")["SOL/USD"], { bid: 111.865, ask: 112.371 });
+  assertEquals(quotesForRegion([], "UK"), {});
+});
+
+Deno.test("public market data names the region on every call, and the venue's quotes are the region's rows only", async () => {
+  const seen: string[] = [];
+  const f: typeof fetch = (input) => {
+    const url = String(input); seen.push(url);
+    const body = url.includes("/tickers")
+      ? { data: [
+          { symbol: "BTC/USD", bid: "1", ask: "2", mid: "1.5", last_price: "1", region: "EEA" },
+          { symbol: "BTC/USD", bid: "3", ask: "4", mid: "3.5", last_price: "3", region: "UK" },
+        ] }
+      : { data: [{ start: 60_000, open: "1", high: "2", low: "0.5", close: "1.5", volume: "1" }] };
+    return Promise.resolve(new Response(JSON.stringify(body), { status: 200 }));
+  };
+  await publicTickers(["BTC/USD", "SOL/USD"], f);
+  await publicCandles("SOL/USD", 1, 1, 2, f);
+  assertEquals(seen[0], `${REVX_BASE}/api/1.0/public/tickers?symbols=BTC-USD,SOL-USD&region=UK`);
+  assertEquals(seen[1], `${REVX_BASE}/api/1.0/public/candles/SOL-USD?interval=1&since=1&until=2&region=UK`);
+  const v = revxVenue(null, f);
+  assertEquals(await v.quotes(["BTC/USD"]), { "BTC/USD": { bid: 3, ask: 4 } });   // the EEA row came first and is not the answer
+  assertEquals(seen[2], `${REVX_BASE}/api/1.0/public/tickers?symbols=BTC-USD&region=UK`);
+  const c = await v.candles("SOL/USD", 1, 1, 2);
+  assertEquals(c.length, 1);
+  assert(seen[3].endsWith("&region=UK"));
 });

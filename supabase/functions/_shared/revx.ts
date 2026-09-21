@@ -235,11 +235,40 @@ export async function revxPublic<T = unknown>(
   }
 }
 
-export const publicCandles = (symbol: string, intervalMin: number, sinceMs: number, untilMs: number, f?: typeof fetch) =>
-  revxPublic<{ data: VenueCandle[] }>(`/api/1.0/public/candles/${toPathSymbol(symbol)}?interval=${intervalMin}&since=${Math.floor(sinceMs)}&until=${Math.floor(untilMs)}`, f);
+/**
+ * Revolut X publishes TWO books per pair, one per region (`UK` / `EEA`),
+ * and an account trades on its own region's — decided by the account,
+ * not the request (reference §2.2). This account is UK. The public
+ * tickers and candles take `region`; without it the tickers return both
+ * rows in arbitrary order and the candles are the EEA book's. Measured
+ * 2026-09-21 01:48 UTC: UK SOL/USD 112.180 / 112.181, EEA 111.865 /
+ * 112.371 — and the loop had been keeping whichever row came last, so a
+ * paper rule lifted an EEA ask this account cannot trade (§3.5). Every
+ * market-data call names the region, and a ticker row from another
+ * region is dropped rather than trusted.
+ */
+export type RevxRegion = "UK" | "EEA";
+export const REVX_REGION: RevxRegion = "UK";
 
-export const publicTickers = (symbols: string[], f?: typeof fetch) =>
-  revxPublic<{ data: Ticker[] }>(`/api/1.0/public/tickers?symbols=${symbols.map(toPathSymbol).join(",")}`, f);
+export const publicCandles = (symbol: string, intervalMin: number, sinceMs: number, untilMs: number, f?: typeof fetch, region: RevxRegion = REVX_REGION) =>
+  revxPublic<{ data: VenueCandle[] }>(`/api/1.0/public/candles/${toPathSymbol(symbol)}?interval=${intervalMin}&since=${Math.floor(sinceMs)}&until=${Math.floor(untilMs)}&region=${region}`, f);
+
+export const publicTickers = (symbols: string[], f?: typeof fetch, region: RevxRegion = REVX_REGION) =>
+  revxPublic<{ data: Ticker[] }>(`/api/1.0/public/tickers?symbols=${symbols.map(toPathSymbol).join(",")}&region=${region}`, f);
+
+/**
+ * One region's quotes out of a ticker list. A row naming another region
+ * is dropped; a row naming none is trusted (the filtered endpoint omits
+ * nothing, but a client that forgot the parameter used to get both).
+ */
+export function quotesForRegion(rows: Ticker[], region: RevxRegion = REVX_REGION): Record<string, Quote> {
+  const out: Record<string, Quote> = {};
+  for (const t of rows) {
+    if (t.region && t.region !== region) continue;
+    out[t.symbol] = { bid: Number(t.bid), ask: Number(t.ask) };
+  }
+  return out;
+}
 
 export const publicPairs = (f?: typeof fetch) =>
   revxPublic<Record<string, PairConfig>>("/api/1.0/public/configuration/pairs", f);
@@ -265,22 +294,20 @@ export function toOrderView(vo: VenueOrder): OrderView {
  * spends none of the signed-call budget. The key is only for balances and
  * orders.
  */
-export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch): Venue {
+export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch, region: RevxRegion = REVX_REGION): Venue {
   return {
     id: "revx",
     canTrade: !!env,
     feeBps: { ...REVX_FEE_BPS },
     async candles(symbol, intervalMin, sinceMs, untilMs) {
-      const r = await publicCandles(symbol, intervalMin, sinceMs, untilMs, fetchImpl);
+      const r = await publicCandles(symbol, intervalMin, sinceMs, untilMs, fetchImpl, region);
       if (!r.ok) throw new Error(`revx candles ${intervalMin}m → ${r.status} ${r.error}`);
       return (r.data?.data ?? []).map(toCandle).sort((a, b) => a.start - b.start);
     },
     async quotes(symbols) {
-      const r = await publicTickers(symbols, fetchImpl);
+      const r = await publicTickers(symbols, fetchImpl, region);
       if (!r.ok) throw new Error(`revx tickers → ${r.status} ${r.error}`);
-      const out: Record<string, Quote> = {};
-      for (const t of r.data?.data ?? []) out[t.symbol] = { bid: Number(t.bid), ask: Number(t.ask) };
-      return out;
+      return quotesForRegion(r.data?.data ?? [], region);
     },
     async pairs(symbols) {
       const r = await publicPairs(fetchImpl);

@@ -55,7 +55,7 @@
 import { reportServerError } from "../_shared/ops.ts";
 import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 import { askJev, type Questions } from "../_shared/jev.ts";
-import { balances, candles, loadPrivateKey, pairs, revxVenue, type RevxEnv } from "../_shared/revx.ts";
+import { balances, candles, loadPrivateKey, pairs, publicTickers, REVX_REGION, revxVenue, type RevxEnv } from "../_shared/revx.ts";
 import {
   addOrder, balance as krakenBalance, balanceEx, cancelOrder as krakenCancel, krakenVenue, makeNonce, ohlc, openOrders,
   ticker as krakenTicker, tradeVolume, type KrakenEnv,
@@ -440,6 +440,15 @@ export async function runProbe(): Promise<Record<string, unknown>> {
     r.candlesWithQuery = c.ok
       ? { status: c.status, count: c.data?.data?.length ?? 0, last: c.data?.data?.at(-1) ?? null }
       : { status: c.status, error: c.error };
+    // The book this account trades on: the region every market-data call names, and what the filtered tickers say
+    // (row count per symbol must be one — two rows would mean the filter is not being honoured, reference §2.2).
+    const t = await publicTickers(["BTC/USD", "SOL/USD"]);
+    r.region = {
+      requested: REVX_REGION,
+      tickers: t.ok
+        ? (t.data?.data ?? []).map((x) => ({ symbol: x.symbol, region: x.region ?? null, bid: x.bid, ask: x.ask, spreadBps: Math.round(((Number(x.ask) - Number(x.bid)) / ((Number(x.ask) + Number(x.bid)) / 2)) * 1e4 * 10) / 10 }))
+        : { status: t.status, error: t.error },
+    };
     out.revx = r;
   }
 
