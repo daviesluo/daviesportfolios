@@ -1071,6 +1071,13 @@ async function run() {
       const badgeTexts = await page.locator('.ag-strategies .ag-venue').allTextContents();
       if (badgeTexts.length === rows && badgeTexts.every((b) => /^(Revolut X|Kraken)$/.test(b.trim()))) ok(S('agents'), 'the venue badge is the venue name alone');
       else fail(S('agents'), `badges: ${badgeTexts.join(' | ')}`);
+      // The badge fits its cell: a cell that clips draws the first dot of an ellipsis after the badge — the
+      // "small white dot" beside Revolut X the owner saw — so overflow must be zero, not just invisible.
+      const clippedVenue = vpWidth > 760
+        ? await page.locator('.ag-strategies td.ag-col-venue').evaluateAll((els) => els.filter((el) => el.scrollWidth > el.clientWidth || getComputedStyle(el).textOverflow === 'ellipsis').length)
+        : 0;
+      if (clippedVenue === 0) ok(S('agents'), vpWidth > 760 ? 'every venue badge fits its cell, nothing clipped or ellipsised' : 'no venue column on a phone');
+      else fail(S('agents'), `${clippedVenue} venue cells clip their badge`);
       const sbCells = await page.locator('.ag-scoreboard .sb-label').allTextContents();
       if (sbCells.join('|') === 'DEPLOYED|TODAY|UNREALIZED G/L|REALIZED G/L') ok(S('agents'), 'the scoreboard has four cells: deployed, today, unrealised, realised — no total');
       else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}`);

@@ -2090,14 +2090,17 @@ body {
 .ag-sb-cell { flex: 1 1 0; }
 .ag-sb-cell-main { flex: 0 0 auto; min-width: 100px; }
 /* The strategies table is a fixed layout that fits the modal: one set of widths, summing to 100. */
-.ag-strategies .ag-table .ag-col-name { width: 25%; }
-.ag-strategies .ag-table .ag-col-venue { width: 10%; }
+.ag-strategies .ag-table .ag-col-name { width: 24%; }
+.ag-strategies .ag-table .ag-col-venue { width: 12%; }
 .ag-strategies .ag-table .ag-col-mode { width: 7%; }
-.ag-strategies .ag-table .ag-col-today { width: 16%; }
+.ag-strategies .ag-table .ag-col-today { width: 15%; }
 .ag-strategies .ag-table .ag-col-unrealised { width: 17%; }
 .ag-strategies .ag-table .ag-col-realised { width: 17%; }
 .ag-strategies .ag-table .ag-col-next { width: 8%; }
 .ag-strategies .ag-table td.ag-col-today, .ag-strategies .ag-table td.ag-col-unrealised, .ag-strategies .ag-table td.ag-col-realised { overflow: visible; text-overflow: clip; }
+/* A badge is never ellipsised: at 10 % the Revolut X badge overflowed its cell by a pixel or two and the
+   table's text-overflow drew the first dot of an ellipsis after it — the "small white dot" the owner saw. */
+.ag-strategies .ag-table td.ag-col-venue { overflow: visible; text-overflow: clip; }
 .ag-detail-title.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); margin: 0; }
 .ag-detail .hl-scroll { overflow-x: auto; scrollbar-width: none; }
 .ag-detail .hl-scroll::-webkit-scrollbar { display: none; }
