@@ -198,6 +198,31 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-21 23:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The ATR trail is implemented twice, and the copy nobody designed takes
+almost every exit.** The execution study (§3.13, `backtest_execution.ts`,
+an independent agent, 60-cell fidelity check at zero difference, re-run
+here byte-identical) went looking for a maker-fee saving and found that
+`ruleDecision` exits on a CLOSE below high-water − 3×ATR while the
+protective stop exits on a LOW below the same level from the same anchor.
+Two correct implementations of one idea, and the intrabar one always
+fires first: **48 of 49 protective exits in window A, 67 of 68 in B**.
+Verified independently by calling `run` directly on the five live coins:
+turning the intrabar trail off — which leaves the rulebook's close-based
+trail and the intrabar hard floor both untouched — is better on **8 of 10
+coin-windows**, equal-weight mean A −1.8 % → +6.9 %, B +11.1 % → +19.9 %.
+The study also wanted the floor widened 8 % → 10 %; that part does NOT
+survive the same check (better on 2 cells, worse on 4, identical on 4,
+its whole contribution one SUI cell) and is rejected. **No code changed**
+— what sells without asking the model is §4.11 and Davies' call. His
+other three answers are all no: maker-only is a one-window win once the
+stop artefact is removed and nothing here knows whether a resting bid
+fills; the two-bar cooldown is on a flat plateau; every scaling variant
+loses on both windows. Also fixed a transcription slip §3.11 carried
+since it was written — window B deployment read 24 %, `allocation.json`
+says 11.3 %.
+
 ### [2026-09-21 22:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Quoting one coin's failure without the other four's is how a portfolio
