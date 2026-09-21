@@ -194,8 +194,9 @@ knip, Deno 290, sweep 184.
   last, and the region-less public candles are the EEA book's.** The
   trade's prices were EEA — a UK account cannot lift them. Measured at
   01:48 UTC: UK SOL 0.1 bps wide, EEA 45; UK ETH 0.0, EEA 63. Fixed in
-  this push's third commit (`REVX_REGION`, `quotesForRegion`, `region=`
-  on every public call, the probe reporting the rows; Deno pins);
+  this push's third commit, "Read the account's book, not whichever row
+  came last" (`REVX_REGION`, `quotesForRegion`, `region=` on every public
+  call, the probe reporting the rows; Deno pins);
   reference §2.2 / §3.5 / §4.14; skill: a fact in the reference that the
   code did not implement.
 - **First night of paper (to 01:40 UTC):** 72 decisions (13 acted, none
