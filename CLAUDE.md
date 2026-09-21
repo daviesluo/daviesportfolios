@@ -111,11 +111,15 @@ that follow from that evidence, in short:
   stops included (at the ask). After any exit a rule waits two of its own
   bars before re-entering. One tick at a time: `agent_locks` lease.
 - BTC / ETH / SOL as the core — the only pairs on the venue with ≤ 3 bps
-  spreads — plus XRP in the rotation basket and, since `0039`, AVAX on
-  trend-4h (reference §3.7: the one candidate of four to clear a bar
-  written before the numbers were looked at; its UK book is ~10 bps wide,
-  so a round trip costs ~28 bps against the majors' 20). A coin joins a
-  rule by that bar, never by a result alone.
+  spreads — plus XRP in the rotation basket and, on trend-4h, AVAX
+  (`0039`, §3.7) and SUI (`0040`, §3.8). The bar a coin has to clear is
+  §4.15: the four tests on BOTH walk-forward windows and a UK book of
+  ≥ $100k a day; the top twenty by market cap were all run in §3.8 and
+  only SUI and POL cleared both windows (POL's book is too thin). AVAX
+  cleared one window and failed the other; it stays in paper because the
+  record is the test. A coin joins a rule by that bar, never by a result
+  alone; SUI's round trip is ~42 bps against the majors' 20 and that cost
+  is inside its numbers.
 - Paper first, per strategy; live only on Davies' explicit go, and the
   first live order needs his confirmation in the same conversation.
 - Record inputs (state, answers, order request/response, fills), not
@@ -155,7 +159,8 @@ that follow from that evidence, in short:
   Backtests: reference §3.3a–§3.7, run with the loop's own fills, stops
   and cooldown; the backtester writes `docs/agents/backtests/summary.json`
   itself and reports a parameter plateau per coin; `frequency.json` there
-  is §3.6's raw output and `universe.json` (`--study universe`) §3.7's.
+  is §3.6's raw output, `universe.json` (`--study universe`) §3.7's,
+  `universe20*.json` §3.8's and `ideas.json` §3.9's.
 - The tick claims a bar by inserting its decision (unique index on
   strategy, symbol, bar_start; a protective decision claims the forming
   bar, a dislocation decision the minute); a live order is written as

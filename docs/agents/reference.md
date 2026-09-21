@@ -627,7 +627,10 @@ the parameter set the live rows run (fast 20, slow 100, ATR 3):
 
 - **AVAX clears all four and joins trend-4h on both venues, paper**
   (migration `0039`; the rows' paper capital goes from $60 to $80 so each
-  of four symbols keeps its $20 slot). Its plateau is the strongest in the
+  of four symbols keeps its $20 slot). *Later the same day (§3.8) the
+  same four tests on the middle third came back negative for AVAX; it
+  stays in paper because the record is the test, but the bar has since
+  been tightened to two windows.* Its plateau is the strongest in the
   table after SOL's, the seeded parameters make money on both venues, and
   the drawdown is the smallest. Nine trades in the year is thin, and the
   UK book is 9.6 bps wide (one snapshot), so a round trip costs about 28
@@ -654,6 +657,118 @@ the parameter set the live rows run (fast 20, slow 100, ATR 3):
   spreads from a single snapshot; and the plateau is measured on the same
   year the chosen point is judged on. The bar is what keeps this honest,
   and the paper record is what it has to match.
+
+### 3.8 The top twenty by market cap, tested — one bar, two windows, one more addition (2026-09-21)
+
+Davies asked why only four coins had been tested (§3.7's answer: the
+Revolut X pairs under 10 bps with volume, at one snapshot) and for the
+whole top twenty by market cap, stablecoins aside, to be run. From
+CoinGecko's top 24 ex-stables and wrapped assets that day, the untestable
+ones and why: ZEC and XMR are not on Revolut X at all; TRX has no Coinbase
+history and trades $5k a day on the UK book; FIGR_HELOC, WBT, RAIN, LEO
+and CC are exchange or tokenised-asset tokens on neither venue. The 16
+that remain — BTC, ETH, BNB, XRP, SOL, HYPE, DOGE, LINK, ADA, XLM, UNI,
+NEAR, BCH, AVAX, LTC, SUI — plus the next tier (DOT, HBAR, TON, SHIB,
+PEPE, AAVE, ETC, ALGO, ICP, POL, ATOM) make 27. Three years of Coinbase
+hourly candles each (no zero-volume hour in any series, gaps ≤ 0.14 %;
+short histories flagged: HYPE 0.62 y, TON 0.84 y, BNB 0.91 y — Coinbase
+listed it 2025-10-22 — PEPE 1.85 y, POL 2.05 y). Spreads are medians of
+21 samples a minute apart (13:35–13:55 UTC) on the UK book and on
+Kraken's ticker, and the run prices every coin at them; the round trip
+on Revolut X is 18 bps plus the full spread. An Opus subagent ran it
+(`universe20.json`, the basket runs beside it); it found two defects in
+the backtester that were fixed the same day — the 1-hour check read the
+basket's truncated daily bars, so a young basket member let entries
+through on other coins, and a symbol outside the basket crashed the run
+— and the shipped numbers are unchanged by the fix.
+
+Median UK-book spreads (bps) and 24 h quote volume: BTC 1.5 / $3.6m ·
+ETH 2.1 / $3.2m · SOL 3.9 / $3.3m · XRP 5.4 / $2.6m · AAVE 4.9 / $54k ·
+DOGE 7.5 / $199k · LINK 7.7 / $693k · UNI 8.2 / $159k · ADA 9.5 / $122k
+· LTC 10.2 / $44k · BNB 10.5 / $19k · AVAX 10.6 / $1.9m · HBAR 11.2 /
+$114k · SHIB 11.4 / $11k · XLM 13.6 / $176k · PEPE 14.2 / $102k · DOT
+16.2 / $769k · ALGO 16.5 / $180k · BCH 20.7 / $928k · ATOM 21.8 / $17k ·
+SUI 23.9 / $942k · HYPE 24.6 / $123k · NEAR 25.4 / $2.8m · ICP 34.1 /
+$171k · ETC 34.2 / $8k · POL 35.5 / $11k · TON 35.8 / $8k.
+
+**Trend-4h against §3.7's bar, last third out of sample** (chosen
+parameters' return / drawdown / trades, seeded parameters' return,
+plateau share and median, Kraken chosen / seeded, buy-and-hold):
+
+| coin | OOS / DD / trades | seeded | plateau | Kraken | b&h | verdict |
+|---|---|---|---|---|---|---|
+| SOL | +17.3 % / 15 % / 14 | +13.3 % | 100 % / +14.0 % | +12.5 / +8.0 | −50 % | clears (in) |
+| UNI | +46.8 % / 15 % / 10 | +25.5 % | 74 % / +36.7 % | +42.4 / +20.3 | −2 % | clears |
+| AVAX | +40.3 % / 12 % / 9 | +12.1 % | 85 % / +13.9 % | +36.9 / +9.1 | −65 % | clears (in, `0039`) |
+| SUI | +14.5 % / 27 % / 19 | −10.5 % | 85 % / +7.6 % | +10.1 / +12.2 | −71 % | clears |
+| ICP | +12.4 % / 26 % / 9 | +5.5 % | 70 % / +5.5 % | +10.5 / +3.1 | −38 % | clears |
+| POL | +9.4 % / 7 % / 12 | +35.0 % | 100 % / +29.3 % | +6.6 / +33.0 | −27 % | clears (2.05 y) |
+| BNB | +8.8 % / 6 % / 7 | +9.8 % | 100 % / +7.4 % | +6.8 / +7.7 | +16 % | clears on 111 days |
+| AAVE | +8.5 % / 15 % / 6 | −4.4 % | 63 % / +1.1 % | +6.4 / −6.8 | −51 % | clears |
+| LINK | +4.3 % / 18 % / 21 | +3.8 % | 89 % / +4.3 % | −1.5 / −1.3 | −44 % | three of four (Kraken) |
+| HBAR | +1.6 % / 14 % / 11 | +1.4 % | 85 % / +2.7 % | −1.6 / −0.6 | −62 % | three of four (Kraken) |
+| PEPE | +2.6 % / 15 % / 8 | −20.2 % | 22 % / −9.7 % | +0.2 / −22.9 | +9 % | three of four (plateau) |
+| the other 16 | negative on Revolut X, every one | | | | | fail |
+
+BTC −16.5 %, ETH −1.0 %, XRP −11.2 %, DOGE −12.5 %, ADA −9.4 %, XLM
+−17.2 %, NEAR −2.0 %, BCH −26.3 %, LTC −7.4 %, DOT −0.0 %, TON −5.6 %,
+SHIB −4.8 %, ETC −3.0 %, ALGO −9.0 %, ATOM −7.5 %, HYPE −3.9 %.
+**Momentum-1d**: 21 of 27 negative out of sample; the three that clear
+its bar are the three short histories (BNB 111 days, HYPE 76, PEPE 226);
+no three-year coin clears it, ETH misses on drawdown by 0.11 of a point.
+Nothing joins momentum. **Rotation**: the only like-for-like basket (13
+coins on the same 364 days) is worse than the four-coin one on every
+variant — default −18.6 % with 56 % drawdown against −14.4 % / 32 %,
+turning over 28× a year against 21× — and the 16- and 14-coin baskets'
+"wins" are 75- and 111-day windows in which holding rose 26–42 %: a
+basket is only as long as its shortest coin. Nothing changes.
+**Trend-1h** on the new coins: nothing above +11 % (DOT), most negative;
+nothing joins it.
+
+**The second window, and the spread doubled.** The same four tests with
+parameters chosen on the first third and the MIDDLE third held out — the
+check the friend's "then I'm kinda fitting for out of sample" calls for
+— and the last-third result with every Revolut X half-spread doubled:
+
+| coin | middle third: OOS / DD / plateau | spread ×2: OOS |
+|---|---|---|
+| SOL | +7.6 % / 28 % / 22 % | +17.1 % |
+| UNI | +9.0 % / 16 % / 30 % | +46.2 % |
+| AVAX | −11.5 % / 29 % / 67 % | +39.7 % |
+| **SUI** | **+3.0 % / 26 % / 70 %** | +11.9 % |
+| ICP | −13.2 % / 25 % / 0 % | +10.9 % |
+| **POL** | **+17.6 % / 9 % / 52 %** | +7.0 % |
+| BNB | −12.1 % / 12 % / 0 % | +8.4 % |
+| AAVE | −7.0 % / 27 % / 37 % | +8.4 % |
+
+Only SUI and POL clear the bar on both windows. All eight stay positive
+with the spread doubled — the cost is not what decides these.
+
+**The bar, tightened (§4.15).** From now a coin has to clear the four
+tests on both windows, and its Revolut X UK book has to carry at least
+$100k a day, so that a $20 order is under 0.02 % of the day and a thin
+book's touch is not mistaken for a price. Under it:
+- **SUI joins trend-4h on both venues, paper (`0040`; capital 80 →
+  100 for the fifth $20 slot).** Its spread is the widest of anything the
+  loop trades — a 42 bps round trip, inside every number above — and the
+  seeded parameters lose 10.5 % where the chosen ones make 14.5 %, so the
+  paper record is read against the chosen set's expectation with that
+  gap in mind.
+- **POL clears the numbers and waits**: $10.7k a day on the UK book.
+- UNI, ICP, AAVE and BNB fail the second window; LINK, HBAR and PEPE
+  remain three-of-four watches.
+- **AVAX, added by `0039` this morning under the one-window bar, fails
+  the second window** (−11.5 % on the middle third with the parameters
+  chosen on the first). It stays in paper, because paper is free and the
+  record is the test, but under the bar as it now stands it would not
+  have been added — written here so its record is read honestly.
+
+Caveats as §3.7's, plus: 27 coins × 27 parameter points × two windows is
+1,458 looks at two years, so a handful clearing a four-part bar by luck
+is expected, which is why the bar demands both windows and why paper
+decides; the coins moved together in the bear year, so 27 is fewer
+independent tests than it looks; spreads are one twenty-minute window on
+a Monday afternoon.
 
 ### 3.9 Five rule ideas against the shipped trend rule (2026-09-21)
 
@@ -738,7 +853,7 @@ took exposure down to 2–6 % of bars.
 12. **One turn at a time.** pg_net fires the next minute's tick whether or not the last one finished; a turn takes a lease (`agent_locks`, compare-and-set on its expiry, 55 s) and a turn that finds it held does nothing. The bar claim protects decisions; the lease protects everything else.
 13. **The model is asked on entries only.** It can veto one; it never advises an exit, and the seeds, the page and the README say exactly that. A partially filled live order is a position from its first fill (stops and caps see it); a venue-cancelled order that had filled in part is recorded as a fill of that part; a live order that filled on arrival is settled from the venue's own view next turn, fee included — never from the placement reply.
 14. **The venue's market data is the account's region, always.** Revolut X keeps two books per pair (UK / EEA) and this account trades the UK one; a quote or a candle from the other book is not a price this account can get, and reading one produced the only trade the dislocation rule ever made (§3.5). Every public call names `region=UK`, a row from another region is dropped, and the probe shows which book the loop is reading. The same discipline applies to any venue that publishes more than one book, and any fact of that kind written into this reference is a requirement on the client with a pin, the day it is written.
-15. **A coin joins a rule by a bar written before the numbers, never after.** §3.7's four tests — positive out of sample on Revolut X costs, drawdown under 35 %, at least half the parameter grid positive out of sample, positive on Kraken costs — decided AVAX in and LINK, DOGE, ADA out; the same bar applies to the next candidate, and lowering it for a coin that nearly clears it is the overfit the friend's message warns about. The plateau share is reported for every coin and is the number to quote when someone says every strategy is sensitive to its parameters: sensitivity is a spike, robustness is a plateau, and both are measurable.
+15. **A coin joins a rule by a bar written before the numbers, never after.** §3.7's four tests — positive out of sample on Revolut X costs, drawdown under 35 %, at least half the parameter grid positive out of sample, positive on Kraken costs — decided AVAX in and LINK, DOGE, ADA out. §3.8 tightened it: the four tests on BOTH walk-forward windows (parameters on the first two thirds with the last third out, and parameters on the first third with the middle third out), and a Revolut X UK book of at least $100k a day, because a bar judged on one year is itself a fit to that year. Under the tightened bar SUI joined and six one-window passes did not; the same bar applies to the next candidate, and lowering it for a coin that nearly clears it is the overfit the friend's message warns about. The plateau share is reported for every coin and is the number to quote when someone says every strategy is sensitive to its parameters: sensitivity is a spike, robustness is a plateau, and both are measurable.
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 

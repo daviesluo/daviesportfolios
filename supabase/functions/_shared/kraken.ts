@@ -32,12 +32,12 @@ export const KRAKEN_BASE = "https://api.kraken.com";
 export const KRAKEN_DEFAULT_FEE_BPS = { maker: 40, taker: 80 };
 
 /** Slash symbol → request altname. Only the pairs the agents trade (reference §2b); anything else throws on purpose. */
-export const KRAKEN_ALTNAME: Record<string, string> = { "BTC/USD": "XBTUSD", "ETH/USD": "ETHUSD", "SOL/USD": "SOLUSD", "XRP/USD": "XRPUSD", "AVAX/USD": "AVAXUSD" };
+export const KRAKEN_ALTNAME: Record<string, string> = { "BTC/USD": "XBTUSD", "ETH/USD": "ETHUSD", "SOL/USD": "SOLUSD", "XRP/USD": "XRPUSD", "AVAX/USD": "AVAXUSD", "SUI/USD": "SUIUSD" };
 /** Slash symbol → the primary id responses are keyed by. */
-export const KRAKEN_PAIR_ID: Record<string, string> = { "BTC/USD": "XXBTZUSD", "ETH/USD": "XETHZUSD", "SOL/USD": "SOLUSD", "XRP/USD": "XXRPZUSD", "AVAX/USD": "AVAXUSD" };   // AVAX joined trend-4h with 0039 (reference §3.7)
+export const KRAKEN_PAIR_ID: Record<string, string> = { "BTC/USD": "XXBTZUSD", "ETH/USD": "XETHZUSD", "SOL/USD": "SOLUSD", "XRP/USD": "XXRPZUSD", "AVAX/USD": "AVAXUSD", "SUI/USD": "SUIUSD" };   // AVAX joined trend-4h with 0039 (§3.7), SUI with 0040 (§3.8)
 /** Asset code on the wire → the currency the site names. */
 export const KRAKEN_ASSET: Record<string, string> = {
-  XXBT: "BTC", XBT: "BTC", XETH: "ETH", ETH: "ETH", SOL: "SOL", XXRP: "XRP", XRP: "XRP", AVAX: "AVAX",
+  XXBT: "BTC", XBT: "BTC", XETH: "ETH", ETH: "ETH", SOL: "SOL", XXRP: "XRP", XRP: "XRP", AVAX: "AVAX", SUI: "SUI",
   ZUSD: "USD", USD: "USD", ZGBP: "GBP", GBP: "GBP", ZEUR: "EUR", EUR: "EUR", USDC: "USDC", USDT: "USDT",
 };
 
