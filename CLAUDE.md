@@ -162,7 +162,8 @@ that follow from that evidence, in short:
   were tested and rejected with numbers — a faster rule is a fee schedule
   until data says otherwise.
   Backtests: reference §3.3a–§3.7, run with the loop's own fills, stops
-  and cooldown; the backtester writes `docs/agents/backtests/summary.json`
+  and cooldown — including the rotation rule since 2026-09-21, where the
+  8 % floor turns out to make it WORSE on five variants of six (§3.4); the backtester writes `docs/agents/backtests/summary.json`
   itself and reports a parameter plateau per coin; `frequency.json` there
   is §3.6's raw output, `universe.json` (`--study universe`) §3.7's,
   `universe20*.json` §3.8's and `ideas.json` §3.9's.

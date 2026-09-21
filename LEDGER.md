@@ -68,10 +68,7 @@ list stays the short version; the plan is the reasoning behind it.
    response wins), S14 (mask sizes under hide-values), S15 (alert when a
    live row exists and `live_confirmed_at` is null) and the sweep fixture
    (`app-sweep.mjs` ~279–354: retired dislocation still modelled, no
-   `todayUsd` / `dayStart`, three symbols on trend-4h); S2 — `runRotation`
-   in `backtest.ts` gets the 8 % floor and the two-bar cooldown the live
-   rotation rows run, then §3.4 / §3.3a's rotation line are re-run and
-   rewritten (until then they describe a rule the loop does not run); S7 —
+   `todayUsd` / `dayStart`, three symbols on trend-4h); S7 —
    the Kraken key's nonce window is Davies' setting at Kraken, before any
    Kraken live row; the review's doc gaps for retention of
    `agent_decisions` / `agent_orders` (unbounded; ~150 + ~25 rows a day).
@@ -196,6 +193,30 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-21 17:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The rotation backtest ran neither of the stops the live rotation rows
+run, and with them in it is worse.** The review's S2. `runRotation` now
+takes the same `StopParams` `run` takes; §3.4 is rewritten from the new
+run, with the bare rank rule beside it as the counterfactual. Default
+out of sample −16.2 % with the floor against −14.4 % without, and +67.8 %
+against +108.2 % over the three years; with the bear filter off −59.4 %
+against −47.4 %, because an 8 % floor sells into every dip and the
+two-day cooldown then keeps the slot out of the rebound. The one variant
+it helps is the 7-day hold, which is the Kraken seed. **Nothing is
+changed in the loop** — a stop is not re-chosen because two years of one
+basket preferred another — but no rotation number published before today
+described the rule that runs, and §4.11 said they did. EVERY
+out-of-sample rotation figure is negative, on both venues, with and
+without the stops. `latest.json` / `summary.json` regenerated (they were
+last written 2026-09-20 18:01, so they also pick up the plateau block and
+the 1-hour-check contamination fix from the 21st); the non-rotation
+results are unchanged where they were comparable, checked key by key.
+Pinned by `backtest.test.ts` (new): the bare rule is bit-identical with
+`stops: null`, a slot through its floor is sold and not re-entered for
+two days, rotation gets no ATR trail, Kraken's fee costs more than
+Revolut X's touch on the same basket.
 
 ### [2026-09-21 16:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

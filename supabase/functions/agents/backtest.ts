@@ -188,13 +188,25 @@ export type RotationResult = RunResult & { turnover: number };
  * the venue's half-spread and maker fee. Each held slot gets an equal share
  * of equity at entry. Turnover is traded notional over average equity per
  * year — the number that says what a venue's fee will cost.
+ *
+ * `stops` are the SAME protective exits and cooldown `run` applies, because
+ * the live loop applies them to the rotation rows too: an 8 % floor under
+ * each slot's own cost, checked every minute against the live mark and here
+ * against the day's low, and no re-entry into a symbol for `reentryBars` of
+ * the rule's own bars after ANY exit from it. Rotation gets no ATR trail
+ * (`stopsForKind` gives that to the trend rules only), but the trail is
+ * implemented here so the argument means the same thing everywhere. Passing
+ * `null` runs the bare rank rule — what this function did before
+ * 2026-09-21, and not what the loop runs.
  */
 export function runRotation(
   daily: Record<string, Candle[]>, from: number, to: number, p: RotationParams, costs: Costs = COSTS.revx,
+  stops: StopParams | null = null,
 ): RotationResult {
   const symbols = Object.keys(daily);
   const pos: Record<string, Position> = Object.fromEntries(symbols.map((s) => [s, FLAT]));
-  let cash = 1.0, trades = 0, peak = 1.0, maxDD = 0, traded = 0, daysInvested = 0;
+  const lastExitBar: Record<string, number> = Object.fromEntries(symbols.map((s) => [s, -Infinity]));
+  let cash = 1.0, trades = 0, peak = 1.0, maxDD = 0, traded = 0, daysInvested = 0, stopsHit = 0;
   const equity: [number, number][] = [];
   const maker = (costs.fillFee === "taker" ? costs.takerBps : costs.makerBps) / 1e4;   // the fee an ordinary fill pays on this venue
   const start = Math.max(from, p.slowDays + 1, p.lookbackDays + 1);
@@ -207,7 +219,8 @@ export function runRotation(
       const hs = spreadOf(costs, s);
       const next = daily[s][i + 1];
       const d = ruleDecisionRotation(views[s], pos[s], nowMs, p);
-      if (d.action === "enter" && pos[s].base === 0 && cash > 0) {
+      const coolingDown = stops != null && i - lastExitBar[s] < stops.reentryBars;
+      if (d.action === "enter" && pos[s].base === 0 && cash > 0 && !coolingDown) {
         const slot = Math.min(cash, eqNow / p.topN);
         const price = next.open * (1 + hs);
         const base = slot / (price * (1 + maker));
@@ -219,8 +232,25 @@ export function runRotation(
         const fee = pos[s].base * price * maker;
         const proceeds = pos[s].base * price - fee;
         pos[s] = applyFill(pos[s], { ts: next.start, side: "sell", base: pos[s].base, price, feeUsd: fee });
-        cash += proceeds; trades++; traded += proceeds;
+        cash += proceeds; trades++; traded += proceeds; lastExitBar[s] = i + 1;
+      } else if (stops && pos[s].base > 0) {
+        // The loop's protective exit on this slot, against the day's low: the floor under its own cost (and the ATR
+        // trail where a rulebook has one). A rank rule holds through a fall the floor would have sold into, so the
+        // cooldown above is what stops the floor selling and the rank re-buying the next day, over and over.
+        const hw = Math.max(pos[s].highWater ?? pos[s].avgCost, pos[s].avgCost);
+        const atr = stops.atrStop != null ? atrAt(daily[s], i, stops.atrN) : null;
+        const floor = pos[s].avgCost * (1 - stops.maxLossPct);
+        const trail = stops.atrStop != null && atr != null ? hw - stops.atrStop * atr : -Infinity;
+        const level = Math.max(floor, trail);
+        if (next.low <= level) {
+          const price = Math.min(level, next.open) * (1 - hs);
+          const fee = pos[s].base * price * maker;
+          const proceeds = pos[s].base * price - fee;
+          pos[s] = applyFill(pos[s], { ts: next.start, side: "sell", base: pos[s].base, price, feeUsd: fee });
+          cash += proceeds; trades++; stopsHit++; traded += proceeds; lastExitBar[s] = i + 1;
+        }
       }
+      if (pos[s].base > 0) pos[s] = { ...pos[s], highWater: Math.max(pos[s].highWater ?? next.high, next.high) };
     }
     const eq = cash + symbols.reduce((a, s) => a + pos[s].base * daily[s][i + 1].close, 0);
     if (eq < cash + 1e-9 === false) daysInvested++;
@@ -231,7 +261,7 @@ export function runRotation(
   const eqEnd = cash + symbols.reduce((a, s) => a + pos[s].base * daily[s][last].close, 0);
   const days = (daily[symbols[0]][last].start - daily[symbols[0]][start].start) / 86400e3;
   const realised = symbols.reduce((a, s) => a + pos[s].realisedUsd, 0), fees = symbols.reduce((a, s) => a + pos[s].feesUsd, 0);
-  return { ret: eqEnd - 1, maxDD, trades, days, exposure: daysInvested / Math.max(1, last - start), equity, realised, fees, turnover: traded / Math.max(1, days / 365) };
+  return { ret: eqEnd - 1, maxDD, trades, days, exposure: daysInvested / Math.max(1, last - start), equity, realised, fees, stopsHit, turnover: traded / Math.max(1, days / 365) };
 }
 
 /** Equal-weight buy and hold of the basket, entered as a taker on day `from`, for the comparison line. */
@@ -370,9 +400,17 @@ if (import.meta.main) {
   for (const [name, p] of Object.entries(variants)) {
     const per: Record<string, unknown> = { params: p };
     for (const [venue, costs] of Object.entries(COSTS)) {
-      const oos = runRotation(basketDaily, dsplit, nd, p, costs), full = runRotation(basketDaily, 0, nd, p, costs);
-      per[venue] = { outOfSample: { ...pick(oos), turnover: Number(oos.turnover.toFixed(2)) }, fullPeriod: { ...pick(full), turnover: Number(full.turnover.toFixed(2)) }, equityOutOfSample: oos.equity };
-      console.log(`rotation ${name} on ${venue}: OOS ${fmt(oos)} exposure ${(oos.exposure * 100).toFixed(0)}% turnover ${oos.turnover.toFixed(1)}×/y | full ${fmt(full)}`);
+      // The shipped stops and cooldown, because the live rotation rows run them: the 8 % floor under each slot and
+      // no re-entry for two days after an exit. `noStops` is the bare rank rule the table reported until 2026-09-21.
+      const st = stopsForKind("rotation-1d", DEFAULT_TREND);
+      const oos = runRotation(basketDaily, dsplit, nd, p, costs, st), full = runRotation(basketDaily, 0, nd, p, costs, st);
+      const bare = runRotation(basketDaily, dsplit, nd, p, costs), bareFull = runRotation(basketDaily, 0, nd, p, costs);
+      per[venue] = {
+        outOfSample: { ...pick(oos), turnover: Number(oos.turnover.toFixed(2)) }, fullPeriod: { ...pick(full), turnover: Number(full.turnover.toFixed(2)) },
+        noStops: { outOfSample: { ...pick(bare), turnover: Number(bare.turnover.toFixed(2)) }, fullPeriod: { ...pick(bareFull), turnover: Number(bareFull.turnover.toFixed(2)) } },
+        equityOutOfSample: oos.equity,
+      };
+      console.log(`rotation ${name} on ${venue}: OOS ${fmt(oos)} stops ${oos.stopsHit} exposure ${(oos.exposure * 100).toFixed(0)}% turnover ${oos.turnover.toFixed(1)}×/y | full ${fmt(full)} | no stops OOS ${fmt(bare)}`);
     }
     basket[name] = per;
   }
