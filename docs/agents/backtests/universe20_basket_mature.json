@@ -1,0 +1,596 @@
+{
+ "ran_at": "2026-09-21T13:57:44.297Z",
+ "source": "Coinbase Exchange 1h → 4h/1d; parameters chosen on Revolut X costs, then the same rule priced on each venue the way the loop fills there: Revolut X takes the touch (9 bps taker + half-spread per side), Kraken rests post-only (40 bps maker + half-spread). Headline figures include the loop's protective exits (8 % floor under cost, 3×ATR(14) trail from the high since entry, read against each bar's low); `noStops` is the same rule without them",
+ "stops": {
+  "maxLossPct": 0.08,
+  "atrStop": 3,
+  "atrN": 14,
+  "reentryBars": 2
+ },
+ "costs": {
+  "revx": {
+   "venue": "revx",
+   "makerBps": 0,
+   "takerBps": 9,
+   "fillFee": "taker",
+   "halfSpread": {
+    "BTC/USD": 0.000075,
+    "ETH/USD": 0.000105,
+    "SOL/USD": 0.000155,
+    "XRP/USD": 0.00029,
+    "DOGE/USD": 0.00032,
+    "LINK/USD": 0.00042,
+    "ADA/USD": 0.000425,
+    "AVAX/USD": 0.00048,
+    "BNB/USD": 0.0005246,
+    "HYPE/USD": 0.0012322,
+    "XLM/USD": 0.0006795,
+    "UNI/USD": 0.0004116,
+    "NEAR/USD": 0.001271,
+    "BCH/USD": 0.0010343,
+    "LTC/USD": 0.0005103,
+    "SUI/USD": 0.001197,
+    "DOT/USD": 0.0008088,
+    "HBAR/USD": 0.0005612,
+    "TON/USD": 0.0017886,
+    "SHIB/USD": 0.0005676,
+    "PEPE/USD": 0.0007109,
+    "AAVE/USD": 0.0002465,
+    "ETC/USD": 0.0017123,
+    "ALGO/USD": 0.0008254,
+    "ICP/USD": 0.0017034,
+    "POL/USD": 0.0017762,
+    "ATOM/USD": 0.0010919
+   }
+  },
+  "kraken": {
+   "venue": "kraken",
+   "makerBps": 40,
+   "takerBps": 80,
+   "fillFee": "maker",
+   "halfSpread": {
+    "BTC/USD": 5e-7,
+    "ETH/USD": 0.000002,
+    "SOL/USD": 0.000046,
+    "XRP/USD": 0.00005,
+    "DOGE/USD": 0.00022,
+    "LINK/USD": 0.000005,
+    "ADA/USD": 0.000205,
+    "AVAX/USD": 0.000085,
+    "BNB/USD": 0.0000697,
+    "HYPE/USD": 0.0001585,
+    "XLM/USD": 0.0001613,
+    "UNI/USD": 0.0003296,
+    "NEAR/USD": 0.000228,
+    "BCH/USD": 0.0004108,
+    "LTC/USD": 0.0002396,
+    "SUI/USD": 0.000191,
+    "DOT/USD": 0.0003385,
+    "HBAR/USD": 0.0003302,
+    "TON/USD": 0.0003522,
+    "SHIB/USD": 0.0001758,
+    "PEPE/USD": 0.000235,
+    "AAVE/USD": 0.0004095,
+    "ETC/USD": 0.0008553,
+    "ALGO/USD": 0.000351,
+    "ICP/USD": 0.00034,
+    "POL/USD": 0.0007966,
+    "ATOM/USD": 0.0005312
+   }
+  }
+ },
+ "results": {
+  "BTC/USD": {
+   "bars4h": 6750,
+   "from": "2023-08-22",
+   "split": "2025-09-10",
+   "to": "2026-09-20",
+   "buyHoldOutOfSample": -0.2806,
+   "buyHoldFull": 2.0796,
+   "trend-4h": {
+    "chosen": {
+     "fast": 30,
+     "slow": 100,
+     "atrStop": 4
+    },
+    "revx": {
+     "plateau": {
+      "gridPoints": 27,
+      "positiveShareOutOfSample": 0,
+      "medianOutOfSample": -0.138,
+      "worstOutOfSample": -0.1787,
+      "bestOutOfSample": -0.0663,
+      "chosenRankOutOfSample": 23
+     },
+     "inSample": {
+      "ret": 0.381,
+      "maxDD": 0.1936,
+      "trades": 58,
+      "days": 733,
+      "exposure": 0.183,
+      "stopsHit": 26
+     },
+     "outOfSample": {
+      "ret": -0.1649,
+      "maxDD": 0.2133,
+      "trades": 26,
+      "days": 375,
+      "exposure": 0.139,
+      "stopsHit": 11
+     },
+     "fullPeriod": {
+      "ret": 0.1533,
+      "maxDD": 0.3299,
+      "trades": 84,
+      "days": 1108,
+      "exposure": 0.168,
+      "stopsHit": 37
+     },
+     "defaultParamsOutOfSample": {
+      "ret": -0.1363,
+      "maxDD": 0.2108,
+      "trades": 32,
+      "days": 375,
+      "exposure": 0.115,
+      "stopsHit": 16
+     },
+     "noStops": {
+      "outOfSample": {
+       "ret": -0.1933,
+       "maxDD": 0.2444,
+       "trades": 26,
+       "days": 375,
+       "exposure": 0.168,
+       "stopsHit": 0
+      },
+      "fullPeriod": {
+       "ret": 0.4049,
+       "maxDD": 0.319,
+       "trades": 74,
+       "days": 1108,
+       "exposure": 0.213,
+       "stopsHit": 0
+      }
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.228,
+      "maxDD": 0.2573,
+      "trades": 26,
+      "days": 375,
+      "exposure": 0.139,
+      "stopsHit": 11
+     },
+     "fullPeriod": {
+      "ret": -0.1055,
+      "maxDD": 0.4187,
+      "trades": 84,
+      "days": 1108,
+      "exposure": 0.168,
+      "stopsHit": 37
+     },
+     "defaultParamsOutOfSample": {
+      "ret": -0.216,
+      "maxDD": 0.2683,
+      "trades": 32,
+      "days": 375,
+      "exposure": 0.115,
+      "stopsHit": 16
+     }
+    }
+   },
+   "momentum-1d": {
+    "revx": {
+     "outOfSample": {
+      "ret": -0.1704,
+      "maxDD": 0.3332,
+      "trades": 45,
+      "days": 375,
+      "exposure": 0.459,
+      "stopsHit": 0
+     },
+     "fullPeriod": {
+      "ret": 1.1218,
+      "maxDD": 0.3471,
+      "trades": 115,
+      "days": 1108,
+      "exposure": 0.571,
+      "stopsHit": 5
+     },
+     "noStops": {
+      "outOfSample": {
+       "ret": -0.1704,
+       "maxDD": 0.3332,
+       "trades": 45,
+       "days": 375,
+       "exposure": 0.459,
+       "stopsHit": 0
+      },
+      "fullPeriod": {
+       "ret": 0.9886,
+       "maxDD": 0.3584,
+       "trades": 109,
+       "days": 1108,
+       "exposure": 0.573,
+       "stopsHit": 0
+      }
+     }
+    },
+    "kraken": {
+     "outOfSample": {
+      "ret": -0.276,
+      "maxDD": 0.4028,
+      "trades": 45,
+      "days": 375,
+      "exposure": 0.459,
+      "stopsHit": 0
+     },
+     "fullPeriod": {
+      "ret": 0.4978,
+      "maxDD": 0.4692,
+      "trades": 115,
+      "days": 1108,
+      "exposure": 0.571,
+      "stopsHit": 5
+     }
+    }
+   },
+   "trend-1h": {
+    "revx": {
+     "outOfSample": {
+      "ret": -0.1564,
+      "maxDD": 0.2264,
+      "trades": 94,
+      "days": 375,
+      "exposure": 0.086,
+      "stopsHit": 44
+     },
+     "fullPeriod": {
+      "ret": 0.0114,
+      "maxDD": 0.367,
+      "trades": 360,
+      "days": 1121,
+      "exposure": 0.12,
+      "stopsHit": 163
+     },
+     "noStops": {
+      "outOfSample": {
+       "ret": -0.2155,
+       "maxDD": 0.2746,
+       "trades": 90,
+       "days": 375,
+       "exposure": 0.104,
+       "stopsHit": 0
+      },
+      "fullPeriod": {
+       "ret": -0.2137,
+       "maxDD": 0.4493,
+       "trades": 336,
+       "days": 1121,
+       "exposure": 0.149,
+       "stopsHit": 0
+      }
+     }
+    }
+   },
+   "krakenBuyHoldOutOfSample": -0.2856
+  }
+ },
+ "basket": {
+  "symbols": [
+   "BTC/USD",
+   "ETH/USD",
+   "BNB/USD",
+   "XRP/USD",
+   "SOL/USD",
+   "DOGE/USD",
+   "LINK/USD",
+   "ADA/USD",
+   "XLM/USD",
+   "UNI/USD",
+   "NEAR/USD",
+   "BCH/USD",
+   "AVAX/USD",
+   "LTC/USD"
+  ],
+  "days": 334,
+  "from": "2025-10-22",
+  "split": "2026-06-01",
+  "to": "2026-09-20",
+  "buyHoldEqualWeightOutOfSample": 0.2631,
+  "buyHoldEqualWeightFull": -0.2554,
+  "default": {
+   "params": {
+    "lookbackDays": 30,
+    "topN": 2,
+    "slowDays": 100,
+    "bearFilter": true,
+    "minHoldDays": 0
+   },
+   "revx": {
+    "outOfSample": {
+     "ret": 0.3959,
+     "maxDD": 0.3068,
+     "trades": 44,
+     "days": 111,
+     "exposure": 1,
+     "turnover": 14.48
+    },
+    "fullPeriod": {
+     "ret": 0.4623,
+     "maxDD": 0.3097,
+     "trades": 96,
+     "days": 232,
+     "exposure": 0.733,
+     "turnover": 36.12
+    }
+   },
+   "kraken": {
+    "outOfSample": {
+     "ret": 0.3339,
+     "maxDD": 0.3093,
+     "trades": 44,
+     "days": 111,
+     "exposure": 1,
+     "turnover": 14.15
+    },
+    "fullPeriod": {
+     "ret": 0.3188,
+     "maxDD": 0.3106,
+     "trades": 96,
+     "days": 232,
+     "exposure": 0.733,
+     "turnover": 34.32
+    }
+   }
+  },
+  "noBearFilter": {
+   "params": {
+    "lookbackDays": 30,
+    "topN": 2,
+    "slowDays": 100,
+    "bearFilter": false,
+    "minHoldDays": 0
+   },
+   "revx": {
+    "outOfSample": {
+     "ret": 0.4606,
+     "maxDD": 0.2729,
+     "trades": 40,
+     "days": 111,
+     "exposure": 1,
+     "turnover": 14.69
+    },
+    "fullPeriod": {
+     "ret": 0.6376,
+     "maxDD": 0.2666,
+     "trades": 112,
+     "days": 232,
+     "exposure": 0.996,
+     "turnover": 41.77
+    }
+   },
+   "kraken": {
+    "outOfSample": {
+     "ret": 0.3946,
+     "maxDD": 0.2803,
+     "trades": 40,
+     "days": 111,
+     "exposure": 1,
+     "turnover": 14.32
+    },
+    "fullPeriod": {
+     "ret": 0.4411,
+     "maxDD": 0.2999,
+     "trades": 112,
+     "days": 232,
+     "exposure": 0.996,
+     "turnover": 38.94
+    }
+   }
+  },
+  "minHold7": {
+   "params": {
+    "lookbackDays": 30,
+    "topN": 2,
+    "slowDays": 100,
+    "bearFilter": true,
+    "minHoldDays": 7
+   },
+   "revx": {
+    "outOfSample": {
+     "ret": 0.1661,
+     "maxDD": 0.3068,
+     "trades": 38,
+     "days": 111,
+     "exposure": 1,
+     "turnover": 10.66
+    },
+    "fullPeriod": {
+     "ret": 0.3476,
+     "maxDD": 0.3515,
+     "trades": 72,
+     "days": 232,
+     "exposure": 0.802,
+     "turnover": 22.76
+    }
+   },
+   "kraken": {
+    "outOfSample": {
+     "ret": 0.127,
+     "maxDD": 0.3093,
+     "trades": 38,
+     "days": 111,
+     "exposure": 1,
+     "turnover": 10.48
+    },
+    "fullPeriod": {
+     "ret": 0.2577,
+     "maxDD": 0.3648,
+     "trades": 72,
+     "days": 232,
+     "exposure": 0.802,
+     "turnover": 21.99
+    }
+   }
+  },
+  "top1": {
+   "params": {
+    "lookbackDays": 30,
+    "topN": 1,
+    "slowDays": 100,
+    "bearFilter": true,
+    "minHoldDays": 0
+   },
+   "revx": {
+    "outOfSample": {
+     "ret": 0.1741,
+     "maxDD": 0.511,
+     "trades": 25,
+     "days": 111,
+     "exposure": 0.91,
+     "turnover": 17.23
+    },
+    "fullPeriod": {
+     "ret": 0.2622,
+     "maxDD": 0.511,
+     "trades": 59,
+     "days": 232,
+     "exposure": 0.659,
+     "turnover": 46.7
+    }
+   },
+   "kraken": {
+    "outOfSample": {
+     "ret": 0.0992,
+     "maxDD": 0.5175,
+     "trades": 25,
+     "days": 111,
+     "exposure": 0.91,
+     "turnover": 16.68
+    },
+    "fullPeriod": {
+     "ret": 0.0834,
+     "maxDD": 0.5175,
+     "trades": 59,
+     "days": 232,
+     "exposure": 0.659,
+     "turnover": 43.55
+    }
+   }
+  },
+  "top3": {
+   "params": {
+    "lookbackDays": 30,
+    "topN": 3,
+    "slowDays": 100,
+    "bearFilter": true,
+    "minHoldDays": 0
+   },
+   "revx": {
+    "outOfSample": {
+     "ret": 0.3212,
+     "maxDD": 0.2678,
+     "trades": 51,
+     "days": 111,
+     "exposure": 1,
+     "turnover": 13.2
+    },
+    "fullPeriod": {
+     "ret": 0.5172,
+     "maxDD": 0.2597,
+     "trades": 99,
+     "days": 232,
+     "exposure": 0.733,
+     "turnover": 26.76
+    }
+   },
+   "kraken": {
+    "outOfSample": {
+     "ret": 0.2656,
+     "maxDD": 0.2817,
+     "trades": 51,
+     "days": 111,
+     "exposure": 1,
+     "turnover": 12.91
+    },
+    "fullPeriod": {
+     "ret": 0.4059,
+     "maxDD": 0.2615,
+     "trades": 99,
+     "days": 232,
+     "exposure": 0.733,
+     "turnover": 25.7
+    }
+   }
+  },
+  "lookback60": {
+   "params": {
+    "lookbackDays": 60,
+    "topN": 2,
+    "slowDays": 100,
+    "bearFilter": true,
+    "minHoldDays": 0
+   },
+   "revx": {
+    "outOfSample": {
+     "ret": 0.3975,
+     "maxDD": 0.35,
+     "trades": 30,
+     "days": 111,
+     "exposure": 1,
+     "turnover": 10.5
+    },
+    "fullPeriod": {
+     "ret": 0.4162,
+     "maxDD": 0.3868,
+     "trades": 70,
+     "days": 232,
+     "exposure": 0.733,
+     "turnover": 27.23
+    }
+   },
+   "kraken": {
+    "outOfSample": {
+     "ret": 0.3465,
+     "maxDD": 0.3622,
+     "trades": 30,
+     "days": 111,
+     "exposure": 1,
+     "turnover": 10.31
+    },
+    "fullPeriod": {
+     "ret": 0.3893,
+     "maxDD": 0.4022,
+     "trades": 70,
+     "days": 232,
+     "exposure": 0.733,
+     "turnover": 25.56
+    }
+   }
+  }
+ },
+ "study": {
+  "name": "universe20_basket_mature",
+  "symbols": [
+   "BTC/USD"
+  ],
+  "basket": [
+   "BTC/USD",
+   "ETH/USD",
+   "BNB/USD",
+   "XRP/USD",
+   "SOL/USD",
+   "DOGE/USD",
+   "LINK/USD",
+   "ADA/USD",
+   "XLM/USD",
+   "UNI/USD",
+   "NEAR/USD",
+   "BCH/USD",
+   "AVAX/USD",
+   "LTC/USD"
+  ]
+ }
+}
