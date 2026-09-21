@@ -205,6 +205,16 @@ four menu pages (dialogs keep theirs).
   out-of-sample set, "more art than science", backtests being expensive)
   answered in the chat with the plateau numbers; nothing in the repo
   claims more than the table says.
+- **Verified after the push (13:14 UTC):** `0039` applied at 13:10:39
+  (both trend-4h rows carry AVAX/USD, capital 80); the function
+  redeployed at 13:11:36; AVAX observations from 13:12 on both rows
+  (trend up, volatility extreme, inside range). The tick at 13:11 ran the
+  OLD function against the NEW row for one minute and logged "no Kraken
+  altname for AVAX/USD" twice — the gap between a migration applying and
+  the function redeploying, harmless and self-healed, and the reason a
+  migration that adds a symbol lands in the same push as the code that
+  knows it. All three workflows green; 68 / 68 cron runs since 12:03, no
+  other error.
 
 ### [2026-09-21 12:04 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
