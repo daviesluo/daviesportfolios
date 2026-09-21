@@ -53,9 +53,13 @@ export function stopsForKind(kind: StrategyKind, p: TrendParams, base: StopParam
   return { ...base, atrStop: kind === "trend-4h" || kind === "trend-1h" ? p.atrStop : null };
 }
 
+// Half-spreads as fractions of price, per side. The majors are §2.2's measurements; the four candidates
+// (DOGE, LINK, ADA, AVAX) are the UK book at 12:47 UTC on 2026-09-21 (Revolut X, `region=UK`) and Kraken's
+// public ticker at 12:59 UTC the same day — one snapshot each, so a rule that only just clears its costs on
+// them has not cleared anything.
 export const COSTS: Record<string, Costs> = {
-  revx: { venue: "revx", makerBps: 0, takerBps: 9, fillFee: "taker", halfSpread: { "BTC/USD": 0.75e-4, "ETH/USD": 1.05e-4, "SOL/USD": 1.55e-4, "XRP/USD": 2.9e-4 } },
-  kraken: { venue: "kraken", makerBps: 40, takerBps: 80, fillFee: "maker", halfSpread: { "BTC/USD": 0.005e-4, "ETH/USD": 0.02e-4, "SOL/USD": 0.46e-4, "XRP/USD": 0.5e-4 } },
+  revx: { venue: "revx", makerBps: 0, takerBps: 9, fillFee: "taker", halfSpread: { "BTC/USD": 0.75e-4, "ETH/USD": 1.05e-4, "SOL/USD": 1.55e-4, "XRP/USD": 2.9e-4, "DOGE/USD": 3.2e-4, "LINK/USD": 4.2e-4, "ADA/USD": 4.25e-4, "AVAX/USD": 4.8e-4 } },
+  kraken: { venue: "kraken", makerBps: 40, takerBps: 80, fillFee: "maker", halfSpread: { "BTC/USD": 0.005e-4, "ETH/USD": 0.02e-4, "SOL/USD": 0.46e-4, "XRP/USD": 0.5e-4, "DOGE/USD": 2.2e-4, "LINK/USD": 0.05e-4, "ADA/USD": 2.05e-4, "AVAX/USD": 0.85e-4 } },
 };
 
 type Raw = [number, number, number, number, number, number]; // [t_sec, o, h, l, c, v] (Coinbase)
@@ -241,8 +245,13 @@ if (import.meta.main) {
   const args = Object.fromEntries(Deno.args.map((a, i, all) => a.startsWith("--") ? [a.slice(2), all[i + 1]] : []).filter((x) => x.length));
   const dataDir = args.data, outDir = args.out ?? "docs/agents/backtests";
   await Deno.mkdir(outDir, { recursive: true });
-  const symbols = ["BTC/USD", "ETH/USD", "SOL/USD"];
-  const basketSymbols = ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD"];
+  // The shipped run is the three majors and the four-coin basket. `--symbols` / `--basket` widen it for a
+  // study, and `--study <name>` writes that study's distilled summary to `<out>/<name>.json` instead of
+  // touching latest.json / summary.json (the page's copy).
+  const list = (v: unknown, dflt: string): string[] => String(v ?? dflt).split(",").map((x: string) => x.trim()).filter(Boolean);
+  const symbols: string[] = list(args.symbols, "BTC/USD,ETH/USD,SOL/USD");
+  const basketSymbols: string[] = list(args.basket, "BTC/USD,ETH/USD,SOL/USD,XRP/USD");
+  const study: string | null = args.study ? String(args.study) : null;
   const report: Record<string, unknown> = {
     ran_at: new Date().toISOString(),
     source: "Coinbase Exchange 1h → 4h/1d; parameters chosen on Revolut X costs, then the same rule priced on each venue the way the loop fills there: Revolut X takes the touch (9 bps taker + half-spread per side), Kraken rests post-only (40 bps maker + half-spread). Headline figures include the loop's protective exits (8 % floor under cost, 3×ATR(14) trail from the high since entry, read against each bar's low); `noStops` is the same rule without them",
@@ -269,11 +278,26 @@ if (import.meta.main) {
       if (!best || score > best.score) best = { p, score, is: r };
     }
     const bp = best!.p, bs = stopsFor(bp), ds = stopsFor(DEFAULT_TREND), ms = stopsFor(DEFAULT_TREND, "momentum-1d");
+    // The plateau: the same 27 grid points run OUT of sample. A rule with an edge has most of its
+    // neighbourhood positive; a rule whose chosen point stands alone was fitted, not found. Reported as the
+    // share of the grid positive out of sample, the grid's median, and where the chosen point ranks.
+    const gridOos = grid.map((p) => ({ p, ret: run("trend-4h", symbol, c4h, daily, split, n, p, COSTS.revx, 4, stopsFor(p)).ret }));
+    const oosRets = gridOos.map((g) => g.ret).sort((a, b) => a - b);
+    const chosenOos = gridOos.find((g) => g.p.fast === bp.fast && g.p.slow === bp.slow && g.p.atrStop === bp.atrStop)!.ret;
+    const plateau = {
+      gridPoints: grid.length,
+      positiveShareOutOfSample: Number((oosRets.filter((r) => r > 0).length / oosRets.length).toFixed(3)),
+      medianOutOfSample: Number(oosRets[Math.floor(oosRets.length / 2)].toFixed(4)),
+      worstOutOfSample: Number(oosRets[0].toFixed(4)),
+      bestOutOfSample: Number(oosRets[oosRets.length - 1].toFixed(4)),
+      chosenRankOutOfSample: oosRets.filter((r) => r > chosenOos).length + 1,   // 1 = the chosen point is also the best out of sample
+    };
     const oos = run("trend-4h", symbol, c4h, daily, split, n, bp, COSTS.revx, 4, bs);
     const full = run("trend-4h", symbol, c4h, daily, 0, n, bp, COSTS.revx, 4, bs);
     const dflt = run("trend-4h", symbol, c4h, daily, split, n, DEFAULT_TREND, COSTS.revx, 4, ds);
     per["trend-4h"] = {
       chosen: { fast: bp.fast, slow: bp.slow, atrStop: bp.atrStop },
+      plateau,
       inSample: pick(best!.is), outOfSample: pick(oos), fullPeriod: pick(full),
       defaultParamsOutOfSample: pick(dflt),
       noStops: { outOfSample: pick(run("trend-4h", symbol, c4h, daily, split, n, bp)), fullPeriod: pick(run("trend-4h", symbol, c4h, daily, 0, n, bp)) },
@@ -290,16 +314,17 @@ if (import.meta.main) {
     // The same rules priced on Kraken: same parameters, that venue's fees and spread.
     const kt = run("trend-4h", symbol, c4h, daily, split, n, bp, COSTS.kraken, 4, bs);
     const ktFull = run("trend-4h", symbol, c4h, daily, 0, n, bp, COSTS.kraken, 4, bs);
+    const ktDflt = run("trend-4h", symbol, c4h, daily, split, n, DEFAULT_TREND, COSTS.kraken, 4, ds);   // the seeded row runs the default parameters
     const km = run("momentum-1d", symbol, c4h, daily, split, n, DEFAULT_TREND, COSTS.kraken, 4, ms);
     const kmFull = run("momentum-1d", symbol, c4h, daily, 0, n, DEFAULT_TREND, COSTS.kraken, 4, ms);
     per["kraken"] = {
-      "trend-4h": { outOfSample: pick(kt), fullPeriod: pick(ktFull), equityOutOfSample: kt.equity },
+      "trend-4h": { outOfSample: pick(kt), fullPeriod: pick(ktFull), defaultParamsOutOfSample: pick(ktDflt), equityOutOfSample: kt.equity },
       "momentum-1d": { outOfSample: pick(km), fullPeriod: pick(kmFull), equityOutOfSample: km.equity },
       buyHoldOutOfSample: Number(buyHold(c4h, split, n, symbol, COSTS.kraken).toFixed(4)),
     };
-    console.log(`${symbol}: on Kraken costs — trend-4h OOS ${fmt(kt)} | momentum-1d OOS ${fmt(km)}`);
+    console.log(`${symbol}: on Kraken costs — trend-4h OOS ${fmt(kt)} (default params ${fmt(ktDflt)}) | momentum-1d OOS ${fmt(km)}`);
     (report.results as Record<string, unknown>)[symbol] = per;
-    console.log(`${symbol}: trend-4h chosen ${JSON.stringify((per["trend-4h"] as { chosen: unknown }).chosen)} | OOS ${fmt(oos)} | default-params OOS ${fmt(dflt)} | buy&hold OOS ${(buyHold(c4h, split, n, symbol) * 100).toFixed(1)}%`);
+    console.log(`${symbol}: trend-4h chosen ${JSON.stringify((per["trend-4h"] as { chosen: unknown }).chosen)} | OOS ${fmt(oos)} | default-params OOS ${fmt(dflt)} | buy&hold OOS ${(buyHold(c4h, split, n, symbol) * 100).toFixed(1)}% | plateau ${(plateau.positiveShareOutOfSample * 100).toFixed(0)}% of grid positive OOS, median ${(plateau.medianOutOfSample * 100).toFixed(1)}%, chosen ranks ${plateau.chosenRankOutOfSample}/${plateau.gridPoints}`);
     console.log(`${symbol}: momentum-1d OOS ${fmt(mo)} | full ${fmt(moFull)}`);
   }
   // The rotation basket: daily candles for all four symbols aligned by day.
@@ -354,16 +379,24 @@ if (import.meta.main) {
   }
   (report.results as Record<string, unknown>)["trend-1h-check"] = trend1h;
 
-  await Deno.writeTextFile(`${outDir}/latest.json`, JSON.stringify(report, null, 1));
-  console.log(`wrote ${outDir}/latest.json`);
-  // The page's copy: no equity curves, each rule nested by venue, and the two studies the backtester does not
-  // produce (the dislocation minutes, the pattern variants) carried over from the previous summary untouched.
-  let previous: Record<string, unknown> = {};
-  try { previous = JSON.parse(await Deno.readTextFile(`${outDir}/summary.json`)); } catch { /* first run */ }
-  const summary = distill(report);
-  for (const k of ["dislocation", "patterns"]) if (previous[k] != null) summary[k] = previous[k];
-  await Deno.writeTextFile(`${outDir}/summary.json`, JSON.stringify(summary, null, 1));
-  console.log(`wrote ${outDir}/summary.json`);
+  if (study) {
+    // A study: the distilled shape only, under its own name; the page's files are not touched.
+    const s = distill(report);
+    s.study = { name: study, symbols, basket: basketSymbols };
+    await Deno.writeTextFile(`${outDir}/${study}.json`, JSON.stringify(s, null, 1));
+    console.log(`wrote ${outDir}/${study}.json`);
+  } else {
+    await Deno.writeTextFile(`${outDir}/latest.json`, JSON.stringify(report, null, 1));
+    console.log(`wrote ${outDir}/latest.json`);
+    // The page's copy: no equity curves, each rule nested by venue, and the two studies the backtester does not
+    // produce (the dislocation minutes, the pattern variants) carried over from the previous summary untouched.
+    let previous: Record<string, unknown> = {};
+    try { previous = JSON.parse(await Deno.readTextFile(`${outDir}/summary.json`)); } catch { /* first run */ }
+    const summary = distill(report);
+    for (const k of ["dislocation", "patterns"]) if (previous[k] != null) summary[k] = previous[k];
+    await Deno.writeTextFile(`${outDir}/summary.json`, JSON.stringify(summary, null, 1));
+    console.log(`wrote ${outDir}/summary.json`);
+  }
 }
 
 /** The report in the shape `src/agents.js` reads: per symbol, per rule, per venue; the basket beside it; equity curves dropped. */
