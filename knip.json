@@ -5,8 +5,7 @@
     "src/test_setup.js",
     "supabase/functions/*/index.ts",
     "supabase/functions/*/index.test.ts",
-    "supabase/functions/agents/backtest.ts",
-    "supabase/functions/agents/backtest_ideas.ts"
+    "supabase/functions/agents/backtest*.ts"
   ],
   "project": [
     "src/**/*.{js,jsx,ts}",

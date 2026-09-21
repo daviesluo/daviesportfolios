@@ -63,7 +63,10 @@ list stays the short version; the plan is the reasoning behind it.
    he asks when he wants a look.
 
 1. **Cloudflare's edge still serves five cached copies of the old
-   exposure, for up to seven days.** The ORIGIN is fixed — every path
+   exposure, for up to seven days.** (Related, 2026-09-21: the same
+   not-found fallback also inherited the assets' one-year `immutable`
+   header and poisoned browsers' copies of new chunks during a deploy —
+   fixed in `_headers` and with `404.html`; see that day's entry.) The ORIGIN is fixed — every path
    not in `dist/` now returns the app's HTML shell, confirmed on paths
    never requested before and on cache-busted requests to the five.
    But `/LEDGER.md`, `/handover.md`, `/src/app.jsx`, `/package.json`
@@ -165,6 +168,46 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-21 14:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Production's sub-pages were dead for forty minutes while every gate
+was green.** Davies: "除了主页显示正常以外所有的子页面都打不开了，errors框里一大堆报错".
+`ops_errors` had it exactly: 12 `promise.unhandled` and 10 `render.crash`
+between 13:41 and 14:23 UTC, all "'text/html' is not a valid JavaScript
+MIME type for module script …/assets/ticker_chart_modal-510f18a2.js" or
+"Failed to fetch dynamically imported module". That chunk exists and is
+served correctly now. Proven by one request: a chunk that does NOT exist
+comes back from Pages as the HTML shell, **status 200, with
+`cache-control: public, max-age=31536000, immutable`** — the `/assets/*`
+rule in `_headers` applied to the fallback too. `ticker_chart_modal-
+510f18a2.js` was born in e96be8f (13:36); a browser that asked for it
+before the deploy had propagated cached HTML under its name for a year,
+the new service worker precached the same HTML at install, and every
+sub-page died while the home page (already loaded) worked. The edge did
+not cache the fallback (`cf-cache-status: MISS`), so it was per browser.
+- **Fixed at the source**: the immutable rule is gone from `_headers`
+  (Pages' default `max-age=0, must-revalidate` + ETag: a 304 per asset for
+  a client without the worker, nothing for one with it, and a bad copy is
+  revalidated away on the next load); `dist/404.html` is built beside
+  `index.html`, so a missing chunk is a 404 the worker refuses to precache.
+- **Fixed in the app**: `src/chunk_recovery.js` — a page chunk that fails
+  to load refreshes the browser's copy (`cache: 'reload'`), unregisters
+  every service worker, deletes every cache, reports `chunk.load`, reloads
+  once per five minutes; `lazyPage` wraps the five page chunks; each page
+  has its own `LazyBoundary` showing its frame with the words instead of
+  a whole-app RENDER ERROR; the warm-up imports swallow their failures.
+- **Gated**: the sweep's recovery pass injects production's exact bad
+  response for the holdings chunk and requires one reload, no crash
+  screen, the page opening after, and `chunk.load` not `render.crash`;
+  `healthcheck.yml` (every 10 min) fetches the live shell, requires every
+  chunk it imports to be JavaScript, and requires a chunk that does not
+  exist to be a 404 without an immutable header. Skill: the sweep's own
+  server cannot see the CDN; a header rule applies to a path's error
+  responses too.
+- Davies' device heals on its next load of the new shell (new chunk
+  names); anyone still holding the poisoned copies is healed by the
+  recovery on the first click.
 
 ### [2026-09-21 14:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

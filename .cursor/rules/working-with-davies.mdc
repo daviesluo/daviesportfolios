@@ -486,6 +486,22 @@ Read these as a checklist before pushing.
   A verified fact about a venue is a requirement on the client: write the
   pin and make the probe show it honoured the day the fact is written
   down, not the day it costs a trade.
+- **The sweep's own server cannot see the CDN.** Every gate was green
+  while production's sub-pages were dead for forty minutes (2026-09-21):
+  Cloudflare Pages answers a chunk that does not exist yet with the HTML
+  shell and a 200, `_headers` stamped the assets' one-year `immutable` on
+  that fallback, and browsers that asked for a new chunk during a deploy's
+  propagation cached HTML under its name — the service worker then
+  precached the same HTML. The harness serves `dist/` cleanly and can
+  never produce that response. Two rules follow: a header rule that
+  applies to a path applies to the path's error responses too, so a
+  long-lived cache header belongs only where the path can never be a
+  fallback; and a production-only failure mode needs a production check
+  (the health check now probes the live chunks and the not-found status)
+  plus a harness pass that injects the bad response and asserts the app's
+  recovery, not the browser's silence. He reported it as "all sub-pages
+  broken, errors box full" — read the errors table first; it named the
+  chunk and the MIME type, and that was the whole diagnosis.
 
 ## Third-party reviews
 
