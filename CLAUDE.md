@@ -144,10 +144,14 @@ that follow from that evidence, in short:
   a minute later. Its row stays, retired in place (`retired_at`, paused:
   hidden from the page, never ticked) so its records stay under their
   foreign keys; its code stays, dormant.
-  Breakout-with-volume, squeeze breakouts, double bottoms (§3.5) and
+  Breakout-with-volume, squeeze breakouts, double bottoms (§3.5),
   15-minute / 1-hour trend and RSI(2) pullback rules (§3.6: nothing below
-  an hour survives the 20 bps round trip) were tested and rejected with
-  numbers — a faster rule is a fee schedule until data says otherwise.
+  an hour survives the 20 bps round trip), and five more ideas (§3.9: a
+  bare Donchian, a 4-hour pullback, a stale-trend exit, weekly bars — all
+  rejected; a BTC-regime filter on entries is the one written-down
+  candidate, to be re-tested on a non-bear window before any paper twin)
+  were tested and rejected with numbers — a faster rule is a fee schedule
+  until data says otherwise.
   Backtests: reference §3.3a–§3.7, run with the loop's own fills, stops
   and cooldown; the backtester writes `docs/agents/backtests/summary.json`
   itself and reports a parameter plateau per coin; `frequency.json` there
