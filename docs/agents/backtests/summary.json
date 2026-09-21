@@ -1,9 +1,9 @@
 {
- "ran_at": "2026-09-21T16:34:43.631Z",
+ "ran_at": "2026-09-21T23:13:29.961Z",
  "source": "Coinbase Exchange 1h → 4h/1d; parameters chosen on Revolut X costs, then the same rule priced on each venue the way the loop fills there: Revolut X takes the touch (9 bps taker + half-spread per side), Kraken rests post-only (40 bps maker + half-spread). Headline figures include the loop's protective exits (8 % floor under cost, 3×ATR(14) trail from the high since entry, read against each bar's low); `noStops` is the same rule without them",
  "stops": {
   "maxLossPct": 0.08,
-  "atrStop": 3,
+  "atrStop": null,
   "atrN": 14,
   "reentryBars": 2
  },
@@ -54,7 +54,7 @@
     "SOL/USD": 0.000046,
     "XRP/USD": 0.00005,
     "DOGE/USD": 0.00022,
-    "LINK/USD": 0.000005,
+    "LINK/USD": 0.0001514,
     "ADA/USD": 0.000205,
     "AVAX/USD": 0.000085,
     "BNB/USD": 0.0000697,
@@ -97,42 +97,42 @@
      "plateau": {
       "gridPoints": 27,
       "positiveShareOutOfSample": 0,
-      "medianOutOfSample": -0.138,
-      "worstOutOfSample": -0.1787,
-      "bestOutOfSample": -0.0663,
-      "chosenRankOutOfSample": 23
+      "medianOutOfSample": -0.1594,
+      "worstOutOfSample": -0.1933,
+      "bestOutOfSample": -0.0438,
+      "chosenRankOutOfSample": 27
      },
      "inSample": {
-      "ret": 0.381,
-      "maxDD": 0.1936,
-      "trades": 58,
+      "ret": 0.6841,
+      "maxDD": 0.2163,
+      "trades": 48,
       "days": 733,
-      "exposure": 0.183,
-      "stopsHit": 26
+      "exposure": 0.23,
+      "stopsHit": 1
      },
      "outOfSample": {
-      "ret": -0.1649,
-      "maxDD": 0.2133,
+      "ret": -0.1933,
+      "maxDD": 0.2444,
       "trades": 26,
       "days": 375,
-      "exposure": 0.139,
-      "stopsHit": 11
+      "exposure": 0.168,
+      "stopsHit": 0
      },
      "fullPeriod": {
-      "ret": 0.1533,
-      "maxDD": 0.3299,
-      "trades": 84,
+      "ret": 0.3586,
+      "maxDD": 0.3415,
+      "trades": 74,
       "days": 1108,
-      "exposure": 0.168,
-      "stopsHit": 37
+      "exposure": 0.209,
+      "stopsHit": 1
      },
      "defaultParamsOutOfSample": {
-      "ret": -0.1363,
-      "maxDD": 0.2108,
-      "trades": 32,
+      "ret": -0.1069,
+      "maxDD": 0.1879,
+      "trades": 28,
       "days": 375,
-      "exposure": 0.115,
-      "stopsHit": 16
+      "exposure": 0.133,
+      "stopsHit": 0
      },
      "noStops": {
       "outOfSample": {
@@ -155,28 +155,28 @@
     },
     "kraken": {
      "outOfSample": {
-      "ret": -0.228,
-      "maxDD": 0.2573,
+      "ret": -0.2543,
+      "maxDD": 0.2866,
       "trades": 26,
       "days": 375,
-      "exposure": 0.139,
-      "stopsHit": 11
+      "exposure": 0.168,
+      "stopsHit": 0
      },
      "fullPeriod": {
-      "ret": -0.1055,
-      "maxDD": 0.4187,
-      "trades": 84,
+      "ret": 0.086,
+      "maxDD": 0.4219,
+      "trades": 74,
       "days": 1108,
-      "exposure": 0.168,
-      "stopsHit": 37
+      "exposure": 0.209,
+      "stopsHit": 1
      },
      "defaultParamsOutOfSample": {
-      "ret": -0.216,
-      "maxDD": 0.2683,
-      "trades": 32,
+      "ret": -0.1794,
+      "maxDD": 0.2379,
+      "trades": 28,
       "days": 375,
-      "exposure": 0.115,
-      "stopsHit": 16
+      "exposure": 0.133,
+      "stopsHit": 0
      }
     }
    },
@@ -239,20 +239,20 @@
    "trend-1h": {
     "revx": {
      "outOfSample": {
-      "ret": -0.0931,
-      "maxDD": 0.1787,
-      "trades": 78,
+      "ret": -0.1406,
+      "maxDD": 0.2244,
+      "trades": 74,
       "days": 375,
-      "exposure": 0.074,
-      "stopsHit": 36
+      "exposure": 0.087,
+      "stopsHit": 0
      },
      "fullPeriod": {
-      "ret": 0.0151,
-      "maxDD": 0.309,
-      "trades": 266,
+      "ret": -0.0995,
+      "maxDD": 0.3554,
+      "trades": 244,
       "days": 1121,
-      "exposure": 0.088,
-      "stopsHit": 119
+      "exposure": 0.109,
+      "stopsHit": 0
      },
      "noStops": {
       "outOfSample": {
@@ -287,92 +287,92 @@
     "chosen": {
      "fast": 30,
      "slow": 50,
-     "atrStop": 4
+     "atrStop": 3
     },
     "revx": {
      "plateau": {
       "gridPoints": 27,
-      "positiveShareOutOfSample": 0.074,
-      "medianOutOfSample": -0.1027,
-      "worstOutOfSample": -0.1804,
-      "bestOutOfSample": 0.0038,
-      "chosenRankOutOfSample": 4
+      "positiveShareOutOfSample": 0.222,
+      "medianOutOfSample": -0.0764,
+      "worstOutOfSample": -0.163,
+      "bestOutOfSample": 0.0619,
+      "chosenRankOutOfSample": 2
      },
      "inSample": {
-      "ret": 1.8188,
-      "maxDD": 0.1548,
+      "ret": 2.1426,
+      "maxDD": 0.1353,
       "trades": 34,
       "days": 741,
-      "exposure": 0.163,
-      "stopsHit": 15
+      "exposure": 0.165,
+      "stopsHit": 1
      },
      "outOfSample": {
-      "ret": -0.0103,
-      "maxDD": 0.2258,
+      "ret": 0.0282,
+      "maxDD": 0.1962,
       "trades": 16,
       "days": 375,
-      "exposure": 0.092,
-      "stopsHit": 6
+      "exposure": 0.088,
+      "stopsHit": 0
      },
      "fullPeriod": {
-      "ret": 1.7899,
-      "maxDD": 0.2258,
+      "ret": 2.2314,
+      "maxDD": 0.1962,
       "trades": 50,
       "days": 1117,
-      "exposure": 0.139,
-      "stopsHit": 21
+      "exposure": 0.14,
+      "stopsHit": 1
      },
      "defaultParamsOutOfSample": {
-      "ret": -0.1027,
-      "maxDD": 0.1986,
-      "trades": 24,
+      "ret": -0.0804,
+      "maxDD": 0.2029,
+      "trades": 22,
       "days": 375,
-      "exposure": 0.083,
-      "stopsHit": 12
+      "exposure": 0.112,
+      "stopsHit": 0
      },
      "noStops": {
       "outOfSample": {
-       "ret": -0.0388,
-       "maxDD": 0.2471,
+       "ret": 0.0282,
+       "maxDD": 0.1962,
        "trades": 16,
        "days": 375,
-       "exposure": 0.104,
+       "exposure": 0.088,
        "stopsHit": 0
       },
       "fullPeriod": {
-       "ret": 1.8566,
-       "maxDD": 0.2471,
+       "ret": 2.2403,
+       "maxDD": 0.1962,
        "trades": 50,
        "days": 1117,
-       "exposure": 0.17,
+       "exposure": 0.14,
        "stopsHit": 0
       }
      }
     },
     "kraken": {
      "outOfSample": {
-      "ret": -0.0566,
-      "maxDD": 0.2544,
+      "ret": -0.0199,
+      "maxDD": 0.2222,
       "trades": 16,
       "days": 375,
-      "exposure": 0.092,
-      "stopsHit": 6
+      "exposure": 0.088,
+      "stopsHit": 0
      },
      "fullPeriod": {
-      "ret": 1.4014,
-      "maxDD": 0.2578,
+      "ret": 1.7814,
+      "maxDD": 0.2267,
       "trades": 50,
       "days": 1117,
-      "exposure": 0.139,
-      "stopsHit": 21
+      "exposure": 0.14,
+      "stopsHit": 1
      },
      "defaultParamsOutOfSample": {
-      "ret": -0.1649,
-      "maxDD": 0.2429,
-      "trades": 24,
+      "ret": -0.1391,
+      "maxDD": 0.2425,
+      "trades": 22,
       "days": 375,
-      "exposure": 0.083,
-      "stopsHit": 12
+      "exposure": 0.112,
+      "stopsHit": 0
      }
     }
    },
@@ -435,20 +435,20 @@
    "trend-1h": {
     "revx": {
      "outOfSample": {
-      "ret": -0.069,
-      "maxDD": 0.2159,
-      "trades": 70,
+      "ret": 0.0824,
+      "maxDD": 0.2137,
+      "trades": 60,
       "days": 375,
-      "exposure": 0.055,
-      "stopsHit": 33
+      "exposure": 0.082,
+      "stopsHit": 0
      },
      "fullPeriod": {
-      "ret": -0.0514,
-      "maxDD": 0.3507,
-      "trades": 244,
+      "ret": 0.2138,
+      "maxDD": 0.3207,
+      "trades": 210,
       "days": 1121,
-      "exposure": 0.075,
-      "stopsHit": 118
+      "exposure": 0.102,
+      "stopsHit": 0
      },
      "noStops": {
       "outOfSample": {
@@ -483,92 +483,92 @@
     "chosen": {
      "fast": 30,
      "slow": 150,
-     "atrStop": 3
+     "atrStop": 2
     },
     "revx": {
      "plateau": {
       "gridPoints": 27,
       "positiveShareOutOfSample": 1,
-      "medianOutOfSample": 0.1402,
-      "worstOutOfSample": 0.0414,
-      "bestOutOfSample": 0.2932,
+      "medianOutOfSample": 0.1876,
+      "worstOutOfSample": 0.0768,
+      "bestOutOfSample": 0.2792,
       "chosenRankOutOfSample": 8
      },
      "inSample": {
-      "ret": 1.5506,
-      "maxDD": 0.2813,
-      "trades": 53,
+      "ret": 1.3742,
+      "maxDD": 0.1654,
+      "trades": 57,
       "days": 725,
-      "exposure": 0.149,
-      "stopsHit": 25
+      "exposure": 0.115,
+      "stopsHit": 0
      },
      "outOfSample": {
-      "ret": 0.1732,
-      "maxDD": 0.1468,
+      "ret": 0.2696,
+      "maxDD": 0.1132,
       "trades": 14,
       "days": 375,
-      "exposure": 0.063,
-      "stopsHit": 6
+      "exposure": 0.052,
+      "stopsHit": 0
      },
      "fullPeriod": {
-      "ret": 2.0639,
-      "maxDD": 0.2892,
-      "trades": 66,
+      "ret": 2.0865,
+      "maxDD": 0.1654,
+      "trades": 70,
       "days": 1100,
-      "exposure": 0.121,
-      "stopsHit": 31
+      "exposure": 0.094,
+      "stopsHit": 0
      },
      "defaultParamsOutOfSample": {
-      "ret": 0.1327,
-      "maxDD": 0.1763,
-      "trades": 16,
+      "ret": 0.1756,
+      "maxDD": 0.2344,
+      "trades": 14,
       "days": 375,
-      "exposure": 0.069,
-      "stopsHit": 7
+      "exposure": 0.098,
+      "stopsHit": 0
      },
      "noStops": {
       "outOfSample": {
-       "ret": 0.2704,
-       "maxDD": 0.1727,
-       "trades": 12,
+       "ret": 0.2696,
+       "maxDD": 0.1132,
+       "trades": 14,
        "days": 375,
-       "exposure": 0.087,
+       "exposure": 0.052,
        "stopsHit": 0
       },
       "fullPeriod": {
-       "ret": 2.0172,
-       "maxDD": 0.3206,
-       "trades": 60,
+       "ret": 2.05,
+       "maxDD": 0.1654,
+       "trades": 72,
        "days": 1100,
-       "exposure": 0.145,
+       "exposure": 0.098,
        "stopsHit": 0
       }
      }
     },
     "kraken": {
      "outOfSample": {
-      "ret": 0.1251,
-      "maxDD": 0.167,
+      "ret": 0.2176,
+      "maxDD": 0.1303,
       "trades": 14,
       "days": 375,
-      "exposure": 0.063,
-      "stopsHit": 6
+      "exposure": 0.052,
+      "stopsHit": 0
      },
      "fullPeriod": {
-      "ret": 1.515,
-      "maxDD": 0.3463,
-      "trades": 66,
+      "ret": 1.5034,
+      "maxDD": 0.1945,
+      "trades": 70,
       "days": 1100,
-      "exposure": 0.121,
-      "stopsHit": 31
+      "exposure": 0.094,
+      "stopsHit": 0
      },
      "defaultParamsOutOfSample": {
-      "ret": 0.0798,
-      "maxDD": 0.2006,
-      "trades": 16,
+      "ret": 0.1274,
+      "maxDD": 0.2569,
+      "trades": 14,
       "days": 375,
-      "exposure": 0.069,
-      "stopsHit": 7
+      "exposure": 0.098,
+      "stopsHit": 0
      }
     }
    },
@@ -631,20 +631,20 @@
    "trend-1h": {
     "revx": {
      "outOfSample": {
-      "ret": 0.1411,
-      "maxDD": 0.2262,
-      "trades": 66,
+      "ret": 0.1308,
+      "maxDD": 0.2018,
+      "trades": 58,
       "days": 375,
-      "exposure": 0.07,
-      "stopsHit": 31
+      "exposure": 0.093,
+      "stopsHit": 0
      },
      "fullPeriod": {
-      "ret": 0.357,
-      "maxDD": 0.4276,
-      "trades": 226,
+      "ret": 2.3554,
+      "maxDD": 0.2893,
+      "trades": 186,
       "days": 1121,
-      "exposure": 0.081,
-      "stopsHit": 104
+      "exposure": 0.11,
+      "stopsHit": 0
      },
      "noStops": {
       "outOfSample": {

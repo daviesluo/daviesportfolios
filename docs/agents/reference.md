@@ -385,8 +385,9 @@ places (a guaranteed next-open maker fill) and ran none of the protective
 exits the loop checks every minute. The backtester now fills the way the
 loop fills — Revolut X **takes the touch** (9 bps taker + half-spread;
 a bid resting on a breakout fills exactly when the breakout fails), Kraken
-rests post-only (40 bps maker) — reads the **8 % floor under cost and the
-3×ATR(14) trail** against each bar's low, and waits **two bars after any
+rests post-only (40 bps maker) — reads the **8 % floor under cost**
+against each bar's low (and, until the 2026-09-21 correction below, a
+3×ATR(14) trail beside it), and waits **two bars after any
 exit** before re-entering (without which a floor stop under a rule that is
 still "on" sells and re-buys every bar: momentum on BTC made 155 trades in
 the out-of-sample year before the cooldown, 45 after). XRP now carries its
@@ -394,27 +395,50 @@ measured spread (Revolut X 5.8 bps, Kraken 1.0) in the basket. Same data,
 same split; `noStops` is the same fill model without the protective exits.
 `docs/agents/backtests/summary.json` is written by the backtester itself.
 
+**Re-run 2026-09-21 without the duplicated intra-bar ATR trail** (§3.13,
+§4.11). The table below is the loop as it stands now: the 8 % floor under
+cost checked every minute, the rulebook's own 3×ATR trail on the close,
+and nothing else. The figures this section carried until then are kept in
+the paragraph after it, because the change to them is the finding.
+
 | symbol | rule | Revolut X OOS (shipped) | without stops | Kraken OOS | buy & hold OOS |
 |---|---|---|---|---|---|
-| BTC | trend-4h | -16.5 %, DD 21 %, 26 trades, 11 stops | -19.3 %, DD 24 %, 26 trades | -22.8 %, 26 trades | -28.1 % |
+| BTC | trend-4h | -19.3 %, DD 24 %, 26 trades, 0 stops | -19.3 %, DD 24 %, 26 trades | -25.4 %, 26 trades | -28.1 % |
 | BTC | momentum-1d | -17.0 %, DD 33 %, 45 trades, 0 stops | -17.0 %, DD 33 %, 45 trades | -27.6 %, 45 trades | -28.1 % |
-| BTC | trend-1h | -9.3 %, DD 18 %, 78 trades, 36 stops | -13.3 %, DD 22 %, 74 trades | — (paper only on Revolut X) | -28.1 % |
-| ETH | trend-4h | -1.0 %, DD 23 %, 16 trades, 6 stops | -3.9 %, DD 25 %, 16 trades | -5.7 %, 16 trades | -40.1 % |
+| BTC | trend-1h | -14.1 %, DD 22 %, 74 trades, 0 stops | -13.3 %, DD 22 %, 74 trades | — (paper only on Revolut X) | -28.1 % |
+| ETH | trend-4h | +2.8 %, DD 20 %, 16 trades, 0 stops | +2.8 %, DD 20 %, 16 trades | -2.0 %, 16 trades | -40.1 % |
 | ETH | momentum-1d | +10.4 %, DD 35 %, 33 trades, 3 stops | +3.0 %, DD 39 %, 33 trades | +0.0 %, 33 trades | -40.1 % |
-| ETH | trend-1h | -6.9 %, DD 22 %, 70 trades, 33 stops | +6.0 %, DD 23 %, 62 trades | — (paper only on Revolut X) | -40.1 % |
-| SOL | trend-4h | +17.3 %, DD 15 %, 14 trades, 6 stops | +27.0 %, DD 17 %, 12 trades | +12.5 %, 14 trades | -50.2 % |
+| ETH | trend-1h | +8.2 %, DD 21 %, 60 trades, 0 stops | +6.0 %, DD 23 %, 62 trades | — (paper only on Revolut X) | -40.1 % |
+| SOL | trend-4h | +27.0 %, DD 11 %, 14 trades, 0 stops | +27.0 %, DD 11 %, 14 trades | +21.8 %, 14 trades | -50.2 % |
 | SOL | momentum-1d | -29.2 %, DD 56 %, 43 trades, 6 stops | -31.8 %, DD 58 %, 37 trades | -37.8 %, 43 trades | -50.2 % |
-| SOL | trend-1h | +14.1 %, DD 23 %, 66 trades, 31 stops | +14.1 %, DD 19 %, 58 trades | — (paper only on Revolut X) | -50.2 % |
+| SOL | trend-1h | +13.1 %, DD 20 %, 58 trades, 0 stops | +14.1 %, DD 19 %, 58 trades | — (paper only on Revolut X) | -50.2 % |
 
-Trend-4h parameters chosen in-sample under the new model: BTC {'fast': 30, 'slow': 100, 'atrStop': 4}, ETH {'fast': 30, 'slow': 50, 'atrStop': 4}, SOL {'fast': 30, 'slow': 150, 'atrStop': 3}. Full-period (in-sample, never the headline) Revolut X: trend-4h +15.3 % / +179.0 % / +206.4 %, momentum-1d +112.2 % / +268.3 % / +460.6 %.
+Trend-4h parameters chosen in-sample under this model: BTC {'fast': 30, 'slow': 100, 'atrStop': 4}, ETH {'fast': 30, 'slow': 50, 'atrStop': 3}, SOL {'fast': 30, 'slow': 150, 'atrStop': 2}. Full-period (in-sample, never the headline) Revolut X: trend-4h +35.9 % / +223.1 % / +208.7 %, momentum-1d +112.2 % / +268.3 % / +460.6 %.
 
-Read: the stops cost a little in the year they were not needed (SOL trend
-+17 vs +27 without) and saved a little where they were (BTC trend −16.5
-vs −19.3; ETH momentum +10.4 vs +3.0); the taker fee on Revolut X is worth
-about two points a year on the 4-hour rules and more on the hourly one. No
-rule beat cash in the bear year except SOL's trend and ETH's momentum;
-every rule beat buy-and-hold. The rotation basket under the same model:
-default -14.4 % OOS on Revolut X (exposure 33 %, 21.45×/y), no bear filter -47.4 %, top 3 -6.2 %, 7-day hold on Kraken -16.1 %; equal-weight buy-and-hold -46.7 %; full period default +108.2 %.
+**Read the `stops` column first: it is 0 on every trend row.** With the
+intra-bar trail gone the 8 % floor never fires on BTC, ETH or SOL in the
+out-of-sample year at all — shipped and "without stops" are the same
+number to the digit on all three 4-hour rows — so every protective exit
+this section used to report was the duplicated trail, and the floor was
+inert the whole time. What the old table called "the stops" was one stop.
+The trail cost SOL ten points in the year it was not needed (+17.3 before
+against +27.0 now) and ETH nearly four (−1.0 → +2.8), and on BTC the
+parameter search moved with it (−16.5 → −19.3, the grid choosing a
+different point once the trail stopped truncating trades). The taker fee
+on Revolut X is still worth about two points a year on the 4-hour rules
+and more on the hourly one. Momentum and the rotation basket are
+unchanged, because neither ever carried a trail: the basket is default
+−16.2 % OOS on Revolut X (exposure 30 %, 26.0×/y), no bear filter −59.4 %,
+top 3 −8.1 %, 7-day hold −15.1 %; equal-weight buy-and-hold −46.7 %.
+
+**What this section said before the correction**, so the record shows what
+was claimed and when it was found wrong: BTC trend-4h −16.5 % with 11
+stops, ETH trend-4h −1.0 % with 6, SOL trend-4h +17.3 % with 6, BTC
+trend-1h −9.3 % with 36, ETH trend-1h −6.9 % with 33, SOL trend-1h
++14.1 % with 31; Kraken −22.8 / −5.7 / +12.5; and the reading "the stops
+cost a little in the year they were not needed and saved a little where
+they were", which was describing one stop firing on wicks and a floor
+that never fired at all.
 
 ### 3.4 The rotation rulebook and the 1-hour trend variant (walk-forward, both venues)
 
@@ -935,6 +959,42 @@ snapshot; the model is not in the backtest; paper decides.
 
 ### 3.11 Where the money should sit — the allocation study (2026-09-21)
 
+> **Re-run 2026-09-21 after the duplicated intra-bar trail was removed
+> (§3.13, §4.11).** `allocation.json` is regenerated; every figure below
+> was produced under the old stop and is kept because the change to it is
+> the finding. **Every ranking and every conclusion is unchanged** — the
+> same plan wins on the worse window, no weighting beats equal slots on
+> both windows, no row change helps both — and every number is better:
+>
+> | | old | re-run |
+> |---|---|---|
+> | recommended sleeve, window A (bear) | −0.3 %, DD 11.8 %, ret/DD −0.03 | **+8.0 %, DD 11.3 %, ret/DD 0.71** |
+> | recommended sleeve, window B (bull) | +12.6 %, DD 10.2 %, 1.24 | **+20.1 %, DD 10.5 %, 1.92** |
+> | deployment A / B | 6.5 % / 11.3 % | 8.8 % / 14.4 % |
+> | turnover A / B | 19.0× / 25.9× a year | 16.5× / 21.8× |
+> | the shipped seven rows, $400 | −0.22 / +3.00 | −0.03 / +3.65 |
+>
+> The bear window is the one that matters for the decision, and it moves
+> from "roughly flat" to **+8 %**. Capital per coin (point 1): equal slots
+> is now −0.03 / 3.65 and still nothing beats it on BOTH windows —
+> inverse-volatility −0.12 / 4.03, per-entry scaling +0.02 / 3.29 and
+> concentration −0.09 / 4.19 each win one and lose one, equal risk is
+> identical to equal slots to the digit, and both evidence arms still lose
+> on both. Row plans (point 2), best worse-window first, unchanged in
+> order: trend-4h alone **+0.71 / +1.92**, both venues +0.66 / +1.52,
+> trend-4h + momentum +0.20 / +3.83, Revolut X without rotation +0.20 /
+> +3.12, drop the rotations +0.11 / +2.89, Revolut X only +0.02 / +4.38,
+> the shipped set −0.03 / +3.65, Kraken only −0.07 / +2.90, row capital by
+> prior evidence −0.25 / +3.27 and still the worst plan tried.
+> **Leave-one-out (point 5) is where the correction bites hardest**: in the
+> bear window AVAX now returns **+34.1 %** on its own slot and is the most
+> expensive coin to remove (ret/DD −0.56 without it), SOL +17.6 %, SUI
+> turns from −10.5 % to +1.4 %, and in the bull window **AVAX is +6.8 %
+> where it was −3.3 %** — so AVAX is positive on BOTH windows for the
+> first time, on the parameters the loop actually runs. Nothing is added
+> or removed on that basis: one re-run is not a bar (§4.15), and the
+> third-window study is the test.
+
 Davies: live is now all-or-nothing, so the whole set has to be the best
 set, and "每个币不一定都投入一样的钱" — the coins need not get equal
 money. Run by an independent agent as
@@ -1268,10 +1328,16 @@ fall in which no bid returns. AVAX's and SUI's Revolut X
 is an assumption. And re-quoting at the loop's real cadence cannot be
 modelled at hourly resolution.
 
-**Not changed in code.** The trail correction is a change to what sells
-without asking the model (§4.11), which is Davies' call and not a
-backtest's; it is written here, and in the go-live brief, as the one
-change the evidence asks for.
+**Shipped 2026-09-21**, on Davies' word once the mechanism was verified:
+`tick.ts` and `SHIPPED_STOPS` carry `atrStop: null`, the rulebook's
+close-based trail is untouched, the 8 % floor is untouched, and
+`stopsForKind` returns the floor alone for every rulebook. Pinned by
+`backtest.test.ts` and `tick.test.ts` — and fixing those pins was itself
+evidence: one asserted "a slot through its 8 % floor is sold" on a series
+whose floor sat 75 % below the market, so the exit it measured was the
+trail. The test named the floor and measured the trail, which is the same
+confusion the loop had. §3.3a is re-run; the floor turns out never to have
+fired on BTC, ETH or SOL out of sample.
 
 ## 4. Design consequences (decided by the evidence above)
 
@@ -1285,7 +1351,7 @@ change the evidence asks for.
 8. **Two venues, each for what it is good at** (§2b, §2c). Revolut X executes (0 % maker); Kraken supplies the signal (`signal_venue`: its candles are the cleaner series) and runs paper twins whose fills pay its real fee. There is no arbitrage between them at any cadence available here — measured, not assumed — and the basis keeps being recorded so that stays true or is seen to change. Caps in `agent_risk` are per venue account and per mode.
 9. **Capital utilisation is a consequence of regime, not a target.** The rotation rule holds the strongest two of four whenever they trend; in a broad bear it holds cash, because the alternative lost 45 % out of sample (§3.4). The switch that makes it always-invested exists and is Davies' to flip, with the number beside it.
 10. **Nothing fast, except what the data earned — and nothing did.** A 1,000-order day on Revolut X and 40–80 bps a side on Kraken rule out market-making and cross-venue trading. The fastest rule is the 1-hour trend variant (paper, for feedback speed). The dislocation rule (§3.5: taker entries when Revolut X's touch sat ≥ 15 bps under Kraken) was seeded as a measurement and retired by `0038` after its one trade, which turned out to be the other region's book (§3.5, §4.14): a UK account cannot lift an EEA ask. §3.6 tried 15-minute and 1-hour bars with the loop's own fills: at 15 minutes the best parameters lose on every coin, in sample and out, because ~300 round trips a year at 20 bps each is 60 % of the account. A faster rule is a fee schedule, not a strategy, until data says otherwise.
-11. **Stops run between bars, entries do not.** The ATR trail and the floor under cost are checked every minute against the live mark and sell without asking the model; an entry is never taken between bar closes. A resting exit order never outranks a stop: when the stop fires it is cancelled first (on Revolut X the sale is then marketable; on Kraken a stop already resting at the ask is left to work). A stop is claimed on the minute, so one that lapses is tried again next minute, not next bar. After ANY exit a rule waits two of its own bars before buying again — §3.3a shows why. The backtester runs the same stops and the same cooldown, so the tables describe the shipped rule — true of every rule from 2026-09-20 and of the ROTATION rule only from 2026-09-21, when the pre-live review found `runRotation` had neither and §3.4 was re-run with both (the sentence is left standing and corrected here, so the record shows what was claimed and when it was found wrong).
+11. **Stops run between bars, entries do not.** The floor under cost is checked every minute against the live mark and sells without asking the model; an entry is never taken between bar closes. **There is no intra-bar ATR trail, since 2026-09-21** (§3.13): the trail that ran here was the trail `ruleDecision` already applies to the CLOSE, from the same anchor with the same multiplier, and the per-minute copy always fired first — 48 of 49 protective exits in one walk-forward window, 67 of 68 in the other, which made the rulebook's own trail near dead code and cost SOL ten points and ETH four in the year it was not needed. Switching it off is better on 8 of 10 coin-windows; the rulebook's trail now does the work it was written to do, on closes. The floor stays intra-bar and is the crash protection — and §3.3a's re-run shows it never fired at all on BTC, ETH or SOL in the out-of-sample year, so what the tables used to call "the stops" was one stop. A resting exit order never outranks a stop: when the stop fires it is cancelled first (on Revolut X the sale is then marketable; on Kraken a stop already resting at the ask is left to work). A stop is claimed on the minute, so one that lapses is tried again next minute, not next bar. After ANY exit a rule waits two of its own bars before buying again — §3.3a shows why. The backtester runs the same stops and the same cooldown, so the tables describe the shipped rule — true of every rule from 2026-09-20 and of the ROTATION rule only from 2026-09-21, when the pre-live review found `runRotation` had neither and §3.4 was re-run with both (the sentence is left standing and corrected here, so the record shows what was claimed and when it was found wrong).
 12. **One turn at a time.** pg_net fires the next minute's tick whether or not the last one finished; a turn takes a lease (`agent_locks`, compare-and-set on its expiry, 55 s) and a turn that finds it held does nothing. The bar claim protects decisions; the lease protects everything else.
 13. **The model is asked on entries only.** It can veto one; it never advises an exit, and the seeds, the page and the README say exactly that. A partially filled live order is a position from its first fill (stops and caps see it); a venue-cancelled order that had filled in part is recorded as a fill of that part; a live order that filled on arrival is settled from the venue's own view next turn, fee included — never from the placement reply.
 14. **The venue's market data is the account's region, always.** Revolut X keeps two books per pair (UK / EEA) and this account trades the UK one; a quote or a candle from the other book is not a price this account can get, and reading one produced the only trade the dislocation rule ever made (§3.5). Every public call names `region=UK`, a row from another region is dropped, and the probe shows which book the loop is reading. The same discipline applies to any venue that publishes more than one book, and any fact of that kind written into this reference is a requirement on the client with a pin, the day it is written.

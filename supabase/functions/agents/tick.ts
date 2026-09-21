@@ -15,10 +15,12 @@
 //      dropped — an order chased forever is a market order in disguise;
 //   3. the book: positions and today's P&L per venue and mode, derived
 //      from fills, never stored;
-//   4. protective stops, EVERY minute, against the live mark: the ATR
-//      trailing stop from the high since entry (the trend rules) and a
-//      hard floor under cost (every rule). The one action taken between
-//      bar closes, and only ever an exit;
+//   4. protective stops, EVERY minute, against the live mark: a hard
+//      floor under cost, on every rule. The one action taken between bar
+//      closes, and only ever an exit. There is NO intra-bar ATR trail
+//      since 2026-09-21: it was the rulebook's own trail evaluated on
+//      wicks instead of closes, and it pre-empted the rulebook on 48 of
+//      49 protective exits in one walk-forward window (§3.13);
 //   5. observations, EVERY minute: the categorical state on the forming
 //      bar, written down when it changes — how the page shows what the
 //      market is doing between decisions without a single order;
@@ -693,7 +695,12 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     const rotation = rotationParamsOf(s);
     const lookbackDays = num(s.params?.lookbackDays, 30);   // the momentum word's window; a row without the parameter reads the 30 days its name says
     const barMs = decisionBarMs(s.kind);
-    const stops = { atrStop: s.kind === "trend-4h" || s.kind === "trend-1h" ? p.atrStop : null, maxLossPct: num(s.params?.maxLossPct, 0.08) };
+    // The floor under cost, and no intra-bar ATR trail on any rule: the trail `ruleDecision` applies to
+    // the CLOSE and the one this checked against the live mark were the same trail from the same anchor,
+    // and the per-minute copy always fired first — 48 of 49 protective exits in one walk-forward window,
+    // 67 of 68 in the other, for a rule that is better without it on 8 of 10 coin-windows (§3.13, §4.11).
+    // The rulebook's trail is untouched and now does the work it was written to do.
+    const stops = { atrStop: null, maxLossPct: num(s.params?.maxLossPct, 0.08) };
 
     // The rotation rule ranks the whole cross-section once, on closed daily candles.
     let ranks: Record<string, RankView> | null = null;

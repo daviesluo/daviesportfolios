@@ -198,6 +198,45 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-21 23:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The duplicated intra-bar ATR trail is gone, and the floor turns out
+never to have fired.** Davies left the call to me after §3.13 laid out
+the mechanism; the mechanism is what decided it, not the backtest — the
+trail the protective stop ran was the trail `ruleDecision` already
+applies to the close, same anchor, same multiplier, and a bar that closes
+through a level traded through it first, so the per-minute copy took 48
+of 49 protective exits in one window and 67 of 68 in the other.
+`tick.ts` and `SHIPPED_STOPS` now carry `atrStop: null`; the rulebook's
+close-based trail and the intra-bar 8 % floor are both untouched.
+
+Fixing the pins was itself evidence. `backtest.test.ts` asserted "a slot
+through its 8 % floor is sold" on a series compounding 1 % a day, which
+put the floor ~75 % below the market — the exit it measured was the
+trail. The test named the floor and measured the trail, exactly the
+confusion the loop had. `tick.test.ts` asserted a protective exit whose
+reason contained "ATR trailing stop"; it now asserts the high-water word
+is still read and that nothing sells on it between bars.
+
+`summary.json`, `latest.json` and `allocation.json` re-run. **§3.3a's
+`stops` column is 0 on every trend row**: with the trail gone the 8 %
+floor never fires on BTC, ETH or SOL out of sample at all, so everything
+those tables ever called "the stops" was one stop. The recommended sleeve
+goes **A −0.3 % → +8.0 %** (DD 11.8 → 11.3) and **B +12.6 % → +20.1 %**;
+every ranking in §3.11 is unchanged, which is the reassuring part. AVAX
+is now positive on BOTH windows (+34.1 % / +6.8 %) on the parameters the
+loop runs — noted, and NOT acted on: one re-run is not a bar (§4.15), and
+§3.8's own bar needs re-choosing parameters per window, which is the
+third-window study's job. §3.3a, §3.11, §4.11, go-live §3–§4 and §7,
+README and CLAUDE.md all carry the correction and the superseded numbers
+beside it. Rejected from the same study: widening the floor to 10 %, a
+single-coin artefact (better on 2 cells of ten, worse on 4).
+
+**Watch**: the two studies still running (third window + the one-window
+cohort; Kraken standalone + the TESTING rows) were launched BEFORE this
+change and import `SHIPPED_STOPS`. Whatever they hand back has to be
+checked for which stop it ran under, and re-run if it ran the old one.
+
 ### [2026-09-21 23:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The ATR trail is implemented twice, and the copy nobody designed takes

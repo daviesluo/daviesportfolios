@@ -99,8 +99,9 @@ that follow from that evidence, in short:
   both venues (basis recorded every fifth minute), order management
   (fills, reconcile, re-quote a resting order the touch has left — five
   times at most, nothing rests past an hour), protective stops against
-  the live mark (ATR trail from the high since entry, a hard floor under
-  cost — sold without asking the model, marketable on Revolut X), and
+  the live mark (a hard floor under cost — sold without asking the model,
+  marketable on Revolut X; NO intra-bar ATR trail since 2026-09-21, it
+  duplicated the rulebook's own close-based trail, §3.13), and
   the categorical state on the FORMING bar written to `agent_observations`
   when it changes. **Entries happen only on a newly closed 1h / 4h / 1d
   bar**, at most a few a day; the one exception is the dislocation rule,
