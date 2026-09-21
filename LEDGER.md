@@ -198,6 +198,47 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-21 20:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`git add -A` swept a file that was being written under it, and main
+went red.** A study script a background agent was still building,
+`backtest_allocation.ts`, was picked up by the UI commit's `git add -A`
+at 19:57. That snapshot does not type-check (a half-built object literal
+missing a field), so `edge-functions` run 234 failed on
+`deno check --quiet supabase/functions/`; `check` itself stayed green,
+because only the Edge workflow type-checks Deno. Nothing deployed from
+that commit and nothing in production changed — the gate did its job.
+The file is off the index and stays on disk untracked until the agent
+finishes, when it lands with its report and its numbers. **The lesson,
+now in the skill: never `git add -A` while an agent is writing into the
+working tree.** The same commit also lost its ledger line to a script
+that stopped on a bad anchor before reaching the ledger block, which is
+why the entry below arrives with this one rather than with its own push.
+
+### [2026-09-21 19:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The agents pages, cut down to what is not said twice, and put on the
+site's own clock.** Davies' list, all of it. The explanatory line under
+both scoreboards is gone and the fees ride on the realised label,
+`REALIZED G/L (incl. fees $0.08)`. The detail's key-value strip (name,
+venue, symbols, capital, every parameter) is gone and the head above it
+has its room back. The position tiles ARE the tactics board's player
+card now — same grid, same card, same rows — so one layout means "here
+is a position" everywhere on the site, and clicking one aims the chart.
+The LIVE STATE column reads one phrasing, `Last change: 40 secs ago`.
+Under the chart there is ONE table where there were three: the fills
+table, the positions table and the decisions table all said the same
+things, so the orders table moved up into PRICE & FILLS, keeps the
+arrow the chart marks a fill with, calls the notional Cost, and lost its
+summary line; "Load full history" widens that table instead of opening
+another. Every cell in every agents table is centred, because these are
+read down a column. **And every time the page prints is UK local time** —
+`londonParts` in `agents_chart.js`, `Intl` for BST and GMT, the month
+from the file's own table because `en-GB` writes "Sept" where the rest
+of the site writes "Sep". 205 sweep checks, with new ones for the fees
+label, the centring, the UK stamp, the card's rows and the resting
+order's state.
+
 ### [2026-09-21 18:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The go-live brief, written from the evidence rather than from the
