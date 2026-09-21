@@ -1,0 +1,2910 @@
+{
+ "ran_at": "2026-09-21T13:46:39.203Z",
+ "study": "five rule ideas, walk-forward, against the shipped trend-4h rule",
+ "source": "Coinbase Exchange 1h → 4h / 1d / 1w. Parameters chosen on the first two thirds by return over drawdown, the last third reported out of sample; plateau = the whole grid run out of sample. Fills, fees, stops (8 % floor under cost, ATR trail from the high since entry, read against each bar's low) and the two-bar cooldown are backtest.ts's own: Revolut X takes the touch (9 bps taker + half-spread per side), Kraken rests post-only (40 bps maker + half-spread). The model is not in the backtest.",
+ "bar": "docs/agents/reference.md §3.7 / §4.15, written before the numbers: positive out of sample on Revolut X costs, max drawdown < 35 %, at least half the grid positive out of sample, and positive on Kraken costs.",
+ "stops": {
+  "maxLossPct": 0.08,
+  "atrStop": 3,
+  "atrN": 14,
+  "reentryBars": 2
+ },
+ "costs": {
+  "revx": {
+   "venue": "revx",
+   "makerBps": 0,
+   "takerBps": 9,
+   "fillFee": "taker",
+   "halfSpread": {
+    "BTC/USD": 0.000075,
+    "ETH/USD": 0.000105,
+    "SOL/USD": 0.000155,
+    "XRP/USD": 0.00029,
+    "DOGE/USD": 0.00032,
+    "LINK/USD": 0.00042,
+    "ADA/USD": 0.000425,
+    "AVAX/USD": 0.00048
+   }
+  },
+  "kraken": {
+   "venue": "kraken",
+   "makerBps": 40,
+   "takerBps": 80,
+   "fillFee": "maker",
+   "halfSpread": {
+    "BTC/USD": 5e-7,
+    "ETH/USD": 0.000002,
+    "SOL/USD": 0.000046,
+    "XRP/USD": 0.00005,
+    "DOGE/USD": 0.00022,
+    "LINK/USD": 0.000005,
+    "ADA/USD": 0.000205,
+    "AVAX/USD": 0.000085
+   }
+  }
+ },
+ "symbols": [
+  "BTC/USD",
+  "ETH/USD",
+  "SOL/USD",
+  "XRP/USD",
+  "DOGE/USD",
+  "LINK/USD",
+  "ADA/USD",
+  "AVAX/USD"
+ ],
+ "skippedNoMeasuredSpread": [
+  "AAVE/USD",
+  "BCH/USD",
+  "BNB/USD",
+  "DOT/USD",
+  "ETC/USD",
+  "HBAR/USD",
+  "HYPE/USD",
+  "LTC/USD",
+  "NEAR/USD",
+  "PEPE/USD",
+  "SHIB/USD",
+  "SUI/USD",
+  "TON/USD",
+  "UNI/USD",
+  "XLM/USD"
+ ],
+ "windows": {
+  "BTC/USD": {
+   "bars4h": 6750,
+   "from": "2023-08-22",
+   "split": "2025-09-10",
+   "to": "2026-09-20",
+   "weeklyBars": 162
+  },
+  "ETH/USD": {
+   "bars4h": 6750,
+   "from": "2023-08-22",
+   "split": "2025-09-10",
+   "to": "2026-09-20",
+   "weeklyBars": 162
+  },
+  "SOL/USD": {
+   "bars4h": 6750,
+   "from": "2023-08-22",
+   "split": "2025-09-10",
+   "to": "2026-09-20",
+   "weeklyBars": 162
+  },
+  "XRP/USD": {
+   "bars4h": 6600,
+   "from": "2023-09-16",
+   "split": "2025-09-18",
+   "to": "2026-09-20",
+   "weeklyBars": 158
+  },
+  "DOGE/USD": {
+   "bars4h": 6570,
+   "from": "2023-09-22",
+   "split": "2025-09-21",
+   "to": "2026-09-21",
+   "weeklyBars": 157
+  },
+  "LINK/USD": {
+   "bars4h": 6570,
+   "from": "2023-09-22",
+   "split": "2025-09-21",
+   "to": "2026-09-21",
+   "weeklyBars": 157
+  },
+  "ADA/USD": {
+   "bars4h": 6570,
+   "from": "2023-09-22",
+   "split": "2025-09-21",
+   "to": "2026-09-21",
+   "weeklyBars": 157
+  },
+  "AVAX/USD": {
+   "bars4h": 6570,
+   "from": "2023-09-22",
+   "split": "2025-09-21",
+   "to": "2026-09-21",
+   "weeklyBars": 157
+  }
+ },
+ "grids": {
+  "regime-filtered-trend": {
+   "points": 27,
+   "btcSmaDays": [
+    100,
+    150,
+    200
+   ],
+   "fast": [
+    10,
+    20,
+    30
+   ],
+   "slow": [
+    50,
+    100,
+    150
+   ],
+   "atrStop": [
+    3
+   ]
+  },
+  "donchian-4h": {
+   "points": 18,
+   "entryN": [
+    20,
+    55,
+    100
+   ],
+   "exitM": [
+    10,
+    20
+   ],
+   "atrStop": [
+    2,
+    3,
+    4
+   ]
+  },
+  "pullback-4h": {
+   "points": 12,
+   "kAtr": [
+    0.5,
+    1
+   ],
+   "holdBars": [
+    12,
+    24
+   ],
+   "atrStop": [
+    2,
+    3,
+    4
+   ],
+   "fast": 20,
+   "slow": 100
+  },
+  "stale-trend-exit": {
+   "points": 27,
+   "staleBars": [
+    12,
+    24,
+    48
+   ],
+   "fast": [
+    10,
+    20,
+    30
+   ],
+   "slow": [
+    50,
+    100,
+    150
+   ],
+   "atrStop": [
+    3
+   ]
+  },
+  "weekly-trend": {
+   "points": 24,
+   "fast": [
+    4,
+    8
+   ],
+   "slow": [
+    13,
+    26
+   ],
+   "breakoutUp": [
+    8,
+    13
+   ],
+   "breakoutDown": 4,
+   "atrStop": [
+    2,
+    3,
+    4
+   ]
+  },
+  "baseline": {
+   "points": 27,
+   "fast": [
+    10,
+    20,
+    30
+   ],
+   "slow": [
+    50,
+    100,
+    150
+   ],
+   "atrStop": [
+    2,
+    3,
+    4
+   ]
+  }
+ },
+ "baseline": {
+  "BTC/USD": {
+   "chosen": {
+    "fast": 30,
+    "slow": 100,
+    "atrStop": 4
+   },
+   "inSample": {
+    "ret": 0.381,
+    "maxDD": 0.1936,
+    "trades": 58,
+    "days": 733,
+    "exposure": 0.183,
+    "stopsHit": 26
+   },
+   "outOfSample": {
+    "ret": -0.1649,
+    "maxDD": 0.2133,
+    "trades": 26,
+    "days": 375,
+    "exposure": 0.139,
+    "stopsHit": 11
+   },
+   "kraken": {
+    "ret": -0.228,
+    "maxDD": 0.2573,
+    "trades": 26,
+    "days": 375,
+    "exposure": 0.139,
+    "stopsHit": 11
+   },
+   "plateau": {
+    "gridPoints": 27,
+    "positiveShareOutOfSample": 0,
+    "medianOutOfSample": -0.138,
+    "worstOutOfSample": -0.1787,
+    "bestOutOfSample": -0.0663,
+    "chosenRankOutOfSample": 23
+   },
+   "grossOutOfSample": -0.1434,
+   "costDragOutOfSample": 0.0214,
+   "tradesPerYear": 25.3,
+   "buyHoldOutOfSample": -0.2806
+  },
+  "ETH/USD": {
+   "chosen": {
+    "fast": 30,
+    "slow": 50,
+    "atrStop": 4
+   },
+   "inSample": {
+    "ret": 1.8188,
+    "maxDD": 0.1548,
+    "trades": 34,
+    "days": 741,
+    "exposure": 0.163,
+    "stopsHit": 15
+   },
+   "outOfSample": {
+    "ret": -0.0103,
+    "maxDD": 0.2258,
+    "trades": 16,
+    "days": 375,
+    "exposure": 0.092,
+    "stopsHit": 6
+   },
+   "kraken": {
+    "ret": -0.0566,
+    "maxDD": 0.2544,
+    "trades": 16,
+    "days": 375,
+    "exposure": 0.092,
+    "stopsHit": 6
+   },
+   "plateau": {
+    "gridPoints": 27,
+    "positiveShareOutOfSample": 0.074,
+    "medianOutOfSample": -0.1027,
+    "worstOutOfSample": -0.1804,
+    "bestOutOfSample": 0.0038,
+    "chosenRankOutOfSample": 4
+   },
+   "grossOutOfSample": 0.0058,
+   "costDragOutOfSample": 0.016,
+   "tradesPerYear": 15.6,
+   "buyHoldOutOfSample": -0.4013
+  },
+  "SOL/USD": {
+   "chosen": {
+    "fast": 30,
+    "slow": 150,
+    "atrStop": 3
+   },
+   "inSample": {
+    "ret": 1.5506,
+    "maxDD": 0.2813,
+    "trades": 53,
+    "days": 725,
+    "exposure": 0.149,
+    "stopsHit": 25
+   },
+   "outOfSample": {
+    "ret": 0.1732,
+    "maxDD": 0.1468,
+    "trades": 14,
+    "days": 375,
+    "exposure": 0.063,
+    "stopsHit": 6
+   },
+   "kraken": {
+    "ret": 0.1251,
+    "maxDD": 0.167,
+    "trades": 14,
+    "days": 375,
+    "exposure": 0.063,
+    "stopsHit": 6
+   },
+   "plateau": {
+    "gridPoints": 27,
+    "positiveShareOutOfSample": 1,
+    "medianOutOfSample": 0.1402,
+    "worstOutOfSample": 0.0414,
+    "bestOutOfSample": 0.2932,
+    "chosenRankOutOfSample": 8
+   },
+   "grossOutOfSample": 0.1907,
+   "costDragOutOfSample": 0.0175,
+   "tradesPerYear": 13.6,
+   "buyHoldOutOfSample": -0.5023
+  },
+  "XRP/USD": {
+   "chosen": {
+    "fast": 30,
+    "slow": 50,
+    "atrStop": 3
+   },
+   "inSample": {
+    "ret": 0.8327,
+    "maxDD": 0.2539,
+    "trades": 34,
+    "days": 725,
+    "exposure": 0.056,
+    "stopsHit": 17
+   },
+   "outOfSample": {
+    "ret": -0.1117,
+    "maxDD": 0.1669,
+    "trades": 14,
+    "days": 367,
+    "exposure": 0.025,
+    "stopsHit": 7
+   },
+   "kraken": {
+    "ret": -0.1466,
+    "maxDD": 0.1881,
+    "trades": 14,
+    "days": 367,
+    "exposure": 0.025,
+    "stopsHit": 7
+   },
+   "plateau": {
+    "gridPoints": 27,
+    "positiveShareOutOfSample": 0.407,
+    "medianOutOfSample": -0.0311,
+    "worstOutOfSample": -0.1596,
+    "bestOutOfSample": 0.1477,
+    "chosenRankOutOfSample": 20
+   },
+   "grossOutOfSample": -0.0968,
+   "costDragOutOfSample": 0.0149,
+   "tradesPerYear": 13.9,
+   "buyHoldOutOfSample": -0.5596
+  },
+  "DOGE/USD": {
+   "chosen": {
+    "fast": 20,
+    "slow": 150,
+    "atrStop": 4
+   },
+   "inSample": {
+    "ret": 0.7255,
+    "maxDD": 0.3745,
+    "trades": 34,
+    "days": 705,
+    "exposure": 0.116,
+    "stopsHit": 15
+   },
+   "outOfSample": {
+    "ret": -0.1252,
+    "maxDD": 0.1815,
+    "trades": 12,
+    "days": 365,
+    "exposure": 0.037,
+    "stopsHit": 5
+   },
+   "kraken": {
+    "ret": -0.1562,
+    "maxDD": 0.201,
+    "trades": 12,
+    "days": 365,
+    "exposure": 0.037,
+    "stopsHit": 5
+   },
+   "plateau": {
+    "gridPoints": 27,
+    "positiveShareOutOfSample": 0.111,
+    "medianOutOfSample": -0.0696,
+    "worstOutOfSample": -0.1494,
+    "bestOutOfSample": 0.0471,
+    "chosenRankOutOfSample": 26
+   },
+   "grossOutOfSample": -0.1126,
+   "costDragOutOfSample": 0.0126,
+   "tradesPerYear": 12,
+   "buyHoldOutOfSample": -0.6488
+  },
+  "LINK/USD": {
+   "chosen": {
+    "fast": 10,
+    "slow": 50,
+    "atrStop": 3
+   },
+   "inSample": {
+    "ret": 0.6853,
+    "maxDD": 0.3811,
+    "trades": 52,
+    "days": 721,
+    "exposure": 0.119,
+    "stopsHit": 25
+   },
+   "outOfSample": {
+    "ret": 0.0426,
+    "maxDD": 0.1841,
+    "trades": 21,
+    "days": 365,
+    "exposure": 0.086,
+    "stopsHit": 10
+   },
+   "kraken": {
+    "ret": -0.0145,
+    "maxDD": 0.2121,
+    "trades": 21,
+    "days": 365,
+    "exposure": 0.086,
+    "stopsHit": 10
+   },
+   "plateau": {
+    "gridPoints": 27,
+    "positiveShareOutOfSample": 0.889,
+    "medianOutOfSample": 0.0426,
+    "worstOutOfSample": -0.0434,
+    "bestOutOfSample": 0.1629,
+    "chosenRankOutOfSample": 14
+   },
+   "grossOutOfSample": 0.0719,
+   "costDragOutOfSample": 0.0293,
+   "tradesPerYear": 21,
+   "buyHoldOutOfSample": -0.4352
+  },
+  "ADA/USD": {
+   "chosen": {
+    "fast": 20,
+    "slow": 150,
+    "atrStop": 3
+   },
+   "inSample": {
+    "ret": 0.8657,
+    "maxDD": 0.2584,
+    "trades": 36,
+    "days": 705,
+    "exposure": 0.082,
+    "stopsHit": 17
+   },
+   "outOfSample": {
+    "ret": -0.0938,
+    "maxDD": 0.1584,
+    "trades": 14,
+    "days": 365,
+    "exposure": 0.063,
+    "stopsHit": 7
+   },
+   "kraken": {
+    "ret": -0.1297,
+    "maxDD": 0.1774,
+    "trades": 14,
+    "days": 365,
+    "exposure": 0.063,
+    "stopsHit": 7
+   },
+   "plateau": {
+    "gridPoints": 27,
+    "positiveShareOutOfSample": 0.148,
+    "medianOutOfSample": -0.0938,
+    "worstOutOfSample": -0.192,
+    "bestOutOfSample": 0.1142,
+    "chosenRankOutOfSample": 13
+   },
+   "grossOutOfSample": -0.0769,
+   "costDragOutOfSample": 0.017,
+   "tradesPerYear": 14,
+   "buyHoldOutOfSample": -0.7215
+  },
+  "AVAX/USD": {
+   "chosen": {
+    "fast": 10,
+    "slow": 50,
+    "atrStop": 4
+   },
+   "inSample": {
+    "ret": 1.1315,
+    "maxDD": 0.3698,
+    "trades": 42,
+    "days": 721,
+    "exposure": 0.169,
+    "stopsHit": 16
+   },
+   "outOfSample": {
+    "ret": 0.403,
+    "maxDD": 0.1218,
+    "trades": 9,
+    "days": 365,
+    "exposure": 0.046,
+    "stopsHit": 3
+   },
+   "kraken": {
+    "ret": 0.3693,
+    "maxDD": 0.1267,
+    "trades": 9,
+    "days": 365,
+    "exposure": 0.046,
+    "stopsHit": 3
+   },
+   "plateau": {
+    "gridPoints": 27,
+    "positiveShareOutOfSample": 0.852,
+    "medianOutOfSample": 0.1387,
+    "worstOutOfSample": -0.0623,
+    "bestOutOfSample": 0.403,
+    "chosenRankOutOfSample": 1
+   },
+   "grossOutOfSample": 0.4205,
+   "costDragOutOfSample": 0.0175,
+   "tradesPerYear": 9,
+   "buyHoldOutOfSample": -0.651
+  }
+ },
+ "ideas": {
+  "regime-filtered-trend": {
+   "BTC/USD": {
+    "chosen": {
+     "btcSmaDays": 100,
+     "fast": 30,
+     "slow": 100,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.1904,
+     "maxDD": 0.1989,
+     "trades": 68,
+     "days": 733,
+     "exposure": 0.116,
+     "stopsHit": 33
+    },
+    "outOfSample": {
+     "ret": -0.0462,
+     "maxDD": 0.1118,
+     "trades": 16,
+     "days": 375,
+     "exposure": 0.06,
+     "stopsHit": 8
+    },
+    "kraken": {
+     "ret": -0.0913,
+     "maxDD": 0.1357,
+     "trades": 16,
+     "days": 375,
+     "exposure": 0.06,
+     "stopsHit": 8
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.778,
+     "medianOutOfSample": 0.033,
+     "worstOutOfSample": -0.0462,
+     "bestOutOfSample": 0.1038,
+     "chosenRankOutOfSample": 26
+    },
+    "grossOutOfSample": -0.0312,
+    "costDragOutOfSample": 0.015,
+    "tradesPerYear": 15.6,
+    "baselineOutOfSample": -0.1649,
+    "buyHoldOutOfSample": -0.2806,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "kraken OOS not positive"
+    ],
+    "extra": {
+     "unfilteredSameParamsOutOfSample": {
+      "ret": -0.138,
+      "maxDD": 0.1973,
+      "trades": 28,
+      "days": 375,
+      "exposure": 0.096,
+      "stopsHit": 14
+     },
+     "tradesRemoved": 12,
+     "drawdownChange": -0.0855
+    }
+   },
+   "ETH/USD": {
+    "chosen": {
+     "btcSmaDays": 200,
+     "fast": 10,
+     "slow": 50,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 1.3113,
+     "maxDD": 0.2171,
+     "trades": 52,
+     "days": 741,
+     "exposure": 0.136,
+     "stopsHit": 26
+    },
+    "outOfSample": {
+     "ret": 0.0569,
+     "maxDD": 0.0737,
+     "trades": 6,
+     "days": 375,
+     "exposure": 0.028,
+     "stopsHit": 3
+    },
+    "kraken": {
+     "ret": 0.0381,
+     "maxDD": 0.0847,
+     "trades": 6,
+     "days": 375,
+     "exposure": 0.028,
+     "stopsHit": 3
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.407,
+     "medianOutOfSample": -0.0061,
+     "worstOutOfSample": -0.0878,
+     "bestOutOfSample": 0.0918,
+     "chosenRankOutOfSample": 2
+    },
+    "grossOutOfSample": 0.0633,
+    "costDragOutOfSample": 0.0064,
+    "tradesPerYear": 5.8,
+    "baselineOutOfSample": -0.0103,
+    "buyHoldOutOfSample": -0.4013,
+    "clearsBar": false,
+    "failed": [
+     "plateau < 50 %"
+    ],
+    "extra": {
+     "unfilteredSameParamsOutOfSample": {
+      "ret": 0.0038,
+      "maxDD": 0.1839,
+      "trades": 20,
+      "days": 375,
+      "exposure": 0.077,
+      "stopsHit": 10
+     },
+     "tradesRemoved": 14,
+     "drawdownChange": -0.1102
+    }
+   },
+   "SOL/USD": {
+    "chosen": {
+     "btcSmaDays": 200,
+     "fast": 30,
+     "slow": 150,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 1.6031,
+     "maxDD": 0.2665,
+     "trades": 51,
+     "days": 725,
+     "exposure": 0.146,
+     "stopsHit": 24
+    },
+    "outOfSample": {
+     "ret": 0.1233,
+     "maxDD": 0.0774,
+     "trades": 6,
+     "days": 375,
+     "exposure": 0.026,
+     "stopsHit": 2
+    },
+    "kraken": {
+     "ret": 0.1033,
+     "maxDD": 0.0829,
+     "trades": 6,
+     "days": 375,
+     "exposure": 0.026,
+     "stopsHit": 2
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 1,
+     "medianOutOfSample": 0.1233,
+     "worstOutOfSample": 0.013,
+     "bestOutOfSample": 0.18,
+     "chosenRankOutOfSample": 14
+    },
+    "grossOutOfSample": 0.1304,
+    "costDragOutOfSample": 0.0071,
+    "tradesPerYear": 5.8,
+    "baselineOutOfSample": 0.1732,
+    "buyHoldOutOfSample": -0.5023,
+    "clearsBar": true,
+    "failed": [],
+    "extra": {
+     "unfilteredSameParamsOutOfSample": {
+      "ret": 0.1732,
+      "maxDD": 0.1468,
+      "trades": 14,
+      "days": 375,
+      "exposure": 0.063,
+      "stopsHit": 6
+     },
+     "tradesRemoved": 8,
+     "drawdownChange": -0.0694
+    }
+   },
+   "XRP/USD": {
+    "chosen": {
+     "btcSmaDays": 100,
+     "fast": 30,
+     "slow": 50,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.9188,
+     "maxDD": 0.2189,
+     "trades": 32,
+     "days": 725,
+     "exposure": 0.055,
+     "stopsHit": 16
+    },
+    "outOfSample": {
+     "ret": -0.1692,
+     "maxDD": 0.1743,
+     "trades": 10,
+     "days": 367,
+     "exposure": 0.018,
+     "stopsHit": 5
+    },
+    "kraken": {
+     "ret": -0.1927,
+     "maxDD": 0.1929,
+     "trades": 10,
+     "days": 367,
+     "exposure": 0.018,
+     "stopsHit": 5
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.148,
+     "medianOutOfSample": -0.0938,
+     "worstOutOfSample": -0.1692,
+     "bestOutOfSample": 0.0061,
+     "chosenRankOutOfSample": 18
+    },
+    "grossOutOfSample": -0.1593,
+    "costDragOutOfSample": 0.0099,
+    "tradesPerYear": 10,
+    "baselineOutOfSample": -0.1117,
+    "buyHoldOutOfSample": -0.5596,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ],
+    "extra": {
+     "unfilteredSameParamsOutOfSample": {
+      "ret": -0.1117,
+      "maxDD": 0.1669,
+      "trades": 14,
+      "days": 367,
+      "exposure": 0.025,
+      "stopsHit": 7
+     },
+     "tradesRemoved": 4,
+     "drawdownChange": 0.0074
+    }
+   },
+   "DOGE/USD": {
+    "chosen": {
+     "btcSmaDays": 100,
+     "fast": 20,
+     "slow": 150,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.4268,
+     "maxDD": 0.2788,
+     "trades": 42,
+     "days": 705,
+     "exposure": 0.078,
+     "stopsHit": 21
+    },
+    "outOfSample": {
+     "ret": 0.0597,
+     "maxDD": 0.135,
+     "trades": 10,
+     "days": 365,
+     "exposure": 0.028,
+     "stopsHit": 4
+    },
+    "kraken": {
+     "ret": 0.0284,
+     "maxDD": 0.1428,
+     "trades": 10,
+     "days": 365,
+     "exposure": 0.028,
+     "stopsHit": 4
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.481,
+     "medianOutOfSample": -0.0003,
+     "worstOutOfSample": -0.08,
+     "bestOutOfSample": 0.1088,
+     "chosenRankOutOfSample": 7
+    },
+    "grossOutOfSample": 0.0727,
+    "costDragOutOfSample": 0.013,
+    "tradesPerYear": 10,
+    "baselineOutOfSample": -0.1252,
+    "buyHoldOutOfSample": -0.6488,
+    "clearsBar": false,
+    "failed": [
+     "plateau < 50 %"
+    ],
+    "extra": {
+     "unfilteredSameParamsOutOfSample": {
+      "ret": 0.0007,
+      "maxDD": 0.135,
+      "trades": 12,
+      "days": 365,
+      "exposure": 0.034,
+      "stopsHit": 5
+     },
+     "tradesRemoved": 2,
+     "drawdownChange": 0
+    }
+   },
+   "LINK/USD": {
+    "chosen": {
+     "btcSmaDays": 200,
+     "fast": 10,
+     "slow": 50,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.749,
+     "maxDD": 0.3577,
+     "trades": 48,
+     "days": 721,
+     "exposure": 0.113,
+     "stopsHit": 24
+    },
+    "outOfSample": {
+     "ret": 0.02,
+     "maxDD": 0.1694,
+     "trades": 7,
+     "days": 365,
+     "exposure": 0.023,
+     "stopsHit": 3
+    },
+    "kraken": {
+     "ret": 0.001,
+     "maxDD": 0.1783,
+     "trades": 7,
+     "days": 365,
+     "exposure": 0.023,
+     "stopsHit": 3
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.926,
+     "medianOutOfSample": 0.049,
+     "worstOutOfSample": -0.0321,
+     "bestOutOfSample": 0.1076,
+     "chosenRankOutOfSample": 18
+    },
+    "grossOutOfSample": 0.0294,
+    "costDragOutOfSample": 0.0095,
+    "tradesPerYear": 7,
+    "baselineOutOfSample": 0.0426,
+    "buyHoldOutOfSample": -0.4352,
+    "clearsBar": true,
+    "failed": [],
+    "extra": {
+     "unfilteredSameParamsOutOfSample": {
+      "ret": 0.0426,
+      "maxDD": 0.1841,
+      "trades": 21,
+      "days": 365,
+      "exposure": 0.086,
+      "stopsHit": 10
+     },
+     "tradesRemoved": 14,
+     "drawdownChange": -0.0147
+    }
+   },
+   "ADA/USD": {
+    "chosen": {
+     "btcSmaDays": 100,
+     "fast": 20,
+     "slow": 150,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.8657,
+     "maxDD": 0.2584,
+     "trades": 36,
+     "days": 705,
+     "exposure": 0.082,
+     "stopsHit": 17
+    },
+    "outOfSample": {
+     "ret": -0.0143,
+     "maxDD": 0.1565,
+     "trades": 6,
+     "days": 365,
+     "exposure": 0.037,
+     "stopsHit": 3
+    },
+    "kraken": {
+     "ret": -0.0312,
+     "maxDD": 0.1638,
+     "trades": 6,
+     "days": 365,
+     "exposure": 0.037,
+     "stopsHit": 3
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.407,
+     "medianOutOfSample": -0.0143,
+     "worstOutOfSample": -0.0992,
+     "bestOutOfSample": 0.2254,
+     "chosenRankOutOfSample": 12
+    },
+    "grossOutOfSample": -0.0064,
+    "costDragOutOfSample": 0.0079,
+    "tradesPerYear": 6,
+    "baselineOutOfSample": -0.0938,
+    "buyHoldOutOfSample": -0.7215,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ],
+    "extra": {
+     "unfilteredSameParamsOutOfSample": {
+      "ret": -0.0938,
+      "maxDD": 0.1584,
+      "trades": 14,
+      "days": 365,
+      "exposure": 0.063,
+      "stopsHit": 7
+     },
+     "tradesRemoved": 8,
+     "drawdownChange": -0.0019
+    }
+   },
+   "AVAX/USD": {
+    "chosen": {
+     "btcSmaDays": 100,
+     "fast": 10,
+     "slow": 50,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.6572,
+     "maxDD": 0.3028,
+     "trades": 48,
+     "days": 721,
+     "exposure": 0.116,
+     "stopsHit": 23
+    },
+    "outOfSample": {
+     "ret": 0.3072,
+     "maxDD": 0.0909,
+     "trades": 8,
+     "days": 365,
+     "exposure": 0.037,
+     "stopsHit": 4
+    },
+    "kraken": {
+     "ret": 0.2792,
+     "maxDD": 0.0958,
+     "trades": 8,
+     "days": 365,
+     "exposure": 0.037,
+     "stopsHit": 4
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.889,
+     "medianOutOfSample": 0.2185,
+     "worstOutOfSample": -0.0269,
+     "bestOutOfSample": 0.3072,
+     "chosenRankOutOfSample": 1
+    },
+    "grossOutOfSample": 0.3217,
+    "costDragOutOfSample": 0.0145,
+    "tradesPerYear": 8,
+    "baselineOutOfSample": 0.403,
+    "buyHoldOutOfSample": -0.651,
+    "clearsBar": true,
+    "failed": [],
+    "extra": {
+     "unfilteredSameParamsOutOfSample": {
+      "ret": 0.2597,
+      "maxDD": 0.0909,
+      "trades": 10,
+      "days": 365,
+      "exposure": 0.037,
+      "stopsHit": 5
+     },
+     "tradesRemoved": 2,
+     "drawdownChange": 0
+    }
+   }
+  },
+  "donchian-4h": {
+   "BTC/USD": {
+    "chosen": {
+     "entryN": 20,
+     "exitM": 20,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.9345,
+     "maxDD": 0.1918,
+     "trades": 150,
+     "days": 746,
+     "exposure": 0.316,
+     "stopsHit": 74
+    },
+    "outOfSample": {
+     "ret": -0.1952,
+     "maxDD": 0.3898,
+     "trades": 79,
+     "days": 375,
+     "exposure": 0.289,
+     "stopsHit": 39
+    },
+    "kraken": {
+     "ret": -0.3663,
+     "maxDD": 0.5048,
+     "trades": 79,
+     "days": 375,
+     "exposure": 0.289,
+     "stopsHit": 39
+    },
+    "plateau": {
+     "gridPoints": 18,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": -0.1131,
+     "worstOutOfSample": -0.2877,
+     "bestOutOfSample": -0.046,
+     "chosenRankOutOfSample": 15
+    },
+    "grossOutOfSample": -0.1307,
+    "costDragOutOfSample": 0.0644,
+    "tradesPerYear": 76.9,
+    "baselineOutOfSample": -0.1649,
+    "buyHoldOutOfSample": -0.2806,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "drawdown ≥ 35 %",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ]
+   },
+   "ETH/USD": {
+    "chosen": {
+     "entryN": 100,
+     "exitM": 10,
+     "atrStop": 4
+    },
+    "inSample": {
+     "ret": 1.3167,
+     "maxDD": 0.2885,
+     "trades": 50,
+     "days": 733,
+     "exposure": 0.194,
+     "stopsHit": 16
+    },
+    "outOfSample": {
+     "ret": -0.0644,
+     "maxDD": 0.2126,
+     "trades": 24,
+     "days": 375,
+     "exposure": 0.111,
+     "stopsHit": 2
+    },
+    "kraken": {
+     "ret": -0.1293,
+     "maxDD": 0.2606,
+     "trades": 24,
+     "days": 375,
+     "exposure": 0.111,
+     "stopsHit": 2
+    },
+    "plateau": {
+     "gridPoints": 18,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": -0.1276,
+     "worstOutOfSample": -0.289,
+     "bestOutOfSample": -0.0067,
+     "chosenRankOutOfSample": 2
+    },
+    "grossOutOfSample": -0.0415,
+    "costDragOutOfSample": 0.0228,
+    "tradesPerYear": 23.4,
+    "baselineOutOfSample": -0.0103,
+    "buyHoldOutOfSample": -0.4013,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ]
+   },
+   "SOL/USD": {
+    "chosen": {
+     "entryN": 20,
+     "exitM": 20,
+     "atrStop": 4
+    },
+    "inSample": {
+     "ret": 2.4125,
+     "maxDD": 0.4254,
+     "trades": 117,
+     "days": 746,
+     "exposure": 0.425,
+     "stopsHit": 51
+    },
+    "outOfSample": {
+     "ret": -0.3813,
+     "maxDD": 0.6286,
+     "trades": 67,
+     "days": 375,
+     "exposure": 0.376,
+     "stopsHit": 29
+    },
+    "kraken": {
+     "ret": -0.4938,
+     "maxDD": 0.6822,
+     "trades": 67,
+     "days": 375,
+     "exposure": 0.376,
+     "stopsHit": 29
+    },
+    "plateau": {
+     "gridPoints": 18,
+     "positiveShareOutOfSample": 0.278,
+     "medianOutOfSample": -0.0258,
+     "worstOutOfSample": -0.412,
+     "bestOutOfSample": 0.1576,
+     "chosenRankOutOfSample": 16
+    },
+    "grossOutOfSample": -0.3362,
+    "costDragOutOfSample": 0.0451,
+    "tradesPerYear": 65.2,
+    "baselineOutOfSample": 0.1732,
+    "buyHoldOutOfSample": -0.5023,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "drawdown ≥ 35 %",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ]
+   },
+   "XRP/USD": {
+    "chosen": {
+     "entryN": 20,
+     "exitM": 10,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 1.692,
+     "maxDD": 0.2567,
+     "trades": 175,
+     "days": 730,
+     "exposure": 0.126,
+     "stopsHit": 86
+    },
+    "outOfSample": {
+     "ret": 0.1601,
+     "maxDD": 0.1926,
+     "trades": 74,
+     "days": 367,
+     "exposure": 0.097,
+     "stopsHit": 36
+    },
+    "kraken": {
+     "ret": -0.0612,
+     "maxDD": 0.259,
+     "trades": 74,
+     "days": 367,
+     "exposure": 0.097,
+     "stopsHit": 36
+    },
+    "plateau": {
+     "gridPoints": 18,
+     "positiveShareOutOfSample": 0.556,
+     "medianOutOfSample": 0.1256,
+     "worstOutOfSample": -0.2799,
+     "bestOutOfSample": 0.2999,
+     "chosenRankOutOfSample": 6
+    },
+    "grossOutOfSample": 0.2669,
+    "costDragOutOfSample": 0.1068,
+    "tradesPerYear": 73.7,
+    "baselineOutOfSample": -0.1117,
+    "buyHoldOutOfSample": -0.5596,
+    "clearsBar": false,
+    "failed": [
+     "kraken OOS not positive"
+    ]
+   },
+   "DOGE/USD": {
+    "chosen": {
+     "entryN": 20,
+     "exitM": 10,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 1.1226,
+     "maxDD": 0.2712,
+     "trades": 186,
+     "days": 726,
+     "exposure": 0.146,
+     "stopsHit": 93
+    },
+    "outOfSample": {
+     "ret": -0.2975,
+     "maxDD": 0.3434,
+     "trades": 83,
+     "days": 365,
+     "exposure": 0.094,
+     "stopsHit": 41
+    },
+    "kraken": {
+     "ret": -0.4524,
+     "maxDD": 0.478,
+     "trades": 83,
+     "days": 365,
+     "exposure": 0.094,
+     "stopsHit": 41
+    },
+    "plateau": {
+     "gridPoints": 18,
+     "positiveShareOutOfSample": 0.278,
+     "medianOutOfSample": -0.1904,
+     "worstOutOfSample": -0.5133,
+     "bestOutOfSample": 0.131,
+     "chosenRankOutOfSample": 11
+    },
+    "grossOutOfSample": -0.2227,
+    "costDragOutOfSample": 0.0749,
+    "tradesPerYear": 83,
+    "baselineOutOfSample": -0.1252,
+    "buyHoldOutOfSample": -0.6488,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ]
+   },
+   "LINK/USD": {
+    "chosen": {
+     "entryN": 100,
+     "exitM": 10,
+     "atrStop": 4
+    },
+    "inSample": {
+     "ret": 0.3838,
+     "maxDD": 0.4399,
+     "trades": 60,
+     "days": 713,
+     "exposure": 0.193,
+     "stopsHit": 11
+    },
+    "outOfSample": {
+     "ret": -0.019,
+     "maxDD": 0.1923,
+     "trades": 24,
+     "days": 365,
+     "exposure": 0.11,
+     "stopsHit": 3
+    },
+    "kraken": {
+     "ret": -0.0802,
+     "maxDD": 0.2314,
+     "trades": 24,
+     "days": 365,
+     "exposure": 0.11,
+     "stopsHit": 3
+    },
+    "plateau": {
+     "gridPoints": 18,
+     "positiveShareOutOfSample": 0.111,
+     "medianOutOfSample": -0.1414,
+     "worstOutOfSample": -0.4045,
+     "bestOutOfSample": 0.0124,
+     "chosenRankOutOfSample": 5
+    },
+    "grossOutOfSample": 0.0126,
+    "costDragOutOfSample": 0.0316,
+    "tradesPerYear": 24,
+    "baselineOutOfSample": 0.0426,
+    "buyHoldOutOfSample": -0.4352,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ]
+   },
+   "ADA/USD": {
+    "chosen": {
+     "entryN": 100,
+     "exitM": 20,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 2.0426,
+     "maxDD": 0.3116,
+     "trades": 50,
+     "days": 713,
+     "exposure": 0.126,
+     "stopsHit": 23
+    },
+    "outOfSample": {
+     "ret": -0.097,
+     "maxDD": 0.1327,
+     "trades": 17,
+     "days": 365,
+     "exposure": 0.058,
+     "stopsHit": 8
+    },
+    "kraken": {
+     "ret": -0.1401,
+     "maxDD": 0.1669,
+     "trades": 17,
+     "days": 365,
+     "exposure": 0.058,
+     "stopsHit": 8
+    },
+    "plateau": {
+     "gridPoints": 18,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": -0.1183,
+     "worstOutOfSample": -0.3976,
+     "bestOutOfSample": -0.0011,
+     "chosenRankOutOfSample": 8
+    },
+    "grossOutOfSample": -0.0764,
+    "costDragOutOfSample": 0.0206,
+    "tradesPerYear": 17,
+    "baselineOutOfSample": -0.0938,
+    "buyHoldOutOfSample": -0.7215,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ]
+   },
+   "AVAX/USD": {
+    "chosen": {
+     "entryN": 100,
+     "exitM": 20,
+     "atrStop": 4
+    },
+    "inSample": {
+     "ret": 2.7198,
+     "maxDD": 0.2975,
+     "trades": 44,
+     "days": 713,
+     "exposure": 0.192,
+     "stopsHit": 19
+    },
+    "outOfSample": {
+     "ret": 0.0689,
+     "maxDD": 0.2913,
+     "trades": 15,
+     "days": 365,
+     "exposure": 0.066,
+     "stopsHit": 6
+    },
+    "kraken": {
+     "ret": 0.026,
+     "maxDD": 0.3179,
+     "trades": 15,
+     "days": 365,
+     "exposure": 0.066,
+     "stopsHit": 6
+    },
+    "plateau": {
+     "gridPoints": 18,
+     "positiveShareOutOfSample": 0.111,
+     "medianOutOfSample": -0.1836,
+     "worstOutOfSample": -0.5528,
+     "bestOutOfSample": 0.1296,
+     "chosenRankOutOfSample": 2
+    },
+    "grossOutOfSample": 0.0908,
+    "costDragOutOfSample": 0.0218,
+    "tradesPerYear": 15,
+    "baselineOutOfSample": 0.403,
+    "buyHoldOutOfSample": -0.651,
+    "clearsBar": false,
+    "failed": [
+     "plateau < 50 %"
+    ]
+   }
+  },
+  "pullback-4h": {
+   "BTC/USD": {
+    "chosen": {
+     "kAtr": 0.5,
+     "holdBars": 24,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.5046,
+     "maxDD": 0.1735,
+     "trades": 301,
+     "days": 733,
+     "exposure": 0.379,
+     "stopsHit": 81
+    },
+    "outOfSample": {
+     "ret": 0.0368,
+     "maxDD": 0.1991,
+     "trades": 130,
+     "days": 375,
+     "exposure": 0.304,
+     "stopsHit": 41
+    },
+    "kraken": {
+     "ret": -0.3004,
+     "maxDD": 0.3233,
+     "trades": 130,
+     "days": 375,
+     "exposure": 0.304,
+     "stopsHit": 41
+    },
+    "plateau": {
+     "gridPoints": 12,
+     "positiveShareOutOfSample": 0.667,
+     "medianOutOfSample": 0.0368,
+     "worstOutOfSample": -0.0692,
+     "bestOutOfSample": 0.2112,
+     "chosenRankOutOfSample": 6
+    },
+    "grossOutOfSample": 0.1769,
+    "costDragOutOfSample": 0.14,
+    "tradesPerYear": 126.5,
+    "baselineOutOfSample": -0.1649,
+    "buyHoldOutOfSample": -0.2806,
+    "clearsBar": false,
+    "failed": [
+     "kraken OOS not positive"
+    ]
+   },
+   "ETH/USD": {
+    "chosen": {
+     "kAtr": 0.5,
+     "holdBars": 24,
+     "atrStop": 4
+    },
+    "inSample": {
+     "ret": 0.0148,
+     "maxDD": 0.4895,
+     "trades": 220,
+     "days": 733,
+     "exposure": 0.351,
+     "stopsHit": 43
+    },
+    "outOfSample": {
+     "ret": 0.4656,
+     "maxDD": 0.2492,
+     "trades": 120,
+     "days": 375,
+     "exposure": 0.386,
+     "stopsHit": 22
+    },
+    "kraken": {
+     "ret": 0.0229,
+     "maxDD": 0.3186,
+     "trades": 120,
+     "days": 375,
+     "exposure": 0.386,
+     "stopsHit": 22
+    },
+    "plateau": {
+     "gridPoints": 12,
+     "positiveShareOutOfSample": 0.833,
+     "medianOutOfSample": 0.1101,
+     "worstOutOfSample": -0.1004,
+     "bestOutOfSample": 0.4656,
+     "chosenRankOutOfSample": 1
+    },
+    "grossOutOfSample": 0.6535,
+    "costDragOutOfSample": 0.1879,
+    "tradesPerYear": 116.8,
+    "baselineOutOfSample": -0.0103,
+    "buyHoldOutOfSample": -0.4013,
+    "clearsBar": true,
+    "failed": []
+   },
+   "SOL/USD": {
+    "chosen": {
+     "kAtr": 1,
+     "holdBars": 24,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 0.0609,
+     "maxDD": 0.5182,
+     "trades": 424,
+     "days": 733,
+     "exposure": 0.334,
+     "stopsHit": 155
+    },
+    "outOfSample": {
+     "ret": -0.3686,
+     "maxDD": 0.4467,
+     "trades": 176,
+     "days": 375,
+     "exposure": 0.269,
+     "stopsHit": 67
+    },
+    "kraken": {
+     "ret": -0.6271,
+     "maxDD": 0.6557,
+     "trades": 176,
+     "days": 375,
+     "exposure": 0.269,
+     "stopsHit": 67
+    },
+    "plateau": {
+     "gridPoints": 12,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": -0.285,
+     "worstOutOfSample": -0.4929,
+     "bestOutOfSample": -0.0525,
+     "chosenRankOutOfSample": 9
+    },
+    "grossOutOfSample": -0.2399,
+    "costDragOutOfSample": 0.1288,
+    "tradesPerYear": 171.3,
+    "baselineOutOfSample": 0.1732,
+    "buyHoldOutOfSample": -0.5023,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "drawdown ≥ 35 %",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ]
+   },
+   "XRP/USD": {
+    "chosen": {
+     "kAtr": 1,
+     "holdBars": 24,
+     "atrStop": 4
+    },
+    "inSample": {
+     "ret": -0.4158,
+     "maxDD": 0.6861,
+     "trades": 248,
+     "days": 716,
+     "exposure": 0.402,
+     "stopsHit": 54
+    },
+    "outOfSample": {
+     "ret": -0.6037,
+     "maxDD": 0.6259,
+     "trades": 86,
+     "days": 367,
+     "exposure": 0.324,
+     "stopsHit": 28
+    },
+    "kraken": {
+     "ret": -0.6907,
+     "maxDD": 0.7038,
+     "trades": 86,
+     "days": 367,
+     "exposure": 0.325,
+     "stopsHit": 28
+    },
+    "plateau": {
+     "gridPoints": 12,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": -0.5293,
+     "worstOutOfSample": -0.6037,
+     "bestOutOfSample": -0.4245,
+     "chosenRankOutOfSample": 12
+    },
+    "grossOutOfSample": -0.5618,
+    "costDragOutOfSample": 0.0419,
+    "tradesPerYear": 85.6,
+    "baselineOutOfSample": -0.1117,
+    "buyHoldOutOfSample": -0.5596,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "drawdown ≥ 35 %",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ]
+   },
+   "DOGE/USD": {
+    "chosen": {
+     "kAtr": 0.5,
+     "holdBars": 24,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": -0.3435,
+     "maxDD": 0.6761,
+     "trades": 317,
+     "days": 713,
+     "exposure": 0.274,
+     "stopsHit": 120
+    },
+    "outOfSample": {
+     "ret": -0.3658,
+     "maxDD": 0.4615,
+     "trades": 124,
+     "days": 365,
+     "exposure": 0.202,
+     "stopsHit": 51
+    },
+    "kraken": {
+     "ret": -0.5629,
+     "maxDD": 0.6063,
+     "trades": 124,
+     "days": 365,
+     "exposure": 0.202,
+     "stopsHit": 51
+    },
+    "plateau": {
+     "gridPoints": 12,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": -0.3658,
+     "worstOutOfSample": -0.5021,
+     "bestOutOfSample": -0.2149,
+     "chosenRankOutOfSample": 6
+    },
+    "grossOutOfSample": -0.2626,
+    "costDragOutOfSample": 0.1032,
+    "tradesPerYear": 124,
+    "baselineOutOfSample": -0.1252,
+    "buyHoldOutOfSample": -0.6488,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "drawdown ≥ 35 %",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ]
+   },
+   "LINK/USD": {
+    "chosen": {
+     "kAtr": 0.5,
+     "holdBars": 12,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 0.0085,
+     "maxDD": 0.5842,
+     "trades": 360,
+     "days": 713,
+     "exposure": 0.28,
+     "stopsHit": 115
+    },
+    "outOfSample": {
+     "ret": -0.0992,
+     "maxDD": 0.2693,
+     "trades": 164,
+     "days": 365,
+     "exposure": 0.249,
+     "stopsHit": 53
+    },
+    "kraken": {
+     "ret": -0.4203,
+     "maxDD": 0.4786,
+     "trades": 164,
+     "days": 365,
+     "exposure": 0.249,
+     "stopsHit": 53
+    },
+    "plateau": {
+     "gridPoints": 12,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": -0.2448,
+     "worstOutOfSample": -0.4043,
+     "bestOutOfSample": -0.0992,
+     "chosenRankOutOfSample": 1
+    },
+    "grossOutOfSample": 0.118,
+    "costDragOutOfSample": 0.2172,
+    "tradesPerYear": 164,
+    "baselineOutOfSample": 0.0426,
+    "buyHoldOutOfSample": -0.4352,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ]
+   },
+   "ADA/USD": {
+    "chosen": {
+     "kAtr": 1,
+     "holdBars": 24,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 0.068,
+     "maxDD": 0.5633,
+     "trades": 352,
+     "days": 713,
+     "exposure": 0.304,
+     "stopsHit": 125
+    },
+    "outOfSample": {
+     "ret": -0.5541,
+     "maxDD": 0.5954,
+     "trades": 152,
+     "days": 365,
+     "exposure": 0.238,
+     "stopsHit": 65
+    },
+    "kraken": {
+     "ret": -0.7122,
+     "maxDD": 0.7369,
+     "trades": 152,
+     "days": 365,
+     "exposure": 0.238,
+     "stopsHit": 65
+    },
+    "plateau": {
+     "gridPoints": 12,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": -0.4991,
+     "worstOutOfSample": -0.5598,
+     "bestOutOfSample": -0.3778,
+     "chosenRankOutOfSample": 11
+    },
+    "grossOutOfSample": -0.4547,
+    "costDragOutOfSample": 0.0995,
+    "tradesPerYear": 152,
+    "baselineOutOfSample": -0.0938,
+    "buyHoldOutOfSample": -0.7215,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "drawdown ≥ 35 %",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ]
+   },
+   "AVAX/USD": {
+    "chosen": {
+     "kAtr": 0.5,
+     "holdBars": 12,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 0.26,
+     "maxDD": 0.6351,
+     "trades": 317,
+     "days": 713,
+     "exposure": 0.268,
+     "stopsHit": 97
+    },
+    "outOfSample": {
+     "ret": -0.3455,
+     "maxDD": 0.4076,
+     "trades": 144,
+     "days": 365,
+     "exposure": 0.212,
+     "stopsHit": 55
+    },
+    "kraken": {
+     "ret": -0.5572,
+     "maxDD": 0.5937,
+     "trades": 144,
+     "days": 365,
+     "exposure": 0.212,
+     "stopsHit": 55
+    },
+    "plateau": {
+     "gridPoints": 12,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": -0.3199,
+     "worstOutOfSample": -0.5136,
+     "bestOutOfSample": -0.1096,
+     "chosenRankOutOfSample": 9
+    },
+    "grossOutOfSample": -0.2029,
+    "costDragOutOfSample": 0.1427,
+    "tradesPerYear": 144,
+    "baselineOutOfSample": 0.403,
+    "buyHoldOutOfSample": -0.651,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "drawdown ≥ 35 %",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ]
+   }
+  },
+  "stale-trend-exit": {
+   "BTC/USD": {
+    "chosen": {
+     "staleBars": 12,
+     "fast": 30,
+     "slow": 100,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.315,
+     "maxDD": 0.1666,
+     "trades": 70,
+     "days": 733,
+     "exposure": 0.111,
+     "stopsHit": 25
+    },
+    "outOfSample": {
+     "ret": -0.1991,
+     "maxDD": 0.2265,
+     "trades": 32,
+     "days": 375,
+     "exposure": 0.084,
+     "stopsHit": 12
+    },
+    "kraken": {
+     "ret": -0.273,
+     "maxDD": 0.2803,
+     "trades": 32,
+     "days": 375,
+     "exposure": 0.084,
+     "stopsHit": 12
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": -0.1302,
+     "worstOutOfSample": -0.1991,
+     "bestOutOfSample": -0.0663,
+     "chosenRankOutOfSample": 27
+    },
+    "grossOutOfSample": -0.1737,
+    "costDragOutOfSample": 0.0254,
+    "tradesPerYear": 31.1,
+    "baselineOutOfSample": -0.1649,
+    "buyHoldOutOfSample": -0.2806,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ],
+    "extra": {
+     "withoutStaleExitSameParamsOutOfSample": {
+      "ret": -0.138,
+      "maxDD": 0.1973,
+      "trades": 28,
+      "days": 375,
+      "exposure": 0.096,
+      "stopsHit": 14
+     },
+     "tradesAdded": 4,
+     "drawdownChange": 0.0292
+    }
+   },
+   "ETH/USD": {
+    "chosen": {
+     "staleBars": 24,
+     "fast": 10,
+     "slow": 50,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 1.3099,
+     "maxDD": 0.2171,
+     "trades": 54,
+     "days": 741,
+     "exposure": 0.137,
+     "stopsHit": 27
+    },
+    "outOfSample": {
+     "ret": 0.0038,
+     "maxDD": 0.1839,
+     "trades": 20,
+     "days": 375,
+     "exposure": 0.077,
+     "stopsHit": 10
+    },
+    "kraken": {
+     "ret": -0.0546,
+     "maxDD": 0.2244,
+     "trades": 20,
+     "days": 375,
+     "exposure": 0.077,
+     "stopsHit": 10
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.148,
+     "medianOutOfSample": -0.0705,
+     "worstOutOfSample": -0.1676,
+     "bestOutOfSample": 0.0038,
+     "chosenRankOutOfSample": 1
+    },
+    "grossOutOfSample": 0.0242,
+    "costDragOutOfSample": 0.0204,
+    "tradesPerYear": 19.5,
+    "baselineOutOfSample": -0.0103,
+    "buyHoldOutOfSample": -0.4013,
+    "clearsBar": false,
+    "failed": [
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ],
+    "extra": {
+     "withoutStaleExitSameParamsOutOfSample": {
+      "ret": 0.0038,
+      "maxDD": 0.1839,
+      "trades": 20,
+      "days": 375,
+      "exposure": 0.077,
+      "stopsHit": 10
+     },
+     "tradesAdded": 0,
+     "drawdownChange": 0
+    }
+   },
+   "SOL/USD": {
+    "chosen": {
+     "staleBars": 48,
+     "fast": 30,
+     "slow": 150,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 1.5506,
+     "maxDD": 0.2813,
+     "trades": 53,
+     "days": 725,
+     "exposure": 0.149,
+     "stopsHit": 25
+    },
+    "outOfSample": {
+     "ret": 0.1732,
+     "maxDD": 0.1468,
+     "trades": 14,
+     "days": 375,
+     "exposure": 0.063,
+     "stopsHit": 6
+    },
+    "kraken": {
+     "ret": 0.1251,
+     "maxDD": 0.167,
+     "trades": 14,
+     "days": 375,
+     "exposure": 0.063,
+     "stopsHit": 6
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 1,
+     "medianOutOfSample": 0.1327,
+     "worstOutOfSample": 0.0414,
+     "bestOutOfSample": 0.1899,
+     "chosenRankOutOfSample": 4
+    },
+    "grossOutOfSample": 0.1907,
+    "costDragOutOfSample": 0.0175,
+    "tradesPerYear": 13.6,
+    "baselineOutOfSample": 0.1732,
+    "buyHoldOutOfSample": -0.5023,
+    "clearsBar": true,
+    "failed": [],
+    "extra": {
+     "withoutStaleExitSameParamsOutOfSample": {
+      "ret": 0.1732,
+      "maxDD": 0.1468,
+      "trades": 14,
+      "days": 375,
+      "exposure": 0.063,
+      "stopsHit": 6
+     },
+     "tradesAdded": 0,
+     "drawdownChange": 0
+    }
+   },
+   "XRP/USD": {
+    "chosen": {
+     "staleBars": 24,
+     "fast": 30,
+     "slow": 50,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.8327,
+     "maxDD": 0.2539,
+     "trades": 34,
+     "days": 725,
+     "exposure": 0.056,
+     "stopsHit": 17
+    },
+    "outOfSample": {
+     "ret": -0.1117,
+     "maxDD": 0.1669,
+     "trades": 14,
+     "days": 367,
+     "exposure": 0.025,
+     "stopsHit": 7
+    },
+    "kraken": {
+     "ret": -0.1466,
+     "maxDD": 0.1881,
+     "trades": 14,
+     "days": 367,
+     "exposure": 0.025,
+     "stopsHit": 7
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.222,
+     "medianOutOfSample": -0.104,
+     "worstOutOfSample": -0.1362,
+     "bestOutOfSample": 0.0137,
+     "chosenRankOutOfSample": 17
+    },
+    "grossOutOfSample": -0.0968,
+    "costDragOutOfSample": 0.0149,
+    "tradesPerYear": 13.9,
+    "baselineOutOfSample": -0.1117,
+    "buyHoldOutOfSample": -0.5596,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ],
+    "extra": {
+     "withoutStaleExitSameParamsOutOfSample": {
+      "ret": -0.1117,
+      "maxDD": 0.1669,
+      "trades": 14,
+      "days": 367,
+      "exposure": 0.025,
+      "stopsHit": 7
+     },
+     "tradesAdded": 0,
+     "drawdownChange": 0
+    }
+   },
+   "DOGE/USD": {
+    "chosen": {
+     "staleBars": 12,
+     "fast": 20,
+     "slow": 150,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.6014,
+     "maxDD": 0.2788,
+     "trades": 42,
+     "days": 705,
+     "exposure": 0.074,
+     "stopsHit": 17
+    },
+    "outOfSample": {
+     "ret": 0.0405,
+     "maxDD": 0.1146,
+     "trades": 12,
+     "days": 365,
+     "exposure": 0.029,
+     "stopsHit": 5
+    },
+    "kraken": {
+     "ret": 0.0037,
+     "maxDD": 0.1222,
+     "trades": 12,
+     "days": 365,
+     "exposure": 0.029,
+     "stopsHit": 5
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.37,
+     "medianOutOfSample": -0.0269,
+     "worstOutOfSample": -0.1081,
+     "bestOutOfSample": 0.0471,
+     "chosenRankOutOfSample": 7
+    },
+    "grossOutOfSample": 0.0559,
+    "costDragOutOfSample": 0.0153,
+    "tradesPerYear": 12,
+    "baselineOutOfSample": -0.1252,
+    "buyHoldOutOfSample": -0.6488,
+    "clearsBar": false,
+    "failed": [
+     "plateau < 50 %"
+    ],
+    "extra": {
+     "withoutStaleExitSameParamsOutOfSample": {
+      "ret": 0.0007,
+      "maxDD": 0.135,
+      "trades": 12,
+      "days": 365,
+      "exposure": 0.034,
+      "stopsHit": 5
+     },
+     "tradesAdded": 0,
+     "drawdownChange": -0.0204
+    }
+   },
+   "LINK/USD": {
+    "chosen": {
+     "staleBars": 24,
+     "fast": 10,
+     "slow": 50,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.7048,
+     "maxDD": 0.3811,
+     "trades": 52,
+     "days": 721,
+     "exposure": 0.118,
+     "stopsHit": 24
+    },
+    "outOfSample": {
+     "ret": 0.0426,
+     "maxDD": 0.1841,
+     "trades": 21,
+     "days": 365,
+     "exposure": 0.086,
+     "stopsHit": 10
+    },
+    "kraken": {
+     "ret": -0.0145,
+     "maxDD": 0.2121,
+     "trades": 21,
+     "days": 365,
+     "exposure": 0.086,
+     "stopsHit": 10
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.667,
+     "medianOutOfSample": 0.0283,
+     "worstOutOfSample": -0.0782,
+     "bestOutOfSample": 0.1042,
+     "chosenRankOutOfSample": 6
+    },
+    "grossOutOfSample": 0.0719,
+    "costDragOutOfSample": 0.0293,
+    "tradesPerYear": 21,
+    "baselineOutOfSample": 0.0426,
+    "buyHoldOutOfSample": -0.4352,
+    "clearsBar": false,
+    "failed": [
+     "kraken OOS not positive"
+    ],
+    "extra": {
+     "withoutStaleExitSameParamsOutOfSample": {
+      "ret": 0.0426,
+      "maxDD": 0.1841,
+      "trades": 21,
+      "days": 365,
+      "exposure": 0.086,
+      "stopsHit": 10
+     },
+     "tradesAdded": 0,
+     "drawdownChange": 0
+    }
+   },
+   "ADA/USD": {
+    "chosen": {
+     "staleBars": 12,
+     "fast": 20,
+     "slow": 150,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 1.0215,
+     "maxDD": 0.2182,
+     "trades": 36,
+     "days": 705,
+     "exposure": 0.08,
+     "stopsHit": 15
+    },
+    "outOfSample": {
+     "ret": -0.1846,
+     "maxDD": 0.1953,
+     "trades": 18,
+     "days": 365,
+     "exposure": 0.05,
+     "stopsHit": 6
+    },
+    "kraken": {
+     "ret": -0.2259,
+     "maxDD": 0.2313,
+     "trades": 18,
+     "days": 365,
+     "exposure": 0.05,
+     "stopsHit": 6
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.148,
+     "medianOutOfSample": -0.1257,
+     "worstOutOfSample": -0.2192,
+     "bestOutOfSample": 0.1381,
+     "chosenRankOutOfSample": 23
+    },
+    "grossOutOfSample": -0.1652,
+    "costDragOutOfSample": 0.0193,
+    "tradesPerYear": 18,
+    "baselineOutOfSample": -0.0938,
+    "buyHoldOutOfSample": -0.7215,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ],
+    "extra": {
+     "withoutStaleExitSameParamsOutOfSample": {
+      "ret": -0.0938,
+      "maxDD": 0.1584,
+      "trades": 14,
+      "days": 365,
+      "exposure": 0.063,
+      "stopsHit": 7
+     },
+     "tradesAdded": 4,
+     "drawdownChange": 0.0369
+    }
+   },
+   "AVAX/USD": {
+    "chosen": {
+     "staleBars": 24,
+     "fast": 10,
+     "slow": 50,
+     "atrStop": 3
+    },
+    "inSample": {
+     "ret": 0.6544,
+     "maxDD": 0.304,
+     "trades": 52,
+     "days": 721,
+     "exposure": 0.121,
+     "stopsHit": 24
+    },
+    "outOfSample": {
+     "ret": 0.2597,
+     "maxDD": 0.0909,
+     "trades": 10,
+     "days": 365,
+     "exposure": 0.037,
+     "stopsHit": 5
+    },
+    "kraken": {
+     "ret": 0.226,
+     "maxDD": 0.0958,
+     "trades": 10,
+     "days": 365,
+     "exposure": 0.037,
+     "stopsHit": 5
+    },
+    "plateau": {
+     "gridPoints": 27,
+     "positiveShareOutOfSample": 0.889,
+     "medianOutOfSample": 0.1742,
+     "worstOutOfSample": -0.0623,
+     "bestOutOfSample": 0.2597,
+     "chosenRankOutOfSample": 1
+    },
+    "grossOutOfSample": 0.2772,
+    "costDragOutOfSample": 0.0175,
+    "tradesPerYear": 10,
+    "baselineOutOfSample": 0.403,
+    "buyHoldOutOfSample": -0.651,
+    "clearsBar": true,
+    "failed": [],
+    "extra": {
+     "withoutStaleExitSameParamsOutOfSample": {
+      "ret": 0.2597,
+      "maxDD": 0.0909,
+      "trades": 10,
+      "days": 365,
+      "exposure": 0.037,
+      "stopsHit": 5
+     },
+     "tradesAdded": 0,
+     "drawdownChange": 0
+    }
+   }
+  },
+  "weekly-trend": {
+   "BTC/USD": {
+    "chosen": {
+     "fast": 4,
+     "slow": 13,
+     "breakoutUp": 8,
+     "breakoutDown": 4,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 0.6426,
+     "maxDD": 0.1684,
+     "trades": 8,
+     "days": 651,
+     "exposure": 0.343,
+     "stopsHit": 4
+    },
+    "outOfSample": {
+     "ret": 0.0982,
+     "maxDD": 0.0883,
+     "trades": 3,
+     "days": 371,
+     "exposure": 0.185,
+     "stopsHit": 0
+    },
+    "kraken": {
+     "ret": 0.0883,
+     "maxDD": 0.0911,
+     "trades": 3,
+     "days": 371,
+     "exposure": 0.185,
+     "stopsHit": 0
+    },
+    "plateau": {
+     "gridPoints": 24,
+     "positiveShareOutOfSample": 0.375,
+     "medianOutOfSample": 0,
+     "worstOutOfSample": -0.0676,
+     "bestOutOfSample": 0.0982,
+     "chosenRankOutOfSample": 1
+    },
+    "grossOutOfSample": 0.1014,
+    "costDragOutOfSample": 0.0032,
+    "tradesPerYear": 3,
+    "baselineOutOfSample": -0.1649,
+    "buyHoldOutOfSample": -0.296,
+    "clearsBar": false,
+    "failed": [
+     "plateau < 50 %"
+    ],
+    "extra": {
+     "weeklyBars": 162,
+     "weeklySplit": "2025-09-11",
+     "costShareOfGross": 0.032
+    }
+   },
+   "ETH/USD": {
+    "chosen": {
+     "fast": 4,
+     "slow": 13,
+     "breakoutUp": 8,
+     "breakoutDown": 4,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 0.6113,
+     "maxDD": 0.1891,
+     "trades": 7,
+     "days": 651,
+     "exposure": 0.213,
+     "stopsHit": 3
+    },
+    "outOfSample": {
+     "ret": 0.1459,
+     "maxDD": 0.0463,
+     "trades": 1,
+     "days": 371,
+     "exposure": 0.093,
+     "stopsHit": 0
+    },
+    "kraken": {
+     "ret": 0.1425,
+     "maxDD": 0.0463,
+     "trades": 1,
+     "days": 371,
+     "exposure": 0.093,
+     "stopsHit": 0
+    },
+    "plateau": {
+     "gridPoints": 24,
+     "positiveShareOutOfSample": 0.75,
+     "medianOutOfSample": 0.0291,
+     "worstOutOfSample": 0,
+     "bestOutOfSample": 0.1459,
+     "chosenRankOutOfSample": 1
+    },
+    "grossOutOfSample": 0.1471,
+    "costDragOutOfSample": 0.0012,
+    "tradesPerYear": 1,
+    "baselineOutOfSample": -0.0103,
+    "buyHoldOutOfSample": -0.4069,
+    "clearsBar": true,
+    "failed": [],
+    "extra": {
+     "weeklyBars": 162,
+     "weeklySplit": "2025-09-11",
+     "costShareOfGross": 0.008
+    }
+   },
+   "SOL/USD": {
+    "chosen": {
+     "fast": 8,
+     "slow": 13,
+     "breakoutUp": 8,
+     "breakoutDown": 4,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 1.2321,
+     "maxDD": 0.178,
+     "trades": 6,
+     "days": 651,
+     "exposure": 0.12,
+     "stopsHit": 3
+    },
+    "outOfSample": {
+     "ret": 0.0926,
+     "maxDD": 0.1377,
+     "trades": 3,
+     "days": 371,
+     "exposure": 0.111,
+     "stopsHit": 1
+    },
+    "kraken": {
+     "ret": 0.0828,
+     "maxDD": 0.1428,
+     "trades": 3,
+     "days": 371,
+     "exposure": 0.111,
+     "stopsHit": 1
+    },
+    "plateau": {
+     "gridPoints": 24,
+     "positiveShareOutOfSample": 0.25,
+     "medianOutOfSample": -0.0867,
+     "worstOutOfSample": -0.1377,
+     "bestOutOfSample": 0.0926,
+     "chosenRankOutOfSample": 1
+    },
+    "grossOutOfSample": 0.096,
+    "costDragOutOfSample": 0.0035,
+    "tradesPerYear": 3,
+    "baselineOutOfSample": 0.1732,
+    "buyHoldOutOfSample": -0.5176,
+    "clearsBar": false,
+    "failed": [
+     "plateau < 50 %"
+    ],
+    "extra": {
+     "weeklyBars": 162,
+     "weeklySplit": "2025-09-11",
+     "costShareOfGross": 0.036
+    }
+   },
+   "XRP/USD": {
+    "chosen": {
+     "fast": 4,
+     "slow": 13,
+     "breakoutUp": 13,
+     "breakoutDown": 4,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 2.4098,
+     "maxDD": 0.0011,
+     "trades": 2,
+     "days": 630,
+     "exposure": 0.029,
+     "stopsHit": 0
+    },
+    "outOfSample": {
+     "ret": -0.0819,
+     "maxDD": 0.0819,
+     "trades": 2,
+     "days": 364,
+     "exposure": 0.038,
+     "stopsHit": 1
+    },
+    "kraken": {
+     "ret": -0.0874,
+     "maxDD": 0.0874,
+     "trades": 2,
+     "days": 364,
+     "exposure": 0.038,
+     "stopsHit": 1
+    },
+    "plateau": {
+     "gridPoints": 24,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": 0,
+     "worstOutOfSample": -0.0819,
+     "bestOutOfSample": 0,
+     "chosenRankOutOfSample": 19
+    },
+    "grossOutOfSample": -0.08,
+    "costDragOutOfSample": 0.0019,
+    "tradesPerYear": 2,
+    "baselineOutOfSample": -0.1117,
+    "buyHoldOutOfSample": -0.5521,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ],
+    "extra": {
+     "weeklyBars": 158,
+     "weeklySplit": "2025-09-18",
+     "costShareOfGross": 0.024
+    }
+   },
+   "DOGE/USD": {
+    "chosen": {
+     "fast": 4,
+     "slow": 13,
+     "breakoutUp": 8,
+     "breakoutDown": 4,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 2.4539,
+     "maxDD": 0.1077,
+     "trades": 4,
+     "days": 623,
+     "exposure": 0.038,
+     "stopsHit": 1
+    },
+    "outOfSample": {
+     "ret": -0.0819,
+     "maxDD": 0.0819,
+     "trades": 2,
+     "days": 364,
+     "exposure": 0.019,
+     "stopsHit": 1
+    },
+    "kraken": {
+     "ret": -0.0875,
+     "maxDD": 0.0875,
+     "trades": 2,
+     "days": 364,
+     "exposure": 0.019,
+     "stopsHit": 1
+    },
+    "plateau": {
+     "gridPoints": 24,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": 0,
+     "worstOutOfSample": -0.0819,
+     "bestOutOfSample": 0,
+     "chosenRankOutOfSample": 19
+    },
+    "grossOutOfSample": -0.08,
+    "costDragOutOfSample": 0.0019,
+    "tradesPerYear": 2,
+    "baselineOutOfSample": -0.1252,
+    "buyHoldOutOfSample": -0.6698,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ],
+    "extra": {
+     "weeklyBars": 157,
+     "weeklySplit": "2025-09-18",
+     "costShareOfGross": 0.024
+    }
+   },
+   "LINK/USD": {
+    "chosen": {
+     "fast": 8,
+     "slow": 13,
+     "breakoutUp": 8,
+     "breakoutDown": 4,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 0.3347,
+     "maxDD": 0.1847,
+     "trades": 6,
+     "days": 623,
+     "exposure": 0.106,
+     "stopsHit": 3
+    },
+    "outOfSample": {
+     "ret": 0.0603,
+     "maxDD": 0.0509,
+     "trades": 2,
+     "days": 364,
+     "exposure": 0.057,
+     "stopsHit": 1
+    },
+    "kraken": {
+     "ret": 0.0546,
+     "maxDD": 0.0534,
+     "trades": 2,
+     "days": 364,
+     "exposure": 0.057,
+     "stopsHit": 1
+    },
+    "plateau": {
+     "gridPoints": 24,
+     "positiveShareOutOfSample": 0.375,
+     "medianOutOfSample": -0.0365,
+     "worstOutOfSample": -0.082,
+     "bestOutOfSample": 0.238,
+     "chosenRankOutOfSample": 7
+    },
+    "grossOutOfSample": 0.0631,
+    "costDragOutOfSample": 0.0028,
+    "tradesPerYear": 2,
+    "baselineOutOfSample": 0.0426,
+    "buyHoldOutOfSample": -0.4558,
+    "clearsBar": false,
+    "failed": [
+     "plateau < 50 %"
+    ],
+    "extra": {
+     "weeklyBars": 157,
+     "weeklySplit": "2025-09-18",
+     "costShareOfGross": 0.044
+    }
+   },
+   "ADA/USD": {
+    "chosen": {
+     "fast": 4,
+     "slow": 26,
+     "breakoutUp": 8,
+     "breakoutDown": 4,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 0.8273,
+     "maxDD": 0.1088,
+     "trades": 2,
+     "days": 532,
+     "exposure": 0.029,
+     "stopsHit": 1
+    },
+    "outOfSample": {
+     "ret": 0,
+     "maxDD": 0,
+     "trades": 0,
+     "days": 364,
+     "exposure": 0,
+     "stopsHit": 0
+    },
+    "kraken": {
+     "ret": 0,
+     "maxDD": 0,
+     "trades": 0,
+     "days": 364,
+     "exposure": 0,
+     "stopsHit": 0
+    },
+    "plateau": {
+     "gridPoints": 24,
+     "positiveShareOutOfSample": 0,
+     "medianOutOfSample": 0,
+     "worstOutOfSample": -0.082,
+     "bestOutOfSample": 0,
+     "chosenRankOutOfSample": 1
+    },
+    "grossOutOfSample": 0,
+    "costDragOutOfSample": 0,
+    "tradesPerYear": 0,
+    "baselineOutOfSample": -0.0938,
+    "buyHoldOutOfSample": -0.7311,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ],
+    "extra": {
+     "weeklyBars": 157,
+     "weeklySplit": "2025-09-18",
+     "costShareOfGross": 0
+    }
+   },
+   "AVAX/USD": {
+    "chosen": {
+     "fast": 4,
+     "slow": 26,
+     "breakoutUp": 8,
+     "breakoutDown": 4,
+     "atrStop": 2
+    },
+    "inSample": {
+     "ret": 0.3975,
+     "maxDD": 0.1855,
+     "trades": 3,
+     "days": 532,
+     "exposure": 0.038,
+     "stopsHit": 1
+    },
+    "outOfSample": {
+     "ret": -0.0821,
+     "maxDD": 0.0821,
+     "trades": 2,
+     "days": 364,
+     "exposure": 0.019,
+     "stopsHit": 1
+    },
+    "kraken": {
+     "ret": -0.0874,
+     "maxDD": 0.0874,
+     "trades": 2,
+     "days": 364,
+     "exposure": 0.019,
+     "stopsHit": 1
+    },
+    "plateau": {
+     "gridPoints": 24,
+     "positiveShareOutOfSample": 0.125,
+     "medianOutOfSample": -0.0821,
+     "worstOutOfSample": -0.0821,
+     "bestOutOfSample": 0.4166,
+     "chosenRankOutOfSample": 4
+    },
+    "grossOutOfSample": -0.08,
+    "costDragOutOfSample": 0.0021,
+    "tradesPerYear": 2,
+    "baselineOutOfSample": 0.403,
+    "buyHoldOutOfSample": -0.6395,
+    "clearsBar": false,
+    "failed": [
+     "revx OOS not positive",
+     "plateau < 50 %",
+     "kraken OOS not positive"
+    ],
+    "extra": {
+     "weeklyBars": 157,
+     "weeklySplit": "2025-09-18",
+     "costShareOfGross": 0.026
+    }
+   }
+  }
+ },
+ "verdicts": {
+  "regime-filtered-trend": {
+   "clearsBar": [
+    "SOL/USD",
+    "LINK/USD",
+    "AVAX/USD"
+   ],
+   "clearsCount": 3,
+   "beatsBaselineOutOfSample": [
+    "BTC/USD",
+    "ETH/USD",
+    "DOGE/USD",
+    "ADA/USD"
+   ],
+   "beatsCount": 4,
+   "beatsBaselineOnMajority": false,
+   "medianOutOfSample": 0.0384,
+   "medianPlateau": 0.629
+  },
+  "donchian-4h": {
+   "clearsBar": [],
+   "clearsCount": 0,
+   "beatsBaselineOutOfSample": [
+    "XRP/USD"
+   ],
+   "beatsCount": 1,
+   "beatsBaselineOnMajority": false,
+   "medianOutOfSample": -0.0807,
+   "medianPlateau": 0.111
+  },
+  "pullback-4h": {
+   "clearsBar": [
+    "ETH/USD"
+   ],
+   "clearsCount": 1,
+   "beatsBaselineOutOfSample": [
+    "BTC/USD",
+    "ETH/USD"
+   ],
+   "beatsCount": 2,
+   "beatsBaselineOnMajority": false,
+   "medianOutOfSample": -0.3557,
+   "medianPlateau": 0
+  },
+  "stale-trend-exit": {
+   "clearsBar": [
+    "SOL/USD",
+    "AVAX/USD"
+   ],
+   "clearsCount": 2,
+   "beatsBaselineOutOfSample": [
+    "ETH/USD",
+    "DOGE/USD"
+   ],
+   "beatsCount": 2,
+   "beatsBaselineOnMajority": false,
+   "medianOutOfSample": 0.0221,
+   "medianPlateau": 0.296
+  },
+  "weekly-trend": {
+   "clearsBar": [
+    "ETH/USD"
+   ],
+   "clearsCount": 1,
+   "beatsBaselineOutOfSample": [
+    "BTC/USD",
+    "ETH/USD",
+    "XRP/USD",
+    "DOGE/USD",
+    "LINK/USD",
+    "ADA/USD"
+   ],
+   "beatsCount": 6,
+   "beatsBaselineOnMajority": true,
+   "medianOutOfSample": 0.0301,
+   "medianPlateau": 0.188
+  }
+ },
+ "baselineClearsBar": [
+  "SOL/USD",
+  "AVAX/USD"
+ ]
+}

@@ -205,6 +205,15 @@ four menu pages (dialogs keep theirs).
   out-of-sample set, "more art than science", backtests being expensive)
   answered in the chat with the plateau numbers; nothing in the repo
   claims more than the table says.
+- **Five rule ideas tested against the shipped trend rule** (reference
+  §3.9, `backtest_ideas.ts`, `ideas.json`; an Opus subagent wrote and ran
+  it, its baseline reproducing §3.7's table exactly). A BTC-regime filter
+  on entries is the only idea that clears the bar on a coin the baseline
+  does not (LINK), and it does so by holding less in a bear year; a bare
+  Donchian, a 4-hour pullback, a stale-trend exit and weekly bars fail or
+  change nothing. Nothing adopted; the filter is the written-down
+  candidate, to be re-tested on a non-bear window (middle third held out)
+  before any paper twin.
 - **The small white dot beside "Revolut X" in the table** was the first
   dot of an ellipsis: at 10 % the venue column was a pixel or two
   narrower than the badge and the table's `text-overflow` drew "…"

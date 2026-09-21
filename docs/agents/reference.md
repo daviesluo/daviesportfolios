@@ -655,6 +655,73 @@ the parameter set the live rows run (fast 20, slow 100, ATR 3):
   year the chosen point is judged on. The bar is what keeps this honest,
   and the paper record is what it has to match.
 
+### 3.9 Five rule ideas against the shipped trend rule (2026-09-21)
+
+Davies asked for other strategy ideas to be tested alongside the wider
+universe. Five were written as one study script,
+`supabase/functions/agents/backtest_ideas.ts`, which imports the
+backtester's `run`, `resample`, `COSTS`, `stopsForKind` and the live
+rulebooks rather than re-implementing them (its baseline reproduces
+§3.7's table to the digit on all eight coins, which is the evidence the
+reuse is faithful). Same data, split, fills, stops, cooldown and plateau
+as §3.7; the eight coins with measured spreads; output
+`docs/agents/backtests/ideas.json`. Numbers are out of sample on Revolut
+X costs: return / max drawdown / fills (an entry and an exit are two),
+then the plateau share, then Kraken costs. The baseline clears §3.7's bar
+on SOL and AVAX only.
+
+| idea (grid) | what it is | clears the bar on | median over 8 coins: OOS / DD / fills / plateau |
+|---|---|---|---|
+| baseline | the shipped trend-4h rule | SOL, AVAX | −5.2 % / 17 % / 14 / 28 % |
+| 1 regime filter (BTC daily close above its 100 / 150 / 200-day SMA gates every entry) | cross-asset regime | **SOL, LINK, AVAX** | **+3.8 % / 12 % / 8 / 63 %** |
+| 2 Donchian 20 / 55 / 100 breakout, exit on a 10 / 20-bar low, no moving-average, momentum or volatility gate | is the MA condition earning its keep? | none | −8.1 % / 25 % / 46 / 11 % |
+| 3 pullback in an uptrend (fast over slow; buy within 0.5–1 ATR of the fast SMA; out at the prior 20-bar high or after 12 / 24 bars) | mean reversion at 4 h | ETH only (+46.6 %, one coin of eight; six negative) | −35.6 % / 43 % / 137 / 0 % |
+| 4 stale-trend exit (leave after 12 / 24 / 48 bars without a new 20-bar high) | an extra exit | SOL, AVAX — the baseline's own two | +2.2 % / 18 % / 16 / 30 % |
+| 5 weekly bars (fast 4 / 8, slow 13 / 26) | fewer trades | ETH only, on a single fill | +3.0 % / 8 % / 2 / 19 % |
+
+Per coin for the regime filter (chosen N / fast / slow → OOS / DD /
+fills / plateau / Kraken; baseline OOS beside it): BTC 100/30/100 →
+−4.6 % / 11 % / 16 / 78 % / −9.1 % (baseline −16.5 %); ETH 200/10/50 →
++5.7 % / 7 % / 6 / 41 % / +3.8 % (−1.0 %); SOL 200/30/150 → +12.3 % /
+8 % / 6 / 100 % / +10.3 % (+17.3 %); XRP 100/30/50 → −16.9 % / 17 % / 10
+/ 15 % / −19.3 % (−11.2 %); DOGE 100/20/150 → +6.0 % / 14 % / 10 / 48 %
+/ +2.8 % (−12.5 %); LINK 200/10/50 → +2.0 % / 17 % / 7 / 93 % / +0.1 %
+(+4.3 %); ADA 100/20/150 → −1.4 % / 16 % / 6 / 41 % / −3.1 % (−9.4 %);
+AVAX 100/10/50 → +30.7 % / 9 % / 8 / 89 % / +27.9 % (+40.3 %). With the
+same parameters on and off, the filter removed 2–14 fills of 10–28, cut
+the drawdown on five coins of eight and raised the return on five, and
+took exposure down to 2–6 % of bars.
+
+- **Nothing is adopted.** The regime filter is the one idea that clears
+  the bar on a coin the baseline does not (LINK), and it does it by
+  holding less in a year when holding lost 28–72 %: every idea that
+  improved on the baseline did so by being out of the market more, and
+  the two that held most (Donchian, pullback) lost most. That is what a
+  bear year rewards, not evidence that a filter picks well. It gave up
+  five points on SOL and two on LINK against the baseline's own numbers.
+- **The moving-average, momentum and volatility gates earn their keep.**
+  Stripped to a bare Donchian the rule fires 15–83 times a year instead
+  of 9–25, the median plateau falls from 28 % to 11 %, the median return
+  from −5.2 % to −8.1 %, the median drawdown from 17 % to 25 %, and it
+  clears the bar nowhere.
+- **Mean reversion fails at 4 hours as it did at 15 minutes and 1 hour**
+  (§3.6): 86–176 fills a year, six coins negative, plateau 0 % on six —
+  the fee bill again, with one coin (ETH) making a number that eight
+  coins do not support.
+- **Weekly bars are one or two trades a year**, from which no edge can
+  be estimated; three coins' whole loss is the 8 % floor, which was sized
+  for 4-hour bars, hit intra-bar almost by construction.
+- **What would change the answer on the regime filter**: the same test
+  with the middle third held out instead of the last (a window that is
+  not a bear year) agreeing with this one, and then a paper twin of
+  trend-4h with the filter on, measured against the unfiltered row for
+  a quarter. Until then it is the next candidate, written down, not a
+  rule.
+- Caveats as §3.7's, and one more: 864 parameter × coin pairs were
+  looked at against one year (1,080 with the baseline's), so two or
+  three pairs clearing a four-part bar by chance is expected, which is
+  why a single-coin pass (ETH on ideas 3 and 5) counts for nothing.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
