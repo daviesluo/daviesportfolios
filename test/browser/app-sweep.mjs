@@ -273,37 +273,53 @@ const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading
 
 /**
  * The Agents dashboard as the Edge Function shapes it (`runDashboard`):
- * four paper strategies, one of them long BTC on Kraken with a fill on
- * record, so the page has a position, a decision and an order to draw.
+ * the SEVEN rows migrations 0037-0040 leave active — four on Revolut X,
+ * three on Kraken, the retired `dislocation-1m` absent because the
+ * dashboard filters it out — with the 4-hour rows carrying the five
+ * symbols they now trade, a per-strategy `todayUsd` and the `dayStart`
+ * the page reads. One row is long BTC on Kraken with a fill on record, so
+ * the page has a position, a decision and an order to draw. A fixture
+ * that drifts from the payload tests nothing: this one is checked against
+ * `supabase/migrations/0037_agents.sql` (+0038/0039/0040) and the shape
+ * `dashboard()` builds in `supabase/functions/agents/index.ts`.
  */
 const AGENTS_DASHBOARD = (() => {
   const at = new Date(CLOCK).toISOString();
-  const KIND_NAME = { 'trend-4h': 'Trend 4h', 'momentum-1d': 'Momentum 30d', 'dislocation-1m': 'Dislocation' };
+  const dayStartMs = Math.floor(NOW_MS / 86400_000) * 86400_000;
+  const KIND_NAME = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'momentum-1d': 'Momentum 30d', 'rotation-1d': 'Rotation' };
+  const MAJORS = ['BTC/USD', 'ETH/USD', 'SOL/USD'];
+  const TREND = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD', 'SUI/USD'];     // 0039 added AVAX, 0040 added SUI
+  const BASKET = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'XRP/USD'];
+  const MARK = { 'BTC/USD': 86000, 'ETH/USD': 2500, 'SOL/USD': 110, 'XRP/USD': 0.62, 'AVAX/USD': 17.4, 'SUI/USD': 1.29 };
   // The observation the tick writes every minute on the FORMING bar: the
   // same categorical words a decision would see. 40 s old, so every row
   // reads as running even though the last DECISION is 35 min behind.
   const seen = (symbol, over = {}) => ({
     ts: new Date(CLOCK - 40e3).toISOString(), barStart: new Date(CLOCK - 40e3 - 3600e3).toISOString(),
     state: { symbol, trend_4h: 'up', trend_strength: 'strong', breakout: 'inside_range', volatility: 'normal', momentum_30d: 'positive', position: 'flat', unrealised: 'none', time_in_position: 'none', ...over },
-    numbers: { mark: 86000, close: 85900 },
+    numbers: { mark: MARK[symbol] ?? 100, close: (MARK[symbol] ?? 100) * 0.999 },
   });
-  const strat = (id, kind, venue, over = {}) => ({
+  const flat = (symbol) => ({
+    symbol, base: 0, avgCost: 0, mark: MARK[symbol] ?? 100, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0,
+    openedAt: null, highWater: null, fills: 0, observation: seen(symbol),
+  });
+  const strat = (id, kind, venue, symbols, capitalUsd, over = {}) => ({
     id, kind, venue, signalVenue: 'kraken', nextDecisionAt: new Date(NOW_MS + 2 * 3600e3 + 13 * 60e3).toISOString(),
     name: `${KIND_NAME[kind]} · ${venue === 'revx' ? 'Revolut X' : 'Kraken'}`,
-    description: 'Fixture strategy.', symbols: ['BTC/USD', 'ETH/USD', 'SOL/USD'], mode: 'paper', capitalUsd: 60,
+    description: 'Fixture strategy.', symbols, mode: 'paper', capitalUsd,
     params: { fast: 20, slow: 100 }, updatedAt: at,
-    costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0,
-    positions: ['BTC/USD', 'ETH/USD', 'SOL/USD'].map((symbol) => ({ symbol, base: 0, avgCost: 0, mark: 100, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0, observation: seen(symbol) })),
+    costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0,
+    positions: symbols.map(flat),
     openOrders: 0, ordersToday: 0, jev24h: { calls: 6, costUsd: 0.00011, avgLatencyMs: 480, providers: { openrouter: 6 } },
     lastDecision: { ts: new Date(CLOCK - 35 * 60e3).toISOString(), symbol: 'BTC/USD', action: 'hold', ruleAction: 'hold', reason: 'in position', provider: 'openrouter', riskAllowed: true, riskReason: 'hold' },
     backtest: null, recentDecisions: [], recentOrders: [], ...over,
   });
-  const kraken = strat('trend-4h-kraken', 'trend-4h', 'kraken', {
-    costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, ordersToday: 1,
+  // The one row with a book: long BTC since yesterday, +$0.42 of that move made today.
+  const krakenTrend = strat('trend-4h-kraken', 'trend-4h', 'kraken', TREND, 100, {
+    costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, todayUsd: 0.42, ordersToday: 1,
     positions: [
       { symbol: 'BTC/USD', base: 0.00025, avgCost: 80000, mark: 86000, costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, openedAt: CLOCK - 86400e3, highWater: 86500, fills: 3, observation: seen('BTC/USD', { position: 'long', unrealised: 'gain', time_in_position: 'days' }) },
-      { symbol: 'ETH/USD', base: 0, avgCost: 0, mark: 2500, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0, observation: seen('ETH/USD') },
-      { symbol: 'SOL/USD', base: 0, avgCost: 0, mark: 110, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0, observation: seen('SOL/USD') },
+      ...TREND.slice(1).map(flat),
     ],
     recentDecisions: [{
       id: 1, ts: new Date(CLOCK - 35 * 60e3).toISOString(), strategy_id: 'trend-4h-kraken', venue: 'kraken', symbol: 'BTC/USD', mode: 'paper',
@@ -317,26 +333,21 @@ const AGENTS_DASHBOARD = (() => {
       price: 80000, base_size: 0.00025, state: 'filled', filled_base: 0.00025, avg_fill_price: 80000, fee_usd: 0.08, filled_at: new Date(CLOCK - 86400e3 + 300e3).toISOString(),
     }],
   });
-  // The minute rule: two pairs, its own vocabulary, and a "next decision"
-  // that is a rhythm rather than a countdown.
-  const dislocation = strat('dislocation-1m', 'dislocation-1m', 'revx', {
-    symbols: ['BTC/USD', 'ETH/USD'], capitalUsd: 20, params: { enterBps: 12, stopBps: 25 },
-    nextDecisionAt: new Date(NOW_MS + 60e3).toISOString(),
-    positions: ['BTC/USD', 'ETH/USD'].map((symbol) => ({
-      symbol, base: 0, avgCost: 0, mark: 86000, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0,
-      observation: {
-        ts: new Date(CLOCK - 20e3).toISOString(), barStart: new Date(CLOCK - 20e3 - 60e3).toISOString(),
-        state: { symbol, basis: 'revx_cheap', basis_size: 'small', reference_move_5m: 'flat', position: 'flat', time_in_position: 'none' },
-        numbers: { basisBps: -3.42, mark: 86000, close: 85900 },
-      },
-    })),
-    lastDecision: { ts: new Date(CLOCK - 2 * 60e3).toISOString(), symbol: 'BTC/USD', action: 'hold', ruleAction: 'hold', reason: 'basis -3.4 bps, no dislocation', provider: 'openrouter', riskAllowed: true, riskReason: 'hold' },
-  });
-  const strategies = [strat('trend-4h', 'trend-4h', 'revx'), strat('momentum-1d', 'momentum-1d', 'revx'), kraken, strat('momentum-1d-kraken', 'momentum-1d', 'kraken'), dislocation];
-  const totals = { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, byMode: { paper: { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08 }, live: { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0 } } };
+  const strategies = [
+    strat('rotation-1d', 'rotation-1d', 'revx', BASKET, 60),
+    strat('trend-4h', 'trend-4h', 'revx', TREND, 100),
+    strat('trend-1h', 'trend-1h', 'revx', MAJORS, 40),
+    strat('momentum-1d', 'momentum-1d', 'revx', MAJORS, 40),
+    strat('rotation-1w-kraken', 'rotation-1d', 'kraken', BASKET, 60),
+    strat('momentum-1d-kraken', 'momentum-1d', 'kraken', MAJORS, 40),
+    krakenTrend,
+  ];
+  const zero = { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0 };
+  const book = { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, todayUsd: 0.42 };
+  const totals = { ...book, byMode: { paper: { ...book }, live: { ...zero } } };
   return {
-    at,
-    risk: { id: 1, global_pause: false, max_order_usd: 20, max_exposure_usd: 100, daily_loss_limit_usd: 5, max_orders_per_day: 40, live_confirmed_at: null, updated_at: at },
+    at, dayStart: new Date(dayStartMs).toISOString(),
+    risk: { id: 1, global_pause: false, max_order_usd: 20, max_exposure_usd: 100, paper_exposure_usd: 300, daily_loss_limit_usd: 5, max_orders_per_day: 40, live_confirmed_at: null, updated_at: at },
     totals,
     venues: [
       { id: 'revx', canTrade: true, feeBps: { maker: 0, taker: 9 }, balances: { USD: 100 }, note: null, marks: { 'BTC/USD': 86000 } },
@@ -344,8 +355,8 @@ const AGENTS_DASHBOARD = (() => {
     ],
     strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
     byVenue: {
-      revx: { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, capitalUsd: 140, strategies: 3, live: 0 },
-      kraken: { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, capitalUsd: 120, strategies: 2, live: 0 },
+      revx: { ...zero, capitalUsd: 240, strategies: 4, live: 0 },
+      kraken: { ...book, capitalUsd: 200, strategies: 3, live: 0 },
     },
     basis: {
       'BTC/USD': { latest: 0.31, latestAt: at, n: 288, absP50: 0.4, absP95: 1.2, absMax: 2.1, over20: 0, over40: 0, over80: 0 },
@@ -1087,15 +1098,15 @@ async function run() {
       if (money(head) === 12.34 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total (${(head || '').trim()})`);
       else fail(S('agents'), `headline read "${head}", wanted +$12.34`);
       const rows = await page.locator('.ag-row').count();
-      if (rows === 5) ok(S('agents'), 'five strategy rows, one per rulebook per venue');
-      else fail(S('agents'), `expected 5 strategy rows, got ${rows}`);
+      if (rows === 7) ok(S('agents'), 'seven strategy rows — the active seeds, the retired one absent');
+      else fail(S('agents'), `expected 7 strategy rows, got ${rows}`);
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
       // observation the tick wrote 40 s ago.
       const running = await page.locator('.ag-row .ag-name-wrap .ag-dot-running').count();
       const statusCol = await page.locator('.ag-strategies .ag-col-status, .ag-row .ag-status').count();
-      if (running === 5 && statusCol === 0) ok(S('agents'), 'a 40 s-old observation keeps every row\'s dot green, beside the name, with no status column');
-      else fail(S('agents'), `running dots: ${running} of 5, status cells ${statusCol}`);
+      if (running === rows && statusCol === 0) ok(S('agents'), 'a 40 s-old observation keeps every row\'s dot green, beside the name, with no status column');
+      else fail(S('agents'), `running dots: ${running} of ${rows}, status cells ${statusCol}`);
       const watching = await page.locator('.ag-row .ag-name-wrap .ag-dot').first().getAttribute('title');
       if (/watching · changed \d+s ago/.test(watching || '')) ok(S('agents'), `the dot's title says what it is doing ("${watching}")`);
       else fail(S('agents'), `dot title reads "${watching}"`);
@@ -1122,6 +1133,13 @@ async function run() {
       const todayHead = await page.locator('.ag-strategies th.ag-col-today').count();
       if (vpWidth <= 760 ? true : todayHead === 1) ok(S('agents'), vpWidth <= 760 ? 'the card carries today' : 'the table has a Today column');
       else fail(S('agents'), `Today header cells: ${todayHead}`);
+      // Today is the one cell a fixture of all zeros cannot test: the payload carries +$0.42 on the row with a book.
+      const sbToday = await page.locator('.ag-scoreboard .ag-sb-cell', { has: page.locator('.sb-label:text-is("TODAY")') }).locator('.ag-sb-usd').textContent().catch(() => '');
+      const rowToday = (await page.locator(vpWidth <= 760 ? '.ag-card-strategy .ag-gl' : 'td.ag-col-today .ag-gl').allTextContents()).map((t) => t.trim());
+      const signedToday = rowToday.filter((t) => /^\+\$0\.42/.test(t)).length;
+      if (money(sbToday) === 0.42 && /^\+/.test((sbToday || '').trim()) && signedToday === 1) {
+        ok(S('agents'), `today is a signed number on the scoreboard (${(sbToday || '').trim()}) and on the row that has a book`);
+      } else fail(S('agents'), `scoreboard today "${sbToday}", row today cells ${rowToday.join(' | ')}`);
       const badgeTexts = await page.locator('.ag-strategies .ag-venue').allTextContents();
       if (badgeTexts.length === rows && badgeTexts.every((b) => /^(Revolut X|Kraken)$/.test(b.trim()))) ok(S('agents'), 'the venue badge is the venue name alone');
       else fail(S('agents'), `badges: ${badgeTexts.join(' | ')}`);
@@ -1148,7 +1166,7 @@ async function run() {
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, krakenRows = badges.filter((b) => b.startsWith('Kraken')).length;
-      if (revxRows === 3 && krakenRows === 2) ok(S('agents'), 'venue badge on every row: 3 Revolut X, 2 Kraken');
+      if (revxRows === 4 && krakenRows === 3) ok(S('agents'), 'venue badge on every row: 4 Revolut X, 3 Kraken');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       const shares = await page.locator('.ag-share').allTextContents();
       if (shares.some((t) => /Kraken 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Kraken');
@@ -1165,21 +1183,22 @@ async function run() {
       // Four rules count down to a bar close; the minute rule decides every
       // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
-      if (nexts.filter((t) => t === '2h 13m').length === 4 && nexts.filter((t) => t === 'every minute').length === 1) {
-        ok(S('agents'), 'each bar rule counts down; the minute rule reads "every minute"');
-      } else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
+      if (nexts.length === rows && nexts.every((t) => t === '2h 13m')) ok(S('agents'), 'every rule counts down to its next bar close');
+      else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
       const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();
-      if (names.some((t) => /^Dislocation ·/.test(t)) && subs.length === names.length && subs.every((t) => /^\d+ open · /.test(t))) {
-        ok(S('agents'), 'the dislocation rulebook is named on its row, once, with the sub-line under it');
+      const named = ['Rotation · Revolut X', 'Trend 4h · Revolut X', 'Trend 1h · Revolut X', 'Momentum 30d · Revolut X', 'Rotation · Kraken', 'Momentum 30d · Kraken', 'Trend 4h · Kraken'];
+      if (named.every((n) => names.some((t) => t.trim() === n)) && !names.some((t) => /Dislocation/.test(t)) && subs.length === names.length && subs.every((t) => /^\d+ open · /.test(t))) {
+        ok(S('agents'), 'every live rulebook is named on its row, once, with the sub-line under it — and the retired one is not on the page');
       } else fail(S('agents'), `names ${names.join(' | ')}; sub-lines ${subs.join(' | ')}`);
       const tableScroll = vpWidth > 760 ? await page.locator('.ag-strategies .hl-scroll').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => 0) : 0;
       if (tableScroll <= 0) ok(S('agents'), vpWidth > 760 ? `the strategy table fits its width on desktop (overflow ${tableScroll}px)` : 'no table to overflow on a phone');
       else fail(S('agents'), `the strategy table overflows by ${tableScroll}px at ${vpWidth}px`);
-      await page.locator('.ag-row').nth(2).click();
+      // By NAME, not by index: a migration that adds a row must not silently point this at a different strategy.
+      await page.locator('.ag-row', { has: page.locator('.ag-name-btn:text-is("Trend 4h · Kraken")') }).first().click();
       await page.waitForSelector('.ag-detail', { timeout: 5_000 });
       const title = await page.locator('.ag-detail-title').first().textContent().catch(() => '');
-      if (/Kraken/.test(title || '')) ok(S('agents'), `third row opens its detail (${(title || '').trim()})`);
+      if (/Trend 4h · Kraken/.test(title || '')) ok(S('agents'), `the row with a book opens its detail (${(title || '').trim()})`);
       else fail(S('agents'), `detail title "${title}"`);
       const posCells = await page.locator('.ag-positions tbody tr').count();
       const decRows = await page.locator('.ag-log').nth(0).locator('tbody tr').count();
@@ -1202,8 +1221,8 @@ async function run() {
       if (!chartUp) fail(S('agents'), 'the detail never drew its chart svg');
       const tabs = await page.locator('.ag-sym-tab').allTextContents();
       const tabOn = await page.locator('.ag-sym-tab.is-on').allTextContents();
-      if (tabs.length === 3 && tabOn.length === 1 && /^BTC\/USD/.test(tabOn[0] || '')) {
-        ok(S('agents'), 'one symbol tab per pair, opening on the one that is held');
+      if (tabs.length === 5 && tabOn.length === 1 && /^BTC\/USD/.test(tabOn[0] || '')) {
+        ok(S('agents'), 'one symbol tab per pair — five since AVAX and SUI joined — opening on the one that is held');
       } else fail(S('agents'), `tabs ${tabs.join(' | ')}, selected ${tabOn.join(' | ')}`);
       const marks = await page.locator('.ag-chart-svg .ag-fill-mark').count();
       const buyMarks = await page.locator('.ag-chart-svg .ag-fill-buy').count();
@@ -1227,12 +1246,12 @@ async function run() {
       const liveRows = await page.locator('.ag-live-row').count();
       const pills = await page.locator('.ag-live-row .ag-pill').count();
       const firstPills = await page.locator('.ag-live-row').first().locator('.ag-pill').allTextContents();
-      if (liveRows === 3 && pills >= 9 && firstPills.some((t) => /trend4hup/.test(t.replace(/\s+/g, '')))) {
-        ok(S('agents'), `the live state renders as pills, one row per symbol (${pills} pills)`);
+      if (liveRows === 5 && pills >= 15 && firstPills.some((t) => /trend4hup/.test(t.replace(/\s+/g, '')))) {
+        ok(S('agents'), `the live state renders as pills, one row per symbol (${pills} pills over ${liveRows} symbols)`);
       } else fail(S('agents'), `live state: ${liveRows} rows, ${pills} pills, first ${firstPills.join(' | ')}`);
       const ages = await page.locator('.ag-live-row .ag-live-age').allTextContents();
       // `.every` on an empty list is vacuously true, so the length is part of the check.
-      if (ages.length === 3 && ages.every((t) => /changed \d+ s ago/.test(t))) ok(S('agents'), 'each reading says when its words last changed');
+      if (ages.length === 5 && ages.every((t) => /changed \d+ s ago/.test(t))) ok(S('agents'), 'each reading says when its words last changed');
       else fail(S('agents'), `observation ages: ${ages.join(' | ')}`);
       const countdown = await page.locator('.ag-countdown-val').textContent().catch(() => '');
       if (/^\d+h \d{2}m \d{2}s$/.test((countdown || '').trim())) ok(S('agents'), `the detail counts down to the next decision to the second (${(countdown || '').trim()})`);
@@ -1268,6 +1287,32 @@ async function run() {
       else fail(S('agents'), `after close: ${listBack} rows`);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
+
+      // ---- hide values, on the agents page -------------------------
+      // The mask is a privacy overlay for showing the screen to someone
+      // else, so a POSITION SIZE has to go under it too: a size beside an
+      // unmasked mark one column over is the value spelled out.
+      await page.locator('.hide-eye').first().click();
+      await page.waitForTimeout(200);
+      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+      await page.waitForTimeout(200);
+      await page.locator('.header-menu-item:text-is("Agents")').first().click();
+      await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
+      await page.locator('.ag-row', { has: page.locator('.ag-name-btn:text-is("Trend 4h · Kraken")') }).first().click();
+      await page.waitForSelector('.ag-positions tbody tr', { timeout: 5_000 });
+      const masked = await page.locator('.ag-positions tbody tr').first().locator('td').allTextContents();
+      const hasDigits = (t) => /\d/.test(t);
+      const sizeCell = (masked[2] || '').trim(), costCell = (masked[3] || '').trim();
+      const fillSizes = await page.locator('.ag-fills tbody tr td:nth-child(4)').allTextContents();
+      if (!hasDigits(sizeCell) && !hasDigits(costCell) && fillSizes.length > 0 && !fillSizes.some(hasDigits)) {
+        ok(S('agents'), `hide-values masks the position size as well as the money (size reads "${sizeCell}")`);
+      } else fail(S('agents'), `under the mask: size "${sizeCell}", avg cost "${costCell}", fill sizes ${fillSizes.join(' | ')}`);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(200);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(200);
+      await page.locator('.hide-eye').first().click();                       // back to values shown for everything after this
+      await page.waitForTimeout(200);
 
       // ---- the same page before the migration has run ------------
       // `runDashboard` answers 200 with `{ notReady, reason }` while the

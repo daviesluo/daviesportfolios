@@ -63,12 +63,7 @@ list stays the short version; the plan is the reasoning behind it.
    S12, S16, each pinned; reference §4.17 is the itemised record, §3.10
    the portfolio study's verdicts.** Migration `0041` (unique index on
    `agent_orders (decision_id, requotes)`) applies on this push; the
-   agents function redeploys. STILL TO DO: the page — S11 (a paused row
-   holding a position gets an alert), S13 (dashboard refresh: newest
-   response wins), S14 (mask sizes under hide-values), S15 (alert when a
-   live row exists and `live_confirmed_at` is null) and the sweep fixture
-   (`app-sweep.mjs` ~279–354: retired dislocation still modelled, no
-   `todayUsd` / `dayStart`, three symbols on trend-4h); S7 —
+   agents function redeploys. STILL TO DO: S7 —
    the Kraken key's nonce window is Davies' setting at Kraken, before any
    Kraken live row; the review's doc gaps for retention of
    `agent_decisions` / `agent_orders` (unbounded; ~150 + ~25 rows a day).
@@ -193,6 +188,28 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-21 17:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The page half of the review, and the sweep fixture that had drifted.**
+S15: a live row while `live_confirmed_at` is null now raises a banner —
+the state where the loop refuses every order and the page showed a
+normal-looking live strategy. S11: a paused row still holding a position
+raises one too, because the tick skips paused rows and nothing protects
+what they hold. A live order left `pending` past two minutes raises a
+third: after this morning's B1 fix the loop deliberately leaves that row
+alone, so the page is where a person is told to settle it. S13: the
+dashboard's refresh is race-safe (`newestWins`) — the minute's interval
+and a click could both be in flight and the slower, older answer won,
+including in the module cache the next open reads. S14: position, order
+and fill sizes go under the hide-values mask; a size beside an unmasked
+mark was the value in plain sight. The sweep's agents fixture was still
+an older payload — five rows including the RETIRED dislocation row,
+three symbols on trend-4h, and no `todayUsd` anywhere, so the Today
+column Davies asked for was only ever exercised with 0. It is now the
+seven active rows with the five trend symbols, a signed today, the
+detail opened by NAME rather than by index, and a pass that turns the
+eye on and checks the sizes are bulleted. 201 checks, all green.
 
 ### [2026-09-21 17:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
