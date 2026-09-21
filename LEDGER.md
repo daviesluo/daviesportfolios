@@ -198,7 +198,7 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
-### [2026-09-21 21:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-21 20:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Two live bugs, and the orders table put back the way he asked for it.**
 - **AVAX read "no reading yet" on a symbol the loop reads every minute.**
