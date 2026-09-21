@@ -215,6 +215,16 @@ venues; its own stops make it worse), momentum-1d (33–56 % drawdowns),
 trend-1h (on a plateau on no coin; it exists for feedback speed), and
 all three Kraken rows (GBP not USD, no nonce window, 0.92–1.00
 correlated with their Revolut X twins at four times the fee).
+- **Verified in production, 17:01 UTC**, after the rewritten loop
+  deployed (16:27) and `0041` applied: the unique index exists; 50
+  observations and 3 decisions in the following half hour, on the right
+  closed bars (17:00 for the hourly rows, 16:00 for the 4-hour ones);
+  the basis recorded on the fifth minute; the lease taken and given back
+  with `holder` null; **no agent error of any kind** — the only
+  `ops_errors` in three hours are the chunk failures from before the
+  14:57 fix, the newest 14:49. `check` green on 754 (the tree that
+  carries every code change of the day; 753 was cancelled by it),
+  `edge-functions` and `migrations` green.
 
 ### [2026-09-21 17:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
