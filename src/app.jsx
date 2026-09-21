@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { fmtMoney, fmtPct, fmtPrice, pctColor } from './formatters.js';
 import { fxToUSD } from './fx.js';
+import { isChunkLoadError, lazyPage } from './chunk_recovery.js';
 import { freezeDepositFxRates } from './deposit_series.js';
 import { createPortfolioEditHandlers } from './portfolio_edits.js';
 import { computeMetrics, detectFormation } from './metrics.js';
@@ -38,16 +39,15 @@ import {
 // download right after first paint, so the code is in memory long before
 // any click. Opening a panel that then has to fetch its own code is the
 // same defect as one that paints an empty state and fills in afterwards.
-const TickerChartModal = React.lazy(() =>
-  import('./ticker_chart_modal.jsx').then(m => ({ default: m.TickerChartModal })));
-const HoldingsListModal = React.lazy(() =>
-  import('./holdings_list.jsx').then(m => ({ default: m.HoldingsListModal })));
-const SectorsListModal = React.lazy(() =>
-  import('./sectors_list.jsx').then(m => ({ default: m.SectorsListModal })));
-const TransactionHistoryModal = React.lazy(() =>
-  import('./transaction_history.jsx').then(m => ({ default: m.TransactionHistoryModal })));
-const AgentsModal = React.lazy(() =>
-  import('./agents.jsx').then(m => ({ default: m.AgentsModal })));
+// `lazyPage` instead of a bare `React.lazy`: a chunk that fails to load
+// (a stale shell after a deploy, or a cache holding HTML under the chunk's
+// name — see chunk_recovery.js) heals the browser and reloads once instead of
+// throwing into the tree.
+const TickerChartModal = lazyPage(() => import('./ticker_chart_modal.jsx'), (m) => ({ default: m.TickerChartModal }));
+const HoldingsListModal = lazyPage(() => import('./holdings_list.jsx'), (m) => ({ default: m.HoldingsListModal }));
+const SectorsListModal = lazyPage(() => import('./sectors_list.jsx'), (m) => ({ default: m.SectorsListModal }));
+const TransactionHistoryModal = lazyPage(() => import('./transaction_history.jsx'), (m) => ({ default: m.TransactionHistoryModal }));
+const AgentsModal = lazyPage(() => import('./agents.jsx'), (m) => ({ default: m.AgentsModal }));
 
 /**
  * What a menu page shows while its code is still arriving: its own frame —
@@ -56,9 +56,9 @@ const AgentsModal = React.lazy(() =>
  * ONE boundary with a null fallback, so any page's first render (or a
  * re-suspension) blanked every open modal and the home page showed through
  * for a frame or two — the "flash" the owner saw on the Agents page.
- * @param {{ title: string, onClose: () => void, bodyClass?: string }} props
+ * @param {{ title: string, onClose: () => void, bodyClass?: string, failed?: boolean }} props
  */
-function ModalFrame({ title, onClose, bodyClass = '' }) {
+function ModalFrame({ title, onClose, bodyClass = '', failed = false }) {
   return (
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
@@ -67,18 +67,48 @@ function ModalFrame({ title, onClose, bodyClass = '' }) {
           <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
         </div>
       </header>
-      <div className={`modal-body ${bodyClass}`.trim()}><div className="ag-empty dim">Loading…</div></div>
+      <div className={`modal-body ${bodyClass}`.trim()}>
+        {failed ? (
+          <div className="ag-empty dim modal-failed">
+            This page's code did not load. The app has already cleared its caches once; reload to try again.
+            <div><button type="button" className="btn-ghost modal-failed-reload" onClick={() => window.location.reload()}>Reload</button></div>
+          </div>
+        ) : <div className="ag-empty dim">Loading…</div>}
+      </div>
     </Modal>
   );
 }
 
+/**
+ * One boundary per lazily loaded page, so a page whose code fails to load
+ * shows its own frame with the words and the rest of the app stays up — a
+ * shared boundary turned every such failure into a whole-app RENDER ERROR.
+ */
+class LazyBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { err: null }; }
+  static getDerivedStateFromError(e) { return { err: e }; }
+  componentDidCatch(error, info) {
+    reportError(isChunkLoadError(error) ? 'chunk.load' : 'render.crash', {
+      message: String(error?.message || error),
+      context: { page: this.props.title, healed: false, stack: String(error?.stack || '').slice(0, 1500), componentStack: String(info?.componentStack || '').slice(0, 800) },
+    });
+  }
+  render() {
+    if (this.state.err) return <ModalFrame title={this.props.title} onClose={this.props.onClose} bodyClass={this.props.bodyClass} failed />;
+    return this.props.children;
+  }
+}
+
 /** Warm every split chunk. Idempotent — the module cache dedupes. */
 function prefetchModalChunks() {
-  import('./ticker_chart_modal.jsx');
-  import('./holdings_list.jsx');
-  import('./sectors_list.jsx');
-  import('./transaction_history.jsx');
-  import('./agents.jsx');
+  // Best-effort warmers: a chunk that fails here is retried, healed and reported by `lazyPage` at the click,
+  // so a failure in the warm-up is not a second report.
+  const warm = (p) => p.catch(() => {});
+  warm(import('./ticker_chart_modal.jsx'));
+  warm(import('./holdings_list.jsx'));
+  warm(import('./sectors_list.jsx'));
+  warm(import('./transaction_history.jsx'));
+  warm(import('./agents.jsx'));
   // The Agents page's data too, so it opens on a drawn page rather than a spinner.
   import('./agents.js').then((m) => m.prefetchAgentsDashboard()).catch(() => {});
 }
@@ -1403,62 +1433,72 @@ function Board({ isReadOnly }) {
           stays mounted behind it — closing the ticker modal returns
           to the list, not all the way home. */}
       {showHoldingsList && (
-        <React.Suspense fallback={<ModalFrame title="Holding list" onClose={() => setShowHoldingsList(false)} />}>
-          <HoldingsListModal
-            metrics={metrics}
-            hideValues={hideValues}
-            onTickerClick={(t) => setViewingTicker(t)}
-            onClose={() => setShowHoldingsList(false)}
-          />
-        </React.Suspense>
+        <LazyBoundary title="Holding list" onClose={() => setShowHoldingsList(false)}>
+          <React.Suspense fallback={<ModalFrame title="Holding list" onClose={() => setShowHoldingsList(false)} />}>
+            <HoldingsListModal
+              metrics={metrics}
+              hideValues={hideValues}
+              onTickerClick={(t) => setViewingTicker(t)}
+              onClose={() => setShowHoldingsList(false)}
+            />
+          </React.Suspense>
+        </LazyBoundary>
       )}
 
       {showSectorsList && (
-        <React.Suspense fallback={<ModalFrame title="Sectors list" onClose={() => setShowSectorsList(false)} />}>
-          <SectorsListModal
-            metrics={metrics}
-            hideValues={hideValues}
-            onTickerClick={(t) => setViewingTicker(t)}
-            onClose={() => setShowSectorsList(false)}
-          />
-        </React.Suspense>
+        <LazyBoundary title="Sectors list" onClose={() => setShowSectorsList(false)}>
+          <React.Suspense fallback={<ModalFrame title="Sectors list" onClose={() => setShowSectorsList(false)} />}>
+            <SectorsListModal
+              metrics={metrics}
+              hideValues={hideValues}
+              onTickerClick={(t) => setViewingTicker(t)}
+              onClose={() => setShowSectorsList(false)}
+            />
+          </React.Suspense>
+        </LazyBoundary>
       )}
 
       {showTransactionHistory && (
-        <React.Suspense fallback={<ModalFrame title="Transaction history" onClose={() => setShowTransactionHistory(false)} />}>
-          <TransactionHistoryModal
-            holdings={portfolio.holdings}
-            marketData={marketData}
-            hideValues={hideValues}
-            t212Orders={t212Orders}
-            onTickerClick={(t) => { setShowTransactionHistory(false); setViewingTicker(t); }}
-            onClose={() => setShowTransactionHistory(false)}
-          />
-        </React.Suspense>
+        <LazyBoundary title="Transaction history" onClose={() => setShowTransactionHistory(false)}>
+          <React.Suspense fallback={<ModalFrame title="Transaction history" onClose={() => setShowTransactionHistory(false)} />}>
+            <TransactionHistoryModal
+              holdings={portfolio.holdings}
+              marketData={marketData}
+              hideValues={hideValues}
+              t212Orders={t212Orders}
+              onTickerClick={(t) => { setShowTransactionHistory(false); setViewingTicker(t); }}
+              onClose={() => setShowTransactionHistory(false)}
+            />
+          </React.Suspense>
+        </LazyBoundary>
       )}
 
       {showAgents && (
-        <React.Suspense fallback={<ModalFrame title="Agents" bodyClass="ag-body" onClose={() => setShowAgents(false)} />}>
-          <AgentsModal
-            hideValues={hideValues}
-            onClose={() => setShowAgents(false)}
-          />
-        </React.Suspense>
+        <LazyBoundary title="Agents" bodyClass="ag-body" onClose={() => setShowAgents(false)}>
+          <React.Suspense fallback={<ModalFrame title="Agents" bodyClass="ag-body" onClose={() => setShowAgents(false)} />}>
+            <AgentsModal
+              hideValues={hideValues}
+              onClose={() => setShowAgents(false)}
+            />
+          </React.Suspense>
+        </LazyBoundary>
       )}
 
       {viewingTicker && (
-        <React.Suspense fallback={null}>
-          <TickerChartModal
-            ticker={viewingTicker}
-            holding={portfolio.holdings[viewingTicker] ?? null}
-            marketData={marketData}
-            extendedHours={extendedHours}
-            phase={currentPhase}
-            portfolioTotalValue={metrics.marketValue}
-            hideValues={hideValues}
-            onClose={() => setViewingTicker(null)}
-          />
-        </React.Suspense>
+        <LazyBoundary title={viewingTicker} onClose={() => setViewingTicker(null)}>
+          <React.Suspense fallback={null}>
+            <TickerChartModal
+              ticker={viewingTicker}
+              holding={portfolio.holdings[viewingTicker] ?? null}
+              marketData={marketData}
+              extendedHours={extendedHours}
+              phase={currentPhase}
+              portfolioTotalValue={metrics.marketValue}
+              hideValues={hideValues}
+              onClose={() => setViewingTicker(null)}
+            />
+          </React.Suspense>
+        </LazyBoundary>
       )}
 
       {editingTicker && !isReadOnly && portfolio.holdings[editingTicker] && (

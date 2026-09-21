@@ -77,6 +77,44 @@ jobs:
             fails="${fails}- site root ($SITE_URL) returned $code"$'\n'
           fi
 
+          # 1b) Deployment integrity — the check that would have caught
+          #     2026-09-21: every chunk the served shell references must
+          #     come back as JavaScript, and a chunk that does not exist
+          #     must be a 404, never the HTML shell with a 200. Pages'
+          #     not-found fallback used to inherit the assets' one-year
+          #     immutable header; browsers that asked for a new chunk
+          #     during a deploy's propagation cached HTML under its name and
+          #     every sub-page died until the next deploy. Only runs when the
+          #     shell itself answered 200 (a 403 here is the bot-protection
+          #     false positive above).
+          UA="User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+          if [ "$code" = "200" ]; then
+            shell=$(curl -s --max-time 20 -H "$UA" -H "Accept: text/html" "$SITE_URL/" || true)
+            app=$(printf '%s' "$shell" | grep -o 'assets/app-[a-z0-9]*\.js' | head -1)
+            if [ -z "$app" ]; then
+              fails="${fails}- the served shell references no app chunk"$'\n'
+            else
+              chunks=$(curl -s --max-time 20 -H "$UA" "$SITE_URL/$app" | grep -o '\./[a-z_]*-[a-z0-9]*\.js' | sort -u | sed 's#^\./##')
+              for f in $app $(printf '%s' "$chunks" | sed 's#^#assets/#'); do
+                got=$(curl -s -o /dev/null -w '%{http_code} %{content_type}' --max-time 20 -H "$UA" "$SITE_URL/$f" || echo "000")
+                echo "chunk $f -> $got"
+                case "$got" in
+                  "200 application/javascript"*|"200 text/javascript"*) ;;
+                  *) fails="${fails}- chunk $f returned '$got' (a sub-page cannot load)"$'\n' ;;
+                esac
+              done
+              missing=$(curl -s -o /dev/null -w '%{http_code} %{content_type} %{header_json}' --max-time 20 -H "$UA" "$SITE_URL/assets/does-not-exist-$(date +%s).js" || echo "000")
+              echo "missing chunk probe -> ${missing%% \{*}"
+              case "$missing" in
+                404*) ;;
+                *) fails="${fails}- a chunk that does not exist returned '${missing%% \{*}' instead of a 404: the not-found fallback would be cached under chunk names again"$'\n' ;;
+              esac
+              case "$missing" in
+                *immutable*) fails="${fails}- the not-found fallback carries an immutable Cache-Control: a bad copy would live for a year"$'\n' ;;
+              esac
+            fi
+          fi
+
           # 2) Edge Functions. Two shapes:
           #      check_anon        — expects 200 (anon-readable, matches
           #                          the app's own client-side calls).

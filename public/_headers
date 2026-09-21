@@ -81,8 +81,16 @@
 /manifest.webmanifest
   Cache-Control: public, max-age=0, must-revalidate
 
-# Vite emits content-hashed filenames in /assets/, so any cached bundle is
-# safe to cache forever — when the source changes the hash changes too and
-# the browser fetches a different URL.
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
+# NO long-lived Cache-Control for /assets/* — deliberately. A rule here
+# applies to every response on the path, and Pages answers a chunk that
+# does not exist (yet) with the HTML shell, status 200. On 2026-09-21 that
+# fallback carried "max-age=31536000, immutable": a browser that asked for
+# a new chunk a moment before the deploy had propagated cached HTML under
+# the chunk's name for a year, the service worker precached the same HTML
+# at install, and every sub-page died with "'text/html' is not a valid
+# JavaScript MIME type" until the next deploy. Pages' default for these
+# files (max-age=0, must-revalidate, ETag → 304s) costs a conditional
+# request per asset for a client without the service worker and nothing
+# for one with it, and a bad copy is revalidated away on the next load.
+# dist/404.html (built beside index.html) makes the fallback a 404 as
+# well, which the worker refuses to precache.

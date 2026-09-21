@@ -443,6 +443,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
   const requested = [];
   page.on('request', (r) => requested.push(r.url()));
   /** @type {any} */ (page).__requested = requested;
+  /** @type {any} */ (page).__reported = [];
 
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   page.on('console', (m) => {
@@ -452,6 +453,9 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
     // are this harness's own `route.abort()` on third-party hosts, not
     // the app misbehaving.
     if (/Failed to load resource|net::ERR_FAILED/.test(txt)) return;
+    // A module the harness answered with HTML on purpose (the poisoned-chunk pass) fails loudly in the console
+    // by design; the pass asserts the app's recovery, not the browser's silence.
+    if (opts.allowModuleErrors && /not a valid JavaScript MIME type|Failed to fetch dynamically imported module|Failed to load module script|Importing a module script failed|error loading dynamically imported module/.test(txt)) return;
     errors.push(`console.error: ${txt}`);
   });
 
@@ -537,7 +541,11 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
     if (url.includes('/trading212')) return json({ source: 'orders', orders: T212_ORDERS, complete: true });
     if (url.includes('/fundamentals')) return json({});
     if (url.includes('/overnight-fetch')) return json({});
-    if (url.includes('/ops-error')) return json({ ok: true });
+    if (url.includes('/ops-error')) {
+      // What the app reports is part of what the sweep checks: a healed chunk must arrive as `chunk.load`, never `render.crash`.
+      try { const body = req.postDataJSON(); if (body?.kind) /** @type {any} */ (page).__reported.push(String(body.kind)); } catch { /* not JSON */ }
+      return json({ ok: true });
+    }
     return json({});
   });
   // Registered LAST so Playwright runs it FIRST. `fallback()`, never
@@ -598,6 +606,52 @@ async function run() {
       if (arrived && modalsAfter === 1) ok('desktop/agents', 'the real page replaces the frame in the same modal');
       else fail('desktop/agents', `page arrived ${arrived}, modals ${modalsAfter}`);
     } else fail('desktop/agents', 'no Agents entry in the menu');
+    await ctx.close();
+  }
+
+  // ---- 0b. a chunk that comes back as the HTML shell heals itself ----------
+  // What production did on 2026-09-21: a chunk that did not exist yet was
+  // answered with index.html, status 200 and a one-year immutable header, and
+  // the browser (then the service worker) kept it. The first request for the
+  // holdings chunk is answered exactly that way here. The app must reload
+  // itself once (after refreshing the chunk and dropping its caches), report
+  // `chunk.load` and never `render.crash`, show no RENDER ERROR screen, and
+  // open the page after the reload.
+  {
+    let poisonedOnce = false;
+    const poison = async (page) => {
+      await page.route('**/assets/holdings_list-*.js', async (route) => {
+        if (!poisonedOnce) {
+          poisonedOnce = true;
+          return route.fulfill({
+            status: 200, contentType: 'text/html; charset=utf-8',
+            headers: { 'cache-control': 'public, max-age=31536000, immutable', 'x-content-type-options': 'nosniff' },
+            body: '<!DOCTYPE html><html><head><title>shell</title></head><body>the app shell, where a chunk should be</body></html>',
+          });
+        }
+        return route.fallback();
+      });
+    };
+    const { ctx, page } = await newPage(browser, { width: 1400, height: 1000 }, errors, tokenMisses, { beforeGoto: poison, allowModuleErrors: true });
+    const reloaded = page.waitForEvent('load', { timeout: 8_000 }).then(() => true).catch(() => false);
+    await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+    await page.waitForTimeout(150);
+    await page.locator('.header-menu-item:text-is("Holding list")').first().click();
+    const didReload = await reloaded;
+    const crashScreens = await page.locator('text=RENDER ERROR').count().catch(() => 0);
+    if (didReload && poisonedOnce && crashScreens === 0) ok('desktop/recovery', 'a chunk answered with HTML makes the app heal and reload once, with no RENDER ERROR screen');
+    else fail('desktop/recovery', `poisoned ${poisonedOnce}, reloaded ${didReload}, crash screens ${crashScreens}`);
+    await page.waitForSelector('.scoreboard-cell-portfolio .sb-value-lg', { timeout: 20_000 }).catch(() => {});
+    await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+    await page.waitForTimeout(150);
+    await page.locator('.header-menu-item:text-is("Holding list")').first().click().catch(() => {});
+    const opened = await page.locator('.modal .modal-title:text-is("Holding list")').first().waitFor({ timeout: 10_000 }).then(() => true).catch(() => false);
+    const rowsAfter = await page.locator('.modal .hl-table tbody tr').first().waitFor({ timeout: 8_000 }).then(() => page.locator('.modal .hl-table tbody tr').count()).catch(() => 0);
+    if (opened && rowsAfter > 0) ok('desktop/recovery', `after the reload the page opens on the real chunk (${rowsAfter} rows)`);
+    else fail('desktop/recovery', `after the reload: opened ${opened}, rows ${rowsAfter}`);
+    const reported = /** @type {any} */ (page).__reported;
+    if (reported.includes('chunk.load') && !reported.includes('render.crash')) ok('desktop/recovery', `the failure was reported as chunk.load and not as a crash (${reported.join(', ')})`);
+    else fail('desktop/recovery', `reports: ${reported.join(', ') || 'none'}`);
     await ctx.close();
   }
 
