@@ -125,6 +125,15 @@ that follow from that evidence, in short:
   coin clears the same bar on Kraken's costs (40 bps maker a side, 80 bps
   a round trip before the spread) and a Kraken book of ≥ $100k a day, and
   joins the Kraken row only, paper first like everything else.
+- **The set that is recommended for live is ONE row**: `trend-4h` on
+  Revolut X, BTC/ETH/SOL/AVAX/SUI, five equal $20 slots, $100 — the
+  allocation study's answer (§3.11) and the go-live brief's
+  (`docs/agents/go-live.md`), reached independently. Equal slots per
+  coin, because weighting by a coin's own recent record loses to the
+  null on BOTH windows. **Kraken runs no real money**: 80–96 bps a round
+  trip needs ~9.7 days to pay back where a Revolut X major needs 2.4 and
+  these rules hold 0.6–3.4 days; it keeps supplying the signal. Both
+  rotations and trend-1h drop out, momentum stays paper.
 - Paper first, per strategy; live only on Davies' explicit go, and the
   first live order needs his confirmation in the same conversation. Live
   on KRAKEN additionally needs two things done at the venue first: the

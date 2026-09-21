@@ -135,13 +135,16 @@ set I recommend below:
 | SOL | +13.3 % / 18 % / 16 | −10.9 % / 37 % / 35 |
 | AVAX | +12.1 % / 9 % / 10 | −3.3 % / 24 % / 24 |
 | SUI | −10.5 % / 25 % / 16 | +3.0 % / 26 % / 10 |
-| **sleeve total on $100** | **−$1.81 (−1.8 %)** | **+$11.05 (+11.1 %)** |
+| **sleeve as one book, $100** | **−$0.33 (−0.3 %), DD 11.8 %** | **+$12.64 (+12.6 %), DD 10.2 %** |
 
 Each coin clears the bar in exactly one window and fails the other, and
 they disagree about which — which is why the sleeve is steadier than any
-of its parts. The sleeve's own combined drawdown is not separately
-measured; the nearest measured figure is the Revolut X rows together,
-22 % and 11 %.
+of its parts. The sleeve line is from the allocation study (§3.11),
+which simulates the five slots as ONE book on one calendar; adding the
+per-coin rows above gives −$1.81 and +$11.05 instead, because each coin
+there is split on its own bar count rather than on the sleeve's. The
+sleeve figure is the one to read: it is the book this row would have
+run.
 
 So the honest expectation for a live `trend-4h` sleeve is: **roughly
 flat to slightly negative in a bad year, roughly +10 % in a good one, on
@@ -207,7 +210,28 @@ established is **left alone for a person to settle**, never guessed at.
 
 ## 7. Recommendation
 
-**Put `trend-4h` on Revolut X live. Leave everything else in paper.**
+**Put `trend-4h` on Revolut X live, five coins, five equal $20 slots.
+Leave everything else in paper.**
+
+**A second, independent study reached this set from the other
+direction** (§3.11, 2026-09-21): asked to find the best allocation
+across coins, rows and venues rather than to pick a rulebook, it ranked
+thirteen row plans by the WORSE of their two windows and put everything
+into this one row. It also answered the two questions that were open:
+
+- **The coins should get equal money.** Weighting them by their own
+  recent record loses to equal slots on BOTH windows, because in four
+  rows of five the prior period's best coin is the next period's worst.
+  Inverse volatility and equal risk each win one window and lose the
+  other. Equal slots is not a winner of a search, it is the null that
+  nothing beat.
+- **Kraken should run no real money.** A round trip there costs 80–96
+  bps against Revolut X's 19.5–53.5 and is paid back after ~9.7 days at
+  a 30 %-a-year drift, where a Revolut X major takes 2.4; these rules
+  hold 0.6–3.4 days. Its twins are 0.905–1.000 correlated with the
+  Revolut X rows and worse by 3.0–16.8 points a window. Kraken keeps the
+  job it is actually good at, which is supplying the candles every rule
+  reads.
 
 Why that row and nothing else:
 
@@ -223,11 +247,20 @@ Why that row and nothing else:
   the per-order cap makes every slot the same size.
 
 Why not the others, in one line each: **rotation** is negative out of
-sample on both venues and its own stops make it worse; **momentum-1d**
-carries 33–56 % drawdowns on a three-coin sleeve; **trend-1h** is on a
-plateau on no coin and exists for feedback speed; **every Kraken row** is
-blocked anyway (the account holds GBP, not USD) and duplicates its
-Revolut X twin at four times the fee.
+sample on both venues, breaks the 35 % drawdown limit in the bull year
+(41.3 % and 42.8 %) and is made worse by its own stops; **momentum-1d**
+is the biggest bull-year contributor and carries a 41 % row drawdown in
+the bear year, so it is the first row to add later and the worst one to
+add now; **trend-1h** is on a plateau on no coin in either window, and
+its feedback-speed case does not survive the numbers — 17–21 fills a
+month against trend-4h's 8–11, a factor of two, and trend-4h alone
+reaches ten fills in 27–38 days; **every Kraken row** is beaten by its
+Revolut X twin on both windows and is blocked anyway until the account
+holds USD and the key has a nonce window.
+
+**One number worth sitting with before you decide.** In the bear year
+this row is in the market **6.5 % of the time**. Most of what it does is
+stay in cash; the −0.3 % is what it costs to be ready.
 
 **Two prerequisites before any Kraken row goes live**, neither of them
 code: convert GBP → USD at Kraken, and set a **nonce window** on the
