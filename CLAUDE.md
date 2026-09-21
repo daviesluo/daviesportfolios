@@ -167,15 +167,24 @@ that follow from that evidence, in short:
   is §3.6's raw output, `universe.json` (`--study universe`) §3.7's,
   `universe20*.json` §3.8's and `ideas.json` §3.9's.
 - The tick claims a bar by inserting its decision (unique index on
-  strategy, symbol, bar_start; a protective decision claims the forming
-  bar, a dislocation decision the minute); a live order is written as
-  `pending` BEFORE the venue is called and reconciled by client id next
-  turn. The daily loss limit blocks new risk only, never an exit; a
-  resting exit order never outranks a stop (it is cancelled first).
-  Paper twins have their own exposure cap (`paper_exposure_usd`) so they
-  measure independently.
+  strategy, symbol, bar_start; a protective decision claims one second
+  INTO its minute, never a bar start; a dislocation decision the minute).
+  An allowed decision whose order never reached the book is placed on a
+  later turn, and the order insert is the claim on that attempt (`0041`).
+  A live order is written as `pending` BEFORE the venue is called and
+  reconciled by client id next turn; **one the venue does not list stays
+  pending for a person to settle — never marked rejected on a guess** (a
+  marketable order fills or dies inside the turn). A cancel whose
+  read-back fails leaves the row open. The fills query is paged. The
+  daily loss limit blocks new risk only, never an exit; a resting exit
+  order never outranks a stop (it is cancelled first); a re-quote passes
+  the same gate as any order. Paper twins have their own exposure cap
+  (`paper_exposure_usd`) so they measure independently. The pre-live
+  review that found these is `docs/agents/reviews/`, its status §4.17.
 - Verify a key read-only before anything depends on it: the `probe`
-  action (balances, pair config, a signed call with a query, Kraken
+  action (balances, pair config for every symbol on an active row, a
+  signed call with a query, Revolut X active orders and Kraken closed
+  orders — the field names the settlement path will read — Kraken
   `AddOrder validate=true`, Jev on both transports). It places nothing.
 - Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
   `KRAKEN_PRO_API_KEY` + `KRAKEN_PRO_PRIVATE_KEY`, `openrouter_api_key`,

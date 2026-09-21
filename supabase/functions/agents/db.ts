@@ -10,7 +10,18 @@ export type Db = {
   update: (table: string, query: string, patch: unknown) => Promise<void>;
   /** An update that returns the rows it changed — a compare-and-set when the filter names the expected state (the tick's lease). */
   claim: <T = unknown>(table: string, query: string, patch: unknown) => Promise<T[]>;
+  /**
+   * Every row the query matches, fetched a page at a time. PostgREST answers
+   * at most `max-rows` rows per request (1,000 on Supabase) and says nothing
+   * when it stops; a book read from a silently truncated list of fills would
+   * freeze every position at a state weeks old. `query` must not carry its
+   * own `limit`.
+   */
+  selectAll: <T = unknown>(table: string, query: string) => Promise<T[]>;
 };
+
+/** PostgREST's page: Supabase's `max-rows` default, and the page size `selectAll` asks for. */
+export const PAGE_ROWS = 1000;
 
 export function makeDb(supabaseUrl: string, serviceKey: string, fetchImpl: typeof fetch = fetch, timeoutMs = 8_000): Db {
   const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json" };
@@ -33,5 +44,15 @@ export function makeDb(supabaseUrl: string, serviceKey: string, fetchImpl: typeo
     },
     update: async (table, query, patch) => { await call("PATCH", `${table}?${query}`, patch, { Prefer: "return=minimal" }); },
     claim: (table, query, patch) => call("PATCH", `${table}?${query}`, patch, { Prefer: "return=representation" }),
+    selectAll: async (table, query) => {
+      const out: unknown[] = [];
+      for (let offset = 0; ; offset += PAGE_ROWS) {
+        const page = await call("GET", `${table}?${query}&limit=${PAGE_ROWS}&offset=${offset}`) as unknown[];
+        out.push(...page);
+        if (page.length < PAGE_ROWS) break;
+      }
+      // deno-lint-ignore no-explicit-any
+      return out as any;
+    },
   };
 }

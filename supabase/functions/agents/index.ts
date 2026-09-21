@@ -55,10 +55,10 @@
 import { reportServerError } from "../_shared/ops.ts";
 import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 import { askJev, type Questions } from "../_shared/jev.ts";
-import { balances, candles, loadPrivateKey, pairs, publicTickers, REVX_REGION, revxVenue, type RevxEnv } from "../_shared/revx.ts";
+import { activeOrders, balances, candles, loadPrivateKey, pairs, publicTickers, REVX_REGION, revxVenue, type RevxEnv } from "../_shared/revx.ts";
 import {
-  addOrder, balance as krakenBalance, balanceEx, cancelOrder as krakenCancel, krakenVenue, makeNonce, ohlc, openOrders,
-  ticker as krakenTicker, tradeVolume, type KrakenEnv,
+  addOrder, balance as krakenBalance, balanceEx, cancelOrder as krakenCancel, closedOrders, krakenVenue, makeNonce, ohlc, openOrders,
+  krakenSupports, ticker as krakenTicker, tradeVolume, type KrakenEnv,
 } from "../_shared/kraken.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { positionFromFills, unrealisedUsd, type Position } from "../_shared/agents_strategy.ts";
@@ -81,6 +81,13 @@ export function envAny(names: string[], read: (n: string) => string | undefined 
 }
 
 export const SYMBOLS = ["BTC/USD", "ETH/USD", "SOL/USD"] as const;
+
+/** The symbols the probe checks: every symbol on an active strategy row (so a coin added by migration is probed too), or the three majors when the rows cannot be read. */
+export function probeSymbols(rows: { symbols?: unknown }[], fallback: readonly string[] = SYMBOLS): string[] {
+  const out = new Set<string>();
+  for (const r of rows) for (const sym of Array.isArray(r.symbols) ? r.symbols : []) if (typeof sym === "string" && sym.includes("/")) out.add(sym);
+  return out.size ? [...out].sort() : [...fallback];
+}
 const ONE_D = 86400e3, ONE_H = 3600e3;
 
 /** PostgREST's way of saying the schema is not there yet: the tables arrive with migration 0037 on merge. */
@@ -182,7 +189,7 @@ type DecisionRow = {
   rule_action: string; rule_reason: string; final_action: string; final_reason: string; risk_allowed: boolean; risk_reason: string;
 };
 
-function jevStats(rows: { provider: string; cost_usd: number | null; latency_ms: number | null }[]) {
+export function jevStats(rows: { provider: string; cost_usd: number | null; latency_ms: number | null }[]) {
   const providers: Record<string, number> = {};
   let cost = 0, lat = 0, n = 0;
   for (const r of rows) {
@@ -216,7 +223,7 @@ async function dashboard(now: number) {
   const [strategies, riskRows, filled, open, today, decisions24h, recentDecisions, recentOrders, backtests, basis24h, observations, { venues, notes }] = await Promise.all([
     d.select<StrategyRow & { description: string; updated_at: string }>("agent_strategies", "retired_at=is.null&select=*&order=id.asc"),   // a retired row keeps its records and leaves the page (0038)
     d.select<RiskRow & { updated_at: string }>("agent_risk", "id=eq.1&select=*"),
-    d.select<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc"),   // the filled part of a working order is a position too
+    d.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc"),   // the filled part of a working order is a position too; paged — PostgREST stops at 1,000 rows without a word
     d.select<OrderRow & { request: unknown }>("agent_orders", "state=in.(pending,new,partially_filled)&select=*&order=ts.desc"),
     d.select<{ id: number; strategy_id: string; venue: VenueId; state: string }>("agent_orders", `ts=gte.${dayStart}&select=id,strategy_id,venue,state`),
     d.select<{ strategy_id: string; provider: string; cost_usd: number | null; latency_ms: number | null }>("agent_decisions", `ts=gte.${since24h}&select=strategy_id,provider,cost_usd,latency_ms`),
@@ -227,11 +234,12 @@ async function dashboard(now: number) {
     d.select<ObservationRow>("agent_observations", "select=strategy_id,symbol,ts,bar_start,state,numbers&order=ts.desc&limit=400"),
     loadVenues(),
   ]);
-  // Today's opening price per symbol, from the cached daily candles (the signal venue's), for the day's change.
+  // Today's opening price per VENUE and symbol, from the cached daily candles: each strategy is marked from its own signal
+  // venue's day open, exactly as the tick's loss breaker marks it, so the page's "today" and the loop's are one figure.
   const dayStartMs = Math.floor(now / ONE_D) * ONE_D;
-  const dayOpen: Record<string, number> = {};
-  for (const c of await d.select<{ symbol: string; open: number; start: string }>("agent_candles", `interval_min=eq.1440&start=gte.${new Date(dayStartMs - ONE_D).toISOString()}&select=symbol,open,start&order=start.desc`)) {
-    if (dayOpen[c.symbol] == null && Date.parse(c.start) === dayStartMs) dayOpen[c.symbol] = Number(c.open);
+  const dayOpenBy: Record<string, Record<string, number>> = {};
+  for (const c of await d.select<{ venue: string; symbol: string; open: number; start: string }>("agent_candles", `interval_min=eq.1440&start=eq.${new Date(dayStartMs).toISOString()}&select=venue,symbol,open,start`)) {
+    (dayOpenBy[c.venue] ??= {})[c.symbol] = Number(c.open);
   }
   // The latest observation per strategy × symbol: what the rule sees on the forming bar, right now.
   const latestObs = new Map<string, ObservationRow>();
@@ -277,7 +285,7 @@ async function dashboard(now: number) {
     const sum = (k: "costUsd" | "valueUsd" | "unrealisedUsd" | "realisedUsd" | "feesUsd") => positions.reduce((a, p) => a + p[k], 0);
     // Today: realised since 00:00 UTC plus the change in unrealised from the day's open — the tick's own `dayPnl`, per strategy.
     const mine0 = filled.filter((o) => o.strategy_id === s.id);
-    const todayUsd = dayPnl(mine0, marks[s.venue] ?? {}, dayOpen, dayStartMs);
+    const todayUsd = dayPnl(mine0, marks[s.venue] ?? {}, dayOpenBy[s.signal_venue] ?? {}, dayStartMs);
     const agg = { costUsd: sum("costUsd"), valueUsd: sum("valueUsd"), unrealisedUsd: sum("unrealisedUsd"), realisedUsd: sum("realisedUsd"), feesUsd: sum("feesUsd"), todayUsd };
     for (const k of Object.keys(agg) as (keyof typeof agg)[]) {
       totals[k] += agg[k];
@@ -413,6 +421,12 @@ async function log(strategyId: string, limit: number) {
 /** The read-only probe. Nothing here can place an order. */
 export async function runProbe(): Promise<Record<string, unknown>> {
   const out: Record<string, unknown> = { at: new Date().toISOString() };
+  // Every symbol an active row trades — AVAX and SUI joined by migration after the probe was written, and a pair the venue
+  // has no config for would only show up as "no pair config" after a bar had been claimed.
+  let symbols: string[] = [...SYMBOLS];
+  try { symbols = probeSymbols(await db().select<{ symbols: unknown }>("agent_strategies", "mode=in.(paper,live)&retired_at=is.null&select=symbols")); }
+  catch (e) { out.symbolsNote = `strategy rows unreadable (${e instanceof Error ? e.message : String(e)}); probing the three majors`; }
+  out.symbols = symbols;
 
   // --- Revolut X -----------------------------------------------------------
   const rx = await loadRevx();
@@ -427,7 +441,7 @@ export async function runProbe(): Promise<Record<string, unknown>> {
     const p = await pairs(rx.env);
     if (p.ok) {
       const cfg: Record<string, unknown> = {};
-      for (const s of SYMBOLS) cfg[s] = p.data?.[s] ?? null;
+      for (const s of symbols) cfg[s] = p.data?.[s] ?? null;
       r.pairs = { status: p.status, count: Object.keys(p.data ?? {}).length, config: cfg };
     } else {
       r.pairs = { status: p.status, error: p.error };
@@ -442,13 +456,21 @@ export async function runProbe(): Promise<Record<string, unknown>> {
       : { status: c.status, error: c.error };
     // The book this account trades on: the region every market-data call names, and what the filtered tickers say
     // (row count per symbol must be one — two rows would mean the filter is not being honoured, reference §2.2).
-    const t = await publicTickers(["BTC/USD", "SOL/USD"]);
+    const t = await publicTickers(symbols);
     r.region = {
       requested: REVX_REGION,
       tickers: t.ok
         ? (t.data?.data ?? []).map((x) => ({ symbol: x.symbol, region: x.region ?? null, bid: x.bid, ask: x.ask, spreadBps: Math.round(((Number(x.ask) - Number(x.bid)) / ((Number(x.ask) + Number(x.bid)) / 2)) * 1e4 * 10) / 10 }))
         : { status: t.status, error: t.error },
     };
+    // The order reads the live settlement path depends on (`GET /1.0/orders/active`; the single-order read shares its row
+    // shape). Reference §2 never verified either, so the probe reports the FIELD NAMES the venue actually returns — the
+    // client reads `filled_size`, `average_fill_price`, `fees`, and a filled order without them is refused, never settled
+    // at fee 0. Reads only; nothing is placed.
+    const ao = await activeOrders(rx.env);
+    r.activeOrders = ao.ok
+      ? { status: ao.status, count: ao.data?.data?.length ?? 0, fields: Object.keys(ao.data?.data?.[0] ?? {}), clientReads: ["filled_size", "average_fill_price", "fees", "state", "client_order_id", "venue_order_id"] }
+      : { status: ao.status, error: ao.error };
     out.revx = r;
   }
 
@@ -462,12 +484,20 @@ export async function runProbe(): Promise<Record<string, unknown>> {
     k.balance = b.ok ? { status: b.status, rows: b.data } : { status: b.status, error: b.error };
     const bx = await balanceEx(kk.env);
     k.balanceEx = bx.ok ? { status: bx.status, rows: bx.data } : { status: bx.status, error: bx.error };
-    const tv = await tradeVolume(kk.env, [...SYMBOLS]);
+    const tv = await tradeVolume(kk.env, symbols.filter(krakenSupports));
     k.tradeVolume = tv.ok
       ? { status: tv.status, currency: tv.data?.currency, volume: tv.data?.volume, fees: tv.data?.fees, fees_maker: tv.data?.fees_maker }
       : { status: tv.status, error: tv.error };
     const oo = await openOrders(kk.env);
     k.openOrders = oo.ok ? { status: oo.status, count: Object.keys(oo.data?.open ?? {}).length } : { status: oo.status, error: oo.error };
+    // The settled shape a live order will have, and whether the venue echoes our client id on it (the reconciliation key).
+    const co = await closedOrders(kk.env);
+    if (co.ok) {
+      const first = Object.values(co.data?.closed ?? {})[0] as Record<string, unknown> | undefined;
+      k.closedOrders = { status: co.status, count: co.data?.count ?? Object.keys(co.data?.closed ?? {}).length, fields: Object.keys(first ?? {}), hasClOrdId: first ? "cl_ord_id" in first : null };
+    } else {
+      k.closedOrders = { status: co.status, error: co.error };
+    }
     // validate=true: the venue checks pair/volume/price/flags/permission
     // and returns the order description WITHOUT a txid; nothing reaches the
     // matching engine. Priced far below market and post-only anyway. If a
@@ -496,7 +526,7 @@ export async function runProbe(): Promise<Record<string, unknown>> {
     } else {
       k.ohlc = { status: oh.status, error: oh.error };
     }
-    const tk = await krakenTicker([...SYMBOLS]);
+    const tk = await krakenTicker(symbols.filter(krakenSupports));
     if (tk.ok) {
       const spreads: Record<string, number> = {};
       for (const [key, t] of Object.entries(tk.data ?? {})) {

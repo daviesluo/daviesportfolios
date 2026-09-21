@@ -198,6 +198,7 @@ export function buildSnapshot(
   p: TrendParams = DEFAULT_TREND,
   pre?: Precomputed,
   barsPerYear = BARS_4H_PER_YEAR,
+  lookbackDays = 30,
 ): Snapshot {
   // The live loop hands in a short window and lets this compute; the
   // backtester precomputes once. Both read the same arithmetic.
@@ -209,9 +210,10 @@ export function buildSnapshot(
   const exitRange = priorRange(c4h, i, p.breakoutDown);
   const atr = atrAt(c4h, i, p.atrN);
   const vol = realisedVol(closes, i, p.volN, barsPerYear);
-  // 30-day momentum from daily closes: the last daily close vs the one 30 days earlier.
+  // Momentum from daily closes: the last daily close vs the one `lookbackDays` earlier. The state word is named for its
+  // default (`momentum_30d`); a row's `lookbackDays` parameter moves the window and the word keeps its name.
   const d = daily.length;
-  const ret30d = d > 30 ? daily[d - 1].close / daily[d - 31].close - 1 : null;
+  const ret30d = d > lookbackDays ? daily[d - 1].close / daily[d - 1 - lookbackDays].close - 1 : null;
 
   let trend: Trend = "flat", strength: Strength = "weak";
   if (fast != null && slow != null) {
@@ -557,15 +559,17 @@ export function jevQuestions(state: CategoricalState) {
 export type JevView = { healthy: number | null; caution: number | null; echoOk: boolean; provider: string };
 
 /**
- * The rulebook and the model combined. The model can VETO an entry or
- * ADVISE an exit; it can never open a position the rule would not, and
- * with no model answer (`provider: none`) the rule alone decides — for an
- * entry that means hold, since the vote required to enter is missing.
+ * The rulebook and the model combined. The model can VETO an entry and
+ * nothing else: it never opens a position the rule would not, and it never
+ * advises an exit — exits are the rule's and the stops' alone (reference
+ * §4.13), so a hold passes through untouched whatever the model thinks.
+ * With no model answer (`provider: none`) an entry becomes a hold, since
+ * the vote required to enter is missing.
  */
 export function combineDecision(
   rule: { action: Action; reason: string },
   jev: JevView,
-  thresholds = { enterMin: 0.6, exitMax: 0.3, cautionExit: 1.75 },
+  thresholds: { enterMin: number; cautionExit: number } = { enterMin: 0.6, cautionExit: 1.75 },
 ): { action: Action; reason: string; jevSaid: string } {
   const said = jev.healthy == null ? `${jev.provider}: no answer`
     : `healthy=${jev.healthy.toFixed(2)} caution=${jev.caution?.toFixed(2) ?? "?"}${jev.echoOk ? "" : " ECHO-MISMATCH"}`;
@@ -578,11 +582,6 @@ export function combineDecision(
     if (jev.healthy < thresholds.enterMin) return { action: "hold", reason: `${rule.reason}; model vetoed (P(healthy)=${jev.healthy.toFixed(2)} < ${thresholds.enterMin})`, jevSaid: said };
     if ((jev.caution ?? 0) >= thresholds.cautionExit) return { action: "hold", reason: `${rule.reason}; model rates caution extreme`, jevSaid: said };
     return { action: "enter", reason: `${rule.reason}; model agrees (P=${jev.healthy.toFixed(2)})`, jevSaid: said };
-  }
-  if (rule.action === "hold" && jev.healthy != null && jev.healthy <= thresholds.exitMax) {
-    // Only meaningful when long: the rule said hold-in-position but the
-    // model reads the state as clearly unhealthy.
-    return { action: "exit", reason: `model advises exit (P(healthy)=${jev.healthy.toFixed(2)} ≤ ${thresholds.exitMax})`, jevSaid: said };
   }
   return { ...rule, jevSaid: said };
 }
