@@ -1150,6 +1150,16 @@ async function run() {
         : 0;
       if (clippedVenue === 0) ok(S('agents'), vpWidth > 760 ? 'every venue badge fits its cell, nothing clipped or ellipsised' : 'no venue column on a phone');
       else fail(S('agents'), `${clippedVenue} venue cells clip their badge`);
+      const sectionTitle = (await page.locator('.ag-strategies .ag-section-title').allTextContents()).map((t) => t.trim());
+      const liveTables = await page.locator('.ag-strategies-live').count();
+      if (sectionTitle.length === 1 && /^TESTING STRATEGIES/.test(sectionTitle[0]) && liveTables === 0) {
+        ok(S('agents'), `nothing is live, so the page says so once ("${sectionTitle[0]}") and shows no live table`);
+      } else fail(S('agents'), `strategy sections: ${sectionTitle.join(' | ')}, live tables ${liveTables}`);
+      if (vpWidth > 760) {
+        const nameAlign = await page.locator('.ag-strategies td.ag-col-name').first().evaluate((el) => getComputedStyle(el).textAlign);
+        if (nameAlign === 'left') ok(S('agents'), 'the strategy name reads from the left, under the dot beside it');
+        else fail(S('agents'), `name column text-align ${nameAlign}`);
+      }
       const sbCells = await page.locator('.ag-scoreboard .sb-label').allTextContents();
       if (sbCells.join('|') === 'DEPLOYED|TODAY|UNREALIZED G/L|REALIZED G/L (incl. fees $0.08)') {
         ok(S('agents'), 'four cells, no total, and the fees ride on the realised label');
@@ -1206,10 +1216,15 @@ async function run() {
       else fail(S('agents'), `detail title "${title}"`);
       // One table on the detail, not three: the positions table and the decisions table said the same
       // things the cards and the live-state row already say, and the orders table now lives under the chart.
-      const oldTables = await page.locator('.ag-positions, .ag-log').count();
+      // The orders table keeps its own class and is now inside the chart card; what must be gone is the positions
+      // table, the decisions table, and any SECOND log table at the bottom of the page.
+      const posTables = await page.locator('.ag-positions').count();
+      const logTables = await page.locator('.ag-log').count();
+      const logsInChart = await page.locator('.ag-chart-card .ag-log').count();
       const posCards = await page.locator('.ag-poscard').count();
-      if (oldTables === 0 && posCards === 1) ok(S('agents'), 'the detail carries one position card and none of the three duplicate tables');
-      else fail(S('agents'), `old tables ${oldTables}, position cards ${posCards}`);
+      if (posTables === 0 && logTables === 1 && logsInChart === 1 && posCards === 1) {
+        ok(S('agents'), 'one position card, one orders table, and it sits under the chart — no positions or decisions table');
+      } else fail(S('agents'), `positions tables ${posTables}, log tables ${logTables} (${logsInChart} under the chart), position cards ${posCards}`);
       const cardRows = await page.locator('.ag-poscard .pc-row .dim').allTextContents();
       if (cardRows.join('|') === 'Size|Avg cost|Cost|Value|Held') ok(S('agents'), 'the position card is the board\'s own card, row for row');
       else fail(S('agents'), `card rows: ${cardRows.join(' | ')}`);
@@ -1243,16 +1258,20 @@ async function run() {
       const heads = (await page.locator('.ag-fills thead th').allTextContents()).map((t) => t.trim());
       if (ordRowsN === 3 && sides.join(',') === 'buy,sell,buy') ok(S('agents'), 'every order on the pair, newest first, the resting one included');
       else fail(S('agents'), `orders table: ${ordRowsN} rows, sides ${sides.join(' | ')}`);
-      // The column is Cost, not Notional, and the time is the site's clock — not UTC, which is the loop's.
-      if (heads.includes('Cost') && !heads.includes('Notional') && /^When \((BST|GMT)\)$/.test(heads[0] || '')) {
-        ok(S('agents'), `the orders table reads Cost and stamps UK local time ("${heads[0]}")`);
-      } else fail(S('agents'), `order table headers: ${heads.join(' | ')}`);
+      // It IS the old ORDERS table, moved: same eleven columns in the same order, with two changes — Cost for
+      // Notional, and the side wearing the chart's arrow instead of a word badge.
+      const want = ['When', 'Symbol', 'Venue', 'Side', 'Price', 'Size', 'Cost', 'State', 'Fill', 'Fee', 'Mode'];
+      const arrows = await page.locator('.ag-fills tbody .ag-side .ag-side-mark').count();
+      const oldSideBadges = await page.locator('.ag-fills tbody .txn-badge').count();
+      if (heads.length === 11 && heads.slice(1).join(',') === want.slice(1).join(',') && /^When \((BST|GMT)\)$/.test(heads[0] || '') && arrows === ordRowsN && oldSideBadges === 0) {
+        ok(S('agents'), `the ORDERS table, moved under the chart: Cost for Notional, the chart's arrow for the side badge, UK local time ("${heads[0]}")`);
+      } else fail(S('agents'), `order table headers: ${heads.join(' | ')}; arrows ${arrows}, old badges ${oldSideBadges}`);
       const restingState = await page.locator('.ag-fills tbody tr').first().locator('.ag-state-pill').textContent().catch(() => '');
       if ((restingState || '').trim() === 'new') ok(S('agents'), 'the resting order is on the table with its state');
       else fail(S('agents'), `first row state "${restingState}"`);
       // Every cell centred, header and body: these tables are read down a column.
       const offCentre = await page.locator('.ag-detail .ag-table th, .ag-detail .ag-table td')
-        .evaluateAll((els) => els.filter((el) => getComputedStyle(el).textAlign !== 'center').length);
+        .evaluateAll((els) => els.filter((el) => getComputedStyle(el).textAlign !== 'center').length);   // the detail has no name column
       if (offCentre === 0) ok(S('agents'), 'every cell in the detail\'s table is centred');
       else fail(S('agents'), `${offCentre} cells are not centred`);
       const liveRows = await page.locator('.ag-live-row').count();

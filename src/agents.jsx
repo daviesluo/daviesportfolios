@@ -14,7 +14,7 @@ import { Modal } from './modals.jsx';
 import { fmtMoney, maskDigits, pctColor } from './formatters.js';
 import { ukTzAbbr } from './market_hours.js';
 import {
-  agentsAlerts, agentsErrorView, balanceLines, countdownText, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
+  agentsAlerts, agentsErrorView, balanceLines, countdownText, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -27,11 +27,8 @@ const REFRESH_MS = 60_000;
 const TICK_MS = 20_000;
 const SURFACE = '#0f1815';   // the modal's own background — the 2px ring every overlapping mark wears
 
-/** @param {string} iso */
-const when = (iso) => {
-  const d = new Date(iso);
-  return isNaN(d.getTime()) ? '—' : d.toISOString().slice(5, 16).replace('T', ' ');
-};
+/** A timestamp on this page, UK local like every other one. @param {string} iso */
+const when = (iso) => fmtChartStamp(iso);
 /** The server writes its reasons in lower case; a paragraph starts with a capital. @param {string} t */
 const sentence = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
 /** @param {number | null} ms */
@@ -350,7 +347,7 @@ function PriceChart({ chart, nowMs, hue, m = (s) => s }) {
 
   const span = geo.priceSpan || 0;
   const tip = hover ? (() => {
-    const lines = [`${fmtChartStamp(hover.t)} UTC`, `close  ${fmtChartPrice(hover.close, span)}`];
+    const lines = [`${fmtChartStamp(hover.t)} ${UK_TZ}`, `close  ${fmtChartPrice(hover.close, span)}`];
     for (const f of hover.fills) lines.push(`${f.side === 'buy' ? 'bought' : 'sold'} ${sizeText(f.base, m)} @ ${fmtChartPrice(f.price, span)}`);
     return { lines, box: tooltipBox(geo, hover.x, hover.y, lines) };
   })() : null;
@@ -392,7 +389,7 @@ function PriceChart({ chart, nowMs, hue, m = (s) => s }) {
           {geo.fillMarks.map((f) => (
             <path key={`fill-${f.id}`} className={`ag-fill-mark ag-fill-${f.side}`} d={markPath(f.side, f.x, f.y, 5)}
               fill={f.side === 'buy' ? 'var(--gain)' : 'var(--loss)'} stroke={SURFACE} strokeWidth="2" strokeLinejoin="round">
-              <title>{`${f.side === 'buy' ? 'bought' : 'sold'} ${sizeText(f.base, m)} @ ${fmtChartPrice(f.price, span)} · ${fmtChartStamp(f.ts)} UTC`}</title>
+              <title>{`${f.side === 'buy' ? 'bought' : 'sold'} ${sizeText(f.base, m)} @ ${fmtChartPrice(f.price, span)} · ${fmtChartStamp(f.ts)} ${UK_TZ}`}</title>
             </path>
           ))}
           {hover && tip && (
@@ -458,11 +455,12 @@ function AgentsError({ err, onRetry = null, compact = false }) {
 }
 
 /**
- * Every order on this pair, newest first: the one table on the page that
- * says what the rule did and what it cost. It replaced a fills table, a
- * positions table and a decisions table that repeated each other; the side
- * keeps the arrow the chart marks a fill with, so the row and the mark read
- * as one thing. Times are UK local, the clock in the site's header.
+ * The ORDERS table, exactly as it was at the bottom of the page, moved up
+ * under the chart and scoped to the pair the chart is drawing. Two things
+ * differ from the old one and nothing else: the SIDE wears the arrow the
+ * chart marks a fill with, so a row and a mark on the plot read as one
+ * thing, and the notional is called Cost, which is what it is. Times are UK
+ * local, the clock in the site's header.
  * @param {{ chart: any, more: any, symbol: string | null, m: (s: string) => string, venue: string }} props
  */
 function SymbolOrders({ chart, more, symbol, m, venue }) {
@@ -470,27 +468,29 @@ function SymbolOrders({ chart, more, symbol, m, venue }) {
   return (
     <div className="ag-fills">
       <div className="hl-scroll">
-        <table className="hl-table ag-table mono">
+        <table className="hl-table ag-table ag-log mono">
           <thead><tr>
-            <th className="hl-th">When ({UK_TZ})</th><th className="hl-th">Side</th><th className="hl-th">Price</th>
-            <th className="hl-th">Size</th><th className="hl-th">Cost</th><th className="hl-th ag-ph">Fee</th>
-            <th className="hl-th">State</th><th className="hl-th ag-ph">Venue</th><th className="hl-th ag-ph">Liquidity</th>
+            <th className="hl-th">When ({UK_TZ})</th><th className="hl-th">Symbol</th><th className="hl-th ag-ph">Venue</th><th className="hl-th">Side</th>
+            <th className="hl-th">Price</th><th className="hl-th ag-ph">Size</th><th className="hl-th ag-ph">Cost</th>
+            <th className="hl-th">State</th><th className="hl-th ag-ph">Fill</th><th className="hl-th ag-ph">Fee</th><th className="hl-th ag-ph">Mode</th>
           </tr></thead>
           <tbody>
-            {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={9}>No orders on this pair in the window.</td></tr>}
+            {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={11}>No orders on this pair in the window.</td></tr>}
             {rows.map((o) => (
-              <tr key={o.id} className={`ag-fill-row ag-fill-row-${o.side}`}>
+              <tr key={o.id} className={`txn-row txn-row-${o.side}`}>
                 <td className="dim">{fmtChartStamp(o.ts)}</td>
+                <td className="hl-strong">{symbol}</td>
+                <td className="ag-ph"><VenueBadge id={o.venue ?? venue} /></td>
                 <td>
                   <span className={`ag-side ag-side-${o.side}`}><span className="ag-side-mark" aria-hidden="true" />{o.side}</span>
                 </td>
-                <td className="hl-strong">{m(fmtUsd(o.fillPrice ?? o.price))}</td>
-                <td>{sizeText(o.base, m)}</td>
-                <td>{m(fmtUsd(o.costUsd))}</td>
-                <td className="dim ag-ph">{m(fmtUsd(o.feeUsd))}</td>
+                <td>{m(fmtUsd(o.price))}</td>
+                <td className="ag-ph">{sizeText(o.base, m)}</td>
+                <td className="ag-ph">{m(fmtUsd(o.costUsd))}</td>
                 <td><span className={`ag-state-pill ag-state-${o.state}`}>{o.state.replace('_', ' ')}</span></td>
-                <td className="ag-ph"><VenueBadge id={o.venue ?? venue} /></td>
-                <td className="dim ag-ph">{o.liquidity}</td>
+                <td className="ag-ph">{o.fillPrice != null ? m(fmtUsd(o.fillPrice)) : <span className="dim">—</span>}</td>
+                <td className="dim ag-ph">{m(fmtUsd(o.feeUsd))}</td>
+                <td className="ag-ph"><ModeBadge mode={o.mode} /></td>
               </tr>
             ))}
           </tbody>
@@ -607,7 +607,7 @@ function NotReady({ dash }) {
         time that migration runs against this database. Until then the loop has nothing to read and nothing to write:
         nothing is running, and no money is at risk.
       </p>
-      <div className="ag-notready-foot mono dim">checked {when(dash.at)} UTC</div>
+      <div className="ag-notready-foot mono dim">checked {when(dash.at)} {UK_TZ}</div>
     </div>
   );
 }
@@ -659,7 +659,7 @@ function Countdown({ at, label }) {
   const [sec, setSec] = React.useState(() => Date.now());
   React.useEffect(() => { const id = setInterval(() => setSec(Date.now()), 1000); return () => clearInterval(id); }, []);
   return (
-    <span className="ag-countdown mono" title={at ? `${new Date(at).toISOString().replace('T', ' ').slice(0, 19)} UTC` : undefined}>
+    <span className="ag-countdown mono" title={at ? `${fmtChartStamp(at)} ${UK_TZ}` : undefined}>
       <span className="dim">{label}</span> <span className="ag-countdown-val">{countdownText(at, sec)}</span>
     </span>
   );
@@ -737,6 +737,7 @@ function AgentsModal({ hideValues, onClose }) {
   }, [load]);
 
   const rows = React.useMemo(() => strategyRows(dash, now), [dash, now]);
+  const split = React.useMemo(() => splitStrategyRows(rows), [rows]);
   const phone = useMediaQuery('(max-width: 760px)');
   const current = selected ? (dash?.strategies ?? []).find((s) => s.id === selected) ?? null : null;
   const notReady = !!dash?.notReady;
@@ -763,11 +764,19 @@ function AgentsModal({ hideValues, onClose }) {
             <Scoreboard dash={dash} m={m} />
             <VenueSplit dash={dash} m={m} />
             <Alerts dash={dash} />
-            <section className="ag-section ag-strategies">
-              <div className="ag-section-title mono">STRATEGIES</div>
-              {phone ? <StrategyCards rows={rows} m={m} onOpen={setSelected} /> : <StrategyTable rows={rows} m={m} onOpen={setSelected} />}
-            </section>
-            <div className="ag-updated dim mono">as of {when(dash.at)} UTC · refreshes every minute</div>
+            {split.live.length > 0 && (
+              <section className="ag-section ag-strategies ag-strategies-live">
+                <div className="ag-section-title mono">LIVE STRATEGIES</div>
+                {phone ? <StrategyCards rows={split.live} m={m} onOpen={setSelected} /> : <StrategyTable rows={split.live} m={m} onOpen={setSelected} />}
+              </section>
+            )}
+            {split.testing.length > 0 && (
+              <section className="ag-section ag-strategies ag-strategies-testing">
+                <div className="ag-section-title mono">{split.live.length > 0 ? 'TESTING STRATEGIES' : 'TESTING STRATEGIES — nothing is live'}</div>
+                {phone ? <StrategyCards rows={split.testing} m={m} onOpen={setSelected} /> : <StrategyTable rows={split.testing} m={m} onOpen={setSelected} />}
+              </section>
+            )}
+            <div className="ag-updated dim mono">as of {when(dash.at)} {UK_TZ} · refreshes every minute</div>
           </>
         )}
       </div>

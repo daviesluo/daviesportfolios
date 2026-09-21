@@ -529,6 +529,20 @@ export function liveStateRows(s, nowMs) {
   });
 }
 
+/**
+ * The overview table, split the way the money is: what is trading real
+ * money and what is only being measured. A paused row is being measured
+ * too — it is not live — so it sits with the testing rows. Rendering an
+ * empty half would be noise, so the page renders only the halves that
+ * have rows in them, and with nothing live that is one table saying
+ * TESTING, which is the honest headline.
+ * @param {any[]} rows
+ */
+export function splitStrategyRows(rows) {
+  const all = rows ?? [];
+  return { live: all.filter((r) => r?.mode === 'live'), testing: all.filter((r) => r?.mode !== 'live') };
+}
+
 /** The symbol the detail opens on: what is held, else what has traded, else the first. @param {any} s */
 export function defaultChartSymbol(s) {
   const positions = s?.positions ?? [];

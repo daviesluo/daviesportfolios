@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { CHUNK_ERROR_RE, RECOVERY_KEY, chunkUrlFromError, healAndReload, isChunkLoadError, shouldHeal } from './chunk_recovery.js';
+import { CHUNK_ERROR_RE, RECOVERY_KEY, chunkUrlFromError, healAndReload, healRejection, isChunkLoadError, shouldHeal } from './chunk_recovery.js';
 
 const mem = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)) }; };
 
@@ -62,5 +62,28 @@ describe('a chunk that does not arrive', () => {
     });
     expect(out).toBe('reloading');
     expect(calls).toEqual(['reload']);
+  });
+});
+
+describe('healRejection', () => {
+  it('heals a chunk failure that arrives as an unhandled rejection, and leaves every other rejection alone', async () => {
+    const storage = { getItem: () => null, setItem: () => {} };
+    const calls = [];
+    const deps = {
+      storage, nowMs: 1_000_000,
+      fetchImpl: async () => { calls.push('fetch'); return new Response(''); },
+      sw: { getRegistrations: async () => [] },
+      cacheStore: { keys: async () => [], delete: async () => true },
+      reload: () => calls.push('reload'),
+      report: (kind) => calls.push(`report:${kind}`),
+    };
+    const chunkErr = new TypeError("Failed to fetch dynamically imported module: https://x/assets/agents-1.js");
+    expect(await healRejection(chunkErr, deps)).toBe(true);
+    expect(calls).toContain('reload');
+    expect(calls).toContain('report:chunk.load');
+    calls.length = 0;
+    expect(await healRejection(new Error('some ordinary failure'), deps)).toBe(false);
+    expect(calls).toEqual([]);
+    expect(await healRejection(undefined, deps)).toBe(false);
   });
 });

@@ -90,6 +90,20 @@ export function probeSymbols(rows: { symbols?: unknown }[], fallback: readonly s
 }
 const ONE_D = 86400e3, ONE_H = 3600e3;
 
+/**
+ * The newest observation for ONE strategy and symbol. A single window over
+ * all of them cannot do this job: observations are written only when the
+ * state CHANGES, so a pair whose words have been steady for hours is pushed
+ * out of any fixed limit by the busy pairs, and the page then says "no
+ * reading yet" about a symbol the loop is reading every minute. That is
+ * exactly what AVAX did on 2026-09-21 — its last change was 13:12 UTC and
+ * the newest 400 rows reached back only to 15:53. The tick has always read
+ * these one pair at a time, for the same reason; the dashboard does now too.
+ */
+export function latestObservationQuery(strategyId: string, symbol: string): string {
+  return `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${encodeURIComponent(symbol)}&select=strategy_id,symbol,ts,bar_start,state,numbers&order=ts.desc&limit=1`;
+}
+
 /** PostgREST's way of saying the schema is not there yet: the tables arrive with migration 0037 on merge. */
 export function isNotReady(e: unknown): boolean {
   const m = e instanceof Error ? e.message : String(e);
@@ -220,7 +234,7 @@ async function dashboard(now: number) {
   const d = db();
   const dayStart = new Date(Math.floor(now / ONE_D) * ONE_D).toISOString();
   const since24h = new Date(now - ONE_D).toISOString();
-  const [strategies, riskRows, filled, open, today, decisions24h, recentDecisions, recentOrders, backtests, basis24h, observations, { venues, notes }] = await Promise.all([
+  const [strategies, riskRows, filled, open, today, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }] = await Promise.all([
     d.select<StrategyRow & { description: string; updated_at: string }>("agent_strategies", "retired_at=is.null&select=*&order=id.asc"),   // a retired row keeps its records and leaves the page (0038)
     d.select<RiskRow & { updated_at: string }>("agent_risk", "id=eq.1&select=*"),
     d.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc"),   // the filled part of a working order is a position too; paged — PostgREST stops at 1,000 rows without a word
@@ -231,7 +245,6 @@ async function dashboard(now: number) {
     d.select<OrderRow & { request: unknown; response: unknown; cancelled_at: string | null; decision_id: number | null }>("agent_orders", "select=*&order=ts.desc&limit=120"),
     d.select<{ id: string; strategy_id: string; ran_at: string; method: string; summary: unknown }>("agent_backtests", "select=id,strategy_id,ran_at,method,summary&order=ran_at.desc"),
     d.select<{ ts: string; symbol: string; basis_bps: number; revx_bid: number; revx_ask: number; kraken_bid: number; kraken_ask: number }>("agent_basis", `ts=gte.${since24h}&select=ts,symbol,basis_bps,revx_bid,revx_ask,kraken_bid,kraken_ask&order=ts.desc&limit=2000`),
-    d.select<ObservationRow>("agent_observations", "select=strategy_id,symbol,ts,bar_start,state,numbers&order=ts.desc&limit=400"),
     loadVenues(),
   ]);
   // Today's opening price per VENUE and symbol, from the cached daily candles: each strategy is marked from its own signal
@@ -241,9 +254,13 @@ async function dashboard(now: number) {
   for (const c of await d.select<{ venue: string; symbol: string; open: number; start: string }>("agent_candles", `interval_min=eq.1440&start=eq.${new Date(dayStartMs).toISOString()}&select=venue,symbol,open,start`)) {
     (dayOpenBy[c.venue] ??= {})[c.symbol] = Number(c.open);
   }
-  // The latest observation per strategy × symbol: what the rule sees on the forming bar, right now.
+  // The latest observation per strategy × symbol: what the rule sees on the forming bar, right now. One tiny
+  // indexed query each, never one window over all of them — see `latestObservationQuery`.
   const latestObs = new Map<string, ObservationRow>();
-  for (const o of observations) { const k = `${o.strategy_id}|${o.symbol}`; if (!latestObs.has(k)) latestObs.set(k, o); }
+  await Promise.all(strategies.flatMap((s) => (s.symbols ?? []).map(async (sym) => {
+    const rows = await d.select<ObservationRow>("agent_observations", latestObservationQuery(s.id, sym));
+    if (rows[0]) latestObs.set(`${s.id}|${sym}`, rows[0]);
+  })));
 
   // Marks: each venue's mid for every symbol any strategy or position touches.
   const symbolsByVenue = new Map<VenueId, Set<string>>();
@@ -380,7 +397,7 @@ async function chart(strategyId: string, symbol: string, now: number) {
     d.select<OrderRow & { cancelled_at: string | null }>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&ts=gte.${since}&select=*&order=ts.asc&limit=500`),
     d.select<{ id: number; ts: string; bar_start: string; final_action: string; rule_action: string; final_reason: string; provider: string; risk_allowed: boolean; numbers: Record<string, unknown> }>("agent_decisions",
       `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&ts=gte.${since}&select=id,ts,bar_start,final_action,rule_action,final_reason,provider,risk_allowed,numbers&order=ts.asc&limit=500`),
-    d.select<ObservationRow>("agent_observations", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&select=strategy_id,symbol,ts,bar_start,state,numbers&order=ts.desc&limit=1`),
+    d.select<ObservationRow>("agent_observations", latestObservationQuery(strategyId, symbol)),
   ]);
   const allFilled = await d.select<OrderRow>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&state=in.(filled,partially_filled)&select=*&order=ts.asc`);
   const pos = positionFromFills(allFilled.map(toFill));
