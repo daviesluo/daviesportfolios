@@ -200,6 +200,11 @@ parallel on disjoint files. What came back:
 - The stray dot beside "Revolut X" was an ellipsis (fixed, pinned). The
   friend's second message was answered as a discussion, not a report,
   with a Chinese explanation of each of his points.
+- **`main` was red on `check` from 13:33 to the fix-up after 14:14 UTC**:
+  knip lists the backtester as an entry by name, and the ideas study
+  script landed without being listed, so knip reported it as an unused
+  file. Added to `knip.json`. A new script under `supabase/functions/`
+  that nothing imports needs its knip entry in the same commit.
 
 ### [2026-09-21 13:09 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
