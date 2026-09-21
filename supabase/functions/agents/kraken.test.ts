@@ -163,9 +163,14 @@ Deno.test("a marketable Kraken order drops the post-only flag and is immediate-o
 });
 
 Deno.test("the isolate has ONE nonce sequence: concurrent private calls cannot mint the same nonce", () => {
-  // Two generators seeded from the same millisecond clock collide; the shared one cannot.
-  const a = makeNonce(1_700_000_000_000_000), b = makeNonce(1_700_000_000_000_000);
+  // Two generators seeded from the same clock collide; the shared one cannot. The seed is in the FUTURE on purpose:
+  // `makeNonce` returns max(now, last + 1), so a seed behind the clock makes both generators return `now` and the
+  // assertion then depends on whether the two calls land in the same millisecond. That version passed here and failed
+  // in CI on 2026-09-21 — a test whose answer depends on the clock is not a test.
+  const ahead = (Date.now() + 86_400_000) * 1000;
+  const a = makeNonce(ahead), b = makeNonce(ahead);
   assertEquals(a(), b());                                              // the bug, reproduced: two generators, one nonce
+  assertEquals(a(), String(ahead + 1));                                // and each keeps its own sequence from there
   const seq = [krakenNonce(), krakenNonce(), krakenNonce()].map(Number);
   assert(seq[1] > seq[0] && seq[2] > seq[1], seq.join(","));
   assert(seq.every((n) => Number.isInteger(n) && n > 1.7e15), seq.join(","));   // microseconds since the epoch, as Kraken expects

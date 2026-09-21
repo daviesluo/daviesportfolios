@@ -198,6 +198,20 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-21 21:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**A test whose answer depends on the clock is not a test, and it turned
+main red.** The nonce pin written this afternoon reproduced the bug by
+building two generators from one seed and asserting they return the same
+value. `makeNonce` returns `max(now, last + 1)`, so with a seed BEHIND
+the clock both return `now` — equal only when the two calls land in the
+same millisecond. That held on this machine every time and failed in CI
+on the first run that straddled a boundary. The seed is in the future
+now, which makes `last + 1` the answer and the clock irrelevant; run five
+times over to check. Nothing was deployed from the red commit (the test
+gate is before the deploy step), so production kept the function it had,
+which already carries the AVAX fix. My mistake, not the study's.
+
 ### [2026-09-21 21:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Kraken can trade now, and still should not.** Davies did the two
