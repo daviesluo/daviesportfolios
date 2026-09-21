@@ -58,6 +58,53 @@ list stays the short version; the plan is the reasoning behind it.
    re-tested on a non-bear window first. (d) Live is still three switches, all Davies'
    (`agent_strategies.mode`, `agent_risk.live_confirmed_at`, the gate),
    and the first live order needs his confirmation in the conversation.
+   (f) **Pre-live review being integrated — IN PROGRESS; the container's
+   working tree held UNCOMMITTED code at 16:13 UTC.** The independent
+   review (`docs/agents/reviews/2026-09-21-prelive-review.md`: blockers
+   B1–B7, should-fixes S1–S16, twelve missing tests, doc gaps) and the
+   portfolio study (`docs/agents/reviews/2026-09-21-portfolio-study.md`;
+   raw `backtests/portfolio.json`; script `backtest_portfolio.ts`) are in
+   the repo. Written but not committed (if this container is gone, redo
+   each from the review — every fix is a few lines): `db.ts` `selectAll`
+   (B3); `tick.ts` second half — B1 a pending row the venue does not list
+   STAYS pending, reported with the venue's balance beside the record; B2
+   a cancel whose read-back fails leaves the row open; B3 paged fills; B5
+   re-quotes through `riskGate`; B6 an allowed decision with no order is
+   placed on a later turn (needs migration `0041`: unique index on
+   `agent_orders (decision_id, requotes) where decision_id is not null` —
+   live data checked 15:3x UTC, no duplicates — NOT yet written); B7
+   holder-filtered lease release, renewal at half lease, 70 % turn budget
+   (`TURN_BUDGET_MS`, `clock` dep); S1 trailed high-water into snapshot
+   and rule; S3 null marks, `dayPnl` falls back on a zero mark; S4 the
+   protective claim sits at minute + 1 s (`PROTECTIVE_CLAIM_OFFSET_MS`);
+   S5 open buys count as exposure; S8 `lookbackDays`; S9 series must be
+   contiguous to be warm; S10 the 1-minute candle only where a paper order
+   rests; S16 day-open per signal venue, today's P&L summed per strategy;
+   `agents_strategy.ts` S6 exit-advice branch deleted (`combineDecision`
+   thresholds lose `exitMax`), `buildSnapshot(..., lookbackDays)`;
+   `revx.ts` `orderViewProblem` (B4) refused in `order()`; `kraken.ts`
+   `closedOrders`. `deno check` clean. NOT yet done: tests (tick.test.ts
+   expects pending→rejected and the old claim key; `memDb` needs
+   `selectAll`, `offset` and a 1,000-row cap; strategy.test.ts pins the
+   deleted branch) and the review's new tests 1–10 and 12; `index.ts`
+   (`selectAll`, day-open per signal venue, probe symbols from the
+   strategy rows plus Revolut X `activeOrders` and Kraken `closedOrders`
+   reads — S12/B4/S16) and `index.test.ts` (test 11); migration `0041`;
+   client S11/S13/S14/S15 and the sweep fixture (the client agent never
+   started — do by hand); S2 (`runRotation` gets the floor stop and the
+   cooldown, §3.4 re-run); S7 (Kraken nonce window is a key setting for
+   Davies — document); docs (reference §4.17 review, §4.11 correction,
+   §4.2 call count, §2 order endpoints; README; CLAUDE.md).
+   (g) **Davies, 16:0x UTC: finish, make live-ready, then present the
+   final set — strategies, coins, mechanics, edge, expected returns — in
+   the conversation; on his confirm, live at once.** Going live is a
+   migration: `agent_strategies.mode = 'live'` on the chosen rows and
+   `agent_risk.live_confirmed_at`, written only AFTER his confirm, then
+   the first live order watched (its read-back verifies Revolut X's
+   settlement field names, B4). The portfolio study's verdicts (both
+   windows, shipped set on $400: −5.4 % in the bear year, +38.8 % in the
+   bull year; which members clear the bar in each) are the evidence for
+   the brief. Open before any Kraken live row: GBP → USD; nonce window.
    Kraken holds £75 GBP, not USD (probe 09-20 19:08 UTC); a live Kraken
    order needs the GBP → USD conversion first, and that waits for his
    word. **Usage rule**: no main-model polling and no scheduled check-ins;
@@ -169,6 +216,33 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-21 16:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Both Opus agents delivered before the 5-hour limit stopped them; their
+reports are now in the repo** (`docs/agents/reviews/`), with the study's
+script and raw output. Review verdict: seven blockers before live, all in
+`tick.ts` and the venue clients — a filled live order whose reply was lost
+was marked rejected (a real position nobody protects); a cancel whose
+read-back failed was settled as "nothing filled"; the fills query was
+unpaged (truncates at 1,000 rows, ~mid-November at today's rate);
+Revolut X's settlement fields are unverified and a missing fee reads as
+0; re-quotes bypassed the risk gate (global pause included); a decision
+whose order failed to place spent its bar; the lease release was
+unconditional. Sixteen should-fixes, the largest: the bar rule's ATR
+clause and the state's drawdown word read the entry price, not the high
+(the per-minute stop was right); the rotation backtest runs neither the
+floor stop nor the cooldown the live rows run. Portfolio study: the
+shipped set on $400 made −5.4 % (DD 25 %) in the bear year and +38.8 %
+(DD 12 %) in the bull year against −47 % / +178 % for holding; which
+members clear the bar differs by window (SOL/AVAX trend in A; BTC/ETH
+trend, momentum, SUI in B); the regime filter clears both windows on
+LINK, NEAR, SUI, ALGO. Fixes for the blockers and most should-fixes are
+written (see item 0 f) and being tested; this entry exists so the work
+survives a handover mid-way.
+- Davies: finish, make live-ready, present the final set here, live on
+  his confirm. The session's own quota is near its end; the ledger is
+  the handover.
 
 ### [2026-09-21 15:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
