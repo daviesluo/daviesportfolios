@@ -57,7 +57,7 @@ import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 import { askJev, type Questions } from "../_shared/jev.ts";
 import { activeOrders, balances, candles, loadPrivateKey, pairs, publicTickers, REVX_REGION, revxVenue, type RevxEnv } from "../_shared/revx.ts";
 import {
-  addOrder, balance as krakenBalance, balanceEx, cancelOrder as krakenCancel, closedOrders, krakenVenue, makeNonce, ohlc, openOrders,
+  addOrder, balance as krakenBalance, balanceEx, cancelOrder as krakenCancel, closedOrders, krakenNonce, krakenVenue, ohlc, openOrders,
   krakenSupports, ticker as krakenTicker, tradeVolume, type KrakenEnv,
 } from "../_shared/kraken.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
@@ -138,7 +138,7 @@ function loadKraken(): { env: KrakenEnv; secretBytes: number } | { error: string
   if (!secret) return { error: "KRAKEN_PRO_PRIVATE_KEY missing" };
   let secretBytes = 0;
   try { secretBytes = b64ToBytes(secret).length; } catch { return { error: "KRAKEN_PRO_PRIVATE_KEY is not base64" }; }
-  return { env: { apiKey, secret, nonce: makeNonce() }, secretBytes };
+  return { env: { apiKey, secret, nonce: krakenNonce }, secretBytes };   // ONE sequence per isolate: a tick and a dashboard in the same isolate must not both mint the same nonce
 }
 
 function jevEnv() {

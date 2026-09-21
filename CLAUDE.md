@@ -126,7 +126,12 @@ that follow from that evidence, in short:
   a round trip before the spread) and a Kraken book of ≥ $100k a day, and
   joins the Kraken row only, paper first like everything else.
 - Paper first, per strategy; live only on Davies' explicit go, and the
-  first live order needs his confirmation in the same conversation.
+  first live order needs his confirmation in the same conversation. Live
+  on KRAKEN additionally needs two things done at the venue first: the
+  account holds GBP, not USD (the conversion is his), and the key needs a
+  **nonce window** set in Kraken's API settings (§4.18) — the code keeps
+  one nonce sequence per isolate, which a cold isolate cannot guarantee
+  across a millisecond boundary.
 - Record inputs (state, answers, order request/response, fills), not
   conclusions; P&L is computed in one place.
 - Two venues, each for what it is good at: Revolut X executes (0 %

@@ -88,6 +88,22 @@ export function makeNonce(start = Date.now() * 1000): () => string {
   return () => { last = Math.max(Date.now() * 1000, last + 1); return String(last); };
 }
 
+/**
+ * The isolate's ONE nonce sequence. A generator per request is not enough:
+ * a dashboard load (balances, fee tier) and a tick can run in the same
+ * isolate at the same moment, and two generators seeded from the same
+ * millisecond clock emit the same nonce — which Kraken rejects, and
+ * repeated bad nonces get a key banned for a while (§2b). Every private
+ * call in this isolate draws from here, so the sequence is strictly
+ * increasing whatever else is in flight.
+ *
+ * ACROSS isolates the clock is still the seed, so a cold isolate starting
+ * within the same millisecond as a warm one's last call is the remaining
+ * hole. It is closed at the venue, not in code: set a nonce window on the
+ * key before any live Kraken order (reference §4.18).
+ */
+export const krakenNonce = makeNonce();
+
 /** Form-encode with `nonce` first, the way the reference examples do. */
 export function formBody(nonce: string, params: Record<string, string | number | boolean | undefined>): string {
   const p = new URLSearchParams();
