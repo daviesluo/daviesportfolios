@@ -1821,7 +1821,14 @@ body {
 .ag-badge-paused { color: var(--chalk-dim); }
 .ag-status { display: inline-flex; align-items: center; gap: 6px; color: var(--chalk-dim); }
 .ag-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--chalk-mute); flex: none; }
-.ag-status.is-running .ag-dot { background: var(--gain); box-shadow: 0 0 0 3px var(--gain-dim); animation: ag-pulse 2.4s ease-in-out infinite; }
+.ag-status.is-running .ag-dot, .ag-dot-running { background: var(--gain); box-shadow: 0 0 0 3px var(--gain-dim); animation: ag-pulse 2.4s ease-in-out infinite; }
+/* The dot beside a strategy's name: the status in colour, its words in the title. Amber is "stale", grey "paused". */
+.ag-dot-stale { background: #d9a441; box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.22); }
+.ag-dot-paused { background: var(--chalk-mute); }
+.ag-name-wrap { display: grid; grid-template-columns: 7px 1fr; column-gap: 8px; align-items: start; }
+.ag-name-wrap .ag-dot { grid-row: 1; margin-top: 5px; }
+.ag-name-wrap .ag-name-btn { grid-column: 2; }
+.ag-name-wrap .hl-sub { grid-column: 2; }
 .ag-status.is-running .ag-status-text { color: var(--chalk); }
 @keyframes ag-pulse { 0%, 100% { box-shadow: 0 0 0 2px var(--gain-dim); } 50% { box-shadow: 0 0 0 5px transparent; } }
 .ag-action { font-weight: 600; }
@@ -2070,7 +2077,8 @@ body {
 @media (max-width: 760px) {
   .ag-scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; padding: 12px 14px; }
   .ag-sb-divider { display: none; }
-  .ag-sb-cell-main { grid-column: 1 / -1; }
+  /* Four cells, two rows: deployed and today, then unrealised and realised — no cell left alone on a row. */
+  .ag-sb-cell-main { grid-column: auto; min-width: 0; }
   .ag-sb-note { white-space: normal; }
   .ag-venue-cards { grid-template-columns: 1fr; }
   .ag-detail-head { flex-wrap: wrap; gap: 8px; }
@@ -2083,13 +2091,13 @@ body {
 .ag-sb-cell-main { flex: 0 0 auto; min-width: 100px; }
 /* The strategies table is a fixed layout that fits the modal: one set of widths, summing to 100. */
 .ag-strategies .ag-table .ag-col-name { width: 25%; }
-.ag-strategies .ag-table .ag-col-venue { width: 11%; }
+.ag-strategies .ag-table .ag-col-venue { width: 10%; }
 .ag-strategies .ag-table .ag-col-mode { width: 7%; }
-.ag-strategies .ag-table .ag-col-status { width: 10%; }
+.ag-strategies .ag-table .ag-col-today { width: 16%; }
 .ag-strategies .ag-table .ag-col-unrealised { width: 17%; }
 .ag-strategies .ag-table .ag-col-realised { width: 17%; }
-.ag-strategies .ag-table .ag-col-next { width: 13%; }
-.ag-strategies .ag-table td.ag-col-unrealised, .ag-strategies .ag-table td.ag-col-realised { overflow: visible; text-overflow: clip; }
+.ag-strategies .ag-table .ag-col-next { width: 8%; }
+.ag-strategies .ag-table td.ag-col-today, .ag-strategies .ag-table td.ag-col-unrealised, .ag-strategies .ag-table td.ag-col-realised { overflow: visible; text-overflow: clip; }
 .ag-detail-title.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); margin: 0; }
 .ag-detail .hl-scroll { overflow-x: auto; scrollbar-width: none; }
 .ag-detail .hl-scroll::-webkit-scrollbar { display: none; }

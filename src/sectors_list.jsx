@@ -134,7 +134,6 @@ function SectorsListModal({ metrics, hideValues, onTickerClick, onClose }) {
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
         <div>
-          <div className="modal-eyebrow mono">SECTORS</div>
           <h2 className="modal-title mono">Sectors list</h2>
         </div>
         <div className="modal-head-actions">

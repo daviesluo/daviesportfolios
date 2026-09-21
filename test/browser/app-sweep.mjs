@@ -426,7 +426,7 @@ const ok = (scope, msg) => { const s = `  ok   [${scope}] ${msg}`; log.push(s); 
 const near = (a, b, eps = 0.51) => Math.abs(a - b) <= eps;
 const money = (s) => Number(String(s || '').replace(/[^0-9.-]/g, ''));
 
-async function newPage(browser, { width, height }, errors, tokenMisses) {
+async function newPage(browser, { width, height }, errors, tokenMisses, opts = {}) {
   const ctx = await browser.newContext({ viewport: { width, height } });
   await ctx.addInitScript(([token]) => { sessionStorage.setItem('dp.token', token); }, [TOKEN]);
   const page = await ctx.newPage();
@@ -550,6 +550,9 @@ async function newPage(browser, { width, height }, errors, tokenMisses) {
     return route.abort();
   });
 
+  // A caller's route goes on LAST so Playwright runs it FIRST — the catch-all above `continue()`s
+  // every localhost asset, and a route registered before it would never be reached.
+  if (opts.beforeGoto) await opts.beforeGoto(page);
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.scoreboard-cell-portfolio .sb-value-lg', { timeout: 20_000 });
   return { ctx, page };
@@ -571,6 +574,32 @@ async function run() {
 
   const errors = [];
   const tokenMisses = [];
+
+  // ---- 0. a menu page shows its own frame while its code is still arriving ----
+  // The agents chunk is held back 700 ms. Clicking Agents at once must put up
+  // the page's frame (backdrop, title, close) — never a blank frame that
+  // shows the home page through — and the real page must replace it.
+  {
+    const hold = async (page) => {
+      await page.route('**/assets/agents-*.js', async (route) => { await new Promise((r) => setTimeout(r, 700)); await route.continue(); });
+    };
+    const { ctx, page } = await newPage(browser, { width: 1400, height: 1000 }, errors, tokenMisses, { beforeGoto: hold });
+    await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+    await page.waitForTimeout(100);
+    const agentsBtn = page.locator('.header-menu-item:text-is("Agents")');
+    if (await agentsBtn.count()) {
+      await agentsBtn.first().click();
+      const frameTitle = await page.locator('.modal .modal-title').first().textContent({ timeout: 300 }).catch(() => '');
+      const earlyBoard = await page.locator('.ag-scoreboard').count();
+      if (frameTitle.trim() === 'Agents' && earlyBoard === 0) ok('desktop/agents', 'clicking Agents before its code has arrived shows the page\'s own frame, not the home page');
+      else fail('desktop/agents', `early frame title "${frameTitle}", scoreboards ${earlyBoard}`);
+      const arrived = await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 }).then(() => true).catch(() => false);
+      const modalsAfter = await page.locator('.modal').count();
+      if (arrived && modalsAfter === 1) ok('desktop/agents', 'the real page replaces the frame in the same modal');
+      else fail('desktop/agents', `page arrived ${arrived}, modals ${modalsAfter}`);
+    } else fail('desktop/agents', 'no Agents entry in the menu');
+    await ctx.close();
+  }
 
   for (const vp of [{ name: 'desktop', width: 1400, height: 1000 },
                     { name: 'phone', width: 390, height: 844 }]) {
@@ -1009,12 +1038,16 @@ async function run() {
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
       // observation the tick wrote 40 s ago.
-      const running = await page.locator('.ag-row .ag-status.is-running').count();
-      if (running === 5) ok(S('agents'), 'a 40 s-old observation keeps every row running, not the decision clock');
-      else fail(S('agents'), `running dots: ${running} of 5`);
-      const watching = await page.locator('.ag-row .ag-status').first().getAttribute('title');
-      if (/watching · changed \d+s ago/.test(watching || '')) ok(S('agents'), `the status says what it is doing ("${watching}")`);
-      else fail(S('agents'), `status title reads "${watching}"`);
+      const running = await page.locator('.ag-row .ag-name-wrap .ag-dot-running').count();
+      const statusCol = await page.locator('.ag-strategies .ag-col-status, .ag-row .ag-status').count();
+      if (running === 5 && statusCol === 0) ok(S('agents'), 'a 40 s-old observation keeps every row\'s dot green, beside the name, with no status column');
+      else fail(S('agents'), `running dots: ${running} of 5, status cells ${statusCol}`);
+      const watching = await page.locator('.ag-row .ag-name-wrap .ag-dot').first().getAttribute('title');
+      if (/watching · changed \d+s ago/.test(watching || '')) ok(S('agents'), `the dot's title says what it is doing ("${watching}")`);
+      else fail(S('agents'), `dot title reads "${watching}"`);
+      const eyebrows = await page.locator('.modal-eyebrow').count();
+      if (eyebrows === 0) ok(S('agents'), 'no small-caps eyebrow above the page title');
+      else fail(S('agents'), `${eyebrows} eyebrow lines`);
       const howCount = await page.locator('.ag-how').count();
       const titleNotes = await page.locator('.ag-section-title .dim').count();
       if (howCount === 0 && titleNotes === 0) ok(S('agents'), 'no explainer and no annotation beside any section title');
@@ -1027,17 +1060,23 @@ async function run() {
       const cardN = await page.locator('.ag-card-strategy').count();
       const glCells = await page.locator('.ag-strategies .ag-gl').allTextContents();
       if (vpWidth <= 760 ? (tableN === 0 && cardN === rows) : (tableN === 1 && cardN === 0)) {
-        ok(S('agents'), vpWidth <= 760 ? `a phone gets a card per strategy (${cardN})` : 'a desktop gets the seven-column table');
+        ok(S('agents'), vpWidth <= 760 ? `a phone gets a card per strategy (${cardN})` : 'a desktop gets the table');
       } else fail(S('agents'), `layout at ${vpWidth}px: tables ${tableN}, cards ${cardN}`);
-      if (glCells.length === rows * 2 && glCells.every((g) => /^[+-]?\$[\d,.]+( \([+-]?[\d.]+%\))?$/.test(g.trim()))) {
-        ok(S('agents'), `unrealised and realised read like the scoreboard ("${glCells[0].trim()}")`);
+      if (glCells.length === rows * 3 && glCells.every((g) => /^[+-]?\$[\d,.]+( \([+-]?[\d.]+%\))?$/.test(g.trim()))) {
+        ok(S('agents'), `today, unrealised and realised read like the scoreboard ("${glCells[0].trim()}")`);
       } else fail(S('agents'), `G/L cells: ${glCells.join(' | ')}`);
+      const todayHead = await page.locator('.ag-strategies th.ag-col-today').count();
+      if (vpWidth <= 760 ? true : todayHead === 1) ok(S('agents'), vpWidth <= 760 ? 'the card carries today' : 'the table has a Today column');
+      else fail(S('agents'), `Today header cells: ${todayHead}`);
       const badgeTexts = await page.locator('.ag-strategies .ag-venue').allTextContents();
       if (badgeTexts.length === rows && badgeTexts.every((b) => /^(Revolut X|Kraken)$/.test(b.trim()))) ok(S('agents'), 'the venue badge is the venue name alone');
       else fail(S('agents'), `badges: ${badgeTexts.join(' | ')}`);
       const sbCells = await page.locator('.ag-scoreboard .sb-label').allTextContents();
-      if (sbCells.join('|') === 'DEPLOYED|TODAY|TOTAL G/L|UNREALIZED G/L|REALIZED G/L') ok(S('agents'), 'the scoreboard has the five cells, today and total apart');
+      if (sbCells.join('|') === 'DEPLOYED|TODAY|UNREALIZED G/L|REALIZED G/L') ok(S('agents'), 'the scoreboard has four cells: deployed, today, unrealised, realised — no total');
       else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}`);
+      const cardLabels = await page.locator('.ag-venue-card-kraken .ag-venue-grid > .dim').allTextContents();
+      if (cardLabels.includes('unrealised') && cardLabels.includes('realised') && !cardLabels.some((t) => /total/.test(t))) ok(S('agents'), 'a venue card shows unrealised and realised, no total');
+      else fail(S('agents'), `venue card rows: ${cardLabels.join(' | ')}`);
       const stripN = await page.locator('.ag-chip').count();
       const basisN = await page.locator('.ag-basis').count();
       if (stripN === 0 && basisN === 0) ok(S('agents'), 'no caps / Jev strip and no basis table on the overview');

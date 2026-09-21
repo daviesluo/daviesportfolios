@@ -139,7 +139,6 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders 
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
         <div>
-          <div className="modal-eyebrow mono">TRANSACTIONS</div>
           <h2 className="modal-title mono">Transaction history</h2>
         </div>
         <div className="modal-head-actions">

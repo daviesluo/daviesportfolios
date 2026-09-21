@@ -251,19 +251,20 @@ export function observationAgeMs(s, nowMs) {
  * @param {{ mode: string, kind: string, lastDecision: { ts: string } | null, positions?: any[] }} s  the strategy row
  * @param {{ global_pause?: boolean } | null} risk
  * @param {number} nowMs
- * @returns {{ label: 'live' | 'paper' | 'paused', running: boolean, detail: string }}
+ * @returns {{ label: 'live' | 'paper' | 'paused', running: boolean, tone: 'running' | 'stale' | 'paused', detail: string }}
  */
 export function strategyStatus(s, risk, nowMs) {
   const label = /** @type {'live' | 'paper' | 'paused'} */ (s.mode === 'live' ? 'live' : s.mode === 'paused' ? 'paused' : 'paper');
-  if (s.mode === 'paused') return { label, running: false, detail: 'paused' };
-  if (risk?.global_pause) return { label, running: false, detail: 'global pause' };
+  // `tone` is the colour of the dot beside the name: green running, amber stale, grey paused. The words are in `detail`.
+  if (s.mode === 'paused') return { label, running: false, tone: 'paused', detail: 'paused' };
+  if (risk?.global_pause) return { label, running: false, tone: 'paused', detail: 'global pause' };
   const obs = observationAgeMs(s, nowMs);
-  if (obs != null && obs < OBSERVATION_FRESH_MS) return { label, running: true, detail: `watching · changed ${formatAgo(obs)} ago` };
-  if (!s.lastDecision) return { label, running: false, detail: obs == null ? 'no decision yet' : `last reading ${formatAgo(obs)} ago` };
+  if (obs != null && obs < OBSERVATION_FRESH_MS) return { label, running: true, tone: 'running', detail: `watching · changed ${formatAgo(obs)} ago` };
+  if (!s.lastDecision) return { label, running: false, tone: 'stale', detail: obs == null ? 'no decision yet' : `last reading ${formatAgo(obs)} ago` };
   const age = nowMs - Date.parse(s.lastDecision.ts);
   const stale = DECISION_STALE_MS[s.kind] ?? 2 * FOUR_H;
-  if (age > stale) return { label, running: false, detail: `last decision ${formatAgo(age)} ago` };
-  return { label, running: true, detail: `decided ${formatAgo(age)} ago` };
+  if (age > stale) return { label, running: false, tone: 'stale', detail: `last decision ${formatAgo(age)} ago` };
+  return { label, running: true, tone: 'running', detail: `decided ${formatAgo(age)} ago` };
 }
 
 /**
@@ -430,12 +431,10 @@ export function scoreboardView(dash) {
   const t = dash?.totals ?? {};
   const capital = (dash?.strategies ?? []).reduce((a, s) => a + (Number(s.capitalUsd) || 0), 0);
   const unrealised = t.unrealisedUsd ?? 0, realised = t.realisedUsd ?? 0, today = t.todayUsd ?? 0, cost = t.costUsd ?? 0, value = t.valueUsd ?? 0;
-  const total = unrealised + realised;
   const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
   return {
     capitalUsd: capital, valueUsd: value, costUsd: cost, feesUsd: t.feesUsd ?? 0,
     todayUsd: today, todayPct: pct(today, capital),
-    totalUsd: total, totalPct: pct(total, capital),
     unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost),
     realisedUsd: realised, realisedPct: pct(realised, capital),
     liveRealisedUsd: t.byMode?.live?.realisedUsd ?? 0, paperRealisedUsd: t.byMode?.paper?.realisedUsd ?? 0,
@@ -452,7 +451,6 @@ export function strategyScoreboard(s) {
   return {
     capitalUsd: capital, valueUsd: value, costUsd: cost, feesUsd: s?.feesUsd ?? 0,
     todayUsd: today, todayPct: pct(today, capital),
-    totalUsd: unrealised + realised, totalPct: pct(unrealised + realised, capital),
     unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost),
     realisedUsd: realised, realisedPct: pct(realised, capital),
     deployedPct: pct(value, capital),
@@ -578,11 +576,15 @@ export function venueRows(dash) {
   return ids.map((id) => {
     const b = by[id] ?? {};
     const v = venues[id] ?? {};
-    const value = b.valueUsd ?? 0, capital = b.capitalUsd ?? 0;
+    const value = b.valueUsd ?? 0, capital = b.capitalUsd ?? 0, cost = b.costUsd ?? 0;
+    const unrealised = b.unrealisedUsd ?? 0, realised = b.realisedUsd ?? 0, today = b.todayUsd ?? 0;
+    const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
     return {
       id, label: venueLabel(id),
-      capitalUsd: capital, valueUsd: value, costUsd: b.costUsd ?? 0, unrealisedUsd: b.unrealisedUsd ?? 0, realisedUsd: b.realisedUsd ?? 0, feesUsd: b.feesUsd ?? 0,
-      strategies: b.strategies ?? 0, live: b.live ?? 0, todayUsd: b.todayUsd ?? 0,
+      capitalUsd: capital, valueUsd: value, costUsd: cost, unrealisedUsd: unrealised, realisedUsd: realised, feesUsd: b.feesUsd ?? 0,
+      // The same bases as the scoreboard: unrealised on the cost of what is held, realised and today on the venue's paper capital.
+      unrealisedPct: pct(unrealised, cost), realisedPct: pct(realised, capital), todayPct: pct(today, capital),
+      strategies: b.strategies ?? 0, live: b.live ?? 0, todayUsd: today,
       balanceUsd: v.balances?.USD ?? null, balances: v.balances ?? null, canTrade: !!v.canTrade, feeBps: v.feeBps ?? null, note: v.note ?? null,
       share: useValue ? (totalValue > 0 ? value / totalValue : 0) : (totalCapital > 0 ? capital / totalCapital : 0),
       shareOf: useValue ? 'value' : 'capital',

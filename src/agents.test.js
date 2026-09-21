@@ -22,7 +22,7 @@ const strategy = (over = {}) => ({
 
 describe('strategyStatus', () => {
   it('runs while the last decision is within two bars, stale after', () => {
-    expect(strategyStatus(strategy(), null, NOW)).toEqual({ label: 'paper', running: true, detail: 'decided 3h 55m ago' });
+    expect(strategyStatus(strategy(), null, NOW)).toEqual({ label: 'paper', running: true, tone: 'running', detail: 'decided 3h 55m ago' });
     const old = strategy({ lastDecision: { ts: '2026-09-19T20:00:00Z', symbol: 'BTC/USD', action: 'hold' } });
     expect(strategyStatus(old, null, NOW).running).toBe(false);
     expect(strategyStatus(old, null, NOW).detail).toMatch(/^last decision 16h 00m ago$/);
@@ -30,8 +30,8 @@ describe('strategyStatus', () => {
     expect(strategyStatus(strategy({ kind: 'momentum-1d', lastDecision: { ts: '2026-09-19T00:10:00Z' } }), null, NOW).running).toBe(true);
   });
   it('paused rows, the global pause and a strategy that never decided are not running', () => {
-    expect(strategyStatus(strategy({ mode: 'paused' }), null, NOW)).toEqual({ label: 'paused', running: false, detail: 'paused' });
-    expect(strategyStatus(strategy({ mode: 'live' }), { global_pause: true }, NOW)).toEqual({ label: 'live', running: false, detail: 'global pause' });
+    expect(strategyStatus(strategy({ mode: 'paused' }), null, NOW)).toEqual({ label: 'paused', running: false, tone: 'paused', detail: 'paused' });
+    expect(strategyStatus(strategy({ mode: 'live' }), { global_pause: true }, NOW)).toEqual({ label: 'live', running: false, tone: 'paused', detail: 'global pause' });
     expect(strategyStatus(strategy({ lastDecision: null }), null, NOW).detail).toBe('no decision yet');
   });
 });
@@ -103,6 +103,12 @@ describe('venueRows / untilText', () => {
     const rows = venueRows(dash);
     expect(rows.map((r) => r.label)).toEqual(['Revolut X', 'Kraken']);
     expect(rows[0]).toMatchObject({ valueUsd: 30, balanceUsd: 100, share: 0.75, shareOf: 'value', live: 0 });
+    // The card's percentages sit on the scoreboard's bases: unrealised on cost, realised and today on the venue's capital.
+    const based = venueRows({ byVenue: { revx: { valueUsd: 30, costUsd: 20, capitalUsd: 140, unrealisedUsd: 1, realisedUsd: 7, todayUsd: -1.4 } }, venues: [] })[0];
+    expect(based.unrealisedPct).toBeCloseTo(5, 6);
+    expect(based.realisedPct).toBeCloseTo(5, 6);
+    expect(based.todayPct).toBeCloseTo(-1, 6);
+    expect(venueRows({ byVenue: {}, venues: [] })[0].unrealisedPct).toBeNull();
     expect(rows[1]).toMatchObject({ valueUsd: 10, balanceUsd: 0, share: 0.25, live: 1 });
     const idle = venueRows({ byVenue: { revx: { valueUsd: 0, capitalUsd: 60 }, kraken: { valueUsd: 0, capitalUsd: 140 } }, venues: [] });
     expect(idle.map((r) => [r.share, r.shareOf])).toEqual([[0.3, 'capital'], [0.7, 'capital']]);
@@ -134,7 +140,7 @@ describe('observations as the liveness signal', () => {
       lastDecision: { ts: '2026-09-19T20:00:00Z', symbol: 'BTC/USD', action: 'hold' },   // 16 h old: stale on its own
       positions: [{ symbol: 'BTC/USD', base: 0.00025, observation: obsAt(NOW - 40e3, trendState) }, { symbol: 'ETH/USD', base: 0 }],
     });
-    expect(strategyStatus(s, null, NOW)).toEqual({ label: 'paper', running: true, detail: 'watching · changed 40s ago' });
+    expect(strategyStatus(s, null, NOW)).toEqual({ label: 'paper', running: true, tone: 'running', detail: 'watching · changed 40s ago' });
     expect(observationAgeMs(s, NOW)).toBe(40e3);
   });
 
@@ -143,9 +149,9 @@ describe('observations as the liveness signal', () => {
       lastDecision: { ts: '2026-09-19T20:00:00Z', symbol: 'BTC/USD', action: 'hold' },
       positions: [{ symbol: 'BTC/USD', base: 0, observation: obsAt(NOW - 11 * 60e3, trendState) }],
     });
-    expect(strategyStatus(s, null, NOW)).toMatchObject({ running: false, detail: 'last decision 16h 00m ago' });
+    expect(strategyStatus(s, null, NOW)).toMatchObject({ running: false, tone: 'stale', detail: 'last decision 16h 00m ago' });
     const never = strategy({ lastDecision: null, positions: [{ symbol: 'BTC/USD', base: 0, observation: obsAt(NOW - 11 * 60e3, trendState) }] });
-    expect(strategyStatus(never, null, NOW)).toMatchObject({ running: false, detail: 'last reading 11m 00s ago' });
+    expect(strategyStatus(never, null, NOW)).toMatchObject({ running: false, tone: 'stale', detail: 'last reading 11m 00s ago' });
     expect(observationAgeMs({ positions: [{ symbol: 'BTC/USD', base: 0 }] }, NOW)).toBeNull();
   });
 
@@ -513,14 +519,13 @@ describe('glText / scoreboardView / strategyScoreboard', () => {
     expect(glText(-0.09, -0.47)).toBe('-$0.09 (-0.47%)');
     expect(glText(0, null)).toBe('$0.00');
   });
-  it('puts today, total, unrealised and realised on their stated bases', () => {
+  it('puts today, unrealised and realised on their stated bases, and carries no total', () => {
     const dash = { dayStart: '2026-09-21T00:00:00.000Z', totals: { costUsd: 40, valueUsd: 41, unrealisedUsd: 1, realisedUsd: 3, feesUsd: 0.1, todayUsd: 2, byMode: { live: { realisedUsd: 0 }, paper: { realisedUsd: 3 } } },
       strategies: [{ capitalUsd: 60 }, { capitalUsd: 40 }] };
     const v = scoreboardView(dash);
     expect(v.capitalUsd).toBe(100);
     expect(v.todayPct).toBeCloseTo(2, 6);           // 2 on 100 of capital
-    expect(v.totalUsd).toBe(4);
-    expect(v.totalPct).toBeCloseTo(4, 6);
+    expect('totalUsd' in v).toBe(false);            // the owner took the total off every scoreboard
     expect(v.unrealisedPct).toBeCloseTo(2.5, 6);    // 1 on 40 of cost
     expect(v.realisedPct).toBeCloseTo(3, 6);
     expect(v.deployedPct).toBeCloseTo(41, 6);
@@ -528,7 +533,8 @@ describe('glText / scoreboardView / strategyScoreboard', () => {
     const one = strategyScoreboard({ capitalUsd: 40, costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 0.5, todayUsd: -0.2 });
     expect(one.unrealisedPct).toBeCloseTo(7.5, 6);
     expect(one.todayPct).toBeCloseTo(-0.5, 6);
-    expect(scoreboardView(null).totalPct).toBeNull();
+    expect(scoreboardView(null).realisedPct).toBeNull();
+    expect('totalPct' in strategyScoreboard(one)).toBe(false);
   });
 });
 
