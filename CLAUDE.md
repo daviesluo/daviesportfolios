@@ -110,8 +110,12 @@ that follow from that evidence, in short:
   breakout fills when the breakout fails); **Kraken rests post-only**,
   stops included (at the ask). After any exit a rule waits two of its own
   bars before re-entering. One tick at a time: `agent_locks` lease.
-- BTC / ETH / SOL only — the only pairs on the venue with ≤ 3 bps
-  spreads.
+- BTC / ETH / SOL as the core — the only pairs on the venue with ≤ 3 bps
+  spreads — plus XRP in the rotation basket and, since `0039`, AVAX on
+  trend-4h (reference §3.7: the one candidate of four to clear a bar
+  written before the numbers were looked at; its UK book is ~10 bps wide,
+  so a round trip costs ~28 bps against the majors' 20). A coin joins a
+  rule by that bar, never by a result alone.
 - Paper first, per strategy; live only on Davies' explicit go, and the
   first live order needs his confirmation in the same conversation.
 - Record inputs (state, answers, order request/response, fills), not
@@ -144,9 +148,10 @@ that follow from that evidence, in short:
   15-minute / 1-hour trend and RSI(2) pullback rules (§3.6: nothing below
   an hour survives the 20 bps round trip) were tested and rejected with
   numbers — a faster rule is a fee schedule until data says otherwise.
-  Backtests: reference §3.3a–§3.6, run with the loop's own fills, stops
+  Backtests: reference §3.3a–§3.7, run with the loop's own fills, stops
   and cooldown; the backtester writes `docs/agents/backtests/summary.json`
-  itself, and `frequency.json` there is §3.6's raw output.
+  itself and reports a parameter plateau per coin; `frequency.json` there
+  is §3.6's raw output and `universe.json` (`--study universe`) §3.7's.
 - The tick claims a bar by inserting its decision (unique index on
   strategy, symbol, bar_start; a protective decision claims the forming
   bar, a dislocation decision the minute); a live order is written as
@@ -232,7 +237,7 @@ the function's pure helpers from `index.test.ts` would bind a port.
 - `npm run build` — Vite production bundle, output to repo root.
 - `npm run verify:browser` — the whole-app browser sweep in
   `test/browser/app-sweep.mjs`: serves the COMMITTED bundle over http and
-  drives it in real Chromium at both breakpoints (184 checks). A hard CI
+  drives it in real Chromium at both breakpoints (192 checks). A hard CI
   gate since 2026-09-17. Its clock is pinned, so it gives the same answer
   at any hour — do not replace `CLOCK` with a live `Date`. Needs
   `npx playwright install chromium` once per machine; a container that

@@ -43,7 +43,12 @@ list stays the short version; the plan is the reasoning behind it.
    (c) The phone shows five columns per detail table (`ag-ph`); the rest
    need a wider screen. A retired strategy (`agent_strategies.retired_at`,
    `0038`) is hidden by the dashboard and skipped by the tick; its records
-   stay. Un-retiring is a migration. (d) Live is still three switches, all Davies'
+   stay. Un-retiring is a migration. (e) **AVAX/USD on trend-4h, paper,
+   both venues, since `0039`** (reference §3.7): watch its first entries
+   — Kraken's AVAXUSD candles feeding the signal, a fill on each venue,
+   the $20 slot — and whether the paper record looks like the backtest
+   (+12 % a year on the seeded parameters, 9–10 trades). LINK is the next
+   candidate if it does; the bar in §4.15 is not lowered for it. (d) Live is still three switches, all Davies'
    (`agent_strategies.mode`, `agent_risk.live_confirmed_at`, the gate),
    and the first live order needs his confirmation in the conversation.
    Kraken holds £75 GBP, not USD (probe 09-20 19:08 UTC); a live Kraken
@@ -154,6 +159,52 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-21 13:09 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies' third pass: the total off every scoreboard, the dot beside the
+name, the eyebrows gone, the flash found, and a wider universe.** He asked
+for TOTAL G/L off the agents and strategy scoreboards and the venue cards
+(unrealised and realised in its place), a Today column in the strategies
+table with the Status column gone and the running light moved to the left
+of the name in colour, the small-caps line above every menu page's title
+removed (HOLDINGS, TRANSACTIONS, AGENTS · CRYPTO, AGENTS · ROTATION…), the
+Agents page's "flash of the home page" fixed, and more coins tested and
+added if good. Done: `NameCell` with `strategyStatus().tone` (green /
+amber / grey), the phone scoreboard two by two, no `modal-eyebrow` on the
+four menu pages (dialogs keep theirs).
+- **The flash.** Two causes, both in the app, neither in the agents data.
+  All five lazy modals shared ONE `React.Suspense` with `fallback={null}`:
+  a boundary that suspends hides everything inside it, so any first render
+  or re-suspension blanked the open modal and the home page showed through.
+  Each modal now has its own boundary, and the four menu pages fall back
+  to `ModalFrame` — the page's own backdrop, title and close with
+  "Loading…" — so a click before the chunk arrives shows the page's chrome.
+  And the detail's one-second countdown lived in `Detail`'s state, so the
+  whole detail (SVG chart, four tables) re-rendered every second over a
+  `backdrop-filter` backdrop; `Countdown` now owns its clock. Pinned in the
+  sweep: the agents chunk held back 700 ms, the menu clicked at once, the
+  frame must be up and then replaced in the same modal. Sweep 192 checks;
+  gates all green; screenshots at both widths reviewed.
+- **A wider universe (reference §3.7, `universe.json`).** Candidates: the
+  Revolut X UK pairs under 10 bps with volume — DOGE, LINK, ADA, AVAX
+  (XRP is in the basket). A bar written before the numbers: positive out
+  of sample on Revolut X costs, drawdown < 35 %, at least half the 27-point
+  grid positive out of sample (the plateau the backtester now reports),
+  positive on Kraken costs. **AVAX clears all four** (+40 % chosen / +12 %
+  seeded, DD 12 %, 85 % plateau, Kraken +37 % / +9 %, in a −65 % year) and
+  joins trend-4h on both venues by `0039`, paper, capital 60 → 80 for the
+  fourth $20 slot; `KRAKEN_ALTNAME` / `KRAKEN_PAIR_ID` / `KRAKEN_ASSET`
+  learn AVAX (pinned). LINK clears three (Kraken −1.5 %) and is a watch;
+  DOGE is a fitted spike (chosen params ranked 26/27 out of sample); ADA
+  fails; momentum-1d lost 31–47 % on every alt in the bear year (no coin
+  added); the 8-coin rotation basket is worse than the 4-coin one (−24 %
+  / 46 % DD against −14 % / 32 %). §4.15: a coin joins a rule by a bar
+  written first, never by a result alone.
+- The friend's second message (parameter sensitivity, fitting to the
+  out-of-sample set, "more art than science", backtests being expensive)
+  answered in the chat with the plateau numbers; nothing in the repo
+  claims more than the table says.
 
 ### [2026-09-21 12:04 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

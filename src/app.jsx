@@ -20,6 +20,7 @@ import { useIsDesktop } from './ops_error_badge.jsx';
 import { Pitch } from './pitch.jsx';
 import { Heatmap } from './heatmap.jsx';
 import {
+  Modal,
   PositionDrillModal,
   EditTickerModal,
   AddTickerModal,
@@ -47,6 +48,29 @@ const TransactionHistoryModal = React.lazy(() =>
   import('./transaction_history.jsx').then(m => ({ default: m.TransactionHistoryModal })));
 const AgentsModal = React.lazy(() =>
   import('./agents.jsx').then(m => ({ default: m.AgentsModal })));
+
+/**
+ * What a menu page shows while its code is still arriving: its own frame —
+ * backdrop, title, close — with "Loading…" where the content will be. It is
+ * the Suspense fallback of each lazy page. Before it the four pages shared
+ * ONE boundary with a null fallback, so any page's first render (or a
+ * re-suspension) blanked every open modal and the home page showed through
+ * for a frame or two — the "flash" the owner saw on the Agents page.
+ * @param {{ title: string, onClose: () => void, bodyClass?: string }} props
+ */
+function ModalFrame({ title, onClose, bodyClass = '' }) {
+  return (
+    <Modal onClose={onClose} size="lg">
+      <header className="modal-head">
+        <div><h2 className="modal-title mono">{title}</h2></div>
+        <div className="modal-head-actions">
+          <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+      </header>
+      <div className={`modal-body ${bodyClass}`.trim()}><div className="ag-empty dim">Loading…</div></div>
+    </Modal>
+  );
+}
 
 /** Warm every split chunk. Idempotent — the module cache dedupes. */
 function prefetchModalChunks() {
@@ -1367,36 +1391,41 @@ function Board({ isReadOnly }) {
         />
       )}
 
-      {/* One boundary for all four split chunks. `fallback={null}` on
-          purpose: they are prefetched right after first paint, so the
-          only way to land here is a click inside the first moments of a
-          cold load, and a blank frame is less alarming than a spinner
-          that flashes for 50 ms. */}
-      <React.Suspense fallback={null}>
-        {/* Holdings list renders BEFORE the ticker modal so that when a
-            symbol is tapped from the list, the ticker modal stacks ON
-            TOP (later in the DOM wins at equal z-index) and the list
-            stays mounted behind it — closing the ticker modal returns
-            to the list, not all the way home. */}
-        {showHoldingsList && (
+      {/* One Suspense boundary PER lazy page, never one for all of them: a
+          boundary that suspends hides everything inside it, so a shared one
+          let any page's first render blank the page already open and show
+          the home page through for a frame (see ModalFrame). The chunks are
+          prefetched right after first paint, so the frame is rarely seen;
+          when it is, it is the page's own chrome, not a spinner. */}
+      {/* Holdings list renders BEFORE the ticker modal so that when a
+          symbol is tapped from the list, the ticker modal stacks ON
+          TOP (later in the DOM wins at equal z-index) and the list
+          stays mounted behind it — closing the ticker modal returns
+          to the list, not all the way home. */}
+      {showHoldingsList && (
+        <React.Suspense fallback={<ModalFrame title="Holding list" onClose={() => setShowHoldingsList(false)} />}>
           <HoldingsListModal
             metrics={metrics}
             hideValues={hideValues}
             onTickerClick={(t) => setViewingTicker(t)}
             onClose={() => setShowHoldingsList(false)}
           />
-        )}
+        </React.Suspense>
+      )}
 
-        {showSectorsList && (
+      {showSectorsList && (
+        <React.Suspense fallback={<ModalFrame title="Sectors list" onClose={() => setShowSectorsList(false)} />}>
           <SectorsListModal
             metrics={metrics}
             hideValues={hideValues}
             onTickerClick={(t) => setViewingTicker(t)}
             onClose={() => setShowSectorsList(false)}
           />
-        )}
+        </React.Suspense>
+      )}
 
-        {showTransactionHistory && (
+      {showTransactionHistory && (
+        <React.Suspense fallback={<ModalFrame title="Transaction history" onClose={() => setShowTransactionHistory(false)} />}>
           <TransactionHistoryModal
             holdings={portfolio.holdings}
             marketData={marketData}
@@ -1405,16 +1434,20 @@ function Board({ isReadOnly }) {
             onTickerClick={(t) => { setShowTransactionHistory(false); setViewingTicker(t); }}
             onClose={() => setShowTransactionHistory(false)}
           />
-        )}
+        </React.Suspense>
+      )}
 
-        {showAgents && (
+      {showAgents && (
+        <React.Suspense fallback={<ModalFrame title="Agents" bodyClass="ag-body" onClose={() => setShowAgents(false)} />}>
           <AgentsModal
             hideValues={hideValues}
             onClose={() => setShowAgents(false)}
           />
-        )}
+        </React.Suspense>
+      )}
 
-        {viewingTicker && (
+      {viewingTicker && (
+        <React.Suspense fallback={null}>
           <TickerChartModal
             ticker={viewingTicker}
             holding={portfolio.holdings[viewingTicker] ?? null}
@@ -1425,8 +1458,8 @@ function Board({ isReadOnly }) {
             hideValues={hideValues}
             onClose={() => setViewingTicker(null)}
           />
-        )}
-      </React.Suspense>
+        </React.Suspense>
+      )}
 
       {editingTicker && !isReadOnly && portfolio.holdings[editingTicker] && (
         <EditTickerModal

@@ -165,7 +165,6 @@ function HoldingsListModal({ metrics, hideValues, onTickerClick, onClose }) {
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
         <div>
-          <div className="modal-eyebrow mono">HOLDINGS</div>
           <h2 className="modal-title mono">Holding list</h2>
         </div>
         <div className="modal-head-actions">

@@ -99,7 +99,8 @@ function GlCell({ label, usd, pct, m, note = null, cls = '' }) {
 
 /**
  * The agents' scoreboard, in the home scoreboard's cells: what is deployed,
- * today's change (the UTC day), the total, unrealised and realised.
+ * today's change (the UTC day), unrealised and realised — no total, by the
+ * owner's choice.
  */
 function Scoreboard({ dash, m }) {
   const v = scoreboardView(dash);
@@ -112,8 +113,6 @@ function Scoreboard({ dash, m }) {
       </div>
       <div className="ag-sb-divider" />
       <GlCell label="TODAY" usd={v.todayUsd} pct={v.todayPct} m={m} />
-      <div className="ag-sb-divider" />
-      <GlCell label="TOTAL G/L" usd={v.totalUsd} pct={v.totalPct} m={m} />
       <div className="ag-sb-divider" />
       <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} />
       <div className="ag-sb-divider" />
@@ -138,8 +137,6 @@ function StrategyScoreboard({ s, m }) {
       </div>
       <div className="ag-sb-divider" />
       <GlCell label="TODAY" usd={v.todayUsd} pct={v.todayPct} m={m} />
-      <div className="ag-sb-divider" />
-      <GlCell label="TOTAL G/L" usd={v.totalUsd} pct={v.totalPct} m={m} />
       <div className="ag-sb-divider" />
       <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} />
       <div className="ag-sb-divider" />
@@ -175,8 +172,9 @@ function VenueSplit({ dash, m }) {
               <span className="ag-funded">{r.canTrade ? (balanceLines(r.balances).length ? balanceLines(r.balances).map((b) => <span key={b.code} className="ag-funded-line">{m(b.text)}</span>) : '—') : 'no key'}</span>
               <span className="dim">deployed</span><span className="hl-strong">{m(fmtUsd(r.valueUsd))}</span>
               <span className="dim" title="the notional each paper strategy may deploy; paper money, so the sum can exceed the real balance">paper capital</span><span>{m(fmtUsd(r.capitalUsd))}</span>
-              <span className="dim">today</span><span className="ag-gl" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.capitalUsd > 0 ? (r.todayUsd / r.capitalUsd) * 100 : null))}</span>
-              <span className="dim">total G/L</span><span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd + r.realisedUsd) }}>{m(glText(r.unrealisedUsd + r.realisedUsd, r.capitalUsd > 0 ? ((r.unrealisedUsd + r.realisedUsd) / r.capitalUsd) * 100 : null))}</span>
+              <span className="dim">today</span><span className="ag-gl" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.todayPct))}</span>
+              <span className="dim">unrealised</span><span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>
+              <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(r.realisedUsd) }}>{m(glText(r.realisedUsd, r.realisedPct))}</span>
               <span className="dim">fees</span><span className="dim">{m(fmtUsd(r.feesUsd))}</span>
             </div>
             {r.note && <div className="ag-warn-line">{r.note}</div>}
@@ -197,23 +195,29 @@ const COLUMNS = [
   { id: 'name', label: 'Strategy', cls: 'hl-left' },
   { id: 'venue', label: 'Venue', cls: 'hl-left' },
   { id: 'mode', label: 'Mode', cls: 'hl-left' },
-  { id: 'status', label: 'Status', cls: 'hl-left' },
+  { id: 'today', label: 'Today', cls: 'hl-right' },
   { id: 'unrealised', label: 'Unrealised G/L', cls: 'hl-right' },
   { id: 'realised', label: 'Realised G/L', cls: 'hl-right' },
   { id: 'next', label: 'Next', cls: 'hl-left' },
 ];
 
+/** The status as a coloured dot beside the name — green running, amber stale, grey paused — with the words in its title. */
+function NameCell({ r, m, onOpen }) {
+  return (
+    <div className="ag-name-wrap">
+      <span className={`ag-dot ag-dot-${r.status.tone}`} title={r.status.detail} role="img" aria-label={r.status.detail} />
+      <button type="button" className="ag-name-btn ag-name" onClick={() => onOpen(r.id)}>{r.name}</button>
+      <span className="hl-sub dim">{r.openPositions} open · {m(fmtUsd(r.capitalUsd))} cap</span>
+    </div>
+  );
+}
+
 function StrategyCell({ id, r, m, onOpen }) {
   switch (id) {
-    case 'name': return (
-      <>
-        <button type="button" className="ag-name-btn ag-name" onClick={() => onOpen(r.id)}>{r.name}</button>
-        <span className="hl-sub dim">{r.openPositions} open · {m(fmtUsd(r.capitalUsd))} cap</span>
-      </>
-    );
+    case 'name': return <NameCell r={r} m={m} onOpen={onOpen} />;
     case 'venue': return <VenueBadge id={r.venueId} />;
     case 'mode': return <ModeBadge mode={r.mode} />;
-    case 'status': return <StatusDot status={r.status} />;
+    case 'today': return <span className="ag-gl" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.todayPct))}</span>;
     case 'unrealised': return <span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>;
     case 'realised': return <span className="ag-gl" style={{ color: pctColor(r.realisedUsd) }}>{m(glText(r.realisedUsd, r.realisedPct))}</span>;
     case 'next': return <span className="dim ag-next">{r.nextText}</span>;
@@ -245,7 +249,7 @@ function StrategyTable({ rows, m, onOpen }) {
   );
 }
 
-/** A phone gets a card per strategy instead of a seven-column table: the same facts, stacked. */
+/** A phone gets a card per strategy instead of the table: the same facts, stacked. */
 function StrategyCards({ rows, m, onOpen }) {
   if (!rows.length) return <div className="ag-empty dim">No strategies yet.</div>;
   return (
@@ -253,11 +257,11 @@ function StrategyCards({ rows, m, onOpen }) {
       {rows.map((r) => (
         <div key={r.id} className="ag-card-strategy ag-row" onClick={() => onOpen(r.id)}>
           <div className="ag-card-head ag-name-cell">
-            <button type="button" className="ag-name-btn ag-name" onClick={() => onOpen(r.id)}>{r.name}</button>
-            <span className="hl-sub dim">{r.openPositions} open · {m(fmtUsd(r.capitalUsd))} cap</span>
+            <NameCell r={r} m={m} onOpen={onOpen} />
           </div>
-          <div className="ag-card-badges"><VenueBadge id={r.venueId} /><ModeBadge mode={r.mode} /><StatusDot status={r.status} /></div>
+          <div className="ag-card-badges"><VenueBadge id={r.venueId} /><ModeBadge mode={r.mode} /></div>
           <div className="ag-card-gl mono">
+            <span className="dim">today</span><span className="ag-gl" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.todayPct))}</span>
             <span className="dim">unrealised</span><span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>
             <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(r.realisedUsd) }}>{m(glText(r.realisedUsd, r.realisedPct))}</span>
             <span className="dim">next</span><span className="ag-next">{r.nextText}</span>
@@ -748,11 +752,24 @@ function PositionTiles({ s, m, nowMs }) {
   );
 }
 
-function Detail({ s, dash, m, nowMs }) {
-  const [more, setMore] = React.useState(/** @type {{ decisions: any[], orders: any[] } | null} */ (null));
-  // The countdown moves every second; everything else keeps the modal's slower clock.
+/**
+ * The countdown to the next decision, to the second. It owns its one-second
+ * clock so that only these few characters re-render each second — the chart,
+ * the tables and the tiles around it keep the modal's slower clock.
+ * @param {{ at: string | null, label: string }} props
+ */
+function Countdown({ at, label }) {
   const [sec, setSec] = React.useState(() => Date.now());
   React.useEffect(() => { const id = setInterval(() => setSec(Date.now()), 1000); return () => clearInterval(id); }, []);
+  return (
+    <span className="ag-countdown mono" title={at ? `${new Date(at).toISOString().replace('T', ' ').slice(0, 19)} UTC` : undefined}>
+      <span className="dim">{label}</span> <span className="ag-countdown-val">{countdownText(at, sec)}</span>
+    </span>
+  );
+}
+
+function Detail({ s, dash, m, nowMs }) {
+  const [more, setMore] = React.useState(/** @type {{ decisions: any[], orders: any[] } | null} */ (null));
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [symbol, setSymbol] = React.useState(() => defaultChartSymbol(s));
   React.useEffect(() => { setSymbol(defaultChartSymbol(s)); }, [s.id]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -769,9 +786,7 @@ function Detail({ s, dash, m, nowMs }) {
       <div className="ag-detail-head">
         <ModeBadge mode={s.mode} />
         <StatusDot status={status} />
-        <span className="ag-countdown mono" title={s.nextDecisionAt ? `${new Date(s.nextDecisionAt).toISOString().replace('T', ' ').slice(0, 19)} UTC` : undefined}>
-          <span className="dim">{s.kind === 'dislocation-1m' ? 'next read' : 'next decision'}</span> <span className="ag-countdown-val">{countdownText(s.nextDecisionAt, sec)}</span>
-        </span>
+        <Countdown at={s.nextDecisionAt} label={s.kind === 'dislocation-1m' ? 'next read' : 'next decision'} />
       </div>
       <h3 className="ag-detail-title mono sr-only">{s.name}</h3>
       <div className="ag-kv mono">
@@ -832,7 +847,6 @@ function AgentsModal({ hideValues, onClose }) {
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
         <div>
-          <div className="modal-eyebrow mono">AGENTS · CRYPTO</div>
           <h2 className="modal-title mono">Agents</h2>
         </div>
         <div className="modal-head-actions">
@@ -863,7 +877,6 @@ function AgentsModal({ hideValues, onClose }) {
       <Modal onClose={() => setSelected(null)} size="lg">
         <header className="modal-head">
           <div>
-            <div className="modal-eyebrow mono">AGENTS · {kindLabel(current.kind).toUpperCase()}</div>
             <h2 className="modal-title mono">{current.name}</h2>
           </div>
           <div className="modal-head-actions">
