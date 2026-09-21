@@ -75,13 +75,35 @@ function agentsFetchError(scope, status, text) {
  * @param {typeof fetch} [fetchImpl]
  */
 export async function fetchAgentsDashboard(fetchImpl = fetch) {
+  const seq = dashGuard.start();
   const res = await fetchImpl(`${EDGE_AGENTS_URL}?action=dashboard`, { headers: headers() });
   const text = await res.text();
   if (!res.ok) throw agentsFetchError('dashboard', res.status, text);
   const dash = JSON.parse(text);
-  agentsCache = { at: Date.now(), dash };
+  // The cache holds the NEWEST request's answer, whatever order the answers arrive in: the minute's refresh and a click
+  // can be in flight together, and a slow older answer must not become what the next page opens on.
+  if (dashGuard.isLatest(seq)) agentsCache = { at: Date.now(), dash };
   return dash;
 }
+
+/**
+ * A request-ordering guard. Each `start()` is a newer request and only the
+ * newest request's answer may be applied (`isLatest`). Two refreshes in
+ * flight otherwise resolve in ARRIVAL order, and a slow older one would
+ * overwrite a newer one on screen and in the cache.
+ */
+export function newestWins() {
+  let latest = 0;
+  return { start() { return ++latest; }, /** @param {number} id */ isLatest(id) { return id === latest; } };
+}
+const dashGuard = newestWins();
+
+/**
+ * A position, order or fill SIZE for a cell: six decimals, and masked with
+ * the money when values are hidden — a size beside a mark is the value.
+ * @param {number} base @param {(s: string) => string} [m]
+ */
+export function sizeText(base, m = (s) => s) { return m(Number(base).toFixed(6)); }
 
 // The page must open the way the rest of the site does: on what is already
 // here. The app fetches the dashboard once after first paint and the modal
@@ -618,7 +640,14 @@ export function shareSegments(rows) {
  * whispered in the same grey as a fee.
  * @param {any} dash
  */
-export function agentsAlerts(dash) {
+/** A live order written before the venue was called and unheard-of this long needs a person (reference §4.17, B1). */
+export const PENDING_ALERT_MS = 2 * 60e3;
+
+/**
+ * @param {any} dash
+ * @param {number} [now]
+ */
+export function agentsAlerts(dash, now = Date.now()) {
   const out = [];
   if (dash?.risk?.global_pause) {
     out.push({
@@ -637,6 +666,34 @@ export function agentsAlerts(dash) {
         text: `Nothing can trade on ${venueLabel(v.id)}: this deployment has no signing key for it, so its live strategies can only watch.`,
       });
     }
+  }
+  const strategies = dash?.strategies ?? [];
+  const liveRows = strategies.filter((s) => s?.mode === 'live');
+  if (liveRows.length && dash?.risk && !dash.risk.live_confirmed_at) {
+    // The loop refuses every live order while the confirmation is unset — a live row that looks normal and never trades.
+    out.push({
+      id: 'live-unconfirmed', tone: 'fault', label: 'Live not confirmed',
+      text: `${liveRows.length} live ${liveRows.length === 1 ? 'row' : 'rows'} cannot trade: live_confirmed_at is not set, so the loop refuses every live order until it is.`,
+    });
+  }
+  for (const s of strategies) {
+    // A paused row is skipped by the tick entirely: no stop, no trail, no exit runs on what it holds.
+    if (s?.mode !== 'paused') continue;
+    const held = (s.positions ?? []).filter((p) => p?.base > 0).map((p) => p.symbol);
+    if (held.length) {
+      out.push({
+        id: `paused-long-${s.id}`, tone: 'fault', label: `${s.name ?? s.id} is paused with a position`,
+        text: `Holding ${held.join(', ')} while paused: no stop, trail or exit runs on a paused row. Unwind it or unpause it.`,
+      });
+    }
+  }
+  for (const s of strategies) {
+    const stuck = (s?.recentOrders ?? []).filter((o) => o?.state === 'pending' && o?.mode === 'live' && now - Date.parse(o.ts) > PENDING_ALERT_MS);
+    if (!stuck.length) continue;
+    out.push({
+      id: `pending-${s.id}`, tone: 'fault', label: `${s.name ?? s.id}: a live order needs a person`,
+      text: `${stuck.length} live ${stuck.length === 1 ? 'order was' : 'orders were'} written before the venue was called and never heard back, and the venue does not list ${stuck.length === 1 ? 'it' : 'them'}: the outcome is unknown. Settle from the venue's own history — write the fill in, or mark it rejected. The loop will not guess.`,
+    });
   }
   return out;
 }

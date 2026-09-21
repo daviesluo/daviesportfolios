@@ -13,7 +13,7 @@ import React from 'react';
 import { Modal } from './modals.jsx';
 import { fmtMoney, maskDigits, pctColor } from './formatters.js';
 import {
-  agentsAlerts, agentsErrorView, balanceLines, countdownText, decisionView, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fillRows, fillsSummary, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, liveStateRows, observationView, orderView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, strategyRows, strategyScoreboard, totalsView, venueHue, venueLabel, venueRows,
+  agentsAlerts, agentsErrorView, balanceLines, countdownText, decisionView, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fillRows, fillsSummary, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, liveStateRows, observationView, orderView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, strategyRows, strategyScoreboard, totalsView, venueHue, venueLabel, venueRows, newestWins, sizeText,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -328,7 +328,7 @@ function Positions({ s, m }) {
               <tr key={p.symbol}>
                 <td className="hl-left hl-strong">{p.symbol}</td>
                 <td className="hl-left ag-ph"><VenueBadge id={s.venue} /></td>
-                <td className="hl-right">{p.base > 0 ? p.base.toFixed(6) : <span className="dim">flat</span>}</td>
+                <td className="hl-right">{p.base > 0 ? sizeText(p.base, m) : <span className="dim">flat</span>}</td>
                 <td className="hl-right">{p.base > 0 ? m(fmtUsd(p.avgCost)) : '—'}</td>
                 <td className="hl-right ag-ph">{m(fmtUsd(p.mark))}</td>
                 <td className="hl-right hl-strong">{m(fmtUsd(p.valueUsd))}</td>
@@ -398,7 +398,7 @@ function Orders({ rows, m, venue }) {
                 <td className="hl-left ag-ph"><VenueBadge id={o.venue ?? venue} /></td>
                 <td className="hl-left"><span className={`txn-badge txn-${o.side}`}>{o.side.toUpperCase()}</span></td>
                 <td className="hl-right">{m(fmtUsd(o.price))}</td>
-                <td className="hl-right ag-ph">{o.base.toFixed(6)}</td>
+                <td className="hl-right ag-ph">{sizeText(o.base, m)}</td>
                 <td className="hl-right ag-ph">{m(fmtUsd(o.notionalUsd))}</td>
                 <td className="hl-left"><span className={`ag-state-pill ag-state-${o.state}`}>{o.state.replace('_', ' ')}</span></td>
                 <td className="hl-right ag-ph">{o.fillPrice != null ? m(fmtUsd(o.fillPrice)) : <span className="dim">—</span>}</td>
@@ -469,7 +469,7 @@ function LegendMark({ kind, side = 'buy' }) {
  * header names it; the legend row below names the two MARK kinds, which is
  * the case a legend is for.
  */
-function PriceChart({ chart, nowMs, hue }) {
+function PriceChart({ chart, nowMs, hue, m = (s) => s }) {
   const [wrapRef, width] = useMeasuredWidth();
   const [hover, setHover] = React.useState(/** @type {any} */ (null));
   const compact = width > 0 && width < 520;
@@ -491,7 +491,7 @@ function PriceChart({ chart, nowMs, hue }) {
   const span = geo.priceSpan || 0;
   const tip = hover ? (() => {
     const lines = [`${fmtChartStamp(hover.t)} UTC`, `close  ${fmtChartPrice(hover.close, span)}`];
-    for (const f of hover.fills) lines.push(`${f.side === 'buy' ? 'bought' : 'sold'} ${f.base.toFixed(6)} @ ${fmtChartPrice(f.price, span)}`);
+    for (const f of hover.fills) lines.push(`${f.side === 'buy' ? 'bought' : 'sold'} ${sizeText(f.base, m)} @ ${fmtChartPrice(f.price, span)}`);
     return { lines, box: tooltipBox(geo, hover.x, hover.y, lines) };
   })() : null;
 
@@ -532,7 +532,7 @@ function PriceChart({ chart, nowMs, hue }) {
           {geo.fillMarks.map((f) => (
             <path key={`fill-${f.id}`} className={`ag-fill-mark ag-fill-${f.side}`} d={markPath(f.side, f.x, f.y, 5)}
               fill={f.side === 'buy' ? 'var(--gain)' : 'var(--loss)'} stroke={SURFACE} strokeWidth="2" strokeLinejoin="round">
-              <title>{`${f.side === 'buy' ? 'bought' : 'sold'} ${f.base.toFixed(6)} @ ${fmtChartPrice(f.price, span)} · ${fmtChartStamp(f.ts)} UTC`}</title>
+              <title>{`${f.side === 'buy' ? 'bought' : 'sold'} ${sizeText(f.base, m)} @ ${fmtChartPrice(f.price, span)} · ${fmtChartStamp(f.ts)} UTC`}</title>
             </path>
           ))}
           {hover && tip && (
@@ -587,7 +587,7 @@ function Fills({ chart, m, venue }) {
                   <span className={`ag-side ag-side-${f.side}`}><span className="ag-side-mark" aria-hidden="true" />{f.side}</span>
                 </td>
                 <td className="hl-right hl-strong">{m(fmtUsd(f.price))}</td>
-                <td className="hl-right">{f.base.toFixed(6)}</td>
+                <td className="hl-right">{sizeText(f.base, m)}</td>
                 <td className="hl-right">{m(fmtUsd(f.notionalUsd))}</td>
                 <td className="hl-right dim ag-ph">{m(fmtUsd(f.feeUsd))}</td>
                 <td className="hl-left ag-ph"><VenueBadge id={f.venue ?? venue} /></td>
@@ -667,7 +667,7 @@ function SymbolChart({ s, symbol, onSelect, m, nowMs, at }) {
       {!error && !chart && loading && <div className="ag-chart-skeleton" aria-hidden="true" />}
       {!error && chart && (
         <>
-          <PriceChart chart={chart} nowMs={nowMs} hue={hue} />
+          <PriceChart m={m} chart={chart} nowMs={nowMs} hue={hue} />
           <Fills chart={chart} m={m} venue={chart.venue ?? s.venue} />
         </>
       )}
@@ -821,16 +821,30 @@ function AgentsModal({ hideValues, onClose }) {
   const [now, setNow] = React.useState(() => Date.now());
   const m = React.useCallback((s) => (hideValues ? maskDigits(s) : s), [hideValues]);
 
-  const load = React.useCallback(async () => {
-    setLoading(true);
-    try { setDash(await fetchAgentsDashboard()); setError(null); }
-    catch (e) { setError(e instanceof Error ? e.message : String(e)); }
-    finally { setLoading(false); setNow(Date.now()); }
+  // Two refreshes can be in flight together (the minute's interval and a click): only the NEWEST request's answer is
+  // applied, whatever order the answers arrive in, and nothing is applied once the page is gone.
+  const guard = React.useRef(newestWins());
+  const alive = React.useRef(true);
+  React.useEffect(() => () => { alive.current = false; }, []);
+  /** @param {boolean} [manual] a click shows the button working; the minute's own refresh does not flip it */
+  const load = React.useCallback(async (manual = false) => {
+    const seq = guard.current.start();
+    if (manual || !readAgentsCache()) setLoading(true);
+    try {
+      const next = await fetchAgentsDashboard();
+      if (!alive.current || !guard.current.isLatest(seq)) return;
+      setDash(next); setError(null);
+    } catch (e) {
+      if (!alive.current || !guard.current.isLatest(seq)) return;
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      if (alive.current && guard.current.isLatest(seq)) { setLoading(false); setNow(Date.now()); }
+    }
   }, []);
 
   React.useEffect(() => {
     load();
-    const id = setInterval(load, REFRESH_MS);
+    const id = setInterval(() => load(), REFRESH_MS);
     // The data comes once a minute; the CLOCK moves faster, so "seen 40 s
     // ago" creeps instead of jumping a minute at a time.
     const tick = setInterval(() => setNow(Date.now()), TICK_MS);
@@ -850,7 +864,7 @@ function AgentsModal({ hideValues, onClose }) {
           <h2 className="modal-title mono">Agents</h2>
         </div>
         <div className="modal-head-actions">
-          <button className="btn-ghost icon" onClick={load} disabled={loading} aria-label="Refresh" title="Refresh">{loading ? '…' : '↻'}</button>
+          <button className="btn-ghost icon" onClick={() => load(true)} disabled={loading} aria-label="Refresh" title="Refresh">{loading ? '…' : '↻'}</button>
           <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
         </div>
       </header>

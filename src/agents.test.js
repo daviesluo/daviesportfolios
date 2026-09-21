@@ -4,6 +4,7 @@ import {
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, balanceLines, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
+  newestWins, sizeText,
 } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -431,8 +432,63 @@ describe('agentsAlerts', () => {
   });
   it('flags a venue without a key only when a LIVE strategy trades there — paper needs no key', () => {
     const noKey = [{ id: 'revx', canTrade: false, note: null }];
-    expect(agentsAlerts({ risk: {}, venues: noKey, strategies: [{ venue: 'revx', mode: 'paper' }] })).toEqual([]);
-    expect(agentsAlerts({ risk: {}, venues: noKey, strategies: [{ venue: 'revx', mode: 'live' }] }).map((a) => a.id)).toEqual(['nokey-revx']);
+    expect(agentsAlerts({ risk: { live_confirmed_at: 'x' }, venues: noKey, strategies: [{ venue: 'revx', mode: 'paper' }] })).toEqual([]);
+    expect(agentsAlerts({ risk: { live_confirmed_at: 'x' }, venues: noKey, strategies: [{ venue: 'revx', mode: 'live' }] }).map((a) => a.id)).toEqual(['nokey-revx']);
+  });
+  it('flags live rows while live_confirmed_at is unset — the loop refuses every live order in that state', () => {
+    const dash = { risk: { live_confirmed_at: null }, venues, strategies: [{ id: 'trend-4h', venue: 'revx', mode: 'live', positions: [] }] };
+    expect(agentsAlerts(dash).map((a) => a.id)).toEqual(['live-unconfirmed']);
+    expect(agentsAlerts({ ...dash, risk: { live_confirmed_at: '2026-09-21T00:00:00Z' } })).toEqual([]);
+    expect(agentsAlerts({ ...dash, strategies: [{ ...dash.strategies[0], mode: 'paper' }] })).toEqual([]);   // paper needs no confirmation
+  });
+  it('flags a paused row that still holds a position: nothing protects it while paused', () => {
+    const s = { id: 'trend-4h', name: 'Trend 4h · Revolut X', venue: 'revx', mode: 'paused', positions: [{ symbol: 'BTC/USD', base: 0.00025 }, { symbol: 'ETH/USD', base: 0 }] };
+    const out = agentsAlerts({ risk: {}, venues, strategies: [s] });
+    expect(out.map((a) => a.id)).toEqual(['paused-long-trend-4h']);
+    expect(out[0].text).toContain('BTC/USD');
+    expect(out[0].text).not.toContain('ETH/USD');
+    expect(agentsAlerts({ risk: {}, venues, strategies: [{ ...s, positions: [{ symbol: 'BTC/USD', base: 0 }] }] })).toEqual([]);
+  });
+  it('flags a live order left pending past two minutes: its outcome is unknown and a person settles it', () => {
+    const now = Date.parse('2026-09-21T12:10:00Z');
+    const order = (ago, state = 'pending', mode = 'live') => ({ id: 1, ts: new Date(now - ago).toISOString(), state, mode });
+    const s = (recentOrders) => ({ id: 'trend-4h', name: 'Trend 4h', venue: 'revx', mode: 'live', positions: [], recentOrders });
+    const risk = { live_confirmed_at: '2026-09-21T00:00:00Z' };
+    const out = agentsAlerts({ risk, venues, strategies: [s([order(3 * 60e3)])] }, now);
+    expect(out.map((a) => a.id)).toEqual(['pending-trend-4h']);
+    expect(out[0].text).toContain('will not guess');
+    expect(agentsAlerts({ risk, venues, strategies: [s([order(60e3)])] }, now)).toEqual([]);                      // this turn's own row
+    expect(agentsAlerts({ risk, venues, strategies: [s([order(3 * 60e3, 'new')])] }, now)).toEqual([]);           // a resting order is normal
+    expect(agentsAlerts({ risk, venues, strategies: [s([order(3 * 60e3, 'pending', 'paper')])] }, now)).toEqual([]);
+  });
+});
+
+describe('newestWins / fetchAgentsDashboard ordering', () => {
+  it('only the newest request may be applied: an older answer arriving late is dropped', () => {
+    const g = newestWins();
+    const a = g.start(), b = g.start();
+    expect([g.isLatest(a), g.isLatest(b)]).toEqual([false, true]);
+  });
+  it("the dashboard cache keeps the newest request's answer whatever order the answers arrive in", async () => {
+    /** @type {(v?: unknown) => void} */
+    let releaseSlow = () => {};
+    const slow = new Promise((r) => { releaseSlow = r; });
+    const slowFetch = /** @type {any} */ (async () => { await slow; return new Response(JSON.stringify({ at: 'older' }), { status: 200 }); });
+    const fastFetch = /** @type {any} */ (async () => new Response(JSON.stringify({ at: 'newer' }), { status: 200 }));
+    const p1 = fetchAgentsDashboard(slowFetch);
+    const p2 = fetchAgentsDashboard(fastFetch);
+    await p2;
+    expect(readAgentsCache()?.dash?.at).toBe('newer');
+    releaseSlow();
+    await p1;
+    expect(readAgentsCache()?.dash?.at).toBe('newer');
+  });
+});
+
+describe('sizeText', () => {
+  it('six decimals, and masked with the money when values are hidden — a size beside a mark is the value', () => {
+    expect(sizeText(0.00025)).toBe('0.000250');
+    expect(sizeText(2.25, (s) => s.replace(/\d/g, '•'))).toBe('•.••••••');
   });
 });
 
