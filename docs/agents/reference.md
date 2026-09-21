@@ -1339,6 +1339,128 @@ trail. The test named the floor and measured the trail, which is the same
 confusion the loop had. §3.3a is re-run; the floor turns out never to have
 fired on BTC, ETH or SOL out of sample.
 
+### 3.14 Kraken pushed as far as it goes, the TESTING rows judged, and a problem with the tape (2026-09-21)
+
+Davies asked for three things: keep looking for a standalone Kraken
+strategy, give every TESTING row a verdict with a number behind it, and
+propose anything worth adding. Run by an independent agent as
+`supabase/functions/agents/backtest_kraken2.ts` (imports `run`,
+`resample`, `COSTS`, `SHIPPED_STOPS`, `stopsForKind`, `spreadOf`; the one
+copy, `runLogged`, adds a per-trade log and is checked against `run` —
+**252 cells, zero difference** in return, drawdown and trades, plus 28
+more with §3.9's regime gate switched off, also zero). Output
+`docs/agents/backtests/kraken2.json`, report
+`docs/agents/reviews/2026-09-21-kraken-standalone-study.md`. Re-run here
+to a scratch directory: identical apart from `ran_at` and
+`runtimeSeconds`. It was launched before the stop correction, caught it
+mid-flight and re-ran everything against the corrected build; §7 of the
+report is a before/after table, and the numbers below are all post-
+correction.
+
+**The problem with the tape comes first, because it is the one that
+touches everything else.** The study ran the same seeded rule over the
+same calendar on Kraken's own 4-hour tape and on the Coinbase series
+every earlier table in this reference used. Over 36 comparisons the
+median absolute difference is **2.5 points** and the maximum is **68**
+(ALGO window B: +79.9 % on Kraken's tape against +147.9 % on Coinbase's,
+**on twelve trades each**), with 2 sign flips. Verified here
+independently, calling `run` directly on the five live coins with the two
+tapes clipped to the same span, Revolut X costs, shipped stops:
+
+| coin · window | Kraken tape | Coinbase tape | Δ |
+|---|---|---|---|
+| BTC · A / B | −8.5 % / +15.2 % | −9.5 % / +7.7 % | +1.0 / +7.6 |
+| ETH · A / B | −19.0 % / +56.5 % | −20.1 % / +57.1 % | +1.1 / −0.6 |
+| SOL · A / B | −4.2 % / −1.1 % | −0.5 % / +0.1 % | −3.6 / −1.3 |
+| **AVAX · A** | **−1.3 %** | **+20.6 %** | **−21.9, sign flip** |
+| AVAX · B | +20.2 % | +11.5 % | +8.7 |
+| **SUI · A** | **+37.5 %** | **+8.4 %** | **+29.2** |
+| SUI · B | +26.5 % | +26.7 % | −0.1 |
+| **five slots, equal weight** | **A +0.91 %, B +23.48 %** | **A −0.22 %, B +20.62 %** | **+1.1 / +2.9** |
+
+Two things follow, and they point opposite ways. **At sleeve level the
+recommendation is robust**: swapping the entire price series moves the
+bear window 1.1 points and the bull window 2.9, same sign, same order of
+magnitude, so which tape you use does not change what to run. **At coin
+level nothing is robust**: AVAX's bear-year return, the single number
+that justifies its seat in every leave-one-out table, is +20.6 % on one
+tape and −1.3 % on the other. The five slots cancel what the individual
+coins cannot agree on — which is the case for holding five of them, made
+by accident.
+
+**This matters because `signal_venue` is `kraken`.** The live loop reads
+Kraken's candles and executes on Revolut X (`0037`, every row); every
+published table reads Coinbase's. So the backtests have been pricing a
+signal the loop does not compute. At sleeve level that is worth about a
+point; at coin level it is worth up to thirty, and §4.15's bar — four
+tests per coin per window — is being applied at exactly the level where
+the measurement is least stable. Nothing is re-run on this yet: the right
+fix is to re-price the whole reference on Kraken's tape, which is a
+study, not an edit.
+
+**K1: no, and more firmly than §3.12 said it.** Six rulebooks built for
+the constraint (monthly rebalance, a 200-day regime hold, wide Donchian,
+a crash-stop hold, `trend-4h-wide`, the shipped trend rule) over **68
+coins**, reached by measuring 622 online Kraken USD pairs keylessly and
+keeping the 199 whose book clears $100k a day. In **952 coin-window
+cells the Kraken figure beats the same rule at Revolut X's fee schedule
+exactly zero times.** Twelve arm-coin pairs clear both windows against
+**16.28 expected by independence alone**, and eight of their twenty-four
+cells rest on two or fewer closed round trips. Slowing down does fix the
+arithmetic — the monthly rebalance holds a median 10.25 days, which
+breaks even at a 31 %-a-year drift against the shipped rule's 3.33 days
+and 106 % — and destroys the sample doing it: 2–4 closed round trips a
+window, and 40 of 136 cells on the wide Donchian never trade at all. No
+arm's pooled mean round trip clears the 89.5 bps it has to at t > 2;
+`trend-4h-wide`, §3.12's one exception at t = 2.17 over 27 coins, reads
+**1.77** over 68. The fee tier still needs 26–155× the turnover. §4.16's
+named candidates are answered: **ZEC, XMR and TRX each clear one window
+on one rulebook and none on both.** PAXG (tokenised gold) clears three
+rulebooks on 0–4 closed round trips and is recorded, not proposed.
+
+**K2, the TESTING rows, each with the number behind it:**
+
+| row | verdict | why |
+|---|---|---|
+| `trend-1h·revx` | **delete** | $1.51 / $4.08 on $40 at 62–76×/y; worst row on the worse window (ret/DD 0.20 against the live row's 0.71) and worse in each window separately; on a plateau on no coin; its best of 108 variants loses 9.2 % on the first window it meets. Its stated job was feedback speed: 46–56 fills per 90 days against the live row's 20–27 — a factor of two, for a row that earns nothing |
+| `momentum-1d·revx` | **keep, do not optimise** | the only rule whose P&L is not a restatement of another row's (≤0.72 / 0.64 against non-twins, 0.46 / 0.60 against the live row). +$24.97 on $40 in the bull window against a 41.0 % bear drawdown. Its best of 32 variants turns +44.9 % into **−12.3 %** out of sample |
+| `momentum-1d·kraken` | **delete** | 0.999 / 1.000 correlated with its twin and 12.1 / 8.8 points worse; the fill-measuring job is already done by `trend-4h·kraken` |
+| `trend-4h·kraken` | **keep, stop reading its return** | the only row measuring the LIVE rulebook's fills on the second venue, 20.1 / 26.8 fills per 90 days. Its return is a fill-path accident (+0.59 points *ahead* of its twin in A, 6.48 behind in B, r = 0.966 / 0.999) |
+| `rotation-1d·revx` | **delete** | fails the bar on both windows (−13.3 %; 37.0 % drawdown, over the 35 % limit). Best of 54 variants chosen out of sample: +105.4 % on the middle third, **−66.0 % with a 93.6 % drawdown** on the last |
+| `rotation-1w·kraken` | **delete** | 0.905 / 0.939 correlated with the row above; its own optimisation reaches **−75.2 %, drawdown 116 %** |
+
+Not one row's optimisation earns its search: the three that stay positive
+out of sample are still worse than the seeded row they came from.
+
+**K3, three candidates, none of them a result on its own:**
+`regime-trend-4h·revx` on **LINK and NEAR** (§3.10 point 6's candidate,
+not displaced but narrowed — and the set MOVED with the stop change, from
+NEAR/SUI/ALGO to LINK/NEAR, which is itself a warning; 2 of 8 clear both
+windows against 2.50 by chance, proposed only because §3.9's written
+promotion condition is met and paper is the step);
+`trend-4h-wide·revx` on **AVAX and SOL** (2 of 8 against 2.25 by chance,
+but a median hold of **7.67 days** against the live rule's 2.29–3.33 —
+the only shipped-rulebook variant whose hold clears break-even on both
+venues, and paper would measure the execution problem a backtest cannot:
+orders resting for days and a wide trail across weekends); and,
+conditionally, `trend-4h-wide-kraken` on **AAVE** in place of
+`momentum-1d-kraken` (Kraken book $5.5m a day, UK book $54k, clears both
+windows +14.8 % / +2.0 % on a 100 / 75 % plateau; the return case is at
+chance and the job is exercising §4.16's single-venue path, which has
+never been used).
+
+**What the study could not settle**, in its own words and worth reading
+before acting on any of it: whether `trend-4h-wide` has anything at all
+(t = 1.25 → 1.77 → 2.17 depending on the stop and the universe — it sits
+exactly where a third window would decide it); whether any individual
+coin pass is signal, since the stop change alone kept only **five of the
+ten** passes the first run found with no rule, coin or window altered;
+which tape is right; that five core coins (BNB, HBAR, HYPE, POL, TON) are
+missing from the widened universe for want of three years of Kraken tape,
+so §3.12's POL finding is NOT re-tested here; that the null trades less
+than the arms it controls, so it bounds manufactured passes rather than
+matching them; and that Kraken's book is twelve samples of one evening.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

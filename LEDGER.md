@@ -198,6 +198,49 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-21 23:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Every backtest in this reference prices a signal the loop does not
+compute.** The Kraken standalone study (§3.14) ran the seeded rule over
+the same calendar on Kraken's own 4-hour tape and on the Coinbase series
+every published table uses: median 2.5 points apart, maximum **68**
+(ALGO window B, +79.9 % against +147.9 %, on twelve trades each). Checked
+here independently on the five live coins with both tapes clipped to one
+span: **AVAX's bear-year return is −1.3 % on Kraken's tape and +20.6 % on
+Coinbase's, a sign flip** — and AVAX's bear-year return is the single
+number that justifies its seat in every leave-one-out table. SUI moves
+29 points the other way. `signal_venue` is `kraken` on every row, so the
+tape the loop reads is not the tape the tables were made on.
+
+The saving grace, and it is a real one: **at sleeve level it barely
+matters.** Five equal slots come to A +0.91 % / B +23.48 % on Kraken's
+tape against −0.22 % / +20.62 % on Coinbase's — same sign, same order.
+Swapping the entire price series moves the recommendation by about a
+point. So WHAT TO RUN is robust and WHICH COIN DESERVES A SEAT is not,
+which is the case for holding five of them, arrived at by accident. It
+also means §4.15's bar is applied per coin per window, exactly where the
+measurement is least stable. Not re-run: re-pricing the reference on
+Kraken's tape is a study, not an edit, and it is now the top candidate
+for the next one.
+
+K1 is a firmer no than §3.12's: six slow rulebooks over 68 coins (622
+online Kraken USD pairs measured keylessly, 199 clear $100k a day), and
+in **952 coin-window cells Kraken beats the same rule at Revolut X's fees
+exactly zero times**; 12 two-window passes against 16.28 by chance;
+ZEC/XMR/TRX each clear one window and none two. K2 verdicts: delete
+`trend-1h·revx`, `momentum-1d·kraken`, `rotation-1d·revx`,
+`rotation-1w·kraken`; keep `momentum-1d·revx` unoptimised (the only row
+not correlated with another) and `trend-4h·kraken` for its fill
+measurement alone. K3: three candidates, all at chance on return.
+**No migration written** — the third-window study is still running and
+one migration should carry both verdicts.
+
+Verification: `runLogged` vs `run` 252 cells at zero difference; re-run
+here identical apart from timestamps; it caught the stop correction
+mid-flight and re-ran against the corrected build, and its independent
+harness reproduces §3.11's untrailed rows to 0.0005 and the corrected
+sleeve to the digit (A +8.03 %, DD 11.28 %).
+
 ### [2026-09-21 23:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The duplicated intra-bar ATR trail is gone, and the floor turns out
