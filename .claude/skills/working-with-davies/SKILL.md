@@ -466,6 +466,27 @@ Read these as a checklist before pushing.
   it tests the previous commit. Cost most of an hour chasing a "3M is
   still drawing daily bars" that had already been fixed. Build, then
   sweep — every time.
+- **Reading "two lines" as one.** He asked for the venue card's head —
+  the badge and "3 strategies · 0 live · maker/taker …" — 分成两行. The
+  session merged them onto ONE line, and he had to say it again ("你怎么
+  听反了"). His layout words are literal: 分成两行 is each item on its own
+  line, 删了 is gone, not hidden or moved. When a layout instruction can
+  be read two ways, the reading that moves things APART is his.
+- **Explaining a discrepancy instead of removing it.** The strategies
+  table's "return" was (unrealised + realised) / capital and the detail's
+  "unrealised" was on cost, so one strategy showed two percentages and he
+  asked why. The explanation was true and was not the fix; the fix was two
+  columns that each say their base in their label. A figure shown in two
+  places is the same figure, or its label says why it is not (2026-09-21).
+- **A fact in the reference that the code did not implement.** §2.2 of
+  the agents reference recorded, the day it was measured, that Revolut X
+  publishes two books per pair (UK / EEA) and that an account trades its
+  own. The venue client's `quotes()` kept whichever ticker row came last,
+  so for a night the loop read the UK and the EEA book at random, and a
+  paper rule lifted an EEA ask this UK account cannot trade (2026-09-21).
+  A verified fact about a venue is a requirement on the client: write the
+  pin and make the probe show it honoured the day the fact is written
+  down, not the day it costs a trade.
 
 ## Third-party reviews
 
