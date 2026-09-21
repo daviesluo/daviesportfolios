@@ -150,6 +150,23 @@ A $100 account clears every minimum by three orders of magnitude; sizing is not 
 
 Two books exist per pair (`region: UK` / `EEA`); which one an account trades on is decided by the account, not the request. Only BTC, ETH and SOL have spreads in the low single-digit bps; everything else costs 3–8× more per round trip before fees.
 
+**The request has to name the region, though — found 2026-09-21 01:48 UTC.**
+`/public/tickers` without `region` returns BOTH rows per symbol in
+arbitrary order, and `/public/candles` without it is the EEA book's
+series. That minute: UK SOL/USD 112.180 / 112.181 (0.1 bps), EEA 111.865
+/ 112.371 (45 bps); UK BTC 6 bps, EEA 23; UK ETH 0.0, EEA 63; XRP 15.5
+against 137. The client had kept whichever ticker row came last, so every
+Revolut X quote the loop read before that night — marks, stops,
+`agent_basis`, the one entry of §3.5 — was one book or the other at
+random, and its paper fills were checked against EEA minutes. Since then
+every market-data call carries `region=UK` (`REVX_REGION`), a row from
+another region is dropped (`quotesForRegion`), and the probe reports the
+region and the filtered rows with their spreads. The spreads in this
+section came from whichever row the API returned last at the time:
+re-measure on the UK book before quoting them again. The 1-minute study
+of §3.5 read region-less candles, i.e. the EEA book — one more reason its
+"cheap prints" were never this account's.
+
 ### 2.3 History depth on Revolut X (*measured*)
 
 Daily candles paginate back to **2023-08-19 (BTC), 2023-09-05 (ETH), 2023-09-11 (SOL)** — three years, at ~1,000 candles per call. Hourly is available for the same span (≈ 41 days per call). One-minute candles exist. Enough for a venue-accurate backtest of anything at 1h or slower; older or denser history needs another source.
@@ -493,10 +510,78 @@ then the full period. Scratch scripts, not shipped: `patterns_bt.py`,
   paper fills that follow averaging positive after the 9 bps taker fee over
   ≥ 100 trades.
 
+  **Retired 2026-09-21, migration `0038` — and its one trade was a bug,
+  not a trade.** For seven hours the touch basis never came within half
+  of the entry (max |basis| 7.7 bps; nor in the 60 hours of §2c). At
+  01:26 UTC on the Monday the rule read Revolut X's ask 29.5 bps under
+  Kraken's mid, lifted it (paper, 0.00024394 BTC @ 81,984.09, Jev
+  P = 0.83 with caution 1.00), and one minute later its own stop sold at
+  the bid 50 bps lower: −68 bps all-in. Those prices were the **EEA
+  book's**. §2.2 already recorded that the venue publishes two books per
+  pair (`region: UK` / `EEA`) and that an account trades on its own; the
+  client's `quotes()` kept whichever ticker row came last, so every
+  Revolut X quote the loop had read — marks, stops, the basis record, this
+  entry — was UK or EEA at random, and the region-less public candles it
+  paper-filled against are the EEA book's too. That night the EEA book
+  was thin (SOL bid 110.32 / ask 112.37 at 01:35, XRP 1.4 % wide) while
+  the UK book, the one this account can trade, sat 0.1–6 bps wide. Fixed
+  the same night (§2.2, §4.14): the client asks for the account's region
+  on tickers and candles and drops any other region's row. Davies had
+  already asked for the rule to go rather than sit on the page. The
+  rulebook stays in `_shared/agents_strategy.ts` and the tick, dormant
+  without a row (a re-seed is a migration); its decision, order and
+  observation rows stay as the record; `agent_basis` keeps measuring
+  every turn (rows before the fix mix the two books).
+
+### 3.6 Faster rules — 15-minute and 1-hour bars, walk-forward, the loop's own fills (2026-09-21)
+
+Davies asked why every rule waits hours between decisions when Jev
+answers in 300 ms for nothing, and whether a faster rule could be tested.
+One year of Coinbase 15-minute candles per symbol (34,993 bars,
+2025-09-21 → 2026-09-20; the 60-minute rows are the same bars
+aggregated), the loop's own fills (every order takes the touch: half the
+measured spread plus 9 bps taker, each way, next-bar-open), the shipped
+stops (8 % floor, 3×ATR trail on bar lows) and the two-bar cooldown. Two
+rules: the trend rule (fast/slow SMA and a close above the prior N-bar
+high; grid fast 10/20/30 × slow 50/100/200 × breakout 20/55) and an
+RSI(2) pullback (buy the dip above a slow SMA, sell the bounce; grid SMA
+100/200 × entry 5/10/20 × exit 60/70/80 × max hold 8/16 bars).
+Parameters chosen on the first eight months by return over drawdown, the
+last four months reported out of sample. Numbers: in-sample return of the
+chosen set → OOS return / max drawdown / trades. Raw output and method:
+`docs/agents/backtests/frequency.json`; script scratch, not shipped
+(`m15/freq_study.py`).
+
+| bar | rule | BTC | ETH | SOL | buy & hold OOS |
+|---|---|---|---|---|---|
+| 15 m | trend | −13.7 % → **−21.2 %** / 23 % / 95 | −23.3 % → **−4.2 %** / 20 % / 97 | −36.9 % → **−15.2 %** / 27 % / 107 | +5.5 % / +26.0 % / +28.4 % |
+| 15 m | RSI(2) pullback | −85.5 % → **−62.8 %** / 63 % / 589 | −88.2 % → **−64.0 %** / 64 % / 613 | −90.1 % → **−67.3 %** / 68 % / 601 | same |
+| 60 m | trend | −12.3 % → +10.6 % / 6 % / 24 | −12.3 % → +20.6 % / 10 % / 27 | −17.5 % → +21.5 % / 12 % / 18 | same |
+| 60 m | RSI(2) pullback | −39.6 % → −20.4 % / 22 % / 128 | −51.7 % → −25.3 % / 26 % / 153 | −32.8 % → −16.3 % / 20 % / 154 | same |
+
+- **Nothing at 15 minutes survives.** The trend rule's own BEST
+  in-sample parameters lose on every coin, in sample and out; there is no
+  edge to select, only the cost. About 100 round trips in four months is
+  300 a year, and a round trip at the touch costs 20 bps (2 × 9 bps taker
+  plus the spread): 60 % of the account a year before the rule is right
+  once. The pullback rule makes 600 round trips in the window and loses
+  60–70 % — that is the fee bill, not the market.
+- **The 60-minute rows are not evidence of an edge either.** Every one of
+  the 18 in-sample fits loses; the positive out-of-sample figures are 18–27
+  trades chosen by a fit that itself lost, which is what selection noise
+  looks like, and buy-and-hold beat two of the three. The 1-hour trend
+  rule the loop already runs in paper (§3.4) stays the fastest rule, and it
+  stays paper.
+- **The constraint is the round-trip cost, not the model.** Jev is asked
+  on entries only and costs nothing that matters at any cadence; a bar
+  that closes more often means more entries and every entry pays 20 bps
+  on Revolut X and 80 on Kraken. Speed is bought with fees, and at this
+  spread the fee wins below an hour.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
-2. **Observe every minute, decide on closed bars.** The loop wakes every minute (pg_cron; one minute is where Revolut X's public token bucket and the Edge budget both stay comfortable): it refreshes both venues' quotes, manages and re-quotes resting orders, checks the protective stops against the live mark, and writes the categorical state on the FORMING bar down when it changes (`agent_observations`) — so the page shows what the market is doing between decisions. Entries still wait for a closed 1h / 4h / 1d bar; the one rule that decides on the minute is the dislocation rule (§3.5), and its entries are events, not a cadence. "Every second" would cost nothing on Jev and everything on fees and the 1,000-order cap.
+2. **Observe every minute, decide on closed bars.** The loop wakes every minute (pg_cron; one minute is where Revolut X's public token bucket and the Edge budget both stay comfortable): it refreshes both venues' quotes, manages and re-quotes resting orders, checks the protective stops against the live mark, and writes the categorical state on the FORMING bar down when it changes (`agent_observations`) — so the page shows what the market is doing between decisions. Entries still wait for a closed 1h / 4h / 1d bar (the one rule that decided on the minute, the dislocation rule of §3.5, was retired by `0038`). "Every second" would cost nothing on Jev and everything on fees and the 1,000-order cap — §3.6 puts the number on it: below an hour the round-trip cost is the whole result.
 3. **Each venue fills the way its fee allows.** On Revolut X every order takes the touch (9 bps): that is the fill the backtests assume, and a bid resting on a breakout fills exactly when the breakout fails (§3.5 measured that adverse selection). On Kraken orders rest post-only at the touch, stops included (at the ask, walked down by the re-quote), because 80 bps a side is not worth certainty at this size.
 4. **BTC, ETH, SOL only** — the only pairs on this venue with ≤ 3 bps spreads and real volume. Everything else costs 3–8× more per round trip.
 5. **Paper first.** Every strategy runs in shadow mode against live prices, recording the orders it *would* have placed, until its paper record is shown; the switch to live is a per-strategy flag Davies flips, and the first live order requires his explicit confirmation.
@@ -504,10 +589,11 @@ then the full period. Scratch scripts, not shipped: `patterns_bt.py`,
 7. **Record inputs, not conclusions** (the `snapshot-record` lesson): every Jev call's state, questions and answers, and every order's request/response, are stored; P&L is computed in one place from fills and marks.
 8. **Two venues, each for what it is good at** (§2b, §2c). Revolut X executes (0 % maker); Kraken supplies the signal (`signal_venue`: its candles are the cleaner series) and runs paper twins whose fills pay its real fee. There is no arbitrage between them at any cadence available here — measured, not assumed — and the basis keeps being recorded so that stays true or is seen to change. Caps in `agent_risk` are per venue account and per mode.
 9. **Capital utilisation is a consequence of regime, not a target.** The rotation rule holds the strongest two of four whenever they trend; in a broad bear it holds cash, because the alternative lost 45 % out of sample (§3.4). The switch that makes it always-invested exists and is Davies' to flip, with the number beside it.
-10. **Nothing fast, except what the data earned.** A 1,000-order day on Revolut X and 40–80 bps a side on Kraken rule out market-making and cross-venue trading. The fastest rules are the 1-hour trend variant (paper, for feedback speed) and the dislocation rule (§3.5: a few taker entries a day when Revolut X prints ≥ 15 bps under Kraken, exits resting at the reference) — the latter because 30 days of minutes showed the snap-back and showed that the cheap version of the trade, a resting bid, loses. Both are paper until their own record says otherwise.
+10. **Nothing fast, except what the data earned — and nothing did.** A 1,000-order day on Revolut X and 40–80 bps a side on Kraken rule out market-making and cross-venue trading. The fastest rule is the 1-hour trend variant (paper, for feedback speed). The dislocation rule (§3.5: taker entries when Revolut X's touch sat ≥ 15 bps under Kraken) was seeded as a measurement and retired by `0038` after its one trade, which turned out to be the other region's book (§3.5, §4.14): a UK account cannot lift an EEA ask. §3.6 tried 15-minute and 1-hour bars with the loop's own fills: at 15 minutes the best parameters lose on every coin, in sample and out, because ~300 round trips a year at 20 bps each is 60 % of the account. A faster rule is a fee schedule, not a strategy, until data says otherwise.
 11. **Stops run between bars, entries do not.** The ATR trail and the floor under cost are checked every minute against the live mark and sell without asking the model; an entry is never taken between bar closes. A resting exit order never outranks a stop: when the stop fires it is cancelled first (on Revolut X the sale is then marketable; on Kraken a stop already resting at the ask is left to work). A stop is claimed on the minute, so one that lapses is tried again next minute, not next bar. After ANY exit a rule waits two of its own bars before buying again — §3.3a shows why. The backtester runs the same stops and the same cooldown, so the tables describe the shipped rule.
 12. **One turn at a time.** pg_net fires the next minute's tick whether or not the last one finished; a turn takes a lease (`agent_locks`, compare-and-set on its expiry, 55 s) and a turn that finds it held does nothing. The bar claim protects decisions; the lease protects everything else.
 13. **The model is asked on entries only.** It can veto one; it never advises an exit, and the seeds, the page and the README say exactly that. A partially filled live order is a position from its first fill (stops and caps see it); a venue-cancelled order that had filled in part is recorded as a fill of that part; a live order that filled on arrival is settled from the venue's own view next turn, fee included — never from the placement reply.
+14. **The venue's market data is the account's region, always.** Revolut X keeps two books per pair (UK / EEA) and this account trades the UK one; a quote or a candle from the other book is not a price this account can get, and reading one produced the only trade the dislocation rule ever made (§3.5). Every public call names `region=UK`, a row from another region is dropped, and the probe shows which book the loop is reading. The same discipline applies to any venue that publishes more than one book, and any fact of that kind written into this reference is a requirement on the client with a pin, the day it is written.
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 

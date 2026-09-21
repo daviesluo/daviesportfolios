@@ -123,20 +123,29 @@ that follow from that evidence, in short:
   never came near Kraken's fee in 60 h of 5-minute closes or 10 minutes
   at the touch (reference §2c), and `agent_basis` keeps measuring it
   every turn. Caps in `agent_risk` are per venue account and per mode.
-- Five rulebooks, all in `_shared/agents_strategy.ts`: trend-4h,
-  trend-1h (paper-only, for feedback speed), momentum-1d, rotation-1d
-  (top two of BTC/ETH/SOL/XRP by 30-day return, above their 100-day
-  average — the bear filter is what saved 33 points in the bear year;
-  `bearFilter:false` makes it always invested, and that is Davies'
-  switch, not a default), and dislocation-1m (Revolut X's TOUCH ≥ 15 bps
-  under Kraken's mid with Kraken not moving sharply → lift the ask, rest
-  the exit at the reference, 30-minute / 40 bps stops; BTC and ETH only,
-  paper, **a measurement first**: the 1-minute study's edge turned out to
-  be stale last-trade prints, reference §3.5 — never quote its bps as an
-  expectation). Breakout-with-volume, squeeze breakouts and double bottoms
-  were tested and rejected with numbers. Backtests: reference §3.3a–§3.5,
-  run with the loop's own fills, stops and cooldown; the backtester writes
-  `docs/agents/backtests/summary.json` itself.
+- Four rulebooks run, all in `_shared/agents_strategy.ts`: trend-4h,
+  trend-1h (paper-only, Revolut X only — ~70 trades a year at Kraken's
+  40 bps maker would be ~28 % a year in fees; it exists for feedback
+  speed at 0 / 9 bps), momentum-1d, rotation-1d (top two of
+  BTC/ETH/SOL/XRP by 30-day return, above their 100-day average — the
+  bear filter is what saved 33 points in the bear year; `bearFilter:false`
+  makes it always invested, and that is Davies' switch, not a default).
+  A fifth, dislocation-1m (Revolut X's TOUCH ≥ 15 bps under Kraken's
+  mid → lift the ask, rest the exit at the reference), was seeded as a
+  measurement and **retired by migration `0038`** on Davies' word: the
+  1-minute study's edge was stale last-trade prints (reference §3.5), and
+  its one live-touch trade lifted an ask from Revolut X's EEA book, which
+  this UK account cannot trade (the client mixed the two regions'
+  tickers — since fixed, `REVX_REGION`), and was stopped out 50 bps lower
+  a minute later. Its code stays, dormant without a row; its records
+  stay as evidence.
+  Breakout-with-volume, squeeze breakouts, double bottoms (§3.5) and
+  15-minute / 1-hour trend and RSI(2) pullback rules (§3.6: nothing below
+  an hour survives the 20 bps round trip) were tested and rejected with
+  numbers — a faster rule is a fee schedule until data says otherwise.
+  Backtests: reference §3.3a–§3.6, run with the loop's own fills, stops
+  and cooldown; the backtester writes `docs/agents/backtests/summary.json`
+  itself, and `frequency.json` there is §3.6's raw output.
 - The tick claims a bar by inserting its decision (unique index on
   strategy, symbol, bar_start; a protective decision claims the forming
   bar, a dislocation decision the minute); a live order is written as
@@ -222,7 +231,7 @@ the function's pure helpers from `index.test.ts` would bind a port.
 - `npm run build` — Vite production bundle, output to repo root.
 - `npm run verify:browser` — the whole-app browser sweep in
   `test/browser/app-sweep.mjs`: serves the COMMITTED bundle over http and
-  drives it in real Chromium at both breakpoints (154 checks). A hard CI
+  drives it in real Chromium at both breakpoints (184 checks). A hard CI
   gate since 2026-09-17. Its clock is pinned, so it gives the same answer
   at any hour — do not replace `CLOCK` with a live `Date`. Needs
   `npx playwright install chromium` once per machine; a container that

@@ -1,0 +1,305 @@
+{
+ "study": "Is there a rule faster than an hour worth paper on Revolut X? (2026-09-21)",
+ "method": {
+  "data": "one year of Coinbase 15-minute candles per symbol (34,993 bars, 2025-09-21 to 2026-09-20), the Kraken proxy; the 60-minute rows are the same bars aggregated",
+  "fills": "the loop's own: every order takes the touch \u2014 half the measured Revolut X spread plus the 9 bps taker fee, each way; entries at the next bar's open",
+  "stops": "8 % floor under cost and a 3xATR(14) trail from the high since entry, read against each bar's low; two-bar re-entry cooldown after any exit",
+  "rules": {
+   "trend": "fast SMA over slow SMA and a close above the prior N-bar high to enter; exit on the cross back or a close under the 20-bar low. Grid: fast 10/20/30, slow 50/100/200, breakout 20/55",
+   "pullback": "RSI(2) below an entry level with the close above a slow SMA to enter; exit when RSI(2) crosses an exit level, after a maximum hold, or on a close under the SMA. Grid: SMA 100/200, entry 5/10/20, exit 60/70/80, max hold 8/16 bars"
+  },
+  "walkForward": "parameters chosen on the first eight months by return over drawdown; the last four months reported out of sample; buyHoldOOS is the same window held from its first open, one round trip of costs",
+  "script": "scratch, not shipped: m15/freq_study.py (the same harness as the reference's \u00a73.5 studies)"
+ },
+ "verdict": "Nothing survives. At 15 minutes the trend rule's OWN BEST in-sample parameters lose on every coin, in sample and out; the pullback rule loses 60-90 % because 600 round trips at ~20 bps each is the account. At 60 minutes every in-sample fit loses too, so the positive out-of-sample rows (18-27 trades) are selection noise, not an edge \u2014 and buy-and-hold beat two of the three. The constraint is the round-trip cost, not the model's speed.",
+ "results": {
+  "BTC-USD": {
+   "15m": {
+    "bars": 34993,
+    "trend": {
+     "chosen": [
+      30,
+      100,
+      55
+     ],
+     "inSample": {
+      "ret": -0.1368,
+      "maxDD": 0.187,
+      "trades": 144,
+      "win": 33,
+      "exposure": 0.11
+     },
+     "outOfSample": {
+      "ret": -0.2117,
+      "maxDD": 0.232,
+      "trades": 95,
+      "win": 21,
+      "exposure": 0.12
+     }
+    },
+    "pullback": {
+     "chosen": [
+      100,
+      10,
+      80,
+      16
+     ],
+     "inSample": {
+      "ret": -0.8545,
+      "maxDD": 0.855,
+      "trades": 1105,
+      "win": 26,
+      "exposure": 0.12
+     },
+     "outOfSample": {
+      "ret": -0.6276,
+      "maxDD": 0.628,
+      "trades": 589,
+      "win": 21,
+      "exposure": 0.13
+     }
+    },
+    "buyHoldOOS": 0.0549
+   },
+   "60m": {
+    "bars": 8751,
+    "trend": {
+     "chosen": [
+      20,
+      200,
+      20
+     ],
+     "inSample": {
+      "ret": -0.1229,
+      "maxDD": 0.173,
+      "trades": 51,
+      "win": 29,
+      "exposure": 0.12
+     },
+     "outOfSample": {
+      "ret": 0.1063,
+      "maxDD": 0.06,
+      "trades": 24,
+      "win": 42,
+      "exposure": 0.17
+     }
+    },
+    "pullback": {
+     "chosen": [
+      200,
+      5,
+      80,
+      8
+     ],
+     "inSample": {
+      "ret": -0.396,
+      "maxDD": 0.408,
+      "trades": 255,
+      "win": 45,
+      "exposure": 0.1
+     },
+     "outOfSample": {
+      "ret": -0.2036,
+      "maxDD": 0.22,
+      "trades": 128,
+      "win": 37,
+      "exposure": 0.11
+     }
+    },
+    "buyHoldOOS": 0.0549
+   }
+  },
+  "ETH-USD": {
+   "15m": {
+    "bars": 34993,
+    "trend": {
+     "chosen": [
+      10,
+      100,
+      55
+     ],
+     "inSample": {
+      "ret": -0.2327,
+      "maxDD": 0.292,
+      "trades": 167,
+      "win": 33,
+      "exposure": 0.11
+     },
+     "outOfSample": {
+      "ret": -0.0416,
+      "maxDD": 0.2,
+      "trades": 97,
+      "win": 30,
+      "exposure": 0.12
+     }
+    },
+    "pullback": {
+     "chosen": [
+      100,
+      5,
+      80,
+      8
+     ],
+     "inSample": {
+      "ret": -0.8824,
+      "maxDD": 0.883,
+      "trades": 1036,
+      "win": 31,
+      "exposure": 0.11
+     },
+     "outOfSample": {
+      "ret": -0.6402,
+      "maxDD": 0.643,
+      "trades": 613,
+      "win": 30,
+      "exposure": 0.12
+     }
+    },
+    "buyHoldOOS": 0.2601
+   },
+   "60m": {
+    "bars": 8751,
+    "trend": {
+     "chosen": [
+      10,
+      100,
+      20
+     ],
+     "inSample": {
+      "ret": -0.1231,
+      "maxDD": 0.181,
+      "trades": 54,
+      "win": 33,
+      "exposure": 0.12
+     },
+     "outOfSample": {
+      "ret": 0.2064,
+      "maxDD": 0.096,
+      "trades": 27,
+      "win": 52,
+      "exposure": 0.18
+     }
+    },
+    "pullback": {
+     "chosen": [
+      100,
+      10,
+      80,
+      8
+     ],
+     "inSample": {
+      "ret": -0.5167,
+      "maxDD": 0.537,
+      "trades": 265,
+      "win": 47,
+      "exposure": 0.11
+     },
+     "outOfSample": {
+      "ret": -0.2534,
+      "maxDD": 0.262,
+      "trades": 153,
+      "win": 48,
+      "exposure": 0.12
+     }
+    },
+    "buyHoldOOS": 0.2601
+   }
+  },
+  "SOL-USD": {
+   "15m": {
+    "bars": 34993,
+    "trend": {
+     "chosen": [
+      20,
+      50,
+      55
+     ],
+     "inSample": {
+      "ret": -0.3691,
+      "maxDD": 0.43,
+      "trades": 189,
+      "win": 28,
+      "exposure": 0.13
+     },
+     "outOfSample": {
+      "ret": -0.1525,
+      "maxDD": 0.266,
+      "trades": 107,
+      "win": 29,
+      "exposure": 0.13
+     }
+    },
+    "pullback": {
+     "chosen": [
+      200,
+      10,
+      70,
+      16
+     ],
+     "inSample": {
+      "ret": -0.9011,
+      "maxDD": 0.902,
+      "trades": 1075,
+      "win": 32,
+      "exposure": 0.11
+     },
+     "outOfSample": {
+      "ret": -0.6732,
+      "maxDD": 0.675,
+      "trades": 601,
+      "win": 30,
+      "exposure": 0.12
+     }
+    },
+    "buyHoldOOS": 0.2845
+   },
+   "60m": {
+    "bars": 8751,
+    "trend": {
+     "chosen": [
+      30,
+      200,
+      55
+     ],
+     "inSample": {
+      "ret": -0.1752,
+      "maxDD": 0.24,
+      "trades": 28,
+      "win": 29,
+      "exposure": 0.06
+     },
+     "outOfSample": {
+      "ret": 0.2148,
+      "maxDD": 0.122,
+      "trades": 18,
+      "win": 33,
+      "exposure": 0.12
+     }
+    },
+    "pullback": {
+     "chosen": [
+      200,
+      10,
+      70,
+      16
+     ],
+     "inSample": {
+      "ret": -0.3275,
+      "maxDD": 0.392,
+      "trades": 255,
+      "win": 53,
+      "exposure": 0.09
+     },
+     "outOfSample": {
+      "ret": -0.1627,
+      "maxDD": 0.195,
+      "trades": 154,
+      "win": 47,
+      "exposure": 0.1
+     }
+    },
+    "buyHoldOOS": 0.2845
+   }
+  }
+ }
+}

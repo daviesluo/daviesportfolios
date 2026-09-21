@@ -64,7 +64,7 @@ import { b64ToBytes } from "../_shared/bytes.ts";
 import { positionFromFills, unrealisedUsd, type Position } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { makeDb, type Db } from "./db.ts";
-import { decisionBarMs, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
+import { dayPnl, decisionBarMs, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 
@@ -227,6 +227,12 @@ async function dashboard(now: number) {
     d.select<ObservationRow>("agent_observations", "select=strategy_id,symbol,ts,bar_start,state,numbers&order=ts.desc&limit=400"),
     loadVenues(),
   ]);
+  // Today's opening price per symbol, from the cached daily candles (the signal venue's), for the day's change.
+  const dayStartMs = Math.floor(now / ONE_D) * ONE_D;
+  const dayOpen: Record<string, number> = {};
+  for (const c of await d.select<{ symbol: string; open: number; start: string }>("agent_candles", `interval_min=eq.1440&start=gte.${new Date(dayStartMs - ONE_D).toISOString()}&select=symbol,open,start&order=start.desc`)) {
+    if (dayOpen[c.symbol] == null && Date.parse(c.start) === dayStartMs) dayOpen[c.symbol] = Number(c.open);
+  }
   // The latest observation per strategy × symbol: what the rule sees on the forming bar, right now.
   const latestObs = new Map<string, ObservationRow>();
   for (const o of observations) { const k = `${o.strategy_id}|${o.symbol}`; if (!latestObs.has(k)) latestObs.set(k, o); }
@@ -253,7 +259,7 @@ async function dashboard(now: number) {
   // Positions per strategy × symbol, from fills — the one implementation.
   const byKey = new Map<string, OrderRow[]>();
   for (const o of filled) { const k = `${o.strategy_id}|${o.symbol}`; if (!byKey.has(k)) byKey.set(k, []); byKey.get(k)!.push(o); }
-  const totals = { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0 };
+  const totals = { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0 };
   const byMode: Record<string, typeof totals> = { paper: { ...totals }, live: { ...totals } };
   const out = strategies.map((s) => {
     const positions = s.symbols.map((sym) => {
@@ -269,7 +275,10 @@ async function dashboard(now: number) {
       };
     });
     const sum = (k: "costUsd" | "valueUsd" | "unrealisedUsd" | "realisedUsd" | "feesUsd") => positions.reduce((a, p) => a + p[k], 0);
-    const agg = { costUsd: sum("costUsd"), valueUsd: sum("valueUsd"), unrealisedUsd: sum("unrealisedUsd"), realisedUsd: sum("realisedUsd"), feesUsd: sum("feesUsd") };
+    // Today: realised since 00:00 UTC plus the change in unrealised from the day's open — the tick's own `dayPnl`, per strategy.
+    const mine0 = filled.filter((o) => o.strategy_id === s.id);
+    const todayUsd = dayPnl(mine0, marks[s.venue] ?? {}, dayOpen, dayStartMs);
+    const agg = { costUsd: sum("costUsd"), valueUsd: sum("valueUsd"), unrealisedUsd: sum("unrealisedUsd"), realisedUsd: sum("realisedUsd"), feesUsd: sum("feesUsd"), todayUsd };
     for (const k of Object.keys(agg) as (keyof typeof agg)[]) {
       totals[k] += agg[k];
       const m = s.mode === "live" ? "live" : "paper";
@@ -293,10 +302,10 @@ async function dashboard(now: number) {
   });
 
   // The book by venue: what each account holds and has made, live and paper apart.
-  const byVenue: Record<string, { costUsd: number; valueUsd: number; unrealisedUsd: number; realisedUsd: number; feesUsd: number; capitalUsd: number; strategies: number; live: number }> = {};
+  const byVenue: Record<string, { costUsd: number; valueUsd: number; unrealisedUsd: number; realisedUsd: number; feesUsd: number; todayUsd: number; capitalUsd: number; strategies: number; live: number }> = {};
   for (const s of out) {
-    const v = (byVenue[s.venue] ??= { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, capitalUsd: 0, strategies: 0, live: 0 });
-    v.costUsd += s.costUsd; v.valueUsd += s.valueUsd; v.unrealisedUsd += s.unrealisedUsd; v.realisedUsd += s.realisedUsd; v.feesUsd += s.feesUsd;
+    const v = (byVenue[s.venue] ??= { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0, capitalUsd: 0, strategies: 0, live: 0 });
+    v.costUsd += s.costUsd; v.valueUsd += s.valueUsd; v.unrealisedUsd += s.unrealisedUsd; v.realisedUsd += s.realisedUsd; v.feesUsd += s.feesUsd; v.todayUsd += s.todayUsd;
     v.capitalUsd += s.capitalUsd; v.strategies += 1; if (s.mode === "live") v.live += 1;
   }
   // The cross-venue basis over the last 24 h, per symbol: the arbitrage question, kept answered.
@@ -314,6 +323,7 @@ async function dashboard(now: number) {
 
   return {
     at: new Date(now).toISOString(),
+    dayStart: new Date(dayStartMs).toISOString(),
     risk: riskRows[0] ?? null,
     totals: { ...totals, byMode },
     byVenue,
