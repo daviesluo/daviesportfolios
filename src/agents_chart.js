@@ -11,7 +11,6 @@
 // the x axis is a real time scale rather than an index: crypto trades every
 // minute of the week, so there are no session gaps to close up.
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /** Room for the y labels on the left and the x labels underneath. */
 export const CHART_PAD = { padL: 54, padR: 14, padT: 14, padB: 26 };
@@ -59,21 +58,41 @@ export function fmtChartPrice(v, span) {
 }
 
 /** "14:03" on a minute chart, "18 Sep 14:00" on an hourly one, "18 Sep" on a 4-hour one. @param {number} ms @param {number} intervalMin */
-export function fmtChartTime(ms, intervalMin) {
+/**
+ * Every time this page prints is UK LOCAL time, the clock in the site's own
+ * header — the loop thinks in UTC and the database stores UTC, but a person
+ * reading "when did it buy" reads it against the clock they are looking at,
+ * and two clocks on one screen is the bug. `Intl` resolves BST and GMT, so
+ * this needs no DST table of its own. The month comes from the numeric part
+ * and this file's own table: `en-GB` abbreviates September as "Sept", and
+ * every other date on the site says "Sep".
+ * @param {number | string} ms
+ * @returns {{ day: string, hh: string, mm: string } | null}
+ */
+export function londonParts(ms) {
   const d = new Date(ms);
-  if (isNaN(d.getTime())) return '—';
-  const hh = String(d.getUTCHours()).padStart(2, '0'), mm = String(d.getUTCMinutes()).padStart(2, '0');
-  const day = `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
-  if (intervalMin <= 1) return `${hh}:${mm}`;
-  if (intervalMin < 240) return `${day} ${hh}:${mm}`;
-  return day;
+  if (isNaN(d.getTime())) return null;
+  const parts = LONDON_FMT.formatToParts(d);
+  const at = (/** @type {string} */ type) => parts.find((x) => x.type === type)?.value ?? '';
+  return { day: `${Number(at('day'))} ${MONTHS[Number(at('month')) - 1] ?? ''}`, hh: at('hour'), mm: at('minute') };
+}
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const LONDON_FMT = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Europe/London', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+});
+
+export function fmtChartTime(ms, intervalMin) {
+  const t = londonParts(ms);
+  if (!t) return '—';
+  if (intervalMin <= 1) return `${t.hh}:${t.mm}`;
+  if (intervalMin < 240) return `${t.day} ${t.hh}:${t.mm}`;
+  return t.day;
 }
 
-/** The full stamp a tooltip or a fill row carries: "18 Sep 14:03". @param {number | string} ms */
+/** The full stamp a tooltip or an order row carries: "18 Sep 15:03", UK local. @param {number | string} ms */
 export function fmtChartStamp(ms) {
-  const d = new Date(ms);
-  if (isNaN(d.getTime())) return '—';
-  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+  const t = londonParts(ms);
+  return t ? `${t.day} ${t.hh}:${t.mm}` : '—';
 }
 
 /** How the window reads in words, for the chart's subtitle. @param {number} intervalMin @param {number} spanMs */

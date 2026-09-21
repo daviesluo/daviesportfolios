@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-  decisionView, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fillRows, fillsSummary, fmtBps, fmtFees,
+  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, lastChangeText, symbolOrderRows,
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, balanceLines, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
@@ -52,17 +52,7 @@ describe('strategyRows / totalsView', () => {
   });
 });
 
-describe('decisionView / orderView', () => {
-  it('reads the words the model saw and its vote out of a decision row', () => {
-    const v = decisionView({
-      id: 9, ts: '2026-09-20T08:05:00Z', symbol: 'ETH/USD',
-      state: { trend_4h: 'up', breakout_4h: 'above_range', volatility: 'normal', momentum_30d: 'positive', position: 'flat' },
-      answers: { healthy_trend: { type: 'noul', probability: 0.87 }, caution: { type: 'score', score: 0.12 }, _state: { type: 'choice', choice: 'ETH/USD' } },
-      rule_action: 'enter', final_action: 'enter', provider: 'openrouter', risk_allowed: true, final_reason: 'trend up; model agrees', risk_reason: 'within limits', cost_usd: 0.0000184, latency_ms: 470,
-    });
-    expect(v).toMatchObject({ symbol: 'ETH/USD', stateText: 'trend up · above_range · vol normal · mom positive · flat', ruleAction: 'enter', finalAction: 'enter', healthy: 0.87, caution: 0.12, provider: 'openrouter', allowed: true, latencyMs: 470 });
-    expect(decisionView({ answers: {}, state: {} }).healthy).toBeNull();
-  });
+describe('orderView', () => {
   it('an order row: notional from the fill when there is one, else from the resting price', () => {
     expect(orderView({ id: 1, ts: 't', symbol: 'BTC/USD', side: 'buy', mode: 'paper', state: 'filled', price: 80000, base_size: 0.00025, filled_base: 0.00025, avg_fill_price: 79990, fee_usd: 0.08 }))
       .toMatchObject({ fillPrice: 79990, notionalUsd: 19.9975, feeUsd: 0.08, base: 0.00025 });
@@ -292,7 +282,8 @@ describe('chart geometry', () => {
     expect(g.yTicks.map((t) => t.v)).toEqual([100, 110, 120]);
     expect(g.yTicks.map((t) => t.label)).toEqual(['100.0', '110.0', '120.0']);   // one decimal is all a 30-wide range needs
     expect(g.yTicks[1].y).toBeCloseTo(95, 6);
-    expect(g.xTicks.map((t) => t.label)).toEqual(['20 Sep 08:00', '20 Sep 10:00', '20 Sep 12:00']);
+    // UK local: the fixture's bars start at 08:00 UTC, which is 09:00 BST.
+    expect(g.xTicks.map((t) => t.label)).toEqual(['20 Sep 09:00', '20 Sep 11:00', '20 Sep 13:00']);
     // A wider plot earns more ticks, never more than five.
     const wide = chartGeometry({ candles: CHART.candles, intervalMin: 60, width: 1200, height: 230, nowMs: T0 + 5 * H });
     expect(wide.xTicks.length).toBeLessThanOrEqual(5);
@@ -356,10 +347,15 @@ describe('chart geometry', () => {
     expect(fmtChartPrice(110.25, 12)).toBe('110.25');
     expect(fmtChartPrice(0.5123, 0.05)).toBe('0.5123');
     expect(fmtChartPrice(null, 1)).toBe('—');
-    expect(fmtChartTime(Date.parse('2026-09-20T08:05:00Z'), 1)).toBe('08:05');
-    expect(fmtChartTime(Date.parse('2026-09-20T08:05:00Z'), 60)).toBe('20 Sep 08:05');
+    // UK LOCAL time, the clock the site's own header shows: 08:05 UTC in September is 09:05 BST.
+    expect(fmtChartTime(Date.parse('2026-09-20T08:05:00Z'), 1)).toBe('09:05');
+    expect(fmtChartTime(Date.parse('2026-09-20T08:05:00Z'), 60)).toBe('20 Sep 09:05');
     expect(fmtChartTime(Date.parse('2026-09-20T08:05:00Z'), 240)).toBe('20 Sep');
-    expect(fmtChartStamp('2026-09-20T08:05:00Z')).toBe('20 Sep 08:05');
+    expect(fmtChartStamp('2026-09-20T08:05:00Z')).toBe('20 Sep 09:05');
+    // …and GMT in the winter, from the same code and no DST table of our own.
+    expect(fmtChartStamp('2026-01-20T08:05:00Z')).toBe('20 Jan 08:05');
+    // A bar that starts at 23:30 UTC in BST is already tomorrow in London.
+    expect(fmtChartStamp('2026-09-20T23:30:00Z')).toBe('21 Sep 00:30');
     expect(fmtChartStamp('nonsense')).toBe('—');
     expect(windowText(1, 12 * H)).toBe('1-minute candles · last 12 h');
     expect(windowText(60, 7 * 24 * H)).toBe('1-hour candles · last 7 d');
@@ -367,17 +363,34 @@ describe('chart geometry', () => {
   });
 });
 
-describe('fillRows / fillsSummary / fetchAgentsChart', () => {
-  it('lists the fills newest first, with the notional and whether they paid the taker fee', () => {
-    const rows = fillRows(CHART);
-    expect(rows.map((r) => r.id)).toEqual([2, 1]);
-    expect(rows[0]).toMatchObject({ side: 'sell', price: 120, base: 0.1, notionalUsd: 12, feeUsd: 0.05, venue: 'kraken', liquidity: 'taker' });
-    expect(rows[1]).toMatchObject({ side: 'buy', notionalUsd: 27.5, liquidity: 'maker', decisionId: 7 });
-    expect(fillRows(null)).toEqual([]);
+describe('lastChangeText', () => {
+  it('one phrasing down the column: seconds under a minute, minutes under an hour, then hours', () => {
+    expect(lastChangeText(0)).toBe('Last change: 0 secs ago');
+    expect(lastChangeText(40_000)).toBe('Last change: 40 secs ago');
+    expect(lastChangeText(60_000)).toBe('Last change: 1 min ago');
+    expect(lastChangeText(9 * 60_000)).toBe('Last change: 9 mins ago');
+    expect(lastChangeText(125 * 60_000)).toBe('Last change: 2h 05m ago');
+    expect(lastChangeText(null)).toBe('No reading yet');
   });
-  it('sums what the chart shows: how many fills, what they cost, what is still resting', () => {
-    expect(fillsSummary(CHART)).toEqual({ count: 2, buys: 1, sells: 1, feesUsd: 0.16, realisedUsd: 1, base: 0.15, avgCost: 110, openOrders: 1, decisions: 1 });
-    expect(fillsSummary(null)).toMatchObject({ count: 0, buys: 0, sells: 0, feesUsd: 0, realisedUsd: 0, openOrders: 0, decisions: 0 });
+});
+
+describe('symbolOrderRows / fetchAgentsChart', () => {
+  it('every order on the pair, newest first, priced by its fill where there is one', () => {
+    const rows = symbolOrderRows(CHART, null, 'BTC/USD');
+    expect(rows.map((r) => r.id)).toEqual([3, 1]);                      // newest first: the resting bid, then the fill
+    expect(rows[0]).toMatchObject({ side: 'buy', state: 'new', price: 108, base: 0.2, costUsd: 21.6, fillPrice: null, feeUsd: 0, liquidity: 'maker' });
+    expect(rows[1]).toMatchObject({ side: 'buy', state: 'filled', fillPrice: 110, costUsd: 27.5, feeUsd: 0.11 });
+    expect(symbolOrderRows(null, null, null)).toEqual([]);
+  });
+  it('the full history widens the same table and never duplicates a row', () => {
+    const more = { orders: [
+      { id: 1, ts: CHART.orders[0].ts, symbol: 'BTC/USD', side: 'buy', mode: 'paper', state: 'filled', price: 110, base_size: 0.25, filled_base: 0.25, avg_fill_price: 110, fee_usd: 0.11 },
+      { id: 42, ts: '2026-09-01T00:00:00Z', symbol: 'BTC/USD', side: 'sell', mode: 'paper', state: 'filled', price: 99, base_size: 0.1, filled_base: 0.1, avg_fill_price: 99, fee_usd: 0.04, request: { marketable: true } },
+      { id: 43, ts: '2026-09-01T00:00:00Z', symbol: 'ETH/USD', side: 'buy', mode: 'paper', state: 'filled', price: 2, base_size: 1, filled_base: 1, avg_fill_price: 2, fee_usd: 0 },
+    ] };
+    const rows = symbolOrderRows(CHART, more, 'BTC/USD');
+    expect(rows.map((r) => r.id)).toEqual([3, 1, 42]);                  // the other pair's row is not this table's
+    expect(rows[2]).toMatchObject({ side: 'sell', costUsd: 9.9, feeUsd: 0.04, liquidity: 'taker' });
   });
   it('asks the Edge Function for one strategy × symbol, with the app token', async () => {
     sessionStorage.setItem('dp.token', 'tok.sig');

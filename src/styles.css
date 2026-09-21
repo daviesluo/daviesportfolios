@@ -1807,6 +1807,14 @@ body {
 .ag-warn { color: var(--loss); font-weight: 700; }
 .ag-table { font-size: 12px; }
 .ag-table td { padding: 7px 10px; white-space: nowrap; }
+/* Centred, header and body alike: these tables are read by scanning DOWN a
+   column, and a column that is left in one row and right in the next has no
+   axis to scan. Overrides the generic hl-left / hl-right the cells carry. */
+.ag-table th, .ag-table td,
+.ag-table th.hl-left, .ag-table td.hl-left,
+.ag-table th.hl-right, .ag-table td.hl-right { text-align: center; }
+.ag-table .ag-side, .ag-table .ag-venue, .ag-table .ag-state-pill { justify-content: center; }
+.ag-strategies .ag-name-wrap { justify-content: center; }
 .ag-table td:first-child, .ag-table th:first-child { position: static; box-shadow: none; background: none; }
 .ag-row { cursor: pointer; }
 .ag-row:focus-visible { outline: 1px solid var(--chalk-mute); outline-offset: -1px; }
@@ -1874,16 +1882,14 @@ body {
 .ag-section { margin-top: 18px; }
 .ag-section-title { font-size: 10px; letter-spacing: 0.2em; color: var(--chalk-dim); margin-bottom: 8px; }
 .ag-section-title .dim { letter-spacing: 0; text-transform: none; }
-.ag-detail-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ag-detail-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
 .ag-back { padding: 4px 10px; font-size: 12px; }
 .ag-detail-title { margin: 12px 0 6px; font-size: 18px; font-weight: 600; }
-.ag-kv { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--chalk); margin-bottom: 8px; }
 .ag-desc { font-size: 12px; line-height: 1.5; color: var(--chalk-dim); margin: 0 0 12px; }
 .ag-note { font-size: 11px; line-height: 1.5; margin: 8px 0 0; }
 .ag-more { margin-top: 10px; font-size: 12px; }
 .ag-error { color: var(--loss); font-size: 12px; padding: 10px 12px; border: 1px solid var(--loss-dim); border-radius: 4px; margin-bottom: 12px; }
 .ag-empty { padding: 24px; text-align: center; }
-.ag-kv-kind { color: var(--chalk); font-weight: 600; }
 .ag-strategies { margin-top: 0; }
 
 /* ── What the rule sees ──────────────────────────────────────────────
@@ -1954,8 +1960,6 @@ body {
 
 /* The fills the chart marks, as rows. The side wears the same triangle. */
 .ag-fills { margin-top: 12px; }
-.ag-fills-sum { display: flex; flex-wrap: wrap; gap: 3px 16px; font-size: 11px; margin-top: 8px; }
-.ag-fills-sum .hl-strong { color: var(--chalk); }
 .ag-side { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
 .ag-side-mark { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; flex: none; }
 .ag-side-buy { color: var(--gain); }
@@ -2017,7 +2021,6 @@ body {
 .ag-basis-word { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #d9c37a; }
 .ag-venue-meta { display: block; margin-top: 3px; }
 .ag-venue-head { display: block; min-height: 40px; }
-.ag-kv > span + span::before { content: "·"; color: var(--chalk-dim); opacity: 0.6; margin: 0 6px 0 0; }
 @media (max-width: 760px) {
   .ag-table .ag-col-wide { display: none; }
   .ag-alert { flex-wrap: wrap; }
@@ -2030,21 +2033,16 @@ body {
 .ag-strategies .ag-table th, .ag-strategies .ag-table td { padding-left: 8px; padding-right: 8px; }
 .ag-countdown { margin-left: auto; font-size: 12px; display: inline-flex; gap: 6px; align-items: baseline; }
 .ag-countdown-val { font-weight: 700; color: var(--chalk); font-variant-numeric: tabular-nums; min-width: 8ch; }
-.ag-postiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin: 10px 0 4px; }
-.ag-postile { border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: 8px; padding: 10px 12px; background: rgba(255,255,255,0.02); }
-.ag-postile.is-up { border-left-color: var(--gain); }
-.ag-postile.is-down { border-left-color: var(--loss); }
-.ag-postile-head { display: flex; justify-content: space-between; align-items: baseline; }
-.ag-postile-sym { font-weight: 700; color: var(--chalk); font-size: 13px; }
-.ag-postile-ret { font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; }
-.ag-postile-size { font-size: 18px; font-weight: 700; color: var(--chalk); margin: 4px 0 6px; font-variant-numeric: tabular-nums; }
-.ag-postile-grid { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; row-gap: 2px; font-size: 11px; }
-.ag-postile-grid > :nth-child(even) { text-align: right; font-variant-numeric: tabular-nums; }
-.ag-postile-held { margin-top: 6px; font-size: 10px; letter-spacing: 0.04em; }
+/* The agents' positions ARE the tactics board's player cards: same grid, same
+   card, same rows, so one layout means "here is a position" everywhere on the
+   site. Only the selected state is ours — clicking a card aims the chart. */
+.ag-poscards { margin: 10px 0 14px; }
+.ag-poscard.is-on { border-color: var(--chalk-mute); background: var(--panel-hi); }
+.ag-poscard .pc-row span:last-child { font-variant-numeric: tabular-nums; }
 .ag-funded { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
 @media (max-width: 760px) {
   .ag-countdown { margin-left: 0; width: 100%; }
-  .ag-postiles { grid-template-columns: 1fr; }
+  .ag-poscards { grid-template-columns: 1fr; }
 }
 /* the strategy table must fit the modal without a scrollbar: tighter type, the signal on its own line, names that wrap */
 .ag-strategies .ag-table { font-size: 11px; }
@@ -2085,7 +2083,7 @@ body {
   .ag-live-row { flex-wrap: wrap; }
   .ag-body { padding-left: 12px; padding-right: 12px; }
 }
-.ag-sb-under { font-size: 10px; letter-spacing: 0.04em; margin: -8px 2px 14px; }
+.ag-sb-aside { font-weight: 500; opacity: 0.75; letter-spacing: 0; text-transform: none; }
 .ag-scoreboard { justify-content: space-between; }
 .ag-sb-cell { flex: 1 1 0; }
 .ag-sb-cell-main { flex: 0 0 auto; min-width: 100px; }
@@ -2110,5 +2108,5 @@ body {
 }
 
 @media (max-width: 760px) {
-  .ag-sb-under { margin-top: -6px; }
+  .ag-sb-aside { display: block; }
 }

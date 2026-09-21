@@ -349,34 +349,6 @@ export function totalsView(dash) {
   };
 }
 
-/**
- * A decision row as the detail table shows it: the words the model saw,
- * what the rule said, what was done, and the model's vote.
- * @param {any} d
- */
-export function decisionView(d) {
-  const st = d?.state ?? {};
-  const a = d?.answers ?? {};
-  const healthy = a.healthy_trend?.type === 'noul' ? a.healthy_trend.probability : null;
-  const caution = a.caution?.type === 'score' ? a.caution.score : null;
-  return {
-    id: d.id,
-    ts: d.ts,
-    symbol: d.symbol,
-    stateText: [st.trend_4h && `trend ${st.trend_4h}`, st.breakout_4h, st.volatility && `vol ${st.volatility}`, st.momentum_30d && `mom ${st.momentum_30d}`, st.position]
-      .filter(Boolean).join(' · '),
-    ruleAction: d.rule_action,
-    finalAction: d.final_action,
-    healthy,
-    caution,
-    provider: d.provider,
-    allowed: !!d.risk_allowed,
-    reason: d.final_reason,
-    riskReason: d.risk_reason,
-    costUsd: Number(d.cost_usd ?? 0),
-    latencyMs: d.latency_ms ?? null,
-  };
-}
 
 /** @param {any} o */
 export function orderView(o) {
@@ -511,6 +483,22 @@ export function observationAgeText(ms) {
 }
 
 /**
+ * The age of a reading as the LIVE STATE row prints it, one phrasing for
+ * every row: "Last change: 3 mins ago". The dot's tooltip keeps the longer
+ * wording; this is the one the eye scans down a column.
+ * @param {number | null | undefined} ms
+ */
+export function lastChangeText(ms) {
+  if (ms == null || isNaN(ms) || ms < 0) return 'No reading yet';
+  const sec = Math.round(ms / 1000);
+  if (sec < 60) return `Last change: ${sec} secs ago`;
+  const min = Math.round(sec / 60);
+  if (min < 60) return `Last change: ${min} min${min === 1 ? '' : 's'} ago`;
+  const h = Math.floor(min / 60);
+  return `Last change: ${h}h ${String(min % 60).padStart(2, '0')}m ago`;
+}
+
+/**
  * One observation as the detail renders it: the state words as pills, how old
  * the reading is, and the numbers behind it.
  * @param {{ ts: string, barStart?: string, state?: Record<string, unknown>, numbers?: Record<string, unknown> } | null | undefined} obs
@@ -552,33 +540,42 @@ export function defaultChartSymbol(s) {
 }
 
 /**
- * The fills under the chart, newest first — the same events the chart marks,
- * read as a table.
- * @param {any} chart
+ * The orders under the chart, newest first — every order on THIS pair, which
+ * is the one table that answers "what did it actually do and what did it
+ * cost". It replaced a fills table and a decisions table that said the same
+ * things twice over (2026-09-21). `more` is the full history the button
+ * fetches: raw rows from `?action=log`, merged in and de-duplicated by id, so
+ * loading it widens this table rather than opening another one.
+ * @param {any} chart @param {{ orders?: any[] } | null} more @param {string | null} symbol
  */
-export function fillRows(chart) {
-  return (chart?.fills ?? [])
-    .map((f) => ({
-      id: f.id, ts: f.ts, side: f.side, price: Number(f.price), base: Number(f.base),
-      notionalUsd: Number(f.price) * Number(f.base), feeUsd: Number(f.feeUsd ?? 0),
-      venue: f.venue, mode: f.mode, liquidity: f.marketable ? 'taker' : 'maker', decisionId: f.decisionId ?? null,
-    }))
-    .sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts));
-}
-
-/** The line under the fills table: how many, what they cost, what they made. @param {any} chart */
-export function fillsSummary(chart) {
-  const fills = chart?.fills ?? [];
-  const buys = fills.filter((f) => f.side === 'buy').length;
-  const pos = chart?.position ?? null;
-  return {
-    count: fills.length, buys, sells: fills.length - buys,
-    feesUsd: fills.reduce((a, f) => a + Number(f.feeUsd ?? 0), 0),
-    realisedUsd: Number(pos?.realisedUsd ?? 0),
-    base: Number(pos?.base ?? 0), avgCost: Number(pos?.avgCost ?? 0),
-    openOrders: (chart?.orders ?? []).filter((o) => o.state === 'new' || o.state === 'pending' || o.state === 'partially_filled').length,
-    decisions: (chart?.decisions ?? []).length,
-  };
+export function symbolOrderRows(chart, more, symbol) {
+  const byId = new Map();
+  for (const o of chart?.orders ?? []) {
+    byId.set(o.id, {
+      id: o.id, ts: o.ts, side: o.side, state: o.state, price: Number(o.price), base: Number(o.base),
+      fillPrice: null, costUsd: Number(o.price) * Number(o.base), feeUsd: 0,
+      venue: o.venue, mode: o.mode, liquidity: o.marketable ? 'taker' : 'maker', filledAt: o.filledAt ?? null,
+    });
+  }
+  // The fills carry what the order actually paid; the order rows do not.
+  for (const f of chart?.fills ?? []) {
+    const row = byId.get(f.id);
+    if (!row) continue;
+    row.fillPrice = Number(f.price);
+    row.costUsd = Number(f.price) * Number(f.base);
+    row.feeUsd = Number(f.feeUsd ?? 0);
+  }
+  for (const o of more?.orders ?? []) {
+    if (symbol && o.symbol !== symbol) continue;
+    if (byId.has(o.id)) continue;
+    const v = orderView(o);
+    byId.set(o.id, {
+      id: v.id, ts: v.ts, side: v.side, state: v.state, price: v.price, base: v.base,
+      fillPrice: v.fillPrice, costUsd: v.notionalUsd, feeUsd: v.feeUsd,
+      venue: o.venue, mode: v.mode, liquidity: o.request?.marketable ? 'taker' : 'maker', filledAt: v.filledAt,
+    });
+  }
+  return [...byId.values()].sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts));
 }
 
 /**
@@ -713,6 +710,7 @@ export function positionLines(s) {
       avgCost: Number(p.avgCost) || 0,
       mark: Number(p.mark) || 0,
       valueUsd: Number(p.valueUsd) || 0,
+      costUsd: Number(p.costUsd) || 0,
       unrealisedUsd: Number(p.unrealisedUsd) || 0,
       returnPct: Number(p.costUsd) > 0 ? (Number(p.unrealisedUsd) / Number(p.costUsd)) * 100 : null,
       openedAt: p.openedAt != null ? Number(p.openedAt) : null,
