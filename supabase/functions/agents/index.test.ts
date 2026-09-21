@@ -3,7 +3,7 @@
 // window, the Jev statistics and the cron-bearer half of `authorise`.
 // `Deno.serve` sits behind `import.meta.main`, so importing binds nothing.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { authorise, chartWindow, envAny, isNotReady, jevStats, probeSymbols, SYMBOLS } from "./index.ts";
+import { authorise, chartWindow, envAny, isNotReady, jevStats, latestObservationQuery, probeSymbols, SYMBOLS } from "./index.ts";
 
 Deno.test("probeSymbols — every symbol on an active row, sorted and de-duplicated; the three majors when no row can be read", () => {
   assertEquals(probeSymbols([{ symbols: ["BTC/USD", "SOL/USD"] }, { symbols: ["ETH/USD", "BTC/USD", "SUI/USD"] }]), ["BTC/USD", "ETH/USD", "SOL/USD", "SUI/USD"]);
@@ -44,4 +44,16 @@ Deno.test("authorise — the cron bearer is accepted in constant time and only w
   assertEquals(await authorise(new Request("http://x/", { headers: { authorization: "Bearer wrong" } }), "s3cret"), null);
   assertEquals(await authorise(new Request("http://x/"), "s3cret"), null);
   assertEquals(await authorise(new Request("http://x/", { headers: { authorization: "Bearer " } }), ""), null);   // an empty secret matches nothing
+});
+
+Deno.test("latestObservationQuery — one pair, one row, never a window over all of them", () => {
+  const q = latestObservationQuery("trend-4h", "AVAX/USD");
+  assertEquals(q, "strategy_id=eq.trend-4h&symbol=eq.AVAX%2FUSD&select=strategy_id,symbol,ts,bar_start,state,numbers&order=ts.desc&limit=1");
+  // The three properties that matter, stated rather than implied: it filters to the pair, it asks for ONE row,
+  // and the slash in a symbol is encoded so PostgREST reads it as a value and not as a path.
+  assert(q.includes("symbol=eq."));
+  assert(q.endsWith("limit=1"));
+  assert(!q.includes("AVAX/USD"));
+  // A state that has been steady for hours must still be found: the query carries no time bound at all.
+  assert(!q.includes("ts=gte") && !q.includes("limit=400"));
 });

@@ -89,6 +89,24 @@ export async function healAndReload(err, deps = {}) {
  * @param {() => Promise<any>} factory
  * @param {(m: any) => { default: React.ComponentType<any> }} pick
  */
+/**
+ * The last way a poisoned chunk can reach a person: an unhandled rejection.
+ * `lazyPage` catches the import it owns and the warm-up swallows its own,
+ * but a browser holding a poisoned service-worker cache can still surface
+ * one from a promise nothing is awaiting any more — React's own retry of a
+ * lazy element, a preload that loses its handler when the page starts
+ * reloading. Reported as `promise.unhandled` it reads as an application
+ * bug; it is the same cache problem, so it heals the same way and is
+ * reported under the same name as a click on a dead page.
+ * @param {unknown} reason @param {any} [deps]
+ * @returns {Promise<boolean>} true when this was a chunk failure and was handled here
+ */
+export async function healRejection(reason, deps = {}) {
+  if (!isChunkLoadError(reason)) return false;
+  await healAndReload(reason, deps);
+  return true;
+}
+
 export function lazyPage(factory, pick) {
   return React.lazy(() => factory().then(pick).catch(async (err) => {
     if (!isChunkLoadError(err)) throw err;

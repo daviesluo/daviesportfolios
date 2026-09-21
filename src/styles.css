@@ -1814,7 +1814,11 @@ body {
 .ag-table th.hl-left, .ag-table td.hl-left,
 .ag-table th.hl-right, .ag-table td.hl-right { text-align: center; }
 .ag-table .ag-side, .ag-table .ag-venue, .ag-table .ag-state-pill { justify-content: center; }
-.ag-strategies .ag-name-wrap { justify-content: center; }
+/* …except the strategy's own name, which is a label rather than a figure:
+   it reads from the left so the names line up under each other and under
+   the dot beside them. */
+.ag-strategies .ag-table th.ag-col-name, .ag-strategies .ag-table td.ag-col-name { text-align: left; }
+.ag-strategies .ag-name-wrap { justify-content: start; }
 .ag-table td:first-child, .ag-table th:first-child { position: static; box-shadow: none; background: none; }
 .ag-row { cursor: pointer; }
 .ag-row:focus-visible { outline: 1px solid var(--chalk-mute); outline-offset: -1px; }
