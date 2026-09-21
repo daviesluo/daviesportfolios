@@ -1030,7 +1030,7 @@ $100 · five equal $20 slots · parameters unchanged:
 | the shipped seven rows, $400 | −5.3 % (DD 24.5 %) | +36.9 % (DD 12.3 %) |
 | holding BTC/ETH/SOL/XRP equally | −46.7 % | +178.1 % |
 | cash | 0 % | 0 % |
-| deployment | 6.5 % of the year | 24 % |
+| deployment | 6.5 % of the year | 11.3 % |
 | turnover | 19×/y | 27×/y |
 | peak open / p95 / median | $100 / $60 / $0 | $100 / $80 / $20 |
 
@@ -1161,6 +1161,117 @@ it is the right source for the next round.
 Caveats are the report's own, all of them, and the first is that the
 whole study is a search scored on the windows it searched — which is why
 the chance column is the control and why the answer is no.
+
+### 3.13 Execution and trade management — the study that found a stop running twice (2026-09-21)
+
+Davies asked four things: Revolut X's maker side is 0 %, so can every
+order rest and pay nothing; are the two per-minute stops right; is the
+two-bar cooldown right; and is all-in / all-out of a coin's fixed slot
+really best. Run by an independent agent as
+`supabase/functions/agents/backtest_execution.ts` (imports `run`,
+`resample`, `COSTS`, `SHIPPED_STOPS`, `stopsForKind`, `spreadOf`; the one
+copy, `runExec`, adds resting execution, a stop anchor and time stop,
+tranches and per-fill bookkeeping, and is checked against `run` with
+every new branch off — **60 checks, zero difference in return, drawdown,
+trades, exposure and fees**). Output `docs/agents/backtests/execution.json`,
+report `docs/agents/reviews/2026-09-21-execution-study.md`. Re-run here to
+a scratch directory: byte-identical. Two windows, never averaged.
+
+**The finding that matters is not a parameter — it is that the ATR trail
+is implemented twice.** `ruleDecision` exits when the CLOSE falls
+`atrStop × ATR(14)` below the high-water mark
+(`_shared/agents_strategy.ts`), and the protective stop exits when the
+bar's LOW — the live mark, every minute — falls below the same level
+computed from the same anchor with the same multiplier
+(`backtest.ts` `run`, `tick.ts`). Same trail, same parameter, two price
+series, and the intrabar copy always fires first, because any bar that
+closes through the level traded through it first. It takes **48 of 49
+protective exits in window A and 67 of 68 in window B**; the rulebook's
+own trail is very nearly dead code. Nobody designed this — it is what two
+correct implementations of one idea look like when they meet.
+
+Verified here independently of the study's own combiner, calling `run`
+directly on the five live coins with the seeded parameters and Revolut X
+costs (`stopsHit` in brackets):
+
+| coin · window | shipped (8 %, 3× intrabar) | intrabar trail off, 8 % floor |
+|---|---|---|
+| BTC · A | −13.6 % (16) | −10.7 % (0) |
+| BTC · B | +17.0 % (20) | **+12.4 % (1)** |
+| ETH · A | −10.3 % (12) | −8.0 % (0) |
+| ETH · B | +49.4 % (14) | +80.1 % (1) |
+| SOL · A | +13.3 % (7) | +17.6 % (0) |
+| SOL · B | −10.9 % (16) | +3.0 % (3) |
+| AVAX · A | +12.1 % (5) | +34.1 % (0) |
+| AVAX · B | −3.3 % (12) | +6.8 % (1) |
+| SUI · A | −10.5 % (8) | +1.4 % (2) |
+| SUI · B | +3.0 % (5) | **−2.5 % (3)** |
+| equal-weight mean | A **−1.8 % → +6.9 %**, B **+11.1 % → +19.9 %** | |
+
+Better on **8 of 10 coin-windows**, worse on BTC · B and SUI · B. Turning
+the intrabar trail off does NOT remove the trail — `ruleDecision`'s
+close-based one is untouched and takes over — and does not touch the hard
+floor, which is still read against the low every minute
+(`level = max(floor, −∞)`). It stops the rule selling into wicks.
+
+**The study also proposed widening the floor 8 % → 10 %, and that part
+does not hold.** On the same independent run it is better on 2
+coin-windows, worse on 4 and identical on 4; its entire contribution is
+SUI · A (+1.4 % → +33.7 %), one cell of ten. That is a single-coin
+artefact and the floor stays at 8 %.
+
+The other three answers, all negative, which is the useful kind:
+
+- **Maker-only execution does not get you a free account.** Resting
+  everything beats the 9 bps taker on both windows under the loop's own
+  fill model, but decomposed against a synthetic 9 bps maker fee the fee
+  itself is worth only +0.9 / +1.2 points; the rest is a lower entry
+  price dodging the duplicated stop above. Once that stop is corrected
+  the maker edge is **+1.64 in A and −0.19 in B — a one-window win** — and
+  the whole result reverses if a filled bid needs 20 bps of adverse move
+  rather than 0 (break-even between +10 and +20 bps through the bid).
+  The model says the bid fills with a **median delay of zero hours on
+  every coin in both windows**, which is the model's limit and not a
+  measurement: these are Coinbase candles with synthetic bid and ask, and
+  nothing here knows whether a resting order on Revolut X's UK book fills.
+  **Execution stays marketable.** What would settle it is a paper bid
+  resting at the touch beside the live taker order for a quarter,
+  recording fill / no-fill, delay and where the market then went.
+- **The two-bar cooldown stays.** The 0–8 grid spans 1.1 points of return
+  in the bear window; 2 ranks 5th of 7 in A and 4th of 7 in B — a flat
+  plateau, not a spike — 0 and 1 are inert, and 3 arms of 6 pass against
+  1.5 by chance (p = 0.17). Nothing to win here.
+- **All-in / all-out stays.** Scaling out at a profit target loses on both
+  windows in all four forms; scaling in on pullbacks loses on both in all
+  three; pyramiding wins on both but by +0.9 points in the bear window,
+  3 passes of 11 arms against 2.75 by chance (p = 0.54), and becomes a
+  −2.5-point loss once the stop is corrected.
+
+**Multiple comparisons, study-wide: 150 of 262 arms beat the shipped
+configuration on both windows where a coin-flip null gives 65.5** — and
+that table is the wrong number to read, which the report says itself: the
+215-arm stop grid is ONE idea, and all 15 of the interaction arms contain
+it. The two searches whose arms genuinely differ, the cooldown and the
+sizing, are the two that land inside chance. The load-bearing evidence is
+that ten settings chosen on window B and scored on window A all beat the
+shipped pair out of sample, worst of the ten 0.70 against −0.03.
+
+Caveats are the report's own. The sharpest: **neither window contains a
+gap-down crash**, so the case for keeping any intrabar stop rests on the
+absence of evidence rather than on these numbers; no setting in the
+216-point grid produced a drawdown above 13.6 %, which is itself a sign
+the windows are gentle. Resting the protective SELL was the best arm in
+the table and is not recommended on hourly candles, which cannot show a
+fall in which no bid returns. AVAX's and SUI's Revolut X
+`min_order_size_quote` have never been read (§6's probe covered BTC / ETH
+/ SOL), so every claim that a tranche would be a legal order on those two
+is an assumption. And re-quoting at the loop's real cadence cannot be
+modelled at hourly resolution.
+
+**Not changed in code.** The trail correction is a change to what sells
+without asking the model (§4.11), which is Davies' call and not a
+backtest's; it is written here, and in the go-live brief, as the one
+change the evidence asks for.
 
 ## 4. Design consequences (decided by the evidence above)
 
