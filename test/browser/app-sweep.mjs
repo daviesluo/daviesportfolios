@@ -406,6 +406,13 @@ const AGENTS_NOT_READY = {
  * dashboard with a global pause set and a venue reporting a fault).
  */
 let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused'} */ ('ok');
+/** `SWEEP_SHOTS=<dir>` saves a screenshot at the named points, per viewport — how the page is looked at, not only asserted. */
+const SHOTS_DIR = process.env.SWEEP_SHOTS || '';
+async function shot(page, name) {
+  if (!SHOTS_DIR) return;
+  const w = page.viewportSize()?.width ?? 0;
+  await page.screenshot({ path: `${SHOTS_DIR}/${w}-${name}.png`, fullPage: true }).catch(() => {});
+}
 const AGENTS_PAUSED = () => ({
   ...AGENTS_DASHBOARD,
   risk: { ...AGENTS_DASHBOARD.risk, global_pause: true },
@@ -991,8 +998,9 @@ async function run() {
     const agentsBtn = page.locator('.header-menu-item:text-is("Agents")');
     if (await agentsBtn.count()) {
       await agentsBtn.first().click();
-      await page.waitForSelector('.ag-table', { timeout: 10_000 });
-      const head = await page.locator('.ag-total-val').first().textContent().catch(() => '');
+      await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
+      const head = await page.locator('.ag-sb-realised .ag-sb-usd').first().textContent().catch(() => '');
+      await shot(page, 'agents-list');
       if (money(head) === 12.34 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total (${(head || '').trim()})`);
       else fail(S('agents'), `headline read "${head}", wanted +$12.34`);
       const rows = await page.locator('.ag-row').count();
@@ -1007,29 +1015,33 @@ async function run() {
       const watching = await page.locator('.ag-row .ag-status').first().getAttribute('title');
       if (/watching · changed \d+s ago/.test(watching || '')) ok(S('agents'), `the status says what it is doing ("${watching}")`);
       else fail(S('agents'), `status title reads "${watching}"`);
-      const chips = await page.locator('.ag-chip .ag-chip-name').allTextContents();
-      if (chips.includes('Caps') && chips.some((c) => /^Jev/.test(c)) && !chips.includes('Revolut X') && !chips.includes('Kraken')) {
-        ok(S('agents'), 'the strip carries the caps and the model\'s bill, and no longer repeats the venue cards');
-      } else fail(S('agents'), `chips: ${chips.join(', ')}`);
       const howCount = await page.locator('.ag-how').count();
       const titleNotes = await page.locator('.ag-section-title .dim').count();
       if (howCount === 0 && titleNotes === 0) ok(S('agents'), 'no explainer and no annotation beside any section title');
       else fail(S('agents'), `explainer blocks ${howCount}, annotated titles ${titleNotes}`);
-      const nowStyle = await page.locator('.ag-basis-now').first().getAttribute('style').catch(() => null);
-      const nowText = await page.locator('.ag-basis-now').first().textContent().catch(() => '');
-      if (!nowStyle && /^[+-]\d/.test((nowText || '').trim())) ok(S('agents'), `the basis "Now" cell keeps its sign as text and wears no P&L colour ("${(nowText || '').trim()}")`);
-      else fail(S('agents'), `basis now cell: style "${nowStyle}", text "${nowText}"`);
       const nameBtns = await page.locator('.ag-row .ag-name-btn').count();
       if (nameBtns === rows) ok(S('agents'), 'every strategy name is a real button');
       else fail(S('agents'), `name buttons ${nameBtns} of ${rows}`);
       const vpWidth = page.viewportSize()?.width ?? 0;
-      const wideTotal = await page.locator('.ag-table th.ag-col-wide').count();
-      const wideShown = await page.locator('.ag-table th.ag-col-wide').evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length);
-      const statusShown = await page.locator('.ag-table th.ag-col-status').evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length);
-      const returnShown = await page.locator('.ag-table th.ag-col-return').evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length);
-      if (vpWidth <= 760 ? (wideShown === 0 && statusShown === 1 && returnShown === 1) : (wideTotal > 0 && wideShown === wideTotal && statusShown === 1 && returnShown === 1)) {
-        ok(S('agents'), vpWidth <= 760 ? 'a phone sees status and return without the money detail columns' : 'a desktop sees every column, status and return first');
-      } else fail(S('agents'), `columns at ${vpWidth}px: wide ${wideShown}, status ${statusShown}, return ${returnShown}`);
+      const tableN = await page.locator('.ag-strategies table.ag-table').count();
+      const cardN = await page.locator('.ag-card-strategy').count();
+      const glCells = await page.locator('.ag-strategies .ag-gl').allTextContents();
+      if (vpWidth <= 760 ? (tableN === 0 && cardN === rows) : (tableN === 1 && cardN === 0)) {
+        ok(S('agents'), vpWidth <= 760 ? `a phone gets a card per strategy (${cardN})` : 'a desktop gets the seven-column table');
+      } else fail(S('agents'), `layout at ${vpWidth}px: tables ${tableN}, cards ${cardN}`);
+      if (glCells.length === rows * 2 && glCells.every((g) => /^[+-]?\$[\d,.]+( \([+-]?[\d.]+%\))?$/.test(g.trim()))) {
+        ok(S('agents'), `unrealised and realised read like the scoreboard ("${glCells[0].trim()}")`);
+      } else fail(S('agents'), `G/L cells: ${glCells.join(' | ')}`);
+      const badgeTexts = await page.locator('.ag-strategies .ag-venue').allTextContents();
+      if (badgeTexts.length === rows && badgeTexts.every((b) => /^(Revolut X|Kraken)$/.test(b.trim()))) ok(S('agents'), 'the venue badge is the venue name alone');
+      else fail(S('agents'), `badges: ${badgeTexts.join(' | ')}`);
+      const sbCells = await page.locator('.ag-scoreboard .sb-label').allTextContents();
+      if (sbCells.join('|') === 'DEPLOYED|TODAY|TOTAL G/L|UNREALIZED G/L|REALIZED G/L') ok(S('agents'), 'the scoreboard has the five cells, today and total apart');
+      else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}`);
+      const stripN = await page.locator('.ag-chip').count();
+      const basisN = await page.locator('.ag-basis').count();
+      if (stripN === 0 && basisN === 0) ok(S('agents'), 'no caps / Jev strip and no basis table on the overview');
+      else fail(S('agents'), `strip chips ${stripN}, basis sections ${basisN}`);
       const alertsAtRest = await page.locator('.ag-alert').count();
       if (alertsAtRest === 0) ok(S('agents'), 'no banner when nothing blocks trading');
       else fail(S('agents'), `${alertsAtRest} alert banners on a healthy dashboard`);
@@ -1053,7 +1065,7 @@ async function run() {
       // Four rules count down to a bar close; the minute rule decides every
       // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
-      if (nexts.filter((t) => t === 'in 2h 13m').length === 4 && nexts.filter((t) => t === 'every minute').length === 1) {
+      if (nexts.filter((t) => t === '2h 13m').length === 4 && nexts.filter((t) => t === 'every minute').length === 1) {
         ok(S('agents'), 'each bar rule counts down; the minute rule reads "every minute"');
       } else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
@@ -1061,12 +1073,9 @@ async function run() {
       if (names.some((t) => /^Dislocation ·/.test(t)) && subs.length === names.length && subs.every((t) => /^\d+ open · /.test(t))) {
         ok(S('agents'), 'the dislocation rulebook is named on its row, once, with the sub-line under it');
       } else fail(S('agents'), `names ${names.join(' | ')}; sub-lines ${subs.join(' | ')}`);
-      const tableScroll = await page.locator('.ag-strategies .hl-scroll').evaluate((el) => el.scrollWidth - el.clientWidth);
-      if (vpWidth > 760 ? tableScroll <= 0 : true) ok(S('agents'), `the strategy table fits its width on desktop (overflow ${tableScroll}px)`);
+      const tableScroll = vpWidth > 760 ? await page.locator('.ag-strategies .hl-scroll').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => 0) : 0;
+      if (tableScroll <= 0) ok(S('agents'), vpWidth > 760 ? `the strategy table fits its width on desktop (overflow ${tableScroll}px)` : 'no table to overflow on a phone');
       else fail(S('agents'), `the strategy table overflows by ${tableScroll}px at ${vpWidth}px`);
-      const basisRowsN = await page.locator('.ag-basis-row').count();
-      if (basisRowsN === 3) ok(S('agents'), 'cross-venue basis table has the three symbols');
-      else fail(S('agents'), `basis rows ${basisRowsN}`);
       await page.locator('.ag-row').nth(2).click();
       await page.waitForSelector('.ag-detail', { timeout: 5_000 });
       const title = await page.locator('.ag-detail-title').first().textContent().catch(() => '');
@@ -1144,12 +1153,19 @@ async function run() {
       await page.locator('.ag-sym-tab').first().click({ timeout: 2_000 }).catch(() => {});
       await page.waitForTimeout(300);
 
-      const bt = await page.locator('.ag-detail .ag-section').last().locator('tbody tr').count().catch(() => 0);
-      if (bt === 3) ok(S('agents'), 'backtest table has the three symbols');
-      else fail(S('agents'), `backtest rows ${bt}`);
-      await page.locator('.ag-back').click();
-      await page.waitForSelector('.ag-table', { timeout: 5_000 });
-      ok(S('agents'), 'back returns to the overview');
+      const btN = await page.locator('.ag-detail .ag-section-title:text-is("BACKTEST")').count();
+      if (btN === 0) ok(S('agents'), 'no backtest section on a strategy page');
+      else fail(S('agents'), `${btN} backtest sections`);
+      await shot(page, 'agents-detail');
+      const stacked = await page.locator('.modal').count();
+      const backBtn = await page.locator('.ag-back').count();
+      if (stacked === 2 && backBtn === 0) ok(S('agents'), 'the detail is its own modal over the list, closed by its ✕, no back button');
+      else fail(S('agents'), `modals ${stacked}, back buttons ${backBtn}`);
+      await page.locator('.ag-detail-close').click();
+      await page.waitForTimeout(300);
+      const listBack = await page.locator('.ag-strategies .ag-row').count();
+      if (listBack === rows) ok(S('agents'), 'closing the detail returns to the list as it was');
+      else fail(S('agents'), `after close: ${listBack} rows`);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
 
@@ -1191,7 +1207,7 @@ async function run() {
       } else fail(S('agents'), `error state: title "${ecTitle}", text "${(ecText || '').trim().slice(0, 60)}", raw ${ecRaw}, retry ${ecRetry}`);
       agentsMode = 'ok';
       await page.locator('.ag-retry').first().click({ timeout: 2_000 }).catch(() => {});
-      const recovered = await page.waitForSelector('.ag-table', { timeout: 5_000 }).then(() => true).catch(() => false);
+      const recovered = await page.waitForSelector('.ag-scoreboard', { timeout: 5_000 }).then(() => true).catch(() => false);
       if (recovered) ok(S('agents'), 'Try again reloads the dashboard in place');
       else fail(S('agents'), 'Try again did not bring the table back');
       await page.keyboard.press('Escape');

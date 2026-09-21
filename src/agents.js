@@ -107,11 +107,13 @@ export async function prefetchAgentsDashboard(fetchImpl = fetch, later = (fn, ms
   let dash;
   try { dash = await fetchAgentsDashboard(fetchImpl); } catch { return null; }
   if (!dash || dash.notReady) return dash ?? null;
-  (dash.strategies ?? []).forEach((st, i) => {
-    const sym = defaultChartSymbol(st);
-    if (!sym) return;
-    later(() => { fetchAgentsChart(st.id, sym, fetchImpl).catch(() => {}); }, 250 * (i + 1));
-  });
+  // Every pair of every strategy, the held one first, 200 ms apart: a detail then opens drawn whichever tab is clicked.
+  const wanted = [];
+  for (const st of dash.strategies ?? []) {
+    const first = defaultChartSymbol(st);
+    for (const sym of [first, ...(st.symbols ?? []).filter((x) => x !== first)]) if (sym) wanted.push([st.id, sym]);
+  }
+  wanted.forEach(([id, sym], i) => { later(() => { fetchAgentsChart(id, sym, fetchImpl).catch(() => {}); }, 200 * (i + 1)); });
   return dash;
 }
 
@@ -292,6 +294,10 @@ export function strategyRows(dash, nowMs) {
       feesUsd: s.feesUsd ?? 0,
       totalPnlUsd,
       returnPct: capital > 0 ? (totalPnlUsd / capital) * 100 : null,
+      unrealisedPct: Number(s.costUsd) > 0 ? ((s.unrealisedUsd ?? 0) / Number(s.costUsd)) * 100 : null,   // on the cost of what is held — the same base as the position tiles
+      realisedPct: capital > 0 ? ((s.realisedUsd ?? 0) / capital) * 100 : null,                              // on the strategy's capital
+      todayUsd: s.todayUsd ?? 0,
+      todayPct: capital > 0 ? ((s.todayUsd ?? 0) / capital) * 100 : null,
       openPositions: (s.positions ?? []).filter((p) => p.base > 0).length,
       openOrders: s.openOrders ?? 0,
       ordersToday: s.ordersToday ?? 0,
@@ -362,50 +368,6 @@ export function orderView(o) {
   };
 }
 
-/**
- * The walk-forward figures for one rulebook on one venue, per symbol, from
- * `docs/agents/backtests/summary.json`.
- * @param {any} summary
- * @param {string} kind
- * @param {string} venue
- */
-export function backtestRows(summary, kind, venue) {
-  const out = [];
-  for (const [symbol, r] of Object.entries(summary?.results ?? {})) {
-    const k = /** @type {any} */ (r)[kind]?.[venue];
-    if (!k) continue;
-    out.push({
-      symbol,
-      oosRet: k.outOfSample?.ret ?? null, oosDD: k.outOfSample?.maxDD ?? null, oosTrades: k.outOfSample?.trades ?? null,
-      fullRet: k.fullPeriod?.ret ?? null, fullDD: k.fullPeriod?.maxDD ?? null,
-      buyHoldOos: /** @type {any} */ (r).buyHoldOutOfSample ?? null,
-      chosen: kind === 'trend-4h' ? /** @type {any} */ (r)['trend-4h']?.chosen ?? null : null,
-    });
-  }
-  return out;
-}
-
-/**
- * The dislocation study distilled for the page (`summary.dislocation`):
- * per symbol, the seeded setting on the full sample and on each half of
- * it, so the reader sees the weakness of the second half beside the
- * headline instead of in a footnote.
- * @param {any} summary
- * @param {string} [key] which setting, e.g. 'k15_h30' (entry 15 bps, 30-minute time stop)
- */
-export function dislocationBacktestRows(summary, key = 'k15_h30') {
-  const d = summary?.dislocation;
-  if (!d?.results) return [];
-  return Object.entries(d.results).map(([symbol, r]) => {
-    const v = /** @type {any} */ (r)[key] ?? {};
-    const f = v.full ?? {}, a = v.firstHalf ?? {}, b = v.secondHalf ?? {};
-    return {
-      symbol, days: /** @type {any} */ (r).days ?? null, trades: f.trades ?? 0, perDay: f.per_day ?? null, avgBps: f.avg_bps ?? null,
-      win: f.win ?? null, worst: f.worst ?? null, firstHalfAvg: a.avg_bps ?? null, secondHalfAvg: b.avg_bps ?? null,
-    };
-  });
-}
-
 /** Fraction → signed percent string, one decimal. @param {number | null} f */
 export const fmtFrac = (f) => (f == null ? '—' : fmtPctSigned(f * 100, 1));
 
@@ -441,7 +403,60 @@ export function untilText(iso, nowMs) {
  * @param {number} nowMs
  */
 export function nextDecisionText(kind, iso, nowMs) {
-  return kind === 'dislocation-1m' ? 'every minute' : untilText(iso, nowMs);
+  return kind === 'dislocation-1m' ? 'every minute' : untilText(iso, nowMs).replace(/^in /, '');
+}
+
+/**
+ * A gain or loss the way the home scoreboard writes one: "+$1,521 (+0.86%)".
+ * The percent is omitted when there is no base to put it on.
+ * @param {number | null | undefined} usd
+ * @param {number | null | undefined} pct
+ */
+export function glText(usd, pct) {
+  const money = fmtMoney(usd ?? 0, { signed: true, compact: false });
+  return pct == null || !Number.isFinite(pct) ? money : `${money} (${fmtPctSigned(pct, 2)})`;
+}
+
+/**
+ * The page's scoreboard: what the agents hold and have made, today and
+ * in total, in the home scoreboard's cells. "Today" is the UTC calendar
+ * day — realised since 00:00 plus the change in unrealised from the day's
+ * opening price, the same figure the loop's daily loss limit reads.
+ * Percentages are on the capital allotted (today, total, realised) or on
+ * the cost of what is held (unrealised), and each cell says which.
+ * @param {any} dash
+ */
+export function scoreboardView(dash) {
+  const t = dash?.totals ?? {};
+  const capital = (dash?.strategies ?? []).reduce((a, s) => a + (Number(s.capitalUsd) || 0), 0);
+  const unrealised = t.unrealisedUsd ?? 0, realised = t.realisedUsd ?? 0, today = t.todayUsd ?? 0, cost = t.costUsd ?? 0, value = t.valueUsd ?? 0;
+  const total = unrealised + realised;
+  const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
+  return {
+    capitalUsd: capital, valueUsd: value, costUsd: cost, feesUsd: t.feesUsd ?? 0,
+    todayUsd: today, todayPct: pct(today, capital),
+    totalUsd: total, totalPct: pct(total, capital),
+    unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost),
+    realisedUsd: realised, realisedPct: pct(realised, capital),
+    liveRealisedUsd: t.byMode?.live?.realisedUsd ?? 0, paperRealisedUsd: t.byMode?.paper?.realisedUsd ?? 0,
+    deployedPct: pct(value, capital),
+    dayStart: dash?.dayStart ?? null,
+  };
+}
+
+/** The same cells for one strategy. @param {any} s */
+export function strategyScoreboard(s) {
+  const capital = Number(s?.capitalUsd) || 0, cost = Number(s?.costUsd) || 0;
+  const unrealised = s?.unrealisedUsd ?? 0, realised = s?.realisedUsd ?? 0, today = s?.todayUsd ?? 0, value = s?.valueUsd ?? 0;
+  const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
+  return {
+    capitalUsd: capital, valueUsd: value, costUsd: cost, feesUsd: s?.feesUsd ?? 0,
+    todayUsd: today, todayPct: pct(today, capital),
+    totalUsd: unrealised + realised, totalPct: pct(unrealised + realised, capital),
+    unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost),
+    realisedUsd: realised, realisedPct: pct(realised, capital),
+    deployedPct: pct(value, capital),
+  };
 }
 
 // ── What the rule is looking at right now ────────────────────────────────
@@ -567,7 +582,7 @@ export function venueRows(dash) {
     return {
       id, label: venueLabel(id),
       capitalUsd: capital, valueUsd: value, costUsd: b.costUsd ?? 0, unrealisedUsd: b.unrealisedUsd ?? 0, realisedUsd: b.realisedUsd ?? 0, feesUsd: b.feesUsd ?? 0,
-      strategies: b.strategies ?? 0, live: b.live ?? 0,
+      strategies: b.strategies ?? 0, live: b.live ?? 0, todayUsd: b.todayUsd ?? 0,
       balanceUsd: v.balances?.USD ?? null, balances: v.balances ?? null, canTrade: !!v.canTrade, feeBps: v.feeBps ?? null, note: v.note ?? null,
       share: useValue ? (totalValue > 0 ? value / totalValue : 0) : (totalCapital > 0 ? capital / totalCapital : 0),
       shareOf: useValue ? 'value' : 'capital',
@@ -575,13 +590,11 @@ export function venueRows(dash) {
   });
 }
 
-/** What the share bar is a share OF — the bar is meaningless without it. @param {{shareOf?: string}[]} rows */
-export const shareBasisText = (rows) => `share of ${rows?.[0]?.shareOf === 'capital' ? 'allotted capital' : 'deployed value'}`;
-
 /**
- * The share bar's segments. Each one names its basis in the visible label
- * when it is wide enough to carry the words, and always in its title, so
- * "Kraken 100%" can never read as "Kraken holds everything you have".
+ * The share bar's segments. The visible label is the venue and its share
+ * (a sliver carries no words); what the share is OF — deployed value, or
+ * allotted capital while nothing is deployed — lives in the title only,
+ * by the owner's choice.
  * @param {ReturnType<typeof venueRows>} rows
  */
 export function shareSegments(rows) {
@@ -591,7 +604,7 @@ export function shareSegments(rows) {
     const widthPct = Math.max(0, Math.min(100, r.share * 100));
     return {
       id: r.id, label: r.label, pct, widthPct,
-      text: r.share < 0.12 ? '' : r.share >= 0.45 ? `${r.label} ${pct}% of ${basis}` : `${r.label} ${pct}%`,
+      text: r.share < 0.12 ? '' : `${r.label} ${pct}%`,
       title: `${r.label}: ${pct}% of ${basis}`,
     };
   });
@@ -624,37 +637,6 @@ export function agentsAlerts(dash) {
     }
   }
   return out;
-}
-
-/**
- * The cross-venue basis per symbol over the last 24 h, plus the verdict the
- * fees impose: an arbitrage needs the basis to clear Kraken's taker fee
- * (or its maker fee with a resting hedge), and the counts say how often it did.
- * @param {any} dash
- */
-export function basisRows(dash) {
-  const b = dash?.basis ?? {};
-  return Object.keys(b).sort().map((symbol) => ({ symbol, ...b[symbol] }));
-}
-
-/**
- * The basis right now, as the table reads it. NOT in the P&L palette: a
- * negative basis means Revolut X is the cheap side, which is the
- * dislocation rule's BUY signal, and red would read as a loss. What earns
- * a colour is the size against the rule's own entry threshold, and the
- * word beside it says which side of that threshold it is on.
- * @param {number | null | undefined} latest
- * @param {number} [entryBps] the dislocation rule's entry, in bps
- */
-export function basisNowView(latest, entryBps = 15) {
-  const n = typeof latest === 'number' && isFinite(latest) ? latest : null;
-  const wide = n != null && Math.abs(n) >= entryBps;
-  return {
-    text: fmtBps(n), wide,
-    word: n == null ? '' : wide ? 'wide' : 'inside',
-    title: n == null ? 'no quote pair yet'
-      : `${Math.abs(n).toFixed(2)} bps ${wide ? 'at or over' : 'under'} the ${entryBps} bps entry · ${n < 0 ? 'Revolut X cheap' : n > 0 ? 'Kraken cheap' : 'level'}`,
-  };
 }
 
 /**
@@ -716,28 +698,4 @@ export function countdownText(iso, nowMs) {
   if (h > 0) return `${h}h ${two(mm)}m ${two(ss)}s`;
   if (mm > 0) return `${mm}m ${two(ss)}s`;
   return `${ss}s`;
-}
-
-/**
- * The rotation backtest is a basket, not a symbol: one row per variant on
- * the venue asked for, with the other venue's out-of-sample figure beside
- * it and the equal-weight buy-and-hold line for scale.
- * @param {any} summary
- * @param {string} venue
- */
-export function rotationBacktestRows(summary, venue) {
-  const basket = summary?.basket;
-  if (!basket) return { rows: [], buyHoldOos: null, buyHoldFull: null, symbols: [] };
-  const other = venue === 'revx' ? 'kraken' : 'revx';
-  const labels = { default: 'top 2, bear filter on', noBearFilter: 'bear filter off (always in)', minHold7: '7-day minimum hold', top1: 'top 1', top3: 'top 3', lookback60: '60-day lookback' };
-  const rows = Object.entries(basket.variants ?? {}).map(([name, v]) => {
-    const mine = /** @type {any} */ (v)[venue] ?? {};
-    const theirs = /** @type {any} */ (v)[other] ?? {};
-    return {
-      name, label: labels[name] ?? name,
-      oosRet: mine.outOfSample?.ret ?? null, oosDD: mine.outOfSample?.maxDD ?? null, exposure: mine.outOfSample?.exposure ?? null, turnover: mine.outOfSample?.turnover ?? null,
-      fullRet: mine.fullPeriod?.ret ?? null, otherOosRet: theirs.outOfSample?.ret ?? null,
-    };
-  });
-  return { rows, buyHoldOos: basket.buyHoldEqualWeightOutOfSample ?? null, buyHoldFull: basket.buyHoldEqualWeightFull ?? null, symbols: basket.symbols ?? [] };
 }
