@@ -43,12 +43,18 @@ list stays the short version; the plan is the reasoning behind it.
    (c) The phone shows five columns per detail table (`ag-ph`); the rest
    need a wider screen. A retired strategy (`agent_strategies.retired_at`,
    `0038`) is hidden by the dashboard and skipped by the tick; its records
-   stay. Un-retiring is a migration. (e) **AVAX/USD on trend-4h, paper,
-   both venues, since `0039`** (reference §3.7): watch its first entries
-   — Kraken's AVAXUSD candles feeding the signal, a fill on each venue,
-   the $20 slot — and whether the paper record looks like the backtest
-   (+12 % a year on the seeded parameters, 9–10 trades). LINK is the next
-   candidate if it does; the bar in §4.15 is not lowered for it. (d) Live is still three switches, all Davies'
+   stay. Un-retiring is a migration. (e) **AVAX (`0039`) and SUI
+   (`0040`) on trend-4h, paper, both venues.** Watch their first entries
+   (Kraken's AVAXUSD / SUIUSD candles feeding the signal, a fill on each
+   venue, the $20 slot) and whether the paper record looks like the
+   backtest — AVAX +12 % a year on the seeded parameters (9–10 trades)
+   but NEGATIVE on the second walk-forward window (§3.8); SUI +14.5 % on
+   the chosen parameters and −10.5 % on the seeded ones, with a 42 bps
+   round trip. The bar is now two windows plus a $100k-a-day book
+   (§4.15). Watches: POL (clears both windows, book too thin), LINK /
+   HBAR / PEPE (three of four). Nothing joins momentum-1d or the rotation
+   basket; the BTC-regime filter (§3.9) is the next rule candidate, to be
+   re-tested on a non-bear window first. (d) Live is still three switches, all Davies'
    (`agent_strategies.mode`, `agent_risk.live_confirmed_at`, the gate),
    and the first live order needs his confirmation in the conversation.
    Kraken holds £75 GBP, not USD (probe 09-20 19:08 UTC); a live Kraken
@@ -159,6 +165,41 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-21 14:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The top twenty by market cap, tested; the bar tightened; SUI joins.**
+Davies asked why only four coins had been tested and for the whole top
+twenty (ex-stablecoins) to be run, the good ones added, and rule ideas of
+mine tested too, delegating the volume to Opus subagents. Two ran in
+parallel on disjoint files. What came back:
+- **27 coins** (the 16 of the top 24 that trade on Revolut X, Kraken and
+  Coinbase — ZEC and XMR are not on Revolut X, TRX has no history and a
+  $5k book, five are exchange tokens — plus the next tier), three years
+  of hours each, spreads as 20-minute medians on the UK book and Kraken
+  (reference §3.8, `universe20.json` and two basket files). Eight cleared
+  §3.7's bar on the last third (SOL, UNI, AVAX, SUI, ICP, POL, BNB on 111
+  days, AAVE); with the middle third held out only SUI and POL cleared;
+  all eight survive a doubled spread. Momentum-1d: 21 of 27 negative, only
+  short histories clear. The like-for-like 13-coin basket is worse than
+  the 4-coin one on every variant.
+- **The bar is now two windows and a $100k-a-day book** (§4.15).
+  **SUI joins trend-4h by `0040`** (capital 80 → 100); POL waits on
+  liquidity; UNI / ICP / AAVE / BNB fail the second window. **AVAX, added
+  this morning under the one-window bar, fails the second window** and
+  stays in paper because the record is the test — said in §3.7 and §3.8
+  so its record is read honestly.
+- **Two backtester defects found by the subagent and fixed**: the 1-hour
+  check read the basket's truncated daily bars (a young basket member let
+  entries through on other coins), and a symbol outside the basket
+  crashed the run. Every symbol now keeps its own series and the basket
+  its own aligned copy; the shipped numbers are unchanged (re-run to
+  scratch and compared).
+- **Five rule ideas** (§3.9, the other subagent): none adopted; the
+  BTC-regime filter is the written-down candidate (see the 13:09 entry).
+- The stray dot beside "Revolut X" was an ellipsis (fixed, pinned). The
+  friend's second message was answered as a discussion, not a report,
+  with a Chinese explanation of each of his points.
 
 ### [2026-09-21 13:09 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
