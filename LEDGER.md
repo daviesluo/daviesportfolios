@@ -51,7 +51,8 @@ list stays the short version; the plan is the reasoning behind it.
    but NEGATIVE on the second walk-forward window (§3.8); SUI +14.5 % on
    the chosen parameters and −10.5 % on the seeded ones, with a 42 bps
    round trip. The bar is now two windows plus a $100k-a-day book
-   (§4.15). Watches: POL (clears both windows, book too thin), LINK /
+   (§4.15); a coin one venue lacks may run on the other alone (§4.16,
+   Davies 09-21). Watches: POL (clears both windows, book too thin), LINK /
    HBAR / PEPE (three of four). Nothing joins momentum-1d or the rotation
    basket; the BTC-regime filter (§3.9) is the next rule candidate, to be
    re-tested on a non-bear window first. (d) Live is still three switches, all Davies'
@@ -168,6 +169,29 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-21 15:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The chunk fix verified, live and in CI.** `check` run 747 on `fdf58bb`
+green (the sweep's recovery pass included). Live at 15:03 UTC: the shell
+references the branch's `app-ebe715df.js`; every lazy chunk it imports is
+200 `application/javascript`, `cache-control: public, max-age=14400,
+must-revalidate` with an ETag — that 14400 is Pages' own default for an
+asset (the 14:57 entry said 0; 0 is HTML's), and it is harmless because a
+chunk's name is its hash; a chunk that does not exist is **404,
+`cache-control: no-store`**; `/404.html` is a 308 to `/404`, Pages'
+clean-URL redirect, which serves the shell with `max-age=0`. The holdings
+chunk whose first probe timed out answers in full. No open issues.
+- **Policy from Davies (round 5)**: a coin one venue lacks may run on the
+  other alone; the venues' symbol lists need not match. Written as
+  reference §4.16 and into CLAUDE.md — same bar, on that venue's costs
+  and book (Kraken: 80 bps a round trip in fees, so a larger edge).
+- Two Opus agents running, reports to scratch: an independent pre-live
+  review of every strategy and agents-page / mode file, and the portfolio
+  study (`backtest_portfolio.ts` → `portfolio.json`: best strategy set,
+  parameter and stop stability on both windows, the regime filter on the
+  middle window across 27 coins, Kraken-only candidates, sizing). Each
+  lands in its own commit with the reference, README and this ledger.
 
 ### [2026-09-21 14:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

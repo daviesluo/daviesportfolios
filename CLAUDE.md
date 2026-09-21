@@ -119,7 +119,12 @@ that follow from that evidence, in short:
   cleared one window and failed the other; it stays in paper because the
   record is the test. A coin joins a rule by that bar, never by a result
   alone; SUI's round trip is ~42 bps against the majors' 20 and that cost
-  is inside its numbers.
+  is inside its numbers. **A coin one venue lacks may run on the other
+  alone** (Davies, 2026-09-21; §4.16): the two venues' symbol lists need
+  not match — each `agent_strategies` row carries its own. A Kraken-only
+  coin clears the same bar on Kraken's costs (40 bps maker a side, 80 bps
+  a round trip before the spread) and a Kraken book of ≥ $100k a day, and
+  joins the Kraken row only, paper first like everything else.
 - Paper first, per strategy; live only on Davies' explicit go, and the
   first live order needs his confirmation in the same conversation.
 - Record inputs (state, answers, order request/response, fills), not
