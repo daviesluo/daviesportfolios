@@ -885,6 +885,14 @@ verdicts, under the bar and nothing further:
    tested that clears both is a candidate, not a shipped row:
    `regime-trend-4h·revx·LINK` (A +2.0 %, DD 17 %, plateau 93 %; B
    +27.2 %, DD 15 %, 100 %) — one pass in 78 looks is inside chance.
+**Corrected 2026-09-21 by §3.11**: this study called `runRotation`
+before that function took stops, so every rotation figure in it is the
+BARE RANK RULE, not the rows the loop runs. `rotation-1d·revx` window A
+reads −16.2 %, not −14.4 %; window B +199.1 %, not +237.7 %; the Kraken
+row −13.2 % / +86.8 %. At set level the difference is small (A −5.3 %
+against −5.4 %, B +36.9 % against +38.8 %) because the two rotation rows
+move opposite ways in the bear year. Everything else in §3.10 stands.
+
 2. **The shipped set on its $400 deployable** (row capital is $440; the
    $20 order cap leaves $20 of each rotation row undeployable): **A −5.4 %,
    DD 25 %, ret/DD −0.22; B +38.8 %, DD 12 %, ret/DD 3.19**, against
@@ -924,6 +932,117 @@ year, each a single draw; the same year judges the point and its
 plateau; 7–40 trades a window; the coins move together; ~4,000 looks at
 two years; short histories flagged (HYPE 0.6 y, POL 2.05 y); spreads one
 snapshot; the model is not in the backtest; paper decides.
+
+### 3.11 Where the money should sit — the allocation study (2026-09-21)
+
+Davies: live is now all-or-nothing, so the whole set has to be the best
+set, and "每个币不一定都投入一样的钱" — the coins need not get equal
+money. Run by an independent agent as
+`supabase/functions/agents/backtest_allocation.ts` (imports `run`,
+`runRotation`, `resample`, `COSTS`, `SHIPPED_STOPS`, `stopsForKind`,
+`spreadOf` and `buyHoldBasket` from `backtest.ts`; the one copy,
+`runSized`, adds per-entry sizing and a trade log and is checked against
+`run` with the extras off — **40 checks, zero difference in return,
+drawdown and trades**). Output `docs/agents/backtests/allocation.json`,
+report `docs/agents/reviews/2026-09-21-allocation-study.md`. Re-run to a
+scratch directory here before integrating: it reproduces its own JSON
+byte for byte. Same two windows as §3.10, never averaged.
+
+**1. Capital per coin: equal slots, because nothing beat it on both
+windows.** Ranked by return over drawdown, A / B:
+
+| arm | A | B |
+|---|---|---|
+| equal slots (what runs) | −0.22 | 3.00 |
+| inverse volatility | −0.28 | **3.32** |
+| equal risk | −0.29 | 3.20 |
+| per-entry volatility scaling | **−0.19** | 2.82 |
+| weighted by the prior third's return | −0.36 | 2.25 |
+| concentrated on the prior third's bar-clearers | −0.37 | 2.95 |
+| weighted by the OTHER window (look-ahead) | — | 3.10 |
+
+Two arms win one window and lose the other, which is what ~130 looks
+produce. The two evidence arms lose on **both**: in four rows of five
+the prior third's best coin is the scored window's worst — window A puts
+71 % of trend-4h on ETH, which then lost 10.3 %, and zeroes SOL and AVAX,
+which made +13.3 % and +12.1 %. Taking the weights from the other window
+instead does not rescue it. And **equal risk is not a separate idea**:
+under a percentage floor it is equal dollars exactly, under the ATR trail
+it is inverse volatility with a cap. Equal slots survives because it is
+the null, not because it won a search.
+
+**2. Capital per row: everything into `trend-4h` on Revolut X.** Thirteen
+row plans, ranked by the WORSE of their two windows (ret/DD, A / B):
+trend-4h alone **−0.03 / 1.24**; trend-4h both venues −0.03 / 0.80;
+Revolut X without rotation −0.10 / 2.43; trend-4h + momentum −0.14 /
+3.31; drop the rotations −0.17 / 2.18; Revolut X only −0.18 / 3.68; the
+shipped set −0.22 / 3.00; Kraken only −0.24 / 2.32; row capital by prior
+evidence −0.30 / 3.09, the worst plan tried, which in the bear window
+puts a third of the book into the rotation row on the strength of a
++199 % middle third. `rotation-1w-kraken` is the only row of seven whose
+removal improves the set on both windows.
+
+**3. The venue split: Kraken runs no real money, and keeps the job it
+already does.** A Kraken round trip costs 80–96 bps against Revolut X's
+19.5–53.5 and needs a 0.80–0.96 % gross move. At a 30 %-a-year drift a
+Revolut X major pays itself back in 2.4 days and a Kraken one in 9.7
+(at 100 %: 0.7 and 2.9); the measured median holds are trend-4h 2.29 d,
+momentum 3.42 d, trend-1h 0.60 d. The **median** round trip loses money
+before fees on every rulebook; the mean beats a Kraken round trip in 5 of
+10 trend-4h coin-windows, 3 of 6 momentum and 1 of 6 trend-1h. The twins
+are 0.905–1.000 correlated with their Revolut X rows and 3.0–16.8 points
+worse per window, and every Kraken arrangement — all rows, the slowest
+rows, trend-4h alone — is beaten by its Revolut X counterpart on both
+windows. **No Kraken-only coin today**: POL on the seeded parameters is
++33.0 % / −5.2 % and fails window B on both venues (§3.10's pass used
+parameters chosen in sample), and its Kraken 24-hour book has never been
+measured, so §4.16's liquidity test cannot be applied to it at all.
+
+**4. Rulebooks: keep trend-4h, drop both rotations, drop trend-1h,
+momentum stays paper.** The rotation fails the bar on both windows on
+both venues for different reasons — negative in the bear year, drawdown
+41.3 % and 42.8 % in the bull, over the 35 % limit — and its own stops
+make it worse in three cells of four. trend-1h earns $0.19 and $1.61 on
+$40 at 69–87×/y turnover and is on a plateau on no coin in either window;
+**its feedback-speed case does not survive contact with the numbers**:
+17–21 fills a month against trend-4h's 8–11, a factor of two, and
+trend-4h alone reaches ten fills in 27–38 days. momentum-1d is the
+biggest bull-year contributor (+62.4 % on its row) and carries a 41 % row
+drawdown in the bear year; it is the first row a larger live set would
+add and the one that costs most when the year turns.
+
+**5. No coin changes.** Four of nineteen leave-one-out tests improve a
+row on both windows — SUI out of `trend-4h·revx` (+0.13 / +0.05, and the
+same removal HURTS the Kraken row), BTC out of `trend-1h`, BTC out of
+`momentum-1d` on each venue — and nineteen tests scored on the windows
+that chose them produce that many by chance. Nothing joins. On Davies'
+market-cap question: cap is not the constraint and the book is — SUI
+$942k a day and AVAX $1.9m both clear §4.15 — but SUI's 42 bps round trip
+needs 5.1 days at a 30 % drift against a measured hold of 1.0–1.25 days,
+which is the number to watch on it.
+
+**6. The set, priced.** `trend-4h` · Revolut X · BTC/ETH/SOL/AVAX/SUI ·
+$100 · five equal $20 slots · parameters unchanged:
+
+| | window A (bear) | window B (bull) |
+|---|---|---|
+| recommended set | **−0.3 % (DD 11.8 %, ret/DD −0.03)** | **+12.6 % (DD 10.2 %, 1.24)** |
+| the shipped seven rows, $400 | −5.3 % (DD 24.5 %) | +36.9 % (DD 12.3 %) |
+| holding BTC/ETH/SOL/XRP equally | −46.7 % | +178.1 % |
+| cash | 0 % | 0 % |
+| deployment | 6.5 % of the year | 24 % |
+| turnover | 19×/y | 27×/y |
+| peak open / p95 / median | $100 / $60 / $0 | $100 / $80 / $20 |
+
+It fits `max_order_usd` 20 and `max_exposure_usd` 100 with nothing
+raised. The named alternate, plus `momentum-1d·revx` at $40, is
+−2.5 % / −0.14 and +26.9 % / 3.31 and would need the exposure cap at
+$140. **Read the deployment row**: in the bear year this rule is in the
+market 6.5 % of the time. It is mostly a way of being in cash.
+
+Caveats are the report's own, all of them, and the sharpest is that the
+recommendation is chosen by the worse of two windows, which is one number
+from each of two single draws; a third window could reorder the table.
 
 ## 4. Design consequences (decided by the evidence above)
 

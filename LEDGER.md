@@ -198,6 +198,44 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-21 20:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The allocation study, and it narrows the set to one row.** Davies
+asked whether every coin should get the same money, how capital should
+sit across rows and venues, and to make the whole set optimal because
+live is now all-or-nothing. An independent agent ran it
+(`backtest_allocation.ts` → `allocation.json`, report in
+`docs/agents/reviews/`); §3.11 is the record. Verified here before
+integrating: the script re-run to a scratch directory reproduces its
+JSON byte for byte, and its `runSized` copy matches `backtest.ts`'s
+`run` on 40 checks with zero difference in return, drawdown and trades.
+- **Equal slots per coin stands.** Weighting by a coin's own prior-third
+  record loses to equal slots on BOTH windows, because in four rows of
+  five the prior third's best coin is the scored window's worst; in
+  window A that puts 71 % of trend-4h on ETH, which then lost 10.3 %
+  while the zeroed SOL and AVAX made +13.3 % and +12.1 %. Inverse
+  volatility and equal risk each win one window and lose the other, and
+  equal risk is not even a separate idea: under a percentage floor it IS
+  equal dollars, under the ATR trail it is inverse volatility with a cap.
+- **Everything into `trend-4h` on Revolut X, nothing anywhere else** —
+  best worse-window of thirteen row plans. **Kraken runs no real money**:
+  80–96 bps a round trip against 19.5–53.5, paid back in 9.7 days at a
+  30 % drift where Revolut X's majors take 2.4, and the rules hold
+  0.6–3.4 days; every Kraken arrangement is beaten by its Revolut X twin
+  on both windows. It keeps its real job, which is supplying the signal.
+- **Both rotations and trend-1h drop out**, momentum stays paper. The
+  rotation fails the bar on both windows on both venues, negative in the
+  bear year and over the 35 % drawdown limit in the bull. trend-1h's
+  feedback-speed case does not survive: 17–21 fills a month against
+  trend-4h's 8–11, a factor of two, and trend-4h alone reaches ten fills
+  in 27–38 days.
+- **No coin changes**, and the study corrects §3.10: the portfolio study
+  called `runRotation` before it took stops, so its rotation figures were
+  the bare rank rule.
+- The recommended set on $100: **window A −0.3 % (DD 11.8 %), window B
+  +12.6 % (DD 10.2 %)**, deployed only 6.5 % of the bear year. It fits
+  `max_order_usd` 20 and `max_exposure_usd` 100 with nothing raised.
+
 ### [2026-09-21 20:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **`git add -A` swept a file that was being written under it, and main
