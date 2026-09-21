@@ -198,6 +198,44 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-21 21:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Two live bugs, and the orders table put back the way he asked for it.**
+- **AVAX read "no reading yet" on a symbol the loop reads every minute.**
+  The dashboard took the newest 400 observations in ONE window and kept
+  the first row per pair. An observation is written only when the state
+  CHANGES, so a pair whose words have been steady for hours is pushed out
+  of that window by the busy pairs: AVAX last changed at 13:12 UTC and the
+  newest 400 rows reached back only to 15:53. 29 pairs at ~108 rows an
+  hour means the window covers under four hours. The tick has always read
+  these one pair at a time and its own comment says why; the dashboard
+  does too now (`latestObservationQuery`, pinned in `index.test.ts`).
+  Nothing was wrong with the data: 1,858 observations, AVAX's simply
+  steady.
+- **The last way a poisoned chunk reaches a person.** Two
+  `promise.unhandled` rows in six hours, both naming
+  `ticker_chart_modal-510f18a2.js` — the chunk from before the 14:57 fix
+  — from a browser still holding the poisoned service-worker cache.
+  `lazyPage` heals the import it owns and the warm-up swallows its own,
+  but a promise nothing is awaiting any more can still surface one.
+  `healRejection` now runs from the global `unhandledrejection` handler:
+  a chunk failure heals and is reported as `chunk.load`, everything else
+  reports as before.
+- **The orders table is the ORDERS table again.** Davies asked for the old
+  one moved under the chart with two changes; I had rewritten it instead.
+  Same eleven columns in the same order now, with the side wearing the
+  chart's arrow and the notional called Cost.
+- The overview splits into **LIVE STRATEGIES** and **TESTING STRATEGIES**,
+  rendering only the halves that have rows; with nothing live the heading
+  says so. The strategy name reads from the left under its dot, every
+  other column stays centred. The last two UTC stamps on the page are UK
+  local like the rest. 208 sweep checks.
+- Landed as `b118eb1` WITHOUT this entry: the script that should have
+  written it had a syntax error, so none of it ran and the commit went
+  out with the code alone. Second time today — the skill already says to
+  put the ledger edit first, and now also says to CHECK it landed before
+  committing.
+
 ### [2026-09-21 20:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The allocation study, and it narrows the set to one row.** Davies
