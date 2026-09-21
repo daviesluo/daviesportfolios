@@ -69,16 +69,23 @@ list stays the short version; the plan is the reasoning behind it.
    the Kraken key's nonce window is Davies' setting at Kraken, before any
    Kraken live row; the review's doc gaps for retention of
    `agent_decisions` / `agent_orders` (unbounded; ~150 + ~25 rows a day).
-   (g) **Davies, 16:0x UTC: finish, make live-ready, then present the
-   final set — strategies, coins, mechanics, edge, expected returns — in
-   the conversation; on his confirm, live at once.** Going live is a
-   migration: `agent_strategies.mode = 'live'` on the chosen rows and
-   `agent_risk.live_confirmed_at`, written only AFTER his confirm, then
-   the first live order watched (its read-back verifies Revolut X's
-   settlement field names, B4). The portfolio study's verdicts (both
-   windows, shipped set on $400: −5.4 % in the bear year, +38.8 % in the
-   bull year; which members clear the bar in each) are the evidence for
-   the brief. Open before any Kraken live row: GBP → USD; nonce window.
+   (g) **Live is waiting on Davies' word, and only that.** The brief is
+   `docs/agents/go-live.md` (rows, coins, mechanics, edge, both windows'
+   returns, fees, caps, what can go wrong). Recommendation in it:
+   **`trend-4h` on Revolut X live, everything else paper** — the rulebook
+   with the most evidence, the tightest drawdowns, a trade count 20 bps
+   survives, on the venue that holds USD; rotation is negative out of
+   sample on both venues and its own stops make it worse, momentum
+   carries 33–56 % drawdowns, trend-1h is on a plateau on no coin, and
+   every Kraken row is blocked by GBP → USD and the nonce window anyway.
+   The headline fact he must weigh: **of 21 shipped members not one
+   clears the two-window bar**. When he says go, the switch is ONE
+   migration — `agent_strategies.mode='live'` on the chosen rows and
+   `agent_risk.live_confirmed_at = now()` — drafted and waiting at
+   `supabase/migrations/0042_trend4h_revx_live.sql.draft` (NOT committed;
+   pushing a migration applies it). Then watch the first live order: its
+   read-back is what verifies Revolut X's settlement field names (B4),
+   and the page raises a banner if it is left pending.
    Kraken holds £75 GBP, not USD (probe 09-20 19:08 UTC); a live Kraken
    order needs the GBP → USD conversion first, and that waits for his
    word. **Usage rule**: no main-model polling and no scheduled check-ins;
@@ -190,6 +197,24 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-21 18:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The go-live brief, written from the evidence rather than from the
+plan** — `docs/agents/go-live.md`. It answers what Davies asked for: the
+final set, the coins, the mechanics minute by minute, where the edge is
+claimed to come from, and the expected return as the two windows report
+it. The recommendation is narrower than the seeded set: `trend-4h` on
+Revolut X only, five coins, five $20 slots. The sleeve made −1.8 % in
+the bear year and +11.1 % in the bull year on $100, against −46.7 % and
++178.1 % for holding the majors; each of its five coins clears the bar
+in exactly one window and they disagree about which, which is why the
+sleeve is steadier than its parts. Left in paper, with the reason
+beside each: rotation (every out-of-sample figure negative, both
+venues; its own stops make it worse), momentum-1d (33–56 % drawdowns),
+trend-1h (on a plateau on no coin; it exists for feedback speed), and
+all three Kraken rows (GBP not USD, no nonce window, 0.92–1.00
+correlated with their Revolut X twins at four times the fee).
 
 ### [2026-09-21 17:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
