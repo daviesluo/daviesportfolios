@@ -1151,8 +1151,12 @@ async function run() {
       if (clippedVenue === 0) ok(S('agents'), vpWidth > 760 ? 'every venue badge fits its cell, nothing clipped or ellipsised' : 'no venue column on a phone');
       else fail(S('agents'), `${clippedVenue} venue cells clip their badge`);
       const sbCells = await page.locator('.ag-scoreboard .sb-label').allTextContents();
-      if (sbCells.join('|') === 'DEPLOYED|TODAY|UNREALIZED G/L|REALIZED G/L') ok(S('agents'), 'the scoreboard has four cells: deployed, today, unrealised, realised — no total');
-      else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}`);
+      if (sbCells.join('|') === 'DEPLOYED|TODAY|UNREALIZED G/L|REALIZED G/L (incl. fees $0.08)') {
+        ok(S('agents'), 'four cells, no total, and the fees ride on the realised label');
+      } else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}`);
+      const under = await page.locator('.ag-sb-under').count();
+      if (under === 0) ok(S('agents'), 'no explanatory line under the scoreboard');
+      else fail(S('agents'), `${under} sub-lines under the scoreboard`);
       const cardLabels = await page.locator('.ag-venue-card-kraken .ag-venue-grid > .dim').allTextContents();
       if (cardLabels.includes('unrealised') && cardLabels.includes('realised') && !cardLabels.some((t) => /total/.test(t))) ok(S('agents'), 'a venue card shows unrealised and realised, no total');
       else fail(S('agents'), `venue card rows: ${cardLabels.join(' | ')}`);
@@ -1200,17 +1204,15 @@ async function run() {
       const title = await page.locator('.ag-detail-title').first().textContent().catch(() => '');
       if (/Trend 4h · Kraken/.test(title || '')) ok(S('agents'), `the row with a book opens its detail (${(title || '').trim()})`);
       else fail(S('agents'), `detail title "${title}"`);
-      const posCells = await page.locator('.ag-positions tbody tr').count();
-      const decRows = await page.locator('.ag-log').nth(0).locator('tbody tr').count();
-      const ordRows = await page.locator('.ag-log').nth(1).locator('tbody tr').count();
-      if (posCells === 1 && decRows === 1 && ordRows === 1) ok(S('agents'), 'detail shows the position, the decision and the order');
-      else fail(S('agents'), `detail rows: positions ${posCells}, decisions ${decRows}, orders ${ordRows}`);
-      const orderVenue = await page.locator('.ag-log').nth(1).locator('tbody .ag-venue').first().textContent().catch(() => '');
-      if (/^Kraken/.test(orderVenue || '')) ok(S('agents'), 'the order row names its venue');
-      else fail(S('agents'), `order venue badge "${orderVenue}"`);
-      const stateTxt = await page.locator('.ag-log').nth(0).locator('.ag-state').first().textContent().catch(() => '');
-      if (/trend up/.test(stateTxt || '') && /mom positive/.test(stateTxt || '')) ok(S('agents'), 'decision row shows the words the model saw');
-      else fail(S('agents'), `state text "${stateTxt}"`);
+      // One table on the detail, not three: the positions table and the decisions table said the same
+      // things the cards and the live-state row already say, and the orders table now lives under the chart.
+      const oldTables = await page.locator('.ag-positions, .ag-log').count();
+      const posCards = await page.locator('.ag-poscard').count();
+      if (oldTables === 0 && posCards === 1) ok(S('agents'), 'the detail carries one position card and none of the three duplicate tables');
+      else fail(S('agents'), `old tables ${oldTables}, position cards ${posCards}`);
+      const cardRows = await page.locator('.ag-poscard .pc-row .dim').allTextContents();
+      if (cardRows.join('|') === 'Size|Avg cost|Cost|Value|Held') ok(S('agents'), 'the position card is the board\'s own card, row for row');
+      else fail(S('agents'), `card rows: ${cardRows.join(' | ')}`);
       // ---- the detail chart --------------------------------------
       // Symbol tabs, the chart for the one selected, its fills as rows, and
       // the words the rule is reading on the forming bar.
@@ -1236,13 +1238,23 @@ async function run() {
       if (legend.includes('buy fill') && legend.includes('sell fill') && legend.includes('resting order')) {
         ok(S('agents'), 'the two mark kinds and the resting order are named in words');
       } else fail(S('agents'), `legend: ${legend.join(' | ')}`);
-      const fillRowsN = await page.locator('.ag-fills tbody tr').count();
+      const ordRowsN = await page.locator('.ag-fills tbody tr').count();
       const sides = await page.locator('.ag-fills .ag-side').allTextContents();
-      if (fillRowsN === 2 && sides.join(',') === 'sell,buy') ok(S('agents'), 'the fills table lists both fills, newest first');
-      else fail(S('agents'), `fills table: ${fillRowsN} rows, sides ${sides.join(' | ')}`);
-      const sum = await page.locator('.ag-fills-sum').textContent().catch(() => '');
-      if (/2 fills/.test(sum || '') && /1 resting/.test(sum || '')) ok(S('agents'), `the fills line sums the window ("${(sum || '').trim().slice(0, 48)}…")`);
-      else fail(S('agents'), `fills summary reads "${sum}"`);
+      const heads = (await page.locator('.ag-fills thead th').allTextContents()).map((t) => t.trim());
+      if (ordRowsN === 3 && sides.join(',') === 'buy,sell,buy') ok(S('agents'), 'every order on the pair, newest first, the resting one included');
+      else fail(S('agents'), `orders table: ${ordRowsN} rows, sides ${sides.join(' | ')}`);
+      // The column is Cost, not Notional, and the time is the site's clock — not UTC, which is the loop's.
+      if (heads.includes('Cost') && !heads.includes('Notional') && /^When \((BST|GMT)\)$/.test(heads[0] || '')) {
+        ok(S('agents'), `the orders table reads Cost and stamps UK local time ("${heads[0]}")`);
+      } else fail(S('agents'), `order table headers: ${heads.join(' | ')}`);
+      const restingState = await page.locator('.ag-fills tbody tr').first().locator('.ag-state-pill').textContent().catch(() => '');
+      if ((restingState || '').trim() === 'new') ok(S('agents'), 'the resting order is on the table with its state');
+      else fail(S('agents'), `first row state "${restingState}"`);
+      // Every cell centred, header and body: these tables are read down a column.
+      const offCentre = await page.locator('.ag-detail .ag-table th, .ag-detail .ag-table td')
+        .evaluateAll((els) => els.filter((el) => getComputedStyle(el).textAlign !== 'center').length);
+      if (offCentre === 0) ok(S('agents'), 'every cell in the detail\'s table is centred');
+      else fail(S('agents'), `${offCentre} cells are not centred`);
       const liveRows = await page.locator('.ag-live-row').count();
       const pills = await page.locator('.ag-live-row .ag-pill').count();
       const firstPills = await page.locator('.ag-live-row').first().locator('.ag-pill').allTextContents();
@@ -1251,15 +1263,15 @@ async function run() {
       } else fail(S('agents'), `live state: ${liveRows} rows, ${pills} pills, first ${firstPills.join(' | ')}`);
       const ages = await page.locator('.ag-live-row .ag-live-age').allTextContents();
       // `.every` on an empty list is vacuously true, so the length is part of the check.
-      if (ages.length === 5 && ages.every((t) => /changed \d+ s ago/.test(t))) ok(S('agents'), 'each reading says when its words last changed');
+      if (ages.length === 5 && ages.every((t) => /^Last change: \d+ (secs|mins?) ago$/.test(t.trim()))) ok(S('agents'), `each reading says when its words last changed, one phrasing ("${(ages[0] || '').trim()}")`);
       else fail(S('agents'), `observation ages: ${ages.join(' | ')}`);
       const countdown = await page.locator('.ag-countdown-val').textContent().catch(() => '');
       if (/^\d+h \d{2}m \d{2}s$/.test((countdown || '').trim())) ok(S('agents'), `the detail counts down to the next decision to the second (${(countdown || '').trim()})`);
       else fail(S('agents'), `countdown reads "${countdown}"`);
-      const tiles = await page.locator('.ag-postile').count();
-      const tileSym = await page.locator('.ag-postile-sym').first().textContent().catch(() => '');
-      if (tiles === 1 && /BTC\/USD/.test(tileSym || '')) ok(S('agents'), 'the held position is a tile under the headline');
-      else fail(S('agents'), `position tiles ${tiles}, first "${tileSym}"`);
+      const tiles = await page.locator('.ag-poscard').count();
+      const tileSym = await page.locator('.ag-poscard .pc-ticker').first().textContent().catch(() => '');
+      if (tiles === 1 && /BTC\/USD/.test(tileSym || '')) ok(S('agents'), 'the held position is a card under the headline');
+      else fail(S('agents'), `position cards ${tiles}, first "${tileSym}"`);
       const desc = await page.locator('.ag-desc').count();
       if (desc === 0) ok(S('agents'), 'no description paragraph on the detail');
       else fail(S('agents'), `${desc} description paragraphs`);
@@ -1299,14 +1311,14 @@ async function run() {
       await page.locator('.header-menu-item:text-is("Agents")').first().click();
       await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
       await page.locator('.ag-row', { has: page.locator('.ag-name-btn:text-is("Trend 4h · Kraken")') }).first().click();
-      await page.waitForSelector('.ag-positions tbody tr', { timeout: 5_000 });
-      const masked = await page.locator('.ag-positions tbody tr').first().locator('td').allTextContents();
-      const hasDigits = (t) => /\d/.test(t);
-      const sizeCell = (masked[2] || '').trim(), costCell = (masked[3] || '').trim();
-      const fillSizes = await page.locator('.ag-fills tbody tr td:nth-child(4)').allTextContents();
-      if (!hasDigits(sizeCell) && !hasDigits(costCell) && fillSizes.length > 0 && !fillSizes.some(hasDigits)) {
+      await page.waitForSelector('.ag-poscard', { timeout: 5_000 });
+      const hasDigits = (/** @type {string} */ t) => /\d/.test(t);
+      const cardVals = (await page.locator('.ag-poscard .pc-row span:last-child').allTextContents()).map((t) => t.trim());
+      const sizeCell = cardVals[0] || '', costCell = cardVals[1] || '';
+      const orderSizes = await page.locator('.ag-fills tbody tr td:nth-child(4)').allTextContents();
+      if (!hasDigits(sizeCell) && !hasDigits(costCell) && orderSizes.length > 0 && !orderSizes.some(hasDigits)) {
         ok(S('agents'), `hide-values masks the position size as well as the money (size reads "${sizeCell}")`);
-      } else fail(S('agents'), `under the mask: size "${sizeCell}", avg cost "${costCell}", fill sizes ${fillSizes.join(' | ')}`);
+      } else fail(S('agents'), `under the mask: size "${sizeCell}", avg cost "${costCell}", order sizes ${orderSizes.join(' | ')}`);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(200);
       await page.keyboard.press('Escape');

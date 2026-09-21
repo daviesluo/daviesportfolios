@@ -12,12 +12,16 @@
 import React from 'react';
 import { Modal } from './modals.jsx';
 import { fmtMoney, maskDigits, pctColor } from './formatters.js';
+import { ukTzAbbr } from './market_hours.js';
 import {
-  agentsAlerts, agentsErrorView, balanceLines, countdownText, decisionView, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fillRows, fillsSummary, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, liveStateRows, observationView, orderView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, strategyRows, strategyScoreboard, totalsView, venueHue, venueLabel, venueRows, newestWins, sizeText,
+  agentsAlerts, agentsErrorView, balanceLines, countdownText, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
 } from './agents_chart.js';
+
+/** The abbreviation the site's own header clock shows — BST or GMT, whichever is in force. */
+const UK_TZ = ukTzAbbr(new Date());
 
 const REFRESH_MS = 60_000;
 const TICK_MS = 20_000;
@@ -82,12 +86,12 @@ function Money({ v, signed = true, m }) {
 
 /**
  * One cell of the scoreboard: a label, a signed amount, its percent — the home page's own shape.
- * @param {{ label: string, usd: number, pct: number | null, m: (s: string) => string, note?: string | null, cls?: string }} props
+ * @param {{ label: string, usd: number, pct: number | null, m: (s: string) => string, note?: string | null, cls?: string, aside?: string | null }} props
  */
-function GlCell({ label, usd, pct, m, note = null, cls = '' }) {
+function GlCell({ label, usd, pct, m, note = null, cls = '', aside = null }) {
   return (
     <div className={`ag-sb-cell ${cls}`}>
-      <div className="sb-label">{label}</div>
+      <div className="sb-label">{label}{aside ? <span className="ag-sb-aside"> ({aside})</span> : null}</div>
       <div className="sb-value mono sb-change-row" style={{ color: pctColor(usd) }}>
         <span className="ag-sb-usd">{m(fmtMoney(usd ?? 0, { signed: true, compact: false }))}</span>
         {pct != null && Number.isFinite(pct) ? <span className="sb-pct">({fmtPctSigned(pct, 2)})</span> : null}
@@ -116,10 +120,7 @@ function Scoreboard({ dash, m }) {
       <div className="ag-sb-divider" />
       <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} />
       <div className="ag-sb-divider" />
-      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} cls="ag-sb-realised" />
-    </div>
-    <div className="ag-sb-under mono dim">
-      {m(fmtUsd(v.capitalUsd))} paper capital · today since 00:00 UTC · percentages on capital, unrealised on the cost of what is held · fees {m(fmtUsd(v.feesUsd))}
+      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} cls="ag-sb-realised" aside={`incl. fees ${m(fmtUsd(v.feesUsd))}`} />
     </div>
     </>
   );
@@ -140,9 +141,8 @@ function StrategyScoreboard({ s, m }) {
       <div className="ag-sb-divider" />
       <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} />
       <div className="ag-sb-divider" />
-      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} />
+      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} aside={`incl. fees ${m(fmtUsd(v.feesUsd))}`} />
     </div>
-    <div className="ag-sb-under mono dim">of {m(fmtUsd(v.capitalUsd))} capital · today since 00:00 UTC · fees {m(fmtUsd(v.feesUsd))}</div>
     </>
   );
 }
@@ -272,146 +272,6 @@ function StrategyCards({ rows, m, onOpen }) {
   );
 }
 
-/** What stops everything trading, said out loud above the table: a global pause, a venue fault, a live venue with no key. */
-function Alerts({ dash }) {
-  const alerts = agentsAlerts(dash);
-  if (!alerts.length) return null;
-  return (
-    <div className="ag-alerts">
-      {alerts.map((a) => (
-        <div key={a.id} className={`ag-alert is-${a.tone}`} role="status">
-          <span className="ag-alert-icon" aria-hidden="true">{a.tone === 'stop' ? '⏸' : '⚠'}</span>
-          <span className="ag-alert-label mono">{a.label}</span>
-          <span className="ag-alert-text">{a.text}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/**
- * A failure in words, with the way back: what kind of failure, one plain
- * sentence, the server's own message shortened, a retry, and the raw text
- * folded away for whoever needs it. The sibling of `NotReady`.
- */
-/** @param {{ err: any, onRetry?: (() => void | Promise<void>) | null, compact?: boolean }} props */
-function AgentsError({ err, onRetry = null, compact = false }) {
-  const v = agentsErrorView(err);
-  return (
-    <div className={`ag-errorcard${compact ? ' is-compact' : ''}`} role="alert">
-      <div className="ag-errorcard-title mono">{v.title}</div>
-      <p className="ag-errorcard-text">{v.sentence}{v.short ? <> <span className="dim">{v.short}</span></> : null}</p>
-      <div className="ag-errorcard-actions">
-        {onRetry ? <button type="button" className="btn-ghost ag-retry" onClick={onRetry}>Try again</button> : <span className="dim">Retries with the next refresh.</span>}
-        <details className="ag-errorcard-details"><summary className="dim mono">details</summary><pre className="mono">{v.detail}</pre></details>
-      </div>
-    </div>
-  );
-}
-
-
-function Positions({ s, m }) {
-  const rows = (s.positions ?? []).filter((p) => p.base > 0 || p.fills > 0);
-  return (
-    <section className="ag-section ag-positions">
-      <div className="ag-section-title mono">POSITIONS</div>
-      <div className="hl-scroll">
-        <table className="hl-table ag-table mono">
-          <thead><tr>
-            <th className="hl-th hl-left">Symbol</th><th className="hl-th hl-left ag-ph">Venue</th><th className="hl-th hl-right">Size</th><th className="hl-th hl-right">Avg cost</th>
-            <th className="hl-th hl-right ag-ph">Mark</th><th className="hl-th hl-right">Value</th><th className="hl-th hl-right">Unrealised</th>
-            <th className="hl-th hl-right ag-ph">Realised</th><th className="hl-th hl-right ag-ph">Fees</th><th className="hl-th hl-right ag-ph">Fills</th>
-          </tr></thead>
-          <tbody>
-            {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={10}>Flat — nothing held yet.</td></tr>}
-            {rows.map((p) => (
-              <tr key={p.symbol}>
-                <td className="hl-left hl-strong">{p.symbol}</td>
-                <td className="hl-left ag-ph"><VenueBadge id={s.venue} /></td>
-                <td className="hl-right">{p.base > 0 ? sizeText(p.base, m) : <span className="dim">flat</span>}</td>
-                <td className="hl-right">{p.base > 0 ? m(fmtUsd(p.avgCost)) : '—'}</td>
-                <td className="hl-right ag-ph">{m(fmtUsd(p.mark))}</td>
-                <td className="hl-right hl-strong">{m(fmtUsd(p.valueUsd))}</td>
-                <td className="hl-right"><Money v={p.unrealisedUsd} m={m} /></td>
-                <td className="hl-right ag-ph"><Money v={p.realisedUsd} m={m} /></td>
-                <td className="hl-right dim ag-ph">{m(fmtUsd(p.feesUsd))}</td>
-                <td className="hl-right dim ag-ph">{p.fills}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
-
-function Decisions({ rows }) {
-  return (
-    <section className="ag-section">
-      <div className="ag-section-title mono">DECISIONS</div>
-      <div className="hl-scroll">
-        <table className="hl-table ag-table ag-log mono">
-          <thead><tr>
-            <th className="hl-th hl-left">When (UTC)</th><th className="hl-th hl-left">Symbol</th><th className="hl-th hl-left">State</th>
-            <th className="hl-th hl-left">Rule</th><th className="hl-th hl-left">Final</th><th className="hl-th hl-right ag-ph">P(healthy)</th>
-            <th className="hl-th hl-right ag-ph">Caution</th><th className="hl-th hl-left ag-ph">Model</th><th className="hl-th hl-left ag-ph">Risk</th>
-          </tr></thead>
-          <tbody>
-            {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={9}>No decisions yet — the first comes at the next closed bar.</td></tr>}
-            {rows.map((d) => (
-              <tr key={d.id} title={d.reason}>
-                <td className="hl-left dim">{when(d.ts)}</td>
-                <td className="hl-left hl-strong">{d.symbol}</td>
-                <td className="hl-left ag-state">{d.stateText}</td>
-                <td className="hl-left"><span className={`ag-action ag-action-${d.ruleAction}`}>{d.ruleAction}</span></td>
-                <td className="hl-left"><span className={`ag-action ag-action-${d.finalAction}`}>{d.finalAction}</span></td>
-                <td className="hl-right ag-ph">{d.healthy == null ? <span className="dim">—</span> : d.healthy.toFixed(2)}</td>
-                <td className="hl-right ag-ph">{d.caution == null ? <span className="dim">—</span> : d.caution.toFixed(2)}</td>
-                <td className="hl-left dim ag-ph">{d.provider}{d.latencyMs ? ` · ${d.latencyMs} ms` : ''}</td>
-                <td className="hl-left ag-ph">{d.allowed ? <span className="dim">ok</span> : <span className="ag-blocked" title={d.riskReason}>blocked</span>}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
-
-function Orders({ rows, m, venue }) {
-  return (
-    <section className="ag-section">
-      <div className="ag-section-title mono">ORDERS</div>
-      <div className="hl-scroll">
-        <table className="hl-table ag-table ag-log mono">
-          <thead><tr>
-            <th className="hl-th hl-left">When (UTC)</th><th className="hl-th hl-left">Symbol</th><th className="hl-th hl-left ag-ph">Venue</th><th className="hl-th hl-left">Side</th>
-            <th className="hl-th hl-right">Price</th><th className="hl-th hl-right ag-ph">Size</th><th className="hl-th hl-right ag-ph">Notional</th>
-            <th className="hl-th hl-left">State</th><th className="hl-th hl-right ag-ph">Fill</th><th className="hl-th hl-right ag-ph">Fee</th><th className="hl-th hl-left ag-ph">Mode</th>
-          </tr></thead>
-          <tbody>
-            {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={11}>No orders yet.</td></tr>}
-            {rows.map((o) => (
-              <tr key={o.id} className={`txn-row txn-row-${o.side}`}>
-                <td className="hl-left dim">{when(o.ts)}</td>
-                <td className="hl-left hl-strong">{o.symbol}</td>
-                <td className="hl-left ag-ph"><VenueBadge id={o.venue ?? venue} /></td>
-                <td className="hl-left"><span className={`txn-badge txn-${o.side}`}>{o.side.toUpperCase()}</span></td>
-                <td className="hl-right">{m(fmtUsd(o.price))}</td>
-                <td className="hl-right ag-ph">{sizeText(o.base, m)}</td>
-                <td className="hl-right ag-ph">{m(fmtUsd(o.notionalUsd))}</td>
-                <td className="hl-left"><span className={`ag-state-pill ag-state-${o.state}`}>{o.state.replace('_', ' ')}</span></td>
-                <td className="hl-right ag-ph">{o.fillPrice != null ? m(fmtUsd(o.fillPrice)) : <span className="dim">—</span>}</td>
-                <td className="hl-right dim ag-ph">{m(fmtUsd(o.feeUsd))}</td>
-                <td className="hl-left ag-ph"><ModeBadge mode={o.mode} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
 
 
 
@@ -565,51 +425,83 @@ function PriceChart({ chart, nowMs, hue, m = (s) => s }) {
   );
 }
 
-/** The fills the chart marks, as rows — the same events, read rather than seen. */
-function Fills({ chart, m, venue }) {
-  const rows = fillRows(chart);
-  const sum = fillsSummary(chart);
+/** What stops everything trading, said out loud above the table: a global pause, a venue fault, a live venue with no key. */
+function Alerts({ dash }) {
+  const alerts = agentsAlerts(dash);
+  if (!alerts.length) return null;
+  return (
+    <div className="ag-alerts">
+      {alerts.map((a) => (
+        <div key={a.id} className={`ag-alert is-${a.tone}`} role="status">
+          <span className="ag-alert-icon" aria-hidden="true">{a.tone === 'stop' ? '⏸' : '⚠'}</span>
+          <span className="ag-alert-label mono">{a.label}</span>
+          <span className="ag-alert-text">{a.text}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** @param {{ err: any, onRetry?: (() => void | Promise<void>) | null, compact?: boolean }} props */
+function AgentsError({ err, onRetry = null, compact = false }) {
+  const v = agentsErrorView(err);
+  return (
+    <div className={`ag-errorcard${compact ? ' is-compact' : ''}`} role="alert">
+      <div className="ag-errorcard-title mono">{v.title}</div>
+      <p className="ag-errorcard-text">{v.sentence}{v.short ? <> <span className="dim">{v.short}</span></> : null}</p>
+      <div className="ag-errorcard-actions">
+        {onRetry ? <button type="button" className="btn-ghost ag-retry" onClick={onRetry}>Try again</button> : <span className="dim">Retries with the next refresh.</span>}
+        <details className="ag-errorcard-details"><summary className="dim mono">details</summary><pre className="mono">{v.detail}</pre></details>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Every order on this pair, newest first: the one table on the page that
+ * says what the rule did and what it cost. It replaced a fills table, a
+ * positions table and a decisions table that repeated each other; the side
+ * keeps the arrow the chart marks a fill with, so the row and the mark read
+ * as one thing. Times are UK local, the clock in the site's header.
+ * @param {{ chart: any, more: any, symbol: string | null, m: (s: string) => string, venue: string }} props
+ */
+function SymbolOrders({ chart, more, symbol, m, venue }) {
+  const rows = symbolOrderRows(chart, more, symbol);
   return (
     <div className="ag-fills">
       <div className="hl-scroll">
         <table className="hl-table ag-table mono">
           <thead><tr>
-            <th className="hl-th hl-left">When (UTC)</th><th className="hl-th hl-left">Side</th><th className="hl-th hl-right">Price</th>
-            <th className="hl-th hl-right">Size</th><th className="hl-th hl-right">Notional</th><th className="hl-th hl-right ag-ph">Fee</th>
-            <th className="hl-th hl-left ag-ph">Venue</th><th className="hl-th hl-left ag-ph">Liquidity</th>
+            <th className="hl-th">When ({UK_TZ})</th><th className="hl-th">Side</th><th className="hl-th">Price</th>
+            <th className="hl-th">Size</th><th className="hl-th">Cost</th><th className="hl-th ag-ph">Fee</th>
+            <th className="hl-th">State</th><th className="hl-th ag-ph">Venue</th><th className="hl-th ag-ph">Liquidity</th>
           </tr></thead>
           <tbody>
-            {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={8}>No fills on this pair in the window.</td></tr>}
-            {rows.map((f) => (
-              <tr key={f.id} className={`ag-fill-row ag-fill-row-${f.side}`}>
-                <td className="hl-left dim">{fmtChartStamp(f.ts)}</td>
-                <td className="hl-left">
-                  <span className={`ag-side ag-side-${f.side}`}><span className="ag-side-mark" aria-hidden="true" />{f.side}</span>
+            {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={9}>No orders on this pair in the window.</td></tr>}
+            {rows.map((o) => (
+              <tr key={o.id} className={`ag-fill-row ag-fill-row-${o.side}`}>
+                <td className="dim">{fmtChartStamp(o.ts)}</td>
+                <td>
+                  <span className={`ag-side ag-side-${o.side}`}><span className="ag-side-mark" aria-hidden="true" />{o.side}</span>
                 </td>
-                <td className="hl-right hl-strong">{m(fmtUsd(f.price))}</td>
-                <td className="hl-right">{sizeText(f.base, m)}</td>
-                <td className="hl-right">{m(fmtUsd(f.notionalUsd))}</td>
-                <td className="hl-right dim ag-ph">{m(fmtUsd(f.feeUsd))}</td>
-                <td className="hl-left ag-ph"><VenueBadge id={f.venue ?? venue} /></td>
-                <td className="hl-left dim ag-ph">{f.liquidity}</td>
+                <td className="hl-strong">{m(fmtUsd(o.fillPrice ?? o.price))}</td>
+                <td>{sizeText(o.base, m)}</td>
+                <td>{m(fmtUsd(o.costUsd))}</td>
+                <td className="dim ag-ph">{m(fmtUsd(o.feeUsd))}</td>
+                <td><span className={`ag-state-pill ag-state-${o.state}`}>{o.state.replace('_', ' ')}</span></td>
+                <td className="ag-ph"><VenueBadge id={o.venue ?? venue} /></td>
+                <td className="dim ag-ph">{o.liquidity}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
-      <div className="ag-fills-sum mono dim">
-        <span>{sum.count} fill{sum.count === 1 ? '' : 's'} <span className="dim">· {sum.buys} buy · {sum.sells} sell</span></span>
-        <span>realised <Money v={sum.realisedUsd} m={m} /></span>
-        <span>fees <span className="hl-strong">{m(fmtUsd(sum.feesUsd))}</span></span>
-        {sum.openOrders > 0 && <span>{sum.openOrders} resting</span>}
-        <span>{sum.decisions} decision{sum.decisions === 1 ? '' : 's'} in the window</span>
       </div>
     </div>
   );
 }
 
 /** The chart card: symbol tabs, the chart for the one selected, and its fills. */
-function SymbolChart({ s, symbol, onSelect, m, nowMs, at }) {
+function SymbolChart({ s, symbol, onSelect, m, nowMs, at, more }) {
   const [chart, setChart] = React.useState(/** @type {any} */ (() => readChartCache(s.id, symbol)?.chart ?? null));
   const [error, setError] = React.useState(/** @type {string | null} */ (null));
   const [loading, setLoading] = React.useState(() => !readChartCache(s.id, symbol));
@@ -636,9 +528,6 @@ function SymbolChart({ s, symbol, onSelect, m, nowMs, at }) {
   }, [s.id, symbol, at]);
 
   const hue = venueHue(chart?.signalVenue ?? s.signalVenue ?? s.venue);
-  // The chart's own position, so the header and the dotted average-cost
-  // line can never disagree; the dashboard's row is the fallback.
-  const book = chart?.position ?? held.get(symbol) ?? null;
   return (
     <section className="ag-section ag-chart-card">
       <div className="ag-section-title mono">PRICE &amp; FILLS</div>
@@ -657,10 +546,6 @@ function SymbolChart({ s, symbol, onSelect, m, nowMs, at }) {
       <div className="ag-chart-head mono">
         <span className="ag-chart-sym hl-strong">{symbol}</span>
         {chart && <span className="dim">{windowText(chart.intervalMin, Date.parse(chart.at) - Date.parse(chart.since))}</span>}
-        {chart?.candles?.length ? <span className="dim">last <span className="hl-strong">{fmtChartPrice(chart.candles[chart.candles.length - 1][4], Math.abs(chart.candles[chart.candles.length - 1][4]) * 0.05)}</span></span> : null}
-        {book && book.base > 0
-          ? <span className="dim">holding <span className="hl-strong">{m(book.base.toFixed(6))}</span> @ {m(fmtUsd(book.avgCost))}</span>
-          : <span className="dim">flat</span>}
         {loading && !chart && <span className="dim">loading…</span>}
       </div>
       {error && <AgentsError err={error} compact />}
@@ -668,7 +553,7 @@ function SymbolChart({ s, symbol, onSelect, m, nowMs, at }) {
       {!error && chart && (
         <>
           <PriceChart m={m} chart={chart} nowMs={nowMs} hue={hue} />
-          <Fills chart={chart} m={m} venue={chart.venue ?? s.venue} />
+          <SymbolOrders chart={chart} more={more} symbol={symbol} m={m} venue={chart.venue ?? s.venue} />
         </>
       )}
     </section>
@@ -699,7 +584,7 @@ function LiveState({ s, nowMs, selected, onSelect }) {
           ) : <span className="ag-pills dim">no reading yet</span>}
           <span className="ag-live-age mono">
             {r.observation?.basisBps != null && <span className="ag-live-basis" style={{ color: pctColor(r.observation.basisBps) }}>{fmtBps(r.observation.basisBps)}</span>}
-            <span className={r.observation?.fresh ? 'ag-live-fresh' : 'dim'}>{r.observation ? r.observation.ageText : '—'}</span>
+            <span className={r.observation?.fresh ? 'ag-live-fresh' : 'dim'}>{lastChangeText(r.observation ? r.observation.ageMs : null)}</span>
           </span>
         </button>
       ))}
@@ -727,25 +612,37 @@ function NotReady({ dash }) {
   );
 }
 
-function PositionTiles({ s, m, nowMs }) {
+/**
+ * What the strategy is holding, as the SAME card the tactics board opens for
+ * a ticker: one structure and one stylesheet for "here is a position", so a
+ * person reading the agents page is not learning a second layout. Clicking a
+ * card points the chart at that pair, the way the board's card opens a chart.
+ * @param {{ s: any, m: (s: string) => string, nowMs: number, selected: string | null, onSelect: (sym: string) => void }} props
+ */
+function PositionTiles({ s, m, nowMs, selected, onSelect }) {
   const lines = positionLines(s);
   if (!lines.length) return null;
   return (
-    <div className="ag-postiles">
+    <div className="player-grid ag-poscards">
       {lines.map((p) => (
-        <div key={p.symbol} className={`ag-postile ${p.unrealisedUsd >= 0 ? 'is-up' : 'is-down'}`}>
-          <div className="ag-postile-head mono">
-            <span className="ag-postile-sym">{p.symbol}</span>
-            <span className="ag-postile-ret" style={{ color: pctColor(p.returnPct) }}>{m(fmtPctSigned(p.returnPct, 2))}</span>
+        <div key={p.symbol} role="button" tabIndex={0}
+          className={`player-card ag-poscard${p.symbol === selected ? ' is-on' : ''}`}
+          onClick={() => onSelect(p.symbol)}
+          onKeyDown={(e) => { if (e.target !== e.currentTarget) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(p.symbol); } }}>
+          <div className="pc-top">
+            <span className="pc-ticker mono">{p.symbol}</span>
+            <span className="pc-day mono" style={{ color: pctColor(p.returnPct) }}>
+              {m(fmtMoney(p.unrealisedUsd ?? 0, { signed: true, compact: false }))} ({fmtPctSigned(p.returnPct, 2)})
+            </span>
           </div>
-          <div className="ag-postile-size mono">{m(p.base.toFixed(6))} <span className="dim">{p.symbol.split('/')[0]}</span></div>
-          <div className="ag-postile-grid mono">
-            <span className="dim">avg cost</span><span>{m(fmtUsd(p.avgCost))}</span>
-            <span className="dim">mark</span><span>{m(fmtUsd(p.mark))}</span>
-            <span className="dim">value</span><span>{m(fmtUsd(p.valueUsd))}</span>
-            <span className="dim">unrealised</span><Money v={p.unrealisedUsd} m={m} />
+          <div className="pc-price mono">{m(fmtUsd(p.mark))}</div>
+          <div className="pc-rows">
+            <div className="pc-row"><span className="dim">Size</span><span className="mono">{sizeText(p.base, m)}</span></div>
+            <div className="pc-row"><span className="dim">Avg cost</span><span className="mono">{m(fmtUsd(p.avgCost))}</span></div>
+            <div className="pc-row"><span className="dim">Cost</span><span className="mono">{m(fmtUsd(p.costUsd))}</span></div>
+            <div className="pc-row"><span className="dim">Value</span><span className="mono">{m(fmtUsd(p.valueUsd))}</span></div>
+            <div className="pc-row"><span className="dim">Held</span><span className="mono">{p.openedAt != null ? ago(nowMs - p.openedAt) : '—'}</span></div>
           </div>
-          {p.openedAt != null && <div className="ag-postile-held dim mono">held {ago(nowMs - p.openedAt)}</div>}
         </div>
       ))}
     </div>
@@ -773,10 +670,7 @@ function Detail({ s, dash, m, nowMs }) {
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [symbol, setSymbol] = React.useState(() => defaultChartSymbol(s));
   React.useEffect(() => { setSymbol(defaultChartSymbol(s)); }, [s.id]);   // eslint-disable-line react-hooks/exhaustive-deps
-  const decisions = (more?.decisions ?? s.recentDecisions ?? []).map(decisionView);
-  const orders = (more?.orders ?? s.recentOrders ?? []).map(orderView);
   const status = strategyRows({ ...dash, strategies: [s] }, nowMs)[0].status;
-  const params = Object.entries(s.params ?? {});
   const loadMore = async () => {
     setLoadingMore(true);
     try { setMore(await fetchAgentsLog(s.id, 300)); } catch { /* keep what we have */ } finally { setLoadingMore(false); }
@@ -789,19 +683,10 @@ function Detail({ s, dash, m, nowMs }) {
         <Countdown at={s.nextDecisionAt} label={s.kind === 'dislocation-1m' ? 'next read' : 'next decision'} />
       </div>
       <h3 className="ag-detail-title mono sr-only">{s.name}</h3>
-      <div className="ag-kv mono">
-        <span className="ag-kv-kind">{kindLabel(s.kind)}</span><VenueBadge id={s.venue} signal={s.signalVenue} />
-        <span className="dim">{s.symbols.join(' · ')}</span>
-        <span className="dim">capital <span className="hl-strong">{m(fmtUsd(Number(s.capitalUsd)))}</span></span>
-        {params.map(([k, v]) => <span key={k} className="dim">{k} <span className="hl-strong">{String(v)}</span></span>)}
-      </div>
       <StrategyScoreboard s={s} m={m} />
-      <PositionTiles s={s} m={m} nowMs={nowMs} />
+      <PositionTiles s={s} m={m} nowMs={nowMs} selected={symbol} onSelect={setSymbol} />
       <LiveState s={s} nowMs={nowMs} selected={symbol} onSelect={setSymbol} />
-      <SymbolChart s={s} symbol={symbol} onSelect={setSymbol} m={m} nowMs={nowMs} at={dash?.at} />
-      <Positions s={s} m={m} />
-      <Decisions rows={decisions} />
-      <Orders rows={orders} m={m} venue={s.venue} />
+      <SymbolChart s={s} symbol={symbol} onSelect={setSymbol} m={m} nowMs={nowMs} at={dash?.at} more={more} />
       {!more && (
         <button className="btn-ghost ag-more" onClick={loadMore} disabled={loadingMore}>{loadingMore ? 'Loading…' : 'Load full history'}</button>
       )}
