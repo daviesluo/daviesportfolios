@@ -214,7 +214,7 @@ async function dashboard(now: number) {
   const dayStart = new Date(Math.floor(now / ONE_D) * ONE_D).toISOString();
   const since24h = new Date(now - ONE_D).toISOString();
   const [strategies, riskRows, filled, open, today, decisions24h, recentDecisions, recentOrders, backtests, basis24h, observations, { venues, notes }] = await Promise.all([
-    d.select<StrategyRow & { description: string; updated_at: string }>("agent_strategies", "select=*&order=id.asc"),
+    d.select<StrategyRow & { description: string; updated_at: string }>("agent_strategies", "retired_at=is.null&select=*&order=id.asc"),   // a retired row keeps its records and leaves the page (0038)
     d.select<RiskRow & { updated_at: string }>("agent_risk", "id=eq.1&select=*"),
     d.select<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc"),   // the filled part of a working order is a position too
     d.select<OrderRow & { request: unknown }>("agent_orders", "state=in.(pending,new,partially_filled)&select=*&order=ts.desc"),

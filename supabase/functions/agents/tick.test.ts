@@ -60,9 +60,10 @@ function memDb(seed: Record<string, Row[]>, hooks: { beforeDecisionInsert?: (tab
       if (k === "select") { select = v === "*" ? null : v.split(","); continue; }
       if (k === "order") { const [col, dir] = v.split("."); order = { col, dir: dir === "desc" ? "desc" : "asc" }; continue; }
       if (k === "limit") { limit = Number(v); continue; }
-      const m = v.match(/^(eq|in|gte|lt)\.(.*)$/);
+      const m = v.match(/^(eq|in|gte|lt|is)\.(.*)$/);
       if (!m) throw new Error(`stub db: unsupported filter ${part}`);
       const val = decodeURIComponent(m[2]);
+      if (m[1] === "is") { if (val !== "null" && val !== "not.null") throw new Error(`stub db: unsupported filter ${part}`); filters.push((r) => (r[k] == null) === (val === "null")); }
       if (m[1] === "eq") filters.push((r) => String(r[k]) === val);
       if (m[1] === "in") { const set = val.slice(1, -1).split(","); filters.push((r) => set.includes(String(r[k]))); }
       if (m[1] === "gte") filters.push((r) => String(r[k]) >= val);
@@ -228,6 +229,18 @@ Deno.test("a fresh closed bar becomes one decision and one resting paper order a
   assert(w.kraken.calls.includes("candles BTC/USD 1"));                 // the execution venue's last minute, for paper fills
   const lock = w.mem.tables.agent_locks[0];
   assertEquals([lock.lease_until, lock.holder], [new Date(NOW).toISOString(), null]);   // the lease was taken and given back
+});
+
+Deno.test("a retired strategy row is never ticked, whatever its mode says: its records stay, its turn does not come (0038)", async () => {
+  const live = strategy();
+  const retired = { ...strategy(), id: "trend-4h-retired", retired_at: new Date(NOW - 60_000).toISOString() };
+  const w = world({ strategies: [retired, live] });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.decisions.map((d) => d.strategy), ["trend-4h-kraken"]);
+  assert(w.mem.tables.agent_decisions.every((d) => d.strategy_id !== "trend-4h-retired"));
+  assert(w.mem.tables.agent_orders.every((o) => o.strategy_id !== "trend-4h-retired"));
+  assert(w.mem.tables.agent_observations.every((o) => o.strategy_id !== "trend-4h-retired"));
 });
 
 Deno.test("one tick at a time: a turn that finds the lease held does nothing, and a turn that ran holds it for the cron minute at most", async () => {

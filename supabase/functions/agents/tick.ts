@@ -238,7 +238,7 @@ export async function tick(d: TickDeps): Promise<TickReport> {
 async function turn(d: TickDeps, report: TickReport, nowIso: string): Promise<void> {
   const [riskRows, strategies, open] = await Promise.all([
     d.db.select<RiskRow>("agent_risk", "id=eq.1&select=*"),
-    d.db.select<StrategyRow>("agent_strategies", "mode=in.(paper,live)&select=*&order=id.asc"),
+    d.db.select<StrategyRow>("agent_strategies", "mode=in.(paper,live)&retired_at=is.null&select=*&order=id.asc"),
     d.db.select<OrderRow>("agent_orders", "state=in.(pending,new,partially_filled)&select=*"),
   ]);
   const risk = riskRows[0];
