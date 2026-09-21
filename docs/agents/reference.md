@@ -418,39 +418,67 @@ default -14.4 % OOS on Revolut X (exposure 33 %, 21.45×/y), no bear filter -47.
 
 ### 3.4 The rotation rulebook and the 1-hour trend variant (walk-forward, both venues)
 
+**Re-run 2026-09-21 with the loop's stops and cooldown in it.** Until that
+day `runRotation` ran the bare rank rule: no floor under a slot, no
+cooldown after an exit — so every figure this section used to print
+described a rule the loop does not run, while §4.11 claimed the opposite.
+The pre-live review found it (`docs/agents/reviews/`, S2). The table below
+is the rule as the loop runs it, with the bare rank rule beside it as the
+counterfactual; both from `docs/agents/backtests/latest.json`.
+
 `rotation-1d`: rank BTC, ETH, SOL and XRP by 30-day return at each daily
 close, hold the top two equal-weighted, and only those above their
-100-day average (dual momentum). Same data and split as §3.3 (XRP from
-Coinbase, 2023-09 →); fills at the next day's open at the venue's
-half-spread and maker fee. Out of sample is the bear year.
+100-day average (dual momentum). 1,101 aligned days, 2023-09-16 →
+2026-09-20, split 2025-09-19; fills at the next day's open at the venue's
+half-spread and fee (Revolut X takes the touch, Kraken rests). Out of
+sample is the bear year. **Shipped** = the 8 % floor under each slot's own
+cost, read against the day's low, and no re-entry into a symbol for two
+days after any exit from it.
 
-| Variant | Revolut X OOS | Kraken OOS | Exposure | Turnover | Revolut X full | Kraken full |
-|---|---|---|---|---|---|---|
-| default (top 2, filter on) | −12.2 % (DD 30 %) | −20.9 % | 33 % | 22×/y | +128 % | +56 % |
-| filter OFF (always in) | −45.5 % (DD 62 %) | −53.0 % | 100 % | 23×/y | +142 % | +56 % |
-| 7-day minimum hold | −15.8 % | **−16.1 %** | 39 % | 13×/y | +72 % | +41 % |
-| top 1 | −33.8 % | −45.8 % | 30 % | 37×/y | +39 % | −34 % |
-| top 3 | −4.4 % | −6.9 % | 33 % | 16×/y | +110 % | +55 % |
-| 60-day lookback | −15.6 % | −22.4 % | 33 % | 17×/y | +75 % | +31 % |
-| equal-weight buy & hold | −46.7 % | | 100 % | | +225 % | |
+| Variant | Revolut X OOS (shipped) | bare rank rule | Kraken OOS (shipped) | bare | Exposure | Turnover | Revolut X full | Kraken full |
+|---|---|---|---|---|---|---|---|---|
+| default (top 2, filter on) | **−16.2 %** (DD 33 %, 63 trades, 8 stops) | −14.4 % (DD 32 %, 64) | **−23.6 %** | −20.9 % | 30 % | 26×/y | +67.8 % | +26.4 % |
+| filter OFF (always in) | −59.4 % (DD 70 %, 143, 32 stops) | −47.4 % (DD 63 %, 102) | −67.0 % | −52.9 % | 96 % | 37×/y | +26.5 % | −21.6 % |
+| 7-day minimum hold (the Kraken seed) | −15.1 % (DD 32 %, 43, 11 stops) | −17.1 % (DD 35 %, 40) | **−13.2 %** | −16.1 % | 36 % | 17×/y | −1.6 % | −16.0 % |
+| top 1 | −43.9 % (DD 50 %, 55, 6 stops) | −36.8 % (DD 46 %, 51) | −52.4 % | −45.7 % | 24 % | 36×/y | −21.1 % | −57.2 % |
+| top 3 | −8.1 % (DD 30 %, 62, 7 stops) | −6.2 % (DD 29 %, 63) | −13.3 % | −6.9 % | 30 % | 16×/y | +80.8 % | +44.5 % |
+| 60-day lookback | −19.7 % (DD 38 %, 46, 8 stops) | −17.2 % (DD 36 %, 44) | −25.0 % | −22.4 % | 30 % | 17×/y | +37.5 % | +4.0 % |
+| equal-weight buy & hold | −46.7 % | | | | 100 % | | +225.1 % | |
 
-Reading: the bear filter is what protects capital — it gives up 14
-points of the three-year return and saves 33 in the bear year. "Capital
-active most of the time" is therefore a bull-market property of this rule,
-not a setting: with the filter off it is always invested and follows the
-market down. The filter is a parameter (`bearFilter`) Davies can switch
-off, with these numbers in front of him. Kraken's fee costs 4–12 points a
-year at 22 round trips; the 7-day hold halves the turnover and is the
-Kraken seed. Top 3 did best out of sample, top 2 over the full period —
-one bear year cannot separate them, so the seed keeps top 2.
+**The finding that matters: the 8 % floor makes the rotation rule worse,
+on five variants of six.** Default −16.2 % against the bare rule's
+−14.4 % out of sample, and +67.8 % against +108.2 % over the three years;
+with the bear filter off it is −59.4 % against −47.4 %, because the floor
+sells into every dip and the two-day cooldown then keeps the slot out of
+the rebound the rank rule would have ridden. The one variant it helps is
+the 7-day hold — the Kraken seed — where the minimum hold already damps
+the churn (−15.1 % against −17.1 %, and −13.2 % against −16.1 % on
+Kraken). A floor under a rank rule is not a stop on a position; it is an
+exit rule the rank rule does not have, and this is what it costs. **It is
+not changed** — changing a stop because two years of one basket preferred
+another is the fit the bar exists to refuse — but it is now written where
+the rotation rows' record is read, and the paper record is the test.
+
+Reading the rest: the bear filter is still what protects capital — with
+it off the rule follows the market down (−59.4 % against −16.2 %). It is
+a parameter (`bearFilter`) Davies can switch off, with these numbers in
+front of him. Kraken's 40 bps costs 7 points a year at 26 round trips
+(−23.6 % against −16.2 %); the 7-day hold cuts turnover to 17×/y and is
+the only shape whose two venues come out close. Top 3 was least bad out
+of sample and top 2 best over the full period, as before; one bear year
+cannot separate them, so the seed keeps top 2. **Every out-of-sample
+figure in this table is negative**: this rulebook has not made money in
+the year it was tested on, on either venue, with or without its stops.
 
 `trend-1h` (the 4-hour trend rule on 1-hour candles, volatility annualised
-for 24 bars a day): OOS on Revolut X costs BTC −10.1 % / ETH +9.6 % / SOL
-+17.9 % over 58–74 trades, against the 4-hour rule's −9.6 / −7.0 / +18.5 %
-with the same default parameters. It kept up, at three times the trade
-count; on Kraken's fee it would not. It is seeded paper-only on Revolut X
-because it produces decisions and fills fast enough to judge the loop and
-the model within days, which the daily rules cannot.
+for 24 bars a day), shipped stops, Revolut X costs, out of sample: BTC
+−9.3 % (DD 18 %, 78 trades, 36 of them stops) / ETH −6.9 % (DD 22 %, 70) /
+SOL +14.1 % (DD 23 %, 66) — the figures in §3.3a's table, which is this
+rule's current record. Without the stops: −13.3 % / +6.0 % / +14.1 %. It
+is seeded paper-only on Revolut X because it produces decisions and fills
+fast enough to judge the loop and the model within days, which the daily
+rules cannot; at Kraken's 40 bps its ~70 fills a year would cost ~28 % a
+year in fees.
 
 ### 3.5 The friend's three ideas — breakouts, double bottoms, illiquidity events — tested (2026-09-20)
 
@@ -909,13 +937,13 @@ snapshot; the model is not in the backtest; paper decides.
 8. **Two venues, each for what it is good at** (§2b, §2c). Revolut X executes (0 % maker); Kraken supplies the signal (`signal_venue`: its candles are the cleaner series) and runs paper twins whose fills pay its real fee. There is no arbitrage between them at any cadence available here — measured, not assumed — and the basis keeps being recorded so that stays true or is seen to change. Caps in `agent_risk` are per venue account and per mode.
 9. **Capital utilisation is a consequence of regime, not a target.** The rotation rule holds the strongest two of four whenever they trend; in a broad bear it holds cash, because the alternative lost 45 % out of sample (§3.4). The switch that makes it always-invested exists and is Davies' to flip, with the number beside it.
 10. **Nothing fast, except what the data earned — and nothing did.** A 1,000-order day on Revolut X and 40–80 bps a side on Kraken rule out market-making and cross-venue trading. The fastest rule is the 1-hour trend variant (paper, for feedback speed). The dislocation rule (§3.5: taker entries when Revolut X's touch sat ≥ 15 bps under Kraken) was seeded as a measurement and retired by `0038` after its one trade, which turned out to be the other region's book (§3.5, §4.14): a UK account cannot lift an EEA ask. §3.6 tried 15-minute and 1-hour bars with the loop's own fills: at 15 minutes the best parameters lose on every coin, in sample and out, because ~300 round trips a year at 20 bps each is 60 % of the account. A faster rule is a fee schedule, not a strategy, until data says otherwise.
-11. **Stops run between bars, entries do not.** The ATR trail and the floor under cost are checked every minute against the live mark and sell without asking the model; an entry is never taken between bar closes. A resting exit order never outranks a stop: when the stop fires it is cancelled first (on Revolut X the sale is then marketable; on Kraken a stop already resting at the ask is left to work). A stop is claimed on the minute, so one that lapses is tried again next minute, not next bar. After ANY exit a rule waits two of its own bars before buying again — §3.3a shows why. The backtester runs the same stops and the same cooldown, so the tables describe the shipped rule.
+11. **Stops run between bars, entries do not.** The ATR trail and the floor under cost are checked every minute against the live mark and sell without asking the model; an entry is never taken between bar closes. A resting exit order never outranks a stop: when the stop fires it is cancelled first (on Revolut X the sale is then marketable; on Kraken a stop already resting at the ask is left to work). A stop is claimed on the minute, so one that lapses is tried again next minute, not next bar. After ANY exit a rule waits two of its own bars before buying again — §3.3a shows why. The backtester runs the same stops and the same cooldown, so the tables describe the shipped rule — true of every rule from 2026-09-20 and of the ROTATION rule only from 2026-09-21, when the pre-live review found `runRotation` had neither and §3.4 was re-run with both (the sentence is left standing and corrected here, so the record shows what was claimed and when it was found wrong).
 12. **One turn at a time.** pg_net fires the next minute's tick whether or not the last one finished; a turn takes a lease (`agent_locks`, compare-and-set on its expiry, 55 s) and a turn that finds it held does nothing. The bar claim protects decisions; the lease protects everything else.
 13. **The model is asked on entries only.** It can veto one; it never advises an exit, and the seeds, the page and the README say exactly that. A partially filled live order is a position from its first fill (stops and caps see it); a venue-cancelled order that had filled in part is recorded as a fill of that part; a live order that filled on arrival is settled from the venue's own view next turn, fee included — never from the placement reply.
 14. **The venue's market data is the account's region, always.** Revolut X keeps two books per pair (UK / EEA) and this account trades the UK one; a quote or a candle from the other book is not a price this account can get, and reading one produced the only trade the dislocation rule ever made (§3.5). Every public call names `region=UK`, a row from another region is dropped, and the probe shows which book the loop is reading. The same discipline applies to any venue that publishes more than one book, and any fact of that kind written into this reference is a requirement on the client with a pin, the day it is written.
 15. **A coin joins a rule by a bar written before the numbers, never after.** §3.7's four tests — positive out of sample on Revolut X costs, drawdown under 35 %, at least half the parameter grid positive out of sample, positive on Kraken costs — decided AVAX in and LINK, DOGE, ADA out. §3.8 tightened it: the four tests on BOTH walk-forward windows (parameters on the first two thirds with the last third out, and parameters on the first third with the middle third out), and a Revolut X UK book of at least $100k a day, because a bar judged on one year is itself a fit to that year. Under the tightened bar SUI joined and six one-window passes did not; the same bar applies to the next candidate, and lowering it for a coin that nearly clears it is the overfit the friend's message warns about. The plateau share is reported for every coin and is the number to quote when someone says every strategy is sensitive to its parameters: sensitivity is a spike, robustness is a plateau, and both are measurable.
 16. **A coin one venue lacks runs on the other alone.** Davies (2026-09-21): the two venues' strategy lists need not be synchronous — a coin Revolut X does not list, lists only on the EEA book, or lists on a UK book under the $100k-a-day floor may run on Kraken alone, and the reverse holds. Nothing in the loop assumes the lists match: each `agent_strategies` row carries its own symbols (`0039` / `0040` appended to each row separately), the tick works one row at a time and the page reads positions per row. The bar does not move for a single-venue coin: the four tests on both windows on THAT venue's costs and a book on that venue of at least $100k a day. On Kraken the costs are 40 bps maker each side — 80 bps a round trip before the spread, against ~20 on Revolut X for the majors — so a Kraken-only coin needs a larger edge, not a smaller one, and the 4-hour rule is the only rulebook whose trade count can carry it (§3.6). Such a coin joins `trend-4h-kraken` by its own migration, paper first. Candidates are the coins §3.8 could not test on Revolut X (ZEC, XMR, TRX were named there); their Kraken series go through the same script before any is proposed.
-17. **The pre-live review, and what was done about it (2026-09-21).** An independent review of every agents file — the loop, the venue clients, the strategy module, the migrations, the page — is `docs/agents/reviews/2026-09-21-prelive-review.md`: seven blockers, sixteen should-fixes, twelve missing tests, the doc gaps. Shipped with pins the same day (`tick.test.ts`, `revx.test.ts`, `index.test.ts`, `strategy.test.ts`): **B1** a `pending` row the venue does not list STAYS pending — a marketable order fills or dies inside the turn, so its absence from the active list proves nothing — reported every turn with the venue's balance beside what the record holds, until a person settles it from the venue's history; **B2** a cancel whose read-back fails leaves the row open for the next turn to settle from the venue; **B3** the fills query is paged (`selectAll`; PostgREST stops at 1,000 rows without a word — the tick and the dashboard both read the whole book); **B4** `orderViewProblem`: a filled Revolut X order whose reply lacks `filled_size`, `average_fill_price` or `fees` is an error, never a fill at fee 0, and the probe now reads `/1.0/orders/active` and Kraken `ClosedOrders` and reports the field names each venue returns — the first live order's read-back is the verification, and until then those three names are the client's assumption, not a fact of this reference; **B5** a re-quote goes through `riskGate` like any order (global pause included); **B6** an allowed decision whose order never reached the book is placed on a later turn, the bar's claim staying with the decision, and migration `0041` makes the order insert the claim on the attempt so two turns' retries are one order; **B7** the lease is released by its holder only, renewed once past half its length, and a turn past 70 % of it opens no new bar decision (stops and observations are never deferred); **S1** the snapshot and the bar rule read the high-water trailed to the market, so the state's `drawdown_from_high` and the ATR clause match the backtester (the per-minute stop always did); **S3** a symbol with no quote and no candle has no mark, not a mark of 0; **S4** a protective decision claims one second into its minute, never a bar start; **S5** an open buy's unfilled notional is exposure now; **S6** the model's exit-advice branch is gone — Jev can veto an entry and nothing else (the rows' `exitMax` parameter is inert); **S8** `lookbackDays` moves the momentum window; **S9** a cached series must be contiguous to count as warm; **S10** the execution venue's 1-minute candle is fetched only where a paper order rests (the public Revolut X calls a turn are tickers and pairs plus one per resting paper order — four with none resting, against the eight §4.2's "half a dozen" had grown to); **S12** the probe checks every symbol on an active row; **S16** today's P&L is summed strategy by strategy from each one's signal venue's day open, in the tick and on the page alike. **Not done, and said so**: **S2** — the rotation backtest (`runRotation`) runs neither the 8 % floor nor the two-bar cooldown the live rotation rows run, so §3.3a's rotation line, §3.4 and §4.11's "the same stops and the same cooldown" are false FOR ROTATION until it is re-run; **S7** — Kraken's nonce is per isolate, so before any Kraken live row the key's nonce window is set at Kraken (Davies' setting); **S11 / S13 / S14 / S15** on the page (a paused row holding a position, the dashboard refresh race, unmasked sizes, the missing live-unconfirmed alert) and the sweep fixture; §4.11's sentence stands corrected here rather than rewritten, so the record shows what was claimed and when it was found wrong.
+17. **The pre-live review, and what was done about it (2026-09-21).** An independent review of every agents file — the loop, the venue clients, the strategy module, the migrations, the page — is `docs/agents/reviews/2026-09-21-prelive-review.md`: seven blockers, sixteen should-fixes, twelve missing tests, the doc gaps. Shipped with pins the same day (`tick.test.ts`, `revx.test.ts`, `index.test.ts`, `strategy.test.ts`): **B1** a `pending` row the venue does not list STAYS pending — a marketable order fills or dies inside the turn, so its absence from the active list proves nothing — reported every turn with the venue's balance beside what the record holds, until a person settles it from the venue's history; **B2** a cancel whose read-back fails leaves the row open for the next turn to settle from the venue; **B3** the fills query is paged (`selectAll`; PostgREST stops at 1,000 rows without a word — the tick and the dashboard both read the whole book); **B4** `orderViewProblem`: a filled Revolut X order whose reply lacks `filled_size`, `average_fill_price` or `fees` is an error, never a fill at fee 0, and the probe now reads `/1.0/orders/active` and Kraken `ClosedOrders` and reports the field names each venue returns — the first live order's read-back is the verification, and until then those three names are the client's assumption, not a fact of this reference; **B5** a re-quote goes through `riskGate` like any order (global pause included); **B6** an allowed decision whose order never reached the book is placed on a later turn, the bar's claim staying with the decision, and migration `0041` makes the order insert the claim on the attempt so two turns' retries are one order; **B7** the lease is released by its holder only, renewed once past half its length, and a turn past 70 % of it opens no new bar decision (stops and observations are never deferred); **S1** the snapshot and the bar rule read the high-water trailed to the market, so the state's `drawdown_from_high` and the ATR clause match the backtester (the per-minute stop always did); **S3** a symbol with no quote and no candle has no mark, not a mark of 0; **S4** a protective decision claims one second into its minute, never a bar start; **S5** an open buy's unfilled notional is exposure now; **S6** the model's exit-advice branch is gone — Jev can veto an entry and nothing else (the rows' `exitMax` parameter is inert); **S8** `lookbackDays` moves the momentum window; **S9** a cached series must be contiguous to count as warm; **S10** the execution venue's 1-minute candle is fetched only where a paper order rests (the public Revolut X calls a turn are tickers and pairs plus one per resting paper order — four with none resting, against the eight §4.2's "half a dozen" had grown to); **S12** the probe checks every symbol on an active row; **S16** today's P&L is summed strategy by strategy from each one's signal venue's day open, in the tick and on the page alike. **S2** — `runRotation` now takes the same `StopParams` `run` takes and the rotation rows' figures were re-run with the floor and the cooldown the loop applies to them (§3.4, rewritten; `latest.json` / `summary.json` regenerated; pinned by `backtest.test.ts`), and the answer was worth having: **the 8 % floor makes the rotation rule worse on five variants of six**, which no table said before because no table ran it. **Not done, and said so**: **S7** — Kraken's nonce is per isolate, so before any Kraken live row the key's nonce window is set at Kraken (Davies' setting); **S11 / S13 / S14 / S15** on the page (a paused row holding a position, the dashboard refresh race, unmasked sizes, the missing live-unconfirmed alert) and the sweep fixture; §4.11's sentence stands corrected here rather than rewritten, so the record shows what was claimed and when it was found wrong.
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 
