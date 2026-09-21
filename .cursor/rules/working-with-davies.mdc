@@ -465,6 +465,20 @@ Read these as a checklist before pushing.
   it tests the previous commit. Cost most of an hour chasing a "3M is
   still drawing daily bars" that had already been fixed. Build, then
   sweep — every time.
+- **`git add -A` with an agent writing in the same tree.** A study
+  script a background agent was still building was swept into an
+  unrelated UI commit (2026-09-21) and turned `main` red: the snapshot
+  was a half-written object literal, and the Edge workflow's
+  `deno check` caught what the main `check` workflow does not look at.
+  While anything else is writing into the working tree, stage the paths
+  the commit is about and nothing else, and read `git status` before
+  committing rather than after.
+- **A python heredoc that edits several files stops at the first bad
+  anchor.** Twice on 2026-09-21 a docs script asserted on a README
+  phrase that had already changed, and the LEDGER edit after it never
+  ran — so a commit landed without its ledger line and the hook allowed
+  it, being only one behind. Put the ledger edit FIRST, or run each file
+  in its own call.
 - **Reading "two lines" as one.** He asked for the venue card's head —
   the badge and "3 strategies · 0 live · maker/taker …" — 分成两行. The
   session merged them onto ONE line, and he had to say it again ("你怎么
