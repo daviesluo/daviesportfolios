@@ -28,9 +28,11 @@ list stays the short version; the plan is the reasoning behind it.
    so pre-fix marks, `agent_basis` rows and paper fills are not all this
    account's book; nothing is re-priced. Fixed in `_shared/revx.ts`
    (`REVX_REGION = "UK"`, `quotesForRegion`, `region=` on every public
-   call; the probe reports the rows). What to watch: the probe's
-   `revx.region.tickers` showing ONE UK row per symbol with single-digit
-   spreads, and `agent_basis` after the fix staying inside a few bps p95.
+   call; the probe reports the rows). **Verified 12:01 UTC**: the probe
+   (fired through pg_net) shows `requested: UK` and one UK row per
+   symbol — BTC 1.3 bps, SOL 4.2 bps wide; `agent_basis` since the fix:
+   p95 3.0 bps, max 6.1, widest Revolut X spread 12.9 bps (before it:
+   p95 5.2, max 68).
    (b) **Thin-book guard, not built.** The stop's mark is the execution
    venue's mid and a Revolut X stop hits the bid — the backtests' fill on
    the right book. If the UK book ever goes as wide as the EEA one did
@@ -152,6 +154,25 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-21 12:04 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The push verified, and the day's paper record.** Migration `0038`
+applied at 02:07:24 UTC on its second cut: `dislocation-1m` is paused
+with `retired_at` set, the seven others untouched; the `migrations`
+workflow was red for seven minutes (02:00–02:07) on the first cut's
+delete, and the fix-up's three runs are green. The `agents` function
+redeployed twice (02:00, 02:07); Cloudflare serves the new bundle
+(`app-7702741b.js`). The probe at 12:01 UTC reads the UK book only
+(above). To 12:03 UTC: 1,060 / 1,060 cron runs, ~98 observations an
+hour, one error in 24 h (03:04, a Kraken candles timeout on ETH, caught
+by the per-pair guard, nothing lost), 22 orders (20 fills, 2 Kraken
+re-quotes), fees $0.65, Jev on every entry. Entries after the region
+fix: trend-4h ETH on both venues 04:00 (P 0.94 / 0.95); trend-1h BTC
+09:00 (P 0.95) while its SOL entry was **vetoed** (P 0.59 < 0.6, caution
+1.00) — the first veto in the record; trend-4h BTC and SOL on both venues
+12:00 (SOL at P 0.61 / 0.62, caution 1.00, the threshold's edge). Every
+strategy now holds something except the retired one.
 
 ### [2026-09-21 01:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
