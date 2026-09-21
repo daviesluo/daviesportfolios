@@ -65,7 +65,11 @@ export const COSTS: Record<string, Costs> = {
     "BNB/USD": 5.246e-4, "HYPE/USD": 12.322e-4, "XLM/USD": 6.795e-4, "UNI/USD": 4.116e-4, "NEAR/USD": 12.71e-4, "BCH/USD": 10.343e-4, "LTC/USD": 5.103e-4,
     "SUI/USD": 11.97e-4, "DOT/USD": 8.088e-4, "HBAR/USD": 5.612e-4, "TON/USD": 17.886e-4, "SHIB/USD": 5.676e-4, "PEPE/USD": 7.109e-4, "AAVE/USD": 2.465e-4,
     "ETC/USD": 17.123e-4, "ALGO/USD": 8.254e-4, "ICP/USD": 17.034e-4, "POL/USD": 17.762e-4, "ATOM/USD": 10.919e-4 } },
-  kraken: { venue: "kraken", makerBps: 40, takerBps: 80, fillFee: "maker", halfSpread: { "BTC/USD": 0.005e-4, "ETH/USD": 0.02e-4, "SOL/USD": 0.46e-4, "XRP/USD": 0.5e-4, "DOGE/USD": 2.2e-4, "LINK/USD": 0.05e-4, "ADA/USD": 2.05e-4, "AVAX/USD": 0.85e-4,
+  // LINK on Kraken, 2026-09-21 21:15 UTC: §3.8's twenty-minute window measured a 0.10 bps full spread and a second
+  // measurement that evening (11 samples, 60 s apart, reference §3.12) measured 3.03. Both are real; a book is not one
+  // number. The WIDER one is charged, because a cost assumption that flatters is the one that costs money. Every study
+  // JSON committed before that time charges the tighter one and is ~3 bps optimistic on a LINK round trip at Kraken.
+  kraken: { venue: "kraken", makerBps: 40, takerBps: 80, fillFee: "maker", halfSpread: { "BTC/USD": 0.005e-4, "ETH/USD": 0.02e-4, "SOL/USD": 0.46e-4, "XRP/USD": 0.5e-4, "DOGE/USD": 2.2e-4, "LINK/USD": 1.514e-4, "ADA/USD": 2.05e-4, "AVAX/USD": 0.85e-4,
     "BNB/USD": 0.697e-4, "HYPE/USD": 1.585e-4, "XLM/USD": 1.613e-4, "UNI/USD": 3.296e-4, "NEAR/USD": 2.28e-4, "BCH/USD": 4.108e-4, "LTC/USD": 2.396e-4,
     "SUI/USD": 1.91e-4, "DOT/USD": 3.385e-4, "HBAR/USD": 3.302e-4, "TON/USD": 3.522e-4, "SHIB/USD": 1.758e-4, "PEPE/USD": 2.35e-4, "AAVE/USD": 4.095e-4,
     "ETC/USD": 8.553e-4, "ALGO/USD": 3.51e-4, "ICP/USD": 3.4e-4, "POL/USD": 7.966e-4, "ATOM/USD": 5.312e-4 } },

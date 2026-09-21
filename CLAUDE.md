@@ -132,7 +132,15 @@ that follow from that evidence, in short:
   coin, because weighting by a coin's own recent record loses to the
   null on BOTH windows. **Kraken runs no real money**: 80–96 bps a round
   trip needs ~9.7 days to pay back where a Revolut X major needs 2.4 and
-  these rules hold 0.6–3.4 days; it keeps supplying the signal. Both
+  these rules hold 0.6–3.4 days; it keeps supplying the signal. That
+  survived being asked again once the USD conversion and the nonce window
+  removed the two reasons it COULDN'T trade (§3.12): seven slower
+  rulebooks over 27 coins give 12 two-window passes where chance gives
+  14.6, Revolut X beats Kraken in 18 of 18 paired comparisons, the fee
+  tier needs 15.6× the turnover, and of the eight coins that clear on
+  Kraken while failing Revolut X's UK book, none clears the bar on both
+  windows. Kraken's book IS now measured for all 27 coins (all clear
+  $100k a day; `ordermin` $2.53–$16.26, `costmin` $0.50). Both
   rotations and trend-1h drop out, momentum stays paper.
 - Paper first, per strategy; live only on Davies' explicit go, and the
   first live order needs his confirmation in the same conversation. Live

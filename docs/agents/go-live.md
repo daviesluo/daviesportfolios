@@ -262,9 +262,16 @@ holds USD and the key has a nonce window.
 this row is in the market **6.5 % of the time**. Most of what it does is
 stay in cash; the −0.3 % is what it costs to be ready.
 
-**Two prerequisites before any Kraken row goes live**, neither of them
-code: convert GBP → USD at Kraken, and set a **nonce window** on the
-Kraken key (§4.18).
+**Both Kraken prerequisites are now done** — the account holds USD and
+the key has a nonce window — **and the answer did not change.** Asked
+again with Kraken able to trade (§3.12), seven rulebooks from four hours
+to weekly bars over 27 coins produced 12 two-window passes where chance
+alone gives 14.6; Revolut X beat Kraken in 18 of 18 paired comparisons on
+both windows; the fee tier needs 15.6× the turnover the account can
+generate; and of the eight coins that clear on Kraken while failing
+Revolut X's UK book, none clears the bar on both windows. The USD and the
+nonce window removed the two reasons Kraken could not trade and left the
+one reason it should not, which is 80 bps.
 
 **A more cautious variant**, if preferred: the same row with
 `max_exposure_usd` at $40 for the first week — two slots — so the first
