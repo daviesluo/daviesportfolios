@@ -57,9 +57,18 @@ export function stopsForKind(kind: StrategyKind, p: TrendParams, base: StopParam
 // (DOGE, LINK, ADA, AVAX) are the UK book at 12:47 UTC on 2026-09-21 (Revolut X, `region=UK`) and Kraken's
 // public ticker at 12:59 UTC the same day — one snapshot each, so a rule that only just clears its costs on
 // them has not cleared anything.
+// The nineteen coins added for the universe20 study (BNB … ATOM) are MEDIANS of 21 snapshots taken 60 s
+// apart over 13:35:44 → 13:55:44 UTC on 2026-09-21 — Revolut X `region=UK` and Kraken's public
+// Ticker, sampled at the same cadence; each entry is that median FULL spread halved.
 export const COSTS: Record<string, Costs> = {
-  revx: { venue: "revx", makerBps: 0, takerBps: 9, fillFee: "taker", halfSpread: { "BTC/USD": 0.75e-4, "ETH/USD": 1.05e-4, "SOL/USD": 1.55e-4, "XRP/USD": 2.9e-4, "DOGE/USD": 3.2e-4, "LINK/USD": 4.2e-4, "ADA/USD": 4.25e-4, "AVAX/USD": 4.8e-4 } },
-  kraken: { venue: "kraken", makerBps: 40, takerBps: 80, fillFee: "maker", halfSpread: { "BTC/USD": 0.005e-4, "ETH/USD": 0.02e-4, "SOL/USD": 0.46e-4, "XRP/USD": 0.5e-4, "DOGE/USD": 2.2e-4, "LINK/USD": 0.05e-4, "ADA/USD": 2.05e-4, "AVAX/USD": 0.85e-4 } },
+  revx: { venue: "revx", makerBps: 0, takerBps: 9, fillFee: "taker", halfSpread: { "BTC/USD": 0.75e-4, "ETH/USD": 1.05e-4, "SOL/USD": 1.55e-4, "XRP/USD": 2.9e-4, "DOGE/USD": 3.2e-4, "LINK/USD": 4.2e-4, "ADA/USD": 4.25e-4, "AVAX/USD": 4.8e-4,
+    "BNB/USD": 5.246e-4, "HYPE/USD": 12.322e-4, "XLM/USD": 6.795e-4, "UNI/USD": 4.116e-4, "NEAR/USD": 12.71e-4, "BCH/USD": 10.343e-4, "LTC/USD": 5.103e-4,
+    "SUI/USD": 11.97e-4, "DOT/USD": 8.088e-4, "HBAR/USD": 5.612e-4, "TON/USD": 17.886e-4, "SHIB/USD": 5.676e-4, "PEPE/USD": 7.109e-4, "AAVE/USD": 2.465e-4,
+    "ETC/USD": 17.123e-4, "ALGO/USD": 8.254e-4, "ICP/USD": 17.034e-4, "POL/USD": 17.762e-4, "ATOM/USD": 10.919e-4 } },
+  kraken: { venue: "kraken", makerBps: 40, takerBps: 80, fillFee: "maker", halfSpread: { "BTC/USD": 0.005e-4, "ETH/USD": 0.02e-4, "SOL/USD": 0.46e-4, "XRP/USD": 0.5e-4, "DOGE/USD": 2.2e-4, "LINK/USD": 0.05e-4, "ADA/USD": 2.05e-4, "AVAX/USD": 0.85e-4,
+    "BNB/USD": 0.697e-4, "HYPE/USD": 1.585e-4, "XLM/USD": 1.613e-4, "UNI/USD": 3.296e-4, "NEAR/USD": 2.28e-4, "BCH/USD": 4.108e-4, "LTC/USD": 2.396e-4,
+    "SUI/USD": 1.91e-4, "DOT/USD": 3.385e-4, "HBAR/USD": 3.302e-4, "TON/USD": 3.522e-4, "SHIB/USD": 1.758e-4, "PEPE/USD": 2.35e-4, "AAVE/USD": 4.095e-4,
+    "ETC/USD": 8.553e-4, "ALGO/USD": 3.51e-4, "ICP/USD": 3.4e-4, "POL/USD": 7.966e-4, "ATOM/USD": 5.312e-4 } },
 };
 
 type Raw = [number, number, number, number, number, number]; // [t_sec, o, h, l, c, v] (Coinbase)
@@ -327,17 +336,23 @@ if (import.meta.main) {
     console.log(`${symbol}: trend-4h chosen ${JSON.stringify((per["trend-4h"] as { chosen: unknown }).chosen)} | OOS ${fmt(oos)} | default-params OOS ${fmt(dflt)} | buy&hold OOS ${(buyHold(c4h, split, n, symbol) * 100).toFixed(1)}% | plateau ${(plateau.positiveShareOutOfSample * 100).toFixed(0)}% of grid positive OOS, median ${(plateau.medianOutOfSample * 100).toFixed(1)}%, chosen ranks ${plateau.chosenRankOutOfSample}/${plateau.gridPoints}`);
     console.log(`${symbol}: momentum-1d OOS ${fmt(mo)} | full ${fmt(moFull)}`);
   }
-  // The rotation basket: daily candles for all four symbols aligned by day.
+  // Every symbol's own hourly and daily series, untruncated, for the checks below. The basket gets its OWN
+  // copy aligned to the days all its members share: a young member shortens the basket's history, and it
+  // must not shorten anyone else's. (Until 2026-09-21 the 1-hour check below read the basket's truncated
+  // daily bars, so a young basket member left 30-day momentum "unknown" over part of another coin's window
+  // and let entries through that the rule blocks; and a symbol outside the basket crashed the run.)
   const dailyBy: Record<string, Candle[]> = {};
   const hourlyBy: Record<string, Candle[]> = {};
-  for (const symbol of basketSymbols) {
+  for (const symbol of new Set([...symbols, ...basketSymbols])) {
     const raw: Raw[] = JSON.parse(await Deno.readTextFile(`${dataDir}/${symbol.replace("/", "-")}_1h_3y.json`));
     hourlyBy[symbol] = raw.map(([t, o, h, l, c, v]) => ({ start: t * 1000, open: o, high: h, low: l, close: c, volume: v }));
     dailyBy[symbol] = resample(hourlyBy[symbol], 24);
   }
+  // The rotation basket: daily candles for its symbols aligned by day.
+  const basketDaily: Record<string, Candle[]> = {};
   const common = basketSymbols.map((s) => new Set(dailyBy[s].map((c) => c.start))).reduce((a, b) => new Set([...a].filter((x) => b.has(x))));
-  for (const s of basketSymbols) dailyBy[s] = dailyBy[s].filter((c) => common.has(c.start));
-  const nd = dailyBy[basketSymbols[0]].length, dsplit = Math.floor(nd * 2 / 3);
+  for (const s of basketSymbols) basketDaily[s] = dailyBy[s].filter((c) => common.has(c.start));
+  const nd = basketDaily[basketSymbols[0]].length, dsplit = Math.floor(nd * 2 / 3);
   const variants: Record<string, RotationParams> = {
     default: DEFAULT_ROTATION,
     noBearFilter: { ...DEFAULT_ROTATION, bearFilter: false },
@@ -347,15 +362,15 @@ if (import.meta.main) {
     lookback60: { ...DEFAULT_ROTATION, lookbackDays: 60 },
   };
   const basket: Record<string, unknown> = {
-    symbols: basketSymbols, days: nd, from: new Date(dailyBy[basketSymbols[0]][0].start).toISOString().slice(0, 10),
-    split: new Date(dailyBy[basketSymbols[0]][dsplit].start).toISOString().slice(0, 10), to: new Date(dailyBy[basketSymbols[0]][nd - 1].start).toISOString().slice(0, 10),
-    buyHoldEqualWeightOutOfSample: Number(buyHoldBasket(dailyBy, dsplit, nd).toFixed(4)),
-    buyHoldEqualWeightFull: Number(buyHoldBasket(dailyBy, 0, nd).toFixed(4)),
+    symbols: basketSymbols, days: nd, from: new Date(basketDaily[basketSymbols[0]][0].start).toISOString().slice(0, 10),
+    split: new Date(basketDaily[basketSymbols[0]][dsplit].start).toISOString().slice(0, 10), to: new Date(basketDaily[basketSymbols[0]][nd - 1].start).toISOString().slice(0, 10),
+    buyHoldEqualWeightOutOfSample: Number(buyHoldBasket(basketDaily, dsplit, nd).toFixed(4)),
+    buyHoldEqualWeightFull: Number(buyHoldBasket(basketDaily, 0, nd).toFixed(4)),
   };
   for (const [name, p] of Object.entries(variants)) {
     const per: Record<string, unknown> = { params: p };
     for (const [venue, costs] of Object.entries(COSTS)) {
-      const oos = runRotation(dailyBy, dsplit, nd, p, costs), full = runRotation(dailyBy, 0, nd, p, costs);
+      const oos = runRotation(basketDaily, dsplit, nd, p, costs), full = runRotation(basketDaily, 0, nd, p, costs);
       per[venue] = { outOfSample: { ...pick(oos), turnover: Number(oos.turnover.toFixed(2)) }, fullPeriod: { ...pick(full), turnover: Number(full.turnover.toFixed(2)) }, equityOutOfSample: oos.equity };
       console.log(`rotation ${name} on ${venue}: OOS ${fmt(oos)} exposure ${(oos.exposure * 100).toFixed(0)}% turnover ${oos.turnover.toFixed(1)}×/y | full ${fmt(full)}`);
     }
