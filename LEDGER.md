@@ -63,7 +63,9 @@ list stays the short version; the plan is the reasoning behind it.
    S12, S16, each pinned; reference §4.17 is the itemised record, §3.10
    the portfolio study's verdicts.** Migration `0041` (unique index on
    `agent_orders (decision_id, requotes)`) applies on this push; the
-   agents function redeploys. STILL TO DO: S7 —
+   agents function redeploys. STILL TO DO (nothing blocking a Revolut X
+   live start): S2's answer is in §3.4 and may change what goes live; the
+   review's remaining item is S7's venue half —
    the Kraken key's nonce window is Davies' setting at Kraken, before any
    Kraken live row; the review's doc gaps for retention of
    `agent_decisions` / `agent_orders` (unbounded; ~150 + ~25 rows a day).
@@ -188,6 +190,19 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-21 17:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**One Kraken nonce sequence per isolate (S7), and retention decided.**
+`loadKraken()` built a fresh nonce generator per REQUEST, so a dashboard
+load and a tick in the same isolate and the same millisecond minted the
+same nonce — Kraken rejects those and bans a key that repeats them. The
+test reproduces the bug with two generators from one clock and pins the
+shared sequence. The half code cannot do is named as a prerequisite for
+the first live Kraken order: a nonce window on the key, beside the
+GBP → USD conversion (§4.18). Retention: decisions and orders are kept
+indefinitely on purpose — they are the record — and it was the unpaged
+READ that was dangerous, which B3 fixed (§4.17).
 
 ### [2026-09-21 17:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

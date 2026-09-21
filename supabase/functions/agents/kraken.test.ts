@@ -3,7 +3,7 @@
 // state mapping the tick settles on.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  formBody, fromKrakenAsset, fromKrakenPair, krakenSign, krakenVenue, makeNonce, toAltname, toCandles, toOrderView, toPairConfig,
+  formBody, fromKrakenAsset, fromKrakenPair, krakenNonce, krakenSign, krakenVenue, makeNonce, toAltname, toCandles, toOrderView, toPairConfig,
   type KrakenOrder,
 } from "../_shared/kraken.ts";
 
@@ -160,4 +160,13 @@ Deno.test("a marketable Kraken order drops the post-only flag and is immediate-o
   await v.placeLimit({ clientOrderId: "c2", symbol: "BTC/USD", side: "sell", base: "0.001", price: "50000.0" });
   assert(bodies[0].includes("timeinforce=IOC") && !bodies[0].includes("oflags=post"), bodies[0]);
   assert(bodies[1].includes("timeinforce=GTC") && bodies[1].includes("oflags=post"), bodies[1]);
+});
+
+Deno.test("the isolate has ONE nonce sequence: concurrent private calls cannot mint the same nonce", () => {
+  // Two generators seeded from the same millisecond clock collide; the shared one cannot.
+  const a = makeNonce(1_700_000_000_000_000), b = makeNonce(1_700_000_000_000_000);
+  assertEquals(a(), b());                                              // the bug, reproduced: two generators, one nonce
+  const seq = [krakenNonce(), krakenNonce(), krakenNonce()].map(Number);
+  assert(seq[1] > seq[0] && seq[2] > seq[1], seq.join(","));
+  assert(seq.every((n) => Number.isInteger(n) && n > 1.7e15), seq.join(","));   // microseconds since the epoch, as Kraken expects
 });
