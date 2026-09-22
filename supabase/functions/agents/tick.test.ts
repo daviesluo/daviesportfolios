@@ -1099,3 +1099,44 @@ Deno.test("a book too wide to cross refuses the ENTRY and records its width; the
   assertEquals(protective[0].action, "exit");
   assert(protective[0].reason.startsWith("protective floor"), protective[0].reason);
 });
+
+Deno.test("a row switched from paper to live starts FLAT: it never sells, for real, coins it only ever bought on paper", async () => {
+  // Long at 200 on PAPER against a mark near 129 — 35 % under cost, far through the 8 % floor. The row is
+  // live now. Until 2026-09-22 a position was keyed on strategy|symbol alone, so the live row read itself
+  // long, would never have bought the coin for real, and the first time the floor fired would have placed a
+  // REAL sell at Revolut X for base the account never held. The mode is part of the key: the paper book is
+  // the paper book.
+  // (The venue is beside the point here — this is the stub that holds credentials.)
+  const live = strategy({ mode: "live" });
+  const w = world({
+    strategies: [live], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" },
+    orders: [longSince(2 * ONE_D, 200, 0.1, { mode: "paper" })],
+  });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.decisions.filter((d) => d.kind === "protective"), []);          // nothing to protect: it holds nothing live
+  assert(!w.mem.tables.agent_orders.some((o) => o.id !== 50 && o.side === "sell"),
+    JSON.stringify(w.mem.tables.agent_orders.map((o) => [o.id, o.side, o.mode])));
+  // Reading flat is not the same as doing nothing: the fresh bar is its own to enter, with live money.
+  const buys = w.mem.tables.agent_orders.filter((o) => o.id !== 50 && o.side === "buy");
+  assertEquals(buys.length, 1);
+  assertEquals(buys[0].mode, "live");
+  // And the paper position is billed to the paper cap, never the live one — the bucket used to be read off
+  // the FIRST fill's mode, which for a blended position was whichever came first.
+  const dec = w.mem.tables.agent_decisions.find((d) => d.symbol === "BTC/USD")!;
+  assertEquals((dec.numbers as { exposureUsd: number }).exposureUsd, 0);
+});
+
+Deno.test("a paused row still sees the book it was trading: the mode in the key did not take its exits away again", async () => {
+  // `0043`'s lesson, re-pinned against the keying change. The row is paused; its fills are paper; the floor
+  // must still fire. A key that read the STRATEGY's mode literally would find nothing here and quietly strand it.
+  const paused = strategy({ id: "trend-4h", venue: "revx", signal_venue: "kraken", mode: "paused", retired_at: new Date(NOW - ONE_D).toISOString() });
+  const w = world({ strategies: [paused], orders: [longSince(2 * ONE_D, 200, 0.1, { strategy_id: "trend-4h", venue: "revx", mode: "paper" })] });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.windingDown, ["trend-4h"]);
+  const protective = r.decisions.filter((d) => d.kind === "protective");
+  assertEquals(protective.length, 1);
+  assertEquals([protective[0].strategy, protective[0].action], ["trend-4h", "exit"]);
+  assertEquals(w.mem.tables.agent_orders.find((o) => o.id !== 50)?.side, "sell");
+});

@@ -33,13 +33,13 @@ list stays the short version; the plan is the reasoning behind it.
    symbol — BTC 1.3 bps, SOL 4.2 bps wide; `agent_basis` since the fix:
    p95 3.0 bps, max 6.1, widest Revolut X spread 12.9 bps (before it:
    p95 5.2, max 68).
-   (b) **Thin-book guard, not built.** The stop's mark is the execution
-   venue's mid and a Revolut X stop hits the bid — the backtests' fill on
-   the right book. If the UK book ever goes as wide as the EEA one did
-   (SOL 1.8 % at 01:35 UTC), a trail stop could sell into it. A spread
-   ceiling on marketable orders (skip an entry for a minute; rest a stop
-   at the signal venue's bid) is the guard; decide once the region-correct
-   record shows whether the UK book ever does that.
+   (b) **Thin-book guard — BUILT 2026-09-22.** A long's stop is judged at
+   the BID (`exitMark`), never the mid, and an ENTRY is refused when the
+   book is wider than 50 bps (`WIDE_SPREAD_BPS`; `bookBps` on the decision
+   row). An EXIT is never refused by it: a position that cannot get out is
+   the worse failure. Measured the same day on the live UK book — BTC 1.6,
+   ETH 3.2, SOL 4.2, AVAX 9.1, SUI 25.7 bps — so only SUI is within
+   hailing distance of the ceiling.
    (c) The phone shows five columns per detail table (`ag-ph`); the rest
    need a wider screen. A retired strategy (`agent_strategies.retired_at`,
    `0038`) is hidden by the dashboard and skipped by the tick; its records
@@ -80,12 +80,21 @@ list stays the short version; the plan is the reasoning behind it.
    every Kraken row is blocked by GBP → USD and the nonce window anyway.
    The headline fact he must weigh: **of 21 shipped members not one
    clears the two-window bar**. When he says go, the switch is ONE
-   migration — `agent_strategies.mode='live'` on the chosen rows and
-   `agent_risk.live_confirmed_at = now()` — drafted and waiting at
-   `supabase/migrations/0042_trend4h_revx_live.sql.draft` (NOT committed;
-   pushing a migration applies it). Then watch the first live order: its
-   read-back is what verifies Revolut X's settlement field names (B4),
-   and the page raises a banner if it is left pending.
+   migration, **drafted, dry-run and committed at
+   `docs/agents/0045_go_live.sql.draft`** — deliberately NOT under
+   `supabase/migrations/`, because a file there is applied by
+   `migrations.yml` on the next push, so MOVING it is the act of going
+   live. It adds `trend-4h-live` as a new row (rather than flipping
+   `trend-4h`, which would strand three paper positions and cost the live
+   row its same-venue control), sets `live_confirmed_at`, and raises
+   `max_exposure_usd` $100 → $150 for the mark-to-market reason in §4.19.
+   **The pre-live verification is done (2026-09-22, §4.19 and go-live §9)
+   and found one real defect, now fixed: a position did not carry the mode
+   it was opened in.** One box is left and it is Davies': run the
+   read-only `probe` (it places nothing, needs an operator credential).
+   Then watch the first live order: its read-back is what verifies
+   Revolut X's settlement field names (B4), and the page raises a banner
+   if it is left pending.
    Kraken holds £75 GBP, not USD (probe 09-20 19:08 UTC); a live Kraken
    order needs the GBP → USD conversion first, and that waits for his
    word. **Usage rule**: no main-model polling and no scheduled check-ins;
@@ -197,6 +206,67 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-22 13:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The pre-live verification found the thing it exists to find.** A
+position did not carry the mode it was opened in: `tick.ts` keyed the
+book on `strategy_id|symbol` alone and read its exposure bucket off the
+FIRST fill's mode. So a row flipped from paper to live would have
+inherited its paper positions — the rulebook reads itself already long
+(`ruleDecision` only holds or exits while `position.base > 0`), never
+buys the coin for real, and the first exit or 8 % floor places a **real
+sell at Revolut X for base the account never bought**, billed to the
+paper cap. `trend-4h` is long BTC, ETH and SOL on paper at $13.33 a slot,
+so this was one migration from happening. The mode is in the key now
+(`posKey`), one resolver (`bookKey`) hands both the position and the fill
+history to the row's current book — which also caught that the re-entry
+cooldown read `byKey` under the old key, so the first patch broke two
+existing tests and said so. A PAUSED row keeps `0043`'s behaviour and
+still sees its book, or the stuck positions come back. Three pins in
+`tick.test.ts` / `strategy.test.ts`, counterfactual checked (drop the
+mode, the test goes red).
+
+**Everything else verified, with numbers.** 1,440 / 1,440 minute ticks in
+24 h; every HTTP reply in the retained 6-hour window a 200; 137 decisions
+with **0** `provider: none` and 0 refused by the gate; 3 agent errors in
+48 h, each a single occurrence and each explained, none in 11 hours.
+**AVAX's and SUI's `min_order_size_quote` is finally measured** (§3.13's
+fourth caveat, the assumption under every $20 slot on those two):
+`/1.0/public/configuration/pairs` is PUBLIC and keyless — all five coins
+`active`, minimum **$0.10**, so a $20 slot is 200× the floor; steps are
+already honoured in code, worst rounding residue $0.0005. Live UK touch
+the same minute: BTC 1.6 / ETH 3.2 / SOL 4.2 / AVAX 9.1 / **SUI 25.7**
+bps, all inside the 50 bps refusal, and SUI's 25.7 + 9 bps a side is the
+43.7 bps round trip §3.8 priced it at.
+
+**Two cap facts.** The exposure cap is marked to market, not costed
+(`base × mark`), so at $100 against a $100 row four slots up 6 % refuse
+the fifth entry — it tightens exactly when the rulebook is working.
+Raising it cannot loosen risk, because the rulebook does not pyramid: five
+coins at a $20 per-order cap deploy at most $100 of capital whatever the
+number says. The draft sets $150. `daily_loss_limit_usd` $5 is 5 % of the
+row and blocks new entries only, never an exit.
+
+**The draft migration is `docs/agents/0045_go_live.sql.draft`, and it is
+deliberately NOT under `supabase/migrations/`** — a file there is applied
+by `migrations.yml` on the next push, so moving it IS the act of going
+live. It adds `trend-4h-live` as a NEW row rather than flipping
+`trend-4h`: flipping in place is safe now but strands three paper
+positions no rule would manage again, and keeping `trend-4h` paper gives
+the live row a control on the same venue and rulebook — the only thing
+that can measure a live Revolut X fill against the paper assumption of the
+touch plus 9 bps (`trend-4h-kraken` measures Kraken's post-only fills, not
+this). Dry-run inside a self-rolling-back transaction: 4 → 5 rows, caps as
+intended, production untouched and re-checked afterwards.
+
+**Still open, and it needs Davies**: the read-only `probe` (Revolut X
+balances, the signed call with a query, `/1.0/orders/active`'s field
+names, Kraken, Jev on both transports). It places nothing but needs an
+operator credential this session does not hold and should not, so the
+signed path is verified as of §2.1's 2026-09-20 run and for the three
+majors only. Reference §4.19; checklist and order of operations,
+`docs/agents/go-live.md` §9.
 
 ### [2026-09-22 12:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

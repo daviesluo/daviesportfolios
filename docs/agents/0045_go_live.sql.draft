@@ -1,0 +1,76 @@
+-- 0045: the first live row.
+--
+-- DRAFT, and deliberately not under supabase/migrations/. Pushing a file
+-- there IS applying it (`.github/workflows/migrations.yml` runs
+-- `supabase db push` on every push to main), so this one waits here until
+-- Davies says the word. Moving it is the act of going live. The first
+-- live ORDER it makes possible needs his confirmation in the same
+-- conversation on top of that.
+--
+-- WHAT IT DOES
+--
+-- Adds ONE live row — `trend-4h-live`, Revolut X, BTC/ETH/SOL/AVAX/SUI,
+-- five equal $20 slots, $100 — and sets the confirmation the tick reads
+-- before any live order. `trend-4h` stays exactly as it is: paper, same
+-- rulebook, same coins, same venue.
+--
+-- WHY A NEW ROW RATHER THAN FLIPPING `trend-4h`
+--
+-- Two reasons, one safety and one measurement.
+--
+-- Safety: `trend-4h` is long BTC, ETH and SOL on paper, bought
+-- 2026-09-21 at $13.33 a slot. Until the position key carried the mode
+-- (fixed 2026-09-22), flipping that row would have handed those three
+-- paper positions to the live book, and the first exit or floor stop
+-- would have placed a REAL sell at Revolut X for base the account never
+-- bought. That is fixed — a live book now starts flat — but flipping in
+-- place still strands the three paper positions: no rule would manage
+-- them again, they would sit in the paper exposure bucket forever, and
+-- the page would show a live row holding three positions nothing owns.
+--
+-- Measurement: a paper twin of the live row, on the SAME venue and the
+-- same rulebook, is the only thing that measures the live fill against
+-- the paper assumption (the touch plus 9 bps). `trend-4h-kraken` cannot
+-- do this — it measures Kraken's post-only fills. The difference between
+-- the two Revolut X rows on any bar they both trade IS the
+-- implementation shortfall, which nothing in the backtests could compute.
+--
+-- The simpler alternative, if the extra row is not wanted: flip
+-- `trend-4h` in place (`update ... set mode = 'live' where id =
+-- 'trend-4h'`) and accept the three stranded paper positions.
+--
+-- CAPS
+--
+-- `max_exposure_usd` goes $100 -> $150. It is NOT a loosening of risk:
+-- the rulebook does not pyramid (`ruleDecision` only ever holds or exits
+-- while `position.base > 0`), so five coins at a $20 per-order cap can
+-- never deploy more than $100 of capital whatever this number says. What
+-- it fixes is that `tick.ts` derives exposure as base x MARK, not cost —
+-- so four slots up 6 % put the book at $84.80 and the fifth entry is
+-- refused with "exposure 104.80 > max 100". The cap tightened exactly
+-- when the rulebook was working. $150 leaves the fifth slot reachable
+-- after a 50 % run in the other four. `max_order_usd` ($20), the daily
+-- loss limit ($5) and the order cap (40/day) are untouched, and the
+-- paper rows keep their own $300 bucket.
+--
+-- TO UNDO
+--
+-- `update public.agent_risk set live_confirmed_at = null where id = 1;`
+-- stops EVERY live order, on both venues, at once. That is the switch to
+-- reach for first. Setting the row back to 'paper' stops only this row,
+-- and a row that still holds real coins keeps its exits either way.
+
+insert into public.agent_strategies (id, kind, venue, signal_venue, name, description, symbols, capital_usd, params, mode)
+select 'trend-4h-live', 'trend-4h', 'revx', 'kraken',
+       'Trend 4h · Revolut X · live',
+       'The live row. Same rulebook, coins, params and slot size as the paper `trend-4h`, which stays on as its control.',
+       symbols, capital_usd, params, 'live'
+  from public.agent_strategies
+ where id = 'trend-4h'
+on conflict (id) do nothing;
+
+update public.agent_risk
+   set live_confirmed_at = now(),
+       max_exposure_usd  = 150,
+       updated_at        = now()
+ where id = 1;
