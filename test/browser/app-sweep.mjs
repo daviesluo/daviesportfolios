@@ -280,8 +280,9 @@ const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading
  * the page reads. One row is long BTC on Kraken with a fill on record, so
  * the page has a position, a decision and an order to draw. A fixture
  * that drifts from the payload tests nothing: this one is checked against
- * `supabase/migrations/0037_agents.sql` (+0038/0039/0040) and the shape
- * `dashboard()` builds in `supabase/functions/agents/index.ts`.
+ * `supabase/migrations/0037_agents.sql` (+0038/0039/0040/0042/0043) and the
+ * shape `dashboard()` builds in `supabase/functions/agents/index.ts`. Four
+ * rows since `0043` retired the two rotations and the Kraken momentum twin.
  */
 const AGENTS_DASHBOARD = (() => {
   const at = new Date(CLOCK).toISOString();
@@ -333,13 +334,12 @@ const AGENTS_DASHBOARD = (() => {
       price: 80000, base_size: 0.00025, state: 'filled', filled_base: 0.00025, avg_fill_price: 80000, fee_usd: 0.08, filled_at: new Date(CLOCK - 86400e3 + 300e3).toISOString(),
     }],
   });
+  // The four rows that survive `0043` (reference §3.17), and nothing else: the three it
+  // retired are gone from the page unless one still holds something, which is the next row.
   const strategies = [
-    strat('rotation-1d', 'rotation-1d', 'revx', BASKET, 60),
     strat('trend-4h', 'trend-4h', 'revx', TREND, 100),
     strat('trend-1h', 'trend-1h', 'revx', MAJORS, 40),
     strat('momentum-1d', 'momentum-1d', 'revx', MAJORS, 40),
-    strat('rotation-1w-kraken', 'rotation-1d', 'kraken', BASKET, 60),
-    strat('momentum-1d-kraken', 'momentum-1d', 'kraken', MAJORS, 40),
     krakenTrend,
   ];
   const zero = { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0 };
@@ -355,9 +355,12 @@ const AGENTS_DASHBOARD = (() => {
     ],
     strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
     byVenue: {
-      revx: { ...zero, capitalUsd: 240, strategies: 4, live: 0 },
-      kraken: { ...book, capitalUsd: 200, strategies: 3, live: 0 },
+      revx: { ...zero, capitalUsd: 180, strategies: 3, live: 0 },     // 100 + 40 + 40 after 0043
+      kraken: { ...book, capitalUsd: 100, strategies: 1, live: 0 },   // trend-4h-kraken alone
     },
+    // The adverse-selection notebook (`0042`): nothing resolved yet, which is the state the page
+    // meets on day one and the one that must not render as a number.
+    makerProbes: { total: 3, resting: 3, filled: 0, expired: 0, fillRate: null, medianMinutesToFill: null, adverseBps: { m15: null, m60: null }, bySymbol: [{ symbol: 'BTC/USD', total: 3, filled: 0, fillRate: null }] },
     basis: {
       'BTC/USD': { latest: 0.31, latestAt: at, n: 288, absP50: 0.4, absP95: 1.2, absMax: 2.1, over20: 0, over40: 0, over80: 0 },
       'ETH/USD': { latest: -0.12, latestAt: at, n: 288, absP50: 0.3, absP95: 1.1, absMax: 1.9, over20: 0, over40: 0, over80: 0 },
@@ -1098,8 +1101,10 @@ async function run() {
       if (money(head) === 12.34 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total (${(head || '').trim()})`);
       else fail(S('agents'), `headline read "${head}", wanted +$12.34`);
       const rows = await page.locator('.ag-row').count();
-      if (rows === 7) ok(S('agents'), 'seven strategy rows — the active seeds, the retired one absent');
-      else fail(S('agents'), `expected 7 strategy rows, got ${rows}`);
+      // Four since `0043` retired the two rotations and the Kraken momentum twin (§3.17); the
+      // rows it retired are off the page because none of them still holds anything here.
+      if (rows === 4) ok(S('agents'), 'four strategy rows — the set 0043 leaves, the retired ones absent');
+      else fail(S('agents'), `expected 4 strategy rows, got ${rows}`);
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
       // observation the tick wrote 40 s ago.
@@ -1180,7 +1185,7 @@ async function run() {
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, krakenRows = badges.filter((b) => b.startsWith('Kraken')).length;
-      if (revxRows === 4 && krakenRows === 3) ok(S('agents'), 'venue badge on every row: 4 Revolut X, 3 Kraken');
+      if (revxRows === 3 && krakenRows === 1) ok(S('agents'), 'venue badge on every row: 3 Revolut X, 1 Kraken');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       const shares = await page.locator('.ag-share').allTextContents();
       if (shares.some((t) => /Kraken 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Kraken');
@@ -1201,9 +1206,10 @@ async function run() {
       else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
       const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();
-      const named = ['Rotation · Revolut X', 'Trend 4h · Revolut X', 'Trend 1h · Revolut X', 'Momentum 30d · Revolut X', 'Rotation · Kraken', 'Momentum 30d · Kraken', 'Trend 4h · Kraken'];
-      if (named.every((n) => names.some((t) => t.trim() === n)) && !names.some((t) => /Dislocation/.test(t)) && subs.length === names.length && subs.every((t) => /^\d+ open · /.test(t))) {
-        ok(S('agents'), 'every live rulebook is named on its row, once, with the sub-line under it — and the retired one is not on the page');
+      const named = ['Trend 4h · Revolut X', 'Trend 1h · Revolut X', 'Momentum 30d · Revolut X', 'Trend 4h · Kraken'];
+      const goneFor0043 = /Dislocation|Rotation|Momentum 30d · Kraken/;
+      if (named.every((n) => names.some((t) => t.trim() === n)) && !names.some((t) => goneFor0043.test(t)) && subs.length === names.length && subs.every((t) => /^\d+ open · /.test(t))) {
+        ok(S('agents'), 'every running rulebook is named on its row, once, with its sub-line — and every retired one is off the page');
       } else fail(S('agents'), `names ${names.join(' | ')}; sub-lines ${subs.join(' | ')}`);
       const tableScroll = vpWidth > 760 ? await page.locator('.ag-strategies .hl-scroll').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => 0) : 0;
       if (tableScroll <= 0) ok(S('agents'), vpWidth > 760 ? `the strategy table fits its width on desktop (overflow ${tableScroll}px)` : 'no table to overflow on a phone');

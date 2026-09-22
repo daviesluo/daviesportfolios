@@ -454,13 +454,28 @@ describe('agentsAlerts', () => {
     expect(agentsAlerts({ ...dash, risk: { live_confirmed_at: '2026-09-21T00:00:00Z' } })).toEqual([]);
     expect(agentsAlerts({ ...dash, strategies: [{ ...dash.strategies[0], mode: 'paper' }] })).toEqual([]);   // paper needs no confirmation
   });
-  it('flags a paused row that still holds a position: nothing protects it while paused', () => {
-    const s = { id: 'trend-4h', name: 'Trend 4h · Revolut X', venue: 'revx', mode: 'paused', positions: [{ symbol: 'BTC/USD', base: 0.00025 }, { symbol: 'ETH/USD', base: 0 }] };
+  it('a retired row holding a position reads as winding down, not as a fault — the loop still runs its exits', () => {
+    // Since 2026-09-22 the tick keeps a retired row's floor and rule exit running and refuses every
+    // entry, and the payload says so with `windingDown`. The old text claimed nothing protected it,
+    // which was true until that day and is now the opposite of what happens.
+    const s = { id: 'rotation-1d', name: 'Rotation · Revolut X', venue: 'revx', mode: 'paused', windingDown: true, positions: [{ symbol: 'BTC/USD', base: 0.00025 }, { symbol: 'ETH/USD', base: 0 }] };
     const out = agentsAlerts({ risk: {}, venues, strategies: [s] });
-    expect(out.map((a) => a.id)).toEqual(['paused-long-trend-4h']);
+    expect(out.map((a) => a.id)).toEqual(['winding-down-rotation-1d']);
+    expect(out[0].tone).toBe('paused');                       // a controlled state, not a fault
     expect(out[0].text).toContain('BTC/USD');
     expect(out[0].text).not.toContain('ETH/USD');
+    expect(out[0].text).toContain('can never buy again');
+    // Flat: nothing to say, and the row leaves the page anyway.
     expect(agentsAlerts({ risk: {}, venues, strategies: [{ ...s, positions: [{ symbol: 'BTC/USD', base: 0 }] }] })).toEqual([]);
+  });
+  it('a paused row holding a position with NO windingDown flag is still a fault — never assume the protection', () => {
+    // An older payload, or a paused row the tick is not covering. The flag is the evidence that the
+    // exits are running; without it the alert must not claim they are.
+    const s = { id: 'trend-4h', name: 'Trend 4h · Revolut X', venue: 'revx', mode: 'paused', positions: [{ symbol: 'BTC/USD', base: 0.00025 }] };
+    const out = agentsAlerts({ risk: {}, venues, strategies: [s] });
+    expect(out.map((a) => a.id)).toEqual(['paused-long-trend-4h']);
+    expect(out[0].tone).toBe('fault');
+    expect(out[0].text).toContain('Check that the tick is covering it');
   });
   it('flags a live order left pending past two minutes: its outcome is unknown and a person settles it', () => {
     const now = Date.parse('2026-09-21T12:10:00Z');

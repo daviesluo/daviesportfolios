@@ -198,6 +198,39 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 02:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The pre-live should-fix list is closed, and three of its four items had
+been done for a day without the record saying so.** Went to fix S13, S14
+and S15 and found each already shipped: `newestWins()` guards the
+dashboard render AND the module cache, with `loading` set only on a
+manual refresh or a cold open (S13); `sizeText(base, m)` masks every size
+on the page, its own comment giving the reason — a size beside a mark IS
+the value (S14); `agentsAlerts` raises `live-unconfirmed` whenever a row
+is live and `live_confirmed_at` is null (S15). **A list that says a thing
+is undone when it is done is the same failure as the reverse**, and this
+one sat two lines from a go-live decision. §4.17 now says what is true.
+
+**One alert had gone stale in the dangerous direction.** `paused-long`
+told the reader that "no stop, trail or exit runs on a paused row" —
+correct until 02:00 today, and the exact opposite afterwards. It now
+reads `winding-down` at a `paused` tone when the payload carries the
+`windingDown` flag, and **stays a fault when it does not**: the flag is
+the evidence that the exits are running, and a page must not claim
+protection it cannot see. Pinned both ways.
+
+**The sweep fixture is refreshed to the post-`0043` payload**: four rows
+instead of seven, `makerProbes` in it, and the three assertions that had
+hard-coded seven rows corrected with it. That fixture had been modelling
+a set that no longer exists since the retirement migration this morning.
+208 browser checks green, 913 vitest, 327 Deno.
+
+**Both studies still running** (the fill split; coins / weights /
+mechanics / venue), each resumed with the Revolut X tape finding.
+
+**What remains on the agents feature**: nothing from the pre-live review.
+The open items are the two studies, and then Davies' go-live decision.
+
 ### [2026-09-22 02:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Revolut X's own candles are public, and the repository was wrong about
