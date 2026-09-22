@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { buildHoldingsRows, sortHoldingsRows, HoldingsListModal } from './holdings_list.jsx';
+import { buildHoldingsRows, sortHoldingsRows, HoldingsListModal, COMPANY_NAMES } from './holdings_list.jsx';
 
 // metrics-shaped fixture: two positions, three holdings + cash.
 const METRICS = {
@@ -129,5 +129,16 @@ describe('HoldingsListModal', () => {
     expect(blobs[0].type).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     expect(downloads[0]).toMatch(/^holdings-\d{4}-\d{2}-\d{2}\.xlsx$/);
     clickSpy.mockRestore();
+  });
+});
+
+// The site is English-only. A Chinese fund's own name (017731 shipped as
+// its Chinese title) showed up in the holding list and the chart modal.
+describe('COMPANY_NAMES', () => {
+  it('holds only English names — no CJK characters reach the page', () => {
+    const cjk = /[\u3000-\u303f\u4e00-\u9fff\uff00-\uffef]/;
+    const offenders = Object.entries(COMPANY_NAMES).filter(([, name]) => cjk.test(name));
+    expect(offenders).toEqual([]);
+    expect(COMPANY_NAMES['017731']).toBe('Harvest Global Industrial Upgrade Equity (QDII) C');
   });
 });
