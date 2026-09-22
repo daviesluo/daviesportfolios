@@ -198,6 +198,57 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-21 23:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**"Cleared one window" carries no information, and the sideways year is
+the one that hurts.** The third-window study (§3.15) built a real third
+window from Kraken's free quarterly OHLCVT bundle (8.97 GB, spliced
+strictly BEFORE each coin's Coinbase series so A and B keep the exact
+candles every table used — 100 cells moved 0 / 0 / 0, overlap 1.83–11.30
+bps median against thresholds written down first). Davies' question was
+whether a one-window pass earns a paper seat. It does not: **zero or one
+coin of 22 clears the bar on all three windows against a null of
+0.33–1.50, on all four venue × parameter × stop-rule arms**, the
+windows-cleared histogram matches the null exactly, and 23,830 arms
+produce nothing above chance. Checked here from the membership lists
+directly: a coin that cleared window A went on to clear window B
+0.000–0.200 of the time, while a coin that FAILED window A cleared B
+0.421–0.611 of the time — backwards, in all four arms. So no coin joins
+anything on one window, POL included, and POL is closed on its own
+numbers besides (window C fails on both venues, both parameter sets, 0 %
+plateau).
+
+**The fourth window is the finding nobody asked for.** C turned out to be
+a stronger bull (+243 %), not a new regime, so the study also built the
+sideways year: **D, −5.8 %, where the sleeve loses 7.8 % with its largest
+drawdown of the four (15.5 %)**. The bear year this rule survives is a
+TRENDING bear and it sat in cash through most of it. Four windows now
+read C +55.6 %, B +20.1 %, A +8.0 %, D −7.8 %. That belongs in front of
+any live decision and is now in go-live §4.
+
+AVAX: three windows of four (C +126.7 %, A +34.1 %, B +6.8 %) and the
+worst member in D (−29.5 %, leave-one-out +0.57). Its three-window pass
+is the single observation the null expects 0.80 of, so it is not
+evidence. `trend-4h-wide` clears all three on SOL and AVAX and then D
+prices it: AVAX −35.0 % on a 37 % drawdown, over §4.15's limit. Neither
+candidate promoted.
+
+Verification: re-run here **byte-identical** (it writes no wall-clock
+field); `runGated` vs `run` 190 cells per stop rule at zero difference;
+it reproduces §3.8's published table under the old stop on 33 of 35 rows,
+worst |Δ| 0.0004 where the document rounds at 0.0005. It also SHA-256s
+`backtest.ts` at both ends of a run — hash `31d27c7d82f8a94c…`, matches
+the committed file — after catching the stop correction mid-study on its
+own determinism check, and re-ran everything twice, once per stop rule.
+
+**Still open**: the TESTING-row migration (§3.14's verdicts: delete
+`trend-1h·revx`, `momentum-1d·kraken`, `rotation-1d·revx`,
+`rotation-1w·kraken`; keep the other two) — Davies authorised deleting
+the pointless rows, and one migration should carry it. And §3.14's tape
+problem is untouched: `signal_venue` is `kraken` while every table is
+priced on Coinbase, worth ~1 point at sleeve level and up to 30 per coin.
+Re-pricing the reference on Kraken's tape is the next study.
+
 ### [2026-09-21 23:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Every backtest in this reference prices a signal the loop does not
