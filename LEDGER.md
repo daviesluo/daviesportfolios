@@ -91,8 +91,8 @@ list stays the short version; the plan is the reasoning behind it.
    **The pre-live verification is done (2026-09-22, §4.19 and go-live §9)
    and found one real defect, now fixed: a position did not carry the mode
    it was opened in.** One box is left and it is Davies': run the
-   read-only `probe` (it places nothing, needs an operator credential).
-   Then watch the first live order: its read-back is what verifies
+   read-only `probe` — **run 14:05 UTC and green**, so the only thing left
+   before the switch is his word. Then watch the first live order: its read-back is what verifies
    Revolut X's settlement field names (B4), and the page raises a banner
    if it is left pending.
    Kraken holds £75 GBP, not USD (probe 09-20 19:08 UTC); a live Kraken
@@ -260,13 +260,24 @@ touch plus 9 bps (`trend-4h-kraken` measures Kraken's post-only fills, not
 this). Dry-run inside a self-rolling-back transaction: 4 → 5 rows, caps as
 intended, production untouched and re-checked afterwards.
 
-**Still open, and it needs Davies**: the read-only `probe` (Revolut X
-balances, the signed call with a query, `/1.0/orders/active`'s field
-names, Kraken, Jev on both transports). It places nothing but needs an
-operator credential this session does not hold and should not, so the
-signed path is verified as of §2.1's 2026-09-20 run and for the three
-majors only. Reference §4.19; checklist and order of operations,
-`docs/agents/go-live.md` §9.
+**The probe is RUN and green** (14:05 UTC, fired through `pg_net` so the
+operator secret goes from the vault into the header without leaving the
+database — the same method as 09-21). Revolut X: key loads, balances 200,
+the SIGNED pairs 200 with **all five coins active at $0.10**, the signed
+call WITH a query 200 (the part most likely to be wrong), active orders
+200, region UK with one ticker row per symbol. Kraken: secret 64 bytes,
+**the account holds USD and no GBP — §4.18's conversion prerequisite is
+confirmed done at the venue**, TradeVolume confirms 0.80 % / 0.40 % at
+$0 of 30-day volume, `AddOrder validate=true` 200 with `txid: null`, so
+the placement path is verified without an order. Jev answers on BOTH
+transports and the two agree. **B4 stays open and no probe can close it**:
+both order histories are empty, so the settlement field names are still
+the client's assumption until the first live order's read-back. New
+measurement kept: **Kraken's book is 3–5× tighter than Revolut X's** on
+all five coins (SUI 4.94 bps against 23.7) — it does not move the venue
+verdict, because fees decide it, but it says the fee schedule is the
+whole of Kraken's disadvantage. Reference §4.19; checklist and order of
+operations, `docs/agents/go-live.md` §9.
 
 ### [2026-09-22 12:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
