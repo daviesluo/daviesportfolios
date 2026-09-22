@@ -288,6 +288,21 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-22 19:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The demo book in the public bundle was a real snapshot of Davies'
+holdings** — `src/data.js`'s `INITIAL_PORTFOLIO`, about 35 holdings with
+their share counts and average costs, compiled into `dist/assets/app-*.js`
+where anyone can download it without a password (found by the README
+fact-check; one lot matched the other-platform lot in `0033`). It is now
+fictional: ten shares of each name (0.1 BTC) at 80 % of the listed price,
+positions and tickers unchanged because `migrate()` reads the default
+labels from it. `src/data.test.js` pins the pattern (red on the old file).
+Old bundles stay in git history and in old Pages deployments; Davies
+accepted historical data as long as it is not prominent. Gates in the
+clean worktree: typecheck, lint, vitest 916, build, sweep 208/208, knip,
+size-limit 110.03 of 122 kB.
+
 ### [2026-09-22 19:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Kraken's money moves to Revolut X — Davies' decision** on study K's
