@@ -1188,6 +1188,14 @@ async function run() {
       if (revxRows === 3 && krakenRows === 1) ok(S('agents'), 'venue badge on every row: 3 Revolut X, 1 Kraken');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       const shares = await page.locator('.ag-share').allTextContents();
+      // The maker probe line (`0042`): three probes resting, none resolved. The rule it exists to
+      // enforce is that this state reads as "nothing resolved", NEVER as a 0 % fill rate or an
+      // adverse of 0.0 bps — a zero on no evidence is the mistake the page made once about a
+      // symbol the loop was reading every minute.
+      const probe = (await page.locator('.ag-probe').allTextContents()).join(' ').replace(/\s+/g, ' ').trim();
+      if (/3 resting, none resolved yet/.test(probe) && !/\d+%/.test(probe) && !/bps/.test(probe)) {
+        ok(S('agents'), 'the maker probe reads as unresolved, with no fill rate and no adverse number invented');
+      } else fail(S('agents'), `maker probe line reads "${probe}"`);
       if (shares.some((t) => /Kraken 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Kraken');
       else fail(S('agents'), `share bar reads ${shares.join(' | ')}`);
       const cards = await page.locator('.ag-venue-card').count();

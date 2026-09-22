@@ -198,6 +198,27 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 02:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The probe summary reached the payload and stopped there.** `0042` has
+been collecting since 00:20 and `probeSummary` went into the dashboard at
+01:12, but `src/agents.jsx` never referenced `makerProbes` — the number
+that answers the maker-versus-taker question was computed, shipped to the
+browser, and drawn nowhere. Found it by grepping my own work rather than
+by being told, which is the only reason it did not sit there for a week.
+
+`probeLine` now renders it under VENUES: fill rate, median wait, and the
+adverse move with §3.13's 10–20 bps break-even read against it. **The rule
+it enforces is that an unresolved probe says so** — *"no probe yet"* or
+*"3 resting, none resolved yet"* — and never a 0 % fill rate or 0.0 bps.
+A zero on no evidence is exactly what this page printed once about AVAX
+while the loop was reading it every minute. Pinned four ways in
+`agents.test.js` (none / waiting / measured-without-follow-up / the
+break-even reading), and the browser sweep now asserts the unresolved
+state renders **with no percentage and no bps in it at all** — 210 checks.
+
+917 vitest, 327 Deno, lint and typecheck green.
+
 ### [2026-09-22 02:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The split nobody had modelled is worth −0.05 points, and the proxy
