@@ -1738,9 +1738,16 @@ labelling, and that is fixed: §3.14 is closed with these numbers, the
 sleeve carries both tapes, §4.15 carries the per-coin instability, and
 every per-coin figure that decides something names its tape.
 
-**What it could not settle.** **The fill price is still unmodelled**: the
+**What it could not settle.** **The fill price was unmodelled and is not any more — §3.18 closed
+it the same day, on the venue's own book: the split is worth −0.05 points
+against this section's Kraken arm, and 0.057 bps of adverse cost a round
+trip, 0.29 % of the cheapest round trip.** What that study also found is
+that this section's Kraken arm is the RIGHT proxy for the three windows
+with no Revolut X tape, and a Coinbase-fill proxy is not (error +0.05
+against −4.93 points). The original wording follows, because the finding
+is that it was a real gap: the
 loop decides on Kraken and fills on Revolut X, and no table in this
-repository simulates that split — §2c's ≤ 3 bps basis suggests it is
+repository simulated that split — §2c's ≤ 3 bps basis suggests it is
 small against 9 bps of taker fee, but suggests is not measures, and this
 is the obvious next study. **Both of this paragraph's claims about Revolut X's own
 tape were wrong and are corrected in §2.3 (2026-09-22)**: the tape needs
@@ -1830,6 +1837,124 @@ The number worth sitting with: the shipped seven earn MORE than this set
 in both bull windows and **less in the bear one**, because the two
 rotation rows and the Kraken momentum twin are precisely what loses
 window A.
+
+### 3.18 Deciding here and filling there — the split nobody had modelled (2026-09-22)
+
+Every `agent_strategies` row decides on Kraken's candles and fills on
+Revolut X (`signal_venue`), and until this study **no table in this
+repository priced that split**: each one used a single series for both.
+§2c's ≤ 3 bps basis said the error was probably small; probably is not
+measured. Run by an independent agent as
+`supabase/functions/agents/backtest_fill.ts`. Output
+`docs/agents/backtests/fill.json`, report
+`docs/agents/reviews/2026-09-22-fill-study.md`. Re-run here:
+**byte-identical**.
+
+**It was built on the REAL venue book, not a proxy.** Revolut X's UK
+4-hour candles are public (§2.3, corrected the same day), so window A —
+the bear year, the window that decides the ranking — could be priced on
+the book the orders would actually meet. B, C and D have no such tape and
+never will from this source.
+
+**The fidelity check found a bug, and it is the most instructive thing
+here.** The first split trailed the position's high-water on the FILL
+tape. `tick.ts` trails it on the SIGNAL tape (`trailed(pos, bars,
+forming)`, `highWaterSince(pos, bars, i)`, `atrAt(bars, i, …)` — `bars`
+is `signalFor(s, sym).bars`, verified here). **High-water is an input to
+a decision, not a price paid.** The wrong split manufactured a
+**19-point difference on AVAX window A** (+31.75 % against the correct
++12.49 %) out of two tapes that agree to 4 bps. A plausible-looking
+"signal decides, fill does the rest" split would have produced a large,
+clean, fictitious result. Corrected, all three arms fill at the same
+timestamps. `runSplit` against `run` with fill = signal: **2,600 cells at
+zero difference** in return, drawdown, trades, days, exposure and fees,
+and **903,928 equity-curve points** compared one for one, also zero — run
+twice per cell, once with a cloned array so the split path is exercised
+rather than short-circuited. Arms (a) and (b) reproduce `tape.json` on
+**2,520 cells per stop rule, zero differ**, against its recorded SHA-256.
+
+**F2 — the three arms** (window A, shipped stops, seeded, five $20
+slots). The two extra rows are the proxies, and they are the point:
+
+| arm | signal | fill | return | DD | ret/DD |
+|---|---|---|---|---|---|
+| (b) every published table | Coinbase | Coinbase | +7.62 % | 11.32 % | 0.67 |
+| (a) §3.16's Kraken arm | Kraken | Kraken | +8.74 % | 10.96 % | 0.80 |
+| **(c) what the loop does** | **Kraken** | **Revolut X UK** | **+8.69 %** | **11.20 %** | **0.78** |
+| (p) proxy: fill on Coinbase | Kraken | Coinbase | +3.76 % | 11.13 % | 0.34 |
+| (q) control | Coinbase | Revolut X UK | +11.95 % | 11.40 % | 1.05 |
+
+**(c) − (b) = +1.07 points. (c) − (a) = −0.05 points.** The thing that
+was never modelled is worth five hundredths of a point; the thing §3.16
+already measured is worth twenty times more. Per coin, (c) tracks (a)
+within 0.8 points on all five.
+
+**And the proxy calibration changes which proxy to use.** Measured
+against truth on window A: filling on **Kraken** errs by **+0.05 points**
+at sleeve level; filling on **Coinbase** errs by **−4.93**, with a
+per-coin maximum of 28 points and a leave-one-out order that disagrees.
+So B, C and D must be read off arm (a) — which is what §3.16 already
+published — and never off a Coinbase-fill proxy.
+
+**Why, in one coin.** Revolut X is CLOSER to Coinbase than to Kraken on
+closes (3.13 against 4.94 bps median). But closes are not what decides a
+stop — **lows are**, and lows are where venues disagree most. SUI, verified
+here against all three tapes: the position is entered around 0.8757, so
+the 8 % floor sits at 0.8056, and on the 4-hour bar of **2026-09-20
+00:00** Kraken's low is 0.8124 and Revolut X's is 0.8100 — both above it —
+while **Coinbase's is 0.8051**, five ten-thousandths through. **Six basis
+points of wick.** The Coinbase-fill arms stop out there and book +1.4 %;
+the arms that fill on Kraken or Revolut X hold to above 1.01 and book
++29–30 %. **A stop fires on the one price the venues agree on least**,
+which is the structural reason a foreign tape cannot stand in for the
+fill.
+
+**F3 — the cost, in bps.** 296 real fills, 23 coins, 376 days: |basis|
+median **4.53**, p95 27.5, max 69.2 bps. Signed against the trade, the
+median is **−0.06** and the mean **+0.03**; 141 adverse against 149
+favourable, **p = 0.68 — no direction**. **The mean adverse cost is 0.057
+bps a round trip**, against a round trip that costs 19.5–41.9: **0.29 % of
+the cheapest one, and 0.32 % of the 18 bps of taker fee inside it.** §2c
+had the right order of magnitude. The 2×2 decomposition (signal −3.56,
+fill +4.63, interaction +0.60, summing to +1.07 exactly, with the
+identity printed) is in the JSON, and the report says not to lean on it:
+two main effects of about four points that nearly cancel, both dominated
+by the contaminated Coinbase-fill cells.
+
+**One signed finding, and it does not survive its own correction.**
+Protective stops are **+5.28 bps adverse on 17 of 23 coins, p = 0.035** —
+the adverse-selection signature, since a stop fires *because* the
+execution venue's low reached the level. Šidák over the three tests takes
+it to 0.10, n is 23, and the executed price is `min(level, open)`, so it
+measures venue disagreement at stop instants rather than per-order
+slippage. Written down as a watch, not a result. Entries are
+**favourable** by 1.24 bps (p = 0.118) and rule exits neutral.
+
+**F4 — what changes: nothing that matters.** §4.15's bar flips on **1 of
+23 coin-windows** (ICP, on plateau, in no row); **none of the five live
+coins moves.** Leave-one-out on arm (c) is arm (a)'s ordering, coin for
+coin and sign for sign, differing from the published arm only in the way
+§3.16 already recorded. §3.11's ranking holds: `trend-4h` alone first on
+the loop's own arm (0.78) ahead of both venues (0.49) and +momentum
+(−0.04). The equal-slots test **cannot** be re-run on arm (c) — §3.11
+requires beating equal slots on BOTH windows and arm (c) has one — and
+the report says so rather than quoting the one-window result, in which
+inverse-volatility and concentration do beat it. That refusal is §4.15
+working.
+
+**What it could not settle.** Three of four windows have no real fill
+tape and never will from this source, which serves a rolling 376 days —
+so the study's INPUT is not reproducible forever even though its output
+is byte-identical given the same directory (per-coin spans are in the
+provenance; the puller is in §2.3). **Bars are not fills**: this prices at
+a 4-hour bar's open on the execution venue's tape, not at the touch
+inside a minute — the gap between those is exactly what `0042`'s maker
+probes are recording live. Only `trend-4h` was re-priced. 23 stops is the
+entire sample behind the one directional finding. The one-day shortfall
+against window A was handled by a clip declared before any return was
+read (374.2 of 375 days, applied to every arm), and its cost is measured:
+BTC 0.00, ETH 0.00, **SOL −2.41 points** — which is why the published
+sleeve reads +7.62 % here against §3.16's +8.0 %.
 
 ## 4. Design consequences (decided by the evidence above)
 
