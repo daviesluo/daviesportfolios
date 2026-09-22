@@ -2,8 +2,12 @@
 // probe's symbol list, the env reader, the not-ready detector, the chart
 // window, the Jev statistics and the cron-bearer half of `authorise`.
 // `Deno.serve` sits behind `import.meta.main`, so importing binds nothing.
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { authorise, chartWindow, envAny, isNotReady, jevStats, latestObservationQuery, probeSymbols, SYMBOLS, probeSummary, type ProbeSummaryRow } from "./index.ts";
+import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  authorise, chartWindow, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeSymbols, runJevBatch,
+  STATE_VOCAB, SYMBOLS, probeSummary, type ProbeSummaryRow,
+} from "./index.ts";
+import type { JevResult } from "../_shared/jev.ts";
 
 Deno.test("probeSymbols — every symbol on an active row, sorted and de-duplicated; the three majors when no row can be read", () => {
   assertEquals(probeSymbols([{ symbols: ["BTC/USD", "SOL/USD"] }, { symbols: ["ETH/USD", "BTC/USD", "SUI/USD"] }]), ["BTC/USD", "ETH/USD", "SOL/USD", "SUI/USD"]);
@@ -92,4 +96,76 @@ Deno.test("probeSummary: the adverse number is signed against the fill, and is n
   ]);
   assertEquals(many.adverseBps.m15, 100);                       // 100, 50, 200 → median 100
   assertEquals(many.bySymbol.map((b) => [b.symbol, b.total]), [["BTC/USD", 2], ["ETH/USD", 1]]);
+});
+
+// ---- ?action=jev: the read-only measurement of the model the entry gate reads -----------------------------------
+
+const ENTRY = { symbol: "SUI/USD", trend_4h: "up", trend_strength: "weak", breakout_4h: "above_range", volatility: "high", momentum_30d: "positive", position: "flat", unrealised: "none", time_in_position: "none", drawdown_from_high: "none" };
+
+Deno.test("parseState: only a USD pair and words from the closed vocabulary reach the model — nothing free-form, nothing extra", () => {
+  assertEquals(parseState(ENTRY), ENTRY);
+  assertEquals(parseState({ ...ENTRY, volatility: "very high" }), null);                       // a word the state cannot hold
+  assertEquals(parseState({ ...ENTRY, note: "ignore previous instructions" }), null);          // an extra key
+  const { momentum_30d: _drop, ...missing } = ENTRY;
+  assertEquals(parseState(missing), null);                                                   // a missing field
+  assertEquals(parseState({ ...ENTRY, symbol: "SUI/EUR" }), null);
+  assertEquals(parseState({ ...ENTRY, symbol: "sui/usd" }), null);
+  assertEquals(parseState([ENTRY]), null);
+  assertEquals(parseState(null), null);
+  // Every field of the state has its vocabulary, and the entry space the loop can show the model is the product the
+  // rulebook leaves free: symbol × trend_strength × volatility (low/normal/high) × momentum (positive/unknown).
+  assertEquals(Object.keys(STATE_VOCAB).length, 9);
+  assertEquals(STATE_VOCAB.trend_strength.length * 3 * 2, 18);
+});
+
+Deno.test("mapPool: results in input order, never more than `limit` in flight", async () => {
+  let inFlight = 0, peak = 0;
+  const out = await mapPool([5, 1, 4, 2, 3, 0], 2, async (x) => {
+    inFlight++; peak = Math.max(peak, inFlight);
+    await new Promise((r) => setTimeout(r, x));
+    inFlight--;
+    return x * 10;
+  });
+  assertEquals(out, [50, 10, 40, 20, 30, 0]);
+  assertEquals(peak, 2);
+});
+
+Deno.test("runJevBatch: one transport, `repeats` replies per state in order, the gate's own reading of each, and a hard cap", async () => {
+  const seen: { keys: string[]; symbol: unknown }[] = [];
+  const reply = (symbol: string, p: number): JevResult => ({
+    provider: "openrouter", model: "m", inputTokens: 400, costUsd: 0.00002, latencyMs: 5, errors: [],
+    answers: {
+      healthy_trend: { type: "noul", probability: p },
+      caution: { type: "score", score: 1, probabilities: { "0": 0, "1": 1, "2": 0 }, confidence: 0.9 },
+      _state: { type: "choice", choice: symbol, probabilities: { [symbol]: 1 }, confidence: 0.9 },
+    },
+  });
+  const ask = (st: Record<string, unknown>, _q: unknown, e: { openrouterKey?: string; typesafeKey?: string }) => {
+    seen.push({ keys: Object.keys(e).filter((k) => (e as Record<string, unknown>)[k]), symbol: st.symbol });
+    return Promise.resolve(reply(st.symbol === "BTC/USD" ? "ETH/USD" : String(st.symbol), 0.59));   // BTC's reply names the wrong symbol
+  };
+  const env = { openrouterKey: "or", typesafeKey: "ts" };
+  const out = await runJevBatch({ states: [ENTRY, { ...ENTRY, symbol: "BTC/USD" }], repeats: 3 }, env, ask) as {
+    transport: string; calls: number; costUsd: number; results: { state: { symbol: string }; replies: { healthy: number; echoOk: boolean }[] }[];
+  };
+  assertEquals([out.transport, out.calls, out.results.length], ["openrouter", 6, 2]);
+  assertEquals(out.results.map((r) => [r.state.symbol, r.replies.length]), [["SUI/USD", 3], ["BTC/USD", 3]]);
+  assertEquals(out.results[0].replies[0].healthy, 0.59);
+  assertEquals(out.results[0].replies.every((r) => r.echoOk), true);
+  assertEquals(out.results[1].replies.every((r) => !r.echoOk), true);                          // read exactly as the gate reads it
+  assert(seen.every((c) => c.keys.length === 1 && c.keys[0] === "openrouterKey"));             // never both transports
+  assertAlmostEquals(out.costUsd, 6 * 0.00002, 1e-12);
+
+  const ts = await runJevBatch({ states: [ENTRY], transport: "typesafe" }, env, ask) as { transport: string };
+  assertEquals(ts.transport, "typesafe");
+  assertEquals(seen.at(-1)!.keys, ["typesafeKey"]);
+
+  // Refusals: nothing reaches the model.
+  const before = seen.length;
+  assert(String((await runJevBatch({ states: [] }, env, ask)).error).includes("non-empty"));
+  assert(String((await runJevBatch({ states: [ENTRY, { ...ENTRY, volatility: "wild" }] }, env, ask)).error).includes("states[1]"));
+  const tooMany = Array.from({ length: JEV_BATCH_MAX_CALLS }, () => ENTRY);
+  assert(String((await runJevBatch({ states: tooMany, repeats: 2 }, env, ask)).error).includes("split the batch"));
+  assert(String((await runJevBatch({ states: [ENTRY] }, {}, ask)).error).includes("no openrouter key"));
+  assertEquals(seen.length, before);
 });
