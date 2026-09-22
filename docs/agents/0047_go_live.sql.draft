@@ -1,4 +1,4 @@
--- 0046: the first live row.
+-- 0047: the first live row.
 --
 -- DRAFT, and deliberately not under supabase/migrations/. Pushing a file
 -- there IS applying it (`.github/workflows/migrations.yml` runs

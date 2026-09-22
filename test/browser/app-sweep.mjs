@@ -315,32 +315,35 @@ const AGENTS_DASHBOARD = (() => {
     lastDecision: { ts: new Date(CLOCK - 35 * 60e3).toISOString(), symbol: 'BTC/USD', action: 'hold', ruleAction: 'hold', reason: 'in position', provider: 'openrouter', riskAllowed: true, riskReason: 'hold' },
     backtest: null, recentDecisions: [], recentOrders: [], ...over,
   });
-  // The one row with a book: long BTC since yesterday, +$0.42 of that move made today.
-  const krakenTrend = strat('trend-4h-kraken', 'trend-4h', 'kraken', TREND, 100, {
+  // The one row with a book: long BTC since yesterday, +$0.42 of that move made today. It used to be
+  // `trend-4h-kraken`, which `0046` deleted — so the book moved to the live candidate, where production
+  // keeps it, and Kraken now has ZERO execution rows. That is the shape the page must handle: a venue
+  // that still supplies every rule's candles (`signal_venue`) and executes nothing.
+  const revxTrend = strat('trend-4h', 'trend-4h', 'revx', TREND, 100, {
     costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, todayUsd: 0.42, ordersToday: 1,
     positions: [
       { symbol: 'BTC/USD', base: 0.00025, avgCost: 80000, mark: 86000, costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, openedAt: CLOCK - 86400e3, highWater: 86500, fills: 3, observation: seen('BTC/USD', { position: 'long', unrealised: 'gain', time_in_position: 'days' }) },
       ...TREND.slice(1).map(flat),
     ],
     recentDecisions: [{
-      id: 1, ts: new Date(CLOCK - 35 * 60e3).toISOString(), strategy_id: 'trend-4h-kraken', venue: 'kraken', symbol: 'BTC/USD', mode: 'paper',
+      id: 1, ts: new Date(CLOCK - 35 * 60e3).toISOString(), strategy_id: 'trend-4h', venue: 'revx', symbol: 'BTC/USD', mode: 'paper',
       state: { trend_4h: 'up', breakout_4h: 'inside_range', volatility: 'normal', momentum_30d: 'positive', position: 'long' },
       answers: { healthy_trend: { type: 'noul', probability: 0.91 }, caution: { type: 'score', score: 0.1 }, _state: { type: 'choice', choice: 'BTC/USD' } },
       provider: 'openrouter', model: 'typesafe/jev-1.13-20260917', latency_ms: 470, cost_usd: 0.0000184,
       rule_action: 'hold', rule_reason: 'in position', final_action: 'hold', final_reason: 'in position [healthy=0.91]', risk_allowed: true, risk_reason: 'hold',
     }],
     recentOrders: [{
-      id: 1, ts: new Date(CLOCK - 86400e3).toISOString(), strategy_id: 'trend-4h-kraken', venue: 'kraken', symbol: 'BTC/USD', mode: 'paper', side: 'buy',
-      price: 80000, base_size: 0.00025, state: 'filled', filled_base: 0.00025, avg_fill_price: 80000, fee_usd: 0.08, filled_at: new Date(CLOCK - 86400e3 + 300e3).toISOString(),
+      id: 1, ts: new Date(CLOCK - 86400e3).toISOString(), strategy_id: 'trend-4h', venue: 'revx', symbol: 'BTC/USD', mode: 'paper', side: 'buy',
+      price: 80000, base_size: 0.00025, state: 'filled', filled_base: 0.00025, avg_fill_price: 80000, fee_usd: 0.018, filled_at: new Date(CLOCK - 86400e3 + 300e3).toISOString(),
     }],
   });
-  // The four rows that survive `0043` (reference §3.17), and nothing else: the three it
-  // retired are gone from the page unless one still holds something, which is the next row.
+  // The THREE rows that survive `0046` (reference §3.17, §4.22). `0043` retired three and `0044`
+  // deleted them; `0046` deleted the Kraken twin, which made no decision of its own — 50 of 50 paired
+  // decisions matched this row exactly — so no strategy executes on Kraken any more.
   const strategies = [
-    strat('trend-4h', 'trend-4h', 'revx', TREND, 100),
+    revxTrend,
     strat('trend-1h', 'trend-1h', 'revx', MAJORS, 40),
     strat('momentum-1d', 'momentum-1d', 'revx', MAJORS, 40),
-    krakenTrend,
   ];
   const zero = { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0 };
   const book = { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, todayUsd: 0.42 };
@@ -355,8 +358,8 @@ const AGENTS_DASHBOARD = (() => {
     ],
     strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
     byVenue: {
-      revx: { ...zero, capitalUsd: 180, strategies: 3, live: 0 },     // 100 + 40 + 40 after 0043
-      kraken: { ...book, capitalUsd: 100, strategies: 1, live: 0 },   // trend-4h-kraken alone
+      revx: { ...book, capitalUsd: 180, strategies: 3, live: 0 },     // 100 + 40 + 40, and the only book there is
+      kraken: { ...zero, capitalUsd: 0, strategies: 0, live: 0 },     // signal venue only since `0046`
     },
     basis: {
       'BTC/USD': { latest: 0.31, latestAt: at, n: 288, absP50: 0.4, absP95: 1.2, absMax: 2.1, over20: 0, over40: 0, over80: 0 },
@@ -1098,10 +1101,11 @@ async function run() {
       if (money(head) === 12.34 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total (${(head || '').trim()})`);
       else fail(S('agents'), `headline read "${head}", wanted +$12.34`);
       const rows = await page.locator('.ag-row').count();
-      // Four since `0043` retired the two rotations and the Kraken momentum twin (§3.17); the
-      // rows it retired are off the page because none of them still holds anything here.
-      if (rows === 4) ok(S('agents'), 'four strategy rows — the set 0043 leaves, the retired ones absent');
-      else fail(S('agents'), `expected 4 strategy rows, got ${rows}`);
+      // Three since `0046` deleted the Kraken twin (§4.22): `0043` retired the two rotations and the
+      // Kraken momentum twin, `0044` deleted them, and the twin made no decision of its own. The rows
+      // those migrations removed are off the page because none of them still holds anything here.
+      if (rows === 3) ok(S('agents'), 'three strategy rows — the set 0046 leaves, the deleted ones absent');
+      else fail(S('agents'), `expected 3 strategy rows, got ${rows}`);
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
       // observation the tick wrote 40 s ago.
@@ -1182,10 +1186,10 @@ async function run() {
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, krakenRows = badges.filter((b) => b.startsWith('Kraken')).length;
-      if (revxRows === 3 && krakenRows === 1) ok(S('agents'), 'venue badge on every row: 3 Revolut X, 1 Kraken');
+      if (revxRows === 3 && krakenRows === 0) ok(S('agents'), 'venue badge on every row: 3 Revolut X, 0 Kraken (`0046` deleted the twin)');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       const shares = await page.locator('.ag-share').allTextContents();
-      if (shares.some((t) => /Kraken 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Kraken');
+      if (shares.some((t) => /Revolut X 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Revolut X');
       else fail(S('agents'), `share bar reads ${shares.join(' | ')}`);
       const cards = await page.locator('.ag-venue-card').count();
       if (cards === 2) ok(S('agents'), 'one venue card per account');
@@ -1203,19 +1207,19 @@ async function run() {
       else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
       const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();
-      const named = ['Trend 4h · Revolut X', 'Trend 1h · Revolut X', 'Momentum 30d · Revolut X', 'Trend 4h · Kraken'];
-      const goneFor0043 = /Dislocation|Rotation|Momentum 30d · Kraken/;
-      if (named.every((n) => names.some((t) => t.trim() === n)) && !names.some((t) => goneFor0043.test(t)) && subs.length === names.length && subs.every((t) => /^\d+ open · /.test(t))) {
+      const named = ['Trend 4h · Revolut X', 'Trend 1h · Revolut X', 'Momentum 30d · Revolut X'];
+      const gone = /Dislocation|Rotation|Momentum 30d · Kraken|Trend 4h · Kraken/;
+      if (named.every((n) => names.some((t) => t.trim() === n)) && !names.some((t) => gone.test(t)) && subs.length === names.length && subs.every((t) => /^\d+ open · /.test(t))) {
         ok(S('agents'), 'every running rulebook is named on its row, once, with its sub-line — and every retired one is off the page');
       } else fail(S('agents'), `names ${names.join(' | ')}; sub-lines ${subs.join(' | ')}`);
       const tableScroll = vpWidth > 760 ? await page.locator('.ag-strategies .hl-scroll').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => 0) : 0;
       if (tableScroll <= 0) ok(S('agents'), vpWidth > 760 ? `the strategy table fits its width on desktop (overflow ${tableScroll}px)` : 'no table to overflow on a phone');
       else fail(S('agents'), `the strategy table overflows by ${tableScroll}px at ${vpWidth}px`);
       // By NAME, not by index: a migration that adds a row must not silently point this at a different strategy.
-      await page.locator('.ag-row', { has: page.locator('.ag-name-btn:text-is("Trend 4h · Kraken")') }).first().click();
+      await page.locator('.ag-row', { has: page.locator('.ag-name-btn:text-is("Trend 4h · Revolut X")') }).first().click();
       await page.waitForSelector('.ag-detail', { timeout: 5_000 });
       const title = await page.locator('.ag-detail-title').first().textContent().catch(() => '');
-      if (/Trend 4h · Kraken/.test(title || '')) ok(S('agents'), `the row with a book opens its detail (${(title || '').trim()})`);
+      if (/Trend 4h · Revolut X/.test(title || '')) ok(S('agents'), `the row with a book opens its detail (${(title || '').trim()})`);
       else fail(S('agents'), `detail title "${title}"`);
       // One table on the detail, not three: the positions table and the decisions table said the same
       // things the cards and the live-state row already say, and the orders table now lives under the chart.
@@ -1332,7 +1336,7 @@ async function run() {
       await page.waitForTimeout(200);
       await page.locator('.header-menu-item:text-is("Agents")').first().click();
       await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
-      await page.locator('.ag-row', { has: page.locator('.ag-name-btn:text-is("Trend 4h · Kraken")') }).first().click();
+      await page.locator('.ag-row', { has: page.locator('.ag-name-btn:text-is("Trend 4h · Revolut X")') }).first().click();
       await page.waitForSelector('.ag-poscard', { timeout: 5_000 });
       const hasDigits = (/** @type {string} */ t) => /\d/.test(t);
       const cardVals = (await page.locator('.ag-poscard .pc-row span:last-child').allTextContents()).map((t) => t.trim());

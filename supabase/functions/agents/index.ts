@@ -295,7 +295,7 @@ async function dashboard(now: number) {
     // were still long, and a position nobody can see is a position nobody will notice is stuck.
     d.select<StrategyRow & { description: string; updated_at: string; retired_at: string | null }>("agent_strategies", "select=*&order=id.asc"),
     d.select<RiskRow & { updated_at: string }>("agent_risk", "id=eq.1&select=*"),
-    d.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc"),   // the filled part of a working order is a position too; paged — PostgREST stops at 1,000 rows without a word
+    d.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc"),   // the filled part of a working order is a position too; paged — PostgREST stops at 1,000 rows without a word
     d.select<OrderRow & { request: unknown }>("agent_orders", "state=in.(pending,new,partially_filled)&select=*&order=ts.desc"),
     d.select<{ id: number; strategy_id: string; venue: VenueId; state: string }>("agent_orders", `ts=gte.${dayStart}&select=id,strategy_id,venue,state`),
     // The maker probes (`0042`), summarised below. Read whole: they are a few rows a day and the
@@ -494,7 +494,7 @@ async function chart(strategyId: string, symbol: string, now: number) {
       `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&ts=gte.${since}&select=id,ts,bar_start,final_action,rule_action,final_reason,provider,risk_allowed,numbers&order=ts.asc&limit=500`),
     d.select<ObservationRow>("agent_observations", latestObservationQuery(strategyId, symbol)),
   ]);
-  const allFilled = await d.selectAll<OrderRow>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&state=in.(filled,partially_filled)&select=*&order=ts.asc`);
+  const allFilled = await d.selectAll<OrderRow>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc`);
   const pos = positionFromFills(allFilled.map(toFill));
   return {
     strategyId, symbol, venue: s.venue, signalVenue: s.signal_venue, kind: s.kind, mode: s.mode, intervalMin, since, at: new Date(now).toISOString(),

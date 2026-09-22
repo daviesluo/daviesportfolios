@@ -1222,3 +1222,35 @@ Deno.test("a buy in flight does not disarm the stop; a sell in flight does", asy
   assert(r2.skipped.some((x) => x.includes("a sell is already in flight")), r2.skipped.join("; "));
   assertEquals(w2.mem.tables.agent_orders.filter((o) => o.side === "sell" && o.state !== "pending").length, 0);
 });
+
+Deno.test("just after midnight UTC the day's open is YESTERDAY'S CLOSE, not yesterday's open", async () => {
+  // The venue has not published today's daily candle yet. Falling back to the last candle and reading its
+  // OPEN counted a whole day of move as today's — every night — which inflates dayPnl and can spend the
+  // daily loss limit on a move that already happened. Yesterday's close is where today opened.
+  const w = world({ orders: [longSince(2 * ONE_D, 129.0, 0.155)] });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  const dec = w.mem.tables.agent_decisions[0];
+  assert(dec, "a decision should have been written");
+  const n = dec.numbers as { pnlToday: number };
+  assert(Number.isFinite(n.pnlToday), `pnlToday is ${n.pnlToday}`);
+});
+
+Deno.test("an order with no decision id is never placed: 0041's index is partial, so it would carry no claim", async () => {
+  const w = world();
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);                                  // the ordinary path always has one
+  assertEquals(w.mem.tables.agent_orders.length, 1);
+
+  // With the decision insert returning nothing, the order has no claim and two turns would both place it.
+  const w2 = world();
+  const realInsert = w2.deps.db.insert.bind(w2.deps.db);
+  // deno-lint-ignore no-explicit-any
+  (w2.deps.db as any).insert = async (table: string, rows: unknown, returning = true) => {
+    const out = await realInsert(table, rows as never, returning);
+    return (table === "agent_decisions" ? [] : out) as never;
+  };
+  const r2 = await tick(w2.deps);
+  assertEquals(w2.mem.tables.agent_orders, []);
+  assert(r2.errors.some((e) => e.includes("no decision id")), r2.errors.join("; "));
+});
