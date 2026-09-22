@@ -20,7 +20,7 @@ import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@
 import type { Candle } from "../_shared/agents_strategy.ts";
 import type { OrderView, Quote, Venue, VenueId } from "../_shared/venue.ts";
 import { PAGE_ROWS, type Db } from "./db.ts";
-import { dayPnl, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
+import { dayPnl, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, probeFilled, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 const FOUR_H = 4 * 3600e3, ONE_H = 3600e3, ONE_D = 86400e3, ONE_M = 60e3;
 const NOW = Date.parse("2026-09-20T04:05:00Z");                 // minute 245 of the day: a fifth minute, so the basis is recorded
@@ -196,7 +196,7 @@ function world(opts: {
   strategies?: StrategyRow[]; orders?: Row[]; decisions?: Row[]; observations?: Row[]; risk?: Partial<RiskRow>; oneMin?: Partial<Candle>; canTrade?: boolean;
   orderView?: OrderView; jevDown?: boolean; active?: Record<string, { venueOrderId: string; view: OrderView }>; onPlace?: () => void;
   series?: SeriesBySymbol; revxQuote?: Quote; now?: number; krakenMinutes?: Candle[]; leaseUntil?: string; raceClaim?: boolean; placedState?: "new" | "filled";
-  krakenNoQuote?: boolean; raceOrder?: boolean; takeover?: boolean;
+  krakenNoQuote?: boolean; raceOrder?: boolean; takeover?: boolean; probes?: Row[];
 } = {}) {
   const now = opts.now ?? NOW;
   const base = series();
@@ -214,6 +214,7 @@ function world(opts: {
     agent_orders: opts.orders ?? [],
     agent_decisions: opts.decisions ?? [],
     agent_observations: opts.observations ?? [],
+    agent_maker_probes: opts.probes ?? [],
     agent_locks: [{ name: "tick", lease_until: opts.leaseUntil ?? "1970-01-01T00:00:00.000Z", holder: null }],
   }, {
     // The race: another tick claims the same bar between this tick's fast check and its insert — or, with `takeover`, the next
@@ -900,4 +901,99 @@ Deno.test("the execution venue's minute candle is fetched only where a paper ord
   await tick(w2.deps);
   assert(!w2.kraken.calls.includes("candles BTC/USD 1"), w2.kraken.calls.join(","));
   assertEquals(w2.mem.tables.agent_orders[0].state, "filled");                        // a marketable paper order fills without it
+});
+
+
+// ── the maker probe (migration 0042) ────────────────────────────────────────
+// Revolut X is 0 % maker and the loop crosses the touch, so "why not rest everything" is the
+// standing question. §3.13 could not answer it because a backtest on Coinbase candles with a
+// synthetic bid says a resting order fills instantly. The probe answers it on the real book
+// without resting anything: it records where an order WOULD have sat, whether the market came
+// back, and where price went after it did. It must never become an order or reach any book.
+
+Deno.test("probeFilled: a resting buy fills when the minute traded through it, a sell when it traded up to it", () => {
+  const c = (low: number, high: number): Candle => ({ start: 0, open: low, high, low, close: high, volume: 1 });
+  assert(probeFilled("buy", 100, c(99.5, 101)));           // the minute dipped to the bid
+  assert(probeFilled("buy", 100, c(100, 101)));            // touching counts, as it does for a paper order
+  assert(!probeFilled("buy", 100, c(100.1, 101)));         // never came back
+  assert(probeFilled("sell", 100, c(99, 100.5)));
+  assert(!probeFilled("sell", 100, c(98, 99.9)));
+  assertEquals(probeFilled("buy", 100, null), false);      // no minute candle is not a fill
+});
+
+Deno.test("probeFollowUpDue: the earliest outstanding offset, one per turn, and nothing before it is due", () => {
+  const [m15, m60] = PROBE_FOLLOW_UP_MS;
+  assertEquals(probeFollowUpDue(0, null, m15 - 1), null);           // not yet
+  assertEquals(probeFollowUpDue(0, null, m15), "m15");
+  assertEquals(probeFollowUpDue(0, null, m60), "m15");              // catches up one at a time, earliest first
+  assertEquals(probeFollowUpDue(0, { m15: 1 }, m60), "m60");
+  assertEquals(probeFollowUpDue(0, { m15: 1 }, m60 - 1), null);
+  assertEquals(probeFollowUpDue(0, { m15: 1, m60: 2 }, m60 * 10), null);   // finished
+});
+
+Deno.test("a marketable Revolut X order opens a probe at the OTHER side's touch, and the probe is not an order", async () => {
+  const w = world({ strategies: [strategy({ id: "trend-4h", venue: "revx", signal_venue: "kraken" })] });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.probes.opened, 1);
+  const p = w.mem.tables.agent_maker_probes[0] as Row;
+  assertEquals([p.venue, p.symbol, p.side, p.state, p.watching], ["revx", "BTC/USD", "buy", "resting", true]);
+  // The order crossed to the ask; the probe records the bid it would have rested at instead.
+  assertEquals(p.taker_price, w.mem.tables.agent_orders[0].price);
+  assertEquals(p.maker_price, w.revxQuote.bid);
+  assert(Number(p.maker_price) < Number(p.taker_price), `${p.maker_price} !< ${p.taker_price}`);
+  assertEquals(p.expires_at, new Date(NOW + PROBE_TTL_MS).toISOString());
+  // It is a notebook, not an order: one order on record, and the venue was never asked twice.
+  assertEquals(w.mem.tables.agent_orders.length, 1);
+  assert(!w.revx.calls.some((c) => c.startsWith("place")));
+});
+
+Deno.test("a resting probe resolves against the minute: filled when the market came back, expired when it did not", async () => {
+  const seed = (over: Record<string, unknown> = {}) => ({
+    id: 7, ts: new Date(NOW - 30 * 60e3).toISOString(), strategy_id: "trend-4h-kraken", order_id: null,
+    venue: "kraken", symbol: "BTC/USD", side: "buy", mode: "paper", taker_price: 200, maker_price: 100,
+    base_size: 0.1, state: "resting", resolved_at: null, minutes_to_fill: null, mark_at_resolve: null,
+    follow_up: {}, expires_at: new Date(NOW + PROBE_TTL_MS).toISOString(), watching: true, ...over,
+  });
+  // The minute traded down through 100 → filled, with the wait recorded.
+  const hit = world({ probes: [seed()], oneMin: { low: 99 } });
+  const r1 = await tick(hit.deps);
+  assertEquals(r1.errors, []);
+  assertEquals([r1.probes.filled, r1.probes.expired], [1, 0]);
+  const f = hit.mem.tables.agent_maker_probes[0];
+  assertEquals([f.state, f.minutes_to_fill], ["filled", 30]);
+  assert(f.resolved_at != null && f.mark_at_resolve != null);
+
+  // Same probe, but the market never came back and its four hours are up.
+  const dead = world({ probes: [seed({ expires_at: new Date(NOW - 1).toISOString() })], oneMin: { low: 128 } });
+  const r2 = await tick(dead.deps);
+  assertEquals([r2.probes.filled, r2.probes.expired], [0, 1]);
+  const e = dead.mem.tables.agent_maker_probes[0];
+  assertEquals([e.state, e.minutes_to_fill], ["expired", null]);
+
+  // Neither one touched a position, an order or the book.
+  for (const w of [hit, dead]) assertEquals(w.mem.tables.agent_orders.filter((o) => o.id === 7).length, 0);
+});
+
+Deno.test("a resolved probe collects its follow-up marks, and the last one stops it being watched", async () => {
+  const [m15, m60] = PROBE_FOLLOW_UP_MS;
+  const base = {
+    id: 8, ts: new Date(NOW - 120 * 60e3).toISOString(), strategy_id: "trend-4h-kraken", order_id: null,
+    venue: "kraken", symbol: "BTC/USD", side: "buy", mode: "paper", taker_price: 200, maker_price: 100,
+    base_size: 0.1, state: "filled", minutes_to_fill: 5, mark_at_resolve: 100,
+    expires_at: new Date(NOW).toISOString(), watching: true,
+  };
+  const first = world({ probes: [{ ...base, resolved_at: new Date(NOW - m15).toISOString(), follow_up: {} }] });
+  const r1 = await tick(first.deps);
+  assertEquals(r1.probes.followedUp, 1);
+  const a = first.mem.tables.agent_maker_probes[0] as Row & { follow_up: Record<string, number> };
+  assertEquals(Object.keys(a.follow_up), ["m15"]);
+  assertEquals(a.watching, true);                      // m60 is still to come
+
+  const second = world({ probes: [{ ...base, resolved_at: new Date(NOW - m60).toISOString(), follow_up: { m15: 101 } }] });
+  const r2 = await tick(second.deps);
+  assertEquals(r2.probes.followedUp, 1);
+  const b = second.mem.tables.agent_maker_probes[0] as Row & { follow_up: Record<string, number> };
+  assertEquals(Object.keys(b.follow_up).sort(), ["m15", "m60"]);
+  assertEquals(b.watching, false);                     // finished: never read again
 });

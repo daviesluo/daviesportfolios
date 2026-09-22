@@ -103,7 +103,11 @@ that follow from that evidence, in short:
   marketable on Revolut X; NO intra-bar ATR trail since 2026-09-21, it
   duplicated the rulebook's own close-based trail, §3.13), and
   the categorical state on the FORMING bar written to `agent_observations`
-  when it changes. **Entries happen only on a newly closed 1h / 4h / 1d
+  when it changes, and the maker probes (`0042`) — every marketable order
+  writes down where a post-only order would have rested, and later turns
+  record whether the book came back and where price went 15 and 60 minutes
+  after; that gap is the adverse selection §3.13 could not compute, and a
+  probe is never an order and never reaches any book. **Entries happen only on a newly closed 1h / 4h / 1d
   bar**, at most a few a day; the one exception is the dislocation rule,
   whose entries are events. At taker cost one round trip an hour burns
   ~75 % of the account a month. **Revolut X takes the touch** on every

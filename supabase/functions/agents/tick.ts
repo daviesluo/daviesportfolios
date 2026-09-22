@@ -87,6 +87,8 @@ export const LEASE_MS = 55e3;                     // one turn holds the tick lea
 export const REENTRY_BARS = 2;                    // after ANY exit, no entry for this many of the rule's own bars
 export const TURN_BUDGET_MS = Math.round(LEASE_MS * 0.7);   // past this, no NEW bar decision is opened this turn (a Jev round trip is up to 16 s)
 export const PROTECTIVE_CLAIM_OFFSET_MS = 1000;   // a protective decision claims one second INTO its minute: a bar starts on the minute, so the two never collide
+export const PROBE_TTL_MS = 4 * 3600e3;           // a maker probe watches for one 4-hour bar, then expires unfilled
+export const PROBE_FOLLOW_UP_MS = [15 * 60e3, 60 * 60e3];   // and the mark is recorded this long after it resolved — that gap IS the adverse selection
 const ONE_M = 60e3, ONE_H = 3600e3, FOUR_H = 4 * 3600e3, ONE_D = 86400e3;
 const DAILY_BARS = 130;                           // SMA 100 + the 30-day lookback, with room
 const SIGNAL_BARS = 210;                          // SMA 100 + breakout 55, with room
@@ -124,6 +126,8 @@ export type TickReport = {
   decisions: { strategy: string; venue: VenueId; symbol: string; action: Action; reason: string; provider: string; allowed: boolean; kind: "bar" | "protective" }[];
   orders: { strategy: string; venue: VenueId; symbol: string; mode: string; side: string; price: number; base: number; state: string }[];
   settled: { id: number; state: string }[];
+  /** Maker probes touched this turn (`0042`): never orders, never in any book. */
+  probes: { opened: number; filled: number; expired: number; followedUp: number };
   skipped: string[];
   errors: string[];
 };
@@ -246,7 +250,7 @@ async function loadSeries(d: TickDeps, venue: Venue, symbol: string, intervalMin
 }
 
 export async function tick(d: TickDeps): Promise<TickReport> {
-  const report: TickReport = { at: new Date(d.now).toISOString(), strategies: 0, markets: [], basis: {}, observations: 0, decisions: [], orders: [], settled: [], skipped: [], errors: [] };
+  const report: TickReport = { at: new Date(d.now).toISOString(), strategies: 0, markets: [], basis: {}, observations: 0, decisions: [], orders: [], settled: [], probes: { opened: 0, filled: 0, expired: 0, followedUp: 0 }, skipped: [], errors: [] };
   const nowIso = new Date(d.now).toISOString();
   const holder = `${nowIso} ${d.uuid()}`;
   const held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.tick&lease_until=lt.${enc(nowIso)}`, { lease_until: new Date(d.now + LEASE_MS).toISOString(), holder });
@@ -259,6 +263,49 @@ export async function tick(d: TickDeps): Promise<TickReport> {
     try { await d.db.update("agent_locks", `name=eq.tick&holder=eq.${enc(holder)}`, { lease_until: nowIso, holder: null }); } catch (e) { report.errors.push(`lease release: ${msg(e)}`); }
   }
   return report;
+}
+
+/**
+ * The maker probe (migration `0042`). Revolut X is 0 % maker and 0.09 % taker and the loop
+ * takes the touch, so the standing question is whether resting instead would be free money.
+ * §3.13 could not answer it: on a breakout rule a resting bid fills exactly when the breakout
+ * fails, and the backtest — Coinbase candles, synthetic bid and ask — says the bid fills with
+ * a median delay of zero hours, which is the model's limit rather than a measurement. So every
+ * time the loop crosses the touch it writes down where a resting order WOULD have sat, and
+ * then watches the real book: did the market come back to that price, when, and where did it
+ * go afterwards. A probe is never an order. Nothing reads it into a position, a book, an
+ * exposure or a P&L.
+ */
+export type ProbeRow = {
+  id: number; ts: string; strategy_id: string; venue: VenueId; symbol: string; side: "buy" | "sell";
+  taker_price: string | number; maker_price: string | number; state: string;
+  resolved_at: string | null; follow_up: Record<string, number> | null; expires_at: string; watching: boolean;
+};
+
+/**
+ * Has the market come back to where a resting order would have sat? A buy fills when the
+ * minute traded at or below it, a sell at or above — the same test `paperFill` applies to a
+ * resting paper order, against the execution venue's own last closed minute.
+ */
+export function probeFilled(side: "buy" | "sell", makerPrice: number, c: Candle | null): boolean {
+  if (!c) return false;
+  return side === "buy" ? c.low <= makerPrice : c.high >= makerPrice;
+}
+
+/**
+ * Which follow-up mark is due, if any: the first offset in `PROBE_FOLLOW_UP_MS` that has
+ * elapsed since the probe resolved and is not already recorded. Returns the key to write
+ * (`m15`, `m60`) or null. A probe that resolved long ago catches up one offset per turn,
+ * which is why this returns the EARLIEST outstanding one rather than the latest due.
+ */
+export function probeFollowUpDue(resolvedAtMs: number, have: Record<string, number> | null, nowMs: number): string | null {
+  for (const ms of PROBE_FOLLOW_UP_MS) {
+    const key = `m${Math.round(ms / 60e3)}`;
+    if (have && key in have) continue;
+    if (nowMs - resolvedAtMs >= ms) return key;
+    return null;                                   // offsets are ascending: nothing later can be due either
+  }
+  return null;
 }
 
 /** The position with its high-water trailed to the market: the fills' own high never rises, and a stop or a state word read from it would not trail. */
@@ -281,10 +328,13 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     try { await d.db.update("agent_locks", `name=eq.tick&holder=eq.${enc(holder)}`, { lease_until: new Date(clock() + LEASE_MS).toISOString() }); }
     catch (e) { report.errors.push(`lease renewal: ${msg(e)}`); }
   };
-  const [riskRows, strategies, open] = await Promise.all([
+  const [riskRows, strategies, open, probes] = await Promise.all([
     d.db.select<RiskRow>("agent_risk", "id=eq.1&select=*"),
     d.db.select<StrategyRow>("agent_strategies", "mode=in.(paper,live)&retired_at=is.null&select=*&order=id.asc"),
     d.db.select<OrderRow>("agent_orders", "state=in.(pending,new,partially_filled)&select=*"),
+    // Maker probes still being watched (`0042`): resting ones waiting for the market to come
+    // back, and resolved ones whose follow-up marks are not all in yet. A handful of rows.
+    d.db.select<ProbeRow>("agent_maker_probes", "watching=eq.true&select=*"),
   ]);
   const risk = riskRows[0];
   if (!risk) { report.errors.push("agent_risk row missing"); return; }
@@ -330,6 +380,9 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   // be spent from Revolut X's one-token-a-second public budget for nothing, and paid for in seconds of turn time.
   const needsMinute = new Set<string>();
   for (const o of open) if (o.mode === "paper" && !o.request?.marketable) needsMinute.add(mk(o.venue, o.symbol));
+  // A resting maker probe reads the same minute for the same reason: it is asking whether the
+  // market traded through a price. It adds a call only on a symbol the loop has just traded.
+  for (const p of probes) if (p.state === "resting") needsMinute.add(mk(p.venue, p.symbol));
   const markets = new Map<string, Market>();
   for (const [vid, syms] of execWanted) {
     const venue = d.venues[vid];
@@ -499,6 +552,46 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     }
   }
 
+  // 2b. maker probes — the adverse-selection notebook (`0042`) ------------
+  // Never an order, never a position, never in any book or P&L. Two jobs a turn: resolve the
+  // resting ones against the execution venue's last closed minute, and fill in the follow-up
+  // marks that have come due. A probe that fails here costs the turn nothing.
+  for (const p of probes) {
+    const m = markets.get(mk(p.venue, p.symbol));
+    try {
+      if (p.state === "resting") {
+        const maker = Number(p.maker_price);
+        const startedMs = Date.parse(p.ts);
+        if (probeFilled(p.side, maker, m?.c1m ?? null)) {
+          await d.db.update("agent_maker_probes", `id=eq.${p.id}`, {
+            state: "filled", resolved_at: nowIso, mark_at_resolve: m?.mark ?? null,
+            minutes_to_fill: Math.max(0, Math.round((d.now - startedMs) / ONE_M)),
+          });
+          report.probes.filled++;
+        } else if (d.now >= Date.parse(p.expires_at)) {
+          await d.db.update("agent_maker_probes", `id=eq.${p.id}`, {
+            state: "expired", resolved_at: nowIso, mark_at_resolve: m?.mark ?? null,
+            minutes_to_fill: null,
+          });
+          report.probes.expired++;
+        }
+        continue;
+      }
+      // Resolved: record the mark at each follow-up offset as it comes due. The gap between
+      // that mark and `maker_price` is the number §3.13 needed and could not compute.
+      if (!p.resolved_at || m?.mark == null) continue;
+      const key = probeFollowUpDue(Date.parse(p.resolved_at), p.follow_up, d.now);
+      if (!key) continue;
+      const follow_up = { ...(p.follow_up ?? {}), [key]: m.mark };
+      // The last offset in the list closes the probe: nothing reads it again.
+      const last = `m${Math.round(PROBE_FOLLOW_UP_MS[PROBE_FOLLOW_UP_MS.length - 1] / 60e3)}`;
+      await d.db.update("agent_maker_probes", `id=eq.${p.id}`, { follow_up, watching: !(last in follow_up) });
+      report.probes.followedUp++;
+    } catch (e) {
+      report.errors.push(`probe ${p.id}: ${msg(e)}`);
+    }
+  }
+
   // 3. the book, per venue and mode -------------------------------------
   // What filled, including the filled part of a live order still working: real base the stops and the caps must see. Read
   // page by page: PostgREST stops at 1,000 rows without a word, and a book built from the OLDEST thousand fills would freeze
@@ -629,6 +722,28 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     ordersToday[bucket] = (ordersToday[bucket] ?? 0) + 1;
     if (side === "buy") exposure[bucket] = (exposure[bucket] ?? 0) + Number(base) * price;
     inFlight.add(`${s.id}|${sym}`);
+    // The maker probe (`0042`), opened only where the question exists: an order that CROSSED
+    // the touch and paid for it. A post-only order already rests, so there is nothing to ask.
+    // The probe records where the same order would have sat instead — the same side's touch —
+    // and later turns watch whether the market came back to it and where it went next. It
+    // places nothing and is deliberately written last, after the real order is safely on
+    // record: a probe that fails to insert must never cost an order.
+    const pq = markets.get(mk(s.venue, sym))?.quote;
+    if (marketable && pq) {
+      try {
+        await d.db.insert("agent_maker_probes", {
+          strategy_id: s.id, order_id: null, venue: s.venue, symbol: sym, mode: s.mode, side,
+          taker_price: Number(priceStr), maker_price: side === "buy" ? pq.bid : pq.ask,
+          base_size: Number(base), expires_at: new Date(d.now + PROBE_TTL_MS).toISOString(),
+          // Written out rather than left to the column defaults: the starting state of a probe
+          // is part of what this code means, and it should not change because a schema does.
+          state: "resting", watching: true, follow_up: {},
+        }, false);
+        report.probes.opened++;
+      } catch (e) {
+        report.skipped.push(`${s.id}|${sym}: maker probe not opened — ${msg(e)}`);
+      }
+    }
   };
 
   // Re-quotes first: the same decision, the new touch, one more try — through the same gate as any order. A re-quote is a
