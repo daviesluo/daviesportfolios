@@ -253,6 +253,46 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-22 18:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Review R (adversarial, today's diff) is back and VERIFIED on the current
+tree** — its lifecycle scenario and nine reproductions were re-run by the
+main session against the repo itself (a copy of the harness with `head`
+pointed at `/home/user/daviesportfolios`), not taken on trust. The core
+lifecycle passes on the REAL venue clients (entry → pending → filled on
+arrival → settled from the venue's view → floor at the bid → flat →
+cooldown → re-entry → the kill switch still lets the exit out → a
+demoted row keeps the live book's exits). What fails, and blocks the
+first live order:
+
+1. **An unreadable fill reply leaves real coins with no stop** — the
+   book holds 0 while the venue holds the coins: 0 stops in 10 minutes
+   with the price down 20 %. Its premise is B4, which is still open.
+2. **The floor depends on Kraken's candles**: an OHLC outage skips the
+   pair before the stop runs, even with a warm cache.
+3. **Pulling the kill switch writes a false record** (`risk_allowed:
+   true`), retries the refused entry every minute (~240 errors a bar a
+   coin), and on re-arm placed a stale entry into a 200 bps book because
+   the retry path skips `WIDE_SPREAD_BPS`.
+
+Also reproduced: sells sized from the book and never capped by the
+venue's balance; an unknown venue state read as "new" (a filled buy can
+be settled `cancelled` and the coins bought again); a malformed fee
+turns into a NOT NULL violation Postgres refuses and the stub accepts;
+the duplicate classifier swallows real errors whose row values contain
+"409"; a resting buy hides a sell in flight; a bar is decided however
+old it is; two turns can trade at once; a protective exit with no quote
+does nothing silently; four dashboard/tick disagreements; and three of
+today's fixes are unpinned. **Being fixed now** by the reviewing agent
+in the working tree, a pin per fix and its lifecycle scenario ported
+into the repo as a permanent test; the main session reviews every line
+and commits. The model ID it reported is `claude-opus-5-5`, as asked.
+
+`go-live.md` §9.5 told the reader to move the draft to
+`0045_go_live.sql` — a number already applied, which `supabase db push`
+skips rather than applies — and reference §4.20 said `0046`, also taken.
+Both now name `0047` and say to check it is still free.
+
 ### [2026-09-22 18:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The model's 450 replies are in the repository**, not only in a Postgres
