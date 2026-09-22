@@ -142,6 +142,20 @@ type Market = { c1m: Candle | null; mark: number | null; quote?: Quote; pair?: P
 type Signal = { bars: Candle[]; barMs: number; c1d: Candle[] };
 
 const mk = (venue: string, symbol: string) => `${venue}|${symbol}`;
+/**
+ * What the loop gates on, read out of one model reply: P(healthy), the caution score, and whether the model
+ * echoed the symbol it was shown. ONE implementation — the tick gates on it and `?action=jev` measures it, and
+ * a measurement read differently from the gate would be measuring something the gate never sees.
+ */
+export function jevViewOf(jr: JevResult, symbol: string): JevView {
+  const a = jr.answers;
+  return {
+    healthy: a.healthy_trend?.type === "noul" ? a.healthy_trend.probability : null,
+    caution: a.caution?.type === "score" ? a.caution.score : null,
+    echoOk: a._state?.type === "choice" ? a._state.choice === symbol : false,
+    provider: jr.provider,
+  };
+}
 /** A position's identity: the rulebook, the coin, and the MODE its fills were in — paper money and real coins are two books, never one. */
 export const posKey = (strategyId: string, symbol: string, mode: string) => `${strategyId}|${symbol}|${mode}`;
 /** A state as one comparable string: jsonb hands keys back in its own order, so a plain stringify never matches what was written. */
@@ -888,12 +902,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       catch (e) { jr = { provider: "none", model: null, answers: {}, inputTokens: 0, costUsd: 0, latencyMs: 0, errors: [msg(e)] }; }
     }
     const a = jr.answers;
-    const view: JevView = {
-      healthy: a.healthy_trend?.type === "noul" ? a.healthy_trend.probability : null,
-      caution: a.caution?.type === "score" ? a.caution.score : null,
-      echoOk: a._state?.type === "choice" ? a._state.choice === sym : false,
-      provider: jr.provider,
-    };
+    const view = jevViewOf(jr, sym);
     // An exit passes the model untouched; an entry needs its vote.
     let final = rule.action === "enter"
       ? combineDecision(rule, view, { enterMin: num(s.params?.enterMin, 0.6), cautionExit: 1.75 })

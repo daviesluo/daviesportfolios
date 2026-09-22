@@ -22,6 +22,8 @@
 //                             (`&strategy=<id>&symbol=<sym>`). Admin or ro.
 //   GET  ?action=log        — more history for one strategy
 //                             (`&strategy=<id>&limit=<n>`). Admin or ro.
+//   POST ?action=jev        — read-only measurement: ask the decision model about a batch of states from
+//                             the closed vocabulary and return what the gate would read (operator only)
 //   GET  ?action=probe      — read-only self-check of every credential and
 //                             transport. Revolut X: signs one balances call
 //                             (which account does this key see?), reads the
@@ -54,17 +56,17 @@
 
 import { reportServerError } from "../_shared/ops.ts";
 import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
-import { askJev, type Questions } from "../_shared/jev.ts";
+import { askJev, type JevEnv, type JevResult, type Questions } from "../_shared/jev.ts";
 import { activeOrders, balances, candles, loadPrivateKey, pairs, publicTickers, REVX_REGION, revxVenue, type RevxEnv } from "../_shared/revx.ts";
 import {
   addOrder, balance as krakenBalance, balanceEx, cancelOrder as krakenCancel, closedOrders, krakenNonce, krakenVenue, ohlc, openOrders,
   krakenSupports, ticker as krakenTicker, tradeVolume, type KrakenEnv,
 } from "../_shared/kraken.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
-import { positionFromFills, unrealisedUsd, type Position } from "../_shared/agents_strategy.ts";
+import { jevQuestions, positionFromFills, unrealisedUsd, type CategoricalState, type Position } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { makeDb, type Db } from "./db.ts";
-import { dayPnl, decisionBarMs, posKey, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
+import { dayPnl, decisionBarMs, jevViewOf, posKey, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 
@@ -531,6 +533,92 @@ async function log(strategyId: string, limit: number) {
 // ------------------------------------------------------------------ probe
 
 /** The read-only probe. Nothing here can place an order. */
+// ------------------------------------------------------------ jev (measure)
+
+/**
+ * The closed vocabulary of a categorical state — every word the model can ever be shown. `?action=jev` forwards a
+ * state only if every field is present and every value is one of these words, so nothing free-form reaches the
+ * model through it. `satisfies` pins each word to the state's own type, so a word the type does not allow cannot
+ * be added here.
+ */
+export const STATE_VOCAB = {
+  trend_4h: ["up", "down", "flat"],
+  trend_strength: ["weak", "moderate", "strong"],
+  breakout_4h: ["above_range", "inside_range", "below_range"],
+  volatility: ["low", "normal", "high", "extreme"],
+  momentum_30d: ["positive", "negative", "unknown"],
+  position: ["flat", "long"],
+  unrealised: ["none", "small_gain", "gain", "small_loss", "loss"],
+  time_in_position: ["none", "hours", "days", "weeks"],
+  drawdown_from_high: ["none", "small", "notable", "large"],
+} as const satisfies { [K in Exclude<keyof CategoricalState, "symbol">]: readonly CategoricalState[K][] };
+
+/** A state from a request body, or null: a USD pair, every field present, every value from the closed set, no extra keys. */
+export function parseState(x: unknown): CategoricalState | null {
+  if (!x || typeof x !== "object" || Array.isArray(x)) return null;
+  const o = x as Record<string, unknown>;
+  if (typeof o.symbol !== "string" || !/^[A-Z0-9]{2,10}\/USD$/.test(o.symbol)) return null;
+  const out: Record<string, string> = { symbol: o.symbol };
+  for (const [k, words] of Object.entries(STATE_VOCAB)) {
+    const v = o[k];
+    if (typeof v !== "string" || !(words as readonly string[]).includes(v)) return null;
+    out[k] = v;
+  }
+  if (Object.keys(o).length !== Object.keys(out).length) return null;
+  return out as unknown as CategoricalState;
+}
+
+/** `fn` over `items` with at most `limit` in flight, results in input order. */
+export async function mapPool<T, R>(items: T[], limit: number, fn: (x: T, i: number) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  const worker = async () => { for (let i = next++; i < items.length; i = next++) out[i] = await fn(items[i], i); };
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, worker));
+  return out;
+}
+
+export const JEV_BATCH_MAX_CALLS = 500;
+export const JEV_BATCH_CONCURRENCY = 6;
+
+/**
+ * `POST ?action=jev` — ask the decision model about a batch of states and return what the loop's gate would read
+ * from each reply (`jevViewOf`, the same function the tick gates on). Read-only: it places nothing, writes nothing
+ * and touches no book. Operator-only, capped at `JEV_BATCH_MAX_CALLS` model calls a request (~$0.01), one
+ * transport per request so a measurement never silently mixes the two, and every state validated against the closed
+ * vocabulary.
+ *
+ * Why it exists: every backtest here prices the RULEBOOK, the account runs the rulebook AND this model's entry veto,
+ * and the model is in no historical data. The state it sees on an entry has only 90 possible values, so asking the
+ * real model about every one of them, several times, turns a historical replay into an exact lookup instead of an
+ * inference from a dozen recorded answers (reference §4.21).
+ */
+export async function runJevBatch(
+  body: unknown,
+  env: JevEnv = jevEnv(),
+  ask: (state: Record<string, unknown>, q: Questions, e: JevEnv) => Promise<JevResult> = (st, q, e) => askJev(st, q, e),
+): Promise<Record<string, unknown>> {
+  const b = (body && typeof body === "object" ? body : {}) as { states?: unknown; repeats?: unknown; transport?: unknown };
+  if (!Array.isArray(b.states) || b.states.length === 0) return { error: "states: a non-empty array is required" };
+  const states = b.states.map(parseState);
+  const bad = states.findIndex((x) => x == null);
+  if (bad >= 0) return { error: `states[${bad}] is not a state in the closed vocabulary` };
+  const repeats = Math.max(1, Math.min(5, Math.floor(Number(b.repeats ?? 1)) || 1));
+  const calls = states.length * repeats;
+  if (calls > JEV_BATCH_MAX_CALLS) return { error: `${calls} calls > ${JEV_BATCH_MAX_CALLS}; split the batch` };
+  const transport = b.transport === "typesafe" ? "typesafe" : "openrouter";
+  const one: JevEnv = transport === "typesafe" ? { typesafeKey: env.typesafeKey } : { openrouterKey: env.openrouterKey };
+  if (!one.openrouterKey && !one.typesafeKey) return { error: `no ${transport} key configured` };
+  const jobs = states.flatMap((st, i) => Array.from({ length: repeats }, () => ({ st: st!, i })));
+  const replies = await mapPool(jobs, JEV_BATCH_CONCURRENCY, async ({ st }) => {
+    const jr = await ask(st as unknown as Record<string, unknown>, jevQuestions(st) as unknown as Questions, one);
+    const v = jevViewOf(jr, st.symbol);
+    return { healthy: v.healthy, caution: v.caution, echoOk: v.echoOk, provider: jr.provider, model: jr.model, latencyMs: jr.latencyMs, costUsd: jr.costUsd, errors: jr.errors };
+  });
+  const results = states.map((st, i) => ({ state: st, replies: replies.filter((_, j) => jobs[j].i === i) }));
+  const costUsd = replies.reduce((a, r) => a + (r.costUsd || 0), 0);
+  return { at: new Date().toISOString(), transport, calls, repeats, costUsd, results };
+}
+
 export async function runProbe(): Promise<Record<string, unknown>> {
   const out: Record<string, unknown> = { at: new Date().toISOString() };
   // Every symbol an active row trades — AVAX and SUI joined by migration after the probe was written, and a pair the venue
@@ -681,6 +769,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     const operator = who === "cron" || who === "admin";
     if (action === "tick" && req.method === "POST" && operator) return json(200, await runTick());
     if (action === "probe" && req.method === "GET" && operator) return json(200, await runProbe());
+    if (action === "jev" && req.method === "POST" && operator) return json(200, await runJevBatch(await req.json().catch(() => null)));
     if (action === "dashboard" && req.method === "GET") return json(200, await runDashboard());
     if (action === "chart" && req.method === "GET") {
       const strategy = url.searchParams.get("strategy") ?? "", symbol = url.searchParams.get("symbol") ?? "";

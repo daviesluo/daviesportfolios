@@ -289,6 +289,26 @@ that touches the tick, read production — decisions and `ops_errors`, not
 the basis, which is written before most of the loop runs and so reads
 "alive" through a crash.
 
+**Recovered 18:19, verified from production, not from the badge.** The fix
+deployed (every step green, Deploy included — the concurrency group
+cancelled the hung `944c36d` run). Last `selectAll` error 18:18:02; the
+first tick after it wrote decisions for every pair at 18:19:03–04, the
+first since 15:00. All holds: `trend-4h` still long BTC/ETH/SOL with no
+exit condition, so **no paper position crossed its floor while the stops
+were down** — the outage cost `trend-1h` two or three hourly decisions
+(only the last closed bar is ever claimed), and nothing else.
+
+**`POST ?action=jev`** added to the agents function: a read-only
+measurement of the model the entry gate reads. The state the loop can
+show the model on an entry has only 90 possible values, so asking the
+REAL model about every one, several times, turns the Jev study's replay
+from an inference over twelve recorded answers into an exact lookup.
+Operator-only, one transport per request, capped at 500 calls (~$0.01),
+every state validated against the closed vocabulary (`STATE_VOCAB`,
+`parseState`), and each reply read by `jevViewOf` — extracted from the
+tick, so the measurement reads the model exactly as the gate does.
+Places nothing, writes nothing. Pinned in `index.test.ts`.
+
 ### [2026-09-22 16:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Stopped on a usage limit, deliberately and with everything landed.**
