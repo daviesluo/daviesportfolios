@@ -573,12 +573,25 @@ export function combineDecision(
   rule: { action: Action; reason: string },
   jev: JevView,
   thresholds: { enterMin: number; cautionExit: number } = { enterMin: 0.6, cautionExit: 1.75 },
+  gate = true,
 ): { action: Action; reason: string; jevSaid: string } {
   const said = jev.healthy == null ? `${jev.provider}: no answer`
     : `healthy=${jev.healthy.toFixed(2)} caution=${jev.caution?.toFixed(2) ?? "?"}${jev.echoOk ? "" : " ECHO-MISMATCH"}`;
   if (!jev.echoOk && jev.healthy != null) {
     // The model answered about something else; treat as no answer.
     jev = { ...jev, healthy: null, caution: null };
+  }
+  if (rule.action === "enter" && !gate) {
+    // SHADOW: the model is still asked and its answer still recorded, but it has no vote — the entry is the
+    // rulebook's, which is what every backtest here prices. The reason says what the gate WOULD have done, so the
+    // counterfactual stays one query away. Measured 2026-09-22 (reference §4.21): on an entry the model vetoes every
+    // weak-trend state because its own question tells it to, and answers high-volatility states AT the threshold, so
+    // as a gate it is an untested prose rule plus a coin flip.
+    const would = jev.healthy == null ? "no answer"
+      : jev.healthy < thresholds.enterMin ? `would veto (P=${jev.healthy.toFixed(2)} < ${thresholds.enterMin})`
+      : (jev.caution ?? 0) >= thresholds.cautionExit ? "would veto (caution extreme)"
+      : `agrees (P=${jev.healthy.toFixed(2)})`;
+    return { action: "enter", reason: `${rule.reason}; model in shadow — ${would}`, jevSaid: said };
   }
   if (rule.action === "enter") {
     if (jev.healthy == null) return { action: "hold", reason: `${rule.reason}; entry needs the model's vote and it is unavailable`, jevSaid: said };

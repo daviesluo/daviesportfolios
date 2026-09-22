@@ -138,6 +138,25 @@ Deno.test("combineDecision — the model can veto an entry and nothing else: a h
   assertEquals(combineDecision(hold, { ...no, echoOk: false }).action, "hold");
 });
 
+Deno.test("combineDecision in SHADOW: the model is recorded and has no vote — the entry is the rulebook's, and the reason says what the gate would have done", () => {
+  const enter = { action: "enter" as const, reason: "breakout" };
+  const hold = { action: "hold" as const, reason: "in position" };
+  const th = { enterMin: 0.6, cautionExit: 1.75 };
+  const v = (healthy: number | null, caution: number | null = 0, echoOk = true) => ({ healthy, caution, echoOk, provider: "openrouter" });
+  // The two states the measurement found decisive: a weak trend the question itself tells the model to refuse, and a
+  // high-volatility state answered at the threshold. With the gate on, both are holds; in shadow, both are entries.
+  for (const [p, would] of [[0.07, "would veto (P=0.07 < 0.6)"], [0.59, "would veto (P=0.59 < 0.6)"], [0.95, "agrees (P=0.95)"]] as const) {
+    const g = combineDecision(enter, v(p), th, false);
+    assertEquals(g.action, "enter");
+    assert(g.reason.endsWith(`model in shadow — ${would}`), g.reason);
+  }
+  assertEquals(combineDecision(enter, v(0.59), th).action, "hold");          // the default still gates
+  assertEquals(combineDecision(enter, v(null), th, false).action, "enter");   // no answer is no veto when the model has no vote
+  assert(combineDecision(enter, v(0.9, 1.9), th, false).reason.includes("would veto (caution extreme)"));
+  assert(combineDecision(enter, v(0.9, 0, false), th, false).reason.includes("no answer"));   // a wrong echo is still no answer
+  assertEquals(combineDecision(hold, v(0.07), th, false).action, "hold");     // shadow never opens anything the rule did not
+});
+
 Deno.test("riskGate — every limit blocks, holds always pass, exits ignore the size caps", () => {
   const limits = { maxOrderUsd: 20, maxExposureUsd: 100, dailyLossLimitUsd: 5, maxOrdersPerDay: 40, globalPause: false };
   const ctx = { exposureUsd: 0, ordersToday: 0, dayPnlUsd: 0, mode: "paper" as const };

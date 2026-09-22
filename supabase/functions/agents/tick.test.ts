@@ -1255,3 +1255,22 @@ Deno.test("an order with no decision id is never placed: 0041's index is partial
   assertEquals(w2.mem.tables.agent_orders, []);
   assert(r2.errors.some((e) => e.includes("no decision id")), r2.errors.join("; "));
 });
+
+Deno.test("a row with jevGate false enters on the rulebook's signal whatever the model says, and still records the model's answer", async () => {
+  // The world's model answers P(healthy) from its stub; force a veto-level answer by setting enterMin above it.
+  const shadow = strategy({ params: { ...strategy().params, enterMin: 0.99, jevGate: false } });
+  const w = world({ strategies: [shadow] });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals([r.decisions[0].action, r.decisions[0].kind], ["enter", "bar"]);
+  const dec = w.mem.tables.agent_decisions[0];
+  assert(String(dec.final_reason).includes("model in shadow — would veto"), String(dec.final_reason));
+  assert(dec.answers && Object.keys(dec.answers as object).length > 0, "the model was still asked and its answer kept");
+  assertEquals(w.mem.tables.agent_orders.length, 1);
+
+  // The same world with the gate on (the default) is a hold — the switch is the only difference.
+  const gated = world({ strategies: [strategy({ params: { ...strategy().params, enterMin: 0.99 } })] });
+  const r2 = await tick(gated.deps);
+  assertEquals(r2.decisions[0].action, "hold");
+  assertEquals(gated.mem.tables.agent_orders.length, 0);
+});
