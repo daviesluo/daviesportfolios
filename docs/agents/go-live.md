@@ -179,6 +179,8 @@ figure as if it were stable.
 
 **The paper rows around it changed on 2026-09-22** (reference §3.17, migration `0043`): `momentum-1d-kraken`, `rotation-1d` and `rotation-1w-kraken` are retired — correlated 0.90–1.00 with a row that stays, worse in all four windows, and two of them over the 35 % drawdown limit in the bear year — and `trend-1h` is KEPT, reversing §3.14, because on four windows it is positive in all of them and is the best row in the sideways year. Row capital falls $440 → $280 and no cap moves. Nothing was added: every candidate priced is inside chance.
 
+**Every one of those choices was re-asked on 2026-09-22** (reference §3.19) with four windows, both tapes and — for the bear year — Revolut X's own book, and **none of them moves**: 98 arms, 15 pass the worst-window test, 49 expected by chance once the arms' correlation is measured rather than assumed. The margins are in §3.19; the one worth carrying here is that **no candidate coin is admitted by the bar at all**, and that equal slots is beaten by nothing in the bear year on any of the three tapes.
+
 **Read window D before you decide anything.** The sideways year is the
 only one of four this rule loses money in, and it carries the largest
 drawdown of the four. That is what a trend rule does when the market goes
