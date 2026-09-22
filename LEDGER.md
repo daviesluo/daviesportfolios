@@ -81,7 +81,7 @@ list stays the short version; the plan is the reasoning behind it.
    The headline fact he must weigh: **of 21 shipped members not one
    clears the two-window bar**. When he says go, the switch is ONE
    migration, **drafted, dry-run and committed at
-   `docs/agents/0045_go_live.sql.draft`** — deliberately NOT under
+   `docs/agents/0046_go_live.sql.draft`** — deliberately NOT under
    `supabase/migrations/`, because a file there is applied by
    `migrations.yml` on the next push, so MOVING it is the act of going
    live. It adds `trend-4h-live` as a new row (rather than flipping
@@ -207,6 +207,76 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 14:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**An independent audit found that there was no working way to stop a live
+row that still held coins.** Three mechanisms, each independently broken,
+each reproduced against the real code, and together they meant that on the
+day a real position went wrong every lever the operator has been told to
+pull either did nothing or made it worse.
+
+1. **`live_confirmed_at = null` refused EXITS.** The check in `place()`
+   tested the row's mode and the confirmation and never the SIDE, and it
+   sits after `riskGate` has already allowed the exit. That switch is the
+   first sentence of the emergency procedure in `go-live.md`. Pulling it
+   would have left real coins with no floor and no rule exit, writing a
+   decision row and an `ops_errors` row a minute per symbol while the
+   record said the exit was allowed. Side-aware now; `global_pause` stays
+   the one switch that outranks an exit.
+2. **A paused row's exit order violated the schema, so the whole
+   `windingDown` fix was INERT in production.** `agent_orders_mode_check`
+   is `in ('paper','live')`; the tick wrote `mode: s.mode`, which is
+   `'paused'` for exactly the rows `0038` and `0043` retired. The decision
+   landed (no check on that table), the ORDER was refused by Postgres, the
+   error carried no `409|duplicate|unique` so it was swallowed into
+   `report.errors`, and the page went on telling the owner the floor was
+   running. **My own tests certified it**, because the in-memory stub does
+   not enforce CHECK constraints. The stub enforces the mode check now, and
+   reverting the fix turns those three tests red.
+3. **A live row demoted to `mode = 'paper'` read itself flat** — offered
+   as an undo — so its real coins lost their exits while it started buying
+   on paper beside them.
+
+One root: **a row's `mode` LABEL and the book it is trading are different
+things.** `bookMode(s, sym)` resolves the book — real coins outrank the
+label, else the row's mode, a paused row falling back to paper — and the
+order, the decision, the probe, the exposure bucket and the caps all follow
+the BOOK. `riskGate` keeps the LABEL, because "may this rulebook take new
+risk" is what it asks. `offBook()` generalises `windingDown` from "retired"
+to "holds a book it does not trade".
+
+**Two more holes left a real position unprotected.** An order that could
+not be read back or cancelled blocked its pair's stop every minute,
+indefinitely — and an unreadable filled order is exactly what B4 produces
+if the settlement field names are wrong, so the first live order could both
+fail to settle AND disarm the stop on the coin it just bought. A `pending`
+row, which is what a venue timeout produces, did the same. A buy is not the
+exit: the stop steps past it, says so, and sells what is held; only a SELL
+in flight still stands it down.
+
+**The dashboard had not been given this morning's fix** — `index.ts` still
+keyed on strategy and symbol with no mode and billed `byMode` from the row's
+label, so a row that ever changed mode drew one position out of two books
+and the whole blend landed under "live realised". It resolves the book the
+same way the tick does now.
+
+Four smaller fixes: a `filled` reply reporting `filled_size: 0` is a problem
+rather than a fill of the whole order at fee zero (absent is still absent —
+that distinction cost a test); `positionFromFills` sorts to a total order,
+buy-first at a tie; `stepDecimals` reads an exponential step; a paused row is
+refused before `askJev` is paid. **`0045` makes `agent_maker_probes`
+cascade** — a THIRD child of `agent_strategies` that `0044` did not delete,
+which survived on luck because the only three probe rows belonged to a row
+that stayed. Orders and decisions stay explicit: a forgotten one should fail
+loudly, which is what happened.
+
+**The go-live draft is corrected and renumbered `0046`.** Its TO UNDO said
+both of the false things above; the flip-in-place alternative is struck; the
+row is written out in full instead of copied by `select` (dry-run verified
+byte-identical to the paper row's params) and `on conflict do nothing` is
+gone, so a re-run fails rather than quietly arming the live gate beside a row
+of unknown shape. Reference §4.20.
+
 ### [2026-09-22 13:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The pre-live verification found the thing it exists to find.** A
@@ -248,7 +318,7 @@ coins at a $20 per-order cap deploy at most $100 of capital whatever the
 number says. The draft sets $150. `daily_loss_limit_usd` $5 is 5 % of the
 row and blocks new entries only, never an exit.
 
-**The draft migration is `docs/agents/0045_go_live.sql.draft`, and it is
+**The draft migration is `docs/agents/0046_go_live.sql.draft`, and it is
 deliberately NOT under `supabase/migrations/`** — a file there is applied
 by `migrations.yml` on the next push, so moving it IS the act of going
 live. It adds `trend-4h-live` as a NEW row rather than flipping

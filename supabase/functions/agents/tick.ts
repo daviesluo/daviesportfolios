@@ -456,6 +456,9 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
 
   // 2. open orders --------------------------------------------------------
   const inFlight = new Set<string>();
+  /** Of those, the ones that are SELLS. A stop must never place a second sell over one it cannot see or cancel; a BUY it may simply sell past. */
+  const inFlightSells = new Set<string>();
+  const holdInFlight = (key: string, side: string) => { inFlight.add(key); if (side === "sell") inFlightSells.add(key); };
   const requoteWanted: { o: OrderRow; touch: number }[] = [];
   const settledIds = new Set<number>();            // rows this turn closed: no longer risk
   const settle = async (o: OrderRow, patch: Record<string, unknown>, state: string) => {
@@ -499,18 +502,18 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       const ageMs = d.now - new Date(o.ts).getTime();
       if (o.state === "pending") {
         // Written before the venue was called; the reply never landed. Ask the venue whether it has the order.
-        if (ageMs < TICK_MS) { inFlight.add(key); continue; }            // still this turn's; leave it
-        if (!venue?.canTrade) { report.errors.push(`${key}: pending live order and no ${o.venue} credentials to reconcile it`); inFlight.add(key); continue; }
+        if (ageMs < TICK_MS) { holdInFlight(key, o.side); continue; }            // still this turn's; leave it
+        if (!venue?.canTrade) { report.errors.push(`${key}: pending live order and no ${o.venue} credentials to reconcile it`); holdInFlight(key, o.side); continue; }
         if (!activeByVenue.has(o.venue)) {
           const a = await venue.activeOrders();
-          if (!a.ok) { report.errors.push(`${key}: active orders ${a.error}`); inFlight.add(key); continue; }
+          if (!a.ok) { report.errors.push(`${key}: active orders ${a.error}`); holdInFlight(key, o.side); continue; }
           activeByVenue.set(o.venue, a.byClientId);
         }
         const found = activeByVenue.get(o.venue)![o.client_order_id];
         if (found) {
           await d.db.update("agent_orders", `id=eq.${o.id}`, { state: found.view.state, venue_order_id: found.venueOrderId, filled_base: found.view.filledBase, avg_fill_price: found.view.avgPrice, fee_usd: found.view.feeUsd, response: { reconciled: true, view: found.view.raw }, updated_at: nowIso });
           report.settled.push({ id: o.id, state: `reconciled:${found.view.state}` });
-          inFlight.add(key);
+          holdInFlight(key, o.side);
           continue;
         }
         // Not resting at the venue, and no reply on record: the outcome is UNKNOWN. A marketable IOC order — every Revolut X
@@ -527,7 +530,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           heldNote = `; ${o.venue} holds ${bal[asset] ?? 0} ${asset} against ${known} on record`;
         } catch (e) { heldNote = `; balances unreadable (${msg(e)})`; }
         report.errors.push(`${key}: pending ${o.side} ${o.base_size} ${o.symbol} (${o.client_order_id}) is not among ${o.venue}'s active orders ${Math.round(ageMs / 60e3)} min on — outcome unknown; the row stays pending for a person to settle from the venue's history${heldNote}`);
-        inFlight.add(key);
+        holdInFlight(key, o.side);
         continue;
       }
       const marketable = !!o.request?.marketable;
@@ -573,15 +576,15 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       const stale = ageMs >= REQUOTE_AFTER_MS && movedBps >= REQUOTE_MOVE_BPS;
       if (tooOld || stale) {
         const c = await cancelOrder(o, stale && !tooOld ? `touch moved ${movedBps.toFixed(1)} bps` : "too old");
-        if (c === "failed") { inFlight.add(key); continue; }
-        if (c === "cancelled" && stale && !tooOld && Number(o.requotes ?? 0) < MAX_REQUOTES && touch) { requoteWanted.push({ o, touch }); inFlight.add(key); }
+        if (c === "failed") { holdInFlight(key, o.side); continue; }
+        if (c === "cancelled" && stale && !tooOld && Number(o.requotes ?? 0) < MAX_REQUOTES && touch) { requoteWanted.push({ o, touch }); holdInFlight(key, o.side); }
         continue;
       }
-      inFlight.add(key);
+      holdInFlight(key, o.side);
       resting.set(key, o);
     } catch (e) {
       report.errors.push(`${key}: settle ${msg(e)}`);
-      inFlight.add(key);
+      holdInFlight(key, o.side);
     }
   }
 
@@ -675,8 +678,18 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
    * it was when it took the position, and `0043` proved a paused row must keep seeing that position or
    * it loses its exits. Live is preferred there because real coins outrank paper ones.
    */
-  const bookKey = (s: StrategyRow, sym: string): string =>
-    s.mode === "paused" && !positions.has(posKey(s.id, sym, "live")) ? posKey(s.id, sym, "paper") : posKey(s.id, sym, s.mode === "paused" ? "live" : s.mode);
+  const bookMode = (s: StrategyRow, sym: string): "paper" | "live" => {
+    // Real coins outrank a label. A row demoted to `paper` while it holds LIVE base still has coins at the
+    // venue, and reading its own label literally would leave them with no floor and no rule exit while the
+    // row happily traded paper beside them. Otherwise the row's own mode decides, and a PAUSED row — which
+    // is not a book of its own — falls back to paper, because its live book was just ruled out above.
+    if ((positions.get(posKey(s.id, sym, "live"))?.base ?? 0) > 0) return "live";
+    return s.mode === "live" ? "live" : "paper";
+  };
+  const bookKey = (s: StrategyRow, sym: string): string => posKey(s.id, sym, bookMode(s, sym));
+  /** True when this row holds a position in a book it is not currently trading — its exits must run, its entries must not. */
+  const offBook = (s: StrategyRow, sym: string): boolean =>
+    (positions.get(bookKey(s, sym))?.base ?? 0) > 0 && (s.mode === "paused" || bookMode(s, sym) !== s.mode);
   const positionOf = (s: StrategyRow, sym: string): Position => positions.get(bookKey(s, sym)) ?? positionFromFills([]);
   /** This row's own fills, in its own book: what the re-entry cooldown reads for the last exit. */
   const fillsOf = (s: StrategyRow, sym: string): OrderRow[] => byKey.get(bookKey(s, sym)) ?? [];
@@ -691,6 +704,9 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   for (const s of strategies) {
     if (!s.retired_at) continue;
     if (s.symbols.some((sym) => positionOf(s, sym).base > 0)) windingDown.add(s.id);
+  }
+  for (const s of strategies) {
+    if (s.symbols.some((sym) => offBook(s, sym))) windingDown.add(s.id);
   }
   report.windingDown = [...windingDown];
 
@@ -719,8 +735,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     maxExposureUsd: mode === "paper" && risk.paper_exposure_usd != null ? Number(risk.paper_exposure_usd) : Number(risk.max_exposure_usd),
     dailyLossLimitUsd: Number(risk.daily_loss_limit_usd), maxOrdersPerDay: Number(risk.max_orders_per_day), globalPause: !!risk.global_pause,
   });
-  const ctxFor = (s: StrategyRow) => {
-    const bucket = mk(s.venue, s.mode);
+  // The caps are counted in the book the order will be written to; `mode` stays the row's LABEL, because that
+  // is what `riskGate`'s paused test asks about — whether this rulebook may take new risk, not which book it is in.
+  const ctxFor = (s: StrategyRow, sym: string) => {
+    const bucket = mk(s.venue, bookMode(s, sym));
     return { exposureUsd: exposure[bucket] ?? 0, ordersToday: ordersToday[bucket] ?? 0, dayPnlUsd: pnlToday[bucket] ?? 0, mode: s.mode };
   };
   // The last recorded state per strategy × symbol, each its own tiny query: one window over all of them
@@ -740,7 +758,8 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
 
   // The one way an order is placed: paper → a row; live → a pending row, the venue, the row again.
   const place = async (s: StrategyRow, sym: string, side: "buy" | "sell", base: string, price: number, decisionId: number | null, marketable: boolean, requotes: number) => {
-    const bucket = mk(s.venue, s.mode);
+    const mode = bookMode(s, sym);
+    const bucket = mk(s.venue, mode);
     const venue = d.venues[s.venue];
     const cfg = markets.get(mk(s.venue, sym))?.pair;
     if (!cfg) { report.errors.push(`${s.id}|${sym}: no pair config on ${s.venue}; nothing placed`); return; }
@@ -749,7 +768,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     const client_order_id = d.uuid();
     const request = { clientOrderId: client_order_id, symbol: sym, side, base, price: priceStr, postOnly: !marketable, marketable, timeInForce: marketable ? "ioc" : "gtc" };
     const row: Record<string, unknown> = {
-      strategy_id: s.id, decision_id: decisionId, venue: s.venue, symbol: sym, mode: s.mode, side, order_type: "limit",
+      strategy_id: s.id, decision_id: decisionId, venue: s.venue, symbol: sym, mode, side, order_type: "limit",
       price: Number(priceStr), base_size: Number(base), client_order_id, request, requotes, state: "new",
     };
     // The order INSERT is the claim on this decision's attempt (unique on decision_id + requotes, 0041): when a decision's
@@ -761,8 +780,13 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         throw e;
       }
     };
-    if (s.mode === "live") {
-      if (!risk.live_confirmed_at) { report.errors.push(`${s.id}|${sym}: live order refused — live_confirmed_at is null`); return; }
+    if (mode === "live") {
+      // The confirmation is a gate on RISK, not on the exits. Clearing `live_confirmed_at` is the documented way to
+      // stop this thing, and until 2026-09-22 it was side-agnostic: it refused the protective sell too, so the one
+      // lever the operator is told to pull would have left real coins with no way out while the record said the exit
+      // was allowed. A BUY needs the confirmation; a SELL of base this book actually holds does not. `global_pause`
+      // stays the single switch that outranks an exit — that one is deliberate, and `riskGate` enforces it.
+      if (!risk.live_confirmed_at && side === "buy") { report.errors.push(`${s.id}|${sym}: live order refused — live_confirmed_at is null`); return; }
       if (!venue?.canTrade) { report.errors.push(`${s.id}|${sym}: live order refused — no ${s.venue} credentials`); return; }
       // The intent is durable BEFORE the venue is called: if the reply never lands, the next turn reconciles by client id.
       const inserted = await insertOrder({ ...row, state: "pending" }, true);
@@ -771,7 +795,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       const placed = await venue.placeLimit({ clientOrderId: client_order_id, symbol: sym, side, base, price: priceStr, marketable });
       if (!placed.ok) {
         await d.db.update("agent_orders", `id=eq.${pending.id}`, { state: "rejected", cancelled_at: nowIso, response: { status: placed.status, error: placed.error, response: placed.response }, updated_at: nowIso });
-        report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode: s.mode, side, price, base: Number(base), state: "rejected" });
+        report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode, side, price, base: Number(base), state: "rejected" });
         report.errors.push(`${s.id}|${sym}: ${s.venue} rejected → ${placed.status} ${placed.error}`);
         return;
       }
@@ -779,14 +803,14 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       // venue and settles it with the venue's own filled size, average price and fee. A fill recorded from the placement
       // reply alone would have no fee on it — and a marketable order is exactly the one that fills on arrival.
       await d.db.update("agent_orders", `id=eq.${pending.id}`, { state: "new", venue_order_id: placed.venueOrderId, response: placed.response, updated_at: nowIso });
-      report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode: s.mode, side, price, base: Number(base), state: placed.state === "filled" ? "new (filled on arrival; settles next turn)" : placed.state });
+      report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode, side, price, base: Number(base), state: placed.state === "filled" ? "new (filled on arrival; settles next turn)" : placed.state });
     } else {
       if (!(await insertOrder(row, false))) return;
-      report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode: s.mode, side, price, base: Number(base), state: "new" });
+      report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode, side, price, base: Number(base), state: "new" });
     }
     ordersToday[bucket] = (ordersToday[bucket] ?? 0) + 1;
     if (side === "buy") exposure[bucket] = (exposure[bucket] ?? 0) + Number(base) * price;
-    inFlight.add(`${s.id}|${sym}`);
+    holdInFlight(`${s.id}|${sym}`, side);
     // The maker probe (`0042`), opened only where the question exists: an order that CROSSED
     // the touch and paid for it. A post-only order already rests, so there is nothing to ask.
     // The probe records where the same order would have sat instead — the same side's touch —
@@ -797,7 +821,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     if (marketable && pq) {
       try {
         await d.db.insert("agent_maker_probes", {
-          strategy_id: s.id, order_id: null, venue: s.venue, symbol: sym, mode: s.mode, side,
+          strategy_id: s.id, order_id: null, venue: s.venue, symbol: sym, mode, side,
           taker_price: Number(priceStr), maker_price: side === "buy" ? pq.bid : pq.ask,
           base_size: Number(base), expires_at: new Date(d.now + PROBE_TTL_MS).toISOString(),
           // Written out rather than left to the column defaults: the starting state of a probe
@@ -817,7 +841,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   for (const { o, touch } of requoteWanted) {
     const s = byId.get(o.strategy_id);
     if (!s) continue;
-    const gate = riskGate(o.side === "buy" ? "enter" : "exit", Number(o.base_size) * touch, ctxFor(s), limitsFor(s.mode));
+    const gate = riskGate(o.side === "buy" ? "enter" : "exit", Number(o.base_size) * touch, ctxFor(s, o.symbol), limitsFor(bookMode(s, o.symbol)));
     if (!gate.allowed) { report.skipped.push(`${o.strategy_id}|${o.symbol}: re-quote refused — ${gate.reason}`); continue; }
     await place(s, o.symbol, o.side, String(o.base_size), touch, o.decision_id ?? null, false, Number(o.requotes ?? 0) + 1);
   }
@@ -831,8 +855,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     // A retired row winding down can only leave. This gate sits inside `decide` rather than at
     // each call site because every decision — bar, protective, dislocation — passes through here,
     // and a new one added later would otherwise miss it.
-    if (s.retired_at && rule.action === "enter") {
-      report.skipped.push(`${s.id}|${sym}: retired and winding down — exits only`);
+    if ((s.retired_at || s.mode === "paused" || offBook(s, sym)) && rule.action === "enter") {
+      // Before `askJev`, not after: `riskGate` would refuse this anyway, having already paid for the answer and
+      // spent up to 16 s of the turn's budget on it.
+      report.skipped.push(`${s.id}|${sym}: ${s.mode === "paused" ? "paused" : `winding down a ${bookMode(s, sym)} book this row does not trade`} — exits only`);
       return null;
     }
     const m = markets.get(mk(s.venue, sym))!;
@@ -865,15 +891,15 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       final = { action: "hold", reason: `book too wide to cross: ${bookBps.toFixed(1)} bps > ${WIDE_SPREAD_BPS}`, jevSaid: final.jevSaid };
     }
     const mark = m.mark ?? Number(numbers.close ?? 0);
-    const limits = limitsFor(s.mode);
+    const limits = limitsFor(bookMode(s, sym));
     const slots = s.kind === "rotation-1d" ? Math.max(1, rotationParamsOf(s).topN) : Math.max(1, s.symbols.length);
     const orderUsd = final.action === "enter" ? Math.min(Number(s.capital_usd) / slots, limits.maxOrderUsd) : pos.base * mark;
-    const ctx = ctxFor(s);
+    const ctx = ctxFor(s, sym);
     const gate = riskGate(final.action, orderUsd, ctx, limits);
     let dec: { id: number } | undefined;
     try {
       [dec] = await d.db.insert<{ id: number }>("agent_decisions", {
-        strategy_id: s.id, venue: s.venue, symbol: sym, mode: s.mode, bar_start: new Date(barStart).toISOString(),
+        strategy_id: s.id, venue: s.venue, symbol: sym, mode: bookMode(s, sym), bar_start: new Date(barStart).toISOString(),
         state: snapState, numbers: { ...numbers, barStart, mark, orderUsd, exposureUsd: ctx.exposureUsd, ordersToday: ctx.ordersToday, pnlToday: ctx.dayPnlUsd, signalVenue: s.signal_venue, kind, bookBps },
         questions, answers: a, provider: jr.provider, model: jr.model, latency_ms: jr.latencyMs, cost_usd: jr.costUsd,
         rule_action: rule.action, rule_reason: rule.reason, final_action: final.action,
@@ -991,12 +1017,26 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           if (why) {
             const marketable = s.venue === "revx";                    // Kraken's taker fee is not worth certainty at this size: rest at the ask and let the re-quote walk it down
             if (inFlight.has(key)) {
-              // A resting sell that is already the best this venue can do is left to work; anything the stop outranks is taken off first.
+              // A resting sell that is already the best this venue can do is left to work; anything the stop outranks is
+              // taken off first. What this must NOT do is treat every order in flight as a reason to stand down: until
+              // 2026-09-22 a BUY that could not be read back or cancelled — which is exactly what an unverified
+              // settlement reply (B4) or a venue timeout produces — blocked this pair's stop every minute, for good.
+              // A buy is not the exit. Cancel it if we can, sell what we hold either way; if it fills after all, the
+              // next turn derives the new position and stops that too.
               const r0 = resting.get(key);
-              if (!r0 || (r0.side === "sell" && !marketable)) { report.skipped.push(`${key}: stop wants out; order in flight`); continue; }
-              const c = await cancelOrder(r0, why);
-              if (c !== "cancelled") { report.skipped.push(`${key}: resting order ${c === "filled" ? "filled on cancel" : "could not be cancelled"}`); continue; }
-              inFlight.delete(key);
+              if (!r0) {
+                if (inFlightSells.has(key)) { report.skipped.push(`${key}: stop wants out; a sell is already in flight`); continue; }
+                report.errors.push(`${key}: stopping out past a buy in flight that could not be read back`);
+              } else if (r0.side === "sell" && !marketable) {
+                report.skipped.push(`${key}: stop wants out; a resting sell is already the best this venue can do`);
+                continue;
+              } else {
+                const c = await cancelOrder(r0, why);
+                if (c === "filled") { report.skipped.push(`${key}: resting order filled on cancel`); continue; }
+                if (c !== "cancelled" && r0.side === "sell") { report.skipped.push(`${key}: resting sell could not be cancelled`); continue; }
+                if (c !== "cancelled") report.errors.push(`${key}: stopping out past a resting buy that could not be cancelled`);
+                inFlight.delete(key);
+              }
             }
             if (await priorDecision(s, sym, protectiveClaim)) { report.skipped.push(`${key}: stop already decided this minute`); continue; }
             const r = await decide(s, sym, protectiveClaim, obs.state, { ...obs.numbers, highWater: hw, atr }, null, { action: "exit", reason: why }, "protective");
@@ -1027,7 +1067,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           // put through the gate again — the book may have moved — and one the gate now refuses is closed for good.
           const orderUsd = Number(prior.numbers?.orderUsd ?? 0);
           if (prior.final_action === "enter") {
-            const gate = riskGate("enter", orderUsd, ctxFor(s), limitsFor(s.mode));
+            const gate = riskGate("enter", orderUsd, ctxFor(s, sym), limitsFor(bookMode(s, sym)));
             if (!gate.allowed) {
               await d.db.update("agent_decisions", `id=eq.${prior.id}`, { risk_allowed: false, risk_reason: `on the retry: ${gate.reason}` });
               report.skipped.push(`${key}: decision ${prior.id} had no order and the gate now refuses it — ${gate.reason}`);

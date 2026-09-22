@@ -91,6 +91,17 @@ function memDb(seed: Record<string, Row[]>, hooks: { beforeDecisionInsert?: (tab
     },
     insert: (table, rows, returning = true) => {
       const list = (Array.isArray(rows) ? rows : [rows]) as Row[];
+      // Postgres checks its CHECK constraints and this stub used not to, which is exactly how a bug
+      // hid: `agent_orders_mode_check` and `agent_maker_probes_mode_check` are `in ('paper','live')`,
+      // the tick wrote the strategy row's LABEL, and a paused row's exit order was refused by the
+      // database in production while three tests here asserted the sell. A stub that is looser than
+      // the schema is a stub that certifies what production rejects.
+      const MODES = new Set(["paper", "live"]);
+      for (const r of list) {
+        if ((table === "agent_orders" || table === "agent_maker_probes") && !MODES.has(String(r.mode))) {
+          return Promise.reject(new Error(`db POST ${table} → 400: new row for relation "${table}" violates check constraint "${table}_mode_check"`));
+        }
+      }
       if (table === "agent_decisions") {
         for (const r of list) {
           hooks.beforeDecisionInsert?.(tables, r);
@@ -487,9 +498,12 @@ Deno.test("a partially filled live order is a position: the stop sees it and the
   const w = world({ strategies: [strategy({ id: "trend-4h", venue: "revx", mode: "live" })], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, orders: [partial], orderView: view });
   const r = await tick(w.deps);
   assertEquals((w.mem.tables.agent_observations[0].state as { position: string }).position, "long");
-  // The stop fires; the working buy cannot be cancelled without credentials in this world, so the turn says so rather than selling under it.
-  assert(r.skipped.some((s) => s.includes("stop wants out")), [...r.skipped, ...r.errors].join("; "));
+  // The stop fires. The working BUY cannot be cancelled in this world, and since 2026-09-22 that is no longer a
+  // reason to stand down: a buy is not the exit, so the stop says what it is stepping past and sells what is held.
+  // (Here the sell fails too, for the same missing credentials — the turn reports both rather than going quiet.)
+  assert(r.errors.some((e) => e.includes("stopping out past a buy in flight")), r.errors.join("; "));
   assert(r.errors.some((e) => e.includes("no revx credentials")), r.errors.join("; "));
+  assert(!r.skipped.some((s) => s.includes("stop wants out")), r.skipped.join("; "));
 });
 
 Deno.test("a pending live order whose reply never landed is reconciled by client id next turn", async () => {
@@ -1139,4 +1153,72 @@ Deno.test("a paused row still sees the book it was trading: the mode in the key 
   assertEquals(protective.length, 1);
   assertEquals([protective[0].strategy, protective[0].action], ["trend-4h", "exit"]);
   assertEquals(w.mem.tables.agent_orders.find((o) => o.id !== 50)?.side, "sell");
+});
+
+Deno.test("clearing live_confirmed_at stops the BUYING, not the selling: the kill switch leaves the exits armed", async () => {
+  // The documented emergency procedure is `update agent_risk set live_confirmed_at = null`. Until 2026-09-22
+  // the check in place() was side-agnostic, so the one lever the operator is told to pull refused the
+  // protective sell too — real coins with no way out, while the decision row said the exit was allowed.
+  const live = strategy({ mode: "live" });
+  const w = world({
+    strategies: [live], canTrade: true, risk: { live_confirmed_at: null },
+    orders: [longSince(2 * ONE_D, 200, 0.1, { mode: "live" })],   // ~35 % under cost: through the 8 % floor
+  });
+  const r = await tick(w.deps);
+  const protective = r.decisions.filter((d) => d.kind === "protective");
+  assertEquals([protective.length, protective[0]?.action], [1, "exit"]);
+  const sells = w.mem.tables.agent_orders.filter((o) => o.id !== 50 && o.side === "sell");
+  assertEquals(sells.length, 1);
+  assertEquals([sells[0].mode, sells[0].state !== "rejected"], ["live", true]);
+  assertEquals(r.errors, []);
+
+  // And the buying really is stopped: the same world, flat, on a bar that would otherwise enter.
+  const w2 = world({ strategies: [live], canTrade: true, risk: { live_confirmed_at: null } });
+  const r2 = await tick(w2.deps);
+  assertEquals(w2.mem.tables.agent_orders.filter((o) => o.side === "buy"), []);
+  assert(r2.errors.some((e) => e.includes("live_confirmed_at is null")), JSON.stringify(r2.errors));
+});
+
+Deno.test("real coins outrank the row's label: a live book under a row set to paper keeps its floor, and the order is written live", async () => {
+  // Demoting a live row to `paper` was offered as an undo. Read literally it made the row flat, so the real
+  // coins at the venue lost their floor and their rule exit while the row cheerfully started buying on paper.
+  const demoted = strategy({ mode: "paper" });
+  const w = world({
+    strategies: [demoted], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" },
+    orders: [longSince(2 * ONE_D, 200, 0.1, { mode: "live" })],
+  });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.windingDown, ["trend-4h-kraken"]);                       // it holds a book it does not trade
+  const protective = r.decisions.filter((d) => d.kind === "protective");
+  assertEquals([protective.length, protective[0]?.action], [1, "exit"]);
+  const others = w.mem.tables.agent_orders.filter((o) => o.id !== 50);
+  assertEquals(others.length, 1);
+  assertEquals([others[0].side, others[0].mode], ["sell", "live"]);        // the REAL book, sold as live
+  assertEquals(r.decisions.filter((d) => d.action === "enter"), []);       // and it may not buy beside them
+});
+
+Deno.test("a buy in flight does not disarm the stop; a sell in flight does", async () => {
+  // The failure this pins: an order that cannot be read back — which is exactly what an unverified settlement
+  // reply (B4) or a venue timeout produces — used to block its pair's protective stop every minute, for good.
+  const pendingBuy = seedOrder({ id: 7, mode: "live", state: "pending", client_order_id: "c-buy", side: "buy" });
+  const w = world({
+    strategies: [strategy({ mode: "live" })], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" },
+    orders: [longSince(2 * ONE_D, 200, 0.1, { mode: "live" }), pendingBuy], active: {},
+  });
+  const r = await tick(w.deps);
+  const protective = r.decisions.filter((d) => d.kind === "protective");
+  assertEquals([protective.length, protective[0]?.action], [1, "exit"]);
+  assert(r.errors.some((e) => e.includes("stopping out past a buy in flight")), r.errors.join("; "));
+  assertEquals(w.mem.tables.agent_orders.filter((o) => o.side === "sell").length, 1);
+
+  // A SELL in flight is different: never place a second one over a sell we cannot see.
+  const pendingSell = seedOrder({ id: 8, mode: "live", state: "pending", client_order_id: "c-sell", side: "sell" });
+  const w2 = world({
+    strategies: [strategy({ mode: "live" })], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" },
+    orders: [longSince(2 * ONE_D, 200, 0.1, { mode: "live" }), pendingSell], active: {},
+  });
+  const r2 = await tick(w2.deps);
+  assert(r2.skipped.some((x) => x.includes("a sell is already in flight")), r2.skipped.join("; "));
+  assertEquals(w2.mem.tables.agent_orders.filter((o) => o.side === "sell" && o.state !== "pending").length, 0);
 });

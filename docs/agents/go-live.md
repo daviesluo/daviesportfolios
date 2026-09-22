@@ -502,6 +502,21 @@ short of a real order closes this.
    documentation never specified and the client currently assumes. A
    filled order missing them is refused, not recorded at fee zero.
 
-**To stop everything**: `update public.agent_risk set
+**To stop the buying**: `update public.agent_risk set
 live_confirmed_at = null where id = 1;` — one statement, both venues,
-every live order. Reach for that before anything else.
+every live entry, and **the exits stay armed**. Reach for that before
+anything else.
+
+That sentence used to say "every live order", and it was false in the
+way that matters: the check was side-agnostic, so clearing the
+confirmation refused the protective sell too — real coins with no way
+out, once a minute, while the record said the exit was allowed. Found
+and fixed 2026-09-22, and pinned. Setting a row to `mode = 'paper'` is
+NOT an undo either; it was listed as one until the same day, when
+reading the label literally made the row flat and its real coins lost
+their exits. A position now resolves to the book that holds it, so real
+coins outrank the label.
+
+**To stop absolutely everything, exits included**: `global_pause`. That
+one is deliberate — it is a person saying stop, and unwinding the book
+by hand is then the intended path.

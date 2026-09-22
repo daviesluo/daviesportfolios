@@ -1,4 +1,4 @@
--- 0045: the first live row.
+-- 0046: the first live row.
 --
 -- DRAFT, and deliberately not under supabase/migrations/. Pushing a file
 -- there IS applying it (`.github/workflows/migrations.yml` runs
@@ -35,9 +35,15 @@
 -- the two Revolut X rows on any bar they both trade IS the
 -- implementation shortfall, which nothing in the backtests could compute.
 --
--- The simpler alternative, if the extra row is not wanted: flip
--- `trend-4h` in place (`update ... set mode = 'live' where id =
--- 'trend-4h'`) and accept the three stranded paper positions.
+-- There is no simpler alternative worth taking. Flipping `trend-4h` in
+-- place was offered here until 2026-09-22 and is now struck: besides
+-- stranding the three paper positions, it makes the DASHBOARD draw one
+-- position out of two books — base, average cost, opened-at, high-water
+-- and the realised/unrealised split all wrong — and bills the whole
+-- blend to `live`, which is the headline number for how much real money
+-- this has made. The page was given the same book resolution as the tick
+-- the same day, so the blend no longer happens; the stranded positions
+-- still would.
 --
 -- CAPS
 --
@@ -56,18 +62,44 @@
 -- TO UNDO
 --
 -- `update public.agent_risk set live_confirmed_at = null where id = 1;`
--- stops EVERY live order, on both venues, at once. That is the switch to
--- reach for first. Setting the row back to 'paper' stops only this row,
--- and a row that still holds real coins keeps its exits either way.
+-- stops every live BUY, on both venues, at once, and leaves the exits
+-- armed. That is the switch to reach for first.
+--
+-- Until 2026-09-22 that sentence was false in the way that matters. The
+-- check in `place()` was side-agnostic, so clearing the confirmation
+-- refused the protective SELL as well: the one lever the operator is
+-- told to pull would have left real coins with no floor and no rule
+-- exit, once a minute, while the decision row recorded that the exit was
+-- allowed. It is side-aware now, and pinned. The same paragraph also
+-- offered `mode = 'paper'` as an undo; read literally that made the row
+-- flat, so the real coins lost their exits and the row started buying on
+-- paper beside them. A position is now resolved to the book that HOLDS
+-- it, so real coins outrank the label and keep their exits whatever the
+-- row is called.
+--
+-- `global_pause` remains the one switch that outranks an exit. It is
+-- meant to: it is a person saying stop everything, and an operator
+-- unwinding a paused book by hand is the intended path.
 
-insert into public.agent_strategies (id, kind, venue, signal_venue, name, description, symbols, capital_usd, params, mode)
-select 'trend-4h-live', 'trend-4h', 'revx', 'kraken',
-       'Trend 4h · Revolut X · live',
-       'The live row. Same rulebook, coins, params and slot size as the paper `trend-4h`, which stays on as its control.',
-       symbols, capital_usd, params, 'live'
-  from public.agent_strategies
- where id = 'trend-4h'
-on conflict (id) do nothing;
+-- The row is written out in full rather than copied with `select … from
+-- trend-4h`, so what goes live is readable HERE and cannot drift if a
+-- later migration edits the paper row.
+
+insert into public.agent_strategies
+  (id, kind, venue, signal_venue, name, description, symbols, capital_usd, params, mode)
+values (
+  'trend-4h-live', 'trend-4h', 'revx', 'kraken',
+  'Trend 4h · Revolut X · live',
+  'The live row. Same rulebook, coins, params and slot size as the paper `trend-4h`, which stays on as its control.',
+  array['BTC/USD','ETH/USD','SOL/USD','AVAX/USD','SUI/USD'],
+  100,
+  '{"fast":20,"slow":100,"breakoutUp":55,"breakoutDown":20,"atrN":14,"atrStop":3,"volN":42,"enterMin":0.6,"exitMax":0.3}'::jsonb,
+  'live'
+);
+
+-- Not `on conflict do nothing`: if this row already exists the migration
+-- should FAIL rather than quietly arm `live_confirmed_at` beside a row
+-- in some other shape.
 
 update public.agent_risk
    set live_confirmed_at = now(),

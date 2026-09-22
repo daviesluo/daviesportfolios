@@ -111,7 +111,10 @@ export function applyFill(p: Position, f: Fill): Position {
 }
 
 export function positionFromFills(fills: Fill[]): Position {
-  return fills.slice().sort((a, b) => a.ts - b.ts).reduce(applyFill, FLAT);
+  // Sorting on the timestamp alone is not a total order, and two fills settled in one turn carry the same one.
+  // A buy goes first at a tie, because nothing can be sold before it is bought and `applyFill` clamps an over-sell
+  // to flat rather than going short — so the wrong order at a tie silently destroys a position.
+  return fills.slice().sort((a, b) => a.ts - b.ts || (a.side === b.side ? 0 : a.side === "buy" ? -1 : 1)).reduce(applyFill, FLAT);
 }
 
 /** Mark-to-market: unrealised P&L in USD at `mark`. */
@@ -637,8 +640,16 @@ export function riskGate(action: Action, orderUsd: number, ctx: RiskContext, lim
 export type PairConfig = { base_step: string; quote_step: string; min_order_size: string; min_order_size_quote: string };
 
 /** Floor `x` to a multiple of `step` (both decimal strings from the venue), returned as a string with the step's precision. */
+/** Decimal places a venue step string carries. `"0.001"` is 3; `"1e-8"` has no fractional part to count, so it is read from the exponent — `split(".")` alone made it 0, and `toFixed(0)` turns 0.5 BTC into 1. */
+export function stepDecimals(step: string): number {
+  const dot = (step.split(".")[1] ?? "").length;
+  if (dot || !/e/i.test(step)) return dot;
+  const n = Number(step);
+  return n > 0 && n < 1 ? Math.max(0, -Math.floor(Math.log10(n))) : 0;
+}
+
 export function floorToStep(x: number, step: string): string {
-  const decimals = (step.split(".")[1] ?? "").length;
+  const decimals = stepDecimals(step);
   const s = Number(step);
   if (!(s > 0)) return x.toFixed(decimals);
   const units = Math.floor(x / s + 1e-9);
@@ -647,7 +658,7 @@ export function floorToStep(x: number, step: string): string {
 
 /** The same, rounding UP: a marketable buy priced at the ask must not land a tick under it. */
 export function ceilToStep(x: number, step: string): string {
-  const decimals = (step.split(".")[1] ?? "").length;
+  const decimals = stepDecimals(step);
   const q = Number(step);
   if (!(q > 0)) return x.toFixed(decimals);
   const n = Math.ceil(Math.round(x / q * 1e6) / 1e6);
