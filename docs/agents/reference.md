@@ -1339,7 +1339,13 @@ The other three answers, all negative, which is the useful kind:
   That median against the 10–20 bps band above is the whole answer: over
   it, resting loses more to selection than the 9 bps taker fee costs;
   under it, the fee is the bigger number and resting is worth testing with
-  real orders.
+  real orders. **On the page since 2026-09-22** (`probeLine`, a line under
+  VENUES): the fill rate, the median wait, and the adverse number with the
+  break-even read against it. It says *"no probe yet"* or *"resting, none
+  resolved yet"* rather than printing a 0 % fill rate or 0.0 bps — a zero
+  on no evidence is the mistake this page already made once about a symbol
+  the loop was reading every minute, and the browser sweep asserts the
+  unresolved state renders with no percentage and no bps in it at all.
 - **The two-bar cooldown stays.** The 0–8 grid spans 1.1 points of return
   in the bear window; 2 ranks 5th of 7 in A and 4th of 7 in B — a flat
   plateau, not a spike — 0 and 1 are inert, and 3 arms of 6 pass against
