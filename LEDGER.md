@@ -42,11 +42,15 @@ list stays the short version; the plan is the reasoning behind it.
    separately; check whether §3.8's admission reproduces under the
    running stop rule. Output: `sui.json`, the SUI review.
 
-   **K — Kraken history: running.** The 84 coins that cleared the
-   cost-and-book screens without enough history, via Kraken's quarterly
-   OHLCVT bundle (the precedent is `backtest_windows.ts`; disk is a fixed
-   allowance). Plus the money question answered from the code. Output:
-   `backtest_kraken3.ts`, `kraken3.json`, the kraken-history review.
+   **K — Kraken history: DONE, committed (reference §4.23).** No coin
+   of the 84 clears the bar: 10 have two windows, TAO clears both and is
+   1 coin against 0.60 by chance (P = 0.46) and fails the fold test (2 of
+   4); across all 27 Kraken-advantaged two-window coins 3 pass against
+   3.26 (P = 0.65), none clears the folds. Pre-cost edge on them +22 / −4
+   bps against a 97–105 bps round trip. **Stop researching Kraken.**
+   Money: **withdraw the balance, keep the account and the key** —
+   Davies' move at Kraken, awaiting his word. Item 22's "2 against 3.33"
+   corrected to 1 against 2.56 (three tests → four).
 
    **R — adversarial review of today's diff: running** (`fb26476..HEAD`
    in the agents code), with one instruction above the rest: list every
@@ -252,6 +256,20 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-22 19:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Study K (the 84 Kraken coins) is back, verified and committed** —
+`backtest_kraken3.ts`, `backtests/kraken3.json`, the kraken-history
+review, and reference §4.23. Verified by the main session, not taken on
+trust: a re-run from the scratchpad tapes reproduced `kraken3.json` byte
+for byte (44 s), and `deno check` passes. Verdict: no coin clears the
+bar, Kraken research stops at this fee tier (reopen triggers in §4.23),
+and the recommendation on the money is to withdraw the Kraken balance and
+keep the account and the key, which is Davies' call. The study also
+corrected item 22's seeded count (three tests → four: 2 against 3.33 →
+1 against 2.56); the sentence stands. The 9 GB bundle in the scratchpad
+(`krakenfull/`) stays until J and S finish, then can go.
 
 ### [2026-09-22 18:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
