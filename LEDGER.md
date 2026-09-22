@@ -30,21 +30,15 @@ list stays the short version; the plan is the reasoning behind it.
    reference / go-live; nothing an agent reports is repeated as fact
    until recomputed.
 
-   **J — Jev: the model is MEASURED; the re-pricing is running.** The
-   entry state has 90 possible values; the real model was asked all of
-   them five times (`POST ?action=jev`, requests 26655/26656, history
-   18:45 below): weak trend vetoed 100 % (the question's own prose),
-   high volatility a coin flip at 0.600. The agent saves the replies to
-   `docs/agents/backtests/jev_answers.json` (Postgres prunes
-   `net._http_response` after ~6 h — re-measure for $0.013 if gone),
-   re-prices the sleeve by Monte Carlo over the coin-flip states, and
-   prices the three configurations the go-live decision chooses between:
-   (i) rule, model in SHADOW (`params.jevGate: false`, built, off);
-   (ii) rule ∧ model as it runs; (iii) rule + the weak-trend clause as
-   code. Output: `backtest_jev.ts`, `jev.json`, the jev review. **Then
-   the go-live draft (`docs/agents/0047_go_live.sql.draft`) and
-   `go-live.md` §4/§7/§9 must be rewritten to whichever configuration is
-   chosen — that is Davies' decision, with the table.**
+   **J — Jev: DONE, verified, committed (reference §4.21 re-priced).**
+   On the real model's answers to all 90 entry states: (i) shadow = the
+   rulebook, A/B/C/D +8.0 / +20.1 / +55.6 / −7.8 %; (ii) gating as it
+   runs −1.0 / +14.6 / +55.7 / −2.3 %; (iii) the weak-trend clause as
+   code +0.6 / +14.9 / +56.7 / −3.3 %. Neither (ii) nor (iii) passes the
+   bar (a random veto of equal size matches the worst-window lift in
+   30–43 % of draws). **Recommended: `params.jevGate: false` on the live
+   row AND `trend-4h` (its control). DAVIES DECIDES; then rewrite the
+   `0047` draft's params and go-live §4/§7/§9 to his choice.**
 
    **S — SUI's seat: running.** Finish/verify `backtest_sui.ts` (written
    by an earlier agent, unverified), judge SUI on the windows it has, the
@@ -286,6 +280,20 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-22 19:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Study J (the Jev veto, re-priced on the model's measured answers) is
+verified and committed** — `backtest_jev.ts`, `backtests/jev.json`, the
+rewritten jev-veto review, reference §4.21's new paragraph, the README's
+two descriptions of the study, CLAUDE.md's Jev bullet and a note atop
+go-live §9.6. Verified by the main session, not taken on trust: a re-run
+in a clean worktree at HEAD (8 min) reproduced `jev.json` byte for byte
+(sha256 `0e03c844…`), and its fidelity checks passed on that tree (144
+cells, 0 mismatches; the rule arm equals `set2.json`'s incumbent). The
+first replay's figures are superseded (veto rate 47.8 % → 40.0 %; A −2.5
+→ −1.0 %; D −1.5 → −2.3 %). The recommendation — shadow mode on the live
+row and its control — is Davies' decision, put to him in chat.
 
 ### [2026-09-22 19:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -179,14 +179,18 @@ that follow from that evidence, in short:
   migration is drafted at `docs/agents/0047_go_live.sql.draft` — a NEW
   row `trend-4h-live`, with `trend-4h` kept paper as its same-venue
   control — and moving it into `supabase/migrations/` IS going live.
-- **The model's entry veto is not priced by any backtest, and it is
-  large** (§4.21): 3 of 15 live entry signals vetoed, two at P(healthy)
-  0.59 against `enterMin` 0.6. The `healthy_trend` question's own wording
-  demands `trend_strength` moderate/strong and `momentum_30d` positive —
-  STRICTER than the rulebook, which never reads strength — so part of the
-  "veto" is a rule written in prose, never backtested. The entry state
-  has only 90 possible values; `POST ?action=jev` measures the real model
-  on all of them. Settle this before the live row is armed.
+- **The model's entry veto is now priced, and it does not earn its
+  place** (§4.21, re-priced 2026-09-22 on the real model's answers to all
+  90 entry states). Letting it veto takes the bear year from +8.0 % to
+  −1.0 % and the sideways year from −7.8 % to −2.3 %; a random veto of the
+  same size does as well on the worst window in 30–43 % of draws, and the
+  weak-trend clause of its question written as code fails the same bar.
+  The `healthy_trend` question's own wording demands `trend_strength`
+  moderate/strong and `momentum_30d` positive — stricter than the
+  rulebook — and 0.60 sits in the band where its high-volatility answers
+  are a coin flip. Recommended: `params.jevGate: false` (shadow — asked and
+  recorded, no vote) on the live row AND its paper control. Davies
+  decides; the go-live draft follows his choice.
 - **A test double must be at least as strict as what it stands in for.**
   Twice on 2026-09-22 a stub looser than production certified a failure:
   the in-memory db ignored `agent_orders_mode_check` (a paused row's exit
