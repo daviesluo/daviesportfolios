@@ -253,6 +253,17 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-22 18:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The model's 450 replies are in the repository**, not only in a Postgres
+table that prunes itself after six hours:
+`docs/agents/backtests/jev_answers.json`, written by the Jev re-pricing
+agent as its first step and **checked by the main session before
+committing** — every one of the nine positive-momentum cells matches the
+aggregate read straight from `net._http_response` (count, mean to three
+places, veto count), and all 225 unknown-momentum replies are vetoes.
+It is the input every later Jev number is computed from.
+
 ### [2026-09-22 18:38 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Eight of today's section headers were stamped AHEAD of the clock, by
