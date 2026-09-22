@@ -3,7 +3,7 @@
 // window, the Jev statistics and the cron-bearer half of `authorise`.
 // `Deno.serve` sits behind `import.meta.main`, so importing binds nothing.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { authorise, chartWindow, envAny, isNotReady, jevStats, latestObservationQuery, probeSymbols, SYMBOLS } from "./index.ts";
+import { authorise, chartWindow, envAny, isNotReady, jevStats, latestObservationQuery, probeSymbols, SYMBOLS, probeSummary, type ProbeSummaryRow } from "./index.ts";
 
 Deno.test("probeSymbols — every symbol on an active row, sorted and de-duplicated; the three majors when no row can be read", () => {
   assertEquals(probeSymbols([{ symbols: ["BTC/USD", "SOL/USD"] }, { symbols: ["ETH/USD", "BTC/USD", "SUI/USD"] }]), ["BTC/USD", "ETH/USD", "SOL/USD", "SUI/USD"]);
@@ -56,4 +56,40 @@ Deno.test("latestObservationQuery — one pair, one row, never a window over all
   assert(!q.includes("AVAX/USD"));
   // A state that has been steady for hours must still be found: the query carries no time bound at all.
   assert(!q.includes("ts=gte") && !q.includes("limit=400"));
+});
+
+// ── the maker probes, read (migration 0042, reference §3.13) ───────────────────────────────
+// A fill rate and an adverse-selection median are the only two numbers that answer "is 0 % maker
+// free here?". The sign convention is the whole point: POSITIVE means the market moved against
+// the fill, which is what makes resting expensive, and it is compared with §3.13's 10–20 bps band.
+
+Deno.test("probeSummary: the adverse number is signed against the fill, and is null until a probe resolves", () => {
+  const row = (over: Partial<ProbeSummaryRow> = {}): ProbeSummaryRow => ({
+    venue: "revx", symbol: "BTC/USD", side: "buy", state: "filled",
+    maker_price: 100, taker_price: 100.1, minutes_to_fill: 10, follow_up: {}, ...over,
+  });
+  const empty = probeSummary([]);
+  assertEquals([empty.total, empty.fillRate, empty.medianMinutesToFill], [0, null, null]);
+  assertEquals(empty.adverseBps, { m15: null, m60: null });
+
+  // A resting probe is not yet evidence of anything.
+  const resting = probeSummary([row({ state: "resting", minutes_to_fill: null, follow_up: {} })]);
+  assertEquals([resting.resting, resting.filled, resting.fillRate], [1, 0, null]);
+
+  // Two resolved, one filled → a 50 % fill rate.
+  assertEquals(probeSummary([row(), row({ state: "expired", minutes_to_fill: null })]).fillRate, 0.5);
+
+  // A BUY that filled at 100 and fell to 99 has moved 100 bps AGAINST the fill.
+  assertEquals(probeSummary([row({ follow_up: { m15: 99 } })]).adverseBps.m15, 100);
+  // A buy that filled and then ROSE is selection in your favour: negative.
+  assertEquals(probeSummary([row({ follow_up: { m15: 101 } })]).adverseBps.m15, -100);
+  // A SELL is the mirror: filled at 100, market rose to 101 → 100 bps against.
+  assertEquals(probeSummary([row({ side: "sell", follow_up: { m15: 101 } })]).adverseBps.m15, 100);
+
+  // The median, and per-symbol counts.
+  const many = probeSummary([
+    row({ follow_up: { m15: 99 } }), row({ follow_up: { m15: 99.5 } }), row({ symbol: "ETH/USD", follow_up: { m15: 98 } }),
+  ]);
+  assertEquals(many.adverseBps.m15, 100);                       // 100, 50, 200 → median 100
+  assertEquals(many.bySymbol.map((b) => [b.symbol, b.total]), [["BTC/USD", 2], ["ETH/USD", 1]]);
 });

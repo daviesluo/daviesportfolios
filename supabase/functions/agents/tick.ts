@@ -96,6 +96,9 @@ const SIGNAL_BARS = 210;                          // SMA 100 + breakout 55, with
 export type StrategyRow = {
   id: string; kind: StrategyKind; venue: VenueId; signal_venue: VenueId; name: string; symbols: string[]; mode: "paper" | "live" | "paused";
   capital_usd: number; params: Record<string, number | boolean>;
+  /** Set by a migration when a row is retired (`0038`, `0043`). Such a row never buys; if it still
+   *  holds a position its exits keep running until it is flat. */
+  retired_at?: string | null;
 };
 export type RiskRow = {
   global_pause: boolean; max_order_usd: number; max_exposure_usd: number; paper_exposure_usd: number | null; daily_loss_limit_usd: number;
@@ -128,6 +131,8 @@ export type TickReport = {
   settled: { id: number; state: string }[];
   /** Maker probes touched this turn (`0042`): never orders, never in any book. */
   probes: { opened: number; filled: number; expired: number; followedUp: number };
+  /** Retired rows that still hold a position: their exits keep running, they can never buy. */
+  windingDown: string[];
   skipped: string[];
   errors: string[];
 };
@@ -250,7 +255,7 @@ async function loadSeries(d: TickDeps, venue: Venue, symbol: string, intervalMin
 }
 
 export async function tick(d: TickDeps): Promise<TickReport> {
-  const report: TickReport = { at: new Date(d.now).toISOString(), strategies: 0, markets: [], basis: {}, observations: 0, decisions: [], orders: [], settled: [], probes: { opened: 0, filled: 0, expired: 0, followedUp: 0 }, skipped: [], errors: [] };
+  const report: TickReport = { at: new Date(d.now).toISOString(), strategies: 0, markets: [], basis: {}, observations: 0, decisions: [], orders: [], settled: [], probes: { opened: 0, filled: 0, expired: 0, followedUp: 0 }, windingDown: [], skipped: [], errors: [] };
   const nowIso = new Date(d.now).toISOString();
   const holder = `${nowIso} ${d.uuid()}`;
   const held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.tick&lease_until=lt.${enc(nowIso)}`, { lease_until: new Date(d.now + LEASE_MS).toISOString(), holder });
@@ -330,7 +335,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   };
   const [riskRows, strategies, open, probes] = await Promise.all([
     d.db.select<RiskRow>("agent_risk", "id=eq.1&select=*"),
-    d.db.select<StrategyRow>("agent_strategies", "mode=in.(paper,live)&retired_at=is.null&select=*&order=id.asc"),
+    // Retired rows are read too, because a retired row can still HOLD something — see the
+    // winding-down gate after the book is derived. A row that is retired AND flat is skipped
+    // there, so this costs one row read and nothing else.
+    d.db.select<StrategyRow>("agent_strategies", "mode=in.(paper,live,paused)&select=*&order=id.asc"),
     d.db.select<OrderRow>("agent_orders", "state=in.(pending,new,partially_filled)&select=*"),
     // Maker probes still being watched (`0042`): resting ones waiting for the market to come
     // back, and resolved ones whose follow-up marks are not all in yet. A handful of rows.
@@ -629,6 +637,20 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     const bucket = mk(rows[0].venue, rows[0].mode);
     exposure[bucket] = (exposure[bucket] ?? 0) + pos.base * (marksFor(rows[0].venue)[rows[0].symbol] || pos.avgCost);
   }
+  // ── winding down: a retired row that still holds something ──────────────────────────────
+  // A position does not stop being a position because its row was switched off. `0038` retired
+  // `dislocation-1m` flat and nothing was left behind; `0043` retired three rows that were still
+  // long, and a paused row's position had nowhere to go — no floor, no rule exit, and hidden from
+  // the page. So a retired row that holds anything keeps running its EXITS (the floor under cost
+  // and the rulebook's own exit) and can never buy again; a retired row that is flat is skipped
+  // entirely, which is what every earlier turn did to all of them.
+  const windingDown = new Set<string>();
+  for (const s of strategies) {
+    if (!s.retired_at) continue;
+    if (s.symbols.some((sym) => (positions.get(`${s.id}|${sym}`)?.base ?? 0) > 0)) windingDown.add(s.id);
+  }
+  report.windingDown = [...windingDown];
+
   // An open buy is risk too: a bid resting at the venue, or a `pending` row whose outcome is unknown, becomes a position the
   // moment it fills, so its unfilled notional counts against the cap now, not a turn late.
   for (const o of open) {
@@ -763,6 +785,13 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     s: StrategyRow, sym: string, barStart: number, snapState: unknown, numbers: Record<string, unknown>, questions: Questions | null,
     rule: { action: Action; reason: string }, kind: "bar" | "protective", jevOverride?: JevResult,
   ): Promise<Decided | null> => {
+    // A retired row winding down can only leave. This gate sits inside `decide` rather than at
+    // each call site because every decision — bar, protective, dislocation — passes through here,
+    // and a new one added later would otherwise miss it.
+    if (s.retired_at && rule.action === "enter") {
+      report.skipped.push(`${s.id}|${sym}: retired and winding down — exits only`);
+      return null;
+    }
     const m = markets.get(mk(s.venue, sym))!;
     const pos = positions.get(`${s.id}|${sym}`) ?? positionFromFills([]);
     let jr: JevResult = jevOverride ?? { provider: "rule", model: null, answers: {}, inputTokens: 0, costUsd: 0, latencyMs: 0, errors: [] };
@@ -806,6 +835,9 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   };
 
   for (const s of strategies) {
+    // Retired and flat: nothing to protect and nothing to decide. Retired and still holding:
+    // fall through, and `decide` refuses every entry.
+    if (s.retired_at && !windingDown.has(s.id)) continue;
     const p = trendParamsOf(s);
     const rotation = rotationParamsOf(s);
     const lookbackDays = num(s.params?.lookbackDays, 30);   // the momentum word's window; a row without the parameter reads the 30 days its name says

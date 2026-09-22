@@ -149,10 +149,15 @@ Deno.test("riskGate — every limit blocks, holds always pass, exits ignore the 
   assertEquals(riskGate("enter", 20, { ...ctx, mode: "paused" }, limits).allowed, false);
   assertEquals(riskGate("enter", 20, ctx, { ...limits, globalPause: true }).allowed, false);
   assertEquals(riskGate("hold", 999, { ...ctx, mode: "paused" }, { ...limits, globalPause: true }).allowed, true);
-  // An exit never adds exposure, so neither the size caps nor the daily loss limit apply — only the pauses do.
+  // An exit never adds exposure, so neither the size caps nor the daily loss limit apply — and since
+  // 2026-09-22 nor does a PAUSED strategy: `0043` retired three rows that were still long, and under the
+  // old order of these tests their positions had no way out at all. Only the global pause, which is a
+  // person's emergency switch, still outranks an exit.
   assertEquals(riskGate("exit", 999, { ...ctx, exposureUsd: 100 }, limits).allowed, true);
   assertEquals(riskGate("exit", 1, { ...ctx, dayPnlUsd: -6 }, limits).allowed, true);
-  assertEquals(riskGate("exit", 1, { ...ctx, mode: "paused" }, limits).allowed, false);
+  assertEquals(riskGate("exit", 1, { ...ctx, mode: "paused" }, limits).allowed, true);
+  assertEquals(riskGate("enter", 1, { ...ctx, mode: "paused" }, limits).allowed, false);
+  assertEquals(riskGate("exit", 1, { ...ctx, mode: "paused" }, { ...limits, globalPause: true }).allowed, false);
 });
 
 Deno.test("floorToStep / sizeBase — floors to the venue step and refuses sub-minimum orders", () => {
@@ -231,7 +236,8 @@ Deno.test("riskGate: the daily loss limit blocks new risk, never an exit; the pa
   assertEquals(gate("enter", 20, bad, limits).allowed, false);
   assertEquals(gate("exit", 20, bad, limits).allowed, true);
   assertEquals(gate("exit", 20, bad, { ...limits, globalPause: true }).allowed, false);
-  assertEquals(gate("exit", 20, { ...bad, mode: "paused" }, limits).allowed, false);
+  assertEquals(gate("exit", 20, { ...bad, mode: "paused" }, limits).allowed, true);      // a paused row can still get OUT (2026-09-22)
+  assertEquals(gate("enter", 20, { ...bad, mode: "paused" }, limits).allowed, false);
 });
 
 // ---- protective stops and the dislocation rule (the one-minute loop) -----
