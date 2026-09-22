@@ -64,7 +64,7 @@ import { b64ToBytes } from "../_shared/bytes.ts";
 import { positionFromFills, unrealisedUsd, type Position } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { makeDb, type Db } from "./db.ts";
-import { dayPnl, decisionBarMs, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
+import { dayPnl, decisionBarMs, posKey, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 
@@ -343,20 +343,35 @@ async function dashboard(now: number) {
   }
 
   // Positions per strategy × symbol, from fills — the one implementation.
+  // Keyed by the MODE the fills were in, and resolved to a book exactly the way `tick.ts` does it, because the
+  // page must show what the loop manages. Blended on `strategy|symbol` alone — as this was until 2026-09-22,
+  // after the tick had been fixed and the page had not — a row that ever changed mode drew one position out of
+  // two books: base, average cost, opened-at, high-water and the realised/unrealised split all wrong, and the
+  // whole blended aggregate billed to `live` because that read the ROW's label.
   const byKey = new Map<string, OrderRow[]>();
-  for (const o of filled) { const k = `${o.strategy_id}|${o.symbol}`; if (!byKey.has(k)) byKey.set(k, []); byKey.get(k)!.push(o); }
+  for (const o of filled) { const k = posKey(o.strategy_id, o.symbol, o.mode); if (!byKey.has(k)) byKey.set(k, []); byKey.get(k)!.push(o); }
+  const posCache = new Map<string, Position>();
+  const posAt = (k: string): Position => {
+    let p = posCache.get(k);
+    if (!p) { p = positionFromFills((byKey.get(k) ?? []).map(toFill)); posCache.set(k, p); }
+    return p;
+  };
+  /** Real coins outrank the row's label; otherwise its own mode, and a paused row falls back to paper. */
+  const bookOf = (s: { id: string; mode: string }, sym: string): "paper" | "live" =>
+    posAt(posKey(s.id, sym, "live")).base > 0 ? "live" : s.mode === "live" ? "live" : "paper";
   const totals = { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0 };
   const byMode: Record<string, typeof totals> = { paper: { ...totals }, live: { ...totals } };
   // Which retired rows are still on the page: only the ones still holding something. Decided BEFORE
   // the map, so a retired row that is already flat contributes nothing to `totals` or `byMode` —
   // the page's aggregates keep the meaning they had when a retired row simply disappeared (`0038`).
-  const stillHolds = (s: { id: string; symbols: string[] }) =>
-    s.symbols.some((sym) => positionFromFills((byKey.get(`${s.id}|${sym}`) ?? []).map(toFill)).base > 0);
+  const stillHolds = (s: { id: string; symbols: string[]; mode: string }) =>
+    s.symbols.some((sym) => posAt(posKey(s.id, sym, bookOf(s, sym))).base > 0);
   const shown = strategies.filter((s) => !s.retired_at || stillHolds(s));
   const out = shown.map((s) => {
     const positions = s.symbols.map((sym) => {
-      const rows = byKey.get(`${s.id}|${sym}`) ?? [];
-      const pos: Position = positionFromFills(rows.map(toFill));
+      const book = bookOf(s, sym);
+      const rows = byKey.get(posKey(s.id, sym, book)) ?? [];
+      const pos: Position = posAt(posKey(s.id, sym, book));
       const mark = marks[s.venue]?.[sym] ?? pos.avgCost;
       const obs = latestObs.get(`${s.id}|${sym}`) ?? null;
       return {
@@ -367,15 +382,22 @@ async function dashboard(now: number) {
       };
     });
     const sum = (k: "costUsd" | "valueUsd" | "unrealisedUsd" | "realisedUsd" | "feesUsd") => positions.reduce((a, p) => a + p[k], 0);
-    // Today: realised since 00:00 UTC plus the change in unrealised from the day's open — the tick's own `dayPnl`, per strategy.
-    const mine0 = filled.filter((o) => o.strategy_id === s.id);
-    const todayUsd = dayPnl(mine0, marks[s.venue] ?? {}, dayOpenBy[s.signal_venue] ?? {}, dayStartMs);
+    // Today: realised since 00:00 UTC plus the change in unrealised from the day's open — the tick's own `dayPnl`,
+    // per strategy, over the fills of the books this row is actually showing.
+    const shownBooks = new Set(s.symbols.map((sym) => bookOf(s, sym)));
+    const fillsIn = (m: string) => filled.filter((o) => o.strategy_id === s.id && o.mode === m && bookOf(s, o.symbol) === m);
+    const todayIn = (m: string) => dayPnl(fillsIn(m), marks[s.venue] ?? {}, dayOpenBy[s.signal_venue] ?? {}, dayStartMs);
+    const todayByBook = Object.fromEntries([...shownBooks].map((m) => [m, todayIn(m)]));
+    const todayUsd = Object.values(todayByBook).reduce((a, b) => a + b, 0);
     const agg = { costUsd: sum("costUsd"), valueUsd: sum("valueUsd"), unrealisedUsd: sum("unrealisedUsd"), realisedUsd: sum("realisedUsd"), feesUsd: sum("feesUsd"), todayUsd };
-    for (const k of Object.keys(agg) as (keyof typeof agg)[]) {
-      totals[k] += agg[k];
-      const m = s.mode === "live" ? "live" : "paper";
-      byMode[m][k] += agg[k];
+    for (const k of Object.keys(agg) as (keyof typeof agg)[]) totals[k] += agg[k];
+    // Each position is billed to ITS OWN book, never to the row's label.
+    for (const pn of positions) {
+      const m = bookOf(s, pn.symbol);
+      byMode[m].costUsd += pn.costUsd; byMode[m].valueUsd += pn.valueUsd; byMode[m].unrealisedUsd += pn.unrealisedUsd;
+      byMode[m].realisedUsd += pn.realisedUsd; byMode[m].feesUsd += pn.feesUsd;
     }
+    for (const [m, v] of Object.entries(todayByBook)) byMode[m].todayUsd += v;
     const mine = (r: { strategy_id: string }) => r.strategy_id === s.id;
     const last = recentDecisions.find(mine) ?? null;
     const barMs = decisionBarMs(s.kind);
@@ -472,7 +494,7 @@ async function chart(strategyId: string, symbol: string, now: number) {
       `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&ts=gte.${since}&select=id,ts,bar_start,final_action,rule_action,final_reason,provider,risk_allowed,numbers&order=ts.asc&limit=500`),
     d.select<ObservationRow>("agent_observations", latestObservationQuery(strategyId, symbol)),
   ]);
-  const allFilled = await d.select<OrderRow>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&state=in.(filled,partially_filled)&select=*&order=ts.asc`);
+  const allFilled = await d.selectAll<OrderRow>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&state=in.(filled,partially_filled)&select=*&order=ts.asc`);
   const pos = positionFromFills(allFilled.map(toFill));
   return {
     strategyId, symbol, venue: s.venue, signalVenue: s.signal_venue, kind: s.kind, mode: s.mode, intervalMin, since, at: new Date(now).toISOString(),

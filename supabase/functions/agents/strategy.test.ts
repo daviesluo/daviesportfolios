@@ -4,8 +4,8 @@
 // show. Every case is closed-form: the answer is worked by hand first.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  applyFill, atrAt, buildSnapshot, combineDecision, DEFAULT_TREND, FLAT, floorToStep, paperFill,
-  positionFromFills, priorRange, realisedVol, riskGate, ruleDecision, sizeBase, sma, unrealisedUsd,
+  applyFill, atrAt, buildSnapshot, ceilToStep, combineDecision, DEFAULT_TREND, FLAT, floorToStep, paperFill,
+  positionFromFills, priorRange, realisedVol, riskGate, ruleDecision, sizeBase, sma, stepDecimals, unrealisedUsd,
   type Candle, type Position, type Snapshot,
 } from "../_shared/agents_strategy.ts";
 
@@ -329,4 +329,26 @@ Deno.test("ruleDecisionDislocation: lift the ask on a cheap print, rest the exit
 
 Deno.test("DEFAULT_DISLOCATION is the shape the 1-minute data supported: 15 bps in, back within 2, 30 minutes, 40 bps stop", () => {
   assertEquals(DEFAULT_DISLOCATION, { entryBps: 15, exitBps: -2, maxHoldMin: 30, stopBps: 40, sharpMoveBps: 15, cooldownMin: 3 });
+});
+
+Deno.test("stepDecimals reads an exponential step: a venue that writes 1e-8 must not round half a coin up to one", () => {
+  assertEquals(stepDecimals("0.001"), 3);
+  assertEquals(stepDecimals("0.00000001"), 8);
+  assertEquals(stepDecimals("1e-8"), 8);
+  assertEquals(stepDecimals("1E-2"), 2);
+  assertEquals(stepDecimals("1"), 0);
+  // The failure it prevents: `split(".")` finds no fraction in "1e-8", so the old code did toFixed(0).
+  assertEquals(floorToStep(0.5, "1e-8"), "0.50000000");
+  assertEquals(ceilToStep(0.5, "1e-2"), "0.50");
+  // Both venues send decimal strings today, so this is a guard rather than a fix to live behaviour.
+  assertEquals(floorToStep(0.5, "0.00000001"), "0.50000000");
+});
+
+Deno.test("positionFromFills is a TOTAL order: two fills stamped the same instant apply buy-first, so a tie cannot destroy a position", () => {
+  const f = (ts: number, side: "buy" | "sell", base: number, price: number) => ({ ts, side, base, price, feeUsd: 0 });
+  const buy = f(1000, "buy", 1, 100), sell = f(1000, "sell", 1, 110);
+  // Same timestamp, opposite input order — one implementation, one answer.
+  assertEquals(positionFromFills([buy, sell]), positionFromFills([sell, buy]));
+  assertEquals(positionFromFills([sell, buy]).realisedUsd, 10);
+  assertEquals(positionFromFills([sell, buy]).base, 0);
 });

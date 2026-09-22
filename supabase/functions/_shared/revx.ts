@@ -290,6 +290,12 @@ export const REVX_FEE_BPS = { maker: 0, taker: 9 };
 export function orderViewProblem(vo: VenueOrder): string | null {
   const filled = vo.state === "filled" || Number(vo.filled_size ?? 0) > 0;
   if (!filled) return null;
+  // A reply that says `filled` while reporting nothing filled is a venue quirk, not a fill: `tick.ts` falls back to
+  // `base_size` when `filledBase` is 0, so this would book the WHOLE order and the next exit would try to sell coins
+  // that are not there. `orderViewProblem` checks for absent fields; zero is a present field saying the opposite.
+  if (vo.state === "filled" && vo.filled_size != null && Number(vo.filled_size) === 0) {
+    return `order ${vo.venue_order_id} is filled but its reply says filled_size 0; not settled`;
+  }
   const missing = (["filled_size", "average_fill_price", "fees"] as const).filter((k) => vo[k] == null);
   if (!missing.length) return null;
   return `order ${vo.venue_order_id} is ${vo.state} but its reply has no ${missing.join(", ")} (fields present: ${Object.keys(vo).join(", ")}); not settled`;

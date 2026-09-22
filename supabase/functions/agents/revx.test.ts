@@ -191,3 +191,12 @@ Deno.test("orderViewProblem — a filled order whose reply lacks the settlement 
   // A partial fill is a fill: the same fields are required of it.
   assert(orderViewProblem({ venue_order_id: "V3", symbol: "BTC-USD", side: "buy", state: "open", filled_size: "0.0004" })?.includes("average_fill_price, fees"));
 });
+
+Deno.test("orderViewProblem — a reply that says filled while reporting filled_size 0 is a problem, and an ABSENT field is still reported as absent", () => {
+  // `tick.ts` falls back to `base_size` when `filledBase` is 0, so a venue quirk here would book the whole order
+  // and the next exit would try to sell coins that are not there. Zero is a field saying the opposite of filled.
+  const zero = orderViewProblem({ venue_order_id: "V9", symbol: "BTC-USD", side: "buy", state: "filled", filled_size: "0", average_fill_price: "80000", fees: "0" });
+  assert(zero?.includes("filled_size 0"), String(zero));
+  // Absent is not zero: that case keeps naming the fields it could not find.
+  assert(orderViewProblem({ venue_order_id: "V10", symbol: "BTC-USD", side: "buy", state: "filled" })?.includes("no filled_size, average_fill_price, fees"));
+});
