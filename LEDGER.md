@@ -288,6 +288,36 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-22 20:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The README's diagram and its facts.** "How it's built" is now a
+hand-written SVG in the style of Davies' two skill repositories
+(`docs/architecture.svg`: user → browser → Edge Functions / scheduled
+jobs → Postgres, outside services beside them, blue / green / grey
+arrows with a legend), replacing the mermaid block, and its alt text
+carries the whole picture in words. Every finding of the README
+fact-check agent was applied after spot-checking five against the code
+(the SW polls every 60 s, Acknowledge is browser-local, the manifest has
+no icons, 1W fetches 15-minute bars, the overnight cadence is 15 min on
+1W): the Investment view is a tab, not a `⇄` button; hide-values masks
+digits of money, prices and share counts with `•` and keeps each
+number's length; the captain is the largest single holding; the
+transaction and agents-detail columns; four indices with a P/E button,
+from Alpha Vantage; no forced previous-close basis on any range; 1Y
+draws MA 200; P/S 1Y; the Acknowledge button; CRON_SECRET via Vault;
+the SQL-Editor advice replaced by `migrations.yml`; the env table (with
+the agents' secrets); the deploy trigger; phantom functions removed
+(`trimLru`, `collectPassword`, `fillRows`, `dropDepositSpikes`,
+`data?action=snapshot`, `ops-error?action=acknowledge`); missing rows
+added (`version.js`, `ambient.d.ts`, `agents/db.ts`, the last Kraken
+study, `package.json`'s tool configs, `wrangler.jsonc`, `.nvmrc`,
+`.github/SECURITY.md`, the env example); and the last figures from the
+real book (a share-count restore, deposit totals, trade counts). The
+working-with-davies skill (three copies) had two chart rules the code
+had overtaken — a forced `prevCloseBasis` on 24H and a `⇄` switch — and
+CLAUDE.md a stale test count, build output and Vite note; all corrected.
+Previewed with GitHub's stylesheet; every relative link resolves.
+
 ### [2026-09-22 19:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The repository root is tidied for a public audience** (Davies chose to

@@ -154,16 +154,20 @@ Changing any of these means re-opening a decision he has already made.
   trailing 24 h is the only 1-day view. He first asked for a literal
   trailing 24 h, then for both, then dropped the DAY reading. Don't
   put the toggle back.
-- `computeAt` is handed `prevCloseBasis` on the 24H window (internal
-  `1D`), then the series is rebased to the first point. Don't skip the
-  rebase to "make it match the scoreboard".
+- No previous-close basis is forced on any range, 24H included: every
+  window is anchored at its own first point, so the basis at that point
+  equals the value there and the reading is the window's move
+  (`perf_chart.jsx` explains why — forcing `prevCloseBasis` on 24H once
+  read +14.81 % where the Investment view of the same window read
+  +16.00 %). Don't bring it back to "make it match the scoreboard".
 - 1W is a real trailing week, not "since last Monday" or a coarse
   bucket that erases the series.
 - 1D is one point per five minutes over the window. Extended-hours on
   or off, the time window and the benchmark (cash index vs futures)
   stay in lockstep — the title and legend both flip to FUTURES when
   the toggle is on.
-- Investment Performance lives in the same panel slot (⇄ swap). Value
+- Investment Performance lives in the same panel slot, as the second
+  of two tabs (VS S&P 500 | INVESTMENT — the heading is the switch). Value
   is the vs-S&P portfolio series in dollars; Net deposit is money paid
   in (steps, not spikes). The legend shows each line's move over the
   window as a %, not a "gain" figure. Axes, grid and crosshair match
