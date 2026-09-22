@@ -108,14 +108,38 @@ share nothing. The bar is: positive out of sample on that venue's costs,
 drawdown under 35 %, at least half the parameter grid positive out of
 sample, positive on the other venue's costs too — on **both** windows.
 
-**That verdict was reached under the duplicated stop** (reference §3.13)
-and has NOT been re-run: the portfolio study's 39 cells each need their
-own parameter grid, which is the third-window study's work, not a
-re-read of `summary.json`. What the re-run does show is that the return
-leg of the bar now passes on both windows for AVAX and SOL, where it
-passed on one before. **Until that study lands, treat the verdict as
-still standing**: it is the conservative reading, and the number this
-brief's recommendation rests on is the sleeve's, not any member's.
+**CORRECTED 2026-09-22 — that verdict WAS re-run, and it changed.** It
+was reached under the duplicated stop (reference §3.13), and this
+paragraph used to say the re-run had not happened. It had:
+`backtest_tape.ts` §T3 re-priced every coin-window cell under BOTH stop
+rules the same day. Under the rule `tick.ts` actually runs, on Revolut X
+costs, at the seeded point, with both tapes agreeing:
+
+| coin | windows clearing §4.15 |
+|---|---|
+| **AVAX** | **A, B, C** |
+| SOL | A, C |
+| ETH | B, C |
+| BTC | B, D |
+| SUI | **A only** |
+
+**AVAX is the only coin of the 27 priced that clears BOTH walk-forward
+windows.** The old sentence — "not one clears the bar on both" — is the
+retired stop rule's answer.
+
+**And it is still not a reason to do anything.** Across the 93
+coin-window cells priced under the shipped rule, 26 clear the bar: a
+per-window pass rate of **0.280**. Twenty-three coins have both A and B
+priced, so chance alone gives 0.280² × 23 = **1.80** coins clearing both,
+and P(at least one) is 0.85. **One passer is fewer than chance gives.**
+
+So the correction cuts both ways, and neither direction moves the
+recommendation. AVAX is not the doubtful member this brief implied, and
+it is not a qualified one either — it is the coin the bar admits in a
+draw where the bar was always going to admit about two by luck. The
+number the recommendation rests on is still the sleeve's, not any
+member's, which is what the last sentence of the old paragraph got
+right.
 
 That is the single most important sentence in this document. What the
 backtests establish is that this set does not blow up and behaves like a
@@ -489,6 +513,49 @@ Kraken returns the client order id — are still the client's assumption.
 **The first live order's read-back is what verifies them**, and a filled
 order missing them is refused rather than recorded at fee zero. Nothing
 short of a real order closes this.
+
+### 9.6 Jev vetoes one entry in five, and no backtest prices that
+
+**Every published number in this document is for the RULEBOOK. The
+account runs the rulebook AND Jev.** `combineDecision` turns an entry
+into a hold when `P(healthy) < enterMin` (0.6), when caution is extreme,
+or when the model does not answer. No backtest models any of it — the
+reference says so and is right to — but until 2026-09-22 nobody had
+counted it in the live record either, and §9.1's "0 refused by the risk
+gate" is true and was materially incomplete: the risk gate is not the
+layer that has been refusing things.
+
+The whole record, `agent_decisions`, every row since 2026-09-20:
+
+| | rule said enter | taken | **vetoed by Jev** |
+|---|---|---|---|
+| `trend-1h` | 5 | 3 | **2** |
+| `momentum-1d` | 4 | 3 | **1** |
+| `trend-4h` (the live candidate) | 3 | 3 | **0** |
+| `trend-4h-kraken` | 3 | 3 | 0 |
+| **total** | **15** | **12** | **3 — 20 %** |
+
+Two things about those three matter more than the rate:
+
+- **Two of the three were P(healthy) = 0.59 against a threshold of
+  0.60.** Both were SOL on `trend-1h`, on consecutive days. The
+  parameter turning them away is a seeded one that has never been
+  varied, never been backtested, and gates every entry the live row will
+  make. The third was P = 0.15 (BTC, `momentum-1d`) — that one is not a
+  knife edge.
+- **The live candidate has not been vetoed yet**, 0 of 3. That is three
+  entries, which is not evidence of anything; the rate that will apply
+  to it is the 20 % measured across the set, not the 0 % measured on
+  three bars.
+
+**What this means for the expected return.** If the veto rate holds, the
+live row takes roughly four entries in five that the backtests assume,
+and which four is decided by a model no study has priced. That is not an
+argument against going live — Jev is in the design on purpose, as a veto
+that can only ever make the row do LESS — but it is a gap between every
+number in §4 and what the account will actually earn, and it should be
+read as one. The cheapest way to close it is time: the same query run
+again in a month, over a live row's own bars.
 
 ### 9.5 The order of operations
 
