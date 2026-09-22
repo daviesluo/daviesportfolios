@@ -107,7 +107,13 @@ that follow from that evidence, in short:
   writes down where a post-only order would have rested, and later turns
   record whether the book came back and where price went 15 and 60 minutes
   after; that gap is the adverse selection §3.13 could not compute, and a
-  probe is never an order and never reaches any book. **Entries happen only on a newly closed 1h / 4h / 1d
+  probe is never an order and never reaches any book; the dashboard reads
+  them with `probeSummary` — fill rate, median minutes to fill, and
+  `adverseBps` signed so POSITIVE is against the fill. **A retired row that
+  still HOLDS something keeps its exits** (`windingDown`): the floor and
+  the rulebook's exit keep running, every entry is refused, and a retired
+  row that is flat is skipped. `riskGate` no longer refuses an EXIT to a
+  paused strategy — only the global pause outranks an exit. **Entries happen only on a newly closed 1h / 4h / 1d
   bar**, at most a few a day; the one exception is the dislocation rule,
   whose entries are events. At taker cost one round trip an hour burns
   ~75 % of the account a month. **Revolut X takes the touch** on every

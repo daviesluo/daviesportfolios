@@ -214,6 +214,61 @@ export function jevStats(rows: { provider: string; cost_usd: number | null; late
   return { calls: rows.length, costUsd: cost, avgLatencyMs: n ? Math.round(lat / n) : null, providers };
 }
 
+export type ProbeSummaryRow = {
+  venue: string; symbol: string; side: string; state: string;
+  maker_price: string | number; taker_price: string | number;
+  minutes_to_fill: number | null; follow_up: Record<string, number> | null;
+};
+
+/**
+ * The maker probes (`0042`), read the only way they answer anything: a fill RATE and an
+ * adverse-selection number. Revolut X is 0 % maker and the loop crosses the touch, and §3.13
+ * put the break-even for resting instead at 10–20 bps of adverse move through the bid — a band
+ * a backtest could not measure, because its bid is a synthetic offset on a Coinbase candle.
+ *
+ * `adverseBps` is the answer: for each FILLED probe, how far the market had moved past the
+ * price a resting order would have taken, at +15 and +60 minutes, signed so that POSITIVE is
+ * against the fill (a buy that filled and then fell, a sell that filled and then rose). Read
+ * the median against 10–20 bps: above it, resting loses more to selection than the 9 bps taker
+ * fee costs; below it, the fee is the bigger number and resting is worth testing for real.
+ *
+ * Every figure is null until probes exist, and the counts say how thin the evidence is.
+ */
+export function probeSummary(rows: ProbeSummaryRow[]) {
+  const med = (xs: number[]) => {
+    if (!xs.length) return null;
+    const a = [...xs].sort((x, y) => x - y), i = a.length >> 1;
+    return a.length % 2 ? a[i] : (a[i - 1] + a[i]) / 2;
+  };
+  const filled = rows.filter((r) => r.state === "filled");
+  const adverse = (key: string) => med(filled.flatMap((r) => {
+    const after = r.follow_up?.[key];
+    const maker = Number(r.maker_price);
+    if (after == null || !(maker > 0)) return [];
+    // A buy that filled and then fell has moved AGAINST the fill; so has a sell that then rose.
+    const bps = (r.side === "buy" ? maker - after : after - maker) / maker * 1e4;
+    return [bps];
+  }));
+  const resolved = filled.length + rows.filter((r) => r.state === "expired").length;
+  return {
+    total: rows.length,
+    resting: rows.filter((r) => r.state === "resting").length,
+    filled: filled.length,
+    expired: rows.filter((r) => r.state === "expired").length,
+    /** Of the probes that RESOLVED, the share that the market came back to. Null while none has. */
+    fillRate: resolved ? filled.length / resolved : null,
+    medianMinutesToFill: med(filled.map((r) => r.minutes_to_fill).filter((x): x is number => x != null)),
+    /** Positive = the market moved against the fill. Compare with §3.13's 10–20 bps break-even. */
+    adverseBps: { m15: adverse("m15"), m60: adverse("m60") },
+    bySymbol: [...new Set(rows.map((r) => r.symbol))].sort().map((symbol) => {
+      const mine = rows.filter((r) => r.symbol === symbol);
+      const f = mine.filter((r) => r.state === "filled");
+      const res = f.length + mine.filter((r) => r.state === "expired").length;
+      return { symbol, total: mine.length, filled: f.length, fillRate: res ? f.length / res : null };
+    }),
+  };
+}
+
 /**
  * Everything the Agents page shows, computed here and nowhere else:
  * positions and P&L come from `positionFromFills` over the filled orders,
@@ -234,12 +289,18 @@ async function dashboard(now: number) {
   const d = db();
   const dayStart = new Date(Math.floor(now / ONE_D) * ONE_D).toISOString();
   const since24h = new Date(now - ONE_D).toISOString();
-  const [strategies, riskRows, filled, open, today, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }] = await Promise.all([
-    d.select<StrategyRow & { description: string; updated_at: string }>("agent_strategies", "retired_at=is.null&select=*&order=id.asc"),   // a retired row keeps its records and leaves the page (0038)
+  const [strategies, riskRows, filled, open, today, probeRows, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }] = await Promise.all([
+    // Retired rows are read too and filtered below: one that is FLAT leaves the page (`0038`), one
+    // that still holds something stays on it, marked `windingDown`. `0043` retired three rows that
+    // were still long, and a position nobody can see is a position nobody will notice is stuck.
+    d.select<StrategyRow & { description: string; updated_at: string; retired_at: string | null }>("agent_strategies", "select=*&order=id.asc"),
     d.select<RiskRow & { updated_at: string }>("agent_risk", "id=eq.1&select=*"),
     d.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc"),   // the filled part of a working order is a position too; paged — PostgREST stops at 1,000 rows without a word
     d.select<OrderRow & { request: unknown }>("agent_orders", "state=in.(pending,new,partially_filled)&select=*&order=ts.desc"),
     d.select<{ id: number; strategy_id: string; venue: VenueId; state: string }>("agent_orders", `ts=gte.${dayStart}&select=id,strategy_id,venue,state`),
+    // The maker probes (`0042`), summarised below. Read whole: they are a few rows a day and the
+    // adverse-selection median needs all of them, not a window.
+    d.selectAll<ProbeSummaryRow>("agent_maker_probes", "select=venue,symbol,side,state,maker_price,taker_price,minutes_to_fill,follow_up&order=ts.asc").catch(() => [] as ProbeSummaryRow[]),
     d.select<{ strategy_id: string; provider: string; cost_usd: number | null; latency_ms: number | null }>("agent_decisions", `ts=gte.${since24h}&select=strategy_id,provider,cost_usd,latency_ms`),
     d.select<DecisionRow>("agent_decisions", "select=id,ts,strategy_id,venue,symbol,mode,state,numbers,answers,provider,model,latency_ms,cost_usd,rule_action,rule_reason,final_action,final_reason,risk_allowed,risk_reason&order=ts.desc&limit=120"),
     d.select<OrderRow & { request: unknown; response: unknown; cancelled_at: string | null; decision_id: number | null }>("agent_orders", "select=*&order=ts.desc&limit=120"),
@@ -286,7 +347,13 @@ async function dashboard(now: number) {
   for (const o of filled) { const k = `${o.strategy_id}|${o.symbol}`; if (!byKey.has(k)) byKey.set(k, []); byKey.get(k)!.push(o); }
   const totals = { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0 };
   const byMode: Record<string, typeof totals> = { paper: { ...totals }, live: { ...totals } };
-  const out = strategies.map((s) => {
+  // Which retired rows are still on the page: only the ones still holding something. Decided BEFORE
+  // the map, so a retired row that is already flat contributes nothing to `totals` or `byMode` —
+  // the page's aggregates keep the meaning they had when a retired row simply disappeared (`0038`).
+  const stillHolds = (s: { id: string; symbols: string[] }) =>
+    s.symbols.some((sym) => positionFromFills((byKey.get(`${s.id}|${sym}`) ?? []).map(toFill)).base > 0);
+  const shown = strategies.filter((s) => !s.retired_at || stillHolds(s));
+  const out = shown.map((s) => {
     const positions = s.symbols.map((sym) => {
       const rows = byKey.get(`${s.id}|${sym}`) ?? [];
       const pos: Position = positionFromFills(rows.map(toFill));
@@ -315,6 +382,10 @@ async function dashboard(now: number) {
     return {
       id: s.id, kind: s.kind, venue: s.venue, signalVenue: s.signal_venue, name: s.name, description: s.description, symbols: s.symbols, mode: s.mode,
       capitalUsd: Number(s.capital_usd), params: s.params, updatedAt: s.updated_at,
+      retiredAt: s.retired_at ?? null,
+      // A retired row still holding something: its exits run, it can never buy, and it is on the
+      // page precisely so the position is visible until it is gone (tick.ts, `windingDown`).
+      windingDown: !!s.retired_at && positions.some((p) => p.base > 0),
       nextDecisionAt: new Date(Math.floor(now / barMs) * barMs + barMs).toISOString(),   // the next bar close
       ...agg, positions,
       openOrders: open.filter(mine).length, ordersToday: today.filter(mine).length,
@@ -358,6 +429,8 @@ async function dashboard(now: number) {
     })),
     strategies: out,
     openOrders: open,
+    /** The adverse-selection notebook (`0042`, reference §3.13): is 0 % maker actually free here? */
+    makerProbes: probeSummary(probeRows),
     jev24h: jevStats(decisions24h),
   };
 }

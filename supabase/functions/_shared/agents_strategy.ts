@@ -613,9 +613,15 @@ export type RiskContext = {
  */
 export function riskGate(action: Action, orderUsd: number, ctx: RiskContext, limits: RiskLimits): { allowed: boolean; reason: string } {
   if (action === "hold") return { allowed: true, reason: "hold" };
-  if (ctx.mode === "paused") return { allowed: false, reason: "strategy paused" };
+  // The global pause is a person's emergency switch and means everything, exits included — it is the one
+  // place where "stop" outranks "get out". A paused STRATEGY is a different thing: it means this rulebook
+  // takes no new risk, and until 2026-09-22 it was tested above this line and so refused exits too. That
+  // was wrong and migration `0043` proved it: retiring three rows that were still long left their
+  // positions with no floor and no rule exit, held by a gate whose own comment three lines down says an
+  // exit is never refused. A position does not stop being a position because its row was switched off.
   if (limits.globalPause) return { allowed: false, reason: "global pause" };
   if (action === "enter") {
+    if (ctx.mode === "paused") return { allowed: false, reason: "strategy paused" };
     // Every cap below stops NEW risk only. An exit reduces risk and is never refused here: a day that has
     // spent its order budget or its loss budget is exactly the day a position must still be allowed out.
     if (ctx.ordersToday >= limits.maxOrdersPerDay) return { allowed: false, reason: `orders today ${ctx.ordersToday} ≥ ${limits.maxOrdersPerDay}; no new risk today` };

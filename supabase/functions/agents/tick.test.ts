@@ -997,3 +997,59 @@ Deno.test("a resolved probe collects its follow-up marks, and the last one stops
   assertEquals(Object.keys(b.follow_up).sort(), ["m15", "m60"]);
   assertEquals(b.watching, false);                     // finished: never read again
 });
+
+// ── winding down: a retired row that still holds something ─────────────────────────────────
+// `0038` retired `dislocation-1m` flat and nothing was left behind, which is why nobody noticed.
+// `0043` retired three rows that were still long, and under the old rule their positions had
+// nowhere to go: the tick skipped the row, so no floor and no rule exit ran, and the page hid it.
+// A position does not stop being a position because its row was switched off.
+
+Deno.test("a retired row that still holds a position keeps its floor: the stop fires and the row is reported winding down", async () => {
+  const retired = strategy({ id: "rotation-1d", kind: "rotation-1d", mode: "paused", retired_at: new Date(NOW - ONE_D).toISOString() });
+  // Long at 200 against a mark near 129: ~35 % under cost, far through the 8 % floor.
+  const w = world({ strategies: [retired], orders: [longSince(2 * ONE_D, 200, 0.1, { strategy_id: "rotation-1d" })] });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.windingDown, ["rotation-1d"]);
+  const protective = r.decisions.filter((d) => d.kind === "protective");
+  assertEquals(protective.length, 1);
+  assertEquals([protective[0].strategy, protective[0].action], ["rotation-1d", "exit"]);
+  assert(protective[0].reason.startsWith("protective floor"), protective[0].reason);
+  // It sold. That is the whole point: the position had somewhere to go.
+  const o = w.mem.tables.agent_orders.find((x) => x.id !== 50);
+  assertEquals([o?.strategy_id, o?.side], ["rotation-1d", "sell"]);
+});
+
+Deno.test("a retired row can never buy again, however good the bar looks", async () => {
+  // The same world that makes a live row enter — but the row is retired and flat.
+  const retired = strategy({ id: "trend-4h", venue: "revx", signal_venue: "kraken", mode: "paused", retired_at: new Date(NOW - ONE_D).toISOString() });
+  const w = world({ strategies: [retired] });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.windingDown, []);                                  // flat: nothing to wind down
+  assertEquals(r.decisions, []);                                    // and nothing decided at all
+  assertEquals(w.mem.tables.agent_orders, []);
+
+  // And when it DOES hold something, the entry is still refused while the exits run.
+  const holding = world({
+    strategies: [retired],
+    orders: [longSince(2 * ONE_D, 128, 0.1, { strategy_id: "trend-4h", venue: "revx" })],
+  });
+  const r2 = await tick(holding.deps);
+  assertEquals(r2.windingDown, ["trend-4h"]);
+  assertEquals(r2.decisions.filter((d) => d.action === "enter"), []);
+  assert(!holding.mem.tables.agent_orders.some((o) => o.id !== 50 && o.side === "buy"),
+    JSON.stringify(holding.mem.tables.agent_orders.map((o) => [o.id, o.side])));
+});
+
+Deno.test("a retired row that is flat costs a turn nothing: it is skipped before any decision work", async () => {
+  const flat = strategy({ id: "dislocation-1m", mode: "paused", retired_at: new Date(NOW - ONE_D).toISOString() });
+  const live = strategy({ id: "trend-4h-kraken" });
+  const w = world({ strategies: [flat, live] });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.windingDown, []);
+  // The live row still did its work; the retired one contributed nothing.
+  assertEquals(r.decisions.map((d) => d.strategy), ["trend-4h-kraken"]);
+  assertEquals(w.mem.tables.agent_observations.every((o) => o.strategy_id === "trend-4h-kraken"), true);
+});

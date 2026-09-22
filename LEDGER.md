@@ -198,6 +198,50 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 01:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**I made S11 real, then fixed it — and it was worse than the review
+said.** `0043` retired three rows that were still LONG (checked against
+the live table: `momentum-1d-kraken` 0.126, `rotation-1d` 0.189,
+`rotation-1w-kraken` 0.189 base). `0038` got away with the same move only
+because `dislocation-1m` was flat. Under the old rule those positions had
+no exit path at all, in two independent places:
+
+1. the tick skipped a paused row entirely, so no floor and no rule exit
+   ran and the page hid it; and
+2. **`riskGate` refused a paused strategy's EXIT** — that test sat ABOVE
+   the `action === "enter"` branch whose own comment reads "an exit
+   reduces risk and is never refused here". The gate that exists to let
+   positions out was the thing holding them in. It was pinned, twice, so
+   it was a decision rather than a slip; the decision was wrong.
+
+Fixed: the tick reads retired rows, derives the book, and keeps running
+the exits of any still holding (`windingDown` in the report), refusing
+every entry through one gate inside `decide()` so a later code path
+cannot miss it; a retired row that is flat is skipped before any decision
+work. `riskGate` moves the paused test inside the enter branch — the
+GLOBAL pause still outranks an exit, because that one is a person's
+emergency switch. The dashboard shows a winding-down row until it is
+flat, and filters retired-and-flat rows BEFORE the aggregates are summed
+so the page's totals keep the meaning they had. Pinned: three
+winding-down cases in `tick.test.ts`, the corrected gate in
+`strategy.test.ts`. 324 passed.
+
+**The probes are readable now** (`probeSummary`, in the dashboard
+payload): fill rate over resolved probes, median minutes to fill, and
+`adverseBps` at +15 / +60 minutes, **signed so POSITIVE is against the
+fill**. That median against §3.13's 10–20 bps band is the whole
+maker-versus-taker answer. Pinned in `index.test.ts`.
+
+**Two studies running**: the decide-here-fill-there split (§3.16 named it
+and nobody has ever modelled it), and coins / weights / mechanics /
+venue re-asked on four windows × both tapes.
+
+**Still open from the pre-live review**: S13 (dashboard refresh race),
+S14 (unmasked sizes), S15 (the missing live-unconfirmed alert), the sweep
+fixture, and the thin-book guard (ledger item 0b) — the last one matters
+more now that the floor is the only intra-bar stop.
+
 ### [2026-09-22 01:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Two studies land: the tape does not change what to run, and nothing
