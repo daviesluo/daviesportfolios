@@ -253,7 +253,7 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
-### [2026-09-22 18:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-22 18:38 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Eight of today's section headers were stamped AHEAD of the clock, by
 8 to 76 minutes, and are corrected to the commit that carried each one**
