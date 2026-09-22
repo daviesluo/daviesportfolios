@@ -84,6 +84,13 @@ list stays the short version; the plan is the reasoning behind it.
    without his explicit go. (c) A README fact-check agent is running;
    apply what it verifies.
 
+0c. **Kraken money: Davies is withdrawing it and moving it to Revolut X
+   (his decision, 2026-09-22; reference §4.23). The Kraken API key stays
+   in use.** After he says the transfer is done: fire the read-only
+   `?action=probe` through pg_net with the Vault `cron_secret` and check
+   that the Revolut X balance the key sees includes it (the probe places
+   nothing). No code or row changes; order sizes come from `agent_risk`.
+
 0. **Agents (crypto auto-trading) — paper since 2026-09-20 18:23 UTC
    (#211, `23d2fdd`).** Two review rounds from Davies landed (history,
    09-20 19:21 and 09-21 01:57 UTC). What the record says after the first
@@ -280,6 +287,14 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-22 19:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Kraken's money moves to Revolut X — Davies' decision** on study K's
+recommendation: he withdraws the whole balance himself (the system
+cannot) and keeps the Kraken key, which the page and the loop still use
+for candles, the fee tier, the venue card and the probe. Recorded in
+reference §4.23 and as what-remains item 0c (probe after the transfer).
 
 ### [2026-09-22 19:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
