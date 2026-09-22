@@ -13,10 +13,18 @@ live handover record is `LEDGER.md`; `handover.md` is its archive.
 - **Keep `README.md` in sync as part of every change** — don't wait to
   be asked. When a change adds/removes an Edge Function, migration,
   `src/` module, workflow, or a user-facing feature, update the matching
-  README section (Highlights / Stack / File map / migrations table) in
-  the same commit or PR. Trim redundant/outdated prose while you're
-  there. The README is the source-of-truth map of the system; a change
-  that lands without its README update is incomplete.
+  README section (What it does / Engineering notes / Stack / File map /
+  migrations table) in the same commit or PR. Trim redundant/outdated
+  prose while you're there. The README is the source-of-truth map of the
+  system; a change that lands without its README update is incomplete.
+- **The README's top half is a public showcase** (Davies shows the repo
+  in interviews): pitch, the live example at daviesluo.com (password:
+  contact Davies), screenshots in `docs/screenshots/` with every dollar
+  amount masked by the site's hide-values mode, features, architecture,
+  engineering practice, the agents research. Keep it short and current.
+  **No personal financial figure goes into the README** — no balance,
+  position value, share count, lot price or P&L in dollars from the real
+  book; describe the engineering with neutral wording instead.
 
 ## The ledger
 

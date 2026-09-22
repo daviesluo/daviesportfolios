@@ -60,6 +60,26 @@ list stays the short version; the plan is the reasoning behind it.
    and refused only in `place()`, so the retry path may re-try it every
    minute — fix it when R reports, with a pin.
 
+0b. **README is now the public showcase (2026-09-22); the repo is NOT
+   public yet and should not be made public as it stands.** Davies plans
+   to make it public for internship interviews. The README's top half is
+   the pitch, the live example (daviesluo.com, password: contact Davies),
+   masked desktop screenshots in `docs/screenshots/`, features,
+   architecture, engineering practice and the agents research; every
+   figure from the real book was taken out of the README. Open:
+   (a) **his phone screenshots** — he is sending them; add a "Phone"
+   pair under Screenshots and delete the "will follow" line; the Agents
+   page screenshots come after live. (b) **The public path is his
+   decision**: the tree and its history still carry the real book —
+   `handover.md` (transcripts, balances), `LEDGER.md`, the skill files,
+   data-repair migrations `0028`/`0030`/`0031`/`0033`, a few code
+   comments (`snapshot-record`), test fixtures modelled on it, and his
+   email in `CLAUDE.md`. Recommended: a separate clean public repository
+   built from a curated copy of the tree with fresh history, rather than
+   flipping this one or rewriting its history. Do not flip visibility
+   without his explicit go. (c) A README fact-check agent is running;
+   apply what it verifies.
+
 0. **Agents (crypto auto-trading) — paper since 2026-09-20 18:23 UTC
    (#211, `23d2fdd`).** Two review rounds from Davies landed (history,
    09-20 19:21 and 09-21 01:57 UTC). What the record says after the first
@@ -256,6 +276,34 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-22 19:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**README rebuilt as a public showcase** on Davies' request (he will show
+the repository in finance-internship interviews). New top half: pitch;
+the live example at daviesluo.com with "for a password, contact Davies";
+five desktop screenshots he took with the hide-values mode on (three
+cropped to their modal so they read at README size; no EXIF, ICC only);
+what it does; a mermaid architecture diagram; the stack as a table;
+engineering practice; the agents research in plain words. Below a
+`# Reference` divider the old sections stay, reordered (Using the board →
+Engineering notes, which is the old Highlights → Stack → File map → …).
+Corrected on the way: Stack (eleven functions, not nine; migrations to
+`0046`; four workflows and what `check.yml` really runs), the data-flow
+diagram (all functions, every browser store, the cron jobs), local
+development commands, the Live-prices note (the browser does reach Yahoo
+through CORS proxies as a fallback), the Agents note (three paper rows,
+no "four rulebooks"), a contradiction about Trading 212's first sync
+(the code keeps a board excess — `trading212.js` `max(0, board −
+broker)` — one cell said the opposite), and the iOS status-bar note
+moved from Stack into the PWA section. **Nineteen passages that quoted
+the real book** (share counts, lot prices, a position's value, deposit
+totals, trade counts) now say the same engineering in neutral words; a
+scan finds only market volumes, fixtures and format examples left.
+`CLAUDE.md` and the three working-with-davies copies gain the rule: no
+figure from the real book in the README. Previewed locally with
+GitHub's stylesheet and mermaid before committing. Docs and images
+only: no source changed, so the gates run on `54ab2ce` stand.
 
 ### [2026-09-22 19:11 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

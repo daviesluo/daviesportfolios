@@ -35,7 +35,11 @@ Codex (`@codex` only reviews PRs).
 supabase/functions/` when an Edge Function changed. Green means green —
 he will notice a red main.
 
-**The README is part of the change**, not a follow-up.
+**The README is part of the change**, not a follow-up. Its top half is
+a public showcase he uses in interviews (2026-09-22): the live example,
+masked screenshots, features, architecture. No figure from the real
+book goes into it — no balance, position value, share count, lot price
+or dollar P&L; say what the engineering does in neutral words.
 
 **Usage is a budget he watches.** Never spend the main model on
 polling: no scheduled PR re-checks, no "quiet hold" wake-ups on
