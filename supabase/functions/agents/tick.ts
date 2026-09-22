@@ -73,7 +73,7 @@ import {
   floorToStep, highWaterSince, jevQuestions, positionFromFills, protectiveExit, riskGate, rotationTargets, ruleDecisionDislocation, ruleFor, sizeBase,
   unrealisedUsd,
   type Action, type Candle, type DislocationParams, type JevView, type PairConfig, type Position, type RankView, type RotationParams,
-  type StrategyKind, type TrendParams,
+  type StopParams, type StrategyKind, type TrendParams,
 } from "../_shared/agents_strategy.ts";
 import { paperFeeUsd, type Quote, type Venue, type VenueId } from "../_shared/venue.ts";
 import type { Db } from "./db.ts";
@@ -90,6 +90,7 @@ export const PROTECTIVE_CLAIM_OFFSET_MS = 1000;   // a protective decision claim
 export const PROBE_TTL_MS = 4 * 3600e3;           // a maker probe watches for one 4-hour bar, then expires unfilled
 export const PROBE_FOLLOW_UP_MS = [15 * 60e3, 60 * 60e3];   // and the mark is recorded this long after it resolved — that gap IS the adverse selection
 export const WIDE_SPREAD_BPS = 50;                // above this the book is too wide to CROSS for a new position — see `exitMark`
+export const ENTRY_LAG_FRACTION = 0.25;           // an entry is taken on a bar only within this fraction of a bar after it closed — see `entryTooLate`
 const ONE_M = 60e3, ONE_H = 3600e3, FOUR_H = 4 * 3600e3, ONE_D = 86400e3;
 const DAILY_BARS = 130;                           // SMA 100 + the 30-day lookback, with room
 const SIGNAL_BARS = 210;                          // SMA 100 + breakout 55, with room
@@ -110,6 +111,8 @@ export type OrderRow = {
   price: number; base_size: number; client_order_id: string; venue_order_id: string | null; state: string;
   filled_base: number; avg_fill_price: number | null; fee_usd: number; requotes: number; filled_at: string | null;
   request?: { marketable?: boolean } | null;
+  /** The venue's reply as recorded; `placedState` is what the PLACEMENT reply said (see `place()`). */
+  response?: ({ placedState?: string } & Record<string, unknown>) | null;
 };
 
 export type TickDeps = {
@@ -158,9 +161,33 @@ export function jevViewOf(jr: JevResult, symbol: string): JevView {
 }
 /** A position's identity: the rulebook, the coin, and the MODE its fills were in — paper money and real coins are two books, never one. */
 export const posKey = (strategyId: string, symbol: string, mode: string) => `${strategyId}|${symbol}|${mode}`;
+/**
+ * The book a row trades for one coin — the ONE rule the tick and the dashboard both use. Real coins outrank the label:
+ * a row holding live base trades its live book whatever it is now called. Otherwise the row's own mode decides, and a
+ * PAUSED row — not a book of its own — reads as paper.
+ */
+export function resolveBook(rowMode: string, liveBase: number): "paper" | "live" {
+  return liveBase > 0 ? "live" : rowMode === "live" ? "live" : "paper";
+}
+/** True when a row holds something in a book it no longer trades: its exits must run, its entries must not. Shared with the dashboard. */
+export function isOffBook(rowMode: string, book: "paper" | "live", heldBase: number): boolean {
+  return heldBase > 0 && (rowMode === "paused" || book !== rowMode);
+}
 /** A state as one comparable string: jsonb hands keys back in its own order, so a plain stringify never matches what was written. */
 export const canon = (x: unknown): string => JSON.stringify(x, (_k, v) => (v && typeof v === "object" && !Array.isArray(v) ? Object.fromEntries(Object.entries(v as Record<string, unknown>).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : v));
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
+/**
+ * A unique-index refusal — the claim another turn already holds — and nothing else. The test used to be the bare words
+ * /409|duplicate|unique/ anywhere in the message, and PostgREST quotes the failing row's VALUES in `details`, ahead of
+ * `message`, inside the 200 characters `db.ts` keeps: any id, timestamp or price containing "409" turned a real refusal
+ * (a CHECK violation like the `agent_orders_mode_check` that silently disabled the winding-down exits on 2026-09-22) into
+ * a quiet "claimed by another turn" skip, with no error for anyone to see. Only Postgres's own code (23505) counts, or
+ * PostgREST's 409 with its duplicate-key message — and not a 409 alone, which PostgREST also sends for a foreign key (23503).
+ */
+export function isUniqueViolation(e: unknown): boolean {
+  const m = msg(e);
+  return /"23505"/.test(m) || (/→ 409:/.test(m) && /duplicate key/i.test(m));
+}
 const enc = encodeURIComponent;
 
 /** The decision bar of a rulebook. */
@@ -205,6 +232,34 @@ export function dayPnl(allFilled: OrderRow[], marks: Record<string, number>, day
   return out;
 }
 
+/**
+ * Where TODAY opened, from a daily series: today's own candle's open once the venue has published it, and until then
+ * the last earlier candle's CLOSE — which is where today opened. It used to fall back to that candle's OPEN: yesterday's
+ * open, so for the first minutes of every UTC day a whole day of move counted as today's, which inflates `dayPnl` and
+ * can spend the daily loss limit on a move that already happened. Null with no candle at all.
+ *
+ * ONE implementation: the tick's loss breaker and the dashboard's "today" both read it, so they cannot disagree.
+ */
+export function dayOpenOf(c1d: { start: number; open: number; close: number }[], dayStartMs: number): number | null {
+  const today = c1d.find((c) => c.start === dayStartMs);
+  if (today) return today.open;
+  const before = c1d.filter((c) => c.start < dayStartMs);
+  return before.length ? before[before.length - 1].close : null;
+}
+
+/**
+ * When a live order's fill happened, for the book. The first fill already on record wins (a completion must not
+ * re-date it). Otherwise a MARKETABLE order filled the moment it reached the venue — it takes the touch or dies — so it
+ * is dated from its own row (`ts`, written just before the venue was called), not from the turn that finally read it
+ * back. Dated from the reading turn, a buy whose read-back failed for a few minutes landed AFTER the floor's sell of the
+ * very coins it bought (the floor counts an unreadable buy as held from its row's time): the book then showed a long
+ * the venue did not hold, and the floor tried, every minute, to sell coins that were gone. A resting order's fill time
+ * is not known to the minute; the turn that reads it is the bound.
+ */
+export function fillStamp(o: Pick<OrderRow, "filled_at" | "ts" | "request">, nowIso: string): string {
+  return o.filled_at ?? (o.request?.marketable ? o.ts : nowIso);
+}
+
 export function toFill(o: OrderRow) {
   return {
     ts: new Date(o.filled_at ?? o.ts).getTime(), side: o.side,
@@ -246,7 +301,7 @@ type CandleRow = { start: string; open: number; high: number; low: number; close
  * newest stored one onward are fetched; otherwise the whole window is.
  * The forming candle is included and refreshed every turn.
  */
-async function loadSeries(d: TickDeps, venue: Venue, symbol: string, intervalMin: number, count: number): Promise<Candle[]> {
+async function loadSeries(d: TickDeps, venue: Venue, symbol: string, intervalMin: number, count: number, onStale?: (why: string) => void): Promise<Candle[]> {
   const spanMs = intervalMin * 60e3;
   const stored = await d.db.select<CandleRow>("agent_candles",
     `venue=eq.${venue.id}&symbol=eq.${enc(symbol)}&interval_min=eq.${intervalMin}&select=start,open,high,low,close,volume&order=start.desc&limit=${count}`);
@@ -259,7 +314,19 @@ async function loadSeries(d: TickDeps, venue: Venue, symbol: string, intervalMin
   const contiguous = spanMs < ONE_H || have.every((c, j) => j === 0 || c.start - have[j - 1].start === spanMs);
   const warm = have.length >= count - 2 && newest >= d.now - 3 * spanMs && contiguous;
   const since = warm ? newest - spanMs : d.now - count * spanMs;
-  const tail = await venue.candles(symbol, intervalMin, since, d.now);
+  let tail: Candle[];
+  try {
+    tail = await venue.candles(symbol, intervalMin, since, d.now);
+  } catch (e) {
+    // A warm cache already holds every CLOSED bar the rule reads; the venue's error costs only the forming bar. Until
+    // 2026-09-22 the error threw the cache away with it, the pair had no signal, and the per-minute floor — which needs
+    // the execution venue's mark and the book, not a candle — was skipped with it: a Kraken outage took the floor off
+    // every Revolut X position. The cached series stands in, flagged STALE so no bar is decided on it (a forming bar
+    // frozen at the last good fetch must never be read as closed). Cold, there is nothing to stand in: the error stands.
+    if (!warm) throw e;
+    onStale?.(msg(e));
+    return have.slice(-count);
+  }
   const byStart = new Map<number, Candle>(have.map((c) => [c.start, c]));
   for (const c of tail) byStart.set(c.start, c);
   const merged = [...byStart.values()].sort((a, b) => a.start - b.start).slice(-count);
@@ -352,6 +419,32 @@ export function spreadBps(q: Quote | undefined): number | null {
   return (q.ask - q.bid) / ((q.ask + q.bid) / 2) * 1e4;
 }
 
+/**
+ * Why it is too late to ENTER on a bar, or null. The loop decides the last CLOSED bar whenever it gets to it: after an
+ * outage, or on a row that has just been added, that bar can be hours old — on 2026-09-22 the first turn back from a
+ * three-hour crash decided trend-4h's 12:00 bar at 18:19, 139 minutes after it closed — and an entry then pays today's
+ * touch for yesterday's signal, which no backtest here priced. An exit is never refused for age: a late exit is still
+ * the way out.
+ */
+export function entryTooLate(barStartMs: number, barMs: number, nowMs: number): string | null {
+  const lag = nowMs - (barStartMs + barMs);
+  if (!(lag > barMs * ENTRY_LAG_FRACTION)) return null;
+  return `the bar closed ${Math.round(lag / 60e3)} min ago, more than a quarter of a bar: too late to enter on it`;
+}
+
+/**
+ * The live confirmation is a gate on NEW live risk, so it is part of the decision's gate, not a surprise inside
+ * `place()`. Until 2026-09-22 `riskGate` knew nothing of it: with `live_confirmed_at` cleared, a live entry was
+ * recorded `risk_allowed: true` ("within limits"), refused a line later in `place()`, and — being "allowed, with no
+ * order" — retried by the next minute's turn, and the next, for the rest of the bar (≈ 240 refusals a coin on a
+ * 4-hour bar, each an ops error), then placed at whatever the touch was the moment the switch was re-armed. Exits
+ * are never refused here: clearing the confirmation is the documented way to stop the BUYING.
+ */
+export function liveConfirmationRefusal(action: Action, book: "paper" | "live", liveConfirmedAt: string | null): { allowed: false; reason: string } | null {
+  if (action !== "enter" || book !== "live" || liveConfirmedAt) return null;
+  return { allowed: false, reason: "live not confirmed (live_confirmed_at is null): live entries are refused, exits still run" };
+}
+
 /** The position with its high-water trailed to the market: the fills' own high never rises, and a stop or a state word read from it would not trail. */
 function trailed(pos: Position, bars: Candle[], lastClosedIdx: number): Position {
   if (pos.base <= 0) return pos;
@@ -364,21 +457,42 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   const started = clock();
   const elapsed = () => clock() - started;
   const overBudget = () => elapsed() > TURN_BUDGET_MS;
-  let renewedAt = 0;
+  let renewedAt = started;                           // the lease was taken (in `tick`) the moment this turn began
+  let leaseLost = false;
   /**
-   * Keep the lock while this turn finishes, so the next cron minute skips rather than overlaps. It used to
-   * renew exactly ONCE, which bounded a turn at about half a lease plus a lease — past that the lock expired
-   * under a turn still placing orders and the next minute ran beside it. It now renews whenever the lease is
-   * more than half gone, so a slow database or a long venue call extends the lock instead of losing it.
+   * Keep — and CHECK — the lock, at every phase boundary and before every live order. Until 2026-09-22 it was renewed
+   * only inside the per-pair loop, after every venue and database read had already run (a slow Kraken alone can take
+   * longer than the lease), and with an UPDATE that returns nothing: one that matched no row — because the next minute's
+   * turn had taken the expired lock — looked exactly like one that worked. The late turn then carried on beside its
+   * successor, each claiming its own protective minute: two sells for one position (the venue's balance refused the
+   * second; a second live row on the same coin would not have been so lucky). Now the renewal is a compare-and-set that
+   * returns the row, and a lost lease ends the turn. Within LEASE_MS / 2 of the last renewal no call is made: nobody else
+   * can hold the lock before renewal + LEASE_MS.
    */
-  const renewLease = async () => {
+  const holdLease = async (before: string): Promise<boolean> => {
+    if (leaseLost) return false;
     const now = clock();
-    if (now - renewedAt < LEASE_MS / 2) return;
-    renewedAt = now;
-    try { await d.db.update("agent_locks", `name=eq.tick&holder=eq.${enc(holder)}`, { lease_until: new Date(clock() + LEASE_MS).toISOString() }); }
-    catch (e) { report.errors.push(`lease renewal: ${msg(e)}`); }
+    if (now - renewedAt < LEASE_MS / 2) return true;
+    try {
+      const rows = await d.db.claim<{ name: string }>("agent_locks", `name=eq.tick&holder=eq.${enc(holder)}`, { lease_until: new Date(now + LEASE_MS).toISOString() });
+      if (!rows.length) {
+        leaseLost = true;
+        report.errors.push(`lease lost before ${before}: another turn holds the tick now; this turn stops here`);
+        return false;
+      }
+      renewedAt = now;
+      return true;
+    } catch (e) {
+      // A failed call is not proof the lease is gone; the next boundary asks again.
+      report.errors.push(`lease renewal before ${before}: ${msg(e)}`);
+      return true;
+    }
   };
-  const [riskRows, strategies, open, probes] = await Promise.all([
+  // Every read before the stops is either ESSENTIAL — without it the stops cannot run safely, so the turn says so loudly
+  // and stops — or NOT, and then a failure costs its own job only, failing CLOSED for new risk and OPEN for exits. Until
+  // 2026-09-22 any one of them throwing ended the turn before a single stop ran: 187 minutes of it that day, from one
+  // `selectAll` with no `order=`, and one minute at 02:17 from a timeout.
+  const [riskRes, strategiesRes, openRes, probesRes] = await Promise.allSettled([
     d.db.select<RiskRow>("agent_risk", "id=eq.1&select=*"),
     // Retired rows are read too, because a retired row can still HOLD something — see the
     // winding-down gate after the book is derived. A row that is retired AND flat is skipped
@@ -389,8 +503,17 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     // back, and resolved ones whose follow-up marks are not all in yet. A handful of rows.
     d.db.select<ProbeRow>("agent_maker_probes", "watching=eq.true&select=*"),
   ]);
-  const risk = riskRows[0];
-  if (!risk) { report.errors.push("agent_risk row missing"); return; }
+  // Essential: the rows (what to protect) and the open orders (what is in flight — a stop that cannot see a sell in
+  // flight could place a second one).
+  if (strategiesRes.status === "rejected") { report.errors.push(`ESSENTIAL READ FAILED — strategies: ${msg(strategiesRes.reason)}; no stop and no decision this turn`); return; }
+  if (openRes.status === "rejected") { report.errors.push(`ESSENTIAL READ FAILED — open orders: ${msg(openRes.reason)}; no stop and no decision this turn`); return; }
+  const strategies = strategiesRes.value, open = openRes.value;
+  const probes = probesRes.status === "fulfilled" ? probesRes.value : (report.errors.push(`maker probes unreadable (${msg(probesRes.reason)}); none watched this turn`), []);
+  // The caps: unreadable, or missing, fail CLOSED for new risk (no order budget, no live confirmation) and OPEN for exits
+  // (no pause is assumed, since the pause is the one thing that would refuse an exit).
+  const riskRow = riskRes.status === "fulfilled" ? riskRes.value[0] : undefined;
+  if (!riskRow) report.errors.push(`agent_risk ${riskRes.status === "rejected" ? `unreadable (${msg(riskRes.reason)})` : "row missing"}: entries refused this turn, exits still run`);
+  const risk: RiskRow = riskRow ?? { global_pause: false, max_order_usd: 0, max_exposure_usd: 0, paper_exposure_usd: 0, daily_loss_limit_usd: 0, max_orders_per_day: 0, live_confirmed_at: null };
   report.strategies = strategies.length;
 
   // 1. the market ---------------------------------------------------------
@@ -458,29 +581,40 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
 
   const signals = new Map<string, Signal>();
   const dailyBy = new Map<string, Candle[]>();     // `${venue}|${symbol}` → daily series, loaded once
+  /** Signal series served from the cache because the venue failed this turn: the floor runs on them, no bar is decided. */
+  const staleSeries = new Set<string>();
   for (const [key, w] of signalWanted) {
     const venue = d.venues[w.venue];
     if (!venue) { report.errors.push(`${w.venue}: signal venue not configured`); continue; }
     try {
       const intervalMin = w.barMs / 60e3;
-      const bars = await loadSeries(d, venue, w.symbol, intervalMin, w.barMs === ONE_M ? 30 : SIGNAL_BARS);
+      const stale = (k: string, iv: number) => (why: string) => {
+        staleSeries.add(k);
+        report.errors.push(`${w.venue} ${w.symbol}: ${iv}m candles unavailable (${why}); the cached series stands in — the floor runs, no bar is decided on it`);
+      };
+      const bars = await loadSeries(d, venue, w.symbol, intervalMin, w.barMs === ONE_M ? 30 : SIGNAL_BARS, stale(key, intervalMin));
       const dk = mk(w.venue, w.symbol);
-      if (!dailyBy.has(dk)) dailyBy.set(dk, await loadSeries(d, venue, w.symbol, 1440, DAILY_BARS));
+      if (!dailyBy.has(dk)) dailyBy.set(dk, await loadSeries(d, venue, w.symbol, 1440, DAILY_BARS, stale(dk, 1440)));
       signals.set(key, { bars, barMs: w.barMs, c1d: dailyBy.get(dk)! });
     } catch (e) {
       report.errors.push(`${w.venue} ${w.symbol}: candles ${msg(e)}`);
     }
   }
   const signalFor = (s: StrategyRow, sym: string) => signals.get(`${s.signal_venue}|${sym}|${stateBarMs(s.kind)}`);
+  const signalStale = (s: StrategyRow, sym: string) =>
+    staleSeries.has(`${s.signal_venue}|${sym}|${stateBarMs(s.kind)}`) || staleSeries.has(mk(s.signal_venue, sym));
   const minuteFor = (s: StrategyRow, sym: string) => signals.get(`${s.signal_venue}|${sym}|${ONE_M}`);
 
   // 2. open orders --------------------------------------------------------
+  if (!(await holdLease("the open orders"))) return;
   const inFlight = new Set<string>();
-  /** Of those, the ones that are SELLS. A stop must never place a second sell over one it cannot see or cancel; a BUY it may simply sell past. */
-  const inFlightSells = new Set<string>();
-  const holdInFlight = (key: string, side: string) => { inFlight.add(key); if (side === "sell") inFlightSells.add(key); };
+  /** How many of those are SELLS, per pair. A stop must never place a second sell over one it cannot see or cancel; a BUY it may simply sell past. */
+  const sellsInFlight = new Map<string, number>();
+  const holdInFlight = (key: string, side: string) => { inFlight.add(key); if (side === "sell") sellsInFlight.set(key, (sellsInFlight.get(key) ?? 0) + 1); };
   const requoteWanted: { o: OrderRow; touch: number }[] = [];
   const settledIds = new Set<number>();            // rows this turn closed: no longer risk
+  /** Live orders whose read-back failed this turn (or whose settlement did): what the venue did with them is unknown. */
+  const unreadable = new Set<number>();
   const settle = async (o: OrderRow, patch: Record<string, unknown>, state: string) => {
     await d.db.update("agent_orders", `id=eq.${o.id}`, { ...patch, state, updated_at: nowIso });
     settledIds.add(o.id);
@@ -506,7 +640,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       const after = await venue.order(o.venue_order_id);
       if (!after.ok) { report.errors.push(`${key}: cancelled ${o.venue_order_id} but could not read it back (${after.error}); left open for the next turn to settle from the venue`); return "failed"; }
       if (after.view.filledBase > 0) {
-        await settle(o, { filled_base: after.view.filledBase, avg_fill_price: after.view.avgPrice ?? o.price, fee_usd: after.view.feeUsd, filled_at: nowIso, cancelled_at: nowIso, response: after.view.raw }, "filled");
+        await settle(o, { filled_base: after.view.filledBase, avg_fill_price: after.view.avgPrice ?? o.price, fee_usd: after.view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: after.view.raw }, "filled");
         return "filled";
       }
     }
@@ -531,7 +665,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         }
         const found = activeByVenue.get(o.venue)![o.client_order_id];
         if (found) {
-          await d.db.update("agent_orders", `id=eq.${o.id}`, { state: found.view.state, venue_order_id: found.venueOrderId, filled_base: found.view.filledBase, avg_fill_price: found.view.avgPrice, fee_usd: found.view.feeUsd, response: { reconciled: true, view: found.view.raw }, updated_at: nowIso });
+          await d.db.update("agent_orders", `id=eq.${o.id}`, { state: found.view.state, venue_order_id: found.venueOrderId, filled_base: found.view.filledBase, avg_fill_price: found.view.avgPrice, fee_usd: found.view.feeUsd, filled_at: found.view.filledBase > 0 ? fillStamp(o, nowIso) : o.filled_at, response: { reconciled: true, view: found.view.raw }, updated_at: nowIso });
           report.settled.push({ id: o.id, state: `reconciled:${found.view.state}` });
           holdInFlight(key, o.side);
           continue;
@@ -550,6 +684,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           heldNote = `; ${o.venue} holds ${bal[asset] ?? 0} ${asset} against ${known} on record`;
         } catch (e) { heldNote = `; balances unreadable (${msg(e)})`; }
         report.errors.push(`${key}: pending ${o.side} ${o.base_size} ${o.symbol} (${o.client_order_id}) is not among ${o.venue}'s active orders ${Math.round(ageMs / 60e3)} min on — outcome unknown; the row stays pending for a person to settle from the venue's history${heldNote}`);
+        // Unknown is unreadable: a marketable buy whose reply was lost has usually FILLED, and until a person settles it its
+        // coins are in no book. Counted like any unreadable live buy (see the live-book block), the floor covers as much of
+        // it as the venue's balance shows — the row itself is left exactly as it is.
+        unreadable.add(o.id);
         holdInFlight(key, o.side);
         continue;
       }
@@ -571,20 +709,23 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         const v = await venue.order(o.venue_order_id);
         if (!v.ok) {
           report.errors.push(`${key}: order lookup ${v.error}`);
+          unreadable.add(o.id);
         } else {
           const view = v.view;
           if (view.state === "filled") {
-            await settle(o, { filled_base: view.filledBase || o.base_size, avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: nowIso, response: view.raw }, "filled");
+            // A fill is dated from when it FIRST filled: a completion that re-stamped it moved a position's opening — and, across
+            // midnight, a whole fill between yesterday's P&L and today's — every time an order finished in pieces.
+            await settle(o, { filled_base: view.filledBase || o.base_size, avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), response: view.raw }, "filled");
             continue;
           }
           if (view.state === "cancelled" || view.state === "rejected") {
             // A cancel after a partial fill is a FILL of what filled — an IOC that took part of the ask is the usual case.
-            if (view.filledBase > 0) await settle(o, { filled_base: view.filledBase, avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: nowIso, cancelled_at: nowIso, response: view.raw }, "filled");
+            if (view.filledBase > 0) await settle(o, { filled_base: view.filledBase, avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: view.raw }, "filled");
             else await settle(o, { cancelled_at: nowIso, response: view.raw }, view.state);
             continue;
           }
           if (view.state === "partially_filled" && (o.state !== "partially_filled" || Number(o.filled_base) !== view.filledBase)) {
-            await d.db.update("agent_orders", `id=eq.${o.id}`, { state: "partially_filled", filled_base: view.filledBase, avg_fill_price: view.avgPrice, fee_usd: view.feeUsd, response: view.raw, filled_at: o.filled_at ?? nowIso, updated_at: nowIso });
+            await d.db.update("agent_orders", `id=eq.${o.id}`, { state: "partially_filled", filled_base: view.filledBase, avg_fill_price: view.avgPrice, fee_usd: view.feeUsd, response: view.raw, filled_at: fillStamp(o, nowIso), updated_at: nowIso });
           }
         }
       }
@@ -604,6 +745,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       resting.set(key, o);
     } catch (e) {
       report.errors.push(`${key}: settle ${msg(e)}`);
+      if (o.mode === "live") unreadable.add(o.id);
       holdInFlight(key, o.side);
     }
   }
@@ -652,11 +794,21 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   // What filled, including the filled part of a live order still working: real base the stops and the caps must see. Read
   // page by page: PostgREST stops at 1,000 rows without a word, and a book built from the OLDEST thousand fills would freeze
   // every position at a state weeks old — sells gone, so a flat book reads long; buys gone, so a held position reads flat.
-  const filled = await d.db.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc");
+  // The book is essential: without it there is no position to protect and nothing to decide on.
+  let filled: OrderRow[];
+  try { filled = await d.db.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc"); }
+  catch (e) { report.errors.push(`ESSENTIAL READ FAILED — the book (filled orders): ${msg(e)}; no stop and no decision this turn`); return; }
   const dayStart = Math.floor(d.now / ONE_D) * ONE_D;
-  const todayRows = await d.db.selectAll<{ venue: VenueId; mode: string }>("agent_orders", `ts=gte.${new Date(dayStart).toISOString()}&select=venue,mode&order=id.asc`);
+  // Today's order count only caps NEW risk. Unreadable, it counts as spent: entries refused, exits untouched.
   const ordersToday: Record<string, number> = {};
-  for (const r of todayRows) ordersToday[mk(r.venue, r.mode)] = (ordersToday[mk(r.venue, r.mode)] ?? 0) + 1;
+  let ordersTodayUnknown = false;
+  try {
+    const todayRows = await d.db.selectAll<{ venue: VenueId; mode: string }>("agent_orders", `ts=gte.${new Date(dayStart).toISOString()}&select=venue,mode&order=id.asc`);
+    for (const r of todayRows) ordersToday[mk(r.venue, r.mode)] = (ordersToday[mk(r.venue, r.mode)] ?? 0) + 1;
+  } catch (e) {
+    ordersTodayUnknown = true;
+    report.errors.push(`today's order count unreadable (${msg(e)}): entries refused this turn, exits still run`);
+  }
   /** This venue's marks by symbol. A symbol that got no mark this turn is left out — never written as 0, which is not a price. */
   const marksFor = (vid: VenueId): Record<string, number> => {
     const out: Record<string, number> = {};
@@ -668,12 +820,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   const dayOpenAny: Record<string, number> = {};
   for (const [key, c1d] of dailyBy) {
     const [vid, sym] = key.split("|") as [VenueId, string];
-    // Just after 00:00 UTC the venue has not published today's daily candle yet. Falling back to the last
-    // candle and reading its OPEN gave YESTERDAY's open as today's — a whole day of move counted as today's,
-    // every night, which inflates `dayPnl` and can spend the daily loss limit on a move that already happened.
-    // Yesterday's CLOSE is where today opened, so that is the fallback.
-    const today = c1d.find((c) => c.start === dayStart);
-    const open = today ? today.open : c1d.at(-1)?.close;
+    const open = dayOpenOf(c1d, dayStart);
     if (open == null) continue;
     if (!dayOpenBy.has(vid)) dayOpenBy.set(vid, {});
     dayOpenBy.get(vid)![sym] = open;
@@ -697,6 +844,54 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     const bucket = mk(rows[0].venue, rows[0].mode);
     exposure[bucket] = (exposure[bucket] ?? 0) + pos.base * (marksFor(rows[0].venue)[rows[0].symbol] || pos.avgCost);
   }
+  // ── the live book against the venue's own balance — Revolut X only ─────────────────────────────────
+  // ASSUMED, and it is the whole basis of this block: the Revolut X sub-account is dedicated to this loop. Its signed
+  // balances showed one USD row before any trading (reference §6, item 2) and nothing else trades on the key, so what the
+  // venue holds of a coin IS what the live books hold of it, across every live row on that venue. NOT assumed for Kraken,
+  // whose account may hold coins this loop never bought: nothing below runs there.
+  //
+  // Two uses. (1) A live BUY whose settlement read-back fails — which is what a reply in names this client does not read
+  // produces (B4) — used to leave the coins it bought in NO book: the floor saw a flat position and never fired, and a
+  // rule that reads flat does not exit. For the FLOOR only (never P&L, never the rule), such a buy now counts as held at
+  // its limit price until it settles: all of it when its placement reply said `filled`, and otherwise as much of it as
+  // the venue's own balance shows beyond what the settled live book explains. The second half is not optional: the
+  // documented placement reply's example says `new` (revolut-x-api-for-llm.md, POST /orders), so a buy that crossed may
+  // well be reported `new` on arrival, and a floor that waited for the word `filled` would never see its coins.
+  // (2) Every live SELL is capped at what the venue holds, so a book that over-states the coins (a fee taken in the
+  // coin, a fill recorded twice) can still get out.
+  let revxHeld: Record<string, number> | null = null;
+  const revxLive = [...byKey.values()].some((rows) => rows[0].venue === "revx" && rows[0].mode === "live" && (positions.get(posKey(rows[0].strategy_id, rows[0].symbol, "live"))?.base ?? 0) > 0)
+    || open.some((o) => o.venue === "revx" && o.mode === "live" && o.side === "buy" && !settledIds.has(o.id));
+  if (revxLive && d.venues.revx?.canTrade) {
+    try { revxHeld = await d.venues.revx.balances(); }
+    catch (e) { report.errors.push(`revx: balances unreadable (${msg(e)}); live sells are not capped by the venue this turn`); }
+  }
+  /** Per coin, what the venue's balance is already explained by: the settled live base of every live Revolut X row. */
+  const explained: Record<string, number> = {};
+  for (const [k, rows] of byKey) {
+    if (rows[0].venue !== "revx" || rows[0].mode !== "live") continue;
+    const asset = rows[0].symbol.split("/")[0];
+    explained[asset] = (explained[asset] ?? 0) + (positions.get(k)?.base ?? 0);
+  }
+  const provisional = new Map<string, ReturnType<typeof toFill>[]>();   // posKey(…, "live") → unsettled live buys the floor must see
+  for (const o of open) {
+    if (o.venue !== "revx" || o.mode !== "live" || o.side !== "buy" || settledIds.has(o.id) || !unreadable.has(o.id)) continue;
+    const rest = Number(o.base_size) - Number(o.filled_base || 0);
+    if (!(rest > 0)) continue;
+    const asset = o.symbol.split("/")[0];
+    const saidFilled = o.response?.placedState === "filled";
+    const confirmed = revxHeld ? Math.max(0, Math.min(rest, (revxHeld[asset] ?? 0) - (explained[asset] ?? 0))) : 0;
+    const counted = saidFilled ? rest : confirmed;
+    if (!(counted > 0)) continue;
+    explained[asset] = (explained[asset] ?? 0) + counted;              // a second unreadable buy of the coin gets only what is left
+    const k = posKey(o.strategy_id, o.symbol, "live");
+    if (!provisional.has(k)) provisional.set(k, []);
+    provisional.get(k)!.push({ ts: new Date(o.ts).getTime(), side: "buy", base: counted, price: Number(o.price), feeUsd: 0 });
+    report.errors.push(`${o.strategy_id}|${o.symbol}: live buy ${o.client_order_id} cannot be settled; the floor counts ${counted} as held until it is (${saidFilled ? "its placement reply said filled" : `${o.venue} holds ${revxHeld?.[asset] ?? 0} ${asset}, more than the settled book explains`})`);
+  }
+  /** Live base a row holds in a coin: its settled live fills, plus any unsettled live buy the floor counts as held (see above). */
+  const liveHeld = (s: StrategyRow, sym: string): number =>
+    (positions.get(posKey(s.id, sym, "live"))?.base ?? 0) + (provisional.get(posKey(s.id, sym, "live")) ?? []).reduce((a, f) => a + f.base, 0);
   /**
    * The book this row is trading now — the one key both its position and its own fill history are read
    * under. Its mode picks it, with one exception: a PAUSED row is not a book of its own, it is whatever
@@ -708,16 +903,39 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     // venue, and reading its own label literally would leave them with no floor and no rule exit while the
     // row happily traded paper beside them. Otherwise the row's own mode decides, and a PAUSED row — which
     // is not a book of its own — falls back to paper, because its live book was just ruled out above.
-    if ((positions.get(posKey(s.id, sym, "live"))?.base ?? 0) > 0) return "live";
-    return s.mode === "live" ? "live" : "paper";
+    // An unsettled live buy the floor counts as held is real coins too (see above).
+    return resolveBook(s.mode, liveHeld(s, sym));
   };
   const bookKey = (s: StrategyRow, sym: string): string => posKey(s.id, sym, bookMode(s, sym));
   /** True when this row holds a position in a book it is not currently trading — its exits must run, its entries must not. */
-  const offBook = (s: StrategyRow, sym: string): boolean =>
-    (positions.get(bookKey(s, sym))?.base ?? 0) > 0 && (s.mode === "paused" || bookMode(s, sym) !== s.mode);
+  const offBook = (s: StrategyRow, sym: string): boolean => {
+    const book = bookMode(s, sym);
+    return isOffBook(s.mode, book, book === "live" ? liveHeld(s, sym) : positions.get(posKey(s.id, sym, "paper"))?.base ?? 0);
+  };
   const positionOf = (s: StrategyRow, sym: string): Position => positions.get(bookKey(s, sym)) ?? positionFromFills([]);
-  /** This row's own fills, in its own book: what the re-entry cooldown reads for the last exit. */
+  /** This row's own fills, in its own book. */
   const fillsOf = (s: StrategyRow, sym: string): OrderRow[] => byKey.get(bookKey(s, sym)) ?? [];
+  /**
+   * When this row last SOLD this coin, in EITHER book: what the re-entry cooldown reads. The cooldown is the rulebook's
+   * ("after any exit, wait"), not a book's. Read from the resolved book alone — as it was until 2026-09-22 — a live row
+   * demoted to paper right after its live exit saw an empty paper book, no exit at all, and bought on the very next bar.
+   */
+  const lastExitOf = (s: StrategyRow, sym: string): number | null => {
+    let last: number | null = null;
+    for (const mode of ["paper", "live"]) {
+      for (const o of byKey.get(posKey(s.id, sym, mode)) ?? []) {
+        if (o.side !== "sell") continue;
+        const t = toFill(o).ts;
+        if (last == null || t > last) last = t;
+      }
+    }
+    return last;
+  };
+  /** What the FLOOR protects: the book's position plus any unsettled live buy counted as held (see the live-book block). */
+  const floorPositionOf = (s: StrategyRow, sym: string): Position => {
+    const extra = bookMode(s, sym) === "live" ? provisional.get(posKey(s.id, sym, "live")) : undefined;
+    return extra?.length ? positionFromFills([...fillsOf(s, sym).map(toFill), ...extra]) : positionOf(s, sym);
+  };
   // ── winding down: a retired row that still holds something ──────────────────────────────
   // A position does not stop being a position because its row was switched off. `0038` retired
   // `dislocation-1m` flat and nothing was left behind; `0043` retired three rows that were still
@@ -753,6 +971,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     const opens = (s && dayOpenBy.get(s.signal_venue)) ?? dayOpenAny;
     pnlToday[mk(vid, mode)] = (pnlToday[mk(vid, mode)] ?? 0) + dayPnl(rows, marksFor(vid), opens, dayStart);
   }
+  // Today's P&L only gates NEW risk. A figure that is not a number counts as the limit spent: entries refused, exits untouched.
+  for (const [bucket, v] of Object.entries(pnlToday)) {
+    if (!Number.isFinite(v)) { pnlToday[bucket] = -Infinity; report.errors.push(`${bucket}: today's P&L could not be computed; entries refused this turn, exits still run`); }
+  }
   // The caps, per venue account and per mode. Paper twins measure independently, so their
   // exposure cap is its own number: with the live cap they would crowd each other out of the book.
   const limitsFor = (mode: string) => ({
@@ -764,15 +986,18 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   // is what `riskGate`'s paused test asks about — whether this rulebook may take new risk, not which book it is in.
   const ctxFor = (s: StrategyRow, sym: string) => {
     const bucket = mk(s.venue, bookMode(s, sym));
-    return { exposureUsd: exposure[bucket] ?? 0, ordersToday: ordersToday[bucket] ?? 0, dayPnlUsd: pnlToday[bucket] ?? 0, mode: s.mode };
+    return { exposureUsd: exposure[bucket] ?? 0, ordersToday: ordersTodayUnknown ? Infinity : ordersToday[bucket] ?? 0, dayPnlUsd: pnlToday[bucket] ?? 0, mode: s.mode };
   };
   // The last recorded state per strategy × symbol, each its own tiny query: one window over all of them
   // would let a busy pair push a quiet pair's row out and turn the change log into a heartbeat.
   const latestObs = new Map<string, string>();     // `${strategy}|${symbol}` → JSON of the last recorded state
-  await Promise.all(strategies.flatMap((s) => s.symbols.map(async (sym) => {
+  // Not essential: a pair whose last state cannot be read simply writes its state again this minute.
+  const obsReads = await Promise.allSettled(strategies.flatMap((s) => s.symbols.map(async (sym) => {
     const rows = await d.db.select<{ state: unknown }>("agent_observations", `strategy_id=eq.${s.id}&symbol=eq.${enc(sym)}&select=state&order=ts.desc&limit=1`);
     if (rows[0]) latestObs.set(`${s.id}|${sym}`, canon(rows[0].state));
   })));
+  const obsFailed = obsReads.filter((x) => x.status === "rejected") as PromiseRejectedResult[];
+  if (obsFailed.length) report.errors.push(`last observations unreadable for ${obsFailed.length} pair(s) (${msg(obsFailed[0].reason)}); their state is written again`);
   type Prior = { id: number; final_action: Action; risk_allowed: boolean; numbers: { orderUsd?: number } | null };
   /** The decision already recorded for this pair and bar (or minute), if any — looked up by the bar itself, not by "the newest row". */
   const priorDecision = async (s: StrategyRow, sym: string, barStart: number): Promise<Prior | null> =>
@@ -788,6 +1013,18 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     const venue = d.venues[s.venue];
     const cfg = markets.get(mk(s.venue, sym))?.pair;
     if (!cfg) { report.errors.push(`${s.id}|${sym}: no pair config on ${s.venue}; nothing placed`); return; }
+    // No live sell on Revolut X for more than the venue holds (the assumption is at the live-book block). The venue's
+    // TOTAL is what it holds: a sell is never placed over another sell in flight, so none of the coin is reserved.
+    if (side === "sell" && mode === "live" && s.venue === "revx" && revxHeld) {
+      const asset = sym.split("/")[0];
+      const held = revxHeld[asset] ?? 0;
+      if (Number(base) > held) {
+        const capped = held > 0 ? sizeBase(held * price, price, cfg) : null;
+        report.errors.push(`${s.id}|${sym}: live sell of ${base} ${asset} is more than the ${held} the venue holds — ${capped ? `capped to ${capped}` : "under the venue minimum at that size; not placed"}`);
+        if (!capped) return;
+        base = capped;
+      }
+    }
     // On the venue's price grid: a marketable buy rounds up so it still reaches the ask, everything else rounds down.
     const priceStr = side === "buy" && marketable ? ceilToStep(price, cfg.quote_step) : floorToStep(price, cfg.quote_step);
     const client_order_id = d.uuid();
@@ -801,19 +1038,21 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     const insertOrder = async (r: Record<string, unknown>, returning: boolean): Promise<{ id: number }[] | null> => {
       try { return await d.db.insert<{ id: number }>("agent_orders", r, returning); }
       catch (e) {
-        if (/409|duplicate|unique/i.test(msg(e))) { report.skipped.push(`${s.id}|${sym}: order for decision ${decisionId ?? "—"} (attempt ${requotes}) already placed by another turn`); return null; }
+        if (isUniqueViolation(e)) { report.skipped.push(`${s.id}|${sym}: order for decision ${decisionId ?? "—"} (attempt ${requotes}) already placed by another turn`); return null; }
         throw e;
       }
     };
-    // `0041`'s unique index is on (decision_id, requotes) and is partial: `where decision_id is not null`. A
-    // FRESH order with no decision id therefore carries NO claim, so two turns retrying it would both place;
-    // refuse it instead. A re-quote is different and is left alone: it replaces a row the same turn has
-    // already cancelled and settled, so a second turn does not see it resting, and MAX_REQUOTES bounds it.
-    if (decisionId == null && requotes === 0) {
+    // `0041`'s unique index is on (decision_id, requotes) and is partial: `where decision_id is not null`. An order
+    // with no decision id therefore carries NO claim, so two turns placing it would both place; it is refused. That
+    // includes a re-quote: it was exempt until 2026-09-22 on the grounds that "the same turn already cancelled and
+    // settled the row, so a second turn does not see it resting" — which holds only while turns never overlap, and a
+    // turn that outlives its lease is exactly an overlap. Every order the loop places now comes from a decision.
+    if (decisionId == null) {
       report.errors.push(`${s.id}|${sym}: order has no decision id and so no claim under 0041; nothing placed`);
       return;
     }
     if (mode === "live") {
+      if (!(await holdLease(`a live order on ${s.id}|${sym}`))) { report.errors.push(`${s.id}|${sym}: live order not placed — the lease is lost`); return; }
       // The confirmation is a gate on RISK, not on the exits. Clearing `live_confirmed_at` is the documented way to
       // stop this thing, and until 2026-09-22 it was side-agnostic: it refused the protective sell too, so the one
       // lever the operator is told to pull would have left real coins with no way out while the record said the exit
@@ -835,7 +1074,11 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       // The row stays `new` whatever the placement reply says, even "filled": the next turn reads the order back from the
       // venue and settles it with the venue's own filled size, average price and fee. A fill recorded from the placement
       // reply alone would have no fee on it — and a marketable order is exactly the one that fills on arrival.
-      await d.db.update("agent_orders", `id=eq.${pending.id}`, { state: "new", venue_order_id: placed.venueOrderId, response: placed.response, updated_at: nowIso });
+      // What the placement reply SAID is kept beside it (`placedState`): if the settlement read-back later fails, a buy the
+      // venue reported filled is counted as held by the floor (see the live-book block), rather than as nothing at all —
+      // and one it reported otherwise is counted as far as the venue's own balance shows its coins.
+      const replied = placed.response && typeof placed.response === "object" ? placed.response as Record<string, unknown> : { raw: placed.response };
+      await d.db.update("agent_orders", `id=eq.${pending.id}`, { state: "new", venue_order_id: placed.venueOrderId, response: { ...replied, placedState: placed.state }, updated_at: nowIso });
       report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode, side, price, base: Number(base), state: placed.state === "filled" ? "new (filled on arrival; settles next turn)" : placed.state });
     } else {
       if (!(await insertOrder(row, false))) return;
@@ -868,15 +1111,21 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     }
   };
 
+  if (!(await holdLease("the re-quotes"))) return;
   // Re-quotes first: the same decision, the new touch, one more try — through the same gate as any order. A re-quote is a
   // new order, so the pause, the loss limit and the caps apply to it; the resting one it replaces was cancelled above and is
   // no longer counted, so the gate sees the book as it is.
   for (const { o, touch } of requoteWanted) {
     const s = byId.get(o.strategy_id);
     if (!s) continue;
-    const gate = riskGate(o.side === "buy" ? "enter" : "exit", Number(o.base_size) * touch, ctxFor(s, o.symbol), limitsFor(bookMode(s, o.symbol)));
-    if (!gate.allowed) { report.skipped.push(`${o.strategy_id}|${o.symbol}: re-quote refused — ${gate.reason}`); continue; }
-    await place(s, o.symbol, o.side, String(o.base_size), touch, o.decision_id ?? null, false, Number(o.requotes ?? 0) + 1);
+    // One re-quote's failure (a venue timeout on the placement, say) is that re-quote's: it must not cost every pair its stop.
+    try {
+      const gate = riskGate(o.side === "buy" ? "enter" : "exit", Number(o.base_size) * touch, ctxFor(s, o.symbol), limitsFor(bookMode(s, o.symbol)));
+      if (!gate.allowed) { report.skipped.push(`${o.strategy_id}|${o.symbol}: re-quote refused — ${gate.reason}`); continue; }
+      await place(s, o.symbol, o.side, String(o.base_size), touch, o.decision_id ?? null, false, Number(o.requotes ?? 0) + 1);
+    } catch (e) {
+      report.errors.push(`${o.strategy_id}|${o.symbol}: re-quote ${msg(e)}`);
+    }
   }
 
   // 4–6. per strategy -----------------------------------------------------
@@ -923,7 +1172,9 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     const slots = s.kind === "rotation-1d" ? Math.max(1, rotationParamsOf(s).topN) : Math.max(1, s.symbols.length);
     const orderUsd = final.action === "enter" ? Math.min(Number(s.capital_usd) / slots, limits.maxOrderUsd) : pos.base * mark;
     const ctx = ctxFor(s, sym);
-    const gate = riskGate(final.action, orderUsd, ctx, limits);
+    const gate0 = riskGate(final.action, orderUsd, ctx, limits);
+    // The confirmation is judged on the BOOK the order would be written to, like every other cap here.
+    const gate = gate0.allowed ? (liveConfirmationRefusal(final.action, bookMode(s, sym), risk.live_confirmed_at) ?? gate0) : gate0;
     let dec: { id: number } | undefined;
     try {
       [dec] = await d.db.insert<{ id: number }>("agent_decisions", {
@@ -935,11 +1186,74 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         risk_allowed: gate.allowed, risk_reason: gate.reason,
       });
     } catch (e) {
-      if (/409|duplicate|unique/i.test(msg(e))) { report.skipped.push(`${s.id}|${sym}: bar ${new Date(barStart).toISOString()} claimed by another tick`); return null; }
+      if (isUniqueViolation(e)) { report.skipped.push(`${s.id}|${sym}: bar ${new Date(barStart).toISOString()} claimed by another tick`); return null; }
       throw e;
     }
     report.decisions.push({ strategy: s.id, venue: s.venue, symbol: sym, action: final.action, reason: final.reason, provider: jr.provider, allowed: gate.allowed, kind });
     return { action: final.action, allowed: gate.allowed, decisionId: dec?.id ?? null, orderUsd };
+  };
+
+  /**
+   * The protective floor for one pair, EVERY minute, against the live mark — and only ever an exit. It needs the
+   * execution venue's market and the book's position; it does NOT need the signal venue's candles, and since
+   * 2026-09-22 it no longer waits for them (see the floor-only path in the loop below). Returns true when the stop
+   * fired, which ends the pair's turn whatever came of the order.
+   *
+   * Claimed one second INTO the minute, so a stop whose order was rejected or lapsed is tried again next minute, not
+   * next bar — and so a stop in the first minute of a bar can never take the bar's own claim (a bar starts on the minute).
+   */
+  const protect = async (
+    s: StrategyRow, sym: string, m: Market, pos: Position, record: { state: unknown; numbers: Record<string, unknown> },
+    hw: number | null, atr: number | null, stops: StopParams,
+  ): Promise<boolean> => {
+    const key = `${s.id}|${sym}`;
+    if (!(pos.base > 0)) return false;
+    const why = protectiveExit(exitMark(m) ?? 0, pos, hw, atr, stops);
+    if (!why) return false;
+    const marketable = s.venue === "revx";                    // Kraken's taker fee is not worth certainty at this size: rest at the ask and let the re-quote walk it down
+    if (inFlight.has(key)) {
+      // A resting sell that is already the best this venue can do is left to work; anything the stop outranks is
+      // taken off first. What this must NOT do is treat every order in flight as a reason to stand down: until
+      // 2026-09-22 a BUY that could not be read back or cancelled — which is exactly what an unverified
+      // settlement reply (B4) or a venue timeout produces — blocked this pair's stop every minute, for good.
+      // A buy is not the exit. Cancel it if we can, sell what we hold either way; if it fills after all, the
+      // next turn derives the new position and stops that too.
+      const r0 = resting.get(key);
+      // A SELL in flight stands the stop down FIRST, whatever else is resting on the pair — the one exception being a
+      // resting sell this stop is about to take off the book itself. Until 2026-09-22 this was asked only when NOTHING was
+      // resting, so a resting buy hid a `pending` sell: the buy was cancelled and a second sell placed over the first.
+      const otherSells = (sellsInFlight.get(key) ?? 0) - (r0?.side === "sell" ? 1 : 0);
+      if (otherSells > 0) { report.skipped.push(`${key}: stop wants out; a sell is already in flight`); return true; }
+      if (!r0) {
+        report.errors.push(`${key}: stopping out past a buy in flight that could not be read back`);
+      } else if (r0.side === "sell" && !marketable) {
+        report.skipped.push(`${key}: stop wants out; a resting sell is already the best this venue can do`);
+        return true;
+      } else {
+        const c = await cancelOrder(r0, why);
+        if (c === "filled") { report.skipped.push(`${key}: resting order filled on cancel`); return true; }
+        if (c !== "cancelled" && r0.side === "sell") { report.skipped.push(`${key}: resting sell could not be cancelled`); return true; }
+        if (c !== "cancelled") report.errors.push(`${key}: stopping out past a resting buy that could not be cancelled`);
+        inFlight.delete(key);
+      }
+    }
+    const protectiveClaim = Math.floor(d.now / ONE_M) * ONE_M + PROTECTIVE_CLAIM_OFFSET_MS;
+    if (await priorDecision(s, sym, protectiveClaim)) { report.skipped.push(`${key}: stop already decided this minute`); return true; }
+    const r = await decide(s, sym, protectiveClaim, record.state, { ...record.numbers, highWater: hw, atr }, null, { action: "exit", reason: why }, "protective");
+    if (r && r.allowed) {
+      const cfg = m.pair, q = m.quote;
+      if (cfg && q) {
+        const price = marketable ? q.bid : q.ask;
+        const base = sizeBase(pos.base * price, price, cfg);
+        if (base) await place(s, sym, "sell", base, price, r.decisionId, marketable, 0);
+        else report.errors.push(`${key}: protective exit (${why}) not placed — ${pos.base} is under the venue minimum`);
+      } else {
+        // Until 2026-09-22 this said nothing: the decision recorded "exit allowed", no order followed, and no line anywhere
+        // said the floor had fired and failed to get out.
+        report.errors.push(`${key}: protective exit (${why}) not placed — no ${q ? "pair config" : "quote"} on ${s.venue} this minute; the floor tries again next minute`);
+      }
+    }
+    return true;
   };
 
   for (const s of strategies) {
@@ -971,20 +1285,33 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     for (const sym of s.symbols) {
       const key = `${s.id}|${sym}`;
       try {
-        await renewLease();   // no-op until the lease is half gone
+        if (!(await holdLease(key))) return;   // a call only once the lease is half gone; a lost lease ends the turn
         const m = markets.get(mk(s.venue, sym));
+        if (!m) { report.skipped.push(`${key}: no market on ${s.venue} this minute`); continue; }
         const sig = signalFor(s, sym);
-        if (!m || !sig || sig.bars.length < p.slow + 2 || !sig.c1d.length) { report.skipped.push(`${key}: not enough candles`); continue; }
-        const bars = sig.bars, dd = sig.c1d;
-        const i = lastClosedIndex(bars, sig.barMs, d.now);
-        const di = lastClosedIndex(dd, ONE_D, d.now);
-        if (i < 0 || di < 0) { report.skipped.push(`${key}: no closed bar`); continue; }
         const pos = positionOf(s, sym);
+        const enough = !!sig && sig.bars.length >= p.slow + 2 && sig.c1d.length > 0;
+        const i = sig ? lastClosedIndex(sig.bars, sig.barMs, d.now) : -1;
+        const di = sig ? lastClosedIndex(sig.c1d, ONE_D, d.now) : -1;
+        const stale = s.kind !== "dislocation-1m" && signalStale(s, sym);
+        if (!sig || !enough || i < 0 || di < 0 || stale) {
+          const why = !enough ? "not enough candles" : i < 0 || di < 0 ? "no closed bar" : "signal series stale (its venue failed this turn)";
+          // The floor needs the execution venue's mark and the book's position, not the signal venue's candles. Until
+          // 2026-09-22 the pair was skipped HERE, before its floor ran, so an outage at the signal venue (Kraken) took the
+          // floor off every position held at the execution venue (Revolut X) while that venue's quotes were fine. The floor
+          // runs on what there is; the observation and the bar decision wait for a complete, fresh series.
+          if (s.kind !== "dislocation-1m") {
+            const record = { state: { symbol: sym, position: pos.base > 0 ? "long" : "flat", signal: "unavailable" }, numbers: { mark: m.mark, signal: why } };
+            if (await protect(s, sym, m, floorPositionOf(s, sym), record, null, null, stops)) continue;
+          }
+          report.skipped.push(`${key}: ${why}`);
+          continue;
+        }
+        const bars = sig.bars, dd = sig.c1d;
         const closedDaily = dd.slice(0, di + 1);
         const barsPerYear = (ONE_D / sig.barMs) * 365;
         const forming = bars.length - 1;
         const minuteStart = Math.floor(d.now / ONE_M) * ONE_M;
-        const protectiveClaim = minuteStart + PROTECTIVE_CLAIM_OFFSET_MS;
 
         // --- dislocation: quotes, every minute, no bar to wait for ---------
         if (s.kind === "dislocation-1m") {
@@ -1001,8 +1328,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
             await d.db.insert("agent_observations", { strategy_id: s.id, symbol: sym, ts: nowIso, bar_start: new Date(minuteStart).toISOString(), state: view.state, numbers: { basisBps: view.basisBps, fair: view.fair, move5, revx: rq, reference: kq, mark: m.mark } }, false);
             latestObs.set(key, stateJson); report.observations++;
           }
-          const lastExit = fillsOf(s, sym).filter((o) => o.side === "sell").map((o) => toFill(o).ts).at(-1) ?? null;
-          const rule = ruleDecisionDislocation(view, rq, pos, d.now, dp, lastExit);
+          const rule = ruleDecisionDislocation(view, rq, pos, d.now, dp, lastExitOf(s, sym));
           if (inFlight.has(key)) {
             // A resting exit ask does not outrank the stops: when the loss stop or the time stop says sell now, it is taken off first.
             const r0 = resting.get(key);
@@ -1036,49 +1362,11 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         }
 
         // --- protective stop against the live mark, every minute, before anything else -----
-        // Claimed one second INTO the minute, so a stop whose order was rejected or lapsed is tried again next minute, not next
-        // bar — and so a stop in the first minute of a bar can never take the bar's own claim (a bar starts on the minute).
-        if (pos.base > 0) {
-          const hw = highWaterSince(pos, bars, i);
+        const floorPos = floorPositionOf(s, sym);
+        if (floorPos.base > 0) {
+          const hw = highWaterSince(floorPos, bars, i);
           const atr = atrAt(bars, i, p.atrN);
-          const why = protectiveExit(exitMark(m) ?? 0, pos, hw, atr, stops);
-          if (why) {
-            const marketable = s.venue === "revx";                    // Kraken's taker fee is not worth certainty at this size: rest at the ask and let the re-quote walk it down
-            if (inFlight.has(key)) {
-              // A resting sell that is already the best this venue can do is left to work; anything the stop outranks is
-              // taken off first. What this must NOT do is treat every order in flight as a reason to stand down: until
-              // 2026-09-22 a BUY that could not be read back or cancelled — which is exactly what an unverified
-              // settlement reply (B4) or a venue timeout produces — blocked this pair's stop every minute, for good.
-              // A buy is not the exit. Cancel it if we can, sell what we hold either way; if it fills after all, the
-              // next turn derives the new position and stops that too.
-              const r0 = resting.get(key);
-              if (!r0) {
-                if (inFlightSells.has(key)) { report.skipped.push(`${key}: stop wants out; a sell is already in flight`); continue; }
-                report.errors.push(`${key}: stopping out past a buy in flight that could not be read back`);
-              } else if (r0.side === "sell" && !marketable) {
-                report.skipped.push(`${key}: stop wants out; a resting sell is already the best this venue can do`);
-                continue;
-              } else {
-                const c = await cancelOrder(r0, why);
-                if (c === "filled") { report.skipped.push(`${key}: resting order filled on cancel`); continue; }
-                if (c !== "cancelled" && r0.side === "sell") { report.skipped.push(`${key}: resting sell could not be cancelled`); continue; }
-                if (c !== "cancelled") report.errors.push(`${key}: stopping out past a resting buy that could not be cancelled`);
-                inFlight.delete(key);
-              }
-            }
-            if (await priorDecision(s, sym, protectiveClaim)) { report.skipped.push(`${key}: stop already decided this minute`); continue; }
-            const r = await decide(s, sym, protectiveClaim, obs.state, { ...obs.numbers, highWater: hw, atr }, null, { action: "exit", reason: why }, "protective");
-            if (r && r.allowed) {
-              const cfg = m.pair, q = m.quote;
-              if (cfg && q) {
-                const price = marketable ? q.bid : q.ask;
-                const base = sizeBase(pos.base * price, price, cfg);
-                if (base) await place(s, sym, "sell", base, price, r.decisionId, marketable, 0);
-                else report.errors.push(`${key}: size under venue minimum`);
-              }
-            }
-            continue;
-          }
+          if (await protect(s, sym, m, floorPos, { state: obs.state, numbers: obs.numbers }, hw, atr, stops)) continue;
         }
 
         if (inFlight.has(key)) { report.skipped.push(`${key}: order in flight`); continue; }
@@ -1095,7 +1383,15 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           // put through the gate again — the book may have moved — and one the gate now refuses is closed for good.
           const orderUsd = Number(prior.numbers?.orderUsd ?? 0);
           if (prior.final_action === "enter") {
-            const gate = riskGate("enter", orderUsd, ctxFor(s, sym), limitsFor(bookMode(s, sym)));
+            // The same gates a fresh entry passes: the caps, the live confirmation, and the thin-book guard — a retry is an
+            // entry at TODAY's touch, and until 2026-09-22 it skipped the last two, so re-arming the confirmation mid-bar
+            // placed the stale entry straight into whatever the book was, 200 bps wide or not.
+            let gate = riskGate("enter", orderUsd, ctxFor(s, sym), limitsFor(bookMode(s, sym)));
+            if (gate.allowed) gate = liveConfirmationRefusal("enter", bookMode(s, sym), risk.live_confirmed_at) ?? gate;
+            const retryBps = spreadBps(m.quote);
+            if (gate.allowed && retryBps != null && retryBps > WIDE_SPREAD_BPS) gate = { allowed: false, reason: `book too wide to cross: ${retryBps.toFixed(1)} bps > ${WIDE_SPREAD_BPS}` };
+            const late = entryTooLate(barStart, barMs, d.now);
+            if (gate.allowed && late) gate = { allowed: false, reason: late };
             if (!gate.allowed) {
               await d.db.update("agent_decisions", `id=eq.${prior.id}`, { risk_allowed: false, risk_reason: `on the retry: ${gate.reason}` });
               report.skipped.push(`${key}: decision ${prior.id} had no order and the gate now refuses it — ${gate.reason}`);
@@ -1112,11 +1408,14 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           const snap = buildSnapshot(sym, bars, i, closedDaily, posBar, d.now, p, undefined, barsPerYear, lookbackDays);
           let rule = ruleFor(s.kind, snap, posBar, p, { rank: ranks?.[sym], nowMs: d.now, rotation });
           // After any exit the rule waits REENTRY_BARS of its own bars before buying again: a floor stop under a rule that is
-          // still "on" (momentum, rotation) would otherwise sell and re-buy every bar. Same rule in the backtester.
-          const lastExitTs = fillsOf(s, sym).filter((o) => o.side === "sell").map((o) => toFill(o).ts).at(-1) ?? null;
+          // still "on" (momentum, rotation) would otherwise sell and re-buy every bar. Same rule in the backtester. Any exit
+          // means any BOOK's: a row switched between paper and live keeps the cooldown its last exit started.
+          const lastExitTs = lastExitOf(s, sym);
           if (rule.action === "enter" && lastExitTs != null && d.now - lastExitTs < REENTRY_BARS * barMs) {
             rule = { action: "hold", reason: `cooling down: exited ${Math.round((d.now - lastExitTs) / 60e3)} min ago, no re-entry for ${REENTRY_BARS} bars` };
           }
+          const late = rule.action === "enter" ? entryTooLate(barStart, barMs, d.now) : null;
+          if (late) rule = { action: "hold", reason: late };
           const dec = await decide(s, sym, barStart, snap.state, { ...snap.numbers, rank: ranks?.[sym] ?? null }, jevQuestions(snap.state), rule, "bar");
           if (!dec || dec.action === "hold" || !dec.allowed) continue;
           r = dec;

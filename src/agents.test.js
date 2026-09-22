@@ -447,11 +447,32 @@ describe('agentsAlerts', () => {
     expect(agentsAlerts({ risk: { live_confirmed_at: 'x' }, venues: noKey, strategies: [{ venue: 'revx', mode: 'paper' }] })).toEqual([]);
     expect(agentsAlerts({ risk: { live_confirmed_at: 'x' }, venues: noKey, strategies: [{ venue: 'revx', mode: 'live' }] }).map((a) => a.id)).toEqual(['nokey-revx']);
   });
-  it('flags live rows while live_confirmed_at is unset — the loop refuses every live order in that state', () => {
+  it('flags live rows while live_confirmed_at is unset — entries are refused in that state, and the exits still run', () => {
     const dash = { risk: { live_confirmed_at: null }, venues, strategies: [{ id: 'trend-4h', venue: 'revx', mode: 'live', positions: [] }] };
-    expect(agentsAlerts(dash).map((a) => a.id)).toEqual(['live-unconfirmed']);
+    const out = agentsAlerts(dash);
+    expect(out.map((a) => a.id)).toEqual(['live-unconfirmed']);
+    // Since 2026-09-22 clearing the confirmation stops the BUYING only. The banner said every live order was refused,
+    // which would have told the owner a position had no way out while its floor was running.
+    expect(out[0].text).toContain('ENTRY');
+    expect(out[0].text).toContain('exits');
+    expect(out[0].text).not.toContain('every live order');
     expect(agentsAlerts({ ...dash, risk: { live_confirmed_at: '2026-09-21T00:00:00Z' } })).toEqual([]);
     expect(agentsAlerts({ ...dash, strategies: [{ ...dash.strategies[0], mode: 'paper' }] })).toEqual([]);   // paper needs no confirmation
+  });
+  it('counts a row relabelled away from REAL coins as live, and says it is winding down — the payload vouches for it with holdsLive and windingDown', () => {
+    // A live row set to `paper` while it still holds coins at the venue: the tick keeps selling them as live and refuses
+    // entries. Counted by its label alone, the page raised nothing about real money it could not see was there.
+    const s = { id: 'trend-4h-live', name: 'Trend 4h · live', venue: 'revx', mode: 'paper', holdsLive: true, windingDown: true, positions: [{ symbol: 'BTC/USD', base: 0.0002 }] };
+    const out = agentsAlerts({ risk: { live_confirmed_at: null }, venues, strategies: [s] });
+    expect(out.map((a) => a.id)).toEqual(['live-unconfirmed', 'winding-down-trend-4h-live']);
+    expect(out[1].tone).toBe('paused');
+    expect(out[1].text).toContain('Set to paper while holding BTC/USD');
+  });
+  it('a PAUSED (not retired) row the tick is winding down reads as winding down, not as the fault', () => {
+    const s = { id: 'trend-4h', name: 'Trend 4h · Revolut X', venue: 'revx', mode: 'paused', windingDown: true, positions: [{ symbol: 'BTC/USD', base: 0.00025 }] };
+    const out = agentsAlerts({ risk: {}, venues, strategies: [s] });
+    expect(out.map((a) => [a.id, a.tone])).toEqual([['winding-down-trend-4h', 'paused']]);
+    expect(out[0].text).toContain('Paused while holding BTC/USD');
   });
   it('a retired row holding a position reads as winding down, not as a fault — the loop still runs its exits', () => {
     // Since 2026-09-22 the tick keeps a retired row's floor and rule exit running and refuses every

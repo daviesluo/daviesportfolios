@@ -53,25 +53,19 @@ list stays the short version; the plan is the reasoning behind it.
    integrates from a clean worktree at `origin/main` and pushes from
    there. Nothing an agent reports is repeated as fact until recomputed.
 
-   **R — pre-live fixes: DONE by the agent, NOT yet integrated.** 17
-   items; 1–15 done with pins and red counterfactuals; a lifecycle test
-   (3 tests, 12 stages, `agents/lifecycle.test.ts` + `agents/testing.ts`);
-   gates green on its tree (deno 380, npm 915, sweep 208). Not done: #16
-   (`stepDecimals("1.5e-8")` returns 4; the fix is in
-   `_shared/agents_strategy.ts`, patch written) and the tick half of #15
-   (a retired live-labelled row with stranded paper coins is skipped;
-   cannot arise under the new-row go-live design). **Flags to settle
-   while integrating:** A. `revx.ts` sends `time_in_force` on every limit
-   order; Revolut X's own reference says it cannot be set (limit = GTC).
-   If the venue rejects the field every order fails, exits included.
-   Settle before live. B. the floor counts an unreadable or reply-lost
-   live buy by the venue balance (two hunks beyond the spec, each
-   pinned). C. that assumes nothing else trades in the sub-account. E. a
-   provisional buy settled after the floor sold it gets `filled_at` = the
-   settle minute: phantom long, "not placed" every minute. F. `db.ts`
-   keeps 200 chars of the PostgREST body with `details` first, so
-   constraint names are lost in `ops_errors`. I. `_shared/` changes, so
-   every Edge Function redeploys.
+   **R — pre-live fixes: SHIPPED (reference §4.24).** Reviewed line by
+   line and integrated from the agents' tree, with three more fixes of
+   my own, each pinned and red on the old code: a marketable fill is
+   dated from its own row (flag E: a buy settled after the floor sold it
+   read as a phantom long), PostgREST's `code` + `message` go ahead of
+   the failing row so `ops_errors` keeps the constraint (flag F), every
+   tick error is kept in `context.errors`; plus #16 (`stepDecimals`).
+   Flag A settled: the venue's own TypeScript client and CLI set
+   `time_in_force` (gtc/ioc) at placement, so the code stays; the fake
+   venue now refuses what that client refuses. Left, paper only: #15's
+   tick half (cannot arise under the new-row go-live). **Merging this
+   redeployed every Edge Function (`_shared/` changed): check decisions
+   and `ops_errors` after the deploy, not the basis.**
 
    **S — SUI's seat: the agent died after the first committed run.**
    `docs/agents/backtests/sui.json` and a review draft exist in the tree
@@ -305,6 +299,18 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-22 23:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The third pre-live review is shipped** (reference §4.24): the review
+agent's sixteen fixes, its lifecycle test and shared test doubles, and
+three fixes of mine (flags E and F, every tick error kept), each with a
+pin that fails on the old code. `time_in_force` stays: Revolut X's own
+client and CLI send it at placement. New durable rule in CLAUDE.md: the
+Revolut X account the key sees is the loop's alone, never traded by hand.
+Gates: typecheck, lint (0 errors), vitest 918, build, size 110.03 kB,
+knip, browser sweep 208, deno check + deno test 387 on Deno 2.9.6 and
+1.46.3.
 
 ### [2026-09-22 23:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

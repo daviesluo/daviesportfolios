@@ -679,12 +679,15 @@ export function agentsAlerts(dash, now = Date.now()) {
     }
   }
   const strategies = dash?.strategies ?? [];
-  const liveRows = strategies.filter((s) => s?.mode === 'live');
+  // A row trading real money, or still holding real coins under another label (`holdsLive`, the tick's book rule).
+  const liveRows = strategies.filter((s) => s?.mode === 'live' || s?.holdsLive);
   if (liveRows.length && dash?.risk && !dash.risk.live_confirmed_at) {
-    // The loop refuses every live order while the confirmation is unset — a live row that looks normal and never trades.
+    // Since 2026-09-22 the confirmation gates ENTRIES only: clearing it is how the buying is stopped, and the exits — the
+    // floor and the rule's own — keep running. This used to say every live order was refused, which was once true and
+    // would have left real coins with no way out; it must not tell the owner the exits are off when they are on.
     out.push({
       id: 'live-unconfirmed', tone: 'fault', label: 'Live not confirmed',
-      text: `${liveRows.length} live ${liveRows.length === 1 ? 'row' : 'rows'} cannot trade: live_confirmed_at is not set, so the loop refuses every live order until it is.`,
+      text: `${liveRows.length} live ${liveRows.length === 1 ? 'row' : 'rows'}: live_confirmed_at is not set, so the loop refuses every live ENTRY until it is. The exits — the floor and the rule's own — still run.`,
     });
   }
   for (const s of strategies) {
@@ -693,13 +696,16 @@ export function agentsAlerts(dash, now = Date.now()) {
     // keeps it on the page until it is flat. Worth saying, because a row that has been switched off
     // and still holds money is not a state to leave unnoticed — but it is not a fault, and the text
     // said it was, back when a paused row really did get no stop at all.
-    if (s?.mode !== 'paused') continue;
+    // Any row the tick is winding down — retired, paused, or relabelled away from coins it still holds (real ones
+    // included) — plus a paused row the payload does not vouch for, which is the fault below.
+    if (s?.mode !== 'paused' && !s?.windingDown) continue;
     const held = (s.positions ?? []).filter((p) => p?.base > 0).map((p) => p.symbol);
     if (!held.length) continue;
+    const how = s.retiredAt ? 'Retired' : s.mode === 'paused' ? 'Paused' : `Set to ${s.mode}`;
     out.push(s.windingDown
       ? {
         id: `winding-down-${s.id}`, tone: 'paused', label: `${s.name ?? s.id} is winding down`,
-        text: `Retired while holding ${held.join(', ')}. Its floor and its rule's own exit still run every minute and it can never buy again, so the position leaves when the rule or the floor says so. It stays on this page until it is flat.`,
+        text: `${how} while holding ${held.join(', ')}. Its floor and its rule's own exit still run every minute and it can never buy again, so the position leaves when the rule or the floor says so. It stays on this page until it is flat.`,
       }
       : {
         // No `windingDown` flag: an older payload, or a paused row the tick is not covering. Treat it

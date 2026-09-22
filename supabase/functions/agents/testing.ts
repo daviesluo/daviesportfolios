@@ -1,0 +1,373 @@
+// Test doubles for the agents loop — imported by the tests only, never by the function.
+//
+// ONE implementation of each rule a double must honour. Twice on 2026-09-22 a double looser than the thing it stands
+// in for certified what production rejects: the in-memory database ignored `agent_orders_mode_check`, so three tests
+// passed a sell Postgres refused; and it paged without `db.ts`'s order guard, so 338 tests stayed green while the tick
+// threw on every run for three hours. The rules below are the schema's (0037, 0041, 0042), checked on INSERT *and*
+// UPDATE, because Postgres checks both — a settle whose fee is NaN goes over the wire as null and is refused by
+// `fee_usd NOT NULL` exactly as a bad insert is.
+import { assertPagedOrder, PAGE_ROWS, type Db } from "./db.ts";
+
+export type Row = Record<string, unknown>;
+
+const ORDER_STATES = ["pending", "new", "partially_filled", "filled", "cancelled", "rejected"];
+const PROBE_STATES = ["resting", "filled", "expired"];
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * What Postgres would refuse in this row, or null: the CHECK and NOT NULL constraints a write from the loop can break.
+ * Called on the row AS IT WOULD BE STORED — the inserted row with its defaults, or the updated row with the patch merged.
+ */
+export function schemaRefusal(table: string, r: Row): string | null {
+  const check = (name: string, ok: boolean) => (ok ? null : `new row for relation "${table}" violates check constraint "${table}_${name}_check"`);
+  const notNull = (cols: string[]) => {
+    for (const c of cols) if (r[c] === null || r[c] === undefined) return `null value in column "${c}" of relation "${table}" violates not-null constraint`;
+    return null;
+  };
+  if (table === "agent_orders") {
+    return notNull(["strategy_id", "venue", "symbol", "mode", "side", "price", "base_size", "client_order_id", "state", "filled_base", "fee_usd", "requotes"])
+      ?? check("mode", ["paper", "live"].includes(String(r.mode)))
+      ?? check("side", ["buy", "sell"].includes(String(r.side)))
+      ?? check("venue", ["revx", "kraken"].includes(String(r.venue)))
+      ?? check("state", ORDER_STATES.includes(String(r.state)))
+      ?? check("price", Number(r.price) > 0)
+      ?? check("base_size", Number(r.base_size) > 0);
+  }
+  if (table === "agent_maker_probes") {
+    return notNull(["strategy_id", "venue", "symbol", "side", "mode", "taker_price", "maker_price", "base_size", "state", "expires_at", "watching"])
+      ?? check("mode", ["paper", "live"].includes(String(r.mode)))
+      ?? check("side", ["buy", "sell"].includes(String(r.side)))
+      ?? check("venue", ["revx", "kraken"].includes(String(r.venue)))
+      ?? check("state", PROBE_STATES.includes(String(r.state)))
+      ?? check("taker_price", Number(r.taker_price) > 0)
+      ?? check("maker_price", Number(r.maker_price) > 0)
+      ?? check("base_size", Number(r.base_size) > 0);
+  }
+  if (table === "agent_decisions") {
+    return notNull(["strategy_id", "venue", "symbol", "mode", "bar_start", "state", "numbers", "provider", "rule_action", "rule_reason", "final_action", "final_reason", "risk_allowed", "risk_reason"])
+      ?? check("venue", ["revx", "kraken"].includes(String(r.venue)));
+  }
+  return null;
+}
+
+/**
+ * Postgres's column defaults for the rows the loop inserts (0037, 0042): what a real INSERT stores when a column is left
+ * out — a nullable column included, which reads back as `null`, never as a missing key.
+ */
+function withDefaults(table: string, r: Row): Row {
+  if (table === "agent_orders") {
+    return {
+      state: "new", filled_base: 0, fee_usd: 0, requotes: 0, order_type: "limit",
+      decision_id: null, venue_order_id: null, request: null, response: null, avg_fill_price: null, filled_at: null, cancelled_at: null, ...r,
+    };
+  }
+  if (table === "agent_maker_probes") return { state: "resting", follow_up: {}, watching: true, ...r };
+  return r;
+}
+
+/** What JSON does to a value on its way to PostgREST: NaN and ±Infinity become null, undefined keys vanish. */
+const overTheWire = <T>(x: T): T => JSON.parse(JSON.stringify(x));
+
+export type MemDbHooks = {
+  beforeDecisionInsert?: (tables: Record<string, Row[]>, row: Row) => void;
+  beforeOrderInsert?: (tables: Record<string, Row[]>, row: Row) => void;
+};
+
+/**
+ * Enough of PostgREST for what the loop asks, with the schema's rules: CHECK and NOT NULL on every write
+ * (`schemaRefusal`), the unique indexes the loop relies on (one decision per bar, one order per decision attempt, one
+ * order per uuid `client_order_id`), Postgres's defaults, a merge-on-conflict upsert, multi-column `order=`, and
+ * PostgREST's silent cap — a select with no `limit` returns at most `PAGE_ROWS` rows, exactly as Supabase's `max-rows`
+ * does. `now` stamps `ts` on an insert, as the database's `now()` does.
+ */
+export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; hooks?: MemDbHooks }) {
+  const tables: Record<string, Row[]> = JSON.parse(JSON.stringify(seed));
+  const hooks = opts.hooks ?? {};
+  let nextId = 1000;
+  const cmp = (a: unknown, b: unknown) => (a == null && b == null ? 0 : a == null ? 1 : b == null ? -1 : (a as number) < (b as number) ? -1 : (a as number) > (b as number) ? 1 : 0);
+  const parse = (query: string) => {
+    const filters: ((r: Row) => boolean)[] = [];
+    let order: { col: string; dir: 1 | -1 }[] = [], limit = PAGE_ROWS, offset = 0, select: string[] | null = null;
+    for (const part of query.split("&")) {
+      const i = part.indexOf("=");
+      const k = part.slice(0, i), v = part.slice(i + 1);
+      if (k === "select") { select = v === "*" ? null : v.split(","); continue; }
+      // Every column of `order=a.asc,b.desc`, each with its own direction (the first double read the first column only,
+      // and turned `ts.desc,id.desc` into ascending).
+      if (k === "order") { order = v.split(",").map((t) => { const [col, dir] = t.split("."); return { col, dir: dir === "desc" ? -1 : 1 }; }); continue; }
+      if (k === "limit") { limit = Math.min(Number(v), PAGE_ROWS); continue; }
+      if (k === "offset") { offset = Number(v); continue; }
+      const m = v.match(/^(eq|in|gte|lt|is)\.(.*)$/);
+      if (!m) throw new Error(`stub db: unsupported filter ${part}`);
+      const val = decodeURIComponent(m[2]);
+      if (m[1] === "is") { if (val !== "null" && val !== "not.null") throw new Error(`stub db: unsupported filter ${part}`); filters.push((r) => (r[k] == null) === (val === "null")); }
+      if (m[1] === "eq") filters.push((r) => String(r[k]) === val);
+      if (m[1] === "in") { const set = val.slice(1, -1).split(","); filters.push((r) => set.includes(String(r[k]))); }
+      if (m[1] === "gte") filters.push((r) => String(r[k]) >= val);
+      if (m[1] === "lt") filters.push((r) => String(r[k]) < val);
+    }
+    return { filters, order, limit, offset, select };
+  };
+  const refuse = (method: string, table: string, why: string) => Promise.reject(new Error(`db ${method} ${table} → 400: ${why}`));
+  const db: Db = {
+    select: (table, query) => {
+      const { filters, order, limit, offset, select } = parse(query);
+      let rows = (tables[table] ?? []).filter((r) => filters.every((f) => f(r)));
+      if (order.length) rows = rows.slice().sort((a, b) => { for (const o of order) { const c = cmp(a[o.col], b[o.col]) * o.dir; if (c) return c; } return 0; });
+      rows = rows.slice(offset, offset + limit);
+      // deno-lint-ignore no-explicit-any
+      return Promise.resolve((select ? rows.map((r) => Object.fromEntries(select!.map((c) => [c, r[c]]))) : rows.map((r) => ({ ...r }))) as any);
+    },
+    insert: (table, rows, returning = true) => {
+      const list = (overTheWire(Array.isArray(rows) ? rows : [rows]) as Row[]).map((r) => withDefaults(table, r));
+      for (const r of list) {
+        const why = schemaRefusal(table, r);
+        if (why) return refuse("POST", table, why);
+      }
+      if (table === "agent_decisions") {
+        for (const r of list) {
+          hooks.beforeDecisionInsert?.(tables, r);
+          const dup = (tables[table] ?? []).some((x) => x.strategy_id === r.strategy_id && x.symbol === r.symbol && x.bar_start === r.bar_start);
+          if (dup) return Promise.reject(new Error("db POST agent_decisions → 409: duplicate key value violates unique constraint \"agent_decisions_one_per_bar\""));
+        }
+      }
+      if (table === "agent_orders") {
+        for (const r of list) {
+          hooks.beforeOrderInsert?.(tables, r);
+          // `client_order_id uuid not null unique` (0037): the id the venue reconciles a lost reply by, so two orders must
+          // never share one — the double used to take any string, and every order in a test world carried the same id.
+          if (!UUID.test(String(r.client_order_id))) return refuse("POST", table, `invalid input syntax for type uuid: "${r.client_order_id}"`);
+          if ((tables[table] ?? []).some((x) => x.client_order_id === r.client_order_id)) {
+            return Promise.reject(new Error("db POST agent_orders → 409: duplicate key value violates unique constraint \"agent_orders_client_order_id_key\""));
+          }
+          if (r.decision_id == null) continue;
+          const dup = (tables[table] ?? []).some((x) => x.decision_id === r.decision_id && Number(x.requotes ?? 0) === Number(r.requotes ?? 0));
+          if (dup) return Promise.reject(new Error("db POST agent_orders → 409: duplicate key value violates unique constraint \"agent_orders_one_per_decision_attempt\""));
+        }
+      }
+      const out = list.map((r) => ({ id: nextId++, ts: new Date(opts.now()).toISOString(), ...r }));
+      (tables[table] ??= []).push(...out);
+      // deno-lint-ignore no-explicit-any
+      return Promise.resolve((returning ? out : []) as any);
+    },
+    upsert: (table, rows, onConflict) => {
+      // PostgREST's `resolution=merge-duplicates`: a row whose conflict key exists is merged, not appended.
+      const keys = onConflict.split(",");
+      const t = (tables[table] ??= []);
+      for (const r of overTheWire(rows) as Row[]) {
+        const i = t.findIndex((x) => keys.every((k) => String(x[k]) === String(r[k])));
+        if (i >= 0) t[i] = { ...t[i], ...r }; else t.push({ ...r });
+      }
+      return Promise.resolve();
+    },
+    update: (table, query, patch) => {
+      const { filters } = parse(query);
+      const wire = overTheWire(patch) as Row;
+      const hit = (tables[table] ?? []).filter((r) => filters.every((f) => f(r)));
+      for (const r of hit) {
+        const why = schemaRefusal(table, { ...r, ...wire });
+        if (why) return refuse("PATCH", table, why);     // Postgres refuses the statement: no row changes
+      }
+      for (const r of hit) Object.assign(r, wire);
+      return Promise.resolve();
+    },
+    claim: (table, query, patch) => {
+      const { filters } = parse(query);
+      const hit = (tables[table] ?? []).filter((r) => filters.every((f) => f(r)));
+      for (const r of hit) Object.assign(r, overTheWire(patch) as Row);
+      // deno-lint-ignore no-explicit-any
+      return Promise.resolve(hit.map((r) => ({ ...r })) as any);
+    },
+    selectAll: async (table, query) => {
+      assertPagedOrder(table, query);   // the real client's rule, not a copy of it — see db.ts
+      const out: unknown[] = [];
+      for (let offset = 0; ; offset += PAGE_ROWS) {
+        const page = await db.select(table, `${query}&limit=${PAGE_ROWS}&offset=${offset}`);
+        out.push(...page);
+        if (page.length < PAGE_ROWS) break;
+      }
+      // deno-lint-ignore no-explicit-any
+      return out as any;
+    },
+  };
+  return { db, tables };
+}
+
+// ── fake venues over HTTP, for driving the REAL venue clients ─────────────────────────────────────────
+
+/** A steady rise of 0.2 % a 4-hour bar: every closed bar breaks the prior 55-bar high and the averages stay stacked up. */
+export const FAKE_EPOCH = Date.parse("2026-06-01T00:00:00Z");
+export const fakePrice = (t: number) => 100 * Math.pow(1.002, (t - FAKE_EPOCH) / (4 * 3600e3));
+
+type FakeOrder = {
+  id: string; client_order_id: string; symbol: string; side: "buy" | "sell"; status: string; price: string; quantity: string;
+  filled: number; avg: number | null; fee: number; tif: string; postOnly: boolean; created: number;
+};
+
+/**
+ * Revolut X as its own reference documents it (revolut-x-api-for-llm.md; developer.revolut.com): the placement reply's
+ * `data` is an object, an order reads back as `id` / `status` / `filled_quantity` / `average_fill_price` / `total_fee` +
+ * `fee_currency`, a marketable IOC limit fills at the touch or dies, post-only never takes, and a sell for more than the
+ * account holds is refused. `dialect` makes it answer the way a venue the client misreads would.
+ */
+export class FakeRevx {
+  shock: Record<string, number> = {};                  // a multiplier on the UK touch, per symbol
+  spreadBps: Record<string, number> = {};              // the width of the UK book, per symbol (2 bps by default)
+  orders = new Map<string, FakeOrder>();
+  balances: Record<string, number> = { USD: 100 };
+  /**
+   * How an order reads back: "documented" (the venue's own words), "no-fee" (a filled order with no fee field), or
+   * "foreign" — a vocabulary neither the documented nor the assumed names cover: the status in capitals and the fill under
+   * other field names, so a reader that did not refuse what it cannot read would see "new, nothing filled".
+   */
+  dialect: "documented" | "no-fee" | "foreign" = "documented";
+  /** What DELETE answers for an order that already finished: the reference documents only 204 for a cancel. */
+  deleteFinished: 204 | 404 = 404;
+  /** Endpoints answering 503, as a venue does for a minute now and then: a decision can then be allowed with no order behind it. */
+  down: { pairs?: boolean; tickers?: boolean; balances?: boolean } = {};
+  /** The `state` a placement reply carries: the order's own ("status"), or always "new" — the word the documented example uses. */
+  placementReply: "status" | "new" = "status";
+  /** The venue takes the order and the reply never arrives (a timeout after the fact): the caller sees a thrown fetch. */
+  loseReply = false;
+  calls: string[] = [];
+  onPost?: () => void;
+  private seq = 1;
+  constructor(public now: () => number) {}
+  quote(sym: string) {
+    const mid = fakePrice(this.now()) * (this.shock[sym] ?? 1);
+    const half = (this.spreadBps[sym] ?? 2) / 2 / 1e4;
+    return { bid: Math.round(mid * (1 - half) * 100) / 100, ask: Math.round(mid * (1 + half) * 100) / 100 };
+  }
+  private view(o: FakeOrder): Record<string, unknown> {
+    const body: Record<string, unknown> = {
+      id: o.id, client_order_id: o.client_order_id, symbol: o.symbol, side: o.side, type: "limit", quantity: o.quantity,
+      filled_quantity: String(o.filled), leaves_quantity: String(Number(o.quantity) - o.filled), price: o.price,
+      average_fill_price: o.avg == null ? "0" : String(o.avg), total_fee: String(o.fee), fee_currency: "USD",
+      status: o.status, time_in_force: o.tif, execution_instructions: [o.postOnly ? "post_only" : "allow_taker"], created_date: o.created, updated_date: o.created,
+    };
+    if (this.dialect === "no-fee") { delete body.total_fee; delete body.fee_currency; }
+    if (this.dialect === "foreign") {
+      for (const k of ["filled_quantity", "leaves_quantity", "average_fill_price", "total_fee", "fee_currency"]) delete body[k];
+      Object.assign(body, { status: o.status.toUpperCase(), executed_quantity: String(o.filled), executed_price: o.avg == null ? null : String(o.avg), fee: String(o.fee) });
+    }
+    return body;
+  }
+  fetch: typeof fetch = (input, init) => {
+    const url = new URL(String(input));
+    const p = url.pathname, m = (init?.method ?? "GET").toUpperCase();
+    this.calls.push(`${m} ${p}`);
+    const json = (status: number, body: unknown) => Promise.resolve(new Response(status === 204 ? null : JSON.stringify(body), { status }));
+    const unavailable = () => json(503, { message: "Service unavailable" });
+    if (p === "/api/1.0/public/tickers") {
+      if (this.down.tickers) return unavailable();
+      const syms = (url.searchParams.get("symbols") ?? "").split(",").filter(Boolean).map((s) => s.replace("-", "/"));
+      return json(200, { data: syms.map((s) => { const q = this.quote(s); return { symbol: s, bid: String(q.bid), ask: String(q.ask), mid: String((q.bid + q.ask) / 2), last_price: String(q.bid), region: "UK" }; }) });
+    }
+    if (p === "/api/1.0/public/configuration/pairs") {
+      if (this.down.pairs) return unavailable();
+      const cfg = { base: "BTC", quote: "USD", base_step: "0.00000001", quote_step: "0.01", min_order_size: "0.00000001", max_order_size: "200", min_order_size_quote: "0.1", max_order_size_quote: "1000000", status: "active" };
+      return json(200, { "BTC/USD": cfg });
+    }
+    if (p.startsWith("/api/1.0/public/candles/")) {
+      const sym = p.split("/").at(-1)!.replace("-", "/"), iv = Number(url.searchParams.get("interval")) * 60e3;
+      const since = Number(url.searchParams.get("since")), until = Number(url.searchParams.get("until"));
+      const out = [];
+      for (let s = Math.floor(since / iv) * iv; s < until; s += iv) { const q = this.quote(sym); out.push({ start: s, open: String(q.bid), high: String(q.ask), low: String(q.bid), close: String(q.bid), volume: "1" }); }
+      return json(200, { data: out });
+    }
+    if (p === "/api/1.0/orders" && m === "POST") {
+      this.onPost?.();
+      const req = JSON.parse(String(init!.body));
+      const sym = String(req.symbol).replace("-", "/"), lim = req.order_configuration.limit;
+      const q = this.quote(sym), price = Number(lim.price), size = Number(lim.base_size), asset = sym.split("/")[0];
+      // What the venue's own client and CLI accept at placement (see `PlaceTimeInForce` in _shared/revx.ts): gtc or ioc,
+      // gtc when omitted, and never post_only with ioc. The double refuses the rest, as the stricter reading of the venue would.
+      const tif = lim.time_in_force ?? "gtc";
+      if (tif !== "gtc" && tif !== "ioc") return json(400, { error_id: "e", message: `time_in_force ${tif} is not accepted on placement`, timestamp: this.now() });
+      if (tif === "ioc" && (lim.execution_instructions ?? []).includes("post_only")) return json(400, { error_id: "e", message: "post_only cannot be combined with ioc", timestamp: this.now() });
+      const o: FakeOrder = { id: `rx-${this.seq++}`, client_order_id: req.client_order_id, symbol: sym, side: req.side, status: "new", price: lim.price, quantity: lim.base_size, filled: 0, avg: null, fee: 0, tif, postOnly: (lim.execution_instructions ?? []).includes("post_only"), created: this.now() };
+      const crosses = req.side === "buy" ? price >= q.ask : price <= q.bid;
+      if (crosses && !o.postOnly) {
+        const px = req.side === "buy" ? q.ask : q.bid;
+        if (req.side === "sell" && (this.balances[asset] ?? 0) + 1e-12 < size) return json(400, { error_id: "e", message: "Insufficient balance", timestamp: this.now() });
+        o.filled = size; o.avg = px; o.fee = Math.round(size * px * 0.0009 * 1e8) / 1e8; o.status = "filled";
+        if (req.side === "buy") { this.balances.USD -= size * px + o.fee; this.balances[asset] = (this.balances[asset] ?? 0) + size; }
+        else { this.balances[asset] -= size; this.balances.USD += size * px - o.fee; }
+      } else if (crosses) o.status = "rejected";
+      else if (o.tif === "ioc") o.status = "cancelled";
+      this.orders.set(o.id, o);
+      if (this.loseReply) return Promise.reject(new DOMException("The signal has been aborted", "TimeoutError"));
+      return json(200, { data: { venue_order_id: o.id, client_order_id: o.client_order_id, state: this.placementReply === "new" ? "new" : o.status } });
+    }
+    if (p === "/api/1.0/orders/active") return json(200, { data: [...this.orders.values()].filter((o) => o.status === "new" || o.status === "partially_filled").map((o) => this.view(o)), metadata: { timestamp: this.now() } });
+    if (p.startsWith("/api/1.0/orders/")) {
+      const o = this.orders.get(p.split("/").at(-1)!);
+      if (!o) return json(404, { message: "Order not found" });
+      if (m === "DELETE") {
+        if (o.status === "new" || o.status === "partially_filled") { o.status = "cancelled"; return json(204, null); }
+        return this.deleteFinished === 204 ? json(204, null) : json(404, { message: "Order is not active" });
+      }
+      return json(200, { data: this.view(o) });
+    }
+    if (p === "/api/1.0/balances") {
+      if (this.down.balances) return unavailable();
+      return json(200, Object.entries(this.balances).map(([currency, v]) => ({ currency, available: String(v), reserved: "0", total: String(v) })));
+    }
+    return json(404, { message: `fake revx: no route ${m} ${p}` });
+  };
+}
+
+/** Kraken's public OHLC and Ticker over the same price path: the signal venue. `down` makes OHLC fail as an outage does. */
+export class FakeKraken {
+  down = false;
+  constructor(public now: () => number) {}
+  fetch: typeof fetch = (input) => {
+    const url = new URL(String(input));
+    const method = url.pathname.split("/").at(-1), pair = url.searchParams.get("pair") ?? "";
+    const key = (alt: string) => ({ XBTUSD: "XXBTZUSD" } as Record<string, string>)[alt] ?? alt;
+    const ok = (result: unknown) => Promise.resolve(new Response(JSON.stringify({ error: [], result })));
+    if (method === "OHLC") {
+      if (this.down) return Promise.resolve(new Response(JSON.stringify({ error: ["EService:Unavailable"] })));
+      const iv = Number(url.searchParams.get("interval")) * 60e3, last = Math.floor(this.now() / iv) * iv;
+      const rows = [];
+      for (let k = 719; k >= 0; k--) {
+        const s = last - k * iv, o = fakePrice(s), c = fakePrice(Math.min(s + iv, this.now()));
+        rows.push([s / 1000, String(o), String(Math.max(o, c) * 1.0005), String(Math.min(o, c) * 0.9995), String(c), String(c), "1", 1]);
+      }
+      return ok({ [key(pair)]: rows, last: last / 1000 });
+    }
+    if (method === "Ticker") {
+      const out: Record<string, unknown> = {};
+      for (const alt of pair.split(",")) { const mid = fakePrice(this.now()); out[key(alt)] = { a: [String(mid * 1.00005), "1", "1"], b: [String(mid * 0.99995), "1", "1"], c: [String(mid), "1"], v: ["1", "1"], p: ["1", "1"], t: [1, 1], l: ["1", "1"], h: ["1", "1"], o: "1" }; }
+      return ok(out);
+    }
+    return Promise.resolve(new Response(JSON.stringify({ error: [`EGeneral:Unknown method ${method}`] })));
+  };
+}
+
+// ── the decision model, over HTTP ───────────────────────────────────────────────────────────────────
+/**
+ * Jev as `askJev` reaches it: it answers EXACTLY the questions it was asked, each by its type, and nothing else — the
+ * reader refuses a reply missing any asked question, so a double that answered a fixed set regardless would hide a
+ * question the loop stopped asking, or started asking under another name. A noul answers `healthy`, a score answers
+ * `caution`, a choice echoes the state's symbol when it is one of the options. `fail` is a 503 on every transport.
+ */
+export function jevFetch(opts: { healthy?: number; caution?: number; fail?: boolean; log?: string[] } = {}): typeof fetch {
+  return (_url, init) => {
+    if (opts.fail) return Promise.resolve(new Response("down", { status: 503 }));
+    const body = JSON.parse(String(init?.body)) as { state?: { symbol?: string }; questions?: Record<string, { type: string; criteria?: unknown }> };
+    const sym = String(body.state?.symbol);
+    opts.log?.push(sym);
+    const answers: Record<string, unknown> = {};
+    for (const [name, q] of Object.entries(body.questions ?? {})) {
+      if (q.type === "noul") answers[name] = { type: "noul", noul: opts.healthy ?? 0.9 };
+      else if (q.type === "score") answers[name] = { type: "score", score: opts.caution ?? 0.1, probabilities: { "0": 0.9, "1": 0.1, "2": 0 }, confidence: 0.85 };
+      else if (q.type === "choice") {
+        const options = Object.keys((q.criteria ?? {}) as Record<string, unknown>);
+        const choice = options.includes(sym) ? sym : options[0];
+        answers[name] = { type: "choice", choice, probabilities: { [choice]: 1 }, confidence: 1 };
+      }
+    }
+    return Promise.resolve(new Response(JSON.stringify({ model: "typesafe/jev-1.13-test", answers, usage: { input_tokens: 400, output_tokens: 20, cost: 0.0000168 } })));
+  };
+}

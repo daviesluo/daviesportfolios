@@ -4,9 +4,10 @@
 // `Deno.serve` sits behind `import.meta.main`, so importing binds nothing.
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  authorise, chartWindow, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeSymbols, runJevBatch,
-  STATE_VOCAB, SYMBOLS, probeSummary, type ProbeSummaryRow,
+  authorise, chartBook, chartWindow, dayOpensFrom, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeSymbols, runJevBatch,
+  STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, tickErrorReport, type ProbeSummaryRow,
 } from "./index.ts";
+import type { OrderRow } from "./tick.ts";
 import type { JevResult } from "../_shared/jev.ts";
 
 Deno.test("probeSymbols — every symbol on an active row, sorted and de-duplicated; the three majors when no row can be read", () => {
@@ -168,4 +169,87 @@ Deno.test("runJevBatch: one transport, `repeats` replies per state in order, the
   assert(String((await runJevBatch({ states: tooMany, repeats: 2 }, env, ask)).error).includes("split the batch"));
   assert(String((await runJevBatch({ states: [ENTRY] }, {}, ask)).error).includes("no openrouter key"));
   assertEquals(seen.length, before);
+});
+
+// ── the page's books, resolved by the tick's own rule (2026-09-22) ──────────────────────────────────
+// Until 2026-09-22 none of this had a test: the page's book resolution was written a second time and the browser
+// sweep reads a hand-made payload, so neither could see the page disagree with the loop.
+const DAY = Date.parse("2026-09-23T00:00:00Z");
+const fill = (id: number, mode: "paper" | "live", side: "buy" | "sell", base: number, price: number, at: number, symbol = "BTC/USD"): OrderRow => ({
+  id, ts: new Date(at).toISOString(), strategy_id: "row", decision_id: id, venue: "revx", symbol, mode, side, price, base_size: base,
+  client_order_id: `c${id}`, venue_order_id: null, state: "filled", filled_base: base, avg_fill_price: price, fee_usd: 0, requotes: 0, filled_at: new Date(at).toISOString(),
+});
+const row = (mode: string, retired_at: string | null = null) => ({ id: "row", mode, symbols: ["BTC/USD"], retired_at });
+
+Deno.test("strategyBooks: real money made in a book the row no longer trades stays in the totals, under LIVE — never dropped by a relabel", () => {
+  // Bought 0.04 for real at 400, sold at 450: +$2.00 realised, live. Then the row is relabelled.
+  const fills = [fill(1, "live", "buy", 0.04, 400, DAY - 2 * 86400e3), fill(2, "live", "sell", 0.04, 450, DAY - 86400e3)];
+  for (const mode of ["live", "paper", "paused"]) {
+    const b = strategyBooks(row(mode), fills, { "BTC/USD": 393 }, {}, DAY);
+    assertAlmostEquals(b.byMode.live.realisedUsd, 2, 1e-9, mode);
+    assertAlmostEquals(b.agg.realisedUsd, 2, 1e-9, mode);
+    assertEquals(b.byMode.paper.realisedUsd, 0, mode);
+  }
+  // Relabelled: the page draws the paper book the loop now trades, and lists the live one beside it rather than losing it.
+  const p = strategyBooks(row("paper"), fills, { "BTC/USD": 393 }, {}, DAY);
+  assertEquals([p.positions[0].book, p.otherBooks.map((o) => o.book)], ["paper", ["live"]]);
+});
+
+Deno.test("strategyBooks: windingDown is the tick's rule — a paused row holding, or a row relabelled away from REAL coins — not 'retired' alone", () => {
+  const paper = [fill(1, "paper", "buy", 0.04, 400, DAY - 86400e3)];
+  const live = [fill(1, "live", "buy", 0.04, 400, DAY - 86400e3)];
+  assertEquals(strategyBooks(row("paused"), paper, {}, {}, DAY).windingDown, true);               // paused, not retired: the tick is covering it
+  const demoted = strategyBooks(row("paper"), live, { "BTC/USD": 393 }, {}, DAY);
+  assertEquals([demoted.windingDown, demoted.holdsLive, demoted.positions[0].book], [true, true, "live"]);
+  assertAlmostEquals(demoted.byMode.live.valueUsd, 0.04 * 393, 1e-9);                            // billed to live whatever the label
+  assertEquals(strategyBooks(row("live"), live, {}, {}, DAY).windingDown, false);                // a live row holding live coins is just trading
+  assertEquals(strategyBooks(row("paused", "2026-09-22T00:00:00Z"), [], {}, {}, DAY).windingDown, false);   // retired and flat: nothing to wind down
+  assertEquals(strategyBooks(row("paused", "2026-09-22T00:00:00Z"), paper, {}, {}, DAY).windingDown, true); // retired holding the book it resolves to
+  // Retired under a LIVE label with only a stranded PAPER position: the tick resolves the row to its (flat) live book and
+  // skips it, so the page must not claim its exits run — but it keeps the row on the page, position and all.
+  const stranded = strategyBooks(row("live", "2026-09-22T00:00:00Z"), paper, {}, {}, DAY);
+  assertEquals([stranded.windingDown, stranded.holdsAnything, stranded.otherBooks.map((o) => [o.book, o.base])], [false, true, [["paper", 0.04]]]);
+});
+
+Deno.test("strategyBooks: every book counts once — a paper position stranded under a live row is in the totals, not drawn twice or dropped", () => {
+  const fills = [fill(1, "paper", "buy", 0.05, 300, DAY - 3 * 86400e3), fill(2, "live", "buy", 0.04, 400, DAY - 86400e3)];
+  const b = strategyBooks(row("live"), fills, { "BTC/USD": 393 }, {}, DAY);
+  assertEquals([b.positions.length, b.positions[0].book, b.positions[0].base], [1, "live", 0.04]);
+  assertEquals(b.otherBooks.map((o) => [o.book, o.base]), [["paper", 0.05]]);
+  assertAlmostEquals(b.agg.valueUsd, 0.09 * 393, 1e-9);
+  assertAlmostEquals(b.byMode.paper.valueUsd + b.byMode.live.valueUsd, b.agg.valueUsd, 1e-9);
+  // Today, per book, is the tick's own dayPnl over that book's fills: held since before today, marked from the day's open.
+  const t = strategyBooks(row("live"), fills, { "BTC/USD": 393 }, { "BTC/USD": 380 }, DAY);
+  assertAlmostEquals(t.todayByBook.live, 0.04 * (393 - 380), 1e-9);
+  assertAlmostEquals(t.todayByBook.paper, 0.05 * (393 - 380), 1e-9);
+  assertAlmostEquals(t.agg.todayUsd, 0.09 * (393 - 380), 1e-9);
+});
+
+Deno.test("chartBook: the detail chart's position is the book the loop manages — never a blend of the paper and live books", () => {
+  const fills = [fill(1, "paper", "buy", 0.05, 300, DAY - 3 * 86400e3), fill(2, "live", "buy", 0.04, 400, DAY - 86400e3)];
+  const c = chartBook("live", fills);
+  assertEquals([c.book, c.position.base, c.position.avgCost], ["live", 0.04, 400]);             // not 0.09 @ 344.44
+  assertEquals(chartBook("paper", fills.slice(0, 1)).position.base, 0.05);
+});
+
+Deno.test("dayOpensFrom: the page's day open is the tick's — today's candle, else yesterday's CLOSE (the page used to fall back to the mark)", () => {
+  const y = { venue: "kraken", symbol: "BTC/USD", open: "370", close: "380", start: new Date(DAY - 86400e3).toISOString() };
+  assertEquals(dayOpensFrom([y], DAY), { kraken: { "BTC/USD": 380 } });
+  assertEquals(dayOpensFrom([y, { ...y, open: "381", close: "390", start: new Date(DAY).toISOString() }], DAY), { kraken: { "BTC/USD": 381 } });
+});
+
+Deno.test("a turn's errors all reach ops_errors: the message is cut to the column, the whole list rides in the context", () => {
+  // Four long errors ahead of the one that names the refusing constraint: joined and cut at 500, the last was lost.
+  const noise = Array.from({ length: 4 }, (_, i) => `trend-4h|SUI/USD: live buy c-${i} cannot be settled; the floor counts 0.1 as held until it is ${"(detail) ".repeat(12)}`);
+  const last = 'trend-4h|BTC/USD: settle db PATCH agent_orders → 400: {"code":"23514","message":"new row for relation \\"agent_orders\\" violates check constraint \\"agent_orders_mode_check\\""}';
+  const r = tickErrorReport({ errors: [...noise, last], at: "2026-09-22T23:59:00.000Z" });
+  assert(r.message.length <= 500);
+  assert(!r.message.includes("agent_orders_mode_check"));                 // the cut still happens in `message` …
+  assertEquals(r.context.count, 5);
+  assertEquals(r.context.errors.length, 5);
+  assert(r.context.errors[4].includes("agent_orders_mode_check"));        // … and the list keeps every error whole
+  assertEquals(r.context.at, "2026-09-22T23:59:00.000Z");
+  // A runaway turn is still bounded: forty errors of at most 800 characters each.
+  const flood = tickErrorReport({ errors: Array.from({ length: 100 }, () => "x".repeat(2000)), at: "t" });
+  assertEquals([flood.context.errors.length, flood.context.errors[0].length, flood.context.count], [40, 800, 100]);
 });

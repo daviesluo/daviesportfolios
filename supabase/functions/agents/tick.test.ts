@@ -17,10 +17,12 @@
 // fires; one tick at a time, by lease; and today's P&L is measured from
 // the day's open.
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import type { Candle } from "../_shared/agents_strategy.ts";
+import { positionFromFills, type Candle } from "../_shared/agents_strategy.ts";
 import type { OrderView, Quote, Venue, VenueId } from "../_shared/venue.ts";
-import { assertPagedOrder, PAGE_ROWS, type Db } from "./db.ts";
-import { dayPnl, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, probeFilled, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS } from "./tick.ts";
+import { orderViewProblem, toOrderView, type VenueOrder } from "../_shared/revx.ts";
+import { PAGE_ROWS } from "./db.ts";
+import { jevFetch, memDb, schemaRefusal } from "./testing.ts";
+import { dayOpenOf, dayPnl, entryTooLate, fillStamp, isUniqueViolation, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, probeFilled, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, toFill, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS } from "./tick.ts";
 
 const FOUR_H = 4 * 3600e3, ONE_H = 3600e3, ONE_D = 86400e3, ONE_M = 60e3;
 const NOW = Date.parse("2026-09-20T04:05:00Z");                 // minute 245 of the day: a fifth minute, so the basis is recorded
@@ -29,12 +31,12 @@ const PAIR = { base_step: "0.000001", quote_step: "0.01", min_order_size: "0.001
 // A steady rise: every closed bar breaks the prior high, SMA20 sits well
 // above SMA100, daily momentum is positive, volatility is tiny. `dailyRate`
 // lets one symbol out-run another for the rotation rule.
-function series(dailyRate = 1.01, barMs = FOUR_H): { bars: Candle[]; c1d: Candle[]; lastClose: number } {
+function series(dailyRate = 1.01, barMs = FOUR_H, count = 130): { bars: Candle[]; c1d: Candle[]; lastClose: number } {
   const lastBarStart = Math.floor(NOW / barMs) * barMs;      // the still-open bar
   const bars: Candle[] = [];
-  for (let i = 0; i < 130; i++) {
-    const close = 100 * Math.pow(1.002, i);
-    bars.push({ start: lastBarStart - (129 - i) * barMs, open: close / 1.002, high: close * 1.0005, low: close / 1.002 * 0.9995, close, volume: 1 });
+  for (let i = 0; i < count; i++) {
+    const close = 100 * Math.pow(1.002, i - (count - 130));    // the last 130 bars are the same whatever the count
+    bars.push({ start: lastBarStart - (count - 1 - i) * barMs, open: close / 1.002, high: close * 1.0005, low: close / 1.002 * 0.9995, close, volume: 1 });
   }
   const lastDayStart = Math.floor(NOW / ONE_D) * ONE_D;
   const c1d: Candle[] = [];
@@ -42,126 +44,29 @@ function series(dailyRate = 1.01, barMs = FOUR_H): { bars: Candle[]; c1d: Candle
     const close = 100 * Math.pow(dailyRate, i);
     c1d.push({ start: lastDayStart - (129 - i) * ONE_D, open: close / dailyRate, high: close * 1.002, low: close / dailyRate * 0.998, close, volume: 1 });
   }
-  return { bars, c1d, lastClose: bars[128].close };
+  return { bars, c1d, lastClose: bars[count - 2].close };
 }
 
 type Row = Record<string, unknown>;
 
-/**
- * Enough of PostgREST's query syntax for what tick.ts asks, plus the two
- * uniquenesses the schema has (one decision per bar, one order per decision
- * attempt) and PostgREST's silent cap: a select with no `limit` returns at
- * most `PAGE_ROWS` rows, exactly as Supabase's `max-rows` does.
- */
-function memDb(seed: Record<string, Row[]>, hooks: { beforeDecisionInsert?: (tables: Record<string, Row[]>, row: Row) => void; beforeOrderInsert?: (tables: Record<string, Row[]>, row: Row) => void } = {}) {
-  const tables: Record<string, Row[]> = JSON.parse(JSON.stringify(seed));
-  let nextId = 1000;
-  const parse = (query: string) => {
-    const filters: ((r: Row) => boolean)[] = [];
-    let order: { col: string; dir: "asc" | "desc" } | null = null, limit = PAGE_ROWS, offset = 0, select: string[] | null = null;
-    for (const part of query.split("&")) {
-      const i = part.indexOf("=");
-      const k = part.slice(0, i), v = part.slice(i + 1);
-      if (k === "select") { select = v === "*" ? null : v.split(","); continue; }
-      if (k === "order") { const [col, dir] = v.split("."); order = { col, dir: dir === "desc" ? "desc" : "asc" }; continue; }
-      if (k === "limit") { limit = Math.min(Number(v), PAGE_ROWS); continue; }
-      if (k === "offset") { offset = Number(v); continue; }
-      const m = v.match(/^(eq|in|gte|lt|is)\.(.*)$/);
-      if (!m) throw new Error(`stub db: unsupported filter ${part}`);
-      const val = decodeURIComponent(m[2]);
-      if (m[1] === "is") { if (val !== "null" && val !== "not.null") throw new Error(`stub db: unsupported filter ${part}`); filters.push((r) => (r[k] == null) === (val === "null")); }
-      if (m[1] === "eq") filters.push((r) => String(r[k]) === val);
-      if (m[1] === "in") { const set = val.slice(1, -1).split(","); filters.push((r) => set.includes(String(r[k]))); }
-      if (m[1] === "gte") filters.push((r) => String(r[k]) >= val);
-      if (m[1] === "lt") filters.push((r) => String(r[k]) < val);
-    }
-    return { filters, order, limit, offset, select };
-  };
-  const db: Db = {
-    select: (table, query) => {
-      const { filters, order, limit, offset, select } = parse(query);
-      let rows = (tables[table] ?? []).filter((r) => filters.every((f) => f(r)));
-      if (order) {
-        const { col, dir } = order;
-        rows = rows.slice().sort((a, b) => ((a[col] as number) < (b[col] as number) ? -1 : (a[col] as number) > (b[col] as number) ? 1 : 0) * (dir === "desc" ? -1 : 1));
-      }
-      rows = rows.slice(offset, offset + limit);
-      // deno-lint-ignore no-explicit-any
-      return Promise.resolve((select ? rows.map((r) => Object.fromEntries(select!.map((c) => [c, r[c]]))) : rows.map((r) => ({ ...r }))) as any);
-    },
-    insert: (table, rows, returning = true) => {
-      const list = (Array.isArray(rows) ? rows : [rows]) as Row[];
-      // Postgres checks its CHECK constraints and this stub used not to, which is exactly how a bug
-      // hid: `agent_orders_mode_check` and `agent_maker_probes_mode_check` are `in ('paper','live')`,
-      // the tick wrote the strategy row's LABEL, and a paused row's exit order was refused by the
-      // database in production while three tests here asserted the sell. A stub that is looser than
-      // the schema is a stub that certifies what production rejects.
-      const MODES = new Set(["paper", "live"]);
-      for (const r of list) {
-        if ((table === "agent_orders" || table === "agent_maker_probes") && !MODES.has(String(r.mode))) {
-          return Promise.reject(new Error(`db POST ${table} → 400: new row for relation "${table}" violates check constraint "${table}_mode_check"`));
-        }
-      }
-      if (table === "agent_decisions") {
-        for (const r of list) {
-          hooks.beforeDecisionInsert?.(tables, r);
-          const dup = (tables[table] ?? []).some((x) => x.strategy_id === r.strategy_id && x.symbol === r.symbol && x.bar_start === r.bar_start);
-          if (dup) return Promise.reject(new Error("db POST agent_decisions → 409: duplicate key value violates unique constraint \"agent_decisions_one_per_bar\""));
-        }
-      }
-      if (table === "agent_orders") {
-        for (const r of list) {
-          hooks.beforeOrderInsert?.(tables, r);
-          if (r.decision_id == null) continue;
-          const dup = (tables[table] ?? []).some((x) => x.decision_id === r.decision_id && Number(x.requotes ?? 0) === Number(r.requotes ?? 0));
-          if (dup) return Promise.reject(new Error("db POST agent_orders → 409: duplicate key value violates unique constraint \"agent_orders_one_per_decision_attempt\""));
-        }
-      }
-      const out = list.map((r) => ({ id: nextId++, ts: new Date(NOW).toISOString(), ...r }));
-      (tables[table] ??= []).push(...out);
-      // deno-lint-ignore no-explicit-any
-      return Promise.resolve((returning ? out : []) as any);
-    },
-    upsert: (table, rows) => { (tables[table] ??= []).push(...(rows as Row[])); return Promise.resolve(); },
-    update: (table, query, patch) => {
-      const { filters } = parse(query);
-      for (const r of tables[table] ?? []) if (filters.every((f) => f(r))) Object.assign(r, patch as Row);
-      return Promise.resolve();
-    },
-    claim: (table, query, patch) => {
-      const { filters } = parse(query);
-      const hit = (tables[table] ?? []).filter((r) => filters.every((f) => f(r)));
-      for (const r of hit) Object.assign(r, patch as Row);
-      // deno-lint-ignore no-explicit-any
-      return Promise.resolve(hit.map((r) => ({ ...r })) as any);
-    },
-    selectAll: async (table, query) => {
-      assertPagedOrder(table, query);   // the real client's rule, not a copy of it — see db.ts
-      const out: unknown[] = [];
-      for (let offset = 0; ; offset += PAGE_ROWS) {
-        const page = await db.select(table, `${query}&limit=${PAGE_ROWS}&offset=${offset}`);
-        out.push(...page);
-        if (page.length < PAGE_ROWS) break;
-      }
-      // deno-lint-ignore no-explicit-any
-      return out as any;
-    },
-  };
-  return { db, tables };
-}
+// The in-memory database is `testing.ts`'s: ONE double, shared with every agents test, holding the schema's rules on
+// INSERT and UPDATE alike (see there for why that is not optional).
 
 type SeriesBySymbol = Record<string, { bars: Candle[]; c1d: Candle[]; bars1h?: Candle[] }>;
 
 function stubVenue(id: VenueId, o: {
   series: SeriesBySymbol; c1m: Candle[]; quote: Quote; feeBps: { maker: number; taker: number }; canTrade: boolean;
-  orderView?: OrderView; cancelOk?: boolean; active?: Record<string, { venueOrderId: string; view: OrderView }>;
-  onPlace?: () => void; placedState?: "new" | "filled"; noQuote?: boolean;
+  orderView?: OrderView; orderViews?: OrderView[]; cancelOk?: boolean; active?: Record<string, { venueOrderId: string; view: OrderView }>;
+  /** The venue's raw order JSON: read back through the REAL Revolut X `orderViewProblem` / `toOrderView`, exactly as `revxVenue.order` does. */
+  orderReply?: VenueOrder;
+  onPlace?: () => void; placedState?: "new" | "filled"; noQuote?: boolean; candlesDown?: () => boolean; balances?: Record<string, number>;
 }) {
   const calls: string[] = [];
   const v: Venue = {
     id, canTrade: o.canTrade, feeBps: o.feeBps,
     candles: (sym, iv) => {
       calls.push(`candles ${sym} ${iv}`);
+      if (o.candlesDown?.()) return Promise.reject(new Error(`${id} OHLC ${iv}m → EService:Unavailable`));
       const s = o.series[sym] ?? o.series["BTC/USD"];
       return Promise.resolve(iv === 240 ? s.bars : iv === 60 ? (s.bars1h ?? s.bars) : iv === 1440 ? s.c1d : o.c1m);
     },
@@ -169,30 +74,22 @@ function stubVenue(id: VenueId, o: {
     pairs: (syms) => Promise.resolve(Object.fromEntries(syms.map((s) => [s, PAIR]))),
     placeLimit: (req) => { o.onPlace?.(); calls.push(`place ${req.side} ${req.base}@${req.price}${req.marketable ? " taker" : ""}`); return Promise.resolve({ ok: true as const, venueOrderId: "V-1", state: o.placedState ?? "new" as const, response: { echo: req } }); },
     cancel: (vid) => { calls.push(`cancel ${vid}`); return Promise.resolve({ ok: o.cancelOk ?? true }); },
-    order: (vid) => { calls.push(`order ${vid}`); return Promise.resolve(o.orderView ? { ok: true as const, view: o.orderView } : { ok: false as const, error: "no view" }); },
-    balances: () => Promise.resolve({}),
+    order: (vid) => {
+      calls.push(`order ${vid}`);
+      if (o.orderReply) {
+        const problem = orderViewProblem(o.orderReply);
+        return Promise.resolve(problem ? { ok: false as const, error: problem } : { ok: true as const, view: toOrderView(o.orderReply) });
+      }
+      const view = o.orderViews?.length ? o.orderViews.shift() : o.orderView;   // a sequence, one view per read, when a test needs the venue to change its mind
+      return Promise.resolve(view ? { ok: true as const, view } : { ok: false as const, error: "no view" });
+    },
+    balances: () => { calls.push("balances"); return Promise.resolve({ ...(o.balances ?? {}) }); },
     activeOrders: () => { calls.push("activeOrders"); return Promise.resolve({ ok: true as const, byClientId: o.active ?? {} }); },
   };
   return { v, calls };
 }
 
-/** Jev answering "healthy, calm, and yes that symbol" — or failing, when `fail` is set. */
-function jevFetch(fail = false, log: string[] = []): typeof fetch {
-  return (_url, init) => {
-    if (fail) return Promise.resolve(new Response("down", { status: 503 }));
-    const sym = JSON.parse(String(init?.body)).state.symbol;
-    log.push(sym);
-    return Promise.resolve(new Response(JSON.stringify({
-      model: "typesafe/jev-1.13-test",
-      answers: {
-        healthy_trend: { type: "noul", noul: 0.9 },
-        caution: { type: "score", score: 0.1, probabilities: { "0": 0.9, "1": 0.1, "2": 0 }, confidence: 0.85, legend: { "0": "calm" } },
-        _state: { type: "choice", choice: sym, probabilities: { [sym]: 1 }, confidence: 1 },
-      },
-      usage: { input_tokens: 400, output_tokens: 20, cost: 0.0000168 },
-    })));
-  };
-}
+// Jev is `testing.ts`'s double: "healthy, calm, and yes that symbol" to exactly the questions asked — or a 503, with `fail`.
 
 const RISK: RiskRow & { id: number } = { id: 1, global_pause: false, max_order_usd: 20, max_exposure_usd: 100, paper_exposure_usd: 300, daily_loss_limit_usd: 5, max_orders_per_day: 40, live_confirmed_at: null };
 const strategy = (over: Partial<StrategyRow> = {}): StrategyRow => ({
@@ -206,9 +103,12 @@ const dislocation = (over: Partial<StrategyRow> = {}): StrategyRow => strategy({
 
 function world(opts: {
   strategies?: StrategyRow[]; orders?: Row[]; decisions?: Row[]; observations?: Row[]; risk?: Partial<RiskRow>; oneMin?: Partial<Candle>; canTrade?: boolean;
-  orderView?: OrderView; jevDown?: boolean; active?: Record<string, { venueOrderId: string; view: OrderView }>; onPlace?: () => void;
+  orderView?: OrderView; orderViews?: OrderView[]; jevDown?: boolean; active?: Record<string, { venueOrderId: string; view: OrderView }>; onPlace?: () => void;
   series?: SeriesBySymbol; revxQuote?: Quote; now?: number; krakenMinutes?: Candle[]; leaseUntil?: string; raceClaim?: boolean; placedState?: "new" | "filled";
-  krakenNoQuote?: boolean; raceOrder?: boolean; takeover?: boolean; probes?: Row[];
+  krakenNoQuote?: boolean; raceOrder?: boolean; takeover?: boolean; probes?: Row[]; krakenCandlesDown?: () => boolean;
+  /** A LIVE-capable Revolut X stub: credentials, the venue's balances, one order view, what a placement replies. */
+  revxCanTrade?: boolean; revxBalances?: Record<string, number>; revxOrderView?: OrderView; revxPlacedState?: "new" | "filled"; revxNoQuote?: boolean;
+  revxOrderReply?: VenueOrder;
 } = {}) {
   const now = opts.now ?? NOW;
   const base = series();
@@ -217,9 +117,9 @@ function world(opts: {
   const m1start = Math.floor(now / ONE_M) * ONE_M - ONE_M;
   const c1m: Candle[] = [{ start: m1start, open: quote.bid, high: quote.bid + 0.05, low: quote.bid - 0.05, close: quote.bid, volume: 1, ...opts.oneMin }];
   const jevLog: string[] = [];
-  const kraken = stubVenue("kraken", { series: ser, c1m: opts.krakenMinutes ?? c1m, quote, feeBps: { maker: 40, taker: 80 }, canTrade: opts.canTrade ?? false, orderView: opts.orderView, active: opts.active, onPlace: opts.onPlace, placedState: opts.placedState, noQuote: opts.krakenNoQuote });
+  const kraken = stubVenue("kraken", { series: ser, c1m: opts.krakenMinutes ?? c1m, quote, feeBps: { maker: 40, taker: 80 }, canTrade: opts.canTrade ?? false, orderView: opts.orderView, orderViews: opts.orderViews, active: opts.active, onPlace: opts.onPlace, placedState: opts.placedState, noQuote: opts.krakenNoQuote, candlesDown: opts.krakenCandlesDown });
   const revxQuote = opts.revxQuote ?? { bid: quote.bid + 0.02, ask: quote.ask + 0.02 };
-  const revx = stubVenue("revx", { series: ser, c1m, quote: revxQuote, feeBps: { maker: 0, taker: 9 }, canTrade: false });
+  const revx = stubVenue("revx", { series: ser, c1m, quote: revxQuote, feeBps: { maker: 0, taker: 9 }, canTrade: opts.revxCanTrade ?? false, balances: opts.revxBalances, orderView: opts.revxOrderView, orderReply: opts.revxOrderReply, placedState: opts.revxPlacedState, noQuote: opts.revxNoQuote });
   const mem = memDb({
     agent_risk: [{ ...RISK, ...opts.risk }],
     agent_strategies: (opts.strategies ?? [strategy()]) as unknown as Row[],
@@ -228,7 +128,7 @@ function world(opts: {
     agent_observations: opts.observations ?? [],
     agent_maker_probes: opts.probes ?? [],
     agent_locks: [{ name: "tick", lease_until: opts.leaseUntil ?? "1970-01-01T00:00:00.000Z", holder: null }],
-  }, {
+  }, { now: () => NOW, hooks: {
     // The race: another tick claims the same bar between this tick's fast check and its insert — or, with `takeover`, the next
     // turn takes the LEASE over while this one is still running (as it would once this one's lease had expired).
     beforeDecisionInsert: opts.raceClaim ? (tables, row) => { (tables.agent_decisions ??= []).push({ id: 1, ts: new Date(NOW - 1000).toISOString(), strategy_id: row.strategy_id, symbol: row.symbol, bar_start: row.bar_start }); }
@@ -236,8 +136,11 @@ function world(opts: {
       : undefined,
     // Another turn places this decision's order between this turn's check and its insert.
     beforeOrderInsert: opts.raceOrder ? (tables, row) => { if (row.decision_id != null) (tables.agent_orders ??= []).push({ id: 1, ts: new Date(NOW - 1000).toISOString(), strategy_id: row.strategy_id, venue: row.venue, symbol: row.symbol, mode: row.mode, side: row.side, price: row.price, base_size: row.base_size, client_order_id: "racer", decision_id: row.decision_id, requotes: row.requotes, state: "new", filled_base: 0, fee_usd: 0, request: row.request }); } : undefined,
-  });
-  const deps = { db: mem.db, venues: { kraken: kraken.v, revx: revx.v }, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch(opts.jevDown, jevLog), uuid: () => "00000000-0000-4000-8000-000000000001" };
+  } });
+  // A fresh uuid per call, as `crypto.randomUUID` gives production: `client_order_id` is unique (0037), and the double
+  // holds the loop to it — every order in a world used to carry the same id, so no test could tell two apart by it.
+  let uuidN = 0;
+  const deps = { db: mem.db, venues: { kraken: kraken.v, revx: revx.v }, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({ fail: opts.jevDown, log: jevLog }), uuid: () => `00000000-0000-4000-8000-${String(++uuidN).padStart(12, "0")}` };
   return { deps, mem, kraken, revx, quote, revxQuote, lastClosedBarStart: base.bars[128].start, c1m, jevLog };
 }
 
@@ -393,8 +296,9 @@ Deno.test("a paper order fills when the venue's last minute trades through it an
 });
 
 Deno.test("a resting order the touch has walked away from is re-quoted at the new touch, a bounded number of times, and dropped after an hour", async () => {
-  // Three minutes old, resting 7 % under the bid: cancelled and re-quoted at the bid with the count up one.
-  const w = world({ orders: [seedOrder({ id: 7, ts: new Date(NOW - REQUOTE_AFTER_MS).toISOString(), price: 120, base_size: 0.1, client_order_id: "c7", requotes: 2 })] });
+  // Three minutes old, resting 7 % under the bid: cancelled and re-quoted at the bid with the count up one. (It carries the
+  // decision it came from, as every order the loop places does; a decisionless one is not re-quoted — see below.)
+  const w = world({ orders: [seedOrder({ id: 7, ts: new Date(NOW - REQUOTE_AFTER_MS).toISOString(), price: 120, base_size: 0.1, client_order_id: "c7", requotes: 2, decision_id: 77 })] });
   const r = await tick(w.deps);
   assertEquals(r.settled, [{ id: 7, state: "cancelled" }]);
   assertEquals(w.mem.tables.agent_orders.map((o) => o.state), ["cancelled", "new"]);
@@ -445,13 +349,41 @@ Deno.test("two ticks on the same bar: the second's claim fails on the unique ind
   assertEquals(w.mem.tables.agent_decisions.length, 1);                   // the other tick's row, not ours
 });
 
-Deno.test("a live order is refused while live_confirmed_at is null, whatever the strategy row says", async () => {
+Deno.test("a live entry is refused while live_confirmed_at is null — RECORDED as refused, and not retried every minute", async () => {
+  // Until 2026-09-22 this test pinned the dishonest record: the gate "allowed" the entry, `place()` refused it with an
+  // error, and the retry path — seeing an allowed decision with no order — tried again every minute for the rest of the bar.
   const w = world({ strategies: [strategy({ mode: "live" })], canTrade: true });
   const r = await tick(w.deps);
-  assertEquals(r.decisions[0].allowed, true);                               // the gate allowed it …
-  assert(r.errors.some((e) => e.includes("live_confirmed_at")), r.errors.join("; "));   // … the confirmation gate did not
+  assertEquals([r.decisions[0].action, r.decisions[0].allowed], ["enter", false]);
+  const dec = w.mem.tables.agent_decisions[0];
+  assertEquals(dec.risk_allowed, false);
+  assert(String(dec.risk_reason).includes("live_confirmed_at"), String(dec.risk_reason));
+  assertEquals(r.errors, []);                                                // a refusal on the record, not an error every minute
   assertEquals(w.mem.tables.agent_orders.length, 0);
   assert(!w.kraken.calls.some((c) => c.startsWith("place")));
+  // The next minute: the bar is decided and refused, so nothing is retried, placed or reported.
+  const r2 = await tick({ ...w.deps, now: NOW + ONE_M });
+  assertEquals([r2.decisions.length, r2.errors.length, w.mem.tables.agent_orders.length], [0, 0, 0]);
+  assert(r2.skipped.some((s) => s.includes("already decided")), r2.skipped.join("; "));
+});
+
+Deno.test("the retry of an entry that never reached the book passes the SAME gates as a fresh one: the confirmation and the thin-book guard", async () => {
+  // Decided and allowed while the confirmation was set; no order came of it (no pair config that minute, say).
+  const barStart = new Date(world().lastClosedBarStart).toISOString();
+  const orphan = (id: number): Row => ({ id, ts: new Date(NOW - ONE_M).toISOString(), strategy_id: "trend-4h-kraken", venue: "kraken", symbol: "BTC/USD", mode: "live", bar_start: barStart, state: {}, numbers: { orderUsd: 20, kind: "bar" }, provider: "openrouter", rule_action: "enter", rule_reason: "breakout", final_action: "enter", final_reason: "x", risk_allowed: true, risk_reason: "within limits" });
+  // (a) The confirmation is cleared before the retry: the decision is closed with the reason, nothing is placed.
+  const w = world({ strategies: [strategy({ mode: "live" })], canTrade: true, decisions: [orphan(910)] });
+  const r = await tick(w.deps);
+  assertEquals(w.mem.tables.agent_orders.length, 0);
+  assertEquals(w.mem.tables.agent_decisions[0].risk_allowed, false);
+  assert(String(w.mem.tables.agent_decisions[0].risk_reason).includes("live_confirmed_at"), String(w.mem.tables.agent_decisions[0].risk_reason));
+  assertEquals(r.errors, []);
+  // (b) Confirmed, but the book it would cross is 150 bps wide: the fresh path would have held; so does the retry.
+  const wide = { bid: 100, ask: 100 * (1 + WIDE_SPREAD_BPS / 1e4 * 3) };
+  const w2 = world({ strategies: [strategy({ id: "trend-4h", venue: "revx", mode: "paper" })], decisions: [{ ...orphan(911), strategy_id: "trend-4h", venue: "revx", mode: "paper" }], revxQuote: wide });
+  await tick(w2.deps);
+  assertEquals(w2.mem.tables.agent_orders.length, 0);
+  assert(String(w2.mem.tables.agent_decisions[0].risk_reason).includes("book too wide"), String(w2.mem.tables.agent_decisions[0].risk_reason));
 });
 
 Deno.test("a live order is refused without venue credentials, even when confirmed", async () => {
@@ -580,6 +512,28 @@ Deno.test("after an exit the rule waits two of its own bars before buying again"
   const w2 = world({ orders: [longSince(3 * ONE_D, 120, 0.155), longSince(9 * 3600e3, 129.0, 0.155, { id: 61, side: "sell" })] });
   const r2 = await tick(w2.deps);
   assertEquals(r2.decisions[0].action, "enter");
+});
+
+Deno.test("the cooldown is the rulebook's, not a book's: a row set to paper right after its LIVE exit does not buy on paper the next bar", async () => {
+  // Bought for real three days ago, sold for real four hours ago, and the row has since been set to `paper`. Its paper book
+  // is empty, so a cooldown read from the resolved book alone saw no exit at all and bought on the next bar (review R, #15).
+  const liveBuy = longSince(3 * ONE_D, 120, 0.155, { mode: "live" });
+  const liveSale = longSince(FOUR_H, 129.0, 0.155, { id: 61, side: "sell", mode: "live" });
+  const w = world({ strategies: [strategy({ mode: "paper" })], orders: [liveBuy, liveSale] });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals([r.decisions[0].action, r.decisions[0].kind, w.mem.tables.agent_decisions[0].mode], ["hold", "bar", "paper"]);
+  assert(r.decisions[0].reason.includes("cooling down"), r.decisions[0].reason);
+  assertEquals(w.mem.tables.agent_orders.length, 2);                                   // no paper buy beside the live exit
+  // The other way too: a paper exit four hours ago holds the first entry of a row switched to live in place.
+  const w2 = world({
+    strategies: [strategy({ mode: "live" })], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" },
+    orders: [longSince(3 * ONE_D, 120, 0.155), longSince(FOUR_H, 129.0, 0.155, { id: 61, side: "sell" })],
+  });
+  const r2 = await tick(w2.deps);
+  assertEquals([r2.decisions[0].action, w2.mem.tables.agent_decisions[0].mode], ["hold", "live"]);
+  assert(r2.decisions[0].reason.includes("cooling down"), r2.decisions[0].reason);
+  assertEquals(w2.mem.tables.agent_orders.length, 2);
 });
 
 Deno.test("paper twins are capped by their own exposure number, so they do not crowd each other out", async () => {
@@ -1173,11 +1127,16 @@ Deno.test("clearing live_confirmed_at stops the BUYING, not the selling: the kil
   assertEquals([sells[0].mode, sells[0].state !== "rejected"], ["live", true]);
   assertEquals(r.errors, []);
 
-  // And the buying really is stopped: the same world, flat, on a bar that would otherwise enter.
+  // And the buying really is stopped: the same world, flat, on a bar that would otherwise enter. The refusal is the
+  // decision's own record (`risk_allowed: false`, the confirmation named) — not an error raised a line after the gate
+  // said yes, which is what this assertion pinned until 2026-09-22.
   const w2 = world({ strategies: [live], canTrade: true, risk: { live_confirmed_at: null } });
   const r2 = await tick(w2.deps);
   assertEquals(w2.mem.tables.agent_orders.filter((o) => o.side === "buy"), []);
-  assert(r2.errors.some((e) => e.includes("live_confirmed_at is null")), JSON.stringify(r2.errors));
+  const refused = w2.mem.tables.agent_decisions.find((d) => d.final_action === "enter")!;
+  assertEquals(refused.risk_allowed, false);
+  assert(String(refused.risk_reason).includes("live_confirmed_at is null"), String(refused.risk_reason));
+  assertEquals(r2.errors, []);
 });
 
 Deno.test("real coins outrank the row's label: a live book under a row set to paper keeps its floor, and the order is written live", async () => {
@@ -1224,19 +1183,6 @@ Deno.test("a buy in flight does not disarm the stop; a sell in flight does", asy
   assertEquals(w2.mem.tables.agent_orders.filter((o) => o.side === "sell" && o.state !== "pending").length, 0);
 });
 
-Deno.test("just after midnight UTC the day's open is YESTERDAY'S CLOSE, not yesterday's open", async () => {
-  // The venue has not published today's daily candle yet. Falling back to the last candle and reading its
-  // OPEN counted a whole day of move as today's — every night — which inflates dayPnl and can spend the
-  // daily loss limit on a move that already happened. Yesterday's close is where today opened.
-  const w = world({ orders: [longSince(2 * ONE_D, 129.0, 0.155)] });
-  const r = await tick(w.deps);
-  assertEquals(r.errors, []);
-  const dec = w.mem.tables.agent_decisions[0];
-  assert(dec, "a decision should have been written");
-  const n = dec.numbers as { pnlToday: number };
-  assert(Number.isFinite(n.pnlToday), `pnlToday is ${n.pnlToday}`);
-});
-
 Deno.test("an order with no decision id is never placed: 0041's index is partial, so it would carry no claim", async () => {
   const w = world();
   const r = await tick(w.deps);
@@ -1273,4 +1219,461 @@ Deno.test("a row with jevGate false enters on the rulebook's signal whatever the
   const r2 = await tick(gated.deps);
   assertEquals(r2.decisions[0].action, "hold");
   assertEquals(gated.mem.tables.agent_orders.length, 0);
+});
+
+// ── the second pre-live review's findings, pinned (2026-09-22) ─────────────────────────────────────
+// Each of these failed on the code it was written against; the review ran every one of them as a reproduction first.
+
+Deno.test("the floor does not wait for the SIGNAL venue: Kraken's candles down, a Revolut X position through its floor is still sold", async () => {
+  // Until 2026-09-22 a pair with no signal series was skipped before its floor ran — so a Kraken outage took the floor
+  // off every Revolut X position while Revolut X's own quotes, pair config and the book were all fine.
+  const w = world({
+    strategies: [strategy({ id: "trend-4h", venue: "revx", signal_venue: "kraken" })],
+    orders: [longSince(2 * ONE_D, 200, 0.1, { strategy_id: "trend-4h", venue: "revx" })],   // ~35 % under cost
+    krakenCandlesDown: () => true,
+  });
+  const r = await tick(w.deps);
+  const protective = r.decisions.filter((d) => d.kind === "protective");
+  assertEquals([protective.length, protective[0]?.action], [1, "exit"]);
+  const sell = w.mem.tables.agent_orders.find((o) => o.id !== 50)!;
+  assertEquals([sell.side, sell.venue, sell.base_size], ["sell", "revx", 0.1]);
+  assert(r.errors.some((e) => e.includes("candles")), r.errors.join("; "));                // the outage is still reported …
+  assertEquals(r.decisions.filter((d) => d.kind === "bar"), []);                          // … and no bar is decided without a series
+  assertEquals((w.mem.tables.agent_decisions[0].state as { signal: string }).signal, "unavailable");
+});
+
+Deno.test("a warm cache stands in for a failed signal fetch: the floor runs on it, and no bar is decided on the stale series", async () => {
+  const s4h = series(1.01, FOUR_H, 220);                                                // enough bars for the cache to count as warm
+  let down = false;
+  const w = world({
+    strategies: [strategy({ id: "trend-4h", venue: "revx", signal_venue: "kraken" })],
+    orders: [longSince(ONE_H, s4h.lastClose, 0.1, { strategy_id: "trend-4h", venue: "revx" })],   // bought an hour ago at the market: healthy
+    series: { "BTC/USD": s4h }, krakenCandlesDown: () => down,
+  });
+  await tick(w.deps);                                                                    // a good turn warms the cache
+  down = true;
+  // Four hours on: the bar the cache holds as "forming" has closed on the clock, but its data stopped at the last good
+  // fetch. Deciding it would read a partial candle as a closed one — so nothing is decided on it.
+  const later = NOW + FOUR_H;
+  const r2 = await tick({ ...w.deps, now: later });
+  assertEquals(r2.decisions, []);
+  assert(r2.skipped.some((x) => x.includes("stale")), r2.skipped.join("; "));
+  assert(r2.errors.some((e) => e.includes("cached series stands in")), r2.errors.join("; "));
+  // The same outage with the Revolut X bid through the floor: the floor fires from the cache-backed turn.
+  const w3 = world({
+    strategies: [strategy({ id: "trend-4h", venue: "revx", signal_venue: "kraken" })],
+    orders: [longSince(ONE_H, s4h.lastClose, 0.1, { strategy_id: "trend-4h", venue: "revx" })],
+    series: { "BTC/USD": s4h }, krakenCandlesDown: () => down,
+  });
+  down = false;
+  await tick(w3.deps);
+  down = true;
+  const cold = w3.revxQuote.bid * 0.85;
+  w3.deps.venues.revx.quotes = (syms: string[]) => Promise.resolve(Object.fromEntries(syms.map((x) => [x, { bid: cold, ask: cold + 0.02 }])));
+  const r3 = await tick({ ...w3.deps, now: NOW + ONE_M });
+  assertEquals(r3.decisions.filter((d) => d.kind === "protective").map((d) => d.action), ["exit"]);
+});
+
+Deno.test("an unreadable fill does not disarm the floor: a live buy the venue reported filled counts as held until it settles", async () => {
+  // The first live order is where the settlement names are least certain (B4). A buy that filled on arrival and whose
+  // read-back then fails used to be in NO book: the floor saw flat and never fired, whatever the market did to the coins.
+  const unsettled = seedOrder({
+    id: 7, ts: new Date(NOW - 2 * ONE_M).toISOString(), strategy_id: "trend-4h", venue: "revx", mode: "live", side: "buy", state: "new",
+    price: 200, base_size: 0.1, client_order_id: "c-arrived", venue_order_id: "V-7", request: { marketable: true },
+    response: { placedState: "filled", result: { data: [{ venue_order_id: "V-7", state: "filled" }] } },
+  });
+  const w = world({
+    strategies: [strategy({ id: "trend-4h", venue: "revx", mode: "live" })], orders: [unsettled],
+    risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, revxCanTrade: true, revxBalances: { BTC: 0.1, USD: 80 },   // the venue has the coins …
+  });                                                                                                                   // … its order read fails (no view)
+  const r = await tick(w.deps);
+  assert(r.errors.some((e) => e.includes("order lookup")), r.errors.join("; "));
+  const protective = r.decisions.filter((d) => d.kind === "protective");
+  assertEquals([protective.length, protective[0]?.action], [1, "exit"]);                   // ~35 % under the limit price: the floor fires
+  const sell = w.mem.tables.agent_orders.find((o) => o.side === "sell")!;
+  assertEquals([sell.mode, sell.venue, sell.base_size], ["live", "revx", 0.1]);
+  assert(w.revx.calls.some((c) => c.startsWith("place sell 0.1")), w.revx.calls.join(","));
+  // A buy that settles normally is never counted twice: the same world with the venue's view readable settles it, and the
+  // floor then sees exactly the one position.
+  const view: OrderView = { state: "filled", filledBase: 0.1, avgPrice: 200, feeUsd: 0.02, raw: {} };
+  const w2 = world({
+    strategies: [strategy({ id: "trend-4h", venue: "revx", mode: "live" })], orders: [unsettled],
+    risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, revxCanTrade: true, revxBalances: { BTC: 0.1, USD: 80 }, revxOrderView: view,
+  });
+  await tick(w2.deps);
+  const sells2 = w2.mem.tables.agent_orders.filter((o) => o.side === "sell");
+  assertEquals(sells2.map((o) => o.base_size), [0.1]);
+});
+
+Deno.test("an unreadable buy whose placement reply said `new` is held as far as the venue's own balance shows its coins — and no further", async () => {
+  // The documented placement reply's example says `new` (revolut-x-api-for-llm.md, POST /orders), so a buy that crossed may be
+  // reported that way on arrival; if its read-back then fails, the word `filled` never comes, and a floor that waited for it
+  // left the coins with none. On a sub-account nothing else trades, coins the venue holds beyond the settled book are this buy's.
+  const unsettled = seedOrder({
+    id: 7, ts: new Date(NOW - 2 * ONE_M).toISOString(), strategy_id: "trend-4h", venue: "revx", mode: "live", side: "buy", state: "new",
+    price: 200, base_size: 0.1, client_order_id: "c-new", venue_order_id: "V-7", request: { marketable: true }, response: { placedState: "new" },
+  });
+  const live = { strategies: [strategy({ id: "trend-4h", venue: "revx", mode: "live" })], orders: [unsettled], risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, revxCanTrade: true };
+  const sold = (w: ReturnType<typeof world>) => w.mem.tables.agent_orders.filter((o) => o.side === "sell").map((o) => [o.mode, o.base_size]);
+  // (a) The venue holds 0.1 BTC and the book explains none of it: the floor counts the buy, ~35 % under its price, and sells it.
+  const w = world({ ...live, revxBalances: { BTC: 0.1, USD: 80 } });
+  const r = await tick(w.deps);
+  assert(r.errors.some((e) => e.includes("floor counts 0.1 as held") && e.includes("more than the settled book explains")), r.errors.join("; "));
+  assertEquals(sold(w), [["live", 0.1]]);
+  // (b) A part filled and the rest died: the venue shows 0.04, so 0.04 is what the floor protects and sells.
+  const w2 = world({ ...live, revxBalances: { BTC: 0.04, USD: 92 } });
+  await tick(w2.deps);
+  assertEquals(sold(w2), [["live", 0.04]]);
+  // (c) The IOC died unfilled: the venue shows no coin, nothing is counted, nothing is sold.
+  const w3 = world({ ...live, revxBalances: { BTC: 0, USD: 100 } });
+  const r3 = await tick(w3.deps);
+  assertEquals([r3.decisions.filter((d) => d.kind === "protective").length, sold(w3).length], [0, 0]);
+  assert(!r3.errors.some((e) => e.includes("floor counts")), r3.errors.join("; "));
+});
+
+Deno.test("a live buy whose placement reply never arrived stays `pending` for a person — and the coins the venue took for it still have a floor", async () => {
+  // A timeout after the venue took the order: no reply, no venue id, and an IOC that filled is not among the active orders.
+  // The row is left for a person to settle (nothing guessed); until then its coins were in no book, and had no floor.
+  const lost = seedOrder({
+    id: 7, ts: new Date(NOW - 2 * ONE_M).toISOString(), strategy_id: "trend-4h", venue: "revx", mode: "live", side: "buy", state: "pending",
+    price: 200, base_size: 0.1, client_order_id: "c-lost", venue_order_id: null, request: { marketable: true },
+  });
+  const live = { strategies: [strategy({ id: "trend-4h", venue: "revx", mode: "live" })], orders: [lost], risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, revxCanTrade: true };
+  const w = world({ ...live, revxBalances: { BTC: 0.1, USD: 80 } });
+  const r = await tick(w.deps);
+  assert(r.errors.some((e) => e.includes("outcome unknown") && e.includes("revx holds 0.1 BTC against 0 on record")), r.errors.join("; "));
+  assertEquals(w.mem.tables.agent_orders.find((o) => o.id === 7)!.state, "pending");                 // still the person's to settle
+  assertEquals(w.mem.tables.agent_orders.filter((o) => o.side === "sell").map((o) => [o.mode, o.base_size]), [["live", 0.1]]);   // ~35 % under: sold
+  // The venue shows no coin (the order died, or never reached it): nothing is protected because nothing is there.
+  const w2 = world({ ...live, revxBalances: { BTC: 0, USD: 100 } });
+  const r2 = await tick(w2.deps);
+  assertEquals([r2.decisions.length, w2.mem.tables.agent_orders.filter((o) => o.side === "sell").length], [0, 0]);
+});
+
+Deno.test("a buy the floor already sold is dated from its own row when it finally settles: the book ends flat, never long coins the venue does not hold", async () => {
+  // The floor counts an unreadable live buy as held from its row's time and sells it. If the buy's read-back comes good
+  // only after the sell has settled, a fill dated from the READING turn lands after the sell: the book reads long 0.1, the
+  // venue holds nothing, and the floor tries to sell the phantom every minute ("under the venue minimum; not placed").
+  const unsettled = seedOrder({
+    id: 7, ts: new Date(NOW - 2 * ONE_M).toISOString(), strategy_id: "trend-4h", venue: "revx", mode: "live", side: "buy", state: "new",
+    price: 200, base_size: 0.1, client_order_id: "c-late", venue_order_id: "V-7", request: { marketable: true }, response: { placedState: "new" },
+  });
+  const w = world({
+    strategies: [strategy({ id: "trend-4h", venue: "revx", mode: "live" })], orders: [unsettled],
+    risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, revxCanTrade: true, revxBalances: { BTC: 0.1, USD: 80 },
+  });
+  // Turn 1: the buy cannot be read back; the venue holds its coins; ~35 % under its price, the floor sells them.
+  await tick(w.deps);
+  const sell = w.mem.tables.agent_orders.find((o) => o.side === "sell")!;
+  assertEquals([sell.mode, sell.base_size, sell.venue_order_id], ["live", 0.1, "V-1"]);
+  // Turn 2: the sell reads back filled and the coins are gone; the buy still cannot be read.
+  const views: Record<string, OrderView> = { "V-1": { state: "filled", filledBase: 0.1, avgPrice: 130, feeUsd: 0.01, raw: {} } };
+  w.deps.venues.revx.order = (vid) => Promise.resolve(views[vid] ? { ok: true as const, view: views[vid] } : { ok: false as const, error: "no view" });
+  w.deps.venues.revx.balances = () => Promise.resolve({ BTC: 0, USD: 93 });
+  await tick({ ...w.deps, now: NOW + ONE_M });
+  assertEquals(w.mem.tables.agent_orders.find((o) => o.id === sell.id)!.state, "filled");
+  // Turn 3: the buy finally reads back, filled at its price.
+  views["V-7"] = { state: "filled", filledBase: 0.1, avgPrice: 200, feeUsd: 0.02, raw: {} };
+  const r3 = await tick({ ...w.deps, now: NOW + 2 * ONE_M });
+  const buy = w.mem.tables.agent_orders.find((o) => o.id === 7)!;
+  assertEquals(buy.state, "filled");
+  assertEquals(buy.filled_at, unsettled.ts);                                             // when it crossed, not when it was read
+  const book = positionFromFills(w.mem.tables.agent_orders.filter((o) => o.state === "filled").map((o) => toFill(o as unknown as OrderRow)));
+  assertEquals(book.base, 0);                                                            // bought, then sold: flat
+  assertEquals(r3.decisions.filter((d) => d.kind === "protective"), []);                 // nothing left to protect …
+  assert(!r3.errors.some((e) => e.includes("not placed")), r3.errors.join("; "));        // … and no phantom to chase
+});
+
+Deno.test("fillStamp: a fill already on record keeps its time; a marketable order is dated from its own row; a resting one from the turn that reads it", () => {
+  const now = "2026-09-22T12:05:00.000Z", ts = "2026-09-22T12:00:00.000Z";
+  assertEquals(fillStamp({ filled_at: "2026-09-22T12:01:00.000Z", ts, request: { marketable: true } }, now), "2026-09-22T12:01:00.000Z");
+  assertEquals(fillStamp({ filled_at: null, ts, request: { marketable: true } }, now), ts);
+  assertEquals(fillStamp({ filled_at: null, ts, request: { marketable: false } }, now), now);
+  assertEquals(fillStamp({ filled_at: null, ts, request: null }, now), now);
+});
+
+Deno.test("a live placement keeps what the venue's reply said (placedState), so an unsettled 'filled on arrival' is known next turn", async () => {
+  const w = world({ strategies: [strategy({ id: "trend-4h", venue: "revx", mode: "live" })], risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, revxCanTrade: true, revxPlacedState: "filled" });
+  await tick(w.deps);
+  const o = w.mem.tables.agent_orders[0] as Row & { response: { placedState: string } };
+  assertEquals([o.mode, o.state, o.response.placedState], ["live", "new", "filled"]);
+});
+
+Deno.test("every live Revolut X sell is capped at what the venue holds: a book that over-states the coins can still get out", async () => {
+  // If the venue took the buy's fee in the coin, it holds 0.0999 where the book says 0.1 — and a sell of 0.1 is refused,
+  // every minute, by a venue that has no more to give. Sized from the book alone, the floor could never get out.
+  const w = world({
+    strategies: [strategy({ id: "trend-4h", venue: "revx", mode: "live" })],
+    orders: [longSince(2 * ONE_D, 200, 0.1, { strategy_id: "trend-4h", venue: "revx", mode: "live" })],
+    risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, revxCanTrade: true, revxBalances: { BTC: 0.0999, USD: 80 },
+  });
+  const r = await tick(w.deps);
+  const sell = w.mem.tables.agent_orders.find((o) => o.id !== 50)!;
+  assertEquals([sell.side, sell.mode, sell.base_size], ["sell", "live", 0.0999]);
+  assert(r.errors.some((e) => e.includes("capped to 0.099900")), r.errors.join("; "));
+  // The venue's balance is read only where a live Revolut X book needs it: a paper world never asks.
+  const paper = world({ strategies: [strategy({ id: "trend-4h", venue: "revx" })], orders: [longSince(2 * ONE_D, 200, 0.1, { strategy_id: "trend-4h", venue: "revx" })], revxCanTrade: true, revxBalances: { BTC: 0 } });
+  await tick(paper.deps);
+  assert(!paper.revx.calls.includes("balances"), paper.revx.calls.join(","));
+  assertEquals(w.revx.calls.filter((c) => c === "balances").length, 1);             // once a turn, not once a pair
+});
+
+Deno.test("isUniqueViolation: Postgres's 23505 — or PostgREST's 409 saying duplicate key — and never a row value that happens to contain 409", () => {
+  assert(isUniqueViolation(new Error(`db POST agent_orders → 409: {"code":"23505","details":"Key (decision_id, requotes)=(12, 0) already exists.","hint":null,"message":"duplicate key value violates unique constraint"}`)));
+  assert(isUniqueViolation(new Error(`db POST agent_decisions → 409: duplicate key value violates unique constraint "agent_decisions_one_per_bar"`)));
+  // A CHECK violation whose failing row holds an id of 1409 and a price of 64091.23 — the bare-word test called this a duplicate.
+  assert(!isUniqueViolation(new Error(`db POST agent_orders → 400: {"code":"23514","details":"Failing row contains (1409, 2026-09-22 16:40:09.409113+00, rotation-1d, 64091.23, paused, sell)","hint":null,"message":"new row violates check constraint \\"agent_orders_mode_check\\""}`)));
+  // A foreign-key violation is a 409 too, and it is not another turn's claim.
+  assert(!isUniqueViolation(new Error(`db POST agent_orders → 409: {"code":"23503","details":"Key (decision_id)=(99) is not present in table \\"agent_decisions\\".","hint":null,"message":"insert or update on table \\"agent_orders\\" violates foreign key constraint"}`)));
+});
+
+Deno.test("an order refused by the database for a real reason is an ERROR, even when its row's values contain '409'", async () => {
+  const w = world({ strategies: [strategy({ id: "trend-4h", venue: "revx" })], orders: [longSince(2 * ONE_D, 200, 0.1, { strategy_id: "trend-4h", venue: "revx" })] });
+  const realInsert = w.mem.db.insert;
+  w.mem.db.insert = (table, rows, returning) => table === "agent_orders"
+    ? Promise.reject(new Error(`db POST agent_orders → 400: {"code":"23514","details":"Failing row contains (1409, 2026-09-22 04:05:05.123456+00, trend-4h, 1001, revx, BTC/USD, paused, sell, limit, 129.04, 0.1","hint":null`))
+    : realInsert(table, rows, returning);
+  const r = await tick(w.deps);
+  assert(r.errors.some((e) => e.includes("→ 400")), r.errors.join("; "));
+  assert(!r.skipped.some((x) => x.includes("already placed by another turn")), r.skipped.join("; "));
+});
+
+Deno.test("a sell in flight stands the stop down FIRST: a resting buy on the same pair does not hide it", async () => {
+  // The position (real coins), a buy still resting and readable, and the stop's own earlier sell whose reply never
+  // landed (`pending`, not listed by the venue). The resting buy used to be all the stop looked at: it cancelled the
+  // buy and placed a SECOND sell over the first.
+  const restingBuy = seedOrder({ id: 8, ts: new Date(NOW - 2 * ONE_M).toISOString(), mode: "live", state: "new", side: "buy", price: 120, base_size: 0.05, client_order_id: "c-buy", venue_order_id: "V-8" });
+  const pendingSell = seedOrder({ id: 9, ts: new Date(NOW - 2 * ONE_M).toISOString(), mode: "live", state: "pending", side: "sell", price: 129, base_size: 0.1, client_order_id: "c-sell" });
+  const w = world({
+    strategies: [strategy({ mode: "live" })], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" },
+    orders: [longSince(2 * ONE_D, 200, 0.1, { mode: "live" }), restingBuy, pendingSell], active: {},
+    orderView: { state: "new", filledBase: 0, avgPrice: null, feeUsd: 0, raw: {} },
+  });
+  const r = await tick(w.deps);
+  assert(r.errors.some((e) => e.includes("pending sell")), r.errors.join("; "));             // the loop knows the sell is out there …
+  assert(r.skipped.some((x) => x.includes("a sell is already in flight")), r.skipped.join("; "));
+  assert(!w.kraken.calls.some((c) => c.startsWith("place sell")), w.kraken.calls.join(","));   // … and places no second one
+  assertEquals(w.mem.tables.agent_orders.filter((o) => o.side === "sell").length, 1);
+});
+
+Deno.test("no ENTRY on a bar that closed more than a quarter of a bar ago — fresh or retried — and never a refused exit for age", async () => {
+  assertEquals(entryTooLate(0, FOUR_H, FOUR_H + 60 * ONE_M), null);                   // an hour after a 4-hour bar closed: still in time
+  assert(entryTooLate(0, FOUR_H, FOUR_H + 61 * ONE_M)?.includes("too late"));
+  assert(entryTooLate(0, ONE_D, ONE_D + 6 * ONE_H + ONE_M)?.includes("too late"));      // a day bar allows six hours
+  // Fresh: the turn comes back three hours after the 04:00 close (an outage, or a row just added). The breakout is real
+  // but three hours old; an entry now pays today's touch for it. Recorded as a hold, with the reason, and the model not asked.
+  const w = world({ now: NOW + 3 * ONE_H });
+  const r = await tick(w.deps);
+  const d = r.decisions.find((x) => x.kind === "bar")!;
+  assertEquals(d.action, "hold");
+  assert(d.reason.includes("too late to enter"), d.reason);
+  assertEquals([w.mem.tables.agent_orders.length, w.jevLog.length], [0, 0]);
+  // Retried: an entry decided at the close with no order behind it is closed, not placed, three hours on …
+  const barStart = new Date(world().lastClosedBarStart).toISOString();
+  const orphan = (id: number, action: "enter" | "exit"): Row => ({ id, ts: new Date(NOW - ONE_M).toISOString(), strategy_id: "trend-4h-kraken", venue: "kraken", symbol: "BTC/USD", mode: "paper", bar_start: barStart, state: {}, numbers: { orderUsd: action === "enter" ? 20 : 0, kind: "bar" }, provider: "rule", rule_action: action, rule_reason: "x", final_action: action, final_reason: "x", risk_allowed: true, risk_reason: "within limits" });
+  const w2 = world({ now: NOW + 3 * ONE_H, decisions: [orphan(920, "enter")] });
+  await tick(w2.deps);
+  assertEquals(w2.mem.tables.agent_orders.length, 0);
+  assert(String(w2.mem.tables.agent_decisions[0].risk_reason).includes("too late to enter"), String(w2.mem.tables.agent_decisions[0].risk_reason));
+  // … while an EXIT decided on the same bar is still placed: a late exit is still the way out.
+  const w3 = world({ now: NOW + 3 * ONE_H, orders: [longSince(2 * ONE_D, 128, 0.1)], decisions: [orphan(921, "exit")] });
+  await tick(w3.deps);
+  assertEquals(w3.mem.tables.agent_orders.filter((o) => o.side === "sell").map((o) => o.decision_id), [921]);
+});
+
+Deno.test("a protective exit that cannot be placed says so, naming the exit: no quote this minute is an error, not a silent 'allowed'", async () => {
+  // Revolut X's tickers are down; its last closed minute still gives a mark, and the position is ~35 % under cost.
+  const w = world({ strategies: [strategy({ id: "trend-4h", venue: "revx" })], orders: [longSince(2 * ONE_D, 200, 0.1, { strategy_id: "trend-4h", venue: "revx" })], revxNoQuote: true });
+  const r = await tick(w.deps);
+  assertEquals(r.decisions.filter((d) => d.kind === "protective").map((d) => d.allowed), [true]);
+  assertEquals(w.mem.tables.agent_orders.filter((o) => o.side === "sell"), []);
+  assert(r.errors.some((e) => e.includes("protective exit") && e.includes("no quote")), r.errors.join("; "));
+});
+
+Deno.test("a re-quote with no decision id is refused like any other decisionless order: it would carry no claim under 0041", async () => {
+  // A legacy resting order with no decision behind it goes stale. The cancel still happens; the re-quote does not — two
+  // overlapping turns could both place it, and the reason it was once exempt holds only when turns never overlap.
+  const w = world({ orders: [seedOrder({ id: 17, ts: new Date(NOW - REQUOTE_AFTER_MS).toISOString(), price: 120, base_size: 0.1, client_order_id: "c17", requotes: 1 })] });
+  const r = await tick(w.deps);
+  assertEquals(r.settled, [{ id: 17, state: "cancelled" }]);
+  assertEquals(w.mem.tables.agent_orders.filter((o) => o.requotes === 2), []);
+  assert(r.errors.some((e) => e.includes("no decision id")), r.errors.join("; "));
+});
+
+Deno.test("a NON-essential read that fails costs its own job only: the stops still run, new risk is refused, exits are not", async () => {
+  // Each read below used to end the whole turn before a single stop ran. The position is ~35 % under cost in every world.
+  const held = () => ({ strategies: [strategy({ id: "trend-4h", venue: "revx" })], orders: [longSince(2 * ONE_D, 200, 0.1, { strategy_id: "trend-4h", venue: "revx" })] });
+  const failing = (w: ReturnType<typeof world>, pred: (table: string, query: string) => boolean) => {
+    const sel = w.mem.db.select, all = w.mem.db.selectAll;
+    w.mem.db.select = (t, q) => pred(t, q) ? Promise.reject(new Error("db GET → 503: timeout")) : sel(t, q);
+    w.mem.db.selectAll = (t, q) => pred(t, q) ? Promise.reject(new Error("db GET → 503: timeout")) : all(t, q);
+  };
+  for (const [what, pred] of [
+    ["today's order count", (t: string, q: string) => t === "agent_orders" && q.includes("select=venue,mode")],
+    ["last observations", (t: string) => t === "agent_observations"],
+    ["maker probes", (t: string) => t === "agent_maker_probes"],
+    ["the caps", (t: string) => t === "agent_risk"],
+  ] as const) {
+    const w = world(held());
+    failing(w, pred);
+    const r = await tick(w.deps);
+    assertEquals(r.decisions.filter((d) => d.kind === "protective").map((d) => [d.action, d.allowed]), [["exit", true]], `${what}: ${r.errors.join("; ")}`);
+    assertEquals(w.mem.tables.agent_orders.filter((o) => o.side === "sell").length, 1, what);
+    assert(r.errors.length > 0, `${what} failed silently`);
+  }
+  // Fail CLOSED for new risk: a flat book on a bar that would enter, with today's order count unreadable, enters nothing.
+  const flat = world({ strategies: [strategy({ id: "trend-4h", venue: "revx" })] });
+  failing(flat, (t, q) => t === "agent_orders" && q.includes("select=venue,mode"));
+  const r2 = await tick(flat.deps);
+  assertEquals(r2.decisions.map((d) => [d.action, d.allowed]), [["enter", false]]);
+  assertEquals(flat.mem.tables.agent_orders, []);
+});
+
+Deno.test("an ESSENTIAL read that fails stops the turn LOUDLY: no book, no stop — and it says so rather than throwing", async () => {
+  const w = world({ strategies: [strategy({ id: "trend-4h", venue: "revx" })], orders: [longSince(2 * ONE_D, 200, 0.1, { strategy_id: "trend-4h", venue: "revx" })] });
+  const all = w.mem.db.selectAll;
+  w.mem.db.selectAll = (t, q) => t === "agent_orders" && q.includes("state=in.(filled,partially_filled)") ? Promise.reject(new Error("db GET → 503: timeout")) : all(t, q);
+  const r = await tick(w.deps);
+  assert(r.errors.some((e) => e.startsWith("ESSENTIAL READ FAILED — the book")), r.errors.join("; "));
+  assertEquals([r.decisions.length, w.mem.tables.agent_orders.length], [0, 1]);
+  assertEquals(w.mem.tables.agent_locks[0].holder, null);                          // and the lease is still given back
+});
+
+Deno.test("a turn that has lost its lease stops: it places nothing beside the turn that took the lock over", async () => {
+  // The turn stalls a minute before its first check (a slow venue, a slow database), its lease expires, and the next
+  // minute's turn takes the lock. The stalled turn used to renew with an UPDATE that matched nothing, carry on, and
+  // claim its own protective minute — two sells for one position.
+  const w = world({ strategies: [strategy({ id: "trend-4h", venue: "revx" })], orders: [longSince(2 * ONE_D, 200, 0.1, { strategy_id: "trend-4h", venue: "revx" })] });
+  let calls = 0;
+  const clock = () => {
+    if (++calls === 2) w.mem.tables.agent_locks[0] = { name: "tick", lease_until: new Date(NOW + 2 * ONE_M).toISOString(), holder: "the next turn" };
+    return NOW + (calls === 1 ? 0 : 60e3);
+  };
+  const r = await tick({ ...w.deps, clock });
+  assert(r.errors.some((e) => e.includes("lease lost")), r.errors.join("; "));
+  assertEquals([r.decisions.length, w.mem.tables.agent_orders.length], [0, 1]);            // no stop, no order: the other turn owns this minute
+  assertEquals(w.mem.tables.agent_locks[0].holder, "the next turn");                      // and its lock is untouched
+});
+
+Deno.test("a long turn keeps its lease: renewed whenever half of it is gone, not once", async () => {
+  // Three pairs, each reached 30 s after the last. A lease renewed only once expires under the third.
+  const w = world({ strategies: [strategy({ symbols: ["BTC/USD", "ETH/USD", "SOL/USD"] })], series: { "BTC/USD": series(), "ETH/USD": series(), "SOL/USD": series() } });
+  let t = 0;
+  const clock = () => NOW + (t++) * 30e3;
+  const claim = w.mem.db.claim;
+  let renewals = 0;
+  w.mem.db.claim = (table, query, patch) => { if (table === "agent_locks" && query.includes("holder=eq.")) renewals++; return claim(table, query, patch); };
+  const r = await tick({ ...w.deps, clock });
+  assert(renewals >= 2, `${renewals} renewal(s)`);
+  assert(!r.errors.some((e) => e.includes("lease")), r.errors.join("; "));
+});
+
+Deno.test("a fill is dated from when it FIRST filled: finishing the order — read back filled, or cancelled with the rest unfilled — never re-stamps it", async () => {
+  const first = new Date(NOW - 30 * ONE_M).toISOString();                        // the first part filled half an hour ago
+  const partial = (over: Row = {}) => seedOrder({ id: 30, ts: new Date(NOW - 40 * ONE_M).toISOString(), mode: "live", state: "partially_filled", filled_base: 0.05, avg_fill_price: 129, filled_at: first, client_order_id: "c30", venue_order_id: "V-30", price: 129, base_size: 0.155, ...over });
+  const live = { strategies: [strategy({ mode: "live" })], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" } };
+  // (a) The venue now says the whole order filled.
+  const w = world({ ...live, orders: [partial()], orderView: { state: "filled", filledBase: 0.155, avgPrice: 129, feeUsd: 0.08, raw: {} } });
+  await tick(w.deps);
+  assertEquals([w.mem.tables.agent_orders[0].state, w.mem.tables.agent_orders[0].filled_at], ["filled", first]);
+  // (b) An hour old, so the turn cancels it; what filled is settled as the fill — still dated from its first part.
+  const w2 = world({ ...live, orders: [partial({ ts: new Date(NOW - 61 * ONE_M).toISOString() })], orderView: { state: "cancelled", filledBase: 0.05, avgPrice: 129, feeUsd: 0.03, raw: {} } });
+  await tick(w2.deps);
+  assertEquals([w2.mem.tables.agent_orders[0].state, w2.mem.tables.agent_orders[0].filled_at], ["filled", first]);
+  // (c) Still working when read, too old, so the turn cancels it — and the read-back after the cancel reports the fill.
+  const w3 = world({ ...live, orders: [partial({ ts: new Date(NOW - 61 * ONE_M).toISOString() })], orderViews: [
+    { state: "partially_filled", filledBase: 0.05, avgPrice: 129, feeUsd: 0.03, raw: {} },
+    { state: "cancelled", filledBase: 0.05, avgPrice: 129, feeUsd: 0.03, raw: {} },
+  ] });
+  await tick(w3.deps);
+  assert(w3.kraken.calls.includes("cancel V-30"), w3.kraken.calls.join(","));
+  assertEquals([w3.mem.tables.agent_orders[0].state, w3.mem.tables.agent_orders[0].filled_at], ["filled", first]);
+});
+
+Deno.test("the day opens at yesterday's CLOSE until the venue publishes today's candle — pure, and through the tick's own P&L just after midnight", async () => {
+  const day = Date.parse("2026-09-21T00:00:00Z");
+  const yesterday = { start: day - ONE_D, open: 100, high: 112, low: 99, close: 110, volume: 1 };
+  assertEquals(dayOpenOf([yesterday], day), 110);                                  // its CLOSE, not its open (100)
+  assertEquals(dayOpenOf([yesterday, { ...yesterday, start: day, open: 111, close: 115 }], day), 111);   // published: today's own open
+  assertEquals(dayOpenOf([], day), null);
+  // Through the tick, two minutes after midnight, the daily candle for today not yet published. Held 0.1 since before
+  // yesterday: today's P&L is 0.1 × (mark − yesterday's close). Read from yesterday's OPEN it was a whole day off.
+  const midnight = Math.floor(NOW / ONE_D) * ONE_D + ONE_D;
+  const bars: Candle[] = Array.from({ length: 130 }, (_, i) => { const c = 100 * Math.pow(1.002, i); return { start: midnight - (129 - i) * FOUR_H, open: c / 1.002, high: c * 1.0005, low: c / 1.002 * 0.9995, close: c, volume: 1 }; });
+  const last4h = bars[128].close;
+  const c1d: Candle[] = Array.from({ length: 130 }, (_, i) => { const c = last4h * Math.pow(1.01, i - 129); return { start: midnight - (130 - i) * ONE_D, open: c / 1.01, high: c * 1.002, low: c / 1.01 * 0.998, close: c, volume: 1 }; });
+  const w = world({ now: midnight + 2 * ONE_M, series: { "BTC/USD": { bars, c1d } }, orders: [longSince(2 * ONE_D, 120, 0.1)] });
+  await tick(w.deps);
+  const dec = w.mem.tables.agent_decisions.find((d) => (d.numbers as { kind: string }).kind === "bar")!;
+  const n = dec.numbers as { pnlToday: number; mark: number };
+  assertAlmostEquals(n.pnlToday, 0.1 * (n.mark - c1d[129].close), 1e-9);
+  assert(Math.abs(n.pnlToday - 0.1 * (n.mark - c1d[129].open)) > 0.01);           // …which is not what yesterday's open gives
+});
+
+Deno.test("the in-memory database refuses what Postgres refuses, on UPDATE as well as INSERT", async () => {
+  // The rules live in ONE function the double calls on every write; this pins the double, so it can never again be
+  // looser than the schema it stands in for.
+  const now = () => NOW;
+  const row = { strategy_id: "s", venue: "revx", symbol: "BTC/USD", mode: "live", side: "buy", price: 100, base_size: 0.1, client_order_id: "00000000-0000-4000-8000-00000000000a" };
+  assertEquals(schemaRefusal("agent_orders", { ...row, state: "new", filled_base: 0, fee_usd: 0, requotes: 0 }), null);
+  const { db, tables } = memDb({ agent_orders: [] }, { now });
+  await db.insert("agent_orders", row);
+  assertEquals([tables.agent_orders[0].state, tables.agent_orders[0].filled_base, tables.agent_orders[0].fee_usd], ["new", 0, 0]);   // Postgres's defaults
+  const id = tables.agent_orders[0].id;
+  let refused = "";
+  await db.update("agent_orders", `id=eq.${id}`, { state: "filled", fee_usd: NaN }).catch((e) => { refused = String(e); });   // NaN travels as null
+  assert(refused.includes("not-null") && refused.includes("fee_usd"), refused);
+  assertEquals(tables.agent_orders[0].state, "new");                                     // the statement changed nothing
+  refused = "";
+  await db.update("agent_orders", `id=eq.${id}`, { state: "settled" }).catch((e) => { refused = String(e); });
+  assert(refused.includes("agent_orders_state_check"), refused);
+  refused = "";
+  await db.insert("agent_orders", { ...row, mode: "paused" }).catch((e) => { refused = String(e); });
+  assert(refused.includes("agent_orders_mode_check"), refused);
+  refused = "";
+  await db.insert("agent_maker_probes", { strategy_id: "s", venue: "revx", symbol: "BTC/USD", side: "buy", mode: "live", taker_price: 100, maker_price: 0, base_size: 0.1, expires_at: new Date(NOW).toISOString() }).catch((e) => { refused = String(e); });
+  assert(refused.includes("maker_price_check"), refused);
+  // `client_order_id uuid not null unique`: a second order under the same id is a unique violation, and not a uuid is not a row.
+  refused = "";
+  await db.insert("agent_orders", row).catch((e) => { refused = String(e); });
+  assert(refused.includes("→ 409") && refused.includes("agent_orders_client_order_id_key"), refused);
+  refused = "";
+  await db.insert("agent_orders", { ...row, client_order_id: "c-1" }).catch((e) => { refused = String(e); });
+  assert(refused.includes("invalid input syntax for type uuid"), refused);
+  assertEquals(tables.agent_orders.length, 1);
+});
+
+Deno.test("a settlement Postgres would refuse is not certified by the tests: a fee that is not a number leaves the order unsettled, and says so", async () => {
+  // The fee reaches the database as null and `fee_usd NOT NULL` refuses the UPDATE. The old double applied it anyway.
+  const live = seedOrder({ id: 3, mode: "live", client_order_id: "c3", venue_order_id: "V-9" });
+  const view: OrderView = { state: "filled", filledBase: 0.155, avgPrice: 128.95, feeUsd: NaN, raw: {} };
+  const w = world({ strategies: [strategy({ mode: "live" })], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, orders: [live], orderView: view });
+  const r = await tick(w.deps);
+  assertEquals(w.mem.tables.agent_orders[0].state, "new");
+  assert(r.errors.some((e) => e.includes("not-null") && e.includes("fee_usd")), r.errors.join("; "));
+});
+
+Deno.test("a LIVE Revolut X order is read back through the real client's reader: the documented reply settles; an unreadable one is refused and the floor still holds", async () => {
+  const documented: VenueOrder = {
+    id: "V-7", client_order_id: "c-docs", symbol: "BTC/USD", side: "buy", type: "limit", quantity: "0.1", filled_quantity: "0.1", leaves_quantity: "0",
+    price: "200.00", average_fill_price: "199.90", total_fee: "0.018", fee_currency: "USD", status: "filled",
+  };
+  const unsettled = seedOrder({
+    id: 7, ts: new Date(NOW - 2 * ONE_M).toISOString(), strategy_id: "trend-4h", venue: "revx", mode: "live", side: "buy", state: "new",
+    price: 200, base_size: 0.1, client_order_id: "c-docs", venue_order_id: "V-7", request: { marketable: true }, response: { placedState: "filled" },
+  });
+  const live = { strategies: [strategy({ id: "trend-4h", venue: "revx", mode: "live" })], orders: [unsettled], risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, revxCanTrade: true, revxBalances: { BTC: 0.1, USD: 80 } };
+  // (a) The reply in the names the venue documents: settled with the venue's own size, price and fee.
+  const w = world({ ...live, revxOrderReply: documented });
+  const r = await tick(w.deps);
+  const o = w.mem.tables.agent_orders[0];
+  assertEquals([o.state, o.filled_base, o.avg_fill_price, o.fee_usd], ["filled", 0.1, 199.9, 0.018]);
+  // … and, ~35 % under its cost, the floor then sells it in the same turn.
+  assertEquals(r.decisions.filter((d) => d.kind === "protective").map((d) => d.action), ["exit"]);
+  // (b) A status the client does not know: refused, never "new with nothing filled" — and the coins it bought still have a floor.
+  const w2 = world({ ...live, revxOrderReply: { ...documented, status: "completed" } });
+  const r2 = await tick(w2.deps);
+  assertEquals(w2.mem.tables.agent_orders[0].state, "new");
+  assert(r2.errors.some((e) => e.includes("does not know")), r2.errors.join("; "));
+  assertEquals(w2.mem.tables.agent_orders.filter((x) => x.side === "sell").map((x) => [x.mode, x.base_size]), [["live", 0.1]]);
 });

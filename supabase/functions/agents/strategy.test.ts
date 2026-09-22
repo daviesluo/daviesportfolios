@@ -363,6 +363,14 @@ Deno.test("stepDecimals reads an exponential step: a venue that writes 1e-8 must
   assertEquals(floorToStep(0.5, "0.00000001"), "0.50000000");
 });
 
+Deno.test("stepDecimals reads a mantissa AND an exponent: 1.5e-8 carries nine decimals, not the four `split('.')` counted (review R, #16)", () => {
+  assertEquals(stepDecimals("1.5e-8"), 9);
+  assertEquals(stepDecimals("2.5E-3"), 4);
+  assertEquals(stepDecimals("1e2"), 0);
+  // The failure it prevents: toFixed(4) floored a size on a 1.5e-8 grid to "0.0000" — an order of nothing.
+  assertEquals(floorToStep(0.000000123, "1.5e-8"), "0.000000120");
+});
+
 Deno.test("positionFromFills is a TOTAL order: two fills stamped the same instant apply buy-first, so a tie cannot destroy a position", () => {
   const f = (ts: number, side: "buy" | "sell", base: number, price: number) => ({ ts, side, base, price, feeUsd: 0 });
   const buy = f(1000, "buy", 1, 100), sell = f(1000, "sell", 1, 110);

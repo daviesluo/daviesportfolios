@@ -283,6 +283,10 @@ that follow from that evidence, in short:
   the same gate as any order. Paper twins have their own exposure cap
   (`paper_exposure_usd`) so they measure independently. The pre-live
   review that found these is `docs/agents/reviews/`, its status §4.17.
+- **The Revolut X account the key sees is the loop's alone.** The floor counts a live buy it cannot read back by
+  the venue's balance beyond the settled book, and every live sell is capped at that balance (reference §4.24).
+  A trade made there by hand would be counted and could be sold by the floor: never trade by hand in that
+  account, and tell Davies so whenever the subject comes up.
 - Verify a key read-only before anything depends on it: the `probe`
   action (balances, pair config for every symbol on an active row, a
   signed call with a query, Revolut X active orders and Kraken closed
