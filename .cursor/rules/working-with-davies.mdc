@@ -527,7 +527,7 @@ Read these as a checklist before pushing.
   so three tests certified a paused row's exit that Postgres refused in
   production; hours later a guard was added to the real `selectAll` and
   not to the stub's, one production caller had no `order=`, and the tick
-  threw on every run for two hours while 338 tests were green. Put a rule
+  threw on every run for three hours while 338 tests were green. Put a rule
   the double must honour in ONE function both call, and when you add a
   guard to a real client, grep every stub of that client in the same
   change.
@@ -555,6 +555,10 @@ Read these as a checklist before pushing.
   passes all four evaluations" was 1 of 6; "AVAX is uniquely qualified"
   was one passer where chance gives 1.8. Both were one query from the
   record. Recompute before relaying, and say which numbers you checked.
+- **A timestamp you estimated is not a timestamp.** Eight ledger headers
+  on 2026-09-22 were stamped up to 76 minutes ahead of the clock, and one
+  of them was then used as evidence — the tick outage was dated from it and
+  understated by an hour. Read `date -u`, or the commit time, every time.
 - **Read the table that would show the failure.** After the tick deploy
   that broke it, the basis kept updating — it is written before most of
   the loop runs — so "the loop is alive" read true through a crash.
