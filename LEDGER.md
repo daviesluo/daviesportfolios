@@ -14,75 +14,93 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-0a. **WORK IN FLIGHT (as of 2026-09-22 19:50 UTC). If this session dies,
-   resume from THIS list.** A harness glitch at 19:38 UTC (a user message
-   arriving mid-tool-call is recorded as a rejection) STOPPED the fix
-   agent, the SUI agent and the venue survey; each was relaunched on
-   Davies' "请都继续" to finish from the partial work left in the tree.
-   **The main working tree is the agents' sandbox** (their uncommitted
-   edits live there: `tick.ts`, `index.ts`, `_shared/revx.ts`,
-   `_shared/kraken.ts`, the agents tests, new `agents/testing.ts`,
-   `src/agents.js`, `dist/`, `backtest_sui.ts`, the SUI and Jev reviews).
-   The main session integrates from a separate clean worktree at
-   `origin/main` (`scratchpad/wt_me`), builds and gates there, and pushes
-   from there — never commit an agent's half-finished file. Each agent
-   writes only its own files and none edits README / LEDGER / CLAUDE /
-   reference / go-live; nothing an agent reports is repeated as fact
-   until recomputed.
+00. **DAVIES' FOUR REQUESTS OF 2026-09-22 ~20:15 UTC, in hand from
+   23:35 UTC.** His usage window closed before any was begun.
+   1. **Root: fewer files still.** "根目录可以再加bin和cloud文件夹，让根目录的文件越少越好":
+      add `bin/` and `cloud/` so the root holds as few files as possible
+      (his skill repos keep `bin/`). Check each move against its tool
+      first: `hooks/` → `bin/hooks/` means `git config core.hooksPath
+      bin/hooks` in EVERY clone (machine-setup section, CLAUDE.md, and tell
+      him); the Supabase tree and `wrangler.jsonc` → `cloud/` only if the
+      CLI (`--workdir`) and Pages (root directory is a dashboard setting)
+      can follow, with `migrations.yml` / `edge-functions.yml` updated.
+   2. **README much shorter, plain, in his own voice.** "目前readme太长了，请精简，
+      没用的东西也可以删了，确保逻辑清晰，并且所有语句措辞也清晰不绕弯，而且没有ai感像我本人自己写的".
+      Keep the showcase top; the system map becomes one line per item;
+      long "why" narratives stay in `docs/handover.md` / the reference;
+      update CLAUDE.md's README rule to the new shape.
+   3. **Jev: fix the configuration, do NOT shadow it.** He rejected
+      `jevGate: false`: "这个不就相当于把jev模型给实际retire了？听起来像是jev模型的规则配置问题而不是jev本身，
+      请修复并验证". The faults are ours: (a) the `healthy_trend`
+      question's prose demands `trend_strength` moderate/strong and
+      `momentum_30d` positive, stricter than the rulebook; (b) `enterMin`
+      0.60 sits in the band where the model's high-volatility answers are
+      a coin flip (0.55–0.64). Rewrite the question to ask what the
+      rulebook cannot see, pick a threshold in a deterministic band,
+      re-measure the REAL model on all 90 entry states with the new
+      wording, re-price with `backtest_jev.ts --replay measured` against
+      the random-veto null on A/B/C/D, pin the question and threshold, and
+      report honestly if it still does not beat the null. Item J's
+      "recommended shadow" is withdrawn by this.
+   4. **"30 Sept" → "30 Sep"** in Upcoming Earnings
+      (`src/header_sidebar.jsx`, `Intl` en-GB writes "Sept"). Pin, rebuild.
 
-   **J — Jev: DONE, verified, committed (reference §4.21 re-priced).**
-   On the real model's answers to all 90 entry states: (i) shadow = the
-   rulebook, A/B/C/D +8.0 / +20.1 / +55.6 / −7.8 %; (ii) gating as it
-   runs −1.0 / +14.6 / +55.7 / −2.3 %; (iii) the weak-trend clause as
-   code +0.6 / +14.9 / +56.7 / −3.3 %. Neither (ii) nor (iii) passes the
-   bar (a random veto of equal size matches the worst-window lift in
-   30–43 % of draws). **Recommended: `params.jevGate: false` on the live
-   row AND `trend-4h` (its control). DAVIES DECIDES; then rewrite the
-   `0047` draft's params and go-live §4/§7/§9 to his choice.**
+0a. **WORK IN FLIGHT (as of 2026-09-22 23:35 UTC).** Every sub-agent died
+   on the usage limit at ~20:20 UTC. **The main working tree is the
+   agents' sandbox** (uncommitted, reviewed by nobody yet); a backup of
+   it is on branch `claude/repo-audit-restore-uverhn` (`79a7ad4`, a
+   backup ref only: no PR, never merged as is). The main session
+   integrates from a clean worktree at `origin/main` and pushes from
+   there. Nothing an agent reports is repeated as fact until recomputed.
 
-   **S — SUI's seat: running.** Finish/verify `backtest_sui.ts` (written
-   by an earlier agent, unverified), judge SUI on the windows it has, the
-   span all five share, and six-month folds; paper and live answered
-   separately; check whether §3.8's admission reproduces under the
-   running stop rule. Output: `sui.json`, the SUI review.
+   **R — pre-live fixes: DONE by the agent, NOT yet integrated.** 17
+   items; 1–15 done with pins and red counterfactuals; a lifecycle test
+   (3 tests, 12 stages, `agents/lifecycle.test.ts` + `agents/testing.ts`);
+   gates green on its tree (deno 380, npm 915, sweep 208). Not done: #16
+   (`stepDecimals("1.5e-8")` returns 4; the fix is in
+   `_shared/agents_strategy.ts`, patch written) and the tick half of #15
+   (a retired live-labelled row with stranded paper coins is skipped;
+   cannot arise under the new-row go-live design). **Flags to settle
+   while integrating:** A. `revx.ts` sends `time_in_force` on every limit
+   order; Revolut X's own reference says it cannot be set (limit = GTC).
+   If the venue rejects the field every order fails, exits included.
+   Settle before live. B. the floor counts an unreadable or reply-lost
+   live buy by the venue balance (two hunks beyond the spec, each
+   pinned). C. that assumes nothing else trades in the sub-account. E. a
+   provisional buy settled after the floor sold it gets `filled_at` = the
+   settle minute: phantom long, "not placed" every minute. F. `db.ts`
+   keeps 200 chars of the PostgREST body with `details` first, so
+   constraint names are lost in `ops_errors`. I. `_shared/` changes, so
+   every Edge Function redeploys.
 
-   **K — Kraken history: DONE, committed (reference §4.23).** No coin
-   of the 84 clears the bar: 10 have two windows, TAO clears both and is
-   1 coin against 0.60 by chance (P = 0.46) and fails the fold test (2 of
-   4); across all 27 Kraken-advantaged two-window coins 3 pass against
-   3.26 (P = 0.65), none clears the folds. Pre-cost edge on them +22 / −4
-   bps against a 97–105 bps round trip. **Stop researching Kraken.**
-   Money: **withdraw the balance, keep the account and the key** —
-   Davies' move at Kraken, awaiting his word. Item 22's "2 against 3.33"
-   corrected to 1 against 2.56 (three tests → four).
+   **S — SUI's seat: the agent died after the first committed run.**
+   `docs/agents/backtests/sui.json` and a review draft exist in the tree
+   (backed up in `79a7ad4`), not checked. To do: the second run,
+   byte-identical check, align the review, verify, commit.
 
-   **R — adversarial review of today's diff: running** (`fb26476..HEAD`
-   in the agents code), with one instruction above the rest: list every
-   rule the test doubles do NOT enforce that the real db, venues or model
-   do. Report-only; it writes nothing into the repo. One finding already
-   expected: an unconfirmed live ENTRY is recorded `risk_allowed: true`
-   and refused only in `place()`, so the retry path may re-try it every
-   minute — fix it when R reports, with a pin.
+   **Venue survey: the agent died early.** Its notes (UK/HK regulation,
+   the SFC's 13 licensed platforms, OSL / HashKey API terms, Coinbase's
+   public candles) are in the session scratchpad only. To do: finish it
+   as `docs/agents/venue-survey.md` (UK, US, HK: exchanges, brokers with
+   APIs, legal shorting, ETNs, data APIs; no VPN routes).
 
-0b. **README is now the public showcase (2026-09-22); the repo is NOT
-   public yet and should not be made public as it stands.** Davies plans
-   to make it public for internship interviews. The README's top half is
-   the pitch, the live example (daviesluo.com, password: contact Davies),
-   masked desktop screenshots in `docs/screenshots/`, features,
-   architecture, engineering practice and the agents research; every
-   figure from the real book was taken out of the README. Open:
-   (a) **his phone screenshots** — he is sending them; add a "Phone"
-   pair under Screenshots and delete the "will follow" line; the Agents
-   page screenshots come after live. (b) **The public path is his
-   decision**: the tree and its history still carry the real book —
-   `handover.md` (transcripts, balances), `LEDGER.md`, the skill files,
-   data-repair migrations `0028`/`0030`/`0031`/`0033`, a few code
-   comments (`snapshot-record`), test fixtures modelled on it, and his
-   email in `CLAUDE.md`. Recommended: a separate clean public repository
-   built from a curated copy of the tree with fresh history, rather than
-   flipping this one or rewriting its history. Do not flip visibility
-   without his explicit go. (c) A README fact-check agent is running;
-   apply what it verifies.
+   **J — Jev study: DONE, committed (reference §4.21).** (i) shadow
+   +8.0 / +20.1 / +55.6 / −7.8 %, (ii) gating as it runs −1.0 / +14.6 /
+   +55.7 / −2.3 %, (iii) the weak-trend clause as code +0.6 / +14.9 /
+   +56.7 / −3.3 %. The shadow recommendation is superseded by item 00.3.
+
+   **K — Kraken history: DONE, committed (reference §4.23).** Stop
+   researching Kraken; Davies moves the money to Revolut X (item 0c).
+
+0b. **Public repository: prepared, the switch is Davies'.** He chose to
+   publish THIS repository as it stands ("C方案": old personal records
+   are acceptable if they are not prominent). Done: the demo book in the
+   public bundle is fictional (`f1ad198`), the root is tidied (`56eeca7`),
+   the README is scrubbed of every figure from the real book and its
+   facts are checked (`1ca2962`). He flips visibility himself (Settings →
+   General → Danger Zone). Open: **his phone screenshots** (add a
+   "Phone" pair under Screenshots and delete the "will follow" line); the
+   Agents page screenshots come after live.
 
 0c. **Kraken money: Davies is withdrawing it and moving it to Revolut X
    (his decision, 2026-09-22; reference §4.23). The Kraken API key stays
@@ -287,6 +305,19 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-22 23:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Resumed after the usage limit; the in-flight list rewritten.** Davies'
+four requests of ~20:15 UTC (root into `bin/` / `cloud/`, a shorter
+README in his voice, fix Jev's question and threshold instead of
+shadowing it, "Sept" → "Sep") are item 00. Every sub-agent died on the
+limit at ~20:20 UTC: the pre-live fix agent had already reported (17
+items, flags A–I, summarised in 0a), the SUI agent had written
+`sui.json` and a review draft, the venue survey only scratch notes. The
+agents' uncommitted tree is backed up as `79a7ad4` on
+`claude/repo-audit-restore-uverhn`. Item 0b now records his choice to
+publish this repository as it stands.
 
 ### [2026-09-22 20:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
