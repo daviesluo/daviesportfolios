@@ -1,0 +1,7651 @@
+{
+ "study": "the Jev veto, priced — `rule` against `rule ∧ Jev` for the row recommended for live, on four walk-forward windows, never averaged",
+ "row": {
+  "row": "trend-4h",
+  "venue": "revx",
+  "symbols": [
+   "BTC/USD",
+   "ETH/USD",
+   "SOL/USD",
+   "AVAX/USD",
+   "SUI/USD"
+  ],
+  "capitalUsd": 100,
+  "slots": 5
+ },
+ "thresholds": {
+  "enterMin": 0.6,
+  "cautionExit": 1.75,
+  "source": "agent_strategies.params.enterMin on all three live rows, read 2026-09-22; cautionExit is tick.ts's literal"
+ },
+ "stops": {
+  "maxLossPct": 0.08,
+  "atrStop": null,
+  "atrN": 14,
+  "reentryBars": 2,
+  "what": "what stopsForKind returns at the moment of this run — the 8 % floor under average cost and no intra-bar ATR trail (reference §3.13)"
+ },
+ "caveats": [
+  "Jev was released 2026-09-17/18. It is in no historical data, and it has no memory. Asking today's model about a state computed from 2023 candles is legitimate — the state is ten categorical words, and the model cannot see a date — but it is NOT what the model would have said then, and nothing here should be read as if it were.",
+  "The default arm does not call Jev. It replays the model's OWN RECORDED ANSWERS from `agent_decisions` (twelve entry rows, 2026-09-19 → 2026-09-21, provider openrouter, model typesafe/jev-1.13-20260917), resolved onto historical states by the pre-registered rule in `surfaceFromRecord`. `--replay live` asks the real model and is the arm to run when a key is in hand.",
+  "`enterMin` is scanned to show the SURFACE. Choosing a threshold on the windows that scored it is in-sample optimisation, which §3.11 and §3.19 have already measured to be worse than the seeded point. The only thing here that could justify a move is `enterMinScan.outOfSample`, whose protocol was fixed before the scan ran.",
+  "The model is repeatable to about ±0.01 (the same state answered 0.94 and 0.95 on two rows minutes apart), and the recorded high-volatility cells sit at 0.59 and 0.61 — one hundredth either side of enterMin. The `highvol-vetoed` and `highvol-passed` arms bracket that, and the bracket is the honest answer for a high-volatility regime."
+ ],
+ "windows": {
+  "note": "The same four windows `backtest_windows.ts` cuts, from the same splice: Kraken's hourly bundle strictly before the Coinbase series, Coinbase's from there on. A and B keep the exact calendar every published table used.",
+  "A": "parameters on the first two thirds, the LAST third out of sample (bear)",
+  "B": "parameters on the first third, the MIDDLE third out of sample (bull)",
+  "C": "parameters on the 24 months of extended history before the series, the FIRST third out of sample (strong bull)",
+  "D": "parameters on the 24 months before that, the 12 months before the series out of sample (sideways). D's scored year sits inside C's in-sample.",
+  "ranking": "an arm is ranked by the WORST window it has; windows are never averaged (§3.11)"
+ },
+ "liveRecord": {
+  "what": "every agent_decisions row with rule_action = 'enter', read 2026-09-22",
+  "rows": 12,
+  "vetoed": 3,
+  "vetoRate": 0.25,
+  "note": "§4.21 counts 15 signals and 3 vetoes (20 %); migration 0044 has since deleted three of those rows with their strategies, so the surviving record is 12 and 3.",
+  "byRow": {
+   "momentum-1d": {
+    "signals": 4,
+    "vetoed": 1
+   },
+   "trend-1h": {
+    "signals": 5,
+    "vetoed": 2
+   },
+   "trend-4h": {
+    "signals": 3,
+    "vetoed": 0
+   }
+  },
+  "answers": [
+   {
+    "id": 1,
+    "strategy": "momentum-1d",
+    "symbol": "BTC/USD",
+    "barStart": "2026-09-19T00:00:00Z",
+    "strength": "weak",
+    "breakout": "inside_range",
+    "volatility": "low",
+    "momentum": "positive",
+    "healthy": 0.15,
+    "caution": 0,
+    "echo": "BTC/USD",
+    "finalAction": "hold"
+   },
+   {
+    "id": 2,
+    "strategy": "momentum-1d",
+    "symbol": "ETH/USD",
+    "barStart": "2026-09-19T00:00:00Z",
+    "strength": "moderate",
+    "breakout": "inside_range",
+    "volatility": "normal",
+    "momentum": "positive",
+    "healthy": 0.92,
+    "caution": 0,
+    "echo": "ETH/USD",
+    "finalAction": "enter"
+   },
+   {
+    "id": 3,
+    "strategy": "momentum-1d",
+    "symbol": "SOL/USD",
+    "barStart": "2026-09-19T00:00:00Z",
+    "strength": "moderate",
+    "breakout": "inside_range",
+    "volatility": "normal",
+    "momentum": "positive",
+    "healthy": 0.93,
+    "caution": 0,
+    "echo": "SOL/USD",
+    "finalAction": "enter"
+   },
+   {
+    "id": 45,
+    "strategy": "momentum-1d",
+    "symbol": "BTC/USD",
+    "barStart": "2026-09-20T00:00:00Z",
+    "strength": "moderate",
+    "breakout": "inside_range",
+    "volatility": "low",
+    "momentum": "positive",
+    "healthy": 0.92,
+    "caution": 0,
+    "echo": "BTC/USD",
+    "finalAction": "enter"
+   },
+   {
+    "id": 69,
+    "strategy": "trend-1h",
+    "symbol": "ETH/USD",
+    "barStart": "2026-09-21T00:00:00Z",
+    "strength": "moderate",
+    "breakout": "above_range",
+    "volatility": "normal",
+    "momentum": "positive",
+    "healthy": 0.95,
+    "caution": 0,
+    "echo": "ETH/USD",
+    "finalAction": "enter"
+   },
+   {
+    "id": 83,
+    "strategy": "trend-4h",
+    "symbol": "ETH/USD",
+    "barStart": "2026-09-21T00:00:00Z",
+    "strength": "moderate",
+    "breakout": "above_range",
+    "volatility": "normal",
+    "momentum": "positive",
+    "healthy": 0.94,
+    "caution": 0,
+    "echo": "ETH/USD",
+    "finalAction": "enter"
+   },
+   {
+    "id": 106,
+    "strategy": "trend-1h",
+    "symbol": "BTC/USD",
+    "barStart": "2026-09-21T08:00:00Z",
+    "strength": "moderate",
+    "breakout": "above_range",
+    "volatility": "normal",
+    "momentum": "positive",
+    "healthy": 0.95,
+    "caution": 0,
+    "echo": "BTC/USD",
+    "finalAction": "enter"
+   },
+   {
+    "id": 108,
+    "strategy": "trend-1h",
+    "symbol": "SOL/USD",
+    "barStart": "2026-09-21T08:00:00Z",
+    "strength": "moderate",
+    "breakout": "above_range",
+    "volatility": "high",
+    "momentum": "positive",
+    "healthy": 0.59,
+    "caution": 1,
+    "echo": "SOL/USD",
+    "finalAction": "hold"
+   },
+   {
+    "id": 118,
+    "strategy": "trend-4h",
+    "symbol": "BTC/USD",
+    "barStart": "2026-09-21T08:00:00Z",
+    "strength": "moderate",
+    "breakout": "above_range",
+    "volatility": "normal",
+    "momentum": "positive",
+    "healthy": 0.95,
+    "caution": 0,
+    "echo": "BTC/USD",
+    "finalAction": "enter"
+   },
+   {
+    "id": 120,
+    "strategy": "trend-4h",
+    "symbol": "SOL/USD",
+    "barStart": "2026-09-21T08:00:00Z",
+    "strength": "strong",
+    "breakout": "above_range",
+    "volatility": "high",
+    "momentum": "positive",
+    "healthy": 0.61,
+    "caution": 1,
+    "echo": "SOL/USD",
+    "finalAction": "enter"
+   },
+   {
+    "id": 131,
+    "strategy": "trend-1h",
+    "symbol": "SOL/USD",
+    "barStart": "2026-09-21T13:00:00Z",
+    "strength": "moderate",
+    "breakout": "above_range",
+    "volatility": "high",
+    "momentum": "positive",
+    "healthy": 0.59,
+    "caution": 1,
+    "echo": "SOL/USD",
+    "finalAction": "hold"
+   },
+   {
+    "id": 174,
+    "strategy": "trend-1h",
+    "symbol": "SOL/USD",
+    "barStart": "2026-09-21T20:00:00Z",
+    "strength": "moderate",
+    "breakout": "above_range",
+    "volatility": "normal",
+    "momentum": "positive",
+    "healthy": 0.95,
+    "caution": 0,
+    "echo": "SOL/USD",
+    "finalAction": "enter"
+   }
+  ]
+ },
+ "surfaces": {
+  "central": {
+   "id": "central",
+   "unseenCells": "specified",
+   "forceHighVol": null,
+   "forceWeak": null,
+   "recordedCells": [
+    {
+     "cell": "moderate|high|positive|above_range",
+     "n": 2,
+     "healthy": 0.59,
+     "answers": [
+      0.59,
+      0.59
+     ]
+    },
+    {
+     "cell": "moderate|low|positive|inside_range",
+     "n": 1,
+     "healthy": 0.92,
+     "answers": [
+      0.92
+     ]
+    },
+    {
+     "cell": "moderate|normal|positive|above_range",
+     "n": 5,
+     "healthy": 0.95,
+     "answers": [
+      0.94,
+      0.95,
+      0.95,
+      0.95,
+      0.95
+     ]
+    },
+    {
+     "cell": "moderate|normal|positive|inside_range",
+     "n": 2,
+     "healthy": 0.925,
+     "answers": [
+      0.92,
+      0.93
+     ]
+    },
+    {
+     "cell": "strong|high|positive|above_range",
+     "n": 1,
+     "healthy": 0.61,
+     "answers": [
+      0.61
+     ]
+    },
+    {
+     "cell": "weak|low|positive|inside_range",
+     "n": 1,
+     "healthy": 0.15,
+     "answers": [
+      0.15
+     ]
+    }
+   ]
+  },
+  "highVolVetoed": {
+   "id": "highvol-vetoed",
+   "unseenCells": "specified",
+   "forceHighVol": 0.59,
+   "forceWeak": null,
+   "recordedCells": [
+    {
+     "cell": "moderate|high|positive|above_range",
+     "n": 2,
+     "healthy": 0.59,
+     "answers": [
+      0.59,
+      0.59
+     ]
+    },
+    {
+     "cell": "moderate|low|positive|inside_range",
+     "n": 1,
+     "healthy": 0.92,
+     "answers": [
+      0.92
+     ]
+    },
+    {
+     "cell": "moderate|normal|positive|above_range",
+     "n": 5,
+     "healthy": 0.95,
+     "answers": [
+      0.94,
+      0.95,
+      0.95,
+      0.95,
+      0.95
+     ]
+    },
+    {
+     "cell": "moderate|normal|positive|inside_range",
+     "n": 2,
+     "healthy": 0.925,
+     "answers": [
+      0.92,
+      0.93
+     ]
+    },
+    {
+     "cell": "strong|high|positive|above_range",
+     "n": 1,
+     "healthy": 0.61,
+     "answers": [
+      0.61
+     ]
+    },
+    {
+     "cell": "weak|low|positive|inside_range",
+     "n": 1,
+     "healthy": 0.15,
+     "answers": [
+      0.15
+     ]
+    }
+   ]
+  },
+  "highVolPassed": {
+   "id": "highvol-passed",
+   "unseenCells": "specified",
+   "forceHighVol": 0.61,
+   "forceWeak": null,
+   "recordedCells": [
+    {
+     "cell": "moderate|high|positive|above_range",
+     "n": 2,
+     "healthy": 0.59,
+     "answers": [
+      0.59,
+      0.59
+     ]
+    },
+    {
+     "cell": "moderate|low|positive|inside_range",
+     "n": 1,
+     "healthy": 0.92,
+     "answers": [
+      0.92
+     ]
+    },
+    {
+     "cell": "moderate|normal|positive|above_range",
+     "n": 5,
+     "healthy": 0.95,
+     "answers": [
+      0.94,
+      0.95,
+      0.95,
+      0.95,
+      0.95
+     ]
+    },
+    {
+     "cell": "moderate|normal|positive|inside_range",
+     "n": 2,
+     "healthy": 0.925,
+     "answers": [
+      0.92,
+      0.93
+     ]
+    },
+    {
+     "cell": "strong|high|positive|above_range",
+     "n": 1,
+     "healthy": 0.61,
+     "answers": [
+      0.61
+     ]
+    },
+    {
+     "cell": "weak|low|positive|inside_range",
+     "n": 1,
+     "healthy": 0.15,
+     "answers": [
+      0.15
+     ]
+    }
+   ]
+  },
+  "weakVetoOnly": {
+   "id": "weak-veto-only",
+   "unseenCells": "specified",
+   "forceHighVol": 0.95,
+   "forceWeak": null,
+   "recordedCells": [
+    {
+     "cell": "moderate|high|positive|above_range",
+     "n": 2,
+     "healthy": 0.59,
+     "answers": [
+      0.59,
+      0.59
+     ]
+    },
+    {
+     "cell": "moderate|low|positive|inside_range",
+     "n": 1,
+     "healthy": 0.92,
+     "answers": [
+      0.92
+     ]
+    },
+    {
+     "cell": "moderate|normal|positive|above_range",
+     "n": 5,
+     "healthy": 0.95,
+     "answers": [
+      0.94,
+      0.95,
+      0.95,
+      0.95,
+      0.95
+     ]
+    },
+    {
+     "cell": "moderate|normal|positive|inside_range",
+     "n": 2,
+     "healthy": 0.925,
+     "answers": [
+      0.92,
+      0.93
+     ]
+    },
+    {
+     "cell": "strong|high|positive|above_range",
+     "n": 1,
+     "healthy": 0.61,
+     "answers": [
+      0.61
+     ]
+    },
+    {
+     "cell": "weak|low|positive|inside_range",
+     "n": 1,
+     "healthy": 0.15,
+     "answers": [
+      0.15
+     ]
+    }
+   ]
+  },
+  "highVolVetoOnly": {
+   "id": "highvol-veto-only",
+   "unseenCells": "specified",
+   "forceHighVol": null,
+   "forceWeak": 0.95,
+   "recordedCells": [
+    {
+     "cell": "moderate|high|positive|above_range",
+     "n": 2,
+     "healthy": 0.59,
+     "answers": [
+      0.59,
+      0.59
+     ]
+    },
+    {
+     "cell": "moderate|low|positive|inside_range",
+     "n": 1,
+     "healthy": 0.92,
+     "answers": [
+      0.92
+     ]
+    },
+    {
+     "cell": "moderate|normal|positive|above_range",
+     "n": 5,
+     "healthy": 0.95,
+     "answers": [
+      0.94,
+      0.95,
+      0.95,
+      0.95,
+      0.95
+     ]
+    },
+    {
+     "cell": "moderate|normal|positive|inside_range",
+     "n": 2,
+     "healthy": 0.925,
+     "answers": [
+      0.92,
+      0.93
+     ]
+    },
+    {
+     "cell": "strong|high|positive|above_range",
+     "n": 1,
+     "healthy": 0.61,
+     "answers": [
+      0.61
+     ]
+    },
+    {
+     "cell": "weak|low|positive|inside_range",
+     "n": 1,
+     "healthy": 0.15,
+     "answers": [
+      0.15
+     ]
+    }
+   ]
+  },
+  "recordedCellsOnly": {
+   "id": "recorded-cells-only",
+   "unseenCells": "pass",
+   "forceHighVol": null,
+   "forceWeak": null,
+   "recordedCells": [
+    {
+     "cell": "moderate|high|positive|above_range",
+     "n": 2,
+     "healthy": 0.59,
+     "answers": [
+      0.59,
+      0.59
+     ]
+    },
+    {
+     "cell": "moderate|low|positive|inside_range",
+     "n": 1,
+     "healthy": 0.92,
+     "answers": [
+      0.92
+     ]
+    },
+    {
+     "cell": "moderate|normal|positive|above_range",
+     "n": 5,
+     "healthy": 0.95,
+     "answers": [
+      0.94,
+      0.95,
+      0.95,
+      0.95,
+      0.95
+     ]
+    },
+    {
+     "cell": "moderate|normal|positive|inside_range",
+     "n": 2,
+     "healthy": 0.925,
+     "answers": [
+      0.92,
+      0.93
+     ]
+    },
+    {
+     "cell": "strong|high|positive|above_range",
+     "n": 1,
+     "healthy": 0.61,
+     "answers": [
+      0.61
+     ]
+    },
+    {
+     "cell": "weak|low|positive|inside_range",
+     "n": 1,
+     "healthy": 0.15,
+     "answers": [
+      0.15
+     ]
+    }
+   ]
+  }
+ },
+ "entryStateSpace": {
+  "size": 90,
+  "why": "the rulebook forces trend_4h = up, breakout_4h = above_range, momentum_30d ≠ negative and volatility ≠ extreme on an entry, and a flat position forces unrealised, time_in_position and drawdown_from_high to none — so the model is only ever shown symbol × trend_strength × volatility × momentum_30d"
+ },
+ "replay": {
+  "mode": "recorded",
+  "entryStateSpace": 90,
+  "calls": 0,
+  "distinctStates": 0
+ },
+ "data": [
+  {
+   "symbol": "BTC/USD",
+   "coinbase": {
+    "bars": 26991,
+    "first": "2023-08-22T03:00Z",
+    "last": "2026-09-20T03:00Z",
+    "bars4h": 6750
+   },
+   "spliceAtIso": "2023-08-22T03:00Z",
+   "overlap": {
+    "bars4h": 6261,
+    "median4hBps": 1.83,
+    "p954hBps": 6.88,
+    "max4hBps": 70.2
+   },
+   "extension": {
+    "bars": 75695,
+    "first": "2013-10-06T21:00Z",
+    "years": 9.88
+   },
+   "combined": {
+    "bars4h": 27298,
+    "first": "2013-10-06T21:00Z",
+    "last": "2026-09-20T03:00Z"
+   },
+   "windowsScored": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "accepted": true,
+   "rejected": []
+  },
+  {
+   "symbol": "ETH/USD",
+   "coinbase": {
+    "bars": 26991,
+    "first": "2023-08-22T03:00Z",
+    "last": "2026-09-20T03:00Z",
+    "bars4h": 6750
+   },
+   "spliceAtIso": "2023-08-22T03:00Z",
+   "overlap": {
+    "bars4h": 6260,
+    "median4hBps": 1.87,
+    "p954hBps": 7.4,
+    "max4hBps": 138.48
+   },
+   "extension": {
+    "bars": 67004,
+    "first": "2015-08-07T14:00Z",
+    "years": 8.05
+   },
+   "combined": {
+    "bars4h": 23924,
+    "first": "2015-08-07T14:00Z",
+    "last": "2026-09-20T03:00Z"
+   },
+   "windowsScored": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "accepted": true,
+   "rejected": []
+  },
+  {
+   "symbol": "SOL/USD",
+   "coinbase": {
+    "bars": 26991,
+    "first": "2023-08-22T03:00Z",
+    "last": "2026-09-20T03:00Z",
+    "bars4h": 6750
+   },
+   "spliceAtIso": "2023-08-22T03:00Z",
+   "overlap": {
+    "bars4h": 6260,
+    "median4hBps": 2.4,
+    "p954hBps": 9.77,
+    "max4hBps": 153.15
+   },
+   "extension": {
+    "bars": 19082,
+    "first": "2021-06-17T15:00Z",
+    "years": 2.18
+   },
+   "combined": {
+    "bars4h": 11523,
+    "first": "2021-06-17T15:00Z",
+    "last": "2026-09-20T03:00Z"
+   },
+   "windowsScored": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "accepted": true,
+   "rejected": []
+  },
+  {
+   "symbol": "AVAX/USD",
+   "coinbase": {
+    "bars": 26271,
+    "first": "2023-09-22T12:00Z",
+    "last": "2026-09-21T12:00Z",
+    "bars4h": 6570
+   },
+   "spliceAtIso": "2023-09-22T12:00Z",
+   "overlap": {
+    "bars4h": 6071,
+    "median4hBps": 5.61,
+    "p954hBps": 21.03,
+    "max4hBps": 329.22
+   },
+   "extension": {
+    "bars": 15353,
+    "first": "2021-12-21T15:00Z",
+    "years": 1.75
+   },
+   "combined": {
+    "bars4h": 10410,
+    "first": "2021-12-21T15:00Z",
+    "last": "2026-09-21T12:00Z"
+   },
+   "windowsScored": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "accepted": true,
+   "rejected": []
+  },
+  {
+   "symbol": "SUI/USD",
+   "coinbase": {
+    "bars": 26264,
+    "first": "2023-09-22T13:00Z",
+    "last": "2026-09-21T13:00Z",
+    "bars4h": 6570
+   },
+   "spliceAtIso": "2023-09-22T13:00Z",
+   "overlap": {
+    "bars4h": 6069,
+    "median4hBps": 5.71,
+    "p954hBps": 38.51,
+    "max4hBps": 201.52
+   },
+   "extension": {
+    "bars": 2821,
+    "first": "2023-05-03T12:00Z",
+    "years": 0.39
+   },
+   "combined": {
+    "bars4h": 7414,
+    "first": "2023-05-03T12:00Z",
+    "last": "2026-09-21T13:00Z"
+   },
+   "windowsScored": [
+    "A",
+    "B"
+   ],
+   "accepted": true,
+   "rejected": []
+  }
+ ],
+ "fidelity": {
+  "runGated": {
+   "checks": 18,
+   "worstAbsRetDiff": 0,
+   "worstAbsMaxDDDiff": 0,
+   "worstAbsTradeDiff": 0,
+   "what": "runGated with the shipped decider against backtest.ts's `run`, every coin × window, seeded parameters, Revolut X costs, the shipped stop rule"
+  },
+  "publishedSleeve": {
+   "what": "the rule arm's sleeve against windows.json's perStopRule.shipped.w2_liveCandidate, which is what go-live.md §4 quotes",
+   "perWindow": {
+    "A": {
+     "published": {
+      "ret": 0.0803,
+      "maxDD": 0.1128,
+      "capitalUsd": 100
+     },
+     "here": {
+      "ret": 0.0803,
+      "maxDD": 0.1128,
+      "capitalUsd": 100
+     },
+     "absRetDiff": 0,
+     "absMaxDDDiff": 0
+    },
+    "B": {
+     "published": {
+      "ret": 0.2008,
+      "maxDD": 0.1047,
+      "capitalUsd": 100
+     },
+     "here": {
+      "ret": 0.2008,
+      "maxDD": 0.1047,
+      "capitalUsd": 100
+     },
+     "absRetDiff": 0,
+     "absMaxDDDiff": 0
+    },
+    "C": {
+     "published": {
+      "ret": 0.5564,
+      "maxDD": 0.0735,
+      "capitalUsd": 80
+     },
+     "here": {
+      "ret": 0.5564,
+      "maxDD": 0.0735,
+      "capitalUsd": 80
+     },
+     "absRetDiff": 0,
+     "absMaxDDDiff": 0
+    },
+    "D": {
+     "published": {
+      "ret": -0.0781,
+      "maxDD": 0.1552,
+      "capitalUsd": 80
+     },
+     "here": {
+      "ret": -0.0781,
+      "maxDD": 0.1552,
+      "capitalUsd": 80
+     },
+     "absRetDiff": 0,
+     "absMaxDDDiff": 0
+    }
+   }
+  }
+ },
+ "vetoRateOnRuleSignals": {
+  "central": {
+   "A": {
+    "signals": 43,
+    "vetoed": 23,
+    "vetoRate": 0.535,
+    "onSpecifiedCell": 16,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 14,
+      "vetoed": 6,
+      "vetoRate": 0.429,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|low|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 5,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 11,
+      "vetoed": 6,
+      "vetoRate": 0.545,
+      "onSpecifiedCell": 6,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 5,
+        "vetoed": 5,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 7,
+      "vetoed": 3,
+      "vetoRate": 0.429,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 5,
+      "vetoed": 3,
+      "vetoRate": 0.6,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SUI/USD": {
+      "signals": 6,
+      "vetoed": 5,
+      "vetoRate": 0.833,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     }
+    }
+   },
+   "B": {
+    "signals": 58,
+    "vetoed": 29,
+    "vetoRate": 0.5,
+    "onSpecifiedCell": 19,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 18,
+      "vetoed": 7,
+      "vetoRate": 0.389,
+      "onSpecifiedCell": 5,
+      "cells": {
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 6,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|low|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 10,
+      "vetoed": 5,
+      "vetoRate": 0.5,
+      "onSpecifiedCell": 5,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 15,
+      "vetoed": 9,
+      "vetoRate": 0.6,
+      "onSpecifiedCell": 6,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 5,
+        "vetoed": 5,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 10,
+      "vetoed": 5,
+      "vetoRate": 0.5,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "strong|high|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SUI/USD": {
+      "signals": 5,
+      "vetoed": 3,
+      "vetoRate": 0.6,
+      "onSpecifiedCell": 1,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   },
+   "C": {
+    "signals": 47,
+    "vetoed": 20,
+    "vetoRate": 0.426,
+    "onSpecifiedCell": 18,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 17,
+      "vetoed": 5,
+      "vetoRate": 0.294,
+      "onSpecifiedCell": 9,
+      "cells": {
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 8,
+      "vetoed": 3,
+      "vetoRate": 0.375,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 12,
+      "vetoed": 5,
+      "vetoRate": 0.417,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 10,
+      "vetoed": 7,
+      "vetoRate": 0.7,
+      "onSpecifiedCell": 4,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   },
+   "D": {
+    "signals": 32,
+    "vetoed": 14,
+    "vetoRate": 0.438,
+    "onSpecifiedCell": 9,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 10,
+      "vetoed": 4,
+      "vetoRate": 0.4,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "weak|low|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 12,
+      "vetoed": 5,
+      "vetoRate": 0.417,
+      "onSpecifiedCell": 5,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 5,
+        "vetoed": 5,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "strong|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 2,
+      "vetoed": 2,
+      "vetoRate": 1,
+      "onSpecifiedCell": 0,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "recorded"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 8,
+      "vetoed": 3,
+      "vetoRate": 0.375,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   }
+  },
+  "highvol-vetoed": {
+   "A": {
+    "signals": 43,
+    "vetoed": 25,
+    "vetoRate": 0.581,
+    "onSpecifiedCell": 21,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 14,
+      "vetoed": 6,
+      "vetoRate": 0.429,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|low|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 5,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 11,
+      "vetoed": 7,
+      "vetoRate": 0.636,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 5,
+        "vetoed": 5,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.59,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 7,
+      "vetoed": 3,
+      "vetoRate": 0.429,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 5,
+      "vetoed": 3,
+      "vetoRate": 0.6,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SUI/USD": {
+      "signals": 6,
+      "vetoed": 6,
+      "vetoRate": 1,
+      "onSpecifiedCell": 6,
+      "cells": {
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     }
+    }
+   },
+   "B": {
+    "signals": 58,
+    "vetoed": 36,
+    "vetoRate": 0.621,
+    "onSpecifiedCell": 38,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 18,
+      "vetoed": 7,
+      "vetoRate": 0.389,
+      "onSpecifiedCell": 5,
+      "cells": {
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 6,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|low|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 10,
+      "vetoed": 5,
+      "vetoRate": 0.5,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 15,
+      "vetoed": 11,
+      "vetoRate": 0.733,
+      "onSpecifiedCell": 13,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 5,
+        "vetoed": 5,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 10,
+      "vetoed": 9,
+      "vetoRate": 0.9,
+      "onSpecifiedCell": 9,
+      "cells": {
+       "strong|high|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SUI/USD": {
+      "signals": 5,
+      "vetoed": 4,
+      "vetoRate": 0.8,
+      "onSpecifiedCell": 4,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   },
+   "C": {
+    "signals": 47,
+    "vetoed": 26,
+    "vetoRate": 0.553,
+    "onSpecifiedCell": 31,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 17,
+      "vetoed": 6,
+      "vetoRate": 0.353,
+      "onSpecifiedCell": 10,
+      "cells": {
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 8,
+      "vetoed": 3,
+      "vetoRate": 0.375,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 12,
+      "vetoed": 9,
+      "vetoRate": 0.75,
+      "onSpecifiedCell": 9,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 10,
+      "vetoed": 8,
+      "vetoRate": 0.8,
+      "onSpecifiedCell": 9,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.59,
+        "source": "specified"
+       }
+      }
+     }
+    }
+   },
+   "D": {
+    "signals": 32,
+    "vetoed": 20,
+    "vetoRate": 0.625,
+    "onSpecifiedCell": 19,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 10,
+      "vetoed": 5,
+      "vetoRate": 0.5,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "weak|low|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 12,
+      "vetoed": 7,
+      "vetoRate": 0.583,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 5,
+        "vetoed": 5,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "strong|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 2,
+      "vetoed": 2,
+      "vetoRate": 1,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 8,
+      "vetoed": 6,
+      "vetoRate": 0.75,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   }
+  },
+  "highvol-passed": {
+   "A": {
+    "signals": 43,
+    "vetoed": 20,
+    "vetoRate": 0.465,
+    "onSpecifiedCell": 21,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 14,
+      "vetoed": 6,
+      "vetoRate": 0.429,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|low|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 5,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 11,
+      "vetoed": 6,
+      "vetoRate": 0.545,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 5,
+        "vetoed": 5,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 7,
+      "vetoed": 3,
+      "vetoRate": 0.429,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 5,
+      "vetoed": 3,
+      "vetoRate": 0.6,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SUI/USD": {
+      "signals": 6,
+      "vetoed": 2,
+      "vetoRate": 0.333,
+      "onSpecifiedCell": 6,
+      "cells": {
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     }
+    }
+   },
+   "B": {
+    "signals": 58,
+    "vetoed": 17,
+    "vetoRate": 0.293,
+    "onSpecifiedCell": 38,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 18,
+      "vetoed": 7,
+      "vetoRate": 0.389,
+      "onSpecifiedCell": 5,
+      "cells": {
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 6,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|low|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 10,
+      "vetoed": 3,
+      "vetoRate": 0.3,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 15,
+      "vetoed": 4,
+      "vetoRate": 0.267,
+      "onSpecifiedCell": 13,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 5,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 10,
+      "vetoed": 2,
+      "vetoRate": 0.2,
+      "onSpecifiedCell": 9,
+      "cells": {
+       "strong|high|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SUI/USD": {
+      "signals": 5,
+      "vetoed": 1,
+      "vetoRate": 0.2,
+      "onSpecifiedCell": 4,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   },
+   "C": {
+    "signals": 47,
+    "vetoed": 13,
+    "vetoRate": 0.277,
+    "onSpecifiedCell": 31,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 17,
+      "vetoed": 5,
+      "vetoRate": 0.294,
+      "onSpecifiedCell": 10,
+      "cells": {
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 8,
+      "vetoed": 3,
+      "vetoRate": 0.375,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 12,
+      "vetoed": 2,
+      "vetoRate": 0.167,
+      "onSpecifiedCell": 9,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 10,
+      "vetoed": 3,
+      "vetoRate": 0.3,
+      "onSpecifiedCell": 9,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       }
+      }
+     }
+    }
+   },
+   "D": {
+    "signals": 32,
+    "vetoed": 10,
+    "vetoRate": 0.313,
+    "onSpecifiedCell": 19,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 10,
+      "vetoed": 4,
+      "vetoRate": 0.4,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "weak|low|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 12,
+      "vetoed": 5,
+      "vetoRate": 0.417,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 5,
+        "vetoed": 5,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "strong|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 2,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 8,
+      "vetoed": 1,
+      "vetoRate": 0.125,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   }
+  },
+  "weak-veto-only": {
+   "A": {
+    "signals": 43,
+    "vetoed": 20,
+    "vetoRate": 0.465,
+    "onSpecifiedCell": 21,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 14,
+      "vetoed": 6,
+      "vetoRate": 0.429,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|low|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 5,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 11,
+      "vetoed": 6,
+      "vetoRate": 0.545,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 5,
+        "vetoed": 5,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 7,
+      "vetoed": 3,
+      "vetoRate": 0.429,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 5,
+      "vetoed": 3,
+      "vetoRate": 0.6,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SUI/USD": {
+      "signals": 6,
+      "vetoed": 2,
+      "vetoRate": 0.333,
+      "onSpecifiedCell": 6,
+      "cells": {
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     }
+    }
+   },
+   "B": {
+    "signals": 58,
+    "vetoed": 17,
+    "vetoRate": 0.293,
+    "onSpecifiedCell": 38,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 18,
+      "vetoed": 7,
+      "vetoRate": 0.389,
+      "onSpecifiedCell": 5,
+      "cells": {
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 6,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|low|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 10,
+      "vetoed": 3,
+      "vetoRate": 0.3,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 15,
+      "vetoed": 4,
+      "vetoRate": 0.267,
+      "onSpecifiedCell": 13,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 5,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 10,
+      "vetoed": 2,
+      "vetoRate": 0.2,
+      "onSpecifiedCell": 9,
+      "cells": {
+       "strong|high|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SUI/USD": {
+      "signals": 5,
+      "vetoed": 1,
+      "vetoRate": 0.2,
+      "onSpecifiedCell": 4,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   },
+   "C": {
+    "signals": 47,
+    "vetoed": 13,
+    "vetoRate": 0.277,
+    "onSpecifiedCell": 31,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 17,
+      "vetoed": 5,
+      "vetoRate": 0.294,
+      "onSpecifiedCell": 10,
+      "cells": {
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 8,
+      "vetoed": 3,
+      "vetoRate": 0.375,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 12,
+      "vetoed": 2,
+      "vetoRate": 0.167,
+      "onSpecifiedCell": 9,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 10,
+      "vetoed": 3,
+      "vetoRate": 0.3,
+      "onSpecifiedCell": 9,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     }
+    }
+   },
+   "D": {
+    "signals": 32,
+    "vetoed": 10,
+    "vetoRate": 0.313,
+    "onSpecifiedCell": 19,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 10,
+      "vetoed": 4,
+      "vetoRate": 0.4,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "weak|low|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 12,
+      "vetoed": 5,
+      "vetoRate": 0.417,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 5,
+        "vetoed": 5,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "strong|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 2,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 8,
+      "vetoed": 1,
+      "vetoRate": 0.125,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   }
+  },
+  "highvol-veto-only": {
+   "A": {
+    "signals": 43,
+    "vetoed": 3,
+    "vetoRate": 0.07,
+    "onSpecifiedCell": 21,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 14,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 6,
+      "cells": {
+       "moderate|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 5,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 11,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 7,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 5,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 7,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 5,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "SUI/USD": {
+      "signals": 6,
+      "vetoed": 3,
+      "vetoRate": 0.5,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     }
+    }
+   },
+   "B": {
+    "signals": 58,
+    "vetoed": 12,
+    "vetoRate": 0.207,
+    "onSpecifiedCell": 23,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 18,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 9,
+      "cells": {
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 6,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|low|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 10,
+      "vetoed": 2,
+      "vetoRate": 0.2,
+      "onSpecifiedCell": 5,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 15,
+      "vetoed": 5,
+      "vetoRate": 0.333,
+      "onSpecifiedCell": 6,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 5,
+        "vetoed": 5,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 10,
+      "vetoed": 3,
+      "vetoRate": 0.3,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "strong|high|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "SUI/USD": {
+      "signals": 5,
+      "vetoed": 2,
+      "vetoRate": 0.4,
+      "onSpecifiedCell": 1,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   },
+   "C": {
+    "signals": 47,
+    "vetoed": 7,
+    "vetoRate": 0.149,
+    "onSpecifiedCell": 19,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 17,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 10,
+      "cells": {
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 8,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 12,
+      "vetoed": 3,
+      "vetoRate": 0.25,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 10,
+      "vetoed": 4,
+      "vetoRate": 0.4,
+      "onSpecifiedCell": 4,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   },
+   "D": {
+    "signals": 32,
+    "vetoed": 4,
+    "vetoRate": 0.125,
+    "onSpecifiedCell": 13,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 10,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 6,
+      "cells": {
+       "weak|low|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 12,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 5,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 5,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "strong|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 2,
+      "vetoed": 2,
+      "vetoRate": 1,
+      "onSpecifiedCell": 0,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "recorded"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 8,
+      "vetoed": 2,
+      "vetoRate": 0.25,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   }
+  },
+  "recorded-cells-only": {
+   "A": {
+    "signals": 43,
+    "vetoed": 8,
+    "vetoRate": 0.186,
+    "onSpecifiedCell": 16,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 14,
+      "vetoed": 3,
+      "vetoRate": 0.214,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|low|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 5,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 11,
+      "vetoed": 1,
+      "vetoRate": 0.091,
+      "onSpecifiedCell": 6,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 5,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 7,
+      "vetoed": 1,
+      "vetoRate": 0.143,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 5,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "SUI/USD": {
+      "signals": 6,
+      "vetoed": 3,
+      "vetoRate": 0.5,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     }
+    }
+   },
+   "B": {
+    "signals": 58,
+    "vetoed": 16,
+    "vetoRate": 0.276,
+    "onSpecifiedCell": 19,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 18,
+      "vetoed": 4,
+      "vetoRate": 0.222,
+      "onSpecifiedCell": 5,
+      "cells": {
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 6,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|low|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 10,
+      "vetoed": 2,
+      "vetoRate": 0.2,
+      "onSpecifiedCell": 5,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 15,
+      "vetoed": 5,
+      "vetoRate": 0.333,
+      "onSpecifiedCell": 6,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 5,
+        "vetoed": 5,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 10,
+      "vetoed": 3,
+      "vetoRate": 0.3,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "strong|high|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "SUI/USD": {
+      "signals": 5,
+      "vetoed": 2,
+      "vetoRate": 0.4,
+      "onSpecifiedCell": 1,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   },
+   "C": {
+    "signals": 47,
+    "vetoed": 8,
+    "vetoRate": 0.17,
+    "onSpecifiedCell": 18,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 17,
+      "vetoed": 1,
+      "vetoRate": 0.059,
+      "onSpecifiedCell": 9,
+      "cells": {
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "weak|low|positive": {
+        "n": 1,
+        "vetoed": 1,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 8,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 3,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "weak|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 12,
+      "vetoed": 3,
+      "vetoRate": 0.25,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 3,
+        "vetoed": 3,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "strong|high|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 10,
+      "vetoed": 4,
+      "vetoRate": 0.4,
+      "onSpecifiedCell": 4,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|high|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   },
+   "D": {
+    "signals": 32,
+    "vetoed": 8,
+    "vetoRate": 0.25,
+    "onSpecifiedCell": 9,
+    "perCoin": {
+     "BTC/USD": {
+      "signals": 10,
+      "vetoed": 4,
+      "vetoRate": 0.4,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "weak|low|positive": {
+        "n": 4,
+        "vetoed": 4,
+        "healthy": 0.15,
+        "source": "recorded-loose"
+       },
+       "moderate|low|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     },
+     "ETH/USD": {
+      "signals": 12,
+      "vetoed": 0,
+      "vetoRate": 0,
+      "onSpecifiedCell": 5,
+      "cells": {
+       "moderate|normal|positive": {
+        "n": 4,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 5,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|low|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.92,
+        "source": "recorded-loose"
+       },
+       "strong|high|positive": {
+        "n": 2,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       }
+      }
+     },
+     "SOL/USD": {
+      "signals": 2,
+      "vetoed": 2,
+      "vetoRate": 1,
+      "onSpecifiedCell": 0,
+      "cells": {
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "recorded"
+       }
+      }
+     },
+     "AVAX/USD": {
+      "signals": 8,
+      "vetoed": 2,
+      "vetoRate": 0.25,
+      "onSpecifiedCell": 2,
+      "cells": {
+       "strong|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "strong|high|positive": {
+        "n": 3,
+        "vetoed": 0,
+        "healthy": 0.61,
+        "source": "recorded"
+       },
+       "moderate|high|positive": {
+        "n": 2,
+        "vetoed": 2,
+        "healthy": 0.59,
+        "source": "recorded"
+       },
+       "weak|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "specified"
+       },
+       "moderate|normal|positive": {
+        "n": 1,
+        "vetoed": 0,
+        "healthy": 0.95,
+        "source": "recorded"
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "entryStateCensus": {
+  "moderate|low|positive": {
+   "n": 13,
+   "windows": {
+    "A": 3,
+    "B": 3,
+    "C": 4,
+    "D": 3
+   },
+   "coins": {
+    "BTC/USD": 10,
+    "ETH/USD": 3
+   },
+   "healthy": 0.92,
+   "source": "recorded-loose"
+  },
+  "weak|low|positive": {
+   "n": 14,
+   "windows": {
+    "A": 5,
+    "B": 4,
+    "C": 1,
+    "D": 4
+   },
+   "coins": {
+    "BTC/USD": 12,
+    "ETH/USD": 1,
+    "SOL/USD": 1
+   },
+   "healthy": 0.15,
+   "source": "recorded-loose"
+  },
+  "weak|normal|positive": {
+   "n": 37,
+   "windows": {
+    "A": 14,
+    "B": 9,
+    "C": 8,
+    "D": 6
+   },
+   "coins": {
+    "BTC/USD": 10,
+    "ETH/USD": 15,
+    "SOL/USD": 4,
+    "AVAX/USD": 6,
+    "SUI/USD": 2
+   },
+   "healthy": 0.15,
+   "source": "specified"
+  },
+  "moderate|normal|positive": {
+   "n": 44,
+   "windows": {
+    "A": 14,
+    "B": 13,
+    "C": 11,
+    "D": 6
+   },
+   "coins": {
+    "BTC/USD": 16,
+    "ETH/USD": 13,
+    "SOL/USD": 9,
+    "AVAX/USD": 5,
+    "SUI/USD": 1
+   },
+   "healthy": 0.95,
+   "source": "recorded"
+  },
+  "strong|normal|positive": {
+   "n": 13,
+   "windows": {
+    "B": 6,
+    "C": 4,
+    "D": 2,
+    "A": 1
+   },
+   "coins": {
+    "BTC/USD": 6,
+    "ETH/USD": 3,
+    "SOL/USD": 2,
+    "AVAX/USD": 2
+   },
+   "healthy": 0.95,
+   "source": "specified"
+  },
+  "strong|low|positive": {
+   "n": 3,
+   "windows": {
+    "C": 2,
+    "D": 1
+   },
+   "coins": {
+    "BTC/USD": 3
+   },
+   "healthy": 0.95,
+   "source": "specified"
+  },
+  "strong|high|positive": {
+   "n": 21,
+   "windows": {
+    "C": 6,
+    "D": 6,
+    "A": 2,
+    "B": 7
+   },
+   "coins": {
+    "BTC/USD": 2,
+    "ETH/USD": 3,
+    "SOL/USD": 6,
+    "AVAX/USD": 8,
+    "SUI/USD": 2
+   },
+   "healthy": 0.61,
+   "source": "recorded"
+  },
+  "moderate|high|positive": {
+   "n": 26,
+   "windows": {
+    "B": 12,
+    "C": 7,
+    "D": 4,
+    "A": 3
+   },
+   "coins": {
+    "ETH/USD": 2,
+    "SOL/USD": 10,
+    "AVAX/USD": 9,
+    "SUI/USD": 5
+   },
+   "healthy": 0.59,
+   "source": "recorded"
+  },
+  "weak|high|positive": {
+   "n": 9,
+   "windows": {
+    "B": 4,
+    "A": 1,
+    "C": 4
+   },
+   "coins": {
+    "ETH/USD": 1,
+    "SOL/USD": 4,
+    "AVAX/USD": 3,
+    "SUI/USD": 1
+   },
+   "healthy": 0.15,
+   "source": "specified"
+  }
+ },
+ "liveVsHistorical": {
+  "historicalEntrySignals": 180,
+  "historicalVetoShareAtShippedThreshold": 0.478,
+  "historicalWeakShare": 0.333,
+  "liveSignals": 12,
+  "liveVetoed": 3,
+  "liveWeakStates": 1,
+  "pLiveVetoesAtMostThisFew": 0.097,
+  "pLiveWeakStatesAtMostThisFew": 0.054,
+  "reading": "the live record's low veto rate is what a four-day trending sample looks like: it contained almost no weak-strength entry states, and weak-strength is what the model refuses. Neither tail is small enough to call the live rate wrong; both are small enough that the live rate must not be projected forward."
+ },
+ "sleeve": {
+  "rule": {
+   "perWindow": {
+    "A": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": 8.03,
+      "ret": 0.0803,
+      "maxDD": 0.1128,
+      "retOverDD": 0.71,
+      "days": 377,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "deployment": 0.088,
+      "turnoverPerYear": 16.5,
+      "bestDayUsd": 6.15,
+      "worstDayUsd": -3.59,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": 0,
+     "deltaPnlUsd": 0,
+     "deltaMaxDD": 0,
+     "deltaRetOverDD": 0,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": -0.1069,
+       "maxDD": 0.1879,
+       "retOverDD": -0.57,
+       "trades": 28,
+       "days": 375,
+       "exposure": 0.133,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 14,
+       "ruleRet": -0.1069,
+       "deltaRet": 0
+      },
+      "ETH/USD": {
+       "ret": -0.0804,
+       "maxDD": 0.2029,
+       "retOverDD": -0.4,
+       "trades": 22,
+       "days": 375,
+       "exposure": 0.112,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 11,
+       "ruleRet": -0.0804,
+       "deltaRet": 0
+      },
+      "SOL/USD": {
+       "ret": 0.1756,
+       "maxDD": 0.2344,
+       "retOverDD": 0.75,
+       "trades": 14,
+       "days": 375,
+       "exposure": 0.098,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 7,
+       "ruleRet": 0.1756,
+       "deltaRet": 0
+      },
+      "AVAX/USD": {
+       "ret": 0.3405,
+       "maxDD": 0.0866,
+       "retOverDD": 3.93,
+       "trades": 9,
+       "days": 365,
+       "exposure": 0.042,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 5,
+       "ruleRet": 0.3405,
+       "deltaRet": 0
+      },
+      "SUI/USD": {
+       "ret": 0.0136,
+       "maxDD": 0.2893,
+       "retOverDD": 0.05,
+       "trades": 12,
+       "days": 365,
+       "exposure": 0.054,
+       "stopsHit": 2,
+       "entriesRefused": 0,
+       "entrySignals": 6,
+       "ruleRet": 0.0136,
+       "deltaRet": 0
+      }
+     }
+    },
+    "B": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": 20.08,
+      "ret": 0.2008,
+      "maxDD": 0.1047,
+      "retOverDD": 1.92,
+      "days": 387,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "deployment": 0.144,
+      "turnoverPerYear": 21.75,
+      "bestDayUsd": 6.83,
+      "worstDayUsd": -5.55,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": 0,
+     "deltaPnlUsd": 0,
+     "deltaMaxDD": 0,
+     "deltaRetOverDD": 0,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.1236,
+       "maxDD": 0.1705,
+       "retOverDD": 0.72,
+       "trades": 36,
+       "days": 375,
+       "exposure": 0.212,
+       "stopsHit": 1,
+       "entriesRefused": 0,
+       "entrySignals": 18,
+       "ruleRet": 0.1236,
+       "deltaRet": 0
+      },
+      "ETH/USD": {
+       "ret": 0.8015,
+       "maxDD": 0.19,
+       "retOverDD": 4.22,
+       "trades": 20,
+       "days": 375,
+       "exposure": 0.169,
+       "stopsHit": 1,
+       "entriesRefused": 0,
+       "entrySignals": 10,
+       "ruleRet": 0.8015,
+       "deltaRet": 0
+      },
+      "SOL/USD": {
+       "ret": 0.0296,
+       "maxDD": 0.2914,
+       "retOverDD": 0.1,
+       "trades": 29,
+       "days": 375,
+       "exposure": 0.181,
+       "stopsHit": 3,
+       "entriesRefused": 0,
+       "entrySignals": 15,
+       "ruleRet": 0.0296,
+       "deltaRet": 0
+      },
+      "AVAX/USD": {
+       "ret": 0.0679,
+       "maxDD": 0.2467,
+       "retOverDD": 0.28,
+       "trades": 20,
+       "days": 365,
+       "exposure": 0.116,
+       "stopsHit": 1,
+       "entriesRefused": 0,
+       "entrySignals": 10,
+       "ruleRet": 0.0679,
+       "deltaRet": 0
+      },
+      "SUI/USD": {
+       "ret": -0.0253,
+       "maxDD": 0.313,
+       "retOverDD": -0.08,
+       "trades": 10,
+       "days": 365,
+       "exposure": 0.039,
+       "stopsHit": 3,
+       "entriesRefused": 0,
+       "entrySignals": 5,
+       "ruleRet": -0.0253,
+       "deltaRet": 0
+      }
+     }
+    },
+    "C": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": 44.51,
+      "ret": 0.5564,
+      "maxDD": 0.0735,
+      "retOverDD": 7.57,
+      "days": 397,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "deployment": 0.173,
+      "turnoverPerYear": 21.43,
+      "bestDayUsd": 8.1,
+      "worstDayUsd": -8.57,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": 0,
+     "deltaPnlUsd": 0,
+     "deltaMaxDD": 0,
+     "deltaRetOverDD": 0,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.0031,
+       "maxDD": 0.2642,
+       "retOverDD": 0.01,
+       "trades": 34,
+       "days": 375,
+       "exposure": 0.176,
+       "stopsHit": 1,
+       "entriesRefused": 0,
+       "entrySignals": 17,
+       "ruleRet": 0.0031,
+       "deltaRet": 0
+      },
+      "ETH/USD": {
+       "ret": 0.815,
+       "maxDD": 0.1297,
+       "retOverDD": 6.28,
+       "trades": 16,
+       "days": 375,
+       "exposure": 0.177,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 8,
+       "ruleRet": 0.815,
+       "deltaRet": 0
+      },
+      "SOL/USD": {
+       "ret": 0.6975,
+       "maxDD": 0.2196,
+       "retOverDD": 3.18,
+       "trades": 24,
+       "days": 375,
+       "exposure": 0.177,
+       "stopsHit": 1,
+       "entriesRefused": 0,
+       "entrySignals": 12,
+       "ruleRet": 0.6975,
+       "deltaRet": 0
+      },
+      "AVAX/USD": {
+       "ret": 1.2673,
+       "maxDD": 0.2969,
+       "retOverDD": 4.27,
+       "trades": 19,
+       "days": 365,
+       "exposure": 0.162,
+       "stopsHit": 1,
+       "entriesRefused": 0,
+       "entrySignals": 10,
+       "ruleRet": 1.2673,
+       "deltaRet": 0
+      }
+     }
+    },
+    "D": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": -6.25,
+      "ret": -0.0781,
+      "maxDD": 0.1552,
+      "retOverDD": -0.5,
+      "days": 397,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "deployment": 0.079,
+      "turnoverPerYear": 14.75,
+      "bestDayUsd": 2.4,
+      "worstDayUsd": -3.93,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": 0,
+     "deltaPnlUsd": 0,
+     "deltaMaxDD": 0,
+     "deltaRetOverDD": 0,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.1455,
+       "maxDD": 0.0887,
+       "retOverDD": 1.64,
+       "trades": 20,
+       "days": 365,
+       "exposure": 0.111,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 10,
+       "ruleRet": 0.1455,
+       "deltaRet": 0
+      },
+      "ETH/USD": {
+       "ret": -0.0631,
+       "maxDD": 0.2832,
+       "retOverDD": -0.22,
+       "trades": 24,
+       "days": 365,
+       "exposure": 0.133,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 12,
+       "ruleRet": -0.0631,
+       "deltaRet": 0
+      },
+      "SOL/USD": {
+       "ret": -0.0831,
+       "maxDD": 0.126,
+       "retOverDD": -0.66,
+       "trades": 4,
+       "days": 365,
+       "exposure": 0.027,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 2,
+       "ruleRet": -0.0831,
+       "deltaRet": 0
+      },
+      "AVAX/USD": {
+       "ret": -0.2954,
+       "maxDD": 0.3308,
+       "retOverDD": -0.89,
+       "trades": 16,
+       "days": 365,
+       "exposure": 0.045,
+       "stopsHit": 2,
+       "entriesRefused": 0,
+       "entrySignals": 8,
+       "ruleRet": -0.2954,
+       "deltaRet": 0
+      }
+     }
+    }
+   },
+   "worstWindowRet": -0.0781,
+   "worstWindow": "D"
+  },
+  "rule∧Jev(central)": {
+   "perWindow": {
+    "A": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": -2.47,
+      "ret": -0.0247,
+      "maxDD": 0.1299,
+      "retOverDD": -0.19,
+      "days": 377,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "deployment": 0.066,
+      "turnoverPerYear": 13.78,
+      "bestDayUsd": 6.15,
+      "worstDayUsd": -3.61,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": -0.105,
+     "deltaPnlUsd": -10.5,
+     "deltaMaxDD": 0.0171,
+     "deltaRetOverDD": -0.9,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": -0.1368,
+       "maxDD": 0.2063,
+       "retOverDD": -0.66,
+       "trades": 26,
+       "days": 375,
+       "exposure": 0.12,
+       "stopsHit": 0,
+       "entriesRefused": 8,
+       "entrySignals": 21,
+       "ruleRet": -0.1069,
+       "deltaRet": -0.0299
+      },
+      "ETH/USD": {
+       "ret": -0.2205,
+       "maxDD": 0.2532,
+       "retOverDD": -0.87,
+       "trades": 16,
+       "days": 375,
+       "exposure": 0.067,
+       "stopsHit": 0,
+       "entriesRefused": 8,
+       "entrySignals": 16,
+       "ruleRet": -0.0804,
+       "deltaRet": -0.1401
+      },
+      "SOL/USD": {
+       "ret": 0.1223,
+       "maxDD": 0.1852,
+       "retOverDD": 0.66,
+       "trades": 12,
+       "days": 375,
+       "exposure": 0.082,
+       "stopsHit": 0,
+       "entriesRefused": 4,
+       "entrySignals": 10,
+       "ruleRet": 0.1756,
+       "deltaRet": -0.0534
+      },
+      "AVAX/USD": {
+       "ret": 0.0358,
+       "maxDD": 0.1464,
+       "retOverDD": 0.24,
+       "trades": 9,
+       "days": 365,
+       "exposure": 0.035,
+       "stopsHit": 0,
+       "entriesRefused": 7,
+       "entrySignals": 12,
+       "ruleRet": 0.3405,
+       "deltaRet": -0.3047
+      },
+      "SUI/USD": {
+       "ret": 0.0341,
+       "maxDD": 0.1829,
+       "retOverDD": 0.19,
+       "trades": 8,
+       "days": 365,
+       "exposure": 0.028,
+       "stopsHit": 1,
+       "entriesRefused": 7,
+       "entrySignals": 11,
+       "ruleRet": 0.0136,
+       "deltaRet": 0.0206
+      }
+     }
+    },
+    "B": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": 15.77,
+      "ret": 0.1577,
+      "maxDD": 0.0751,
+      "retOverDD": 2.1,
+      "days": 387,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "deployment": 0.118,
+      "turnoverPerYear": 17.02,
+      "bestDayUsd": 6.83,
+      "worstDayUsd": -3.66,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": -0.0431,
+     "deltaPnlUsd": -4.31,
+     "deltaMaxDD": -0.0296,
+     "deltaRetOverDD": 0.18,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.0663,
+       "maxDD": 0.1449,
+       "retOverDD": 0.46,
+       "trades": 30,
+       "days": 375,
+       "exposure": 0.18,
+       "stopsHit": 0,
+       "entriesRefused": 15,
+       "entrySignals": 30,
+       "ruleRet": 0.1236,
+       "deltaRet": -0.0573
+      },
+      "ETH/USD": {
+       "ret": 0.5873,
+       "maxDD": 0.1353,
+       "retOverDD": 4.34,
+       "trades": 18,
+       "days": 375,
+       "exposure": 0.146,
+       "stopsHit": 1,
+       "entriesRefused": 10,
+       "entrySignals": 19,
+       "ruleRet": 0.8015,
+       "deltaRet": -0.2142
+      },
+      "SOL/USD": {
+       "ret": 0.0258,
+       "maxDD": 0.1807,
+       "retOverDD": 0.14,
+       "trades": 18,
+       "days": 375,
+       "exposure": 0.126,
+       "stopsHit": 2,
+       "entriesRefused": 18,
+       "entrySignals": 27,
+       "ruleRet": 0.0296,
+       "deltaRet": -0.0038
+      },
+      "AVAX/USD": {
+       "ret": -0.0249,
+       "maxDD": 0.2877,
+       "retOverDD": -0.09,
+       "trades": 18,
+       "days": 365,
+       "exposure": 0.1,
+       "stopsHit": 3,
+       "entriesRefused": 8,
+       "entrySignals": 17,
+       "ruleRet": 0.0679,
+       "deltaRet": -0.0928
+      },
+      "SUI/USD": {
+       "ret": 0.1015,
+       "maxDD": 0.1835,
+       "retOverDD": 0.55,
+       "trades": 6,
+       "days": 365,
+       "exposure": 0.036,
+       "stopsHit": 1,
+       "entriesRefused": 4,
+       "entrySignals": 7,
+       "ruleRet": -0.0253,
+       "deltaRet": 0.1269
+      }
+     }
+    },
+    "C": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": 41.93,
+      "ret": 0.5241,
+      "maxDD": 0.0561,
+      "retOverDD": 9.35,
+      "days": 397,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "deployment": 0.148,
+      "turnoverPerYear": 16.82,
+      "bestDayUsd": 5.21,
+      "worstDayUsd": -3.88,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": -0.0323,
+     "deltaPnlUsd": -2.58,
+     "deltaMaxDD": -0.0174,
+     "deltaRetOverDD": 1.78,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.0798,
+       "maxDD": 0.2013,
+       "retOverDD": 0.4,
+       "trades": 28,
+       "days": 375,
+       "exposure": 0.16,
+       "stopsHit": 1,
+       "entriesRefused": 6,
+       "entrySignals": 20,
+       "ruleRet": 0.0031,
+       "deltaRet": 0.0766
+      },
+      "ETH/USD": {
+       "ret": 0.5204,
+       "maxDD": 0.1331,
+       "retOverDD": 3.91,
+       "trades": 14,
+       "days": 375,
+       "exposure": 0.162,
+       "stopsHit": 0,
+       "entriesRefused": 7,
+       "entrySignals": 14,
+       "ruleRet": 0.815,
+       "deltaRet": -0.2946
+      },
+      "SOL/USD": {
+       "ret": 0.878,
+       "maxDD": 0.1557,
+       "retOverDD": 5.64,
+       "trades": 18,
+       "days": 375,
+       "exposure": 0.144,
+       "stopsHit": 0,
+       "entriesRefused": 9,
+       "entrySignals": 18,
+       "ruleRet": 0.6975,
+       "deltaRet": 0.1805
+      },
+      "AVAX/USD": {
+       "ret": 1.1127,
+       "maxDD": 0.2078,
+       "retOverDD": 5.36,
+       "trades": 13,
+       "days": 365,
+       "exposure": 0.127,
+       "stopsHit": 0,
+       "entriesRefused": 11,
+       "entrySignals": 18,
+       "ruleRet": 1.2673,
+       "deltaRet": -0.1546
+      }
+     }
+    },
+    "D": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": -1.16,
+      "ret": -0.0145,
+      "maxDD": 0.1092,
+      "retOverDD": -0.13,
+      "days": 397,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "deployment": 0.055,
+      "turnoverPerYear": 9.68,
+      "bestDayUsd": 2.4,
+      "worstDayUsd": -3.46,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": 0.0636,
+     "deltaPnlUsd": 5.09,
+     "deltaMaxDD": -0.046,
+     "deltaRetOverDD": 0.37,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.1207,
+       "maxDD": 0.0929,
+       "retOverDD": 1.3,
+       "trades": 16,
+       "days": 365,
+       "exposure": 0.091,
+       "stopsHit": 0,
+       "entriesRefused": 7,
+       "entrySignals": 15,
+       "ruleRet": 0.1455,
+       "deltaRet": -0.0248
+      },
+      "ETH/USD": {
+       "ret": 0.1235,
+       "maxDD": 0.177,
+       "retOverDD": 0.7,
+       "trades": 14,
+       "days": 365,
+       "exposure": 0.096,
+       "stopsHit": 0,
+       "entriesRefused": 5,
+       "entrySignals": 12,
+       "ruleRet": -0.0631,
+       "deltaRet": 0.1867
+      },
+      "SOL/USD": {
+       "ret": -0.0818,
+       "maxDD": 0.0818,
+       "retOverDD": -1,
+       "trades": 2,
+       "days": 365,
+       "exposure": 0.006,
+       "stopsHit": 1,
+       "entriesRefused": 2,
+       "entrySignals": 3,
+       "ruleRet": -0.0831,
+       "deltaRet": 0.0013
+      },
+      "AVAX/USD": {
+       "ret": -0.215,
+       "maxDD": 0.2545,
+       "retOverDD": -0.84,
+       "trades": 10,
+       "days": 365,
+       "exposure": 0.027,
+       "stopsHit": 2,
+       "entriesRefused": 8,
+       "entrySignals": 13,
+       "ruleRet": -0.2954,
+       "deltaRet": 0.0804
+      }
+     }
+    }
+   },
+   "worstWindowRet": -0.0247,
+   "worstWindow": "A"
+  },
+  "rule∧Jev(highvol-vetoed)": {
+   "perWindow": {
+    "A": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": -6.64,
+      "ret": -0.0664,
+      "maxDD": 0.1319,
+      "retOverDD": -0.5,
+      "days": 377,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "deployment": 0.054,
+      "turnoverPerYear": 11.65,
+      "bestDayUsd": 3.78,
+      "worstDayUsd": -2.96,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": -0.1467,
+     "deltaPnlUsd": -14.67,
+     "deltaMaxDD": 0.0191,
+     "deltaRetOverDD": -1.21,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": -0.1368,
+       "maxDD": 0.2063,
+       "retOverDD": -0.66,
+       "trades": 26,
+       "days": 375,
+       "exposure": 0.12,
+       "stopsHit": 0,
+       "entriesRefused": 8,
+       "entrySignals": 21,
+       "ruleRet": -0.1069,
+       "deltaRet": -0.0299
+      },
+      "ETH/USD": {
+       "ret": -0.2173,
+       "maxDD": 0.2363,
+       "retOverDD": -0.92,
+       "trades": 14,
+       "days": 375,
+       "exposure": 0.038,
+       "stopsHit": 0,
+       "entriesRefused": 10,
+       "entrySignals": 17,
+       "ruleRet": -0.0804,
+       "deltaRet": -0.1369
+      },
+      "SOL/USD": {
+       "ret": 0.1223,
+       "maxDD": 0.1852,
+       "retOverDD": 0.66,
+       "trades": 12,
+       "days": 375,
+       "exposure": 0.082,
+       "stopsHit": 0,
+       "entriesRefused": 4,
+       "entrySignals": 10,
+       "ruleRet": 0.1756,
+       "deltaRet": -0.0534
+      },
+      "AVAX/USD": {
+       "ret": -0.0894,
+       "maxDD": 0.098,
+       "retOverDD": -0.91,
+       "trades": 8,
+       "days": 365,
+       "exposure": 0.03,
+       "stopsHit": 0,
+       "entriesRefused": 8,
+       "entrySignals": 12,
+       "ruleRet": 0.3405,
+       "deltaRet": -0.4299
+      },
+      "SUI/USD": {
+       "ret": 0,
+       "maxDD": 0,
+       "retOverDD": 0,
+       "trades": 0,
+       "days": 365,
+       "exposure": 0,
+       "stopsHit": 0,
+       "entriesRefused": 15,
+       "entrySignals": 15,
+       "ruleRet": 0.0136,
+       "deltaRet": -0.0136
+      }
+     }
+    },
+    "B": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": 8.91,
+      "ret": 0.0891,
+      "maxDD": 0.0516,
+      "retOverDD": 1.73,
+      "days": 387,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "deployment": 0.082,
+      "turnoverPerYear": 12.48,
+      "bestDayUsd": 2.98,
+      "worstDayUsd": -2.45,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": -0.1117,
+     "deltaPnlUsd": -11.17,
+     "deltaMaxDD": -0.0531,
+     "deltaRetOverDD": -0.19,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.0663,
+       "maxDD": 0.1449,
+       "retOverDD": 0.46,
+       "trades": 30,
+       "days": 375,
+       "exposure": 0.18,
+       "stopsHit": 0,
+       "entriesRefused": 15,
+       "entrySignals": 30,
+       "ruleRet": 0.1236,
+       "deltaRet": -0.0573
+      },
+      "ETH/USD": {
+       "ret": 0.5667,
+       "maxDD": 0.1353,
+       "retOverDD": 4.19,
+       "trades": 16,
+       "days": 375,
+       "exposure": 0.132,
+       "stopsHit": 1,
+       "entriesRefused": 17,
+       "entrySignals": 25,
+       "ruleRet": 0.8015,
+       "deltaRet": -0.2348
+      },
+      "SOL/USD": {
+       "ret": -0.0165,
+       "maxDD": 0.1722,
+       "retOverDD": -0.1,
+       "trades": 12,
+       "days": 375,
+       "exposure": 0.071,
+       "stopsHit": 0,
+       "entriesRefused": 29,
+       "entrySignals": 35,
+       "ruleRet": 0.0296,
+       "deltaRet": -0.0461
+      },
+      "AVAX/USD": {
+       "ret": -0.0506,
+       "maxDD": 0.1256,
+       "retOverDD": -0.4,
+       "trades": 6,
+       "days": 365,
+       "exposure": 0.025,
+       "stopsHit": 1,
+       "entriesRefused": 33,
+       "entrySignals": 36,
+       "ruleRet": 0.0679,
+       "deltaRet": -0.1185
+      },
+      "SUI/USD": {
+       "ret": -0.0828,
+       "maxDD": 0.0828,
+       "retOverDD": -1,
+       "trades": 2,
+       "days": 365,
+       "exposure": 0.002,
+       "stopsHit": 1,
+       "entriesRefused": 9,
+       "entrySignals": 10,
+       "ruleRet": -0.0253,
+       "deltaRet": -0.0574
+      }
+     }
+    },
+    "C": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": 34.31,
+      "ret": 0.4289,
+      "maxDD": 0.0356,
+      "retOverDD": 8.58,
+      "days": 397,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "deployment": 0.114,
+      "turnoverPerYear": 11.98,
+      "bestDayUsd": 4.67,
+      "worstDayUsd": -3.88,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": -0.1275,
+     "deltaPnlUsd": -10.2,
+     "deltaMaxDD": -0.0379,
+     "deltaRetOverDD": 1.01,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.1092,
+       "maxDD": 0.1795,
+       "retOverDD": 0.61,
+       "trades": 26,
+       "days": 375,
+       "exposure": 0.151,
+       "stopsHit": 1,
+       "entriesRefused": 8,
+       "entrySignals": 21,
+       "ruleRet": 0.0031,
+       "deltaRet": 0.1061
+      },
+      "ETH/USD": {
+       "ret": 0.5318,
+       "maxDD": 0.1089,
+       "retOverDD": 4.88,
+       "trades": 12,
+       "days": 375,
+       "exposure": 0.14,
+       "stopsHit": 0,
+       "entriesRefused": 9,
+       "entrySignals": 15,
+       "ruleRet": 0.815,
+       "deltaRet": -0.2832
+      },
+      "SOL/USD": {
+       "ret": 0.7061,
+       "maxDD": 0.1245,
+       "retOverDD": 5.67,
+       "trades": 8,
+       "days": 375,
+       "exposure": 0.084,
+       "stopsHit": 0,
+       "entriesRefused": 30,
+       "entrySignals": 34,
+       "ruleRet": 0.6975,
+       "deltaRet": 0.0086
+      },
+      "AVAX/USD": {
+       "ret": 0.6501,
+       "maxDD": 0.1607,
+       "retOverDD": 4.05,
+       "trades": 6,
+       "days": 365,
+       "exposure": 0.08,
+       "stopsHit": 0,
+       "entriesRefused": 18,
+       "entrySignals": 21,
+       "ruleRet": 1.2673,
+       "deltaRet": -0.6171
+      }
+     }
+    },
+    "D": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": 5.75,
+      "ret": 0.0718,
+      "maxDD": 0.0427,
+      "retOverDD": 1.44,
+      "days": 397,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "deployment": 0.043,
+      "turnoverPerYear": 6.91,
+      "bestDayUsd": 2.4,
+      "worstDayUsd": -1.38,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": 0.1499,
+     "deltaPnlUsd": 12,
+     "deltaMaxDD": -0.1125,
+     "deltaRetOverDD": 1.94,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.0565,
+       "maxDD": 0.1449,
+       "retOverDD": 0.39,
+       "trades": 16,
+       "days": 365,
+       "exposure": 0.077,
+       "stopsHit": 0,
+       "entriesRefused": 10,
+       "entrySignals": 18,
+       "ruleRet": 0.1455,
+       "deltaRet": -0.089
+      },
+      "ETH/USD": {
+       "ret": 0.2439,
+       "maxDD": 0.0954,
+       "retOverDD": 2.56,
+       "trades": 10,
+       "days": 365,
+       "exposure": 0.076,
+       "stopsHit": 0,
+       "entriesRefused": 8,
+       "entrySignals": 13,
+       "ruleRet": -0.0631,
+       "deltaRet": 0.307
+      },
+      "SOL/USD": {
+       "ret": 0,
+       "maxDD": 0,
+       "retOverDD": 0,
+       "trades": 0,
+       "days": 365,
+       "exposure": 0,
+       "stopsHit": 0,
+       "entriesRefused": 3,
+       "entrySignals": 3,
+       "ruleRet": -0.0831,
+       "deltaRet": 0.0831
+      },
+      "AVAX/USD": {
+       "ret": -0.0135,
+       "maxDD": 0.0996,
+       "retOverDD": -0.14,
+       "trades": 4,
+       "days": 365,
+       "exposure": 0.019,
+       "stopsHit": 0,
+       "entriesRefused": 11,
+       "entrySignals": 13,
+       "ruleRet": -0.2954,
+       "deltaRet": 0.282
+      }
+     }
+    }
+   },
+   "worstWindowRet": -0.0664,
+   "worstWindow": "A"
+  },
+  "rule∧Jev(highvol-passed)": {
+   "perWindow": {
+    "A": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": 0.63,
+      "ret": 0.0063,
+      "maxDD": 0.1217,
+      "retOverDD": 0.05,
+      "days": 377,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "deployment": 0.07,
+      "turnoverPerYear": 14.17,
+      "bestDayUsd": 6.15,
+      "worstDayUsd": -3.59,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": -0.074,
+     "deltaPnlUsd": -7.4,
+     "deltaMaxDD": 0.0089,
+     "deltaRetOverDD": -0.66,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": -0.1368,
+       "maxDD": 0.2063,
+       "retOverDD": -0.66,
+       "trades": 26,
+       "days": 375,
+       "exposure": 0.12,
+       "stopsHit": 0,
+       "entriesRefused": 8,
+       "entrySignals": 21,
+       "ruleRet": -0.1069,
+       "deltaRet": -0.0299
+      },
+      "ETH/USD": {
+       "ret": -0.1291,
+       "maxDD": 0.2143,
+       "retOverDD": -0.6,
+       "trades": 16,
+       "days": 375,
+       "exposure": 0.072,
+       "stopsHit": 0,
+       "entriesRefused": 7,
+       "entrySignals": 15,
+       "ruleRet": -0.0804,
+       "deltaRet": -0.0487
+      },
+      "SOL/USD": {
+       "ret": 0.1223,
+       "maxDD": 0.1852,
+       "retOverDD": 0.66,
+       "trades": 12,
+       "days": 375,
+       "exposure": 0.082,
+       "stopsHit": 0,
+       "entriesRefused": 4,
+       "entrySignals": 10,
+       "ruleRet": 0.1756,
+       "deltaRet": -0.0534
+      },
+      "AVAX/USD": {
+       "ret": 0.1212,
+       "maxDD": 0.098,
+       "retOverDD": 1.24,
+       "trades": 9,
+       "days": 365,
+       "exposure": 0.036,
+       "stopsHit": 0,
+       "entriesRefused": 4,
+       "entrySignals": 9,
+       "ruleRet": 0.3405,
+       "deltaRet": -0.2193
+      },
+      "SUI/USD": {
+       "ret": -0.0122,
+       "maxDD": 0.2413,
+       "retOverDD": -0.05,
+       "trades": 10,
+       "days": 365,
+       "exposure": 0.037,
+       "stopsHit": 2,
+       "entriesRefused": 4,
+       "entrySignals": 9,
+       "ruleRet": 0.0136,
+       "deltaRet": -0.0258
+      }
+     }
+    },
+    "B": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": 14.86,
+      "ret": 0.1486,
+      "maxDD": 0.0962,
+      "retOverDD": 1.55,
+      "days": 387,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "deployment": 0.131,
+      "turnoverPerYear": 19.67,
+      "bestDayUsd": 6.83,
+      "worstDayUsd": -5.55,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": -0.0522,
+     "deltaPnlUsd": -5.22,
+     "deltaMaxDD": -0.0085,
+     "deltaRetOverDD": -0.37,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.0663,
+       "maxDD": 0.1449,
+       "retOverDD": 0.46,
+       "trades": 30,
+       "days": 375,
+       "exposure": 0.18,
+       "stopsHit": 0,
+       "entriesRefused": 15,
+       "entrySignals": 30,
+       "ruleRet": 0.1236,
+       "deltaRet": -0.0573
+      },
+      "ETH/USD": {
+       "ret": 0.5866,
+       "maxDD": 0.206,
+       "retOverDD": 2.85,
+       "trades": 20,
+       "days": 375,
+       "exposure": 0.164,
+       "stopsHit": 2,
+       "entriesRefused": 5,
+       "entrySignals": 15,
+       "ruleRet": 0.8015,
+       "deltaRet": -0.2149
+      },
+      "SOL/USD": {
+       "ret": -0.0108,
+       "maxDD": 0.3294,
+       "retOverDD": -0.03,
+       "trades": 26,
+       "days": 375,
+       "exposure": 0.16,
+       "stopsHit": 3,
+       "entriesRefused": 6,
+       "entrySignals": 19,
+       "ruleRet": 0.0296,
+       "deltaRet": -0.0404
+      },
+      "AVAX/USD": {
+       "ret": -0.0285,
+       "maxDD": 0.2877,
+       "retOverDD": -0.1,
+       "trades": 20,
+       "days": 365,
+       "exposure": 0.111,
+       "stopsHit": 2,
+       "entriesRefused": 2,
+       "entrySignals": 12,
+       "ruleRet": 0.0679,
+       "deltaRet": -0.0965
+      },
+      "SUI/USD": {
+       "ret": 0.0626,
+       "maxDD": 0.2511,
+       "retOverDD": 0.25,
+       "trades": 8,
+       "days": 365,
+       "exposure": 0.039,
+       "stopsHit": 2,
+       "entriesRefused": 1,
+       "entrySignals": 5,
+       "ruleRet": -0.0253,
+       "deltaRet": 0.0879
+      }
+     }
+    },
+    "C": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": 45.37,
+      "ret": 0.5671,
+      "maxDD": 0.0489,
+      "retOverDD": 11.34,
+      "days": 397,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "deployment": 0.16,
+      "turnoverPerYear": 18.66,
+      "bestDayUsd": 5.52,
+      "worstDayUsd": -6.1,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": 0.0107,
+     "deltaPnlUsd": 0.86,
+     "deltaMaxDD": -0.0246,
+     "deltaRetOverDD": 3.77,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.0798,
+       "maxDD": 0.2013,
+       "retOverDD": 0.4,
+       "trades": 28,
+       "days": 375,
+       "exposure": 0.16,
+       "stopsHit": 1,
+       "entriesRefused": 6,
+       "entrySignals": 20,
+       "ruleRet": 0.0031,
+       "deltaRet": 0.0766
+      },
+      "ETH/USD": {
+       "ret": 0.6692,
+       "maxDD": 0.1089,
+       "retOverDD": 6.15,
+       "trades": 14,
+       "days": 375,
+       "exposure": 0.164,
+       "stopsHit": 0,
+       "entriesRefused": 4,
+       "entrySignals": 11,
+       "ruleRet": 0.815,
+       "deltaRet": -0.1458
+      },
+      "SOL/USD": {
+       "ret": 0.6539,
+       "maxDD": 0.2196,
+       "retOverDD": 2.98,
+       "trades": 24,
+       "days": 375,
+       "exposure": 0.175,
+       "stopsHit": 1,
+       "entriesRefused": 4,
+       "entrySignals": 16,
+       "ruleRet": 0.6975,
+       "deltaRet": -0.0436
+      },
+      "AVAX/USD": {
+       "ret": 1.5338,
+       "maxDD": 0.1874,
+       "retOverDD": 8.18,
+       "trades": 15,
+       "days": 365,
+       "exposure": 0.141,
+       "stopsHit": 0,
+       "entriesRefused": 3,
+       "entrySignals": 11,
+       "ruleRet": 1.2673,
+       "deltaRet": 0.2666
+      }
+     }
+    },
+    "D": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": -2.66,
+      "ret": -0.0332,
+      "maxDD": 0.1185,
+      "retOverDD": -0.28,
+      "days": 397,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "deployment": 0.063,
+      "turnoverPerYear": 11.06,
+      "bestDayUsd": 2.4,
+      "worstDayUsd": -3.93,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": 0.0449,
+     "deltaPnlUsd": 3.59,
+     "deltaMaxDD": -0.0367,
+     "deltaRetOverDD": 0.22,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.1207,
+       "maxDD": 0.0929,
+       "retOverDD": 1.3,
+       "trades": 16,
+       "days": 365,
+       "exposure": 0.091,
+       "stopsHit": 0,
+       "entriesRefused": 7,
+       "entrySignals": 15,
+       "ruleRet": 0.1455,
+       "deltaRet": -0.0248
+      },
+      "ETH/USD": {
+       "ret": 0.1235,
+       "maxDD": 0.177,
+       "retOverDD": 0.7,
+       "trades": 14,
+       "days": 365,
+       "exposure": 0.096,
+       "stopsHit": 0,
+       "entriesRefused": 5,
+       "entrySignals": 12,
+       "ruleRet": -0.0631,
+       "deltaRet": 0.1867
+      },
+      "SOL/USD": {
+       "ret": -0.0831,
+       "maxDD": 0.126,
+       "retOverDD": -0.66,
+       "trades": 4,
+       "days": 365,
+       "exposure": 0.027,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 2,
+       "ruleRet": -0.0831,
+       "deltaRet": 0
+      },
+      "AVAX/USD": {
+       "ret": -0.2767,
+       "maxDD": 0.3131,
+       "retOverDD": -0.88,
+       "trades": 14,
+       "days": 365,
+       "exposure": 0.039,
+       "stopsHit": 2,
+       "entriesRefused": 3,
+       "entrySignals": 10,
+       "ruleRet": -0.2954,
+       "deltaRet": 0.0187
+      }
+     }
+    }
+   },
+   "worstWindowRet": -0.0332,
+   "worstWindow": "D"
+  },
+  "rule∧Jev(weak-veto-only)": {
+   "perWindow": {
+    "A": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": 0.63,
+      "ret": 0.0063,
+      "maxDD": 0.1217,
+      "retOverDD": 0.05,
+      "days": 377,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "deployment": 0.07,
+      "turnoverPerYear": 14.17,
+      "bestDayUsd": 6.15,
+      "worstDayUsd": -3.59,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": -0.074,
+     "deltaPnlUsd": -7.4,
+     "deltaMaxDD": 0.0089,
+     "deltaRetOverDD": -0.66,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": -0.1368,
+       "maxDD": 0.2063,
+       "retOverDD": -0.66,
+       "trades": 26,
+       "days": 375,
+       "exposure": 0.12,
+       "stopsHit": 0,
+       "entriesRefused": 8,
+       "entrySignals": 21,
+       "ruleRet": -0.1069,
+       "deltaRet": -0.0299
+      },
+      "ETH/USD": {
+       "ret": -0.1291,
+       "maxDD": 0.2143,
+       "retOverDD": -0.6,
+       "trades": 16,
+       "days": 375,
+       "exposure": 0.072,
+       "stopsHit": 0,
+       "entriesRefused": 7,
+       "entrySignals": 15,
+       "ruleRet": -0.0804,
+       "deltaRet": -0.0487
+      },
+      "SOL/USD": {
+       "ret": 0.1223,
+       "maxDD": 0.1852,
+       "retOverDD": 0.66,
+       "trades": 12,
+       "days": 375,
+       "exposure": 0.082,
+       "stopsHit": 0,
+       "entriesRefused": 4,
+       "entrySignals": 10,
+       "ruleRet": 0.1756,
+       "deltaRet": -0.0534
+      },
+      "AVAX/USD": {
+       "ret": 0.1212,
+       "maxDD": 0.098,
+       "retOverDD": 1.24,
+       "trades": 9,
+       "days": 365,
+       "exposure": 0.036,
+       "stopsHit": 0,
+       "entriesRefused": 4,
+       "entrySignals": 9,
+       "ruleRet": 0.3405,
+       "deltaRet": -0.2193
+      },
+      "SUI/USD": {
+       "ret": -0.0122,
+       "maxDD": 0.2413,
+       "retOverDD": -0.05,
+       "trades": 10,
+       "days": 365,
+       "exposure": 0.037,
+       "stopsHit": 2,
+       "entriesRefused": 4,
+       "entrySignals": 9,
+       "ruleRet": 0.0136,
+       "deltaRet": -0.0258
+      }
+     }
+    },
+    "B": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": 14.86,
+      "ret": 0.1486,
+      "maxDD": 0.0962,
+      "retOverDD": 1.55,
+      "days": 387,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "deployment": 0.131,
+      "turnoverPerYear": 19.67,
+      "bestDayUsd": 6.83,
+      "worstDayUsd": -5.55,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": -0.0522,
+     "deltaPnlUsd": -5.22,
+     "deltaMaxDD": -0.0085,
+     "deltaRetOverDD": -0.37,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.0663,
+       "maxDD": 0.1449,
+       "retOverDD": 0.46,
+       "trades": 30,
+       "days": 375,
+       "exposure": 0.18,
+       "stopsHit": 0,
+       "entriesRefused": 15,
+       "entrySignals": 30,
+       "ruleRet": 0.1236,
+       "deltaRet": -0.0573
+      },
+      "ETH/USD": {
+       "ret": 0.5866,
+       "maxDD": 0.206,
+       "retOverDD": 2.85,
+       "trades": 20,
+       "days": 375,
+       "exposure": 0.164,
+       "stopsHit": 2,
+       "entriesRefused": 5,
+       "entrySignals": 15,
+       "ruleRet": 0.8015,
+       "deltaRet": -0.2149
+      },
+      "SOL/USD": {
+       "ret": -0.0108,
+       "maxDD": 0.3294,
+       "retOverDD": -0.03,
+       "trades": 26,
+       "days": 375,
+       "exposure": 0.16,
+       "stopsHit": 3,
+       "entriesRefused": 6,
+       "entrySignals": 19,
+       "ruleRet": 0.0296,
+       "deltaRet": -0.0404
+      },
+      "AVAX/USD": {
+       "ret": -0.0285,
+       "maxDD": 0.2877,
+       "retOverDD": -0.1,
+       "trades": 20,
+       "days": 365,
+       "exposure": 0.111,
+       "stopsHit": 2,
+       "entriesRefused": 2,
+       "entrySignals": 12,
+       "ruleRet": 0.0679,
+       "deltaRet": -0.0965
+      },
+      "SUI/USD": {
+       "ret": 0.0626,
+       "maxDD": 0.2511,
+       "retOverDD": 0.25,
+       "trades": 8,
+       "days": 365,
+       "exposure": 0.039,
+       "stopsHit": 2,
+       "entriesRefused": 1,
+       "entrySignals": 5,
+       "ruleRet": -0.0253,
+       "deltaRet": 0.0879
+      }
+     }
+    },
+    "C": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": 45.37,
+      "ret": 0.5671,
+      "maxDD": 0.0489,
+      "retOverDD": 11.34,
+      "days": 397,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "deployment": 0.16,
+      "turnoverPerYear": 18.66,
+      "bestDayUsd": 5.52,
+      "worstDayUsd": -6.1,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": 0.0107,
+     "deltaPnlUsd": 0.86,
+     "deltaMaxDD": -0.0246,
+     "deltaRetOverDD": 3.77,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.0798,
+       "maxDD": 0.2013,
+       "retOverDD": 0.4,
+       "trades": 28,
+       "days": 375,
+       "exposure": 0.16,
+       "stopsHit": 1,
+       "entriesRefused": 6,
+       "entrySignals": 20,
+       "ruleRet": 0.0031,
+       "deltaRet": 0.0766
+      },
+      "ETH/USD": {
+       "ret": 0.6692,
+       "maxDD": 0.1089,
+       "retOverDD": 6.15,
+       "trades": 14,
+       "days": 375,
+       "exposure": 0.164,
+       "stopsHit": 0,
+       "entriesRefused": 4,
+       "entrySignals": 11,
+       "ruleRet": 0.815,
+       "deltaRet": -0.1458
+      },
+      "SOL/USD": {
+       "ret": 0.6539,
+       "maxDD": 0.2196,
+       "retOverDD": 2.98,
+       "trades": 24,
+       "days": 375,
+       "exposure": 0.175,
+       "stopsHit": 1,
+       "entriesRefused": 4,
+       "entrySignals": 16,
+       "ruleRet": 0.6975,
+       "deltaRet": -0.0436
+      },
+      "AVAX/USD": {
+       "ret": 1.5338,
+       "maxDD": 0.1874,
+       "retOverDD": 8.18,
+       "trades": 15,
+       "days": 365,
+       "exposure": 0.141,
+       "stopsHit": 0,
+       "entriesRefused": 3,
+       "entrySignals": 11,
+       "ruleRet": 1.2673,
+       "deltaRet": 0.2666
+      }
+     }
+    },
+    "D": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": -2.66,
+      "ret": -0.0332,
+      "maxDD": 0.1185,
+      "retOverDD": -0.28,
+      "days": 397,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "deployment": 0.063,
+      "turnoverPerYear": 11.06,
+      "bestDayUsd": 2.4,
+      "worstDayUsd": -3.93,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": 0.0449,
+     "deltaPnlUsd": 3.59,
+     "deltaMaxDD": -0.0367,
+     "deltaRetOverDD": 0.22,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.1207,
+       "maxDD": 0.0929,
+       "retOverDD": 1.3,
+       "trades": 16,
+       "days": 365,
+       "exposure": 0.091,
+       "stopsHit": 0,
+       "entriesRefused": 7,
+       "entrySignals": 15,
+       "ruleRet": 0.1455,
+       "deltaRet": -0.0248
+      },
+      "ETH/USD": {
+       "ret": 0.1235,
+       "maxDD": 0.177,
+       "retOverDD": 0.7,
+       "trades": 14,
+       "days": 365,
+       "exposure": 0.096,
+       "stopsHit": 0,
+       "entriesRefused": 5,
+       "entrySignals": 12,
+       "ruleRet": -0.0631,
+       "deltaRet": 0.1867
+      },
+      "SOL/USD": {
+       "ret": -0.0831,
+       "maxDD": 0.126,
+       "retOverDD": -0.66,
+       "trades": 4,
+       "days": 365,
+       "exposure": 0.027,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 2,
+       "ruleRet": -0.0831,
+       "deltaRet": 0
+      },
+      "AVAX/USD": {
+       "ret": -0.2767,
+       "maxDD": 0.3131,
+       "retOverDD": -0.88,
+       "trades": 14,
+       "days": 365,
+       "exposure": 0.039,
+       "stopsHit": 2,
+       "entriesRefused": 3,
+       "entrySignals": 10,
+       "ruleRet": -0.2954,
+       "deltaRet": 0.0187
+      }
+     }
+    }
+   },
+   "worstWindowRet": -0.0332,
+   "worstWindow": "D"
+  },
+  "rule∧Jev(highvol-veto-only)": {
+   "perWindow": {
+    "A": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": 8.87,
+      "ret": 0.0887,
+      "maxDD": 0.1211,
+      "retOverDD": 0.73,
+      "days": 377,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "deployment": 0.086,
+      "turnoverPerYear": 16.11,
+      "bestDayUsd": 6.15,
+      "worstDayUsd": -3.59,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": 0.0084,
+     "deltaPnlUsd": 0.84,
+     "deltaMaxDD": 0.0083,
+     "deltaRetOverDD": 0.02,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": -0.1069,
+       "maxDD": 0.1879,
+       "retOverDD": -0.57,
+       "trades": 28,
+       "days": 375,
+       "exposure": 0.133,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 14,
+       "ruleRet": -0.1069,
+       "deltaRet": 0
+      },
+      "ETH/USD": {
+       "ret": -0.0804,
+       "maxDD": 0.2029,
+       "retOverDD": -0.4,
+       "trades": 22,
+       "days": 375,
+       "exposure": 0.112,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 11,
+       "ruleRet": -0.0804,
+       "deltaRet": 0
+      },
+      "SOL/USD": {
+       "ret": 0.1756,
+       "maxDD": 0.2344,
+       "retOverDD": 0.75,
+       "trades": 14,
+       "days": 375,
+       "exposure": 0.098,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 7,
+       "ruleRet": 0.1756,
+       "deltaRet": 0
+      },
+      "AVAX/USD": {
+       "ret": 0.3405,
+       "maxDD": 0.0866,
+       "retOverDD": 3.93,
+       "trades": 9,
+       "days": 365,
+       "exposure": 0.042,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 5,
+       "ruleRet": 0.3405,
+       "deltaRet": 0
+      },
+      "SUI/USD": {
+       "ret": 0.0611,
+       "maxDD": 0.2252,
+       "retOverDD": 0.27,
+       "trades": 10,
+       "days": 365,
+       "exposure": 0.045,
+       "stopsHit": 1,
+       "entriesRefused": 3,
+       "entrySignals": 8,
+       "ruleRet": 0.0136,
+       "deltaRet": 0.0476
+      }
+     }
+    },
+    "B": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": 20.4,
+      "ret": 0.204,
+      "maxDD": 0.0988,
+      "retOverDD": 2.06,
+      "days": 387,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "deployment": 0.133,
+      "turnoverPerYear": 19.48,
+      "bestDayUsd": 6.83,
+      "worstDayUsd": -3.66,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": 0.0032,
+     "deltaPnlUsd": 0.32,
+     "deltaMaxDD": -0.0059,
+     "deltaRetOverDD": 0.14,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.1236,
+       "maxDD": 0.1705,
+       "retOverDD": 0.72,
+       "trades": 36,
+       "days": 375,
+       "exposure": 0.212,
+       "stopsHit": 1,
+       "entriesRefused": 0,
+       "entrySignals": 18,
+       "ruleRet": 0.1236,
+       "deltaRet": 0
+      },
+      "ETH/USD": {
+       "ret": 0.655,
+       "maxDD": 0.19,
+       "retOverDD": 3.45,
+       "trades": 20,
+       "days": 375,
+       "exposure": 0.154,
+       "stopsHit": 1,
+       "entriesRefused": 4,
+       "entrySignals": 14,
+       "ruleRet": 0.8015,
+       "deltaRet": -0.1465
+      },
+      "SOL/USD": {
+       "ret": 0.1295,
+       "maxDD": 0.1628,
+       "retOverDD": 0.8,
+       "trades": 21,
+       "days": 375,
+       "exposure": 0.154,
+       "stopsHit": 1,
+       "entriesRefused": 8,
+       "entrySignals": 19,
+       "ruleRet": 0.0296,
+       "deltaRet": 0.0999
+      },
+      "AVAX/USD": {
+       "ret": 0.0719,
+       "maxDD": 0.2467,
+       "retOverDD": 0.29,
+       "trades": 18,
+       "days": 365,
+       "exposure": 0.11,
+       "stopsHit": 2,
+       "entriesRefused": 5,
+       "entrySignals": 14,
+       "ruleRet": 0.0679,
+       "deltaRet": 0.004
+      },
+      "SUI/USD": {
+       "ret": 0.0104,
+       "maxDD": 0.2511,
+       "retOverDD": 0.04,
+       "trades": 8,
+       "days": 365,
+       "exposure": 0.036,
+       "stopsHit": 2,
+       "entriesRefused": 3,
+       "entrySignals": 7,
+       "ruleRet": -0.0253,
+       "deltaRet": 0.0357
+      }
+     }
+    },
+    "C": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": 41.44,
+      "ret": 0.518,
+      "maxDD": 0.0713,
+      "retOverDD": 7.26,
+      "days": 397,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "deployment": 0.166,
+      "turnoverPerYear": 20.05,
+      "bestDayUsd": 7.39,
+      "worstDayUsd": -8.57,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": -0.0384,
+     "deltaPnlUsd": -3.07,
+     "deltaMaxDD": -0.0022,
+     "deltaRetOverDD": -0.31,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.0031,
+       "maxDD": 0.2642,
+       "retOverDD": 0.01,
+       "trades": 34,
+       "days": 375,
+       "exposure": 0.176,
+       "stopsHit": 1,
+       "entriesRefused": 0,
+       "entrySignals": 17,
+       "ruleRet": 0.0031,
+       "deltaRet": 0
+      },
+      "ETH/USD": {
+       "ret": 0.815,
+       "maxDD": 0.1297,
+       "retOverDD": 6.28,
+       "trades": 16,
+       "days": 375,
+       "exposure": 0.177,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 8,
+       "ruleRet": 0.815,
+       "deltaRet": 0
+      },
+      "SOL/USD": {
+       "ret": 0.7698,
+       "maxDD": 0.2165,
+       "retOverDD": 3.56,
+       "trades": 20,
+       "days": 375,
+       "exposure": 0.16,
+       "stopsHit": 1,
+       "entriesRefused": 4,
+       "entrySignals": 14,
+       "ruleRet": 0.6975,
+       "deltaRet": 0.0723
+      },
+      "AVAX/USD": {
+       "ret": 0.8904,
+       "maxDD": 0.3145,
+       "retOverDD": 2.83,
+       "trades": 17,
+       "days": 365,
+       "exposure": 0.148,
+       "stopsHit": 1,
+       "entriesRefused": 8,
+       "entrySignals": 17,
+       "ruleRet": 1.2673,
+       "deltaRet": -0.3768
+      }
+     }
+    },
+    "D": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": -4.75,
+      "ret": -0.0594,
+      "maxDD": 0.138,
+      "retOverDD": -0.43,
+      "days": 397,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "deployment": 0.071,
+      "turnoverPerYear": 13.36,
+      "bestDayUsd": 2.4,
+      "worstDayUsd": -3.46,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": 0.0187,
+     "deltaPnlUsd": 1.5,
+     "deltaMaxDD": -0.0172,
+     "deltaRetOverDD": 0.07,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.1455,
+       "maxDD": 0.0887,
+       "retOverDD": 1.64,
+       "trades": 20,
+       "days": 365,
+       "exposure": 0.111,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 10,
+       "ruleRet": 0.1455,
+       "deltaRet": 0
+      },
+      "ETH/USD": {
+       "ret": -0.0631,
+       "maxDD": 0.2832,
+       "retOverDD": -0.22,
+       "trades": 24,
+       "days": 365,
+       "exposure": 0.133,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 12,
+       "ruleRet": -0.0631,
+       "deltaRet": 0
+      },
+      "SOL/USD": {
+       "ret": -0.0818,
+       "maxDD": 0.0818,
+       "retOverDD": -1,
+       "trades": 2,
+       "days": 365,
+       "exposure": 0.006,
+       "stopsHit": 1,
+       "entriesRefused": 2,
+       "entrySignals": 3,
+       "ruleRet": -0.0831,
+       "deltaRet": 0.0013
+      },
+      "AVAX/USD": {
+       "ret": -0.2353,
+       "maxDD": 0.2738,
+       "retOverDD": -0.86,
+       "trades": 12,
+       "days": 365,
+       "exposure": 0.033,
+       "stopsHit": 2,
+       "entriesRefused": 5,
+       "entrySignals": 11,
+       "ruleRet": -0.2954,
+       "deltaRet": 0.0601
+      }
+     }
+    }
+   },
+   "worstWindowRet": -0.0594,
+   "worstWindow": "D"
+  },
+  "rule∧Jev(recorded-cells-only)": {
+   "perWindow": {
+    "A": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": 6.41,
+      "ret": 0.0641,
+      "maxDD": 0.1323,
+      "retOverDD": 0.48,
+      "days": 377,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "deployment": 0.083,
+      "turnoverPerYear": 16.11,
+      "bestDayUsd": 6.15,
+      "worstDayUsd": -3.59,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": -0.0162,
+     "deltaPnlUsd": -1.62,
+     "deltaMaxDD": 0.0195,
+     "deltaRetOverDD": -0.23,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": -0.1355,
+       "maxDD": 0.2051,
+       "retOverDD": -0.66,
+       "trades": 28,
+       "days": 375,
+       "exposure": 0.127,
+       "stopsHit": 0,
+       "entriesRefused": 4,
+       "entrySignals": 18,
+       "ruleRet": -0.1069,
+       "deltaRet": -0.0287
+      },
+      "ETH/USD": {
+       "ret": -0.1092,
+       "maxDD": 0.2279,
+       "retOverDD": -0.48,
+       "trades": 22,
+       "days": 375,
+       "exposure": 0.105,
+       "stopsHit": 0,
+       "entriesRefused": 2,
+       "entrySignals": 13,
+       "ruleRet": -0.0804,
+       "deltaRet": -0.0288
+      },
+      "SOL/USD": {
+       "ret": 0.1137,
+       "maxDD": 0.2344,
+       "retOverDD": 0.49,
+       "trades": 14,
+       "days": 375,
+       "exposure": 0.097,
+       "stopsHit": 0,
+       "entriesRefused": 1,
+       "entrySignals": 8,
+       "ruleRet": 0.1756,
+       "deltaRet": -0.062
+      },
+      "AVAX/USD": {
+       "ret": 0.3405,
+       "maxDD": 0.0866,
+       "retOverDD": 3.93,
+       "trades": 9,
+       "days": 365,
+       "exposure": 0.042,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 5,
+       "ruleRet": 0.3405,
+       "deltaRet": 0
+      },
+      "SUI/USD": {
+       "ret": 0.0611,
+       "maxDD": 0.2252,
+       "retOverDD": 0.27,
+       "trades": 10,
+       "days": 365,
+       "exposure": 0.045,
+       "stopsHit": 1,
+       "entriesRefused": 3,
+       "entrySignals": 8,
+       "ruleRet": 0.0136,
+       "deltaRet": 0.0476
+      }
+     }
+    },
+    "B": {
+     "sleeve": {
+      "members": 5,
+      "capitalUsd": 100,
+      "pnlUsd": 18.06,
+      "ret": 0.1806,
+      "maxDD": 0.1002,
+      "retOverDD": 1.8,
+      "days": 387,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "deployment": 0.13,
+      "turnoverPerYear": 19.1,
+      "bestDayUsd": 6.83,
+      "worstDayUsd": -3.66,
+      "peakOpenUsd": 100
+     },
+     "deltaRet": -0.0202,
+     "deltaPnlUsd": -2.02,
+     "deltaMaxDD": -0.0045,
+     "deltaRetOverDD": -0.12,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.0017,
+       "maxDD": 0.2003,
+       "retOverDD": 0.01,
+       "trades": 34,
+       "days": 375,
+       "exposure": 0.199,
+       "stopsHit": 1,
+       "entriesRefused": 11,
+       "entrySignals": 28,
+       "ruleRet": 0.1236,
+       "deltaRet": -0.1219
+      },
+      "ETH/USD": {
+       "ret": 0.655,
+       "maxDD": 0.19,
+       "retOverDD": 3.45,
+       "trades": 20,
+       "days": 375,
+       "exposure": 0.154,
+       "stopsHit": 1,
+       "entriesRefused": 4,
+       "entrySignals": 14,
+       "ruleRet": 0.8015,
+       "deltaRet": -0.1465
+      },
+      "SOL/USD": {
+       "ret": 0.1295,
+       "maxDD": 0.1628,
+       "retOverDD": 0.8,
+       "trades": 21,
+       "days": 375,
+       "exposure": 0.154,
+       "stopsHit": 1,
+       "entriesRefused": 8,
+       "entrySignals": 19,
+       "ruleRet": 0.0296,
+       "deltaRet": 0.0999
+      },
+      "AVAX/USD": {
+       "ret": 0.0719,
+       "maxDD": 0.2467,
+       "retOverDD": 0.29,
+       "trades": 18,
+       "days": 365,
+       "exposure": 0.11,
+       "stopsHit": 2,
+       "entriesRefused": 5,
+       "entrySignals": 14,
+       "ruleRet": 0.0679,
+       "deltaRet": 0.004
+      },
+      "SUI/USD": {
+       "ret": 0.0104,
+       "maxDD": 0.2511,
+       "retOverDD": 0.04,
+       "trades": 8,
+       "days": 365,
+       "exposure": 0.036,
+       "stopsHit": 2,
+       "entriesRefused": 3,
+       "entrySignals": 7,
+       "ruleRet": -0.0253,
+       "deltaRet": 0.0357
+      }
+     }
+    },
+    "C": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": 42.15,
+      "ret": 0.5269,
+      "maxDD": 0.0713,
+      "retOverDD": 7.39,
+      "days": 397,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "deployment": 0.164,
+      "turnoverPerYear": 19.59,
+      "bestDayUsd": 7.39,
+      "worstDayUsd": -8.57,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": -0.0295,
+     "deltaPnlUsd": -2.36,
+     "deltaMaxDD": -0.0022,
+     "deltaRetOverDD": -0.18,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.0399,
+       "maxDD": 0.2372,
+       "retOverDD": 0.17,
+       "trades": 32,
+       "days": 375,
+       "exposure": 0.171,
+       "stopsHit": 1,
+       "entriesRefused": 1,
+       "entrySignals": 17,
+       "ruleRet": 0.0031,
+       "deltaRet": 0.0368
+      },
+      "ETH/USD": {
+       "ret": 0.815,
+       "maxDD": 0.1297,
+       "retOverDD": 6.28,
+       "trades": 16,
+       "days": 375,
+       "exposure": 0.177,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 8,
+       "ruleRet": 0.815,
+       "deltaRet": 0
+      },
+      "SOL/USD": {
+       "ret": 0.7698,
+       "maxDD": 0.2165,
+       "retOverDD": 3.56,
+       "trades": 20,
+       "days": 375,
+       "exposure": 0.16,
+       "stopsHit": 1,
+       "entriesRefused": 4,
+       "entrySignals": 14,
+       "ruleRet": 0.6975,
+       "deltaRet": 0.0723
+      },
+      "AVAX/USD": {
+       "ret": 0.8904,
+       "maxDD": 0.3145,
+       "retOverDD": 2.83,
+       "trades": 17,
+       "days": 365,
+       "exposure": 0.148,
+       "stopsHit": 1,
+       "entriesRefused": 8,
+       "entrySignals": 17,
+       "ruleRet": 1.2673,
+       "deltaRet": -0.3768
+      }
+     }
+    },
+    "D": {
+     "sleeve": {
+      "members": 4,
+      "capitalUsd": 80,
+      "pnlUsd": -5.24,
+      "ret": -0.0655,
+      "maxDD": 0.1395,
+      "retOverDD": -0.47,
+      "days": 397,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "deployment": 0.066,
+      "turnoverPerYear": 12.44,
+      "bestDayUsd": 2.4,
+      "worstDayUsd": -3.46,
+      "peakOpenUsd": 80
+     },
+     "deltaRet": 0.0126,
+     "deltaPnlUsd": 1.01,
+     "deltaMaxDD": -0.0157,
+     "deltaRetOverDD": 0.03,
+     "perCoin": {
+      "BTC/USD": {
+       "ret": 0.1207,
+       "maxDD": 0.0929,
+       "retOverDD": 1.3,
+       "trades": 16,
+       "days": 365,
+       "exposure": 0.091,
+       "stopsHit": 0,
+       "entriesRefused": 7,
+       "entrySignals": 15,
+       "ruleRet": 0.1455,
+       "deltaRet": -0.0248
+      },
+      "ETH/USD": {
+       "ret": -0.0631,
+       "maxDD": 0.2832,
+       "retOverDD": -0.22,
+       "trades": 24,
+       "days": 365,
+       "exposure": 0.133,
+       "stopsHit": 0,
+       "entriesRefused": 0,
+       "entrySignals": 12,
+       "ruleRet": -0.0631,
+       "deltaRet": 0
+      },
+      "SOL/USD": {
+       "ret": -0.0818,
+       "maxDD": 0.0818,
+       "retOverDD": -1,
+       "trades": 2,
+       "days": 365,
+       "exposure": 0.006,
+       "stopsHit": 1,
+       "entriesRefused": 2,
+       "entrySignals": 3,
+       "ruleRet": -0.0831,
+       "deltaRet": 0.0013
+      },
+      "AVAX/USD": {
+       "ret": -0.2353,
+       "maxDD": 0.2738,
+       "retOverDD": -0.86,
+       "trades": 12,
+       "days": 365,
+       "exposure": 0.033,
+       "stopsHit": 2,
+       "entriesRefused": 5,
+       "entrySignals": 11,
+       "ruleRet": -0.2954,
+       "deltaRet": 0.0601
+      }
+     }
+    }
+   },
+   "worstWindowRet": -0.0655,
+   "worstWindow": "D"
+  }
+ },
+ "randomVetoNull": {
+  "what": "400 draws per window of a veto that refuses each entry signal independently with the probability the model's own veto rate implies on that window (measured on the rulebook's own path, the same number reported in vetoRateOnRuleSignals.central), seeded so the figures are fixed",
+  "draws": 400,
+  "perWindow": {
+   "A": {
+    "refuseProb": 0.535,
+    "realisedRefusalShare": 0.537,
+    "ruleRet": 0.0803,
+    "jevRet": -0.0247,
+    "nullMean": 0.0551,
+    "nullMedian": 0.0579,
+    "nullP05": -0.0245,
+    "nullP95": 0.1186,
+    "nullMin": -0.0762,
+    "nullMax": 0.1736,
+    "jevPercentile": 0.048,
+    "verdict": "the model's refusals are WORSE than random at the 5 % tail"
+   },
+   "B": {
+    "refuseProb": 0.5,
+    "realisedRefusalShare": 0.5,
+    "ruleRet": 0.2008,
+    "jevRet": 0.1577,
+    "nullMean": 0.1836,
+    "nullMedian": 0.1865,
+    "nullP05": 0.0948,
+    "nullP95": 0.2678,
+    "nullMin": 0.0011,
+    "nullMax": 0.3285,
+    "jevPercentile": 0.292,
+    "verdict": "inside the null — the refusal RATE explains it, the choice of which signals does not"
+   },
+   "C": {
+    "refuseProb": 0.426,
+    "realisedRefusalShare": 0.428,
+    "ruleRet": 0.5564,
+    "jevRet": 0.5241,
+    "nullMean": 0.4747,
+    "nullMedian": 0.4815,
+    "nullP05": 0.3724,
+    "nullP95": 0.5605,
+    "nullMin": 0.2215,
+    "nullMax": 0.6061,
+    "jevPercentile": 0.823,
+    "verdict": "inside the null — the refusal RATE explains it, the choice of which signals does not"
+   },
+   "D": {
+    "refuseProb": 0.438,
+    "realisedRefusalShare": 0.442,
+    "ruleRet": -0.0781,
+    "jevRet": -0.0145,
+    "nullMean": -0.0357,
+    "nullMedian": -0.0351,
+    "nullP05": -0.0865,
+    "nullP95": 0.0191,
+    "nullMin": -0.1382,
+    "nullMax": 0.0591,
+    "jevPercentile": 0.762,
+    "verdict": "inside the null — the refusal RATE explains it, the choice of which signals does not"
+   }
+  }
+ },
+ "armsLookedAt": {
+  "sleeveArms": 7,
+  "enterMinPoints": 6,
+  "distinctDecisionRules": "eight: the rulebook alone (= enterMin 0), the central surface at 0.5/0.55 (identical), at 0.6, at 0.65/0.7 (identical), and the four attribution surfaces at 0.6",
+  "note": "nothing here is adopted, so there is nothing to correct for multiplicity: the PRIMARY comparison is one pre-specified pair — the rulebook against the rulebook ∧ the model at the threshold the three live rows actually carry. The scan is reported as a surface and its only decision-shaped output, `enterMinScan.outOfSample`, follows a protocol fixed before it ran. The null for the primary comparison is `randomVetoNull`."
+ },
+ "enterMinScan": {
+  "note": "a surface, not a search — read `caveats`",
+  "scanned": [
+   0,
+   0.5,
+   0.55,
+   0.6,
+   0.65,
+   0.7
+  ],
+  "rows": [
+   {
+    "enterMin": 0,
+    "perWindow": {
+     "A": {
+      "ret": 0.0803,
+      "maxDD": 0.1128,
+      "retOverDD": 0.71,
+      "pnlUsd": 8.03,
+      "capitalUsd": 100,
+      "entrySignals": 43,
+      "refused": 0
+     },
+     "B": {
+      "ret": 0.2008,
+      "maxDD": 0.1047,
+      "retOverDD": 1.92,
+      "pnlUsd": 20.08,
+      "capitalUsd": 100,
+      "entrySignals": 58,
+      "refused": 0
+     },
+     "C": {
+      "ret": 0.5564,
+      "maxDD": 0.0735,
+      "retOverDD": 7.57,
+      "pnlUsd": 44.51,
+      "capitalUsd": 80,
+      "entrySignals": 47,
+      "refused": 0
+     },
+     "D": {
+      "ret": -0.0781,
+      "maxDD": 0.1552,
+      "retOverDD": -0.5,
+      "pnlUsd": -6.25,
+      "capitalUsd": 80,
+      "entrySignals": 32,
+      "refused": 0
+     }
+    },
+    "worstWindowRet": -0.0781,
+    "worstWindow": "D"
+   },
+   {
+    "enterMin": 0.5,
+    "perWindow": {
+     "A": {
+      "ret": 0.0063,
+      "maxDD": 0.1217,
+      "retOverDD": 0.05,
+      "pnlUsd": 0.63,
+      "capitalUsd": 100,
+      "entrySignals": 64,
+      "refused": 27
+     },
+     "B": {
+      "ret": 0.1486,
+      "maxDD": 0.0962,
+      "retOverDD": 1.55,
+      "pnlUsd": 14.86,
+      "capitalUsd": 100,
+      "entrySignals": 81,
+      "refused": 29
+     },
+     "C": {
+      "ret": 0.5671,
+      "maxDD": 0.0489,
+      "retOverDD": 11.34,
+      "pnlUsd": 45.37,
+      "capitalUsd": 80,
+      "entrySignals": 58,
+      "refused": 17
+     },
+     "D": {
+      "ret": -0.0332,
+      "maxDD": 0.1185,
+      "retOverDD": -0.28,
+      "pnlUsd": -2.66,
+      "capitalUsd": 80,
+      "entrySignals": 39,
+      "refused": 15
+     }
+    },
+    "worstWindowRet": -0.0332,
+    "worstWindow": "D"
+   },
+   {
+    "enterMin": 0.55,
+    "perWindow": {
+     "A": {
+      "ret": 0.0063,
+      "maxDD": 0.1217,
+      "retOverDD": 0.05,
+      "pnlUsd": 0.63,
+      "capitalUsd": 100,
+      "entrySignals": 64,
+      "refused": 27
+     },
+     "B": {
+      "ret": 0.1486,
+      "maxDD": 0.0962,
+      "retOverDD": 1.55,
+      "pnlUsd": 14.86,
+      "capitalUsd": 100,
+      "entrySignals": 81,
+      "refused": 29
+     },
+     "C": {
+      "ret": 0.5671,
+      "maxDD": 0.0489,
+      "retOverDD": 11.34,
+      "pnlUsd": 45.37,
+      "capitalUsd": 80,
+      "entrySignals": 58,
+      "refused": 17
+     },
+     "D": {
+      "ret": -0.0332,
+      "maxDD": 0.1185,
+      "retOverDD": -0.28,
+      "pnlUsd": -2.66,
+      "capitalUsd": 80,
+      "entrySignals": 39,
+      "refused": 15
+     }
+    },
+    "worstWindowRet": -0.0332,
+    "worstWindow": "D"
+   },
+   {
+    "enterMin": 0.6,
+    "perWindow": {
+     "A": {
+      "ret": -0.0247,
+      "maxDD": 0.1299,
+      "retOverDD": -0.19,
+      "pnlUsd": -2.47,
+      "capitalUsd": 100,
+      "entrySignals": 70,
+      "refused": 34
+     },
+     "B": {
+      "ret": 0.1577,
+      "maxDD": 0.0751,
+      "retOverDD": 2.1,
+      "pnlUsd": 15.77,
+      "capitalUsd": 100,
+      "entrySignals": 100,
+      "refused": 55
+     },
+     "C": {
+      "ret": 0.5241,
+      "maxDD": 0.0561,
+      "retOverDD": 9.35,
+      "pnlUsd": 41.93,
+      "capitalUsd": 80,
+      "entrySignals": 70,
+      "refused": 33
+     },
+     "D": {
+      "ret": -0.0145,
+      "maxDD": 0.1092,
+      "retOverDD": -0.13,
+      "pnlUsd": -1.16,
+      "capitalUsd": 80,
+      "entrySignals": 43,
+      "refused": 22
+     }
+    },
+    "worstWindowRet": -0.0247,
+    "worstWindow": "A"
+   },
+   {
+    "enterMin": 0.65,
+    "perWindow": {
+     "A": {
+      "ret": -0.0664,
+      "maxDD": 0.1319,
+      "retOverDD": -0.5,
+      "pnlUsd": -6.64,
+      "capitalUsd": 100,
+      "entrySignals": 75,
+      "refused": 45
+     },
+     "B": {
+      "ret": 0.0891,
+      "maxDD": 0.0516,
+      "retOverDD": 1.73,
+      "pnlUsd": 8.91,
+      "capitalUsd": 100,
+      "entrySignals": 136,
+      "refused": 103
+     },
+     "C": {
+      "ret": 0.4289,
+      "maxDD": 0.0356,
+      "retOverDD": 8.58,
+      "pnlUsd": 34.31,
+      "capitalUsd": 80,
+      "entrySignals": 91,
+      "refused": 65
+     },
+     "D": {
+      "ret": 0.0718,
+      "maxDD": 0.0427,
+      "retOverDD": 1.44,
+      "pnlUsd": 5.75,
+      "capitalUsd": 80,
+      "entrySignals": 47,
+      "refused": 32
+     }
+    },
+    "worstWindowRet": -0.0664,
+    "worstWindow": "A"
+   },
+   {
+    "enterMin": 0.7,
+    "perWindow": {
+     "A": {
+      "ret": -0.0664,
+      "maxDD": 0.1319,
+      "retOverDD": -0.5,
+      "pnlUsd": -6.64,
+      "capitalUsd": 100,
+      "entrySignals": 75,
+      "refused": 45
+     },
+     "B": {
+      "ret": 0.0891,
+      "maxDD": 0.0516,
+      "retOverDD": 1.73,
+      "pnlUsd": 8.91,
+      "capitalUsd": 100,
+      "entrySignals": 136,
+      "refused": 103
+     },
+     "C": {
+      "ret": 0.4289,
+      "maxDD": 0.0356,
+      "retOverDD": 8.58,
+      "pnlUsd": 34.31,
+      "capitalUsd": 80,
+      "entrySignals": 91,
+      "refused": 65
+     },
+     "D": {
+      "ret": 0.0718,
+      "maxDD": 0.0427,
+      "retOverDD": 1.44,
+      "pnlUsd": 5.75,
+      "capitalUsd": 80,
+      "entrySignals": 47,
+      "refused": 32
+     }
+    },
+    "worstWindowRet": -0.0664,
+    "worstWindow": "A"
+   }
+  ],
+  "outOfSample": {
+   "protocol": "chosen on windows B, C and D by best WORST window; scored on window A alone, which the choice never saw. Fixed before the scan was run.",
+   "chosenEnterMin": 0.65,
+   "chosenWorstOnBCD": 0.0718,
+   "windowA_chosen": {
+    "ret": -0.0664,
+    "maxDD": 0.1319,
+    "retOverDD": -0.5,
+    "pnlUsd": -6.64,
+    "capitalUsd": 100,
+    "entrySignals": 75,
+    "refused": 45
+   },
+   "windowA_shipped": {
+    "ret": -0.0247,
+    "maxDD": 0.1299,
+    "retOverDD": -0.19,
+    "pnlUsd": -2.47,
+    "capitalUsd": 100,
+    "entrySignals": 70,
+    "refused": 34
+   },
+   "beatsShippedOnA": false
+  }
+ },
+ "sourceIntegrity": {
+  "backtestTsSha256": "31d27c7d82f8a94c1a8d71248ace8e5ded611190a77d06043460b469ccae845a"
+ }
+}
