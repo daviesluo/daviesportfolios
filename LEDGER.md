@@ -261,6 +261,47 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 18:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The real model was asked about every state it can ever see on an
+entry, five times each, and the Jev question is answered.** The entry
+state has only 90 possible values (5 coins × trend_strength ×
+volatility × momentum; the rest is fixed on an entry). `POST
+?action=jev` asked OpenRouter's `typesafe/jev-1.13-20260917` all 90 ×
+5 = 450 calls, $0.0126, requests 26655/26656, zero no-answers, zero echo
+failures:
+
+| strength | vol | momentum | P(healthy) mean [min–max] | vetoed at 0.6 |
+|---|---|---|---|---|
+| weak | any | positive | 0.07–0.13 | **100 %** |
+| moderate/strong | low/normal | positive | 0.94–0.97 | 0 % |
+| moderate | high | positive | **0.600** [0.55–0.62] | 7/25 |
+| strong | high | positive | **0.598** [0.56–0.64] | 12/25 |
+| any | any | unknown | 0.04–0.21 | 100 % |
+
+Caution never reaches 1.75 on an entry. **Two findings, both
+structural:** (1) **the weak-trend veto is not the model's judgment — it
+is the question's own prose**: `healthy_trend` tells the model to say yes
+only when trend_strength is moderate or strong, the rulebook never reads
+strength, and the model complies every time. That clause is an
+untested rule hiding in a prompt, and it is what costs the bear year most
+of its return in the earlier study (`weak-veto-only`: A +8.03 % → +0.63 %).
+(2) **the high-volatility veto is a coin flip AT the threshold**: those
+states' mean P sits on 0.600, and the same state on the same coin flips
+between calls (strong|high ETH: 0.58 0.58 0.61 0.63 0.64). Whether real
+money buys a high-volatility breakout would be decided by one call's
+noise. The earlier study's bracket (`highvol-vetoed` / `highvol-passed`)
+is therefore the honest answer and its "central" arm is not; its
+assumed 0.15 for the weak states is confirmed (measured 0.07–0.13).
+
+**Re-pricing with these answers is running** (Monte Carlo over the
+coin-flip states; three configurations — rule with the model in shadow,
+rule ∧ model as it runs, rule + the weak-trend clause as code — each
+against its random-veto null). Nothing about the live row changes until
+it lands and is checked. `docs/agents/backtests/jev_answers.json` will
+hold the raw replies; `net._http_response` prunes them after ~6 h, and
+re-measuring costs $0.013.
+
 ### [2026-09-22 18:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **I broke the tick for two hours and the tests could not see it.** `8e03297`
