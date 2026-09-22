@@ -281,6 +281,19 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-22 19:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+`snapshot-record` goes back into `PUBLIC_FNS`, the deploy workflow's list
+of functions deployed `--no-verify-jwt`. It left the list in the
+2026-08-18 rollback and never came back, while its own header and the
+README said it was there. The cron calls it with the Vault secret, not a
+Supabase JWT, so a platform JWT check would refuse every call. Production
+shows `verify_jwt: false` today even though the function was redeployed
+without the flag on 2026-08-26, so the CLI evidently keeps a function's
+existing setting — the fix states the intent instead of leaning on that,
+and changes nothing in production now (it recorded 12 buckets in the last
+hour when checked). Found by the README fact-check.
+
 ### [2026-09-22 19:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Study J (the Jev veto, re-priced on the model's measured answers) is
