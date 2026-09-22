@@ -113,7 +113,14 @@ that follow from that evidence, in short:
   still HOLDS something keeps its exits** (`windingDown`): the floor and
   the rulebook's exit keep running, every entry is refused, and a retired
   row that is flat is skipped. `riskGate` no longer refuses an EXIT to a
-  paused strategy — only the global pause outranks an exit. **Entries happen only on a newly closed 1h / 4h / 1d
+  paused strategy — only the global pause outranks an exit. **Thin-book
+  guard** (2026-09-22): a long's stop is judged at the BID (`exitMark`),
+  not the mid, and an ENTRY is refused when the book is wider than 50 bps
+  (`WIDE_SPREAD_BPS`; `bookBps` goes on the decision row). An exit is
+  never refused by it. **Revolut X's own candles are PUBLIC and one year
+  long** — `/1.0/public/candles/{SYM}?interval=240&region=UK`, 2,257 4h
+  bars per coin, 2025-09-11 → 2026-09-22 — which covers walk-forward
+  window A and none of B, C or D (§2.3, corrected 2026-09-22). **Entries happen only on a newly closed 1h / 4h / 1d
   bar**, at most a few a day; the one exception is the dislocation rule,
   whose entries are events. At taker cost one round trip an hour burns
   ~75 % of the account a month. **Revolut X takes the touch** on every

@@ -20,7 +20,7 @@ import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@
 import type { Candle } from "../_shared/agents_strategy.ts";
 import type { OrderView, Quote, Venue, VenueId } from "../_shared/venue.ts";
 import { PAGE_ROWS, type Db } from "./db.ts";
-import { dayPnl, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, probeFilled, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
+import { dayPnl, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, probeFilled, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS } from "./tick.ts";
 
 const FOUR_H = 4 * 3600e3, ONE_H = 3600e3, ONE_D = 86400e3, ONE_M = 60e3;
 const NOW = Date.parse("2026-09-20T04:05:00Z");                 // minute 245 of the day: a fifth minute, so the basis is recorded
@@ -1052,4 +1052,50 @@ Deno.test("a retired row that is flat costs a turn nothing: it is skipped before
   // The live row still did its work; the retired one contributed nothing.
   assertEquals(r.decisions.map((d) => d.strategy), ["trend-4h-kraken"]);
   assertEquals(w.mem.tables.agent_observations.every((o) => o.strategy_id === "trend-4h-kraken"), true);
+});
+
+// ── the thin-book guard (ledger item 0b) ───────────────────────────────────────────────────
+// Two halves, and they point opposite ways on purpose. A stop judges itself on the BID, because
+// that is the only price a long position can actually be closed at — judging on the mid says a
+// position is above its floor while the money available for it is below. An ENTRY is refused when
+// the book is too wide to cross, because every Revolut X entry pays the ask. Never the reverse: a
+// stop exists for exactly the minute the book is ugly.
+
+Deno.test("exitMark: a long position's stop is judged at the bid, and falls back to the candle mark", () => {
+  assertEquals(exitMark({ mark: 100.5, quote: { bid: 100, ask: 101 } }), 100);   // the mid flatters by half a spread
+  assertEquals(exitMark({ mark: 99 }), 99);                                      // no quote: the candle stands
+  assertEquals(exitMark({ mark: null }), null);
+});
+
+Deno.test("spreadBps: the book's width, and null when there is nothing to measure", () => {
+  assertAlmostEquals(spreadBps({ bid: 100, ask: 100.1 })!, 9.995, 1e-3);   // 0.1 over the 100.05 MID, not the bid
+  assertEquals(Math.round(spreadBps({ bid: 100, ask: 102 })!), 198);
+  assertEquals(spreadBps(undefined), null);
+  assertEquals(spreadBps({ bid: 0, ask: 1 }), null);
+});
+
+Deno.test("a book too wide to cross refuses the ENTRY and records its width; the stop is never refused", async () => {
+  // The world that normally enters, with the book blown out well past the ceiling.
+  const wide = { bid: 100, ask: 100 * (1 + WIDE_SPREAD_BPS / 1e4 * 3) };
+  const w = world({ strategies: [strategy({ id: "trend-4h", venue: "revx", signal_venue: "kraken" })], revxQuote: wide });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.decisions[0].action, "hold");
+  assert(r.decisions[0].reason.includes("book too wide to cross"), r.decisions[0].reason);
+  assertEquals(w.mem.tables.agent_orders, []);
+  // The width is on the decision row, so the refusal is auditable rather than invisible.
+  const n = w.mem.tables.agent_decisions[0].numbers as { bookBps: number };
+  assertEquals(Math.round(n.bookBps), Math.round(spreadBps(wide)!));
+
+  // Same blown-out book, but the position is 35 % under cost: the stop still fires.
+  const held = world({
+    strategies: [strategy({ id: "trend-4h", venue: "revx", signal_venue: "kraken" })],
+    revxQuote: wide,
+    orders: [longSince(2 * ONE_D, 200, 0.1, { strategy_id: "trend-4h", venue: "revx" })],
+  });
+  const r2 = await tick(held.deps);
+  const protective = r2.decisions.filter((d) => d.kind === "protective");
+  assertEquals(protective.length, 1);
+  assertEquals(protective[0].action, "exit");
+  assert(protective[0].reason.startsWith("protective floor"), protective[0].reason);
 });

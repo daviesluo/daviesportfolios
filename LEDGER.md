@@ -198,6 +198,57 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 02:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Revolut X's own candles are public, and the repository was wrong about
+them twice.** A study agent found the endpoint while building the fill
+study; verified here. `GET /1.0/public/candles/{SYM}?interval=240&region=UK`
+— **no key**, 1,000 candles a call, paged with `until=<ms>`, `region=UK`
+because §4.14. Pulled for all 27 coins: **2,257 four-hour bars each,
+2025-09-11 → 2026-09-22, 376 days = 1.03 years**, no gaps but TON (2) and
+ETC (1). So §2.3's "hourly available for the same [three-year] span" was
+wrong, and §3.16's "needs a signed endpoint and is unreachable from a
+harness" was wrong; `backtest.ts`'s header — one year of intraday — was
+right the whole time. Both corrected in place.
+
+**What the one year means**: the venue's own book covers walk-forward
+window A (out of sample 2025-09-10 → 2026-09-20) with a day to spare, and
+**none of B, C or D**. That turns §3.16's T4 from an argument into a
+measurement — moving `signal_venue` to `revx` would delete three of the
+four windows — and it lets the fill study price the bear year on the REAL
+book instead of a proxy. Data is in the scratchpad (`revxuk/`, puller
+`pull_revx_uk.py`), which does not survive the container; the endpoint and
+the pull recipe are now in §2.3, which does.
+
+**The thin-book guard is built** (ledger item 0b, open since the region
+bug, and more pressing since the intra-bar trail went and the floor became
+the only stop between bars). Two halves, opposite directions on purpose:
+
+- **A long's stop is judged at the BID** (`exitMark`), not the mid. It was
+  always checked on the mid and filled at the bid — half a spread of
+  wishful thinking, 0.75 bps on BTC but 21 on SUI and unbounded if the
+  book goes wide — which says a position is above its floor while the
+  money available for it is below. The stop fires late, into a worse
+  price, exactly when the book is worst.
+- **An entry is refused above 50 bps of book** (`WIDE_SPREAD_BPS`), since
+  every Revolut X entry crosses and pays the ask, so a wide book charges
+  its width on top of the 9 bps. Measured UK book: 1.5–24 bps. The EEA
+  book was once seen at 180. `bookBps` goes on the decision row so the
+  refusal is auditable.
+- **An exit is never refused by the guard.** A stop exists for exactly the
+  minute the book is ugly.
+
+Pinned: `exitMark`, `spreadBps`, and an end-to-end case that refuses the
+entry on a blown-out book while the floor still fires on the same book.
+327 passed.
+
+**Both studies resumed** after a session limit cut them off at 02:00 UTC
+(fill study; coins / weights / mechanics / venue), each told about the
+Revolut X tape and its one-year span.
+
+**Still open**: S13 (dashboard refresh race), S14 (unmasked sizes), S15
+(the missing live-unconfirmed alert), the sweep fixture.
+
 ### [2026-09-22 01:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **I made S11 real, then fixed it — and it was worse than the review

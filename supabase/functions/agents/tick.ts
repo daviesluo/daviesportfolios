@@ -89,6 +89,7 @@ export const TURN_BUDGET_MS = Math.round(LEASE_MS * 0.7);   // past this, no NEW
 export const PROTECTIVE_CLAIM_OFFSET_MS = 1000;   // a protective decision claims one second INTO its minute: a bar starts on the minute, so the two never collide
 export const PROBE_TTL_MS = 4 * 3600e3;           // a maker probe watches for one 4-hour bar, then expires unfilled
 export const PROBE_FOLLOW_UP_MS = [15 * 60e3, 60 * 60e3];   // and the mark is recorded this long after it resolved — that gap IS the adverse selection
+export const WIDE_SPREAD_BPS = 50;                // above this the book is too wide to CROSS for a new position — see `exitMark`
 const ONE_M = 60e3, ONE_H = 3600e3, FOUR_H = 4 * 3600e3, ONE_D = 86400e3;
 const DAILY_BARS = 130;                           // SMA 100 + the 30-day lookback, with room
 const SIGNAL_BARS = 210;                          // SMA 100 + breakout 55, with room
@@ -311,6 +312,28 @@ export function probeFollowUpDue(resolvedAtMs: number, have: Record<string, numb
     return null;                                   // offsets are ascending: nothing later can be due either
   }
   return null;
+}
+
+/**
+ * The price a LONG position's stop should be judged at: the bid, not the mid.
+ *
+ * The stop has always been checked against the mid and then filled at the bid (§4.11, and the
+ * backtester reads each bar's low), which is half a spread of wishful thinking — 0.75 bps on BTC,
+ * but 21 on SUI, and unbounded if the book ever goes wide. A stop exists to say "this position is
+ * down far enough to close", and the only price that answers that is the one it can actually be
+ * closed at. Judging on the mid says a position is above its floor while the money available for
+ * it is below: the stop fires late, into a worse price, exactly when the book is worst.
+ *
+ * With no quote there is nothing to be conservative with and the candle mark stands.
+ */
+export function exitMark(m: { mark: number | null; quote?: Quote }): number | null {
+  return m.quote ? m.quote.bid : m.mark;
+}
+
+/** The book's width in bps, or null with no quote. Used to refuse a CROSSING entry, never an exit. */
+export function spreadBps(q: Quote | undefined): number | null {
+  if (!q || !(q.bid > 0) || !(q.ask > 0)) return null;
+  return (q.ask - q.bid) / ((q.ask + q.bid) / 2) * 1e4;
 }
 
 /** The position with its high-water trailed to the market: the fills' own high never rises, and a stop or a state word read from it would not trail. */
@@ -807,9 +830,20 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       provider: jr.provider,
     };
     // An exit passes the model untouched; an entry needs its vote.
-    const final = rule.action === "enter"
+    let final = rule.action === "enter"
       ? combineDecision(rule, view, { enterMin: num(s.params?.enterMin, 0.6), cautionExit: 1.75 })
       : { ...rule, jevSaid: jr.provider === "rule" ? "rule only" : `${jr.provider}: ${view.healthy == null ? "no answer" : `healthy=${view.healthy.toFixed(2)}`}` };
+    // The thin-book guard. Every Revolut X entry CROSSES — it pays the ask — so a book that has gone
+    // wide charges its width as a fee on the way in, on top of the 9 bps. The measured UK book is
+    // 1.5–24 bps wide; the EEA book this account cannot trade was once seen at 180 (§2.2, §4.14), and
+    // a quote that wide is either a real dislocation or a broken feed, and an ENTRY is worth neither.
+    // An exit is never refused here: a stop exists for exactly the minute the book is ugly, and it
+    // already judges itself on the bid (`exitMark`) rather than the mid, which is the conservative
+    // side. An entry can always wait for the next bar; a position cannot wait for a better book.
+    const bookBps = spreadBps(m.quote);
+    if (final.action === "enter" && bookBps != null && bookBps > WIDE_SPREAD_BPS) {
+      final = { action: "hold", reason: `book too wide to cross: ${bookBps.toFixed(1)} bps > ${WIDE_SPREAD_BPS}`, jevSaid: final.jevSaid };
+    }
     const mark = m.mark ?? Number(numbers.close ?? 0);
     const limits = limitsFor(s.mode);
     const slots = s.kind === "rotation-1d" ? Math.max(1, rotationParamsOf(s).topN) : Math.max(1, s.symbols.length);
@@ -820,7 +854,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     try {
       [dec] = await d.db.insert<{ id: number }>("agent_decisions", {
         strategy_id: s.id, venue: s.venue, symbol: sym, mode: s.mode, bar_start: new Date(barStart).toISOString(),
-        state: snapState, numbers: { ...numbers, barStart, mark, orderUsd, exposureUsd: ctx.exposureUsd, ordersToday: ctx.ordersToday, pnlToday: ctx.dayPnlUsd, signalVenue: s.signal_venue, kind },
+        state: snapState, numbers: { ...numbers, barStart, mark, orderUsd, exposureUsd: ctx.exposureUsd, ordersToday: ctx.ordersToday, pnlToday: ctx.dayPnlUsd, signalVenue: s.signal_venue, kind, bookBps },
         questions, answers: a, provider: jr.provider, model: jr.model, latency_ms: jr.latencyMs, cost_usd: jr.costUsd,
         rule_action: rule.action, rule_reason: rule.reason, final_action: final.action,
         final_reason: `${final.reason} [${final.jevSaid}${jr.errors.length ? "; " + jr.errors.join(" | ").slice(0, 300) : ""}]`,
@@ -933,7 +967,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         if (pos.base > 0) {
           const hw = highWaterSince(pos, bars, i);
           const atr = atrAt(bars, i, p.atrN);
-          const why = protectiveExit(m.mark ?? 0, pos, hw, atr, stops);
+          const why = protectiveExit(exitMark(m) ?? 0, pos, hw, atr, stops);
           if (why) {
             const marketable = s.venue === "revx";                    // Kraken's taker fee is not worth certainty at this size: rest at the ask and let the re-quote walk it down
             if (inFlight.has(key)) {
