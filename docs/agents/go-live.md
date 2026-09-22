@@ -412,7 +412,7 @@ Run against production before any mode flip. Four rows, all paper,
 | 8 | Live UK book, same minute | BTC 1.6 · ETH 3.2 · SOL 4.2 · AVAX 9.1 · **SUI 25.7** bps — all inside the 50 bps refusal |
 | 9 | Region filter | one row per symbol, UK only — the EEA book cannot leak in |
 | 10 | Draft migration | dry-run inside a transaction that rolls itself back: 4 → 5 rows, caps as intended, production untouched |
-| 11 | Signed venue path | **NOT verified this session** — see 9.4 |
+| 11 | Signed venue path | **VERIFIED 14:05 UTC** — Revolut X, Kraken and Jev all green; see 9.4 |
 
 The three errors: a network timeout at 02:17 that the next minute
 healed; a Kraken altname cache still cold for AVAX the minute `0039`
@@ -444,26 +444,55 @@ and a counterfactual. Reference §4.19.
   new entries for the rest of the day and never an exit. Roughly three
   slots stopping out at the 8 % floor reaches it.
 
-### 9.4 The one box left, and it needs Davies
+### 9.4 The probe — run 2026-09-22 14:05 UTC, green
 
-The **read-only `probe`** — Revolut X balances, a signed call with a
-query, `/1.0/orders/active`'s field names, Kraken, and Jev on both
-transports. It places nothing and is the last verification before the
-flip, but it needs an operator credential this session does not hold and
-should not:
+Fired through `pg_net` from inside Postgres, the way the 2026-09-21 probe
+was, so the operator secret goes from the vault straight into the header
+and never leaves the database. Read-only; it places nothing.
 
-```
-GET https://<project>.supabase.co/functions/v1/agents?action=probe
-     x-app-token: <admin token>
-```
+**Revolut X — the signed path works end to end.**
 
-Until it is run, the signed path is verified as of §2.1's 2026-09-20
-run, and **for the three majors only**.
+| call | result |
+|---|---|
+| private key | loads, form `pkcs8-b64` |
+| `GET /1.0/balances` | **200**, one sub-account row |
+| `GET /1.0/configuration/pairs` (signed) | **200**, 393 pairs — **all five coins present and `active`**, `min_order_size_quote` $0.10, steps as the public endpoint reports them |
+| `GET /1.0/candles/{sym}?…` (signed **with a query string**) | **200**, 5 bars — the signing path most likely to be wrong, and it is right |
+| `GET /1.0/orders/active` | **200**, count 0 |
+| region | `UK` requested, **5 ticker rows, one per symbol** — the filter is honoured |
+
+The signed pair list is 393 against the public endpoint's 455: the
+account's tradable subset, and it contains everything the row needs.
+
+**Kraken — green, and both prerequisites confirmed at the venue.**
+
+| call | result |
+|---|---|
+| secret | decodes to 64 bytes |
+| `Balance` / `BalanceEx` | **200** — the account holds **USD, and no GBP**: the conversion is done |
+| `TradeVolume` | **200** — **0.80 % taker / 0.40 % maker**, 30-day volume $0.00, next tier at $2,500 volume (maker 0.30 %). The venue confirms §3.12's fee arithmetic |
+| `OHLC` | **200**, 721 rows = the 720-bar ceiling plus the forming bar |
+| `OpenOrders` / `ClosedOrders` | **200**, both empty |
+| `AddOrder validate=true` | **200**, `txid: null`, the order echoed back — the whole placement path verified without placing anything |
+
+**Jev — both transports answer and agree.** OpenRouter
+(`typesafe/jev-1.13-20260917`) and TypeSafe direct (`jev-1.13.0`), both
+keys present, no errors, 463 ms and 662 ms, ~$0.0000184 a call. On the
+same state they returned calm 0.97 / 0.98, caution 0.08 / 0.08, positive
+0.98 / 0.99 — the fallback is real, not decorative.
+
+**The one thing a probe cannot verify, and it is B4.** Both order
+histories are EMPTY, so `activeOrders.fields` and `closedOrders.fields`
+both came back `[]`. The settlement field names the client reads —
+`filled_size`, `average_fill_price`, `fees` on Revolut X, and whether
+Kraken returns the client order id — are still the client's assumption.
+**The first live order's read-back is what verifies them**, and a filled
+order missing them is refused rather than recorded at fee zero. Nothing
+short of a real order closes this.
 
 ### 9.5 The order of operations
 
-1. Run the probe. Read `revx.balances`, `revx.activeOrders.fields`, and
-   `revx.pairs.config` for all five coins.
+1. ~~Run the probe.~~ **Done 14:05 UTC, green — §9.4.**
 2. Move `docs/agents/0045_go_live.sql.draft` to
    `supabase/migrations/0045_go_live.sql` and push. **That push is the
    act of going live** — `migrations.yml` applies it.
