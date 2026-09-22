@@ -309,6 +309,14 @@ every state validated against the closed vocabulary (`STATE_VOCAB`,
 tick, so the measurement reads the model exactly as the gate does.
 Places nothing, writes nothing. Pinned in `index.test.ts`.
 
+**The standing rules caught up with the day.** `CLAUDE.md`'s agents
+section still said FOUR rows and described `trend-4h-kraken` as running;
+it now says three, why the twin went, that Kraken is signal-only, that a
+row's label is not its book, where the go-live draft is, that the model's
+veto is unpriced, and that a test double must be as strict as what it
+stands in for. The same six lessons went into `working-with-davies` and
+both Cursor copies, which are verified still identical.
+
 ### [2026-09-22 16:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Stopped on a usage limit, deliberately and with everything landed.**
