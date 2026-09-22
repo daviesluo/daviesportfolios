@@ -207,6 +207,47 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 15:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Jev has been vetoing one entry in five and nobody had counted it.**
+Every published figure is the RULEBOOK's; the account runs `rule ∧ Jev`.
+`agent_decisions`, all of it: 15 entry signals, 12 taken, **3 vetoed —
+20 %** (`trend-1h` 2 of 5, `momentum-1d` 1 of 4, `trend-4h` 0 of 3).
+**Two of the three were P(healthy) = 0.59 against a threshold of 0.60**,
+so `enterMin` binds at its boundary — and it is a seeded parameter never
+varied and never backtested that gates every entry the live row will
+make. My own §9.1 line said "0 refused by the risk gate", which was true
+and was not the layer doing the refusing. Now go-live §9.6 and §4.21.
+
+**I told Davies something false about AVAX this morning and the record
+had told me.** I said it cleared one walk-forward window and that §4.15
+would not admit it today. That is the `trail` regime — the intra-bar
+stop the loop STOPPED RUNNING on 09-21. Under the rule `tick.ts` runs,
+recomputed by me from `tape.json`: **AVAX clears A, B and C, and is the
+only coin of 27 clearing BOTH walk-forward windows**; SUI clears A alone.
+`reference.md` §4.15 and `go-live.md` §3 both carried the stale version,
+and §3's was the sentence that document calls its most important — it
+said the re-run had not happened when it had, the same day.
+
+**But it is not a qualification either, and the audit that found it
+overstated it.** Across the 93 coin-window cells priced under the shipped
+rule, 26 clear the bar: a per-window pass rate of **0.280**. Twenty-three
+coins have both A and B priced, so chance gives 0.280² × 23 = **1.80**
+coins clearing both, P(at least one) = 0.85. **One passer is fewer than
+chance gives.** So the conclusion (keep AVAX) is unchanged and BOTH the
+reason I gave and the reason the audit gave were wrong. The real reason
+is §4.15's own: a member's record is not the argument. AVAX is the row's
+largest concentration in both directions — ~95 % of the sideways year's
+loss and ~57 % of the strong bull's gain — and the sleeve is steadier
+holding it.
+
+Also corrected: the set study's "four evaluations" are two on the window
+that decides, because window D is bit-identical across the tape arms (its
+own fidelity block proves it). The optimistic null is wrong by orders of
+magnitude — the whole study's 15 of 98 goes from P = 0.0011 to P = 0.993.
+It cuts in the incumbent's favour, so no verdict moves, but that column
+is unusable rather than evidence.
+
 ### [2026-09-22 14:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **An independent audit found that there was no working way to stop a live
