@@ -14,57 +14,47 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-0a. **THREE STUDIES STOPPED MID-FLIGHT ON A USAGE LIMIT (2026-09-22
-   16:55). Resume them in this order.** All three briefs are reproducible
-   from this list; nothing depends on the stopped sessions' memory.
+0a. **FOUR STUDIES IN FLIGHT (relaunched 2026-09-22 ~18:30 UTC on Opus
+   5.5 sub-agents). If this session dies, resume from THIS list.** Each
+   agent writes only its own files and none edits README / LEDGER /
+   CLAUDE / reference / go-live — integrating is the main session's job,
+   and nothing an agent reports is repeated as fact until recomputed.
 
-   **J — the Jev study: RAN, output committed, UNVERIFIED.**
-   `supabase/functions/agents/backtest_jev.ts`,
-   `docs/agents/backtests/jev.json`,
-   `docs/agents/reviews/2026-09-22-jev-veto-study.md`. It claims
-   `rule ∧ Jev` turns window A from **+8.0 % to −2.5 %**. **Step one is to
-   verify that**, the way §4.20's findings were verified: re-derive the
-   sleeve from raw candles, check the study's arm against `run`
-   cell-for-cell, and confirm the veto resolution rule
-   (`surfaceFromRecord`) does what the report says. Step two is to run
-   `--replay live`, which ASKS the model instead of replaying twelve
-   recorded answers — that needs a Jev transport, reachable through
-   `pg_net` from inside Postgres the way the probe was (the secret never
-   leaves the database). Step three: if the finding holds, `go-live.md`
-   §4 and §7 and reference §4.21 all need rewriting, and the live
-   recommendation itself has to be re-asked — a rulebook whose bear year
-   is −2.5 % is not the row that brief recommends.
+   **J — Jev: the model is MEASURED; the re-pricing is running.** The
+   entry state has 90 possible values; the real model was asked all of
+   them five times (`POST ?action=jev`, requests 26655/26656, history
+   18:45 below): weak trend vetoed 100 % (the question's own prose),
+   high volatility a coin flip at 0.600. The agent saves the replies to
+   `docs/agents/backtests/jev_answers.json` (Postgres prunes
+   `net._http_response` after ~6 h — re-measure for $0.013 if gone),
+   re-prices the sleeve by Monte Carlo over the coin-flip states, and
+   prices the three configurations the go-live decision chooses between:
+   (i) rule, model in SHADOW (`params.jevGate: false`, built, off);
+   (ii) rule ∧ model as it runs; (iii) rule + the weak-trend clause as
+   code. Output: `backtest_jev.ts`, `jev.json`, the jev review. **Then
+   the go-live draft (`docs/agents/0047_go_live.sql.draft`) and
+   `go-live.md` §4/§7/§9 must be rewritten to whichever configuration is
+   chosen — that is Davies' decision, with the table.**
 
-   **S — SUI's seat: script written, NOT run.**
-   `supabase/functions/agents/backtest_sui.ts` exists and typechecks; no
-   output file. The question (Davies, 2026-09-22): SUI clears §4.15 on
-   window A alone, and the four-window ranking rule is structurally blind
-   to it because SUI does not exist in C or D, so `drop·SUI` reports a
-   delta of exactly 0.00 — an identity, not a measurement. Judge it on the
-   windows it HAS, on the span where all five coins exist, and on rolling
-   six-month folds; measure whether its contribution is drawdown damping
-   (it lowers return in both windows it is in and raises ret/DD in A).
-   Answer "keep in paper" and "keep in LIVE" separately. **Also check
-   whether §3.8's admission of SUI reproduces under the shipped stop
-   rule** — AVAX's verdict turned out to be stale in the other direction
-   today, and SUI's may be stale in this one.
+   **S — SUI's seat: running.** Finish/verify `backtest_sui.ts` (written
+   by an earlier agent, unverified), judge SUI on the windows it has, the
+   span all five share, and six-month folds; paper and live answered
+   separately; check whether §3.8's admission reproduces under the
+   running stop rule. Output: `sui.json`, the SUI review.
 
-   **K — the last untested Kraken avenue: NOT started, nothing produced.**
-   84 coins clear the cost-and-book screens and could not be tested for
-   lack of history (17 Kraken-cheaper: PENDLE, STRK, AIOZ, JTO, MOG, EUL,
-   KTA, SWELL, TRAC, BLUR, PROMPT, KAITO, W, TURBO, PROVE, PONKE, RLS; 67
-   Kraken-only). Kraken's public OHLC gives only the 720 most recent bars;
-   the history is in the free quarterly OHLCVT bundle, which
-   `backtest_windows.ts` already used to build window C — follow that
-   precedent. **Disk is a fixed per-session allowance**: fetch
-   selectively, unpack only the 240-minute files, delete as you go. Run
-   §4.15's four tests on SEEDED parameters, state the null before
-   reporting passes, and run the six-month folds too. **Second half of the
-   same task**: should the Kraken balance move to Revolut X? Nothing in
-   the design needs a funded Kraken account — candles and the basis are
-   public — but confirm that in `_shared/kraken.ts` and `tick.ts` rather
-   than assuming, and say what reversing would cost. Davies asked; no
-   money moves without his word.
+   **K — Kraken history: running.** The 84 coins that cleared the
+   cost-and-book screens without enough history, via Kraken's quarterly
+   OHLCVT bundle (the precedent is `backtest_windows.ts`; disk is a fixed
+   allowance). Plus the money question answered from the code. Output:
+   `backtest_kraken3.ts`, `kraken3.json`, the kraken-history review.
+
+   **R — adversarial review of today's diff: running** (`fb26476..HEAD`
+   in the agents code), with one instruction above the rest: list every
+   rule the test doubles do NOT enforce that the real db, venues or model
+   do. Report-only; it writes nothing into the repo. One finding already
+   expected: an unconfirmed live ENTRY is recorded `risk_allowed: true`
+   and refused only in `place()`, so the retry path may re-try it every
+   minute — fix it when R reports, with a pin.
 
 0. **Agents (crypto auto-trading) — paper since 2026-09-20 18:23 UTC
    (#211, `23d2fdd`).** Two review rounds from Davies landed (history,
