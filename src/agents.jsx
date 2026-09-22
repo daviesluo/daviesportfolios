@@ -14,7 +14,7 @@ import { Modal } from './modals.jsx';
 import { fmtMoney, maskDigits, pctColor } from './formatters.js';
 import { ukTzAbbr } from './market_hours.js';
 import {
-  agentsAlerts, agentsErrorView, probeLine, balanceLines, countdownText, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
+  agentsAlerts, agentsErrorView, balanceLines, countdownText, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -178,26 +178,10 @@ function VenueSplit({ dash, m }) {
           </div>
         ))}
       </div>
-      <MakerProbe probes={dash?.makerProbes} />
     </section>
   );
 }
 
-/**
- * The maker probe (`0042`): is 0 % maker actually free on this book? One line, and it says
- * "not measured yet" rather than a zero whenever that is the truth — the fill rate and the
- * adverse move are each null until a probe has actually resolved.
- */
-function MakerProbe({ probes }) {
-  const p = probeLine(probes);
-  return (
-    <div className={`ag-probe mono ag-probe-${p.state}`}>
-      <span className="dim" title="Every order that crosses the touch also writes down where a post-only order would have rested; later turns record whether the book came back and where price went 15 and 60 minutes after. Positive is against the fill. Break-even is 10-20 bps (reference 3.13).">maker probe</span>
-      <span>{p.text}</span>
-      {p.verdict && <span className="dim ag-probe-verdict">— {p.verdict}</span>}
-    </div>
-  );
-}
 
 
 // Status and return first: the two facts that say whether a strategy is

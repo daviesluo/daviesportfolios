@@ -198,6 +198,45 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 12:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The retired rows are gone, history and all** (`0044`, Davies' word:
+"retired 的 testing strategies 也都删了，不用留历史"). 4 strategy rows,
+11 orders, 35 decisions, 1,371 observations, irreversibly. `0038` and
+`0043` had retired them IN PLACE because a strategy row cannot be deleted
+while `agent_decisions` references it; `0044` deletes the children first,
+which is the step those two would not take. Three of the four were still
+long in paper, so nothing is stranded at a venue. The migration is now
+the only record of what went, and it says so. `agent_basis` and
+`agent_candles` are untouched — no strategy id, venue measurements rather
+than a rule's record — and every number those rows produced is still in
+the reference (§3.4, §3.5, §3.14, §3.17).
+
+**The maker-probe line is off the page**, also on his word. The probe
+keeps collecting and `probeSummary` stays in the payload; only the
+rendering went, with its tests and its two sweep assertions. Deleting the
+retired rows takes the three winding-down banners with them — those were
+a symptom of the rows existing, not a separate thing to remove. The
+winding-down CODE stays: nothing exercises it today, but the next row
+retired while holding something will need it, and its `riskGate` half (a
+paused strategy may still EXIT) is a correctness fix either way.
+
+**Paper, 38 hours in** — asked for and worth recording: `trend-1h` is the
+only row to complete a round trip, +$0.1734 on $40 over three coins;
+`trend-4h`, `momentum-1d` and `trend-4h-kraken` are each long three coins
+and flat on realised. The Kraken twin paid **$0.16 in fees against the
+Revolut X row's $0.036 for the identical three fills** — 4.4×, which is
+§3.12's arithmetic showing up in the paper record on day two.
+
+**AVAX and SUI have never traded.** They joined `trend-4h` at
+2026-09-21 14:11 (`0039`/`0040`) and the row's three fills all predate
+that — which is why those fills are $13.33 (40/3) rather than $20
+(100/5). Both read trend up, momentum positive, position flat, breakout
+NOT above range: the rule has not offered an entry. **So the paper record
+carries zero evidence about the two coins Davies is asking about**, and
+the answer to his question has to come from the backtests, not from the
+live rows.
+
 ### [2026-09-22 03:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The four settled choices were re-asked with everything now available,

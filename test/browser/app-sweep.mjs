@@ -358,9 +358,6 @@ const AGENTS_DASHBOARD = (() => {
       revx: { ...zero, capitalUsd: 180, strategies: 3, live: 0 },     // 100 + 40 + 40 after 0043
       kraken: { ...book, capitalUsd: 100, strategies: 1, live: 0 },   // trend-4h-kraken alone
     },
-    // The adverse-selection notebook (`0042`): nothing resolved yet, which is the state the page
-    // meets on day one and the one that must not render as a number.
-    makerProbes: { total: 3, resting: 3, filled: 0, expired: 0, fillRate: null, medianMinutesToFill: null, adverseBps: { m15: null, m60: null }, bySymbol: [{ symbol: 'BTC/USD', total: 3, filled: 0, fillRate: null }] },
     basis: {
       'BTC/USD': { latest: 0.31, latestAt: at, n: 288, absP50: 0.4, absP95: 1.2, absMax: 2.1, over20: 0, over40: 0, over80: 0 },
       'ETH/USD': { latest: -0.12, latestAt: at, n: 288, absP50: 0.3, absP95: 1.1, absMax: 1.9, over20: 0, over40: 0, over80: 0 },
@@ -1188,14 +1185,6 @@ async function run() {
       if (revxRows === 3 && krakenRows === 1) ok(S('agents'), 'venue badge on every row: 3 Revolut X, 1 Kraken');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       const shares = await page.locator('.ag-share').allTextContents();
-      // The maker probe line (`0042`): three probes resting, none resolved. The rule it exists to
-      // enforce is that this state reads as "nothing resolved", NEVER as a 0 % fill rate or an
-      // adverse of 0.0 bps — a zero on no evidence is the mistake the page made once about a
-      // symbol the loop was reading every minute.
-      const probe = (await page.locator('.ag-probe').allTextContents()).join(' ').replace(/\s+/g, ' ').trim();
-      if (/3 resting, none resolved yet/.test(probe) && !/\d+%/.test(probe) && !/bps/.test(probe)) {
-        ok(S('agents'), 'the maker probe reads as unresolved, with no fill rate and no adverse number invented');
-      } else fail(S('agents'), `maker probe line reads "${probe}"`);
       if (shares.some((t) => /Kraken 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Kraken');
       else fail(S('agents'), `share bar reads ${shares.join(' | ')}`);
       const cards = await page.locator('.ag-venue-card').count();
