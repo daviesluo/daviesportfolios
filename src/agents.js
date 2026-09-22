@@ -688,15 +688,25 @@ export function agentsAlerts(dash, now = Date.now()) {
     });
   }
   for (const s of strategies) {
-    // A paused row is skipped by the tick entirely: no stop, no trail, no exit runs on what it holds.
+    // A retired row that still holds something is WINDING DOWN, not stuck: since 2026-09-22 the tick
+    // keeps running its floor and its rulebook's own exit and refuses every entry, and the dashboard
+    // keeps it on the page until it is flat. Worth saying, because a row that has been switched off
+    // and still holds money is not a state to leave unnoticed — but it is not a fault, and the text
+    // said it was, back when a paused row really did get no stop at all.
     if (s?.mode !== 'paused') continue;
     const held = (s.positions ?? []).filter((p) => p?.base > 0).map((p) => p.symbol);
-    if (held.length) {
-      out.push({
+    if (!held.length) continue;
+    out.push(s.windingDown
+      ? {
+        id: `winding-down-${s.id}`, tone: 'paused', label: `${s.name ?? s.id} is winding down`,
+        text: `Retired while holding ${held.join(', ')}. Its floor and its rule's own exit still run every minute and it can never buy again, so the position leaves when the rule or the floor says so. It stays on this page until it is flat.`,
+      }
+      : {
+        // No `windingDown` flag: an older payload, or a paused row the tick is not covering. Treat it
+        // as the fault it would be, rather than assuming the protection that flag is the evidence of.
         id: `paused-long-${s.id}`, tone: 'fault', label: `${s.name ?? s.id} is paused with a position`,
-        text: `Holding ${held.join(', ')} while paused: no stop, trail or exit runs on a paused row. Unwind it or unpause it.`,
+        text: `Holding ${held.join(', ')} while paused, and this payload does not say the loop is winding it down. Check that the tick is covering it; otherwise unwind it or unpause it.`,
       });
-    }
   }
   for (const s of strategies) {
     const stuck = (s?.recentOrders ?? []).filter((o) => o?.state === 'pending' && o?.mode === 'live' && now - Date.parse(o.ts) > PENDING_ALERT_MS);
