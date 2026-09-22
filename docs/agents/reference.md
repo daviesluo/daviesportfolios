@@ -1294,9 +1294,23 @@ The other three answers, all negative, which is the useful kind:
   every coin in both windows**, which is the model's limit and not a
   measurement: these are Coinbase candles with synthetic bid and ask, and
   nothing here knows whether a resting order on Revolut X's UK book fills.
-  **Execution stays marketable.** What would settle it is a paper bid
-  resting at the touch beside the live taker order for a quarter,
-  recording fill / no-fill, delay and where the market then went.
+  **Execution stays marketable.** What settles it is a measurement on the
+  real book, and that is now built: **migration `0042`, the maker probe.**
+  Every time the loop crosses the touch it also writes down where a
+  post-only order WOULD have rested — the same side's touch — and later
+  turns resolve it against the execution venue's own last closed minute
+  (did the book come back to that price, and after how many minutes) and
+  then record the mark **15 and 60 minutes after it resolved**. The gap
+  between that mark and the probe's price IS the adverse selection, in
+  bps, on the real UK book, to be read against the 10–20 bps break-even
+  band above. A probe is never an order: nothing reads it into a position,
+  a book, an exposure or a P&L, it is written last so a probe that fails
+  to insert can never cost an order, and it costs one extra public
+  minute-candle call only on a symbol the loop has just traded. It needs
+  no live money and is collecting from the next tick. Read it as: fill
+  rate by symbol, median `minutes_to_fill`, and the follow-up marks
+  against `maker_price`. Pinned by `tick.test.ts` (`probeFilled`,
+  `probeFollowUpDue`, and three end-to-end cases).
 - **The two-bar cooldown stays.** The 0–8 grid spans 1.1 points of return
   in the bear window; 2 ranks 5th of 7 in A and 4th of 7 in B — a flat
   plateau, not a spike — 0 and 1 are inert, and 3 arms of 6 pass against

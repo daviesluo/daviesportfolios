@@ -198,6 +198,50 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 00:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The maker question now has an instrument instead of an argument.**
+Migration `0042` adds `agent_maker_probes`. Revolut X is 0 % maker and
+the loop crosses the touch, so "rest everything and pay nothing" is the
+standing question; §3.13 could not answer it because the backtest runs on
+Coinbase candles with a synthetic bid and duly reports that a resting
+order fills with a median delay of ZERO hours — the model's limit, not a
+measurement. What it cannot see is the only thing that decides it: on a
+breakout rule a resting bid fills exactly when the breakout fails, so the
+fills you get are the bad half of the distribution.
+
+The probe measures that on the real book at no cost and without resting
+anything. Every marketable order writes down where a post-only order
+would have sat (the same side's touch); turn 2b resolves it against the
+execution venue's last closed minute — came back or not, and after how
+many minutes — and then records the mark at +15 and +60. That last gap is
+the adverse selection in bps, read against §3.13's 10–20 bps break-even
+band. **A probe is never an order**: not in any position, book, exposure
+or P&L; written last in `place()` so a probe that fails to insert cannot
+cost an order; and it adds one public minute-candle call only on a symbol
+the loop has just traded.
+
+Two design notes worth keeping. The tick's read is a single
+`watching=eq.true` over one partial index, NOT a compound predicate over
+`state` and `follow_up` — the first version used PostgREST's `or=(…)`,
+which the test stub rightly refused, and the simpler column is better
+anyway. And the insert writes `state`, `watching` and `follow_up`
+explicitly rather than leaning on column defaults: the starting state of
+a probe is part of what the code means.
+
+Pinned by `tick.test.ts`: `probeFilled`, `probeFollowUpDue`, and three
+end-to-end cases (a marketable order opens a probe at the OTHER side's
+touch and places nothing extra; a resting probe fills or expires against
+the minute; a resolved probe collects m15 then m60 and stops being
+watched). 320 passed / 0 failed.
+
+**Pushing this migration applies it** — `migrations.yml` runs on push to
+main. It creates one new table and touches nothing existing.
+
+**Two studies running**: re-pricing the reference on Kraken's tape
+(§3.14's problem), and the TESTING-set optimisation on all four windows.
+The TESTING-row migration waits for the second one.
+
 ### [2026-09-21 23:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **"Cleared one window" carries no information, and the sideways year is
