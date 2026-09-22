@@ -39,13 +39,14 @@
 //   GONE    closed, no board row, exists only in the T212 fills, so it
 //           must appear in the transaction history and nowhere else.
 //
-// Not part of the build or any gate — it needs Playwright, which the
-// app does not depend on. Run it by hand after a UI change:
+// A hard CI gate since 2026-09-17 (check.yml's browser-sweep step). Run
+// it locally after a UI change, against the bundle you are about to
+// commit:
 //
-//   npm run build && rm -f assets/*.map sw.js.map workbox-*.js.map
-//   mkdir -p /tmp/h && cd /tmp/h && echo '{"type":"module"}' > package.json
-//   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i playwright
-//   cp /path/to/repo/scraps/verify-app-sweep.mjs . && node verify-app-sweep.mjs /path/to/repo
+//   npm run build && npm run verify:browser
+//
+// It needs Chromium once per machine (`npx playwright install chromium`);
+// a container that ships its own can set PLAYWRIGHT_CHROMIUM_PATH instead.
 
 import http from 'node:http';
 import fs from 'node:fs';

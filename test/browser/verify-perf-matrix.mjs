@@ -27,7 +27,7 @@
 //   npm run build
 //   mkdir -p /tmp/h && cd /tmp/h && echo '{"type":"module"}' > package.json
 //   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i playwright
-//   node /path/to/repo/scraps/verify-perf-matrix.mjs /path/to/repo
+//   node /path/to/repo/test/browser/verify-perf-matrix.mjs /path/to/repo
 //
 // It serves the repo root the way Cloudflare Pages does — the committed
 // index.html and hashed bundle, no dev server — so what it exercises is

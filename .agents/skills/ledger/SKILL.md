@@ -35,7 +35,7 @@ covers. Do not act on this file alone.
 
 ## What this repository does with it
 
-The live ledger is `LEDGER.md` at the root. `handover.md` is its
+The live ledger is `LEDGER.md` at the root. `docs/handover.md` is its
 ARCHIVE — the decision log and the raw session transcripts — and is
 opened only when a closed item is reopened or audited. The hook is
 `hooks/pre-commit`, reached through `core.hooksPath`, and both it and

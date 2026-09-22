@@ -10,7 +10,7 @@ gates, README, Edge Function deploys, Cloud caveats). This is the part
 that is not mechanical: what he actually asks for, what he accepts as
 an answer, and the mistakes that have already cost a round trip.
 
-Distilled from the Claude Code sessions archived in `handover.md` (67 turns,
+Distilled from the Claude Code sessions archived in `docs/handover.md` (67 turns,
 2026-07-20 → 2026-08-18). Prefer this skill over re-reading that file
 unless you need a specific measurement or the exact wording of a
 request. The transcript contains live balances; the repo is private.
@@ -657,7 +657,7 @@ DATES, the board supplies QUANTITY, and anything reading lots stands the
 residue in rather than believing the shortfall. Never back-fill the
 missing lots — that invents purchase dates that never happened.
 
-## The record: `LEDGER.md` live, `handover.md` archived
+## The record: `LEDGER.md` live, `docs/handover.md` archived
 
 `LEDGER.md` at the repo root is the LIVE record, under the ledger
 protocol in `.ledger/SKILL.md`: what remains, the machine setup, then
@@ -666,7 +666,7 @@ maintained in real time and in the same commit as the work** — a
 pre-commit hook refuses a commit whose ledger is two behind. Read it
 first on any resume and work down the what-remains list.
 
-`handover.md` is its ARCHIVE, not a second live document — Part 1 the
+`docs/handover.md` is its ARCHIVE, not a second live document — Part 1 the
 state as it stood when the ledger took over, Part 2 an append-only
 decision log, Part 3 the raw session transcripts. Open it when a closed
 item is reopened or audited, and move closed operations into it so the

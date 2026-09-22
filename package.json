@@ -45,5 +45,30 @@
     "vite-plugin-pwa": "^1.3.0",
     "vitest": "^4.1.8",
     "workbox-window": "^7.4.1"
-  }
+  },
+  "knip": {
+    "entry": [
+      "src/*.test.{js,jsx}",
+      "src/test_setup.js",
+      "supabase/functions/*/index.ts",
+      "supabase/functions/*/index.test.ts",
+      "supabase/functions/agents/backtest*.ts"
+    ],
+    "project": [
+      "src/**/*.{js,jsx,ts}",
+      "supabase/functions/**/*.ts"
+    ],
+    "ignoreUnresolved": [
+      "./test_setup.js"
+    ],
+    "ignoreExportsUsedInFile": true
+  },
+  "size-limit": [
+    {
+      "name": "main bundle (gzipped)",
+      "path": "dist/assets/app-*.js",
+      "limit": "122 KB",
+      "gzip": true
+    }
+  ]
 }

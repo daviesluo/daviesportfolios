@@ -115,7 +115,7 @@ jobs:
         run: npm run verify:browser
 
       - name: Bundle size budget (gzipped main bundle)
-        # Hard cap on `dist/assets/app-*.js` gzipped size — see `.size-limit.json`
+        # Hard cap on `dist/assets/app-*.js` gzipped size — see the `size-limit` block in `package.json`
         # for the current limit. A PR that doubles the bundle (lazy chunks
         # added back to the main chunk, a heavy dep imported eagerly,
         # etc.) goes red instead of silently shipping. Bump the limit in
@@ -127,11 +127,11 @@ jobs:
         # unused devDependencies. Now a HARD gate (was informational):
         # the `utils.js` barrel that produced the old false positives
         # was retired in favour of direct per-module imports, and
-        # `ignoreExportsUsedInFile` in knip.json covers the legitimate
+        # `ignoreExportsUsedInFile` in package.json's `knip` block covers the legitimate
         # internal-only / test-hook exports — so the report is clean and
         # a newly-orphaned export or dead file goes red instead of
         # silently accumulating. If a finding is a genuine false
-        # positive, tighten knip.json rather than re-adding
+        # positive, tighten the `knip` block rather than re-adding
         # continue-on-error.
         run: npx --no-install knip
 

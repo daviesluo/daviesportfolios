@@ -18,8 +18,8 @@ trades more than ~0.3 times a day, and slow rules on 4h/1d bars keep
 almost all of their gross. Two years, in-sample parameters — read
 docs/agents/reference.md §3 for the caveats.
 
-    python3 scraps/agents-baseline-backtest.py            # pull + run
-    python3 scraps/agents-baseline-backtest.py --cached   # reuse ./scraps/.ohlcv
+    python3 docs/agents/scripts/agents-baseline-backtest.py            # pull + run
+    python3 docs/agents/scripts/agents-baseline-backtest.py --cached   # reuse docs/agents/scripts/.ohlcv
 """
 import json, os, sys, time, datetime as dt, urllib.request
 
