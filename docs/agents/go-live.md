@@ -518,6 +518,8 @@ short of a real order closes this.
 
 ### 9.6 Jev vetoes one entry in five, and no backtest prices that
 
+**Priced since (reference §4.21, 2026-09-22):** on the real model's answers to every entry state, letting it veto takes window A from +8.0 % to −1.0 % and D from −7.8 % to −2.3 %, and a random veto of the same size does as well on the worst window in 30–43 % of draws — it does not pass the bar. The recommendation is to run it in shadow (`params.jevGate: false`) on the live row and on `trend-4h`, its paper control; the §9.5 draft gets that parameter once Davies chooses. The measurement below is the record that started the question.
+
 **Every published number in this document is for the RULEBOOK. The
 account runs the rulebook AND Jev.** `combineDecision` turns an entry
 into a hold when `P(healthy) < enterMin` (0.6), when caution is extreme,
