@@ -200,7 +200,17 @@ Everything before 2026-09-05 lives there already.
 
 ### [2026-09-22 12:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
-**The retired rows are gone, history and all** (`0044`, Davies' word:
+**The retired rows are gone, history and all** — on the second attempt.
+The first `0044` deleted decisions before orders and `migrations.yml`
+refused it: `agent_orders` has TWO foreign keys, `strategy_id` to the
+strategy AND `decision_id` to the decision that produced the order, and I
+had only thought about the first. Nothing was applied (the CLI runs the
+file in a transaction, verified afterwards — all 1,377 observations still
+there). Fixed by ordering orders before decisions, and **dry-run first
+this time**: the whole sequence inside a transaction that raises at the
+end to roll itself back, which reported 1,377 / 11 / 35 / 4 and no
+constraint violated. That check cost one minute and would have saved the
+red build. (`0044`, Davies' word:
 "retired 的 testing strategies 也都删了，不用留历史"). 4 strategy rows,
 11 orders, 35 decisions, 1,371 observations, irreversibly. `0038` and
 `0043` had retired them IN PLACE because a strategy row cannot be deleted
