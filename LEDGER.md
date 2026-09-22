@@ -303,6 +303,16 @@ repeated to Davies as fact or acted on.
 1209 → 883, probes untouched, `live_confirmed_at` still null. All three
 workflows green on `8e03297`.
 
+**If `edge-functions` shows RED on `944c36d`, it is a false alarm — do
+not chase it.** Both gating steps passed (Deno typecheck ✓, Deno test ✓)
+and the run then hung on "Install Supabase CLI", a GitHub infrastructure
+step, with `updated_at` frozen at 15:39:32. That commit changes **no
+deployed Edge Function source** — only two study scripts and docs — so
+there was nothing for it to deploy, and `8e03297`, which did change
+`tick.ts` and `index.ts`, deployed successfully before it. Production is
+current. Re-run the job if you want a green badge; there is nothing to
+fix.
+
 **The maker question, asked and answered for now**: the live row ships as
 a TAKER (marketable, 9 bps) — that is what `tick.ts` does and what every
 backtest assumes. Maker is not a rival version, it is an open question
