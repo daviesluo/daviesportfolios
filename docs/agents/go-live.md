@@ -156,6 +156,26 @@ set I recommend below:
 | SUI | +1.4 % / 29 % / 12 | −2.5 % / 31 % / 10 |
 | **sleeve as one book, $100** | **+$8.03 (+8.0 %), DD 11.3 %** | **+$20.08 (+20.1 %), DD 10.5 %** |
 
+**Two more windows exist now** (reference §3.15, built from Kraken's own
+quarterly history spliced strictly before the Coinbase series, so A and B
+keep the exact candles above — verified at 0 / 0 / 0 across 100 cells):
+
+| window | what the market did | sleeve return | drawdown | ret/DD |
+|---|---|---|---|---|
+| C | **+243 %**, a stronger bull | **+55.6 %** | 7.3 % | 7.57 |
+| B | +72 %, bull | +20.1 % | 10.5 % | 1.92 |
+| A | −39 %, bear | +8.0 % | 11.3 % | 0.71 |
+| **D** | **−6 %, sideways** | **−7.8 %** | **15.5 %** | **−0.50** |
+
+**Read window D before you decide anything.** The sideways year is the
+only one of four this rule loses money in, and it carries the largest
+drawdown of the four. That is what a trend rule does when the market goes
+nowhere: it is whipsawed in and out. The bear year it survives is a
+*trending* bear — the rule was in cash for most of it. So the honest
+shape of the expectation is not "flat to good" but **"good when the
+market moves, worst when it does not"**, and the only window that
+punishes it is the quiet one.
+
 The coins disagree about which window suits them, which is why the sleeve
 is steadier than any of its parts: BTC and ETH still lose in the bear
 window and carry the bull one, SUI is the only coin negative in the bull
