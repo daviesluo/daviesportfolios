@@ -14,6 +14,58 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+0a. **THREE STUDIES STOPPED MID-FLIGHT ON A USAGE LIMIT (2026-09-22
+   16:55). Resume them in this order.** All three briefs are reproducible
+   from this list; nothing depends on the stopped sessions' memory.
+
+   **J — the Jev study: RAN, output committed, UNVERIFIED.**
+   `supabase/functions/agents/backtest_jev.ts`,
+   `docs/agents/backtests/jev.json`,
+   `docs/agents/reviews/2026-09-22-jev-veto-study.md`. It claims
+   `rule ∧ Jev` turns window A from **+8.0 % to −2.5 %**. **Step one is to
+   verify that**, the way §4.20's findings were verified: re-derive the
+   sleeve from raw candles, check the study's arm against `run`
+   cell-for-cell, and confirm the veto resolution rule
+   (`surfaceFromRecord`) does what the report says. Step two is to run
+   `--replay live`, which ASKS the model instead of replaying twelve
+   recorded answers — that needs a Jev transport, reachable through
+   `pg_net` from inside Postgres the way the probe was (the secret never
+   leaves the database). Step three: if the finding holds, `go-live.md`
+   §4 and §7 and reference §4.21 all need rewriting, and the live
+   recommendation itself has to be re-asked — a rulebook whose bear year
+   is −2.5 % is not the row that brief recommends.
+
+   **S — SUI's seat: script written, NOT run.**
+   `supabase/functions/agents/backtest_sui.ts` exists and typechecks; no
+   output file. The question (Davies, 2026-09-22): SUI clears §4.15 on
+   window A alone, and the four-window ranking rule is structurally blind
+   to it because SUI does not exist in C or D, so `drop·SUI` reports a
+   delta of exactly 0.00 — an identity, not a measurement. Judge it on the
+   windows it HAS, on the span where all five coins exist, and on rolling
+   six-month folds; measure whether its contribution is drawdown damping
+   (it lowers return in both windows it is in and raises ret/DD in A).
+   Answer "keep in paper" and "keep in LIVE" separately. **Also check
+   whether §3.8's admission of SUI reproduces under the shipped stop
+   rule** — AVAX's verdict turned out to be stale in the other direction
+   today, and SUI's may be stale in this one.
+
+   **K — the last untested Kraken avenue: NOT started, nothing produced.**
+   84 coins clear the cost-and-book screens and could not be tested for
+   lack of history (17 Kraken-cheaper: PENDLE, STRK, AIOZ, JTO, MOG, EUL,
+   KTA, SWELL, TRAC, BLUR, PROMPT, KAITO, W, TURBO, PROVE, PONKE, RLS; 67
+   Kraken-only). Kraken's public OHLC gives only the 720 most recent bars;
+   the history is in the free quarterly OHLCVT bundle, which
+   `backtest_windows.ts` already used to build window C — follow that
+   precedent. **Disk is a fixed per-session allowance**: fetch
+   selectively, unpack only the 240-minute files, delete as you go. Run
+   §4.15's four tests on SEEDED parameters, state the null before
+   reporting passes, and run the six-month folds too. **Second half of the
+   same task**: should the Kraken balance move to Revolut X? Nothing in
+   the design needs a funded Kraken account — candles and the basis are
+   public — but confirm that in `_shared/kraken.ts` and `tick.ts` rather
+   than assuming, and say what reversing would cost. Davies asked; no
+   money moves without his word.
+
 0. **Agents (crypto auto-trading) — paper since 2026-09-20 18:23 UTC
    (#211, `23d2fdd`).** Two review rounds from Davies landed (history,
    09-20 19:21 and 09-21 01:57 UTC). What the record says after the first
@@ -91,8 +143,10 @@ list stays the short version; the plan is the reasoning behind it.
    **The pre-live verification is done (2026-09-22, §4.19 and go-live §9)
    and found one real defect, now fixed: a position did not carry the mode
    it was opened in.** One box is left and it is Davies': run the
-   read-only `probe` — **run 14:05 UTC and green**, so the only thing left
-   before the switch is his word. Then watch the first live order: its read-back is what verifies
+   read-only `probe` — **run 14:05 UTC and green**. **But the switch is no
+   longer only his word**: the Jev study (item J below) may have turned the
+   bear year negative, and that is the window the recommendation rests on.
+   Verify it before going live. Then watch the first live order: its read-back is what verifies
    Revolut X's settlement field names (B4), and the page raises a banner
    if it is left pending.
    Kraken holds £75 GBP, not USD (probe 09-20 19:08 UTC); a live Kraken
@@ -206,6 +260,56 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
+
+### [2026-09-22 16:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Stopped on a usage limit, deliberately and with everything landed.**
+Three studies were running; all three were stopped and their work
+committed. **Read the next section's items J, S and K before doing
+anything else** — one of them may have overturned the live case.
+
+**The Jev study RAN and its headline is the biggest number of the day,
+and I have NOT verified it.** `backtest_jev.ts` →
+`docs/agents/backtests/jev.json` → `reviews/2026-09-22-jev-veto-study.md`.
+It says the live sleeve's four windows move from
+
+| | A (bear) | B | C | D (sideways) | worst |
+|---|---|---|---|---|---|
+| `rule` (every published table) | **+8.0 %** | +20.1 % | +55.6 % | −7.8 % | −7.8 % (D) |
+| `rule ∧ Jev` (what runs) | **−2.5 %** | +15.8 % | +52.4 % | −1.5 % | −2.5 % (A) |
+
+i.e. **the bear year that the whole go-live case rests on becomes
+NEGATIVE**, while the sideways year improves 6.4 points. Historical veto
+share 47.8 % against the live record's 20 %.
+
+**Two caveats that are the study's own and matter as much as the
+number.** (1) **The default arm does not call the model.** It replays
+Jev's TWELVE recorded answers from `agent_decisions` onto historical
+states by a pre-registered rule; `--replay live` is the arm that asks the
+real model and has not been run. (2) The two recorded high-volatility
+cells sit at **0.59 and 0.61** — one hundredth either side of
+`enterMin`, and the model is repeatable only to about ±0.01 — so the
+`highvol-vetoed` / `highvol-passed` arms BRACKET the answer rather than
+give it, and their worst windows are −6.6 % and −3.3 %.
+
+**I have not checked a single one of those figures.** Twice today a
+reported number turned out to be the opposite of the record (AVAX's bar
+verdict, and my own claim that the winding-down fix worked). **Verifying
+this one is the first thing the next session does**, before it is
+repeated to Davies as fact or acted on.
+
+`0046` applied cleanly: 3 strategy rows left (`momentum-1d`, `trend-1h`,
+`trend-4h`), orders 15 → 12, decisions 247 → 197, observations
+1209 → 883, probes untouched, `live_confirmed_at` still null. All three
+workflows green on `8e03297`.
+
+**The maker question, asked and answered for now**: the live row ships as
+a TAKER (marketable, 9 bps) — that is what `tick.ts` does and what every
+backtest assumes. Maker is not a rival version, it is an open question
+`0042` measures, and the probe has **3 observations**: all sells, filled
+in 1–3 minutes, spread saved 1.6–3.4 bps, adverse at 60 min −31.1 / +3.6
+/ +82.7 bps (positive = against the fill). Mean +18.4 bps against a 9 bps
+saving, on n = 3, which is noise. It needs 30–100 probes: 2–4 months.
 
 ### [2026-09-22 16:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
