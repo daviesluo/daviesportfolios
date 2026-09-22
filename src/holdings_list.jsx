@@ -60,7 +60,7 @@ export const COMPANY_NAMES = {
   'COHR': 'Coherent Corp.',
   'SAEM.L': 'iShares MSCI EM IMI ESG Screened UCITS ETF',
   'VUAA.L': 'Vanguard S&P 500 UCITS ETF (USD Acc)',
-  '017731': '嘉实全球产业升级股票(QDII)C',
+  '017731': 'Harvest Global Industrial Upgrade Equity (QDII) C',
 };
 
 /**

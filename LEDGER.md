@@ -14,11 +14,21 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-0a. **FOUR STUDIES IN FLIGHT (relaunched 2026-09-22 ~18:30 UTC on Opus
-   5.5 sub-agents). If this session dies, resume from THIS list.** Each
-   agent writes only its own files and none edits README / LEDGER /
-   CLAUDE / reference / go-live — integrating is the main session's job,
-   and nothing an agent reports is repeated as fact until recomputed.
+0a. **WORK IN FLIGHT (as of 2026-09-22 19:50 UTC). If this session dies,
+   resume from THIS list.** A harness glitch at 19:38 UTC (a user message
+   arriving mid-tool-call is recorded as a rejection) STOPPED the fix
+   agent, the SUI agent and the venue survey; each was relaunched on
+   Davies' "请都继续" to finish from the partial work left in the tree.
+   **The main working tree is the agents' sandbox** (their uncommitted
+   edits live there: `tick.ts`, `index.ts`, `_shared/revx.ts`,
+   `_shared/kraken.ts`, the agents tests, new `agents/testing.ts`,
+   `src/agents.js`, `dist/`, `backtest_sui.ts`, the SUI and Jev reviews).
+   The main session integrates from a separate clean worktree at
+   `origin/main` (`scratchpad/wt_me`), builds and gates there, and pushes
+   from there — never commit an agent's half-finished file. Each agent
+   writes only its own files and none edits README / LEDGER / CLAUDE /
+   reference / go-live; nothing an agent reports is repeated as fact
+   until recomputed.
 
    **J — Jev: the model is MEASURED; the re-pricing is running.** The
    entry state has 90 possible values; the real model was asked all of
@@ -276,6 +286,20 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-22 19:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The website is English-only again, and the rule is written down.** The
+holding list and the chart modal showed one Chinese string, the Chinese
+fund's own title in `COMPANY_NAMES` (`017731`); it is now "Harvest
+Global Industrial Upgrade Equity (QDII) C", and a pin fails if any name in
+that map carries a CJK character (red with the old string, green now).
+Davies had to remind this session twice to reply in Chinese; the skill's
+Language section (all three copies) now says every reply is Chinese —
+including after a hook message or an agent report, the turns where it
+slipped — and that every word the site shows is English. Gates in the
+clean worktree: typecheck, lint (0 errors), vitest 914, build, the
+browser sweep 208/208, knip, size-limit 110.1 of 122 kB.
 
 ### [2026-09-22 19:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
