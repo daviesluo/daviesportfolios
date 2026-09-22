@@ -183,7 +183,7 @@ that follow from that evidence, in short:
   Twice on 2026-09-22 a stub looser than production certified a failure:
   the in-memory db ignored `agent_orders_mode_check` (a paused row's exit
   was refused in production), and its `selectAll` skipped the order
-  guard (the tick threw for two hours). Shared rules live in one function
+  guard (the tick threw for three hours). Shared rules live in one function
   both call (`assertPagedOrder`); after a tick deploy, read decisions and
   `ops_errors`, not the basis — the basis is written before most of the
   loop runs and reads "alive" through a crash.

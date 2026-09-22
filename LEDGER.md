@@ -253,7 +253,18 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
-### [2026-09-22 19:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-22 18:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Eight of today's section headers were stamped AHEAD of the clock, by
+8 to 76 minutes, and are corrected to the commit that carried each one**
+(14:40→14:37, 15:10→14:43, 15:35→14:46, 16:20→15:10, 16:55→15:39,
+18:25→18:17, 18:45→18:33, 19:05→18:36). They were estimated rather than
+read off `date -u`, and one of them then became evidence: the tick
+outage was dated from the "16:20" header and understated by an hour. The
+outage entry is corrected in place with the recount (15:12:03 → 18:18:02,
+187 errors). Headers are read from the clock from here on.
+
+### [2026-09-22 18:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Archived 62 history sections (2329 lines, 2026-09-05 → 2026-09-21)
 verbatim into `handover.md` Part 2**, oldest first, each checked
@@ -263,7 +274,7 @@ session on every platform pays for it on every wake. The what-remains
 list above is unchanged and is the whole briefing; open the archive only
 to reopen or audit a closed item.
 
-### [2026-09-22 18:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-22 18:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The real model was asked about every state it can ever see on an
 entry, five times each, and the Jev question is answered.** The entry
@@ -315,15 +326,19 @@ behaviour on every row, so nothing in production changes. Pinned in
 `strategy.test.ts` and `tick.test.ts`; counterfactual checked (ignore the
 switch in the tick and the new test fails).
 
-### [2026-09-22 18:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-22 18:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
-**I broke the tick for two hours and the tests could not see it.** `8e03297`
-(16:20) made `selectAll` throw on a query with no `order=` — and
-`tick.ts`'s count of today's orders had none. Every tick from then on
-wrote the basis (section 1), then threw in section 3, before the book,
-the protective stops, the observations and the decisions: **122 errors,
-no decision after 15:00:03, and `trend-4h`'s three paper positions with
-no floor for two hours.** Found at 18:16 on a fresh read of production,
+**I broke the tick for three hours and the tests could not see it.**
+`8e03297` (committed 15:10, deployed 15:12) made `selectAll` throw on a
+query with no `order=` — and `tick.ts`'s count of today's orders had
+none. Every tick from then on wrote the basis (section 1), then threw in
+section 3, before the book, the protective stops, the observations and
+the decisions: **187 errors from 15:12:03 to 18:18:02, no decision after
+15:00:03, and `trend-4h`'s three paper positions with no floor for three
+hours and six minutes.** (First written here as "16:20, 122 errors, two
+hours": the start was read off a ledger header that was itself wrong and
+the errors were counted from 16:15. Recounted from `ops_errors`; the
+commit message of `023dfdc` still says 16:20 and is not rewritten.) Found at 18:16 on a fresh read of production,
 not by any gate. Paper, so nothing real was exposed; live, it would have
 been real coins with no stop — the exact failure this morning's work was
 about.
@@ -349,8 +364,9 @@ cancelled the hung `944c36d` run). Last `selectAll` error 18:18:02; the
 first tick after it wrote decisions for every pair at 18:19:03–04, the
 first since 15:00. All holds: `trend-4h` still long BTC/ETH/SOL with no
 exit condition, so **no paper position crossed its floor while the stops
-were down** — the outage cost `trend-1h` two or three hourly decisions
-(only the last closed bar is ever claimed), and nothing else.
+were down** — the outage cost `trend-1h` its 16:00 and 17:00 hourly decisions (only
+the last closed bar is ever claimed) and `trend-4h` decided its 16:00 bar
+at 18:19, late, and nothing else.
 
 **`POST ?action=jev`** added to the agents function: a read-only
 measurement of the model the entry gate reads. The state the loop can
@@ -371,7 +387,7 @@ veto is unpriced, and that a test double must be as strict as what it
 stands in for. The same six lessons went into `working-with-davies` and
 both Cursor copies, which are verified still identical.
 
-### [2026-09-22 16:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-22 15:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Stopped on a usage limit, deliberately and with everything landed.**
 Three studies were running; all three were stopped and their work
@@ -431,7 +447,7 @@ in 1–3 minutes, spread saved 1.6–3.4 bps, adverse at 60 min −31.1 / +3.6
 / +82.7 bps (positive = against the fill). Mean +18.4 bps against a 9 bps
 saving, on n = 3, which is noise. It needs 30–100 probes: 2–4 months.
 
-### [2026-09-22 16:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-22 15:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **`0046` deletes `trend-4h-kraken`** on Davies' word ("这三点按照你的建议
 处理"): 3 orders, 50 decisions, 326 observations, 0 probes, 0 backtests.
@@ -468,7 +484,7 @@ Two recorded rather than fixed, with the reason: the exposure bucket
 reads `rows[0].venue`, which misbills only if a strategy's `venue`
 changes and no migration does that; and the re-quote decision id, above.
 
-### [2026-09-22 15:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-22 14:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **`trend-4h-kraken` makes no decision of its own — 50 of 50 paired
 decisions match `trend-4h` exactly, 0 differ**, on `final_action` and
@@ -516,7 +532,7 @@ RESTED at 0 % maker beat Revolut X taking the touch, 40 of 60 against
 on, on the venue already traded. No backtest can settle it — the probe is
 the instrument and it is already running.
 
-### [2026-09-22 15:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-22 14:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Jev has been vetoing one entry in five and nobody had counted it.**
 Every published figure is the RULEBOOK's; the account runs `rule ∧ Jev`.
@@ -557,7 +573,7 @@ magnitude — the whole study's 15 of 98 goes from P = 0.0011 to P = 0.993.
 It cuts in the incumbent's favour, so no verdict moves, but that column
 is unusable rather than evidence.
 
-### [2026-09-22 14:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-22 14:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **An independent audit found that there was no working way to stop a live
 row that still held coins.** Three mechanisms, each independently broken,
