@@ -15,7 +15,9 @@
 --   rotation-1d          retired by 0043 — 2 orders, still long
 --   rotation-1w-kraken   retired by 0043 — 2 orders, still long
 --
---   4 strategy rows · 11 orders · 35 decisions · 1,371 observations
+--   4 strategy rows · 11 orders · 35 decisions · ~1,380 observations
+--   (the observation count is live — three of these rows were still being
+--   wound down and still writing state when this was counted)
 --
 -- Three of them still HELD a position, which the loop had been winding
 -- down since 2026-09-22 02:00 (§4.11). Deleting the rows ends that: the
@@ -30,15 +32,25 @@
 -- reference keeps every number these rows produced (§3.4, §3.5, §3.14,
 -- §3.17). This removes the ROWS, not the evidence.
 --
--- Children first: the foreign keys are what stopped `0038` deleting.
+-- Children first, and the ORDER of the children matters. The first version
+-- of this file deleted decisions before orders and was refused by
+-- `agent_orders_decision_id_fkey`: there are TWO foreign keys in play, not
+-- one. `agent_orders.strategy_id` points at the strategy, and
+-- `agent_orders.decision_id` points at the DECISION that produced it, so
+-- orders have to go before decisions do. Checked before this version was
+-- pushed: no order on a live row points at a retired row's decision
+-- (0 cross-references), so deleting by `strategy_id` is enough, and the
+-- whole sequence was dry-run inside a transaction that raised at the end
+-- to roll itself back — 1,377 observations, 11 orders, 35 decisions, 4
+-- strategies, no constraint violated.
 
 delete from public.agent_observations
  where strategy_id in (select id from public.agent_strategies where retired_at is not null);
 
-delete from public.agent_decisions
+delete from public.agent_orders
  where strategy_id in (select id from public.agent_strategies where retired_at is not null);
 
-delete from public.agent_orders
+delete from public.agent_decisions
  where strategy_id in (select id from public.agent_strategies where retired_at is not null);
 
 delete from public.agent_backtests
