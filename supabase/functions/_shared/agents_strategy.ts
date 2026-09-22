@@ -655,10 +655,11 @@ export type PairConfig = { base_step: string; quote_step: string; min_order_size
 /** Floor `x` to a multiple of `step` (both decimal strings from the venue), returned as a string with the step's precision. */
 /** Decimal places a venue step string carries. `"0.001"` is 3; `"1e-8"` has no fractional part to count, so it is read from the exponent — `split(".")` alone made it 0, and `toFixed(0)` turns 0.5 BTC into 1. */
 export function stepDecimals(step: string): number {
-  const dot = (step.split(".")[1] ?? "").length;
-  if (dot || !/e/i.test(step)) return dot;
-  const n = Number(step);
-  return n > 0 && n < 1 ? Math.max(0, -Math.floor(Math.log10(n))) : 0;
+  // A mantissa with an exponent carries its fraction's digits PLUS the exponent's: "1.5e-8" is 0.000000015, nine places.
+  // `split(".")` read the "5e-8" after the dot as four digits, so `toFixed(4)` floored every size at that step to zero.
+  const exp = /^\s*\d+(?:\.(\d+))?e([+-]?\d+)\s*$/i.exec(step);
+  if (exp) return Math.max(0, (exp[1] ?? "").length - Number(exp[2]));
+  return (step.split(".")[1] ?? "").length;
 }
 
 export function floorToStep(x: number, step: string): string {

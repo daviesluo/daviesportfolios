@@ -186,10 +186,10 @@ Deno.test("orderViewProblem — a filled order whose reply lacks the settlement 
   assertEquals(orderViewProblem(ok), null);
   assertEquals(orderViewProblem({ ...ok, state: "new", filled_size: "0", fees: undefined }), null);             // nothing filled: nothing to read yet
   const noFee = orderViewProblem({ venue_order_id: "V1", symbol: "BTC-USD", side: "buy", state: "filled", filled_size: "0.001", average_fill_price: "80000" });
-  assert(noFee?.includes("no fees") && noFee.includes("fields present: venue_order_id, symbol, side, state, filled_size, average_fill_price"), String(noFee));
-  assert(orderViewProblem({ venue_order_id: "V2", symbol: "BTC-USD", side: "sell", state: "filled" })?.includes("no filled_size, average_fill_price, fees"));
-  // A partial fill is a fill: the same fields are required of it.
-  assert(orderViewProblem({ venue_order_id: "V3", symbol: "BTC-USD", side: "buy", state: "open", filled_size: "0.0004" })?.includes("average_fill_price, fees"));
+  assert(noFee?.includes("no total_fee/fees") && noFee.includes("fields present: venue_order_id, symbol, side, state, filled_size, average_fill_price"), String(noFee));
+  assert(orderViewProblem({ venue_order_id: "V2", symbol: "BTC-USD", side: "sell", state: "filled" })?.includes("no filled_quantity/filled_size, average_fill_price, total_fee/fees"));
+  // A partial fill is a fill: the same fields are required of it. (`partially_filled` is the venue's own word for it.)
+  assert(orderViewProblem({ venue_order_id: "V3", symbol: "BTC-USD", side: "buy", state: "partially_filled", filled_size: "0.0004" })?.includes("average_fill_price, total_fee/fees"));
 });
 
 Deno.test("orderViewProblem — a reply that says filled while reporting filled_size 0 is a problem, and an ABSENT field is still reported as absent", () => {
@@ -198,5 +198,105 @@ Deno.test("orderViewProblem — a reply that says filled while reporting filled_
   const zero = orderViewProblem({ venue_order_id: "V9", symbol: "BTC-USD", side: "buy", state: "filled", filled_size: "0", average_fill_price: "80000", fees: "0" });
   assert(zero?.includes("filled_size 0"), String(zero));
   // Absent is not zero: that case keeps naming the fields it could not find.
-  assert(orderViewProblem({ venue_order_id: "V10", symbol: "BTC-USD", side: "buy", state: "filled" })?.includes("no filled_size, average_fill_price, fees"));
+  assert(orderViewProblem({ venue_order_id: "V10", symbol: "BTC-USD", side: "buy", state: "filled" })?.includes("no filled_quantity/filled_size, average_fill_price, total_fee/fees"));
+});
+
+// ── the order path at the client, over a fake HTTP venue (2026-09-22) ────────────────────────────────
+// Until 2026-09-22 nothing here exercised placeLimit / order / cancel / activeOrders at all, and the tick's tests used a
+// stub that handed the loop a finished OrderView — so neither `orderViewProblem` nor `toOrderView` ever met a reply in the
+// loop. These drive the REAL client with the shapes Revolut X documents (revolut-x-api-for-llm.md, developer.revolut.com).
+
+/** A fake Revolut X that answers the order endpoints with whatever the test gives it. */
+async function fakeVenue(routes: Record<string, (init: RequestInit) => Response>) {
+  const k = await keyShapes();
+  const { key } = await loadPrivateKey(k.pem);
+  const seen: { method: string; path: string; body: unknown }[] = [];
+  const f = (async (url: string | URL | Request, init?: RequestInit) => {
+    const u = new URL(String(url));
+    const method = (init?.method ?? "GET").toUpperCase();
+    seen.push({ method, path: u.pathname, body: init?.body ? JSON.parse(String(init.body)) : null });
+    const h = routes[`${method} ${u.pathname}`];
+    return h ? h(init ?? {}) : new Response(JSON.stringify({ message: "not found" }), { status: 404 });
+  }) as unknown as typeof fetch;
+  return { venue: revxVenue({ apiKey: "K".repeat(64), privateKey: key }, f), seen };
+}
+const json = (body: unknown, status = 200) => () => new Response(body === null ? null : JSON.stringify(body), { status });
+/** The documented GET /orders/{id} body (developer.revolut.com, "Get order by ID"), filled. */
+const documentedFilled = {
+  id: "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", client_order_id: "984a4d8a-2a9b-4950-822f-2a40037f02bd",
+  symbol: "BTC/USD", side: "buy", type: "limit", quantity: "0.002", filled_quantity: "0.002", leaves_quantity: "0",
+  amount: "240.00", filled_amount: "239.98", price: "120000.00", average_fill_price: "119990.00", total_fee: "0.22",
+  status: "filled", time_in_force: "ioc", fee_currency: "USD", execution_instructions: ["allow_taker"], created_date: 1785309833816, updated_date: 1785313433816,
+};
+
+Deno.test("order() settles the DOCUMENTED reply — id, status, filled_quantity, total_fee — which the client used to read as 'new, nothing filled'", async () => {
+  const { venue } = await fakeVenue({ [`GET /api/1.0/orders/${documentedFilled.id}`]: json({ data: documentedFilled }) });
+  const r = await venue.order(documentedFilled.id);
+  assert(r.ok, JSON.stringify(r));
+  if (r.ok) assertEquals([r.view.state, r.view.filledBase, r.view.avgPrice, r.view.feeUsd], ["filled", 0.002, 119990, 0.22]);
+  // The assumed vocabulary still settles, so whichever the venue sends on the first live order is read.
+  const { venue: v2 } = await fakeVenue({ "GET /api/1.0/orders/V1": json({ data: { venue_order_id: "V1", symbol: "BTC/USD", side: "buy", state: "filled", filled_size: "0.002", average_fill_price: "119990", fees: "0.22" } }) });
+  const r2 = await v2.order("V1");
+  assert(r2.ok && r2.view.state === "filled" && r2.view.feeUsd === 0.22, JSON.stringify(r2));
+});
+
+Deno.test("order() refuses a state it does not know — never 'new with nothing filled' — and a number that is not a number", async () => {
+  for (const data of [
+    { ...documentedFilled, status: "completed" },                                            // a word the venue does not document
+    { symbol: "BTC/USD", side: "buy", id: "X", quantity: "0.002" },                          // no state at all
+    { ...documentedFilled, status: "replaced" },                                             // the loop never replaces: not settleable here
+    { ...documentedFilled, total_fee: "0.22 USD" },                                          // present, but Number() of it is NaN
+    { ...documentedFilled, fee_currency: "EUR" },                                            // neither side of the pair
+  ]) {
+    const { venue } = await fakeVenue({ "GET /api/1.0/orders/X": json({ data }) });
+    const r = await venue.order("X");
+    assertEquals(r.ok, false, JSON.stringify(data));
+  }
+  // The pure guard says the same, in the assumed names too.
+  assert(orderViewProblem({ venue_order_id: "V", symbol: "BTC-USD", side: "buy", state: "filled", filled_size: "0.001", average_fill_price: "80000", fees: "0.072 USD" })?.includes("not a number"));
+  assert(orderViewProblem({ venue_order_id: "V", symbol: "BTC-USD", side: "buy", state: "open" })?.includes("does not know"));
+});
+
+Deno.test("a fee the venue takes in the COIN is settled in dollars at the fill price", async () => {
+  const { venue } = await fakeVenue({ "GET /api/1.0/orders/X": json({ data: { ...documentedFilled, total_fee: "0.0000018", fee_currency: "BTC" } }) });
+  const r = await venue.order("X");
+  assert(r.ok, JSON.stringify(r));
+  if (r.ok) assertEquals(Math.round(r.view.feeUsd * 1e6) / 1e6, Math.round(0.0000018 * 119990 * 1e6) / 1e6);
+});
+
+Deno.test("placeLimit: a marketable order is an IOC limit that may take; a resting one is post-only GTC; the reply's data is read as an object OR an array", async () => {
+  const placed = { venue_order_id: "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", client_order_id: "c", state: "filled" };
+  // The documented schema: `data` is a single object. The client read only `data[0]`, so this reply was "no venue_order_id".
+  const { venue, seen } = await fakeVenue({ "POST /api/1.0/orders": json({ data: placed }) });
+  const r = await venue.placeLimit({ clientOrderId: "c", symbol: "BTC/USD", side: "buy", base: "0.00016", price: "120050.00", marketable: true });
+  assert(r.ok && r.venueOrderId === placed.venue_order_id && r.state === "filled", JSON.stringify(r));
+  assertEquals(seen[0].body, { client_order_id: "c", symbol: "BTC-USD", side: "buy", order_configuration: { limit: { base_size: "0.00016", price: "120050.00", execution_instructions: ["allow_taker"], time_in_force: "ioc" } } });
+  // The documented sample: an array of one.
+  const { venue: v2, seen: s2 } = await fakeVenue({ "POST /api/1.0/orders": json({ data: [{ ...placed, state: "new" }] }) });
+  const r2 = await v2.placeLimit({ clientOrderId: "d", symbol: "BTC/USD", side: "sell", base: "0.00016", price: "120100.00" });
+  assert(r2.ok && r2.state === "new", JSON.stringify(r2));
+  assertEquals((s2[0].body as { order_configuration: { limit: Record<string, unknown> } }).order_configuration.limit, { base_size: "0.00016", price: "120100.00", execution_instructions: ["post_only"], time_in_force: "gtc" });
+  // A refusal is the venue's message, never an order.
+  const { venue: v3 } = await fakeVenue({ "POST /api/1.0/orders": json({ message: "Insufficient balance", error_id: "e", timestamp: 1 }, 400) });
+  const r3 = await v3.placeLimit({ clientOrderId: "e", symbol: "BTC/USD", side: "sell", base: "1", price: "1.00", marketable: true });
+  assert(!r3.ok && r3.status === 400 && r3.error === "Insufficient balance", JSON.stringify(r3));
+});
+
+Deno.test("cancel and activeOrders: 204 is a cancel, anything else is not; the active list is read in the documented names and keyed by OUR client id", async () => {
+  const { venue } = await fakeVenue({
+    "DELETE /api/1.0/orders/A": json(null, 204),
+    "DELETE /api/1.0/orders/B": json({ message: "Order not found" }, 404),
+    "GET /api/1.0/orders/active": json({ data: [
+      { id: "V-1", client_order_id: "mine", symbol: "BTC/USD", side: "buy", type: "limit", quantity: "0.002", filled_quantity: "0.0005", leaves_quantity: "0.0015", price: "98745", average_fill_price: "98740", total_fee: "0.04", status: "partially_filled" },
+      { id: "V-2", client_order_id: "weird", symbol: "BTC/USD", side: "buy", quantity: "0.002", status: "suspended" },   // unreadable: left out
+    ], metadata: { timestamp: 1 } }),
+  });
+  assertEquals(await venue.cancel("A"), { ok: true });
+  assertEquals((await venue.cancel("B")).ok, false);
+  const a = await venue.activeOrders();
+  assert(a.ok, JSON.stringify(a));
+  if (a.ok) {
+    assertEquals(Object.keys(a.byClientId), ["mine"]);
+    assertEquals([a.byClientId.mine.venueOrderId, a.byClientId.mine.view.state, a.byClientId.mine.view.filledBase], ["V-1", "partially_filled", 0.0005]);
+  }
 });

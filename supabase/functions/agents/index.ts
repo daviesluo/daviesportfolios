@@ -66,7 +66,7 @@ import { b64ToBytes } from "../_shared/bytes.ts";
 import { jevQuestions, positionFromFills, unrealisedUsd, type CategoricalState, type Position } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { makeDb, type Db } from "./db.ts";
-import { dayPnl, decisionBarMs, jevViewOf, posKey, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
+import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 
@@ -190,10 +190,22 @@ function db(): Db {
 
 // ------------------------------------------------------------------- tick
 
+/**
+ * One `ops_errors` row for a turn's errors. `message` is the joined list cut to what the column keeps, so a turn with a
+ * few long errors used to lose every later one — a refusal naming its constraint included. The whole list goes in
+ * `context.errors` as well, each error kept whole up to a generous cap.
+ */
+export function tickErrorReport(report: { errors: string[]; at: string }) {
+  return {
+    message: report.errors.join(" | ").slice(0, 500),
+    context: { at: report.at, count: report.errors.length, errors: report.errors.slice(0, 40).map((e) => e.slice(0, 800)) },
+  };
+}
+
 export async function runTick(now = Date.now()) {
   const { venues, notes } = await loadVenues();
   const report = await tick({ db: db(), venues, jev: jevEnv(), now, uuid: () => crypto.randomUUID() });
-  if (report.errors.length) await reportServerError("agents.tick", { message: report.errors.join(" | ").slice(0, 500), context: { at: report.at } });
+  if (report.errors.length) await reportServerError("agents.tick", tickErrorReport(report));
   return { ...report, venues: { revx: { canTrade: venues.revx.canTrade, note: notes.revx }, kraken: { canTrade: venues.kraken.canTrade, note: notes.kraken, feeBps: venues.kraken.feeBps } } };
 }
 
@@ -278,6 +290,91 @@ export function probeSummary(rows: ProbeSummaryRow[]) {
  */
 type ObservationRow = { strategy_id: string; symbol: string; ts: string; bar_start: string; state: Record<string, unknown>; numbers: Record<string, unknown> };
 
+type Totals = { costUsd: number; valueUsd: number; unrealisedUsd: number; realisedUsd: number; feesUsd: number; todayUsd: number };
+const zeroTotals = (): Totals => ({ costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0 });
+const addTotals = (t: Totals, x: Totals) => { t.costUsd += x.costUsd; t.valueUsd += x.valueUsd; t.unrealisedUsd += x.unrealisedUsd; t.realisedUsd += x.realisedUsd; t.feesUsd += x.feesUsd; t.todayUsd += x.todayUsd; };
+
+/**
+ * One strategy row's books, resolved exactly as the tick resolves them — `resolveBook` and `isOffBook` are the tick's
+ * own functions, not a copy. `positions` are the books the loop MANAGES, one per coin: what the page draws. Every OTHER
+ * book the row has fills in — a live book it was relabelled away from once flat, a paper position stranded by a flip —
+ * is still money made, lost or held, so it counts in `agg` and in `byMode` under its OWN mode, and is listed in
+ * `otherBooks`. Until 2026-09-22 only the resolved books counted: a flat live row relabelled `paper` or `paused` took its
+ * realised real-money P&L off the page's live total, while the tick's loss breaker, which reads every fill, still had it.
+ * `todayByBook` is therefore the same per-book figure the breaker gates on.
+ */
+export function strategyBooks(
+  s: { id: string; mode: string; symbols: string[]; retired_at?: string | null },
+  filled: OrderRow[], marks: Record<string, number>, dayOpens: Record<string, number>, dayStartMs: number,
+) {
+  const byBook = new Map<string, OrderRow[]>();                     // `${symbol}|${mode}` → this row's fills in that book
+  for (const o of filled) {
+    if (o.strategy_id !== s.id) continue;
+    const k = `${o.symbol}|${o.mode}`;
+    if (!byBook.has(k)) byBook.set(k, []);
+    byBook.get(k)!.push(o);
+  }
+  const line = (symbol: string, book: "paper" | "live") => {
+    const rows = byBook.get(`${symbol}|${book}`) ?? [];
+    const pos: Position = positionFromFills(rows.map(toFill));
+    const mark = marks[symbol] ?? pos.avgCost;
+    return {
+      symbol, book, base: pos.base, avgCost: pos.avgCost, mark,
+      costUsd: pos.base * pos.avgCost, valueUsd: pos.base * mark, unrealisedUsd: unrealisedUsd(pos, mark),
+      realisedUsd: pos.realisedUsd, feesUsd: pos.feesUsd, openedAt: pos.openedAt, highWater: pos.highWater, fills: rows.length,
+      todayUsd: rows.length ? dayPnl(rows, marks, dayOpens, dayStartMs) : 0,
+    };
+  };
+  const liveBase = (symbol: string) => positionFromFills((byBook.get(`${symbol}|live`) ?? []).map(toFill)).base;
+  const positions = s.symbols.map((symbol) => line(symbol, resolveBook(s.mode, liveBase(symbol))));
+  const shownKeys = new Set(positions.map((p) => `${p.symbol}|${p.book}`));
+  const otherBooks = [...byBook.keys()].filter((k) => !shownKeys.has(k)).sort().map((k) => {
+    const [symbol, book] = k.split("|");
+    return line(symbol, book as "paper" | "live");
+  });
+  const byMode: Record<"paper" | "live", Totals> = { paper: zeroTotals(), live: zeroTotals() };
+  for (const l of [...positions, ...otherBooks]) addTotals(byMode[l.book], l);
+  const agg = zeroTotals();
+  addTotals(agg, byMode.paper); addTotals(agg, byMode.live);
+  const all = [...positions, ...otherBooks];
+  return {
+    positions, otherBooks, agg, byMode,
+    todayByBook: { paper: byMode.paper.todayUsd, live: byMode.live.todayUsd },
+    // The tick's own winding-down rule, on the tick's own books: retired and still holding in the book it resolves to, or
+    // holding a book the row no longer trades. A paper position stranded under a retired LIVE label is in no book the tick
+    // manages (review R, #15 — paper only), so the page must not say the loop is running its exits; `holdsAnything` still
+    // keeps the row, and that position, on the page.
+    windingDown: (!!s.retired_at && positions.some((l) => l.base > 0)) || positions.some((l) => isOffBook(s.mode, l.book, l.base)),
+    holdsAnything: all.some((l) => l.base > 0),
+    /** Real coins anywhere under this row, whatever it is called: what the live alerts must count. */
+    holdsLive: all.some((l) => l.book === "live" && l.base > 0),
+  };
+}
+
+/** The detail chart's position: the book the loop manages for this coin — the same rule as the page and the tick, never a blend of both books. */
+export function chartBook(rowMode: string, fills: OrderRow[]): { book: "paper" | "live"; position: Position } {
+  const live = positionFromFills(fills.filter((o) => o.mode === "live").map(toFill));
+  const book = resolveBook(rowMode, live.base);
+  return { book, position: book === "live" ? live : positionFromFills(fills.filter((o) => o.mode === "paper").map(toFill)) };
+}
+
+/** Today's open per venue and symbol from cached daily candles, by the tick's own `dayOpenOf` — today's open, else yesterday's close. */
+export function dayOpensFrom(rows: { venue: string; symbol: string; open: number | string; close: number | string; start: string }[], dayStartMs: number): Record<string, Record<string, number>> {
+  const series = new Map<string, { start: number; open: number; close: number }[]>();
+  for (const r of rows) {
+    const k = `${r.venue}|${r.symbol}`;
+    if (!series.has(k)) series.set(k, []);
+    series.get(k)!.push({ start: Date.parse(r.start), open: Number(r.open), close: Number(r.close) });
+  }
+  const out: Record<string, Record<string, number>> = {};
+  for (const [k, c1d] of series) {
+    const [venue, symbol] = k.split("|");
+    const open = dayOpenOf(c1d.sort((a, b) => a.start - b.start), dayStartMs);
+    if (open != null) (out[venue] ??= {})[symbol] = open;
+  }
+  return out;
+}
+
 export async function runDashboard(now = Date.now()) {
   try {
     return await dashboard(now);
@@ -302,7 +399,7 @@ async function dashboard(now: number) {
     d.select<{ id: number; strategy_id: string; venue: VenueId; state: string }>("agent_orders", `ts=gte.${dayStart}&select=id,strategy_id,venue,state`),
     // The maker probes (`0042`), summarised below. Read whole: they are a few rows a day and the
     // adverse-selection median needs all of them, not a window.
-    d.selectAll<ProbeSummaryRow>("agent_maker_probes", "select=venue,symbol,side,state,maker_price,taker_price,minutes_to_fill,follow_up&order=ts.asc").catch(() => [] as ProbeSummaryRow[]),
+    d.selectAll<ProbeSummaryRow>("agent_maker_probes", "select=venue,symbol,side,state,maker_price,taker_price,minutes_to_fill,follow_up&order=ts.asc,id.asc").catch(() => [] as ProbeSummaryRow[]),
     d.select<{ strategy_id: string; provider: string; cost_usd: number | null; latency_ms: number | null }>("agent_decisions", `ts=gte.${since24h}&select=strategy_id,provider,cost_usd,latency_ms`),
     d.select<DecisionRow>("agent_decisions", "select=id,ts,strategy_id,venue,symbol,mode,state,numbers,answers,provider,model,latency_ms,cost_usd,rule_action,rule_reason,final_action,final_reason,risk_allowed,risk_reason&order=ts.desc&limit=120"),
     d.select<OrderRow & { request: unknown; response: unknown; cancelled_at: string | null; decision_id: number | null }>("agent_orders", "select=*&order=ts.desc&limit=120"),
@@ -313,10 +410,10 @@ async function dashboard(now: number) {
   // Today's opening price per VENUE and symbol, from the cached daily candles: each strategy is marked from its own signal
   // venue's day open, exactly as the tick's loss breaker marks it, so the page's "today" and the loop's are one figure.
   const dayStartMs = Math.floor(now / ONE_D) * ONE_D;
-  const dayOpenBy: Record<string, Record<string, number>> = {};
-  for (const c of await d.select<{ venue: string; symbol: string; open: number; start: string }>("agent_candles", `interval_min=eq.1440&start=eq.${new Date(dayStartMs).toISOString()}&select=venue,symbol,open,start`)) {
-    (dayOpenBy[c.venue] ??= {})[c.symbol] = Number(c.open);
-  }
+  // Yesterday's candle is read too: until the venue publishes today's, today opened at yesterday's CLOSE (`dayOpenOf`,
+  // the tick's own rule — this read only today's candle, fell back to the mark, and put 0 where the breaker had a figure).
+  const dayOpenBy = dayOpensFrom(await d.select<{ venue: string; symbol: string; open: number; close: number; start: string }>("agent_candles",
+    `interval_min=eq.1440&start=gte.${new Date(dayStartMs - ONE_D).toISOString()}&select=venue,symbol,open,close,start&order=start.asc`), dayStartMs);
   // The latest observation per strategy × symbol: what the rule sees on the forming bar, right now. One tiny
   // indexed query each, never one window over all of them — see `latestObservationQuery`.
   const latestObs = new Map<string, ObservationRow>();
@@ -344,62 +441,24 @@ async function dashboard(now: number) {
     catch (e) { balancesByVenue[vid] = null; venueErrors[vid] = `balances: ${e instanceof Error ? e.message : String(e)}`; }
   }
 
-  // Positions per strategy × symbol, from fills — the one implementation.
-  // Keyed by the MODE the fills were in, and resolved to a book exactly the way `tick.ts` does it, because the
-  // page must show what the loop manages. Blended on `strategy|symbol` alone — as this was until 2026-09-22,
-  // after the tick had been fixed and the page had not — a row that ever changed mode drew one position out of
-  // two books: base, average cost, opened-at, high-water and the realised/unrealised split all wrong, and the
-  // whole blended aggregate billed to `live` because that read the ROW's label.
-  const byKey = new Map<string, OrderRow[]>();
-  for (const o of filled) { const k = posKey(o.strategy_id, o.symbol, o.mode); if (!byKey.has(k)) byKey.set(k, []); byKey.get(k)!.push(o); }
-  const posCache = new Map<string, Position>();
-  const posAt = (k: string): Position => {
-    let p = posCache.get(k);
-    if (!p) { p = positionFromFills((byKey.get(k) ?? []).map(toFill)); posCache.set(k, p); }
-    return p;
-  };
-  /** Real coins outrank the row's label; otherwise its own mode, and a paused row falls back to paper. */
-  const bookOf = (s: { id: string; mode: string }, sym: string): "paper" | "live" =>
-    posAt(posKey(s.id, sym, "live")).base > 0 ? "live" : s.mode === "live" ? "live" : "paper";
-  const totals = { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0 };
-  const byMode: Record<string, typeof totals> = { paper: { ...totals }, live: { ...totals } };
-  // Which retired rows are still on the page: only the ones still holding something. Decided BEFORE
-  // the map, so a retired row that is already flat contributes nothing to `totals` or `byMode` —
-  // the page's aggregates keep the meaning they had when a retired row simply disappeared (`0038`).
-  const stillHolds = (s: { id: string; symbols: string[]; mode: string }) =>
-    s.symbols.some((sym) => posAt(posKey(s.id, sym, bookOf(s, sym))).base > 0);
-  const shown = strategies.filter((s) => !s.retired_at || stillHolds(s));
+  // Positions per strategy × symbol, from fills — the one implementation, resolved by the tick's own rule (`strategyBooks`).
+  const totals = zeroTotals();
+  const byMode: Record<"paper" | "live", Totals> = { paper: zeroTotals(), live: zeroTotals() };
+  const books = new Map(strategies.map((s) => [s.id, strategyBooks(s, filled, marks[s.venue] ?? {}, dayOpenBy[s.signal_venue] ?? {}, dayStartMs)]));
+  // Which retired rows are still on the page: only the ones still holding something, in any book. Decided BEFORE the map,
+  // so a retired row that is already flat contributes nothing to `totals` or `byMode` — the page's aggregates keep the
+  // meaning they had when a retired row simply disappeared (`0038`).
+  const shown = strategies.filter((s) => !s.retired_at || books.get(s.id)!.holdsAnything);
   const out = shown.map((s) => {
-    const positions = s.symbols.map((sym) => {
-      const book = bookOf(s, sym);
-      const rows = byKey.get(posKey(s.id, sym, book)) ?? [];
-      const pos: Position = posAt(posKey(s.id, sym, book));
-      const mark = marks[s.venue]?.[sym] ?? pos.avgCost;
-      const obs = latestObs.get(`${s.id}|${sym}`) ?? null;
-      return {
-        symbol: sym, base: pos.base, avgCost: pos.avgCost, mark,
-        costUsd: pos.base * pos.avgCost, valueUsd: pos.base * mark, unrealisedUsd: unrealisedUsd(pos, mark),
-        realisedUsd: pos.realisedUsd, feesUsd: pos.feesUsd, openedAt: pos.openedAt, highWater: pos.highWater, fills: rows.length,
-        observation: obs ? { ts: obs.ts, barStart: obs.bar_start, state: obs.state, numbers: obs.numbers } : null,
-      };
+    const b = books.get(s.id)!;
+    const positions = b.positions.map((p) => {
+      const obs = latestObs.get(`${s.id}|${p.symbol}`) ?? null;
+      return { ...p, observation: obs ? { ts: obs.ts, barStart: obs.bar_start, state: obs.state, numbers: obs.numbers } : null };
     });
-    const sum = (k: "costUsd" | "valueUsd" | "unrealisedUsd" | "realisedUsd" | "feesUsd") => positions.reduce((a, p) => a + p[k], 0);
-    // Today: realised since 00:00 UTC plus the change in unrealised from the day's open — the tick's own `dayPnl`,
-    // per strategy, over the fills of the books this row is actually showing.
-    const shownBooks = new Set(s.symbols.map((sym) => bookOf(s, sym)));
-    const fillsIn = (m: string) => filled.filter((o) => o.strategy_id === s.id && o.mode === m && bookOf(s, o.symbol) === m);
-    const todayIn = (m: string) => dayPnl(fillsIn(m), marks[s.venue] ?? {}, dayOpenBy[s.signal_venue] ?? {}, dayStartMs);
-    const todayByBook = Object.fromEntries([...shownBooks].map((m) => [m, todayIn(m)]));
-    const todayUsd = Object.values(todayByBook).reduce((a, b) => a + b, 0);
-    const agg = { costUsd: sum("costUsd"), valueUsd: sum("valueUsd"), unrealisedUsd: sum("unrealisedUsd"), realisedUsd: sum("realisedUsd"), feesUsd: sum("feesUsd"), todayUsd };
-    for (const k of Object.keys(agg) as (keyof typeof agg)[]) totals[k] += agg[k];
-    // Each position is billed to ITS OWN book, never to the row's label.
-    for (const pn of positions) {
-      const m = bookOf(s, pn.symbol);
-      byMode[m].costUsd += pn.costUsd; byMode[m].valueUsd += pn.valueUsd; byMode[m].unrealisedUsd += pn.unrealisedUsd;
-      byMode[m].realisedUsd += pn.realisedUsd; byMode[m].feesUsd += pn.feesUsd;
-    }
-    for (const [m, v] of Object.entries(todayByBook)) byMode[m].todayUsd += v;
+    addTotals(totals, b.agg);
+    addTotals(byMode.paper, b.byMode.paper);
+    addTotals(byMode.live, b.byMode.live);
+    const agg = b.agg;
     const mine = (r: { strategy_id: string }) => r.strategy_id === s.id;
     const last = recentDecisions.find(mine) ?? null;
     const barMs = decisionBarMs(s.kind);
@@ -407,11 +466,15 @@ async function dashboard(now: number) {
       id: s.id, kind: s.kind, venue: s.venue, signalVenue: s.signal_venue, name: s.name, description: s.description, symbols: s.symbols, mode: s.mode,
       capitalUsd: Number(s.capital_usd), params: s.params, updatedAt: s.updated_at,
       retiredAt: s.retired_at ?? null,
-      // A retired row still holding something: its exits run, it can never buy, and it is on the
-      // page precisely so the position is visible until it is gone (tick.ts, `windingDown`).
-      windingDown: !!s.retired_at && positions.some((p) => p.base > 0),
+      // Retired and still holding, or holding a book it no longer trades (paused, or relabelled away from real coins): its
+      // exits run and it can never buy — the tick's own rule, so the page cannot call a row stuck that the loop is covering.
+      windingDown: b.windingDown,
+      holdsLive: b.holdsLive,
+      todayByBook: b.todayByBook,
+      otherBooks: b.otherBooks,
       nextDecisionAt: new Date(Math.floor(now / barMs) * barMs + barMs).toISOString(),   // the next bar close
-      ...agg, positions,
+      costUsd: agg.costUsd, valueUsd: agg.valueUsd, unrealisedUsd: agg.unrealisedUsd, realisedUsd: agg.realisedUsd, feesUsd: agg.feesUsd, todayUsd: agg.todayUsd,
+      positions,
       openOrders: open.filter(mine).length, ordersToday: today.filter(mine).length,
       jev24h: jevStats(decisions24h.filter(mine)),
       lastDecision: last ? { ts: last.ts, symbol: last.symbol, action: last.final_action, ruleAction: last.rule_action, reason: last.final_reason, provider: last.provider, riskAllowed: last.risk_allowed, riskReason: last.risk_reason } : null,
@@ -497,7 +560,7 @@ async function chart(strategyId: string, symbol: string, now: number) {
     d.select<ObservationRow>("agent_observations", latestObservationQuery(strategyId, symbol)),
   ]);
   const allFilled = await d.selectAll<OrderRow>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc`);
-  const pos = positionFromFills(allFilled.map(toFill));
+  const { book, position: pos } = chartBook(s.mode, allFilled);
   return {
     strategyId, symbol, venue: s.venue, signalVenue: s.signal_venue, kind: s.kind, mode: s.mode, intervalMin, since, at: new Date(now).toISOString(),
     candles: candles.map((c) => [Date.parse(c.start), Number(c.open), Number(c.high), Number(c.low), Number(c.close)] as [number, number, number, number, number]),
@@ -510,7 +573,7 @@ async function chart(strategyId: string, symbol: string, now: number) {
       marketable: !!o.request?.marketable, filledAt: o.filled_at, cancelledAt: o.cancelled_at ?? null, decisionId: o.decision_id,
     })),
     decisions: decisions.map((x) => ({ id: x.id, ts: x.ts, barStart: x.bar_start, action: x.final_action, ruleAction: x.rule_action, reason: x.final_reason, provider: x.provider, riskAllowed: x.risk_allowed, kind: (x.numbers?.kind as string) ?? "bar", mark: Number(x.numbers?.mark ?? 0) || null })),
-    position: { base: pos.base, avgCost: pos.avgCost, realisedUsd: pos.realisedUsd, feesUsd: pos.feesUsd, openedAt: pos.openedAt },
+    position: { book, base: pos.base, avgCost: pos.avgCost, realisedUsd: pos.realisedUsd, feesUsd: pos.feesUsd, openedAt: pos.openedAt },
     observation: observations[0] ? { ts: observations[0].ts, barStart: observations[0].bar_start, state: observations[0].state, numbers: observations[0].numbers } : null,
   };
 }
@@ -669,7 +732,7 @@ export async function runProbe(): Promise<Record<string, unknown>> {
     // at fee 0. Reads only; nothing is placed.
     const ao = await activeOrders(rx.env);
     r.activeOrders = ao.ok
-      ? { status: ao.status, count: ao.data?.data?.length ?? 0, fields: Object.keys(ao.data?.data?.[0] ?? {}), clientReads: ["filled_size", "average_fill_price", "fees", "state", "client_order_id", "venue_order_id"] }
+      ? { status: ao.status, count: ao.data?.data?.length ?? 0, fields: Object.keys(ao.data?.data?.[0] ?? {}), clientReads: { documented: ["id", "status", "filled_quantity", "average_fill_price", "total_fee", "fee_currency", "client_order_id"], assumed: ["venue_order_id", "state", "filled_size", "fees"] } }
       : { status: ao.status, error: ao.error };
     out.revx = r;
   }

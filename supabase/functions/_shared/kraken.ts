@@ -223,6 +223,21 @@ export function toPairConfig(p: KrakenPairInfo): PairConfig {
   return { base_step: baseStep, quote_step: quoteStep, min_order_size: String(p.ordermin), min_order_size_quote: String(p.costmin) };
 }
 
+/** Kraken's documented order statuses. Any other value is a reply this client cannot read — never "new with nothing filled". */
+export const KRAKEN_ORDER_STATUSES = ["pending", "open", "closed", "canceled", "expired"] as const;
+
+/** Why an order reply cannot be settled, or null: an unknown status, or an executed volume, price or fee that is not a number. */
+export function krakenOrderProblem(o: KrakenOrder): string | null {
+  if (!(KRAKEN_ORDER_STATUSES as readonly string[]).includes(String(o.status))) return `has status ${JSON.stringify(o.status ?? null)}, which this client does not know`;
+  const executed = Number(o.vol_exec || 0);
+  if (!Number.isFinite(executed)) return `reports vol_exec ${JSON.stringify(o.vol_exec)}, which is not a number`;
+  if (executed > 0) {
+    const bad = (["price", "fee"] as const).filter((k) => !Number.isFinite(Number(o[k])));
+    if (bad.length) return `executed ${o.vol_exec} but its ${bad.join(", ")} ${bad.length > 1 ? "are" : "is"} not a number`;
+  }
+  return null;
+}
+
 /** A venue order → the settlement view the tick acts on. A cancelled order with executed volume counts as filled for that volume. */
 export function toOrderView(o: KrakenOrder): OrderView {
   const filledBase = Number(o.vol_exec || 0);
@@ -303,6 +318,8 @@ export function krakenVenue(env: KrakenEnv | null, fetchImpl: typeof fetch = fet
       if (!r.ok) return { ok: false, error: r.error };
       const o = r.data?.[venueOrderId];
       if (!o) return { ok: false, error: `order ${venueOrderId} not in QueryOrders reply` };
+      const problem = krakenOrderProblem(o);
+      if (problem) return { ok: false, error: `order ${venueOrderId} ${problem}; not settled` };
       return { ok: true, view: toOrderView(o) };
     },
     async balances() {
@@ -318,7 +335,7 @@ export function krakenVenue(env: KrakenEnv | null, fetchImpl: typeof fetch = fet
       const r = await openOrders(env, fetchImpl);
       if (!r.ok) return { ok: false, error: r.error };
       const byClientId: Record<string, { venueOrderId: string; view: OrderView }> = {};
-      for (const [txid, o] of Object.entries(r.data?.open ?? {})) if (o.cl_ord_id) byClientId[o.cl_ord_id] = { venueOrderId: txid, view: toOrderView(o) };
+      for (const [txid, o] of Object.entries(r.data?.open ?? {})) if (o.cl_ord_id && !krakenOrderProblem(o)) byClientId[o.cl_ord_id] = { venueOrderId: txid, view: toOrderView(o) };
       return { ok: true, byClientId };
     },
     async refreshFees() {

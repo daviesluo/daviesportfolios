@@ -35,6 +35,27 @@ export function assertPagedOrder(table: string, query: string): void {
   if (!/[?&]order=/.test(`?${query}`)) throw new Error(`selectAll(${table}) needs an explicit order to page safely`);
 }
 
+/** How much of a refusal's text an error keeps. */
+export const DB_ERROR_CHARS = 300;
+
+/**
+ * PostgREST's error body, reordered so the part that names the failure survives the cut. PostgREST writes
+ * `code, details, hint, message`, and `details` is often the whole failing row ("Failing row contains (…)", hundreds of
+ * characters): cut at 200 characters as it was until 2026-09-22, a CHECK or NOT NULL refusal lost the constraint or
+ * column that `message` names — the one word the test doubles' own messages always showed. `code` and `message` now go
+ * first. A body that is not PostgREST's JSON is kept as it came, cut the same way.
+ */
+export function dbErrorText(body: string, max = DB_ERROR_CHARS): string {
+  try {
+    const j = JSON.parse(body);
+    if (j && typeof j === "object" && !Array.isArray(j) && ("message" in j || "code" in j)) {
+      const { code, message, hint, details, ...rest } = j as Record<string, unknown>;
+      return JSON.stringify({ code, message, hint, details, ...rest }).slice(0, max);
+    }
+  } catch { /* not JSON: kept as it came */ }
+  return body.slice(0, max);
+}
+
 /** PostgREST's page: Supabase's `max-rows` default, and the page size `selectAll` asks for. */
 export const PAGE_ROWS = 1000;
 
@@ -47,7 +68,7 @@ export function makeDb(supabaseUrl: string, serviceKey: string, fetchImpl: typeo
       signal: AbortSignal.timeout(timeoutMs),
     });
     const text = await res.text();
-    if (!res.ok) throw new Error(`db ${method} ${path.split("?")[0]} → ${res.status}: ${text.slice(0, 200)}`);
+    if (!res.ok) throw new Error(`db ${method} ${path.split("?")[0]} → ${res.status}: ${dbErrorText(text)}`);
     return text ? JSON.parse(text) : [];
   };
   return {

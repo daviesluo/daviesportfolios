@@ -3,7 +3,7 @@
 // state mapping the tick settles on.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  formBody, fromKrakenAsset, fromKrakenPair, krakenNonce, krakenSign, krakenVenue, makeNonce, toAltname, toCandles, toOrderView, toPairConfig,
+  formBody, fromKrakenAsset, fromKrakenPair, krakenNonce, krakenOrderProblem, krakenSign, krakenVenue, makeNonce, toAltname, toCandles, toOrderView, toPairConfig,
   type KrakenOrder,
 } from "../_shared/kraken.ts";
 
@@ -174,4 +174,17 @@ Deno.test("the isolate has ONE nonce sequence: concurrent private calls cannot m
   const seq = [krakenNonce(), krakenNonce(), krakenNonce()].map(Number);
   assert(seq[1] > seq[0] && seq[2] > seq[1], seq.join(","));
   assert(seq.every((n) => Number.isInteger(n) && n > 1.7e15), seq.join(","));   // microseconds since the epoch, as Kraken expects
+});
+
+Deno.test("an order status Kraken does not document is refused by order() — never read as 'new with nothing filled' — and so is a figure that is not a number", async () => {
+  assertEquals(krakenOrderProblem(order({ status: "closed", vol_exec: "0.001", price: "79990.0", fee: "0.32" })), null);
+  assertEquals(krakenOrderProblem(order({ status: "open" })), null);
+  assert(krakenOrderProblem(order({ status: "suspended" as KrakenOrder["status"] }))?.includes("does not know"));
+  assert(krakenOrderProblem(order({ status: "closed", vol_exec: "0.001", price: "79990.0", fee: "n/a" }))?.includes("not a number"));
+  const reply = (o: KrakenOrder): typeof fetch => () => Promise.resolve(new Response(JSON.stringify({ error: [], result: { "O-1": o } })));
+  const v = krakenVenue({ apiKey: "k", secret: VECTOR.secret, nonce: makeNonce(6_000_000) }, reply(order({ status: "suspended" as KrakenOrder["status"], vol_exec: "0.001", price: "79990.0", fee: "0.32" })));
+  const r = await v.order("O-1");
+  assertEquals(r.ok, false);
+  const ok = await krakenVenue({ apiKey: "k", secret: VECTOR.secret, nonce: makeNonce(7_000_000) }, reply(order({ status: "closed", vol_exec: "0.001", price: "79990.0", fee: "0.32" }))).order("O-1");
+  assert(ok.ok && ok.view.state === "filled", JSON.stringify(ok));
 });
