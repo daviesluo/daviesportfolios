@@ -19,7 +19,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { Candle } from "../_shared/agents_strategy.ts";
 import type { OrderView, Quote, Venue, VenueId } from "../_shared/venue.ts";
-import { PAGE_ROWS, type Db } from "./db.ts";
+import { assertPagedOrder, PAGE_ROWS, type Db } from "./db.ts";
 import { dayPnl, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, probeFilled, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS } from "./tick.ts";
 
 const FOUR_H = 4 * 3600e3, ONE_H = 3600e3, ONE_D = 86400e3, ONE_M = 60e3;
@@ -136,6 +136,7 @@ function memDb(seed: Record<string, Row[]>, hooks: { beforeDecisionInsert?: (tab
       return Promise.resolve(hit.map((r) => ({ ...r })) as any);
     },
     selectAll: async (table, query) => {
+      assertPagedOrder(table, query);   // the real client's rule, not a copy of it — see db.ts
       const out: unknown[] = [];
       for (let offset = 0; ; offset += PAGE_ROWS) {
         const page = await db.select(table, `${query}&limit=${PAGE_ROWS}&offset=${offset}`);

@@ -261,6 +261,34 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 18:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**I broke the tick for two hours and the tests could not see it.** `8e03297`
+(16:20) made `selectAll` throw on a query with no `order=` — and
+`tick.ts`'s count of today's orders had none. Every tick from then on
+wrote the basis (section 1), then threw in section 3, before the book,
+the protective stops, the observations and the decisions: **122 errors,
+no decision after 15:00:03, and `trend-4h`'s three paper positions with
+no floor for two hours.** Found at 18:16 on a fresh read of production,
+not by any gate. Paper, so nothing real was exposed; live, it would have
+been real coins with no stop — the exact failure this morning's work was
+about.
+
+**Why every test was green**: the guard lived only in the real client
+(`db.ts`); the tick tests' in-memory stub had its own `selectAll` that
+paged without it. The stub was looser than production — the same lesson
+the CHECK-constraint bug taught six hours earlier, paid for twice in one
+day. **Fixed at the root, not just at the caller**: the guard is now one
+exported function, `assertPagedOrder`, called by the real client AND by
+the stub, and the caller has its order. Counterfactual: drop that one
+`order=` again and **55 of 60 tick tests fail**; restored, 60 of 60.
+338 Edge tests green.
+
+**What to do differently, and it goes in the skill**: after a deploy
+that touches the tick, read production — decisions and `ops_errors`, not
+the basis, which is written before most of the loop runs and so reads
+"alive" through a crash.
+
 ### [2026-09-22 16:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Stopped on a usage limit, deliberately and with everything landed.**

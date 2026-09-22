@@ -20,6 +20,21 @@ export type Db = {
   selectAll: <T = unknown>(table: string, query: string) => Promise<T[]>;
 };
 
+/**
+ * LIMIT/OFFSET paging is only stable under a TOTAL order: with `order=ts.asc` alone, two rows sharing a timestamp
+ * can land either side of a page boundary and be read twice or not at all — and a fill read twice is a position
+ * counted twice. So a paged read must name its order.
+ *
+ * ONE implementation, called by the real client AND by every test stub. On 2026-09-22 this check lived only in
+ * the real client, the stubs paged without it, every test was green — and one production caller with no `order=`
+ * (`tick.ts`'s count of today's orders) threw on every tick for two hours, after the basis was written and before
+ * the book, the stops and the decisions ran. A stub looser than the thing it stands in for certifies what
+ * production rejects; this is the second time in a day that lesson was paid for.
+ */
+export function assertPagedOrder(table: string, query: string): void {
+  if (!/[?&]order=/.test(`?${query}`)) throw new Error(`selectAll(${table}) needs an explicit order to page safely`);
+}
+
 /** PostgREST's page: Supabase's `max-rows` default, and the page size `selectAll` asks for. */
 export const PAGE_ROWS = 1000;
 
@@ -44,11 +59,8 @@ export function makeDb(supabaseUrl: string, serviceKey: string, fetchImpl: typeo
     },
     update: async (table, query, patch) => { await call("PATCH", `${table}?${query}`, patch, { Prefer: "return=minimal" }); },
     claim: (table, query, patch) => call("PATCH", `${table}?${query}`, patch, { Prefer: "return=representation" }),
-    // LIMIT/OFFSET paging is only stable under a TOTAL order: with `order=ts.asc` alone, two rows sharing a
-    // timestamp can land either side of a page boundary and be read twice or not at all — and a fill read
-    // twice is a position counted twice. Every caller here orders by a unique column as its last key.
     selectAll: async (table, query) => {
-      if (!/[?&]order=/.test(`?${query}`)) throw new Error(`selectAll(${table}) needs an explicit order to page safely`);
+      assertPagedOrder(table, query);
       const out: unknown[] = [];
       for (let offset = 0; ; offset += PAGE_ROWS) {
         const page = await call("GET", `${table}?${query}&limit=${PAGE_ROWS}&offset=${offset}`) as unknown[];
