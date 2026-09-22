@@ -163,13 +163,26 @@ that follow from that evidence, in short:
   never came near Kraken's fee in 60 h of 5-minute closes or 10 minutes
   at the touch (reference §2c), and `agent_basis` keeps measuring it
   every turn. Caps in `agent_risk` are per venue account and per mode.
-- Four rulebooks run, all in `_shared/agents_strategy.ts`: trend-4h,
-  trend-1h (paper-only, Revolut X only — ~70 trades a year at Kraken's
-  40 bps maker would be ~28 % a year in fees; it exists for feedback
-  speed at 0 / 9 bps), momentum-1d, rotation-1d (top two of
-  BTC/ETH/SOL/XRP by 30-day return, above their 100-day average — the
-  bear filter is what saved 33 points in the bear year; `bearFilter:false`
-  makes it always invested, and that is Davies' switch, not a default).
+- **FOUR ROWS run after migration `0043` (2026-09-22, §3.17)**: `trend-4h`
+  on Revolut X (the live candidate, $100), `trend-4h-kraken` (paper, $100
+  — kept ONLY to measure the live rulebook's post-only fills on the second
+  venue; its return is a fill-path accident and is not read),
+  `momentum-1d` on Revolut X (paper, $40) and `trend-1h` on Revolut X
+  (paper, $40 — kept for feedback speed, 31.7–56.1 fills per 90 days
+  against the live row's 14.6–26.8, and because at 0.63 it is the only row
+  with no near-duplicate; its return is inside chance and inside the
+  spread error bar and is NOT read as evidence). Row capital $440 → $280;
+  no cap moves. **Retired**: `momentum-1d-kraken`, `rotation-1d`,
+  `rotation-1w-kraken` — 0.90–1.00 correlated with a row that stays, worse
+  in all four windows, two of them over the 35 % drawdown limit in the
+  bear year. Retired in place (`retired_at`), never deleted: their
+  decisions and orders reference them by foreign key. The rulebooks all
+  stay in `_shared/agents_strategy.ts` and in their tests — rotation-1d
+  (top two of BTC/ETH/SOL/XRP by 30-day return, above their 100-day
+  average) included, with §3.4's finding that the loop's own 8 % floor
+  makes it WORSE on five variants of six still the reason not to run it.
+  **Nothing was added**: every candidate priced in §3.15 and §3.17 is
+  inside chance.
   A fifth, dislocation-1m (Revolut X's TOUCH ≥ 15 bps under Kraken's
   mid → lift the ask, rest the exit at the reference), was seeded as a
   measurement and **retired by migration `0038`** on Davies' word: the

@@ -1,0 +1,67 @@
+-- 0043: three of the seven paper rows retire, on four windows of evidence.
+--
+-- The set was seeded on 2026-09-20 from two walk-forward windows. It now
+-- has four — a bear year, two bulls and, since §3.15, a SIDEWAYS year —
+-- and `docs/agents/reference.md` §3.17 re-priced every row on all of
+-- them. Three rows earn nothing that another row is not already earning,
+-- and two of those three breach §4.15's 35 % drawdown limit in the one
+-- window that matters most:
+--
+--   `momentum-1d-kraken`   0.9991–0.9998 correlated with its Revolut X
+--                          twin, worse in ALL FOUR windows, 51.3 %
+--                          drawdown in the bear year. Its stated job was
+--                          measuring Kraken's fills; `trend-4h-kraken`
+--                          does that job on the LIVE rulebook, which is
+--                          the one whose fills anybody needs to know.
+--
+--   `rotation-1d`          37.0 % drawdown in the bear year at row level,
+--                          over the limit. Every one of six variants on
+--                          both venues breaches 35 % in at least two of
+--                          four windows and is negative in the bear year.
+--                          Plateau 0 % / 22 %. The loop's own floor makes
+--                          the rulebook WORSE on five variants of six
+--                          (§3.4) — the rule and the risk layer disagree.
+--
+--   `rotation-1w-kraken`   0.9047–0.9717 with the row above, worse in all
+--                          four windows, over the drawdown limit in two,
+--                          and the slowest measurement rate in the set
+--                          (11.1–20.3 fills per 90 days).
+--
+-- What survives, and why it is not more: `trend-4h` (the live candidate),
+-- `trend-4h-kraken` (the only row measuring the live rulebook's post-only
+-- fills on the second venue — its RETURN is a fill-path accident and is
+-- not read), `momentum-1d` on Revolut X (the second rulebook, 0.46–0.63
+-- with the live row, held in paper by a 41.0 % bear drawdown), and
+-- `trend-1h` on Revolut X. That last one reverses §3.14, which had two
+-- windows and said delete: on four it is positive in all of them under
+-- both stop rules and is the ONLY row of seven with at least half its
+-- parameter grid positive in all four. That is also exactly what chance
+-- gives for one row of seven (P = 0.29–0.71), and its bear-window edge
+-- disappears if the assumed spread is wrong by 5 bps a fill — so it is
+-- kept as a MEASUREMENT row, for feedback speed (31.7–56.1 fills per 90
+-- days against the live row's 14.6–26.8) and because at 0.63 it is the
+-- only row in the set with no near-duplicate anywhere. Its return is not
+-- read as evidence.
+--
+-- Nothing is ADDED. §3.17 priced three candidates and none earns a row:
+-- the best is inside chance and the other two measure something already
+-- measured. §3.15 had already killed both written-down candidates on the
+-- sideways year.
+--
+-- Row capital falls $440 → $280. Live exposure sits exactly at its $100
+-- cap; both paper books fall well under $300; no order exceeds $20. No
+-- cap in `agent_risk` moves.
+--
+-- Retired in place, not deleted: `agent_decisions`, `agent_orders` and
+-- `agent_observations` reference these rows by foreign key and are the
+-- record of what they saw and did. This is the same treatment `0038`
+-- gave `dislocation-1m`, whose first version tried DELETE and was
+-- refused by `agent_decisions_strategy_id_fkey`. Un-retiring is a
+-- migration. The rulebooks stay in the code and in their tests: the
+-- rotation rule is still `rotationTargets` / `runRotation`, still pinned,
+-- and §3.4's finding about its floor is still the reason not to run it.
+
+update public.agent_strategies
+   set mode = 'paused', retired_at = now(), updated_at = now()
+ where id in ('momentum-1d-kraken', 'rotation-1d', 'rotation-1w-kraken')
+   and retired_at is null;
