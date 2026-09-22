@@ -13,26 +13,26 @@ raw output under `backtests/`.
 
 ## 1. What runs today, and what live would change
 
-**Four** strategy rows tick every minute, all **paper**, since 2026-09-20
+**Three** strategy rows tick every minute, all **paper**, since 2026-09-20
 18:23 UTC. Seven ran until 2026-09-22, when §3.17 re-priced the set on
 four windows and `0043`/`0044` retired and then deleted three rows that
 were 0.90–1.00 correlated with a row that stays and worse in all four
-windows (`momentum-1d-kraken`, `rotation-1d`, `rotation-1w-kraken`).
-Nothing was added: every candidate §3.15 and §3.17 priced is inside
-chance.
+windows (`momentum-1d-kraken`, `rotation-1d`, `rotation-1w-kraken`). The
+fourth, `trend-4h-kraken`, was deleted with its history by `0046` the
+same day on Davies' word: it made no decision of its own (50 of 50
+matched `trend-4h`), and the fill measurement it was kept for had been
+taken without it (reference §4.22). Nothing was added: every candidate
+§3.15, §3.17 and §4.23 priced is inside chance.
 
 | row | venue | coins | capital | slot | bar |
 |---|---|---|---|---|---|
 | `trend-4h` | Revolut X | BTC ETH SOL AVAX SUI | $100 | $20 | 4 h |
-| `trend-4h-kraken` | Kraken | BTC ETH SOL AVAX SUI | $100 | $20 | 4 h |
 | `momentum-1d` | Revolut X | BTC ETH SOL | $40 | $13.33 | 1 d |
 | `trend-1h` | Revolut X | BTC ETH SOL | $40 | $13.33 | 1 h |
 
-Row capital is $280, down from $440; no cap moved. `trend-4h-kraken` is
-kept for ONE job — measuring the live rulebook's post-only fills on the
-second venue — and its return is a fill-path accident that is not read.
-`trend-1h` is kept for feedback speed and because at 0.63 it is the only
-row with no near-duplicate; its return is inside chance and inside the
+Row capital is $180, down from $440; no cap moved. `trend-1h` is kept
+for feedback speed and because at 0.63 it is the only row with no
+near-duplicate; its return is inside chance and inside the
 spread error bar and is not read as evidence either.
 
 **Live changes exactly one thing**: a row whose `mode` is `live` sends
@@ -296,9 +296,11 @@ duplicated the rulebook's own and fired on wicks (§3.13).
 At `trend-4h`'s ~49 round trips a year across five coins, fees and
 spreads are roughly **2 % of the sleeve a year** on Revolut X. They are
 already inside every number in §4. The same sleeve on Kraken pays about
-four times that, which is exactly what the Kraken paper twins exist to
+four times that, which is what the Kraken paper twins were kept to
 measure — and the study found those twins correlate 0.92–1.00 with their
-Revolut X counterparts and earn strictly less in both windows.
+Revolut X counterparts and earn strictly less in both windows. The last
+of them was deleted by `0046`; §4.23 then tested every remaining Kraken
+coin and found nothing, so Kraken research stops at this fee tier.
 
 ## 6. The risk layer, which the model cannot override
 

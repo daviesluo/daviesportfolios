@@ -257,6 +257,15 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-22 19:11 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+`go-live.md` §1 still listed FOUR rows with `trend-4h-kraken` in the
+table and $280 of row capital, a day after `0046` deleted that row: it
+now says three rows, $180, and why the fourth went (reference §4.22),
+and the fee passage no longer speaks of Kraken twins in the present
+tense. Production confirms the three: `agent_strategies` holds
+`trend-4h`, `momentum-1d`, `trend-1h`, all Revolut X, all paper.
+
 ### [2026-09-22 19:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Study K (the 84 Kraken coins) is back, verified and committed** —
