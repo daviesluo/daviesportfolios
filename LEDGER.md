@@ -3,7 +3,7 @@
 The live handover record for this repository, under the ledger protocol
 in `.ledger/SKILL.md`. Read this file first on any resume; it is kept
 small on purpose. The deep record — the full decision log and the raw
-session transcripts — is `handover.md`, which is this ledger's ARCHIVE
+session transcripts — is `docs/handover.md`, which is this ledger's ARCHIVE
 and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
@@ -265,7 +265,7 @@ Facts a fresh session would otherwise rediscover:
         PLAYWRIGHT_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run verify:browser
 
   CI runs `npx playwright install chromium` and needs no such variable.
-  `scraps/verify-perf-matrix.mjs` is still by hand and still needs the
+  `test/browser/verify-perf-matrix.mjs` is still by hand and still needs the
   throwaway-package-dir setup — it has 18 failures across 60 cases on
   `main` and cannot gate anything until those are understood.
 
@@ -282,11 +282,37 @@ Facts a fresh session would otherwise rediscover:
 
 ## History, newest first
 
-Closed operations move verbatim into `handover.md`, whose Part 2
+Closed operations move verbatim into `docs/handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-22 19:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The repository root is tidied for a public audience** (Davies chose to
+make this repository public as it stands, "C方案", and asked for a root as
+clean as his two skill repositories'). Thirty-three root entries become
+twenty-six. Moved: `CLAUDE.md` → `.claude/CLAUDE.md` (Claude Code loads
+either location; checked against its memory docs, and a `.claude/CLAUDE.md`
+counts the same for the AGENTS.md rule), `handover.md` →
+`docs/handover.md`, `SECURITY.md` → `.github/SECURITY.md` (GitHub reads it
+there; "nine" functions → eleven), `.env.example` →
+`supabase/functions/.env.example` (T212, cron and the agents' secret names
+brought up to date), `scraps/agents-baseline-backtest.py` →
+`docs/agents/scripts/`, `scraps/verify-perf-matrix.mjs` → `test/browser/`.
+`knip.json` and `.size-limit.json` are folded into `package.json` (both
+tools read them there; knip was shown to read it by removing an entry and
+watching it flag 14 files). Every present-tense reference follows: the
+ledger's header, CLAUDE.md, AGENTS.md (which also said the build wrote to
+the repo root — it writes `dist/`), the six skill files, the PR template,
+check.yml's comments, `.gitignore`, the reference, the README's paths, and
+the sweep's stale run-by-hand header. Kept at the root on purpose:
+`LEDGER.md` (the protocol and the hook's default), `AGENTS.md` (Cursor and
+Codex read it there), `hooks/` (moving it would silently switch the gate
+off in every other clone until each re-ran `core.hooksPath`), and the tool
+configs that must sit there. Gates: typecheck, lint, vitest 916, knip,
+size-limit, deno check.
 
 ### [2026-09-22 19:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

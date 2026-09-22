@@ -37,23 +37,24 @@ Non-obvious caveats:
   IP-keyed lockout (3 wrong attempts → escalating 24 h lockout), so a
   handful of bad guesses will lock the whole VM's egress IP out of
   production auth.
-- **`npm run build` writes the bundle to the repo ROOT** (`assets/`,
-  `index.html`, `sw.js`), and that committed bundle is served as-is by
-  Cloudflare Pages. Running a build dirties the working tree; if you did
-  not intend to ship a bundle, restore with
-  `git checkout -- assets index.html sw.js` and `git clean -fd`. Per the
-  CI "bundle freshness" gate, any change to `src/*.{js,jsx,css}` MUST be
-  committed together with a rebuilt bundle or CI goes red.
+- **`npm run build` writes the bundle to `dist/`**, and that committed
+  bundle is served as-is by Cloudflare Pages (`wrangler.jsonc`'s
+  `pages_build_output_dir` makes `dist/` the only directory it
+  publishes). Running a build dirties the working tree; if you did not
+  intend to ship a bundle, restore with `git checkout -- dist/` and
+  `git clean -fdq dist/`. Per the CI "bundle freshness" gate, any change
+  to `src/*.{js,jsx,css}` MUST be committed together with a rebuilt
+  bundle or CI goes red.
 
 ## How the owner works
 
-Mechanical gates live in `CLAUDE.md`. The working agreement — Chinese
+Mechanical gates live in `.claude/CLAUDE.md`. The working agreement — Chinese
 replies, push-when-done, what counts as evidence, two-numbers-on-one-
 screen is a bug, settled chart/ledger/T212 rules, and the mistakes
 already paid for — is always-on at
 `.cursor/rules/working-with-davies.mdc` (same text as
 `.cursor/skills/working-with-davies/SKILL.md`). The 67-turn Claude Code
-session it was distilled from is `handover.md` at the repo root; that
+session it was distilled from is `docs/handover.md`; that
 file has live balances, so do not copy numbers out of it.
 
 ## The ledger
@@ -70,7 +71,7 @@ first. A resuming session reads it first and works down the list. It is
 kept SMALL on purpose — every session on every platform pays context for
 it on every wake.
 
-**`handover.md` is its ARCHIVE**, not a second live document. It holds
+**`docs/handover.md` is its ARCHIVE**, not a second live document. It holds
 the decision log and the raw session transcripts, 35k lines of them, and
 is opened only when a closed item is reopened or audited. When an
 operation closes, its block moves there verbatim and one line at the head
@@ -111,7 +112,7 @@ owner works, or pays for a mistake worth not repeating. The skill is the
 distilled agreement; the ledger and its archive are the evidence behind
 it.
 
-Do not copy live balances out of `LEDGER.md` or `handover.md` into new
+Do not copy live balances out of `LEDGER.md` or `docs/handover.md` into new
 files, issues, or anything public. The repo is private; those files quote
 real positions.
 ## Pull requests

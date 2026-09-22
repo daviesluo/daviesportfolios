@@ -6,7 +6,7 @@ How the owner actually works — what "done" means, what counts as
 evidence, settled chart/ledger rules, past mistakes — is
 `.claude/skills/working-with-davies/SKILL.md` (auto-loaded). Cursor
 loads the same text from `.cursor/rules/working-with-davies.mdc`. The
-live handover record is `LEDGER.md`; `handover.md` is its archive.
+live handover record is `LEDGER.md`; `docs/handover.md` is its archive.
 
 ## Documentation
 
@@ -40,7 +40,7 @@ first. A resuming session reads it first and works down the list. It is
 kept SMALL on purpose — every session on every platform pays context for
 it on every wake.
 
-**`handover.md` is its ARCHIVE**, not a second live document. It holds
+**`docs/handover.md` is its ARCHIVE**, not a second live document. It holds
 the decision log and the raw session transcripts, 35k lines of them, and
 is opened only when a closed item is reopened or audited. When an
 operation closes, its block moves there verbatim and one line at the head
@@ -81,7 +81,7 @@ owner works, or pays for a mistake worth not repeating. The skill is the
 distilled agreement; the ledger and its archive are the evidence behind
 it.
 
-Do not copy live balances out of `LEDGER.md` or `handover.md` into new
+Do not copy live balances out of `LEDGER.md` or `docs/handover.md` into new
 files, issues, or anything public. The repo is private; those files quote
 real positions.
 ## Agents (crypto, Revolut X + Kraken + TypeSafe Jev)

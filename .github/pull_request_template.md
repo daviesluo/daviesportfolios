@@ -1,5 +1,5 @@
 <!--
-  Mirrors CLAUDE.md's "commit messages focused on **why**, not **what**"
+  Mirrors .claude/CLAUDE.md's "commit messages focused on **why**, not **what**"
   guidance — lead with the reason this change exists, not the file
   list (the diff is already there).
 -->

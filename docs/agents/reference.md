@@ -322,7 +322,7 @@ Jev at one call per minute costs ≈ $0.06/day. The model is not the budget cons
 
 ### 3.2 Baseline rules, two years (2024-09-20 → 2026-09-20), no look-ahead, executed next-bar-open, net of costs
 
-Buy-and-hold over the window: BTC +26 %, ETH +2 %, SOL −25 %. Selected rows (full table in `scraps/agents-baseline-backtest.py`):
+Buy-and-hold over the window: BTC +26 %, ETH +2 %, SOL −25 %. Selected rows (full table in `docs/agents/scripts/agents-baseline-backtest.py`):
 
 | Rule | BTC gross / maker / taker | ETH | SOL | trades/day |
 |---|---|---|---|---|

@@ -22,7 +22,7 @@ Supabase project. In-scope:
 
   - The React client in `src/` and the static `_headers` it serves
     under.
-  - The nine Supabase Edge Functions in `supabase/functions/`.
+  - The eleven Supabase Edge Functions in `supabase/functions/`.
   - The Postgres migrations in `supabase/migrations/` (RLS policies,
     `security definer` RPCs, etc.).
   - The GitHub Actions workflows in `.github/workflows/` (build
@@ -31,8 +31,8 @@ Supabase project. In-scope:
 Out of scope:
 
   - Upstream provider issues (Yahoo Finance, Alpha Vantage, Finnhub,
-    Trading 212, Eastmoney, Danjuanapp, Xueqiu) — report to those
-    services directly.
+    Trading 212, Eastmoney, Danjuanapp, Xueqiu, Revolut X, Kraken,
+    OpenRouter, TypeSafe) — report to those services directly.
   - The five public CORS proxies (`api.cors.lol`, `corsproxy.io`,
     `api.allorigins.win`, `api.codetabs.com`, `cors.eu.org`) — same.
   - Cloudflare Pages and Supabase platform issues — report to the

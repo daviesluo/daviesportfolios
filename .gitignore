@@ -30,4 +30,4 @@ node_modules
 deno.lock
 
 # Hourly candles the baseline backtest caches (3 MB, re-pullable)
-scraps/.ohlcv/
+docs/agents/scripts/.ohlcv/
