@@ -905,7 +905,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     const view = jevViewOf(jr, sym);
     // An exit passes the model untouched; an entry needs its vote.
     let final = rule.action === "enter"
-      ? combineDecision(rule, view, { enterMin: num(s.params?.enterMin, 0.6), cautionExit: 1.75 })
+      ? combineDecision(rule, view, { enterMin: num(s.params?.enterMin, 0.6), cautionExit: 1.75 }, s.params?.jevGate !== false)
       : { ...rule, jevSaid: jr.provider === "rule" ? "rule only" : `${jr.provider}: ${view.healthy == null ? "no answer" : `healthy=${view.healthy.toFixed(2)}`}` };
     // The thin-book guard. Every Revolut X entry CROSSES — it pays the ask — so a book that has gone
     // wide charges its width as a fee on the way in, on top of the 9 bps. The measured UK book is

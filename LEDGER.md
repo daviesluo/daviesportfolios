@@ -302,6 +302,17 @@ it lands and is checked. `docs/agents/backtests/jev_answers.json` will
 hold the raw replies; `net._http_response` prunes them after ~6 h, and
 re-measuring costs $0.013.
 
+**A shadow switch, built and NOT switched on.** `params.jevGate: false`
+on a strategy row keeps asking the model and recording its answer but
+takes away its vote: the entry is the rulebook's — what every backtest
+prices — and the decision's reason says what the gate WOULD have done
+("model in shadow — would veto (P=0.59 < 0.6)"), so the counterfactual
+stays one query away. Two of the three configurations the go-live
+decision is choosing between need it; the default keeps today's
+behaviour on every row, so nothing in production changes. Pinned in
+`strategy.test.ts` and `tick.test.ts`; counterfactual checked (ignore the
+switch in the tick and the new test fails).
+
 ### [2026-09-22 18:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **I broke the tick for two hours and the tests could not see it.** `8e03297`
