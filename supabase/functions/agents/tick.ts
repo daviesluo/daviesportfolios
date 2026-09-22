@@ -142,6 +142,8 @@ type Market = { c1m: Candle | null; mark: number | null; quote?: Quote; pair?: P
 type Signal = { bars: Candle[]; barMs: number; c1d: Candle[] };
 
 const mk = (venue: string, symbol: string) => `${venue}|${symbol}`;
+/** A position's identity: the rulebook, the coin, and the MODE its fills were in — paper money and real coins are two books, never one. */
+export const posKey = (strategyId: string, symbol: string, mode: string) => `${strategyId}|${symbol}|${mode}`;
 /** A state as one comparable string: jsonb hands keys back in its own order, so a plain stringify never matches what was written. */
 export const canon = (x: unknown): string => JSON.stringify(x, (_k, v) => (v && typeof v === "object" && !Array.isArray(v) ? Object.fromEntries(Object.entries(v as Record<string, unknown>).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : v));
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -650,16 +652,34 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     if (dayOpenAny[sym] == null) dayOpenAny[sym] = today.open;
   }
   const byId = new Map(strategies.map((s) => [s.id, s]));
+  // A position belongs to the MODE it was opened in: a paper fill is a number in this table and a live
+  // fill is a coin at the venue, and one is not the other. Keyed on strategy|symbol alone — as this was
+  // until 2026-09-22 — a row switched from paper to live inherits its paper positions, so the rulebook
+  // sees itself already long, never buys them for real, and the first time an exit or the floor fires
+  // places a REAL sell for coins the account never bought. (The exposure bucket read `rows[0].mode`, so
+  // that blended position would have been billed to the paper cap as well.) The mode is in the key, and
+  // a book that changes mode leaves its old positions behind rather than carrying them across.
   const positions = new Map<string, Position>();
   const exposure: Record<string, number> = {};
   const byKey = new Map<string, OrderRow[]>();
-  for (const o of filled) { const k = `${o.strategy_id}|${o.symbol}`; if (!byKey.has(k)) byKey.set(k, []); byKey.get(k)!.push(o); }
+  for (const o of filled) { const k = posKey(o.strategy_id, o.symbol, o.mode); if (!byKey.has(k)) byKey.set(k, []); byKey.get(k)!.push(o); }
   for (const [k, rows] of byKey) {
     const pos = positionFromFills(rows.map(toFill));
     positions.set(k, pos);
     const bucket = mk(rows[0].venue, rows[0].mode);
     exposure[bucket] = (exposure[bucket] ?? 0) + pos.base * (marksFor(rows[0].venue)[rows[0].symbol] || pos.avgCost);
   }
+  /**
+   * The book this row is trading now — the one key both its position and its own fill history are read
+   * under. Its mode picks it, with one exception: a PAUSED row is not a book of its own, it is whatever
+   * it was when it took the position, and `0043` proved a paused row must keep seeing that position or
+   * it loses its exits. Live is preferred there because real coins outrank paper ones.
+   */
+  const bookKey = (s: StrategyRow, sym: string): string =>
+    s.mode === "paused" && !positions.has(posKey(s.id, sym, "live")) ? posKey(s.id, sym, "paper") : posKey(s.id, sym, s.mode === "paused" ? "live" : s.mode);
+  const positionOf = (s: StrategyRow, sym: string): Position => positions.get(bookKey(s, sym)) ?? positionFromFills([]);
+  /** This row's own fills, in its own book: what the re-entry cooldown reads for the last exit. */
+  const fillsOf = (s: StrategyRow, sym: string): OrderRow[] => byKey.get(bookKey(s, sym)) ?? [];
   // ── winding down: a retired row that still holds something ──────────────────────────────
   // A position does not stop being a position because its row was switched off. `0038` retired
   // `dislocation-1m` flat and nothing was left behind; `0043` retired three rows that were still
@@ -670,7 +690,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   const windingDown = new Set<string>();
   for (const s of strategies) {
     if (!s.retired_at) continue;
-    if (s.symbols.some((sym) => (positions.get(`${s.id}|${sym}`)?.base ?? 0) > 0)) windingDown.add(s.id);
+    if (s.symbols.some((sym) => positionOf(s, sym).base > 0)) windingDown.add(s.id);
   }
   report.windingDown = [...windingDown];
 
@@ -816,7 +836,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       return null;
     }
     const m = markets.get(mk(s.venue, sym))!;
-    const pos = positions.get(`${s.id}|${sym}`) ?? positionFromFills([]);
+    const pos = positionOf(s, sym);
     let jr: JevResult = jevOverride ?? { provider: "rule", model: null, answers: {}, inputTokens: 0, costUsd: 0, latencyMs: 0, errors: [] };
     if (!jevOverride && questions && rule.action === "enter") {
       try { jr = await askJev(snapState as Record<string, unknown>, questions, d.jev, d.fetchImpl); }
@@ -905,7 +925,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         const i = lastClosedIndex(bars, sig.barMs, d.now);
         const di = lastClosedIndex(dd, ONE_D, d.now);
         if (i < 0 || di < 0) { report.skipped.push(`${key}: no closed bar`); continue; }
-        const pos = positions.get(key) ?? positionFromFills([]);
+        const pos = positionOf(s, sym);
         const closedDaily = dd.slice(0, di + 1);
         const barsPerYear = (ONE_D / sig.barMs) * 365;
         const forming = bars.length - 1;
@@ -927,7 +947,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
             await d.db.insert("agent_observations", { strategy_id: s.id, symbol: sym, ts: nowIso, bar_start: new Date(minuteStart).toISOString(), state: view.state, numbers: { basisBps: view.basisBps, fair: view.fair, move5, revx: rq, reference: kq, mark: m.mark } }, false);
             latestObs.set(key, stateJson); report.observations++;
           }
-          const lastExit = (byKey.get(key) ?? []).filter((o) => o.side === "sell").map((o) => toFill(o).ts).at(-1) ?? null;
+          const lastExit = fillsOf(s, sym).filter((o) => o.side === "sell").map((o) => toFill(o).ts).at(-1) ?? null;
           const rule = ruleDecisionDislocation(view, rq, pos, d.now, dp, lastExit);
           if (inFlight.has(key)) {
             // A resting exit ask does not outrank the stops: when the loss stop or the time stop says sell now, it is taken off first.
@@ -1025,7 +1045,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           let rule = ruleFor(s.kind, snap, posBar, p, { rank: ranks?.[sym], nowMs: d.now, rotation });
           // After any exit the rule waits REENTRY_BARS of its own bars before buying again: a floor stop under a rule that is
           // still "on" (momentum, rotation) would otherwise sell and re-buy every bar. Same rule in the backtester.
-          const lastExitTs = (byKey.get(key) ?? []).filter((o) => o.side === "sell").map((o) => toFill(o).ts).at(-1) ?? null;
+          const lastExitTs = fillsOf(s, sym).filter((o) => o.side === "sell").map((o) => toFill(o).ts).at(-1) ?? null;
           if (rule.action === "enter" && lastExitTs != null && d.now - lastExitTs < REENTRY_BARS * barMs) {
             rule = { action: "hold", reason: `cooling down: exited ${Math.round((d.now - lastExitTs) / 60e3)} min ago, no re-entry for ${REENTRY_BARS} bars` };
           }

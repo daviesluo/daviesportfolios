@@ -13,23 +13,27 @@ raw output under `backtests/`.
 
 ## 1. What runs today, and what live would change
 
-Seven strategy rows tick every minute, all **paper**, since 2026-09-20
-18:23 UTC. In the first 22 hours they made 137 decisions and 18 paper
-fills, with no errors and no missed cron runs.
+**Four** strategy rows tick every minute, all **paper**, since 2026-09-20
+18:23 UTC. Seven ran until 2026-09-22, when §3.17 re-priced the set on
+four windows and `0043`/`0044` retired and then deleted three rows that
+were 0.90–1.00 correlated with a row that stays and worse in all four
+windows (`momentum-1d-kraken`, `rotation-1d`, `rotation-1w-kraken`).
+Nothing was added: every candidate §3.15 and §3.17 priced is inside
+chance.
 
 | row | venue | coins | capital | slot | bar |
 |---|---|---|---|---|---|
 | `trend-4h` | Revolut X | BTC ETH SOL AVAX SUI | $100 | $20 | 4 h |
-| `trend-1h` | Revolut X | BTC ETH SOL | $40 | $13.33 | 1 h |
-| `momentum-1d` | Revolut X | BTC ETH SOL | $40 | $13.33 | 1 d |
-| `rotation-1d` | Revolut X | BTC ETH SOL XRP | $60 | $20 (top 2) | 1 d |
 | `trend-4h-kraken` | Kraken | BTC ETH SOL AVAX SUI | $100 | $20 | 4 h |
-| `momentum-1d-kraken` | Kraken | BTC ETH SOL | $40 | $13.33 | 1 d |
-| `rotation-1w-kraken` | Kraken | BTC ETH SOL XRP | $60 | $20 (top 2) | 1 d |
+| `momentum-1d` | Revolut X | BTC ETH SOL | $40 | $13.33 | 1 d |
+| `trend-1h` | Revolut X | BTC ETH SOL | $40 | $13.33 | 1 h |
 
-Row capital is $440; the most that can ever be at risk is **$400**,
-because the $20 per-order cap leaves $20 of each rotation row
-undeployable.
+Row capital is $280, down from $440; no cap moved. `trend-4h-kraken` is
+kept for ONE job — measuring the live rulebook's post-only fills on the
+second venue — and its return is a fill-path accident that is not read.
+`trend-1h` is kept for feedback speed and because at 0.63 it is the only
+row with no near-duplicate; its return is inside chance and inside the
+spread error bar and is not read as evidence either.
 
 **Live changes exactly one thing**: a row whose `mode` is `live` sends
 its order to the venue instead of writing a paper fill. Every rule,
@@ -381,7 +385,94 @@ them is now refused rather than recorded as a fill at zero fee.
 - **The coins move together.** Five long-only crypto trend sleeves are
   closer to one bet than to five.
 - **Spreads are one twenty-minute snapshot.** A stressed book is wider
-  than the numbers assume, and the thin-book guard is not built yet: a
-  trail stop sells into whatever bid is there.
+  than the numbers assume. The thin-book guard is built now (2026-09-22):
+  an ENTRY is refused when the book is wider than 50 bps and a long's stop
+  is judged at the BID rather than the mid — but an EXIT is never refused
+  by it, so a trail stop still sells into whatever bid is there. That is
+  deliberate: a position that cannot get out is the worse failure.
 - **The first live order is the first test of the live settlement
   path.** Paper has never exercised it.
+
+## 9. Pre-live verification — 2026-09-22
+
+Run against production before any mode flip. Four rows, all paper,
+`live_confirmed_at` null, nothing live.
+
+### 9.1 What was checked, and what it said
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Minute cron | **1,440 / 1,440** runs in 24 h, no gaps, no failures |
+| 2 | HTTP replies (6 h retained) | **every one a 200**; 360 ticks, zero non-200 |
+| 3 | Decisions, 24 h | 137; **0** with `provider: none` — Jev answered every one; **0** refused by the risk gate |
+| 4 | Agent errors, 48 h | 3, each a single occurrence, each understood; **none in the last 11 h** |
+| 5 | AVAX / SUI end to end | decided every bar; "no close above prior 55-bar high" — the rule has not fired, nothing is broken |
+| 6 | Pair config, all five coins | `active`; `min_order_size_quote` **$0.10** — a $20 slot is 200× the floor |
+| 7 | Price / size steps | already honoured in code; worst rounding residue $0.0005 (BTC) |
+| 8 | Live UK book, same minute | BTC 1.6 · ETH 3.2 · SOL 4.2 · AVAX 9.1 · **SUI 25.7** bps — all inside the 50 bps refusal |
+| 9 | Region filter | one row per symbol, UK only — the EEA book cannot leak in |
+| 10 | Draft migration | dry-run inside a transaction that rolls itself back: 4 → 5 rows, caps as intended, production untouched |
+| 11 | Signed venue path | **NOT verified this session** — see 9.4 |
+
+The three errors: a network timeout at 02:17 that the next minute
+healed; a Kraken altname cache still cold for AVAX the minute `0039`
+added it; one Kraken ETH candle timeout. All self-healing.
+
+### 9.2 The defect this found
+
+**A position did not carry the mode it was opened in.** The book was
+keyed on `strategy_id|symbol` alone, so a row flipped from paper to live
+inherited its paper positions — and `trend-4h` is long BTC, ETH and SOL
+on paper. The live row would have read itself already long, never bought
+them for real, and the first exit or floor stop would have placed a
+**real sell at Revolut X for base the account never bought**. Fixed the
+same day: the mode is part of the key, one resolver hands both the
+position and the fill history to the row's current book, and a paused row
+keeps `0043`'s behaviour so it does not lose its exits again. Three pins
+and a counterfactual. Reference §4.19.
+
+### 9.3 Two cap facts worth knowing before the switch
+
+- **The exposure cap is marked to market, not costed.** At
+  `max_exposure_usd` $100 against a $100 row, four slots up 6 % refuse
+  the fifth entry — the cap tightens when the rulebook is working. The
+  draft raises it to $150, which cannot loosen risk: the rulebook does
+  not pyramid, so five coins at a $20 per-order cap deploy at most $100
+  of capital whatever the number says.
+- **`daily_loss_limit_usd` is $5 on a $100 book** — 5 %, counting
+  realised plus the change in unrealised since the day's open. It blocks
+  new entries for the rest of the day and never an exit. Roughly three
+  slots stopping out at the 8 % floor reaches it.
+
+### 9.4 The one box left, and it needs Davies
+
+The **read-only `probe`** — Revolut X balances, a signed call with a
+query, `/1.0/orders/active`'s field names, Kraken, and Jev on both
+transports. It places nothing and is the last verification before the
+flip, but it needs an operator credential this session does not hold and
+should not:
+
+```
+GET https://<project>.supabase.co/functions/v1/agents?action=probe
+     x-app-token: <admin token>
+```
+
+Until it is run, the signed path is verified as of §2.1's 2026-09-20
+run, and **for the three majors only**.
+
+### 9.5 The order of operations
+
+1. Run the probe. Read `revx.balances`, `revx.activeOrders.fields`, and
+   `revx.pairs.config` for all five coins.
+2. Move `docs/agents/0045_go_live.sql.draft` to
+   `supabase/migrations/0045_go_live.sql` and push. **That push is the
+   act of going live** — `migrations.yml` applies it.
+3. The first live order still needs Davies' word in the conversation.
+4. Watch the first fill's read-back: it is what verifies
+   `filled_size`, `average_fill_price` and `fees`, which the venue's
+   documentation never specified and the client currently assumes. A
+   filled order missing them is refused, not recorded at fee zero.
+
+**To stop everything**: `update public.agent_risk set
+live_confirmed_at = null where id = 1;` — one statement, both venues,
+every live order. Reach for that before anything else.

@@ -230,6 +230,19 @@ Deno.test("ruleDecisionRotation: enter the top, exit what drops out, hold inside
   assertEquals(ruleDecisionRotation(out, long, now + 3 * 86400e3, { ...DEFAULT_ROTATION, minHoldDays: 7 }).action, "exit");
 });
 
+Deno.test("the exposure cap is marked to market, so it tightens on a winning book: the last slot fits at exactly the cap and not a cent past it", () => {
+  const limits = { maxOrderUsd: 20, maxExposureUsd: 100, dailyLossLimitUsd: 5, maxOrdersPerDay: 40, globalPause: false };
+  const ctx = { exposureUsd: 0, ordersToday: 0, dayPnlUsd: 0, mode: "live" as const };
+  // Five $20 slots against a $100 cap: four at cost leave room for the fifth, exactly, because the test is `>`.
+  assertEquals(riskGate("enter", 20, { ...ctx, exposureUsd: 80 }, limits).allowed, true);
+  assertEquals(riskGate("enter", 20, { ...ctx, exposureUsd: 80.01 }, limits).allowed, false);
+  // But `exposureUsd` is the book's MARK, not what was paid for it (tick.ts derives it as base × mark), so
+  // four slots up 6 % shut the fifth out — the cap tightens exactly when the rulebook is working and loosens
+  // after a drawdown. It can never let more than five × $20 of CAPITAL in: the rulebook does not pyramid.
+  assertEquals(riskGate("enter", 20, { ...ctx, exposureUsd: 84.8 }, limits).allowed, false);
+  assertEquals(riskGate("enter", 20, { ...ctx, exposureUsd: 84.8 }, { ...limits, maxExposureUsd: 150 }).allowed, true);
+});
+
 Deno.test("riskGate: the daily loss limit blocks new risk, never an exit; the pauses block everything", () => {
   const limits = { maxOrderUsd: 20, maxExposureUsd: 100, dailyLossLimitUsd: 5, maxOrdersPerDay: 40, globalPause: false };
   const bad = { exposureUsd: 40, ordersToday: 3, dayPnlUsd: -6, mode: "live" as const };
