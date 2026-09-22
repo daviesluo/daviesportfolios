@@ -99,41 +99,6 @@ export function newestWins() {
 const dashGuard = newestWins();
 
 /**
- * The maker probe line (migration `0042`, reference §3.13 and §3.18). It answers one question:
- * Revolut X charges 0 % maker and the loop crosses the touch, so is resting instead free?
- *
- * Two numbers decide it. The FILL RATE says how often the book even comes back to where a
- * resting order would have sat — an order that never fills saves no fee and misses the trade.
- * The ADVERSE number says where the price went AFTER it filled, signed so positive is against
- * the fill; §3.13 put the break-even between 10 and 20 bps, because above that the selection
- * costs more than the 9 bps of taker fee it saves.
- *
- * The rule this function exists to enforce: **with nothing resolved, say so.** A fill rate of
- * "0 %" and an adverse of "0.0 bps" are both lies when no probe has come back — the page told
- * that lie once already about a symbol the loop was reading every minute (AVAX, §4 and the
- * `latestObservationQuery` fix), and it is not telling it again.
- * @param {{ total?: number, resting?: number, filled?: number, expired?: number, fillRate?: number|null,
- *           medianMinutesToFill?: number|null, adverseBps?: { m15: number|null, m60: number|null } } | null | undefined} p
- */
-export function probeLine(p) {
-  const total = p?.total ?? 0;
-  if (!total) return { state: 'none', text: 'no probe yet — one opens with the next order that crosses' };
-  const resolved = (p?.filled ?? 0) + (p?.expired ?? 0);
-  if (!resolved) return { state: 'waiting', text: `${total} resting, none resolved yet — a probe watches one 4-hour bar` };
-  const rate = `${Math.round((p?.fillRate ?? 0) * 100)}% came back (${p?.filled ?? 0} of ${resolved})`;
-  const wait = p?.medianMinutesToFill == null ? null : `median ${p.medianMinutesToFill} min`;
-  const a60 = p?.adverseBps?.m60, a15 = p?.adverseBps?.m15;
-  const shown = a60 ?? a15;
-  // Until a follow-up mark lands there is no adverse number, and the line says that rather
-  // than printing a zero: the fill rate alone does not answer the question.
-  const adverse = shown == null
-    ? 'adverse not measured yet'
-    : `${shown >= 0 ? '+' : ''}${shown.toFixed(1)} bps against the fill at ${a60 == null ? '15' : '60'} min`;
-  const verdict = shown == null ? null : shown > 20 ? 'resting costs more than the fee it saves' : shown < 10 ? 'the fee is the bigger number' : 'inside the 10–20 bps break-even band';
-  return { state: 'measured', text: [rate, wait, adverse].filter(Boolean).join(' · '), verdict };
-}
-
-/**
  * A position, order or fill SIZE for a cell: six decimals, and masked with
  * the money when values are hidden — a size beside a mark is the value.
  * @param {number} base @param {(s: string) => string} [m]

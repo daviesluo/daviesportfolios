@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, balanceLines, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, probeLine } from './agents.js';
+  newestWins, sizeText } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
@@ -629,36 +629,5 @@ describe('strategyRows G/L columns and the next column', () => {
     expect(r.realisedPct).toBeCloseTo(1.25, 6);
     expect(r.todayUsd).toBe(0.25);
     expect(r.nextText).toBe('2h 13m');
-  });
-});
-
-describe('probeLine — the maker probe, read on the page', () => {
-  it('says nothing has been recorded rather than printing a zero fill rate', () => {
-    expect(probeLine(null).state).toBe('none');
-    expect(probeLine({ total: 0 }).state).toBe('none');
-    expect(probeLine({ total: 0 }).text).toContain('no probe yet');
-  });
-  it('distinguishes "resting, not resolved" from "measured" — an unresolved probe answers nothing', () => {
-    const p = probeLine({ total: 3, resting: 3, filled: 0, expired: 0, fillRate: null, medianMinutesToFill: null, adverseBps: { m15: null, m60: null } });
-    expect(p.state).toBe('waiting');
-    expect(p.text).toContain('3 resting');
-    expect(p.text).not.toMatch(/0\s*%/);            // never a zero fill rate on no evidence
-  });
-  it('reports the fill rate and the wait, and says the adverse number is missing until a follow-up lands', () => {
-    const p = probeLine({ total: 10, resting: 0, filled: 6, expired: 4, fillRate: 0.6, medianMinutesToFill: 8, adverseBps: { m15: null, m60: null } });
-    expect(p.state).toBe('measured');
-    expect(p.text).toContain('60% came back (6 of 10)');
-    expect(p.text).toContain('median 8 min');
-    expect(p.text).toContain('adverse not measured yet');
-    expect(p.verdict).toBeNull();
-  });
-  it('reads the adverse number against the 10-20 bps break-even, and prefers the 60-minute mark', () => {
-    const base = { total: 10, filled: 6, expired: 4, fillRate: 0.6, medianMinutesToFill: 8 };
-    expect(probeLine({ ...base, adverseBps: { m15: 3, m60: 25 } }).text).toContain('+25.0 bps against the fill at 60 min');
-    expect(probeLine({ ...base, adverseBps: { m15: 3, m60: 25 } }).verdict).toContain('costs more than the fee');
-    expect(probeLine({ ...base, adverseBps: { m15: 3, m60: 4 } }).verdict).toContain('the fee is the bigger number');
-    expect(probeLine({ ...base, adverseBps: { m15: 3, m60: 14 } }).verdict).toContain('break-even');
-    // Only the 15-minute mark in yet: use it, and say which it is.
-    expect(probeLine({ ...base, adverseBps: { m15: -2.5, m60: null } }).text).toContain('-2.5 bps against the fill at 15 min');
   });
 });

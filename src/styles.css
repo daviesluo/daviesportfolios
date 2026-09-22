@@ -1868,13 +1868,6 @@ body {
 .ag-share { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; transition: width 0.4s; font-family: var(--font-mono); }
 .ag-share-revx { background: rgba(142,197,255,0.35); color: #e6f2ff; }
 .ag-share-kraken { background: rgba(196,181,253,0.35); color: #f3efff; }
-/* The maker probe line under VENUES: one row, and it reads as information rather than
-   a metric when nothing has resolved — `is-none` and `is-waiting` are deliberately quiet. */
-.ag-probe { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; margin-top: .6rem; font-size: .78rem; line-height: 1.5; }
-.ag-probe-none, .ag-probe-waiting { opacity: .62; }
-.ag-probe-verdict { font-style: italic; }
-@media (max-width: 760px) { .ag-probe { font-size: .72rem; } }
-
 .ag-venue-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .ag-venue-card { padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,0.02); border-left-width: 3px; }
 .ag-venue-card-revx { border-left-color: rgba(142,197,255,0.7); }

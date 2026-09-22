@@ -107,9 +107,10 @@ that follow from that evidence, in short:
   writes down where a post-only order would have rested, and later turns
   record whether the book came back and where price went 15 and 60 minutes
   after; that gap is the adverse selection §3.13 could not compute, and a
-  probe is never an order and never reaches any book; the dashboard reads
-  them with `probeSummary` — fill rate, median minutes to fill, and
-  `adverseBps` signed so POSITIVE is against the fill. **A retired row that
+  probe is never an order and never reaches any book; the dashboard computes
+  `probeSummary` — fill rate, median minutes to fill, and `adverseBps`
+  signed so POSITIVE is against the fill — but does NOT show it on the
+  page (taken off 2026-09-22 on Davies' word; read it with a query). **A retired row that
   still HOLDS something keeps its exits** (`windingDown`): the floor and
   the rulebook's exit keep running, every entry is refused, and a retired
   row that is flat is skipped. `riskGate` no longer refuses an EXIT to a
@@ -188,8 +189,12 @@ that follow from that evidence, in short:
   no cap moves. **Retired**: `momentum-1d-kraken`, `rotation-1d`,
   `rotation-1w-kraken` — 0.90–1.00 correlated with a row that stays, worse
   in all four windows, two of them over the 35 % drawdown limit in the
-  bear year. Retired in place (`retired_at`), never deleted: their
-  decisions and orders reference them by foreign key. The rulebooks all
+  bear year. **All four retired rows were DELETED with their history by `0044`**
+  (2026-09-22, Davies' word): 4 rows, 11 orders, 35 decisions, 1,371
+  observations, irreversibly. `0038`/`0043` had retired them in place
+  because a strategy row cannot be deleted while `agent_decisions`
+  references it; `0044` deletes the children first. Every number they
+  produced is still in the reference. The rulebooks all
   stay in `_shared/agents_strategy.ts` and in their tests — rotation-1d
   (top two of BTC/ETH/SOL/XRP by 30-day return, above their 100-day
   average) included, with §3.4's finding that the loop's own 8 % floor
