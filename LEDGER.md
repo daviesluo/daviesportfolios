@@ -198,6 +198,52 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 02:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The split nobody had modelled is worth −0.05 points, and the proxy
+everyone would have reached for is worth −4.93.** §3.18. The loop decides
+on Kraken's candles and fills on Revolut X, and no table here had ever
+priced that; the study priced it on the venue's OWN book for window A,
+which is possible because those candles turned out to be public.
+
+- (b) published, Coinbase throughout: **+7.62 %** / 0.67
+- (a) §3.16's Kraken arm: **+8.74 %** / 0.80
+- **(c) what the loop actually does: +8.69 % / 0.78**
+
+So **(c) − (a) = −0.05 points** and (c) − (b) = +1.07. The thing that was
+never modelled is worth five hundredths; the thing §3.16 already measured
+is worth twenty times more. 296 real fills: adverse cost **0.057 bps a
+round trip**, 0.29 % of the cheapest round trip, no direction (141 vs 149,
+p = 0.68). §2c's ≤ 3 bps was the right order of magnitude. **No verdict
+moves**: 1 of 23 coin-windows flips on the bar (ICP, in no row), none of
+the five live coins, leave-one-out unchanged, §3.11's ranking holds.
+
+**Two things from it worth keeping, both about method.**
+
+**The fidelity check caught a 19-point artefact.** The first split
+trailed high-water on the FILL tape; `tick.ts` trails it on the SIGNAL
+tape (verified here: `bars` is `signalFor(s, sym).bars`). High-water is
+an input to a DECISION, not a price paid. That error manufactured AVAX
+window A at +31.75 % against the correct +12.49 %, out of two tapes that
+agree to 4 bps. A plausible split would have produced a large, clean,
+fictitious result.
+
+**A stop fires on the low, which is the price venues agree on least.**
+Verified against all three tapes: SUI entered near 0.8757, floor 0.8056,
+and on the 2026-09-20 00:00 bar Kraken's low is 0.8124 and Revolut X's
+0.8100 — above it — while **Coinbase's is 0.8051**. Six basis points of
+wick. The Coinbase-fill arms stop out and book +1.4 %; the arms filling
+on Kraken or Revolut X hold to 1.01 and book +29–30 %. That is why
+filling on Coinbase is not an acceptable proxy, and why **windows B, C
+and D must be read off §3.16's Kraken arm**, which is already published.
+
+Verified here: re-run byte-identical; `runSplit` vs `run` 2,600 cells and
+903,928 curve points at zero; arms (a)/(b) reproduce `tape.json` on 2,520
+cells per stop rule; the SUI wick and the `bars` provenance checked
+independently in the repo and the raw tapes.
+
+**Still running**: the coins / weights / mechanics / venue study.
+
 ### [2026-09-22 02:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The pre-live should-fix list is closed, and three of its four items had
