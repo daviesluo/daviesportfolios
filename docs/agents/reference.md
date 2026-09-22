@@ -1962,6 +1962,111 @@ read (374.2 of 375 days, applied to every arm), and its cost is measured:
 BTC 0.00, ETH 0.00, **SOL −2.41 points** — which is why the published
 sleeve reads +7.62 % here against §3.16's +8.0 %.
 
+### 3.19 The four settled choices, re-asked on four windows and three tapes — nothing changes (2026-09-22)
+
+Three of the live row's defining choices — which coins, equal slots, the
+mechanics — were settled on TWO windows and ONE price series, and §3.16
+then showed that a per-coin verdict moves up to thirty points when the
+series changes. So they were re-asked with everything now available: four
+windows, both existing tapes, and for window A a THIRD — Revolut X's own
+UK book (§2.3). Run by an independent agent as
+`supabase/functions/agents/backtest_set2.ts`. Output
+`docs/agents/backtests/set2.json`, report
+`docs/agents/reviews/2026-09-22-set-study.md`. Re-run here:
+**byte-identical**.
+
+**The bar for a change, set before the search**: an arm must beat the
+incumbent on the WORST of its four windows in ALL FOUR evaluations
+(2 tapes × 2 stop rules). Two exact nulls are reported, independent arms
+and fully-correlated arms, and the agreement between the four evaluations
+is **measured** (0.63–0.83) to say which null to read. It is the
+correlated one.
+
+| search | arms | passed | independent null | correlated null |
+|---|---|---|---|---|
+| A1 coins | 25 | 3 | 1.56 | 12.5 |
+| A2 weights | 6 | 2 | 0.38 | 3.0 |
+| A3 cooldown | 8 | **0** | 0.50 | 4.0 |
+| A3 sizing | 11 | 1 | 0.69 | 5.5 |
+| A3 stop surface | 23 | 8 | 1.44 | 11.5 |
+| A4 venue | 25 | 1 | 1.56 | 12.5 |
+| **whole study** | **98** | **15** | 6.13 | **49** |
+
+**A1 — the coins: no change.** Five leave-one-out and twenty add-one-in.
+Three arms pass (drop AVAX, add ICP, add ATOM) against 1.56–12.5 by
+chance, and **not one add candidate is admitted by §4.15's bar**: ATOM's
+UK book is $17k a day, a sixth of the floor, and it clears no window; ICP
+clears the book test and windows A and D but fails B in every condition.
+
+**A2 — equal slots stands, and the new arm is the interesting one.**
+Inverse volatility and per-entry volatility scaling do beat equal slots on
+the worst-of-four — and **0 of 6 arms beat it in the bear year on any of
+the three tapes**, both looking worst on the venue's own book (−0.60 and
+−0.21). The arm §3.15 predicted would fail was priced rather than
+assumed: **weighting a coin by how many windows it clears fails 0 of 4
+honestly and 0 of 4 WITH look-ahead**, while a return-based look-ahead
+bound is worth +1.68…+2.59 — so the lever works and the evidence for
+aiming it does not exist.
+
+**A3 — the ranking moves, the settings do not.** Adding window D
+re-orders all three searches nearly end to end: the four-window against
+two-window rank correlation is +0.40/−0.75 for the cooldown,
++0.39/−0.52/−0.08/−0.22 for sizing and −0.10/−0.54/**−0.81**/−0.78 for the
+stop surface. And of 42 arms, 9 beat the shipped setting on the worst
+window and **0 beat it on every window**: every winner buys the sideways
+year by giving back the bear or the bull. The cooldown grid spans 0.04 of
+return-over-drawdown in D and is **identical** in A and B; all eight
+stop-surface winners are one time-stop idea, and the best of them
+(`floor 8 % + time stop 20 bars`) takes D from −0.50 to −0.32 and A and B
+from 0.71 to 0.40. This is §3.17's finding again from another direction:
+the sideways year is not a bug to be filtered out.
+
+**A4 — the venue: settled, and the question should stop being asked.**
+3 of 372 cells favour Kraken (a sign test at p = 1.8 × 10⁻¹⁰⁵ the other
+way); exactly one coin (SUI) beats on its worst window in one of four
+conditions, under the `trail` stop the loop retired on 2026-09-21; **0 of
+50 cells on the venue's own book**. The reason is arithmetic rather than
+a backtest, verified here from `COSTS`: **the WORST Revolut X round trip
+is TON at 53.8 bps and the BEST Kraken round trip is BTC at 80.0 —
+the two cost schedules do not overlap, by 26.2 bps.** Trading on Kraken
+at its best costs more than trading on Revolut X at its worst. That
+answer moves when a fee tier moves and not before.
+
+**The third tape, and one finding that does not generalise.** 26 of 27
+coins priced over window A (HYPE has no scored window A on any tape);
+coverage floor 95 % declared first, achieved min 99.73 %. §3.16 found the
+tape disagreement had **no direction** — that does not extend to the
+venue's own book: at one observation per coin (the study's own guard
+against the pseudo-replication §3.16 caught itself in), **Revolut X reads
+LOWER than Kraken on 21 of 25 coins, p = 0.00091**, and lower than
+Coinbase on 17 of 25 at p = 0.108. Recomputed here from the raw counts,
+both reproduce exactly. So a per-coin Kraken figure is mildly optimistic
+about the book the orders meet. **It does not carry to the live five**
+(mean +1.6 points against Coinbase, −2.5 against Kraken; SUI +25.5, AVAX
+−15.1), and the live sleeve in the bear year on the venue's own book is
+**+10.39 %, drawdown 10.57 %, ret/DD 0.98** — better than either published
+tape (0.71 and 0.84).
+
+**Fidelity.** Three `runSet` paths (null branch, weights ≡ 1, one-tranche
+plan) against `run`: **844 cells each, zero difference**. Against
+`tape.json` cell for cell: **3,456 cells, zero differ** — so this harness
+IS §3.16 and every difference reported is the choice being tested.
+Against §3.17's published row table, typed in from the document:
+**worst |Δ| = 0**. Window D across tapes, identical by construction:
+zero over 84 cells per stop rule. 22,788 grid points evaluated.
+
+**What it could not settle.** The third tape is one year and one window,
+so the "reads lower than Kraken" finding is a single-window observation
+and no parameter can be chosen on it. **This study never splits signal
+from fill** — every arm prices both on one series, including the
+third-tape arm; §3.18 owns that split and the two were run in parallel.
+Window D binds every A1 and A3 verdict and is a single draw of 21 coins
+nested inside C's in-sample. SUI has two windows, so C and D are
+four-coin sleeves and SUI is absent from the window that decides A1.
+`trend-1h` is priced on neither new tape (Kraken's hourly bundle ends
+2026-06-30; the venue's tape is 4-hourly). The ROWS were not re-asked —
+§3.17 owns that. `agent_risk`'s daily loss limit is not simulated.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

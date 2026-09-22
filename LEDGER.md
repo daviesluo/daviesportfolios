@@ -198,6 +198,56 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 03:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The four settled choices were re-asked with everything now available,
+and nothing changes — with a margin behind each.** §3.19, the last of the
+studies. Four windows, both tapes, and for the bear year a THIRD: Revolut
+X's own book. 98 arms, 15 pass the worst-window test, **49 expected by
+chance** once the arms' correlation is MEASURED (0.63–0.83) rather than
+assumed. The bar for a change was set before the search: beat the
+incumbent on the worst of four windows in all four evaluations.
+
+- **Coins**: 3 of 25 pass, and **not one add candidate is admitted by
+  §4.15's bar** — ATOM's UK book is a sixth of the floor, ICP fails
+  window B in every condition.
+- **Weights**: equal slots stands. Two arms beat it on the worst window;
+  **0 of 6 beat it in the bear year on any of the three tapes**, and both
+  look worst on the venue's own book. The arm §3.15 predicted would fail
+  was priced instead of assumed — weighting by windows-cleared fails 0 of
+  4 honestly AND 0 of 4 with look-ahead, while a return look-ahead is
+  worth +1.68…+2.59. The lever works; the evidence for aiming it does not
+  exist.
+- **Mechanics**: window D re-orders every search nearly end to end (rank
+  correlation down to −0.81) and changes no setting: 9 of 42 beat the
+  shipped one on the worst window, **0 on every window**. Every winner
+  buys D by giving back A or B. §3.17's finding from another direction.
+- **Venue**: settled, and it is arithmetic rather than a backtest.
+  Verified here from `COSTS`: **the worst Revolut X round trip is TON at
+  53.8 bps, the best Kraken one is BTC at 80.0 — the two schedules do not
+  overlap, by 26.2 bps.** Kraken at its best costs more than Revolut X at
+  its worst. 3 of 372 cells favour Kraken; 0 of 50 on the venue's own
+  book. **The question should stop being asked until a fee tier moves.**
+
+**One finding that does NOT generalise, and the study said so itself.**
+§3.16 found the tape disagreement had no direction. Against the venue's
+own book it does: **Revolut X reads lower than Kraken on 21 of 25 coins,
+p = 0.00091** (recomputed here from the raw counts, exact). So a per-coin
+Kraken figure is mildly optimistic about the book the orders meet. It
+does not carry to the live five, and the bear-year sleeve on the venue's
+own book is **+10.39 %, ret/DD 0.98** — better than either published tape.
+Note the study counted one observation per coin rather than per cell,
+which is the pseudo-replication trap §3.16 caught itself in: it learned
+from the study before it.
+
+Verified here: re-run byte-identical; three `runSet` paths against `run`
+at 844 cells each, zero; **3,456 cells against `tape.json`, zero differ**
+(so the harness IS §3.16); §3.17's published row table typed back in at
+worst |Δ| 0; the cost-schedule arithmetic recomputed independently.
+
+**The agents feature has no open work item left except Davies' go-live
+decision.**
+
 ### [2026-09-22 02:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The probe summary reached the payload and stopped there.** `0042` has
