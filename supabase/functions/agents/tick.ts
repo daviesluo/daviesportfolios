@@ -640,7 +640,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   // every position at a state weeks old — sells gone, so a flat book reads long; buys gone, so a held position reads flat.
   const filled = await d.db.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc");
   const dayStart = Math.floor(d.now / ONE_D) * ONE_D;
-  const todayRows = await d.db.selectAll<{ venue: VenueId; mode: string }>("agent_orders", `ts=gte.${new Date(dayStart).toISOString()}&select=venue,mode`);
+  const todayRows = await d.db.selectAll<{ venue: VenueId; mode: string }>("agent_orders", `ts=gte.${new Date(dayStart).toISOString()}&select=venue,mode&order=id.asc`);
   const ordersToday: Record<string, number> = {};
   for (const r of todayRows) ordersToday[mk(r.venue, r.mode)] = (ordersToday[mk(r.venue, r.mode)] ?? 0) + 1;
   /** This venue's marks by symbol. A symbol that got no mark this turn is left out — never written as 0, which is not a price. */
