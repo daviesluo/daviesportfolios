@@ -523,6 +523,44 @@ Read these as a checklist before pushing.
   broken, errors box full" — read the errors table first; it named the
   chunk and the MIME type, and that was the whole diagnosis.
 
+- **A test double looser than the thing it stands in for — twice in one
+  day** (2026-09-22). The in-memory db ignored `agent_orders_mode_check`,
+  so three tests certified a paused row's exit that Postgres refused in
+  production; hours later a guard was added to the real `selectAll` and
+  not to the stub's, one production caller had no `order=`, and the tick
+  threw on every run for two hours while 338 tests were green. Put a rule
+  the double must honour in ONE function both call, and when you add a
+  guard to a real client, grep every stub of that client in the same
+  change.
+- **A label is not the thing it labels.** A strategy row's `mode` was
+  used as the identity of its positions, the bucket of its exposure, the
+  mode written on its orders and the switch for its live gate. Flip the
+  label and the row inherited paper coins it would sell for real; retire
+  it and its exit order carried a value the schema rejects; demote it and
+  its real coins lost their stop; clear the live confirmation and the
+  exits died with the entries. Ask what a field IS before using it as
+  four different things.
+- **A verdict survives the rule it was computed under.** "AVAX clears one
+  window and fails the bar" was the answer under the intra-bar stop the
+  loop had stopped running the day before; under the running rule it
+  cleared three. It was repeated to Davies as fact. When a rule changes,
+  every verdict computed under the old one is stale until re-derived —
+  mark them, don't quote them.
+- **Count every layer that can refuse.** The pre-live report said "0
+  refused by the risk gate" — true — while the decision model had vetoed
+  one entry in five, and no backtest priced it. And a prompt is code: the
+  model's question demanded a stronger trend than the rulebook ever
+  checked, so part of its "judgment" was an untested rule written in
+  prose.
+- **A subagent's number is a claim until you recompute it.** "drop·AVAX
+  passes all four evaluations" was 1 of 6; "AVAX is uniquely qualified"
+  was one passer where chance gives 1.8. Both were one query from the
+  record. Recompute before relaying, and say which numbers you checked.
+- **Read the table that would show the failure.** After the tick deploy
+  that broke it, the basis kept updating — it is written before most of
+  the loop runs — so "the loop is alive" read true through a crash.
+  Decisions and `ops_errors` were the tables that could say otherwise.
+
 ## Third-party reviews
 
 He runs another AI over the diffs and brings the findings back. They

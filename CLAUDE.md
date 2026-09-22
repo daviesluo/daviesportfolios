@@ -161,6 +161,32 @@ that follow from that evidence, in short:
   windows. Kraken's book IS now measured for all 27 coins (all clear
   $100k a day; `ordermin` $2.53–$16.26, `costmin` $0.50). Both
   rotations and trend-1h drop out, momentum stays paper.
+- **A row's `mode` LABEL is not the BOOK it trades** (§4.19, §4.20). A
+  position carries the mode it was opened in (`posKey`); `bookMode`
+  resolves the book — real coins outrank the label, a paused row falls
+  back to paper — and orders, decisions, probes, exposure buckets and
+  caps follow the BOOK while `riskGate` keeps the LABEL. Clearing
+  `live_confirmed_at` stops live BUYS only; exits stay armed, and
+  `global_pause` is the one switch that outranks an exit. The go-live
+  migration is drafted at `docs/agents/0047_go_live.sql.draft` — a NEW
+  row `trend-4h-live`, with `trend-4h` kept paper as its same-venue
+  control — and moving it into `supabase/migrations/` IS going live.
+- **The model's entry veto is not priced by any backtest, and it is
+  large** (§4.21): 3 of 15 live entry signals vetoed, two at P(healthy)
+  0.59 against `enterMin` 0.6. The `healthy_trend` question's own wording
+  demands `trend_strength` moderate/strong and `momentum_30d` positive —
+  STRICTER than the rulebook, which never reads strength — so part of the
+  "veto" is a rule written in prose, never backtested. The entry state
+  has only 90 possible values; `POST ?action=jev` measures the real model
+  on all of them. Settle this before the live row is armed.
+- **A test double must be at least as strict as what it stands in for.**
+  Twice on 2026-09-22 a stub looser than production certified a failure:
+  the in-memory db ignored `agent_orders_mode_check` (a paused row's exit
+  was refused in production), and its `selectAll` skipped the order
+  guard (the tick threw for two hours). Shared rules live in one function
+  both call (`assertPagedOrder`); after a tick deploy, read decisions and
+  `ops_errors`, not the basis — the basis is written before most of the
+  loop runs and reads "alive" through a crash.
 - Paper first, per strategy; live only on Davies' explicit go, and the
   first live order needs his confirmation in the same conversation. Live
   on KRAKEN additionally needs two things done at the venue first: the
@@ -177,16 +203,21 @@ that follow from that evidence, in short:
   never came near Kraken's fee in 60 h of 5-minute closes or 10 minutes
   at the touch (reference §2c), and `agent_basis` keeps measuring it
   every turn. Caps in `agent_risk` are per venue account and per mode.
-- **FOUR ROWS run after migration `0043` (2026-09-22, §3.17)**: `trend-4h`
-  on Revolut X (the live candidate, $100), `trend-4h-kraken` (paper, $100
-  — kept ONLY to measure the live rulebook's post-only fills on the second
-  venue; its return is a fill-path accident and is not read),
+- **THREE ROWS run after migration `0046` (2026-09-22, §3.17, §4.22)**: `trend-4h`
+  on Revolut X (the live candidate, $100),
   `momentum-1d` on Revolut X (paper, $40) and `trend-1h` on Revolut X
   (paper, $40 — kept for feedback speed, 31.7–56.1 fills per 90 days
   against the live row's 14.6–26.8, and because at 0.63 it is the only row
   with no near-duplicate; its return is inside chance and inside the
   spread error bar and is NOT read as evidence). Row capital $440 → $280;
-  no cap moves. **Retired**: `momentum-1d-kraken`, `rotation-1d`,
+  no cap moves. **`trend-4h-kraken` was DELETED by `0046`** (Davies'
+  word): it made no decision of its own — 50 of 50 paired decisions matched
+  `trend-4h` exactly — nothing read its fill path, that path's accuracy was
+  measured keylessly in 18 minutes (79 % / 91 % of resting orders reached
+  in 1 / 5 minutes against the loop's model's 82 % / 92 %), and it paid
+  4.44× the fee for identical fills. **Kraken is a SIGNAL venue only from
+  here**: every rule reads its candles; nothing executes there, and the
+  page is swept in that shape. **Retired**: `momentum-1d-kraken`, `rotation-1d`,
   `rotation-1w-kraken` — 0.90–1.00 correlated with a row that stays, worse
   in all four windows, two of them over the 35 % drawdown limit in the
   bear year. **All four retired rows were DELETED with their history by `0044`**
