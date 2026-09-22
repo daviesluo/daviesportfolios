@@ -1,8 +1,7 @@
--- 0047: delete `trend-4h-kraken`.
+-- 0046: delete `trend-4h-kraken`.
 --
--- DRAFT, and not under supabase/migrations/ — a file there is applied by
--- migrations.yml on the next push. This one waits for Davies' word, like
--- 0046.
+-- Applied on Davies' word, 2026-09-22 ("这三点按照你的建议处理"). It touches
+-- PAPER records only: no real money, nothing stranded at a venue.
 --
 -- WHY
 --
@@ -48,8 +47,11 @@
 -- so nothing is stranded at a venue by deleting them outright; the
 -- retire-then-wind-down path `0043` used is for positions that are real.
 --
--- Dry-run this the way 0044 and 0046 were dry-run: the whole sequence
--- inside a transaction that raises at the end to roll itself back.
+-- Dry-run before pushing, the way 0044 and the go-live draft were: the
+-- whole sequence inside a transaction that raised at the end to roll
+-- itself back. It reported 0 probes, 3 orders, 50 decisions, 326
+-- observations, 0 backtests and 3 strategy rows left, with nothing
+-- refused.
 
 delete from public.agent_maker_probes where strategy_id = 'trend-4h-kraken';
 delete from public.agent_orders      where strategy_id = 'trend-4h-kraken';

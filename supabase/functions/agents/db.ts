@@ -44,7 +44,11 @@ export function makeDb(supabaseUrl: string, serviceKey: string, fetchImpl: typeo
     },
     update: async (table, query, patch) => { await call("PATCH", `${table}?${query}`, patch, { Prefer: "return=minimal" }); },
     claim: (table, query, patch) => call("PATCH", `${table}?${query}`, patch, { Prefer: "return=representation" }),
+    // LIMIT/OFFSET paging is only stable under a TOTAL order: with `order=ts.asc` alone, two rows sharing a
+    // timestamp can land either side of a page boundary and be read twice or not at all — and a fill read
+    // twice is a position counted twice. Every caller here orders by a unique column as its last key.
     selectAll: async (table, query) => {
+      if (!/[?&]order=/.test(`?${query}`)) throw new Error(`selectAll(${table}) needs an explicit order to page safely`);
       const out: unknown[] = [];
       for (let offset = 0; ; offset += PAGE_ROWS) {
         const page = await call("GET", `${table}?${query}&limit=${PAGE_ROWS}&offset=${offset}`) as unknown[];

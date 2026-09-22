@@ -350,11 +350,17 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   const started = clock();
   const elapsed = () => clock() - started;
   const overBudget = () => elapsed() > TURN_BUDGET_MS;
-  let renewed = false;
-  /** Once, past half the lease: keep the lock while this turn finishes, so the next cron minute skips rather than overlaps. */
+  let renewedAt = 0;
+  /**
+   * Keep the lock while this turn finishes, so the next cron minute skips rather than overlaps. It used to
+   * renew exactly ONCE, which bounded a turn at about half a lease plus a lease — past that the lock expired
+   * under a turn still placing orders and the next minute ran beside it. It now renews whenever the lease is
+   * more than half gone, so a slow database or a long venue call extends the lock instead of losing it.
+   */
   const renewLease = async () => {
-    if (renewed) return;
-    renewed = true;
+    const now = clock();
+    if (now - renewedAt < LEASE_MS / 2) return;
+    renewedAt = now;
     try { await d.db.update("agent_locks", `name=eq.tick&holder=eq.${enc(holder)}`, { lease_until: new Date(clock() + LEASE_MS).toISOString() }); }
     catch (e) { report.errors.push(`lease renewal: ${msg(e)}`); }
   };
@@ -364,7 +370,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     // winding-down gate after the book is derived. A row that is retired AND flat is skipped
     // there, so this costs one row read and nothing else.
     d.db.select<StrategyRow>("agent_strategies", "mode=in.(paper,live,paused)&select=*&order=id.asc"),
-    d.db.select<OrderRow>("agent_orders", "state=in.(pending,new,partially_filled)&select=*"),
+    d.db.selectAll<OrderRow>("agent_orders", "state=in.(pending,new,partially_filled)&select=*&order=id.asc"),
     // Maker probes still being watched (`0042`): resting ones waiting for the market to come
     // back, and resolved ones whose follow-up marks are not all in yet. A handful of rows.
     d.db.select<ProbeRow>("agent_maker_probes", "watching=eq.true&select=*"),
@@ -526,7 +532,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           const bal = await venue.balances();
           const asset = o.symbol.split("/")[0];
           const known = positionFromFills((await d.db.selectAll<OrderRow>("agent_orders",
-            `venue=eq.${o.venue}&mode=eq.live&symbol=eq.${enc(o.symbol)}&state=in.(filled,partially_filled)&select=*&order=ts.asc`)).map(toFill)).base;
+            `venue=eq.${o.venue}&mode=eq.live&symbol=eq.${enc(o.symbol)}&state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc`)).map(toFill)).base;
           heldNote = `; ${o.venue} holds ${bal[asset] ?? 0} ${asset} against ${known} on record`;
         } catch (e) { heldNote = `; balances unreadable (${msg(e)})`; }
         report.errors.push(`${key}: pending ${o.side} ${o.base_size} ${o.symbol} (${o.client_order_id}) is not among ${o.venue}'s active orders ${Math.round(ageMs / 60e3)} min on — outcome unknown; the row stays pending for a person to settle from the venue's history${heldNote}`);
@@ -564,7 +570,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
             continue;
           }
           if (view.state === "partially_filled" && (o.state !== "partially_filled" || Number(o.filled_base) !== view.filledBase)) {
-            await d.db.update("agent_orders", `id=eq.${o.id}`, { state: "partially_filled", filled_base: view.filledBase, avg_fill_price: view.avgPrice, fee_usd: view.feeUsd, response: view.raw, updated_at: nowIso });
+            await d.db.update("agent_orders", `id=eq.${o.id}`, { state: "partially_filled", filled_base: view.filledBase, avg_fill_price: view.avgPrice, fee_usd: view.feeUsd, response: view.raw, filled_at: o.filled_at ?? nowIso, updated_at: nowIso });
           }
         }
       }
@@ -632,7 +638,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   // What filled, including the filled part of a live order still working: real base the stops and the caps must see. Read
   // page by page: PostgREST stops at 1,000 rows without a word, and a book built from the OLDEST thousand fills would freeze
   // every position at a state weeks old — sells gone, so a flat book reads long; buys gone, so a held position reads flat.
-  const filled = await d.db.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc");
+  const filled = await d.db.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc");
   const dayStart = Math.floor(d.now / ONE_D) * ONE_D;
   const todayRows = await d.db.selectAll<{ venue: VenueId; mode: string }>("agent_orders", `ts=gte.${new Date(dayStart).toISOString()}&select=venue,mode`);
   const ordersToday: Record<string, number> = {};
@@ -648,11 +654,16 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   const dayOpenAny: Record<string, number> = {};
   for (const [key, c1d] of dailyBy) {
     const [vid, sym] = key.split("|") as [VenueId, string];
-    const today = c1d.find((c) => c.start === dayStart) ?? c1d.at(-1);
-    if (!today) continue;
+    // Just after 00:00 UTC the venue has not published today's daily candle yet. Falling back to the last
+    // candle and reading its OPEN gave YESTERDAY's open as today's — a whole day of move counted as today's,
+    // every night, which inflates `dayPnl` and can spend the daily loss limit on a move that already happened.
+    // Yesterday's CLOSE is where today opened, so that is the fallback.
+    const today = c1d.find((c) => c.start === dayStart);
+    const open = today ? today.open : c1d.at(-1)?.close;
+    if (open == null) continue;
     if (!dayOpenBy.has(vid)) dayOpenBy.set(vid, {});
-    dayOpenBy.get(vid)![sym] = today.open;
-    if (dayOpenAny[sym] == null) dayOpenAny[sym] = today.open;
+    dayOpenBy.get(vid)![sym] = open;
+    if (dayOpenAny[sym] == null) dayOpenAny[sym] = open;
   }
   const byId = new Map(strategies.map((s) => [s.id, s]));
   // A position belongs to the MODE it was opened in: a paper fill is a number in this table and a live
@@ -780,6 +791,14 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         throw e;
       }
     };
+    // `0041`'s unique index is on (decision_id, requotes) and is partial: `where decision_id is not null`. A
+    // FRESH order with no decision id therefore carries NO claim, so two turns retrying it would both place;
+    // refuse it instead. A re-quote is different and is left alone: it replaces a row the same turn has
+    // already cancelled and settled, so a second turn does not see it resting, and MAX_REQUOTES bounds it.
+    if (decisionId == null && requotes === 0) {
+      report.errors.push(`${s.id}|${sym}: order has no decision id and so no claim under 0041; nothing placed`);
+      return;
+    }
     if (mode === "live") {
       // The confirmation is a gate on RISK, not on the exits. Clearing `live_confirmed_at` is the documented way to
       // stop this thing, and until 2026-09-22 it was side-agnostic: it refused the protective sell too, so the one
@@ -943,7 +962,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     for (const sym of s.symbols) {
       const key = `${s.id}|${sym}`;
       try {
-        if (elapsed() > LEASE_MS / 2) await renewLease();
+        await renewLease();   // no-op until the lease is half gone
         const m = markets.get(mk(s.venue, sym));
         const sig = signalFor(s, sym);
         if (!m || !sig || sig.bars.length < p.slow + 2 || !sig.c1d.length) { report.skipped.push(`${key}: not enough candles`); continue; }

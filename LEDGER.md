@@ -81,7 +81,7 @@ list stays the short version; the plan is the reasoning behind it.
    The headline fact he must weigh: **of 21 shipped members not one
    clears the two-window bar**. When he says go, the switch is ONE
    migration, **drafted, dry-run and committed at
-   `docs/agents/0046_go_live.sql.draft`** — deliberately NOT under
+   `docs/agents/0047_go_live.sql.draft`** — deliberately NOT under
    `supabase/migrations/`, because a file there is applied by
    `migrations.yml` on the next push, so MOVING it is the act of going
    live. It adds `trend-4h-live` as a new row (rather than flipping
@@ -207,6 +207,43 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 16:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`0046` deletes `trend-4h-kraken`** on Davies' word ("这三点按照你的建议
+处理"): 3 orders, 50 decisions, 326 observations, 0 probes, 0 backtests.
+Paper records only, nothing stranded at a venue. Dry-run first, as every
+delete here is now. **Kraken is a SIGNAL venue only from here** — every
+rule still reads its candles — and the browser sweep was moved to that
+shape: three rows, the book on `trend-4h` where production keeps it, and
+a venue card with ZERO execution rows, which is what the page must handle
+now. 208 checks green, so it does.
+
+**The audit's reasoned-but-unreproduced list was worked through** ("这里面
+你认为该修的也都修了"). Five of seven fixed:
+
+- **The lease renewed exactly once**, bounding a turn at about half a
+  lease plus a lease; past that the lock expired under a turn still
+  placing orders and the next cron minute ran beside it. It renews
+  whenever the lease is half gone now.
+- **A fresh order with a null `decision_id` is refused.** `0041`'s index
+  is partial, so such an order carries no claim and two turns would both
+  place it. A re-quote is left alone on purpose — it replaces a row the
+  same turn already settled, and `MAX_REQUOTES` bounds it.
+- **The day's open was yesterday's OPEN for the first minutes of every
+  UTC day**, before the venue publishes today's daily candle: a whole
+  day of move counted as today's, every night, which inflates `dayPnl`
+  and can spend the $5 limit on a move that already happened. Yesterday's
+  CLOSE is where today opened.
+- **A partial fill is stamped when it first filled**, so the
+  realised/unrealised split stops changing retroactively.
+- **Every paged read orders by a unique column last**, and `selectAll`
+  now REFUSES an unordered query: LIMIT/OFFSET is stable only under a
+  total order, and a fill read twice is a position counted twice.
+
+Two recorded rather than fixed, with the reason: the exposure bucket
+reads `rows[0].venue`, which misbills only if a strategy's `venue`
+changes and no migration does that; and the re-quote decision id, above.
+
 ### [2026-09-22 15:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **`trend-4h-kraken` makes no decision of its own — 50 of 50 paired
@@ -223,7 +260,7 @@ afternoon. Meanwhile it pays **4.44× the fee for identical fills**
 ($0.1600 against $0.0360; Kraken's PRICE was 1.27 bps better, the fee is
 the whole difference at +29.70 bps a side). Davies' read was right.
 **Recommendation: delete it, add nothing.** Draft at
-`docs/agents/0047_delete_kraken_twin.sql.draft`, dry-run clean (0 probes,
+`supabase/migrations/0046_delete_kraken_twin.sql`, dry-run clean (0 probes,
 3 orders, 50 decisions, 326 observations, 0 backtests; 3 rows left).
 
 **Nothing Kraken-native clears the bar either.** Eighteen coins chosen by
@@ -407,7 +444,7 @@ coins at a $20 per-order cap deploy at most $100 of capital whatever the
 number says. The draft sets $150. `daily_loss_limit_usd` $5 is 5 % of the
 row and blocks new entries only, never an exit.
 
-**The draft migration is `docs/agents/0046_go_live.sql.draft`, and it is
+**The draft migration is `docs/agents/0047_go_live.sql.draft`, and it is
 deliberately NOT under `supabase/migrations/`** — a file there is applied
 by `migrations.yml` on the next push, so moving it IS the act of going
 live. It adds `trend-4h-live` as a NEW row rather than flipping
