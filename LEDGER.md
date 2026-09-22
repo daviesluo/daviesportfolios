@@ -207,6 +207,54 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 15:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`trend-4h-kraken` makes no decision of its own — 50 of 50 paired
+decisions match `trend-4h` exactly, 0 differ**, on `final_action` and
+`rule_action` alike, because both rows carry `signal_venue = 'kraken'`
+and the same rulebook, parameters and coins. It can differ ONLY through
+the fill path, **nothing reads that path** (no Kraken `probeSummary`
+anywhere; `agent_maker_probes` is 3 rows, all revx), and the path is a
+SIMULATION whose accuracy has now been measured keylessly in 18 minutes:
+a resting order at Kraken's touch is reached 79 % within a minute and
+91 % within five, against the loop's candle model's 82 % and 92 % —
+accurate to 1.01–1.04×, repeatable from two public endpoints any
+afternoon. Meanwhile it pays **4.44× the fee for identical fills**
+($0.1600 against $0.0360; Kraken's PRICE was 1.27 bps better, the fee is
+the whole difference at +29.70 bps a side). Davies' read was right.
+**Recommendation: delete it, add nothing.** Draft at
+`docs/agents/0047_delete_kraken_twin.sql.draft`, dry-run clean (0 probes,
+3 orders, 50 decisions, 326 observations, 0 backtests; 3 rows left).
+
+**Nothing Kraken-native clears the bar either.** Eighteen coins chosen by
+a cost-and-book screen BEFORE any backtest: with a search, 2 two-window
+passes against 1.39 by chance; **on seeded parameters, 2 against 3.33 —
+fewer than chance**. Six six-month folds with nothing chosen: the live
+five are positive in 39 of 60 on Revolut X's costs, the 18
+Kraken-advantaged coins in **49 of 216 (22.7 %)**, best-of-18 3 of 6. A
+free fee schedule moves them 1.8 points. The problem is the coins, not
+the venue. Market making is dead by arithmetic (median spread 14.76 bps
+against 80 bps a round trip). The fee tier is 30.4× the turnover away and
+worth +0.73 points.
+
+**Two corrections to the reference.** §3.19's "the two cost schedules do
+not overlap by 26.2 bps" is true over the 27 coins in `COSTS` and FALSE
+over the book: across all 245 bases both venues list they overlap on 71,
+26 with a real Kraken book, and the worst Revolut X round trip among
+booked coins is PONKE at 409 bps. Verdict unchanged — the overlap is all
+in the illiquid tail — but the sentence would fall over the first
+measurement. And §3.14's "exactly zero times in 952 cells" is about
+Revolut X's FEES at Kraken's SPREAD; against the real UK book Kraken wins
+28 of 36 cells on the coins where it is cheaper. Same verdict, different
+reason. Reference §4.22.
+
+**One finding that is not about Kraken**: in the same fold test, Revolut X
+RESTED at 0 % maker beat Revolut X taking the touch, 40 of 60 against
+39 of 60, at 1.87–11.91 bps a round trip against 19.87–29.91. That is
+`0042`'s question and the same ~18 bps the whole Kraken argument turns
+on, on the venue already traded. No backtest can settle it — the probe is
+the instrument and it is already running.
+
 ### [2026-09-22 15:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Jev has been vetoing one entry in five and nobody had counted it.**
