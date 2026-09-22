@@ -160,12 +160,24 @@ set I recommend below:
 quarterly history spliced strictly before the Coinbase series, so A and B
 keep the exact candles above — verified at 0 / 0 / 0 across 100 cells):
 
-| window | what the market did | sleeve return | drawdown | ret/DD |
-|---|---|---|---|---|
-| C | **+243 %**, a stronger bull | **+55.6 %** | 7.3 % | 7.57 |
-| B | +72 %, bull | +20.1 % | 10.5 % | 1.92 |
-| A | −39 %, bear | +8.0 % | 11.3 % | 0.71 |
-| **D** | **−6 %, sideways** | **−7.8 %** | **15.5 %** | **−0.50** |
+| window | what the market did | sleeve, Coinbase tape | sleeve, **Kraken tape** (what the loop reads) |
+|---|---|---|---|
+| C | **+243 %**, a stronger bull | **+55.6 %**, DD 7.3 % | +50.9 %, DD 7.7 % |
+| B | +72 %, bull | +20.1 %, DD 10.5 % | **+22.5 %**, DD 10.0 % |
+| A | −39 %, bear | +8.0 %, DD 11.3 % | **+9.2 %**, DD 10.9 % |
+| **D** | **−6 %, sideways** | **−7.8 %**, DD **15.5 %** | **−7.8 %, identical** |
+
+Both tapes are shown because `signal_venue` is `kraken`: the loop decides
+on Kraken's candles and executes on Revolut X, while every other table in
+this brief is priced on Coinbase's (reference §3.14, §3.16). At sleeve
+level the choice is worth about a point and does not change the
+recommendation — and window D, the one that decides the ranking, is the
+same bars on both. **Per coin it is worth up to thirty points**: AVAX's
+bear year is +34.1 % on one tape and +12.6 % on the other, SUI's +1.4 %
+against +29.1 %. Decide at sleeve level; do not read a single coin's
+figure as if it were stable.
+
+**The paper rows around it changed on 2026-09-22** (reference §3.17, migration `0043`): `momentum-1d-kraken`, `rotation-1d` and `rotation-1w-kraken` are retired — correlated 0.90–1.00 with a row that stays, worse in all four windows, and two of them over the 35 % drawdown limit in the bear year — and `trend-1h` is KEPT, reversing §3.14, because on four windows it is positive in all of them and is the best row in the sideways year. Row capital falls $440 → $280 and no cap moves. Nothing was added: every candidate priced is inside chance.
 
 **Read window D before you decide anything.** The sideways year is the
 only one of four this rule loses money in, and it carries the largest

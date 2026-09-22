@@ -1408,9 +1408,15 @@ published table reads Coinbase's. So the backtests have been pricing a
 signal the loop does not compute. At sleeve level that is worth about a
 point; at coin level it is worth up to thirty, and §4.15's bar — four
 tests per coin per window — is being applied at exactly the level where
-the measurement is least stable. Nothing is re-run on this yet: the right
-fix is to re-price the whole reference on Kraken's tape, which is a
-study, not an edit.
+the measurement is least stable. **Closed 2026-09-22 by §3.16**, which ran that
+study. The gap is real and large — median 4.03 points, p95 31.3, max
+70.4 over 288 comparisons, 9.0 % sign flips — and it has **no
+direction**: Kraken's tape is higher in 149 cells and Coinbase's in 139,
+p = 0.596, and p = 0.690 counted once per coin. So the reference is NOT
+re-priced wholesale, because re-pricing something that disagrees randomly
+buys nothing; the two load-bearing tables are re-priced there and neither
+verdict moves. The labelling was what was wrong, and that is what
+changed.
 
 **K1: no, and more firmly than §3.12 said it.** Six rulebooks built for
 the constraint (monthly rebalance, a 200-day regime hold, wide Donchian,
@@ -1615,6 +1621,181 @@ it moves the chosen point in 17–24 of 100 cells (median effect 0, worst
 owns that — only that it moves who clears what. Jev is not in the
 backtest, and nothing about spreads or books was re-measured.
 
+### 3.16 The tape the loop reads, priced against the tape the tables use (2026-09-22)
+
+§3.14 found that every published backtest here prices a signal the live
+loop does not compute: `signal_venue` is `kraken` on every row, so the
+loop decides on Kraken's candles and executes on Revolut X, while every
+table is priced on Coinbase's. This study measures what that is worth.
+Run by an independent agent as
+`supabase/functions/agents/backtest_tape.ts` (imports `run`, `resample`,
+`COSTS`, `SHIPPED_STOPS`, `stopsForKind`, `spreadOf`; the one copy,
+`runMarked`, adds a mark at every bar because `run` samples equity every
+sixth bar at a phase that moves when the array start does — checked
+against `run` on **744 cells, zero difference** in return, drawdown and
+trades). Output `docs/agents/backtests/tape.json`, report
+`docs/agents/reviews/2026-09-22-tape-study.md`. Re-run here:
+**byte-identical**.
+
+**The check that makes the rest readable**: its Coinbase arm was compared
+with `windows.json` cell for cell — chosen and seeded, own venue and
+other venue, return, drawdown and trade count — **4,464 cells, zero
+differ**, against a recorded SHA-256 of `windows.json` that matches the
+committed file. So the Coinbase arm IS §3.15, not an approximation of it,
+and every difference below is the tape and nothing else. Window D is
+Kraken bars on both arms by construction and is identical across 168
+cells, which is the test that the timestamp mapping is right. The Kraken
+bundle against the live `OHLC` endpoint agrees to **0.0000 bps, median
+and max, on all 27 coins** over 222 shared bars.
+
+**T1: the disagreement is large, and it has no direction.** 288
+comparisons (coin × window × venue costs × stop rule), verified here by
+recomputing them from the raw cells:
+
+| | seeded | chosen |
+|---|---|---|
+| median / p95 / max \|Δreturn\| | **4.03 / 31.3 / 70.4 pts** | 4.80 / 41.3 / 540.0 |
+| sign flips | 26 (9.0 %) | 43 (14.9 %) |
+| §4.15 verdict flips | 17 (5.9 %) | 38 (13.2 %) |
+| Kraken higher / Coinbase higher | 149 / 139, **p = 0.596** | 152 / 136, p = 0.377 |
+| per coin | 25 coins, **p = 0.690** | p = 0.230 |
+
+**Neither tape is better.** §3.14's ALGO case reproduces exactly. The
+study caught the trap its own data sets: at cell level window A looks
+tilted (p = 0.0035), but that is **pseudo-replication** — the same coin
+counted four times — and at one observation per coin per window it is
+p = 0.690 and every window is null. Nothing predicts the size of the gap
+either: the best Spearman is **0.23** (volatility), then trades 0.21,
+missing Kraken bars 0.20; books and spreads predict nothing. The tape
+also changes which grid point gets CHOSEN in about half of the A and B
+cells (46 % / 55 % agreement).
+
+**T2: the recommendation does not change; the per-coin story does.**
+`trend-4h` · Revolut X costs · five $20 slots · seeded · shipped stops:
+
+| window | Coinbase (published) | Kraken (the loop's signal) |
+|---|---|---|
+| C | +55.6 %, 7.57 | +50.9 %, 6.58 |
+| B | +20.1 %, 1.92 | **+22.5 %, 2.25** |
+| A (bear) | +8.0 %, 0.71 | **+9.2 %, 0.84** |
+| D (sideways) | −7.8 %, −0.50 | **−7.8 %, −0.50 (identical)** |
+
+The window that decides the ranking is the one where the two tapes cannot
+disagree. Per coin it is another matter: **AVAX's bear year goes +34.1 %
+→ +12.6 % and SUI's +1.4 % → +29.1 %**, SOL·B and BTC·C flip sign, and
+the coin that costs most to remove in the bear window swaps from AVAX to
+SUI. One more thing worth having on the record: under the OLD `trail`
+stop the bear window flips sign with the tape (−0.3 % → +6.5 %), so
+§3.11's original headline was a tape artefact as much as a stop artefact.
+
+**T3: §3.15 survives both of its findings.** On Kraken's tape, 0–2 coins
+of 22 clear three windows against exact hypergeometric nulls of
+0.66–1.43; the best arm is 2 against 0.74 expected, P = 0.152, and 0.93
+after a Šidák correction for sixteen arms. A one-window pass still
+predicts **backwards in all sixteen Kraken-tape arms**: cleared-A →
+cleared-B 0.167–0.286 against failed-A → cleared-B 0.500–0.588. The
+live arm's two-window list is **AVAX on both tapes**.
+
+**T4, and it is the practical answer: change neither the signal venue nor
+the tables' arithmetic — change what the tables CLAIM.** Switching
+`signal_venue` to `revx` would delete windows C and D outright (Revolut X
+history begins ~2023-08, so §3.15 could not exist), move every decision
+onto a book 100–300× thinner, and re-open the two-region trap of §4.14;
+it also cannot be tested from a harness, because Revolut X's candles need
+a signed call. Re-pricing the whole reference is pointless precisely
+because the disagreement has no direction — the two load-bearing tables
+are re-priced here and neither verdict moves. What is wrong is only the
+labelling, and that is fixed: §3.14 is closed with these numbers, the
+sleeve carries both tapes, §4.15 carries the per-coin instability, and
+every per-coin figure that decides something names its tape.
+
+**What it could not settle.** **The fill price is still unmodelled**: the
+loop decides on Kraken and fills on Revolut X, and no table in this
+repository simulates that split — §2c's ≤ 3 bps basis suggests it is
+small against 9 bps of taker fee, but suggests is not measures, and this
+is the obvious next study. Revolut X's own tape needs a signed endpoint
+and is unreachable from a harness. **The repository contradicts itself
+about it**: §2.3 says three years of hourly history, `backtest.ts`'s
+header says one — only a keyed probe settles that. HBAR drops out
+entirely (Kraken listed it after its Coinbase series began), leaving 26
+coins with at least one window and **22 with all three, verified
+coin-for-coin identical to §3.15's 22**. Only `trend-4h` was re-priced —
+not the rotations, momentum, trend-1h, the wide variant or the regime
+gate. Kraken's 0–5 missing 4-hour bars per coin are left in, and they
+correlate with the gap at ρ = 0.20: a hint, not a finding.
+
+### 3.17 The TESTING set, re-priced on four windows — three rows retire and nothing is added (2026-09-22)
+
+Davies asked for the paper set to be optimised: delete what is pointless,
+add what is worth testing, change what should change. Run by an
+independent agent as
+`supabase/functions/agents/backtest_testingset.ts`. Output
+`docs/agents/backtests/testingset.json`, report
+`docs/agents/reviews/2026-09-22-testing-set-study.md`. Re-run here:
+**byte-identical**. Every row priced at its own capital, its own coins
+and its own bar, on all four windows, under both stop rules.
+
+**S1: nothing repairs the sideways year. 0 of 33 gate arms, under either
+stop rule** — a realised-volatility filter, a choppiness / efficiency
+ratio, requiring the breakout to clear the prior high by a multiple of
+ATR, a minimum trend slope, longer confirmation. The reason is one
+number: **Pearson(how much a gate refuses, Δ window C) = −0.85.**
+Everything that helps the sideways year helps by being out of the market,
+and being out of the market is exactly what costs the strong bull. A
+trend rule's worst regime is not a bug to be filtered out; it is the
+other side of the trade that makes it work.
+
+**S2, every row on four windows** (shipped stops; `trail` in the JSON):
+
+| row | A (bear) | B (bull) | C (strong bull) | D (sideways) | worst ret/DD | plateau A/B/C/D | fills / 90 d |
+|---|---|---|---|---|---|---|---|
+| `trend-4h·revx` **(live)** | +8.0 % / 11.3 % | +20.1 % / 10.5 % | **+55.6 %** / 7.3 % | −7.8 % / 15.5 % | −0.50 | 100/100/100/**4 %** | 14.6–26.8 |
+| `trend-1h·revx` | +3.8 % / 18.8 % | +10.3 % / 16.9 % | +39.7 % / 6.8 % | **+16.2 %** / 5.6 % | **+0.20** | 63/67/100/**96 %** | **31.7–56.1** |
+| `momentum-1d·revx` | −8.1 % / **41.0 %** | +62.4 % / 17.1 % | **+106.2 %** / 10.0 % | −7.2 % / 27.9 % | −0.26 | 25/100/100/0 % | 17.8–29.0 |
+| `momentum-1d·kraken` | −20.1 % / **51.3 %** | +53.6 % / 19.4 % | +98.8 % / 11.6 % | −18.3 % / 31.6 % | −0.58 | 0/100/100/0 % | 17.8–29.0 |
+| `trend-4h·kraken` | +8.6 % / 14.1 % | +13.6 % / 11.8 % | +48.9 % / 8.3 % | −12.4 % / 18.9 % | −0.66 | 85/100/100/0 % | 14.6–26.8 |
+| `rotation-1d·revx` | −13.3 % / **37.0 %** | **+128.5 %** / 22.5 % | +82.1 % / 27.2 % | **+9.0 %** / 26.5 % | −0.36 | 0/100/100/22 % | 15.5–24.9 |
+| `rotation-1w·kraken` | −9.8 % / **41.5 %** | +77.0 % / 26.8 % | +64.2 % / 32.3 % | −9.6 % / **36.7 %** | −0.26 | 0/93/100/11 % | 11.1–20.3 |
+
+Bold drawdowns are at or over §4.15's 35 % limit.
+
+**The result that reverses a verdict**: `trend-1h·revx`, which §3.14
+condemned on two windows, is **positive in all four under both stop
+rules** and is the only row of seven with at least half its parameter
+grid positive in all four — and it is the best row in the sideways year,
+the window that beats everything else. **It is kept, and its return is
+still not the argument**, for two reasons the study states itself: one
+row of seven clearing every window is exactly what chance gives
+(P = 0.29–0.71), and its bear-window edge is inside the error bar of the
+input the whole repository is least sure of — +5 bps a fill takes it from
++3.8 % to +0.6 %. It stays as a MEASUREMENT row: 31.7–56.1 fills per 90
+days against the live row's 14.6–26.8, ten fills in 16–28 days, and at
+0.63 the only row in the set with no near-duplicate anywhere.
+
+**S3: nothing is added.** Three candidates were priced; the best is
+inside chance and the other two measure something already measured.
+§3.15 had already killed both written-down candidates on the sideways
+year.
+
+**S4, the set that results** — shipped by migration `0043`:
+
+| row | venue | coins | capital | slot | mode | why it exists |
+|---|---|---|---|---|---|---|
+| `trend-4h` | Revolut X | BTC ETH SOL AVAX SUI | $100 | 5 × $20 | **live, on Davies' switch** | the go-live row: +8.0 / +20.1 / +55.6 / −7.8, no window over the drawdown limit, the least cost-sensitive row in the set |
+| `trend-4h-kraken` | Kraken | BTC ETH SOL AVAX SUI | $100 | 5 × $20 | paper | the only row measuring the LIVE rulebook's post-only fills on the second venue; its return is a fill-path accident and is not read |
+| `momentum-1d` | Revolut X | BTC ETH SOL | $40 | 3 × $13.33 | paper | the second rulebook, 0.46–0.63 with the live row; held in paper by its 41.0 % bear drawdown |
+| `trend-1h` | Revolut X | BTC ETH SOL | $40 | 3 × $13.33 | paper | feedback speed, and the only row with no near-duplicate; its return is inside chance and inside the spread error bar |
+
+Retired: `momentum-1d-kraken`, `rotation-1d`, `rotation-1w-kraken`.
+**Row capital falls $440 → $280**; live exposure sits exactly at its $100
+cap, both paper books fall well under $300, no order exceeds $20 —
+**nothing in `agent_risk` moves.**
+
+The number worth sitting with: the shipped seven earn MORE than this set
+in both bull windows and **less in the bear one**, because the two
+rotation rows and the Kraken momentum twin are precisely what loses
+window A.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
@@ -1631,7 +1812,7 @@ backtest, and nothing about spreads or books was re-measured.
 12. **One turn at a time.** pg_net fires the next minute's tick whether or not the last one finished; a turn takes a lease (`agent_locks`, compare-and-set on its expiry, 55 s) and a turn that finds it held does nothing. The bar claim protects decisions; the lease protects everything else.
 13. **The model is asked on entries only.** It can veto one; it never advises an exit, and the seeds, the page and the README say exactly that. A partially filled live order is a position from its first fill (stops and caps see it); a venue-cancelled order that had filled in part is recorded as a fill of that part; a live order that filled on arrival is settled from the venue's own view next turn, fee included — never from the placement reply.
 14. **The venue's market data is the account's region, always.** Revolut X keeps two books per pair (UK / EEA) and this account trades the UK one; a quote or a candle from the other book is not a price this account can get, and reading one produced the only trade the dislocation rule ever made (§3.5). Every public call names `region=UK`, a row from another region is dropped, and the probe shows which book the loop is reading. The same discipline applies to any venue that publishes more than one book, and any fact of that kind written into this reference is a requirement on the client with a pin, the day it is written.
-15. **A coin joins a rule by a bar written before the numbers, never after.** §3.7's four tests — positive out of sample on Revolut X costs, drawdown under 35 %, at least half the parameter grid positive out of sample, positive on Kraken costs — decided AVAX in and LINK, DOGE, ADA out. §3.8 tightened it: the four tests on BOTH walk-forward windows (parameters on the first two thirds with the last third out, and parameters on the first third with the middle third out), and a Revolut X UK book of at least $100k a day, because a bar judged on one year is itself a fit to that year. Under the tightened bar SUI joined and six one-window passes did not; the same bar applies to the next candidate, and lowering it for a coin that nearly clears it is the overfit the friend's message warns about. The plateau share is reported for every coin and is the number to quote when someone says every strategy is sensitive to its parameters: sensitivity is a spike, robustness is a plateau, and both are measurable. **The bar admits a coin; it does not certify the ones already in.** It is what a NEW coin passes to join a row, and it is not a description of the coins already in one: §3.10 found that of the 21 shipped strategy × coin × venue members **not one clears it on both windows** — BTC, ETH, SOL, SUI and AVAX each clear one window and fail the other, and they disagree about which, which is the entire reason the five-coin sleeve is steadier than any of its parts. The live recommendation therefore rests on the SLEEVE's two numbers (§3.11: −0.3 % in the bear window, +12.6 % in the bull) and on leave-one-out, never on a member's own pass. **AVAX is not an exception to this**; it is the case where the failure happened to be written down, because `0039` added it the morning the bar tightened (§3.8), while BTC and ETH were admitted by §3.7 on spread and book before a second window existed and were never re-read against the tightened bar in the same sentence. Quoting AVAX's failure without BTC's and ETH's is the misreading this paragraph exists to stop. In short: the bar governs ADDITIONS and paper promotions, the sleeve number governs money, and neither is evidence for the other. **And a ONE-window pass is not partial credit — it is noise, measured (§3.15).** With a third window built from Kraken's own history, zero or one coin of 22 clears the bar on all three, against a null of 0.33–1.50, on every venue × parameter × stop-rule arm, and the whole windows-cleared histogram matches the null. Worse for the idea: across all four arms a coin that cleared window A was LESS likely to clear window B (0.000–0.200) than a coin that failed it (0.421–0.611). So there is no ladder from one window to a seat: a coin either clears the bar on the windows it has, or its record is a coin flip, and paper seats are for measuring EXECUTION — fills, slippage, the venue's behaviour — not for letting a one-window coin accumulate a return record it would take years to read. This is the answer to "if one window earns a seat, why not the other ten coins that cleared one": none of them, and the ones already in are in on the sleeve's number, not their own.
+15. **A coin joins a rule by a bar written before the numbers, never after.** §3.7's four tests — positive out of sample on Revolut X costs, drawdown under 35 %, at least half the parameter grid positive out of sample, positive on Kraken costs — decided AVAX in and LINK, DOGE, ADA out. §3.8 tightened it: the four tests on BOTH walk-forward windows (parameters on the first two thirds with the last third out, and parameters on the first third with the middle third out), and a Revolut X UK book of at least $100k a day, because a bar judged on one year is itself a fit to that year. Under the tightened bar SUI joined and six one-window passes did not; the same bar applies to the next candidate, and lowering it for a coin that nearly clears it is the overfit the friend's message warns about. The plateau share is reported for every coin and is the number to quote when someone says every strategy is sensitive to its parameters: sensitivity is a spike, robustness is a plateau, and both are measurable. **The bar admits a coin; it does not certify the ones already in.** It is what a NEW coin passes to join a row, and it is not a description of the coins already in one: §3.10 found that of the 21 shipped strategy × coin × venue members **not one clears it on both windows** — BTC, ETH, SOL, SUI and AVAX each clear one window and fail the other, and they disagree about which, which is the entire reason the five-coin sleeve is steadier than any of its parts. The live recommendation therefore rests on the SLEEVE's two numbers (§3.11: −0.3 % in the bear window, +12.6 % in the bull) and on leave-one-out, never on a member's own pass. **AVAX is not an exception to this**; it is the case where the failure happened to be written down, because `0039` added it the morning the bar tightened (§3.8), while BTC and ETH were admitted by §3.7 on spread and book before a second window existed and were never re-read against the tightened bar in the same sentence. Quoting AVAX's failure without BTC's and ETH's is the misreading this paragraph exists to stop. In short: the bar governs ADDITIONS and paper promotions, the sleeve number governs money, and neither is evidence for the other. **And a ONE-window pass is not partial credit — it is noise, measured (§3.15).** With a third window built from Kraken's own history, zero or one coin of 22 clears the bar on all three, against a null of 0.33–1.50, on every venue × parameter × stop-rule arm, and the whole windows-cleared histogram matches the null. Worse for the idea: across all four arms a coin that cleared window A was LESS likely to clear window B (0.000–0.200) than a coin that failed it (0.421–0.611). So there is no ladder from one window to a seat: a coin either clears the bar on the windows it has, or its record is a coin flip, and paper seats are for measuring EXECUTION — fills, slippage, the venue's behaviour — not for letting a one-window coin accumulate a return record it would take years to read. This is the answer to "if one window earns a seat, why not the other ten coins that cleared one": none of them, and the ones already in are in on the sleeve's number, not their own. **There is now a number on how unstable the per-coin test is** (§3.16): swapping the price series for the one the loop actually reads flips this bar's verdict on **5.9 % of coin-windows** (13.2 % on chosen parameters) and moves a single coin's bear-year return by up to thirty points, while moving the five-coin sleeve by about one. The bar is applied where the measurement is least stable and the sleeve is where it is most stable — which is the strongest argument in this document for deciding money at sleeve level and letting the bar only admit.
 16. **A coin one venue lacks runs on the other alone.** Davies (2026-09-21): the two venues' strategy lists need not be synchronous — a coin Revolut X does not list, lists only on the EEA book, or lists on a UK book under the $100k-a-day floor may run on Kraken alone, and the reverse holds. Nothing in the loop assumes the lists match: each `agent_strategies` row carries its own symbols (`0039` / `0040` appended to each row separately), the tick works one row at a time and the page reads positions per row. The bar does not move for a single-venue coin: the four tests on both windows on THAT venue's costs and a book on that venue of at least $100k a day. On Kraken the costs are 40 bps maker each side — 80 bps a round trip before the spread, against ~20 on Revolut X for the majors — so a Kraken-only coin needs a larger edge, not a smaller one, and the 4-hour rule is the only rulebook whose trade count can carry it (§3.6). Such a coin joins `trend-4h-kraken` by its own migration, paper first. Candidates are the coins §3.8 could not test on Revolut X (ZEC, XMR, TRX were named there); their Kraken series go through the same script before any is proposed. §3.12 has since measured Kraken's book for all 27 coins and priced the eight whose UK book is under the floor on the SEEDED parameters — what a coin joining the row would actually run (`kraken.json`, `krakenOnlySeeded`). **POL is the only one worth a second look**: Kraken book $2.30m a day, spread 9.0 bps, `ordermin` 50 POL ≈ $5.59, window A **+33.0 %** with a 17.7 % drawdown on a **100 %** plateau over 7 trades, window B **−5.2 %** (DD 19.3 %, plateau 51.9 %, 14 trades). That is one window, not two, so **the bar as written does not admit it and it has not been added**. It is recorded here because its record is the same SHAPE as AVAX's — one window each, the bear one — and the two must not end up treated differently by accident: AVAX sits in a row because Revolut X carries it ($1.9m a day) and POL sits in none because Revolut X does not ($11k a day, a tenth of the floor), which is a liquidity fact, not a verdict on the coin. Whether a one-window coin may hold a PAPER seat to build a record — which is exactly what §3.8 granted AVAX — is a question about the paper rows and Davies' to answer; until he does, POL stays out of every row. BNB, TON, SHIB and ETC each clear one window on Kraken costs on shorter histories or thinner books; LTC, AAVE and ATOM clear neither. **Closed 2026-09-21 by §3.15**: POL fails window C on BOTH venues and BOTH parameter sets on a 0 % plateau (Kraken −20.6 % / −18.8 %), so it is not a one-window coin waiting for a rule — it is a coin that fails the third window it was given. No paper seat, and the asymmetry with AVAX is resolved by measurement rather than by a decision. §3.15 also answers this item's other named candidates from §3.12's side: ZEC, XMR and TRX each clear one window and none clears two.
 17. **The pre-live review, and what was done about it (2026-09-21).** An independent review of every agents file — the loop, the venue clients, the strategy module, the migrations, the page — is `docs/agents/reviews/2026-09-21-prelive-review.md`: seven blockers, sixteen should-fixes, twelve missing tests, the doc gaps. Shipped with pins the same day (`tick.test.ts`, `revx.test.ts`, `index.test.ts`, `strategy.test.ts`): **B1** a `pending` row the venue does not list STAYS pending — a marketable order fills or dies inside the turn, so its absence from the active list proves nothing — reported every turn with the venue's balance beside what the record holds, until a person settles it from the venue's history; **B2** a cancel whose read-back fails leaves the row open for the next turn to settle from the venue; **B3** the fills query is paged (`selectAll`; PostgREST stops at 1,000 rows without a word — the tick and the dashboard both read the whole book); **B4** `orderViewProblem`: a filled Revolut X order whose reply lacks `filled_size`, `average_fill_price` or `fees` is an error, never a fill at fee 0, and the probe now reads `/1.0/orders/active` and Kraken `ClosedOrders` and reports the field names each venue returns — the first live order's read-back is the verification, and until then those three names are the client's assumption, not a fact of this reference; **B5** a re-quote goes through `riskGate` like any order (global pause included); **B6** an allowed decision whose order never reached the book is placed on a later turn, the bar's claim staying with the decision, and migration `0041` makes the order insert the claim on the attempt so two turns' retries are one order; **B7** the lease is released by its holder only, renewed once past half its length, and a turn past 70 % of it opens no new bar decision (stops and observations are never deferred); **S1** the snapshot and the bar rule read the high-water trailed to the market, so the state's `drawdown_from_high` and the ATR clause match the backtester (the per-minute stop always did); **S3** a symbol with no quote and no candle has no mark, not a mark of 0; **S4** a protective decision claims one second into its minute, never a bar start; **S5** an open buy's unfilled notional is exposure now; **S6** the model's exit-advice branch is gone — Jev can veto an entry and nothing else (the rows' `exitMax` parameter is inert); **S8** `lookbackDays` moves the momentum window; **S9** a cached series must be contiguous to count as warm; **S10** the execution venue's 1-minute candle is fetched only where a paper order rests (the public Revolut X calls a turn are tickers and pairs plus one per resting paper order — four with none resting, against the eight §4.2's "half a dozen" had grown to); **S12** the probe checks every symbol on an active row; **S16** today's P&L is summed strategy by strategy from each one's signal venue's day open, in the tick and on the page alike. **S2** — `runRotation` now takes the same `StopParams` `run` takes and the rotation rows' figures were re-run with the floor and the cooldown the loop applies to them (§3.4, rewritten; `latest.json` / `summary.json` regenerated; pinned by `backtest.test.ts`), and the answer was worth having: **the 8 % floor makes the rotation rule worse on five variants of six**, which no table said before because no table ran it. **Retention, decided rather than left open** (the review's last doc gap): `agent_decisions` and `agent_orders` are kept INDEFINITELY and pruned by nothing — they are the record the whole design rests on, ~175 rows a day between them, so a year is under 70k rows and the storage is not the question. What made an unbounded table dangerous was reading it unpaged, which B3 fixed; `0037`'s prune covers only the bulky, reproducible tables (30 days of basis and observations, 120 days of candles, 3 days of minutes). If a prune is ever wanted here, it archives rather than deletes: a fill that is gone is a position that never existed. **Not done, and said so**: **S7** is done in code (§4.18: one nonce sequence per isolate, pinned) with the venue-side half — a nonce window on the key — named as a prerequisite for the first live Kraken order; still open: **S11 / S13 / S14 / S15** on the page (a paused row holding a position, the dashboard refresh race, unmasked sizes, the missing live-unconfirmed alert) and the sweep fixture; §4.11's sentence stands corrected here rather than rewritten, so the record shows what was claimed and when it was found wrong.
 

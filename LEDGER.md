@@ -198,6 +198,64 @@ Closed operations move verbatim into `handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-05 lives there already.
 
+### [2026-09-22 01:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Two studies land: the tape does not change what to run, and nothing
+repairs the sideways year.** Both re-run here byte-identical; both were
+interrupted by a server-side 529 after handing back, and both had already
+written all three of their files.
+
+**§3.16, the tape.** The gap between Kraken's tape (what `signal_venue`
+makes the loop read) and Coinbase's (what every table is priced on) is
+large — median **4.03 points**, p95 31.3, max 70.4 over 288 comparisons,
+9.0 % sign flips, **5.9 % of §4.15 verdicts flip** — and it has **no
+direction**: Kraken higher in 149 cells, Coinbase in 139, p = 0.596;
+p = 0.690 per coin. Recomputed here from the raw cells, every figure
+reproduced. The study caught the trap in its own data: cell level looks
+tilted in window A at p = 0.0035, but that is pseudo-replication and at
+one observation per coin it is p = 0.690. **The sleeve moves about a
+point** (A +8.0 → +9.2, B +20.1 → +22.5, C +55.6 → +50.9, **D identical**
+— D is Kraken bars on both arms by construction), so the recommendation
+stands. **Per coin it moves up to thirty**: AVAX's bear year +34.1 % →
++12.6 %, SUI's +1.4 % → +29.1 %, and the coin most expensive to remove
+swaps from AVAX to SUI. §3.15 survives both findings on Kraken's tape.
+Its Coinbase arm was checked against `windows.json` **cell for cell,
+4,464 cells, zero differ**, with the file's SHA-256 recorded and matching
+— so the two studies are the same arithmetic and every difference is the
+tape. **Decision: change neither `signal_venue` nor the arithmetic.**
+Switching to `revx` deletes windows C and D outright (Revolut X history
+starts ~2023-08), moves the decision onto a book 100–300× thinner and
+re-opens §4.14's region trap. The labelling was what was wrong.
+
+**§3.17, the TESTING set.** Nothing repairs the sideways year — **0 of 33
+gate arms** under either stop rule — and the reason is one number:
+Pearson(how much a gate refuses, Δ window C) = **−0.85**. Everything that
+helps the sideways year helps by being out of the market, which is
+exactly what costs the strong bull. A trend rule's worst regime is the
+other side of the trade that makes it work. Migration `0043` retires
+`momentum-1d-kraken`, `rotation-1d` and `rotation-1w-kraken` (0.90–1.00
+correlated with a row that stays, worse in all four windows, two over the
+35 % drawdown limit in the bear year), in place with `retired_at` —
+`0038` already learned that DELETE is refused by the decisions foreign
+key. **`trend-1h` is KEPT, reversing §3.14**: on four windows it is
+positive in all of them under both stop rules and is the only row of
+seven with half its grid positive in all four, and it is the best row in
+the sideways year (+16.2 %, drawdown 5.6 %, plateau 96 %). Its return is
+still not the argument — one row of seven clearing everything is what
+chance gives (P = 0.29–0.71), and +5 bps a fill takes its bear window
+from +3.8 % to +0.6 %. Kept as a measurement row. **Nothing added**:
+every candidate priced is inside chance. Row capital $440 → $280, live
+exposure exactly at its $100 cap, no cap moves.
+
+**Pushing `0043` applies it.** It pauses three rows and touches no data.
+
+**The next study, named by §3.16 and not done**: the loop decides on
+Kraken and FILLS on Revolut X, and no table in this repository simulates
+that split. §2c's ≤ 3 bps basis suggests it is small against 9 bps of
+taker fee — suggests, not measures. Also unresolved: §2.3 says Revolut X
+has three years of hourly history and `backtest.ts`'s header says one;
+only a keyed probe settles it.
+
 ### [2026-09-22 00:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The maker question now has an instrument instead of an argument.**
