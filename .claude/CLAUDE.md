@@ -351,7 +351,7 @@ the function's pure helpers from `index.test.ts` would bind a port.
   not a formatter: errors on `react-hooks/rules-of-hooks`, warns on
   `exhaustive-deps` (a few effects intentionally narrow their deps). Runs
   in CI between typecheck and test.
-- `npm test` — vitest. ~400 cases covering: YTD chart math, fetch /
+- `npm test` — vitest. Over 900 cases covering: YTD chart math, fetch /
   proxy strategy, ticker-shape predicates, cache TTL + LRU, per-proxy
   backoff, market-cache + legacy fallback, SW banner suppression
   window, ops-badge desktop gate, portfolio user-fingerprint diffing,
@@ -359,7 +359,8 @@ the function's pure helpers from `index.test.ts` would bind a port.
   VWAP / TTM-EPS-P/E / extended-hours-bar detection). Add a pin
   test whenever a regression is fixed so the bug can't quietly come
   back.
-- `npm run build` — Vite production bundle, output to repo root.
+- `npm run build` — Vite production bundle, output to `dist/` (committed;
+  Cloudflare Pages serves only that directory).
 - `npm run verify:browser` — the whole-app browser sweep in
   `test/browser/app-sweep.mjs`: serves the COMMITTED bundle over http and
   drives it in real Chromium at both breakpoints (208 checks). A hard CI
@@ -380,13 +381,11 @@ for the affected case so the YTD bugs (+80% / +21% / +9% misreports)
 can't quietly come back. Same rule applies to Edge Function helpers
 — extract the pure logic and pin it in `index.test.ts`.
 
-Note: `vitest` 4 runs the suite under its own bundled Vite (rolldown /
-oxc), which is a different major than the `vite@5` used by `npm run
-build`. That mismatch is the source of the harmless `esbuild option …
-deprecated, please use oxc` warnings at the top of a test run — tests
-and the prod bundle transpile through different pipelines, so a
-transpile-sensitive change is worth eyeballing in a real `npm run
-build` too, not just under vitest.
+Note: `vitest` 4 runs on the project's own Vite 8 (rolldown / oxc), the
+same pipeline `npm run build` uses; the esbuild-deprecation warnings of
+the Vite 5 era are gone. A transpile-sensitive change is still worth
+eyeballing in a real `npm run build`, because the browser sweep tests the
+bundle and vitest tests the modules.
 
 ## Storage
 
