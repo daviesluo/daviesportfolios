@@ -5,7 +5,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeParts, probeSymbols, runJevBatch,
-  STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, QUOTES_CAPITAL_USD, tickErrorReport, type ProbeSummaryRow,
+  STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, QUOTES_CAPITAL_USD, tickErrorReport, crashReport, type ProbeSummaryRow,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
 import type { JevResult } from "../_shared/jev.ts";
@@ -343,4 +343,18 @@ Deno.test("quotesSummary: P&L on the $1,200 the quotes lock, today's apart, what
   const stale = quotesSummary({ ...st, last_minute: new Date(now - 10 * 60e3).toISOString() }, [], [], null, now, dayStart)!;
   assertEquals(stale.running, false);                                  // ten minutes behind: it has stopped
   assertEquals(quotesSummary(null, [], [], null, now, dayStart), null);  // not built yet: off the page
+});
+
+Deno.test("crashReport — an agents.crash row names the action and the top of the stack, not the message alone", () => {
+  const timeout = new DOMException("Signal timed out.", "TimeoutError");
+  const r = crashReport("tick", timeout);
+  assertEquals(r.message, "Signal timed out.");
+  assertEquals(r.context.action, "tick");
+  assertEquals(r.context.name, "TimeoutError");
+  const deep = new Error("deep");
+  deep.stack = ["Error: deep", ...Array.from({ length: 30 }, (_, i) => `    at frame${i} (index.ts:${i}:1)`)].join("\n");
+  const lines = crashReport("dashboard", deep).context.stack!.split("\n");
+  assertEquals(lines.length, 12);                       // the top of the stack, where the throw happened
+  assertEquals(lines[1], "    at frame0 (index.ts:0:1)");
+  assertEquals(crashReport("", "boom"), { message: "boom", context: { action: null, name: "string", stack: null } });
 });

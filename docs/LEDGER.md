@@ -25,8 +25,12 @@ list stays the short version; the plan is the reasoning behind it.
       "Signal timed out." in production), D2 an IOC priced at a 3–7 s old
       touch dies unfilled 25–53 % of the time and a dead rule exit waits
       4 h, D3 a 5xx is booked `rejected` though the venue may have filled
-      it, D4 a buy fee taken in the coin leaves a phantom position. **Next,
-      in order:** re-compute D2–D4 here, land P1–P4 (each with the failing
+      it, D4 a buy fee taken in the coin leaves a phantom position. **D1 is
+      FIXED** (P1: the fee refresh is caught, noted and retried in five
+      minutes; `runtick.test.ts` failed on the old code with production's
+      "Signal timed out." and passes now), and an `agents.crash` row now
+      carries the action and the top of the stack (`crashReport`). **Next,
+      in order:** re-compute D2–D4 here, land P2–P4 (each with the failing
       test the audit wrote), then P7 in `go_live.sql.draft`: two-step arming,
       `live_confirmed_at` null and a $30 first-trip cap, armed in the
       conversation on Davies' word; a person checks the first fill's
@@ -522,6 +526,14 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 20:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**D1 of the go-live audit is fixed**: a Kraken fee-tier timeout no longer throws out of
+`runTick` before the tick begins (P1). `runtick.test.ts` reproduces production's crash on the
+old code and passes on the new; the next minute does not call Kraken again. `agents.crash`
+rows now name the action and the top of the stack, which the four "Signal timed out." rows
+could not. D2–D4 are next (item 0000000).
 
 ### [2026-09-23 20:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

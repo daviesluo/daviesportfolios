@@ -181,13 +181,24 @@ async function loadVenues(): Promise<{ venues: Record<VenueId, Venue>; notes: Re
   const kk = loadKraken();
   const revx = revxVenue("error" in rx ? null : rx.env);
   const kraken = krakenVenue("error" in kk ? null : kk.env);
+  let kkNote: string | null = null;
   if (!("error" in kk)) {                                 // the account's own tier, not the published table
     if (feeTier && Date.now() - feeTier.at < FEE_TIER_TTL_MS) Object.assign(kraken.feeBps, feeTier.feeBps);
-    else { await kraken.refreshFees(); feeTier = { at: Date.now(), feeBps: { ...kraken.feeBps } }; }
+    else {
+      // Kraken is a signal venue only since 0046: its fee tier prices nothing the tick does. A private call that fails at
+      // the network level (the "Signal timed out." of production's agents.crash rows, 2026-09-22/23) used to throw out of
+      // here before `tick()` began — no lease, no reconcile, no floor on any Revolut X position — and, the cache staying
+      // cold, again every minute of the outage. It is now a note, retried in five minutes.
+      try { await kraken.refreshFees(); feeTier = { at: Date.now(), feeBps: { ...kraken.feeBps } }; }
+      catch (e) {
+        feeTier = { at: Date.now() - FEE_TIER_TTL_MS + 5 * 60e3, feeBps: { ...kraken.feeBps } };
+        kkNote = `kraken fee tier unreadable (${e instanceof Error ? e.message : String(e)}); the default schedule stands in`;
+      }
+    }
   }
   return {
     venues: { revx, kraken, binance: binancePaperVenue() },
-    notes: { revx: "error" in rx ? rx.error : null, kraken: "error" in kk ? kk.error : null, binance: null },
+    notes: { revx: "error" in rx ? rx.error : null, kraken: "error" in kk ? kk.error : kkNote, binance: null },
   };
 }
 
@@ -931,15 +942,27 @@ export async function runProbe(only: Set<string> | null = null): Promise<Record<
   return out;
 }
 
+/**
+ * The `agents.crash` row for a request that threw. The message alone could not say WHICH await threw: D1's four "Signal
+ * timed out." rows (go-live audit, 2026-09-23) fitted the Kraken fee refresh and the lease claim equally. The action and
+ * the top of the stack do.
+ */
+export function crashReport(action: string, e: unknown) {
+  const message = e instanceof Error ? e.message : String(e);
+  const stack = e instanceof Error && e.stack ? e.stack.split("\n").slice(0, 12).join("\n").slice(0, 2000) : null;
+  return { message, context: { action: action || null, name: e instanceof Error ? e.name : typeof e, stack } };
+}
+
 // ------------------------------------------------------------------ serve
 
 if (import.meta.main) Deno.serve(async (req: Request) => {
+  let action = "";
   try {
     if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
     const who = await authorise(req, Deno.env.get("CRON_SECRET") ?? "");
     if (!who) return json(401, { error: "unauthorised" });
     const url = new URL(req.url);
-    const action = url.searchParams.get("action") ?? "";
+    action = url.searchParams.get("action") ?? "";
     const operator = who === "cron" || who === "admin";
     if (action === "tick" && req.method === "POST" && operator) return json(200, await runTick());
     if (action === "quotes" && req.method === "POST" && operator) return json(200, await runQuotesAction(url.searchParams.get("wait") !== "0"));
@@ -958,8 +981,8 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     }
     return json(operator ? 404 : 403, { error: `unknown action '${action}'` });
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    await reportServerError("agents.crash", { message });
-    return json(500, { error: "agents crashed", message: message.slice(0, 200) });
+    const report = crashReport(action, e);
+    await reportServerError("agents.crash", report);
+    return json(500, { error: "agents crashed", message: report.message.slice(0, 200) });
   }
 });
