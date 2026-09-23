@@ -4,7 +4,7 @@
 // header; a browser that asked a moment before the deploy had propagated
 // cached HTML under the chunk's name for a year, the service worker copied it
 // into its precache at install, and every sub-page died until the next
-// deploy while the home page (already loaded) worked. `public/_headers` and
+// deploy while the home page (already loaded) worked. `src/public/_headers` and
 // `404.html` stop the poisoning at the source; this module is the app's own
 // way out for a browser that is already holding a bad copy: refresh the
 // browser's copy of the chunk, drop every service worker and cache, reload

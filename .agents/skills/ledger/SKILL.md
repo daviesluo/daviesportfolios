@@ -38,7 +38,7 @@ covers. Do not act on this file alone.
 The live ledger is `LEDGER.md` at the root. `docs/handover.md` is its
 ARCHIVE — the decision log and the raw session transcripts — and is
 opened only when a closed item is reopened or audited. The hook is
-`hooks/pre-commit`, reached through `core.hooksPath`, and both it and
+`bin/hooks/pre-commit`, reached through `core.hooksPath`, and both it and
 `ledger.path` are per-clone config that a rebuilt container loses:
 `LEDGER.md`'s machine-setup section has the commands.
 

@@ -43,7 +43,7 @@ const APP_VERSION = computeAppVersion();
 // a stale hashed bundle behind.
 export default defineConfig({
   root: 'src',
-  publicDir: '../public',
+  publicDir: 'public',
   // Pre-bundle every runtime dependency in the dev optimizer's FIRST
   // pass. `react-dom` (modals.jsx's createPortal) was picked up by the
   // initial scan, but `react-dom/client` (main.jsx's createRoot),

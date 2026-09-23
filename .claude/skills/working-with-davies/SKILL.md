@@ -37,8 +37,9 @@ Codex (`@codex` only reviews PRs).
 **All gates green, every time.** `npm test`, `npm run typecheck`,
 `npm run build`, plus `npm run lint`, `npx knip` and `npx size-limit`
 (all three are hard CI gates), plus `npx deno test --allow-env
-supabase/functions/` when an Edge Function changed. Green means green —
-he will notice a red main.
+supabase/functions/` when an Edge Function changed. `sh bin/gates.sh`
+runs every one of them in CI's order. Green means green — he will
+notice a red main.
 
 **The README is part of the change**, not a follow-up. Its top half is
 a public showcase he uses in interviews (2026-09-22): the live example,

@@ -56,10 +56,10 @@ import { chromium } from 'playwright';
 // Absolute, always: the path-traversal guard on line ~69 compares the
 // resolved file against ROOT with `startsWith`, so a relative ROOT like
 // "." rejected every request and the page never loaded. Defaults to the
-// repo containing this file, so `npm run verify:browser` works from any
-// working directory.
+// built site (`dist/`) of the repo containing this file, so the sweep works
+// from any working directory.
 const ROOT = path.resolve(
-  process.argv[2] || path.join(path.dirname(new URL(import.meta.url).pathname), '..', '..'));
+  process.argv[2] || path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'dist'));
 const PORT = 8932;
 
 const MIME = {

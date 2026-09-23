@@ -16,7 +16,7 @@
     "lint": "eslint src",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify:browser": "node test/browser/app-sweep.mjs dist"
+    "verify:browser": "node bin/app-sweep.mjs dist"
   },
   "dependencies": {
     "html2canvas-pro": "^2.0.4",
@@ -47,6 +47,9 @@
     "workbox-window": "^7.4.1"
   },
   "knip": {
+    "eslint": {
+      "config": ["src/eslint.config.js"]
+    },
     "entry": [
       "src/*.test.{js,jsx}",
       "src/test_setup.js",
