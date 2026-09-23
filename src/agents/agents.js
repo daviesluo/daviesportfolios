@@ -773,6 +773,67 @@ export function quotesView(q) {
   };
 }
 
+/** The quote test's id among the table's rows. No strategy id starts with "__", so it cannot collide with one. */
+export const QUOTES_ROW_ID = '__quotes';
+
+/**
+ * The quote test as a row of TESTING STRATEGIES (Davies, 2026-09-23), in the cells a strategy's row has. Its capital
+ * is the $1,200 its quotes would lock; unrealised is its held rungs marked at each book's last print, as a percent of
+ * what they hold (the strategies' base: the cost of what is held). null keeps it off the table.
+ * @param {any} q  the dashboard's `quotes`
+ */
+export function quotesRow(q) {
+  if (!q) return null;
+  const openUsd = Number(q.openUsd) || 0;
+  const unrealised = q.unrealisedUsd == null ? null : Number(q.unrealisedUsd);
+  const v = /** @type {NonNullable<ReturnType<typeof quotesView>>} */ (quotesView(q));
+  return {
+    id: QUOTES_ROW_ID,
+    name: 'Stablecoin quotes',
+    venue: venueLabel('revx'),
+    venueId: 'revx',
+    mode: 'paper',
+    capitalUsd: Number(q.capitalUsd) || 0,
+    valueUsd: openUsd,
+    todayUsd: q.todayUsd ?? 0, todayPct: q.todayPct ?? null,
+    unrealisedUsd: unrealised ?? 0, unrealisedPct: unrealised != null && openUsd > 0 ? (unrealised / openUsd) * 100 : null,
+    realisedUsd: q.realisedUsd ?? 0, realisedPct: q.realisedPct ?? null,
+    nextText: 'every minute',
+    openPositions: v.open,
+    status: q.running
+      ? { label: 'paper', running: true, tone: 'running', detail: `quoting · last minute decided ${Number(q.lagMinutes) || 0} min ago` }
+      : { label: 'paper', running: false, tone: 'stale', detail: v.stoppedText },
+  };
+}
+
+/** A price in GBP a coin, as the book quotes it: four places. @param {number | null | undefined} p */
+export const fmtQuotePrice = (p) => (p == null || !Number.isFinite(Number(p)) ? '—' : `£${Number(p).toFixed(4)}`);
+
+/**
+ * One book's ladder for the quote test's page: a row per rung distance (0.1 / 0.2 / 0.3 % from interbank), its bid
+ * and its ask. A rung is idle, quoting at a price, or holding what it filled (its entry, and its P&L at the last print).
+ * @param {any} book  one of the dashboard's `quotes.books`
+ */
+export function quoteLadderRows(book) {
+  const rungs = book?.rungs ?? [];
+  const ks = [...new Set(rungs.map((r) => Number(r.k)).filter((k) => Number.isFinite(k)))].sort((a, b) => a - b);
+  /** @param {any} r */
+  const cell = (r) => {
+    if (!r || r.mode === 'idle') return { state: 'idle', price: null, unrealisedUsd: null, heldSince: null };
+    if (r.mode === 'position') return { state: 'held', price: r.entry ?? null, unrealisedUsd: r.unrealisedUsd ?? null, heldSince: r.heldSince ?? null };
+    return { state: 'quoting', price: r.price ?? null, unrealisedUsd: null, heldSince: null };
+  };
+  return ks.map((k) => ({
+    k,
+    label: `${+(k * 100).toFixed(2)} %`,
+    bid: cell(rungs.find((r) => r.side === 'bid' && Number(r.k) === k)),
+    ask: cell(rungs.find((r) => r.side === 'ask' && Number(r.k) === k)),
+  }));
+}
+
+/** A book's name as the page writes a pair: "USDC-GBP" → "USDC/GBP". @param {string} b */
+export const quoteBookLabel = (b) => String(b ?? '').replace('-', '/');
+
 /**
  * Whether what is shown is paper money only: every strategy (on `venue`, if one is named) is paper and holds no
  * live coins. A paused row keeps the book it traded in, so a paused row still holding live coins is not paper.

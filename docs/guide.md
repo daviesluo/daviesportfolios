@@ -95,13 +95,14 @@ page call it **Agents (beta)**.
   gain, and a countdown
   to its next decision. Live strategies are listed apart from the ones
   still being tested.
-- **Stablecoin quotes — paper test.** Under the strategies, one card for a
-  four-week test that is not a strategy row: resting quotes 0.1–0.3 % either
-  side of the interbank rate on Revolut X's USDC/GBP and USDT/GBP books,
-  run on paper every minute. It shows the $1,200 the quotes would tie up
-  (funded (Paper)), what they have made in all and today, the round trips
-  and the share won, what is held now, and today's orders against Revolut
-  X's 1,000 a day. It turns red and says so if it stops.
+- **Stablecoin quotes.** The last row of the testing strategies: a
+  four-week paper test of resting quotes 0.1–0.3 % either side of the
+  interbank rate on Revolut X's USDC/GBP and USDT/GBP books, decided every
+  minute. Its row reads like a strategy's, on the $1,200 the quotes would
+  tie up; its dot turns amber if it stops. Tap it for its page: the same
+  scoreboard, then each book's six rungs (the price each quotes, or what
+  it holds and has made at the last trade) and the latest round trips,
+  with today's orders against Revolut X's 1,000 a day at the foot.
 - **A strategy.** Tap a row to open it over the list; its ✕ brings the
   list back as it was. It shows its own scoreboard and positions, a
   countdown to the next decision, and **LIVE STATE**: what the loop sees

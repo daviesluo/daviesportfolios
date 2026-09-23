@@ -425,6 +425,8 @@ that follow from that evidence, in short:
   `quotes.test.ts`), public reads only, into its own `agent_quote_*`
   tables; nothing of the strategy rows reads them. Four weeks, then the
   spec's six conditions decide (`reviews/2026-09-23-pr5-paper-test-spec.md`).
+  On the Agents page it is the last row of TESTING STRATEGIES, with a page
+  of its own (Davies, 2026-09-23); the rows' totals do not include it.
   Revolut X serves its whole trade history keylessly
   (`/api/1.0/public/trades/all`), and its candles are built from the MID
   when a minute did not trade — read fills from prints.
@@ -544,7 +546,7 @@ the Edge Function checks, from anywhere in the repository.
   Cloudflare Pages serves only that directory).
 - `npm run verify:browser` — the whole-app browser sweep in
   `src/e2e/app-sweep.mjs`: serves the COMMITTED bundle over http and
-  drives it in real Chromium at both breakpoints (226 checks). A hard CI
+  drives it in real Chromium at both breakpoints (230 checks). A hard CI
   gate since 2026-09-17. Its clock is pinned, so it gives the same answer
   at any hour — do not replace `CLOCK` with a live `Date`. Needs
   `npx playwright install chromium` once per machine; a container that

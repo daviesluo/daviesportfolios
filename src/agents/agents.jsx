@@ -14,7 +14,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtMoney, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  agentsAlerts, agentsErrorView, countdownText, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, paperOnly, quotesView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
+  agentsAlerts, agentsErrorView, countdownText, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -184,34 +184,103 @@ function VenueSplit({ dash, m }) {
 
 
 
-/**
- * PR5's quotes on paper (reference §4 item 31): a notebook beside the strategies, on its own cron job, never an
- * order. Its own classes, sharing the venue cards' rules: the sweep finds a venue card by its class.
- */
-function QuotesTest({ dash, m }) {
-  const q = quotesView(dash?.quotes);
-  if (!q) return null;
+/** One side of a rung in the ladder: idle, the price it quotes, or what it holds and has made at the last print. */
+function LadderCell({ c, m }) {
+  if (c.state === 'idle') return <span className="dim">idle</span>;
+  if (c.state === 'quoting') return <span>{m(fmtQuotePrice(c.price))}</span>;
   return (
-    <section className="ag-section ag-quotes">
-      <div className="ag-section-title mono">STABLECOIN QUOTES — PAPER TEST</div>
-      <div className="ag-quotes-cards">
-        <div className={`ag-quotes-card${q.running ? '' : ' is-warn'}`}>
-          <div className="ag-quotes-head">
-            <VenueBadge id="revx" />
-            <div className="dim mono ag-venue-meta">USDC/GBP · USDT/GBP · quotes 0.1–0.3 % around interbank, 0 % maker{q.since ? ` · since ${when(q.since)}` : ''}</div>
-          </div>
-          <div className="ag-quotes-grid mono">
-            <span className="dim" title="what the quotes would lock: 2 books × 2 sides × 3 rungs × $100">funded (Paper)</span><span>{m(fmtUsd(q.capitalUsd))}</span>
-            <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(q.realisedUsd) }}>{m(glText(q.realisedUsd, q.realisedPct))}</span>
-            <span className="dim">today</span><span className="ag-gl" style={{ color: pctColor(q.todayUsd) }}>{m(glText(q.todayUsd, q.todayPct))}</span>
-            <span className="dim">round trips</span><span>{q.tripsText}</span>
-            <span className="dim">open</span><span>{q.open ? <>{q.open} · {m(fmtUsd(q.openUsd))}</> : 'none'}</span>
-            <span className="dim">orders today</span><span>{q.ordersText}</span>
-          </div>
-          {!q.running && <div className="ag-warn-line">{q.stoppedText}</div>}
-        </div>
+    <span className="ag-qheld">
+      <span className="ag-state-pill ag-state-filled">held</span> {m(fmtQuotePrice(c.price))}
+      {c.unrealisedUsd != null && <span className="ag-gl" style={{ color: pctColor(c.unrealisedUsd) }}> {m(fmtMoney(c.unrealisedUsd, { signed: true, compact: false }))}</span>}
+    </span>
+  );
+}
+
+/**
+ * PR5's quotes on paper (reference §4 item 31), opened from their row in TESTING STRATEGIES: the strategy page's
+ * header and scoreboard, then what differs — two books of six rungs instead of coins and a chart, and the round trips
+ * instead of the orders. Its cards use the quote classes, which share the venue cards' rules without being venue
+ * cards: the sweep finds a venue card by its class.
+ */
+function QuotesDetail({ q, m }) {
+  const v = quotesView(q);
+  const row = quotesRow(q);
+  if (!v || !row) return null;
+  const recent = q.recent ?? [];
+  return (
+    <div className="ag-detail ag-quotes-detail">
+      <div className="ag-detail-head">
+        <ModeBadge mode="paper" />
+        <StatusDot status={row.status} />
+        <span className="dim mono ag-venue-meta">USDC/GBP · USDT/GBP · quotes 0.1–0.3 % around interbank, 0 % maker{v.since ? ` · since ${when(v.since)}` : ''}</span>
       </div>
-    </section>
+      <h3 className="ag-detail-title mono sr-only">Stablecoin quotes</h3>
+      <div className="ag-scoreboard ag-scoreboard-sm">
+        <div className="ag-sb-cell ag-sb-cell-main">
+          <div className="sb-label">DEPLOYED</div>
+          <div className="sb-value sb-value-lg mono">{m(fmtUsd(row.valueUsd))}</div>
+        </div>
+        <div className="ag-sb-divider" />
+        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} />
+        <div className="ag-sb-divider" />
+        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
+        <div className="ag-sb-divider" />
+        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} />
+      </div>
+      {!v.running && <div className="ag-warn-line">{v.stoppedText}</div>}
+      <section className="ag-section ag-quote-books">
+        <div className="ag-section-title mono">BOOKS</div>
+        <div className="ag-quotes-cards">
+          {(q.books ?? []).map((b) => (
+            <div key={b.book} className="ag-quotes-card">
+              <div className="ag-quotes-head">
+                <span className="hl-strong mono">{quoteBookLabel(b.book)}</span>
+                <span className="dim mono ag-venue-meta">last trade {m(fmtQuotePrice(b.lastPrice))}{b.fair != null ? ` · fair ${m(fmtQuotePrice(b.fair))}` : ''}</span>
+              </div>
+              <table className="ag-ladder mono">
+                <thead><tr><th className="dim">Rung</th><th className="dim">Bid</th><th className="dim">Ask</th></tr></thead>
+                <tbody>
+                  {quoteLadderRows(b).map((r) => (
+                    <tr key={r.k}><td className="dim">{r.label}</td><td><LadderCell c={r.bid} m={m} /></td><td><LadderCell c={r.ask} m={m} /></td></tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="ag-quotes-grid mono">
+                <span className="dim">round trips</span><span>{b.trips ? `${b.trips} · ${Math.round((100 * b.won) / b.trips)} % won` : '0'}</span>
+                <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(b.realisedUsd) }}>{m(fmtMoney(b.realisedUsd ?? 0, { signed: true, compact: false }))}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="ag-section ag-quote-trips">
+        <div className="ag-section-title mono">ROUND TRIPS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">Closed ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th">First</th><th className="hl-th ag-ph">Rung</th>
+              <th className="hl-th">Entry</th><th className="hl-th">Exit</th><th className="hl-th ag-ph">Exit as</th><th className="hl-th">P&amp;L</th>
+            </tr></thead>
+            <tbody>
+              {recent.length === 0 && <tr><td className="hl-empty dim" colSpan={8}>No round trip yet.</td></tr>}
+              {recent.map((t) => (
+                <tr key={`${t.book}|${t.side}|${t.k}|${t.tEntry}`} className={`txn-row txn-row-${t.side === 'bid' ? 'buy' : 'sell'}`}>
+                  <td className="dim">{when(t.tExit)}</td>
+                  <td className="hl-strong">{quoteBookLabel(t.book)}</td>
+                  <td><span className={`ag-side ag-side-${t.side === 'bid' ? 'buy' : 'sell'}`}><span className="ag-side-mark" aria-hidden="true" />{t.side === 'bid' ? 'bought' : 'sold'}</span></td>
+                  <td className="ag-ph dim">{t.k != null ? `${+(t.k * 100).toFixed(2)} %` : '—'}</td>
+                  <td>{m(fmtQuotePrice(t.entry))}</td>
+                  <td>{m(fmtQuotePrice(t.exit))}</td>
+                  <td className="ag-ph dim">{t.how ?? '—'}</td>
+                  <td className="ag-gl" style={{ color: pctColor(t.pnlUsd) }}>{m(fmtMoney(t.pnlUsd, { signed: true, compact: false }))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div className="ag-updated dim mono ag-quotes-foot">funded (Paper) {m(fmtUsd(v.capitalUsd))} · round trips {v.tripsText} · orders today {v.ordersText}</div>
+    </div>
   );
 }
 
@@ -290,7 +359,7 @@ function StrategyCards({ rows, m, onOpen }) {
           </div>
           <div className="ag-card-badges"><VenueBadge id={r.venueId} /><ModeBadge mode={r.mode} /></div>
           <div className="ag-card-gl mono">
-            <span className="dim">today</span><span className="ag-gl" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.todayPct))}</span>
+            <span className="dim">today</span><span className="ag-gl ag-card-today" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.todayPct))}</span>
             <span className="dim">unrealised</span><span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>
             <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(r.realisedUsd) }}>{m(glText(r.realisedUsd, r.realisedPct))}</span>
             <span className="dim">next</span><span className="ag-next">{r.nextText}</span>
@@ -771,8 +840,12 @@ function AgentsModal({ hideValues, onClose }) {
 
   const rows = React.useMemo(() => strategyRows(dash, now), [dash, now]);
   const split = React.useMemo(() => splitStrategyRows(rows), [rows]);
+  // The quote test is a row of TESTING STRATEGIES (Davies, 2026-09-23), after the strategies; it runs on paper only.
+  const quotes = React.useMemo(() => quotesRow(dash?.quotes), [dash]);
+  const testing = React.useMemo(() => (quotes ? [...split.testing, quotes] : split.testing), [split, quotes]);
   const phone = useMediaQuery('(max-width: 760px)');
   const current = selected ? (dash?.strategies ?? []).find((s) => s.id === selected) ?? null : null;
+  const quotesOpen = selected === QUOTES_ROW_ID && !!dash?.quotes;
   const notReady = !!dash?.notReady;
 
   return (
@@ -803,13 +876,12 @@ function AgentsModal({ hideValues, onClose }) {
                 {phone ? <StrategyCards rows={split.live} m={m} onOpen={setSelected} /> : <StrategyTable rows={split.live} m={m} onOpen={setSelected} />}
               </section>
             )}
-            {split.testing.length > 0 && (
+            {testing.length > 0 && (
               <section className="ag-section ag-strategies ag-strategies-testing">
                 <div className="ag-section-title mono">{split.live.length > 0 ? 'TESTING STRATEGIES' : 'TESTING STRATEGIES — nothing is live'}</div>
-                {phone ? <StrategyCards rows={split.testing} m={m} onOpen={setSelected} /> : <StrategyTable rows={split.testing} m={m} onOpen={setSelected} />}
+                {phone ? <StrategyCards rows={testing} m={m} onOpen={setSelected} /> : <StrategyTable rows={testing} m={m} onOpen={setSelected} />}
               </section>
             )}
-            <QuotesTest dash={dash} m={m} />
             <div className="ag-updated dim mono">as of {when(dash.at)} {UK_TZ} · refreshes every minute</div>
           </>
         )}
@@ -827,6 +899,21 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <Detail s={current} dash={dash} m={m} nowMs={now} />
+        </div>
+      </Modal>
+    )}
+    {quotesOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono">Stablecoin quotes</h2>
+          </div>
+          <div className="modal-head-actions">
+            <button className="btn-ghost icon ag-detail-close" onClick={() => setSelected(null)} aria-label="Close">✕</button>
+          </div>
+        </header>
+        <div className="modal-body ag-body">
+          <QuotesDetail q={dash.quotes} m={m} />
         </div>
       </Modal>
     )}

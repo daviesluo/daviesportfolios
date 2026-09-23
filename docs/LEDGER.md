@@ -24,9 +24,14 @@ list stays the short version; the plan is the reasoning behind it.
       pinned in Vitest and by four checks in the browser sweep (226), all
       of which fail on the previous bundle. Presentation only: the
       portfolio payload a viewer loads still carries the lots.
-   2. **Agents page: the stablecoin quotes (PR5 paper test) become a row of
-      TESTING STRATEGIES**, with a detail page adapted from the strategy
-      page to what the quotes are: next.
+   2. **Agents page: the stablecoin quotes (PR5 paper test) are a row of
+      TESTING STRATEGIES: DONE**, last, in a strategy's cells (unrealised is
+      the held rungs at each book's last print, `quoteBookView`), and its row
+      opens a page: the strategy page's header and scoreboard, each book's six
+      rungs, and the latest 20 round trips. The card below the table is gone.
+      **Open for Davies:** the page's scoreboard and the Revolut X card still
+      total the strategies only; folding the quotes in would put $1,200 more
+      on Revolut X's funded figure.
 
 0000000. **DAVIES' REQUESTS OF 2026-09-23 ~15:20 UTC**, in order:
    1. **Can PR5 go live now, and are two Revolut X strategies ready?**
@@ -554,6 +559,13 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 21:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The quote test is a row of TESTING STRATEGIES with a page of its own** (item 00000000.2).
+`quotesSummary` now carries each book (`quoteBookView`: rungs, the held rung marked at the last
+print, trips) and the newest 20 trips, pinned in Deno; `quotesRow` and `quoteLadderRows` in
+Vitest; the sweep (230) opens the row's page at both widths. Nothing the loop reads changed.
 
 ### [2026-09-23 21:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

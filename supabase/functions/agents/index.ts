@@ -69,7 +69,7 @@ import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
 import { ALL_QUESTION_VERSIONS, isRowQuestionVersion, questionsFor, ROW_QUESTION_KIND, type AnyQuestionVersion } from "./jev_rows.ts";
 import { makeDb, type Db } from "./db.ts";
 import { deribitProbe } from "./deribit.ts";
-import { runQuotes } from "./quotes.ts";
+import { QUOTE_TICK, runQuotes } from "./quotes.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -319,11 +319,53 @@ export function probeSummary(rows: ProbeSummaryRow[]) {
   };
 }
 
-export type QuoteTripRow = { book: string; t_exit: string; pnl_usd: number | string; notional_usd: number | string };
-type QuoteStateRow = { state: { books?: Record<string, { rungs?: Array<{ mode: string; nq?: number }>; lastX?: number | null }> }; last_minute: string | null; updated_at: string; last_error: string | null };
+export type QuoteTripRow = {
+  book: string; t_exit: string; pnl_usd: number | string; notional_usd: number | string;
+  side?: string; k?: number | string; t_entry?: string; entry?: number | string; exit?: number | string; how?: string;
+};
+/** A rung as `quotes.ts` stores it (`Rung`): only the fields the page reads. */
+type QuoteRungState = { side?: string; k?: number; mode: string; nq?: number; qty?: number; entry?: number; tEntry?: number; o?: { ticks?: number; fairAt?: number } | null };
+type QuoteBookState = { rungs?: QuoteRungState[]; lastX?: number | null; lastPrint?: { ts?: number; ticks?: number } | null };
+type QuoteStateRow = { state: { books?: Record<string, QuoteBookState> }; last_minute: string | null; updated_at: string; last_error: string | null };
 
 /** The capital PR5's quotes lock: 2 books × 2 sides × 3 rungs × $100. */
 export const QUOTES_CAPITAL_USD = 1200;
+
+/** How many of the latest round trips the quote test's page lists. */
+export const QUOTES_RECENT_TRIPS = 20;
+
+/**
+ * One book of the quote test for its page: each rung's state and price (GBP a coin), what a held rung is worth and has
+ * made, and the book's round trips. A held rung is marked at the book's last print, the same price a trip's P&L would
+ * use (`quotes.ts`: qty × (exit − entry) for a bid, the other way for an ask, in USD at the book's last rate).
+ */
+export function quoteBookView(name: string, b: QuoteBookState, trips: QuoteTripRow[]) {
+  const x = b.lastX ?? null;
+  const last = b.lastPrint?.ticks != null ? b.lastPrint.ticks * QUOTE_TICK : null;
+  const rungs = (b.rungs ?? []).map((r) => {
+    const held = r.mode === "position";
+    const unrealisedUsd = held && last != null && x != null && r.qty != null && r.entry != null
+      ? (r.side === "bid" ? r.qty * (last - r.entry) : r.qty * (r.entry - last)) * x
+      : null;
+    return {
+      side: r.side ?? null, k: r.k ?? null, mode: r.mode,
+      price: r.o?.ticks != null ? r.o.ticks * QUOTE_TICK : null,
+      entry: held ? r.entry ?? null : null, heldSince: held && r.tEntry != null ? new Date(r.tEntry).toISOString() : null,
+      valueUsd: held ? (r.nq ?? 0) * (x ?? 0) : null, unrealisedUsd,
+    };
+  });
+  const mine = trips.filter((t) => t.book === name);
+  const heldRungs = rungs.filter((r) => r.mode === "position");
+  return {
+    book: name, lastX: x, lastPrice: last, lastPrintAt: b.lastPrint?.ts != null ? new Date(b.lastPrint.ts).toISOString() : null,
+    fair: (b.rungs ?? []).map((r) => r.o?.fairAt).find((f) => f != null) ?? null,
+    rungs,
+    quoting: rungs.filter((r) => r.mode === "quote").length, held: heldRungs.length,
+    openUsd: heldRungs.reduce((a, r) => a + (r.valueUsd ?? 0), 0),
+    unrealisedUsd: heldRungs.some((r) => r.unrealisedUsd == null) ? null : heldRungs.reduce((a, r) => a + (r.unrealisedUsd ?? 0), 0),
+    trips: mine.length, won: mine.filter((t) => Number(t.pnl_usd) > 0).length, realisedUsd: mine.reduce((a, t) => a + Number(t.pnl_usd), 0),
+  };
+}
 
 /**
  * The paper quote test (`quotes.ts`, reference §4 item 31) for the page: its P&L on the $1,200 it would lock, today's,
@@ -334,16 +376,23 @@ export function quotesSummary(st: QuoteStateRow | null, trips: QuoteTripRow[], t
   if (!st || !st.last_minute) return null;
   const pnl = trips.reduce((a, t) => a + Number(t.pnl_usd), 0);
   const todayPnl = trips.filter((t) => Date.parse(t.t_exit) >= dayStartMs).reduce((a, t) => a + Number(t.pnl_usd), 0);
-  const open = Object.values(st.state.books ?? {}).flatMap((b) => (b.rungs ?? []).filter((r) => r.mode === "position").map((r) => (r.nq ?? 0) * (b.lastX ?? 0)));
+  const books = Object.keys(st.state.books ?? {}).sort().map((name) => quoteBookView(name, st.state.books![name], trips));
   const lagMinutes = Math.round((nowMs - Date.parse(st.last_minute)) / 60e3);
+  const recent = [...trips].sort((a, b) => Date.parse(b.t_exit) - Date.parse(a.t_exit)).slice(0, QUOTES_RECENT_TRIPS).map((t) => ({
+    book: t.book, side: t.side ?? null, k: t.k != null ? Number(t.k) : null, tEntry: t.t_entry ?? null, tExit: t.t_exit,
+    entry: t.entry != null ? Number(t.entry) : null, exit: t.exit != null ? Number(t.exit) : null, how: t.how ?? null,
+    notionalUsd: Number(t.notional_usd), pnlUsd: Number(t.pnl_usd),
+  }));
   return {
     startedAt, lastMinute: st.last_minute, lagMinutes, running: lagMinutes <= 5, lastError: st.last_error,
     capitalUsd: QUOTES_CAPITAL_USD,
     realisedUsd: pnl, realisedPct: pnl / QUOTES_CAPITAL_USD * 100,
     todayUsd: todayPnl, todayPct: todayPnl / QUOTES_CAPITAL_USD * 100,
     trips: trips.length, won: trips.filter((t) => Number(t.pnl_usd) > 0).length,
-    open: open.length, openUsd: open.reduce((a, x) => a + x, 0),
+    open: books.reduce((a, b) => a + b.held, 0), openUsd: books.reduce((a, b) => a + b.openUsd, 0),
+    unrealisedUsd: books.some((b) => b.unrealisedUsd == null) ? null : books.reduce((a, b) => a + (b.unrealisedUsd ?? 0), 0),
     ordersToday: today.filter((e) => e.kind === "order").length, fillsToday: today.filter((e) => e.kind === "fill").length,
+    books, recent,
   };
 }
 
@@ -575,7 +624,7 @@ async function dashboard(now: number) {
     try {
       const [st, trips, today, first] = await Promise.all([
         d.select<QuoteStateRow>("agent_quote_state", "id=eq.1&select=state,last_minute,updated_at,last_error"),
-        d.select<QuoteTripRow>("agent_quote_trips", "select=book,t_exit,pnl_usd,notional_usd&order=t_exit.desc&limit=1000"),
+        d.select<QuoteTripRow>("agent_quote_trips", "select=book,side,k,t_entry,entry,exit,how,t_exit,pnl_usd,notional_usd&order=t_exit.desc&limit=1000"),
         d.selectAll<{ kind: string }>("agent_quote_events", `minute=gte.${encodeURIComponent(new Date(dayStartMs).toISOString())}&kind=in.(order,fill)&select=kind&order=book.asc,minute.asc,side.asc,k.asc,kind.asc`),
         d.select<{ minute: string }>("agent_quote_events", "select=minute&order=minute.asc&limit=1"),
       ]);

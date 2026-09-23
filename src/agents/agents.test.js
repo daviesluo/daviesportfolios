@@ -3,7 +3,7 @@ import {
   defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, lastChangeText, symbolOrderRows,
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
-  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
+  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -687,5 +687,50 @@ describe('quotesView', () => {
     expect(quotesView({ ...q, trips: 0, won: 0 })?.tripsText).toBe('0');
     expect(quotesView(null)).toBe(null);
     expect(quotesView(undefined)).toBe(null);
+  });
+});
+
+describe('quotesRow — the quote test as a row of TESTING STRATEGIES', () => {
+  // Davies, 2026-09-23: the stablecoin quotes sit in the testing table with the strategies, in the same cells.
+  const q = { startedAt: '2026-09-23T15:09:00Z', lastMinute: '2026-09-24T12:00:00Z', lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
+    realisedUsd: 0.42, realisedPct: 0.035, todayUsd: 0.12, todayPct: 0.01, trips: 7, won: 6, open: 1, openUsd: 99.75, unrealisedUsd: 0.14, ordersToday: 205, fillsToday: 8 };
+  it('fills the cells a strategy row has, on paper, at Revolut X', () => {
+    const r = quotesRow(q);
+    expect([r?.id, r?.name, r?.venueId, r?.mode, r?.nextText]).toEqual([QUOTES_ROW_ID, 'Stablecoin quotes', 'revx', 'paper', 'every minute']);
+    expect([r?.capitalUsd, r?.valueUsd, r?.openPositions]).toEqual([1200, 99.75, 1]);
+    expect([r?.todayUsd, r?.todayPct, r?.realisedUsd, r?.realisedPct]).toEqual([0.12, 0.01, 0.42, 0.035]);
+    // Unrealised on what is held, the strategies' base (the cost of the position), not on the $1,200.
+    expect(r?.unrealisedUsd).toBe(0.14);
+    expect(r?.unrealisedPct).toBeCloseTo((0.14 / 99.75) * 100, 12);
+    expect(r?.status.tone).toBe('running');
+  });
+  it('is amber with the reason when it has stopped, flat when it holds nothing, and absent before it exists', () => {
+    expect(quotesRow({ ...q, running: false, lagMinutes: 12 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 12 min old' });
+    expect(quotesRow({ ...q, open: 0, openUsd: 0, unrealisedUsd: 0 })?.unrealisedPct).toBe(null);
+    expect(quotesRow({ ...q, unrealisedUsd: null })?.unrealisedUsd).toBe(0);    // a book with no print yet: nothing to show, not NaN
+    expect(quotesRow(null)).toBe(null);
+  });
+});
+
+describe('quoteLadderRows — a book as the page draws it', () => {
+  const book = { book: 'USDC-GBP', rungs: [
+    { side: 'bid', k: 0.002, mode: 'quote', price: 0.7535 },
+    { side: 'bid', k: 0.001, mode: 'position', price: 0.755, entry: 0.7542, unrealisedUsd: 0.14, heldSince: '2026-09-24T11:40:00.000Z' },
+    { side: 'ask', k: 0.001, mode: 'quote', price: 0.7559 },
+    { side: 'ask', k: 0.002, mode: 'idle', price: null },
+  ] };
+  it('one row per distance from interbank, nearest first, with its bid and its ask', () => {
+    const rows = quoteLadderRows(book);
+    expect(rows.map((r) => r.label)).toEqual(['0.1 %', '0.2 %']);
+    // A held rung shows what it paid, not the exit it is quoting; a quoting rung shows its price.
+    expect(rows[0].bid).toEqual({ state: 'held', price: 0.7542, unrealisedUsd: 0.14, heldSince: '2026-09-24T11:40:00.000Z' });
+    expect(rows[0].ask).toMatchObject({ state: 'quoting', price: 0.7559 });
+    expect(rows[1].bid).toMatchObject({ state: 'quoting', price: 0.7535 });
+    expect(rows[1].ask.state).toBe('idle');
+    expect(quoteLadderRows(null)).toEqual([]);
+  });
+  it('writes a book as a pair and a price as pounds to four places', () => {
+    expect(quoteBookLabel('USDT-GBP')).toBe('USDT/GBP');
+    expect([fmtQuotePrice(0.75), fmtQuotePrice(null)]).toEqual(['£0.7500', '—']);
   });
 });

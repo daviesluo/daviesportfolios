@@ -263,6 +263,26 @@ const barsFor = (t, daily, includePrePost = false, sessions = 1) => {
   return bars;
 };
 
+// The quote test's two books: six rungs each, 0.1 / 0.2 / 0.3 % either side of fair; USDC's 0.1 % bid holds what it filled.
+const quoteRung = (side, k, mode, price, held = {}) => ({ side, k, mode, price, entry: null, heldSince: null, valueUsd: null, unrealisedUsd: null, ...held });
+const QUOTE_BOOKS = [
+  { book: 'USDC-GBP', lastX: 1.32, lastPrice: 0.7550, lastPrintAt: new Date(NOW_MS - 60e3).toISOString(), fair: 0.75505, quoting: 5, held: 1, openUsd: 99.75, unrealisedUsd: 0.14, trips: 4, won: 4, realisedUsd: 0.30,
+    rungs: [quoteRung('bid', 0.001, 'position', 0.7550, { entry: 0.7542, heldSince: new Date(NOW_MS - 40 * 60e3).toISOString(), valueUsd: 99.75, unrealisedUsd: 0.14 }),
+      quoteRung('bid', 0.002, 'quote', 0.7535), quoteRung('bid', 0.003, 'quote', 0.7527),
+      quoteRung('ask', 0.001, 'quote', 0.7559), quoteRung('ask', 0.002, 'quote', 0.7566), quoteRung('ask', 0.003, 'quote', 0.7574)] },
+  { book: 'USDT-GBP', lastX: 1.32, lastPrice: 0.7548, lastPrintAt: new Date(NOW_MS - 90e3).toISOString(), fair: 0.75482, quoting: 6, held: 0, openUsd: 0, unrealisedUsd: 0, trips: 3, won: 2, realisedUsd: 0.12,
+    rungs: [quoteRung('bid', 0.001, 'quote', 0.7540), quoteRung('bid', 0.002, 'quote', 0.7533), quoteRung('bid', 0.003, 'quote', 0.7525),
+      quoteRung('ask', 0.001, 'quote', 0.7556), quoteRung('ask', 0.002, 'quote', 0.7564), quoteRung('ask', 0.003, 'quote', 0.7571)] },
+];
+const quoteTrip = (minsAgo, book, side, k, entry, exit, how, pnlUsd) => ({ book, side, k, tEntry: new Date(NOW_MS - (minsAgo + 30) * 60e3).toISOString(),
+  tExit: new Date(NOW_MS - minsAgo * 60e3).toISOString(), entry, exit, how, notionalUsd: 99.8, pnlUsd });
+const QUOTE_TRIPS = [
+  quoteTrip(20, 'USDT-GBP', 'ask', 0.002, 0.7564, 0.7550, 'maker', 0.10), quoteTrip(50, 'USDC-GBP', 'bid', 0.001, 0.7542, 0.7549, 'maker', 0.07),
+  quoteTrip(90, 'USDT-GBP', 'bid', 0.003, 0.7525, 0.7521, 'taker', -0.05), quoteTrip(1500, 'USDC-GBP', 'ask', 0.002, 0.7566, 0.7558, 'maker', 0.08),
+  quoteTrip(1560, 'USDT-GBP', 'bid', 0.001, 0.7540, 0.7549, 'maker', 0.07), quoteTrip(1620, 'USDC-GBP', 'bid', 0.003, 0.7527, 0.7535, 'maker', 0.06),
+  quoteTrip(1700, 'USDC-GBP', 'ask', 0.001, 0.7559, 0.7550, 'maker', 0.09),
+];
+
 const b64url = (s) => Buffer.from(s).toString('base64')
   .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const TOKEN = `${b64url(JSON.stringify({ role: 'admin', exp: NOW_MS + 3600_000 }))}.sig`;
@@ -366,9 +386,12 @@ const AGENTS_DASHBOARD = (() => {
       { id: 'binance', canTrade: true, feeBps: { maker: 10, taker: 10 }, balances: { USDT: 50, BNB: 0.012 }, note: null, marks: {} },
     ],
     strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
-    // PR5's quotes on paper (`0051`): a notebook with its own card, beside the strategies and never one of them.
+    // PR5's quotes on paper (`0051`): a row of TESTING STRATEGIES since 2026-09-23, with a page of its own. Consistent
+    // with itself: the books' trips (4 + 3) and realised (0.30 + 0.12) are the totals, the one held rung is `open`, and
+    // `recent` is every trip, newest first.
     quotes: { startedAt: '2026-09-23T15:09:00.000Z', lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
-      realisedUsd: 0.42, realisedPct: 0.035, todayUsd: 0.12, todayPct: 0.01, trips: 7, won: 6, open: 1, openUsd: 99.75, ordersToday: 205, fillsToday: 8 },
+      realisedUsd: 0.42, realisedPct: 0.035, todayUsd: 0.12, todayPct: 0.01, trips: 7, won: 6, open: 1, openUsd: 99.75, unrealisedUsd: 0.14,
+      ordersToday: 205, fillsToday: 8, books: QUOTE_BOOKS, recent: QUOTE_TRIPS },
     byVenue: {
       revx: { ...book, capitalUsd: 180, strategies: 3, live: 0 },     // 100 + 40 + 40, and the only book there is
       binance: { ...zero, capitalUsd: 180, strategies: 3, live: 0 },  // the twins' capital, nothing held yet. Kraken is the signal venue only.
@@ -1117,8 +1140,9 @@ async function run() {
       // Three since `0046` deleted the Kraken twin (§4.22): `0043` retired the two rotations and the
       // Kraken momentum twin, `0044` deleted them, and the twin made no decision of its own. The rows
       // those migrations removed are off the page because none of them still holds anything here.
-      if (rows === 6) ok(S('agents'), 'six strategy rows — the three 0046 leaves and their Binance twins (0049), the deleted ones absent');
-      else fail(S('agents'), `expected 6 strategy rows, got ${rows}`);
+      // Plus the quote test, a row of TESTING STRATEGIES since 2026-09-23 (Davies).
+      if (rows === 7) ok(S('agents'), 'seven rows — the three 0046 leaves, their Binance twins (0049) and the quote test, the deleted ones absent');
+      else fail(S('agents'), `expected 7 rows (six strategies and the quote test), got ${rows}`);
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
       // observation the tick wrote 40 s ago.
@@ -1154,7 +1178,7 @@ async function run() {
       else fail(S('agents'), `Today header cells: ${todayHead}`);
       // Today is the one cell a fixture of all zeros cannot test: the payload carries +$0.42 on the row with a book.
       const sbToday = await page.locator('.ag-scoreboard .ag-sb-cell', { has: page.locator('.sb-label:text-is("TODAY")') }).locator('.ag-sb-usd').textContent().catch(() => '');
-      const rowToday = (await page.locator(vpWidth <= 760 ? '.ag-card-strategy .ag-gl' : 'td.ag-col-today .ag-gl').allTextContents()).map((t) => t.trim());
+      const rowToday = (await page.locator(vpWidth <= 760 ? '.ag-card-strategy .ag-card-today' : 'td.ag-col-today .ag-gl').allTextContents()).map((t) => t.trim());
       const signedToday = rowToday.filter((t) => /^\+\$0\.42/.test(t)).length;
       if (money(sbToday) === 0.42 && /^\+/.test((sbToday || '').trim()) && signedToday === 1) {
         ok(S('agents'), `today is a signed number on the scoreboard (${(sbToday || '').trim()}) and on the row that has a book`);
@@ -1195,17 +1219,40 @@ async function run() {
       const revxLabels = await page.locator('.ag-venue-card-revx .ag-venue-grid > .dim').allTextContents();
       if (['funded (Paper)', 'deployed'].every((l) => revxLabels.includes(l) && cardLabels.includes(l)) && ![...revxLabels, ...cardLabels].some((t) => /paper capital|deployed \(Paper\)/.test(t))) ok(S('agents'), 'both cards read funded (Paper) and a bare deployed, with no paper capital row');
       else fail(S('agents'), `card labels: revx ${revxLabels.join(' | ')} / binance ${cardLabels.join(' | ')}`);
-      // PR5's quotes on paper have their own card, after the strategies: funded (Paper) is the $1,200 the quotes would lock.
-      const quotesTitle = await page.locator('.ag-quotes .ag-section-title').textContent().catch(() => '');
-      const quotesCells = await page.locator('.ag-quotes-card .ag-quotes-grid > span').allTextContents();
-      const qc = (label) => quotesCells[quotesCells.indexOf(label) + 1];
-      if ((quotesTitle || '').trim() === 'STABLECOIN QUOTES — PAPER TEST' && qc('funded (Paper)') === '$1,200' && /\+\$0\.42/.test(qc('realised') || '')
-        && qc('round trips') === '7 · 86 % won' && qc('orders today') === '205 of 1,000 · 8 filled' && qc('open') === '1 · $99.75') {
-        ok(S('agents'), 'the paper quote test has its own card: $1,200 funded, +$0.42 realised, 7 trips, 205 of 1,000 orders today');
-      } else fail(S('agents'), `quotes card: "${quotesTitle}" ${quotesCells.join(' | ')}`);
+      // PR5's quotes on paper are a row of TESTING STRATEGIES (Davies, 2026-09-23), last, in a strategy's cells; the card
+      // they had below the table is gone.
+      const quoteRow = page.locator('.ag-strategies-testing .ag-row', { has: page.locator('.ag-name-btn:text-is("Stablecoin quotes")') });
+      const quoteRowText = (await quoteRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+      const oldCard = await page.locator('.ag-quotes .ag-section-title').count() + await page.locator('text=STABLECOIN QUOTES — PAPER TEST').count();
+      if (await quoteRow.count() === 1 && /Revolut X/.test(quoteRowText) && /Paper/i.test(quoteRowText) && /1 open · \$1,200 cap/.test(quoteRowText)
+        && /\+\$0\.42/.test(quoteRowText) && /\+\$0\.12/.test(quoteRowText) && /\+\$0\.14/.test(quoteRowText) && oldCard === 0) {
+        ok(S('agents'), 'the quote test is a testing row: Revolut X, Paper, 1 open of $1,200, today +$0.12, unrealised +$0.14, realised +$0.42; no card below');
+      } else fail(S('agents'), `quote row "${quoteRowText}", old card sections ${oldCard}`);
       const quotesInVenues = await page.locator('.ag-venue-cards .ag-quotes-card, .ag-quotes-cards .ag-venue-card').count();
-      if (quotesInVenues === 0) ok(S('agents'), 'the quotes card is not a venue card, and no venue selector reaches it');
+      if (quotesInVenues === 0) ok(S('agents'), 'no quote card is a venue card, and no venue selector reaches one');
       else fail(S('agents'), `${quotesInVenues} quotes/venue cards cross-classed`);
+      // Its page: the strategy page's header and scoreboard, then two books of six rungs and the round trips.
+      await quoteRow.first().click();
+      await page.waitForSelector('.ag-quotes-detail', { timeout: 5_000 }).catch(() => {});
+      const qTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
+      // A label may carry its aside in brackets, as a strategy's REALIZED carries its fees.
+      const qLabels = (await page.locator('.ag-quotes-detail .ag-scoreboard-sm .sb-label').allTextContents()).map((t) => t.replace(/\s*\(.*\)\s*$/, '').trim());
+      const qAside = ((await page.locator('.ag-quotes-detail .ag-quotes-foot').textContent().catch(() => '')) || '').trim();
+      const qBooks = (await page.locator('.ag-quotes-detail .ag-quotes-card .ag-quotes-head .hl-strong').allTextContents()).map((t) => t.trim());
+      const qRungs = await page.locator('.ag-quotes-detail .ag-ladder tbody tr').count();
+      const qHeld = (await page.locator('.ag-quotes-detail .ag-ladder .ag-qheld').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
+      const qTrips = await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').count();
+      const qFirst = ((await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
+      await shot(page, 'agents-quotes');
+      const qStacked = await page.locator('.modal').count();
+      if (qTitle === 'Stablecoin quotes' && qLabels.join(',') === 'DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && /round trips 7 · 86 % won/.test(qAside) && /205 of 1,000 · 8 filled/.test(qAside) && qBooks.join(',') === 'USDC/GBP,USDT/GBP'
+        && qRungs === 6 && qHeld.length === 1 && /held £0\.7542 \+\$0\.14/.test(qHeld[0]) && qTrips === 7 && /USDT\/GBP sold £0\.7564 £0\.7550/.test(qFirst.replace(/0\.2 % /, '').replace(/ maker/, '')) && qStacked === 2) {
+        ok(S('agents'), 'its page opens over the list: the scoreboard, USDC/GBP and USDT/GBP with three rungs a side, the held bid at £0.7542 (+$0.14), and all 7 round trips, newest first');
+      } else fail(S('agents'), `quote page: title "${qTitle}", labels ${qLabels.join(',')} (${qAside}), books ${qBooks.join(',')}, rungs ${qRungs}, held ${qHeld.join(' | ')}, trips ${qTrips}, first "${qFirst}", modals ${qStacked}`);
+      await page.locator('.ag-detail-close').click().catch(() => {});
+      await page.waitForTimeout(300);
+      if (await page.locator('.ag-quotes-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 7) ok(S('agents'), 'closing the quote page returns to the list');
+      else fail(S('agents'), 'the quote page did not close back to the list');
       // The menu entry was found above by its exact text, "Agents (beta)"; the page's own title must say the same.
       const pageTitle = await page.locator('.modal .modal-title').first().textContent().catch(() => '');
       if ((pageTitle || '').trim() === 'Agents (beta)') ok(S('agents'), 'the page is titled Agents (beta), as the menu entry that opened it');
@@ -1220,7 +1267,8 @@ async function run() {
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, binanceRows = badges.filter((b) => b.startsWith('Binance')).length;
-      if (revxRows === 3 && binanceRows === 3) ok(S('agents'), 'venue badge on every row: 3 Revolut X, and their 3 paper twins on Binance');
+      // Four Revolut X: the three strategies and the quote test, last.
+      if (revxRows === 4 && binanceRows === 3 && badges[badges.length - 1].startsWith('Revolut X')) ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, and the quote test on Revolut X');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       const shares = await page.locator('.ag-share').allTextContents();
       if (shares.some((t) => /Revolut X 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Revolut X');
@@ -1251,7 +1299,7 @@ async function run() {
       // Four rules count down to a bar close; the minute rule decides every
       // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
-      if (nexts.length === rows && nexts.every((t) => t === '2h 13m')) ok(S('agents'), 'every rule counts down to its next bar close');
+      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - 1 && nexts[rows - 1] === 'every minute') ok(S('agents'), 'every rule counts down to its next bar close; the quote test, last, decides every minute');
       else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
       const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();

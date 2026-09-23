@@ -5,7 +5,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeParts, probeSymbols, runJevBatch,
-  STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, QUOTES_CAPITAL_USD, tickErrorReport, crashReport, type ProbeSummaryRow,
+  STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
 import type { JevResult } from "../_shared/jev.ts";
@@ -343,6 +343,52 @@ Deno.test("quotesSummary: P&L on the $1,200 the quotes lock, today's apart, what
   const stale = quotesSummary({ ...st, last_minute: new Date(now - 10 * 60e3).toISOString() }, [], [], null, now, dayStart)!;
   assertEquals(stale.running, false);                                  // ten minutes behind: it has stopped
   assertEquals(quotesSummary(null, [], [], null, now, dayStart), null);  // not built yet: off the page
+});
+
+Deno.test("quotesSummary: each book's ladder for its page, held rungs marked at the last print, newest trips first", () => {
+  const now = Date.UTC(2026, 8, 24, 12, 0, 30), dayStart = Date.UTC(2026, 8, 24);
+  const tEntry = Date.UTC(2026, 8, 24, 11, 40);
+  // USDC-GBP: bought 132.5 USDC at £0.7542 on the 0.1 % bid (nq = £99.93), the last print at £0.7550; the other five
+  // rungs quote around a fair of £0.75505. USDT-GBP: sold 100 USDT at £0.7560 on the 0.2 % ask, last print £0.7548.
+  const st = {
+    state: { books: {
+      "USDT-GBP": { lastX: 1.32, lastPrint: { ts: now - 60e3, ticks: 7548 }, rungs: [
+        { side: "ask", k: 0.002, mode: "position", entry: 0.7560, qty: 100, nq: 75.6, tEntry, o: { ticks: 7548, fairAt: 0.7548 } },
+        { side: "bid", k: 0.001, mode: "idle", o: null },
+      ] },
+      "USDC-GBP": { lastX: 1.32, lastPrint: { ts: now - 30e3, ticks: 7550 }, rungs: [
+        { side: "bid", k: 0.001, mode: "position", entry: 0.7542, qty: 132.5, nq: 99.9315, tEntry, o: { ticks: 7550, fairAt: 0.75505 } },
+        { side: "bid", k: 0.002, mode: "quote", o: { ticks: 7535, fairAt: 0.75505 } },
+        { side: "ask", k: 0.001, mode: "quote", o: { ticks: 7559, fairAt: 0.75505 } },
+      ] },
+    } },
+    last_minute: new Date(now - 60e3).toISOString(), updated_at: new Date(now).toISOString(), last_error: null,
+  };
+  const trips = Array.from({ length: 25 }, (_, i) => ({
+    book: i % 2 ? "USDT-GBP" : "USDC-GBP", side: "bid", k: "0.001", t_entry: new Date(dayStart + i * 60e3).toISOString(),
+    t_exit: new Date(dayStart + (i + 5) * 60e3).toISOString(), entry: "0.7540", exit: "0.7548", how: "maker", pnl_usd: i === 3 ? -0.01 : 0.02, notional_usd: 100,
+  }));
+  const q = quotesSummary(st, trips, [], null, now, dayStart)!;
+  assertEquals(q.books.map((b) => b.book), ["USDC-GBP", "USDT-GBP"]);   // a fixed order, whatever the state's key order
+  const [usdc, usdt] = q.books;
+  assertEquals([usdc.quoting, usdc.held, usdt.quoting, usdt.held], [2, 1, 0, 1]);
+  assertAlmostEquals(usdc.lastPrice!, 0.7550, 1e-12);
+  assertAlmostEquals(usdc.fair!, 0.75505, 1e-12);
+  assertAlmostEquals(usdc.rungs[1].price!, 0.7535, 1e-12);            // a quoting rung shows its order's price
+  // Held rungs at the last print: a bid gains when the print is above its entry, an ask when it is below.
+  assertAlmostEquals(usdc.unrealisedUsd!, 132.5 * (0.7550 - 0.7542) * 1.32, 1e-9);
+  assertAlmostEquals(usdt.unrealisedUsd!, 100 * (0.7560 - 0.7548) * 1.32, 1e-9);
+  assertAlmostEquals(q.unrealisedUsd!, usdc.unrealisedUsd! + usdt.unrealisedUsd!, 1e-12);
+  assertAlmostEquals(q.openUsd, (99.9315 + 75.6) * 1.32, 1e-9);         // the same notional × rate the card always showed
+  assertEquals([q.open, usdc.trips, usdt.trips, usdc.won, usdt.won], [2, 13, 12, 13, 11]);   // the one loss (i = 3) is USDT's
+  assertEquals(usdc.rungs[0].heldSince, new Date(tEntry).toISOString());
+  // The page lists the newest twenty, newest first, with their numbers as numbers.
+  assertEquals(q.recent.length, QUOTES_RECENT_TRIPS);
+  assertEquals(q.recent[0].tExit, trips[24].t_exit);
+  assertEquals([q.recent[0].entry, q.recent[0].exit, q.recent[0].k], [0.754, 0.7548, 0.001]);
+  // No print yet on a book that holds: its unrealised is unknown, not zero, and so is the total.
+  const dark = quotesSummary({ ...st, state: { books: { "USDC-GBP": { ...st.state.books["USDC-GBP"], lastPrint: null } } } }, [], [], null, now, dayStart)!;
+  assertEquals([dark.books[0].unrealisedUsd, dark.unrealisedUsd], [null, null]);
 });
 
 Deno.test("crashReport — an agents.crash row names the action and the top of the stack, not the message alone", () => {

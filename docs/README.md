@@ -123,7 +123,7 @@ recorded when nobody has the page open.
   scan and a dependency audit. `bin/gates.sh` runs them all locally.
 - **Three levels of tests**: over 900 unit tests (Vitest), about 450 Edge
   Function tests (Deno), and two browser runs against the real production
-  bundle in Chromium: 226 checks across the whole page at desktop and
+  bundle in Chromium: 230 checks across the whole page at desktop and
   phone widths, and 60 cases of the performance panel checked against
   answers worked out by hand.
 - **Every bug fix comes with a test that fails on the old code.** When it

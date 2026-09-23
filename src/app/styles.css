@@ -1878,6 +1878,12 @@ body {
 .ag-venue-head, .ag-quotes-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 11px; margin-bottom: 8px; }
 .ag-venue-grid, .ag-quotes-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 12px; align-items: baseline; }
 .ag-venue-grid > span:nth-child(even), .ag-quotes-grid > span:nth-child(even) { text-align: right; }
+/* The quote test's page: one card per book, its ladder a rung per row (0.1 / 0.2 / 0.3 % from interbank), bid and ask. */
+.ag-ladder { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
+.ag-ladder th { text-align: left; font-weight: 500; font-size: 10px; letter-spacing: 0.08em; padding: 0 0 4px; }
+.ag-ladder td { padding: 4px 0; border-top: 1px solid var(--line); }
+.ag-ladder th:nth-child(n+2), .ag-ladder td:nth-child(n+2) { text-align: right; }
+.ag-qheld { white-space: nowrap; }
 .ag-warn-line { margin-top: 6px; font-size: 11px; color: var(--loss); }
 .ag-next { white-space: nowrap; }
 .ag-basis .ag-table td { padding: 6px 10px; }
