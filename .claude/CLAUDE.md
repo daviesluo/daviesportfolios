@@ -180,7 +180,12 @@ that follow from that evidence, in short:
   writes down where a post-only order would have rested, and later turns
   record whether the book came back and where price went 15 and 60 minutes
   after; that gap is the adverse selection §3.13 could not compute, and a
-  probe is never an order and never reaches any book; the dashboard computes
+  probe is never an order and never reaches any book. **A probe, like a
+  resting paper order, is filled only by a TRADE through its price**
+  (`tradedThrough`: volume > 0, strictly through; §3.26, migration `0050`,
+  which also keeps the proving minute in `fill_minute`): Revolut X's UK
+  1-minute candles move on quotes while nothing trades, and all three
+  probes the old touch test resolved were on such minutes. The dashboard computes
   `probeSummary` — fill rate, median minutes to fill, and `adverseBps`
   signed so POSITIVE is against the fill — but does NOT show it on the
   page (taken off 2026-09-22 on Davies' word; read it with a query). **A retired row that
@@ -248,7 +253,7 @@ that follow from that evidence, in short:
   caps follow the BOOK while `riskGate` keeps the LABEL. Clearing
   `live_confirmed_at` stops live BUYS only; exits stay armed, and
   `global_pause` is the one switch that outranks an exit. The go-live
-  migration is drafted at `docs/agents/0050_go_live.sql.draft` — a NEW
+  migration is drafted at `docs/agents/0051_go_live.sql.draft` — a NEW
   row `trend-4h-live`, with `trend-4h` kept paper as its same-venue
   control — and moving it into `supabase/migrations/` IS going live.
 - **Jev gates entries with the v2 question at 0.45 (since 2026-09-23,

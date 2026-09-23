@@ -12,6 +12,9 @@ export type Row = Record<string, unknown>;
 
 const ORDER_STATES = ["pending", "new", "partially_filled", "filled", "cancelled", "rejected"];
 const PROBE_STATES = ["resting", "filled", "expired"];
+/** `agent_maker_probes`' columns as 0042 and 0050 leave them: PostgREST refuses a write naming any other. */
+const PROBE_COLUMNS = ["id", "ts", "strategy_id", "order_id", "venue", "symbol", "side", "mode", "taker_price", "maker_price", "base_size",
+  "state", "resolved_at", "minutes_to_fill", "mark_at_resolve", "follow_up", "expires_at", "watching", "fill_minute"];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** The venues the `*_venue_check` constraints admit, as migration 0049 leaves them: Binance joined for its paper rows. */
 const VENUES = ["revx", "kraken", "binance"];
@@ -36,6 +39,8 @@ export function schemaRefusal(table: string, r: Row): string | null {
       ?? check("base_size", Number(r.base_size) > 0);
   }
   if (table === "agent_maker_probes") {
+    const unknown = Object.keys(r).find((c) => !PROBE_COLUMNS.includes(c));
+    if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
     return notNull(["strategy_id", "venue", "symbol", "side", "mode", "taker_price", "maker_price", "base_size", "state", "expires_at", "watching"])
       ?? check("mode", ["paper", "live"].includes(String(r.mode)))
       ?? check("side", ["buy", "sell"].includes(String(r.side)))
@@ -63,7 +68,7 @@ function withDefaults(table: string, r: Row): Row {
       decision_id: null, venue_order_id: null, request: null, response: null, avg_fill_price: null, filled_at: null, cancelled_at: null, ...r,
     };
   }
-  if (table === "agent_maker_probes") return { state: "resting", follow_up: {}, watching: true, ...r };
+  if (table === "agent_maker_probes") return { state: "resting", follow_up: {}, watching: true, fill_minute: null, ...r };
   return r;
 }
 

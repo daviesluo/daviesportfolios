@@ -23,7 +23,7 @@ import { orderViewProblem, toOrderView, type VenueOrder } from "../_shared/revx.
 import { PAGE_ROWS } from "./db.ts";
 import { jevFetch, memDb, schemaRefusal } from "./testing.ts";
 import { rowQuestions } from "./jev_rows.ts";
-import { dayOpenOf, dayPnl, entryTooLate, fillStamp, isUniqueViolation, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, probeFilled, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, toFill, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS, slotUsdOf, ORDER_SLOT_TOLERANCE, takesTheTouch } from "./tick.ts";
+import { dayOpenOf, dayPnl, entryTooLate, fillStamp, isUniqueViolation, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, tradedThrough, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, toFill, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS, slotUsdOf, ORDER_SLOT_TOLERANCE, takesTheTouch } from "./tick.ts";
 
 const FOUR_H = 4 * 3600e3, ONE_H = 3600e3, ONE_D = 86400e3, ONE_M = 60e3;
 const NOW = Date.parse("2026-09-20T04:05:00Z");                 // minute 245 of the day: a fifth minute, so the basis is recorded
@@ -1008,14 +1008,32 @@ Deno.test("the execution venue's minute candle is fetched only where a paper ord
 // without resting anything: it records where an order WOULD have sat, whether the market came
 // back, and where price went after it did. It must never become an order or reach any book.
 
-Deno.test("probeFilled: a resting buy fills when the minute traded through it, a sell when it traded up to it", () => {
-  const c = (low: number, high: number): Candle => ({ start: 0, open: low, high, low, close: high, volume: 1 });
-  assert(probeFilled("buy", 100, c(99.5, 101)));           // the minute dipped to the bid
-  assert(probeFilled("buy", 100, c(100, 101)));            // touching counts, as it does for a paper order
-  assert(!probeFilled("buy", 100, c(100.1, 101)));         // never came back
-  assert(probeFilled("sell", 100, c(99, 100.5)));
-  assert(!probeFilled("sell", 100, c(98, 99.9)));
-  assertEquals(probeFilled("buy", 100, null), false);      // no minute candle is not a fill
+Deno.test("tradedThrough: a resting order fills only when a trade went strictly through it", () => {
+  const c = (low: number, high: number, volume = 1): Candle => ({ start: 0, open: low, high, low, close: high, volume });
+  assert(tradedThrough("buy", 100, c(99.5, 101)));          // a trade below the bid: the level was swept
+  assert(!tradedThrough("buy", 100, c(100, 101)));          // a print AT the bid fills the queue ahead, not an order that joined it
+  assert(!tradedThrough("buy", 100, c(100.1, 101)));        // never came back
+  assert(tradedThrough("sell", 100, c(99, 100.5)));
+  assert(!tradedThrough("sell", 100, c(99, 100)));
+  assert(!tradedThrough("sell", 100, c(98, 99.9)));
+  assertEquals(tradedThrough("buy", 100, null), false);     // no minute candle is not a fill
+  // A minute with no volume is built from quotes: it can move, and it proves nothing.
+  assert(!tradedThrough("buy", 100, c(99, 101, 0)));
+  assert(!tradedThrough("sell", 100, c(99, 101, 0)));
+});
+
+Deno.test("tradedThrough: none of the three probes the loop resolved on 2026-09-22 was proven by a trade", () => {
+  // The Revolut X UK minutes that resolved probes 1–3 as filled (`agent_maker_probes`), read back from
+  // the venue's public candles on 2026-09-23. Each has zero volume. The first trade through each
+  // probe's price came 8, 43 and 7 minutes after it was written, not 1, 3 and 1 (reference §3.26).
+  const m = (open: number, high: number, low: number, close: number, volume: number): Candle => ({ start: 0, open, high, low, close, volume });
+  assert(!tradedThrough("sell", 85675.99, m(85687.86, 85687.86, 85687.86, 85687.86, 0)));   // BTC/USD 04:00: flat at the last print
+  assert(!tradedThrough("sell", 2729.96, m(2730.76, 2731.83, 2727.41, 2728.63, 0)));         // ETH/USD 05:02: moved on quotes
+  assert(!tradedThrough("sell", 116.319, m(116.304, 116.394, 116.223, 116.335, 0)));         // SOL/USD 08:00: moved on quotes
+  // …and the minutes that did prove each one.
+  assert(tradedThrough("sell", 85675.99, m(85672.39, 85681.96, 85652.8, 85654.27, 0.02914424)));   // BTC/USD 04:07
+  assert(tradedThrough("sell", 2729.96, m(2731.28, 2733.23, 2730.94, 2731.41, 0.0549167)));          // ETH/USD 05:42
+  assert(tradedThrough("sell", 116.319, m(116.327, 116.396, 116.291, 116.396, 39.801196)));         // SOL/USD 08:06
 });
 
 Deno.test("probeFollowUpDue: the earliest outstanding offset, one per turn, and nothing before it is due", () => {
@@ -1050,7 +1068,7 @@ Deno.test("a resting probe resolves against the minute: filled when the market c
     id: 7, ts: new Date(NOW - 30 * 60e3).toISOString(), strategy_id: "trend-4h-kraken", order_id: null,
     venue: "kraken", symbol: "BTC/USD", side: "buy", mode: "paper", taker_price: 200, maker_price: 100,
     base_size: 0.1, state: "resting", resolved_at: null, minutes_to_fill: null, mark_at_resolve: null,
-    follow_up: {}, expires_at: new Date(NOW + PROBE_TTL_MS).toISOString(), watching: true, ...over,
+    follow_up: {}, expires_at: new Date(NOW + PROBE_TTL_MS).toISOString(), watching: true, fill_minute: null, ...over,
   });
   // The minute traded down through 100 → filled, with the wait recorded.
   const hit = world({ probes: [seed()], oneMin: { low: 99 } });
@@ -1060,16 +1078,46 @@ Deno.test("a resting probe resolves against the minute: filled when the market c
   const f = hit.mem.tables.agent_maker_probes[0];
   assertEquals([f.state, f.minutes_to_fill], ["filled", 30]);
   assert(f.resolved_at != null && f.mark_at_resolve != null);
+  // The minute that proved the fill is kept beside the verdict (`0050`): the venue forgets it after 28 days.
+  const proof = f.fill_minute as Candle;
+  assertEquals([proof.low, proof.volume], [99, 1]);
 
   // Same probe, but the market never came back and its four hours are up.
   const dead = world({ probes: [seed({ expires_at: new Date(NOW - 1).toISOString() })], oneMin: { low: 128 } });
   const r2 = await tick(dead.deps);
   assertEquals([r2.probes.filled, r2.probes.expired], [0, 1]);
   const e = dead.mem.tables.agent_maker_probes[0];
-  assertEquals([e.state, e.minutes_to_fill], ["expired", null]);
+  assertEquals([e.state, e.minutes_to_fill, e.fill_minute], ["expired", null, null]);
 
   // Neither one touched a position, an order or the book.
   for (const w of [hit, dead]) assertEquals(w.mem.tables.agent_orders.filter((o) => o.id === 7).length, 0);
+});
+
+Deno.test("a minute with no trades fills nothing: neither a resting paper order nor a maker probe", async () => {
+  // Revolut X's UK candles move on quotes while nothing trades. Under the old test this minute —
+  // its low under both prices, its volume zero — filled the order and resolved the probe.
+  const bid = world().quote.bid;
+  const quoteBuilt = { low: bid - 1, high: bid + 1, volume: 0 };
+  const order = seedOrder({ ts: new Date(NOW - ONE_M).toISOString(), price: bid, decision_id: 77 });   // young, at the touch: left resting
+  const probe = {
+    id: 7, ts: new Date(NOW - 30 * 60e3).toISOString(), strategy_id: "trend-4h-kraken", order_id: null,
+    venue: "kraken", symbol: "BTC/USD", side: "buy", mode: "paper", taker_price: bid + 1, maker_price: bid,
+    base_size: 0.1, state: "resting", resolved_at: null, minutes_to_fill: null, mark_at_resolve: null,
+    follow_up: {}, expires_at: new Date(NOW + PROBE_TTL_MS).toISOString(), watching: true,
+  };
+  const w = world({ orders: [order], probes: [probe], oneMin: quoteBuilt });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.settled, []);
+  assertEquals(w.mem.tables.agent_orders[0].state, "new");
+  assertEquals([r.probes.filled, r.probes.expired], [0, 0]);
+  assertEquals(w.mem.tables.agent_maker_probes[0].state, "resting");
+
+  // The same minute with a trade in it fills both.
+  const traded = world({ orders: [order], probes: [probe], oneMin: { ...quoteBuilt, volume: 0.01 } });
+  const r2 = await tick(traded.deps);
+  assertEquals(r2.settled, [{ id: 1, state: "filled" }]);
+  assertEquals(r2.probes.filled, 1);
 });
 
 Deno.test("a resolved probe collects its follow-up marks, and the last one stops it being watched", async () => {
@@ -1761,6 +1809,11 @@ Deno.test("the in-memory database refuses what Postgres refuses, on UPDATE as we
   refused = "";
   await db.insert("agent_maker_probes", { strategy_id: "s", venue: "revx", symbol: "BTC/USD", side: "buy", mode: "live", taker_price: 100, maker_price: 0, base_size: 0.1, expires_at: new Date(NOW).toISOString() }).catch((e) => { refused = String(e); });
   assert(refused.includes("maker_price_check"), refused);
+  // A probe column the schema does not have is refused by PostgREST before Postgres sees it: `fill_minute` exists from 0050 on.
+  refused = "";
+  await db.insert("agent_maker_probes", { strategy_id: "s", venue: "revx", symbol: "BTC/USD", side: "buy", mode: "live", taker_price: 100, maker_price: 99, base_size: 0.1, expires_at: new Date(NOW).toISOString(), fill_candle: {} }).catch((e) => { refused = String(e); });
+  assert(refused.includes("'fill_candle' column"), refused);
+  assertEquals(schemaRefusal("agent_maker_probes", { strategy_id: "s", venue: "revx", symbol: "BTC/USD", side: "buy", mode: "live", taker_price: 100, maker_price: 99, base_size: 0.1, expires_at: new Date(NOW).toISOString(), state: "filled", watching: false, fill_minute: null }), null);
   // `client_order_id uuid not null unique`: a second order under the same id is a unique violation, and not a uuid is not a row.
   refused = "";
   await db.insert("agent_orders", row).catch((e) => { refused = String(e); });

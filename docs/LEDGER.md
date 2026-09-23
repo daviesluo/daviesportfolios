@@ -23,7 +23,8 @@ list stays the short version; the plan is the reasoning behind it.
       venue, migration `0049` the three twins; reference §4.29). Feasible:
       five coins TRADING, $5 minimum, tighter books, 10 bps a side. Their
       decisions are the Revolut X rows'; they are for the page, paper only
-      by constraint. The go-live draft is `0050` now.
+      by constraint. The go-live draft is `0051` now (`0050` became the
+      maker-probe correction, item 3).
    3. **Venue-unique strategies from first principles, NOT the existing
       rulebooks: DONE — nothing worth money** (reference §3.26, review
       `reviews/2026-09-23-first-principles-study.md`). 31 ideas, 25 killed
@@ -34,8 +35,15 @@ list stays the short version; the plan is the reasoning behind it.
       TEST CANDIDATE, not seeded: it needs GBP/USDC/USDT working capital and
       a quote loop the tick does not have. **DAVIES DECIDES** whether to
       build that forward test. Binance's stablecoin-tail quotes pass and earn
-      ≈ 1.5 %/yr, below cash. **The search found that the tick's maker probes read
-      those quote-built candles as fills**: fixed in the next commit.
+      ≈ 1.5 %/yr, below cash. **The search found a production bug, FIXED**
+      (reference §4 item 30, migration `0050`): Revolut X's UK 1-minute
+      candles move on quotes while nothing trades, and the tick resolved all
+      three maker probes on such minutes; a fill now needs a trade through
+      the price (`tradedThrough`), the proving minute is kept (`fill_minute`),
+      and `0050` corrected probes 1–3 (first trade through: 8, 43, 7 min, not
+      1, 3, 1). **Verify after the push**: `0050` applied (migrations.yml),
+      the agents function redeployed, and the next probe that fills carries
+      a `fill_minute` whose volume is above zero.
    4. A second repository, `daviesluo/personal`, was cloned into the
       session: it is EMPTY; Davies will say what it is for.
 
@@ -439,6 +447,18 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 13:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**A maker probe, like a resting paper order, is filled only by a trade through its
+price** (`tradedThrough`, migration `0050`, reference §4 item 30). The tick read the
+last minute's low/high with no volume check, and on Revolut X's quote-built UK
+candles all three probes on record were resolved on zero-volume minutes. A fill now
+needs volume > 0 and a price strictly through, and the proving minute is kept in
+`fill_minute`. `0050` corrects probes 1–3 to 8, 43 and 7 minutes and clears their
+marks; a dry run in a rolled-back transaction touched exactly those three rows. The
+go-live draft is `0051_go_live.sql.draft` now, and the test double refuses an unknown
+probe column. Counterfactual: the old rule fails the three new tests.
 
 ### [2026-09-23 13:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
