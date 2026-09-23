@@ -178,7 +178,7 @@ the case for the first live strategy in
 | `docs/` | The user guide, the full system map, the agents research, screenshots and the diagram. |
 | `.github/` | CI workflows, the security policy and the PR template. |
 | `docs/LEDGER.md` | The running work log: what's in flight and what happened, newest first. |
-| `AGENTS.md`, `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents I work with (Claude Code, Cursor, Codex), and the ledger protocol they all follow. |
+| `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents I work with, kept in one file (`.claude/CLAUDE.md`), and the ledger protocol they all follow. |
 
 The file-by-file map, the engineering notes behind each decision and the
 data flow are in [`docs/map.md`](map.md). How to use every part of
