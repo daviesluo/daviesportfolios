@@ -53,8 +53,8 @@ UK venue with an API is cheaper on these five coins at an entry tier.
    since 2026-09-16: 50 bps a round trip resting, 100 taking.
 
 Not usable for the loop: OKX (its UK service has no API), Bybit (not
-FCA-registered; UK API UNVERIFIED; blocks US IPs), Binance (no UK
-onboarding), Gemini (left the UK in 2026), Kraken (fees), CoinJar
+FCA-registered; UK API UNVERIFIED; blocks US IPs), Binance (no new UK
+users since 2023; Davies' existing account can trade spot — §11), Gemini (left the UK in 2026), Kraken (fees), CoinJar
 (spreads 24–282 bps), IBKR crypto (per-order minimum), IG and Robinhood UK
 (no crypto API).
 
@@ -244,7 +244,7 @@ venue without authorisation must stop then, so this list will change in
 | Kraken Pro | Payward Ltd, FRN 928768 [S28] | see [R3 §2b] | 0.40 / 0.80 % [R3 §2b] | all five | Data only [R3 §4 item 23] |
 | OKX | UK users served by Aux Cayes FinTech Co. Ltd (Seychelles). Spot order book and Convert only; **API, GBP deposits, trading bots, demo trading and all derivatives are unavailable in the UK** [S10]. Categorisation, appropriateness test and cooling-off apply [S11]. Not FCA-registered (reviews) | none for UK users | — | — | **Unusable** (its public data is still fine) |
 | Bybit | Spot (100 pairs) and P2P since 2025-12-19, under promotions approved by Archax. Bybit says it is "not authorised, regulated, or registered by the FCA" [S12] | V5 API exists; UK access UNVERIFIED; `api.bybit.com` answers 403 to a US IP (measured 2026-09-22 23:49 UTC) | 0.10 / 0.10 % base spot (Bybit help, via search) [S12]; fiat pairs 0.15 / 0.20 % (review) | UNVERIFIED | No |
-| Binance | Not onboarding UK users since October 2023; relaunch aimed at 2027, subject to the FCA [S13] | — | — | — | Unavailable |
+| Binance | No new UK users since 2023-10-16; existing users keep spot [S104]. Relaunch aimed at 2027, subject to the FCA [S13] | REST; refuses US addresses (§11) | 0.10 / 0.10 %, 0.075 % with BNB | all five vs USDT | Davies' existing account: see §11 |
 | Gemini | Left the UK: withdrawal-only from 2026-03-05, accounts closed from 2026-04-06 [S6] | — | — | — | Unavailable |
 | Bitfinex | No new UK individuals since 2023-11-01 except high-net-worth or sophisticated; existing UK users restricted from 2024-01-10 [S23] | — | — | — | Unavailable to retail |
 | Bitpanda | UK relaunch in August 2025 with FCA registration [S22] | Fusion REST API: market, limit and stop orders, up to 1,000 req/min, WebSocket "coming soon" [S22]; Fusion for UK users UNVERIFIED | Fusion 0.25 % at L1 down to 0.02 % at L7 [S22]; broker app premium about 1.49 % (review) | UNVERIFIED | No: 50 bps a round trip |
@@ -553,6 +553,92 @@ every route: it is the evidence in each system.
 8. **Data.** Which of the three additions (Binance bulk, Deribit, Bitstamp
    OHLC) should the next backtest session wire in first?
 
+## 11. Binance and Deribit, with Davies' own keys (2026-09-23)
+
+Davies holds a Binance spot account and a Deribit account, and put an API
+key for each into the project's secrets. Neither account holds money;
+Binance can be funded and Deribit cannot. What each key may do was read
+from the server, read-only (reference, "Binance and Deribit keys"). This
+section is what the two are good for.
+
+### 11.1 What is allowed
+
+- **Binance.** It has not taken new UK users since 2023-10-16 17:00 UK
+  time; an existing UK user who completed the investor declaration and the
+  appropriateness test keeps the services they had, with no new products
+  [S104]. Spot is one of them, and the probe shows the account can trade
+  spot. No Binance company is authorised in the UK, so neither the
+  Financial Ombudsman nor the FSCS covers it, and the FCA's regime, which
+  starts on 2027-10-25, requires an unauthorised firm to stop serving UK
+  customers then [S4]. Derivatives stay closed to UK retail (the FCA ban,
+  §4). Every GBP pair is suspended, so money arrives as crypto or
+  stablecoins, and every price is in USDT, not USD.
+- **Deribit.** "Deribit does not currently offer its services to UK
+  Retail Clients" — only professional clients and eligible counterparties
+  (help centre, updated 2026-09-15) [S105]. That is why the account cannot
+  be funded. Everything useful Deribit publishes is keyless.
+
+### 11.2 What the keys can reach
+
+- **Binance** refuses US addresses: `api.binance.com` answers this
+  repository's development container, which reaches the internet from the
+  US, with 451 ("restricted location"), and the project's Edge Functions
+  in eu-west-2 (London) with 200. A function runs in the region
+  nearest its caller unless the call pins one with `x-region` or
+  `forceFunctionRegion`, and a pinned call is not rerouted during an
+  outage [S106]; the loop is called from the database in London, so it
+  runs there. Edge Functions have no fixed egress address [S107], so the
+  key cannot be limited to an IP. Market data comes keyless from
+  `data-api.binance.vision`, from anywhere.
+- **Deribit**: the key adds rate-limit headroom and nothing the loop
+  needs. DVOL (the 30-day implied volatility index) is public, daily and
+  hourly back to 2021-03-24, for BTC and ETH only.
+
+### 11.3 What the key permissions should be
+
+Both keys can do more than anything here needs. Binance's has spot
+trading and universal transfer on (withdrawals off, no IP restriction);
+Deribit's token carries `trade:read_write`. Until a use is decided, switch
+Binance's "Enable Spot & Margin Trading" and universal transfer off, and
+issue Deribit's key read-only.
+
+### 11.4 What they are good for
+
+Ranked by what they could earn for the effort, from the desk research,
+then priced where a backtest can price them.
+
+1. **Binance as the venue for the thinner coins.** On the five live coins
+   Binance quotes one tick wide. Twenty paired samples of both books
+   (2026-09-23 02:21–02:31 UTC, recomputed from the raw file) put the
+   median spread at BTC 1.6 / ETH 1.8 / SOL 3.6 / AVAX 9.0 / SUI 23.6 bps
+   on Revolut X's UK book against 0.0 / 0.0 / 0.8 / 0.9 / 1.0 on Binance.
+   With each venue's taker fee on both legs (9 bps on Revolut X, 10 on
+   Binance, 7.5 with BNB) a round trip costs the same on BTC, ETH and SOL
+   (~20 bps), and less on the thin two: AVAX 27.0 → 20.9 and SUI 41.6 →
+   21.0 bps at that hour. SUI's own 60-sample median on Revolut X is
+   14.9 bps (~33 bps a round trip, reference §3.20), so ~12 bps a round
+   trip is the fair saving there, not ~20. Binance's depth would also
+   lift the $100k-a-day book bar that kept POL out (§3.8). Prices are in
+   USDT, not USD. Whether this changes any coin's verdict is a
+   pre-registered backtest under way: the live coins at Binance's cost,
+   SUI's seat re-judged, the top twenty re-screened.
+2. **Volatility-sized slots, and DVOL or funding as entry gates.** Priced
+   on the live row, pre-registered: all three fail the bar (reference
+   §3.21). Nothing changes.
+3. **Recording them as inputs.** DVOL and funding cost one keyless call a
+   day each and could go on every decision row, as the loop already
+   records its state, so that a later study reads the live record rather
+   than a reconstruction. Not built: nothing reads them yet.
+
+### 11.5 What they cannot do
+
+- **No shorting and no derivatives** for a UK retail account on either
+  venue (the FCA ban, §4); Binance keeps UK retail on spot, and Deribit
+  does not take UK retail at all.
+- **No arbitrage** worth the fees: the loop's own basis record between
+  Revolut X and Kraken never came near the cost of crossing (reference
+  §2c), and Binance's book adds a third price, not a free one.
+
 ## Sources
 
 All read 2026-09-22 or 2026-09-23 (UTC). "Via search" means the page
@@ -837,3 +923,11 @@ regulator.
   https://aplus.hkicpa.org.hk/ird-issues-guidance-on-cryptocurrency-taxation/
 - [S103] FSCS https://www.fscs.org.uk ; SIPC https://www.sipc.org ; SFC
   Investor Compensation Fund FAQ https://www.sfc.hk
+- [S104] Binance, "Update on Binance for UK users" (2023-10-16):
+  https://www.binance.com/en-GB/blog/all/update-on-binance-for-uk-users-937596818854026589
+- [S105] Deribit help centre, "UK Client Categorisation" (updated 2026-09-15):
+  https://support.deribit.com/hc/en-us/articles/34156799518109-UK-Client-Categorisation
+- [S106] Supabase, "Regional invocation":
+  https://supabase.com/docs/guides/functions/regional-invocation
+- [S107] Supabase, "Why Edge Functions cannot provide static egress IPs":
+  https://supabase.com/docs/guides/troubleshooting/why-supabase-edge-functions-cannot-provide-static-egress-ips-for-whitelisting-3d78b0

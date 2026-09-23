@@ -144,9 +144,10 @@ list stays the short version; the plan is the reasoning behind it.
 
 0d. **Binance and Deribit keys: verified read-only 2026-09-23 02:24 UTC**
    (reference, "Binance and Deribit keys"). Both usable from the server;
-   neither funded (Deribit cannot be from the UK). What they are FOR is
-   being researched (Davies' request of 2026-09-23); nothing trades on
-   either. His settings, when convenient: switch off Binance's "Enable
+   neither funded (Deribit cannot be from the UK). What they are FOR:
+   `docs/agents/venue-survey.md` §11 (rules, reach, uses, limits); three
+   uses priced and rejected (reference §3.21); the Binance-cost study is
+   item 000.4. Nothing trades on either. His settings, when convenient: switch off Binance's "Enable
    Spot & Margin Trading" and universal transfer, and Deribit's
    `trade:read_write`, until a use is decided.
 
@@ -366,6 +367,17 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 04:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The venue survey has a §11 for Binance and Deribit** as Davies actually
+holds them. Checked at the source: Binance has taken no new UK users since
+2023-10-16 and existing ones keep spot; Deribit takes no UK retail client
+(help centre, 2026-09-15); an Edge Function runs nearest its caller unless
+pinned, and has no fixed egress address. The survey's "Binance:
+unavailable" now reads as his existing account. The measured spreads are
+recomputed from the raw paired samples, and SUI's saving is stated against
+its 60-sample median rather than the night-time sample.
 
 ### [2026-09-23 04:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
