@@ -74,11 +74,10 @@ list stays the short version; the plan is the reasoning behind it.
    it in paper too. Its admission does not survive the running stop
    (window A only), and its median round trip is ~33 bps, not ~42.
 
-   **Venue survey: the agent died early.** Its notes (UK/HK regulation,
-   the SFC's 13 licensed platforms, OSL / HashKey API terms, Coinbase's
-   public candles) are in the session scratchpad only. To do: finish it
-   as `docs/agents/venue-survey.md` (UK, US, HK: exchanges, brokers with
-   APIs, legal shorting, ETNs, data APIs; no VPN routes).
+   **Venue survey: DONE, committed (`docs/agents/venue-survey.md`).**
+   Brief Davies in Chinese; his answers to its §10 questions (US state and
+   SSN/ITIN, HKID, stay small or scale, an always-on host, a long/short
+   study) decide any next step.
 
    **J — Jev study: DONE, committed (reference §4.21).** (i) shadow
    +8.0 / +20.1 / +55.6 / −7.8 %, (ii) gating as it runs −1.0 / +14.6 /
@@ -301,6 +300,16 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 00:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The venue survey is in** (`docs/agents/venue-survey.md`, 838 lines, 41
+claims marked UNVERIFIED, no amounts from his accounts): from the UK stay
+on Revolut X (Bitstamp and Coinbase Advanced the backups; OKX, Bybit,
+Binance, Gemini and Luno unusable for the loop); no legal crypto shorting
+for UK retail; in the US Binance.US is cheapest but thin, in Hong Kong
+Futu's OpenAPI; data first: Binance bulk files, Deribit DVOL, Bitstamp's
+tape. The Coinbase answer: the backtests read its keyless public candles.
 
 ### [2026-09-23 00:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
