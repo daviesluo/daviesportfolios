@@ -29,26 +29,25 @@ list stays the short version; the plan is the reasoning behind it.
       - **Sizing and entry gates: DONE** (reference §3.21): volatility-sized
         slots, a DVOL gate and a funding gate all fail the bar; nothing
         changes.
+      - **The paper rows' Jev gates: DONE** (reference §4.21): both fail
+        the bar; the choice is Davies' (item 6).
       - **Binance's costs** (the live coins, SUI's seat, the top-twenty
-        screen) and **the v2 Jev gate on momentum-1d and trend-1h**: both
-        were cut off by a usage limit at ~03:52 UTC with their final runs
-        half done. Their files are on the backup branch
-        `claude/repo-audit-restore-uverhn`, `wip/2026-09-23-studies/`
-        (`ddb4c67`, with a README): the Binance script, its frozen
-        pre-registration (addendum of 03:14 UTC included), its book samples
-        and helpers; the Jev-gate patch (port it to its own file —
-        `backtest_jev.ts`'s hash is pinned by `sizing.json`). Resume: re-run
-        each twice on the three tape directories, compare the two outputs,
-        re-run once more from a clean tree before believing a number, then
-        a review, a reference section and the venue survey's §11 (its
-        draft is in the backup too).
+        screen): run twice with identical bytes; the main session's re-run
+        is the last check before it lands. The half-finished state of both
+        studies stays backed up on `claude/repo-audit-restore-uverhn`
+        (`ddb4c67`).
    5. `src/` has too many files: sort it into subfolders — **DONE**:
       `app/`, `portfolio/`, `prices/`, `charts/`, `board/`, `tables/`,
       `agents/`, plus `e2e/` and `public/`; the top of `src/` is only the
       npm project's own files, `index.html` and the test setup.
    6. "What did the Jev and SUI studies find, and what is next?" — the
-      answer is item 00.3 and reference §3.20; the next steps are the
-      two studies in 4 that price what is still unpriced.
+      answer is item 00.3 and reference §3.20. **The paper rows' gates are
+      now priced (reference §4.21): neither clears the bar.** DAVIES
+      DECIDES: leave the gate on those two rows, shadow them
+      (`params.jevGate: false`), or write momentum-1d its own question
+      (v2 speaks of the 4-hour picture), measure it on every state and
+      price it before the loop asks it. SUI's next step is the
+      Binance-cost study (item 4).
 
 00. **DAVIES' FOUR REQUESTS OF 2026-09-22 ~20:15 UTC, in hand from
    23:35 UTC.** His usage window closed before any was begun.
@@ -367,6 +366,19 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 05:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The v2 Jev gate on the two paper rows is priced, and fails the bar on
+both** (reference §4.21; `backtest_jev_other.ts` → `jev_v2_other.json`;
+review `2026-09-23-jev-gates-paper-rows.md`). trend-1h's worst window
+falls in all four evaluations; momentum-1d's bear year falls 4–15 points
+as the loop runs it, once a day. The gate refuses ~65 % of momentum-1d's
+entry signals but does not switch it off. The study was cut off by a usage
+limit, resumed, moved out of `backtest_jev.ts` into its own file (that
+file's hash is pinned), and re-run here with the same bytes. Also found:
+momentum-1d's published numbers price a 4-hour cadence the loop does not
+run. The choice for the two rows is Davies' (item 000.6).
 
 ### [2026-09-23 04:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

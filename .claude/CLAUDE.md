@@ -266,7 +266,11 @@ that follow from that evidence, in short:
   in a band where the measured replies are deterministic
   (`JEV_ENTER_MIN`, pinned against `backtests/jev_answers_v2.json`); a new
   wording is measured on every entry state through `POST ?action=jev`
-  (`version`, `kind`) and priced before the loop asks it.
+  (`version`, `kind`) and priced before the loop asks it. **On the two
+  paper rows the same gate fails the bar** (§4.21, priced 2026-09-23):
+  trend-1h's worst window falls in all four evaluations, and momentum-1d's
+  bear year falls 4–15 points as the loop runs it (once a day). What to do
+  with those rows is Davies' call.
 - **A test double must be at least as strict as what it stands in for.**
   Twice on 2026-09-22 a stub looser than production certified a failure:
   the in-memory db ignored `agent_orders_mode_check` (a paused row's exit
