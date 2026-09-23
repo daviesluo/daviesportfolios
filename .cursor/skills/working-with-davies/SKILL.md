@@ -5,8 +5,8 @@ description: How the owner of daviesportfolios works, what he means by done, and
 
 # Working with Davies on daviesportfolios
 
-`CLAUDE.md` and `AGENTS.md` have the mechanical rules (git identity,
-gates, README, Edge Function deploys, Cloud caveats). This is the part
+`.claude/CLAUDE.md` has the mechanical rules (git identity, gates,
+README, Edge Function deploys, container caveats). This is the part
 that is not mechanical: what he actually asks for, what he accepts as
 an answer, and the mistakes that have already cost a round trip.
 

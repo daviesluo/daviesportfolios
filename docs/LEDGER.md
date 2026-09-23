@@ -314,6 +314,18 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-23 02:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`AGENTS.md` is folded into `.claude/CLAUDE.md`** ("better shown whole in
+one place"). Of its 160 lines only the fresh-container section was its
+own; the ledger, pull-request and how-the-owner-works parts repeated
+CLAUDE.md. That section is now CLAUDE.md's "A fresh container", and
+`.cursor/rules/instructions.mdc` (always applied) sends Cursor to the one
+file; the skill's opening line follows. The one tool that loses anything
+is Codex, which reads only a root `AGENTS.md`: `@codex` PR reviews would
+run without repo instructions. It still finds the ledger skill in
+`.agents/skills/`.
+
 ### [2026-09-23 02:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The README is `docs/README.md`, with the phone screenshots.** GitHub

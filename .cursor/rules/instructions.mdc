@@ -1,0 +1,12 @@
+---
+description: This repository's instructions for every coding agent are in .claude/CLAUDE.md. Always load.
+alwaysApply: true
+---
+# Read `.claude/CLAUDE.md` first
+
+This repository keeps one instruction file for every coding agent:
+`.claude/CLAUDE.md`. It has the gates, the git rules, the ledger
+(`docs/LEDGER.md`, read it first on any resume), Edge Function deploys,
+the crypto agents' rules and what a fresh container needs. Read it in
+full before changing anything. `working-with-davies.mdc` beside this file
+is how the owner works.

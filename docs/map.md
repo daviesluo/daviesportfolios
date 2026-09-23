@@ -643,7 +643,7 @@ before touching migration state.
 | `docs/agents/scripts/agents-baseline-backtest.py` | The first baseline backtest, in Python. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
-| `AGENTS.md`, `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, and the ledger protocol they follow (`.agents/skills/ledger/`). |
+| `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |
 
 ---
 
