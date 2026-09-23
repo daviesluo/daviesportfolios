@@ -1376,6 +1376,12 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
   const set2Path = String(args.set2 ?? "docs/agents/backtests/set2.json");
   const outDir = String(args.out ?? "docs/agents/backtests");
   const DRAWS = Number(args.draws ?? 2000), NULL_DRAWS = Number(args["null-draws"] ?? 1000);
+  // Configuration (ii) gates at the rows' 0.60 — unless a wording measured later is priced at its own threshold
+  // (`--enter-min`, with that wording's answers in `--answers`); the output then goes to `--out-name`. With neither
+  // flag the run is the 2026-09-22 study, unchanged.
+  const ENTER_MIN_II = args["enter-min"] != null ? Number(args["enter-min"]) : SHIPPED_ENTER_MIN;
+  if (!(ENTER_MIN_II > 0 && ENTER_MIN_II < 1)) throw new Error("--enter-min must be in (0, 1)");
+  const OUT_NAME = String(args["out-name"] ?? "jev.json");
   /** Bisection draws and steps for the null's calibration; draws per grid point for (ii)'s plateau; draws for side arms. */
   const CAL_DRAWS = 100, CAL_ITERS = 10, PLATEAU_DRAWS = 100, SIDE_DRAWS = 500, SHADOW_DRAWS = 20, OLD_NULL_DRAWS = 400;
   if (!dataDir || !extDir || !kDir) throw new Error("--replay measured needs --data, --ext and --ktape (see the header)");
@@ -1561,7 +1567,7 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
     const counter = { would: 0, asked: 0 };
     const a = runArm(cond, w, (sym) => {
       const rng = mulberry32(seedOf("shadow", cond.id, w, sym, k));
-      const gated = jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf("shadow-would", cond.id, w, sym, k)), SHIPPED_ENTER_MIN, true);
+      const gated = jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf("shadow-would", cond.id, w, sym, k)), ENTER_MIN_II, true);
       const shadow = jevPolicy(book.bySymbol, stateKey, rng, SHIPPED_ENTER_MIN, false);
       return (i, s, r) => { counter.asked++; if (gated(i, s, r) === "hold") counter.would++; return shadow(i, s, r); };
     })!;
@@ -1713,7 +1719,7 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
     coinFlipSignalsMean: r3(meanOf(m.coinFlip)), coinFlipRefusedMean: r3(meanOf(m.coinFlipRefused)),
   });
   const iiPolicy = (cond: Condition, w: WinName, tag = "ii") => (sym: string, k: number) =>
-    jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf(tag, cond.id, w, sym, k)), SHIPPED_ENTER_MIN, true);
+    jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf(tag, cond.id, w, sym, k)), ENTER_MIN_II, true);
   const mcII: Record<string, Partial<Record<WinName, Mc>>> = {};
   const armIII: Record<string, Partial<Record<WinName, ArmOut>>> = {};
   let clauseMomentumDiffs = 0;
@@ -1780,7 +1786,7 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
     const states: CategoricalState[] = [];
     runArm(PRIMARY, w, () => rulePolicy, { states });
     const pIII = states.filter((s) => s.trend_strength === "weak").length / states.length;
-    const pII = meanOf(states.map((s) => vetoProb(s, SHIPPED_ENTER_MIN)));
+    const pII = meanOf(states.map((s) => vetoProb(s, ENTER_MIN_II)));
     const mIII = mcRun(PRIMARY, w, NULL_DRAWS, (sym, k) => signalNullPolicy(pIII, mulberry32(seedOf("signal-null", "iii", w, sym, k))));
     const mII = mcRun(PRIMARY, w, NULL_DRAWS, (sym, k) => signalNullPolicy(pII, mulberry32(seedOf("signal-null", "ii", w, sym, k))));
     signalNull[w] = {
@@ -1877,13 +1883,14 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
   // ── sensitivity: the replies pooled across coins ───────────────────────
   const pooledSens: Record<string, unknown> = {};
   for (const w of scoredWindows(PRIMARY)) {
-    const m = mcRun(PRIMARY, w, DRAWS, (sym, k) => jevPolicy(book.pooled, cellKey, mulberry32(seedOf("ii-pooled", PRIMARY.id, w, sym, k)), SHIPPED_ENTER_MIN, true));
+    const m = mcRun(PRIMARY, w, DRAWS, (sym, k) => jevPolicy(book.pooled, cellKey, mulberry32(seedOf("ii-pooled", PRIMARY.id, w, sym, k)), ENTER_MIN_II, true));
     pooledSens[w] = { pooled: mcRow(m), perSymbol: mcRow(mcII[PRIMARY.id][w]!) };
   }
   say("pooled-reply sensitivity done");
 
   // ── the threshold, as a structure (primary evaluation) ─────────────────
   const THRESHOLDS = [0, 0.1, 0.12, 0.4, 0.6, 0.62, 0.8, 0.95, 0.98];
+  if (!THRESHOLDS.includes(ENTER_MIN_II)) { THRESHOLDS.push(ENTER_MIN_II); THRESHOLDS.sort((a, b) => a - b); }
   const thresholdRows: Record<string, unknown>[] = [];
   let equivalences = 0, equivalenceFailures = 0;
   for (const em of THRESHOLDS) {
@@ -1899,7 +1906,7 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
         if (code) { equivalences++; if (code.stats.ret !== a.stats.ret || code.entries !== a.entries || code.stats.maxDD !== a.stats.maxDD) equivalenceFailures++; }
         perW[w] = { deterministic: true, ...sleeveRow(a), identicalToCodeArm: code ? code.stats.ret === a.stats.ret && code.entries === a.entries : null };
       } else {
-        const m = em === SHIPPED_ENTER_MIN ? mcII[PRIMARY.id][w]! : mcRun(PRIMARY, w, SIDE_DRAWS, (sym, k) => jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf("th", em, w, sym, k)), em, true));
+        const m = em === ENTER_MIN_II ? mcII[PRIMARY.id][w]! : mcRun(PRIMARY, w, SIDE_DRAWS, (sym, k) => jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf("th", em, w, sym, k)), em, true));
         perW[w] = { deterministic: false, ...mcRow(m) };
       }
     }
@@ -1921,13 +1928,13 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
       grid.i.push(runArm(PRIMARY, w, () => rulePolicy, { p, cache: gridCache })!.stats.ret);
       grid.iii.push(runArm(PRIMARY, w, () => clausePolicy(false), { p, cache: gridCache })!.stats.ret);
       let tot = 0;
-      for (let k = 0; k < PLATEAU_DRAWS; k++) tot += runArm(PRIMARY, w, (sym) => jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf("plateau", g, w, sym, k)), SHIPPED_ENTER_MIN, true), { p, cache: gridCache })!.stats.ret;
+      for (let k = 0; k < PLATEAU_DRAWS; k++) tot += runArm(PRIMARY, w, (sym) => jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf("plateau", g, w, sym, k)), ENTER_MIN_II, true), { p, cache: gridCache })!.stats.ret;
       grid.ii.push(tot / PLATEAU_DRAWS);
     }
     gridCache.clear();
     const krI = runArm(PRIMARY, w, () => rulePolicy, { costs: COSTS.kraken })!.stats;
     const krIII = runArm(PRIMARY, w, () => clausePolicy(false), { costs: COSTS.kraken })!.stats;
-    const krII = mcRun(PRIMARY, w, SIDE_DRAWS, (sym, k) => jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf("kraken-costs", w, sym, k)), SHIPPED_ENTER_MIN, true), { costs: COSTS.kraken });
+    const krII = mcRun(PRIMARY, w, SIDE_DRAWS, (sym, k) => jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf("kraken-costs", w, sym, k)), ENTER_MIN_II, true), { costs: COSTS.kraken });
     const test = (ret: number, dd: number, plateau: number[], other: number) => {
       const share = plateau.filter((x) => x > 0).length / plateau.length;
       const failed: string[] = [];
@@ -1978,8 +1985,8 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
     let differentSleeve = 0;
     for (let k = 0; k < CTRL_DRAWS; k++) {
       const logsL: Record<string, Map<number, "enter" | "hold">> = {}, logsC: Record<string, Map<number, "enter" | "hold">> = {};
-      const L = runArm(PRIMARY, w, (sym) => jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf("live", w, sym, k)), SHIPPED_ENTER_MIN, true), { logs: logsL })!;
-      const C = runArm(PRIMARY, w, (sym) => jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf("control", w, sym, k)), SHIPPED_ENTER_MIN, true), { logs: logsC })!;
+      const L = runArm(PRIMARY, w, (sym) => jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf("live", w, sym, k)), ENTER_MIN_II, true), { logs: logsL })!;
+      const C = runArm(PRIMARY, w, (sym) => jevPolicy(book.bySymbol, stateKey, mulberry32(seedOf("control", w, sym, k)), ENTER_MIN_II, true), { logs: logsC })!;
       for (const sym of Object.keys(logsL)) {
         const t = track("coinbase", sym, w);
         for (const [bar, a] of logsL[sym]) {
@@ -1989,7 +1996,7 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
           joint++;
           const st = t.entries.get(bar - t.start)!.state;
           const flip = st.volatility === "high" && st.trend_strength !== "weak";
-          if (flip) { jointCoinFlip++; const q = vetoProb(st, SHIPPED_ENTER_MIN); expectedCoinFlipDisagree += 2 * q * (1 - q); }
+          if (flip) { jointCoinFlip++; const q = vetoProb(st, ENTER_MIN_II); expectedCoinFlipDisagree += 2 * q * (1 - q); }
           if (c !== a) { disagree++; if (flip) disagreeCoinFlip++; }
         }
       }
@@ -2016,7 +2023,7 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
       ruleEntries: states.length, weak: by((s) => s.trend_strength === "weak"),
       coinFlip: by((s) => s.trend_strength !== "weak" && s.volatility === "high"), calm: by((s) => s.trend_strength !== "weak" && s.volatility !== "high"),
       momentumUnknown: by((s) => s.momentum_30d !== "positive"),
-      expectedVetoShareUnderII: r3(meanOf(states.map((s) => vetoProb(s, SHIPPED_ENTER_MIN)))),
+      expectedVetoShareUnderII: r3(meanOf(states.map((s) => vetoProb(s, ENTER_MIN_II)))),
       oosYears: r3((ruleArm[PRIMARY.id][w]!.stats.days) / 365),
     };
   }
@@ -2024,6 +2031,31 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
   // ── inputs unchanged for the whole run ─────────────────────────────────
   const hashesEnd = { backtestTs: await sha(btUrl), agentsStrategyTs: await sha(rbUrl), answersJson: await sha(answersPath) };
   if (JSON.stringify(hashesEnd) !== JSON.stringify(hashesStart)) throw new Error("an input changed while this study ran — rerun it");
+
+  // Which wording the answers are to (their provenance says, from v2 on), and — for any wording but v1, whose bands
+  // are described in words above — every threshold from 0.30 to 0.85 read straight off the answers: how many of the
+  // states history reaches (momentum positive) and of all ninety are vetoed on every reply, on some, or on none.
+  const questionVersion = String((book.provenance?.question as { version?: string } | undefined)?.version ?? "v1");
+  const thresholdScan = (() => {
+    const rows: { enterMin: number; historical: { vetoed: number; straddle: number; passed: number }; all: { vetoed: number; straddle: number; passed: number }; vetoedCells: string[]; straddleCells: string[] }[] = [];
+    for (let c = 30; c <= 85; c++) {
+      const em = c / 100;
+      const count = (onlyPositive: boolean) => {
+        const out = { vetoed: 0, straddle: 0, passed: 0 };
+        for (const k of book.bySymbol.keys()) {
+          const wds = book.words.get(k)!;
+          if (onlyPositive && wds.momentum_30d !== "positive") continue;
+          const q = vetoProb(wds, em);
+          if (q === 1) out.vetoed++; else if (q === 0) out.passed++; else out.straddle++;
+        }
+        return out;
+      };
+      const cells = (pred: (q: number) => boolean) => [...new Set([...book.bySymbol.keys()].filter((k) => pred(vetoProb(book.words.get(k)!, em))).map((k) => cellKey(book.words.get(k)!)))].sort();
+      rows.push({ enterMin: em, historical: count(true), all: count(false), vetoedCells: cells((q) => q === 1), straddleCells: cells((q) => q > 0 && q < 1) });
+    }
+    const deterministic = rows.filter((r) => r.all.straddle === 0).map((r) => r.enterMin);
+    return { note: "per threshold: states whose five replies are ALL under it (vetoed every time), SOME under it (a coin flip) and NONE under it (never vetoed); combineDecision vetoes when P < enterMin", deterministicOnAll90: deterministic, rows };
+  })();
 
   const perCoinPrimary = Object.fromEntries(scoredWindows(PRIMARY).map((w) => [w, Object.fromEntries(priced("coinbase", w).map((s) => [s, {
     i_shadow: r4(ruleArm[PRIMARY.id][w]!.per[s].ret), ii_gateMean: r4(mcII[PRIMARY.id][w]!.perCoin[s]), iii_clause: r4(armIII[PRIMARY.id][w]!.per[s].ret),
@@ -2033,7 +2065,8 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
   const report = {
     study: "the Jev veto on MEASURED answers — the live row's three possible configurations, (i) rule with the model in shadow, (ii) rule ∧ the model as it runs, (iii) rule + the prompt's weak-trend clause as code, on four windows × the four evaluations §3.19 requires, each against a random veto at the same rate",
     row: LIVE_CANDIDATE,
-    thresholds: { enterMin: SHIPPED_ENTER_MIN, cautionExit: CAUTION_EXIT, source: "agent_strategies.params.enterMin on every row and in the go-live draft; cautionExit is tick.ts's literal" },
+    thresholds: { enterMin: ENTER_MIN_II, cautionExit: CAUTION_EXIT, source: ENTER_MIN_II === SHIPPED_ENTER_MIN ? "agent_strategies.params.enterMin on every row and in the go-live draft; cautionExit is tick.ts's literal" : `--enter-min ${ENTER_MIN_II}: the threshold configuration (ii) is priced at for the wording in --answers (${questionVersion}); cautionExit is tick.ts's literal` },
+    ...(questionVersion !== "v1" ? { wording: { version: questionVersion, note: "The band descriptions under measuredSurface.bands, the caveats and liveRecord were written for the v1 wording and its 0.60; for this wording read thresholdScan, which is computed from these answers alone. (iii) is v1's weak-trend clause as code, kept as a reference arm." }, thresholdScan } : {}),
     replay: {
       mode: "measured", answersFile: answersPath, answersSha256: hashesStart.answersJson, answersProvenance: book.provenance,
       states: book.bySymbol.size, replies: book.replies,
@@ -2096,8 +2129,8 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
     sourceIntegrity: { ...hashesStart, note: "SHA-256 of backtest.ts, agents_strategy.ts and jev_answers.json at the start of the run; the run throws if any changed before it finished" },
   };
 
-  await Deno.writeTextFile(`${outDir}/jev.json`, JSON.stringify(report, null, 1));
-  say(`wrote ${outDir}/jev.json`);
+  await Deno.writeTextFile(`${outDir}/${OUT_NAME}`, JSON.stringify(report, null, 1));
+  say(`wrote ${outDir}/${OUT_NAME}`);
 }
 
 if (import.meta.main) {

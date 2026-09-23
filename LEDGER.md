@@ -29,19 +29,14 @@ list stays the short version; the plan is the reasoning behind it.
       Keep the showcase top; the system map becomes one line per item;
       long "why" narratives stay in `docs/handover.md` / the reference;
       update CLAUDE.md's README rule to the new shape.
-   3. **Jev: fix the configuration, do NOT shadow it.** He rejected
-      `jevGate: false`: "这个不就相当于把jev模型给实际retire了？听起来像是jev模型的规则配置问题而不是jev本身，
-      请修复并验证". The faults are ours: (a) the `healthy_trend`
-      question's prose demands `trend_strength` moderate/strong and
-      `momentum_30d` positive, stricter than the rulebook; (b) `enterMin`
-      0.60 sits in the band where the model's high-volatility answers are
-      a coin flip (0.55–0.64). Rewrite the question to ask what the
-      rulebook cannot see, pick a threshold in a deterministic band,
-      re-measure the REAL model on all 90 entry states with the new
-      wording, re-price with `backtest_jev.ts --replay measured` against
-      the random-veto null on A/B/C/D, pin the question and threshold, and
-      report honestly if it still does not beat the null. Item J's
-      "recommended shadow" is withdrawn by this.
+   3. ~~Jev: fix the configuration, do NOT shadow it.~~ **DONE
+      2026-09-23 (reference §4.21, review `2026-09-23-jev-question-fix.md`,
+      migration `0047`).** v2 question + threshold 0.45 chosen from the
+      measured replies before any backtest; every state decided the same
+      way on every call; priced A +9.6 / B +19.5 / C +58.2 / D −7.8 %
+      (rulebook +8.0 / +20.1 / +55.6 / −7.8). Worst window unchanged, A
+      and C better in all four evaluations, inside chance. Watch the paper
+      rows' first v2 decisions; momentum-1d's gate is unpriced.
    4. ~~"30 Sept" → "30 Sep"~~ **DONE 2026-09-23**: one month table
       (`MONTHS`, `fmtDayMonth`, `fmtMonth` in `src/formatters.js`) for the
       earnings panel, both chart modules and the Agents page.
@@ -79,10 +74,7 @@ list stays the short version; the plan is the reasoning behind it.
    SSN/ITIN, HKID, stay small or scale, an always-on host, a long/short
    study) decide any next step.
 
-   **J — Jev study: DONE, committed (reference §4.21).** (i) shadow
-   +8.0 / +20.1 / +55.6 / −7.8 %, (ii) gating as it runs −1.0 / +14.6 /
-   +55.7 / −2.3 %, (iii) the weak-trend clause as code +0.6 / +14.9 /
-   +56.7 / −3.3 %. The shadow recommendation is superseded by item 00.3.
+   **J — Jev: fixed (item 00.3).** The shadow recommendation is gone.
 
    **K — Kraken history: DONE, committed (reference §4.23).** Stop
    researching Kraken; Davies moves the money to Revolut X (item 0c).
@@ -171,7 +163,8 @@ list stays the short version; the plan is the reasoning behind it.
    The headline fact he must weigh: **of 21 shipped members not one
    clears the two-window bar**. When he says go, the switch is ONE
    migration, **drafted, dry-run and committed at
-   `docs/agents/0047_go_live.sql.draft`** — deliberately NOT under
+   `docs/agents/0048_go_live.sql.draft`** (renumbered from 0047 on
+   2026-09-23; `enterMin` 0.45) — deliberately NOT under
    `supabase/migrations/`, because a file there is applied by
    `migrations.yml` on the next push, so MOVING it is the act of going
    live. It adds `trend-4h-live` as a new row (rather than flipping
@@ -181,10 +174,10 @@ list stays the short version; the plan is the reasoning behind it.
    **The pre-live verification is done (2026-09-22, §4.19 and go-live §9)
    and found one real defect, now fixed: a position did not carry the mode
    it was opened in.** One box is left and it is Davies': run the
-   read-only `probe` — **run 14:05 UTC and green**. **But the switch is no
-   longer only his word**: the Jev study (item J below) may have turned the
-   bear year negative, and that is the window the recommendation rests on.
-   Verify it before going live. Then watch the first live order: its read-back is what verifies
+   read-only `probe` — **run 14:05 UTC and green**. The Jev question is
+   fixed (item 00.3): with the v2 gate the bear year reads +9.6 %, not the
+   −1.0 % the old gate gave it. Before arming, re-run the probe (Kraken's
+   money is moving to Revolut X, item 0c). Then watch the first live order: its read-back is what verifies
    Revolut X's settlement field names (B4), and the page raises a banner
    if it is left pending.
    Kraken holds £75 GBP, not USD (probe 09-20 19:08 UTC); a live Kraken
@@ -300,6 +293,23 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 00:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Jev is fixed, not shadowed: v2 question at 0.45** (reference §4.21,
+review `reviews/2026-09-23-jev-question-fix.md`, migration `0047`). The
+model was asked every entry state of all three rules with the new wording
+(1,665 calls, $0.059, answers in `backtests/jev_answers_v2*.json`, md5
+checked against SQL); a v1 control in the same minute reproduced the old
+answers, so the change is the wording's. 0.45 was chosen from the replies
+before any backtest (every state decided the same way on every call; only
+a weak trend in high volatility refused), pinned against the answers
+file. Priced on the live candidate: A +9.6 / B +19.5 / C +58.2 / D −7.8 %
+against the rulebook's +8.0 / +20.1 / +55.6 / −7.8; the worst window
+does not move; A and C improve in all four evaluations, inside chance.
+Two runs byte-identical (`672ae9a2…`). The go-live draft is renumbered
+`0048` with `enterMin` 0.45. The migration applies on this push; the
+agents function redeploys with v2 as the loop's question.
 
 ### [2026-09-23 00:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

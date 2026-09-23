@@ -518,11 +518,27 @@ short of a real order closes this.
 
 ### 9.6 Jev vetoes one entry in five, and no backtest prices that
 
-**Priced since (reference §4.21, 2026-09-22):** on the real model's answers to every entry state, letting it veto takes window A from +8.0 % to −1.0 % and D from −7.8 % to −2.3 %, and a random veto of the same size does as well on the worst window in 30–43 % of draws — it does not pass the bar. The recommendation is to run it in shadow (`params.jevGate: false`) on the live row and on `trend-4h`, its paper control; the §9.5 draft gets that parameter once Davies chooses. The measurement below is the record that started the question.
+**Fixed and priced, 2026-09-23 (reference §4.21; migration `0047`).** The
+veto came from our configuration, not from the model: the v1 question told
+the model to refuse every weak trend and every unknown momentum, and its
+0.60 threshold sat where the model's high-volatility answers were a coin
+flip. Davies rejected running the model in shadow ("that retires Jev"), so
+the question was rewritten to ask for the model's own judgment (v2) and the
+threshold moved to 0.45, chosen from the model's measured replies before any
+backtest. On a trend entry the gate now refuses exactly one state, a weak
+trend in high volatility (the model's P 0.35–0.41), and decides every state
+the same way on every call. The live row's four windows, primary evaluation,
+rulebook alone → rulebook with the fixed gate: **A +8.0 → +9.6 %, B +20.1 →
++19.5 %, C +55.6 → +58.2 %, D −7.8 → −7.8 %**, refusing 0–9 % of entries.
+The worst window is unchanged; A and C improve in all four evaluations,
+suggestively but not beyond chance (a random veto of the same size does as
+well in 7–9 % of draws on the shipped stop). The old gate read −1.0 / +14.6
+/ +55.7 / −2.3 %. The §9.5 draft carries `enterMin` 0.45. The record below is
+what started the question.
 
 **Every published number in this document is for the RULEBOOK. The
 account runs the rulebook AND Jev.** `combineDecision` turns an entry
-into a hold when `P(healthy) < enterMin` (0.6), when caution is extreme,
+into a hold when `P(healthy) < enterMin` (0.6 until 2026-09-23, 0.45 since), when caution is extreme,
 or when the model does not answer. No backtest models any of it — the
 reference says so and is right to — but until 2026-09-22 nobody had
 counted it in the live record either, and §9.1's "0 refused by the risk
@@ -564,10 +580,10 @@ again in a month, over a live row's own bars.
 ### 9.5 The order of operations
 
 1. ~~Run the probe.~~ **Done 14:05 UTC, green — §9.4.**
-2. Move `docs/agents/0047_go_live.sql.draft` to
-   `supabase/migrations/0047_go_live.sql` and push — check first that
-   0047 is still the next free number (`ls supabase/migrations/`; `0045`
-   and `0046` are taken and applied, and a file under a used number is
+2. Move `docs/agents/0048_go_live.sql.draft` to
+   `supabase/migrations/0048_go_live.sql` and push — check first that
+   0048 is still the next free number (`ls supabase/migrations/`; up to
+   `0047` are taken and applied, and a file under a used number is
    skipped by `supabase db push`, not applied). **That push is the
    act of going live** — `migrations.yml` applies it.
 3. The first live order still needs Davies' word in the conversation.
