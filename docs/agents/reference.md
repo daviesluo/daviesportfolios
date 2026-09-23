@@ -2358,6 +2358,31 @@ principles as well. What the two do together is routing, not return: Revolut X
 is this account's GBP on-ramp and its only GBP books; Binance is the price
 reference and the breadth.
 
+### 3.27 PR3 on nine months of prints: it passes, and the market it passed in is gone (2026-09-23)
+
+Davies asked why PR3 had 13 days and for a longer, credible test, with paper testing if it passed. PR3 read Revolut
+X's 1-minute candles, which the venue keeps 28 days. The venue also serves its whole PUBLIC trade history keylessly
+(`GET /api/1.0/public/trades/all?symbol=&start_date=&end_date=&limit=100&cursor=`: at most a one-day window, 100
+prints a page, one request a second; every print carries id, price, quantity, time in ms, region and aggressor side),
+which §3.26 had missed. The venue's own documentation also says a candle is built from trades when its minute traded and
+from the bid/ask MID when it did not — §3.26's finding, in the vendor's words. A research agent pulled every UK print of
+USDC/GBP (15,466) and USDT/GBP (41,478), checked them against the venue's hourly candle volume (7,201 of 7,207 and 6,713 of
+6,743 hours match; in 35 of the 36 misses the tape holds more), and re-tested PR3's rule unchanged on the nine months
+before PR3's data began (review `reviews/2026-09-23-pr5-study.md`, pre-registration `…-pr5-prereg.md`). Fills are prints
+strictly through the quote after it is live, at most $100 and 10 % of the minute's volume; a post-only order the market
+is already through when it goes live is refused; GBP/USD is Exness's public tick archive, chosen before any P&L.
+
+**It passes all six conditions**: +$707.90 on $1,200 over 8,192 round trips (94.4 % won, worst −$0.56, drawdown $0.96);
+the random-time null's p95 +$43.68; stress +$618.96; positive in 10 months of 10, the largest month 17.3 % of the total.
+Re-computed here: the frozen simulator reproduces its JSON byte for byte from the inputs committed in
+`backtests/inputs/pr5_2026-09-23/`, 30 random trips match the raw prints, and trips of $10 or more carry $693.90 of it (a
+dust bot's $0.10 prints do not). **But the market changed in the week of 2026-08-24**: the gap between buy and sell prints
+within a minute fell from 11–52 bps (monthly medians) to 3–5, measured independently here too, and in the 28 days since
+the rule made $11.67 on 102 trips — **$0.42 a day, about 12.7 %/yr** on the capital its quotes lock, the number to plan
+with, not the primary window's 82 %/yr. PR3's 28 days began two days after that change. Orders averaged 391 a day in the
+wide market and exceeded Revolut X's 1,000 a day on 14 days; 205 a day since. **So it went to paper** (§4 item 31):
+what it earns now, and whether a post-only order at these prices would have been accepted, only running it can say.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

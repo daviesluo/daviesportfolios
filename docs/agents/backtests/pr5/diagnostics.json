@@ -1,0 +1,380 @@
+{
+ "concentration": {
+  "best": 1.1371,
+  "mean_per_trip": 0.08641,
+  "top_10pct_share": 0.3799,
+  "top_1pct_share": 0.0634,
+  "total": 707.9,
+  "trips": 8192
+ },
+ "continuous_by_month": {
+  "2025-11": {
+   "pnl_usd": 6.85,
+   "trips": 72
+  },
+  "2025-12": {
+   "pnl_usd": 62.49,
+   "trips": 755
+  },
+  "2026-01": {
+   "pnl_usd": 74.73,
+   "trips": 856
+  },
+  "2026-02": {
+   "pnl_usd": 71.96,
+   "trips": 804
+  },
+  "2026-03": {
+   "pnl_usd": 122.28,
+   "trips": 1438
+  },
+  "2026-04": {
+   "pnl_usd": 84.15,
+   "trips": 1048
+  },
+  "2026-05": {
+   "pnl_usd": 81.98,
+   "trips": 904
+  },
+  "2026-06": {
+   "pnl_usd": 83.34,
+   "trips": 933
+  },
+  "2026-07": {
+   "pnl_usd": 74.49,
+   "trips": 843
+  },
+  "2026-08": {
+   "pnl_usd": 47.71,
+   "trips": 555
+  },
+  "2026-09": {
+   "pnl_usd": 9.73,
+   "trips": 84
+  }
+ },
+ "entries_by_weekday": {
+  "Fri": 1587,
+  "Mon": 1586,
+  "Sun": 202,
+  "Thu": 1608,
+  "Tue": 1655,
+  "Wed": 1554
+ },
+ "fill_print_depth_bps": {
+  "p10": 1.4,
+  "p50": 8.1,
+  "p90": 20.3,
+  "p99": 30.8,
+  "pnl_from_fills_deeper_than_50bps": 2.2,
+  "trips_deeper_than_50bps": 9
+ },
+ "orders": {
+  "days": 258,
+  "days_over_1000": 14,
+  "days_over_700": 44,
+  "max": 1856,
+  "p50": 449,
+  "p90": 841,
+  "top_days": [
+   [
+    "2026-03-23",
+    1856
+   ],
+   [
+    "2026-03-03",
+    1438
+   ],
+   [
+    "2026-03-05",
+    1347
+   ],
+   [
+    "2026-03-09",
+    1262
+   ],
+   [
+    "2026-03-02",
+    1204
+   ],
+   [
+    "2026-03-24",
+    1201
+   ],
+   [
+    "2026-01-30",
+    1171
+   ],
+   [
+    "2026-03-19",
+    1164
+   ]
+  ]
+ },
+ "weekly": {
+  "2025-W48": {
+   "buy_minus_sell_bps_p50": 42.4,
+   "pairs": 1,
+   "pnl_usd": 6.85,
+   "trips": 72
+  },
+  "2025-W49": {
+   "buy_minus_sell_bps_p50": 60.1,
+   "pairs": 3,
+   "pnl_usd": 10.42,
+   "trips": 111
+  },
+  "2025-W50": {
+   "buy_minus_sell_bps_p50": 22.7,
+   "pairs": 6,
+   "pnl_usd": 6.2,
+   "trips": 50
+  },
+  "2025-W51": {
+   "buy_minus_sell_bps_p50": 25.4,
+   "pairs": 19,
+   "pnl_usd": 17.11,
+   "trips": 218
+  },
+  "2025-W52": {
+   "buy_minus_sell_bps_p50": 35.2,
+   "pairs": 22,
+   "pnl_usd": 15.88,
+   "trips": 206
+  },
+  "2026-W01": {
+   "buy_minus_sell_bps_p50": 31.0,
+   "pairs": 34,
+   "pnl_usd": 14.74,
+   "trips": 208
+  },
+  "2026-W02": {
+   "buy_minus_sell_bps_p50": 31.1,
+   "pairs": 32,
+   "pnl_usd": 19.28,
+   "trips": 262
+  },
+  "2026-W03": {
+   "buy_minus_sell_bps_p50": 22.8,
+   "pairs": 17,
+   "pnl_usd": 12.72,
+   "trips": 142
+  },
+  "2026-W04": {
+   "buy_minus_sell_bps_p50": 21.5,
+   "pairs": 36,
+   "pnl_usd": 21.19,
+   "trips": 205
+  },
+  "2026-W05": {
+   "buy_minus_sell_bps_p50": 18.6,
+   "pairs": 44,
+   "pnl_usd": 19.84,
+   "trips": 212
+  },
+  "2026-W06": {
+   "buy_minus_sell_bps_p50": 24.4,
+   "pairs": 66,
+   "pnl_usd": 15.93,
+   "trips": 191
+  },
+  "2026-W07": {
+   "buy_minus_sell_bps_p50": 26.0,
+   "pairs": 33,
+   "pnl_usd": 17.16,
+   "trips": 167
+  },
+  "2026-W08": {
+   "buy_minus_sell_bps_p50": 25.9,
+   "pairs": 34,
+   "pnl_usd": 14.79,
+   "trips": 127
+  },
+  "2026-W09": {
+   "buy_minus_sell_bps_p50": 28.4,
+   "pairs": 37,
+   "pnl_usd": 25.12,
+   "trips": 319
+  },
+  "2026-W10": {
+   "buy_minus_sell_bps_p50": 37.5,
+   "pairs": 49,
+   "pnl_usd": 30.31,
+   "trips": 343
+  },
+  "2026-W11": {
+   "buy_minus_sell_bps_p50": 30.9,
+   "pairs": 41,
+   "pnl_usd": 27.16,
+   "trips": 290
+  },
+  "2026-W12": {
+   "buy_minus_sell_bps_p50": 37.3,
+   "pairs": 41,
+   "pnl_usd": 30.05,
+   "trips": 337
+  },
+  "2026-W13": {
+   "buy_minus_sell_bps_p50": 52.9,
+   "pairs": 42,
+   "pnl_usd": 27.28,
+   "trips": 366
+  },
+  "2026-W14": {
+   "buy_minus_sell_bps_p50": 23.1,
+   "pairs": 34,
+   "pnl_usd": 15.03,
+   "trips": 234
+  },
+  "2026-W15": {
+   "buy_minus_sell_bps_p50": 29.6,
+   "pairs": 25,
+   "pnl_usd": 19.13,
+   "trips": 246
+  },
+  "2026-W16": {
+   "buy_minus_sell_bps_p50": 32.5,
+   "pairs": 33,
+   "pnl_usd": 25.21,
+   "trips": 274
+  },
+  "2026-W17": {
+   "buy_minus_sell_bps_p50": 23.0,
+   "pairs": 24,
+   "pnl_usd": 16.89,
+   "trips": 224
+  },
+  "2026-W18": {
+   "buy_minus_sell_bps_p50": 32.4,
+   "pairs": 36,
+   "pnl_usd": 20.68,
+   "trips": 239
+  },
+  "2026-W19": {
+   "buy_minus_sell_bps_p50": 20.4,
+   "pairs": 33,
+   "pnl_usd": 14.45,
+   "trips": 160
+  },
+  "2026-W20": {
+   "buy_minus_sell_bps_p50": 25.5,
+   "pairs": 36,
+   "pnl_usd": 16.26,
+   "trips": 231
+  },
+  "2026-W21": {
+   "buy_minus_sell_bps_p50": 18.8,
+   "pairs": 36,
+   "pnl_usd": 22.74,
+   "trips": 184
+  },
+  "2026-W22": {
+   "buy_minus_sell_bps_p50": 24.3,
+   "pairs": 34,
+   "pnl_usd": 22.01,
+   "trips": 259
+  },
+  "2026-W23": {
+   "buy_minus_sell_bps_p50": 24.3,
+   "pairs": 61,
+   "pnl_usd": 30.61,
+   "trips": 321
+  },
+  "2026-W24": {
+   "buy_minus_sell_bps_p50": 26.8,
+   "pairs": 40,
+   "pnl_usd": 16.37,
+   "trips": 192
+  },
+  "2026-W25": {
+   "buy_minus_sell_bps_p50": 16.6,
+   "pairs": 60,
+   "pnl_usd": 12.19,
+   "trips": 130
+  },
+  "2026-W26": {
+   "buy_minus_sell_bps_p50": 17.9,
+   "pairs": 48,
+   "pnl_usd": 14.14,
+   "trips": 196
+  },
+  "2026-W27": {
+   "buy_minus_sell_bps_p50": 25.1,
+   "pairs": 45,
+   "pnl_usd": 24.81,
+   "trips": 262
+  },
+  "2026-W28": {
+   "buy_minus_sell_bps_p50": 16.1,
+   "pairs": 62,
+   "pnl_usd": 11.59,
+   "trips": 170
+  },
+  "2026-W29": {
+   "buy_minus_sell_bps_p50": 8.1,
+   "pairs": 37,
+   "pnl_usd": 22.91,
+   "trips": 254
+  },
+  "2026-W30": {
+   "buy_minus_sell_bps_p50": 8.1,
+   "pairs": 36,
+   "pnl_usd": 11.85,
+   "trips": 99
+  },
+  "2026-W31": {
+   "buy_minus_sell_bps_p50": 13.3,
+   "pairs": 39,
+   "pnl_usd": 13.54,
+   "trips": 157
+  },
+  "2026-W32": {
+   "buy_minus_sell_bps_p50": 17.5,
+   "pairs": 25,
+   "pnl_usd": 15.98,
+   "trips": 181
+  },
+  "2026-W33": {
+   "buy_minus_sell_bps_p50": 19.6,
+   "pairs": 36,
+   "pnl_usd": 11.77,
+   "trips": 119
+  },
+  "2026-W34": {
+   "buy_minus_sell_bps_p50": 19.1,
+   "pairs": 42,
+   "pnl_usd": 13.88,
+   "trips": 188
+  },
+  "2026-W35": {
+   "buy_minus_sell_bps_p50": 5.4,
+   "pairs": 52,
+   "pnl_usd": 5.45,
+   "trips": 58
+  },
+  "2026-W36": {
+   "buy_minus_sell_bps_p50": 5.4,
+   "pairs": 37,
+   "pnl_usd": 3.38,
+   "trips": 27
+  },
+  "2026-W37": {
+   "buy_minus_sell_bps_p50": 4.1,
+   "pairs": 38,
+   "pnl_usd": 1.95,
+   "trips": 20
+  },
+  "2026-W38": {
+   "buy_minus_sell_bps_p50": 3.3,
+   "pairs": 36,
+   "pnl_usd": 3.19,
+   "trips": 31
+  },
+  "2026-W39": {
+   "buy_minus_sell_bps_p50": 4.0,
+   "pairs": 17,
+   "pnl_usd": 1.65,
+   "trips": 10
+  }
+ }
+}

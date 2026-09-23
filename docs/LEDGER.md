@@ -15,22 +15,21 @@ has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
 000000. **DAVIES' REQUESTS OF 2026-09-23 ~13:35 UTC**, in order:
-   1. **PR3 on a longer, credible record, then paper if it passes:
-      AGENT RUNNING.** PR3 had 13.25 out-of-sample days because it read
-      Revolut X's 1-minute candles, which the venue keeps 28 days. The venue
-      serves its whole PUBLIC trade history keylessly (`GET
-      /api/1.0/public/trades/all?symbol=&start_date=&end_date=&limit=100
-      &cursor=`, ≤ 1-day window, 1 request/s; checked back to 2025-10-01),
-      so an agent is re-testing PR3's unchanged rule on every print since
-      the two books opened (2025-11-26 / 2025-12-16) up to 2026-08-26, data
-      PR3 never saw, under a new pre-registration (fills on prints, a
-      monthly-stability bar). Its folder is the scratchpad's
-      `research_pr5`. **If it passes**, the paper test goes into the loop
-      (its spec comes with the report); if not, PR3 is closed.
-   2. **A second, independent first-principles search: AGENT RUNNING**,
-      the first brief plus the first study's results and the public trade
-      history; folder `research_fp2`. Its output is verified here before
-      anything is committed.
+   1. **PR3 on a longer, credible record: PASSED (PR5).** PR3 had 13.25
+      out-of-sample days because it read the 1-minute candles the venue
+      keeps 28 days; the venue serves its whole PUBLIC trade history
+      keylessly (`/api/1.0/public/trades/all`). On the nine months PR3 never
+      saw, its unchanged rule made +$707.90 on $1,200 over 8,192 trips and
+      cleared all six pre-registered conditions (reference §3.27, review
+      `reviews/2026-09-23-pr5-study.md`), reproduced here byte for byte.
+      **But the books tightened in the week of 2026-08-24**: since then
+      $0.42 a day — plan with that. The paper test is the next commit.
+   2. **A second, independent first-principles search: REPORTED, being
+      verified** (folder `research_fp2`): by its report 20 ideas, three
+      pre-registered tests, all three lose out of sample — nothing unique to
+      either venue worth money. Its dust-bot finding ($0.10 prints at the UK
+      touch) was checked against PR5: trips of $10 or more carry $693.90 of
+      its $707.90. It is committed as §3.28 once re-computed here.
    3. **"(Paper)" stays on funded only: DONE** — the scoreboards and the
       venue cards say DEPLOYED / deployed with no label.
    4. **The CI flake: FIXED** — both workflows pin the Supabase CLI
@@ -481,6 +480,15 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 15:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**PR5, PR3's rule on nine months of public prints, is on record**: the study with this
+session's re-computation (freeze before results, byte-identical re-runs from the committed
+inputs, 30 trips matched to the raw tape, the regime change measured independently, dust
+checked), the frozen pre-registration, the simulator and pipeline, the inputs it reads
+(3.6 MB gzipped), its results, the agent's paper-test spec, and `golden_windows.json` —
+the simulator on five windows with its exact inputs, for the loop's engine. Reference §3.27.
 
 ### [2026-09-23 13:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
