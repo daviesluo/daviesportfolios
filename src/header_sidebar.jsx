@@ -13,6 +13,7 @@ import {
   maskDigits as mask,
   displayTicker,
   pctIsFlat,
+  fmtDayMonth,
 } from './formatters.js';
 import { londonTimeParts, usMarketPhase, ukTzAbbr } from './market_hours.js';
 import { isCnFund } from './ticker_class.js';
@@ -1034,17 +1035,9 @@ function londonDayKey(unixSec) {
   return LONDON_DAY_FMT.format(new Date(unixSec * 1000));
 }
 
+// The month is the site's own table (`fmtDayMonth`): en-GB alone wrote "30 Sept".
 function fmtEarningsDate(unixSec) {
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/London',
-    day: '2-digit', month: 'short',
-  }).formatToParts(new Date(unixSec * 1000));
-  let dd = '', mo = '';
-  for (const p of parts) {
-    if (p.type === 'day') dd = p.value;
-    if (p.type === 'month') mo = p.value;
-  }
-  return `${dd} ${mo}`;
+  return fmtDayMonth(new Date(unixSec * 1000), { locale: 'en-GB', timeZone: 'Europe/London', day: '2-digit' });
 }
 
 // Prefer Yahoo's labelled time ("before market open" → "BMO") when

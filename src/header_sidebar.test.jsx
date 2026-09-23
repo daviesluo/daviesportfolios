@@ -442,6 +442,15 @@ describe('UpcomingEarnings — keeps today\'s report until the day is over', () 
 
   afterEach(() => vi.restoreAllMocks());
 
+  it('writes the month the way the rest of the site does: 30 Sep, not the Sept en-GB Intl writes', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-22T12:00:00Z'));
+    const { fetchFundamentals } = await import('./yahoo_fetch.js');
+    vi.mocked(fetchFundamentals).mockResolvedValueOnce({ SOON: { earningsDate: sec('2026-09-30T12:30:00Z') } });
+    const { container } = render(<UpcomingEarnings portfolio={/** @type {any} */ (portfolio)} />);
+    expect(await screen.findByText('30 Sep')).toBeInTheDocument();
+    expect(container.textContent).not.toContain('Sept');
+  });
+
   it('shows a report from earlier today, drops one from yesterday', async () => {
     // Fixed "now": 2026-08-10 22:30 London (21:30Z, BST = UTC+1).
     vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-08-10T21:30:00Z'));

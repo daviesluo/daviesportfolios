@@ -34,6 +34,7 @@ import {
   moneyTicks, fmtAxisMoney, fmtChipMoney, windowPct, provenanceSplitIndex,
 } from './investment_view.js';
 import { reportError } from './ops_error.js';
+import { fmtDayMonth, fmtMonth } from './formatters.js';
 import {
   mergeOvernightSeries,
   fetchOvernightSeries,
@@ -871,9 +872,9 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
       if (rangeKey === '1D') {
         label = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       } else if (rangeKey === '1W' || rangeKey === '1M') {
-        label = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        label = fmtDayMonth(d);
       } else {
-        label = d.toLocaleString('default', { month: 'short' });
+        label = fmtMonth(d);
       }
       months.push({ x, label });
     }
@@ -934,7 +935,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   const spByIdx   = lineB.length === lineA.length ? lineB : null; // aligned in 1D / YTD
   const fmtCrosshairDate = (dateStr) => {
     const d = parseChartDateUTC(dateStr);
-    const date = () => d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    const date = () => fmtDayMonth(d);
     const time = () => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     const fmt = crosshairFormatFor(rangeKey);
     if (fmt === 'time') return time();

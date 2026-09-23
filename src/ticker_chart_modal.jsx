@@ -7,7 +7,7 @@ import React from 'react';
 import { Modal } from './modals.jsx';
 import { usMarketHoursUtc, isWeekendDeadZone, isUsMarketHoliday, isUsTradingDateStr, foreignSessionIsOpen } from './market_hours.js';
 import { fxToUSD } from './fx.js';
-import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits } from './formatters.js';
+import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits, fmtDayMonth } from './formatters.js';
 import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h, fillVenueSessionGrid, resampleToSlots } from './ytd.js';
 import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly, isCrypto, venueSessionFor, tradingWeekOf } from './ticker_class.js';
 import {
@@ -510,10 +510,10 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }
     if (fmt === 'datetime') {
-      return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
+      return fmtDayMonth(d) + ' ' +
              d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    return fmtDayMonth(d);
   }
   // X-axis tick labels — bare date on 1W/1M (5–6 samples across the row,
   // intraday timestamps would just clutter without adding info).
@@ -522,7 +522,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     if (rangeKey === '1D') {
       return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    return fmtDayMonth(d);
   }
 
   // Hover crosshair is updated via direct DOM-ref manipulation — NOT React

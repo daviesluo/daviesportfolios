@@ -42,8 +42,9 @@ list stays the short version; the plan is the reasoning behind it.
       the random-veto null on A/B/C/D, pin the question and threshold, and
       report honestly if it still does not beat the null. Item J's
       "recommended shadow" is withdrawn by this.
-   4. **"30 Sept" → "30 Sep"** in Upcoming Earnings
-      (`src/header_sidebar.jsx`, `Intl` en-GB writes "Sept"). Pin, rebuild.
+   4. ~~"30 Sept" → "30 Sep"~~ **DONE 2026-09-23**: one month table
+      (`MONTHS`, `fmtDayMonth`, `fmtMonth` in `src/formatters.js`) for the
+      earnings panel, both chart modules and the Agents page.
 
 0a. **WORK IN FLIGHT (as of 2026-09-22 23:35 UTC).** Every sub-agent died
    on the usage limit at ~20:20 UTC. **The main working tree is the
@@ -299,6 +300,17 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 00:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**"Sept" is gone from the site.** `Intl`'s en-GB (and en-AU, en-IE,
+en-IN) spells September "Sept", so a UK browser printed "30 Sept" in
+Upcoming Earnings and "22 Sept" on the performance chart's and the
+ticker chart's date labels, while the Agents page, with its own table,
+said "Sep". Every month now comes from one table in `src/formatters.js`;
+the locale still decides the order and the time zone the day. Pinned (the
+panel renders "30 Sep", red on the old formatter; every month maps to the
+table; a London midnight rolls the month). Gates green, sweep 208.
 
 ### [2026-09-22 23:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
