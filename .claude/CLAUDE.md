@@ -335,8 +335,9 @@ that follow from that evidence, in short:
   an hour survives the 20 bps round trip), and five more ideas (§3.9: a
   bare Donchian, a 4-hour pullback, a stale-trend exit, weekly bars — all
   rejected; a BTC-regime filter on entries is the one written-down
-  candidate, to be re-tested on a non-bear window before any paper twin)
-  were tested and rejected with numbers — a faster rule is a fee schedule
+  candidate, to be re-tested on a non-bear window before any paper twin),
+  and volatility-sized slots and DVOL / funding entry gates (§3.21, from the
+  Binance and Deribit research) were tested and rejected with numbers — a faster rule is a fee schedule
   until data says otherwise.
   Backtests: reference §3.3a–§3.7, run with the loop's own fills, stops
   and cooldown — including the rotation rule since 2026-09-21, where the

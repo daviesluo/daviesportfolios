@@ -1,0 +1,6413 @@
+{
+ "study": "three pre-registered changes to the live row trend-4h (Revolut X, BTC/ETH/SOL/AVAX/SUI, five equal $20 slots): H1 volatility-targeted entry size, H2 a Deribit DVOL entry filter, H3 a Binance funding entry filter — each against the incumbent on four windows × four evaluations and against its own null",
+ "preRegistration": "written before any arm ran, in the session scratchpad (research_bd/prereg_sizing_filters.md); the definitions below are its definitions",
+ "bar": "in EACH of the four evaluations (shipped·coinbase, shipped·kraken, trail·coinbase, trail·kraken): the arm's worst-window return beats the incumbent's worst-window return on the windows the hypothesis is judged on, AND the null does as well or better on its own worst window in at most 5 % of draws (ties count against the arm). Pass only if all four evaluations pass. Return over drawdown (ret / max(0.05, maxDD)) is reported under the same test and never decides.",
+ "definitions": {
+  "incumbent": {
+   "row": "trend-4h",
+   "venue": "revx",
+   "symbols": [
+    "BTC/USD",
+    "ETH/USD",
+    "SOL/USD",
+    "AVAX/USD",
+    "SUI/USD"
+   ],
+   "slotUsd": 20,
+   "params": {
+    "fast": 20,
+    "slow": 100,
+    "breakoutUp": 55,
+    "breakoutDown": 20,
+    "atrN": 14,
+    "atrStop": 3,
+    "volN": 42
+   },
+   "costs": "Revolut X: the touch (half the measured spread) plus 9 bps taker per fill (backtest.ts COSTS.revx)",
+   "windowsAndEvaluations": "backtest_jev.ts loadMeasuredSeries / CONDITIONS, unchanged"
+  },
+  "decisionTime": "the close of the 4h bar (bar start + 4 h); a daily input is read from the last UTC day that has closed at that instant (day start + 24 h ≤ decision time), the rule run applies to daily candles",
+  "h1": {
+   "size": "each entry deploys min(1, TARGET / vol) of the slot's cash; the rest stays in cash until the trade closes; exits, stops and the cooldown are the incumbent's",
+   "vol": "realisedVol(daily closes, 30, 365) — population stdev of the last 30 daily log returns of the evaluated tape's completed daily candles, annualised with √365",
+   "target": {
+    "value": 0.7405219565985408,
+    "rounded": 0.7405,
+    "pooledCoinDays": 3688,
+    "lastDayUsed": "2025-09-09",
+    "cutoffIsEarliestWindowAStart": "2025-09-10T00:00Z",
+    "perCoin": {
+     "BTC/USD": {
+      "days": 750,
+      "from": "2023-08-22",
+      "median": 0.4427
+     },
+     "ETH/USD": {
+      "days": 750,
+      "from": "2023-08-22",
+      "median": 0.6095
+     },
+     "SOL/USD": {
+      "days": 750,
+      "from": "2023-08-22",
+      "median": 0.7993
+     },
+     "AVAX/USD": {
+      "days": 719,
+      "from": "2023-09-22",
+      "median": 0.8808
+     },
+     "SUI/USD": {
+      "days": 719,
+      "from": "2023-09-22",
+      "median": 1.0291
+     }
+    },
+    "rule": "median of realisedVol(daily closes, 30, 365) on the Coinbase-spliced tape, pooled over the five coins and every UTC day from each coin's Coinbase series start to the day before the earliest window-A out-of-sample start among the five"
+   },
+   "venueMinimumOrderUsd": 0.1,
+   "placeboNull": "per draw and coin: the same coin's vol 365–730 days before each decision (shift uniform, capped by the history), or, where the coin's own history cannot reach 365 days before the window's first decision, a donor drawn uniformly from the coins whose history can; 2000 draws",
+   "permutationNull": "reported, never decides: the arm's multipliers permuted at random among the coin's own entries, 2000 draws",
+   "donors": {
+    "coinbase·A·BTC/USD": {
+     "firstDecision": "2025-09-10T04:00Z",
+     "ownHistoryDays": 4324,
+     "donors": [
+      {
+       "donor": "BTC/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·A·ETH/USD": {
+     "firstDecision": "2025-09-10T04:00Z",
+     "ownHistoryDays": 3653,
+     "donors": [
+      {
+       "donor": "ETH/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·A·SOL/USD": {
+     "firstDecision": "2025-09-10T04:00Z",
+     "ownHistoryDays": 1515,
+     "donors": [
+      {
+       "donor": "SOL/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·A·AVAX/USD": {
+     "firstDecision": "2025-09-21T16:00Z",
+     "ownHistoryDays": 1339,
+     "donors": [
+      {
+       "donor": "AVAX/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·A·SUI/USD": {
+     "firstDecision": "2025-09-21T16:00Z",
+     "ownHistoryDays": 841,
+     "donors": [
+      {
+       "donor": "SUI/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·B·BTC/USD": {
+     "firstDecision": "2024-08-31T04:00Z",
+     "ownHistoryDays": 3949,
+     "donors": [
+      {
+       "donor": "BTC/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·B·ETH/USD": {
+     "firstDecision": "2024-08-31T04:00Z",
+     "ownHistoryDays": 3278,
+     "donors": [
+      {
+       "donor": "ETH/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·B·SOL/USD": {
+     "firstDecision": "2024-08-31T04:00Z",
+     "ownHistoryDays": 1140,
+     "donors": [
+      {
+       "donor": "SOL/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·B·AVAX/USD": {
+     "firstDecision": "2024-09-21T16:00Z",
+     "ownHistoryDays": 974,
+     "donors": [
+      {
+       "donor": "AVAX/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·B·SUI/USD": {
+     "firstDecision": "2024-09-21T16:00Z",
+     "ownHistoryDays": 476,
+     "donors": [
+      {
+       "donor": "SUI/USD",
+       "shiftDays": [
+        365,
+        476
+       ]
+      }
+     ]
+    },
+    "coinbase·C·BTC/USD": {
+     "firstDecision": "2023-08-22T04:00Z",
+     "ownHistoryDays": 3574,
+     "donors": [
+      {
+       "donor": "BTC/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·C·ETH/USD": {
+     "firstDecision": "2023-08-22T04:00Z",
+     "ownHistoryDays": 2903,
+     "donors": [
+      {
+       "donor": "ETH/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·C·SOL/USD": {
+     "firstDecision": "2023-08-22T04:00Z",
+     "ownHistoryDays": 765,
+     "donors": [
+      {
+       "donor": "SOL/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·C·AVAX/USD": {
+     "firstDecision": "2023-09-22T16:00Z",
+     "ownHistoryDays": 609,
+     "donors": [
+      {
+       "donor": "AVAX/USD",
+       "shiftDays": [
+        365,
+        609
+       ]
+      }
+     ]
+    },
+    "coinbase·D·BTC/USD": {
+     "firstDecision": "2022-08-22T04:00Z",
+     "ownHistoryDays": 3209,
+     "donors": [
+      {
+       "donor": "BTC/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·D·ETH/USD": {
+     "firstDecision": "2022-08-22T04:00Z",
+     "ownHistoryDays": 2538,
+     "donors": [
+      {
+       "donor": "ETH/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "coinbase·D·SOL/USD": {
+     "firstDecision": "2022-08-22T04:00Z",
+     "ownHistoryDays": 400,
+     "donors": [
+      {
+       "donor": "SOL/USD",
+       "shiftDays": [
+        365,
+        400
+       ]
+      }
+     ]
+    },
+    "coinbase·D·AVAX/USD": {
+     "firstDecision": "2022-09-22T16:00Z",
+     "ownHistoryDays": 244,
+     "donors": [
+      {
+       "donor": "BTC/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      },
+      {
+       "donor": "ETH/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      },
+      {
+       "donor": "SOL/USD",
+       "shiftDays": [
+        365,
+        431
+       ]
+      }
+     ]
+    },
+    "kraken·A·BTC/USD": {
+     "firstDecision": "2025-09-10T04:00Z",
+     "ownHistoryDays": 4324,
+     "donors": [
+      {
+       "donor": "BTC/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·A·ETH/USD": {
+     "firstDecision": "2025-09-10T04:00Z",
+     "ownHistoryDays": 3653,
+     "donors": [
+      {
+       "donor": "ETH/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·A·SOL/USD": {
+     "firstDecision": "2025-09-10T04:00Z",
+     "ownHistoryDays": 1515,
+     "donors": [
+      {
+       "donor": "SOL/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·A·AVAX/USD": {
+     "firstDecision": "2025-09-21T16:00Z",
+     "ownHistoryDays": 1339,
+     "donors": [
+      {
+       "donor": "AVAX/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·A·SUI/USD": {
+     "firstDecision": "2025-09-21T16:00Z",
+     "ownHistoryDays": 841,
+     "donors": [
+      {
+       "donor": "SUI/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·B·BTC/USD": {
+     "firstDecision": "2024-08-31T04:00Z",
+     "ownHistoryDays": 3949,
+     "donors": [
+      {
+       "donor": "BTC/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·B·ETH/USD": {
+     "firstDecision": "2024-08-31T04:00Z",
+     "ownHistoryDays": 3278,
+     "donors": [
+      {
+       "donor": "ETH/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·B·SOL/USD": {
+     "firstDecision": "2024-08-31T04:00Z",
+     "ownHistoryDays": 1140,
+     "donors": [
+      {
+       "donor": "SOL/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·B·AVAX/USD": {
+     "firstDecision": "2024-09-21T16:00Z",
+     "ownHistoryDays": 974,
+     "donors": [
+      {
+       "donor": "AVAX/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·B·SUI/USD": {
+     "firstDecision": "2024-09-21T16:00Z",
+     "ownHistoryDays": 476,
+     "donors": [
+      {
+       "donor": "SUI/USD",
+       "shiftDays": [
+        365,
+        476
+       ]
+      }
+     ]
+    },
+    "kraken·C·BTC/USD": {
+     "firstDecision": "2023-08-22T04:00Z",
+     "ownHistoryDays": 3574,
+     "donors": [
+      {
+       "donor": "BTC/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·C·ETH/USD": {
+     "firstDecision": "2023-08-22T04:00Z",
+     "ownHistoryDays": 2903,
+     "donors": [
+      {
+       "donor": "ETH/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·C·SOL/USD": {
+     "firstDecision": "2023-08-22T04:00Z",
+     "ownHistoryDays": 765,
+     "donors": [
+      {
+       "donor": "SOL/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·C·AVAX/USD": {
+     "firstDecision": "2023-09-22T16:00Z",
+     "ownHistoryDays": 609,
+     "donors": [
+      {
+       "donor": "AVAX/USD",
+       "shiftDays": [
+        365,
+        609
+       ]
+      }
+     ]
+    },
+    "kraken·D·BTC/USD": {
+     "firstDecision": "2022-08-22T04:00Z",
+     "ownHistoryDays": 3209,
+     "donors": [
+      {
+       "donor": "BTC/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·D·ETH/USD": {
+     "firstDecision": "2022-08-22T04:00Z",
+     "ownHistoryDays": 2538,
+     "donors": [
+      {
+       "donor": "ETH/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      }
+     ]
+    },
+    "kraken·D·SOL/USD": {
+     "firstDecision": "2022-08-22T04:00Z",
+     "ownHistoryDays": 400,
+     "donors": [
+      {
+       "donor": "SOL/USD",
+       "shiftDays": [
+        365,
+        400
+       ]
+      }
+     ]
+    },
+    "kraken·D·AVAX/USD": {
+     "firstDecision": "2022-09-22T16:00Z",
+     "ownHistoryDays": 244,
+     "donors": [
+      {
+       "donor": "BTC/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      },
+      {
+       "donor": "ETH/USD",
+       "shiftDays": [
+        365,
+        730
+       ]
+      },
+      {
+       "donor": "SOL/USD",
+       "shiftDays": [
+        365,
+        431
+       ]
+      }
+     ]
+    }
+   }
+  },
+  "h2": {
+   "index": "Deribit DVOL daily close; BTC's for BTC, SOL, AVAX and SUI, ETH's for ETH",
+   "rule": "refuse an entry while DVOL of the reference day is strictly above the 244th smallest of the 365 daily closes ending on that day (top third)",
+   "filterDefined": {
+    "BTC": {
+     "firstDay": "2022-03-23",
+     "lastDay": "2026-09-22",
+     "days": 1645
+    },
+    "ETH": {
+     "firstDay": "2022-03-23",
+     "lastDay": "2026-09-22",
+     "days": 1645
+    }
+   },
+   "coverage": {
+    "perWindow": {
+     "A": {
+      "covered": true,
+      "perCoin": {
+       "coinbase·BTC/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2025-09-09",
+        "lastReferenceDay": "2026-09-19",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·ETH/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2025-09-09",
+        "lastReferenceDay": "2026-09-19",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·SOL/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2025-09-09",
+        "lastReferenceDay": "2026-09-19",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2025-09-20",
+        "lastReferenceDay": "2026-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·SUI/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2025-09-20",
+        "lastReferenceDay": "2026-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·BTC/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2025-09-09",
+        "lastReferenceDay": "2026-09-19",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·ETH/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2025-09-09",
+        "lastReferenceDay": "2026-09-19",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·SOL/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2025-09-09",
+        "lastReferenceDay": "2026-09-19",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2025-09-20",
+        "lastReferenceDay": "2026-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·SUI/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2025-09-20",
+        "lastReferenceDay": "2026-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       }
+      }
+     },
+     "B": {
+      "covered": true,
+      "perCoin": {
+       "coinbase·BTC/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2024-08-30",
+        "lastReferenceDay": "2025-09-08",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·ETH/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2024-08-30",
+        "lastReferenceDay": "2025-09-08",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·SOL/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2024-08-30",
+        "lastReferenceDay": "2025-09-08",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2024-09-20",
+        "lastReferenceDay": "2025-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·SUI/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2024-09-20",
+        "lastReferenceDay": "2025-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·BTC/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2024-08-30",
+        "lastReferenceDay": "2025-09-08",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·ETH/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2024-08-30",
+        "lastReferenceDay": "2025-09-08",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·SOL/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2024-08-30",
+        "lastReferenceDay": "2025-09-08",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2024-09-20",
+        "lastReferenceDay": "2025-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·SUI/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2024-09-20",
+        "lastReferenceDay": "2025-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       }
+      }
+     },
+     "C": {
+      "covered": true,
+      "perCoin": {
+       "coinbase·BTC/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2023-08-21",
+        "lastReferenceDay": "2024-08-29",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·ETH/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2023-08-21",
+        "lastReferenceDay": "2024-08-29",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·SOL/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2023-08-21",
+        "lastReferenceDay": "2024-08-29",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2023-09-21",
+        "lastReferenceDay": "2024-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·BTC/USD": {
+        "decisions": 2248,
+        "firstReferenceDay": "2023-08-21",
+        "lastReferenceDay": "2024-08-29",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·ETH/USD": {
+        "decisions": 2247,
+        "firstReferenceDay": "2023-08-21",
+        "lastReferenceDay": "2024-08-29",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·SOL/USD": {
+        "decisions": 2247,
+        "firstReferenceDay": "2023-08-21",
+        "lastReferenceDay": "2024-08-29",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·AVAX/USD": {
+        "decisions": 2187,
+        "firstReferenceDay": "2023-09-21",
+        "lastReferenceDay": "2024-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       }
+      }
+     },
+     "D": {
+      "covered": true,
+      "perCoin": {
+       "coinbase·BTC/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-08-21",
+        "lastReferenceDay": "2023-08-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·ETH/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-08-21",
+        "lastReferenceDay": "2023-08-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·SOL/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-08-21",
+        "lastReferenceDay": "2023-08-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-09-21",
+        "lastReferenceDay": "2023-09-21",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·BTC/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-08-21",
+        "lastReferenceDay": "2023-08-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·ETH/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-08-21",
+        "lastReferenceDay": "2023-08-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·SOL/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-08-21",
+        "lastReferenceDay": "2023-08-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-09-21",
+        "lastReferenceDay": "2023-09-21",
+        "uncovered": 0,
+        "firstUncovered": null
+       }
+      }
+     }
+    },
+    "counted": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ]
+   }
+  },
+  "h3": {
+   "index": "Binance USDⓈ-M perpetual funding, the coin's own, summed per UTC day",
+   "rule": "refuse an entry while the 7-day mean of the daily sums ending on the reference day is strictly above the 292th smallest of the 365 such means ending on that day (top fifth)",
+   "filterDefined": {
+    "BTC/USD": {
+     "firstDay": "2021-01-05",
+     "lastDay": "2026-08-31",
+     "days": 2065
+    },
+    "ETH/USD": {
+     "firstDay": "2021-01-05",
+     "lastDay": "2026-08-31",
+     "days": 2065
+    },
+    "SOL/USD": {
+     "firstDay": "2021-09-18",
+     "lastDay": "2026-08-31",
+     "days": 1809
+    },
+    "AVAX/USD": {
+     "firstDay": "2021-09-27",
+     "lastDay": "2026-08-31",
+     "days": 1800
+    },
+    "SUI/USD": {
+     "firstDay": "2024-05-07",
+     "lastDay": "2026-08-31",
+     "days": 847
+    }
+   },
+   "coverage": {
+    "perWindow": {
+     "A": {
+      "covered": false,
+      "perCoin": {
+       "coinbase·BTC/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2025-09-09",
+        "lastReferenceDay": "2026-09-19",
+        "uncovered": 109,
+        "firstUncovered": "2026-09-01"
+       },
+       "coinbase·ETH/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2025-09-09",
+        "lastReferenceDay": "2026-09-19",
+        "uncovered": 109,
+        "firstUncovered": "2026-09-01"
+       },
+       "coinbase·SOL/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2025-09-09",
+        "lastReferenceDay": "2026-09-19",
+        "uncovered": 109,
+        "firstUncovered": "2026-09-01"
+       },
+       "coinbase·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2025-09-20",
+        "lastReferenceDay": "2026-09-20",
+        "uncovered": 118,
+        "firstUncovered": "2026-09-01"
+       },
+       "coinbase·SUI/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2025-09-20",
+        "lastReferenceDay": "2026-09-20",
+        "uncovered": 118,
+        "firstUncovered": "2026-09-01"
+       },
+       "kraken·BTC/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2025-09-09",
+        "lastReferenceDay": "2026-09-19",
+        "uncovered": 109,
+        "firstUncovered": "2026-09-01"
+       },
+       "kraken·ETH/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2025-09-09",
+        "lastReferenceDay": "2026-09-19",
+        "uncovered": 109,
+        "firstUncovered": "2026-09-01"
+       },
+       "kraken·SOL/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2025-09-09",
+        "lastReferenceDay": "2026-09-19",
+        "uncovered": 109,
+        "firstUncovered": "2026-09-01"
+       },
+       "kraken·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2025-09-20",
+        "lastReferenceDay": "2026-09-20",
+        "uncovered": 118,
+        "firstUncovered": "2026-09-01"
+       },
+       "kraken·SUI/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2025-09-20",
+        "lastReferenceDay": "2026-09-20",
+        "uncovered": 118,
+        "firstUncovered": "2026-09-01"
+       }
+      }
+     },
+     "B": {
+      "covered": true,
+      "perCoin": {
+       "coinbase·BTC/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2024-08-30",
+        "lastReferenceDay": "2025-09-08",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·ETH/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2024-08-30",
+        "lastReferenceDay": "2025-09-08",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·SOL/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2024-08-30",
+        "lastReferenceDay": "2025-09-08",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2024-09-20",
+        "lastReferenceDay": "2025-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·SUI/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2024-09-20",
+        "lastReferenceDay": "2025-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·BTC/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2024-08-30",
+        "lastReferenceDay": "2025-09-08",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·ETH/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2024-08-30",
+        "lastReferenceDay": "2025-09-08",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·SOL/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2024-08-30",
+        "lastReferenceDay": "2025-09-08",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2024-09-20",
+        "lastReferenceDay": "2025-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·SUI/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2024-09-20",
+        "lastReferenceDay": "2025-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       }
+      }
+     },
+     "C": {
+      "covered": true,
+      "perCoin": {
+       "coinbase·BTC/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2023-08-21",
+        "lastReferenceDay": "2024-08-29",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·ETH/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2023-08-21",
+        "lastReferenceDay": "2024-08-29",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·SOL/USD": {
+        "decisions": 2249,
+        "firstReferenceDay": "2023-08-21",
+        "lastReferenceDay": "2024-08-29",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2023-09-21",
+        "lastReferenceDay": "2024-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·BTC/USD": {
+        "decisions": 2248,
+        "firstReferenceDay": "2023-08-21",
+        "lastReferenceDay": "2024-08-29",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·ETH/USD": {
+        "decisions": 2247,
+        "firstReferenceDay": "2023-08-21",
+        "lastReferenceDay": "2024-08-29",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·SOL/USD": {
+        "decisions": 2247,
+        "firstReferenceDay": "2023-08-21",
+        "lastReferenceDay": "2024-08-29",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·AVAX/USD": {
+        "decisions": 2187,
+        "firstReferenceDay": "2023-09-21",
+        "lastReferenceDay": "2024-09-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       }
+      }
+     },
+     "D": {
+      "covered": true,
+      "perCoin": {
+       "coinbase·BTC/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-08-21",
+        "lastReferenceDay": "2023-08-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·ETH/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-08-21",
+        "lastReferenceDay": "2023-08-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·SOL/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-08-21",
+        "lastReferenceDay": "2023-08-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "coinbase·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-09-21",
+        "lastReferenceDay": "2023-09-21",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·BTC/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-08-21",
+        "lastReferenceDay": "2023-08-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·ETH/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-08-21",
+        "lastReferenceDay": "2023-08-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·SOL/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-08-21",
+        "lastReferenceDay": "2023-08-20",
+        "uncovered": 0,
+        "firstUncovered": null
+       },
+       "kraken·AVAX/USD": {
+        "decisions": 2189,
+        "firstReferenceDay": "2022-09-21",
+        "lastReferenceDay": "2023-09-21",
+        "uncovered": 0,
+        "firstUncovered": null
+       }
+      }
+     }
+    },
+    "counted": [
+     "B",
+     "C",
+     "D"
+    ]
+   }
+  },
+  "filterNull": "per evaluation × window: whole breakout episodes refused at random (backtest_jev.ts episodeNullPolicy), the episode probability bisected (10 steps × 100 draws) so the mean entries match the arm's, then only draws whose entries over the window's coins EQUAL the arm's are kept, up to 1000 (at most 50000 attempts)"
+ },
+ "inputs": {
+  "tapes": [
+   {
+    "symbol": "BTC/USD",
+    "accepted": true,
+    "coinbaseSplice": {
+     "bars4h": 27298,
+     "first": "2013-10-06T20:00Z",
+     "last": "2026-09-20T00:00Z",
+     "spliceAt": "2023-08-22T03:00Z",
+     "overlapMedian4hBps": 1.83,
+     "overlapP95_4hBps": 6.876
+    },
+    "krakenTape": {
+     "bars4h": 27308,
+     "first": "2013-10-06T20:00Z",
+     "last": "2026-09-21T20:00Z"
+    },
+    "windows": {
+     "A": {
+      "scored": true,
+      "oosFrom": "2025-09-10T00:00Z",
+      "oosTo": "2026-09-20T00:00Z",
+      "oosDays": 375
+     },
+     "B": {
+      "scored": true,
+      "oosFrom": "2024-08-31T00:00Z",
+      "oosTo": "2025-09-09T20:00Z",
+      "oosDays": 374.8
+     },
+     "C": {
+      "scored": true,
+      "oosFrom": "2023-08-22T00:00Z",
+      "oosTo": "2024-08-30T20:00Z",
+      "oosDays": 374.8
+     },
+     "D": {
+      "scored": true,
+      "oosFrom": "2022-08-22T00:00Z",
+      "oosTo": "2023-08-21T20:00Z",
+      "oosDays": 364.8
+     }
+    },
+    "pricedOn": {
+     "coinbase": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "kraken": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    "krakenDropped": {}
+   },
+   {
+    "symbol": "ETH/USD",
+    "accepted": true,
+    "coinbaseSplice": {
+     "bars4h": 23924,
+     "first": "2015-08-07T12:00Z",
+     "last": "2026-09-20T00:00Z",
+     "spliceAt": "2023-08-22T03:00Z",
+     "overlapMedian4hBps": 1.868,
+     "overlapP95_4hBps": 7.403
+    },
+    "krakenTape": {
+     "bars4h": 23933,
+     "first": "2015-08-07T12:00Z",
+     "last": "2026-09-21T20:00Z"
+    },
+    "windows": {
+     "A": {
+      "scored": true,
+      "oosFrom": "2025-09-10T00:00Z",
+      "oosTo": "2026-09-20T00:00Z",
+      "oosDays": 375
+     },
+     "B": {
+      "scored": true,
+      "oosFrom": "2024-08-31T00:00Z",
+      "oosTo": "2025-09-09T20:00Z",
+      "oosDays": 374.8
+     },
+     "C": {
+      "scored": true,
+      "oosFrom": "2023-08-22T00:00Z",
+      "oosTo": "2024-08-30T20:00Z",
+      "oosDays": 374.8
+     },
+     "D": {
+      "scored": true,
+      "oosFrom": "2022-08-22T00:00Z",
+      "oosTo": "2023-08-21T20:00Z",
+      "oosDays": 364.8
+     }
+    },
+    "pricedOn": {
+     "coinbase": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "kraken": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    "krakenDropped": {}
+   },
+   {
+    "symbol": "SOL/USD",
+    "accepted": true,
+    "coinbaseSplice": {
+     "bars4h": 11523,
+     "first": "2021-06-17T12:00Z",
+     "last": "2026-09-20T00:00Z",
+     "spliceAt": "2023-08-22T03:00Z",
+     "overlapMedian4hBps": 2.403,
+     "overlapP95_4hBps": 9.772
+    },
+    "krakenTape": {
+     "bars4h": 11532,
+     "first": "2021-06-17T12:00Z",
+     "last": "2026-09-21T20:00Z"
+    },
+    "windows": {
+     "A": {
+      "scored": true,
+      "oosFrom": "2025-09-10T00:00Z",
+      "oosTo": "2026-09-20T00:00Z",
+      "oosDays": 375
+     },
+     "B": {
+      "scored": true,
+      "oosFrom": "2024-08-31T00:00Z",
+      "oosTo": "2025-09-09T20:00Z",
+      "oosDays": 374.8
+     },
+     "C": {
+      "scored": true,
+      "oosFrom": "2023-08-22T00:00Z",
+      "oosTo": "2024-08-30T20:00Z",
+      "oosDays": 374.8
+     },
+     "D": {
+      "scored": true,
+      "oosFrom": "2022-08-22T00:00Z",
+      "oosTo": "2023-08-21T20:00Z",
+      "oosDays": 364.8
+     }
+    },
+    "pricedOn": {
+     "coinbase": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "kraken": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    "krakenDropped": {}
+   },
+   {
+    "symbol": "AVAX/USD",
+    "accepted": true,
+    "coinbaseSplice": {
+     "bars4h": 10410,
+     "first": "2021-12-21T12:00Z",
+     "last": "2026-09-21T12:00Z",
+     "spliceAt": "2023-09-22T12:00Z",
+     "overlapMedian4hBps": 5.61,
+     "overlapP95_4hBps": 21.03
+    },
+    "krakenTape": {
+     "bars4h": 10410,
+     "first": "2021-12-21T12:00Z",
+     "last": "2026-09-21T20:00Z"
+    },
+    "windows": {
+     "A": {
+      "scored": true,
+      "oosFrom": "2025-09-21T12:00Z",
+      "oosTo": "2026-09-21T12:00Z",
+      "oosDays": 365
+     },
+     "B": {
+      "scored": true,
+      "oosFrom": "2024-09-21T12:00Z",
+      "oosTo": "2025-09-21T08:00Z",
+      "oosDays": 364.8
+     },
+     "C": {
+      "scored": true,
+      "oosFrom": "2023-09-22T12:00Z",
+      "oosTo": "2024-09-21T08:00Z",
+      "oosDays": 364.8
+     },
+     "D": {
+      "scored": true,
+      "oosFrom": "2022-09-22T12:00Z",
+      "oosTo": "2023-09-22T08:00Z",
+      "oosDays": 364.8
+     }
+    },
+    "pricedOn": {
+     "coinbase": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "kraken": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    "krakenDropped": {}
+   },
+   {
+    "symbol": "SUI/USD",
+    "accepted": true,
+    "coinbaseSplice": {
+     "bars4h": 7414,
+     "first": "2023-05-03T12:00Z",
+     "last": "2026-09-21T12:00Z",
+     "spliceAt": "2023-09-22T13:00Z",
+     "overlapMedian4hBps": 5.714,
+     "overlapP95_4hBps": 38.514
+    },
+    "krakenTape": {
+     "bars4h": 7412,
+     "first": "2023-05-03T12:00Z",
+     "last": "2026-09-21T20:00Z"
+    },
+    "windows": {
+     "A": {
+      "scored": true,
+      "oosFrom": "2025-09-21T12:00Z",
+      "oosTo": "2026-09-21T12:00Z",
+      "oosDays": 365
+     },
+     "B": {
+      "scored": true,
+      "oosFrom": "2024-09-21T12:00Z",
+      "oosTo": "2025-09-21T08:00Z",
+      "oosDays": 364.8
+     },
+     "C": {
+      "scored": false,
+      "oosFrom": "2023-09-22T12:00Z",
+      "oosTo": "2024-09-21T08:00Z",
+      "oosDays": 364.8
+     },
+     "D": {
+      "scored": false,
+      "oosFrom": "2023-05-03T12:00Z",
+      "oosTo": "2023-09-22T08:00Z",
+      "oosDays": 141.8
+     }
+    },
+    "pricedOn": {
+     "coinbase": [
+      "A",
+      "B"
+     ],
+     "kraken": [
+      "A",
+      "B"
+     ]
+    },
+    "krakenDropped": {}
+   }
+  ],
+  "dvol": {
+   "sha256": "30bfd64384fdd16feb71ee13545d83637f00130204a69b6f3e13d49a16521dc0",
+   "fetchedAt": "2026-09-23T02:03:52Z",
+   "BTC": {
+    "days": 2009,
+    "first": "2021-03-24",
+    "last": "2026-09-22",
+    "droppedFormingDays": 1
+   },
+   "ETH": {
+    "days": 2009,
+    "first": "2021-03-24",
+    "last": "2026-09-22",
+    "droppedFormingDays": 1
+   }
+  },
+  "funding": {
+   "sha256": "a5c25f5869fa1266229dfa9f58b5074897b025524f9f19d0c0293d520d943d17",
+   "source": "https://data.binance.vision/data/futures/um/monthly/fundingRate/{SYM}/{SYM}-fundingRate-YYYY-MM.zip (downloaded 2026-09-23T02:19Z)",
+   "note": "per UTC day: sum of last_funding_rate prints (fraction, not %); n = prints that day",
+   "BTC/USD": {
+    "symbol": "BTCUSDT",
+    "days": 2435,
+    "first": "2020-01-01",
+    "last": "2026-08-31"
+   },
+   "ETH/USD": {
+    "symbol": "ETHUSDT",
+    "days": 2435,
+    "first": "2020-01-01",
+    "last": "2026-08-31"
+   },
+   "SOL/USD": {
+    "symbol": "SOLUSDT",
+    "days": 2179,
+    "first": "2020-09-13",
+    "last": "2026-08-31"
+   },
+   "AVAX/USD": {
+    "symbol": "AVAXUSDT",
+    "days": 2170,
+    "first": "2020-09-22",
+    "last": "2026-08-31"
+   },
+   "SUI/USD": {
+    "symbol": "SUIUSDT",
+    "days": 1217,
+    "first": "2023-05-03",
+    "last": "2026-08-31"
+   }
+  },
+  "set2Sha256": "60a84be43fdb95a1e2e23eb7df759831eadb2c881ef5039d6de851d4f6758efa"
+ },
+ "fidelity": {
+  "runGatedVsRun": {
+   "cells": 72,
+   "mismatches": 0,
+   "what": "the incumbent through backtest_jev.ts's flat-bar cache against backtest.ts's run: return, drawdown, trades and exposure on every coin × window × evaluation"
+  },
+  "incumbentReproduction": {
+   "worstAbsDiff": 0,
+   "perCondition": {
+    "shipped·coinbase": {
+     "A": {
+      "here": {
+       "ret": 0.0803,
+       "maxDD": 0.1128,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.0803,
+       "maxDD": 0.1128,
+       "members": 5
+      },
+      "published": {
+       "ret": 0.0803,
+       "maxDD": 0.1128
+      }
+     },
+     "B": {
+      "here": {
+       "ret": 0.2008,
+       "maxDD": 0.1047,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.2008,
+       "maxDD": 0.1047,
+       "members": 5
+      },
+      "published": {
+       "ret": 0.2008,
+       "maxDD": 0.1047
+      }
+     },
+     "C": {
+      "here": {
+       "ret": 0.5564,
+       "maxDD": 0.0735,
+       "members": 4
+      },
+      "set2": {
+       "ret": 0.5564,
+       "maxDD": 0.0735,
+       "members": 4
+      },
+      "published": {
+       "ret": 0.5564,
+       "maxDD": 0.0735
+      }
+     },
+     "D": {
+      "here": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "members": 4
+      },
+      "set2": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "members": 4
+      },
+      "published": {
+       "ret": -0.0781,
+       "maxDD": 0.1552
+      }
+     }
+    },
+    "shipped·kraken": {
+     "A": {
+      "here": {
+       "ret": 0.0916,
+       "maxDD": 0.1092,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.0916,
+       "maxDD": 0.1092,
+       "members": 5
+      },
+      "published": null
+     },
+     "B": {
+      "here": {
+       "ret": 0.2249,
+       "maxDD": 0.1,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.2249,
+       "maxDD": 0.1,
+       "members": 5
+      },
+      "published": null
+     },
+     "C": {
+      "here": {
+       "ret": 0.5095,
+       "maxDD": 0.0774,
+       "members": 4
+      },
+      "set2": {
+       "ret": 0.5095,
+       "maxDD": 0.0774,
+       "members": 4
+      },
+      "published": null
+     },
+     "D": {
+      "here": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "members": 4
+      },
+      "set2": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "members": 4
+      },
+      "published": null
+     }
+    },
+    "trail·coinbase": {
+     "A": {
+      "here": {
+       "ret": -0.0033,
+       "maxDD": 0.1175,
+       "members": 5
+      },
+      "set2": {
+       "ret": -0.0033,
+       "maxDD": 0.1175,
+       "members": 5
+      },
+      "published": null
+     },
+     "B": {
+      "here": {
+       "ret": 0.1264,
+       "maxDD": 0.1018,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.1264,
+       "maxDD": 0.1018,
+       "members": 5
+      },
+      "published": null
+     },
+     "C": {
+      "here": {
+       "ret": 0.4707,
+       "maxDD": 0.0578,
+       "members": 4
+      },
+      "set2": {
+       "ret": 0.4707,
+       "maxDD": 0.0578,
+       "members": 4
+      },
+      "published": null
+     },
+     "D": {
+      "here": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "members": 4
+      },
+      "set2": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "members": 4
+      },
+      "published": null
+     }
+    },
+    "trail·kraken": {
+     "A": {
+      "here": {
+       "ret": 0.0654,
+       "maxDD": 0.1164,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.0654,
+       "maxDD": 0.1164,
+       "members": 5
+      },
+      "published": null
+     },
+     "B": {
+      "here": {
+       "ret": 0.1377,
+       "maxDD": 0.0943,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.1377,
+       "maxDD": 0.0943,
+       "members": 5
+      },
+      "published": null
+     },
+     "C": {
+      "here": {
+       "ret": 0.3829,
+       "maxDD": 0.0596,
+       "members": 4
+      },
+      "set2": {
+       "ret": 0.3829,
+       "maxDD": 0.0596,
+       "members": 4
+      },
+      "published": null
+     },
+     "D": {
+      "here": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "members": 4
+      },
+      "set2": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "members": 4
+      },
+      "published": null
+     }
+    }
+   },
+   "what": "the incumbent sleeve against set2.json's equal row on all four evaluations and the published go-live sleeve on the primary one"
+  },
+  "h1IdentityAtF1": {
+   "cells": 72,
+   "maxAbsMarkDiff": 8.881784197001252e-16,
+   "sleeveMismatches": 0,
+   "what": "H1's arithmetic with every multiplier 1 against the incumbent's own marks and sleeve"
+  },
+  "h1TradeProduct": {
+   "checks": 72,
+   "maxAbsDiff": 0,
+   "what": "each scaled slot's end equity recomputed as the product over its trades of (1 − f + f·G)"
+  },
+  "sharpeLoopAgainstCombine": {
+   "checks": 60,
+   "mismatches": 0,
+   "what": "the daily loop Sharpe is computed from lands on combine's return and drawdown on every sleeve it is computed for"
+  },
+  "smallestH1OrderUsd": 11.5372
+ },
+ "incumbent": {
+  "shipped·coinbase": {
+   "A": {
+    "ret": 0.0803,
+    "maxDD": 0.1128,
+    "retOverDD": 0.71,
+    "sharpe": 0.591,
+    "avgIdleShare": 0.912,
+    "avgIdleUsd": 91.2338,
+    "capitalUsd": 100,
+    "deployment": 0.088,
+    "turnoverPerYear": 16.5,
+    "from": "2025-09-10",
+    "to": "2026-09-21",
+    "entries": 43
+   },
+   "B": {
+    "ret": 0.2008,
+    "maxDD": 0.1047,
+    "retOverDD": 1.92,
+    "sharpe": 1.172,
+    "avgIdleShare": 0.856,
+    "avgIdleUsd": 85.6261,
+    "capitalUsd": 100,
+    "deployment": 0.144,
+    "turnoverPerYear": 21.75,
+    "from": "2024-08-31",
+    "to": "2025-09-21",
+    "entries": 58
+   },
+   "C": {
+    "ret": 0.5564,
+    "maxDD": 0.0735,
+    "retOverDD": 7.57,
+    "sharpe": 2.408,
+    "avgIdleShare": 0.827,
+    "avgIdleUsd": 66.1296,
+    "capitalUsd": 80,
+    "deployment": 0.173,
+    "turnoverPerYear": 21.43,
+    "from": "2023-08-22",
+    "to": "2024-09-21",
+    "entries": 47
+   },
+   "D": {
+    "ret": -0.0781,
+    "maxDD": 0.1552,
+    "retOverDD": -0.5,
+    "sharpe": -0.69,
+    "avgIdleShare": 0.921,
+    "avgIdleUsd": 73.6775,
+    "capitalUsd": 80,
+    "deployment": 0.079,
+    "turnoverPerYear": 14.75,
+    "from": "2022-08-22",
+    "to": "2023-09-22",
+    "entries": 32
+   }
+  },
+  "shipped·kraken": {
+   "A": {
+    "ret": 0.0916,
+    "maxDD": 0.1092,
+    "retOverDD": 0.84,
+    "sharpe": 0.647,
+    "avgIdleShare": 0.914,
+    "avgIdleUsd": 91.4397,
+    "capitalUsd": 100,
+    "deployment": 0.086,
+    "turnoverPerYear": 16.89,
+    "from": "2025-09-10",
+    "to": "2026-09-21",
+    "entries": 44
+   },
+   "B": {
+    "ret": 0.2249,
+    "maxDD": 0.1,
+    "retOverDD": 2.25,
+    "sharpe": 1.313,
+    "avgIdleShare": 0.856,
+    "avgIdleUsd": 85.6374,
+    "capitalUsd": 100,
+    "deployment": 0.144,
+    "turnoverPerYear": 22.51,
+    "from": "2024-08-31",
+    "to": "2025-09-21",
+    "entries": 60
+   },
+   "C": {
+    "ret": 0.5095,
+    "maxDD": 0.0774,
+    "retOverDD": 6.58,
+    "sharpe": 2.194,
+    "avgIdleShare": 0.833,
+    "avgIdleUsd": 66.6528,
+    "capitalUsd": 80,
+    "deployment": 0.167,
+    "turnoverPerYear": 21.89,
+    "from": "2023-08-22",
+    "to": "2024-09-21",
+    "entries": 48
+   },
+   "D": {
+    "ret": -0.0781,
+    "maxDD": 0.1552,
+    "retOverDD": -0.5,
+    "sharpe": -0.69,
+    "avgIdleShare": 0.921,
+    "avgIdleUsd": 73.6775,
+    "capitalUsd": 80,
+    "deployment": 0.079,
+    "turnoverPerYear": 14.75,
+    "from": "2022-08-22",
+    "to": "2023-09-22",
+    "entries": 32
+   }
+  },
+  "trail·coinbase": {
+   "A": {
+    "ret": -0.0033,
+    "maxDD": 0.1175,
+    "retOverDD": -0.03,
+    "sharpe": 0.042,
+    "avgIdleShare": 0.935,
+    "avgIdleUsd": 93.4763,
+    "capitalUsd": 100,
+    "deployment": 0.065,
+    "turnoverPerYear": 19.03,
+    "from": "2025-09-10",
+    "to": "2026-09-21",
+    "entries": 49
+   },
+   "B": {
+    "ret": 0.1264,
+    "maxDD": 0.1018,
+    "retOverDD": 1.24,
+    "sharpe": 0.842,
+    "avgIdleShare": 0.887,
+    "avgIdleUsd": 88.6598,
+    "capitalUsd": 100,
+    "deployment": 0.113,
+    "turnoverPerYear": 25.91,
+    "from": "2024-08-31",
+    "to": "2025-09-21",
+    "entries": 69
+   },
+   "C": {
+    "ret": 0.4707,
+    "maxDD": 0.0578,
+    "retOverDD": 8.14,
+    "sharpe": 2.314,
+    "avgIdleShare": 0.871,
+    "avgIdleUsd": 69.6829,
+    "capitalUsd": 80,
+    "deployment": 0.129,
+    "turnoverPerYear": 23.27,
+    "from": "2023-08-22",
+    "to": "2024-09-21",
+    "entries": 51
+   },
+   "D": {
+    "ret": -0.032,
+    "maxDD": 0.1113,
+    "retOverDD": -0.29,
+    "sharpe": -0.345,
+    "avgIdleShare": 0.935,
+    "avgIdleUsd": 74.8287,
+    "capitalUsd": 80,
+    "deployment": 0.065,
+    "turnoverPerYear": 15.21,
+    "from": "2022-08-22",
+    "to": "2023-09-22",
+    "entries": 33
+   }
+  },
+  "trail·kraken": {
+   "A": {
+    "ret": 0.0654,
+    "maxDD": 0.1164,
+    "retOverDD": 0.56,
+    "sharpe": 0.515,
+    "avgIdleShare": 0.934,
+    "avgIdleUsd": 93.4419,
+    "capitalUsd": 100,
+    "deployment": 0.066,
+    "turnoverPerYear": 19.22,
+    "from": "2025-09-10",
+    "to": "2026-09-21",
+    "entries": 50
+   },
+   "B": {
+    "ret": 0.1377,
+    "maxDD": 0.0943,
+    "retOverDD": 1.46,
+    "sharpe": 0.938,
+    "avgIdleShare": 0.887,
+    "avgIdleUsd": 88.719,
+    "capitalUsd": 100,
+    "deployment": 0.113,
+    "turnoverPerYear": 26.29,
+    "from": "2024-08-31",
+    "to": "2025-09-21",
+    "entries": 70
+   },
+   "C": {
+    "ret": 0.3829,
+    "maxDD": 0.0596,
+    "retOverDD": 6.43,
+    "sharpe": 1.934,
+    "avgIdleShare": 0.878,
+    "avgIdleUsd": 70.2617,
+    "capitalUsd": 80,
+    "deployment": 0.122,
+    "turnoverPerYear": 25.58,
+    "from": "2023-08-22",
+    "to": "2024-09-21",
+    "entries": 56
+   },
+   "D": {
+    "ret": -0.032,
+    "maxDD": 0.1113,
+    "retOverDD": -0.29,
+    "sharpe": -0.345,
+    "avgIdleShare": 0.935,
+    "avgIdleUsd": 74.8287,
+    "capitalUsd": 80,
+    "deployment": 0.065,
+    "turnoverPerYear": 15.21,
+    "from": "2022-08-22",
+    "to": "2023-09-22",
+    "entries": 33
+   }
+  }
+ },
+ "h1": {
+  "perCondition": {
+   "shipped·coinbase": {
+    "perWindow": {
+     "A": {
+      "incumbent": {
+       "ret": 0.0803,
+       "maxDD": 0.1128,
+       "retOverDD": 0.71,
+       "sharpe": 0.591,
+       "avgIdleShare": 0.912,
+       "avgIdleUsd": 91.2338,
+       "capitalUsd": 100,
+       "deployment": 0.088,
+       "turnoverPerYear": 16.5,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 43
+      },
+      "arm": {
+       "ret": 0.0854,
+       "maxDD": 0.1123,
+       "retOverDD": 0.76,
+       "sharpe": 0.625,
+       "avgIdleShare": 0.913,
+       "avgIdleUsd": 91.3407,
+       "capitalUsd": 100,
+       "deployment": 0.087,
+       "turnoverPerYear": 16.27,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 43,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.986,
+       "minMultiplier": 0.783,
+       "entriesScaled": 6
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.0638,
+        "p05": 0.0327,
+        "p50": 0.0647,
+        "p95": 0.0915,
+        "min": 0.0052,
+        "max": 0.1104
+       },
+       "pNullAtLeastArm": 0.112,
+       "meanMultiplier": 0.908
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.0781,
+        "p05": 0.0646,
+        "p50": 0.0803,
+        "p95": 0.087,
+        "min": 0.057,
+        "max": 0.0895
+       },
+       "pNullAtLeastArm": 0.143
+      }
+     },
+     "B": {
+      "incumbent": {
+       "ret": 0.2008,
+       "maxDD": 0.1047,
+       "retOverDD": 1.92,
+       "sharpe": 1.172,
+       "avgIdleShare": 0.856,
+       "avgIdleUsd": 85.6261,
+       "capitalUsd": 100,
+       "deployment": 0.144,
+       "turnoverPerYear": 21.75,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 58
+      },
+      "arm": {
+       "ret": 0.1886,
+       "maxDD": 0.0989,
+       "retOverDD": 1.91,
+       "sharpe": 1.144,
+       "avgIdleShare": 0.862,
+       "avgIdleUsd": 86.1915,
+       "capitalUsd": 100,
+       "deployment": 0.138,
+       "turnoverPerYear": 20.75,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 58,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.953,
+       "minMultiplier": 0.577,
+       "entriesScaled": 18
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.1867,
+        "p05": 0.1506,
+        "p50": 0.1876,
+        "p95": 0.2172,
+        "min": 0.1041,
+        "max": 0.2367
+       },
+       "pNullAtLeastArm": 0.486,
+       "meanMultiplier": 0.913
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.1967,
+        "p05": 0.1777,
+        "p50": 0.1963,
+        "p95": 0.2175,
+        "min": 0.1615,
+        "max": 0.2303
+       },
+       "pNullAtLeastArm": 0.739
+      }
+     },
+     "C": {
+      "incumbent": {
+       "ret": 0.5564,
+       "maxDD": 0.0735,
+       "retOverDD": 7.57,
+       "sharpe": 2.408,
+       "avgIdleShare": 0.827,
+       "avgIdleUsd": 66.1296,
+       "capitalUsd": 80,
+       "deployment": 0.173,
+       "turnoverPerYear": 21.43,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 47
+      },
+      "arm": {
+       "ret": 0.5021,
+       "maxDD": 0.0735,
+       "retOverDD": 6.83,
+       "sharpe": 2.303,
+       "avgIdleShare": 0.835,
+       "avgIdleUsd": 66.7758,
+       "capitalUsd": 80,
+       "deployment": 0.164,
+       "turnoverPerYear": 20.26,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 47,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.946,
+       "minMultiplier": 0.553,
+       "entriesScaled": 12
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.4371,
+        "p05": 0.3622,
+        "p50": 0.4386,
+        "p95": 0.5078,
+        "min": 0.3055,
+        "max": 0.5572
+       },
+       "pNullAtLeastArm": 0.066,
+       "meanMultiplier": 0.861
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.5197,
+        "p05": 0.4664,
+        "p50": 0.5245,
+        "p95": 0.5598,
+        "min": 0.4183,
+        "max": 0.5789
+       },
+       "pNullAtLeastArm": 0.72
+      }
+     },
+     "D": {
+      "incumbent": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "retOverDD": -0.5,
+       "sharpe": -0.69,
+       "avgIdleShare": 0.921,
+       "avgIdleUsd": 73.6775,
+       "capitalUsd": 80,
+       "deployment": 0.079,
+       "turnoverPerYear": 14.75,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 32
+      },
+      "arm": {
+       "ret": -0.065,
+       "maxDD": 0.1431,
+       "retOverDD": -0.45,
+       "sharpe": -0.588,
+       "avgIdleShare": 0.923,
+       "avgIdleUsd": 73.8088,
+       "capitalUsd": 80,
+       "deployment": 0.077,
+       "turnoverPerYear": 14.31,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 32,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.97,
+       "minMultiplier": 0.664,
+       "entriesScaled": 5
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": -0.0621,
+        "p05": -0.0834,
+        "p50": -0.0618,
+        "p95": -0.0411,
+        "min": -0.099,
+        "max": -0.0278
+       },
+       "pNullAtLeastArm": 0.59,
+       "meanMultiplier": 0.852
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": -0.0685,
+        "p05": -0.0734,
+        "p50": -0.0685,
+        "p95": -0.0638,
+        "min": -0.0752,
+        "max": -0.0616
+       },
+       "pNullAtLeastArm": 0.106
+      }
+     }
+    },
+    "verdict": {
+     "windows": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.0781
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.065
+      },
+      "nullWorst": {
+       "n": 2000,
+       "mean": -0.0621,
+       "p05": -0.0834,
+       "p50": -0.0618,
+       "p95": -0.0411,
+       "min": -0.099,
+       "max": -0.0278
+      },
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.59,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.503
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.454
+      },
+      "nullWorstP95": -0.344,
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.392,
+      "beatsNull": false
+     },
+     "passes": false
+    },
+    "permutationNullVerdict": {
+     "windows": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.0781
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.065
+      },
+      "nullWorst": {
+       "n": 2000,
+       "mean": -0.0685,
+       "p05": -0.0734,
+       "p50": -0.0685,
+       "p95": -0.0638,
+       "min": -0.0752,
+       "max": -0.0616
+      },
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.106,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.503
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.454
+      },
+      "nullWorstP95": -0.444,
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.187,
+      "beatsNull": false
+     },
+     "passes": false
+    }
+   },
+   "shipped·kraken": {
+    "perWindow": {
+     "A": {
+      "incumbent": {
+       "ret": 0.0916,
+       "maxDD": 0.1092,
+       "retOverDD": 0.84,
+       "sharpe": 0.647,
+       "avgIdleShare": 0.914,
+       "avgIdleUsd": 91.4397,
+       "capitalUsd": 100,
+       "deployment": 0.086,
+       "turnoverPerYear": 16.89,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 44
+      },
+      "arm": {
+       "ret": 0.0884,
+       "maxDD": 0.1047,
+       "retOverDD": 0.84,
+       "sharpe": 0.633,
+       "avgIdleShare": 0.916,
+       "avgIdleUsd": 91.5615,
+       "capitalUsd": 100,
+       "deployment": 0.084,
+       "turnoverPerYear": 16.69,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 44,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.986,
+       "minMultiplier": 0.784,
+       "entriesScaled": 6
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.0661,
+        "p05": 0.0401,
+        "p50": 0.0671,
+        "p95": 0.0878,
+        "min": 0.0163,
+        "max": 0.1002
+       },
+       "pNullAtLeastArm": 0.044,
+       "meanMultiplier": 0.904
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.0883,
+        "p05": 0.0746,
+        "p50": 0.0899,
+        "p95": 0.0972,
+        "min": 0.0674,
+        "max": 0.1003
+       },
+       "pNullAtLeastArm": 0.556
+      }
+     },
+     "B": {
+      "incumbent": {
+       "ret": 0.2249,
+       "maxDD": 0.1,
+       "retOverDD": 2.25,
+       "sharpe": 1.313,
+       "avgIdleShare": 0.856,
+       "avgIdleUsd": 85.6374,
+       "capitalUsd": 100,
+       "deployment": 0.144,
+       "turnoverPerYear": 22.51,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 60
+      },
+      "arm": {
+       "ret": 0.2126,
+       "maxDD": 0.0941,
+       "retOverDD": 2.26,
+       "sharpe": 1.29,
+       "avgIdleShare": 0.862,
+       "avgIdleUsd": 86.191,
+       "capitalUsd": 100,
+       "deployment": 0.138,
+       "turnoverPerYear": 21.52,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 60,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.955,
+       "minMultiplier": 0.579,
+       "entriesScaled": 17
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.2107,
+        "p05": 0.174,
+        "p50": 0.2121,
+        "p95": 0.2399,
+        "min": 0.1278,
+        "max": 0.2548
+       },
+       "pNullAtLeastArm": 0.491,
+       "meanMultiplier": 0.913
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.2207,
+        "p05": 0.202,
+        "p50": 0.2203,
+        "p95": 0.241,
+        "min": 0.1857,
+        "max": 0.2558
+       },
+       "pNullAtLeastArm": 0.743
+      }
+     },
+     "C": {
+      "incumbent": {
+       "ret": 0.5095,
+       "maxDD": 0.0774,
+       "retOverDD": 6.58,
+       "sharpe": 2.194,
+       "avgIdleShare": 0.833,
+       "avgIdleUsd": 66.6528,
+       "capitalUsd": 80,
+       "deployment": 0.167,
+       "turnoverPerYear": 21.89,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 48
+      },
+      "arm": {
+       "ret": 0.4609,
+       "maxDD": 0.0773,
+       "retOverDD": 5.97,
+       "sharpe": 2.116,
+       "avgIdleShare": 0.841,
+       "avgIdleUsd": 67.2821,
+       "capitalUsd": 80,
+       "deployment": 0.158,
+       "turnoverPerYear": 20.74,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 48,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.948,
+       "minMultiplier": 0.552,
+       "entriesScaled": 12
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.3976,
+        "p05": 0.3219,
+        "p50": 0.4,
+        "p95": 0.469,
+        "min": 0.2746,
+        "max": 0.5237
+       },
+       "pNullAtLeastArm": 0.075,
+       "meanMultiplier": 0.86
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.4728,
+        "p05": 0.4192,
+        "p50": 0.4775,
+        "p95": 0.5123,
+        "min": 0.3762,
+        "max": 0.5319
+       },
+       "pNullAtLeastArm": 0.673
+      }
+     },
+     "D": {
+      "incumbent": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "retOverDD": -0.5,
+       "sharpe": -0.69,
+       "avgIdleShare": 0.921,
+       "avgIdleUsd": 73.6775,
+       "capitalUsd": 80,
+       "deployment": 0.079,
+       "turnoverPerYear": 14.75,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 32
+      },
+      "arm": {
+       "ret": -0.065,
+       "maxDD": 0.1431,
+       "retOverDD": -0.45,
+       "sharpe": -0.588,
+       "avgIdleShare": 0.923,
+       "avgIdleUsd": 73.8088,
+       "capitalUsd": 80,
+       "deployment": 0.077,
+       "turnoverPerYear": 14.31,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 32,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.97,
+       "minMultiplier": 0.664,
+       "entriesScaled": 5
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": -0.0619,
+        "p05": -0.0838,
+        "p50": -0.0614,
+        "p95": -0.0407,
+        "min": -0.0994,
+        "max": -0.0203
+       },
+       "pNullAtLeastArm": 0.599,
+       "meanMultiplier": 0.85
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": -0.0686,
+        "p05": -0.0733,
+        "p50": -0.0686,
+        "p95": -0.0639,
+        "min": -0.0752,
+        "max": -0.0616
+       },
+       "pNullAtLeastArm": 0.112
+      }
+     }
+    },
+    "verdict": {
+     "windows": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.0781
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.065
+      },
+      "nullWorst": {
+       "n": 2000,
+       "mean": -0.0619,
+       "p05": -0.0838,
+       "p50": -0.0614,
+       "p95": -0.0407,
+       "min": -0.0994,
+       "max": -0.0203
+      },
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.599,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.503
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.454
+      },
+      "nullWorstP95": -0.338,
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.4,
+      "beatsNull": false
+     },
+     "passes": false
+    },
+    "permutationNullVerdict": {
+     "windows": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.0781
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.065
+      },
+      "nullWorst": {
+       "n": 2000,
+       "mean": -0.0686,
+       "p05": -0.0733,
+       "p50": -0.0686,
+       "p95": -0.0639,
+       "min": -0.0752,
+       "max": -0.0616
+      },
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.112,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.503
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.454
+      },
+      "nullWorstP95": -0.444,
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.181,
+      "beatsNull": false
+     },
+     "passes": false
+    }
+   },
+   "trail·coinbase": {
+    "perWindow": {
+     "A": {
+      "incumbent": {
+       "ret": -0.0033,
+       "maxDD": 0.1175,
+       "retOverDD": -0.03,
+       "sharpe": 0.042,
+       "avgIdleShare": 0.935,
+       "avgIdleUsd": 93.4763,
+       "capitalUsd": 100,
+       "deployment": 0.065,
+       "turnoverPerYear": 19.03,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 49
+      },
+      "arm": {
+       "ret": -0.0001,
+       "maxDD": 0.1169,
+       "retOverDD": 0,
+       "sharpe": 0.065,
+       "avgIdleShare": 0.935,
+       "avgIdleUsd": 93.547,
+       "capitalUsd": 100,
+       "deployment": 0.064,
+       "turnoverPerYear": 18.78,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 49,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.987,
+       "minMultiplier": 0.783,
+       "entriesScaled": 7
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": -0.0084,
+        "p05": -0.0265,
+        "p50": -0.0082,
+        "p95": 0.0087,
+        "min": -0.0491,
+        "max": 0.0253
+       },
+       "pNullAtLeastArm": 0.226,
+       "meanMultiplier": 0.904
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": -0.0043,
+        "p05": -0.0114,
+        "p50": -0.0036,
+        "p95": 0.0012,
+        "min": -0.0177,
+        "max": 0.0031
+       },
+       "pNullAtLeastArm": 0.161
+      }
+     },
+     "B": {
+      "incumbent": {
+       "ret": 0.1264,
+       "maxDD": 0.1018,
+       "retOverDD": 1.24,
+       "sharpe": 0.842,
+       "avgIdleShare": 0.887,
+       "avgIdleUsd": 88.6598,
+       "capitalUsd": 100,
+       "deployment": 0.113,
+       "turnoverPerYear": 25.91,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 69
+      },
+      "arm": {
+       "ret": 0.1137,
+       "maxDD": 0.0959,
+       "retOverDD": 1.19,
+       "sharpe": 0.792,
+       "avgIdleShare": 0.891,
+       "avgIdleUsd": 89.0994,
+       "capitalUsd": 100,
+       "deployment": 0.109,
+       "turnoverPerYear": 24.8,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 69,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.956,
+       "minMultiplier": 0.577,
+       "entriesScaled": 22
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.1172,
+        "p05": 0.0816,
+        "p50": 0.118,
+        "p95": 0.1471,
+        "min": 0.0406,
+        "max": 0.166
+       },
+       "pNullAtLeastArm": 0.595,
+       "meanMultiplier": 0.917
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.1237,
+        "p05": 0.1055,
+        "p50": 0.1233,
+        "p95": 0.143,
+        "min": 0.0873,
+        "max": 0.1569
+       },
+       "pNullAtLeastArm": 0.804
+      }
+     },
+     "C": {
+      "incumbent": {
+       "ret": 0.4707,
+       "maxDD": 0.0578,
+       "retOverDD": 8.14,
+       "sharpe": 2.314,
+       "avgIdleShare": 0.871,
+       "avgIdleUsd": 69.6829,
+       "capitalUsd": 80,
+       "deployment": 0.129,
+       "turnoverPerYear": 23.27,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 51
+      },
+      "arm": {
+       "ret": 0.4247,
+       "maxDD": 0.0477,
+       "retOverDD": 8.49,
+       "sharpe": 2.277,
+       "avgIdleShare": 0.877,
+       "avgIdleUsd": 70.1598,
+       "capitalUsd": 80,
+       "deployment": 0.123,
+       "turnoverPerYear": 22.11,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 51,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.95,
+       "minMultiplier": 0.553,
+       "entriesScaled": 12
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.3627,
+        "p05": 0.3131,
+        "p50": 0.3622,
+        "p95": 0.4139,
+        "min": 0.2647,
+        "max": 0.4549
+       },
+       "pNullAtLeastArm": 0.018,
+       "meanMultiplier": 0.862
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.4315,
+        "p05": 0.3883,
+        "p50": 0.4351,
+        "p95": 0.4659,
+        "min": 0.3468,
+        "max": 0.4822
+       },
+       "pNullAtLeastArm": 0.636
+      }
+     },
+     "D": {
+      "incumbent": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "retOverDD": -0.29,
+       "sharpe": -0.345,
+       "avgIdleShare": 0.935,
+       "avgIdleUsd": 74.8287,
+       "capitalUsd": 80,
+       "deployment": 0.065,
+       "turnoverPerYear": 15.21,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 33
+      },
+      "arm": {
+       "ret": -0.0201,
+       "maxDD": 0.1004,
+       "retOverDD": -0.2,
+       "sharpe": -0.214,
+       "avgIdleShare": 0.937,
+       "avgIdleUsd": 74.9516,
+       "capitalUsd": 80,
+       "deployment": 0.063,
+       "turnoverPerYear": 14.77,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 33,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.971,
+       "minMultiplier": 0.664,
+       "entriesScaled": 5
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": -0.023,
+        "p05": -0.0412,
+        "p50": -0.0231,
+        "p95": -0.0052,
+        "min": -0.0548,
+        "max": 0.0078
+       },
+       "pNullAtLeastArm": 0.392,
+       "meanMultiplier": 0.848
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": -0.0254,
+        "p05": -0.0309,
+        "p50": -0.0255,
+        "p95": -0.0197,
+        "min": -0.0334,
+        "max": -0.0168
+       },
+       "pNullAtLeastArm": 0.073
+      }
+     }
+    },
+    "verdict": {
+     "windows": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.032
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.0201
+      },
+      "nullWorst": {
+       "n": 2000,
+       "mean": -0.0244,
+       "p05": -0.0414,
+       "p50": -0.0243,
+       "p95": -0.0083,
+       "min": -0.0548,
+       "max": 0.004
+      },
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.336,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.288
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.2
+      },
+      "nullWorstP95": -0.091,
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.281,
+      "beatsNull": false
+     },
+     "passes": false
+    },
+    "permutationNullVerdict": {
+     "windows": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.032
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.0201
+      },
+      "nullWorst": {
+       "n": 2000,
+       "mean": -0.0254,
+       "p05": -0.0309,
+       "p50": -0.0255,
+       "p95": -0.0197,
+       "min": -0.0334,
+       "max": -0.0168
+      },
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.073,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.288
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.2
+      },
+      "nullWorstP95": -0.193,
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.082,
+      "beatsNull": false
+     },
+     "passes": false
+    }
+   },
+   "trail·kraken": {
+    "perWindow": {
+     "A": {
+      "incumbent": {
+       "ret": 0.0654,
+       "maxDD": 0.1164,
+       "retOverDD": 0.56,
+       "sharpe": 0.515,
+       "avgIdleShare": 0.934,
+       "avgIdleUsd": 93.4419,
+       "capitalUsd": 100,
+       "deployment": 0.066,
+       "turnoverPerYear": 19.22,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 50
+      },
+      "arm": {
+       "ret": 0.0603,
+       "maxDD": 0.1158,
+       "retOverDD": 0.52,
+       "sharpe": 0.484,
+       "avgIdleShare": 0.935,
+       "avgIdleUsd": 93.5271,
+       "capitalUsd": 100,
+       "deployment": 0.065,
+       "turnoverPerYear": 19.01,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 50,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.988,
+       "minMultiplier": 0.784,
+       "entriesScaled": 7
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.0389,
+        "p05": 0.0175,
+        "p50": 0.0396,
+        "p95": 0.0576,
+        "min": -0.0071,
+        "max": 0.0709
+       },
+       "pNullAtLeastArm": 0.033,
+       "meanMultiplier": 0.906
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.0626,
+        "p05": 0.0536,
+        "p50": 0.0632,
+        "p95": 0.0693,
+        "min": 0.046,
+        "max": 0.0711
+       },
+       "pNullAtLeastArm": 0.683
+      }
+     },
+     "B": {
+      "incumbent": {
+       "ret": 0.1377,
+       "maxDD": 0.0943,
+       "retOverDD": 1.46,
+       "sharpe": 0.938,
+       "avgIdleShare": 0.887,
+       "avgIdleUsd": 88.719,
+       "capitalUsd": 100,
+       "deployment": 0.113,
+       "turnoverPerYear": 26.29,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 70
+      },
+      "arm": {
+       "ret": 0.1265,
+       "maxDD": 0.0885,
+       "retOverDD": 1.43,
+       "sharpe": 0.896,
+       "avgIdleShare": 0.891,
+       "avgIdleUsd": 89.1289,
+       "capitalUsd": 100,
+       "deployment": 0.108,
+       "turnoverPerYear": 25.18,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 70,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.957,
+       "minMultiplier": 0.579,
+       "entriesScaled": 20
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.1305,
+        "p05": 0.0967,
+        "p50": 0.1317,
+        "p95": 0.1585,
+        "min": 0.061,
+        "max": 0.1726
+       },
+       "pNullAtLeastArm": 0.596,
+       "meanMultiplier": 0.916
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.1347,
+        "p05": 0.1169,
+        "p50": 0.1342,
+        "p95": 0.1546,
+        "min": 0.1015,
+        "max": 0.1694
+       },
+       "pNullAtLeastArm": 0.754
+      }
+     },
+     "C": {
+      "incumbent": {
+       "ret": 0.3829,
+       "maxDD": 0.0596,
+       "retOverDD": 6.43,
+       "sharpe": 1.934,
+       "avgIdleShare": 0.878,
+       "avgIdleUsd": 70.2617,
+       "capitalUsd": 80,
+       "deployment": 0.122,
+       "turnoverPerYear": 25.58,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 56
+      },
+      "arm": {
+       "ret": 0.3355,
+       "maxDD": 0.0544,
+       "retOverDD": 6.16,
+       "sharpe": 1.872,
+       "avgIdleShare": 0.884,
+       "avgIdleUsd": 70.7244,
+       "capitalUsd": 80,
+       "deployment": 0.116,
+       "turnoverPerYear": 24.28,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 56,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.95,
+       "minMultiplier": 0.552,
+       "entriesScaled": 14
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.2862,
+        "p05": 0.2365,
+        "p50": 0.2867,
+        "p95": 0.3371,
+        "min": 0.191,
+        "max": 0.3748
+       },
+       "pNullAtLeastArm": 0.056,
+       "meanMultiplier": 0.861
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": 0.3478,
+        "p05": 0.3158,
+        "p50": 0.3493,
+        "p95": 0.3753,
+        "min": 0.2789,
+        "max": 0.3915
+       },
+       "pNullAtLeastArm": 0.747
+      }
+     },
+     "D": {
+      "incumbent": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "retOverDD": -0.29,
+       "sharpe": -0.345,
+       "avgIdleShare": 0.935,
+       "avgIdleUsd": 74.8287,
+       "capitalUsd": 80,
+       "deployment": 0.065,
+       "turnoverPerYear": 15.21,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 33
+      },
+      "arm": {
+       "ret": -0.0201,
+       "maxDD": 0.1004,
+       "retOverDD": -0.2,
+       "sharpe": -0.214,
+       "avgIdleShare": 0.937,
+       "avgIdleUsd": 74.9516,
+       "capitalUsd": 80,
+       "deployment": 0.063,
+       "turnoverPerYear": 14.77,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 33,
+       "entriesBelowVenueMinimum": 0,
+       "meanMultiplier": 0.971,
+       "minMultiplier": 0.664,
+       "entriesScaled": 5
+      },
+      "placeboNull": {
+       "ret": {
+        "n": 2000,
+        "mean": -0.023,
+        "p05": -0.0406,
+        "p50": -0.023,
+        "p95": -0.0056,
+        "min": -0.0543,
+        "max": 0.0095
+       },
+       "pNullAtLeastArm": 0.408,
+       "meanMultiplier": 0.848
+      },
+      "permutationNull": {
+       "ret": {
+        "n": 2000,
+        "mean": -0.0254,
+        "p05": -0.0312,
+        "p50": -0.0255,
+        "p95": -0.0196,
+        "min": -0.0334,
+        "max": -0.0168
+       },
+       "pNullAtLeastArm": 0.082
+      }
+     }
+    },
+    "verdict": {
+     "windows": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.032
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.0201
+      },
+      "nullWorst": {
+       "n": 2000,
+       "mean": -0.023,
+       "p05": -0.0406,
+       "p50": -0.023,
+       "p95": -0.0056,
+       "min": -0.0543,
+       "max": 0.0095
+      },
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.408,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.288
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.2
+      },
+      "nullWorstP95": -0.067,
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.33,
+      "beatsNull": false
+     },
+     "passes": false
+    },
+    "permutationNullVerdict": {
+     "windows": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.032
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.0201
+      },
+      "nullWorst": {
+       "n": 2000,
+       "mean": -0.0254,
+       "p05": -0.0312,
+       "p50": -0.0255,
+       "p95": -0.0196,
+       "min": -0.0334,
+       "max": -0.0168
+      },
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.082,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.288
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.2
+      },
+      "nullWorstP95": -0.193,
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.094,
+      "beatsNull": false
+     },
+     "passes": false
+    }
+   }
+  },
+  "entriesBelowVenueMinimum": 0
+ },
+ "h2": {
+  "perCondition": {
+   "shipped·coinbase": {
+    "perWindow": {
+     "A": {
+      "incumbent": {
+       "ret": 0.0803,
+       "maxDD": 0.1128,
+       "retOverDD": 0.71,
+       "sharpe": 0.591,
+       "avgIdleShare": 0.912,
+       "avgIdleUsd": 91.2338,
+       "capitalUsd": 100,
+       "deployment": 0.088,
+       "turnoverPerYear": 16.5,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 43
+      },
+      "arm": {
+       "ret": 0.1138,
+       "maxDD": 0.0799,
+       "retOverDD": 1.42,
+       "sharpe": 0.856,
+       "avgIdleShare": 0.921,
+       "avgIdleUsd": 92.0877,
+       "capitalUsd": 100,
+       "deployment": 0.079,
+       "turnoverPerYear": 14.56,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 38,
+       "incumbentEntries": 43,
+       "entriesRemovedNet": 5,
+       "signalsRefused": 10,
+       "signalsSeen": 48
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.0673,
+        "p05": 0.0084,
+        "p50": 0.0722,
+        "p95": 0.1101,
+        "min": -0.0599,
+        "max": 0.1286
+       },
+       "pNullAtLeastArm": 0.032,
+       "entriesEveryDraw": 38,
+       "pEpisodeRefusal": 0.2583,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 30.93
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 38.16
+        },
+        {
+         "pEp": 0.375,
+         "meanEntries": 34.95
+        },
+        {
+         "pEp": 0.3125,
+         "meanEntries": 36.63
+        },
+        {
+         "pEp": 0.2813,
+         "meanEntries": 37.49
+        },
+        {
+         "pEp": 0.2656,
+         "meanEntries": 37.81
+        },
+        {
+         "pEp": 0.2578,
+         "meanEntries": 38.04
+        },
+        {
+         "pEp": 0.2617,
+         "meanEntries": 37.93
+        },
+        {
+         "pEp": 0.2598,
+         "meanEntries": 37.99
+        },
+        {
+         "pEp": 0.2588,
+         "meanEntries": 38
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 5114,
+       "note": ""
+      }
+     },
+     "B": {
+      "incumbent": {
+       "ret": 0.2008,
+       "maxDD": 0.1047,
+       "retOverDD": 1.92,
+       "sharpe": 1.172,
+       "avgIdleShare": 0.856,
+       "avgIdleUsd": 85.6261,
+       "capitalUsd": 100,
+       "deployment": 0.144,
+       "turnoverPerYear": 21.75,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 58
+      },
+      "arm": {
+       "ret": 0.2166,
+       "maxDD": 0.0826,
+       "retOverDD": 2.62,
+       "sharpe": 1.317,
+       "avgIdleShare": 0.877,
+       "avgIdleUsd": 87.707,
+       "capitalUsd": 100,
+       "deployment": 0.123,
+       "turnoverPerYear": 18.34,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 49,
+       "incumbentEntries": 58,
+       "entriesRemovedNet": 9,
+       "signalsRefused": 25,
+       "signalsSeen": 74
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.1734,
+        "p05": 0.0955,
+        "p50": 0.1747,
+        "p95": 0.2465,
+        "min": 0.0261,
+        "max": 0.2932
+       },
+       "pNullAtLeastArm": 0.18,
+       "entriesEveryDraw": 49,
+       "pEpisodeRefusal": 0.3403,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 42.65
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 51.87
+        },
+        {
+         "pEp": 0.375,
+         "meanEntries": 47.86
+        },
+        {
+         "pEp": 0.3125,
+         "meanEntries": 49.87
+        },
+        {
+         "pEp": 0.3438,
+         "meanEntries": 48.89
+        },
+        {
+         "pEp": 0.3281,
+         "meanEntries": 49.38
+        },
+        {
+         "pEp": 0.3359,
+         "meanEntries": 49.1
+        },
+        {
+         "pEp": 0.3398,
+         "meanEntries": 49.01
+        },
+        {
+         "pEp": 0.3418,
+         "meanEntries": 48.93
+        },
+        {
+         "pEp": 0.3408,
+         "meanEntries": 48.98
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 6125,
+       "note": ""
+      }
+     },
+     "C": {
+      "incumbent": {
+       "ret": 0.5564,
+       "maxDD": 0.0735,
+       "retOverDD": 7.57,
+       "sharpe": 2.408,
+       "avgIdleShare": 0.827,
+       "avgIdleUsd": 66.1296,
+       "capitalUsd": 80,
+       "deployment": 0.173,
+       "turnoverPerYear": 21.43,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 47
+      },
+      "arm": {
+       "ret": 0.4174,
+       "maxDD": 0.0344,
+       "retOverDD": 8.35,
+       "sharpe": 2.539,
+       "avgIdleShare": 0.883,
+       "avgIdleUsd": 70.6541,
+       "capitalUsd": 80,
+       "deployment": 0.117,
+       "turnoverPerYear": 12.67,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 28,
+       "incumbentEntries": 47,
+       "entriesRemovedNet": 19,
+       "signalsRefused": 55,
+       "signalsSeen": 83
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.3766,
+        "p05": 0.2249,
+        "p50": 0.371,
+        "p95": 0.5357,
+        "min": 0.0091,
+        "max": 0.6726
+       },
+       "pNullAtLeastArm": 0.326,
+       "entriesEveryDraw": 28,
+       "pEpisodeRefusal": 0.6108,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 32.92
+        },
+        {
+         "pEp": 0.75,
+         "meanEntries": 20.9
+        },
+        {
+         "pEp": 0.625,
+         "meanEntries": 27.54
+        },
+        {
+         "pEp": 0.5625,
+         "meanEntries": 30.27
+        },
+        {
+         "pEp": 0.5938,
+         "meanEntries": 28.82
+        },
+        {
+         "pEp": 0.6094,
+         "meanEntries": 28.15
+        },
+        {
+         "pEp": 0.6172,
+         "meanEntries": 27.68
+        },
+        {
+         "pEp": 0.6133,
+         "meanEntries": 27.93
+        },
+        {
+         "pEp": 0.6113,
+         "meanEntries": 28
+        },
+        {
+         "pEp": 0.6104,
+         "meanEntries": 28.08
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 7836,
+       "note": ""
+      }
+     },
+     "D": {
+      "incumbent": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "retOverDD": -0.5,
+       "sharpe": -0.69,
+       "avgIdleShare": 0.921,
+       "avgIdleUsd": 73.6775,
+       "capitalUsd": 80,
+       "deployment": 0.079,
+       "turnoverPerYear": 14.75,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 32
+      },
+      "arm": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "retOverDD": -0.5,
+       "sharpe": -0.69,
+       "avgIdleShare": 0.921,
+       "avgIdleUsd": 73.6775,
+       "capitalUsd": 80,
+       "deployment": 0.079,
+       "turnoverPerYear": 14.75,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 32,
+       "incumbentEntries": 32,
+       "entriesRemovedNet": 0,
+       "signalsRefused": 0,
+       "signalsSeen": 32
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": -0.0781,
+        "p05": -0.0781,
+        "p50": -0.0781,
+        "p95": -0.0781,
+        "min": -0.0781,
+        "max": -0.0781
+       },
+       "pNullAtLeastArm": 1,
+       "entriesEveryDraw": 32,
+       "pEpisodeRefusal": 0,
+       "calibration": [],
+       "drawsKept": 1000,
+       "attempts": 1000,
+       "note": ""
+      }
+     }
+    },
+    "verdict": {
+     "windows": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.0781
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.0781
+      },
+      "nullWorst": {
+       "n": 1000,
+       "mean": -0.0781,
+       "p05": -0.0781,
+       "p50": -0.0781,
+       "p95": -0.0781,
+       "min": -0.0781,
+       "max": -0.0781
+      },
+      "beatsIncumbentWorst": false,
+      "pNullWorstAtLeastArmWorst": 1,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.503
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.503
+      },
+      "nullWorstP95": -0.503,
+      "beatsIncumbentWorst": false,
+      "pNullWorstAtLeastArmWorst": 0.999,
+      "beatsNull": false
+     },
+     "passes": false
+    }
+   },
+   "shipped·kraken": {
+    "perWindow": {
+     "A": {
+      "incumbent": {
+       "ret": 0.0916,
+       "maxDD": 0.1092,
+       "retOverDD": 0.84,
+       "sharpe": 0.647,
+       "avgIdleShare": 0.914,
+       "avgIdleUsd": 91.4397,
+       "capitalUsd": 100,
+       "deployment": 0.086,
+       "turnoverPerYear": 16.89,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 44
+      },
+      "arm": {
+       "ret": 0.1156,
+       "maxDD": 0.0856,
+       "retOverDD": 1.35,
+       "sharpe": 0.839,
+       "avgIdleShare": 0.922,
+       "avgIdleUsd": 92.2479,
+       "capitalUsd": 100,
+       "deployment": 0.077,
+       "turnoverPerYear": 15.34,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 40,
+       "incumbentEntries": 44,
+       "entriesRemovedNet": 4,
+       "signalsRefused": 9,
+       "signalsSeen": 49
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.0713,
+        "p05": 0.0191,
+        "p50": 0.075,
+        "p95": 0.1143,
+        "min": -0.0541,
+        "max": 0.1455
+       },
+       "pNullAtLeastArm": 0.039,
+       "entriesEveryDraw": 40,
+       "pEpisodeRefusal": 0.2046,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 30.77
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 38.86
+        },
+        {
+         "pEp": 0.125,
+         "meanEntries": 41.76
+        },
+        {
+         "pEp": 0.1875,
+         "meanEntries": 40.4
+        },
+        {
+         "pEp": 0.2188,
+         "meanEntries": 39.66
+        },
+        {
+         "pEp": 0.2031,
+         "meanEntries": 40.02
+        },
+        {
+         "pEp": 0.2109,
+         "meanEntries": 39.82
+        },
+        {
+         "pEp": 0.207,
+         "meanEntries": 39.92
+        },
+        {
+         "pEp": 0.2051,
+         "meanEntries": 40
+        },
+        {
+         "pEp": 0.2041,
+         "meanEntries": 40.01
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 4593,
+       "note": ""
+      }
+     },
+     "B": {
+      "incumbent": {
+       "ret": 0.2249,
+       "maxDD": 0.1,
+       "retOverDD": 2.25,
+       "sharpe": 1.313,
+       "avgIdleShare": 0.856,
+       "avgIdleUsd": 85.6374,
+       "capitalUsd": 100,
+       "deployment": 0.144,
+       "turnoverPerYear": 22.51,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 60
+      },
+      "arm": {
+       "ret": 0.2399,
+       "maxDD": 0.0811,
+       "retOverDD": 2.96,
+       "sharpe": 1.463,
+       "avgIdleShare": 0.877,
+       "avgIdleUsd": 87.7094,
+       "capitalUsd": 100,
+       "deployment": 0.123,
+       "turnoverPerYear": 19.1,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 51,
+       "incumbentEntries": 60,
+       "entriesRemovedNet": 9,
+       "signalsRefused": 25,
+       "signalsSeen": 76
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.1907,
+        "p05": 0.1034,
+        "p50": 0.191,
+        "p95": 0.2673,
+        "min": 0.0341,
+        "max": 0.3297
+       },
+       "pNullAtLeastArm": 0.165,
+       "entriesEveryDraw": 51,
+       "pEpisodeRefusal": 0.3091,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 43.33
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 52.83
+        },
+        {
+         "pEp": 0.375,
+         "meanEntries": 48.4
+        },
+        {
+         "pEp": 0.3125,
+         "meanEntries": 50.89
+        },
+        {
+         "pEp": 0.2813,
+         "meanEntries": 51.78
+        },
+        {
+         "pEp": 0.2969,
+         "meanEntries": 51.3
+        },
+        {
+         "pEp": 0.3047,
+         "meanEntries": 51.07
+        },
+        {
+         "pEp": 0.3086,
+         "meanEntries": 51.02
+        },
+        {
+         "pEp": 0.3105,
+         "meanEntries": 50.93
+        },
+        {
+         "pEp": 0.3096,
+         "meanEntries": 50.98
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 6949,
+       "note": ""
+      }
+     },
+     "C": {
+      "incumbent": {
+       "ret": 0.5095,
+       "maxDD": 0.0774,
+       "retOverDD": 6.58,
+       "sharpe": 2.194,
+       "avgIdleShare": 0.833,
+       "avgIdleUsd": 66.6528,
+       "capitalUsd": 80,
+       "deployment": 0.167,
+       "turnoverPerYear": 21.89,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 48
+      },
+      "arm": {
+       "ret": 0.3518,
+       "maxDD": 0.0606,
+       "retOverDD": 5.8,
+       "sharpe": 2.101,
+       "avgIdleShare": 0.888,
+       "avgIdleUsd": 71.0122,
+       "capitalUsd": 80,
+       "deployment": 0.112,
+       "turnoverPerYear": 13.13,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 29,
+       "incumbentEntries": 48,
+       "entriesRemovedNet": 19,
+       "signalsRefused": 57,
+       "signalsSeen": 86
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.3398,
+        "p05": 0.1919,
+        "p50": 0.3385,
+        "p95": 0.5036,
+        "min": -0.0355,
+        "max": 0.6029
+       },
+       "pNullAtLeastArm": 0.442,
+       "entriesEveryDraw": 29,
+       "pEpisodeRefusal": 0.6157,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 33.37
+        },
+        {
+         "pEp": 0.75,
+         "meanEntries": 22.03
+        },
+        {
+         "pEp": 0.625,
+         "meanEntries": 28.57
+        },
+        {
+         "pEp": 0.5625,
+         "meanEntries": 31.07
+        },
+        {
+         "pEp": 0.5938,
+         "meanEntries": 29.99
+        },
+        {
+         "pEp": 0.6094,
+         "meanEntries": 29.28
+        },
+        {
+         "pEp": 0.6172,
+         "meanEntries": 28.94
+        },
+        {
+         "pEp": 0.6133,
+         "meanEntries": 29.09
+        },
+        {
+         "pEp": 0.6152,
+         "meanEntries": 29.03
+        },
+        {
+         "pEp": 0.6162,
+         "meanEntries": 29
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 7622,
+       "note": ""
+      }
+     },
+     "D": {
+      "incumbent": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "retOverDD": -0.5,
+       "sharpe": -0.69,
+       "avgIdleShare": 0.921,
+       "avgIdleUsd": 73.6775,
+       "capitalUsd": 80,
+       "deployment": 0.079,
+       "turnoverPerYear": 14.75,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 32
+      },
+      "arm": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "retOverDD": -0.5,
+       "sharpe": -0.69,
+       "avgIdleShare": 0.921,
+       "avgIdleUsd": 73.6775,
+       "capitalUsd": 80,
+       "deployment": 0.079,
+       "turnoverPerYear": 14.75,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 32,
+       "incumbentEntries": 32,
+       "entriesRemovedNet": 0,
+       "signalsRefused": 0,
+       "signalsSeen": 32
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": -0.0781,
+        "p05": -0.0781,
+        "p50": -0.0781,
+        "p95": -0.0781,
+        "min": -0.0781,
+        "max": -0.0781
+       },
+       "pNullAtLeastArm": 1,
+       "entriesEveryDraw": 32,
+       "pEpisodeRefusal": 0,
+       "calibration": [],
+       "drawsKept": 1000,
+       "attempts": 1000,
+       "note": ""
+      }
+     }
+    },
+    "verdict": {
+     "windows": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.0781
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.0781
+      },
+      "nullWorst": {
+       "n": 1000,
+       "mean": -0.0781,
+       "p05": -0.0781,
+       "p50": -0.0781,
+       "p95": -0.0781,
+       "min": -0.0781,
+       "max": -0.0781
+      },
+      "beatsIncumbentWorst": false,
+      "pNullWorstAtLeastArmWorst": 1,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.503
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.503
+      },
+      "nullWorstP95": -0.503,
+      "beatsIncumbentWorst": false,
+      "pNullWorstAtLeastArmWorst": 1,
+      "beatsNull": false
+     },
+     "passes": false
+    }
+   },
+   "trail·coinbase": {
+    "perWindow": {
+     "A": {
+      "incumbent": {
+       "ret": -0.0033,
+       "maxDD": 0.1175,
+       "retOverDD": -0.03,
+       "sharpe": 0.042,
+       "avgIdleShare": 0.935,
+       "avgIdleUsd": 93.4763,
+       "capitalUsd": 100,
+       "deployment": 0.065,
+       "turnoverPerYear": 19.03,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 49
+      },
+      "arm": {
+       "ret": 0.0337,
+       "maxDD": 0.0815,
+       "retOverDD": 0.41,
+       "sharpe": 0.316,
+       "avgIdleShare": 0.941,
+       "avgIdleUsd": 94.1296,
+       "capitalUsd": 100,
+       "deployment": 0.059,
+       "turnoverPerYear": 16.7,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 43,
+       "incumbentEntries": 49,
+       "entriesRemovedNet": 6,
+       "signalsRefused": 10,
+       "signalsSeen": 53
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": -0.0047,
+        "p05": -0.0485,
+        "p50": -0.0017,
+        "p95": 0.0312,
+        "min": -0.1093,
+        "max": 0.0467
+       },
+       "pNullAtLeastArm": 0.03,
+       "entriesEveryDraw": 43,
+       "pEpisodeRefusal": 0.2124,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 32.2
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 41.71
+        },
+        {
+         "pEp": 0.125,
+         "meanEntries": 45.53
+        },
+        {
+         "pEp": 0.1875,
+         "meanEntries": 43.79
+        },
+        {
+         "pEp": 0.2188,
+         "meanEntries": 42.73
+        },
+        {
+         "pEp": 0.2031,
+         "meanEntries": 43.27
+        },
+        {
+         "pEp": 0.2109,
+         "meanEntries": 43.03
+        },
+        {
+         "pEp": 0.2148,
+         "meanEntries": 42.87
+        },
+        {
+         "pEp": 0.2129,
+         "meanEntries": 42.97
+        },
+        {
+         "pEp": 0.2119,
+         "meanEntries": 43.01
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 5515,
+       "note": ""
+      }
+     },
+     "B": {
+      "incumbent": {
+       "ret": 0.1264,
+       "maxDD": 0.1018,
+       "retOverDD": 1.24,
+       "sharpe": 0.842,
+       "avgIdleShare": 0.887,
+       "avgIdleUsd": 88.6598,
+       "capitalUsd": 100,
+       "deployment": 0.113,
+       "turnoverPerYear": 25.91,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 69
+      },
+      "arm": {
+       "ret": 0.1884,
+       "maxDD": 0.0797,
+       "retOverDD": 2.36,
+       "sharpe": 1.281,
+       "avgIdleShare": 0.9,
+       "avgIdleUsd": 90.0293,
+       "capitalUsd": 100,
+       "deployment": 0.1,
+       "turnoverPerYear": 21.37,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 57,
+       "incumbentEntries": 69,
+       "entriesRemovedNet": 12,
+       "signalsRefused": 25,
+       "signalsSeen": 82
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.1164,
+        "p05": 0.0385,
+        "p50": 0.118,
+        "p95": 0.1837,
+        "min": -0.076,
+        "max": 0.2163
+       },
+       "pNullAtLeastArm": 0.04,
+       "entriesEveryDraw": 57,
+       "pEpisodeRefusal": 0.3198,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 48.11
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 59.92
+        },
+        {
+         "pEp": 0.375,
+         "meanEntries": 54.75
+        },
+        {
+         "pEp": 0.3125,
+         "meanEntries": 57.29
+        },
+        {
+         "pEp": 0.3438,
+         "meanEntries": 56.14
+        },
+        {
+         "pEp": 0.3281,
+         "meanEntries": 56.68
+        },
+        {
+         "pEp": 0.3203,
+         "meanEntries": 56.99
+        },
+        {
+         "pEp": 0.3164,
+         "meanEntries": 57.17
+        },
+        {
+         "pEp": 0.3184,
+         "meanEntries": 57.07
+        },
+        {
+         "pEp": 0.3193,
+         "meanEntries": 57.03
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 7638,
+       "note": ""
+      }
+     },
+     "C": {
+      "incumbent": {
+       "ret": 0.4707,
+       "maxDD": 0.0578,
+       "retOverDD": 8.14,
+       "sharpe": 2.314,
+       "avgIdleShare": 0.871,
+       "avgIdleUsd": 69.6829,
+       "capitalUsd": 80,
+       "deployment": 0.129,
+       "turnoverPerYear": 23.27,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 51
+      },
+      "arm": {
+       "ret": 0.3209,
+       "maxDD": 0.0403,
+       "retOverDD": 6.42,
+       "sharpe": 2.244,
+       "avgIdleShare": 0.917,
+       "avgIdleUsd": 73.3917,
+       "capitalUsd": 80,
+       "deployment": 0.083,
+       "turnoverPerYear": 12.67,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 28,
+       "incumbentEntries": 51,
+       "entriesRemovedNet": 23,
+       "signalsRefused": 70,
+       "signalsSeen": 98
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.2584,
+        "p05": 0.1196,
+        "p50": 0.2631,
+        "p95": 0.3901,
+        "min": -0.0087,
+        "max": 0.491
+       },
+       "pNullAtLeastArm": 0.231,
+       "entriesEveryDraw": 28,
+       "pEpisodeRefusal": 0.6499,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 35.07
+        },
+        {
+         "pEp": 0.75,
+         "meanEntries": 22.26
+        },
+        {
+         "pEp": 0.625,
+         "meanEntries": 29.22
+        },
+        {
+         "pEp": 0.6875,
+         "meanEntries": 25.85
+        },
+        {
+         "pEp": 0.6563,
+         "meanEntries": 27.62
+        },
+        {
+         "pEp": 0.6406,
+         "meanEntries": 28.42
+        },
+        {
+         "pEp": 0.6484,
+         "meanEntries": 28.08
+        },
+        {
+         "pEp": 0.6523,
+         "meanEntries": 27.82
+        },
+        {
+         "pEp": 0.6504,
+         "meanEntries": 27.95
+        },
+        {
+         "pEp": 0.6494,
+         "meanEntries": 28.04
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 7881,
+       "note": ""
+      }
+     },
+     "D": {
+      "incumbent": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "retOverDD": -0.29,
+       "sharpe": -0.345,
+       "avgIdleShare": 0.935,
+       "avgIdleUsd": 74.8287,
+       "capitalUsd": 80,
+       "deployment": 0.065,
+       "turnoverPerYear": 15.21,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 33
+      },
+      "arm": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "retOverDD": -0.29,
+       "sharpe": -0.345,
+       "avgIdleShare": 0.935,
+       "avgIdleUsd": 74.8287,
+       "capitalUsd": 80,
+       "deployment": 0.065,
+       "turnoverPerYear": 15.21,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 33,
+       "incumbentEntries": 33,
+       "entriesRemovedNet": 0,
+       "signalsRefused": 0,
+       "signalsSeen": 33
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": -0.032,
+        "p05": -0.032,
+        "p50": -0.032,
+        "p95": -0.032,
+        "min": -0.032,
+        "max": -0.032
+       },
+       "pNullAtLeastArm": 1,
+       "entriesEveryDraw": 33,
+       "pEpisodeRefusal": 0,
+       "calibration": [],
+       "drawsKept": 1000,
+       "attempts": 1000,
+       "note": ""
+      }
+     }
+    },
+    "verdict": {
+     "windows": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.032
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.032
+      },
+      "nullWorst": {
+       "n": 1000,
+       "mean": -0.0341,
+       "p05": -0.0495,
+       "p50": -0.032,
+       "p95": -0.032,
+       "min": -0.1093,
+       "max": -0.032
+      },
+      "beatsIncumbentWorst": false,
+      "pNullWorstAtLeastArmWorst": 0.869,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.288
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.288
+      },
+      "nullWorstP95": -0.287,
+      "beatsIncumbentWorst": false,
+      "pNullWorstAtLeastArmWorst": 0.868,
+      "beatsNull": false
+     },
+     "passes": false
+    }
+   },
+   "trail·kraken": {
+    "perWindow": {
+     "A": {
+      "incumbent": {
+       "ret": 0.0654,
+       "maxDD": 0.1164,
+       "retOverDD": 0.56,
+       "sharpe": 0.515,
+       "avgIdleShare": 0.934,
+       "avgIdleUsd": 93.4419,
+       "capitalUsd": 100,
+       "deployment": 0.066,
+       "turnoverPerYear": 19.22,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 50
+      },
+      "arm": {
+       "ret": 0.0948,
+       "maxDD": 0.0876,
+       "retOverDD": 1.08,
+       "sharpe": 0.74,
+       "avgIdleShare": 0.941,
+       "avgIdleUsd": 94.0679,
+       "capitalUsd": 100,
+       "deployment": 0.059,
+       "turnoverPerYear": 17.28,
+       "from": "2025-09-10",
+       "to": "2026-09-21",
+       "entries": 45,
+       "incumbentEntries": 50,
+       "entriesRemovedNet": 5,
+       "signalsRefused": 9,
+       "signalsSeen": 54
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.0589,
+        "p05": 0.0114,
+        "p50": 0.0624,
+        "p95": 0.0942,
+        "min": -0.0415,
+        "max": 0.1039
+       },
+       "pNullAtLeastArm": 0.042,
+       "entriesEveryDraw": 45,
+       "pEpisodeRefusal": 0.1724,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 33.21
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 42.63
+        },
+        {
+         "pEp": 0.125,
+         "meanEntries": 46.44
+        },
+        {
+         "pEp": 0.1875,
+         "meanEntries": 44.58
+        },
+        {
+         "pEp": 0.1563,
+         "meanEntries": 45.58
+        },
+        {
+         "pEp": 0.1719,
+         "meanEntries": 45.06
+        },
+        {
+         "pEp": 0.1797,
+         "meanEntries": 44.79
+        },
+        {
+         "pEp": 0.1758,
+         "meanEntries": 44.93
+        },
+        {
+         "pEp": 0.1738,
+         "meanEntries": 44.99
+        },
+        {
+         "pEp": 0.1729,
+         "meanEntries": 45
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 5259,
+       "note": ""
+      }
+     },
+     "B": {
+      "incumbent": {
+       "ret": 0.1377,
+       "maxDD": 0.0943,
+       "retOverDD": 1.46,
+       "sharpe": 0.938,
+       "avgIdleShare": 0.887,
+       "avgIdleUsd": 88.719,
+       "capitalUsd": 100,
+       "deployment": 0.113,
+       "turnoverPerYear": 26.29,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 70
+      },
+      "arm": {
+       "ret": 0.1954,
+       "maxDD": 0.0733,
+       "retOverDD": 2.66,
+       "sharpe": 1.363,
+       "avgIdleShare": 0.901,
+       "avgIdleUsd": 90.124,
+       "capitalUsd": 100,
+       "deployment": 0.099,
+       "turnoverPerYear": 21.75,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 58,
+       "incumbentEntries": 70,
+       "entriesRemovedNet": 12,
+       "signalsRefused": 25,
+       "signalsSeen": 83
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.1131,
+        "p05": 0.0317,
+        "p50": 0.1141,
+        "p95": 0.1896,
+        "min": -0.0425,
+        "max": 0.2513
+       },
+       "pNullAtLeastArm": 0.036,
+       "entriesEveryDraw": 58,
+       "pEpisodeRefusal": 0.3198,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 48.11
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 61.22
+        },
+        {
+         "pEp": 0.375,
+         "meanEntries": 55.35
+        },
+        {
+         "pEp": 0.3125,
+         "meanEntries": 58.47
+        },
+        {
+         "pEp": 0.3438,
+         "meanEntries": 57.04
+        },
+        {
+         "pEp": 0.3281,
+         "meanEntries": 57.7
+        },
+        {
+         "pEp": 0.3203,
+         "meanEntries": 57.99
+        },
+        {
+         "pEp": 0.3164,
+         "meanEntries": 58.22
+        },
+        {
+         "pEp": 0.3184,
+         "meanEntries": 58.15
+        },
+        {
+         "pEp": 0.3193,
+         "meanEntries": 58.08
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 7362,
+       "note": ""
+      }
+     },
+     "C": {
+      "incumbent": {
+       "ret": 0.3829,
+       "maxDD": 0.0596,
+       "retOverDD": 6.43,
+       "sharpe": 1.934,
+       "avgIdleShare": 0.878,
+       "avgIdleUsd": 70.2617,
+       "capitalUsd": 80,
+       "deployment": 0.122,
+       "turnoverPerYear": 25.58,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 56
+      },
+      "arm": {
+       "ret": 0.2367,
+       "maxDD": 0.0422,
+       "retOverDD": 4.73,
+       "sharpe": 1.789,
+       "avgIdleShare": 0.923,
+       "avgIdleUsd": 73.8762,
+       "capitalUsd": 80,
+       "deployment": 0.077,
+       "turnoverPerYear": 14.52,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 32,
+       "incumbentEntries": 56,
+       "entriesRemovedNet": 24,
+       "signalsRefused": 75,
+       "signalsSeen": 107
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.19,
+        "p05": 0.0677,
+        "p50": 0.1873,
+        "p95": 0.316,
+        "min": -0.0522,
+        "max": 0.3795
+       },
+       "pNullAtLeastArm": 0.274,
+       "entriesEveryDraw": 32,
+       "pEpisodeRefusal": 0.6177,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 38.39
+        },
+        {
+         "pEp": 0.75,
+         "meanEntries": 23.84
+        },
+        {
+         "pEp": 0.625,
+         "meanEntries": 31.66
+        },
+        {
+         "pEp": 0.5625,
+         "meanEntries": 35.18
+        },
+        {
+         "pEp": 0.5938,
+         "meanEntries": 33.41
+        },
+        {
+         "pEp": 0.6094,
+         "meanEntries": 32.47
+        },
+        {
+         "pEp": 0.6172,
+         "meanEntries": 32.05
+        },
+        {
+         "pEp": 0.6211,
+         "meanEntries": 31.87
+        },
+        {
+         "pEp": 0.6191,
+         "meanEntries": 31.9
+        },
+        {
+         "pEp": 0.6182,
+         "meanEntries": 31.96
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 8558,
+       "note": ""
+      }
+     },
+     "D": {
+      "incumbent": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "retOverDD": -0.29,
+       "sharpe": -0.345,
+       "avgIdleShare": 0.935,
+       "avgIdleUsd": 74.8287,
+       "capitalUsd": 80,
+       "deployment": 0.065,
+       "turnoverPerYear": 15.21,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 33
+      },
+      "arm": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "retOverDD": -0.29,
+       "sharpe": -0.345,
+       "avgIdleShare": 0.935,
+       "avgIdleUsd": 74.8287,
+       "capitalUsd": 80,
+       "deployment": 0.065,
+       "turnoverPerYear": 15.21,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 33,
+       "incumbentEntries": 33,
+       "entriesRemovedNet": 0,
+       "signalsRefused": 0,
+       "signalsSeen": 33
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": -0.032,
+        "p05": -0.032,
+        "p50": -0.032,
+        "p95": -0.032,
+        "min": -0.032,
+        "max": -0.032
+       },
+       "pNullAtLeastArm": 1,
+       "entriesEveryDraw": 33,
+       "pEpisodeRefusal": 0,
+       "calibration": [],
+       "drawsKept": 1000,
+       "attempts": 1000,
+       "note": ""
+      }
+     }
+    },
+    "verdict": {
+     "windows": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.032
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.032
+      },
+      "nullWorst": {
+       "n": 1000,
+       "mean": -0.0321,
+       "p05": -0.032,
+       "p50": -0.032,
+       "p95": -0.032,
+       "min": -0.0522,
+       "max": -0.032
+      },
+      "beatsIncumbentWorst": false,
+      "pNullWorstAtLeastArmWorst": 0.994,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.288
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.288
+      },
+      "nullWorstP95": -0.287,
+      "beatsIncumbentWorst": false,
+      "pNullWorstAtLeastArmWorst": 0.993,
+      "beatsNull": false
+     },
+     "passes": false
+    }
+   }
+  }
+ },
+ "h3": {
+  "perCondition": {
+   "shipped·coinbase": {
+    "perWindow": {
+     "B": {
+      "incumbent": {
+       "ret": 0.2008,
+       "maxDD": 0.1047,
+       "retOverDD": 1.92,
+       "sharpe": 1.172,
+       "avgIdleShare": 0.856,
+       "avgIdleUsd": 85.6261,
+       "capitalUsd": 100,
+       "deployment": 0.144,
+       "turnoverPerYear": 21.75,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 58
+      },
+      "arm": {
+       "ret": 0.22,
+       "maxDD": 0.1058,
+       "retOverDD": 2.08,
+       "sharpe": 1.348,
+       "avgIdleShare": 0.877,
+       "avgIdleUsd": 87.6679,
+       "capitalUsd": 100,
+       "deployment": 0.123,
+       "turnoverPerYear": 18.72,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 50,
+       "incumbentEntries": 58,
+       "entriesRemovedNet": 8,
+       "signalsRefused": 28,
+       "signalsSeen": 78
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.1813,
+        "p05": 0.1067,
+        "p50": 0.1824,
+        "p95": 0.2484,
+        "min": 0.0074,
+        "max": 0.2999
+       },
+       "pNullAtLeastArm": 0.21,
+       "entriesEveryDraw": 50,
+       "pEpisodeRefusal": 0.2954,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 42.21
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 51.4
+        },
+        {
+         "pEp": 0.375,
+         "meanEntries": 47.39
+        },
+        {
+         "pEp": 0.3125,
+         "meanEntries": 49.32
+        },
+        {
+         "pEp": 0.2813,
+         "meanEntries": 50.49
+        },
+        {
+         "pEp": 0.2969,
+         "meanEntries": 49.93
+        },
+        {
+         "pEp": 0.2891,
+         "meanEntries": 50.2
+        },
+        {
+         "pEp": 0.293,
+         "meanEntries": 50.07
+        },
+        {
+         "pEp": 0.2949,
+         "meanEntries": 50.02
+        },
+        {
+         "pEp": 0.2959,
+         "meanEntries": 49.98
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 6453,
+       "note": ""
+      }
+     },
+     "C": {
+      "incumbent": {
+       "ret": 0.5564,
+       "maxDD": 0.0735,
+       "retOverDD": 7.57,
+       "sharpe": 2.408,
+       "avgIdleShare": 0.827,
+       "avgIdleUsd": 66.1296,
+       "capitalUsd": 80,
+       "deployment": 0.173,
+       "turnoverPerYear": 21.43,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 47
+      },
+      "arm": {
+       "ret": 0.41,
+       "maxDD": 0.0541,
+       "retOverDD": 7.58,
+       "sharpe": 2.204,
+       "avgIdleShare": 0.88,
+       "avgIdleUsd": 70.3884,
+       "capitalUsd": 80,
+       "deployment": 0.12,
+       "turnoverPerYear": 13.13,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 29,
+       "incumbentEntries": 47,
+       "entriesRemovedNet": 18,
+       "signalsRefused": 58,
+       "signalsSeen": 87
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.3808,
+        "p05": 0.219,
+        "p50": 0.3755,
+        "p95": 0.5506,
+        "min": -0.0101,
+        "max": 0.6214
+       },
+       "pNullAtLeastArm": 0.387,
+       "entriesEveryDraw": 29,
+       "pEpisodeRefusal": 0.5854,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 32.32
+        },
+        {
+         "pEp": 0.75,
+         "meanEntries": 20.84
+        },
+        {
+         "pEp": 0.625,
+         "meanEntries": 27.37
+        },
+        {
+         "pEp": 0.5625,
+         "meanEntries": 30.06
+        },
+        {
+         "pEp": 0.5938,
+         "meanEntries": 28.56
+        },
+        {
+         "pEp": 0.5781,
+         "meanEntries": 29.34
+        },
+        {
+         "pEp": 0.5859,
+         "meanEntries": 28.94
+        },
+        {
+         "pEp": 0.582,
+         "meanEntries": 29.15
+        },
+        {
+         "pEp": 0.584,
+         "meanEntries": 29.06
+        },
+        {
+         "pEp": 0.585,
+         "meanEntries": 29.05
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 7549,
+       "note": ""
+      }
+     },
+     "D": {
+      "incumbent": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "retOverDD": -0.5,
+       "sharpe": -0.69,
+       "avgIdleShare": 0.921,
+       "avgIdleUsd": 73.6775,
+       "capitalUsd": 80,
+       "deployment": 0.079,
+       "turnoverPerYear": 14.75,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 32
+      },
+      "arm": {
+       "ret": -0.0176,
+       "maxDD": 0.0592,
+       "retOverDD": -0.3,
+       "sharpe": -0.214,
+       "avgIdleShare": 0.953,
+       "avgIdleUsd": 76.2723,
+       "capitalUsd": 80,
+       "deployment": 0.047,
+       "turnoverPerYear": 9.22,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 20,
+       "incumbentEntries": 32,
+       "entriesRemovedNet": 12,
+       "signalsRefused": 28,
+       "signalsSeen": 48
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": -0.0332,
+        "p05": -0.0922,
+        "p50": -0.0317,
+        "p95": 0.0178,
+        "min": -0.1397,
+        "max": 0.0502
+       },
+       "pNullAtLeastArm": 0.34,
+       "entriesEveryDraw": 20,
+       "pEpisodeRefusal": 0.4917,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 19.75
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 26.78
+        },
+        {
+         "pEp": 0.375,
+         "meanEntries": 23.51
+        },
+        {
+         "pEp": 0.4375,
+         "meanEntries": 21.76
+        },
+        {
+         "pEp": 0.4688,
+         "meanEntries": 20.68
+        },
+        {
+         "pEp": 0.4844,
+         "meanEntries": 20.29
+        },
+        {
+         "pEp": 0.4922,
+         "meanEntries": 19.97
+        },
+        {
+         "pEp": 0.4883,
+         "meanEntries": 20.12
+        },
+        {
+         "pEp": 0.4902,
+         "meanEntries": 20.09
+        },
+        {
+         "pEp": 0.4912,
+         "meanEntries": 20.02
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 6046,
+       "note": ""
+      }
+     }
+    },
+    "verdict": {
+     "windows": [
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.0781
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.0176
+      },
+      "nullWorst": {
+       "n": 1000,
+       "mean": -0.0332,
+       "p05": -0.0922,
+       "p50": -0.0317,
+       "p95": 0.0178,
+       "min": -0.1397,
+       "max": 0.0502
+      },
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.34,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.503
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.297
+      },
+      "nullWorstP95": 0.224,
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.49,
+      "beatsNull": false
+     },
+     "passes": false
+    }
+   },
+   "shipped·kraken": {
+    "perWindow": {
+     "B": {
+      "incumbent": {
+       "ret": 0.2249,
+       "maxDD": 0.1,
+       "retOverDD": 2.25,
+       "sharpe": 1.313,
+       "avgIdleShare": 0.856,
+       "avgIdleUsd": 85.6374,
+       "capitalUsd": 100,
+       "deployment": 0.144,
+       "turnoverPerYear": 22.51,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 60
+      },
+      "arm": {
+       "ret": 0.2266,
+       "maxDD": 0.1024,
+       "retOverDD": 2.21,
+       "sharpe": 1.393,
+       "avgIdleShare": 0.878,
+       "avgIdleUsd": 87.8215,
+       "capitalUsd": 100,
+       "deployment": 0.122,
+       "turnoverPerYear": 19.48,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 52,
+       "incumbentEntries": 60,
+       "entriesRemovedNet": 8,
+       "signalsRefused": 29,
+       "signalsSeen": 81
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.1929,
+        "p05": 0.1093,
+        "p50": 0.1958,
+        "p95": 0.2691,
+        "min": 0.0336,
+        "max": 0.3115
+       },
+       "pNullAtLeastArm": 0.254,
+       "entriesEveryDraw": 52,
+       "pEpisodeRefusal": 0.2925,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 43.49
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 53.46
+        },
+        {
+         "pEp": 0.375,
+         "meanEntries": 48.9
+        },
+        {
+         "pEp": 0.3125,
+         "meanEntries": 51.26
+        },
+        {
+         "pEp": 0.2813,
+         "meanEntries": 52.37
+        },
+        {
+         "pEp": 0.2969,
+         "meanEntries": 51.85
+        },
+        {
+         "pEp": 0.2891,
+         "meanEntries": 52.14
+        },
+        {
+         "pEp": 0.293,
+         "meanEntries": 51.98
+        },
+        {
+         "pEp": 0.291,
+         "meanEntries": 52.04
+        },
+        {
+         "pEp": 0.292,
+         "meanEntries": 52.01
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 6127,
+       "note": ""
+      }
+     },
+     "C": {
+      "incumbent": {
+       "ret": 0.5095,
+       "maxDD": 0.0774,
+       "retOverDD": 6.58,
+       "sharpe": 2.194,
+       "avgIdleShare": 0.833,
+       "avgIdleUsd": 66.6528,
+       "capitalUsd": 80,
+       "deployment": 0.167,
+       "turnoverPerYear": 21.89,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 48
+      },
+      "arm": {
+       "ret": 0.4106,
+       "maxDD": 0.0434,
+       "retOverDD": 8.21,
+       "sharpe": 2.283,
+       "avgIdleShare": 0.889,
+       "avgIdleUsd": 71.1462,
+       "capitalUsd": 80,
+       "deployment": 0.111,
+       "turnoverPerYear": 13.13,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 29,
+       "incumbentEntries": 48,
+       "entriesRemovedNet": 19,
+       "signalsRefused": 62,
+       "signalsSeen": 91
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.3426,
+        "p05": 0.181,
+        "p50": 0.3384,
+        "p95": 0.5069,
+        "min": 0.0689,
+        "max": 0.6101
+       },
+       "pNullAtLeastArm": 0.262,
+       "entriesEveryDraw": 29,
+       "pEpisodeRefusal": 0.5962,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 33.46
+        },
+        {
+         "pEp": 0.75,
+         "meanEntries": 21.1
+        },
+        {
+         "pEp": 0.625,
+         "meanEntries": 27.77
+        },
+        {
+         "pEp": 0.5625,
+         "meanEntries": 30.67
+        },
+        {
+         "pEp": 0.5938,
+         "meanEntries": 29.16
+        },
+        {
+         "pEp": 0.6094,
+         "meanEntries": 28.34
+        },
+        {
+         "pEp": 0.6016,
+         "meanEntries": 28.69
+        },
+        {
+         "pEp": 0.5977,
+         "meanEntries": 28.93
+        },
+        {
+         "pEp": 0.5957,
+         "meanEntries": 29.04
+        },
+        {
+         "pEp": 0.5967,
+         "meanEntries": 28.94
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 7855,
+       "note": ""
+      }
+     },
+     "D": {
+      "incumbent": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "retOverDD": -0.5,
+       "sharpe": -0.69,
+       "avgIdleShare": 0.921,
+       "avgIdleUsd": 73.6775,
+       "capitalUsd": 80,
+       "deployment": 0.079,
+       "turnoverPerYear": 14.75,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 32
+      },
+      "arm": {
+       "ret": -0.0176,
+       "maxDD": 0.0592,
+       "retOverDD": -0.3,
+       "sharpe": -0.214,
+       "avgIdleShare": 0.953,
+       "avgIdleUsd": 76.2723,
+       "capitalUsd": 80,
+       "deployment": 0.047,
+       "turnoverPerYear": 9.22,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 20,
+       "incumbentEntries": 32,
+       "entriesRemovedNet": 12,
+       "signalsRefused": 28,
+       "signalsSeen": 48
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": -0.0336,
+        "p05": -0.0909,
+        "p50": -0.0313,
+        "p95": 0.0191,
+        "min": -0.1594,
+        "max": 0.0459
+       },
+       "pNullAtLeastArm": 0.342,
+       "entriesEveryDraw": 20,
+       "pEpisodeRefusal": 0.4946,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 19.84
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 26.4
+        },
+        {
+         "pEp": 0.375,
+         "meanEntries": 23.37
+        },
+        {
+         "pEp": 0.4375,
+         "meanEntries": 21.8
+        },
+        {
+         "pEp": 0.4688,
+         "meanEntries": 20.83
+        },
+        {
+         "pEp": 0.4844,
+         "meanEntries": 20.33
+        },
+        {
+         "pEp": 0.4922,
+         "meanEntries": 20.08
+        },
+        {
+         "pEp": 0.4961,
+         "meanEntries": 19.97
+        },
+        {
+         "pEp": 0.4941,
+         "meanEntries": 20.04
+        },
+        {
+         "pEp": 0.4951,
+         "meanEntries": 20
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 6980,
+       "note": ""
+      }
+     }
+    },
+    "verdict": {
+     "windows": [
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.0781
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": -0.0176
+      },
+      "nullWorst": {
+       "n": 1000,
+       "mean": -0.0336,
+       "p05": -0.0909,
+       "p50": -0.0313,
+       "p95": 0.0191,
+       "min": -0.1594,
+       "max": 0.0459
+      },
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.342,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.503
+      },
+      "armWorst": {
+       "window": "D",
+       "score": -0.297
+      },
+      "nullWorstP95": 0.267,
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.493,
+      "beatsNull": false
+     },
+     "passes": false
+    }
+   },
+   "trail·coinbase": {
+    "perWindow": {
+     "B": {
+      "incumbent": {
+       "ret": 0.1264,
+       "maxDD": 0.1018,
+       "retOverDD": 1.24,
+       "sharpe": 0.842,
+       "avgIdleShare": 0.887,
+       "avgIdleUsd": 88.6598,
+       "capitalUsd": 100,
+       "deployment": 0.113,
+       "turnoverPerYear": 25.91,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 69
+      },
+      "arm": {
+       "ret": 0.1948,
+       "maxDD": 0.0994,
+       "retOverDD": 1.96,
+       "sharpe": 1.321,
+       "avgIdleShare": 0.902,
+       "avgIdleUsd": 90.1565,
+       "capitalUsd": 100,
+       "deployment": 0.098,
+       "turnoverPerYear": 21.37,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 57,
+       "incumbentEntries": 69,
+       "entriesRemovedNet": 12,
+       "signalsRefused": 28,
+       "signalsSeen": 85
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.1152,
+        "p05": 0.0414,
+        "p50": 0.1177,
+        "p95": 0.1808,
+        "min": -0.0187,
+        "max": 0.2301
+       },
+       "pNullAtLeastArm": 0.024,
+       "entriesEveryDraw": 57,
+       "pEpisodeRefusal": 0.3257,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 48.83
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 60.25
+        },
+        {
+         "pEp": 0.375,
+         "meanEntries": 54.97
+        },
+        {
+         "pEp": 0.3125,
+         "meanEntries": 57.77
+        },
+        {
+         "pEp": 0.3438,
+         "meanEntries": 56.32
+        },
+        {
+         "pEp": 0.3281,
+         "meanEntries": 56.92
+        },
+        {
+         "pEp": 0.3203,
+         "meanEntries": 57.45
+        },
+        {
+         "pEp": 0.3242,
+         "meanEntries": 57.12
+        },
+        {
+         "pEp": 0.3262,
+         "meanEntries": 57
+        },
+        {
+         "pEp": 0.3252,
+         "meanEntries": 57.08
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 7484,
+       "note": ""
+      }
+     },
+     "C": {
+      "incumbent": {
+       "ret": 0.4707,
+       "maxDD": 0.0578,
+       "retOverDD": 8.14,
+       "sharpe": 2.314,
+       "avgIdleShare": 0.871,
+       "avgIdleUsd": 69.6829,
+       "capitalUsd": 80,
+       "deployment": 0.129,
+       "turnoverPerYear": 23.27,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 51
+      },
+      "arm": {
+       "ret": 0.2797,
+       "maxDD": 0.0551,
+       "retOverDD": 5.07,
+       "sharpe": 1.737,
+       "avgIdleShare": 0.919,
+       "avgIdleUsd": 73.4916,
+       "capitalUsd": 80,
+       "deployment": 0.081,
+       "turnoverPerYear": 13.6,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 30,
+       "incumbentEntries": 51,
+       "entriesRemovedNet": 21,
+       "signalsRefused": 73,
+       "signalsSeen": 103
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.2775,
+        "p05": 0.1403,
+        "p50": 0.2787,
+        "p95": 0.4116,
+        "min": 0.0087,
+        "max": 0.5119
+       },
+       "pNullAtLeastArm": 0.496,
+       "entriesEveryDraw": 30,
+       "pEpisodeRefusal": 0.6108,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 35.05
+        },
+        {
+         "pEp": 0.75,
+         "meanEntries": 22.5
+        },
+        {
+         "pEp": 0.625,
+         "meanEntries": 29.33
+        },
+        {
+         "pEp": 0.5625,
+         "meanEntries": 32.35
+        },
+        {
+         "pEp": 0.5938,
+         "meanEntries": 30.81
+        },
+        {
+         "pEp": 0.6094,
+         "meanEntries": 30.11
+        },
+        {
+         "pEp": 0.6172,
+         "meanEntries": 29.68
+        },
+        {
+         "pEp": 0.6133,
+         "meanEntries": 29.9
+        },
+        {
+         "pEp": 0.6113,
+         "meanEntries": 29.98
+        },
+        {
+         "pEp": 0.6104,
+         "meanEntries": 30.03
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 8021,
+       "note": ""
+      }
+     },
+     "D": {
+      "incumbent": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "retOverDD": -0.29,
+       "sharpe": -0.345,
+       "avgIdleShare": 0.935,
+       "avgIdleUsd": 74.8287,
+       "capitalUsd": 80,
+       "deployment": 0.065,
+       "turnoverPerYear": 15.21,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 33
+      },
+      "arm": {
+       "ret": 0.0277,
+       "maxDD": 0.0384,
+       "retOverDD": 0.55,
+       "sharpe": 0.471,
+       "avgIdleShare": 0.961,
+       "avgIdleUsd": 76.8844,
+       "capitalUsd": 80,
+       "deployment": 0.039,
+       "turnoverPerYear": 9.22,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 20,
+       "incumbentEntries": 33,
+       "entriesRemovedNet": 13,
+       "signalsRefused": 28,
+       "signalsSeen": 48
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": -0.0174,
+        "p05": -0.0752,
+        "p50": -0.0153,
+        "p95": 0.0368,
+        "min": -0.1507,
+        "max": 0.0794
+       },
+       "pNullAtLeastArm": 0.075,
+       "entriesEveryDraw": 20,
+       "pEpisodeRefusal": 0.5083,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 20.24
+        },
+        {
+         "pEp": 0.75,
+         "meanEntries": 11.73
+        },
+        {
+         "pEp": 0.625,
+         "meanEntries": 16.21
+        },
+        {
+         "pEp": 0.5625,
+         "meanEntries": 18.29
+        },
+        {
+         "pEp": 0.5313,
+         "meanEntries": 19.37
+        },
+        {
+         "pEp": 0.5156,
+         "meanEntries": 19.8
+        },
+        {
+         "pEp": 0.5078,
+         "meanEntries": 20.02
+        },
+        {
+         "pEp": 0.5117,
+         "meanEntries": 19.92
+        },
+        {
+         "pEp": 0.5098,
+         "meanEntries": 19.95
+        },
+        {
+         "pEp": 0.5088,
+         "meanEntries": 20
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 6666,
+       "note": ""
+      }
+     }
+    },
+    "verdict": {
+     "windows": [
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.032
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": 0.0277
+      },
+      "nullWorst": {
+       "n": 1000,
+       "mean": -0.0176,
+       "p05": -0.0752,
+       "p50": -0.0153,
+       "p95": 0.0368,
+       "min": -0.1507,
+       "max": 0.0794
+      },
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.074,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.288
+      },
+      "armWorst": {
+       "window": "D",
+       "score": 0.554
+      },
+      "nullWorstP95": 0.612,
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.062,
+      "beatsNull": false
+     },
+     "passes": false
+    }
+   },
+   "trail·kraken": {
+    "perWindow": {
+     "B": {
+      "incumbent": {
+       "ret": 0.1377,
+       "maxDD": 0.0943,
+       "retOverDD": 1.46,
+       "sharpe": 0.938,
+       "avgIdleShare": 0.887,
+       "avgIdleUsd": 88.719,
+       "capitalUsd": 100,
+       "deployment": 0.113,
+       "turnoverPerYear": 26.29,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 70
+      },
+      "arm": {
+       "ret": 0.1941,
+       "maxDD": 0.0929,
+       "retOverDD": 2.09,
+       "sharpe": 1.348,
+       "avgIdleShare": 0.902,
+       "avgIdleUsd": 90.2335,
+       "capitalUsd": 100,
+       "deployment": 0.098,
+       "turnoverPerYear": 21.75,
+       "from": "2024-08-31",
+       "to": "2025-09-21",
+       "entries": 58,
+       "incumbentEntries": 70,
+       "entriesRemovedNet": 12,
+       "signalsRefused": 29,
+       "signalsSeen": 87
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.1162,
+        "p05": 0.0334,
+        "p50": 0.121,
+        "p95": 0.1905,
+        "min": -0.0584,
+        "max": 0.238
+       },
+       "pNullAtLeastArm": 0.036,
+       "entriesEveryDraw": 58,
+       "pEpisodeRefusal": 0.3188,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 48.29
+        },
+        {
+         "pEp": 0.25,
+         "meanEntries": 61.39
+        },
+        {
+         "pEp": 0.375,
+         "meanEntries": 55.03
+        },
+        {
+         "pEp": 0.3125,
+         "meanEntries": 58.34
+        },
+        {
+         "pEp": 0.3438,
+         "meanEntries": 56.64
+        },
+        {
+         "pEp": 0.3281,
+         "meanEntries": 57.58
+        },
+        {
+         "pEp": 0.3203,
+         "meanEntries": 57.87
+        },
+        {
+         "pEp": 0.3164,
+         "meanEntries": 58.16
+        },
+        {
+         "pEp": 0.3184,
+         "meanEntries": 58.02
+        },
+        {
+         "pEp": 0.3193,
+         "meanEntries": 57.93
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 7246,
+       "note": ""
+      }
+     },
+     "C": {
+      "incumbent": {
+       "ret": 0.3829,
+       "maxDD": 0.0596,
+       "retOverDD": 6.43,
+       "sharpe": 1.934,
+       "avgIdleShare": 0.878,
+       "avgIdleUsd": 70.2617,
+       "capitalUsd": 80,
+       "deployment": 0.122,
+       "turnoverPerYear": 25.58,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 56
+      },
+      "arm": {
+       "ret": 0.1884,
+       "maxDD": 0.0687,
+       "retOverDD": 2.74,
+       "sharpe": 1.238,
+       "avgIdleShare": 0.926,
+       "avgIdleUsd": 74.0467,
+       "capitalUsd": 80,
+       "deployment": 0.074,
+       "turnoverPerYear": 14.06,
+       "from": "2023-08-22",
+       "to": "2024-09-21",
+       "entries": 31,
+       "incumbentEntries": 56,
+       "entriesRemovedNet": 25,
+       "signalsRefused": 83,
+       "signalsSeen": 114
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": 0.1759,
+        "p05": 0.0464,
+        "p50": 0.1741,
+        "p95": 0.3049,
+        "min": -0.0651,
+        "max": 0.464
+       },
+       "pNullAtLeastArm": 0.443,
+       "entriesEveryDraw": 31,
+       "pEpisodeRefusal": 0.6499,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 38.62
+        },
+        {
+         "pEp": 0.75,
+         "meanEntries": 24.32
+        },
+        {
+         "pEp": 0.625,
+         "meanEntries": 32.24
+        },
+        {
+         "pEp": 0.6875,
+         "meanEntries": 28.56
+        },
+        {
+         "pEp": 0.6563,
+         "meanEntries": 30.47
+        },
+        {
+         "pEp": 0.6406,
+         "meanEntries": 31.43
+        },
+        {
+         "pEp": 0.6484,
+         "meanEntries": 31.09
+        },
+        {
+         "pEp": 0.6523,
+         "meanEntries": 30.72
+        },
+        {
+         "pEp": 0.6504,
+         "meanEntries": 30.94
+        },
+        {
+         "pEp": 0.6494,
+         "meanEntries": 31.01
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 8619,
+       "note": ""
+      }
+     },
+     "D": {
+      "incumbent": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "retOverDD": -0.29,
+       "sharpe": -0.345,
+       "avgIdleShare": 0.935,
+       "avgIdleUsd": 74.8287,
+       "capitalUsd": 80,
+       "deployment": 0.065,
+       "turnoverPerYear": 15.21,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 33
+      },
+      "arm": {
+       "ret": 0.0277,
+       "maxDD": 0.0384,
+       "retOverDD": 0.55,
+       "sharpe": 0.471,
+       "avgIdleShare": 0.961,
+       "avgIdleUsd": 76.8844,
+       "capitalUsd": 80,
+       "deployment": 0.039,
+       "turnoverPerYear": 9.22,
+       "from": "2022-08-22",
+       "to": "2023-09-22",
+       "entries": 20,
+       "incumbentEntries": 33,
+       "entriesRemovedNet": 13,
+       "signalsRefused": 28,
+       "signalsSeen": 48
+      },
+      "null": {
+       "ret": {
+        "n": 1000,
+        "mean": -0.0194,
+        "p05": -0.0765,
+        "p50": -0.0175,
+        "p95": 0.0319,
+        "min": -0.1143,
+        "max": 0.0757
+       },
+       "pNullAtLeastArm": 0.066,
+       "entriesEveryDraw": 20,
+       "pEpisodeRefusal": 0.52,
+       "calibration": [
+        {
+         "pEp": 0.5,
+         "meanEntries": 20.71
+        },
+        {
+         "pEp": 0.75,
+         "meanEntries": 11.94
+        },
+        {
+         "pEp": 0.625,
+         "meanEntries": 16.55
+        },
+        {
+         "pEp": 0.5625,
+         "meanEntries": 18.69
+        },
+        {
+         "pEp": 0.5313,
+         "meanEntries": 19.65
+        },
+        {
+         "pEp": 0.5156,
+         "meanEntries": 20.18
+        },
+        {
+         "pEp": 0.5234,
+         "meanEntries": 19.87
+        },
+        {
+         "pEp": 0.5195,
+         "meanEntries": 20.03
+        },
+        {
+         "pEp": 0.5215,
+         "meanEntries": 19.96
+        },
+        {
+         "pEp": 0.5205,
+         "meanEntries": 20
+        }
+       ],
+       "drawsKept": 1000,
+       "attempts": 6780,
+       "note": ""
+      }
+     }
+    },
+    "verdict": {
+     "windows": [
+      "B",
+      "C",
+      "D"
+     ],
+     "onReturn": {
+      "incumbentWorst": {
+       "window": "D",
+       "ret": -0.032
+      },
+      "armWorst": {
+       "window": "D",
+       "ret": 0.0277
+      },
+      "nullWorst": {
+       "n": 1000,
+       "mean": -0.0202,
+       "p05": -0.0765,
+       "p50": -0.018,
+       "p95": 0.0296,
+       "min": -0.1143,
+       "max": 0.0757
+      },
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.056,
+      "beatsNull": false
+     },
+     "onRetOverDD": {
+      "incumbentWorst": {
+       "window": "D",
+       "score": -0.288
+      },
+      "armWorst": {
+       "window": "D",
+       "score": 0.554
+      },
+      "nullWorstP95": 0.491,
+      "beatsIncumbentWorst": true,
+      "pNullWorstAtLeastArmWorst": 0.038,
+      "beatsNull": true
+     },
+     "passes": false
+    }
+   }
+  }
+ },
+ "verdicts": {
+  "h1": {
+   "passes": false,
+   "passesOnRetOverDD": false,
+   "largestPNullAcrossEvaluations": 0.599,
+   "perCondition": {
+    "shipped·coinbase": {
+     "beatsIncumbentWorst": true,
+     "pNull": 0.59,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "pNull": 0.392,
+      "beatsNull": false
+     }
+    },
+    "shipped·kraken": {
+     "beatsIncumbentWorst": true,
+     "pNull": 0.599,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "pNull": 0.4,
+      "beatsNull": false
+     }
+    },
+    "trail·coinbase": {
+     "beatsIncumbentWorst": true,
+     "pNull": 0.336,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "pNull": 0.281,
+      "beatsNull": false
+     }
+    },
+    "trail·kraken": {
+     "beatsIncumbentWorst": true,
+     "pNull": 0.408,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "pNull": 0.33,
+      "beatsNull": false
+     }
+    }
+   }
+  },
+  "h1PermutationNull": {
+   "passes": false,
+   "passesOnRetOverDD": false,
+   "largestPNullAcrossEvaluations": 0.112,
+   "perCondition": {
+    "shipped·coinbase": {
+     "beatsIncumbentWorst": true,
+     "pNull": 0.106,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "pNull": 0.187,
+      "beatsNull": false
+     }
+    },
+    "shipped·kraken": {
+     "beatsIncumbentWorst": true,
+     "pNull": 0.112,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "pNull": 0.181,
+      "beatsNull": false
+     }
+    },
+    "trail·coinbase": {
+     "beatsIncumbentWorst": true,
+     "pNull": 0.073,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "pNull": 0.082,
+      "beatsNull": false
+     }
+    },
+    "trail·kraken": {
+     "beatsIncumbentWorst": true,
+     "pNull": 0.082,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "pNull": 0.094,
+      "beatsNull": false
+     }
+    }
+   }
+  },
+  "h2": {
+   "passes": false,
+   "passesOnRetOverDD": false,
+   "largestPNullAcrossEvaluations": 1,
+   "perCondition": {
+    "shipped·coinbase": {
+     "beatsIncumbentWorst": false,
+     "pNull": 1,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": false,
+      "pNull": 0.999,
+      "beatsNull": false
+     }
+    },
+    "shipped·kraken": {
+     "beatsIncumbentWorst": false,
+     "pNull": 1,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": false,
+      "pNull": 1,
+      "beatsNull": false
+     }
+    },
+    "trail·coinbase": {
+     "beatsIncumbentWorst": false,
+     "pNull": 0.869,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": false,
+      "pNull": 0.868,
+      "beatsNull": false
+     }
+    },
+    "trail·kraken": {
+     "beatsIncumbentWorst": false,
+     "pNull": 0.994,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": false,
+      "pNull": 0.993,
+      "beatsNull": false
+     }
+    }
+   }
+  },
+  "h3": {
+   "passes": false,
+   "passesOnRetOverDD": false,
+   "largestPNullAcrossEvaluations": 0.342,
+   "perCondition": {
+    "shipped·coinbase": {
+     "beatsIncumbentWorst": true,
+     "pNull": 0.34,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "pNull": 0.49,
+      "beatsNull": false
+     }
+    },
+    "shipped·kraken": {
+     "beatsIncumbentWorst": true,
+     "pNull": 0.342,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "pNull": 0.493,
+      "beatsNull": false
+     }
+    },
+    "trail·coinbase": {
+     "beatsIncumbentWorst": true,
+     "pNull": 0.074,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "pNull": 0.062,
+      "beatsNull": false
+     }
+    },
+    "trail·kraken": {
+     "beatsIncumbentWorst": true,
+     "pNull": 0.056,
+     "beatsNull": false,
+     "passes": false,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "pNull": 0.038,
+      "beatsNull": true
+     }
+    }
+   }
+  }
+ },
+ "multipleComparisons": {
+  "hypotheses": 3,
+  "nominalAlpha": 0.05,
+  "bonferroniAlpha": 0.0167,
+  "largestPNull": {
+   "h1": 0.599,
+   "h2": 1,
+   "h3": 0.342
+  },
+  "passes": {
+   "h1": false,
+   "h2": false,
+   "h3": false
+  },
+  "note": "a hypothesis passes only if its worst-window null test clears 5 % in all four evaluations; with three hypotheses the family-wise chance of at least one false pass is at most 3 × 5 % = 15 % (Bonferroni), less because the four evaluations must all pass, more if one counts the ideas this repository already priced (per-entry volatility scaling in §3.10, §3.11 and §3.19; 33 entry gates in §3.17; the BTC-regime gate in §3.9 and §3.15)"
+ },
+ "seeds": "mulberry32 seeded by seedOf(purpose, evaluation, window, coin, draw) — purposes h1-placebo, h1-perm, cal, null",
+ "draws": {
+  "h1": 2000,
+  "filterNullKept": 1000,
+  "calibration": "10 × 100",
+  "maxAttempts": 50000,
+  "preregistered": true
+ },
+ "sourceIntegrity": {
+  "backtestTs": "31d27c7d82f8a94c1a8d71248ace8e5ded611190a77d06043460b469ccae845a",
+  "agentsStrategyTs": "097c9519e65aca13b93da8eeee54c39118091f7812d282580970e73460a85a82",
+  "backtestJevTs": "4d5af9e50255e6ffb686ac3704fd97a7a98d5e5219d6b20babf3580beea2d2ed",
+  "note": "SHA-256 of backtest.ts, agents_strategy.ts and backtest_jev.ts at the start of the run; the run throws if any changed before it finished"
+ }
+}

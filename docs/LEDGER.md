@@ -24,12 +24,24 @@ list stays the short version; the plan is the reasoning behind it.
       pinned but #15's paper-only half; B4's field names are confirmed
       only by the first live order.
    4. Binance / Deribit keys: **verified read-only** (`8288c82`, item
-      0d). Uses and strategies: desk research done (unverified until
-      recomputed); three pre-registered studies were running at 02:45
-      UTC in scratch worktrees — Binance's costs for the live coins, SUI's
-      seat and the top-twenty screen; volatility-sized slots and DVOL /
-      funding entry filters; the v2 Jev gate on momentum-1d and trend-1h.
-      Nothing from them is a finding until re-run here.
+      0d). Uses and strategies: the desk research ranked four; three
+      pre-registered studies price them.
+      - **Sizing and entry gates: DONE** (reference §3.21): volatility-sized
+        slots, a DVOL gate and a funding gate all fail the bar; nothing
+        changes.
+      - **Binance's costs** (the live coins, SUI's seat, the top-twenty
+        screen) and **the v2 Jev gate on momentum-1d and trend-1h**: both
+        were cut off by a usage limit at ~03:52 UTC with their final runs
+        half done. Their files are on the backup branch
+        `claude/repo-audit-restore-uverhn`, `wip/2026-09-23-studies/`
+        (`ddb4c67`, with a README): the Binance script, its frozen
+        pre-registration (addendum of 03:14 UTC included), its book samples
+        and helpers; the Jev-gate patch (port it to its own file —
+        `backtest_jev.ts`'s hash is pinned by `sizing.json`). Resume: re-run
+        each twice on the three tape directories, compare the two outputs,
+        re-run once more from a clean tree before believing a number, then
+        a review, a reference section and the venue survey's §11 (its
+        draft is in the backup too).
    5. `src/` has too many files: sort it into subfolders — **DONE**:
       `app/`, `portfolio/`, `prices/`, `charts/`, `board/`, `tables/`,
       `agents/`, plus `e2e/` and `public/`; the top of `src/` is only the
@@ -354,6 +366,20 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 04:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Three ideas from the Binance and Deribit research are priced, and all
+three fail** (reference §3.21, review `2026-09-23-sizing-filters-study.md`):
+slots sized by the coin's volatility, no entry while DVOL is in its top
+third, no entry while funding is in its top fifth. Pre-registered before
+any arm ran; the incumbent reproduces exactly; the result file came out
+byte-identical in the study's two runs and in this session's re-run on the
+committed tree. `backtest_jev.ts` now exports its machinery (the loader
+moved into `loadMeasuredSeries`) and still writes the committed
+`jev_v2.json` byte for byte. The DVOL and funding files it read are in
+`backtests/inputs/`, since neither can be fetched again unchanged. Two more
+studies were cut off by a usage limit; their state is item 000.4.
 
 ### [2026-09-23 03:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -2112,6 +2112,35 @@ the 23.94 bps spread §3.8 assumed sits at SUI's p90. And the prior audit's
 Kraken's tape SUI raises window A (+9.16 % with it, +3.56 % without), and on
 Revolut X's own book (+10.39 % vs +5.50 %).
 
+### 3.21 Volatility-sized slots and DVOL and funding entry gates — all three fail (2026-09-23)
+
+The Binance and Deribit research (§6, "Binance and Deribit keys") ranked
+three uses of their data for the live row: size each slot by the coin's
+volatility, skip entries when implied volatility (Deribit's DVOL) is high,
+and skip entries when perpetual funding is high. Each was pre-registered
+before it ran (`reviews/2026-09-23-sizing-filters-prereg.md`) and judged by
+the set study's bar: beat the incumbent's worst window in all four
+evaluations, and beat a null of the same size there. Script
+`agents/backtest_sizing.ts` → `backtests/sizing.json` (sha256
+`197b3585…`, identical in the study's two runs and the main session's
+re-run); review `reviews/2026-09-23-sizing-filters-study.md`; inputs in
+`backtests/inputs/`. The incumbent reproduces exactly (A +8.03 / B +20.08 /
+C +55.64 / D −7.81 %).
+
+| hypothesis | worst window (D), primary: incumbent → arm | beats the null there? |
+|---|---|---|
+| H1: entry size × min(1, 0.7405 / 30-day realised vol) | −7.8 → −6.5 % | no: the coin's own volatility 365–730 days earlier does as well in 34–60 % of draws |
+| H2: no entry while DVOL is in its top third of 365 days | −7.8 → −7.8 % (no D entry refused) | no |
+| H3: no entry while 7-day funding is in its top fifth of 365 days (B, C, D only) | −7.8 → −1.8 % | no: random refusal of as many entries matches it in 5.6–34 % of draws |
+
+**None is adopted**; the lowest deciding p is 0.056 against a family level
+of 0.0167. H1 is a small dial (+1.2 points in D, −1.1 to −5.4 in B and C);
+H3 wins the sideways year by holding less and pays 9.8–19.5 points of the
+strong bull year, §3.17's finding again. H2 beat its null in window A in all
+four evaluations (p 0.030–0.042), which is one window. This is the fourth
+pricing of volatility scaling (§3.10, §3.11, §3.19); H2 and H3 join §3.17's
+33 entry gates, none of which cleared the bar.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

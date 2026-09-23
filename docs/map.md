@@ -565,7 +565,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/db.ts` | The loop's database access, over PostgREST. |
 | `agents/testing.ts` | Test doubles that refuse whatever the real database refuses. |
 | `agents/backtest.ts` | The walk-forward backtester: the loop's own rule functions run over history at the venue's costs. |
-| `agents/backtest_*.ts` | One study each: allocation, execution, fills, rule ideas, the Jev veto, Kraken (three), portfolio, set, SUI, tape, testing set, a third window. Results go to `docs/agents/backtests/`, write-ups to `docs/agents/reviews/`. |
+| `agents/backtest_*.ts` | One study each: allocation, execution, fills, rule ideas, the Jev veto, Kraken (three), portfolio, set, sizing and entry gates, SUI, tape, testing set, a third window. Results go to `docs/agents/backtests/`, write-ups to `docs/agents/reviews/`. |
 | `_shared/agents_strategy.ts` | The rulebooks, the market state, the Jev questions and the risk gate. Every number the loop acts on, with no network or clock; the loop and the backtester share it. |
 | `_shared/revx.ts`, `_shared/kraken.ts`, `_shared/venue.ts` | The Revolut X and Kraken clients (signing, candles, quotes, orders) behind one venue interface. |
 | `_shared/jev.ts` | The TypeSafe Jev client: typed questions in, probabilities out. |
@@ -661,7 +661,7 @@ before touching migration state.
 | `docs/agents/venue-survey.md` | Other exchanges, brokers and data sources, for the UK, the US and Hong Kong. |
 | `docs/agents/0048_go_live.sql.draft` | The migration that would go live, kept out of `supabase/migrations/` until Davies says go. |
 | `docs/agents/reviews/` | The code review before going live, and one write-up per study. |
-| `docs/agents/backtests/` | The studies' results, as JSON. |
+| `docs/agents/backtests/` | The studies' results, as JSON, and in `inputs/` the public data a study read that cannot be fetched again unchanged. |
 | `docs/agents/scripts/agents-baseline-backtest.py` | The first baseline backtest, in Python. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |

@@ -117,9 +117,9 @@ type Raw = [number, number, number, number, number, number]; // [t_sec, o, h, l,
 // ───────────────────────────────────────────────────────── facts, not guesses
 
 /** The row this study prices: `agent_strategies` id `trend-4h`, read 2026-09-22. */
-const LIVE_CANDIDATE = { row: "trend-4h", venue: "revx" as const, symbols: ["BTC/USD", "ETH/USD", "SOL/USD", "AVAX/USD", "SUI/USD"], capitalUsd: 100, slots: 5 };
+export const LIVE_CANDIDATE = { row: "trend-4h", venue: "revx" as const, symbols: ["BTC/USD", "ETH/USD", "SOL/USD", "AVAX/USD", "SUI/USD"], capitalUsd: 100, slots: 5 };
 /** `agent_risk.max_order_usd`, as `backtest_windows.ts` pins it. */
-const MAX_ORDER_USD = 20;
+export const MAX_ORDER_USD = 20;
 /** The live row's thresholds. `enterMin` is `agent_strategies.params.enterMin` on all three rows; `cautionExit` is `tick.ts`'s literal. */
 const SHIPPED_ENTER_MIN = 0.6;
 const CAUTION_EXIT = 1.75;
@@ -291,9 +291,9 @@ function surfaceFromLive(id: string, answers: Map<string, { healthy: number; cau
  * study's deciders ignore it, which changes none of their numbers: an entry
  * signalled while cooling down is refused by `runGated` either way.
  */
-type Decide = (i: number, pos: Position, coolingDown: boolean) => "enter" | "exit" | "hold";
+export type Decide = (i: number, pos: Position, coolingDown: boolean) => "enter" | "exit" | "hold";
 
-type GatedResult = RunResult & { tradedWeight: number; marks: [number, number][]; entries: number };
+export type GatedResult = RunResult & { tradedWeight: number; marks: [number, number][]; entries: number };
 
 /**
  * `backtest.ts`'s `run` with the rulebook replaced by a callback and a mark
@@ -308,7 +308,7 @@ type GatedResult = RunResult & { tradedWeight: number; marks: [number, number][]
  * two-bar cooldown after ANY exit; and the same return, drawdown, trade,
  * exposure and day arithmetic.
  */
-function runGated(
+export function runGated(
   symbol: string, bars: Candle[], from: number, to: number, warmup: number,
   decide: Decide, costs: Costs, stops: StopParams | null,
 ): GatedResult {
@@ -365,7 +365,7 @@ function runGated(
 }
 
 /** mulberry32 — a seeded PRNG, so the null below is a fixed number and not a new one each run. */
-function mulberry32(seed: number): () => number {
+export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
     a = (a + 0x6D2B79F5) >>> 0;
@@ -438,28 +438,28 @@ function decider(
 // ─────────────────────────────────────────────────────── arithmetic on outputs
 
 /** The last mark of each UTC day. Copied from `backtest_windows.ts`. */
-function dailyMarks(equity: [number, number][]): { day: number; eq: number }[] {
+export function dailyMarks(equity: [number, number][]): { day: number; eq: number }[] {
   const m = new Map<number, number>();
   for (const [t, e] of equity) m.set(Math.floor(t / 86400e3) * 86400e3, e);
   return [...m.entries()].sort((a, b) => a[0] - b[0]).map(([day, eq]) => ({ day, eq }));
 }
 /** A sleeve's daily FRACTIONAL returns. Copied from `backtest_windows.ts`. */
-function dailyReturns(equity: [number, number][]): Map<number, number> {
+export function dailyReturns(equity: [number, number][]): Map<number, number> {
   const out = new Map<number, number>();
   let prev = 1;
   for (const { day, eq } of dailyMarks(equity)) { out.set(day, prev > 0 ? eq / prev - 1 : 0); prev = eq; }
   return out;
 }
 
-type Sleeve = { id: string; symbol: string; slotUsd: number; rets: Map<number, number>; ret: number; maxDD: number; trades: number; exposure: number; tradedUsd: number };
-type SleeveStats = {
+export type Sleeve = { id: string; symbol: string; slotUsd: number; rets: Map<number, number>; ret: number; maxDD: number; trades: number; exposure: number; tradedUsd: number };
+export type SleeveStats = {
   members: number; capitalUsd: number; pnlUsd: number; ret: number; maxDD: number; retOverDD: number;
   days: number; from: string; to: string; deployment: number; turnoverPerYear: number;
   bestDayUsd: number; worstDayUsd: number; peakOpenUsd: number;
 };
 
 /** Combine sleeves at their slot sizes. Copied from `backtest_windows.ts`'s `combine`. */
-function combine(sleeves: Sleeve[]): SleeveStats {
+export function combine(sleeves: Sleeve[]): SleeveStats {
   const capital = sleeves.reduce((a, s) => a + s.slotUsd, 0);
   const days = [...new Set(sleeves.flatMap((s) => [...s.rets.keys()]))].sort((a, b) => a - b);
   if (days.length === 0) {
@@ -489,7 +489,7 @@ function combine(sleeves: Sleeve[]): SleeveStats {
   };
 }
 
-function score(r: { ret: number; maxDD: number }): number { return r.ret / Math.max(0.05, r.maxDD); }
+export function score(r: { ret: number; maxDD: number }): number { return r.ret / Math.max(0.05, r.maxDD); }
 function pick(r: RunResult) {
   return {
     ret: Number(r.ret.toFixed(4)), maxDD: Number(r.maxDD.toFixed(4)), retOverDD: Number(score(r).toFixed(2)),
@@ -499,19 +499,19 @@ function pick(r: RunResult) {
 
 // ──────────────────────────────────────────────────────── the data and splice
 
-const iso = (ms: number) => new Date(ms).toISOString().slice(0, 16) + "Z";
-const toCandles = (raw: Raw[]): Candle[] => raw.map(([t, o, h, l, c, v]) => ({ start: t * 1000, open: o, high: h, low: l, close: c, volume: v }));
+export const iso = (ms: number) => new Date(ms).toISOString().slice(0, 16) + "Z";
+export const toCandles = (raw: Raw[]): Candle[] => raw.map(([t, o, h, l, c, v]) => ({ start: t * 1000, open: o, high: h, low: l, close: c, volume: v }));
 const median = (xs: number[]) => { const s = xs.slice().sort((a, b) => a - b); return s.length ? (s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : 0; };
 const quantile = (xs: number[], q: number) => { const s = xs.slice().sort((a, b) => a - b); return s.length ? s[Math.min(s.length - 1, Math.floor(q * s.length))] : 0; };
 
 /** The bar at or after `ts`. Copied from `backtest_windows.ts`. */
-function indexAtOrAfter(bars: Candle[], ts: number): number {
+export function indexAtOrAfter(bars: Candle[], ts: number): number {
   let lo = 0, hi = bars.length;
   while (lo < hi) { const mid = (lo + hi) >> 1; if (bars[mid].start < ts) lo = mid + 1; else hi = mid; }
   return lo;
 }
 
-type Win = {
+export type Win = {
   name: "A" | "B" | "C" | "D";
   isSeries: "coinbase" | "combined";
   isFrom: number; isTo: number; oosFrom: number; oosTo: number;
@@ -522,7 +522,7 @@ type Win = {
 const YEAR_MS = 365 * 86400e3;
 
 /** The four windows on the COMBINED series. Copied from `backtest_windows.ts`'s `windowsOn`, unchanged. */
-function windowsOn(comb: Candle[], cb: Candle[], maxLookbackBars: number): Win[] {
+export function windowsOn(comb: Candle[], cb: Candle[], maxLookbackBars: number): Win[] {
   const nCb = cb.length, t1 = Math.floor(nCb / 3), t2 = Math.floor(nCb * 2 / 3);
   const z = indexAtOrAfter(comb, cb[0].start);
   const T1 = indexAtOrAfter(comb, cb[t1].start);
@@ -1079,15 +1079,15 @@ async function recordedStudy(args: Record<string, string>): Promise<void> {
 // (purpose, evaluation, window, coin, draw), so a re-run over the same inputs
 // writes `jev.json` byte for byte. No wall clock is written.
 
-const BAR_HOURS = 4;
-const BARS_PER_YEAR = (24 / BAR_HOURS) * 365;
-type WinName = Win["name"];
-const WIN_NAMES: readonly WinName[] = ["A", "B", "C", "D"];
-const r4 = (x: number) => Number(x.toFixed(4));
-const r3 = (x: number) => Number(x.toFixed(3));
+export const BAR_HOURS = 4;
+export const BARS_PER_YEAR = (24 / BAR_HOURS) * 365;
+export type WinName = Win["name"];
+export const WIN_NAMES: readonly WinName[] = ["A", "B", "C", "D"];
+export const r4 = (x: number) => Number(x.toFixed(4));
+export const r3 = (x: number) => Number(x.toFixed(3));
 
 /** FNV-1a over the joined parts: one seed per (purpose, evaluation, window, coin, draw). */
-function seedOf(...parts: (string | number)[]): number {
+export function seedOf(...parts: (string | number)[]): number {
   const s = parts.join("|");
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
@@ -1161,19 +1161,19 @@ function assertEntryState(s: CategoricalState): void {
 
 // ─────────────────────────────────────────────────── evaluations and tracks
 
-type Tape = "coinbase" | "kraken";
-type StopRule = "shipped" | "trail";
-type Condition = { id: string; tape: Tape; stopRule: StopRule };
+export type Tape = "coinbase" | "kraken";
+export type StopRule = "shipped" | "trail";
+export type Condition = { id: string; tape: Tape; stopRule: StopRule };
 /** §3.19's four evaluations; the first is the one every published number uses. */
-const CONDITIONS: readonly Condition[] = [
+export const CONDITIONS: readonly Condition[] = [
   { id: "shipped·coinbase", tape: "coinbase", stopRule: "shipped" },
   { id: "shipped·kraken", tape: "kraken", stopRule: "shipped" },
   { id: "trail·coinbase", tape: "coinbase", stopRule: "trail" },
   { id: "trail·kraken", tape: "kraken", stopRule: "trail" },
 ];
-const PRIMARY = CONDITIONS[0];
+export const PRIMARY = CONDITIONS[0];
 /** `backtest_set2.ts`'s two stop rules: what `tick.ts` runs, and the floor plus the 3×ATR(14) intra-bar trail it ran until 2026-09-21. */
-const stopsOf = (rule: StopRule, p: TrendParams): StopParams =>
+export const stopsOf = (rule: StopRule, p: TrendParams): StopParams =>
   rule === "shipped" ? stopsForKind("trend-4h", p) : { ...SHIPPED_STOPS, atrStop: p.atrStop };
 
 /** A flat bar where the rulebook says enter: its reason and the state the model would be shown. */
@@ -1183,13 +1183,13 @@ type FlatEntry = { action: Action; reason: string; state: CategoricalState };
  * scored bar, whether the rulebook enters when flat, the entry's state, and
  * how many daily candles had closed (so a long bar can rebuild the snapshot).
  */
-type Track = {
+export type Track = {
   symbol: string; bars: Candle[]; daily: Candle[]; p: TrendParams;
   from: number; to: number; warmup: number; start: number; pre: Precomputed;
   flatEnter: Uint8Array; entries: Map<number, FlatEntry>; dkAt: Int32Array;
 };
 
-function buildTrack(symbol: string, bars: Candle[], daily: Candle[], p: TrendParams, from: number, to: number): Track {
+export function buildTrack(symbol: string, bars: Candle[], daily: Candle[], p: TrendParams, from: number, to: number): Track {
   const pre = precompute(bars, p);
   const warmup = p.slow + 1, start = Math.max(from, warmup), n = Math.max(0, to - 1 - start);
   const flatEnter = new Uint8Array(n), dkAt = new Int32Array(n);
@@ -1211,13 +1211,13 @@ function buildTrack(symbol: string, bars: Candle[], daily: Candle[], p: TrendPar
   return { symbol, bars, daily, p, from, to, warmup, start, pre, flatEnter, entries, dkAt };
 }
 
-type Rule = { action: Action; reason: string };
+export type Rule = { action: Action; reason: string };
 /** What happens to an entry the rulebook wants, at bar `i`, in state `state`. Consulted only where `tick.ts` would ask the model. */
-type EntryPolicy = (i: number, state: CategoricalState, rule: Rule) => "enter" | "hold";
-type PolicyFor = (symbol: string) => EntryPolicy;
+export type EntryPolicy = (i: number, state: CategoricalState, rule: Rule) => "enter" | "hold";
+export type PolicyFor = (symbol: string) => EntryPolicy;
 
 /** The shipped decision through the cache. A long bar calls `buildSnapshot` + `ruleFor` fresh, with the real position. */
-function trackDecider(t: Track, policy: EntryPolicy): Decide {
+export function trackDecider(t: Track, policy: EntryPolicy): Decide {
   const closed: Candle[] = [];
   let dk = 0;
   return (i, pos, coolingDown) => {
@@ -1261,7 +1261,7 @@ function checkedDecider(t: Track, policy: EntryPolicy, tally: { flatBars: number
 // ─────────────────────────────────────────────────────────────── the policies
 
 /** (i) and the rulebook: every entry the rulebook wants. */
-const rulePolicy: EntryPolicy = () => "enter";
+export const rulePolicy: EntryPolicy = () => "enter";
 /** (iii): the prompt's clause as code — `trend_strength` moderate or strong, and optionally `momentum_30d` positive. */
 function clausePolicy(withMomentum: boolean): EntryPolicy {
   return (_i, s) => s.trend_strength === "weak" || (withMomentum && s.momentum_30d !== "positive") ? "hold" : "enter";
@@ -1287,7 +1287,7 @@ function jevPolicy(book: Map<string, Reply[]>, keyOf: (s: Words) => string, rng:
  * rulebook wants in — is refused as a whole with probability `pEp`, decided on
  * its first bar and held to its last, independent of anything the market does.
  */
-function episodeNullPolicy(pEp: number, rng: () => number): EntryPolicy {
+export function episodeNullPolicy(pEp: number, rng: () => number): EntryPolicy {
   let lastBar = -Infinity, refusing = false;
   return (i) => {
     if (refusing && lastBar === i - 1) { lastBar = i; return "hold"; }
@@ -1301,11 +1301,11 @@ function signalNullPolicy(p: number, rng: () => number): EntryPolicy {
   return () => rng() < p ? "hold" : "enter";
 }
 /** `b` is consulted only where `a` lets the entry through. */
-function both(a: EntryPolicy, b: EntryPolicy): EntryPolicy {
+export function both(a: EntryPolicy, b: EntryPolicy): EntryPolicy {
   return (i, s, r) => a(i, s, r) === "hold" ? "hold" : b(i, s, r);
 }
-type Tally = { signals: number; refused: number; coinFlip: number; coinFlipRefused: number };
-function counting(pol: EntryPolicy, c: Tally, log?: Map<number, "enter" | "hold">, states?: CategoricalState[]): EntryPolicy {
+export type Tally = { signals: number; refused: number; coinFlip: number; coinFlipRefused: number };
+export function counting(pol: EntryPolicy, c: Tally, log?: Map<number, "enter" | "hold">, states?: CategoricalState[]): EntryPolicy {
   return (i, s, r) => {
     const a = pol(i, s, r);
     c.signals++;
@@ -1319,28 +1319,28 @@ function counting(pol: EntryPolicy, c: Tally, log?: Map<number, "enter" | "hold"
 
 // ──────────────────────────────────────────────────────── arithmetic on draws
 
-const SLOT_USD = Math.min(LIVE_CANDIDATE.capitalUsd / LIVE_CANDIDATE.slots, MAX_ORDER_USD);
+export const SLOT_USD = Math.min(LIVE_CANDIDATE.capitalUsd / LIVE_CANDIDATE.slots, MAX_ORDER_USD);
 /** The recorded study's `sleeveOf`, lifted out of its closure unchanged. */
-function sleeveStatsOf(per: Record<string, GatedResult>): SleeveStats {
+export function sleeveStatsOf(per: Record<string, GatedResult>): SleeveStats {
   return combine(Object.entries(per).map(([s, r]) => ({
     id: `trend-4h·revx·${s.split("/")[0]}`, symbol: s, slotUsd: SLOT_USD, rets: dailyReturns(r.marks),
     ret: r.ret, maxDD: r.maxDD, trades: r.trades, exposure: r.exposure, tradedUsd: r.tradedWeight * SLOT_USD,
   })));
 }
-function summarize(xs: ArrayLike<number>) {
+export function summarize(xs: ArrayLike<number>) {
   const s = Array.from(xs).sort((a, b) => a - b), n = s.length;
   const q = (p: number) => s[Math.min(n - 1, Math.floor(p * n))];
   return { n, mean: r4(s.reduce((a, b) => a + b, 0) / n), p05: r4(q(0.05)), p50: r4(q(0.5)), p95: r4(q(0.95)), min: r4(s[0]), max: r4(s[n - 1]) };
 }
-const meanOf = (xs: ArrayLike<number>) => { let t = 0; for (let i = 0; i < xs.length; i++) t += xs[i]; return xs.length ? t / xs.length : 0; };
+export const meanOf = (xs: ArrayLike<number>) => { let t = 0; for (let i = 0; i < xs.length; i++) t += xs[i]; return xs.length ? t / xs.length : 0; };
 /** Share of `nulls` at or above `v` — ties count AGAINST the arm. */
-function atLeast(nulls: ArrayLike<number>, v: number): number {
+export function atLeast(nulls: ArrayLike<number>, v: number): number {
   let c = 0;
   for (let i = 0; i < nulls.length; i++) if (nulls[i] >= v - 1e-12) c++;
   return nulls.length ? c / nulls.length : NaN;
 }
 /** P(null ≥ arm) for two independent samples, every pair counted. */
-function atLeastPairs(nulls: ArrayLike<number>, arms: ArrayLike<number>): number {
+export function atLeastPairs(nulls: ArrayLike<number>, arms: ArrayLike<number>): number {
   const s = Float64Array.from(nulls).sort();
   let tot = 0;
   for (let j = 0; j < arms.length; j++) {
@@ -1367,6 +1367,73 @@ const EARLIER = {
   nullMean: { A: 0.0551, B: 0.1836, C: 0.4747, D: -0.0357 } as Record<WinName, number>,
   jevPercentile: { A: 0.048, B: 0.292, C: 0.823, D: 0.762 } as Record<WinName, number>,
 };
+
+// ── the data: the recorded study's splice, plus Kraken's own 4h tape ───
+// Lifted out of `measuredStudy` unchanged (2026-09-23) so a later study cuts the SAME windows on the SAME
+// tapes by import rather than by copy; `measuredStudy` calls it exactly where the block used to run.
+export type MeasuredSeries = {
+  comb4h: Candle[]; combDaily: Candle[]; cb4h: Candle[]; kTape: Candle[]; kDaily: Candle[]; wins: Win[];
+  oos: Record<Tape, Partial<Record<WinName, { from: number; to: number }>>>;
+  krakenDropped: Partial<Record<WinName, string>>;
+};
+export async function loadMeasuredSeries(dataDir: string, extDir: string, kDir: string): Promise<{ series: Record<string, MeasuredSeries>; dataRows: Record<string, unknown>[]; symbols: string[] }> {
+  const series: Record<string, MeasuredSeries> = {};
+  const dataRows: Record<string, unknown>[] = [];
+  const symbols: string[] = [];
+  for (const symbol of LIVE_CANDIDATE.symbols) {
+    const base = symbol.replace("/", "-");
+    const cbH = toCandles(JSON.parse(await Deno.readTextFile(`${dataDir}/${base}_1h_3y.json`)) as Raw[]);
+    const kH = toCandles(JSON.parse(await Deno.readTextFile(`${extDir}/${base}_1h_kraken.json`)) as Raw[]);
+    const kTape = toCandles(JSON.parse(await Deno.readTextFile(`${kDir}/${base}_4h_kraken.json`)) as Raw[]);
+    const spliceAt = cbH[0].start;
+    const cb4h = resample(cbH, 4);
+    const combH = [...kH.filter((c) => c.start < spliceAt), ...cbH];
+    const comb4h = resample(combH, 4), combDaily = resample(combH, 24), kDaily = resample(kTape, 24);
+    const wins = windowsOn(comb4h, cb4h, MAX_LOOKBACK);
+    // The recorded study's acceptance test on the splice, unchanged.
+    const kByTs = new Map(kH.map((c) => [c.start, c]));
+    let hourly = 0;
+    for (const c of cbH) if (kByTs.has(c.start) && c.close > 0) hourly++;
+    const k4hByTs = new Map(resample(kH, 4).map((c) => [c.start, c])), kLast = kH[kH.length - 1].start;
+    const diffs4h: number[] = [];
+    for (const c of cb4h) { if (c.start > kLast) continue; const k = k4hByTs.get(c.start); if (k && c.close > 0) diffs4h.push(Math.abs(k.close / c.close - 1) * 1e4); }
+    const accepted = hourly >= 100 && diffs4h.length >= 100 && median(diffs4h) <= OVERLAP_MEDIAN_MAX_BPS && quantile(diffs4h, 0.95) <= OVERLAP_P95_MAX_BPS;
+    // `backtest_set2.ts`'s rule for the second tape, unchanged: a window is priced on Kraken's tape only when
+    // the tape spans its in-sample and its out-of-sample, both longer than the widest lookback.
+    const endTs = (arr: Candle[], idx: number) => idx < arr.length ? arr[idx].start : arr[arr.length - 1].start + 4 * 3600e3;
+    const oos: MeasuredSeries["oos"] = { coinbase: {}, kraken: {} };
+    const krakenDropped: MeasuredSeries["krakenDropped"] = {};
+    for (const w of wins) {
+      if (!w.scored) continue;
+      oos.coinbase[w.name] = { from: w.oosFrom, to: w.oosTo };
+      const isArr = w.isSeries === "coinbase" ? cb4h : comb4h;
+      const isFromTs = isArr[w.isFrom].start, isToTs = endTs(isArr, w.isTo);
+      const oosFromTs = comb4h[w.oosFrom].start, oosToTs = endTs(comb4h, w.oosTo);
+      const kIsArr = w.isSeries === "coinbase" ? kTape.slice(indexAtOrAfter(kTape, spliceAt)) : kTape;
+      const kIsBars = indexAtOrAfter(kIsArr, isToTs) - indexAtOrAfter(kIsArr, isFromTs);
+      const kFrom = indexAtOrAfter(kTape, oosFromTs), kTo = indexAtOrAfter(kTape, oosToTs);
+      let why = "";
+      if (kTape[0].start > isFromTs) why = `Kraken's tape starts ${iso(kTape[0].start)}, after this window's in-sample begins`;
+      else if (kTape[kTape.length - 1].start + 4 * 3600e3 < oosToTs) why = `Kraken's tape ends ${iso(kTape[kTape.length - 1].start)}, before this window's out-of-sample ends`;
+      else if (kIsBars <= MAX_LOOKBACK + 2) why = `Kraken in-sample is ${kIsBars} bars`;
+      else if (kTo - kFrom <= MAX_LOOKBACK + 2) why = `Kraken out-of-sample is ${kTo - kFrom} bars`;
+      if (why) krakenDropped[w.name] = why;
+      else oos.kraken[w.name] = { from: kFrom, to: kTo };
+    }
+    series[symbol] = { comb4h, combDaily, cb4h, kTape, kDaily, wins, oos, krakenDropped };
+    if (accepted) symbols.push(symbol);
+    dataRows.push({
+      symbol, accepted,
+      coinbaseSplice: { bars4h: comb4h.length, first: iso(comb4h[0].start), last: iso(comb4h[comb4h.length - 1].start), spliceAt: iso(spliceAt), overlapMedian4hBps: r3(median(diffs4h)), overlapP95_4hBps: r3(quantile(diffs4h, 0.95)) },
+      krakenTape: { bars4h: kTape.length, first: iso(kTape[0].start), last: iso(kTape[kTape.length - 1].start) },
+      windows: Object.fromEntries(wins.map((w) => [w.name, { scored: w.scored, oosFrom: w.oosFromIso, oosTo: w.oosToIso, oosDays: w.oosDays }])),
+      pricedOn: { coinbase: WIN_NAMES.filter((w) => oos.coinbase[w]), kraken: WIN_NAMES.filter((w) => oos.kraken[w]) },
+      krakenDropped,
+    });
+  }
+  if (symbols.length !== LIVE_CANDIDATE.symbols.length) throw new Error(`a coin failed the splice test: ${LIVE_CANDIDATE.symbols.filter((s) => !symbols.includes(s)).join(", ")}`);
+  return { series, dataRows, symbols };
+}
 
 // ─────────────────────────────────────────────────────────────── the study
 
@@ -1398,67 +1465,8 @@ async function measuredStudy(args: Record<string, string>): Promise<void> {
   const t0 = Date.now();
   const say = (m: string) => console.log(`[${((Date.now() - t0) / 1000).toFixed(0).padStart(4)} s] ${m}`);
 
-  // ── the data: the recorded study's splice, plus Kraken's own 4h tape ───
-  type Series = {
-    comb4h: Candle[]; combDaily: Candle[]; cb4h: Candle[]; kTape: Candle[]; kDaily: Candle[]; wins: Win[];
-    oos: Record<Tape, Partial<Record<WinName, { from: number; to: number }>>>;
-    krakenDropped: Partial<Record<WinName, string>>;
-  };
-  const series: Record<string, Series> = {};
-  const dataRows: Record<string, unknown>[] = [];
-  const symbols: string[] = [];
-  for (const symbol of LIVE_CANDIDATE.symbols) {
-    const base = symbol.replace("/", "-");
-    const cbH = toCandles(JSON.parse(await Deno.readTextFile(`${dataDir}/${base}_1h_3y.json`)) as Raw[]);
-    const kH = toCandles(JSON.parse(await Deno.readTextFile(`${extDir}/${base}_1h_kraken.json`)) as Raw[]);
-    const kTape = toCandles(JSON.parse(await Deno.readTextFile(`${kDir}/${base}_4h_kraken.json`)) as Raw[]);
-    const spliceAt = cbH[0].start;
-    const cb4h = resample(cbH, 4);
-    const combH = [...kH.filter((c) => c.start < spliceAt), ...cbH];
-    const comb4h = resample(combH, 4), combDaily = resample(combH, 24), kDaily = resample(kTape, 24);
-    const wins = windowsOn(comb4h, cb4h, MAX_LOOKBACK);
-    // The recorded study's acceptance test on the splice, unchanged.
-    const kByTs = new Map(kH.map((c) => [c.start, c]));
-    let hourly = 0;
-    for (const c of cbH) if (kByTs.has(c.start) && c.close > 0) hourly++;
-    const k4hByTs = new Map(resample(kH, 4).map((c) => [c.start, c])), kLast = kH[kH.length - 1].start;
-    const diffs4h: number[] = [];
-    for (const c of cb4h) { if (c.start > kLast) continue; const k = k4hByTs.get(c.start); if (k && c.close > 0) diffs4h.push(Math.abs(k.close / c.close - 1) * 1e4); }
-    const accepted = hourly >= 100 && diffs4h.length >= 100 && median(diffs4h) <= OVERLAP_MEDIAN_MAX_BPS && quantile(diffs4h, 0.95) <= OVERLAP_P95_MAX_BPS;
-    // `backtest_set2.ts`'s rule for the second tape, unchanged: a window is priced on Kraken's tape only when
-    // the tape spans its in-sample and its out-of-sample, both longer than the widest lookback.
-    const endTs = (arr: Candle[], idx: number) => idx < arr.length ? arr[idx].start : arr[arr.length - 1].start + 4 * 3600e3;
-    const oos: Series["oos"] = { coinbase: {}, kraken: {} };
-    const krakenDropped: Series["krakenDropped"] = {};
-    for (const w of wins) {
-      if (!w.scored) continue;
-      oos.coinbase[w.name] = { from: w.oosFrom, to: w.oosTo };
-      const isArr = w.isSeries === "coinbase" ? cb4h : comb4h;
-      const isFromTs = isArr[w.isFrom].start, isToTs = endTs(isArr, w.isTo);
-      const oosFromTs = comb4h[w.oosFrom].start, oosToTs = endTs(comb4h, w.oosTo);
-      const kIsArr = w.isSeries === "coinbase" ? kTape.slice(indexAtOrAfter(kTape, spliceAt)) : kTape;
-      const kIsBars = indexAtOrAfter(kIsArr, isToTs) - indexAtOrAfter(kIsArr, isFromTs);
-      const kFrom = indexAtOrAfter(kTape, oosFromTs), kTo = indexAtOrAfter(kTape, oosToTs);
-      let why = "";
-      if (kTape[0].start > isFromTs) why = `Kraken's tape starts ${iso(kTape[0].start)}, after this window's in-sample begins`;
-      else if (kTape[kTape.length - 1].start + 4 * 3600e3 < oosToTs) why = `Kraken's tape ends ${iso(kTape[kTape.length - 1].start)}, before this window's out-of-sample ends`;
-      else if (kIsBars <= MAX_LOOKBACK + 2) why = `Kraken in-sample is ${kIsBars} bars`;
-      else if (kTo - kFrom <= MAX_LOOKBACK + 2) why = `Kraken out-of-sample is ${kTo - kFrom} bars`;
-      if (why) krakenDropped[w.name] = why;
-      else oos.kraken[w.name] = { from: kFrom, to: kTo };
-    }
-    series[symbol] = { comb4h, combDaily, cb4h, kTape, kDaily, wins, oos, krakenDropped };
-    if (accepted) symbols.push(symbol);
-    dataRows.push({
-      symbol, accepted,
-      coinbaseSplice: { bars4h: comb4h.length, first: iso(comb4h[0].start), last: iso(comb4h[comb4h.length - 1].start), spliceAt: iso(spliceAt), overlapMedian4hBps: r3(median(diffs4h)), overlapP95_4hBps: r3(quantile(diffs4h, 0.95)) },
-      krakenTape: { bars4h: kTape.length, first: iso(kTape[0].start), last: iso(kTape[kTape.length - 1].start) },
-      windows: Object.fromEntries(wins.map((w) => [w.name, { scored: w.scored, oosFrom: w.oosFromIso, oosTo: w.oosToIso, oosDays: w.oosDays }])),
-      pricedOn: { coinbase: WIN_NAMES.filter((w) => oos.coinbase[w]), kraken: WIN_NAMES.filter((w) => oos.kraken[w]) },
-      krakenDropped,
-    });
-  }
-  if (symbols.length !== LIVE_CANDIDATE.symbols.length) throw new Error(`a coin failed the splice test: ${LIVE_CANDIDATE.symbols.filter((s) => !symbols.includes(s)).join(", ")}`);
+  // ── the data: the recorded study's splice, plus Kraken's own 4h tape (`loadMeasuredSeries`) ───
+  const { series, dataRows, symbols } = await loadMeasuredSeries(dataDir, extDir, kDir);
   const priced = (tape: Tape, w: WinName) => symbols.filter((s) => series[s].oos[tape][w] != null);
   say(`data: ${symbols.join(" ")} | coinbase ${WIN_NAMES.map((w) => `${w}${priced("coinbase", w).length}`).join(" ")} | kraken ${WIN_NAMES.map((w) => `${w}${priced("kraken", w).length}`).join(" ")}`);
 
