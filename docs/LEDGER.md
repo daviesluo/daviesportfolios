@@ -395,6 +395,14 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-23 07:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The Chinese-reply rule now says it survives a context compaction**
+(`working-with-davies`, all three copies). After this session's resume the
+progress notes between tool calls came out in English until Davies asked
+why ("这个会话怎么又变成英语了") — the third time. The first line after any
+resume is Chinese.
+
 ### [2026-09-23 07:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **SUI stays on paper and does not go live** (Davies left the call to the
