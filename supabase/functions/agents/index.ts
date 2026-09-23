@@ -69,6 +69,7 @@ import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
 import { ALL_QUESTION_VERSIONS, isRowQuestionVersion, questionsFor, ROW_QUESTION_KIND, type AnyQuestionVersion } from "./jev_rows.ts";
 import { makeDb, type Db } from "./db.ts";
 import { deribitProbe } from "./deribit.ts";
+import { runQuotes } from "./quotes.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -209,6 +210,21 @@ export function tickErrorReport(report: { errors: string[]; at: string }) {
     message: report.errors.join(" | ").slice(0, 500),
     context: { at: report.at, count: report.errors.length, errors: report.errors.slice(0, 40).map((e) => e.slice(0, 800)) },
   };
+}
+
+/**
+ * The paper quote test (quotes.ts): its own cron job, called at the top of the minute like the tick. It waits until
+ * `QUOTES_START_MS` into the minute before reading Revolut X, so its public reads do not land on the tick's, and then
+ * decides the minute that just closed.
+ */
+export const QUOTES_START_MS = 25e3;
+export function quotesDelayMs(nowMs: number): number {
+  const into = nowMs % 60e3;
+  return into < QUOTES_START_MS ? QUOTES_START_MS - into : 0;
+}
+async function runQuotesAction(wait: boolean) {
+  if (wait) await new Promise((r) => setTimeout(r, quotesDelayMs(Date.now())));
+  return await runQuotes({ db: db(), now: Date.now(), holder: crypto.randomUUID() });
 }
 
 export async function runTick(now = Date.now()) {
@@ -883,6 +899,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     const action = url.searchParams.get("action") ?? "";
     const operator = who === "cron" || who === "admin";
     if (action === "tick" && req.method === "POST" && operator) return json(200, await runTick());
+    if (action === "quotes" && req.method === "POST" && operator) return json(200, await runQuotesAction(url.searchParams.get("wait") !== "0"));
     if (action === "probe" && req.method === "GET" && operator) return json(200, await runProbe(probeParts(url.searchParams.get("only"))));
     if (action === "jev" && req.method === "POST" && operator) return json(200, await runJevBatch(await req.json().catch(() => null)));
     if (action === "dashboard" && req.method === "GET") return json(200, await runDashboard());

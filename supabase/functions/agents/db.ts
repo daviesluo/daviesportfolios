@@ -31,14 +31,19 @@ export type Db = {
  * the book, the stops and the decisions ran. A stub looser than the thing it stands in for certifies what
  * production rejects; this is the second time in a day that lesson was paid for.
  */
+/** Tables whose unique key is not an `id` column: ordering by that whole key, in its order, is as total as `id`. */
+const PAGED_KEYS: Record<string, string> = { agent_quote_inputs: "kind,t" };
+
 export function assertPagedOrder(table: string, query: string): void {
   const order = /(?:^|&)order=([^&]*)/.exec(query)?.[1];
   if (!order) throw new Error(`selectAll(${table}) needs an explicit order to page safely`);
   // And the LAST column must be the unique `id`: rows that tie on every column named are in no fixed order between
   // two page reads, so ordering by `ts` alone is the same hole with a smaller mouth. Every caller ended with `id`
   // already; the pre-live review (2026-09-22, #13) found the rule written down and nowhere enforced.
-  const last = decodeURIComponent(order).split(",").at(-1)?.split(".")[0];
-  if (last !== "id") throw new Error(`selectAll(${table}) must order by the unique id last (…,id.asc), not "${order}"`);
+  const cols = decodeURIComponent(order).split(",").map((c) => c.split(".")[0]);
+  const key = PAGED_KEYS[table]?.split(",");
+  if (key && cols.slice(-key.length).join(",") === key.join(",")) return;
+  if (cols.at(-1) !== "id") throw new Error(`selectAll(${table}) must order by the unique id last (…,id.asc), not "${order}"`);
 }
 
 /** How much of a refusal's text an error keeps. */

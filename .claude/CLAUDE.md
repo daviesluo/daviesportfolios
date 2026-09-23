@@ -261,7 +261,7 @@ that follow from that evidence, in short:
   caps follow the BOOK while `riskGate` keeps the LABEL. Clearing
   `live_confirmed_at` stops live BUYS only; exits stay armed, and
   `global_pause` is the one switch that outranks an exit. The go-live
-  migration is drafted at `docs/agents/0051_go_live.sql.draft` — a NEW
+  migration is drafted at `docs/agents/go_live.sql.draft` (unnumbered: it takes the next free number when it moves) — a NEW
   row `trend-4h-live`, with `trend-4h` kept paper as its same-venue
   control — and moving it into `supabase/migrations/` IS going live.
 - **Jev gates entries with the v2 question at 0.45 (since 2026-09-23,
@@ -403,6 +403,20 @@ that follow from that evidence, in short:
   itself and reports a parameter plateau per coin; `frequency.json` there
   is §3.6's raw output, `universe.json` (`--study universe`) §3.7's,
   `universe20*.json` §3.8's and `ideas.json` §3.9's.
+- **PR5's GBP stablecoin quotes run on paper, beside the loop** (§3.27,
+  §4 item 31, migration `0051`, 2026-09-23 on Davies' word). PR3's rule —
+  0 % quotes 0.1 / 0.2 / 0.3 % either side of interbank on Revolut X's
+  USDC/GBP and USDT/GBP books — passed on nine months of public prints it
+  never saw, in a market that tightened in the week of 2026-08-24 (plan
+  with ~$0.42 a day on $1,200, not the backtest's 82 %/yr). Its own cron
+  job, `agents?action=quotes`, runs the frozen rule one minute behind the
+  clock (`quotes.ts`, replayed trip for trip against the simulator in
+  `quotes.test.ts`), public reads only, into its own `agent_quote_*`
+  tables; nothing of the strategy rows reads them. Four weeks, then the
+  spec's six conditions decide (`reviews/2026-09-23-pr5-paper-test-spec.md`).
+  Revolut X serves its whole trade history keylessly
+  (`/api/1.0/public/trades/all`), and its candles are built from the MID
+  when a minute did not trade — read fills from prints.
 - The tick claims a bar by inserting its decision (unique index on
   strategy, symbol, bar_start; a protective decision claims one second
   INTO its minute, never a bar start; a dislocation decision the minute).

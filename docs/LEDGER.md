@@ -15,15 +15,21 @@ has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
 000000. **DAVIES' REQUESTS OF 2026-09-23 ~13:35 UTC**, in order:
-   1. **PR3 on a longer, credible record: PASSED (PR5).** PR3 had 13.25
-      out-of-sample days because it read the 1-minute candles the venue
-      keeps 28 days; the venue serves its whole PUBLIC trade history
-      keylessly (`/api/1.0/public/trades/all`). On the nine months PR3 never
-      saw, its unchanged rule made +$707.90 on $1,200 over 8,192 trips and
-      cleared all six pre-registered conditions (reference §3.27, review
+   1. **PR3 on a longer, credible record: PASSED (PR5), and it runs on
+      paper.** PR3 had 13.25 out-of-sample days because it read the 1-minute
+      candles the venue keeps 28 days; the venue serves its whole PUBLIC
+      trade history keylessly (`/api/1.0/public/trades/all`, ≤ 1-day window,
+      1 request/s). On the nine months PR3 never saw, PR3's unchanged rule
+      made +$707.90 on $1,200 over 8,192 trips and cleared all six
+      pre-registered conditions (reference §3.27, review
       `reviews/2026-09-23-pr5-study.md`), reproduced here byte for byte.
       **But the books tightened in the week of 2026-08-24**: since then
-      $0.42 a day — plan with that. The paper test is the next commit.
+      $0.42 a day (12.7 %/yr on the locked capital) — plan with that.
+      **The paper test runs from its own cron job** (`agents?action=quotes`,
+      migration `0051`, §4 item 31): four weeks from its first minute, then
+      the spec's six conditions. **Verify after the push**: `0051` applied,
+      the cron fires, `agent_quote_state.last_minute` advances each minute,
+      prints and inputs fill, the first order-book snapshots appear.
    2. **A second, independent first-principles search: REPORTED, being
       verified** (folder `research_fp2`): by its report 20 ideas, three
       pre-registered tests, all three lose out of sample — nothing unique to
@@ -480,6 +486,16 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 15:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The paper quote test is built** (`agents/quotes.ts`, migration `0051`, reference §4 item
+31): `agents?action=quotes` on its own cron job runs PR5's frozen rule one minute behind the
+clock, public reads only, into `agent_quote_*`. `quotes.test.ts` replays the simulator's five
+golden windows trip for trip; counting a touch as a fill, or reading an unfinished hour into
+fair, fails all five. The test double checks the new tables' columns, constraints and
+ON CONFLICT keys (and now upserts are checked at all), knows PostgREST's `lte`, and the paged
+order accepts a composite key. The go-live draft is unnumbered (`go_live.sql.draft`).
 
 ### [2026-09-23 15:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

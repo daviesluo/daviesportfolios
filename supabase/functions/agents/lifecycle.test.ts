@@ -23,7 +23,7 @@ const BAR0 = Date.parse("2026-09-23T04:00:00Z");
 const B = (n: number) => BAR0 + n * FOUR_H;
 const CONFIRMED = "2026-09-22T12:00:00Z";
 
-/** The row the go-live draft adds (`0051`): trend-4h on Revolut X, Kraken's candles, one slot — here on BTC alone, $20. */
+/** The row the go-live draft adds (`go_live.sql.draft`): trend-4h on Revolut X, Kraken's candles, one slot — here on BTC alone, $20. */
 const LIVE_ROW: Row = {
   id: "trend-4h-live", kind: "trend-4h", venue: "revx", signal_venue: "kraken", name: "Trend 4h · Revolut X · live", description: "",
   symbols: ["BTC/USD"], mode: "live", capital_usd: 20, retired_at: null,

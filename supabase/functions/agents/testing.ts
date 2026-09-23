@@ -12,6 +12,19 @@ export type Row = Record<string, unknown>;
 
 const ORDER_STATES = ["pending", "new", "partially_filled", "filled", "cancelled", "rejected"];
 const PROBE_STATES = ["resting", "filled", "expired"];
+/** The paper quote test's tables as 0051 creates them: their columns, and the unique key each upsert names. */
+const QUOTE_TABLES: Record<string, { columns: string[]; key: string }> = {
+  agent_quote_state: { columns: ["id", "state", "last_minute", "updated_at", "last_error"], key: "id" },
+  agent_quote_prints: { columns: ["id", "book", "ts", "price", "qty", "side"], key: "id" },
+  agent_quote_inputs: { columns: ["kind", "t", "value"], key: "kind,t" },
+  agent_quote_events: { columns: ["book", "minute", "side", "k", "kind", "ticks", "detail"], key: "book,minute,side,k,kind" },
+  agent_quote_trips: {
+    columns: ["book", "side", "k", "t_entry", "fill_ts", "fill_print_id", "entry", "qty", "x_entry", "fair_entry", "entry_oid", "t_exit", "exit", "how",
+      "exit_print_id", "exit_oid", "notional_usd", "pnl_usd"],
+    key: "book,side,k,t_entry",
+  },
+};
+const QUOTE_BOOKS_OK = ["USDC-GBP", "USDT-GBP"];
 /** `agent_maker_probes`' columns as 0042 and 0050 leave them: PostgREST refuses a write naming any other. */
 const PROBE_COLUMNS = ["id", "ts", "strategy_id", "order_id", "venue", "symbol", "side", "mode", "taker_price", "maker_price", "base_size",
   "state", "resolved_at", "minutes_to_fill", "mark_at_resolve", "follow_up", "expires_at", "watching", "fill_minute"];
@@ -49,6 +62,27 @@ export function schemaRefusal(table: string, r: Row): string | null {
       ?? check("taker_price", Number(r.taker_price) > 0)
       ?? check("maker_price", Number(r.maker_price) > 0)
       ?? check("base_size", Number(r.base_size) > 0);
+  }
+  if (table in QUOTE_TABLES) {
+    const unknown = Object.keys(r).find((c) => !QUOTE_TABLES[table].columns.includes(c));
+    if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
+    if (table === "agent_quote_state") return check("id", r.id === 1) ?? notNull(["state"]);
+    if (table === "agent_quote_prints") {
+      return notNull(["id", "book", "ts", "price", "qty", "side"]) ?? check("book", QUOTE_BOOKS_OK.includes(String(r.book)))
+        ?? check("price", Number(r.price) > 0) ?? check("qty", Number(r.qty) > 0) ?? check("side", ["buy", "sell"].includes(String(r.side)));
+    }
+    if (table === "agent_quote_inputs") {
+      return notNull(["kind", "t", "value"]) ?? check("kind", ["fx", "fair:USDC-USD", "fair:USDT-USD"].includes(String(r.kind))) ?? check("value", Number(r.value) > 0);
+    }
+    if (table === "agent_quote_events") {
+      return notNull(["book", "minute", "side", "k", "kind", "detail"]) ?? check("book", QUOTE_BOOKS_OK.includes(String(r.book)))
+        ?? check("side", ["bid", "ask", "-"].includes(String(r.side)))
+        ?? check("kind", ["order", "refused", "withdraw", "fill", "exit", "stop", "book"].includes(String(r.kind)));
+    }
+    return notNull(["book", "side", "k", "t_entry", "fill_ts", "fill_print_id", "entry", "qty", "t_exit", "exit", "how", "notional_usd", "pnl_usd"])
+      ?? check("book", QUOTE_BOOKS_OK.includes(String(r.book))) ?? check("side", ["bid", "ask"].includes(String(r.side)))
+      ?? check("how", ["maker", "taker"].includes(String(r.how))) ?? check("entry", Number(r.entry) > 0) ?? check("qty", Number(r.qty) > 0)
+      ?? check("exit", Number(r.exit) > 0);
   }
   if (table === "agent_decisions") {
     return notNull(["strategy_id", "venue", "symbol", "mode", "bar_start", "state", "numbers", "provider", "rule_action", "rule_reason", "final_action", "final_reason", "risk_allowed", "risk_reason"])
@@ -104,7 +138,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       if (k === "order") { order = v.split(",").map((t) => { const [col, dir] = t.split("."); return { col, dir: dir === "desc" ? -1 : 1 }; }); continue; }
       if (k === "limit") { limit = Math.min(Number(v), PAGE_ROWS); continue; }
       if (k === "offset") { offset = Number(v); continue; }
-      const m = v.match(/^(eq|in|gte|lt|is)\.(.*)$/);
+      const m = v.match(/^(eq|in|gte|lte|lt|is)\.(.*)$/);
       if (!m) throw new Error(`stub db: unsupported filter ${part}`);
       const val = decodeURIComponent(m[2]);
       if (m[1] === "is") { if (val !== "null" && val !== "not.null") throw new Error(`stub db: unsupported filter ${part}`); filters.push((r) => (r[k] == null) === (val === "null")); }
@@ -112,6 +146,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       if (m[1] === "in") { const set = val.slice(1, -1).split(","); filters.push((r) => set.includes(String(r[k]))); }
       if (m[1] === "gte") filters.push((r) => String(r[k]) >= val);
       if (m[1] === "lt") filters.push((r) => String(r[k]) < val);
+      if (m[1] === "lte") filters.push((r) => String(r[k]) <= val);
     }
     return { filters, order, limit, offset, select };
   };
@@ -158,10 +193,20 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       return Promise.resolve((returning ? out : []) as any);
     },
     upsert: (table, rows, onConflict) => {
-      // PostgREST's `resolution=merge-duplicates`: a row whose conflict key exists is merged, not appended.
+      // PostgREST's `resolution=merge-duplicates`: a row whose conflict key exists is merged, not appended. Postgres
+      // checks the row as stored, and refuses an ON CONFLICT that names no unique key; so does this.
       const keys = onConflict.split(",");
+      if (table in QUOTE_TABLES && onConflict !== QUOTE_TABLES[table].key) {
+        return refuse("POST", table, "there is no unique or exclusion constraint matching the ON CONFLICT specification");
+      }
       const t = (tables[table] ??= []);
-      for (const r of overTheWire(rows) as Row[]) {
+      const list = overTheWire(rows) as Row[];
+      for (const r of list) {
+        const cur = t.find((x) => keys.every((k) => String(x[k]) === String(r[k])));
+        const why = schemaRefusal(table, cur ? { ...cur, ...r } : r);
+        if (why) return refuse("POST", table, why);        // the statement fails whole: nothing is written
+      }
+      for (const r of list) {
         const i = t.findIndex((x) => keys.every((k) => String(x[k]) === String(r[k])));
         if (i >= 0) t[i] = { ...t[i], ...r }; else t.push({ ...r });
       }

@@ -384,7 +384,7 @@ How the less obvious parts work, and why they are built the way they are.
   recorders that `pg_cron` calls, `snapshot-record` (every board price,
   every five minutes) and `overnight-record` (Trading 212's overnight
   quotes). Shared Deno modules live in `supabase/functions/_shared/`.
-  Migrations `0001`–`0050`, plus four timestamped records of changes that
+  Migrations `0001`–`0051`, plus four timestamped records of changes that
   were first applied out of band (`supabase/migrations/README.md`);
   `0005`/`0006` are a historical create/drop pair for the retired
   `analyst_estimates_cache` table.
@@ -563,9 +563,10 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 
 | File | What it does |
 |---|---|
-| `agents/index.ts` | The entry point: the minute's tick, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
+| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
 | `agents/binance.ts`, `agents/deribit.ts` | Read-only clients for the Binance and Deribit keys (the probe's checks, Deribit's volatility index), and Binance's paper venue, which reads public market data for its paper rows. Nothing in them can trade. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
+| `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run from its own cron job, storing every input beside every outcome. |
 | `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
 | `agents/db.ts` | The loop's database access, over PostgREST. |
 | `agents/testing.ts` | Test doubles that refuse whatever the real database refuses. |
@@ -637,6 +638,7 @@ before touching migration state.
 | `0048_drop_max_order_usd.sql` | Drops the fixed per-order cap: an entry is its row's slot. |
 | `0049_binance_paper_rows.sql` | Adds Binance's paper rows, the Revolut X strategies' twins, and keeps any Binance row off live. |
 | `0050_maker_probes_trade_proven.sql` | Records the minute that proved a maker probe's fill, and corrects the three probes resolved on minutes with no trade. |
+| `0051_paper_quotes.sql` | Adds the paper quote test's tables (state, prints, inputs, events, trips) and its once-a-minute cron job. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -667,7 +669,7 @@ before touching migration state.
 | `docs/agents/reference.md` | Every verified fact the crypto loop rests on: the Jev model, both exchange APIs, the measurements and the backtests. |
 | `docs/agents/go-live.md` | The case for the first live strategy. |
 | `docs/agents/venue-survey.md` | Other exchanges, brokers and data sources, for the UK, the US and Hong Kong. |
-| `docs/agents/0051_go_live.sql.draft` | The migration that would go live, kept out of `supabase/migrations/` until Davies says go. |
+| `docs/agents/go_live.sql.draft` | The migration that would go live, kept out of `supabase/migrations/` until Davies says go. |
 | `docs/agents/reviews/` | The code review before going live, and one write-up per study. |
 | `docs/agents/backtests/` | The studies' results, as JSON, and in `inputs/` the public data a study read that cannot be fetched again unchanged. |
 | `docs/agents/scripts/agents-baseline-backtest.py` | The first baseline backtest, in Python. |

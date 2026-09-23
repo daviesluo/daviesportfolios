@@ -5,7 +5,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeParts, probeSymbols, runJevBatch,
-  STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, tickErrorReport, type ProbeSummaryRow,
+  STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, tickErrorReport, type ProbeSummaryRow,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
 import type { JevResult } from "../_shared/jev.ts";
@@ -311,3 +311,10 @@ Deno.test("PAGE_VENUES — the page shows Revolut X and Binance, each with its o
   assertEquals([...PAGE_VENUES], ["revx", "binance"]);
 });
 
+Deno.test("quotesDelayMs: the paper quote run reads Revolut X 25 s into its minute, never before, and never waits past it", () => {
+  const top = Date.UTC(2026, 8, 23, 15, 0, 0);
+  assertEquals(quotesDelayMs(top), 25e3);                     // cron fires at the top of the minute, with the tick
+  assertEquals(quotesDelayMs(top + 10e3), 15e3);
+  assertEquals(quotesDelayMs(top + 25e3), 0);
+  assertEquals(quotesDelayMs(top + 59e3), 0);                 // late already: go now, do not wait for the next minute
+});

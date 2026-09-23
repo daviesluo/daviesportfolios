@@ -42,6 +42,10 @@ Deno.test("a paged read names an order and ends it with the unique id: rows that
   assertPagedOrder("agent_orders", "select=*&order=ts.asc,id.asc");
   assertPagedOrder("agent_orders", "order=ts.desc,id.desc&select=*");
   assertThrows(() => assertPagedOrder("agent_orders", "select=*"), Error, "needs an explicit order");
+  // A table keyed by more than one column, with no `id`: its whole key, in order, is the total order.
+  assertPagedOrder("agent_quote_inputs", "kind=eq.fx&select=t,value&order=kind.asc,t.asc");
+  assertThrows(() => assertPagedOrder("agent_quote_inputs", "kind=eq.fx&order=t.asc"), Error, "must order by");
+  assertThrows(() => assertPagedOrder("agent_orders", "order=kind.asc,t.asc"), Error, "must order by");
   // The probe's read before 2026-09-22: ordered, but by a column two orders can share.
   assertThrows(() => assertPagedOrder("agent_orders", "select=*&order=ts.asc"), Error, "unique id last");
   assertThrows(() => assertPagedOrder("agent_orders", "order=id.asc,ts.asc"), Error, "unique id last");
