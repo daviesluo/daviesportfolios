@@ -410,7 +410,7 @@ How the less obvious parts work, and why they are built the way they are.
   Three defences, each pinned: (1) no long-lived `Cache-Control` on
   `/assets/*` (Pages' default revalidates with ETags) and a `404.html`
   built beside `index.html`, so a missing chunk is a 404 the worker refuses
-  to precache; (2) `src/chunk_recovery.js` — a page chunk that fails to
+  to precache; (2) `src/app/chunk_recovery.js` — a page chunk that fails to
   load refreshes the browser's copy, drops every service worker and cache,
   reloads once and reports `chunk.load`, and each page has its own
   boundary that shows the page's frame with the words instead of a
@@ -428,94 +428,114 @@ lives in its own comments; what happened to it lives in `docs/LEDGER.md` and
 git. Until 2026-09-23 each row here told its file's whole story, and
 that longer text is still in git (`git show 75cd4e1:docs/map.md`).
 
-### `src/` — the client
+### `src/` — the web app
 
+An npm project of its own, sorted by what each part of the page does.
 Tests sit beside the module they cover, as `<name>.test.js` or
-`<name>.test.jsx`.
+`<name>.test.jsx`; the two browser tests are in `e2e/`.
 
-#### Shell
+#### The top of `src/`
+
+The npm project's own files (`package.json` and the rest are under "Build, CI and docs" below), the page, and the static files.
 
 | File | What it does |
 |---|---|
-| `index.html` | The page Vite builds from; it loads `main.jsx`. |
-| `main.jsx` | Mounts `<App>` and registers the service worker. |
-| `app.jsx` | `<App>`, the password gate, and `<Board>`, the whole UI: portfolio state, the refresh loop, which modal is open. The first paint uses the cached portfolio, then the server's copy replaces it. |
-| `auth.js` | Turns a password into a signed token: reads `?pwd=` once and strips it, calls the `auth` function, reuses a valid token from the session. |
-| `supabase_config.js` | The Supabase URL, the public anon key and each Edge Function's URL. |
-| `storage.js` | Everything the browser keeps under `dp.*`, with one schema version and its migrations, including the cached prices and portfolio behind a correct first paint. |
-| `sw-banner.jsx` | The "new version available" banner. It checks every minute and whenever the tab comes back. |
-| `chunk_recovery.js` | When a page's code fails to load after a deploy: fetch it fresh, drop the service worker and caches, reload once, report it. |
-| `ops_error.js`, `ops_error_badge.jsx` | Sends client errors to `ops-error`, rate-limited; the admin-only header badge groups the last 24 hours. |
-| `version.js` | The build stamp (minute-precision CalVer) that every error report carries. |
-| `types.d.ts`, `ambient.d.ts` | Shared JSDoc types, and declarations for the build stamp and CSS imports. |
-| `styles.css` | Every style, in one sheet. |
-| `data.js` | A demo portfolio with made-up share counts, shown only when the real one cannot load. |
+| `index.html` | The page Vite builds from; it loads `app/main.jsx`. |
 | `public/_headers`, `public/robots.txt` | Copied into `dist/` as they are: Cloudflare's cache and security headers, and a site-wide noindex. |
 | `vite.config.js` | The build: React, the PWA service worker, output to `dist/`, the build stamp, and Vitest's settings. |
 | `eslint.config.js`, `test_setup.js` | The lint rules for `src/`, and the Vitest setup that adds the DOM matchers. |
 
-#### Portfolio and ledger
+#### `app/` — the shell
+
+Startup, the root component, sign-in, what the browser keeps, error reports, and what every view shares: styles, formats, types and icons.
 
 | File | What it does |
 |---|---|
-| `portfolio_remote.js` | Loads and saves the portfolio through the `data` function, and upgrades older saved shapes. |
-| `portfolio_edits.js` | The board's edits: change, add, move or remove a holding, swap two positions, rename one. |
-| `positions.js` | Where the 11 positions sit on the pitch. |
-| `metrics.js` | The per-position totals behind the scoreboard, the heat map and the drill-downs. |
-| `lots.js` | Cleans and sums the buy lots the editor collects. |
-| `transactions.js` | Sales, the net position and realised gain from a holding's buys and sells. |
-| `fx.js` | Which currency a ticker trades in, and its rate to USD. |
-| `formatters.js` | Money, percent, price and share formats, the one month table, and the names shown for tickers. |
-| `trading212.js` | The client half of the broker sync: positions, live prices and the fill history, applied without touching shares held at another platform. |
-| `t212_fills.js` | Rebuilds a holding's lots from the broker's fills, keeping the lots bought elsewhere. |
+| `app/main.jsx` | Mounts `<App>` and registers the service worker. |
+| `app/app.jsx` | `<App>`, the password gate, and `<Board>`, the whole UI: portfolio state, the refresh loop, which modal is open. The first paint uses the cached portfolio, then the server's copy replaces it. |
+| `app/auth.js` | Turns a password into a signed token: reads `?pwd=` once and strips it, calls the `auth` function, reuses a valid token from the session. |
+| `app/supabase_config.js` | The Supabase URL, the public anon key and each Edge Function's URL. |
+| `app/storage.js` | Everything the browser keeps under `dp.*`, with one schema version and its migrations, including the cached prices and portfolio behind a correct first paint. |
+| `app/sw-banner.jsx` | The "new version available" banner. It checks every minute and whenever the tab comes back. |
+| `app/chunk_recovery.js` | When a page's code fails to load after a deploy: fetch it fresh, drop the service worker and caches, reload once, report it. |
+| `app/ops_error.js`, `app/ops_error_badge.jsx` | Sends client errors to `ops-error`, rate-limited; the admin-only header badge groups the last 24 hours. |
+| `app/version.js` | The build stamp (minute-precision CalVer) that every error report carries. |
+| `app/types.d.ts`, `app/ambient.d.ts` | Shared JSDoc types, and declarations for the build stamp and CSS imports. |
+| `app/styles.css` | Every style, in one sheet. |
+| `app/formatters.js` | Money, percent, price and share formats, the one month table, and the names shown for tickers. |
+| `app/icons.jsx` | The small inline icons. |
 
-#### Prices and history
-
-| File | What it does |
-|---|---|
-| `yahoo_fetch.js` | Live prices: the `prices` function first, a public CORS proxy only for a ticker the function dropped. |
-| `proxy_chain.js` | The public CORS proxies, each backed off for a while after it fails. |
-| `historical.js` | Chart bars: the `chart` function first, proxies only when it fails outright; Chinese fund history; today's regular close. |
-| `market_hours.js` | Time helpers that know about daylight saving: US, London and euro-zone market hours, US holidays, and the 3M chart's four-hour grid. |
-| `ticker_class.js` | What kind of instrument a ticker is (crypto, future, FX, index, Chinese fund, …) and how much of the week it trades. |
-| `cache.js` | How long each kind of chart data stays fresh, and the cache keys. |
-| `chart_store.js` | The IndexedDB chart cache, with an in-memory copy for instant reads. |
-| `prefetch.js` | Warms every chart range in the background after a load or a manual refresh. |
-| `overnight_intraday.js` | Reads the recorded overnight quotes for US stocks and splices them onto the chart. |
-| `price_snapshots.js` | Reads the server's five-minute price records and merges them into the chart's bars. |
-
-#### Chart maths
+#### `portfolio/` — the book and its ledger
 
 | File | What it does |
 |---|---|
-| `ytd.js` | The portfolio's value and cost basis at any moment, from lots and sales: the one function every performance number goes through. |
-| `deposit_series.js` | Money paid in over time, from the broker's fills and the ledger, for the Investment chart. |
-| `investment_view.js` | The Investment chart's axis steps, labels and legend arithmetic. |
-| `movers.js` | Who counts as a top mover, over which window, ranked how. |
-| `indicators.js` | Moving averages, VWAP, and the P/E and P/S series. |
-| `chart_geometry.js` | SVG helpers both chart components share: pointer to data point, the line's path, where each regular session opens and closes. |
-| `chart_modal_geometry.js` | The ticker chart's scales, anchor price and axis ticks. |
+| `portfolio/data.js` | A demo portfolio with made-up share counts, shown only when the real one cannot load. |
+| `portfolio/portfolio_remote.js` | Loads and saves the portfolio through the `data` function, and upgrades older saved shapes. |
+| `portfolio/portfolio_edits.js` | The board's edits: change, add, move or remove a holding, swap two positions, rename one. |
+| `portfolio/positions.js` | Where the 11 positions sit on the pitch. |
+| `portfolio/metrics.js` | The per-position totals behind the scoreboard, the heat map and the drill-downs. |
+| `portfolio/lots.js` | Cleans and sums the buy lots the editor collects. |
+| `portfolio/transactions.js` | Sales, the net position and realised gain from a holding's buys and sells. |
+| `portfolio/fx.js` | Which currency a ticker trades in, and its rate to USD. |
+| `portfolio/trading212.js` | The client half of the broker sync: positions, live prices and the fill history, applied without touching shares held at another platform. |
+| `portfolio/t212_fills.js` | Rebuilds a holding's lots from the broker's fills, keeping the lots bought elsewhere. |
 
-#### Views
+#### `prices/` — prices, history and the caches
 
 | File | What it does |
 |---|---|
-| `header_sidebar.jsx` | The scoreboard, Top Movers, Market Conditions, Upcoming Earnings and the rest of the sidebar. |
-| `pitch.jsx` | The tactics board, with drag-to-swap in edit mode. |
-| `heatmap.jsx` | The heat map: one tile per holding, sized by value. |
-| `perf_chart.jsx` | The performance panel: the S&P comparison and the Investment chart in one slot. |
-| `modals.jsx` | The sector drill-down, the lot and sale editor, the add-ticker and cash dialogs, and the confirm dialog. |
-| `ticker_chart_modal.jsx` | The chart for one ticker, 1D to 1Y, with its overlays and holding stats. |
-| `ticker_chart_helpers.js` | The chart modal's constants, display names, price formats and cache wrappers. |
-| `use_ticker_chart_data.js` | The chart modal's price data: the fetches, the live 1D poll and the overnight points. |
-| `use_ticker_fundamentals.js` | The chart modal's P/E, P/S, PEG and share-count data. |
-| `holdings_list.jsx` | The sortable holding list. |
-| `sectors_list.jsx` | The same list grouped by sector. |
-| `transaction_history.jsx` | Every buy and sale, closed positions included. |
-| `table_export.jsx`, `holdings_export.js` | Copy and Excel export for the three tables, formatted exactly as the tables show them. |
-| `screenshot.js`, `screenshot_actions.jsx` | Copy or save a chart as an image. |
-| `icons.jsx` | The small inline icons. |
-| `agents.jsx`, `agents.js`, `agents_chart.js` | The Agents page: each strategy's status, positions, orders and chart, read from the `agents` function. |
+| `prices/yahoo_fetch.js` | Live prices: the `prices` function first, a public CORS proxy only for a ticker the function dropped. |
+| `prices/proxy_chain.js` | The public CORS proxies, each backed off for a while after it fails. |
+| `prices/historical.js` | Chart bars: the `chart` function first, proxies only when it fails outright; Chinese fund history; today's regular close. |
+| `prices/market_hours.js` | Time helpers that know about daylight saving: US, London and euro-zone market hours, US holidays, and the 3M chart's four-hour grid. |
+| `prices/ticker_class.js` | What kind of instrument a ticker is (crypto, future, FX, index, Chinese fund, …) and how much of the week it trades. |
+| `prices/cache.js` | How long each kind of chart data stays fresh, and the cache keys. |
+| `prices/chart_store.js` | The IndexedDB chart cache, with an in-memory copy for instant reads. |
+| `prices/prefetch.js` | Warms every chart range in the background after a load or a manual refresh. |
+| `prices/overnight_intraday.js` | Reads the recorded overnight quotes for US stocks and splices them onto the chart. |
+| `prices/price_snapshots.js` | Reads the server's five-minute price records and merges them into the chart's bars. |
+
+#### `charts/` — the performance panel, the ticker chart and their maths
+
+| File | What it does |
+|---|---|
+| `charts/ytd.js` | The portfolio's value and cost basis at any moment, from lots and sales: the one function every performance number goes through. |
+| `charts/deposit_series.js` | Money paid in over time, from the broker's fills and the ledger, for the Investment chart. |
+| `charts/investment_view.js` | The Investment chart's axis steps, labels and legend arithmetic. |
+| `charts/indicators.js` | Moving averages, VWAP, and the P/E and P/S series. |
+| `charts/chart_geometry.js` | SVG helpers both chart components share: pointer to data point, the line's path, where each regular session opens and closes. |
+| `charts/chart_modal_geometry.js` | The ticker chart's scales, anchor price and axis ticks. |
+| `charts/perf_chart.jsx` | The performance panel: the S&P comparison and the Investment chart in one slot. |
+| `charts/ticker_chart_modal.jsx` | The chart for one ticker, 1D to 1Y, with its overlays and holding stats. |
+| `charts/ticker_chart_helpers.js` | The chart modal's constants, display names, price formats and cache wrappers. |
+| `charts/use_ticker_chart_data.js` | The chart modal's price data: the fetches, the live 1D poll and the overnight points. |
+| `charts/use_ticker_fundamentals.js` | The chart modal's P/E, P/S, PEG and share-count data. |
+| `charts/screenshot.js`, `charts/screenshot_actions.jsx` | Copy or save a chart as an image. |
+
+#### `board/` — the home page
+
+| File | What it does |
+|---|---|
+| `board/movers.js` | Who counts as a top mover, over which window, ranked how. |
+| `board/header_sidebar.jsx` | The scoreboard, Top Movers, Market Conditions, Upcoming Earnings and the rest of the sidebar. |
+| `board/pitch.jsx` | The tactics board, with drag-to-swap in edit mode. |
+| `board/heatmap.jsx` | The heat map: one tile per holding, sized by value. |
+| `board/modals.jsx` | The sector drill-down, the lot and sale editor, the add-ticker and cash dialogs, and the confirm dialog. |
+
+#### `tables/` — the three tables and their export
+
+| File | What it does |
+|---|---|
+| `tables/holdings_list.jsx` | The sortable holding list. |
+| `tables/sectors_list.jsx` | The same list grouped by sector. |
+| `tables/transaction_history.jsx` | Every buy and sale, closed positions included. |
+| `tables/table_export.jsx`, `tables/holdings_export.js` | Copy and Excel export for the three tables, formatted exactly as the tables show them. |
+
+#### `agents/` — the Agents page
+
+| File | What it does |
+|---|---|
+| `agents/agents.jsx`, `agents/agents.js`, `agents/agents_chart.js` | The Agents page: each strategy's status, positions, orders and chart, read from the `agents` function. |
 
 ### `supabase/functions/` — the server
 
@@ -722,7 +742,7 @@ deno test --allow-env supabase/functions/
 ```
 
 The dev server hits the deployed Edge Functions by default. To point
-at a local Supabase, edit `src/supabase_config.js` (`SB_URL` /
+at a local Supabase, edit `src/app/supabase_config.js` (`SB_URL` /
 `SB_ANON`).
 
 ---
@@ -804,14 +824,14 @@ A copy-pasteable shape of the app-level vars lives at
 
 ### 4. Wire the client
 
-Edit `src/supabase_config.js` to point at your project:
+Edit `src/app/supabase_config.js` to point at your project:
 
 ```js
 export const SB_URL  = "https://<your-project>.supabase.co";
 export const SB_ANON = "<your anon public key>";
 ```
 
-Edit `src/data.js` to seed your initial portfolio (positions, holdings,
+Edit `src/portfolio/data.js` to seed your initial portfolio (positions, holdings,
 shares, cost). On first load, the migration code in
 `portfolio_remote.js` will rehydrate from this seed if the DB row is
 empty.

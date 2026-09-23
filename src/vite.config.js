@@ -220,7 +220,7 @@ export default defineConfig({
     port: 5173,
   },
   // Inlined as a string literal in every file that references
-  // __APP_VERSION__ (currently src/version.js). String-replace, not
+  // __APP_VERSION__ (currently src/app/version.js). String-replace, not
   // a runtime read, so dead-code elimination still works.
   define: {
     __APP_VERSION__: JSON.stringify(APP_VERSION),

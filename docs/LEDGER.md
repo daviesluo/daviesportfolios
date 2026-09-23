@@ -30,7 +30,10 @@ list stays the short version; the plan is the reasoning behind it.
       seat and the top-twenty screen; volatility-sized slots and DVOL /
       funding entry filters; the v2 Jev gate on momentum-1d and trend-1h.
       Nothing from them is a finding until re-run here.
-   5. `src/` has too many files: sort it into subfolders — IN PROGRESS.
+   5. `src/` has too many files: sort it into subfolders — **DONE**:
+      `app/`, `portfolio/`, `prices/`, `charts/`, `board/`, `tables/`,
+      `agents/`, plus `e2e/` and `public/`; the top of `src/` is only the
+      npm project's own files, `index.html` and the test setup.
    6. "What did the Jev and SUI studies find, and what is next?" — the
       answer is item 00.3 and reference §3.20; the next steps are the
       two studies in 4 that price what is still unpriced.
@@ -66,7 +69,7 @@ list stays the short version; the plan is the reasoning behind it.
       and C better in all four evaluations, inside chance. Watch the paper
       rows' first v2 decisions; momentum-1d's gate is unpriced.
    4. ~~"30 Sept" → "30 Sep"~~ **DONE 2026-09-23**: one month table
-      (`MONTHS`, `fmtDayMonth`, `fmtMonth` in `src/formatters.js`) for the
+      (`MONTHS`, `fmtDayMonth`, `fmtMonth` in `src/app/formatters.js`) for the
       earnings panel, both chart modules and the Agents page.
 
 0a. **WORK IN FLIGHT (as of 2026-09-22 23:35 UTC).** Every sub-agent died
@@ -350,6 +353,24 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 03:03 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`src/` is sorted into folders** (Davies: "src文件夹里文件也太多太乱了"):
+`app/` (startup, the root component, sign-in, storage, error reports,
+styles, formats, types, icons), `portfolio/`, `prices/`, `charts/`,
+`board/`, `tables/`, `agents/`, with every test beside its module; the
+two tests named after the retired `utils` barrel took the names of what
+they test (`prices/network.test.js`, `portfolio/metrics.test.js`). 112
+files moved by script and every relative specifier rewritten to point at
+the same file (imports, `vi.mock`, JSDoc `import()` types); `index.html`
+loads `app/main.jsx`. The map's client section is regrouped by folder and
+its test now walks `src/` and wants each row named with its folder
+(removing one row fails it, naming the file). Every chunk is the same
+size but `table_export`, 4 bytes smaller: the icons module sits earlier in
+it, so the minifier's names differ; no literal changed. Path mentions in
+comments moved with the files — in five Edge Function files too, so this
+push redeploys functions whose code did not change.
 
 ### [2026-09-23 02:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

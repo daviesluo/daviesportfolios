@@ -474,7 +474,7 @@ if (import.meta.main) {
   }
 }
 
-/** The report in the shape `src/agents.js` reads: per symbol, per rule, per venue; the basket beside it; equity curves dropped. */
+/** The report in the shape `src/agents/agents.js` reads: per symbol, per rule, per venue; the basket beside it; equity curves dropped. */
 export function distill(report: Record<string, unknown>): Record<string, unknown> {
   const strip = (x: unknown): unknown => {
     if (Array.isArray(x)) return x.map(strip);

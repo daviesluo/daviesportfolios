@@ -54,7 +54,7 @@ const BUCKET_MS = 5 * 60 * 1000;
 // OTC ADRs that are US-shaped but quote only their regular session —
 // no real overnight tape — so they must NOT be recorded as overnight
 // points. Mirrors the client's `NO_OVERNIGHT_SESSION` set in
-// src/ticker_class.js. Compared upper-cased.
+// src/prices/ticker_class.js. Compared upper-cased.
 const NO_OVERNIGHT_SESSION = new Set(["SFTBY"]);
 
 // ---------------- Pure helpers (test-pinned) ----------------
@@ -102,7 +102,7 @@ export function isOvernightWindow(at: Date): boolean {
 /**
  * Weekend dead zone: Fri 20:00 ET → Sun 20:00 ET. US equities incl.
  * the 24/5 overnight session don't trade then, so T212's quote can't
- * move and there's nothing to record. Mirrors src/market_hours.js
+ * move and there's nothing to record. Mirrors src/prices/market_hours.js
  * `isWeekendDeadZone`.
  */
 export function isWeekendDeadZone(at: Date): boolean {

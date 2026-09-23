@@ -16,7 +16,7 @@
 // "regular" is correct; only the 16:00 close anchor is ~3 h off on them.
 //
 // The browser client keeps a byte-equivalent copy of these rules in
-// `src/market_hours.js` (`isUsMarketHoliday`) — different runtime, so the
+// `src/prices/market_hours.js` (`isUsMarketHoliday`) — different runtime, so the
 // two can't literally share a module. KEEP THEM IN SYNC: a change here
 // should be mirrored there (and vice-versa). Pinned by
 // `us_market_calendar.test.ts`, which also records the next several years'

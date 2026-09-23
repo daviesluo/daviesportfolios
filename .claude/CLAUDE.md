@@ -17,7 +17,7 @@ Overview: this repo is a Vite + React (JSDoc/`checkJs`, not TSX) client
 bundled to static files, plus Supabase Edge Functions written in Deno
 (`supabase/functions/*`). There is no local backend by default — the
 client and CI both talk to the **deployed production** Supabase project
-hard-coded in `src/supabase_config.js`.
+hard-coded in `src/app/supabase_config.js`.
 
 Standard commands are already documented — see the `scripts` block in
 `src/package.json`, the "Local development" section of `docs/map.md`, and
@@ -45,7 +45,7 @@ Non-obvious caveats:
   returns `401` and the data functions return `401 {"error":"invalid
   token"}`. To exercise the board, live prices, or any data flow you
   need one of these passwords; there is no dev bypass and pointing at a
-  local Supabase would require editing `src/supabase_config.js` + running
+  local Supabase would require editing `src/app/supabase_config.js` + running
   the full local stack.
 - **Do not brute-force the password.** The `auth` Edge Function has an
   IP-keyed lockout (3 wrong attempts → escalating 24 h lockout), so a
@@ -488,8 +488,8 @@ bundle and vitest tests the modules.
 ## Storage
 
 Persisted state lives under the `dp.*` namespace with a single schema
-version (`Storage.migrate()` in `src/storage.js`). When the data shape
-changes, bump `CURRENT_SCHEMA_VERSION` in `src/storage.js` and add a
+version (`Storage.migrate()` in `src/app/storage.js`). When the data shape
+changes, bump `CURRENT_SCHEMA_VERSION` in `src/app/storage.js` and add a
 migration step instead of inventing a new key.
 
 ## Pull requests

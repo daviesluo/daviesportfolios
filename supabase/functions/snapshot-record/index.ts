@@ -7,7 +7,7 @@
 //
 // This function records FACTS, not conclusions. It does not know what
 // the portfolio is worth and must never learn: the book's value is
-// computed in exactly one place, `computeAt` in `src/ytd.js`, which the
+// computed in exactly one place, `computeAt` in `src/charts/ytd.js`, which the
 // vs-S&P chart and the Investment Performance chart both call. The
 // previous version of this file computed a USD value and a net-deposit
 // figure server-side, which meant a full second implementation of the

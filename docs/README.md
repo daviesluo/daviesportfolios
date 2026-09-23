@@ -169,7 +169,7 @@ the case for the first live strategy in
 
 | Path | What's there |
 |---|---|
-| `src/` | The web app, an npm project of its own: the React client (the board, charts, panels, ledger tables and the Agents page) with its tests beside each file, the browser tests in `src/e2e/`, and its settings (`package.json`, Vite, ESLint, TypeScript). |
+| `src/` | The web app, an npm project of its own, in folders by what each part does: `app/` (startup, sign-in, shared styles), `portfolio/`, `prices/`, `charts/`, `board/` (the home page), `tables/` and `agents/`, with each file's tests beside it and the browser tests in `e2e/`. |
 | `src/public/` | Static files copied into the build: Cloudflare's `_headers` and `robots.txt`. |
 | `supabase/functions/` | The Edge Functions: `auth`, `data`, `prices`, `chart`, `fundamentals`, `trading212`, `overnight-fetch`, `overnight-record`, `snapshot-record`, `ops-error` and `agents`, plus `_shared/`. Each has its tests beside it. |
 | `supabase/migrations/` | The database schema, applied by CI in order. |

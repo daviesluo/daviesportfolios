@@ -11,7 +11,7 @@
 # FIRST request of a session can add several seconds per function, which
 # compounds badly when several functions are chained (portfolio load →
 # prices/trading212/chart, all gated behind the portfolio load resolving —
-# see src/app.jsx). Pinging every function on the app's first-load path
+# see src/app/app.jsx). Pinging every function on the app's first-load path
 # every 10 min keeps them warm ahead of a real visit, which is the only
 # practical mitigation for cold starts on this platform.
 #
@@ -127,7 +127,7 @@ jobs:
           #      quota or the database.
           #    Surface pinged, beyond the original `prices`:
           #      - data           (portfolio load — gates first paint,
-          #                        src/app.jsx's only pre-portfolio call)
+          #                        src/app/app.jsx's only pre-portfolio call)
           #      - chart           }  both fire during the initial-mount
           #      - fundamentals    }  prefetch (prefetchAllChartData +
           #                           UpcomingEarnings)

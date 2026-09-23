@@ -37,9 +37,15 @@ describe('docs/map.md', () => {
     expect(TABLES.length).toBeGreaterThan(1000);
   });
 
-  it('has a row for every client module', () => {
-    const files = filesIn('src', /\.(js|jsx|ts|css|html)$/);
+  it('has a row for every client module, named with its folder', () => {
+    // Paths under src/: `app/auth.js`, or `vite.config.js` at its top.
+    // e2e/ holds the browser tests, public/ files Vite copies as they are.
+    const files = allFiles('src')
+      .map((f) => f.slice('src/'.length))
+      .filter((f) => /\.(js|jsx|ts|css|html)$/.test(f) && !/\.test\.[jt]sx?$/.test(f))
+      .filter((f) => !/^(e2e|public)\//.test(f));
     expect(files.length).toBeGreaterThan(50);
+    expect(files.filter((f) => f.includes('/')).length).toBeGreaterThan(50);
     expect(unnamed(files)).toEqual([]);
   });
 
