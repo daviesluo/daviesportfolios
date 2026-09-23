@@ -6,7 +6,7 @@ How the owner actually works — what "done" means, what counts as
 evidence, settled chart/ledger rules, past mistakes — is
 `.claude/skills/working-with-davies/SKILL.md` (auto-loaded). Cursor
 loads the same text from `.cursor/rules/working-with-davies.mdc`. The
-live handover record is `LEDGER.md`; `docs/handover.md` is its archive.
+live handover record is `docs/LEDGER.md`; `docs/handover.md` is its archive.
 
 ## Documentation
 
@@ -39,12 +39,14 @@ live handover record is `LEDGER.md`; `docs/handover.md` is its archive.
 ## The ledger
 
 This repository runs the **ledger protocol**, whose full text is
-`.ledger/SKILL.md` (invoke it as `/ledger`; pointers sit at
-`.claude/skills/ledger/`, `.cursor/skills/ledger/` and
-`.agents/skills/ledger/`). Read it before your first ledger entry. What
-follows is only this repository's half of the arrangement.
+`.agents/skills/ledger/SKILL.md` (invoke it as `/ledger`). That folder is
+the whole vendored package, where Cursor and Codex find it themselves;
+Claude Code finds it through the pointer at `.claude/skills/ledger/`, and
+Cursor also has one at `.cursor/skills/ledger/`. Read it before your
+first ledger entry. What follows is only this repository's half of the
+arrangement.
 
-**`LEDGER.md` at the root is the live record.** Three parts in order:
+**`docs/LEDGER.md` is the live record.** Three parts in order:
 what remains right now, machine and platform setup, then history newest
 first. A resuming session reads it first and works down the list. It is
 kept SMALL on purpose — every session on every platform pays context for
@@ -68,14 +70,14 @@ cuts off first.
 `core.hooksPath`, refuses a commit whose ledger is two behind, and
 refuses a new history section that does not open with a source header.
 Both are per-clone config a rebuilt container loses — the commands are
-in `LEDGER.md`'s machine-setup section. The escape hatch is
+in the ledger's machine-setup section (`sh bin/setup.sh`). The escape hatch is
 `LEDGER_OK=1 git commit`, for the three cases the refusal names; reach
 for it before `--no-verify`, which switches off every gate rather than
 the one that does not fit.
 
 **Source headers.** Each history section opens with a timestamped header
 naming the platform and the model, in the exact shape the hook checks —
-see `.ledger/SKILL.md`, and `.ledger/EXAMPLE.md` for a filled-in one.
+see `.agents/skills/ledger/SKILL.md`, and `EXAMPLE.md` beside it for a filled-in one.
 Sessions running under an operator rule that forbids model identifiers in
 pushed artifacts write `Model: not recorded (session policy)`; that
 satisfies the gate and says why the field is empty.
@@ -91,7 +93,7 @@ owner works, or pays for a mistake worth not repeating. The skill is the
 distilled agreement; the ledger and its archive are the evidence behind
 it.
 
-Do not copy live balances out of `LEDGER.md` or `docs/handover.md` into new
+Do not copy live balances out of `docs/LEDGER.md` or `docs/handover.md` into new
 files, issues, or anything public. The repo is private; those files quote
 real positions.
 ## Agents (crypto, Revolut X + Kraken + TypeSafe Jev)
@@ -439,7 +441,7 @@ caught both the per-share-vs-total cost bug and the boundary-race
 concern this way.
 
 **While a PR is open its description is part of the branch, and it is
-maintained the way `LEDGER.md` is — in real time.** Every push that
+maintained the way the ledger is — in real time.** Every push that
 changes the diff rewrites the description in the same step, before the
 turn ends. Never leave it describing the previous push: it is read as
 the current state of the branch, so a stale one actively misinforms.

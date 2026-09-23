@@ -170,8 +170,8 @@ the case for the first live strategy in
 | `bin/` | `setup.sh` for a new clone, `gates.sh` for every check CI runs, the browser tests (`app-sweep.mjs`, `verify-perf-matrix.mjs`) and the ledger's commit hook. |
 | `docs/` | The user guide, the full system map, the agents research, screenshots and the diagram. |
 | `.github/` | CI workflows, the security policy and the PR template. |
-| `LEDGER.md` | The running work log: what's in flight and what happened, newest first. |
-| `AGENTS.md`, `.claude/`, `.cursor/`, `.agents/`, `.ledger/` | Instructions for the AI coding agents I work with (Claude Code, Cursor, Codex), and the ledger protocol they all follow. |
+| `docs/LEDGER.md` | The running work log: what's in flight and what happened, newest first. |
+| `AGENTS.md`, `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents I work with (Claude Code, Cursor, Codex), and the ledger protocol they all follow. |
 
 The file-by-file map, the engineering notes behind each decision and the
 data flow are in [`docs/map.md`](docs/map.md). How to use every part of
