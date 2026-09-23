@@ -349,7 +349,8 @@ that follow from that evidence, in short:
   here**: every rule reads its candles; nothing executes there, and the
   page is swept in that shape. **VENUES shows Revolut X and Binance, not
   Kraken** (Davies, 2026-09-23): each card is its venue's paper book —
-  "funded (Paper)" is the rows' capital, "deployed (Paper)" what they hold;
+  "funded (Paper)" is the rows' capital, "deployed" (no label: one on
+  funded is enough, Davies 2026-09-23) what they hold;
   no real balance is shown, and the page says "Agents (beta)" — and PAPER
   is a neutral dashed badge because Binance's yellow took the gold it
   wore. Binance's paper venue reads public market data only

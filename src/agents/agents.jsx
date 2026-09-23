@@ -109,7 +109,7 @@ function Scoreboard({ dash, m }) {
     <>
     <div className="ag-scoreboard">
       <div className="ag-sb-cell ag-sb-cell-main">
-        <div className="sb-label">{paperOnly(dash?.strategies) ? 'DEPLOYED (Paper)' : 'DEPLOYED'}</div>
+        <div className="sb-label">DEPLOYED</div>
         <div className="sb-value sb-value-lg mono">{m(fmtUsd(v.valueUsd))}</div>
       </div>
       <div className="ag-sb-divider" />
@@ -130,7 +130,7 @@ function StrategyScoreboard({ s, m }) {
     <>
     <div className="ag-scoreboard ag-scoreboard-sm">
       <div className="ag-sb-cell ag-sb-cell-main">
-        <div className="sb-label">{paperOnly([s]) ? 'DEPLOYED (Paper)' : 'DEPLOYED'}</div>
+        <div className="sb-label">DEPLOYED</div>
         <div className="sb-value sb-value-lg mono">{m(fmtUsd(v.valueUsd))}</div>
       </div>
       <div className="ag-sb-divider" />
@@ -168,7 +168,7 @@ function VenueSplit({ dash, m }) {
               {/* Funded is the capital the venue's strategies are allotted, not the account's balance: every row trades
                   paper, so a real balance here only misled (Davies, 2026-09-23). */}
               <span className="dim" title="the capital this venue's strategies are allotted">funded{paperOnly(dash?.strategies, r.id) ? ' (Paper)' : ''}</span><span>{m(fmtUsd(r.capitalUsd))}</span>
-              <span className="dim">deployed{paperOnly(dash?.strategies, r.id) ? ' (Paper)' : ''}</span><span className="hl-strong">{m(fmtUsd(r.valueUsd))}</span>
+              <span className="dim">deployed</span><span className="hl-strong">{m(fmtUsd(r.valueUsd))}</span>
               <span className="dim">today</span><span className="ag-gl" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.todayPct))}</span>
               <span className="dim">unrealised</span><span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>
               <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(r.realisedUsd) }}>{m(glText(r.realisedUsd, r.realisedPct))}</span>

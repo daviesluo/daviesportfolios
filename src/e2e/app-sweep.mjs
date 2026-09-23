@@ -1174,8 +1174,8 @@ async function run() {
         else fail(S('agents'), `name column text-align ${nameAlign}`);
       }
       const sbCells = await page.locator('.ag-scoreboard .sb-label').allTextContents();
-      if (sbCells.join('|') === 'DEPLOYED (Paper)|TODAY|UNREALIZED G/L|REALIZED G/L (incl. fees $0.08)') {
-        ok(S('agents'), 'four cells, no total, the fees ride on the realised label, and DEPLOYED says it is paper');
+      if (sbCells.join('|') === 'DEPLOYED|TODAY|UNREALIZED G/L|REALIZED G/L (incl. fees $0.08)') {
+        ok(S('agents'), 'four cells, no total, the fees ride on the realised label, and DEPLOYED carries no (Paper)');
       } else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}`);
       const under = await page.locator('.ag-sb-under').count();
       if (under === 0) ok(S('agents'), 'no explanatory line under the scoreboard');
@@ -1183,10 +1183,11 @@ async function run() {
       const cardLabels = await page.locator('.ag-venue-card-binance .ag-venue-grid > .dim').allTextContents();
       if (cardLabels.includes('unrealised') && cardLabels.includes('realised') && !cardLabels.some((t) => /total/.test(t))) ok(S('agents'), 'a venue card shows unrealised and realised, no total');
       else fail(S('agents'), `venue card rows: ${cardLabels.join(' | ')}`);
-      // Davies, 2026-09-23: funded and deployed say "(Paper)", and the paper capital row is gone — its figure IS the
-      // funding now, and the accounts' real balances are not on the page (every row trades paper; they only misled).
+      // Davies, 2026-09-23: funded says "(Paper)" and deployed does not — one label is enough — and the paper capital
+      // row is gone: its figure IS the funding now, and the accounts' real balances are not on the page (every row
+      // trades paper; they only misled).
       const revxLabels = await page.locator('.ag-venue-card-revx .ag-venue-grid > .dim').allTextContents();
-      if (['funded (Paper)', 'deployed (Paper)'].every((l) => revxLabels.includes(l) && cardLabels.includes(l)) && ![...revxLabels, ...cardLabels].some((t) => /paper capital/.test(t))) ok(S('agents'), 'both cards read funded (Paper) and deployed (Paper), with no paper capital row');
+      if (['funded (Paper)', 'deployed'].every((l) => revxLabels.includes(l) && cardLabels.includes(l)) && ![...revxLabels, ...cardLabels].some((t) => /paper capital|deployed \(Paper\)/.test(t))) ok(S('agents'), 'both cards read funded (Paper) and a bare deployed, with no paper capital row');
       else fail(S('agents'), `card labels: revx ${revxLabels.join(' | ')} / binance ${cardLabels.join(' | ')}`);
       // The menu entry was found above by its exact text, "Agents (beta)"; the page's own title must say the same.
       const pageTitle = await page.locator('.modal .modal-title').first().textContent().catch(() => '');
@@ -1251,6 +1252,10 @@ async function run() {
       const title = await page.locator('.ag-detail-title').first().textContent().catch(() => '');
       if (/Trend 4h · Revolut X/.test(title || '')) ok(S('agents'), `the row with a book opens its detail (${(title || '').trim()})`);
       else fail(S('agents'), `detail title "${title}"`);
+      // A paper strategy's own scoreboard says DEPLOYED, no "(Paper)": that label lives on the venue card's funded row.
+      const detailSb = await page.locator('.ag-detail .ag-scoreboard-sm .sb-label').first().textContent().catch(() => '');
+      if ((detailSb || '').trim() === 'DEPLOYED') ok(S('agents'), 'the strategy scoreboard reads DEPLOYED, without (Paper)');
+      else fail(S('agents'), `strategy scoreboard first label "${detailSb}"`);
       // One table on the detail, not three: the positions table and the decisions table said the same
       // things the cards and the live-state row already say, and the orders table now lives under the chart.
       // The orders table keeps its own class and is now inside the chart card; what must be gone is the positions

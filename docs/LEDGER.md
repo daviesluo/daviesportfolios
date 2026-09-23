@@ -14,11 +14,32 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+000000. **DAVIES' REQUESTS OF 2026-09-23 ~13:35 UTC**, in order:
+   1. **PR3 on a longer, credible record, then paper if it passes:
+      AGENT RUNNING.** PR3 had 13.25 out-of-sample days because it read
+      Revolut X's 1-minute candles, which the venue keeps 28 days. The venue
+      serves its whole PUBLIC trade history keylessly (`GET
+      /api/1.0/public/trades/all?symbol=&start_date=&end_date=&limit=100
+      &cursor=`, ≤ 1-day window, 1 request/s; checked back to 2025-10-01),
+      so an agent is re-testing PR3's unchanged rule on every print since
+      the two books opened (2025-11-26 / 2025-12-16) up to 2026-08-26, data
+      PR3 never saw, under a new pre-registration (fills on prints, a
+      monthly-stability bar). Its folder is the scratchpad's
+      `research_pr5`. **If it passes**, the paper test goes into the loop
+      (its spec comes with the report); if not, PR3 is closed.
+   2. **A second, independent first-principles search: AGENT RUNNING**,
+      the first brief plus the first study's results and the public trade
+      history; folder `research_fp2`. Its output is verified here before
+      anything is committed.
+   3. **"(Paper)" stays on funded only: DONE** — the scoreboards and the
+      venue cards say DEPLOYED / deployed with no label.
+
 00000. **DAVIES' REQUESTS OF 2026-09-23 ~10:20 UTC**, in order:
    1. **Labels: DONE** (`466d7ec`): "Agents (beta)" in the menu and title;
       "funded (Paper)" / "deployed (Paper)" on both VENUES cards with the
       paper capital row gone and no real balance shown; "DEPLOYED (Paper)"
       on the scoreboards (`paperOnly`, so the label goes when a row is live).
+      The deployed labels went again at 13:44 on his word (000000.3).
    2. **Binance runs the same strategies on paper: DONE** (`634dd5b` the
       venue, migration `0049` the three twins; reference §4.29). Feasible:
       five coins TRADING, $5 minimum, tighter books, 10 bps a side. Their
@@ -457,6 +478,15 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 13:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**"(Paper)" now sits beside funded only** (Davies: the label on funded is enough).
+The page scoreboard, each strategy's scoreboard and both venue cards say DEPLOYED /
+deployed with no label; `paperOnly` still decides funded's. The sweep pins all three
+places, the strategy page's scoreboard for the first time. Two research agents are
+running, each in its own scratchpad folder: PR3 re-tested on ten months of prints
+(`research_pr5`), and a second first-principles search (`research_fp2`).
 
 ### [2026-09-23 13:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

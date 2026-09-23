@@ -756,8 +756,8 @@ export function positionLines(s) {
 /**
  * Whether what is shown is paper money only: every strategy (on `venue`, if one is named) is paper and holds no
  * live coins. A paused row keeps the book it traded in, so a paused row still holding live coins is not paper.
- * The page labels its deployed and funded figures "(Paper)" only while this holds, so the label cannot outlive
- * the day a row goes live.
+ * A venue card labels its funded figure "(Paper)" only while this holds, so the label cannot outlive the day a
+ * row goes live. Deployed carries no label: one on funded says it (Davies, 2026-09-23).
  * @param {Array<{ venue?: string, mode?: string, holdsLive?: boolean }> | null | undefined} strategies
  * @param {string} [venue]
  */

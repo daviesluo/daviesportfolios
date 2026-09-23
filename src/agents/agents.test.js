@@ -578,8 +578,8 @@ describe('plotLabelY', () => {
 });
 
 describe('paperOnly', () => {
-  // Davies, 2026-09-23: every row trades paper, so the page labels its funded and deployed figures "(Paper)" and
-  // no longer shows the accounts' real balances. The label must not outlive the day a row goes live.
+  // Davies, 2026-09-23: every row trades paper, so a venue card labels its funded figure "(Paper)" and the page no
+  // longer shows the accounts' real balances. The label must not outlive the day a row goes live.
   const rows = [
     { venue: 'revx', mode: 'paper' }, { venue: 'revx', mode: 'paper' }, { venue: 'binance', mode: 'paper' },
   ];

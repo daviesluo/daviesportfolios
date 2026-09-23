@@ -81,13 +81,12 @@ The crypto strategies, all on paper today, which is why the menu and the
 page call it **Agents (beta)**.
 
 - **The list.** A scoreboard in the home page's style (deployed, today,
-  unrealised and realised gain, each with its percentage; deployed reads
-  **(Paper)** while no strategy trades real money), a card per exchange —
-  Revolut X in blue and Binance in its yellow, where the same strategies
-  run as paper twins, deciding alike and filled at Binance's own prices —
-  showing **funded (Paper)**, the
-  capital its strategies are allotted, **deployed (Paper)**, what they
-  hold, then today, unrealised, realised and fees (the accounts' real
+  unrealised and realised gain, each with its percentage), a card per
+  exchange — Revolut X in blue and Binance in its yellow, where the same
+  strategies run as paper twins, deciding alike and filled at Binance's own
+  prices — showing **funded (Paper)**, the capital its strategies are
+  allotted (the label says it is paper while no strategy there trades real
+  money), **deployed**, what they hold, then today, unrealised, realised and fees (the accounts' real
   balances are not shown: nothing trades them), and one row per strategy: a status dot (green running,
   amber stale, grey paused), its exchange, its mode (LIVE in green,
   PAPER in a dashed outline, or PAUSED), today, unrealised and realised
