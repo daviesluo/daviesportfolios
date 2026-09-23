@@ -1,0 +1,38 @@
+-- 0048: the fixed per-order cap goes; an entry is its row's slot.
+--
+-- Davies, 2026-09-23: "单笔上限删了吧，之后测试表现好的话我还会再加资金的" —
+-- remove the per-order cap; he adds capital to a row when its record earns it.
+--
+-- WHAT WAS WRONG (reference §4.26)
+--
+--   `agent_risk.max_order_usd` ($20) capped every entry on every row on top of
+--   the row's own slot (its capital over the positions it can hold). Every slot
+--   was therefore $20 at most, whatever the row's capital said: a four-coin row
+--   on $100 could not size at $25, and capital added to a row that earned it
+--   would never have reached its orders.
+--
+-- WHAT CHANGES
+--
+--   * tick.ts, deployed before this migration was pushed: an entry is
+--     `slotUsdOf(row)`, and `riskGate`'s per-order limit is that slot times
+--     `ORDER_SLOT_TOLERANCE` (1.1), per row — a guard against a sizing bug,
+--     with room for a re-quote's drift.
+--   * This migration drops the column, so no number in the database claims a
+--     cap the loop no longer reads. Nothing reads it: the tick and the page
+--     both select `*` from agent_risk, and no view, function or policy names
+--     it (checked against information_schema.view_column_usage, pg_proc and
+--     pg_policies before this file was written).
+--
+-- WHAT IT DOES TO PRODUCTION
+--
+--   Nothing changes size. Every row's slot is already $20 or less: trend-4h
+--   is $100 over five coins, momentum-1d and trend-1h $40 over three. The
+--   account-level caps stay as they are: max_exposure_usd (marked to market),
+--   paper_exposure_usd, the daily loss limit and the order count.
+--
+-- TO UNDO
+--
+--   alter table public.agent_risk add column max_order_usd numeric not null default 20;
+--   restores the number, not its use: the tick no longer reads it.
+
+alter table public.agent_risk drop column if exists max_order_usd;

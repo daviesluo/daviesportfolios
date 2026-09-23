@@ -33,7 +33,8 @@ list stays the short version; the plan is the reasoning behind it.
       cross-sectional momentum (`prereg_xsmom.md`). Open.
    6. **The fixed $20 per-order cap: removed** ("单笔上限删了吧，之后测试
       表现好的话我还会再加资金的"). An entry is its row's slot; reference
-      §4.26. The column goes in migration `0048`, after the tick deploys.
+      §4.26. **DONE**: the tick (`ef28a06`), then migration `0048`
+      dropping the column; the go-live draft is `0049` now.
 
 000. **DAVIES' REQUESTS OF 2026-09-23 (~02:10 and ~02:35 UTC)**, in order:
    1. Root: `AGENTS.md`, `LEDGER.md`, `README.md`, `package.json`,
@@ -239,8 +240,8 @@ list stays the short version; the plan is the reasoning behind it.
    The headline fact he must weigh: **of 21 shipped members not one
    clears the two-window bar**. When he says go, the switch is ONE
    migration, **drafted, dry-run and committed at
-   `docs/agents/0048_go_live.sql.draft`** (renumbered from 0047 on
-   2026-09-23; `enterMin` 0.45) — deliberately NOT under
+   `docs/agents/0049_go_live.sql.draft`** (renumbered from 0047 and then
+   0048 on 2026-09-23; `enterMin` 0.45) — deliberately NOT under
    `supabase/migrations/`, because a file there is applied by
    `migrations.yml` on the next push, so MOVING it is the act of going
    live. It adds `trend-4h-live` as a new row (rather than flipping
@@ -387,6 +388,14 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 07:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Migration `0048` drops `agent_risk.max_order_usd`**, pushed after the
+slot-sized tick (`ef28a06`) had deployed; no view, function or policy
+named the column, and both readers select `*`. The go-live draft is now
+`docs/agents/0049_go_live.sql.draft`, and every reference to its number
+moved with it. The browser sweep's fixture lost the column too.
 
 ### [2026-09-23 06:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

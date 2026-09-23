@@ -245,7 +245,7 @@ that follow from that evidence, in short:
   caps follow the BOOK while `riskGate` keeps the LABEL. Clearing
   `live_confirmed_at` stops live BUYS only; exits stay armed, and
   `global_pause` is the one switch that outranks an exit. The go-live
-  migration is drafted at `docs/agents/0048_go_live.sql.draft` — a NEW
+  migration is drafted at `docs/agents/0049_go_live.sql.draft` — a NEW
   row `trend-4h-live`, with `trend-4h` kept paper as its same-venue
   control — and moving it into `supabase/migrations/` IS going live.
 - **Jev gates entries with the v2 question at 0.45 (since 2026-09-23,
@@ -297,7 +297,7 @@ that follow from that evidence, in short:
   every turn. Caps in `agent_risk` are per venue account and per mode.
   **An entry is one slot of its row** — capital ÷ the positions it can
   hold — and nothing else sizes it: the fixed $20 per-order cap
-  (`max_order_usd`) was removed on Davies' word on 2026-09-23, so adding
+  (`max_order_usd`, dropped by `0048`) was removed on Davies' word on 2026-09-23, so adding
   capital to a row that earns it makes its orders bigger. The gate still
   refuses an entry more than 10 % over its slot (`ORDER_SLOT_TOLERANCE`,
   reference §4.26).

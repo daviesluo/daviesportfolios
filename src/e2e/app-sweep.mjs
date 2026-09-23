@@ -351,7 +351,7 @@ const AGENTS_DASHBOARD = (() => {
   const totals = { ...book, byMode: { paper: { ...book }, live: { ...zero } } };
   return {
     at, dayStart: new Date(dayStartMs).toISOString(),
-    risk: { id: 1, global_pause: false, max_order_usd: 20, max_exposure_usd: 100, paper_exposure_usd: 300, daily_loss_limit_usd: 5, max_orders_per_day: 40, live_confirmed_at: null, updated_at: at },
+    risk: { id: 1, global_pause: false, max_exposure_usd: 100, paper_exposure_usd: 300, daily_loss_limit_usd: 5, max_orders_per_day: 40, live_confirmed_at: null, updated_at: at },
     totals,
     venues: [
       { id: 'revx', canTrade: true, feeBps: { maker: 0, taker: 9 }, balances: { USD: 100 }, note: null, marks: { 'BTC/USD': 86000 } },

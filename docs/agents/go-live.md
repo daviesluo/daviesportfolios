@@ -581,10 +581,10 @@ again in a month, over a live row's own bars.
 ### 9.5 The order of operations
 
 1. ~~Run the probe.~~ **Done 14:05 UTC, green — §9.4.**
-2. Move `docs/agents/0048_go_live.sql.draft` to
-   `supabase/migrations/0048_go_live.sql` and push — check first that
-   0048 is still the next free number (`ls supabase/migrations/`; up to
-   `0047` are taken and applied, and a file under a used number is
+2. Move `docs/agents/0049_go_live.sql.draft` to
+   `supabase/migrations/0049_go_live.sql` and push — check first that
+   0049 is still the next free number (`ls supabase/migrations/`; up to
+   `0048` are taken and applied, and a file under a used number is
    skipped by `supabase db push`, not applied). **That push is the
    act of going live** — `migrations.yml` applies it.
 3. The first live order still needs Davies' word in the conversation.
