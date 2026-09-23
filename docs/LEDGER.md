@@ -567,7 +567,7 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
-### [2026-09-23 21:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-23 21:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **A T212 history timeout is a failed page, not an unhandled crash** (item 00000000.3). Both
 page fetches go through `historyPageRequest`, which turns a timeout or a dropped connection
