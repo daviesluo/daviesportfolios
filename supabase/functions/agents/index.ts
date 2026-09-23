@@ -65,7 +65,9 @@ import {
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { JEV_QUESTION_VERSION, JEV_QUESTION_VERSIONS, jevQuestions, positionFromFills, unrealisedUsd, type CategoricalState, type JevQuestionVersion, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
+import { binanceProbe } from "./binance.ts";
 import { makeDb, type Db } from "./db.ts";
+import { deribitProbe } from "./deribit.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -689,8 +691,20 @@ export async function runJevBatch(
   return { at: new Date().toISOString(), transport, version, kind, calls, repeats, costUsd, results };
 }
 
-export async function runProbe(): Promise<Record<string, unknown>> {
-  const out: Record<string, unknown> = { at: new Date().toISOString() };
+/** The probe's parts, each a credential of its own. `?only=binance,deribit` runs just those; anything unknown is dropped. */
+export const PROBE_PARTS = ["revx", "kraken", "jev", "binance", "deribit"] as const;
+export function probeParts(only: string | null): Set<string> | null {
+  if (!only) return null;
+  const picked = new Set(only.split(",").map((x) => x.trim().toLowerCase()).filter((x) => (PROBE_PARTS as readonly string[]).includes(x)));
+  return picked.size ? picked : null;
+}
+
+/** Binance's name for a USD pair on the row (`BTC/USD` → `BTCUSDT`): its spot books quote USDT. */
+export const binanceSymbol = (sym: string): string => `${sym.split("/")[0]}USDT`;
+
+export async function runProbe(only: Set<string> | null = null): Promise<Record<string, unknown>> {
+  const want = (part: string) => !only || only.has(part);
+  const out: Record<string, unknown> = { at: new Date().toISOString(), parts: only ? [...only] : [...PROBE_PARTS] };
   // Every symbol an active row trades — AVAX and SUI joined by migration after the probe was written, and a pair the venue
   // has no config for would only show up as "no pair config" after a bar had been claimed.
   let symbols: string[] = [...SYMBOLS];
@@ -699,8 +713,10 @@ export async function runProbe(): Promise<Record<string, unknown>> {
   out.symbols = symbols;
 
   // --- Revolut X -----------------------------------------------------------
-  const rx = await loadRevx();
-  if ("error" in rx) {
+  const rx = want("revx") ? await loadRevx() : null;
+  if (!rx) {
+    // not asked for
+  } else if ("error" in rx) {
     out.revx = { error: rx.error };
   } else {
     const r: Record<string, unknown> = { keyForm: rx.keyForm };
@@ -745,8 +761,10 @@ export async function runProbe(): Promise<Record<string, unknown>> {
   }
 
   // --- Kraken ----------------------------------------------------------------
-  const kk = loadKraken();
-  if ("error" in kk) {
+  const kk = want("kraken") ? loadKraken() : null;
+  if (!kk) {
+    // not asked for
+  } else if ("error" in kk) {
     out.kraken = { error: kk.error };
   } else {
     const k: Record<string, unknown> = { secretBytes: kk.secretBytes };   // a Kraken secret decodes to 64 bytes
@@ -819,11 +837,29 @@ export async function runProbe(): Promise<Record<string, unknown>> {
     caution: { type: "score", instructions: "How cautious should a trader be?", criteria: ["calm", "elevated", "extreme"] },
   };
   const state = { symbol: "BTC/USD", trend_4h: "up", trend_strength: "strong", volatility: "normal", momentum_30d: "positive" };
-  const { openrouterKey, typesafeKey } = jevEnv();
-  const jev: Record<string, unknown> = { openrouterKey: !!openrouterKey, typesafeKey: !!typesafeKey };
-  if (openrouterKey) jev.openrouter = await askJev(state, questions, { openrouterKey });
-  if (typesafeKey) jev.typesafe = await askJev(state, questions, { typesafeKey });
-  out.jev = jev;
+  if (want("jev")) {
+    const { openrouterKey, typesafeKey } = jevEnv();
+    const jev: Record<string, unknown> = { openrouterKey: !!openrouterKey, typesafeKey: !!typesafeKey };
+    if (openrouterKey) jev.openrouter = await askJev(state, questions, { openrouterKey });
+    if (typesafeKey) jev.typesafe = await askJev(state, questions, { typesafeKey });
+    out.jev = jev;
+  }
+
+  // --- Binance and Deribit: read-only, data venues until an account holds money (reference §6) -----------------------
+  if (want("binance")) {
+    const apiKey = envAny(["Binance_API_KEY", "BINANCE_API_KEY"]);
+    const secret = envAny(["Binance_SECRET_KEY", "BINANCE_SECRET_KEY", "BINANCE_API_SECRET"]);
+    out.binance = apiKey && secret
+      ? { keyChars: apiKey.length, ...(await binanceProbe({ apiKey, secret }, symbols.map(binanceSymbol))) }
+      : { error: "Binance_API_KEY / Binance_SECRET_KEY are not set" };
+  }
+  if (want("deribit")) {
+    const clientId = envAny(["Deribit_CLIENT_ID", "DERIBIT_CLIENT_ID"]);
+    const clientSecret = envAny(["Deribit_CLIENT_SECRET", "DERIBIT_CLIENT_SECRET"]);
+    out.deribit = clientId && clientSecret
+      ? await deribitProbe({ clientId, clientSecret })
+      : { error: "Deribit_CLIENT_ID / Deribit_CLIENT_SECRET are not set" };
+  }
   return out;
 }
 
@@ -838,7 +874,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     const action = url.searchParams.get("action") ?? "";
     const operator = who === "cron" || who === "admin";
     if (action === "tick" && req.method === "POST" && operator) return json(200, await runTick());
-    if (action === "probe" && req.method === "GET" && operator) return json(200, await runProbe());
+    if (action === "probe" && req.method === "GET" && operator) return json(200, await runProbe(probeParts(url.searchParams.get("only"))));
     if (action === "jev" && req.method === "POST" && operator) return json(200, await runJevBatch(await req.json().catch(() => null)));
     if (action === "dashboard" && req.method === "GET") return json(200, await runDashboard());
     if (action === "chart" && req.method === "GET") {

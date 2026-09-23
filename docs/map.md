@@ -539,7 +539,8 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 
 | File | What it does |
 |---|---|
-| `agents/index.ts` | The entry point: the minute's tick, the page's dashboard, log and chart reads, and the read-only `probe` and `jev` checks. |
+| `agents/index.ts` | The entry point: the minute's tick, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
+| `agents/binance.ts`, `agents/deribit.ts` | Read-only clients the probe uses to check the Binance and Deribit keys: permissions, fees, symbol rules, auth scope, and Deribit's volatility index. Nothing in them can trade. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
 | `agents/db.ts` | The loop's database access, over PostgREST. |
 | `agents/testing.ts` | Test doubles that refuse whatever the real database refuses. |

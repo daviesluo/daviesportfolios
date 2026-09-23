@@ -315,6 +315,22 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-23 02:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The probe can check the Binance and Deribit keys** Davies added
+(`Binance_API_KEY` / `Binance_SECRET_KEY`, `Deribit_CLIENT_ID` /
+`Deribit_CLIENT_SECRET`; neither account funded, Deribit unfundable from
+here). Two read-only clients under `agents/` so only that function
+redeploys: Binance signs with HMAC-SHA256 (pinned to the documented
+example, which openssl reproduces) and reads account permissions, API
+restrictions, trade fees and symbol rules; Deribit authenticates with
+client credentials in a POST body and reads its scope, whether the
+account holds anything, and DVOL. Neither can place, cancel or withdraw
+(each has an allow-list the tests enforce), and the report carries no
+key, token or amount. `?action=probe&only=binance,deribit` runs just
+those two. From this container `api.binance.com` answers 451 (restricted
+location); the project runs in eu-west-2, which the probe will settle.
+
 ### [2026-09-23 02:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **`vite.config.js` is `src/vite.config.js`, which ends the root round.**
