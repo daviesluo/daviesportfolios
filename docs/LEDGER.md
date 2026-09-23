@@ -14,6 +14,24 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+0000000. **DAVIES' REQUESTS OF 2026-09-23 ~15:20 UTC**, in order:
+   1. **Can PR5 go live now, and are two Revolut X strategies ready?**
+      Answered: PR5 not yet. Its pass was earned in the wide market before
+      2026-08-24; since then 28 days at about $0.42 a day; whether a
+      post-only order at its prices is accepted is what the paper test
+      measures; and nothing can place its orders (the quote loop is
+      paper). **An independent audit of both candidates (`trend-4h-live`
+      and PR5) is RUNNING** in a background agent (scratch folder
+      `audit_golive`, lost with the container: re-launch it if so). Its
+      claims are re-computed here before any is believed; then go-live is
+      PREPARED only (the go-live SQL dry-run in a rolled-back transaction,
+      a read-only probe, PR5's live-path design). Going live is Davies'
+      explicit go, and the first live order needs his confirmation in the
+      same conversation.
+   2. **A third, independent first-principles search, Binance first:
+      RUNNING** (scratch folder `research_fp3`). Binance has no strategy of
+      its own; its paper rows copy Revolut X's decisions for the page.
+
 000000. **DAVIES' REQUESTS OF 2026-09-23 ~13:35 UTC**, in order:
    1. **PR3 on a longer, credible record: PASSED (PR5), and it runs on
       paper.** PR3 had 13.25 out-of-sample days because it read the 1-minute
@@ -490,6 +508,14 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 15:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The quotes card is live and reads production** (`2b3a525`): the Edge deploy finished
+15:28:41; the dashboard, called with the cron secret, returns `quotes` running, two minutes
+behind, 12 orders today, no fills yet; daviesluo.com serves the committed `app-71f1cb28.js`.
+Davies' newest requests (the go-live audit, a third search) are item 0000000, both running as
+background agents.
 
 ### [2026-09-23 15:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
