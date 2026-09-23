@@ -363,6 +363,9 @@ const AGENTS_DASHBOARD = (() => {
       { id: 'binance', canTrade: true, feeBps: { maker: 10, taker: 10 }, balances: { USDT: 50, BNB: 0.012 }, note: null, marks: {} },
     ],
     strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
+    // PR5's quotes on paper (`0051`): a notebook with its own card, beside the strategies and never one of them.
+    quotes: { startedAt: '2026-09-23T15:09:00.000Z', lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
+      realisedUsd: 0.42, realisedPct: 0.035, todayUsd: 0.12, todayPct: 0.01, trips: 7, won: 6, open: 1, openUsd: 99.75, ordersToday: 205, fillsToday: 8 },
     byVenue: {
       revx: { ...book, capitalUsd: 180, strategies: 3, live: 0 },     // 100 + 40 + 40, and the only book there is
       binance: { ...zero, capitalUsd: 180, strategies: 3, live: 0 },  // the twins' capital, nothing held yet. Kraken is the signal venue only.
@@ -1189,6 +1192,17 @@ async function run() {
       const revxLabels = await page.locator('.ag-venue-card-revx .ag-venue-grid > .dim').allTextContents();
       if (['funded (Paper)', 'deployed'].every((l) => revxLabels.includes(l) && cardLabels.includes(l)) && ![...revxLabels, ...cardLabels].some((t) => /paper capital|deployed \(Paper\)/.test(t))) ok(S('agents'), 'both cards read funded (Paper) and a bare deployed, with no paper capital row');
       else fail(S('agents'), `card labels: revx ${revxLabels.join(' | ')} / binance ${cardLabels.join(' | ')}`);
+      // PR5's quotes on paper have their own card, after the strategies: funded (Paper) is the $1,200 the quotes would lock.
+      const quotesTitle = await page.locator('.ag-quotes .ag-section-title').textContent().catch(() => '');
+      const quotesCells = await page.locator('.ag-quotes-card .ag-quotes-grid > span').allTextContents();
+      const qc = (label) => quotesCells[quotesCells.indexOf(label) + 1];
+      if ((quotesTitle || '').trim() === 'STABLECOIN QUOTES — PAPER TEST' && qc('funded (Paper)') === '$1,200' && /\+\$0\.42/.test(qc('realised') || '')
+        && qc('round trips') === '7 · 86 % won' && qc('orders today') === '205 of 1,000 · 8 filled' && qc('open') === '1 · $99.75') {
+        ok(S('agents'), 'the paper quote test has its own card: $1,200 funded, +$0.42 realised, 7 trips, 205 of 1,000 orders today');
+      } else fail(S('agents'), `quotes card: "${quotesTitle}" ${quotesCells.join(' | ')}`);
+      const quotesInVenues = await page.locator('.ag-venue-cards .ag-quotes-card, .ag-quotes-cards .ag-venue-card').count();
+      if (quotesInVenues === 0) ok(S('agents'), 'the quotes card is not a venue card, and no venue selector reaches it');
+      else fail(S('agents'), `${quotesInVenues} quotes/venue cards cross-classed`);
       // The menu entry was found above by its exact text, "Agents (beta)"; the page's own title must say the same.
       const pageTitle = await page.locator('.modal .modal-title').first().textContent().catch(() => '');
       if ((pageTitle || '').trim() === 'Agents (beta)') ok(S('agents'), 'the page is titled Agents (beta), as the menu entry that opened it');

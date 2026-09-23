@@ -30,7 +30,9 @@ list stays the short version; the plan is the reasoning behind it.
       the spec's six conditions. **Running since 15:09 UTC** (checked
       15:10–15:13: `0051` applied, cron job 18 fires, each run decides the
       minute just closed with no error, 12 quotes out around fair 0.7541 /
-      0.7539, the order books recorded as their go-live evidence).
+      0.7539, the order books recorded as their go-live evidence). **On the
+      page** as its own card under the strategies (funded (Paper) $1,200,
+      realised, today, round trips, open, orders today of 1,000).
    2. **A second, independent first-principles search: DONE — nothing**
       (reference §3.28, review `reviews/2026-09-23-fp2-study.md`): 20 ideas,
       19 new, three pre-registered tests, all three lose out of sample
@@ -488,6 +490,14 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 15:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The paper quote test has its own card on the Agents page**, under the strategies:
+funded (Paper) $1,200, realised and today, round trips and share won, open, orders today of
+1,000, and a red border with the reason if it stops (`quotesView`; the dashboard's
+`quotesSummary`, null until its tables exist). Its own classes share the venue cards' rules;
+the sweep checks the card's figures and that no venue selector reaches it.
 
 ### [2026-09-23 15:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

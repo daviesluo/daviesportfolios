@@ -14,7 +14,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtMoney, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  agentsAlerts, agentsErrorView, countdownText, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, paperOnly, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
+  agentsAlerts, agentsErrorView, countdownText, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, paperOnly, quotesView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -183,6 +183,37 @@ function VenueSplit({ dash, m }) {
 }
 
 
+
+/**
+ * PR5's quotes on paper (reference §4 item 31): a notebook beside the strategies, on its own cron job, never an
+ * order. Its own classes, sharing the venue cards' rules: the sweep finds a venue card by its class.
+ */
+function QuotesTest({ dash, m }) {
+  const q = quotesView(dash?.quotes);
+  if (!q) return null;
+  return (
+    <section className="ag-section ag-quotes">
+      <div className="ag-section-title mono">STABLECOIN QUOTES — PAPER TEST</div>
+      <div className="ag-quotes-cards">
+        <div className={`ag-quotes-card${q.running ? '' : ' is-warn'}`}>
+          <div className="ag-quotes-head">
+            <VenueBadge id="revx" />
+            <div className="dim mono ag-venue-meta">USDC/GBP · USDT/GBP · quotes 0.1–0.3 % around interbank, 0 % maker{q.since ? ` · since ${when(q.since)}` : ''}</div>
+          </div>
+          <div className="ag-quotes-grid mono">
+            <span className="dim" title="what the quotes would lock: 2 books × 2 sides × 3 rungs × $100">funded (Paper)</span><span>{m(fmtUsd(q.capitalUsd))}</span>
+            <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(q.realisedUsd) }}>{m(glText(q.realisedUsd, q.realisedPct))}</span>
+            <span className="dim">today</span><span className="ag-gl" style={{ color: pctColor(q.todayUsd) }}>{m(glText(q.todayUsd, q.todayPct))}</span>
+            <span className="dim">round trips</span><span>{q.tripsText}</span>
+            <span className="dim">open</span><span>{q.open ? <>{q.open} · {m(fmtUsd(q.openUsd))}</> : 'none'}</span>
+            <span className="dim">orders today</span><span>{q.ordersText}</span>
+          </div>
+          {!q.running && <div className="ag-warn-line">{q.stoppedText}</div>}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 // Status and return first: the two facts that say whether a strategy is
 // alive and making money sit right after its name at every width. The
@@ -778,6 +809,7 @@ function AgentsModal({ hideValues, onClose }) {
                 {phone ? <StrategyCards rows={split.testing} m={m} onOpen={setSelected} /> : <StrategyTable rows={split.testing} m={m} onOpen={setSelected} />}
               </section>
             )}
+            <QuotesTest dash={dash} m={m} />
             <div className="ag-updated dim mono">as of {when(dash.at)} {UK_TZ} · refreshes every minute</div>
           </>
         )}

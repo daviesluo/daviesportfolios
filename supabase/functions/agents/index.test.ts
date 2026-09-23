@@ -5,7 +5,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeParts, probeSymbols, runJevBatch,
-  STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, tickErrorReport, type ProbeSummaryRow,
+  STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, QUOTES_CAPITAL_USD, tickErrorReport, type ProbeSummaryRow,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
 import type { JevResult } from "../_shared/jev.ts";
@@ -317,4 +317,30 @@ Deno.test("quotesDelayMs: the paper quote run reads Revolut X 25 s into its minu
   assertEquals(quotesDelayMs(top + 10e3), 15e3);
   assertEquals(quotesDelayMs(top + 25e3), 0);
   assertEquals(quotesDelayMs(top + 59e3), 0);                 // late already: go now, do not wait for the next minute
+});
+
+Deno.test("quotesSummary: P&L on the $1,200 the quotes lock, today's apart, what is held, and whether it keeps up", () => {
+  const now = Date.UTC(2026, 8, 24, 12, 0, 30), dayStart = Date.UTC(2026, 8, 24);
+  const st = {
+    state: { books: {
+      "USDC-GBP": { lastX: 1.33, rungs: [{ mode: "position", nq: 75 }, { mode: "quote" }, { mode: "idle" }] },
+      "USDT-GBP": { lastX: 1.33, rungs: [{ mode: "quote" }] },
+    } },
+    last_minute: new Date(now - 90e3).toISOString(), updated_at: new Date(now).toISOString(), last_error: null,
+  };
+  const trips = [
+    { book: "USDT-GBP", t_exit: new Date(dayStart + 3600e3).toISOString(), pnl_usd: 0.12, notional_usd: 60 },
+    { book: "USDC-GBP", t_exit: new Date(dayStart - 3600e3).toISOString(), pnl_usd: "0.30", notional_usd: 100 },
+    { book: "USDC-GBP", t_exit: new Date(dayStart - 7200e3).toISOString(), pnl_usd: -0.02, notional_usd: 40 },
+  ];
+  const q = quotesSummary(st, trips, [{ kind: "order" }, { kind: "order" }, { kind: "fill" }], "2026-09-23T15:09:00Z", now, dayStart)!;
+  assertAlmostEquals(q.realisedUsd, 0.40, 1e-12);
+  assertAlmostEquals(q.realisedPct, 0.40 / QUOTES_CAPITAL_USD * 100, 1e-12);
+  assertAlmostEquals(q.todayUsd, 0.12, 1e-12);                      // only what closed since midnight UTC
+  assertEquals([q.trips, q.won, q.open, q.ordersToday, q.fillsToday], [3, 2, 1, 2, 1]);
+  assertAlmostEquals(q.openUsd, 75 * 1.33, 1e-9);                     // a position is its GBP notional at the last rate
+  assertEquals([q.lagMinutes, q.running], [2, true]);
+  const stale = quotesSummary({ ...st, last_minute: new Date(now - 10 * 60e3).toISOString() }, [], [], null, now, dayStart)!;
+  assertEquals(stale.running, false);                                  // ten minutes behind: it has stopped
+  assertEquals(quotesSummary(null, [], [], null, now, dayStart), null);  // not built yet: off the page
 });

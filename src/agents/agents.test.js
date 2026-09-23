@@ -3,7 +3,7 @@ import {
   defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, lastChangeText, symbolOrderRows,
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
-  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
+  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -669,5 +669,23 @@ describe('strategyRows G/L columns and the next column', () => {
     expect(r.realisedPct).toBeCloseTo(1.25, 6);
     expect(r.todayUsd).toBe(0.25);
     expect(r.nextText).toBe('2h 13m');
+  });
+});
+
+describe('quotesView', () => {
+  // PR5's quotes on paper (reference §4 item 31): the card shows what the notebook concluded, and says so when it stops.
+  const q = { startedAt: '2026-09-23T15:09:00Z', lastMinute: '2026-09-24T12:00:00Z', lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
+    realisedUsd: 0.42, realisedPct: 0.035, todayUsd: 0.12, todayPct: 0.01, trips: 7, won: 6, open: 1, openUsd: 99.75, ordersToday: 205, fillsToday: 8 };
+  it("reads the round trips, the orders against the venue's 1,000 a day, and what is held", () => {
+    const v = quotesView(q);
+    expect(v?.tripsText).toBe('7 · 86 % won');
+    expect(v?.ordersText).toBe('205 of 1,000 · 8 filled');
+    expect([v?.open, v?.openUsd, v?.capitalUsd, v?.running, v?.stoppedText]).toEqual([1, 99.75, 1200, true, '']);
+  });
+  it('says when it has stopped, and stays off the page until it exists', () => {
+    expect(quotesView({ ...q, running: false, lagMinutes: 12 })?.stoppedText).toBe('not running: its last decided minute is 12 min old');
+    expect(quotesView({ ...q, trips: 0, won: 0 })?.tripsText).toBe('0');
+    expect(quotesView(null)).toBe(null);
+    expect(quotesView(undefined)).toBe(null);
   });
 });

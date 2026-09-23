@@ -754,6 +754,26 @@ export function positionLines(s) {
 }
 
 /**
+ * The paper quote test's card (reference §4 item 31): PR5's 0 % quotes around interbank on Revolut X's USDC/GBP and
+ * USDT/GBP books, run on paper from their own cron job. `q` is the dashboard's `quotes`; null keeps the card off the
+ * page (its tables are not there yet, or it has never run).
+ * @param {any} q
+ */
+export function quotesView(q) {
+  if (!q) return null;
+  const trips = Number(q.trips) || 0;
+  return {
+    running: !!q.running,
+    stoppedText: q.running ? '' : `not running: its last decided minute is ${q.lagMinutes} min old`,
+    since: q.startedAt ?? null,
+    capitalUsd: q.capitalUsd, realisedUsd: q.realisedUsd, realisedPct: q.realisedPct, todayUsd: q.todayUsd, todayPct: q.todayPct,
+    tripsText: trips ? `${trips} · ${Math.round((100 * (Number(q.won) || 0)) / trips)} % won` : '0',
+    open: Number(q.open) || 0, openUsd: q.openUsd,
+    ordersText: `${q.ordersToday} of 1,000 · ${q.fillsToday} filled`,
+  };
+}
+
+/**
  * Whether what is shown is paper money only: every strategy (on `venue`, if one is named) is paper and holds no
  * live coins. A paused row keeps the book it traded in, so a paused row still holding live coins is not paper.
  * A venue card labels its funded figure "(Paper)" only while this holds, so the label cannot outlive the day a

@@ -308,6 +308,34 @@ export function probeSummary(rows: ProbeSummaryRow[]) {
   };
 }
 
+export type QuoteTripRow = { book: string; t_exit: string; pnl_usd: number | string; notional_usd: number | string };
+type QuoteStateRow = { state: { books?: Record<string, { rungs?: Array<{ mode: string; nq?: number }>; lastX?: number | null }> }; last_minute: string | null; updated_at: string; last_error: string | null };
+
+/** The capital PR5's quotes lock: 2 books × 2 sides × 3 rungs × $100. */
+export const QUOTES_CAPITAL_USD = 1200;
+
+/**
+ * The paper quote test (`quotes.ts`, reference §4 item 31) for the page: its P&L on the $1,200 it would lock, today's,
+ * its round trips, what it holds, its orders today against Revolut X's 1,000 a day, and whether it is keeping up (it
+ * decides one minute behind the clock, so a last minute more than five back means it has stopped).
+ */
+export function quotesSummary(st: QuoteStateRow | null, trips: QuoteTripRow[], today: Array<{ kind: string }>, startedAt: string | null, nowMs: number, dayStartMs: number) {
+  if (!st || !st.last_minute) return null;
+  const pnl = trips.reduce((a, t) => a + Number(t.pnl_usd), 0);
+  const todayPnl = trips.filter((t) => Date.parse(t.t_exit) >= dayStartMs).reduce((a, t) => a + Number(t.pnl_usd), 0);
+  const open = Object.values(st.state.books ?? {}).flatMap((b) => (b.rungs ?? []).filter((r) => r.mode === "position").map((r) => (r.nq ?? 0) * (b.lastX ?? 0)));
+  const lagMinutes = Math.round((nowMs - Date.parse(st.last_minute)) / 60e3);
+  return {
+    startedAt, lastMinute: st.last_minute, lagMinutes, running: lagMinutes <= 5, lastError: st.last_error,
+    capitalUsd: QUOTES_CAPITAL_USD,
+    realisedUsd: pnl, realisedPct: pnl / QUOTES_CAPITAL_USD * 100,
+    todayUsd: todayPnl, todayPct: todayPnl / QUOTES_CAPITAL_USD * 100,
+    trips: trips.length, won: trips.filter((t) => Number(t.pnl_usd) > 0).length,
+    open: open.length, openUsd: open.reduce((a, x) => a + x, 0),
+    ordersToday: today.filter((e) => e.kind === "order").length, fillsToday: today.filter((e) => e.kind === "fill").length,
+  };
+}
+
 /**
  * Everything the Agents page shows, computed here and nowhere else:
  * positions and P&L come from `positionFromFills` over the filled orders,
@@ -531,6 +559,19 @@ async function dashboard(now: number) {
     Object.assign(basisBySymbol[sym], { n: abs.length, absP50: q(0.5), absP95: q(0.95), absMax: abs[abs.length - 1], over20: abs.filter((x) => x > 20).length, over40: abs.filter((x) => x > 40).length, over80: abs.filter((x) => x > 80).length });
   }
 
+  // The paper quote test (`0051`). Its own tables; missing ones (before the migration) leave it off the page.
+  const quotes = await (async () => {
+    try {
+      const [st, trips, today, first] = await Promise.all([
+        d.select<QuoteStateRow>("agent_quote_state", "id=eq.1&select=state,last_minute,updated_at,last_error"),
+        d.select<QuoteTripRow>("agent_quote_trips", "select=book,t_exit,pnl_usd,notional_usd&order=t_exit.desc&limit=1000"),
+        d.selectAll<{ kind: string }>("agent_quote_events", `minute=gte.${encodeURIComponent(new Date(dayStartMs).toISOString())}&kind=in.(order,fill)&select=kind&order=book.asc,minute.asc,side.asc,k.asc,kind.asc`),
+        d.select<{ minute: string }>("agent_quote_events", "select=minute&order=minute.asc&limit=1"),
+      ]);
+      return quotesSummary(st[0] ?? null, trips, today, first[0]?.minute ?? null, now, dayStartMs);
+    } catch { return null; }
+  })();
+
   return {
     at: new Date(now).toISOString(),
     dayStart: new Date(dayStartMs).toISOString(),
@@ -546,6 +587,8 @@ async function dashboard(now: number) {
     /** The adverse-selection notebook (`0042`, reference §3.13): is 0 % maker actually free here? */
     makerProbes: probeSummary(probeRows),
     jev24h: jevStats(decisions24h),
+    /** PR5's quotes on paper (`0051`, reference §4 item 31); null until its tables exist and it has run. */
+    quotes,
   };
 }
 
