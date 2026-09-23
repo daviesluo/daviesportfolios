@@ -735,7 +735,7 @@ sh ../bin/knip-edge.sh   # the same for the Edge Functions
 npx size-limit           # gzipped main-bundle budget
 npm audit --audit-level=high --omit=dev   # supply-chain check on shipped deps
 
-# Edge Functions (Deno), from the root; CI runs the same (its deno test adds --no-check)
+# Edge Functions (Deno 1.x, as CI), from the root; CI runs the same (its deno test adds --no-check)
 cd ..
 deno check --quiet supabase/functions/
 deno test --allow-env supabase/functions/

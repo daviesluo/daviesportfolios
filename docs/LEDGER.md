@@ -317,10 +317,11 @@ A rebuilt container loses every line below. Run them before working.
 Facts a fresh session would otherwise rediscover:
 
 - **Node 22** (`src/.nvmrc`). npm 10.x. Every npm command runs in `src/`.
-- **The Edge Function tests run under `npx deno`**, currently Deno 2.9.6
-  here: `npx deno test --allow-env supabase/functions/`. `.claude/CLAUDE.md`
-  says to prefer Deno 1.x to match Supabase's runtime; the npx path is what
-  actually works in this container and what every gate run below used.
+- **The Edge Function checks run on Deno 1.46.3 through npx**
+  (`npx --yes deno@1.46.3 test --allow-env supabase/functions/`), the
+  version CI's `setup-deno` `v1.x` resolves to; this container has no
+  `deno` of its own. A bare `npx deno` fetches Deno 2, which CI never runs
+  — and which `bin/gates.sh` used until 2026-09-23 03:06 UTC.
 - **The app sweep is now a normal gate**: `npm run verify:browser`.
   Playwright is a devDependency, so `npm ci` brings it. Chromium is
   preinstalled at `/opt/pw-browsers` in this container — do NOT run
@@ -353,6 +354,16 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 03:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The local gates run the Edge Functions on the Deno CI runs.**
+`bin/gates.sh` called a bare `npx deno`, which fetches Deno 2.9.6, while
+`edge-functions.yml` asks `setup-deno` for `v1.x` — so "every gate CI
+runs" was not true of the last two; it now calls `npx --yes deno@1.46.3`
+(the last 1.x): `deno check` clean, 400 tests passed. `.claude/CLAUDE.md`
+said Deno 1.x was preinstalled at `/usr/local/bin/deno`; this container
+has no `deno` at all, so that caveat now says how to get the right one.
 
 ### [2026-09-23 03:03 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

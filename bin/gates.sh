@@ -27,9 +27,10 @@ npx knip
 sh ../bin/knip-edge.sh
 npm audit --audit-level=high --omit=dev
 
-# The Edge Functions.
+# The Edge Functions, on the Deno CI runs: edge-functions.yml asks for v1.x,
+# whose last release is 1.46.3. A bare `npx deno` fetches Deno 2 instead.
 cd "$ROOT"
-npx deno check --quiet supabase/functions/
-npx deno test --allow-env supabase/functions/
+npx --yes deno@1.46.3 check --quiet supabase/functions/
+npx --yes deno@1.46.3 test --allow-env supabase/functions/
 
 echo "all gates green"

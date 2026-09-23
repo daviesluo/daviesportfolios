@@ -32,11 +32,11 @@ prepares a fresh clone (the ledger hook, `npm ci` in `src/`);
 
 Non-obvious caveats:
 
-- **Deno is required for the Edge Function tests** and is preinstalled at
-  `/usr/local/bin/deno` (v1.x, to match Supabase's Deno-1 Edge Runtime —
-  do not run those tests on Deno 2). It is not managed by the `npm`
-  update script; if it is ever missing, reinstall with
-  `curl -fsSL https://deno.land/install.sh | sudo DENO_INSTALL=/usr/local sh -s v1.46.3`.
+- **Deno 1.x is required for the Edge Function checks**, to match
+  Supabase's Deno-1 Edge Runtime and CI (`setup-deno` with `v1.x`) — do
+  not run them on Deno 2. A container may have no `deno` at all:
+  `sh bin/gates.sh` fetches 1.46.3, the last 1.x and the one CI gets,
+  through `npx --yes deno@1.46.3`, and a single command can do the same.
 - **The app is password-gated against production.** The React shell
   renders a login form; every Edge call (`auth`, `prices`, `data`,
   `chart`, `fundamentals`, `trading212`, …) requires an app token
