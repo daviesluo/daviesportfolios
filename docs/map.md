@@ -623,9 +623,9 @@ before touching migration state.
 | `bin/setup.sh` | One-time setup for a clone: the ledger hook, the ledger path, `npm ci`. |
 | `bin/gates.sh` | Every CI gate, in CI's order. |
 | `bin/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 208 checks. |
-| `bin/verify-perf-matrix.mjs` | A by-hand browser check of the performance panel: two views, five ranges, three data states and two books, against answers worked out by hand. |
+| `bin/verify-perf-matrix.mjs` | The second browser test CI runs: the performance panel in two views, five ranges, three data states and two books, 60 cases against answers worked out by hand, clock pinned. |
 | `bin/hooks/pre-commit` | The ledger's commit hook. |
-| `.github/workflows/check.yml` | On every push: bundle freshness, type-check, lint, tests, build, the browser test, bundle size, dead code, the audit. |
+| `.github/workflows/check.yml` | On every push: bundle freshness, type-check, lint, tests, build, both browser tests, bundle size, dead code, the audit. |
 | `.github/workflows/edge-functions.yml` | Checks and tests the functions, and deploys the ones that changed. |
 | `.github/workflows/migrations.yml` | Lints migrations, and applies new ones on `main`. |
 | `.github/workflows/healthcheck.yml` | Every 10 minutes: pings the functions and checks the live site's code; opens an issue when something is down. |
@@ -705,6 +705,7 @@ npm run typecheck        # tsc --noEmit with checkJs + strictNullChecks
 npm run lint             # ESLint (react-hooks bug rules)
 npm run build            # production bundle into dist/
 npm run verify:browser   # browser sweep of the built bundle (needs Chromium)
+npm run verify:perf      # the performance panel's 60-case matrix (needs Chromium)
 npx knip                 # dead code and unused exports
 npx size-limit           # gzipped main-bundle budget
 npm audit --audit-level=high --omit=dev   # supply-chain check on shipped deps

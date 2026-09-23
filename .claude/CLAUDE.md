@@ -396,6 +396,14 @@ the function's pure helpers from `index.test.ts` would bind a port.
   ships its own Chromium can set `PLAYWRIGHT_CHROMIUM_PATH` instead.
   Every bug it has caught was live while `npm test` and the Edge suite
   were green, because each was an integration failure.
+- `npm run verify:perf` — the performance-panel matrix in
+  `bin/verify-perf-matrix.mjs`: 60 cases (two views × five ranges ×
+  three recorded-data states × two books) read back from the committed
+  bundle and compared with answers worked out by hand. A hard CI gate
+  since 2026-09-23. Its clock is pinned too (`PERF_MATRIX_CLOCK` moves
+  it), and it refuses an instant its fixture cannot serve: its "18
+  failures" were all 14:00–20:00 UTC, where the fixture's first bar has
+  left the 24H window and the app was right.
 - `deno test --allow-env supabase/functions/` — Edge Function pin
   tests. Required locally before pushing changes to any
   `supabase/functions/<name>/index.ts`; CI runs the same on every PR

@@ -279,12 +279,10 @@ Facts a fresh session would otherwise rediscover:
         PLAYWRIGHT_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run verify:browser
 
   CI runs `npx playwright install chromium` and needs no such variable.
-  `bin/verify-perf-matrix.mjs` is still by hand: `npm run build`, then
-  `node bin/verify-perf-matrix.mjs` (Playwright is a devDependency now;
-  the throwaway package dir is gone). It went 60 of 60 green at
-  2026-09-23 01:15 UTC, but it reads the real clock, so the 18 failures
-  it once reported may belong to other hours; pin its clock before it
-  gates anything.
+  The performance matrix is a gate too since 2026-09-23:
+  `npm run verify:perf` (same Chromium variable). Its clock is pinned;
+  `PERF_MATRIX_CLOCK=<instant>` moves it, and an instant its fixture
+  cannot serve is refused with the reason.
 
 - **The container clock has been wrong before.** On 2026-09-05 it read
   91 minutes behind the database, and that alone produced a false outage
@@ -292,7 +290,7 @@ Facts a fresh session would otherwise rediscover:
   database (`select now()`), not from `date`.
 - **Gates, all of which must pass before a push:** `sh bin/gates.sh`
   runs them in CI's order — typecheck, lint, vitest (**check the exit
-  code, not the summary line**), build, the browser sweep, size-limit,
+  code, not the summary line**), build, both browser tests, size-limit,
   knip, the npm audit, `deno check` and `deno test`. Commit the `dist/`
   the build writes with any `src/` change; the source maps it also
   writes are gitignored.
@@ -304,6 +302,27 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 02:01 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The performance matrix gates CI, and its 18 failures are explained.**
+`bin/verify-perf-matrix.mjs` read the real clock. It is pinned now the
+way the sweep is (the fixture's dates in Node and the page's `Date` at
+one instant, default Thu 2026-09-17 23:00 UTC; `PERF_MATRIX_CLOCK` moves
+it), and it was run at 21 instants: 12 green, 9 red, and every red is its
+fixture's, not the app's. The 18: after 14:00 and up to 17:00 UTC the 24H
+filter keeps two of the previous session's three bars and reads +7.41 %,
+right for those two; from 17:00 only one is left and the filter's
+fall-back to the whole day restores all three. The other reds: a session
+day on a weekend (3M flat or empty; its grid is weekdays), London on GMT
+(3M's 17:00-London slot lands on the second bar's own time), and the
+weeks within 60 days of the sold-down book's 1 February sale. The harness
+refuses those instants with the reason (exit 2), so a failure is always
+the app's: five known-bad instants refused, and all twelve good ones
+re-run green with the guard in, the default three times in a row. 33 s a
+run, so `npm run verify:perf` now runs in check.yml after the sweep and
+in `bin/gates.sh`; the README, CLAUDE.md and the map say two browser
+tests.
 
 ### [2026-09-23 01:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

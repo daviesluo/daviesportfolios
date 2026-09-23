@@ -37,6 +37,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
 
+// ---- the clock ------------------------------------------------------
+//
+// The app reads the clock (the market phase decides where a window starts
+// and which bars count), so a matrix on the real clock can pass at one
+// hour and fail at another. The instant is pinned in BOTH places that read
+// a clock, as in app-sweep.mjs: the fixture's bar dates (here, in Node)
+// and the page's own `Date` (`page.clock.setFixedTime`). They must be the
+// same instant, or the app reasons about bars from another day.
+// PERF_MATRIX_CLOCK (any instant `Date` parses) moves it to probe an hour.
+const CLOCK = new Date(process.env.PERF_MATRIX_CLOCK || '2026-09-17T23:00:00Z');
+const NOW_MS = CLOCK.getTime();
+if (!Number.isFinite(NOW_MS)) throw new Error(`PERF_MATRIX_CLOCK is not a date: ${process.env.PERF_MATRIX_CLOCK}`);
+
 // Absolute, always: the path-traversal guard below compares the resolved
 // file against ROOT with `startsWith`.
 const ROOT = path.resolve(
@@ -64,11 +77,11 @@ const server = http.createServer((req, res) => {
 
 // ---- fixture -------------------------------------------------------
 
-const YEAR = new Date().getUTCFullYear();
+const YEAR = CLOCK.getUTCFullYear();
 // Daily bars, placed relative to today so they land inside EVERY range's
 // window — a fixed Jan/Mar/Jun triple falls outside 3M and draws the
 // empty state, which is a fixture bug, not an app one.
-const dayAgo = (n) => new Date(Date.now() - n * 86400_000).toISOString().slice(0, 10);
+const dayAgo = (n) => new Date(NOW_MS - n * 86400_000).toISOString().slice(0, 10);
 const D = (m, d) => `${YEAR}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
 const PORTFOLIO = {
@@ -136,7 +149,7 @@ const dailyBars = (t) => {
 // outside it are dropped and the benchmark falls back to another ticker.
 const intradayBars = (t) => {
   const closes = t === '^GSPC' ? [5000, 5100, 5200] : [200, 220, 240];
-  const now = new Date();
+  const now = new Date(NOW_MS);
   const session = new Date(now);
   const past2000 = now.getUTCHours() >= 20;
   if (!past2000) session.setUTCDate(session.getUTCDate() - 1);
@@ -152,6 +165,46 @@ const intradayBars = (t) => {
   ];
 };
 
+// ---- where the fixture holds ------------------------------------------
+//
+// The expected figures hold only where the bars above land the way they
+// were written to. Probed at 21 pinned instants on 2026-09-23: every
+// failure this matrix ever reported sits in one of the cases below, and in
+// each the app was right about the data it was given.
+//   - After 14:00 and up to 17:00 UTC the 24H window keeps two of the
+//     previous session's three bars (it falls back to the whole day only
+//     below two), so 24H reads +7.41 %. These were the 18 failures this
+//     harness reported for months.
+//   - A session day on a weekend: the 3M grid samples weekdays only, so 3M
+//     draws flat or empty.
+//   - London off British Summer Time: the 3M grid's 17:00 London slot is
+//     17:00 UTC, the second bar's own time, so 3M starts a bar late.
+//   - Within 60 days of the sold-down book's 1 February sale: the sale
+//     falls inside the drawn series and that book's figures move.
+// An instant in any of them is refused rather than run, so a failure here
+// is always the app's.
+const zoneName = (tz, at, locale) => new Intl.DateTimeFormat(locale, { timeZone: tz, timeZoneName: 'short' })
+  .formatToParts(at).find((p) => p.type === 'timeZoneName')?.value;
+
+function fixtureProblem(at) {
+  const minuteOfDay = at.getUTCHours() * 60 + at.getUTCMinutes() + at.getUTCSeconds() / 60;
+  if (minuteOfDay > 14 * 60 && minuteOfDay <= 17 * 60) {
+    return 'after 14:00 and up to 17:00 UTC the 24H window keeps only two of the three bars';
+  }
+  const session = new Date(at);
+  if (at.getUTCHours() < 20) session.setUTCDate(session.getUTCDate() - 1);
+  if (session.getUTCDay() === 0 || session.getUTCDay() === 6) {
+    return `the fixture's session day (${session.toISOString().slice(0, 10)}) is a weekend, which the 3M grid skips`;
+  }
+  if (zoneName('Europe/London', session, 'en-GB') !== 'BST') {
+    return 'London is not on British Summer Time, so the 3M grid samples the second bar instead of the first';
+  }
+  if (dayAgo(60) <= D(2, 1)) {
+    return "the sold-down book's 1 February sale falls inside the drawn series";
+  }
+  return null;
+}
+
 const QUOTES = {
   ACME: { lastPrice: 240, prevClose: 220, currency: 'USD', dayPct: 9.09 },
   '^GSPC': { lastPrice: 5200, prevClose: 5150, currency: 'USD', dayPct: 0.97 },
@@ -162,7 +215,7 @@ const QUOTES = {
 // intercepted).
 const b64url = (s) => Buffer.from(s).toString('base64')
   .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-const TOKEN = `${b64url(JSON.stringify({ role: 'admin', exp: Date.now() + 3600_000 }))}.sig`;
+const TOKEN = `${b64url(JSON.stringify({ role: 'admin', exp: NOW_MS + 3600_000 }))}.sig`;
 
 // ---- run -----------------------------------------------------------
 
@@ -171,7 +224,7 @@ const RANGES = ['1D', '1W', '1M', '3M', 'YTD'];
 /** @param {'none'|'sparse'|'full'} snapshotMode */
 function snapshotRows(mode) {
   if (mode === 'none') return [];
-  const now = Date.now();
+  const now = NOW_MS;
   const rows = [];
   const n = mode === 'sparse' ? 2 : 24;
   for (let i = n; i >= 1; i--) {
@@ -184,6 +237,11 @@ function snapshotRows(mode) {
 }
 
 async function run() {
+  const problem = fixtureProblem(CLOCK);
+  if (problem) {
+    console.error(`Refusing ${CLOCK.toISOString()}: ${problem}. Pick another instant.`);
+    process.exit(2);
+  }
   await new Promise((r) => server.listen(PORT, r));
   const browser = await chromium.launch({
     ...(process.env.PLAYWRIGHT_CHROMIUM_PATH
@@ -202,6 +260,9 @@ async function run() {
       sessionStorage.setItem('dp.token', token);
     }, [TOKEN]);
     const page = await ctx.newPage();
+    // Timers still run, so refreshes and polls behave normally; only
+    // "what time is it" is fixed.
+    await page.clock.setFixedTime(CLOCK);
 
     await page.route('**/functions/v1/**', async (route) => {
       const url = route.request().url();
@@ -337,7 +398,7 @@ async function run() {
       + (r.empty ? '  EMPTY' : ''),
     );
   }
-  console.log(`\n${failures === 0 ? 'ALL GREEN' : failures + ' FAILURES'} across ${results.length} cases`);
+  console.log(`\n${failures === 0 ? 'ALL GREEN' : failures + ' FAILURES'} across ${results.length} cases at ${CLOCK.toISOString()}`);
   process.exit(failures === 0 ? 0 : 1);
 }
 

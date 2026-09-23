@@ -16,7 +16,8 @@
     "lint": "eslint src",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify:browser": "node bin/app-sweep.mjs dist"
+    "verify:browser": "node bin/app-sweep.mjs dist",
+    "verify:perf": "node bin/verify-perf-matrix.mjs dist"
   },
   "dependencies": {
     "html2canvas-pro": "^2.0.4",
