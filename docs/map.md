@@ -16,8 +16,9 @@ How the less obvious parts work, and why they are built the way they are.
 - **Agents (crypto, paper first)** — the Agents page behind the ☰ menu.
   Three strategies run today, all in paper, all executing on Revolut X
   and reading Kraken's candles for their signals (the page's VENUES shows
-  Revolut X and Binance, whose card is its account, read-only, fetched in
-  London because Binance refuses US addresses): 4-hour trend following
+  Revolut X and Binance, each card the paper book of that venue's
+  strategies; no real balance is shown, and Binance's paper venue reads
+  only its public market data, which it serves to any address): 4-hour trend following
   on BTC, ETH, SOL, AVAX and SUI (the candidate for real money), its
   1-hour variant, and 30-day momentum, both on BTC, ETH and SOL. The loop
   runs every minute: quotes, order management, a protective floor under
@@ -562,7 +563,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | File | What it does |
 |---|---|
 | `agents/index.ts` | The entry point: the minute's tick, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
-| `agents/binance.ts`, `agents/deribit.ts` | Read-only clients for the Binance and Deribit keys: the probe's checks, Deribit's volatility index, and the Binance account the VENUES card shows. Nothing in them can trade. |
+| `agents/binance.ts`, `agents/deribit.ts` | Read-only clients for the Binance and Deribit keys (the probe's checks, Deribit's volatility index), and Binance's paper venue, which reads public market data for its paper rows. Nothing in them can trade. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
 | `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
 | `agents/db.ts` | The loop's database access, over PostgREST. |
@@ -570,7 +571,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/backtest.ts` | The walk-forward backtester: the loop's own rule functions run over history at the venue's costs. |
 | `agents/backtest_*.ts` | One study each: allocation, Binance's costs, Binance cross-sectional momentum and its second search (reversal, low volatility), execution, fills, rule ideas, the Jev veto, the paper rows' Jev gates and each row's own Jev question, Kraken (three), maker-only rules on Revolut X, portfolio, set, sizing and entry gates, SUI, tape, testing set, a third window. Results go to `docs/agents/backtests/`, write-ups to `docs/agents/reviews/`. |
 | `_shared/agents_strategy.ts` | The rulebooks, the market state, the Jev questions and the risk gate. Every number the loop acts on, with no network or clock; the loop and the backtester share it. |
-| `_shared/revx.ts`, `_shared/kraken.ts`, `_shared/venue.ts` | The Revolut X and Kraken clients (signing, candles, quotes, orders) behind one venue interface. |
+| `_shared/revx.ts`, `_shared/kraken.ts`, `_shared/venue.ts` | The Revolut X and Kraken clients (signing, candles, quotes, orders) behind one venue interface, which Binance's paper venue also implements. |
 | `_shared/jev.ts` | The TypeSafe Jev client: typed questions in, probabilities out. |
 | `_shared/token.ts`, `_shared/ip.ts` | App-token checks, and which header names the caller's IP. |
 | `_shared/ops.ts` | Server-side error reports into `ops_errors`. |

@@ -147,7 +147,16 @@ export type TickReport = {
   errors: string[];
 };
 
-type Market = { c1m: Candle | null; mark: number | null; quote?: Quote; pair?: PairConfig };   // mark null when neither a quote nor a candle gave one — never 0
+type Market = { c1m: Candle | null; mark: number | null; quote?: Quote; pair?: PairConfig };
+
+/**
+ * Whether an order on this venue takes the touch. Revolut X does (9 bps; a bid resting on a breakout fills exactly when
+ * the breakout fails). Binance does too: its maker and taker rates are the same 10 bps, so resting would buy nothing but
+ * the risk of missing the fill. Kraken rests post-only, because its 80 bps taker fee is not worth certainty at this size.
+ */
+export function takesTheTouch(venue: VenueId): boolean {
+  return venue !== "kraken";
+}   // mark null when neither a quote nor a candle gave one — never 0
 type Signal = { bars: Candle[]; barMs: number; c1d: Candle[] };
 
 const mk = (venue: string, symbol: string) => `${venue}|${symbol}`;
@@ -543,12 +552,15 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   }
   for (const o of open) { symbols.add(o.symbol); want(execWanted, o.venue, o.symbol); }
 
-  // Both venues' quotes for every symbol: the touch for orders, the mark for P&L, the basis for the record.
+  // Revolut X's and Kraken's quotes for every symbol: the touch for orders, the mark for P&L, the basis for the record.
+  // Binance's only where a row trades there (paper, `0049`): its touch fills those rows and marks their book.
   const quotes: Partial<Record<VenueId, Record<string, Quote>>> = {};
-  for (const vid of ["revx", "kraken"] as VenueId[]) {
+  for (const vid of ["revx", "kraken", "binance"] as VenueId[]) {
     const venue = d.venues[vid];
     if (!venue) continue;
-    try { quotes[vid] = await venue.quotes([...symbols]); } catch (e) { report.errors.push(`${vid}: quotes ${msg(e)}`); }
+    const wanted = vid === "binance" ? [...(execWanted.get(vid) ?? [])] : [...symbols];
+    if (!wanted.length) continue;
+    try { quotes[vid] = await venue.quotes(wanted); } catch (e) { report.errors.push(`${vid}: quotes ${msg(e)}`); }
   }
   const basisRows: Record<string, unknown>[] = [];
   for (const sym of symbols) {
@@ -1221,7 +1233,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     if (!(pos.base > 0)) return false;
     const why = protectiveExit(exitMark(m) ?? 0, pos, hw, atr, stops);
     if (!why) return false;
-    const marketable = s.venue === "revx";                    // Kraken's taker fee is not worth certainty at this size: rest at the ask and let the re-quote walk it down
+    const marketable = takesTheTouch(s.venue);                // Kraken's taker fee is not worth certainty at this size: rest at the ask and let the re-quote walk it down
     if (inFlight.has(key)) {
       // A resting sell that is already the best this venue can do is left to work; anything the stop outranks is
       // taken off first. What this must NOT do is treat every order in flight as a reason to stand down: until
@@ -1439,7 +1451,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         const side: "buy" | "sell" = r.action === "enter" ? "buy" : "sell";
         // Revolut X takes the touch (9 bps): a bid resting on a breakout fills exactly when the breakout fails, which is the
         // backtest's fill model turned inside out. Kraken rests post-only at the touch: 80 bps a side is not worth certainty here.
-        const marketable = s.venue === "revx";
+        const marketable = takesTheTouch(s.venue);
         const price = side === "buy" ? (marketable ? q.ask : q.bid) : (marketable ? q.bid : q.ask);
         const base = side === "buy" ? sizeBase(r.orderUsd, price, cfg) : sizeBase(pos.base * price, price, cfg);
         if (!base) { report.errors.push(`${key}: size under venue minimum; the order waits for the next minute`); continue; }

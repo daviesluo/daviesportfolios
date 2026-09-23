@@ -1,5 +1,6 @@
-// The venue interface the tick trades through. Two implementations:
-// `revxVenue` (revx.ts) and `krakenVenue` (kraken.ts). Every strategy row
+// The venue interface the tick trades through. Three implementations:
+// `revxVenue` (revx.ts), `krakenVenue` (kraken.ts) and `binancePaperVenue`
+// (agents/binance.ts, paper only: public data, no orders). Every strategy row
 // names its venue; the tick reads that venue's candles, quotes at its
 // touch, sizes by its pair config, and settles against its order book —
 // so a paper run on each venue is a fair rehearsal of a live run there,
@@ -7,7 +8,7 @@
 
 import type { Candle, PairConfig } from "./agents_strategy.ts";
 
-export type VenueId = "revx" | "kraken";
+export type VenueId = "revx" | "kraken" | "binance";
 
 export type Quote = { bid: number; ask: number };
 export type VenueOrderState = "new" | "partially_filled" | "filled" | "cancelled" | "rejected";

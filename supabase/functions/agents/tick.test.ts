@@ -23,7 +23,7 @@ import { orderViewProblem, toOrderView, type VenueOrder } from "../_shared/revx.
 import { PAGE_ROWS } from "./db.ts";
 import { jevFetch, memDb, schemaRefusal } from "./testing.ts";
 import { rowQuestions } from "./jev_rows.ts";
-import { dayOpenOf, dayPnl, entryTooLate, fillStamp, isUniqueViolation, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, probeFilled, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, toFill, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS, slotUsdOf, ORDER_SLOT_TOLERANCE } from "./tick.ts";
+import { dayOpenOf, dayPnl, entryTooLate, fillStamp, isUniqueViolation, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, probeFilled, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, toFill, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS, slotUsdOf, ORDER_SLOT_TOLERANCE, takesTheTouch } from "./tick.ts";
 
 const FOUR_H = 4 * 3600e3, ONE_H = 3600e3, ONE_D = 86400e3, ONE_M = 60e3;
 const NOW = Date.parse("2026-09-20T04:05:00Z");                 // minute 245 of the day: a fifth minute, so the basis is recorded
@@ -71,7 +71,7 @@ function stubVenue(id: VenueId, o: {
       const s = o.series[sym] ?? o.series["BTC/USD"];
       return Promise.resolve(iv === 240 ? s.bars : iv === 60 ? (s.bars1h ?? s.bars) : iv === 1440 ? s.c1d : o.c1m);
     },
-    quotes: (syms) => Promise.resolve(o.noQuote ? {} : Object.fromEntries(syms.map((s) => [s, o.quote]))),
+    quotes: (syms) => { calls.push(`quotes ${syms.join(",")}`); return Promise.resolve(o.noQuote ? {} : Object.fromEntries(syms.map((s) => [s, o.quote]))); },
     pairs: (syms) => Promise.resolve(Object.fromEntries(syms.map((s) => [s, PAIR]))),
     placeLimit: (req) => { o.onPlace?.(); calls.push(`place ${req.side} ${req.base}@${req.price}${req.marketable ? " taker" : ""}`); return Promise.resolve({ ok: true as const, venueOrderId: "V-1", state: o.placedState ?? "new" as const, response: { echo: req } }); },
     cancel: (vid) => { calls.push(`cancel ${vid}`); return Promise.resolve({ ok: o.cancelOk ?? true }); },
@@ -121,6 +121,9 @@ function world(opts: {
   const kraken = stubVenue("kraken", { series: ser, c1m: opts.krakenMinutes ?? c1m, quote, feeBps: { maker: 40, taker: 80 }, canTrade: opts.canTrade ?? false, orderView: opts.orderView, orderViews: opts.orderViews, active: opts.active, onPlace: opts.onPlace, placedState: opts.placedState, noQuote: opts.krakenNoQuote, candlesDown: opts.krakenCandlesDown });
   const revxQuote = opts.revxQuote ?? { bid: quote.bid + 0.02, ask: quote.ask + 0.02 };
   const revx = stubVenue("revx", { series: ser, c1m, quote: revxQuote, feeBps: { maker: 0, taker: 9 }, canTrade: opts.revxCanTrade ?? false, balances: opts.revxBalances, orderView: opts.revxOrderView, orderReply: opts.revxOrderReply, placedState: opts.revxPlacedState, noQuote: opts.revxNoQuote });
+  // Binance as production builds it (`binancePaperVenue`): 10 bps a side, no key, its own touch a little off the others'.
+  const binanceQuote = { bid: quote.bid + 0.05, ask: quote.ask + 0.05 };
+  const binance = stubVenue("binance", { series: ser, c1m, quote: binanceQuote, feeBps: { maker: 10, taker: 10 }, canTrade: false });
   const mem = memDb({
     agent_risk: [{ ...RISK, ...opts.risk }],
     agent_strategies: (opts.strategies ?? [strategy()]) as unknown as Row[],
@@ -141,8 +144,8 @@ function world(opts: {
   // A fresh uuid per call, as `crypto.randomUUID` gives production: `client_order_id` is unique (0037), and the double
   // holds the loop to it — every order in a world used to carry the same id, so no test could tell two apart by it.
   let uuidN = 0;
-  const deps = { db: mem.db, venues: { kraken: kraken.v, revx: revx.v }, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({ fail: opts.jevDown, log: jevLog }), uuid: () => `00000000-0000-4000-8000-${String(++uuidN).padStart(12, "0")}` };
-  return { deps, mem, kraken, revx, quote, revxQuote, lastClosedBarStart: base.bars[128].start, c1m, jevLog };
+  const deps = { db: mem.db, venues: { kraken: kraken.v, revx: revx.v, binance: binance.v }, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({ fail: opts.jevDown, log: jevLog }), uuid: () => `00000000-0000-4000-8000-${String(++uuidN).padStart(12, "0")}` };
+  return { deps, mem, kraken, revx, binance, quote, revxQuote, binanceQuote, lastClosedBarStart: base.bars[128].start, c1m, jevLog };
 }
 
 const seedOrder = (over: Partial<OrderRow> & Row = {}): Row => ({
@@ -305,6 +308,46 @@ Deno.test("a Revolut X strategy reads Kraken's candles and quotes Revolut X's to
   assertEquals([o.venue, o.price], ["revx", w.quote.ask + 0.02]);          // Revolut X takes its own ask: the backtest's fill, 9 bps
   assertEquals([o.request.marketable, o.request.timeInForce], [true, "ioc"]);
   assertEquals((w.mem.tables.agent_decisions[0].numbers as { signalVenue: string }).signalVenue, "kraken");
+});
+
+Deno.test("a Binance row trades paper at Binance's own touch and pays its 10 bps, on Kraken's candles (0049)", async () => {
+  // Davies, 2026-09-23: Binance runs the same strategies on paper, for the page. Same rule, same signal, Binance's fill.
+  const w = world({ strategies: [strategy({ id: "trend-4h-binance", venue: "binance", signal_venue: "kraken" })] });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assert(w.kraken.calls.includes("candles BTC/USD 240"), w.kraken.calls.join(","));     // the signal is Kraken's, as on every row
+  const o = w.mem.tables.agent_orders[0] as Row & { request: { marketable: boolean; timeInForce: string } };
+  assertEquals([o.venue, o.mode, o.side, o.price], ["binance", "paper", "buy", w.binanceQuote.ask]);   // Binance's own ask
+  assertEquals([o.request.marketable, o.request.timeInForce], [true, "ioc"]);  // it takes the touch: maker would pay the same 10 bps
+  assert(!w.binance.calls.some((c) => c.startsWith("place")));               // paper: nothing is ever sent to Binance
+  // Next minute the marketable paper order fills at once, at Binance's taker rate.
+  const w2 = world({ strategies: [strategy({ id: "trend-4h-binance", venue: "binance" })], orders: [seedOrder({ strategy_id: "trend-4h-binance", venue: "binance", price: 129.2, request: { marketable: true } })], oneMin: { low: 129.0, high: 129.1 } });
+  const r2 = await tick(w2.deps);
+  assertEquals(r2.settled, [{ id: 1, state: "filled" }]);
+  assertAlmostEquals(Number(w2.mem.tables.agent_orders[0].fee_usd), 0.155 * 129.2 * 0.001, 1e-6);   // 10 bps
+});
+
+Deno.test("Binance is asked for its own rows' coins only, and not at all while no row trades there", async () => {
+  const w = world({ strategies: [strategy({ id: "trend-4h", venue: "revx" }), strategy({ id: "trend-4h-binance", venue: "binance", symbols: ["ETH/USD"] })], series: { "BTC/USD": series(), "ETH/USD": series() } });
+  await tick(w.deps);
+  assertEquals(w.binance.calls.filter((c) => c.startsWith("quotes")), ["quotes ETH/USD"]);
+  assert(w.revx.calls.includes("quotes BTC/USD,ETH/USD"), w.revx.calls.join(","));   // the basis venues still quote everything
+  const w2 = world({ strategies: [strategy({ id: "trend-4h", venue: "revx" })] });
+  await tick(w2.deps);
+  assertEquals(w2.binance.calls, []);
+});
+
+Deno.test("a Binance row labelled live places nothing: the venue has no key, and the tick refuses before any venue call", async () => {
+  // Migration 0049 forbids the label; this is the second lock, the one that holds even if the constraint were dropped.
+  const w = world({ strategies: [strategy({ id: "trend-4h-binance", venue: "binance", mode: "live" })], risk: { live_confirmed_at: new Date(NOW - ONE_H).toISOString() } });
+  const r = await tick(w.deps);
+  assert(!w.binance.calls.some((c) => c.startsWith("place")), w.binance.calls.join(","));
+  assert(r.errors.some((e) => /no binance credentials/.test(e)), r.errors.join(" | "));
+  assertEquals((w.mem.tables.agent_orders ?? []).filter((o) => o.mode === "live"), []);
+});
+
+Deno.test("takesTheTouch: Revolut X and Binance take it, Kraken rests", () => {
+  assertEquals((["revx", "binance", "kraken"] as VenueId[]).map(takesTheTouch), [true, true, false]);
 });
 
 Deno.test("trend-1h decides on the last closed hour, from 1-hour candles", async () => {

@@ -65,7 +65,7 @@ import {
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
-import { binanceAccount, binanceProbe } from "./binance.ts";
+import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
 import { ALL_QUESTION_VERSIONS, isRowQuestionVersion, questionsFor, ROW_QUESTION_KIND, type AnyQuestionVersion } from "./jev_rows.ts";
 import { makeDb, type Db } from "./db.ts";
 import { deribitProbe } from "./deribit.ts";
@@ -171,7 +171,10 @@ function jevEnv() {
 let feeTier: { at: number; feeBps: { maker: number; taker: number } } | null = null;
 const FEE_TIER_TTL_MS = 3600e3;
 
-/** Both venues, each with credentials when the store has them and keyless market data when it does not. */
+/**
+ * Every venue: Revolut X and Kraken with credentials when the store has them and keyless market data when it does not,
+ * and Binance, which runs paper rows only and reads public market data (`binancePaperVenue`) — it holds no key.
+ */
 async function loadVenues(): Promise<{ venues: Record<VenueId, Venue>; notes: Record<VenueId, string | null> }> {
   const rx = await loadRevx();
   const kk = loadKraken();
@@ -182,39 +185,12 @@ async function loadVenues(): Promise<{ venues: Record<VenueId, Venue>; notes: Re
     else { await kraken.refreshFees(); feeTier = { at: Date.now(), feeBps: { ...kraken.feeBps } }; }
   }
   return {
-    venues: { revx, kraken },
-    notes: { revx: "error" in rx ? rx.error : null, kraken: "error" in kk ? kk.error : null },
+    venues: { revx, kraken, binance: binancePaperVenue() },
+    notes: { revx: "error" in rx ? rx.error : null, kraken: "error" in kk ? kk.error : null, binance: null },
   };
 }
 
-/**
- * The Binance account, read-only, for the page's VENUES card. Binance executes nothing here; the card says what the
- * account holds and pays, the way Revolut X's does. Kept a minute per isolate, so a page that refreshes does not sign a
- * call every time, and cut off at 4 s, so a slow reply never holds the page. Binance refuses US addresses (451), so the
- * page pins this call to London (`forceFunctionRegion`, agents.js); a refusal still only costs the card, as a note.
- */
-export type BinanceCard = { canTrade: boolean; feeBps: { maker: number; taker: number } | null; balances: Record<string, number> | null; note: string | null };
-let binanceCache: { at: number; card: BinanceCard } | null = null;
-export const BINANCE_CARD_TTL_MS = 60e3;
-export async function binanceCard(now: number, read: (n: string) => string | undefined = (n) => Deno.env.get(n), fetchImpl?: typeof fetch): Promise<BinanceCard> {
-  if (binanceCache && now - binanceCache.at < BINANCE_CARD_TTL_MS) return binanceCache.card;
-  const apiKey = envAny(["Binance_API_KEY", "BINANCE_API_KEY"], read);
-  const secret = envAny(["Binance_SECRET_KEY", "BINANCE_SECRET_KEY", "BINANCE_API_SECRET"], read);
-  let card: BinanceCard;
-  if (!apiKey || !secret) card = { canTrade: false, feeBps: null, balances: null, note: null };   // no key: the card says so, as Revolut X's would
-  else {
-    const r = await binanceAccount({ apiKey, secret, timeoutMs: 4000, fetchImpl });
-    // `canTrade` on the card means what it means for the other venues — this deployment holds a working key — so the
-    // balances show. Whether the key may place orders is Binance's own flag, and nothing here places any.
-    card = r.ok ? { canTrade: true, feeBps: r.view.feeBps, balances: r.view.balances, note: null } : { canTrade: false, feeBps: null, balances: null, note: r.error };
-  }
-  binanceCache = { at: now, card };
-  return card;
-}
-/** For the tests: forget the cached card. */
-export function resetBinanceCard() { binanceCache = null; }
-
-/** The venues the page's VENUES section shows, in order: where the loop executes, and the account it may use next. */
+/** The venues the page's VENUES section shows, in order: Revolut X, and Binance with its paper rows (`0049`). */
 export const PAGE_VENUES = ["revx", "binance"] as const;
 
 function db(): Db {
@@ -239,7 +215,7 @@ export async function runTick(now = Date.now()) {
   const { venues, notes } = await loadVenues();
   const report = await tick({ db: db(), venues, jev: jevEnv(), now, uuid: () => crypto.randomUUID() });
   if (report.errors.length) await reportServerError("agents.tick", tickErrorReport(report));
-  return { ...report, venues: { revx: { canTrade: venues.revx.canTrade, note: notes.revx }, kraken: { canTrade: venues.kraken.canTrade, note: notes.kraken, feeBps: venues.kraken.feeBps } } };
+  return { ...report, venues: { revx: { canTrade: venues.revx.canTrade, note: notes.revx }, kraken: { canTrade: venues.kraken.canTrade, note: notes.kraken, feeBps: venues.kraken.feeBps }, binance: { canTrade: venues.binance.canTrade, note: notes.binance, feeBps: venues.binance.feeBps } } };
 }
 
 // -------------------------------------------------------------- dashboard
@@ -421,7 +397,7 @@ async function dashboard(now: number) {
   const d = db();
   const dayStart = new Date(Math.floor(now / ONE_D) * ONE_D).toISOString();
   const since24h = new Date(now - ONE_D).toISOString();
-  const [strategies, riskRows, filled, open, today, probeRows, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }, binance] = await Promise.all([
+  const [strategies, riskRows, filled, open, today, probeRows, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }] = await Promise.all([
     // Retired rows are read too and filtered below: one that is FLAT leaves the page (`0038`), one
     // that still holds something stays on it, marked `windingDown`. `0043` retired three rows that
     // were still long, and a position nobody can see is a position nobody will notice is stuck.
@@ -439,7 +415,6 @@ async function dashboard(now: number) {
     d.select<{ id: string; strategy_id: string; ran_at: string; method: string; summary: unknown }>("agent_backtests", "select=id,strategy_id,ran_at,method,summary&order=ran_at.desc"),
     d.select<{ ts: string; symbol: string; basis_bps: number; revx_bid: number; revx_ask: number; kraken_bid: number; kraken_ask: number }>("agent_basis", `ts=gte.${since24h}&select=ts,symbol,basis_bps,revx_bid,revx_ask,kraken_bid,kraken_ask&order=ts.desc&limit=2000`),
     loadVenues(),
-    binanceCard(now).catch((e): BinanceCard => ({ canTrade: false, feeBps: null, balances: null, note: `account: ${e instanceof Error ? e.message : String(e)}` })),
   ]);
   // Today's opening price per VENUE and symbol, from the cached daily candles: each strategy is marked from its own signal
   // venue's day open, exactly as the tick's loss breaker marks it, so the page's "today" and the loop's are one figure.
@@ -462,7 +437,7 @@ async function dashboard(now: number) {
   for (const s of strategies) for (const sym of s.symbols) want(s.venue, sym);
   for (const o of filled) want(o.venue, o.symbol);
   const marks: Record<string, Record<string, number>> = {};
-  const venueErrors: Record<string, string | null> = { revx: notes.revx, kraken: notes.kraken };
+  const venueErrors: Record<string, string | null> = { revx: notes.revx, kraken: notes.kraken, binance: notes.binance };
   for (const [vid, syms] of symbolsByVenue) {
     try {
       const q = await venues[vid].quotes([...syms]);
@@ -547,9 +522,9 @@ async function dashboard(now: number) {
     totals: { ...totals, byMode },
     byVenue,
     basis: basisBySymbol,
-    venues: PAGE_VENUES.map((vid) => vid === "binance"
-      ? { id: vid, canTrade: binance.canTrade, feeBps: binance.feeBps, balances: binance.balances, note: binance.note, marks: {} }
-      : { id: vid, canTrade: venues[vid].canTrade, feeBps: venues[vid].feeBps, balances: balancesByVenue[vid], note: venueErrors[vid], marks: marks[vid] ?? {} }),
+    // The accounts' real balances are not shown any more (Davies, 2026-09-23): every row trades paper. Revolut X's are still
+    // read for the payload; Binance's paper venue holds no key, so its card is its rows' book, its fee and its quote faults.
+    venues: PAGE_VENUES.map((vid) => ({ id: vid, canTrade: venues[vid].canTrade, feeBps: venues[vid].feeBps, balances: balancesByVenue[vid] ?? null, note: venueErrors[vid] ?? null, marks: marks[vid] ?? {} })),
     strategies: out,
     openOrders: open,
     /** The adverse-selection notebook (`0042`, reference §3.13): is 0 % maker actually free here? */
@@ -735,8 +710,6 @@ export function probeParts(only: string | null): Set<string> | null {
   return picked.size ? picked : null;
 }
 
-/** Binance's name for a USD pair on the row (`BTC/USD` → `BTCUSDT`): its spot books quote USDT. */
-export const binanceSymbol = (sym: string): string => `${sym.split("/")[0]}USDT`;
 
 export async function runProbe(only: Set<string> | null = null): Promise<Record<string, unknown>> {
   const want = (part: string) => !only || only.has(part);
@@ -886,7 +859,7 @@ export async function runProbe(only: Set<string> | null = null): Promise<Record<
     const apiKey = envAny(["Binance_API_KEY", "BINANCE_API_KEY"]);
     const secret = envAny(["Binance_SECRET_KEY", "BINANCE_SECRET_KEY", "BINANCE_API_SECRET"]);
     out.binance = apiKey && secret
-      ? { keyChars: apiKey.length, ...(await binanceProbe({ apiKey, secret }, symbols.map(binanceSymbol))) }
+      ? { keyChars: apiKey.length, ...(await binanceProbe({ apiKey, secret }, symbols.map(toBinanceSymbol).filter((b): b is string => b != null))) }
       : { error: "Binance_API_KEY / Binance_SECRET_KEY are not set" };
   }
   if (want("deribit")) {

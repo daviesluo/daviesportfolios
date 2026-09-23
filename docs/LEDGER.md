@@ -414,6 +414,18 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-23 10:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The loop can run paper rows on Binance; none does until migration `0049`.**
+`binancePaperVenue` (agents/binance.ts) reads Binance's PUBLIC market data from
+data-api.binance.vision — api.binance.com answers 451 to a US address, this host
+answered 200 from one — holds no key, and refuses every order call; a paper order
+there takes the touch (`takesTheTouch`: maker and taker are both 10 bps) and pays
+10 bps. The tick asks Binance only for its own rows' coins, so with no Binance row
+nothing changes. The page's Binance card stops signing an account read on every
+load (`binanceCard` removed): no real balance is shown since `466d7ec`. Pinned in
+binance.test.ts and tick.test.ts; red with Binance resting or unquoted.
+
 ### [2026-09-23 10:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Agents page, Davies' labels** (his request, 2026-09-23 ~10:20 UTC): the menu

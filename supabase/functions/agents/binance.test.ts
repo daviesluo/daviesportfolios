@@ -1,7 +1,10 @@
-// Pins for the read-only Binance client: the signature against Binance's own documented example, and a probe that
-// asks only for the read paths it lists, signs exactly the private ones, and reports no key and no amount.
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { BINANCE_READ_PATHS, binanceAccount, binanceAccountView, binanceProbe, binanceSignature, symbolRules } from "./binance.ts";
+// Pins for the Binance client: the signature against Binance's own documented example; a probe that asks only for the
+// read paths it lists, signs exactly the private ones, and reports no key and no amount; and the paper venue, which reads
+// public market data only and can never place an order.
+import { assert, assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  BINANCE_PUBLIC_BASE, BINANCE_PUBLIC_PATHS, BINANCE_READ_PATHS, binancePairConfig, binancePaperVenue, binanceProbe, binanceSignature, fromBinanceSymbol, symbolRules, toBinanceSymbol, trimStep,
+} from "./binance.ts";
 
 // developers.binance.com, "Request security" → "SIGNED Endpoint Examples" (HMAC keys), verbatim; openssl agrees.
 const EXAMPLE = {
@@ -61,21 +64,87 @@ Deno.test("symbolRules reads the order filters, NOTIONAL or the older MIN_NOTION
   assertEquals(symbolRules(null).status, null);
 });
 
-Deno.test("binanceAccountView: the fee in bps from Binance's fractions, the coins held (free + locked), and whether the key may trade", () => {
-  const v = binanceAccountView({
-    canTrade: true, commissionRates: { maker: "0.00100000", taker: "0.00075000" },
-    balances: [{ asset: "USDT", free: "100.5", locked: "20" }, { asset: "BTC", free: "0.00000000", locked: "0.00000000" }, { asset: "BNB", free: "0.01", locked: "0" }],
-  });
-  assertEquals(v, { canTrade: true, feeBps: { maker: 10, taker: 7.5 }, balances: { USDT: 120.5, BNB: 0.01 } });
-  // A fee the reply does not carry is unknown, never 0; a flag that is not `true` is not permission.
-  assertEquals(binanceAccountView({ canTrade: "yes", commissionRates: { maker: "0.001" }, balances: "none" }), { canTrade: false, feeBps: null, balances: {} });
+// ── the paper venue (Davies, 2026-09-23: Binance runs the same strategies, on paper, for the page) ───────────────────
+
+/** A fake of Binance's public market-data host: answers the three public paths from fixtures and records every URL. */
+function publicHost(reply: Record<string, (q: URLSearchParams) => unknown>, status = 200) {
+  const urls: URL[] = [];
+  const fetchImpl = ((input: string | URL | Request) => {
+    const u = new URL(String(input instanceof Request ? input.url : input));
+    urls.push(u);
+    const body = reply[u.pathname]?.(u.searchParams);
+    return Promise.resolve(new Response(body === undefined ? "{\"code\":-1121,\"msg\":\"Invalid symbol.\"}" : JSON.stringify(body), { status: body === undefined ? 400 : status }));
+  }) as typeof fetch;
+  return { urls, fetchImpl };
+}
+const BTC_RULES = {
+  symbol: "BTCUSDT", status: "TRADING",
+  filters: [
+    { filterType: "PRICE_FILTER", minPrice: "0.01000000", maxPrice: "1000000.00000000", tickSize: "0.01000000" },
+    { filterType: "LOT_SIZE", minQty: "0.00001000", maxQty: "9000.00000000", stepSize: "0.00001000" },
+    { filterType: "NOTIONAL", minNotional: "5.00000000", applyMinToMarket: true },
+  ],
+};
+
+Deno.test("a row's dollar symbol is Binance's USDT pair, and nothing else maps", () => {
+  assertEquals([toBinanceSymbol("BTC/USD"), toBinanceSymbol("SUI/USD"), toBinanceSymbol("BTC/GBP"), toBinanceSymbol("btc/usd")], ["BTCUSDT", "SUIUSDT", null, null]);
+  assertEquals([fromBinanceSymbol("AVAXUSDT"), fromBinanceSymbol("BTCUSDC"), fromBinanceSymbol("USDT")], ["AVAX/USD", null, null]);
 });
 
-Deno.test("binanceAccount signs ONE read of the account, and a refused region comes back as the card's note, not a throw", async () => {
-  const v = venue();
-  const r = await binanceAccount({ apiKey: "KEY-ID-abc", secret: "SECRET-xyz", fetchImpl: v.fetchImpl, now: () => 1_700_000_000_000 });
-  assertEquals(v.seen.map((s) => [s.path, s.signed, s.query.get("omitZeroBalances")]), [["/api/v3/account", true, "true"]]);
-  assert(r.ok && r.view.balances.USDT === 123.45 && r.view.feeBps?.maker === 10, JSON.stringify(r));
-  const refused = await binanceAccount({ apiKey: "k", secret: "s", fetchImpl: venue(451).fetchImpl });
-  assertEquals(refused, { ok: false, error: "account 451: 0 Service unavailable from a restricted location" });
+Deno.test("Binance's eight-decimal steps become the step itself, which the loop rounds to", () => {
+  assertEquals(["0.00001000", "0.01000000", "1.00000000", "10.00000000", "5", "0.1"].map(trimStep), ["0.00001", "0.01", "1", "10", "5", "0.1"]);
+  // The rounding the tick applies reads the step's decimals: eight zeros of padding would have been harmless there, but
+  // the trimmed step is what every other venue hands it, so one code path sizes every order.
+  assertEquals(binancePairConfig(BTC_RULES), { base_step: "0.00001", quote_step: "0.01", min_order_size: "0.00001", min_order_size_quote: "5" });
+  assertEquals(binancePairConfig({ ...BTC_RULES, status: "BREAK" }), null);        // a pair that is not trading sizes no order
 });
+
+Deno.test("binancePaperVenue reads Binance's public book from the market-data host, one call for every pair", async () => {
+  const host = publicHost({
+    "/api/v3/ticker/bookTicker": (q) => {
+      assertEquals(JSON.parse(q.get("symbols")!), ["BTCUSDT", "ETHUSDT"]);
+      return [{ symbol: "BTCUSDT", bidPrice: "85813.60", bidQty: "1", askPrice: "85813.61", askQty: "4" }, { symbol: "ETHUSDT", bidPrice: "0.00", bidQty: "0", askPrice: "0.00", askQty: "0" }];
+    },
+  });
+  const v = binancePaperVenue(host.fetchImpl);
+  // A symbol with no Binance pair is skipped, not asked for; an empty book side is no quote, never a mark of 0.
+  assertEquals(await v.quotes(["BTC/USD", "ETH/USD", "BTC/GBP"]), { "BTC/USD": { bid: 85813.6, ask: 85813.61 } });
+  assertEquals(host.urls.map((u) => `${u.origin}${u.pathname}`), ["https://data-api.binance.vision/api/v3/ticker/bookTicker"]);
+  assertEquals(await v.quotes(["BTC/GBP"]), {});
+  assertEquals(host.urls.length, 1);                                                     // nothing to ask, no call
+});
+
+Deno.test("binancePaperVenue sizes by the pair's own rules and reads klines on the loop's intervals", async () => {
+  const host = publicHost({
+    "/api/v3/exchangeInfo": () => ({ symbols: [BTC_RULES, { ...BTC_RULES, symbol: "LUNAUSDT", status: "BREAK" }] }),
+    "/api/v3/klines": (q) => {
+      assertEquals([q.get("symbol"), q.get("interval"), q.get("startTime"), q.get("endTime")], ["BTCUSDT", "1m", "1000", "240000"]);
+      return [[0, "1", "2", "0.5", "1.5", "10", 59_999], [60_000, "1.5", "3", "1", "2", "20", 119_999]];
+    },
+  });
+  const v = binancePaperVenue(host.fetchImpl);
+  assertEquals(await v.pairs(["BTC/USD", "LUNA/USD"]), { "BTC/USD": { base_step: "0.00001", quote_step: "0.01", min_order_size: "0.00001", min_order_size_quote: "5" } });
+  // A kline that opened before `since` is dropped, as the other venues drop it.
+  assertEquals(await v.candles("BTC/USD", 1, 1_000, 240_000), [{ start: 60_000, open: 1.5, high: 3, low: 1, close: 2, volume: 20 }]);
+  await assertRejects(() => v.candles("BTC/USD", 7, 0, 1), Error, "no Binance kline interval for 7 minutes");
+});
+
+Deno.test("binancePaperVenue can never trade: no key, every order call refused, and nothing is sent anywhere", async () => {
+  const host = publicHost({});
+  const v = binancePaperVenue(host.fetchImpl);
+  assertEquals([v.id, v.canTrade, v.feeBps], ["binance", false, { maker: 10, taker: 10 }]);
+  const placed = await v.placeLimit({ clientOrderId: "c", symbol: "BTC/USD", side: "buy", base: "0.001", price: "85000", marketable: true });
+  assert(!placed.ok && /paper rows only/.test(placed.error), JSON.stringify(placed));
+  assert(!(await v.cancel("x")).ok && !(await v.order("x")).ok && !(await v.activeOrders()).ok);
+  assertEquals(await v.balances(), {});
+  assertEquals(host.urls.length, 0);
+  // Every path it may call is public market data on the public host.
+  assertEquals([...BINANCE_PUBLIC_PATHS], ["/api/v3/ticker/bookTicker", "/api/v3/exchangeInfo", "/api/v3/klines"]);
+  assertEquals(BINANCE_PUBLIC_BASE, "https://data-api.binance.vision");
+});
+
+Deno.test("a refusal from Binance is a thrown error the tick reports, never an empty book read as prices", async () => {
+  const v = binancePaperVenue(publicHost({ "/api/v3/ticker/bookTicker": () => ({ code: 0, msg: "restricted" }) }, 451).fetchImpl);
+  await assertRejects(() => v.quotes(["BTC/USD"]), Error, "binance /api/v3/ticker/bookTicker 451");
+});
+

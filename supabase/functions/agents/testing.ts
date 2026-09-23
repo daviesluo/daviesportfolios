@@ -13,6 +13,8 @@ export type Row = Record<string, unknown>;
 const ORDER_STATES = ["pending", "new", "partially_filled", "filled", "cancelled", "rejected"];
 const PROBE_STATES = ["resting", "filled", "expired"];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** The venues the `*_venue_check` constraints admit, as migration 0049 leaves them: Binance joined for its paper rows. */
+const VENUES = ["revx", "kraken", "binance"];
 
 /**
  * What Postgres would refuse in this row, or null: the CHECK and NOT NULL constraints a write from the loop can break.
@@ -28,7 +30,7 @@ export function schemaRefusal(table: string, r: Row): string | null {
     return notNull(["strategy_id", "venue", "symbol", "mode", "side", "price", "base_size", "client_order_id", "state", "filled_base", "fee_usd", "requotes"])
       ?? check("mode", ["paper", "live"].includes(String(r.mode)))
       ?? check("side", ["buy", "sell"].includes(String(r.side)))
-      ?? check("venue", ["revx", "kraken"].includes(String(r.venue)))
+      ?? check("venue", VENUES.includes(String(r.venue)))
       ?? check("state", ORDER_STATES.includes(String(r.state)))
       ?? check("price", Number(r.price) > 0)
       ?? check("base_size", Number(r.base_size) > 0);
@@ -37,7 +39,7 @@ export function schemaRefusal(table: string, r: Row): string | null {
     return notNull(["strategy_id", "venue", "symbol", "side", "mode", "taker_price", "maker_price", "base_size", "state", "expires_at", "watching"])
       ?? check("mode", ["paper", "live"].includes(String(r.mode)))
       ?? check("side", ["buy", "sell"].includes(String(r.side)))
-      ?? check("venue", ["revx", "kraken"].includes(String(r.venue)))
+      ?? check("venue", VENUES.includes(String(r.venue)))
       ?? check("state", PROBE_STATES.includes(String(r.state)))
       ?? check("taker_price", Number(r.taker_price) > 0)
       ?? check("maker_price", Number(r.maker_price) > 0)
@@ -45,7 +47,7 @@ export function schemaRefusal(table: string, r: Row): string | null {
   }
   if (table === "agent_decisions") {
     return notNull(["strategy_id", "venue", "symbol", "mode", "bar_start", "state", "numbers", "provider", "rule_action", "rule_reason", "final_action", "final_reason", "risk_allowed", "risk_reason"])
-      ?? check("venue", ["revx", "kraken"].includes(String(r.venue)));
+      ?? check("venue", VENUES.includes(String(r.venue)));
   }
   return null;
 }
