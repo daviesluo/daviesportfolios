@@ -2263,6 +2263,39 @@ them is a new search with its own pre-registration.
 X's 0 % maker and 9 bps taker on a thin UK book, Binance's 10 bps on deep books
 and a broad list. The row that trades stays where §3.11 and §3.22 put it.
 
+### 3.25 Binance's universe, second search: reversal and low volatility — none passes (2026-09-23)
+
+§3.24 left two cross-sectional signals untested, and this is that search, the
+second on the same universe (`backtest_xsrev.ts` → `backtests/xsrev.json`;
+pre-registration and report `reviews/2026-09-23-binance-xsrev-{prereg,study}.md`;
+an independent Python re-implementation, `docs/agents/scripts/xsmom/verify_xsrev.py`,
+reproduces every candidate's daily equity path to the JSON's rounding). Everything
+but the signal is §3.24's, and the run refuses to start unless it first rebuilds
+`xsmom.json`'s universe, benchmarks and incumbent byte for byte. Six long-only
+weekly candidates: reversal (the five coins with the lowest 7-day return), the
+same under the BTC regime filter, and the in-sample choice over k × lookback;
+low volatility (the five with the lowest 30-day volatility), the same filtered,
+and the in-sample choice over k. **None passes: all six lose money in window A**
+(−4.8 % to −78.4 %), so none is positive in both A and B. Reversal's worst
+windows (−54 % to −78 %) are below its matched null's 95th percentile (P
+0.76–0.93), and every reversal grid point lost 51–92 % in sample too. Low
+volatility's worst windows (−5.9 % to −25.6 %) do clear the null (P ≤ 0.007), but
+the null matches exposure and turnover, not volatility: BTC, BNB, TRX, ETH, XRP
+and LTC fill 71–98 % of its slot-days, and BTC held alone beat it in B, C and D.
+Chance expected 0.009 passes, and 0.011 across both searches' 13 candidates.
+Half the live row (BTC/ETH/SOL/AVAX) and half the filtered low-volatility book
+has a worst window of −6.9 % against the row's −7.8 %, which random picks match
+in 0.8 % of draws, but the rule counts a combination only for a candidate that
+passes. Rebalancing that book on Thursday or Friday instead of Monday makes it
+positive in all four windows; choosing a weekday after seeing the windows would
+be a third search, and it breaks the 35 % drawdown limit in two windows anyway.
+
+**So both ends of last week's move lost to random picks on this universe** —
+§3.24's winners and §3.25's losers — and what separated the coins was
+volatility, not direction: the calmest coins, which are the largest, beat
+random picks and still lost the bear year. The verdict above §3.25 stands: no
+venue-specific rule.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

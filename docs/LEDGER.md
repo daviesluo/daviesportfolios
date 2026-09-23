@@ -46,9 +46,11 @@ list stays the short version; the plan is the reasoning behind it.
       evidence supports** (reference §3.23, §3.24): maker-only rules on
       Revolut X's 0 % fee, 0 of 6 pass; cross-sectional momentum over
       Binance's whole USDT list, 0 of 7, worst windows −64 to −79 %.
-      Untested and a new search if wanted: cross-sectional reversal and
-      low volatility on Binance (the momentum study saw last week's
-      winners reverse).
+      **Second search, DONE** (reference §3.25): reversal and low
+      volatility over the same list, 0 of 6 — all six lose window A;
+      reversal loses to random picks, low volatility beats them only by
+      holding the calmest (largest) coins. Chance: 0 of 13 over both
+      searches against 0.011 expected. No Binance row is proposed.
    6. **The fixed $20 per-order cap: removed** ("单笔上限删了吧，之后测试
       表现好的话我还会再加资金的"). An entry is its row's slot; reference
       §4.26. **DONE**: the tick (`ef28a06`), then migration `0048`
@@ -411,6 +413,17 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 08:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Binance's universe, second search: reversal and low volatility — 0 of 6 pass**
+(reference §3.25; `backtest_xsrev.ts` → `backtests/xsrev.json`; pre-registration
+frozen 08:07:52 UTC before any candidate ran). All six lose window A; reversal
+loses to random picks; low volatility beats them by holding the calmest, largest
+coins, and BTC alone beat it in B, C and D. Verified here, not taken from the
+agent: two re-runs from a clean `main` with the new files copied in wrote the
+agent's bytes (`ffaf6e74…`), the Python re-implementation printed VERIFIED, and
+the six hash-pinned files are unchanged. No Binance row is proposed.
 
 ### [2026-09-23 07:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
