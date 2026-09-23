@@ -151,8 +151,9 @@ list stays the short version; the plan is the reasoning behind it.
    live start): S2's answer is in §3.4 and may change what goes live; the
    review's remaining item is S7's venue half —
    the Kraken key's nonce window is Davies' setting at Kraken, before any
-   Kraken live row; the review's doc gaps for retention of
-   `agent_decisions` / `agent_orders` (unbounded; ~150 + ~25 rows a day).
+   Kraken live row. (The retention gap is closed, reference §4.25:
+   decisions, orders and probes are kept in full, ≈ 70 MB a year at
+   today's ≈ 100 decisions and 3 orders a day.)
    (g) **Live is waiting on Davies' word, and only that.** The brief is
    `docs/agents/go-live.md` (rows, coins, mechanics, edge, both windows'
    returns, fees, caps, what can go wrong). Recommendation in it:
@@ -187,7 +188,12 @@ list stays the short version; the plan is the reasoning behind it.
    word. **Usage rule**: no main-model polling and no scheduled check-ins;
    he asks when he wants a look.
 
-1. **Cloudflare's edge still serves five cached copies of the old
+1. ~~Cloudflare's edge still serves five cached copies of the old
+   exposure.~~ **Clear, re-checked 2026-09-23 01:27 UTC**: all five
+   paths return the app's `<!DOCTYPE html>` shell on
+   `daviesportfolios.pages.dev` and on `daviesluo.com` (`/docs/handover.md`
+   too). The note below is the history.
+   **Was: Cloudflare's edge still serves five cached copies of the old
    exposure, for up to seven days.** (Related, 2026-09-21: the same
    not-found fallback also inherited the assets' one-year `immutable`
    header and poisoned browsers' copies of new chunks during a deploy —
@@ -302,6 +308,19 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 02:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Two open items closed without code.** The pre-live review's retention
+gap (item 0(f)): reference §4.25 writes down what the agents tables keep.
+Basis and observations 30 days, candles 200 (1-minute candles 3);
+decisions, orders (which carry the fills) and probes in full, because
+every P&L figure is computed from them. Measured today: ≈ 100 decisions a
+day (66 trend-1h, 30 trend-4h, 3 momentum-1d) at ≈ 1.8 kB each and 3
+orders a day, about 70 MB a year against a 98 MB database; look again at
+~300 MB, when the first thing to go is old HOLD decisions' state JSON.
+Item 1, Cloudflare's cached copies of the old exposure: all five paths
+return the app's shell on both hosts now.
 
 ### [2026-09-23 02:01 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
