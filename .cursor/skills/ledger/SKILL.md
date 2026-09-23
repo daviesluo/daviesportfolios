@@ -16,14 +16,16 @@ description: >-
 # Read `.ledger/SKILL.md`, not this file
 
 Copyright 2026 Zheng Luo (Davies Luo), Apache License 2.0, whose text
-is `.ledger/LICENSE`. Keep this line when you copy the file.
+is `.agents/skills/ledger/LICENSE`. Keep this line when you copy the file.
 
 This file is a POINTER, not the protocol. The protocol is ONE file so
 that Claude Code, Cursor, Codex and anything reading `AGENTS.md` all
 load the same text and no copy can go stale against another. In this
-repository it lives at `.ledger/SKILL.md`, which is
-`../../../.ledger/SKILL.md` relative to THIS FILE and plain
-`.ledger/SKILL.md` from the repository root. Those are different
+repository it lives at `.agents/skills/ledger/SKILL.md`, which is
+`../../../.agents/skills/ledger/SKILL.md` relative to THIS FILE and plain
+`.agents/skills/ledger/SKILL.md` from the repository root. That folder is
+where Cursor and Codex look for skills, so they load the protocol itself
+and need no pointer. Those are different
 starting points and a session usually stands at the second, so if one
 does not resolve try the other, and if neither does, find it with
 `git grep -L 'This file is a POINTER' -- '*SKILL.md'`, which lists the
@@ -35,12 +37,13 @@ covers. Do not act on this file alone.
 
 ## What this repository does with it
 
-The live ledger is `LEDGER.md` at the root. `docs/handover.md` is its
-ARCHIVE — the decision log and the raw session transcripts — and is
+The live ledger is `docs/LEDGER.md`, beside `docs/handover.md`, its
+ARCHIVE — the decision log and the raw session transcripts — which is
 opened only when a closed item is reopened or audited. The hook is
 `bin/hooks/pre-commit`, reached through `core.hooksPath`, and both it and
 `ledger.path` are per-clone config that a rebuilt container loses:
-`LEDGER.md`'s machine-setup section has the commands.
+`sh bin/setup.sh` sets both, and the ledger's machine-setup section says
+so.
 
 Everything beside the protocol is part of the same package: the
-`README.md`, `EXAMPLE.md` and the self-test under `.ledger/bin/`.
+`README.md`, `EXAMPLE.md` and the self-test under `.agents/skills/ledger/bin/`.

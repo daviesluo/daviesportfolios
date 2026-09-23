@@ -424,7 +424,7 @@ How the less obvious parts work, and why they are built the way they are.
 ## File map
 
 One line per file: what it is for. Why a file is built the way it is
-lives in its own comments; what happened to it lives in `LEDGER.md` and
+lives in its own comments; what happened to it lives in `docs/LEDGER.md` and
 git. Until 2026-09-23 each row here told its file's whole story, and
 that longer text is still in git (`git show 75cd4e1:docs/map.md`).
 
@@ -641,8 +641,8 @@ before touching migration state.
 | `docs/agents/backtests/` | The studies' results, as JSON. |
 | `docs/agents/scripts/agents-baseline-backtest.py` | The first baseline backtest, in Python. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
-| `LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
-| `AGENTS.md`, `.claude/`, `.cursor/`, `.agents/`, `.ledger/` | Instructions for the AI coding agents, and the ledger protocol they follow. |
+| `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
+| `AGENTS.md`, `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, and the ledger protocol they follow (`.agents/skills/ledger/`). |
 
 ---
 

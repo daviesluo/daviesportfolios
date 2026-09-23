@@ -9,7 +9,7 @@ set -e
 cd "$(git rev-parse --show-toplevel)"
 
 git config core.hooksPath bin/hooks
-git config --local ledger.path LEDGER.md
+git config --local ledger.path docs/LEDGER.md
 
 npm ci
 

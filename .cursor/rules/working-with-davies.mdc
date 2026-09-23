@@ -666,10 +666,10 @@ DATES, the board supplies QUANTITY, and anything reading lots stands the
 residue in rather than believing the shortfall. Never back-fill the
 missing lots — that invents purchase dates that never happened.
 
-## The record: `LEDGER.md` live, `docs/handover.md` archived
+## The record: `docs/LEDGER.md` live, `docs/handover.md` archived
 
-`LEDGER.md` at the repo root is the LIVE record, under the ledger
-protocol in `.ledger/SKILL.md`: what remains, the machine setup, then
+`docs/LEDGER.md` is the LIVE record, under the ledger protocol in
+`.agents/skills/ledger/SKILL.md`: what remains, the machine setup, then
 history newest first, each section opening with a source header. **It is
 maintained in real time and in the same commit as the work** — a
 pre-commit hook refuses a commit whose ledger is two behind. Read it

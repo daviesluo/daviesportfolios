@@ -9,7 +9,7 @@
 #   git config --local ledger.path <path>
 # --local matters: a plain `git config` reads system and global too, so a
 # global entry would retarget the gates in every repository on the machine.
-LEDGER=$(git config --local ledger.path 2>/dev/null || echo "LEDGER.md")
+LEDGER=$(git config --local ledger.path 2>/dev/null || echo "docs/LEDGER.md")
 
 # AND A CLONE STILL CARRYING THE OLD KEY IS TOLD, ONCE, LOUDLY. This key
 # was named `relay.ledger` before the protocol was renamed, and the key

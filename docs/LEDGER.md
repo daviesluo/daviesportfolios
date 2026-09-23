@@ -1,7 +1,7 @@
 # Ledger
 
 The live handover record for this repository, under the ledger protocol
-in `.ledger/SKILL.md`. Read this file first on any resume; it is kept
+in `.agents/skills/ledger/SKILL.md`. Read this file first on any resume; it is kept
 small on purpose. The deep record — the full decision log and the raw
 session transcripts — is `docs/handover.md`, which is this ledger's ARCHIVE
 and is opened only when a closed item is reopened or audited.
@@ -267,8 +267,10 @@ A rebuilt container loses every line below. Run them before working.
 
   `bin/setup.sh` sets `core.hooksPath bin/hooks` (the ledger hook moved
   from `hooks/` on 2026-09-23: a clone still pointing at `hooks` runs NO
-  hook, and git says nothing, until it re-runs this), the ledger path,
-  and `npm ci`. It leaves the identity alone because the repo is meant
+  hook, and git says nothing, until it re-runs this), `ledger.path
+  docs/LEDGER.md` (this file left the root the same day; a clone still
+  set to `LEDGER.md` is stopped at its next commit with "the ledger does
+  not exist", which is the cue to re-run it), and `npm ci`. It leaves the identity alone because the repo is meant
   to go public and a stranger's setup must not commit as Davies.
   `sh bin/gates.sh` runs every CI gate in CI's order and warns when the
   hook is off.
@@ -311,6 +313,21 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 02:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The ledger and its package leave the root** (Davies, 02:00 UTC: a root
+file a commit only re-pointed still holds a root slot; "can .ledger and
+.agents/skills/ledger merge?"). They can: `.agents/skills/` is where
+Cursor and Codex look for skills (the package's own install table), so
+the vendored package now lives there whole — protocol, README, EXAMPLE,
+self-test, licence — and needs no pointer on those tools; the Claude Code
+and Cursor pointers name the new place. `LEDGER.md` is `docs/LEDGER.md`,
+beside its archive `docs/handover.md`. The hook's default path, `bin/setup.sh`
+and every live reference follow; historical mentions (the pre-live
+review, old ledger entries, comments on what the site once published)
+are left as written. A clone whose `ledger.path` still says `LEDGER.md`
+is stopped loudly at its next commit, not silently unguarded.
 
 ### [2026-09-23 02:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
