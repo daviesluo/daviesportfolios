@@ -1,0 +1,218 @@
+{
+ "BTC": {
+  "minutes": 40960,
+  "traded_minutes": 10193,
+  "k=10bps": {
+   "zero_volume": 900,
+   "with_volume": 26,
+   "usd_volume": 133174
+  },
+  "k=20bps": {
+   "zero_volume": 129,
+   "with_volume": 7,
+   "usd_volume": 66771
+  },
+  "k=30bps": {
+   "zero_volume": 67,
+   "with_volume": 6,
+   "usd_volume": 34897
+  },
+  "k=60bps": {
+   "zero_volume": 26,
+   "with_volume": 3,
+   "usd_volume": 1254
+  }
+ },
+ "ETH": {
+  "minutes": 40960,
+  "traded_minutes": 7579,
+  "k=10bps": {
+   "zero_volume": 1490,
+   "with_volume": 32,
+   "usd_volume": 685191
+  },
+  "k=20bps": {
+   "zero_volume": 261,
+   "with_volume": 10,
+   "usd_volume": 259248
+  },
+  "k=30bps": {
+   "zero_volume": 90,
+   "with_volume": 7,
+   "usd_volume": 28923
+  },
+  "k=60bps": {
+   "zero_volume": 31,
+   "with_volume": 5,
+   "usd_volume": 5696
+  }
+ },
+ "SOL": {
+  "minutes": 40961,
+  "traded_minutes": 9641,
+  "k=10bps": {
+   "zero_volume": 2023,
+   "with_volume": 28,
+   "usd_volume": 95981
+  },
+  "k=20bps": {
+   "zero_volume": 387,
+   "with_volume": 9,
+   "usd_volume": 6567
+  },
+  "k=30bps": {
+   "zero_volume": 111,
+   "with_volume": 4,
+   "usd_volume": 5188
+  },
+  "k=60bps": {
+   "zero_volume": 27,
+   "with_volume": 3,
+   "usd_volume": 5141
+  }
+ },
+ "XRP": {
+  "minutes": 40961,
+  "traded_minutes": 9077,
+  "k=10bps": {
+   "zero_volume": 3333,
+   "with_volume": 101,
+   "usd_volume": 876080
+  },
+  "k=20bps": {
+   "zero_volume": 1019,
+   "with_volume": 42,
+   "usd_volume": 501171
+  },
+  "k=30bps": {
+   "zero_volume": 458,
+   "with_volume": 30,
+   "usd_volume": 283431
+  },
+  "k=60bps": {
+   "zero_volume": 140,
+   "with_volume": 9,
+   "usd_volume": 34002
+  }
+ },
+ "AVAX": {
+  "minutes": 40961,
+  "traded_minutes": 1517,
+  "k=10bps": {
+   "zero_volume": 19442,
+   "with_volume": 398,
+   "usd_volume": 1291069
+  },
+  "k=20bps": {
+   "zero_volume": 1940,
+   "with_volume": 63,
+   "usd_volume": 53399
+  },
+  "k=30bps": {
+   "zero_volume": 900,
+   "with_volume": 39,
+   "usd_volume": 45370
+  },
+  "k=60bps": {
+   "zero_volume": 296,
+   "with_volume": 22,
+   "usd_volume": 35698
+  }
+ },
+ "LINK": {
+  "minutes": 40962,
+  "traded_minutes": 2930,
+  "k=10bps": {
+   "zero_volume": 5243,
+   "with_volume": 148,
+   "usd_volume": 808123
+  },
+  "k=20bps": {
+   "zero_volume": 1189,
+   "with_volume": 40,
+   "usd_volume": 254211
+  },
+  "k=30bps": {
+   "zero_volume": 614,
+   "with_volume": 29,
+   "usd_volume": 11553
+  },
+  "k=60bps": {
+   "zero_volume": 199,
+   "with_volume": 18,
+   "usd_volume": 5876
+  }
+ },
+ "DOGE": {
+  "minutes": 40962,
+  "traded_minutes": 1937,
+  "k=10bps": {
+   "zero_volume": 2115,
+   "with_volume": 49,
+   "usd_volume": 140691
+  },
+  "k=20bps": {
+   "zero_volume": 842,
+   "with_volume": 30,
+   "usd_volume": 81345
+  },
+  "k=30bps": {
+   "zero_volume": 556,
+   "with_volume": 29,
+   "usd_volume": 67107
+  },
+  "k=60bps": {
+   "zero_volume": 340,
+   "with_volume": 28,
+   "usd_volume": 67086
+  }
+ },
+ "ADA": {
+  "minutes": 40962,
+  "traded_minutes": 1676,
+  "k=10bps": {
+   "zero_volume": 20805,
+   "with_volume": 451,
+   "usd_volume": 734538
+  },
+  "k=20bps": {
+   "zero_volume": 2042,
+   "with_volume": 49,
+   "usd_volume": 87722
+  },
+  "k=30bps": {
+   "zero_volume": 876,
+   "with_volume": 26,
+   "usd_volume": 29897
+  },
+  "k=60bps": {
+   "zero_volume": 326,
+   "with_volume": 16,
+   "usd_volume": 29092
+  }
+ },
+ "HBAR": {
+  "minutes": 40963,
+  "traded_minutes": 1564,
+  "k=10bps": {
+   "zero_volume": 18926,
+   "with_volume": 385,
+   "usd_volume": 443745
+  },
+  "k=20bps": {
+   "zero_volume": 3069,
+   "with_volume": 79,
+   "usd_volume": 97967
+  },
+  "k=30bps": {
+   "zero_volume": 1244,
+   "with_volume": 46,
+   "usd_volume": 49831
+  },
+  "k=60bps": {
+   "zero_volume": 516,
+   "with_volume": 22,
+   "usd_volume": 34868
+  }
+ }
+}

@@ -1,0 +1,432 @@
+{
+ "BTC-GBP": {
+  "total_quote_volume_28d": 71975200,
+  "top5_minutes_of_day": [
+   [
+    "12:30",
+    1.02
+   ],
+   [
+    "13:36",
+    0.88
+   ],
+   [
+    "20:04",
+    0.82
+   ],
+   [
+    "13:35",
+    0.75
+   ],
+   [
+    "18:51",
+    0.72
+   ]
+  ],
+  "top5_share_pct": 4.2,
+  "uniform_top5_pct": 0.35,
+  "top3_minute_of_hour": [
+   [
+    4,
+    3.07
+   ],
+   [
+    51,
+    3.05
+   ],
+   [
+    30,
+    2.76
+   ]
+  ],
+  "uniform_minute_of_hour_pct": 1.67,
+  "traded_days_at_top_minute": 16
+ },
+ "BTC-USD": {
+  "total_quote_volume_28d": 68178512,
+  "top5_minutes_of_day": [
+   [
+    "19:32",
+    2.98
+   ],
+   [
+    "12:35",
+    1.67
+   ],
+   [
+    "16:25",
+    1.31
+   ],
+   [
+    "02:51",
+    1.26
+   ],
+   [
+    "15:39",
+    1.08
+   ]
+  ],
+  "top5_share_pct": 8.31,
+  "uniform_top5_pct": 0.35,
+  "top3_minute_of_hour": [
+   [
+    32,
+    4.44
+   ],
+   [
+    30,
+    3.25
+   ],
+   [
+    35,
+    3.03
+   ]
+  ],
+  "uniform_minute_of_hour_pct": 1.67,
+  "traded_days_at_top_minute": 25
+ },
+ "ETH-GBP": {
+  "total_quote_volume_28d": 70603517,
+  "top5_minutes_of_day": [
+   [
+    "12:30",
+    0.86
+   ],
+   [
+    "18:50",
+    0.83
+   ],
+   [
+    "14:05",
+    0.82
+   ],
+   [
+    "12:46",
+    0.75
+   ],
+   [
+    "16:27",
+    0.71
+   ]
+  ],
+  "top5_share_pct": 3.96,
+  "uniform_top5_pct": 0.35,
+  "top3_minute_of_hour": [
+   [
+    2,
+    2.7
+   ],
+   [
+    39,
+    2.54
+   ],
+   [
+    9,
+    2.51
+   ]
+  ],
+  "uniform_minute_of_hour_pct": 1.67,
+  "traded_days_at_top_minute": 14
+ },
+ "ETH-USD": {
+  "total_quote_volume_28d": 45864980,
+  "top5_minutes_of_day": [
+   [
+    "13:49",
+    2.06
+   ],
+   [
+    "12:30",
+    1.62
+   ],
+   [
+    "13:30",
+    1.19
+   ],
+   [
+    "18:05",
+    1.12
+   ],
+   [
+    "19:07",
+    1.12
+   ]
+  ],
+  "top5_share_pct": 7.12,
+  "uniform_top5_pct": 0.35,
+  "top3_minute_of_hour": [
+   [
+    30,
+    3.98
+   ],
+   [
+    5,
+    3.51
+   ],
+   [
+    49,
+    3.28
+   ]
+  ],
+  "uniform_minute_of_hour_pct": 1.67,
+  "traded_days_at_top_minute": 8
+ },
+ "XRP-GBP": {
+  "total_quote_volume_28d": 41745226,
+  "top5_minutes_of_day": [
+   [
+    "12:40",
+    0.85
+   ],
+   [
+    "14:04",
+    0.62
+   ],
+   [
+    "14:37",
+    0.61
+   ],
+   [
+    "18:00",
+    0.55
+   ],
+   [
+    "13:40",
+    0.54
+   ]
+  ],
+  "top5_share_pct": 3.18,
+  "uniform_top5_pct": 0.35,
+  "top3_minute_of_hour": [
+   [
+    40,
+    2.85
+   ],
+   [
+    42,
+    2.42
+   ],
+   [
+    0,
+    2.41
+   ]
+  ],
+  "uniform_minute_of_hour_pct": 1.67,
+  "traded_days_at_top_minute": 12
+ },
+ "XRP-USD": {
+  "total_quote_volume_28d": 41467552,
+  "top5_minutes_of_day": [
+   [
+    "13:05",
+    1.41
+   ],
+   [
+    "19:02",
+    1.34
+   ],
+   [
+    "20:28",
+    1.33
+   ],
+   [
+    "14:58",
+    0.74
+   ],
+   [
+    "18:05",
+    0.7
+   ]
+  ],
+  "top5_share_pct": 5.52,
+  "uniform_top5_pct": 0.35,
+  "top3_minute_of_hour": [
+   [
+    5,
+    3.31
+   ],
+   [
+    2,
+    3.25
+   ],
+   [
+    28,
+    2.72
+   ]
+  ],
+  "uniform_minute_of_hour_pct": 1.67,
+  "traded_days_at_top_minute": 10
+ },
+ "SOL-GBP": {
+  "total_quote_volume_28d": 24367258,
+  "top5_minutes_of_day": [
+   [
+    "20:30",
+    1.95
+   ],
+   [
+    "00:15",
+    1.18
+   ],
+   [
+    "02:06",
+    1.13
+   ],
+   [
+    "15:34",
+    1.09
+   ],
+   [
+    "01:12",
+    1.05
+   ]
+  ],
+  "top5_share_pct": 6.39,
+  "uniform_top5_pct": 0.35,
+  "top3_minute_of_hour": [
+   [
+    34,
+    3.81
+   ],
+   [
+    30,
+    3.63
+   ],
+   [
+    15,
+    2.77
+   ]
+  ],
+  "uniform_minute_of_hour_pct": 1.67,
+  "traded_days_at_top_minute": 13
+ },
+ "SOL-USD": {
+  "total_quote_volume_28d": 25949155,
+  "top5_minutes_of_day": [
+   [
+    "08:01",
+    2.46
+   ],
+   [
+    "12:39",
+    2.3
+   ],
+   [
+    "08:46",
+    2.26
+   ],
+   [
+    "15:18",
+    2.23
+   ],
+   [
+    "09:06",
+    2.21
+   ]
+  ],
+  "top5_share_pct": 11.47,
+  "uniform_top5_pct": 0.35,
+  "top3_minute_of_hour": [
+   [
+    1,
+    4.33
+   ],
+   [
+    52,
+    3.57
+   ],
+   [
+    40,
+    3.51
+   ]
+  ],
+  "uniform_minute_of_hour_pct": 1.67,
+  "traded_days_at_top_minute": 7
+ },
+ "USDC-GBP": {
+  "total_quote_volume_28d": 1774549,
+  "top5_minutes_of_day": [
+   [
+    "15:31",
+    19.12
+   ],
+   [
+    "13:17",
+    3.37
+   ],
+   [
+    "14:17",
+    3.15
+   ],
+   [
+    "04:43",
+    2.82
+   ],
+   [
+    "18:08",
+    2.3
+   ]
+  ],
+  "top5_share_pct": 30.76,
+  "uniform_top5_pct": 0.35,
+  "top3_minute_of_hour": [
+   [
+    31,
+    20.24
+   ],
+   [
+    17,
+    7.09
+   ],
+   [
+    41,
+    3.93
+   ]
+  ],
+  "uniform_minute_of_hour_pct": 1.67,
+  "traded_days_at_top_minute": 2
+ },
+ "USDT-GBP": {
+  "total_quote_volume_28d": 2368269,
+  "top5_minutes_of_day": [
+   [
+    "11:03",
+    3.45
+   ],
+   [
+    "10:48",
+    1.47
+   ],
+   [
+    "14:40",
+    1.33
+   ],
+   [
+    "13:54",
+    1.23
+   ],
+   [
+    "15:59",
+    1.23
+   ]
+  ],
+  "top5_share_pct": 8.7,
+  "uniform_top5_pct": 0.35,
+  "top3_minute_of_hour": [
+   [
+    3,
+    4.5
+   ],
+   [
+    54,
+    3.69
+   ],
+   [
+    59,
+    3.45
+   ]
+  ],
+  "uniform_minute_of_hour_pct": 1.67,
+  "traded_days_at_top_minute": 2
+ }
+}

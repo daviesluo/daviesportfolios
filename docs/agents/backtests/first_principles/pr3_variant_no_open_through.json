@@ -1,0 +1,28 @@
+{
+ "IS": {
+  "trips": 37,
+  "pnl_usd": 4.3218,
+  "return_on_capital_pct": 0.3601,
+  "win_rate": 0.9459,
+  "worst_trip_usd": -0.0148,
+  "best_trip_usd": 0.3119,
+  "max_drawdown_usd": 0.0148,
+  "taker_exits": 1,
+  "fill_notional_usd": 2981.2,
+  "fill_notional_usd_per_day": 202.12,
+  "pnl_usd_per_day": 0.293
+ },
+ "OOS": {
+  "trips": 36,
+  "pnl_usd": 3.5857,
+  "return_on_capital_pct": 0.2988,
+  "win_rate": 0.9167,
+  "worst_trip_usd": -0.0534,
+  "best_trip_usd": 0.2953,
+  "max_drawdown_usd": 0.0534,
+  "taker_exits": 0,
+  "fill_notional_usd": 2766.85,
+  "fill_notional_usd_per_day": 208.82,
+  "pnl_usd_per_day": 0.2706
+ }
+}

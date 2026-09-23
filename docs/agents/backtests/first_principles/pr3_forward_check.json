@@ -1,0 +1,52 @@
+{
+ "tape_window": [
+  "2026-09-23T11:15:35.143000",
+  "2026-09-23T12:42:24.033000"
+ ],
+ "USDC-GBP": {
+  "candle_close": {
+   "closed_round_trips": [],
+   "open_positions_at_end": [
+    {
+     "side": "bid",
+     "k": 0.001,
+     "entry": 0.7521
+    }
+   ]
+  },
+  "tape_print": {
+   "closed_round_trips": [],
+   "open_positions_at_end": [
+    {
+     "side": "bid",
+     "k": 0.001,
+     "entry": 0.7521
+    }
+   ]
+  },
+  "uk_prints_in_window": 5
+ },
+ "USDT-GBP": {
+  "candle_close": {
+   "closed_round_trips": [],
+   "open_positions_at_end": [
+    {
+     "side": "ask",
+     "k": 0.001,
+     "entry": 0.7535
+    }
+   ]
+  },
+  "tape_print": {
+   "closed_round_trips": [],
+   "open_positions_at_end": [
+    {
+     "side": "ask",
+     "k": 0.001,
+     "entry": 0.7535
+    }
+   ]
+  },
+  "uk_prints_in_window": 13
+ }
+}

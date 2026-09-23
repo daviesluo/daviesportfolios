@@ -671,6 +671,7 @@ before touching migration state.
 | `docs/agents/backtests/` | The studies' results, as JSON, and in `inputs/` the public data a study read that cannot be fetched again unchanged. |
 | `docs/agents/scripts/agents-baseline-backtest.py` | The first baseline backtest, in Python. |
 | `docs/agents/scripts/xsmom/list_symbols.py`, `fetch_klines.py`, `qa_data.py`, `verify_xsmom.py`, `verify_xsrev.py` | The Binance cross-sectional studies' data: every USDT pair's daily klines from the keyless bulk archive, checked and hashed; a data check; and an independent re-implementation of each study. |
+| `docs/agents/scripts/first_principles/quote_sim.py`, `pr1_revx_stable_quotes.py`, `pr2_binance_stable_quotes.py`, `pr3_revx_gbp_stable_touch.py`, `pr4_revx_usd_stable_touch.py` | The first-principles search's four pre-registered tests on Revolut X's and Binance's stablecoin books, and the quote simulator the first two share. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |

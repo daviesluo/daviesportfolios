@@ -1,0 +1,394 @@
+{
+ "bar": {
+  "1_primary_oos_gt_0": true,
+  "2_primary_oos_gt_null_p95": true,
+  "3_stress_oos_gt_0": true,
+  "4_at_least_20_oos_trips_and_orders_le_1000_per_day": false,
+  "PASS": false
+ },
+ "capital_usd": 1200.0,
+ "full_100_fills": {
+  "IS": {
+   "best_trip_usd": 0.3091,
+   "fill_notional_usd": 1100.0,
+   "fill_notional_usd_per_day": 74.58,
+   "max_drawdown_usd": 0.04,
+   "pnl_usd": 1.2084,
+   "pnl_usd_per_day": 0.0819,
+   "return_on_capital_pct": 0.1007,
+   "taker_exits": 1,
+   "trips": 11,
+   "win_rate": 0.9091,
+   "worst_trip_usd": -0.04
+  },
+  "OOS": {
+   "best_trip_usd": 0.1402,
+   "fill_notional_usd": 700.0,
+   "fill_notional_usd_per_day": 52.83,
+   "max_drawdown_usd": 0.06,
+   "pnl_usd": 0.4405,
+   "pnl_usd_per_day": 0.0332,
+   "return_on_capital_pct": 0.0367,
+   "taker_exits": 2,
+   "trips": 7,
+   "win_rate": 0.8571,
+   "worst_trip_usd": -0.06
+  },
+  "orders_per_day": 2.7
+ },
+ "is_days": 14.75,
+ "null_random_time": {
+  "draws": 2000,
+  "mean": -0.0107,
+  "p50": -0.0069,
+  "p95": 0.0926,
+  "share_draws_ge_primary": 0.0
+ },
+ "oos_days": 13.25,
+ "oos_trips": [
+  {
+   "book": "USDT-USD",
+   "entry": 0.9985,
+   "exit": 0.9994,
+   "how": "maker",
+   "i_entry": 31172,
+   "k": 0.001,
+   "notional_usd": 100.0,
+   "pnl_usd": 0.090135,
+   "side": "bid",
+   "t_entry": 1789572840000,
+   "t_exit": 1789585980000
+  },
+  {
+   "book": "USDT-USD",
+   "entry": 1.0004,
+   "exit": 0.9994,
+   "how": "maker",
+   "i_entry": 31391,
+   "k": 0.001,
+   "notional_usd": 100.0,
+   "pnl_usd": 0.09996,
+   "side": "ask",
+   "t_entry": 1789585980000,
+   "t_exit": 1789586160000
+  },
+  {
+   "book": "USDT-USD",
+   "entry": 0.9984,
+   "exit": 0.997801,
+   "how": "taker",
+   "i_entry": 32519,
+   "k": 0.001,
+   "notional_usd": 100.0,
+   "pnl_usd": -0.059976,
+   "side": "bid",
+   "t_entry": 1789653660000,
+   "t_exit": 1789740060000
+  },
+  {
+   "book": "USDT-USD",
+   "entry": 0.9975,
+   "exit": 0.997801,
+   "how": "taker",
+   "i_entry": 32519,
+   "k": 0.002,
+   "notional_usd": 100.0,
+   "pnl_usd": 0.030195,
+   "side": "bid",
+   "t_entry": 1789653660000,
+   "t_exit": 1789740060000
+  },
+  {
+   "book": "USDT-USD",
+   "entry": 0.9999,
+   "exit": 0.9994,
+   "how": "maker",
+   "i_entry": 34031,
+   "k": 0.001,
+   "notional_usd": 100.0,
+   "pnl_usd": 0.050005,
+   "side": "ask",
+   "t_entry": 1789744380000,
+   "t_exit": 1789794180000
+  },
+  {
+   "book": "USDT-USD",
+   "entry": 1.0005,
+   "exit": 0.9996,
+   "how": "maker",
+   "i_entry": 38461,
+   "k": 0.001,
+   "notional_usd": 100.0,
+   "pnl_usd": 0.089955,
+   "side": "ask",
+   "t_entry": 1790010180000,
+   "t_exit": 1790022480000
+  },
+  {
+   "book": "USDT-USD",
+   "entry": 0.9984,
+   "exit": 0.9998,
+   "how": "maker",
+   "i_entry": 39330,
+   "k": 0.001,
+   "notional_usd": 100.0,
+   "pnl_usd": 0.140224,
+   "side": "bid",
+   "t_entry": 1790062320000,
+   "t_exit": 1790122080000
+  }
+ ],
+ "prereg": "prereg_revx_usd_stable_touch.md",
+ "primary": {
+  "IS": {
+   "best_trip_usd": 0.3091,
+   "fill_notional_usd": 1069.92,
+   "fill_notional_usd_per_day": 72.54,
+   "max_drawdown_usd": 0.028,
+   "pnl_usd": 1.2204,
+   "pnl_usd_per_day": 0.0827,
+   "return_on_capital_pct": 0.1017,
+   "taker_exits": 1,
+   "trips": 11,
+   "win_rate": 0.9091,
+   "worst_trip_usd": -0.028
+  },
+  "IS_by_book": {
+   "USDC-USD": {
+    "best_trip_usd": 0.3091,
+    "fill_notional_usd": 600.0,
+    "fill_notional_usd_per_day": 40.68,
+    "max_drawdown_usd": 0.0,
+    "pnl_usd": 0.9184,
+    "pnl_usd_per_day": 0.0623,
+    "return_on_capital_pct": 0.1531,
+    "taker_exits": 0,
+    "trips": 6,
+    "win_rate": 1.0,
+    "worst_trip_usd": 0.0899
+   },
+   "USDT-USD": {
+    "best_trip_usd": 0.0999,
+    "fill_notional_usd": 469.92,
+    "fill_notional_usd_per_day": 31.86,
+    "max_drawdown_usd": 0.028,
+    "pnl_usd": 0.302,
+    "pnl_usd_per_day": 0.0205,
+    "return_on_capital_pct": 0.0503,
+    "taker_exits": 1,
+    "trips": 5,
+    "win_rate": 0.8,
+    "worst_trip_usd": -0.028
+   }
+  },
+  "IS_by_rung": {
+   "k=0.1%": {
+    "best_trip_usd": 0.1099,
+    "fill_notional_usd": 869.92,
+    "fill_notional_usd_per_day": 58.98,
+    "max_drawdown_usd": 0.028,
+    "pnl_usd": 0.7017,
+    "pnl_usd_per_day": 0.0476,
+    "return_on_capital_pct": 0.1754,
+    "taker_exits": 1,
+    "trips": 9,
+    "win_rate": 0.8889,
+    "worst_trip_usd": -0.028
+   },
+   "k=0.2%": {
+    "best_trip_usd": 0.2096,
+    "fill_notional_usd": 100.0,
+    "fill_notional_usd_per_day": 6.78,
+    "max_drawdown_usd": 0.0,
+    "pnl_usd": 0.2096,
+    "pnl_usd_per_day": 0.0142,
+    "return_on_capital_pct": 0.0524,
+    "taker_exits": 0,
+    "trips": 1,
+    "win_rate": 1.0,
+    "worst_trip_usd": 0.2096
+   },
+   "k=0.3%": {
+    "best_trip_usd": 0.3091,
+    "fill_notional_usd": 100.0,
+    "fill_notional_usd_per_day": 6.78,
+    "max_drawdown_usd": 0.0,
+    "pnl_usd": 0.3091,
+    "pnl_usd_per_day": 0.021,
+    "return_on_capital_pct": 0.0773,
+    "taker_exits": 0,
+    "trips": 1,
+    "win_rate": 1.0,
+    "worst_trip_usd": 0.3091
+   }
+  },
+  "IS_by_side": {
+   "ask": {
+    "best_trip_usd": 0.3091,
+    "fill_notional_usd": 800.0,
+    "fill_notional_usd_per_day": 54.24,
+    "max_drawdown_usd": 0.0,
+    "pnl_usd": 1.0682,
+    "pnl_usd_per_day": 0.0724,
+    "return_on_capital_pct": 0.178,
+    "taker_exits": 0,
+    "trips": 8,
+    "win_rate": 1.0,
+    "worst_trip_usd": 0.06
+   },
+   "bid": {
+    "best_trip_usd": 0.0901,
+    "fill_notional_usd": 269.92,
+    "fill_notional_usd_per_day": 18.3,
+    "max_drawdown_usd": 0.028,
+    "pnl_usd": 0.1522,
+    "pnl_usd_per_day": 0.0103,
+    "return_on_capital_pct": 0.0254,
+    "taker_exits": 1,
+    "trips": 3,
+    "win_rate": 0.6667,
+    "worst_trip_usd": -0.028
+   }
+  },
+  "OOS": {
+   "best_trip_usd": 0.1402,
+   "fill_notional_usd": 700.0,
+   "fill_notional_usd_per_day": 52.83,
+   "max_drawdown_usd": 0.06,
+   "pnl_usd": 0.4405,
+   "pnl_usd_per_day": 0.0332,
+   "return_on_capital_pct": 0.0367,
+   "taker_exits": 2,
+   "trips": 7,
+   "win_rate": 0.8571,
+   "worst_trip_usd": -0.06
+  },
+  "OOS_by_book": {
+   "USDC-USD": {
+    "best_trip_usd": 0,
+    "fill_notional_usd": 0,
+    "fill_notional_usd_per_day": 0.0,
+    "max_drawdown_usd": 0.0,
+    "pnl_usd": 0,
+    "pnl_usd_per_day": 0.0,
+    "return_on_capital_pct": 0.0,
+    "taker_exits": 0,
+    "trips": 0,
+    "win_rate": null,
+    "worst_trip_usd": 0
+   },
+   "USDT-USD": {
+    "best_trip_usd": 0.1402,
+    "fill_notional_usd": 700.0,
+    "fill_notional_usd_per_day": 52.83,
+    "max_drawdown_usd": 0.06,
+    "pnl_usd": 0.4405,
+    "pnl_usd_per_day": 0.0332,
+    "return_on_capital_pct": 0.0734,
+    "taker_exits": 2,
+    "trips": 7,
+    "win_rate": 0.8571,
+    "worst_trip_usd": -0.06
+   }
+  },
+  "OOS_by_rung": {
+   "k=0.1%": {
+    "best_trip_usd": 0.1402,
+    "fill_notional_usd": 600.0,
+    "fill_notional_usd_per_day": 45.28,
+    "max_drawdown_usd": 0.06,
+    "pnl_usd": 0.4103,
+    "pnl_usd_per_day": 0.031,
+    "return_on_capital_pct": 0.1026,
+    "taker_exits": 1,
+    "trips": 6,
+    "win_rate": 0.8333,
+    "worst_trip_usd": -0.06
+   },
+   "k=0.2%": {
+    "best_trip_usd": 0.0302,
+    "fill_notional_usd": 100.0,
+    "fill_notional_usd_per_day": 7.55,
+    "max_drawdown_usd": 0.0,
+    "pnl_usd": 0.0302,
+    "pnl_usd_per_day": 0.0023,
+    "return_on_capital_pct": 0.0075,
+    "taker_exits": 1,
+    "trips": 1,
+    "win_rate": 1.0,
+    "worst_trip_usd": 0.0302
+   },
+   "k=0.3%": {
+    "best_trip_usd": 0,
+    "fill_notional_usd": 0,
+    "fill_notional_usd_per_day": 0.0,
+    "max_drawdown_usd": 0.0,
+    "pnl_usd": 0,
+    "pnl_usd_per_day": 0.0,
+    "return_on_capital_pct": 0.0,
+    "taker_exits": 0,
+    "trips": 0,
+    "win_rate": null,
+    "worst_trip_usd": 0
+   }
+  },
+  "OOS_by_side": {
+   "ask": {
+    "best_trip_usd": 0.1,
+    "fill_notional_usd": 300.0,
+    "fill_notional_usd_per_day": 22.64,
+    "max_drawdown_usd": 0.0,
+    "pnl_usd": 0.2399,
+    "pnl_usd_per_day": 0.0181,
+    "return_on_capital_pct": 0.04,
+    "taker_exits": 0,
+    "trips": 3,
+    "win_rate": 1.0,
+    "worst_trip_usd": 0.05
+   },
+   "bid": {
+    "best_trip_usd": 0.1402,
+    "fill_notional_usd": 400.0,
+    "fill_notional_usd_per_day": 30.19,
+    "max_drawdown_usd": 0.06,
+    "pnl_usd": 0.2006,
+    "pnl_usd_per_day": 0.0151,
+    "return_on_capital_pct": 0.0334,
+    "taker_exits": 2,
+    "trips": 4,
+    "win_rate": 0.75,
+    "worst_trip_usd": -0.06
+   }
+  },
+  "orders_per_day": 2.7
+ },
+ "stress": {
+  "IS": {
+   "best_trip_usd": 0.1298,
+   "fill_notional_usd": 900.0,
+   "fill_notional_usd_per_day": 61.02,
+   "max_drawdown_usd": 0.0999,
+   "pnl_usd": 0.5496,
+   "pnl_usd_per_day": 0.0373,
+   "return_on_capital_pct": 0.0458,
+   "taker_exits": 3,
+   "trips": 9,
+   "win_rate": 0.7778,
+   "worst_trip_usd": -0.0999
+  },
+  "OOS": {
+   "best_trip_usd": 0.1402,
+   "fill_notional_usd": 600.0,
+   "fill_notional_usd_per_day": 45.28,
+   "max_drawdown_usd": 0.23,
+   "pnl_usd": 0.1005,
+   "pnl_usd_per_day": 0.0076,
+   "return_on_capital_pct": 0.0084,
+   "taker_exits": 2,
+   "trips": 6,
+   "win_rate": 0.6667,
+   "worst_trip_usd": -0.16
+  },
+  "orders_per_day": 2.5
+ }
+}

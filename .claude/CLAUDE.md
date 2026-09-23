@@ -377,8 +377,12 @@ that follow from that evidence, in short:
   each venue's own strategy — maker-only rules on Revolut X's 0 % fee (§3.23)
   and cross-sectional momentum over Binance's whole USDT list (§3.24), then
   reversal and low volatility over the same list (§3.25) — failed its
-  pre-registered bar, so what differs between the venues is cost and reach,
-  not a rule. A faster rule is a fee schedule until data says otherwise.
+  pre-registered bar, and a search from first principles (§3.26: 31 ideas,
+  four pre-registered tests) found nothing worth money either. Its one
+  small edge, 0 % quotes either side of interbank on Revolut X's USDC/GBP
+  and USDT/GBP books, is a paper-test candidate and is not seeded. So what
+  differs between the venues is cost and reach, not a rule. A faster rule
+  is a fee schedule until data says otherwise.
   Backtests: reference §3.3a–§3.7, run with the loop's own fills, stops
   and cooldown — including the rotation rule since 2026-09-21, where the
   8 % floor turns out to make it WORSE on five variants of six (§3.4); the backtester writes `docs/agents/backtests/summary.json`

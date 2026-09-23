@@ -1,0 +1,58 @@
+{
+ "100": {
+  "trips": 127,
+  "pnl_usd": 46.7703,
+  "return_on_capital_pct": 0.7308,
+  "win_rate": 0.937,
+  "worst_trip_usd": -0.2499,
+  "best_trip_usd": 1.8373,
+  "max_drawdown_usd": 0.2499,
+  "taker_exits": 2,
+  "fill_notional_usd": 11280.33,
+  "days": 189.0,
+  "fill_notional_usd_per_day": 59.68,
+  "pnl_usd_per_day": 0.2475
+ },
+ "1000": {
+  "trips": 127,
+  "pnl_usd": 385.4121,
+  "return_on_capital_pct": 0.6022,
+  "win_rate": 0.937,
+  "worst_trip_usd": -2.4992,
+  "best_trip_usd": 18.3732,
+  "max_drawdown_usd": 2.4992,
+  "taker_exits": 2,
+  "fill_notional_usd": 88029.67,
+  "days": 189.0,
+  "fill_notional_usd_per_day": 465.77,
+  "pnl_usd_per_day": 2.0392
+ },
+ "10000": {
+  "trips": 127,
+  "pnl_usd": 2652.0964,
+  "return_on_capital_pct": 0.4144,
+  "win_rate": 0.937,
+  "worst_trip_usd": -10.5183,
+  "best_trip_usd": 183.732,
+  "max_drawdown_usd": 10.5183,
+  "taker_exits": 2,
+  "fill_notional_usd": 508601.8,
+  "days": 189.0,
+  "fill_notional_usd_per_day": 2691.01,
+  "pnl_usd_per_day": 14.0323
+ },
+ "100000": {
+  "trips": 127,
+  "pnl_usd": 14552.7959,
+  "return_on_capital_pct": 0.2274,
+  "win_rate": 0.937,
+  "worst_trip_usd": -10.5183,
+  "best_trip_usd": 1837.3203,
+  "max_drawdown_usd": 10.5183,
+  "taker_exits": 2,
+  "fill_notional_usd": 2579620.18,
+  "days": 189.0,
+  "fill_notional_usd_per_day": 13648.78,
+  "pnl_usd_per_day": 76.9989
+ }
+}

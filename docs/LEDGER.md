@@ -25,13 +25,17 @@ list stays the short version; the plan is the reasoning behind it.
       decisions are the Revolut X rows'; they are for the page, paper only
       by constraint. The go-live draft is `0050` now.
    3. **Venue-unique strategies from first principles, NOT the existing
-      rulebooks: IN PROGRESS** — a research agent (public data only) derives
-      the return sources each venue's structure opens (0 % maker, GBP/USD/
-      USDC books on Revolut X, Binance's breadth and books, the two
-      together), kills ideas by arithmetic, measures the survivors (one
-      year of Revolut X candles; the cross-currency GBP/USD deviation
-      a 10:33 UTC snapshot put at ~12 bps) and pre-registers any test. Its
-      output is verified here before anything is committed (reference §3.26).
+      rulebooks: DONE — nothing worth money** (reference §3.26, review
+      `reviews/2026-09-23-first-principles-study.md`). 31 ideas, 25 killed
+      by arithmetic, four pre-registered tests, all reproduced byte for byte
+      here. The one small edge, 0 % quotes 0.1–0.3 % either side of
+      interbank on Revolut X's USDC/GBP and USDT/GBP books (+$4.68 on
+      $1,200 in 13 out-of-sample days, ≈ $0.35 a day), is a FOUR-WEEK PAPER
+      TEST CANDIDATE, not seeded: it needs GBP/USDC/USDT working capital and
+      a quote loop the tick does not have. **DAVIES DECIDES** whether to
+      build that forward test. Binance's stablecoin-tail quotes pass and earn
+      ≈ 1.5 %/yr, below cash. **The search found that the tick's maker probes read
+      those quote-built candles as fills**: fixed in the next commit.
    4. A second repository, `daviesluo/personal`, was cloned into the
       session: it is EMPTY; Davies will say what it is for.
 
@@ -435,6 +439,21 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 13:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies' first-principles request is answered: nothing unique to either venue is
+worth money** (reference §3.26, review `reviews/2026-09-23-first-principles-study.md`).
+A research agent on public data derived 31 ideas, killed 25 by arithmetic and
+pre-registered four tests. PR3 (0 % quotes either side of interbank on Revolut X's
+USDC/GBP and USDT/GBP books) passes small: +$4.68 on $1,200 in 13 out-of-sample
+days, a paper-test candidate, not seeded. PR2 (Binance's stablecoin tail) passes at
+≈ 1.5 %/yr, below cash. PR4 fails; PR1 is void because Revolut X's UK candles are
+built from quotes. Checked here before commit: all four reproduce byte for byte from
+the committed scripts, and each pre-registration's hash matches and predates its
+result. A fresh 1,000-minute pull and a 12-minute poll of the trade tape confirm the
+quote-built candles. The inputs that expire (Revolut X 1-minute candles, kept 28
+days) are committed gzipped.
 
 ### [2026-09-23 11:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -1,0 +1,200 @@
+{
+ "tape_from": "2026-09-23T11:15:35.143000",
+ "tape_to": "2026-09-23T12:42:24.033000",
+ "prints": 27428,
+ "hours": 1.45,
+ "sampler_calls_with_possible_gap": 2,
+ "candle_check": {
+  "BTC-GBP": {
+   "minutes_with_prints": 52,
+   "candle_close_equals_last_print": 48,
+   "candle_hl_inside_print_range": 47,
+   "candle_hl_outside_print_range": 5,
+   "candle_volume_equals_print_volume": 49,
+   "zero_volume_minutes_that_move": 5,
+   "minutes_with_prints_but_zero_candle_volume": 0
+  },
+  "ETH-GBP": {
+   "minutes_with_prints": 32,
+   "candle_close_equals_last_print": 31,
+   "candle_hl_inside_print_range": 29,
+   "candle_hl_outside_print_range": 3,
+   "candle_volume_equals_print_volume": 32,
+   "zero_volume_minutes_that_move": 12,
+   "minutes_with_prints_but_zero_candle_volume": 0
+  },
+  "XRP-GBP": {
+   "minutes_with_prints": 45,
+   "candle_close_equals_last_print": 43,
+   "candle_hl_inside_print_range": 41,
+   "candle_hl_outside_print_range": 4,
+   "candle_volume_equals_print_volume": 42,
+   "zero_volume_minutes_that_move": 4,
+   "minutes_with_prints_but_zero_candle_volume": 0
+  },
+  "SOL-GBP": {
+   "minutes_with_prints": 47,
+   "candle_close_equals_last_print": 44,
+   "candle_hl_inside_print_range": 46,
+   "candle_hl_outside_print_range": 1,
+   "candle_volume_equals_print_volume": 47,
+   "zero_volume_minutes_that_move": 0,
+   "minutes_with_prints_but_zero_candle_volume": 0
+  },
+  "USDC-GBP": {
+   "minutes_with_prints": 4,
+   "candle_close_equals_last_print": 4,
+   "candle_hl_inside_print_range": 2,
+   "candle_hl_outside_print_range": 2,
+   "candle_volume_equals_print_volume": 4,
+   "zero_volume_minutes_that_move": 67,
+   "minutes_with_prints_but_zero_candle_volume": 0
+  },
+  "USDT-GBP": {
+   "minutes_with_prints": 10,
+   "candle_close_equals_last_print": 9,
+   "candle_hl_inside_print_range": 2,
+   "candle_hl_outside_print_range": 8,
+   "candle_volume_equals_print_volume": 10,
+   "zero_volume_minutes_that_move": 44,
+   "minutes_with_prints_but_zero_candle_volume": 0
+  }
+ },
+ "stable_prints": {
+  "USDC/GBP": {
+   "prints": 5,
+   "gbp_volume": 9953,
+   "dev_bps_median": -16.98,
+   "dev_bps_min": -20.2,
+   "dev_bps_max": -14.4,
+   "prints_beyond_25bps": 0,
+   "prints_beyond_50bps": 0,
+   "gbp_beyond_25bps": 0,
+   "sides": {
+    "sell (at/below bid)": 2,
+    "buy (at/above ask)": 3
+   },
+   "dev_bps_by_side": {
+    "sell (at/below bid)": [
+     -14.6,
+     -17.0
+    ],
+    "buy (at/above ask)": [
+     -14.4,
+     -20.2,
+     -20.2
+    ]
+   }
+  },
+  "USDC/USD (UK+EEA mixed)": {
+   "prints": 60,
+   "dev_from_1_bps_min": 0.0,
+   "dev_from_1_bps_max": 7.0,
+   "prints_beyond_25bps": 0
+  },
+  "USDT/GBP": {
+   "prints": 13,
+   "gbp_volume": 19807,
+   "dev_bps_median": -3.83,
+   "dev_bps_min": -9.5,
+   "dev_bps_max": 2.7,
+   "prints_beyond_25bps": 0,
+   "prints_beyond_50bps": 0,
+   "gbp_beyond_25bps": 0,
+   "sides": {
+    "sell (at/below bid)": 7,
+    "buy (at/above ask)": 5,
+    "inside": 1
+   },
+   "dev_bps_by_side": {
+    "sell (at/below bid)": [
+     -3.1,
+     -3.8,
+     -9.2,
+     -5.8,
+     -4.2,
+     -9.5,
+     -4.4
+    ],
+    "buy (at/above ask)": [
+     2.7,
+     0.6,
+     -0.7,
+     1.3,
+     0.3
+    ],
+    "inside": [
+     -3.9
+    ]
+   }
+  },
+  "USDT/USD (UK+EEA mixed)": {
+   "prints": 1,
+   "dev_from_1_bps_min": -6.0,
+   "dev_from_1_bps_max": -6.0,
+   "prints_beyond_25bps": 0
+  }
+ },
+ "coin_gbp_prints_vs_binance_minute_range": {
+  "BTC/GBP": {
+   "prints": 124,
+   "gbp_volume": 146820,
+   "beyond_5bps_prints": 0,
+   "beyond_5bps_gbp": 0,
+   "beyond_10bps_prints": 0,
+   "beyond_10bps_gbp": 0,
+   "beyond_20bps_prints": 0,
+   "beyond_20bps_gbp": 0,
+   "beyond_30bps_prints": 0,
+   "beyond_30bps_gbp": 0,
+   "beyond_60bps_prints": 0,
+   "beyond_60bps_gbp": 0,
+   "max_outside_bps": 3.3
+  },
+  "ETH/GBP": {
+   "prints": 93,
+   "gbp_volume": 356873,
+   "beyond_5bps_prints": 0,
+   "beyond_5bps_gbp": 0,
+   "beyond_10bps_prints": 0,
+   "beyond_10bps_gbp": 0,
+   "beyond_20bps_prints": 0,
+   "beyond_20bps_gbp": 0,
+   "beyond_30bps_prints": 0,
+   "beyond_30bps_gbp": 0,
+   "beyond_60bps_prints": 0,
+   "beyond_60bps_gbp": 0,
+   "max_outside_bps": 1.7
+  },
+  "XRP/GBP": {
+   "prints": 97,
+   "gbp_volume": 228395,
+   "beyond_5bps_prints": 0,
+   "beyond_5bps_gbp": 0,
+   "beyond_10bps_prints": 0,
+   "beyond_10bps_gbp": 0,
+   "beyond_20bps_prints": 0,
+   "beyond_20bps_gbp": 0,
+   "beyond_30bps_prints": 0,
+   "beyond_30bps_gbp": 0,
+   "beyond_60bps_prints": 0,
+   "beyond_60bps_gbp": 0,
+   "max_outside_bps": 3.3
+  },
+  "SOL/GBP": {
+   "prints": 77,
+   "gbp_volume": 84540,
+   "beyond_5bps_prints": 0,
+   "beyond_5bps_gbp": 0,
+   "beyond_10bps_prints": 0,
+   "beyond_10bps_gbp": 0,
+   "beyond_20bps_prints": 0,
+   "beyond_20bps_gbp": 0,
+   "beyond_30bps_prints": 0,
+   "beyond_30bps_gbp": 0,
+   "beyond_60bps_prints": 0,
+   "beyond_60bps_gbp": 0,
+   "max_outside_bps": 2.2
+  }
+ }
+}

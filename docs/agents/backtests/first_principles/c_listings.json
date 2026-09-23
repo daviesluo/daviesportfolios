@@ -1,0 +1,796 @@
+[
+ {
+  "sym": "ALEO-USD",
+  "listed": "2025-11-25",
+  "days_traded": 273
+ },
+ {
+  "sym": "ALEPH-USD",
+  "listed": "2025-11-25",
+  "days_traded": 270
+ },
+ {
+  "sym": "ELA-USD",
+  "listed": "2025-11-25",
+  "days_traded": 245
+ },
+ {
+  "sym": "GFI-USD",
+  "listed": "2025-11-25",
+  "days_traded": 270
+ },
+ {
+  "sym": "GRASS-USD",
+  "listed": "2025-11-25",
+  "days_traded": 296
+ },
+ {
+  "sym": "IP-USD",
+  "listed": "2025-11-25",
+  "days_traded": 300
+ },
+ {
+  "sym": "L3-USD",
+  "listed": "2025-11-25",
+  "days_traded": 274
+ },
+ {
+  "sym": "NEON-USD",
+  "listed": "2025-11-25",
+  "days_traded": 263
+ },
+ {
+  "sym": "PARTI-USD",
+  "listed": "2025-11-25",
+  "days_traded": 285,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.13,
+   -0.1,
+   0.05,
+   0.15,
+   0.05,
+   0.38,
+   -0.19,
+   0.04
+  ]
+ },
+ {
+  "sym": "STG-USD",
+  "listed": "2025-11-25",
+  "days_traded": 267,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.26,
+   -0.03,
+   -0.04,
+   0.08
+  ]
+ },
+ {
+  "sym": "SXT-USD",
+  "listed": "2025-11-25",
+  "days_traded": 280,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.15,
+   0.15
+  ]
+ },
+ {
+  "sym": "A8-USD",
+  "listed": "2025-11-26",
+  "days_traded": 275
+ },
+ {
+  "sym": "AURORA-USD",
+  "listed": "2025-11-26",
+  "days_traded": 244
+ },
+ {
+  "sym": "DOGINME-USD",
+  "listed": "2025-11-26",
+  "days_traded": 284
+ },
+ {
+  "sym": "DRIFT-USD",
+  "listed": "2025-11-26",
+  "days_traded": 294
+ },
+ {
+  "sym": "EDGE-USD",
+  "listed": "2025-11-26",
+  "days_traded": 283
+ },
+ {
+  "sym": "USDC-GBP",
+  "listed": "2025-11-26",
+  "days_traded": 302,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.11,
+   0.33,
+   0.09,
+   -0.35,
+   -0.22,
+   0.02
+  ]
+ },
+ {
+  "sym": "USDC-USD",
+  "listed": "2025-11-26",
+  "days_traded": 302,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.03,
+   0.01,
+   0.07,
+   0.0,
+   0.01,
+   0.02,
+   0.0,
+   0.06
+  ]
+ },
+ {
+  "sym": "VELO-USD",
+  "listed": "2025-11-26",
+  "days_traded": 253
+ },
+ {
+  "sym": "ENA-GBP",
+  "listed": "2025-11-27",
+  "days_traded": 300,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.01,
+   0.04,
+   0.02,
+   0.03,
+   0.01,
+   0.01
+  ]
+ },
+ {
+  "sym": "PENGU-GBP",
+  "listed": "2025-11-27",
+  "days_traded": 300,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.04,
+   0.02,
+   0.07,
+   0.07,
+   0.09,
+   0.1
+  ]
+ },
+ {
+  "sym": "SHDW-USD",
+  "listed": "2025-11-27",
+  "days_traded": 206
+ },
+ {
+  "sym": "SPX-GBP",
+  "listed": "2025-11-27",
+  "days_traded": 301
+ },
+ {
+  "sym": "FAI-USD",
+  "listed": "2025-11-28",
+  "days_traded": 295
+ },
+ {
+  "sym": "TRUMP-GBP",
+  "listed": "2025-11-28",
+  "days_traded": 297,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.07,
+   0.02,
+   0.06,
+   0.0,
+   0.02,
+   -0.0
+  ]
+ },
+ {
+  "sym": "KRL-USD",
+  "listed": "2025-11-29",
+  "days_traded": 138
+ },
+ {
+  "sym": "PROMPT-USD",
+  "listed": "2025-12-03",
+  "days_traded": 229
+ },
+ {
+  "sym": "USDT-GBP",
+  "listed": "2025-12-16",
+  "days_traded": 282
+ },
+ {
+  "sym": "USDT-USD",
+  "listed": "2025-12-16",
+  "days_traded": 282
+ },
+ {
+  "sym": "KARRAT-USD",
+  "listed": "2025-12-23",
+  "days_traded": 193
+ },
+ {
+  "sym": "LRDS-USD",
+  "listed": "2025-12-23",
+  "days_traded": 228
+ },
+ {
+  "sym": "DIMO-USD",
+  "listed": "2025-12-26",
+  "days_traded": 169
+ },
+ {
+  "sym": "TOSHI-USD",
+  "listed": "2026-01-13",
+  "days_traded": 239
+ },
+ {
+  "sym": "MNDE-USD",
+  "listed": "2026-01-21",
+  "days_traded": 113
+ },
+ {
+  "sym": "PRCL-USD",
+  "listed": "2026-01-21",
+  "days_traded": 177
+ },
+ {
+  "sym": "2Z-USD",
+  "listed": "2026-01-27",
+  "days_traded": 172,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.02,
+   -0.28
+  ]
+ },
+ {
+  "sym": "B3-USD",
+  "listed": "2026-01-27",
+  "days_traded": 221
+ },
+ {
+  "sym": "EUL-USD",
+  "listed": "2026-01-27",
+  "days_traded": 216,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.13
+  ]
+ },
+ {
+  "sym": "HOME-USD",
+  "listed": "2026-01-27",
+  "days_traded": 226,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.06,
+   -0.11
+  ]
+ },
+ {
+  "sym": "KERNEL-USD",
+  "listed": "2026-01-27",
+  "days_traded": 187,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.03
+  ]
+ },
+ {
+  "sym": "KTA-USD",
+  "listed": "2026-01-27",
+  "days_traded": 226
+ },
+ {
+  "sym": "PROVE-USD",
+  "listed": "2026-01-27",
+  "days_traded": 152,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.3
+  ]
+ },
+ {
+  "sym": "SKY-USD",
+  "listed": "2026-01-27",
+  "days_traded": 225,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.12
+  ]
+ },
+ {
+  "sym": "SPK-USD",
+  "listed": "2026-01-27",
+  "days_traded": 180,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.21
+  ]
+ },
+ {
+  "sym": "SYRUP-USD",
+  "listed": "2026-01-27",
+  "days_traded": 223,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.02,
+   -0.15
+  ]
+ },
+ {
+  "sym": "VIRTUAL-USD",
+  "listed": "2026-01-27",
+  "days_traded": 231,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.01,
+   -0.22
+  ]
+ },
+ {
+  "sym": "XAN-USD",
+  "listed": "2026-01-27",
+  "days_traded": 229
+ },
+ {
+  "sym": "ZORA-USD",
+  "listed": "2026-01-27",
+  "days_traded": 208
+ },
+ {
+  "sym": "LA-USD",
+  "listed": "2026-01-28",
+  "days_traded": 214,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.27,
+   -0.28,
+   0.12
+  ]
+ },
+ {
+  "sym": "SQD-USD",
+  "listed": "2026-01-28",
+  "days_traded": 200
+ },
+ {
+  "sym": "TREE-USD",
+  "listed": "2026-01-28",
+  "days_traded": 199,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.01,
+   -0.07
+  ]
+ },
+ {
+  "sym": "XDC-USD",
+  "listed": "2026-01-28",
+  "days_traded": 235
+ },
+ {
+  "sym": "ZKC-USD",
+  "listed": "2026-01-28",
+  "days_traded": 167,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.09,
+   -0.1
+  ]
+ },
+ {
+  "sym": "IDOS-USD",
+  "listed": "2026-03-05",
+  "days_traded": 199
+ },
+ {
+  "sym": "AVNT-GBP",
+  "listed": "2026-04-22",
+  "days_traded": 110,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.35,
+   -0.03,
+   -0.01,
+   -0.03,
+   -0.13,
+   0.13
+  ]
+ },
+ {
+  "sym": "AVNT-USD",
+  "listed": "2026-04-22",
+  "days_traded": 120,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.35
+  ]
+ },
+ {
+  "sym": "AWE-USD",
+  "listed": "2026-04-22",
+  "days_traded": 126,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.08,
+   0.04
+  ]
+ },
+ {
+  "sym": "BEAM-USD",
+  "listed": "2026-04-22",
+  "days_traded": 139
+ },
+ {
+  "sym": "CC-USD",
+  "listed": "2026-04-22",
+  "days_traded": 154
+ },
+ {
+  "sym": "IMU-USD",
+  "listed": "2026-04-22",
+  "days_traded": 147
+ },
+ {
+  "sym": "OFC-USD",
+  "listed": "2026-04-22",
+  "days_traded": 148
+ },
+ {
+  "sym": "PAXG-GBP",
+  "listed": "2026-04-22",
+  "days_traded": 152,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.21,
+   0.03,
+   -0.0,
+   -0.01,
+   -0.03,
+   -0.04
+  ]
+ },
+ {
+  "sym": "PAXG-USD",
+  "listed": "2026-04-22",
+  "days_traded": 152,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.21,
+   0.04,
+   0.03,
+   -0.01,
+   -0.01,
+   -0.03,
+   -0.04
+  ]
+ },
+ {
+  "sym": "PENDLE-GBP",
+  "listed": "2026-04-22",
+  "days_traded": 121,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.04,
+   0.03,
+   -0.1,
+   0.03
+  ]
+ },
+ {
+  "sym": "PENDLE-USD",
+  "listed": "2026-04-22",
+  "days_traded": 137,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.04,
+   -0.11
+  ]
+ },
+ {
+  "sym": "PLUME-USD",
+  "listed": "2026-04-22",
+  "days_traded": 153,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -1.02,
+   0.15,
+   0.22,
+   0.0,
+   0.08,
+   0.08,
+   0.0,
+   0.0
+  ]
+ },
+ {
+  "sym": "RLS-USD",
+  "listed": "2026-04-22",
+  "days_traded": 148
+ },
+ {
+  "sym": "SENT-USD",
+  "listed": "2026-04-22",
+  "days_traded": 133,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   4.29,
+   0.0,
+   0.05
+  ]
+ },
+ {
+  "sym": "XAUT-GBP",
+  "listed": "2026-04-22",
+  "days_traded": 151,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.21,
+   0.03,
+   -0.01,
+   -0.02,
+   -0.03,
+   -0.04
+  ]
+ },
+ {
+  "sym": "XAUT-USD",
+  "listed": "2026-04-22",
+  "days_traded": 152,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.21,
+   0.03,
+   0.01,
+   -0.01,
+   -0.02,
+   -0.04,
+   -0.02
+  ]
+ },
+ {
+  "sym": "MON-USD",
+  "listed": "2026-04-27",
+  "days_traded": 149
+ },
+ {
+  "sym": "RAY-USD",
+  "listed": "2026-04-30",
+  "days_traded": 126,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.0,
+   -0.06,
+   0.06,
+   0.03,
+   -0.05,
+   -0.05,
+   -0.07
+  ]
+ },
+ {
+  "sym": "WLFI-USD",
+  "listed": "2026-05-01",
+  "days_traded": 145,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.23,
+   0.05,
+   -0.08,
+   0.08,
+   -0.05,
+   0.3,
+   -0.05,
+   -0.1
+  ]
+ },
+ {
+  "sym": "ZK-USD",
+  "listed": "2026-05-01",
+  "days_traded": 133,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.24,
+   -0.02,
+   -0.01,
+   -0.05,
+   -0.06,
+   -0.02,
+   -0.03
+  ]
+ },
+ {
+  "sym": "DOGS-USD",
+  "listed": "2026-05-02",
+  "days_traded": 138,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.15,
+   -0.13,
+   -0.08,
+   -0.08,
+   -0.05,
+   -0.18,
+   -0.08,
+   -0.05
+  ]
+ },
+ {
+  "sym": "HYPE-USD",
+  "listed": "2026-05-03",
+  "days_traded": 143
+ },
+ {
+  "sym": "AI-USD",
+  "listed": "2026-05-04",
+  "days_traded": 142,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   41.75,
+   36.62,
+   45.16,
+   49.11,
+   61.94,
+   66.31,
+   45.37,
+   40.55
+  ]
+ },
+ {
+  "sym": "CLANKER-USD",
+  "listed": "2026-05-04",
+  "days_traded": 129
+ },
+ {
+  "sym": "LAYER-USD",
+  "listed": "2026-05-04",
+  "days_traded": 113,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.17,
+   -0.1,
+   0.06,
+   -0.17,
+   -0.28,
+   0.23,
+   -0.18,
+   0.01
+  ]
+ },
+ {
+  "sym": "NOT-USD",
+  "listed": "2026-05-04",
+  "days_traded": 130,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.04,
+   0.01,
+   -0.18,
+   0.0,
+   -0.07,
+   0.07,
+   0.13,
+   0.16
+  ]
+ },
+ {
+  "sym": "HYPE-GBP",
+  "listed": "2026-06-06",
+  "days_traded": 109
+ },
+ {
+  "sym": "RSC-USD",
+  "listed": "2026-06-06",
+  "days_traded": 86
+ },
+ {
+  "sym": "WAL-USD",
+  "listed": "2026-08-17",
+  "days_traded": 32,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.23,
+   -0.27,
+   -0.19,
+   -0.22,
+   -0.25,
+   -0.01
+  ]
+ },
+ {
+  "sym": "ZEN-USD",
+  "listed": "2026-08-17",
+  "days_traded": 36,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.08,
+   -0.12,
+   -0.15,
+   -0.02,
+   -0.16,
+   -0.17,
+   -0.01,
+   0.1
+  ]
+ },
+ {
+  "sym": "ZAMA-USD",
+  "listed": "2026-08-18",
+  "days_traded": 36,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.01,
+   0.06,
+   0.82,
+   0.0,
+   0.06,
+   0.06,
+   0.02,
+   -0.0
+  ]
+ },
+ {
+  "sym": "FLUID-USD",
+  "listed": "2026-08-26",
+  "days_traded": 1
+ },
+ {
+  "sym": "XPL-USD",
+  "listed": "2026-08-26",
+  "days_traded": 28,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   0.02,
+   0.06,
+   0.07,
+   0.12,
+   -0.02,
+   -0.02,
+   0.03,
+   0.05
+  ]
+ },
+ {
+  "sym": "DASH-GBP",
+  "listed": "2026-09-03",
+  "days_traded": 16,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.08,
+   0.05,
+   0.01,
+   -0.04
+  ]
+ },
+ {
+  "sym": "VVV-GBP",
+  "listed": "2026-09-08",
+  "days_traded": 15
+ },
+ {
+  "sym": "WLD-GBP",
+  "listed": "2026-09-08",
+  "days_traded": 14,
+  "binance_listed_before": true,
+  "premium_pct_days0_7": [
+   -0.02,
+   0.05,
+   -0.03,
+   0.05,
+   0.02,
+   0.03
+  ]
+ }
+]

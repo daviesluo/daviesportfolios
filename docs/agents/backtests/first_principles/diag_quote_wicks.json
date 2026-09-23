@@ -1,0 +1,90 @@
+{
+ "USDC-USD": {
+  "k=0.25%": {
+   "minutes_beyond_zero_volume": 6,
+   "minutes_beyond_with_volume": 1,
+   "quote_volume_in_those": 56272
+  },
+  "k=0.5%": {
+   "minutes_beyond_zero_volume": 6,
+   "minutes_beyond_with_volume": 1,
+   "quote_volume_in_those": 56272
+  },
+  "k=1%": {
+   "minutes_beyond_zero_volume": 0,
+   "minutes_beyond_with_volume": 0,
+   "quote_volume_in_those": 0
+  },
+  "k=2%": {
+   "minutes_beyond_zero_volume": 0,
+   "minutes_beyond_with_volume": 0,
+   "quote_volume_in_those": 0
+  }
+ },
+ "USDT-USD": {
+  "k=0.25%": {
+   "minutes_beyond_zero_volume": 0,
+   "minutes_beyond_with_volume": 0,
+   "quote_volume_in_those": 0
+  },
+  "k=0.5%": {
+   "minutes_beyond_zero_volume": 0,
+   "minutes_beyond_with_volume": 0,
+   "quote_volume_in_those": 0
+  },
+  "k=1%": {
+   "minutes_beyond_zero_volume": 0,
+   "minutes_beyond_with_volume": 0,
+   "quote_volume_in_those": 0
+  },
+  "k=2%": {
+   "minutes_beyond_zero_volume": 0,
+   "minutes_beyond_with_volume": 0,
+   "quote_volume_in_those": 0
+  }
+ },
+ "USDC-GBP": {
+  "k=0.25%": {
+   "minutes_beyond_zero_volume": 948,
+   "minutes_beyond_with_volume": 29,
+   "quote_volume_in_those": 100856
+  },
+  "k=0.5%": {
+   "minutes_beyond_zero_volume": 51,
+   "minutes_beyond_with_volume": 1,
+   "quote_volume_in_those": 55890
+  },
+  "k=1%": {
+   "minutes_beyond_zero_volume": 20,
+   "minutes_beyond_with_volume": 0,
+   "quote_volume_in_those": 0
+  },
+  "k=2%": {
+   "minutes_beyond_zero_volume": 5,
+   "minutes_beyond_with_volume": 0,
+   "quote_volume_in_those": 0
+  }
+ },
+ "USDT-GBP": {
+  "k=0.25%": {
+   "minutes_beyond_zero_volume": 1651,
+   "minutes_beyond_with_volume": 119,
+   "quote_volume_in_those": 384440
+  },
+  "k=0.5%": {
+   "minutes_beyond_zero_volume": 12,
+   "minutes_beyond_with_volume": 0,
+   "quote_volume_in_those": 0
+  },
+  "k=1%": {
+   "minutes_beyond_zero_volume": 0,
+   "minutes_beyond_with_volume": 0,
+   "quote_volume_in_those": 0
+  },
+  "k=2%": {
+   "minutes_beyond_zero_volume": 0,
+   "minutes_beyond_with_volume": 0,
+   "quote_volume_in_those": 0
+  }
+ }
+}

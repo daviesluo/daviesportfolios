@@ -2296,6 +2296,68 @@ volatility, not direction: the calmest coins, which are the largest, beat
 random picks and still lost the bear year. The verdict above §3.25 stands: no
 venue-specific rule.
 
+### 3.26 Each venue from first principles: nothing worth money, one small edge to paper-test, and a fill test that read quotes as trades (2026-09-23)
+
+Davies asked for strategies unique to each venue built from nothing, not the
+existing rulebooks: "这次不要给现有的策略，从0开始研究，从第一性原理出发按照逻辑一步步推导，发散性思维think out of box".
+A research agent derived what can pay a small UK spot account at all — someone
+accepting a worse price than fair, or paying for a risk or a service — and what
+each venue's structure makes available, on public data only (review
+`reviews/2026-09-23-first-principles-study.md`, which says what was re-computed
+before any of it was believed). **31 ideas; 25 die on arithmetic** (quoting the
+majors' touch at 0 % loses 2–4 bps of adverse selection a fill against a
+0.5–0.9 bps half-spread and needs 2,880 orders a day against 1,000; the
+GBP → USDC → USD → coin → GBP cycle peaked at +18.5 bps before 36 bps of taker
+fees and was never positive after them in 84 variants; no listing premium, no
+weekend FX premium, no schedule in retail flow; liquid-staking accrual is
+1–6 bps over a hold). **Three need a signed call** (Binance Simple Earn from
+the UK, zero-fee pairs, Launchpool) and one cannot be tested (a stablecoin
+de-peg lottery). **Four pre-registered tests, all byte-for-byte reproducible
+from the committed scripts** (`docs/agents/scripts/first_principles/`):
+
+| test | books | OOS | result | verdict |
+|---|---|---|---|---|
+| PR1 | Revolut X's four stablecoin books, hourly, a year | 189 d | +$688 on $3,200 | **void**: the candles' highs and lows are quotes, see below |
+| PR2 | Binance, eight USD stablecoins against USDT, 1 m, a year | 189 d | +$48.59 on $6,400; null p95 −$25.79 | passes; ≈ 1.5 %/yr on the capital it locks, below cash, on eight issuers |
+| PR3 | Revolut X USDC/GBP and USDT/GBP, quotes 0.1–0.3 % around interbank, fills proven by prints | 13.25 d | +$4.68 on $1,200, 57 trips; null p95 +$0.87; stress +$2.88 | passes, small: ≈ $0.35 a day, ceiling a few dollars |
+| PR4 | the same rule on USDC/USD and USDT/USD | 13.25 d | +$0.44, 7 trips | fails (fewer than 20 trips) |
+
+**PR3 is the one mechanism unique to a venue this account uses**: every coin's
+GBP book on Revolut X implies the interbank GBP/USD within about a basis point,
+and the two stablecoin GBP books do not (the agent's live median +11.8 bps on
+USDC/GBP; five snapshots at 12:55 UTC read +2.1 to +3.1), because closing that
+gap needs a GBP ↔ USD conversion that costs this account more than the gap.
+Resting 0 % quotes either side of interbank harvest it without closing it.
+Against it: 13 days out of sample; the distances were chosen after seeing where
+the 28 days' volume traded (disclosed in its pre-registration); 22 of its 57
+fills came in minutes that opened already through the quote, where a post-only
+order might have been refused (+$3.59 on 36 trips without them); and the gap has
+shrunk all year (hourly mean |dev| on USDC/GBP 22 bps in November, 5 in
+September). **Worth a four-week paper test with fills read from the trade tape,
+not money.** Nothing is seeded; it needs GBP, USDC and USDT working capital on
+the venue and a quote loop the tick does not have.
+
+**The finding that matters beyond the search: Revolut X's UK 1-minute candles
+are built from QUOTES while nothing trades.** On the coins the loop trades,
+59–96 % of minutes carry zero volume and 19–87 % of those still move (median
+range 6.5–79 bps; 1,000 minutes to 12:51 UTC). A zero-volume minute's high and
+low are not trade prices. PR1 "passed" on them. So did the loop: `tick.ts`
+filled a resting paper order, and resolved a maker probe (`0042`), when the last
+minute's low reached a bid or its high an ask, with no look at its volume, and
+all three probes on record were resolved on zero-volume minutes; the first trade
+through each price came 8, 43 and 7 minutes after it, not 1, 3 and 1. Fixed the
+same day (item 30). §3.23's flagged AVAX line (+1,937 % on the UK candles against
+−30 % on Kraken's) is this effect. The other venues' candles are built from
+trades, measured at 13:10 UTC: no zero-volume minute moves on Binance (0 of 824
+across AVAX/USDT and two thin stablecoin books) or Kraken (0 of 137 on AVAX and
+SUI), and Coinbase's AVAX and SUI had none in 350 minutes.
+
+**So no venue has a strategy of its own that the evidence supports, as of
+2026-09-23** — the verdict of §3.23–§3.25 stands, now reached from first
+principles as well. What the two do together is routing, not return: Revolut X
+is this account's GBP on-ramp and its only GBP books; Binance is the price
+reference and the breadth.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
