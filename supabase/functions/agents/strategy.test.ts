@@ -4,8 +4,8 @@
 // show. Every case is closed-form: the answer is worked by hand first.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  applyFill, atrAt, buildSnapshot, ceilToStep, combineDecision, DEFAULT_TREND, FLAT, floorToStep, paperFill,
-  positionFromFills, priorRange, realisedVol, riskGate, ruleDecision, sizeBase, sma, stepDecimals, unrealisedUsd,
+  applyFill, atrAt, buildSnapshot, ceilToStep, combineDecision, DEFAULT_TREND, FLAT, floorToStep, JEV_QUESTION_VERSION, jevQuestions,
+  jevQuestionsV1, jevQuestionsV2, paperFill, positionFromFills, priorRange, realisedVol, riskGate, ruleDecision, sizeBase, sma, stepDecimals, unrealisedUsd,
   type Candle, type Position, type Snapshot,
 } from "../_shared/agents_strategy.ts";
 
@@ -378,4 +378,28 @@ Deno.test("positionFromFills is a TOTAL order: two fills stamped the same instan
   assertEquals(positionFromFills([buy, sell]), positionFromFills([sell, buy]));
   assertEquals(positionFromFills([sell, buy]).realisedUsd, 10);
   assertEquals(positionFromFills([sell, buy]).base, 0);
+});
+
+Deno.test("jevQuestions v2 asks for the model's judgment, not a checklist stricter than the rule (reference §4.21)", () => {
+  const st = { symbol: "SUI/USD", trend_4h: "up", trend_strength: "weak", breakout_4h: "above_range", volatility: "high", momentum_30d: "unknown", position: "flat", unrealised: "none", time_in_position: "none", drawdown_from_high: "none" } as const;
+  const v1 = jevQuestionsV1(st).healthy_trend.instructions;
+  const v2 = jevQuestionsV2(st, "trend-4h").healthy_trend.instructions;
+  // v1 told the model to say no to every weak trend and every unknown momentum; the model did, every time.
+  assert(v1.includes("trend_strength is moderate or strong") && v1.includes("momentum_30d is positive"));
+  for (const clause of ["moderate or strong", "momentum_30d is positive", "Answer yes only if", "means no"]) assert(!v2.includes(clause), clause);
+  // v2 says what the rule already checked, defines the words, and asks one symmetric question.
+  assert(v2.includes("Those checks are already done") && v2.includes("unknown means there are fewer than 30 days"));
+  assert(v2.includes("Answer yes if continuing looks more likely than failing, and no if failing looks more likely"));
+  // Worded for the rule that asks.
+  assert(v2.includes("4-hour candles"));
+  assert(jevQuestionsV2(st, "trend-1h").healthy_trend.instructions.includes("1-hour candles"));
+  assert(jevQuestionsV2(st, "momentum-1d").healthy_trend.instructions.includes("a momentum rule wants to BUY"));
+  // The noul keeps both criteria (OpenRouter refuses one without the other), and the echo and caution are unchanged.
+  assertEquals(Object.keys(jevQuestionsV2(st).healthy_trend.criteria), ["true", "false"]);
+  assertEquals(jevQuestionsV2(st).caution, jevQuestionsV1(st).caution);
+  assertEquals(jevQuestionsV2(st)._state, jevQuestionsV1(st)._state);
+  // The dispatcher: the loop's version unless a measurement names another.
+  assertEquals(jevQuestions(st, { version: "v1" }), jevQuestionsV1(st));
+  assertEquals(jevQuestions(st, { version: "v2", kind: "trend-1h" }), jevQuestionsV2(st, "trend-1h"));
+  assertEquals(jevQuestions(st), JEV_QUESTION_VERSION === "v1" ? jevQuestionsV1(st) : jevQuestionsV2(st));
 });

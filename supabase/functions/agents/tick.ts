@@ -70,7 +70,7 @@
 import { askJev, type JevEnv, type JevResult, type Questions } from "../_shared/jev.ts";
 import {
   atrAt, buildSnapshot, ceilToStep, combineDecision, DEFAULT_DISLOCATION, DEFAULT_ROTATION, DEFAULT_TREND, dislocationQuestions, dislocationState,
-  floorToStep, highWaterSince, jevQuestions, positionFromFills, protectiveExit, riskGate, rotationTargets, ruleDecisionDislocation, ruleFor, sizeBase,
+  floorToStep, highWaterSince, JEV_QUESTION_VERSION, jevQuestions, positionFromFills, protectiveExit, riskGate, rotationTargets, ruleDecisionDislocation, ruleFor, sizeBase,
   unrealisedUsd,
   type Action, type Candle, type DislocationParams, type JevView, type PairConfig, type Position, type RankView, type RotationParams,
   type StopParams, type StrategyKind, type TrendParams,
@@ -1416,7 +1416,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           }
           const late = rule.action === "enter" ? entryTooLate(barStart, barMs, d.now) : null;
           if (late) rule = { action: "hold", reason: late };
-          const dec = await decide(s, sym, barStart, snap.state, { ...snap.numbers, rank: ranks?.[sym] ?? null }, jevQuestions(snap.state), rule, "bar");
+          const dec = await decide(s, sym, barStart, snap.state, { ...snap.numbers, rank: ranks?.[sym] ?? null, jevQuestion: JEV_QUESTION_VERSION }, jevQuestions(snap.state, { kind: s.kind }), rule, "bar");
           if (!dec || dec.action === "hold" || !dec.allowed) continue;
           r = dec;
         }

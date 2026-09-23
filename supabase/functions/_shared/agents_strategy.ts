@@ -521,13 +521,36 @@ export function ruleFor(
 // ------------------------------------------------------- the model's questions
 
 /**
- * What Jev is asked about a state. Two questions, both about the WORDS in
- * the state, never a number: whether the state reads as a healthy trend
- * worth being long, and how much caution the regime calls for. The
- * instructions spell out the boundary cases because the vendor says the
- * model answers the question written, not the one meant.
+ * Which wording of the entry question the model is asked. `v1` (2026-09-18 → 2026-09-23) listed the conditions of a
+ * "healthy, established uptrend" — trend_strength moderate or strong, momentum_30d positive — and the model applied
+ * that list to the letter: every weak-trend entry and every unknown-momentum entry was vetoed (P 0.04–0.21), which
+ * is a filter the rulebook does not have, written in prose and never backtested (reference §4.21). `v2` asks for the
+ * model's own judgment of the entry the rule wants to make, says what the rule has already checked, defines the
+ * words without telling the model what to conclude from them, and is worded for the rule that is asking.
  */
-export function jevQuestions(state: CategoricalState) {
+export type JevQuestionVersion = "v1" | "v2";
+export const JEV_QUESTION_VERSIONS: readonly JevQuestionVersion[] = ["v1", "v2"];
+/** The wording the loop asks today. */
+export const JEV_QUESTION_VERSION: JevQuestionVersion = "v1";
+
+const cautionQuestion = {
+  type: "score" as const,
+  instructions:
+    "How much caution does this regime call for? Use volatility, drawdown_from_high and unrealised together: " +
+    "calm = low or normal volatility and no notable drawdown; elevated = high volatility or a notable drawdown or a loss; " +
+    "extreme = extreme volatility or a large drawdown.",
+  criteria: ["calm", "elevated", "extreme"],
+};
+const echoQuestion = (state: CategoricalState) => ({
+  // Echo question: the model restates which symbol it was shown. A wrong
+  // echo means the state and the answers cannot be trusted together.
+  type: "choice" as const,
+  instructions: "Which symbol does the state describe?",
+  criteria: { [state.symbol]: null, other: "Any other symbol or none." },
+});
+
+/** The first wording, kept verbatim so every decision recorded under it can be re-asked exactly. */
+export function jevQuestionsV1(state: CategoricalState) {
   return {
     healthy_trend: {
       type: "noul" as const,
@@ -541,22 +564,55 @@ export function jevQuestions(state: CategoricalState) {
         false: "Not a healthy uptrend: flat or down trend, breakdown, negative momentum, or extreme volatility.",
       },
     },
-    caution: {
-      type: "score" as const,
-      instructions:
-        "How much caution does this regime call for? Use volatility, drawdown_from_high and unrealised together: " +
-        "calm = low or normal volatility and no notable drawdown; elevated = high volatility or a notable drawdown or a loss; " +
-        "extreme = extreme volatility or a large drawdown.",
-      criteria: ["calm", "elevated", "extreme"],
-    },
-    _state: {
-      // Echo question: the model restates which symbol it was shown. A wrong
-      // echo means the state and the answers cannot be trusted together.
-      type: "choice" as const,
-      instructions: "Which symbol does the state describe?",
-      criteria: { [state.symbol]: null, other: "Any other symbol or none." },
-    },
+    caution: cautionQuestion,
+    _state: echoQuestion(state),
   };
+}
+
+/** What each word in the state means. Definitions only: nothing here says which way a word should push the answer. */
+const WORDS =
+  "How to read the words: trend_4h and trend_strength compare a fast moving average with a slow one — strength is weak " +
+  "when the two are close together, as they are when a trend is only starting, and strong when they are far apart, as " +
+  "they are in a mature trend; breakout_4h says whether the last close is above the recent range, inside it or below " +
+  "it; volatility says how large the recent swings are (low, normal, high, extreme); momentum_30d compares the daily " +
+  "close with the close 30 days earlier, and unknown means there are fewer than 30 days of daily history, which says " +
+  "nothing about the direction. When the words point in different directions, weigh them together; no single word " +
+  "decides the answer on its own.";
+
+/** The second wording: the model's own judgment of the entry the asking rule wants to make. */
+export function jevQuestionsV2(state: CategoricalState, kind: StrategyKind = "trend-4h") {
+  const why = kind === "momentum-1d"
+    ? "a momentum rule wants to BUY it because the daily close is above its close 30 days earlier and volatility is not extreme"
+    : kind === "rotation-1d"
+    ? "a rotation rule wants to BUY it because it ranks among the strongest of its basket by 30-day return and trades above its slow daily average"
+    : `a trend-following rule wants to BUY it on ${kind === "trend-1h" ? "1-hour" : "4-hour"} candles because the trend is up, ` +
+      "the close is above the highest close of the previous 55 bars, 30-day momentum is not negative and volatility is not extreme";
+  return {
+    healthy_trend: {
+      type: "noul" as const,
+      instructions:
+        `The state describes one crypto pair at the moment ${why}. Those checks are already done and are not the ` +
+        "question. The question is whether, taken as a whole, the state looks like a move worth joining now, or like " +
+        "one more likely to fail and reverse soon after. Answer yes if continuing looks more likely than failing, and no " +
+        `if failing looks more likely. ${WORDS}`,
+      criteria: {
+        true: "Worth joining now: the move looks more likely to continue than to fail.",
+        false: "Better skipped: a failed move or a quick reversal looks more likely than a continuation.",
+      },
+    },
+    caution: cautionQuestion,
+    _state: echoQuestion(state),
+  };
+}
+
+/**
+ * What Jev is asked about an entry. Two questions, both about the WORDS in the state, never a number — whether the
+ * entry is worth making, and how much caution the regime calls for — plus the echo. `kind` words the question for the
+ * rule that is asking; `version` picks the wording (`JEV_QUESTION_VERSION` unless a measurement asks for another).
+ */
+export function jevQuestions(state: CategoricalState, opts: { kind?: StrategyKind; version?: JevQuestionVersion } = {}) {
+  const version = opts.version ?? JEV_QUESTION_VERSION;
+  return version === "v1" ? jevQuestionsV1(state) : jevQuestionsV2(state, opts.kind ?? "trend-4h");
 }
 
 export type JevView = { healthy: number | null; caution: number | null; echoOk: boolean; provider: string };

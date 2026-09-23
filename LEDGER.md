@@ -302,6 +302,18 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-23 00:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Jev fix, step 1 of 3: the new wording can be measured before the loop
+uses it.** `jevQuestions` is now versioned: `v1` is the old checklist,
+kept verbatim; `v2` says what the rule already checked, defines the words
+without saying what to conclude, and asks one symmetric question (is the
+move more likely to continue than to fail), worded for the rule asking.
+The loop still asks `v1`; `POST ?action=jev` takes `version` and `kind`,
+and every entry decision records `numbers.jevQuestion`. Next: measure
+`v2` on every entry state, pick a threshold outside any coin-flip band,
+re-price against the null, then switch.
+
 ### [2026-09-23 00:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **SUI's seat, judged on what SUI has** (reference §3.20; script
