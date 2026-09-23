@@ -2,7 +2,7 @@
 // The pure deps (ytd / cache / indicators / ticker_class / helpers) run
 // for real; the network + stores are mocked.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 
 const chartMem = new Map();
 const maMem = new Map();
@@ -124,6 +124,26 @@ describe('useTickerChartData — the 1D poll stops when there is nothing to watc
     const before = fetchHistoricalBatch.mock.calls.length;
     await tick(60_000);
     expect(fetchHistoricalBatch.mock.calls.length).toBe(before);
+  });
+
+  // Nothing unmounted these hooks between tests (RTL cleans up by itself only when vitest's
+  // globals are on, and they are off; test_setup.js now does it), so an earlier test's NVDA
+  // hook stayed mounted, and a later `visibilitychange` restarted its poll on the next test's
+  // clock: under load the overnight test above counted 2 calls it never made.
+  it('one test leaves a polling hook behind, as every test here does…', async () => {
+    warm('NVDA');
+    renderHook(() => useTickerChartData(ARGS()));
+    await tick();
+    expect(fetchHistoricalBatch.mock.calls.length).toBeGreaterThan(0);
+  });
+
+  it('…and the next test counts none of its polls: each test\'s hooks are unmounted after it', async () => {
+    warm('SFTBY', 'overnight');
+    renderHook(() => useTickerChartData(ARGS({ ticker: 'SFTBY', phase: 'overnight' })));
+    act(() => { setHidden(true); });
+    act(() => { setHidden(false); });
+    await tick(60_000);
+    expect(fetchHistoricalBatch.mock.calls.map((c) => c[0][0])).toEqual([]);
   });
 
   it('keeps polling overnight for crypto, which never closes', async () => {

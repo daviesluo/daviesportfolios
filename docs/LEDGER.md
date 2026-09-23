@@ -414,6 +414,16 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-23 08:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Every test's components are unmounted after it** (`src/test_setup.js`). RTL
+cleans up by itself only under vitest's globals, which are off, so every hook a
+test mounted stayed mounted for the rest of its file; during a gates run under
+heavy load an earlier test's NVDA poll counted 2 calls in the SFTBY overnight
+test, and the gates went red on a change that touched no `src/` file. Pinned in
+`charts/use_ticker_chart_data.test.jsx`: a later test sees 60 of an earlier
+test's polls without the cleanup and none with it. All 930 tests pass with it.
+
 ### [2026-09-23 08:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Binance's universe, second search: reversal and low volatility — 0 of 6 pass**
