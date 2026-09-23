@@ -2,6 +2,7 @@
 // `test` block typed. Stays compatible with `vite build` / `vite dev`
 // (the runtime ignores the test block) so we don't need a second
 // config file.
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -24,8 +25,11 @@ function computeAppVersion() {
 }
 const APP_VERSION = computeAppVersion();
 
-// Source root is `src/` and Vite emits the production bundle to
-// `dist/`. Cloudflare Pages publishes that one directory and nothing
+// This file lives in `src/`, the source root, so the root is its own
+// folder rather than a path read against wherever the command ran; the
+// npm scripts pass `--config src/vite.config.js`, since Vite and Vitest
+// only look for a config in the working directory. Vite emits the
+// production bundle to `dist/`. Cloudflare Pages publishes that one directory and nothing
 // else — `wrangler.jsonc`'s `pages_build_output_dir`.
 //
 // It used to emit to the REPO ROOT, which is why the live site served
@@ -42,7 +46,7 @@ const APP_VERSION = computeAppVersion();
 // owns; the `prebuild` script removes it anyway so a rename can't leave
 // a stale hashed bundle behind.
 export default defineConfig({
-  root: 'src',
+  root: fileURLToPath(new URL('.', import.meta.url)),
   publicDir: 'public',
   // Pre-bundle every runtime dependency in the dev optimizer's FIRST
   // pass. `react-dom` (modals.jsx's createPortal) was picked up by the
