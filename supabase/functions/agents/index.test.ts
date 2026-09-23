@@ -4,7 +4,7 @@
 // `Deno.serve` sits behind `import.meta.main`, so importing binds nothing.
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  authorise, chartBook, chartWindow, dayOpensFrom, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeSymbols, runJevBatch,
+  authorise, binanceSymbol, chartBook, chartWindow, dayOpensFrom, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeParts, probeSymbols, runJevBatch,
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, tickErrorReport, type ProbeSummaryRow,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
@@ -270,4 +270,16 @@ Deno.test("runJevBatch asks the wording and the rule it is told to — so a word
   assert(String((await runJevBatch({ states: [ENTRY], version: "v9" }, env, ask)).error).includes("version"));
   assert(String((await runJevBatch({ states: [ENTRY], kind: "dislocation-1m" }, env, ask)).error).includes("kind"));
   assertEquals(asked.length, 2);                                                               // refusals reach no model
+});
+
+Deno.test("probeParts: `?only=` picks the probe's parts by name, ignores unknown ones, and no list means every part", () => {
+  assertEquals(probeParts(null), null);
+  assertEquals(probeParts(""), null);
+  assertEquals([...probeParts("binance,deribit")!], ["binance", "deribit"]);
+  assertEquals([...probeParts(" Kraken , nonsense ")!], ["kraken"]);
+  assertEquals(probeParts("nonsense"), null);   // nothing recognised is not "nothing to run": it is the whole probe
+});
+
+Deno.test("binanceSymbol: a row's USD pair is Binance's USDT book", () => {
+  assertEquals(["BTC/USD", "SUI/USD"].map(binanceSymbol), ["BTCUSDT", "SUIUSDT"]);
 });

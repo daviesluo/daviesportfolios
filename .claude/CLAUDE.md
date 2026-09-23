@@ -366,10 +366,16 @@ that follow from that evidence, in short:
   action (balances, pair config for every symbol on an active row, a
   signed call with a query, Revolut X active orders and Kraken closed
   orders — the field names the settlement path will read — Kraken
-  `AddOrder validate=true`, Jev on both transports). It places nothing.
+  `AddOrder validate=true`, Jev on both transports, and since 2026-09-23
+  Binance's permissions, fees and symbol rules and Deribit's auth scope
+  and DVOL). It places nothing. `?only=binance,deribit` runs just the
+  parts named (`revx`, `kraken`, `jev`, `binance`, `deribit`).
 - Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
   `KRAKEN_PRO_API_KEY` + `KRAKEN_PRO_PRIVATE_KEY`, `openrouter_api_key`,
-  `typesafe_API_KEY` (fallback). Never print them, never move them.
+  `typesafe_API_KEY` (fallback), `Binance_API_KEY` + `Binance_SECRET_KEY`,
+  `Deribit_CLIENT_ID` + `Deribit_CLIENT_SECRET` (both accounts unfunded as
+  of 2026-09-23; Deribit cannot be funded from here). Never print them,
+  never move them.
 
 ## Git workflow
 
