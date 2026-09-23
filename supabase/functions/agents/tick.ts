@@ -85,6 +85,11 @@ export const MAX_REQUOTES = 5;                    // then the decision lapses un
 export const MAX_ORDER_AGE_MS = 60 * 60e3;        // nothing rests longer than an hour
 export const LEASE_MS = 55e3;                     // one turn holds the tick lease this long at most (under the cron minute)
 export const REENTRY_BARS = 2;                    // after ANY exit, no entry for this many of the rule's own bars
+// An entry is one slot of its row, capital ÷ the positions it can hold (`slotUsdOf`). Until 2026-09-23 it was also capped
+// at a fixed $20 (`agent_risk.max_order_usd`), which pinned every slot at $20 whatever the row's capital said; Davies
+// removed it — the row's capital decides the size, and it grows when the record earns it. The gate still refuses an
+// entry more than this over its own slot: a guard against a sizing bug, with room for a re-quote's price drift.
+export const ORDER_SLOT_TOLERANCE = 1.1;
 export const TURN_BUDGET_MS = Math.round(LEASE_MS * 0.7);   // past this, no NEW bar decision is opened this turn (a Jev round trip is up to 16 s)
 export const PROTECTIVE_CLAIM_OFFSET_MS = 1000;   // a protective decision claims one second INTO its minute: a bar starts on the minute, so the two never collide
 export const PROBE_TTL_MS = 4 * 3600e3;           // a maker probe watches for one 4-hour bar, then expires unfilled
@@ -103,7 +108,7 @@ export type StrategyRow = {
   retired_at?: string | null;
 };
 export type RiskRow = {
-  global_pause: boolean; max_order_usd: number; max_exposure_usd: number; paper_exposure_usd: number | null; daily_loss_limit_usd: number;
+  global_pause: boolean; max_exposure_usd: number; paper_exposure_usd: number | null; daily_loss_limit_usd: number;
   max_orders_per_day: number; live_confirmed_at: string | null;
 };
 export type OrderRow = {
@@ -276,6 +281,11 @@ function trendParamsOf(row: StrategyRow): TrendParams {
     fast: num(p.fast, DEFAULT_TREND.fast), slow: num(p.slow, DEFAULT_TREND.slow), breakoutUp: num(p.breakoutUp, DEFAULT_TREND.breakoutUp),
     breakoutDown: num(p.breakoutDown, DEFAULT_TREND.breakoutDown), atrN: num(p.atrN, DEFAULT_TREND.atrN), atrStop: num(p.atrStop, DEFAULT_TREND.atrStop), volN: num(p.volN, DEFAULT_TREND.volN),
   };
+}
+/** One slot of a row, in dollars: its capital over the positions it can hold at once. Every entry is this size. */
+export function slotUsdOf(row: Pick<StrategyRow, "kind" | "symbols" | "capital_usd" | "params">): number {
+  const slots = row.kind === "rotation-1d" ? Math.max(1, rotationParamsOf(row as StrategyRow).topN) : Math.max(1, row.symbols.length);
+  return Number(row.capital_usd) / slots;
 }
 function rotationParamsOf(row: StrategyRow): RotationParams {
   const p = row.params ?? {};
@@ -513,7 +523,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   // (no pause is assumed, since the pause is the one thing that would refuse an exit).
   const riskRow = riskRes.status === "fulfilled" ? riskRes.value[0] : undefined;
   if (!riskRow) report.errors.push(`agent_risk ${riskRes.status === "rejected" ? `unreadable (${msg(riskRes.reason)})` : "row missing"}: entries refused this turn, exits still run`);
-  const risk: RiskRow = riskRow ?? { global_pause: false, max_order_usd: 0, max_exposure_usd: 0, paper_exposure_usd: 0, daily_loss_limit_usd: 0, max_orders_per_day: 0, live_confirmed_at: null };
+  const risk: RiskRow = riskRow ?? { global_pause: false, max_exposure_usd: 0, paper_exposure_usd: 0, daily_loss_limit_usd: 0, max_orders_per_day: 0, live_confirmed_at: null };
   report.strategies = strategies.length;
 
   // 1. the market ---------------------------------------------------------
@@ -977,8 +987,9 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   }
   // The caps, per venue account and per mode. Paper twins measure independently, so their
   // exposure cap is its own number: with the live cap they would crowd each other out of the book.
-  const limitsFor = (mode: string) => ({
-    maxOrderUsd: Number(risk.max_order_usd),
+  // The per-order limit is the row's own slot (with the re-quote tolerance), not a number in `agent_risk`.
+  const limitsFor = (mode: string, s: StrategyRow) => ({
+    maxOrderUsd: slotUsdOf(s) * ORDER_SLOT_TOLERANCE,
     maxExposureUsd: mode === "paper" && risk.paper_exposure_usd != null ? Number(risk.paper_exposure_usd) : Number(risk.max_exposure_usd),
     dailyLossLimitUsd: Number(risk.daily_loss_limit_usd), maxOrdersPerDay: Number(risk.max_orders_per_day), globalPause: !!risk.global_pause,
   });
@@ -1120,7 +1131,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     if (!s) continue;
     // One re-quote's failure (a venue timeout on the placement, say) is that re-quote's: it must not cost every pair its stop.
     try {
-      const gate = riskGate(o.side === "buy" ? "enter" : "exit", Number(o.base_size) * touch, ctxFor(s, o.symbol), limitsFor(bookMode(s, o.symbol)));
+      const gate = riskGate(o.side === "buy" ? "enter" : "exit", Number(o.base_size) * touch, ctxFor(s, o.symbol), limitsFor(bookMode(s, o.symbol), s));
       if (!gate.allowed) { report.skipped.push(`${o.strategy_id}|${o.symbol}: re-quote refused — ${gate.reason}`); continue; }
       await place(s, o.symbol, o.side, String(o.base_size), touch, o.decision_id ?? null, false, Number(o.requotes ?? 0) + 1);
     } catch (e) {
@@ -1168,9 +1179,8 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       final = { action: "hold", reason: `book too wide to cross: ${bookBps.toFixed(1)} bps > ${WIDE_SPREAD_BPS}`, jevSaid: final.jevSaid };
     }
     const mark = m.mark ?? Number(numbers.close ?? 0);
-    const limits = limitsFor(bookMode(s, sym));
-    const slots = s.kind === "rotation-1d" ? Math.max(1, rotationParamsOf(s).topN) : Math.max(1, s.symbols.length);
-    const orderUsd = final.action === "enter" ? Math.min(Number(s.capital_usd) / slots, limits.maxOrderUsd) : pos.base * mark;
+    const limits = limitsFor(bookMode(s, sym), s);
+    const orderUsd = final.action === "enter" ? slotUsdOf(s) : pos.base * mark;
     const ctx = ctxFor(s, sym);
     const gate0 = riskGate(final.action, orderUsd, ctx, limits);
     // The confirmation is judged on the BOOK the order would be written to, like every other cap here.
@@ -1386,7 +1396,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
             // The same gates a fresh entry passes: the caps, the live confirmation, and the thin-book guard — a retry is an
             // entry at TODAY's touch, and until 2026-09-22 it skipped the last two, so re-arming the confirmation mid-bar
             // placed the stale entry straight into whatever the book was, 200 bps wide or not.
-            let gate = riskGate("enter", orderUsd, ctxFor(s, sym), limitsFor(bookMode(s, sym)));
+            let gate = riskGate("enter", orderUsd, ctxFor(s, sym), limitsFor(bookMode(s, sym), s));
             if (gate.allowed) gate = liveConfirmationRefusal("enter", bookMode(s, sym), risk.live_confirmed_at) ?? gate;
             const retryBps = spreadBps(m.quote);
             if (gate.allowed && retryBps != null && retryBps > WIDE_SPREAD_BPS) gate = { allowed: false, reason: `book too wide to cross: ${retryBps.toFixed(1)} bps > ${WIDE_SPREAD_BPS}` };

@@ -50,15 +50,17 @@
 --
 -- `max_exposure_usd` goes $100 -> $150. It is NOT a loosening of risk:
 -- the rulebook does not pyramid (`ruleDecision` only ever holds or exits
--- while `position.base > 0`), so five coins at a $20 per-order cap can
+-- while `position.base > 0`), so five coins at one $20 slot each can
 -- never deploy more than $100 of capital whatever this number says. What
 -- it fixes is that `tick.ts` derives exposure as base x MARK, not cost —
 -- so four slots up 6 % put the book at $84.80 and the fifth entry is
 -- refused with "exposure 104.80 > max 100". The cap tightened exactly
 -- when the rulebook was working. $150 leaves the fifth slot reachable
--- after a 50 % run in the other four. `max_order_usd` ($20), the daily
--- loss limit ($5) and the order cap (40/day) are untouched, and the
--- paper rows keep their own $300 bucket.
+-- after a 50 % run in the other four. The daily loss limit ($5) and the
+-- order cap (40/day) are untouched, and the paper rows keep their own
+-- $300 bucket. There is no per-order number to set: since 2026-09-23 an
+-- entry is its row's slot (capital / coins), and the gate refuses one
+-- more than 10 % over it (reference §4.26).
 --
 -- TO UNDO
 --

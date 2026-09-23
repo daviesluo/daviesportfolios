@@ -29,7 +29,7 @@ const LIVE_ROW: Row = {
   symbols: ["BTC/USD"], mode: "live", capital_usd: 20, retired_at: null,
   params: { fast: 20, slow: 100, breakoutUp: 55, breakoutDown: 20, atrN: 14, atrStop: 3, volN: 42, enterMin: 0.45, exitMax: 0.3 },
 };
-const RISK: Row = { id: 1, global_pause: false, max_order_usd: 20, max_exposure_usd: 150, paper_exposure_usd: 300, daily_loss_limit_usd: 5, max_orders_per_day: 40, live_confirmed_at: CONFIRMED };
+const RISK: Row = { id: 1, global_pause: false, max_exposure_usd: 150, paper_exposure_usd: 300, daily_loss_limit_usd: 5, max_orders_per_day: 40, live_confirmed_at: CONFIRMED };
 
 const round8 = (x: number) => Math.round(x * 1e8) / 1e8;
 

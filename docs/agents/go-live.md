@@ -308,7 +308,7 @@ From `agent_risk`, per venue account and per mode:
 
 | cap | value | what it stops |
 |---|---|---|
-| max order | $20 | any single order |
+| max order | the row's slot × 1.1 | any single entry; the slot is the row's capital ÷ its coins ($20 on this row). A fixed $20 until 2026-09-23 (reference §4.26) |
 | max exposure | $100 | open notional, live |
 | paper exposure | $300 | the paper twins, measured separately |
 | daily loss limit | $5 | **new risk only** — never an exit |
@@ -360,8 +360,9 @@ Why that row and nothing else:
 - The Revolut X sub-account holds USD, so nothing has to be converted
   first; it has the UK book the loop reads, and costs a quarter of what
   Kraken costs.
-- It is capped at five $20 slots, so $100 of exposure at most, and
-  the per-order cap makes every slot the same size.
+- It is five $20 slots, so $100 of exposure at cost, and every entry
+  is exactly one slot (capital ÷ coins), which makes every slot the
+  same size.
 
 Why not the others, in one line each: **rotation** is negative out of
 sample on both venues, breaks the 35 % drawdown limit in the bull year
@@ -463,7 +464,7 @@ and a counterfactual. Reference §4.19.
   `max_exposure_usd` $100 against a $100 row, four slots up 6 % refuse
   the fifth entry — the cap tightens when the rulebook is working. The
   draft raises it to $150, which cannot loosen risk: the rulebook does
-  not pyramid, so five coins at a $20 per-order cap deploy at most $100
+  not pyramid, so five coins at one $20 slot each deploy at most $100
   of capital whatever the number says.
 - **`daily_loss_limit_usd` is $5 on a $100 book** — 5 %, counting
   realised plus the change in unrealised since the day's open. It blocks

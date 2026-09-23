@@ -14,6 +14,27 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+0000. **DAVIES' REQUESTS OF 2026-09-23 ~06:20–06:45 UTC**, in order:
+   1. Jev on the paper rows: **(c)** — and "每个策略的jev都可以有自己的
+      设计": momentum-1d and trend-1h each get their OWN question, measured
+      on every state and priced before the loop asks it. Open.
+   2. SUI's live seat: his call handed to the session ("删了也行"). Decided:
+      paper only (reference §3.20's addendum, stashed as `sui-decision`
+      until the cap below landed; it now says four $25 slots on $100).
+   3. "Does Binance / Deribit data improve the strategies?" — answered
+      from §3.21 and §3.22: no tested use does; the value is Binance as a
+      second venue with its own strategy (4).
+   4. **VENUES on the Agents page: Kraken out, Binance in**, a Binance
+      theme colour, and the PAPER badge recoloured so it cannot be read as
+      Binance. Kraken's public candles stay the signal. Open.
+   5. **Revolut X and Binance each need a strategy of their own** — the
+      same rule on both is pointless. Two pre-registered studies are
+      running: Revolut X maker-only (`prereg_maker.md`) and Binance
+      cross-sectional momentum (`prereg_xsmom.md`). Open.
+   6. **The fixed $20 per-order cap: removed** ("单笔上限删了吧，之后测试
+      表现好的话我还会再加资金的"). An entry is its row's slot; reference
+      §4.26. The column goes in migration `0048`, after the tick deploys.
+
 000. **DAVIES' REQUESTS OF 2026-09-23 (~02:10 and ~02:35 UTC)**, in order:
    1. Root: `AGENTS.md`, `LEDGER.md`, `README.md`, `package.json`,
       `vite.config.js` still held root slots — **DONE** (item 00.1).
@@ -366,6 +387,20 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 06:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The fixed $20 per-order cap is gone** (Davies; reference §4.26). An
+entry is `slotUsdOf(row)` — capital over the positions the row can hold —
+and `riskGate`'s per-order limit is that slot × 1.1, per row, so capital
+added to a row that earns it makes its orders bigger. Nothing in
+production changes size today: every row's slot is already $20 or less.
+Four tests that asserted the $20 were rewritten to the slot, two pins
+added (four $25 orders on a $100 four-coin row; an entry over 1.1× its
+slot refused, a re-quote's drift inside it placed), each red on the old
+sizing, on a 1.0 tolerance and on no limit. Next: migration `0048` drops
+`agent_risk.max_order_usd` once this tick has deployed; the go-live draft
+becomes `0049`.
 
 ### [2026-09-23 05:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

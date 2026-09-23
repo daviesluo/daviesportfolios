@@ -22,7 +22,7 @@ import type { OrderView, Quote, Venue, VenueId } from "../_shared/venue.ts";
 import { orderViewProblem, toOrderView, type VenueOrder } from "../_shared/revx.ts";
 import { PAGE_ROWS } from "./db.ts";
 import { jevFetch, memDb, schemaRefusal } from "./testing.ts";
-import { dayOpenOf, dayPnl, entryTooLate, fillStamp, isUniqueViolation, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, probeFilled, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, toFill, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS } from "./tick.ts";
+import { dayOpenOf, dayPnl, entryTooLate, fillStamp, isUniqueViolation, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, probeFilled, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, toFill, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS, slotUsdOf, ORDER_SLOT_TOLERANCE } from "./tick.ts";
 
 const FOUR_H = 4 * 3600e3, ONE_H = 3600e3, ONE_D = 86400e3, ONE_M = 60e3;
 const NOW = Date.parse("2026-09-20T04:05:00Z");                 // minute 245 of the day: a fifth minute, so the basis is recorded
@@ -91,7 +91,7 @@ function stubVenue(id: VenueId, o: {
 
 // Jev is `testing.ts`'s double: "healthy, calm, and yes that symbol" to exactly the questions asked — or a 503, with `fail`.
 
-const RISK: RiskRow & { id: number } = { id: 1, global_pause: false, max_order_usd: 20, max_exposure_usd: 100, paper_exposure_usd: 300, daily_loss_limit_usd: 5, max_orders_per_day: 40, live_confirmed_at: null };
+const RISK: RiskRow & { id: number } = { id: 1, global_pause: false, max_exposure_usd: 100, paper_exposure_usd: 300, daily_loss_limit_usd: 5, max_orders_per_day: 40, live_confirmed_at: null };
 const strategy = (over: Partial<StrategyRow> = {}): StrategyRow => ({
   id: "trend-4h-kraken", kind: "trend-4h", venue: "kraken", signal_venue: "kraken", name: "Trend 4h · Kraken", symbols: ["BTC/USD"], mode: "paper", capital_usd: 60,
   params: { fast: 20, slow: 100, breakoutUp: 55, breakoutDown: 20, atrN: 14, atrStop: 3, volN: 42, enterMin: 0.6, exitMax: 0.3 }, ...over,
@@ -167,7 +167,7 @@ Deno.test("a fresh closed bar becomes one decision and one resting paper order a
   const o = w.mem.tables.agent_orders[0] as Row & { request: { postOnly: boolean; marketable: boolean } };
   assertEquals([o.venue, o.mode, o.side, o.state, o.symbol], ["kraken", "paper", "buy", "new", "BTC/USD"]);
   assertEquals(o.price, w.quote.bid);
-  assertAlmostEquals(Number(o.base_size) * w.quote.bid, 20, 0.01);     // capital 60 over three slots, capped at max_order_usd
+  assertAlmostEquals(Number(o.base_size) * w.quote.bid, 60, 0.01);     // capital 60 over one symbol: the slot is the row (under the old $20 cap, 20)
   assertEquals([o.request.postOnly, o.request.marketable], [true, false]);
   assert(!w.kraken.calls.some((c) => c.startsWith("place")));           // paper: the venue is never asked to place
   assert(w.mem.tables.agent_candles.length > 200);
@@ -417,7 +417,7 @@ Deno.test("a live order is written down as pending BEFORE the venue is called, t
   const r = await tick(w.deps);
   assertEquals(r.errors, []);
   assertEquals(pendingAtPlacement, ["pending"]);                            // durable intent first
-  const base = (Math.floor(20 / w.quote.bid * 1e6) / 1e6).toFixed(6);
+  const base = (Math.floor(60 / w.quote.bid * 1e6) / 1e6).toFixed(6);   // one slot: capital 60 over one symbol
   assert(w.kraken.calls.includes(`place buy ${base}@${w.quote.bid.toFixed(2)}`), w.kraken.calls.join(","));
   const o = w.mem.tables.agent_orders[0];
   assertEquals([o.mode, o.state, o.venue_order_id], ["live", "new", "V-1"]);
@@ -552,7 +552,7 @@ Deno.test("the cooldown is the rulebook's, not a book's: a row set to paper righ
 });
 
 Deno.test("paper twins are capped by their own exposure number, so they do not crowd each other out", async () => {
-  const w = world({ risk: { max_exposure_usd: 10, paper_exposure_usd: 300 } });   // the live cap would refuse a $20 paper order
+  const w = world({ risk: { max_exposure_usd: 10, paper_exposure_usd: 300 } });   // the live cap would refuse a $60 paper order
   const r = await tick(w.deps);
   assertEquals(r.decisions[0].allowed, true);
   assertEquals(w.mem.tables.agent_orders.length, 1);
@@ -560,6 +560,47 @@ Deno.test("paper twins are capped by their own exposure number, so they do not c
   const r2 = await tick(w2.deps);
   assertEquals(r2.decisions[0].allowed, false);
   assert(String(w2.mem.tables.agent_decisions[0].risk_reason).includes("exposure"));
+});
+
+Deno.test("an entry is one slot of its row — its capital over the positions it can hold — with no fixed cap on top", async () => {
+  // Four coins on $100 is four $25 slots. Until 2026-09-23 a fixed per-order cap (`agent_risk.max_order_usd`, $20) sat on
+  // top, so every slot came out at $20 whatever the row's capital said, and this row placed four $20 orders.
+  const syms = ["BTC/USD", "ETH/USD", "SOL/USD", "AVAX/USD"];
+  const w = world({ strategies: [strategy({ symbols: syms, capital_usd: 100 })] });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.decisions.map((x) => [x.symbol, x.action, x.allowed]), syms.map((s) => [s, "enter", true]));
+  assertEquals(w.mem.tables.agent_orders.length, 4);
+  for (const o of w.mem.tables.agent_orders) assertAlmostEquals(Number(o.base_size) * Number(o.price), 25, 0.01);
+  // The positions a row can hold at once: its symbols, or the rotation's topN.
+  assertEquals(slotUsdOf({ kind: "trend-4h", symbols: syms, capital_usd: 100, params: {} }), 25);
+  assertEquals(slotUsdOf({ kind: "rotation-1d", symbols: syms, capital_usd: 40, params: { topN: 2 } }), 20);
+});
+
+Deno.test("an entry more than ORDER_SLOT_TOLERANCE over its row's slot is refused; a re-quote's drift inside it is not", async () => {
+  // (a) Decided at $60 with no order behind it, and the row cut to $30 since: the retry carries its recorded size into the
+  // gate, twice the new slot, and the decision is closed instead of placed. Nothing else stands between a sizing bug and the book.
+  const barStart = new Date(world().lastClosedBarStart).toISOString();
+  const orphan = (id: number, orderUsd: number): Row => ({ id, ts: new Date(NOW - ONE_M).toISOString(), strategy_id: "trend-4h-kraken", venue: "kraken", symbol: "BTC/USD", mode: "paper", bar_start: barStart, state: {}, numbers: { orderUsd, kind: "bar" }, provider: "rule", rule_action: "enter", rule_reason: "x", final_action: "enter", final_reason: "x", risk_allowed: true, risk_reason: "within limits" });
+  const w = world({ strategies: [strategy({ capital_usd: 30 })], decisions: [orphan(930, 60)] });
+  await tick(w.deps);
+  assertEquals(w.mem.tables.agent_orders.length, 0);
+  assert(String(w.mem.tables.agent_decisions[0].risk_reason).includes(`order 60.00 > max ${30 * ORDER_SLOT_TOLERANCE}`), String(w.mem.tables.agent_decisions[0].risk_reason));
+  // (b) $32 against the same $30 slot is inside the tolerance: placed, at its recorded size.
+  const w2 = world({ strategies: [strategy({ capital_usd: 30 })], decisions: [orphan(931, 32)] });
+  await tick(w2.deps);
+  assertEquals(w2.mem.tables.agent_orders.length, 1);
+  assertAlmostEquals(Number(w2.mem.tables.agent_orders[0].base_size) * Number(w2.mem.tables.agent_orders[0].price), 32, 0.02);
+  // (c) A full $20 slot resting 50 bps under a touch that has moved up is re-quoted at the touch: $20.10 now. With the cap
+  // equal to the slot, as the fixed $20 made it on every $20 row, the gate refused exactly this re-quote.
+  const bid = world().quote.bid;
+  const w3 = world({ strategies: [strategy({ capital_usd: 20 })], orders: [seedOrder({ id: 12, ts: new Date(NOW - REQUOTE_AFTER_MS).toISOString(), price: 128.5, base_size: Math.floor(20 / 128.5 * 1e6) / 1e6, client_order_id: "c12", decision_id: 78 })] });
+  const r3 = await tick(w3.deps);
+  assertEquals(r3.settled, [{ id: 12, state: "cancelled" }]);
+  const re = w3.mem.tables.agent_orders.find((o) => o.requotes === 1);
+  assert(re, `no re-quote: ${r3.skipped.join("; ")}`);
+  assertEquals(re.price, bid);
+  assert(Number(re.base_size) * bid > 20, String(Number(re.base_size) * bid));
 });
 
 Deno.test("the rotation rule ranks the cross-section: the strongest symbol is entered, the other is not", async () => {
@@ -576,7 +617,7 @@ Deno.test("the rotation rule ranks the cross-section: the strongest symbol is en
   assert(byPair["ETH/USD"].reason.includes("not in the top 1"), byPair["ETH/USD"].reason);
   const orders = w.mem.tables.agent_orders;
   assertEquals(orders.map((o) => o.symbol), ["BTC/USD"]);
-  assertAlmostEquals(Number(orders[0].base_size) * Number(orders[0].price), 20, 0.02);   // one slot: capital 60 / topN 1, capped at max_order_usd
+  assertAlmostEquals(Number(orders[0].base_size) * Number(orders[0].price), 60, 0.02);   // one slot: capital 60 / topN 1
   const dec = w.mem.tables.agent_decisions.find((d) => d.symbol === "BTC/USD")!;
   assertEquals((dec.numbers as { rank: { rank: number; inTop: boolean } }).rank.inTop, true);
   assertEquals(dec.bar_start, new Date(Math.floor(NOW / ONE_D) * ONE_D - ONE_D).toISOString());   // decided on yesterday's close
@@ -657,7 +698,7 @@ Deno.test("dislocation: Revolut X 20 bps under Kraken lifts the ask at once, wit
   const o = w.mem.tables.agent_orders[0] as Row & { request: { marketable: boolean; timeInForce: string; postOnly: boolean } };
   assertEquals([o.venue, o.side, o.price, o.state], ["revx", "buy", w.revxQuote.ask, "new"]);
   assertEquals([o.request.marketable, o.request.timeInForce, o.request.postOnly], [true, "ioc", false]);
-  assertAlmostEquals(Number(o.base_size) * Number(o.price), 20, 0.02);      // capital 40 over one symbol, capped at max_order_usd
+  assertAlmostEquals(Number(o.base_size) * Number(o.price), 40, 0.02);      // capital 40 over one symbol
   assertEquals(w.mem.tables.agent_decisions[0].bar_start, new Date(Math.floor(NOW / ONE_M) * ONE_M).toISOString());   // the minute is the bar
   assert(w.kraken.calls.includes("candles BTC/USD 1"));                     // Kraken's minutes, for the reference move
 });

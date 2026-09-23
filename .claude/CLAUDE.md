@@ -295,6 +295,12 @@ that follow from that evidence, in short:
   never came near Kraken's fee in 60 h of 5-minute closes or 10 minutes
   at the touch (reference §2c), and `agent_basis` keeps measuring it
   every turn. Caps in `agent_risk` are per venue account and per mode.
+  **An entry is one slot of its row** — capital ÷ the positions it can
+  hold — and nothing else sizes it: the fixed $20 per-order cap
+  (`max_order_usd`) was removed on Davies' word on 2026-09-23, so adding
+  capital to a row that earns it makes its orders bigger. The gate still
+  refuses an entry more than 10 % over its slot (`ORDER_SLOT_TOLERANCE`,
+  reference §4.26).
 - **THREE ROWS run after migration `0046` (2026-09-22, §3.17, §4.22)**: `trend-4h`
   on Revolut X (the live candidate, $100),
   `momentum-1d` on Revolut X (paper, $40) and `trend-1h` on Revolut X
