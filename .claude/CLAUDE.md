@@ -11,6 +11,14 @@ evidence, settled chart/ledger rules, past mistakes — is
 loads the same text from `.cursor/rules/working-with-davies.mdc`. The
 live handover record is `docs/LEDGER.md`; `docs/handover.md` is its archive.
 
+**Reply to Davies in Chinese.** He writes in Chinese, and every line he
+reads is Chinese: answers, the one-line progress notes between tool
+calls, and above all the first lines after a context compaction, whose
+summary is written in English. Everything committed stays English. The
+rule is here and not only in the skill because the skill is cut short
+when a context is compacted, and English came back four times (the last
+on 2026-09-23: "怎么会话又变成英文了").
+
 ## A fresh container
 
 Overview: this repo is a Vite + React (JSDoc/`checkJs`, not TSX) client

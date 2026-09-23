@@ -450,6 +450,13 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 
 ### [2026-09-23 13:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
+**The Chinese-reply rule now opens `CLAUDE.md`**, after a fourth slip into English
+following a context compaction ("怎么会话又变成英文了"). The skill is cut short at a
+compaction; CLAUDE.md is loaded whole on every turn. The skill's three copies record
+the fourth slip.
+
+### [2026-09-23 13:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
 **A maker probe, like a resting paper order, is filled only by a trade through its
 price** (`tradedThrough`, migration `0050`, reference §4 item 30). The tick read the
 last minute's low/high with no volume check, and on Revolut X's quote-built UK
