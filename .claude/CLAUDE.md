@@ -341,7 +341,8 @@ that follow from that evidence, in short:
   rejected; a BTC-regime filter on entries is the one written-down
   candidate, to be re-tested on a non-bear window before any paper twin),
   and volatility-sized slots and DVOL / funding entry gates (§3.21, from the
-  Binance and Deribit research) were tested and rejected with numbers — a faster rule is a fee schedule
+  Binance and Deribit research) were tested and rejected with numbers;
+  executing the live row at Binance's cost changes no verdict (§3.22) — a faster rule is a fee schedule
   until data says otherwise.
   Backtests: reference §3.3a–§3.7, run with the loop's own fills, stops
   and cooldown — including the rotation rule since 2026-09-21, where the

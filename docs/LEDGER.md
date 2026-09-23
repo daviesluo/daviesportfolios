@@ -29,13 +29,13 @@ list stays the short version; the plan is the reasoning behind it.
       - **Sizing and entry gates: DONE** (reference §3.21): volatility-sized
         slots, a DVOL gate and a funding gate all fail the bar; nothing
         changes.
-      - **The paper rows' Jev gates: DONE** (reference §4.21): both fail
-        the bar; the choice is Davies' (item 6).
-      - **Binance's costs** (the live coins, SUI's seat, the top-twenty
-        screen): run twice with identical bytes; the main session's re-run
-        is the last check before it lands. The half-finished state of both
-        studies stays backed up on `claude/repo-audit-restore-uverhn`
-        (`ddb4c67`).
+      - **Binance's costs: DONE** (reference §3.22): no verdict changes —
+        the worst window stays, SUI's seat stays undecided, no coin
+        clears. **The paper rows' Jev gates: DONE** (reference §4.21):
+        both fail the bar; the choice is Davies' (item 6).
+      - The backup of both studies' half-finished state stays on
+        `claude/repo-audit-restore-uverhn` (`ddb4c67`); nothing there is
+        needed any more.
    5. `src/` has too many files: sort it into subfolders — **DONE**:
       `app/`, `portfolio/`, `prices/`, `charts/`, `board/`, `tables/`,
       `agents/`, plus `e2e/` and `public/`; the top of `src/` is only the
@@ -366,6 +366,18 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 05:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The live row at Binance's cost changes no verdict** (reference §3.22;
+`backtest_binance.ts` → `binance.json`; review
+`2026-09-23-binance-cost-study.md`). Pre-registered, resumed after a usage
+limit, run twice with identical bytes and re-run here with the same bytes.
+Round trips on AVAX and SUI fall by 7–21 bps, but the worst window does not
+move, SUI's seat stays undecided and no coin clears the bar; the one big
+number (window A, +5.6) is a single SUI stop missed by 3 bps at the end of
+its file. The venue survey's §11 now says so. The book samples the study
+read are in `backtests/inputs/binance_books_2026-09-23/`.
 
 ### [2026-09-23 05:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

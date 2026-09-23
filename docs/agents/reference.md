@@ -2141,6 +2141,45 @@ four evaluations (p 0.030–0.042), which is one window. This is the fourth
 pricing of volatility scaling (§3.10, §3.11, §3.19); H2 and H3 join §3.17's
 33 entry gates, none of which cleared the bar.
 
+### 3.22 The live row at Binance's cost — no verdict changes (2026-09-23)
+
+Davies holds a Binance spot account (0.10 % maker and taker at his tier, 0.075 %
+with BNB; §6). The question, pre-registered before any Binance arm ran
+(`reviews/2026-09-23-binance-cost-prereg.md`, with an addendum for one
+descriptive arm): what the live coins, SUI's seat and §4.15's screen become if
+the same orders were executed at Binance's cost — the same rule, windows, tapes,
+stops and evaluations, only the cost changed (10 or 7.5 bps a side plus half of
+Binance's measured spread). Script `agents/backtest_binance.ts` →
+`backtests/binance.json` (sha256 `b7e4fb4f…`, identical in two runs and in the
+main session's re-run; the Revolut X arm re-derives `tape.json`, `set2.json` and
+`sui.json` with 0 differences); review `reviews/2026-09-23-binance-cost-study.md`;
+book samples in `backtests/inputs/binance_books_2026-09-23/`.
+
+- **The live sleeve**: round trips BTC 19.5 → 20.0, AVAX 27.6 → 20.9, SUI
+  41.9 → 21.0 bps; the worst window stays D under every arm (ret ÷ DD −0.50 at
+  Revolut X, −0.50 at Binance, −0.48 with BNB). Window A on the Coinbase tape
+  gains 5.6 points, and 5.56 of them are one SUI stop: the 8 % floor was
+  reached by 8.4 bps at Revolut X's spread and missed by 3.0 bps at Binance's,
+  just before SUI's file ends on a rally the other coins' files do not contain.
+  On Kraken's tape the same window moves +0.29.
+- **SUI's seat**: §3.20's test stays undecided under every arm (p(worse)
+  0.194 / 0.256 at Binance). SUI is still last of the five on both tapes; its
+  slot earns −0.4 % / +2.2 % at Binance against −5.8 % / −1.1 % at Revolut X,
+  so its wide UK spread is not what makes its record weak.
+- **The screen** (23 coins, shipped stop, both tapes agreeing): one coin clears
+  both windows at Binance's cost (AVAX), where chance gives 4.17; no coin is new,
+  and the pre-registered reading rule finds something in 0 of 48 cells. Every
+  difference from Revolut X is its UK book: AAVE, BNB and POL (window A) and ETC
+  and LTC (window B) pass the four tests at both costs and fail only the
+  $100k-a-day book.
+
+**So Binance changes no verdict**: moving the row there would not move its
+worst window, decide SUI's seat or admit a coin. It is not a recommendation to
+move anything, and says nothing about Binance serving a UK account, custody,
+funding or USDT against USD. The spreads are one night's (02:21–03:08 UTC), and
+a $20 order is not inside the touch on every pair at every moment (AAVE, HBAR,
+POL), which the script's own comment overstates.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

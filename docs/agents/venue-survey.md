@@ -619,9 +619,11 @@ then priced where a backtest can price them.
    14.9 bps (~33 bps a round trip, reference §3.20), so ~12 bps a round
    trip is the fair saving there, not ~20. Binance's depth would also
    lift the $100k-a-day book bar that kept POL out (§3.8). Prices are in
-   USDT, not USD. Whether this changes any coin's verdict is a
-   pre-registered backtest under way: the live coins at Binance's cost,
-   SUI's seat re-judged, the top twenty re-screened.
+   USDT, not USD. **Priced, pre-registered: it changes no verdict**
+   (reference §3.22). The live row's worst window does not move, SUI's
+   seat stays undecided (it is still the weakest of the five on Binance's
+   tight book), and no coin clears the bar at Binance's cost. At this tier
+   Binance is not worth moving the row for.
 2. **Volatility-sized slots, and DVOL or funding as entry gates.** Priced
    on the live row, pre-registered: all three fail the bar (reference
    §3.21). Nothing changes.

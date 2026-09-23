@@ -1,0 +1,293 @@
+{
+ "fetched_at": "2026-09-23T03:08:09.431671Z",
+ "source": "https://data-api.binance.vision/api/v3/ticker/24hr?symbols=[...] (keyless)",
+ "error": null,
+ "rows": [
+  {
+   "symbol": "BTCUSDT",
+   "lastPrice": "86440.01000000",
+   "volume": "20320.13052000",
+   "quoteVolume": "1748607130.77892780",
+   "openTime": 1790046490012,
+   "closeTime": 1790132890012,
+   "count": 3243637,
+   "bidPrice": "86440.01000000",
+   "askPrice": "86440.02000000"
+  },
+  {
+   "symbol": "ETHUSDT",
+   "lastPrice": "2758.64000000",
+   "volume": "287658.53900000",
+   "quoteVolume": "789660522.60316100",
+   "openTime": 1790046490000,
+   "closeTime": 1790132890000,
+   "count": 2816883,
+   "bidPrice": "2758.64000000",
+   "askPrice": "2758.65000000"
+  },
+  {
+   "symbol": "BNBUSDT",
+   "lastPrice": "792.61000000",
+   "volume": "157624.86600000",
+   "quoteVolume": "124153430.04349000",
+   "openTime": 1790046490092,
+   "closeTime": 1790132890092,
+   "count": 689096,
+   "bidPrice": "792.60000000",
+   "askPrice": "792.61000000"
+  },
+  {
+   "symbol": "LTCUSDT",
+   "lastPrice": "62.75000000",
+   "volume": "652807.51500000",
+   "quoteVolume": "40294578.75432000",
+   "openTime": 1790046490192,
+   "closeTime": 1790132890192,
+   "count": 311841,
+   "bidPrice": "62.75000000",
+   "askPrice": "62.76000000"
+  },
+  {
+   "symbol": "ADAUSDT",
+   "lastPrice": "0.25480000",
+   "volume": "289054699.50000000",
+   "quoteVolume": "72272828.83060000",
+   "openTime": 1790046489270,
+   "closeTime": 1790132889270,
+   "count": 285068,
+   "bidPrice": "0.25480000",
+   "askPrice": "0.25490000"
+  },
+  {
+   "symbol": "XRPUSDT",
+   "lastPrice": "1.58820000",
+   "volume": "300623119.00000000",
+   "quoteVolume": "467948846.21372000",
+   "openTime": 1790046489301,
+   "closeTime": 1790132889301,
+   "count": 1665372,
+   "bidPrice": "1.58810000",
+   "askPrice": "1.58820000"
+  },
+  {
+   "symbol": "XLMUSDT",
+   "lastPrice": "0.21830000",
+   "volume": "154218534.00000000",
+   "quoteVolume": "32953524.50530000",
+   "openTime": 1790046489183,
+   "closeTime": 1790132889183,
+   "count": 162049,
+   "bidPrice": "0.21830000",
+   "askPrice": "0.21840000"
+  },
+  {
+   "symbol": "ETCUSDT",
+   "lastPrice": "9.54000000",
+   "volume": "1165206.13000000",
+   "quoteVolume": "10664303.66090000",
+   "openTime": 1790046489316,
+   "closeTime": 1790132889316,
+   "count": 78882,
+   "bidPrice": "9.54000000",
+   "askPrice": "9.55000000"
+  },
+  {
+   "symbol": "LINKUSDT",
+   "lastPrice": "13.05800000",
+   "volume": "3017409.37000000",
+   "quoteVolume": "39201413.28213000",
+   "openTime": 1790046487175,
+   "closeTime": 1790132887175,
+   "count": 426196,
+   "bidPrice": "13.05700000",
+   "askPrice": "13.05800000"
+  },
+  {
+   "symbol": "ATOMUSDT",
+   "lastPrice": "1.83900000",
+   "volume": "2372840.98000000",
+   "quoteVolume": "4226278.26467000",
+   "openTime": 1790046484315,
+   "closeTime": 1790132884315,
+   "count": 32147,
+   "bidPrice": "1.83900000",
+   "askPrice": "1.84000000"
+  },
+  {
+   "symbol": "ALGOUSDT",
+   "lastPrice": "0.11300000",
+   "volume": "35295731.00000000",
+   "quoteVolume": "3916595.87020000",
+   "openTime": 1790046484546,
+   "closeTime": 1790132884546,
+   "count": 34724,
+   "bidPrice": "0.11300000",
+   "askPrice": "0.11310000"
+  },
+  {
+   "symbol": "DOGEUSDT",
+   "lastPrice": "0.10272000",
+   "volume": "2052063539.00000000",
+   "quoteVolume": "206366592.08148000",
+   "openTime": 1790046489561,
+   "closeTime": 1790132889561,
+   "count": 1414026,
+   "bidPrice": "0.10272000",
+   "askPrice": "0.10273000"
+  },
+  {
+   "symbol": "HBARUSDT",
+   "lastPrice": "0.10031000",
+   "volume": "341398169.00000000",
+   "quoteVolume": "33024346.57542000",
+   "openTime": 1790046489640,
+   "closeTime": 1790132889640,
+   "count": 353546,
+   "bidPrice": "0.10031000",
+   "askPrice": "0.10032000"
+  },
+  {
+   "symbol": "BCHUSDT",
+   "lastPrice": "338.60000000",
+   "volume": "368628.51900000",
+   "quoteVolume": "116781682.15490000",
+   "openTime": 1790046489675,
+   "closeTime": 1790132889675,
+   "count": 914421,
+   "bidPrice": "338.50000000",
+   "askPrice": "338.60000000"
+  },
+  {
+   "symbol": "SOLUSDT",
+   "lastPrice": "118.33000000",
+   "volume": "2818923.41200000",
+   "quoteVolume": "330811159.30217000",
+   "openTime": 1790046489746,
+   "closeTime": 1790132889746,
+   "count": 932534,
+   "bidPrice": "118.32000000",
+   "askPrice": "118.33000000"
+  },
+  {
+   "symbol": "DOTUSDT",
+   "lastPrice": "1.21300000",
+   "volume": "10058413.58000000",
+   "quoteVolume": "11892779.52371000",
+   "openTime": 1790046489953,
+   "closeTime": 1790132889953,
+   "count": 83770,
+   "bidPrice": "1.21200000",
+   "askPrice": "1.21300000"
+  },
+  {
+   "symbol": "UNIUSDT",
+   "lastPrice": "10.84700000",
+   "volume": "23318648.85000000",
+   "quoteVolume": "223048915.78005000",
+   "openTime": 1790046490033,
+   "closeTime": 1790132890033,
+   "count": 1076934,
+   "bidPrice": "10.84600000",
+   "askPrice": "10.84700000"
+  },
+  {
+   "symbol": "AVAXUSDT",
+   "lastPrice": "11.22200000",
+   "volume": "5516040.69000000",
+   "quoteVolume": "60547384.44885000",
+   "openTime": 1790046490052,
+   "closeTime": 1790132890052,
+   "count": 531767,
+   "bidPrice": "11.22200000",
+   "askPrice": "11.22300000"
+  },
+  {
+   "symbol": "AAVEUSDT",
+   "lastPrice": "148.66000000",
+   "volume": "143648.63600000",
+   "quoteVolume": "20745314.31138000",
+   "openTime": 1790046490075,
+   "closeTime": 1790132890075,
+   "count": 308647,
+   "bidPrice": "148.66000000",
+   "askPrice": "148.67000000"
+  },
+  {
+   "symbol": "NEARUSDT",
+   "lastPrice": "4.33900000",
+   "volume": "59982181.30000000",
+   "quoteVolume": "265622832.74490000",
+   "openTime": 1790046490082,
+   "closeTime": 1790132890082,
+   "count": 1653051,
+   "bidPrice": "4.33900000",
+   "askPrice": "4.34000000"
+  },
+  {
+   "symbol": "SHIBUSDT",
+   "lastPrice": "0.00000615",
+   "volume": "2192441884629.00",
+   "quoteVolume": "13276764.53612608",
+   "openTime": 1790046488398,
+   "closeTime": 1790132888398,
+   "count": 80763,
+   "bidPrice": "0.00000614",
+   "askPrice": "0.00000615"
+  },
+  {
+   "symbol": "ICPUSDT",
+   "lastPrice": "3.00200000",
+   "volume": "3216536.28000000",
+   "quoteVolume": "9509096.94866000",
+   "openTime": 1790046484002,
+   "closeTime": 1790132884002,
+   "count": 69104,
+   "bidPrice": "3.00200000",
+   "askPrice": "3.00300000"
+  },
+  {
+   "symbol": "SUIUSDT",
+   "lastPrice": "1.03030000",
+   "volume": "106642910.00000000",
+   "quoteVolume": "108312002.76836000",
+   "openTime": 1790046489213,
+   "closeTime": 1790132889213,
+   "count": 746095,
+   "bidPrice": "1.03030000",
+   "askPrice": "1.03040000"
+  },
+  {
+   "symbol": "PEPEUSDT",
+   "lastPrice": "0.00000490",
+   "volume": "20875648578585.00",
+   "quoteVolume": "104886817.50954162",
+   "openTime": 1790046488058,
+   "closeTime": 1790132888058,
+   "count": 304350,
+   "bidPrice": "0.00000489",
+   "askPrice": "0.00000490"
+  },
+  {
+   "symbol": "TONUSDT",
+   "lastPrice": "1.60000000",
+   "volume": "4800378.41000000",
+   "quoteVolume": "7717352.41982000",
+   "openTime": 1788847250986,
+   "closeTime": 1788933650986,
+   "count": 85935,
+   "bidPrice": "0.00000000",
+   "askPrice": "0.00000000"
+  },
+  {
+   "symbol": "POLUSDT",
+   "lastPrice": "0.10933000",
+   "volume": "67008818.30000000",
+   "quoteVolume": "7288489.16775300",
+   "openTime": 1790046488535,
+   "closeTime": 1790132888535,
+   "count": 99089,
+   "bidPrice": "0.10932000",
+   "askPrice": "0.10935000"
+  }
+ ]
+}
