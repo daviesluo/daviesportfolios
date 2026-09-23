@@ -101,7 +101,7 @@ Both kinds of function read and write Postgres, which keeps the
 portfolio, five-minute prices, overnight quotes, broker fills, error
 reports and every agents decision, order and fill. Outside services —
 Yahoo Finance, Eastmoney, Finnhub, Alpha Vantage, Trading 212, Revolut X,
-Kraken and the TypeSafe Jev decision model — are called from the server,
+Binance, Kraken and the TypeSafe Jev decision model — are called from the server,
 where every key stays.](architecture.svg)
 
 The page and the scheduled jobs share one database, so prices keep being

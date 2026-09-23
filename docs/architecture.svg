@@ -35,7 +35,7 @@
     <text x="700" y="124" text-anchor="middle" font-size="15.5" font-weight="700" fill="#1f2328">OUTSIDE SERVICES</text>
     <text x="700" y="146" text-anchor="middle" font-size="13" fill="#57606a">market data, broker, exchanges, decision model</text>
     <text x="700" y="172" text-anchor="middle" font-size="12" fill="#1f2328">Yahoo Finance · Eastmoney · Finnhub · Alpha Vantage</text>
-    <text x="700" y="190" text-anchor="middle" font-size="12" fill="#1f2328">Trading 212 · Revolut X · Kraken · TypeSafe Jev</text>
+    <text x="700" y="190" text-anchor="middle" font-size="12" fill="#1f2328">Trading 212 · Revolut X · Binance · Kraken · TypeSafe Jev</text>
     <text x="700" y="214" text-anchor="middle" font-size="11.5" fill="#57606a">every key stays on the server</text>
   </g>
 

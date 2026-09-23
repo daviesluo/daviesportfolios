@@ -412,6 +412,12 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-23 07:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The README's architecture diagram names Binance among the outside services**
+the server calls (the VENUES card reads its account since `1b194e2`). The line
+was measured in Chromium before the change: 312 px in a 400 px box.
+
 ### [2026-09-23 07:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Eight of today's history headers carried guessed times, 2–14 minutes late;
