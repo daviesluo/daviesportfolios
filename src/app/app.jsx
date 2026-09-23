@@ -1323,7 +1323,7 @@ function Board({ isReadOnly }) {
         onToggleHideValues={toggleHideValues}
         onOpenHoldingsList={() => setShowHoldingsList(true)}
         onOpenSectorsList={() => setShowSectorsList(true)}
-        onOpenTransactionHistory={() => setShowTransactionHistory(true)}
+        onOpenTransactionHistory={() => { if (!isReadOnly) setShowTransactionHistory(true); }}
         onOpenAgents={() => setShowAgents(true)}
       />
 
@@ -1337,6 +1337,7 @@ function Board({ isReadOnly }) {
             className="perf-in-left"
             hideValues={hideValues}
             t212Orders={t212OrderRead}
+            isReadOnly={isReadOnly}
           />
           {isDesktop && (
             <MarketConditions
@@ -1384,6 +1385,7 @@ function Board({ isReadOnly }) {
           extendedHours={extendedHours}
           phase={currentPhase}
           hideValues={hideValues}
+          isReadOnly={isReadOnly}
         />
         {/* Mobile-only Market Conditions strip — rendered as a separate
             sibling because the desktop instance lives inside .left-col,
@@ -1458,7 +1460,7 @@ function Board({ isReadOnly }) {
         </LazyBoundary>
       )}
 
-      {showTransactionHistory && (
+      {showTransactionHistory && !isReadOnly && (
         <LazyBoundary title="Transaction history" onClose={() => setShowTransactionHistory(false)}>
           <React.Suspense fallback={<ModalFrame title="Transaction history" onClose={() => setShowTransactionHistory(false)} />}>
             <TransactionHistoryModal

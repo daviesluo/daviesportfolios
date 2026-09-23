@@ -266,6 +266,9 @@ const barsFor = (t, daily, includePrePost = false, sessions = 1) => {
 const b64url = (s) => Buffer.from(s).toString('base64')
   .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const TOKEN = `${b64url(JSON.stringify({ role: 'admin', exp: NOW_MS + 3600_000 }))}.sig`;
+// The read-only password's token: the same board, no editing, and since
+// 2026-09-23 no transaction history and no Investment view.
+const RO_TOKEN = `${b64url(JSON.stringify({ role: 'ro', exp: NOW_MS + 3600_000 }))}.sig`;
 
 // ---- run -----------------------------------------------------------
 
@@ -452,7 +455,7 @@ const money = (s) => Number(String(s || '').replace(/[^0-9.-]/g, ''));
 
 async function newPage(browser, { width, height }, errors, tokenMisses, opts = {}) {
   const ctx = await browser.newContext({ viewport: { width, height } });
-  await ctx.addInitScript(([token]) => { sessionStorage.setItem('dp.token', token); }, [TOKEN]);
+  await ctx.addInitScript(([token]) => { sessionStorage.setItem('dp.token', token); }, [opts.token || TOKEN]);
   const page = await ctx.newPage();
   // Freeze `Date` for the page at the same instant the fixture's bars
   // were generated for. Timers still run, so the app's 30 s refresh and
@@ -1461,6 +1464,34 @@ async function run() {
       await page.waitForTimeout(300);
     } else fail(S('agents'), 'Agents menu item not found');
 
+    await ctx.close();
+  }
+
+  // ---- the read-only viewer, at both breakpoints ---------------------
+  // Its password is shared publicly (Davies, 2026-09-23). A viewer gets the
+  // board and the vs-S&P chart, but not the transaction history (every buy
+  // and sell with its date and price) nor the Investment view (the book in
+  // dollars against the money paid in). The phone matters on its own: the
+  // panel there is the sidebar's copy, a separate mount of the same code.
+  for (const vp of [{ name: 'desktop', width: 1400, height: 1000 },
+                    { name: 'phone', width: 390, height: 844 }]) {
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { token: RO_TOKEN });
+    const S = (n) => `${vp.name}/viewer/${n}`;
+    await page.waitForSelector('.scoreboard-cell-portfolio .sb-value-lg', { timeout: 20_000 }).catch(() => {});
+    await page.waitForSelector('.perf-lbl', { state: 'visible', timeout: 10_000 }).catch(() => {});
+    const badge = await page.locator('.ro-badge:visible').count();
+    const invTabs = await page.locator('#perf-tab-inv').count();
+    const title = ((await page.locator('.panel:has(.perf-range-btn) .panel-title:visible').first().textContent().catch(() => '')) || '').trim();
+    const legend = await page.locator('.perf-lbl:visible').allTextContents();
+    if (badge === 1 && invTabs === 0 && /^VS S&P/.test(title) && legend.length > 0 && !legend.some((l) => /VALUE|DEPOSITED/.test(l))) {
+      ok(S('perf'), `VIEWER badge; the panel is "${title}" alone, legend ${JSON.stringify(legend.slice(0, 2))}, no Investment tab`);
+    } else fail(S('perf'), `badge ${badge}, Investment tabs ${invTabs}, title "${title}", legend ${JSON.stringify(legend)}`);
+    await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+    await page.waitForTimeout(200);
+    const items = (await page.locator('.header-menu-item').allTextContents()).map((t) => t.trim());
+    if (JSON.stringify(items) === JSON.stringify(['Holding list', 'Sectors list', 'Agents (beta)'])) ok(S('menu'), `menu ${JSON.stringify(items)}: no Transaction history`);
+    else fail(S('menu'), `menu ${JSON.stringify(items)}`);
+    await page.keyboard.press('Escape');
     await ctx.close();
   }
 

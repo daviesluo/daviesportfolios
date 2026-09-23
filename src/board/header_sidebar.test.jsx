@@ -146,6 +146,16 @@ describe('Header ☰ menu', () => {
     await user.click(screen.getByRole('menuitem', { name: 'Sectors list' }));
     expect(onOpenSectorsList).toHaveBeenCalledTimes(1);
   });
+
+  it('leaves Transaction history out for a read-only viewer', async () => {
+    // The viewer password is shared publicly; every buy and sell with its
+    // date and price stays behind the edit password (Davies, 2026-09-23).
+    const user = userEvent.setup();
+    renderHeader({ isReadOnly: true });
+    await user.click(screen.getByRole('button', { name: /Menu/i }));
+    const items = screen.getAllByRole('menuitem').map(b => b.textContent);
+    expect(items).toEqual(['Holding list', 'Sectors list', 'Agents (beta)']);
+  });
 });
 
 describe('Sidebar — Top Movers ranks only real movers', () => {

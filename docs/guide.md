@@ -7,8 +7,9 @@ map is [map.md](map.md).
 ## Signing in
 
 There are two passwords. One can edit. The other is a read-only link for
-sharing: the same data, no editing controls, and a `VIEWER` badge where
-the `EDIT` switch would be. Type either into the prompt, or pass it once
+sharing: the same board with no editing controls, no transaction history
+and no INVESTMENT chart, and a `VIEWER` badge where the `EDIT` switch
+would be. Type either into the prompt, or pass it once
 as `?pwd=…` in the URL, which the page removes as soon as it reads it.
 The signed token then lasts for the browser session, so a reload or an
 update doesn't ask again.
@@ -64,11 +65,12 @@ Tap a tile to open its chart.
 - **Sectors list.** The same table grouped by sector, each group headed
   by its position and name (`ST · Neocloud`) and its totals. Sorting
   orders the sectors and the holdings inside them.
-- **Transaction history.** Every buy and sale across every holding,
-  newest first, closed positions included, with the total realised gain
-  in dollars at the top. Sales are entered in a holding's editor. A
-  sale's gain folds into the average cost of the shares still held, so
-  selling high and buying back lower lowers the average cost.
+- **Transaction history** (edit password only). Every buy and sale
+  across every holding, newest first, closed positions included, with
+  the total realised gain in dollars at the top. Sales are entered in a
+  holding's editor. A sale's gain folds into the average cost of the
+  shares still held, so selling high and buying back lower lowers the
+  average cost.
 - **Export.** Each table has two buttons by its title: copy
   (tab-separated, pastes into Excel or Sheets) and download (an `.xlsx`
   with filters on the headings). Both export the table in its current
@@ -150,7 +152,7 @@ Opens from any holding, tile or Market Conditions card.
 Two tabs share one slot and one range: **VS S&P 500** (it reads VS S&P
 FUT while the benchmark is the futures contract) and **INVESTMENT**.
 Both come from the same valuation, so they can't disagree about what
-the portfolio is worth.
+the portfolio is worth. The read-only password shows VS S&P 500 alone.
 
 ### VS S&P 500
 

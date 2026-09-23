@@ -369,7 +369,7 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
             {editMode ? "✓ EDIT MODE" : "EDIT"}
           </button>
         )}
-        <HeaderMenu onOpenHoldingsList={onOpenHoldingsList} onOpenSectorsList={onOpenSectorsList} onOpenTransactionHistory={onOpenTransactionHistory} onOpenAgents={onOpenAgents} />
+        <HeaderMenu isReadOnly={isReadOnly} onOpenHoldingsList={onOpenHoldingsList} onOpenSectorsList={onOpenSectorsList} onOpenTransactionHistory={onOpenTransactionHistory} onOpenAgents={onOpenAgents} />
       </div>
     </header>
   );
@@ -379,8 +379,10 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
 // click-away / Escape closes it. Items: "Holding list", "Sectors list" +
 // "Transaction history", then "Agents" (the crypto strategies page).
 // Available in both view + edit mode, read-only included (every page
-// behind the menu is view-only).
-function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory, onOpenAgents }) {
+// behind the menu is view-only) — except Transaction history, which a
+// read-only viewer does not get: every buy and sell with its date and
+// price is the owner's, and the viewer password is shared publicly (2026-09-23).
+function HeaderMenu({ isReadOnly = false, onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory, onOpenAgents }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(/** @type {HTMLDivElement | null} */ (null));
   React.useEffect(() => {
@@ -415,11 +417,13 @@ function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHi
             role="menuitem"
             onClick={() => { setOpen(false); onOpenSectorsList && onOpenSectorsList(); }}
           >Sectors list</button>
-          <button
-            className="header-menu-item"
-            role="menuitem"
-            onClick={() => { setOpen(false); onOpenTransactionHistory && onOpenTransactionHistory(); }}
-          >Transaction history</button>
+          {!isReadOnly && (
+            <button
+              className="header-menu-item"
+              role="menuitem"
+              onClick={() => { setOpen(false); onOpenTransactionHistory && onOpenTransactionHistory(); }}
+            >Transaction history</button>
+          )}
           <button
             className="header-menu-item"
             role="menuitem"
@@ -658,7 +662,7 @@ function TopMovers({ metrics, hideValues = false }) {
   );
 }
 
-function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues }) {
+function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, isReadOnly = false }) {
   // The by-value position list. Memoised on metrics so the per-tick
   // refresh churn (clock, flash) doesn't re-sort the book on every
   // render. Top movers moved into TopMovers, which owns its own
@@ -705,6 +709,7 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
         extendedHours={extendedHours}
         phase={phase}
         className="perf-in-sidebar"
+        isReadOnly={isReadOnly}
       />
 
       <div className="sidebar-foot sidebar-foot-desktop">

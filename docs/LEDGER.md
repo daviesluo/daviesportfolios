@@ -14,6 +14,20 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+00000000. **DAVIES' REQUESTS OF 2026-09-23 ~20:40 UTC.** The go-live work
+   (item 0000000: D8–D10 and the go itself) is **PAUSED on his word**, and so
+   is the DecisionFC review; do not resume either without him.
+   1. **The read-only password hides the transaction history and the
+      INVESTMENT view: DONE** (its password is being shared publicly). The
+      menu item and the tab are not rendered for a viewer, the panel shows
+      VS S&P 500 alone at both breakpoints, and the modal cannot open;
+      pinned in Vitest and by four checks in the browser sweep (226), all
+      of which fail on the previous bundle. Presentation only: the
+      portfolio payload a viewer loads still carries the lots.
+   2. **Agents page: the stablecoin quotes (PR5 paper test) become a row of
+      TESTING STRATEGIES**, with a detail page adapted from the strategy
+      page to what the quotes are: next.
+
 0000000. **DAVIES' REQUESTS OF 2026-09-23 ~15:20 UTC**, in order:
    1. **Can PR5 go live now, and are two Revolut X strategies ready?**
       Answered: PR5 not yet (no live execution path, a record minutes old,
@@ -540,6 +554,14 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 21:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**A viewer no longer sees the transaction history or the INVESTMENT view** (item 00000000.1):
+`PerfPanel` forces the vs-S&P view and drops the tabs when `isReadOnly`, the ☰ menu leaves
+the entry out, and `app.jsx` will not open the modal. The sidebar's copy of the panel is the
+one phones see, so it takes the flag too. Sweep 222 → 226 checks. Go-live and the DecisionFC
+review are paused on Davies' word.
 
 ### [2026-09-23 20:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

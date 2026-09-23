@@ -1245,9 +1245,9 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 /**
  * @param {{ portfolio: any, marketData: any, extendedHours: boolean, phase: string,
  *   className?: string, hideValues?: boolean,
- *   t212Orders?: {rows: any[], complete: boolean}|null }} props
+ *   t212Orders?: {rows: any[], complete: boolean}|null, isReadOnly?: boolean }} props
  */
-function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false, t212Orders = null }) {
+function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false, t212Orders = null, isReadOnly = false }) {
   // Own the range here so the title can name the actual benchmark: ES=F
   // (ext-on 1D / 1W) → "S&P FUTURES", the cash index otherwise → "S&P 500".
   // The legend dot inside the chart flips the same way (spSymbolFor).
@@ -1256,7 +1256,12 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hid
   // user is looking at one window and asking two questions about it, so
   // flipping the view must not reset which window that is.
   const [view, setView] = React.useState(/** @type {'sp'|'investment'} */ ('sp'));
-  const isInv = view === 'investment';
+  // A read-only viewer gets the vs-S&P chart alone. The Investment view is
+  // the book in dollars against the money paid in, which Davies keeps to the
+  // edit password (2026-09-23); the viewer password is shared publicly.
+  // Forced here rather than only hidden, so no key or stale state reaches it.
+  const shownView = isReadOnly ? 'sp' : view;
+  const isInv = shownView === 'investment';
   const benchmarksFutures = spSymbolFor(rangeKey, extendedHours) === 'ES=F';
   // Arrow keys move between tabs and take focus with them — with
   // `tabIndex={-1}` on the inactive tab (roving tabindex, so Tab treats
@@ -1280,23 +1285,27 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hid
           itself after the click. Two tabs at title scale name both
           destinations, mark the current one, and cost no extra row. */}
       <div className="panel-title-row">
-        <div className="view-tabs" role="tablist" aria-label="Performance view">
-          <button
-            type="button" role="tab" id="perf-tab-sp"
-            aria-selected={!isInv} tabIndex={isInv ? -1 : 0}
-            className={`view-tab mono${isInv ? '' : ' is-on'}`}
-            onClick={() => setView('sp')}
-            onKeyDown={onTabKey}
-          >VS {benchmarksFutures ? <>S&amp;P FUT</> : <>S&amp;P 500</>}</button>
-          <span className="view-tab-sep" aria-hidden="true" />
-          <button
-            type="button" role="tab" id="perf-tab-inv"
-            aria-selected={isInv} tabIndex={isInv ? 0 : -1}
-            className={`view-tab mono${isInv ? ' is-on' : ''}`}
-            onClick={() => setView('investment')}
-            onKeyDown={onTabKey}
-          >INVESTMENT</button>
-        </div>
+        {isReadOnly ? (
+          <div className="panel-title">VS {benchmarksFutures ? <>S&amp;P FUT</> : <>S&amp;P 500</>}</div>
+        ) : (
+          <div className="view-tabs" role="tablist" aria-label="Performance view">
+            <button
+              type="button" role="tab" id="perf-tab-sp"
+              aria-selected={!isInv} tabIndex={isInv ? -1 : 0}
+              className={`view-tab mono${isInv ? '' : ' is-on'}`}
+              onClick={() => setView('sp')}
+              onKeyDown={onTabKey}
+            >VS {benchmarksFutures ? <>S&amp;P FUT</> : <>S&amp;P 500</>}</button>
+            <span className="view-tab-sep" aria-hidden="true" />
+            <button
+              type="button" role="tab" id="perf-tab-inv"
+              aria-selected={isInv} tabIndex={isInv ? 0 : -1}
+              className={`view-tab mono${isInv ? ' is-on' : ''}`}
+              onClick={() => setView('investment')}
+              onKeyDown={onTabKey}
+            >INVESTMENT</button>
+          </div>
+        )}
       </div>
       <PerfChart
         portfolio={portfolio}
@@ -1305,7 +1314,7 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hid
         phase={phase}
         rangeKey={rangeKey}
         setRangeKey={setRangeKey}
-        view={view}
+        view={shownView}
         hideValues={hideValues}
         t212Orders={t212Orders}
       />

@@ -494,4 +494,20 @@ describe('PerfPanel — one slot, two charts', () => {
     });
     expect(selected(/** @type {HTMLElement} */ (container))).toEqual([el[0].textContent]);
   });
+
+  it('shows a read-only viewer the vs-S&P chart alone', () => {
+    // The Investment view is the book in dollars against the money paid
+    // in; it stays behind the edit password (Davies, 2026-09-23).
+    const { container } = render(
+      <PerfPanel portfolio={PORTFOLIO} marketData={MARKET_DATA} extendedHours={false} phase="regular" isReadOnly />,
+    );
+    expect(tabs(/** @type {HTMLElement} */ (container))).toEqual([]);
+    expect(container.querySelector('[role="tablist"]')).toBeNull();
+    expect(container.querySelector('#perf-tab-inv')).toBeNull();
+    expect(container.querySelector('.panel-title')?.textContent).toBe('VS S&P 500');
+    expect(container.textContent).not.toMatch(/INVESTMENT|DEPOSITED/);
+    // The range row stays: the viewer still reads every window.
+    expect([...container.querySelectorAll('.perf-range-btn')].map(b => b.textContent))
+      .toEqual(['24H', '1W', '1M', '3M', 'YTD']);
+  });
 });
