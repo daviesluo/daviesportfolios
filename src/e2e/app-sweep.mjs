@@ -610,12 +610,12 @@ async function run() {
     const { ctx, page } = await newPage(browser, { width: 1400, height: 1000 }, errors, tokenMisses, { beforeGoto: hold });
     await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
     await page.waitForTimeout(100);
-    const agentsBtn = page.locator('.header-menu-item:text-is("Agents")');
+    const agentsBtn = page.locator('.header-menu-item:text-is("Agents (beta)")');
     if (await agentsBtn.count()) {
       await agentsBtn.first().click();
       const frameTitle = await page.locator('.modal .modal-title').first().textContent({ timeout: 300 }).catch(() => '');
       const earlyBoard = await page.locator('.ag-scoreboard').count();
-      if (frameTitle.trim() === 'Agents' && earlyBoard === 0) ok('desktop/agents', 'clicking Agents before its code has arrived shows the page\'s own frame, not the home page');
+      if (frameTitle.trim() === 'Agents (beta)' && earlyBoard === 0) ok('desktop/agents', 'clicking Agents (beta) before its code has arrived shows the page\'s own frame, titled as the page is, not the home page');
       else fail('desktop/agents', `early frame title "${frameTitle}", scoreboards ${earlyBoard}`);
       const arrived = await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 }).then(() => true).catch(() => false);
       const modalsAfter = await page.locator('.modal').count();
@@ -1094,7 +1094,7 @@ async function run() {
     // maskDigits, which the transaction history already proves.
     await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
     await page.waitForTimeout(200);
-    const agentsBtn = page.locator('.header-menu-item:text-is("Agents")');
+    const agentsBtn = page.locator('.header-menu-item:text-is("Agents (beta)")');
     if (await agentsBtn.count()) {
       await agentsBtn.first().click();
       await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
@@ -1169,8 +1169,8 @@ async function run() {
         else fail(S('agents'), `name column text-align ${nameAlign}`);
       }
       const sbCells = await page.locator('.ag-scoreboard .sb-label').allTextContents();
-      if (sbCells.join('|') === 'DEPLOYED|TODAY|UNREALIZED G/L|REALIZED G/L (incl. fees $0.08)') {
-        ok(S('agents'), 'four cells, no total, and the fees ride on the realised label');
+      if (sbCells.join('|') === 'DEPLOYED (Paper)|TODAY|UNREALIZED G/L|REALIZED G/L (incl. fees $0.08)') {
+        ok(S('agents'), 'four cells, no total, the fees ride on the realised label, and DEPLOYED says it is paper');
       } else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}`);
       const under = await page.locator('.ag-sb-under').count();
       if (under === 0) ok(S('agents'), 'no explanatory line under the scoreboard');
@@ -1178,6 +1178,15 @@ async function run() {
       const cardLabels = await page.locator('.ag-venue-card-binance .ag-venue-grid > .dim').allTextContents();
       if (cardLabels.includes('unrealised') && cardLabels.includes('realised') && !cardLabels.some((t) => /total/.test(t))) ok(S('agents'), 'a venue card shows unrealised and realised, no total');
       else fail(S('agents'), `venue card rows: ${cardLabels.join(' | ')}`);
+      // Davies, 2026-09-23: funded and deployed say "(Paper)", and the paper capital row is gone — its figure IS the
+      // funding now, and the accounts' real balances are not on the page (every row trades paper; they only misled).
+      const revxLabels = await page.locator('.ag-venue-card-revx .ag-venue-grid > .dim').allTextContents();
+      if (['funded (Paper)', 'deployed (Paper)'].every((l) => revxLabels.includes(l) && cardLabels.includes(l)) && ![...revxLabels, ...cardLabels].some((t) => /paper capital/.test(t))) ok(S('agents'), 'both cards read funded (Paper) and deployed (Paper), with no paper capital row');
+      else fail(S('agents'), `card labels: revx ${revxLabels.join(' | ')} / binance ${cardLabels.join(' | ')}`);
+      // The menu entry was found above by its exact text, "Agents (beta)"; the page's own title must say the same.
+      const pageTitle = await page.locator('.modal .modal-title').first().textContent().catch(() => '');
+      if ((pageTitle || '').trim() === 'Agents (beta)') ok(S('agents'), 'the page is titled Agents (beta), as the menu entry that opened it');
+      else fail(S('agents'), `page title "${pageTitle}"`);
       const stripN = await page.locator('.ag-chip').count();
       const basisN = await page.locator('.ag-basis').count();
       if (stripN === 0 && basisN === 0) ok(S('agents'), 'no caps / Jev strip and no basis table on the overview');
@@ -1196,12 +1205,15 @@ async function run() {
       const cards = await page.locator('.ag-venue-card').count();
       if (cards === 2) ok(S('agents'), 'one venue card per account');
       else fail(S('agents'), `venue cards ${cards}`);
+      // Funded (Paper) is the capital the venue's rows are allotted — 100 + 40 + 40 on Revolut X — and the
+      // accounts' real balances (the fixture's $100 USD there, 50 USDT and 0.012 BNB at Binance) are NOT shown.
       const funded = await page.locator('.ag-venue-card-revx .ag-venue-grid').textContent().catch(() => '');
-      if (/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card shows its funding');
-      else fail(S('agents'), `revx card reads "${funded}"`);
-      const bnFunded = await page.locator('.ag-venue-card-binance .ag-funded').textContent().catch(() => '');
-      if (/50\.00 USDT/.test(bnFunded || '') && /0\.012000 BNB/.test(bnFunded || '')) ok(S('agents'), 'the Binance card reads USDT as money and BNB as a coin');
-      else fail(S('agents'), `binance funded reads "${bnFunded}"`);
+      const fundedCell = await page.locator('.ag-venue-card-revx .ag-venue-grid > span:has-text("funded (Paper)") + span').textContent().catch(() => '');
+      if (money(fundedCell) === 180 && !/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card is funded with its rows\' paper capital ($180), not the account balance');
+      else fail(S('agents'), `revx funded cell "${fundedCell}", card reads "${funded}"`);
+      const bnCard = await page.locator('.ag-venue-card-binance .ag-venue-grid').textContent().catch(() => '');
+      if (!/USDT|BNB/.test(bnCard || '')) ok(S('agents'), 'the Binance card shows no account balance');
+      else fail(S('agents'), `binance card reads "${bnCard}"`);
       // Davies, 2026-09-23: Kraken off VENUES, Binance on, and PAPER must not read as Binance's yellow. The colours
       // are read back from the page, not from the stylesheet: a rule that never applies would pass a source check.
       const venuesText = await page.locator('.ag-venues').textContent().catch(() => '');
@@ -1346,7 +1358,7 @@ async function run() {
       await page.waitForTimeout(200);
       await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
       await page.waitForTimeout(200);
-      await page.locator('.header-menu-item:text-is("Agents")').first().click();
+      await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
       await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
       await page.locator('.ag-row', { has: page.locator('.ag-name-btn:text-is("Trend 4h · Revolut X")') }).first().click();
       await page.waitForSelector('.ag-poscard', { timeout: 5_000 });
@@ -1371,7 +1383,7 @@ async function run() {
       agentsMode = 'notReady';
       await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
       await page.waitForTimeout(200);
-      await page.locator('.header-menu-item:text-is("Agents")').first().click();
+      await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
       await page.waitForSelector('.ag-notready', { timeout: 10_000 }).catch(() => {});
       const nr = await page.locator('.ag-notready').textContent().catch(() => '');
       const nrErrors = await page.locator('.ag-error').count();
@@ -1390,7 +1402,7 @@ async function run() {
       agentsMode = 'error';
       await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
       await page.waitForTimeout(200);
-      await page.locator('.header-menu-item:text-is("Agents")').first().click();
+      await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
       await page.waitForSelector('.ag-errorcard', { timeout: 10_000 }).catch(() => {});
       const ecTitle = await page.locator('.ag-errorcard-title').textContent().catch(() => '');
       const ecText = await page.locator('.ag-errorcard-text').textContent().catch(() => '');
@@ -1412,7 +1424,7 @@ async function run() {
       agentsMode = 'paused';
       await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
       await page.waitForTimeout(200);
-      await page.locator('.header-menu-item:text-is("Agents")').first().click();
+      await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
       await page.waitForSelector('.ag-alert', { timeout: 10_000 }).catch(() => {});
       const stopBanner = await page.locator('.ag-alert.is-stop .ag-alert-label').textContent().catch(() => '');
       const faultBanner = await page.locator('.ag-alert.is-fault .ag-alert-text').textContent().catch(() => '');

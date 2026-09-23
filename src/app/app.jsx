@@ -1474,8 +1474,8 @@ function Board({ isReadOnly }) {
       )}
 
       {showAgents && (
-        <LazyBoundary title="Agents" bodyClass="ag-body" onClose={() => setShowAgents(false)}>
-          <React.Suspense fallback={<ModalFrame title="Agents" bodyClass="ag-body" onClose={() => setShowAgents(false)} />}>
+        <LazyBoundary title="Agents (beta)" bodyClass="ag-body" onClose={() => setShowAgents(false)}>
+          <React.Suspense fallback={<ModalFrame title="Agents (beta)" bodyClass="ag-body" onClose={() => setShowAgents(false)} />}>
             <AgentsModal
               hideValues={hideValues}
               onClose={() => setShowAgents(false)}

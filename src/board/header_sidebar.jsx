@@ -424,7 +424,7 @@ function HeaderMenu({ onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHi
             className="header-menu-item"
             role="menuitem"
             onClick={() => { setOpen(false); onOpenAgents && onOpenAgents(); }}
-          >Agents</button>
+          >Agents (beta)</button>
         </div>
       )}
     </div>

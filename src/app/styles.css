@@ -2045,7 +2045,6 @@ body {
 .ag-poscards { margin: 10px 0 14px; }
 .ag-poscard.is-on { border-color: var(--chalk-mute); background: var(--panel-hi); }
 .ag-poscard .pc-row span:last-child { font-variant-numeric: tabular-nums; }
-.ag-funded { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
 @media (max-width: 760px) {
   .ag-countdown { margin-left: 0; width: 100%; }
   .ag-poscards { grid-template-columns: 1fr; }

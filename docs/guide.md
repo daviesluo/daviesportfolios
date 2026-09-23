@@ -77,13 +77,17 @@ Tap a tile to open its chart.
 
 ## The Agents page
 
-The crypto strategies, all on paper today.
+The crypto strategies, all on paper today, which is why the menu and the
+page call it **Agents (beta)**.
 
 - **The list.** A scoreboard in the home page's style (deployed, today,
-  unrealised and realised gain, each with its percentage), a card per
-  exchange account — Revolut X in blue, where the strategies trade, and
-  Binance in its yellow, which shows what that account holds and trades
-  nothing yet — and one row per strategy: a status dot (green running,
+  unrealised and realised gain, each with its percentage; deployed reads
+  **(Paper)** while no strategy trades real money), a card per exchange —
+  Revolut X in blue, where the strategies trade, and Binance in its
+  yellow, which trades nothing yet — showing **funded (Paper)**, the
+  capital its strategies are allotted, **deployed (Paper)**, what they
+  hold, then today, unrealised, realised and fees (the accounts' real
+  balances are not shown: nothing trades them), and one row per strategy: a status dot (green running,
   amber stale, grey paused), its exchange, its mode (LIVE in green,
   PAPER in a dashed outline, or PAUSED), today, unrealised and realised
   gain, and a countdown

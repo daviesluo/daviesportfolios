@@ -753,27 +753,16 @@ export function positionLines(s) {
     }));
 }
 
-const CURRENCY_SIGN = { USD: '$', GBP: '£', EUR: '€' };
-/** A stablecoin is money: cents, not a coin's six decimals. @param {string} c */
-const isMoney = (c) => c in CURRENCY_SIGN || /^USD[CT]$/.test(c);
 /**
- * What an account holds, every currency the venue reported, non-zero
- * only, money first: a UK deposit that arrived as pounds must read as
- * pounds, not as a blank where dollars were expected.
- * @param {Record<string, number> | null | undefined} balances
+ * Whether what is shown is paper money only: every strategy (on `venue`, if one is named) is paper and holds no
+ * live coins. A paused row keeps the book it traded in, so a paused row still holding live coins is not paper.
+ * The page labels its deployed and funded figures "(Paper)" only while this holds, so the label cannot outlive
+ * the day a row goes live.
+ * @param {Array<{ venue?: string, mode?: string, holdsLive?: boolean }> | null | undefined} strategies
+ * @param {string} [venue]
  */
-export function balanceLines(balances) {
-  const order = (c) => (c === 'USD' ? 0 : isMoney(c) ? 1 : 2);
-  /** @type {{ code: string, amount: number }[]} */
-  const held = Object.entries(balances ?? {}).map(([code, v]) => ({ code: String(code), amount: Number(v) }));
-  return held
-    .filter((b) => Number.isFinite(b.amount) && Math.abs(b.amount) >= (isMoney(b.code) ? 0.005 : 1e-8))   // a fraction of a coin is money
-    .sort((a, b) => order(a.code) - order(b.code) || a.code.localeCompare(b.code))
-    .map((b) => {
-      const sign = CURRENCY_SIGN[b.code];
-      const text = sign ? `${sign}${b.amount.toFixed(2)} ${b.code}` : isMoney(b.code) ? `${b.amount.toFixed(2)} ${b.code}` : `${b.amount.toFixed(Math.abs(b.amount) >= 1 ? 4 : 6)} ${b.code}`;
-      return { code: b.code, amount: b.amount, text };
-    });
+export function paperOnly(strategies, venue) {
+  return !(strategies ?? []).some((s) => (venue == null || s.venue === venue) && (s.mode === 'live' || !!s.holdsLive));
 }
 
 /**

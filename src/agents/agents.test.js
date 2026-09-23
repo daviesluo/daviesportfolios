@@ -3,7 +3,7 @@ import {
   defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, lastChangeText, symbolOrderRows,
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
-  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, balanceLines, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
+  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -577,17 +577,29 @@ describe('plotLabelY', () => {
   });
 });
 
-describe('balanceLines', () => {
-  it('names every non-zero balance in its own currency, money first, and never invents dollars', () => {
-    const lines = balanceLines({ USDC: 0, GBP: 75, BTC: 0.00025 });
-    expect(lines.map((l) => l.text)).toEqual(['£75.00 GBP', '0.000250 BTC']);
-    expect(balanceLines({ USD: 100, GBP: 75 }).map((l) => l.code)).toEqual(['USD', 'GBP']);
-    expect(balanceLines(null)).toEqual([]);
+describe('paperOnly', () => {
+  // Davies, 2026-09-23: every row trades paper, so the page labels its funded and deployed figures "(Paper)" and
+  // no longer shows the accounts' real balances. The label must not outlive the day a row goes live.
+  const rows = [
+    { venue: 'revx', mode: 'paper' }, { venue: 'revx', mode: 'paper' }, { venue: 'binance', mode: 'paper' },
+  ];
+  it('is true while every row is paper, on the page and on each venue', () => {
+    expect(paperOnly(rows)).toBe(true);
+    expect(paperOnly(rows, 'revx')).toBe(true);
+    expect(paperOnly(rows, 'binance')).toBe(true);
+    expect(paperOnly([])).toBe(true);
+    expect(paperOnly(null)).toBe(true);
   });
-  it('reads a stablecoin as money — cents, with the money — and a coin to its own decimals', () => {
-    // What a Binance account holds: USDT is dollars in all but name, and read to six decimals it looked like a coin.
-    expect(balanceLines({ BNB: 0.012, USDT: 50, BTC: 1.5 }).map((l) => l.text)).toEqual(['50.00 USDT', '0.012000 BNB', '1.5000 BTC']);
-    expect(balanceLines({ USDC: 0.004, USDT: 0.006 }).map((l) => l.text)).toEqual(['0.01 USDT']);   // under half a cent is not a balance
+  it('turns false for the venue, and the page, the moment one row is live', () => {
+    const withLive = [...rows, { venue: 'revx', mode: 'live' }];
+    expect(paperOnly(withLive)).toBe(false);
+    expect(paperOnly(withLive, 'revx')).toBe(false);
+    expect(paperOnly(withLive, 'binance')).toBe(true);
+  });
+  it('treats a paused row still holding live coins as live money, not paper', () => {
+    const paused = [{ venue: 'revx', mode: 'paused', holdsLive: true }];
+    expect(paperOnly(paused)).toBe(false);
+    expect(paperOnly([{ venue: 'revx', mode: 'paused', holdsLive: false }])).toBe(true);
   });
 });
 

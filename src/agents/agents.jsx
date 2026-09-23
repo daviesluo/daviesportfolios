@@ -14,7 +14,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtMoney, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  agentsAlerts, agentsErrorView, balanceLines, countdownText, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
+  agentsAlerts, agentsErrorView, countdownText, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, paperOnly, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -109,7 +109,7 @@ function Scoreboard({ dash, m }) {
     <>
     <div className="ag-scoreboard">
       <div className="ag-sb-cell ag-sb-cell-main">
-        <div className="sb-label">DEPLOYED</div>
+        <div className="sb-label">{paperOnly(dash?.strategies) ? 'DEPLOYED (Paper)' : 'DEPLOYED'}</div>
         <div className="sb-value sb-value-lg mono">{m(fmtUsd(v.valueUsd))}</div>
       </div>
       <div className="ag-sb-divider" />
@@ -130,7 +130,7 @@ function StrategyScoreboard({ s, m }) {
     <>
     <div className="ag-scoreboard ag-scoreboard-sm">
       <div className="ag-sb-cell ag-sb-cell-main">
-        <div className="sb-label">DEPLOYED</div>
+        <div className="sb-label">{paperOnly([s]) ? 'DEPLOYED (Paper)' : 'DEPLOYED'}</div>
         <div className="sb-value sb-value-lg mono">{m(fmtUsd(v.valueUsd))}</div>
       </div>
       <div className="ag-sb-divider" />
@@ -165,10 +165,10 @@ function VenueSplit({ dash, m }) {
               <div className="dim mono ag-venue-meta">{r.strategies} strategies · {r.live} live · maker/taker {fmtFees(r.feeBps)}</div>
             </div>
             <div className="ag-venue-grid mono">
-              <span className="dim">funded</span>
-              <span className="ag-funded">{r.canTrade ? (balanceLines(r.balances).length ? balanceLines(r.balances).map((b) => <span key={b.code} className="ag-funded-line">{m(b.text)}</span>) : '—') : 'no key'}</span>
-              <span className="dim">deployed</span><span className="hl-strong">{m(fmtUsd(r.valueUsd))}</span>
-              <span className="dim" title="the notional each paper strategy may deploy; paper money, so the sum can exceed the real balance">paper capital</span><span>{m(fmtUsd(r.capitalUsd))}</span>
+              {/* Funded is the capital the venue's strategies are allotted, not the account's balance: every row trades
+                  paper, so a real balance here only misled (Davies, 2026-09-23). */}
+              <span className="dim" title="the capital this venue's strategies are allotted">funded{paperOnly(dash?.strategies, r.id) ? ' (Paper)' : ''}</span><span>{m(fmtUsd(r.capitalUsd))}</span>
+              <span className="dim">deployed{paperOnly(dash?.strategies, r.id) ? ' (Paper)' : ''}</span><span className="hl-strong">{m(fmtUsd(r.valueUsd))}</span>
               <span className="dim">today</span><span className="ag-gl" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.todayPct))}</span>
               <span className="dim">unrealised</span><span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>
               <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(r.realisedUsd) }}>{m(glText(r.realisedUsd, r.realisedPct))}</span>
@@ -749,7 +749,7 @@ function AgentsModal({ hideValues, onClose }) {
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
         <div>
-          <h2 className="modal-title mono">Agents</h2>
+          <h2 className="modal-title mono">Agents (beta)</h2>
         </div>
         <div className="modal-head-actions">
           <button className="btn-ghost icon" onClick={() => load(true)} disabled={loading} aria-label="Refresh" title="Refresh">{loading ? '…' : '↻'}</button>

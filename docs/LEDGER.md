@@ -414,6 +414,17 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-23 10:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Agents page, Davies' labels** (his request, 2026-09-23 ~10:20 UTC): the menu
+and the page say "Agents (beta)"; both VENUES cards read "funded (Paper)" — the
+capital the venue's rows are allotted, the old "paper capital" figure — and
+"deployed (Paper)", and the paper capital row is gone; the scoreboard and each
+strategy's say "DEPLOYED (Paper)". The accounts' real balances are no longer on
+the page ("账户真的fund没用，放在这里有误导"). One helper, `paperOnly`, decides the
+label, so it disappears the day a row goes live or holds live coins. Sweep 216
+checks; with the old card labels 8 of them fail.
+
 ### [2026-09-23 08:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Each paper row's own Jev question, priced: neither clears the bar**
