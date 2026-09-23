@@ -41,8 +41,9 @@ runs every one of them in CI's order. Green means green — he will
 notice a red main.
 
 **The docs are part of the change**, not a follow-up: a file, function,
-migration or feature that comes or goes updates its row in `docs/map.md`
-(and `docs/guide.md` when a user sees it) in the same commit. The README
+migration or feature that comes or goes updates its one-line row in
+`docs/map.md` (and `docs/guide.md` when a user sees it) in the same
+commit; a test fails on a file with no row. The README
 is the one-page public front he uses in interviews (2026-09-22). He had
 it cut from 275 KB to 10 KB on 2026-09-23 and asked for it to read as if
 he wrote it himself: first person, plain words, clear logic, no AI feel.

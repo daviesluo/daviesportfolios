@@ -14,9 +14,13 @@ live handover record is `LEDGER.md`; `docs/handover.md` is its archive.
   asked. `docs/map.md` is the source-of-truth map of the system: when a
   change adds or removes an Edge Function, migration, `src/` module,
   workflow or script, update its row there (and the engineering notes,
-  stack or data flow if they change) in the same commit. `docs/guide.md`
-  says how to use the site; update it when a user-facing feature
-  changes. Trim what the change made redundant while you're there. A
+  stack or data flow if they change) in the same commit. A row is ONE
+  line saying what the file is for; why it is built that way goes in the
+  file's own comments, never back into the row — appending each change's
+  story to its row is how the README reached 275 KB.
+  `src/docs_map.test.js` fails when a file has no row or a row names a
+  file that is gone. `docs/guide.md` says how to use the site, in plain
+  words for a user; update it when a user-facing feature changes. A
   change that lands without its docs update is incomplete.
 - **`README.md` is the public front page, and it stays one page**
   (Davies shows the repo in interviews; he had it cut from 275 KB to
