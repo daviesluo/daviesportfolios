@@ -306,7 +306,7 @@ const AGENTS_DASHBOARD = (() => {
   });
   const strat = (id, kind, venue, symbols, capitalUsd, over = {}) => ({
     id, kind, venue, signalVenue: 'kraken', nextDecisionAt: new Date(NOW_MS + 2 * 3600e3 + 13 * 60e3).toISOString(),
-    name: `${KIND_NAME[kind]} · ${venue === 'revx' ? 'Revolut X' : 'Kraken'}`,
+    name: `${KIND_NAME[kind]} · ${({ revx: 'Revolut X', binance: 'Binance', kraken: 'Kraken' })[venue]}`,
     description: 'Fixture strategy.', symbols, mode: 'paper', capitalUsd,
     params: { fast: 20, slow: 100 }, updatedAt: at,
     costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0,
@@ -340,10 +340,15 @@ const AGENTS_DASHBOARD = (() => {
   // The THREE rows that survive `0046` (reference §3.17, §4.22). `0043` retired three and `0044`
   // deleted them; `0046` deleted the Kraken twin, which made no decision of its own — 50 of 50 paired
   // decisions matched this row exactly — so no strategy executes on Kraken any more.
+  // …and, since `0049`, their paper twins on Binance (Davies, 2026-09-23: the same strategies shown there): the
+  // same rules, coins and capital, filled at Binance's touch. Flat here, as they start in production.
   const strategies = [
     revxTrend,
     strat('trend-1h', 'trend-1h', 'revx', MAJORS, 40),
     strat('momentum-1d', 'momentum-1d', 'revx', MAJORS, 40),
+    strat('trend-4h-binance', 'trend-4h', 'binance', TREND, 100),
+    strat('trend-1h-binance', 'trend-1h', 'binance', MAJORS, 40),
+    strat('momentum-1d-binance', 'momentum-1d', 'binance', MAJORS, 40),
   ];
   const zero = { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0 };
   const book = { costUsd: 20, valueUsd: 21.5, unrealisedUsd: 1.5, realisedUsd: 12.34, feesUsd: 0.08, todayUsd: 0.42 };
@@ -360,7 +365,7 @@ const AGENTS_DASHBOARD = (() => {
     strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
     byVenue: {
       revx: { ...book, capitalUsd: 180, strategies: 3, live: 0 },     // 100 + 40 + 40, and the only book there is
-      // No Binance entry: `byVenue` is built from the rows, and no row trades there. Kraken is the signal venue only.
+      binance: { ...zero, capitalUsd: 180, strategies: 3, live: 0 },  // the twins' capital, nothing held yet. Kraken is the signal venue only.
     },
     basis: {
       'BTC/USD': { latest: 0.31, latestAt: at, n: 288, absP50: 0.4, absP95: 1.2, absMax: 2.1, over20: 0, over40: 0, over80: 0 },
@@ -1106,8 +1111,8 @@ async function run() {
       // Three since `0046` deleted the Kraken twin (§4.22): `0043` retired the two rotations and the
       // Kraken momentum twin, `0044` deleted them, and the twin made no decision of its own. The rows
       // those migrations removed are off the page because none of them still holds anything here.
-      if (rows === 3) ok(S('agents'), 'three strategy rows — the set 0046 leaves, the deleted ones absent');
-      else fail(S('agents'), `expected 3 strategy rows, got ${rows}`);
+      if (rows === 6) ok(S('agents'), 'six strategy rows — the three 0046 leaves and their Binance twins (0049), the deleted ones absent');
+      else fail(S('agents'), `expected 6 strategy rows, got ${rows}`);
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
       // observation the tick wrote 40 s ago.
@@ -1197,7 +1202,7 @@ async function run() {
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, binanceRows = badges.filter((b) => b.startsWith('Binance')).length;
-      if (revxRows === 3 && binanceRows === 0) ok(S('agents'), 'venue badge on every row: 3 Revolut X, none on Binance, which executes nothing');
+      if (revxRows === 3 && binanceRows === 3) ok(S('agents'), 'venue badge on every row: 3 Revolut X, and their 3 paper twins on Binance');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       const shares = await page.locator('.ag-share').allTextContents();
       if (shares.some((t) => /Revolut X 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Revolut X');
@@ -1212,8 +1217,9 @@ async function run() {
       if (money(fundedCell) === 180 && !/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card is funded with its rows\' paper capital ($180), not the account balance');
       else fail(S('agents'), `revx funded cell "${fundedCell}", card reads "${funded}"`);
       const bnCard = await page.locator('.ag-venue-card-binance .ag-venue-grid').textContent().catch(() => '');
-      if (!/USDT|BNB/.test(bnCard || '')) ok(S('agents'), 'the Binance card shows no account balance');
-      else fail(S('agents'), `binance card reads "${bnCard}"`);
+      const bnFundedCell = await page.locator('.ag-venue-card-binance .ag-venue-grid > span:has-text("funded (Paper)") + span').textContent().catch(() => '');
+      if (!/USDT|BNB/.test(bnCard || '') && money(bnFundedCell) === 180) ok(S('agents'), 'the Binance card is funded with its twins\' paper capital ($180) and shows no account balance');
+      else fail(S('agents'), `binance funded cell "${bnFundedCell}", card reads "${bnCard}"`);
       // Davies, 2026-09-23: Kraken off VENUES, Binance on, and PAPER must not read as Binance's yellow. The colours
       // are read back from the page, not from the stylesheet: a rule that never applies would pass a source check.
       const venuesText = await page.locator('.ag-venues').textContent().catch(() => '');
@@ -1231,7 +1237,7 @@ async function run() {
       else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
       const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();
-      const named = ['Trend 4h · Revolut X', 'Trend 1h · Revolut X', 'Momentum 30d · Revolut X'];
+      const named = ['Trend 4h · Revolut X', 'Trend 1h · Revolut X', 'Momentum 30d · Revolut X', 'Trend 4h · Binance', 'Trend 1h · Binance', 'Momentum 30d · Binance'];
       const gone = /Dislocation|Rotation|Momentum 30d · Kraken|Trend 4h · Kraken/;
       if (named.every((n) => names.some((t) => t.trim() === n)) && !names.some((t) => gone.test(t)) && subs.length === names.length && subs.every((t) => /^\d+ open · /.test(t))) {
         ok(S('agents'), 'every running rulebook is named on its row, once, with its sub-line — and every retired one is off the page');

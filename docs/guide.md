@@ -83,8 +83,9 @@ page call it **Agents (beta)**.
 - **The list.** A scoreboard in the home page's style (deployed, today,
   unrealised and realised gain, each with its percentage; deployed reads
   **(Paper)** while no strategy trades real money), a card per exchange —
-  Revolut X in blue, where the strategies trade, and Binance in its
-  yellow, which trades nothing yet — showing **funded (Paper)**, the
+  Revolut X in blue and Binance in its yellow, where the same strategies
+  run as paper twins, deciding alike and filled at Binance's own prices —
+  showing **funded (Paper)**, the
   capital its strategies are allotted, **deployed (Paper)**, what they
   hold, then today, unrealised, realised and fees (the accounts' real
   balances are not shown: nothing trades them), and one row per strategy: a status dot (green running,

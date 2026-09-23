@@ -4,7 +4,7 @@
 > seat to the session, and it stays on paper: real money goes only to the
 > core majors and to coins that clear §4.15's bar under the stop that
 > runs (AVAX does; SUI clears window A only, on the thinnest UK book of
-> the five). The draft (`0049_go_live.sql.draft`) now adds
+> the five). The draft (`0050_go_live.sql.draft`) now adds
 > BTC/ETH/SOL/AVAX, four $25 slots, $100 — the per-order cap that would
 > have held the slots at $20 went the same day (reference §4.26). The
 > five-coin figures below stand as written. Without SUI (`sui.json`,
@@ -600,10 +600,10 @@ again in a month, over a live row's own bars.
 ### 9.5 The order of operations
 
 1. ~~Run the probe.~~ **Done 14:05 UTC, green — §9.4.**
-2. Move `docs/agents/0049_go_live.sql.draft` to
-   `supabase/migrations/0049_go_live.sql` and push — check first that
-   0049 is still the next free number (`ls supabase/migrations/`; up to
-   `0048` are taken and applied, and a file under a used number is
+2. Move `docs/agents/0050_go_live.sql.draft` to
+   `supabase/migrations/0050_go_live.sql` and push — check first that
+   0050 is still the next free number (`ls supabase/migrations/`; up to
+   `0049` are taken and applied, and a file under a used number is
    skipped by `supabase db push`, not applied). **That push is the
    act of going live** — `migrations.yml` applies it.
 3. The first live order still needs Davies' word in the conversation.

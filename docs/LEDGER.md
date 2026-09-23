@@ -14,6 +14,27 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+00000. **DAVIES' REQUESTS OF 2026-09-23 ~10:20 UTC**, in order:
+   1. **Labels: DONE** (`466d7ec`): "Agents (beta)" in the menu and title;
+      "funded (Paper)" / "deployed (Paper)" on both VENUES cards with the
+      paper capital row gone and no real balance shown; "DEPLOYED (Paper)"
+      on the scoreboards (`paperOnly`, so the label goes when a row is live).
+   2. **Binance runs the same strategies on paper: DONE** (`634dd5b` the
+      venue, migration `0049` the three twins; reference §4.29). Feasible:
+      five coins TRADING, $5 minimum, tighter books, 10 bps a side. Their
+      decisions are the Revolut X rows'; they are for the page, paper only
+      by constraint. The go-live draft is `0050` now.
+   3. **Venue-unique strategies from first principles, NOT the existing
+      rulebooks: IN PROGRESS** — a research agent (public data only) derives
+      the return sources each venue's structure opens (0 % maker, GBP/USD/
+      USDC books on Revolut X, Binance's breadth and books, the two
+      together), kills ideas by arithmetic, measures the survivors (one
+      year of Revolut X candles; the cross-currency GBP/USD deviation
+      a 10:33 UTC snapshot put at ~12 bps) and pre-registers any test. Its
+      output is verified here before anything is committed (reference §3.26).
+   4. A second repository, `daviesluo/personal`, was cloned into the
+      session: it is EMPTY; Davies will say what it is for.
+
 0000. **DAVIES' REQUESTS OF 2026-09-23 ~06:20–06:45 UTC**, in order:
    1. Jev on the paper rows: **(c)** — and "每个策略的jev都可以有自己的
       设计": momentum-1d and trend-1h each get their OWN question, measured
@@ -54,7 +75,8 @@ list stays the short version; the plan is the reasoning behind it.
    6. **The fixed $20 per-order cap: removed** ("单笔上限删了吧，之后测试
       表现好的话我还会再加资金的"). An entry is its row's slot; reference
       §4.26. **DONE**: the tick (`ef28a06`), then migration `0048`
-      dropping the column; the go-live draft is `0049` now.
+      dropping the column; the go-live draft is `0050` now (`0049` became
+      Binance's paper twins).
 
 000. **DAVIES' REQUESTS OF 2026-09-23 (~02:10 and ~02:35 UTC)**, in order:
    1. Root: `AGENTS.md`, `LEDGER.md`, `README.md`, `package.json`,
@@ -262,8 +284,8 @@ list stays the short version; the plan is the reasoning behind it.
    The headline fact he must weigh: **of 21 shipped members not one
    clears the two-window bar**. When he says go, the switch is ONE
    migration, **drafted, dry-run and committed at
-   `docs/agents/0049_go_live.sql.draft`** (renumbered from 0047 and then
-   0048 on 2026-09-23; `enterMin` 0.45) — deliberately NOT under
+   `docs/agents/0050_go_live.sql.draft`** (renumbered from 0047, 0048 and
+   then 0049 on 2026-09-23; `enterMin` 0.45) — deliberately NOT under
    `supabase/migrations/`, because a file there is applied by
    `migrations.yml` on the next push, so MOVING it is the act of going
    live. It adds `trend-4h-live` as a new row (rather than flipping
@@ -413,6 +435,18 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 11:01 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Binance runs the same three strategies on paper** (migration `0049`, pushed
+after `634dd5b` deployed and the 11:00 UTC bar decided with no error; reference
+§4.29). Three twins copied from the Revolut X rows — kind, parameters, coins,
+capital, Kraken signal — filled at Binance's touch plus 10 bps; their decisions
+are the Revolut X rows'. Feasible there, measured today: five coins TRADING, $5
+minimum, Binance's book tighter on all five, 10 bps against 9. Paper only by
+constraint (`agent_strategies_binance_paper_only`); dry-run in a transaction
+that raised to roll back: three rows, and a live Binance row refused. The
+go-live draft is `0050_go_live.sql.draft` now. Sweep fixture six rows, 216 green.
 
 ### [2026-09-23 10:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

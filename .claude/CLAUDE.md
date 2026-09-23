@@ -248,7 +248,7 @@ that follow from that evidence, in short:
   caps follow the BOOK while `riskGate` keeps the LABEL. Clearing
   `live_confirmed_at` stops live BUYS only; exits stay armed, and
   `global_pause` is the one switch that outranks an exit. The go-live
-  migration is drafted at `docs/agents/0049_go_live.sql.draft` — a NEW
+  migration is drafted at `docs/agents/0050_go_live.sql.draft` — a NEW
   row `trend-4h-live`, with `trend-4h` kept paper as its same-venue
   control — and moving it into `supabase/migrations/` IS going live.
 - **Jev gates entries with the v2 question at 0.45 (since 2026-09-23,
@@ -316,7 +316,11 @@ that follow from that evidence, in short:
   capital to a row that earns it makes its orders bigger. The gate still
   refuses an entry more than 10 % over its slot (`ORDER_SLOT_TOLERANCE`,
   reference §4.26).
-- **THREE ROWS run after migration `0046` (2026-09-22, §3.17, §4.22)**: `trend-4h`
+- **SIX ROWS run after migration `0049` (2026-09-23)**: the three Revolut X
+  rows `0046` left (§3.17, §4.22) and, from `0049`, their paper twins on
+  Binance (`*-binance`: Davies' word, the same strategies shown on Binance —
+  the same decisions filled at Binance's touch and 10 bps; for the page, not
+  evidence, and paper only by constraint, §4.29). The Revolut X rows: `trend-4h`
   on Revolut X (the live candidate, $100),
   `momentum-1d` on Revolut X (paper, $40) and `trend-1h` on Revolut X
   (paper, $40 — kept for feedback speed, 31.7–56.1 fills per 90 days
@@ -331,10 +335,12 @@ that follow from that evidence, in short:
   4.44× the fee for identical fills. **Kraken is a SIGNAL venue only from
   here**: every rule reads its candles; nothing executes there, and the
   page is swept in that shape. **VENUES shows Revolut X and Binance, not
-  Kraken** (Davies, 2026-09-23): Binance's card is its account, read
-  only (`binanceCard`; the dashboard is pinned to London because Binance
-  refuses US addresses), and PAPER is a neutral dashed badge because
-  Binance's yellow took the gold it wore. **Retired**: `momentum-1d-kraken`, `rotation-1d`,
+  Kraken** (Davies, 2026-09-23): each card is its venue's paper book —
+  "funded (Paper)" is the rows' capital, "deployed (Paper)" what they hold;
+  no real balance is shown, and the page says "Agents (beta)" — and PAPER
+  is a neutral dashed badge because Binance's yellow took the gold it
+  wore. Binance's paper venue reads public market data only
+  (data-api.binance.vision; api.binance.com refuses US addresses). **Retired**: `momentum-1d-kraken`, `rotation-1d`,
   `rotation-1w-kraken` — 0.90–1.00 correlated with a row that stays, worse
   in all four windows, two of them over the 35 % drawdown limit in the
   bear year. **All four retired rows were DELETED with their history by `0044`**
