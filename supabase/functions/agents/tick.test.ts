@@ -22,6 +22,7 @@ import type { OrderView, Quote, Venue, VenueId } from "../_shared/venue.ts";
 import { orderViewProblem, toOrderView, type VenueOrder } from "../_shared/revx.ts";
 import { PAGE_ROWS } from "./db.ts";
 import { jevFetch, memDb, schemaRefusal } from "./testing.ts";
+import { rowQuestions } from "./jev_rows.ts";
 import { dayOpenOf, dayPnl, entryTooLate, fillStamp, isUniqueViolation, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, probeFilled, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, toFill, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS, slotUsdOf, ORDER_SLOT_TOLERANCE } from "./tick.ts";
 
 const FOUR_H = 4 * 3600e3, ONE_H = 3600e3, ONE_D = 86400e3, ONE_M = 60e3;
@@ -190,6 +191,34 @@ Deno.test("an entry decision records which wording of the question the model was
   assertEquals((w.mem.tables.agent_decisions[0].numbers as { jevQuestion: string }).jevQuestion, JEV_QUESTION_VERSION);
   assertEquals(asked.length, 1);
   assertEquals(asked[0], jevQuestions(w.mem.tables.agent_decisions[0].state as unknown as CategoricalState, { kind: "trend-4h" }).healthy_trend.instructions);
+});
+
+Deno.test("a row asks its OWN wording only when params.jevQuestion names one written for its rule, and records which it asked", async () => {
+  // trend-1h with its row wording (jev_rows.ts): the model is asked that text and the decision says so. The same row
+  // without the name, and a trend-4h row naming trend-1h's wording, both ask v2 — a wording is never put to another rule.
+  const hourly = series(1.01, ONE_H);
+  const run = async (row: StrategyRow) => {
+    const asked: string[] = [];
+    const w = world({ strategies: [row], series: { "BTC/USD": { bars: hourly.bars, c1d: hourly.c1d, bars1h: hourly.bars } } });
+    const inner = w.deps.fetchImpl;
+    w.deps.fetchImpl = ((url: string | URL | Request, init?: RequestInit) => {
+      asked.push(String((JSON.parse(String(init?.body)) as { questions: { healthy_trend: { instructions: string } } }).questions.healthy_trend.instructions));
+      return inner(url, init);
+    }) as typeof fetch;
+    const r = await tick(w.deps);
+    assertEquals(r.errors, []);
+    const dec = w.mem.tables.agent_decisions[0];
+    return { asked, version: (dec.numbers as { jevQuestion: string }).jevQuestion, state: dec.state as unknown as CategoricalState };
+  };
+  const base = strategy({ id: "trend-1h", kind: "trend-1h", venue: "revx", signal_venue: "kraken" });
+  const own = await run({ ...base, params: { ...base.params, jevQuestion: "v3-trend-1h" } });
+  assertEquals(own.version, "v3-trend-1h");
+  assertEquals(own.asked, [rowQuestions(own.state, "v3-trend-1h").healthy_trend.instructions]);
+  const plain = await run(base);
+  assertEquals(plain.version, JEV_QUESTION_VERSION);
+  assertEquals(plain.asked, [jevQuestions(plain.state, { kind: "trend-1h" }).healthy_trend.instructions]);
+  const wrongRule = await run({ ...strategy(), params: { ...strategy().params, jevQuestion: "v3-trend-1h" } });
+  assertEquals(wrongRule.version, JEV_QUESTION_VERSION);
 });
 
 Deno.test("a retired strategy row is never ticked, whatever its mode says: its records stay, its turn does not come (0038)", async () => {

@@ -9,6 +9,8 @@ import {
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
 import type { JevResult } from "../_shared/jev.ts";
+import { jevQuestions } from "../_shared/agents_strategy.ts";
+import { rowQuestions } from "./jev_rows.ts";
 
 Deno.test("probeSymbols — every symbol on an active row, sorted and de-duplicated; the three majors when no row can be read", () => {
   assertEquals(probeSymbols([{ symbols: ["BTC/USD", "SOL/USD"] }, { symbols: ["ETH/USD", "BTC/USD", "SUI/USD"] }]), ["BTC/USD", "ETH/USD", "SOL/USD", "SUI/USD"]);
@@ -169,6 +171,31 @@ Deno.test("runJevBatch: one transport, `repeats` replies per state in order, the
   assert(String((await runJevBatch({ states: tooMany, repeats: 2 }, env, ask)).error).includes("split the batch"));
   assert(String((await runJevBatch({ states: [ENTRY] }, {}, ask)).error).includes("no openrouter key"));
   assertEquals(seen.length, before);
+});
+
+Deno.test("runJevBatch asks a row's own wording (jev_rows.ts) for that row's rule only, and says which it asked", async () => {
+  const asked: { instructions: string; kind: string }[] = [];
+  const ask = (st: Record<string, unknown>, q: unknown) => {
+    asked.push({ instructions: (q as { healthy_trend: { instructions: string } }).healthy_trend.instructions, kind: "" });
+    const sym = String(st.symbol);
+    return Promise.resolve({
+      provider: "openrouter", model: "m", inputTokens: 400, costUsd: 0.00002, latencyMs: 5, errors: [],
+      answers: { healthy_trend: { type: "noul", probability: 0.5 }, caution: { type: "score", score: 0 }, _state: { type: "choice", choice: sym } },
+    } as unknown as JevResult);
+  };
+  const env = { openrouterKey: "or" };
+  const st = { ...ENTRY, symbol: "BTC/USD", trend_4h: "down", breakout_4h: "inside_range", volatility: "normal" };
+  // The kind defaults to the one the wording is written for.
+  const out = await runJevBatch({ states: [st], version: "v3-momentum-1d" }, env, ask) as { version: string; kind: string };
+  assertEquals([out.version, out.kind], ["v3-momentum-1d", "momentum-1d"]);
+  assertEquals(asked[0].instructions, rowQuestions(parseState(st)!, "v3-momentum-1d").healthy_trend.instructions);
+  // Put to another rule it is refused before the model is called; v2 still asks exactly what it asked.
+  const before = asked.length;
+  assert(String((await runJevBatch({ states: [st], version: "v3-momentum-1d", kind: "trend-1h" }, env, ask)).error).includes("written for momentum-1d"));
+  assert(String((await runJevBatch({ states: [st], version: "v4" }, env, ask)).error).includes("v3-trend-1h"));
+  assertEquals(asked.length, before);
+  await runJevBatch({ states: [st], version: "v2", kind: "momentum-1d" }, env, ask);
+  assertEquals(asked.at(-1)!.instructions, jevQuestions(parseState(st)!, { kind: "momentum-1d", version: "v2" }).healthy_trend.instructions);
 });
 
 // ── the page's books, resolved by the tick's own rule (2026-09-22) ──────────────────────────────────

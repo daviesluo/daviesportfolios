@@ -564,6 +564,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/index.ts` | The entry point: the minute's tick, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
 | `agents/binance.ts`, `agents/deribit.ts` | Read-only clients for the Binance and Deribit keys: the probe's checks, Deribit's volatility index, and the Binance account the VENUES card shows. Nothing in them can trade. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
+| `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
 | `agents/db.ts` | The loop's database access, over PostgREST. |
 | `agents/testing.ts` | Test doubles that refuse whatever the real database refuses. |
 | `agents/backtest.ts` | The walk-forward backtester: the loop's own rule functions run over history at the venue's costs. |

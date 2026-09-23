@@ -63,9 +63,10 @@ import {
   krakenSupports, ticker as krakenTicker, tradeVolume, type KrakenEnv,
 } from "../_shared/kraken.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
-import { JEV_QUESTION_VERSION, JEV_QUESTION_VERSIONS, jevQuestions, positionFromFills, unrealisedUsd, type CategoricalState, type JevQuestionVersion, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
+import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { binanceAccount, binanceProbe } from "./binance.ts";
+import { ALL_QUESTION_VERSIONS, isRowQuestionVersion, questionsFor, ROW_QUESTION_KIND, type AnyQuestionVersion } from "./jev_rows.ts";
 import { makeDb, type Db } from "./db.ts";
 import { deribitProbe } from "./deribit.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
@@ -699,11 +700,13 @@ export async function runJevBatch(
 ): Promise<Record<string, unknown>> {
   const b = (body && typeof body === "object" ? body : {}) as { states?: unknown; repeats?: unknown; transport?: unknown; version?: unknown; kind?: unknown };
   if (!Array.isArray(b.states) || b.states.length === 0) return { error: "states: a non-empty array is required" };
-  // Which wording to ask (`jevQuestions`), and for which rule: a wording can be measured before the loop is switched to it.
-  const version = (b.version ?? JEV_QUESTION_VERSION) as JevQuestionVersion;
-  if (!JEV_QUESTION_VERSIONS.includes(version)) return { error: `version: one of ${JEV_QUESTION_VERSIONS.join(", ")}` };
-  const kind = (b.kind ?? "trend-4h") as StrategyKind;
+  // Which wording to ask — v1, v2, or a row's own (`jev_rows.ts`) — and for which rule: a wording can be measured before
+  // the loop is switched to it. A row wording describes one rule and is refused for any other.
+  const version = (b.version ?? JEV_QUESTION_VERSION) as AnyQuestionVersion;
+  if (!ALL_QUESTION_VERSIONS.includes(version)) return { error: `version: one of ${ALL_QUESTION_VERSIONS.join(", ")}` };
+  const kind = (b.kind ?? (isRowQuestionVersion(version) ? ROW_QUESTION_KIND[version] : "trend-4h")) as StrategyKind;
   if (!JEV_KINDS.includes(kind)) return { error: `kind: one of ${JEV_KINDS.join(", ")}` };
+  if (isRowQuestionVersion(version) && ROW_QUESTION_KIND[version] !== kind) return { error: `version ${version} is written for ${ROW_QUESTION_KIND[version]}, not ${kind}` };
   const states = b.states.map(parseState);
   const bad = states.findIndex((x) => x == null);
   if (bad >= 0) return { error: `states[${bad}] is not a state in the closed vocabulary` };
@@ -715,7 +718,7 @@ export async function runJevBatch(
   if (!one.openrouterKey && !one.typesafeKey) return { error: `no ${transport} key configured` };
   const jobs = states.flatMap((st, i) => Array.from({ length: repeats }, () => ({ st: st!, i })));
   const replies = await mapPool(jobs, JEV_BATCH_CONCURRENCY, async ({ st }) => {
-    const jr = await ask(st as unknown as Record<string, unknown>, jevQuestions(st, { version, kind }) as unknown as Questions, one);
+    const jr = await ask(st as unknown as Record<string, unknown>, questionsFor(st, version, kind) as unknown as Questions, one);
     const v = jevViewOf(jr, st.symbol);
     return { healthy: v.healthy, caution: v.caution, echoOk: v.echoOk, provider: jr.provider, model: jr.model, latencyMs: jr.latencyMs, costUsd: jr.costUsd, errors: jr.errors };
   });

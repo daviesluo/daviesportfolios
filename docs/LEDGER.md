@@ -17,7 +17,13 @@ list stays the short version; the plan is the reasoning behind it.
 0000. **DAVIES' REQUESTS OF 2026-09-23 ~06:20–06:45 UTC**, in order:
    1. Jev on the paper rows: **(c)** — and "每个策略的jev都可以有自己的
       设计": momentum-1d and trend-1h each get their OWN question, measured
-      on every state and priced before the loop asks it. Open.
+      on every state and priced before the loop asks it. **In progress**:
+      the two wordings and the threshold rule are frozen
+      (`reviews/2026-09-23-jev-row-questions-prereg.md`, sha256 `7c64b4c0…`,
+      07:37:58 UTC) and shipped as `agents/jev_rows.ts`, asked by no row.
+      NEXT: measure every entry state ×5 through `?action=jev` (pg_net, the
+      cron secret), pick each threshold by the rule, price with a new study
+      file that first reproduces `jev_v2_other.json`, then migrate or report.
    2. SUI's live seat: his call handed to the session ("删了也行").
       **DONE: paper only** (reference §3.20's addendum). The go-live draft
       adds BTC/ETH/SOL/AVAX at four $25 slots on $100; the paper
@@ -401,6 +407,17 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 07:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Each paper row's own Jev question is written, frozen and deployable**
+(reference §4.28). Two wordings, `v3-momentum-1d` and `v3-trend-1h`, frozen
+with the threshold rule and the bar before the model saw them; they live in
+`agents/jev_rows.ts` because six results pin `agents_strategy.ts`. The
+measurement endpoint asks them (for their own rule only) and the tick asks a
+row's own wording only when `params.jevQuestion` names it — no row does, so
+nothing the loop does changes. Pinned: the text by hash, the fallback to v2,
+the endpoint's refusal for another rule; red when the row param is ignored.
 
 ### [2026-09-23 07:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

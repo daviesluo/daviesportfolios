@@ -68,9 +68,10 @@
 // `agent_risk` are per venue account and per mode.
 
 import { askJev, type JevEnv, type JevResult, type Questions } from "../_shared/jev.ts";
+import { questionsForRow } from "./jev_rows.ts";
 import {
   atrAt, buildSnapshot, ceilToStep, combineDecision, DEFAULT_DISLOCATION, DEFAULT_ROTATION, DEFAULT_TREND, dislocationQuestions, dislocationState,
-  floorToStep, highWaterSince, JEV_ENTER_MIN, JEV_QUESTION_VERSION, jevQuestions, positionFromFills, protectiveExit, riskGate, rotationTargets, ruleDecisionDislocation, ruleFor, sizeBase,
+  floorToStep, highWaterSince, JEV_ENTER_MIN, positionFromFills, protectiveExit, riskGate, rotationTargets, ruleDecisionDislocation, ruleFor, sizeBase,
   unrealisedUsd,
   type Action, type Candle, type DislocationParams, type JevView, type PairConfig, type Position, type RankView, type RotationParams,
   type StopParams, type StrategyKind, type TrendParams,
@@ -102,7 +103,7 @@ const SIGNAL_BARS = 210;                          // SMA 100 + breakout 55, with
 
 export type StrategyRow = {
   id: string; kind: StrategyKind; venue: VenueId; signal_venue: VenueId; name: string; symbols: string[]; mode: "paper" | "live" | "paused";
-  capital_usd: number; params: Record<string, number | boolean>;
+  capital_usd: number; params: Record<string, number | boolean | string>;   // a string only for `jevQuestion` (jev_rows.ts)
   /** Set by a migration when a row is retired (`0038`, `0043`). Such a row never buys; if it still
    *  holds a position its exits keep running until it is flat. */
   retired_at?: string | null;
@@ -1426,7 +1427,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           }
           const late = rule.action === "enter" ? entryTooLate(barStart, barMs, d.now) : null;
           if (late) rule = { action: "hold", reason: late };
-          const dec = await decide(s, sym, barStart, snap.state, { ...snap.numbers, rank: ranks?.[sym] ?? null, jevQuestion: JEV_QUESTION_VERSION }, jevQuestions(snap.state, { kind: s.kind }), rule, "bar");
+          // The row's own wording when a migration has given it one (`params.jevQuestion`, `jev_rows.ts`), v2 otherwise; the
+          // decision records which, so a record is always read against the question that produced it.
+          const asked = questionsForRow(s, snap.state);
+          const dec = await decide(s, sym, barStart, snap.state, { ...snap.numbers, rank: ranks?.[sym] ?? null, jevQuestion: asked.version }, asked.questions, rule, "bar");
           if (!dec || dec.action === "hold" || !dec.allowed) continue;
           r = dec;
         }

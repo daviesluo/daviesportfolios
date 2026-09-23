@@ -272,8 +272,14 @@ that follow from that evidence, in short:
   (`version`, `kind`) and priced before the loop asks it. **On the two
   paper rows the same gate fails the bar** (§4.21, priced 2026-09-23):
   trend-1h's worst window falls in all four evaluations, and momentum-1d's
-  bear year falls 4–15 points as the loop runs it (once a day). What to do
-  with those rows is Davies' call.
+  bear year falls 4–15 points as the loop runs it (once a day). Davies chose
+  (c), **a wording of each row's own** (2026-09-23): `agents/jev_rows.ts`
+  holds them, frozen word for word in
+  `reviews/2026-09-23-jev-row-questions-prereg.md`, and a row asks its own
+  only once a migration sets `params.jevQuestion` after the wording is
+  measured and priced; until then every row asks v2. A wording lives
+  there, not in `_shared/agents_strategy.ts`, because six committed
+  results pin that file's hash.
 - **A test double must be at least as strict as what it stands in for.**
   Twice on 2026-09-22 a stub looser than production certified a failure:
   the in-memory db ignored `agent_orders_mode_check` (a paused row's exit
