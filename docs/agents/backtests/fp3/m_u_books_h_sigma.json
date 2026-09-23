@@ -1,0 +1,26 @@
+{
+ "BTCU": {
+  "half_spread_bps": 0.715,
+  "sigma_1m_bps_usdt_book": 4.871,
+  "h_over_sigma": 0.147,
+  "minutes": 89280
+ },
+ "ETHU": {
+  "half_spread_bps": 2.143,
+  "sigma_1m_bps_usdt_book": 6.647,
+  "h_over_sigma": 0.322,
+  "minutes": 89279
+ },
+ "XRPU": {
+  "half_spread_bps": 1.657,
+  "sigma_1m_bps_usdt_book": 9.055,
+  "h_over_sigma": 0.183,
+  "minutes": 89279
+ },
+ "DOGEU": {
+  "half_spread_bps": 4.843,
+  "sigma_1m_bps_usdt_book": 8.732,
+  "h_over_sigma": 0.555,
+  "minutes": 89279
+ }
+}

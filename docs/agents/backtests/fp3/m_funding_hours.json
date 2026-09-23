@@ -1,0 +1,170 @@
+{
+ "BTCUSDT": {
+  "funding": {
+   "pre30": {
+    "n": 1162,
+    "mean_bps": -0.589,
+    "median_bps": 0.551,
+    "mean_abs_bps": 22.192
+   },
+   "post30": {
+    "n": 1162,
+    "mean_bps": 0.249,
+    "median_bps": 0.86,
+    "mean_abs_bps": 23.132
+   },
+   "pm5": {
+    "n": 1162,
+    "mean_bps": -0.051,
+    "median_bps": 0.048,
+    "mean_abs_bps": 12.375
+   }
+  },
+  "other": {
+   "pre30": {
+    "n": 8136,
+    "mean_bps": 0.214,
+    "median_bps": 0.351,
+    "mean_abs_bps": 20.643
+   },
+   "post30": {
+    "n": 8136,
+    "mean_bps": -0.32,
+    "median_bps": -0.043,
+    "mean_abs_bps": 21.454
+   },
+   "pm5": {
+    "n": 8136,
+    "mean_bps": -0.348,
+    "median_bps": -0.354,
+    "mean_abs_bps": 11.851
+   }
+  }
+ },
+ "ETHUSDT": {
+  "funding": {
+   "pre30": {
+    "n": 1162,
+    "mean_bps": -1.884,
+    "median_bps": -0.238,
+    "mean_abs_bps": 28.727
+   },
+   "post30": {
+    "n": 1162,
+    "mean_bps": -0.411,
+    "median_bps": -0.468,
+    "mean_abs_bps": 30.801
+   },
+   "pm5": {
+    "n": 1162,
+    "mean_bps": -0.678,
+    "median_bps": -0.359,
+    "mean_abs_bps": 16.145
+   }
+  },
+  "other": {
+   "pre30": {
+    "n": 8136,
+    "mean_bps": 0.381,
+    "median_bps": 0.341,
+    "mean_abs_bps": 27.766
+   },
+   "post30": {
+    "n": 8136,
+    "mean_bps": -0.386,
+    "median_bps": -0.176,
+    "mean_abs_bps": 29.17
+   },
+   "pm5": {
+    "n": 8136,
+    "mean_bps": -0.592,
+    "median_bps": -0.54,
+    "mean_abs_bps": 16.217
+   }
+  }
+ },
+ "SOLUSDT": {
+  "funding": {
+   "pre30": {
+    "n": 1162,
+    "mean_bps": -1.282,
+    "median_bps": 0.519,
+    "mean_abs_bps": 33.058
+   },
+   "post30": {
+    "n": 1162,
+    "mean_bps": -1.037,
+    "median_bps": 0.0,
+    "mean_abs_bps": 36.735
+   },
+   "pm5": {
+    "n": 1162,
+    "mean_bps": -0.634,
+    "median_bps": -0.775,
+    "mean_abs_bps": 19.103
+   }
+  },
+  "other": {
+   "pre30": {
+    "n": 8136,
+    "mean_bps": 0.817,
+    "median_bps": 0.0,
+    "mean_abs_bps": 32.577
+   },
+   "post30": {
+    "n": 8136,
+    "mean_bps": -0.821,
+    "median_bps": 0.0,
+    "mean_abs_bps": 34.613
+   },
+   "pm5": {
+    "n": 8136,
+    "mean_bps": -0.585,
+    "median_bps": -0.747,
+    "mean_abs_bps": 19.37
+   }
+  }
+ },
+ "XRPUSDT": {
+  "funding": {
+   "pre30": {
+    "n": 1162,
+    "mean_bps": -1.935,
+    "median_bps": -1.337,
+    "mean_abs_bps": 28.563
+   },
+   "post30": {
+    "n": 1162,
+    "mean_bps": -0.457,
+    "median_bps": -0.965,
+    "mean_abs_bps": 33.26
+   },
+   "pm5": {
+    "n": 1162,
+    "mean_bps": 0.233,
+    "median_bps": -0.19,
+    "mean_abs_bps": 18.241
+   }
+  },
+  "other": {
+   "pre30": {
+    "n": 8136,
+    "mean_bps": 1.151,
+    "median_bps": 0.0,
+    "mean_abs_bps": 30.351
+   },
+   "post30": {
+    "n": 8136,
+    "mean_bps": -1.157,
+    "median_bps": -0.927,
+    "mean_abs_bps": 32.631
+   },
+   "pm5": {
+    "n": 8136,
+    "mean_bps": -0.739,
+    "median_bps": -0.88,
+    "mean_abs_bps": 18.401
+   }
+  }
+ }
+}

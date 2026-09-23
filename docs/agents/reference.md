@@ -2413,6 +2413,51 @@ so a fill read from the tape needs a size cap — PR5 has one, and its trips of 
 (§3.27). **So the verdict of §3.23–§3.26 stands, reached a second way**: what differs between the venues is cost and
 reach; the one mechanism that passed anything is PR5's, and it is on paper (§4 item 31).
 
+### 3.29 A third search, Binance first: one pass at about cash, and a venue rule that caps every wick (2026-09-23)
+
+Davies asked for a third independent search, "especially for Binance, because Binance has no strategy of its own right
+now". A third research agent started from what is structurally Binance's — the largest leveraged crowd and its
+liquidation engine, zero-fee promotions on ten stablecoin books, order lists whose exit the exchange places the instant an
+entry fills, a public listing and delisting calendar — and derived 31 ideas (24 Binance-first, 4 Revolut X, 3 combining
+the two; review `reviews/2026-09-23-fp3-study.md`). Seventeen die on arithmetic, a measurement or access; two belong to
+families already priced (§3.21, §3.24) and were not tested; one is subsumed by another, one is carry rather than a
+strategy, two need a signed call, two are protective and two are routing; and **four reached three pre-registered tests**
+(re-run here byte for byte; the 25 CB and 20 ZF trips the agent re-derived from raw data were not re-derived again):
+
+| test | rule | out of sample | verdict |
+|---|---|---|---|
+| CB | bids 5 / 10 / 15 % under the close two minutes earlier on the ten most-traded coins (point in time, LUNA and FTT included), $100 each, $3,000 locked; take-profit at half the drop as an OPO order, 24 h time stop, 10 bps a fill, history priced under today's price range cap | +$488.99 on 462 trips (2023-01 → 2026-09-21), 89 % won, 4.37 %/yr; null p95 −$41.56; doubled costs +$393.92; best month 18 % | **passes all six conditions — and is worth about cash** |
+| ZF | 0 % quotes 2 / 5 / 10 bps around fair on Binance's zero-fee stablecoin books, filled only by prints strictly through | pooled +$88.74, 2.6 %/yr; stress −$51.03; one month 47 %. The six USD books +$37.18 on $3,600 (1.4 %/yr); EURI's books lost $439 in sample | **fails** |
+| DL | buy an hour after "Binance Will Delist…", sell a day before trading stops | −$2,689.89 over 111 events of $100; median event −31 %; 10 of 111 positive; null p95 −$95.69 | **fails** |
+
+**CB's pass is not an edge worth money.** 2023–24 made +$477.94 of it and 2025-01 → 2026-09 +$11.05; **since the price
+range rule (2026-04-01 → 09-21) it lost $108.98 on 60 trips**; entering at the fill minute's close instead of the bid
+keeps 82 % of the profit, so most of it is the rebound after a crash rather than the wick price; and the one subset that
+held up everywhere, the seven majors, was chosen after the result and earns 3.3 % a year, below cash. Plan with roughly
+zero. If Binance is to show a row of its own on the page, CB is the only candidate with a pass: on paper it would see
+about ten fills a month across ten coins. No money on this evidence.
+
+**The finding that outlasts the search: Binance's Price Range Execution Rule.** Rolled out 2026-03-09 → ~03-30, it refuses
+any trade beyond `referencePrice × (1 ± R)`, the reference being the mean trade price of the last 300 seconds: R is 15 % on
+BTC, ETH, BNB, XRP, TRX, DOGE and SOL, 25 % on 428 other USDT pairs, 10 % on 80, 5 % on USDE and 2 % on the USDC, FDUSD
+and U stablecoin books. It is public (`GET https://www.binance.com/api/v3/executionRules`, `…/referencePrice`,
+`…/referencePrice/calculation`; read here on 2026-09-23: BTCUSDT 0.85 / 1.15, USDCUSDT 0.98 / 1.02); the
+`data-api.binance.vision` mirror does not serve it and `api.binance.com` refuses this machine. A taker order that would
+trade beyond the range comes back EXPIRED with `EXECUTION_RULE_PRICE_RANGE_EXCEEDED`. On 17 coins, 1-minute lows more than
+15 % under the previous five minutes' mean fell from 2.39 to 0.07 per 100,000 coin-minutes, and beyond 25 % from 1.63 to
+0. Three consequences: PR2's 2 % rungs on USDC and FDUSD (§3.26) can never fill again; every wick backtest before March
+2026 prices a tail the venue has removed; and a Binance stop sold at market in a crash can come back EXPIRED instead of
+filled — the Binance paper venue should expect that reason before any Binance order is ever live.
+
+**Revolut X: nothing new.** Its gold-token books fail the same h/σ₁ₘ inequality as §3.28's (1.4 on weekdays) with about
+$34k a day between them; PR5 (on paper, §4 item 31) stays the only mechanism. **The combination is routing and
+protection, not return**: GBP enters through Revolut X, dollars live on Binance, where U/USDT and U/USDC swap USDT and
+USDC at 0 % (the zero-fee USD fiat books exclude UK residents), and a cascade on Binance meets Revolut X's lagging UK bids
+(§3.28), a protective overlay about once a year. Six questions only a signed call answers — whether the zero-fee
+promotion is 0 % for this account, the account's permissions against each symbol's, OPO order lists (no dry run), Simple
+Earn, Convert quotes and Dual Investment — are listed with their endpoints in the review. **So the verdict of §3.23–§3.28
+stands, reached a third way**: what differs between the venues is cost and reach.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

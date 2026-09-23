@@ -1,0 +1,3168 @@
+{
+ "arms": {
+  "capacity": {
+   "E": {
+    "ann_return_on_locked": 0.071726,
+    "best_month_share": 0.6726,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": -2.9982,
+     "2026-02": 32.2782,
+     "2026-03": -27.9173,
+     "2026-04": 3.9723,
+     "2026-05": 0.2553,
+     "2026-06": 41.873,
+     "2026-07": 13.4389,
+     "2026-08": -3.5784,
+     "2026-09": 4.9306
+    },
+    "oos_pnl": 62.2545,
+    "oos_stops": 6,
+    "oos_trips": 18942,
+    "oos_without_best_month": 20.3815,
+    "open_at_end": 4,
+    "pnl": {
+     "IS": -410.3157,
+     "OOS1": 5.5904,
+     "OOS2": 56.6641
+    },
+    "trips": {
+     "IS": 50971,
+     "OOS1": 12293,
+     "OOS2": 6649
+    }
+   },
+   "U": {
+    "ann_return_on_locked": 0.014033,
+    "best_month_share": 0.2834,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": 10.3568,
+     "2026-02": 7.6484,
+     "2026-03": 1.974,
+     "2026-04": 1.41,
+     "2026-05": 2.6578,
+     "2026-06": 2.7248,
+     "2026-07": 3.5519,
+     "2026-08": 4.2116,
+     "2026-09": 2.0053
+    },
+    "oos_pnl": 36.5407,
+    "oos_stops": 73,
+    "oos_trips": 1808,
+    "oos_without_best_month": 26.1839,
+    "open_at_end": 1,
+    "pnl": {
+     "IS": 13.0647,
+     "OOS1": 24.047,
+     "OOS2": 12.4937
+    },
+    "trips": {
+     "IS": 675,
+     "OOS1": 1131,
+     "OOS2": 677
+    }
+   },
+   "all": {
+    "ann_return_on_locked": 0.028457,
+    "best_month_share": 0.4514,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": 7.3587,
+     "2026-02": 39.9266,
+     "2026-03": -25.9433,
+     "2026-04": 5.3823,
+     "2026-05": 2.9131,
+     "2026-06": 44.5979,
+     "2026-07": 16.9908,
+     "2026-08": 0.6332,
+     "2026-09": 6.9358
+    },
+    "oos_pnl": 98.7952,
+    "oos_stops": 79,
+    "oos_trips": 20750,
+    "oos_without_best_month": 54.1973,
+    "open_at_end": 5,
+    "pnl": {
+     "IS": -397.2511,
+     "OOS1": 29.6374,
+     "OOS2": 69.1577
+    },
+    "trips": {
+     "IS": 51646,
+     "OOS1": 13424,
+     "OOS2": 7326
+    }
+   },
+   "secondary_X": {
+    "ann_return_on_locked": 0.034615,
+    "best_month_share": 0.2017,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": 6.0598,
+     "2026-02": 3.9192,
+     "2026-03": 1.3434,
+     "2026-04": 0.7494,
+     "2026-05": 2.1643,
+     "2026-06": 3.1736,
+     "2026-07": 3.7575,
+     "2026-08": 4.6578,
+     "2026-09": 4.2186
+    },
+    "oos_pnl": 30.0436,
+    "oos_stops": 27,
+    "oos_trips": 1433,
+    "oos_without_best_month": 23.9837,
+    "open_at_end": 2,
+    "pnl": {
+     "IS": 27.4066,
+     "OOS1": 14.2361,
+     "OOS2": 15.8075
+    },
+    "trips": {
+     "IS": 910,
+     "OOS1": 722,
+     "OOS2": 711
+    }
+   }
+  },
+  "fee10bps": {
+   "E": {
+    "ann_return_on_locked": -3.687566,
+    "best_month_share": null,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": -368.2718,
+     "2026-02": -499.7826,
+     "2026-03": -595.0923,
+     "2026-04": -398.5601,
+     "2026-05": -227.6252,
+     "2026-06": -494.0238,
+     "2026-07": -256.0044,
+     "2026-08": -246.9374,
+     "2026-09": -114.3079
+    },
+    "oos_pnl": -3200.6055,
+    "oos_stops": 6,
+    "oos_trips": 18942,
+    "oos_without_best_month": -3086.2976,
+    "open_at_end": 4,
+    "pnl": {
+     "IS": -9078.3851,
+     "OOS1": -2089.332,
+     "OOS2": -1111.2735
+    },
+    "trips": {
+     "IS": 50971,
+     "OOS1": 12293,
+     "OOS2": 6649
+    }
+   },
+   "U": {
+    "ann_return_on_locked": -0.097162,
+    "best_month_share": null,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": -57.5114,
+     "2026-02": -46.5861,
+     "2026-03": -17.5865,
+     "2026-04": -17.0563,
+     "2026-05": -17.0685,
+     "2026-06": -23.4371,
+     "2026-07": -19.0307,
+     "2026-08": -33.9607,
+     "2026-09": -20.7555
+    },
+    "oos_pnl": -252.993,
+    "oos_stops": 73,
+    "oos_trips": 1808,
+    "oos_without_best_month": -235.9367,
+    "open_at_end": 1,
+    "pnl": {
+     "IS": -102.1771,
+     "OOS1": -155.8089,
+     "OOS2": -97.1841
+    },
+    "trips": {
+     "IS": 675,
+     "OOS1": 1131,
+     "OOS2": 677
+    }
+   },
+   "all": {
+    "ann_return_on_locked": -0.994763,
+    "best_month_share": null,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": -425.7832,
+     "2026-02": -546.3688,
+     "2026-03": -612.6788,
+     "2026-04": -415.6164,
+     "2026-05": -244.6937,
+     "2026-06": -517.461,
+     "2026-07": -275.0351,
+     "2026-08": -280.8981,
+     "2026-09": -135.0634
+    },
+    "oos_pnl": -3453.5985,
+    "oos_stops": 79,
+    "oos_trips": 20750,
+    "oos_without_best_month": -3318.5351,
+    "open_at_end": 5,
+    "pnl": {
+     "IS": -9180.5621,
+     "OOS1": -2245.1409,
+     "OOS2": -1208.4576
+    },
+    "trips": {
+     "IS": 51646,
+     "OOS1": 13424,
+     "OOS2": 7326
+    }
+   },
+   "secondary_X": {
+    "ann_return_on_locked": -0.27468,
+    "best_month_share": null,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": -47.6822,
+     "2026-02": -29.1074,
+     "2026-03": -15.015,
+     "2026-04": -7.5856,
+     "2026-05": -18.491,
+     "2026-06": -25.7488,
+     "2026-07": -25.5693,
+     "2026-08": -34.3607,
+     "2026-09": -34.8471
+    },
+    "oos_pnl": -238.4071,
+    "oos_stops": 27,
+    "oos_trips": 1433,
+    "oos_without_best_month": -230.8215,
+    "open_at_end": 2,
+    "pnl": {
+     "IS": -129.4119,
+     "OOS1": -117.8812,
+     "OOS2": -120.5258
+    },
+    "trips": {
+     "IS": 910,
+     "OOS1": 722,
+     "OOS2": 711
+    }
+   }
+  },
+  "primary": {
+   "E": {
+    "ann_return_on_locked": 0.059408,
+    "best_month_share": 0.7485,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": -3.7204,
+     "2026-02": 32.4759,
+     "2026-03": -30.7711,
+     "2026-04": 3.2618,
+     "2026-05": 0.2266,
+     "2026-06": 38.5969,
+     "2026-07": 11.4233,
+     "2026-08": -4.9541,
+     "2026-09": 5.0237
+    },
+    "oos_pnl": 51.5626,
+    "oos_stops": 6,
+    "oos_trips": 18942,
+    "oos_without_best_month": 12.9657,
+    "open_at_end": 4,
+    "pnl": {
+     "IS": -439.0026,
+     "OOS1": 1.4727,
+     "OOS2": 50.0899
+    },
+    "trips": {
+     "IS": 50971,
+     "OOS1": 12293,
+     "OOS2": 6649
+    }
+   },
+   "U": {
+    "ann_return_on_locked": 0.014277,
+    "best_month_share": 0.2797,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": 10.398,
+     "2026-02": 7.5143,
+     "2026-03": 2.0085,
+     "2026-04": 1.507,
+     "2026-05": 2.9361,
+     "2026-06": 2.776,
+     "2026-07": 3.4594,
+     "2026-08": 4.1316,
+     "2026-09": 2.4452
+    },
+    "oos_pnl": 37.1761,
+    "oos_stops": 73,
+    "oos_trips": 1808,
+    "oos_without_best_month": 26.7781,
+    "open_at_end": 1,
+    "pnl": {
+     "IS": 13.7369,
+     "OOS1": 24.3639,
+     "OOS2": 12.8122
+    },
+    "trips": {
+     "IS": 675,
+     "OOS1": 1131,
+     "OOS2": 677
+    }
+   },
+   "all": {
+    "ann_return_on_locked": 0.02556,
+    "best_month_share": 0.4662,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": 6.6775,
+     "2026-02": 39.9902,
+     "2026-03": -28.7626,
+     "2026-04": 4.7688,
+     "2026-05": 3.1627,
+     "2026-06": 41.3729,
+     "2026-07": 14.8827,
+     "2026-08": -0.8226,
+     "2026-09": 7.469
+    },
+    "oos_pnl": 88.7387,
+    "oos_stops": 79,
+    "oos_trips": 20750,
+    "oos_without_best_month": 47.3658,
+    "open_at_end": 5,
+    "pnl": {
+     "IS": -425.2657,
+     "OOS1": 25.8367,
+     "OOS2": 62.902
+    },
+    "trips": {
+     "IS": 51646,
+     "OOS1": 13424,
+     "OOS2": 7326
+    }
+   },
+   "secondary_X": {
+    "ann_return_on_locked": 0.034111,
+    "best_month_share": 0.2177,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": 6.4447,
+     "2026-02": 3.7882,
+     "2026-03": 1.2792,
+     "2026-04": 0.709,
+     "2026-05": 2.0755,
+     "2026-06": 3.0202,
+     "2026-07": 3.5525,
+     "2026-08": 4.5455,
+     "2026-09": 4.1914
+    },
+    "oos_pnl": 29.6062,
+    "oos_stops": 27,
+    "oos_trips": 1433,
+    "oos_without_best_month": 23.1615,
+    "open_at_end": 2,
+    "pnl": {
+     "IS": 29.8589,
+     "OOS1": 14.2967,
+     "OOS2": 15.3095
+    },
+    "trips": {
+     "IS": 910,
+     "OOS1": 722,
+     "OOS2": 711
+    }
+   }
+  },
+  "stress_intended": {
+   "E": {
+    "ann_return_on_locked": -0.078149,
+    "best_month_share": null,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": -12.4007,
+     "2026-02": 7.6057,
+     "2026-03": -42.0608,
+     "2026-04": -11.567,
+     "2026-05": -6.0778,
+     "2026-06": 14.2371,
+     "2026-07": 0.1247,
+     "2026-08": -15.6,
+     "2026-09": -2.0904
+    },
+    "oos_pnl": -67.8292,
+    "oos_stops": 21,
+    "oos_trips": 9885,
+    "oos_without_best_month": -82.0663,
+    "open_at_end": 2,
+    "pnl": {
+     "IS": -651.4364,
+     "OOS1": -64.5005,
+     "OOS2": -3.3287
+    },
+    "trips": {
+     "IS": 29270,
+     "OOS1": 6263,
+     "OOS2": 3622
+    }
+   },
+   "U": {
+    "ann_return_on_locked": 0.006451,
+    "best_month_share": 0.3303,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": 5.5479,
+     "2026-02": 3.7388,
+     "2026-03": 0.4731,
+     "2026-04": 0.284,
+     "2026-05": 1.1448,
+     "2026-06": 1.0189,
+     "2026-07": 2.1498,
+     "2026-08": 1.7687,
+     "2026-09": 0.6716
+    },
+    "oos_pnl": 16.7976,
+    "oos_stops": 138,
+    "oos_trips": 886,
+    "oos_without_best_month": 11.2497,
+    "open_at_end": 1,
+    "pnl": {
+     "IS": 5.7233,
+     "OOS1": 11.1886,
+     "OOS2": 5.6089
+    },
+    "trips": {
+     "IS": 319,
+     "OOS1": 549,
+     "OOS2": 337
+    }
+   },
+   "all": {
+    "ann_return_on_locked": -0.014699,
+    "best_month_share": null,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": -6.8528,
+     "2026-02": 11.3446,
+     "2026-03": -41.5876,
+     "2026-04": -11.283,
+     "2026-05": -4.933,
+     "2026-06": 15.2559,
+     "2026-07": 2.2745,
+     "2026-08": -13.8313,
+     "2026-09": -1.4188
+    },
+    "oos_pnl": -51.0316,
+    "oos_stops": 159,
+    "oos_trips": 10771,
+    "oos_without_best_month": -66.2876,
+    "open_at_end": 3,
+    "pnl": {
+     "IS": -645.7131,
+     "OOS1": -53.3119,
+     "OOS2": 2.2803
+    },
+    "trips": {
+     "IS": 29589,
+     "OOS1": 6812,
+     "OOS2": 3959
+    }
+   },
+   "secondary_X": {
+    "ann_return_on_locked": 0.032695,
+    "best_month_share": 0.227,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": 6.4406,
+     "2026-02": 3.7862,
+     "2026-03": 1.2752,
+     "2026-04": 0.705,
+     "2026-05": 2.0675,
+     "2026-06": 2.9105,
+     "2026-07": 3.1909,
+     "2026-08": 4.222,
+     "2026-09": 3.78
+    },
+    "oos_pnl": 28.3778,
+    "oos_stops": 29,
+    "oos_trips": 1376,
+    "oos_without_best_month": 21.9373,
+    "open_at_end": 2,
+    "pnl": {
+     "IS": 29.8515,
+     "OOS1": 14.2746,
+     "OOS2": 14.1033
+    },
+    "trips": {
+     "IS": 910,
+     "OOS1": 722,
+     "OOS2": 654
+    }
+   }
+  },
+  "stress_literal": {
+   "E": {
+    "ann_return_on_locked": 0.059339,
+    "best_month_share": 0.7486,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": -3.7204,
+     "2026-02": 32.4759,
+     "2026-03": -30.7711,
+     "2026-04": 3.2618,
+     "2026-05": 0.2266,
+     "2026-06": 38.5569,
+     "2026-07": 11.4133,
+     "2026-08": -4.9541,
+     "2026-09": 5.0137
+    },
+    "oos_pnl": 51.5026,
+    "oos_stops": 6,
+    "oos_trips": 18942,
+    "oos_without_best_month": 12.9457,
+    "open_at_end": 4,
+    "pnl": {
+     "IS": -439.128,
+     "OOS1": 1.4727,
+     "OOS2": 50.0299
+    },
+    "trips": {
+     "IS": 50971,
+     "OOS1": 12293,
+     "OOS2": 6649
+    }
+   },
+   "U": {
+    "ann_return_on_locked": 0.014067,
+    "best_month_share": 0.282,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": 10.3271,
+     "2026-02": 7.4491,
+     "2026-03": 1.9391,
+     "2026-04": 1.4718,
+     "2026-05": 2.9046,
+     "2026-06": 2.756,
+     "2026-07": 3.3933,
+     "2026-08": 4.0301,
+     "2026-09": 2.3561
+    },
+    "oos_pnl": 36.6273,
+    "oos_stops": 73,
+    "oos_trips": 1808,
+    "oos_without_best_month": 26.3002,
+    "open_at_end": 1,
+    "pnl": {
+     "IS": 13.4784,
+     "OOS1": 24.0918,
+     "OOS2": 12.5355
+    },
+    "trips": {
+     "IS": 675,
+     "OOS1": 1131,
+     "OOS2": 677
+    }
+   },
+   "all": {
+    "ann_return_on_locked": 0.025385,
+    "best_month_share": 0.4688,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": 6.6067,
+     "2026-02": 39.9251,
+     "2026-03": -28.832,
+     "2026-04": 4.7336,
+     "2026-05": 3.1312,
+     "2026-06": 41.3129,
+     "2026-07": 14.8066,
+     "2026-08": -0.924,
+     "2026-09": 7.3698
+    },
+    "oos_pnl": 88.1299,
+    "oos_stops": 79,
+    "oos_trips": 20750,
+    "oos_without_best_month": 46.817,
+    "open_at_end": 5,
+    "pnl": {
+     "IS": -425.6496,
+     "OOS1": 25.5646,
+     "OOS2": 62.5653
+    },
+    "trips": {
+     "IS": 51646,
+     "OOS1": 13424,
+     "OOS2": 7326
+    }
+   },
+   "secondary_X": {
+    "ann_return_on_locked": 0.034081,
+    "best_month_share": 0.2177,
+    "oos_days": 264.0,
+    "oos_months": {
+     "2026-01": 6.4406,
+     "2026-02": 3.7862,
+     "2026-03": 1.2752,
+     "2026-04": 0.705,
+     "2026-05": 2.0675,
+     "2026-06": 3.0202,
+     "2026-07": 3.5515,
+     "2026-08": 4.5445,
+     "2026-09": 4.1899
+    },
+    "oos_pnl": 29.5806,
+    "oos_stops": 27,
+    "oos_trips": 1433,
+    "oos_without_best_month": 23.14,
+    "open_at_end": 2,
+    "pnl": {
+     "IS": 29.8515,
+     "OOS1": 14.2746,
+     "OOS2": 15.306
+    },
+    "trips": {
+     "IS": 910,
+     "OOS1": 722,
+     "OOS2": 711
+    }
+   }
+  }
+ },
+ "bar": {
+  "E": {
+   "1_oos_positive_each": true,
+   "2_beats_null_p95": true,
+   "3_stress_intended": false,
+   "3b_stress_literal": true,
+   "4_min_200_trips": true,
+   "5_not_one_month": false,
+   "6_beats_cash": true,
+   "PASS": false
+  },
+  "U": {
+   "1_oos_positive_each": true,
+   "2_beats_null_p95": true,
+   "3_stress_intended": true,
+   "3b_stress_literal": true,
+   "4_min_200_trips": true,
+   "5_not_one_month": true,
+   "6_beats_cash": false,
+   "PASS": false
+  },
+  "all": {
+   "1_oos_positive_each": true,
+   "2_beats_null_p95": true,
+   "3_stress_intended": false,
+   "3b_stress_literal": true,
+   "4_min_200_trips": true,
+   "5_not_one_month": false,
+   "6_beats_cash": false,
+   "PASS": false
+  }
+ },
+ "null": {
+  "E": {
+   "draws": 2000,
+   "mean": -131.6467,
+   "p50": -131.0909,
+   "p95": -100.6876
+  },
+  "U": {
+   "draws": 2000,
+   "mean": -5.3819,
+   "p50": -5.3968,
+   "p95": -4.4546
+  },
+  "all": {
+   "draws": 2000,
+   "mean": -136.795,
+   "p50": -136.6503,
+   "p95": -105.8765
+  }
+ },
+ "per_book_primary": {
+  "BFUSDUSDT": {
+   "IS|long|10": {
+    "pnl": 1.0167,
+    "stops": 1,
+    "trips": 11
+   },
+   "IS|long|2": {
+    "pnl": 1.5451,
+    "stops": 5,
+    "trips": 122
+   },
+   "IS|long|5": {
+    "pnl": 1.1361,
+    "stops": 1,
+    "trips": 27
+   },
+   "IS|short|10": {
+    "pnl": 0.2299,
+    "stops": 0,
+    "trips": 3
+   },
+   "IS|short|2": {
+    "pnl": 1.8036,
+    "stops": 1,
+    "trips": 125
+   },
+   "IS|short|5": {
+    "pnl": 0.33,
+    "stops": 0,
+    "trips": 8
+   },
+   "OOS1|long|10": {
+    "pnl": 0.01,
+    "stops": 0,
+    "trips": 1
+   },
+   "OOS1|long|2": {
+    "pnl": 0.5042,
+    "stops": 1,
+    "trips": 49
+   },
+   "OOS1|long|5": {
+    "pnl": 0.0901,
+    "stops": 0,
+    "trips": 5
+   },
+   "OOS1|short|2": {
+    "pnl": 0.3311,
+    "stops": 4,
+    "trips": 44
+   },
+   "OOS1|short|5": {
+    "pnl": 0.15,
+    "stops": 0,
+    "trips": 5
+   },
+   "OOS2|long|10": {
+    "pnl": 0.3907,
+    "stops": 0,
+    "trips": 4
+   },
+   "OOS2|long|2": {
+    "pnl": 0.925,
+    "stops": 1,
+    "trips": 72
+   },
+   "OOS2|long|5": {
+    "pnl": 0.3604,
+    "stops": 0,
+    "trips": 9
+   },
+   "OOS2|short|2": {
+    "pnl": 0.4983,
+    "stops": 10,
+    "trips": 72
+   },
+   "OOS2|short|5": {
+    "pnl": 0.0673,
+    "stops": 3,
+    "trips": 6
+   },
+   "_meta": {
+    "first_minute": "2025-08",
+    "half_spread_bps": 0.5,
+    "minutes": 581760,
+    "minutes_with_prints": 301672
+   }
+  },
+  "EUREURI": {
+   "IS|long|10": {
+    "pnl": 0.5921,
+    "stops": 1,
+    "trips": 9
+   },
+   "IS|long|2": {
+    "pnl": 2.8712,
+    "stops": 6,
+    "trips": 193
+   },
+   "IS|long|5": {
+    "pnl": 0.7174,
+    "stops": 1,
+    "trips": 22
+   },
+   "IS|short|10": {
+    "pnl": 1.4223,
+    "stops": 0,
+    "trips": 17
+   },
+   "IS|short|2": {
+    "pnl": 4.4057,
+    "stops": 5,
+    "trips": 276
+   },
+   "IS|short|5": {
+    "pnl": 1.977,
+    "stops": 1,
+    "trips": 42
+   },
+   "OOS1|long|2": {
+    "pnl": 0.1482,
+    "stops": 0,
+    "trips": 15
+   },
+   "OOS1|short|2": {
+    "pnl": 0.0101,
+    "stops": 0,
+    "trips": 9
+   },
+   "OOS1|short|5": {
+    "pnl": 0.02,
+    "stops": 0,
+    "trips": 1
+   },
+   "OOS2|long|10": {
+    "pnl": -1.6325,
+    "stops": 1,
+    "trips": 6
+   },
+   "OOS2|long|2": {
+    "pnl": -0.6694,
+    "stops": 2,
+    "trips": 77
+   },
+   "OOS2|long|5": {
+    "pnl": -1.2459,
+    "stops": 1,
+    "trips": 17
+   },
+   "OOS2|short|10": {
+    "pnl": -0.8334,
+    "stops": 0,
+    "trips": 12
+   },
+   "OOS2|short|2": {
+    "pnl": -1.4814,
+    "stops": 2,
+    "trips": 38
+   },
+   "OOS2|short|5": {
+    "pnl": -1.2896,
+    "stops": 0,
+    "trips": 15
+   },
+   "_meta": {
+    "first_minute": "2024-09",
+    "half_spread_bps": 0.5,
+    "minutes": 1081440,
+    "minutes_with_prints": 527761
+   }
+  },
+  "EURIUSDT": {
+   "IS|long|10": {
+    "pnl": -11.2583,
+    "stops": 0,
+    "trips": 1162
+   },
+   "IS|long|2": {
+    "pnl": -161.3842,
+    "stops": 0,
+    "trips": 17889
+   },
+   "IS|long|5": {
+    "pnl": -46.6892,
+    "stops": 0,
+    "trips": 5196
+   },
+   "IS|short|10": {
+    "pnl": -8.2383,
+    "stops": 0,
+    "trips": 1084
+   },
+   "IS|short|2": {
+    "pnl": -174.4831,
+    "stops": 0,
+    "trips": 19483
+   },
+   "IS|short|5": {
+    "pnl": -48.9353,
+    "stops": 0,
+    "trips": 5598
+   },
+   "OOS1|long|10": {
+    "pnl": 7.4416,
+    "stops": 0,
+    "trips": 198
+   },
+   "OOS1|long|2": {
+    "pnl": 1.0182,
+    "stops": 0,
+    "trips": 5044
+   },
+   "OOS1|long|5": {
+    "pnl": 18.761,
+    "stops": 0,
+    "trips": 1373
+   },
+   "OOS1|short|10": {
+    "pnl": -2.7415,
+    "stops": 0,
+    "trips": 93
+   },
+   "OOS1|short|2": {
+    "pnl": -17.6325,
+    "stops": 0,
+    "trips": 4677
+   },
+   "OOS1|short|5": {
+    "pnl": -5.5524,
+    "stops": 0,
+    "trips": 883
+   },
+   "OOS2|long|10": {
+    "pnl": 11.0389,
+    "stops": 0,
+    "trips": 215
+   },
+   "OOS2|long|2": {
+    "pnl": 10.2466,
+    "stops": 0,
+    "trips": 2378
+   },
+   "OOS2|long|5": {
+    "pnl": 13.3032,
+    "stops": 0,
+    "trips": 690
+   },
+   "OOS2|short|10": {
+    "pnl": 3.3397,
+    "stops": 0,
+    "trips": 125
+   },
+   "OOS2|short|2": {
+    "pnl": 10.1972,
+    "stops": 0,
+    "trips": 2441
+   },
+   "OOS2|short|5": {
+    "pnl": 9.1166,
+    "stops": 0,
+    "trips": 635
+   },
+   "_meta": {
+    "first_minute": "2024-09",
+    "half_spread_bps": 1.317,
+    "minutes": 1081440,
+    "minutes_with_prints": 908573
+   }
+  },
+  "RLUSDU": {
+   "OOS1|long|2": {
+    "pnl": 0.2829,
+    "stops": 3,
+    "trips": 24
+   },
+   "OOS1|long|5": {
+    "pnl": 0.006,
+    "stops": 0,
+    "trips": 1
+   },
+   "OOS1|short|2": {
+    "pnl": 1.5639,
+    "stops": 1,
+    "trips": 139
+   },
+   "OOS1|short|5": {
+    "pnl": 0.1512,
+    "stops": 0,
+    "trips": 7
+   },
+   "OOS2|long|2": {
+    "pnl": 0.9438,
+    "stops": 1,
+    "trips": 60
+   },
+   "OOS2|long|5": {
+    "pnl": 0.3324,
+    "stops": 0,
+    "trips": 8
+   },
+   "OOS2|short|2": {
+    "pnl": 1.0749,
+    "stops": 0,
+    "trips": 68
+   },
+   "OOS2|short|5": {
+    "pnl": 0.1901,
+    "stops": 0,
+    "trips": 7
+   },
+   "_meta": {
+    "first_minute": "2026-01",
+    "half_spread_bps": 3.998,
+    "minutes": 348480,
+    "minutes_with_prints": 18089
+   }
+  },
+  "RLUSDUSDT": {
+   "OOS1|long|10": {
+    "pnl": 0.04,
+    "stops": 0,
+    "trips": 1
+   },
+   "OOS1|long|2": {
+    "pnl": 0.4648,
+    "stops": 4,
+    "trips": 48
+   },
+   "OOS1|long|5": {
+    "pnl": 0.1202,
+    "stops": 0,
+    "trips": 5
+   },
+   "OOS1|short|10": {
+    "pnl": 0.1097,
+    "stops": 0,
+    "trips": 1
+   },
+   "OOS1|short|2": {
+    "pnl": 0.386,
+    "stops": 2,
+    "trips": 44
+   },
+   "OOS1|short|5": {
+    "pnl": 0.2581,
+    "stops": 1,
+    "trips": 7
+   },
+   "OOS2|long|10": {
+    "pnl": 0.4401,
+    "stops": 0,
+    "trips": 4
+   },
+   "OOS2|long|2": {
+    "pnl": 0.3628,
+    "stops": 0,
+    "trips": 30
+   },
+   "OOS2|long|5": {
+    "pnl": 0.3699,
+    "stops": 0,
+    "trips": 8
+   },
+   "OOS2|short|10": {
+    "pnl": 0.4391,
+    "stops": 0,
+    "trips": 4
+   },
+   "OOS2|short|2": {
+    "pnl": 0.4158,
+    "stops": 3,
+    "trips": 31
+   },
+   "OOS2|short|5": {
+    "pnl": 0.3295,
+    "stops": 0,
+    "trips": 6
+   },
+   "_meta": {
+    "first_minute": "2026-01",
+    "half_spread_bps": 0.5,
+    "minutes": 348480,
+    "minutes_with_prints": 237400
+   }
+  },
+  "USDCUSD": {
+   "IS|long|10": {
+    "pnl": 1.954,
+    "stops": 1,
+    "trips": 23
+   },
+   "IS|long|2": {
+    "pnl": 1.8415,
+    "stops": 2,
+    "trips": 119
+   },
+   "IS|long|5": {
+    "pnl": 2.0269,
+    "stops": 1,
+    "trips": 47
+   },
+   "IS|short|10": {
+    "pnl": 1.3467,
+    "stops": 0,
+    "trips": 16
+   },
+   "IS|short|2": {
+    "pnl": 2.0921,
+    "stops": 0,
+    "trips": 144
+   },
+   "IS|short|5": {
+    "pnl": 1.3391,
+    "stops": 0,
+    "trips": 34
+   },
+   "OOS1|long|10": {
+    "pnl": 0.6922,
+    "stops": 1,
+    "trips": 8
+   },
+   "OOS1|long|2": {
+    "pnl": 2.7692,
+    "stops": 5,
+    "trips": 193
+   },
+   "OOS1|long|5": {
+    "pnl": 1.6134,
+    "stops": 1,
+    "trips": 41
+   },
+   "OOS1|short|10": {
+    "pnl": 0.0909,
+    "stops": 0,
+    "trips": 1
+   },
+   "OOS1|short|2": {
+    "pnl": 1.7644,
+    "stops": 0,
+    "trips": 121
+   },
+   "OOS1|short|5": {
+    "pnl": 0.5843,
+    "stops": 0,
+    "trips": 15
+   },
+   "OOS2|long|10": {
+    "pnl": 0.2943,
+    "stops": 0,
+    "trips": 3
+   },
+   "OOS2|long|2": {
+    "pnl": 3.5936,
+    "stops": 0,
+    "trips": 215
+   },
+   "OOS2|long|5": {
+    "pnl": 2.3351,
+    "stops": 0,
+    "trips": 52
+   },
+   "OOS2|short|2": {
+    "pnl": 0.8499,
+    "stops": 1,
+    "trips": 58
+   },
+   "OOS2|short|5": {
+    "pnl": 0.2849,
+    "stops": 0,
+    "trips": 7
+   },
+   "_meta": {
+    "first_minute": "2025-11",
+    "half_spread_bps": 0.05,
+    "minutes": 442080,
+    "minutes_with_prints": 368284
+   }
+  },
+  "USDTUSD": {
+   "IS|long|10": {
+    "pnl": 4.9799,
+    "stops": 1,
+    "trips": 62
+   },
+   "IS|long|2": {
+    "pnl": 1.6881,
+    "stops": 2,
+    "trips": 138
+   },
+   "IS|long|5": {
+    "pnl": 3.3791,
+    "stops": 1,
+    "trips": 88
+   },
+   "IS|short|10": {
+    "pnl": 5.3744,
+    "stops": 0,
+    "trips": 61
+   },
+   "IS|short|2": {
+    "pnl": 1.1424,
+    "stops": 0,
+    "trips": 108
+   },
+   "IS|short|5": {
+    "pnl": 2.6947,
+    "stops": 0,
+    "trips": 70
+   },
+   "OOS1|long|10": {
+    "pnl": 1.3021,
+    "stops": 2,
+    "trips": 15
+   },
+   "OOS1|long|2": {
+    "pnl": 1.6585,
+    "stops": 12,
+    "trips": 157
+   },
+   "OOS1|long|5": {
+    "pnl": 2.1009,
+    "stops": 2,
+    "trips": 55
+   },
+   "OOS1|short|2": {
+    "pnl": 1.1519,
+    "stops": 0,
+    "trips": 100
+   },
+   "OOS1|short|5": {
+    "pnl": 0.569,
+    "stops": 0,
+    "trips": 16
+   },
+   "OOS2|long|10": {
+    "pnl": 0.6784,
+    "stops": 0,
+    "trips": 7
+   },
+   "OOS2|long|2": {
+    "pnl": 3.1571,
+    "stops": 2,
+    "trips": 200
+   },
+   "OOS2|long|5": {
+    "pnl": 2.4605,
+    "stops": 1,
+    "trips": 61
+   },
+   "OOS2|short|2": {
+    "pnl": 1.3276,
+    "stops": 0,
+    "trips": 97
+   },
+   "OOS2|short|5": {
+    "pnl": 0.3282,
+    "stops": 0,
+    "trips": 11
+   },
+   "_meta": {
+    "first_minute": "2025-11",
+    "half_spread_bps": 0.05,
+    "minutes": 442080,
+    "minutes_with_prints": 422533
+   }
+  },
+  "UUSDC": {
+   "OOS1|long|10": {
+    "pnl": 1.0021,
+    "stops": 0,
+    "trips": 10
+   },
+   "OOS1|long|2": {
+    "pnl": 1.0944,
+    "stops": 2,
+    "trips": 77
+   },
+   "OOS1|long|5": {
+    "pnl": 1.5757,
+    "stops": 0,
+    "trips": 35
+   },
+   "OOS1|short|10": {
+    "pnl": 0.0999,
+    "stops": 0,
+    "trips": 1
+   },
+   "OOS1|short|2": {
+    "pnl": 1.192,
+    "stops": 0,
+    "trips": 89
+   },
+   "OOS1|short|5": {
+    "pnl": 1.787,
+    "stops": 0,
+    "trips": 42
+   },
+   "OOS2|long|2": {
+    "pnl": 0.3144,
+    "stops": 2,
+    "trips": 33
+   },
+   "OOS2|long|5": {
+    "pnl": 0.05,
+    "stops": 0,
+    "trips": 2
+   },
+   "OOS2|short|2": {
+    "pnl": 0.3541,
+    "stops": 0,
+    "trips": 43
+   },
+   "OOS2|short|5": {
+    "pnl": 0.0132,
+    "stops": 0,
+    "trips": 2
+   },
+   "_meta": {
+    "first_minute": "2026-01",
+    "half_spread_bps": 0.5,
+    "minutes": 361440,
+    "minutes_with_prints": 254321
+   }
+  },
+  "UUSDT": {
+   "OOS1|long|10": {
+    "pnl": 0.1101,
+    "stops": 0,
+    "trips": 1
+   },
+   "OOS1|long|2": {
+    "pnl": 0.6107,
+    "stops": 1,
+    "trips": 45
+   },
+   "OOS1|long|5": {
+    "pnl": 0.4558,
+    "stops": 1,
+    "trips": 11
+   },
+   "OOS1|short|10": {
+    "pnl": 0.6891,
+    "stops": 0,
+    "trips": 7
+   },
+   "OOS1|short|2": {
+    "pnl": 2.2767,
+    "stops": 3,
+    "trips": 136
+   },
+   "OOS1|short|5": {
+    "pnl": 1.9244,
+    "stops": 1,
+    "trips": 43
+   },
+   "OOS2|long|2": {
+    "pnl": 0.1813,
+    "stops": 0,
+    "trips": 20
+   },
+   "OOS2|long|5": {
+    "pnl": 0.14,
+    "stops": 0,
+    "trips": 4
+   },
+   "OOS2|short|2": {
+    "pnl": 0.3152,
+    "stops": 1,
+    "trips": 23
+   },
+   "OOS2|short|5": {
+    "pnl": 0.0606,
+    "stops": 0,
+    "trips": 3
+   },
+   "_meta": {
+    "first_minute": "2026-01",
+    "half_spread_bps": 0.5,
+    "minutes": 361440,
+    "minutes_with_prints": 320044
+   }
+  },
+  "XUSDUSDT": {
+   "IS|long|10": {
+    "pnl": 0.1201,
+    "stops": 0,
+    "trips": 2
+   },
+   "IS|long|2": {
+    "pnl": 1.0067,
+    "stops": 6,
+    "trips": 99
+   },
+   "IS|long|5": {
+    "pnl": 0.3485,
+    "stops": 0,
+    "trips": 12
+   },
+   "IS|short|10": {
+    "pnl": 2.134,
+    "stops": 1,
+    "trips": 26
+   },
+   "IS|short|2": {
+    "pnl": 2.197,
+    "stops": 14,
+    "trips": 193
+   },
+   "IS|short|5": {
+    "pnl": 1.8691,
+    "stops": 2,
+    "trips": 47
+   },
+   "OOS1|long|10": {
+    "pnl": 0.0,
+    "stops": 0,
+    "trips": 1
+   },
+   "OOS1|long|2": {
+    "pnl": 0.1493,
+    "stops": 5,
+    "trips": 36
+   },
+   "OOS1|long|5": {
+    "pnl": 0.0272,
+    "stops": 1,
+    "trips": 6
+   },
+   "OOS1|short|10": {
+    "pnl": 2.0765,
+    "stops": 0,
+    "trips": 23
+   },
+   "OOS1|short|2": {
+    "pnl": 2.0274,
+    "stops": 11,
+    "trips": 129
+   },
+   "OOS1|short|5": {
+    "pnl": 2.7977,
+    "stops": 1,
+    "trips": 58
+   },
+   "OOS2|long|10": {
+    "pnl": 0.1101,
+    "stops": 0,
+    "trips": 1
+   },
+   "OOS2|long|2": {
+    "pnl": 0.1488,
+    "stops": 2,
+    "trips": 35
+   },
+   "OOS2|long|5": {
+    "pnl": 0.3837,
+    "stops": 0,
+    "trips": 13
+   },
+   "OOS2|short|10": {
+    "pnl": 0.8686,
+    "stops": 0,
+    "trips": 10
+   },
+   "OOS2|short|2": {
+    "pnl": 1.0354,
+    "stops": 5,
+    "trips": 61
+   },
+   "OOS2|short|5": {
+    "pnl": 1.6965,
+    "stops": 3,
+    "trips": 38
+   },
+   "_meta": {
+    "first_minute": "2025-03",
+    "half_spread_bps": 0.5,
+    "minutes": 793440,
+    "minutes_with_prints": 302855
+   }
+  }
+ },
+ "prereg_sha256": "14b9e42e8b560e039943a4d6c50d5b42a3a243b80f5da7d20148908aef915920",
+ "sample_trips": {
+  "BFUSDUSDT": [
+   {
+    "d": 2,
+    "entry": 0.9997,
+    "exit": 0.9997,
+    "exit_i": 204482,
+    "hold_min": 765,
+    "i": 203717,
+    "kind": "maker",
+    "notional_usd": 97.9608,
+    "pnl": 0.0,
+    "side": "long",
+    "t": 1767352620000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9996,
+    "exit": 0.99965002,
+    "exit_i": 209138,
+    "hold_min": 1440,
+    "i": 207698,
+    "kind": "stop",
+    "notional_usd": 100.0,
+    "pnl": 0.0050035,
+    "side": "long",
+    "t": 1767591480000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9999,
+    "exit": 0.9999,
+    "exit_i": 211861,
+    "hold_min": 1041,
+    "i": 210820,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.0,
+    "side": "short",
+    "t": 1767778800000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9997,
+    "exit": 0.9998,
+    "exit_i": 218282,
+    "hold_min": 672,
+    "i": 217610,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.010003,
+    "side": "long",
+    "t": 1768186200000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9996,
+    "exit": 0.9998,
+    "exit_i": 219143,
+    "hold_min": 65,
+    "i": 219078,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.020008,
+    "side": "long",
+    "t": 1768274280000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9996,
+    "exit": 0.9996,
+    "exit_i": 220684,
+    "hold_min": 857,
+    "i": 219827,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.0,
+    "side": "long",
+    "t": 1768319220000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9995,
+    "exit": 0.9997,
+    "exit_i": 222497,
+    "hold_min": 198,
+    "i": 222299,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02001001,
+    "side": "long",
+    "t": 1768467540000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9996,
+    "exit": 0.99964998,
+    "exit_i": 229921,
+    "hold_min": 1440,
+    "i": 228481,
+    "kind": "stop",
+    "notional_usd": 7.9976,
+    "pnl": -0.00039988,
+    "side": "short",
+    "t": 1768838460000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9996,
+    "exit": 0.9989,
+    "exit_i": 234622,
+    "hold_min": 1316,
+    "i": 233306,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": -0.07002801,
+    "side": "long",
+    "t": 1769127960000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 0.9993,
+    "exit": 0.9989,
+    "exit_i": 234622,
+    "hold_min": 1306,
+    "i": 233316,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": -0.04002802,
+    "side": "long",
+    "t": 1769128560000,
+    "win": "OOS1"
+   },
+   {
+    "d": 10,
+    "entry": 0.9988,
+    "exit": 0.9989,
+    "exit_i": 234622,
+    "hold_min": 835,
+    "i": 233787,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.01001201,
+    "side": "long",
+    "t": 1769156820000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9991,
+    "exit": 0.9989,
+    "exit_i": 235107,
+    "hold_min": 477,
+    "i": 234630,
+    "kind": "maker",
+    "notional_usd": 39.968,
+    "pnl": 0.0080008,
+    "side": "short",
+    "t": 1769207400000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9987,
+    "exit": 0.9989,
+    "exit_i": 235203,
+    "hold_min": 24,
+    "i": 235179,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02002603,
+    "side": "long",
+    "t": 1769240340000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9991,
+    "exit": 0.9993,
+    "exit_i": 236523,
+    "hold_min": 1157,
+    "i": 235366,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": -0.02001802,
+    "side": "short",
+    "t": 1769251560000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9991,
+    "exit": 0.9993,
+    "exit_i": 237709,
+    "hold_min": 43,
+    "i": 237666,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02001802,
+    "side": "long",
+    "t": 1769389560000,
+    "win": "OOS1"
+   }
+  ],
+  "EUREURI": [
+   {
+    "d": 2,
+    "entry": 1.0001,
+    "exit": 1.0,
+    "exit_i": 729674,
+    "hold_min": 470,
+    "i": 729204,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.01001178,
+    "side": "short",
+    "t": 1768901040000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9998,
+    "exit": 0.9999,
+    "exit_i": 730624,
+    "hold_min": 940,
+    "i": 729684,
+    "kind": "maker",
+    "notional_usd": 99.96595455,
+    "pnl": 0.00997902,
+    "side": "long",
+    "t": 1768929840000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9997,
+    "exit": 0.9999,
+    "exit_i": 730953,
+    "hold_min": 2,
+    "i": 730951,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.020006,
+    "side": "long",
+    "t": 1769005860000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9997,
+    "exit": 0.9999,
+    "exit_i": 731898,
+    "hold_min": 342,
+    "i": 731556,
+    "kind": "maker",
+    "notional_usd": 99.99144422,
+    "pnl": 0.02002141,
+    "side": "long",
+    "t": 1769042160000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9997,
+    "exit": 0.9999,
+    "exit_i": 732493,
+    "hold_min": 405,
+    "i": 732088,
+    "kind": "maker",
+    "notional_usd": 99.99145518,
+    "pnl": 0.02008806,
+    "side": "long",
+    "t": 1769074080000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0001,
+    "exit": 1.0001,
+    "exit_i": 733450,
+    "hold_min": 951,
+    "i": 732499,
+    "kind": "maker",
+    "notional_usd": 100.03403386,
+    "pnl": 0.0,
+    "side": "short",
+    "t": 1769098740000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9998,
+    "exit": 0.9998,
+    "exit_i": 738665,
+    "hold_min": 967,
+    "i": 737698,
+    "kind": "maker",
+    "notional_usd": 99.9494524,
+    "pnl": 0.0,
+    "side": "long",
+    "t": 1769410680000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9996,
+    "exit": 0.9997,
+    "exit_i": 740462,
+    "hold_min": 555,
+    "i": 739907,
+    "kind": "maker",
+    "notional_usd": 99.96664443,
+    "pnl": 0.01001068,
+    "side": "long",
+    "t": 1769543220000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9996,
+    "exit": 0.9997,
+    "exit_i": 743785,
+    "hold_min": 1173,
+    "i": 742612,
+    "kind": "maker",
+    "notional_usd": 99.93314391,
+    "pnl": 0.00999982,
+    "side": "long",
+    "t": 1769705520000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9999,
+    "exit": 1.0,
+    "exit_i": 745375,
+    "hold_min": 1306,
+    "i": 744069,
+    "kind": "maker",
+    "notional_usd": 99.9915924,
+    "pnl": -0.00997662,
+    "side": "short",
+    "t": 1769792940000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9998,
+    "exit": 0.9998,
+    "exit_i": 753781,
+    "hold_min": 838,
+    "i": 752943,
+    "kind": "maker",
+    "notional_usd": 99.98304797,
+    "pnl": 0.0,
+    "side": "long",
+    "t": 1770325380000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9996,
+    "exit": 0.9997,
+    "exit_i": 758346,
+    "hold_min": 270,
+    "i": 758076,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.01005123,
+    "side": "long",
+    "t": 1770633360000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0001,
+    "exit": 1.0001,
+    "exit_i": 790030,
+    "hold_min": 786,
+    "i": 789244,
+    "kind": "maker",
+    "notional_usd": 100.02565199,
+    "pnl": 0.0,
+    "side": "short",
+    "t": 1772503440000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0001,
+    "exit_i": 794737,
+    "hold_min": 517,
+    "i": 794220,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.010043,
+    "side": "short",
+    "t": 1772802000000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9996,
+    "exit": 0.9997,
+    "exit_i": 800323,
+    "hold_min": 219,
+    "i": 800104,
+    "kind": "maker",
+    "notional_usd": 99.97424451,
+    "pnl": 0.00998253,
+    "side": "long",
+    "t": 1773155040000,
+    "win": "OOS1"
+   }
+  ],
+  "EURIUSDT": [
+   {
+    "d": 2,
+    "entry": 1.1786,
+    "exit": 1.179,
+    "exit_i": 701287,
+    "hold_min": 1,
+    "i": 701286,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": -0.03393857,
+    "side": "short",
+    "t": 1767225960000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.1784,
+    "exit": 1.179,
+    "exit_i": 701361,
+    "hold_min": 33,
+    "i": 701328,
+    "kind": "maker",
+    "notional_usd": 8.36593,
+    "pnl": 0.00425964,
+    "side": "long",
+    "t": 1767228480000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.1788,
+    "exit": 1.1788,
+    "exit_i": 701413,
+    "hold_min": 30,
+    "i": 701383,
+    "kind": "maker",
+    "notional_usd": 8.01516,
+    "pnl": 0.0,
+    "side": "long",
+    "t": 1767231780000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.1787,
+    "exit": 1.1784,
+    "exit_i": 701538,
+    "hold_min": 110,
+    "i": 701428,
+    "kind": "maker",
+    "notional_usd": 15.20394,
+    "pnl": -0.00386967,
+    "side": "long",
+    "t": 1767234480000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.1783,
+    "exit": 1.1775,
+    "exit_i": 701904,
+    "hold_min": 338,
+    "i": 701566,
+    "kind": "maker",
+    "notional_usd": 17.673,
+    "pnl": -0.01199898,
+    "side": "long",
+    "t": 1767242760000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.1777,
+    "exit": 1.1769,
+    "exit_i": 702147,
+    "hold_min": 106,
+    "i": 702041,
+    "kind": "maker",
+    "notional_usd": 16.01808,
+    "pnl": 0.01088092,
+    "side": "short",
+    "t": 1767271260000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.1779,
+    "exit": 1.1769,
+    "exit_i": 702147,
+    "hold_min": 73,
+    "i": 702074,
+    "kind": "maker",
+    "notional_usd": 89.6458,
+    "pnl": 0.07610646,
+    "side": "short",
+    "t": 1767273240000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.1768,
+    "exit": 1.1768,
+    "exit_i": 702162,
+    "hold_min": 12,
+    "i": 702150,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.0,
+    "side": "short",
+    "t": 1767277800000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.177,
+    "exit": 1.1768,
+    "exit_i": 702194,
+    "hold_min": 15,
+    "i": 702179,
+    "kind": "maker",
+    "notional_usd": 24.95452,
+    "pnl": 0.00424036,
+    "side": "short",
+    "t": 1767279540000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.1769,
+    "exit": 1.1768,
+    "exit_i": 702245,
+    "hold_min": 47,
+    "i": 702198,
+    "kind": "maker",
+    "notional_usd": 7.6505,
+    "pnl": 0.00065006,
+    "side": "short",
+    "t": 1767280680000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.1769,
+    "exit": 1.1767,
+    "exit_i": 702259,
+    "hold_min": 11,
+    "i": 702248,
+    "kind": "maker",
+    "notional_usd": 7.4151,
+    "pnl": 0.00126011,
+    "side": "short",
+    "t": 1767283680000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.1768,
+    "exit": 1.1767,
+    "exit_i": 702281,
+    "hold_min": 14,
+    "i": 702267,
+    "kind": "maker",
+    "notional_usd": 7.41447,
+    "pnl": 0.00063005,
+    "side": "short",
+    "t": 1767284820000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.1768,
+    "exit": 1.1767,
+    "exit_i": 702284,
+    "hold_min": 1,
+    "i": 702283,
+    "kind": "maker",
+    "notional_usd": 0.82383,
+    "pnl": 7.001e-05,
+    "side": "short",
+    "t": 1767285780000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.1768,
+    "exit": 1.1768,
+    "exit_i": 702330,
+    "hold_min": 45,
+    "i": 702285,
+    "kind": "maker",
+    "notional_usd": 1.52997,
+    "pnl": 0.0,
+    "side": "short",
+    "t": 1767285900000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.1761,
+    "exit": 1.1758,
+    "exit_i": 702426,
+    "hold_min": 91,
+    "i": 702335,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02550804,
+    "side": "short",
+    "t": 1767288900000,
+    "win": "OOS1"
+   }
+  ],
+  "RLUSDU": [
+   {
+    "d": 2,
+    "entry": 1.0004,
+    "exit": 1.0001,
+    "exit_i": 60575,
+    "hold_min": 1,
+    "i": 60574,
+    "kind": "maker",
+    "notional_usd": 27.0135,
+    "pnl": 0.00810081,
+    "side": "short",
+    "t": 1772760840000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0004,
+    "exit": 1.0001,
+    "exit_i": 60597,
+    "hold_min": 2,
+    "i": 60595,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.029988,
+    "side": "short",
+    "t": 1772762100000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 60981,
+    "hold_min": 28,
+    "i": 60953,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.019996,
+    "side": "short",
+    "t": 1772783580000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 61043,
+    "hold_min": 1,
+    "i": 61042,
+    "kind": "maker",
+    "notional_usd": 72.027,
+    "pnl": 0.01440252,
+    "side": "short",
+    "t": 1772788920000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 61045,
+    "hold_min": 1,
+    "i": 61044,
+    "kind": "maker",
+    "notional_usd": 24.0096,
+    "pnl": 0.00480096,
+    "side": "short",
+    "t": 1772789040000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 61181,
+    "hold_min": 1,
+    "i": 61180,
+    "kind": "maker",
+    "notional_usd": 23.0081,
+    "pnl": 0.0046007,
+    "side": "short",
+    "t": 1772797200000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 61183,
+    "hold_min": 1,
+    "i": 61182,
+    "kind": "maker",
+    "notional_usd": 16.0055,
+    "pnl": 0.00320046,
+    "side": "short",
+    "t": 1772797320000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 61185,
+    "hold_min": 1,
+    "i": 61184,
+    "kind": "maker",
+    "notional_usd": 18.0066,
+    "pnl": 0.0036006,
+    "side": "short",
+    "t": 1772797440000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 61187,
+    "hold_min": 1,
+    "i": 61186,
+    "kind": "maker",
+    "notional_usd": 21.0072,
+    "pnl": 0.0042006,
+    "side": "short",
+    "t": 1772797560000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 61189,
+    "hold_min": 1,
+    "i": 61188,
+    "kind": "maker",
+    "notional_usd": 16.0055,
+    "pnl": 0.00320046,
+    "side": "short",
+    "t": 1772797680000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 61277,
+    "hold_min": 74,
+    "i": 61203,
+    "kind": "maker",
+    "notional_usd": 6.0018,
+    "pnl": 0.00120012,
+    "side": "short",
+    "t": 1772798580000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9998,
+    "exit": 1.0,
+    "exit_i": 61590,
+    "hold_min": 24,
+    "i": 61566,
+    "kind": "maker",
+    "notional_usd": 1.9994,
+    "pnl": 0.00039996,
+    "side": "long",
+    "t": 1772820360000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 62227,
+    "hold_min": 198,
+    "i": 62029,
+    "kind": "maker",
+    "notional_usd": 6.0018,
+    "pnl": 0.00120012,
+    "side": "short",
+    "t": 1772848140000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 62273,
+    "hold_min": 1,
+    "i": 62272,
+    "kind": "maker",
+    "notional_usd": 19.0057,
+    "pnl": 0.00380038,
+    "side": "short",
+    "t": 1772862720000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 62275,
+    "hold_min": 1,
+    "i": 62274,
+    "kind": "maker",
+    "notional_usd": 50.015,
+    "pnl": 0.010001,
+    "side": "short",
+    "t": 1772862840000,
+    "win": "OOS1"
+   }
+  ],
+  "RLUSDUSDT": [
+   {
+    "d": 2,
+    "entry": 1.0011,
+    "exit": 1.0009,
+    "exit_i": 966,
+    "hold_min": 475,
+    "i": 491,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.01997802,
+    "side": "short",
+    "t": 1769155860000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0013,
+    "exit": 1.0013,
+    "exit_i": 3257,
+    "hold_min": 1235,
+    "i": 2022,
+    "kind": "maker",
+    "notional_usd": 23.0322,
+    "pnl": 0.0,
+    "side": "short",
+    "t": 1769247720000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0011,
+    "exit": 1.00054997,
+    "exit_i": 5355,
+    "hold_min": 1448,
+    "i": 3907,
+    "kind": "stop",
+    "notional_usd": 100.0,
+    "pnl": -0.05494256,
+    "side": "long",
+    "t": 1769360820000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.001,
+    "exit": 1.0009,
+    "exit_i": 6751,
+    "hold_min": 435,
+    "i": 6316,
+    "kind": "maker",
+    "notional_usd": 9.0099,
+    "pnl": 0.00090009,
+    "side": "short",
+    "t": 1769505360000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0016,
+    "exit": 1.0013,
+    "exit_i": 10183,
+    "hold_min": 306,
+    "i": 9877,
+    "kind": "maker",
+    "notional_usd": 7.0119,
+    "pnl": 0.00210021,
+    "side": "short",
+    "t": 1769719020000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0016,
+    "exit": 1.0013,
+    "exit_i": 12553,
+    "hold_min": 1,
+    "i": 12552,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02995208,
+    "side": "short",
+    "t": 1769879520000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.0019,
+    "exit": 1.0013,
+    "exit_i": 12553,
+    "hold_min": 1,
+    "i": 12552,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.05988622,
+    "side": "short",
+    "t": 1769879520000,
+    "win": "OOS1"
+   },
+   {
+    "d": 10,
+    "entry": 1.0024,
+    "exit": 1.0013,
+    "exit_i": 12553,
+    "hold_min": 1,
+    "i": 12552,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.10973663,
+    "side": "short",
+    "t": 1769879520000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0016,
+    "exit": 1.0013,
+    "exit_i": 12644,
+    "hold_min": 1,
+    "i": 12643,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02995208,
+    "side": "short",
+    "t": 1769884980000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.0019,
+    "exit": 1.0013,
+    "exit_i": 12644,
+    "hold_min": 1,
+    "i": 12643,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.05988622,
+    "side": "short",
+    "t": 1769884980000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0016,
+    "exit": 1.0013,
+    "exit_i": 12646,
+    "hold_min": 1,
+    "i": 12645,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02995208,
+    "side": "short",
+    "t": 1769885100000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.0019,
+    "exit": 1.0013,
+    "exit_i": 12646,
+    "hold_min": 1,
+    "i": 12645,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.05988622,
+    "side": "short",
+    "t": 1769885100000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0009,
+    "exit": 1.0011,
+    "exit_i": 14090,
+    "hold_min": 754,
+    "i": 13336,
+    "kind": "maker",
+    "notional_usd": 49.0392,
+    "pnl": 0.00979902,
+    "side": "long",
+    "t": 1769926560000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.0006,
+    "exit": 1.0011,
+    "exit_i": 14090,
+    "hold_min": 409,
+    "i": 13681,
+    "kind": "maker",
+    "notional_usd": 24.012,
+    "pnl": 0.0119988,
+    "side": "long",
+    "t": 1769947260000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0014,
+    "exit": 1.0011,
+    "exit_i": 14091,
+    "hold_min": 1,
+    "i": 14090,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02995806,
+    "side": "short",
+    "t": 1769971800000,
+    "win": "OOS1"
+   }
+  ],
+  "UUSDC": [
+   {
+    "d": 2,
+    "entry": 1.0,
+    "exit": 0.9998,
+    "exit_i": 1095,
+    "hold_min": 165,
+    "i": 930,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02,
+    "side": "short",
+    "t": 1768404600000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0,
+    "exit": 1.0,
+    "exit_i": 2224,
+    "hold_min": 1123,
+    "i": 1101,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.0,
+    "side": "short",
+    "t": 1768414860000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0,
+    "exit": 0.9998,
+    "exit_i": 7440,
+    "hold_min": 719,
+    "i": 6721,
+    "kind": "maker",
+    "notional_usd": 16.0016,
+    "pnl": 0.00320032,
+    "side": "short",
+    "t": 1768752060000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9996,
+    "exit": 0.99914999,
+    "exit_i": 9249,
+    "hold_min": 1444,
+    "i": 7805,
+    "kind": "stop",
+    "notional_usd": 100.0,
+    "pnl": -0.045019,
+    "side": "long",
+    "t": 1768817100000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9996,
+    "exit": 0.9995,
+    "exit_i": 12062,
+    "hold_min": 55,
+    "i": 12007,
+    "kind": "maker",
+    "notional_usd": 5.9982,
+    "pnl": 0.00060006,
+    "side": "short",
+    "t": 1769069220000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9993,
+    "exit": 0.9993,
+    "exit_i": 13049,
+    "hold_min": 634,
+    "i": 12415,
+    "kind": "maker",
+    "notional_usd": 11.9895,
+    "pnl": 0.0,
+    "side": "long",
+    "t": 1769093700000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 0.999,
+    "exit": 0.9993,
+    "exit_i": 13049,
+    "hold_min": 141,
+    "i": 12908,
+    "kind": "maker",
+    "notional_usd": 3.9956,
+    "pnl": 0.00119988,
+    "side": "long",
+    "t": 1769123280000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9991,
+    "exit": 0.9993,
+    "exit_i": 13236,
+    "hold_min": 147,
+    "i": 13089,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02001802,
+    "side": "long",
+    "t": 1769134140000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9991,
+    "exit": 0.9989,
+    "exit_i": 13835,
+    "hold_min": 175,
+    "i": 13660,
+    "kind": "maker",
+    "notional_usd": 55.9634,
+    "pnl": 0.01120276,
+    "side": "short",
+    "t": 1769168400000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 0.9994,
+    "exit": 0.9989,
+    "exit_i": 13835,
+    "hold_min": 175,
+    "i": 13660,
+    "kind": "maker",
+    "notional_usd": 14.9925,
+    "pnl": 0.00750075,
+    "side": "short",
+    "t": 1769168400000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9991,
+    "exit": 0.9989,
+    "exit_i": 14115,
+    "hold_min": 23,
+    "i": 14092,
+    "kind": "maker",
+    "notional_usd": 17.9862,
+    "pnl": 0.00360048,
+    "side": "short",
+    "t": 1769194320000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9991,
+    "exit": 0.9989,
+    "exit_i": 14148,
+    "hold_min": 30,
+    "i": 14118,
+    "kind": "maker",
+    "notional_usd": 35.982,
+    "pnl": 0.00720288,
+    "side": "short",
+    "t": 1769195880000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 0.9994,
+    "exit": 0.9989,
+    "exit_i": 14148,
+    "hold_min": 30,
+    "i": 14118,
+    "kind": "maker",
+    "notional_usd": 35.982,
+    "pnl": 0.0180018,
+    "side": "short",
+    "t": 1769195880000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.999,
+    "exit": 0.99905,
+    "exit_i": 15909,
+    "hold_min": 1442,
+    "i": 14467,
+    "kind": "stop",
+    "notional_usd": 8.9883,
+    "pnl": 0.00044982,
+    "side": "long",
+    "t": 1769216820000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9992,
+    "exit": 0.999,
+    "exit_i": 20725,
+    "hold_min": 837,
+    "i": 19888,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02001601,
+    "side": "short",
+    "t": 1769542080000,
+    "win": "OOS1"
+   }
+  ],
+  "UUSDT": [
+   {
+    "d": 2,
+    "entry": 0.9998,
+    "exit": 1.0,
+    "exit_i": 1702,
+    "hold_min": 680,
+    "i": 1022,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.020004,
+    "side": "long",
+    "t": 1768410120000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 4111,
+    "hold_min": 18,
+    "i": 4093,
+    "kind": "maker",
+    "notional_usd": 7.0021,
+    "pnl": 0.00140014,
+    "side": "short",
+    "t": 1768594380000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 4682,
+    "hold_min": 3,
+    "i": 4679,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.019996,
+    "side": "short",
+    "t": 1768629540000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 5941,
+    "hold_min": 1207,
+    "i": 4734,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.019996,
+    "side": "short",
+    "t": 1768632840000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0001,
+    "exit": 1.0,
+    "exit_i": 12408,
+    "hold_min": 676,
+    "i": 11732,
+    "kind": "maker",
+    "notional_usd": 56.0117,
+    "pnl": 0.00560061,
+    "side": "short",
+    "t": 1769052720000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.0004,
+    "exit": 1.0,
+    "exit_i": 12408,
+    "hold_min": 408,
+    "i": 12000,
+    "kind": "maker",
+    "notional_usd": 6.003,
+    "pnl": 0.00240024,
+    "side": "short",
+    "t": 1769068800000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9998,
+    "exit": 1.0,
+    "exit_i": 13237,
+    "hold_min": 65,
+    "i": 13172,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.020004,
+    "side": "long",
+    "t": 1769139120000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0002,
+    "exit": 1.0,
+    "exit_i": 13276,
+    "hold_min": 36,
+    "i": 13240,
+    "kind": "maker",
+    "notional_usd": 17.0062,
+    "pnl": 0.00340056,
+    "side": "short",
+    "t": 1769143200000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9998,
+    "exit": 0.9999,
+    "exit_i": 15397,
+    "hold_min": 67,
+    "i": 15330,
+    "kind": "maker",
+    "notional_usd": 5.9982,
+    "pnl": 0.00059994,
+    "side": "long",
+    "t": 1769268600000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0001,
+    "exit": 0.9999,
+    "exit_i": 17587,
+    "hold_min": 79,
+    "i": 17508,
+    "kind": "maker",
+    "notional_usd": 35.007,
+    "pnl": 0.0070007,
+    "side": "short",
+    "t": 1769399280000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.0004,
+    "exit": 0.9999,
+    "exit_i": 17587,
+    "hold_min": 69,
+    "i": 17518,
+    "kind": "maker",
+    "notional_usd": 35.0244,
+    "pnl": 0.0175052,
+    "side": "short",
+    "t": 1769399880000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9997,
+    "exit": 0.9999,
+    "exit_i": 17599,
+    "hold_min": 12,
+    "i": 17587,
+    "kind": "maker",
+    "notional_usd": 5.9976,
+    "pnl": 0.00119988,
+    "side": "long",
+    "t": 1769404020000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0001,
+    "exit": 0.9999,
+    "exit_i": 17924,
+    "hold_min": 312,
+    "i": 17612,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.019998,
+    "side": "short",
+    "t": 1769405520000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.0004,
+    "exit": 0.9999,
+    "exit_i": 17924,
+    "hold_min": 312,
+    "i": 17612,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.04998001,
+    "side": "short",
+    "t": 1769405520000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 0.9997,
+    "exit": 0.9999,
+    "exit_i": 17956,
+    "hold_min": 32,
+    "i": 17924,
+    "kind": "maker",
+    "notional_usd": 10.9956,
+    "pnl": 0.00219978,
+    "side": "long",
+    "t": 1769424240000,
+    "win": "OOS1"
+   }
+  ],
+  "XUSDUSDT": [
+   {
+    "d": 2,
+    "entry": 1.0011,
+    "exit": 1.0011,
+    "exit_i": 414790,
+    "hold_min": 1174,
+    "i": 413616,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.0,
+    "side": "short",
+    "t": 1767245760000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.0014,
+    "exit": 1.0011,
+    "exit_i": 414790,
+    "hold_min": 1174,
+    "i": 413616,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02995806,
+    "side": "short",
+    "t": 1767245760000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0006,
+    "exit": 1.0004,
+    "exit_i": 417486,
+    "hold_min": 1133,
+    "i": 416353,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": -0.01998801,
+    "side": "long",
+    "t": 1767409980000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.0003,
+    "exit": 1.0004,
+    "exit_i": 417486,
+    "hold_min": 1133,
+    "i": 416353,
+    "kind": "maker",
+    "notional_usd": 8.0016,
+    "pnl": 0.00079992,
+    "side": "long",
+    "t": 1767409980000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0007,
+    "exit": 1.0004,
+    "exit_i": 420562,
+    "hold_min": 858,
+    "i": 419704,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02997901,
+    "side": "short",
+    "t": 1767611040000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.001,
+    "exit": 1.0004,
+    "exit_i": 420562,
+    "hold_min": 763,
+    "i": 419799,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.05994006,
+    "side": "short",
+    "t": 1767616740000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0001,
+    "exit": 1.0004,
+    "exit_i": 421045,
+    "hold_min": 483,
+    "i": 420562,
+    "kind": "maker",
+    "notional_usd": 9.0,
+    "pnl": 0.00269973,
+    "side": "long",
+    "t": 1767662520000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0006,
+    "exit": 1.00115006,
+    "exit_i": 423834,
+    "hold_min": 1461,
+    "i": 422373,
+    "kind": "stop",
+    "notional_usd": 8.0056,
+    "pnl": -0.00440088,
+    "side": "short",
+    "t": 1767771180000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0009,
+    "exit": 1.001,
+    "exit_i": 424762,
+    "hold_min": 920,
+    "i": 423842,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": -0.00999101,
+    "side": "short",
+    "t": 1767859320000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.0013,
+    "exit": 1.001,
+    "exit_i": 424762,
+    "hold_min": 448,
+    "i": 424314,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.02996105,
+    "side": "short",
+    "t": 1767887640000,
+    "win": "OOS1"
+   },
+   {
+    "d": 10,
+    "entry": 1.0018,
+    "exit": 1.001,
+    "exit_i": 424762,
+    "hold_min": 448,
+    "i": 424314,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.07985626,
+    "side": "short",
+    "t": 1767887640000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0013,
+    "exit": 1.0011,
+    "exit_i": 426181,
+    "hold_min": 1071,
+    "i": 425110,
+    "kind": "maker",
+    "notional_usd": 27.0378,
+    "pnl": 0.00540054,
+    "side": "short",
+    "t": 1767935400000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.0016,
+    "exit": 1.0011,
+    "exit_i": 426181,
+    "hold_min": 1019,
+    "i": 425162,
+    "kind": "maker",
+    "notional_usd": 100.0,
+    "pnl": 0.04992013,
+    "side": "short",
+    "t": 1767938520000,
+    "win": "OOS1"
+   },
+   {
+    "d": 2,
+    "entry": 1.0008,
+    "exit": 1.00024998,
+    "exit_i": 432988,
+    "hold_min": 1440,
+    "i": 431548,
+    "kind": "stop",
+    "notional_usd": 42.0294,
+    "pnl": -0.02309832,
+    "side": "long",
+    "t": 1768321680000,
+    "win": "OOS1"
+   },
+   {
+    "d": 5,
+    "entry": 1.0005,
+    "exit": 1.0003,
+    "exit_i": 433118,
+    "hold_min": 1184,
+    "i": 431934,
+    "kind": "maker",
+    "notional_usd": 93.0372,
+    "pnl": -0.01859814,
+    "side": "long",
+    "t": 1768344840000,
+    "win": "OOS1"
+   }
+  ]
+ },
+ "test": "ZF"
+}

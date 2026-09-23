@@ -1,0 +1,184 @@
+{
+ "SOLFDUSD": {
+  "traded_minutes": 74244,
+  "minutes_below": {
+   "0.005": 2,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 241017,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "worst": -0.0072
+ },
+ "XRPFDUSD": {
+  "traded_minutes": 54815,
+  "minutes_below": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "worst": -0.0021
+ },
+ "DOGEFDUSD": {
+  "traded_minutes": 57899,
+  "minutes_below": {
+   "0.005": 1,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 517747,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "worst": -0.0063
+ },
+ "BNBFDUSD": {
+  "traded_minutes": 52981,
+  "minutes_below": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "worst": -0.003
+ },
+ "SOLEUR": {
+  "traded_minutes": 75159,
+  "minutes_below": {
+   "0.005": 6,
+   "0.01": 3,
+   "0.02": 0
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 680933,
+   "0.01": 329631,
+   "0.02": 0
+  },
+  "worst": -0.0181
+ },
+ "XRPEUR": {
+  "traded_minutes": 62935,
+  "minutes_below": {
+   "0.005": 9,
+   "0.01": 4,
+   "0.02": 1
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 739180,
+   "0.01": 237084,
+   "0.02": 84149
+  },
+  "worst": -0.0249
+ },
+ "ADAEUR": {
+  "traded_minutes": 45362,
+  "minutes_below": {
+   "0.005": 6,
+   "0.01": 1,
+   "0.02": 0
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 89605,
+   "0.01": 11892,
+   "0.02": 0
+  },
+  "worst": -0.0172
+ },
+ "DOGEEUR": {
+  "traded_minutes": 47820,
+  "minutes_below": {
+   "0.005": 4,
+   "0.01": 1,
+   "0.02": 0
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 96389,
+   "0.01": 21073,
+   "0.02": 0
+  },
+  "worst": -0.0181
+ },
+ "NEARUSDC": {
+  "traded_minutes": 78985,
+  "minutes_below": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "worst": -0.0048
+ },
+ "SOLUSDC": {
+  "traded_minutes": 88786,
+  "minutes_below": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "worst": -0.0015
+ },
+ "DOGEU": {
+  "traded_minutes": 20994,
+  "minutes_below": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "worst": -0.0019
+ },
+ "XRPU": {
+  "traded_minutes": 53791,
+  "minutes_below": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "worst": -0.0035
+ },
+ "ETHU": {
+  "traded_minutes": 84864,
+  "minutes_below": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "thin_quote_volume_in_them": {
+   "0.005": 0,
+   "0.01": 0,
+   "0.02": 0
+  },
+  "worst": -0.0021
+ }
+}

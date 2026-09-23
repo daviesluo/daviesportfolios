@@ -16,21 +16,35 @@ list stays the short version; the plan is the reasoning behind it.
 
 0000000. **DAVIES' REQUESTS OF 2026-09-23 ~15:20 UTC**, in order:
    1. **Can PR5 go live now, and are two Revolut X strategies ready?**
-      Answered: PR5 not yet. Its pass was earned in the wide market before
-      2026-08-24; since then 28 days at about $0.42 a day; whether a
-      post-only order at its prices is accepted is what the paper test
-      measures; and nothing can place its orders (the quote loop is
-      paper). **An independent audit of both candidates (`trend-4h-live`
-      and PR5) is RUNNING** in a background agent (scratch folder
-      `audit_golive`, lost with the container: re-launch it if so). Its
-      claims are re-computed here before any is believed; then go-live is
-      PREPARED only (the go-live SQL dry-run in a rolled-back transaction,
-      a read-only probe, PR5's live-path design). Going live is Davies'
-      explicit go, and the first live order needs his confirmation in the
-      same conversation.
-   2. **A third, independent first-principles search, Binance first:
-      RUNNING** (scratch folder `research_fp3`). Binance has no strategy of
-      its own; its paper rows copy Revolut X's decisions for the page.
+      Answered: PR5 not yet (no live execution path, a record minutes old,
+      $0.42 a day since the books tightened). **The independent audit is
+      DONE** (`reviews/2026-09-23-golive-audit.md`, patches beside it):
+      `trend-4h-live` is the one candidate and is **not ready as the code
+      stands** — D1 a Kraken fee-refresh timeout crashes the whole tick
+      (re-computed here: the unguarded await, and `agents.crash` rows
+      "Signal timed out." in production), D2 an IOC priced at a 3–7 s old
+      touch dies unfilled 25–53 % of the time and a dead rule exit waits
+      4 h, D3 a 5xx is booked `rejected` though the venue may have filled
+      it, D4 a buy fee taken in the coin leaves a phantom position. **Next,
+      in order:** re-compute D2–D4 here, land P1–P4 (each with the failing
+      test the audit wrote), then P7 in `go_live.sql.draft`: two-step arming,
+      `live_confirmed_at` null and a $30 first-trip cap, armed in the
+      conversation on Davies' word; a person checks the first fill's
+      read-back (field names, fee currency, balance equal to the book)
+      before the cap rises. Going live stays Davies' explicit go, and the
+      first live order needs his confirmation in the same conversation.
+   2. **A third, independent first-principles search, Binance first: DONE**
+      (reference §3.29, review `reviews/2026-09-23-fp3-study.md`, three
+      frozen pre-registrations, re-run here byte for byte). One pass, and it
+      is worth about cash: resting bids for Binance's liquidation cascades
+      made +$488.99 out of sample (4.37 %/yr on $3,000), nearly all in
+      2023–24, and lost $108.98 since Binance began capping its own wicks.
+      The zero-fee stablecoin quotes and the delisting window fail. **Kept:**
+      since March 2026 Binance refuses any trade beyond ±15 % (majors) of
+      the 5-minute mean price (2 % on stablecoin books), so a Binance market
+      stop in a crash can come back EXPIRED. Binance still has no strategy
+      of its own worth money; if Davies wants one on the page, the cascade
+      bids are the only candidate with a pass, on paper.
 
 000000. **DAVIES' REQUESTS OF 2026-09-23 ~13:35 UTC**, in order:
    1. **PR3 on a longer, credible record: PASSED (PR5), and it runs on
@@ -508,6 +522,15 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 20:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The third search and the go-live audit are on record.** fp3: reference §3.29, the study,
+its three pre-registrations (committed verbatim, hashes as frozen), scripts with the research
+paths replaced by `FP_ROOT`, results; all three tests re-run here byte for byte (ZF
+`37ec1bdf…`, CB `103a3eae…`, DL `84883e09…`), DL again from the committed copy, and the
+price range rule read live from Binance's public endpoint. The go-live audit is committed as a
+review with its patches, applied to nothing; D1 is re-computed, D2–D4 are next (item 0000000).
 
 ### [2026-09-23 15:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

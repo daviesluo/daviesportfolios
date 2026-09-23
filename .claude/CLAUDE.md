@@ -393,7 +393,12 @@ that follow from that evidence, in short:
   reversal and low volatility over the same list (§3.25) — failed its
   pre-registered bar, and a search from first principles (§3.26: 31 ideas,
   four pre-registered tests) found nothing worth money either, nor did a
-  second, independent one (§3.28: 20 ideas, three tests, all lose). The
+  second, independent one (§3.28: 20 ideas, three tests, all lose), nor a
+  third, Binance first (§3.29: one pass, bids for liquidation cascades,
+  worth about cash and losing since Binance began capping wicks). **Since
+  March 2026 Binance refuses any trade beyond `referencePrice × (1 ± R)`**
+  (the 5-minute mean; R 15 % on the majors, 2 % on stablecoin books), so
+  a market stop in a crash can come back EXPIRED. The
   first search's one small edge, 0 % quotes either side of interbank on
   Revolut X's USDC/GBP and USDT/GBP books, passed a longer test (§3.27)
   and runs on paper (§4 item 31). So what

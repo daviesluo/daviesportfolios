@@ -1,0 +1,26 @@
+{
+ "SOLUSDT 2024-08": {
+  "candidate_fill_minutes": 0,
+  "trips_in_run": 0,
+  "candidates_on_unscreened_days": 0,
+  "trips_not_candidates": 0
+ },
+ "DOGEUSDT 2024-03": {
+  "candidate_fill_minutes": 8,
+  "trips_in_run": 4,
+  "candidates_on_unscreened_days": 0,
+  "trips_not_candidates": 0
+ },
+ "PEPEUSDT 2024-03": {
+  "candidate_fill_minutes": 14,
+  "trips_in_run": 8,
+  "candidates_on_unscreened_days": 0,
+  "trips_not_candidates": 0
+ },
+ "BANKUSDT 2026-07": {
+  "candidate_fill_minutes": 39,
+  "trips_in_run": 5,
+  "candidates_on_unscreened_days": 0,
+  "trips_not_candidates": 0
+ }
+}

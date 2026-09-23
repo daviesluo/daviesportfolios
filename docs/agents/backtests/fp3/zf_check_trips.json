@@ -1,0 +1,502 @@
+[
+ {
+  "book": "UUSDT",
+  "t": "2026-01-14T17:02:00",
+  "side": "long",
+  "d": 2,
+  "entry": 0.9998,
+  "exit": 1.0,
+  "kind": "maker",
+  "pnl": 0.020004,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.0,
+  "entry_levels": [
+   [
+    0.9997,
+    110.9667
+   ],
+   [
+    0.9998,
+    45762.8456
+   ]
+  ]
+ },
+ {
+  "book": "UUSDT",
+  "t": "2026-01-16T20:13:00",
+  "side": "short",
+  "d": 2,
+  "entry": 1.0002,
+  "exit": 1.0,
+  "kind": "maker",
+  "pnl": 0.00140014,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.0,
+  "entry_levels": [
+   [
+    1.0001,
+    7834.7834
+   ],
+   [
+    1.0002,
+    5792.1582
+   ],
+   [
+    1.0003,
+    7.0021
+   ]
+  ]
+ },
+ {
+  "book": "UUSDT",
+  "t": "2026-01-17T05:59:00",
+  "side": "short",
+  "d": 2,
+  "entry": 1.0002,
+  "exit": 1.0,
+  "kind": "maker",
+  "pnl": 0.019996,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.0,
+  "entry_levels": [
+   [
+    1.0002,
+    30363.0714
+   ],
+   [
+    1.0003,
+    19884.9637
+   ]
+  ]
+ },
+ {
+  "book": "UUSDT",
+  "t": "2026-01-17T06:54:00",
+  "side": "short",
+  "d": 2,
+  "entry": 1.0002,
+  "exit": 1.0,
+  "kind": "maker",
+  "pnl": 0.019996,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.0,
+  "entry_levels": [
+   [
+    1.0001,
+    21454.1452
+   ],
+   [
+    1.0002,
+    7.0014
+   ],
+   [
+    1.0003,
+    28475.5401
+   ]
+  ]
+ },
+ {
+  "book": "UUSDT",
+  "t": "2026-01-22T03:32:00",
+  "side": "short",
+  "d": 2,
+  "entry": 1.0001,
+  "exit": 1.0,
+  "kind": "maker",
+  "pnl": 0.00560061,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 0.9999,
+  "entry_levels": [
+   [
+    1.0002,
+    51.0102
+   ],
+   [
+    1.0003,
+    5.0015
+   ]
+  ]
+ },
+ {
+  "book": "XUSDUSDT",
+  "t": "2026-01-01T05:36:00",
+  "side": "short",
+  "d": 2,
+  "entry": 1.0011,
+  "exit": 1.0011,
+  "kind": "maker",
+  "pnl": 0.0,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.0008,
+  "entry_levels": [
+   [
+    1.0009,
+    13.0117
+   ],
+   [
+    1.001,
+    241839.598
+   ],
+   [
+    1.0012,
+    109.1308
+   ],
+   [
+    1.0014,
+    1502100.0
+   ]
+  ]
+ },
+ {
+  "book": "XUSDUSDT",
+  "t": "2026-01-01T05:36:00",
+  "side": "short",
+  "d": 5,
+  "entry": 1.0014,
+  "exit": 1.0011,
+  "kind": "maker",
+  "pnl": 0.02995806,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.0008,
+  "entry_levels": [
+   [
+    1.0009,
+    13.0117
+   ],
+   [
+    1.001,
+    241839.598
+   ],
+   [
+    1.0012,
+    109.1308
+   ],
+   [
+    1.0014,
+    1502100.0
+   ]
+  ]
+ },
+ {
+  "book": "XUSDUSDT",
+  "t": "2026-01-03T03:13:00",
+  "side": "long",
+  "d": 2,
+  "entry": 1.0006,
+  "exit": 1.0004,
+  "kind": "maker",
+  "pnl": -0.01998801,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.0009,
+  "entry_levels": [
+   [
+    1.0002,
+    8.0016
+   ],
+   [
+    1.0003,
+    6.0018
+   ],
+   [
+    1.0004,
+    125.05
+   ],
+   [
+    1.0005,
+    1405.7025
+   ]
+  ]
+ },
+ {
+  "book": "XUSDUSDT",
+  "t": "2026-01-03T03:13:00",
+  "side": "long",
+  "d": 5,
+  "entry": 1.0003,
+  "exit": 1.0004,
+  "kind": "maker",
+  "pnl": 0.00079992,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.0009,
+  "entry_levels": [
+   [
+    1.0002,
+    8.0016
+   ],
+   [
+    1.0003,
+    6.0018
+   ],
+   [
+    1.0004,
+    125.05
+   ],
+   [
+    1.0005,
+    1405.7025
+   ]
+  ]
+ },
+ {
+  "book": "XUSDUSDT",
+  "t": "2026-01-05T11:04:00",
+  "side": "short",
+  "d": 2,
+  "entry": 1.0007,
+  "exit": 1.0004,
+  "kind": "maker",
+  "pnl": 0.02997901,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.0004,
+  "entry_levels": [
+   [
+    1.0005,
+    42520.2495
+   ],
+   [
+    1.0006,
+    1510882.9862
+   ],
+   [
+    1.0007,
+    1502185.7945
+   ],
+   [
+    1.0008,
+    147.1176
+   ]
+  ]
+ },
+ {
+  "book": "EURIUSDT",
+  "t": "2026-01-01T00:06:00",
+  "side": "short",
+  "d": 2,
+  "entry": 1.1786,
+  "exit": 1.179,
+  "kind": "maker",
+  "pnl": -0.03393857,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": null,
+  "entry_levels": [
+   [
+    1.1787,
+    746.35284
+   ]
+  ]
+ },
+ {
+  "book": "EURIUSDT",
+  "t": "2026-01-01T00:48:00",
+  "side": "long",
+  "d": 2,
+  "entry": 1.1784,
+  "exit": 1.179,
+  "kind": "maker",
+  "pnl": 0.00425964,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": null,
+  "entry_levels": [
+   [
+    1.1783,
+    8.36593
+   ],
+   [
+    1.1784,
+    177.3492
+   ],
+   [
+    1.1785,
+    14.49555
+   ]
+  ]
+ },
+ {
+  "book": "EURIUSDT",
+  "t": "2026-01-01T01:43:00",
+  "side": "long",
+  "d": 2,
+  "entry": 1.1788,
+  "exit": 1.1788,
+  "kind": "maker",
+  "pnl": 0.0,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": null,
+  "entry_levels": [
+   [
+    1.1787,
+    8.01516
+   ],
+   [
+    1.179,
+    7.4277
+   ]
+  ]
+ },
+ {
+  "book": "EURIUSDT",
+  "t": "2026-01-01T02:28:00",
+  "side": "long",
+  "d": 2,
+  "entry": 1.1787,
+  "exit": 1.1784,
+  "kind": "maker",
+  "pnl": -0.00386967,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": null,
+  "entry_levels": [
+   [
+    1.1786,
+    15.20394
+   ],
+   [
+    1.1788,
+    17.32836
+   ]
+  ]
+ },
+ {
+  "book": "EURIUSDT",
+  "t": "2026-01-01T04:46:00",
+  "side": "long",
+  "d": 2,
+  "entry": 1.1783,
+  "exit": 1.1775,
+  "kind": "maker",
+  "pnl": -0.01199898,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": null,
+  "entry_levels": [
+   [
+    1.1782,
+    17.673
+   ]
+  ]
+ },
+ {
+  "book": "RLUSDUSDT",
+  "t": "2026-01-23T08:11:00",
+  "side": "short",
+  "d": 2,
+  "entry": 1.0011,
+  "exit": 1.0009,
+  "kind": "maker",
+  "pnl": 0.01997802,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.0007,
+  "entry_levels": [
+   [
+    1.001,
+    9.009
+   ],
+   [
+    1.0011,
+    47.0517
+   ],
+   [
+    1.0012,
+    352.4224
+   ]
+  ]
+ },
+ {
+  "book": "RLUSDUSDT",
+  "t": "2026-01-24T09:42:00",
+  "side": "short",
+  "d": 2,
+  "entry": 1.0013,
+  "exit": 1.0013,
+  "kind": "maker",
+  "pnl": 0.0,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.001,
+  "entry_levels": [
+   [
+    1.0014,
+    23.0322
+   ]
+  ]
+ },
+ {
+  "book": "RLUSDUSDT",
+  "t": "2026-01-25T17:07:00",
+  "side": "long",
+  "d": 2,
+  "entry": 1.0011,
+  "exit": 1.00054997,
+  "kind": "stop",
+  "pnl": -0.05494256,
+  "entry_print_through": true,
+  "exit_print_through": null,
+  "recomputed_fair": 1.0014,
+  "entry_levels": [
+   [
+    1.001,
+    11378.367
+   ],
+   [
+    1.0011,
+    5569.1193
+   ]
+  ]
+ },
+ {
+  "book": "RLUSDUSDT",
+  "t": "2026-01-27T09:16:00",
+  "side": "short",
+  "d": 2,
+  "entry": 1.001,
+  "exit": 1.0009,
+  "kind": "maker",
+  "pnl": 0.00090009,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.0007,
+  "entry_levels": [
+   [
+    1.0011,
+    9.0099
+   ]
+  ]
+ },
+ {
+  "book": "RLUSDUSDT",
+  "t": "2026-01-29T20:37:00",
+  "side": "short",
+  "d": 2,
+  "entry": 1.0016,
+  "exit": 1.0013,
+  "kind": "maker",
+  "pnl": 0.00210021,
+  "entry_print_through": true,
+  "exit_print_through": true,
+  "recomputed_fair": 1.0013,
+  "entry_levels": [
+   [
+    1.0016,
+    6.0096
+   ],
+   [
+    1.0017,
+    7.0119
+   ]
+  ]
+ }
+]
