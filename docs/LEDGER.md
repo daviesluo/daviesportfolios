@@ -29,14 +29,22 @@ list stays the short version; the plan is the reasoning behind it.
       FIXED** (P1: the fee refresh is caught, noted and retried in five
       minutes; `runtick.test.ts` failed on the old code with production's
       "Signal timed out." and passes now), and an `agents.crash` row now
-      carries the action and the top of the stack (`crashReport`). **Next,
-      in order:** re-compute D2–D4 here, land P2–P4 (each with the failing
-      test the audit wrote), then P7 in `go_live.sql.draft`: two-step arming,
-      `live_confirmed_at` null and a $30 first-trip cap, armed in the
-      conversation on Davies' word; a person checks the first fill's
-      read-back (field names, fee currency, balance equal to the book)
-      before the cap rises. Going live stays Davies' explicit go, and the
-      first live order needs his confirmation in the same conversation.
+      carries the action and the top of the stack (`crashReport`). Deployed
+      20:12 UTC (the first deploy died on ghcr.io's rate limit; one re-run);
+      production had 8 such crashes in the 24 h before it. **D2–D6
+      reproduce on `main`** (the audit's five failing-behaviour tests all
+      pass on today's code). **P7 is in the draft**: the go-live migration
+      now creates the row unarmed with a $30 cap; `live_confirmed_at` is
+      set in the conversation on Davies' word, and the cap goes to $150
+      after the first round trip settles. **Next, in order:** P2 (re-read
+      the touch before a live marketable order, retry a dead IOC, trail
+      from the fill's bar, cooldown in bars) and P3/P4 — but **P3 as
+      written would not settle**: Revolut X documents `average_fill_price`,
+      `total_fee` and `fee_currency` only on `GET /orders/{id}`, not on the
+      `/orders/historical` list its `findOrder` reads, so a match must be
+      followed by `getOrder` before it settles. Each lands with the audit's
+      failing test turned around. Going live stays Davies' explicit go, and
+      the first live order needs his confirmation in the same conversation.
    2. **A third, independent first-principles search, Binance first: DONE**
       (reference §3.29, review `reviews/2026-09-23-fp3-study.md`, three
       frozen pre-registrations, re-run here byte for byte). One pass, and it
@@ -526,6 +534,14 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 20:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The go-live draft no longer arms itself** (audit P7): moving it into
+`supabase/migrations/` creates `trend-4h-live` with entries refused and a $30 cap; the
+confirmation is one statement in the conversation where Davies says go. CLAUDE.md and
+`go-live.md` say so. The D1 fix is live (deploy re-run after a ghcr.io rate limit), and D2–D6
+reproduce on `main`; P3 needs a `getOrder` after its history lookup before it can settle.
 
 ### [2026-09-23 20:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -263,7 +263,11 @@ that follow from that evidence, in short:
   `global_pause` is the one switch that outranks an exit. The go-live
   migration is drafted at `docs/agents/go_live.sql.draft` (unnumbered: it takes the next free number when it moves) — a NEW
   row `trend-4h-live`, with `trend-4h` kept paper as its same-venue
-  control — and moving it into `supabase/migrations/` IS going live.
+  control. Moving it into `supabase/migrations/` creates that row
+  unarmed, with a $30 cap (go-live audit P7): arming
+  (`live_confirmed_at`) is one statement run in the conversation where
+  Davies says go, and the cap rises to $150 only after the first round
+  trip settles cleanly.
 - **Jev gates entries with the v2 question at 0.45 (since 2026-09-23,
   §4.21, migration `0047`).** The v1 question listed an "established
   uptrend" checklist (trend_strength moderate/strong, momentum_30d

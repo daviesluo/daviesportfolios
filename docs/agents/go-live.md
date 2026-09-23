@@ -58,7 +58,10 @@ stop, cap and claim is the same code either way. It needs three
 switches at once — `agent_strategies.mode = 'live'`,
 `agent_risk.live_confirmed_at` set, and the risk gate's allowance — plus
 credentials for that venue, and the first live order additionally needs
-Davies' word in the conversation.
+Davies' word in the conversation: the go-live migration leaves
+`live_confirmed_at` null with a $30 cap, the confirmation is set in that
+conversation, and the cap goes to $150 only after the first round trip
+has settled (go-live audit, P7).
 
 ## 2. How one trade happens, end to end
 
