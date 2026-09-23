@@ -74,7 +74,8 @@ describe('fetchAgentsDashboard', () => {
   it('sends the app token and surfaces the server message on failure', async () => {
     sessionStorage.setItem('dp.token', 'tok.sig');
     const fetchImpl = vi.fn(async (url, init) => {
-      expect(String(url)).toMatch(/\/functions\/v1\/agents\?action=dashboard$/);
+      // Pinned to London: the dashboard reads the Binance account, and Binance refuses a US region (451).
+      expect(String(url)).toMatch(/\/functions\/v1\/agents\?action=dashboard&forceFunctionRegion=eu-west-2$/);
       expect(init.headers['X-App-Token']).toBe('tok.sig');
       return new Response(JSON.stringify({ at: 'x', strategies: [] }), { status: 200 });
     });
@@ -87,11 +88,11 @@ describe('fetchAgentsDashboard', () => {
 describe('venueRows / untilText', () => {
   it('splits the book by venue and takes the share of deployed value, or of capital while nothing is deployed', () => {
     const dash = {
-      byVenue: { revx: { valueUsd: 30, capitalUsd: 140, realisedUsd: 1, strategies: 4, live: 0 }, kraken: { valueUsd: 10, capitalUsd: 140, realisedUsd: -2, strategies: 3, live: 1 } },
-      venues: [{ id: 'revx', canTrade: true, balances: { USD: 100 }, feeBps: { maker: 0, taker: 9 } }, { id: 'kraken', canTrade: true, balances: { USD: 0, GBP: 75 }, feeBps: { maker: 40, taker: 80 } }],
+      byVenue: { revx: { valueUsd: 30, capitalUsd: 140, realisedUsd: 1, strategies: 4, live: 0 }, binance: { valueUsd: 10, capitalUsd: 140, realisedUsd: -2, strategies: 3, live: 1 }, kraken: { valueUsd: 99, capitalUsd: 99 } },
+      venues: [{ id: 'revx', canTrade: true, balances: { USD: 100 }, feeBps: { maker: 0, taker: 9 } }, { id: 'binance', canTrade: true, balances: { USD: 0, USDT: 75 }, feeBps: { maker: 10, taker: 10 } }],
     };
     const rows = venueRows(dash);
-    expect(rows.map((r) => r.label)).toEqual(['Revolut X', 'Kraken']);
+    expect(rows.map((r) => r.label)).toEqual(['Revolut X', 'Binance']);   // Kraken is the signal venue: never a card, even with a book
     expect(rows[0]).toMatchObject({ valueUsd: 30, balanceUsd: 100, share: 0.75, shareOf: 'value', live: 0 });
     // The card's percentages sit on the scoreboard's bases: unrealised on cost, realised and today on the venue's capital.
     const based = venueRows({ byVenue: { revx: { valueUsd: 30, costUsd: 20, capitalUsd: 140, unrealisedUsd: 1, realisedUsd: 7, todayUsd: -1.4 } }, venues: [] })[0];
@@ -100,7 +101,7 @@ describe('venueRows / untilText', () => {
     expect(based.todayPct).toBeCloseTo(-1, 6);
     expect(venueRows({ byVenue: {}, venues: [] })[0].unrealisedPct).toBeNull();
     expect(rows[1]).toMatchObject({ valueUsd: 10, balanceUsd: 0, share: 0.25, live: 1 });
-    const idle = venueRows({ byVenue: { revx: { valueUsd: 0, capitalUsd: 60 }, kraken: { valueUsd: 0, capitalUsd: 140 } }, venues: [] });
+    const idle = venueRows({ byVenue: { revx: { valueUsd: 0, capitalUsd: 60 }, binance: { valueUsd: 0, capitalUsd: 140 } }, venues: [] });
     expect(idle.map((r) => [r.share, r.shareOf])).toEqual([[0.3, 'capital'], [0.7, 'capital']]);
     expect(venueRows(null).map((r) => r.share)).toEqual([0, 0]);
   });
@@ -402,8 +403,9 @@ describe('symbolOrderRows / fetchAgentsChart', () => {
     const bad = vi.fn(async () => new Response('{"error":"unknown strategy"}', { status: 500 }));
     await expect(fetchAgentsChart('nope', 'BTC/USD', bad)).rejects.toThrow(/500 .*unknown strategy/);
   });
-  it('the two venue hues are the ones the badges wear', () => {
-    expect([venueHue('revx'), venueHue('kraken')]).toEqual(['#8ec5ff', '#c4b5fd']);
+  it('the two venue hues are the ones the badges wear, and Kraken, off the page, has none', () => {
+    expect([venueHue('revx'), venueHue('binance')]).toEqual(['#8ec5ff', '#f0b90b']);
+    expect(venueHue('kraken')).toBe('rgba(244,239,227,0.6)');
     expect(venueHue('other')).toBe('rgba(244,239,227,0.6)');
   });
 });
@@ -433,14 +435,14 @@ describe('agentsErrorView / parseAgentsErrorBody / shortErrorMessage', () => {
 });
 
 describe('agentsAlerts', () => {
-  const venues = [{ id: 'revx', canTrade: true, note: null }, { id: 'kraken', canTrade: true, note: null }];
+  const venues = [{ id: 'revx', canTrade: true, note: null }, { id: 'binance', canTrade: true, note: null }];
   it('is silent when nothing blocks trading', () => {
     expect(agentsAlerts({ risk: { global_pause: false }, venues, strategies: [] })).toEqual([]);
   });
   it('raises the global pause and a venue fault as banners with a tone and a label', () => {
-    const out = agentsAlerts({ risk: { global_pause: true }, venues: [venues[0], { id: 'kraken', canTrade: true, note: 'balances: 403' }], strategies: [] });
-    expect(out.map((a) => [a.id, a.tone])).toEqual([['global-pause', 'stop'], ['venue-kraken', 'fault']]);
-    expect(out[1].text).toContain('403');
+    const out = agentsAlerts({ risk: { global_pause: true }, venues: [venues[0], { id: 'binance', canTrade: false, note: 'account 451: restricted location' }], strategies: [] });
+    expect(out.map((a) => [a.id, a.tone, a.label])).toEqual([['global-pause', 'stop', 'Global pause'], ['venue-binance', 'fault', 'Binance fault']]);
+    expect(out[1].text).toContain('451');
   });
   it('flags a venue without a key only when a LIVE strategy trades there — paper needs no key', () => {
     const noKey = [{ id: 'revx', canTrade: false, note: null }];
@@ -555,10 +557,10 @@ describe('positionLines', () => {
 
 describe('shareSegments', () => {
   it('labels a segment with the venue and its share, a sliver with nothing, and keeps what the share is of in the title', () => {
-    const rows = /** @type {any} */ ([{ id: 'kraken', label: 'Kraken', share: 0.8, shareOf: 'value' }, { id: 'revx', label: 'Revolut X', share: 0.2, shareOf: 'value' }]);
+    const rows = /** @type {any} */ ([{ id: 'binance', label: 'Binance', share: 0.8, shareOf: 'value' }, { id: 'revx', label: 'Revolut X', share: 0.2, shareOf: 'value' }]);
     const seg = shareSegments(rows);
-    expect(seg[0].text).toBe('Kraken 80%');
-    expect(seg[0].title).toBe('Kraken: 80% of deployed value');
+    expect(seg[0].text).toBe('Binance 80%');
+    expect(seg[0].title).toBe('Binance: 80% of deployed value');
     expect(seg[1].text).toBe('Revolut X 20%');
     expect(seg[0].widthPct).toBe(80);
     expect(shareSegments(/** @type {any} */ ([{ id: 'x', label: 'X', share: 0.05, shareOf: 'value' }]))[0].text).toBe('');
@@ -581,6 +583,11 @@ describe('balanceLines', () => {
     expect(lines.map((l) => l.text)).toEqual(['£75.00 GBP', '0.000250 BTC']);
     expect(balanceLines({ USD: 100, GBP: 75 }).map((l) => l.code)).toEqual(['USD', 'GBP']);
     expect(balanceLines(null)).toEqual([]);
+  });
+  it('reads a stablecoin as money — cents, with the money — and a coin to its own decimals', () => {
+    // What a Binance account holds: USDT is dollars in all but name, and read to six decimals it looked like a coin.
+    expect(balanceLines({ BNB: 0.012, USDT: 50, BTC: 1.5 }).map((l) => l.text)).toEqual(['50.00 USDT', '0.012000 BNB', '1.5000 BTC']);
+    expect(balanceLines({ USDC: 0.004, USDT: 0.006 }).map((l) => l.text)).toEqual(['0.01 USDT']);   // under half a cent is not a balance
   });
 });
 

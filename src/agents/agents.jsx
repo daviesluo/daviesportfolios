@@ -528,7 +528,8 @@ function SymbolChart({ s, symbol, onSelect, m, nowMs, at, more }) {
     return () => { alive = false; };
   }, [s.id, symbol, at]);
 
-  const hue = venueHue(chart?.signalVenue ?? s.signalVenue ?? s.venue);
+  // The row's own venue, like its badge: the candles are Kraken's, but Kraken is not a venue on the page any more.
+  const hue = venueHue(chart?.venue ?? s.venue);
   return (
     <section className="ag-section ag-chart-card">
       <div className="ag-section-title mono">PRICE &amp; FILLS</div>

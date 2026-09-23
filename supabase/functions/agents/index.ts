@@ -65,7 +65,7 @@ import {
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { JEV_QUESTION_VERSION, JEV_QUESTION_VERSIONS, jevQuestions, positionFromFills, unrealisedUsd, type CategoricalState, type JevQuestionVersion, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
-import { binanceProbe } from "./binance.ts";
+import { binanceAccount, binanceProbe } from "./binance.ts";
 import { makeDb, type Db } from "./db.ts";
 import { deribitProbe } from "./deribit.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
@@ -185,6 +185,36 @@ async function loadVenues(): Promise<{ venues: Record<VenueId, Venue>; notes: Re
     notes: { revx: "error" in rx ? rx.error : null, kraken: "error" in kk ? kk.error : null },
   };
 }
+
+/**
+ * The Binance account, read-only, for the page's VENUES card. Binance executes nothing here; the card says what the
+ * account holds and pays, the way Revolut X's does. Kept a minute per isolate, so a page that refreshes does not sign a
+ * call every time, and cut off at 4 s, so a slow reply never holds the page. Binance refuses US addresses (451), so the
+ * page pins this call to London (`forceFunctionRegion`, agents.js); a refusal still only costs the card, as a note.
+ */
+export type BinanceCard = { canTrade: boolean; feeBps: { maker: number; taker: number } | null; balances: Record<string, number> | null; note: string | null };
+let binanceCache: { at: number; card: BinanceCard } | null = null;
+export const BINANCE_CARD_TTL_MS = 60e3;
+export async function binanceCard(now: number, read: (n: string) => string | undefined = (n) => Deno.env.get(n), fetchImpl?: typeof fetch): Promise<BinanceCard> {
+  if (binanceCache && now - binanceCache.at < BINANCE_CARD_TTL_MS) return binanceCache.card;
+  const apiKey = envAny(["Binance_API_KEY", "BINANCE_API_KEY"], read);
+  const secret = envAny(["Binance_SECRET_KEY", "BINANCE_SECRET_KEY", "BINANCE_API_SECRET"], read);
+  let card: BinanceCard;
+  if (!apiKey || !secret) card = { canTrade: false, feeBps: null, balances: null, note: null };   // no key: the card says so, as Revolut X's would
+  else {
+    const r = await binanceAccount({ apiKey, secret, timeoutMs: 4000, fetchImpl });
+    // `canTrade` on the card means what it means for the other venues — this deployment holds a working key — so the
+    // balances show. Whether the key may place orders is Binance's own flag, and nothing here places any.
+    card = r.ok ? { canTrade: true, feeBps: r.view.feeBps, balances: r.view.balances, note: null } : { canTrade: false, feeBps: null, balances: null, note: r.error };
+  }
+  binanceCache = { at: now, card };
+  return card;
+}
+/** For the tests: forget the cached card. */
+export function resetBinanceCard() { binanceCache = null; }
+
+/** The venues the page's VENUES section shows, in order: where the loop executes, and the account it may use next. */
+export const PAGE_VENUES = ["revx", "binance"] as const;
 
 function db(): Db {
   return makeDb(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
@@ -390,7 +420,7 @@ async function dashboard(now: number) {
   const d = db();
   const dayStart = new Date(Math.floor(now / ONE_D) * ONE_D).toISOString();
   const since24h = new Date(now - ONE_D).toISOString();
-  const [strategies, riskRows, filled, open, today, probeRows, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }] = await Promise.all([
+  const [strategies, riskRows, filled, open, today, probeRows, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }, binance] = await Promise.all([
     // Retired rows are read too and filtered below: one that is FLAT leaves the page (`0038`), one
     // that still holds something stays on it, marked `windingDown`. `0043` retired three rows that
     // were still long, and a position nobody can see is a position nobody will notice is stuck.
@@ -408,6 +438,7 @@ async function dashboard(now: number) {
     d.select<{ id: string; strategy_id: string; ran_at: string; method: string; summary: unknown }>("agent_backtests", "select=id,strategy_id,ran_at,method,summary&order=ran_at.desc"),
     d.select<{ ts: string; symbol: string; basis_bps: number; revx_bid: number; revx_ask: number; kraken_bid: number; kraken_ask: number }>("agent_basis", `ts=gte.${since24h}&select=ts,symbol,basis_bps,revx_bid,revx_ask,kraken_bid,kraken_ask&order=ts.desc&limit=2000`),
     loadVenues(),
+    binanceCard(now).catch((e): BinanceCard => ({ canTrade: false, feeBps: null, balances: null, note: `account: ${e instanceof Error ? e.message : String(e)}` })),
   ]);
   // Today's opening price per VENUE and symbol, from the cached daily candles: each strategy is marked from its own signal
   // venue's day open, exactly as the tick's loss breaker marks it, so the page's "today" and the loop's are one figure.
@@ -437,8 +468,10 @@ async function dashboard(now: number) {
       marks[vid] = Object.fromEntries(Object.entries(q).map(([s, x]) => [s, (x.bid + x.ask) / 2]));
     } catch (e) { venueErrors[vid] = `quotes: ${e instanceof Error ? e.message : String(e)}`; marks[vid] = {}; }
   }
+  // Balances for the venues the page shows that the loop trades on. Kraken is the signal venue only since `0046`: its
+  // candles are read, its account is not shown, so its balances are no longer fetched for the page.
   const balancesByVenue: Record<string, Record<string, number> | null> = {};
-  for (const vid of ["revx", "kraken"] as VenueId[]) {
+  for (const vid of ["revx"] as VenueId[]) {
     try { balancesByVenue[vid] = venues[vid].canTrade ? await venues[vid].balances() : null; }
     catch (e) { balancesByVenue[vid] = null; venueErrors[vid] = `balances: ${e instanceof Error ? e.message : String(e)}`; }
   }
@@ -513,9 +546,9 @@ async function dashboard(now: number) {
     totals: { ...totals, byMode },
     byVenue,
     basis: basisBySymbol,
-    venues: (["revx", "kraken"] as VenueId[]).map((vid) => ({
-      id: vid, canTrade: venues[vid].canTrade, feeBps: venues[vid].feeBps, balances: balancesByVenue[vid], note: venueErrors[vid], marks: marks[vid] ?? {},
-    })),
+    venues: PAGE_VENUES.map((vid) => vid === "binance"
+      ? { id: vid, canTrade: binance.canTrade, feeBps: binance.feeBps, balances: binance.balances, note: binance.note, marks: {} }
+      : { id: vid, canTrade: venues[vid].canTrade, feeBps: venues[vid].feeBps, balances: balancesByVenue[vid], note: venueErrors[vid], marks: marks[vid] ?? {} }),
     strategies: out,
     openOrders: open,
     /** The adverse-selection notebook (`0042`, reference §3.13): is 0 % maker actually free here? */

@@ -4,14 +4,15 @@
 // `signature`; the key id goes in `X-MBX-APIKEY`. The documented example is pinned in binance.test.ts.
 //
 // The probe reports permissions, fee rates, symbol rules and WHICH assets hold a balance — never an amount, and never
-// a byte of either key.
+// a byte of either key. The page's VENUES card (`binanceAccount`) does show the amounts: it is behind the app's
+// password like every other balance on that page, and nothing it reads is ever written to the repository.
 
 export const BINANCE_BASE = "https://api.binance.com";
 
 /** Every path the probe may call. A test fails if the probe asks for anything else. */
 export const BINANCE_READ_PATHS = ["/api/v3/time", "/api/v3/account", "/sapi/v1/account/apiRestrictions", "/sapi/v1/asset/tradeFee", "/api/v3/exchangeInfo"] as const;
 
-export type BinanceEnv = { apiKey: string; secret: string; base?: string; fetchImpl?: typeof fetch; now?: () => number };
+export type BinanceEnv = { apiKey: string; secret: string; base?: string; fetchImpl?: typeof fetch; now?: () => number; timeoutMs?: number };
 type Reply = { ok: boolean; status: number; data?: any; error?: string };
 
 /** HMAC-SHA256 of the query string, hex: Binance's `signature`. */
@@ -32,7 +33,7 @@ async function call(env: BinanceEnv, path: string, params: Record<string, string
   try {
     const res = await (env.fetchImpl ?? fetch)(`${env.base ?? BINANCE_BASE}${path}${q ? `?${q}` : ""}`, {
       headers: signed ? { "X-MBX-APIKEY": env.apiKey } : {},
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(env.timeoutMs ?? 10_000),
     });
     const text = await res.text();
     let data: any = null;
@@ -86,4 +87,23 @@ export async function binanceProbe(env: BinanceEnv, symbols: string[]): Promise<
     out.symbols = { status: ex.status, error: ex.error };
   }
   return out;
+}
+
+/** The account as the VENUES card shows it: may the key trade, what the account pays, and what it holds. Pure. */
+export function binanceAccountView(data: any): { canTrade: boolean; feeBps: { maker: number; taker: number } | null; balances: Record<string, number> } {
+  // `commissionRates` are fractions as strings ("0.00100000" is 10 bps); a missing or unreadable one leaves the fee unknown.
+  const bps = (x: unknown) => (x == null || x === "" ? NaN : Math.round(Number(x) * 1e6) / 100);
+  const maker = bps(data?.commissionRates?.maker), taker = bps(data?.commissionRates?.taker);
+  const balances: Record<string, number> = {};
+  for (const b of Array.isArray(data?.balances) ? data.balances : []) {
+    const amount = Number(b?.free) + Number(b?.locked);
+    if (typeof b?.asset === "string" && Number.isFinite(amount) && amount > 0) balances[b.asset] = amount;
+  }
+  return { canTrade: data?.canTrade === true, feeBps: Number.isFinite(maker) && Number.isFinite(taker) ? { maker, taker } : null, balances };
+}
+
+/** One signed read of the account, for the page. Read-only like everything here; `timeoutMs` keeps a slow reply off the page. */
+export async function binanceAccount(env: BinanceEnv): Promise<{ ok: true; view: ReturnType<typeof binanceAccountView> } | { ok: false; error: string }> {
+  const a = await call(env, "/api/v3/account", { omitZeroBalances: "true" }, true);
+  return a.ok ? { ok: true, view: binanceAccountView(a.data) } : { ok: false, error: `account${a.status ? ` ${a.status}` : ""}: ${a.error ?? "no reply"}` };
 }

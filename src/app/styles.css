@@ -1829,7 +1829,9 @@ body {
   padding: 2px 6px; border-radius: 3px; border: 1px solid var(--line); color: var(--chalk-dim);
 }
 .ag-badge-live { color: var(--gain); border-color: var(--gain-dim); background: var(--gain-dim); }
-.ag-badge-paper { color: #d9c37a; border-color: rgba(217,195,122,0.35); background: rgba(217,195,122,0.12); }
+/* PAPER is neutral, and dashed: not money. It was gold until Binance's yellow came on the page; every hue left on it
+   (teal, cyan, violet, orange, slate) sat within ΔE 15 of the venues' blue and yellow or of gain/loss, so it has none. */
+.ag-badge-paper { color: #e8e4da; border-color: rgba(232,228,218,0.55); border-style: dashed; background: rgba(232,228,218,0.06); }
 .ag-badge-paused { color: var(--chalk-dim); }
 .ag-status { display: inline-flex; align-items: center; gap: 6px; color: var(--chalk-dim); }
 .ag-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--chalk-mute); flex: none; }
@@ -1861,17 +1863,17 @@ body {
   padding: 2px 7px; border-radius: 3px; border: 1px solid; white-space: nowrap; font-family: var(--font-mono);
 }
 .ag-venue-revx { color: #8ec5ff; border-color: rgba(142,197,255,0.35); background: rgba(142,197,255,0.1); }
-.ag-venue-kraken { color: #c4b5fd; border-color: rgba(196,181,253,0.35); background: rgba(196,181,253,0.1); }
+.ag-venue-binance { color: #f0b90b; border-color: rgba(240,185,11,0.4); background: rgba(240,185,11,0.1); }
 .ag-venue-signal { font-weight: 500; letter-spacing: 0; opacity: 0.8; }
 .ag-venues { margin-bottom: 14px; }
 .ag-share-bar { display: flex; height: 18px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.04); border: 1px solid var(--line); margin-bottom: 8px; }
 .ag-share { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; transition: width 0.4s; font-family: var(--font-mono); }
 .ag-share-revx { background: rgba(142,197,255,0.35); color: #e6f2ff; }
-.ag-share-kraken { background: rgba(196,181,253,0.35); color: #f3efff; }
+.ag-share-binance { background: rgba(240,185,11,0.35); color: #fff6d6; }
 .ag-venue-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .ag-venue-card { padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,0.02); border-left-width: 3px; }
 .ag-venue-card-revx { border-left-color: rgba(142,197,255,0.7); }
-.ag-venue-card-kraken { border-left-color: rgba(196,181,253,0.7); }
+.ag-venue-card-binance { border-left-color: rgba(240,185,11,0.75); }
 .ag-venue-card.is-warn { border-color: var(--loss-dim); }
 .ag-venue-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 11px; margin-bottom: 8px; }
 .ag-venue-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 12px; align-items: baseline; }

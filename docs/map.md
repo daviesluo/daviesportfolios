@@ -15,7 +15,9 @@ How the less obvious parts work, and why they are built the way they are.
   race across public CORS proxies.
 - **Agents (crypto, paper first)** — the Agents page behind the ☰ menu.
   Three strategies run today, all in paper, all executing on Revolut X
-  and reading Kraken's candles for their signals: 4-hour trend following
+  and reading Kraken's candles for their signals (the page's VENUES shows
+  Revolut X and Binance, whose card is its account, read-only, fetched in
+  London because Binance refuses US addresses): 4-hour trend following
   on BTC, ETH, SOL, AVAX and SUI (the candidate for real money), its
   1-hour variant, and 30-day momentum, both on BTC, ETH and SOL. The loop
   runs every minute: quotes, order management, a protective floor under
@@ -560,7 +562,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | File | What it does |
 |---|---|
 | `agents/index.ts` | The entry point: the minute's tick, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
-| `agents/binance.ts`, `agents/deribit.ts` | Read-only clients the probe uses to check the Binance and Deribit keys: permissions, fees, symbol rules, auth scope, and Deribit's volatility index. Nothing in them can trade. |
+| `agents/binance.ts`, `agents/deribit.ts` | Read-only clients for the Binance and Deribit keys: the probe's checks, Deribit's volatility index, and the Binance account the VENUES card shows. Nothing in them can trade. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
 | `agents/db.ts` | The loop's database access, over PostgREST. |
 | `agents/testing.ts` | Test doubles that refuse whatever the real database refuses. |

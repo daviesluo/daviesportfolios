@@ -273,17 +273,16 @@ const TOKEN = `${b64url(JSON.stringify({ role: 'admin', exp: NOW_MS + 3600_000 }
 const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading212', '/agents'];
 
 /**
- * The Agents dashboard as the Edge Function shapes it (`runDashboard`):
- * the SEVEN rows migrations 0037-0040 leave active — four on Revolut X,
- * three on Kraken, the retired `dislocation-1m` absent because the
- * dashboard filters it out — with the 4-hour rows carrying the five
- * symbols they now trade, a per-strategy `todayUsd` and the `dayStart`
- * the page reads. One row is long BTC on Kraken with a fill on record, so
- * the page has a position, a decision and an order to draw. A fixture
- * that drifts from the payload tests nothing: this one is checked against
- * `supabase/migrations/0037_agents.sql` (+0038/0039/0040/0042/0043) and the
- * shape `dashboard()` builds in `supabase/functions/agents/index.ts`. Four
- * rows since `0043` retired the two rotations and the Kraken momentum twin.
+ * The Agents dashboard as the Edge Function shapes it (`dashboard()`): the
+ * THREE rows that run since `0046`, all on Revolut X and all reading
+ * Kraken's candles, with the 4-hour row carrying its five symbols, a
+ * per-strategy `todayUsd` and the `dayStart` the page reads. The 4-hour
+ * row is long BTC with a fill on record, so the page has a position, a
+ * decision and an order to draw. VENUES is Revolut X and Binance
+ * (2026-09-23): Binance's card is its account, read-only. A fixture that
+ * drifts from the payload tests nothing: this one is checked against the
+ * migrations up to `0048` and the shape `dashboard()` builds in
+ * `supabase/functions/agents/index.ts`.
  */
 const AGENTS_DASHBOARD = (() => {
   const at = new Date(CLOCK).toISOString();
@@ -355,12 +354,13 @@ const AGENTS_DASHBOARD = (() => {
     totals,
     venues: [
       { id: 'revx', canTrade: true, feeBps: { maker: 0, taker: 9 }, balances: { USD: 100 }, note: null, marks: { 'BTC/USD': 86000 } },
-      { id: 'kraken', canTrade: true, feeBps: { maker: 40, taker: 80 }, balances: { USD: 0, GBP: 75 }, note: null, marks: { 'BTC/USD': 86000 } },
+      // Binance holds money and executes nothing: the dashboard reads its account, read-only, for this card (`binanceCard`).
+      { id: 'binance', canTrade: true, feeBps: { maker: 10, taker: 10 }, balances: { USDT: 50, BNB: 0.012 }, note: null, marks: {} },
     ],
     strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
     byVenue: {
       revx: { ...book, capitalUsd: 180, strategies: 3, live: 0 },     // 100 + 40 + 40, and the only book there is
-      kraken: { ...zero, capitalUsd: 0, strategies: 0, live: 0 },     // signal venue only since `0046`
+      // No Binance entry: `byVenue` is built from the rows, and no row trades there. Kraken is the signal venue only.
     },
     basis: {
       'BTC/USD': { latest: 0.31, latestAt: at, n: 288, absP50: 0.4, absP95: 1.2, absMax: 2.1, over20: 0, over40: 0, over80: 0 },
@@ -431,7 +431,8 @@ async function shot(page, name) {
 const AGENTS_PAUSED = () => ({
   ...AGENTS_DASHBOARD,
   risk: { ...AGENTS_DASHBOARD.risk, global_pause: true },
-  venues: AGENTS_DASHBOARD.venues.map((v) => (v.id === 'kraken' ? { ...v, note: 'balances: 403 EAPI:Invalid key' } : v)),
+  // Binance's likeliest fault: a dashboard call routed to a US region is refused by address (the page pins London).
+  venues: AGENTS_DASHBOARD.venues.map((v) => (v.id === 'binance' ? { ...v, canTrade: false, balances: null, note: 'account 451: 0 Service unavailable from a restricted location' } : v)),
 });
 
 let failures = 0;
@@ -1148,7 +1149,7 @@ async function run() {
         ok(S('agents'), `today is a signed number on the scoreboard (${(sbToday || '').trim()}) and on the row that has a book`);
       } else fail(S('agents'), `scoreboard today "${sbToday}", row today cells ${rowToday.join(' | ')}`);
       const badgeTexts = await page.locator('.ag-strategies .ag-venue').allTextContents();
-      if (badgeTexts.length === rows && badgeTexts.every((b) => /^(Revolut X|Kraken)$/.test(b.trim()))) ok(S('agents'), 'the venue badge is the venue name alone');
+      if (badgeTexts.length === rows && badgeTexts.every((b) => /^(Revolut X|Binance)$/.test(b.trim()))) ok(S('agents'), 'the venue badge is the venue name alone');
       else fail(S('agents'), `badges: ${badgeTexts.join(' | ')}`);
       // The badge fits its cell: a cell that clips draws the first dot of an ellipsis after the badge — the
       // "small white dot" beside Revolut X the owner saw — so overflow must be zero, not just invisible.
@@ -1174,7 +1175,7 @@ async function run() {
       const under = await page.locator('.ag-sb-under').count();
       if (under === 0) ok(S('agents'), 'no explanatory line under the scoreboard');
       else fail(S('agents'), `${under} sub-lines under the scoreboard`);
-      const cardLabels = await page.locator('.ag-venue-card-kraken .ag-venue-grid > .dim').allTextContents();
+      const cardLabels = await page.locator('.ag-venue-card-binance .ag-venue-grid > .dim').allTextContents();
       if (cardLabels.includes('unrealised') && cardLabels.includes('realised') && !cardLabels.some((t) => /total/.test(t))) ok(S('agents'), 'a venue card shows unrealised and realised, no total');
       else fail(S('agents'), `venue card rows: ${cardLabels.join(' | ')}`);
       const stripN = await page.locator('.ag-chip').count();
@@ -1186,8 +1187,8 @@ async function run() {
       else fail(S('agents'), `${alertsAtRest} alert banners on a healthy dashboard`);
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
-      const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, krakenRows = badges.filter((b) => b.startsWith('Kraken')).length;
-      if (revxRows === 3 && krakenRows === 0) ok(S('agents'), 'venue badge on every row: 3 Revolut X, 0 Kraken (`0046` deleted the twin)');
+      const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, binanceRows = badges.filter((b) => b.startsWith('Binance')).length;
+      if (revxRows === 3 && binanceRows === 0) ok(S('agents'), 'venue badge on every row: 3 Revolut X, none on Binance, which executes nothing');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       const shares = await page.locator('.ag-share').allTextContents();
       if (shares.some((t) => /Revolut X 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Revolut X');
@@ -1198,9 +1199,19 @@ async function run() {
       const funded = await page.locator('.ag-venue-card-revx .ag-venue-grid').textContent().catch(() => '');
       if (/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card shows its funding');
       else fail(S('agents'), `revx card reads "${funded}"`);
-      const krFunded = await page.locator('.ag-venue-card-kraken .ag-funded').textContent().catch(() => '');
-      if (/£75\.00 GBP/.test(krFunded || '')) ok(S('agents'), 'the Kraken card names a GBP balance as pounds');
-      else fail(S('agents'), `kraken funded reads "${krFunded}"`);
+      const bnFunded = await page.locator('.ag-venue-card-binance .ag-funded').textContent().catch(() => '');
+      if (/50\.00 USDT/.test(bnFunded || '') && /0\.012000 BNB/.test(bnFunded || '')) ok(S('agents'), 'the Binance card reads USDT as money and BNB as a coin');
+      else fail(S('agents'), `binance funded reads "${bnFunded}"`);
+      // Davies, 2026-09-23: Kraken off VENUES, Binance on, and PAPER must not read as Binance's yellow. The colours
+      // are read back from the page, not from the stylesheet: a rule that never applies would pass a source check.
+      const venuesText = await page.locator('.ag-venues').textContent().catch(() => '');
+      const cardIds = await page.locator('.ag-venue-card').evaluateAll((els) => els.map((el) => [...el.classList].find((c) => /^ag-venue-card-/.test(c))));
+      if (!/Kraken/.test(venuesText || '') && cardIds.join(',') === 'ag-venue-card-revx,ag-venue-card-binance') ok(S('agents'), 'VENUES is Revolut X then Binance; Kraken is not on it');
+      else fail(S('agents'), `VENUES cards ${cardIds.join(',')}, text mentions Kraken: ${/Kraken/.test(venuesText || '')}`);
+      const binanceInk = await page.locator('.ag-venue-card-binance .ag-venue-binance').first().evaluate((el) => getComputedStyle(el).color).catch(() => '');
+      const paperInk = await page.locator('.ag-badge-paper').first().evaluate((el) => { const cs = getComputedStyle(el); return [cs.color, cs.borderTopStyle]; }).catch(() => ['', '']);
+      if (binanceInk === 'rgb(240, 185, 11)' && paperInk[0] === 'rgb(232, 228, 218)' && paperInk[1] === 'dashed') ok(S('agents'), 'Binance wears its yellow; PAPER is neutral and dashed, never that yellow');
+      else fail(S('agents'), `binance badge ${binanceInk}, paper badge ${paperInk.join(' ')}`);
       // Four rules count down to a bar close; the minute rule decides every
       // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
@@ -1405,8 +1416,9 @@ async function run() {
       await page.waitForSelector('.ag-alert', { timeout: 10_000 }).catch(() => {});
       const stopBanner = await page.locator('.ag-alert.is-stop .ag-alert-label').textContent().catch(() => '');
       const faultBanner = await page.locator('.ag-alert.is-fault .ag-alert-text').textContent().catch(() => '');
-      if (/Global pause/i.test(stopBanner || '') && /403/.test(faultBanner || '')) ok(S('agents'), 'a global pause and a venue fault are banners above the table, each with its label and words');
-      else fail(S('agents'), `banners: stop "${stopBanner}", fault "${faultBanner}"`);
+      const faultLabel = await page.locator('.ag-alert.is-fault .ag-alert-label').textContent().catch(() => '');
+      if (/Global pause/i.test(stopBanner || '') && /451/.test(faultBanner || '') && /^Binance fault$/.test((faultLabel || '').trim())) ok(S('agents'), 'a global pause and a venue fault are banners above the table, each with its label and words');
+      else fail(S('agents'), `banners: stop "${stopBanner}", fault "${faultLabel}: ${faultBanner}"`);
       agentsMode = 'ok';
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);

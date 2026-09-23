@@ -81,9 +81,12 @@ The crypto strategies, all on paper today.
 
 - **The list.** A scoreboard in the home page's style (deployed, today,
   unrealised and realised gain, each with its percentage), a card per
-  exchange account, and one row per strategy: a status dot (green
-  running, amber stale, grey paused), its exchange, its mode (LIVE,
-  PAPER or PAUSED), today, unrealised and realised gain, and a countdown
+  exchange account — Revolut X in blue, where the strategies trade, and
+  Binance in its yellow, which shows what that account holds and trades
+  nothing yet — and one row per strategy: a status dot (green running,
+  amber stale, grey paused), its exchange, its mode (LIVE in green,
+  PAPER in a dashed outline, or PAUSED), today, unrealised and realised
+  gain, and a countdown
   to its next decision. Live strategies are listed apart from the ones
   still being tested.
 - **A strategy.** Tap a row to open it over the list; its ✕ brings the
@@ -93,7 +96,8 @@ The crypto strategies, all on paper today.
   momentum, position, unrealised gain, time held) and when that last
   changed.
 - **The chart.** One tab per coin. The line is the closing price on the
-  exchange the signal comes from, over its high–low band. Green
+  exchange the signal comes from (Kraken), over its high–low band, drawn
+  in the colour of the exchange the strategy trades on. Green
   up-triangles are buys, red down-triangles sells, a dashed segment is
   an order still resting, and a dotted line is the average cost. Hover
   for the time, the close and any fill. Under the chart is every order

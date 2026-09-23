@@ -318,7 +318,11 @@ that follow from that evidence, in short:
   in 1 / 5 minutes against the loop's model's 82 % / 92 %), and it paid
   4.44× the fee for identical fills. **Kraken is a SIGNAL venue only from
   here**: every rule reads its candles; nothing executes there, and the
-  page is swept in that shape. **Retired**: `momentum-1d-kraken`, `rotation-1d`,
+  page is swept in that shape. **VENUES shows Revolut X and Binance, not
+  Kraken** (Davies, 2026-09-23): Binance's card is its account, read
+  only (`binanceCard`; the dashboard is pinned to London because Binance
+  refuses US addresses), and PAPER is a neutral dashed badge because
+  Binance's yellow took the gold it wore. **Retired**: `momentum-1d-kraken`, `rotation-1d`,
   `rotation-1w-kraken` — 0.90–1.00 correlated with a row that stays, worse
   in all four windows, two of them over the 35 % drawdown limit in the
   bear year. **All four retired rows were DELETED with their history by `0044`**

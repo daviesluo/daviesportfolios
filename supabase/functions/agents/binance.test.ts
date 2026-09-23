@@ -1,7 +1,7 @@
 // Pins for the read-only Binance client: the signature against Binance's own documented example, and a probe that
 // asks only for the read paths it lists, signs exactly the private ones, and reports no key and no amount.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { BINANCE_READ_PATHS, binanceProbe, binanceSignature, symbolRules } from "./binance.ts";
+import { BINANCE_READ_PATHS, binanceAccount, binanceAccountView, binanceProbe, binanceSignature, symbolRules } from "./binance.ts";
 
 // developers.binance.com, "Request security" → "SIGNED Endpoint Examples" (HMAC keys), verbatim; openssl agrees.
 const EXAMPLE = {
@@ -59,4 +59,23 @@ Deno.test("binanceProbe stops at a refused region and says so, before the key is
 Deno.test("symbolRules reads the order filters, NOTIONAL or the older MIN_NOTIONAL", () => {
   assertEquals(symbolRules({ status: "TRADING", filters: [{ filterType: "MIN_NOTIONAL", minNotional: "10" }] }).minNotional, "10");
   assertEquals(symbolRules(null).status, null);
+});
+
+Deno.test("binanceAccountView: the fee in bps from Binance's fractions, the coins held (free + locked), and whether the key may trade", () => {
+  const v = binanceAccountView({
+    canTrade: true, commissionRates: { maker: "0.00100000", taker: "0.00075000" },
+    balances: [{ asset: "USDT", free: "100.5", locked: "20" }, { asset: "BTC", free: "0.00000000", locked: "0.00000000" }, { asset: "BNB", free: "0.01", locked: "0" }],
+  });
+  assertEquals(v, { canTrade: true, feeBps: { maker: 10, taker: 7.5 }, balances: { USDT: 120.5, BNB: 0.01 } });
+  // A fee the reply does not carry is unknown, never 0; a flag that is not `true` is not permission.
+  assertEquals(binanceAccountView({ canTrade: "yes", commissionRates: { maker: "0.001" }, balances: "none" }), { canTrade: false, feeBps: null, balances: {} });
+});
+
+Deno.test("binanceAccount signs ONE read of the account, and a refused region comes back as the card's note, not a throw", async () => {
+  const v = venue();
+  const r = await binanceAccount({ apiKey: "KEY-ID-abc", secret: "SECRET-xyz", fetchImpl: v.fetchImpl, now: () => 1_700_000_000_000 });
+  assertEquals(v.seen.map((s) => [s.path, s.signed, s.query.get("omitZeroBalances")]), [["/api/v3/account", true, "true"]]);
+  assert(r.ok && r.view.balances.USDT === 123.45 && r.view.feeBps?.maker === 10, JSON.stringify(r));
+  const refused = await binanceAccount({ apiKey: "k", secret: "s", fetchImpl: venue(451).fetchImpl });
+  assertEquals(refused, { ok: false, error: "account 451: 0 Service unavailable from a restricted location" });
 });

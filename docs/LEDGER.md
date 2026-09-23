@@ -27,7 +27,10 @@ list stays the short version; the plan is the reasoning behind it.
       second venue with its own strategy (4).
    4. **VENUES on the Agents page: Kraken out, Binance in**, a Binance
       theme colour, and the PAPER badge recoloured so it cannot be read as
-      Binance. Kraken's public candles stay the signal. Open.
+      Binance. Kraken's public candles stay the signal. **DONE**
+      (reference §4.27): Binance's card is its account, read-only; PAPER
+      is a neutral dashed badge — he turned down pink, and every other hue
+      measured too close to blue, yellow, gain or loss. Screenshots sent.
    5. **Revolut X and Binance each need a strategy of their own** — the
       same rule on both is pointless. Two pre-registered studies are
       running: Revolut X maker-only (`prereg_maker.md`) and Binance
@@ -394,6 +397,18 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 07:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**VENUES is Revolut X and Binance; Kraken is off the page** (Davies;
+reference §4.27). Binance's card reads the account read-only
+(`binanceCard`, a minute's cache, 4 s cut-off) and the page pins the
+dashboard to London, because Binance refuses US addresses. PAPER went
+from gold (ΔE 7.1 from Binance's yellow) to a neutral dashed badge after
+Davies turned down pink; the validator put every other hue within ΔE 15
+of a colour already on the page. The chart takes the row's venue colour,
+and a stablecoin reads as money. Browser sweep 212 green; the five new
+checks per breakpoint are red on the previous bundle.
 
 ### [2026-09-23 07:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

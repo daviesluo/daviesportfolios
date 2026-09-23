@@ -6,13 +6,17 @@ import { SB_ANON, EDGE_AGENTS_URL } from '../app/supabase_config.js';
 import { getAppToken } from '../app/auth.js';
 import { fmtMoney, formatAgo } from '../app/formatters.js';
 
-export const VENUE_LABELS = { revx: 'Revolut X', kraken: 'Kraken' };
+// Kraken keeps its label, not a place on the page: it is the signal venue every rule reads candles from, and nothing
+// trades there since `0046`. VENUES shows Revolut X, where the loop executes, and Binance, the account it may use next.
+export const VENUE_LABELS = { revx: 'Revolut X', binance: 'Binance', kraken: 'Kraken' };
 export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'momentum-1d': 'Momentum 30d', 'rotation-1d': 'Rotation', 'dislocation-1m': 'Dislocation' };
-/** The two venue hues the badges, the share bar and the detail chart all share. */
-export const VENUE_HUES = { revx: '#8ec5ff', kraken: '#c4b5fd' };
+/** The two venue hues the badges, the share bar and the detail chart all share. Binance's is its own yellow, which is why PAPER is not gold any more. */
+export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b' };
 
 /** @param {string} id */
 export const venueLabel = (id) => VENUE_LABELS[id] ?? id;
+/** The region the dashboard runs in: London, where Binance answers and the database lives. */
+export const DASHBOARD_REGION = 'eu-west-2';
 /** @param {string} kind */
 export const kindLabel = (kind) => KIND_LABELS[kind] ?? kind;
 /** @param {string} id */
@@ -76,7 +80,9 @@ function agentsFetchError(scope, status, text) {
  */
 export async function fetchAgentsDashboard(fetchImpl = fetch) {
   const seq = dashGuard.start();
-  const res = await fetchImpl(`${EDGE_AGENTS_URL}?action=dashboard`, { headers: headers() });
+  // Pinned to London: the dashboard reads the Binance account, and Binance refuses the US regions a call routed by
+  // distance could land in (451). A query parameter, not the `x-region` header, so the CORS preflight is unchanged.
+  const res = await fetchImpl(`${EDGE_AGENTS_URL}?action=dashboard&forceFunctionRegion=${DASHBOARD_REGION}`, { headers: headers() });
   const text = await res.text();
   if (!res.ok) throw agentsFetchError('dashboard', res.status, text);
   const dash = JSON.parse(text);
@@ -600,7 +606,7 @@ export function symbolOrderRows(chart, more, symbol) {
  * @param {any} dash
  */
 export function venueRows(dash) {
-  const ids = ['revx', 'kraken'];
+  const ids = ['revx', 'binance'];
   const by = dash?.byVenue ?? {};
   const venues = Object.fromEntries((dash?.venues ?? []).map((v) => [v.id, v]));
   const totalValue = ids.reduce((a, id) => a + (by[id]?.valueUsd ?? 0), 0);
@@ -748,6 +754,8 @@ export function positionLines(s) {
 }
 
 const CURRENCY_SIGN = { USD: '$', GBP: '£', EUR: '€' };
+/** A stablecoin is money: cents, not a coin's six decimals. @param {string} c */
+const isMoney = (c) => c in CURRENCY_SIGN || /^USD[CT]$/.test(c);
 /**
  * What an account holds, every currency the venue reported, non-zero
  * only, money first: a UK deposit that arrived as pounds must read as
@@ -755,15 +763,15 @@ const CURRENCY_SIGN = { USD: '$', GBP: '£', EUR: '€' };
  * @param {Record<string, number> | null | undefined} balances
  */
 export function balanceLines(balances) {
-  const order = (c) => (c === 'USD' ? 0 : c in CURRENCY_SIGN ? 1 : 2);
+  const order = (c) => (c === 'USD' ? 0 : isMoney(c) ? 1 : 2);
   /** @type {{ code: string, amount: number }[]} */
   const held = Object.entries(balances ?? {}).map(([code, v]) => ({ code: String(code), amount: Number(v) }));
   return held
-    .filter((b) => Number.isFinite(b.amount) && Math.abs(b.amount) >= (b.code in CURRENCY_SIGN || /^USD[CT]$/.test(b.code) ? 0.005 : 1e-8))   // a fraction of a coin is money
+    .filter((b) => Number.isFinite(b.amount) && Math.abs(b.amount) >= (isMoney(b.code) ? 0.005 : 1e-8))   // a fraction of a coin is money
     .sort((a, b) => order(a.code) - order(b.code) || a.code.localeCompare(b.code))
     .map((b) => {
       const sign = CURRENCY_SIGN[b.code];
-      const text = sign ? `${sign}${b.amount.toFixed(2)} ${b.code}` : `${b.amount.toFixed(Math.abs(b.amount) >= 1 ? 4 : 6)} ${b.code}`;
+      const text = sign ? `${sign}${b.amount.toFixed(2)} ${b.code}` : isMoney(b.code) ? `${b.amount.toFixed(2)} ${b.code}` : `${b.amount.toFixed(Math.abs(b.amount) >= 1 ? 4 : 6)} ${b.code}`;
       return { code: b.code, amount: b.amount, text };
     });
 }

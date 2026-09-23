@@ -4,7 +4,7 @@
 // `Deno.serve` sits behind `import.meta.main`, so importing binds nothing.
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  authorise, binanceSymbol, chartBook, chartWindow, dayOpensFrom, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeParts, probeSymbols, runJevBatch,
+  authorise, BINANCE_CARD_TTL_MS, binanceCard, binanceSymbol, chartBook, PAGE_VENUES, resetBinanceCard, chartWindow, dayOpensFrom, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeParts, probeSymbols, runJevBatch,
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, tickErrorReport, type ProbeSummaryRow,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
@@ -282,4 +282,29 @@ Deno.test("probeParts: `?only=` picks the probe's parts by name, ignores unknown
 
 Deno.test("binanceSymbol: a row's USD pair is Binance's USDT book", () => {
   assertEquals(["BTC/USD", "SUI/USD"].map(binanceSymbol), ["BTCUSDT", "SUIUSDT"]);
+});
+
+Deno.test("PAGE_VENUES — the page shows Revolut X, where the loop executes, and Binance; Kraken is the signal venue only", () => {
+  assertEquals([...PAGE_VENUES], ["revx", "binance"]);
+});
+
+Deno.test("binanceCard — no key says so without a call; a working key shows the account; a minute's cache; a refusal is a note", async () => {
+  let calls = 0;
+  const ok = ((_u: string | URL | Request) => { calls++; return Promise.resolve(new Response(JSON.stringify({ canTrade: true, commissionRates: { maker: "0.001", taker: "0.001" }, balances: [{ asset: "USDT", free: "50", locked: "0" }] }), { status: 200 })); }) as typeof fetch;
+  const keys = (n: string) => ({ Binance_API_KEY: "k", Binance_SECRET_KEY: "s" } as Record<string, string>)[n];
+  resetBinanceCard();
+  assertEquals(await binanceCard(0, () => undefined, ok), { canTrade: false, feeBps: null, balances: null, note: null });
+  assertEquals(calls, 0);
+  resetBinanceCard();
+  const card = await binanceCard(1_000, keys, ok);
+  assertEquals(card, { canTrade: true, feeBps: { maker: 10, taker: 10 }, balances: { USDT: 50 }, note: null });
+  await binanceCard(1_000 + BINANCE_CARD_TTL_MS - 1, keys, ok);
+  assertEquals(calls, 1);                                                   // inside the minute: the cached card
+  await binanceCard(1_000 + BINANCE_CARD_TTL_MS, keys, ok);
+  assertEquals(calls, 2);                                                   // the minute is up: read again
+  resetBinanceCard();
+  const refused = ((_u: string | URL | Request) => Promise.resolve(new Response(JSON.stringify({ code: 0, msg: "Service unavailable from a restricted location" }), { status: 451 }))) as typeof fetch;
+  const r = await binanceCard(5_000, keys, refused);
+  assertEquals([r.canTrade, r.balances, r.note], [false, null, "account 451: 0 Service unavailable from a restricted location"]);
+  resetBinanceCard();
 });
