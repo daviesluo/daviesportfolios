@@ -1,0 +1,98 @@
+{
+ "SUI-USD": {
+  "ge_1%": {
+   "minutes": 57,
+   "longest_run_min": 8,
+   "usd_sold": 89484,
+   "first": "21:15",
+   "last": "23:56"
+  },
+  "ge_5%": {
+   "minutes": 35,
+   "longest_run_min": 8,
+   "usd_sold": 68449,
+   "first": "21:17",
+   "last": "22:36"
+  }
+ },
+ "NEAR-USD": {
+  "ge_1%": {
+   "minutes": 11,
+   "longest_run_min": 1,
+   "usd_sold": 16895,
+   "first": "21:17",
+   "last": "22:45"
+  },
+  "ge_5%": {
+   "minutes": 6,
+   "longest_run_min": 1,
+   "usd_sold": 13978,
+   "first": "21:20",
+   "last": "22:07"
+  }
+ },
+ "FET-USD": {
+  "ge_1%": {
+   "minutes": 29,
+   "longest_run_min": 4,
+   "usd_sold": 42153,
+   "first": "21:18",
+   "last": "23:53"
+  },
+  "ge_5%": {
+   "minutes": 26,
+   "longest_run_min": 4,
+   "usd_sold": 38793,
+   "first": "21:18",
+   "last": "23:51"
+  }
+ },
+ "ICP-USD": {
+  "ge_1%": {
+   "minutes": 17,
+   "longest_run_min": 2,
+   "usd_sold": 18440,
+   "first": "21:15",
+   "last": "23:44"
+  },
+  "ge_5%": {
+   "minutes": 15,
+   "longest_run_min": 2,
+   "usd_sold": 16765,
+   "first": "21:22",
+   "last": "23:44"
+  }
+ },
+ "BCH-USD": {
+  "ge_1%": {
+   "minutes": 0,
+   "longest_run_min": 0,
+   "usd_sold": 0,
+   "first": [],
+   "last": []
+  },
+  "ge_5%": {
+   "minutes": 0,
+   "longest_run_min": 0,
+   "usd_sold": 0,
+   "first": [],
+   "last": []
+  }
+ },
+ "AVAX-USD": {
+  "ge_1%": {
+   "minutes": 19,
+   "longest_run_min": 2,
+   "usd_sold": 240696,
+   "first": "21:19",
+   "last": "22:48"
+  },
+  "ge_5%": {
+   "minutes": 10,
+   "longest_run_min": 2,
+   "usd_sold": 15448,
+   "first": "21:19",
+   "last": "22:09"
+  }
+ }
+}

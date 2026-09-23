@@ -2383,6 +2383,36 @@ with, not the primary window's 82 %/yr. PR3's 28 days began two days after that 
 wide market and exceeded Revolut X's 1,000 a day on 14 days; 205 a day since. **So it went to paper** (§4 item 31):
 what it earns now, and whether a post-only order at these prices would have been accepted, only running it can say.
 
+### 3.28 A second, independent search from first principles: nothing, and why in one number (2026-09-23)
+
+Davies asked for an independent second search that could use the first's results and reach different answers ("这种发散性
+的问题应该会有不同的新的回答"). A second research agent started from what the account owns that others do not — free
+resting orders on Revolut X, a UK identity, a Binance account, a size too small for professionals — and derived 20 ideas,
+19 of them new and one of §3.26's kills re-opened on the public trade tape (review `reviews/2026-09-23-fp2-study.md`).
+15 die on arithmetic or a measurement, one needs a signed call, one is out of scope, one is protective rather than a
+strategy, and **the three that reached pre-registered tests all lose out of sample** (re-run here byte for byte; trips
+were not re-derived, the results keep per-book totals):
+
+| test | rule | out of sample | verdict |
+|---|---|---|---|
+| T1 | 0 % quotes inside the resident market maker's spread on six thin UK books | −$69.97 over 144 book-days; null p95 +$26.61 | fails |
+| T2 | 0 % quotes 50 bps from Binance, waiting for UK-only sweeps (§3.26's ideas 3–4, now on prints) | −$99.81 over 357 trips; every book loses | fails |
+| T3 | bids 0.5 / 1 / 2 % under Binance's liquid-staking tokens (WBETH, BNSOL) | −$11.38 over 2,186 trips; −$489 / −$794 in the 2024-10 → 2026-09 confirmations | fails |
+
+**Why, in one number: h/σ₁ₘ**, the UK half-spread over one minute of Binance's price movement. Revolut X's resident
+maker quotes wide (a median 27 bps half-spread across 183 UK USD books), but on every busy book that is less than a
+minute's move (h/σ₁ₘ 0.14–0.98 on the 30 busiest), and a once-a-minute loop with 1,000 orders a day needs h ≥ 2.7 σ₁ₘ to
+keep one quote inside the spread. Only 42 thin books clear that, about $124k a day between them, and there the inside
+quote's real fills come before a fall (dollar-weighted markout −3.7 bps at 5 minutes, −22 at 60). Three facts it
+found, none an edge: **in a crash the UK book shelters a seller** (on 2025-10-10 Binance's alts fell 60–85 % while UK bids
+stayed 1–85 % above Binance for 11–57 minutes on five of six books — the live row's protective sells there would have
+been paid above Binance); **Binance's 24/7 tokens of closed markets are priced efficiently now** (US stock tokens price
+the next open with a slope of 0.98; PAXG's weekend overshoot shrank from +33–44 bps in 2024–25 to +10–13 since March 2026,
+below a 20 bps round trip); and **a bot prints $0.10 trades at the UK touch** (66–95 % of the long-tail books' prints),
+so a fill read from the tape needs a size cap — PR5 has one, and its trips of $10 or more carry $693.90 of $707.90
+(§3.27). **So the verdict of §3.23–§3.26 stands, reached a second way**: what differs between the venues is cost and
+reach; the one mechanism that passed anything is PR5's, and it is on paper (§4 item 31).
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

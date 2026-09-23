@@ -1,0 +1,289 @@
+[
+ {
+  "book": "C98/USD",
+  "is_mean_usd_per_day": 14468.029502569803,
+  "h_live": 91.185410334347,
+  "h_over_sigma": 5.816384742372027,
+  "is_candle_days": 212
+ },
+ {
+  "book": "W/USD",
+  "is_mean_usd_per_day": 13552.908039317383,
+  "h_live": 63.434308591464635,
+  "h_over_sigma": 4.069795184789499,
+  "is_candle_days": 212
+ },
+ {
+  "book": "CELO/USD",
+  "is_mean_usd_per_day": 11473.803065692962,
+  "h_live": 36.133970192568185,
+  "h_over_sigma": 3.188054274310432,
+  "is_candle_days": 212
+ },
+ {
+  "book": "AUCTION/USD",
+  "is_mean_usd_per_day": 7520.470150373115,
+  "h_live": 52.63833611503393,
+  "h_over_sigma": 4.141911445626782,
+  "is_candle_days": 212
+ },
+ {
+  "book": "KAVA/USD",
+  "is_mean_usd_per_day": 6373.987294353099,
+  "h_live": 24.390243902439522,
+  "h_over_sigma": 4.827035520128752,
+  "is_candle_days": 212
+ },
+ {
+  "book": "ANKR/USD",
+  "is_mean_usd_per_day": 4889.6658547021225,
+  "h_live": 55.27476815019028,
+  "h_over_sigma": 4.280456892221629,
+  "is_candle_days": 212
+ },
+ {
+  "book": "DIA/USD",
+  "is_mean_usd_per_day": 4407.247706826227,
+  "h_live": 61.05414218300314,
+  "h_over_sigma": 3.388357162328279,
+  "is_candle_days": 212
+ },
+ {
+  "book": "KAITO/USD",
+  "is_mean_usd_per_day": 4292.1746706804415,
+  "h_live": 50.20368401772902,
+  "h_over_sigma": 3.3845369410455777,
+  "is_candle_days": 212
+ },
+ {
+  "book": "WOO/USD",
+  "is_mean_usd_per_day": 4169.709114616935,
+  "h_live": 60.97560975609772,
+  "h_over_sigma": 5.363512803175122,
+  "is_candle_days": 212
+ },
+ {
+  "book": "RPL/USD",
+  "is_mean_usd_per_day": 3535.368352791039,
+  "h_live": 37.55635569072169,
+  "h_over_sigma": 3.2049472795242484,
+  "is_candle_days": 212
+ },
+ {
+  "book": "SPELL/USD",
+  "is_mean_usd_per_day": 3347.0300886933173,
+  "h_live": 55.416661764131845,
+  "h_over_sigma": 5.106008728058952,
+  "is_candle_days": 212
+ },
+ {
+  "book": "RED/USD",
+  "is_mean_usd_per_day": 3292.9812606141513,
+  "h_live": 52.680508211961794,
+  "h_over_sigma": 4.124452337480798,
+  "is_candle_days": 212
+ },
+ {
+  "book": "ME/USD",
+  "is_mean_usd_per_day": 3160.0429146444335,
+  "h_live": 38.51091142490394,
+  "h_over_sigma": 3.457452605536409,
+  "is_candle_days": 212
+ },
+ {
+  "book": "OGN/USD",
+  "is_mean_usd_per_day": 2880.506773542452,
+  "h_live": 49.950049950049646,
+  "h_over_sigma": 4.971420005512708,
+  "is_candle_days": 212
+ },
+ {
+  "book": "FIDA/USD",
+  "is_mean_usd_per_day": 2788.2690080342386,
+  "h_live": 46.48631488242371,
+  "h_over_sigma": 3.2475839554359585,
+  "is_candle_days": 212
+ },
+ {
+  "book": "AGLD/USD",
+  "is_mean_usd_per_day": 2659.677952700995,
+  "h_live": 90.97270818754343,
+  "h_over_sigma": 7.861492710112977,
+  "is_candle_days": 212
+ },
+ {
+  "book": "KSM/USD",
+  "is_mean_usd_per_day": 2639.277695698909,
+  "h_live": 51.435919417059615,
+  "h_over_sigma": 3.690855886788111,
+  "is_candle_days": 212
+ },
+ {
+  "book": "IO/USD",
+  "is_mean_usd_per_day": 2482.736811311731,
+  "h_live": 56.42483082022128,
+  "h_over_sigma": 3.4913292338501107,
+  "is_candle_days": 212
+ },
+ {
+  "book": "BLUR/USD",
+  "is_mean_usd_per_day": 2478.8845206522674,
+  "h_live": 58.479532163742,
+  "h_over_sigma": 4.572665464306373,
+  "is_candle_days": 212
+ },
+ {
+  "book": "CVC/USD",
+  "is_mean_usd_per_day": 1951.9424818633308,
+  "h_live": 71.39971023148655,
+  "h_over_sigma": 5.232762011683625,
+  "is_candle_days": 212
+ },
+ {
+  "book": "COW/USD",
+  "is_mean_usd_per_day": 1869.6892390918865,
+  "h_live": 53.5833891493643,
+  "h_over_sigma": 4.2176253475046055,
+  "is_candle_days": 212
+ },
+ {
+  "book": "LQTY/USD",
+  "is_mean_usd_per_day": 1721.416514158053,
+  "h_live": 46.9963396864803,
+  "h_over_sigma": 3.3683269395404616,
+  "is_candle_days": 212
+ },
+ {
+  "book": "2Z/USD",
+  "is_mean_usd_per_day": 1648.2562826057992,
+  "h_live": 51.91916159995503,
+  "h_over_sigma": 4.164841921313136,
+  "is_candle_days": 100
+ },
+ {
+  "book": "GLM/USD",
+  "is_mean_usd_per_day": 1632.5841128416514,
+  "h_live": 61.87161639597797,
+  "h_over_sigma": 5.9012081073428355,
+  "is_candle_days": 212
+ },
+ {
+  "book": "VTHO/USD",
+  "is_mean_usd_per_day": 1488.193599122595,
+  "h_live": 69.25207756232705,
+  "h_over_sigma": 3.137469058642114,
+  "is_candle_days": 212
+ },
+ {
+  "book": "HOME/USD",
+  "is_mean_usd_per_day": 1450.52699042514,
+  "h_live": 61.17865716719591,
+  "h_over_sigma": 3.8505868242685812,
+  "is_candle_days": 100
+ },
+ {
+  "book": "RLC/USD",
+  "is_mean_usd_per_day": 1389.3810766614963,
+  "h_live": 55.46863888493754,
+  "h_over_sigma": 4.827603456185411,
+  "is_candle_days": 212
+ },
+ {
+  "book": "AUDIO/USD",
+  "is_mean_usd_per_day": 1328.9458108380418,
+  "h_live": 60.34788782392617,
+  "h_over_sigma": 5.453411804593008,
+  "is_candle_days": 212
+ },
+ {
+  "book": "PROVE/USD",
+  "is_mean_usd_per_day": 1096.46890602463,
+  "h_live": 69.6768761183035,
+  "h_over_sigma": 4.402670093797121,
+  "is_candle_days": 100
+ },
+ {
+  "book": "BAND/USD",
+  "is_mean_usd_per_day": 1077.3661494338685,
+  "h_live": 63.80639299345244,
+  "h_over_sigma": 4.999996049733595,
+  "is_candle_days": 212
+ },
+ {
+  "book": "BICO/USD",
+  "is_mean_usd_per_day": 992.3160364692831,
+  "h_live": 50.57209305586164,
+  "h_over_sigma": 3.6645060858201566,
+  "is_candle_days": 212
+ },
+ {
+  "book": "QI/USD",
+  "is_mean_usd_per_day": 937.0625831795993,
+  "h_live": 69.37561942517334,
+  "h_over_sigma": 3.9529017977563607,
+  "is_candle_days": 212
+ },
+ {
+  "book": "PUNDIX/USD",
+  "is_mean_usd_per_day": 925.0874946018864,
+  "h_live": 57.63689737696687,
+  "h_over_sigma": 5.067913674636639,
+  "is_candle_days": 212
+ },
+ {
+  "book": "KNC/USD",
+  "is_mean_usd_per_day": 882.88392925134,
+  "h_live": 56.93359794127963,
+  "h_over_sigma": 5.523436010571661,
+  "is_candle_days": 212
+ },
+ {
+  "book": "GTC/USD",
+  "is_mean_usd_per_day": 877.5489379987736,
+  "h_live": 39.70504821327239,
+  "h_over_sigma": 3.974952135976571,
+  "is_candle_days": 212
+ },
+ {
+  "book": "PAXG/USD",
+  "is_mean_usd_per_day": 686.2098467595889,
+  "h_live": 9.405819840954656,
+  "h_over_sigma": 3.866142654603832,
+  "is_candle_days": 9
+ },
+ {
+  "book": "REQ/USD",
+  "is_mean_usd_per_day": 684.4449940316038,
+  "h_live": 70.72858968896442,
+  "h_over_sigma": 3.11892353755654,
+  "is_candle_days": 212
+ },
+ {
+  "book": "ZKC/USD",
+  "is_mean_usd_per_day": 592.5335699080999,
+  "h_live": 66.37168231583865,
+  "h_over_sigma": 4.731238085275809,
+  "is_candle_days": 100
+ },
+ {
+  "book": "BNT/USD",
+  "is_mean_usd_per_day": 152.11507642306594,
+  "h_live": 68.22579227084238,
+  "h_over_sigma": 8.351967231748386,
+  "is_candle_days": 212
+ },
+ {
+  "book": "SOMI/USD",
+  "is_mean_usd_per_day": 0.0,
+  "h_live": 106.20978370416319,
+  "h_over_sigma": 7.932092269555873,
+  "is_candle_days": 68
+ },
+ {
+  "book": "NOT/USD",
+  "is_mean_usd_per_day": 0.0,
+  "h_live": 46.28909034760453,
+  "h_over_sigma": 3.1547697529145324,
+  "is_candle_days": 68
+ }
+]

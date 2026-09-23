@@ -1,0 +1,131 @@
+{
+ "ANKR-USD": {
+  "prints": 1879,
+  "dust_share_prints": 0.686,
+  "dust_share_usd": 0.000695,
+  "days_dust_majority": [
+   "2026-01-23",
+   "2026-07-16",
+   "2026-09-20"
+  ]
+ },
+ "AUCTION-USD": {
+  "prints": 3167,
+  "dust_share_prints": 0.936,
+  "dust_share_usd": 0.008132,
+  "days_dust_majority": [
+   "2026-01-23",
+   "2026-07-22",
+   "2026-08-15",
+   "2026-08-21",
+   "2026-09-20"
+  ]
+ },
+ "AVAX-USD": {
+  "prints": 8697,
+  "dust_share_prints": 0.024,
+  "dust_share_usd": 1.2e-05,
+  "days_dust_majority": []
+ },
+ "BCH-USD": {
+  "prints": 4238,
+  "dust_share_prints": 0.183,
+  "dust_share_usd": 1.6e-05,
+  "days_dust_majority": [
+   "2026-01-20",
+   "2026-01-23",
+   "2026-08-15"
+  ]
+ },
+ "C98-USD": {
+  "prints": 3096,
+  "dust_share_prints": 0.952,
+  "dust_share_usd": 0.012694,
+  "days_dust_majority": [
+   "2026-01-23",
+   "2026-03-18",
+   "2026-04-11",
+   "2026-07-22",
+   "2026-08-15",
+   "2026-08-21",
+   "2026-09-20"
+  ]
+ },
+ "CELO-USD": {
+  "prints": 1654,
+  "dust_share_prints": 0.769,
+  "dust_share_usd": 0.002075,
+  "days_dust_majority": [
+   "2026-01-23",
+   "2026-03-24",
+   "2026-05-17",
+   "2026-09-20"
+  ]
+ },
+ "FET-USD": {
+  "prints": 10433,
+  "dust_share_prints": 0.078,
+  "dust_share_usd": 1.9e-05,
+  "days_dust_majority": [
+   "2026-01-23"
+  ]
+ },
+ "ICP-USD": {
+  "prints": 7024,
+  "dust_share_prints": 0.1,
+  "dust_share_usd": 8e-06,
+  "days_dust_majority": [
+   "2026-01-23"
+  ]
+ },
+ "KAVA-USD": {
+  "prints": 3234,
+  "dust_share_prints": 0.921,
+  "dust_share_usd": 0.004235,
+  "days_dust_majority": [
+   "2026-01-23",
+   "2026-02-28",
+   "2026-05-17",
+   "2026-06-28",
+   "2026-07-22",
+   "2026-08-15",
+   "2026-08-21",
+   "2026-09-20"
+  ]
+ },
+ "NEAR-USD": {
+  "prints": 8342,
+  "dust_share_prints": 0.104,
+  "dust_share_usd": 1.2e-05,
+  "days_dust_majority": [
+   "2026-01-20",
+   "2026-01-23"
+  ]
+ },
+ "PENDLE-USD": {
+  "prints": 1572,
+  "dust_share_prints": 0.798,
+  "dust_share_usd": 0.000278,
+  "days_dust_majority": [
+   "2026-09-11",
+   "2026-09-17",
+   "2026-09-20"
+  ]
+ },
+ "SUI-USD": {
+  "prints": 19454,
+  "dust_share_prints": 0.04,
+  "dust_share_usd": 6e-06,
+  "days_dust_majority": [
+   "2026-01-23"
+  ]
+ },
+ "W-USD": {
+  "prints": 937,
+  "dust_share_prints": 0.662,
+  "dust_share_usd": 0.000586,
+  "days_dust_majority": [
+   "2026-01-23"
+  ]
+ }
+}

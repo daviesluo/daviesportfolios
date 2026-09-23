@@ -27,15 +27,17 @@ list stays the short version; the plan is the reasoning behind it.
       $0.42 a day (12.7 %/yr on the locked capital) — plan with that.
       **The paper test runs from its own cron job** (`agents?action=quotes`,
       migration `0051`, §4 item 31): four weeks from its first minute, then
-      the spec's six conditions. **Verify after the push**: `0051` applied,
-      the cron fires, `agent_quote_state.last_minute` advances each minute,
-      prints and inputs fill, the first order-book snapshots appear.
-   2. **A second, independent first-principles search: REPORTED, being
-      verified** (folder `research_fp2`): by its report 20 ideas, three
-      pre-registered tests, all three lose out of sample — nothing unique to
-      either venue worth money. Its dust-bot finding ($0.10 prints at the UK
-      touch) was checked against PR5: trips of $10 or more carry $693.90 of
-      its $707.90. It is committed as §3.28 once re-computed here.
+      the spec's six conditions. **Running since 15:09 UTC** (checked
+      15:10–15:13: `0051` applied, cron job 18 fires, each run decides the
+      minute just closed with no error, 12 quotes out around fair 0.7541 /
+      0.7539, the order books recorded as their go-live evidence).
+   2. **A second, independent first-principles search: DONE — nothing**
+      (reference §3.28, review `reviews/2026-09-23-fp2-study.md`): 20 ideas,
+      19 new, three pre-registered tests, all three lose out of sample
+      (re-run here byte for byte). Why in one number: a UK half-spread is
+      smaller than a minute of Binance's movement on every busy book. Kept:
+      in a crash the UK book shelters a seller; a bot prints $0.10 trades at
+      the UK touch (PR5's trips of $10 or more carry $693.90 of $707.90).
    3. **"(Paper)" stays on funded only: DONE** — the scoreboards and the
       venue cards say DEPLOYED / deployed with no label.
    4. **The CI flake: FIXED** — both workflows pin the Supabase CLI
@@ -486,6 +488,15 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 15:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The second first-principles search is on record** (reference §3.28, review
+`reviews/2026-09-23-fp2-study.md`, its two frozen pre-registrations, scripts with the
+research-folder paths replaced by `FP_ROOT`, results). Nothing passed: T1 −$69.97, T2
+−$99.81, T3 −$11.38 out of sample, re-run here byte for byte; trips were not re-derived (the
+results keep per-book totals). The paper quote test has run since 15:09 UTC, one minute
+behind the clock, with no error (checked 15:10–15:13).
 
 ### [2026-09-23 15:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

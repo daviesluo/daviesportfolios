@@ -392,9 +392,11 @@ that follow from that evidence, in short:
   and cross-sectional momentum over Binance's whole USDT list (§3.24), then
   reversal and low volatility over the same list (§3.25) — failed its
   pre-registered bar, and a search from first principles (§3.26: 31 ideas,
-  four pre-registered tests) found nothing worth money either. Its one
-  small edge, 0 % quotes either side of interbank on Revolut X's USDC/GBP
-  and USDT/GBP books, is a paper-test candidate and is not seeded. So what
+  four pre-registered tests) found nothing worth money either, nor did a
+  second, independent one (§3.28: 20 ideas, three tests, all lose). The
+  first search's one small edge, 0 % quotes either side of interbank on
+  Revolut X's USDC/GBP and USDT/GBP books, passed a longer test (§3.27)
+  and runs on paper (§4 item 31). So what
   differs between the venues is cost and reach, not a rule. A faster rule
   is a fee schedule until data says otherwise.
   Backtests: reference §3.3a–§3.7, run with the loop's own fills, stops
