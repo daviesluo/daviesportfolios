@@ -1,0 +1,10 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "supabase/functions/*/index.ts",
+    "supabase/functions/**/*.test.ts",
+    "supabase/functions/agents/backtest*.ts"
+  ],
+  "project": ["supabase/functions/**/*.ts"],
+  "ignoreExportsUsedInFile": true
+}

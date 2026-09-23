@@ -29,6 +29,12 @@ permissions:
 jobs:
   typecheck-and-build:
     runs-on: ubuntu-latest
+    # The web app is an npm project in src/ (package.json, lockfile,
+    # tsconfig and the Vite, ESLint and knip settings), so every `run`
+    # starts there. The bundle it builds is still the repository's dist/.
+    defaults:
+      run:
+        working-directory: src
     steps:
       # Actions pinned by full commit SHA (with the release tag as a
       # comment) — mutable `@v5` tags can be silently re-pointed by a
@@ -41,6 +47,7 @@ jobs:
           fetch-depth: 0
 
       - name: Bundle freshness — src changes must rebuild the committed bundle
+        working-directory: .
         # The built bundle (dist/) is committed and published as-is by
         # Cloudflare (no CF build step), so a change that
         # edits src/ but forgets `npm run build` + commit ships STALE JS
@@ -74,6 +81,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
+          cache-dependency-path: src/package-lock.json
 
       - run: npm ci
 
@@ -127,7 +135,7 @@ jobs:
         run: npm run verify:perf
 
       - name: Bundle size budget (gzipped main bundle)
-        # Hard cap on `dist/assets/app-*.js` gzipped size — see the `size-limit` block in `package.json`
+        # Hard cap on `dist/assets/app-*.js` gzipped size — see the `size-limit` block in `src/package.json`
         # for the current limit. A PR that doubles the bundle (lazy chunks
         # added back to the main chunk, a heavy dep imported eagerly,
         # etc.) goes red instead of silently shipping. Bump the limit in
@@ -139,13 +147,18 @@ jobs:
         # unused devDependencies. Now a HARD gate (was informational):
         # the `utils.js` barrel that produced the old false positives
         # was retired in favour of direct per-module imports, and
-        # `ignoreExportsUsedInFile` in package.json's `knip` block covers the legitimate
+        # `ignoreExportsUsedInFile` in src/package.json's `knip` block covers the legitimate
         # internal-only / test-hook exports — so the report is clean and
         # a newly-orphaned export or dead file goes red instead of
         # silently accumulating. If a finding is a genuine false
         # positive, tighten the `knip` block rather than re-adding
-        # continue-on-error.
-        run: npx --no-install knip
+        # continue-on-error. Two runs: knip reads only code under the
+        # folder that holds its package.json, so the web app is checked
+        # here in src/ and the Edge Functions by bin/knip-edge.sh, against
+        # supabase/knip.json.
+        run: |
+          npx --no-install knip
+          sh ../bin/knip-edge.sh
 
       - name: Dependency audit (high-severity only)
         # Surfaces supply-chain vulnerabilities. `--audit-level=high`

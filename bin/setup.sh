@@ -11,6 +11,7 @@ cd "$(git rev-parse --show-toplevel)"
 git config core.hooksPath bin/hooks
 git config --local ledger.path docs/LEDGER.md
 
-npm ci
+# The web app is an npm project in src/.
+(cd src && npm ci)
 
-echo "set up: the ledger hook (bin/hooks), the ledger path, node_modules"
+echo "set up: the ledger hook (bin/hooks), the ledger path, src/node_modules"

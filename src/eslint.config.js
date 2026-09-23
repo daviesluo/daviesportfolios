@@ -1,6 +1,6 @@
-// Flat ESLint config. It lives in src/ because src/ is all it lints, and
-// ESLint 10 looks for a config from each file's own folder upwards (knip
-// is told where it is in package.json). Deliberately narrow: the value
+// Flat ESLint config. It lives in src/, the web app's npm project and all
+// it lints; ESLint 10 looks for a config from each file's own folder
+// upwards, and knip finds it beside package.json. Deliberately narrow: the value
 // here is catching the bug classes tsc + knip don't — chiefly React hook
 // misuse (the `react-hooks` plugin), which is what shipped the React-#310
 // hook-ordering crash once. Stylistic / unused-locals rules are left to
@@ -21,7 +21,9 @@ export default [
   },
   js.configs.recommended,
   {
-    files: ['**/*.{js,jsx}'],
+    // .mjs: the browser tests in e2e/, Node scripts whose page callbacks
+    // run in the browser, hence both sets of globals.
+    files: ['**/*.{js,jsx,mjs}'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',

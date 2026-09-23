@@ -25,11 +25,10 @@ function computeAppVersion() {
 }
 const APP_VERSION = computeAppVersion();
 
-// This file lives in `src/`, the source root, so the root is its own
-// folder rather than a path read against wherever the command ran; the
-// npm scripts pass `--config src/vite.config.js`, since Vite and Vitest
-// only look for a config in the working directory. Vite emits the
-// production bundle to `dist/`. Cloudflare Pages publishes that one directory and nothing
+// This file lives in `src/`, the web app's npm project, where Vite and
+// Vitest look for it, and the root is its own folder rather than a path
+// read against wherever the command ran. Vite emits the production bundle
+// to the repository's `dist/`. Cloudflare Pages publishes that one directory and nothing
 // else — `wrangler.jsonc`'s `pages_build_output_dir`.
 //
 // It used to emit to the REPO ROOT, which is why the live site served

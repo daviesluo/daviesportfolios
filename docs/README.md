@@ -169,12 +169,12 @@ the case for the first live strategy in
 
 | Path | What's there |
 |---|---|
-| `src/` | The React client: the board, charts, panels, ledger tables and the Agents page, with its tests beside each file. |
+| `src/` | The web app, an npm project of its own: the React client (the board, charts, panels, ledger tables and the Agents page) with its tests beside each file, the browser tests in `src/e2e/`, and its settings (`package.json`, Vite, ESLint, TypeScript). |
 | `src/public/` | Static files copied into the build: Cloudflare's `_headers` and `robots.txt`. |
 | `supabase/functions/` | The Edge Functions: `auth`, `data`, `prices`, `chart`, `fundamentals`, `trading212`, `overnight-fetch`, `overnight-record`, `snapshot-record`, `ops-error` and `agents`, plus `_shared/`. Each has its tests beside it. |
 | `supabase/migrations/` | The database schema, applied by CI in order. |
 | `dist/` | The built site. Committed, and served as it is by Cloudflare Pages. |
-| `bin/` | `setup.sh` for a new clone, `gates.sh` for every check CI runs, the browser tests (`app-sweep.mjs`, `verify-perf-matrix.mjs`) and the ledger's commit hook. |
+| `bin/` | `setup.sh` for a new clone, `gates.sh` for every check CI runs, `knip-edge.sh` for the Edge Functions' dead-code check, and the ledger's commit hook. |
 | `docs/` | The user guide, the full system map, the agents research, screenshots and the diagram. |
 | `.github/` | CI workflows, the security policy and the PR template. |
 | `docs/LEDGER.md` | The running work log: what's in flight and what happened, newest first. |
@@ -187,9 +187,9 @@ the board is in [`docs/guide.md`](guide.md).
 ## Run it locally
 
 ```sh
-sh bin/setup.sh      # the ledger hook, npm ci
-npm run dev          # http://localhost:5173
-sh bin/gates.sh      # everything CI checks
+sh bin/setup.sh          # the ledger hook, and npm ci in src/
+sh bin/gates.sh          # everything CI checks
+cd src && npm run dev    # http://localhost:5173
 ```
 
 The client talks to the production Supabase project, so the board needs

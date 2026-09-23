@@ -21,16 +21,15 @@
 //                 (2900-2500)/2500 = +16.00%, rebased from its own first
 //                 point which is already 0.
 //
-// Not a gate. It reads the real clock (app-sweep.mjs pins its own), and it
-// once reported 18 failures in 60 cases that were never explained, so it
-// cannot gate anything until its clock is pinned too. Run it by hand after
-// a chart change:
+// A hard CI gate since 2026-09-23 (check.yml's matrix step). Its clock is
+// pinned below, so it gives the same answer at any hour, and it refuses an
+// instant its fixture cannot serve. Run it from src/ after a chart change:
 //
-//   npm run build
-//   node bin/verify-perf-matrix.mjs            # serves dist/
+//   npm run build && npm run verify:perf
 //
-// Usage: node bin/verify-perf-matrix.mjs [path to dist/]. Chromium comes
-// from Playwright, or from PLAYWRIGHT_CHROMIUM_PATH, as in app-sweep.mjs.
+// Usage: node e2e/perf-matrix.mjs [path to dist/]; the default is the
+// repository's dist/. Chromium comes from Playwright, or from
+// PLAYWRIGHT_CHROMIUM_PATH, as in app-sweep.mjs.
 
 import http from 'node:http';
 import fs from 'node:fs';
@@ -53,7 +52,7 @@ if (!Number.isFinite(NOW_MS)) throw new Error(`PERF_MATRIX_CLOCK is not a date: 
 // Absolute, always: the path-traversal guard below compares the resolved
 // file against ROOT with `startsWith`.
 const ROOT = path.resolve(
-  process.argv[2] || path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'dist'));
+  process.argv[2] || path.join(path.dirname(new URL(import.meta.url).pathname), '..', '..', 'dist'));
 const PORT = 8931;
 
 const MIME = {

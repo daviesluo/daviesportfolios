@@ -451,7 +451,7 @@ Tests sit beside the module they cover, as `<name>.test.js` or
 | `styles.css` | Every style, in one sheet. |
 | `data.js` | A demo portfolio with made-up share counts, shown only when the real one cannot load. |
 | `public/_headers`, `public/robots.txt` | Copied into `dist/` as they are: Cloudflare's cache and security headers, and a site-wide noindex. |
-| `vite.config.js` | The build: React, the PWA service worker, output to `dist/`, the build stamp, and Vitest's settings. The npm scripts pass `--config src/vite.config.js`. |
+| `vite.config.js` | The build: React, the PWA service worker, output to `dist/`, the build stamp, and Vitest's settings. |
 | `eslint.config.js`, `test_setup.js` | The lint rules for `src/`, and the Vitest setup that adds the DOM matchers. |
 
 #### Portfolio and ledger
@@ -616,15 +616,16 @@ before touching migration state.
 
 | File | What it does |
 |---|---|
-| `package.json` | Scripts, dependencies, and the knip and size-limit settings. |
-| `tsconfig.json` | Type-checks the JavaScript through JSDoc (`checkJs`, `strictNullChecks`). |
+| `src/package.json` | The web app's npm project: scripts, dependencies, and the knip and size-limit settings. Every npm command runs in `src/`. |
+| `src/tsconfig.json` | Type-checks the JavaScript through JSDoc (`checkJs`, `strictNullChecks`). |
+| `src/.nvmrc` | Node 22. |
+| `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 208 checks. |
+| `src/e2e/perf-matrix.mjs` | The second browser test CI runs: the performance panel in two views, five ranges, three data states and two books, 60 cases against answers worked out by hand, clock pinned. |
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |
-| `.nvmrc` | Node 22. |
 | `dist/` | The built site, committed and published as it is. |
-| `bin/setup.sh` | One-time setup for a clone: the ledger hook, the ledger path, `npm ci`. |
+| `bin/setup.sh` | One-time setup for a clone: the ledger hook, the ledger path, `npm ci` in `src/`. |
 | `bin/gates.sh` | Every CI gate, in CI's order. |
-| `bin/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 208 checks. |
-| `bin/verify-perf-matrix.mjs` | The second browser test CI runs: the performance panel in two views, five ranges, three data states and two books, 60 cases against answers worked out by hand, clock pinned. |
+| `bin/knip-edge.sh`, `supabase/knip.json` | knip for the Edge Functions. knip reads only code under the folder holding its `package.json`, which is `src/`, so the functions are checked in a scratch copy against their own settings. |
 | `bin/hooks/pre-commit` | The ledger's commit hook. |
 | `.github/workflows/check.yml` | On every push: bundle freshness, type-check, lint, tests, build, both browser tests, bundle size, dead code, the audit. |
 | `.github/workflows/edge-functions.yml` | Checks and tests the functions, and deploys the ones that changed. |
@@ -698,21 +699,24 @@ and a Cloudflare Pages account (optional, only for deploys).
 ```sh
 git clone https://github.com/daviesluo/daviesportfolios
 cd daviesportfolios
-sh bin/setup.sh          # the ledger hook, the ledger path, npm ci
-npm run dev              # Vite dev server at http://localhost:5173
+sh bin/setup.sh          # the ledger hook, the ledger path, npm ci in src/
 sh bin/gates.sh          # every gate below, in CI's order
 
+cd src                   # the web app is an npm project here
+npm run dev              # Vite dev server at http://localhost:5173
 npm test                 # Vitest: unit and component tests (jsdom)
 npm run typecheck        # tsc --noEmit with checkJs + strictNullChecks
 npm run lint             # ESLint (react-hooks bug rules)
 npm run build            # production bundle into dist/
 npm run verify:browser   # browser sweep of the built bundle (needs Chromium)
 npm run verify:perf      # the performance panel's 60-case matrix (needs Chromium)
-npx knip                 # dead code and unused exports
+npx knip                 # dead code and unused exports, the web app
+sh ../bin/knip-edge.sh   # the same for the Edge Functions
 npx size-limit           # gzipped main-bundle budget
 npm audit --audit-level=high --omit=dev   # supply-chain check on shipped deps
 
-# Edge Functions (Deno); CI runs the same (its deno test adds --no-check)
+# Edge Functions (Deno), from the root; CI runs the same (its deno test adds --no-check)
+cd ..
 deno check --quiet supabase/functions/
 deno test --allow-env supabase/functions/
 ```
@@ -822,7 +826,7 @@ Cloudflare Pages → Connect to Git → pick your fork → set:
 
 This repo commits its built output to `dist/` (see `.gitignore`'s note),
 so Cloudflare serves that directory **as-is** with no build step. You run
-`npm run build` locally and commit the result before pushing (CI's bundle
+`npm run build` in `src/` and commit the result before pushing (CI's bundle
 check, below, fails the build if you forget). Don't set a CF build command
 — if CF rebuilt on its own it would produce a third, possibly-divergent
 copy of the bundle.

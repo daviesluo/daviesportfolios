@@ -1,6 +1,6 @@
 # Dependabot config — weekly updates for npm + GitHub Actions.
 #
-# npm: React / Vite / Vitest / Workbox / idb-keyval all sit here.
+# npm: the web app in src/ — React / Vite / Vitest / Workbox / idb-keyval.
 # Weekly cadence (not daily) keeps the PR volume tractable for a
 # solo project. `open-pull-requests-limit: 5` caps the inbox in
 # case a big-bang upgrade week lands.
@@ -11,7 +11,7 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: "/"
+    directory: "/src"
     schedule:
       interval: weekly
       day: monday

@@ -36,9 +36,10 @@ Codex (`@codex` only reviews PRs).
 
 **All gates green, every time.** `npm test`, `npm run typecheck`,
 `npm run build`, plus `npm run lint`, `npx knip` and `npx size-limit`
-(all three are hard CI gates), plus `npx deno test --allow-env
-supabase/functions/` when an Edge Function changed. `sh bin/gates.sh`
-runs every one of them in CI's order. Green means green — he will
+(all three are hard CI gates) — in `src/`, the web app's npm project —
+plus `npx deno test --allow-env supabase/functions/` when an Edge
+Function changed. `sh bin/gates.sh` runs every one of them in CI's
+order, from anywhere in the repository. Green means green — he will
 notice a red main.
 
 **The docs are part of the change**, not a follow-up: a file, function,
@@ -480,7 +481,7 @@ Read these as a checklist before pushing.
   target agreed before rewriting the algorithm behind it. An
   aspect-ratio number improving is not him liking it more.
 - **Running the browser sweep against a stale bundle.** It serves the
-  COMMITTED bundle from the repo root, so without `npm run build` first
+  COMMITTED bundle in `dist/`, so without `npm run build` first
   it tests the previous commit. Cost most of an hour chasing a "3M is
   still drawing daily bars" that had already been fixed. Build, then
   sweep — every time.
