@@ -1,0 +1,2127 @@
+{
+ "provenance": {
+  "endpoint": "POST https://flmvxigozjuizpckllvk.supabase.co/functions/v1/agents?action=jev (read-only: asks the model, places nothing, writes nothing)",
+  "question": {
+   "version": "v2",
+   "kind": "trend-4h",
+   "source": "jevQuestionsV2 in supabase/functions/_shared/agents_strategy.ts, first deployed 2026-09-23 00:20 UTC (commit 6d2bfd0)"
+  },
+  "requestedAt": "2026-09-23T00:21:28Z",
+  "requests": [
+   {
+    "id": 27085,
+    "table": "net._http_response",
+    "status": 200,
+    "states": 45,
+    "calls": 225,
+    "costUsd": 0.0080073
+   },
+   {
+    "id": 27086,
+    "table": "net._http_response",
+    "status": 200,
+    "states": 45,
+    "calls": 225,
+    "costUsd": 0.00802242
+   }
+  ],
+  "transport": "openrouter",
+  "provider": "openrouter",
+  "model": "typesafe/jev-1.13-20260917",
+  "repeats": 5,
+  "states": 90,
+  "calls": 450,
+  "costUsd": 0.01602972,
+  "noAnswers": 0,
+  "echoFailures": 0,
+  "replyErrors": 0,
+  "fixedFields": {
+   "trend_4h": "up",
+   "breakout_4h": "above_range",
+   "position": "flat",
+   "unrealised": "none",
+   "time_in_position": "none",
+   "drawdown_from_high": "none"
+  },
+  "control": {
+   "what": "The same 90 states asked once each with the v1 wording in the same minute (request 27087, 90 calls, $0.0025). Every answer sits inside the range the 2026-09-22 measurement recorded for its state (jev_answers.json): weak 0.04-0.14, moderate or strong with low or normal volatility and positive momentum 0.94-0.97, unknown momentum 0.10-0.21, high volatility 0.54-0.63. The model did not move between the two measurements; the difference between the two files is the wording."
+  },
+  "extractedAt": "2026-09-23 (net._http_response is pruned after about six hours; this file is the only copy)",
+  "integrity": {
+   "canonicalMd5": "671933ab836c2b952aab92217c76dd9c",
+   "canonicalForm": "one line per state in (request id, result index) order: request|index|symbol|trend_strength|volatility|momentum_30d|healthy x5 comma-joined|caution x5 comma-joined|echoOk x5 comma-joined; lines joined by \\n with no trailing newline. The same md5 was computed in SQL over net._http_response (ids 27085, 27086) and over this file's rows."
+  }
+ },
+ "states": [
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "weak",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.56,
+    0.55,
+    0.55,
+    0.54,
+    0.54
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 0
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "weak",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.48,
+    0.49,
+    0.5,
+    0.5,
+    0.49
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 1
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "weak",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.57,
+    0.54,
+    0.55,
+    0.56,
+    0.55
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 2
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "weak",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.48,
+    0.5,
+    0.48,
+    0.51,
+    0.49
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 3
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "weak",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.39,
+    0.39,
+    0.39,
+    0.38,
+    0.4
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.01,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 4
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "weak",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.37,
+    0.36,
+    0.38,
+    0.36,
+    0.36
+   ],
+   "caution": [
+    1.01,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 5
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "moderate",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.71,
+    0.72,
+    0.73,
+    0.71,
+    0.72
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 6
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "moderate",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.68,
+    0.67,
+    0.68,
+    0.66,
+    0.68
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 7
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "moderate",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.75,
+    0.74,
+    0.74,
+    0.74,
+    0.74
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 8
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "moderate",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.69,
+    0.68,
+    0.69,
+    0.69,
+    0.69
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 9
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "moderate",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.53,
+    0.56,
+    0.54,
+    0.53,
+    0.53
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 10
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "moderate",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.51,
+    0.5,
+    0.5,
+    0.51,
+    0.5
+   ],
+   "caution": [
+    1.01,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 11
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "strong",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.75,
+    0.77,
+    0.77,
+    0.78,
+    0.78
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 12
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "strong",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.73,
+    0.75,
+    0.71,
+    0.74,
+    0.72
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 13
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "strong",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.78,
+    0.77,
+    0.77,
+    0.79,
+    0.78
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 14
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "strong",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.74,
+    0.73,
+    0.75,
+    0.74,
+    0.74
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 15
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "strong",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.6,
+    0.59,
+    0.59,
+    0.57,
+    0.57
+   ],
+   "caution": [
+    1.0,
+    1.01,
+    1.01,
+    1.0,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 16
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_strength": "strong",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.55,
+    0.54,
+    0.55,
+    0.57,
+    0.56
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.01,
+    1.01,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 17
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "weak",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.54,
+    0.53,
+    0.52,
+    0.52,
+    0.53
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 18
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "weak",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.47,
+    0.49,
+    0.47,
+    0.49,
+    0.47
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 19
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "weak",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.55,
+    0.53,
+    0.57,
+    0.54,
+    0.55
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 20
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "weak",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.48,
+    0.47,
+    0.49,
+    0.49,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 21
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "weak",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.39,
+    0.4,
+    0.4,
+    0.38,
+    0.4
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 22
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "weak",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.37,
+    0.35,
+    0.37,
+    0.38,
+    0.35
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 23
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "moderate",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.7,
+    0.71,
+    0.71,
+    0.72,
+    0.71
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 24
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "moderate",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.65,
+    0.65,
+    0.66,
+    0.67,
+    0.66
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 25
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "moderate",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.74,
+    0.74,
+    0.74,
+    0.73,
+    0.75
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 26
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "moderate",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.69,
+    0.68,
+    0.69,
+    0.7,
+    0.68
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 27
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "moderate",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.53,
+    0.53,
+    0.54,
+    0.54,
+    0.53
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 28
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "moderate",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.51,
+    0.5,
+    0.49,
+    0.51,
+    0.5
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 29
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "strong",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.77,
+    0.78,
+    0.76,
+    0.76,
+    0.76
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 30
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "strong",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.73,
+    0.75,
+    0.72,
+    0.72,
+    0.74
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 31
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "strong",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.78,
+    0.77,
+    0.78,
+    0.77,
+    0.77
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 32
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "strong",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.75,
+    0.74,
+    0.74,
+    0.73,
+    0.75
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 33
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "strong",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.6,
+    0.62,
+    0.58,
+    0.6,
+    0.58
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 34
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_strength": "strong",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.58,
+    0.56,
+    0.56,
+    0.57,
+    0.56
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 35
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "weak",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.53,
+    0.53,
+    0.52,
+    0.53,
+    0.53
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 36
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "weak",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.47,
+    0.49,
+    0.47,
+    0.48,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 37
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "weak",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.53,
+    0.53,
+    0.53,
+    0.54,
+    0.53
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 38
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "weak",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.48,
+    0.51,
+    0.48,
+    0.48,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 39
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "weak",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.4,
+    0.41,
+    0.4,
+    0.38,
+    0.39
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 40
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "weak",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.38,
+    0.37,
+    0.37,
+    0.36,
+    0.36
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 41
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "moderate",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.71,
+    0.72,
+    0.71,
+    0.71,
+    0.71
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 42
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "moderate",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.67,
+    0.65,
+    0.67,
+    0.66,
+    0.65
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 43
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "moderate",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.73,
+    0.74,
+    0.73,
+    0.74,
+    0.74
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27085,
+   "index": 44
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "moderate",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.68,
+    0.7,
+    0.66,
+    0.68,
+    0.67
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 0
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "moderate",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.53,
+    0.54,
+    0.55,
+    0.54,
+    0.55
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 1
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "moderate",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.5,
+    0.52,
+    0.49,
+    0.52,
+    0.5
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 2
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "strong",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.77,
+    0.76,
+    0.77,
+    0.77,
+    0.77
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 3
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "strong",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.73,
+    0.74,
+    0.73,
+    0.72,
+    0.74
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 4
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "strong",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.79,
+    0.78,
+    0.78,
+    0.78,
+    0.78
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 5
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "strong",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.74,
+    0.74,
+    0.75,
+    0.75,
+    0.74
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 6
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "strong",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.58,
+    0.61,
+    0.58,
+    0.58,
+    0.59
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 7
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_strength": "strong",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.57,
+    0.55,
+    0.58,
+    0.57,
+    0.57
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.01,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 8
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "weak",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.52,
+    0.52,
+    0.55,
+    0.52,
+    0.51
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 9
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "weak",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.48,
+    0.48,
+    0.47,
+    0.47,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 10
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "weak",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.56,
+    0.53,
+    0.54,
+    0.54,
+    0.53
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 11
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "weak",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.49,
+    0.49,
+    0.5,
+    0.49,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 12
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "weak",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.39,
+    0.39,
+    0.41,
+    0.4,
+    0.39
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 13
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "weak",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.37,
+    0.37,
+    0.36,
+    0.36,
+    0.37
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 14
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "moderate",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.71,
+    0.71,
+    0.71,
+    0.71,
+    0.7
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 15
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "moderate",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.67,
+    0.67,
+    0.67,
+    0.67,
+    0.65
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 16
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "moderate",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.75,
+    0.75,
+    0.74,
+    0.74,
+    0.72
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 17
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "moderate",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.69,
+    0.68,
+    0.68,
+    0.69,
+    0.69
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 18
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "moderate",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.54,
+    0.54,
+    0.56,
+    0.54,
+    0.56
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 19
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "moderate",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.5,
+    0.52,
+    0.53,
+    0.52,
+    0.53
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 20
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "strong",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.78,
+    0.8,
+    0.77,
+    0.78,
+    0.77
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 21
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "strong",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.73,
+    0.74,
+    0.74,
+    0.75,
+    0.75
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 22
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "strong",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.8,
+    0.78,
+    0.78,
+    0.8,
+    0.79
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 23
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "strong",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.74,
+    0.74,
+    0.76,
+    0.74,
+    0.75
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 24
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "strong",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.59,
+    0.59,
+    0.61,
+    0.6,
+    0.59
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 25
+  },
+  {
+   "symbol": "AVAX/USD",
+   "trend_strength": "strong",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.56,
+    0.58,
+    0.59,
+    0.57,
+    0.58
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 26
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "weak",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.52,
+    0.53,
+    0.55,
+    0.54,
+    0.55
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 27
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "weak",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.49,
+    0.48,
+    0.49,
+    0.49,
+    0.49
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 28
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "weak",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.54,
+    0.54,
+    0.54,
+    0.54,
+    0.54
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 29
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "weak",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.48,
+    0.49,
+    0.49,
+    0.49,
+    0.47
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 30
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "weak",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.4,
+    0.38,
+    0.39,
+    0.38,
+    0.38
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 31
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "weak",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.36,
+    0.36,
+    0.36,
+    0.36,
+    0.37
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 32
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "moderate",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.7,
+    0.7,
+    0.71,
+    0.7,
+    0.71
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 33
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "moderate",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.66,
+    0.64,
+    0.65,
+    0.64,
+    0.65
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 34
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "moderate",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.71,
+    0.73,
+    0.72,
+    0.74,
+    0.73
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 35
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "moderate",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.68,
+    0.67,
+    0.67,
+    0.69,
+    0.67
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 36
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "moderate",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.53,
+    0.54,
+    0.54,
+    0.52,
+    0.52
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 37
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "moderate",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.51,
+    0.51,
+    0.51,
+    0.49,
+    0.49
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 38
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "strong",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.77,
+    0.77,
+    0.77,
+    0.76,
+    0.78
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 39
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "strong",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.75,
+    0.76,
+    0.76,
+    0.74,
+    0.75
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 40
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "strong",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.78,
+    0.78,
+    0.79,
+    0.78,
+    0.78
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 41
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "strong",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.73,
+    0.74,
+    0.74,
+    0.74,
+    0.74
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 42
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "strong",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.59,
+    0.57,
+    0.59,
+    0.59,
+    0.59
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 43
+  },
+  {
+   "symbol": "SUI/USD",
+   "trend_strength": "strong",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.54,
+    0.56,
+    0.56,
+    0.57,
+    0.54
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27086,
+   "index": 44
+  }
+ ]
+}

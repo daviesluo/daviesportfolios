@@ -4,10 +4,14 @@
 // show. Every case is closed-form: the answer is worked by hand first.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  applyFill, atrAt, buildSnapshot, ceilToStep, combineDecision, DEFAULT_TREND, FLAT, floorToStep, JEV_QUESTION_VERSION, jevQuestions,
+  applyFill, atrAt, buildSnapshot, ceilToStep, combineDecision, DEFAULT_TREND, FLAT, floorToStep, JEV_ENTER_MIN, JEV_QUESTION_VERSION, jevQuestions,
   jevQuestionsV1, jevQuestionsV2, paperFill, positionFromFills, priorRange, realisedVol, riskGate, ruleDecision, sizeBase, sma, stepDecimals, unrealisedUsd,
   type Candle, type Position, type Snapshot,
 } from "../_shared/agents_strategy.ts";
+// The real model's replies to the loop's own question (v2), every trend entry state five times — the measurement the
+// threshold was chosen from. Imported as a module, so the test needs no file permission.
+import answersV2 from "../../../docs/agents/backtests/jev_answers_v2.json" with { type: "json" };
+import answersV2Other from "../../../docs/agents/backtests/jev_answers_v2_other.json" with { type: "json" };
 
 const H4 = 4 * 3600e3;
 const bar = (i: number, close: number, spread = 1): Candle =>
@@ -402,4 +406,27 @@ Deno.test("jevQuestions v2 asks for the model's judgment, not a checklist strict
   assertEquals(jevQuestions(st, { version: "v1" }), jevQuestionsV1(st));
   assertEquals(jevQuestions(st, { version: "v2", kind: "trend-1h" }), jevQuestionsV2(st, "trend-1h"));
   assertEquals(jevQuestions(st), JEV_QUESTION_VERSION === "v1" ? jevQuestionsV1(st) : jevQuestionsV2(st));
+});
+
+Deno.test("the entry threshold decides every measured v2 trend state the same way on every call — never the coin flip v1's 0.60 was (reference §4.21)", () => {
+  assertEquals(JEV_QUESTION_VERSION, "v2");
+  assertEquals((answersV2.provenance as { question: { version: string } }).question.version, "v2");
+  const decide = (p: number) => combineDecision({ action: "enter", reason: "" }, { healthy: p, caution: 0, echoOk: true, provider: "openrouter" }).action;
+  const vetoed = new Set<string>();
+  for (const st of answersV2.states) {
+    const outcomes = new Set(st.healthy.map(decide));
+    assertEquals(outcomes.size, 1, `${st.symbol} ${st.trend_strength}|${st.volatility}|${st.momentum_30d}: replies ${st.healthy.join(", ")} straddle ${JEV_ENTER_MIN}`);
+    if (outcomes.has("hold")) vetoed.add(`${st.trend_strength}|${st.volatility}`);
+  }
+  // What the gate refuses on a trend entry: a weak trend in high volatility, the one state the model clearly calls a
+  // likely failure (0.35–0.41), and nothing else.
+  assertEquals([...vetoed], ["weak|high"]);
+  // trend-1h asks the same question on 1-hour bars and is decided the same way, state for state.
+  for (const st of answersV2Other["trend-1h"]) {
+    assertEquals(new Set(st.healthy.map(decide)).size, 1, `trend-1h ${st.symbol} ${st.trend_strength}|${st.volatility}|${st.momentum_30d}`);
+    assertEquals(decide(st.healthy[0]) === "hold", st.trend_strength === "weak" && st.volatility === "high");
+  }
+  // At v1's 0.60 the same replies straddle the threshold: the band that made the old gate a coin flip.
+  const straddle060 = answersV2.states.filter((st) => st.healthy.some((p) => p < 0.6) && st.healthy.some((p) => p >= 0.6)).length;
+  assert(straddle060 > 0);
 });

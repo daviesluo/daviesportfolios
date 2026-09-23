@@ -1,4 +1,5 @@
--- 0047: the first live row.
+-- 0048: the first live row. (Numbered 0047 until 2026-09-23, when `0047` became
+-- the Jev threshold migration; check the number is still free before moving it.)
 --
 -- DRAFT, and deliberately not under supabase/migrations/. Pushing a file
 -- there IS applying it (`.github/workflows/migrations.yml` runs
@@ -30,10 +31,10 @@
 --
 -- Measurement: a paper twin of the live row, on the SAME venue and the
 -- same rulebook, is the only thing that measures the live fill against
--- the paper assumption (the touch plus 9 bps). `trend-4h-kraken` cannot
--- do this — it measures Kraken's post-only fills. The difference between
+-- the paper assumption (the touch plus 9 bps). The difference between
 -- the two Revolut X rows on any bar they both trade IS the
 -- implementation shortfall, which nothing in the backtests could compute.
+-- (Kraken runs no row since `0046`; nothing else measures this.)
 --
 -- There is no simpler alternative worth taking. Flipping `trend-4h` in
 -- place was offered here until 2026-09-22 and is now struck: besides
@@ -93,7 +94,7 @@ values (
   'The live row. Same rulebook, coins, params and slot size as the paper `trend-4h`, which stays on as its control.',
   array['BTC/USD','ETH/USD','SOL/USD','AVAX/USD','SUI/USD'],
   100,
-  '{"fast":20,"slow":100,"breakoutUp":55,"breakoutDown":20,"atrN":14,"atrStop":3,"volN":42,"enterMin":0.6,"exitMax":0.3}'::jsonb,
+  '{"fast":20,"slow":100,"breakoutUp":55,"breakoutDown":20,"atrN":14,"atrStop":3,"volN":42,"enterMin":0.45,"exitMax":0.3}'::jsonb,
   'live'
 );
 

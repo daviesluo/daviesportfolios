@@ -180,21 +180,28 @@ that follow from that evidence, in short:
   caps follow the BOOK while `riskGate` keeps the LABEL. Clearing
   `live_confirmed_at` stops live BUYS only; exits stay armed, and
   `global_pause` is the one switch that outranks an exit. The go-live
-  migration is drafted at `docs/agents/0047_go_live.sql.draft` — a NEW
+  migration is drafted at `docs/agents/0048_go_live.sql.draft` — a NEW
   row `trend-4h-live`, with `trend-4h` kept paper as its same-venue
   control — and moving it into `supabase/migrations/` IS going live.
-- **The model's entry veto is now priced, and it does not earn its
-  place** (§4.21, re-priced 2026-09-22 on the real model's answers to all
-  90 entry states). Letting it veto takes the bear year from +8.0 % to
-  −1.0 % and the sideways year from −7.8 % to −2.3 %; a random veto of the
-  same size does as well on the worst window in 30–43 % of draws, and the
-  weak-trend clause of its question written as code fails the same bar.
-  The `healthy_trend` question's own wording demands `trend_strength`
-  moderate/strong and `momentum_30d` positive — stricter than the
-  rulebook — and 0.60 sits in the band where its high-volatility answers
-  are a coin flip. Recommended: `params.jevGate: false` (shadow — asked and
-  recorded, no vote) on the live row AND its paper control. Davies
-  decides; the go-live draft follows his choice.
+- **Jev gates entries with the v2 question at 0.45 (since 2026-09-23,
+  §4.21, migration `0047`).** The v1 question listed an "established
+  uptrend" checklist (trend_strength moderate/strong, momentum_30d
+  positive) that the model applied to the letter, and its 0.60 sat where
+  the model's answers were a coin flip. Davies rejected shadow mode ("that
+  retires Jev"): the fix was the configuration. v2 says what the rule
+  already checked, defines the words without saying what to conclude, and
+  asks whether the move looks more likely to continue than to fail; 0.45
+  was chosen from the model's measured replies (every weak-trend
+  high-volatility reply 0.35–0.41, every other 0.47+) before any backtest,
+  so every state is decided the same way on every call. Priced: A +8.0 →
+  +9.6, B +20.1 → +19.5, C +55.6 → +58.2, D −7.8 → −7.8 % — worst window
+  unchanged, A and C better in all four evaluations but within chance.
+  **Rules that follow:** a question states what the rule already checked
+  and never lists conditions the rulebook does not have; a threshold sits
+  in a band where the measured replies are deterministic
+  (`JEV_ENTER_MIN`, pinned against `backtests/jev_answers_v2.json`); a new
+  wording is measured on every entry state through `POST ?action=jev`
+  (`version`, `kind`) and priced before the loop asks it.
 - **A test double must be at least as strict as what it stands in for.**
   Twice on 2026-09-22 a stub looser than production certified a failure:
   the in-memory db ignored `agent_orders_mode_check` (a paused row's exit

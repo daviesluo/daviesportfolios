@@ -530,8 +530,16 @@ export function ruleFor(
  */
 export type JevQuestionVersion = "v1" | "v2";
 export const JEV_QUESTION_VERSIONS: readonly JevQuestionVersion[] = ["v1", "v2"];
-/** The wording the loop asks today. */
-export const JEV_QUESTION_VERSION: JevQuestionVersion = "v1";
+/** The wording the loop asks today (`v2` since 2026-09-23, reference §4.21). */
+export const JEV_QUESTION_VERSION: JevQuestionVersion = "v2";
+/**
+ * The entry threshold for that wording: `combineDecision` vetoes when P < this. Chosen from the measured answers alone,
+ * before any backtest (reference §4.21; `docs/agents/backtests/jev_answers_v2.json`): asked all ninety trend entry
+ * states five times, the model put every reply for a weak trend in high volatility at 0.35–0.41 and every other reply at
+ * 0.47 or above, so anything in (0.41, 0.47] decides every state the same way on every call. 0.45 sits in that band.
+ * v1's 0.60 sat inside the band where its high-volatility answers were a coin flip.
+ */
+export const JEV_ENTER_MIN = 0.45;
 
 const cautionQuestion = {
   type: "score" as const,
@@ -628,7 +636,7 @@ export type JevView = { healthy: number | null; caution: number | null; echoOk: 
 export function combineDecision(
   rule: { action: Action; reason: string },
   jev: JevView,
-  thresholds: { enterMin: number; cautionExit: number } = { enterMin: 0.6, cautionExit: 1.75 },
+  thresholds: { enterMin: number; cautionExit: number } = { enterMin: JEV_ENTER_MIN, cautionExit: 1.75 },
   gate = true,
 ): { action: Action; reason: string; jevSaid: string } {
   const said = jev.healthy == null ? `${jev.provider}: no answer`

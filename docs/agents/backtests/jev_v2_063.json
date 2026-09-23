@@ -1,0 +1,6815 @@
+{
+ "study": "the Jev veto on MEASURED answers — the live row's three possible configurations, (i) rule with the model in shadow, (ii) rule ∧ the model as it runs, (iii) rule + the prompt's weak-trend clause as code, on four windows × the four evaluations §3.19 requires, each against a random veto at the same rate",
+ "row": {
+  "row": "trend-4h",
+  "venue": "revx",
+  "symbols": [
+   "BTC/USD",
+   "ETH/USD",
+   "SOL/USD",
+   "AVAX/USD",
+   "SUI/USD"
+  ],
+  "capitalUsd": 100,
+  "slots": 5
+ },
+ "thresholds": {
+  "enterMin": 0.63,
+  "cautionExit": 1.75,
+  "source": "--enter-min 0.63: the threshold configuration (ii) is priced at for the wording in --answers (v2); cautionExit is tick.ts's literal"
+ },
+ "wording": {
+  "version": "v2",
+  "note": "The band descriptions under measuredSurface.bands, the caveats and liveRecord were written for the v1 wording and its 0.60; for this wording read thresholdScan, which is computed from these answers alone. (iii) is v1's weak-trend clause as code, kept as a reference arm."
+ },
+ "thresholdScan": {
+  "note": "per threshold: states whose five replies are ALL under it (vetoed every time), SOME under it (a coin flip) and NONE under it (never vetoed); combineDecision vetoes when P < enterMin",
+  "deterministicOnAll90": [
+   0.3,
+   0.31,
+   0.32,
+   0.33,
+   0.34,
+   0.35,
+   0.42,
+   0.43,
+   0.44,
+   0.45,
+   0.46,
+   0.47,
+   0.63,
+   0.64,
+   0.81,
+   0.82,
+   0.83,
+   0.84,
+   0.85
+  ],
+  "rows": [
+   {
+    "enterMin": 0.3,
+    "historical": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 45
+    },
+    "all": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 90
+    },
+    "vetoedCells": [],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.31,
+    "historical": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 45
+    },
+    "all": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 90
+    },
+    "vetoedCells": [],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.32,
+    "historical": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 45
+    },
+    "all": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 90
+    },
+    "vetoedCells": [],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.33,
+    "historical": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 45
+    },
+    "all": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 90
+    },
+    "vetoedCells": [],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.34,
+    "historical": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 45
+    },
+    "all": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 90
+    },
+    "vetoedCells": [],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.35,
+    "historical": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 45
+    },
+    "all": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 90
+    },
+    "vetoedCells": [],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.36,
+    "historical": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 45
+    },
+    "all": {
+     "vetoed": 0,
+     "straddle": 1,
+     "passed": 89
+    },
+    "vetoedCells": [],
+    "straddleCells": [
+     "weak|high|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.37,
+    "historical": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 45
+    },
+    "all": {
+     "vetoed": 0,
+     "straddle": 5,
+     "passed": 85
+    },
+    "vetoedCells": [],
+    "straddleCells": [
+     "weak|high|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.38,
+    "historical": {
+     "vetoed": 0,
+     "straddle": 0,
+     "passed": 45
+    },
+    "all": {
+     "vetoed": 2,
+     "straddle": 3,
+     "passed": 85
+    },
+    "vetoedCells": [
+     "weak|high|unknown"
+    ],
+    "straddleCells": [
+     "weak|high|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.39,
+    "historical": {
+     "vetoed": 0,
+     "straddle": 4,
+     "passed": 41
+    },
+    "all": {
+     "vetoed": 5,
+     "straddle": 4,
+     "passed": 81
+    },
+    "vetoedCells": [
+     "weak|high|unknown"
+    ],
+    "straddleCells": [
+     "weak|high|positive"
+    ]
+   },
+   {
+    "enterMin": 0.4,
+    "historical": {
+     "vetoed": 0,
+     "straddle": 5,
+     "passed": 40
+    },
+    "all": {
+     "vetoed": 5,
+     "straddle": 5,
+     "passed": 80
+    },
+    "vetoedCells": [
+     "weak|high|unknown"
+    ],
+    "straddleCells": [
+     "weak|high|positive"
+    ]
+   },
+   {
+    "enterMin": 0.41,
+    "historical": {
+     "vetoed": 3,
+     "straddle": 2,
+     "passed": 40
+    },
+    "all": {
+     "vetoed": 8,
+     "straddle": 2,
+     "passed": 80
+    },
+    "vetoedCells": [
+     "weak|high|positive",
+     "weak|high|unknown"
+    ],
+    "straddleCells": [
+     "weak|high|positive"
+    ]
+   },
+   {
+    "enterMin": 0.42,
+    "historical": {
+     "vetoed": 5,
+     "straddle": 0,
+     "passed": 40
+    },
+    "all": {
+     "vetoed": 10,
+     "straddle": 0,
+     "passed": 80
+    },
+    "vetoedCells": [
+     "weak|high|positive",
+     "weak|high|unknown"
+    ],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.43,
+    "historical": {
+     "vetoed": 5,
+     "straddle": 0,
+     "passed": 40
+    },
+    "all": {
+     "vetoed": 10,
+     "straddle": 0,
+     "passed": 80
+    },
+    "vetoedCells": [
+     "weak|high|positive",
+     "weak|high|unknown"
+    ],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.44,
+    "historical": {
+     "vetoed": 5,
+     "straddle": 0,
+     "passed": 40
+    },
+    "all": {
+     "vetoed": 10,
+     "straddle": 0,
+     "passed": 80
+    },
+    "vetoedCells": [
+     "weak|high|positive",
+     "weak|high|unknown"
+    ],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.45,
+    "historical": {
+     "vetoed": 5,
+     "straddle": 0,
+     "passed": 40
+    },
+    "all": {
+     "vetoed": 10,
+     "straddle": 0,
+     "passed": 80
+    },
+    "vetoedCells": [
+     "weak|high|positive",
+     "weak|high|unknown"
+    ],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.46,
+    "historical": {
+     "vetoed": 5,
+     "straddle": 0,
+     "passed": 40
+    },
+    "all": {
+     "vetoed": 10,
+     "straddle": 0,
+     "passed": 80
+    },
+    "vetoedCells": [
+     "weak|high|positive",
+     "weak|high|unknown"
+    ],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.47,
+    "historical": {
+     "vetoed": 5,
+     "straddle": 0,
+     "passed": 40
+    },
+    "all": {
+     "vetoed": 10,
+     "straddle": 0,
+     "passed": 80
+    },
+    "vetoedCells": [
+     "weak|high|positive",
+     "weak|high|unknown"
+    ],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.48,
+    "historical": {
+     "vetoed": 5,
+     "straddle": 0,
+     "passed": 40
+    },
+    "all": {
+     "vetoed": 10,
+     "straddle": 5,
+     "passed": 75
+    },
+    "vetoedCells": [
+     "weak|high|positive",
+     "weak|high|unknown"
+    ],
+    "straddleCells": [
+     "weak|low|unknown",
+     "weak|normal|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.49,
+    "historical": {
+     "vetoed": 5,
+     "straddle": 0,
+     "passed": 40
+    },
+    "all": {
+     "vetoed": 11,
+     "straddle": 9,
+     "passed": 70
+    },
+    "vetoedCells": [
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|unknown"
+    ],
+    "straddleCells": [
+     "weak|low|unknown",
+     "weak|normal|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.5,
+    "historical": {
+     "vetoed": 5,
+     "straddle": 0,
+     "passed": 40
+    },
+    "all": {
+     "vetoed": 16,
+     "straddle": 7,
+     "passed": 67
+    },
+    "vetoedCells": [
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|unknown",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|high|unknown",
+     "weak|low|unknown",
+     "weak|normal|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.51,
+    "historical": {
+     "vetoed": 5,
+     "straddle": 0,
+     "passed": 40
+    },
+    "all": {
+     "vetoed": 18,
+     "straddle": 7,
+     "passed": 65
+    },
+    "vetoedCells": [
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|unknown",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|high|unknown",
+     "weak|normal|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.52,
+    "historical": {
+     "vetoed": 5,
+     "straddle": 1,
+     "passed": 39
+    },
+    "all": {
+     "vetoed": 23,
+     "straddle": 3,
+     "passed": 64
+    },
+    "vetoedCells": [
+     "moderate|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|unknown",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|high|unknown",
+     "weak|low|positive"
+    ]
+   },
+   {
+    "enterMin": 0.53,
+    "historical": {
+     "vetoed": 5,
+     "straddle": 5,
+     "passed": 35
+    },
+    "all": {
+     "vetoed": 24,
+     "straddle": 6,
+     "passed": 60
+    },
+    "vetoedCells": [
+     "moderate|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|unknown",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "weak|low|positive"
+    ]
+   },
+   {
+    "enterMin": 0.54,
+    "historical": {
+     "vetoed": 6,
+     "straddle": 10,
+     "passed": 29
+    },
+    "all": {
+     "vetoed": 26,
+     "straddle": 10,
+     "passed": 54
+    },
+    "vetoedCells": [
+     "moderate|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|high|positive",
+     "weak|low|positive",
+     "weak|normal|positive"
+    ]
+   },
+   {
+    "enterMin": 0.55,
+    "historical": {
+     "vetoed": 11,
+     "straddle": 9,
+     "passed": 25
+    },
+    "all": {
+     "vetoed": 31,
+     "straddle": 11,
+     "passed": 48
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|high|positive",
+     "strong|high|unknown",
+     "weak|low|positive",
+     "weak|normal|positive"
+    ]
+   },
+   {
+    "enterMin": 0.56,
+    "historical": {
+     "vetoed": 14,
+     "straddle": 6,
+     "passed": 25
+    },
+    "all": {
+     "vetoed": 34,
+     "straddle": 9,
+     "passed": 47
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|high|positive",
+     "strong|high|unknown",
+     "weak|low|positive",
+     "weak|normal|positive"
+    ]
+   },
+   {
+    "enterMin": 0.57,
+    "historical": {
+     "vetoed": 18,
+     "straddle": 2,
+     "passed": 25
+    },
+    "all": {
+     "vetoed": 38,
+     "straddle": 7,
+     "passed": 45
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "strong|high|unknown",
+     "weak|normal|positive"
+    ]
+   },
+   {
+    "enterMin": 0.58,
+    "historical": {
+     "vetoed": 20,
+     "straddle": 2,
+     "passed": 23
+    },
+    "all": {
+     "vetoed": 42,
+     "straddle": 5,
+     "passed": 43
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "strong|high|positive",
+     "strong|high|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.59,
+    "historical": {
+     "vetoed": 20,
+     "straddle": 4,
+     "passed": 21
+    },
+    "all": {
+     "vetoed": 44,
+     "straddle": 5,
+     "passed": 41
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "strong|high|positive",
+     "strong|high|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.6,
+    "historical": {
+     "vetoed": 21,
+     "straddle": 4,
+     "passed": 20
+    },
+    "all": {
+     "vetoed": 46,
+     "straddle": 4,
+     "passed": 40
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "strong|high|positive"
+    ]
+   },
+   {
+    "enterMin": 0.61,
+    "historical": {
+     "vetoed": 22,
+     "straddle": 3,
+     "passed": 20
+    },
+    "all": {
+     "vetoed": 47,
+     "straddle": 3,
+     "passed": 40
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "strong|high|positive"
+    ]
+   },
+   {
+    "enterMin": 0.62,
+    "historical": {
+     "vetoed": 24,
+     "straddle": 1,
+     "passed": 20
+    },
+    "all": {
+     "vetoed": 49,
+     "straddle": 1,
+     "passed": 40
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "strong|high|positive"
+    ]
+   },
+   {
+    "enterMin": 0.63,
+    "historical": {
+     "vetoed": 25,
+     "straddle": 0,
+     "passed": 20
+    },
+    "all": {
+     "vetoed": 50,
+     "straddle": 0,
+     "passed": 40
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.64,
+    "historical": {
+     "vetoed": 25,
+     "straddle": 0,
+     "passed": 20
+    },
+    "all": {
+     "vetoed": 50,
+     "straddle": 0,
+     "passed": 40
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.65,
+    "historical": {
+     "vetoed": 25,
+     "straddle": 0,
+     "passed": 20
+    },
+    "all": {
+     "vetoed": 50,
+     "straddle": 1,
+     "passed": 39
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|low|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.66,
+    "historical": {
+     "vetoed": 25,
+     "straddle": 0,
+     "passed": 20
+    },
+    "all": {
+     "vetoed": 50,
+     "straddle": 4,
+     "passed": 36
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|low|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.67,
+    "historical": {
+     "vetoed": 25,
+     "straddle": 0,
+     "passed": 20
+    },
+    "all": {
+     "vetoed": 51,
+     "straddle": 5,
+     "passed": 34
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|low|unknown",
+     "moderate|normal|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.68,
+    "historical": {
+     "vetoed": 25,
+     "straddle": 0,
+     "passed": 20
+    },
+    "all": {
+     "vetoed": 54,
+     "straddle": 3,
+     "passed": 33
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|low|unknown",
+     "moderate|normal|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.69,
+    "historical": {
+     "vetoed": 25,
+     "straddle": 0,
+     "passed": 20
+    },
+    "all": {
+     "vetoed": 55,
+     "straddle": 5,
+     "passed": 30
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|normal|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.7,
+    "historical": {
+     "vetoed": 25,
+     "straddle": 0,
+     "passed": 20
+    },
+    "all": {
+     "vetoed": 58,
+     "straddle": 2,
+     "passed": 30
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|unknown",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|normal|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.71,
+    "historical": {
+     "vetoed": 25,
+     "straddle": 3,
+     "passed": 17
+    },
+    "all": {
+     "vetoed": 60,
+     "straddle": 3,
+     "passed": 27
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|unknown",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|low|positive"
+    ]
+   },
+   {
+    "enterMin": 0.72,
+    "historical": {
+     "vetoed": 27,
+     "straddle": 4,
+     "passed": 14
+    },
+    "all": {
+     "vetoed": 62,
+     "straddle": 5,
+     "passed": 23
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|low|positive",
+     "moderate|normal|positive",
+     "strong|low|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.73,
+    "historical": {
+     "vetoed": 29,
+     "straddle": 3,
+     "passed": 13
+    },
+    "all": {
+     "vetoed": 64,
+     "straddle": 6,
+     "passed": 20
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|low|positive",
+     "moderate|normal|positive",
+     "strong|low|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.74,
+    "historical": {
+     "vetoed": 30,
+     "straddle": 4,
+     "passed": 11
+    },
+    "all": {
+     "vetoed": 65,
+     "straddle": 11,
+     "passed": 14
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|normal|positive",
+     "strong|low|unknown",
+     "strong|normal|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.75,
+    "historical": {
+     "vetoed": 32,
+     "straddle": 3,
+     "passed": 10
+    },
+    "all": {
+     "vetoed": 69,
+     "straddle": 11,
+     "passed": 10
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|positive",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "strong|low|unknown",
+     "strong|normal|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "moderate|normal|positive",
+     "strong|low|unknown",
+     "strong|normal|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.76,
+    "historical": {
+     "vetoed": 35,
+     "straddle": 1,
+     "passed": 9
+    },
+    "all": {
+     "vetoed": 78,
+     "straddle": 3,
+     "passed": 9
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|positive",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "strong|low|unknown",
+     "strong|normal|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "strong|low|positive",
+     "strong|low|unknown",
+     "strong|normal|unknown"
+    ]
+   },
+   {
+    "enterMin": 0.77,
+    "historical": {
+     "vetoed": 35,
+     "straddle": 4,
+     "passed": 6
+    },
+    "all": {
+     "vetoed": 80,
+     "straddle": 4,
+     "passed": 6
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|positive",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "strong|low|unknown",
+     "strong|normal|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "strong|low|positive"
+    ]
+   },
+   {
+    "enterMin": 0.78,
+    "historical": {
+     "vetoed": 36,
+     "straddle": 6,
+     "passed": 3
+    },
+    "all": {
+     "vetoed": 81,
+     "straddle": 6,
+     "passed": 3
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|positive",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "strong|low|positive",
+     "strong|low|unknown",
+     "strong|normal|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "strong|low|positive",
+     "strong|normal|positive"
+    ]
+   },
+   {
+    "enterMin": 0.79,
+    "historical": {
+     "vetoed": 40,
+     "straddle": 5,
+     "passed": 0
+    },
+    "all": {
+     "vetoed": 85,
+     "straddle": 5,
+     "passed": 0
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|positive",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "strong|low|positive",
+     "strong|low|unknown",
+     "strong|normal|positive",
+     "strong|normal|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "strong|low|positive",
+     "strong|normal|positive"
+    ]
+   },
+   {
+    "enterMin": 0.8,
+    "historical": {
+     "vetoed": 43,
+     "straddle": 2,
+     "passed": 0
+    },
+    "all": {
+     "vetoed": 88,
+     "straddle": 2,
+     "passed": 0
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|positive",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "strong|low|positive",
+     "strong|low|unknown",
+     "strong|normal|positive",
+     "strong|normal|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": [
+     "strong|low|positive",
+     "strong|normal|positive"
+    ]
+   },
+   {
+    "enterMin": 0.81,
+    "historical": {
+     "vetoed": 45,
+     "straddle": 0,
+     "passed": 0
+    },
+    "all": {
+     "vetoed": 90,
+     "straddle": 0,
+     "passed": 0
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|positive",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "strong|low|positive",
+     "strong|low|unknown",
+     "strong|normal|positive",
+     "strong|normal|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.82,
+    "historical": {
+     "vetoed": 45,
+     "straddle": 0,
+     "passed": 0
+    },
+    "all": {
+     "vetoed": 90,
+     "straddle": 0,
+     "passed": 0
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|positive",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "strong|low|positive",
+     "strong|low|unknown",
+     "strong|normal|positive",
+     "strong|normal|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.83,
+    "historical": {
+     "vetoed": 45,
+     "straddle": 0,
+     "passed": 0
+    },
+    "all": {
+     "vetoed": 90,
+     "straddle": 0,
+     "passed": 0
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|positive",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "strong|low|positive",
+     "strong|low|unknown",
+     "strong|normal|positive",
+     "strong|normal|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.84,
+    "historical": {
+     "vetoed": 45,
+     "straddle": 0,
+     "passed": 0
+    },
+    "all": {
+     "vetoed": 90,
+     "straddle": 0,
+     "passed": 0
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|positive",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "strong|low|positive",
+     "strong|low|unknown",
+     "strong|normal|positive",
+     "strong|normal|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": []
+   },
+   {
+    "enterMin": 0.85,
+    "historical": {
+     "vetoed": 45,
+     "straddle": 0,
+     "passed": 0
+    },
+    "all": {
+     "vetoed": 90,
+     "straddle": 0,
+     "passed": 0
+    },
+    "vetoedCells": [
+     "moderate|high|positive",
+     "moderate|high|unknown",
+     "moderate|low|positive",
+     "moderate|low|unknown",
+     "moderate|normal|positive",
+     "moderate|normal|unknown",
+     "strong|high|positive",
+     "strong|high|unknown",
+     "strong|low|positive",
+     "strong|low|unknown",
+     "strong|normal|positive",
+     "strong|normal|unknown",
+     "weak|high|positive",
+     "weak|high|unknown",
+     "weak|low|positive",
+     "weak|low|unknown",
+     "weak|normal|positive",
+     "weak|normal|unknown"
+    ],
+    "straddleCells": []
+   }
+  ]
+ },
+ "replay": {
+  "mode": "measured",
+  "answersFile": "docs/agents/backtests/jev_answers_v2.json",
+  "answersSha256": "1ace71bad0361962b571883d0fda0c84c7343fa9f2e10d885335a3e84bdb3011",
+  "answersProvenance": {
+   "endpoint": "POST https://flmvxigozjuizpckllvk.supabase.co/functions/v1/agents?action=jev (read-only: asks the model, places nothing, writes nothing)",
+   "question": {
+    "version": "v2",
+    "kind": "trend-4h",
+    "source": "jevQuestionsV2 in supabase/functions/_shared/agents_strategy.ts, first deployed 2026-09-23 00:20 UTC (commit 6d2bfd0)"
+   },
+   "requestedAt": "2026-09-23T00:21:28Z",
+   "requests": [
+    {
+     "id": 27085,
+     "table": "net._http_response",
+     "status": 200,
+     "states": 45,
+     "calls": 225,
+     "costUsd": 0.0080073
+    },
+    {
+     "id": 27086,
+     "table": "net._http_response",
+     "status": 200,
+     "states": 45,
+     "calls": 225,
+     "costUsd": 0.00802242
+    }
+   ],
+   "transport": "openrouter",
+   "provider": "openrouter",
+   "model": "typesafe/jev-1.13-20260917",
+   "repeats": 5,
+   "states": 90,
+   "calls": 450,
+   "costUsd": 0.01602972,
+   "noAnswers": 0,
+   "echoFailures": 0,
+   "replyErrors": 0,
+   "fixedFields": {
+    "trend_4h": "up",
+    "breakout_4h": "above_range",
+    "position": "flat",
+    "unrealised": "none",
+    "time_in_position": "none",
+    "drawdown_from_high": "none"
+   },
+   "control": {
+    "what": "The same 90 states asked once each with the v1 wording in the same minute (request 27087, 90 calls, $0.0025). Every answer sits inside the range the 2026-09-22 measurement recorded for its state (jev_answers.json): weak 0.04-0.14, moderate or strong with low or normal volatility and positive momentum 0.94-0.97, unknown momentum 0.10-0.21, high volatility 0.54-0.63. The model did not move between the two measurements; the difference between the two files is the wording."
+   },
+   "extractedAt": "2026-09-23 (net._http_response is pruned after about six hours; this file is the only copy)",
+   "integrity": {
+    "canonicalMd5": "671933ab836c2b952aab92217c76dd9c",
+    "canonicalForm": "one line per state in (request id, result index) order: request|index|symbol|trend_strength|volatility|momentum_30d|healthy x5 comma-joined|caution x5 comma-joined|echoOk x5 comma-joined; lines joined by \\n with no trailing newline. The same md5 was computed in SQL over net._http_response (ids 27085, 27086) and over this file's rows."
+   }
+  },
+  "states": 90,
+  "replies": 450,
+  "draw": "at every entry signal where tick.ts would ask the model (flat, rulebook says enter, not cooling down), one of the five replies the real model gave to that exact state, uniformly, through the live combineDecision",
+  "draws": 2000,
+  "nullDraws": 1000,
+  "calibration": {
+   "drawsPerStep": 100,
+   "bisectionSteps": 10
+  },
+  "plateauDrawsPerGridPoint": 100,
+  "sideArmDraws": 500,
+  "seeds": "mulberry32, seeded by FNV-1a of (purpose, evaluation, window, coin, draw) — see seedOf"
+ },
+ "caveats": [
+  "The answers are today's model (typesafe/jev-1.13-20260917 through OpenRouter, measured 2026-09-22 18:29 UTC). Asking it about a state computed from 2023 candles is legitimate — the state is ten categorical words and carries no date — but it is what the model says NOW, not what it would have said then, and an alias move changes it.",
+  "Five replies per state. Where they straddle 0.60 (the high-volatility states) a coin's veto probability is known to within a fifth; `sensitivity.pooledReplies` re-runs (ii) with the 25 replies of each (strength, volatility, momentum) pooled across coins, and the verdict does not rest on the per-coin split.",
+  "Repeated calls are treated as independent draws, which is what the measurement shows (the same state flipped across calls seconds apart). If the provider cached answers per state, consecutive bars would be correlated and (ii) would behave more like a deterministic rule on each episode.",
+  "No missing answer and no echo failure was measured in 450 calls, and none is modelled; each would be a veto in production (§4.19 counted none in 137 live decisions).",
+  "The Kraken-tape and trail evaluations are near-duplicates of the primary one, not independent tests (§3.19); window D is the same on both tapes.",
+  "Fills are the next bar's open at the touch plus Revolut X's 9 bps; nothing here measures execution (the maker probe does)."
+ ],
+ "windows": {
+  "A": "parameters on the first two thirds, the LAST third out of sample (bear)",
+  "B": "parameters on the first third, the MIDDLE third out of sample (bull)",
+  "C": "the first third out of sample after 24 months of extended history (strong bull)",
+  "D": "the 12 months before the series out of sample (sideways)",
+  "ranking": "an arm is ranked by the WORST window it has; windows are never averaged (§3.11)"
+ },
+ "conditions": {
+  "list": [
+   "shipped·coinbase",
+   "shipped·kraken",
+   "trail·coinbase",
+   "trail·kraken"
+  ],
+  "primary": "shipped·coinbase",
+  "stopRules": {
+   "shipped": {
+    "maxLossPct": 0.08,
+    "atrStop": null,
+    "atrN": 14,
+    "reentryBars": 2
+   },
+   "trail": {
+    "maxLossPct": 0.08,
+    "atrStop": 3,
+    "atrN": 14,
+    "reentryBars": 2
+   }
+  },
+  "note": "§3.19: a change must beat the incumbent on its WORST window in all four evaluations; they are near-duplicates, and window D is identical on both tapes"
+ },
+ "data": [
+  {
+   "symbol": "BTC/USD",
+   "accepted": true,
+   "coinbaseSplice": {
+    "bars4h": 27298,
+    "first": "2013-10-06T20:00Z",
+    "last": "2026-09-20T00:00Z",
+    "spliceAt": "2023-08-22T03:00Z",
+    "overlapMedian4hBps": 1.83,
+    "overlapP95_4hBps": 6.876
+   },
+   "krakenTape": {
+    "bars4h": 27308,
+    "first": "2013-10-06T20:00Z",
+    "last": "2026-09-21T20:00Z"
+   },
+   "windows": {
+    "A": {
+     "scored": true,
+     "oosFrom": "2025-09-10T00:00Z",
+     "oosTo": "2026-09-20T00:00Z",
+     "oosDays": 375
+    },
+    "B": {
+     "scored": true,
+     "oosFrom": "2024-08-31T00:00Z",
+     "oosTo": "2025-09-09T20:00Z",
+     "oosDays": 374.8
+    },
+    "C": {
+     "scored": true,
+     "oosFrom": "2023-08-22T00:00Z",
+     "oosTo": "2024-08-30T20:00Z",
+     "oosDays": 374.8
+    },
+    "D": {
+     "scored": true,
+     "oosFrom": "2022-08-22T00:00Z",
+     "oosTo": "2023-08-21T20:00Z",
+     "oosDays": 364.8
+    }
+   },
+   "pricedOn": {
+    "coinbase": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ],
+    "kraken": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ]
+   },
+   "krakenDropped": {}
+  },
+  {
+   "symbol": "ETH/USD",
+   "accepted": true,
+   "coinbaseSplice": {
+    "bars4h": 23924,
+    "first": "2015-08-07T12:00Z",
+    "last": "2026-09-20T00:00Z",
+    "spliceAt": "2023-08-22T03:00Z",
+    "overlapMedian4hBps": 1.868,
+    "overlapP95_4hBps": 7.403
+   },
+   "krakenTape": {
+    "bars4h": 23933,
+    "first": "2015-08-07T12:00Z",
+    "last": "2026-09-21T20:00Z"
+   },
+   "windows": {
+    "A": {
+     "scored": true,
+     "oosFrom": "2025-09-10T00:00Z",
+     "oosTo": "2026-09-20T00:00Z",
+     "oosDays": 375
+    },
+    "B": {
+     "scored": true,
+     "oosFrom": "2024-08-31T00:00Z",
+     "oosTo": "2025-09-09T20:00Z",
+     "oosDays": 374.8
+    },
+    "C": {
+     "scored": true,
+     "oosFrom": "2023-08-22T00:00Z",
+     "oosTo": "2024-08-30T20:00Z",
+     "oosDays": 374.8
+    },
+    "D": {
+     "scored": true,
+     "oosFrom": "2022-08-22T00:00Z",
+     "oosTo": "2023-08-21T20:00Z",
+     "oosDays": 364.8
+    }
+   },
+   "pricedOn": {
+    "coinbase": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ],
+    "kraken": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ]
+   },
+   "krakenDropped": {}
+  },
+  {
+   "symbol": "SOL/USD",
+   "accepted": true,
+   "coinbaseSplice": {
+    "bars4h": 11523,
+    "first": "2021-06-17T12:00Z",
+    "last": "2026-09-20T00:00Z",
+    "spliceAt": "2023-08-22T03:00Z",
+    "overlapMedian4hBps": 2.403,
+    "overlapP95_4hBps": 9.772
+   },
+   "krakenTape": {
+    "bars4h": 11532,
+    "first": "2021-06-17T12:00Z",
+    "last": "2026-09-21T20:00Z"
+   },
+   "windows": {
+    "A": {
+     "scored": true,
+     "oosFrom": "2025-09-10T00:00Z",
+     "oosTo": "2026-09-20T00:00Z",
+     "oosDays": 375
+    },
+    "B": {
+     "scored": true,
+     "oosFrom": "2024-08-31T00:00Z",
+     "oosTo": "2025-09-09T20:00Z",
+     "oosDays": 374.8
+    },
+    "C": {
+     "scored": true,
+     "oosFrom": "2023-08-22T00:00Z",
+     "oosTo": "2024-08-30T20:00Z",
+     "oosDays": 374.8
+    },
+    "D": {
+     "scored": true,
+     "oosFrom": "2022-08-22T00:00Z",
+     "oosTo": "2023-08-21T20:00Z",
+     "oosDays": 364.8
+    }
+   },
+   "pricedOn": {
+    "coinbase": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ],
+    "kraken": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ]
+   },
+   "krakenDropped": {}
+  },
+  {
+   "symbol": "AVAX/USD",
+   "accepted": true,
+   "coinbaseSplice": {
+    "bars4h": 10410,
+    "first": "2021-12-21T12:00Z",
+    "last": "2026-09-21T12:00Z",
+    "spliceAt": "2023-09-22T12:00Z",
+    "overlapMedian4hBps": 5.61,
+    "overlapP95_4hBps": 21.03
+   },
+   "krakenTape": {
+    "bars4h": 10410,
+    "first": "2021-12-21T12:00Z",
+    "last": "2026-09-21T20:00Z"
+   },
+   "windows": {
+    "A": {
+     "scored": true,
+     "oosFrom": "2025-09-21T12:00Z",
+     "oosTo": "2026-09-21T12:00Z",
+     "oosDays": 365
+    },
+    "B": {
+     "scored": true,
+     "oosFrom": "2024-09-21T12:00Z",
+     "oosTo": "2025-09-21T08:00Z",
+     "oosDays": 364.8
+    },
+    "C": {
+     "scored": true,
+     "oosFrom": "2023-09-22T12:00Z",
+     "oosTo": "2024-09-21T08:00Z",
+     "oosDays": 364.8
+    },
+    "D": {
+     "scored": true,
+     "oosFrom": "2022-09-22T12:00Z",
+     "oosTo": "2023-09-22T08:00Z",
+     "oosDays": 364.8
+    }
+   },
+   "pricedOn": {
+    "coinbase": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ],
+    "kraken": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ]
+   },
+   "krakenDropped": {}
+  },
+  {
+   "symbol": "SUI/USD",
+   "accepted": true,
+   "coinbaseSplice": {
+    "bars4h": 7414,
+    "first": "2023-05-03T12:00Z",
+    "last": "2026-09-21T12:00Z",
+    "spliceAt": "2023-09-22T13:00Z",
+    "overlapMedian4hBps": 5.714,
+    "overlapP95_4hBps": 38.514
+   },
+   "krakenTape": {
+    "bars4h": 7412,
+    "first": "2023-05-03T12:00Z",
+    "last": "2026-09-21T20:00Z"
+   },
+   "windows": {
+    "A": {
+     "scored": true,
+     "oosFrom": "2025-09-21T12:00Z",
+     "oosTo": "2026-09-21T12:00Z",
+     "oosDays": 365
+    },
+    "B": {
+     "scored": true,
+     "oosFrom": "2024-09-21T12:00Z",
+     "oosTo": "2025-09-21T08:00Z",
+     "oosDays": 364.8
+    },
+    "C": {
+     "scored": false,
+     "oosFrom": "2023-09-22T12:00Z",
+     "oosTo": "2024-09-21T08:00Z",
+     "oosDays": 364.8
+    },
+    "D": {
+     "scored": false,
+     "oosFrom": "2023-05-03T12:00Z",
+     "oosTo": "2023-09-22T08:00Z",
+     "oosDays": 141.8
+    }
+   },
+   "pricedOn": {
+    "coinbase": [
+     "A",
+     "B"
+    ],
+    "kraken": [
+     "A",
+     "B"
+    ]
+   },
+   "krakenDropped": {}
+  }
+ ],
+ "fidelity": {
+  "runGatedThroughTheCacheVsRun": {
+   "cells": 144,
+   "fieldMismatches": 0,
+   "equityPoints": 53264,
+   "equityMismatches": 0,
+   "flatBarsChecked": 285628,
+   "flatBarMismatches": 0,
+   "mismatchCells": [],
+   "fields": [
+    "ret",
+    "maxDD",
+    "trades",
+    "days",
+    "exposure",
+    "realised",
+    "fees",
+    "stopsHit"
+   ],
+   "what": "runGated through the flat-bar cache AND through a decider that rebuilds the snapshot every bar, against backtest.ts's run: every coin × priced window × evaluation × venue (Revolut X and Kraken costs), every field and every equity point run samples"
+  },
+  "incumbent": {
+   "worstAbsDiff": 0,
+   "perCondition": {
+    "shipped·coinbase": {
+     "A": {
+      "here": {
+       "ret": 0.0803,
+       "maxDD": 0.1128,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.0803,
+       "maxDD": 0.1128,
+       "members": 5
+      },
+      "published": {
+       "ret": 0.0803,
+       "maxDD": 0.1128
+      }
+     },
+     "B": {
+      "here": {
+       "ret": 0.2008,
+       "maxDD": 0.1047,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.2008,
+       "maxDD": 0.1047,
+       "members": 5
+      },
+      "published": {
+       "ret": 0.2008,
+       "maxDD": 0.1047
+      }
+     },
+     "C": {
+      "here": {
+       "ret": 0.5564,
+       "maxDD": 0.0735,
+       "members": 4
+      },
+      "set2": {
+       "ret": 0.5564,
+       "maxDD": 0.0735,
+       "members": 4
+      },
+      "published": {
+       "ret": 0.5564,
+       "maxDD": 0.0735
+      }
+     },
+     "D": {
+      "here": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "members": 4
+      },
+      "set2": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "members": 4
+      },
+      "published": {
+       "ret": -0.0781,
+       "maxDD": 0.1552
+      }
+     }
+    },
+    "shipped·kraken": {
+     "A": {
+      "here": {
+       "ret": 0.0916,
+       "maxDD": 0.1092,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.0916,
+       "maxDD": 0.1092,
+       "members": 5
+      },
+      "published": null
+     },
+     "B": {
+      "here": {
+       "ret": 0.2249,
+       "maxDD": 0.1,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.2249,
+       "maxDD": 0.1,
+       "members": 5
+      },
+      "published": null
+     },
+     "C": {
+      "here": {
+       "ret": 0.5095,
+       "maxDD": 0.0774,
+       "members": 4
+      },
+      "set2": {
+       "ret": 0.5095,
+       "maxDD": 0.0774,
+       "members": 4
+      },
+      "published": null
+     },
+     "D": {
+      "here": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "members": 4
+      },
+      "set2": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "members": 4
+      },
+      "published": null
+     }
+    },
+    "trail·coinbase": {
+     "A": {
+      "here": {
+       "ret": -0.0033,
+       "maxDD": 0.1175,
+       "members": 5
+      },
+      "set2": {
+       "ret": -0.0033,
+       "maxDD": 0.1175,
+       "members": 5
+      },
+      "published": null
+     },
+     "B": {
+      "here": {
+       "ret": 0.1264,
+       "maxDD": 0.1018,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.1264,
+       "maxDD": 0.1018,
+       "members": 5
+      },
+      "published": null
+     },
+     "C": {
+      "here": {
+       "ret": 0.4707,
+       "maxDD": 0.0578,
+       "members": 4
+      },
+      "set2": {
+       "ret": 0.4707,
+       "maxDD": 0.0578,
+       "members": 4
+      },
+      "published": null
+     },
+     "D": {
+      "here": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "members": 4
+      },
+      "set2": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "members": 4
+      },
+      "published": null
+     }
+    },
+    "trail·kraken": {
+     "A": {
+      "here": {
+       "ret": 0.0654,
+       "maxDD": 0.1164,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.0654,
+       "maxDD": 0.1164,
+       "members": 5
+      },
+      "published": null
+     },
+     "B": {
+      "here": {
+       "ret": 0.1377,
+       "maxDD": 0.0943,
+       "members": 5
+      },
+      "set2": {
+       "ret": 0.1377,
+       "maxDD": 0.0943,
+       "members": 5
+      },
+      "published": null
+     },
+     "C": {
+      "here": {
+       "ret": 0.3829,
+       "maxDD": 0.0596,
+       "members": 4
+      },
+      "set2": {
+       "ret": 0.3829,
+       "maxDD": 0.0596,
+       "members": 4
+      },
+      "published": null
+     },
+     "D": {
+      "here": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "members": 4
+      },
+      "set2": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "members": 4
+      },
+      "published": null
+     }
+    }
+   },
+   "what": "the rule arm's sleeve against set2.json's `equal` row (the incumbent) on all four evaluations, and against the published go-live sleeve on the primary one"
+  },
+  "shadowIsTheRulebook": {
+   "evaluationWindowDraws": 320,
+   "differences": 0,
+   "entriesTheModelWasShown": 15500,
+   "wouldHaveVetoed": 8980,
+   "what": "configuration (i): combineDecision(…, gate = false) with real draws, 20 draws per evaluation × window, compared with the rulebook on sleeve return, drawdown, entries and every coin's return and trades"
+  },
+  "prosaMomentumClauseChangesNothing": {
+   "differences": 0,
+   "what": "(iii) with and without the prompt's `momentum_30d is positive` clause, every evaluation × window"
+  },
+  "thresholdBandsAreTheCodeArms": {
+   "checks": 16,
+   "failures": 0
+  }
+ },
+ "earlierStudy": {
+  "reproducedByteForByte": {
+   "sha256": "2e3ec025eb6b2061b1fd0b35c522888ec875ed9e2a4b791fb9929cb9f21c50ba",
+   "how": "`--replay recorded` over the same --data/--ext rewrote the committed jev.json with an identical SHA-256, before this file replaced it"
+  },
+  "census": {
+   "earlierCount": {
+    "moderate|low|positive": 13,
+    "weak|low|positive": 14,
+    "weak|normal|positive": 37,
+    "moderate|normal|positive": 44,
+    "strong|normal|positive": 13,
+    "strong|high|positive": 21,
+    "weak|high|positive": 9,
+    "moderate|high|positive": 26,
+    "strong|low|positive": 3
+   },
+   "earlierByWindow": {
+    "A": 43,
+    "B": 58,
+    "C": 47,
+    "D": 32
+   },
+   "matchesPublished": true,
+   "actionableByCellAndWindow": {
+    "moderate|low|positive": {
+     "A": 3,
+     "B": 3,
+     "C": 4,
+     "D": 3
+    },
+    "weak|low|positive": {
+     "A": 5,
+     "B": 4,
+     "C": 1,
+     "D": 4
+    },
+    "weak|normal|positive": {
+     "A": 14,
+     "B": 9,
+     "C": 8,
+     "D": 6
+    },
+    "moderate|normal|positive": {
+     "A": 14,
+     "B": 13,
+     "C": 11,
+     "D": 6
+    },
+    "strong|normal|positive": {
+     "A": 1,
+     "B": 6,
+     "C": 4,
+     "D": 2
+    },
+    "strong|high|positive": {
+     "A": 2,
+     "B": 7,
+     "C": 6,
+     "D": 6
+    },
+    "weak|high|positive": {
+     "A": 1,
+     "B": 4,
+     "C": 4
+    },
+    "moderate|high|positive": {
+     "A": 3,
+     "B": 12,
+     "C": 7,
+     "D": 4
+    },
+    "strong|low|positive": {
+     "C": 2,
+     "D": 1
+    }
+   },
+   "actionableTotal": 180,
+   "entriesVsRun": [
+    {
+     "symbol": "BTC/USD",
+     "window": "A",
+     "actionableSignals": 14,
+     "entries": 14,
+     "ceilHalfRunTrades": 14
+    },
+    {
+     "symbol": "ETH/USD",
+     "window": "A",
+     "actionableSignals": 11,
+     "entries": 11,
+     "ceilHalfRunTrades": 11
+    },
+    {
+     "symbol": "SOL/USD",
+     "window": "A",
+     "actionableSignals": 7,
+     "entries": 7,
+     "ceilHalfRunTrades": 7
+    },
+    {
+     "symbol": "AVAX/USD",
+     "window": "A",
+     "actionableSignals": 5,
+     "entries": 5,
+     "ceilHalfRunTrades": 5
+    },
+    {
+     "symbol": "SUI/USD",
+     "window": "A",
+     "actionableSignals": 6,
+     "entries": 6,
+     "ceilHalfRunTrades": 6
+    },
+    {
+     "symbol": "BTC/USD",
+     "window": "B",
+     "actionableSignals": 18,
+     "entries": 18,
+     "ceilHalfRunTrades": 18
+    },
+    {
+     "symbol": "ETH/USD",
+     "window": "B",
+     "actionableSignals": 10,
+     "entries": 10,
+     "ceilHalfRunTrades": 10
+    },
+    {
+     "symbol": "SOL/USD",
+     "window": "B",
+     "actionableSignals": 15,
+     "entries": 15,
+     "ceilHalfRunTrades": 15
+    },
+    {
+     "symbol": "AVAX/USD",
+     "window": "B",
+     "actionableSignals": 10,
+     "entries": 10,
+     "ceilHalfRunTrades": 10
+    },
+    {
+     "symbol": "SUI/USD",
+     "window": "B",
+     "actionableSignals": 5,
+     "entries": 5,
+     "ceilHalfRunTrades": 5
+    },
+    {
+     "symbol": "BTC/USD",
+     "window": "C",
+     "actionableSignals": 17,
+     "entries": 17,
+     "ceilHalfRunTrades": 17
+    },
+    {
+     "symbol": "ETH/USD",
+     "window": "C",
+     "actionableSignals": 8,
+     "entries": 8,
+     "ceilHalfRunTrades": 8
+    },
+    {
+     "symbol": "SOL/USD",
+     "window": "C",
+     "actionableSignals": 12,
+     "entries": 12,
+     "ceilHalfRunTrades": 12
+    },
+    {
+     "symbol": "AVAX/USD",
+     "window": "C",
+     "actionableSignals": 10,
+     "entries": 10,
+     "ceilHalfRunTrades": 10
+    },
+    {
+     "symbol": "BTC/USD",
+     "window": "D",
+     "actionableSignals": 10,
+     "entries": 10,
+     "ceilHalfRunTrades": 10
+    },
+    {
+     "symbol": "ETH/USD",
+     "window": "D",
+     "actionableSignals": 12,
+     "entries": 12,
+     "ceilHalfRunTrades": 12
+    },
+    {
+     "symbol": "SOL/USD",
+     "window": "D",
+     "actionableSignals": 2,
+     "entries": 2,
+     "ceilHalfRunTrades": 2
+    },
+    {
+     "symbol": "AVAX/USD",
+     "window": "D",
+     "actionableSignals": 8,
+     "entries": 8,
+     "ceilHalfRunTrades": 8
+    }
+   ],
+   "entriesAgree": true,
+   "note": "the earlier census counted every bar on which the rulebook wanted in while flat, including bars inside the re-entry cooldown, where tick.ts never asks the model; the actionable count is what the model is actually shown, and on the rulebook's own path it equals the rulebook's entries and ⌈run's trades / 2⌉"
+  },
+  "null": {
+   "perWindow": {
+    "A": {
+     "reproduced": true,
+     "refuseProbPerSignal": 0.535,
+     "centralArmRet": -0.0247,
+     "nullMean": 0.0551,
+     "centralPercentileInNull": 0.048,
+     "entries": {
+      "rule": 43,
+      "centralArm": 36,
+      "earlierNullMean": 31.525
+     },
+     "entriesRemoved": {
+      "centralArm": 7,
+      "earlierNullMean": 11.475
+     }
+    },
+    "B": {
+     "reproduced": true,
+     "refuseProbPerSignal": 0.5,
+     "centralArmRet": 0.1577,
+     "nullMean": 0.1836,
+     "centralPercentileInNull": 0.292,
+     "entries": {
+      "rule": 58,
+      "centralArm": 45,
+      "earlierNullMean": 46.015
+     },
+     "entriesRemoved": {
+      "centralArm": 13,
+      "earlierNullMean": 11.985
+     }
+    },
+    "C": {
+     "reproduced": true,
+     "refuseProbPerSignal": 0.426,
+     "centralArmRet": 0.5241,
+     "nullMean": 0.4747,
+     "centralPercentileInNull": 0.823,
+     "entries": {
+      "rule": 47,
+      "centralArm": 37,
+      "earlierNullMean": 39.785
+     },
+     "entriesRemoved": {
+      "centralArm": 10,
+      "earlierNullMean": 7.215
+     }
+    },
+    "D": {
+     "reproduced": true,
+     "refuseProbPerSignal": 0.438,
+     "centralArmRet": -0.0145,
+     "nullMean": -0.0357,
+     "centralPercentileInNull": 0.762,
+     "entries": {
+      "rule": 32,
+      "centralArm": 21,
+      "earlierNullMean": 23.543
+     },
+     "entriesRemoved": {
+      "centralArm": 11,
+      "earlierNullMean": 8.457
+     }
+    }
+   },
+   "reproduced": true,
+   "finding": "the earlier null refused each SIGNAL with the model's per-signal rate; because a refused signal is asked again on the next bar, it removes far fewer ENTRIES than the arm it was compared with — see entriesRemoved"
+  },
+  "assumedVsMeasured": {
+   "moderate|normal|positive": {
+    "earlierP": 0.95,
+    "earlierSource": "recorded",
+    "earlierVetoedAt060": false,
+    "measured": {
+     "replies": 25,
+     "meanP": 0.737,
+     "minP": 0.71,
+     "maxP": 0.75,
+     "caution": [
+      0,
+      0
+     ],
+     "vetoProbAt060": 0,
+     "perSymbolVetoesOf5": {
+      "BTC": 0,
+      "ETH": 0,
+      "SOL": 0,
+      "AVAX": 0,
+      "SUI": 0
+     }
+    }
+   },
+   "weak|normal|positive": {
+    "earlierP": 0.15,
+    "earlierSource": "specified",
+    "earlierVetoedAt060": true,
+    "measured": {
+     "replies": 25,
+     "meanP": 0.543,
+     "minP": 0.53,
+     "maxP": 0.57,
+     "caution": [
+      0,
+      0
+     ],
+     "vetoProbAt060": 1,
+     "perSymbolVetoesOf5": {
+      "BTC": 5,
+      "ETH": 5,
+      "SOL": 5,
+      "AVAX": 5,
+      "SUI": 5
+     }
+    }
+   },
+   "moderate|high|positive": {
+    "earlierP": 0.59,
+    "earlierSource": "recorded",
+    "earlierVetoedAt060": true,
+    "measured": {
+     "replies": 25,
+     "meanP": 0.538,
+     "minP": 0.52,
+     "maxP": 0.56,
+     "caution": [
+      1,
+      1
+     ],
+     "vetoProbAt060": 1,
+     "perSymbolVetoesOf5": {
+      "BTC": 5,
+      "ETH": 5,
+      "SOL": 5,
+      "AVAX": 5,
+      "SUI": 5
+     }
+    }
+   },
+   "strong|high|positive": {
+    "earlierP": 0.61,
+    "earlierSource": "recorded",
+    "earlierVetoedAt060": false,
+    "measured": {
+     "replies": 25,
+     "meanP": 0.59,
+     "minP": 0.57,
+     "maxP": 0.62,
+     "caution": [
+      1,
+      1.01
+     ],
+     "vetoProbAt060": 0.72,
+     "perSymbolVetoesOf5": {
+      "BTC": 4,
+      "ETH": 2,
+      "SOL": 4,
+      "AVAX": 3,
+      "SUI": 5
+     }
+    }
+   },
+   "weak|low|positive": {
+    "earlierP": 0.15,
+    "earlierSource": "recorded-loose",
+    "earlierVetoedAt060": true,
+    "measured": {
+     "replies": 25,
+     "meanP": 0.533,
+     "minP": 0.51,
+     "maxP": 0.56,
+     "caution": [
+      0,
+      0
+     ],
+     "vetoProbAt060": 1,
+     "perSymbolVetoesOf5": {
+      "BTC": 5,
+      "ETH": 5,
+      "SOL": 5,
+      "AVAX": 5,
+      "SUI": 5
+     }
+    }
+   },
+   "moderate|low|positive": {
+    "earlierP": 0.92,
+    "earlierSource": "recorded-loose",
+    "earlierVetoedAt060": false,
+    "measured": {
+     "replies": 25,
+     "meanP": 0.71,
+     "minP": 0.7,
+     "maxP": 0.73,
+     "caution": [
+      0,
+      0
+     ],
+     "vetoProbAt060": 0,
+     "perSymbolVetoesOf5": {
+      "BTC": 0,
+      "ETH": 0,
+      "SOL": 0,
+      "AVAX": 0,
+      "SUI": 0
+     }
+    }
+   },
+   "strong|normal|positive": {
+    "earlierP": 0.95,
+    "earlierSource": "specified",
+    "earlierVetoedAt060": false,
+    "measured": {
+     "replies": 25,
+     "meanP": 0.781,
+     "minP": 0.77,
+     "maxP": 0.8,
+     "caution": [
+      0,
+      0
+     ],
+     "vetoProbAt060": 0,
+     "perSymbolVetoesOf5": {
+      "BTC": 0,
+      "ETH": 0,
+      "SOL": 0,
+      "AVAX": 0,
+      "SUI": 0
+     }
+    }
+   },
+   "weak|high|positive": {
+    "earlierP": 0.15,
+    "earlierSource": "specified",
+    "earlierVetoedAt060": true,
+    "measured": {
+     "replies": 25,
+     "meanP": 0.392,
+     "minP": 0.38,
+     "maxP": 0.41,
+     "caution": [
+      1,
+      1.01
+     ],
+     "vetoProbAt060": 1,
+     "perSymbolVetoesOf5": {
+      "BTC": 5,
+      "ETH": 5,
+      "SOL": 5,
+      "AVAX": 5,
+      "SUI": 5
+     }
+    }
+   },
+   "strong|low|positive": {
+    "earlierP": 0.95,
+    "earlierSource": "specified",
+    "earlierVetoedAt060": false,
+    "measured": {
+     "replies": 25,
+     "meanP": 0.771,
+     "minP": 0.75,
+     "maxP": 0.8,
+     "caution": [
+      0,
+      0
+     ],
+     "vetoProbAt060": 0,
+     "perSymbolVetoesOf5": {
+      "BTC": 0,
+      "ETH": 0,
+      "SOL": 0,
+      "AVAX": 0,
+      "SUI": 0
+     }
+    }
+   }
+  }
+ },
+ "measuredSurface": {
+  "cells": {
+   "weak|low|positive": {
+    "replies": 25,
+    "meanP": 0.533,
+    "minP": 0.51,
+    "maxP": 0.56,
+    "caution": [
+     0,
+     0
+    ],
+    "vetoProbAt060": 1,
+    "perSymbolVetoesOf5": {
+     "BTC": 5,
+     "ETH": 5,
+     "SOL": 5,
+     "AVAX": 5,
+     "SUI": 5
+    }
+   },
+   "weak|low|unknown": {
+    "replies": 25,
+    "meanP": 0.482,
+    "minP": 0.47,
+    "maxP": 0.5,
+    "caution": [
+     0,
+     0
+    ],
+    "vetoProbAt060": 1,
+    "perSymbolVetoesOf5": {
+     "BTC": 5,
+     "ETH": 5,
+     "SOL": 5,
+     "AVAX": 5,
+     "SUI": 5
+    }
+   },
+   "weak|normal|positive": {
+    "replies": 25,
+    "meanP": 0.543,
+    "minP": 0.53,
+    "maxP": 0.57,
+    "caution": [
+     0,
+     0
+    ],
+    "vetoProbAt060": 1,
+    "perSymbolVetoesOf5": {
+     "BTC": 5,
+     "ETH": 5,
+     "SOL": 5,
+     "AVAX": 5,
+     "SUI": 5
+    }
+   },
+   "weak|normal|unknown": {
+    "replies": 25,
+    "meanP": 0.487,
+    "minP": 0.47,
+    "maxP": 0.51,
+    "caution": [
+     0,
+     0
+    ],
+    "vetoProbAt060": 1,
+    "perSymbolVetoesOf5": {
+     "BTC": 5,
+     "ETH": 5,
+     "SOL": 5,
+     "AVAX": 5,
+     "SUI": 5
+    }
+   },
+   "weak|high|positive": {
+    "replies": 25,
+    "meanP": 0.392,
+    "minP": 0.38,
+    "maxP": 0.41,
+    "caution": [
+     1,
+     1.01
+    ],
+    "vetoProbAt060": 1,
+    "perSymbolVetoesOf5": {
+     "BTC": 5,
+     "ETH": 5,
+     "SOL": 5,
+     "AVAX": 5,
+     "SUI": 5
+    }
+   },
+   "weak|high|unknown": {
+    "replies": 25,
+    "meanP": 0.365,
+    "minP": 0.35,
+    "maxP": 0.38,
+    "caution": [
+     1,
+     1.01
+    ],
+    "vetoProbAt060": 1,
+    "perSymbolVetoesOf5": {
+     "BTC": 5,
+     "ETH": 5,
+     "SOL": 5,
+     "AVAX": 5,
+     "SUI": 5
+    }
+   },
+   "moderate|low|positive": {
+    "replies": 25,
+    "meanP": 0.71,
+    "minP": 0.7,
+    "maxP": 0.73,
+    "caution": [
+     0,
+     0
+    ],
+    "vetoProbAt060": 0,
+    "perSymbolVetoesOf5": {
+     "BTC": 0,
+     "ETH": 0,
+     "SOL": 0,
+     "AVAX": 0,
+     "SUI": 0
+    }
+   },
+   "moderate|low|unknown": {
+    "replies": 25,
+    "meanP": 0.661,
+    "minP": 0.64,
+    "maxP": 0.68,
+    "caution": [
+     0,
+     0
+    ],
+    "vetoProbAt060": 0,
+    "perSymbolVetoesOf5": {
+     "BTC": 0,
+     "ETH": 0,
+     "SOL": 0,
+     "AVAX": 0,
+     "SUI": 0
+    }
+   },
+   "moderate|normal|positive": {
+    "replies": 25,
+    "meanP": 0.737,
+    "minP": 0.71,
+    "maxP": 0.75,
+    "caution": [
+     0,
+     0
+    ],
+    "vetoProbAt060": 0,
+    "perSymbolVetoesOf5": {
+     "BTC": 0,
+     "ETH": 0,
+     "SOL": 0,
+     "AVAX": 0,
+     "SUI": 0
+    }
+   },
+   "moderate|normal|unknown": {
+    "replies": 25,
+    "meanP": 0.683,
+    "minP": 0.66,
+    "maxP": 0.7,
+    "caution": [
+     0,
+     0
+    ],
+    "vetoProbAt060": 0,
+    "perSymbolVetoesOf5": {
+     "BTC": 0,
+     "ETH": 0,
+     "SOL": 0,
+     "AVAX": 0,
+     "SUI": 0
+    }
+   },
+   "moderate|high|positive": {
+    "replies": 25,
+    "meanP": 0.538,
+    "minP": 0.52,
+    "maxP": 0.56,
+    "caution": [
+     1,
+     1
+    ],
+    "vetoProbAt060": 1,
+    "perSymbolVetoesOf5": {
+     "BTC": 5,
+     "ETH": 5,
+     "SOL": 5,
+     "AVAX": 5,
+     "SUI": 5
+    }
+   },
+   "moderate|high|unknown": {
+    "replies": 25,
+    "meanP": 0.507,
+    "minP": 0.49,
+    "maxP": 0.53,
+    "caution": [
+     1,
+     1.01
+    ],
+    "vetoProbAt060": 1,
+    "perSymbolVetoesOf5": {
+     "BTC": 5,
+     "ETH": 5,
+     "SOL": 5,
+     "AVAX": 5,
+     "SUI": 5
+    }
+   },
+   "strong|low|positive": {
+    "replies": 25,
+    "meanP": 0.771,
+    "minP": 0.75,
+    "maxP": 0.8,
+    "caution": [
+     0,
+     0
+    ],
+    "vetoProbAt060": 0,
+    "perSymbolVetoesOf5": {
+     "BTC": 0,
+     "ETH": 0,
+     "SOL": 0,
+     "AVAX": 0,
+     "SUI": 0
+    }
+   },
+   "strong|low|unknown": {
+    "replies": 25,
+    "meanP": 0.738,
+    "minP": 0.71,
+    "maxP": 0.76,
+    "caution": [
+     0,
+     0
+    ],
+    "vetoProbAt060": 0,
+    "perSymbolVetoesOf5": {
+     "BTC": 0,
+     "ETH": 0,
+     "SOL": 0,
+     "AVAX": 0,
+     "SUI": 0
+    }
+   },
+   "strong|normal|positive": {
+    "replies": 25,
+    "meanP": 0.781,
+    "minP": 0.77,
+    "maxP": 0.8,
+    "caution": [
+     0,
+     0
+    ],
+    "vetoProbAt060": 0,
+    "perSymbolVetoesOf5": {
+     "BTC": 0,
+     "ETH": 0,
+     "SOL": 0,
+     "AVAX": 0,
+     "SUI": 0
+    }
+   },
+   "strong|normal|unknown": {
+    "replies": 25,
+    "meanP": 0.742,
+    "minP": 0.73,
+    "maxP": 0.76,
+    "caution": [
+     0,
+     0
+    ],
+    "vetoProbAt060": 0,
+    "perSymbolVetoesOf5": {
+     "BTC": 0,
+     "ETH": 0,
+     "SOL": 0,
+     "AVAX": 0,
+     "SUI": 0
+    }
+   },
+   "strong|high|positive": {
+    "replies": 25,
+    "meanP": 0.59,
+    "minP": 0.57,
+    "maxP": 0.62,
+    "caution": [
+     1,
+     1.01
+    ],
+    "vetoProbAt060": 0.72,
+    "perSymbolVetoesOf5": {
+     "BTC": 4,
+     "ETH": 2,
+     "SOL": 4,
+     "AVAX": 3,
+     "SUI": 5
+    }
+   },
+   "strong|high|unknown": {
+    "replies": 25,
+    "meanP": 0.564,
+    "minP": 0.54,
+    "maxP": 0.59,
+    "caution": [
+     1,
+     1.01
+    ],
+    "vetoProbAt060": 1,
+    "perSymbolVetoesOf5": {
+     "BTC": 5,
+     "ETH": 5,
+     "SOL": 5,
+     "AVAX": 5,
+     "SUI": 5
+    }
+   }
+  },
+  "edges": {
+   "allMin": 0.35,
+   "weakOrUnknownMax": 0.76,
+   "weakPositiveMin": 0.38,
+   "weakPositiveMax": 0.57,
+   "highVolMin": 0.52,
+   "highVolMax": 0.62,
+   "calmMin": 0.7,
+   "calmMax": 0.8,
+   "cautionMax": 1.01
+  },
+  "bands": [
+   {
+    "band": "[0, 0.35]",
+    "onAllStates": "nothing vetoed — the rulebook",
+    "historical": "[0, 0.38] on the states history reaches (momentum is always positive there)"
+   },
+   {
+    "band": "(0.35, 0.76]",
+    "onAllStates": "part of the weak / unknown replies vetoed",
+    "historical": "(0.38, 0.57] is the stochastic part on history"
+   },
+   {
+    "band": "(0.76, 0.52]",
+    "onAllStates": "DETERMINISTIC: every weak and every unknown-momentum state vetoed, everything else passes — identical to (iii)",
+    "historical": "(0.57, 0.52] on history"
+   },
+   {
+    "band": "(0.52, 0.62]",
+    "onAllStates": "THE COIN FLIP: weak / unknown vetoed, the high-volatility states vetoed call by call",
+    "historical": "same"
+   },
+   {
+    "band": "(0.62, 0.7]",
+    "onAllStates": "DETERMINISTIC: weak, unknown and every high-volatility state vetoed; low / normal volatility passes",
+    "historical": "same"
+   },
+   {
+    "band": "(0.7, 0.8]",
+    "onAllStates": "part of the low / normal-volatility replies vetoed as well",
+    "historical": "same"
+   },
+   {
+    "band": "(0.8, 1]",
+    "onAllStates": "everything vetoed — no entries",
+    "historical": "same"
+   }
+  ],
+  "strictLessThan": "combineDecision vetoes when P < enterMin, so a reply equal to enterMin passes: every band's upper edge is inclusive"
+ },
+ "composition": {
+  "A": {
+   "ruleEntries": 43,
+   "weak": 20,
+   "coinFlip": 5,
+   "calm": 18,
+   "momentumUnknown": 0,
+   "expectedVetoShareUnderII": 0.581,
+   "oosYears": 1.033
+  },
+  "B": {
+   "ruleEntries": 58,
+   "weak": 17,
+   "coinFlip": 19,
+   "calm": 22,
+   "momentumUnknown": 0,
+   "expectedVetoShareUnderII": 0.621,
+   "oosYears": 1.06
+  },
+  "C": {
+   "ruleEntries": 47,
+   "weak": 13,
+   "coinFlip": 13,
+   "calm": 21,
+   "momentumUnknown": 0,
+   "expectedVetoShareUnderII": 0.553,
+   "oosYears": 1.088
+  },
+  "D": {
+   "ruleEntries": 32,
+   "weak": 10,
+   "coinFlip": 10,
+   "calm": 12,
+   "momentumUnknown": 0,
+   "expectedVetoShareUnderII": 0.625,
+   "oosYears": 1.088
+  }
+ },
+ "configurations": {
+  "shipped·coinbase": {
+   "incumbentWorst": {
+    "window": "D",
+    "ret": -0.0781
+   },
+   "ii": {
+    "worstOfMeans": {
+     "window": "A",
+     "ret": -0.0664
+    },
+    "worstPerDraw": {
+     "n": 2000,
+     "mean": -0.0664,
+     "p05": -0.0664,
+     "p50": -0.0664,
+     "p95": -0.0664,
+     "min": -0.0664,
+     "max": -0.0664
+    },
+    "beatsIncumbentWorst": true,
+    "pWorstAboveIncumbentWorst": 1,
+    "nullWorst": {
+     "n": 1000,
+     "mean": -0.0242,
+     "p05": -0.0834,
+     "p50": -0.0246,
+     "p95": 0.036,
+     "min": -0.1448,
+     "max": 0.0742
+    },
+    "pNullWorstAtLeastArmWorst": 0.886,
+    "stepNullWorst": {
+     "n": 1000,
+     "mean": -0.0295,
+     "p05": -0.0819,
+     "p50": -0.0281,
+     "p95": 0.0198,
+     "min": -0.1308,
+     "max": 0.0579
+    },
+    "pStepNullWorstAtLeastArmWorst": 0.882
+   },
+   "iii": {
+    "worst": {
+     "window": "D",
+     "ret": -0.0332
+    },
+    "beatsIncumbentWorst": true,
+    "nullWorst": {
+     "n": 1000,
+     "mean": -0.0476,
+     "p05": -0.1031,
+     "p50": -0.0468,
+     "p95": 0.0085,
+     "min": -0.1511,
+     "max": 0.0537
+    },
+    "pNullWorstAtLeastArmWorst": 0.329
+   },
+   "retOverDD": {
+    "incumbentWorst": {
+     "window": "D",
+     "ret": -0.5032
+    },
+    "ii": {
+     "worstMeanOverDraws": -0.5034,
+     "beatsIncumbentWorst": false,
+     "pNullWorstAtLeastArmWorst": 0.753
+    },
+    "iii": {
+     "worst": {
+      "window": "D",
+      "ret": -0.2802
+     },
+     "beatsIncumbentWorst": true,
+     "pNullWorstAtLeastArmWorst": 0.31
+    }
+   },
+   "perWindow": {
+    "A": {
+     "i_shadow": {
+      "ret": 0.0803,
+      "maxDD": 0.1128,
+      "retOverDD": 0.71,
+      "pnlUsd": 8.03,
+      "capitalUsd": 100,
+      "deployment": 0.088,
+      "entries": 43,
+      "signals": 43,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": -0.0664,
+       "p05": -0.0664,
+       "p50": -0.0664,
+       "p95": -0.0664,
+       "min": -0.0664,
+       "max": -0.0664
+      },
+      "pNegative": 1,
+      "maxDDMean": 0.1319,
+      "deploymentMean": 0.054,
+      "entriesMean": 30,
+      "signalsMean": 75,
+      "refusedMean": 45,
+      "coinFlipSignalsMean": 18,
+      "coinFlipRefusedMean": 18,
+      "pAtLeastRule": 0,
+      "pAtLeastIII": 0
+     },
+     "iii_clause": {
+      "ret": 0.0063,
+      "maxDD": 0.1217,
+      "retOverDD": 0.05,
+      "pnlUsd": 0.63,
+      "capitalUsd": 100,
+      "deployment": 0.07,
+      "entries": 37,
+      "signals": 64,
+      "refused": 27
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.2915,
+       "targetEntries": 37,
+       "nullEntriesMean": 37.041,
+       "nullDeploymentMean": 0.075,
+       "armDeployment": 0.07,
+       "ret": {
+        "n": 1000,
+        "mean": 0.0637,
+        "p05": -0.0035,
+        "p50": 0.0654,
+        "p95": 0.1192,
+        "min": -0.0695,
+        "max": 0.1556
+       },
+       "pNullAtLeastArm": 0.934
+      },
+      "ii": {
+       "pEp": 0.5122,
+       "targetEntries": 30,
+       "nullEntriesMean": 29.925,
+       "nullDeploymentMean": 0.06,
+       "armDeploymentMean": 0.054,
+       "ret": {
+        "n": 1000,
+        "mean": 0.0448,
+        "p05": -0.0441,
+        "p50": 0.0468,
+        "p95": 0.1258,
+        "min": -0.1217,
+        "max": 0.1792
+       },
+       "pNullAtLeastArm": 0.983
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.3374,
+       "targetEntries": 30,
+       "nullEntriesMean": 30.052,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0088,
+        "p05": -0.0703,
+        "p50": -0.0077,
+        "p95": 0.045,
+        "min": -0.1308,
+        "max": 0.0776
+       },
+       "pNullAtLeastArm": 0.943
+      }
+     }
+    },
+    "B": {
+     "i_shadow": {
+      "ret": 0.2008,
+      "maxDD": 0.1047,
+      "retOverDD": 1.92,
+      "pnlUsd": 20.08,
+      "capitalUsd": 100,
+      "deployment": 0.144,
+      "entries": 58,
+      "signals": 58,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": 0.0891,
+       "p05": 0.0891,
+       "p50": 0.0891,
+       "p95": 0.0891,
+       "min": 0.0891,
+       "max": 0.0891
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0516,
+      "deploymentMean": 0.082,
+      "entriesMean": 33,
+      "signalsMean": 136,
+      "refusedMean": 103,
+      "coinFlipSignalsMean": 74,
+      "coinFlipRefusedMean": 74,
+      "pAtLeastRule": 0,
+      "pAtLeastIII": 0
+     },
+     "iii_clause": {
+      "ret": 0.1486,
+      "maxDD": 0.0962,
+      "retOverDD": 1.55,
+      "pnlUsd": 14.86,
+      "capitalUsd": 100,
+      "deployment": 0.131,
+      "entries": 52,
+      "signals": 81,
+      "refused": 29
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.2388,
+       "targetEntries": 52,
+       "nullEntriesMean": 52.099,
+       "nullDeploymentMean": 0.131,
+       "armDeployment": 0.131,
+       "ret": {
+        "n": 1000,
+        "mean": 0.1834,
+        "p05": 0.1105,
+        "p50": 0.1841,
+        "p95": 0.2525,
+        "min": 0.0424,
+        "max": 0.311
+       },
+       "pNullAtLeastArm": 0.791
+      },
+      "ii": {
+       "pEp": 0.6792,
+       "targetEntries": 33,
+       "nullEntriesMean": 33.026,
+       "nullDeploymentMean": 0.085,
+       "armDeploymentMean": 0.082,
+       "ret": {
+        "n": 1000,
+        "mean": 0.1059,
+        "p05": -0.0034,
+        "p50": 0.1039,
+        "p95": 0.2182,
+        "min": -0.1035,
+        "max": 0.2937
+       },
+       "pNullAtLeastArm": 0.595
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.6099,
+       "targetEntries": 33,
+       "nullEntriesMean": 32.529,
+       "ret": {
+        "n": 1000,
+        "mean": 0.1001,
+        "p05": 0.0028,
+        "p50": 0.0975,
+        "p95": 0.2016,
+        "min": -0.1064,
+        "max": 0.2766
+       },
+       "pNullAtLeastArm": 0.563
+      }
+     }
+    },
+    "C": {
+     "i_shadow": {
+      "ret": 0.5564,
+      "maxDD": 0.0735,
+      "retOverDD": 7.57,
+      "pnlUsd": 44.51,
+      "capitalUsd": 80,
+      "deployment": 0.173,
+      "entries": 47,
+      "signals": 47,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": 0.4289,
+       "p05": 0.4289,
+       "p50": 0.4289,
+       "p95": 0.4289,
+       "min": 0.4289,
+       "max": 0.4289
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0356,
+      "deploymentMean": 0.114,
+      "entriesMean": 26,
+      "signalsMean": 91,
+      "refusedMean": 65,
+      "coinFlipSignalsMean": 48,
+      "coinFlipRefusedMean": 48,
+      "pAtLeastRule": 0,
+      "pAtLeastIII": 0
+     },
+     "iii_clause": {
+      "ret": 0.5671,
+      "maxDD": 0.0489,
+      "retOverDD": 11.34,
+      "pnlUsd": 45.37,
+      "capitalUsd": 80,
+      "deployment": 0.16,
+      "entries": 41,
+      "signals": 58,
+      "refused": 17
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.2495,
+       "targetEntries": 41,
+       "nullEntriesMean": 40.998,
+       "nullDeploymentMean": 0.155,
+       "armDeployment": 0.16,
+       "ret": {
+        "n": 1000,
+        "mean": 0.4976,
+        "p05": 0.3687,
+        "p50": 0.5144,
+        "p95": 0.5907,
+        "min": 0.2394,
+        "max": 0.6449
+       },
+       "pNullAtLeastArm": 0.152
+      },
+      "ii": {
+       "pEp": 0.6538,
+       "targetEntries": 26,
+       "nullEntriesMean": 26.303,
+       "nullDeploymentMean": 0.105,
+       "armDeploymentMean": 0.114,
+       "ret": {
+        "n": 1000,
+        "mean": 0.3444,
+        "p05": 0.1757,
+        "p50": 0.345,
+        "p95": 0.5093,
+        "min": 0.0074,
+        "max": 0.6266
+       },
+       "pNullAtLeastArm": 0.199
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.5933,
+       "targetEntries": 26,
+       "nullEntriesMean": 26.321,
+       "ret": {
+        "n": 1000,
+        "mean": 0.3534,
+        "p05": 0.2069,
+        "p50": 0.3501,
+        "p95": 0.5101,
+        "min": 0.0622,
+        "max": 0.6316
+       },
+       "pNullAtLeastArm": 0.218
+      }
+     }
+    },
+    "D": {
+     "i_shadow": {
+      "ret": -0.0781,
+      "maxDD": 0.1552,
+      "retOverDD": -0.5,
+      "pnlUsd": -6.25,
+      "capitalUsd": 80,
+      "deployment": 0.079,
+      "entries": 32,
+      "signals": 32,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": 0.0718,
+       "p05": 0.0718,
+       "p50": 0.0718,
+       "p95": 0.0718,
+       "min": 0.0718,
+       "max": 0.0718
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0427,
+      "deploymentMean": 0.043,
+      "entriesMean": 15,
+      "signalsMean": 47,
+      "refusedMean": 32,
+      "coinFlipSignalsMean": 17,
+      "coinFlipRefusedMean": 17,
+      "pAtLeastRule": 1,
+      "pAtLeastIII": 1
+     },
+     "iii_clause": {
+      "ret": -0.0332,
+      "maxDD": 0.1185,
+      "retOverDD": -0.28,
+      "pnlUsd": -2.66,
+      "capitalUsd": 80,
+      "deployment": 0.063,
+      "entries": 24,
+      "signals": 39,
+      "refused": 15
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.3491,
+       "targetEntries": 24,
+       "nullEntriesMean": 24.23,
+       "nullDeploymentMean": 0.061,
+       "armDeployment": 0.063,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0472,
+        "p05": -0.1031,
+        "p50": -0.0467,
+        "p95": 0.0093,
+        "min": -0.1511,
+        "max": 0.0588
+       },
+       "pNullAtLeastArm": 0.333
+      },
+      "ii": {
+       "pEp": 0.6538,
+       "targetEntries": 15,
+       "nullEntriesMean": 15.079,
+       "nullDeploymentMean": 0.04,
+       "armDeploymentMean": 0.043,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0179,
+        "p05": -0.0789,
+        "p50": -0.0179,
+        "p95": 0.0479,
+        "min": -0.1448,
+        "max": 0.0909
+       },
+       "pNullAtLeastArm": 0.006
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.5083,
+       "targetEntries": 15,
+       "nullEntriesMean": 15.411,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0078,
+        "p05": -0.07,
+        "p50": -0.007,
+        "p95": 0.053,
+        "min": -0.1253,
+        "max": 0.0938
+       },
+       "pNullAtLeastArm": 0.009
+      }
+     }
+    }
+   }
+  },
+  "shipped·kraken": {
+   "incumbentWorst": {
+    "window": "D",
+    "ret": -0.0781
+   },
+   "ii": {
+    "worstOfMeans": {
+     "window": "A",
+     "ret": -0.0503
+    },
+    "worstPerDraw": {
+     "n": 2000,
+     "mean": -0.0503,
+     "p05": -0.0503,
+     "p50": -0.0503,
+     "p95": -0.0503,
+     "min": -0.0503,
+     "max": -0.0503
+    },
+    "beatsIncumbentWorst": true,
+    "pWorstAboveIncumbentWorst": 1,
+    "nullWorst": {
+     "n": 1000,
+     "mean": -0.0297,
+     "p05": -0.096,
+     "p50": -0.0276,
+     "p95": 0.0293,
+     "min": -0.1535,
+     "max": 0.0786
+    },
+    "pNullWorstAtLeastArmWorst": 0.714,
+    "stepNullWorst": {
+     "n": 1000,
+     "mean": -0.0168,
+     "p05": -0.0759,
+     "p50": -0.0137,
+     "p95": 0.0349,
+     "min": -0.1344,
+     "max": 0.0796
+    },
+    "pStepNullWorstAtLeastArmWorst": 0.845
+   },
+   "iii": {
+    "worst": {
+     "window": "D",
+     "ret": -0.0332
+    },
+    "beatsIncumbentWorst": true,
+    "nullWorst": {
+     "n": 1000,
+     "mean": -0.0493,
+     "p05": -0.1045,
+     "p50": -0.048,
+     "p95": 0.0055,
+     "min": -0.1532,
+     "max": 0.0511
+    },
+    "pNullWorstAtLeastArmWorst": 0.323
+   },
+   "retOverDD": {
+    "incumbentWorst": {
+     "window": "D",
+     "ret": -0.5032
+    },
+    "ii": {
+     "worstMeanOverDraws": -0.4245,
+     "beatsIncumbentWorst": true,
+     "pNullWorstAtLeastArmWorst": 0.629
+    },
+    "iii": {
+     "worst": {
+      "window": "D",
+      "ret": -0.2802
+     },
+     "beatsIncumbentWorst": true,
+     "pNullWorstAtLeastArmWorst": 0.316
+    }
+   },
+   "perWindow": {
+    "A": {
+     "i_shadow": {
+      "ret": 0.0916,
+      "maxDD": 0.1092,
+      "retOverDD": 0.84,
+      "pnlUsd": 9.16,
+      "capitalUsd": 100,
+      "deployment": 0.086,
+      "entries": 44,
+      "signals": 44,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": -0.0503,
+       "p05": -0.0503,
+       "p50": -0.0503,
+       "p95": -0.0503,
+       "min": -0.0503,
+       "max": -0.0503
+      },
+      "pNegative": 1,
+      "maxDDMean": 0.1185,
+      "deploymentMean": 0.053,
+      "entriesMean": 29,
+      "signalsMean": 75,
+      "refusedMean": 46,
+      "coinFlipSignalsMean": 18,
+      "coinFlipRefusedMean": 18,
+      "pAtLeastRule": 0,
+      "pAtLeastIII": 0
+     },
+     "iii_clause": {
+      "ret": 0.0552,
+      "maxDD": 0.1095,
+      "retOverDD": 0.5,
+      "pnlUsd": 5.52,
+      "capitalUsd": 100,
+      "deployment": 0.067,
+      "entries": 36,
+      "signals": 64,
+      "refused": 28
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.3521,
+       "targetEntries": 36,
+       "nullEntriesMean": 36.011,
+       "nullDeploymentMean": 0.069,
+       "armDeployment": 0.067,
+       "ret": {
+        "n": 1000,
+        "mean": 0.056,
+        "p05": -0.0152,
+        "p50": 0.0563,
+        "p95": 0.1187,
+        "min": -0.1449,
+        "max": 0.183
+       },
+       "pNullAtLeastArm": 0.512
+      },
+      "ii": {
+       "pEp": 0.5435,
+       "targetEntries": 29,
+       "nullEntriesMean": 29.4,
+       "nullDeploymentMean": 0.056,
+       "armDeploymentMean": 0.053,
+       "ret": {
+        "n": 1000,
+        "mean": 0.0343,
+        "p05": -0.0459,
+        "p50": 0.0357,
+        "p95": 0.1114,
+        "min": -0.1388,
+        "max": 0.149
+       },
+       "pNullAtLeastArm": 0.961
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.3472,
+       "targetEntries": 29,
+       "nullEntriesMean": 29.11,
+       "ret": {
+        "n": 1000,
+        "mean": 0.026,
+        "p05": -0.0384,
+        "p50": 0.0297,
+        "p95": 0.0786,
+        "min": -0.1327,
+        "max": 0.1225
+       },
+       "pNullAtLeastArm": 0.976
+      }
+     }
+    },
+    "B": {
+     "i_shadow": {
+      "ret": 0.2249,
+      "maxDD": 0.1,
+      "retOverDD": 2.25,
+      "pnlUsd": 22.49,
+      "capitalUsd": 100,
+      "deployment": 0.144,
+      "entries": 60,
+      "signals": 60,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": 0.0887,
+       "p05": 0.0887,
+       "p50": 0.0887,
+       "p95": 0.0887,
+       "min": 0.0887,
+       "max": 0.0887
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0501,
+      "deploymentMean": 0.082,
+      "entriesMean": 35,
+      "signalsMean": 143,
+      "refusedMean": 108,
+      "coinFlipSignalsMean": 76,
+      "coinFlipRefusedMean": 76,
+      "pAtLeastRule": 0,
+      "pAtLeastIII": 0
+     },
+     "iii_clause": {
+      "ret": 0.1577,
+      "maxDD": 0.0947,
+      "retOverDD": 1.66,
+      "pnlUsd": 15.77,
+      "capitalUsd": 100,
+      "deployment": 0.13,
+      "entries": 54,
+      "signals": 86,
+      "refused": 32
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.229,
+       "targetEntries": 54,
+       "nullEntriesMean": 53.796,
+       "nullDeploymentMean": 0.13,
+       "armDeployment": 0.13,
+       "ret": {
+        "n": 1000,
+        "mean": 0.1999,
+        "p05": 0.1189,
+        "p50": 0.2023,
+        "p95": 0.2689,
+        "min": 0.052,
+        "max": 0.3412
+       },
+       "pNullAtLeastArm": 0.824
+      },
+      "ii": {
+       "pEp": 0.6489,
+       "targetEntries": 35,
+       "nullEntriesMean": 35.288,
+       "nullDeploymentMean": 0.087,
+       "armDeploymentMean": 0.082,
+       "ret": {
+        "n": 1000,
+        "mean": 0.1268,
+        "p05": 0.0217,
+        "p50": 0.128,
+        "p95": 0.2288,
+        "min": -0.0697,
+        "max": 0.3279
+       },
+       "pNullAtLeastArm": 0.723
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.5698,
+       "targetEntries": 35,
+       "nullEntriesMean": 35.013,
+       "ret": {
+        "n": 1000,
+        "mean": 0.112,
+        "p05": 0.0109,
+        "p50": 0.1138,
+        "p95": 0.2084,
+        "min": -0.0787,
+        "max": 0.3157
+       },
+       "pNullAtLeastArm": 0.651
+      }
+     }
+    },
+    "C": {
+     "i_shadow": {
+      "ret": 0.5095,
+      "maxDD": 0.0774,
+      "retOverDD": 6.58,
+      "pnlUsd": 40.76,
+      "capitalUsd": 80,
+      "deployment": 0.167,
+      "entries": 48,
+      "signals": 48,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": 0.3493,
+       "p05": 0.3493,
+       "p50": 0.3493,
+       "p95": 0.3493,
+       "min": 0.3493,
+       "max": 0.3493
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0624,
+      "deploymentMean": 0.104,
+      "entriesMean": 26,
+      "signalsMean": 94,
+      "refusedMean": 68,
+      "coinFlipSignalsMean": 49,
+      "coinFlipRefusedMean": 49,
+      "pAtLeastRule": 0,
+      "pAtLeastIII": 0
+     },
+     "iii_clause": {
+      "ret": 0.5098,
+      "maxDD": 0.0595,
+      "retOverDD": 8.56,
+      "pnlUsd": 40.79,
+      "capitalUsd": 80,
+      "deployment": 0.151,
+      "entries": 41,
+      "signals": 60,
+      "refused": 19
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.2817,
+       "targetEntries": 41,
+       "nullEntriesMean": 40.9,
+       "nullDeploymentMean": 0.146,
+       "armDeployment": 0.151,
+       "ret": {
+        "n": 1000,
+        "mean": 0.4478,
+        "p05": 0.3085,
+        "p50": 0.4652,
+        "p95": 0.5498,
+        "min": 0.2206,
+        "max": 0.5965
+       },
+       "pNullAtLeastArm": 0.215
+      },
+      "ii": {
+       "pEp": 0.6665,
+       "targetEntries": 26,
+       "nullEntriesMean": 26.24,
+       "nullDeploymentMean": 0.1,
+       "armDeploymentMean": 0.104,
+       "ret": {
+        "n": 1000,
+        "mean": 0.3076,
+        "p05": 0.1534,
+        "p50": 0.3062,
+        "p95": 0.4731,
+        "min": -0.0018,
+        "max": 0.6107
+       },
+       "pNullAtLeastArm": 0.333
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.5874,
+       "targetEntries": 26,
+       "nullEntriesMean": 26.375,
+       "ret": {
+        "n": 1000,
+        "mean": 0.3283,
+        "p05": 0.1615,
+        "p50": 0.3246,
+        "p95": 0.4861,
+        "min": -0.0006,
+        "max": 0.5587
+       },
+       "pNullAtLeastArm": 0.407
+      }
+     }
+    },
+    "D": {
+     "i_shadow": {
+      "ret": -0.0781,
+      "maxDD": 0.1552,
+      "retOverDD": -0.5,
+      "pnlUsd": -6.25,
+      "capitalUsd": 80,
+      "deployment": 0.079,
+      "entries": 32,
+      "signals": 32,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": 0.0718,
+       "p05": 0.0718,
+       "p50": 0.0718,
+       "p95": 0.0718,
+       "min": 0.0718,
+       "max": 0.0718
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0427,
+      "deploymentMean": 0.043,
+      "entriesMean": 15,
+      "signalsMean": 47,
+      "refusedMean": 32,
+      "coinFlipSignalsMean": 17,
+      "coinFlipRefusedMean": 17,
+      "pAtLeastRule": 1,
+      "pAtLeastIII": 1
+     },
+     "iii_clause": {
+      "ret": -0.0332,
+      "maxDD": 0.1185,
+      "retOverDD": -0.28,
+      "pnlUsd": -2.66,
+      "capitalUsd": 80,
+      "deployment": 0.063,
+      "entries": 24,
+      "signals": 39,
+      "refused": 15
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.353,
+       "targetEntries": 24,
+       "nullEntriesMean": 24.305,
+       "nullDeploymentMean": 0.062,
+       "armDeployment": 0.063,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0486,
+        "p05": -0.1042,
+        "p50": -0.0476,
+        "p95": 0.0062,
+        "min": -0.1532,
+        "max": 0.0511
+       },
+       "pNullAtLeastArm": 0.333
+      },
+      "ii": {
+       "pEp": 0.6411,
+       "targetEntries": 15,
+       "nullEntriesMean": 15.599,
+       "nullDeploymentMean": 0.04,
+       "armDeploymentMean": 0.043,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0235,
+        "p05": -0.093,
+        "p50": -0.0217,
+        "p95": 0.0384,
+        "min": -0.1535,
+        "max": 0.0873
+       },
+       "pNullAtLeastArm": 0.007
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.5288,
+       "targetEntries": 15,
+       "nullEntriesMean": 15.026,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0079,
+        "p05": -0.0726,
+        "p50": -0.0063,
+        "p95": 0.0504,
+        "min": -0.1344,
+        "max": 0.104
+       },
+       "pNullAtLeastArm": 0.015
+      }
+     }
+    }
+   }
+  },
+  "trail·coinbase": {
+   "incumbentWorst": {
+    "window": "D",
+    "ret": -0.032
+   },
+   "ii": {
+    "worstOfMeans": {
+     "window": "A",
+     "ret": -0.0698
+    },
+    "worstPerDraw": {
+     "n": 2000,
+     "mean": -0.0698,
+     "p05": -0.0698,
+     "p50": -0.0698,
+     "p95": -0.0698,
+     "min": -0.0698,
+     "max": -0.0698
+    },
+    "beatsIncumbentWorst": false,
+    "pWorstAboveIncumbentWorst": 0,
+    "nullWorst": {
+     "n": 1000,
+     "mean": -0.0339,
+     "p05": -0.0856,
+     "p50": -0.0322,
+     "p95": 0.0168,
+     "min": -0.1299,
+     "max": 0.0617
+    },
+    "pNullWorstAtLeastArmWorst": 0.87,
+    "stepNullWorst": {
+     "n": 1000,
+     "mean": -0.0533,
+     "p05": -0.0957,
+     "p50": -0.0519,
+     "p95": -0.0124,
+     "min": -0.1487,
+     "max": 0.0221
+    },
+    "pStepNullWorstAtLeastArmWorst": 0.751
+   },
+   "iii": {
+    "worst": {
+     "window": "A",
+     "ret": -0.0582
+    },
+    "beatsIncumbentWorst": false,
+    "nullWorst": {
+     "n": 1000,
+     "mean": -0.0355,
+     "p05": -0.0809,
+     "p50": -0.0355,
+     "p95": 0.0081,
+     "min": -0.1336,
+     "max": 0.0365
+    },
+    "pNullWorstAtLeastArmWorst": 0.803
+   },
+   "retOverDD": {
+    "incumbentWorst": {
+     "window": "D",
+     "ret": -0.2875
+    },
+    "ii": {
+     "worstMeanOverDraws": -0.6816,
+     "beatsIncumbentWorst": false,
+     "pNullWorstAtLeastArmWorst": 0.811
+    },
+    "iii": {
+     "worst": {
+      "window": "A",
+      "ret": -0.487
+     },
+     "beatsIncumbentWorst": false,
+     "pNullWorstAtLeastArmWorst": 0.741
+    }
+   },
+   "perWindow": {
+    "A": {
+     "i_shadow": {
+      "ret": -0.0033,
+      "maxDD": 0.1175,
+      "retOverDD": -0.03,
+      "pnlUsd": -0.33,
+      "capitalUsd": 100,
+      "deployment": 0.065,
+      "entries": 49,
+      "signals": 49,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": -0.0698,
+       "p05": -0.0698,
+       "p50": -0.0698,
+       "p95": -0.0698,
+       "min": -0.0698,
+       "max": -0.0698
+      },
+      "pNegative": 1,
+      "maxDDMean": 0.1024,
+      "deploymentMean": 0.039,
+      "entriesMean": 30,
+      "signalsMean": 78,
+      "refusedMean": 48,
+      "coinFlipSignalsMean": 21,
+      "coinFlipRefusedMean": 21,
+      "pAtLeastRule": 0,
+      "pAtLeastIII": 0
+     },
+     "iii_clause": {
+      "ret": -0.0582,
+      "maxDD": 0.1195,
+      "retOverDD": -0.49,
+      "pnlUsd": -5.82,
+      "capitalUsd": 100,
+      "deployment": 0.049,
+      "entries": 40,
+      "signals": 67,
+      "refused": 27
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.3052,
+       "targetEntries": 40,
+       "nullEntriesMean": 40.206,
+       "nullDeploymentMean": 0.053,
+       "armDeployment": 0.049,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0084,
+        "p05": -0.0632,
+        "p50": -0.0088,
+        "p95": 0.0427,
+        "min": -0.1187,
+        "max": 0.0788
+       },
+       "pNullAtLeastArm": 0.93
+      },
+      "ii": {
+       "pEp": 0.5483,
+       "targetEntries": 30,
+       "nullEntriesMean": 30.223,
+       "nullDeploymentMean": 0.04,
+       "armDeploymentMean": 0.039,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0122,
+        "p05": -0.0745,
+        "p50": -0.0114,
+        "p95": 0.0507,
+        "min": -0.1197,
+        "max": 0.0979
+       },
+       "pNullAtLeastArm": 0.934
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.3853,
+       "targetEntries": 30,
+       "nullEntriesMean": 30.091,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0496,
+        "p05": -0.095,
+        "p50": -0.0486,
+        "p95": -0.0056,
+        "min": -0.1487,
+        "max": 0.0284
+       },
+       "pNullAtLeastArm": 0.771
+      }
+     }
+    },
+    "B": {
+     "i_shadow": {
+      "ret": 0.1264,
+      "maxDD": 0.1018,
+      "retOverDD": 1.24,
+      "pnlUsd": 12.64,
+      "capitalUsd": 100,
+      "deployment": 0.113,
+      "entries": 69,
+      "signals": 69,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": 0.071,
+       "p05": 0.071,
+       "p50": 0.071,
+       "p95": 0.071,
+       "min": 0.071,
+       "max": 0.071
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.05,
+      "deploymentMean": 0.064,
+      "entriesMean": 39,
+      "signalsMean": 142,
+      "refusedMean": 103,
+      "coinFlipSignalsMean": 74,
+      "coinFlipRefusedMean": 74,
+      "pAtLeastRule": 0,
+      "pAtLeastIII": 0
+     },
+     "iii_clause": {
+      "ret": 0.0859,
+      "maxDD": 0.0945,
+      "retOverDD": 0.91,
+      "pnlUsd": 8.59,
+      "capitalUsd": 100,
+      "deployment": 0.102,
+      "entries": 62,
+      "signals": 91,
+      "refused": 29
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.2075,
+       "targetEntries": 62,
+       "nullEntriesMean": 62.221,
+       "nullDeploymentMean": 0.103,
+       "armDeployment": 0.102,
+       "ret": {
+        "n": 1000,
+        "mean": 0.118,
+        "p05": 0.0568,
+        "p50": 0.1205,
+        "p95": 0.1803,
+        "min": -0.0193,
+        "max": 0.2087
+       },
+       "pNullAtLeastArm": 0.789
+      },
+      "ii": {
+       "pEp": 0.6421,
+       "targetEntries": 39,
+       "nullEntriesMean": 38.973,
+       "nullDeploymentMean": 0.067,
+       "armDeploymentMean": 0.064,
+       "ret": {
+        "n": 1000,
+        "mean": 0.0793,
+        "p05": -0.0174,
+        "p50": 0.0809,
+        "p95": 0.1783,
+        "min": -0.1299,
+        "max": 0.2528
+       },
+       "pNullAtLeastArm": 0.555
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.5649,
+       "targetEntries": 39,
+       "nullEntriesMean": 39.356,
+       "ret": {
+        "n": 1000,
+        "mean": 0.0671,
+        "p05": -0.0218,
+        "p50": 0.0666,
+        "p95": 0.1537,
+        "min": -0.0908,
+        "max": 0.2204
+       },
+       "pNullAtLeastArm": 0.47
+      }
+     }
+    },
+    "C": {
+     "i_shadow": {
+      "ret": 0.4707,
+      "maxDD": 0.0578,
+      "retOverDD": 8.14,
+      "pnlUsd": 37.65,
+      "capitalUsd": 80,
+      "deployment": 0.129,
+      "entries": 51,
+      "signals": 51,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": 0.327,
+       "p05": 0.327,
+       "p50": 0.327,
+       "p95": 0.327,
+       "min": 0.327,
+       "max": 0.327
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0281,
+      "deploymentMean": 0.085,
+      "entriesMean": 30,
+      "signalsMean": 95,
+      "refusedMean": 65,
+      "coinFlipSignalsMean": 48,
+      "coinFlipRefusedMean": 48,
+      "pAtLeastRule": 0,
+      "pAtLeastIII": 0
+     },
+     "iii_clause": {
+      "ret": 0.4607,
+      "maxDD": 0.056,
+      "retOverDD": 8.23,
+      "pnlUsd": 36.86,
+      "capitalUsd": 80,
+      "deployment": 0.118,
+      "entries": 45,
+      "signals": 62,
+      "refused": 17
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.229,
+       "targetEntries": 45,
+       "nullEntriesMean": 44.837,
+       "nullDeploymentMean": 0.116,
+       "armDeployment": 0.118,
+       "ret": {
+        "n": 1000,
+        "mean": 0.4154,
+        "p05": 0.3131,
+        "p50": 0.4236,
+        "p95": 0.4944,
+        "min": 0.2094,
+        "max": 0.533
+       },
+       "pNullAtLeastArm": 0.211
+      },
+      "ii": {
+       "pEp": 0.6147,
+       "targetEntries": 30,
+       "nullEntriesMean": 30.154,
+       "nullDeploymentMean": 0.08,
+       "armDeploymentMean": 0.085,
+       "ret": {
+        "n": 1000,
+        "mean": 0.2772,
+        "p05": 0.1409,
+        "p50": 0.2768,
+        "p95": 0.416,
+        "min": 0.0278,
+        "max": 0.4942
+       },
+       "pNullAtLeastArm": 0.278
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.5513,
+       "targetEntries": 30,
+       "nullEntriesMean": 30.016,
+       "ret": {
+        "n": 1000,
+        "mean": 0.2808,
+        "p05": 0.1566,
+        "p50": 0.2826,
+        "p95": 0.4041,
+        "min": -0.0012,
+        "max": 0.4679
+       },
+       "pNullAtLeastArm": 0.268
+      }
+     }
+    },
+    "D": {
+     "i_shadow": {
+      "ret": -0.032,
+      "maxDD": 0.1113,
+      "retOverDD": -0.29,
+      "pnlUsd": -2.56,
+      "capitalUsd": 80,
+      "deployment": 0.065,
+      "entries": 33,
+      "signals": 33,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": 0.0645,
+       "p05": 0.0645,
+       "p50": 0.0645,
+       "p95": 0.0645,
+       "min": 0.0645,
+       "max": 0.0645
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0435,
+      "deploymentMean": 0.033,
+      "entriesMean": 16,
+      "signalsMean": 48,
+      "refusedMean": 32,
+      "coinFlipSignalsMean": 17,
+      "coinFlipRefusedMean": 17,
+      "pAtLeastRule": 1,
+      "pAtLeastIII": 1
+     },
+     "iii_clause": {
+      "ret": -0.0073,
+      "maxDD": 0.0953,
+      "retOverDD": -0.08,
+      "pnlUsd": -0.58,
+      "capitalUsd": 80,
+      "deployment": 0.051,
+      "entries": 25,
+      "signals": 40,
+      "refused": 15
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.3364,
+       "targetEntries": 25,
+       "nullEntriesMean": 25.143,
+       "nullDeploymentMean": 0.049,
+       "armDeployment": 0.051,
+       "ret": {
+        "n": 1000,
+        "mean": -0.024,
+        "p05": -0.0751,
+        "p50": -0.0226,
+        "p95": 0.0254,
+        "min": -0.1336,
+        "max": 0.0686
+       },
+       "pNullAtLeastArm": 0.313
+      },
+      "ii": {
+       "pEp": 0.6304,
+       "targetEntries": 16,
+       "nullEntriesMean": 16.113,
+       "nullDeploymentMean": 0.031,
+       "armDeploymentMean": 0.033,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0128,
+        "p05": -0.0746,
+        "p50": -0.0118,
+        "p95": 0.0437,
+        "min": -0.115,
+        "max": 0.0717
+       },
+       "pNullAtLeastArm": 0.005
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.5034,
+       "targetEntries": 16,
+       "nullEntriesMean": 15.926,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0048,
+        "p05": -0.0591,
+        "p50": -0.0036,
+        "p95": 0.0482,
+        "min": -0.1096,
+        "max": 0.0937
+       },
+       "pNullAtLeastArm": 0.014
+      }
+     }
+    }
+   }
+  },
+  "trail·kraken": {
+   "incumbentWorst": {
+    "window": "D",
+    "ret": -0.032
+   },
+   "ii": {
+    "worstOfMeans": {
+     "window": "A",
+     "ret": -0.0621
+    },
+    "worstPerDraw": {
+     "n": 2000,
+     "mean": -0.0621,
+     "p05": -0.0621,
+     "p50": -0.0621,
+     "p95": -0.0621,
+     "min": -0.0621,
+     "max": -0.0621
+    },
+    "beatsIncumbentWorst": false,
+    "pWorstAboveIncumbentWorst": 0,
+    "nullWorst": {
+     "n": 1000,
+     "mean": -0.0252,
+     "p05": -0.0785,
+     "p50": -0.0232,
+     "p95": 0.0244,
+     "min": -0.118,
+     "max": 0.0577
+    },
+    "pNullWorstAtLeastArmWorst": 0.865,
+    "stepNullWorst": {
+     "n": 1000,
+     "mean": -0.0182,
+     "p05": -0.0688,
+     "p50": -0.0164,
+     "p95": 0.0275,
+     "min": -0.1405,
+     "max": 0.0624
+    },
+    "pStepNullWorstAtLeastArmWorst": 0.921
+   },
+   "iii": {
+    "worst": {
+     "window": "D",
+     "ret": -0.0073
+    },
+    "beatsIncumbentWorst": true,
+    "nullWorst": {
+     "n": 1000,
+     "mean": -0.0247,
+     "p05": -0.0773,
+     "p50": -0.0226,
+     "p95": 0.0241,
+     "min": -0.1365,
+     "max": 0.0687
+    },
+    "pNullWorstAtLeastArmWorst": 0.306
+   },
+   "retOverDD": {
+    "incumbentWorst": {
+     "window": "D",
+     "ret": -0.2875
+    },
+    "ii": {
+     "worstMeanOverDraws": -0.6124,
+     "beatsIncumbentWorst": false,
+     "pNullWorstAtLeastArmWorst": 0.783
+    },
+    "iii": {
+     "worst": {
+      "window": "D",
+      "ret": -0.0766
+     },
+     "beatsIncumbentWorst": true,
+     "pNullWorstAtLeastArmWorst": 0.299
+    }
+   },
+   "perWindow": {
+    "A": {
+     "i_shadow": {
+      "ret": 0.0654,
+      "maxDD": 0.1164,
+      "retOverDD": 0.56,
+      "pnlUsd": 6.54,
+      "capitalUsd": 100,
+      "deployment": 0.066,
+      "entries": 50,
+      "signals": 50,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": -0.0621,
+       "p05": -0.0621,
+       "p50": -0.0621,
+       "p95": -0.0621,
+       "min": -0.0621,
+       "max": -0.0621
+      },
+      "pNegative": 1,
+      "maxDDMean": 0.1014,
+      "deploymentMean": 0.037,
+      "entriesMean": 30,
+      "signalsMean": 79,
+      "refusedMean": 49,
+      "coinFlipSignalsMean": 21,
+      "coinFlipRefusedMean": 21,
+      "pAtLeastRule": 0,
+      "pAtLeastIII": 0
+     },
+     "iii_clause": {
+      "ret": 0.0256,
+      "maxDD": 0.1182,
+      "retOverDD": 0.22,
+      "pnlUsd": 2.56,
+      "capitalUsd": 100,
+      "deployment": 0.047,
+      "entries": 40,
+      "signals": 68,
+      "refused": 28
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.3306,
+       "targetEntries": 40,
+       "nullEntriesMean": 39.877,
+       "nullDeploymentMean": 0.052,
+       "armDeployment": 0.047,
+       "ret": {
+        "n": 1000,
+        "mean": 0.0437,
+        "p05": -0.0219,
+        "p50": 0.0449,
+        "p95": 0.1015,
+        "min": -0.1011,
+        "max": 0.1541
+       },
+       "pNullAtLeastArm": 0.716
+      },
+      "ii": {
+       "pEp": 0.5698,
+       "targetEntries": 30,
+       "nullEntriesMean": 29.676,
+       "nullDeploymentMean": 0.039,
+       "armDeploymentMean": 0.037,
+       "ret": {
+        "n": 1000,
+        "mean": 0.0239,
+        "p05": -0.0511,
+        "p50": 0.0247,
+        "p95": 0.0988,
+        "min": -0.118,
+        "max": 0.1432
+       },
+       "pNullAtLeastArm": 0.974
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.3813,
+       "targetEntries": 30,
+       "nullEntriesMean": 29.841,
+       "ret": {
+        "n": 1000,
+        "mean": 0.0108,
+        "p05": -0.0528,
+        "p50": 0.0137,
+        "p95": 0.062,
+        "min": -0.0978,
+        "max": 0.0933
+       },
+       "pNullAtLeastArm": 0.969
+      }
+     }
+    },
+    "B": {
+     "i_shadow": {
+      "ret": 0.1377,
+      "maxDD": 0.0943,
+      "retOverDD": 1.46,
+      "pnlUsd": 13.77,
+      "capitalUsd": 100,
+      "deployment": 0.113,
+      "entries": 70,
+      "signals": 70,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": 0.0608,
+       "p05": 0.0608,
+       "p50": 0.0608,
+       "p95": 0.0608,
+       "min": 0.0608,
+       "max": 0.0608
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0558,
+      "deploymentMean": 0.064,
+      "entriesMean": 40,
+      "signalsMean": 148,
+      "refusedMean": 108,
+      "coinFlipSignalsMean": 76,
+      "coinFlipRefusedMean": 76,
+      "pAtLeastRule": 0,
+      "pAtLeastIII": 0
+     },
+     "iii_clause": {
+      "ret": 0.0899,
+      "maxDD": 0.0875,
+      "retOverDD": 1.03,
+      "pnlUsd": 8.99,
+      "capitalUsd": 100,
+      "deployment": 0.102,
+      "entries": 63,
+      "signals": 95,
+      "refused": 32
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.2095,
+       "targetEntries": 63,
+       "nullEntriesMean": 62.796,
+       "nullDeploymentMean": 0.102,
+       "armDeployment": 0.102,
+       "ret": {
+        "n": 1000,
+        "mean": 0.1215,
+        "p05": 0.0495,
+        "p50": 0.1239,
+        "p95": 0.1855,
+        "min": -0.017,
+        "max": 0.2349
+       },
+       "pNullAtLeastArm": 0.776
+      },
+      "ii": {
+       "pEp": 0.6294,
+       "targetEntries": 40,
+       "nullEntriesMean": 39.994,
+       "nullDeploymentMean": 0.068,
+       "armDeploymentMean": 0.064,
+       "ret": {
+        "n": 1000,
+        "mean": 0.0846,
+        "p05": -0.015,
+        "p50": 0.0831,
+        "p95": 0.1852,
+        "min": -0.1151,
+        "max": 0.2446
+       },
+       "pNullAtLeastArm": 0.663
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.5562,
+       "targetEntries": 40,
+       "nullEntriesMean": 39.782,
+       "ret": {
+        "n": 1000,
+        "mean": 0.0738,
+        "p05": -0.0148,
+        "p50": 0.0752,
+        "p95": 0.1577,
+        "min": -0.1405,
+        "max": 0.2513
+       },
+       "pNullAtLeastArm": 0.613
+      }
+     }
+    },
+    "C": {
+     "i_shadow": {
+      "ret": 0.3829,
+      "maxDD": 0.0596,
+      "retOverDD": 6.43,
+      "pnlUsd": 30.63,
+      "capitalUsd": 80,
+      "deployment": 0.122,
+      "entries": 56,
+      "signals": 56,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": 0.2002,
+       "p05": 0.2002,
+       "p50": 0.2002,
+       "p95": 0.2002,
+       "min": 0.2002,
+       "max": 0.2002
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.03,
+      "deploymentMean": 0.076,
+      "entriesMean": 32,
+      "signalsMean": 105,
+      "refusedMean": 73,
+      "coinFlipSignalsMean": 54,
+      "coinFlipRefusedMean": 54,
+      "pAtLeastRule": 0,
+      "pAtLeastIII": 0
+     },
+     "iii_clause": {
+      "ret": 0.3693,
+      "maxDD": 0.0601,
+      "retOverDD": 6.14,
+      "pnlUsd": 29.54,
+      "capitalUsd": 80,
+      "deployment": 0.109,
+      "entries": 49,
+      "signals": 68,
+      "refused": 19
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.2368,
+       "targetEntries": 49,
+       "nullEntriesMean": 48.866,
+       "nullDeploymentMean": 0.107,
+       "armDeployment": 0.109,
+       "ret": {
+        "n": 1000,
+        "mean": 0.3222,
+        "p05": 0.224,
+        "p50": 0.3291,
+        "p95": 0.4036,
+        "min": 0.1204,
+        "max": 0.4421
+       },
+       "pNullAtLeastArm": 0.203
+      },
+      "ii": {
+       "pEp": 0.6274,
+       "targetEntries": 32,
+       "nullEntriesMean": 31.556,
+       "nullDeploymentMean": 0.072,
+       "armDeploymentMean": 0.076,
+       "ret": {
+        "n": 1000,
+        "mean": 0.1926,
+        "p05": 0.0672,
+        "p50": 0.1874,
+        "p95": 0.322,
+        "min": -0.0169,
+        "max": 0.442
+       },
+       "pNullAtLeastArm": 0.45
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.561,
+       "targetEntries": 32,
+       "nullEntriesMean": 31.695,
+       "ret": {
+        "n": 1000,
+        "mean": 0.1982,
+        "p05": 0.0812,
+        "p50": 0.1979,
+        "p95": 0.3138,
+        "min": -0.0404,
+        "max": 0.4065
+       },
+       "pNullAtLeastArm": 0.483
+      }
+     }
+    },
+    "D": {
+     "i_shadow": {
+      "ret": -0.032,
+      "maxDD": 0.1113,
+      "retOverDD": -0.29,
+      "pnlUsd": -2.56,
+      "capitalUsd": 80,
+      "deployment": 0.065,
+      "entries": 33,
+      "signals": 33,
+      "refused": 0
+     },
+     "ii_gate": {
+      "ret": {
+       "n": 2000,
+       "mean": 0.0645,
+       "p05": 0.0645,
+       "p50": 0.0645,
+       "p95": 0.0645,
+       "min": 0.0645,
+       "max": 0.0645
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0435,
+      "deploymentMean": 0.033,
+      "entriesMean": 16,
+      "signalsMean": 48,
+      "refusedMean": 32,
+      "coinFlipSignalsMean": 17,
+      "coinFlipRefusedMean": 17,
+      "pAtLeastRule": 1,
+      "pAtLeastIII": 1
+     },
+     "iii_clause": {
+      "ret": -0.0073,
+      "maxDD": 0.0953,
+      "retOverDD": -0.08,
+      "pnlUsd": -0.58,
+      "capitalUsd": 80,
+      "deployment": 0.051,
+      "entries": 25,
+      "signals": 40,
+      "refused": 15
+     },
+     "nulls": {
+      "iii": {
+       "pEp": 0.3589,
+       "targetEntries": 25,
+       "nullEntriesMean": 24.443,
+       "nullDeploymentMean": 0.048,
+       "armDeployment": 0.051,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0224,
+        "p05": -0.0755,
+        "p50": -0.0213,
+        "p95": 0.0272,
+        "min": -0.1365,
+        "max": 0.0864
+       },
+       "pNullAtLeastArm": 0.334
+      },
+      "ii": {
+       "pEp": 0.6431,
+       "targetEntries": 16,
+       "nullEntriesMean": 15.667,
+       "nullDeploymentMean": 0.031,
+       "armDeploymentMean": 0.033,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0141,
+        "p05": -0.0727,
+        "p50": -0.0126,
+        "p95": 0.0414,
+        "min": -0.1073,
+        "max": 0.082
+       },
+       "pNullAtLeastArm": 0.011
+      },
+      "stepIIIToII": {
+       "what": "a random episode veto ON TOP OF (iii), calibrated to (ii)'s entries: is the high-volatility coin flip better than refusing the same number of (iii)'s entries at random?",
+       "pEp": 0.5054,
+       "targetEntries": 16,
+       "nullEntriesMean": 15.847,
+       "ret": {
+        "n": 1000,
+        "mean": -0.0037,
+        "p05": -0.0605,
+        "p50": -0.0022,
+        "p95": 0.0525,
+        "min": -0.1004,
+        "max": 0.0901
+       },
+       "pNullAtLeastArm": 0.017
+      }
+     }
+    }
+   }
+  }
+ },
+ "signalNull": {
+  "A": {
+   "iii": {
+    "refuseProbPerSignal": 0.465,
+    "entriesMean": 33.825,
+    "armEntries": 37,
+    "ret": {
+     "n": 1000,
+     "mean": 0.0578,
+     "p05": -0.0095,
+     "p50": 0.0597,
+     "p95": 0.1169,
+     "min": -0.0684,
+     "max": 0.1738
+    },
+    "pNullAtLeastArm": 0.907
+   },
+   "ii": {
+    "refuseProbPerSignal": 0.581,
+    "entriesMean": 29.908,
+    "armEntriesMean": 30,
+    "ret": {
+     "n": 1000,
+     "mean": 0.0525,
+     "p05": -0.0218,
+     "p50": 0.0539,
+     "p95": 0.1183,
+     "min": -0.0927,
+     "max": 0.1896
+    },
+    "pNullAtLeastArm": 0.995
+   },
+   "ruleEntries": 43
+  },
+  "B": {
+   "iii": {
+    "refuseProbPerSignal": 0.293,
+    "entriesMean": 52.3,
+    "armEntries": 52,
+    "ret": {
+     "n": 1000,
+     "mean": 0.1984,
+     "p05": 0.1368,
+     "p50": 0.1997,
+     "p95": 0.2556,
+     "min": 0.0692,
+     "max": 0.3263
+    },
+    "pNullAtLeastArm": 0.915
+   },
+   "ii": {
+    "refuseProbPerSignal": 0.621,
+    "entriesMean": 40.926,
+    "armEntriesMean": 33,
+    "ret": {
+     "n": 1000,
+     "mean": 0.1614,
+     "p05": 0.0713,
+     "p50": 0.1658,
+     "p95": 0.2483,
+     "min": -0.0508,
+     "max": 0.3124
+    },
+    "pNullAtLeastArm": 0.902
+   },
+   "ruleEntries": 58
+  },
+  "C": {
+   "iii": {
+    "refuseProbPerSignal": 0.277,
+    "entriesMean": 42.976,
+    "armEntries": 41,
+    "ret": {
+     "n": 1000,
+     "mean": 0.512,
+     "p05": 0.4386,
+     "p50": 0.5159,
+     "p95": 0.5698,
+     "min": 0.3235,
+     "max": 0.63
+    },
+    "pNullAtLeastArm": 0.058
+   },
+   "ii": {
+    "refuseProbPerSignal": 0.553,
+    "entriesMean": 36.078,
+    "armEntriesMean": 26,
+    "ret": {
+     "n": 1000,
+     "mean": 0.4298,
+     "p05": 0.2844,
+     "p50": 0.4398,
+     "p95": 0.5371,
+     "min": 0.173,
+     "max": 0.6331
+    },
+    "pNullAtLeastArm": 0.568
+   },
+   "ruleEntries": 47
+  },
+  "D": {
+   "iii": {
+    "refuseProbPerSignal": 0.313,
+    "entriesMean": 26.635,
+    "armEntries": 24,
+    "ret": {
+     "n": 1000,
+     "mean": -0.0534,
+     "p05": -0.0956,
+     "p50": -0.0535,
+     "p95": -0.0093,
+     "min": -0.1398,
+     "max": 0.0458
+    },
+    "pNullAtLeastArm": 0.219
+   },
+   "ii": {
+    "refuseProbPerSignal": 0.625,
+    "entriesMean": 18.704,
+    "armEntriesMean": 15,
+    "ret": {
+     "n": 1000,
+     "mean": -0.0206,
+     "p05": -0.0832,
+     "p50": -0.0188,
+     "p95": 0.0364,
+     "min": -0.1472,
+     "max": 0.0875
+    },
+    "pNullAtLeastArm": 0.003
+   },
+   "ruleEntries": 32
+  }
+ },
+ "sensitivity": {
+  "pooledReplies": {
+   "A": {
+    "pooled": {
+     "ret": {
+      "n": 2000,
+      "mean": -0.0664,
+      "p05": -0.0664,
+      "p50": -0.0664,
+      "p95": -0.0664,
+      "min": -0.0664,
+      "max": -0.0664
+     },
+     "pNegative": 1,
+     "maxDDMean": 0.1319,
+     "deploymentMean": 0.054,
+     "entriesMean": 30,
+     "signalsMean": 75,
+     "refusedMean": 45,
+     "coinFlipSignalsMean": 18,
+     "coinFlipRefusedMean": 18
+    },
+    "perSymbol": {
+     "ret": {
+      "n": 2000,
+      "mean": -0.0664,
+      "p05": -0.0664,
+      "p50": -0.0664,
+      "p95": -0.0664,
+      "min": -0.0664,
+      "max": -0.0664
+     },
+     "pNegative": 1,
+     "maxDDMean": 0.1319,
+     "deploymentMean": 0.054,
+     "entriesMean": 30,
+     "signalsMean": 75,
+     "refusedMean": 45,
+     "coinFlipSignalsMean": 18,
+     "coinFlipRefusedMean": 18
+    }
+   },
+   "B": {
+    "pooled": {
+     "ret": {
+      "n": 2000,
+      "mean": 0.0891,
+      "p05": 0.0891,
+      "p50": 0.0891,
+      "p95": 0.0891,
+      "min": 0.0891,
+      "max": 0.0891
+     },
+     "pNegative": 0,
+     "maxDDMean": 0.0516,
+     "deploymentMean": 0.082,
+     "entriesMean": 33,
+     "signalsMean": 136,
+     "refusedMean": 103,
+     "coinFlipSignalsMean": 74,
+     "coinFlipRefusedMean": 74
+    },
+    "perSymbol": {
+     "ret": {
+      "n": 2000,
+      "mean": 0.0891,
+      "p05": 0.0891,
+      "p50": 0.0891,
+      "p95": 0.0891,
+      "min": 0.0891,
+      "max": 0.0891
+     },
+     "pNegative": 0,
+     "maxDDMean": 0.0516,
+     "deploymentMean": 0.082,
+     "entriesMean": 33,
+     "signalsMean": 136,
+     "refusedMean": 103,
+     "coinFlipSignalsMean": 74,
+     "coinFlipRefusedMean": 74
+    }
+   },
+   "C": {
+    "pooled": {
+     "ret": {
+      "n": 2000,
+      "mean": 0.4289,
+      "p05": 0.4289,
+      "p50": 0.4289,
+      "p95": 0.4289,
+      "min": 0.4289,
+      "max": 0.4289
+     },
+     "pNegative": 0,
+     "maxDDMean": 0.0356,
+     "deploymentMean": 0.114,
+     "entriesMean": 26,
+     "signalsMean": 91,
+     "refusedMean": 65,
+     "coinFlipSignalsMean": 48,
+     "coinFlipRefusedMean": 48
+    },
+    "perSymbol": {
+     "ret": {
+      "n": 2000,
+      "mean": 0.4289,
+      "p05": 0.4289,
+      "p50": 0.4289,
+      "p95": 0.4289,
+      "min": 0.4289,
+      "max": 0.4289
+     },
+     "pNegative": 0,
+     "maxDDMean": 0.0356,
+     "deploymentMean": 0.114,
+     "entriesMean": 26,
+     "signalsMean": 91,
+     "refusedMean": 65,
+     "coinFlipSignalsMean": 48,
+     "coinFlipRefusedMean": 48
+    }
+   },
+   "D": {
+    "pooled": {
+     "ret": {
+      "n": 2000,
+      "mean": 0.0718,
+      "p05": 0.0718,
+      "p50": 0.0718,
+      "p95": 0.0718,
+      "min": 0.0718,
+      "max": 0.0718
+     },
+     "pNegative": 0,
+     "maxDDMean": 0.0427,
+     "deploymentMean": 0.043,
+     "entriesMean": 15,
+     "signalsMean": 47,
+     "refusedMean": 32,
+     "coinFlipSignalsMean": 17,
+     "coinFlipRefusedMean": 17
+    },
+    "perSymbol": {
+     "ret": {
+      "n": 2000,
+      "mean": 0.0718,
+      "p05": 0.0718,
+      "p50": 0.0718,
+      "p95": 0.0718,
+      "min": 0.0718,
+      "max": 0.0718
+     },
+     "pNegative": 0,
+     "maxDDMean": 0.0427,
+     "deploymentMean": 0.043,
+     "entriesMean": 15,
+     "signalsMean": 47,
+     "refusedMean": 32,
+     "coinFlipSignalsMean": 17,
+     "coinFlipRefusedMean": 17
+    }
+   }
+  }
+ },
+ "enterMinStructure": {
+  "note": "a structure, not a search: nothing is chosen here, because a threshold chosen on the windows that score it is in-sample optimisation (§3.11, §3.19, and the earlier study's own out-of-sample test)",
+  "rows": [
+   {
+    "enterMin": 0,
+    "deterministicOnHistoricalStates": true,
+    "deterministicOnAll90": true,
+    "perWindow": {
+     "A": {
+      "deterministic": true,
+      "ret": 0.0803,
+      "maxDD": 0.1128,
+      "retOverDD": 0.71,
+      "pnlUsd": 8.03,
+      "capitalUsd": 100,
+      "deployment": 0.088,
+      "entries": 43,
+      "signals": 43,
+      "refused": 0,
+      "identicalToCodeArm": true
+     },
+     "B": {
+      "deterministic": true,
+      "ret": 0.2008,
+      "maxDD": 0.1047,
+      "retOverDD": 1.92,
+      "pnlUsd": 20.08,
+      "capitalUsd": 100,
+      "deployment": 0.144,
+      "entries": 58,
+      "signals": 58,
+      "refused": 0,
+      "identicalToCodeArm": true
+     },
+     "C": {
+      "deterministic": true,
+      "ret": 0.5564,
+      "maxDD": 0.0735,
+      "retOverDD": 7.57,
+      "pnlUsd": 44.51,
+      "capitalUsd": 80,
+      "deployment": 0.173,
+      "entries": 47,
+      "signals": 47,
+      "refused": 0,
+      "identicalToCodeArm": true
+     },
+     "D": {
+      "deterministic": true,
+      "ret": -0.0781,
+      "maxDD": 0.1552,
+      "retOverDD": -0.5,
+      "pnlUsd": -6.25,
+      "capitalUsd": 80,
+      "deployment": 0.079,
+      "entries": 32,
+      "signals": 32,
+      "refused": 0,
+      "identicalToCodeArm": true
+     }
+    },
+    "worst": {
+     "window": "D",
+     "ret": -0.0781
+    }
+   },
+   {
+    "enterMin": 0.1,
+    "deterministicOnHistoricalStates": true,
+    "deterministicOnAll90": true,
+    "perWindow": {
+     "A": {
+      "deterministic": true,
+      "ret": 0.0803,
+      "maxDD": 0.1128,
+      "retOverDD": 0.71,
+      "pnlUsd": 8.03,
+      "capitalUsd": 100,
+      "deployment": 0.088,
+      "entries": 43,
+      "signals": 43,
+      "refused": 0,
+      "identicalToCodeArm": true
+     },
+     "B": {
+      "deterministic": true,
+      "ret": 0.2008,
+      "maxDD": 0.1047,
+      "retOverDD": 1.92,
+      "pnlUsd": 20.08,
+      "capitalUsd": 100,
+      "deployment": 0.144,
+      "entries": 58,
+      "signals": 58,
+      "refused": 0,
+      "identicalToCodeArm": true
+     },
+     "C": {
+      "deterministic": true,
+      "ret": 0.5564,
+      "maxDD": 0.0735,
+      "retOverDD": 7.57,
+      "pnlUsd": 44.51,
+      "capitalUsd": 80,
+      "deployment": 0.173,
+      "entries": 47,
+      "signals": 47,
+      "refused": 0,
+      "identicalToCodeArm": true
+     },
+     "D": {
+      "deterministic": true,
+      "ret": -0.0781,
+      "maxDD": 0.1552,
+      "retOverDD": -0.5,
+      "pnlUsd": -6.25,
+      "capitalUsd": 80,
+      "deployment": 0.079,
+      "entries": 32,
+      "signals": 32,
+      "refused": 0,
+      "identicalToCodeArm": true
+     }
+    },
+    "worst": {
+     "window": "D",
+     "ret": -0.0781
+    }
+   },
+   {
+    "enterMin": 0.12,
+    "deterministicOnHistoricalStates": true,
+    "deterministicOnAll90": true,
+    "perWindow": {
+     "A": {
+      "deterministic": true,
+      "ret": 0.0803,
+      "maxDD": 0.1128,
+      "retOverDD": 0.71,
+      "pnlUsd": 8.03,
+      "capitalUsd": 100,
+      "deployment": 0.088,
+      "entries": 43,
+      "signals": 43,
+      "refused": 0,
+      "identicalToCodeArm": true
+     },
+     "B": {
+      "deterministic": true,
+      "ret": 0.2008,
+      "maxDD": 0.1047,
+      "retOverDD": 1.92,
+      "pnlUsd": 20.08,
+      "capitalUsd": 100,
+      "deployment": 0.144,
+      "entries": 58,
+      "signals": 58,
+      "refused": 0,
+      "identicalToCodeArm": true
+     },
+     "C": {
+      "deterministic": true,
+      "ret": 0.5564,
+      "maxDD": 0.0735,
+      "retOverDD": 7.57,
+      "pnlUsd": 44.51,
+      "capitalUsd": 80,
+      "deployment": 0.173,
+      "entries": 47,
+      "signals": 47,
+      "refused": 0,
+      "identicalToCodeArm": true
+     },
+     "D": {
+      "deterministic": true,
+      "ret": -0.0781,
+      "maxDD": 0.1552,
+      "retOverDD": -0.5,
+      "pnlUsd": -6.25,
+      "capitalUsd": 80,
+      "deployment": 0.079,
+      "entries": 32,
+      "signals": 32,
+      "refused": 0,
+      "identicalToCodeArm": true
+     }
+    },
+    "worst": {
+     "window": "D",
+     "ret": -0.0781
+    }
+   },
+   {
+    "enterMin": 0.4,
+    "deterministicOnHistoricalStates": false,
+    "deterministicOnAll90": false,
+    "perWindow": {
+     "A": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": 0.0861,
+       "p05": 0.0803,
+       "p50": 0.0803,
+       "p95": 0.0956,
+       "min": 0.0803,
+       "max": 0.0956
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.1122,
+      "deploymentMean": 0.087,
+      "entriesMean": 42.622,
+      "signalsMean": 43,
+      "refusedMean": 0.378,
+      "coinFlipSignalsMean": 5,
+      "coinFlipRefusedMean": 0
+     },
+     "B": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": 0.2029,
+       "p05": 0.1852,
+       "p50": 0.2056,
+       "p95": 0.2174,
+       "min": 0.1781,
+       "max": 0.2174
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0954,
+      "deploymentMean": 0.143,
+      "entriesMean": 57.194,
+      "signalsMean": 59.37,
+      "refusedMean": 2.176,
+      "coinFlipSignalsMean": 20.37,
+      "coinFlipRefusedMean": 0
+     },
+     "C": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": 0.5746,
+       "p05": 0.5532,
+       "p50": 0.5746,
+       "p95": 0.5904,
+       "min": 0.5483,
+       "max": 0.5904
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0616,
+      "deploymentMean": 0.17,
+      "entriesMean": 45.802,
+      "signalsMean": 48.136,
+      "refusedMean": 2.334,
+      "coinFlipSignalsMean": 13.168,
+      "coinFlipRefusedMean": 0
+     },
+     "D": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": -0.0781,
+       "p05": -0.0781,
+       "p50": -0.0781,
+       "p95": -0.0781,
+       "min": -0.0781,
+       "max": -0.0781
+      },
+      "pNegative": 1,
+      "maxDDMean": 0.1552,
+      "deploymentMean": 0.079,
+      "entriesMean": 32,
+      "signalsMean": 32,
+      "refusedMean": 0,
+      "coinFlipSignalsMean": 10,
+      "coinFlipRefusedMean": 0
+     }
+    },
+    "worst": {
+     "window": "D",
+     "ret": -0.0781
+    }
+   },
+   {
+    "enterMin": 0.6,
+    "deterministicOnHistoricalStates": false,
+    "deterministicOnAll90": false,
+    "perWindow": {
+     "A": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": -0.0559,
+       "p05": -0.0729,
+       "p50": -0.0601,
+       "p95": -0.033,
+       "min": -0.0729,
+       "max": -0.033
+      },
+      "pNegative": 1,
+      "maxDDMean": 0.1283,
+      "deploymentMean": 0.058,
+      "entriesMean": 31.026,
+      "signalsMean": 74.414,
+      "refusedMean": 43.388,
+      "coinFlipSignalsMean": 18,
+      "coinFlipRefusedMean": 16.388
+     },
+     "B": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": 0.0976,
+       "p05": 0.0433,
+       "p50": 0.0987,
+       "p95": 0.1481,
+       "min": -0.0015,
+       "max": 0.1717
+      },
+      "pNegative": 0.002,
+      "maxDDMean": 0.0651,
+      "deploymentMean": 0.101,
+      "entriesMean": 39.77,
+      "signalsMean": 114.084,
+      "refusedMean": 74.314,
+      "coinFlipSignalsMean": 52.67,
+      "coinFlipRefusedMean": 45.314
+     },
+     "C": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": 0.4354,
+       "p05": 0.3585,
+       "p50": 0.4226,
+       "p95": 0.5249,
+       "min": 0.307,
+       "max": 0.5504
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0512,
+      "deploymentMean": 0.131,
+      "entriesMean": 32.436,
+      "signalsMean": 82.336,
+      "refusedMean": 49.9,
+      "coinFlipSignalsMean": 39.336,
+      "coinFlipRefusedMean": 32.9
+     },
+     "D": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": 0.031,
+       "p05": -0.0085,
+       "p50": 0.0297,
+       "p95": 0.0659,
+       "min": -0.0293,
+       "max": 0.0781
+      },
+      "pNegative": 0.068,
+      "maxDDMean": 0.0746,
+      "deploymentMean": 0.049,
+      "entriesMean": 17.938,
+      "signalsMean": 45.348,
+      "refusedMean": 27.41,
+      "coinFlipSignalsMean": 15.816,
+      "coinFlipRefusedMean": 12.41
+     }
+    },
+    "worst": {
+     "window": "A",
+     "ret": -0.0559
+    }
+   },
+   {
+    "enterMin": 0.62,
+    "deterministicOnHistoricalStates": false,
+    "deterministicOnAll90": false,
+    "perWindow": {
+     "A": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": -0.0665,
+       "p05": -0.0729,
+       "p50": -0.0664,
+       "p95": -0.0601,
+       "min": -0.0729,
+       "max": -0.0601
+      },
+      "pNegative": 1,
+      "maxDDMean": 0.1307,
+      "deploymentMean": 0.055,
+      "entriesMean": 30.206,
+      "signalsMean": 74.808,
+      "refusedMean": 44.602,
+      "coinFlipSignalsMean": 18,
+      "coinFlipRefusedMean": 17.602
+     },
+     "B": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": 0.086,
+       "p05": 0.0723,
+       "p50": 0.0891,
+       "p95": 0.0925,
+       "min": 0.0723,
+       "max": 0.0925
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0518,
+      "deploymentMean": 0.084,
+      "entriesMean": 33.79,
+      "signalsMean": 133.05,
+      "refusedMean": 99.26,
+      "coinFlipSignalsMean": 71.05,
+      "coinFlipRefusedMean": 70.26
+     },
+     "C": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": 0.4263,
+       "p05": 0.4085,
+       "p50": 0.4289,
+       "p95": 0.4289,
+       "min": 0.4085,
+       "max": 0.4289
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0366,
+      "deploymentMean": 0.115,
+      "entriesMean": 26.322,
+      "signalsMean": 90.788,
+      "refusedMean": 64.466,
+      "coinFlipSignalsMean": 47.788,
+      "coinFlipRefusedMean": 47.466
+     },
+     "D": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": 0.0644,
+       "p05": 0.0469,
+       "p50": 0.0633,
+       "p95": 0.0718,
+       "min": 0.0438,
+       "max": 0.0718
+      },
+      "pNegative": 0,
+      "maxDDMean": 0.0494,
+      "deploymentMean": 0.044,
+      "entriesMean": 15.606,
+      "signalsMean": 46.802,
+      "refusedMean": 31.196,
+      "coinFlipSignalsMean": 16.802,
+      "coinFlipRefusedMean": 16.196
+     }
+    },
+    "worst": {
+     "window": "A",
+     "ret": -0.0665
+    }
+   },
+   {
+    "enterMin": 0.63,
+    "deterministicOnHistoricalStates": true,
+    "deterministicOnAll90": true,
+    "perWindow": {
+     "A": {
+      "deterministic": true,
+      "ret": -0.0664,
+      "maxDD": 0.1319,
+      "retOverDD": -0.5,
+      "pnlUsd": -6.64,
+      "capitalUsd": 100,
+      "deployment": 0.054,
+      "entries": 30,
+      "signals": 75,
+      "refused": 45,
+      "identicalToCodeArm": true
+     },
+     "B": {
+      "deterministic": true,
+      "ret": 0.0891,
+      "maxDD": 0.0516,
+      "retOverDD": 1.73,
+      "pnlUsd": 8.91,
+      "capitalUsd": 100,
+      "deployment": 0.082,
+      "entries": 33,
+      "signals": 136,
+      "refused": 103,
+      "identicalToCodeArm": true
+     },
+     "C": {
+      "deterministic": true,
+      "ret": 0.4289,
+      "maxDD": 0.0356,
+      "retOverDD": 8.58,
+      "pnlUsd": 34.31,
+      "capitalUsd": 80,
+      "deployment": 0.114,
+      "entries": 26,
+      "signals": 91,
+      "refused": 65,
+      "identicalToCodeArm": true
+     },
+     "D": {
+      "deterministic": true,
+      "ret": 0.0718,
+      "maxDD": 0.0427,
+      "retOverDD": 1.44,
+      "pnlUsd": 5.75,
+      "capitalUsd": 80,
+      "deployment": 0.043,
+      "entries": 15,
+      "signals": 47,
+      "refused": 32,
+      "identicalToCodeArm": true
+     }
+    },
+    "worst": {
+     "window": "A",
+     "ret": -0.0664
+    }
+   },
+   {
+    "enterMin": 0.8,
+    "deterministicOnHistoricalStates": false,
+    "deterministicOnAll90": false,
+    "perWindow": {
+     "A": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": 0,
+       "p05": 0,
+       "p50": 0,
+       "p95": 0,
+       "min": 0,
+       "max": 0
+      },
+      "pNegative": 0,
+      "maxDDMean": 0,
+      "deploymentMean": 0,
+      "entriesMean": 0,
+      "signalsMean": 125,
+      "refusedMean": 125,
+      "coinFlipSignalsMean": 23,
+      "coinFlipRefusedMean": 23
+     },
+     "B": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": -0.0045,
+       "p05": -0.011,
+       "p50": -0.0037,
+       "p95": 0,
+       "min": -0.011,
+       "max": 0
+      },
+      "pNegative": 0.782,
+      "maxDDMean": 0.0076,
+      "deploymentMean": 0.001,
+      "entriesMean": 0.782,
+      "signalsMean": 227.002,
+      "refusedMean": 226.22,
+      "coinFlipSignalsMean": 94,
+      "coinFlipRefusedMean": 94
+     },
+     "C": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": 0.0023,
+       "p05": -0.0067,
+       "p50": 0.0031,
+       "p95": 0.0074,
+       "min": -0.0067,
+       "max": 0.0074
+      },
+      "pNegative": 0.212,
+      "maxDDMean": 0.0059,
+      "deploymentMean": 0.002,
+      "entriesMean": 1.176,
+      "signalsMean": 176.57,
+      "refusedMean": 175.394,
+      "coinFlipSignalsMean": 64.618,
+      "coinFlipRefusedMean": 64.618
+     },
+     "D": {
+      "deterministic": false,
+      "ret": {
+       "n": 500,
+       "mean": -0.0035,
+       "p05": -0.0088,
+       "p50": -0.0036,
+       "p95": 0,
+       "min": -0.0088,
+       "max": 0
+      },
+      "pNegative": 0.642,
+      "maxDDMean": 0.0101,
+      "deploymentMean": 0.002,
+      "entriesMean": 0.642,
+      "signalsMean": 79.948,
+      "refusedMean": 79.306,
+      "coinFlipSignalsMean": 21.358,
+      "coinFlipRefusedMean": 21.358
+     }
+    },
+    "worst": {
+     "window": "B",
+     "ret": -0.0045
+    }
+   },
+   {
+    "enterMin": 0.95,
+    "deterministicOnHistoricalStates": true,
+    "deterministicOnAll90": true,
+    "perWindow": {
+     "A": {
+      "deterministic": true,
+      "ret": 0,
+      "maxDD": 0,
+      "retOverDD": 0,
+      "pnlUsd": 0,
+      "capitalUsd": 100,
+      "deployment": 0,
+      "entries": 0,
+      "signals": 125,
+      "refused": 125,
+      "identicalToCodeArm": null
+     },
+     "B": {
+      "deterministic": true,
+      "ret": 0,
+      "maxDD": 0,
+      "retOverDD": 0,
+      "pnlUsd": 0,
+      "capitalUsd": 100,
+      "deployment": 0,
+      "entries": 0,
+      "signals": 228,
+      "refused": 228,
+      "identicalToCodeArm": null
+     },
+     "C": {
+      "deterministic": true,
+      "ret": 0,
+      "maxDD": 0,
+      "retOverDD": 0,
+      "pnlUsd": 0,
+      "capitalUsd": 80,
+      "deployment": 0,
+      "entries": 0,
+      "signals": 178,
+      "refused": 178,
+      "identicalToCodeArm": null
+     },
+     "D": {
+      "deterministic": true,
+      "ret": 0,
+      "maxDD": 0,
+      "retOverDD": 0,
+      "pnlUsd": 0,
+      "capitalUsd": 80,
+      "deployment": 0,
+      "entries": 0,
+      "signals": 81,
+      "refused": 81,
+      "identicalToCodeArm": null
+     }
+    },
+    "worst": {
+     "window": "A",
+     "ret": 0
+    }
+   },
+   {
+    "enterMin": 0.98,
+    "deterministicOnHistoricalStates": true,
+    "deterministicOnAll90": true,
+    "perWindow": {
+     "A": {
+      "deterministic": true,
+      "ret": 0,
+      "maxDD": 0,
+      "retOverDD": 0,
+      "pnlUsd": 0,
+      "capitalUsd": 100,
+      "deployment": 0,
+      "entries": 0,
+      "signals": 125,
+      "refused": 125,
+      "identicalToCodeArm": null
+     },
+     "B": {
+      "deterministic": true,
+      "ret": 0,
+      "maxDD": 0,
+      "retOverDD": 0,
+      "pnlUsd": 0,
+      "capitalUsd": 100,
+      "deployment": 0,
+      "entries": 0,
+      "signals": 228,
+      "refused": 228,
+      "identicalToCodeArm": null
+     },
+     "C": {
+      "deterministic": true,
+      "ret": 0,
+      "maxDD": 0,
+      "retOverDD": 0,
+      "pnlUsd": 0,
+      "capitalUsd": 80,
+      "deployment": 0,
+      "entries": 0,
+      "signals": 178,
+      "refused": 178,
+      "identicalToCodeArm": null
+     },
+     "D": {
+      "deterministic": true,
+      "ret": 0,
+      "maxDD": 0,
+      "retOverDD": 0,
+      "pnlUsd": 0,
+      "capitalUsd": 80,
+      "deployment": 0,
+      "entries": 0,
+      "signals": 81,
+      "refused": 81,
+      "identicalToCodeArm": null
+     }
+    },
+    "worst": {
+     "window": "A",
+     "ret": 0
+    }
+   }
+  ]
+ },
+ "barTests": {
+  "what": "§4.15's four tests applied to the SLEEVE on the primary evaluation: Revolut X return > 0, drawdown < 35 %, ≥ 50 % of §3.7's 27-point grid positive (for (ii) the grid point's mean over draws), Kraken-cost return > 0. The book test (≥ $100k a day) is a property of the coins, which all five pass, and is not re-applied.",
+  "perWindow": {
+   "A": {
+    "i_shadow": {
+     "revxRet": 0.0803,
+     "maxDD": 0.1128,
+     "plateauPositiveShare": 1,
+     "plateauMedian": 0.0831,
+     "krakenCostRet": 0.0862,
+     "clears": true,
+     "failed": []
+    },
+    "ii_gate": {
+     "revxRet": -0.0664,
+     "maxDD": 0.1319,
+     "plateauPositiveShare": 0.481,
+     "plateauMedian": -0.0027,
+     "krakenCostRet": -0.1016,
+     "clears": false,
+     "failed": [
+      "Revolut X return not positive",
+      "plateau < 50 %",
+      "Kraken-cost return not positive"
+     ]
+    },
+    "iii_clause": {
+     "revxRet": 0.0063,
+     "maxDD": 0.1217,
+     "plateauPositiveShare": 0.593,
+     "plateauMedian": 0.0136,
+     "krakenCostRet": 0.019,
+     "clears": true,
+     "failed": []
+    }
+   },
+   "B": {
+    "i_shadow": {
+     "revxRet": 0.2008,
+     "maxDD": 0.1047,
+     "plateauPositiveShare": 1,
+     "plateauMedian": 0.2214,
+     "krakenCostRet": 0.136,
+     "clears": true,
+     "failed": []
+    },
+    "ii_gate": {
+     "revxRet": 0.0891,
+     "maxDD": 0.0516,
+     "plateauPositiveShare": 1,
+     "plateauMedian": 0.1603,
+     "krakenCostRet": 0.0514,
+     "clears": true,
+     "failed": []
+    },
+    "iii_clause": {
+     "revxRet": 0.1486,
+     "maxDD": 0.0962,
+     "plateauPositiveShare": 1,
+     "plateauMedian": 0.1816,
+     "krakenCostRet": 0.0902,
+     "clears": true,
+     "failed": []
+    }
+   },
+   "C": {
+    "i_shadow": {
+     "revxRet": 0.5564,
+     "maxDD": 0.0735,
+     "plateauPositiveShare": 1,
+     "plateauMedian": 0.5564,
+     "krakenCostRet": 0.4886,
+     "clears": true,
+     "failed": []
+    },
+    "ii_gate": {
+     "revxRet": 0.4289,
+     "maxDD": 0.0356,
+     "plateauPositiveShare": 1,
+     "plateauMedian": 0.3493,
+     "krakenCostRet": 0.3906,
+     "clears": true,
+     "failed": []
+    },
+    "iii_clause": {
+     "revxRet": 0.5671,
+     "maxDD": 0.0489,
+     "plateauPositiveShare": 1,
+     "plateauMedian": 0.5334,
+     "krakenCostRet": 0.5079,
+     "clears": true,
+     "failed": []
+    }
+   },
+   "D": {
+    "i_shadow": {
+     "revxRet": -0.0781,
+     "maxDD": 0.1552,
+     "plateauPositiveShare": 0.037,
+     "plateauMedian": -0.0781,
+     "krakenCostRet": -0.1245,
+     "clears": false,
+     "failed": [
+      "Revolut X return not positive",
+      "plateau < 50 %",
+      "Kraken-cost return not positive"
+     ]
+    },
+    "ii_gate": {
+     "revxRet": 0.0718,
+     "maxDD": 0.0427,
+     "plateauPositiveShare": 1,
+     "plateauMedian": 0.0456,
+     "krakenCostRet": 0.0497,
+     "clears": true,
+     "failed": []
+    },
+    "iii_clause": {
+     "revxRet": -0.0332,
+     "maxDD": 0.1185,
+     "plateauPositiveShare": 0.074,
+     "plateauMedian": -0.069,
+     "krakenCostRet": -0.0679,
+     "clears": false,
+     "failed": [
+      "Revolut X return not positive",
+      "plateau < 50 %",
+      "Kraken-cost return not positive"
+     ]
+    }
+   }
+  }
+ },
+ "liveRecord": {
+  "what": "every agent_decisions row with rule_action = 'enter' (12, read 2026-09-22 18:45 UTC; the loop's last decision 18:19 UTC), recomputed through combineDecision from its recorded answers and set against the measured replies for its state",
+  "rows": [
+   {
+    "id": 1,
+    "strategy": "momentum-1d",
+    "symbol": "BTC/USD",
+    "barStart": "2026-09-19T00:00:00Z",
+    "state": "weak|low|positive|inside_range",
+    "liveP": 0.15,
+    "liveCaution": 0,
+    "recordedAction": "hold",
+    "recomputedAction": "hold",
+    "recomputeMatches": true,
+    "inMeasuredSpace": false,
+    "measuredReplies": [
+     0.56,
+     0.55,
+     0.55,
+     0.54,
+     0.54
+    ],
+    "measuredRange": [
+     0.54,
+     0.56
+    ],
+    "liveInsideMeasuredRange": false,
+    "liveMinusMeasuredMean": -0.398,
+    "measuredVetoProbAt060": 1,
+    "note": "breakout inside_range (momentum-1d enters without a breakout): the measured replies are the SAME words with above_range, shown for comparison, not as the same state"
+   },
+   {
+    "id": 2,
+    "strategy": "momentum-1d",
+    "symbol": "ETH/USD",
+    "barStart": "2026-09-19T00:00:00Z",
+    "state": "moderate|normal|positive|inside_range",
+    "liveP": 0.92,
+    "liveCaution": 0,
+    "recordedAction": "enter",
+    "recomputedAction": "enter",
+    "recomputeMatches": true,
+    "inMeasuredSpace": false,
+    "measuredReplies": [
+     0.74,
+     0.74,
+     0.74,
+     0.73,
+     0.75
+    ],
+    "measuredRange": [
+     0.73,
+     0.75
+    ],
+    "liveInsideMeasuredRange": false,
+    "liveMinusMeasuredMean": 0.18,
+    "measuredVetoProbAt060": 0,
+    "note": "breakout inside_range (momentum-1d enters without a breakout): the measured replies are the SAME words with above_range, shown for comparison, not as the same state"
+   },
+   {
+    "id": 3,
+    "strategy": "momentum-1d",
+    "symbol": "SOL/USD",
+    "barStart": "2026-09-19T00:00:00Z",
+    "state": "moderate|normal|positive|inside_range",
+    "liveP": 0.93,
+    "liveCaution": 0,
+    "recordedAction": "enter",
+    "recomputedAction": "enter",
+    "recomputeMatches": true,
+    "inMeasuredSpace": false,
+    "measuredReplies": [
+     0.73,
+     0.74,
+     0.73,
+     0.74,
+     0.74
+    ],
+    "measuredRange": [
+     0.73,
+     0.74
+    ],
+    "liveInsideMeasuredRange": false,
+    "liveMinusMeasuredMean": 0.194,
+    "measuredVetoProbAt060": 0,
+    "note": "breakout inside_range (momentum-1d enters without a breakout): the measured replies are the SAME words with above_range, shown for comparison, not as the same state"
+   },
+   {
+    "id": 45,
+    "strategy": "momentum-1d",
+    "symbol": "BTC/USD",
+    "barStart": "2026-09-20T00:00:00Z",
+    "state": "moderate|low|positive|inside_range",
+    "liveP": 0.92,
+    "liveCaution": 0,
+    "recordedAction": "enter",
+    "recomputedAction": "enter",
+    "recomputeMatches": true,
+    "inMeasuredSpace": false,
+    "measuredReplies": [
+     0.71,
+     0.72,
+     0.73,
+     0.71,
+     0.72
+    ],
+    "measuredRange": [
+     0.71,
+     0.73
+    ],
+    "liveInsideMeasuredRange": false,
+    "liveMinusMeasuredMean": 0.202,
+    "measuredVetoProbAt060": 0,
+    "note": "breakout inside_range (momentum-1d enters without a breakout): the measured replies are the SAME words with above_range, shown for comparison, not as the same state"
+   },
+   {
+    "id": 69,
+    "strategy": "trend-1h",
+    "symbol": "ETH/USD",
+    "barStart": "2026-09-21T00:00:00Z",
+    "state": "moderate|normal|positive|above_range",
+    "liveP": 0.95,
+    "liveCaution": 0,
+    "recordedAction": "enter",
+    "recomputedAction": "enter",
+    "recomputeMatches": true,
+    "inMeasuredSpace": true,
+    "measuredReplies": [
+     0.74,
+     0.74,
+     0.74,
+     0.73,
+     0.75
+    ],
+    "measuredRange": [
+     0.73,
+     0.75
+    ],
+    "liveInsideMeasuredRange": false,
+    "liveMinusMeasuredMean": 0.21,
+    "measuredVetoProbAt060": 0,
+    "note": ""
+   },
+   {
+    "id": 83,
+    "strategy": "trend-4h",
+    "symbol": "ETH/USD",
+    "barStart": "2026-09-21T00:00:00Z",
+    "state": "moderate|normal|positive|above_range",
+    "liveP": 0.94,
+    "liveCaution": 0,
+    "recordedAction": "enter",
+    "recomputedAction": "enter",
+    "recomputeMatches": true,
+    "inMeasuredSpace": true,
+    "measuredReplies": [
+     0.74,
+     0.74,
+     0.74,
+     0.73,
+     0.75
+    ],
+    "measuredRange": [
+     0.73,
+     0.75
+    ],
+    "liveInsideMeasuredRange": false,
+    "liveMinusMeasuredMean": 0.2,
+    "measuredVetoProbAt060": 0,
+    "note": ""
+   },
+   {
+    "id": 106,
+    "strategy": "trend-1h",
+    "symbol": "BTC/USD",
+    "barStart": "2026-09-21T08:00:00Z",
+    "state": "moderate|normal|positive|above_range",
+    "liveP": 0.95,
+    "liveCaution": 0,
+    "recordedAction": "enter",
+    "recomputedAction": "enter",
+    "recomputeMatches": true,
+    "inMeasuredSpace": true,
+    "measuredReplies": [
+     0.75,
+     0.74,
+     0.74,
+     0.74,
+     0.74
+    ],
+    "measuredRange": [
+     0.74,
+     0.75
+    ],
+    "liveInsideMeasuredRange": false,
+    "liveMinusMeasuredMean": 0.208,
+    "measuredVetoProbAt060": 0,
+    "note": ""
+   },
+   {
+    "id": 108,
+    "strategy": "trend-1h",
+    "symbol": "SOL/USD",
+    "barStart": "2026-09-21T08:00:00Z",
+    "state": "moderate|high|positive|above_range",
+    "liveP": 0.59,
+    "liveCaution": 1,
+    "recordedAction": "hold",
+    "recomputedAction": "hold",
+    "recomputeMatches": true,
+    "inMeasuredSpace": true,
+    "measuredReplies": [
+     0.53,
+     0.54,
+     0.55,
+     0.54,
+     0.55
+    ],
+    "measuredRange": [
+     0.53,
+     0.55
+    ],
+    "liveInsideMeasuredRange": false,
+    "liveMinusMeasuredMean": 0.048,
+    "measuredVetoProbAt060": 1,
+    "note": ""
+   },
+   {
+    "id": 118,
+    "strategy": "trend-4h",
+    "symbol": "BTC/USD",
+    "barStart": "2026-09-21T08:00:00Z",
+    "state": "moderate|normal|positive|above_range",
+    "liveP": 0.95,
+    "liveCaution": 0,
+    "recordedAction": "enter",
+    "recomputedAction": "enter",
+    "recomputeMatches": true,
+    "inMeasuredSpace": true,
+    "measuredReplies": [
+     0.75,
+     0.74,
+     0.74,
+     0.74,
+     0.74
+    ],
+    "measuredRange": [
+     0.74,
+     0.75
+    ],
+    "liveInsideMeasuredRange": false,
+    "liveMinusMeasuredMean": 0.208,
+    "measuredVetoProbAt060": 0,
+    "note": ""
+   },
+   {
+    "id": 120,
+    "strategy": "trend-4h",
+    "symbol": "SOL/USD",
+    "barStart": "2026-09-21T08:00:00Z",
+    "state": "strong|high|positive|above_range",
+    "liveP": 0.61,
+    "liveCaution": 1,
+    "recordedAction": "enter",
+    "recomputedAction": "enter",
+    "recomputeMatches": true,
+    "inMeasuredSpace": true,
+    "measuredReplies": [
+     0.58,
+     0.61,
+     0.58,
+     0.58,
+     0.59
+    ],
+    "measuredRange": [
+     0.58,
+     0.61
+    ],
+    "liveInsideMeasuredRange": true,
+    "liveMinusMeasuredMean": 0.022,
+    "measuredVetoProbAt060": 0.8,
+    "note": ""
+   },
+   {
+    "id": 131,
+    "strategy": "trend-1h",
+    "symbol": "SOL/USD",
+    "barStart": "2026-09-21T13:00:00Z",
+    "state": "moderate|high|positive|above_range",
+    "liveP": 0.59,
+    "liveCaution": 1,
+    "recordedAction": "hold",
+    "recomputedAction": "hold",
+    "recomputeMatches": true,
+    "inMeasuredSpace": true,
+    "measuredReplies": [
+     0.53,
+     0.54,
+     0.55,
+     0.54,
+     0.55
+    ],
+    "measuredRange": [
+     0.53,
+     0.55
+    ],
+    "liveInsideMeasuredRange": false,
+    "liveMinusMeasuredMean": 0.048,
+    "measuredVetoProbAt060": 1,
+    "note": ""
+   },
+   {
+    "id": 174,
+    "strategy": "trend-1h",
+    "symbol": "SOL/USD",
+    "barStart": "2026-09-21T20:00:00Z",
+    "state": "moderate|normal|positive|above_range",
+    "liveP": 0.95,
+    "liveCaution": 0,
+    "recordedAction": "enter",
+    "recomputedAction": "enter",
+    "recomputeMatches": true,
+    "inMeasuredSpace": true,
+    "measuredReplies": [
+     0.73,
+     0.74,
+     0.73,
+     0.74,
+     0.74
+    ],
+    "measuredRange": [
+     0.73,
+     0.74
+    ],
+    "liveInsideMeasuredRange": false,
+    "liveMinusMeasuredMean": 0.214,
+    "measuredVetoProbAt060": 0,
+    "note": ""
+   }
+  ]
+ },
+ "controlDivergence": {
+  "what": "the live row and its paper control (trend-4h) both gating on the model, each asking it separately (tick.ts has no answer cache): 1000 paired runs per window on the primary evaluation. Under (i) or (iii) both rows are deterministic and never part.",
+  "perWindow": {
+   "A": {
+    "jointSignals": 75000,
+    "disagreements": 0,
+    "disagreementShare": 0,
+    "jointCoinFlipSignals": 18000,
+    "coinFlipDisagreementShare": 0,
+    "coinFlipDisagreementClosedForm": 0,
+    "liveEntriesWithoutASameBarControlEntry": 0,
+    "sleevesDifferInShareOfDraws": 0,
+    "absSleeveRetGap": {
+     "n": 1000,
+     "mean": 0,
+     "p05": 0,
+     "p50": 0,
+     "p95": 0,
+     "min": 0,
+     "max": 0
+    }
+   },
+   "B": {
+    "jointSignals": 136000,
+    "disagreements": 0,
+    "disagreementShare": 0,
+    "jointCoinFlipSignals": 74000,
+    "coinFlipDisagreementShare": 0,
+    "coinFlipDisagreementClosedForm": 0,
+    "liveEntriesWithoutASameBarControlEntry": 0,
+    "sleevesDifferInShareOfDraws": 0,
+    "absSleeveRetGap": {
+     "n": 1000,
+     "mean": 0,
+     "p05": 0,
+     "p50": 0,
+     "p95": 0,
+     "min": 0,
+     "max": 0
+    }
+   },
+   "C": {
+    "jointSignals": 91000,
+    "disagreements": 0,
+    "disagreementShare": 0,
+    "jointCoinFlipSignals": 48000,
+    "coinFlipDisagreementShare": 0,
+    "coinFlipDisagreementClosedForm": 0,
+    "liveEntriesWithoutASameBarControlEntry": 0,
+    "sleevesDifferInShareOfDraws": 0,
+    "absSleeveRetGap": {
+     "n": 1000,
+     "mean": 0,
+     "p05": 0,
+     "p50": 0,
+     "p95": 0,
+     "min": 0,
+     "max": 0
+    }
+   },
+   "D": {
+    "jointSignals": 47000,
+    "disagreements": 0,
+    "disagreementShare": 0,
+    "jointCoinFlipSignals": 17000,
+    "coinFlipDisagreementShare": 0,
+    "coinFlipDisagreementClosedForm": 0,
+    "liveEntriesWithoutASameBarControlEntry": 0,
+    "sleevesDifferInShareOfDraws": 0,
+    "absSleeveRetGap": {
+     "n": 1000,
+     "mean": 0,
+     "p05": 0,
+     "p50": 0,
+     "p95": 0,
+     "min": 0,
+     "max": 0
+    }
+   }
+  }
+ },
+ "perCoinPrimary": {
+  "A": {
+   "BTC/USD": {
+    "i_shadow": -0.1069,
+    "ii_gateMean": -0.1368,
+    "iii_clause": -0.1368,
+    "entries": {
+     "rule": 14,
+     "iii": 13
+    }
+   },
+   "ETH/USD": {
+    "i_shadow": -0.0804,
+    "ii_gateMean": -0.2173,
+    "iii_clause": -0.1291,
+    "entries": {
+     "rule": 11,
+     "iii": 8
+    }
+   },
+   "SOL/USD": {
+    "i_shadow": 0.1756,
+    "ii_gateMean": 0.1223,
+    "iii_clause": 0.1223,
+    "entries": {
+     "rule": 7,
+     "iii": 6
+    }
+   },
+   "AVAX/USD": {
+    "i_shadow": 0.3405,
+    "ii_gateMean": -0.0894,
+    "iii_clause": 0.1212,
+    "entries": {
+     "rule": 5,
+     "iii": 5
+    }
+   },
+   "SUI/USD": {
+    "i_shadow": 0.0136,
+    "ii_gateMean": 0,
+    "iii_clause": -0.0122,
+    "entries": {
+     "rule": 6,
+     "iii": 5
+    }
+   }
+  },
+  "B": {
+   "BTC/USD": {
+    "i_shadow": 0.1236,
+    "ii_gateMean": 0.0663,
+    "iii_clause": 0.0663,
+    "entries": {
+     "rule": 18,
+     "iii": 15
+    }
+   },
+   "ETH/USD": {
+    "i_shadow": 0.8015,
+    "ii_gateMean": 0.5667,
+    "iii_clause": 0.5866,
+    "entries": {
+     "rule": 10,
+     "iii": 10
+    }
+   },
+   "SOL/USD": {
+    "i_shadow": 0.0296,
+    "ii_gateMean": -0.0165,
+    "iii_clause": -0.0108,
+    "entries": {
+     "rule": 15,
+     "iii": 13
+    }
+   },
+   "AVAX/USD": {
+    "i_shadow": 0.0679,
+    "ii_gateMean": -0.0506,
+    "iii_clause": -0.0285,
+    "entries": {
+     "rule": 10,
+     "iii": 10
+    }
+   },
+   "SUI/USD": {
+    "i_shadow": -0.0253,
+    "ii_gateMean": -0.0828,
+    "iii_clause": 0.0626,
+    "entries": {
+     "rule": 5,
+     "iii": 4
+    }
+   }
+  },
+  "C": {
+   "BTC/USD": {
+    "i_shadow": 0.0031,
+    "ii_gateMean": 0.1092,
+    "iii_clause": 0.0798,
+    "entries": {
+     "rule": 17,
+     "iii": 14
+    }
+   },
+   "ETH/USD": {
+    "i_shadow": 0.815,
+    "ii_gateMean": 0.5318,
+    "iii_clause": 0.6692,
+    "entries": {
+     "rule": 8,
+     "iii": 7
+    }
+   },
+   "SOL/USD": {
+    "i_shadow": 0.6975,
+    "ii_gateMean": 0.7061,
+    "iii_clause": 0.6539,
+    "entries": {
+     "rule": 12,
+     "iii": 12
+    }
+   },
+   "AVAX/USD": {
+    "i_shadow": 1.2673,
+    "ii_gateMean": 0.6501,
+    "iii_clause": 1.5338,
+    "entries": {
+     "rule": 10,
+     "iii": 8
+    }
+   }
+  },
+  "D": {
+   "BTC/USD": {
+    "i_shadow": 0.1455,
+    "ii_gateMean": 0.0565,
+    "iii_clause": 0.1207,
+    "entries": {
+     "rule": 10,
+     "iii": 8
+    }
+   },
+   "ETH/USD": {
+    "i_shadow": -0.0631,
+    "ii_gateMean": 0.2439,
+    "iii_clause": 0.1235,
+    "entries": {
+     "rule": 12,
+     "iii": 7
+    }
+   },
+   "SOL/USD": {
+    "i_shadow": -0.0831,
+    "ii_gateMean": 0,
+    "iii_clause": -0.0831,
+    "entries": {
+     "rule": 2,
+     "iii": 2
+    }
+   },
+   "AVAX/USD": {
+    "i_shadow": -0.2954,
+    "ii_gateMean": -0.0135,
+    "iii_clause": -0.2767,
+    "entries": {
+     "rule": 8,
+     "iii": 7
+    }
+   }
+  }
+ },
+ "verdict": {
+  "standard": "an arm must beat the incumbent (the rulebook, configuration (i)) on its WORST window in all four evaluations AND beat a random veto at the same rate on that worst window (the null does as well or better in ≤ 5 % of draws). Judged on return (the earlier study's metric) and, separately, on return over drawdown (the set study's); for (ii) the worst window is the mean over draws of each draw's worst.",
+  "ii": {
+   "perCondition": {
+    "shipped·coinbase": {
+     "beatsIncumbentWorst": true,
+     "beatsNullOnWorst": false,
+     "pNull": 0.886,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": false,
+      "beatsNullOnWorst": false,
+      "pNull": 0.753
+     }
+    },
+    "shipped·kraken": {
+     "beatsIncumbentWorst": true,
+     "beatsNullOnWorst": false,
+     "pNull": 0.714,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "beatsNullOnWorst": false,
+      "pNull": 0.629
+     }
+    },
+    "trail·coinbase": {
+     "beatsIncumbentWorst": false,
+     "beatsNullOnWorst": false,
+     "pNull": 0.87,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": false,
+      "beatsNullOnWorst": false,
+      "pNull": 0.811
+     }
+    },
+    "trail·kraken": {
+     "beatsIncumbentWorst": false,
+     "beatsNullOnWorst": false,
+     "pNull": 0.865,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": false,
+      "beatsNullOnWorst": false,
+      "pNull": 0.783
+     }
+    }
+   },
+   "passes": false,
+   "passesOnRetOverDD": false
+  },
+  "iii": {
+   "perCondition": {
+    "shipped·coinbase": {
+     "beatsIncumbentWorst": true,
+     "beatsNullOnWorst": false,
+     "pNull": 0.329,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "beatsNullOnWorst": false,
+      "pNull": 0.31
+     }
+    },
+    "shipped·kraken": {
+     "beatsIncumbentWorst": true,
+     "beatsNullOnWorst": false,
+     "pNull": 0.323,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "beatsNullOnWorst": false,
+      "pNull": 0.316
+     }
+    },
+    "trail·coinbase": {
+     "beatsIncumbentWorst": false,
+     "beatsNullOnWorst": false,
+     "pNull": 0.803,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": false,
+      "beatsNullOnWorst": false,
+      "pNull": 0.741
+     }
+    },
+    "trail·kraken": {
+     "beatsIncumbentWorst": true,
+     "beatsNullOnWorst": false,
+     "pNull": 0.306,
+     "onRetOverDD": {
+      "beatsIncumbentWorst": true,
+      "beatsNullOnWorst": false,
+      "pNull": 0.299
+     }
+    }
+   },
+   "passes": false,
+   "passesOnRetOverDD": false
+  }
+ },
+ "sourceIntegrity": {
+  "backtestTs": "31d27c7d82f8a94c1a8d71248ace8e5ded611190a77d06043460b469ccae845a",
+  "agentsStrategyTs": "097c9519e65aca13b93da8eeee54c39118091f7812d282580970e73460a85a82",
+  "answersJson": "1ace71bad0361962b571883d0fda0c84c7343fa9f2e10d885335a3e84bdb3011",
+  "note": "SHA-256 of backtest.ts, agents_strategy.ts and jev_answers.json at the start of the run; the run throws if any changed before it finished"
+ }
+}
