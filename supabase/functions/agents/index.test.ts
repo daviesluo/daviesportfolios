@@ -253,3 +253,21 @@ Deno.test("a turn's errors all reach ops_errors: the message is cut to the colum
   const flood = tickErrorReport({ errors: Array.from({ length: 100 }, () => "x".repeat(2000)), at: "t" });
   assertEquals([flood.context.errors.length, flood.context.errors[0].length, flood.context.count], [40, 800, 100]);
 });
+
+Deno.test("runJevBatch asks the wording and the rule it is told to — so a wording can be measured before the loop uses it", async () => {
+  const asked: string[] = [];
+  const ask = (_st: Record<string, unknown>, q: unknown) => {
+    asked.push((q as { healthy_trend: { instructions: string } }).healthy_trend.instructions);
+    return Promise.resolve({ provider: "openrouter", model: "m", inputTokens: 1, costUsd: 0, latencyMs: 1, errors: [], answers: {} } as JevResult);
+  };
+  const env = { openrouterKey: "or" };
+  const v2 = await runJevBatch({ states: [ENTRY], version: "v2", kind: "trend-1h" }, env, ask) as { version: string; kind: string };
+  assertEquals([v2.version, v2.kind], ["v2", "trend-1h"]);
+  assert(asked[0].includes("1-hour candles") && !asked[0].includes("trend_strength is moderate or strong"), asked[0]);
+  const v1 = await runJevBatch({ states: [ENTRY], version: "v1" }, env, ask) as { version: string; kind: string };
+  assertEquals([v1.version, v1.kind], ["v1", "trend-4h"]);
+  assert(asked[1].includes("trend_strength is moderate or strong"), asked[1]);
+  assert(String((await runJevBatch({ states: [ENTRY], version: "v9" }, env, ask)).error).includes("version"));
+  assert(String((await runJevBatch({ states: [ENTRY], kind: "dislocation-1m" }, env, ask)).error).includes("kind"));
+  assertEquals(asked.length, 2);                                                               // refusals reach no model
+});

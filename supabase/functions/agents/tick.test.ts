@@ -17,7 +17,7 @@
 // fires; one tick at a time, by lease; and today's P&L is measured from
 // the day's open.
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { positionFromFills, type Candle } from "../_shared/agents_strategy.ts";
+import { JEV_QUESTION_VERSION, jevQuestions, positionFromFills, type Candle, type CategoricalState } from "../_shared/agents_strategy.ts";
 import type { OrderView, Quote, Venue, VenueId } from "../_shared/venue.ts";
 import { orderViewProblem, toOrderView, type VenueOrder } from "../_shared/revx.ts";
 import { PAGE_ROWS } from "./db.ts";
@@ -175,6 +175,21 @@ Deno.test("a fresh closed bar becomes one decision and one resting paper order a
   assert(!w.kraken.calls.includes("candles BTC/USD 1"));                // no paper order rests, so the execution venue's minute — whose one reader is a resting paper fill — is not fetched
   const lock = w.mem.tables.agent_locks[0];
   assertEquals([lock.lease_until, lock.holder], [new Date(NOW).toISOString(), null]);   // the lease was taken and given back
+});
+
+Deno.test("an entry decision records which wording of the question the model was asked, and asks it for the rule's own kind", async () => {
+  const asked: string[] = [];
+  const w = world();
+  const inner = w.deps.fetchImpl;
+  w.deps.fetchImpl = ((url: string | URL | Request, init?: RequestInit) => {
+    asked.push(String((JSON.parse(String(init?.body)) as { questions: { healthy_trend: { instructions: string } } }).questions.healthy_trend.instructions));
+    return inner(url, init);
+  }) as typeof fetch;
+  const r = await tick(w.deps);
+  assertEquals(r.decisions.map((d) => d.action), ["enter"]);
+  assertEquals((w.mem.tables.agent_decisions[0].numbers as { jevQuestion: string }).jevQuestion, JEV_QUESTION_VERSION);
+  assertEquals(asked.length, 1);
+  assertEquals(asked[0], jevQuestions(w.mem.tables.agent_decisions[0].state as unknown as CategoricalState, { kind: "trend-4h" }).healthy_trend.instructions);
 });
 
 Deno.test("a retired strategy row is never ticked, whatever its mode says: its records stay, its turn does not come (0038)", async () => {

@@ -63,7 +63,7 @@ import {
   krakenSupports, ticker as krakenTicker, tradeVolume, type KrakenEnv,
 } from "../_shared/kraken.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
-import { jevQuestions, positionFromFills, unrealisedUsd, type CategoricalState, type Position } from "../_shared/agents_strategy.ts";
+import { JEV_QUESTION_VERSION, JEV_QUESTION_VERSIONS, jevQuestions, positionFromFills, unrealisedUsd, type CategoricalState, type JevQuestionVersion, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { makeDb, type Db } from "./db.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
@@ -641,6 +641,8 @@ export async function mapPool<T, R>(items: T[], limit: number, fn: (x: T, i: num
 }
 
 export const JEV_BATCH_MAX_CALLS = 500;
+/** The rules the model is asked for: the ones that ask it about an entry. */
+export const JEV_KINDS: readonly StrategyKind[] = ["trend-4h", "trend-1h", "momentum-1d"];
 export const JEV_BATCH_CONCURRENCY = 6;
 
 /**
@@ -660,8 +662,13 @@ export async function runJevBatch(
   env: JevEnv = jevEnv(),
   ask: (state: Record<string, unknown>, q: Questions, e: JevEnv) => Promise<JevResult> = (st, q, e) => askJev(st, q, e),
 ): Promise<Record<string, unknown>> {
-  const b = (body && typeof body === "object" ? body : {}) as { states?: unknown; repeats?: unknown; transport?: unknown };
+  const b = (body && typeof body === "object" ? body : {}) as { states?: unknown; repeats?: unknown; transport?: unknown; version?: unknown; kind?: unknown };
   if (!Array.isArray(b.states) || b.states.length === 0) return { error: "states: a non-empty array is required" };
+  // Which wording to ask (`jevQuestions`), and for which rule: a wording can be measured before the loop is switched to it.
+  const version = (b.version ?? JEV_QUESTION_VERSION) as JevQuestionVersion;
+  if (!JEV_QUESTION_VERSIONS.includes(version)) return { error: `version: one of ${JEV_QUESTION_VERSIONS.join(", ")}` };
+  const kind = (b.kind ?? "trend-4h") as StrategyKind;
+  if (!JEV_KINDS.includes(kind)) return { error: `kind: one of ${JEV_KINDS.join(", ")}` };
   const states = b.states.map(parseState);
   const bad = states.findIndex((x) => x == null);
   if (bad >= 0) return { error: `states[${bad}] is not a state in the closed vocabulary` };
@@ -673,13 +680,13 @@ export async function runJevBatch(
   if (!one.openrouterKey && !one.typesafeKey) return { error: `no ${transport} key configured` };
   const jobs = states.flatMap((st, i) => Array.from({ length: repeats }, () => ({ st: st!, i })));
   const replies = await mapPool(jobs, JEV_BATCH_CONCURRENCY, async ({ st }) => {
-    const jr = await ask(st as unknown as Record<string, unknown>, jevQuestions(st) as unknown as Questions, one);
+    const jr = await ask(st as unknown as Record<string, unknown>, jevQuestions(st, { version, kind }) as unknown as Questions, one);
     const v = jevViewOf(jr, st.symbol);
     return { healthy: v.healthy, caution: v.caution, echoOk: v.echoOk, provider: jr.provider, model: jr.model, latencyMs: jr.latencyMs, costUsd: jr.costUsd, errors: jr.errors };
   });
   const results = states.map((st, i) => ({ state: st, replies: replies.filter((_, j) => jobs[j].i === i) }));
   const costUsd = replies.reduce((a, r) => a + (r.costUsd || 0), 0);
-  return { at: new Date().toISOString(), transport, calls, repeats, costUsd, results };
+  return { at: new Date().toISOString(), transport, version, kind, calls, repeats, costUsd, results };
 }
 
 export async function runProbe(): Promise<Record<string, unknown>> {
