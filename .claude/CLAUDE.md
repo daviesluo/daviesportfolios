@@ -54,7 +54,7 @@ in the SAME commit, or the very next one. Never at the end of the day.
 The session that plans to write it later is the session a usage limit
 cuts off first.
 
-**The hook enforces it.** `hooks/pre-commit`, reached through
+**The hook enforces it.** `bin/hooks/pre-commit`, reached through
 `core.hooksPath`, refuses a commit whose ledger is two behind, and
 refuses a new history section that does not open with a source header.
 Both are per-clone config a rebuilt container loses — the commands are
@@ -316,8 +316,9 @@ that follow from that evidence, in short:
 - **PR only when he asks.** `@codex` only reviews PRs — e.g. a new
   Edge Function, anything that touches `auth` or migration state, if
   he wants that second look. Don't open one otherwise.
-- Run `npm test`, `npm run typecheck`, and `npm run build` locally
-  before every push — only push if all three are green.
+- Run `sh bin/gates.sh` before every push: it runs every gate CI runs,
+  in CI's order, and stops at the first failure. Push only when it ends
+  with `all gates green`.
 - Cloudflare Pages and the `typecheck-and-build` GitHub Action run on
   every push. If a push leaves `main` red, fix-up commit on `main` is
   the next priority — don't move on to new features while CI is broken.
@@ -362,7 +363,7 @@ the function's pure helpers from `index.test.ts` would bind a port.
 - `npm run typecheck` — tsc with `checkJs` + `strictNullChecks`, no type
   errors should slip through. The `useState(null)` / `useRef(null)` slots
   carry JSDoc `@type` annotations; keep new ones annotated.
-- `npm run lint` — ESLint (flat config, `eslint.config.js`). A bug gate,
+- `npm run lint` — ESLint (flat config, `src/eslint.config.js`). A bug gate,
   not a formatter: errors on `react-hooks/rules-of-hooks`, warns on
   `exhaustive-deps` (a few effects intentionally narrow their deps). Runs
   in CI between typecheck and test.
@@ -377,7 +378,7 @@ the function's pure helpers from `index.test.ts` would bind a port.
 - `npm run build` — Vite production bundle, output to `dist/` (committed;
   Cloudflare Pages serves only that directory).
 - `npm run verify:browser` — the whole-app browser sweep in
-  `test/browser/app-sweep.mjs`: serves the COMMITTED bundle over http and
+  `bin/app-sweep.mjs`: serves the COMMITTED bundle over http and
   drives it in real Chromium at both breakpoints (208 checks). A hard CI
   gate since 2026-09-17. Its clock is pinned, so it gives the same answer
   at any hour — do not replace `CLOCK` with a live `Date`. Needs

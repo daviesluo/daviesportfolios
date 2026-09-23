@@ -14,7 +14,9 @@ CI workflows (`.github/workflows/check.yml`, `edge-functions.yml`).
 Client: `npm run dev` (Vite on `http://localhost:5173`), `npm test`
 (vitest), `npm run typecheck`, `npm run lint`, `npm run build`. Edge
 Functions: `deno check supabase/functions/` and
-`deno test --allow-env --no-check supabase/functions/`.
+`deno test --allow-env --no-check supabase/functions/`. `sh bin/setup.sh`
+prepares a fresh clone (the ledger hook, `npm ci`); `sh bin/gates.sh` runs
+every CI gate in CI's order.
 
 Non-obvious caveats:
 
@@ -85,7 +87,7 @@ in the SAME commit, or the very next one. Never at the end of the day.
 The session that plans to write it later is the session a usage limit
 cuts off first.
 
-**The hook enforces it.** `hooks/pre-commit`, reached through
+**The hook enforces it.** `bin/hooks/pre-commit`, reached through
 `core.hooksPath`, refuses a commit whose ledger is two behind, and
 refuses a new history section that does not open with a source header.
 Both are per-clone config a rebuilt container loses — the commands are

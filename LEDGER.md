@@ -16,14 +16,14 @@ list stays the short version; the plan is the reasoning behind it.
 
 00. **DAVIES' FOUR REQUESTS OF 2026-09-22 ~20:15 UTC, in hand from
    23:35 UTC.** His usage window closed before any was begun.
-   1. **Root: fewer files still.** "根目录可以再加bin和cloud文件夹，让根目录的文件越少越好":
-      add `bin/` and `cloud/` so the root holds as few files as possible
-      (his skill repos keep `bin/`). Check each move against its tool
-      first: `hooks/` → `bin/hooks/` means `git config core.hooksPath
-      bin/hooks` in EVERY clone (machine-setup section, CLAUDE.md, and tell
-      him); the Supabase tree and `wrangler.jsonc` → `cloud/` only if the
-      CLI (`--workdir`) and Pages (root directory is a dashboard setting)
-      can follow, with `migrations.yml` / `edge-functions.yml` updated.
+   1. ~~Root: fewer files still.~~ **DONE 2026-09-23** (history entry
+      of 01:13 UTC). `bin/` holds the hook, the two browser scripts,
+      `setup.sh` and `gates.sh`; `public/` went into `src/`, and so did
+      `eslint.config.js`. No `cloud/`: `wrangler.jsonc` has to stay at
+      the root, and `supabase/` alone in it would not remove a root
+      entry. **Tell him: every clone of his (Mac, Cursor) must run
+      `git config core.hooksPath bin/hooks` once, or the ledger hook is
+      silently off there.**
    2. **README much shorter, plain, in his own voice.** "目前readme太长了，请精简，
       没用的东西也可以删了，确保逻辑清晰，并且所有语句措辞也清晰不绕弯，而且没有ai感像我本人自己写的".
       Keep the showcase top; the system map becomes one line per item;
@@ -252,9 +252,15 @@ A rebuilt container loses every line below. Run them before working.
 
     git config user.name "daviesluo"
     git config user.email daviesluo@gmail.com
-    git config core.hooksPath hooks
-    git config --local ledger.path LEDGER.md
-    npm ci
+    sh bin/setup.sh
+
+  `bin/setup.sh` sets `core.hooksPath bin/hooks` (the ledger hook moved
+  from `hooks/` on 2026-09-23: a clone still pointing at `hooks` runs NO
+  hook, and git says nothing, until it re-runs this), the ledger path,
+  and `npm ci`. It leaves the identity alone because the repo is meant
+  to go public and a stranger's setup must not commit as Davies.
+  `sh bin/gates.sh` runs every CI gate in CI's order and warns when the
+  hook is off.
 
 Facts a fresh session would otherwise rediscover:
 
@@ -271,20 +277,23 @@ Facts a fresh session would otherwise rediscover:
         PLAYWRIGHT_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run verify:browser
 
   CI runs `npx playwright install chromium` and needs no such variable.
-  `test/browser/verify-perf-matrix.mjs` is still by hand and still needs the
-  throwaway-package-dir setup — it has 18 failures across 60 cases on
-  `main` and cannot gate anything until those are understood.
+  `bin/verify-perf-matrix.mjs` is still by hand: `npm run build`, then
+  `node bin/verify-perf-matrix.mjs` (Playwright is a devDependency now;
+  the throwaway package dir is gone). It went 60 of 60 green at
+  2026-09-23 01:15 UTC, but it reads the real clock, so the 18 failures
+  it once reported may belong to other hours; pin its clock before it
+  gates anything.
 
 - **The container clock has been wrong before.** On 2026-09-05 it read
   91 minutes behind the database, and that alone produced a false outage
   report. On anything time-gated, take the time and the WEEKDAY from the
   database (`select now()`), not from `date`.
-- **Gates, all of which must pass before a push:** `npm run typecheck`,
-  `npm run lint`, `npm test` — **check the exit code, not the summary
-  line** — `npm run build` followed by
-  `rm -f assets/*.map sw.js.map workbox-*.js.map`, `npx size-limit`,
-  `npx knip`, and `npx deno test --allow-env supabase/functions/` when an
-  Edge Function changed.
+- **Gates, all of which must pass before a push:** `sh bin/gates.sh`
+  runs them in CI's order — typecheck, lint, vitest (**check the exit
+  code, not the summary line**), build, the browser sweep, size-limit,
+  knip, the npm audit, `deno check` and `deno test`. Commit the `dist/`
+  the build writes with any `src/` change; the source maps it also
+  writes are gitignored.
 
 ## History, newest first
 
@@ -293,6 +302,31 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 01:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The root is down to what a tool needs there** (item 00.1). Moved:
+`hooks/` → `bin/hooks/`, `test/browser/*` → `bin/`, `public/` →
+`src/public/` (Vite's own default under `root: 'src'`; the built
+`_headers`, `robots.txt` and manifest are byte-identical), and
+`eslint.config.js` → `src/` (ESLint 10 finds it from each file's
+folder; knip is pointed at it; the same 110 files lint with the same 0
+errors and 6 warnings, plus the config itself, and a conditional hook in
+a probe file still fails). New: `bin/setup.sh` (hook path, ledger path,
+`npm ci`; no identity, since a stranger's setup must not commit as
+Davies) and `bin/gates.sh` (CI's steps in CI's order, including the npm
+audit; warns when the hook is off). Kept, with the reason: `wrangler.jsonc`
+(Pages reads it only at the root, and it is what limits the site to
+`dist/`: before it, the site published the whole repository), `tsconfig.json`
+(plain `npx knip` reads it only at the root, and without it reports
+`src/ambient.d.ts` unused, which invites a wrong deletion), `vite.config.js`
+(vite and vitest find it at the root; anywhere else every command needs
+`--config`), `package.json` and its lock, `README.md`, `LICENSE`,
+`AGENTS.md`, `LEDGER.md`. So no `cloud/`: `supabase/` alone in it would
+not remove a root entry and would rename a path the CLI, three workflows
+and every document use. `verify-perf-matrix.mjs` lost its hard-coded
+container paths and its side install of Playwright; run from its new
+place it went 60 of 60 green, on the real clock.
 
 ### [2026-09-23 00:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

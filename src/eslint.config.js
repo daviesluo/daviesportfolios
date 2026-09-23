@@ -1,6 +1,8 @@
-// Flat ESLint config (ESLint 9). Deliberately narrow: the value here is
-// catching the bug classes tsc + knip don't — chiefly React hook misuse
-// (the `react-hooks` plugin), which is what shipped the React-#310
+// Flat ESLint config. It lives in src/ because src/ is all it lints, and
+// ESLint 10 looks for a config from each file's own folder upwards (knip
+// is told where it is in package.json). Deliberately narrow: the value
+// here is catching the bug classes tsc + knip don't — chiefly React hook
+// misuse (the `react-hooks` plugin), which is what shipped the React-#310
 // hook-ordering crash once. Stylistic / unused-locals rules are left to
 // tsconfig (`checkJs`) + knip so this stays a *bug* gate, not a
 // formatting one. `exhaustive-deps` is a warning (not an error) because
@@ -12,23 +14,14 @@ import globals from 'globals';
 
 export default [
   {
-    // Build output + vendored / non-source trees. supabase/ is Deno
-    // (different globals + its own deno-lint story); lint it separately
-    // if ever needed.
-    ignores: [
-      'assets/**',
-      'node_modules/**',
-      'sw.js',
-      'workbox-*.js',
-      'public/**',
-      'supabase/**',
-      'dist/**',
-      'vite.config.js',
-    ],
+    // Static files Vite copies into the build as they are. supabase/ is
+    // Deno (different globals, its own `deno check`) and sits outside
+    // src/, so this config never sees it.
+    ignores: ['public/**'],
   },
   js.configs.recommended,
   {
-    files: ['src/**/*.{js,jsx}'],
+    files: ['**/*.{js,jsx}'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -55,7 +48,7 @@ export default [
   {
     // Test files add the vitest globals via imports, but also touch
     // jsdom globals freely.
-    files: ['src/**/*.test.{js,jsx}'],
+    files: ['**/*.test.{js,jsx}'],
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
     },

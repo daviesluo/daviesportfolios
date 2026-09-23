@@ -1,6 +1,6 @@
 // Browser matrix against the PRODUCTION bundle.
 //
-// Serves the repo root exactly as Cloudflare Pages does (index.html +
+// Serves the built site exactly as Cloudflare Pages does (index.html +
 // the committed hashed assets, no dev server, no source transform),
 // intercepts every network call with fixtures whose right answer is
 // arithmetic, and reads the numbers back out of the DOM.
@@ -21,26 +21,26 @@
 //                 (2900-2500)/2500 = +16.00%, rebased from its own first
 //                 point which is already 0.
 //
-// Not part of the build or any gate — it needs Playwright, which the app
-// does not depend on. Run it by hand after a chart change:
+// Not a gate. It reads the real clock (app-sweep.mjs pins its own), and it
+// once reported 18 failures in 60 cases that were never explained, so it
+// cannot gate anything until its clock is pinned too. Run it by hand after
+// a chart change:
 //
 //   npm run build
-//   mkdir -p /tmp/h && cd /tmp/h && echo '{"type":"module"}' > package.json
-//   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i playwright
-//   node /path/to/repo/test/browser/verify-perf-matrix.mjs /path/to/repo
+//   node bin/verify-perf-matrix.mjs            # serves dist/
 //
-// It serves the repo root the way Cloudflare Pages does — the committed
-// index.html and hashed bundle, no dev server — so what it exercises is
-// the JS that actually ships.
-//
-// Usage: node verify-perf-matrix.mjs [repoRoot]
+// Usage: node bin/verify-perf-matrix.mjs [path to dist/]. Chromium comes
+// from Playwright, or from PLAYWRIGHT_CHROMIUM_PATH, as in app-sweep.mjs.
 
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
 
-const ROOT = process.argv[2] || '/home/user/daviesportfolios';
+// Absolute, always: the path-traversal guard below compares the resolved
+// file against ROOT with `startsWith`.
+const ROOT = path.resolve(
+  process.argv[2] || path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'dist'));
 const PORT = 8931;
 
 const MIME = {
@@ -186,7 +186,9 @@ function snapshotRows(mode) {
 async function run() {
   await new Promise((r) => server.listen(PORT, r));
   const browser = await chromium.launch({
-    executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+    ...(process.env.PLAYWRIGHT_CHROMIUM_PATH
+      ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH }
+      : {}),
     args: ['--no-sandbox'],
   });
   const results = [];
