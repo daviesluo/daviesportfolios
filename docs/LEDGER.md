@@ -355,6 +355,17 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-23 03:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`agents/backtest.ts` is back to the bytes ten results pin.** Its
+SHA-256, `31d27c7d82f8a94c…`, is recorded as an input by `fill`, `jev`,
+`jev_v2`, `jev_v2_063`, `kraken3`, `set2`, `sui`, `tape`, `testingset` and
+`windows`.json and cited by their reviews. `676b9e6` changed one path in
+one comment (`src/agents.js`), which changed the hash and would have made
+every later re-run look like it ran a different backtester. The comment
+keeps the old path on purpose: **do not edit `backtest.ts` for a comment;
+change it only with a re-run of what it feeds.**
+
 ### [2026-09-23 03:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The local gates run the Edge Functions on the Deno CI runs.**
