@@ -32,6 +32,13 @@ list stays the short version; the plan is the reasoning behind it.
       **Open for Davies:** the page's scoreboard and the Revolut X card still
       total the strategies only; folding the quotes in would put $1,200 more
       on Revolut X's funded figure.
+   3. **The admin error badge's nine rows (24 h): DONE as far as code can.**
+      Eight are `agents.crash` "Signal timed out." from before D1's fix went
+      live at 20:12 UTC (none since); they age out of the 24 h window by
+      19:29 UTC tomorrow, or Acknowledge hides them now. The ninth, a
+      `trading212.unhandled` timeout at 16:00, was a T212 history page slower
+      than ten seconds: its fetch threw past the walk's own failure path.
+      `historyPageRequest` now returns it as a failed page the walk retries.
 
 0000000. **DAVIES' REQUESTS OF 2026-09-23 ~15:20 UTC**, in order:
    1. **Can PR5 go live now, and are two Revolut X strategies ready?**
@@ -559,6 +566,13 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 21:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**A T212 history timeout is a failed page, not an unhandled crash** (item 00000000.3). Both
+page fetches go through `historyPageRequest`, which turns a timeout or a dropped connection
+into `{ ok: false, status: 0 }`; the walk keeps its cursor and records `last_error`. Pinned in
+Deno, and the test fails with production's "Signal timed out." when the catch is removed.
 
 ### [2026-09-23 21:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

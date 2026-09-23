@@ -976,6 +976,38 @@ async function fetchT212Portfolio(apiKey: string, apiSecret: string): Promise<un
 }
 
 /**
+ * One history page's request, with the auth dance (the first header that is not refused with a 401) and the body read.
+ * A timeout or a dropped connection is an upstream failure like a 5xx, not a crash: it comes back as `{ ok: false }`
+ * with status 0, so the walk records it and tries again next time. Thrown instead, it escaped to the handler's outer
+ * catch and was filed as `trading212.unhandled` (2026-09-23 16:00 UTC: T212 took longer than ten seconds on an
+ * orders-sync). `fetchImpl` is the test's seam.
+ */
+export async function historyPageRequest(
+  url: string,
+  attempts: string[],
+  fetchImpl: typeof fetch = fetch,
+  timeoutMs = 10_000,
+): Promise<{ ok: true; res: Response; body?: unknown } | { ok: false; status: 0; message: string }> {
+  const failed = (e: unknown) => ({
+    ok: false as const, status: 0 as const,
+    message: e instanceof Error && e.name === "TimeoutError"
+      ? `T212 did not answer within ${timeoutMs / 1000} s`
+      : `T212 request failed: ${e instanceof Error ? e.message : String(e)}`,
+  });
+  let res!: Response;
+  try {
+    for (const authorization of attempts) {
+      res = await fetchImpl(url, { headers: { authorization, accept: "application/json" }, signal: AbortSignal.timeout(timeoutMs) });
+      if (res.status !== 401) break;
+    }
+    // The same signal also bounds the body, so a slow body times out here and not in the caller.
+    return res.ok ? { ok: true, res, body: await res.json() } : { ok: true, res };
+  } catch (e) {
+    return failed(e);
+  }
+}
+
+/**
  * One page of executed-fill history for one account.
  *
  * Same auth dance as the positions call — Basic first when a secret is
@@ -996,14 +1028,9 @@ async function fetchT212OrdersPage(
   url.searchParams.set("limit", String(limit));
   if (cursor) url.searchParams.set("cursor", cursor);
   const attempts = apiSecret ? [basicAuthHeader(apiKey, apiSecret), apiKey] : [apiKey];
-  let res!: Response;
-  for (const authorization of attempts) {
-    res = await fetch(url.toString(), {
-      headers: { authorization, accept: "application/json" },
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (res.status !== 401) break;
-  }
+  const got = await historyPageRequest(url.toString(), attempts);
+  if (!got.ok) return got;
+  const res = got.res;
   if (!res.ok) {
     const snippet = (await res.text().catch(() => "")).slice(0, 200);
     const hint = res.status === 403
@@ -1014,7 +1041,7 @@ async function fetchT212OrdersPage(
       : "";
     return { ok: false, status: res.status, message: `T212 ${res.status} ${res.statusText}${hint} :: ${snippet}` };
   }
-  return { ok: true, body: await res.json() };
+  return { ok: true, body: got.body };
 }
 
 /**
@@ -1030,14 +1057,9 @@ async function fetchT212TransactionsPage(
 ): Promise<{ ok: true; body: unknown } | { ok: false; status: number; message: string }> {
   const url = transactionsPageUrl(cursor, limit);
   const attempts = apiSecret ? [basicAuthHeader(apiKey, apiSecret), apiKey] : [apiKey];
-  let res!: Response;
-  for (const authorization of attempts) {
-    res = await fetch(url.toString(), {
-      headers: { authorization, accept: "application/json" },
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (res.status !== 401) break;
-  }
+  const got = await historyPageRequest(url.toString(), attempts);
+  if (!got.ok) return got;
+  const res = got.res;
   if (!res.ok) {
     const snippet = (await res.text().catch(() => "")).slice(0, 200);
     const hint = res.status === 403
@@ -1048,7 +1070,7 @@ async function fetchT212TransactionsPage(
       : "";
     return { ok: false, status: res.status, message: `T212 ${res.status} ${res.statusText}${hint} :: ${snippet}` };
   }
-  return { ok: true, body: await res.json() };
+  return { ok: true, body: got.body };
 }
 
 /** Upsert a batch of shaped fills. Idempotent on the fill id. */

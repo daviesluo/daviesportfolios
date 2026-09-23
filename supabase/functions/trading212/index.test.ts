@@ -41,6 +41,7 @@ import {
   sign,
   verifyToken,
   constantTimeEqual,
+  historyPageRequest,
 } from "./index.ts";
 
 const EMPTY_SYNC_HOLDINGS = {
@@ -792,4 +793,30 @@ Deno.test("shapeT212Order — a dropped item names the field it was missing", ()
   );
   // Reporting is opt-in: the shaper still works without a sink.
   assertEquals(shapeT212Order({ ...base, order: { ...base.order, side: "x" } }, "invest"), null);
+});
+
+Deno.test("historyPageRequest — a timeout or a dropped connection is a failed page the walk retries, not a crash", async () => {
+  // 2026-09-23 16:00 UTC: T212 took longer than ten seconds on an orders-sync, the fetch threw, and the error escaped
+  // to the handler's outer catch as trading212.unhandled. Now it is the same failed page a 5xx is.
+  const timedOut = (() => Promise.reject(new DOMException("Signal timed out.", "TimeoutError"))) as unknown as typeof fetch;
+  assertEquals(await historyPageRequest("https://t212.example/page", ["key"], timedOut),
+    { ok: false, status: 0, message: "T212 did not answer within 10 s" });
+  const dropped = (() => Promise.reject(new TypeError("error sending request"))) as unknown as typeof fetch;
+  assertEquals(await historyPageRequest("https://t212.example/page", ["key"], dropped),
+    { ok: false, status: 0, message: "T212 request failed: error sending request" });
+
+  // The auth dance is unchanged: a 401 on the first header tries the next, and a page's body arrives parsed.
+  const tried: string[] = [];
+  const dance = ((_url: string, init: RequestInit) => {
+    tried.push(String((init.headers as Record<string, string>).authorization));
+    return Promise.resolve(tried.length === 1 ? new Response("no", { status: 401 }) : Response.json({ items: [] }));
+  }) as unknown as typeof fetch;
+  const page = await historyPageRequest("https://t212.example/page", ["Basic abc", "raw"], dance);
+  assertEquals(tried, ["Basic abc", "raw"]);
+  assertEquals(page.ok && page.body, { items: [] });
+
+  // A 5xx still comes back with its response unread, so the caller can quote what T212 said.
+  const down = await historyPageRequest("https://t212.example/page", ["key"], (() => Promise.resolve(new Response("maintenance", { status: 503 }))) as unknown as typeof fetch);
+  if (!down.ok) throw new Error("a 5xx is a response, not a failed request");
+  assertEquals([down.res.status, down.body, await down.res.text()], [503, undefined, "maintenance"]);
 });
