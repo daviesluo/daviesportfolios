@@ -26,12 +26,11 @@ list stays the short version; the plan is the reasoning behind it.
       silently off there.**
    2. **README much shorter, plain, in his own voice.** "目前readme太长了，请精简，
       没用的东西也可以删了，确保逻辑清晰，并且所有语句措辞也清晰不绕弯，而且没有ai感像我本人自己写的".
-      **The README is DONE (2026-09-23, 01:16 UTC entry)**: 10 KB, his
-      first person, one row per folder; the rest moved verbatim to
-      `docs/guide.md` and `docs/map.md`. **Still open: the map itself.**
-      Its file map is 191 KB and one row runs to 20 KB; make it one line
-      per file. The long "why" stays findable in git (`git show
-      04e2961:README.md`), the code comments and the reference.
+      **DONE 2026-09-23** (entries of 01:16 UTC and 01:25 UTC).
+      README 275 KB → 10 KB in his first person; the map's file table
+      191 KB → 18 KB, one line per file, pinned complete by
+      `src/docs_map.test.js`; the guide 34 KB → 10 KB of plain how-to.
+      The long versions stay in git (`75cd4e1`).
    3. ~~Jev: fix the configuration, do NOT shadow it.~~ **DONE
       2026-09-23 (reference §4.21, review `2026-09-23-jev-question-fix.md`,
       migration `0047`).** v2 question + threshold 0.45 chosen from the
@@ -305,6 +304,27 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 01:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The map is a map again** (item 00.2 closed). `docs/map.md`'s file table
+went from 191 KB to 18 KB: one line per file saying what it is for,
+grouped (shell, portfolio, prices, chart maths, views; functions,
+`agents/` and `_shared/`; migrations; build, CI and docs), duplicates
+merged (`trading212.js` and `ticker_class.js` had two rows each), the
+migrations in order, and the three `_shared/` modules and every
+`agents/` file that had no row given one. `src/docs_map.test.js` pins
+it: every client module, function, module beside them and migration has
+a row, and every file a row names exists. Red on each drift it guards
+(an extra source file, a dropped migration row, a row naming a missing
+file) and on the old map (three of five checks); green on this one.
+`docs/guide.md` went from 34 KB to 10 KB: plain instructions, the
+engineering asides dropped because each lives in its code's comments
+(the iOS status bar in `index.html` and `styles.css`, the refresh
+throttles in `app.jsx`). Two facts corrected on the way: the P/E button
+covers four indices, not three (`INDEX_PE_ALLOWED`), and the stack's
+migrations run to `0047`. CLAUDE.md and the skill now say a row is one
+line and the why belongs in the file.
 
 ### [2026-09-23 01:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
