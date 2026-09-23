@@ -16,8 +16,9 @@ list stays the short version; the plan is the reasoning behind it.
 
 00. **DAVIES' FOUR REQUESTS OF 2026-09-22 ~20:15 UTC, in hand from
    23:35 UTC.** His usage window closed before any was begun.
-   1. ~~Root: fewer files still.~~ **DONE 2026-09-23** (history entry
-      of 01:13 UTC). `bin/` holds the hook, the two browser scripts,
+   1. ~~Root: fewer files still.~~ **DONE 2026-09-23** (history entries
+      of 01:13 and 02:13–02:17 UTC; the second round after he said a
+      re-pointed root file still holds its slot). `bin/` holds the hook, the two browser scripts,
       `setup.sh` and `gates.sh`; `public/` went into `src/`, and so did
       `eslint.config.js`. No `cloud/`: `wrangler.jsonc` has to stay at
       the root, and `supabase/` alone in it would not remove a root
@@ -313,6 +314,21 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 02:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`vite.config.js` is `src/vite.config.js`, which ends the root round.**
+Its root is now its own folder (`import.meta.url`), and the npm scripts
+pass `--config`; knip finds it through those scripts (without the file it
+reports `@vitejs/plugin-react` unused, so it is reading it). The build is
+the same bundle: every file of `dist/`, hashes aside, has the committed
+size; the dev server serves `/main.jsx` and `src/public/`. The root is now
+`.agents .claude .cursor .github bin dist docs src supabase`, four dot
+files, and five files a tool reads only there: `package.json` and its
+lock (npm), `tsconfig.json` (plain `npx knip` finds it nowhere else and
+then reports `ambient.d.ts` unused), `wrangler.jsonc` (Pages reads it only
+at the root, and it is what keeps the repository off the site) and
+`LICENSE` (GitHub detects a licence only at the root).
 
 ### [2026-09-23 02:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

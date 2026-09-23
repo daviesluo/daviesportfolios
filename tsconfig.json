@@ -45,8 +45,7 @@
   "include": [
     "src/**/*.js",
     "src/**/*.jsx",
-    "src/**/*.d.ts",
-    "vite.config.js"
+    "src/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",

@@ -451,6 +451,7 @@ Tests sit beside the module they cover, as `<name>.test.js` or
 | `styles.css` | Every style, in one sheet. |
 | `data.js` | A demo portfolio with made-up share counts, shown only when the real one cannot load. |
 | `public/_headers`, `public/robots.txt` | Copied into `dist/` as they are: Cloudflare's cache and security headers, and a site-wide noindex. |
+| `vite.config.js` | The build: React, the PWA service worker, output to `dist/`, the build stamp, and Vitest's settings. The npm scripts pass `--config src/vite.config.js`. |
 | `eslint.config.js`, `test_setup.js` | The lint rules for `src/`, and the Vitest setup that adds the DOM matchers. |
 
 #### Portfolio and ledger
@@ -615,7 +616,6 @@ before touching migration state.
 | File | What it does |
 |---|---|
 | `package.json` | Scripts, dependencies, and the knip and size-limit settings. |
-| `vite.config.js` | The build: React, the PWA service worker, output to `dist/`, the build stamp, and Vitest's settings. |
 | `tsconfig.json` | Type-checks the JavaScript through JSDoc (`checkJs`, `strictNullChecks`). |
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |
 | `.nvmrc` | Node 22. |
