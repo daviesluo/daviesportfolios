@@ -412,7 +412,13 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
-### [2026-09-23 08:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-23 07:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Eight of today's history headers carried guessed times, 2–14 minutes late;
+they now carry their commits' times** (the skill's rule: read `date -u` or the
+commit time, every time). No entry's content changed.
+
+### [2026-09-23 07:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Two lessons into `working-with-davies`** (all three copies): a study's
 arguments are part of its output, so run it with repository paths and diff the
@@ -421,7 +427,7 @@ was re-run); and read a rule's measured holding time before describing it (the
 first draft of momentum-1d's Jev question said "weeks" where the median is
 about three days).
 
-### [2026-09-23 07:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-23 07:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Each paper row's own Jev question, measured** (`backtests/jev_answers_rows.json`;
 pre-registration `reviews/2026-09-23-jev-row-questions-prereg.md`). Every entry
@@ -434,7 +440,7 @@ v2 does) and momentum-1d 0.77 (its replies overlap everywhere below 0.66; the
 widest band vetoes 183 of 189 states). Committed now because `net._http_response`
 is pruned in hours and this file is the only copy. Pricing is next.
 
-### [2026-09-23 07:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-23 07:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Each paper row's own Jev question is written, frozen and deployable**
 (reference §4.28). Two wordings, `v3-momentum-1d` and `v3-trend-1h`, frozen
@@ -445,7 +451,7 @@ row's own wording only when `params.jevQuestion` names it — no row does, so
 nothing the loop does changes. Pinned: the text by hash, the fallback to v2,
 the endpoint's refusal for another rule; red when the row param is ignored.
 
-### [2026-09-23 07:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-23 07:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Neither venue has a strategy of its own the evidence supports**
 (reference §3.23, §3.24). Two pre-registered studies, each re-run here on a
@@ -457,7 +463,7 @@ included, 0 of 7 — every worst window −64 to −79 %, below random picks. Th
 Binance data pipeline is in `docs/agents/scripts/xsmom/`, and the
 exchangeInfo snapshot and Revolut X's pair table are committed inputs.
 
-### [2026-09-23 07:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-23 07:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **VENUES is Revolut X and Binance; Kraken is off the page** (Davies;
 reference §4.27). Binance's card reads the account read-only
@@ -469,7 +475,7 @@ of a colour already on the page. The chart takes the row's venue colour,
 and a stablecoin reads as money. Browser sweep 212 green; the five new
 checks per breakpoint are red on the previous bundle.
 
-### [2026-09-23 07:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-23 07:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The Chinese-reply rule now says it survives a context compaction**
 (`working-with-davies`, all three copies). After this session's resume the
@@ -477,7 +483,7 @@ progress notes between tool calls came out in English until Davies asked
 why ("这个会话怎么又变成英语了") — the third time. The first line after any
 resume is Chinese.
 
-### [2026-09-23 07:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-23 07:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **SUI stays on paper and does not go live** (Davies left the call to the
 session; reference §3.20's addendum). Real money goes only to the core
@@ -491,7 +497,7 @@ changes. The cost, stated in the brief: window A's drawdown 11.3 → 15.8 %
 against window B +20.1 → +25.1 %; over the span where all five coins
 exist, four $25 slots +81.8 % against five $20 slots' +64.2 %.
 
-### [2026-09-23 07:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-23 06:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Migration `0048` drops `agent_risk.max_order_usd`**, pushed after the
 slot-sized tick (`ef28a06`) had deployed; no view, function or policy
