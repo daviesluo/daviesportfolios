@@ -10,21 +10,27 @@ live handover record is `LEDGER.md`; `docs/handover.md` is its archive.
 
 ## Documentation
 
-- **Keep `README.md` in sync as part of every change** — don't wait to
-  be asked. When a change adds/removes an Edge Function, migration,
-  `src/` module, workflow, or a user-facing feature, update the matching
-  README section (What it does / Engineering notes / Stack / File map /
-  migrations table) in the same commit or PR. Trim redundant/outdated
-  prose while you're there. The README is the source-of-truth map of the
-  system; a change that lands without its README update is incomplete.
-- **The README's top half is a public showcase** (Davies shows the repo
-  in interviews): pitch, the live example at daviesluo.com (password:
-  contact Davies), screenshots in `docs/screenshots/` with every dollar
-  amount masked by the site's hide-values mode, features, architecture,
-  engineering practice, the agents research. Keep it short and current.
-  **No personal financial figure goes into the README** — no balance,
-  position value, share count, lot price or P&L in dollars from the real
-  book; describe the engineering with neutral wording instead.
+- **Keep the docs in sync as part of every change** — don't wait to be
+  asked. `docs/map.md` is the source-of-truth map of the system: when a
+  change adds or removes an Edge Function, migration, `src/` module,
+  workflow or script, update its row there (and the engineering notes,
+  stack or data flow if they change) in the same commit. `docs/guide.md`
+  says how to use the site; update it when a user-facing feature
+  changes. Trim what the change made redundant while you're there. A
+  change that lands without its docs update is incomplete.
+- **`README.md` is the public front page, and it stays one page**
+  (Davies shows the repo in interviews; he had it cut from 275 KB to
+  10 KB on 2026-09-23): the pitch, the live example at daviesluo.com
+  (password: contact Davies), screenshots in `docs/screenshots/` with
+  every dollar amount masked by the site's hide-values mode, what it
+  does, how it's built, how he works, the crypto loop, and a
+  one-row-per-folder map. Touch it only when one of those changes. It is
+  written in his voice — first person, plain words, short sentences, no
+  slogans — and detail goes to `docs/map.md`, never back into it.
+- **No personal financial figure goes into `README.md`, `docs/guide.md`
+  or `docs/map.md`** — no balance, position value, share count, lot
+  price or P&L in dollars from the real book; describe the engineering
+  with neutral wording instead.
 
 ## The ledger
 
