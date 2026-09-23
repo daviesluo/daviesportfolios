@@ -434,9 +434,16 @@ that follow from that evidence, in short:
   An allowed decision whose order never reached the book is placed on a
   later turn, and the order insert is the claim on that attempt (`0041`).
   A live order is written as `pending` BEFORE the venue is called and
-  reconciled by client id next turn; **one the venue does not list stays
-  pending for a person to settle — never marked rejected on a guess** (a
-  marketable order fills or dies inside the turn). A cancel whose
+  reconciled by client id next turn: the active list first, then the
+  venue's order HISTORY, whose list carries no price or fee, so a match is
+  read back through `GET /orders/{id}` before it settles; **one the venue
+  shows nowhere stays pending for a person to settle — never marked
+  rejected on a guess**, and a 5xx or a lost reply is the same unknown,
+  not a rejection (go-live audit D3). A live marketable order re-reads the
+  touch as it is sent and allows 10 bps on an entry, 50 on an exit; an IOC
+  that dies unfilled is sent again next turn, five attempts at most (D2).
+  A buy fee Revolut X takes in the coin is booked net, because a buy's
+  `filled_quantity` is gross (D4). A cancel whose
   read-back fails leaves the row open. The fills query is paged. The
   daily loss limit blocks new risk only, never an exit; a resting exit
   order never outranks a stop (it is cancelled first); a re-quote passes

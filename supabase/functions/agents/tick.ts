@@ -97,6 +97,16 @@ export const PROBE_TTL_MS = 4 * 3600e3;           // a maker probe watches for o
 export const PROBE_FOLLOW_UP_MS = [15 * 60e3, 60 * 60e3];   // and the mark is recorded this long after it resolved — that gap IS the adverse selection
 export const WIDE_SPREAD_BPS = 50;                // above this the book is too wide to CROSS for a new position — see `exitMark`
 export const ENTRY_LAG_FRACTION = 0.25;           // an entry is taken on a bar only within this fraction of a bar after it closed — see `entryTooLate`
+/**
+ * A LIVE marketable order re-reads the touch just before it is sent and allows this much beyond it. The turn's own quote is
+ * 3–7 s old when a bar's order goes out (decision rows land at hh:00:04–08), and on the UK book a buy IOC limited at a
+ * 6-second-old ask dies unfilled 39–46 % of the time, a sell at the old bid 44–48 % (audit, 2026-09-23, 59 ticker pairs).
+ * An IOC executes at the best prices up to its limit, so the allowance caps the slippage; it does not set the price.
+ */
+export const MARKETABLE_ENTRY_SLIP_BPS = 10;
+export const MARKETABLE_EXIT_SLIP_BPS = 50;
+/** A decision's marketable order that died unfilled is tried again on the next turn, at most this many attempts in all. */
+export const MAX_MARKETABLE_ATTEMPTS = 5;
 const ONE_M = 60e3, ONE_H = 3600e3, FOUR_H = 4 * 3600e3, ONE_D = 86400e3;
 const DAILY_BARS = 130;                           // SMA 100 + the 30-day lookback, with room
 const SIGNAL_BARS = 210;                          // SMA 100 + breakout 55, with room
@@ -474,10 +484,20 @@ export function liveConfirmationRefusal(action: Action, book: "paper" | "live", 
   return { allowed: false, reason: "live not confirmed (live_confirmed_at is null): live entries are refused, exits still run" };
 }
 
+/**
+ * The position as the backtester trails it: from the START of the bar its entry filled in. The fill lands seconds after that
+ * bar opened, so `highWaterSince` (bars starting at or after `openedAt`) skipped the entry bar's own high, where
+ * backtest.ts `run` counts it (it raises the high-water on the fill bar).
+ */
+export function fromItsBar(pos: Position, bars: Candle[]): Position {
+  if (pos.openedAt == null || bars.length < 2) return pos;
+  const barMs = bars[1].start - bars[0].start;
+  return barMs > 0 ? { ...pos, openedAt: Math.floor(pos.openedAt / barMs) * barMs } : pos;
+}
 /** The position with its high-water trailed to the market: the fills' own high never rises, and a stop or a state word read from it would not trail. */
 function trailed(pos: Position, bars: Candle[], lastClosedIdx: number): Position {
   if (pos.base <= 0) return pos;
-  const hw = highWaterSince(pos, bars, lastClosedIdx);
+  const hw = highWaterSince(fromItsBar(pos, bars), bars, lastClosedIdx);
   return hw == null ? pos : { ...pos, highWater: hw };
 }
 
@@ -695,7 +715,14 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           if (!a.ok) { report.errors.push(`${key}: active orders ${a.error}`); holdInFlight(key, o.side); continue; }
           activeByVenue.set(o.venue, a.byClientId);
         }
-        const found = activeByVenue.get(o.venue)![o.client_order_id];
+        let found = activeByVenue.get(o.venue)![o.client_order_id];
+        if (!found && venue.findOrder) {
+          // Not resting: a marketable IOC never does. The venue's own history says what became of it — the venue's record,
+          // not a guess. Unreadable or absent, the row stays pending for a person, as before.
+          const h = await venue.findOrder(o.client_order_id, o.symbol, new Date(o.ts).getTime());
+          if (h.ok && h.found) found = h.found;
+          else if (!h.ok) report.errors.push(`${key}: order history ${h.error}`);
+        }
         if (found) {
           await d.db.update("agent_orders", `id=eq.${o.id}`, { state: found.view.state, venue_order_id: found.venueOrderId, filled_base: found.view.filledBase, avg_fill_price: found.view.avgPrice, fee_usd: found.view.feeUsd, filled_at: found.view.filledBase > 0 ? fillStamp(o, nowIso) : o.filled_at, response: { reconciled: true, view: found.view.raw }, updated_at: nowIso });
           report.settled.push({ id: o.id, state: `reconciled:${found.view.state}` });
@@ -1037,9 +1064,15 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   /** The decision already recorded for this pair and bar (or minute), if any — looked up by the bar itself, not by "the newest row". */
   const priorDecision = async (s: StrategyRow, sym: string, barStart: number): Promise<Prior | null> =>
     (await d.db.select<Prior>("agent_decisions", `strategy_id=eq.${s.id}&symbol=eq.${enc(sym)}&bar_start=eq.${enc(new Date(barStart).toISOString())}&select=id,final_action,risk_allowed,numbers&limit=1`))[0] ?? null;
-  /** Did any order — placed, rejected or cancelled — ever come out of this decision? */
-  const hasOrder = async (decisionId: number) =>
-    (await d.db.select<{ id: number }>("agent_orders", `decision_id=eq.${decisionId}&select=id&limit=1`)).length > 0;
+  /**
+   * The orders that came of this decision. A marketable order the venue CANCELLED with nothing filled is an IOC that found
+   * nothing at its limit: an attempt, not an answer — the backtests fill every such order at the next open, and until
+   * 2026-09-23 the bar was "already decided" after one, which left a rule exit unsold for the rest of the bar.
+   */
+  type Attempt = { id: number; state: string; filled_base: number | string; request: { marketable?: boolean } | null };
+  const attemptsOf = async (decisionId: number) =>
+    await d.db.select<Attempt>("agent_orders", `decision_id=eq.${decisionId}&select=id,state,filled_base,request&order=requotes.asc,id.asc`);
+  const diedUnfilled = (o: Attempt) => o.state === "cancelled" && !(Number(o.filled_base) > 0) && !!o.request?.marketable;
 
   // The one way an order is placed: paper → a row; live → a pending row, the venue, the row again.
   const place = async (s: StrategyRow, sym: string, side: "buy" | "sell", base: string, price: number, decisionId: number | null, marketable: boolean, requotes: number) => {
@@ -1060,8 +1093,16 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         base = capped;
       }
     }
+    // A live marketable order: the touch as it is NOW, and a bounded allowance beyond it (see MARKETABLE_ENTRY_SLIP_BPS).
+    let px = price;
+    if (marketable && mode === "live" && venue) {
+      try { const fresh = (await venue.quotes([sym]))[sym]; if (fresh && fresh.bid > 0 && fresh.ask > 0) px = side === "buy" ? fresh.ask : fresh.bid; }
+      catch (e) { report.errors.push(`${s.id}|${sym}: touch not re-read before a live order (${msg(e)}); the turn's quote stands`); }
+      const slip = (side === "buy" ? MARKETABLE_ENTRY_SLIP_BPS : MARKETABLE_EXIT_SLIP_BPS) / 1e4;
+      px = side === "buy" ? px * (1 + slip) : px * (1 - slip);
+    }
     // On the venue's price grid: a marketable buy rounds up so it still reaches the ask, everything else rounds down.
-    const priceStr = side === "buy" && marketable ? ceilToStep(price, cfg.quote_step) : floorToStep(price, cfg.quote_step);
+    const priceStr = side === "buy" && marketable ? ceilToStep(px, cfg.quote_step) : floorToStep(px, cfg.quote_step);
     const client_order_id = d.uuid();
     const request = { clientOrderId: client_order_id, symbol: sym, side, base, price: priceStr, postOnly: !marketable, marketable, timeInForce: marketable ? "ioc" : "gtc" };
     const row: Record<string, unknown> = {
@@ -1099,7 +1140,26 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       const inserted = await insertOrder({ ...row, state: "pending" }, true);
       if (!inserted) return;
       const [pending] = inserted;
-      const placed = await venue.placeLimit({ clientOrderId: client_order_id, symbol: sym, side, base, price: priceStr, marketable });
+      let placed: Awaited<ReturnType<Venue["placeLimit"]>>;
+      try { placed = await venue.placeLimit({ clientOrderId: client_order_id, symbol: sym, side, base, price: priceStr, marketable }); }
+      catch (e) {
+        // The request may have reached the venue (a timeout after the fact): the outcome is UNKNOWN, so the row stays
+        // `pending` and the next turn reconciles it by client id — never `rejected` on a guess (reference §4.17, B1).
+        report.errors.push(`${s.id}|${sym}: placement of ${client_order_id} has no reply (${msg(e)}); left pending for the next turn to reconcile`);
+        ordersToday[bucket] = (ordersToday[bucket] ?? 0) + 1;
+        if (side === "buy") exposure[bucket] = (exposure[bucket] ?? 0) + Number(base) * price;
+        holdInFlight(`${s.id}|${sym}`, side);
+        return;
+      }
+      if (!placed.ok && !(placed.status >= 400 && placed.status < 500)) {
+        // A 5xx or a status-less failure says nothing about the order: the venue may have taken it. Same as a lost reply.
+        await d.db.update("agent_orders", `id=eq.${pending.id}`, { response: { status: placed.status, error: placed.error, response: placed.response, outcome: "unknown" }, updated_at: nowIso });
+        report.errors.push(`${s.id}|${sym}: ${s.venue} answered ${placed.status} ${placed.error} — outcome unknown; ${client_order_id} stays pending for the next turn to reconcile`);
+        ordersToday[bucket] = (ordersToday[bucket] ?? 0) + 1;
+        if (side === "buy") exposure[bucket] = (exposure[bucket] ?? 0) + Number(base) * price;
+        holdInFlight(`${s.id}|${sym}`, side);
+        return;
+      }
       if (!placed.ok) {
         await d.db.update("agent_orders", `id=eq.${pending.id}`, { state: "rejected", cancelled_at: nowIso, response: { status: placed.status, error: placed.error, response: placed.response }, updated_at: nowIso });
         report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode, side, price, base: Number(base), state: "rejected" });
@@ -1164,7 +1224,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   }
 
   // 4–6. per strategy -----------------------------------------------------
-  type Decided = { action: Action; allowed: boolean; decisionId: number | null; orderUsd: number };
+  type Decided = { action: Action; allowed: boolean; decisionId: number | null; orderUsd: number; attempt?: number };
   const decide = async (
     s: StrategyRow, sym: string, barStart: number, snapState: unknown, numbers: Record<string, unknown>, questions: Questions | null,
     rule: { action: Action; reason: string }, kind: "bar" | "protective", jevOverride?: JevResult,
@@ -1398,7 +1458,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         // --- protective stop against the live mark, every minute, before anything else -----
         const floorPos = floorPositionOf(s, sym);
         if (floorPos.base > 0) {
-          const hw = highWaterSince(floorPos, bars, i);
+          const hw = highWaterSince(fromItsBar(floorPos, bars), bars, i);
           const atr = atrAt(bars, i, p.atrN);
           if (await protect(s, sym, m, floorPos, { state: obs.state, numbers: obs.numbers }, hw, atr, stops)) continue;
         }
@@ -1410,7 +1470,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         const prior = await priorDecision(s, sym, barStart);
         let r: Decided;
         if (prior) {
-          if (prior.final_action === "hold" || !prior.risk_allowed || await hasOrder(prior.id)) { report.skipped.push(`${key}: bar ${new Date(barStart).toISOString()} already decided`); continue; }
+          const attempts = prior.final_action === "hold" || !prior.risk_allowed ? [] : await attemptsOf(prior.id);
+          if (prior.final_action === "hold" || !prior.risk_allowed || attempts.some((o) => !diedUnfilled(o)) || attempts.length >= MAX_MARKETABLE_ATTEMPTS) {
+            report.skipped.push(`${key}: bar ${new Date(barStart).toISOString()} already decided`); continue;
+          }
           // Decided, allowed, and no order ever came of it — no pair config, a size under the venue minimum, the confirmation
           // or the credentials missing at the time. The bar's claim stays with the decision; the order gets another try at
           // today's touch. (A venue rejection made an order row, so it is not retried here: the venue said no.) An entry is
@@ -1432,8 +1495,8 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
               continue;
             }
           }
-          report.skipped.push(`${key}: decision ${prior.id} (${prior.final_action}) had no order; placing it now`);
-          r = { action: prior.final_action, allowed: true, decisionId: prior.id, orderUsd };
+          report.skipped.push(`${key}: decision ${prior.id} (${prior.final_action}) ${attempts.length ? `: attempt ${attempts.length + 1}, the last IOC died unfilled` : "had no order"}; placing it now`);
+          r = { action: prior.final_action, allowed: true, decisionId: prior.id, orderUsd, attempt: attempts.length };
         } else {
           // A new decision may ask the model, up to 16 s a time; past the budget the bar waits for the next minute, when it is
           // still the last closed bar. Stops and observations above are never deferred.
@@ -1445,7 +1508,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           // still "on" (momentum, rotation) would otherwise sell and re-buy every bar. Same rule in the backtester. Any exit
           // means any BOOK's: a row switched between paper and live keeps the cooldown its last exit started.
           const lastExitTs = lastExitOf(s, sym);
-          if (rule.action === "enter" && lastExitTs != null && d.now - lastExitTs < REENTRY_BARS * barMs) {
+          // Counted in the rule's own bars, as backtest.ts counts it (`i − lastExitBar < reentryBars`, lastExitBar = the bar the
+          // exit filled in): a wall-clock 8 hours let the decision two bars on through whenever it ran a second later in its
+          // minute than the exit had.
+          if (rule.action === "enter" && lastExitTs != null && barStart - Math.floor(lastExitTs / barMs) * barMs < REENTRY_BARS * barMs) {
             rule = { action: "hold", reason: `cooling down: exited ${Math.round((d.now - lastExitTs) / 60e3)} min ago, no re-entry for ${REENTRY_BARS} bars` };
           }
           const late = rule.action === "enter" ? entryTooLate(barStart, barMs, d.now) : null;
@@ -1466,7 +1532,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         const price = side === "buy" ? (marketable ? q.ask : q.bid) : (marketable ? q.bid : q.ask);
         const base = side === "buy" ? sizeBase(r.orderUsd, price, cfg) : sizeBase(pos.base * price, price, cfg);
         if (!base) { report.errors.push(`${key}: size under venue minimum; the order waits for the next minute`); continue; }
-        await place(s, sym, side, base, price, r.decisionId, marketable, 0);
+        await place(s, sym, side, base, price, r.decisionId, marketable, r.attempt ?? 0);
       } catch (e) {
         // One pair's failure is one pair's failure: the other strategies still get their stops and their turn.
         report.errors.push(`${key}: ${msg(e)}`);

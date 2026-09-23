@@ -241,6 +241,11 @@ export const getOrder = (env: RevxEnv, venueOrderId: string, f?: typeof fetch) =
 export const activeOrders = (env: RevxEnv, f?: typeof fetch) =>
   revxFetch<{ data: VenueOrder[] }>(env, "GET", "/api/1.0/orders/active", undefined, f);
 
+/** Finished orders (filled, cancelled, rejected, replaced) in a window of at most one week, paged by cursor (reference: GET /orders/historical). */
+export const historicalOrders = (env: RevxEnv, symbol: string, startMs: number, endMs: number, cursor = "", f?: typeof fetch) =>
+  revxFetch<{ data: VenueOrder[]; metadata?: { next_cursor?: string } }>(env, "GET",
+    `/api/1.0/orders/historical?symbols=${toPathSymbol(symbol)}&start_date=${Math.floor(startMs)}&end_date=${Math.floor(endMs)}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`, undefined, f);
+
 
 
 /** Venue candle (strings) → the numeric candle the strategy maths reads. */
@@ -365,15 +370,23 @@ export function orderViewProblem(vo: VenueOrder): string | null {
 /** A venue order → the settlement view the tick acts on. A cancelled order with fills counts as filled for that volume. */
 export function toOrderView(vo: VenueOrder): OrderView {
   const o = readOrder(vo);
-  const filledBase = Number(o.filled ?? 0);
+  const gross = Number(o.filled ?? 0);
   const state = o.state === "filled" ? "filled"
-    : o.state === "cancelled" ? (filledBase > 0 ? "filled" : "cancelled")
+    : o.state === "cancelled" ? (gross > 0 ? "filled" : "cancelled")
     : o.state === "rejected" ? "rejected"
-    : filledBase > 0 ? "partially_filled" : "new";
-  const avgPrice = filledBase > 0 ? Number(o.avg ?? NaN) || null : null;
+    : gross > 0 ? "partially_filled" : "new";
+  const avgPrice = gross > 0 ? Number(o.avg ?? NaN) || null : null;
   // A fee taken in the coin is a fee in dollars at the fill price; `orderViewProblem` refuses any other currency.
   const fee = Number(o.fee ?? 0);
-  const feeUsd = o.feeCurrency && o.feeCurrency === baseAssetOf(vo.symbol) ? (avgPrice ? fee * avgPrice : 0) : fee;
+  const feeInBase = !!o.feeCurrency && o.feeCurrency === baseAssetOf(vo.symbol);
+  const feeUsd = feeInBase ? (avgPrice ? fee * avgPrice : 0) : fee;
+  // On a BUY `filled_quantity` is GROSS, "before fees" (the venue's reference, Order.filled_quantity). A fee taken in the
+  // coin never reaches the account, so the book must hold filled − fee: booked gross, the position outlives its exit by the
+  // fee (the capped sell cannot sell coins that are not there) and the rulebook, reading itself long, never re-enters.
+  // Rounded to 15 significant digits: `gross − fee` in floating point leaves noise (0.00015924 − 0.00000014 is not exactly
+  // 0.0001591), and the book subtracts the exit's venue-reported size from it. Nothing reads a position through a dust
+  // threshold (`base > 0` everywhere), so a 1e-18 residue would read "long" for good and bring D4 back.
+  const filledBase = vo.side === "buy" && feeInBase ? Math.max(0, Number((gross - fee).toPrecision(15))) : gross;
   return { state, filledBase, avgPrice, feeUsd, raw: vo };
 }
 
@@ -442,6 +455,32 @@ export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch, 
       const out: Record<string, number> = {};
       for (const b of r.data ?? []) out[b.currency] = Number(b.total);
       return out;
+    },
+    async findOrder(clientOrderId, symbol, sinceMs) {
+      if (!env) return { ok: false, error: "no Revolut X credentials" };
+      const end = Date.now(), start = Math.max(sinceMs - 60e3, end - 7 * 86400e3 + 60e3);
+      let cursor = "";
+      for (let page = 0; page < 10; page++) {
+        const r = await historicalOrders(env, symbol, start, end, cursor, fetchImpl);
+        if (!r.ok) return { ok: false, error: `${r.status} ${r.error}` };
+        for (const vo of r.data?.data ?? []) {
+          if (vo.client_order_id !== clientOrderId) continue;
+          const id = readOrder(vo).id;
+          if (!id) return { ok: false, error: "historical order without an id" };
+          // The history lists an order WITHOUT its average fill price or fee (the reference documents both, with
+          // fee_currency, only on GET /orders/{id}), and `orderViewProblem` rightly refuses a fill without them. So the
+          // history finds the order and the order itself is read to settle it.
+          const one = await getOrder(env, id, fetchImpl);
+          if (!one.ok) return { ok: false, error: `order ${id}: ${one.status} ${one.error}` };
+          if (!one.data?.data) return { ok: false, error: `order ${id}: empty order reply` };
+          const problem = orderViewProblem(one.data.data);
+          if (problem) return { ok: false, error: problem };
+          return { ok: true, found: { venueOrderId: id, view: toOrderView(one.data.data) } };
+        }
+        cursor = r.data?.metadata?.next_cursor ?? "";
+        if (!cursor) break;
+      }
+      return { ok: true, found: null };
     },
     async activeOrders() {
       if (!env) return { ok: false, error: "no Revolut X credentials" };

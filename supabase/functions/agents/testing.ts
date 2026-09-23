@@ -276,7 +276,7 @@ export class FakeRevx {
   /** What DELETE answers for an order that already finished: the reference documents only 204 for a cancel. */
   deleteFinished: 204 | 404 = 404;
   /** Endpoints answering 503, as a venue does for a minute now and then: a decision can then be allowed with no order behind it. */
-  down: { pairs?: boolean; tickers?: boolean; balances?: boolean } = {};
+  down: { pairs?: boolean; tickers?: boolean; balances?: boolean; history?: boolean } = {};
   /** The `state` a placement reply carries: the order's own ("status"), or always "new" — the word the documented example uses. */
   placementReply: "status" | "new" = "status";
   /** The venue takes the order and the reply never arrives (a timeout after the fact): the caller sees a thrown fetch. */
@@ -352,6 +352,17 @@ export class FakeRevx {
       return json(200, { data: { venue_order_id: o.id, client_order_id: o.client_order_id, state: this.placementReply === "new" ? "new" : o.status } });
     }
     if (p === "/api/1.0/orders/active") return json(200, { data: [...this.orders.values()].filter((o) => o.status === "new" || o.status === "partially_filled").map((o) => this.view(o)), metadata: { timestamp: this.now() } });
+    if (p === "/api/1.0/orders/historical") {
+      if (this.down.history) return unavailable();
+      // Finished orders in [start_date, end_date], as the venue documents the list: WITHOUT total_fee and fee_currency, which
+      // only GET /orders/{id} carries (average_fill_price is optional on the list, so the double leaves it out too). A client
+      // that settles a fill from this list fails here, as it would against the venue.
+      const syms = (url.searchParams.get("symbols") ?? "").split(",").filter(Boolean).map((s) => s.replace("-", "/"));
+      const start = Number(url.searchParams.get("start_date") ?? 0), end = Number(url.searchParams.get("end_date") ?? Number.MAX_SAFE_INTEGER);
+      const done = [...this.orders.values()].filter((o) => o.status !== "new" && o.status !== "partially_filled" && (!syms.length || syms.includes(o.symbol)) && o.created >= start && o.created <= end);
+      const listView = (o: FakeOrder) => { const v = this.view(o); delete v.total_fee; delete v.fee_currency; delete v.average_fill_price; return v; };
+      return json(200, { data: done.map(listView), metadata: { timestamp: this.now() } });
+    }
     if (p.startsWith("/api/1.0/orders/")) {
       const o = this.orders.get(p.split("/").at(-1)!);
       if (!o) return json(404, { message: "Order not found" });

@@ -45,6 +45,12 @@ export type Venue = {
   balances(): Promise<Record<string, number>>;
   /** Every order resting at the venue, by OUR client order id — how a `pending` row finds the order it may have placed. */
   activeOrders(): Promise<{ ok: true; byClientId: Record<string, { venueOrderId: string; view: OrderView }> } | { ok: false; error: string }>;
+  /**
+   * A FINISHED order by our client id (filled, cancelled, rejected), from the venue's own history since `sinceMs`. A marketable
+   * IOC never rests, so `activeOrders` cannot find one whose reply was lost; the history can. Optional: a venue without it
+   * leaves such a row pending for a person, as before.
+   */
+  findOrder?(clientOrderId: string, symbol: string, sinceMs: number): Promise<{ ok: true; found: { venueOrderId: string; view: OrderView } | null } | { ok: false; error: string }>;
 };
 
 /** Paper fee for a fill at the venue's maker rate. */

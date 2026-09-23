@@ -15,7 +15,8 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import { krakenVenue } from "../_shared/kraken.ts";
 import { revxVenue } from "../_shared/revx.ts";
 import { FakeKraken, FakeRevx, jevFetch, memDb, type Row } from "./testing.ts";
-import { MAX_ORDER_AGE_MS, REENTRY_BARS, tick, type TickReport } from "./tick.ts";
+import { floorToStep } from "../_shared/agents_strategy.ts";
+import { MARKETABLE_EXIT_SLIP_BPS, MAX_ORDER_AGE_MS, REENTRY_BARS, tick, type TickReport } from "./tick.ts";
 
 const ONE_M = 60e3, FOUR_H = 4 * 3600e3;
 const BAR0 = Date.parse("2026-09-23T04:00:00Z");
@@ -116,7 +117,9 @@ Deno.test("lifecycle: one live row from flat through an entry, the floor, the co
     assertEquals([w.kind(stop), stop.final_action, stop.risk_allowed, stop.mode], ["protective", "exit", true, "live"]);
     assert(String(stop.final_reason).startsWith("protective floor"), String(stop.final_reason));
     const sell = w.live().at(-1)!;
-    assertEquals([sell.side, sell.decision_id, sell.base_size, (sell.request as Row).marketable, sell.price], ["sell", stop.id, held, true, w.rx.quote("BTC/USD").bid]);
+    // The limit is the touch re-read at placement less the exit's slippage allowance; the IOC fills at the bid, as before.
+    assertEquals([sell.side, sell.decision_id, sell.base_size, (sell.request as Row).marketable, sell.price],
+      ["sell", stop.id, held, true, Number(floorToStep(w.rx.quote("BTC/USD").bid * (1 - MARKETABLE_EXIT_SLIP_BPS / 1e4), "0.01"))]);
     const r2 = await w.at(B(0) + 11 * ONE_M);
     assertEquals(r2.errors, [], why(r2));
     assertEquals(w.order(sell.id).state, "filled");
@@ -365,11 +368,30 @@ Deno.test("lifecycle: a venue that names a filled order's status in a word the c
   assertEquals([w.live().at(-1)!.side, w.live().at(-1)!.base_size, w.venueBtc()], ["sell", bought, 0]);
 });
 
-Deno.test("lifecycle: a buy the venue took but whose reply never arrived stays `pending` for a person — and the coins the book cannot see still have a floor", async () => {
+Deno.test("lifecycle: a buy whose reply never arrived is found in the venue's order history and settled from the order itself", async () => {
   // A timeout after the venue has the order: the row written before the call stays `pending`, with no venue id. An IOC that
-  // filled is not among the active orders, so the loop cannot reconcile it and must not guess — a person settles it from
-  // the venue's history. Until then the coins are in no book; the venue's own balance is what the floor goes by.
+  // filled is not among the active orders; the venue's history lists it by our client id, and GET /orders/{id} gives the
+  // price and the fee the list leaves out (go-live audit D3).
   const w = await world(B(0) + 5 * ONE_M);
+  w.rx.loseReply = true;
+  await w.at(B(0) + 5 * ONE_M);
+  w.rx.loseReply = false;
+  const [buy] = w.live();
+  assertEquals([buy.side, buy.state, buy.venue_order_id], ["buy", "pending", null]);
+  await w.at(B(0) + 6 * ONE_M);                                                  // under a minute old by the database's clock: left alone
+  const r2 = await w.at(B(0) + 7 * ONE_M);
+  assert(!r2.errors.some((e) => e.includes("outcome unknown")), why(r2));
+  const settled = w.order(buy.id);
+  assertEquals(settled.state, "filled", why(r2));
+  assert(settled.venue_order_id && Number(settled.avg_fill_price) > 0 && Number(settled.fee_usd) > 0, JSON.stringify(settled));
+  assertEquals(round8(Number(settled.filled_base)), w.venueBtc());                // the book and the venue agree
+});
+
+Deno.test("lifecycle: a buy whose reply never arrived, and whose history cannot be read, stays `pending` for a person — and the coins the book cannot see still have a floor", async () => {
+  // As above, but the venue's history is down: the loop cannot see what became of the order and must not guess, so a person
+  // settles it. Until then the coins are in no book; the venue's own balance is what the floor goes by.
+  const w = await world(B(0) + 5 * ONE_M);
+  w.rx.down.history = true;
   w.rx.loseReply = true;
   const r0 = await w.at(B(0) + 5 * ONE_M);
   w.rx.loseReply = false;

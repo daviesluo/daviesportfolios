@@ -32,19 +32,25 @@ list stays the short version; the plan is the reasoning behind it.
       carries the action and the top of the stack (`crashReport`). Deployed
       20:12 UTC (the first deploy died on ghcr.io's rate limit; one re-run);
       production had 8 such crashes in the 24 h before it. **D2–D6
-      reproduce on `main`** (the audit's five failing-behaviour tests all
-      pass on today's code). **P7 is in the draft**: the go-live migration
+      reproduced on `main`** before their fixes (the audit's five
+      failing-behaviour tests all passed there). **P7 is in the draft**: the go-live migration
       now creates the row unarmed with a $30 cap; `live_confirmed_at` is
       set in the conversation on Davies' word, and the cap goes to $150
-      after the first round trip settles. **Next, in order:** P2 (re-read
-      the touch before a live marketable order, retry a dead IOC, trail
-      from the fill's bar, cooldown in bars) and P3/P4 — but **P3 as
-      written would not settle**: Revolut X documents `average_fill_price`,
-      `total_fee` and `fee_currency` only on `GET /orders/{id}`, not on the
-      `/orders/historical` list its `findOrder` reads, so a match must be
-      followed by `getOrder` before it settles. Each lands with the audit's
-      failing test turned around. Going live stays Davies' explicit go, and
-      the first live order needs his confirmation in the same conversation.
+      after the first round trip settles. **P2–P4 are landed** (`golive.test.ts`
+      pins D2–D6, each test failing without its fix): a live marketable order
+      re-reads the touch (10 bps entry, 50 exit), a dead IOC is sent again
+      (five attempts), a 5xx or lost reply stays pending and the venue's
+      order history, read back through `GET /orders/{id}`, settles it, a
+      coin fee is booked net, the trail counts the fill's bar and the
+      cooldown counts bars. Two changes to the audit's patches: its history
+      lookup settled from a list that carries no price or fee (it would
+      never have settled), and its net-of-fee left a 1e-18 residue that
+      reads "long" for good; `FakeRevx` now serves the history as the venue
+      documents it. **Left:** D8 (a filled order without fee fields; verify
+      on the first order), D9 (record the touch beside the live fill), D10
+      (the lease claim is unguarded). Going live stays Davies' explicit go,
+      and the first live order needs his confirmation in the same
+      conversation.
    2. **A third, independent first-principles search, Binance first: DONE**
       (reference §3.29, review `reviews/2026-09-23-fp3-study.md`, three
       frozen pre-registrations, re-run here byte for byte). One pass, and it
@@ -534,6 +540,13 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 20:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The live execution path's audit defects D2–D6 are fixed** (P2–P4, with the two corrections
+the new tests found in the audit's own patches; item 0000000). Paper rows change in two
+places only: the trail counts the high of the bar an entry filled in, and the cooldown is
+counted in bars, both as the backtester already did.
 
 ### [2026-09-23 20:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

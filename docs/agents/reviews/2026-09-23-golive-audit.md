@@ -2,17 +2,26 @@
 
 Davies asked for both candidates to be verified in depth before either goes live ("请全面深度验证并确保这两个策略都是最佳…你验证认为可以上线的话就做好上线准备").
 An independent agent audited them adversarially and wrote everything below the rule; its patches are in
-`2026-09-23-golive-audit-patches/` beside this file. **Nothing here has been applied**, and an agent's claim is not a fact
-until it is re-computed here.
+`2026-09-23-golive-audit-patches/` beside this file. An agent's claim is not a fact until it is re-computed here.
+
+**What was applied (2026-09-23, evening):** P1 (`c2d0ad5`, deployed), P7 in the draft (`0d6faae`), and P2–P4 with three
+changes the audit's own tests could not see: `findOrder` reads a history match back through `GET /orders/{id}`, because the
+history list carries no average price and no fee and `orderViewProblem` refuses a fill without them; the net of a coin fee
+is rounded to 15 significant digits, because `gross − fee` in floating point left a 1e-18 residue that reads "long" for good
+and brought D4 back; and `FakeRevx` now serves `/orders/historical` the way the venue documents it, without those fields,
+where before the route fell through to `/orders/{id}` and answered 404, so the reconcile path had never run in a test.
+`agents/golive.test.ts` pins D2–D6; each of its tests fails without its fix. D8–D10 are not done.
 
 ## What was re-computed here, and what was not
 
 * **D1 is real.** `agents/index.ts` awaits `kraken.refreshFees()` with no catch, and production's `ops_errors` holds
   `agents.crash` rows reading "Signal timed out." at the times the audit gives. P1 was read and applies to `main`.
 * **Every patch still applies** to `main` at the commit that adds this file (`git apply --check`, the combined diff and P1).
-* **Not yet re-computed here:** D2's dead-IOC rates on the UK book, D3–D10, the pricing of the draft's configuration, and
-  PR5's figures. Each is re-run before its patch lands. The audit's scripts, tape copies and worktree stayed in the
-  session's scratch folder and are not committed.
+* **D2–D6 reproduced on `main`** before their fixes: the audit's five failing-behaviour tests all passed on the code as it
+  stood, and D2, D3, D4 and D6 fail once the fixes are in (D5's test reads the pure function, whose callers were fixed).
+* **Not re-computed here:** D2's dead-IOC rates on the UK book, D8–D10, the pricing of the draft's configuration, and
+  PR5's figures. The audit's scripts, tape copies and worktree stayed in the session's scratch folder and are not
+  committed.
 
 ---
 
