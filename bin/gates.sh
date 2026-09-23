@@ -19,6 +19,7 @@ npm run lint
 npm test
 npm run build
 npm run verify:browser
+npm run verify:perf
 npx size-limit
 npx knip
 npm audit --audit-level=high --omit=dev

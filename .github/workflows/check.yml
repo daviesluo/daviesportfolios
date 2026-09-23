@@ -114,6 +114,18 @@ jobs:
         # constant in the sweep.
         run: npm run verify:browser
 
+      - name: Performance panel matrix (the built bundle, 60 cases)
+        # Both performance views x five ranges x three recorded-data states
+        # x two books (buys only; sold down), each read back from the page
+        # and compared with an answer worked out by hand. It caught the
+        # 24H reading +14.81 % where the book moved +16.00 % while the unit
+        # tests agreed with themselves. By hand for months because it read
+        # the real clock and failed 18 cases between 14:00 and 20:00 UTC:
+        # its fixture's first bar falls out of the 24H window then, and the
+        # app was right. Its clock is pinned now, and it refuses an instant
+        # its fixture cannot serve.
+        run: npm run verify:perf
+
       - name: Bundle size budget (gzipped main bundle)
         # Hard cap on `dist/assets/app-*.js` gzipped size — see the `size-limit` block in `package.json`
         # for the current limit. A PR that doubles the bundle (lazy chunks
