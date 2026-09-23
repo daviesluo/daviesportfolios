@@ -51,7 +51,10 @@ list stays the short version; the plan is the reasoning behind it.
    integrates from a clean worktree at `origin/main` and pushes from
    there. Nothing an agent reports is repeated as fact until recomputed.
 
-   **R — pre-live fixes: SHIPPED (reference §4.24).** Reviewed line by
+   **R — pre-live fixes: SHIPPED (reference §4.24), AUDITED 2026-09-23**
+   against R's own reproductions: all 18 fixed and pinned but #15's
+   second half (paper only, cannot arise under the new-row go-live).
+   **R — details:** Reviewed line by
    line and integrated from the agents' tree, with three more fixes of
    my own, each pinned and red on the old code: a marketable fill is
    dated from its own row (flag E: a buy settled after the floor sold it
@@ -308,6 +311,24 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 02:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The adversarial review's items are audited, not remembered** (Davies
+asked whether all of them were fixed). R's own reproductions, recovered
+from the session record and pointed at this tree with the Deno 1.x
+binary: R1–R9 and D1–D3 fail on the assertion that reproduced each bug,
+the lifecycle (4c/4d/4e, 5e, 6b, 6c/6d) and the resolver matrix pass.
+R10 failed until its fake venue reported the coins it held — the tick
+caps live sells at the venue's balance now, and the fake's was always
+empty; with real balances it sells 0.02 then 0.03, net 0. D4 tested
+`dayPnl`'s inputs, not the page; the page uses the tick's `dayOpenOf`
+(pinned both sides). Every item has a pin in the repo suites. Added: the
+paging rule R found unenforced — `assertPagedOrder` now refuses an order
+that does not end with the unique `id` (pinned, red on the old guard;
+all 184 agents tests green with it). Left as decided: #15's second half,
+a retired row labelled live stranding PAPER coins. Reference §4.24 has
+the audit.
 
 ### [2026-09-23 02:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

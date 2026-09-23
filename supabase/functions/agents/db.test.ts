@@ -1,5 +1,5 @@
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { DB_ERROR_CHARS, dbErrorText, makeDb } from "./db.ts";
+import { assert, assertEquals, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertPagedOrder, DB_ERROR_CHARS, dbErrorText, makeDb } from "./db.ts";
 import { isUniqueViolation } from "./tick.ts";
 
 // PostgREST's refusal as it arrives: `code, details, hint, message`, with `details` quoting the whole failing row.
@@ -35,4 +35,20 @@ Deno.test("the reordered text still tells another turn's claim (23505) from a re
   assert(e409 && isUniqueViolation(e409), e409?.message);
   const e400 = await makeDb("https://db.example", "k", refusing(400, checkBody)).insert("agent_orders", {}).then(() => null, (e: Error) => e);
   assert(e400 && !isUniqueViolation(e400), e400?.message);
+});
+
+Deno.test("a paged read names an order and ends it with the unique id: rows that tie on every column named can repeat or vanish between pages", () => {
+  assertPagedOrder("agent_orders", "state=in.(pending,new)&select=*&order=id.asc");
+  assertPagedOrder("agent_orders", "select=*&order=ts.asc,id.asc");
+  assertPagedOrder("agent_orders", "order=ts.desc,id.desc&select=*");
+  assertThrows(() => assertPagedOrder("agent_orders", "select=*"), Error, "needs an explicit order");
+  // The probe's read before 2026-09-22: ordered, but by a column two orders can share.
+  assertThrows(() => assertPagedOrder("agent_orders", "select=*&order=ts.asc"), Error, "unique id last");
+  assertThrows(() => assertPagedOrder("agent_orders", "order=id.asc,ts.asc"), Error, "unique id last");
+  // The stub pages through the same function, so a test cannot certify a query production would refuse.
+  const db = makeDb("https://db.example", "k", (() => Promise.resolve(new Response("[]"))) as typeof fetch);
+  return db.selectAll("agent_orders", "select=*&order=ts.asc").then(
+    () => { throw new Error("the real client must refuse it too"); },
+    (e: Error) => assert(e.message.includes("unique id last"), e.message),
+  );
 });

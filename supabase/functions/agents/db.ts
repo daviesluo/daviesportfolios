@@ -23,7 +23,7 @@ export type Db = {
 /**
  * LIMIT/OFFSET paging is only stable under a TOTAL order: with `order=ts.asc` alone, two rows sharing a timestamp
  * can land either side of a page boundary and be read twice or not at all — and a fill read twice is a position
- * counted twice. So a paged read must name its order.
+ * counted twice. So a paged read must name its order, and end it with the unique `id`.
  *
  * ONE implementation, called by the real client AND by every test stub. On 2026-09-22 this check lived only in
  * the real client, the stubs paged without it, every test was green — and one production caller with no `order=`
@@ -32,7 +32,13 @@ export type Db = {
  * production rejects; this is the second time in a day that lesson was paid for.
  */
 export function assertPagedOrder(table: string, query: string): void {
-  if (!/[?&]order=/.test(`?${query}`)) throw new Error(`selectAll(${table}) needs an explicit order to page safely`);
+  const order = /(?:^|&)order=([^&]*)/.exec(query)?.[1];
+  if (!order) throw new Error(`selectAll(${table}) needs an explicit order to page safely`);
+  // And the LAST column must be the unique `id`: rows that tie on every column named are in no fixed order between
+  // two page reads, so ordering by `ts` alone is the same hole with a smaller mouth. Every caller ended with `id`
+  // already; the pre-live review (2026-09-22, #13) found the rule written down and nowhere enforced.
+  const last = decodeURIComponent(order).split(",").at(-1)?.split(".")[0];
+  if (last !== "id") throw new Error(`selectAll(${table}) must order by the unique id last (…,id.asc), not "${order}"`);
 }
 
 /** How much of a refusal's text an error keeps. */
