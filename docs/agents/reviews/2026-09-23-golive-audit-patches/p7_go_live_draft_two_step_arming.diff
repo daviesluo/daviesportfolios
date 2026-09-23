@@ -1,0 +1,37 @@
+diff --git a/docs/agents/go_live.sql.draft b/docs/agents/go_live.sql.draft
+index 2ca115a..6011722 100644
+--- a/docs/agents/go_live.sql.draft
++++ b/docs/agents/go_live.sql.draft
+@@ -1,5 +1,6 @@
+ -- The first live row. It carries no number until it moves: give it the next
+--- free one then (`ls supabase/migrations/`). It was numbered 0047, 0048, 0049,
++-- free one then (`ls supabase/migrations/`; 0052 as of 2026-09-23 15:30 UTC, the
++-- remote history ends at 0051 plus the four 202608… out-of-band versions). It was numbered 0047, 0048, 0049,
+ -- 0050 and 0051 on 2026-09-23 alone, and each new migration took the number
+ -- from under it — so it waits unnumbered.
+ --
+@@ -120,8 +121,22 @@ values (
+ -- should FAIL rather than quietly arm `live_confirmed_at` beside a row
+ -- in some other shape.
+ 
++-- AUDIT 2026-09-23: the push does NOT arm the first order. Setting `live_confirmed_at` here made the loop place the first
++-- live order by itself at the next bar that signals — hours or days after the push, with nobody in the conversation —
++-- which is not "the first live order needs Davies' confirmation in the same conversation". The row goes in with entries
++-- refused (each refusal is on the record: "live not confirmed"); the operator runs the one statement below in the
++-- conversation where Davies confirms, and the first entry follows on the next signal.
++--
++-- The first round trip is ONE slot: the exposure cap admits a single $25 entry (marked to market, with room), so the
++-- settlement read-back (B4: filled_quantity / average_fill_price / total_fee + fee_currency, and whether a buy's fee is
++-- taken in the coin) is verified on one order before four are at risk. Raise it to 150 once that fill has settled
++-- cleanly and the venue's balance equals the book.
+ update public.agent_risk
+-   set live_confirmed_at = now(),
+-       max_exposure_usd  = 150,
++   set max_exposure_usd  = 30,
+        updated_at        = now()
+  where id = 1;
++
++-- In the conversation, on Davies' word (not in this file):
++--   update public.agent_risk set live_confirmed_at = now(), updated_at = now() where id = 1;
++-- After the first live round trip has settled cleanly:
++--   update public.agent_risk set max_exposure_usd = 150, updated_at = now() where id = 1;

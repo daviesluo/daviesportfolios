@@ -1,0 +1,31 @@
+diff --git a/supabase/functions/agents/index.ts b/supabase/functions/agents/index.ts
+index 34e3d92..c2f0989 100644
+--- a/supabase/functions/agents/index.ts
++++ b/supabase/functions/agents/index.ts
+@@ -181,13 +181,24 @@ async function loadVenues(): Promise<{ venues: Record<VenueId, Venue>; notes: Re
+   const kk = loadKraken();
+   const revx = revxVenue("error" in rx ? null : rx.env);
+   const kraken = krakenVenue("error" in kk ? null : kk.env);
++  let kkNote: string | null = null;
+   if (!("error" in kk)) {                                 // the account's own tier, not the published table
+     if (feeTier && Date.now() - feeTier.at < FEE_TIER_TTL_MS) Object.assign(kraken.feeBps, feeTier.feeBps);
+-    else { await kraken.refreshFees(); feeTier = { at: Date.now(), feeBps: { ...kraken.feeBps } }; }
++    else {
++      // Kraken is a signal venue only since 0046: its fee tier prices nothing the tick does. A private call that fails at
++      // the network level (the "Signal timed out." of production's agents.crash rows, 2026-09-22/23) used to throw out of
++      // here before `tick()` began — no lease, no reconcile, no floor on any Revolut X position — and, the cache staying
++      // cold, again every minute of the outage. It is now a note, retried in five minutes.
++      try { await kraken.refreshFees(); feeTier = { at: Date.now(), feeBps: { ...kraken.feeBps } }; }
++      catch (e) {
++        feeTier = { at: Date.now() - FEE_TIER_TTL_MS + 5 * 60e3, feeBps: { ...kraken.feeBps } };
++        kkNote = `kraken fee tier unreadable (${e instanceof Error ? e.message : String(e)}); the default schedule stands in`;
++      }
++    }
+   }
+   return {
+     venues: { revx, kraken, binance: binancePaperVenue() },
+-    notes: { revx: "error" in rx ? rx.error : null, kraken: "error" in kk ? kk.error : null, binance: null },
++    notes: { revx: "error" in rx ? rx.error : null, kraken: "error" in kk ? kk.error : kkNote, binance: null },
+   };
+ }
+ 

@@ -1,0 +1,84 @@
+diff --git a/supabase/functions/_shared/revx.ts b/supabase/functions/_shared/revx.ts
+index a4bb41f..e7794ad 100644
+--- a/supabase/functions/_shared/revx.ts
++++ b/supabase/functions/_shared/revx.ts
+@@ -241,6 +241,11 @@ export const getOrder = (env: RevxEnv, venueOrderId: string, f?: typeof fetch) =
+ export const activeOrders = (env: RevxEnv, f?: typeof fetch) =>
+   revxFetch<{ data: VenueOrder[] }>(env, "GET", "/api/1.0/orders/active", undefined, f);
+ 
++/** Finished orders (filled, cancelled, rejected, replaced) in a window of at most one week, paged by cursor (reference: GET /orders/historical). */
++export const historicalOrders = (env: RevxEnv, symbol: string, startMs: number, endMs: number, cursor = "", f?: typeof fetch) =>
++  revxFetch<{ data: VenueOrder[]; metadata?: { next_cursor?: string } }>(env, "GET",
++    `/api/1.0/orders/historical?symbols=${toPathSymbol(symbol)}&start_date=${Math.floor(startMs)}&end_date=${Math.floor(endMs)}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`, undefined, f);
++
+ 
+ 
+ /** Venue candle (strings) → the numeric candle the strategy maths reads. */
+@@ -365,15 +370,20 @@ export function orderViewProblem(vo: VenueOrder): string | null {
+ /** A venue order → the settlement view the tick acts on. A cancelled order with fills counts as filled for that volume. */
+ export function toOrderView(vo: VenueOrder): OrderView {
+   const o = readOrder(vo);
+-  const filledBase = Number(o.filled ?? 0);
++  const gross = Number(o.filled ?? 0);
+   const state = o.state === "filled" ? "filled"
+-    : o.state === "cancelled" ? (filledBase > 0 ? "filled" : "cancelled")
++    : o.state === "cancelled" ? (gross > 0 ? "filled" : "cancelled")
+     : o.state === "rejected" ? "rejected"
+-    : filledBase > 0 ? "partially_filled" : "new";
+-  const avgPrice = filledBase > 0 ? Number(o.avg ?? NaN) || null : null;
++    : gross > 0 ? "partially_filled" : "new";
++  const avgPrice = gross > 0 ? Number(o.avg ?? NaN) || null : null;
+   // A fee taken in the coin is a fee in dollars at the fill price; `orderViewProblem` refuses any other currency.
+   const fee = Number(o.fee ?? 0);
+-  const feeUsd = o.feeCurrency && o.feeCurrency === baseAssetOf(vo.symbol) ? (avgPrice ? fee * avgPrice : 0) : fee;
++  const feeInBase = !!o.feeCurrency && o.feeCurrency === baseAssetOf(vo.symbol);
++  const feeUsd = feeInBase ? (avgPrice ? fee * avgPrice : 0) : fee;
++  // On a BUY `filled_quantity` is GROSS, "before fees" (the venue's reference, Order.filled_quantity). A fee taken in the
++  // coin never reaches the account, so the book must hold filled − fee: booked gross, the position outlives its exit by the
++  // fee (the capped sell cannot sell coins that are not there) and the rulebook, reading itself long, never re-enters.
++  const filledBase = vo.side === "buy" && feeInBase ? Math.max(0, gross - fee) : gross;
+   return { state, filledBase, avgPrice, feeUsd, raw: vo };
+ }
+ 
+@@ -443,6 +453,24 @@ export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch,
+       for (const b of r.data ?? []) out[b.currency] = Number(b.total);
+       return out;
+     },
++    async findOrder(clientOrderId, symbol, sinceMs) {
++      if (!env) return { ok: false, error: "no Revolut X credentials" };
++      const end = Date.now(), start = Math.max(sinceMs - 60e3, end - 7 * 86400e3 + 60e3);
++      let cursor = "";
++      for (let page = 0; page < 10; page++) {
++        const r = await historicalOrders(env, symbol, start, end, cursor, fetchImpl);
++        if (!r.ok) return { ok: false, error: `${r.status} ${r.error}` };
++        for (const vo of r.data?.data ?? []) {
++          if (vo.client_order_id !== clientOrderId) continue;
++          const id = readOrder(vo).id, problem = orderViewProblem(vo);
++          if (!id || problem) return { ok: false, error: problem ?? "historical order without an id" };
++          return { ok: true, found: { venueOrderId: id, view: toOrderView(vo) } };
++        }
++        cursor = r.data?.metadata?.next_cursor ?? "";
++        if (!cursor) break;
++      }
++      return { ok: true, found: null };
++    },
+     async activeOrders() {
+       if (!env) return { ok: false, error: "no Revolut X credentials" };
+       const r = await activeOrders(env, fetchImpl);
+diff --git a/supabase/functions/_shared/venue.ts b/supabase/functions/_shared/venue.ts
+index 2b8b69f..a391689 100644
+--- a/supabase/functions/_shared/venue.ts
++++ b/supabase/functions/_shared/venue.ts
+@@ -45,6 +45,12 @@ export type Venue = {
+   balances(): Promise<Record<string, number>>;
+   /** Every order resting at the venue, by OUR client order id — how a `pending` row finds the order it may have placed. */
+   activeOrders(): Promise<{ ok: true; byClientId: Record<string, { venueOrderId: string; view: OrderView }> } | { ok: false; error: string }>;
++  /**
++   * A FINISHED order by our client id (filled, cancelled, rejected), from the venue's own history since `sinceMs`. A marketable
++   * IOC never rests, so `activeOrders` cannot find one whose reply was lost; the history can. Optional: a venue without it
++   * leaves such a row pending for a person, as before.
++   */
++  findOrder?(clientOrderId: string, symbol: string, sinceMs: number): Promise<{ ok: true; found: { venueOrderId: string; view: OrderView } | null } | { ok: false; error: string }>;
+ };
+ 
+ /** Paper fee for a fill at the venue's maker rate. */
