@@ -21,9 +21,9 @@
 // per-ticker proxies so the long ranges came back partial and
 // disagreed with the short ones. Three symptoms, one missing header.
 //
-// Serves the repo root the way Cloudflare Pages does — committed
-// index.html + hashed bundle, no dev server, no source transform — so
-// what it exercises is the JS that actually ships.
+// Serves the built site (`dist/`) the way Cloudflare Pages does — the
+// committed index.html + hashed bundle, no dev server, no source
+// transform — so what it exercises is the JS that actually ships.
 //
 // The fixture is small enough that every expected number is arithmetic:
 //
@@ -40,7 +40,7 @@
 //           must appear in the transaction history and nowhere else.
 //
 // A hard CI gate since 2026-09-17 (check.yml's browser-sweep step). Run
-// it locally after a UI change, against the bundle you are about to
+// it from src/ after a UI change, against the bundle you are about to
 // commit:
 //
 //   npm run build && npm run verify:browser
@@ -59,7 +59,7 @@ import { chromium } from 'playwright';
 // built site (`dist/`) of the repo containing this file, so the sweep works
 // from any working directory.
 const ROOT = path.resolve(
-  process.argv[2] || path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'dist'));
+  process.argv[2] || path.join(path.dirname(new URL(import.meta.url).pathname), '..', '..', 'dist'));
 const PORT = 8932;
 
 const MIME = {

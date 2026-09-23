@@ -8,16 +8,16 @@
   },
   "packageManager": "npm@10.9.7",
   "scripts": {
-    "dev": "vite --config src/vite.config.js",
-    "prebuild": "rm -rf dist",
-    "build": "vite build --config src/vite.config.js && cp dist/index.html dist/404.html",
-    "preview": "vite preview --config src/vite.config.js",
+    "dev": "vite",
+    "prebuild": "rm -rf ../dist",
+    "build": "vite build && cp ../dist/index.html ../dist/404.html",
+    "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src",
-    "test": "vitest run --config src/vite.config.js",
-    "test:watch": "vitest --config src/vite.config.js",
-    "verify:browser": "node bin/app-sweep.mjs dist",
-    "verify:perf": "node bin/verify-perf-matrix.mjs dist"
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify:browser": "node e2e/app-sweep.mjs ../dist",
+    "verify:perf": "node e2e/perf-matrix.mjs ../dist"
   },
   "dependencies": {
     "html2canvas-pro": "^2.0.4",
@@ -48,29 +48,12 @@
     "workbox-window": "^7.4.1"
   },
   "knip": {
-    "eslint": {
-      "config": ["src/eslint.config.js"]
-    },
-    "entry": [
-      "src/*.test.{js,jsx}",
-      "src/test_setup.js",
-      "supabase/functions/*/index.ts",
-      "supabase/functions/*/index.test.ts",
-      "supabase/functions/agents/backtest*.ts"
-    ],
-    "project": [
-      "src/**/*.{js,jsx,ts}",
-      "supabase/functions/**/*.ts"
-    ],
-    "ignoreUnresolved": [
-      "./test_setup.js"
-    ],
     "ignoreExportsUsedInFile": true
   },
   "size-limit": [
     {
       "name": "main bundle (gzipped)",
-      "path": "dist/assets/app-*.js",
+      "path": "../dist/assets/app-*.js",
       "limit": "122 KB",
       "gzip": true
     }

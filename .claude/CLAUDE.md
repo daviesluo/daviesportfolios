@@ -20,14 +20,15 @@ client and CI both talk to the **deployed production** Supabase project
 hard-coded in `src/supabase_config.js`.
 
 Standard commands are already documented — see the `scripts` block in
-`package.json`, the "Local development" section of `docs/map.md`, and the
-CI workflows (`.github/workflows/check.yml`, `edge-functions.yml`).
-Client: `npm run dev` (Vite on `http://localhost:5173`), `npm test`
-(vitest), `npm run typecheck`, `npm run lint`, `npm run build`. Edge
-Functions: `deno check supabase/functions/` and
+`src/package.json`, the "Local development" section of `docs/map.md`, and
+the CI workflows (`.github/workflows/check.yml`, `edge-functions.yml`).
+Client — the web app is an npm project in `src/`, so run these there:
+`npm run dev` (Vite on `http://localhost:5173`), `npm test` (vitest),
+`npm run typecheck`, `npm run lint`, `npm run build`. Edge Functions,
+from the root: `deno check supabase/functions/` and
 `deno test --allow-env --no-check supabase/functions/`. `sh bin/setup.sh`
-prepares a fresh clone (the ledger hook, `npm ci`); `sh bin/gates.sh` runs
-every CI gate in CI's order.
+prepares a fresh clone (the ledger hook, `npm ci` in `src/`);
+`sh bin/gates.sh` runs every CI gate in CI's order.
 
 Non-obvious caveats:
 
@@ -430,6 +431,9 @@ the function's pure helpers from `index.test.ts` would bind a port.
 
 ## Testing
 
+The npm commands run in `src/`; `sh bin/gates.sh` runs all of them, then
+the Edge Function checks, from anywhere in the repository.
+
 - `npm run typecheck` — tsc with `checkJs` + `strictNullChecks`, no type
   errors should slip through. The `useState(null)` / `useRef(null)` slots
   carry JSDoc `@type` annotations; keep new ones annotated.
@@ -448,7 +452,7 @@ the function's pure helpers from `index.test.ts` would bind a port.
 - `npm run build` — Vite production bundle, output to `dist/` (committed;
   Cloudflare Pages serves only that directory).
 - `npm run verify:browser` — the whole-app browser sweep in
-  `bin/app-sweep.mjs`: serves the COMMITTED bundle over http and
+  `src/e2e/app-sweep.mjs`: serves the COMMITTED bundle over http and
   drives it in real Chromium at both breakpoints (208 checks). A hard CI
   gate since 2026-09-17. Its clock is pinned, so it gives the same answer
   at any hour — do not replace `CLOCK` with a live `Date`. Needs
@@ -457,7 +461,7 @@ the function's pure helpers from `index.test.ts` would bind a port.
   Every bug it has caught was live while `npm test` and the Edge suite
   were green, because each was an integration failure.
 - `npm run verify:perf` — the performance-panel matrix in
-  `bin/verify-perf-matrix.mjs`: 60 cases (two views × five ranges ×
+  `src/e2e/perf-matrix.mjs`: 60 cases (two views × five ranges ×
   three recorded-data states × two books) read back from the committed
   bundle and compared with answers worked out by hand. A hard CI gate
   since 2026-09-23. Its clock is pinned too (`PERF_MATRIX_CLOCK` moves

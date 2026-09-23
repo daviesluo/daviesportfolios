@@ -14,13 +14,38 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+000. **DAVIES' REQUESTS OF 2026-09-23 (~02:10 and ~02:35 UTC)**, in order:
+   1. Root: `AGENTS.md`, `LEDGER.md`, `README.md`, `package.json`,
+      `vite.config.js` still held root slots — **DONE** (item 00.1).
+      `.ledger` merged into `.agents/skills/ledger` — **DONE** (`d86dcea`).
+   2. Phone screenshots in the README — **DONE** (`7b12ba5`).
+   3. "Were R's three blockers and the medium issues all fixed?" —
+      **audited, yes** (`ec61952`, reference §4.24): all 18 fixed and
+      pinned but #15's paper-only half; B4's field names are confirmed
+      only by the first live order.
+   4. Binance / Deribit keys: **verified read-only** (`8288c82`, item
+      0d). Uses and strategies: desk research done (unverified until
+      recomputed); three pre-registered studies were running at 02:45
+      UTC in scratch worktrees — Binance's costs for the live coins, SUI's
+      seat and the top-twenty screen; volatility-sized slots and DVOL /
+      funding entry filters; the v2 Jev gate on momentum-1d and trend-1h.
+      Nothing from them is a finding until re-run here.
+   5. `src/` has too many files: sort it into subfolders — IN PROGRESS.
+   6. "What did the Jev and SUI studies find, and what is next?" — the
+      answer is item 00.3 and reference §3.20; the next steps are the
+      two studies in 4 that price what is still unpriced.
+
 00. **DAVIES' FOUR REQUESTS OF 2026-09-22 ~20:15 UTC, in hand from
    23:35 UTC.** His usage window closed before any was begun.
    1. ~~Root: fewer files still.~~ **DONE 2026-09-23** (history entries
       of 01:13 and 02:13–02:17 UTC; the second round after he said a
-      re-pointed root file still holds its slot). `bin/` holds the hook, the two browser scripts,
-      `setup.sh` and `gates.sh`; `public/` went into `src/`, and so did
-      `eslint.config.js`. No `cloud/`: `wrangler.jsonc` has to stay at
+      re-pointed root file still holds its slot; a third on 2026-09-23
+      after he named `package.json` too: the npm project — `package.json`,
+      the lockfile, `tsconfig.json`, `.nvmrc` — is now `src/`, with the
+      browser tests in `src/e2e/`). `bin/` holds the hook, `setup.sh`,
+      `gates.sh` and `knip-edge.sh`; `public/`, `eslint.config.js` and
+      `vite.config.js` are in `src/`. The root is folders plus
+      `LICENSE`, `wrangler.jsonc` and three dotfiles. No `cloud/`: `wrangler.jsonc` has to stay at
       the root, and `supabase/` alone in it would not remove a root
       entry. **Tell him: every clone of his (Mac, Cursor) must run
       `git config core.hooksPath bin/hooks` once, or the ledger hook is
@@ -279,24 +304,26 @@ A rebuilt container loses every line below. Run them before working.
   hook, and git says nothing, until it re-runs this), `ledger.path
   docs/LEDGER.md` (this file left the root the same day; a clone still
   set to `LEDGER.md` is stopped at its next commit with "the ledger does
-  not exist", which is the cue to re-run it), and `npm ci`. It leaves the identity alone because the repo is meant
+  not exist", which is the cue to re-run it), and `npm ci` in `src/` (the
+  web app's npm project moved there on 2026-09-23; a root `node_modules`
+  left from before is dead weight and can go). It leaves the identity alone because the repo is meant
   to go public and a stranger's setup must not commit as Davies.
   `sh bin/gates.sh` runs every CI gate in CI's order and warns when the
   hook is off.
 
 Facts a fresh session would otherwise rediscover:
 
-- **Node 22** (`.nvmrc`). npm 10.x.
+- **Node 22** (`src/.nvmrc`). npm 10.x. Every npm command runs in `src/`.
 - **The Edge Function tests run under `npx deno`**, currently Deno 2.9.6
-  here: `npx deno test --allow-env supabase/functions/`. `AGENTS.md` says
-  to prefer Deno 1.x to match Supabase's runtime; the npx path is what
+  here: `npx deno test --allow-env supabase/functions/`. `.claude/CLAUDE.md`
+  says to prefer Deno 1.x to match Supabase's runtime; the npx path is what
   actually works in this container and what every gate run below used.
 - **The app sweep is now a normal gate**: `npm run verify:browser`.
   Playwright is a devDependency, so `npm ci` brings it. Chromium is
   preinstalled at `/opt/pw-browsers` in this container — do NOT run
   `playwright install` here; point the sweep at it instead:
 
-        PLAYWRIGHT_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run verify:browser
+        cd src && PLAYWRIGHT_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run verify:browser
 
   CI runs `npx playwright install chromium` and needs no such variable.
   The performance matrix is a gate too since 2026-09-23:
@@ -311,7 +338,8 @@ Facts a fresh session would otherwise rediscover:
 - **Gates, all of which must pass before a push:** `sh bin/gates.sh`
   runs them in CI's order — typecheck, lint, vitest (**check the exit
   code, not the summary line**), build, both browser tests, size-limit,
-  knip, the npm audit, `deno check` and `deno test`. Commit the `dist/`
+  knip (twice: the web app, then the Edge Functions through
+  `bin/knip-edge.sh`), the npm audit, `deno check` and `deno test`. Commit the `dist/`
   the build writes with any `src/` change; the source maps it also
   writes are gitignored.
 
@@ -322,6 +350,22 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 02:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The web app's npm project is `src/`**: `package.json`, the lockfile,
+`tsconfig.json` and `.nvmrc` left the root, and the two browser tests
+moved from `bin/` to `src/e2e/`, beside the Playwright they import.
+Davies named `package.json` among the files still holding a root slot;
+Cloudflare does not build, so nothing outside the repository needs it at
+the root. knip reads only code under its `package.json`'s folder, so the
+Edge Functions now get their own run (`bin/knip-edge.sh`, a scratch copy
+against `supabase/knip.json`); a planted unused export and an orphan file
+are caught on each side, and the real tree is clean on both. The build
+from `src/` is byte-identical to the old layout's in the same minute
+(source maps aside, which are not committed). CI runs every npm step in
+`src/`; Dependabot watches `/src`. Every clone: `sh bin/setup.sh` again
+(`npm ci` now runs in `src/`).
 
 ### [2026-09-23 02:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -11,9 +11,7 @@
 ## Test plan
 
 <!--
-  - [ ] `npm run typecheck` green
-  - [ ] `npm test` green
-  - [ ] `npm run build` clean
+  - [ ] `sh bin/gates.sh` green (every CI gate; the npm ones run in src/)
   - [ ] Manual: <which page / flow / device>
 -->
 
