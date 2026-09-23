@@ -19,6 +19,53 @@ export function maskDigits(s) {
 }
 
 /**
+ * The site's month abbreviations: ONE table for every date it prints. `Intl` spells
+ * September "Sept" in en-GB (and en-AU, en-IE, en-IN), so a UK browser drew
+ * "30 Sept" in Upcoming Earnings and on the chart axes while the Agents page,
+ * which used a table like this one, said "Sep".
+ */
+export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** @type {Map<string, Intl.DateTimeFormat>} */
+const DAY_MONTH_FMTS = new Map();
+/** @param {string | string[] | undefined} locale @param {string | undefined} timeZone @param {'2-digit' | 'numeric'} day */
+function dayMonthFormats(locale, timeZone, day) {
+  const key = `${String(locale ?? '')}|${timeZone ?? ''}|${day}`;
+  let f = DAY_MONTH_FMTS.get(key);
+  if (!f) {
+    f = new Intl.DateTimeFormat(locale ?? [], { timeZone, day, month: 'short' });
+    DAY_MONTH_FMTS.set(key, f);
+  }
+  let n = DAY_MONTH_FMTS.get(`${key}|n`);
+  if (!n) {
+    n = new Intl.DateTimeFormat('en-GB', { timeZone, month: 'numeric' });
+    DAY_MONTH_FMTS.set(`${key}|n`, n);
+  }
+  return { f, n };
+}
+
+/**
+ * A date's day and short month: "30 Sep" in the UK, "Sep 30" in the US. The
+ * locale still decides the order and the time zone still decides the day; only
+ * the month's spelling comes from `MONTHS`.
+ * @param {Date} d
+ * @param {{ locale?: string | string[], timeZone?: string, day?: '2-digit' | 'numeric' }} [opts]
+ */
+export function fmtDayMonth(d, opts = {}) {
+  const { f, n } = dayMonthFormats(opts.locale, opts.timeZone, opts.day ?? 'numeric');
+  const month = MONTHS[Number(n.format(d)) - 1] ?? '';
+  return f.formatToParts(d).map((p) => (p.type === 'month' ? month : p.value)).join('');
+}
+
+/**
+ * A date's short month alone, in the browser's own time zone: "Sep".
+ * @param {Date} d
+ */
+export function fmtMonth(d) {
+  return MONTHS[d.getMonth()] ?? '';
+}
+
+/**
  * @param {number | null | undefined} n
  * @param {{signed?: boolean, symbol?: string, compact?: boolean, precision?: number}} [opts]
  */

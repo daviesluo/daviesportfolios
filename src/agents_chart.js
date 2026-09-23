@@ -11,6 +11,7 @@
 // the x axis is a real time scale rather than an index: crypto trades every
 // minute of the week, so there are no session gaps to close up.
 
+import { MONTHS } from './formatters.js';
 
 /** Room for the y labels on the left and the x labels underneath. */
 export const CHART_PAD = { padL: 54, padR: 14, padT: 14, padB: 26 };
@@ -64,8 +65,8 @@ export function fmtChartPrice(v, span) {
  * reading "when did it buy" reads it against the clock they are looking at,
  * and two clocks on one screen is the bug. `Intl` resolves BST and GMT, so
  * this needs no DST table of its own. The month comes from the numeric part
- * and this file's own table: `en-GB` abbreviates September as "Sept", and
- * every other date on the site says "Sep".
+ * the site's one table (`MONTHS` in formatters.js): `en-GB` abbreviates
+ * September as "Sept", and no date on the site says that.
  * @param {number | string} ms
  * @returns {{ day: string, hh: string, mm: string } | null}
  */
@@ -76,7 +77,6 @@ export function londonParts(ms) {
   const at = (/** @type {string} */ type) => parts.find((x) => x.type === type)?.value ?? '';
   return { day: `${Number(at('day'))} ${MONTHS[Number(at('month')) - 1] ?? ''}`, hh: at('hour'), mm: at('minute') };
 }
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const LONDON_FMT = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'Europe/London', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
 });

@@ -6,7 +6,7 @@
 // exactly — only that they carry no magnitude suffix.)
 
 import { describe, it, expect } from 'vitest';
-import { fmtMoney, fmtPct, fmtShares, fmtSharesFor, normalizeDecimalInput } from './formatters.js';
+import { fmtDayMonth, fmtMoney, fmtMonth, fmtPct, fmtShares, fmtSharesFor, MONTHS, normalizeDecimalInput } from './formatters.js';
 
 describe('fmtMoney — magnitude tiers', () => {
   it('>= $1T → trillions with a T suffix', () => {
@@ -170,6 +170,28 @@ describe('normalizeDecimalInput', () => {
   it('the normalised text parses to the same number the raw text did', () => {
     for (const v of ['.5', '.125', '-.5']) {
       expect(Number(normalizeDecimalInput(v))).toBe(Number(v));
+    }
+  });
+});
+
+describe('fmtDayMonth / fmtMonth — one month table for every date on the site', () => {
+  const sep30 = new Date('2026-09-30T12:00:00Z');
+  it('writes Sep, never the Sept that en-GB Intl writes', () => {
+    // The Upcoming Earnings panel printed "30 Sept" on a UK browser while the Agents page said "Sep".
+    expect(new Intl.DateTimeFormat('en-GB', { month: 'short' }).format(sep30)).toBe('Sept');   // what Intl does on its own
+    expect(fmtDayMonth(sep30, { locale: 'en-GB', timeZone: 'Europe/London', day: '2-digit' })).toBe('30 Sep');
+    for (const locale of ['en-GB', 'en-AU', 'en-IE', 'en-IN']) expect(fmtDayMonth(sep30, { locale, timeZone: 'UTC' })).not.toContain('Sept');
+  });
+  it('keeps the locale order and the time zone: only the spelling of the month changes', () => {
+    expect(fmtDayMonth(sep30, { locale: 'en-US', timeZone: 'UTC' })).toBe('Sep 30');
+    // 23:30 UTC on 30 September is 00:30 on 1 October in London (BST): the day AND the month follow the zone.
+    expect(fmtDayMonth(new Date('2026-09-30T23:30:00Z'), { locale: 'en-GB', timeZone: 'Europe/London', day: '2-digit' })).toBe('01 Oct');
+  });
+  it('every month of the year comes from MONTHS', () => {
+    for (let m = 0; m < 12; m++) {
+      const d = new Date(Date.UTC(2026, m, 15, 12));
+      expect(fmtDayMonth(d, { locale: 'en-GB', timeZone: 'UTC' })).toBe(`15 ${MONTHS[m]}`);
+      expect(fmtMonth(new Date(2026, m, 15))).toBe(MONTHS[m]);
     }
   });
 });
