@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/daviesluo/daviesportfolios/actions/workflows/check.yml/badge.svg)](https://github.com/daviesluo/daviesportfolios/actions/workflows/check.yml)
 [![Edge Functions](https://github.com/daviesluo/daviesportfolios/actions/workflows/edge-functions.yml/badge.svg)](https://github.com/daviesluo/daviesportfolios/actions/workflows/edge-functions.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../LICENSE)
 
 I built this dashboard to run my own portfolio, and I use it every day.
 It lays the book out as a football tactics board: each sector is a
@@ -23,7 +23,7 @@ has to prove itself on paper before it touches real money.
 
 ## Screenshots
 
-Desktop, 22 September 2026, amounts hidden.
+Desktop and phone, 22 September 2026, amounts hidden.
 
 **Tactics board.** Each card is a sector with its holdings, value and
 today's move. The armband marks the largest single holding and the ball
@@ -31,11 +31,11 @@ sits by the day's biggest mover. Performance, market conditions and
 upcoming earnings are on the left; top movers and sector weights on the
 right.
 
-![Tactics board](docs/screenshots/desktop-tactics-board.webp)
+![Tactics board](screenshots/desktop-tactics-board.webp)
 
 | Heat map | Market chart |
 |---|---|
-| <img src="docs/screenshots/desktop-heat-map.webp" alt="Heat map" width="460"> | <img src="docs/screenshots/desktop-market-chart.webp" alt="US 10-year yield over one year with its 200-day average" width="460"> |
+| <img src="screenshots/desktop-heat-map.webp" alt="Heat map" width="460"> | <img src="screenshots/desktop-market-chart.webp" alt="US 10-year yield over one year with its 200-day average" width="460"> |
 
 - **Heat map**: one tile per holding, sized by value, coloured by today's
   move.
@@ -45,13 +45,20 @@ right.
 
 | Sector drill-down | Holding list |
 |---|---|
-| <img src="docs/screenshots/desktop-sector-drilldown.webp" alt="Sector drill-down" width="460"> | <img src="docs/screenshots/desktop-holding-list.webp" alt="Holding list" width="460"> |
+| <img src="screenshots/desktop-sector-drilldown.webp" alt="Sector drill-down" width="460"> | <img src="screenshots/desktop-holding-list.webp" alt="Holding list" width="460"> |
 
 - **Sector drill-down**: a sector's holdings with shares, average cost,
   value and gain.
 - **Holding list**: every holding, sortable, with copy and Excel export.
 
-Phone screenshots and the Agents page will follow.
+On a phone the page is one column: the board or the heat map first, then
+the sidebar with performance, market conditions and upcoming earnings.
+
+| Tactics board | Heat map | Sidebar |
+|---|---|---|
+| <img src="screenshots/phone-tactics-board.webp" alt="Tactics board on a phone" width="250"> | <img src="screenshots/phone-heat-map.webp" alt="Heat map on a phone" width="250"> | <img src="screenshots/phone-sidebar.webp" alt="Performance against S&P futures, market conditions and upcoming earnings on a phone" width="250"> |
+
+Screenshots of the Agents page will follow once a strategy is live.
 
 ## What it does
 
@@ -95,7 +102,7 @@ portfolio, five-minute prices, overnight quotes, broker fills, error
 reports and every agents decision, order and fill. Outside services —
 Yahoo Finance, Eastmoney, Finnhub, Alpha Vantage, Trading 212, Revolut X,
 Kraken and the TypeSafe Jev decision model — are called from the server,
-where every key stays.](docs/architecture.svg)
+where every key stays.](architecture.svg)
 
 The page and the scheduled jobs share one database, so prices keep being
 recorded when nobody has the page open.
@@ -154,9 +161,9 @@ closed bar it asks its rulebook what to do.
   needs the row switched to live, a confirmation in the database, the
   risk gate's approval and my go-ahead.
 
-The evidence is in [`docs/agents/reference.md`](docs/agents/reference.md),
+The evidence is in [`docs/agents/reference.md`](agents/reference.md),
 the case for the first live strategy in
-[`docs/agents/go-live.md`](docs/agents/go-live.md).
+[`docs/agents/go-live.md`](agents/go-live.md).
 
 ## Repository map
 
@@ -174,8 +181,8 @@ the case for the first live strategy in
 | `AGENTS.md`, `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents I work with (Claude Code, Cursor, Codex), and the ledger protocol they all follow. |
 
 The file-by-file map, the engineering notes behind each decision and the
-data flow are in [`docs/map.md`](docs/map.md). How to use every part of
-the board is in [`docs/guide.md`](docs/guide.md).
+data flow are in [`docs/map.md`](map.md). How to use every part of
+the board is in [`docs/guide.md`](guide.md).
 
 ## Run it locally
 
@@ -187,8 +194,8 @@ sh bin/gates.sh      # everything CI checks
 
 The client talks to the production Supabase project, so the board needs
 one of the two passwords. To run your own copy, see "Forking" in
-[`docs/map.md`](docs/map.md).
+[`docs/map.md`](map.md).
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](../LICENSE).

@@ -22,16 +22,17 @@ live handover record is `docs/LEDGER.md`; `docs/handover.md` is its archive.
   file that is gone. `docs/guide.md` says how to use the site, in plain
   words for a user; update it when a user-facing feature changes. A
   change that lands without its docs update is incomplete.
-- **`README.md` is the public front page, and it stays one page**
-  (Davies shows the repo in interviews; he had it cut from 275 KB to
-  10 KB on 2026-09-23): the pitch, the live example at daviesluo.com
+- **`docs/README.md` is the public front page, and it stays one page**
+  (GitHub shows a README from `docs/` on the repository's home page, so
+  it left the root on 2026-09-23; Davies shows the repo in interviews and
+  had it cut from 275 KB to 10 KB the same day): the pitch, the live example at daviesluo.com
   (password: contact Davies), screenshots in `docs/screenshots/` with
   every dollar amount masked by the site's hide-values mode, what it
   does, how it's built, how he works, the crypto loop, and a
   one-row-per-folder map. Touch it only when one of those changes. It is
   written in his voice — first person, plain words, short sentences, no
   slogans — and detail goes to `docs/map.md`, never back into it.
-- **No personal financial figure goes into `README.md`, `docs/guide.md`
+- **No personal financial figure goes into `docs/README.md`, `docs/guide.md`
   or `docs/map.md`** — no balance, position value, share count, lot
   price or P&L in dollars from the real book; describe the engineering
   with neutral wording instead.

@@ -1,6 +1,6 @@
 # System map
 
-The detailed map behind the [README](../README.md): the engineering
+The detailed map behind the [README](README.md): the engineering
 notes behind each decision, the stack, every file, the data flow, local
 development, how to fork it, and the working conventions. It is updated
 in the same commit as the change it describes.
@@ -630,6 +630,7 @@ before touching migration state.
 | `.github/workflows/migrations.yml` | Lints migrations, and applies new ones on `main`. |
 | `.github/workflows/healthcheck.yml` | Every 10 minutes: pings the functions and checks the live site's code; opens an issue when something is down. |
 | `.github/SECURITY.md`, `CODEOWNERS`, `dependabot.yml`, `pull_request_template.md` | How to report a vulnerability, who reviews what, dependency updates, the PR layout. |
+| `docs/README.md` | The front page GitHub shows on the repository's home page: what the project is, screenshots, how it is built. |
 | `docs/guide.md` | How to use each part of the site. |
 | `docs/map.md` | This file. |
 | `docs/architecture.svg`, `docs/screenshots/` | The README's diagram and screenshots. |
