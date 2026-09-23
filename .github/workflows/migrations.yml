@@ -120,7 +120,11 @@ jobs:
       - name: Install Supabase CLI
         uses: supabase/setup-cli@3c2f5e2ae34c34e428e8e206e2c4d21fa2d20fbf # v2.1.1
         with:
-          version: latest
+          # An exact version, not `latest`: resolving `latest` asks GitHub's API
+          # without a token, and on 2026-09-23 that hit the anonymous rate limit
+          # and failed a migrations run before anything was applied. Bump it on
+          # purpose (`npm view supabase version` gives the current release).
+          version: 2.117.0
 
       - name: Push migrations
         env:

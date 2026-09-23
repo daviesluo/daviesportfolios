@@ -33,6 +33,9 @@ list stays the short version; the plan is the reasoning behind it.
       anything is committed.
    3. **"(Paper)" stays on funded only: DONE** — the scoreboards and the
       venue cards say DEPLOYED / deployed with no label.
+   4. **The CI flake: FIXED** — both workflows pin the Supabase CLI
+      (2.117.0) instead of resolving `latest` through GitHub's anonymous
+      API (item 00000.5).
 
 00000. **DAVIES' REQUESTS OF 2026-09-23 ~10:20 UTC**, in order:
    1. **Labels: DONE** (`466d7ec`): "Agents (beta)" in the menu and title;
@@ -67,7 +70,7 @@ list stays the short version; the plan is the reasoning behind it.
       proving minutes, agents redeployed 13:17:08, and the four ticks after
       it answered 200 with no error. Still to see: the next probe that fills
       carries a `fill_minute` whose volume is above zero.
-   5. **CI flake to fix if it recurs** (not done, not asked): migrations.yml
+   5. **CI flake: FIXED 2026-09-23 on Davies' word** (000000.4): migrations.yml
       failed its first attempt in "Install Supabase CLI" — `setup-cli` with
       `version: latest` asks GitHub's API for the latest release without a
       token and hit the anonymous rate limit before any migration ran; the
@@ -478,6 +481,12 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 13:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**CI installs a pinned Supabase CLI (2.117.0)** in migrations.yml and
+edge-functions.yml. Resolving `latest` asked GitHub's API without a token and was
+rate-limited once today, before a migration ran. Bump the pin on purpose.
 
 ### [2026-09-23 13:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
