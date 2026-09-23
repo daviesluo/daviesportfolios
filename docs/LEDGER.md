@@ -18,9 +18,10 @@ list stays the short version; the plan is the reasoning behind it.
    1. Jev on the paper rows: **(c)** — and "每个策略的jev都可以有自己的
       设计": momentum-1d and trend-1h each get their OWN question, measured
       on every state and priced before the loop asks it. Open.
-   2. SUI's live seat: his call handed to the session ("删了也行"). Decided:
-      paper only (reference §3.20's addendum, stashed as `sui-decision`
-      until the cap below landed; it now says four $25 slots on $100).
+   2. SUI's live seat: his call handed to the session ("删了也行").
+      **DONE: paper only** (reference §3.20's addendum). The go-live draft
+      adds BTC/ETH/SOL/AVAX at four $25 slots on $100; the paper
+      `trend-4h` keeps all five.
    3. "Does Binance / Deribit data improve the strategies?" — answered
       from §3.21 and §3.22: no tested use does; the value is Binance as a
       second venue with its own strategy (4).
@@ -68,8 +69,10 @@ list stays the short version; the plan is the reasoning behind it.
       DECIDES: leave the gate on those two rows, shadow them
       (`params.jevGate: false`), or write momentum-1d its own question
       (v2 speaks of the 4-hour picture), measure it on every state and
-      price it before the loop asks it. SUI's next step is the
-      Binance-cost study (item 4).
+      price it before the loop asks it. **Davies chose (c) on 2026-09-23,
+      and added that every strategy's Jev may have its own design**:
+      momentum-1d and trend-1h each get their own question (item 0000.1).
+      **SUI: decided the same day, paper only** (reference §3.20's addendum).
 
 00. **DAVIES' FOUR REQUESTS OF 2026-09-22 ~20:15 UTC, in hand from
    23:35 UTC.** His usage window closed before any was begun.
@@ -248,6 +251,9 @@ list stays the short version; the plan is the reasoning behind it.
    `trend-4h`, which would strand three paper positions and cost the live
    row its same-venue control), sets `live_confirmed_at`, and raises
    `max_exposure_usd` $100 → $150 for the mark-to-market reason in §4.19.
+   **Since 2026-09-23 the draft's live row is BTC/ETH/SOL/AVAX, four $25
+   slots, $100: SUI stays on paper** (reference §3.20's addendum; dry-run
+   again that day: 3 → 4 rows, rolled back, production untouched).
    **The pre-live verification is done (2026-09-22, §4.19 and go-live §9)
    and found one real defect, now fixed: a position did not carry the mode
    it was opened in.** One box is left and it is Davies': run the
@@ -388,6 +394,20 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 07:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**SUI stays on paper and does not go live** (Davies left the call to the
+session; reference §3.20's addendum). Real money goes only to the core
+majors and to coins that clear §4.15's bar under the stop that runs: AVAX
+does at Revolut X's cost, SUI clears window A only, on the thinnest UK
+book. The go-live draft (`0049`) now adds BTC/ETH/SOL/AVAX at four $25
+slots on $100, re-dry-run inside a self-rolling-back block (3 → 4 rows,
+exposure cap $150; afterwards production still had 3 rows and no
+confirmation). The paper `trend-4h` keeps SUI, so nothing in production
+changes. The cost, stated in the brief: window A's drawdown 11.3 → 15.8 %
+against window B +20.1 → +25.1 %; over the span where all five coins
+exist, four $25 slots +81.8 % against five $20 slots' +64.2 %.
 
 ### [2026-09-23 07:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

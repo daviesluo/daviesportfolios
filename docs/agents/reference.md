@@ -2112,6 +2112,30 @@ the 23.94 bps spread §3.8 assumed sits at SUI's p90. And the prior audit's
 Kraken's tape SUI raises window A (+9.16 % with it, +3.56 % without), and on
 Revolut X's own book (+10.39 % vs +5.50 %).
 
+**Decided 2026-09-23: SUI stays on paper and does not go live.** Davies
+left the seat to the session ("你做决定吧删了也行"). The pre-registered test
+above cannot decide, so the call rests on the admission rule: real money
+goes only to the core majors and to coins that clear §4.15's bar under the
+stop that runs. At Revolut X's cost, under the shipped stop with the seeded
+parameters and both tapes agreeing, AVAX clears both windows and SUI clears
+window A only (`binance.json` Part 3's headline; one two-window coin of 23
+is what chance gives, so this is the bar admitting AVAX, not proof of an
+edge — §4.15's "the bar admits a coin; it does not certify"). SUI's UK book
+is also the thinnest of the five (median 14.9 bps, 20 bps or wider 35 % of
+the time). The go-live draft (`0049`) adds BTC/ETH/SOL/AVAX at four $25
+slots on the same $100 — possible because the fixed $20 per-order cap went
+the same day (§4.26). The paper `trend-4h` keeps all five, so SUI's record
+continues and the live row's control still shares every bar on the four.
+What it costs and earns, from `sui.json` (primary evaluation, the $100
+spread over the four): window B +20.1 → +25.1 %, window A +8.0 → +8.5 %
+with its drawdown 11.3 → 15.8 % (Kraken's tape: A +9.2 → +3.6 %, drawdown
+10.9 → 15.0 %); C and D do not change. Over the one span where all five
+coins exist (S2, 2023-05-20 → 2026-09-20, a single path that overlaps A and
+B), four $25 slots made +81.8 % against five $20 slots' +64.2 %, drawdown
+11.1 % against 10.8 % (Kraken's tape +80.0 % against +63.8 %, 10.6 % both).
+The bear year's drawdown is the price of the thinner book staying out of
+the live account.
+
 ### 3.21 Volatility-sized slots and DVOL and funding entry gates — all three fail (2026-09-23)
 
 The Binance and Deribit research (§6, "Binance and Deribit keys") ranked

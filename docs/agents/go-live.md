@@ -1,5 +1,22 @@
 # Going live — what would run, what it is expected to do, and what I would not turn on
 
+> **2026-09-23: the live row is four coins, not five.** Davies left SUI's
+> seat to the session, and it stays on paper: real money goes only to the
+> core majors and to coins that clear §4.15's bar under the stop that
+> runs (AVAX does; SUI clears window A only, on the thinnest UK book of
+> the five). The draft (`0049_go_live.sql.draft`) now adds
+> BTC/ETH/SOL/AVAX, four $25 slots, $100 — the per-order cap that would
+> have held the slots at $20 went the same day (reference §4.26). The
+> five-coin figures below stand as written. Without SUI (`sui.json`,
+> primary evaluation, the $100 spread over the four) window B reads
+> +25.1 % instead of +20.1 % and window A +8.5 % instead of +8.0 %, but
+> A's drawdown rises from 11.3 % to 15.8 % (from 10.9 % to 15.0 % on
+> Kraken's tape, where A's return falls from +9.2 % to +3.6 %). Over the
+> one span where all five coins exist (2023-05 → 2026-09, a single path)
+> four $25 slots made +81.8 % against five $20 slots' +64.2 %, drawdown
+> 11.1 % against 10.8 %. Windows C and D do not change: SUI has no data
+> there. Reference §3.20's addendum has the rest.
+
 Written 2026-09-21 for the decision Davies asked for: the final strategy
 set, the coins, the mechanics, where the edge is supposed to come from,
 and the expected return, with the evidence behind each. Nothing here is
@@ -326,8 +343,9 @@ established is **left alone for a person to settle**, never guessed at.
 
 ## 7. Recommendation
 
-**Put `trend-4h` on Revolut X live, five coins, five equal $20 slots.
-Leave everything else in paper.**
+**Put `trend-4h` on Revolut X live, BTC/ETH/SOL/AVAX, four equal $25
+slots (SUI dropped from the live set 2026-09-23; see the note at the
+top). Leave everything else in paper.**
 
 **A second, independent study reached this set from the other
 direction** (§3.11, 2026-09-21): asked to find the best allocation
@@ -360,7 +378,7 @@ Why that row and nothing else:
 - The Revolut X sub-account holds USD, so nothing has to be converted
   first; it has the UK book the loop reads, and costs a quarter of what
   Kraken costs.
-- It is five $20 slots, so $100 of exposure at cost, and every entry
+- It is four $25 slots, so $100 of exposure at cost, and every entry
   is exactly one slot (capital ÷ coins), which makes every slot the
   same size.
 
@@ -461,15 +479,16 @@ and a counterfactual. Reference §4.19.
 ### 9.3 Two cap facts worth knowing before the switch
 
 - **The exposure cap is marked to market, not costed.** At
-  `max_exposure_usd` $100 against a $100 row, four slots up 6 % refuse
-  the fifth entry — the cap tightens when the rulebook is working. The
-  draft raises it to $150, which cannot loosen risk: the rulebook does
-  not pyramid, so five coins at one $20 slot each deploy at most $100
-  of capital whatever the number says.
+  `max_exposure_usd` $100 against a $100 row, the fourth entry is
+  refused the moment the three slots already held are in profit at all
+  (3 × $25 marked up, plus $25, is over $100) — the cap tightens when
+  the rulebook is working. The draft raises it to $150, which cannot
+  loosen risk: the rulebook does not pyramid, so four coins at one $25
+  slot each deploy at most $100 of capital whatever the number says.
 - **`daily_loss_limit_usd` is $5 on a $100 book** — 5 %, counting
   realised plus the change in unrealised since the day's open. It blocks
-  new entries for the rest of the day and never an exit. Roughly three
-  slots stopping out at the 8 % floor reaches it.
+  new entries for the rest of the day and never an exit. Three slots
+  stopping out at the 8 % floor reach it ($2 each on a $25 slot).
 
 ### 9.4 The probe — run 2026-09-22 14:05 UTC, green
 

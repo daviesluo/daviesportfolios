@@ -11,10 +11,23 @@
 --
 -- WHAT IT DOES
 --
--- Adds ONE live row — `trend-4h-live`, Revolut X, BTC/ETH/SOL/AVAX/SUI,
--- five equal $20 slots, $100 — and sets the confirmation the tick reads
+-- Adds ONE live row — `trend-4h-live`, Revolut X, BTC/ETH/SOL/AVAX,
+-- four equal $25 slots, $100 — and sets the confirmation the tick reads
 -- before any live order. `trend-4h` stays exactly as it is: paper, same
--- rulebook, same coins, same venue.
+-- rulebook, same venue, and SUI as well as the four.
+--
+-- WHY FOUR COINS (2026-09-23, reference §3.20's addendum)
+--
+-- SUI stays on paper and does not go live; Davies left the call to the
+-- session. Real money goes only to the core majors and to coins that
+-- clear §4.15's bar under the stop that runs: AVAX does, SUI clears
+-- window A only, and its UK book is the thinnest of the five. Its paper
+-- record continues on `trend-4h`. The $100 is spread over the four at $25
+-- a slot; the fixed $20 per-order cap that would have held the slots at
+-- $20 went the same day (`0048`, reference §4.26). The live row and its
+-- control still share every bar on the four coins: the comparison reads
+-- the fill against the paper assumption in bps, so the slots differing
+-- ($25 live, $20 paper) does not blur it.
 --
 -- WHY A NEW ROW RATHER THAN FLIPPING `trend-4h`
 --
@@ -51,13 +64,14 @@
 --
 -- `max_exposure_usd` goes $100 -> $150. It is NOT a loosening of risk:
 -- the rulebook does not pyramid (`ruleDecision` only ever holds or exits
--- while `position.base > 0`), so five coins at one $20 slot each can
+-- while `position.base > 0`), so four coins at one $25 slot each can
 -- never deploy more than $100 of capital whatever this number says. What
 -- it fixes is that `tick.ts` derives exposure as base x MARK, not cost —
--- so four slots up 6 % put the book at $84.80 and the fifth entry is
--- refused with "exposure 104.80 > max 100". The cap tightened exactly
--- when the rulebook was working. $150 leaves the fifth slot reachable
--- after a 50 % run in the other four. The daily loss limit ($5) and the
+-- so at $100 the fourth entry is refused the moment the three slots
+-- already held are in profit at all (3 x $25 marked up, plus $25, is over
+-- $100). The cap would tighten exactly when the rulebook was working.
+-- $150 leaves the fourth slot reachable until the other three are up two
+-- thirds. The daily loss limit ($5) and the
 -- order cap (40/day) are untouched, and the paper rows keep their own
 -- $300 bucket. There is no per-order number to set: since 2026-09-23 an
 -- entry is its row's slot (capital / coins), and the gate refuses one
@@ -94,8 +108,8 @@ insert into public.agent_strategies
 values (
   'trend-4h-live', 'trend-4h', 'revx', 'kraken',
   'Trend 4h · Revolut X · live',
-  'The live row. Same rulebook, coins, params and slot size as the paper `trend-4h`, which stays on as its control.',
-  array['BTC/USD','ETH/USD','SOL/USD','AVAX/USD','SUI/USD'],
+  'The live row. Same rulebook and params as the paper `trend-4h`, which stays on as its control. Four coins at $25 a slot, SUI on paper only.',
+  array['BTC/USD','ETH/USD','SOL/USD','AVAX/USD'],
   100,
   '{"fast":20,"slow":100,"breakoutUp":55,"breakoutDown":20,"atrN":14,"atrStop":3,"volN":42,"enterMin":0.45,"exitMax":0.3}'::jsonb,
   'live'

@@ -211,9 +211,11 @@ that follow from that evidence, in short:
   cleared one window and failed the other; it stays in paper because the
   record is the test. **SUI's admission does not survive the running stop**
   (§3.20): it cleared both windows only under the old intra-bar trail, and
-  clears window A alone now. Its seat was re-judged on the windows it has:
-  keep it, because the evidence cannot decide either way (the pre-registered
-  test's p = 0.18 / 0.26). A coin joins a rule by that bar, never by a
+  clears window A alone now. Its seat was re-judged on the windows it has,
+  and the evidence cannot decide either way (the pre-registered test's
+  p = 0.18 / 0.26); Davies left the call to the session on 2026-09-23 and
+  it went to the admission rule: SUI stays on the paper `trend-4h` and
+  does not go live (§3.20's addendum). A coin joins a rule by that bar, never by a
   result alone; SUI's round trip is ~33 bps at its median book (§3.20;
   §3.8 assumed ~42) against the majors' 20. **A coin one venue lacks may run on the other
   alone** (Davies, 2026-09-21; §4.16): the two venues' symbol lists need
@@ -222,9 +224,10 @@ that follow from that evidence, in short:
   a round trip before the spread) and a Kraken book of ≥ $100k a day, and
   joins the Kraken row only, paper first like everything else.
 - **The set that is recommended for live is ONE row**: `trend-4h` on
-  Revolut X, BTC/ETH/SOL/AVAX/SUI, five equal $20 slots, $100 — the
+  Revolut X, BTC/ETH/SOL/AVAX, four equal $25 slots, $100 — the
   allocation study's answer (§3.11) and the go-live brief's
-  (`docs/agents/go-live.md`), reached independently. Equal slots per
+  (`docs/agents/go-live.md`), reached independently, less SUI (paper
+  only since 2026-09-23, §3.20's addendum). Equal slots per
   coin, because weighting by a coin's own recent record loses to the
   null on BOTH windows. **Kraken runs no real money**: 80–96 bps a round
   trip needs ~9.7 days to pay back where a Revolut X major needs 2.4 and
