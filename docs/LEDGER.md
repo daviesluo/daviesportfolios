@@ -368,6 +368,14 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-23 04:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Two lessons into the working-with-davies skill** (all three copies): a
+file whose hash a committed result pins is not to be edited for tidiness
+(grep `docs/agents/backtests/` for the hash first; add a file beside it
+instead), and "fewer files at the root" means the file leaves the root,
+not that it is re-pointed.
+
 ### [2026-09-23 04:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The venue survey has a §11 for Binance and Deribit** as Davies actually

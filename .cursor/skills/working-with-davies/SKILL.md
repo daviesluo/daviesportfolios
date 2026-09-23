@@ -583,6 +583,16 @@ Read these as a checklist before pushing.
   that broke it, the basis kept updating — it is written before most of
   the loop runs — so "the loop is alive" read true through a crash.
   Decisions and `ops_errors` were the tables that could say otherwise.
+- **A file a result pins is not yours to tidy.** Ten committed results
+  record `agents/backtest.ts`'s SHA-256 as an input, and `sizing.json`
+  records `backtest_jev.ts`'s. The `src/` reorganisation updated a path in
+  one of backtest.ts's comments and broke that chain; it went back byte for
+  byte (`1cfe454`). Before editing any study input, grep
+  `docs/agents/backtests/` for its hash. Add a new file beside it instead.
+- **"Fewer files at the root" means the file leaves.** Re-pointing a root
+  file, or folding a config into `package.json`, still leaves it in the
+  listing he reads. He said so twice; the third round moved the npm project
+  itself into `src/`.
 
 ## Third-party reviews
 
