@@ -20,7 +20,7 @@
     "verify:perf": "node e2e/perf-matrix.mjs ../dist"
   },
   "dependencies": {
-    "html2canvas-pro": "^2.0.4",
+    "html2canvas-pro": "^2.4.3",
     "idb-keyval": "^6.2.4",
     "react": "19.2.7",
     "react-dom": "19.2.7"
