@@ -41,9 +41,19 @@ list stays the short version; the plan is the reasoning behind it.
       three maker probes on such minutes; a fill now needs a trade through
       the price (`tradedThrough`), the proving minute is kept (`fill_minute`),
       and `0050` corrected probes 1–3 (first trade through: 8, 43, 7 min, not
-      1, 3, 1). **Verify after the push**: `0050` applied (migrations.yml),
-      the agents function redeployed, and the next probe that fills carries
-      a `fill_minute` whose volume is above zero.
+      1, 3, 1). **Landed and checked 13:21 UTC**: `0050` applied (on the
+      second attempt, see below), probes 1–3 read 8/43/7 min with their
+      proving minutes, agents redeployed 13:17:08, and the four ticks after
+      it answered 200 with no error. Still to see: the next probe that fills
+      carries a `fill_minute` whose volume is above zero.
+   5. **CI flake to fix if it recurs** (not done, not asked): migrations.yml
+      failed its first attempt in "Install Supabase CLI" — `setup-cli` with
+      `version: latest` asks GitHub's API for the latest release without a
+      token and hit the anonymous rate limit before any migration ran; the
+      one re-run passed. edge-functions.yml has the same step. Pinning the
+      CLI version, or giving the step a token, removes the lookup; until
+      then a failed migrations run must be read, because the function can
+      deploy without the column it writes.
    4. A second repository, `daviesluo/personal`, was cloned into the
       session: it is EMPTY; Davies will say what it is for.
 
@@ -447,6 +457,15 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 13:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`0050` is in production, and the tick runs clean on the new fill test.** The
+migrations run failed its first attempt before applying anything: the Supabase
+CLI install asked GitHub's API for the latest release without a token and was
+rate-limited. One re-run passed. The three probes read 8, 43 and 7 minutes, each
+with the minute that proved it; agents redeployed at 13:17:08, and the ticks at
+13:18–13:21 returned 200 with no error. The flake and its fix are item 00000.5.
 
 ### [2026-09-23 13:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
