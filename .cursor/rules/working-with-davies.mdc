@@ -40,11 +40,15 @@ supabase/functions/` when an Edge Function changed. `sh bin/gates.sh`
 runs every one of them in CI's order. Green means green — he will
 notice a red main.
 
-**The README is part of the change**, not a follow-up. Its top half is
-a public showcase he uses in interviews (2026-09-22): the live example,
-masked screenshots, features, architecture. No figure from the real
-book goes into it — no balance, position value, share count, lot price
-or dollar P&L; say what the engineering does in neutral words.
+**The docs are part of the change**, not a follow-up: a file, function,
+migration or feature that comes or goes updates its row in `docs/map.md`
+(and `docs/guide.md` when a user sees it) in the same commit. The README
+is the one-page public front he uses in interviews (2026-09-22). He had
+it cut from 275 KB to 10 KB on 2026-09-23 and asked for it to read as if
+he wrote it himself: first person, plain words, clear logic, no AI feel.
+Keep it one page; detail goes to `docs/map.md`. No figure from the real
+book goes into any of them — no balance, position value, share count,
+lot price or dollar P&L; say what the engineering does in neutral words.
 
 **Usage is a budget he watches.** Never spend the main model on
 polling: no scheduled PR re-checks, no "quiet hold" wake-ups on
@@ -69,7 +73,7 @@ the preview alias is derived and how to verify it.
 
 **Finish the remaining work without being asked again.** When the
 Supabase connector is on, or he says "把你还没做的全做完", do the rest
-of the list — migrations, Edge deploy, README, tests — in the same
+of the list — migrations, Edge deploy, docs, tests — in the same
 pass. Don't stop at a design and wait.
 
 ## What he accepts as evidence

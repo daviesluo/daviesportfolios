@@ -9,7 +9,7 @@ client and CI both talk to the **deployed production** Supabase project
 hard-coded in `src/supabase_config.js`.
 
 Standard commands are already documented — see the `scripts` block in
-`package.json`, the "Local development" section of `README.md`, and the
+`package.json`, the "Local development" section of `docs/map.md`, and the
 CI workflows (`.github/workflows/check.yml`, `edge-functions.yml`).
 Client: `npm run dev` (Vite on `http://localhost:5173`), `npm test`
 (vitest), `npm run typecheck`, `npm run lint`, `npm run build`. Edge

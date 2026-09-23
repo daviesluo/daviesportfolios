@@ -26,9 +26,12 @@ list stays the short version; the plan is the reasoning behind it.
       silently off there.**
    2. **README much shorter, plain, in his own voice.** "目前readme太长了，请精简，
       没用的东西也可以删了，确保逻辑清晰，并且所有语句措辞也清晰不绕弯，而且没有ai感像我本人自己写的".
-      Keep the showcase top; the system map becomes one line per item;
-      long "why" narratives stay in `docs/handover.md` / the reference;
-      update CLAUDE.md's README rule to the new shape.
+      **The README is DONE (2026-09-23, 01:16 UTC entry)**: 10 KB, his
+      first person, one row per folder; the rest moved verbatim to
+      `docs/guide.md` and `docs/map.md`. **Still open: the map itself.**
+      Its file map is 191 KB and one row runs to 20 KB; make it one line
+      per file. The long "why" stays findable in git (`git show
+      04e2961:README.md`), the code comments and the reference.
    3. ~~Jev: fix the configuration, do NOT shadow it.~~ **DONE
       2026-09-23 (reference §4.21, review `2026-09-23-jev-question-fix.md`,
       migration `0047`).** v2 question + threshold 0.45 chosen from the
@@ -302,6 +305,23 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 01:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The README is one page again** (item 00.2): 275 KB → 10 KB. What the
+dashboard is, the live example and its password rule, the masked
+screenshots, what it does, how it's built, how I work on it, the crypto
+loop and one row per folder, in Davies' first person and plain
+sentences. Nothing was dropped: the old "Using the board" is
+`docs/guide.md`, and everything from "Engineering notes" down is
+`docs/map.md`, both verbatim apart from heading levels, relative links
+and the rows the root move changed; a line-by-line check found every
+other old line in one of the two. CLAUDE.md, AGENTS.md and the
+working-with-davies skill now point the per-change docs rule at
+`docs/map.md` / `docs/guide.md`, keep the README to one page in his voice,
+and extend the no-personal-figures rule to all three. The README's counts
+were re-taken on this tree: 922 vitest, 391 deno, 208 sweep checks, four
+runtime dependencies, eleven Edge Functions.
 
 ### [2026-09-23 01:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
