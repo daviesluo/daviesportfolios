@@ -102,6 +102,14 @@ list stays the short version; the plan is the reasoning behind it.
    that the Revolut X balance the key sees includes it (the probe places
    nothing). No code or row changes; order sizes come from `agent_risk`.
 
+0d. **Binance and Deribit keys: verified read-only 2026-09-23 02:24 UTC**
+   (reference, "Binance and Deribit keys"). Both usable from the server;
+   neither funded (Deribit cannot be from the UK). What they are FOR is
+   being researched (Davies' request of 2026-09-23); nothing trades on
+   either. His settings, when convenient: switch off Binance's "Enable
+   Spot & Margin Trading" and universal transfer, and Deribit's
+   `trade:read_write`, until a use is decided.
+
 0. **Agents (crypto auto-trading) — paper since 2026-09-20 18:23 UTC
    (#211, `23d2fdd`).** Two review rounds from Davies landed (history,
    09-20 19:21 and 09-21 01:57 UTC). What the record says after the first
@@ -314,6 +322,21 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 02:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Both new keys work, read-only, from the server** (reference, "Binance
+and Deribit keys"). The probe ran once through pg_net at 02:24 UTC from
+eu-west-2: Binance answers there (it refuses this container with 451),
+the account is SPOT and unfunded at 0.10 % maker and taker, all five
+live-row coins trade against USDT with a $5 minimum, and post-only and
+exchange-held stop orders exist. The Binance key can read AND trade spot
+and has universal transfer on, no withdrawals and no IP restriction.
+Deribit authenticates; its token's scope includes trading and account
+writes but no withdrawal; the account is empty, and DVOL reads (BTC
+37.69, ETH 51.30). Nothing depends on either key yet, so both trading
+permissions can be switched off at the venues until a use is decided —
+Davies' setting, item 0d.
 
 ### [2026-09-23 02:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

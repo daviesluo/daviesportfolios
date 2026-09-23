@@ -2196,6 +2196,27 @@ through `net.http_get`, 03:49 and 04:08 UTC. Balances are not copied here.
 | Jev direct | `jev-1.13.0`; same 437 tokens, no `cost` field; 687–690 ms |
 | Answer shapes (both) | `noul` → `{ type, noul: 0.98 }`; `choice` → `{ type, choice, probabilities, confidence }`; `score` over `["calm","elevated","extreme"]` → `{ type, score: 0.07–0.08, legend: {0:calm,1:elevated,2:extreme}, probabilities: {0:0.93,1:0.07,2:0}, confidence: 0.89 }` — **the score is the expected level index on a 0…(levels−1) scale**, so `cautionExit: 1.75` in `combineDecision` means "mostly extreme". Confidence matches `(count×peak−1)/(count−1)` to rounding. The two transports agree within 0.01–0.02. |
 
+
+### Binance and Deribit keys (2026-09-23)
+
+One run of `GET /functions/v1/agents?action=probe&only=binance,deribit`, fired the same way at 02:24 UTC from the
+project's region (eu-west-2, London). Read-only: neither client has a call that trades, and the report carries no
+key, token or amount.
+
+| Check | Result |
+|---|---|
+| Binance reachability | `api.binance.com` 200 from eu-west-2 (clock skew −109 ms). From this repository's development container it answers 451 "restricted location", so the key is usable only from the server |
+| Binance account | `SPOT`; the account's own flags `canTrade` / `canDeposit` / `canWithdraw` true (the key's are the next row); no asset held (unfunded); commission 0.10 % maker and 0.10 % taker at this tier (AVAXUSDT `tradeFee` agrees) |
+| Binance key permissions (`apiRestrictions`) | reading ✓, **spot trading ✓**, withdrawals ✗, futures ✗, margin ✗, options ✗, internal transfer ✗, universal transfer ✓, **no IP restriction**; created 2026-09-23 00:31 UTC |
+| Binance symbol rules | BTC / ETH / SOL / AVAX / SUI against USDT all `TRADING`; minimum notional $5; steps 1e-5 / 1e-4 / 1e-3 / 1e-2 / 0.1; `LIMIT_MAKER` (post-only) and exchange-held `STOP_LOSS_LIMIT` available |
+| Deribit reachability and auth | 200; client-credentials auth accepted, token for 899 s; scope includes `trade:read_write`, `account:read_write`, `block_trade:read_write`, `wallet:read` (no withdrawal) |
+| Deribit account | BTC summary readable (40 fields), not funded — and Davies cannot fund it from the UK |
+| Deribit DVOL | daily, 11 bars back; the 2026-09-23 bar (still forming at 02:24) at BTC 37.69, ETH 51.30 |
+
+Two settings worth changing at the venues, both Davies': neither key needs to trade today, so Binance's
+"Enable Spot & Margin Trading" and "universal transfer" and Deribit's `trade:read_write` can be switched off until a
+use is decided, and Binance cannot be IP-restricted from Supabase (its Edge egress has no fixed address).
+
 ## Sources
 
 - TypeSafe: https://docs.typesafe.ai/models · https://docs.typesafe.ai/api · https://docs.typesafe.ai/confidence · https://docs.typesafe.ai/concepts/state · https://docs.typesafe.ai/model-jaggedness/jev-1.13 · https://typesafe.ai/blog/introducing-system-one-models-and-jev · https://docs.typesafe.ai/llms.txt
