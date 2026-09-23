@@ -21,9 +21,13 @@ list stays the short version; the plan is the reasoning behind it.
       the two wordings and the threshold rule are frozen
       (`reviews/2026-09-23-jev-row-questions-prereg.md`, sha256 `7c64b4c0…`,
       07:37:58 UTC) and shipped as `agents/jev_rows.ts`, asked by no row.
-      NEXT: measure every entry state ×5 through `?action=jev` (pg_net, the
-      cron secret), pick each threshold by the rule, price with a new study
-      file that first reproduces `jev_v2_other.json`, then migrate or report.
+      **Measured 07:46–07:48 UTC** (`backtests/jev_answers_rows.json`,
+      1,215 calls, 0 echo failures, $0.047): the rule picks **0.47 for
+      trend-1h** (vetoes the same six weak-trend high-volatility states v2
+      did) and **0.77 for momentum-1d** (no deterministic band below 0.66;
+      at 0.77 it vetoes 183 of 189 states). NEXT: price both with the new
+      study file (being built: it must first reproduce `jev_v2_other.json`),
+      then migrate or report.
    2. SUI's live seat: his call handed to the session ("删了也行").
       **DONE: paper only** (reference §3.20's addendum). The go-live draft
       adds BTC/ETH/SOL/AVAX at four $25 slots on $100; the paper
@@ -407,6 +411,19 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 07:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Each paper row's own Jev question, measured** (`backtests/jev_answers_rows.json`;
+pre-registration `reviews/2026-09-23-jev-row-questions-prereg.md`). Every entry
+state ×5 through the production endpoint from the database: trend-1h 54 states,
+momentum-1d 189, 0 echo failures, 0 missing answers; each batch's compact text
+was checked against the database by MD5 before it was written. The
+pre-registered rule gives trend-1h 0.47 (the lowest of three equally wide
+deterministic bands; it vetoes the same six weak-trend high-volatility states
+v2 does) and momentum-1d 0.77 (its replies overlap everywhere below 0.66; the
+widest band vetoes 183 of 189 states). Committed now because `net._http_response`
+is pruned in hours and this file is the only copy. Pricing is next.
 
 ### [2026-09-23 07:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

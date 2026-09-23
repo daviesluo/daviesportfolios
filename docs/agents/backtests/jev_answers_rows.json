@@ -1,0 +1,6192 @@
+{
+ "provenance": {
+  "endpoint": "POST https://flmvxigozjuizpckllvk.supabase.co/functions/v1/agents?action=jev (read-only)",
+  "question": {
+   "byKind": {
+    "trend-1h": "v3-trend-1h",
+    "momentum-1d": "v3-momentum-1d"
+   },
+   "source": "supabase/functions/agents/jev_rows.ts (commit c0c9230)",
+   "preRegistration": {
+    "path": "docs/agents/reviews/2026-09-23-jev-row-questions-prereg.md",
+    "sha256": "7c64b4c03e5597ebad5b3c1cab4d0aff491778cf2913fd3957dc05d60185bdb1"
+   }
+  },
+  "requestedAt": "2026-09-23T07:46Z\u201307:48Z",
+  "transport": "openrouter",
+  "model": "typesafe/jev-1.13-20260917",
+  "repeats": 5,
+  "noAnswers": 0,
+  "echoFailures": 0,
+  "fixedOnEveryState": {
+   "position": "flat",
+   "unrealised": "none",
+   "time_in_position": "none",
+   "drawdown_from_high": "none"
+  },
+  "note": "Each paper row's own wording (jev_rows.ts), asked on the same entry states as jev_answers_v2_other.json, five calls each. net._http_response is pruned after about six hours; this file is the only copy.",
+  "kinds": {
+   "trend-1h": {
+    "requests": [
+     27716
+    ],
+    "states": 54,
+    "calls": 270,
+    "costUsd": 0.0107541,
+    "canonicalMd5": "5318bffccd8a042c0906c56972ac7854",
+    "canonicalForm": "request|index|symbol|trend_strength|volatility|momentum_30d|healthy x5|caution x5|echoOk x5, one line per state, joined by \\n"
+   },
+   "momentum-1d": {
+    "requests": [
+     27717,
+     27720
+    ],
+    "states": 189,
+    "calls": 945,
+    "costUsd": 0.03569265,
+    "canonicalMd5": "5982be93198c6a0b6081a47a4f3ec25c",
+    "canonicalForm": "request|index|symbol|trend_4h|trend_strength|breakout_4h|volatility|momentum_30d|healthy x5|caution x5|echoOk x5, one line per state, joined by \\n"
+   }
+  },
+  "thresholds": {
+   "trend-1h": {
+    "threshold": 0.47,
+    "interval": [
+     0.46,
+     0.48
+    ],
+    "intervals": [
+     [
+      0.46,
+      0.48,
+      3
+     ],
+     [
+      0.58,
+      0.6,
+      3
+     ],
+     [
+      0.7,
+      0.72,
+      3
+     ],
+     [
+      0.76,
+      0.76,
+      1
+     ]
+    ],
+    "statesVetoedEveryCall": 6,
+    "statesPassedEveryCall": 48,
+    "states": 54
+   },
+   "momentum-1d": {
+    "threshold": 0.77,
+    "interval": [
+     0.76,
+     0.78
+    ],
+    "intervals": [
+     [
+      0.66,
+      0.66,
+      1
+     ],
+     [
+      0.68,
+      0.68,
+      1
+     ],
+     [
+      0.76,
+      0.78,
+      3
+     ]
+    ],
+    "statesVetoedEveryCall": 183,
+    "statesPassedEveryCall": 6,
+    "states": 189
+   }
+  }
+ },
+ "trend-1h": [
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.53,
+    0.52,
+    0.53,
+    0.53,
+    0.54
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 0
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.5,
+    0.48,
+    0.5,
+    0.5,
+    0.49
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 1
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.54,
+    0.55,
+    0.53,
+    0.55,
+    0.54
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 2
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.49,
+    0.48,
+    0.5,
+    0.49,
+    0.5
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 3
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.44,
+    0.45,
+    0.44,
+    0.44,
+    0.44
+   ],
+   "caution": [
+    1.0,
+    1.01,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 4
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.41,
+    0.43,
+    0.4,
+    0.41,
+    0.41
+   ],
+   "caution": [
+    1.01,
+    1.0,
+    1.0,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 5
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.67,
+    0.68,
+    0.67,
+    0.67,
+    0.66
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 6
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.63,
+    0.64,
+    0.62,
+    0.63,
+    0.62
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 7
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.68,
+    0.68,
+    0.68,
+    0.68,
+    0.69
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 8
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.64,
+    0.64,
+    0.63,
+    0.64,
+    0.64
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 9
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.56,
+    0.57,
+    0.57,
+    0.55,
+    0.56
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 10
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.52,
+    0.51,
+    0.53,
+    0.51,
+    0.51
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 11
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.77,
+    0.77,
+    0.78,
+    0.78,
+    0.78
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 12
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.74,
+    0.74,
+    0.74,
+    0.73,
+    0.73
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 13
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.77,
+    0.77,
+    0.78,
+    0.77,
+    0.77
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 14
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.72,
+    0.73,
+    0.73,
+    0.73,
+    0.73
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 15
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.64,
+    0.64,
+    0.65,
+    0.63,
+    0.64
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.0,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 16
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.61,
+    0.62,
+    0.61,
+    0.62,
+    0.6
+   ],
+   "caution": [
+    1.0,
+    1.01,
+    1.0,
+    1.0,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 17
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.51,
+    0.53,
+    0.52,
+    0.52,
+    0.53
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 18
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.5,
+    0.49,
+    0.5,
+    0.5,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 19
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.53,
+    0.52,
+    0.53,
+    0.53,
+    0.54
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 20
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.51,
+    0.49,
+    0.49,
+    0.48,
+    0.5
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 21
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.43,
+    0.43,
+    0.45,
+    0.42,
+    0.44
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 22
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.41,
+    0.41,
+    0.4,
+    0.43,
+    0.4
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 23
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.67,
+    0.67,
+    0.67,
+    0.67,
+    0.67
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 24
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.61,
+    0.62,
+    0.64,
+    0.63,
+    0.64
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 25
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.68,
+    0.68,
+    0.67,
+    0.67,
+    0.69
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 26
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.62,
+    0.63,
+    0.62,
+    0.63,
+    0.63
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 27
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.55,
+    0.55,
+    0.54,
+    0.55,
+    0.57
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 28
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.52,
+    0.52,
+    0.52,
+    0.52,
+    0.51
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 29
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.76,
+    0.76,
+    0.77,
+    0.78,
+    0.77
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 30
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.73,
+    0.73,
+    0.73,
+    0.74,
+    0.74
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 31
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.77,
+    0.77,
+    0.76,
+    0.77,
+    0.77
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 32
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.72,
+    0.73,
+    0.73,
+    0.72,
+    0.72
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 33
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.64,
+    0.64,
+    0.65,
+    0.64,
+    0.65
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 34
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.61,
+    0.62,
+    0.61,
+    0.62,
+    0.63
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 35
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.53,
+    0.53,
+    0.53,
+    0.53,
+    0.54
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 36
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.51,
+    0.49,
+    0.5,
+    0.5,
+    0.49
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 37
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.53,
+    0.55,
+    0.54,
+    0.53,
+    0.54
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 38
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.48,
+    0.49,
+    0.49,
+    0.48,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 39
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.44,
+    0.43,
+    0.43,
+    0.43,
+    0.44
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 40
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.42,
+    0.41,
+    0.41,
+    0.41,
+    0.41
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 41
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.68,
+    0.67,
+    0.67,
+    0.67,
+    0.68
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 42
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.63,
+    0.64,
+    0.64,
+    0.63,
+    0.64
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 43
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.68,
+    0.68,
+    0.69,
+    0.69,
+    0.68
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 44
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.64,
+    0.63,
+    0.64,
+    0.63,
+    0.63
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 45
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.57,
+    0.56,
+    0.56,
+    0.56,
+    0.56
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 46
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.52,
+    0.53,
+    0.54,
+    0.54,
+    0.53
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 47
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.77,
+    0.77,
+    0.78,
+    0.76,
+    0.77
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 48
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.74,
+    0.74,
+    0.74,
+    0.74,
+    0.75
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 49
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.77,
+    0.76,
+    0.78,
+    0.77,
+    0.78
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 50
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.74,
+    0.73,
+    0.74,
+    0.74,
+    0.72
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 51
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.65,
+    0.66,
+    0.64,
+    0.65,
+    0.64
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 52
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "unknown",
+   "healthy": [
+    0.61,
+    0.64,
+    0.63,
+    0.61,
+    0.64
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27716,
+   "index": 53
+  }
+ ],
+ "momentum-1d": [
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.58,
+    0.58,
+    0.57,
+    0.56,
+    0.57
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 0
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.58,
+    0.58,
+    0.59,
+    0.59,
+    0.59
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 1
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.48,
+    0.45,
+    0.48,
+    0.47,
+    0.47
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 2
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.48,
+    0.48,
+    0.47,
+    0.47,
+    0.47
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 3
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.5,
+    0.49,
+    0.51,
+    0.5,
+    0.49
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 4
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.4,
+    0.41,
+    0.4,
+    0.39,
+    0.39
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 5
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.44,
+    0.43,
+    0.44,
+    0.43,
+    0.44
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 6
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.44,
+    0.44,
+    0.43,
+    0.44,
+    0.45
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 7
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.36,
+    0.37,
+    0.35,
+    0.36,
+    0.37
+   ],
+   "caution": [
+    1.0,
+    1.01,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 8
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.73,
+    0.74,
+    0.73,
+    0.73,
+    0.73
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 9
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.74,
+    0.73,
+    0.74,
+    0.74,
+    0.73
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 10
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.6,
+    0.62,
+    0.62,
+    0.62,
+    0.63
+   ],
+   "caution": [
+    1.0,
+    1.01,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 11
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.62,
+    0.61,
+    0.63,
+    0.61,
+    0.62
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 12
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.64,
+    0.64,
+    0.65,
+    0.64,
+    0.64
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 13
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.55,
+    0.54,
+    0.53,
+    0.54,
+    0.53
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 14
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.56,
+    0.57,
+    0.55,
+    0.54,
+    0.56
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 15
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.59,
+    0.57,
+    0.58,
+    0.57,
+    0.59
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 16
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.48,
+    0.48,
+    0.47,
+    0.47,
+    0.48
+   ],
+   "caution": [
+    1.01,
+    1.0,
+    1.0,
+    1.01,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 17
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.79,
+    0.79,
+    0.79,
+    0.79,
+    0.79
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 18
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.81,
+    0.79,
+    0.79,
+    0.79,
+    0.8
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 19
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.67,
+    0.67,
+    0.66,
+    0.67,
+    0.66
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.01,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 20
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.7,
+    0.7,
+    0.7,
+    0.7,
+    0.71
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 21
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.71,
+    0.71,
+    0.72,
+    0.71,
+    0.71
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 22
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.62,
+    0.62,
+    0.61,
+    0.62,
+    0.62
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 23
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.6,
+    0.58,
+    0.6,
+    0.6,
+    0.59
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 24
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.58,
+    0.6,
+    0.6,
+    0.58,
+    0.58
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 25
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.5,
+    0.5,
+    0.52,
+    0.48,
+    0.49
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.01,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 26
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.47,
+    0.47,
+    0.46,
+    0.47,
+    0.46
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 27
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.47,
+    0.48,
+    0.46,
+    0.47,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 28
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.4,
+    0.4,
+    0.41,
+    0.4,
+    0.4
+   ],
+   "caution": [
+    1.01,
+    1.0,
+    1.01,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 29
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.42,
+    0.43,
+    0.41,
+    0.42,
+    0.4
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 30
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.42,
+    0.43,
+    0.43,
+    0.42,
+    0.43
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 31
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.36,
+    0.36,
+    0.36,
+    0.36,
+    0.39
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 32
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.39,
+    0.39,
+    0.4,
+    0.39,
+    0.39
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 33
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.39,
+    0.39,
+    0.4,
+    0.39,
+    0.39
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 34
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.33,
+    0.33,
+    0.34,
+    0.33,
+    0.33
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.01,
+    1.01,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 35
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.43,
+    0.41,
+    0.44,
+    0.44,
+    0.44
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 36
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.42,
+    0.42,
+    0.43,
+    0.42,
+    0.43
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 37
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.38,
+    0.37,
+    0.37,
+    0.38
+   ],
+   "caution": [
+    1.0,
+    1.01,
+    1.01,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 38
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.39,
+    0.38,
+    0.39,
+    0.39
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 39
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.39,
+    0.4,
+    0.39,
+    0.39,
+    0.39
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 40
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.35,
+    0.35,
+    0.34,
+    0.35,
+    0.35
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.01,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 41
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.35,
+    0.35,
+    0.34,
+    0.36,
+    0.36
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 42
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.36,
+    0.36,
+    0.36,
+    0.37,
+    0.37
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 43
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.31,
+    0.32,
+    0.32,
+    0.32,
+    0.31
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.01,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 44
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.36,
+    0.36,
+    0.35,
+    0.35,
+    0.37
+   ],
+   "caution": [
+    0.01,
+    0.01,
+    0.01,
+    0.0,
+    0.01
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 45
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.34,
+    0.34,
+    0.35,
+    0.34,
+    0.35
+   ],
+   "caution": [
+    0.0,
+    0.01,
+    0.0,
+    0.01,
+    0.01
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 46
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.3,
+    0.32,
+    0.31,
+    0.31,
+    0.32
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.01,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 47
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.32,
+    0.32,
+    0.31,
+    0.33,
+    0.32
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 48
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.3,
+    0.32,
+    0.32,
+    0.32,
+    0.32
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 49
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.29,
+    0.29,
+    0.29,
+    0.28,
+    0.29
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.01,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 50
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.29,
+    0.29,
+    0.28,
+    0.3,
+    0.29
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.01,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 51
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.29,
+    0.29,
+    0.29,
+    0.28,
+    0.3
+   ],
+   "caution": [
+    0.01,
+    0.01,
+    0.01,
+    0.01,
+    0.01
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 52
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.26,
+    0.26,
+    0.26,
+    0.26,
+    0.25
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.01,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 53
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.51,
+    0.51,
+    0.51,
+    0.51,
+    0.51
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 54
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.51,
+    0.51,
+    0.54,
+    0.52,
+    0.52
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 55
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.44,
+    0.45,
+    0.44,
+    0.46,
+    0.43
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 56
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.44,
+    0.43,
+    0.42,
+    0.43,
+    0.43
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 57
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.43,
+    0.45,
+    0.42,
+    0.43,
+    0.44
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 58
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.37,
+    0.39,
+    0.38,
+    0.39,
+    0.38
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 59
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.4,
+    0.4,
+    0.41,
+    0.39,
+    0.39
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 60
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.4,
+    0.41,
+    0.41,
+    0.39,
+    0.4
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 61
+  },
+  {
+   "symbol": "BTC/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.35,
+    0.34,
+    0.34,
+    0.34,
+    0.34
+   ],
+   "caution": [
+    1.0,
+    1.01,
+    1.0,
+    1.01,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 62
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.57,
+    0.57,
+    0.56,
+    0.56,
+    0.58
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 63
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.58,
+    0.58,
+    0.59,
+    0.58,
+    0.58
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 64
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.47,
+    0.46,
+    0.47,
+    0.46,
+    0.47
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 65
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.47,
+    0.47,
+    0.47,
+    0.47,
+    0.47
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 66
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.49,
+    0.5,
+    0.48,
+    0.49,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 67
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.4,
+    0.39,
+    0.41,
+    0.4,
+    0.4
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 68
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.43,
+    0.44,
+    0.42,
+    0.44,
+    0.44
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 69
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.44,
+    0.44,
+    0.45,
+    0.43,
+    0.45
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 70
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.36,
+    0.36,
+    0.36,
+    0.37,
+    0.36
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 71
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.74,
+    0.74,
+    0.73,
+    0.73,
+    0.73
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 72
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.74,
+    0.74,
+    0.74,
+    0.74,
+    0.74
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 73
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.62,
+    0.62,
+    0.62,
+    0.61,
+    0.62
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 74
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.61,
+    0.6,
+    0.61,
+    0.62,
+    0.62
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 75
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.64,
+    0.65,
+    0.64,
+    0.65,
+    0.64
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 76
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.54,
+    0.55,
+    0.55,
+    0.54,
+    0.54
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 77
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.56,
+    0.57,
+    0.56,
+    0.54,
+    0.55
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 78
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.57,
+    0.59,
+    0.57,
+    0.58,
+    0.56
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 79
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.48,
+    0.47,
+    0.46,
+    0.47,
+    0.47
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 80
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.79,
+    0.79,
+    0.79,
+    0.79,
+    0.8
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 81
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.79,
+    0.79,
+    0.79,
+    0.8,
+    0.79
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 82
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.66,
+    0.67,
+    0.66,
+    0.67,
+    0.67
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 83
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.69,
+    0.7,
+    0.68,
+    0.69,
+    0.7
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 84
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.72,
+    0.73,
+    0.71,
+    0.71,
+    0.72
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 85
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.62,
+    0.61,
+    0.61,
+    0.63,
+    0.61
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 86
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.58,
+    0.57,
+    0.6,
+    0.6,
+    0.59
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 87
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.59,
+    0.59,
+    0.59,
+    0.59,
+    0.59
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 88
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.51,
+    0.51,
+    0.5,
+    0.51,
+    0.48
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 89
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.45,
+    0.47,
+    0.47,
+    0.46,
+    0.46
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 90
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.45,
+    0.45,
+    0.46,
+    0.46,
+    0.46
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 91
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.4,
+    0.39,
+    0.39,
+    0.41
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 92
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.42,
+    0.42,
+    0.42,
+    0.42,
+    0.41
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 93
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.42,
+    0.42,
+    0.42,
+    0.42,
+    0.4
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27717,
+   "index": 94
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.37,
+    0.36,
+    0.37,
+    0.37
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 0
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.37,
+    0.38,
+    0.37,
+    0.38,
+    0.37
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 1
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.4,
+    0.38,
+    0.37,
+    0.39
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 2
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.33,
+    0.34,
+    0.34,
+    0.34,
+    0.33
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 3
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.42,
+    0.42,
+    0.42,
+    0.41,
+    0.42
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 4
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.43,
+    0.42,
+    0.42,
+    0.42,
+    0.41
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 5
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.37,
+    0.36,
+    0.36,
+    0.37,
+    0.36
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 6
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.38,
+    0.39,
+    0.38,
+    0.38
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 7
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.38,
+    0.38,
+    0.38,
+    0.37
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 8
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.35,
+    0.34,
+    0.34,
+    0.34,
+    0.34
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 9
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.34,
+    0.36,
+    0.35,
+    0.35,
+    0.35
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 10
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.35,
+    0.35,
+    0.36,
+    0.35,
+    0.35
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 11
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.31,
+    0.31,
+    0.31,
+    0.32,
+    0.31
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 12
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.36,
+    0.35,
+    0.35,
+    0.35,
+    0.34
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 13
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.34,
+    0.33,
+    0.35,
+    0.35,
+    0.34
+   ],
+   "caution": [
+    0.01,
+    0.01,
+    0.01,
+    0.01,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 14
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.31,
+    0.3,
+    0.32,
+    0.31,
+    0.32
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.01,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 15
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.31,
+    0.32,
+    0.32,
+    0.31,
+    0.31
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 16
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.31,
+    0.31,
+    0.31,
+    0.32,
+    0.33
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 17
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.29,
+    0.28,
+    0.28,
+    0.27,
+    0.28
+   ],
+   "caution": [
+    1.0,
+    1.01,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 18
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.29,
+    0.29,
+    0.28,
+    0.29,
+    0.29
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 19
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.28,
+    0.28,
+    0.28,
+    0.3,
+    0.28
+   ],
+   "caution": [
+    0.0,
+    0.01,
+    0.0,
+    0.01,
+    0.01
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 20
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.25,
+    0.25,
+    0.25,
+    0.25,
+    0.24
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.01,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 21
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.48,
+    0.47,
+    0.48,
+    0.49,
+    0.49
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 22
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.5,
+    0.51,
+    0.54,
+    0.51,
+    0.52
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 23
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.45,
+    0.43,
+    0.42,
+    0.42,
+    0.43
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 24
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.42,
+    0.42,
+    0.44,
+    0.43,
+    0.43
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 25
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.43,
+    0.44,
+    0.43,
+    0.43,
+    0.41
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 26
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.37,
+    0.37,
+    0.38,
+    0.37
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 27
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.4,
+    0.39,
+    0.39,
+    0.38
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 28
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.39,
+    0.39,
+    0.38,
+    0.39,
+    0.39
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 29
+  },
+  {
+   "symbol": "ETH/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.35,
+    0.35,
+    0.35,
+    0.35,
+    0.35
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 30
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.57,
+    0.57,
+    0.57,
+    0.57,
+    0.57
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 31
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.58,
+    0.57,
+    0.58,
+    0.57,
+    0.58
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 32
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.47,
+    0.46,
+    0.47,
+    0.46,
+    0.47
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 33
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.46,
+    0.46,
+    0.47,
+    0.47,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 34
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.48,
+    0.48,
+    0.49,
+    0.48,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 35
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.39,
+    0.39,
+    0.4,
+    0.41,
+    0.4
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 36
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.44,
+    0.44,
+    0.44,
+    0.43,
+    0.45
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 37
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.44,
+    0.44,
+    0.44,
+    0.44,
+    0.43
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 38
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.37,
+    0.37,
+    0.37,
+    0.36
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 39
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.72,
+    0.71,
+    0.72,
+    0.72,
+    0.72
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 40
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.75,
+    0.74,
+    0.74,
+    0.74,
+    0.73
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 41
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.62,
+    0.61,
+    0.6,
+    0.63,
+    0.61
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 42
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.59,
+    0.61,
+    0.61,
+    0.6,
+    0.6
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 43
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.64,
+    0.65,
+    0.64,
+    0.64,
+    0.63
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 44
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.54,
+    0.54,
+    0.54,
+    0.55,
+    0.56
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 45
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.54,
+    0.55,
+    0.55,
+    0.57,
+    0.55
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 46
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.58,
+    0.59,
+    0.56,
+    0.57,
+    0.58
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 47
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.48,
+    0.47,
+    0.46,
+    0.47,
+    0.47
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 48
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.79,
+    0.79,
+    0.79,
+    0.78,
+    0.79
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 49
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.79,
+    0.79,
+    0.78,
+    0.79,
+    0.79
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 50
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.67,
+    0.66,
+    0.67,
+    0.66,
+    0.67
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 51
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.69,
+    0.69,
+    0.7,
+    0.68,
+    0.69
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 52
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.7,
+    0.71,
+    0.71,
+    0.71,
+    0.71
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 53
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.62,
+    0.61,
+    0.61,
+    0.6,
+    0.6
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 54
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.6,
+    0.6,
+    0.59,
+    0.58,
+    0.6
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 55
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.6,
+    0.59,
+    0.61,
+    0.6,
+    0.6
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 56
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "up",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.49,
+    0.48,
+    0.49,
+    0.5,
+    0.49
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 57
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.44,
+    0.45,
+    0.44,
+    0.44,
+    0.46
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 58
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.45,
+    0.46,
+    0.44,
+    0.44,
+    0.44
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 59
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.4,
+    0.39,
+    0.38,
+    0.4
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 60
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.4,
+    0.41,
+    0.42,
+    0.41,
+    0.42
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 61
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.42,
+    0.42,
+    0.41,
+    0.41,
+    0.41
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 62
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.37,
+    0.37,
+    0.37,
+    0.37,
+    0.36
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 63
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.4,
+    0.38,
+    0.39,
+    0.38,
+    0.4
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 64
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.37,
+    0.37,
+    0.37,
+    0.38,
+    0.37
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 65
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.32,
+    0.34,
+    0.34,
+    0.34,
+    0.33
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 66
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.44,
+    0.43,
+    0.43,
+    0.41,
+    0.43
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 67
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.44,
+    0.43,
+    0.44,
+    0.42,
+    0.43
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 68
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.37,
+    0.36,
+    0.37,
+    0.37,
+    0.37
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 69
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.38,
+    0.4,
+    0.39,
+    0.38
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 70
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.39,
+    0.4,
+    0.39,
+    0.38,
+    0.39
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 71
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.34,
+    0.34,
+    0.34,
+    0.34,
+    0.34
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 72
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.36,
+    0.36,
+    0.35,
+    0.35,
+    0.36
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 73
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.36,
+    0.36,
+    0.36,
+    0.36,
+    0.36
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 74
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "moderate",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.31,
+    0.31,
+    0.31,
+    0.33,
+    0.32
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 75
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.35,
+    0.37,
+    0.36,
+    0.37,
+    0.37
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 76
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.38,
+    0.35,
+    0.36,
+    0.37,
+    0.35
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 77
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.32,
+    0.32,
+    0.32,
+    0.31,
+    0.31
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.01,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 78
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.32,
+    0.31,
+    0.3,
+    0.31,
+    0.31
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 79
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.32,
+    0.33,
+    0.33,
+    0.33,
+    0.32
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 80
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.28,
+    0.28,
+    0.28,
+    0.29,
+    0.29
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.01,
+    1.01,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 81
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.29,
+    0.28,
+    0.28,
+    0.29,
+    0.29
+   ],
+   "caution": [
+    0.01,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 82
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.28,
+    0.3,
+    0.29,
+    0.3,
+    0.29
+   ],
+   "caution": [
+    0.0,
+    0.01,
+    0.0,
+    0.01,
+    0.01
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 83
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "down",
+   "trend_strength": "strong",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.26,
+    0.27,
+    0.26,
+    0.26,
+    0.26
+   ],
+   "caution": [
+    1.01,
+    1.01,
+    1.01,
+    1.01,
+    1.01
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 84
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.48,
+    0.47,
+    0.48,
+    0.48,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 85
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.49,
+    0.5,
+    0.5,
+    0.49,
+    0.48
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 86
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "above_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.42,
+    0.42,
+    0.42,
+    0.43,
+    0.42
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 87
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.41,
+    0.42,
+    0.43,
+    0.42,
+    0.43
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 88
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.43,
+    0.42,
+    0.41,
+    0.42,
+    0.43
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 89
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "inside_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.39,
+    0.39,
+    0.38,
+    0.38,
+    0.39
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 90
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "low",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.39,
+    0.39,
+    0.4,
+    0.39,
+    0.4
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 91
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "normal",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.39,
+    0.39,
+    0.4,
+    0.4,
+    0.4
+   ],
+   "caution": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 92
+  },
+  {
+   "symbol": "SOL/USD",
+   "trend_4h": "flat",
+   "trend_strength": "weak",
+   "breakout_4h": "below_range",
+   "volatility": "high",
+   "momentum_30d": "positive",
+   "healthy": [
+    0.34,
+    0.35,
+    0.35,
+    0.36,
+    0.35
+   ],
+   "caution": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "echoOk": true,
+   "request": 27720,
+   "index": 93
+  }
+ ]
+}
