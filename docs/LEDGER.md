@@ -412,6 +412,15 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-23 08:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Two lessons into `working-with-davies`** (all three copies): a study's
+arguments are part of its output, so run it with repository paths and diff the
+re-run before committing (the xsmom result carried a scratchpad path until it
+was re-run); and read a rule's measured holding time before describing it (the
+first draft of momentum-1d's Jev question said "weeks" where the median is
+about three days).
+
 ### [2026-09-23 07:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Each paper row's own Jev question, measured** (`backtests/jev_answers_rows.json`;

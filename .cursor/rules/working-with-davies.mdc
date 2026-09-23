@@ -593,6 +593,18 @@ Read these as a checklist before pushing.
   one of backtest.ts's comments and broke that chain; it went back byte for
   byte (`1cfe454`). Before editing any study input, grep
   `docs/agents/backtests/` for its hash. Add a new file beside it instead.
+- **A study's arguments are part of its output.** `backtest_xsmom.ts` copies
+  `--prereg` into `xsmom.json`, and the agent that ran it passed a scratchpad
+  path: the committed result could not be reproduced from the repository
+  until it was re-run with repository paths (2026-09-23). Run a study from
+  the repository root with repository paths, and diff the re-run against the
+  original before committing — only path strings and the file's own hash may
+  differ.
+- **Check a rule's measured holding time before describing it.** The first
+  draft of momentum-1d's own Jev question said the rule "usually holds for
+  weeks"; `testingset.json` puts its median hold at about three days. A
+  question the model is asked, a README line and a pre-registration are all
+  claims; read the number that decides them first.
 - **"Fewer files at the root" means the file leaves.** Re-pointing a root
   file, or folding a config into `package.json`, still leaves it in the
   listing he reads. He said so twice; the third round moved the npm project
