@@ -17,17 +17,17 @@ list stays the short version; the plan is the reasoning behind it.
 0000. **DAVIES' REQUESTS OF 2026-09-23 ~06:20–06:45 UTC**, in order:
    1. Jev on the paper rows: **(c)** — and "每个策略的jev都可以有自己的
       设计": momentum-1d and trend-1h each get their OWN question, measured
-      on every state and priced before the loop asks it. **In progress**:
-      the two wordings and the threshold rule are frozen
-      (`reviews/2026-09-23-jev-row-questions-prereg.md`, sha256 `7c64b4c0…`,
-      07:37:58 UTC) and shipped as `agents/jev_rows.ts`, asked by no row.
-      **Measured 07:46–07:48 UTC** (`backtests/jev_answers_rows.json`,
-      1,215 calls, 0 echo failures, $0.047): the rule picks **0.47 for
-      trend-1h** (vetoes the same six weak-trend high-volatility states v2
-      did) and **0.77 for momentum-1d** (no deterministic band below 0.66;
-      at 0.77 it vetoes 183 of 189 states). NEXT: price both with the new
-      study file (being built: it must first reproduce `jev_v2_other.json`),
-      then migrate or report.
+      on every state and priced before the loop asks it. **DONE: neither
+      clears the bar** (reference §4.28, review
+      `reviews/2026-09-23-jev-row-questions-study.md`). trend-1h's wording
+      decides every state exactly as v2 does (all 1,843 priced cells equal
+      v2's). momentum-1d's replies still follow the 4-hour words, so its
+      threshold (0.77) refuses almost every entry: 2–7 of 30–55 a window,
+      bear year −9.0 → −0.1 %, bull year C +104.4 → +7.1 %; it beats a
+      random veto under the shipped stop (P 0.050 / 0.039) and loses under
+      the trail (0.968 / 0.959), and the bar asks for all four. Production
+      is unchanged: every row asks v2 at 0.45. **DAVIES DECIDES** for the two
+      paper rows: keep the v2 gate, or shadow them (`params.jevGate: false`).
    2. SUI's live seat: his call handed to the session ("删了也行").
       **DONE: paper only** (reference §3.20's addendum). The go-live draft
       adds BTC/ETH/SOL/AVAX at four $25 slots on $100; the paper
@@ -413,6 +413,18 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 08:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Each paper row's own Jev question, priced: neither clears the bar**
+(reference §4.28; `backtest_jev_rows.ts` → `backtests/jev_rows.json`; review
+`reviews/2026-09-23-jev-row-questions-study.md`). The script first reproduced
+`jev_v2_other.json` from the v2 replies at 0.45 (8,101 cells, 0 differences,
+twice, identical bytes) and its check failed on a counterfactual threshold; the
+pricing ran on the same script bytes, twice, identical output. trend-1h's
+wording makes v2's decisions exactly. momentum-1d's 0.77 nearly switches the row
+off and passes the null only under the shipped stop; the bar needs all four
+evaluations. Production unchanged; the paper rows' gate is Davies' call.
 
 ### [2026-09-23 08:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -276,10 +276,16 @@ that follow from that evidence, in short:
   (c), **a wording of each row's own** (2026-09-23): `agents/jev_rows.ts`
   holds them, frozen word for word in
   `reviews/2026-09-23-jev-row-questions-prereg.md`, and a row asks its own
-  only once a migration sets `params.jevQuestion` after the wording is
-  measured and priced; until then every row asks v2. A wording lives
-  there, not in `_shared/agents_strategy.ts`, because six committed
-  results pin that file's hash.
+  only once a migration sets `params.jevQuestion`. **Measured and priced
+  the same day, neither clears the bar** (§4.28): trend-1h's wording
+  decides every state exactly as v2 does; momentum-1d's replies still
+  follow the 4-hour words, so its only deterministic threshold (0.77)
+  refuses almost every entry, and it loses to a random veto under the
+  trail. So every row asks v2, and keeping that gate on the two paper rows
+  or shadowing them is Davies' call. A wording lives in `jev_rows.ts`,
+  not in `_shared/agents_strategy.ts`, because six committed results pin
+  that file's hash; a second wording for a row needs a new
+  pre-registration.
 - **A test double must be at least as strict as what it stands in for.**
   Twice on 2026-09-22 a stub looser than production certified a failure:
   the in-memory db ignored `agent_orders_mode_check` (a paused row's exit
