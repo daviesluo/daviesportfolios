@@ -436,6 +436,14 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-23 11:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The README's three phone screenshots are Davies' new ones** (his message, taken
+08:27 BST today): tactics board, heat map, sidebar, replacing the 23:52 set under
+the same names, so the README's table and alt text still describe them. Every
+dollar amount is masked by the site's hide-values mode, as before; the same
+920 × 2000 WebP.
+
 ### [2026-09-23 11:01 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Binance runs the same three strategies on paper** (migration `0049`, pushed
