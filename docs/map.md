@@ -567,7 +567,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/db.ts` | The loop's database access, over PostgREST. |
 | `agents/testing.ts` | Test doubles that refuse whatever the real database refuses. |
 | `agents/backtest.ts` | The walk-forward backtester: the loop's own rule functions run over history at the venue's costs. |
-| `agents/backtest_*.ts` | One study each: allocation, Binance's costs, execution, fills, rule ideas, the Jev veto and the paper rows' Jev gates, Kraken (three), portfolio, set, sizing and entry gates, SUI, tape, testing set, a third window. Results go to `docs/agents/backtests/`, write-ups to `docs/agents/reviews/`. |
+| `agents/backtest_*.ts` | One study each: allocation, Binance's costs, Binance cross-sectional momentum, execution, fills, rule ideas, the Jev veto and the paper rows' Jev gates, Kraken (three), maker-only rules on Revolut X, portfolio, set, sizing and entry gates, SUI, tape, testing set, a third window. Results go to `docs/agents/backtests/`, write-ups to `docs/agents/reviews/`. |
 | `_shared/agents_strategy.ts` | The rulebooks, the market state, the Jev questions and the risk gate. Every number the loop acts on, with no network or clock; the loop and the backtester share it. |
 | `_shared/revx.ts`, `_shared/kraken.ts`, `_shared/venue.ts` | The Revolut X and Kraken clients (signing, candles, quotes, orders) behind one venue interface. |
 | `_shared/jev.ts` | The TypeSafe Jev client: typed questions in, probabilities out. |
@@ -666,6 +666,7 @@ before touching migration state.
 | `docs/agents/reviews/` | The code review before going live, and one write-up per study. |
 | `docs/agents/backtests/` | The studies' results, as JSON, and in `inputs/` the public data a study read that cannot be fetched again unchanged. |
 | `docs/agents/scripts/agents-baseline-backtest.py` | The first baseline backtest, in Python. |
+| `docs/agents/scripts/xsmom/list_symbols.py`, `fetch_klines.py`, `qa_data.py`, `verify_xsmom.py` | The Binance momentum study's data: every USDT pair's daily klines from the keyless bulk archive, checked and hashed; a data check; and an independent re-implementation of the study. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |

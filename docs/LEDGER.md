@@ -32,9 +32,13 @@ list stays the short version; the plan is the reasoning behind it.
       is a neutral dashed badge — he turned down pink, and every other hue
       measured too close to blue, yellow, gain or loss. Screenshots sent.
    5. **Revolut X and Binance each need a strategy of their own** — the
-      same rule on both is pointless. Two pre-registered studies are
-      running: Revolut X maker-only (`prereg_maker.md`) and Binance
-      cross-sectional momentum (`prereg_xsmom.md`). Open.
+      same rule on both is pointless. **Studied: neither has one the
+      evidence supports** (reference §3.23, §3.24): maker-only rules on
+      Revolut X's 0 % fee, 0 of 6 pass; cross-sectional momentum over
+      Binance's whole USDT list, 0 of 7, worst windows −64 to −79 %.
+      Untested and a new search if wanted: cross-sectional reversal and
+      low volatility on Binance (the momentum study saw last week's
+      winners reverse).
    6. **The fixed $20 per-order cap: removed** ("单笔上限删了吧，之后测试
       表现好的话我还会再加资金的"). An entry is its row's slot; reference
       §4.26. **DONE**: the tick (`ef28a06`), then migration `0048`
@@ -397,6 +401,18 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 07:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Neither venue has a strategy of its own the evidence supports**
+(reference §3.23, §3.24). Two pre-registered studies, each re-run here on a
+clean tree with the agent's exact bytes and then from the repository with
+repository paths (only path strings and the file's own hash moved): maker-only
+rules on Revolut X, 0 of 6 pass — the edge is no larger than the gap between
+two tapes; cross-sectional momentum over Binance's 735 USDT pairs, dead ones
+included, 0 of 7 — every worst window −64 to −79 %, below random picks. The
+Binance data pipeline is in `docs/agents/scripts/xsmom/`, and the
+exchangeInfo snapshot and Revolut X's pair table are committed inputs.
 
 ### [2026-09-23 07:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

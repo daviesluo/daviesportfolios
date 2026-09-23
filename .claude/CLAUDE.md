@@ -355,8 +355,11 @@ that follow from that evidence, in short:
   candidate, to be re-tested on a non-bear window before any paper twin),
   and volatility-sized slots and DVOL / funding entry gates (§3.21, from the
   Binance and Deribit research) were tested and rejected with numbers;
-  executing the live row at Binance's cost changes no verdict (§3.22) — a faster rule is a fee schedule
-  until data says otherwise.
+  executing the live row at Binance's cost changes no verdict (§3.22); and
+  each venue's own strategy — maker-only rules on Revolut X's 0 % fee (§3.23)
+  and cross-sectional momentum over Binance's whole USDT list (§3.24) — failed
+  its pre-registered bar, so what differs between the venues is cost and
+  reach, not a rule. A faster rule is a fee schedule until data says otherwise.
   Backtests: reference §3.3a–§3.7, run with the loop's own fills, stops
   and cooldown — including the rotation rule since 2026-09-21, where the
   8 % floor turns out to make it WORSE on five variants of six (§3.4); the backtester writes `docs/agents/backtests/summary.json`

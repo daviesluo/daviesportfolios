@@ -2204,6 +2204,65 @@ funding or USDT against USD. The spreads are one night's (02:21–03:08 UTC), an
 a $20 order is not inside the touch on every pair at every moment (AAVE, HBAR,
 POL), which the script's own comment overstates.
 
+### 3.23 A strategy of Revolut X's own: maker-only rules — none passes (2026-09-23)
+
+Davies asked for a strategy that uses what is unique to each venue, since the
+same rule on two venues means little. Revolut X's one unique asset is its fee:
+0 % for a resting order against 9 bps for one that takes the touch. So the
+question was whether a rule built to REST — buying pullbacks with post-only
+bids that fill only when the bar trades through them — earns what the trend
+rule cannot (`backtest_maker.ts` → `backtests/maker.json`; pre-registration and
+report `reviews/2026-09-23-maker-only-{prereg,study}.md`). Six candidates: an
+RSI(2) pullback, a lower-Bollinger-band reversion and an ATR dip in an uptrend,
+each on 1 h and 4 h bars, on BTC/ETH/SOL (AVAX secondary), against a matched
+null of random entries with the arm's own counts and holding times. **None
+passes the bar**, which asks for return > 0, drawdown < 35 %, the arm above its
+null's 95th percentile and half its grid positive, on windows A AND B in every
+evaluation priced there. Every window-A sleeve is negative but one (+0.1 %, which
+fails the null and the plateau); rsi2-1h passes window B on Coinbase's tape and
+loses it on Kraken's, whose hourly lows differ from Coinbase's by a median of
+3–4 bps — the edge is no larger than the disagreement between two tapes, and
+requiring 10 bps of trade-through turns three of the four positive A/B sleeves
+negative. The zero fee is real money (7.6–96.2 points of a window against the
+same fills at taker cost) and still not an edge. Half the live row and half the
+best candidate makes the worst window worse (window D ret/DD −0.77 against
+−0.50). Nothing is seeded; the maker probes (`0042`) are what could reopen it.
+One descriptive line is flagged and not a finding: AVAX on the UK book reads
++1,937 % in window A where Kraken's tape reads −30 %, most likely an artefact
+of the UK candles' wicks (its UK lows sit a median 20 bps from Kraken's, BTC's 3).
+
+### 3.24 A strategy of Binance's own: cross-sectional momentum over a broad universe — none passes (2026-09-23)
+
+Binance's unique asset is breadth: hundreds of USDT pairs where Revolut X's UK
+book has a handful worth trading. So the question was whether a long-only
+weekly rotation into the strongest coins of a broad universe earns anything
+(`backtest_xsmom.ts` → `backtests/xsmom.json`; pre-registration and report
+`reviews/2026-09-23-binance-xsmom-{prereg,study}.md`; data pipeline
+`docs/agents/scripts/xsmom/`). The universe is point in time and includes the
+dead: every USDT pair in Binance's bulk archive (735, delisted ones included),
+the top 30 by 30-day quote volume among pairs at least 100 days old, less
+leveraged tokens, stablecoins and tokenised stocks; 287 pairs pass through it
+and 70 of them have since been delisted. Seven candidates (no filter, a BTC
+regime filter, own-return and 100-day-average filters and their combinations,
+and all 36 grid points chosen in sample), 10 bps a side plus half the measured
+spread, weekly. **None passes**: no candidate is positive in both window A and
+window B, every worst window is −64 % to −79 % and below its matched null's 95th
+percentile (P 0.965–0.998) — momentum picked coins that did worse than random
+picks with the same exposure — and every candidate breaks the 35 % drawdown limit
+in at least three windows. Chance expected 0.002 passes. The reason is the
+universe: the top 30 equal-weighted lost 71 % in window A and 53 % in window D,
+last week's winners tended to reverse, and the four majors on the same engine
+beat every candidate in B, C and D. Half the live row and half the best
+candidate has a worst window of −36 % against the row's −7.8 %. What it does not
+test: short or market-neutral books (closed to UK retail), and other
+cross-sectional signals — reversal and low volatility are untested, and testing
+them is a new search with its own pre-registration.
+
+**So neither venue has a strategy of its own that the evidence supports, as of
+2026-09-23.** What differs between them is cost and reach, not a rule: Revolut
+X's 0 % maker and 9 bps taker on a thin UK book, Binance's 10 bps on deep books
+and a broad list. The row that trades stays where §3.11 and §3.22 put it.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
