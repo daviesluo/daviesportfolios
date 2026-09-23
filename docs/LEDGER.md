@@ -90,9 +90,9 @@ list stays the short version; the plan is the reasoning behind it.
    public bundle is fictional (`f1ad198`), the root is tidied (`56eeca7`),
    the README is scrubbed of every figure from the real book and its
    facts are checked (`1ca2962`). He flips visibility himself (Settings →
-   General → Danger Zone). Open: **his phone screenshots** (add a
-   "Phone" pair under Screenshots and delete the "will follow" line); the
-   Agents page screenshots come after live.
+   General → Danger Zone). Phone screenshots: DONE 2026-09-23 (three,
+   every amount masked, taken from his message). The Agents page's come
+   after live.
 
 0c. **Kraken money: Davies is withdrawing it and moving it to Revolut X
    (his decision, 2026-09-22; reference §4.23). The Kraken API key stays
@@ -313,6 +313,18 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 02:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The README is `docs/README.md`, with the phone screenshots.** GitHub
+shows a README from `docs/` on the repository's home page when the root
+has none, so the front page left the root and its links became relative
+to `docs/`. Davies' three phone screenshots (tactics board, heat map,
+sidebar; 22 Sep 23:52 BST, every dollar figure masked, checked by eye)
+went in as `docs/screenshots/phone-*.webp` under a Phone row; they were
+recovered from the session record, where the attachments were kept as
+webp. CLAUDE.md's front-page rule, the map, the guide's link and item 0b
+follow.
 
 ### [2026-09-23 02:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

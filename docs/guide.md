@@ -1,7 +1,7 @@
 # Using the board
 
 How each part of the site works, for someone opening it for the first
-time. The short tour is the [README](../README.md); the file-by-file
+time. The short tour is the [README](README.md); the file-by-file
 map is [map.md](map.md).
 
 ## Signing in
