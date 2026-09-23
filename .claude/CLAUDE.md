@@ -144,9 +144,13 @@ that follow from that evidence, in short:
   ≥ $100k a day; the top twenty by market cap were all run in §3.8 and
   only SUI and POL cleared both windows (POL's book is too thin). AVAX
   cleared one window and failed the other; it stays in paper because the
-  record is the test. A coin joins a rule by that bar, never by a result
-  alone; SUI's round trip is ~42 bps against the majors' 20 and that cost
-  is inside its numbers. **A coin one venue lacks may run on the other
+  record is the test. **SUI's admission does not survive the running stop**
+  (§3.20): it cleared both windows only under the old intra-bar trail, and
+  clears window A alone now. Its seat was re-judged on the windows it has:
+  keep it, because the evidence cannot decide either way (the pre-registered
+  test's p = 0.18 / 0.26). A coin joins a rule by that bar, never by a
+  result alone; SUI's round trip is ~33 bps at its median book (§3.20;
+  §3.8 assumed ~42) against the majors' 20. **A coin one venue lacks may run on the other
   alone** (Davies, 2026-09-21; §4.16): the two venues' symbol lists need
   not match — each `agent_strategies` row carries its own. A Kraken-only
   coin clears the same bar on Kraken's costs (40 bps maker a side, 80 bps

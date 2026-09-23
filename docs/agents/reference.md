@@ -2065,6 +2065,53 @@ four-coin sleeves and SUI is absent from the window that decides A1.
 2026-06-30; the venue's tape is 4-hourly). The ROWS were not re-asked —
 §3.17 owns that. `agent_risk`'s daily loss limit is not simulated.
 
+### 3.20 SUI's seat in the live row, judged on what SUI has — keep it; the evidence cannot decide (2026-09-22)
+
+Davies' question: "SUI only passed window A — is it still worth including?"
+The four-window rule is blind to SUI by construction: SUI has windows A and B
+only, so removing it moves the worst of four windows by exactly 0.00. The
+study (`supabase/functions/agents/backtest_sui.ts` → `docs/agents/backtests/sui.json`,
+report `docs/agents/reviews/2026-09-22-sui-study.md`) therefore judged all five
+members the same way on what SUI does have: windows A and B, the 3.34 years
+all five share, seven six-month folds, drawdown damping, SUI's own book, and
+its entry states. Both tapes, both stop rules, never averaged. It imports
+`run` and never copies it (the daily wrapper matches `run` on 358 cells; 170
+of 170 cells match `set2.json`, 1,728 of 1,728 match `tape.json`). Two runs
+in parallel wrote byte-identical output, sha256 `badf7b33…`.
+
+**One pre-registered test** decides a drop: SUI's rank among the five on the
+cost of removing it, fold by fold, with an exact rank-sum null; drop only if
+p(worse) < 0.05 on BOTH tapes. Result: mean rank **3.57** (Coinbase tape) and
+**3.43** (Kraken's) where chance gives 3.00; p(worse) **0.178** and **0.256**.
+**Undecided, so no change: SUI stays in the live row as the incumbent.**
+Deciding it at the effect size seen would take about 50 folds, some 24 years.
+
+The two sides, both inside chance:
+
+| | against the seat | for the seat |
+|---|---|---|
+| earnings | its slot made −5.8 % / −1.1 % over 3.34 years, last of five on both tapes; dropping it raises return in 6 of 7 folds (sign test p = 0.125; t-test p = 0.049 / 0.051, which is 2 hits in 30 secondary tests where chance gives 1.5) | — |
+| risk | — | correlation with the other four 0.03–0.22 against 0.35–0.57 for BTC / ETH / SOL; the only member whose $20 lowers the bear year's dollar drawdown under the running stop; the only member whose removal makes the worst fold worse (−0.85 → −1.00, −0.82 → −1.00) |
+
+**In paper it stays too, for a different reason.** Under the running stop
+SUI would not be admitted today: it clears §4.15's bar on window A only, and
+fails three of four tests on window B (−2.53 % / −2.72 %, plateau 44–48 %,
+−4.26 % / −4.44 % on Kraken's costs). One window of two is what chance gives
+about 40 % of coins. §3.8's admission reproduces only under the old
+intra-bar trail (A +14.51 %, B +3.01 %) and fails even there once window A is
+cut where every coin's file ends (−9.05 %): most of what SUI earned in window
+A sits in the last 36 hours of data. The paper row measures what no backtest
+can: SUI's real book and the model's replies at its entries.
+
+**Two corrections to earlier sections.** SUI's round trip is not ~42 bps:
+sampled 60 times, its UK book's median spread is **14.9 bps** (p90 23.8, max
+38.6; 20 bps or wider in 35 % of samples, where no other coin reached 20
+once), so the median round trip with the taker fee both ways is **~33 bps**;
+the 23.94 bps spread §3.8 assumed sits at SUI's p90. And the prior audit's
+"SUI lowers return in both windows" holds on the Coinbase tape only: on
+Kraken's tape SUI raises window A (+9.16 % with it, +3.56 % without), and on
+Revolut X's own book (+10.39 % vs +5.50 %).
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

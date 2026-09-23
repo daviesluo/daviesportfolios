@@ -68,10 +68,11 @@ list stays the short version; the plan is the reasoning behind it.
    redeployed every Edge Function (`_shared/` changed): check decisions
    and `ops_errors` after the deploy, not the basis.**
 
-   **S — SUI's seat: the agent died after the first committed run.**
-   `docs/agents/backtests/sui.json` and a review draft exist in the tree
-   (backed up in `79a7ad4`), not checked. To do: the second run,
-   byte-identical check, align the review, verify, commit.
+   **S — SUI's seat: DONE, committed (reference §3.20).** Keep SUI in
+   the live row as the incumbent: the pre-registered test is undecided
+   (p(worse) 0.178 / 0.256; deciding it needs ~24 years of folds). Keep
+   it in paper too. Its admission does not survive the running stop
+   (window A only), and its median round trip is ~33 bps, not ~42.
 
    **Venue survey: the agent died early.** Its notes (UK/HK regulation,
    the SFC's 13 licensed platforms, OSL / HashKey API terms, Coinbase's
@@ -300,6 +301,17 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-23 00:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**SUI's seat, judged on what SUI has** (reference §3.20; script
+`backtest_sui.ts`, output `backtests/sui.json`, report
+`reviews/2026-09-22-sui-study.md`). Keep it in the live row, as the
+incumbent, because the evidence cannot decide: SUI earns the least of
+the five and damps the most. Keep it in paper to measure its book. Two
+runs byte-identical (`badf7b33…`); every figure in the report rebuilt
+from the JSON by script. CLAUDE.md corrected: SUI clears window A only
+under the running stop, and its median round trip is ~33 bps.
 
 ### [2026-09-23 00:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
