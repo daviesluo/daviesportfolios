@@ -306,6 +306,111 @@ spread against 1.7), so the Revolut X strategies read Kraken's candles
 "1 + 1", and the basis keeps being recorded every turn (`agent_basis`, on
 the page) so the verdict stays a measurement rather than a memory.
 
+## 2d. Polymarket — the prediction-market CLOB (verified 2026-09-24, read-only)
+
+Davies' Polymarket account went into the secrets store on 2026-09-24,
+put there by another tool: `POLYMARKET_PRIVATE_KEY` (the key Magic exports
+for an email-login account, which controls the account's funds),
+`POLYMARKET_CLOB_API_KEY` / `_SECRET` / `_PASSPHRASE` (the CLOB's L2
+credentials, each also stored as `POLYMARKET_API_*`), and the plain
+settings `POLYMARKET_FUNDER_ADDRESS` (the proxy wallet that holds the
+funds), `POLYMARKET_SIGNER_ADDRESS` (the key's address),
+`POLYMARKET_SIG_TYPE` = 1, `POLYMARKET_HOST` and `POLYMARKET_CHAIN_ID` =
+137. Everything below was read on 2026-09-24 from docs.polymarket.com and
+the official clients' source, or measured keylessly from this repository's
+container. None of it is from memory. That matters here more than
+anywhere: **the CLOB was rebuilt on 2026-04-28** ("CLOB V2": new exchange
+contracts, pUSD in place of USDC.e as collateral, a new order struct), and
+the two clients most code on the web still uses, `Polymarket/clob-client`
+and `Polymarket/py-clob-client`, are archived, and each README says it
+"is no longer functional and should not be used". Their successors are
+`clob-client-v2` / `py-clob-client-v2` and the unified SDKs `ts-sdk`
+(`@polymarket/client`) / `py-sdk`. **Phase 1 is read-only**: the probe
+part `only=polymarket` (`_shared/polymarket.ts`) places, cancels and signs
+nothing.
+
+| Fact | Value | Source |
+|---|---|---|
+| Hosts | CLOB `https://clob.polymarket.com` (V2 since 2026-04-28; "no V1 compatibility"). Gamma `https://gamma-api.polymarket.com` (market discovery). Data API `https://data-api.polymarket.com` (v2 since 2026-09-04, v1 frozen). Relayer `https://relayer-v2.polymarket.com` (gasless wallet transactions). The geoblock check is `https://polymarket.com/api/geoblock`, "on polymarket.com, not the API servers" | getting-started/api; api-reference/geoblock; changelog/predictions |
+| Wallet and signature types | `EOA = 0`, `POLY_PROXY = 1` ("a legacy smart wallet created through Magic Link or Google authentication on polymarket.com"), `GNOSIS_SAFE = 2` (legacy, external signer such as MetaMask), `DEPOSIT_WALLET = 3` ("all Polymarket account wallets deployed on or after May 4, 2026"; `POLY_1271` in clob-client-v2). **This account is type 1: the Magic EOA signs, the proxy wallet (the funder) is the order's maker and holds the money** (clob-client-v2's order builder: `funderAddress`, "Address which holds funds to be used … for Polymarket proxy wallets") | trading/wallets-auth; ts-sdk `WalletType`; clob-client-v2 `SignatureTypeV2`, `orderBuilder.ts` |
+| L1 auth | The EOA signs the EIP-712 `ClobAuth` struct: domain `{ name: "ClobAuthDomain", version: "1", chainId: 137 }`, fields `address`, `timestamp` (string, Unix seconds), `nonce` (uint256, `0` unless managing several credential sets), `message` = "This message attests that I control the given wallet". Headers `POLY_ADDRESS`, `POLY_SIGNATURE`, `POLY_TIMESTAMP`, `POLY_NONCE`. `POST /auth/api-key` creates the L2 credentials, `GET /auth/derive-api-key` derives existing ones → `{ apiKey, secret, passphrase }`. "L1/L2 authentication is identical in V2 … your existing API key, secret, and passphrase continue to work." The probe signs no L1 message: the credentials exist | getting-started/api#authentication; v2-migration (FAQ) |
+| L2 auth | Five headers on every private request: `POLY_ADDRESS` (the signer EOA), `POLY_SIGNATURE`, `POLY_TIMESTAMP` (Unix seconds), `POLY_API_KEY`, `POLY_PASSPHRASE`. `POLY_SIGNATURE = urlsafeBase64WithPadding(HMAC-SHA256(base64Decode(secret), timestamp + METHOD + requestPath [+ exact body]))`; **"The query parameters are not part of the signed path"** — the three official clients agree (the path and the params are separate arguments in each). The secret is issued in the url-safe alphabet; clob-client-v2 maps `-`/`_` back and pads before decoding. The official vector (secret = 32 zero bytes, timestamp 1000000, method `test-sign`, path `/orders`, body `{"hash": "0x123"}` → `ZwAdJKvoYRlEKDkNMwd5BuwNNtg93kNaR_oU2HrfVvc=`) reproduces byte for byte, and so do two more computed with py-clob-client-v2's own function (a GET with no body; a secret made of `-` and `_`) — all pinned in `agents/polymarket.test.ts` | getting-started/api; trading/wallets-auth ("Sync CLOB Allowances"); clob-client-v2 `src/signing/hmac.ts` + `tests/signing/hmac.test.ts`; py-clob-client-v2 `signing/hmac.py` + `tests/signing/test_hmac.py`; ts-sdk `packages/client/src/hmac.ts` |
+| Orders (phase 2, not built) | EIP-712 exchange domain `{ name: "Polymarket CTF Exchange", version: "2", chainId: 137, verifyingContract: CTF Exchange }` (neg-risk markets: the Neg Risk CTF Exchange). Signed struct `Order(salt, maker, signer, tokenId, makerAmount, takerAmount, side uint8, signatureType uint8, timestamp ms, metadata bytes32, builder bytes32)`; `nonce`, `feeRateBps`, `taker` are gone and `expiration` stays in the `POST /order` body without being signed. Body `{ order, owner: <api key>, orderType, postOnly }`. Fees are set at match time, never in the order | v2-migration ("For API users") |
+| Reads the probe makes | All GET. `/time` → a bare integer of Unix seconds, no auth. `/auth/api-keys` (L2 in all three clients; the published OpenAPI marks it L1, and the clients are what work) → `{ apiKeys: [ids] }`. `/auth/ban-status/closed-only` (L2) → `{ closed_only }`. `/balance-allowance?asset_type=COLLATERAL&signature_type=<n>` (L2): "the address is determined from the API key authentication and signature type", i.e. the proxy wallet for type 1; `balance` in base units, `allowances` keyed by spender. `/data/orders` (L2) pages by `next_cursor`, from `MA==` until `LTE=`. `/book?token_id=` (public). Gamma `/markets/keyset` (public; `limit` ≤ 100, `after_cursor`/`next_cursor`, `closed` defaults to false; `clobTokenIds`, `outcomes`, `outcomePrices` are JSON-encoded strings) and `/public-profile?address=` (public; `proxyWallet` for "the proxy wallet or user address") | clob-openapi.yaml; gamma-openapi.yaml; clob-client-v2 `client.ts`, `constants.ts`; ts-sdk bindings |
+| The book, measured | `GET /book` answers `{ market, asset_id, timestamp (ms), hash, bids, asks, min_order_size, tick_size, neg_risk, last_trade_price }`, and on the one book read (2026-09-24 02:17 UTC) bids ran low to high and asks high to low, so the touch is the LAST entry of each. The client takes the best price of each side rather than trusting the order | *measured*, keyless |
+| Collateral | **pUSD**: ERC-20 on Polygon, 6 decimals, backed by USDC with the backing enforced on chain, token `0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB`. polymarket.com wraps USDC.e into it automatically; an API-only trader calls `wrap()` on the CollateralOnramp `0x93070a847efEf7F70739046A929D47a521F5B8ee` | concepts/pusd; resources/contracts; v2-migration |
+| Contracts (Polygon, 137) | CTF Exchange `0xE111180000d2663C0091e4f400237545B87B996B`; Neg Risk CTF Exchange `0xe2222d279d744050d28e00520010520000310F59`; Conditional Tokens `0x4D97DCd97eC945f40cF65F87097ACe5EA0476045`; NegRiskCtfCollateralAdapter `0xadA2005600Dec949baf300f4C6120000bDB6eAab`; Polymarket Proxy Factory `0xaB45c5A4B0c941a2F231C04C3f49182e1A254052`. CTF Exchange V2 audited by Quantstamp and Cantina (March 2026) | resources/contracts |
+| Fees | Takers only, set at match time: `fee = C × feeRate × p × (1 − p)` (C shares at price p), so a taker pays `feeRate × (1 − p)` of notional. **"Makers are never charged fees."** Taker rate by category: Crypto 0.07, Sports 0.05, Finance / Politics / Mentions / Tech 0.04, Economics / Culture / Weather / Other 0.05, Geopolitics 0; maker rebates 20 % (crypto), 15 % (sports), 25 % (the rest). Rounded to 5 dp (0.00001 USDC the smallest). At 50¢ a crypto taker pays 3.5 % of notional, at 10¢ 6.3 %, at 90¢ 0.7 %. The market's own `feeSchedule` (Gamma) or `fd` (`/clob-markets/{condition}`) is authoritative: read 2026-09-24 over the twenty busiest open markets, 0.05 on MLB games and the Fed-rate markets, 0.04 on the "aliens before 2027" market, 0.03 on a Champions League outright, 0 on two NFL markets, and no schedule at all on one about Kharg Island. No Polymarket fee to deposit or withdraw | trading/fees; changelog (2026-03-30/31, 2026-07-10); v2-migration; Gamma keyset, *measured* |
+| Geoblock | `GET https://polymarket.com/api/geoblock` → `{ blocked, ip, country, region }` for the caller's own address. Three groups: blocked completely (OFAC: IR, SY, CU, KP, Crimea, Donetsk, Luhansk); **close-only on the frontend AND the API — the United Kingdom (GB)** among them, with the US, France, Germany, Italy, Poland, Singapore, Australia and others; close-only on the frontend only (IE, JP, NL, KR, Malta for sports). "Orders submitted from blocked regions will be rejected." Polymarket's primary servers are in eu-west-2 (London), the same region as this project. From this container (a US address) on 2026-09-24: `{"blocked":true,"country":"US","region":"OH"}` | api-reference/geoblock; *measured* |
+| Closed-only mode | "An account-level circuit breaker": when on, "the account can only place orders that reduce an existing position". `GET /auth/ban-status/closed-only` (L2). An order refused for it reads `'{address}' address in closed only mode` (400); a banned address `'{address}' address banned` | trading/manage-orders; resources/error-codes |
+| Clock | `/time` answered `1790216208` when this container read `1790216207`: whole seconds, no finer. "Expired timestamp" is one of the documented causes of a 401; the window is not documented | *measured*; resources/error-codes |
+| Rate limits | Cloudflare, per IP, throttled (queued) rather than refused: CLOB 9,000 / 10 s overall, `GET /balance-allowance` 200 / 10 s, `/book` 1,500 / 10 s, `/data/orders` 500 / 10 s, API-key endpoints 100 / 10 s; Gamma 4,000 / 10 s, `/markets` 300 / 10 s. Orders and cancels also draw on per-signer token buckets by volume tier | api-reference/rate-limits; api-reference/trading-rate-limits |
+| Operations | A matching-engine restart answers HTTP 425 on order endpoints, then runs post-only for 2 minutes; restarts are announced ~2 days ahead on Telegram and Discord. Since 2026-09-04 crypto markets delay takers by 150 ms | trading/matching-engine; changelog |
+| Errors | `{ error: "…" }`; 400 bad parameters, 401 bad key / HMAC / expired timestamp, 404, 425 restart, 429, 500, 503 paused or cancel-only / post-only | resources/error-codes |
+
+**The two libraries, and why these.** WebCrypto has neither secp256k1
+nor keccak-256, and the EOA's address is `keccak-256(uncompressed public
+key without its 0x04)[12..32]`, EIP-55 cased. `_shared/polymarket.ts`
+imports `npm:@noble/curves@2.0.1/secp256k1.js` and
+`npm:@noble/hashes@2.0.1/sha3.js`, which is how Supabase's docs import npm
+code ("NPM packages (recommended)") and what their npm-security page asks
+of an Edge Function: exact versions. Both were published on 2025-09-22,
+a year before they were pinned, with SLSA provenance (`_npmUser`
+paulmillr). curves pins `@noble/hashes` at exactly 2.0.1 and hashes has no
+dependencies, so nothing else resolves. Tarball integrity, matching the
+tarballs as downloaded: curves
+`sha512-vs1Az2OOTBiP4q0pwjW5aF0xp9n4MxVrmkFBxc6EKZc6ddYx5gaZiAsZoq0uRRXWbi3AT/sBqn05eRPtn1JCPw==`,
+hashes
+`sha512-XlOlEbQcE9fmuXxrVTXCTlG2nlRXa9Rj3rr5Ue/+tX+nmkgbX720YHh0VR3hBF9xDvwnb8D2shVGOwNx+ulArw==`.
+Audits, from each package's own README: noble-curves' `weierstrass` and
+`secp256k1` modules were in Trail of Bits' scope (v0.7.3, Feb 2023),
+`weierstrass`/`modular`/`curve` in Kudelski's (v1.2.0, Sep 2023);
+noble-hashes, sha3 included, in Cure53's (v1.0.0, Jan 2022). Both READMEs
+link the changes since. **`@noble/secp256k1` was not used: its README says
+"the current version has not been independently audited"** (only its v1
+predecessor was, by Cure53 in 2021). Checked under Deno 1.46.3 (TypeScript
+5.5): the types check, and the derivation gives the official clients'
+published address for their published test key. A vendored copy was the
+other road; the pin is as frozen as a copy (a published npm version cannot
+change), keeps no third-party source in the repository, and costs one knip
+setting (`supabase/knip.json` ignores the `npm:` protocol, which knip reads
+as a package named `npm`). Its price: `deno check` and the deploy fetch the
+two packages from registry.npmjs.org.
+
+**The probe part** (`GET ?action=probe&only=polymarket`, operator
+only). It reports: the settings as stored, which names are set and whether
+each credential's two spellings agree, the problems found, and whether the
+stored signer address carries a valid EIP-55 checksum; the address the
+private key controls and whether it equals the stored signer; the CLOB's
+clock against the function's; the geoblock's answer for the function's own
+address; with L2, as the stored signer, how many API keys the account has
+and whether the stored one is among them (no key id is printed), whether
+the account is in closed-only mode, the pUSD balance and allowances for
+the stored signature type, and the number of open orders; whether
+Polymarket's public profile of the signer names the stored funder as its
+proxy wallet (the balance is the proxy the SERVER derives from the key's
+owner, and this says whether that is the funder the secrets name); and one
+public order book, the busiest open market by 24-hour volume that is still
+two-sided. It can do nothing else: one function makes every call, GET
+only, to a fixed list of URLs, L2 headers to the CLOB host only, and no
+redirect followed. The host is the documented constant, never
+`POLYMARKET_HOST`, so a changed secret cannot send the passphrase
+elsewhere. The private key and the credentials live in private fields that
+print as `[redacted]`, and every upstream error is scrubbed of every
+secret value, in every spelling it could come back in, before it is cut to
+length. The tests plant a published test key and made-up credentials,
+answer from a stub that echoes every header and secret back, and assert
+that no ten-character stretch of any of them reaches the report.
+
+**What it means before phase 2.** The documented answer for a London
+address is "close-only on the frontend and the API", and this project's
+functions run in eu-west-2: orders that OPEN a position are refused from
+there, and the account may carry the closed-only flag on its own. The
+probe reads both. Routing around a regulatory geoblock is not an option.
+Fees favour resting orders: a maker pays nothing and earns a rebate, while
+a taker pays `feeRate × (1 − p)` of notional — 3.5 % for a crypto market
+at 50¢, against Revolut X's 0.09 %.
+
 ## 3. What the numbers say (measured, real data)
 
 ### 3.1 Cost of a round trip on Revolut X, $100 account
@@ -2739,3 +2844,4 @@ use is decided, and Binance cannot be IP-restricted from Supabase (its Edge egre
 - Integrations: https://github.com/prismhq/jev-router · https://github.com/typesafe-ai/typesafe-sdk-js · https://pydantic.dev/docs/ai/models/typesafe/ · https://docs.litellm.ai/docs/pass_through/typesafe · https://github.com/samchon/typia/issues/2409 · https://github.com/can1357/oh-my-pi/issues/12458 · https://github.com/vinaychawla-ops/jev-openrouter-example
 - Revolut X: https://developer.revolut.com/docs/x-api/revolut-x-crypto-exchange-rest-api · https://developer.revolut.com/docs/x-api/authentication · https://developer.revolut.com/docs/x-api/place-order · https://developer.revolut.com/docs/x-api/get-candles · https://developer.revolut.com/docs/x-api/get-all-balances · https://github.com/revolut-engineering/revolut-x-api (incl. `revolut-x-api-for-llm.md`) · https://www.revolut.com/legal/crypto-exchange-fees/ · https://help.revolut.com/en-FR/help/wealth/cryptocurrencies/crypto-exchange/api-trading/question-what-api-does-revolut-x-provide/
 - Kraken: https://docs.kraken.com/api/docs/guides/spot-rest-intro/ · https://docs.kraken.com/api/docs/guides/spot-rest-auth/ · https://docs.kraken.com/api/docs/rest-api/add-order/ · https://docs.kraken.com/api/docs/rest-api/get-orders-info/ · https://docs.kraken.com/api/docs/rest-api/get-trade-volume/ · https://docs.kraken.com/api/docs/rest-api/get-extended-balance/ · https://docs.kraken.com/api/docs/rest-api/get-ohlc-data/ · https://docs.kraken.com/api/docs/rest-api/get-recent-trades/ · https://docs.kraken.com/api/docs/guides/spot-ratelimits/ · https://docs.kraken.com/api/docs/guides/spot-rest-ratelimits/ · https://www.kraken.com/features/fee-schedule · https://support.kraken.com/hc/en-us/articles/360000919966-How-to-create-an-API-key · https://support.kraken.com/articles/360047124832-downloadable-historical-ohlcvt-open-high-low-close-volume-trades-data
+- Polymarket (read 2026-09-24): https://docs.polymarket.com/llms.txt · https://docs.polymarket.com/getting-started/api · https://docs.polymarket.com/trading/wallets-auth · https://docs.polymarket.com/trading/manage-orders · https://docs.polymarket.com/trading/fees · https://docs.polymarket.com/api-reference/geoblock · https://docs.polymarket.com/api-reference/rate-limits · https://docs.polymarket.com/api-reference/trading-rate-limits · https://docs.polymarket.com/concepts/pusd · https://docs.polymarket.com/resources/contracts · https://docs.polymarket.com/resources/error-codes · https://docs.polymarket.com/trading/matching-engine · https://docs.polymarket.com/v2-migration · https://docs.polymarket.com/changelog/predictions · https://docs.polymarket.com/api-spec/clob-openapi.yaml · https://docs.polymarket.com/api-spec/gamma-openapi.yaml · https://github.com/Polymarket/clob-client-v2 (1.1.0, commit 801696e) · https://github.com/Polymarket/py-clob-client-v2 (1.1.0, commit 215fc63) · https://github.com/Polymarket/ts-sdk (`@polymarket/client` 0.11.0, commit 002e7de) · https://github.com/Polymarket/clob-client and https://github.com/Polymarket/py-clob-client (archived) · https://eips.ethereum.org/EIPS/eip-55 · https://www.npmjs.com/package/@noble/curves · https://www.npmjs.com/package/@noble/hashes · https://www.npmjs.com/package/@noble/secp256k1 · https://supabase.com/docs/guides/functions/dependencies · https://supabase.com/docs/guides/security/npm-security

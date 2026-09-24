@@ -6,5 +6,6 @@
     "supabase/functions/agents/backtest*.ts"
   ],
   "project": ["supabase/functions/**/*.ts"],
+  "ignoreDependencies": ["npm"],
   "ignoreExportsUsedInFile": true
 }

@@ -14,6 +14,17 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+000000000000. **POLYMARKET PHASE 1: THE READ-ONLY PROBE IS WRITTEN, NOT YET DEPLOYED OR RUN (2026-09-24).** Davies'
+   account secrets (`POLYMARKET_*`, stored by another tool) are read by `?action=probe&only=polymarket` alone
+   (`_shared/polymarket.ts`, reference §2d). It reports the stored settings, the private key's address against
+   `POLYMARKET_SIGNER_ADDRESS`, the CLOB's clock, the geoblock's answer for eu-west-2, and with L2 the account's API
+   keys, closed-only flag, pUSD balance and allowances (signature type 1) and open orders, then whether the public
+   profile names the funder as the proxy wallet, and one public book. GETs only; no key, secret or passphrase can
+   reach the report (pinned against a stub that echoes them all back). Next: deploy, fire it through pg_net with the
+   Vault `cron_secret`, write what it says into reference §6. **The docs list the United Kingdom as close-only on the
+   frontend AND the API**: orders that open a position are refused from a London address. Phase 2 waits on the
+   probe's answer and on Davies.
+
 00000000000. **PR5'S LIVE PATH: BUILT, IN DRY-RUN, NOT PUSHED (2026-09-24 02:33 UTC).** It is on branch
    `worktree-agent-a8ae57caa382aed95`, one commit on `15056c5` (reference §4 item 35).
    - **What it is:** `agents/quotes_live.ts` and migration `0052`. The executor carries out the paper engine's decisions
@@ -671,6 +682,21 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 02:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Polymarket phase 1: a read-only probe part, and the facts it rests on** (item 000000000000). `_shared/polymarket.ts`
+loads the `POLYMARKET_*` secrets (a credential's two spellings must agree), signs L2 the documented way (the official
+clients' HMAC vector and two more from their Python implementation are pinned), derives the EOA with `@noble/curves`
+2.0.1 and `@noble/hashes` 2.0.1 over npm at exact versions (the official clients' published test key gives its
+published address; EIP-55's own cases pinned), and makes GET-only reads from a fixed list. Reference §2d: the CLOB is
+V2 since 2026-04-28 (pUSD collateral; the v1 clients are archived and "no longer functional"), L1/L2 auth, fees
+(takers only, `feeRate × (1 − p)` of notional), the geoblock (GB close-only on the API), and why not
+`@noble/secp256k1` (unaudited in its current version). knip reads Deno's `npm:` as a package named `npm`, so
+`supabase/knip.json` ignores that name. Rebased onto `6b7f1c4` (PR5's live path). Deno: check clean, 509 passed; knip
+clean; the docs-map test green. Two counterfactuals each fail a pin: signing the path WITH its query, and cutting an
+upstream error before scrubbing it. The public reads were run keylessly from this container against the live hosts.
+Not deployed, not run with the keys.
 
 ### [2026-09-24 02:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

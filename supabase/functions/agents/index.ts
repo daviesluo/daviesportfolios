@@ -47,8 +47,13 @@
 //                             to prove a key's trading permission without an
 //                             order. Then asks Jev one trivial question on
 //                             EACH transport so the answer shape, latency and
-//                             cost are on record. Places nothing anywhere.
-//                             Cron or admin.
+//                             cost are on record. Polymarket (`only=polymarket`):
+//                             the stored config, the private key's address
+//                             against the stored signer, the CLOB's clock, the
+//                             geoblock's answer for this region, and with L2
+//                             the account's keys, closed-only flag, collateral,
+//                             open orders; one public book. GETs only (reference
+//                             §2d). Places nothing anywhere. Cron or admin.
 //
 // Auth: `Authorization: Bearer <CRON_SECRET>` (pg_cron / pg_net, the same
 // Vault secret every other scheduled function uses) OR an `x-app-token`
@@ -60,7 +65,8 @@
 // (and `Revolut_X_API_kEY_2` / REVOLUT_X_PRIVATE_KEY_2, PR5's own sub-account: the probe, and the quotes' live executor)
 // (the Ed25519 private key in any pasted shape), KRAKEN_PRO_API_KEY +
 // KRAKEN_PRO_PRIVATE_KEY (the base64 secret as issued), OPENROUTER_API_KEY
-// / `openrouter_api_key`, TYPESAFE_API_KEY / `typesafe_API_KEY`. None is
+// / `openrouter_api_key`, TYPESAFE_API_KEY / `typesafe_API_KEY`, and the
+// POLYMARKET_* set (`_shared/polymarket.ts`, read by the probe only). None is
 // ever echoed: the probe reports the FORM of a private key, not a byte of
 // it, and every upstream error is truncated. Market data needs no key on
 // either venue, so a missing credential degrades a venue to paper-only
@@ -75,6 +81,7 @@ import {
   krakenSupports, ticker as krakenTicker, tradeVolume, type KrakenEnv,
 } from "../_shared/kraken.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
+import { loadPolymarketEnv, polymarketProbe } from "../_shared/polymarket.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
@@ -871,7 +878,7 @@ export async function runJevBatch(
 }
 
 /** The probe's parts, each a credential of its own. `?only=binance,deribit` runs just those; anything unknown is dropped. */
-export const PROBE_PARTS = ["revx", "revx2", "kraken", "jev", "binance", "deribit"] as const;
+export const PROBE_PARTS = ["revx", "revx2", "kraken", "jev", "binance", "deribit", "polymarket"] as const;
 export function probeParts(only: string | null): Set<string> | null {
   if (!only) return null;
   const picked = new Set(only.split(",").map((x) => x.trim().toLowerCase()).filter((x) => (PROBE_PARTS as readonly string[]).includes(x)));
@@ -1047,6 +1054,9 @@ export async function runProbe(only: Set<string> | null = null, f: typeof fetch 
       ? await deribitProbe({ clientId, clientSecret })
       : { error: "Deribit_CLIENT_ID / Deribit_CLIENT_SECRET are not set" };
   }
+
+  // --- Polymarket: read-only until phase 2 (reference §2d). The report is scrubbed of every secret it could echo. ----
+  if (want("polymarket")) out.polymarket = await polymarketProbe(loadPolymarketEnv(), { fetchImpl: f });
   return out;
 }
 

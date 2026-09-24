@@ -6,10 +6,11 @@ import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@
 import {
   authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeParts, probeSymbols, runJevBatch,
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
-  REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe,
+  REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
 import type { JevResult } from "../_shared/jev.ts";
+import { POLYMARKET_ENV_NAMES, POLYMARKET_READS, polyHmacSignature } from "../_shared/polymarket.ts";
 import { jevQuestions } from "../_shared/agents_strategy.ts";
 import { rowQuestions } from "./jev_rows.ts";
 
@@ -350,6 +351,168 @@ Deno.test("runProbe(revx2) — reads the second account with GETs only, on PR5's
   } finally {
     for (const [n, v] of saved) v === undefined ? Deno.env.delete(n) : Deno.env.set(n, v);
   }
+});
+
+// ── the Polymarket part (`only=polymarket`, reference §2d) ─────────────────────────────────────────────────────────────
+
+/** The official clients' published test key and its address (clob-client-v2 tests/signing/signer.test.ts), never the account's. */
+const PM_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+const PM_SIGNER = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+const PM_FUNDER = "0x00000000000000000000000000000000000000f1";
+const PM_API_KEY = "0f0e0d0c-1111-4222-8333-444455556666";
+const PM_SECRET = btoa("PLANTED-L2-SECRET-32-BYTES-LONG!").replace(/\+/g, "-").replace(/\//g, "_");
+const PM_PASSPHRASE = "b7e1d3f9a2c4-0c1d2e3f-6a5b";   // no English in it: the report's own words must not look like a leak
+/** Every planted secret, in each spelling a leak could take. The report may contain none of them. */
+const PM_SECRETS = [PM_KEY, PM_KEY.slice(2), PM_KEY.slice(2).toUpperCase(), PM_SECRET, PM_SECRET.replace(/-/g, "+").replace(/_/g, "/"), PM_PASSPHRASE, PM_API_KEY];
+const MAX_ALLOWANCE = (2n ** 256n - 1n).toString();
+
+type PmCall = { method: string; url: URL; headers: Headers; redirect?: string; body: unknown };
+
+/** Does any `window`-character stretch of a secret appear in `text`? A cut secret leaks its prefix, not its whole. */
+function leaksPart(text: string, secrets: string[], window = 10): string | null {
+  for (const s of secrets) for (let i = 0; i + window <= s.length; i++) if (text.includes(s.slice(i, i + window))) return s.slice(i, i + window);
+  return null;
+}
+
+/**
+ * A fake of every host the Polymarket part reads, as strict as the CLOB about L2: a private read without the planted
+ * key, passphrase and signer, a fresh timestamp and the right signature over timestamp + GET + path is a 401. `hostile`
+ * makes it as bad as a server can be: every reply a 401 whose body echoes the planted secrets and the request's
+ * headers, the passphrase placed so that a 200-character cut falls inside it. The report's scrub is what is on trial,
+ * and it has to run before the cut.
+ */
+function polymarketHosts(hostile = false) {
+  const calls: PmCall[] = [];
+  const L2 = ["/auth/api-keys", "/auth/ban-status/closed-only", "/balance-allowance", "/data/orders"];
+  const fetchImpl = (async (input: Request | URL | string, init?: RequestInit) => {
+    const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
+    const headers = new Headers(init?.headers);
+    calls.push({ method: (init?.method ?? "GET").toUpperCase(), url, headers, redirect: init?.redirect, body: init?.body });
+    if (hostile) {
+      const echo = [...headers].map(([k, v]) => `${k}=${v}`).join(" ");
+      const error = `${"x".repeat(190)}${PM_PASSPHRASE} ${PM_KEY} ${PM_SECRET} ${PM_API_KEY} ${echo}`;
+      return new Response(JSON.stringify({ error }), { status: 401 });
+    }
+    if (url.hostname === "clob.polymarket.com" && L2.includes(url.pathname)) {
+      const ts = headers.get("POLY_TIMESTAMP") ?? "";
+      const good = headers.get("POLY_API_KEY") === PM_API_KEY && headers.get("POLY_PASSPHRASE") === PM_PASSPHRASE && headers.get("POLY_ADDRESS") === PM_SIGNER &&
+        Math.abs(Number(ts) - Date.now() / 1000) < 30 && headers.get("POLY_SIGNATURE") === await polyHmacSignature(PM_SECRET, ts, "GET", url.pathname);
+      if (!good) return new Response(JSON.stringify({ error: "Unauthorized/Invalid api key" }), { status: 401 });
+    }
+    const p = `${url.hostname}${url.pathname}`;
+    const body = p === "clob.polymarket.com/time" ? Math.floor(Date.now() / 1000)
+      : p === "polymarket.com/api/geoblock" ? { blocked: true, ip: "203.0.113.9", country: "GB", region: "ENG" }
+      : p === "clob.polymarket.com/auth/api-keys" ? { apiKeys: [PM_API_KEY, "another-key-of-the-account"] }
+      : p === "clob.polymarket.com/auth/ban-status/closed-only" ? { closed_only: true }
+      : p === "clob.polymarket.com/balance-allowance" ? { balance: "12345678", allowances: { "0xE111180000d2663C0091e4f400237545B87B996B": MAX_ALLOWANCE, "0x00000000000000000000000000000000000000aa": "5" } }
+      : p === "clob.polymarket.com/data/orders"
+      ? (url.searchParams.get("next_cursor") === "MA==" ? { limit: 100, count: 1, next_cursor: "MTAw", data: [{ id: "0x1" }] } : { limit: 100, count: 1, next_cursor: "LTE=", data: [{ id: "0x2" }] })
+      : p === "gamma-api.polymarket.com/public-profile" ? { proxyWallet: PM_FUNDER, name: "someone", bio: "not for the report" }
+      : p === "gamma-api.polymarket.com/markets/keyset"
+      ? { markets: [{ id: "1", question: "Q?", slug: "q", conditionId: "0xc", enableOrderBook: true, acceptingOrders: true, clobTokenIds: '["777","888"]', outcomes: '["Yes","No"]', outcomePrices: '["0.4","0.6"]', feeSchedule: { rate: 0.05 } }], next_cursor: "x" }
+      : p === "clob.polymarket.com/book"
+      ? { market: "0xc", asset_id: url.searchParams.get("token_id"), timestamp: "1790216237628", bids: [{ price: "0.39", size: "10" }, { price: "0.40", size: "5" }], asks: [{ price: "0.42", size: "7" }, { price: "0.41", size: "3" }], tick_size: "0.01", min_order_size: "5", neg_risk: false, last_trade_price: "0.40" }
+      : null;
+    return body === null ? new Response("not found", { status: 404 }) : new Response(JSON.stringify(body), { status: 200 });
+  }) as typeof fetch;
+  return { calls, fetchImpl };
+}
+
+async function withPolymarketEnv<T>(run: () => Promise<T>): Promise<T> {
+  const names = Object.values(POLYMARKET_ENV_NAMES).flat();
+  const saved = new Map(names.map((n) => [n, Deno.env.get(n)]));
+  const planted: Record<string, string> = {
+    POLYMARKET_PRIVATE_KEY: PM_KEY, POLYMARKET_CLOB_API_KEY: PM_API_KEY, POLYMARKET_API_KEY: PM_API_KEY, POLYMARKET_CLOB_SECRET: PM_SECRET,
+    POLYMARKET_API_SECRET: PM_SECRET, POLYMARKET_CLOB_PASSPHRASE: PM_PASSPHRASE, POLYMARKET_API_PASSPHRASE: PM_PASSPHRASE,
+    POLYMARKET_FUNDER_ADDRESS: PM_FUNDER, POLYMARKET_SIGNER_ADDRESS: PM_SIGNER, POLYMARKET_SIG_TYPE: "1", POLYMARKET_HOST: "https://clob.polymarket.com", POLYMARKET_CHAIN_ID: "137",
+  };
+  for (const n of names) Deno.env.delete(n);
+  for (const [n, v] of Object.entries(planted)) Deno.env.set(n, v);
+  try {
+    return await run();
+  } finally {
+    for (const [n, v] of saved) v === undefined ? Deno.env.delete(n) : Deno.env.set(n, v);
+  }
+}
+
+Deno.test("probeParts: `only=polymarket` runs the Polymarket part and nothing else", () => {
+  assert((PROBE_PARTS as readonly string[]).includes("polymarket"));
+  assertEquals([...probeParts("polymarket")!], ["polymarket"]);
+});
+
+Deno.test("runProbe(polymarket) — GETs to its listed reads only, L2 signed the documented way, and the key checked against the signer", async () => {
+  const hosts = polymarketHosts();
+  const out = await withPolymarketEnv(() => runProbe(new Set(["polymarket"]), hosts.fetchImpl));
+  assertEquals(out.revx, undefined);
+  const pm = out.polymarket as Record<string, any>;
+
+  // Reads only: every request a GET with no body and no redirect followed, each to a listed URL, no secret in any URL.
+  assert(hosts.calls.length >= 10, `${hosts.calls.length} calls`);
+  for (const c of hosts.calls) {
+    assertEquals([c.method, c.redirect, c.body ?? null], ["GET", "manual", null], c.url.href);
+    assert(POLYMARKET_READS.includes(`${c.url.origin}${c.url.pathname}`), c.url.href);
+    assertEquals(leaksPart(c.url.href, PM_SECRETS), null, `a secret in ${c.url.pathname}`);
+    for (const [, v] of c.headers) for (const s of [PM_KEY, PM_KEY.slice(2), PM_SECRET]) assert(!v.includes(s), `the key or the L2 secret in a header of ${c.url.pathname}`);
+  }
+  // L2: the CLOB host only, as the signer, the signature over timestamp + GET + the path WITHOUT its query.
+  const l2 = hosts.calls.filter((c) => c.headers.has("POLY_API_KEY"));
+  assertEquals(l2.map((c) => c.url.pathname), ["/auth/api-keys", "/auth/ban-status/closed-only", "/balance-allowance", "/data/orders", "/data/orders"]);
+  for (const c of l2) {
+    assertEquals(c.url.origin, "https://clob.polymarket.com");
+    assertEquals([c.headers.get("POLY_ADDRESS"), c.headers.get("POLY_API_KEY"), c.headers.get("POLY_PASSPHRASE")], [PM_SIGNER, PM_API_KEY, PM_PASSPHRASE]);
+    assertEquals(c.headers.get("POLY_SIGNATURE"), await polyHmacSignature(PM_SECRET, c.headers.get("POLY_TIMESTAMP")!, "GET", c.url.pathname));
+  }
+  assert(hosts.calls.filter((c) => !c.headers.has("POLY_API_KEY")).every((c) => ![...c.headers.keys()].some((h) => h.toUpperCase().startsWith("POLY_"))));
+  assertEquals(l2[2].url.searchParams.get("asset_type"), "COLLATERAL");
+  assertEquals(l2[2].url.searchParams.get("signature_type"), "1");
+
+  // What it reports.
+  assertEquals(pm.signer, { derived: PM_SIGNER, stored: PM_SIGNER, matches: true });
+  assertEquals(pm.config.funder, PM_FUNDER);
+  assertEquals(pm.config.problems, []);
+  assert(Math.abs(pm.clock.skewS) <= 1, JSON.stringify(pm.clock));
+  assertEquals([pm.geoblock.blocked, pm.geoblock.country], [true, "GB"]);
+  assertEquals(pm.apiKeys, { status: 200, count: 2, includesConfigured: true });
+  assertEquals(pm.closedOnly, { status: 200, closedOnly: true });
+  assertEquals([pm.collateral.pusd, pm.collateral.signatureType], [12.345678, 1]);
+  assertEquals(pm.collateral.allowances, [
+    { spender: "0xE111180000d2663C0091e4f400237545B87B996B", contract: "CTF Exchange", allowance: "max" },
+    { spender: "0x00000000000000000000000000000000000000aa", contract: null, allowance: "5" },
+  ]);
+  assertEquals(pm.openOrders, { status: 200, count: 2, pages: 2 });
+  assertEquals(pm.funderProfile, { status: 200, proxyWallet: PM_FUNDER, matchesFunder: true });
+  assertEquals([pm.book.market.question, pm.book.tokenId, pm.book.bestBid, pm.book.bestAsk], ["Q?", "777", { price: 0.4, size: 5 }, { price: 0.41, size: 3 }]);
+
+  // And no part of any secret, nor the profile's personal fields, anywhere in the report.
+  const text = JSON.stringify(out);
+  assertEquals(leaksPart(text, PM_SECRETS), null, "a planted secret reached the report");
+  assert(!text.includes("not for the report") && !text.includes("someone"));
+});
+
+Deno.test("runProbe(polymarket) — a server that echoes every header and secret back gets none of them into the report", async () => {
+  const hosts = polymarketHosts(true);
+  const out = await withPolymarketEnv(() => runProbe(new Set(["polymarket"]), hosts.fetchImpl));
+  const pm = out.polymarket as Record<string, any>;
+  assertEquals(pm.apiKeys.status, 401);
+  assert(String(pm.apiKeys.error).includes("[redac"), pm.apiKeys.error);        // the echo arrived, and was scrubbed before the cut
+  const text = JSON.stringify(out);
+  assertEquals(leaksPart(text, PM_SECRETS), null, "a planted secret, or part of one, reached the report");
+  assert(hosts.calls.every((c) => c.method === "GET"));
+});
+
+Deno.test("runProbe(polymarket) — without complete credentials it skips the L2 reads and still makes the public ones", async () => {
+  const hosts = polymarketHosts();
+  const out = await withPolymarketEnv(() => {
+    Deno.env.delete("POLYMARKET_CLOB_PASSPHRASE");
+    Deno.env.delete("POLYMARKET_API_PASSPHRASE");
+    return runProbe(new Set(["polymarket"]), hosts.fetchImpl);
+  });
+  const pm = out.polymarket as Record<string, any>;
+  assertEquals(pm.apiKeys, { skipped: "no complete L2 credentials" });
+  assert(pm.config.problems.some((p: string) => p.includes("PASSPHRASE")));
+  assert(!hosts.calls.some((c) => c.headers.has("POLY_API_KEY")), "no L2 request without the whole credential set");
+  assertEquals(pm.signer.matches, true);
+  assertEquals(pm.geoblock.country, "GB");
 });
 
 Deno.test("PAGE_VENUES — the page shows Revolut X and Binance, each with its own rows; Kraken is the signal venue only", () => {
