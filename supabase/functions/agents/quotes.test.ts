@@ -7,9 +7,11 @@
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import golden from "../../../docs/agents/backtests/pr5/golden_windows.json" with { type: "json" };
+import evening from "../../../docs/agents/backtests/pr5_live/first_evening_fixture.json" with { type: "json" };
+import type { Db } from "./db.ts";
 import {
-  blocks, exitTicks, fairUAt, fxAt, median, newBookState, type Print, QUOTE_BOOKS, QUOTE_STOP_MS, quoteTicks, runQuotes, stepMinute, through,
-  type QuoteBook, type Trip,
+  blocks, exitTicks, fairHours, fairUAt, fxAt, fxBarAt, median, minuteRecord, newBookState, type Print, QUOTE_BOOKS, QUOTE_STOP_MS, type QuoteReport,
+  quoteTicks, runQuotes, stepMinute, through, type QuoteBook, type Trip,
 } from "./quotes.ts";
 import { memDb, type Row } from "./testing.ts";
 
@@ -193,7 +195,7 @@ function stubFetch(now: number, calls: Call[], opts: { tradesDown?: boolean } = 
 }
 
 function quoteWorld() {
-  return memDb({ agent_locks: [{ name: "quotes", lease_until: new Date(0).toISOString(), holder: null } as Row], agent_quote_state: [], agent_quote_prints: [], agent_quote_inputs: [], agent_quote_events: [], agent_quote_trips: [] }, { now: () => Date.now() });
+  return memDb({ agent_locks: [{ name: "quotes", lease_until: new Date(0).toISOString(), holder: null } as Row], agent_quote_state: [], agent_quote_prints: [], agent_quote_inputs: [], agent_quote_events: [], agent_quote_trips: [], agent_quote_minutes: [] }, { now: () => Date.now() });
 }
 
 Deno.test("runQuotes: the first run seeds the books, stores UK prints only, and decides the minute just closed", async () => {
@@ -249,4 +251,106 @@ Deno.test("runQuotes: a run that finds the lease held does nothing", async () =>
 
 Deno.test("QUOTE_BOOKS are the two GBP stablecoin books PR5 tested", () => {
   assertEquals([...QUOTE_BOOKS], ["USDC-GBP", "USDT-GBP"]);
+});
+
+// ------------------------------------------------------------------ the per-minute record (`0055`)
+
+Deno.test("the minute record is what the turn read: the bar X came from, the closes fair took, the prints; dark is null, not a guess", () => {
+  const t = Date.UTC(2026, 8, 23, 15, 0);
+  const bars: Array<[number, number]> = [[t - 12 * M, 1.30], [t - 3 * M, 1.32], [t, 1.33]];
+  assertEquals([fxBarAt(t, bars), fxAt(t, bars)], [[t - 3 * M, 1.32], 1.32]);   // fxAt is that bar's close
+  assertEquals([fxBarAt(t + 13 * M, bars), fxAt(t + 13 * M, bars)], [null, null]);
+  const hours = Array.from({ length: 30 }, (_, i) => [t - (30 - i) * H, 1 + i / 1e4] as [number, number]);
+  assertEquals(fairHours(t, hours).length, 24);
+  assertEquals(fairUAt(t, hours), median(fairHours(t, hours)));
+  const print: Print = { ts: t + 5e3, ticks: 7540, qty: 10, side: "sell", id: "p" };
+  assertEquals(minuteRecord("USDT-GBP", t, fxBarAt(t, bars), 24, { x: 1.32, fairU: fairUAt(t, hours), prints: [print] }), {
+    book: "USDT-GBP", minute: "2026-09-23T15:00:00.000Z", x: 1.32, x_t: "2026-09-23T14:57:00.000Z", fair_u: fairUAt(t, hours), hours_n: 24, prints_n: 1,
+  });
+  const dark = minuteRecord("USDC-GBP", t + 13 * M, null, 0, { x: null, fairU: null, prints: [] });
+  assertEquals([dark.x, dark.x_t, dark.fair_u, dark.hours_n, dark.prints_n], [null, null, null, 0, 0]);
+});
+
+type Evening = {
+  from: number; to: number; fx: Array<[number, number]>;
+  prints: Record<string, Array<[string, number, string, string, string]>>; hours: Record<string, Array<[number, string]>>;
+  engine: Record<string, Record<string, Record<string, [number, number]>>>;
+};
+const EV = evening as unknown as Evening;
+
+/** Revolut X and Yahoo as the engine met them on its first evening (`first_evening_fixture.json`), served as their APIs answer. */
+function eveningFetch(now: number) {
+  return (input: string | URL | Request): Promise<Response> => {
+    const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
+    const ok = (body: unknown) => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }));
+    if (url.hostname === "query1.finance.yahoo.com") {
+      const bars = EV.fx.filter(([t]) => t >= now - 30 * M && t < now);
+      return ok({ chart: { result: [{ timestamp: bars.map(([t]) => t / 1000), indicators: { quote: [{ close: bars.map(([, c]) => c) }] } }] } });
+    }
+    if (url.pathname === "/api/1.0/public/trades/all") {
+      const b = url.searchParams.get("symbol") ?? "", a = Number(url.searchParams.get("start_date")), z = Number(url.searchParams.get("end_date"));
+      const data = (EV.prints[b] ?? []).filter(([, ts]) => ts >= a && ts <= z && ts <= now)
+        .map(([id, timestamp, price, quantity, side]) => ({ id, symbol: b.replace("-", "/"), price, quantity, timestamp, region: "UK", side }));
+      return ok({ data, metadata: { next_cursor: "" } });
+    }
+    if (url.pathname.startsWith("/api/1.0/public/candles/")) {
+      const series = EV.hours[url.pathname.split("/").pop() ?? ""] ?? [];
+      return ok({ data: series.filter(([s]) => s + H <= now).map(([start, close]) => ({ start, close })) });
+    }
+    if (url.pathname.startsWith("/api/2.0/public/order-book/")) return ok({ data: { bids: [{ p: "0.7540" }], asks: [{ p: "0.7560" }] } });
+    return Promise.resolve(new Response("{}", { status: 404 }));
+  };
+}
+
+/** The engine run minute by minute over the evening, 25 s into each minute as its cron job runs it; `record` false is the database before `0055`. */
+async function replayEvening(record: boolean) {
+  const { db, tables } = memDb({
+    agent_locks: [{ name: "quotes", lease_until: new Date(0).toISOString(), holder: null } as Row], agent_quote_state: [], agent_quote_prints: [],
+    agent_quote_inputs: [], agent_quote_events: [], agent_quote_trips: [], ...(record ? { agent_quote_minutes: [] } : {}),
+  }, { now: () => Date.now() });
+  const noTable = () => Promise.reject(new Error(`db POST agent_quote_minutes → 404: {"code":"PGRST205","message":"Could not find the table 'public.agent_quote_minutes' in the schema cache"}`));
+  const d: Db = record ? db : { ...db, upsert: (t, rows, key) => (t === "agent_quote_minutes" ? noTable() : db.upsert(t, rows, key)) };
+  const reports: QuoteReport[] = [];
+  for (let m = EV.from + M; m <= EV.to + M; m += M) {
+    const now = m + 25e3;
+    reports.push(await runQuotes({ db: d, fetch: eveningFetch(now), now, holder: `h${now}`, pause: () => Promise.resolve() }));
+  }
+  return { tables, reports };
+}
+
+// A snapshot's `at` is the wall clock the order book was read at, the one field that is not a function of the inputs.
+const decided = (rows: Row[]) => rows.map((e) => (e.kind === "book" ? { ...e, detail: { ...(e.detail as Row), at: null } } : e));
+
+Deno.test("the per-minute record changes no decision: production's first evening decides byte for byte the same with the table and without it, and as production did", async () => {
+  const withIt = await replayEvening(true), without = await replayEvening(false);
+  const minutes = (EV.to - EV.from) / M + 1;
+  assertEquals(withIt.reports.map((r) => r.minutes), Array(minutes).fill(1));
+  for (const t of ["agent_quote_trips", "agent_quote_prints", "agent_quote_inputs"]) assertEquals(JSON.stringify(withIt.tables[t]), JSON.stringify(without.tables[t]), t);
+  assertEquals(JSON.stringify(decided(withIt.tables.agent_quote_events as Row[])), JSON.stringify(decided(without.tables.agent_quote_events as Row[])));
+  const state = (w: typeof withIt) => { const s = (w.tables.agent_quote_state as Row[])[0]; return JSON.stringify([s.state, s.last_minute, s.updated_at]); };
+  assertEquals(state(withIt), state(without));
+  // With the table every decided minute is written, one row a book, and nothing goes wrong; without it the gap is said.
+  assert(withIt.reports.every((r) => r.errors.length === 0 && r.recorded === 2), JSON.stringify(withIt.reports.find((r) => r.errors.length || r.recorded !== 2)));
+  assertEquals((withIt.tables.agent_quote_minutes as Row[]).length, 2 * minutes);
+  assert(without.reports.every((r) => r.recorded === 0 && r.errors.length === 1 && r.errors[0].startsWith("minute record:")));
+  // And the decisions are production's: each book's orders and refusals per minute, count and ticks, as agent_quote_events
+  // holds them for that evening; nothing else happened in it.
+  const events = withIt.tables.agent_quote_events as Row[];
+  for (const kind of ["order", "refused"]) {
+    for (const b of QUOTE_BOOKS) {
+      const got: Record<string, [number, number]> = {};
+      for (const e of events.filter((x) => x.kind === kind && x.book === b)) {
+        const k = String(e.minute).slice(11, 16);
+        got[k] = [(got[k]?.[0] ?? 0) + 1, (got[k]?.[1] ?? 0) + Number(e.ticks)];
+      }
+      assertEquals(got, EV.engine[kind][b], `${kind} ${b}`);
+    }
+  }
+  assertEquals([...new Set(events.map((e) => e.kind))].sort(), ["book", "order", "refused"]);
+  // Each order's recorded inputs are the ones the order was priced from.
+  const rec = new Map((withIt.tables.agent_quote_minutes as Row[]).map((r) => [`${r.book}|${r.minute}`, r]));
+  for (const e of events.filter((x) => x.kind === "order")) {
+    const r = rec.get(`${e.book}|${e.minute}`)!, dt = e.detail as { x: number; fair: number };
+    assertEquals([r.x, Number(r.fair_u) / Number(r.x), r.x_t], [dt.x, dt.fair, new Date(Date.parse(String(e.minute)) - M).toISOString()]);
+  }
 });

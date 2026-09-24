@@ -842,6 +842,19 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 - The Revolut X card adds Stablecoin quotes, the test that trades there. Reward quotes stays the Polymarket card: that money is not Revolut X's, and the three cards still add up to the scoreboard. LIVE does not take either test.
 - Pin: `agents.test.js`, "says what each total covers". Leaving a test out fails it. The sweep is 300 checks, green, on the bundle this commit ships (`app-9c918eb5.js`). No strategy row, rule or live state was written.
 
+### [2026-09-24 23:40 UTC] Platform: Cursor | Model: Grok 4.7
+
+**PR5's per-minute writer is in the tree and stays unpushed until after the 00:00 close.** `quotes.ts` writes
+`agent_quote_minutes` after the decision, inside a try: a missing table reports `minute record:` and does not roll
+the minute back. `fxAt` and `fairUAt` are the close and the median of `fxBarAt` and `fairHours`, so the values the
+rule sees are unchanged. Pinned in `quotes.test.ts`: the first evening (2026-09-23 15:09–18:30, `first_evening_fixture`)
+decides the same trips, prints, inputs, events and state with the table and without it, and each book's orders and
+refusals match production's counts and ticks; an order's recorded X, fair and bar are the ones it was priced from.
+Full gates on this tree: `GATES_EXIT=0` (`/tmp/gates9.log`), deno 533 passed, including both new tests. This commit
+is not pushed until 00:03 UTC or later, and only after the 00:00 bar has four `trend-4h-live` decisions. The first
+recorded minute is written into the ledger once the rows exist. Adversarial read of the previous model's engine
+diff: the record is built from the same bar and window `stepMinute` is given, and it is not an input to the rule.
+
 ### [2026-09-24 23:34 UTC] Platform: Cursor | Model: Grok 4.7
 
 **G4a closed: the redesign is on main, production serves that bundle, the LIVE tab matches the database, and `agents-live-testing` is gone.**

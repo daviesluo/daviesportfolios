@@ -4,7 +4,9 @@
 // It is a notebook, like the maker probes: it never calls a venue's order endpoints, never writes `agent_orders`,
 // and no position, exposure, cap or P&L of the strategy rows reads it. Its own tables (`0051`) hold every input it
 // read — each print, each minute's GBP/USD, each hour's USD-book close — beside what it concluded, so the frozen
-// simulator can replay the four weeks and say whether the loop ran the rule it was tested on.
+// simulator can replay the four weeks and say whether the loop ran the rule it was tested on. Each fetch re-writes the
+// GBP/USD and hourly rows it returns, so since `0055` every decided minute also writes down the X and fairU it was
+// given (`agent_quote_minutes`), which no later fetch touches.
 //
 // `stepMinute` is `simulate()` in docs/agents/scripts/pr5/pr5_sim.py (frozen with PR5's pre-registration), one
 // minute at a time: the turn at the start of minute t on data up to t−1, the go-live check at the start of t, the
@@ -83,12 +85,17 @@ export function through(side: Side, ticks: number, printTicks: number): boolean 
   return side === "bid" ? printTicks < ticks : printTicks > ticks;
 }
 
-/** GBP/USD for the turn at `t`: the latest minute close whose bar started in [t−10 min, t−1 min]; null means dark. */
-export function fxAt(t: number, bars: Array<[number, number]>): number | null {
+/** The GBP/USD bar the turn at `t` reads: the latest whose minute started in [t−10 min, t−1 min]; null means dark. */
+export function fxBarAt(t: number, bars: Array<[number, number]>): [number, number] | null {
   let lo = 0, hi = bars.length;                       // the last bar starting at or before t − 1 min
   while (lo < hi) { const mid = (lo + hi) >> 1; if (bars[mid][0] <= t - M) lo = mid + 1; else hi = mid; }
   const k = lo - 1;
-  return k >= 0 && bars[k][0] >= t - QUOTE_FX_LOOKBACK_MS ? bars[k][1] : null;
+  return k >= 0 && bars[k][0] >= t - QUOTE_FX_LOOKBACK_MS ? bars[k] : null;
+}
+
+/** GBP/USD for the turn at `t`: the close of that bar; null means dark. */
+export function fxAt(t: number, bars: Array<[number, number]>): number | null {
+  return fxBarAt(t, bars)?.[1] ?? null;
 }
 
 /** `statistics.median`: the middle value, or the mean of the two middle values. */
@@ -98,9 +105,14 @@ export function median(xs: number[]): number | null {
   return n % 2 ? a[(n - 1) / 2] : (a[n / 2 - 1] + a[n / 2]) / 2;
 }
 
-/** The USD book's fair for the turn at `t`: the median close of the hourly candles lying wholly inside [t−24 h, t). */
+/** The USD book's hourly closes the turn at `t` reads: the candles lying wholly inside [t−24 h, t). */
+export function fairHours(t: number, hours: Array<[number, number]>): number[] {
+  return hours.filter(([s]) => s >= t - DAY && s <= t - H).map(([, c]) => c);
+}
+
+/** The USD book's fair for the turn at `t`: the median of those closes. */
 export function fairUAt(t: number, hours: Array<[number, number]>): number | null {
-  return median(hours.filter(([s]) => s >= t - DAY && s <= t - H).map(([, c]) => c));
+  return median(fairHours(t, hours));
 }
 
 function close(s: BookState, r: Rung, t: number, px: number, how: "maker" | "taker", exitPrintId: string | null, trips: Trip[]) {
@@ -218,13 +230,22 @@ export type QuoteState = {
 };
 export type QuoteReport = {
   skipped?: string; minutes: number; from: number | null; to: number | null; prints: number; fills: number; exits: number;
-  stops: number; orders: number; refused: number; snapshots: number; errors: string[];
+  stops: number; orders: number; refused: number; snapshots: number; recorded: number; errors: string[];
 };
 export type QuoteDeps = { db: Db; fetch?: typeof fetch; now: number; holder: string; pause?: (ms: number) => Promise<void> };
 
 const iso = (ms: number) => new Date(ms).toISOString();
 const msOf = (v: unknown) => typeof v === "number" ? v : Date.parse(String(v));
 const minuteOf = (ms: number) => Math.floor(ms / M) * M;
+
+/** A row of `agent_quote_minutes` (`0055`): what one book's minute was decided on, never what it concluded. */
+export type MinuteRecord = {
+  book: QuoteBook; minute: string; x: number | null; x_t: string | null; fair_u: number | null; hours_n: number; prints_n: number;
+};
+/** The record of the inputs `stepMinute` was given: its own X and fairU, the bar X came from, how many closes fairU took. */
+export function minuteRecord(book: QuoteBook, t: number, bar: [number, number] | null, hoursN: number, inp: MinuteInputs): MinuteRecord {
+  return { book, minute: iso(t), x: inp.x, x_t: bar ? iso(bar[0]) : null, fair_u: inp.fairU, hours_n: hoursN, prints_n: inp.prints.length };
+}
 
 type TradeRow = { id: string; symbol: string; price: string; quantity: string; timestamp: number; region: string; side: string };
 
@@ -281,7 +302,7 @@ export async function fetchHours(usdBook: string, now: number, call: (path: stri
  * have been accepted. Nothing here can place an order: the only Revolut X calls are public reads.
  */
 export async function runQuotes(d: QuoteDeps): Promise<QuoteReport> {
-  const report: QuoteReport = { minutes: 0, from: null, to: null, prints: 0, fills: 0, exits: 0, stops: 0, orders: 0, refused: 0, snapshots: 0, errors: [] };
+  const report: QuoteReport = { minutes: 0, from: null, to: null, prints: 0, fills: 0, exits: 0, stops: 0, orders: 0, refused: 0, snapshots: 0, recorded: 0, errors: [] };
   const f = d.fetch ?? fetch;
   const pause = d.pause ?? ((ms: number) => new Promise((res) => setTimeout(res, ms)));
   const held = await d.db.claim("agent_locks", `name=eq.quotes&lease_until=lt.${encodeURIComponent(iso(d.now))}`, { lease_until: iso(d.now + QUOTE_LEASE_MS), holder: d.holder });
@@ -339,7 +360,7 @@ export async function runQuotes(d: QuoteDeps): Promise<QuoteReport> {
     if (horizon < first) { report.errors.push("prints not read far enough to decide a minute"); await saveState(d, st); return report; }
     const fxRows = await d.db.selectAll<{ t: string; value: number }>("agent_quote_inputs", `kind=eq.fx&t=gte.${encodeURIComponent(iso(first - QUOTE_FX_LOOKBACK_MS))}&t=lte.${encodeURIComponent(iso(horizon))}&select=t,value&order=kind.asc,t.asc`);
     const fxBars = fxRows.map((r) => [msOf(r.t), Number(r.value)] as [number, number]);
-    const trips: Trip[] = [], events: QuoteEvent[] = [];
+    const trips: Trip[] = [], events: QuoteEvent[] = [], minutes: MinuteRecord[] = [];
     for (const b of QUOTE_BOOKS) {
       const usd = QUOTE_USD_BOOK[b];
       const hRows = await d.db.selectAll<{ t: string; value: number }>("agent_quote_inputs", `kind=eq.${encodeURIComponent(`fair:${usd}`)}&t=gte.${encodeURIComponent(iso(first - DAY))}&t=lte.${encodeURIComponent(iso(horizon))}&select=t,value&order=kind.asc,t.asc`);
@@ -350,7 +371,10 @@ export async function runQuotes(d: QuoteDeps): Promise<QuoteReport> {
       for (let t = first; t <= horizon; t += M) {
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { if (prints[j].ts >= t) mine.push(prints[j]); j++; }
-        const out = stepMinute(st.books[b], t, { x: fxAt(t, fxBars), fairU: fairUAt(t, hours), prints: mine });
+        const bar = fxBarAt(t, fxBars), window = fairHours(t, hours);
+        const inp: MinuteInputs = { x: bar ? bar[1] : null, fairU: median(window), prints: mine };
+        const out = stepMinute(st.books[b], t, inp);
+        minutes.push(minuteRecord(b, t, bar, window.length, inp));
         trips.push(...out.trips); events.push(...out.events); report.orders += out.orders;
       }
     }
@@ -362,6 +386,12 @@ export async function runQuotes(d: QuoteDeps): Promise<QuoteReport> {
     // Idempotent by their natural keys: a run that dies after this point re-decides the same minutes the same way.
     if (events.length) await d.db.upsert("agent_quote_events", events.map(eventRow), "book,minute,side,k,kind");
     if (trips.length) await d.db.upsert("agent_quote_trips", trips.map(tripRow), "book,side,k,t_entry");
+    // The inputs each minute was decided on. A record, never a condition: a minute it cannot write is decided all the same,
+    // and the gap is reported.
+    try {
+      if (minutes.length) await d.db.upsert("agent_quote_minutes", minutes, "book,minute");
+      report.recorded = minutes.length;
+    } catch (e) { report.errors.push(`minute record: ${msg(e)}`); }
     st.lastMinute = horizon;
     // Caught up: the orders placed in the minute just decided go live now. The book they meet is the evidence.
     if (horizon === nowMinute - M) {

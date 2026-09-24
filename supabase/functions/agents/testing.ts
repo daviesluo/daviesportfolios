@@ -12,11 +12,12 @@ export type Row = Record<string, unknown>;
 
 const ORDER_STATES = ["pending", "new", "partially_filled", "filled", "cancelled", "rejected"];
 const PROBE_STATES = ["resting", "filled", "expired"];
-/** The paper quote test's tables as 0051 creates them: their columns, and the unique key each upsert names. */
+/** The paper quote test's tables as 0051 and 0055 create them: their columns, and the unique key each upsert names. */
 const QUOTE_TABLES: Record<string, { columns: string[]; key: string }> = {
   agent_quote_state: { columns: ["id", "state", "last_minute", "updated_at", "last_error"], key: "id" },
   agent_quote_prints: { columns: ["id", "book", "ts", "price", "qty", "side"], key: "id" },
   agent_quote_inputs: { columns: ["kind", "t", "value"], key: "kind,t" },
+  agent_quote_minutes: { columns: ["book", "minute", "x", "x_t", "fair_u", "hours_n", "prints_n", "recorded_at"], key: "book,minute" },
   agent_quote_events: { columns: ["book", "minute", "side", "k", "kind", "ticks", "detail"], key: "book,minute,side,k,kind" },
   agent_quote_trips: {
     columns: ["book", "side", "k", "t_entry", "fill_ts", "fill_print_id", "entry", "qty", "x_entry", "fair_entry", "entry_oid", "t_exit", "exit", "how",
@@ -105,6 +106,13 @@ export function schemaRefusal(table: string, r: Row): string | null {
     }
     if (table === "agent_quote_inputs") {
       return notNull(["kind", "t", "value"]) ?? check("kind", ["fx", "fair:USDC-USD", "fair:USDT-USD"].includes(String(r.kind))) ?? check("value", Number(r.value) > 0);
+    }
+    if (table === "agent_quote_minutes") {
+      return notNull(["book", "minute", "hours_n", "prints_n"]) ?? check("book", QUOTE_BOOKS_OK.includes(String(r.book)))
+        ?? check("x", r.x === null || r.x === undefined || Number(r.x) > 0)
+        ?? check("fair_u", r.fair_u === null || r.fair_u === undefined || Number(r.fair_u) > 0)
+        ?? check("hours_n", Number.isInteger(Number(r.hours_n)) && Number(r.hours_n) >= 0)
+        ?? check("prints_n", Number.isInteger(Number(r.prints_n)) && Number(r.prints_n) >= 0);
     }
     if (table === "agent_quote_events") {
       return notNull(["book", "minute", "side", "k", "kind", "detail"]) ?? check("book", QUOTE_BOOKS_OK.includes(String(r.book)))
