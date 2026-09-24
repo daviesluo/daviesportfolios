@@ -14,12 +14,20 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-00000000000000. **HANDOVER, 2026-09-24 ~20:30 UTC: the next sessions (Cursor: Opus 5.5 and Grok 4.7) — goals and plan,
-   in priority order.** Everything is committed and pushed (`main` at the commit that adds this item; CI green on
-   `9f3e8a6`, the last code commit). Read `.claude/CLAUDE.md`, the working-with-davies skill and this list first; reply to
-   Davies in Chinese; commit as daviesluo; run `sh bin/gates.sh` before every push; the ledger line goes in the same
-   commit. Nothing below needs a new strategy or a new study: the work is running things that exist and deciding them
-   by their pre-registered bars.
+00000000000000. **HANDOVER, 2026-09-24 ~20:30 UTC: ONE Cursor session on this repository, rotating between Opus 5.5 and
+   Grok 4.7 — goals and plan, in priority order.** Everything is committed and pushed (`main` at the commit that adds
+   this item; CI green on `9f3e8a6`, the last code commit). Read `.claude/CLAUDE.md`, the working-with-davies skill and
+   this list first; reply to Davies in Chinese; commit as daviesluo; run `sh bin/gates.sh` before every push; the
+   ledger line goes in the same commit. Nothing below needs a new strategy or a new study: the work is running things
+   that exist and deciding them by their pre-registered bars.
+   - **Rotation (Davies switches the model inside the one session).** The model that is about to be switched away
+     from cannot know it, so every turn ends in a state the other model can pick up: work lands as small COMPLETE
+     commits, each with its ledger line, pushed; nothing is left half-edited in the tree at the end of a turn. A model
+     that finds itself newly active (or is told "切换了") first runs `git status` and `git log -5`, then re-reads this
+     item and the newest history section before touching anything; anything uncommitted it did not write is shown to
+     Davies, not discarded. Each history section's source header names the model that did the work
+     (`Platform: Cursor | Model: Opus 5.5` or `Grok 4.7`). The first thing a newly active model does with the other's
+     latest code commit is read its diff adversarially — the two models reviewing each other is the point of rotating.
    - **G1 — keep RW's paper test healthy, daily (item 000000000000).** It runs by itself (cron `agents-pmrw-every-minute`,
      `agents-pmrw-select`). Once a day read §4 item 36's R1–R5, or the Agents page ("Reward quotes" → its page):
      `pm_rw_state.last_error` empty and `last_minute` within ~3 min; today's `pm_rw_selection` present by ~00:05 UTC;
@@ -759,6 +767,13 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 20:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The handover is to one Cursor session, not two** (item 00000000000000). Davies: a single session on this repository,
+in which he switches between Opus 5.5 and Grok 4.7. The item now says so and adds the rotation rule: end every turn
+committed and pushed with its ledger line, and a newly active model checks `git status` / `git log`, re-reads the
+handover and reviews the other model's latest code commit before working.
 
 ### [2026-09-24 20:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
