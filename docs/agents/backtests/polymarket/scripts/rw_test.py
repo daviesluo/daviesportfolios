@@ -163,7 +163,8 @@ def run_market(mk, window_end, n_mult=1.0, reward_mult=1.0, tick_worse=0):
                 continue
             acc.append(((later - px) if sd == "bid" else (px - later)) * qf)
     return {"reward": reward * reward_mult, "fill_pnl": fill_pnl, "total": reward * reward_mult + fill_pnl,
-            "fills": len(fills), "fill_shares": sum(f[3] for f in fills), "net_end": net, "resolved": resolved,
+            "fills": len(fills), "fill_shares": sum(f[3] for f in fills), "net_end": net, "resolved": resolved, "mark": mark,
+            "first_fills": [[f[0], f[1], round(f[2], 6), round(f[3], 6), f[4]] for f in fills[:5]],
             "capital": (first_cap or 0.0) + max_inv_cost, "first_cap": first_cap or 0.0, "quoted_minutes": quoted_minutes,
             "markout5_usd": sum(mo5), "markout60_usd": sum(mo60)}
 

@@ -211,6 +211,11 @@ def evaluate(trades, h):
     worst = sorted(oos + by_w["IS"], key=lambda c: pnl(c))[:12]
     res["largest_losses"] = [{"q": c["q"], "window": window(c["end"]), "pf": r6(c["pf"]), "payout": c["payout"],
                               "pnl": r6(pnl(c)), "cat": c["cat"], "cond": c["cond"]} for c in worst]
+    # a fixed sample of OOS trades with their fills, for re-deriving by hand from the raw prints
+    rng = random.Random(SEED + 1)
+    pick = rng.sample(oos, min(20, len(oos))) if oos else []
+    res["sample_trades"] = [{"cond": c["cond"], "fav": c["fav"], "pf": r6(c["pf"]), "payout": c["payout"], "r": c["r"], "tick": c["tick"],
+                             "fills": [[t, r6(px), r6(q)] for t, px, q in c["fills"]], "pnl": r6(pnl(c))} for c in pick]
     return res
 
 

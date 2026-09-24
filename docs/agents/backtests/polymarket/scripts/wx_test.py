@@ -168,7 +168,7 @@ def decide(events, fits, edge, stake):
             continue
         counts["traded"] += 1
         payout = m["payout_yes"] if fav == 0 else 1.0 - m["payout_yes"]
-        trades.append({"event": e["event"], "city": e["city"], "date": e["date"], "hl": e["hl"], "window": w, "side": "YES" if fav == 0 else "NO",
+        trades.append({"event": e["event"], "cond": m["cond"], "city": e["city"], "date": e["date"], "hl": e["hl"], "window": w, "side": "YES" if fav == 0 else "NO",
                        "edge": e_, "pi": pi, "p": m["p"], "fills": fills, "first": fills[0][0], "closed": m["closed"], "tick": tick,
                        "payout": payout, "model": list(key)})
     return trades, dict(counts), brier
@@ -272,6 +272,12 @@ def main():
         out[f"edge_{thr}"] = {k: r[k] for k in ("IS", "OOS1", "OOS2", "OOS", "stress_OOS_pnl", "null", "bar", "passes")}
     out["largest_losses"] = [{k: (r6(v) if isinstance(v, float) else v) for k, v in t.items() if k != "fills"}
                              for t in sorted((t for t in trades if t["window"] != "IS"), key=pnl)[:10]]
+    # a fixed sample of OOS trades with their fills, for re-deriving by hand from the raw prints
+    oos_t = [t for t in trades if t["window"] != "IS"]
+    pick = random.Random(SEED + 1).sample(oos_t, min(20, len(oos_t))) if oos_t else []
+    out["sample_trades"] = [{"event": t["event"], "cond": t["cond"], "city": t["city"], "date": t["date"], "side": t["side"], "p": r6(t["p"]), "pi": r6(t["pi"]),
+                             "payout": t["payout"], "tick": t["tick"], "fills": [[a, r6(b), r6(c)] for a, b, c in t["fills"]], "pnl": r6(pnl(t))}
+                            for t in pick]
     with open(outp, "w") as f:
         json.dump(out, f, sort_keys=True, indent=1)
     print(json.dumps({"passes": res["passes"], "bar": res["bar"], "IS": res["IS"], "OOS": res["OOS"], "null": res["null"],
