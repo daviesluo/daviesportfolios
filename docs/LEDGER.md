@@ -42,15 +42,26 @@ list stays the short version; the plan is the reasoning behind it.
      account; `_shared/polymarket.ts` stays GET-only until the design is agreed. The design says: order signing (the
      CLOB's EIP-712 orders and L2 headers), a dry-run first, caps, the kill switch, reconciliation by order id, and
      reading the account's actual reward payouts to compare with the formula — the one thing paper cannot show.
-   - **G4 — trend-4h live at $50: waits on Davies' "开"** (item 000000000). On his word: move
+   - **G4 — trend-4h live at $50: VERIFIED READY 2026-09-24 20:34 UTC; Davies said go once verified; the move itself
+     is pending** (item 000000000). In the Claude Code session the move below was refused by the tool's permission
+     layer (it is the act of going live), so it is Davies' to allow or to run himself. The verification: paper
+     `trend-4h` healthy (30 decisions in 24 h, the last at 20:00, flat after its three exits) with params identical to
+     the draft's; `ops_errors` only four transient timeouts, each handled (nothing placed that turn); the read-only
+     probe — key `pkcs8-b64`, no active orders, BTC/ETH/SOL/AVAX `active` on the UK book (2.9–10.6 bps), the
+     sub-account holding USD only and at least $51; `global_pause` false, `live_confirmed_at` null; the draft's
+     INSERT checked against every constraint of `agent_strategies` (kind, venue, signal venue, mode, capital, NOT
+     NULLs, no trigger). The steps, unchanged: move
      `docs/agents/go_live.sql.draft` to `supabase/migrations/0054_go_live.sql` (0053 is RW's), push, read the
      `migrations.yml` run, arm `live_confirmed_at` in that conversation, confirm the first live order with him, and have
      the first buy read back by a person before its exit. He funds ≥ ~$51 USD in the Revolut X sub-account first. Never
      trade by hand in that account.
-   - **G5 — PR5 (GBP stablecoin quotes): paper and dry-run keep running; the four-week review is on 2026-10-21**
-     (items 00000000000, 000000000 §2). Before then: watch the dry-run against the paper engine with §4 item 35's
-     L1–L5 (L3 empty, L4 only guarded minutes) and reconcile the ~9 % order shortfall minute by minute. Live stays a
-     NO-GO until the review; going live is one statement on Davies' word.
+   - **G5 — PR5 (GBP stablecoin quotes): NOT ready for live (checked 2026-09-24 20:35 UTC); the four-week review is
+     on 2026-10-21** (items 00000000000, 000000000 §2). The paper engine and the dry-run are healthy (no error), but
+     after ~29 h the paper test has 0 round trips (3 fills), and **L3 is not empty: 2 dry-run entries sit 1 and 4
+     ticks below the paper order they carry out** (id 4, USDT-GBP bid 0.7544 against 0.7545, refused on its first
+     minute because the paper bid was above the live ask; id 108, USDT-GBP bid 0.7543 against 0.7547, 12:44 UTC).
+     Explain id 108 (a re-price against the live book, or a defect) before anything else, and reconcile the ~9 %
+     order shortfall minute by minute. Live stays a NO-GO until the review; going live is one statement on his word.
    - **G6 — Davies' own housekeeping (not an agent's):** delete the 75 stale branches (item 0000000000000); delete the
      one-off `pm-geo-probe` Edge Function in the Supabase dashboard; keep the Polymarket wallet empty or small.
    - **Where things are:** RW — `agents/pmrw.ts` (engine), `agents/pmrw_view.ts` (page summary), `_shared/polymarket_public.ts`
@@ -767,6 +778,15 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 20:38 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The two Revolut X candidates, verified** (handover G4, G5). Davies: verify the two strategies that were being
+prepared and go live if nothing is wrong. **trend-4h at $50: every check passes** (paper row, params, probe, funding,
+constraints — the list is in G4); moving the draft to `0054_go_live.sql` was refused by this session's permission
+layer, so the move waits on Davies. **PR5: not ready** — no round trip yet, and L3 has two dry-run entries below
+their paper orders (G5); it stays on paper and dry-run until its 2026-10-21 review. The Agents page redesign he asked
+for (LIVE and TESTING as two switchable views at the top) follows the go-live, and is not started.
 
 ### [2026-09-24 20:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
