@@ -8,6 +8,7 @@
 //   D8 a fill read back without total_fee / fee_currency settles with the schedule's fee, recorded as derived
 //   D9 every marketable order records the touch it was priced from and that quote's age, paper and live
 //   D10 a lease claim the database does not answer ends the turn with a note, not a crash
+//   D11 a coin fee reported finer than the base step leaves no sub-step remainder in the book
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { highWaterSince, positionFromFills, type Candle } from "../_shared/agents_strategy.ts";
 import { krakenVenue } from "../_shared/kraken.ts";
@@ -183,6 +184,57 @@ Deno.test("D4 — a buy fee taken in BTC is booked net: the floor's exit leaves 
   const orders = mem.tables.agent_orders.length;
   for (const k of [3, 4, 5]) await at(BAR0 + k * FOUR_H + ONE_M);
   assert(mem.tables.agent_orders.length > orders, "the rule entered again");
+});
+
+Deno.test("D11 — a coin fee reported finer than the base step leaves no sub-step remainder in the book: flat after the exit, and the rule enters again", async () => {
+  // D4's double rounds the coin fee to 8 decimals, the base step, so it never met the case the reference leaves open: a
+  // 9 bps fee is not a whole number of steps, and a venue that reports it at full precision makes gross − fee fall
+  // between two steps. The exit can sell only the step below; the remainder read "long" for good.
+  const BAR0 = Date.parse("2026-09-23T04:00:00Z");
+  let now = BAR0 + 5 * ONE_M;
+  const mem = memDb({ agent_risk: [RISK], agent_strategies: [{ ...LIVE, capital_usd: 12.5 } as unknown as Row], agent_orders: [], agent_decisions: [], agent_observations: [],
+    agent_maker_probes: [], agent_candles: [], agent_locks: [{ name: "tick", lease_until: "1970-01-01T00:00:00.000Z", holder: null }] }, { now: () => now + 5_000 });
+  const rx = new FakeRevx(() => now), kr = new FakeKraken(() => now);
+  const inner = rx.fetch;
+  rx.fetch = async (input, init) => {
+    const p = new URL(String(input)).pathname, m = (init?.method ?? "GET").toUpperCase();
+    const before = new Set(rx.orders.keys());
+    const res = await inner(input, init);
+    if (p === "/api/1.0/orders" && m === "POST") {
+      for (const [id, o] of rx.orders) if (!before.has(id) && o.side === "buy" && o.status === "filled" && o.avg) {
+        const feeBase = Number(o.filled) * 0.0009;                      // full precision: 9 bps of the gross, as charged
+        rx.balances.BTC = (rx.balances.BTC ?? 0) - feeBase; rx.balances.USD += o.fee;
+        (o as unknown as { feeBase: number }).feeBase = feeBase;
+      }
+    }
+    if (m === "GET" && p.startsWith("/api/1.0/orders/") && p !== "/api/1.0/orders/active" && p !== "/api/1.0/orders/historical") {
+      const o = rx.orders.get(p.split("/").at(-1)!) as unknown as { side: string; feeBase?: number } | undefined;
+      if (o?.side === "buy" && o.feeBase != null) {
+        const j = await res.json();
+        j.data.total_fee = o.feeBase.toFixed(12); j.data.fee_currency = "BTC";
+        return new Response(JSON.stringify(j), { status: 200 });
+      }
+    }
+    return res;
+  };
+  const { privateKey } = await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair;
+  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch), kraken: krakenVenue(null, kr.fetch) };
+  const at = (t: number) => { now = t; return tick({ db: mem.db, venues, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({}), uuid: () => crypto.randomUUID() }); };
+  await at(BAR0 + 5 * ONE_M);                                        // entry, a $12.50 slot
+  await at(BAR0 + 6 * ONE_M);                                        // settled
+  const buy = (mem.tables.agent_orders as Row[]).find((o) => o.side === "buy")!;
+  const net = Number(buy.base_size) * (1 - 0.0009);
+  assert(Math.abs(net * 1e8 - Math.round(net * 1e8)) > 1e-3, "the fee must fall between two steps for this test to mean anything");
+  assertEquals(Number(buy.filled_base), Math.floor(net * 1e8) / 1e8);  // the book holds the sellable part
+  rx.shock["BTC/USD"] = 0.9;                                         // the floor fires on the bid
+  await at(BAR0 + 10 * ONE_M);
+  await at(BAR0 + 11 * ONE_M);
+  rx.shock["BTC/USD"] = 1;
+  assert((rx.balances.BTC ?? 0) < 1e-8, `the venue keeps under one step, as dust: ${rx.balances.BTC}`);
+  assertEquals(bookOf(mem.tables.agent_orders as Row[]).base, 0);    // the book is flat …
+  const orders = mem.tables.agent_orders.length;
+  for (const k of [3, 4, 5]) await at(BAR0 + k * FOUR_H + ONE_M);
+  assert(mem.tables.agent_orders.length > orders, "… and the rule entered again");
 });
 
 Deno.test("D5 — the trail counts the high of the bar the entry filled in, as the backtester does", () => {

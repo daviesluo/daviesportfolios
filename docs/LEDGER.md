@@ -575,6 +575,14 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 00:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**D11 landed: a live buy settles floored to its pair's base step** (S2's patch
+`p11_tick_settle_live_buy_to_the_base_step.diff` and its pin, applied unchanged on top of D8–D10). A coin fee reported
+at full precision left `gross − fee` between two steps and a remainder the exit could never sell. The pin failed
+without the tick patch (settled 0.031773937696 BTC against the 0.03177393 that can be sold) and passes with it.
+Deno: 456 passed, check clean. D12's fix and the $50 draft are next.
+
 ### [2026-09-24 00:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The docs follow the first-paint fix.** `.claude/CLAUDE.md` quotes the browser sweep's 242
