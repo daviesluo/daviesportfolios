@@ -575,6 +575,14 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 00:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The docs follow the first-paint fix.** `.claude/CLAUDE.md` quotes the browser sweep's 242
+checks, and the working-with-davies skill (all three copies) records the lesson it cost: the
+chart store's `ytd` and `maCache` stores never reached IndexedDB, and every unit test passed
+because the tests ran without it. The three first-paint commits were rebased onto `ea9fc39`
+(the S1–S3 merge); the ledger's history keeps every section, newest first.
+
 ### [2026-09-24 00:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **S1–S3 recorded in the reference as §3.30 (the BTC-regime filter, rejected), §3.31 (`trend-4h` at $50, D11 and D12)

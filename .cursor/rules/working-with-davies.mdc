@@ -392,6 +392,15 @@ the one in the screenshot.
 
 Read these as a checklist before pushing.
 
+- **A store that never reached the disk passed every test.** The chart
+  store's `ytd` and `maCache` object stores were never created: idb-keyval
+  makes a store only when its database is new, and all three stores shared
+  one database. From May to September the vs-S&P chart's bars and the
+  moving-average history lived in memory only, so every reload said
+  "Computing…" and then drew a flat line. Every unit test passed, because
+  the tests ran without IndexedDB. A cache is proven by reading it back
+  after a real reload in the browser sweep, not by a test that mocks the
+  storage.
 - **Rewiring a callback and dropping an argument.** A 5-argument call
   landed on a 4-parameter handler and `buyDate` vanished.
 - **Not asking where the default path lands.** Cancel and Esc were
