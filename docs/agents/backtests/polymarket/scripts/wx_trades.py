@@ -21,12 +21,14 @@ def main():
     ev = pmnet.load(os.path.join(pmnet.DATA, "wx", "events.json"))
     outdir = os.path.join(pmnet.DATA, "wx", "prints")
     os.makedirs(outdir, exist_ok=True)
+    # optional sharding (k of n) so several processes can walk disjoint events at once
+    k, n_sh = (int(sys.argv[1]), int(sys.argv[2])) if len(sys.argv) > 2 else (0, 1)
     n = 0
     for e in ev["events"]:
         if not (LO <= e["date"] < HI) or not e.get("station"):
             continue
         eid = str(e["event"])
-        if not eid.isdigit():
+        if not eid.isdigit() or int(eid) % n_sh != k:
             continue
         path = os.path.join(outdir, eid + ".json")
         if os.path.exists(path):

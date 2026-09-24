@@ -22,31 +22,41 @@ def main():
     uni = pmnet.load(os.path.join(pmnet.DATA, "fav", "universe.json"))
     path = os.path.join(pmnet.DATA, "fav", "prices.json")
     have = pmnet.load(path) if os.path.exists(path) else {}
-    groups = defaultdict(list)
+    items = []
     for m in uni:
         for h, td in m["tds"].items():
             if have.get(m["cond"], {}).get(h, "missing") != "missing":
                 continue
-            groups[int(td)].append((m["cond"], h, m["tokens"][0]))
-    todo = sorted(groups.items())
+            items.append((int(td), m["cond"], h, m["tokens"][0]))
+    items.sort()
+    # pack up to 20 (token, T_d) pairs whose decision times lie within six hours of each other into one request;
+    # each token still reads only its own window [T_d - 6 h, T_d]: points after its T_d are discarded unread
+    chunks, cur = [], []
+    for it in items:
+        if cur and (len(cur) >= 20 or it[0] - cur[0][0] > 6 * 3600 or any(x[3] == it[3] for x in cur)):
+            chunks.append(cur)
+            cur = []
+        cur.append(it)
+    if cur:
+        chunks.append(cur)
+    print("pairs", len(items), "requests", len(chunks), flush=True)
     done = 0
-    for td, items in todo:
-        for i in range(0, len(items), 20):
-            chunk = items[i:i + 20]
-            body = {"markets": [t for _, _, t in chunk], "start_ts": td - 6 * 3600, "end_ts": td, "fidelity": 60}
-            try:
-                d = pmnet.post(CLOB + "/batch-prices-history", body)
-            except RuntimeError as e:
-                print("error", td, str(e)[:200], flush=True)
-                continue
-            hist = d.get("history") or {}
-            for cond, h, tok in chunk:
-                pts = [p for p in (hist.get(tok) or []) if p.get("t") is not None and p["t"] <= td]
-                have.setdefault(cond, {})[h] = [pts[-1]["t"], pts[-1]["p"]] if pts else None
-            done += 1
-            if done % 200 == 0:
-                pmnet.dump(path, have)
-                print("requests", done, "groups left", len(todo), flush=True)
+    for chunk in chunks:
+        lo, hi = chunk[0][0], chunk[-1][0]
+        body = {"markets": [x[3] for x in chunk], "start_ts": lo - 6 * 3600, "end_ts": hi, "fidelity": 60}
+        try:
+            d = pmnet.post(CLOB + "/batch-prices-history", body)
+        except RuntimeError as e:
+            print("error", lo, str(e)[:200], flush=True)
+            continue
+        hist = d.get("history") or {}
+        for td, cond, h, tok in chunk:
+            pts = [p for p in (hist.get(tok) or []) if p.get("t") is not None and td - 6 * 3600 <= p["t"] <= td]
+            have.setdefault(cond, {})[h] = [pts[-1]["t"], pts[-1]["p"]] if pts else None
+        done += 1
+        if done % 200 == 0:
+            pmnet.dump(path, have)
+            print("requests", done, "of", len(chunks), flush=True)
     pmnet.dump(path, have)
     n = sum(len(v) for v in have.values())
     print("done", n, "prices", sum(1 for v in have.values() for x in v.values() if x))

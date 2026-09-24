@@ -732,6 +732,16 @@ an empty diff, or `--full` runs every gate. Checked on seven sample change lists
 repository map's `.claude/`, `.cursor/`, `.agents/` row is gone, and `.claude/CLAUDE.md`'s README rule says the map
 names no AI coding agent and no folder of theirs, so a later session does not put the row back.
 
+### [2026-09-24 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp4: negative-risk sets measured, and the pulls packed** (not pushed). Three sweeps of every negative-risk event's
+books 15 minutes apart (M5): a complete set's YES asks sum to 2.88 at the median (5th percentile 1.03); per sweep two
+sets pay to buy every YES and one or two to buy every NO after fees, the largest 12.5 ¢ on ten shares locked to
+2027-02; an augmented set's asks sum below 1 because its unlisted outcomes are missing, not as an arbitrage. FAV's
+and WX's price reads now pack twenty tokens a request (each still reads only its own window) and their print walks
+split across processes; the data is the same.
+
+
 ### [2026-09-24 03:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **fp4: the pulls survive a dropped connection and a short disk** (not pushed). A Gamma month died on an

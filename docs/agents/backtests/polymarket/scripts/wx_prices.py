@@ -27,19 +27,24 @@ def main():
     ev = pmnet.load(os.path.join(pmnet.DATA, "wx", "events.json"))
     path = os.path.join(pmnet.DATA, "wx", "prices.json")
     have = pmnet.load(path) if os.path.exists(path) else {}
-    n = 0
+    by_td = {}
     for e in ev["events"]:
         if not (LO <= e["date"] < HI) or not e.get("station"):
             continue
         td = t_decision(e["date"])
-        mk = [m for m in e["markets"] if m["cond"] not in have and m["start"] and m["closed"] and m["start"] < td < m["closed"]]
+        for m in e["markets"]:
+            if m["cond"] not in have and m["start"] and m["closed"] and m["start"] < td < m["closed"]:
+                by_td.setdefault(td, []).append(m)
+    n = 0
+    for td in sorted(by_td):
+        mk = by_td[td]  # every bucket of every event with this decision time (one date), 20 tokens a request
         for i in range(0, len(mk), 20):
             chunk = mk[i:i + 20]
             body = {"markets": [m["tokens"][0] for m in chunk], "start_ts": td - 6 * 3600, "end_ts": td, "fidelity": 60}
             try:
                 d = pmnet.post(CLOB + "/batch-prices-history", body)
             except RuntimeError as err:
-                print("error", e["date"], e["city"], str(err)[:120], flush=True)
+                print("error", td, str(err)[:120], flush=True)
                 continue
             hist = d.get("history") or {}
             for m in chunk:

@@ -61,6 +61,10 @@ def main():
         g["since"] = s if g["since"] is None else min(g["since"], s)
         g["conds"].add(m["cond"])
     todo = sorted(groups.items(), key=lambda kv: kv[0])
+    # optional sharding (k of n) so several processes can walk disjoint events at once; each writes its own files
+    if len(sys.argv) > 2:
+        k, n_sh = int(sys.argv[1]), int(sys.argv[2])
+        todo = [kv for i, kv in enumerate(todo) if i % n_sh == k]
     print("walks", len(todo), "markets", sum(len(g["conds"]) for _, g in todo), flush=True)
     n = 0
     for (kind, ident), g in todo:
