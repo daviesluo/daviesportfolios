@@ -867,6 +867,15 @@ with `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF`. It fails the job if eit
 skipping. The step comes out in the next commit once the live function list shows it gone. The other eleven functions
 are not named by the step.
 
+### [2026-09-24 23:14 UTC] Platform: Cursor | Model: Opus 5.5
+
+**PR5's per-minute input record: the table goes first, the engine after the 00:00 close** (G5; Davies: "这个你觉得需要
+的话就加上", relayed by the coordinator). `0055_quote_minutes.sql` adds `agent_quote_minutes`: per book and decided
+minute, X and the Yahoo bar it came from, the USD book's median and how many hourly closes it took, and the prints the
+minute was decided on. The migration is pushed alone, so the table exists before any code writes to it; the engine
+change that writes it follows in its own commit, deployed at 00:03 UTC or later, after the 00:00 close is decided,
+because `trend-4h-live` runs in the same `agents` function.
+
 ### [2026-09-24 22:57 UTC] Platform: Cursor | Model: Opus 5.5
 
 **trend-4h is live and armed; the watch is written; PR5 cannot be judged on its first round trips yet** (G4, G5).

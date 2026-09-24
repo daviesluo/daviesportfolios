@@ -653,6 +653,7 @@ before touching migration state.
 | `0052_live_quotes.sql` | Adds the live quote executor's tables (config, orders, events, state) and its lease; the config goes in in dry-run and unarmed. |
 | `0053_pm_rw_paper.sql` | Adds RW's paper test: its tables (state, selection, minutes, prints, fills, days, settlements), its two leases and its two cron jobs. |
 | `0054_go_live.sql` | Adds the first live row, `trend-4h-live` (Revolut X, BTC/ETH/SOL/AVAX, four equal slots), unarmed, and sets the live caps for its first round trip. |
+| `0055_quote_minutes.sql` | Adds PR5's per-minute record of the inputs each decided minute read: GBP/USD, the USD book's median, and the prints. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
