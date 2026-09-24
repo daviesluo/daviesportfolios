@@ -2672,7 +2672,7 @@ Davies asked for PR5's GBP stablecoin quotes to go live at $50 beside `trend-4h-
   "better than 8 %/yr" (about 93). At $50 the result would be a plumbing test earning two cents a day. Its capacity at
   $300–$1,000 rungs is a different decision.
 
-### 3.33 Polymarket from first principles: the account may not open a position, and FAV and WX fail (RW pending) (2026-09-24)
+### 3.33 Polymarket from first principles: the account may not open a position, FAV and WX fail, RW passes its forward bar (2026-09-24)
 
 Davies asked for a fourth independent search, this time on Polymarket, where he holds an account (§2d). A research
 agent ran it on public data only — no key, no signed call, nothing placed — with the earlier programmes' method:
@@ -2715,9 +2715,11 @@ concentrated in politics (2.7) and mentions (5.6); sports pays 50-50 on 11 games
 |---|---|---|---|---|
 | FAV | buy the 0.90–0.99 side a day before the scheduled end ($10, filled from prints only, the market's taker fee), hold to resolution; one event in four, 2025 in sample | −$292.15 on 2,282 trades (2026-01 → 09-10), −1.4 % a dollar; favourites won 95.1 % at 96.3 ¢; calibration null p95 +$106.96; stress −$351.35; a week before −$55.49, an hour before −$910.51 | **fails** (5 of 6 conditions) | would survive |
 | WX | the daily temperature buckets against Open-Meteo's 48-hour forecast (a normal error fitted on 2025 → 2026-02); buy the bucket's YES or NO the model calls 10 points mispriced at noon UTC the day before, $5 from prints, hold | −$1,589.09 on 5,336 trades (2026-03 → 09-10), −6.6 % a dollar; the market's own price out-forecasts the model on 106,666 buckets (Brier 0.064 against 0.075); null p95 +$98.95; stress −$2,161.48 | **fails** (5 of 6) | would survive |
-| RW | (pending: its forward window ends at 10:42 UTC) | | | would not |
+| RW | minimum-size quotes on both sides, a tick inside the touch, on the ten rewarded markets with the largest first-minute reward per dollar ($480); rewards by the published formula, fills only from prints strictly through, forward over the 268 minutes of 02:42–10:42 UTC that were recorded | +$46.61: rewards $50.92, fills −$4.31 on 38; stress +$13.78; resampled p5 +$21.78; every rewarded market +$1,189.88 on $131k | **passes** (6 of 6), on one day, with the formula's rewards | would not |
 
-(Findings and verdict pending RW.)
+**Verdict.** FAV and WX are not worth money from any account. RW passed its pre-registered forward bar, on 268 minutes
+of one day and with the rewards computed from the published formula; what Polymarket actually pays is visible only to
+an account that quotes, and whether this one may is the review's §0.
 
 ## 4. Design consequences (decided by the evidence above)
 

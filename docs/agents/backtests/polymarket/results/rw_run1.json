@@ -1,0 +1,1445 @@
+{
+ "T0": 1790217730.8930962,
+ "all_bottom10_total": [
+  {
+   "capital": 183.5,
+   "cond": "0xfdd1bc0ca980a8629fce549d4a717e81f158df32c4646662fb83bbefbbb14212",
+   "fill_pnl": -56.45,
+   "fill_shares": 200.0,
+   "fills": 4,
+   "first_cap": 49.7,
+   "first_fills": [
+    [
+     1790221550,
+     "ask",
+     0.073,
+     50.0,
+     1790221500
+    ],
+    [
+     1790221583,
+     "ask",
+     0.086,
+     50.0,
+     1790221560
+    ],
+    [
+     1790222121,
+     "ask",
+     0.108,
+     50.0,
+     1790222100
+    ],
+    [
+     1790237258,
+     "bid",
+     0.352,
+     50.0,
+     1790237220
+    ]
+   ],
+   "mark": 0.522,
+   "markout5_usd": -2.9,
+   "markout60_usd": -19.775,
+   "net_end": -100.0,
+   "q": "Will the 30-year Treasury yield hit 5.50% in September?",
+   "quoted_minutes": 212,
+   "resolved": false,
+   "reward": 0.094499,
+   "total": -56.355501
+  },
+  {
+   "capital": 156.035682,
+   "cond": "0x59ab98b0c9afaa3e3bb3af7ede68418da9378e2082330d0e95fc7b9c70c9ae13",
+   "fill_pnl": -43.233932,
+   "fill_shares": 288.052397,
+   "fills": 7,
+   "first_cap": 92.0,
+   "first_fills": [
+    [
+     1790218270,
+     "ask",
+     0.48,
+     100.0,
+     1790218260
+    ],
+    [
+     1790218606,
+     "ask",
+     0.47,
+     20.822041,
+     1790218560
+    ],
+    [
+     1790218885,
+     "ask",
+     0.54,
+     8.909091,
+     1790218860
+    ],
+    [
+     1790220661,
+     "bid",
+     0.81,
+     73.23,
+     1790220660
+    ],
+    [
+     1790220662,
+     "bid",
+     0.81,
+     8.9,
+     1790220660
+    ]
+   ],
+   "mark": 0.845,
+   "markout5_usd": 11.688009,
+   "markout60_usd": -43.233932,
+   "net_end": -88.052397,
+   "q": "Will the highest temperature in Shanghai be 28\u00b0C on September 24?",
+   "quoted_minutes": 7,
+   "resolved": false,
+   "reward": 0.563889,
+   "total": -42.670043
+  },
+  {
+   "capital": 321.48668,
+   "cond": "0x1f10b1f557ab254487c22a6b7cd4b4a3b14e561c0017bc6fc58bb81f306ad558",
+   "fill_pnl": -31.94219,
+   "fill_shares": 411.18,
+   "fills": 6,
+   "first_cap": 99.2,
+   "first_fills": [
+    [
+     1790232501,
+     "ask",
+     0.209,
+     6.18,
+     1790232480
+    ],
+    [
+     1790232911,
+     "ask",
+     0.209,
+     100.0,
+     1790232900
+    ],
+    [
+     1790233571,
+     "ask",
+     0.217,
+     100.0,
+     1790233560
+    ],
+    [
+     1790233893,
+     "ask",
+     0.274,
+     100.0,
+     1790233860
+    ],
+    [
+     1790241459,
+     "bid",
+     0.355,
+     100.0,
+     1790241420
+    ]
+   ],
+   "mark": 0.3295,
+   "markout5_usd": -8.10351,
+   "markout60_usd": -20.51853,
+   "net_end": -211.18,
+   "q": "Will the 10-year Treasury yield hit 5.5% before 2027?",
+   "quoted_minutes": 265,
+   "resolved": false,
+   "reward": 1.148351,
+   "total": -30.793839
+  },
+  {
+   "capital": 91.53,
+   "cond": "0x4328d00a7a59a47f92887992510105f6ec6799f5091ac010ba6718192fd99f04",
+   "fill_pnl": -26.72,
+   "fill_shares": 99.0,
+   "fills": 2,
+   "first_cap": 45.0,
+   "first_fills": [
+    [
+     1790219674,
+     "bid",
+     0.49,
+     49.0,
+     1790219640
+    ],
+    [
+     1790220039,
+     "bid",
+     0.47,
+     50.0,
+     1790220000
+    ]
+   ],
+   "mark": 0.21,
+   "markout5_usd": -2.235,
+   "markout60_usd": -6.92,
+   "net_end": 99.0,
+   "q": "Will Dee Valladares come in third-place on Big Brother season 28?",
+   "quoted_minutes": 185,
+   "resolved": false,
+   "reward": 0.996387,
+   "total": -25.723613
+  },
+  {
+   "capital": 64.4,
+   "cond": "0xbe3c6c9e316ca81720170f7a4f2dcfdae5b154d277384ea4df1af9276b04ea55",
+   "fill_pnl": -26.2,
+   "fill_shares": 130.0,
+   "fills": 5,
+   "first_cap": 39.6,
+   "first_fills": [
+    [
+     1790236211,
+     "ask",
+     0.55,
+     40.0,
+     1790236200
+    ],
+    [
+     1790238885,
+     "ask",
+     0.69,
+     30.0,
+     1790238840
+    ],
+    [
+     1790238887,
+     "ask",
+     0.69,
+     10.0,
+     1790238840
+    ],
+    [
+     1790240532,
+     "ask",
+     0.75,
+     10.0,
+     1790240520
+    ],
+    [
+     1790245131,
+     "ask",
+     0.94,
+     40.0,
+     1790245080
+    ]
+   ],
+   "mark": 0.93,
+   "markout5_usd": -3.0,
+   "markout60_usd": -20.95,
+   "net_end": -130.0,
+   "q": "Will Gold (XAUUSD) hit (LOW) $4,250 Week of September 21 2026?",
+   "quoted_minutes": 245,
+   "resolved": false,
+   "reward": 0.570531,
+   "total": -25.629469
+  },
+  {
+   "capital": 137.633317,
+   "cond": "0xda6a522d537be7d9a2e70c6c033321d70e5a4c6b6b1833999f2b5c6430dc3608",
+   "fill_pnl": -28.238889,
+   "fill_shares": 72.815162,
+   "fills": 2,
+   "first_cap": 97.0,
+   "first_fills": [
+    [
+     1790219674,
+     "ask",
+     0.28,
+     56.435162,
+     1790219640
+    ],
+    [
+     1790222393,
+     "bid",
+     0.28,
+     16.38,
+     1790222340
+    ]
+   ],
+   "mark": 0.985,
+   "markout5_usd": 11.020024,
+   "markout60_usd": -27.638062,
+   "net_end": -40.055162,
+   "q": "Will the highest temperature in Tel Aviv be 31\u00b0C on September 24?",
+   "quoted_minutes": 76,
+   "resolved": false,
+   "reward": 3.08754,
+   "total": -25.151349
+  },
+  {
+   "capital": 300.74,
+   "cond": "0xb76ff311c0e983dbf7c4c937e660960f46c8e39f79e332c4380a55a29dbed4ab",
+   "fill_pnl": -26.776104,
+   "fill_shares": 1193.77974,
+   "fills": 16,
+   "first_cap": 98.0,
+   "first_fills": [
+    [
+     1790234426,
+     "ask",
+     0.68,
+     32.0,
+     1790234400
+    ],
+    [
+     1790237262,
+     "bid",
+     0.8,
+     100.0,
+     1790237220
+    ],
+    [
+     1790237387,
+     "bid",
+     0.81,
+     100.0,
+     1790237340
+    ],
+    [
+     1790237748,
+     "ask",
+     0.89,
+     50.0,
+     1790237700
+    ],
+    [
+     1790237844,
+     "bid",
+     0.93,
+     100.0,
+     1790237820
+    ]
+   ],
+   "mark": 0.755,
+   "markout5_usd": -15.255105,
+   "markout60_usd": -18.644704,
+   "net_end": 219.60026,
+   "q": "Will WTI Crude Oil (WTI) hit (HIGH) $95 in September?",
+   "quoted_minutes": 267,
+   "resolved": false,
+   "reward": 6.688907,
+   "total": -20.087197
+  },
+  {
+   "capital": 128.888743,
+   "cond": "0x9d06182b432157d3d69b4d9ed2e9cad7b7d71f144eb2f09a4c99edce1b9226e8",
+   "fill_pnl": -28.315913,
+   "fill_shares": 76.637802,
+   "fills": 3,
+   "first_cap": 99.0,
+   "first_fills": [
+    [
+     1790218241,
+     "ask",
+     0.56,
+     35.263158,
+     1790218200
+    ],
+    [
+     1790218243,
+     "ask",
+     0.56,
+     25.245613,
+     1790218200
+    ],
+    [
+     1790235779,
+     "ask",
+     0.61,
+     16.129031,
+     1790235720
+    ]
+   ],
+   "mark": 0.94,
+   "markout5_usd": 0.463834,
+   "markout60_usd": -6.754654,
+   "net_end": -76.637802,
+   "q": "Will the highest temperature in Jeddah be 36\u00b0C on September 24?",
+   "quoted_minutes": 165,
+   "resolved": false,
+   "reward": 10.377071,
+   "total": -17.938842
+  },
+  {
+   "capital": 35.589207,
+   "cond": "0x2fd49c961e87e2bd34ac92dd6e00855a094f094489531e4f8c049b86d5c83732",
+   "fill_pnl": -17.32682,
+   "fill_shares": 164.894351,
+   "fills": 13,
+   "first_cap": 19.4,
+   "first_fills": [
+    [
+     1790218142,
+     "bid",
+     0.28,
+     10.0,
+     1790218140
+    ],
+    [
+     1790218363,
+     "bid",
+     0.27,
+     6.737332,
+     1790218320
+    ],
+    [
+     1790218918,
+     "bid",
+     0.26,
+     1.333334,
+     1790218860
+    ],
+    [
+     1790219185,
+     "ask",
+     0.28,
+     20.0,
+     1790219160
+    ],
+    [
+     1790222520,
+     "ask",
+     0.4,
+     5.51,
+     1790222460
+    ]
+   ],
+   "mark": 0.985,
+   "markout5_usd": -12.469728,
+   "markout60_usd": -24.44438,
+   "net_end": -57.833019,
+   "q": "Will the highest temperature in Taipei be 32\u00b0C on September 24?",
+   "quoted_minutes": 108,
+   "resolved": false,
+   "reward": 1.542985,
+   "total": -15.783835
+  },
+  {
+   "capital": 84.04,
+   "cond": "0x30658ab6ea230ce90dc210d3f19b4631e8915749153e47c2f740f3dc528ac54e",
+   "fill_pnl": -15.7486,
+   "fill_shares": 119.51,
+   "fills": 4,
+   "first_cap": 38.8,
+   "first_fills": [
+    [
+     1790233154,
+     "ask",
+     0.61,
+     36.0,
+     1790233140
+    ],
+    [
+     1790233281,
+     "ask",
+     0.61,
+     40.0,
+     1790233260
+    ],
+    [
+     1790233353,
+     "ask",
+     0.61,
+     40.0,
+     1790233320
+    ],
+    [
+     1790240906,
+     "ask",
+     0.89,
+     3.51,
+     1790240880
+    ]
+   ],
+   "mark": 0.75,
+   "markout5_usd": 4.79175,
+   "markout60_usd": 5.1069,
+   "net_end": -119.51,
+   "q": "Will Rocket Lab USA, Inc. (RKLB) hit (LOW) $68 Week of September 21 2026?",
+   "quoted_minutes": 261,
+   "resolved": false,
+   "reward": 0.55106,
+   "total": -15.19754
+  }
+ ],
+ "all_by_category": {
+  "crypto_fees_v2": {
+   "capital": 1112.0,
+   "fill_pnl": -12.632233,
+   "fills": 10,
+   "markets": 22,
+   "reward": 6.117399,
+   "total": -6.514834
+  },
+  "culture_fees": {
+   "capital": 11185.493467,
+   "fill_pnl": -110.538448,
+   "fills": 349,
+   "markets": 320,
+   "reward": 268.805955,
+   "total": 158.267507
+  },
+  "economics_fees": {
+   "capital": 5471.632356,
+   "fill_pnl": -149.685138,
+   "fills": 152,
+   "markets": 111,
+   "reward": 101.601643,
+   "total": -48.083495
+  },
+  "finance_prices_fees": {
+   "capital": 14082.760951,
+   "fill_pnl": -180.266435,
+   "fills": 352,
+   "markets": 355,
+   "reward": 266.224709,
+   "total": 85.958273
+  },
+  "general_fees": {
+   "capital": 33.54,
+   "fill_pnl": 0.0,
+   "fills": 0,
+   "markets": 2,
+   "reward": 0.777166,
+   "total": 0.777166
+  },
+  "mentions_fees": {
+   "capital": 4593.586561,
+   "fill_pnl": -9.115404,
+   "fills": 65,
+   "markets": 154,
+   "reward": 215.399604,
+   "total": 206.2842
+  },
+  "none": {
+   "capital": 19028.916281,
+   "fill_pnl": -68.657288,
+   "fills": 221,
+   "markets": 195,
+   "reward": 117.365966,
+   "total": 48.708678
+  },
+  "politics_fees": {
+   "capital": 28452.312334,
+   "fill_pnl": -46.730093,
+   "fills": 312,
+   "markets": 795,
+   "reward": 363.674363,
+   "total": 316.94427
+  },
+  "sports_fees_v2": {
+   "capital": 4771.70657,
+   "fill_pnl": -2.504126,
+   "fills": 42,
+   "markets": 81,
+   "reward": 30.487377,
+   "total": 27.983252
+  },
+  "sports_fees_v3": {
+   "capital": 3093.25,
+   "fill_pnl": -7.9325,
+   "fills": 12,
+   "markets": 143,
+   "reward": 32.755483,
+   "total": 24.822983
+  },
+  "tech_fees": {
+   "capital": 10337.9605,
+   "fill_pnl": -70.512423,
+   "fills": 149,
+   "markets": 205,
+   "reward": 117.083101,
+   "total": 46.570678
+  },
+  "weather_fees": {
+   "capital": 20956.458201,
+   "fill_pnl": -277.879017,
+   "fills": 1992,
+   "markets": 420,
+   "reward": 554.844725,
+   "total": 276.965708
+  },
+  "zero_fees": {
+   "capital": 8254.8,
+   "fill_pnl": 0.0,
+   "fills": 0,
+   "markets": 18,
+   "reward": 51.198797,
+   "total": 51.198797
+  }
+ },
+ "all_markets": {
+  "capital": 131374.41722,
+  "fill_pnl": -936.453105,
+  "fills": 3656,
+  "markets": 2821,
+  "markout5_usd": -531.452848,
+  "markout60_usd": -788.554956,
+  "resolved_in_window": 18,
+  "reward": 2126.336289,
+  "total": 1189.883184
+ },
+ "all_top10_total": [
+  {
+   "capital": 108.4,
+   "cond": "0x9e7c7ce4522aeccff0933471a34b7018a8999c0bee9bc113931a9229367636a6",
+   "fill_pnl": 2.5,
+   "fill_shares": 20.0,
+   "fills": 2,
+   "first_cap": 97.0,
+   "first_fills": [
+    [
+     1790219566,
+     "ask",
+     0.43,
+     12.8,
+     1790219520
+    ],
+    [
+     1790219868,
+     "ask",
+     0.43,
+     7.2,
+     1790219820
+    ]
+   ],
+   "mark": 0.305,
+   "markout5_usd": 0.3,
+   "markout60_usd": 2.6,
+   "net_end": -20.0,
+   "q": "Democratic Senate odds 66-68% on September 25?",
+   "quoted_minutes": 268,
+   "resolved": false,
+   "reward": 28.068373,
+   "total": 30.568373
+  },
+  {
+   "capital": 34.8,
+   "cond": "0xf2b6e31c99027dff2c09ab41d86c80a758302c18488a5fc2a322936959eb5bb4",
+   "fill_pnl": 3.195241,
+   "fill_shares": 138.151864,
+   "fills": 12,
+   "first_cap": 19.6,
+   "first_fills": [
+    [
+     1790219446,
+     "bid",
+     0.76,
+     9.37,
+     1790219400
+    ],
+    [
+     1790219446,
+     "bid",
+     0.76,
+     10.0,
+     1790219400
+    ],
+    [
+     1790219447,
+     "bid",
+     0.76,
+     0.63,
+     1790219400
+    ],
+    [
+     1790234820,
+     "ask",
+     0.92,
+     20.0,
+     1790234760
+    ],
+    [
+     1790235612,
+     "ask",
+     0.93,
+     1.42,
+     1790235600
+    ]
+   ],
+   "mark": 0.735,
+   "markout5_usd": -2.762159,
+   "markout60_usd": 0.295641,
+   "net_end": 1.828136,
+   "q": "Will MrBeast's next video get between 60 and 61.25 million views on day 5?",
+   "quoted_minutes": 258,
+   "resolved": false,
+   "reward": 18.939979,
+   "total": 22.13522
+  },
+  {
+   "capital": 157.0,
+   "cond": "0xc50b5435e180f3656c023fd7cc0d9b75c2dfdf18e0928368db47d703490772c8",
+   "fill_pnl": 7.214283,
+   "fill_shares": 309.564098,
+   "fills": 12,
+   "first_cap": 98.0,
+   "first_fills": [
+    [
+     1790218132,
+     "bid",
+     0.59,
+     100.0,
+     1790218080
+    ],
+    [
+     1790219215,
+     "ask",
+     0.61,
+     1.946452,
+     1790219160
+    ],
+    [
+     1790219216,
+     "ask",
+     0.61,
+     5.0,
+     1790219160
+    ],
+    [
+     1790219219,
+     "ask",
+     0.61,
+     38.5,
+     1790219160
+    ],
+    [
+     1790219221,
+     "ask",
+     0.65,
+     15.797646,
+     1790219220
+    ]
+   ],
+   "mark": 0.64,
+   "markout5_usd": -0.245565,
+   "markout60_usd": -0.101888,
+   "net_end": -94.924098,
+   "q": "Will the highest temperature in Amsterdam be 18\u00b0C on September 24?",
+   "quoted_minutes": 184,
+   "resolved": false,
+   "reward": 12.32925,
+   "total": 19.543533
+  },
+  {
+   "capital": 30.3595,
+   "cond": "0x8ee19e132a963eff46435d8130e87633f1c036b8681c87fa2da89a1568b55bab",
+   "fill_pnl": 17.74275,
+   "fill_shares": 88.45,
+   "fills": 6,
+   "first_cap": 19.8,
+   "first_fills": [
+    [
+     1790219781,
+     "bid",
+     0.05,
+     18.45,
+     1790219760
+    ],
+    [
+     1790219793,
+     "ask",
+     0.5,
+     20.0,
+     1790219760
+    ],
+    [
+     1790233794,
+     "ask",
+     0.51,
+     20.0,
+     1790233740
+    ],
+    [
+     1790238471,
+     "bid",
+     0.13,
+     20.0,
+     1790238420
+    ],
+    [
+     1790239038,
+     "ask",
+     0.51,
+     5.0,
+     1790239020
+    ]
+   ],
+   "mark": 0.345,
+   "markout5_usd": 17.9185,
+   "markout60_usd": 17.916,
+   "net_end": -11.55,
+   "q": "Will the 5-year Treasury yield hit 5.07% in September?",
+   "quoted_minutes": 257,
+   "resolved": false,
+   "reward": 0.29587,
+   "total": 18.03862
+  },
+  {
+   "capital": 46.511,
+   "cond": "0xba906a5e6b422471686de494fbf6cdb2ff80ab1f65b3e991681cbc8b12abc110",
+   "fill_pnl": 13.414,
+   "fill_shares": 57.29,
+   "fills": 4,
+   "first_cap": 19.0,
+   "first_fills": [
+    [
+     1790233997,
+     "ask",
+     0.45,
+     14.0,
+     1790233980
+    ],
+    [
+     1790234234,
+     "ask",
+     0.4,
+     16.02,
+     1790234220
+    ],
+    [
+     1790235078,
+     "ask",
+     0.45,
+     20.0,
+     1790235060
+    ],
+    [
+     1790237862,
+     "bid",
+     0.2,
+     7.27,
+     1790237820
+    ]
+   ],
+   "mark": 0.16,
+   "markout5_usd": 9.25895,
+   "markout60_usd": 5.92005,
+   "net_end": -42.75,
+   "q": "Will the 10-year Treasury yield hit 5.20% in September?",
+   "quoted_minutes": 207,
+   "resolved": false,
+   "reward": 4.481818,
+   "total": 17.895818
+  },
+  {
+   "capital": 970.0,
+   "cond": "0x2b5e1ef7c41fc478fbc176ee9bf2f8090afb03fbc52f578adc547d35486d9afa",
+   "fill_pnl": 0.0,
+   "fill_shares": 0,
+   "fills": 0,
+   "first_cap": 970.0,
+   "first_fills": [],
+   "mark": 0.56,
+   "markout5_usd": 0,
+   "markout60_usd": 0,
+   "net_end": 0.0,
+   "q": "Bijan Robinson: Anytime Touchdown",
+   "quoted_minutes": 268,
+   "resolved": false,
+   "reward": 17.481284,
+   "total": 17.481284
+  },
+  {
+   "capital": 980.0,
+   "cond": "0xb580e295e234a89d8f02bc8bccb7bba468b9aedc14870e26930cfa36652a1e46",
+   "fill_pnl": 0.0,
+   "fill_shares": 0,
+   "fills": 0,
+   "first_cap": 980.0,
+   "first_fills": [],
+   "mark": 0.375,
+   "markout5_usd": 0,
+   "markout60_usd": 0,
+   "net_end": 0.0,
+   "q": "Christian Watson: Anytime Touchdown",
+   "quoted_minutes": 262,
+   "resolved": false,
+   "reward": 16.138585,
+   "total": 16.138585
+  },
+  {
+   "capital": 167.060812,
+   "cond": "0x5c25badbca7bfc4d72fcb1ffd6ed063df10e028ea8d7731d9fb75929db142705",
+   "fill_pnl": 13.735375,
+   "fill_shares": 97.41875,
+   "fills": 3,
+   "first_cap": 98.0,
+   "first_fills": [
+    [
+     1790219480,
+     "ask",
+     0.21,
+     10.0,
+     1790219460
+    ],
+    [
+     1790219669,
+     "ask",
+     0.21,
+     77.41875,
+     1790219640
+    ],
+    [
+     1790222349,
+     "bid",
+     0.23,
+     10.0,
+     1790222340
+    ]
+   ],
+   "mark": 0.03,
+   "markout5_usd": -4.359656,
+   "markout60_usd": 7.154781,
+   "net_end": -77.41875,
+   "q": "Will the highest temperature in Helsinki be 13\u00b0C on September 24?",
+   "quoted_minutes": 82,
+   "resolved": false,
+   "reward": 1.77056,
+   "total": 15.505935
+  },
+  {
+   "capital": 184.0,
+   "cond": "0x7b3fcc353a42ba1c0206b520d3b9bbfd881d277a578f7d350bfb1e4d2bbcb312",
+   "fill_pnl": 13.0,
+   "fill_shares": 400.0,
+   "fills": 10,
+   "first_cap": 98.0,
+   "first_fills": [
+    [
+     1790218705,
+     "ask",
+     0.15,
+     100.0,
+     1790218680
+    ],
+    [
+     1790222433,
+     "bid",
+     0.12,
+     50.0,
+     1790222400
+    ],
+    [
+     1790222537,
+     "bid",
+     0.12,
+     50.0,
+     1790222520
+    ],
+    [
+     1790222538,
+     "ask",
+     0.14,
+     8.563334,
+     1790222520
+    ],
+    [
+     1790222538,
+     "ask",
+     0.14,
+     16.356,
+     1790222520
+    ]
+   ],
+   "mark": 0.04,
+   "markout5_usd": 1.0,
+   "markout60_usd": 4.0,
+   "net_end": -0.0,
+   "q": "Will the highest temperature in Cape Town be 24\u00b0C on September 24?",
+   "quoted_minutes": 108,
+   "resolved": false,
+   "reward": 0.974173,
+   "total": 13.974173
+  },
+  {
+   "capital": 98.0,
+   "cond": "0x241217fb32e6b5883c848bc75b22e86ae73f6afa89d4be347d1429c725522eb4",
+   "fill_pnl": 0.0,
+   "fill_shares": 0,
+   "fills": 0,
+   "first_cap": 98.0,
+   "first_fills": [],
+   "mark": 0.425,
+   "markout5_usd": 0,
+   "markout60_usd": 0,
+   "net_end": 0.0,
+   "q": "Democratic Senate odds 64-66% on September 25?",
+   "quoted_minutes": 268,
+   "resolved": false,
+   "reward": 13.909196,
+   "total": 13.909196
+  }
+ ],
+ "bar": {
+  "1_total_pos": true,
+  "2_stress_pos": true,
+  "3_at_least_30_fills": true,
+  "4_not_one_market": true,
+  "5_bootstrap_p05_pos": true,
+  "6_beats_cash": true
+ },
+ "first_minute": 1790217720,
+ "hours": 8.0,
+ "passes": true,
+ "prereg": "reviews/2026-09-24-polymarket-fp4-prereg-rw-reward-quotes.md",
+ "primary": {
+  "best_market_total": 17.895818,
+  "bootstrap_p05": 21.782222,
+  "bootstrap_p50": 45.402465,
+  "capital": 480.458317,
+  "fill_pnl": -4.309062,
+  "fills": 38,
+  "markets": 10,
+  "markout5_usd": -4.882402,
+  "markout60_usd": -10.865665,
+  "resolved_in_window": 0,
+  "return_per_year_on_capital": 106.220616,
+  "reward": 50.915983,
+  "total": 46.606921
+ },
+ "primary_markets": [
+  {
+   "capital": 46.511,
+   "cat": "economics_fees",
+   "cond": "0xba906a5e6b422471686de494fbf6cdb2ff80ab1f65b3e991681cbc8b12abc110",
+   "ex_ante_per_dollar_day": 8.149401,
+   "fill_pnl": 13.414,
+   "fill_shares": 57.29,
+   "fills": 4,
+   "first_cap": 19.0,
+   "first_fills": [
+    [
+     1790233997,
+     "ask",
+     0.45,
+     14.0,
+     1790233980
+    ],
+    [
+     1790234234,
+     "ask",
+     0.4,
+     16.02,
+     1790234220
+    ],
+    [
+     1790235078,
+     "ask",
+     0.45,
+     20.0,
+     1790235060
+    ],
+    [
+     1790237862,
+     "bid",
+     0.2,
+     7.27,
+     1790237820
+    ]
+   ],
+   "mark": 0.16,
+   "markout5_usd": 9.25895,
+   "markout60_usd": 5.92005,
+   "net_end": -42.75,
+   "q": "Will the 10-year Treasury yield hit 5.20% in September?",
+   "quoted_minutes": 207,
+   "rate": 200.0,
+   "resolved": false,
+   "reward": 4.481818,
+   "total": 17.895818
+  },
+  {
+   "capital": 58.4,
+   "cat": "weather_fees",
+   "cond": "0x2910e3e4953ae08fcd879a796b75a3de3c1b87d2dc26e17f25b2cc9a1ba5b186",
+   "ex_ante_per_dollar_day": 2.925532,
+   "fill_pnl": -2.95,
+   "fill_shares": 60.0,
+   "fills": 5,
+   "first_cap": 18.8,
+   "first_fills": [
+    [
+     1790218768,
+     "ask",
+     0.27,
+     5.0,
+     1790218740
+    ],
+    [
+     1790218801,
+     "ask",
+     0.3,
+     5.0,
+     1790218800
+    ],
+    [
+     1790219314,
+     "ask",
+     0.26,
+     10.0,
+     1790219280
+    ],
+    [
+     1790220474,
+     "ask",
+     0.26,
+     20.0,
+     1790220420
+    ],
+    [
+     1790246378,
+     "ask",
+     0.34,
+     20.0,
+     1790246340
+    ]
+   ],
+   "mark": 0.34,
+   "markout5_usd": -0.35,
+   "markout60_usd": -2.25,
+   "net_end": -60.0,
+   "q": "Will NYC have between 3 and 4 inches of precipitation in September?",
+   "quoted_minutes": 267,
+   "rate": 55.0,
+   "resolved": false,
+   "reward": 1.402538,
+   "total": -1.547462
+  },
+  {
+   "capital": 72.205883,
+   "cat": "politics_fees",
+   "cond": "0x6d1e27b29897205f8387db29a54cb7afcbfaee117ed74d8277efaa5f9bccce3f",
+   "ex_ante_per_dollar_day": 2.504041,
+   "fill_pnl": -9.501786,
+   "fill_shares": 397.340337,
+   "fills": 10,
+   "first_cap": 47.5,
+   "first_fills": [
+    [
+     1790219330,
+     "bid",
+     0.29,
+     10.0,
+     1790219280
+    ],
+    [
+     1790219905,
+     "bid",
+     0.22,
+     40.0,
+     1790219880
+    ],
+    [
+     1790232494,
+     "ask",
+     0.16,
+     29.411765,
+     1790232480
+    ],
+    [
+     1790232632,
+     "ask",
+     0.16,
+     50.0,
+     1790232600
+    ],
+    [
+     1790234538,
+     "bid",
+     0.26,
+     50.0,
+     1790234520
+    ]
+   ],
+   "mark": 0.245,
+   "markout5_usd": -10.660231,
+   "markout60_usd": -15.421996,
+   "net_end": 102.659663,
+   "q": "Will the Trump and Xi handshake last 15 seconds or longer during their summit?",
+   "quoted_minutes": 265,
+   "rate": 156.11104,
+   "resolved": false,
+   "reward": 11.963225,
+   "total": 2.461439
+  },
+  {
+   "capital": 20.7388,
+   "cat": "tech_fees",
+   "cond": "0x16d45b2ab5298789f42cfa541629526f1717fa3da2f29b9d5c472728f52ff38d",
+   "ex_ante_per_dollar_day": 2.329594,
+   "fill_pnl": 3.038,
+   "fill_shares": 28.98,
+   "fills": 2,
+   "first_cap": 19.0,
+   "first_fills": [
+    [
+     1790220427,
+     "bid",
+     0.07,
+     14.98,
+     1790220420
+    ],
+    [
+     1790220620,
+     "bid",
+     0.06,
+     14.0,
+     1790220600
+    ]
+   ],
+   "mark": 0.17,
+   "markout5_usd": 0.3549,
+   "markout60_usd": 3.1829,
+   "net_end": 28.98,
+   "q": "Will the next Google Gemini Pro model be released by October 9, 2026?",
+   "quoted_minutes": 268,
+   "rate": 50.0,
+   "resolved": false,
+   "reward": 4.087088,
+   "total": 7.125088
+  },
+  {
+   "capital": 31.4,
+   "cat": "culture_fees",
+   "cond": "0xd8e745e048e7e7dd2bb24a425477ca49a947a5617ec0e607fbaf64108843a7f8",
+   "ex_ante_per_dollar_day": 2.150538,
+   "fill_pnl": -0.7,
+   "fill_shares": 20.0,
+   "fills": 1,
+   "first_cap": 18.6,
+   "first_fills": [
+    [
+     1790246186,
+     "ask",
+     0.36,
+     20.0,
+     1790246160
+    ]
+   ],
+   "mark": 0.395,
+   "markout5_usd": -0.7,
+   "markout60_usd": -0.7,
+   "net_end": -20.0,
+   "q": "Will \u201cBring Your Love\u201d by Madonna and Sabrina Carpenter win Best Collaboration at the 2026 MTV Video",
+   "quoted_minutes": 268,
+   "rate": 40.0,
+   "resolved": false,
+   "reward": 0.321751,
+   "total": -0.378249
+  },
+  {
+   "capital": 21.8,
+   "cat": "weather_fees",
+   "cond": "0x1dd7f04d922d5deaefe744bcb17aac031f8904426d98c0d0f60e53e0631fa4a9",
+   "ex_ante_per_dollar_day": 2.14431,
+   "fill_pnl": 2.341177,
+   "fill_shares": 15.147059,
+   "fills": 2,
+   "first_cap": 19.4,
+   "first_fills": [
+    [
+     1790218052,
+     "bid",
+     0.48,
+     5.0,
+     1790218020
+    ],
+    [
+     1790245772,
+     "ask",
+     0.66,
+     10.147059,
+     1790245740
+    ]
+   ],
+   "mark": 0.38,
+   "markout5_usd": 2.427206,
+   "markout60_usd": 3.391177,
+   "net_end": -5.147059,
+   "q": "Will the lowest temperature in New York City be between 54-55\u00b0F on September 24?",
+   "quoted_minutes": 35,
+   "rate": 52.0,
+   "resolved": false,
+   "reward": 0.226939,
+   "total": 2.568115
+  },
+  {
+   "capital": 19.0,
+   "cat": null,
+   "cond": "0xce760c91666f6d93a7d86443e5ed51b98567cd14578f59bd4e4af43f98e4985b",
+   "ex_ante_per_dollar_day": 2.114669,
+   "fill_pnl": 0.0,
+   "fill_shares": 0,
+   "fills": 0,
+   "first_cap": 19.0,
+   "first_fills": [],
+   "mark": 0.06,
+   "markout5_usd": 0,
+   "markout60_usd": 0,
+   "net_end": 0.0,
+   "q": "Will the Houthis successfully target shipping by September 18, 2026?",
+   "quoted_minutes": 267,
+   "rate": 50.0,
+   "resolved": false,
+   "reward": 6.413196,
+   "total": 6.413196
+  },
+  {
+   "capital": 112.88,
+   "cat": "weather_fees",
+   "cond": "0xef5f4d591d72f0ddd365461fadaf913414e5d5c31597d479fec81675c6b60bca",
+   "ex_ante_per_dollar_day": 2.104167,
+   "fill_pnl": 0.131875,
+   "fill_shares": 26.375,
+   "fills": 3,
+   "first_cap": 96.0,
+   "first_fills": [
+    [
+     1790219663,
+     "bid",
+     0.64,
+     13.275,
+     1790219640
+    ],
+    [
+     1790219675,
+     "bid",
+     0.64,
+     10.15,
+     1790219640
+    ],
+    [
+     1790219675,
+     "bid",
+     0.64,
+     2.95,
+     1790219640
+    ]
+   ],
+   "mark": 0.645,
+   "markout5_usd": 0.131875,
+   "markout60_usd": 0.131875,
+   "net_end": 26.375,
+   "q": "Will the highest temperature in Seoul (Incheon) be 26\u00b0C on September 24?",
+   "quoted_minutes": 4,
+   "rate": 202.0,
+   "resolved": false,
+   "reward": 0.561111,
+   "total": 0.692986
+  },
+  {
+   "capital": 19.2,
+   "cat": "tech_fees",
+   "cond": "0x5e00766716611ceeb1122fe25dc948a847a0bd055bbb93427d266178618a791f",
+   "ex_ante_per_dollar_day": 2.100524,
+   "fill_pnl": 0.0,
+   "fill_shares": 0,
+   "fills": 0,
+   "first_cap": 19.2,
+   "first_fills": [],
+   "mark": 0.325,
+   "markout5_usd": 0,
+   "markout60_usd": 0,
+   "net_end": 0.0,
+   "q": "Will claude-fable-5.1-max be the best AI model on October 5, 2026?",
+   "quoted_minutes": 268,
+   "rate": 88.0,
+   "resolved": false,
+   "reward": 3.881512,
+   "total": 3.881512
+  },
+  {
+   "capital": 78.322635,
+   "cat": "culture_fees",
+   "cond": "0xf4be5f13e08ebf4144661365a37dc530ff61d53dc6b7a540fb4d8f795c3510e1",
+   "ex_ante_per_dollar_day": 2.075995,
+   "fill_pnl": -10.082328,
+   "fill_shares": 131.930425,
+   "fills": 11,
+   "first_cap": 19.8,
+   "first_fills": [
+    [
+     1790219447,
+     "ask",
+     0.23,
+     20.0,
+     1790219400
+    ],
+    [
+     1790234417,
+     "bid",
+     0.09,
+     4.380425,
+     1790234400
+    ],
+    [
+     1790235566,
+     "bid",
+     0.08,
+     7.21,
+     1790235540
+    ],
+    [
+     1790236331,
+     "ask",
+     0.09,
+     10.0,
+     1790236320
+    ],
+    [
+     1790236824,
+     "ask",
+     0.09,
+     9.99,
+     1790236800
+    ]
+   ],
+   "mark": 0.26,
+   "markout5_usd": -5.345102,
+   "markout60_usd": -5.11967,
+   "net_end": -68.049575,
+   "q": "Will MrBeast's next video get between 61.25 and 62.5 million views on day 5?",
+   "quoted_minutes": 261,
+   "rate": 238.0,
+   "resolved": false,
+   "reward": 17.576806,
+   "total": 7.494478
+  }
+ ],
+ "prints_incomplete": 0,
+ "rounds": 268,
+ "stress": {
+  "capital": 483.33668,
+  "fill_pnl": -11.67969,
+  "fills": 38,
+  "markets": 10,
+  "markout5_usd": -12.253031,
+  "markout60_usd": -18.236293,
+  "resolved_in_window": 0,
+  "reward": 25.457992,
+  "total": 13.778301
+ },
+ "twice_size": {
+  "capital": 890.989717,
+  "fill_pnl": -20.836962,
+  "fills": 39,
+  "markets": 10,
+  "markout5_usd": -19.042202,
+  "markout60_usd": -25.809915,
+  "resolved_in_window": 0,
+  "reward": 65.071101,
+  "total": 44.23414
+ },
+ "universe": 2821
+}

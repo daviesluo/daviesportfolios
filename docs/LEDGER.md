@@ -22,7 +22,6 @@ list stays the short version; the plan is the reasoning behind it.
       one command from his machine). The open pull requests all closed when `main` was replaced, and dependabot
       removed its own 14 branches.
    2. Any clone made before the rewrite (his machine's, Cursor's) must be re-cloned or reset to `origin/main`.
-   3. The Polymarket research agent's worktree branch predates the rewrite: bring its commits over by cherry-pick.
 
 000000000000. **POLYMARKET: THE ACCOUNT VERIFIED READ-ONLY; POSITIONS MAY OPEN ONLY FROM IRELAND, WHILE DAVIES IS THERE (2026-09-24).**
    `?action=probe&only=polymarket` (`_shared/polymarket.ts`, reference §2d, results §6) ran from London (02:54) and,
@@ -34,10 +33,13 @@ list stays the short version; the plan is the reasoning behind it.
    `eu-west-1` (refuse unless `SB_REGION` is `eu-west-1`); it opens a position only while his attestation that he is in
    Ireland is current (an expiring timestamp he sets in conversation); otherwise reduce or close only; never a VPN, a
    proxy or anyone else's account. Remaining:
-   1. The first-principles strategy search (a background agent) reports. It was told, once Davies approved the message
-      by name, to mark each candidate: can it run from Ireland, and does it tolerate stretches where it may only reduce
-      or close. Check its report does so on integration.
-   2. Nothing is built for orders until a candidate passes paper. Paper reads public data only, from any region.
+   1. **The search reported (fp4, reference §3.33, `reviews/2026-09-24-polymarket-fp4-study.md`): FAV and WX fail;
+      RW — minimum-size two-sided quotes for the liquidity rewards — passes its forward bar** on 268 recorded minutes
+      of one day (+$46.61 on $480: rewards $50.92 by the published formula, fills −$4.31), and would not survive
+      reduce-only stretches. The study's §0 finds that the Terms of Use bar residents of the UK and Ireland from
+      trading; Davies read it on 2026-09-24 and said the plan continues.
+   2. Next for RW, per this plan: a paper run on public data over days, not hours, before anything is built for
+      orders. Only an account that quotes can show what Polymarket actually pays.
    3. The key was exposed to another tool: keep the wallet empty or small; revoking that tool's Supabase token is his.
 
 00000000000. **PR5'S LIVE PATH: PUSHED (`0aca828`), RUNNING IN DRY-RUN SINCE 02:40 UTC 2026-09-24** (reference §4
@@ -697,6 +699,16 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 10:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp4 lands on `main`, and RW passes its forward bar** (item 000000000000). The research agent was stopped at 09:25 UTC
+with an interruption of the main session, and its recorder and queued after-window job with it. On Davies' word the
+main session restarted the recorder at 10:15:56 on the frozen universe and ran the agent's after-window job unchanged
+at 10:43:30: 268 of 480 minutes recorded, prints complete for 2,821 markets, `rw_test.py` byte-identical twice. RW
+passes all six conditions: primary +$46.61 on $480 (rewards $50.92, fills −$4.31 on 38), stress +$13.78, resampled
+p5 +$21.78. The study's pending parts, reference §3.33 and `MANIFEST.json` are filled in; the agent's 16 commits
+were cherry-picked onto the rewritten `main` (its branch predated the rewrite), ledger conflicts merged newest first.
 
 ### [2026-09-24 08:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

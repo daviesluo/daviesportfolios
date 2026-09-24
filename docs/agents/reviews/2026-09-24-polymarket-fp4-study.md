@@ -9,8 +9,9 @@ and every input is hashed in `backtests/polymarket/MANIFEST.json`. Reference §3
 
 ## The answer
 
-**Nothing on Polymarket may run from Davies' account, and neither of the two rules tested so far is worth money in
-any case** (the third, RW, is pending: its forward window ends at 10:42 UTC).
+**Nothing on Polymarket may run from Davies' account; of the three rules tested, FAV and WX are not worth money in
+any case, and RW passes its forward bar** — on 268 recorded minutes of one day, with the rewards the published formula
+implies (§5).
 
 * **Access comes first (§0).** The United Kingdom is close-only on Polymarket's API as well as its website. Its Terms
   of Use go further: trading "IS NOT PERMITTED BY PERSONS OR ENTITIES WHO RESIDE IN, ARE LOCATED IN" 22 named
@@ -31,14 +32,20 @@ any case** (the third, RW, is pending: its forward window ends at 10:42 UTC).
   an error model fitted on 2025, trading the bucket it called ten points mispriced: **−$1,589.09 on 5,336 trades of
   $5, −6.6 % a dollar**. On 106,666 buckets the market's own price a day ahead scores a Brier of 0.064 and the model
   0.075: the thin, retail temperature books already price the forecast, and better.
-* **RW — two-sided quotes for the liquidity rewards — (pending: RW's forward window ends at 10:42 UTC).** (pending: RW's forward window ends at 10:42 UTC)
+* **RW — minimum-size two-sided quotes for the liquidity rewards — passes all six conditions, forward.** On the ten
+  rewarded markets with the largest first-minute reward per dollar ($480 of capital), over the 268 minutes of the
+  eight hours that were recorded: **+$46.61** — $50.92 of rewards against −$4.31 on the 38 fills that went through
+  the quotes, marked at the window's end; rewards halved and fills a tick worse, +$13.78; the resampled 5th percentile
+  +$21.78. What it cannot show: that Polymarket pays what its formula implies (only an account that quotes sees
+  that), more than one day, and inventory held to resolution.
 * **The other 26 ideas die on arithmetic or a measurement** (§3, §4): the hourly crypto up/down markets look
   beatable against the price HISTORY and lose 2.8 ¢ a share at the real prints (the history lagged the book by 12 ¢);
   no negative-risk set is worth buying (the one large "edge" was an "Other if unknown" clause read as a price); 16
   ladder violations after fees, none worth 1 ¢ a share; a $10 taker-tier bonus costs about $61 of fees; the oracle
   overturns a first proposal about once in 3,700 markets, so it is not where near-certain outcomes lose.
 * **If a country were ever lifted:** the two hold-to-resolution rules (FAV, WX) would survive stretches of
-  reduce-only; the quoting rule (RW) would not. None of the three has an edge to take there.
+  reduce-only; the quoting rule (RW) would not. FAV and WX have no edge to take there; RW's is measured on one day's
+  recorded minutes, with the rewards its formula implies.
 
 **The finding that matters beyond this search: Polymarket's price history is not a price anyone could trade.** The
 history endpoints serve the midpoint at a lag; on fast markets the first real print sat 12 ¢ from the history point,
@@ -146,7 +153,7 @@ reduce or close?
 
 | # | idea | the deciding numbers | verdict | survives reduce-only stretches? |
 |---|---|---|---|---|
-| P1 | Quote both sides of rewarded markets at the minimum qualifying size, for the **liquidity rewards** | $147,864 a day of pools over 16,075 markets (M1); a one-snapshot share put $100 at ~$340 a day, the number most likely to be wrong; the 400 largest makers on the richest pools hold $6.78 M of rewards lifetime beside $16.7 M of trade P&L and $9.1 M of fees paid (M4), and the small ones mostly lose | (pending: RW's forward window ends at 10:42 UTC) | **no**: it quotes both sides every minute; reduce-only, it can offer only what it holds, earns one-sided scores at best, and carries its inventory unhedged |
+| P1 | Quote both sides of rewarded markets at the minimum qualifying size, for the **liquidity rewards** | $147,864 a day of pools over 16,075 markets (M1); a one-snapshot share put $100 at ~$340 a day, the number most likely to be wrong; the 400 largest makers on the richest pools hold $6.78 M of rewards lifetime beside $16.7 M of trade P&L and $9.1 M of fees paid (M4), and the small ones mostly lose | **RW passes** (§5): +$46.61 on $480 over 268 minutes (rewards $50.92, fills −$4.31 on 38), stress +$13.78; what Polymarket actually pays is untested | **no**: it quotes both sides every minute; reduce-only, it can offer only what it holds, earns one-sided scores at best, and carries its inventory unhedged |
 | P2 | Maker rebates alone | a filled maker share earns `rebate × rate × p(1 − p)`: $0.0025 at 50 ¢ in politics (0.5 % of the notional), 0.7 % in crypto, 0.375 % in sports — at one turnover a day at most $0.005 per $ a day before adverse selection; paid only on fills, which are the adverse part; the $1 daily minimum needs ~400 filled shares a day | **dead** as a strategy (an add-on to P1, which RW leaves out, conservatively) | no |
 | P3 | Taker rebate tiers and level-up bonuses | Bronze needs $2,000 of weighted volume in 30 days; the cheapest route (crypto at 5 ¢, weight 2.3) is $915 of trades paying 6.65 % of notional in fees: $61 of fees for a $10 bonus and a 3 % rebate (≈ −$0.05 per $ traded) | **dead** | no (a 30-day volume window) |
 | P4 | **Holding rewards** (4.00 % a year on position value, 309 eligible markets) on the near-certain side of a long-dated market | 0.011 % a day on the position — cash's rate, on a position that can go to zero; the price carries it for both sides; what is left is FAV's calibration question at long horizons | **dead** as an edge (FAV's 168 h arm asks the question) | yes |
@@ -384,7 +391,7 @@ does not help a rule that loses.
 5. The data was pulled in two sessions: the container restarted at about 04:02 UTC; the price read resumed from its
    cache, and the months ended after 2026-06 were added to the universe then (the rule never saw an outcome).
 
-### RW — minimum-size two-sided quotes for the liquidity rewards, forward — (pending: RW's forward window ends at 10:42 UTC)
+### RW — minimum-size two-sided quotes for the liquidity rewards, forward — PASSES on 268 of the 480 minutes; whether Polymarket pays its formula is untested
 
 `rw_collect.py` froze the universe at 02:42 UTC — the 2,821 markets with a pool of at least $10 a day that were
 accepting orders, $110,051 a day of pools between them (1,654 with a 20-share minimum, 1,812 with a 4.5 ¢ spread) —
@@ -394,17 +401,52 @@ through it), scores the quote against the recorded book each minute with the pub
 pool's per-minute share, fills itself only from prints strictly through its price, and marks what it holds at the
 window's end.
 
-(pending: RW's forward window ends at 10:42 UTC)
+**The result** (primary: the ten markets with the largest first-minute reward per dollar, $480 of capital):
+
+| | primary | stress (rewards halved, fills a tick worse) | twice the size | every rewarded market (descriptive) |
+|---|---|---|---|---|
+| markets | 10 | 10 | 10 | 2,821 |
+| capital | $480.46 | $483.34 | $890.99 | $131,374 |
+| rewards | $50.92 | $25.46 | $65.07 | $2,126.34 |
+| fills, marked at the window's end | −$4.31 (38 fills) | −$11.68 | −$20.84 (39) | −$936.45 (3,656) |
+| **total** | **+$46.61** | **+$13.78** | +$44.23 | +$1,189.88 |
+| markout of the fills, 5 / 60 minutes | −$4.88 / −$10.87 | −$12.25 / −$18.24 | −$19.04 / −$25.81 | −$531.45 / −$788.55 |
+
+**The bar: passes all six.** Total above zero (1); stress +$13.78 (2); 38 fills (3); the best market — the 10-year
+Treasury yield at 5.20 % in September, +$17.90, of which +$13.41 is its fills marked at the window's end — holds 38 %
+of the total, and the other nine make +$28.71 (4); the resampled 5th percentile +$21.78, median +$45.40 (5); the
+window's total on $480, annualised, is far above 4 % a year (6) — the annualised figure itself (about 106 times the
+capital) says nothing beyond that, because it multiplies one day's minutes. Byte-identical twice: `6af4ddcd…f205`
+(input `01a8746b…bacd`).
+
+**Where the money came from.** The largest rewards were on MrBeast's next video's view count ($17.58 on a $238-a-day
+pool) and the Trump–Xi handshake ($11.96 on $156), and on those two the fills took most of it back (−$10.08, −$9.50);
+the Houthis market paid $6.41 with no fill. Across every rewarded market the rewards were 2.3 times what the fills
+cost; only crypto (−$6.51 on 22 markets) and economics (−$48.08 on 111) lost, and weather's 1,992 fills took half its
+rewards.
+
+**What it does not show** — the pre-registration's own list, and this run's: whether Polymarket pays what its
+published formula implies (only an account that quotes sees its rewards); more than 268 minutes of one day; how other
+makers react to a new quote; the queue at our price (strictly-through fills are conservative for a level we join and
+blind to prints at a price we improved); inventory held to resolution — no primary market resolved inside the window,
+so its fills are marked at the last adjusted midpoint. **Reduce-only stretches: it would not survive them** — it
+quotes both sides every minute.
 
 **Deviations.**
-1. **The recorder missed 2 h 39 min of the eight hours**: the container restarted at about 04:02 UTC and the
-   recorder ran again from 06:42 on its frozen universe. The pre-registration already says "Minutes the collector
-   missed quote nothing", so the test ran on the (pending: RW's forward window ends at 10:42 UTC) minutes recorded (of 480), with no quotes, rewards or fills
-   in the gap and any inventory carried across it. It was also restarted once at 03:10 UTC, between two rounds, on a
+1. **The recorder missed 212 of the 480 minutes**: 159 when the container restarted at about 04:02 UTC (it ran again
+   from 06:42 on its frozen universe); four around 08:48–08:52, when every request from the container took 4–9 s and
+   a sequential round overran its minute (the round's requests were then sent on eight threads, `rw_collect.py`; what
+   a round records is unchanged); and 49 from 09:26 to 10:14, when the session running this search was stopped with
+   the coordinating session's interruption. The coordinating session restarted the recorder at 10:15:56 on the same
+   frozen universe. The pre-registration already says "Minutes the collector missed quote nothing", so the test ran on
+   the 268 minutes recorded (02:42–04:02, 06:42–09:25 less those four, 10:15–10:41), with no quotes, rewards or fills
+   in the gaps and any inventory carried across them. It was also restarted once at 03:10 UTC, between two rounds, on a
    helper that retries a dropped connection (a restart never rewrites a minute it has).
 2. The pre-registration's disclosure says `market_competitiveness` "matched the book-computed score divided by 1,000
    on the two markets checked". On ten markets the ratio ran 0.9–11×: the field moves with the book's summed score,
    but it is not an instantaneous copy of it. The test does not read the field.
+3. The after-window job ran as this search wrote it (`rw_after.py` in 24 shards, `rw_inputs.py`, `rw_test.py`
+   twice), started by the coordinating session at 10:43:30 UTC; the prints were complete for all 2,821 markets.
 
 ### WX — daily temperature markets against Open-Meteo's 48-hour forecast — FAILS: the market is the better forecaster
 
@@ -468,7 +510,9 @@ stretches: it would survive them** (one entry per event, held at most a day and 
    prints (M3b). Every fill in this study comes from prints strictly through, floored one tick over the history price.
 3. **The liquidity rewards are real money that the fills take back.** $147,864 a day is paid to makers, and the 400
    busiest makers on the richest pools hold $6.78 M of it lifetime; their trade P&L and fees decide whether they
-   keep it, and the small ones mostly do not (M4). (pending: RW's forward window ends at 10:42 UTC)
+   keep it, and the small ones mostly do not (M4). RW measured the other side over one day: a minimum-size two-sided
+   quote on the markets where its share of the pool is largest kept more in rewards than its fills cost — as the
+   published formula pays; only an account that quotes sees what Polymarket actually pays.
 4. **A negative-risk set can carry an "Other" outcome without the flag.** The Guinea-Bissau presidential set is not
    marked augmented, yet its rules resolve to "Other" if the result is unknown by 2026-12-31: its named candidates'
    asks sum to 0.557 and the missing 0.44 is that clause's price (M5). Read the rules before reading a sum.
@@ -487,7 +531,7 @@ stretches: it would survive them** (one entry per event, held at most a day and 
   committed (`b0f67fa`, 03:06); WX's first price read began at 06:59:48, after its station fix was committed
   (`6c77a39`, 06:50). Every test script was committed before its input existed.
 * **Determinism.** Each test ran twice from its committed input with byte-identical output: FAV `4b202faf…630e`
-  (input `88a57998…ce3f`), WX `2e87cb33…9d48` (input `890d805e…a948`), RW (pending: RW's forward window ends at 10:42 UTC).
+  (input `88a57998…ce3f`), WX `2e87cb33…9d48` (input `890d805e…a948`), RW `6af4ddcd…f205` (input `01a8746b…bacd`). RW's fills were not re-derived from a fresh read.
 * **Fills re-derived from a fresh read.** `check_samples.py` took each test's twenty sample trades (a fixed seed),
   read the market's prints again from `/v2/trades?condition=` — not from the pulls the inputs were built from — and
   matched every fill to a print at its second, on the right side, at or below the fill price and at least its size;
