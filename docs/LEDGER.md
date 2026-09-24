@@ -807,6 +807,98 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 22:48 UTC] Platform: Cursor | Model: Opus 5.5
+
+**G6's 75 branches, every head recorded here BEFORE any is deleted** (Davies asked at 22:35 UTC to have G6 done for
+him; item 0000000000000 §1). At 22:43 UTC the remote had 77 heads: `main`, `agents-live-testing` (created 21:54 UTC by
+the Agents-page redesign, which waits to land: kept) and G6's 75 exactly, 48 `claude/`, 3 `cursor/`, 2 `agent-remote/`
+and 22 older feature branches. No pull request is open, and the repository's activity feed shows no push to any of the
+75 in the last 24 hours (the newest, `claude/repo-audit-restore-uverhn`, was last pushed 2026-09-23 04:39 UTC). Each
+line gives the head, the branch, and what keeps the commit on GitHub once the branch is gone: `pull/N`, it is
+`refs/pull/N/head`, which GitHub keeps; `in pull/N`, an ancestor of that ref; `bundle`, nothing. Those 8 heads carry 14
+commits no `main` ever had (May–June debugging and review commits, and three WIP backups of 09-22/23 on
+`repo-audit-restore`), so they are also in a 691 KB thin bundle in the Cursor project's store,
+`internal/branch-cleanup/unheld-branches.bundle` (sha256 `89be880a86c8290e…`, its 8 prerequisites all in pull refs).
+To restore a branch: `git fetch origin refs/pull/N/head && git push origin <sha>:refs/heads/<name>`; for a `bundle`
+line, `git fetch origin '+refs/pull/*/head:refs/pull/*'`, then `git fetch <bundle> 'refs/heads/bk/*:refs/heads/*'`,
+then push it.
+
+    f2bd15802f6434788af74dc713852117f9f3fd89  agent-remote/1f24a9d6-1400-49f2-b643-1d9276da8a2b  bundle
+    a5972e6d4f280346da3093243f5f067511ab6a23  agent-remote/7a215b4b-d58f-4e83-be7d-5a9b1299051f  bundle
+    55cfe5c4d4adbf8d12c17f87bda0c1559944a110  chart-1d-and-density                               pull/50
+    aac179e92b635b8527292f698d5d9e0845a3cf43  chart-polish-v2                                    pull/46
+    79cdd5f81357f0ded853687430073497e89e3d0b  chart-polish-v3                                    pull/47
+    e9b623cab6d40da59630e4ea798561be7a9d3c9d  chart-polish-v4                                    pull/48
+    ce66f88351589ce513a8d3b7dc6ec5f7fb2df069  claude/add-peg-ratio                               pull/112
+    c4c91be1e4581266ade70ab2fb50a19f435150c1  claude/add-ps-ytd-view                             pull/110
+    11debab10ba8c6bd9954bab2fd40898567742054  claude/chart-primitive                             bundle
+    17783bddad409aba651ecff0cfe7337960fed039  claude/codebase-improvements                       pull/171
+    98e60f4d516c2f009b3a59de7c7b51a5cca0563a  claude/db-retention-ci-budgets                     pull/159
+    dc32e5cb3e039a101a3388db0025a97fb5c2f9f3  claude/drag-swap-positions                         pull/166
+    10aa6cfb2b67a2ec6774b92fd8d3bc2b50c13f46  claude/ext-hours-and-peg-display                   pull/119
+    9b5ca905a30e3479bed4dca8a082aae0902dc7bf  claude/ext-hours-home-fixes                        pull/122
+    84f0ff81823398b892c5b3f568a10139342caf09  claude/fix-mobile-heatmap-scroll-bdZpO             pull/169
+    91d75629d7501856a08ca3cf8f5110b1c98787b8  claude/fix-overnight-line-regression               pull/177
+    f99bf2a1f4271d1aa54406a5f6d282bc58eb1bdc  claude/fix-portfolio-display-fuIpj                 pull/10
+    0c21d57f8f0142a3e30809fb5b6ccf1ba1d4d979  claude/fix-ps-live-tail-cliff                      pull/111
+    a5bc3e658e8d7ab65b8fe29b2253193fa3eaa4f0  claude/fundamentals-split                          pull/131
+    c1b8887baca45096be972588a09c8ae7b221d7e5  claude/gracious-mayer-9j1sz5                       pull/184
+    c0a02bc0baf10e2117cbe5f1b085e599f46dbddf  claude/holdings-list-menu                          pull/167
+    44603b09d9115e200f2a7d142c1d5d86862bfda9  claude/infra-security-hardening                    pull/176
+    6406d29b1564500e2961df647024a9afc15c1298  claude/item2-revert-mkt-cap-row                    pull/127
+    ee8224a1efc6a167a0ad04cf5061408e3af73d0f  claude/mkt-cap-restore-and-preload                 pull/128
+    97b37c0d5d6658636af00b86763d8bb976e04d2b  claude/mobile-scoreboard-ccy-toggle                in pull/161
+    fea2e548d4979648cae9e4ccb320a6c3063573a7  claude/modal-decompose                             pull/172
+    a6391f1d19cc3d92f2965420225c3e4ec2a227e0  claude/modal-market-cap                            pull/126
+    ff52c3b784b1f753738dda28977ecb3db4cb6c47  claude/move-holding-and-readme                     pull/165
+    15eef4e28a506d4b7d55a8ae07b482d9492ffc5f  claude/ops-error-acknowledge                       pull/123
+    6ed7eff8d5e3f8098d28cd1ee502e1aea3f7665d  claude/overnight-intraday-recorder                 pull/162
+    b9b60561a19315ef11627352513a3529b7ab0cf7  claude/overnight-line-always-on                    pull/197
+    7abc4d8bf32cf12d91599030bd7ece75bb82cde2  claude/peg-2y-forward                              pull/118
+    51f99bf1dfa5e092e64da89b1d3fdf38ad961c9b  claude/peg-cache-bust                              bundle
+    9dbdfc477374d7dfa35d8ec72e83cc1f97b2c6a5  claude/peg-debug-tmp                               pull/113
+    ffa18f360a3362c5cf03503a9119445581449d87  claude/peg-input-debug                             pull/116
+    b560c0895eec9f903a5fab80a216fa31d8bc1e1c  claude/peg-source-probe                            pull/117
+    ba6054233a4b00608ff92c27645e15bb5656ceaf  claude/perf-overnight-1d-1w                        pull/196
+    ee596bcb8dd3f6ab3fd3dad5491767f3d3824f08  claude/ps-quarterly-revenue                        pull/125
+    34612e252ce45fae1b4ca6b9733c1aead2d98f6b  claude/ps-ytd-cache-invalidation                   pull/121
+    6295485b083f4642a419c6682ef6ed19b9ebdb3f  claude/ps-ytd-earnings-steps                       pull/120
+    af38eea5adb0b2e443ecd53f52bb48911c7e473a  claude/refactor-modal-tests-migrations-ci          pull/158
+    ddb4c67bd81db525bead10daa9fbfac24f8c8183  claude/repo-audit-restore-uverhn                   bundle
+    3fee5504c4cfb47a1e7db02f24768a6f81aebf0b  claude/restore-migration-0005                      pull/115
+    238ce2debaa16488ee1913cdfed36fe481f1d95c  claude/sales-source-probe                          pull/124
+    a5ddf8cc346af23b17340eede3eff7e97ce95d7e  claude/skip-weekend-overnight-dot                  bundle
+    8c621370ae9bee2639f78c85d14e6e20647fff43  claude/sleepy-archimedes-0sTSy-2                   bundle
+    1371ce0cd9000df8cf8cb825ec3c5e1245e1f239  claude/sleepy-archimedes-0sTSy-3                   pull/175
+    8c9a9b89b28a50d320ccf8627b69f8a2b61cc021  claude/sleepy-archimedes-0sTSy                     in pull/208
+    604521832421e55bafdaa81c5ddbc0bfc0c811d9  claude/ticker-modal-1y-range                       pull/170
+    36b049d862e92fb04c325c27740dc45c7ddb2e1f  claude/trading212-autosync                         bundle
+    fe41833c5c996653b8eea8d92fb4738965b57385  claude/utils-split-final                           pull/130
+    70b44703e2e463ff75995d8903639757a3becb4f  claude/visibility-gating-memo-tests                pull/161
+    557abebc99e1b99b30118e8e4eb35699d6e67446  claude/yahoo-crumb-fundamentals                    pull/114
+    e3b64c77fc2305e1f96ecd3037d9767befc19a29  claude/yahoo-finance-chart-integration-MONGx       pull/52
+    ebfe754bd20b3281eb8c2263256c384d402a356c  cleanup-and-ci                                     pull/38
+    7b1b84bfb344133274bee0e9f1cbfa5895ff3db3  cloudflare/workers-autoconfig                      pull/4
+    ce17fde0e0ca1b25b22589caf2ca4f8779044b2b  cursor/fix-scoreboard-portfolio-6b8b               pull/208
+    e89259db551d3f973d3ea88ac9767935c6628f08  cursor/t212-transactions-6b8b                      in pull/208
+    0c8a2636de1884e66101dd325bc7a8a757d890a2  cursor/working-with-davies-skill-6b8b              pull/206
+    7afce3695a66739670abfd6e5d9d800bd708e894  fix/cn-fund-refresh-stall                          pull/202
+    bc937387204204a8c98ee6f6deb6e02882bd8d9b  hide-values-toggle                                 pull/41
+    8a4992e624fd0988997aac9528ef2ad4c0f3d8d8  hotfix/move-dist-to-root                           pull/32
+    35535c4d9fbc115f7b3c2810a29feb77a9c93717  lot-management-ui                                  pull/37
+    c1d7f3363116e69ad99b90c6377a18eab40bbb89  mask-and-intraday-fix                              pull/43
+    3b65a020496e0fbaff0e7a0edad733087177e8d0  perf-chart-1d-logic                                pull/49
+    aa9eb17b53be54d00fdf16d32e6aeba009387fa8  perf/cold-start-fix                                pull/201
+    899b26c2484094bd2bdb9b4dd6e1c0069b5ab393  ranges-and-ticker-chart                            pull/42
+    55152c44c33d7973c066cc92f7f5ee836d8005be  server-lockout                                     pull/39
+    20a69f98b52033ef9db96f594785428154265ded  service-worker                                     pull/35
+    e1dc085088d7caa32e30f4bc3ed20735ada0ddfc  split-modules                                      pull/34
+    35680827d3f829d0e2aeb0bb4f6e7e8eb27eb7f3  ticker-chart-overhaul                              pull/44
+    b51126fd6501dca6e657a95ecd523fbc6d81017f  ticker-chart-polish                                pull/45
+    1ef8ff534f940e37c20b0cd96b1f0943c39248e5  typecheck                                          pull/36
+    d9b84cf7f48ea1087f54b960d921e5cceb9c9745  vite-outdir-root                                   pull/33
+    c1e3f590dad4e81fb7e9e81091a022885d84068d  ytd-tests                                          pull/40
+
 ### [2026-09-24 21:51 UTC] Platform: Cursor | Model: Opus 5.5
 
 **`1bf254d` is live, and PR5's first-evening order gap is reconciled** (handover G5).
