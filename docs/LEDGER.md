@@ -47,11 +47,21 @@ list stays the short version; the plan is the reasoning behind it.
      account; `_shared/polymarket.ts` stays GET-only until the design is agreed. The design says: order signing (the
      CLOB's EIP-712 orders and L2 headers), a dry-run first, caps, the kill switch, reconciliation by order id, and
      reading the account's actual reward payouts to compare with the formula — the one thing paper cannot show.
-   - **G4 — trend-4h live at $50: GOING LIVE on Davies' word, 2026-09-24 22:35 UTC** ("验证没问题的话就上线，并盯着
-     上线情况"; at 22:40: "上线后的买卖不需要找我确认，如果真的需要你帮忙盯着就行" — no confirmation of his for any
-     trade after the go-live, the session watches, and the first buy's read-back is the session's). Preconditions
-     re-checked 22:40–22:41 and `0054_go_live.sql` pushed; arming and its checks are in the newest history section.
-     Earlier: VERIFIED READY 2026-09-24 20:34 UTC, and again from scratch at 21:13–21:22 UTC (item 000000000). In the Claude Code session the move below was refused by the tool's permission
+   - **G4 — trend-4h is LIVE at $50: `0054_go_live.sql` applied 2026-09-24 22:51:15 UTC, armed 22:53:09 UTC** on
+     Davies' word ("验证没问题的话就上线，并盯着上线情况", 22:35; at 22:40: "上线后的买卖不需要找我确认，如果真的需要你帮忙盯
+     着就行" — no confirmation of his for any trade after the go-live; the session watches, and the read-back is the
+     session's). The first bar it can enter on closes 2026-09-25 00:00 UTC; nothing is held and no live order exists.
+     **Watch (read-only, report to Davies, never ask):** at each 4h close + 3 min (00:03, 04:03 … 20:03 UTC) read the
+     live row's four decisions beside `trend-4h`'s (same `rule_action` per coin), `agent_orders` where `mode = 'live'`,
+     `ops_errors` and the tick's cron runs; five minutes after a live order, its read-back; every 15 minutes while it
+     holds a position (the 8 % floor fires in any minute). Report a live order, a fill, an order `pending` over 2
+     minutes, a missing decision, a live-row error or a failed tick. Nothing sends an alert by itself (the page's
+     banners and the admin badge show only when the site is open). The queries, one per check, are in the Cursor
+     project store's `internal/trend-4h-watch.md`. **The first buy's read-back** (before its exit): the fee fields the
+     venue sent or `feeDerived`, `filled_base` in whole `base_step`s (D11), `fromAccount` (D12), and the coin's balance
+     against the book (the probe, booleans only); after the sell: the book flat and the account under one step. **Cap
+     steps:** 15 → 30 once that first round trip reads back clean, → 75 after seven clean days; each is one statement
+     (`update public.agent_risk set max_exposure_usd = … where id = 1;`), and Davies is told when it runs. In the Claude Code session the move below was refused by the tool's permission
      layer (it is the act of going live), so it is Davies' to allow or to run himself. The verification: paper
      `trend-4h` healthy (30 decisions in 24 h, the last at 20:00, flat after its three exits) with params identical to
      the draft's; `ops_errors` only four transient timeouts, each handled (nothing placed that turn); the read-only
@@ -76,7 +86,11 @@ list stays the short version; the plan is the reasoning behind it.
      every minute to 21:47; the twelve orders are one USDT-GBP re-price and its reversal at 21:48 / 21:58, which hinged
      on 0.106 bps and on an input the engine does not record. **Davies decides:** record X and fairU every minute (a
      migration and an engine change while the test runs) so the four-week check can be exact, or keep the spec's
-     ±5 % / ±10 % check. Live stays a NO-GO until the review; going live is one statement on his word.
+     ±5 % / ±10 % check. **Approved by Davies (relayed by the coordinator at 22:38 UTC 2026-09-24; the next turn builds
+     it).** **Its first round trips (Davies asked at 22:52 whether it can meet the go-live standard now):** not
+     decidable yet — the standard is the spec's six conditions after four weeks (2026-10-21), and the three trips so far
+     are one event; the conditions that can be read early are on track (reference §4 item 31, "The first round trips").
+     Live stays a NO-GO until the review; going live is one statement on his word.
    - **G6 — housekeeping.** **The 75 stale branches are DELETED** (2026-09-24 22:49 UTC, Cursor; every head is in that
      day's 22:48 history section, restorable). **Still Davies' own, because no agent here holds a credential that can
      do it:** delete the one-off `pm-geo-probe` Edge Function, still ACTIVE (the Supabase connector cannot delete a
@@ -816,6 +830,33 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 22:57 UTC] Platform: Cursor | Model: Opus 5.5
+
+**trend-4h is live and armed; the watch is written; PR5 cannot be judged on its first round trips yet** (G4, G5).
+- **Applied:** `migrations.yml` run 36069681883 on `0bf01ae` — "Applying migration 0054_go_live.sql… Finished supabase
+  db push." (22:51:14–15 UTC). In the database: `0054` recorded; `trend-4h-live` created 22:51:15 (live, `revx`,
+  signal `kraken`, BTC/ETH/SOL/AVAX, capital 50, params equal to the draft's and to `trend-4h`'s); `agent_risk` now
+  `max_exposure_usd` 15, loss 5, orders 40, `live_confirmed_at` null, `global_pause` false. The 22:52 tick wrote the new
+  row's four observations and decided the last closed bar for it (16:00, at 22:52:04): four holds, "no close above prior
+  55-bar high", the same as the paper row's on that bar.
+- **Armed:** `update public.agent_risk set live_confirmed_at = now(), updated_at = now() where id = 1;` →
+  `live_confirmed_at` 2026-09-24 22:53:09.568 UTC. After it: the 22:54 and 22:55 ticks succeeded, three responses all
+  200 and none with an error in its report, no `ops_errors` since the migration, the tick report counts seven rows and
+  lists the live row's four coins ("bar 16:00 already decided"), no live order. The first bar it can enter on closes at
+  00:00 UTC.
+- **Watch:** the Cursor project store's `internal/trend-4h-watch.md` — the read-only queries (W0–W7), when to run them,
+  what to report, the read-back and the cap steps; the what-remains item G4 carries the short version. Nothing in the
+  system alerts on a live order by itself.
+- **PR5, Davies at 22:52: "Stablecoin quotes策略现在有round trips了，也研究下看看能不能达到上线标准？"** Three round
+  trips, all from one £27.5k sweep at 18:57 through the three USDT-GBP bids, +$0.570; the standard is four weeks, so two
+  of its conditions cannot be read and the rest are on track (reference §4 item 31, "The first round trips"). At £50 the
+  event would have made $0.024.
+- **For the coordinator:** `.claude/CLAUDE.md`'s Agents section still describes the go-live as a draft (the bullets
+  "The set that is recommended for live is ONE row" and "A row's `mode` LABEL is not the BOOK it trades", which say it
+  "is drafted at `docs/agents/go_live.sql.draft`"). They should say it was applied as `0054` at 22:51:15 UTC and armed
+  at 22:53:09 UTC; left for the main session under the rule that an agent does not edit that file on another agent's
+  word.
 
 ### [2026-09-24 22:51 UTC] Platform: Cursor | Model: Opus 5.5
 
