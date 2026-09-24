@@ -237,7 +237,8 @@ that follow from that evidence, in short:
   a round trip before the spread) and a Kraken book of ≥ $100k a day, and
   joins the Kraken row only, paper first like everything else.
 - **The set that is recommended for live is ONE row**: `trend-4h` on
-  Revolut X, BTC/ETH/SOL/AVAX, four equal $25 slots, $100 — the
+  Revolut X, BTC/ETH/SOL/AVAX, four equal $12.50 slots, $50 (Davies,
+  2026-09-24; §3.31) — the
   allocation study's answer (§3.11) and the go-live brief's
   (`docs/agents/go-live.md`), reached independently, less SUI (paper
   only since 2026-09-23, §3.20's addendum). Equal slots per
@@ -264,10 +265,11 @@ that follow from that evidence, in short:
   migration is drafted at `docs/agents/go_live.sql.draft` (unnumbered: it takes the next free number when it moves) — a NEW
   row `trend-4h-live`, with `trend-4h` kept paper as its same-venue
   control. Moving it into `supabase/migrations/` creates that row
-  unarmed, with a $30 cap (go-live audit P7): arming
+  unarmed, with a $15 cap (one slot): arming
   (`live_confirmed_at`) is one statement run in the conversation where
-  Davies says go, and the cap rises to $150 only after the first round
-  trip settles cleanly.
+  Davies says go; the cap rises to $30 once a person has read the first
+  round trip back and to $75 after a clean week. The audit's D1–D10 and
+  the $50 validation's D11/D12 are fixed and pinned (§4.32–§4.33).
 - **Jev gates entries with the v2 question at 0.45 (since 2026-09-23,
   §4.21, migration `0047`).** The v1 question listed an "established
   uptrend" checklist (trend_strength moderate/strong, momentum_30d
@@ -387,8 +389,8 @@ that follow from that evidence, in short:
   15-minute / 1-hour trend and RSI(2) pullback rules (§3.6: nothing below
   an hour survives the 20 bps round trip), and five more ideas (§3.9: a
   bare Donchian, a 4-hour pullback, a stale-trend exit, weekly bars — all
-  rejected; a BTC-regime filter on entries is the one written-down
-  candidate, to be re-tested on a non-bear window before any paper twin),
+  rejected; a BTC-regime filter on entries, re-tested on non-bear
+  windows, is rejected too: it helps only the bear year, §3.30),
   and volatility-sized slots and DVOL / funding entry gates (§3.21, from the
   Binance and Deribit research) were tested and rejected with numbers;
   executing the live row at Binance's cost changes no verdict (§3.22); and
@@ -445,7 +447,9 @@ that follow from that evidence, in short:
   touch as it is sent and allows 10 bps on an entry, 50 on an exit; an IOC
   that dies unfilled is sent again next turn, five attempts at most (D2).
   A buy fee Revolut X takes in the coin is booked net, because a buy's
-  `filled_quantity` is gross (D4). A cancel whose
+  `filled_quantity` is gross (D4). A live buy books only what the account
+  can sell: whole base steps (D11), and, when the venue did not report the
+  fee, its balance of the coin (D12). A cancel whose
   read-back fails leaves the row open. The fills query is paged. The
   daily loss limit blocks new risk only, never an exit; a resting exit
   order never outranks a stop (it is cancelled first); a re-quote passes

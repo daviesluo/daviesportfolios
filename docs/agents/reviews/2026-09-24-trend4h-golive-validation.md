@@ -10,7 +10,7 @@ that landed the go-live audit's D8–D10 at 00:00 UTC while this ran (the worktr
 below were rebuilt and tested on it.
 
 **Status (2026-09-24, later that night).**
-- **D11** landed as the patch and pin below, unchanged (`c555abd`).
+- **D11** landed as the patch and pin below, unchanged (`bf80626`).
 - **D12's fix is built.** A live Revolut X buy whose fee went unreported is booked from the account: its balance of the
   coin less the rest of the live book (buys less sells), never more than the gross, floored to the step. The row
   records what that read (`fromAccount`).

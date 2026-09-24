@@ -30,7 +30,7 @@ list stays the short version; the plan is the reasoning behind it.
           2665.74 (09-21 04:00:07), buy BTC 84848.67 and buy SOL 116.788
           (12:00:08), sell ETH 2655.55 (09-23 16:00:06). The predicted ETH
           trail exit is confirmed.
-      - **D11** (`c555abd`) and **D12** (`016903a`) are fixed and pinned
+      - **D11** (`bf80626`) and **D12** (`29dbd8b`) are fixed and pinned
         (§4 item 33): a live buy books only what the account can sell.
         With no fee reported, it books from the balance and records
         `fromAccount`.
@@ -60,9 +60,9 @@ list stays the short version; the plan is the reasoning behind it.
       blocker, but reconcile it minute by minute at the four-week review.
    3. **The BTC-regime entry filter is REJECTED** (S1, §3.30): §3.9's last
       candidate is closed, with no paper twin.
-   4. **For the main session:** `.claude/CLAUDE.md`'s Agents section is
-      behind, and an agent may not edit it on another agent's word. Two
-      edits:
+   4. **DONE (2026-09-24 01:14 UTC):** `.claude/CLAUDE.md`'s Agents section now
+      says what follows. It was behind, and an agent may not edit it on another
+      agent's word, so the main session made the two edits:
       - "a BTC-regime filter on entries is the one written-down candidate,
         to be re-tested on a non-bear window before any paper twin" should
         say it was re-tested on non-bear windows and rejected (§3.30);
@@ -632,6 +632,13 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 01:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`.claude/CLAUDE.md`'s Agents section follows the $50 go-live work** (item 000000000.4): the recommended row
+is four $12.50 slots, $50; the drafted row goes in unarmed with a $15 cap (then $30, then $75); D1–D12 are fixed
+and pinned; a live buy books only what the account can sell (D11, D12); the BTC-regime filter is rejected (§3.30).
+Deno on this tree: check clean, 461 passed.
+
 ### [2026-09-24 01:11 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The go-live draft is at $50; the go is Davies' word alone** (item 000000000.1). `go_live.sql.draft` has capital 50
@@ -651,7 +658,7 @@ the step. It records what it read (`fromAccount`). Three cases settle nothing an
 cannot explain, an unreadable balance, and a missing pair config (D11 now waits a turn for it, where S2's patch settled
 unfloored). S2's reproduction went red → green with its assertions unchanged, and D4, D8 and D11 stay green. Four
 more pins (full precision, a hand trade, the floor selling past an unreadable buy, no pair config) all fail on
-`c555abd`; the third also fails against a clamped position. Deno: 461 passed, check clean, knip clean.
+`bf80626`; the third also fails against a clamped position. Deno: 461 passed, check clean, knip clean.
 
 ### [2026-09-24 00:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
