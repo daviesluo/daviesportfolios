@@ -69,8 +69,12 @@ list stays the short version; the plan is the reasoning behind it.
      **Both rows EXPLAINED AND FIXED 2026-09-24 21:35 UTC (Cursor): one executor defect** — it carried out a paper
      order the engine had REFUSED, including the ticks the rule re-prices a refused order to while it waits (reference
      §4 item 35, "A refused paper order is no decision"). After the deploy L3 must stay empty and L4 list only guard
-     or governor minutes: check both on the next read. Still open: reconcile the ~9 % order shortfall minute by minute.
-     Live stays a NO-GO until the review; going live is one statement on his word.
+     or governor minutes: check both on the next read. **The ~9 % order shortfall is RECONCILED** (reference §4 item
+     31, `backtests/pr5_live/reconcile_first_day.py`): the frozen simulator on the stored inputs matches the engine in
+     every minute to 21:47; the twelve orders are one USDT-GBP re-price and its reversal at 21:48 / 21:58, which hinged
+     on 0.106 bps and on an input the engine does not record. **Davies decides:** record X and fairU every minute (a
+     migration and an engine change while the test runs) so the four-week check can be exact, or keep the spec's
+     ±5 % / ±10 % check. Live stays a NO-GO until the review; going live is one statement on his word.
    - **G6 — Davies' own housekeeping (not an agent's):** delete the 75 stale branches (item 0000000000000); delete the
      one-off `pm-geo-probe` Edge Function in the Supabase dashboard; keep the Polymarket wallet empty or small.
    - **Where things are:** RW — `agents/pmrw.ts` (engine), `agents/pmrw_view.ts` (page summary), `_shared/polymarket_public.ts`
@@ -214,6 +218,7 @@ list stays the short version; the plan is the reasoning behind it.
 
       **116 orders on 09-23 against the review's ~128 (−9 %)**: not a
       blocker, but reconcile it minute by minute at the four-week review.
+      **Reconciled 2026-09-24 (G5, reference §4 item 31).**
    3. **The BTC-regime entry filter is REJECTED** (S1, §3.30): §3.9's last
       candidate is closed, with no paper twin.
    4. **DONE (2026-09-24 01:14 UTC):** `.claude/CLAUDE.md`'s Agents section now
@@ -801,6 +806,25 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 21:51 UTC] Platform: Cursor | Model: Opus 5.5
+
+**`1bf254d` is live, and PR5's first-evening order gap is reconciled** (handover G5).
+- **The deploy:** `check` and `edge-functions` green; the workflow's log shows `agents` deployed, and the project lists
+  `agents` v63 updated 21:37:51 UTC. From then to 22:00:41: 79 cron responses, all 200, none with an error in its
+  report; no `ops_errors`; the executor, the paper engine and RW each at minute 21:49 with no error at 21:51; L3 has
+  no row since; the tick decided the 22:00 bar (trend-1h and its Binance twin, three holds each, at 22:00:04).
+- **The ~9 % shortfall** (116 orders on 09-23 15:09 → 24:00 against the design's 128):
+  `backtests/pr5_live/reconcile_first_day.py` (with its `.json`) replays the frozen `pr5_sim.py` (hash checked) on the
+  inputs the design pulled, which equal the engine's stored ones hour by hour (prints per book, the 34 USD-book hours,
+  and GBP/USD but for 20:52, a null in the pull that the engine stored at the 20:51 value, added in the replay). By
+  minute the replay and `agent_quote_events` are identical up to 21:47 on both books, 116 orders each. The gap is
+  USDT-GBP's re-price at 21:48 and its reversal at 21:58, six orders each. At the 21:48 turn the stored 21:47 close
+  puts fair 5.106 bps from its priced level, 0.106 bps past the 5 bps step (21:42 reached 4.973); the engine did not
+  act, and what it read then is not recorded: it writes X and fairU only on the minutes it acts (all 116 of those equal
+  the stored inputs), and `agent_quote_inputs` is re-written by every later fetch. A provisional Yahoo close, or the
+  20:00 USD candle missing from the 21:00 fetch (fair then 4.606 bps away), would each leave it under the step. The
+  spec's ±5 % / ±10 % check tolerates this; recording X and fairU every minute would make it exact (Davies' call, G5).
 
 ### [2026-09-24 21:35 UTC] Platform: Cursor | Model: Opus 5.5
 
