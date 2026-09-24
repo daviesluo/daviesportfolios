@@ -46,6 +46,7 @@
 //
 // Secrets: REVOLUT_X_API_KEY (the 64-char id; the store spells it
 // `Revolut_X_API_kEY` — both spellings are read), REVOLUT_X_PRIVATE_KEY
+// (and `Revolut_X_API_kEY_2` / REVOLUT_X_PRIVATE_KEY_2, PR5's own sub-account, read by the probe only)
 // (the Ed25519 private key in any pasted shape), KRAKEN_PRO_API_KEY +
 // KRAKEN_PRO_PRIVATE_KEY (the base64 secret as issued), OPENROUTER_API_KEY
 // / `openrouter_api_key`, TYPESAFE_API_KEY / `typesafe_API_KEY`. None is
@@ -138,11 +139,25 @@ export async function authorise(req: Request, cronSecret: string): Promise<Who> 
   return null;
 }
 
-async function loadRevx(): Promise<{ env: RevxEnv; keyForm: string } | { error: string }> {
-  const apiKey = envAny(["REVOLUT_X_API_KEY", "Revolut_X_API_kEY", "REVOLUT_X_API_KEY_ID"]);
-  const priv = envAny(["REVOLUT_X_PRIVATE_KEY", "Revolut_X_Private_Key", "REVX_PRIVATE_KEY"]);
-  if (!apiKey) return { error: "REVOLUT_X_API_KEY missing" };
-  if (!priv) return { error: "REVOLUT_X_PRIVATE_KEY missing" };
+/**
+ * The secrets that hold each Revolut X account's key. `revx` is the strategy rows' sub-account; `revx2` is a second
+ * sub-account Davies opened on 2026-09-24 for the GBP stablecoin quotes (PR5), so their conversions and balances never
+ * touch the rows' book. Only the probe reads `revx2` so far.
+ */
+export const REVX_KEY_NAMES = {
+  revx: { apiKey: ["REVOLUT_X_API_KEY", "Revolut_X_API_kEY", "REVOLUT_X_API_KEY_ID"], priv: ["REVOLUT_X_PRIVATE_KEY", "Revolut_X_Private_Key", "REVX_PRIVATE_KEY"] },
+  revx2: { apiKey: ["REVOLUT_X_API_KEY_2", "Revolut_X_API_kEY_2"], priv: ["REVOLUT_X_PRIVATE_KEY_2", "Revolut_X_Private_Key_2"] },
+} as const;
+
+/** The books the second account is for: PR5's two GBP books, and the USD books its conversions would use. */
+export const REVX2_PROBE_SYMBOLS = ["USDC/GBP", "USDT/GBP", "USDC/USD", "USDT/USD"] as const;
+
+async function loadRevx(account: keyof typeof REVX_KEY_NAMES = "revx"): Promise<{ env: RevxEnv; keyForm: string } | { error: string }> {
+  const names = REVX_KEY_NAMES[account];
+  const apiKey = envAny([...names.apiKey]);
+  const priv = envAny([...names.priv]);
+  if (!apiKey) return { error: `${names.apiKey[0]} missing` };
+  if (!priv) return { error: `${names.priv[0]} missing` };
   try {
     const { key, form } = await loadPrivateKey(priv);
     return { env: { apiKey, privateKey: key }, keyForm: form };
@@ -822,7 +837,7 @@ export async function runJevBatch(
 }
 
 /** The probe's parts, each a credential of its own. `?only=binance,deribit` runs just those; anything unknown is dropped. */
-export const PROBE_PARTS = ["revx", "kraken", "jev", "binance", "deribit"] as const;
+export const PROBE_PARTS = ["revx", "revx2", "kraken", "jev", "binance", "deribit"] as const;
 export function probeParts(only: string | null): Set<string> | null {
   if (!only) return null;
   const picked = new Set(only.split(",").map((x) => x.trim().toLowerCase()).filter((x) => (PROBE_PARTS as readonly string[]).includes(x)));
@@ -830,7 +845,53 @@ export function probeParts(only: string | null): Set<string> | null {
 }
 
 
-export async function runProbe(only: Set<string> | null = null): Promise<Record<string, unknown>> {
+/**
+ * One Revolut X account, read-only: its balances, the config of the pairs it would trade, a signed call WITH a query,
+ * the book those pairs quote on and the order fields the settlement path reads. Nothing here can place an order.
+ */
+async function probeRevxAccount(rx: { env: RevxEnv; keyForm: string }, symbols: string[], querySymbol: string, f: typeof fetch): Promise<Record<string, unknown>> {
+  const r: Record<string, unknown> = { keyForm: rx.keyForm };
+  const b = await balances(rx.env, f);
+  r.balances = b.ok
+    ? { status: b.status, rows: b.data }
+    : { status: b.status, error: b.error };
+  const p = await pairs(rx.env, f);
+  if (p.ok) {
+    const cfg: Record<string, unknown> = {};
+    for (const s of symbols) cfg[s] = p.data?.[s] ?? null;
+    r.pairs = { status: p.status, count: Object.keys(p.data ?? {}).length, config: cfg };
+  } else {
+    r.pairs = { status: p.status, error: p.error };
+  }
+  // A call WITH a query string, signed the way the reference specifies
+  // (query without its "?"). Balances above has no query, so a 200 there
+  // and a 401 here would isolate the query signing as the fault.
+  const now = Date.now();
+  const c = await candles(rx.env, querySymbol, 240, now - 5 * 240 * 60_000, now, f);
+  r.candlesWithQuery = c.ok
+    ? { status: c.status, count: c.data?.data?.length ?? 0, last: c.data?.data?.at(-1) ?? null }
+    : { status: c.status, error: c.error };
+  // The book this account trades on: the region every market-data call names, and what the filtered tickers say
+  // (row count per symbol must be one — two rows would mean the filter is not being honoured, reference §2.2).
+  const t = await publicTickers(symbols, f);
+  r.region = {
+    requested: REVX_REGION,
+    tickers: t.ok
+      ? (t.data?.data ?? []).map((x) => ({ symbol: x.symbol, region: x.region ?? null, bid: x.bid, ask: x.ask, spreadBps: Math.round(((Number(x.ask) - Number(x.bid)) / ((Number(x.ask) + Number(x.bid)) / 2)) * 1e4 * 10) / 10 }))
+      : { status: t.status, error: t.error },
+  };
+  // The order reads the live settlement path depends on (`GET /1.0/orders/active`; the single-order read shares its row
+  // shape). Reference §2 never verified either, so the probe reports the FIELD NAMES the venue actually returns — the
+  // client reads `filled_size`, `average_fill_price`, `fees`, and a filled order without them is refused, never settled
+  // at fee 0. Reads only; nothing is placed.
+  const ao = await activeOrders(rx.env, f);
+  r.activeOrders = ao.ok
+    ? { status: ao.status, count: ao.data?.data?.length ?? 0, fields: Object.keys(ao.data?.data?.[0] ?? {}), clientReads: { documented: ["id", "status", "filled_quantity", "average_fill_price", "total_fee", "fee_currency", "client_order_id"], assumed: ["venue_order_id", "state", "filled_size", "fees"] } }
+    : { status: ao.status, error: ao.error };
+  return r;
+}
+
+export async function runProbe(only: Set<string> | null = null, f: typeof fetch = fetch): Promise<Record<string, unknown>> {
   const want = (part: string) => !only || only.has(part);
   const out: Record<string, unknown> = { at: new Date().toISOString(), parts: only ? [...only] : [...PROBE_PARTS] };
   // Every symbol an active row trades — AVAX and SUI joined by migration after the probe was written, and a pair the venue
@@ -840,53 +901,11 @@ export async function runProbe(only: Set<string> | null = null): Promise<Record<
   catch (e) { out.symbolsNote = `strategy rows unreadable (${e instanceof Error ? e.message : String(e)}); probing the three majors`; }
   out.symbols = symbols;
 
-  // --- Revolut X -----------------------------------------------------------
-  const rx = want("revx") ? await loadRevx() : null;
-  if (!rx) {
-    // not asked for
-  } else if ("error" in rx) {
-    out.revx = { error: rx.error };
-  } else {
-    const r: Record<string, unknown> = { keyForm: rx.keyForm };
-    const b = await balances(rx.env);
-    r.balances = b.ok
-      ? { status: b.status, rows: b.data }
-      : { status: b.status, error: b.error };
-    const p = await pairs(rx.env);
-    if (p.ok) {
-      const cfg: Record<string, unknown> = {};
-      for (const s of symbols) cfg[s] = p.data?.[s] ?? null;
-      r.pairs = { status: p.status, count: Object.keys(p.data ?? {}).length, config: cfg };
-    } else {
-      r.pairs = { status: p.status, error: p.error };
-    }
-    // A call WITH a query string, signed the way the reference specifies
-    // (query without its "?"). Balances above has no query, so a 200 there
-    // and a 401 here would isolate the query signing as the fault.
-    const now = Date.now();
-    const c = await candles(rx.env, "BTC/USD", 240, now - 5 * 240 * 60_000, now);
-    r.candlesWithQuery = c.ok
-      ? { status: c.status, count: c.data?.data?.length ?? 0, last: c.data?.data?.at(-1) ?? null }
-      : { status: c.status, error: c.error };
-    // The book this account trades on: the region every market-data call names, and what the filtered tickers say
-    // (row count per symbol must be one — two rows would mean the filter is not being honoured, reference §2.2).
-    const t = await publicTickers(symbols);
-    r.region = {
-      requested: REVX_REGION,
-      tickers: t.ok
-        ? (t.data?.data ?? []).map((x) => ({ symbol: x.symbol, region: x.region ?? null, bid: x.bid, ask: x.ask, spreadBps: Math.round(((Number(x.ask) - Number(x.bid)) / ((Number(x.ask) + Number(x.bid)) / 2)) * 1e4 * 10) / 10 }))
-        : { status: t.status, error: t.error },
-    };
-    // The order reads the live settlement path depends on (`GET /1.0/orders/active`; the single-order read shares its row
-    // shape). Reference §2 never verified either, so the probe reports the FIELD NAMES the venue actually returns — the
-    // client reads `filled_size`, `average_fill_price`, `fees`, and a filled order without them is refused, never settled
-    // at fee 0. Reads only; nothing is placed.
-    const ao = await activeOrders(rx.env);
-    r.activeOrders = ao.ok
-      ? { status: ao.status, count: ao.data?.data?.length ?? 0, fields: Object.keys(ao.data?.data?.[0] ?? {}), clientReads: { documented: ["id", "status", "filled_quantity", "average_fill_price", "total_fee", "fee_currency", "client_order_id"], assumed: ["venue_order_id", "state", "filled_size", "fees"] } }
-      : { status: ao.status, error: ao.error };
-    out.revx = r;
-  }
+  // --- Revolut X: the strategy rows' account, and PR5's own ------------------
+  const rx = want("revx") ? await loadRevx("revx") : null;
+  if (rx) out.revx = "error" in rx ? { error: rx.error } : await probeRevxAccount(rx, symbols, "BTC/USD", f);
+  const rx2 = want("revx2") ? await loadRevx("revx2") : null;
+  if (rx2) out.revx2 = "error" in rx2 ? { error: rx2.error } : await probeRevxAccount(rx2, [...REVX2_PROBE_SYMBOLS], "USDC/GBP", f);
 
   // --- Kraken ----------------------------------------------------------------
   const kk = want("kraken") ? loadKraken() : null;

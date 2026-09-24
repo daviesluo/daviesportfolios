@@ -469,6 +469,9 @@ that follow from that evidence, in short:
   and DVOL). It places nothing. `?only=binance,deribit` runs just the
   parts named (`revx`, `kraken`, `jev`, `binance`, `deribit`).
 - Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
+  `Revolut_X_API_kEY_2` + `REVOLUT_X_PRIVATE_KEY_2` (a second Revolut X
+  sub-account for PR5's GBP stablecoin quotes, Davies 2026-09-24; only the
+  probe's `revx2` part reads it so far),
   `KRAKEN_PRO_API_KEY` + `KRAKEN_PRO_PRIVATE_KEY`, `openrouter_api_key`,
   `typesafe_API_KEY` (fallback), `Binance_API_KEY` + `Binance_SECRET_KEY`,
   `Deribit_CLIENT_ID` + `Deribit_CLIENT_SECRET` (both accounts unfunded as

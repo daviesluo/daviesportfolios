@@ -632,6 +632,15 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 01:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The probe reads PR5's own Revolut X sub-account** (Davies opened it on 2026-09-24 with a key stored as
+`Revolut_X_API_kEY_2` / `REVOLUT_X_PRIVATE_KEY_2`, and says he moved £50 into it). `?action=probe&only=revx2` runs
+the same read-only checks as the rows' account — balances, pair config for USDC/GBP, USDT/GBP, USDC/USD and
+USDT/USD, a signed call with a query, the book's region and the active orders' field names — and nothing else
+reads that key yet. `REVX_KEY_NAMES` keeps both accounts' secret names in one table; `runProbe(revx2)` is pinned
+to GETs only. Deno: check clean, 463 passed.
+
 ### [2026-09-24 01:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **`.claude/CLAUDE.md`'s Agents section follows the $50 go-live work** (item 000000000.4): the recommended row

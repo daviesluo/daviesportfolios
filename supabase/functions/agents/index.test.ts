@@ -6,6 +6,7 @@ import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@
 import {
   authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeParts, probeSymbols, runJevBatch,
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
+  REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
 import type { JevResult } from "../_shared/jev.ts";
@@ -305,6 +306,47 @@ Deno.test("probeParts: `?only=` picks the probe's parts by name, ignores unknown
   assertEquals([...probeParts("binance,deribit")!], ["binance", "deribit"]);
   assertEquals([...probeParts(" Kraken , nonsense ")!], ["kraken"]);
   assertEquals(probeParts("nonsense"), null);   // nothing recognised is not "nothing to run": it is the whole probe
+  assertEquals([...probeParts("revx2")!], ["revx2"]);
+});
+
+Deno.test("REVX_KEY_NAMES — the second account reads the secrets Davies created, and the first keeps its own", () => {
+  assertEquals([...REVX_KEY_NAMES.revx2.apiKey], ["REVOLUT_X_API_KEY_2", "Revolut_X_API_kEY_2"]);
+  assertEquals([...REVX_KEY_NAMES.revx2.priv], ["REVOLUT_X_PRIVATE_KEY_2", "Revolut_X_Private_Key_2"]);
+  assert(REVX_KEY_NAMES.revx.apiKey.includes("Revolut_X_API_kEY"));
+  assert(!REVX_KEY_NAMES.revx.apiKey.some((n) => n.endsWith("_2")));
+});
+
+Deno.test("runProbe(revx2) — reads the second account with GETs only, on PR5's books, and places nothing", async () => {
+  const pair = await crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"]) as CryptoKeyPair;
+  const pkcs8 = new Uint8Array(await crypto.subtle.exportKey("pkcs8", pair.privateKey));
+  const b64 = btoa(String.fromCharCode(...pkcs8));
+  const names = ["REVOLUT_X_API_KEY_2", "Revolut_X_API_kEY_2", "REVOLUT_X_PRIVATE_KEY_2", "Revolut_X_Private_Key_2"];
+  const saved = new Map(names.map((n) => [n, Deno.env.get(n)]));
+  for (const n of names) Deno.env.delete(n);
+  Deno.env.set("Revolut_X_API_kEY_2", "k".repeat(64));
+  Deno.env.set("REVOLUT_X_PRIVATE_KEY_2", b64);
+  const seen: Array<{ method: string; url: string }> = [];
+  const stub = ((input: Request | URL | string, init?: RequestInit) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    seen.push({ method: (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase(), url });
+    const body = url.includes("/configuration/pairs") ? { "USDC/GBP": { base_step: "0.01" } }
+      : url.includes("/balances") ? [{ currency: "GBP", available: "50" }]
+      : { data: [] };
+    return Promise.resolve(new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } }));
+  }) as typeof fetch;
+  try {
+    const out = await runProbe(new Set(["revx2"]), stub);
+    assertEquals(out.revx, undefined);
+    const r = out.revx2 as Record<string, any>;
+    assert(r && !("error" in r), JSON.stringify(r));
+    assertEquals(r.keyForm, "pkcs8-b64");
+    assertEquals(r.balances.status, 200);
+    assertEquals(Object.keys(r.pairs.config), [...REVX2_PROBE_SYMBOLS]);
+    assert(seen.length >= 5, `${seen.length} calls`);
+    assert(seen.every((c) => c.method === "GET"), JSON.stringify(seen));
+  } finally {
+    for (const [n, v] of saved) v === undefined ? Deno.env.delete(n) : Deno.env.set(n, v);
+  }
 });
 
 Deno.test("PAGE_VENUES — the page shows Revolut X and Binance, each with its own rows; Kraken is the signal venue only", () => {
