@@ -404,12 +404,24 @@ that no ten-character stretch of any of them reaches the report.
 
 **What it means before phase 2.** The documented answer for a London
 address is "close-only on the frontend and the API", and this project's
-functions run in eu-west-2: orders that OPEN a position are refused from
-there, and the account may carry the closed-only flag on its own. The
-probe reads both. Routing around a regulatory geoblock is not an option.
-Fees favour resting orders: a maker pays nothing and earns a rebate, while
-a taker pays `feeRate × (1 − p)` of notional — 3.5 % for a crypto market
-at 50¢, against Revolut X's 0.09 %.
+functions run in eu-west-2 by default: orders that OPEN a position are
+refused from there, and the account may carry the closed-only flag on its
+own. The probe reads both. Ireland is listed as close-only on the frontend
+only ("the API itself is not restricted"), and Davies is resident in both
+countries (his word, 2026-09-24). Polymarket's rule is the user's own
+location ("Verify the end user's location before placing orders"; the
+terms prohibit "a VPN or other measures to circumvent"), so an order path,
+when one is built, follows three rules: it runs only in Supabase's
+`eu-west-1` (Ireland) through regional invocation (`x-region: eu-west-1`,
+and every order call refuses unless the runtime's `SB_REGION` is
+`eu-west-1`); it opens a position only while Davies' attestation that he
+is in Ireland is current, a timestamp set in the conversation where he
+says so, which expires; and otherwise it may only reduce or close, which
+the UK allows. Never a VPN, a proxy or anyone else's account. Paper
+first, as for every strategy: paper reads only public data and needs no
+region. Fees favour resting orders: a maker pays nothing and earns a
+rebate, while a taker pays `feeRate × (1 − p)` of notional — 3.5 % for a
+crypto market at 50¢, against Revolut X's 0.09 %.
 
 ## 3. What the numbers say (measured, real data)
 
@@ -2857,10 +2869,17 @@ key, secret, passphrase, key id, address or amount is copied here.
 | One public book | the busiest two-sided open market by 24-hour volume, an MLB total: read in 13 ms, a 7¢ spread at a 1¢ tick, `feeSchedule` `{ rate: 0.05, takerOnly: true, rebateRate: 0.15 }` — §2d's Sports rate |
 
 **What it means.** The stored credentials are complete and correct, and they cannot be used to open a position from
-here: the geoblock answers `blocked` for the region the functions run in, and the United Kingdom is on the list that is
-close-only on the API as well as the frontend. Routing around that is not an option, so no order path is built. The
-allowances are the ones polymarket.com sets for an account that has traded; with the wallet empty they put nothing at
-risk.
+the project's own region: the geoblock answers `blocked` for eu-west-2, and the United Kingdom is on the list that is
+close-only on the API as well as the frontend. The allowances are the ones polymarket.com sets for an account that has
+traded; with the wallet empty they put nothing at risk.
+
+**From Ireland (03:20 UTC).** Davies is resident in Ireland as well as the UK, and approved running Polymarket from
+Ireland (2026-09-24; §2d has the rules an order path follows). The same probe, invoked through pg_net with
+`x-region: eu-west-1` (Supabase's regional invocation; the reply's `x-sb-edge-region` read `eu-west-1`), gave the same
+answers on every account read (key → signer, one API key and it is the stored one, not closed-only, no open orders),
+clock skew −0.5 s at 30 ms, a public book in 24 ms. The geoblock answered **`blocked: true`, country IE**: the endpoint
+is on polymarket.com and answers for the frontend, where Ireland is close-only, so it cannot show the API's Irish
+exemption. Only an order can; with the wallet empty and no strategy passed, none has been sent.
 
 ## Sources
 

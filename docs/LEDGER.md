@@ -14,17 +14,21 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-000000000000. **POLYMARKET: THE ACCOUNT VERIFIED READ-ONLY; NOTHING CAN OPEN A POSITION FROM THE UK (2026-09-24 02:54 UTC).**
-   `?action=probe&only=polymarket` (`_shared/polymarket.ts`, reference §2d, results §6) ran once after the deploy of
-   `8c0c633`. Every stored name is set and consistent; the private key controls the stored signer; the L2 credentials
-   authenticate (the account's one API key is the stored one); the public profile names the stored funder as the proxy
-   wallet; the account is not closed-only; no open orders; the wallet is effectively empty. **The geoblock answers
-   `blocked: true` (GB, ENG) for eu-west-2**, and the docs list the UK as close-only on the API: no order path is
-   built, and routing around it is not an option. Remaining:
-   1. The first-principles strategy search (a background agent) reports; its findings go to reference §3 with each
-      candidate marked by whether it can run at all.
-   2. Davies was told the account is verified and that Polymarket cannot open positions from the UK. The key was
-      exposed to another tool: keep the wallet empty or small, and revoking that tool's Supabase token is his.
+000000000000. **POLYMARKET: THE ACCOUNT VERIFIED READ-ONLY; POSITIONS MAY OPEN ONLY FROM IRELAND, WHILE DAVIES IS THERE (2026-09-24).**
+   `?action=probe&only=polymarket` (`_shared/polymarket.ts`, reference §2d, results §6) ran from London (02:54) and,
+   with `x-region: eu-west-1`, from Ireland (03:20). Every stored name is set and consistent; the private key controls
+   the stored signer; the L2 credentials authenticate; the funder is the profile's proxy wallet; not closed-only; no
+   open orders; the wallet effectively empty. The geoblock answers `blocked` for both (GB, and IE because it speaks for
+   the frontend). Davies is resident in Ireland as well as the UK and approved the Irish region; Ireland is close-only
+   on the frontend only. **The rules an order path follows** (reference §2d, `.claude/CLAUDE.md`): it runs only in
+   `eu-west-1` (refuse unless `SB_REGION` is `eu-west-1`); it opens a position only while his attestation that he is in
+   Ireland is current (an expiring timestamp he sets in conversation); otherwise reduce or close only; never a VPN, a
+   proxy or anyone else's account. Remaining:
+   1. The first-principles strategy search (a background agent) reports. It was told, once Davies approved the message
+      by name, to mark each candidate: can it run from Ireland, and does it tolerate stretches where it may only reduce
+      or close. Check its report does so on integration.
+   2. Nothing is built for orders until a candidate passes paper. Paper reads public data only, from any region.
+   3. The key was exposed to another tool: keep the wallet empty or small; revoking that tool's Supabase token is his.
 
 00000000000. **PR5'S LIVE PATH: PUSHED (`0aca828`), RUNNING IN DRY-RUN SINCE 02:40 UTC 2026-09-24** (reference §4
    item 35). `0052` applied; the executor writes its state every minute, with no error. Its first minute (02:41)
@@ -684,6 +688,16 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 07:21 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Polymarket runs from Ireland when it trades, and only while Davies is there** (item 000000000000). Davies is resident
+in Ireland as well as the UK, and approved the Irish region. Supabase's regional invocation (`x-region: eu-west-1`,
+docs read 2026-09-24) ran the same probe in Ireland at 03:20: every account read as from London, the reply's
+`x-sb-edge-region` `eu-west-1`, and the geoblock `blocked: true` for IE, because that endpoint answers for the frontend.
+`.claude/CLAUDE.md` and reference §2d now carry the rules an order path follows (`eu-west-1` only, an expiring
+attestation that he is in Ireland to open, reduce or close only otherwise, never a VPN, proxy or anyone else's
+account); §6 records the run. No code changed.
+
 ### [2026-09-24 07:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **`bin/gates.sh` runs only the unit tests for a Markdown-only change** (Davies, 2026-09-24: eight minutes of gates
@@ -697,6 +711,7 @@ an empty diff, or `--full` runs every gate. Checked on seven sample change lists
 **The public README no longer mentions AI coding agents** (Davies, 2026-09-24, before the CV goes out): the
 repository map's `.claude/`, `.cursor/`, `.agents/` row is gone, and `.claude/CLAUDE.md`'s README rule says the map
 names no AI coding agent and no folder of theirs, so a later session does not put the row back.
+
 
 ### [2026-09-24 02:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

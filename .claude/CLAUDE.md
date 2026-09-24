@@ -482,13 +482,19 @@ that follow from that evidence, in short:
   reference §2d). It places nothing. `?only=binance,deribit` runs just the
   parts named (`revx`, `revx2`, `kraken`, `jev`, `binance`, `deribit`,
   `polymarket`).
-- **Polymarket opens nothing from here.** The United Kingdom is
-  "close-only on the frontend AND the API" (reference §2d): an order that
-  opens a position is refused from a UK address, and this project's
-  functions run in London. Never route around it — no other region, no
-  proxy, no one else's account. `_shared/polymarket.ts` is read-only by
-  construction (GET only, a fixed list of URLs, the L2 headers to the CLOB
-  host only), and its key controls real funds.
+- **Polymarket may open a position only from Ireland, and only while
+  Davies is there** (reference §2d, §6). The United Kingdom is "close-only
+  on the frontend AND the API"; Ireland is close-only on the frontend only
+  ("the API itself is not restricted"), and Davies is resident in both
+  (his word, 2026-09-24). So an order path, when one is built, runs only
+  in Supabase's `eu-west-1` (the call carries `x-region: eu-west-1`; every
+  order call refuses unless `SB_REGION` is `eu-west-1`), and opens a
+  position only while his attestation that he is in Ireland is current —
+  a timestamp set in the conversation where he says so, which expires;
+  otherwise it may only reduce or close, which the UK allows. Never a VPN,
+  a proxy or anyone else's account. `_shared/polymarket.ts` is read-only
+  today (GET only, a fixed list of URLs, the L2 headers to the CLOB host
+  only), and its key controls real funds.
 - Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
   `Revolut_X_API_kEY_2` + `REVOLUT_X_PRIVATE_KEY_2` (a second Revolut X
   sub-account for PR5's GBP stablecoin quotes, Davies 2026-09-24; read by
