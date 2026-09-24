@@ -2458,6 +2458,103 @@ promotion is 0 % for this account, the account's permissions against each symbol
 Earn, Convert quotes and Dual Investment — are listed with their endpoints in the review. **So the verdict of §3.23–§3.28
 stands, reached a third way**: what differs between the venues is cost and reach.
 
+### 3.30 The BTC-regime entry filter, re-tested on non-bear windows: rejected (2026-09-24)
+
+Before two strategies go live at $50 each, Davies asked for the one pre-registered candidate left: §3.9's idea 1, which
+gates every entry of the 4-hour trend rule on BTC's last closed daily close being above its N-day average, "to be
+re-tested on a non-bear window before any paper twin". The pre-registration
+(`reviews/2026-09-24-btc-regime-prereg.md`) was committed (`a4ea134`) before any arm ran. It fixed the live row (four
+coins, $25 slots, the rulebook alone), N chosen in sample from {100, 150, 200}, the house's windows A–D, four fresh
+Kraken-history windows E–H (BTC and ETH) that no study had scored, the same-count episode null and the bar. The bar:
+improve the worst window in all four evaluations, beat chance there, and cost no other window beyond chance. The run
+is `backtests/btc_regime/` (two runs byte-identical); the review is `…-btc-regime-study.md`.
+
+| window (primary evaluation) | regime | incumbent | with the filter | a random veto of the same size |
+|---|---|---|---|---|
+| A | bear (−45.8 %) | +8.51 %, DD 15.8 % | +14.61 %, DD 5.4 % | does as well in 1 % of draws |
+| B | bull | +25.05 % | +22.22 % | within chance |
+| C | strong bull | +55.64 % | +57.05 % | within chance |
+| **D (the worst)** | sideways | **−7.81 %** | **−11.58 %** | does as well in 99.3 % of draws |
+| G (fresh) | bull | +54.94 % | +30.88 % | below it in 5.4 % of draws (1.3–3.9 % on the other three evaluations) |
+
+**REJECT.** The worst window gets worse in all four evaluations (−3.20 → −8.13 % under the trail), and no fixed N
+rescues it (−11.58 / −14.52 / −13.29 %). The one window it helps beyond chance is the bear year. In the fresh windows
+it also costs G beyond chance on three evaluations of four, and H under the trail. This is the pattern of §3.17 and
+§3.21 in its purest form: an entry gate improves the year it sits out and pays for it in the others, so a BTC-regime
+gate is a bet that the next year is a bear year. No paper twin; §3.9's last candidate is closed.
+
+### 3.31 `trend-4h` at $50: the paper record reproduced, the arithmetic, and two coin-fee defects (2026-09-24)
+
+Davies wants `trend-4h-live` at $50 after a validation that fixes what it finds. The review is
+`reviews/2026-09-24-trend4h-golive-validation.md`; it used public data and the repository's code only, with no
+database read.
+
+* **The paper record matches the backtester.** The paper row's life was replayed bar by bar with the loop's own
+  functions on the public candles it reads (`backtests/golive50/replay_trend4h.ts`), and every recorded fact comes back:
+  - ETH entered on the 09-21 00:00 bar, and BTC and SOL on the 08:00 bar, with the recorded state words;
+  - AVAX and SUI never signalled;
+  - 80 bar decisions through 09-23 08:00, and $0.036 of fees.
+
+  `run` takes the same trades. Predicted since, and not yet read back: ETH sold by the 3×ATR trail on the 09-23 12:00
+  bar. Three queries in the review (Q1–Q3) are what the database would confirm.
+* **The 12 bars no study had scored** (09-22 00:00 → 09-24 00:00) hold one decision, that exit. On four $12.50 slots
+  the book moved −$1.31 against buy-and-hold's −$2.23. One draw.
+* **$50 is four $12.50 slots, and the venue has no objection to that size.** Each order is 125 times the $0.10 minimum
+  and loses at most $0.00006 to rounding. A round trip costs $0.025–0.036 (19.8–28.8 bps). A floor exit loses about
+  $1.01, and all four floors in one day lose $4.05–4.27, which is under the $5 daily limit.
+  - The daily limit is inert at this size. It is one number for every venue × mode bucket, paper included, so it stays
+    at $5.
+  - The proposed amendment to `go_live.sql.draft`, written out in the review and not applied: capital 50, and an
+    exposure cap of 15 (one slot) for the first round trip. The cap rises to 30 once a person has read that round
+    trip back, and to 75 after a clean week. Orders stay at 40.
+* **D11 and D12: a buy fee taken in the coin leaves the book "long" for good.**
+  - D11: if the venue reports the fee at full precision, `gross − fee` falls between two base steps (9 bps is 13.3
+    steps of BTC at $12.50).
+  - D12: if the venue takes the fee without reporting it, D8's derived dollar fee books the gross.
+
+  Either way the exit can sell only what the account holds, and the remainder stays in the book. The rule then never
+  enters that coin again, and the floor asks every minute for a sale under the venue minimum. Both depend on how the
+  venue charges and reports a buy's fee, which nobody has seen (B4/D8). D4's test double had rounded the coin fee to
+  the step, which is why no pin caught D11.
+  - D11 has a fix and its pin in `reviews/2026-09-24-golive50-patches/`: a live buy's settled base is floored to the
+    pair's step. On `07c6e44` the Edge suite passes with the fix and the pin fails without it.
+  - D12 has a reproduction there that stays red on `07c6e44`. The fix still to build is to book what the account's
+    balance shows beyond the rest of the book.
+  - Until both land, a person reads the first live buy before its exit: the fee fields it came back with, and the
+    account's balance of the coin against the book.
+* **Verdict: GO at $50 on Davies' word**, once D11's patch lands and with that first-buy check in place. The funding is
+  at least $51 of USD in the key's sub-account, and nothing may ever be traded there by hand.
+
+### 3.32 PR5 live: a build, not a switch, and $50 is not the reason to do it (2026-09-24)
+
+Davies asked for PR5's GBP stablecoin quotes to go live at $50 beside `trend-4h-live`. The design is
+`reviews/2026-09-24-pr5-live-design.md`. It drives the frozen simulator, imported unchanged
+(`backtests/pr5_live/pr5_live_design.py`), which reproduces `posthoc_new_regime.json` exactly on the committed inputs.
+
+* **What $50 earns.** The frozen shape at $50 is twelve $4.17 rungs. In the 28 days after the books tightened
+  (2026-08-26 → 09-23) it made **$0.576 on 102 round trips: $0.021 a day, 15.0 %/yr**. 94 % of trips won, the worst
+  lost $0.006, and it averaged 3.6 fills a day.
+* **Orders do not shrink with the money.** The 0.05 % re-price fires on every FX move, so the rule sends 205 orders a
+  day (441 at most), just as at $1,200. In the wide market it sent 391 a day, with 14 days over the venue's 1,000.
+  - A live engine needs a governor on its own POSTs: entry quotes are withdrawn at 600 a day, and only stops go out
+    at 700.
+  - Re-pricing at 0.10 % or 0.20 %, or quoting one book, would cut the orders. Those arms were priced only to describe
+    them: choosing one is a new search, with its own pre-registration.
+* **Inventory.** Six bids' worth of GBP ($25, about £18.89) plus $12.50 each of USDC and USDT.
+  - The venue lists USDC/USD, USDT/USD, USDC/GBP and USDT/GBP; it has no GBP/USD and no USDT/USDC pair.
+  - Converting from USD costs about $0.09, four days of P&L. Transferring about £19 in is cheaper.
+* **Risks.** De-peg, one-sided fills, stuck inventory, a failed cancel, the order budget, a daily loss, stale inputs,
+  unread settlement (D11/D12) and account coupling each get a hard limit in the review. The coupling limit is a
+  separate sub-account and key.
+* **The build list has nine items:** post-only placement with a client id written first; cancel, then replace; reconcile
+  every minute; fills from the venue; inventory against balances; kill switch and guards; a read-only probe; pins
+  against a double no looser than the venue; the page.
+* **The paper engine's first nine hours** should hold 128 orders and no round trip by the frozen rule on the same
+  public prints. Queries P1–P4 in the review read what it recorded.
+* **NO-GO now.** The spec's four weeks (to 2026-10-21) can show "better than cash" (about 27 days of record) but not
+  "better than 8 %/yr" (about 93). At $50 the result would be a plumbing test earning two cents a day. Its capacity at
+  $300–$1,000 rungs is a different decision.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

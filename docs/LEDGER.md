@@ -567,6 +567,19 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 00:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**S1–S3 recorded in the reference as §3.30 (the BTC-regime filter, rejected), §3.31 (`trend-4h` at $50, D11 and D12)
+and §3.32 (PR5 live, NO-GO).** This sitting closes here, on branch `worktree-agent-a0f7bbde042313d4f` (a worktree
+off `96859b4`; `origin/main` has since moved to `07c6e44`), NOT pushed, per its instruction: `a4ea134` (S1
+pre-registration), `321998b` (S1 run), `364b3fb` (S2), `f33fe5d` (S3) and this commit. Merge it rather than
+cherry-pick, so `a4ea134` stays the pre-registration's commit that the study cites. **Left for the main session:**
+- land D11's patch;
+- build D12's fix (book what the account's balance shows);
+- run Q1–Q3 and P1–P4;
+- put the $50 amendment into the draft when Davies says go;
+- update the Agents section's line in `.claude/CLAUDE.md` that still calls the BTC-regime filter a candidate.
+
 ### [2026-09-24 00:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **S3: PR5 live is a NO-GO now — a build, not a switch, and $50 is not the reason to do it**
