@@ -14,6 +14,16 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+0000000000000. **`main`'S HISTORY WAS REWRITTEN (2026-09-24, Davies' word): every commit's author and committer is
+   daviesluo; the content is byte for byte the same (final tree `a09ad6a`, 1,053 commits, dates kept).** Old hashes map
+   through `docs/commit-map-2026-09-24.md`. Remaining:
+   1. The other 75 branches (48 `claude/…`, 3 `cursor/…`, 2 `agent-remote/…`, 22 old feature branches) still exist:
+      this environment's git proxy refuses branch deletion (HTTP 403), so Davies deletes them himself (Branches page, or
+      one command from his machine). The open pull requests all closed when `main` was replaced, and dependabot
+      removed its own 14 branches.
+   2. Any clone made before the rewrite (his machine's, Cursor's) must be re-cloned or reset to `origin/main`.
+   3. The Polymarket research agent's worktree branch predates the rewrite: bring its commits over by cherry-pick.
+
 000000000000. **POLYMARKET: THE ACCOUNT VERIFIED READ-ONLY; POSITIONS MAY OPEN ONLY FROM IRELAND, WHILE DAVIES IS THERE (2026-09-24).**
    `?action=probe&only=polymarket` (`_shared/polymarket.ts`, reference §2d, results §6) ran from London (02:54) and,
    with `x-region: eu-west-1`, from Ireland (03:20). Every stored name is set and consistent; the private key controls
@@ -687,6 +697,16 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 08:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`main` rewritten so every commit names Davies** (his word, 2026-09-24, before the CV goes out: "all contributors of
+both public repositories linked in the CV become me"). `git filter-repo` on a full clone set author and committer of
+all 1,053 commits to `daviesluo <daviesluo@gmail.com>` (550 had been another author, 184 committed by GitHub's web
+flow, 7 by dependabot) and dropped co-author and session trailers; the final tree is unchanged (`a09ad6a`), so the
+site, the functions and the database see nothing new. Force-pushed with a lease on `bd0c2f8` → `28f5c01`.
+`docs/commit-map-2026-09-24.md` maps old hashes to new. Deleting the other branches was refused by the session's git
+proxy (403); 75 remain for Davies (dependabot removed its 14). `decision-fc` needed nothing: its one commit and both `gh-pages` commits are his.
 
 ### [2026-09-24 07:21 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -530,7 +530,11 @@ that follow from that evidence, in short:
   every push. If a push leaves `main` red, fix-up commit on `main` is
   the next priority — don't move on to new features while CI is broken.
 - Never force-push `main` and never bypass hooks (`--no-verify`)
-  without explicit user confirmation in the same message.
+  without explicit user confirmation in the same message. The one
+  force-push so far (2026-09-24, Davies' word) rewrote every commit to
+  name him as author and committer, content unchanged: a hash quoted
+  from before it maps through `docs/commit-map-2026-09-24.md`, and a
+  clone made before it must be re-cloned or reset to `origin/main`.
 - Keep commit messages focused on **why**, not **what**.
 - **Commit as the repo owner, never as Claude / Anthropic.** Every
   GitHub contribution must land in the owner's name so the graph
