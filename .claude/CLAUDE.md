@@ -89,7 +89,8 @@ Non-obvious caveats:
   (password: contact Davies), screenshots in `docs/screenshots/` with
   every dollar amount masked by the site's hide-values mode, what it
   does, how it's built, how he works, the crypto loop, and a
-  one-row-per-folder map. Touch it only when one of those changes. It is
+  one-row-per-folder map, which names no AI coding agent and no folder of
+  theirs (Davies, 2026-09-24). Touch it only when one of those changes. It is
   written in his voice — first person, plain words, short sentences, no
   slogans — and detail goes to `docs/map.md`, never back into it.
 - **No personal financial figure goes into `docs/README.md`, `docs/guide.md`

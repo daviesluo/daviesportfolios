@@ -684,6 +684,12 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 07:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The public README no longer mentions AI coding agents** (Davies, 2026-09-24, before the CV goes out): the
+repository map's `.claude/`, `.cursor/`, `.agents/` row is gone, and `.claude/CLAUDE.md`'s README rule says the map
+names no AI coding agent and no folder of theirs, so a later session does not put the row back.
+
 ### [2026-09-24 02:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The Polymarket probe ran; the account is verified and cannot open positions from here** (item 000000000000).
