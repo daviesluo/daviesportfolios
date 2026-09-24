@@ -762,6 +762,15 @@ clean; the docs-map test green. Two counterfactuals each fail a pin: signing the
 upstream error before scrubbing it. The public reads were run keylessly from this container against the live hosts.
 Not deployed, not run with the keys.
 
+### [2026-09-24 02:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp4, the fourth first-principles search, on Polymarket: two pre-registrations frozen before their data exists**
+(branch `worktree-agent-aed9a8c7d9e3f4117`, not pushed). FAV buys the token priced 0.90–0.99 a day before a
+market's scheduled end and holds it to resolution (IS 2025, OOS 2026-01 → 09-10, a calibration null); RW quotes the
+minimum qualifying size on both sides of the rewarded markets with the largest expected share, forward over eight
+hours of recorded books. Found first, and outside both tests: Polymarket's own geoblock page lists the United
+Kingdom as close-only on the frontend and the API, and its terms prohibit circumventing that. Public reads only.
+
 ### [2026-09-24 02:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **`.claude/CLAUDE.md` follows PR5's live path** (`0aca828`): the PR5 bullet says it is built and runs in dry-run, how it
@@ -823,6 +832,7 @@ replacement was sized, so on tight inventory the asks were skipped: 60 in the re
 - M32 the migration not yet applied.
 
 Deno: check clean, 494 passed; knip (Edge) clean. No venue was called with a key, and no order was sent.
+
 
 ### [2026-09-24 01:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
