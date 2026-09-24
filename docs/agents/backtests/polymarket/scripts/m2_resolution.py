@@ -87,7 +87,7 @@ def main():
     outp = sys.argv[1]
     lo = sys.argv[2] if len(sys.argv) > 2 else "0000-00"
     hi = sys.argv[3] if len(sys.argv) > 3 else "9999-99"
-    files = sorted(f for f in glob.glob(os.path.join(pmnet.DATA, "closed", "*.json")) if lo <= os.path.basename(f)[:7] <= hi)
+    files = [f for f in pmnet.list_json(os.path.join(pmnet.DATA, "closed")) if lo <= os.path.basename(f)[:7] <= hi]
     rows = []
     for f in files:
         month = os.path.basename(f)[:7]

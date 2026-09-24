@@ -6,6 +6,7 @@ per host and retried on 429/5xx with backoff; nothing here can write.
 PM_DATA names the folder raw pulls are written to (not committed; hashed in
 MANIFEST.json). It defaults to ./pm_data beside the working directory.
 """
+import http.client
 import json
 import os
 import time
@@ -64,7 +65,8 @@ def get(url, params=None, tries=6, timeout=60, raw=False):
                 continue
             body = e.read()[:500]
             raise RuntimeError(f"HTTP {e.code} {url}: {body!r}")
-        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError, http.client.HTTPException, ValueError) as e:
+            # ValueError covers a body cut short mid-JSON; HTTPException an IncompleteRead or a dropped connection
             if i < tries - 1:
                 time.sleep(delay)
                 delay = min(delay * 2, 30)
@@ -90,7 +92,7 @@ def post(url, payload, tries=6, timeout=60):
                 delay = min(delay * 2, 30)
                 continue
             raise RuntimeError(f"HTTP {e.code} {url}: {e.read()[:500]!r}")
-        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError, http.client.HTTPException, ValueError) as e:
             if i < tries - 1:
                 time.sleep(delay)
                 delay = min(delay * 2, 30)
@@ -109,5 +111,26 @@ def dump(path, obj):
 
 
 def load(path):
+    """Read a JSON file, or its gzipped twin `<path>.gz` when only that exists (raw pulls are gzipped to save disk)."""
+    if not os.path.exists(path) and os.path.exists(path + ".gz"):
+        import gzip
+        with gzip.open(path + ".gz", "rt") as f:
+            return json.load(f)
     with open(path) as f:
         return json.load(f)
+
+
+def exists(path):
+    return os.path.exists(path) or os.path.exists(path + ".gz")
+
+
+def list_json(folder):
+    """The logical paths (without .gz) of every *.json and *.json.gz in a folder, sorted."""
+    names = set()
+    if os.path.isdir(folder):
+        for n in os.listdir(folder):
+            if n.endswith(".json"):
+                names.add(n)
+            elif n.endswith(".json.gz"):
+                names.add(n[:-3])
+    return [os.path.join(folder, n) for n in sorted(names)]

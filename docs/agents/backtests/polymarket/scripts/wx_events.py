@@ -59,7 +59,7 @@ def interval(a, b, tail):
 def main():
     events = defaultdict(lambda: {"markets": []})
     unparsed = []
-    for f in sorted(glob.glob(os.path.join(pmnet.DATA, "closed", "*.json"))):
+    for f in pmnet.list_json(os.path.join(pmnet.DATA, "closed")):
         for m in pmnet.load(f):
             q = m.get("question") or ""
             if not re.search(r"(highest|lowest) temperature in", q, re.I):

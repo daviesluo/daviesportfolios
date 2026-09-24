@@ -44,7 +44,7 @@ def months(a, b):
 
 def pull_month(ym):
     path = os.path.join(pmnet.DATA, "closed", ym + ".json")
-    if os.path.exists(path):
+    if pmnet.exists(path):
         return None
     start, end = month_bounds(ym)
     out, cursor, pages = [], None, 0

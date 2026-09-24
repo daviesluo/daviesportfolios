@@ -732,6 +732,13 @@ an empty diff, or `--full` runs every gate. Checked on seven sample change lists
 repository map's `.claude/`, `.cursor/`, `.agents/` row is gone, and `.claude/CLAUDE.md`'s README rule says the map
 names no AI coding agent and no folder of theirs, so a later session does not put the row back.
 
+### [2026-09-24 03:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp4: the pulls survive a dropped connection and a short disk** (not pushed). A Gamma month died on an
+`IncompleteRead` the helper did not retry; it retries now, and RW's recorder was restarted on the fixed helper at
+03:10 UTC between two rounds (a restart never rewrites a minute it has). The container had 1.6 GB free: raw monthly
+pulls are gzipped as they land and every reader takes the `.gz`. The 2026 months hold 250–700 k closed markets each.
+
 
 ### [2026-09-24 03:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

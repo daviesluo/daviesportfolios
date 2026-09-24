@@ -99,7 +99,7 @@ def main():
     out, counts = [], {"closed_rows": 0, "binary_book": 0, "not_updown": 0, "vol_ok": 0, "in_window": 0,
                        "payout_0_1": 0, "payout_other": 0, "open_at_some_Td": 0, "sampled": 0,
                        "sample_rule": f"Gamma event id % {SAMPLE_MOD} == 0"}
-    for f in sorted(glob.glob(os.path.join(pmnet.DATA, "closed", "*.json"))):
+    for f in pmnet.list_json(os.path.join(pmnet.DATA, "closed")):
         for m in pmnet.load(f):
             counts["closed_rows"] += 1
             try:

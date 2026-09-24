@@ -93,6 +93,11 @@ def main():
         t0 = time.time()
         minute = int(t0 // 60 * 60)
         path = os.path.join(base, "books", f"{minute}.json")
+        if os.path.exists(path):
+            # a restarted recorder never rewrites a minute it already has
+            while time.time() < minute + 60:
+                time.sleep(1)
+            continue
         rec = {"t0": t0, "books": {}}
         for i in range(0, len(toks), 100):
             chunk = toks[i:i + 100]
