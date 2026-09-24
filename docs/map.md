@@ -647,6 +647,7 @@ before touching migration state.
 | `0051_paper_quotes.sql` | Adds the paper quote test's tables (state, prints, inputs, events, trips) and its once-a-minute cron job. |
 | `0052_live_quotes.sql` | Adds the live quote executor's tables (config, orders, events, state) and its lease; the config goes in in dry-run and unarmed. |
 | `0053_pm_rw_paper.sql` | Adds RW's paper test: its tables (state, selection, minutes, prints, fills, days, settlements), its two leases and its two cron jobs. |
+| `0054_go_live.sql` | Adds the first live row, `trend-4h-live` (Revolut X, BTC/ETH/SOL/AVAX, four equal slots), unarmed, and sets the live caps for its first round trip. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -677,7 +678,6 @@ before touching migration state.
 | `docs/agents/reference.md` | Every verified fact the crypto loop rests on: the Jev model, both exchange APIs, the measurements and the backtests. |
 | `docs/agents/go-live.md` | The case for the first live strategy. |
 | `docs/agents/venue-survey.md` | Other exchanges, brokers and data sources, for the UK, the US and Hong Kong. |
-| `docs/agents/go_live.sql.draft` | The migration that would go live, kept out of `supabase/migrations/` until Davies says go. |
 | `docs/agents/reviews/` | The code review before going live, and one write-up per study. |
 | `docs/agents/backtests/` | The studies' results, as JSON, and in `inputs/` the public data a study read that cannot be fetched again unchanged. |
 | `docs/agents/backtests/polymarket/` | The fourth search, on Polymarket: its scripts, inputs and results, listed in `MANIFEST.json`; `scripts/rw_golden.py` cuts the paper engine's replay fixture from RW's input and result. |

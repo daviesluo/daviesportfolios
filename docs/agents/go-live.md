@@ -613,13 +613,18 @@ again in a month, over a live row's own bars.
 ### 9.5 The order of operations
 
 1. ~~Run the probe.~~ **Done 14:05 UTC, green — §9.4.**
-2. Move `docs/agents/go_live.sql.draft` to
-   `supabase/migrations/<next free number>_go_live.sql` and push — find
+2. ~~Move `docs/agents/go_live.sql.draft` to
+   `supabase/migrations/<next free number>_go_live.sql` and push~~ — find
    the number first (`ls supabase/migrations/`; up to `0051` are taken and
    applied as of 2026-09-23, and a file under a used number is
    skipped by `supabase db push`, not applied). **That push is the
-   act of going live** — `migrations.yml` applies it.
-3. The first live order still needs Davies' word in the conversation.
+   act of going live** — `migrations.yml` applies it. **Done
+   2026-09-24: `0054_go_live.sql`, on Davies' word at 22:35 UTC, after
+   every precondition was checked again read-only.**
+3. ~~The first live order still needs Davies' word in the conversation.~~
+   **Given 2026-09-24:** go live if the verification is clean (22:35 UTC),
+   and at 22:40 that the buys and sells after the go-live need no
+   confirmation of his; the session watches them.
 4. Watch the first fill's read-back: it is what verifies
    `filled_size`, `average_fill_price` and `fees`, which the venue's
    documentation never specified and the client currently assumes. A

@@ -1,15 +1,11 @@
--- The first live row. It carries no number until it moves: give it the next
--- free one then (`ls supabase/migrations/`; still 0052 at 2026-09-24 01:10 UTC, the
--- remote history ends at 0051 plus the four 202608… out-of-band versions). It was numbered 0047, 0048, 0049,
--- 0050 and 0051 on 2026-09-23 alone, and each new migration took the number
--- from under it — so it waits unnumbered.
---
--- DRAFT, and deliberately not under supabase/migrations/. Pushing a file
--- there IS applying it (`.github/workflows/migrations.yml` runs
--- `supabase db push` on every push to main), so this one waits here until
--- Davies says the word. Moving it is the act of going live. The first
--- live ORDER it makes possible needs his confirmation in the same
--- conversation on top of that.
+-- The first live row. It waited unnumbered as docs/agents/go_live.sql.draft
+-- (it was numbered 0047, 0048, 0049, 0050 and 0051 on 2026-09-23 alone, each
+-- new migration taking the number from under it) and moved here as 0054 on
+-- 2026-09-24, on Davies' word in the conversation (22:35 UTC), after a fresh
+-- read-only check of every precondition. Pushing this file applied it
+-- (`.github/workflows/migrations.yml` runs `supabase db push` on every push to
+-- main). Arming is the separate statement under AUDIT below, run in that
+-- conversation; the loop then places the first live entry on its own.
 --
 -- WHAT IT DOES
 --

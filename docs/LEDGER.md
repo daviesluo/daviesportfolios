@@ -47,9 +47,11 @@ list stays the short version; the plan is the reasoning behind it.
      account; `_shared/polymarket.ts` stays GET-only until the design is agreed. The design says: order signing (the
      CLOB's EIP-712 orders and L2 headers), a dry-run first, caps, the kill switch, reconciliation by order id, and
      reading the account's actual reward payouts to compare with the formula — the one thing paper cannot show.
-   - **G4 — trend-4h live at $50: VERIFIED READY 2026-09-24 20:34 UTC, and again from scratch at 21:13–21:22 UTC
-     (Cursor, same result; that history section has the numbers); the move waits on Davies' "开" in the Cursor
-     conversation** (item 000000000). In the Claude Code session the move below was refused by the tool's permission
+   - **G4 — trend-4h live at $50: GOING LIVE on Davies' word, 2026-09-24 22:35 UTC** ("验证没问题的话就上线，并盯着
+     上线情况"; at 22:40: "上线后的买卖不需要找我确认，如果真的需要你帮忙盯着就行" — no confirmation of his for any
+     trade after the go-live, the session watches, and the first buy's read-back is the session's). Preconditions
+     re-checked 22:40–22:41 and `0054_go_live.sql` pushed; arming and its checks are in the newest history section.
+     Earlier: VERIFIED READY 2026-09-24 20:34 UTC, and again from scratch at 21:13–21:22 UTC (item 000000000). In the Claude Code session the move below was refused by the tool's permission
      layer (it is the act of going live), so it is Davies' to allow or to run himself. The verification: paper
      `trend-4h` healthy (30 decisions in 24 h, the last at 20:00, flat after its three exits) with params identical to
      the draft's; `ops_errors` only four transient timeouts, each handled (nothing placed that turn); the read-only
@@ -80,7 +82,7 @@ list stays the short version; the plan is the reasoning behind it.
    - **Where things are:** RW — `agents/pmrw.ts` (engine), `agents/pmrw_view.ts` (page summary), `_shared/polymarket_public.ts`
      (keyless client), `0053_pm_rw_paper.sql`, spec `docs/agents/reviews/2026-09-24-polymarket-rw-paper-spec.md`, study
      `…/2026-09-24-polymarket-fp4-study.md`, reference §3.33 and §4 item 36. PR5 — `agents/quotes.ts`, `quotes_live.ts`,
-     `0051`/`0052`, §4 items 31 and 35. Go-live — `docs/agents/go-live.md`, `go_live.sql.draft`, §3.31, §4 items 32–34.
+     `0051`/`0052`, §4 items 31 and 35. Go-live — `docs/agents/go-live.md`, `0054_go_live.sql`, §3.31, §4 items 32–34.
 
 0000000000000. **`main`'S HISTORY WAS REWRITTEN (2026-09-24, Davies' word): every commit's author and committer is
    daviesluo; the content is byte for byte the same (final tree `a09ad6a`, 1,053 commits, dates kept).** Old hashes map
@@ -898,6 +900,22 @@ then push it.
     1ef8ff534f940e37c20b0cd96b1f0943c39248e5  typecheck                                          pull/36
     d9b84cf7f48ea1087f54b960d921e5cceb9c9745  vite-outdir-root                                   pull/33
     c1e3f590dad4e81fb7e9e81091a022885d84068d  ytd-tests                                          pull/40
+
+### [2026-09-24 22:42 UTC] Platform: Cursor | Model: Opus 5.5
+
+**trend-4h goes live at $50: `0054_go_live.sql` pushed on Davies' word** (G4). Davies, 22:35 UTC, after being told
+the go-live is the migration, then the arming, then a first real buy the loop places by itself on the next entry
+signal, then the fill read back: "验证没问题的话就上线，并盯着上线情况". At 22:40: "上线后的买卖不需要找我确认，如果真
+的需要你帮忙盯着就行" — so no separate confirmation of the first order, and the read-back before the first exit is the
+session's. Every precondition was checked again first, read-only, 22:40–22:41 UTC: no `trend-4h-live` row;
+`agent_risk` `global_pause` false, `live_confirmed_at` null (caps 100 live / 300 paper, loss 5, orders 40); paper
+`trend-4h` flat, params equal to the draft's; no live order ever, no open order in any mode; no `ops_errors` and every
+cron run succeeded since 21:22 (269 responses, all 200, none with an error in its report); probe 200, `pkcs8-b64`, USD
+the only currency, USD available ≥ $51 true, reserved 0, BTC/ETH/SOL/AVAX `active` (UK spreads 3.1 / 2.8 / 4.7 /
+10.8 bps), no active order, no order history; remote migrations end at `0053`. The file moved from
+`docs/agents/go_live.sql.draft` with its SQL byte for byte as verified; only its header comment now says what it is.
+The Binance twins compute their own decisions from the same rulebook, so a second Revolut X `trend-4h` row changes
+nothing of theirs.
 
 ### [2026-09-24 21:51 UTC] Platform: Cursor | Model: Opus 5.5
 
