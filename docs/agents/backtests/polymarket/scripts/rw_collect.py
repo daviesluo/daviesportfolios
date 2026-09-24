@@ -15,6 +15,7 @@ import json
 import os
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(__file__))
 import pmnet  # noqa: E402
@@ -22,6 +23,15 @@ import pmnet  # noqa: E402
 CLOB = "https://clob.polymarket.com"
 GAMMA = "https://gamma-api.polymarket.com"
 MIN_RATE = 10.0
+THREADS = 8
+
+
+def fetch(chunk):
+    try:
+        return chunk, pmnet.post(CLOB + "/books", [{"token_id": t} for _, t in chunk])
+    except RuntimeError as e:
+        print("books error", str(e)[:120], flush=True)
+        return chunk, None
 
 
 def fnum(x, d=0.0):
@@ -99,12 +109,14 @@ def main():
                 time.sleep(1)
             continue
         rec = {"t0": t0, "books": {}}
-        for i in range(0, len(toks), 100):
-            chunk = toks[i:i + 100]
-            try:
-                res = pmnet.post(CLOB + "/books", [{"token_id": t} for _, t in chunk])
-            except RuntimeError as e:
-                print("books error", str(e)[:120], flush=True)
+        # the round's requests go out on THREADS threads at once (from 08:5x UTC on 2026-09-24, when the
+        # container's egress slowed every request to 4-9 s and a sequential round took up to 146 s); what a
+        # round records is unchanged
+        chunks = [toks[i:i + 100] for i in range(0, len(toks), 100)]
+        with ThreadPoolExecutor(max_workers=THREADS) as ex:
+            fetched = list(ex.map(fetch, chunks))
+        for chunk, res in fetched:
+            if res is None:
                 continue
             by = {b.get("asset_id"): b for b in res}
             for c, t in chunk:
