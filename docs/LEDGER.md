@@ -708,6 +708,15 @@ site, the functions and the database see nothing new. Force-pushed with a lease 
 `docs/commit-map-2026-09-24.md` maps old hashes to new. Deleting the other branches was refused by the session's git
 proxy (403); 75 remain for Davies (dependabot removed its 14). `decision-fc` needed nothing: its one commit and both `gh-pages` commits are his.
 
+### [2026-09-24 08:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp4's WX fails: the market knows more than the free forecast** (not pushed). Polymarket's daily temperature
+buckets against Open-Meteo's 48-hour forecast with a normal error fitted on 2025 → 2026-02, trading the bucket the
+model says is 10 points mispriced: out of sample (2026-03 → 09-10, 11,586 events in all) −$1,589.09 on 5,336 trades
+of $5, −6.6 % a dollar; on 106,666 buckets the market's own price scores a Brier of 0.064 against the model's 0.075;
+the thresholds 0.05 and 0.20 lose too. Byte-identical twice (`2e87cb33…`); 26 of 26 sample fills re-read from the feed.
+
+
 ### [2026-09-24 07:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **fp4: the oracle is not where near-certain outcomes lose** (M2, not pushed). Of 344,229 resolved markets with

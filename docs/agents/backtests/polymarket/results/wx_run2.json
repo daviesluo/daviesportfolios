@@ -1,0 +1,1448 @@
+{
+ "edge_0.05": {
+  "IS": {
+   "cost": 2077.005597,
+   "fees": 46.332738,
+   "lost": 228,
+   "mean_fill_price": 0.353963,
+   "pnl": -40.644719,
+   "pnl_per_dollar": -0.019569,
+   "trades": 463,
+   "won": 235
+  },
+  "OOS": {
+   "cost": 25352.160222,
+   "fees": 535.613794,
+   "lost": 2556,
+   "mean_fill_price": 0.43037,
+   "pnl": -1573.925922,
+   "pnl_per_dollar": -0.062083,
+   "trades": 5595,
+   "won": 3039
+  },
+  "OOS1": {
+   "cost": 9905.627775,
+   "fees": 207.497185,
+   "lost": 999,
+   "mean_fill_price": 0.364221,
+   "pnl": -534.794917,
+   "pnl_per_dollar": -0.053989,
+   "trades": 2174,
+   "won": 1175
+  },
+  "OOS2": {
+   "cost": 15446.532446,
+   "fees": 328.116609,
+   "lost": 1557,
+   "mean_fill_price": 0.487103,
+   "pnl": -1039.131005,
+   "pnl_per_dollar": -0.067273,
+   "trades": 3421,
+   "won": 1864
+  },
+  "bar": {
+   "1_oos_pos_and_both_halves": false,
+   "2_beats_null_p95": false,
+   "3_stress_pos": false,
+   "4_at_least_200_trades": true,
+   "5_not_one_month": false,
+   "6_beats_cash": false
+  },
+  "null": {
+   "mean": -537.489757,
+   "p95": 100.261633
+  },
+  "passes": false,
+  "stress_OOS_pnl": -2170.955417
+ },
+ "edge_0.2": {
+  "IS": {
+   "cost": 1318.778055,
+   "fees": 32.453222,
+   "lost": 162,
+   "mean_fill_price": 0.340358,
+   "pnl": -74.073281,
+   "pnl_per_dollar": -0.056168,
+   "trades": 295,
+   "won": 133
+  },
+  "OOS": {
+   "cost": 15423.362403,
+   "fees": 348.693253,
+   "lost": 1674,
+   "mean_fill_price": 0.437236,
+   "pnl": -1127.163312,
+   "pnl_per_dollar": -0.073082,
+   "trades": 3409,
+   "won": 1735
+  },
+  "OOS1": {
+   "cost": 4710.044795,
+   "fees": 109.184067,
+   "lost": 523,
+   "mean_fill_price": 0.341706,
+   "pnl": -245.082635,
+   "pnl_per_dollar": -0.052034,
+   "trades": 1036,
+   "won": 513
+  },
+  "OOS2": {
+   "cost": 10713.317608,
+   "fees": 239.509186,
+   "lost": 1151,
+   "mean_fill_price": 0.498508,
+   "pnl": -882.080677,
+   "pnl_per_dollar": -0.082335,
+   "trades": 2373,
+   "won": 1222
+  },
+  "bar": {
+   "1_oos_pos_and_both_halves": false,
+   "2_beats_null_p95": false,
+   "3_stress_pos": false,
+   "4_at_least_200_trades": true,
+   "5_not_one_month": false,
+   "6_beats_cash": false
+  },
+  "null": {
+   "mean": -350.508776,
+   "p95": 149.981593
+  },
+  "passes": false,
+  "stress_OOS_pnl": -1512.856933
+ },
+ "events": 11586,
+ "fits": {
+  "city|Atlanta|highest": {
+   "loglik": -99.223184,
+   "mu": 2.5,
+   "n": 77,
+   "sigma": 3.7
+  },
+  "city|Buenos Aires|highest": {
+   "loglik": -99.326411,
+   "mu": 0.8,
+   "n": 77,
+   "sigma": 1.75
+  },
+  "city|Dallas|highest": {
+   "loglik": -114.80307,
+   "mu": 0.5,
+   "n": 77,
+   "sigma": 4.1
+  },
+  "city|London|highest": {
+   "loglik": -679.58308,
+   "mu": 1.0,
+   "n": 400,
+   "sigma": 2.4
+  },
+  "city|NYC|highest": {
+   "loglik": -200.017052,
+   "mu": 2.5,
+   "n": 104,
+   "sigma": 4.2
+  },
+  "city|New York City|highest": {
+   "loglik": -541.629583,
+   "mu": -0.1,
+   "n": 297,
+   "sigma": 3.45
+  },
+  "city|Seattle|highest": {
+   "loglik": -110.104331,
+   "mu": 0.8,
+   "n": 77,
+   "sigma": 2.35
+  },
+  "city|Seoul|highest": {
+   "loglik": -157.765285,
+   "mu": 0.5,
+   "n": 77,
+   "sigma": 2.4
+  },
+  "city|Toronto|highest": {
+   "loglik": -107.8419,
+   "mu": 0.9,
+   "n": 77,
+   "sigma": 1.3
+  },
+  "unit_hl|C|highest": {
+   "loglik": -644.641204,
+   "mu": 0.8,
+   "n": 416,
+   "sigma": 1.6
+  },
+  "unit_hl|F|highest": {
+   "loglik": -1782.652829,
+   "mu": 0.8,
+   "n": 1029,
+   "sigma": 3.35
+  },
+  "unit|C": {
+   "loglik": -644.641204,
+   "mu": 0.8,
+   "n": 416,
+   "sigma": 1.6
+  },
+  "unit|F": {
+   "loglik": -1782.652829,
+   "mu": 0.8,
+   "n": 1029,
+   "sigma": 3.35
+  }
+ },
+ "largest_losses": [
+  {
+   "city": "London",
+   "closed": 1775872109.0,
+   "cond": "0x2ced5faaa1625ec6681806c36f6c59373c8c3d601b1bbfab8938b5bd4085f7ae",
+   "date": "2026-04-10",
+   "edge": -0.245486,
+   "event": "348963",
+   "first": 1775736359,
+   "hl": "highest",
+   "model": [
+    "city",
+    "London",
+    "highest"
+   ],
+   "p": 0.9795,
+   "payout": 0.0,
+   "pi": 0.734014,
+   "side": "NO",
+   "tick": 0.001,
+   "window": "OOS1"
+  },
+  {
+   "city": "Dallas",
+   "closed": 1772744641.0,
+   "cond": "0xf1bb70b64d27ff15fa15e4741357b7132460671987f22328daed5dd42cefcb09",
+   "date": "2026-03-05",
+   "edge": 0.322078,
+   "event": "243365",
+   "first": 1772627375,
+   "hl": "highest",
+   "model": [
+    "city",
+    "Dallas",
+    "highest"
+   ],
+   "p": 0.0225,
+   "payout": 0.0,
+   "pi": 0.344578,
+   "side": "YES",
+   "tick": 0.001,
+   "window": "OOS1"
+  },
+  {
+   "city": "Seoul",
+   "closed": 1775971889.0,
+   "cond": "0x99e03886a5c3aa479e418ad9508134e92566f7119129cb0ff21f28d30318b680",
+   "date": "2026-04-12",
+   "edge": 0.87185,
+   "event": "356063",
+   "first": 1775909169,
+   "hl": "highest",
+   "model": [
+    "city",
+    "Seoul",
+    "highest"
+   ],
+   "p": 0.0225,
+   "payout": 0.0,
+   "pi": 0.89435,
+   "side": "YES",
+   "tick": 0.001,
+   "window": "OOS1"
+  },
+  {
+   "city": "Shanghai",
+   "closed": 1779504151.0,
+   "cond": "0x244d5ffdfc17e9a44d51f9027aa95b01cab747e72d69e1d726e75ce90b3d9210",
+   "date": "2026-05-23",
+   "edge": 0.107562,
+   "event": "509219",
+   "first": 1779452674,
+   "hl": "highest",
+   "model": [
+    "unit_hl",
+    "C",
+    "highest"
+   ],
+   "p": 0.0345,
+   "payout": 0.0,
+   "pi": 0.142062,
+   "side": "YES",
+   "tick": 0.001,
+   "window": "OOS1"
+  },
+  {
+   "city": "Munich",
+   "closed": 1774831022.0,
+   "cond": "0x7927f0547e2b9465aade36cc5638fa0727e3560dbd0727653d774679a9646b5e",
+   "date": "2026-03-29",
+   "edge": 0.203014,
+   "event": "306336",
+   "first": 1774699659,
+   "hl": "highest",
+   "model": [
+    "unit_hl",
+    "C",
+    "highest"
+   ],
+   "p": 0.031,
+   "payout": 0.0,
+   "pi": 0.234014,
+   "side": "YES",
+   "tick": 0.001,
+   "window": "OOS1"
+  },
+  {
+   "city": "Beijing",
+   "closed": 1783268603.0,
+   "cond": "0xc8f58b5b361a81abff8e3fcf6178f934843af92f49b405832bf47fbdcf4e611e",
+   "date": "2026-07-05",
+   "edge": 0.286538,
+   "event": "661259",
+   "first": 1783168637,
+   "hl": "highest",
+   "model": [
+    "unit_hl",
+    "C",
+    "highest"
+   ],
+   "p": 0.022,
+   "payout": 0.0,
+   "pi": 0.308538,
+   "side": "YES",
+   "tick": 0.001,
+   "window": "OOS2"
+  },
+  {
+   "city": "Hong Kong",
+   "closed": 1782096577.0,
+   "cond": "0x36df92a6b15c49cac889b58a3fec1703c7ee3af8f00041b88e5b6b2e381ff3ed",
+   "date": "2026-06-18",
+   "edge": 0.14987,
+   "event": "599815",
+   "first": 1781698298,
+   "hl": "highest",
+   "model": [
+    "unit_hl",
+    "C",
+    "highest"
+   ],
+   "p": 0.037,
+   "payout": 0.0,
+   "pi": 0.18687,
+   "side": "YES",
+   "tick": 0.001,
+   "window": "OOS2"
+  },
+  {
+   "city": "Amsterdam",
+   "closed": 1787870743.0,
+   "cond": "0xa8fd00757b8cef69bf98a372f1d1a9fd7b1263de8d6275914a22a80b0f1efac1",
+   "date": "2026-08-27",
+   "edge": 0.17808,
+   "event": "908191",
+   "first": 1787746005,
+   "hl": "highest",
+   "model": [
+    "unit_hl",
+    "C",
+    "highest"
+   ],
+   "p": 0.025,
+   "payout": 0.0,
+   "pi": 0.20308,
+   "side": "YES",
+   "tick": 0.001,
+   "window": "OOS2"
+  },
+  {
+   "city": "Ankara",
+   "closed": 1773704647.0,
+   "cond": "0xeb90ed7f2bf427be080710d66b2a04ca4d34a0de976f1582a2fa965a90253f30",
+   "date": "2026-03-16",
+   "edge": 0.34833,
+   "event": "265855",
+   "first": 1773576469,
+   "hl": "highest",
+   "model": [
+    "unit_hl",
+    "C",
+    "highest"
+   ],
+   "p": 0.029,
+   "payout": 0.0,
+   "pi": 0.37733,
+   "side": "YES",
+   "tick": 0.001,
+   "window": "OOS1"
+  },
+  {
+   "city": "Lucknow",
+   "closed": 1773525877.0,
+   "cond": "0x6bb3da45363c4902919df4a41b38818badb98944ea30a14952be8eeda6c55532",
+   "date": "2026-03-14",
+   "edge": -0.235986,
+   "event": "262801",
+   "first": 1773403241,
+   "hl": "highest",
+   "model": [
+    "unit_hl",
+    "C",
+    "highest"
+   ],
+   "p": 0.97,
+   "payout": 0.0,
+   "pi": 0.734014,
+   "side": "NO",
+   "tick": 0.001,
+   "window": "OOS1"
+  }
+ ],
+ "prereg": "reviews/2026-09-24-polymarket-fp4-prereg-wx-weather.md",
+ "primary": {
+  "IS": {
+   "cost": 1949.369699,
+   "fees": 44.01576,
+   "lost": 217,
+   "mean_fill_price": 0.369909,
+   "pnl": -30.474984,
+   "pnl_per_dollar": -0.015633,
+   "trades": 435,
+   "won": 218
+  },
+  "OOS": {
+   "cost": 24173.010846,
+   "fees": 514.606117,
+   "lost": 2464,
+   "mean_fill_price": 0.43603,
+   "pnl": -1589.093,
+   "pnl_per_dollar": -0.065738,
+   "trades": 5336,
+   "won": 2872
+  },
+  "OOS1": {
+   "cost": 9184.571713,
+   "fees": 194.838042,
+   "lost": 934,
+   "mean_fill_price": 0.368466,
+   "pnl": -484.956026,
+   "pnl_per_dollar": -0.052801,
+   "trades": 2012,
+   "won": 1078
+  },
+  "OOS2": {
+   "cost": 14988.439134,
+   "fees": 319.768075,
+   "lost": 1530,
+   "mean_fill_price": 0.491226,
+   "pnl": -1104.136974,
+   "pnl_per_dollar": -0.073666,
+   "trades": 3324,
+   "won": 1794
+  },
+  "bar": {
+   "1_oos_pos_and_both_halves": false,
+   "2_beats_null_p95": false,
+   "3_stress_pos": false,
+   "4_at_least_200_trades": true,
+   "5_not_one_month": false,
+   "6_beats_cash": false
+  },
+  "brier_oos_buckets": {
+   "market": {
+    "brier": 0.063724,
+    "n": 106666
+   },
+   "model": {
+    "brier": 0.074589,
+    "n": 106666
+   }
+  },
+  "counts": {
+   "edge_below_threshold": 822,
+   "no_priced_bucket": 540,
+   "traded": 5771,
+   "under_min_fill_in_hour": 4453
+  },
+  "null": {
+   "mean": -509.594976,
+   "p95": 98.953793
+  },
+  "oos_by_city": {
+   "Amsterdam": {
+    "cost": 476.445319,
+    "fees": 10.182472,
+    "lost": 54,
+    "mean_fill_price": 0.445776,
+    "pnl": -17.509039,
+    "pnl_per_dollar": -0.036749,
+    "trades": 109,
+    "won": 55
+   },
+   "Ankara": {
+    "cost": 689.082445,
+    "fees": 15.885322,
+    "lost": 80,
+    "mean_fill_price": 0.387115,
+    "pnl": -58.851752,
+    "pnl_per_dollar": -0.085406,
+    "trades": 151,
+    "won": 71
+   },
+   "Atlanta": {
+    "cost": 548.646583,
+    "fees": 11.122904,
+    "lost": 52,
+    "mean_fill_price": 0.42372,
+    "pnl": -75.305684,
+    "pnl_per_dollar": -0.137257,
+    "trades": 119,
+    "won": 67
+   },
+   "Austin": {
+    "cost": 322.97901,
+    "fees": 7.269707,
+    "lost": 38,
+    "mean_fill_price": 0.411177,
+    "pnl": -79.878755,
+    "pnl_per_dollar": -0.247319,
+    "trades": 73,
+    "won": 35
+   },
+   "Beijing": {
+    "cost": 543.699424,
+    "fees": 11.437215,
+    "lost": 45,
+    "mean_fill_price": 0.346959,
+    "pnl": 16.896965,
+    "pnl_per_dollar": 0.031078,
+    "trades": 117,
+    "won": 72
+   },
+   "Buenos Aires": {
+    "cost": 593.033005,
+    "fees": 11.822951,
+    "lost": 62,
+    "mean_fill_price": 0.469445,
+    "pnl": -79.209111,
+    "pnl_per_dollar": -0.133566,
+    "trades": 130,
+    "won": 68
+   },
+   "Busan": {
+    "cost": 297.987313,
+    "fees": 6.384286,
+    "lost": 24,
+    "mean_fill_price": 0.438126,
+    "pnl": 38.79631,
+    "pnl_per_dollar": 0.130195,
+    "trades": 69,
+    "won": 45
+   },
+   "Cape Town": {
+    "cost": 303.90423,
+    "fees": 6.341086,
+    "lost": 22,
+    "mean_fill_price": 0.455628,
+    "pnl": 44.64711,
+    "pnl_per_dollar": 0.146912,
+    "trades": 74,
+    "won": 52
+   },
+   "Chengdu": {
+    "cost": 463.780272,
+    "fees": 9.061131,
+    "lost": 38,
+    "mean_fill_price": 0.380519,
+    "pnl": 217.633409,
+    "pnl_per_dollar": 0.46926,
+    "trades": 100,
+    "won": 62
+   },
+   "Chicago": {
+    "cost": 405.038639,
+    "fees": 8.682824,
+    "lost": 45,
+    "mean_fill_price": 0.369887,
+    "pnl": -88.243386,
+    "pnl_per_dollar": -0.217864,
+    "trades": 92,
+    "won": 47
+   },
+   "Chongqing": {
+    "cost": 379.274704,
+    "fees": 7.516909,
+    "lost": 36,
+    "mean_fill_price": 0.451916,
+    "pnl": -22.94694,
+    "pnl_per_dollar": -0.060502,
+    "trades": 89,
+    "won": 53
+   },
+   "Dallas": {
+    "cost": 503.851344,
+    "fees": 11.220166,
+    "lost": 54,
+    "mean_fill_price": 0.304156,
+    "pnl": -73.490377,
+    "pnl_per_dollar": -0.145857,
+    "trades": 110,
+    "won": 56
+   },
+   "Denver": {
+    "cost": 281.980047,
+    "fees": 6.415975,
+    "lost": 28,
+    "mean_fill_price": 0.355503,
+    "pnl": 12.588307,
+    "pnl_per_dollar": 0.044643,
+    "trades": 63,
+    "won": 35
+   },
+   "Guangzhou": {
+    "cost": 280.824718,
+    "fees": 5.312069,
+    "lost": 30,
+    "mean_fill_price": 0.47113,
+    "pnl": -15.790871,
+    "pnl_per_dollar": -0.05623,
+    "trades": 65,
+    "won": 35
+   },
+   "Helsinki": {
+    "cost": 377.754669,
+    "fees": 8.613203,
+    "lost": 47,
+    "mean_fill_price": 0.374776,
+    "pnl": -74.881746,
+    "pnl_per_dollar": -0.198229,
+    "trades": 90,
+    "won": 43
+   },
+   "Hong Kong": {
+    "cost": 1070.842055,
+    "fees": 21.809788,
+    "lost": 88,
+    "mean_fill_price": 0.532116,
+    "pnl": 13.15324,
+    "pnl_per_dollar": 0.012283,
+    "trades": 224,
+    "won": 136
+   },
+   "Houston": {
+    "cost": 409.990449,
+    "fees": 8.819995,
+    "lost": 48,
+    "mean_fill_price": 0.444139,
+    "pnl": 79.269309,
+    "pnl_per_dollar": 0.193344,
+    "trades": 98,
+    "won": 50
+   },
+   "Jakarta": {
+    "cost": 118.309542,
+    "fees": 2.404239,
+    "lost": 11,
+    "mean_fill_price": 0.453355,
+    "pnl": -14.470999,
+    "pnl_per_dollar": -0.122315,
+    "trades": 26,
+    "won": 15
+   },
+   "Jeddah": {
+    "cost": 228.062282,
+    "fees": 6.152937,
+    "lost": 33,
+    "mean_fill_price": 0.281021,
+    "pnl": -27.763794,
+    "pnl_per_dollar": -0.121738,
+    "trades": 58,
+    "won": 25
+   },
+   "Jinan": {
+    "cost": 19.976,
+    "fees": 0.286054,
+    "lost": 2,
+    "mean_fill_price": 0.592196,
+    "pnl": -8.691695,
+    "pnl_per_dollar": -0.435107,
+    "trades": 4,
+    "won": 2
+   },
+   "Karachi": {
+    "cost": 318.817781,
+    "fees": 7.544536,
+    "lost": 41,
+    "mean_fill_price": 0.462104,
+    "pnl": -42.161847,
+    "pnl_per_dollar": -0.132244,
+    "trades": 74,
+    "won": 33
+   },
+   "Kuala Lumpur": {
+    "cost": 353.478404,
+    "fees": 7.229435,
+    "lost": 44,
+    "mean_fill_price": 0.5166,
+    "pnl": -58.612665,
+    "pnl_per_dollar": -0.165817,
+    "trades": 87,
+    "won": 43
+   },
+   "Lagos": {
+    "cost": 25.052139,
+    "fees": 0.394045,
+    "lost": 1,
+    "mean_fill_price": 0.375869,
+    "pnl": 4.31733,
+    "pnl_per_dollar": 0.172334,
+    "trades": 7,
+    "won": 6
+   },
+   "London": {
+    "cost": 1034.781442,
+    "fees": 22.13029,
+    "lost": 93,
+    "mean_fill_price": 0.415223,
+    "pnl": -31.542729,
+    "pnl_per_dollar": -0.030483,
+    "trades": 218,
+    "won": 125
+   },
+   "Los Angeles": {
+    "cost": 540.602184,
+    "fees": 12.178479,
+    "lost": 59,
+    "mean_fill_price": 0.507186,
+    "pnl": -61.000313,
+    "pnl_per_dollar": -0.112838,
+    "trades": 118,
+    "won": 59
+   },
+   "Lucknow": {
+    "cost": 407.294459,
+    "fees": 9.624947,
+    "lost": 49,
+    "mean_fill_price": 0.310326,
+    "pnl": -102.271668,
+    "pnl_per_dollar": -0.2511,
+    "trades": 92,
+    "won": 43
+   },
+   "Madrid": {
+    "cost": 682.809329,
+    "fees": 15.509754,
+    "lost": 73,
+    "mean_fill_price": 0.503464,
+    "pnl": -66.638744,
+    "pnl_per_dollar": -0.097595,
+    "trades": 146,
+    "won": 73
+   },
+   "Manila": {
+    "cost": 327.908089,
+    "fees": 7.040835,
+    "lost": 28,
+    "mean_fill_price": 0.505693,
+    "pnl": 26.13157,
+    "pnl_per_dollar": 0.079692,
+    "trades": 74,
+    "won": 46
+   },
+   "Mexico City": {
+    "cost": 277.62643,
+    "fees": 5.962443,
+    "lost": 31,
+    "mean_fill_price": 0.460737,
+    "pnl": -20.153499,
+    "pnl_per_dollar": -0.072592,
+    "trades": 64,
+    "won": 33
+   },
+   "Miami": {
+    "cost": 813.616709,
+    "fees": 17.844398,
+    "lost": 78,
+    "mean_fill_price": 0.489184,
+    "pnl": -16.347446,
+    "pnl_per_dollar": -0.020092,
+    "trades": 178,
+    "won": 100
+   },
+   "Milan": {
+    "cost": 507.472784,
+    "fees": 11.113964,
+    "lost": 56,
+    "mean_fill_price": 0.401071,
+    "pnl": -108.108602,
+    "pnl_per_dollar": -0.213033,
+    "trades": 110,
+    "won": 54
+   },
+   "Munich": {
+    "cost": 591.094362,
+    "fees": 12.552097,
+    "lost": 62,
+    "mean_fill_price": 0.418234,
+    "pnl": -23.69681,
+    "pnl_per_dollar": -0.04009,
+    "trades": 128,
+    "won": 66
+   },
+   "New York City": {
+    "cost": 804.062204,
+    "fees": 15.470291,
+    "lost": 76,
+    "mean_fill_price": 0.53016,
+    "pnl": -114.400816,
+    "pnl_per_dollar": -0.142279,
+    "trades": 172,
+    "won": 96
+   },
+   "Panama City": {
+    "cost": 272.112527,
+    "fees": 6.041067,
+    "lost": 36,
+    "mean_fill_price": 0.403925,
+    "pnl": -30.304205,
+    "pnl_per_dollar": -0.111366,
+    "trades": 67,
+    "won": 31
+   },
+   "Paris": {
+    "cost": 883.373368,
+    "fees": 17.719307,
+    "lost": 94,
+    "mean_fill_price": 0.549071,
+    "pnl": -148.692456,
+    "pnl_per_dollar": -0.168323,
+    "trades": 191,
+    "won": 97
+   },
+   "Qingdao": {
+    "cost": 246.035944,
+    "fees": 5.103498,
+    "lost": 27,
+    "mean_fill_price": 0.412194,
+    "pnl": 14.548775,
+    "pnl_per_dollar": 0.059133,
+    "trades": 59,
+    "won": 32
+   },
+   "San Francisco": {
+    "cost": 301.709765,
+    "fees": 6.433227,
+    "lost": 35,
+    "mean_fill_price": 0.363224,
+    "pnl": -50.191045,
+    "pnl_per_dollar": -0.166355,
+    "trades": 72,
+    "won": 37
+   },
+   "Sao Paulo": {
+    "cost": 523.99717,
+    "fees": 9.961066,
+    "lost": 52,
+    "mean_fill_price": 0.48091,
+    "pnl": -79.138219,
+    "pnl_per_dollar": -0.151028,
+    "trades": 112,
+    "won": 60
+   },
+   "Seattle": {
+    "cost": 409.617638,
+    "fees": 8.412926,
+    "lost": 33,
+    "mean_fill_price": 0.364448,
+    "pnl": 121.402488,
+    "pnl_per_dollar": 0.29638,
+    "trades": 91,
+    "won": 58
+   },
+   "Seoul": {
+    "cost": 821.986098,
+    "fees": 15.864132,
+    "lost": 73,
+    "mean_fill_price": 0.489104,
+    "pnl": 2.028814,
+    "pnl_per_dollar": 0.002468,
+    "trades": 169,
+    "won": 96
+   },
+   "Seoul (Incheon)": {
+    "cost": 244.12704,
+    "fees": 5.166054,
+    "lost": 24,
+    "mean_fill_price": 0.566558,
+    "pnl": -23.819797,
+    "pnl_per_dollar": -0.097571,
+    "trades": 53,
+    "won": 29
+   },
+   "Shanghai": {
+    "cost": 947.687065,
+    "fees": 20.273891,
+    "lost": 91,
+    "mean_fill_price": 0.452576,
+    "pnl": -51.263897,
+    "pnl_per_dollar": -0.054094,
+    "trades": 202,
+    "won": 111
+   },
+   "Shenzhen": {
+    "cost": 423.880186,
+    "fees": 8.390676,
+    "lost": 38,
+    "mean_fill_price": 0.369238,
+    "pnl": -35.632705,
+    "pnl_per_dollar": -0.084063,
+    "trades": 93,
+    "won": 55
+   },
+   "Singapore": {
+    "cost": 631.560309,
+    "fees": 14.323498,
+    "lost": 66,
+    "mean_fill_price": 0.504049,
+    "pnl": -55.939044,
+    "pnl_per_dollar": -0.088573,
+    "trades": 137,
+    "won": 71
+   },
+   "Taipei": {
+    "cost": 420.088793,
+    "fees": 8.002379,
+    "lost": 43,
+    "mean_fill_price": 0.494229,
+    "pnl": -52.283052,
+    "pnl_per_dollar": -0.124457,
+    "trades": 93,
+    "won": 50
+   },
+   "Tel Aviv": {
+    "cost": 36.96095,
+    "fees": 0.947314,
+    "lost": 5,
+    "mean_fill_price": 0.304032,
+    "pnl": -4.604825,
+    "pnl_per_dollar": -0.124586,
+    "trades": 9,
+    "won": 4
+   },
+   "Tokyo": {
+    "cost": 870.321552,
+    "fees": 17.921697,
+    "lost": 92,
+    "mean_fill_price": 0.524215,
+    "pnl": -144.509577,
+    "pnl_per_dollar": -0.166042,
+    "trades": 190,
+    "won": 98
+   },
+   "Toronto": {
+    "cost": 449.248137,
+    "fees": 9.552345,
+    "lost": 49,
+    "mean_fill_price": 0.349376,
+    "pnl": -81.714801,
+    "pnl_per_dollar": -0.181892,
+    "trades": 102,
+    "won": 53
+   },
+   "Warsaw": {
+    "cost": 469.698449,
+    "fees": 10.165583,
+    "lost": 45,
+    "mean_fill_price": 0.452556,
+    "pnl": -19.305081,
+    "pnl_per_dollar": -0.041101,
+    "trades": 107,
+    "won": 62
+   },
+   "Wellington": {
+    "cost": 846.998215,
+    "fees": 21.796726,
+    "lost": 97,
+    "mean_fill_price": 0.436013,
+    "pnl": -98.257225,
+    "pnl_per_dollar": -0.116006,
+    "trades": 172,
+    "won": 75
+   },
+   "Wuhan": {
+    "cost": 369.599274,
+    "fees": 7.088334,
+    "lost": 34,
+    "mean_fill_price": 0.428044,
+    "pnl": -18.845756,
+    "pnl_per_dollar": -0.05099,
+    "trades": 86,
+    "won": 52
+   },
+   "Zhengzhou": {
+    "cost": 3.93,
+    "fees": 0.105651,
+    "lost": 2,
+    "mean_fill_price": 0.262,
+    "pnl": -4.035651,
+    "pnl_per_dollar": -1.026883,
+    "trades": 2,
+    "won": 0
+   }
+  },
+  "oos_by_month": {
+   "2026-02": 10.529449,
+   "2026-03": -144.356098,
+   "2026-04": -297.088839,
+   "2026-05": -61.770786,
+   "2026-06": -381.956808,
+   "2026-07": -313.28026,
+   "2026-08": -156.767035,
+   "2026-09": -244.402624
+  },
+  "oos_by_side": {
+   "NO": {
+    "cost": 22362.910664,
+    "fees": 449.062858,
+    "lost": 2091,
+    "mean_fill_price": 0.560998,
+    "pnl": -1394.399695,
+    "pnl_per_dollar": -0.062353,
+    "trades": 4858,
+    "won": 2767
+   },
+   "YES": {
+    "cost": 1810.100182,
+    "fees": 65.543259,
+    "lost": 373,
+    "mean_fill_price": 0.11621,
+    "pnl": -194.693305,
+    "pnl_per_dollar": -0.107559,
+    "trades": 478,
+    "won": 105
+   }
+  },
+  "oos_peak_capital": 374.827054,
+  "oos_return_per_year_on_peak": -8.017776,
+  "passes": false,
+  "stress_OOS_pnl": -2161.48273
+ },
+ "sample_trades": [
+  {
+   "city": "Taipei",
+   "cond": "0x8a8e013e632267ea100491d57c18cdb5aede785e017c5265ecaad25130c72266",
+   "date": "2026-06-23",
+   "event": "617571",
+   "fills": [
+    [
+     1782133198,
+     0.680285,
+     7.349856
+    ]
+   ],
+   "p": 0.333,
+   "payout": 0.0,
+   "pi": 0.115166,
+   "pnl": -5.079929,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Singapore",
+   "cond": "0x960075817ce567edeeedcf9e5bd970edf18da3855f22362f0e8fce5dc47d9ea4",
+   "date": "2026-04-25",
+   "event": "408594",
+   "fills": [
+    [
+     1777032830,
+     0.661,
+     7.564297
+    ]
+   ],
+   "p": 0.34,
+   "payout": 1.0,
+   "pi": 0.055708,
+   "pnl": 2.479547,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Hong Kong",
+   "cond": "0xf33a386f1fa3392631c4ea40e007b4767bb4320d73a70bf6435e46a747770086",
+   "date": "2026-08-06",
+   "event": "794337",
+   "fills": [
+    [
+     1785931832,
+     0.55,
+     9.090909
+    ]
+   ],
+   "p": 0.455,
+   "payout": 1.0,
+   "pi": 0.18687,
+   "pnl": 3.978409,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Atlanta",
+   "cond": "0x8e15db4e059f6e8fe947b7ffa3f289c00496e0e1594b9172dddc3dcc185ea7b6",
+   "date": "2026-04-22",
+   "event": "397981",
+   "fills": [
+    [
+     1776772812,
+     0.52,
+     7.616
+    ],
+    [
+     1776773698,
+     0.54,
+     1.925333
+    ]
+   ],
+   "p": 0.535,
+   "payout": 0.0,
+   "pi": 0.196629,
+   "pnl": -5.11896,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Madrid",
+   "cond": "0x45873c7511062f7b88670653c8d29d4ce49ce923bab01177a8083df8a41ba666",
+   "date": "2026-07-19",
+   "event": "712624",
+   "fills": [
+    [
+     1784376627,
+     0.461,
+     10.845987
+    ]
+   ],
+   "p": 0.54,
+   "payout": 0.0,
+   "pi": 0.142062,
+   "pnl": -5.13475,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Shanghai",
+   "cond": "0x59c6c01245dc4b07c5e1094279612b2b662d34fb04db28bd17d87f7b42db655f",
+   "date": "2026-08-19",
+   "event": "863265",
+   "fills": [
+    [
+     1787054668,
+     0.461,
+     2.173912
+    ],
+    [
+     1787054694,
+     0.461,
+     5.0
+    ]
+   ],
+   "p": 0.54,
+   "payout": 0.0,
+   "pi": 0.241201,
+   "pnl": -3.396302,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Atlanta",
+   "cond": "0x6ff91cdb00aa8e67880d869f5f51e061100219bcbc9b0feb4ccf4b9169ceb384",
+   "date": "2026-09-01",
+   "event": "935128",
+   "fills": [
+    [
+     1788178155,
+     0.531,
+     5.11
+    ]
+   ],
+   "p": 0.47,
+   "payout": 1.0,
+   "pi": 0.111569,
+   "pnl": 2.332961,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Helsinki",
+   "cond": "0xd183183bc2e2cf388d0df5f75375d3a385bd05c50299431c84f150e265773b99",
+   "date": "2026-05-28",
+   "event": "525789",
+   "fills": [
+    [
+     1779884393,
+     0.184,
+     5.0
+    ],
+    [
+     1779884461,
+     0.184,
+     6.0
+    ]
+   ],
+   "p": 0.168,
+   "payout": 0.0,
+   "pi": 0.330874,
+   "pnl": -2.106579,
+   "side": "YES",
+   "tick": 0.001
+  },
+  {
+   "city": "Tokyo",
+   "cond": "0xb722228d831b5888433d35e10955f2dac29af3b5a9ec2f46b63ab2372c018ed1",
+   "date": "2026-08-19",
+   "event": "863153",
+   "fills": [
+    [
+     1787054913,
+     0.61,
+     8.196722
+    ]
+   ],
+   "p": 0.415,
+   "payout": 1.0,
+   "pi": 0.132964,
+   "pnl": 3.099222,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Wellington",
+   "cond": "0x8feca14e137effc35a4f0fca81ca541c5bd6a269157d501465f3f92d7b828371",
+   "date": "2026-07-31",
+   "event": "766607",
+   "fills": [
+    [
+     1785413121,
+     0.521,
+     9.596929
+    ]
+   ],
+   "p": 0.48,
+   "payout": 1.0,
+   "pi": 0.234014,
+   "pnl": 4.477179,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Qingdao",
+   "cond": "0xf3979810b95bf8c4be4c0aabea886967e64fc99353ea142688ca0c36a3e23262",
+   "date": "2026-07-09",
+   "event": "675511",
+   "fills": [
+    [
+     1783512643,
+     0.650965,
+     7.680908
+    ]
+   ],
+   "p": 0.625,
+   "payout": 0.0,
+   "pi": 0.98042,
+   "pnl": -5.087258,
+   "side": "YES",
+   "tick": 0.001
+  },
+  {
+   "city": "Los Angeles",
+   "cond": "0x8ec34aa63f96ef040358d5c070325504a9b160ce6efa8d5f4a6c6ced8bd76cce",
+   "date": "2026-04-12",
+   "event": "356113",
+   "fills": [
+    [
+     1775910657,
+     0.59,
+     5.754
+    ]
+   ],
+   "p": 0.415,
+   "payout": 1.0,
+   "pi": 0.234424,
+   "pnl": 2.289545,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Taipei",
+   "cond": "0x2a7d6ccb9c537e49c664caf886cf1632ba1cf51974f0c66ee2e63bee6e74cf1c",
+   "date": "2026-08-07",
+   "event": "799615",
+   "fills": [
+    [
+     1786017614,
+     0.64,
+     7.8125
+    ]
+   ],
+   "p": 0.365,
+   "payout": 1.0,
+   "pi": 0.098251,
+   "pnl": 2.7225,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "New York City",
+   "cond": "0x0e302ec36dfc052ff1aa9d9f1d6f501a23159e0018f83db38869c6d561a26229",
+   "date": "2026-06-06",
+   "event": "560830",
+   "fills": [
+    [
+     1780661932,
+     0.64268,
+     5.0
+    ],
+    [
+     1780661941,
+     0.653442,
+     2.734136
+    ]
+   ],
+   "p": 0.38,
+   "payout": 0.0,
+   "pi": 0.215876,
+   "pnl": -5.088369,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Miami",
+   "cond": "0x6c5188485f5c0679e90005fcabba57b721a69b8f512508af37839bed356cfbc3",
+   "date": "2026-03-08",
+   "event": "249636",
+   "fills": [
+    [
+     1772886867,
+     0.65,
+     0.04
+    ],
+    [
+     1772887061,
+     0.68,
+     7.314706
+    ]
+   ],
+   "p": 0.36,
+   "payout": 1.0,
+   "pi": 0.229763,
+   "pnl": 2.274667,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Seoul",
+   "cond": "0xd93d3aa87598bc585089ce12a646a4f361dc6ce541788e75739df2988b6de668",
+   "date": "2026-06-14",
+   "event": "585968",
+   "fills": [
+    [
+     1781352472,
+     0.64,
+     7.8125
+    ]
+   ],
+   "p": 0.365,
+   "payout": 1.0,
+   "pi": 0.017825,
+   "pnl": 2.7225,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Atlanta",
+   "cond": "0x8f15f49738744488d8cb938be749a42458ca079d053347b319ff4f42f6d87a3a",
+   "date": "2026-03-09",
+   "event": "251747",
+   "fills": [
+    [
+     1772972693,
+     0.0655,
+     76.335878
+    ]
+   ],
+   "p": 0.0645,
+   "payout": 0.0,
+   "pi": 0.459099,
+   "pnl": -5.233625,
+   "side": "YES",
+   "tick": 0.001
+  },
+  {
+   "city": "Wellington",
+   "cond": "0xcacd1b76f2b34e44c9360501da8dfee0f2c0c6eeb922b85cb872e9a2b3778805",
+   "date": "2026-06-26",
+   "event": "628189",
+   "fills": [
+    [
+     1782388873,
+     0.476,
+     4.878047
+    ],
+    [
+     1782388898,
+     0.476,
+     5.626155
+    ]
+   ],
+   "p": 0.525,
+   "payout": 0.0,
+   "pi": 0.241201,
+   "pnl": -5.131,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Wuhan",
+   "cond": "0x50e90a6d951b7d03f7103c57f20fed03ab02c81df571f110cdf1b1733f56d7d0",
+   "date": "2026-05-28",
+   "event": "525776",
+   "fills": [
+    [
+     1779883973,
+     0.71,
+     7.042254
+    ]
+   ],
+   "p": 0.31,
+   "payout": 0.0,
+   "pi": 0.195175,
+   "pnl": -5.0725,
+   "side": "NO",
+   "tick": 0.001
+  },
+  {
+   "city": "Wellington",
+   "cond": "0x7a4cc46f23a9a75f738412bb50347ac10945c3a4cd10c13c3a10da2694ca7041",
+   "date": "2026-08-31",
+   "event": "929247",
+   "fills": [
+    [
+     1788093048,
+     0.51,
+     9.803922
+    ]
+   ],
+   "p": 0.495,
+   "payout": 0.0,
+   "pi": 0.234014,
+   "pnl": -5.1225,
+   "side": "NO",
+   "tick": 0.001
+  }
+ ]
+}
