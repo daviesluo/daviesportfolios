@@ -28,7 +28,7 @@ def main():
     prices = pmnet.load(os.path.join(pmnet.DATA, "fav", "prices.json"))
     walks = {}
     rows_by_cond = defaultdict(list)
-    for p in glob.glob(os.path.join(pmnet.DATA, "fav", "trades_ev", "*.json")):
+    for p in pmnet.list_json(os.path.join(pmnet.DATA, "fav", "trades_ev")):
         w = pmnet.load(p)
         oldest = min((r[0] for r in w["rows"]), default=None)
         for c in w["conds"]:

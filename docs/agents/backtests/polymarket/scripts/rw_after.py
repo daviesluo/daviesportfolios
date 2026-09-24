@@ -24,10 +24,14 @@ def main():
     minutes = sorted(int(os.path.basename(p)[:-5]) for p in glob.glob(os.path.join(base, "books", "*.json")))
     t_lo, t_hi = minutes[0], minutes[-1] + 120
     os.makedirs(os.path.join(base, "prints"), exist_ok=True)
+    # optional sharding (k of n) so several processes can pull disjoint markets at once; shard 0 also reads the status
+    k, n_sh = (int(sys.argv[1]), int(sys.argv[2])) if len(sys.argv) > 2 else (0, 1)
     n = 0
-    for c in sorted(uni):
+    for i, c in enumerate(sorted(uni)):
+        if i % n_sh != k:
+            continue
         path = os.path.join(base, "prints", c + ".json")
-        if os.path.exists(path):
+        if pmnet.exists(path):
             continue
         rows, cursor, pages, complete = [], None, 0, False
         while True:
@@ -50,6 +54,9 @@ def main():
         n += 1
         if n % 250 == 0:
             print("prints", n, flush=True)
+    if k != 0:
+        print("done", n)
+        return
     status = {}
     conds = sorted(uni)
     for i in range(0, len(conds), 50):

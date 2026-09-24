@@ -1,0 +1,3124 @@
+{
+ "calibration_all_tokens": {
+  "1": {
+   "0.00-0.05": {
+    "IS": {
+     "mean_payout": 0.006253,
+     "mean_price": 0.00697,
+     "n": 4638
+    },
+    "OOS": {
+     "mean_payout": 0.007562,
+     "mean_price": 0.006953,
+     "n": 15010
+    }
+   },
+   "0.05-0.10": {
+    "IS": {
+     "mean_payout": 0.066514,
+     "mean_price": 0.071595,
+     "n": 436
+    },
+    "OOS": {
+     "mean_payout": 0.094059,
+     "mean_price": 0.073338,
+     "n": 2020
+    }
+   },
+   "0.10-0.15": {
+    "IS": {
+     "mean_payout": 0.160714,
+     "mean_price": 0.122969,
+     "n": 392
+    },
+    "OOS": {
+     "mean_payout": 0.163123,
+     "mean_price": 0.123112,
+     "n": 1646
+    }
+   },
+   "0.15-0.20": {
+    "IS": {
+     "mean_payout": 0.155125,
+     "mean_price": 0.173312,
+     "n": 361
+    },
+    "OOS": {
+     "mean_payout": 0.198413,
+     "mean_price": 0.174785,
+     "n": 1638
+    }
+   },
+   "0.20-0.25": {
+    "IS": {
+     "mean_payout": 0.255914,
+     "mean_price": 0.223776,
+     "n": 465
+    },
+    "OOS": {
+     "mean_payout": 0.267246,
+     "mean_price": 0.224709,
+     "n": 1899
+    }
+   },
+   "0.25-0.30": {
+    "IS": {
+     "mean_payout": 0.321248,
+     "mean_price": 0.273099,
+     "n": 593
+    },
+    "OOS": {
+     "mean_payout": 0.296321,
+     "mean_price": 0.273747,
+     "n": 2283
+    }
+   },
+   "0.30-0.35": {
+    "IS": {
+     "mean_payout": 0.327696,
+     "mean_price": 0.321566,
+     "n": 473
+    },
+    "OOS": {
+     "mean_payout": 0.325175,
+     "mean_price": 0.322683,
+     "n": 1859
+    }
+   },
+   "0.35-0.40": {
+    "IS": {
+     "mean_payout": 0.370861,
+     "mean_price": 0.37331,
+     "n": 453
+    },
+    "OOS": {
+     "mean_payout": 0.407834,
+     "mean_price": 0.374044,
+     "n": 1953
+    }
+   },
+   "0.40-0.45": {
+    "IS": {
+     "mean_payout": 0.422893,
+     "mean_price": 0.424781,
+     "n": 629
+    },
+    "OOS": {
+     "mean_payout": 0.429303,
+     "mean_price": 0.424522,
+     "n": 2051
+    }
+   },
+   "0.45-0.50": {
+    "IS": {
+     "mean_payout": 0.464781,
+     "mean_price": 0.47464,
+     "n": 937
+    },
+    "OOS": {
+     "mean_payout": 0.47129,
+     "mean_price": 0.474681,
+     "n": 2682
+    }
+   },
+   "0.50-0.55": {
+    "IS": {
+     "mean_payout": 0.551118,
+     "mean_price": 0.52035,
+     "n": 939
+    },
+    "OOS": {
+     "mean_payout": 0.508055,
+     "mean_price": 0.52175,
+     "n": 2607
+    }
+   },
+   "0.55-0.60": {
+    "IS": {
+     "mean_payout": 0.598394,
+     "mean_price": 0.570205,
+     "n": 498
+    },
+    "OOS": {
+     "mean_payout": 0.554938,
+     "mean_price": 0.571803,
+     "n": 1620
+    }
+   },
+   "0.60-0.65": {
+    "IS": {
+     "mean_payout": 0.627586,
+     "mean_price": 0.621416,
+     "n": 290
+    },
+    "OOS": {
+     "mean_payout": 0.598206,
+     "mean_price": 0.622341,
+     "n": 1059
+    }
+   },
+   "0.65-0.70": {
+    "IS": {
+     "mean_payout": 0.698113,
+     "mean_price": 0.672186,
+     "n": 212
+    },
+    "OOS": {
+     "mean_payout": 0.659562,
+     "mean_price": 0.674031,
+     "n": 821
+    }
+   },
+   "0.70-0.75": {
+    "IS": {
+     "mean_payout": 0.697248,
+     "mean_price": 0.722638,
+     "n": 218
+    },
+    "OOS": {
+     "mean_payout": 0.674141,
+     "mean_price": 0.7227,
+     "n": 669
+    }
+   },
+   "0.75-0.80": {
+    "IS": {
+     "mean_payout": 0.746988,
+     "mean_price": 0.773828,
+     "n": 166
+    },
+    "OOS": {
+     "mean_payout": 0.710078,
+     "mean_price": 0.772876,
+     "n": 645
+    }
+   },
+   "0.80-0.85": {
+    "IS": {
+     "mean_payout": 0.8125,
+     "mean_price": 0.824419,
+     "n": 160
+    },
+    "OOS": {
+     "mean_payout": 0.793561,
+     "mean_price": 0.823091,
+     "n": 528
+    }
+   },
+   "0.85-0.90": {
+    "IS": {
+     "mean_payout": 0.84252,
+     "mean_price": 0.872319,
+     "n": 127
+    },
+    "OOS": {
+     "mean_payout": 0.842893,
+     "mean_price": 0.872744,
+     "n": 401
+    }
+   },
+   "0.90-0.95": {
+    "IS": {
+     "mean_payout": 0.898204,
+     "mean_price": 0.925572,
+     "n": 167
+    },
+    "OOS": {
+     "mean_payout": 0.887949,
+     "mean_price": 0.926123,
+     "n": 473
+    }
+   },
+   "0.95-1.00": {
+    "IS": {
+     "mean_payout": 0.993421,
+     "mean_price": 0.990234,
+     "n": 912
+    },
+    "OOS": {
+     "mean_payout": 0.994151,
+     "mean_price": 0.993808,
+     "n": 3932
+    }
+   }
+  },
+  "168": {
+   "0.00-0.05": {
+    "IS": {
+     "mean_payout": 0.007733,
+     "mean_price": 0.012144,
+     "n": 1681
+    },
+    "OOS": {
+     "mean_payout": 0.007628,
+     "mean_price": 0.012742,
+     "n": 2753
+    }
+   },
+   "0.05-0.10": {
+    "IS": {
+     "mean_payout": 0.035714,
+     "mean_price": 0.072851,
+     "n": 336
+    },
+    "OOS": {
+     "mean_payout": 0.074389,
+     "mean_price": 0.071432,
+     "n": 941
+    }
+   },
+   "0.10-0.15": {
+    "IS": {
+     "mean_payout": 0.120155,
+     "mean_price": 0.122039,
+     "n": 258
+    },
+    "OOS": {
+     "mean_payout": 0.129845,
+     "mean_price": 0.122842,
+     "n": 774
+    }
+   },
+   "0.15-0.20": {
+    "IS": {
+     "mean_payout": 0.187755,
+     "mean_price": 0.174182,
+     "n": 245
+    },
+    "OOS": {
+     "mean_payout": 0.17016,
+     "mean_price": 0.172738,
+     "n": 811
+    }
+   },
+   "0.20-0.25": {
+    "IS": {
+     "mean_payout": 0.228956,
+     "mean_price": 0.224564,
+     "n": 297
+    },
+    "OOS": {
+     "mean_payout": 0.228439,
+     "mean_price": 0.225145,
+     "n": 974
+    }
+   },
+   "0.25-0.30": {
+    "IS": {
+     "mean_payout": 0.275346,
+     "mean_price": 0.270983,
+     "n": 434
+    },
+    "OOS": {
+     "mean_payout": 0.246725,
+     "mean_price": 0.272708,
+     "n": 1374
+    }
+   },
+   "0.30-0.35": {
+    "IS": {
+     "mean_payout": 0.367123,
+     "mean_price": 0.323547,
+     "n": 365
+    },
+    "OOS": {
+     "mean_payout": 0.319703,
+     "mean_price": 0.322929,
+     "n": 1345
+    }
+   },
+   "0.35-0.40": {
+    "IS": {
+     "mean_payout": 0.338196,
+     "mean_price": 0.374719,
+     "n": 377
+    },
+    "OOS": {
+     "mean_payout": 0.362351,
+     "mean_price": 0.373342,
+     "n": 1344
+    }
+   },
+   "0.40-0.45": {
+    "IS": {
+     "mean_payout": 0.434735,
+     "mean_price": 0.423871,
+     "n": 452
+    },
+    "OOS": {
+     "mean_payout": 0.384744,
+     "mean_price": 0.424056,
+     "n": 1796
+    }
+   },
+   "0.45-0.50": {
+    "IS": {
+     "mean_payout": 0.442338,
+     "mean_price": 0.477758,
+     "n": 633
+    },
+    "OOS": {
+     "mean_payout": 0.406222,
+     "mean_price": 0.475295,
+     "n": 3327
+    }
+   },
+   "0.50-0.55": {
+    "IS": {
+     "mean_payout": 0.494098,
+     "mean_price": 0.515492,
+     "n": 593
+    },
+    "OOS": {
+     "mean_payout": 0.514521,
+     "mean_price": 0.512954,
+     "n": 3650
+    }
+   },
+   "0.55-0.60": {
+    "IS": {
+     "mean_payout": 0.493569,
+     "mean_price": 0.571955,
+     "n": 311
+    },
+    "OOS": {
+     "mean_payout": 0.55933,
+     "mean_price": 0.572174,
+     "n": 1045
+    }
+   },
+   "0.60-0.65": {
+    "IS": {
+     "mean_payout": 0.588083,
+     "mean_price": 0.62271,
+     "n": 193
+    },
+    "OOS": {
+     "mean_payout": 0.636776,
+     "mean_price": 0.621057,
+     "n": 881
+    }
+   },
+   "0.65-0.70": {
+    "IS": {
+     "mean_payout": 0.718563,
+     "mean_price": 0.671737,
+     "n": 167
+    },
+    "OOS": {
+     "mean_payout": 0.675,
+     "mean_price": 0.673271,
+     "n": 660
+    }
+   },
+   "0.70-0.75": {
+    "IS": {
+     "mean_payout": 0.685606,
+     "mean_price": 0.722045,
+     "n": 132
+    },
+    "OOS": {
+     "mean_payout": 0.7,
+     "mean_price": 0.722357,
+     "n": 600
+    }
+   },
+   "0.75-0.80": {
+    "IS": {
+     "mean_payout": 0.739496,
+     "mean_price": 0.771735,
+     "n": 119
+    },
+    "OOS": {
+     "mean_payout": 0.761312,
+     "mean_price": 0.772498,
+     "n": 442
+    }
+   },
+   "0.80-0.85": {
+    "IS": {
+     "mean_payout": 0.842697,
+     "mean_price": 0.823562,
+     "n": 89
+    },
+    "OOS": {
+     "mean_payout": 0.783626,
+     "mean_price": 0.822295,
+     "n": 342
+    }
+   },
+   "0.85-0.90": {
+    "IS": {
+     "mean_payout": 0.828358,
+     "mean_price": 0.870493,
+     "n": 67
+    },
+    "OOS": {
+     "mean_payout": 0.889892,
+     "mean_price": 0.871848,
+     "n": 277
+    }
+   },
+   "0.90-0.95": {
+    "IS": {
+     "mean_payout": 0.909091,
+     "mean_price": 0.922379,
+     "n": 66
+    },
+    "OOS": {
+     "mean_payout": 0.946,
+     "mean_price": 0.923492,
+     "n": 250
+    }
+   },
+   "0.95-1.00": {
+    "IS": {
+     "mean_payout": 0.991736,
+     "mean_price": 0.976831,
+     "n": 121
+    },
+    "OOS": {
+     "mean_payout": 0.983871,
+     "mean_price": 0.97846,
+     "n": 248
+    }
+   }
+  },
+  "24": {
+   "0.00-0.05": {
+    "IS": {
+     "mean_payout": 0.007376,
+     "mean_price": 0.010535,
+     "n": 3796
+    },
+    "OOS": {
+     "mean_payout": 0.016737,
+     "mean_price": 0.013309,
+     "n": 10695
+    }
+   },
+   "0.05-0.10": {
+    "IS": {
+     "mean_payout": 0.045752,
+     "mean_price": 0.071109,
+     "n": 612
+    },
+    "OOS": {
+     "mean_payout": 0.096345,
+     "mean_price": 0.072226,
+     "n": 2818
+    }
+   },
+   "0.10-0.15": {
+    "IS": {
+     "mean_payout": 0.100656,
+     "mean_price": 0.122522,
+     "n": 457
+    },
+    "OOS": {
+     "mean_payout": 0.146809,
+     "mean_price": 0.122911,
+     "n": 2241
+    }
+   },
+   "0.15-0.20": {
+    "IS": {
+     "mean_payout": 0.175214,
+     "mean_price": 0.173629,
+     "n": 468
+    },
+    "OOS": {
+     "mean_payout": 0.173385,
+     "mean_price": 0.17303,
+     "n": 2183
+    }
+   },
+   "0.20-0.25": {
+    "IS": {
+     "mean_payout": 0.224956,
+     "mean_price": 0.224914,
+     "n": 569
+    },
+    "OOS": {
+     "mean_payout": 0.252557,
+     "mean_price": 0.224082,
+     "n": 2542
+    }
+   },
+   "0.25-0.30": {
+    "IS": {
+     "mean_payout": 0.313498,
+     "mean_price": 0.27302,
+     "n": 689
+    },
+    "OOS": {
+     "mean_payout": 0.30274,
+     "mean_price": 0.273214,
+     "n": 2920
+    }
+   },
+   "0.30-0.35": {
+    "IS": {
+     "mean_payout": 0.329897,
+     "mean_price": 0.322795,
+     "n": 582
+    },
+    "OOS": {
+     "mean_payout": 0.354072,
+     "mean_price": 0.322879,
+     "n": 2419
+    }
+   },
+   "0.35-0.40": {
+    "IS": {
+     "mean_payout": 0.368313,
+     "mean_price": 0.371954,
+     "n": 486
+    },
+    "OOS": {
+     "mean_payout": 0.375921,
+     "mean_price": 0.37253,
+     "n": 2172
+    }
+   },
+   "0.40-0.45": {
+    "IS": {
+     "mean_payout": 0.428309,
+     "mean_price": 0.423015,
+     "n": 544
+    },
+    "OOS": {
+     "mean_payout": 0.45092,
+     "mean_price": 0.422823,
+     "n": 2119
+    }
+   },
+   "0.45-0.50": {
+    "IS": {
+     "mean_payout": 0.481456,
+     "mean_price": 0.474941,
+     "n": 728
+    },
+    "OOS": {
+     "mean_payout": 0.455523,
+     "mean_price": 0.473692,
+     "n": 2372
+    }
+   },
+   "0.50-0.55": {
+    "IS": {
+     "mean_payout": 0.495407,
+     "mean_price": 0.517977,
+     "n": 762
+    },
+    "OOS": {
+     "mean_payout": 0.509387,
+     "mean_price": 0.518897,
+     "n": 2397
+    }
+   },
+   "0.55-0.60": {
+    "IS": {
+     "mean_payout": 0.566757,
+     "mean_price": 0.569733,
+     "n": 367
+    },
+    "OOS": {
+     "mean_payout": 0.575155,
+     "mean_price": 0.572027,
+     "n": 1610
+    }
+   },
+   "0.60-0.65": {
+    "IS": {
+     "mean_payout": 0.636364,
+     "mean_price": 0.623011,
+     "n": 220
+    },
+    "OOS": {
+     "mean_payout": 0.596706,
+     "mean_price": 0.62144,
+     "n": 1184
+    }
+   },
+   "0.65-0.70": {
+    "IS": {
+     "mean_payout": 0.658482,
+     "mean_price": 0.671904,
+     "n": 224
+    },
+    "OOS": {
+     "mean_payout": 0.657662,
+     "mean_price": 0.672762,
+     "n": 1018
+    }
+   },
+   "0.70-0.75": {
+    "IS": {
+     "mean_payout": 0.6775,
+     "mean_price": 0.721632,
+     "n": 200
+    },
+    "OOS": {
+     "mean_payout": 0.68688,
+     "mean_price": 0.722666,
+     "n": 907
+    }
+   },
+   "0.75-0.80": {
+    "IS": {
+     "mean_payout": 0.752717,
+     "mean_price": 0.77106,
+     "n": 184
+    },
+    "OOS": {
+     "mean_payout": 0.755921,
+     "mean_price": 0.772082,
+     "n": 760
+    }
+   },
+   "0.80-0.85": {
+    "IS": {
+     "mean_payout": 0.826667,
+     "mean_price": 0.822253,
+     "n": 150
+    },
+    "OOS": {
+     "mean_payout": 0.799488,
+     "mean_price": 0.821474,
+     "n": 586
+    }
+   },
+   "0.85-0.90": {
+    "IS": {
+     "mean_payout": 0.848921,
+     "mean_price": 0.872748,
+     "n": 139
+    },
+    "OOS": {
+     "mean_payout": 0.835802,
+     "mean_price": 0.87151,
+     "n": 405
+    }
+   },
+   "0.90-0.95": {
+    "IS": {
+     "mean_payout": 0.9375,
+     "mean_price": 0.924647,
+     "n": 160
+    },
+    "OOS": {
+     "mean_payout": 0.887665,
+     "mean_price": 0.925844,
+     "n": 454
+    }
+   },
+   "0.95-1.00": {
+    "IS": {
+     "mean_payout": 0.987342,
+     "mean_price": 0.985616,
+     "n": 553
+    },
+    "OOS": {
+     "mean_payout": 0.989524,
+     "mean_price": 0.984973,
+     "n": 1050
+    }
+   }
+  }
+ },
+ "horizons": {
+  "1": {
+   "IS": {
+    "cost": 6694.214334,
+    "fees": 13.190624,
+    "lost": 38,
+    "mean_days_locked": 1.303201,
+    "mean_fill_price": 0.963038,
+    "partial_payout": 0,
+    "pnl": -141.774104,
+    "pnl_per_dollar": -0.021179,
+    "trades": 694,
+    "win_rate": 0.945245,
+    "won": 656
+   },
+   "OOS": {
+    "cost": 24522.262944,
+    "fees": 46.646092,
+    "lost": 190,
+    "mean_days_locked": 0.833546,
+    "mean_fill_price": 0.958268,
+    "partial_payout": 1,
+    "pnl": -910.509157,
+    "pnl_per_dollar": -0.03713,
+    "trades": 2538,
+    "win_rate": 0.924744,
+    "won": 2347
+   },
+   "OOS1": {
+    "cost": 12013.287513,
+    "fees": 21.58227,
+    "lost": 78,
+    "mean_days_locked": 1.165078,
+    "mean_fill_price": 0.960897,
+    "partial_payout": 1,
+    "pnl": -338.995893,
+    "pnl_per_dollar": -0.028218,
+    "trades": 1242,
+    "win_rate": 0.936393,
+    "won": 1163
+   },
+   "OOS2": {
+    "cost": 12508.975431,
+    "fees": 25.063821,
+    "lost": 112,
+    "mean_days_locked": 0.515828,
+    "mean_fill_price": 0.955757,
+    "partial_payout": 0,
+    "pnl": -571.513264,
+    "pnl_per_dollar": -0.045688,
+    "trades": 1296,
+    "win_rate": 0.91358,
+    "won": 1184
+   },
+   "bar": {
+    "1_oos_pos_and_both_halves": false,
+    "2_beats_null_p95": false,
+    "3_stress_pos": false,
+    "4_at_least_200_trades": true,
+    "5_not_one_month": false,
+    "6_beats_cash": false
+   },
+   "capacity_100": {
+    "OOS": {
+     "cost": 198216.151946,
+     "fees": 377.580043,
+     "lost": 190,
+     "mean_days_locked": 0.833546,
+     "mean_fill_price": 0.958121,
+     "partial_payout": 1,
+     "pnl": -7231.555156,
+     "pnl_per_dollar": -0.036483,
+     "trades": 2538,
+     "win_rate": 0.924744,
+     "won": 2347
+    },
+    "mean_cost_filled": 78.099351
+   },
+   "counts": {
+    "events_traded": 3232,
+    "filled": 5218,
+    "no_favourite_in_band": 50373,
+    "no_price_at_Td": 587,
+    "open_at_Td": 59449,
+    "under_min_fill_in_hour": 3271
+   },
+   "largest_losses": [
+    {
+     "cat": "crypto",
+     "cond": "0xa7053c5f1a8926bfed6fcecb6bb513dd30403b44dee5d3d50ce4d2a08e50a4ea",
+     "payout": 0.0,
+     "pf": 0.9045,
+     "pnl": -10.06615,
+     "q": "Ethereum above $2,500 on June 20?",
+     "window": "IS"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x3ddb8caeb9cba3d58e2d144c8412dfaeb9ab20a85958f6441be8a4085b68f83c",
+     "payout": 0.0,
+     "pf": 0.91,
+     "pnl": -10.0623,
+     "q": "Will the price of Bitcoin be between $68,000 and $70,000 on March 3?",
+     "window": "OOS1"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x4085a96ea99c88fbea9e8de39a0d132e3d59c4dc1bd076699b817b2844d5a914",
+     "payout": 0.0,
+     "pf": 0.91,
+     "pnl": -10.0623,
+     "q": "Will the price of Bitcoin be between $110K and $112K on September 5?",
+     "window": "IS"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x6a91d698278eace1b4b6879eb9385539f1d9e23e23fa9aac72541fa4353f731d",
+     "payout": 0.0,
+     "pf": 0.915,
+     "pnl": -10.0588,
+     "q": "Ethereum above $4400 on August 22?",
+     "window": "IS"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x7c493c16c5f1db955477f9a3ffe9d92ea0fcc07090a5c62af1c22962578b54ec",
+     "payout": 0.0,
+     "pf": 0.922,
+     "pnl": -10.0539,
+     "q": "Will the price of Bitcoin be above $68,000 on February 25?",
+     "window": "OOS1"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0xfc246298cb12d1338965fcbad2dd6018685dfe94ece9958879f708862779de9e",
+     "payout": 0.0,
+     "pf": 0.925,
+     "pnl": -10.0518,
+     "q": "Will the price of Ethereum be between $2,000 and $2,100 on May 26?",
+     "window": "OOS1"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0xd65d3a0b1ea44825c31b68571df0415000533b3050f9ba708f47ea4bcf7560b7",
+     "payout": 0.0,
+     "pf": 0.9255,
+     "pnl": -10.05145,
+     "q": "Will the price of Ethereum be less than $2,900 on December 17?",
+     "window": "IS"
+    },
+    {
+     "cat": "weather",
+     "cond": "0x32ebb5434167c26ff7bc0ad0baa5969523807b18b516a1a719f45cdbfd206a88",
+     "payout": 0.0,
+     "pf": 0.9,
+     "pnl": -10.0495,
+     "q": "Will the highest temperature in Houston be between 94-95\u00b0F on August 18?",
+     "window": "OOS2"
+    },
+    {
+     "cat": "sports",
+     "cond": "0x749f479c4f5498a13b66d6d96ce75e2ce83fe7c2b3cf054efdd56101b7b653f0",
+     "payout": 0.0,
+     "pf": 0.9,
+     "pnl": -10.0495,
+     "q": "Will Henan FC win on 2025-10-31?",
+     "window": "IS"
+    },
+    {
+     "cat": "sports",
+     "cond": "0x6d585f54f217a2a49135f93bd85b22f27354d2ad3600ff91054d7f1f4a9edd51",
+     "payout": 0.0,
+     "pf": 0.905,
+     "pnl": -10.047,
+     "q": "Will Al Ettifaq Saudi Club win on 2026-01-16?",
+     "window": "OOS1"
+    },
+    {
+     "cat": "weather",
+     "cond": "0xd8d257449cdb5b9b1e36d40aea9565f15c39efeee9f60f07c14f798b61d582c5",
+     "payout": 0.0,
+     "pf": 0.905,
+     "pnl": -10.047,
+     "q": "Will the highest temperature in London be 10\u00b0C on January 28?",
+     "window": "OOS1"
+    },
+    {
+     "cat": "weather",
+     "cond": "0x205b0b1ce7c9cd642e74c9067017d330feb4fbbd0ed2bf82eb01c3f8e981d314",
+     "payout": 0.0,
+     "pf": 0.905,
+     "pnl": -10.047,
+     "q": "Will the highest temperature in Seattle be between 80-81\u00b0F on June 19?",
+     "window": "OOS2"
+    }
+   ],
+   "null": {
+    "draws": 10000,
+    "mean": -45.691065,
+    "p95": 121.893517
+   },
+   "oos_by_band": {
+    "0.90-0.95": {
+     "cost": 12332.014402,
+     "fees": 33.573917,
+     "lost": 139,
+     "mean_days_locked": 0.620953,
+     "mean_fill_price": 0.9399,
+     "partial_payout": 0,
+     "pnl": -653.959216,
+     "pnl_per_dollar": -0.053029,
+     "trades": 1276,
+     "win_rate": 0.891066,
+     "won": 1137
+    },
+    "0.95-0.99": {
+     "cost": 12190.248542,
+     "fees": 13.072175,
+     "lost": 51,
+     "mean_days_locked": 1.048497,
+     "mean_fill_price": 0.977596,
+     "partial_payout": 1,
+     "pnl": -256.549941,
+     "pnl_per_dollar": -0.021046,
+     "trades": 1262,
+     "win_rate": 0.958796,
+     "won": 1210
+    }
+   },
+   "oos_by_category": {
+    "crypto": {
+     "cost": 1768.784788,
+     "fees": 3.093643,
+     "lost": 13,
+     "mean_days_locked": 0.21583,
+     "mean_fill_price": 0.975491,
+     "partial_payout": 0,
+     "pnl": -95.44639,
+     "pnl_per_dollar": -0.053962,
+     "trades": 181,
+     "win_rate": 0.928177,
+     "won": 168
+    },
+    "culture": {
+     "cost": 295.339704,
+     "fees": 0.283205,
+     "lost": 2,
+     "mean_days_locked": 0.891576,
+     "mean_fill_price": 0.980674,
+     "partial_payout": 0,
+     "pnl": -14.711195,
+     "pnl_per_dollar": -0.049811,
+     "trades": 31,
+     "win_rate": 0.935484,
+     "won": 29
+    },
+    "economics": {
+     "cost": 344.69938,
+     "fees": 0.439514,
+     "lost": 4,
+     "mean_days_locked": 1.699712,
+     "mean_fill_price": 0.974282,
+     "partial_payout": 0,
+     "pnl": -32.560276,
+     "pnl_per_dollar": -0.09446,
+     "trades": 35,
+     "win_rate": 0.885714,
+     "won": 31
+    },
+    "finance": {
+     "cost": 549.113827,
+     "fees": 0.662603,
+     "lost": 2,
+     "mean_days_locked": 0.260168,
+     "mean_fill_price": 0.975587,
+     "partial_payout": 0,
+     "pnl": -7.654566,
+     "pnl_per_dollar": -0.01394,
+     "trades": 58,
+     "win_rate": 0.965517,
+     "won": 56
+    },
+    "finance_prices": {
+     "cost": 427.256735,
+     "fees": 0.410558,
+     "lost": 4,
+     "mean_days_locked": 0.426298,
+     "mean_fill_price": 0.97538,
+     "partial_payout": 0,
+     "pnl": -31.603753,
+     "pnl_per_dollar": -0.073969,
+     "trades": 44,
+     "win_rate": 0.909091,
+     "won": 40
+    },
+    "general": {
+     "cost": 20.0,
+     "fees": 0.035,
+     "lost": 0,
+     "mean_days_locked": 0.812373,
+     "mean_fill_price": 0.964767,
+     "partial_payout": 0,
+     "pnl": 0.695397,
+     "pnl_per_dollar": 0.03477,
+     "trades": 2,
+     "win_rate": 1.0,
+     "won": 2
+    },
+    "geopolitics": {
+     "cost": 252.0196,
+     "fees": 0.388652,
+     "lost": 1,
+     "mean_days_locked": 2.780655,
+     "mean_fill_price": 0.968617,
+     "partial_payout": 0,
+     "pnl": -2.427482,
+     "pnl_per_dollar": -0.009632,
+     "trades": 26,
+     "win_rate": 0.961538,
+     "won": 25
+    },
+    "mentions": {
+     "cost": 99.728784,
+     "fees": 0.132483,
+     "lost": 0,
+     "mean_days_locked": 0.534125,
+     "mean_fill_price": 0.971224,
+     "partial_payout": 0,
+     "pnl": 2.822377,
+     "pnl_per_dollar": 0.028301,
+     "trades": 11,
+     "win_rate": 1.0,
+     "won": 11
+    },
+    "other": {
+     "cost": 799.977811,
+     "fees": 1.058193,
+     "lost": 2,
+     "mean_days_locked": 2.279056,
+     "mean_fill_price": 0.972972,
+     "partial_payout": 0,
+     "pnl": 0.960464,
+     "pnl_per_dollar": 0.001201,
+     "trades": 82,
+     "win_rate": 0.97561,
+     "won": 80
+    },
+    "politics": {
+     "cost": 854.5145,
+     "fees": 1.111554,
+     "lost": 6,
+     "mean_days_locked": 6.698061,
+     "mean_fill_price": 0.97015,
+     "partial_payout": 0,
+     "pnl": -37.071723,
+     "pnl_per_dollar": -0.043383,
+     "trades": 89,
+     "win_rate": 0.932584,
+     "won": 83
+    },
+    "sports": {
+     "cost": 10111.648086,
+     "fees": 23.983625,
+     "lost": 98,
+     "mean_days_locked": 0.362388,
+     "mean_fill_price": 0.943442,
+     "partial_payout": 1,
+     "pnl": -407.061278,
+     "pnl_per_dollar": -0.040257,
+     "trades": 1052,
+     "win_rate": 0.905894,
+     "won": 953
+    },
+    "tech": {
+     "cost": 110.768532,
+     "fees": 0.153821,
+     "lost": 1,
+     "mean_days_locked": 9.273973,
+     "mean_fill_price": 0.96451,
+     "partial_payout": 0,
+     "pnl": -7.17674,
+     "pnl_per_dollar": -0.06479,
+     "trades": 13,
+     "win_rate": 0.923077,
+     "won": 12
+    },
+    "weather": {
+     "cost": 8888.411198,
+     "fees": 14.893242,
+     "lost": 57,
+     "mean_days_locked": 0.646496,
+     "mean_fill_price": 0.96594,
+     "partial_payout": 0,
+     "pnl": -279.27399,
+     "pnl_per_dollar": -0.03142,
+     "trades": 914,
+     "win_rate": 0.937637,
+     "won": 857
+    }
+   },
+   "oos_by_month": {
+    "2026-01": -75.174544,
+    "2026-02": -70.217232,
+    "2026-03": -5.172934,
+    "2026-04": -107.752208,
+    "2026-05": -80.678976,
+    "2026-06": -138.170432,
+    "2026-07": -126.866629,
+    "2026-08": -243.316159,
+    "2026-09": -63.160045
+   },
+   "oos_peak_capital": 241.8196,
+   "oos_return_per_year_on_peak": -5.453623,
+   "passes": false,
+   "sample_trades": [
+    {
+     "cond": "0xa44c6d6e38fea454fe21edfe667ade48711c396809254ab03cfe9d2c3231a0ed",
+     "fav": 0,
+     "fills": [
+      [
+       1781022622,
+       0.988495,
+       9.9
+      ],
+      [
+       1781023656,
+       0.988,
+       0.216498
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9845,
+     "pnl": 0.113043,
+     "r": 0.03,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x3518bcce881741edc93060df715c2ca391cb632b2cf16d7a9aa4c046c3c5dded",
+     "fav": 0,
+     "fills": [
+      [
+       1774623627,
+       0.987,
+       4.9996
+      ],
+      [
+       1774623757,
+       0.989982,
+       5.116653
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.975,
+     "pnl": 0.087529,
+     "r": 0.25,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x73a5ba2c13f360e74eb990f2faf740e5e3e5a53ed6921280e0a0634087adb334",
+     "fav": 1,
+     "fills": [
+      [
+       1786284036,
+       0.92,
+       1.08695
+      ],
+      [
+       1786284841,
+       0.916,
+       9.825334
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.915,
+     "pnl": 0.870484,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xd9b852a14e28db613310d47291485953c84f083552af33ee8db0003fb4e99e7e",
+     "fav": 1,
+     "fills": [
+      [
+       1772495503,
+       0.989974,
+       10.101273
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9775,
+     "pnl": 0.09626,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x82a3f99f67dd8bef049f17bc2ccb74dc58810923361123a93a35c046dccfb01c",
+     "fav": 0,
+     "fills": [
+      [
+       1784226091,
+       0.92,
+       10.869565
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.91,
+     "pnl": 0.845565,
+     "r": 0.03,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x156b34ade9c3b0624a65ca36d55da8209f8f0ce7e9e49ea1b393fb72edba67eb",
+     "fav": 1,
+     "fills": [
+      [
+       1787742088,
+       0.915372,
+       10.924518
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9,
+     "pnl": 0.882204,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xd49e66a808240f64117ac9742c4fb71437863765f901b7b7a24f108bbb7e88be",
+     "fav": 1,
+     "fills": [
+      [
+       1788796833,
+       0.9585,
+       10.432968
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9575,
+     "pnl": 0.412218,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x473ca0a2b9cade5d78d97c919a0a632da8e0f8ed209decd942caf27b1bf4f137",
+     "fav": 0,
+     "fills": [
+      [
+       1778130029,
+       0.9405,
+       10.632642
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9395,
+     "pnl": 0.608842,
+     "r": 0.04,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x668971115755e8f1054178edd54f70eb7e2f26b88720295cc882d53b25632afc",
+     "fav": 1,
+     "fills": [
+      [
+       1787743132,
+       0.98,
+       5.0
+      ],
+      [
+       1787744419,
+       0.98,
+       5.204082
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.975,
+     "pnl": 0.194082,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xd6762d04c210133b0222366133fe0befb67737873864c528803f6f376765ce05",
+     "fav": 1,
+     "fills": [
+      [
+       1785756507,
+       0.966,
+       2.63156
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.965,
+     "pnl": 0.085151,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x33063a55e282f991a24b2d7026023d0788740d80391f4e2d0fdc742c5ec3a5ea",
+     "fav": 1,
+     "fills": [
+      [
+       1782918010,
+       0.916,
+       10.917031
+      ]
+     ],
+     "payout": 0.0,
+     "pf": 0.915,
+     "pnl": -10.0252,
+     "r": 0.03,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x59c16114a7023a0fc55872bfb9b0cf821480a24ee3a73bb0bda0c9e2bcdcd46c",
+     "fav": 1,
+     "fills": [
+      [
+       1771153225,
+       0.911,
+       10.0
+      ],
+      [
+       1771154525,
+       0.911,
+       0.976948
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.91,
+     "pnl": 0.932448,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x59f89f6a83660ffdf7302aeb55275eadf4fd1f15a814919b3c581187f76f23a4",
+     "fav": 1,
+     "fills": [
+      [
+       1786532433,
+       0.95,
+       10.526316
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.925,
+     "pnl": 0.501316,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x89572102f66d24a398741c20b1150e294b6330255e63127dd213e57313930336",
+     "fav": 1,
+     "fills": [
+      [
+       1779016700,
+       0.95,
+       10.526316
+      ]
+     ],
+     "payout": 0.0,
+     "pf": 0.945,
+     "pnl": -10.025,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x03529965c92326c1434d9605c7a9cfd462bae19fa390dc9e37b3d78de3c250c4",
+     "fav": 1,
+     "fills": [
+      [
+       1767803479,
+       0.91,
+       3.2967
+      ],
+      [
+       1767803515,
+       0.91,
+       7.692311
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.905,
+     "pnl": 0.944011,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xd3c7ad820a5975023efe3dc9cd33f0cf60c0e045a57af705b37fdd37bced8e24",
+     "fav": 0,
+     "fills": [
+      [
+       1780013592,
+       0.93,
+       1.075257
+      ],
+      [
+       1780014366,
+       0.93,
+       9.677431
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.925,
+     "pnl": 0.731688,
+     "r": 0.03,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x99a90836d8c8adb6803aac110c2650918928b1ac9b4c4f5d7982e09f2b76bc43",
+     "fav": 1,
+     "fills": [
+      [
+       1767913234,
+       0.963,
+       3.219105
+      ],
+      [
+       1767913524,
+       0.961,
+       7.180023
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.96,
+     "pnl": 0.379938,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x8749485df73312a2116c3a9395c7b2d8c3582bb47817470812e0f7bd49b14445",
+     "fav": 1,
+     "fills": [
+      [
+       1781536269,
+       0.984,
+       10.0
+      ],
+      [
+       1781536485,
+       0.984,
+       0.162602
+      ]
+     ],
+     "payout": 0.0,
+     "pf": 0.981,
+     "pnl": -10.0048,
+     "r": 0.03,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xbe86c8d3759f4d153837226cfba1df001d258940d4bd10818fc4d3745d872241",
+     "fav": 1,
+     "fills": [
+      [
+       1778198443,
+       0.921,
+       1.08695
+      ],
+      [
+       1778198511,
+       0.921,
+       1.08695
+      ],
+      [
+       1778198513,
+       0.921,
+       8.683863
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.92,
+     "pnl": 0.834063,
+     "r": 0.03,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x237a8ab030db721536d99b011a000a94045e30ca159643874438863068e5e332",
+     "fav": 1,
+     "fills": [
+      [
+       1788795456,
+       0.95,
+       2.94736
+      ],
+      [
+       1788795457,
+       0.95,
+       1.2
+      ],
+      [
+       1788795457,
+       0.95,
+       2.82104
+      ],
+      [
+       1788795459,
+       0.95,
+       1.2
+      ],
+      [
+       1788795460,
+       0.95,
+       1.2
+      ],
+      [
+       1788795460,
+       0.95,
+       1.157916
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.945,
+     "pnl": 0.501316,
+     "r": 0.05,
+     "tick": 0.001
+    }
+   ],
+   "stress_IS_pnl": -161.200633,
+   "stress_OOS_pnl": -980.688582
+  },
+  "168": {
+   "IS": {
+    "cost": 1626.546717,
+    "fees": 3.664413,
+    "lost": 6,
+    "mean_days_locked": 6.069733,
+    "mean_fill_price": 0.95528,
+    "partial_payout": 0,
+    "pnl": 9.635184,
+    "pnl_per_dollar": 0.005924,
+    "trades": 172,
+    "win_rate": 0.965116,
+    "won": 166
+   },
+   "OOS": {
+    "cost": 3114.383306,
+    "fees": 6.169777,
+    "lost": 21,
+    "mean_days_locked": 4.187116,
+    "mean_fill_price": 0.953049,
+    "partial_payout": 1,
+    "pnl": -55.492354,
+    "pnl_per_dollar": -0.017818,
+    "trades": 334,
+    "win_rate": 0.934132,
+    "won": 312
+   },
+   "OOS1": {
+    "cost": 1694.971972,
+    "fees": 3.378198,
+    "lost": 12,
+    "mean_days_locked": 5.224264,
+    "mean_fill_price": 0.953575,
+    "partial_payout": 1,
+    "pnl": -33.053532,
+    "pnl_per_dollar": -0.019501,
+    "trades": 183,
+    "win_rate": 0.928962,
+    "won": 170
+   },
+   "OOS2": {
+    "cost": 1419.411334,
+    "fees": 2.791579,
+    "lost": 9,
+    "mean_days_locked": 2.930174,
+    "mean_fill_price": 0.952422,
+    "partial_payout": 0,
+    "pnl": -22.438822,
+    "pnl_per_dollar": -0.015809,
+    "trades": 151,
+    "win_rate": 0.940397,
+    "won": 142
+   },
+   "bar": {
+    "1_oos_pos_and_both_halves": false,
+    "2_beats_null_p95": false,
+    "3_stress_pos": false,
+    "4_at_least_200_trades": true,
+    "5_not_one_month": false,
+    "6_beats_cash": false
+   },
+   "capacity_100": {
+    "OOS": {
+     "cost": 23423.343449,
+     "fees": 48.205313,
+     "lost": 21,
+     "mean_days_locked": 4.187116,
+     "mean_fill_price": 0.950802,
+     "partial_payout": 1,
+     "pnl": -210.042042,
+     "pnl_per_dollar": -0.008967,
+     "trades": 334,
+     "win_rate": 0.934132,
+     "won": 312
+    },
+    "mean_cost_filled": 70.129771
+   },
+   "counts": {
+    "events_traded": 506,
+    "filled": 836,
+    "no_favourite_in_band": 27004,
+    "no_price_at_Td": 386,
+    "open_at_Td": 31156,
+    "print_walk_incomplete": 21,
+    "under_min_fill_in_hour": 2909
+   },
+   "largest_losses": [
+    {
+     "cat": "sports",
+     "cond": "0xf69fbf409451b715e91535757e0f069ad7b2d30edac130b3fcd4390aede7a5b2",
+     "payout": 0.0,
+     "pf": 0.925,
+     "pnl": -10.037,
+     "q": "Storm vs Sun",
+     "window": "IS"
+    },
+    {
+     "cat": "sports",
+     "cond": "0x0d0fcc500d2aea511988e33f5b6d9e8ef2159d981a58d7f2633665ae262cdc25",
+     "payout": 0.0,
+     "pf": 0.91,
+     "pnl": -10.035,
+     "q": "Midland: Elizabeth Mandlik vs Anna Frey",
+     "window": "OOS1"
+    },
+    {
+     "cat": "geopolitics",
+     "cond": "0x4c5701bcde0b8fb7d7f48c8e9d20245a6caa58c61a77f981fad98f2bfa0b1bc7",
+     "payout": 0.0,
+     "pf": 0.925,
+     "pnl": -10.035,
+     "q": "US x Iran ceasefire by April 7?",
+     "window": "OOS1"
+    },
+    {
+     "cat": "sports",
+     "cond": "0x5ec0343ed7186e0a021e2be6b2e097f6cb6e8cc5477bc7ca253e7aacb2b58189",
+     "payout": 0.0,
+     "pf": 0.925,
+     "pnl": -10.035,
+     "q": "Spurs vs. Warriors",
+     "window": "IS"
+    },
+    {
+     "cat": "mentions",
+     "cond": "0x01dd8795176ff3add669f0c5be2bbba86ef480fe25ce165ba1bda063d91304f3",
+     "payout": 0.0,
+     "pf": 0.935,
+     "pnl": -10.032,
+     "q": "Will Elon Musk post 360-379 tweets from February 17 to February 24, 2026?",
+     "window": "OOS1"
+    },
+    {
+     "cat": "finance",
+     "cond": "0xf3032e04d2e76e314afb161b520b67abe86414b9145be98371b445f68f3dfbf1",
+     "payout": 0.0,
+     "pf": 0.935,
+     "pnl": -10.03,
+     "q": "Will Amazon (AMZN) beat quarterly earnings?",
+     "window": "OOS1"
+    },
+    {
+     "cat": "sports",
+     "cond": "0x4a023ab9ad6f90d9405070ed3be976227ade7a5f3f0a1d93400a8d827a3fa4b6",
+     "payout": 0.0,
+     "pf": 0.925,
+     "pnl": -10.03,
+     "q": "Estoril Open, Qualification: Orlando Luz vs Clement Tabur",
+     "window": "OOS2"
+    },
+    {
+     "cat": "sports",
+     "cond": "0xfae3f4ce2c7bc902d5e0396b9efe2aa90deda9e6aec2b458180cb2c7676f2f28",
+     "payout": 0.0,
+     "pf": 0.9,
+     "pnl": -10.0297,
+     "q": "WTT - Men's Singles: Peng Xiang vs Luka Mladenovic",
+     "window": "OOS1"
+    },
+    {
+     "cat": "sports",
+     "cond": "0xd9090b3380ed70a7bab5aff78e993b50ccecc93e25490ab0a2b5499ae3a987e7",
+     "payout": 0.0,
+     "pf": 0.91,
+     "pnl": -10.0267,
+     "q": "ITF Sapporo: Yuzuha Negishi vs Kamonwan Yodpetch",
+     "window": "OOS2"
+    },
+    {
+     "cat": "culture",
+     "cond": "0x11a78aebb5a769ff8ac6b2cb61b4d5138c4de9aa6e398197ab9d1d37a3886db9",
+     "payout": 0.0,
+     "pf": 0.9495,
+     "pnl": -10.02475,
+     "q": "Will Elon Musk post 800-839 tweets in May 2026?",
+     "window": "OOS2"
+    },
+    {
+     "cat": "politics",
+     "cond": "0x2662d010f3f530fe31617efa905e03dfd1245cdece3f97976a0c4bfee46cdb4f",
+     "payout": 0.0,
+     "pf": 0.9535,
+     "pnl": -10.0215,
+     "q": "Will Donald Trump sign 30 or more executive orders in March?",
+     "window": "IS"
+    },
+    {
+     "cat": "sports",
+     "cond": "0x13e9588758d3cbcdba5270913276a9bf011fd67c9eed56d46fd50eba83aea00f",
+     "payout": 0.0,
+     "pf": 0.935,
+     "pnl": -10.02125,
+     "q": "ITF Ourense: Greet Minnen vs Isabella Shinikova",
+     "window": "OOS2"
+    }
+   ],
+   "null": {
+    "draws": 10000,
+    "mean": -5.840019,
+    "p95": 54.564579
+   },
+   "oos_by_band": {
+    "0.90-0.95": {
+     "cost": 1673.819469,
+     "fees": 4.537992,
+     "lost": 15,
+     "mean_days_locked": 3.318126,
+     "mean_fill_price": 0.935514,
+     "partial_payout": 1,
+     "pnl": -38.91408,
+     "pnl_per_dollar": -0.023249,
+     "trades": 177,
+     "win_rate": 0.909605,
+     "won": 161
+    },
+    "0.95-0.99": {
+     "cost": 1440.563837,
+     "fees": 1.631786,
+     "lost": 6,
+     "mean_days_locked": 5.166804,
+     "mean_fill_price": 0.974268,
+     "partial_payout": 0,
+     "pnl": -16.578274,
+     "pnl_per_dollar": -0.011508,
+     "trades": 157,
+     "win_rate": 0.961783,
+     "won": 151
+    }
+   },
+   "oos_by_category": {
+    "crypto": {
+     "cost": 22.121795,
+     "fees": 0.054774,
+     "lost": 0,
+     "mean_days_locked": 7.065305,
+     "mean_fill_price": 0.963899,
+     "partial_payout": 0,
+     "pnl": 0.77375,
+     "pnl_per_dollar": 0.034977,
+     "trades": 3,
+     "win_rate": 1.0,
+     "won": 3
+    },
+    "culture": {
+     "cost": 256.932372,
+     "fees": 0.534889,
+     "lost": 2,
+     "mean_days_locked": 6.493175,
+     "mean_fill_price": 0.957778,
+     "partial_payout": 0,
+     "pnl": -9.85082,
+     "pnl_per_dollar": -0.03834,
+     "trades": 28,
+     "win_rate": 0.928571,
+     "won": 26
+    },
+    "economics": {
+     "cost": 70.356816,
+     "fees": 0.108661,
+     "lost": 0,
+     "mean_days_locked": 7.6329,
+     "mean_fill_price": 0.96632,
+     "partial_payout": 0,
+     "pnl": 2.343516,
+     "pnl_per_dollar": 0.033309,
+     "trades": 10,
+     "win_rate": 1.0,
+     "won": 10
+    },
+    "finance": {
+     "cost": 119.689998,
+     "fees": 0.247464,
+     "lost": 2,
+     "mean_days_locked": 7.596067,
+     "mean_fill_price": 0.95808,
+     "partial_payout": 0,
+     "pnl": -10.648782,
+     "pnl_per_dollar": -0.08897,
+     "trades": 13,
+     "win_rate": 0.846154,
+     "won": 11
+    },
+    "finance_prices": {
+     "cost": 49.83,
+     "fees": 0.061065,
+     "lost": 0,
+     "mean_days_locked": 6.152095,
+     "mean_fill_price": 0.969175,
+     "partial_payout": 0,
+     "pnl": 1.523798,
+     "pnl_per_dollar": 0.03058,
+     "trades": 6,
+     "win_rate": 1.0,
+     "won": 6
+    },
+    "general": {
+     "cost": 10.0,
+     "fees": 0.03,
+     "lost": 0,
+     "mean_days_locked": 8.291782,
+     "mean_fill_price": 0.94,
+     "partial_payout": 0,
+     "pnl": 0.608298,
+     "pnl_per_dollar": 0.06083,
+     "trades": 1,
+     "win_rate": 1.0,
+     "won": 1
+    },
+    "geopolitics": {
+     "cost": 195.743417,
+     "fees": 0.512341,
+     "lost": 2,
+     "mean_days_locked": 8.225278,
+     "mean_fill_price": 0.946917,
+     "partial_payout": 0,
+     "pnl": -10.721496,
+     "pnl_per_dollar": -0.054773,
+     "trades": 21,
+     "win_rate": 0.904762,
+     "won": 19
+    },
+    "mentions": {
+     "cost": 70.0,
+     "fees": 0.18737,
+     "lost": 1,
+     "mean_days_locked": 6.621802,
+     "mean_fill_price": 0.944777,
+     "partial_payout": 0,
+     "pnl": -6.779579,
+     "pnl_per_dollar": -0.096851,
+     "trades": 7,
+     "win_rate": 0.857143,
+     "won": 6
+    },
+    "other": {
+     "cost": 251.182584,
+     "fees": 0.356502,
+     "lost": 0,
+     "mean_days_locked": 7.852306,
+     "mean_fill_price": 0.970592,
+     "partial_payout": 0,
+     "pnl": 7.25399,
+     "pnl_per_dollar": 0.028879,
+     "trades": 27,
+     "win_rate": 1.0,
+     "won": 27
+    },
+    "politics": {
+     "cost": 324.955577,
+     "fees": 0.570337,
+     "lost": 3,
+     "mean_days_locked": 8.704374,
+     "mean_fill_price": 0.959771,
+     "partial_payout": 0,
+     "pnl": -5.27548,
+     "pnl_per_dollar": -0.016234,
+     "trades": 36,
+     "win_rate": 0.916667,
+     "won": 33
+    },
+    "sports": {
+     "cost": 1697.468574,
+     "fees": 3.445266,
+     "lost": 11,
+     "mean_days_locked": 1.036744,
+     "mean_fill_price": 0.947812,
+     "partial_payout": 1,
+     "pnl": -26.256867,
+     "pnl_per_dollar": -0.015468,
+     "trades": 176,
+     "win_rate": 0.931818,
+     "won": 164
+    },
+    "tech": {
+     "cost": 46.102172,
+     "fees": 0.061109,
+     "lost": 0,
+     "mean_days_locked": 8.04825,
+     "mean_fill_price": 0.96649,
+     "partial_payout": 0,
+     "pnl": 1.537318,
+     "pnl_per_dollar": 0.033346,
+     "trades": 6,
+     "win_rate": 1.0,
+     "won": 6
+    }
+   },
+   "oos_by_month": {
+    "2026-01": -3.622089,
+    "2026-02": -20.80509,
+    "2026-03": -13.162374,
+    "2026-04": -1.082734,
+    "2026-05": -9.007408,
+    "2026-06": -2.711237,
+    "2026-07": -0.074001,
+    "2026-08": -5.50603,
+    "2026-09": 0.47861
+   },
+   "oos_peak_capital": 189.735905,
+   "oos_return_per_year_on_peak": -0.42362,
+   "passes": false,
+   "sample_trades": [
+    {
+     "cond": "0xd2fa26349924f0b9ba7fa03b7754904ee98f615e2ccbc975c45c4fa13d3b74bb",
+     "fav": 0,
+     "fills": [
+      [
+       1779215950,
+       0.946,
+       5.0
+      ],
+      [
+       1779216048,
+       0.946,
+       5.570825
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.945,
+     "pnl": 0.554625,
+     "r": 0.03,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x363bc5811af30aec6ac1f61629d541f78a6760ccca00ce68f704a3924b7c2374",
+     "fav": 1,
+     "fills": [
+      [
+       1772239703,
+       0.979,
+       10.0
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9745,
+     "pnl": 0.199721,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xa2dd1db6f087441cf589072f3ea2b48bb04ac5e6c7d471eb1ee7a502b41e7f5c",
+     "fav": 1,
+     "fills": [
+      [
+       1783699306,
+       0.932,
+       10.729614
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.925,
+     "pnl": 0.695614,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xe50f97ab48a2b7c4aefbab711a4e74b1b93b9ed6f4e1626248beef2a6c59fc95",
+     "fav": 1,
+     "fills": [
+      [
+       1771718588,
+       0.9832,
+       10.170872
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9735,
+     "pnl": 0.162472,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xf69532e65491a92b693f330befbcd2e1e8650c9bed42c22bfd3e04ec4e658559",
+     "fav": 1,
+     "fills": [
+      [
+       1782174992,
+       0.972,
+       10.288066
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9705,
+     "pnl": 0.274066,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xcf32b3a48a9ecdcf30d1cc4cbe4df1c5d44c2bf672036b36f17b0e14718aa044",
+     "fav": 1,
+     "fills": [
+      [
+       1785513776,
+       0.98893,
+       10.111937
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.984,
+     "pnl": 0.106402,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x5645a352248f62b89f432a1d8515e94695a8a5e9be48da9b1ea7e3c2dd9fd0aa",
+     "fav": 1,
+     "fills": [
+      [
+       1787497365,
+       0.97,
+       5.52
+      ],
+      [
+       1787500374,
+       0.96,
+       4.839167
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.955,
+     "pnl": 0.341844,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x1ffbda5218650465c26893fcda25ae3f9ff83833795097c2271d103a34b1c7e8",
+     "fav": 1,
+     "fills": [
+      [
+       1776182407,
+       0.940213,
+       10.635886
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9375,
+     "pnl": 0.605993,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x00925aafdbb3fbec14b49f343eb430ddb9cc1f827e5934b5513703d13f2851de",
+     "fav": 0,
+     "fills": [
+      [
+       1785802572,
+       0.9705,
+       5.0
+      ],
+      [
+       1785802575,
+       0.975,
+       1.02564
+      ],
+      [
+       1785802580,
+       0.975,
+       1.02
+      ]
+     ],
+     "payout": 0.0,
+     "pf": 0.9695,
+     "pnl": -6.854719,
+     "r": 0.04,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x4a79792cba3ba5e978c27da71a57b44bd0e6de7cfe05dd26b1314823d0801d4d",
+     "fav": 0,
+     "fills": [
+      [
+       1783173826,
+       0.95,
+       10.526316
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.945,
+     "pnl": 0.511316,
+     "r": 0.03,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xb37389ec097eeb691f361a894e8811b89f9b9079b2a2dc28020936cd33246352",
+     "fav": 1,
+     "fills": [
+      [
+       1780600741,
+       0.975,
+       1.02564
+      ],
+      [
+       1780600741,
+       0.975,
+       8.0
+      ],
+      [
+       1780601329,
+       0.975,
+       0.85
+      ],
+      [
+       1780601329,
+       0.975,
+       0.38077
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9605,
+     "pnl": 0.24891,
+     "r": 0.03,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xd93a819fc754ea0453d9333a461f20f65ef6c8ceb9b50238ae3c143758087192",
+     "fav": 1,
+     "fills": [
+      [
+       1770118724,
+       0.989,
+       10.111223
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.955,
+     "pnl": 0.105723,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xe5ef98066191810033c93641b5629e0123c782d0903a4d9790e6dfa790d65d4f",
+     "fav": 0,
+     "fills": [
+      [
+       1783845226,
+       0.95,
+       10.526316
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.945,
+     "pnl": 0.501316,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xb7dfd4e3da4055435f1db97db441391729df4a9e4b41b5f6d0212fc490eb5445",
+     "fav": 1,
+     "fills": [
+      [
+       1776903844,
+       0.9305,
+       10.74691
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9295,
+     "pnl": 0.71216,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x6b8c1bf3cb8b10369225fb0694bc9d107ec8a376e05debe11aa2bb2e630da9e4",
+     "fav": 0,
+     "fills": [
+      [
+       1767667525,
+       0.95,
+       10.526316
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.93,
+     "pnl": 0.501316,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x81c3caac99051b8e7af44f2dc330a17b2dfe7d6df875138aeb9e33c5c0061735",
+     "fav": 1,
+     "fills": [
+      [
+       1778144426,
+       0.92,
+       10.869565
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.905,
+     "pnl": 0.845565,
+     "r": 0.03,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x2017a6a234f761d6a44be17094ecf247d7d1e706024edbef59d6391a3c19e1b2",
+     "fav": 1,
+     "fills": [
+      [
+       1779582346,
+       0.95,
+       10.526316
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9465,
+     "pnl": 0.501316,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xd180bdd9a148497117ccd8dc9748dc0a5583b3fec6748989d24b5143a486269e",
+     "fav": 0,
+     "fills": [
+      [
+       1776200406,
+       0.919999,
+       1.081755
+      ],
+      [
+       1776200408,
+       0.93,
+       1.070757
+      ],
+      [
+       1776200408,
+       0.93,
+       1.070757
+      ],
+      [
+       1776200408,
+       0.93,
+       1.070757
+      ],
+      [
+       1776200438,
+       0.92,
+       6.540624
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.915,
+     "pnl": 0.811546,
+     "r": 0.03,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x4face88ac93c15df1036e3709d52b7d1ffec391ff5940ed7a09417019fa8248e",
+     "fav": 1,
+     "fills": [
+      [
+       1787490007,
+       0.963,
+       10.384216
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.962,
+     "pnl": 0.365716,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x8287a63310bb42bb08af56cf60314952fedd4d871f0e8cf00f56111d246d5499",
+     "fav": 0,
+     "fills": [
+      [
+       1786696983,
+       0.93,
+       10.752688
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.92,
+     "pnl": 0.717688,
+     "r": 0.05,
+     "tick": 0.001
+    }
+   ],
+   "stress_IS_pnl": 4.428825,
+   "stress_OOS_pnl": -64.759353
+  },
+  "24": {
+   "IS": {
+    "cost": 5426.58511,
+    "fees": 11.789685,
+    "lost": 24,
+    "mean_days_locked": 1.928843,
+    "mean_fill_price": 0.961411,
+    "partial_payout": 0,
+    "pnl": -30.407098,
+    "pnl_per_dollar": -0.005603,
+    "trades": 579,
+    "win_rate": 0.958549,
+    "won": 555
+   },
+   "OOS": {
+    "cost": 21504.213363,
+    "fees": 38.901855,
+    "lost": 111,
+    "mean_days_locked": 1.640524,
+    "mean_fill_price": 0.963473,
+    "partial_payout": 1,
+    "pnl": -292.150522,
+    "pnl_per_dollar": -0.013586,
+    "trades": 2282,
+    "win_rate": 0.95092,
+    "won": 2170
+   },
+   "OOS1": {
+    "cost": 12028.896212,
+    "fees": 20.834753,
+    "lost": 52,
+    "mean_days_locked": 1.774506,
+    "mean_fill_price": 0.965829,
+    "partial_payout": 1,
+    "pnl": -100.941375,
+    "pnl_per_dollar": -0.008392,
+    "trades": 1271,
+    "win_rate": 0.958301,
+    "won": 1218
+   },
+   "OOS2": {
+    "cost": 9475.31715,
+    "fees": 18.067102,
+    "lost": 59,
+    "mean_days_locked": 1.472086,
+    "mean_fill_price": 0.960497,
+    "partial_payout": 0,
+    "pnl": -191.209147,
+    "pnl_per_dollar": -0.02018,
+    "trades": 1011,
+    "win_rate": 0.941642,
+    "won": 952
+   },
+   "bar": {
+    "1_oos_pos_and_both_halves": false,
+    "2_beats_null_p95": false,
+    "3_stress_pos": false,
+    "4_at_least_200_trades": true,
+    "5_not_one_month": false,
+    "6_beats_cash": false
+   },
+   "capacity_100": {
+    "OOS": {
+     "cost": 137162.560432,
+     "fees": 243.31821,
+     "lost": 111,
+     "mean_days_locked": 1.640524,
+     "mean_fill_price": 0.964772,
+     "partial_payout": 1,
+     "pnl": -1428.311053,
+     "pnl_per_dollar": -0.010413,
+     "trades": 2282,
+     "win_rate": 0.95092,
+     "won": 2170
+    },
+    "mean_cost_filled": 60.106293
+   },
+   "counts": {
+    "events_traded": 2861,
+    "filled": 4814,
+    "no_favourite_in_band": 43748,
+    "no_price_at_Td": 582,
+    "open_at_Td": 55324,
+    "under_min_fill_in_hour": 6180
+   },
+   "largest_losses": [
+    {
+     "cat": "crypto",
+     "cond": "0x0d144ec0a7380cb2643fb3b614affe03f6d67b9535d3e7f8f0c2fc0a522ad86c",
+     "payout": 0.0,
+     "pf": 0.9035,
+     "pnl": -10.06685,
+     "q": "Will the price of Bitcoin be between $76,000 and $78,000 on April 17?",
+     "window": "OOS1"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x3409cab899c56511ce3a45ed5841cd9b1e8e4b3d988d83e40f5ef6dca28acd95",
+     "payout": 0.0,
+     "pf": 0.905,
+     "pnl": -10.0658,
+     "q": "Will the price of Bitcoin be above $112,000 on October 29?",
+     "window": "IS"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x60e990cb7c272fe1456c913b575a4c0107574c188b495dc9411a096200a9f643",
+     "payout": 0.0,
+     "pf": 0.905,
+     "pnl": -10.0658,
+     "q": "Will the price of Bitcoin be above $76,000 on April 17?",
+     "window": "OOS1"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0xd0419a6de8ec5992b3957c0781eb069da5486d9f27b8ec2f8bc9a0ae29a56680",
+     "payout": 0.0,
+     "pf": 0.905,
+     "pnl": -10.0658,
+     "q": "Will the price of Ethereum be between $2400 and $2500 on July 4?",
+     "window": "IS"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x1b83762555cce9a5facae5f0137be418924007dceb9a9c71f880c10ce1ae8928",
+     "payout": 0.0,
+     "pf": 0.91,
+     "pnl": -10.0623,
+     "q": "Will the price of Bitcoin be above $90,000 on December 5?",
+     "window": "IS"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x99ddd37076f53d0c535ebc886d0e0baa09a5717a6f56630c1a29e7852acf7fbc",
+     "payout": 0.0,
+     "pf": 0.915,
+     "pnl": -10.0588,
+     "q": "Solana above $150 on June 13?",
+     "window": "IS"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x14106945c627b6a1078deb8592cb320a4c4f91de824bad0644c8252928eb4ed5",
+     "payout": 0.0,
+     "pf": 0.9,
+     "pnl": -10.056,
+     "q": "Will the price of Bitcoin be above $90,000 on January 2?",
+     "window": "OOS1"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x06f7a0a4710eb2105d464356c149b5230102f4e62a8aca7dd3f3b035c7cf4356",
+     "payout": 0.0,
+     "pf": 0.905,
+     "pnl": -10.056,
+     "q": "Will the price of Bitcoin be above $66,000 on June 15?",
+     "window": "OOS2"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x7ce43fde974369950c4c8c1c37649f6ce0f8e7017153f15ba71f32ebb2ac4595",
+     "payout": 0.0,
+     "pf": 0.91,
+     "pnl": -10.056,
+     "q": "Will the price of Bitcoin be between $86000 and $88000 on Mar 7?",
+     "window": "IS"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x5536eafe76f5aac4ede9b8b55d25340cdf8a133973835cd614b9e3eb74cf5a30",
+     "payout": 0.0,
+     "pf": 0.9195,
+     "pnl": -10.05565,
+     "q": "Will the price of Solana be above $70 on June 4?",
+     "window": "OOS2"
+    },
+    {
+     "cat": "crypto",
+     "cond": "0x9eb8614f580d66125d8c9a23c0ce4eec0344b95b631dd6598e5d6a85c35ad709",
+     "payout": 0.0,
+     "pf": 0.932,
+     "pnl": -10.0469,
+     "q": "Will the price of Ethereum be between $3,300 and $3,400 on January 14?",
+     "window": "OOS1"
+    },
+    {
+     "cat": "weather",
+     "cond": "0xfc7e59f33ae110940ea61b83caaecdd9b80daaa81a858dbc0cdde590a206a532",
+     "payout": 0.0,
+     "pf": 0.906,
+     "pnl": -10.0465,
+     "q": "Will the highest temperature in Buenos Aires be 18\u00b0C on May 31?",
+     "window": "OOS1"
+    }
+   ],
+   "null": {
+    "draws": 10000,
+    "mean": -38.308988,
+    "p95": 106.963094
+   },
+   "oos_by_band": {
+    "0.90-0.95": {
+     "cost": 7988.497633,
+     "fees": 23.800933,
+     "lost": 69,
+     "mean_days_locked": 1.67992,
+     "mean_fill_price": 0.939233,
+     "partial_payout": 1,
+     "pnl": -187.144353,
+     "pnl_per_dollar": -0.023427,
+     "trades": 857,
+     "win_rate": 0.91832,
+     "won": 787
+    },
+    "0.95-0.99": {
+     "cost": 13515.71573,
+     "fees": 15.100922,
+     "lost": 42,
+     "mean_days_locked": 1.616831,
+     "mean_fill_price": 0.978397,
+     "partial_payout": 0,
+     "pnl": -105.006169,
+     "pnl_per_dollar": -0.007769,
+     "trades": 1425,
+     "win_rate": 0.970526,
+     "won": 1383
+    }
+   },
+   "oos_by_category": {
+    "crypto": {
+     "cost": 2554.20187,
+     "fees": 5.756762,
+     "lost": 13,
+     "mean_days_locked": 1.100826,
+     "mean_fill_price": 0.968862,
+     "partial_payout": 0,
+     "pnl": -61.373634,
+     "pnl_per_dollar": -0.024028,
+     "trades": 263,
+     "win_rate": 0.95057,
+     "won": 250
+    },
+    "culture": {
+     "cost": 666.987814,
+     "fees": 1.065601,
+     "lost": 2,
+     "mean_days_locked": 1.439717,
+     "mean_fill_price": 0.96754,
+     "partial_payout": 0,
+     "pnl": 1.007832,
+     "pnl_per_dollar": 0.001511,
+     "trades": 69,
+     "win_rate": 0.971014,
+     "won": 67
+    },
+    "economics": {
+     "cost": 242.3715,
+     "fees": 0.437216,
+     "lost": 3,
+     "mean_days_locked": 1.671939,
+     "mean_fill_price": 0.962901,
+     "partial_payout": 0,
+     "pnl": -7.636697,
+     "pnl_per_dollar": -0.031508,
+     "trades": 28,
+     "win_rate": 0.892857,
+     "won": 25
+    },
+    "finance": {
+     "cost": 397.589848,
+     "fees": 0.538839,
+     "lost": 3,
+     "mean_days_locked": 1.251038,
+     "mean_fill_price": 0.972474,
+     "partial_payout": 0,
+     "pnl": -16.754777,
+     "pnl_per_dollar": -0.042141,
+     "trades": 51,
+     "win_rate": 0.941176,
+     "won": 48
+    },
+    "finance_prices": {
+     "cost": 311.134283,
+     "fees": 0.352667,
+     "lost": 2,
+     "mean_days_locked": 1.287481,
+     "mean_fill_price": 0.971165,
+     "partial_payout": 0,
+     "pnl": -9.234525,
+     "pnl_per_dollar": -0.02968,
+     "trades": 32,
+     "win_rate": 0.9375,
+     "won": 30
+    },
+    "general": {
+     "cost": 10.0,
+     "fees": 0.0395,
+     "lost": 0,
+     "mean_days_locked": 1.781968,
+     "mean_fill_price": 0.921,
+     "partial_payout": 0,
+     "pnl": 0.818263,
+     "pnl_per_dollar": 0.081826,
+     "trades": 1,
+     "win_rate": 1.0,
+     "won": 1
+    },
+    "geopolitics": {
+     "cost": 366.480907,
+     "fees": 0.592368,
+     "lost": 3,
+     "mean_days_locked": 2.526676,
+     "mean_fill_price": 0.967248,
+     "partial_payout": 0,
+     "pnl": -15.89314,
+     "pnl_per_dollar": -0.043367,
+     "trades": 37,
+     "win_rate": 0.918919,
+     "won": 34
+    },
+    "mentions": {
+     "cost": 200.0,
+     "fees": 0.292437,
+     "lost": 0,
+     "mean_days_locked": 1.212274,
+     "mean_fill_price": 0.970006,
+     "partial_payout": 0,
+     "pnl": 5.891782,
+     "pnl_per_dollar": 0.029459,
+     "trades": 20,
+     "win_rate": 1.0,
+     "won": 20
+    },
+    "other": {
+     "cost": 767.006673,
+     "fees": 1.318355,
+     "lost": 2,
+     "mean_days_locked": 2.989914,
+     "mean_fill_price": 0.964457,
+     "partial_payout": 0,
+     "pnl": 5.102868,
+     "pnl_per_dollar": 0.006653,
+     "trades": 83,
+     "win_rate": 0.975904,
+     "won": 81
+    },
+    "politics": {
+     "cost": 699.889479,
+     "fees": 1.233181,
+     "lost": 8,
+     "mean_days_locked": 7.950618,
+     "mean_fill_price": 0.958956,
+     "partial_payout": 0,
+     "pnl": -44.753347,
+     "pnl_per_dollar": -0.063943,
+     "trades": 75,
+     "win_rate": 0.893333,
+     "won": 67
+    },
+    "sports": {
+     "cost": 2749.469656,
+     "fees": 5.360125,
+     "lost": 6,
+     "mean_days_locked": 1.267503,
+     "mean_fill_price": 0.951187,
+     "partial_payout": 1,
+     "pnl": 74.150588,
+     "pnl_per_dollar": 0.026969,
+     "trades": 299,
+     "win_rate": 0.976589,
+     "won": 292
+    },
+    "tech": {
+     "cost": 59.519988,
+     "fees": 0.083739,
+     "lost": 0,
+     "mean_days_locked": 1.997106,
+     "mean_fill_price": 0.964015,
+     "partial_payout": 0,
+     "pnl": 2.138024,
+     "pnl_per_dollar": 0.035921,
+     "trades": 7,
+     "win_rate": 1.0,
+     "won": 7
+    },
+    "weather": {
+     "cost": 12479.561343,
+     "fees": 21.831065,
+     "lost": 69,
+     "mean_days_locked": 1.40172,
+     "mean_fill_price": 0.964451,
+     "partial_payout": 0,
+     "pnl": -225.613758,
+     "pnl_per_dollar": -0.018079,
+     "trades": 1317,
+     "win_rate": 0.947608,
+     "won": 1248
+    }
+   },
+   "oos_by_month": {
+    "2026-01": -46.270952,
+    "2026-02": 19.707355,
+    "2026-03": -4.698765,
+    "2026-04": -0.335293,
+    "2026-05": -64.60753,
+    "2026-06": -116.641868,
+    "2026-07": 7.583364,
+    "2026-08": -79.607458,
+    "2026-09": -7.279375
+   },
+   "oos_peak_capital": 424.171092,
+   "oos_return_per_year_on_peak": -0.997603,
+   "passes": false,
+   "sample_trades": [
+    {
+     "cond": "0xe503e4d649425c2880b1e23187925b3eb0a896b9ec4505200a219f2bd4f20c94",
+     "fav": 1,
+     "fills": [
+      [
+       1780747632,
+       0.9815,
+       10.0
+      ],
+      [
+       1780747633,
+       0.9815,
+       0.188487
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9805,
+     "pnl": 0.179237,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xffc5a77a98cb3614f52f331207b9119b2b37651173f87d28e9913f42a43579ea",
+     "fav": 1,
+     "fills": [
+      [
+       1774930193,
+       0.99,
+       10.10101
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9535,
+     "pnl": 0.09601,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x95bb08d8269a419afb639f33a3160272c60e67bf20271f1727ae831c6736589d",
+     "fav": 1,
+     "fills": [
+      [
+       1786795552,
+       0.95,
+       2.0
+      ],
+      [
+       1786795858,
+       0.95,
+       5.22104
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.945,
+     "pnl": 0.343902,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xd71db6cca690efdcd3775a113036474db35ef72136b5c8e4e9fb13b1d21d72cc",
+     "fav": 1,
+     "fills": [
+      [
+       1774613295,
+       0.97,
+       10.309278
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.945,
+     "pnl": 0.294278,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x0a99b4e64fc3c9e78ba4c7db9acc00e70401622fb45c68012ba6463b2ae02695",
+     "fav": 1,
+     "fills": [
+      [
+       1783830046,
+       0.979,
+       5.1
+      ],
+      [
+       1783832120,
+       0.986,
+       5.078195
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.968,
+     "pnl": 0.165948,
+     "r": 0.07,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x5e14b9211ed28e4b04c77f16240b6eeb3bd311517bd1b3ab526b807095853954",
+     "fav": 1,
+     "fills": [
+      [
+       1777694428,
+       0.91,
+       6.0
+      ],
+      [
+       1777694446,
+       0.91,
+       4.989011
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.905,
+     "pnl": 0.962011,
+     "r": 0.03,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xa9a53091ffd96627c37287e3854eda974963b4d60f86699857b3fe7aa4f5325a",
+     "fav": 0,
+     "fills": [
+      [
+       1785859224,
+       0.969,
+       10.0
+      ],
+      [
+       1785859224,
+       0.969,
+       0.319917
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.945,
+     "pnl": 0.298217,
+     "r": 0.07,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x57f486f2cef8530c812869212860d5450574f495e344b1bda1c21477f07b3024",
+     "fav": 1,
+     "fills": [
+      [
+       1782751054,
+       0.99,
+       5.0
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.975,
+     "pnl": 0.046535,
+     "r": 0.07,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xabe448ef0de151b4a7b84bcb4b485a92ac97c89f14195044600de1adc1a700fc",
+     "fav": 1,
+     "fills": [
+      [
+       1771761710,
+       0.985,
+       10.152284
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.984,
+     "pnl": 0.144784,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x36935d62381ade69327ffbab85ce92ced7bf309fc8311f56e37e8838b8b900d1",
+     "fav": 1,
+     "fills": [
+      [
+       1787055685,
+       0.93,
+       5.0
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9,
+     "pnl": 0.333725,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xcb92840175ee5f04d0697ac6019feb89ec350de9a73617470a8f34d33de47c5a",
+     "fav": 0,
+     "fills": [
+      [
+       1778533037,
+       0.988901,
+       10.112235
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9795,
+     "pnl": 0.107795,
+     "r": 0.04,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x092236acb7553df64631e9572155a44df028e1fa7de6c50e98aaa0a705b9294a",
+     "fav": 1,
+     "fills": [
+      [
+       1768003380,
+       0.99,
+       10.0
+      ],
+      [
+       1768003382,
+       0.99,
+       0.10101
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.988,
+     "pnl": 0.09601,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x941d7a9aca4fbd72e1cec7609ed1b18f4984c647fae75a750601e6c5f4ec1859",
+     "fav": 1,
+     "fills": [
+      [
+       1779711113,
+       0.959,
+       10.427529
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9545,
+     "pnl": 0.407029,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xa7248ae5ed73f473ca86e70593fbde71202231dad6ddcfeb2864822a427de274",
+     "fav": 0,
+     "fills": [
+      [
+       1768093066,
+       0.98,
+       6.29
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.945,
+     "pnl": 0.119636,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x961b6dbe187b55ebdf570dd047d15d13738ed3765a31352d3efa5b45831869e6",
+     "fav": 1,
+     "fills": [
+      [
+       1781181154,
+       0.95,
+       10.526316
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.905,
+     "pnl": 0.501316,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xf2233e783e10ef037b75bd3584e1001fb91d1f3205ecff023b680d147ef7d1eb",
+     "fav": 1,
+     "fills": [
+      [
+       1777725396,
+       0.982,
+       9.43
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.92,
+     "pnl": 0.161406,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xd9f9def6bb8024aed77a5197182408dbc673573a49774fea70509cdb0467cd31",
+     "fav": 1,
+     "fills": [
+      [
+       1777442650,
+       0.984,
+       10.162602
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.982,
+     "pnl": 0.154602,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x1de273ddd52c1284f7b994b2d12046e204287cf651ffb7f17cbc1fd1df1d46fe",
+     "fav": 1,
+     "fills": [
+      [
+       1784809026,
+       0.93,
+       1.182785
+      ],
+      [
+       1784810559,
+       0.928,
+       1.077583
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.913,
+     "pnl": 0.152931,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0xc111415f3e8d30760497cafd642d2672ce63c476769e4ddf95472e02e3931aea",
+     "fav": 1,
+     "fills": [
+      [
+       1767762003,
+       0.984,
+       10.162602
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.9825,
+     "pnl": 0.154602,
+     "r": 0.05,
+     "tick": 0.001
+    },
+    {
+     "cond": "0x7956a93a3ee08288fce461e7b5ea109ace7c2c5d0849f1a1c3b012a2d128f58a",
+     "fav": 1,
+     "fills": [
+      [
+       1774440023,
+       0.989,
+       10.0
+      ],
+      [
+       1774440023,
+       0.989,
+       0.111223
+      ]
+     ],
+     "payout": 1.0,
+     "pf": 0.969,
+     "pnl": 0.105723,
+     "r": 0.05,
+     "tick": 0.001
+    }
+   ],
+   "stress_IS_pnl": -47.242748,
+   "stress_OOS_pnl": -351.349821
+  }
+ },
+ "input_markets": 72649,
+ "oos_days": 252.0,
+ "prereg": "reviews/2026-09-24-polymarket-fp4-prereg-fav-favourites.md",
+ "primary": {
+  "bar": {
+   "1_oos_pos_and_both_halves": false,
+   "2_beats_null_p95": false,
+   "3_stress_pos": false,
+   "4_at_least_200_trades": true,
+   "5_not_one_month": false,
+   "6_beats_cash": false
+  },
+  "horizon": "24",
+  "passes": false
+ }
+}

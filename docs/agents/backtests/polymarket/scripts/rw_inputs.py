@@ -70,7 +70,7 @@ def main():
     incomplete = []
     for c in mk:
         pp = os.path.join(base, "prints", c + ".json")
-        if not os.path.exists(pp):
+        if not pmnet.exists(pp):
             incomplete.append(c)
             continue
         d = pmnet.load(pp)

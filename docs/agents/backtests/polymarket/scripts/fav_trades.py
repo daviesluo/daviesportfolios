@@ -69,7 +69,7 @@ def main():
     n = 0
     for (kind, ident), g in todo:
         path = os.path.join(outdir, f"{kind}_{ident}.json")
-        if os.path.exists(path):
+        if pmnet.exists(path):
             continue
         base = {"event_id": ident} if kind == "event" else {"condition": ident}
         try:

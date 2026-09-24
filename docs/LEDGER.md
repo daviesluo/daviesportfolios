@@ -708,6 +708,15 @@ site, the functions and the database see nothing new. Force-pushed with a lease 
 `docs/commit-map-2026-09-24.md` maps old hashes to new. Deleting the other branches was refused by the session's git
 proxy (403); 75 remain for Davies (dependabot removed its 14). `decision-fc` needed nothing: its one commit and both `gh-pages` commits are his.
 
+### [2026-09-24 07:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp4's FAV fails every condition but the trade count** (not pushed). Buying the 0.90–0.99 side a day before a
+market's scheduled end and holding it to resolution, filled only from real prints: out of sample (2026-01 → 09-10,
+one event in four) −$292.15 on 2,282 trades of $10, −1.4 % per dollar; the favourites won 95.1 % of the time
+against an average fill of 96.3 ¢; the calibration null's 95th percentile +$106.96; stress −$351.35. A week before
+−$55.49 on 334, an hour before −$910.51 on 2,538. Byte-identical twice (`4b202faf…`). WX's forecasts are complete
+after one refusal by Open-Meteo's daily limit; its prices and prints are being pulled; RW's window ends 10:42 UTC.
+
 ### [2026-09-24 07:21 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Polymarket runs from Ireland when it trades, and only while Davies is there** (item 000000000000). Davies is resident
@@ -731,6 +740,7 @@ an empty diff, or `--full` runs every gate. Checked on seven sample change lists
 **The public README no longer mentions AI coding agents** (Davies, 2026-09-24, before the CV goes out): the
 repository map's `.claude/`, `.cursor/`, `.agents/` row is gone, and `.claude/CLAUDE.md`'s README rule says the map
 names no AI coding agent and no folder of theirs, so a later session does not put the row back.
+
 
 ### [2026-09-24 06:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

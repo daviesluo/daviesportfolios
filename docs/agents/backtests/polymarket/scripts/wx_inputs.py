@@ -27,7 +27,7 @@ def main():
             continue
         eid = str(e["event"])
         pp = os.path.join(pmnet.DATA, "wx", "prints", eid + ".json")
-        pr = pmnet.load(pp) if os.path.exists(pp) else None
+        pr = pmnet.load(pp) if pmnet.exists(pp) else None
         f = ((fc.get(e["station"]) or {}).get("days") or {}).get(e["date"]) or {}
         by = {}
         if pr:

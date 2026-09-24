@@ -31,7 +31,7 @@ def main():
         if not eid.isdigit() or int(eid) % n_sh != k:
             continue
         path = os.path.join(outdir, eid + ".json")
-        if os.path.exists(path):
+        if pmnet.exists(path):
             continue
         td = t_decision(e["date"])
         rows, cursor, pages, complete = [], None, 0, False
