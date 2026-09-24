@@ -567,6 +567,17 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 00:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**S3: PR5 live is a NO-GO now — a build, not a switch, and $50 is not the reason to do it**
+(`reviews/2026-09-24-pr5-live-design.md`, `backtests/pr5_live/`, the frozen simulator imported unchanged and
+reproducing `posthoc_new_regime.json` exactly). At $50 the frozen shape made $0.576 on 102 trips in the 28 tightened
+days — $0.021 a day, 15 %/yr — while still sending 205 orders a day (441 at most), as at $1,200. It needs about £19 of
+GBP and $12.50 each of USDC and USDT (the venue lists USDC/USD, USDT/USD and both GBP books, no GBP/USD; converting costs
+about $0.09), a POST governor (entry quotes off at 600 a day, stops only at 700), a hard limit per risk, and a nine-item
+build list, ending in a separate sub-account and key. The paper engine's first nine hours should show 128 orders and no
+round trip (queries P1–P4, not run). Nothing needs Davies until the four weeks end on 2026-10-21.
+
 ### [2026-09-24 00:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **S2: `trend-4h` at $50 — GO on Davies' word, after D11's patch and with the first buy read by a person**

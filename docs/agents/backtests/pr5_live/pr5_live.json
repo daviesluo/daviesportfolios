@@ -1,0 +1,1161 @@
+{
+ "configuration": {
+  "fair_proxy": "F3",
+  "fx": "EXN"
+ },
+ "fidelity": {
+  "committed": {
+   "orders_per_day_max": 441,
+   "orders_per_day_mean": 205.0,
+   "pnl_usd": 11.6688,
+   "trips": 102
+  },
+  "here": {
+   "orders_per_day_max": 441,
+   "orders_per_day_mean": 205.0,
+   "pnl_usd": 11.6688,
+   "trips": 102
+  },
+  "what": "the frozen rule at $100 rungs on 2026-08-26 \u2192 09-23 against the committed posthoc_new_regime.json"
+ },
+ "frozenSimSha256": "56fbad85ee4df6292f596188d091ad064d030180f33cefe3bd09089d7e772a1a",
+ "frozenSimUnchanged": true,
+ "inventoryAt50": {
+  "conversionCostUsd": {
+   "USD->USDC $12.50": 0.01313,
+   "USD->USDC->GBP $25 (two taker legs and two half-spreads)": 0.05041,
+   "USD->USDT $12.50": 0.01188,
+   "impliedUsdPerGbpViaUsdcBooks": 1.324392,
+   "the USDC/GBP book's gap to interbank on $25 (positive = GBP bought dearer than interbank)": 0.01181,
+   "total": 0.08722
+  },
+  "gbpUsdYahooLast": 1.323766827583313,
+  "minOrderQuote": {
+   "USDC/GBP": "0.1",
+   "USDC/USD": "0.1",
+   "USDT/GBP": "0.1",
+   "USDT/USD": "0.1"
+  },
+  "need": {
+   "GBP (six bids, $4.17 each)": 25.0,
+   "USDC (three asks)": 12.5,
+   "USDT (three asks)": 12.5
+  },
+  "pairsListed": {
+   "GBP/USD": false,
+   "USD/GBP": false,
+   "USDC/GBP": true,
+   "USDC/USD": true,
+   "USDC/USDT": false,
+   "USDT/GBP": true,
+   "USDT/USD": true,
+   "USDT/USDC": false
+  },
+  "tickers": {
+   "USDC/GBP": {
+    "ask": "0.7550",
+    "bid": "0.7549"
+   },
+   "USDC/USD": {
+    "ask": "1.0000",
+    "bid": "0.9997"
+   },
+   "USDT/GBP": {
+    "ask": "0.7543",
+    "bid": "0.7542"
+   },
+   "USDT/USD": {
+    "ask": "0.9996",
+    "bid": "0.9995"
+   }
+  }
+ },
+ "paperPeriodPredicted": {
+  "arms": {
+   "frozen_1200": {
+    "orders": 128,
+    "pnl_usd": 0,
+    "trip_list": [],
+    "trips": 0
+   },
+   "frozen_shape_at_50": {
+    "orders": 128,
+    "pnl_usd": 0,
+    "trip_list": [],
+    "trips": 0
+   }
+  },
+  "freshPrints": {
+   "USDC-GBP": 62,
+   "USDT-GBP": 135
+  },
+  "from": "2026-09-23T15:09",
+  "fxSource": "Exness to 2026-09-22 23:59, Yahoo GBPUSD=X 1m after (the paper loop's source)",
+  "minutes": {
+   "USDC-GBP": 531,
+   "USDT-GBP": 531
+  },
+  "minutesWithFx": {
+   "USDC-GBP": 531,
+   "USDT-GBP": 531
+  },
+  "note": "what the frozen rule does from a fresh start at the paper engine's first minute; the engine's own record (agent_quote_trips / agent_quote_events) is the thing to compare, by the queries in the review",
+  "to": "2026-09-24T00:00",
+  "yahooVsExnessOverlap": {
+   "medianAbsBps": 0.427,
+   "minutes": 4224,
+   "p95AbsBps": 1.475
+  }
+ },
+ "tightenedMarket": {
+  "arms": {
+   "frozen_1200": {
+    "best_trip_usd": 0.4422,
+    "days_positive": 20,
+    "fill_notional_usd": 8162.97,
+    "fill_notional_usd_per_day": 291.53,
+    "fills_per_day_mean": 3.64,
+    "max_drawdown_usd": 0.1296,
+    "median_hold_min": 43.0,
+    "orders_per_day": {
+     "days": 28,
+     "max": 441,
+     "mean": 205.0,
+     "p90": 350
+    },
+    "pct_per_year_on_capital": 12.68,
+    "pnl_of_trips_under_min_exit": 0,
+    "pnl_usd": 11.6688,
+    "pnl_usd_per_day": 0.4167,
+    "return_on_capital_pct": 0.9724,
+    "rungUsd": 100.0,
+    "taker_exit_pnl_usd": -0.0156,
+    "taker_exits": 1,
+    "trips": 102,
+    "trips_under_min_exit": 0,
+    "win_rate": 0.9412,
+    "worst_trip_usd": -0.1296
+   },
+   "frozen_shape_at_50": {
+    "best_trip_usd": 0.0184,
+    "days_positive": 20,
+    "fill_notional_usd": 409.11,
+    "fill_notional_usd_per_day": 14.61,
+    "fills_per_day_mean": 3.64,
+    "max_drawdown_usd": 0.0057,
+    "median_hold_min": 43.0,
+    "orders_per_day": {
+     "days": 28,
+     "max": 441,
+     "mean": 205.0,
+     "p90": 350
+    },
+    "pct_per_year_on_capital": 15.02,
+    "pnl_of_trips_under_min_exit": 0,
+    "pnl_usd": 0.5763,
+    "pnl_usd_per_day": 0.0206,
+    "return_on_capital_pct": 1.1525,
+    "rungUsd": 4.1667,
+    "taker_exit_pnl_usd": -0.0006,
+    "taker_exits": 1,
+    "trips": 102,
+    "trips_under_min_exit": 0,
+    "win_rate": 0.9412,
+    "worst_trip_usd": -0.0057
+   },
+   "k0.1pct_only_at_50": {
+    "best_trip_usd": 0.0441,
+    "days_positive": 20,
+    "fill_notional_usd": 786.22,
+    "fill_notional_usd_per_day": 28.08,
+    "fills_per_day_mean": 2.5,
+    "max_drawdown_usd": 0.017,
+    "median_hold_min": 71.0,
+    "orders_per_day": {
+     "days": 28,
+     "max": 148,
+     "mean": 70.7,
+     "p90": 119
+    },
+    "pct_per_year_on_capital": 20.05,
+    "pnl_of_trips_under_min_exit": 0,
+    "pnl_usd": 0.7692,
+    "pnl_usd_per_day": 0.0275,
+    "return_on_capital_pct": 1.5384,
+    "rungUsd": 12.5,
+    "taker_exit_pnl_usd": -0.0019,
+    "taker_exits": 1,
+    "trips": 70,
+    "trips_under_min_exit": 0,
+    "win_rate": 0.9286,
+    "worst_trip_usd": -0.017
+   },
+   "one_book_USDT_GBP_at_50": {
+    "best_trip_usd": 0.0369,
+    "days_positive": 16,
+    "fill_notional_usd": 508.0,
+    "fill_notional_usd_per_day": 18.14,
+    "fills_per_day_mean": 2.21,
+    "max_drawdown_usd": 0.0113,
+    "median_hold_min": 39.0,
+    "orders_per_day": {
+     "days": 28,
+     "max": 218,
+     "mean": 101.1,
+     "p90": 175
+    },
+    "pct_per_year_on_capital": 19.6,
+    "pnl_of_trips_under_min_exit": 0,
+    "pnl_usd": 0.7517,
+    "pnl_usd_per_day": 0.0268,
+    "return_on_capital_pct": 1.5035,
+    "rungUsd": 8.3333,
+    "taker_exit_pnl_usd": 0,
+    "taker_exits": 0,
+    "trips": 62,
+    "trips_under_min_exit": 0,
+    "win_rate": 0.9355,
+    "worst_trip_usd": -0.0113
+   },
+   "reprice_0.10pct_at_50": {
+    "best_trip_usd": 0.0156,
+    "days_positive": 20,
+    "fill_notional_usd": 505.9,
+    "fill_notional_usd_per_day": 18.07,
+    "fills_per_day_mean": 4.61,
+    "max_drawdown_usd": 0.016,
+    "median_hold_min": 72.0,
+    "orders_per_day": {
+     "days": 28,
+     "max": 157,
+     "mean": 69.2,
+     "p90": 117
+    },
+    "pct_per_year_on_capital": 11.52,
+    "pnl_of_trips_under_min_exit": 1e-05,
+    "pnl_usd": 0.4417,
+    "pnl_usd_per_day": 0.0158,
+    "return_on_capital_pct": 0.8833,
+    "rungUsd": 4.1667,
+    "taker_exit_pnl_usd": -0.016,
+    "taker_exits": 2,
+    "trips": 129,
+    "trips_under_min_exit": 1,
+    "win_rate": 0.845,
+    "worst_trip_usd": -0.0112
+   },
+   "reprice_0.20pct_at_50": {
+    "best_trip_usd": 0.0176,
+    "days_positive": 18,
+    "fill_notional_usd": 717.7,
+    "fill_notional_usd_per_day": 25.63,
+    "fills_per_day_mean": 6.5,
+    "max_drawdown_usd": 0.0392,
+    "median_hold_min": 73.0,
+    "orders_per_day": {
+     "days": 28,
+     "max": 85,
+     "mean": 33.1,
+     "p90": 57
+    },
+    "pct_per_year_on_capital": 9.84,
+    "pnl_of_trips_under_min_exit": 1e-05,
+    "pnl_usd": 0.3774,
+    "pnl_usd_per_day": 0.0135,
+    "return_on_capital_pct": 0.7548,
+    "rungUsd": 4.1667,
+    "taker_exit_pnl_usd": -0.0707,
+    "taker_exits": 10,
+    "trips": 182,
+    "trips_under_min_exit": 1,
+    "win_rate": 0.7253,
+    "worst_trip_usd": -0.0182
+   }
+  },
+  "daily": {
+   "frozen_1200": {
+    "2026-08-26": {
+     "fills": 2,
+     "orders": 233,
+     "pnl": -0.12797
+    },
+    "2026-08-27": {
+     "fills": 3,
+     "orders": 231,
+     "pnl": 0.23097
+    },
+    "2026-08-28": {
+     "fills": 4,
+     "orders": 350,
+     "pnl": 0.82794
+    },
+    "2026-08-29": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-08-30": {
+     "fills": 5,
+     "orders": 27,
+     "pnl": 0.56987
+    },
+    "2026-08-31": {
+     "fills": 4,
+     "orders": 225,
+     "pnl": 0.43418
+    },
+    "2026-09-01": {
+     "fills": 2,
+     "orders": 228,
+     "pnl": 0.21974
+    },
+    "2026-09-02": {
+     "fills": 2,
+     "orders": 337,
+     "pnl": 0.097
+    },
+    "2026-09-03": {
+     "fills": 2,
+     "orders": 353,
+     "pnl": 0.05134
+    },
+    "2026-09-04": {
+     "fills": 17,
+     "orders": 328,
+     "pnl": 2.57399
+    },
+    "2026-09-05": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-06": {
+     "fills": 0,
+     "orders": 12,
+     "pnl": 0
+    },
+    "2026-09-07": {
+     "fills": 7,
+     "orders": 138,
+     "pnl": 0.91735
+    },
+    "2026-09-08": {
+     "fills": 2,
+     "orders": 262,
+     "pnl": 0.0962
+    },
+    "2026-09-09": {
+     "fills": 3,
+     "orders": 294,
+     "pnl": 0.17628
+    },
+    "2026-09-10": {
+     "fills": 5,
+     "orders": 280,
+     "pnl": 0.69073
+    },
+    "2026-09-11": {
+     "fills": 2,
+     "orders": 277,
+     "pnl": 0.05467
+    },
+    "2026-09-12": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-13": {
+     "fills": 1,
+     "orders": 14,
+     "pnl": 0.01914
+    },
+    "2026-09-14": {
+     "fills": 0,
+     "orders": 290,
+     "pnl": 0
+    },
+    "2026-09-15": {
+     "fills": 9,
+     "orders": 206,
+     "pnl": 0.66311
+    },
+    "2026-09-16": {
+     "fills": 4,
+     "orders": 389,
+     "pnl": 0.27443
+    },
+    "2026-09-17": {
+     "fills": 9,
+     "orders": 346,
+     "pnl": 1.33563
+    },
+    "2026-09-18": {
+     "fills": 9,
+     "orders": 288,
+     "pnl": 0.91615
+    },
+    "2026-09-19": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-20": {
+     "fills": 0,
+     "orders": 12,
+     "pnl": 0
+    },
+    "2026-09-21": {
+     "fills": 8,
+     "orders": 178,
+     "pnl": 1.07343
+    },
+    "2026-09-22": {
+     "fills": 2,
+     "orders": 441,
+     "pnl": 0.57468
+    }
+   },
+   "frozen_shape_at_50": {
+    "2026-08-26": {
+     "fills": 2,
+     "orders": 233,
+     "pnl": -0.00399
+    },
+    "2026-08-27": {
+     "fills": 3,
+     "orders": 231,
+     "pnl": 0.00962
+    },
+    "2026-08-28": {
+     "fills": 4,
+     "orders": 350,
+     "pnl": 0.0345
+    },
+    "2026-08-29": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-08-30": {
+     "fills": 5,
+     "orders": 27,
+     "pnl": 0.02374
+    },
+    "2026-08-31": {
+     "fills": 4,
+     "orders": 225,
+     "pnl": 0.01809
+    },
+    "2026-09-01": {
+     "fills": 2,
+     "orders": 228,
+     "pnl": 0.01125
+    },
+    "2026-09-02": {
+     "fills": 2,
+     "orders": 337,
+     "pnl": 0.00631
+    },
+    "2026-09-03": {
+     "fills": 2,
+     "orders": 353,
+     "pnl": 0.01522
+    },
+    "2026-09-04": {
+     "fills": 17,
+     "orders": 328,
+     "pnl": 0.11265
+    },
+    "2026-09-05": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-06": {
+     "fills": 0,
+     "orders": 12,
+     "pnl": 0
+    },
+    "2026-09-07": {
+     "fills": 7,
+     "orders": 138,
+     "pnl": 0.04237
+    },
+    "2026-09-08": {
+     "fills": 2,
+     "orders": 262,
+     "pnl": 0.00541
+    },
+    "2026-09-09": {
+     "fills": 3,
+     "orders": 294,
+     "pnl": 0.00734
+    },
+    "2026-09-10": {
+     "fills": 5,
+     "orders": 280,
+     "pnl": 0.0333
+    },
+    "2026-09-11": {
+     "fills": 2,
+     "orders": 277,
+     "pnl": 0.00283
+    },
+    "2026-09-12": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-13": {
+     "fills": 1,
+     "orders": 14,
+     "pnl": 0.00338
+    },
+    "2026-09-14": {
+     "fills": 0,
+     "orders": 290,
+     "pnl": 0
+    },
+    "2026-09-15": {
+     "fills": 9,
+     "orders": 206,
+     "pnl": 0.0327
+    },
+    "2026-09-16": {
+     "fills": 4,
+     "orders": 389,
+     "pnl": 0.02861
+    },
+    "2026-09-17": {
+     "fills": 9,
+     "orders": 346,
+     "pnl": 0.06635
+    },
+    "2026-09-18": {
+     "fills": 9,
+     "orders": 288,
+     "pnl": 0.05792
+    },
+    "2026-09-19": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-20": {
+     "fills": 0,
+     "orders": 12,
+     "pnl": 0
+    },
+    "2026-09-21": {
+     "fills": 8,
+     "orders": 178,
+     "pnl": 0.04473
+    },
+    "2026-09-22": {
+     "fills": 2,
+     "orders": 441,
+     "pnl": 0.02394
+    }
+   },
+   "k0.1pct_only_at_50": {
+    "2026-08-26": {
+     "fills": 2,
+     "orders": 77,
+     "pnl": -0.01532
+    },
+    "2026-08-27": {
+     "fills": 3,
+     "orders": 79,
+     "pnl": 0.02887
+    },
+    "2026-08-28": {
+     "fills": 3,
+     "orders": 119,
+     "pnl": 0.05933
+    },
+    "2026-08-29": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-08-30": {
+     "fills": 2,
+     "orders": 9,
+     "pnl": 0.00847
+    },
+    "2026-08-31": {
+     "fills": 3,
+     "orders": 79,
+     "pnl": 0.03221
+    },
+    "2026-09-01": {
+     "fills": 2,
+     "orders": 80,
+     "pnl": 0.03374
+    },
+    "2026-09-02": {
+     "fills": 2,
+     "orders": 113,
+     "pnl": 0.01419
+    },
+    "2026-09-03": {
+     "fills": 2,
+     "orders": 129,
+     "pnl": 0.04003
+    },
+    "2026-09-04": {
+     "fills": 8,
+     "orders": 110,
+     "pnl": 0.08254
+    },
+    "2026-09-05": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-06": {
+     "fills": 0,
+     "orders": 4,
+     "pnl": 0
+    },
+    "2026-09-07": {
+     "fills": 4,
+     "orders": 53,
+     "pnl": 0.04232
+    },
+    "2026-09-08": {
+     "fills": 2,
+     "orders": 92,
+     "pnl": 0.01331
+    },
+    "2026-09-09": {
+     "fills": 3,
+     "orders": 98,
+     "pnl": 0.02203
+    },
+    "2026-09-10": {
+     "fills": 3,
+     "orders": 96,
+     "pnl": 0.05034
+    },
+    "2026-09-11": {
+     "fills": 2,
+     "orders": 97,
+     "pnl": 0.00734
+    },
+    "2026-09-12": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-13": {
+     "fills": 1,
+     "orders": 6,
+     "pnl": 0.01014
+    },
+    "2026-09-14": {
+     "fills": 0,
+     "orders": 90,
+     "pnl": 0
+    },
+    "2026-09-15": {
+     "fills": 8,
+     "orders": 79,
+     "pnl": 0.07203
+    },
+    "2026-09-16": {
+     "fills": 3,
+     "orders": 133,
+     "pnl": 0.03975
+    },
+    "2026-09-17": {
+     "fills": 4,
+     "orders": 114,
+     "pnl": 0.05892
+    },
+    "2026-09-18": {
+     "fills": 7,
+     "orders": 106,
+     "pnl": 0.09536
+    },
+    "2026-09-19": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-20": {
+     "fills": 0,
+     "orders": 4,
+     "pnl": 0
+    },
+    "2026-09-21": {
+     "fills": 5,
+     "orders": 64,
+     "pnl": 0.04357
+    },
+    "2026-09-22": {
+     "fills": 1,
+     "orders": 148,
+     "pnl": 0.03005
+    }
+   },
+   "one_book_USDT_GBP_at_50": {
+    "2026-08-26": {
+     "fills": 1,
+     "orders": 113,
+     "pnl": -0.01132
+    },
+    "2026-08-27": {
+     "fills": 1,
+     "orders": 95,
+     "pnl": 0.00566
+    },
+    "2026-08-28": {
+     "fills": 0,
+     "orders": 162,
+     "pnl": 0
+    },
+    "2026-08-29": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-08-30": {
+     "fills": 3,
+     "orders": 15,
+     "pnl": 0.03506
+    },
+    "2026-08-31": {
+     "fills": 4,
+     "orders": 115,
+     "pnl": 0.03618
+    },
+    "2026-09-01": {
+     "fills": 0,
+     "orders": 108,
+     "pnl": 0
+    },
+    "2026-09-02": {
+     "fills": 1,
+     "orders": 170,
+     "pnl": 0.00789
+    },
+    "2026-09-03": {
+     "fills": 2,
+     "orders": 170,
+     "pnl": 0.02932
+    },
+    "2026-09-04": {
+     "fills": 14,
+     "orders": 175,
+     "pnl": 0.21535
+    },
+    "2026-09-05": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-06": {
+     "fills": 0,
+     "orders": 6,
+     "pnl": 0
+    },
+    "2026-09-07": {
+     "fills": 4,
+     "orders": 58,
+     "pnl": 0.06101
+    },
+    "2026-09-08": {
+     "fills": 1,
+     "orders": 130,
+     "pnl": 0.00789
+    },
+    "2026-09-09": {
+     "fills": 2,
+     "orders": 160,
+     "pnl": 0.00678
+    },
+    "2026-09-10": {
+     "fills": 4,
+     "orders": 145,
+     "pnl": 0.04518
+    },
+    "2026-09-11": {
+     "fills": 1,
+     "orders": 136,
+     "pnl": 0.00451
+    },
+    "2026-09-12": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-13": {
+     "fills": 0,
+     "orders": 6,
+     "pnl": 0
+    },
+    "2026-09-14": {
+     "fills": 0,
+     "orders": 138,
+     "pnl": 0
+    },
+    "2026-09-15": {
+     "fills": 2,
+     "orders": 101,
+     "pnl": 0.01689
+    },
+    "2026-09-16": {
+     "fills": 1,
+     "orders": 193,
+     "pnl": 0.0134
+    },
+    "2026-09-17": {
+     "fills": 8,
+     "orders": 175,
+     "pnl": 0.10948
+    },
+    "2026-09-18": {
+     "fills": 8,
+     "orders": 148,
+     "pnl": 0.10914
+    },
+    "2026-09-19": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-20": {
+     "fills": 0,
+     "orders": 6,
+     "pnl": 0
+    },
+    "2026-09-21": {
+     "fills": 5,
+     "orders": 87,
+     "pnl": 0.05931
+    },
+    "2026-09-22": {
+     "fills": 0,
+     "orders": 218,
+     "pnl": 0
+    }
+   },
+   "reprice_0.10pct_at_50": {
+    "2026-08-26": {
+     "fills": 4,
+     "orders": 93,
+     "pnl": -0.00625
+    },
+    "2026-08-27": {
+     "fills": 5,
+     "orders": 73,
+     "pnl": 0.01019
+    },
+    "2026-08-28": {
+     "fills": 7,
+     "orders": 112,
+     "pnl": 0.03575
+    },
+    "2026-08-29": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-08-30": {
+     "fills": 5,
+     "orders": 20,
+     "pnl": 0.01358
+    },
+    "2026-08-31": {
+     "fills": 2,
+     "orders": 48,
+     "pnl": 0.00679
+    },
+    "2026-09-01": {
+     "fills": 5,
+     "orders": 70,
+     "pnl": 0.01469
+    },
+    "2026-09-02": {
+     "fills": 3,
+     "orders": 88,
+     "pnl": 0.00608
+    },
+    "2026-09-03": {
+     "fills": 5,
+     "orders": 101,
+     "pnl": 0.00957
+    },
+    "2026-09-04": {
+     "fills": 15,
+     "orders": 119,
+     "pnl": 0.07142
+    },
+    "2026-09-05": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-06": {
+     "fills": 0,
+     "orders": 12,
+     "pnl": 0
+    },
+    "2026-09-07": {
+     "fills": 9,
+     "orders": 41,
+     "pnl": 0.05083
+    },
+    "2026-09-08": {
+     "fills": 2,
+     "orders": 67,
+     "pnl": -0.0057
+    },
+    "2026-09-09": {
+     "fills": 5,
+     "orders": 113,
+     "pnl": 0.01017
+    },
+    "2026-09-10": {
+     "fills": 9,
+     "orders": 86,
+     "pnl": 0.0415
+    },
+    "2026-09-11": {
+     "fills": 4,
+     "orders": 106,
+     "pnl": 0.01098
+    },
+    "2026-09-12": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-13": {
+     "fills": 1,
+     "orders": 14,
+     "pnl": 0.00338
+    },
+    "2026-09-14": {
+     "fills": 2,
+     "orders": 117,
+     "pnl": 0.00209
+    },
+    "2026-09-15": {
+     "fills": 12,
+     "orders": 86,
+     "pnl": 0.03264
+    },
+    "2026-09-16": {
+     "fills": 2,
+     "orders": 107,
+     "pnl": 0.00957
+    },
+    "2026-09-17": {
+     "fills": 11,
+     "orders": 157,
+     "pnl": 0.05245
+    },
+    "2026-09-18": {
+     "fills": 9,
+     "orders": 88,
+     "pnl": 0.03058
+    },
+    "2026-09-19": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-20": {
+     "fills": 0,
+     "orders": 12,
+     "pnl": 0
+    },
+    "2026-09-21": {
+     "fills": 9,
+     "orders": 60,
+     "pnl": 0.0347
+    },
+    "2026-09-22": {
+     "fills": 3,
+     "orders": 148,
+     "pnl": 0.00668
+    }
+   },
+   "reprice_0.20pct_at_50": {
+    "2026-08-26": {
+     "fills": 8,
+     "orders": 57,
+     "pnl": -0.03823
+    },
+    "2026-08-27": {
+     "fills": 4,
+     "orders": 21,
+     "pnl": 0.01407
+    },
+    "2026-08-28": {
+     "fills": 8,
+     "orders": 54,
+     "pnl": 0.04097
+    },
+    "2026-08-29": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-08-30": {
+     "fills": 5,
+     "orders": 20,
+     "pnl": -0.02015
+    },
+    "2026-08-31": {
+     "fills": 2,
+     "orders": 19,
+     "pnl": 0.00056
+    },
+    "2026-09-01": {
+     "fills": 12,
+     "orders": 38,
+     "pnl": 0.03348
+    },
+    "2026-09-02": {
+     "fills": 10,
+     "orders": 47,
+     "pnl": 0.01478
+    },
+    "2026-09-03": {
+     "fills": 7,
+     "orders": 32,
+     "pnl": 0.01916
+    },
+    "2026-09-04": {
+     "fills": 17,
+     "orders": 65,
+     "pnl": 0.08725
+    },
+    "2026-09-05": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-06": {
+     "fills": 0,
+     "orders": 12,
+     "pnl": 0
+    },
+    "2026-09-07": {
+     "fills": 13,
+     "orders": 36,
+     "pnl": 0.0537
+    },
+    "2026-09-08": {
+     "fills": 8,
+     "orders": 22,
+     "pnl": 0.00411
+    },
+    "2026-09-09": {
+     "fills": 8,
+     "orders": 34,
+     "pnl": 0.01338
+    },
+    "2026-09-10": {
+     "fills": 11,
+     "orders": 43,
+     "pnl": 0.01325
+    },
+    "2026-09-11": {
+     "fills": 4,
+     "orders": 31,
+     "pnl": 0.00608
+    },
+    "2026-09-12": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-13": {
+     "fills": 1,
+     "orders": 14,
+     "pnl": 0.00338
+    },
+    "2026-09-14": {
+     "fills": 3,
+     "orders": 37,
+     "pnl": -0.00059
+    },
+    "2026-09-15": {
+     "fills": 10,
+     "orders": 51,
+     "pnl": 0.0296
+    },
+    "2026-09-16": {
+     "fills": 8,
+     "orders": 56,
+     "pnl": 0.00697
+    },
+    "2026-09-17": {
+     "fills": 15,
+     "orders": 85,
+     "pnl": 0.045
+    },
+    "2026-09-18": {
+     "fills": 14,
+     "orders": 55,
+     "pnl": 0.00704
+    },
+    "2026-09-19": {
+     "fills": 0,
+     "orders": 0,
+     "pnl": 0
+    },
+    "2026-09-20": {
+     "fills": 0,
+     "orders": 12,
+     "pnl": 0
+    },
+    "2026-09-21": {
+     "fills": 10,
+     "orders": 18,
+     "pnl": 0.04694
+    },
+    "2026-09-22": {
+     "fills": 4,
+     "orders": 68,
+     "pnl": -0.00333
+    }
+   }
+  },
+  "days": 28.0,
+  "from": "2026-08-26T00:00",
+  "frozenAt50ByBookSide": {
+   "USDC-GBP ask": {
+    "pnl_usd": 0.04553,
+    "trips": 13
+   },
+   "USDC-GBP bid": {
+    "pnl_usd": 0.1477,
+    "trips": 27
+   },
+   "USDT-GBP ask": {
+    "pnl_usd": 0.14559,
+    "trips": 28
+   },
+   "USDT-GBP bid": {
+    "pnl_usd": 0.23744,
+    "trips": 34
+   }
+  },
+  "frozenAt50Inventory": {
+   "USDC-GBP": {
+    "maxLongStablecoinUsd": 8.3366,
+    "maxShortStablecoinUsd": 4.1677
+   },
+   "USDT-GBP": {
+    "maxLongStablecoinUsd": 12.5076,
+    "maxShortStablecoinUsd": 12.505
+   }
+  },
+  "to": "2026-09-23T00:00"
+ }
+}
