@@ -91,7 +91,7 @@ def main():
     rows = []
     for f in files:
         month = os.path.basename(f)[:7]
-        ms = [m for m in pmnet.load(f) if m.get("enableOrderBook") and (m.get("volumeNum") or 0) >= MIN_VOL]
+        ms = [m for m in pmnet.iter_array(f) if m.get("enableOrderBook") and (m.get("volumeNum") or 0) >= MIN_VOL]
         keep = [m for m in ms if not is_updown(m) or int(m["conditionId"][-2:], 16) % 10 == 0]
         res = resolutions_for(month, [m["conditionId"] for m in keep])
         for m in keep:

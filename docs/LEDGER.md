@@ -732,6 +732,17 @@ an empty diff, or `--full` runs every gate. Checked on seven sample change lists
 repository map's `.claude/`, `.cursor/`, `.agents/` row is gone, and `.claude/CLAUDE.md`'s README rule says the map
 names no AI coding agent and no folder of theirs, so a later session does not put the row back.
 
+### [2026-09-24 06:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp4 resumed after the container restarted at ~04:02 UTC** (not pushed). RW's book recorder was down 04:03 → 06:42
+and runs again on its frozen universe; its pre-registration already says a missed minute quotes nothing, so the
+test runs on the minutes recorded. The monthly pulls are now read one market at a time (the September 2026 pull is
+1.4 GB of JSON). WX's station parser read only Wunderground URLs; from 2026-08 the markets name weather.gov's time
+series page (`site=kord`), whose ICAO code the pre-registration's "resolution URL's ICAO code" covers, so it reads
+both now — fixed before any WX price or forecast was read. Polymarket's Terms of Use (effective 2026-08-11) name
+Ireland as well as the United Kingdom among the places whose residents may not trade.
+
+
 ### [2026-09-24 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **fp4: negative-risk sets measured, and the pulls packed** (not pushed). Three sweeps of every negative-risk event's

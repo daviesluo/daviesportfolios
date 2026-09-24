@@ -5,7 +5,7 @@ From the closed-market pulls, every "Will the highest|lowest temperature in
 or low, the unit, each bucket as a continuous interval (the resolution source
 reports whole degrees: "between 45-46°F" is [44.5, 46.5), "34°C" is [33.5, 34.5),
 "44°F or below" is (-inf, 44.5)), the station (the ICAO code in the Wunderground
-URL; LaGuardia and London City for the 2025 markets whose source field is empty,
+URL or in weather.gov's time series URL; LaGuardia and London City for the 2025 markets whose source field is empty,
 as their descriptions say; the Hong Kong Observatory's own site), the payout of
 each bucket and its tokens. Unparsed questions are counted. Station coordinates
 come from aviationweather.gov's public station list. Writes $PM_DATA/wx/events.json.
@@ -25,6 +25,11 @@ Q = re.compile(r"(?P<hl>highest|lowest) temperature in (?P<city>.+?) (?:be )?(?:
                r"(?P<a>-?\d+(?:\.\d+)?)\s*(?:[-–]\s*(?P<b>-?\d+(?:\.\d+)?))?\s*°\s*(?P<u>[FC])"
                r"(?P<tail> or below| or lower| or higher| or above)?\s+on (?P<mon>[A-Z][a-z]+) (?P<day>\d+)", re.I)
 ICAO = re.compile(r"wunderground\.com/history/daily/[^\s\"']*/([A-Z0-9]{4})\b")
+# From 2026-08 most markets name the National Weather Service's time series page instead
+# (`weather.gov/wrh/timeseries?site=kord`); its `site` is the same ICAO code, lower-cased. The
+# pre-registration takes the station from "the resolution URL's ICAO code"; the first draft of this
+# parser read only Wunderground's URLs (fixed before any price was read, disclosed in the study).
+NWS = re.compile(r"weather\.gov/wrh/timeseries\?(?:[^\s\"']*&)?site=([A-Za-z0-9]{4})\b")
 MONTHS = {m: i for i, m in enumerate(["january", "february", "march", "april", "may", "june", "july", "august",
                                       "september", "october", "november", "december"], 1)}
 FALLBACK = {"nyc": "KLGA", "new york city": "KLGA", "london": "EGLC"}
@@ -60,7 +65,7 @@ def main():
     events = defaultdict(lambda: {"markets": []})
     unparsed = []
     for f in pmnet.list_json(os.path.join(pmnet.DATA, "closed")):
-        for m in pmnet.load(f):
+        for m in pmnet.iter_array(f):
             q = m.get("question") or ""
             if not re.search(r"(highest|lowest) temperature in", q, re.I):
                 continue
@@ -88,8 +93,8 @@ def main():
             date = f"{year:04d}-{mon:02d}-{int(mm.group('day')):02d}"
             city = mm.group("city").strip()
             src = m.get("resolutionSource") or ""
-            ic = ICAO.search(src)
-            station = ic.group(1) if ic else ("HKO" if "hong kong" in city.lower() else FALLBACK.get(city.lower()))
+            ic = ICAO.search(src) or NWS.search(src)
+            station = ic.group(1).upper() if ic else ("HKO" if "hong kong" in city.lower() else FALLBACK.get(city.lower()))
             ev = (m.get("events") or [{}])[0]
             key = ev.get("id") or f"{city}|{date}|{mm.group('hl')}"
             e = events[key]

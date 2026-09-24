@@ -120,6 +120,48 @@ def load(path):
         return json.load(f)
 
 
+def iter_array(path):
+    """Yield the elements of a JSON array file (or its `.gz` twin) one at a time.
+
+    The same elements, in the same order, as `load(path)`, without holding the whole file: the 2026 monthly pulls
+    are up to 1.4 GB of JSON, several times that as Python objects. The elements are objects, so a buffer that ends
+    inside one never decodes as a complete value; more is read until it does."""
+    import gzip
+    if not os.path.exists(path) and os.path.exists(path + ".gz"):
+        f = gzip.open(path + ".gz", "rt")
+    else:
+        f = open(path)
+    dec = json.JSONDecoder()
+    buf, pos, started = "", 0, False
+    with f:
+        while True:
+            chunk = f.read(1 << 22)
+            buf = buf[pos:] + chunk
+            pos = 0
+            if not started:
+                i = buf.find("[")
+                if i < 0:
+                    if not chunk:
+                        return
+                    continue
+                pos, started = i + 1, True
+            while True:
+                while pos < len(buf) and buf[pos] in " \t\r\n,":
+                    pos += 1
+                if pos >= len(buf):
+                    break
+                if buf[pos] == "]":
+                    return
+                try:
+                    obj, end = dec.raw_decode(buf, pos)
+                except json.JSONDecodeError:
+                    break
+                yield obj
+                pos = end
+            if not chunk:
+                raise ValueError("truncated JSON array: " + path)
+
+
 def exists(path):
     return os.path.exists(path) or os.path.exists(path + ".gz")
 

@@ -100,7 +100,7 @@ def main():
                        "payout_0_1": 0, "payout_other": 0, "open_at_some_Td": 0, "sampled": 0,
                        "sample_rule": f"Gamma event id % {SAMPLE_MOD} == 0"}
     for f in pmnet.list_json(os.path.join(pmnet.DATA, "closed")):
-        for m in pmnet.load(f):
+        for m in pmnet.iter_array(f):
             counts["closed_rows"] += 1
             try:
                 outs = json.loads(m.get("outcomes") or "[]")
