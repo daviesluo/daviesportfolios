@@ -3,7 +3,8 @@
 Writes `MANIFEST.json` beside `scripts/`: the committed inputs, results and
 scripts, and — because the raw pulls (several GB of Gamma months, books, prints)
 are not committed — the hash and size of each raw file under $PM_DATA, so a re-run
-can show it read the same bytes.
+can show it read the same bytes. `terms/` holds the Terms of Use, the page that frames
+them and the geoblock list as read on 2026-09-24 (the study's §0 quotes them).
 
 usage: build_manifest.py <backtests/polymarket dir>
 """
@@ -40,7 +41,7 @@ def main():
     root = sys.argv[1]
     man = {"committed": walk(root)}
     raw = {}
-    for sub in ("closed", "fav", "wx", "rw", "resolutions", "m3", "m3b"):
+    for sub in ("closed", "fav", "wx", "rw", "resolutions", "m3", "m3b", "terms"):
         p = os.path.join(pmnet.DATA, sub)
         if not os.path.isdir(p):
             continue
