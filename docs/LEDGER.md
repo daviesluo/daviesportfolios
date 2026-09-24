@@ -91,9 +91,10 @@ list stays the short version; the plan is the reasoning behind it.
      decidable yet — the standard is the spec's six conditions after four weeks (2026-10-21), and the three trips so far
      are one event; the conditions that can be read early are on track (reference §4 item 31, "The first round trips").
      Live stays a NO-GO until the review; going live is one statement on his word.
-   - **G4a — the Agents page on LIVE and TESTING tabs is ON MAIN** (`7a015b6`, check green; both sites serve
-     `app-cc8519ef.js`). `agents-live-testing`'s head is recorded in the 23:29 history section and deleted once that
-     commit is pushed.
+   - **G4a — DONE.** The Agents page on LIVE and TESTING tabs is on `main` at `7a015b6`. Production
+     `daviesportfolios.pages.dev` serves `app-cc8519ef.js`, and the agents chunks match the committed files (23:34
+     history). The remote branch `agents-live-testing` is gone; its pre-rebase head is in the 23:29 section.
+     Whether TESTING's totals fold in the two paper tests stays open; the sums were not changed.
    - **G6 — housekeeping.** **The 75 stale branches are DELETED** (2026-09-24 22:49 UTC, Cursor; every head is in that
      day's 22:48 history section, restorable). **`pm-geo-probe` is DELETED** (2026-09-24 23:25 UTC): the one-off step in
      `1883785` ran `supabase functions delete` with CI's PAT, the log says deleted, and the live list at 23:26 has the
@@ -832,6 +833,15 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 23:34 UTC] Platform: Cursor | Model: Grok 4.7
+
+**G4a closed: the redesign is on main, production serves that bundle, the LIVE tab matches the database, and `agents-live-testing` is gone.**
+- **On main.** `7a015b6` (fast-forward `95a879d..7a015b6`). `1883785` and `2ad42ee` after it delete `pm-geo-probe` and then take that one-off step back out; they do not change `dist/`. `origin/main` at this writing is `2ad42ee`.
+- **Production bundle, 23:34 UTC.** `https://daviesportfolios.pages.dev` names `assets/app-cc8519ef.js`, the file committed in `dist/index.html`. `assets/agents-485e1fcc.js` sha256 `8e04fbd2b377764745e4ce01268dbd0c69bcaa1ff5e02d18249fa414506fd56e` equals `dist/assets/agents-485e1fcc.js`, and `assets/agents-2abbffcb.js` sha256 `a8010b26ebe2d89165bb7975d87f8df41fad5907adc8fd635f75c09fc4238d3c` equals its committed file. The page chunk contains `ag-modebar`, `ag-rw-tiles`, `FUNDED` and `Live trading is on`. `daviesluo.com` from this machine is a Cloudflare challenge (`cf-mitigated: challenge`, HTTP 403), so that hostname was not content-checked.
+- **LIVE tab against the database, same minute.** `trend-4h-live` is mode `live`, venue `revx`, capital 50, name `Trend 4h · Revolut X · live`, symbols BTC/ETH/SOL/AVAX, not retired. `agent_orders` for that id has no rows. `agent_risk`: `global_pause` false, `max_exposure_usd` 15, `live_confirmed_at` `2026-09-24 22:53:09.568392+00`. The dashboard the page reads (`agents?action=dashboard`, pg_net request 32983, HTTP 200) returns that row with capital 50, cost, value, unrealised, realised, fees and today all 0, `holdsLive` false, `openOrders` 0, `windingDown` false, and the same confirmation time and pause. The page's own functions then open on LIVE, title the row `Trend 4h · Revolut X` (the trailing ` · live` is display-only), and show FUNDED $50.00, DEPLOYED $0.00 (0.00%), today / unrealised / realised $0.00, and `Live trading is on Since 24 Sep 23:53 BST` (`fmtChartStamp` of that timestamp, London, BST). Each of the four positions is flat (base 0, no fills).
+- **Branch.** `git ls-remote --heads origin` returns only `refs/heads/main`. `git push origin --delete agents-live-testing` answered `remote ref does not exist`. Restore of the pre-rebase head stays `eb58acbba9add14a5004492f1717745a25ba1e8a`, recorded in the 23:29 section.
+- **Left open, and not changed:** whether TESTING's scoreboard and the Revolut X card fold the two paper tests into their totals. No strategy row, rule or live state was written.
 
 ### [2026-09-24 23:29 UTC] Platform: Cursor | Model: Grok 4.7
 
