@@ -567,6 +567,19 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 00:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**S1 pre-registered before any arm ran: §3.9's BTC-regime entry filter on the live row** (Davies' request of
+2026-09-24: two strategies live at $50 each after a final validation, and the one pre-registered candidate left).
+`reviews/2026-09-24-btc-regime-prereg.md` freezes the filter as §3.9 wrote it (BTC's last closed daily close above its
+N-day average, N from {100, 150, 200} chosen in sample per window), the four-coin `trend-4h-live` sleeve as the
+incumbent (reproduced to the digit against `sui.json` and `set2.json`), windows A–D plus four FRESH windows E–H
+(2018-08 → 2022-08, BTC/ETH, never scored out of sample), the bear label (equal-weight buy-and-hold below −20 %: A and
+E; B, C, D, F, G, H not bear), a same-count episode null, and the bar (improve the worst window, beat chance there,
+cost no other window beyond chance → adopt / reject / inconclusive). Script
+`backtests/btc_regime/backtest_btc_regime.ts` committed with it (sha256 in the file); only its definitions and a
+placebo-gate smoke stage have run. It discloses that §3.17 already found the gate worsens window D at sleeve level.
+
 ### [2026-09-23 21:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **A T212 history timeout is a failed page, not an unhandled crash** (item 00000000.3). Both
