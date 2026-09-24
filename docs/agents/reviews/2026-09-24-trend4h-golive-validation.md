@@ -9,6 +9,18 @@ queries that would read the record are written below and were not run). Code lin
 that landed the go-live audit's D8–D10 at 00:00 UTC while this ran (the worktree branched from `96859b4`); the patches
 below were rebuilt and tested on it.
 
+**Status (2026-09-24, later that night).**
+- **D11** landed as the patch and pin below, unchanged (`c555abd`).
+- **D12's fix is built.** A live Revolut X buy whose fee went unreported is booked from the account: its balance of the
+  coin less the rest of the live book (buys less sells), never more than the gross, floored to the step. The row
+  records what that read (`fromAccount`).
+- **What still settles nothing:** a shortfall the fee cannot explain, an unreadable balance, and a buy with no pair
+  config (its booking waits a turn).
+- **Pins:** the reproduction below passes with its assertions unchanged. Four more pins cover the cases it does not
+  (reference §4 item 33).
+- **The go:** both of the verdict's code preconditions are met. What stays is Davies' word and the first buy read by a
+  person before its exit.
+
 ## Answer first
 
 * **(a) No mismatch.** Replayed bar by bar with the loop's own functions (`buildSnapshot`, `ruleDecision`,

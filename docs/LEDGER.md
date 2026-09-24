@@ -575,6 +575,16 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 01:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**D12 is fixed: a live buy whose fee went unreported is booked from the account** (reference §4 item 33). The book
+takes the balance of the coin less the rest of the live book (buys less sells), never more than the gross, floored to
+the step. It records what it read (`fromAccount`). Three cases settle nothing and are reported: a shortfall the fee
+cannot explain, an unreadable balance, and a missing pair config (D11 now waits a turn for it, where S2's patch settled
+unfloored). S2's reproduction went red → green with its assertions unchanged, and D4, D8 and D11 stay green. Four
+more pins (full precision, a hand trade, the floor selling past an unreadable buy, no pair config) all fail on
+`c555abd`; the third also fails against a clamped position. Deno: 461 passed, check clean, knip clean.
+
 ### [2026-09-24 00:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **D11 landed: a live buy settles floored to its pair's base step** (S2's patch

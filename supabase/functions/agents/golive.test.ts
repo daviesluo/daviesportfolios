@@ -9,6 +9,8 @@
 //   D9 every marketable order records the touch it was priced from and that quote's age, paper and live
 //   D10 a lease claim the database does not answer ends the turn with a note, not a crash
 //   D11 a coin fee reported finer than the base step leaves no sub-step remainder in the book
+//   D12 a coin fee the venue takes without reporting it is booked from the account's balance, never gross
+// D11 and D12 were found by the $50 validation (reviews/2026-09-24-trend4h-golive-validation.md), after the audit.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { highWaterSince, positionFromFills, type Candle } from "../_shared/agents_strategy.ts";
 import { krakenVenue } from "../_shared/kraken.ts";
@@ -273,14 +275,17 @@ Deno.test("D6 — after an exit filled at a bar's open, the next bar is still co
 
 const LIVE_BAR = Date.parse("2026-09-23T04:00:00Z");
 
-/** The real Revolut X and Kraken clients over the fake venues, and the strict in-memory database, as D3 and D4 build them. */
+/**
+ * The real Revolut X and Kraken clients over the fake venues, and the strict in-memory database, as D3 and D4 build them.
+ * The client calls `rx.fetch` at call time, so a test may wrap the fake venue after building the world.
+ */
 async function realWorld(rows: StrategyRow[], o: { fetchImpl?: typeof fetch; clock?: () => number } = {}) {
   let now = LIVE_BAR + 5 * ONE_M;
   const mem = memDb({ agent_risk: [RISK], agent_strategies: rows as unknown as Row[], agent_orders: [], agent_decisions: [], agent_observations: [],
     agent_maker_probes: [], agent_candles: [], agent_locks: [{ name: "tick", lease_until: "1970-01-01T00:00:00.000Z", holder: null }] }, { now: () => now + 5_000 });
   const rx = new FakeRevx(() => now), kr = new FakeKraken(() => now);
   const { privateKey } = await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair;
-  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch), kraken: krakenVenue(null, kr.fetch) };
+  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, (input, init) => rx.fetch(input, init)), kraken: krakenVenue(null, kr.fetch) };
   const at = (t: number) => {
     now = t;
     return tick({ db: mem.db, venues, jev: { openrouterKey: "k" }, now, fetchImpl: o.fetchImpl ?? jevFetch({}), uuid: () => crypto.randomUUID(), clock: o.clock });
@@ -347,6 +352,181 @@ Deno.test("D8 — the venue's own documented replies: 9 bps of filled_amount on 
   // No fee, and nothing to derive one from: refused, never booked at 0.
   const nothingToDeriveFrom = orderViewProblem({ ...ioc, filled_amount: undefined, average_fill_price: "0" });
   assert(nothingToDeriveFrom?.includes("neither filled_amount nor average_fill_price gives a notional"), String(nothingToDeriveFrom));
+});
+
+Deno.test("D12 — a buy fee the venue takes in the coin WITHOUT reporting it is booked from the account, not gross: the book is flat after the exit, and the rule enters again", async () => {
+  // The $50 validation's reproduction (reviews/2026-09-24-golive50-patches/p12_*), its assertions unchanged; red until the fix.
+  // D8 settles a fill whose read-back carries no total_fee / fee_currency with a DOLLAR fee from the schedule, and its double
+  // takes that fee from the dollars. If the venue instead takes a buy's fee in the coin (its reference calls a buy's
+  // filled_quantity "gross, before fees") and reports nothing, the book holds the gross while the account holds gross − fee,
+  // the floor's sell is capped at the account, and the whole fee stays in the book: D4's phantom position by another road.
+  // No reply field tells the two venues apart; the account's balance does.
+  const BAR0 = Date.parse("2026-09-23T04:00:00Z");
+  let now = BAR0 + 5 * ONE_M;
+  const mem = memDb({ agent_risk: [RISK], agent_strategies: [{ ...LIVE, capital_usd: 12.5 } as unknown as Row], agent_orders: [], agent_decisions: [], agent_observations: [],
+    agent_maker_probes: [], agent_candles: [], agent_locks: [{ name: "tick", lease_until: "1970-01-01T00:00:00.000Z", holder: null }] }, { now: () => now + 5_000 });
+  const rx = new FakeRevx(() => now), kr = new FakeKraken(() => now);
+  rx.dialect = "no-fee";                                             // no total_fee, no fee_currency on the read-back
+  const inner = rx.fetch;
+  rx.fetch = async (input, init) => {
+    const p = new URL(String(input)).pathname, m = (init?.method ?? "GET").toUpperCase();
+    const before = new Set(rx.orders.keys());
+    const res = await inner(input, init);
+    if (p === "/api/1.0/orders" && m === "POST") {
+      for (const [id, o] of rx.orders) if (!before.has(id) && o.side === "buy" && o.status === "filled" && o.avg) {
+        const feeBase = Math.round(o.fee / o.avg * 1e8) / 1e8;        // on the base step, so this is not D11's sub-step case
+        rx.balances.BTC = Math.round(((rx.balances.BTC ?? 0) - feeBase) * 1e8) / 1e8; rx.balances.USD += o.fee;
+      }
+    }
+    return res;
+  };
+  const { privateKey } = await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair;
+  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch), kraken: krakenVenue(null, kr.fetch) };
+  const at = (t: number) => { now = t; return tick({ db: mem.db, venues, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({}), uuid: () => crypto.randomUUID() }); };
+  await at(BAR0 + 5 * ONE_M);                                        // entry, a $12.50 slot
+  await at(BAR0 + 6 * ONE_M);                                        // settled, with a derived dollar fee
+  rx.shock["BTC/USD"] = 0.9;                                         // the floor fires on the bid
+  await at(BAR0 + 10 * ONE_M);
+  await at(BAR0 + 11 * ONE_M);
+  rx.shock["BTC/USD"] = 1;
+  assertEquals(rx.balances.BTC, 0);                                  // the venue is flat …
+  assertEquals(bookOf(mem.tables.agent_orders as Row[]).base, 0);    // … and so must the book be (before the fix it kept the fee)
+  const orders = mem.tables.agent_orders.length;
+  for (const k of [3, 4, 5]) await at(BAR0 + k * FOUR_H + ONE_M);
+  assert(mem.tables.agent_orders.length > orders, "the rule entered again");
+});
+
+/**
+ * Revolut X as its reference allows it and nobody has yet seen it: a filled buy's fee taken in the COIN — the account gets
+ * gross − fee while `filled_quantity` stays gross, "before fees" — at full precision (`decimals` null) or rounded to
+ * `decimals`. The fake takes its fee from the dollars; this moves it into the coin. With `dialect = "no-fee"` the read-back
+ * says nothing about it: D12's venue. `report` makes the read-back name it instead, as D11's venue does.
+ */
+function takeBuyFeesInTheCoin(rx: FakeRevx, decimals: number | null, report = false) {
+  const inner = rx.fetch;
+  const feeOf = new Map<string, number>();
+  rx.fetch = async (input, init) => {
+    const p = new URL(String(input)).pathname, m = (init?.method ?? "GET").toUpperCase();
+    const before = new Set(rx.orders.keys());
+    const res = await inner(input, init);
+    if (p === "/api/1.0/orders" && m === "POST") {
+      for (const [id, o] of rx.orders) if (!before.has(id) && o.side === "buy" && o.status === "filled") {
+        const asset = o.symbol.split("/")[0], exact = o.filled * 0.0009, scale = 10 ** (decimals ?? 0);
+        const fee = decimals == null ? exact : Math.round(exact * scale) / scale;
+        const left = (rx.balances[asset] ?? 0) - fee;
+        rx.balances[asset] = decimals == null ? left : Math.round(left * scale) / scale; rx.balances.USD += o.fee;
+        feeOf.set(id, fee);
+      }
+    }
+    if (report && m === "GET" && p.startsWith("/api/1.0/orders/") && p !== "/api/1.0/orders/active" && p !== "/api/1.0/orders/historical") {
+      const id = p.split("/").at(-1)!, fee = feeOf.get(id);
+      if (fee != null && res.ok) {
+        const j = await res.json();
+        j.data.total_fee = fee.toFixed(12); j.data.fee_currency = rx.orders.get(id)!.symbol.split("/")[0];
+        return new Response(JSON.stringify(j), { status: 200 });
+      }
+    }
+    return res;
+  };
+}
+
+Deno.test("D12 — the same fee at full precision, not reported: booked from the account in whole steps, and the exit leaves only dust at the venue", async () => {
+  const w = await realWorld([{ ...LIVE, capital_usd: 12.5 }]);
+  w.rx.dialect = "no-fee";
+  takeBuyFeesInTheCoin(w.rx, null);
+  await w.at(LIVE_BAR + 5 * ONE_M);                                  // the entry, a $12.50 slot
+  const r = await w.at(LIVE_BAR + 6 * ONE_M);                        // settled from the account
+  assertEquals(r.errors, [], JSON.stringify(r.errors));
+  const buy = w.orders().find((o) => o.side === "buy")!;
+  const held = w.rx.balances.BTC!, gross = w.rx.orders.get(String(buy.venue_order_id))!.filled;
+  assert(Math.abs(held * 1e8 - Math.round(held * 1e8)) > 1e-3, "the fee must leave the account between two steps for this to mean anything");
+  assertEquals([buy.state, Number(buy.filled_base)], ["filled", Math.floor(held * 1e8) / 1e8]);   // what the account holds, in whole steps
+  assertEquals((buy.response as Row).fromAccount, { asset: "BTC", held, rest: 0, gross });          // and what that was read from
+  assert((buy.response as Row).feeDerived, "the dollar fee is still the derived one");
+  w.rx.shock["BTC/USD"] = 0.9;                                       // the floor fires on the bid
+  await w.at(LIVE_BAR + 10 * ONE_M);
+  await w.at(LIVE_BAR + 11 * ONE_M);
+  w.rx.shock["BTC/USD"] = 1;
+  const dust = w.rx.balances.BTC ?? 0;
+  assert(dust >= 0 && dust < 1e-8, `the venue keeps under one step, as dust: ${dust}`);
+  assertEquals(bookOf(w.orders()).base, 0);                          // the book is flat …
+  const n = w.orders().length;
+  for (const k of [3, 4, 5]) await w.at(LIVE_BAR + k * FOUR_H + ONE_M);
+  assert(w.orders().length > n, "… and the rule entered again");
+});
+
+Deno.test("D12 — an account short by more than the fee explains (here a trade by hand) settles nothing: the buy says why, stays open, and the floor still sells what the account holds", async () => {
+  const w = await realWorld([{ ...LIVE, capital_usd: 12.5 }]);
+  w.rx.dialect = "no-fee";
+  takeBuyFeesInTheCoin(w.rx, 8);
+  await w.at(LIVE_BAR + 5 * ONE_M);                                  // the entry
+  const buy = () => w.orders().find((o) => o.side === "buy")!;
+  const gross = w.rx.orders.get(String(buy().venue_order_id))!.filled;
+  w.rx.balances.BTC = w.rx.balances.BTC! - gross * 0.01;              // 1 % of the coins leave the account: no fee explains that
+  const r = await w.at(LIVE_BAR + 6 * ONE_M);
+  assert(r.errors.some((e) => e.includes("short of the gross by more than its 9 bps fee explains")), JSON.stringify(r.errors));
+  assertEquals([buy().state, buy().filled_base], ["new", 0]);         // nothing booked on a guess
+  w.rx.shock["BTC/USD"] = 0.9;                                       // the floor still covers the coins, at the account's balance
+  const heldBefore = w.rx.balances.BTC!;
+  await w.at(LIVE_BAR + 7 * ONE_M);
+  w.rx.shock["BTC/USD"] = 1;
+  const sell = w.orders().find((o) => o.side === "sell")!;
+  const left = heldBefore - Number(sell.base_size);
+  assert(left >= 0 && left < 1e-8, `it sells what the account holds, in whole steps: ${sell.base_size} of ${heldBefore}`);
+  assertEquals(buy().state, "new");                                  // and the buy is still the person's to settle
+});
+
+Deno.test("D12 — the floor sold past the buy before it could be read back: the rest of the book is buys LESS sells, so the buy books what the sell took, and the book ends flat", async () => {
+  // A buy whose read-back fails is counted by the floor at the account's balance, and the floor may sell it before the read-back
+  // works (the `unreadable` path). Its coins are then gone from the account: read as a position, the book's sell would clamp to
+  // flat and the buy would never find its coins; read as buys less sells, the sell accounts for them.
+  const w = await realWorld([{ ...LIVE, capital_usd: 12.5 }]);
+  w.rx.dialect = "no-fee";
+  takeBuyFeesInTheCoin(w.rx, 8);
+  let readBackDown = false;
+  const inner = w.rx.fetch;
+  w.rx.fetch = (input, init) => {
+    const p = new URL(String(input)).pathname, m = (init?.method ?? "GET").toUpperCase();
+    if (readBackDown && m === "GET" && p.startsWith("/api/1.0/orders/") && p !== "/api/1.0/orders/active" && p !== "/api/1.0/orders/historical") {
+      return Promise.resolve(new Response(JSON.stringify({ message: "Service unavailable" }), { status: 503 }));
+    }
+    return inner(input, init);
+  };
+  await w.at(LIVE_BAR + 5 * ONE_M);                                  // the entry
+  const buy = () => w.orders().find((o) => o.side === "buy")!;
+  const gross = w.rx.orders.get(String(buy().venue_order_id))!.filled, fee = Math.round(gross * 0.0009 * 1e8) / 1e8;
+  readBackDown = true;
+  w.rx.shock["BTC/USD"] = 0.9;
+  await w.at(LIVE_BAR + 6 * ONE_M);                                  // the buy cannot be read; the floor sells what the account holds
+  const sell = () => w.orders().find((o) => o.side === "sell")!;
+  assertEquals([buy().state, Number(sell().base_size), w.rx.balances.BTC], ["new", Math.round((gross - fee) * 1e8) / 1e8, 0]);
+  readBackDown = false;
+  w.rx.shock["BTC/USD"] = 1;
+  await w.at(LIVE_BAR + 7 * ONE_M);                                  // the buy is read before its sell settles: not yet bookable
+  assertEquals([buy().state, sell().state], ["new", "filled"]);
+  const r = await w.at(LIVE_BAR + 8 * ONE_M);                        // with the sell settled, the account accounts for it
+  assertEquals(r.errors, [], JSON.stringify(r.errors));
+  assertEquals([buy().state, Number(buy().filled_base)], ["filled", Number(sell().filled_base)]);
+  assertEquals((buy().response as Row).fromAccount, { asset: "BTC", held: 0, rest: -Number(sell().filled_base), gross });
+  assertEquals(bookOf(w.orders()).base, 0);
+  const n = w.orders().length;
+  for (const k of [3, 4, 5]) await w.at(LIVE_BAR + k * FOUR_H + ONE_M);
+  assert(w.orders().length > n, "the rule entered again");
+});
+
+Deno.test("D11 — with no pair config at the settling minute a live buy waits a turn, rather than settle a base its exit may never sell", async () => {
+  const w = await realWorld([{ ...LIVE, capital_usd: 12.5 }]);
+  takeBuyFeesInTheCoin(w.rx, null, true);                           // D11's venue: the coin fee reported at full precision
+  await w.at(LIVE_BAR + 5 * ONE_M);                                  // the entry
+  const buy = () => w.orders().find((o) => o.side === "buy")!;
+  w.rx.down.pairs = true;                                            // no base step this minute
+  const r = await w.at(LIVE_BAR + 6 * ONE_M);
+  w.rx.down.pairs = false;
+  assert(r.errors.some((e) => e.includes("pair config is unreadable this turn") && e.includes("settles next turn")), JSON.stringify(r.errors));
+  assertEquals([buy().state, buy().filled_base], ["new", 0]);
+  await w.at(LIVE_BAR + 7 * ONE_M);
+  const net = Number(buy().base_size) * (1 - 0.0009);
+  assertEquals([buy().state, Number(buy().filled_base)], ["filled", Math.floor(net * 1e8) / 1e8]);   // floored, a turn late
 });
 
 Deno.test("D9 — every marketable order records the touch it was priced from and that quote's age, paper and live; a live fill keeps the venue's price beside it, so the shortfall is read off the record", async () => {

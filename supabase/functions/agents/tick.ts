@@ -10,7 +10,10 @@
 //      sent) is reconciled against the venue's active orders by client
 //      id; a paper order fills if the venue's last minute traded through
 //      its price (and pays that venue's maker fee); a live order is
-//      re-read from the venue; an unfilled resting order whose touch has
+//      re-read from the venue, and a live buy is booked only as much of
+//      the coin as the account can sell: whole base steps, and, when the
+//      venue did not report the fee, what its balance shows (`settledBase`);
+//      an unfilled resting order whose touch has
 //      moved away is re-quoted at the new touch, a few times, then
 //      dropped — an order chased forever is a market order in disguise;
 //   3. the book: positions and today's P&L per venue and mode, derived
@@ -299,15 +302,23 @@ export function fillStamp(o: Pick<OrderRow, "filled_at" | "ts" | "request">, now
 }
 
 /**
- * What a live settlement records as the order's `response`: the venue's reply as it came and, when that reply carried no fee
- * and the client derived one (go-live audit D8), `feeDerived` beside it — the rate, the notional, and the order's own field
- * that decided maker or taker. `fee_usd` holds the fee either way; this is how the one P&L computation, which reads
- * `fee_usd`, can be told a derived fee from one the venue reported.
+ * How a live buy whose fee went unreported was booked from the account (D12): the account's balance of the coin as read,
+ * the rest of the live book in that coin (buys less sells), and the fill's gross. The base booked is
+ * min(gross, held − rest), floored to the pair's step.
  */
-export function withFeeNote(response: unknown, view: Pick<OrderView, "feeDerived">): unknown {
-  if (!view.feeDerived) return response;
+export type FromAccount = { asset: string; held: number; rest: number; gross: number };
+
+/**
+ * What a live settlement records as the order's `response`: the venue's reply as it came and, beside it, what the client
+ * added to it. `feeDerived` when that reply carried no fee and the client derived one (go-live audit D8): the rate, the
+ * notional, and the order's own field that decided maker or taker. `fee_usd` holds the fee either way; this is how the
+ * one P&L computation, which reads `fee_usd`, can be told a derived fee from one the venue reported. `fromAccount` when
+ * the base was booked from the account's balance rather than the reply (D12): the inputs, not only the conclusion.
+ */
+export function withFeeNote(response: unknown, view: Pick<OrderView, "feeDerived">, fromAccount?: FromAccount): unknown {
+  if (!view.feeDerived && !fromAccount) return response;
   const reply = response && typeof response === "object" && !Array.isArray(response) ? response as Record<string, unknown> : { reply: response };
-  return { ...reply, feeDerived: view.feeDerived };
+  return { ...reply, ...(view.feeDerived ? { feeDerived: view.feeDerived } : {}), ...(fromAccount ? { fromAccount } : {}) };
 }
 
 export function toFill(o: OrderRow) {
@@ -711,19 +722,61 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     report.settled.push({ id: o.id, state });
   };
   const resting = new Map<string, OrderRow>();     // `${strategy}|${symbol}` → an order still resting after this turn's settlement
+  /** Each venue's balances, read at most once a turn, and only for a settlement that needs them (D12). */
+  const settleBalances = new Map<VenueId, Promise<Record<string, number>>>();
+  const balancesFor = (vid: VenueId, venue: Venue) => {
+    if (!settleBalances.has(vid)) settleBalances.set(vid, venue.balances());
+    return settleBalances.get(vid)!;
+  };
   /**
-   * A live BUY's settled base, floored to its pair's base step (D11, reference §3.31). A fee the venue takes in the coin
-   * is 9 bps of the gross, never a whole number of steps (0.00014823 BTC pays 0.000000133407), so `toOrderView`'s
-   * gross − fee lies between two steps. The exit can only ever sell the step below (`sizeBase` floors, and so does the
-   * sell cap), and the sub-step remainder then read "long" for good: the rulebook never entered the coin again, and the
-   * floor asked every minute to sell something under the venue minimum. The remainder stays at the venue as unsellable
-   * dust; the book holds exactly what can be sold. The step is the pair's own (`markets`, loaded above), never the
-   * decimals of a quantity string, which the venue trims ("0.002").
+   * The base a live BUY settles with — or null when it cannot settle this turn: the reason is reported, and the caller
+   * leaves the row as it leaves an unreadable read-back, open and counted by the floor at the venue's balance. A book that
+   * holds more of a coin than the account can sell reads "long" for good: the exit can only sell what the account holds,
+   * in whole steps, so the rulebook never enters the coin again and the floor asks every minute for a sale under the
+   * venue minimum. Two ways to get there, both through a buy fee taken in the coin (reference §3.31):
+   *
+   * D11 — the fee is REPORTED. 9 bps of the gross is never a whole number of steps (0.00014823 BTC pays 0.000000133407),
+   * so `toOrderView`'s gross − fee lies between two steps, and the sub-step remainder could never be sold. The base is
+   * floored to the pair's own step (`markets`, loaded above), never the decimals of a quantity string, which the venue
+   * trims ("0.002"); the remainder stays at the venue as dust. With no pair config this turn there is no step, and the
+   * buy waits a turn rather than settle a base its exit may never sell.
+   *
+   * D12 — the fee is taken and NOT reported: the read-back carries no fee, and D8 derives one in dollars (`feeDerived`).
+   * The venue's reference calls a buy's `filled_quantity` gross, "before fees", so a fee taken in the coin shows only in
+   * the account; booked gross, the whole fee stayed in the book after the exit. So a Revolut X fill with a derived fee is
+   * booked from the account, which is the loop's alone (the live-book block below rests on the same fact): its balance of
+   * the coin less every OTHER settled live order in it — buys less sells, across the rows — never more than the gross
+   * (a fee taken in dollars leaves the balance at the gross, and nothing changes), floored to the step. A shortfall
+   * larger than the schedule's fee and two steps of rounding can explain — a sell in flight, a stale balance, a trade by
+   * hand — settles nothing: it is reported, and the next turn asks again. What the booking read is recorded beside the
+   * reply (`fromAccount`), so the first live buy can be checked against the account from its own row.
    */
-  const settledBase = (o: OrderRow, base: number): number => {
-    if (o.side !== "buy" || !(base > 0)) return base;
+  type Booked = { base: number; fromAccount?: FromAccount };
+  const settledBase = async (o: OrderRow, view: OrderView, gross: number): Promise<Booked | null> => {
+    if (o.side !== "buy" || !(gross > 0)) return { base: gross };
+    const key = `${o.strategy_id}|${o.symbol}`;
     const step = markets.get(mk(o.venue, o.symbol))?.pair?.base_step;
-    return step ? Number(floorToStep(base, step)) : base;
+    if (!step) {
+      report.errors.push(`${key}: live buy ${o.client_order_id} filled, but ${o.venue}'s pair config is unreadable this turn and its base step with it; it settles next turn`);
+      return null;
+    }
+    const venue = d.venues[o.venue];
+    if (!(o.venue === "revx" && view.feeDerived && venue)) return { base: Number(floorToStep(gross, step)) };
+    const asset = o.symbol.split("/")[0];
+    let held: number;
+    try { held = (await balancesFor(o.venue, venue))[asset] ?? 0; }
+    catch (e) {
+      report.errors.push(`${key}: live buy ${o.client_order_id} came back with no fee, so it is settled from the account, and ${o.venue}'s balances are unreadable (${msg(e)}); it settles next turn`);
+      return null;
+    }
+    const book = await d.db.selectAll<OrderRow>("agent_orders", `venue=eq.${o.venue}&mode=eq.live&state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc`);
+    const rest = book.filter((r) => r.id !== o.id && r.symbol.split("/")[0] === asset).reduce((a, r) => a + (r.side === "buy" ? 1 : -1) * toFill(r).base, 0);
+    const beyond = held - rest;
+    if (gross - beyond > gross * view.feeDerived.bps / 1e4 + 2 * Number(step)) {
+      report.errors.push(`${key}: live buy ${o.client_order_id} of ${gross} ${asset} came back with no fee; ${o.venue} holds ${held} ${asset}, ${beyond} beyond the rest of the live book — short of the gross by more than its ${view.feeDerived.bps} bps fee explains (a sell in flight, or a trade by hand?); it settles when the account accounts for it`);
+      return null;
+    }
+    return { base: Number(floorToStep(Math.min(gross, beyond), step)), fromAccount: { asset, held, rest, gross } };
   };
   /**
    * Take a resting order off the book. Live: the venue cancels, then says
@@ -744,7 +797,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       const after = await venue.order(o.venue_order_id);
       if (!after.ok) { report.errors.push(`${key}: cancelled ${o.venue_order_id} but could not read it back (${after.error}); left open for the next turn to settle from the venue`); return "failed"; }
       if (after.view.filledBase > 0) {
-        await settle(o, { filled_base: settledBase(o, after.view.filledBase), avg_fill_price: after.view.avgPrice ?? o.price, fee_usd: after.view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: withFeeNote(after.view.raw, after.view) }, "filled");
+        // Cancelled, and filled before the cancel landed; if the fill cannot be booked this turn the row stays open.
+        const booked = await settledBase(o, after.view, after.view.filledBase);
+        if (!booked) return "failed";
+        await settle(o, { filled_base: booked.base, avg_fill_price: after.view.avgPrice ?? o.price, fee_usd: after.view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: withFeeNote(after.view.raw, after.view, booked.fromAccount) }, "filled");
         return "filled";
       }
     }
@@ -776,7 +832,9 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           else if (!h.ok) report.errors.push(`${key}: order history ${h.error}`);
         }
         if (found) {
-          await d.db.update("agent_orders", `id=eq.${o.id}`, { state: found.view.state, venue_order_id: found.venueOrderId, filled_base: settledBase(o, found.view.filledBase), avg_fill_price: found.view.avgPrice, fee_usd: found.view.feeUsd, filled_at: found.view.filledBase > 0 ? fillStamp(o, nowIso) : o.filled_at, response: withFeeNote({ reconciled: true, view: found.view.raw }, found.view), updated_at: nowIso });
+          const booked = await settledBase(o, found.view, found.view.filledBase);
+          if (!booked) { unreadable.add(o.id); holdInFlight(key, o.side); continue; }   // found, but not bookable yet: still pending
+          await d.db.update("agent_orders", `id=eq.${o.id}`, { state: found.view.state, venue_order_id: found.venueOrderId, filled_base: booked.base, avg_fill_price: found.view.avgPrice, fee_usd: found.view.feeUsd, filled_at: found.view.filledBase > 0 ? fillStamp(o, nowIso) : o.filled_at, response: withFeeNote({ reconciled: true, view: found.view.raw }, found.view, booked.fromAccount), updated_at: nowIso });
           report.settled.push({ id: o.id, state: `reconciled:${found.view.state}` });
           holdInFlight(key, o.side);
           continue;
@@ -823,20 +881,32 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           unreadable.add(o.id);
         } else {
           const view = v.view;
+          // A fill `settledBase` cannot book this turn is left as an unreadable read-back is: open, and the floor counts it
+          // at the venue's balance.
           if (view.state === "filled") {
             // A fill is dated from when it FIRST filled: a completion that re-stamped it moved a position's opening — and, across
             // midnight, a whole fill between yesterday's P&L and today's — every time an order finished in pieces.
-            await settle(o, { filled_base: settledBase(o, view.filledBase || Number(o.base_size)), avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), response: withFeeNote(view.raw, view) }, "filled");
-            continue;
-          }
-          if (view.state === "cancelled" || view.state === "rejected") {
+            const booked = await settledBase(o, view, view.filledBase || Number(o.base_size));
+            if (booked) {
+              await settle(o, { filled_base: booked.base, avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), response: withFeeNote(view.raw, view, booked.fromAccount) }, "filled");
+              continue;
+            }
+            unreadable.add(o.id);
+          } else if (view.state === "cancelled" || view.state === "rejected") {
             // A cancel after a partial fill is a FILL of what filled — an IOC that took part of the ask is the usual case.
-            if (view.filledBase > 0) await settle(o, { filled_base: settledBase(o, view.filledBase), avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: withFeeNote(view.raw, view) }, "filled");
-            else await settle(o, { cancelled_at: nowIso, response: view.raw }, view.state);
-            continue;
-          }
-          if (view.state === "partially_filled" && (o.state !== "partially_filled" || Number(o.filled_base) !== settledBase(o, view.filledBase))) {
-            await d.db.update("agent_orders", `id=eq.${o.id}`, { state: "partially_filled", filled_base: settledBase(o, view.filledBase), avg_fill_price: view.avgPrice, fee_usd: view.feeUsd, response: withFeeNote(view.raw, view), filled_at: fillStamp(o, nowIso), updated_at: nowIso });
+            if (!(view.filledBase > 0)) { await settle(o, { cancelled_at: nowIso, response: view.raw }, view.state); continue; }
+            const booked = await settledBase(o, view, view.filledBase);
+            if (booked) {
+              await settle(o, { filled_base: booked.base, avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: withFeeNote(view.raw, view, booked.fromAccount) }, "filled");
+              continue;
+            }
+            unreadable.add(o.id);
+          } else if (view.state === "partially_filled") {
+            const booked = await settledBase(o, view, view.filledBase);
+            if (!booked) unreadable.add(o.id);
+            else if (o.state !== "partially_filled" || Number(o.filled_base) !== booked.base) {
+              await d.db.update("agent_orders", `id=eq.${o.id}`, { state: "partially_filled", filled_base: booked.base, avg_fill_price: view.avgPrice, fee_usd: view.feeUsd, response: withFeeNote(view.raw, view, booked.fromAccount), filled_at: fillStamp(o, nowIso), updated_at: nowIso });
+            }
           }
         }
       }
