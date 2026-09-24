@@ -38,9 +38,10 @@ list stays the short version; the plan is the reasoning behind it.
       of one day (+$46.61 on $480: rewards $50.92 by the published formula, fills −$4.31), and would not survive
       reduce-only stretches. The study's §0 finds that the Terms of Use bar residents of the UK and Ireland from
       trading; Davies read it on 2026-09-24 and said the plan continues.
-   2. **RW's paper run is built** (migration `0053`, `agents/pmrw.ts`, reference §4 item 36, spec
-      `reviews/2026-09-24-polymarket-rw-paper-spec.md`): a warm-up on 2026-09-24, then fourteen days, 2026-09-25 00:00
-      → 10-09 00:00 UTC; read it with §4 item 36's queries R1–R5. After 10-09: the bar from `pm_rw_days` (a day's total
+   2. **RW's paper run is RUNNING since 2026-09-24 19:30 UTC** (`201c19f`; migration `0053`, `agents/pmrw.ts`,
+      reference §4 item 36, spec `reviews/2026-09-24-polymarket-rw-paper-spec.md`): a warm-up until midnight, then
+      fourteen days, 2026-09-25 00:00 → 10-09 00:00 UTC; read it with §4 item 36's queries R1–R5. The paper reward is
+      the published formula's against the visible book, an upper bound on what an account would be paid. After 10-09: the bar from `pm_rw_days` (a day's total
       is the change from the day before; bootstrap seed 20261009); the stored minutes replayed through rw_test.py's
       rule, and each quoted market's prints pulled again to show none was missed; then a migration unschedules
       `agents-pmrw-every-minute` and `agents-pmrw-select`. It passes → a live test under this plan; it fails → RW
@@ -730,6 +731,10 @@ portfolio picked once. Every read is keyless (`_shared/polymarket_public.ts`); n
   `0053` applied twice to PGlite refuses what the double refuses.
 - Also: the spec (frozen by this commit) now says a day quotes only on its own selection, the warm-up closes at its
   marks so the fourteen days start flat, and nothing is read after 10-09; `MANIFEST.json` lists the two new files.
+- **Live (`201c19f`):** `0053` applied and `agents` v61 deployed at 19:25 UTC. The 19:30 selection answered 200 with
+  3,154 markets booked, 2,182 scored, 16 checked with Gamma (0 refused, 0 mismatched), 16 chosen for $295.52 — inside
+  the CPU limit. Minutes 19:31–19:33 were stored with 16 books each and decided two minutes later; prints were read
+  from the Edge (4) and two filled; `last_error` empty; the tick and the quotes jobs kept answering 200.
 
 ### [2026-09-24 10:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
