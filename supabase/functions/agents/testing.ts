@@ -268,11 +268,13 @@ export class FakeRevx {
   orders = new Map<string, FakeOrder>();
   balances: Record<string, number> = { USD: 100 };
   /**
-   * How an order reads back: "documented" (the venue's own words), "no-fee" (a filled order with no fee field), or
+   * How an order reads back: "documented" (the venue's own words); "no-fee" (a filled order with no `total_fee` /
+   * `fee_currency`, which the venue shows "only when present" — settled since D8 with the fee its schedule charges);
+   * "no-price" (a filled order with no `average_fill_price`, which the schema also marks optional — still refused); or
    * "foreign" — a vocabulary neither the documented nor the assumed names cover: the status in capitals and the fill under
    * other field names, so a reader that did not refuse what it cannot read would see "new, nothing filled".
    */
-  dialect: "documented" | "no-fee" | "foreign" = "documented";
+  dialect: "documented" | "no-fee" | "no-price" | "foreign" = "documented";
   /** What DELETE answers for an order that already finished: the reference documents only 204 for a cancel. */
   deleteFinished: 204 | 404 = 404;
   /** Endpoints answering 503, as a venue does for a minute now and then: a decision can then be allowed with no order behind it. */
@@ -298,6 +300,7 @@ export class FakeRevx {
       status: o.status, time_in_force: o.tif, execution_instructions: [o.postOnly ? "post_only" : "allow_taker"], created_date: o.created, updated_date: o.created,
     };
     if (this.dialect === "no-fee") { delete body.total_fee; delete body.fee_currency; }
+    if (this.dialect === "no-price") delete body.average_fill_price;
     if (this.dialect === "foreign") {
       for (const k of ["filled_quantity", "leaves_quantity", "average_fill_price", "total_fee", "fee_currency"]) delete body[k];
       Object.assign(body, { status: o.status.toUpperCase(), executed_quantity: String(o.filled), executed_price: o.avg == null ? null : String(o.avg), fee: String(o.fee) });

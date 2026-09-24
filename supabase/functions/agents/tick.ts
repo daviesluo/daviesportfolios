@@ -32,6 +32,9 @@
 //      cannot both order — and place the order it allows: marketable at
 //      the touch on Revolut X (9 bps, the backtest's fill), post-only at
 //      the touch on Kraken (its taker fee is not worth the certainty).
+//      Every marketable order records the touch it was priced from and
+//      how old that quote was (`Touch`), so a live fill can be set
+//      against it later, and a paper fill seen for the optimist it is.
 //
 // A strategy row names where it trades (`venue`) and where its candles
 // come from (`signal_venue`): the Revolut X rows read Kraken's candles,
@@ -47,7 +50,9 @@
 // One turn at a time: pg_net fires the next minute's call whether or not
 // this one has finished, so a turn takes a lease (`agent_locks`, a
 // compare-and-set on its expiry) and a turn that finds it held does
-// nothing. The bar claim below still protects decisions on its own.
+// nothing — nor does one whose claim the database never answered, which
+// says so in its errors rather than throwing. The bar claim below still
+// protects decisions on its own.
 //
 // What the loop refuses to guess. A `pending` row the venue does not list
 // is left pending and reported every turn with the venue's balance beside
@@ -76,7 +81,7 @@ import {
   type Action, type Candle, type DislocationParams, type JevView, type PairConfig, type Position, type RankView, type RotationParams,
   type StopParams, type StrategyKind, type TrendParams,
 } from "../_shared/agents_strategy.ts";
-import { paperFeeUsd, type Quote, type Venue, type VenueId } from "../_shared/venue.ts";
+import { paperFeeUsd, type OrderView, type Quote, type Venue, type VenueId } from "../_shared/venue.ts";
 import type { Db } from "./db.ts";
 
 export const TICK_MS = 60e3;                      // the cron cadence
@@ -122,12 +127,20 @@ export type RiskRow = {
   global_pause: boolean; max_exposure_usd: number; paper_exposure_usd: number | null; daily_loss_limit_usd: number;
   max_orders_per_day: number; live_confirmed_at: string | null;
 };
+/**
+ * The touch a MARKETABLE order was priced from, as its row records it (go-live audit D9): the bid and ask, how old that quote
+ * was when the order was written (`ageMs`, on the turn's wall clock), and whether it was re-read for this order (a live
+ * order, just before the venue is called) or is the turn's own quote (a paper order, and a live one whose re-read failed).
+ * With the fill beside it — the venue's average price on a live row, the order's own price on a paper one — it is what the
+ * fill-versus-touch shortfall is computed from; nothing computes it here.
+ */
+export type Touch = { bid: number; ask: number; ageMs: number; reread: boolean };
 export type OrderRow = {
   id: number; ts: string; strategy_id: string; decision_id: number | null; venue: VenueId; symbol: string; mode: "paper" | "live"; side: "buy" | "sell";
   price: number; base_size: number; client_order_id: string; venue_order_id: string | null; state: string;
   filled_base: number; avg_fill_price: number | null; fee_usd: number; requotes: number; filled_at: string | null;
-  request?: { marketable?: boolean } | null;
-  /** The venue's reply as recorded; `placedState` is what the PLACEMENT reply said (see `place()`). */
+  request?: { marketable?: boolean; touch?: Touch | null } | null;
+  /** The venue's reply as recorded; `placedState` is what the PLACEMENT reply said (see `place()`), `feeDerived` how a fee the settling reply lacked was derived (`withFeeNote`). */
   response?: ({ placedState?: string } & Record<string, unknown>) | null;
 };
 
@@ -285,6 +298,18 @@ export function fillStamp(o: Pick<OrderRow, "filled_at" | "ts" | "request">, now
   return o.filled_at ?? (o.request?.marketable ? o.ts : nowIso);
 }
 
+/**
+ * What a live settlement records as the order's `response`: the venue's reply as it came and, when that reply carried no fee
+ * and the client derived one (go-live audit D8), `feeDerived` beside it — the rate, the notional, and the order's own field
+ * that decided maker or taker. `fee_usd` holds the fee either way; this is how the one P&L computation, which reads
+ * `fee_usd`, can be told a derived fee from one the venue reported.
+ */
+export function withFeeNote(response: unknown, view: Pick<OrderView, "feeDerived">): unknown {
+  if (!view.feeDerived) return response;
+  const reply = response && typeof response === "object" && !Array.isArray(response) ? response as Record<string, unknown> : { reply: response };
+  return { ...reply, feeDerived: view.feeDerived };
+}
+
 export function toFill(o: OrderRow) {
   return {
     ts: new Date(o.filled_at ?? o.ts).getTime(), side: o.side,
@@ -372,7 +397,18 @@ export async function tick(d: TickDeps): Promise<TickReport> {
   const report: TickReport = { at: new Date(d.now).toISOString(), strategies: 0, markets: [], basis: {}, observations: 0, decisions: [], orders: [], settled: [], probes: { opened: 0, filled: 0, expired: 0, followedUp: 0 }, windingDown: [], skipped: [], errors: [] };
   const nowIso = new Date(d.now).toISOString();
   const holder = `${nowIso} ${d.uuid()}`;
-  const held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.tick&lease_until=lt.${enc(nowIso)}`, { lease_until: new Date(d.now + LEASE_MS).toISOString(), holder });
+  // The claim is the turn's first database call, and until 2026-09-23 the one left unguarded: a database that did not
+  // answer threw out of `tick` — an `agents.crash` row and a 500 — where every other failed read ends its own job with a note
+  // (go-live audit D10). Nothing may run without the lease, since another turn could be running beside this one, and there
+  // is no floor without the database either way: the turn ends here, saying so, and `runTick` records the note as it does
+  // every turn's errors. A claim that timed out may still have landed; it expires within LEASE_MS, before the next minute.
+  let held: { name: string }[];
+  try {
+    held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.tick&lease_until=lt.${enc(nowIso)}`, { lease_until: new Date(d.now + LEASE_MS).toISOString(), holder });
+  } catch (e) {
+    report.errors.push(`LEASE CLAIM FAILED — agent_locks: ${msg(e)}; no stop and no decision this turn, and the next minute claims again`);
+    return report;
+  }
   if (!held.length) { report.skipped.push("another tick holds the lease; nothing done this minute"); return report; }
   try {
     await turn(d, report, nowIso, holder);
@@ -584,12 +620,14 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   // Revolut X's and Kraken's quotes for every symbol: the touch for orders, the mark for P&L, the basis for the record.
   // Binance's only where a row trades there (paper, `0049`): its touch fills those rows and marks their book.
   const quotes: Partial<Record<VenueId, Record<string, Quote>>> = {};
+  /** When each venue's quotes landed, on the turn's wall clock: a marketable order's touch is aged from here (D9). */
+  const quotedAt: Partial<Record<VenueId, number>> = {};
   for (const vid of ["revx", "kraken", "binance"] as VenueId[]) {
     const venue = d.venues[vid];
     if (!venue) continue;
     const wanted = vid === "binance" ? [...(execWanted.get(vid) ?? [])] : [...symbols];
     if (!wanted.length) continue;
-    try { quotes[vid] = await venue.quotes(wanted); } catch (e) { report.errors.push(`${vid}: quotes ${msg(e)}`); }
+    try { quotes[vid] = await venue.quotes(wanted); quotedAt[vid] = clock(); } catch (e) { report.errors.push(`${vid}: quotes ${msg(e)}`); }
   }
   const basisRows: Record<string, unknown>[] = [];
   for (const sym of symbols) {
@@ -692,14 +730,14 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       const after = await venue.order(o.venue_order_id);
       if (!after.ok) { report.errors.push(`${key}: cancelled ${o.venue_order_id} but could not read it back (${after.error}); left open for the next turn to settle from the venue`); return "failed"; }
       if (after.view.filledBase > 0) {
-        await settle(o, { filled_base: after.view.filledBase, avg_fill_price: after.view.avgPrice ?? o.price, fee_usd: after.view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: after.view.raw }, "filled");
+        await settle(o, { filled_base: after.view.filledBase, avg_fill_price: after.view.avgPrice ?? o.price, fee_usd: after.view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: withFeeNote(after.view.raw, after.view) }, "filled");
         return "filled";
       }
     }
     await settle(o, { cancelled_at: nowIso, response: { cancelled: why } }, "cancelled");
     return "cancelled";
   };
-  const activeByVenue = new Map<VenueId, Record<string, { venueOrderId: string; view: { state: string; filledBase: number; avgPrice: number | null; feeUsd: number; raw: unknown } }>>();
+  const activeByVenue = new Map<VenueId, Record<string, { venueOrderId: string; view: OrderView }>>();
   for (const o of open) {
     const key = `${o.strategy_id}|${o.symbol}`;
     const venue = d.venues[o.venue];
@@ -724,7 +762,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           else if (!h.ok) report.errors.push(`${key}: order history ${h.error}`);
         }
         if (found) {
-          await d.db.update("agent_orders", `id=eq.${o.id}`, { state: found.view.state, venue_order_id: found.venueOrderId, filled_base: found.view.filledBase, avg_fill_price: found.view.avgPrice, fee_usd: found.view.feeUsd, filled_at: found.view.filledBase > 0 ? fillStamp(o, nowIso) : o.filled_at, response: { reconciled: true, view: found.view.raw }, updated_at: nowIso });
+          await d.db.update("agent_orders", `id=eq.${o.id}`, { state: found.view.state, venue_order_id: found.venueOrderId, filled_base: found.view.filledBase, avg_fill_price: found.view.avgPrice, fee_usd: found.view.feeUsd, filled_at: found.view.filledBase > 0 ? fillStamp(o, nowIso) : o.filled_at, response: withFeeNote({ reconciled: true, view: found.view.raw }, found.view), updated_at: nowIso });
           report.settled.push({ id: o.id, state: `reconciled:${found.view.state}` });
           holdInFlight(key, o.side);
           continue;
@@ -774,17 +812,17 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           if (view.state === "filled") {
             // A fill is dated from when it FIRST filled: a completion that re-stamped it moved a position's opening — and, across
             // midnight, a whole fill between yesterday's P&L and today's — every time an order finished in pieces.
-            await settle(o, { filled_base: view.filledBase || o.base_size, avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), response: view.raw }, "filled");
+            await settle(o, { filled_base: view.filledBase || o.base_size, avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), response: withFeeNote(view.raw, view) }, "filled");
             continue;
           }
           if (view.state === "cancelled" || view.state === "rejected") {
             // A cancel after a partial fill is a FILL of what filled — an IOC that took part of the ask is the usual case.
-            if (view.filledBase > 0) await settle(o, { filled_base: view.filledBase, avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: view.raw }, "filled");
+            if (view.filledBase > 0) await settle(o, { filled_base: view.filledBase, avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: withFeeNote(view.raw, view) }, "filled");
             else await settle(o, { cancelled_at: nowIso, response: view.raw }, view.state);
             continue;
           }
           if (view.state === "partially_filled" && (o.state !== "partially_filled" || Number(o.filled_base) !== view.filledBase)) {
-            await d.db.update("agent_orders", `id=eq.${o.id}`, { state: "partially_filled", filled_base: view.filledBase, avg_fill_price: view.avgPrice, fee_usd: view.feeUsd, response: view.raw, filled_at: fillStamp(o, nowIso), updated_at: nowIso });
+            await d.db.update("agent_orders", `id=eq.${o.id}`, { state: "partially_filled", filled_base: view.filledBase, avg_fill_price: view.avgPrice, fee_usd: view.feeUsd, response: withFeeNote(view.raw, view), filled_at: fillStamp(o, nowIso), updated_at: nowIso });
           }
         }
       }
@@ -1093,11 +1131,21 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
         base = capped;
       }
     }
+    // The touch a marketable order is priced from, and when it was read (go-live audit D9). The paper control fills every
+    // marketable order at its own price, so on its own it can show neither an IOC that dies nor a fill worse than the touch —
+    // the two things the live row and its paper twin exist to measure. Each marketable row therefore records its touch; the
+    // fill it is compared with is the row's own (the venue's average price, or the paper price), and the comparison is made
+    // later, from the record.
+    const turnQuote = markets.get(mk(s.venue, sym))?.quote;
+    let seen: { bid: number; ask: number; at: number; reread: boolean } | null =
+      marketable && turnQuote && quotedAt[s.venue] != null ? { bid: turnQuote.bid, ask: turnQuote.ask, at: quotedAt[s.venue]!, reread: false } : null;
     // A live marketable order: the touch as it is NOW, and a bounded allowance beyond it (see MARKETABLE_ENTRY_SLIP_BPS).
     let px = price;
     if (marketable && mode === "live" && venue) {
-      try { const fresh = (await venue.quotes([sym]))[sym]; if (fresh && fresh.bid > 0 && fresh.ask > 0) px = side === "buy" ? fresh.ask : fresh.bid; }
-      catch (e) { report.errors.push(`${s.id}|${sym}: touch not re-read before a live order (${msg(e)}); the turn's quote stands`); }
+      try {
+        const fresh = (await venue.quotes([sym]))[sym];
+        if (fresh && fresh.bid > 0 && fresh.ask > 0) { px = side === "buy" ? fresh.ask : fresh.bid; seen = { bid: fresh.bid, ask: fresh.ask, at: clock(), reread: true }; }
+      } catch (e) { report.errors.push(`${s.id}|${sym}: touch not re-read before a live order (${msg(e)}); the turn's quote stands`); }
       const slip = (side === "buy" ? MARKETABLE_ENTRY_SLIP_BPS : MARKETABLE_EXIT_SLIP_BPS) / 1e4;
       px = side === "buy" ? px * (1 + slip) : px * (1 - slip);
     }
@@ -1105,6 +1153,14 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     const priceStr = side === "buy" && marketable ? ceilToStep(px, cfg.quote_step) : floorToStep(px, cfg.quote_step);
     const client_order_id = d.uuid();
     const request = { clientOrderId: client_order_id, symbol: sym, side, base, price: priceStr, postOnly: !marketable, marketable, timeInForce: marketable ? "ioc" : "gtc" };
+    // The request as the row stores it: a marketable one with its touch, aged at the moment the row is written — for a live
+    // order, one database round trip before the venue is called. `request` is written once and never overwritten, so the
+    // touch is still beside the fill after the row settles.
+    const requestNow = (): Record<string, unknown> => {
+      if (!marketable) return request;
+      const touch: Touch | null = seen ? { bid: seen.bid, ask: seen.ask, ageMs: Math.max(0, Math.round(clock() - seen.at)), reread: seen.reread } : null;
+      return { ...request, touch };
+    };
     const row: Record<string, unknown> = {
       strategy_id: s.id, decision_id: decisionId, venue: s.venue, symbol: sym, mode, side, order_type: "limit",
       price: Number(priceStr), base_size: Number(base), client_order_id, request, requotes, state: "new",
@@ -1137,7 +1193,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       if (!risk.live_confirmed_at && side === "buy") { report.errors.push(`${s.id}|${sym}: live order refused — live_confirmed_at is null`); return; }
       if (!venue?.canTrade) { report.errors.push(`${s.id}|${sym}: live order refused — no ${s.venue} credentials`); return; }
       // The intent is durable BEFORE the venue is called: if the reply never lands, the next turn reconciles by client id.
-      const inserted = await insertOrder({ ...row, state: "pending" }, true);
+      const inserted = await insertOrder({ ...row, request: requestNow(), state: "pending" }, true);
       if (!inserted) return;
       const [pending] = inserted;
       let placed: Awaited<ReturnType<Venue["placeLimit"]>>;
@@ -1176,7 +1232,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       await d.db.update("agent_orders", `id=eq.${pending.id}`, { state: "new", venue_order_id: placed.venueOrderId, response: { ...replied, placedState: placed.state }, updated_at: nowIso });
       report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode, side, price, base: Number(base), state: placed.state === "filled" ? "new (filled on arrival; settles next turn)" : placed.state });
     } else {
-      if (!(await insertOrder(row, false))) return;
+      if (!(await insertOrder({ ...row, request: requestNow() }, false))) return;
       report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode, side, price, base: Number(base), state: "new" });
     }
     ordersToday[bucket] = (ordersToday[bucket] ?? 0) + 1;

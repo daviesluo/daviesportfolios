@@ -17,7 +17,17 @@ export type PlaceResult =
   | { ok: true; venueOrderId: string; state: "new" | "filled"; response: unknown }
   | { ok: false; status: number; error: string; response: unknown };
 
-export type OrderView = { state: VenueOrderState; filledBase: number; avgPrice: number | null; feeUsd: number; raw: unknown };
+/**
+ * How the client derived a fee the venue's read-back did not carry (go-live audit D8): the published rate charged, the
+ * quote-currency notional it was charged on, and which of the order's own fields decided maker or taker.
+ */
+export type FeeDerivation = { bps: number; notional: number; basis: string };
+
+/**
+ * An order as the tick settles it. `raw` is the venue's reply as it came; `feeDerived` is present only when `feeUsd` was
+ * derived rather than reported, and the tick records it beside the reply so a derived fee is never read as the venue's.
+ */
+export type OrderView = { state: VenueOrderState; filledBase: number; avgPrice: number | null; feeUsd: number; raw: unknown; feeDerived?: FeeDerivation };
 
 /**
  * A resting post-only limit by default. `marketable` is for protective
