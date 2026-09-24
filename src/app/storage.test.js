@@ -4,7 +4,7 @@
 // schema bump rule in CLAUDE.md rides on migrate() — both are pure
 // (localStorage-only) so they're cheap to lock here. jsdom supplies a
 // real localStorage; we clear it between cases.
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Storage } from './storage.js';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -27,27 +27,127 @@ describe('Storage.migrate', () => {
     expect(localStorage.getItem('auth_lockout_until')).toBeNull();
     expect(localStorage.getItem('auth_attempts')).toBeNull();
     expect(localStorage.getItem('ytd-perf-cache-v12')).toBeNull();
-    expect(localStorage.getItem('dp.schema')).toBe('1');
+    expect(localStorage.getItem('dp.schema')).toBe('2');
 
     // Second run is a no-op (and must not throw).
     Storage.migrate();
-    expect(localStorage.getItem('dp.schema')).toBe('1');
+    expect(localStorage.getItem('dp.schema')).toBe('2');
   });
 
   it('treats a missing schema key as version 0 and migrates', () => {
     localStorage.setItem('ytd-perf-cache-v1', '[]');
     Storage.migrate();
     expect(localStorage.getItem('ytd-perf-cache-v1')).toBeNull();
-    expect(localStorage.getItem('dp.schema')).toBe('1');
+    expect(localStorage.getItem('dp.schema')).toBe('2');
   });
 
   it('no-ops (early return) when already at the current version', () => {
-    localStorage.setItem('dp.schema', '1');
+    localStorage.setItem('dp.schema', '2');
     // A stray legacy key wouldn't normally survive to v1, but it lets us
     // prove the migration body is skipped rather than re-run.
     localStorage.setItem('auth_token', 'keep');
     Storage.migrate();
     expect(localStorage.getItem('auth_token')).toBe('keep');
+  });
+
+  describe('v1 -> v2: the chart caches left the shared IndexedDB database', () => {
+    const had = 'indexedDB' in globalThis;
+    const before = /** @type {any} */ (globalThis).indexedDB;
+    /** @type {ReturnType<typeof vi.fn>} */
+    let deleteDatabase;
+    beforeEach(() => {
+      deleteDatabase = vi.fn();
+      /** @type {any} */ (globalThis).indexedDB = { deleteDatabase };
+    });
+    afterEach(() => {
+      if (had) /** @type {any} */ (globalThis).indexedDB = before;
+      else delete /** @type {any} */ (globalThis).indexedDB;
+    });
+
+    it('deletes the old database once — only one of its three stores ever existed — and leaves v1\'s keys alone', () => {
+      localStorage.setItem('dp.schema', '1');
+      localStorage.setItem('auth_token', 'keep');
+      Storage.migrate();
+      expect(deleteDatabase).toHaveBeenCalledTimes(1);
+      expect(deleteDatabase).toHaveBeenCalledWith('daviesportfolios');
+      expect(localStorage.getItem('auth_token')).toBe('keep');
+      expect(localStorage.getItem('dp.schema')).toBe('2');
+      Storage.migrate();
+      expect(deleteDatabase).toHaveBeenCalledTimes(1);
+    });
+
+    it('never deletes the database the caches live in now', () => {
+      localStorage.setItem('dp.schema', '0');
+      Storage.migrate();
+      expect(deleteDatabase.mock.calls.flat()).not.toContain('dp-charts');
+    });
+  });
+});
+
+describe('Storage last-shown prices (dp.lastPrices)', () => {
+  const row = { lastPrice: 240, prevClose: 238, dayPct: 0.84, extPrice: null, extDayPct: null, extPriceTrusted: null };
+
+  it('round-trips what the page showed, nulls included', () => {
+    expect(Storage.saveLastPrices({ ACME: row })).toBe(true);
+    expect(Storage.loadLastPrices()).toEqual({ ACME: row });
+  });
+
+  it('drops a ticker without a positive lastPrice, and writes nothing for an empty set', () => {
+    localStorage.setItem('dp.lastPrices', JSON.stringify({ ts: Date.now(), data: { ACME: row, ZERO: { ...row, lastPrice: 0 }, BAD: null } }));
+    expect(Object.keys(Storage.loadLastPrices())).toEqual(['ACME']);
+    localStorage.clear();
+    expect(Storage.saveLastPrices({})).toBe(false);
+    expect(localStorage.getItem('dp.lastPrices')).toBeNull();
+  });
+
+  it('is ignored past a week — too far from today to be worth painting', () => {
+    localStorage.setItem('dp.lastPrices', JSON.stringify({ ts: Date.now() - 8 * DAY, data: { ACME: row } }));
+    expect(Storage.loadLastPrices()).toEqual({});
+    localStorage.setItem('dp.lastPrices', JSON.stringify({ ts: Date.now() - 6 * DAY, data: { ACME: row } }));
+    expect(Storage.loadLastPrices()).toEqual({ ACME: row });
+  });
+
+  it('reads a missing or malformed row as empty', () => {
+    expect(Storage.loadLastPrices()).toEqual({});
+    localStorage.setItem('dp.lastPrices', 'not json');
+    expect(Storage.loadLastPrices()).toEqual({});
+  });
+});
+
+describe('Storage 24H chart seed (dp.perfSeed)', () => {
+  const bars = (base) => [{ date: '2026-09-17T14:00', close: base }, { date: '2026-09-17T19:55', close: base + 1 }];
+  const seed = () => ({
+    rangeKey: '1D', variantKey: 'closed', spSymbol: '^GSPC',
+    hist: { '^GSPC': bars(5000), ACME: bars(200) },
+    recorded: [{ ts: '2026-09-17T13:55:00.000Z', prices: { ACME: 200 } }],
+  });
+
+  it('round-trips the bars and the recorded rows', () => {
+    expect(Storage.savePerfSeed(seed())).toBe(true);
+    expect(Storage.loadPerfSeed()).toEqual(seed());
+  });
+
+  it('drops a series with a malformed bar rather than hand the chart something that throws on its first render', () => {
+    const s = seed();
+    s.hist.ACME = [{ date: '2026-09-17T14:00', close: 200 }, /** @type {any} */ ({ close: 201 })];
+    Storage.savePerfSeed(s);
+    const back = Storage.loadPerfSeed();
+    expect(Object.keys(back?.hist || {})).toEqual(['^GSPC']);
+  });
+
+  it('is no seed at all without the benchmark, off the 24H window, past a week, or malformed', () => {
+    const noSp = seed();
+    delete /** @type {any} */ (noSp.hist)['^GSPC'];
+    Storage.savePerfSeed(noSp);
+    expect(Storage.loadPerfSeed()).toBeNull();
+    Storage.savePerfSeed({ ...seed(), rangeKey: '1W' });
+    expect(Storage.loadPerfSeed()).toBeNull();
+    localStorage.setItem('dp.perfSeed', JSON.stringify({ ts: Date.now() - 8 * DAY, data: seed() }));
+    expect(Storage.loadPerfSeed()).toBeNull();
+    localStorage.setItem('dp.perfSeed', JSON.stringify({ ts: Date.now(), data: { ...seed(), recorded: 'x' } }));
+    expect(Storage.loadPerfSeed()).toBeNull();
+    localStorage.setItem('dp.perfSeed', '{');
+    expect(Storage.loadPerfSeed()).toBeNull();
   });
 });
 

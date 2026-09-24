@@ -38,6 +38,19 @@ const STORAGE_KEYS = {
   // portfolio (savePortfolioCache refuses `_isDemo` rows), so a network
   // hiccup can't seed a stranger's data as if it were the user's own.
   portfolioCache: 'dp.portfolioCache', // { ts, data: Portfolio }
+  // The price fields of every holding AS THE PAGE LAST SHOWED THEM —
+  // written after each price refresh (see portfolio/shown_prices.js).
+  // The portfolio cache above is written only when the book is loaded or
+  // saved, so the prices inside it are the ones of the last load; a
+  // reload painted those, then the server row's own (older again) ones,
+  // then the live quotes — three sets of numbers in two seconds. These
+  // are drawn over whichever book is on screen until the live quotes
+  // land, and are never sent to the server.
+  lastPrices:    'dp.lastPrices', // { ts, data: { ticker: { lastPrice, prevClose, dayPct, extPrice, extDayPct, extPriceTrusted } } }
+  // The bars and recorded prints the vs-S&P panel's 24H window was last
+  // drawn from, readable on the panel's FIRST render — IndexedDB, where
+  // the chart store keeps them, answers only after it. See perf_chart.jsx.
+  perfSeed:      'dp.perfSeed', // { ts, data: { rangeKey: '1D', variantKey, spSymbol, hist: { sym: [{date, close}] }, recorded: [{ts, prices}] } }
   // Timestamp (ms epoch) of the newest ops-error the admin has
   // acknowledged via the error-triage badge — the badge stays hidden
   // until a newer error is reported. Admin-only single scalar; no
@@ -48,7 +61,15 @@ const STORAGE_KEYS = {
   // the legacy-localStorage migration so these names are referenced
   // there, not here.
 };
-const CURRENT_SCHEMA_VERSION = 1;
+const CURRENT_SCHEMA_VERSION = 2;
+// The IndexedDB database the chart caches used until schema v2. Only one
+// of its three object stores ever existed (see chart_store.js), and the
+// caches live in `dp-charts` now, so the v2 step deletes it.
+const LEGACY_CHART_DB = 'daviesportfolios';
+// Rows that are only ever a first-paint stand-in — last-seen prices, the
+// 24H chart seed — are ignored past a week, like the market cache: past
+// that, "what the page last showed" is too far from today to paint.
+const LAST_SHOWN_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 // Market-cache freshness — accept rows up to 7 days old. FX moves
 // <1 % over a typical week and index / futures levels move a few
 // percent at most, so the cold-start render is still well within
@@ -111,10 +132,28 @@ function migrateStorage() {
     legacy.push('ytd-perf-cache-v2'); // alias kept for safety
     for (const k of legacy) localStorage.removeItem(k);
   }
-  // Future migrations: if (stored < 2) { ... }
+  if (stored < 2) {
+    // v1 → v2: the chart caches moved to their own IndexedDB database.
+    // The old one held the ticker-modal store alone; its rows are a cache
+    // the next prefetch refills, so it is dropped rather than copied.
+    // Fire-and-forget: a tab still running the old code keeps the delete
+    // waiting until it closes, and nothing here depends on it finishing.
+    try {
+      if (typeof indexedDB !== 'undefined') indexedDB.deleteDatabase(LEGACY_CHART_DB);
+    } catch { /* no IndexedDB here — nothing to delete */ }
+  }
+  // Future migrations: if (stored < 3) { ... }
 
   localStorage.setItem(STORAGE_KEYS.schemaVersion, String(CURRENT_SCHEMA_VERSION));
 }
+
+/**
+ * A `{ date, close }` bar the chart can read. A seed that fails this is
+ * dropped, not drawn: the chart sorts on `date` and would throw on the
+ * first render, before anything could replace it.
+ * @param {any} p
+ */
+const isBar = (p) => !!p && typeof p.date === 'string' && typeof p.close === 'number' && Number.isFinite(p.close);
 
 // Typed helpers — call these instead of touching localStorage directly so
 // the keys stay centralised and migrations stay possible.
@@ -241,6 +280,55 @@ export const Storage = {
     if (!p.positions || typeof p.positions !== 'object') return false;
     return writeJSON(STORAGE_KEYS.portfolioCache, { ts: Date.now(), data: p });
   },
+  // Last-shown price fields per holding (see STORAGE_KEYS.lastPrices).
+  // `{}` when there is no usable row; entries without a positive
+  // lastPrice are dropped, as the market cache drops them.
+  /** @returns {Record<string, Record<string, any>>} */
+  loadLastPrices: () => {
+    const row = readJSON(STORAGE_KEYS.lastPrices, null);
+    if (!row || typeof row !== 'object') return {};
+    const ts = Number(row.ts);
+    if (!isFinite(ts) || Date.now() - ts > LAST_SHOWN_MAX_AGE_MS) return {};
+    const data = row.data;
+    if (!data || typeof data !== 'object') return {};
+    /** @type {Record<string, Record<string, any>>} */
+    const out = {};
+    for (const [t, v] of Object.entries(data)) {
+      if (!v || typeof v !== 'object') continue;
+      const lp = Number(/** @type {any} */ (v).lastPrice);
+      if (!isFinite(lp) || lp <= 0) continue;
+      out[t] = /** @type {Record<string, any>} */ (v);
+    }
+    return out;
+  },
+  /** @param {Record<string, Record<string, any>>} prices */
+  saveLastPrices: (prices) => {
+    if (!prices || typeof prices !== 'object' || Object.keys(prices).length === 0) return false;
+    return writeJSON(STORAGE_KEYS.lastPrices, { ts: Date.now(), data: prices });
+  },
+  // The 24H chart's last-drawn inputs (see STORAGE_KEYS.perfSeed), or
+  // null. Every series and row is checked, because the chart reads the
+  // seed on its first render and a malformed one would throw there.
+  loadPerfSeed: () => {
+    const row = readJSON(STORAGE_KEYS.perfSeed, null);
+    if (!row || typeof row !== 'object') return null;
+    const ts = Number(row.ts);
+    if (!isFinite(ts) || Date.now() - ts > LAST_SHOWN_MAX_AGE_MS) return null;
+    const d = row.data;
+    if (!d || typeof d !== 'object') return null;
+    if (d.rangeKey !== '1D' || typeof d.variantKey !== 'string' || typeof d.spSymbol !== 'string') return null;
+    if (!d.hist || typeof d.hist !== 'object' || !Array.isArray(d.recorded)) return null;
+    /** @type {Record<string, Array<{date: string, close: number}>>} */
+    const hist = {};
+    for (const [s, bars] of Object.entries(d.hist)) {
+      if (Array.isArray(bars) && bars.length > 0 && bars.every(isBar)) hist[s] = bars;
+    }
+    if (!hist[d.spSymbol]) return null;
+    const recorded = d.recorded.filter((r) => r && typeof r.ts === 'string' && r.prices && typeof r.prices === 'object');
+    return { rangeKey: '1D', variantKey: d.variantKey, spSymbol: d.spSymbol, hist, recorded };
+  },
+  /** @param {{ rangeKey: string, variantKey: string, spSymbol: string, hist: Record<string, any[]>, recorded: any[] }} seed */
+  savePerfSeed: (seed) => writeJSON(STORAGE_KEYS.perfSeed, { ts: Date.now(), data: seed }),
   // dp.tickerChart / dp.maCache / dp.ytd moved to IndexedDB
   // (chart_store.js — ChartStore / MaStore / YtdStore). See that
   // module for the read/write API. localStorage now only holds

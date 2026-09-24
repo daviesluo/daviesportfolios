@@ -622,6 +622,20 @@ and worse than 95–99 % of random vetoes of the same size; no fixed N rescues D
 (+8.51 → +14.61 %, beyond chance), and in the fresh non-bear windows it costs G (+54.9 → +30.9 %) beyond chance on three
 evaluations of four and H on both trail ones. §3.9's last written-down candidate is closed; no paper twin.
 
+### [2026-09-24 00:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**A reload paints what the page last showed** (Davies: every open showed other numbers, then
+"Computing…" and a flat line on the vs-S&P chart, then jumped). Measured in the committed bundle
+with every answer held 2 s: PORTFOLIO read the cached row's prices, the server row's, then live;
+the chart said "Computing…" until the network answered, then drew +0.00 % flat until the holdings'
+batch landed. Causes: the chart store's `ytd` and `maCache` object stores NEVER EXISTED (idb-keyval
+makes a store only when the database is new, and all three shared one: after a session only
+`tickerChart` was on disk) — now one `dp-charts` database, schema v2 drops the old one; the 24H
+chart now paints from `dp.perfSeed`, waits for the store, and never draws the benchmark alone; the
+prices last shown (`dp.lastPrices`, `portfolio/shown_prices.js`) are drawn over a copy of the book
+until live quotes land, never saved (pinned). Sweep 230 → 236, the six new checks fail on the old
+bundle. `.claude/CLAUDE.md` still quotes 230 checks: not edited from a subagent.
+
 ### [2026-09-24 00:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **S1 pre-registered before any arm ran: §3.9's BTC-regime entry filter on the live row** (Davies' request of
@@ -634,6 +648,7 @@ E; B, C, D, F, G, H not bear), a same-count episode null, and the bar (improve t
 cost no other window beyond chance → adopt / reject / inconclusive). Script
 `backtests/btc_regime/backtest_btc_regime.ts` committed with it (sha256 in the file); only its definitions and a
 placebo-gate smoke stage have run. It discloses that §3.17 already found the gate worsens window D at sleeve level.
+
 
 ### [2026-09-24 00:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

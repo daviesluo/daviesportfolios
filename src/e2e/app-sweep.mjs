@@ -455,6 +455,22 @@ const AGENTS_NOT_READY = {
  * dashboard with a global pause set and a venue reporting a fault).
  */
 let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused'} */ ('ok');
+/**
+ * The reload section's levers: the book the `data` function hands back (a
+ * server row's prices are those of its last SAVE, not what the page showed),
+ * how long every Edge Function answer is held back, and what was answered
+ * while held.
+ */
+let loadOverride = /** @type {any} */ (null);
+let holdMs = 0;
+/** @type {string[]} */
+const heldAnswers = [];
+/** The fixture's book as a row saved when every price stood at `k` times today's. */
+const storedAt = (k) => ({
+  ...PORTFOLIO,
+  holdings: Object.fromEntries(Object.entries(PORTFOLIO.holdings).map(([t, h]) => [t, /** @type {any} */ (h).isCash ? h
+    : { ...h, lastPrice: Number((/** @type {any} */ (h).lastPrice * k).toFixed(4)), prevClose: Number((/** @type {any} */ (h).prevClose * k).toFixed(4)) }])),
+});
 /** `SWEEP_SHOTS=<dir>` saves a screenshot at the named points, per viewport — how the page is looked at, not only asserted. */
 const SHOTS_DIR = process.env.SWEEP_SHOTS || '';
 async function shot(page, name) {
@@ -477,7 +493,12 @@ const near = (a, b, eps = 0.51) => Math.abs(a - b) <= eps;
 const money = (s) => Number(String(s || '').replace(/[^0-9.-]/g, ''));
 
 async function newPage(browser, { width, height }, errors, tokenMisses, opts = {}) {
-  const ctx = await browser.newContext({ viewport: { width, height } });
+  // `blockServiceWorkers`: a page that RELOADS is controlled by the app's
+  // service worker from then on, and the worker's own fetches never pass
+  // through `page.route` — every mocked Edge call would go to the real
+  // network instead. The reload section blocks it; nothing it checks is
+  // the worker's.
+  const ctx = await browser.newContext({ viewport: { width, height }, ...(opts.blockServiceWorkers ? { serviceWorkers: 'block' } : {}) });
   await ctx.addInitScript(([token]) => { sessionStorage.setItem('dp.token', token); }, [opts.token || TOKEN]);
   const page = await ctx.newPage();
   // Freeze `Date` for the page at the same instant the fixture's bars
@@ -516,13 +537,21 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
     const fn = TOKEN_REQUIRED.find((f) => url.includes(`/functions/v1${f}`));
     if (fn && !hdrs['x-app-token']) tokenMisses.push(fn);
 
-    const json = (body) => route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      headers: { 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify(body),
-    });
-    if (url.includes('/data?') && url.includes('action=load')) return json({ data: PORTFOLIO, version: 1 });
+    // Held back for the reload section; an answer to a page that has since
+    // reloaded has nowhere to go, and that is not the app's error.
+    const held = holdMs;
+    if (held > 0) await new Promise((r) => setTimeout(r, held));
+    const json = (body) => {
+      const done = route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify(body),
+      });
+      if (held > 0) { heldAnswers.push(url.replace(/^.*\/functions\/v1/, '').split('&')[0]); return done.catch(() => {}); }
+      return done;
+    };
+    if (url.includes('/data?') && url.includes('action=load')) return json({ data: loadOverride ?? PORTFOLIO, version: 1 });
     if (url.includes('/agents?') && url.includes('action=dashboard')) {
       if (agentsMode === 'notReady') return json(AGENTS_NOT_READY);
       if (agentsMode === 'paused') return json(AGENTS_PAUSED());
@@ -702,6 +731,92 @@ async function run() {
     const reported = /** @type {any} */ (page).__reported;
     if (reported.includes('chunk.load') && !reported.includes('render.crash')) ok('desktop/recovery', `the failure was reported as chunk.load and not as a crash (${reported.join(', ')})`);
     else fail('desktop/recovery', `reports: ${reported.join(', ') || 'none'}`);
+    await ctx.close();
+  }
+
+  // ---- 0c. a reload paints what the page last showed ----------------------
+  // Davies (2026-09-23): every open or refresh first showed different
+  // numbers, the vs-S&P chart said "Computing…", then drew a flat line, and
+  // a second or two later everything jumped to the latest. Three causes: the
+  // first paint was valued at the prices frozen in the cached book, then at
+  // the server row's own (portfolio/shown_prices.js); the chart's IndexedDB
+  // store had never persisted (prices/chart_store.js); and the benchmark's
+  // batch was drawn before the holdings' (perf_chart.jsx). Here the server
+  // row's stored prices differ from what was on screen — first 0.9x, then
+  // 0.95x — every Edge Function answer is held back 1.5 s, and the page is
+  // read every frame from the reload on. Nothing may differ from what was
+  // on screen before it: not the first paint, not after the answers land.
+  for (const vp of [{ name: 'desktop', width: 1400, height: 1000 },
+                    { name: 'phone', width: 390, height: 844 }]) {
+    const S = (n) => `${vp.name}/reload/${n}`;
+    loadOverride = storedAt(0.9);
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true });
+    const read = () => page.evaluate(() => {
+      const txt = (el) => (el ? el.textContent.replace(/\s+/g, ' ').trim() : null);
+      const pf = txt(document.querySelector('.scoreboard-cell-portfolio .sb-value-lg'));
+      let day = null;
+      for (const c of document.querySelectorAll('.scoreboard-cell')) if (txt(c.querySelector('.sb-label')) === 'DAY CHANGE') day = txt(c.querySelector('.sb-value'));
+      const wrap = [...document.querySelectorAll('.perf-chart-wrap')].find((w) => w.getBoundingClientRect().width > 0);
+      let chart = null;
+      let flat = null;
+      if (wrap) {
+        const empty = txt(wrap.querySelector('.sparkline-empty'));
+        chart = empty ? `[${empty}]` : [...wrap.querySelectorAll('.perf-legend-item')].map(txt).join(' | ');
+        const line = [...wrap.querySelectorAll('svg path')].find((n) => n.getAttribute('stroke-width') === '1.6' && !n.getAttribute('opacity'));
+        const ys = (line?.getAttribute('d') || '').replace(/^M/, '').split('L').filter(Boolean).map((p) => Number(p.split(',')[1]));
+        flat = ys.length > 1 ? Math.max(...ys) - Math.min(...ys) < 0.05 : null;
+      }
+      return { pf, day, chart, flat };
+    });
+    await page.waitForFunction((want) => (document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || '').replace(/[^0-9.]/g, '') !== '' && Math.abs(Number((document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || '').replace(/[^0-9.-]/g, '')) - want) < 1, TOTAL_USD, { timeout: 15_000 }).catch(() => {});
+    await page.waitForSelector('.perf-legend-item', { state: 'visible', timeout: 15_000 }).catch(() => {});
+    await page.waitForTimeout(2500);
+    const before = await read();
+    const stores = await page.evaluate(() => new Promise((res) => {
+      const rq = indexedDB.open('dp-charts');
+      rq.onsuccess = () => {
+        const db = rq.result;
+        const names = [...db.objectStoreNames].sort();
+        if (!names.includes('ytd')) { db.close(); res({ names, rows24h: 0 }); return; }
+        const k = db.transaction('ytd').objectStore('ytd').getAllKeys();
+        k.onsuccess = () => { res({ names, rows24h: k.result.filter((x) => String(x).includes('|1D:')).length }); db.close(); };
+      };
+      rq.onerror = () => res({ names: [], rows24h: 0 });
+    }));
+    if (JSON.stringify(stores.names) === JSON.stringify(['maCache', 'tickerChart', 'ytd']) && stores.rows24h > 0) {
+      ok(S('store'), `the chart store holds all three object stores and ${stores.rows24h} rows of the 24H window after a session`);
+    } else fail(S('store'), `stores ${JSON.stringify(stores)} — the vs-S&P chart's bars would not survive a reload`);
+
+    loadOverride = storedAt(0.95);
+    holdMs = 1500;
+    heldAnswers.length = 0;
+    // Six minutes on, past the 24H window's five-minute freshness, so the
+    // chart asks the network again as well.
+    await page.clock.setFixedTime(new Date(NOW_MS + 6 * 60e3));
+    await page.reload({ waitUntil: 'commit' });
+    const seen = [];
+    const t0 = Date.now();
+    while (Date.now() - t0 < 3200) {
+      const snap = await read().catch(() => null);
+      if (snap && snap.pf) seen.push({ t: Date.now() - t0, ...snap });
+      await page.waitForTimeout(15);
+    }
+    holdMs = 0;
+    loadOverride = null;
+    const first = seen[0];
+    const same = (x) => x.pf === before.pf && x.day === before.day && x.chart === before.chart && x.flat === before.flat;
+    if (!before.chart || before.chart.startsWith('[') || before.flat !== false) {
+      fail(S('first-paint'), `the page never settled before the reload: chart ${before.chart}, flat ${before.flat}`);
+    } else if (first && same(first)) {
+      ok(S('first-paint'), `the first paint (${first.t} ms) is what was on screen: ${first.pf}, ${first.day}, ${first.chart}`);
+    } else {
+      fail(S('first-paint'), `first paint ${first ? `${first.t} ms: ${first.pf} | ${first.day} | ${first.chart} | flat ${first.flat}` : 'never'}; before the reload ${before.pf} | ${before.day} | ${before.chart}`);
+    }
+    const moved = seen.find((x) => !same(x));
+    const answered = heldAnswers.some((a) => a.includes('action=load')) && heldAnswers.some((a) => a.startsWith('/prices'));
+    if (!answered) fail(S('steady'), `the held answers never landed inside the window (${heldAnswers.join(', ') || 'none'})`);
+    else if (!moved) ok(S('steady'), `${seen.length} reads over 3.2 s, through the book and the quotes landing at 1.5 s: nothing moved, no "Computing…", no flat line`);
+    else fail(S('steady'), `at ${moved.t} ms it read ${moved.pf} | ${moved.day} | ${moved.chart} | flat ${moved.flat} (was ${before.pf} | ${before.day} | ${before.chart})`);
     await ctx.close();
   }
 

@@ -34,6 +34,10 @@ vi.mock('../prices/chart_store.js', () => {
     },
     ChartStore: noop,
     MaStore: noop,
+    // The real store in a test run has no IndexedDB and reads from memory
+    // alone, which is loaded from the start.
+    chartStoresReady: () => true,
+    hydrateAllChartStores: () => Promise.resolve(),
   };
 });
 

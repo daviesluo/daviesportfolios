@@ -21,15 +21,80 @@
 //     are swallowed silently; the in-memory copy survives the
 //     session even if persistence fails.
 //
-// Three logical stores: tickerChart, maCache, ytd. Each gets its
-// own IDB object store via idb-keyval's `createStore`. On first
-// hydrate, each store also slurps any existing localStorage row of
-// the same name and writes it into IDB, then deletes the
-// localStorage row — that's the one-shot migration.
+// Three logical stores: tickerChart, maCache, ytd — three object
+// stores of ONE database, which is opened once with all three (see
+// `openChartDb`). On first hydrate, each store also slurps any existing
+// localStorage row of the same name and writes it into IDB, then
+// deletes the localStorage row — that's the one-shot migration.
 
-import { createStore, get, set, del, keys, entries } from 'idb-keyval';
+import { get, set, del, keys, entries } from 'idb-keyval';
 
-const DB_NAME = 'daviesportfolios';
+// The database every chart store lives in, and the object stores it
+// must hold. A NEW name, because the old one could never hold more than
+// one of them.
+//
+// Until 2026-09-23 each store came from idb-keyval's `createStore`
+// under one shared name, `daviesportfolios`. `createStore` creates its
+// object store only in `onupgradeneeded`, which fires only when the
+// database does not exist yet — so the first store to open it
+// (tickerChart, which hydrates first) made the database with its own
+// store, and `ytd` and `maCache` never existed. Every write to them was
+// swallowed by `safeSet`'s catch and every hydrate came back empty: the
+// performance panel's bars, the recorded 5-minute prices and the
+// moving-average history lived in memory only, so every reload started
+// the vs-S&P chart cold — "Computing…", then the network. Measured in a
+// real browser: after a whole session the database held `tickerChart`
+// (135 rows) and nothing else. The old database is deleted by
+// Storage.migrate's v2 step.
+export const CHART_DB_NAME = 'dp-charts';
+const CHART_DB_VERSION = 1;
+const CHART_STORE_NAMES = ['tickerChart', 'maCache', 'ytd'];
+
+/** @type {Promise<IDBDatabase> | null} */
+let chartDb = null;
+
+/**
+ * Open the chart database once, creating every object store it is
+ * missing. Shared by all three stores, so they cannot disagree about
+ * which stores exist. A later schema adds its store to
+ * `CHART_STORE_NAMES` and bumps `CHART_DB_VERSION`; `onversionchange`
+ * closes this tab's connection so the newer tab's upgrade is not
+ * blocked by it.
+ * @returns {Promise<IDBDatabase>}
+ */
+function openChartDb() {
+  if (chartDb) return chartDb;
+  chartDb = new Promise((resolve, reject) => {
+    const req = indexedDB.open(CHART_DB_NAME, CHART_DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      for (const name of CHART_STORE_NAMES) {
+        if (!db.objectStoreNames.contains(name)) db.createObjectStore(name);
+      }
+    };
+    req.onsuccess = () => {
+      const db = req.result;
+      db.onversionchange = () => { db.close(); chartDb = null; };
+      // Safari has been known to drop the connection on its own.
+      db.onclose = () => { chartDb = null; };
+      resolve(db);
+    };
+    req.onerror = () => { chartDb = null; reject(req.error); };
+  });
+  return chartDb;
+}
+
+/**
+ * An idb-keyval custom store over one object store of the chart
+ * database — the same `(txMode, callback)` shape `createStore` returns,
+ * so `get` / `set` / `entries` work on it unchanged.
+ * @param {string} storeName
+ * @returns {(txMode: IDBTransactionMode, callback: (store: IDBObjectStore) => any) => Promise<any>}
+ */
+function chartObjectStore(storeName) {
+  return (txMode, callback) => openChartDb()
+    .then((db) => callback(db.transaction(storeName, txMode).objectStore(storeName)));
+}
 
 /**
  * @typedef {{ ts: number, data: any }} CacheEntry
@@ -44,21 +109,16 @@ const DB_NAME = 'daviesportfolios';
  *        `{ entries: { k: { ts, data } } }`; ytd is `{ year, byRange: { rkey: { entries } } }`.
  */
 function makeChartStore(storeName, legacyLocalStorageKey, migrateExtract) {
-  // idb-keyval lazily opens DB on first call; instantiate the store
-  // descriptor up front so we don't pay that lookup repeatedly.
   // Returns null in environments without `indexedDB` (vitest node
   // runner, private-mode iOS Safari, …) so all subsequent IDB ops
   // short-circuit cleanly to mem-only.
-  /** @type {ReturnType<typeof createStore>|null} */
+  /** @type {ReturnType<typeof chartObjectStore>|null} */
   let idbStore = null;
   const idbAvailable = typeof indexedDB !== 'undefined';
   const tryStore = () => {
     if (!idbAvailable) return null;
-    if (idbStore) return idbStore;
-    try {
-      idbStore = createStore(DB_NAME, storeName);
-      return idbStore;
-    } catch { return null; }
+    if (!idbStore) idbStore = chartObjectStore(storeName);
+    return idbStore;
   };
   // Wrap idb-keyval's `set`/`del` because their first call path
   // calls `indexedDB.open(...)` synchronously — a missing global
@@ -77,6 +137,14 @@ function makeChartStore(storeName, legacyLocalStorageKey, migrateExtract) {
   /** @type {Map<string, CacheEntry>} */
   const mem = new Map();
   let hydrationPromise = /** @type {Promise<void>|null} */ (null);
+  // Keys written or deleted in memory while hydration was still reading.
+  // That read began before those writes, so what it returns for them is
+  // OLDER than what memory already holds — a fetch that answered before
+  // a large store finished loading would otherwise be put back to the
+  // previous session's row. Null once hydration is done, and from the
+  // start where there is no IndexedDB to hydrate from.
+  /** @type {Set<string> | null} */
+  let touchedWhileHydrating = idbAvailable ? new Set() : null;
 
   function hydrate() {
     if (hydrationPromise) return hydrationPromise;
@@ -105,9 +173,11 @@ function makeChartStore(storeName, legacyLocalStorageKey, migrateExtract) {
         if (!store) return;
         const all = await entries(store);
         for (const [k, v] of all) {
+          if (touchedWhileHydrating?.has(/** @type {string} */ (k))) continue;
           if (typeof k === 'string' && v && typeof v === 'object') mem.set(k, v);
         }
       } catch { /* IDB unavailable (private mode, tests, etc) — mem-only */ }
+      finally { touchedWhileHydrating = null; }
     })();
     return hydrationPromise;
   }
@@ -124,11 +194,13 @@ function makeChartStore(storeName, legacyLocalStorageKey, migrateExtract) {
      * @param {CacheEntry} value
      */
     set(key, value) {
+      touchedWhileHydrating?.add(key);
       mem.set(key, value);
       safeSet(key, value);
     },
     /** @param {string} key */
     del(key) {
+      touchedWhileHydrating?.add(key);
       mem.delete(key);
       safeDel(key);
     },
@@ -138,6 +210,7 @@ function makeChartStore(storeName, legacyLocalStorageKey, migrateExtract) {
     pruneOlderThan(cutoff) {
       for (const k of Array.from(mem.keys())) {
         if ((mem.get(k)?.ts || 0) < cutoff) {
+          touchedWhileHydrating?.add(k);
           mem.delete(k);
           safeDel(k);
         }
@@ -211,8 +284,17 @@ export function hydrateAllChartStores() {
     ChartStore.hydrate(),
     MaStore.hydrate(),
     YtdStore.hydrate(),
-  ]);
+  ]).then(() => { chartStoresHydrated = true; });
 }
+
+// True once every store has finished loading from IndexedDB (or found
+// there was nothing to load). Until then an empty read means "not loaded
+// yet", not "not cached" — which is the difference between a chart that
+// fetches from the network on every reload and one that waits a moment
+// for the copy it already has.
+let chartStoresHydrated = false;
+/** @returns {boolean} */
+export function chartStoresReady() { return chartStoresHydrated; }
 
 // Retention for the IDB-backed chart caches. Entries are TTL-checked
 // on read (5 m … 12 h per range in cache.js), so anything older than a

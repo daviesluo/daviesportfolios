@@ -13,6 +13,8 @@ import { fxToUSD } from '../portfolio/fx.js';
 import { fetchHistorical, fetchHistoricalBatch } from '../prices/historical.js';
 import { usMarketHoursUtc, fourHourSlots } from '../prices/market_hours.js';
 import { loadRangeCache, saveRangeCache } from '../prices/cache.js';
+import { chartStoresReady, hydrateAllChartStores } from '../prices/chart_store.js';
+import { Storage } from '../app/storage.js';
 import {
   buildTickerSeries,
   computeAt,
@@ -137,6 +139,143 @@ const PERF_CACHE_TTL_MS = {
 const loadPerfCache = loadRangeCache;
 const savePerfCache = saveRangeCache;
 
+// ---- What the chart can draw before anything answers.
+//
+// A reload used to open this panel on "Computing…" for as long as the
+// network took, then a FLAT portfolio line for as long again, then the
+// real one. Three causes, each fixed where it lives:
+//
+//   1. The store the bars are cached in was never written to disk (see
+//      chart_store.js), so every reload started cold. Fixed there.
+//   2. Even persisted, the store is read from IndexedDB asynchronously,
+//      after this panel's first render. So a mount first waits for it
+//      (never longer than STORE_WAIT_MS) rather than calling its copy
+//      "not cached" and fetching everything again, and the 24H window —
+//      the one the panel opens on — also keeps its last picture's bars
+//      in localStorage, which IS readable on the first render
+//      (Storage.loadPerfSeed). The same bars through the same
+//      `computeAt`: no second implementation of the line, only a
+//      second copy of its inputs.
+//   3. The benchmark and the holdings arrive in two batches, and the
+//      chart drew the first to land. The benchmark alone is a book with
+//      no history, where every holding counts flat and the portfolio
+//      line reads 0.00 % until its own batch lands. `perfBarsIncomplete`
+//      holds that paint.
+
+/** How long a mount waits for the chart store to finish loading before it treats the store as empty. */
+const STORE_WAIT_MS = 1500;
+
+/**
+ * Whether a half-arrived set of bars must wait for the rest before it is
+ * drawn: the benchmark is missing while its batch is still out, or no
+ * holding has any history while the holdings' batch is still out.
+ * Drawing either is drawing a placeholder — the second one reads as a
+ * flat 0.00 % portfolio line. Once nothing is out, whatever there is IS
+ * the answer (a holding with no history anywhere counts flat, as it must).
+ * @param {Record<string, any[]> | null | undefined} bars
+ * @param {string} spSymbol
+ * @param {string[]} tickers  the book's non-cash holdings
+ * @param {{ sp: boolean, tickers: boolean }} pending  which batches are still out
+ * @returns {boolean}
+ */
+export function perfBarsIncomplete(bars, spSymbol, tickers, pending) {
+  const has = (/** @type {string} */ s) => {
+    const series = bars ? bars[s] : null;
+    return Array.isArray(series) && series.length > 0;
+  };
+  const hasBook = tickers.length === 0 || tickers.some(has);
+  return (!has(spSymbol) && pending.sp) || (!hasBook && pending.tickers);
+}
+
+/**
+ * The seed's identity, cheap enough to compare on every change: each
+ * series' length and last bar, the recorded rows' count and last stamp.
+ * Two PerfChart instances draw the same picture (the desktop column and
+ * the sidebar's copy), and a picture read back from the seed must not be
+ * written straight back — this is what tells them apart.
+ * @param {{ variantKey: string, spSymbol: string, hist: Record<string, any[]>, recorded: any[] }} seed
+ */
+export function perfSeedSignature(seed) {
+  const series = Object.keys(seed.hist).sort().map((s) => {
+    const bars = seed.hist[s];
+    const last = bars[bars.length - 1];
+    return `${s}:${bars.length}:${last?.date}:${last?.close}`;
+  }).join(',');
+  const rows = seed.recorded;
+  return `${seed.variantKey}|${seed.spSymbol}|${series}|${rows.length}:${rows[rows.length - 1]?.ts ?? ''}`;
+}
+
+/**
+ * The 24H picture as the seed keeps it: the benchmark's and the book's
+ * bars cut to the two fields the chart reads, and the recorded rows
+ * inside the window with only the book's prices.
+ * @param {{ variantKey: string, spSymbol: string, hist: Record<string, any[]>,
+ *   recorded: Array<{ts: string, prices: Record<string, number>}>, tickers: string[], nowMs?: number }} args
+ */
+export function perfSeedFrom({ variantKey, spSymbol, hist, recorded, tickers, nowMs = Date.now() }) {
+  /** @type {Record<string, Array<{date: string, close: number}>>} */
+  const bars = {};
+  for (const s of [spSymbol, ...tickers]) {
+    const src = hist?.[s];
+    if (Array.isArray(src) && src.length > 0) bars[s] = src.map((p) => ({ date: p.date, close: p.close }));
+  }
+  const held = new Set(tickers);
+  const since = rangeStartMs('1D', nowMs);
+  const rows = (Array.isArray(recorded) ? recorded : [])
+    .filter((r) => Date.parse(r?.ts) >= since)
+    .map((r) => ({
+      ts: r.ts,
+      prices: Object.fromEntries(Object.entries(r.prices || {}).filter(([t]) => held.has(t))),
+    }));
+  return { rangeKey: '1D', variantKey, spSymbol, hist: bars, recorded: rows };
+}
+
+// The seed, read once per page load (both instances share it) and kept
+// in step with what this page writes.
+/** @type {{ loaded: boolean, seed: any, sig: string }} */
+let perfSeedMemo = { loaded: false, seed: null, sig: '' };
+function lastPicture() {
+  if (!perfSeedMemo.loaded) {
+    const seed = Storage.loadPerfSeed();
+    perfSeedMemo = { loaded: true, seed, sig: seed ? perfSeedSignature(seed) : '' };
+  }
+  return perfSeedMemo.seed;
+}
+/** @param {any} seed */
+function keepPicture(seed) {
+  const sig = perfSeedSignature(seed);
+  if (sig === perfSeedMemo.sig) return;
+  perfSeedMemo = { loaded: true, seed, sig };
+  Storage.savePerfSeed(seed);
+}
+/** Test hook: forget the seed this page read or wrote. */
+export function _resetPerfSeedMemo() { perfSeedMemo = { loaded: false, seed: null, sig: '' }; }
+
+/**
+ * Bars to draw before the fetch answers: the store's rows for this range
+ * and variant, and — on the 24H window, benchmarked against the same
+ * symbol — the last picture's bars for anything the store does not hold.
+ * The store wins wherever it has a row. The seed is never written into
+ * the store: it is only ever what was on screen.
+ * @param {Record<string, any>} entries  the store's bucket for this range/variant
+ * @param {string} rangeKey
+ * @param {string} spSymbol
+ * @param {string[]} symbols
+ * @returns {Record<string, any[]>}
+ */
+function barsOnHand(entries, rangeKey, spSymbol, symbols) {
+  /** @type {Record<string, any[]>} */
+  const out = {};
+  const seed = rangeKey === '1D' ? lastPicture() : null;
+  const seedHist = seed && seed.spSymbol === spSymbol ? seed.hist : null;
+  for (const s of symbols) {
+    const e = entries[s];
+    if (e && Array.isArray(e.data)) out[s] = e.data;
+    else if (seedHist && Array.isArray(seedHist[s])) out[s] = seedHist[s];
+  }
+  return out;
+}
+
 
 // YTD performance chart: portfolio % return vs S&P 500, computed from
 // per-lot purchase history + historical closes (Yahoo Finance),
@@ -177,9 +316,6 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // they want to track futures pricing. The legend label flips to
   // "S&P 500 FUTURES" to match.
   const spSymbol = spSymbolFor(rangeKey, extendedHours);
-  const [hist,    setHist]    = React.useState(/** @type {Record<string, any[]> | null} */ (null));
-  const [loading, setLoading] = React.useState(true);
-  const [error,   setError]   = React.useState(false);
 
   // Tickers we need historical data for. We send all non-cash holdings
   // to the chart Edge Function — it routes 6-digit CN fund codes to
@@ -187,6 +323,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // .PVT) to Yahoo.
   const tickers = React.useMemo(() => {
     if (!portfolio) return [];
+    /** @type {Set<string>} */
     const out = new Set();
     for (const [t, h] of Object.entries(portfolio.holdings || {})) {
       if (h.isCash || t === 'CASH') continue;
@@ -195,6 +332,20 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     return Array.from(out).sort();
   }, [portfolio]);
   const tickerKey = tickers.join(',');
+
+  // The first render already draws whatever is on hand — the store's rows
+  // when it has loaded, the 24H seed when it has not — so opening the page
+  // paints the chart it last showed instead of "Computing…" (see
+  // `barsOnHand`). Read once, for both slots.
+  const [onHand] = React.useState(() => {
+    if (!portfolio) return null;
+    const bars = barsOnHand(loadPerfCache(new Date().getFullYear(), `${rangeKey}:${variantKey}`),
+      rangeKey, spSymbol, [spSymbol, ...tickers]);
+    return perfBarsIncomplete(bars, spSymbol, tickers, { sp: true, tickers: true }) ? null : bars;
+  });
+  const [hist,    setHist]    = React.useState(/** @type {Record<string, any[]> | null} */ (onHand));
+  const [loading, setLoading] = React.useState(!onHand);
+  const [error,   setError]   = React.useState(false);
 
   React.useEffect(() => {
     if (!portfolio) return;
@@ -205,34 +356,35 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     const ttl = PERF_CACHE_TTL_MS[rangeKey] || PERF_CACHE_TTL_MS.YTD;
     const cacheKey = `${rangeKey}:${variantKey}`;
 
+    const run = () => {
+    if (cancelled) return;
     // Read per-ticker cache for THIS range/variant. Render whatever's
     // there first (fresh OR stale) so the chart appears immediately on
     // subsequent visits even if the cache has aged past TTL — the
     // background revalidate below replaces it once fresh data lands.
     const entries = loadPerfCache(year, cacheKey);
-    /** @type {Record<string, any[]>} */
-    const fresh = {};
     const stale = [];
-    /** @type {Record<string, any[]>} */
-    const staleData = {};
     for (const s of symbols) {
       const e = entries[s];
-      if (e && e.data && Array.isArray(e.data)) {
-        if ((Date.now() - (e.ts || 0)) < ttl) {
-          fresh[s] = e.data;
-        } else {
-          stale.push(s);
-          staleData[s] = e.data;
-        }
-      } else {
-        stale.push(s);
-      }
+      const fresh = e && e.data && Array.isArray(e.data) && (Date.now() - (e.ts || 0)) < ttl;
+      if (!fresh) stale.push(s);
     }
 
-    // Stale-while-revalidate: show whatever we have (fresh + stale)
-    // instantly. The user sees "Computing…" only on a true cold cache.
-    const initial = { ...fresh, ...staleData };
-    if (initial[spSymbol]) {
+    // Split the cold/stale batch into TWO parallel calls:
+    //   - S&P alone (1 ticker — Edge Function returns in ~300 ms when warm)
+    //   - The rest of the portfolio (N tickers — slowest one gates it)
+    // Either batch updates the chart in place when it lands, once the
+    // bars on hand say something true about the book (see
+    // `perfBarsIncomplete` — the benchmark alone does not).
+    const staleSp = stale.includes(spSymbol) ? [spSymbol] : [];
+    const staleTickers = stale.filter(s => s !== spSymbol);
+    const pending = { sp: staleSp.length > 0, tickers: staleTickers.length > 0 };
+
+    // Stale-while-revalidate: show whatever we have (fresh + stale, and
+    // the last 24H picture for what the store lacks) instantly. The user
+    // sees "Computing…" only when there is nothing true to draw yet.
+    const initial = barsOnHand(entries, rangeKey, spSymbol, symbols);
+    if (!perfBarsIncomplete(initial, spSymbol, tickers, pending)) {
       setHist(initial);
       setLoading(false);
     } else {
@@ -241,21 +393,12 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 
     if (stale.length === 0) return;
 
-    // Split the cold/stale batch into TWO parallel calls:
-    //   - S&P alone (1 ticker — Edge Function returns in ~300 ms when warm)
-    //   - The rest of the portfolio (N tickers — slowest one gates it)
-    // As soon as S&P returns we can paint the chart; the bulk fetch
-    // updates it in place when it lands. Total time ≈ slowest single
-    // ticker, but the user perceives the chart appearing the moment
-    // the S&P anchor data arrives.
-    const staleSp = stale.includes(spSymbol) ? [spSymbol] : [];
-    const staleTickers = stale.filter(s => s !== spSymbol);
-
     /** @type {Record<string, any[]>} */
     const merged = { ...initial };
     const newEntries = { ...entries };
 
-    const applyBatch = (batch) => {
+    /** @param {any} batch  one batch's bars by symbol @param {'sp' | 'tickers'} part */
+    const applyBatch = (batch, part) => {
       const now = Date.now();
       for (const s of stale) {
         let data = batch[s];
@@ -267,14 +410,18 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
       }
       savePerfCache(year, cacheKey, newEntries);
       if (cancelled) return;
+      pending[part] = false;
       const hasAnchor = merged[spSymbol] || Object.values(merged).some(s => Array.isArray(s) && s.length >= 2);
       if (!hasAnchor) {
-        if (Object.keys(initial).length === 0) {
+        // Only once nothing is still out: a batch that lands empty while
+        // the other is in flight is not yet a failure.
+        if (Object.keys(initial).length === 0 && !pending.sp && !pending.tickers) {
           setError(true);
           setLoading(false);
         }
         return;
       }
+      if (perfBarsIncomplete(merged, spSymbol, tickers, pending)) return;
       setError(false);
       setHist({ ...merged });
       setLoading(false);
@@ -282,11 +429,11 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 
     const spPromise = staleSp.length > 0
       ? fetchHistoricalBatch(staleSp, params.yahooRange, params.interval, params.includePrePost)
-          .then(b => { if (!cancelled) applyBatch(b); return b; })
+          .then(b => { if (!cancelled) applyBatch(b, 'sp'); return b; })
       : Promise.resolve({});
     const tickersPromise = staleTickers.length > 0
       ? fetchHistoricalBatch(staleTickers, params.yahooRange, params.interval, params.includePrePost)
-          .then(b => { if (!cancelled) applyBatch(b); return b; })
+          .then(b => { if (!cancelled) applyBatch(b, 'tickers'); return b; })
       : Promise.resolve({});
 
     (async () => {
@@ -304,7 +451,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
             merged[spSymbol] = retry;
             newEntries[spSymbol] = { ts: Date.now(), data: retry };
             savePerfCache(year, cacheKey, newEntries);
-            applyBatch({ [spSymbol]: retry });
+            applyBatch({ [spSymbol]: retry }, 'sp');
           }
         }
       }
@@ -320,8 +467,32 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
         setLoading(false);
       }
     })();
+    };
+
+    // The store is still loading from IndexedDB: everything it holds
+    // would read as missing, be fetched again, and the chart would say
+    // "Computing…" over a copy it already has. Wait for it — briefly; a
+    // store that has not answered in STORE_WAIT_MS counts as empty.
+    if (chartStoresReady()) run();
+    else {
+      // Meanwhile THIS range and variant's own picture, from what can be
+      // read now (the 24H seed) — never the previous range's bars drawn
+      // under this one's rules while the store is still loading.
+      const now = barsOnHand({}, rangeKey, spSymbol, symbols);
+      if (!perfBarsIncomplete(now, spSymbol, tickers, { sp: true, tickers: true })) {
+        setHist(now);
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
+      let started = false;
+      const go = () => { if (!started) { started = true; run(); } };
+      hydrateAllChartStores().then(go, go);
+      setTimeout(go, STORE_WAIT_MS);
+    }
     return () => { cancelled = true; };
   }, [tickerKey, rangeKey, variantKey]);
+
 
   // Background prefetch the other ranges once the user's chosen range
   // has loaded so subsequent range-button clicks are instant.
@@ -335,6 +506,12 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     const others = RANGE_KEYS.filter(k => k !== rangeKey);
     let cancelled = false;
     (async () => {
+      // A chart drawn from the seed is on screen before the store has
+      // loaded; judged against the empty store, every other range would
+      // be fetched again although it is already on disk.
+      if (!chartStoresReady()) {
+        await Promise.race([hydrateAllChartStores().catch(() => {}), new Promise((r) => setTimeout(r, STORE_WAIT_MS))]);
+      }
       for (const rk of others) {
         if (cancelled) return;
         const otherVariant = perfVariantKey(rk, extendedHours, phase);
@@ -379,24 +556,49 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // opening the panel or switching ranges paints recorded density on the
   // first render rather than after a round trip. The fetch below then
   // revalidates behind an already-drawn chart.
+  //
+  // On the 24H window the seed's rows stand in until the store has loaded:
+  // they are the prints the last picture was drawn from, and without them
+  // the first render would draw that picture minus its recorded density.
   const [recorded, setRecorded] = React.useState(
     () => /** @type {Array<{ts: string, prices: Record<string, number>}>} */ (
-      readCachedPriceSnapshots(rangeKey) || []
+      readCachedPriceSnapshots(rangeKey)
+      || (rangeKey === '1D' && onHand ? lastPicture()?.recorded : null)
+      || []
     ),
   );
   React.useEffect(() => {
     let cancelled = false;
-    const cached = readCachedPriceSnapshots(rangeKey);
-    if (cached) setRecorded(cached);
+    let fetched = false;
+    // The store's copy, once it has loaded — unless the network answered
+    // first, in which case the store's copy is the older of the two.
+    const fromStore = () => {
+      if (cancelled || fetched) return;
+      const cached = readCachedPriceSnapshots(rangeKey);
+      if (cached) setRecorded(cached);
+    };
+    if (chartStoresReady()) fromStore();
+    else hydrateAllChartStores().then(fromStore, () => {});
     refreshPriceSnapshots(rangeKey, rangeStartMs(rangeKey, Date.now())).then((rows) => {
+      if (cancelled) return;
+      fetched = true;
       // An empty read is ambiguous (nothing recorded yet vs a failed
       // request), so it never replaces a drawn series.
-      if (!cancelled && rows.length > 0) setRecorded(rows);
+      if (rows.length > 0) setRecorded(rows);
     });
     return () => { cancelled = true; };
     // Keyed on the range only: the window start moves with the clock, so
     // including it would refetch on every render.
   }, [rangeKey]);
+  // Keep the 24H picture this browser just drew, so the next reload can
+  // draw it on its first render (see `barsOnHand`). Extended hours off
+  // only: the switch starts off on every load, so that is the picture a
+  // reload opens on.
+  React.useEffect(() => {
+    if (rangeKey !== '1D' || extendedHours || loading || error || !hist) return;
+    keepPicture(perfSeedFrom({ variantKey, spSymbol, hist, recorded, tickers }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hist, recorded, rangeKey, variantKey, spSymbol, extendedHours, loading, error, tickerKey]);
 
   const [overnight, setOvernight] = React.useState(/** @type {Record<string, any[]>} */ ({}));
   React.useEffect(() => {

@@ -31,6 +31,10 @@ update doesn't ask again.
   background. Prices also refresh by themselves every 30 seconds through
   the trading week, overnight sessions included, and every 5 minutes at
   the weekend, when nothing trades.
+- **Opening or reloading the page.** It first shows what it showed last
+  time in this browser: the same prices, totals and 24H chart. The new
+  prices replace them as they arrive, a second or two later, so the only
+  numbers that change are the ones that actually moved.
 - **☰ menu.** The holding list, the sectors list, the transaction
   history and the Agents page.
 

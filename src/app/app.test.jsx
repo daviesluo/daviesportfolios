@@ -14,10 +14,12 @@ import { render, cleanup, waitFor } from '@testing-library/react';
 // Mock heavy children + network calls so the smoke test doesn't
 // pull the whole live-prices Edge chain into the test process.
 vi.mock('../board/header_sidebar.jsx', () => ({
-  Header: () => <header data-testid="header" />,
+  // Header and PerfPanel keep the props they were last drawn with, so a
+  // test can read the numbers the page would show.
+  Header: (p) => { /** @type {any} */ (globalThis).__headerProps = p; return <header data-testid="header" />; },
   Sidebar: () => <aside data-testid="sidebar" />,
   MarketConditions: () => <section data-testid="mc" />,
-  PerfPanel: () => <div data-testid="perf-panel" />,
+  PerfPanel: (p) => { /** @type {any} */ (globalThis).__perfProps = p; return <div data-testid="perf-panel" />; },
   SidebarFoot: () => <footer data-testid="foot" />,
   UpcomingEarnings: () => <div data-testid="earnings" />,
 }));
@@ -305,5 +307,71 @@ describe('App — cache-primed first paint (Storage.loadPortfolioCache)', () => 
     expect(savePortfolioRemote).not.toHaveBeenCalled();
 
     vi.mocked(portfolioUserFingerprint).mockImplementation(() => 'fingerprint');
+  }, 10000);
+});
+
+// A reload paints the prices the page last showed (dp.lastPrices) over the
+// book until the live quotes land — and the book the save effect sends is
+// never the drawn copy. Measured in the real bundle before this: the
+// scoreboard read the cache's prices, then the server row's, then the
+// live ones, in the first two seconds after every reload.
+describe('App — the last-shown prices on a reload', () => {
+  function setAdminToken() {
+    const payload = btoa(JSON.stringify({ role: 'admin', exp: Date.now() + 60 * 60 * 1000 }))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    sessionStorage.setItem('dp.token', `${payload}.sig`);
+  }
+  // The server row's prices are whatever they were at its last save.
+  const SERVER_PORTFOLIO = {
+    holdings: {
+      NVDA: { shares: 10, cost: 100, lastPrice: 120, prevClose: 118, dayPct: 1.69, currency: 'USD', lots: [{ date: '2025-01-01', shares: 10, cost: 100 }] },
+    },
+    positions: { ST: { role: 'FWD', subtitle: '', tickers: ['NVDA'] } },
+  };
+  const SHOWN = { NVDA: { lastPrice: 130, prevClose: 128, dayPct: 1.56, extPrice: null, extDayPct: null, extPriceTrusted: null } };
+  const lastPriceOf = (p) => p?.portfolio?.holdings?.NVDA?.lastPrice;
+
+  afterEach(() => {
+    localStorage.removeItem('dp.lastPrices');
+    delete /** @type {any} */ (globalThis).__perfProps;
+    delete /** @type {any} */ (globalThis).__headerProps;
+  });
+
+  it('draws the last-shown price until a tick prices the holding, and never saves it', async () => {
+    localStorage.setItem('dp.lastPrices', JSON.stringify({ ts: Date.now(), data: SHOWN }));
+    setAdminToken();
+    // No quote this time: the overlay has to hold through the server row
+    // landing — and a save fired meanwhile must carry the row's own price.
+    vi.mocked(refreshPrices).mockResolvedValue(/** @type {any} */ ({ updates: {}, source: 'live' }));
+    vi.mocked(loadPortfolioRemote).mockResolvedValueOnce(/** @type {any} */ (structuredClone(SERVER_PORTFOLIO)));
+    let fp = 0;
+    vi.mocked(portfolioUserFingerprint).mockImplementation(() => `fp-${fp++}`);
+
+    render(<App />);
+    await waitFor(() => expect(lastPriceOf(/** @type {any} */ (globalThis).__perfProps)).toBe(130));
+    const header = /** @type {any} */ (globalThis).__headerProps;
+    expect(header.metrics.marketValue).toBe(1300);
+
+    await waitFor(() => expect(savePortfolioRemote).toHaveBeenCalled(), { timeout: 3000 });
+    for (const [saved] of vi.mocked(savePortfolioRemote).mock.calls) {
+      expect(/** @type {any} */ (saved).holdings.NVDA.lastPrice).toBe(120);
+      expect(/** @type {any} */ (saved).holdings.NVDA.prevClose).toBe(118);
+    }
+    vi.mocked(portfolioUserFingerprint).mockImplementation(() => 'fingerprint');
+    vi.mocked(refreshPrices).mockResolvedValue(/** @type {any} */ ({ updates: {}, source: 'live' }));
+  }, 10000);
+
+  it('shows the live quote once a tick prices the holding, and keeps THAT for the next reload', async () => {
+    localStorage.setItem('dp.lastPrices', JSON.stringify({ ts: Date.now(), data: SHOWN }));
+    setAdminToken();
+    vi.mocked(refreshPrices).mockResolvedValue(/** @type {any} */ ({
+      updates: { NVDA: { lastPrice: 141, prevClose: 128, dayPct: 10.16, extPrice: null, currency: 'USD' } }, source: 'live',
+    }));
+    vi.mocked(loadPortfolioRemote).mockResolvedValueOnce(/** @type {any} */ (structuredClone(SERVER_PORTFOLIO)));
+
+    render(<App />);
+    await waitFor(() => expect(lastPriceOf(/** @type {any} */ (globalThis).__perfProps)).toBe(141));
+    await waitFor(() => expect(JSON.parse(localStorage.getItem('dp.lastPrices') || '{}').data?.NVDA?.lastPrice).toBe(141));
+    vi.mocked(refreshPrices).mockResolvedValue(/** @type {any} */ ({ updates: {}, source: 'live' }));
   }, 10000);
 });

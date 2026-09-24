@@ -459,7 +459,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | `app/app.jsx` | `<App>`, the password gate, and `<Board>`, the whole UI: portfolio state, the refresh loop, which modal is open. The first paint uses the cached portfolio, then the server's copy replaces it. |
 | `app/auth.js` | Turns a password into a signed token: reads `?pwd=` once and strips it, calls the `auth` function, reuses a valid token from the session. |
 | `app/supabase_config.js` | The Supabase URL, the public anon key and each Edge Function's URL. |
-| `app/storage.js` | Everything the browser keeps under `dp.*`, with one schema version and its migrations, including the cached prices and portfolio behind a correct first paint. |
+| `app/storage.js` | Everything the browser keeps under `dp.*`, with one schema version and its migrations, including the portfolio, prices and 24H chart a reload paints first. |
 | `app/sw-banner.jsx` | The "new version available" banner. It checks every minute and whenever the tab comes back. |
 | `app/chunk_recovery.js` | When a page's code fails to load after a deploy: fetch it fresh, drop the service worker and caches, reload once, report it. |
 | `app/ops_error.js`, `app/ops_error_badge.jsx` | Sends client errors to `ops-error`, rate-limited; the admin-only header badge groups the last 24 hours. |
@@ -475,6 +475,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 |---|---|
 | `portfolio/data.js` | A demo portfolio with made-up share counts, shown only when the real one cannot load. |
 | `portfolio/portfolio_remote.js` | Loads and saves the portfolio through the `data` function, and upgrades older saved shapes. |
+| `portfolio/shown_prices.js` | The prices each holding last showed, drawn over the book after a reload until the live quotes land, and never saved. |
 | `portfolio/portfolio_edits.js` | The board's edits: change, add, move or remove a holding, swap two positions, rename one. |
 | `portfolio/positions.js` | Where the 11 positions sit on the pitch. |
 | `portfolio/metrics.js` | The per-position totals behind the scoreboard, the heat map and the drill-downs. |
@@ -494,7 +495,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | `prices/market_hours.js` | Time helpers that know about daylight saving: US, London and euro-zone market hours, US holidays, and the 3M chart's four-hour grid. |
 | `prices/ticker_class.js` | What kind of instrument a ticker is (crypto, future, FX, index, Chinese fund, …) and how much of the week it trades. |
 | `prices/cache.js` | How long each kind of chart data stays fresh, and the cache keys. |
-| `prices/chart_store.js` | The IndexedDB chart cache, with an in-memory copy for instant reads. |
+| `prices/chart_store.js` | The IndexedDB chart cache — one database holding all three stores — with an in-memory copy for instant reads. |
 | `prices/prefetch.js` | Warms every chart range in the background after a load or a manual refresh. |
 | `prices/overnight_intraday.js` | Reads the recorded overnight quotes for US stocks and splices them onto the chart. |
 | `prices/price_snapshots.js` | Reads the server's five-minute price records and merges them into the chart's bars. |
@@ -649,7 +650,7 @@ before touching migration state.
 | `src/package.json` | The web app's npm project: scripts, dependencies, and the knip and size-limit settings. Every npm command runs in `src/`. |
 | `src/tsconfig.json` | Type-checks the JavaScript through JSDoc (`checkJs`, `strictNullChecks`). |
 | `src/.nvmrc` | Node 22. |
-| `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 230 checks. |
+| `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 236 checks. |
 | `src/e2e/perf-matrix.mjs` | The second browser test CI runs: the performance panel in two views, five ranges, three data states and two books, 60 cases against answers worked out by hand, clock pinned. |
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |
 | `dist/` | The built site, committed and published as it is. |

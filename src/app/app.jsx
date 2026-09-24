@@ -14,6 +14,7 @@ import { POSITION_COORDS } from '../portfolio/positions.js';
 import { INITIAL_PORTFOLIO } from '../portfolio/data.js';
 import { consumeUrlPassword, decodeAppToken, getAppToken, authenticate } from './auth.js';
 import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL, TAB_ID } from '../portfolio/portfolio_remote.js';
+import { shownPricesOf, withShownPrices, withoutPriced } from '../portfolio/shown_prices.js';
 import { prefetchAllChartData } from '../prices/prefetch.js';
 import { hydrateAllChartStores } from '../prices/chart_store.js';
 import { Header, Sidebar, MarketConditions, PerfPanel, SidebarFoot, UpcomingEarnings } from '../board/header_sidebar.jsx';
@@ -317,6 +318,28 @@ function Board({ isReadOnly }) {
   // overwrites this the moment it resolves — this is a pre-render seed,
   // never a substitute for the real fetch.
   const [portfolio, setPortfolio] = useState(() => Storage.loadPortfolioCache());      // null = still loading
+  // The prices this page last showed, per holding (Storage.loadLastPrices,
+  // written after every tick). Drawn over the book — the cache first, then
+  // the server row — until the live quotes land, ticker by ticker, so a
+  // reload paints what the page last showed instead of the prices frozen
+  // inside those rows. Kept OUT of `portfolio`: that is the object the save
+  // effect sends, and nothing from here may reach the server. See
+  // portfolio/shown_prices.js.
+  const [lastShown, setLastShown] = useState(() => Storage.loadLastPrices());
+  // What the page draws: the book with the last-shown prices over it.
+  // Every number on screen reads this; every edit and save reads
+  // `portfolio`.
+  const shownPortfolio = useMemo(() => withShownPrices(portfolio, lastShown), [portfolio, lastShown]);
+  // For the tick's tile flash, which must compare against what was ON
+  // SCREEN, not against the stored price underneath it — or every tile
+  // flashes on the first tick after a reload although nothing moved.
+  // Synced in an effect, so an updater running in the next render still
+  // sees the overlay that was on screen before that tick.
+  const lastShownRef = useRef(lastShown);
+  useEffect(() => { lastShownRef.current = lastShown; }, [lastShown]);
+  // Set once a tick has priced anything: from then on the page's own
+  // prices are worth keeping for the next reload.
+  const pricesLandedRef = useRef(false);
   const [drillPos, setDrillPos] = useState(/** @type {string | null} */ (null));
   const [editMode, setEditMode] = useState(false);
   const [editingTicker, setEditingTicker] = useState(/** @type {string | null} */ (null));
@@ -772,6 +795,13 @@ function Board({ isReadOnly }) {
     const extMh = usMarketHoursUtc(new Date());
     const extOpenMins  = extMh.openHh  * 60 + extMh.openMm;
     const extCloseMins = extMh.closeHh * 60 + extMh.closeMm;
+    // Every ticker this tick priced shows its live quote from here on, not
+    // the last-shown one standing in for it (see `lastShown`).
+    const pricedNow = Object.keys(updates || {});
+    if (pricedNow.length > 0) {
+      pricesLandedRef.current = true;
+      setLastShown((q) => withoutPriced(q, pricedNow));
+    }
     setPortfolio(prev => {
       if (!prev) return prev;
       const next = { ...prev, holdings: { ...prev.holdings } };
@@ -876,12 +906,17 @@ function Board({ isReadOnly }) {
       // wins as the reference when present (overnight US names), else
       // lastPrice. Untouched holdings share the prev ref → skipped.
       const flashes = {};
+      // Measured from what was ON SCREEN: while a last-shown price stands
+      // in for a holding, that is the number the tile showed, not the
+      // stored price underneath it.
+      const seen = withShownPrices(prev, lastShownRef.current);
       for (const t of Object.keys(next.holdings)) {
         const oldH = prev.holdings[t];
         const newH = next.holdings[t];
         if (!oldH || !newH || oldH === newH) continue;
-        const old = oldH.lastPrice;
-        const oldExt = oldH.extPrice ?? null;
+        const shownH = seen.holdings[t] || oldH;
+        const old = shownH.lastPrice;
+        const oldExt = shownH.extPrice ?? null;
         const nw = newH.lastPrice;
         const newExt = newH.extPrice ?? null;
         const priceChanged = typeof nw === 'number' && typeof old === 'number' && Math.abs(nw - old) > 0.0001;
@@ -1087,12 +1122,23 @@ function Board({ isReadOnly }) {
   // a stable string within a market phase so it doesn't defeat the
   // memo; `marketData` is a fresh object only on a real price tick, so
   // the memo recomputes exactly when prices move and not otherwise.
+  //
+  // Valued from `shownPortfolio`: the same book, with the last-shown
+  // prices standing in until the live quotes land.
   const metrics = useMemo(
-    () => (portfolio
-      ? computeMetrics(portfolio, { extended: extendedHours && currentPhase !== "regular", marketData })
+    () => (shownPortfolio
+      ? computeMetrics(shownPortfolio, { extended: extendedHours && currentPhase !== "regular", marketData })
       : null),
-    [portfolio, extendedHours, currentPhase, marketData],
+    [shownPortfolio, extendedHours, currentPhase, marketData],
   );
+  // Keep what the page shows for the next reload — once a tick has
+  // priced something; before that the prices on screen are the ones this
+  // load started from, and keeping them would only copy them over
+  // themselves. Never the demo book.
+  useEffect(() => {
+    if (!pricesLandedRef.current || !shownPortfolio || shownPortfolio._isDemo) return;
+    Storage.saveLastPrices(shownPricesOf(shownPortfolio.holdings));
+  }, [shownPortfolio]);
   // Walk the T212 executed-order history a page at a time until both
   // account cursors latch, then top up page one every ten minutes so a
   // fill made while this tab stays open still reaches the deposit line
@@ -1184,14 +1230,14 @@ function Board({ isReadOnly }) {
   // Captain = single largest position by USD market value (native →
   // USD so a CNY / GBP holding ranks correctly against USD ones).
   const captainTicker = useMemo(() => {
-    if (!portfolio) return null;
+    if (!shownPortfolio) return null;
     let ticker = null, best = 0;
-    for (const [t, h] of Object.entries(portfolio.holdings)) {
+    for (const [t, h] of Object.entries(shownPortfolio.holdings)) {
       const mv = h.shares * h.lastPrice * fxToUSD(h.currency, marketData);
       if (mv > best) { best = mv; ticker = t; }
     }
     return ticker;
-  }, [portfolio, marketData]);
+  }, [shownPortfolio, marketData]);
   // Biggest individual mover by the day-change AS DISPLAYED — the
   // ext-adjusted per-player pct from `metrics` (the same value the tiles /
   // scoreboard / Top Movers show), so during extended hours the ball tracks
@@ -1223,7 +1269,7 @@ function Board({ isReadOnly }) {
   // from re-resolving, which is the action the badge title spells
   // out anyway.
 
-  if (!portfolio || !metrics) {
+  if (!portfolio || !shownPortfolio || !metrics) {
     return (
       <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' }}>
         <div style={{ textAlign: 'center' }}>
@@ -1238,8 +1284,17 @@ function Board({ isReadOnly }) {
   // 1100 lines). Created per render, same as before: they close over
   // the stable `setPortfolio` and the current `isReadOnly` (each is a
   // no-op in read-only mode).
+  //
+  // An edit ends the last-shown overlay: from then on the book on screen is
+  // one this page wrote, and a price typed into it (a re-added lot sets
+  // one) must show at once, not after the next tick.
+  /** @type {typeof setPortfolio} */
+  const setPortfolioByHand = (update) => {
+    setLastShown((q) => (Object.keys(q).length > 0 ? {} : q));
+    setPortfolio(update);
+  };
   const { updateHolding, removeHolding, swapPositions, moveHolding, addHolding, updatePosition } =
-    createPortfolioEditHandlers({ setPortfolio, isReadOnly });
+    createPortfolioEditHandlers({ setPortfolio: setPortfolioByHand, isReadOnly });
 
   // Demo-data banner — shown when loadPortfolioRemote fell back to the
   // seeded INITIAL_PORTFOLIO (no row in Supabase yet, or the load
@@ -1330,7 +1385,7 @@ function Board({ isReadOnly }) {
       <main className="main">
         <div className="left-col">
           <PerfPanel
-            portfolio={portfolio}
+            portfolio={shownPortfolio}
             marketData={marketData}
             extendedHours={extendedHours}
             phase={currentPhase}
@@ -1380,7 +1435,7 @@ function Board({ isReadOnly }) {
         <Sidebar
           metrics={metrics}
           source={source}
-          portfolio={portfolio}
+          portfolio={shownPortfolio}
           marketData={marketData}
           extendedHours={extendedHours}
           phase={currentPhase}
@@ -1464,7 +1519,7 @@ function Board({ isReadOnly }) {
         <LazyBoundary title="Transaction history" onClose={() => setShowTransactionHistory(false)}>
           <React.Suspense fallback={<ModalFrame title="Transaction history" onClose={() => setShowTransactionHistory(false)} />}>
             <TransactionHistoryModal
-              holdings={portfolio.holdings}
+              holdings={shownPortfolio.holdings}
               marketData={marketData}
               hideValues={hideValues}
               t212Orders={t212Orders}
@@ -1491,7 +1546,7 @@ function Board({ isReadOnly }) {
           <React.Suspense fallback={null}>
             <TickerChartModal
               ticker={viewingTicker}
-              holding={portfolio.holdings[viewingTicker] ?? null}
+              holding={shownPortfolio.holdings[viewingTicker] ?? null}
               marketData={marketData}
               extendedHours={extendedHours}
               phase={currentPhase}
