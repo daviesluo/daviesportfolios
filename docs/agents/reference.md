@@ -2826,7 +2826,13 @@ an account that quotes, and whether this one may is the review's §0.
       - The kill switch is `set live_confirmed_at = null`.
       - The asks need coin. `POST ?action=quotes-convert {"book":"USDT-GBP","gbp":12.5}` shows the order it would send. With `"send": true`, and only while the executor is live and armed, it sends one IOC buy: sized at the ask, bounded at fair + 50 bps, at most three rungs' worth. It is refused once the account already holds that much.
       - The minute loop never converts.
-    - **Watching the dry-run against the paper engine.** Expected: L3 empty. L4 lists only minutes when a guard or the governor held, and paper re-placements at a price a dry-run order was already resting at, which leave nothing to send.
+    - **Watching the dry-run against the paper engine.** Expected: L3 empty. L4 lists only minutes when a guard or the governor held.
+    - **A refused paper order is no decision (fixed 2026-09-24 evening).** On its first day L3 held two rows, dry-run orders 4 and 108: USDT-GBP bids 1 and 4 ticks under the paper order each named. One cause.
+      - The paper engine refuses a post-only order when the last print is through it. While the order waits to be placed again, the rule re-prices it: new ticks under the same order id and live minute, with no event and no order counted.
+      - The executor took a refused order for a resting one. It kept its own order on after the refusal, since the venue's book would have taken it. When the rule re-priced the refused order, it sent those ticks under the refused decision's name (108, 12:44 UTC). When the rule placed the order again at 12:49 it had nothing to send (L4's row). On its first minute it had sent a bid refused two hours earlier, at its re-priced ticks (4, 02:41).
+      - Five of the day's 14 refused bids left a dry-run order resting for 9–37 minutes where the paper had none. Only 108 was an order the paper never made.
+      - Now a refused paper order is no target. The rung withdraws its entry ("the paper engine refused its order") and sends nothing until the rule places the order again. Every entry is a paper decision, and every re-placement is sent.
+      - The golden replay could not see it. Its fake book sits a tick either side of the last print, so the venue refused whatever the paper refused. Two pins in `quotes_live.test.ts` replay both production cases, in dry-run and live; each fails on the code before the fix.
 
           -- L1: the executor's last turn: where entries go, each book's guards, POSTs today, the day's P&L
           select state, updated_at, last_error from public.agent_quote_live_state;

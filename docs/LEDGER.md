@@ -34,6 +34,11 @@ list stays the short version; the plan is the reasoning behind it.
      `pm_rw_days` gains a row a day; `net._http_response` has no 546 (CPU) or 5xx for `action=pmrw-select`; the page
      shows no "fills and total differ" warning. Do NOT change `agents/pmrw.ts`'s rule (the spec is frozen); a bug fix
      is allowed only as a recorded deviation (spec, reference, ledger) with a pin that fails on the old code.
+     **Last read 2026-09-24 21:06–21:10 UTC (Cursor): healthy** (numbers in that history section). `pm_rw_days` is
+     empty until the warm-up day closes at ~00:02 on 09-25 (`closeDays` writes a day only when it ends), so the next
+     read checks that row and 09-25's selection. The page's `rw` without a password: `net.http_get` of
+     `agents?action=dashboard` with the Vault `cron_secret` (as the cron jobs build it), then read
+     `content::jsonb->'rw'` from `net._http_response` (`mismatchUsd` is the warning's figure).
    - **G2 — RW's verdict, on or after 2026-10-09 00:05 UTC** (the procedure is in item 000000000000, step 3). Then the
      page row stays as a record until Davies says otherwise, and the two cron jobs are unscheduled by a migration.
    - **G3 — only if RW passes, and only on Davies' word: design (not build) RW's live test** under this item's plan:
@@ -42,8 +47,9 @@ list stays the short version; the plan is the reasoning behind it.
      account; `_shared/polymarket.ts` stays GET-only until the design is agreed. The design says: order signing (the
      CLOB's EIP-712 orders and L2 headers), a dry-run first, caps, the kill switch, reconciliation by order id, and
      reading the account's actual reward payouts to compare with the formula — the one thing paper cannot show.
-   - **G4 — trend-4h live at $50: VERIFIED READY 2026-09-24 20:34 UTC; Davies said go once verified; the move itself
-     is pending** (item 000000000). In the Claude Code session the move below was refused by the tool's permission
+   - **G4 — trend-4h live at $50: VERIFIED READY 2026-09-24 20:34 UTC, and again from scratch at 21:13–21:22 UTC
+     (Cursor, same result; that history section has the numbers); the move waits on Davies' "开" in the Cursor
+     conversation** (item 000000000). In the Claude Code session the move below was refused by the tool's permission
      layer (it is the act of going live), so it is Davies' to allow or to run himself. The verification: paper
      `trend-4h` healthy (30 decisions in 24 h, the last at 20:00, flat after its three exits) with params identical to
      the draft's; `ops_errors` only four transient timeouts, each handled (nothing placed that turn); the read-only
@@ -60,8 +66,11 @@ list stays the short version; the plan is the reasoning behind it.
      after ~29 h the paper test has 0 round trips (3 fills), and **L3 is not empty: 2 dry-run entries sit 1 and 4
      ticks below the paper order they carry out** (id 4, USDT-GBP bid 0.7544 against 0.7545, refused on its first
      minute because the paper bid was above the live ask; id 108, USDT-GBP bid 0.7543 against 0.7547, 12:44 UTC).
-     Explain id 108 (a re-price against the live book, or a defect) before anything else, and reconcile the ~9 %
-     order shortfall minute by minute. Live stays a NO-GO until the review; going live is one statement on his word.
+     **Both rows EXPLAINED AND FIXED 2026-09-24 21:35 UTC (Cursor): one executor defect** — it carried out a paper
+     order the engine had REFUSED, including the ticks the rule re-prices a refused order to while it waits (reference
+     §4 item 35, "A refused paper order is no decision"). After the deploy L3 must stay empty and L4 list only guard
+     or governor minutes: check both on the next read. Still open: reconcile the ~9 % order shortfall minute by minute.
+     Live stays a NO-GO until the review; going live is one statement on his word.
    - **G6 — Davies' own housekeeping (not an agent's):** delete the 75 stale branches (item 0000000000000); delete the
      one-off `pm-geo-probe` Edge Function in the Supabase dashboard; keep the Polymarket wallet empty or small.
    - **Where things are:** RW — `agents/pmrw.ts` (engine), `agents/pmrw_view.ts` (page summary), `_shared/polymarket_public.ts`
@@ -759,6 +768,20 @@ Facts a fresh session would otherwise rediscover:
   `PERF_MATRIX_CLOCK=<instant>` moves it, and an instant its fixture
   cannot serve is refused with the reason.
 
+- **Cursor cloud containers (2026-09-24):** the git identity comes preset as
+  "Cursor Agent" (set it as above), and `core.hooksPath` points at Cursor's
+  own dispatcher in `~/.cursor/agent-hooks/<id>/`, which runs the hook in the
+  folder named by its `.cursor-original-hooks-path` file and then Cursor's
+  secret scanner. That file named `.git/hooks`, so the ledger hook was OFF.
+  Point it at the repo's hooks rather than replacing the dispatcher:
+
+        for f in ~/.cursor/agent-hooks/*/.cursor-original-hooks-path; do printf '%s\n' "$PWD/bin/hooks" > "$f"; done
+        git config --local ledger.path docs/LEDGER.md
+
+  `bin/gates.sh` then warns that the hook is off; it is not (the dispatcher
+  runs it). There is no `/opt/pw-browsers`; the browser gates run on the
+  system Chrome with
+  `PLAYWRIGHT_CHROMIUM_PATH=/usr/bin/google-chrome-stable`.
 - **The container clock has been wrong before.** On 2026-09-05 it read
   91 minutes behind the database, and that alone produced a false outage
   report. On anything time-gated, take the time and the WEEKDAY from the
@@ -778,6 +801,51 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 21:35 UTC] Platform: Cursor | Model: Opus 5.5
+
+**Resumed from `f2dc64d` (Claude Code); G1 read, G4 re-verified, PR5's L3 rows explained and fixed.** The tree was clean
+and `main` equal to `origin/main`. This container's ledger hook was off behind Cursor's hook dispatcher (machine setup
+now says how to point it at `bin/hooks`).
+- **G1, RW (21:06–21:10 UTC, warm-up):** `pm_rw_state` last minute 21:04 at 21:06:33, no error; 09-24's selection 16
+  markets, $295.52; `pm_rw_days` empty (correct until ~00:02 on 09-25); minutes 19:00–21:06: 1,343 quoting rows with a
+  size-adjusted touch, every one decided, and 151 without one (the rule's "no book"), none decided; 64 fills in 12
+  markets, each on a stored print; cron `agents-pmrw-every-minute` 103/103 and `agents-pmrw-select` 20/20 succeeded, one
+  selection (19:30) and 19 "already selected today"; pg_net's window (15:08–21:07) 916 responses, all 200. The page's
+  figures (dashboard GET): total +$34.23 (rewards +$48.71, fills −$14.48), realised 55.75 + unrealised −21.53 = total,
+  `mismatchUsd` 0; **the stress arm −$42.29** (−$0.33 at 20:13) with 12 open positions holding $136.36, marked at the
+  size-adjusted touch. The warm-up counts nowhere; the stress arm over the fourteen days is condition (2).
+- **G4, trend-4h at $50, fresh (21:13–21:22 UTC): READY.** Paper `trend-4h`: 30 decisions in 24 h (six 4h bars × five
+  coins, the last the 16:00 bar at 20:00:11), all `provider: rule` (no entry signal, so Jev was not asked); its three
+  exits (ETH 09-23 16:00, BTC 04:00, SOL 12:00) were ATR trails, filled at 9.0 bps; flat. Params equal the draft's (`jsonb` equality true). `agent_orders`:
+  no live order ever. `ops_errors` (24 h): one `agents.crash` in `action: quotes` (09-23 21:58, PR5's paper engine,
+  before the executor existed), a lease-claim timeout, a Kraken quotes timeout and a PR5 pair-config timeout, each
+  handled; the tick has not crashed since D1's deploy. Probe (`only=revx`, via pg_net): 200, `pkcs8-b64`, balances
+  200, USD the only currency held, **USD available ≥ $51: true**, reserved 0; BTC/ETH/SOL/AVAX `active`, UK spreads
+  2.4 / 1.2 / 4.0 / 10.5 bps; active orders 0; order history 0; the signed call with a query 200. `agent_risk`:
+  `global_pause` false, `live_confirmed_at` null. The draft's INSERT meets every constraint of `agent_strategies`
+  (kind, venue, signal venue, the Binance-paper-only check, mode, capital, primary key, NOT NULLs); neither table has a
+  trigger or a policy; no `trend-4h-live` row exists. Remote migrations end at `0053` (plus the four 202608
+  out-of-band versions), locally too: **the next free number is `0054`**. CI green on `f2dc64d`; `migrations.yml`
+  last ran green (`0053`). Nothing was moved, armed or sent: Davies has not said "开" in this conversation.
+- **PR5's two L3 rows: one defect, fixed in this commit** (reference §4 item 35). A refused paper order is not
+  resting, and the frozen rule re-prices it while it waits to be placed again, under the same order id and live
+  minute, with no event and no order counted. `paperEntryTarget` did not look at the order's state, so the executor
+  carried out refused orders: it sent 108 at the re-priced 0.7543 under the 12:36 decision (paper 0.7547, refused at
+  12:36; placed again at 12:49 at 0.7543, when the executor had nothing left to send, L4's row), and on its first
+  minute sent 4 at 0.7544, re-priced from a bid refused at 00:18. Five of the day's 14 refused bids left a dry-run
+  order resting 9–37 minutes. L4's other row (USDC-GBP 14:28) was the same thing, harmless: re-placed at the ticks the
+  dry-run still rested at. Now a refused order is no target: the rung withdraws with the reason "the paper engine
+  refused its order" and sends nothing until the rule places it again. Pins: the two production cases replayed
+  through the paper engine and the executor, in dry-run and live, asserting L3 and L4 empty; with the one condition
+  removed, both and the extended `paperEntryTarget` pin fail (3 of 33), and with it 52 of 52 PR5 tests pass. The
+  golden replay never saw it: its fake book sits a tick either side of the last print, so the venue refused whatever
+  the paper refused. This redeploys `agents` (the tick, PR5 and RW all run there); read decisions, `ops_errors` and
+  RW's last minute after it. Gates green here (vitest 988, sweep 250, perf 60, Deno 531); the build's `dist/` was
+  not committed, since no `src/` changed and the CalVer stamp moves every hash.
+- **Rotation review of the last code commit (`9f3e8a6`, RW's page):** its server read (the UTC day's selection, the
+  fills paged by their whole key, the minute encoded) and the client helpers (`rwRow`, `rwView`, guarded divisions)
+  hold; nothing to fix.
 
 ### [2026-09-24 20:38 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

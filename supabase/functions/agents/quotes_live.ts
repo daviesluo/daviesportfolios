@@ -8,7 +8,7 @@
 //   * A rung this book holds nothing on quotes exactly the paper rung's entry order: the same side and price (the paper's
 //     ticks), and one POST per paper decision. A decision is a placement, a re-price or a re-placement, keyed by the paper
 //     order's id and the minute it goes live. While the paper rung quotes nothing, the live rung quotes nothing either.
-//     That covers dark, withdrawn, and a paper position of its own.
+//     That covers dark, withdrawn, a paper position of its own, and an order the paper engine refused at go-live.
 //   * A rung this book DOES hold exits at fair. A venue fill makes it held, whatever the paper rung did. The exit price is
 //     the rule's own `exitTicks` on the paper engine's own fair for the minute, re-priced by the rule's own 0.05 % step.
 //     After 24 hours the rung is stopped as the rule stops it, as a taker. Here the stop is an IOC bounded at fair ± 50 bps.
@@ -114,8 +114,13 @@ export function venueSideOf(rungSide: Side, leg: "entry" | "exit" | "stop"): "bu
 
 /** The paper decision a rung's entry carries out: its order's id and the minute it goes live, which change on every placement, re-price and re-placement. */
 export type PaperTarget = { ticks: number; oid: number; live: number; fairAt: number };
+/**
+ * A refused paper order is not resting, and the rule re-prices it while it waits to be placed again — new ticks under the
+ * same id and live minute, with no event and no order counted — so its ticks are no decision to carry out.
+ */
+export const paperRefused = (r: Rung | undefined) => !!r && r.mode === "quote" && r.o?.state === "rejected";
 export function paperEntryTarget(r: Rung | undefined): PaperTarget | null {
-  if (!r || r.mode !== "quote" || !r.o || r.o.side !== r.side) return null;
+  if (!r || r.mode !== "quote" || !r.o || r.o.side !== r.side || paperRefused(r)) return null;
   return { ticks: r.o.ticks, oid: r.o.oid, live: r.o.live, fairAt: r.o.fairAt };
 }
 /** Whether a recorded order carried out this paper decision. */
@@ -470,7 +475,7 @@ export async function runQuotesLive(d: QuoteLiveDeps): Promise<QuoteLiveReport> 
 
 type RungNow = {
   book: QuoteBook; side: Side; k: number; label: string;
-  paper: PaperTarget | null;
+  paper: PaperTarget | null; paperRefused: boolean;
   live: RungBook; holding: boolean; dust: number;
 };
 
@@ -677,7 +682,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
     const dust = pair && px > 0 ? dustBase(pair, px) : 0;
     const live = rungBook(side, mine, dayStart, dust);
     const pr = paper?.books?.[b]?.rungs?.find((r) => r.side === side && r.k === k);
-    rungs.push({ book: b, side, k, label: rungLabel(b, side, k), paper: paperEntryTarget(pr), live, holding: live.held > dust, dust });
+    rungs.push({ book: b, side, k, label: rungLabel(b, side, k), paper: paperEntryTarget(pr), paperRefused: paperRefused(pr), live, holding: live.held > dust, dust });
   }
   const mark = (b: QuoteBook) => lastPrintPx(b) ?? inputs[b]?.f ?? null;
   const dayPnl = rungs.reduce((a, r) => a + r.live.realisedTodayGbp + markedGbp(r.side, r.live, mark(r.book)), 0);
@@ -824,7 +829,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
             const why = entry.book !== mode ? `entries go ${entry.book ?? "nowhere"}: ${entry.why}`
               : report.guards[r.book].length ? `guard: ${report.guards[r.book].join("; ")}`
               : governorLevel(report.posts[mode]) !== "all" ? `governor: ${report.posts[mode]} POSTs today`
-              : mode === "live" && lossStopped ? "the day's loss stop" : !bal ? "balances unreadable" : "the paper rung quotes nothing";
+              : mode === "live" && lossStopped ? "the day's loss stop" : !bal ? "balances unreadable"
+              : r.paperRefused ? "the paper engine refused its order: the rung quotes nothing until the rule places it again" : "the paper rung quotes nothing";
             await cancelConfirmed(o, why);
           }
           continue;

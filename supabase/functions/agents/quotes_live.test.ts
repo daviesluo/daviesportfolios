@@ -14,7 +14,7 @@ import {
   exitTicks, fairUAt, fxAt, newBookState, QUOTE_BOOKS, QUOTE_TICK, stepMinute, type BookState, type Print, type QuoteBook, type QuoteEvent, type Side, type Trip,
 } from "./quotes.ts";
 import {
-  bookInputs, crossesBook, dustBase, entryBookOf, entryGuards, governorLevel, lossStopHit, markedGbp, paperEntryTarget, parseBook, QUOTE_LIVE_ENTRY_POSTS,
+  bookInputs, crossesBook, dustBase, entryBookOf, entryGuards, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_ENTRY_POSTS,
   QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks, venueSideOf,
 } from "./quotes_live.ts";
 import { bookLiveBuy } from "./tick.ts";
@@ -194,13 +194,20 @@ Deno.test("bookLiveBuy, the tick's D11/D12 rule the executor books buys through:
   assertEquals(bookLiveBuy(5.5, "0.00001", { asset: "USDT", held: 19, rest: 14.5, feeBps: 9 }).ok, false);
 });
 
-Deno.test("paperEntryTarget: a quoting paper rung's order is the target; idle, holding or exiting is none", () => {
+Deno.test("paperEntryTarget: a quoting paper rung's order is the target; idle, holding, exiting or refused is none", () => {
   const s = newBookState("USDC-GBP");
   stepMinute(s, T0, { x: X, fairU: 1.0, prints: [] });
   const t = paperEntryTarget(s.rungs[0])!;
   assertEquals([t.ticks, t.live], [7546, T0 + M]);
   assertEquals(paperEntryTarget(newBookState("USDC-GBP").rungs[0]), null);
   assertEquals(paperEntryTarget({ ...s.rungs[0], mode: "position" }), null);
+  // A print under the bids before they go live: the engine refuses them, and a refused order is no target.
+  stepMinute(s, T0 + M, { x: X, fairU: 1.0, prints: [] });
+  const r = newBookState("USDC-GBP");
+  stepMinute(r, T0, { x: X, fairU: 1.0, prints: [{ ts: T0 + 20e3, ticks: 7530, qty: 50, side: "sell", id: "p" }] });
+  stepMinute(r, T0 + M, { x: X, fairU: 1.0, prints: [] });
+  assertEquals([s.rungs[0].o!.state, paperRefused(s.rungs[0]), paperEntryTarget(s.rungs[0])?.ticks], ["live", false, 7546]);
+  assertEquals([r.rungs[0].o!.state, paperRefused(r.rungs[0]), paperEntryTarget(r.rungs[0])], ["rejected", true, null]);
 });
 
 // ------------------------------------------------------------------ the double is as strict as the database
@@ -341,6 +348,63 @@ Deno.test("live: a post-only order the venue refuses is the refused state — th
     await w.step(T0 + 5 * M);
     assertEquals(rung().map((o) => [o.state, Number(o.price)]), [["rejected", 0.7546], ["new", 0.7511]], how);
   }
+});
+
+/** Reference §4 item 35's L3 and L4 on the double: every entry is the paper order it names, at that order's ticks, and every paper bid decision was carried out. */
+function orderForOrder(w: ReturnType<typeof makeWorld>, mode: string) {
+  const entries = entryRows(w.orders(), mode);
+  const oid = (e: QuoteEvent) => (e.detail as { oid: number }).oid;
+  const l3 = entries.filter((o) => !w.paperEvents.some((e) => e.kind === "order" && e.book === o.book && e.side === o.rung_side && e.k === Number(o.k)
+    && e.minute === Date.parse(String(o.paper_live)) - M && oid(e) === o.paper_oid && e.ticks === ticks(o)));
+  const l4 = w.paperEvents.filter((e) => e.kind === "order" && e.side === "bid" && (e.detail as { leg: string }).leg === "entry")
+    .filter((e) => !entries.some((o) => o.book === e.book && o.rung_side === e.side && Number(o.k) === e.k && o.paper_oid === oid(e) && Date.parse(String(o.paper_live)) === e.minute + M));
+  return { l3: l3.map((o) => [o.book, Number(o.k), ticks(o), o.paper_live]), l4: l4.map((e) => [e.book, e.k, e.ticks, iso(e.minute)]) };
+}
+
+// Production, 2026-09-24 12:36–12:50 UTC, USDT-GBP's 0.2 % bid (dry-run order 108): the paper engine refused its order at
+// go-live (a print below it), the venue's book would have taken it, the rule re-priced the refused order without placing
+// it, and the executor sent those ticks under the refused decision's name, then had nothing to send when the rule placed it.
+Deno.test("a refused paper order is no decision: the rung withdraws and sends nothing, whatever the rule re-prices it to, until the rule places it again", async () => {
+  for (const mode of ["dry_run", "live"] as const) {
+    const w = makeWorld(mode === "live" ? { live: true, armed: true } : {});
+    const sent = () => mode === "live" ? w.posts() : entryRows(w.orders(), mode).length;
+    const usdt = (k: number) => entryRows(w.orders(), mode).filter((o) => o.book === "USDT-GBP" && Number(o.k) === k);
+    const openUsdt = () => w.open(mode).filter((o) => o.book === "USDT-GBP" && o.leg === "entry").map((o) => [Number(o.k), ticks(o), o.paper_live]).sort();
+    // Minute T0: six bids at 7546 / 7538 / 7531, and a USDT-GBP print at 7530 under all three before they go live.
+    await w.step(T0, { "USDT-GBP": [{ ts: T0 + 20e3, ticks: 7530, qty: 50, side: "sell", id: "p1" }] });
+    assertEquals(sent(), 6, mode);
+    // T0 + 1 min: the paper engine refuses USDT-GBP's three bids; the venue's book (0.7546 / 0.7551) would not have.
+    await w.step(T0 + M);
+    assertEquals(w.paperEvents.filter((e) => e.kind === "refused").map((e) => [e.book, e.k, e.ticks]), [["USDT-GBP", 0.001, 7546], ["USDT-GBP", 0.002, 7538], ["USDT-GBP", 0.003, 7531]]);
+    assertEquals(openUsdt(), [], `${mode}: the refused orders are withdrawn`);
+    assert([0.001, 0.002, 0.003].every((k) => String(usdt(k)[0].cancel_reason).includes("refused")), mode);
+    assertEquals(sent(), 6, mode);
+    // GBP/USD 1.3250 (fair −0.09 %): the rule re-prices the refused 0.1 % and 0.2 % bids to 7539 / 7532, still under the
+    // print, so it places neither; the 0.3 % bid at 7524 is off the print and placed again, and USDC-GBP re-prices.
+    w.setFx(T0 + M, T0 + 30 * H, 1.3250);
+    await w.step(T0 + 2 * M);
+    assertEquals(openUsdt(), [[0.003, 7524, iso(T0 + 3 * M)]], mode);
+    assertEquals(sent(), 10, mode);
+    // A print at 7545 lifts the block: the rule places the two at 7539 / 7532 (live T0 + 5 min), and each is sent once.
+    await w.step(T0 + 3 * M, { "USDT-GBP": [{ ts: T0 + 3 * M + 20e3, ticks: 7545, qty: 50, side: "buy", id: "p2" }] });
+    await w.step(T0 + 4 * M);
+    assertEquals(openUsdt(), [[0.001, 7539, iso(T0 + 5 * M)], [0.002, 7532, iso(T0 + 5 * M)], [0.003, 7524, iso(T0 + 3 * M)]], mode);
+    assertEquals(sent(), 12, mode);
+    assertEquals(orderForOrder(w, mode), { l3: [], l4: [] }, mode);
+  }
+});
+
+// Production, 2026-09-24 02:41 UTC (dry-run order 4): the executor's first minute found a bid the paper engine had refused
+// at 00:18 and since re-priced, and recorded it at the re-priced ticks under the 00:18 decision.
+Deno.test("the executor's first turn finds a paper order already refused and re-priced: nothing is sent for it", async () => {
+  const w = makeWorld();
+  await w.paperStep(T0, { "USDT-GBP": [{ ts: T0 + 20e3, ticks: 7530, qty: 50, side: "sell", id: "p1" }] });
+  await w.paperStep(T0 + M);
+  w.setFx(T0 + M, T0 + 30 * H, 1.3250);
+  await w.paperStep(T0 + 2 * M);
+  await w.live(T0 + 2 * M);
+  assertEquals(entryRows(w.orders(), "dry_run").filter((o) => o.book === "USDT-GBP").map((o) => [Number(o.k), ticks(o), o.paper_live]), [[0.003, 7524, iso(T0 + 3 * M)]]);
+  assertEquals(orderForOrder(w, "dry_run").l3, []);
 });
 
 Deno.test("live: every order is written pending BEFORE the venue is called, and a lost reply is reconciled by client id, never re-sent", async () => {
