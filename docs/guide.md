@@ -121,9 +121,10 @@ page call it **Agents (beta)**.
   for the time, the close and any fill. Under the chart is every order
   on that coin, newest first.
 
-The page loads in the background after the board first paints, and
-refreshes every minute while it is open. Everything on it is worked out
-by the `agents` function; the page only formats it.
+The page opens on what it showed last time in this browser, the first
+time after a reload included, and refreshes behind it: as it opens, then
+every minute while it is open. Everything on it is worked out by the
+`agents` function; the page only formats it.
 
 ## Ticker chart
 

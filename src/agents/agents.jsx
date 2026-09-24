@@ -14,7 +14,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtMoney, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  agentsAlerts, agentsErrorView, countdownText, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
+  agentsAlerts, agentsErrorView, countdownText, dashboardInFlight, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -800,7 +800,8 @@ function Detail({ s, dash, m, nowMs }) {
  * @param {{ hideValues: boolean, onClose: () => void }} props
  */
 function AgentsModal({ hideValues, onClose }) {
-  // Opens on the copy the app fetched at start (or the last refresh), then refreshes.
+  // Opens on the copy the app fetched at start (or the last refresh, or —
+  // straight after a reload — the one this browser kept), then refreshes.
   const [dash, setDash] = React.useState(/** @type {any} */ (() => readAgentsCache()?.dash ?? null));
   const [error, setError] = React.useState(/** @type {string | null} */ (null));
   const [loading, setLoading] = React.useState(() => !readAgentsCache());
@@ -818,7 +819,9 @@ function AgentsModal({ hideValues, onClose }) {
     const seq = guard.current.start();
     if (manual || !readAgentsCache()) setLoading(true);
     try {
-      const next = await fetchAgentsDashboard();
+      // A click asks anew; anything else joins a request already on its way — the app's own fetch after first paint,
+      // which a page opened straight after a reload would otherwise duplicate.
+      const next = await ((!manual && dashboardInFlight()) || fetchAgentsDashboard());
       if (!alive.current || !guard.current.isLatest(seq)) return;
       setDash(next); setError(null);
     } catch (e) {

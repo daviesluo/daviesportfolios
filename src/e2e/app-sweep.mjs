@@ -663,12 +663,18 @@ async function run() {
   const tokenMisses = [];
 
   // ---- 0. a menu page shows its own frame while its code is still arriving ----
-  // The agents chunk is held back 700 ms. Clicking Agents at once must put up
-  // the page's frame (backdrop, title, close) — never a blank frame that
-  // shows the home page through — and the real page must replace it.
+  // The agents chunk is held back until the click has been answered. Clicking
+  // Agents then must put up the page's frame (backdrop, title, close) — never
+  // a blank frame that shows the home page through — and the real page must
+  // replace it. Held until released, not for a fixed 700 ms: the hold starts
+  // when the board first mounts, and a page whose code has already arrived is
+  // drawn at once (lazyPage) — which is right, and not what this checks.
   {
+    /** @type {() => void} */
+    let releaseCode = () => {};
+    const codeHeld = new Promise((r) => { releaseCode = r; });
     const hold = async (page) => {
-      await page.route('**/assets/agents-*.js', async (route) => { await new Promise((r) => setTimeout(r, 700)); await route.continue(); });
+      await page.route('**/assets/agents-*.js', async (route) => { await codeHeld; await route.continue(); });
     };
     const { ctx, page } = await newPage(browser, { width: 1400, height: 1000 }, errors, tokenMisses, { beforeGoto: hold });
     await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
@@ -680,11 +686,13 @@ async function run() {
       const earlyBoard = await page.locator('.ag-scoreboard').count();
       if (frameTitle.trim() === 'Agents (beta)' && earlyBoard === 0) ok('desktop/agents', 'clicking Agents (beta) before its code has arrived shows the page\'s own frame, titled as the page is, not the home page');
       else fail('desktop/agents', `early frame title "${frameTitle}", scoreboards ${earlyBoard}`);
+      releaseCode();
       const arrived = await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 }).then(() => true).catch(() => false);
       const modalsAfter = await page.locator('.modal').count();
       if (arrived && modalsAfter === 1) ok('desktop/agents', 'the real page replaces the frame in the same modal');
       else fail('desktop/agents', `page arrived ${arrived}, modals ${modalsAfter}`);
     } else fail('desktop/agents', 'no Agents entry in the menu');
+    releaseCode();
     await ctx.close();
   }
 
@@ -817,6 +825,90 @@ async function run() {
     if (!answered) fail(S('steady'), `the held answers never landed inside the window (${heldAnswers.join(', ') || 'none'})`);
     else if (!moved) ok(S('steady'), `${seen.length} reads over 3.2 s, through the book and the quotes landing at 1.5 s: nothing moved, no "Computing…", no flat line`);
     else fail(S('steady'), `at ${moved.t} ms it read ${moved.pf} | ${moved.day} | ${moved.chart} | flat ${moved.flat} (was ${before.pf} | ${before.day} | ${before.chart})`);
+    await ctx.close();
+  }
+
+  // ---- 0d. the Agents page opens drawn, the first time after a reload too --
+  // Davies (2026-09-23): "every time I open it I have to wait for loading".
+  // Two waits, measured: the page's data lived in memory only, so the first
+  // open after a reload said "Loading…" for the length of the dashboard call
+  // (and asked for it a second time while the app's own fetch was out); and
+  // its CODE, although fetched after first paint, went through React.lazy,
+  // which suspends a first render whatever is in memory — ~290 ms of frame
+  // even when opened long after the chunk arrived. Here every answer is held
+  // back 1.5 s, the page is opened the moment the board paints, and it must
+  // be drawn from the first read — with values hidden too, where the kept
+  // copy must be masked like everything else.
+  for (const vp of [{ name: 'desktop', width: 1400, height: 1000 },
+                    { name: 'phone', width: 390, height: 844 }]) {
+    const S = (n) => `${vp.name}/agents-reload/${n}`;
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true });
+    const openAgents = async () => {
+      await page.locator('.header-menu-btn, .header-menu button').first().click();
+      await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
+    };
+    const readModal = () => page.evaluate(() => {
+      const modal = document.querySelector('.modal');
+      if (!modal) return null;
+      const text = modal.textContent || '';
+      const usd = [...modal.querySelectorAll('.ag-scoreboard .ag-sb-usd')].map((n) => (n.textContent || '').trim());
+      return { drawn: !!modal.querySelector('.ag-scoreboard'), loading: /loading…/i.test(text), realised: (modal.querySelector('.ag-sb-realised .ag-sb-usd')?.textContent || '').trim(), usd };
+    });
+    // The page's code: every agents chunk the reload asked for, finished.
+    const chunk = /\/assets\/agents-[^/]+\.js$/;
+    const chunks = { started: new Set(), done: new Set() };
+    page.on('request', (r) => { if (chunk.test(r.url())) chunks.started.add(r.url()); });
+    page.on('requestfinished', (r) => { if (chunk.test(r.url())) chunks.done.add(r.url()); });
+    await openAgents();
+    await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
+    await page.waitForTimeout(800);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+
+    for (const hidden of [false, true]) {
+      if (hidden) {
+        await page.locator('.hide-eye').first().click();
+        await page.waitForTimeout(200);
+      }
+      holdMs = 1500;
+      heldAnswers.length = 0;
+      await page.clock.setFixedTime(new Date(NOW_MS + (hidden ? 12 : 6) * 60e3));
+      chunks.started.clear();
+      chunks.done.clear();
+      await page.reload({ waitUntil: 'commit' });
+      await page.waitForSelector('.scoreboard-cell-portfolio .sb-value-lg', { timeout: 20_000 });
+      // Opened as soon as its code has arrived — tens of milliseconds after the
+      // board paints, long before any held answer can land. A click that beats
+      // the code itself gets the page's frame, and section 0 pins that frame.
+      const codeBy = Date.now() + 5000;
+      while (Date.now() < codeBy && !(chunks.started.size > 0 && [...chunks.started].every((u) => chunks.done.has(u)))) await page.waitForTimeout(10);
+      await page.waitForTimeout(50);
+      await openAgents();
+      const t0 = Date.now();
+      const reads = [];
+      while (Date.now() - t0 < 2600) {
+        const r = await readModal().catch(() => null);
+        if (r) reads.push({ t: Date.now() - t0, ...r });
+        await page.waitForTimeout(15);
+      }
+      holdMs = 0;
+      const first = reads[0];
+      const bad = reads.find((r) => !r.drawn || r.loading);
+      const asks = heldAnswers.filter((a) => a.includes('action=dashboard')).length;
+      if (!hidden) {
+        if (first && !bad && first.realised === '+$12.34' && asks === 1) {
+          ok(S('open'), `opened as soon as its code arrived: drawn from the first read (realised ${first.realised}), never "Loading…" through the held answer, one dashboard request`);
+        } else fail(S('open'), `first read ${JSON.stringify(first)}; first undrawn/loading read ${JSON.stringify(bad)}; dashboard requests ${asks}`);
+      } else {
+        const digits = reads.filter((r) => r.usd.some((u) => /\d/.test(u)));
+        if (first && !bad && first.usd.length > 0 && digits.length === 0) {
+          ok(S('hidden'), `with values hidden the kept copy is drawn masked from the first read (${first.usd.slice(0, 2).join(', ')})`);
+        } else fail(S('hidden'), `first read ${JSON.stringify(first)}; undrawn/loading ${JSON.stringify(bad)}; reads with digits ${digits.length}`);
+      }
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+    }
+    await page.locator('.hide-eye').first().click().catch(() => {});
     await ctx.close();
   }
 

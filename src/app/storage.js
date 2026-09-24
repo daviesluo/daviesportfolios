@@ -4,9 +4,12 @@
 // `utils.js` barrel that used to re-export it was retired in 2026-06).
 //
 // Chart-bulk caches (dp.tickerChart / dp.maCache / dp.ytd) moved out
-// to IndexedDB (src/prices/chart_store.js) so localStorage now only carries
-// small / low-churn rows: schema version, auth lockout, prefs, the
-// market-data seed, and the ops-error ack timestamp.
+// to IndexedDB (src/prices/chart_store.js). What stays in localStorage is
+// what must be readable on the FIRST render, which IndexedDB never is:
+// the schema version, auth lockout, prefs, the ops-error ack, and the
+// copies a reload paints before anything answers — market data, the
+// portfolio, the last-shown prices, the 24H chart's bars and the Agents
+// page. The two larger ones are bounded (one chart window; a size cap).
 
 // -------- localStorage schema -----------------------------------------
 // All persisted state lives under the `dp.` namespace and is gated on a
@@ -51,6 +54,12 @@ const STORAGE_KEYS = {
   // drawn from, readable on the panel's FIRST render — IndexedDB, where
   // the chart store keeps them, answers only after it. See perf_chart.jsx.
   perfSeed:      'dp.perfSeed', // { ts, data: { rangeKey: '1D', variantKey, spSymbol, hist: { sym: [{date, close}] }, recorded: [{ts, prices}] } }
+  // The Agents page as it last drew: the dashboard and the chart each
+  // strategy opens on (agents/agents.js). Read on the page's first render —
+  // straight after a reload too, when memory is empty — so it opens drawn
+  // and refreshes behind. A key no earlier version wrote, so it needs no
+  // schema step: a missing row reads as nothing kept.
+  agentsCache:   'dp.agentsCache', // { ts, data: { at, dash, charts: { 'strategy|symbol': { at, chart } } } }
   // Timestamp (ms epoch) of the newest ops-error the admin has
   // acknowledged via the error-triage badge — the badge stays hidden
   // until a newer error is reported. Admin-only single scalar; no
@@ -70,6 +79,10 @@ const LEGACY_CHART_DB = 'daviesportfolios';
 // 24H chart seed — are ignored past a week, like the market cache: past
 // that, "what the page last showed" is too far from today to paint.
 const LAST_SHOWN_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+// The Agents page's kept copy may take this many characters of the ~5 MB
+// localStorage allows; past it the charts are dropped first, then the whole
+// copy. A dashboard is tens of kilobytes and a chart a few more.
+const AGENTS_CACHE_MAX_CHARS = 600_000;
 // Market-cache freshness — accept rows up to 7 days old. FX moves
 // <1 % over a typical week and index / futures levels move a few
 // percent at most, so the cold-start render is still well within
@@ -96,12 +109,10 @@ function readJSON(key, fallback) {
 // localStorage write. Returns false on any failure (including quota)
 // so callers can fall back to a cold fetch rather than assume the
 // write landed. The bulk chart caches (dp.tickerChart / dp.maCache /
-// dp.ytd) moved to IndexedDB (chart_store.js), so the rows that pass
-// through here now are all small + bounded (auth, prefs, the single
-// market-data snapshot, the ops-error ack scalar). The old
-// QuotaExceededError fallback used to halve the chart cache rows to
-// free space; with those gone there's nothing large left in
-// localStorage to trim, so a quota error just means we skip the write.
+// dp.ytd) moved to IndexedDB (chart_store.js); every row that passes
+// through here is bounded (see the header). A quota error just means
+// the write is skipped: each of these rows is a stand-in, never the
+// only copy of anything.
 function writeJSON(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
@@ -329,6 +340,40 @@ export const Storage = {
   },
   /** @param {{ rangeKey: string, variantKey: string, spSymbol: string, hist: Record<string, any[]>, recorded: any[] }} seed */
   savePerfSeed: (seed) => writeJSON(STORAGE_KEYS.perfSeed, { ts: Date.now(), data: seed }),
+  // The Agents page's kept copy (see STORAGE_KEYS.agentsCache), or null.
+  /** @returns {{ at: number, dash: any, charts: Record<string, { at: number, chart: any }> } | null} */
+  loadAgentsCache: () => {
+    const row = readJSON(STORAGE_KEYS.agentsCache, null);
+    if (!row || typeof row !== 'object') return null;
+    const ts = Number(row.ts);
+    if (!isFinite(ts) || Date.now() - ts > LAST_SHOWN_MAX_AGE_MS) return null;
+    const d = row.data;
+    if (!d || typeof d !== 'object' || !d.dash || typeof d.dash !== 'object') return null;
+    /** @type {Record<string, { at: number, chart: any }>} */
+    const charts = {};
+    for (const [k, v] of Object.entries(d.charts && typeof d.charts === 'object' ? d.charts : {})) {
+      if (v && typeof v === 'object' && v.chart && typeof v.chart === 'object') charts[k] = { at: Number(v.at) || ts, chart: v.chart };
+    }
+    return { at: Number(d.at) || ts, dash: d.dash, charts };
+  },
+  /**
+   * Keep the page as it drew, within AGENTS_CACHE_MAX_CHARS: the charts go
+   * first, then the whole copy — a copy too big to keep is not worth a
+   * quota error on every refresh.
+   * @param {{ at: number, dash: any, charts?: Record<string, { at: number, chart: any }> }} copy
+   */
+  saveAgentsCache: (copy) => {
+    if (!copy || !copy.dash || typeof copy.dash !== 'object') return false;
+    try {
+      let json = JSON.stringify({ ts: Date.now(), data: copy });
+      if (json.length > AGENTS_CACHE_MAX_CHARS) json = JSON.stringify({ ts: Date.now(), data: { ...copy, charts: {} } });
+      if (json.length > AGENTS_CACHE_MAX_CHARS) return false;
+      localStorage.setItem(STORAGE_KEYS.agentsCache, json);
+      return true;
+    } catch {
+      return false;
+    }
+  },
   // dp.tickerChart / dp.maCache / dp.ytd moved to IndexedDB
   // (chart_store.js — ChartStore / MaStore / YtdStore). See that
   // module for the read/write API. localStorage now only holds

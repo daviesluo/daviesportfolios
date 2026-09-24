@@ -102,14 +102,10 @@ class LazyBoundary extends React.Component {
 
 /** Warm every split chunk. Idempotent — the module cache dedupes. */
 function prefetchModalChunks() {
-  // Best-effort warmers: a chunk that fails here is retried, healed and reported by `lazyPage` at the click,
-  // so a failure in the warm-up is not a second report.
-  const warm = (p) => p.catch(() => {});
-  warm(import('../charts/ticker_chart_modal.jsx'));
-  warm(import('../tables/holdings_list.jsx'));
-  warm(import('../tables/sectors_list.jsx'));
-  warm(import('../tables/transaction_history.jsx'));
-  warm(import('../agents/agents.jsx'));
+  // Through each page's own `preload`, so the page knows its code is here and its first open renders it at once
+  // instead of suspending into its frame (see lazyPage). Best-effort: a chunk that fails here is retried, healed and
+  // reported by `lazyPage` at the click, so a failure in the warm-up is not a second report.
+  for (const page of [TickerChartModal, HoldingsListModal, SectorsListModal, TransactionHistoryModal, AgentsModal]) page.preload();
   // The Agents page's data too, so it opens on a drawn page rather than a spinner.
   import('../agents/agents.js').then((m) => m.prefetchAgentsDashboard()).catch(() => {});
 }

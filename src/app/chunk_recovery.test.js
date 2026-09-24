@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { CHUNK_ERROR_RE, RECOVERY_KEY, chunkUrlFromError, healAndReload, healRejection, isChunkLoadError, shouldHeal } from './chunk_recovery.js';
+import React from 'react';
+import { render, act, cleanup } from '@testing-library/react';
+import { CHUNK_ERROR_RE, RECOVERY_KEY, chunkUrlFromError, healAndReload, healRejection, isChunkLoadError, lazyPage, shouldHeal } from './chunk_recovery.js';
 
 const mem = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)) }; };
 
@@ -85,5 +87,45 @@ describe('healRejection', () => {
     expect(await healRejection(new Error('some ordinary failure'), deps)).toBe(false);
     expect(calls).toEqual([]);
     expect(await healRejection(undefined, deps)).toBe(false);
+  });
+});
+
+// A page whose code is already here is drawn on its first render. Measured
+// before: the Agents page opened 1.6 s after its chunk had arrived still
+// showed its "Loading…" frame for ~290 ms, because `React.lazy` suspends on
+// a first render whatever the module cache holds, and React then holds the
+// fallback for its reveal throttle.
+describe('lazyPage', () => {
+  const h = React.createElement;
+  const inFrame = (Page) => h(React.Suspense, { fallback: h('p', null, 'Loading…') }, h(Page));
+
+  it('draws a preloaded page on its first render, with no frame in between', async () => {
+    cleanup();
+    const Page = lazyPage(() => Promise.resolve({ Body: () => h('p', null, 'the page') }), (m) => ({ default: m.Body }));
+    await Page.preload();
+    const { container } = render(inFrame(Page));
+    expect(container.textContent).toBe('the page');
+  });
+
+  it('opened before its code arrives, shows the frame, then the page — mounted once', async () => {
+    cleanup();
+    /** @type {(v?: unknown) => void} */
+    let arrive = () => {};
+    const code = new Promise((r) => { arrive = r; });
+    let mounts = 0;
+    function Body() { React.useEffect(() => { mounts++; }, []); return h('p', null, 'the page'); }
+    const Page = lazyPage(() => code.then(() => ({ Body })), (m) => ({ default: m.Body }));
+    const { container, rerender } = render(inFrame(Page));
+    expect(container.textContent).toBe('Loading…');
+    await act(async () => { arrive(); await code; await new Promise((r) => setTimeout(r, 0)); });
+    rerender(inFrame(Page));
+    await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+    expect(container.textContent).toBe('the page');
+    expect(mounts).toBe(1);
+  });
+
+  it('leaves a failed warm-up for the click: nothing is thrown and nothing reloads', async () => {
+    const Page = lazyPage(() => Promise.reject(new TypeError('Failed to fetch dynamically imported module: /assets/x.js')), (m) => ({ default: m.Body }));
+    await expect(Page.preload()).resolves.toBeUndefined();
   });
 });

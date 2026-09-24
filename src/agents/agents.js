@@ -5,6 +5,7 @@
 import { SB_ANON, EDGE_AGENTS_URL } from '../app/supabase_config.js';
 import { getAppToken } from '../app/auth.js';
 import { fmtMoney, formatAgo } from '../app/formatters.js';
+import { Storage } from '../app/storage.js';
 
 // Kraken keeps its label, not a place on the page: it is the signal venue every rule reads candles from, and nothing
 // trades there since `0046`. VENUES shows Revolut X, where the loop executes, and Binance, the account it may use next.
@@ -80,17 +81,30 @@ function agentsFetchError(scope, status, text) {
  */
 export async function fetchAgentsDashboard(fetchImpl = fetch) {
   const seq = dashGuard.start();
-  // Pinned to London: the dashboard reads the Binance account, and Binance refuses the US regions a call routed by
-  // distance could land in (451). A query parameter, not the `x-region` header, so the CORS preflight is unchanged.
-  const res = await fetchImpl(`${EDGE_AGENTS_URL}?action=dashboard&forceFunctionRegion=${DASHBOARD_REGION}`, { headers: headers() });
-  const text = await res.text();
-  if (!res.ok) throw agentsFetchError('dashboard', res.status, text);
-  const dash = JSON.parse(text);
-  // The cache holds the NEWEST request's answer, whatever order the answers arrive in: the minute's refresh and a click
-  // can be in flight together, and a slow older answer must not become what the next page opens on.
-  if (dashGuard.isLatest(seq)) agentsCache = { at: Date.now(), dash };
-  return dash;
+  const request = (async () => {
+    // Pinned to London: the dashboard reads the Binance account, and Binance refuses the US regions a call routed by
+    // distance could land in (451). A query parameter, not the `x-region` header, so the CORS preflight is unchanged.
+    const res = await fetchImpl(`${EDGE_AGENTS_URL}?action=dashboard&forceFunctionRegion=${DASHBOARD_REGION}`, { headers: headers() });
+    const text = await res.text();
+    if (!res.ok) throw agentsFetchError('dashboard', res.status, text);
+    const dash = JSON.parse(text);
+    // The cache holds the NEWEST request's answer, whatever order the answers arrive in: the minute's refresh and a click
+    // can be in flight together, and a slow older answer must not become what the next page opens on.
+    if (dashGuard.isLatest(seq)) { agentsCache = { at: Date.now(), dash }; keepPage(); }
+    return dash;
+  })();
+  dashInFlight = request;
+  try { return await request; } finally { if (dashInFlight === request) dashInFlight = null; }
 }
+
+/**
+ * The newest dashboard request still on its way, or null. The page opening
+ * while the app's own after-paint fetch is out joins it rather than asking
+ * the slow dashboard call a second time.
+ */
+export function dashboardInFlight() { return dashInFlight; }
+/** @type {Promise<any> | null} */
+let dashInFlight = null;
 
 /**
  * A request-ordering guard. Each `start()` is a newer request and only the
@@ -115,15 +129,57 @@ export function sizeText(base, m = (s) => s) { return m(Number(base).toFixed(6))
 // here. The app fetches the dashboard once after first paint and the modal
 // paints that copy at once, then refreshes; each strategy's default chart
 // is fetched behind it, spaced out, so a detail opens drawn.
+//
+// Memory alone left the first open after every reload on "Loading…" — the
+// dashboard call is slow, and memory starts empty — and a click while the
+// app's own fetch was still out asked a second time. So the page as it last
+// drew is also kept in this browser (Storage.saveAgentsCache: the dashboard
+// and the chart each strategy opens on), read back the first time anything
+// asks, and a request already out is joined (`dashboardInFlight`). The kept
+// copy is raw numbers; hide-values masks them at render like any other.
 /** @type {{ at: number, dash: any } | null} */
 let agentsCache = null;
 /** @type {Map<string, { at: number, chart: any }>} */
 const chartCache = new Map();
 const chartKey = (strategyId, symbol) => `${strategyId}|${symbol}`;
 
-export function readAgentsCache() { return agentsCache; }
+// Read the kept copy into memory once, under anything fresher already there.
+let keptRead = false;
+function readKept() {
+  if (keptRead) return;
+  keptRead = true;
+  const kept = Storage.loadAgentsCache();
+  if (!kept) return;
+  if (!agentsCache) agentsCache = { at: kept.at, dash: kept.dash };
+  for (const [k, v] of Object.entries(kept.charts)) if (!chartCache.has(k)) chartCache.set(k, v);
+}
+
+// Write the page as it now stands: the dashboard, and for each strategy the
+// chart its detail opens on. Batched, since the prefetch lands a chart every
+// 200 ms.
+/** @type {ReturnType<typeof setTimeout> | null} */
+let keepTimer = null;
+function keepPage() {
+  if (keepTimer) return;
+  keepTimer = setTimeout(() => {
+    keepTimer = null;
+    if (!agentsCache?.dash) return;
+    /** @type {Record<string, { at: number, chart: any }>} */
+    const charts = {};
+    for (const st of agentsCache.dash.strategies ?? []) {
+      const sym = defaultChartSymbol(st);
+      const c = sym ? chartCache.get(chartKey(st.id, sym)) : null;
+      if (c) charts[chartKey(st.id, sym)] = c;
+    }
+    Storage.saveAgentsCache({ at: agentsCache.at, dash: agentsCache.dash, charts });
+  }, 250);
+}
+
+export function readAgentsCache() { readKept(); return agentsCache; }
 /** @param {string} strategyId @param {string} symbol */
-export function readChartCache(strategyId, symbol) { return chartCache.get(chartKey(strategyId, symbol)) ?? null; }
+export function readChartCache(strategyId, symbol) { readKept(); return chartCache.get(chartKey(strategyId, symbol)) ?? null; }
+/** Test hook: forget memory and read the kept copy again, as a reload would. */
+export function _reloadAgentsCache() { agentsCache = null; chartCache.clear(); keptRead = false; dashInFlight = null; chartsInFlight.clear(); }
 
 /**
  * Warm the page: the dashboard, then one chart per strategy 250 ms apart.
@@ -133,7 +189,7 @@ export function readChartCache(strategyId, symbol) { return chartCache.get(chart
  */
 export async function prefetchAgentsDashboard(fetchImpl = fetch, later = (fn, ms) => setTimeout(fn, ms)) {
   let dash;
-  try { dash = await fetchAgentsDashboard(fetchImpl); } catch { return null; }
+  try { dash = await (dashboardInFlight() ?? fetchAgentsDashboard(fetchImpl)); } catch { return null; }
   if (!dash || dash.notReady) return dash ?? null;
   // Every pair of every strategy, the held one first, 200 ms apart: a detail then opens drawn whichever tab is clicked.
   const wanted = [];
@@ -167,15 +223,25 @@ export async function fetchAgentsLog(strategyId, limit = 200, fetchImpl = fetch)
  * @param {typeof fetch} [fetchImpl]
  */
 export async function fetchAgentsChart(strategyId, symbol, fetchImpl = fetch) {
-  const res = await fetchImpl(
-    `${EDGE_AGENTS_URL}?action=chart&strategy=${encodeURIComponent(strategyId)}&symbol=${encodeURIComponent(symbol)}`,
-    { headers: headers() });
-  const text = await res.text();
-  if (!res.ok) throw agentsFetchError('chart', res.status, text);
-  const chart = JSON.parse(text);
-  if (chart && !chart.error) chartCache.set(chartKey(strategyId, symbol), { at: Date.now(), chart });
-  return chart;
+  const key = chartKey(strategyId, symbol);
+  // The same pair already on its way (the prefetch, or last minute's refresh) is joined, not asked again.
+  const pending = chartsInFlight.get(key);
+  if (pending) return pending;
+  const request = (async () => {
+    const res = await fetchImpl(
+      `${EDGE_AGENTS_URL}?action=chart&strategy=${encodeURIComponent(strategyId)}&symbol=${encodeURIComponent(symbol)}`,
+      { headers: headers() });
+    const text = await res.text();
+    if (!res.ok) throw agentsFetchError('chart', res.status, text);
+    const chart = JSON.parse(text);
+    if (chart && !chart.error) { chartCache.set(key, { at: Date.now(), chart }); keepPage(); }
+    return chart;
+  })();
+  chartsInFlight.set(key, request);
+  try { return await request; } finally { if (chartsInFlight.get(key) === request) chartsInFlight.delete(key); }
 }
+/** @type {Map<string, Promise<any>>} */
+const chartsInFlight = new Map();
 
 /** What each class of failure is called and what it means, in one plain sentence each. */
 const ERROR_WORDS = {

@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText } from './agents.js';
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
@@ -732,5 +732,66 @@ describe('quoteLadderRows — a book as the page draws it', () => {
   it('writes a book as a pair and a price as pounds to four places', () => {
     expect(quoteBookLabel('USDT-GBP')).toBe('USDT/GBP');
     expect([fmtQuotePrice(0.75), fmtQuotePrice(null)]).toEqual(['£0.7500', '—']);
+  });
+});
+
+// The page opens on what it last drew — including the first open after a
+// reload, when memory is empty — and a request already out is joined.
+// Measured before: opened right after a reload the page said "Loading…" for
+// the length of the (slow) dashboard call, and asked for it a second time
+// while the app's own fetch after first paint was still out.
+describe('the Agents page kept across a reload', () => {
+  const DASH = { at: 'kept', strategies: [{ id: 's1', symbols: ['BTC/USD', 'ETH/USD'], positions: [{ symbol: 'ETH/USD', base: 0.5 }] }] };
+  const respond = (url) => new Response(JSON.stringify(String(url).includes('action=dashboard') ? DASH : { candles: [[1, 1, 2, 0.5, 1.5]], symbol: 'x' }), { status: 200 });
+  const settle = (ms = 300) => new Promise((r) => setTimeout(r, ms));
+
+  it('reads back the last dashboard and each strategy\'s first chart after a reload — and only that chart', async () => {
+    localStorage.clear();
+    _reloadAgentsCache();
+    await fetchAgentsDashboard(/** @type {any} */ (async (u) => respond(u)));
+    await fetchAgentsChart('s1', 'ETH/USD', /** @type {any} */ (async (u) => respond(u)));   // the held coin: the one the detail opens on
+    await fetchAgentsChart('s1', 'BTC/USD', /** @type {any} */ (async (u) => respond(u)));
+    await settle();
+
+    _reloadAgentsCache();                                                                  // what a reload does to memory
+    expect(readAgentsCache()?.dash).toEqual(DASH);
+    expect(readChartCache('s1', 'ETH/USD')?.chart).toBeTruthy();
+    expect(readChartCache('s1', 'BTC/USD')).toBeNull();
+  });
+
+  it('never lets the kept copy stand over a fresher answer in memory', async () => {
+    localStorage.clear();
+    _reloadAgentsCache();
+    await fetchAgentsDashboard(/** @type {any} */ (async (u) => respond(u)));
+    await settle();
+    _reloadAgentsCache();
+    await fetchAgentsDashboard(/** @type {any} */ (async () => new Response(JSON.stringify({ at: 'fresh', strategies: [] }), { status: 200 })));
+    expect(readAgentsCache()?.dash?.at).toBe('fresh');
+  });
+
+  it('joins the request already out instead of asking the slow dashboard call again', async () => {
+    _reloadAgentsCache();
+    /** @type {(v?: unknown) => void} */
+    let answer = () => {};
+    const gate = new Promise((r) => { answer = r; });
+    const fetchImpl = vi.fn(async (u) => { await gate; return respond(u); });
+    const first = prefetchAgentsDashboard(/** @type {any} */ (fetchImpl), () => {});
+    expect(dashboardInFlight()).toBeTruthy();
+    const second = prefetchAgentsDashboard(/** @type {any} */ (fetchImpl), () => {});
+    answer();
+    await Promise.all([first, second]);
+    expect(fetchImpl.mock.calls.filter(([u]) => String(u).includes('action=dashboard')).length).toBe(1);
+    expect(dashboardInFlight()).toBeNull();
+  });
+
+  it('joins a chart request for the same pair, and only the same pair', async () => {
+    _reloadAgentsCache();
+    const fetchImpl = vi.fn(async (u) => respond(u));
+    await Promise.all([
+      fetchAgentsChart('s1', 'BTC/USD', /** @type {any} */ (fetchImpl)),
+      fetchAgentsChart('s1', 'BTC/USD', /** @type {any} */ (fetchImpl)),
+      fetchAgentsChart('s1', 'ETH/USD', /** @type {any} */ (fetchImpl)),
+    ]);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 });

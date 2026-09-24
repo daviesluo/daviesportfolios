@@ -81,15 +81,6 @@ export async function healAndReload(err, deps = {}) {
 }
 
 /**
- * `React.lazy` for a page chunk: a load failure heals and reloads instead of
- * throwing into the tree; while the page is going away the promise never
- * settles, so the Suspense fallback (the page's own frame) stays up. Inside
- * the window after a heal the error is thrown, and the page's boundary says
- * what happened.
- * @param {() => Promise<any>} factory
- * @param {(m: any) => { default: React.ComponentType<any> }} pick
- */
-/**
  * The last way a poisoned chunk can reach a person: an unhandled rejection.
  * `lazyPage` catches the import it owns and the warm-up swallows its own,
  * but a browser holding a poisoned service-worker cache can still surface
@@ -107,11 +98,45 @@ export async function healRejection(reason, deps = {}) {
   return true;
 }
 
+/**
+ * `React.lazy` for a page chunk: a load failure heals and reloads instead of
+ * throwing into the tree; while the page is going away the promise never
+ * settles, so the Suspense fallback (the page's own frame) stays up. Inside
+ * the window after a heal the error is thrown, and the page's boundary says
+ * what happened.
+ *
+ * And once its code is here, the page is simply rendered. `React.lazy`
+ * suspends on a page's first render even when the module has long been in
+ * memory (its own import is a promise React has not yet seen settle), and
+ * React then holds the fallback for its reveal throttle: measured, the Agents
+ * page opened 1.6 s after its chunk had arrived still showed its "Loading…"
+ * frame for ~290 ms, on the first open after every reload. `preload()` — the
+ * app's warm-up after first paint — records the module, and a page mounted
+ * after that renders it directly. The choice is made once per mount: a page
+ * opened before its code arrived stays the lazy one until it closes, since
+ * changing the element's type under an open page would remount it.
+ * @param {() => Promise<any>} factory
+ * @param {(m: any) => { default: React.ComponentType<any> }} pick
+ */
 export function lazyPage(factory, pick) {
-  return React.lazy(() => factory().then(pick).catch(async (err) => {
+  /** @type {{ default: React.ComponentType<any> } | null} */
+  let loaded = null;
+  const Lazy = React.lazy(() => factory().then(pick).then((m) => { loaded = m; return m; }).catch(async (err) => {
     if (!isChunkLoadError(err)) throw err;
     const outcome = await healAndReload(err);
     if (outcome === 'reloading') return new Promise(() => {});
     throw err;
   }));
+  /** @param {any} props */
+  function Page(props) {
+    const [mod] = React.useState(() => loaded);
+    return mod ? React.createElement(mod.default, props) : React.createElement(Lazy, props);
+  }
+  /**
+   * Fetch the code ahead of the click. A failure here is left for the click,
+   * whose load heals and reports it — a warm-up is not a second report.
+   * @returns {Promise<void>}
+   */
+  Page.preload = () => factory().then(pick).then((m) => { loaded = m; }, () => {});
+  return Page;
 }

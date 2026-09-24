@@ -456,12 +456,12 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | File | What it does |
 |---|---|
 | `app/main.jsx` | Mounts `<App>` and registers the service worker. |
-| `app/app.jsx` | `<App>`, the password gate, and `<Board>`, the whole UI: portfolio state, the refresh loop, which modal is open. The first paint uses the cached portfolio, then the server's copy replaces it. |
+| `app/app.jsx` | `<App>`, the password gate, and `<Board>`, the whole UI: portfolio state, the refresh loop, which modal is open. The first paint is the cached portfolio at the prices it last showed; the server's copy replaces the book, the live quotes the prices. |
 | `app/auth.js` | Turns a password into a signed token: reads `?pwd=` once and strips it, calls the `auth` function, reuses a valid token from the session. |
 | `app/supabase_config.js` | The Supabase URL, the public anon key and each Edge Function's URL. |
 | `app/storage.js` | Everything the browser keeps under `dp.*`, with one schema version and its migrations, including the portfolio, prices and 24H chart a reload paints first. |
 | `app/sw-banner.jsx` | The "new version available" banner. It checks every minute and whenever the tab comes back. |
-| `app/chunk_recovery.js` | When a page's code fails to load after a deploy: fetch it fresh, drop the service worker and caches, reload once, report it. |
+| `app/chunk_recovery.js` | Loads each page's code: a page already fetched opens at once; one whose code fails to load after a deploy is fetched fresh, the service worker and caches dropped, the app reloaded once and the failure reported. |
 | `app/ops_error.js`, `app/ops_error_badge.jsx` | Sends client errors to `ops-error`, rate-limited; the admin-only header badge groups the last 24 hours. |
 | `app/version.js` | The build stamp (minute-precision CalVer) that every error report carries. |
 | `app/types.d.ts`, `app/ambient.d.ts` | Shared JSDoc types, and declarations for the build stamp and CSS imports. |
@@ -540,7 +540,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 
 | File | What it does |
 |---|---|
-| `agents/agents.jsx`, `agents/agents.js`, `agents/agents_chart.js` | The Agents page: each strategy's status, positions, orders and chart, read from the `agents` function. |
+| `agents/agents.jsx`, `agents/agents.js`, `agents/agents_chart.js` | The Agents page: each strategy's status, positions, orders and chart, read from the `agents` function and kept in the browser so it opens drawn. |
 
 ### `supabase/functions/` — the server
 
@@ -650,7 +650,7 @@ before touching migration state.
 | `src/package.json` | The web app's npm project: scripts, dependencies, and the knip and size-limit settings. Every npm command runs in `src/`. |
 | `src/tsconfig.json` | Type-checks the JavaScript through JSDoc (`checkJs`, `strictNullChecks`). |
 | `src/.nvmrc` | Node 22. |
-| `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 236 checks. |
+| `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 240 checks. |
 | `src/e2e/perf-matrix.mjs` | The second browser test CI runs: the performance panel in two views, five ranges, three data states and two books, 60 cases against answers worked out by hand, clock pinned. |
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |
 | `dist/` | The built site, committed and published as it is. |

@@ -613,6 +613,19 @@ tested on `07c6e44`, NOT applied; D12 (taken but not reported: D8's derived doll
 only, red on `07c6e44`, fix to build.** Left for the main session: land D11, build D12's fix, and fold both into the
 go-live item; this branch is based on `96859b4`.
 
+### [2026-09-24 00:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The Agents page opens drawn, the first time after a reload too** (Davies: "every time I open it
+I have to wait for loading"). Measured with every answer held 2 s: opened right after a reload it
+said "Loading…" until the dashboard answered (~2.6 s) and asked for it twice; opened 1.6 s after its
+chunk had arrived it still showed its code frame ~290 ms (React.lazy suspends a first render
+whatever is in memory, then React holds the fallback). Now the last dashboard and each strategy's
+first chart are kept in `dp.agentsCache` (capped; masked at render when values are hidden), a
+request already out is joined, and `lazyPage` renders a page whose code is here directly (every
+menu page and the ticker modal gain it). Sweep 236 → 240: the four new checks fail on the previous
+bundle; section 0 now holds the chunk until released, as its 700 ms hold passed only because of
+that frame.
+
 ### [2026-09-24 00:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **S1 run: the BTC-regime entry filter is REJECTED** (`reviews/2026-09-24-btc-regime-study.md`, result
@@ -621,6 +634,7 @@ worse in all four evaluations — D (sideways) −7.81 → −11.58 % on the shi
 and worse than 95–99 % of random vetoes of the same size; no fixed N rescues D. It helps only the bear year A
 (+8.51 → +14.61 %, beyond chance), and in the fresh non-bear windows it costs G (+54.9 → +30.9 %) beyond chance on three
 evaluations of four and H on both trail ones. §3.9's last written-down candidate is closed; no paper twin.
+
 
 ### [2026-09-24 00:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

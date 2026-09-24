@@ -303,3 +303,34 @@ describe('Storage.savePortfolioCache / loadPortfolioCache', () => {
     expect(Storage.loadPortfolioCache()).toBeNull();
   });
 });
+
+describe('Storage Agents page (dp.agentsCache)', () => {
+  const dash = { at: '2026-09-17T23:00:00.000Z', strategies: [{ id: 's1' }] };
+  const chart = { candles: [[1, 2, 3, 0, 2]] };
+
+  it('round-trips the dashboard and the charts it keeps', () => {
+    expect(Storage.saveAgentsCache({ at: 5, dash, charts: { 's1|BTC/USD': { at: 6, chart } } })).toBe(true);
+    expect(Storage.loadAgentsCache()).toEqual({ at: 5, dash, charts: { 's1|BTC/USD': { at: 6, chart } } });
+  });
+
+  it('drops the charts before the dashboard, and keeps nothing rather than a copy too big to keep', () => {
+    const big = 'x'.repeat(700_000);
+    expect(Storage.saveAgentsCache({ at: 5, dash, charts: { 's1|BTC/USD': { at: 6, chart: { big } } } })).toBe(true);
+    expect(Storage.loadAgentsCache()?.charts).toEqual({});
+    expect(Storage.loadAgentsCache()?.dash).toEqual(dash);
+    localStorage.clear();
+    expect(Storage.saveAgentsCache({ at: 5, dash: { big }, charts: {} })).toBe(false);
+    expect(localStorage.getItem('dp.agentsCache')).toBeNull();
+  });
+
+  it('is nothing past a week, without a dashboard, or malformed', () => {
+    localStorage.setItem('dp.agentsCache', JSON.stringify({ ts: Date.now() - 8 * DAY, data: { at: 1, dash, charts: {} } }));
+    expect(Storage.loadAgentsCache()).toBeNull();
+    localStorage.setItem('dp.agentsCache', JSON.stringify({ ts: Date.now(), data: { at: 1, charts: {} } }));
+    expect(Storage.loadAgentsCache()).toBeNull();
+    localStorage.setItem('dp.agentsCache', '{');
+    expect(Storage.loadAgentsCache()).toBeNull();
+    localStorage.setItem('dp.agentsCache', JSON.stringify({ ts: Date.now(), data: { at: 1, dash, charts: { bad: null, ok: { at: 2, chart } } } }));
+    expect(Object.keys(Storage.loadAgentsCache()?.charts || {})).toEqual(['ok']);
+  });
+});
