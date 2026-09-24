@@ -404,7 +404,7 @@ function polymarketHosts(hostile = false) {
       : p === "polymarket.com/api/geoblock" ? { blocked: true, ip: "203.0.113.9", country: "GB", region: "ENG" }
       : p === "clob.polymarket.com/auth/api-keys" ? { apiKeys: [PM_API_KEY, "another-key-of-the-account"] }
       : p === "clob.polymarket.com/auth/ban-status/closed-only" ? { closed_only: true }
-      : p === "clob.polymarket.com/balance-allowance" ? { balance: "12345678", allowances: { "0xE111180000d2663C0091e4f400237545B87B996B": MAX_ALLOWANCE, "0x00000000000000000000000000000000000000aa": "5" } }
+      : p === "clob.polymarket.com/balance-allowance" ? { balance: "12345678", allowances: { "0xE111180000d2663C0091e4f400237545B87B996B": MAX_ALLOWANCE, "0xe3333700cA9d93003F00f0F71f8515005F6c00Aa": MAX_ALLOWANCE, "0x00000000000000000000000000000000000000aa": "5" } }
       : p === "clob.polymarket.com/data/orders"
       ? (url.searchParams.get("next_cursor") === "MA==" ? { limit: 100, count: 1, next_cursor: "MTAw", data: [{ id: "0x1" }] } : { limit: 100, count: 1, next_cursor: "LTE=", data: [{ id: "0x2" }] })
       : p === "gamma-api.polymarket.com/public-profile" ? { proxyWallet: PM_FUNDER, name: "someone", bio: "not for the report" }
@@ -477,6 +477,8 @@ Deno.test("runProbe(polymarket) — GETs to its listed reads only, L2 signed the
   assertEquals([pm.collateral.pusd, pm.collateral.signatureType], [12.345678, 1]);
   assertEquals(pm.collateral.allowances, [
     { spender: "0xE111180000d2663C0091e4f400237545B87B996B", contract: "CTF Exchange", allowance: "max" },
+    // The live account's fourth spender on 2026-09-24: Combos' Exchange v3, named rather than left for a person to look up.
+    { spender: "0xe3333700cA9d93003F00f0F71f8515005F6c00Aa", contract: "Combos Exchange v3", allowance: "max" },
     { spender: "0x00000000000000000000000000000000000000aa", contract: null, allowance: "5" },
   ]);
   assertEquals(pm.openOrders, { status: 200, count: 2, pages: 2 });

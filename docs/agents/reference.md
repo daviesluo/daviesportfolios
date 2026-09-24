@@ -339,7 +339,7 @@ nothing.
 | Reads the probe makes | All GET. `/time` → a bare integer of Unix seconds, no auth. `/auth/api-keys` (L2 in all three clients; the published OpenAPI marks it L1, and the clients are what work) → `{ apiKeys: [ids] }`. `/auth/ban-status/closed-only` (L2) → `{ closed_only }`. `/balance-allowance?asset_type=COLLATERAL&signature_type=<n>` (L2): "the address is determined from the API key authentication and signature type", i.e. the proxy wallet for type 1; `balance` in base units, `allowances` keyed by spender. `/data/orders` (L2) pages by `next_cursor`, from `MA==` until `LTE=`. `/book?token_id=` (public). Gamma `/markets/keyset` (public; `limit` ≤ 100, `after_cursor`/`next_cursor`, `closed` defaults to false; `clobTokenIds`, `outcomes`, `outcomePrices` are JSON-encoded strings) and `/public-profile?address=` (public; `proxyWallet` for "the proxy wallet or user address") | clob-openapi.yaml; gamma-openapi.yaml; clob-client-v2 `client.ts`, `constants.ts`; ts-sdk bindings |
 | The book, measured | `GET /book` answers `{ market, asset_id, timestamp (ms), hash, bids, asks, min_order_size, tick_size, neg_risk, last_trade_price }`, and on the one book read (2026-09-24 02:17 UTC) bids ran low to high and asks high to low, so the touch is the LAST entry of each. The client takes the best price of each side rather than trusting the order | *measured*, keyless |
 | Collateral | **pUSD**: ERC-20 on Polygon, 6 decimals, backed by USDC with the backing enforced on chain, token `0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB`. polymarket.com wraps USDC.e into it automatically; an API-only trader calls `wrap()` on the CollateralOnramp `0x93070a847efEf7F70739046A929D47a521F5B8ee` | concepts/pusd; resources/contracts; v2-migration |
-| Contracts (Polygon, 137) | CTF Exchange `0xE111180000d2663C0091e4f400237545B87B996B`; Neg Risk CTF Exchange `0xe2222d279d744050d28e00520010520000310F59`; Conditional Tokens `0x4D97DCd97eC945f40cF65F87097ACe5EA0476045`; NegRiskCtfCollateralAdapter `0xadA2005600Dec949baf300f4C6120000bDB6eAab`; Polymarket Proxy Factory `0xaB45c5A4B0c941a2F231C04C3f49182e1A254052`. CTF Exchange V2 audited by Quantstamp and Cantina (March 2026) | resources/contracts |
+| Contracts (Polygon, 137) | CTF Exchange `0xE111180000d2663C0091e4f400237545B87B996B`; Neg Risk CTF Exchange `0xe2222d279d744050d28e00520010520000310F59`; Conditional Tokens `0x4D97DCd97eC945f40cF65F87097ACe5EA0476045`; NegRiskCtfCollateralAdapter `0xadA2005600Dec949baf300f4C6120000bDB6eAab`; Polymarket Proxy Factory `0xaB45c5A4B0c941a2F231C04C3f49182e1A254052`. CTF Exchange V2 audited by Quantstamp and Cantina (March 2026). Combos (Polymarket's RFQ product for combined positions) trades through its own Exchange v3 `0xe3333700cA9d93003F00f0F71f8515005F6c00Aa`, with a Router `0x12121212006e4CD160D18e3f00711DA5c3372600`, PositionManager `0x006F54F7f9A22e0000CC2AB60031000000ae9fEF` and AutoRedeemer `0xa1200000d0002264C9a1698e001292D00E1b00af` (added after the live probe found the account approves Exchange v3, §6) | resources/contracts; trading/combos |
 | Fees | Takers only, set at match time: `fee = C × feeRate × p × (1 − p)` (C shares at price p), so a taker pays `feeRate × (1 − p)` of notional. **"Makers are never charged fees."** Taker rate by category: Crypto 0.07, Sports 0.05, Finance / Politics / Mentions / Tech 0.04, Economics / Culture / Weather / Other 0.05, Geopolitics 0; maker rebates 20 % (crypto), 15 % (sports), 25 % (the rest). Rounded to 5 dp (0.00001 USDC the smallest). At 50¢ a crypto taker pays 3.5 % of notional, at 10¢ 6.3 %, at 90¢ 0.7 %. The market's own `feeSchedule` (Gamma) or `fd` (`/clob-markets/{condition}`) is authoritative: read 2026-09-24 over the twenty busiest open markets, 0.05 on MLB games and the Fed-rate markets, 0.04 on the "aliens before 2027" market, 0.03 on a Champions League outright, 0 on two NFL markets, and no schedule at all on one about Kharg Island. No Polymarket fee to deposit or withdraw | trading/fees; changelog (2026-03-30/31, 2026-07-10); v2-migration; Gamma keyset, *measured* |
 | Geoblock | `GET https://polymarket.com/api/geoblock` → `{ blocked, ip, country, region }` for the caller's own address. Three groups: blocked completely (OFAC: IR, SY, CU, KP, Crimea, Donetsk, Luhansk); **close-only on the frontend AND the API — the United Kingdom (GB)** among them, with the US, France, Germany, Italy, Poland, Singapore, Australia and others; close-only on the frontend only (IE, JP, NL, KR, Malta for sports). "Orders submitted from blocked regions will be rejected." Polymarket's primary servers are in eu-west-2 (London), the same region as this project. From this container (a US address) on 2026-09-24: `{"blocked":true,"country":"US","region":"OH"}` | api-reference/geoblock; *measured* |
 | Closed-only mode | "An account-level circuit breaker": when on, "the account can only place orders that reduce an existing position". `GET /auth/ban-status/closed-only` (L2). An order refused for it reads `'{address}' address in closed only mode` (400); a banned address `'{address}' address banned` | trading/manage-orders; resources/error-codes |
@@ -2836,6 +2836,31 @@ key, token or amount.
 Two settings worth changing at the venues, both Davies': neither key needs to trade today, so Binance's
 "Enable Spot & Margin Trading" and "universal transfer" and Deribit's `trade:read_write` can be switched off until a
 use is decided, and Binance cannot be IP-restricted from Supabase (its Edge egress has no fixed address).
+
+### The Polymarket account (2026-09-24)
+
+One run of `GET /functions/v1/agents?action=probe&only=polymarket` (§2d), fired the same way at 02:54 UTC from
+eu-west-2 (London), a minute after the deploy. Read-only: the client sends GETs to a fixed list and nothing else. No
+key, secret, passphrase, key id, address or amount is copied here.
+
+| Check | Result |
+|---|---|
+| Settings | all twelve names set, no problem found; each credential's two spellings agree; the secret decodes to 32 bytes; the key is `0x`-prefixed hex; the stored signer carries a valid EIP-55 checksum; host and chain id are the documented ones |
+| Key → signer | the address the private key controls **equals** `POLYMARKET_SIGNER_ADDRESS` |
+| L2 credentials | `/auth/api-keys` 200 as the signer: the account has one API key, and it is the stored one |
+| Funder | Polymarket's public profile of the signer names `POLYMARKET_FUNDER_ADDRESS` as its proxy wallet |
+| Closed-only flag | `closed_only: false` — the account itself carries no circuit breaker |
+| Geoblock | **`blocked: true`, country GB, region ENG**: the documented close-only listing, measured from where the functions run |
+| Collateral (signature type 1) | 200; the proxy wallet is effectively empty (unfunded). Unlimited pUSD allowances to four spenders: CTF Exchange, Neg Risk CTF Exchange, the v1 Neg Risk Adapter (deprecated), and `0xe3333700…`, which the client did not name. It is Combos' Exchange v3 on Polymarket's own contracts page, and the client names it, with Combos' Router, PositionManager and AutoRedeemer, since |
+| Open orders | 0, one page |
+| Clock | skew −0.5 s (the server answers in whole seconds), 26 ms round trip |
+| One public book | the busiest two-sided open market by 24-hour volume, an MLB total: read in 13 ms, a 7¢ spread at a 1¢ tick, `feeSchedule` `{ rate: 0.05, takerOnly: true, rebateRate: 0.15 }` — §2d's Sports rate |
+
+**What it means.** The stored credentials are complete and correct, and they cannot be used to open a position from
+here: the geoblock answers `blocked` for the region the functions run in, and the United Kingdom is on the list that is
+close-only on the API as well as the frontend. Routing around that is not an option, so no order path is built. The
+allowances are the ones polymarket.com sets for an account that has traded; with the wallet empty they put nothing at
+risk.
 
 ## Sources
 

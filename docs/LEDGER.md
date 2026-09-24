@@ -14,19 +14,22 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
-000000000000. **POLYMARKET PHASE 1: THE READ-ONLY PROBE IS WRITTEN, NOT YET DEPLOYED OR RUN (2026-09-24).** Davies'
-   account secrets (`POLYMARKET_*`, stored by another tool) are read by `?action=probe&only=polymarket` alone
-   (`_shared/polymarket.ts`, reference §2d). It reports the stored settings, the private key's address against
-   `POLYMARKET_SIGNER_ADDRESS`, the CLOB's clock, the geoblock's answer for eu-west-2, and with L2 the account's API
-   keys, closed-only flag, pUSD balance and allowances (signature type 1) and open orders, then whether the public
-   profile names the funder as the proxy wallet, and one public book. GETs only; no key, secret or passphrase can
-   reach the report (pinned against a stub that echoes them all back). Next: deploy, fire it through pg_net with the
-   Vault `cron_secret`, write what it says into reference §6. **The docs list the United Kingdom as close-only on the
-   frontend AND the API**: orders that open a position are refused from a London address. Phase 2 waits on the
-   probe's answer and on Davies.
+000000000000. **POLYMARKET: THE ACCOUNT VERIFIED READ-ONLY; NOTHING CAN OPEN A POSITION FROM THE UK (2026-09-24 02:54 UTC).**
+   `?action=probe&only=polymarket` (`_shared/polymarket.ts`, reference §2d, results §6) ran once after the deploy of
+   `8c0c633`. Every stored name is set and consistent; the private key controls the stored signer; the L2 credentials
+   authenticate (the account's one API key is the stored one); the public profile names the stored funder as the proxy
+   wallet; the account is not closed-only; no open orders; the wallet is effectively empty. **The geoblock answers
+   `blocked: true` (GB, ENG) for eu-west-2**, and the docs list the UK as close-only on the API: no order path is
+   built, and routing around it is not an option. Remaining:
+   1. The first-principles strategy search (a background agent) reports; its findings go to reference §3 with each
+      candidate marked by whether it can run at all.
+   2. Davies was told the account is verified and that Polymarket cannot open positions from the UK. The key was
+      exposed to another tool: keep the wallet empty or small, and revoking that tool's Supabase token is his.
 
-00000000000. **PR5'S LIVE PATH: BUILT, IN DRY-RUN, NOT PUSHED (2026-09-24 02:33 UTC).** It is on branch
-   `worktree-agent-a8ae57caa382aed95`, one commit on `15056c5` (reference §4 item 35).
+00000000000. **PR5'S LIVE PATH: PUSHED (`0aca828`), RUNNING IN DRY-RUN SINCE 02:40 UTC 2026-09-24** (reference §4
+   item 35). `0052` applied; the executor writes its state every minute, with no error. Its first minute (02:41)
+   recorded six would-be bids, one per paper bid; five would rest and one would be refused because the paper bid
+   (placed at 00:18) sat above the live best ask. The asks are skipped because the account holds only GBP.
    - **What it is:** `agents/quotes_live.ts` and migration `0052`. The executor carries out the paper engine's decisions
      order for order on PR5's own sub-account, with the design's hard limits.
      - Orders are post-only and written `pending` before the POST. They are reconciled by client id, and fills come only
@@ -43,10 +46,8 @@ list stays the short version; the plan is the reasoning behind it.
      - `0052` applied to PGlite refuses what the test double refuses.
      - Deno check clean, 494 passed; knip clean.
    - **What remains before live, in order:**
-     1. Review, then push. The push applies `0052` and redeploys `agents`; nothing trades, because of the dry-run. If
-        the trend-4h go-live draft moves first as 0052, rename this migration to 0053 before pushing.
-     2. `.claude/CLAUDE.md`'s Agents section needs the lines this sitting's report lists (the PR5 bullet and the
-        secrets bullet). They are the main session's to edit.
+     1. Done: pushed (`0aca828`, `0052` applied); `.claude/CLAUDE.md` follows (`6b7f1c4`).
+     2. Done: the trend-4h go-live draft takes 0053 when it moves.
      3. Watch the dry-run against the paper engine for at least a day, with §4 item 35's L1–L5. L3 should be empty;
         L4 should show only guarded minutes.
      4. Davies' word. Then, in that conversation, run
@@ -682,6 +683,20 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 02:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The Polymarket probe ran; the account is verified and cannot open positions from here** (item 000000000000).
+`8c0c633` pushed after `bin/gates.sh` ended all green (984 vitest, 242 sweep checks, the perf matrix, 509 Deno); the
+edge-functions run deployed every function (`_shared` changed), and the tick, the quotes and PR5's dry-run all ran on
+the new version at 02:55–02:56 with no `ops_errors`. The probe (02:54 UTC, reference §6): settings complete and
+consistent, the key controls the signer, the L2 credentials authenticate, the funder is the profile's proxy wallet, not
+closed-only, no open orders, the wallet effectively empty, and **geoblock `blocked: true` (GB, ENG)**. It found one
+unnamed spender with an unlimited pUSD allowance, `0xe3333700…`: Combos' Exchange v3, on Polymarket's contracts page.
+The client now names it and three more Combos contracts (reference §2d), pinned in the probe test, which fails without
+the names. `.claude/CLAUDE.md`: the probe parts list gains `revx2` and `polymarket`, the secrets list the
+`POLYMARKET_*` names, and a bullet says Polymarket opens nothing from here and why. Item 00000000000 no longer says
+PR5's live path is unpushed.
 
 ### [2026-09-24 02:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

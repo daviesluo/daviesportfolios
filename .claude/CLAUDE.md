@@ -477,8 +477,17 @@ that follow from that evidence, in short:
   orders — the field names the settlement path will read — Kraken
   `AddOrder validate=true`, Jev on both transports, and since 2026-09-23
   Binance's permissions, fees and symbol rules and Deribit's auth scope
-  and DVOL). It places nothing. `?only=binance,deribit` runs just the
-  parts named (`revx`, `kraken`, `jev`, `binance`, `deribit`).
+  and DVOL; since 2026-09-24 PR5's sub-account and the Polymarket account,
+  reference §2d). It places nothing. `?only=binance,deribit` runs just the
+  parts named (`revx`, `revx2`, `kraken`, `jev`, `binance`, `deribit`,
+  `polymarket`).
+- **Polymarket opens nothing from here.** The United Kingdom is
+  "close-only on the frontend AND the API" (reference §2d): an order that
+  opens a position is refused from a UK address, and this project's
+  functions run in London. Never route around it — no other region, no
+  proxy, no one else's account. `_shared/polymarket.ts` is read-only by
+  construction (GET only, a fixed list of URLs, the L2 headers to the CLOB
+  host only), and its key controls real funds.
 - Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
   `Revolut_X_API_kEY_2` + `REVOLUT_X_PRIVATE_KEY_2` (a second Revolut X
   sub-account for PR5's GBP stablecoin quotes, Davies 2026-09-24; read by
@@ -487,8 +496,13 @@ that follow from that evidence, in short:
   `KRAKEN_PRO_API_KEY` + `KRAKEN_PRO_PRIVATE_KEY`, `openrouter_api_key`,
   `typesafe_API_KEY` (fallback), `Binance_API_KEY` + `Binance_SECRET_KEY`,
   `Deribit_CLIENT_ID` + `Deribit_CLIENT_SECRET` (both accounts unfunded as
-  of 2026-09-23; Deribit cannot be funded from here). Never print them,
-  never move them.
+  of 2026-09-23; Deribit cannot be funded from here), and the Polymarket
+  account another tool stored on 2026-09-24: `POLYMARKET_PRIVATE_KEY` (the
+  Magic-exported key; it controls the funds), `POLYMARKET_CLOB_API_KEY` /
+  `_SECRET` / `_PASSPHRASE` (each also as `POLYMARKET_API_*`), and the
+  settings `POLYMARKET_FUNDER_ADDRESS`, `POLYMARKET_SIGNER_ADDRESS`,
+  `POLYMARKET_SIG_TYPE`, `POLYMARKET_HOST`, `POLYMARKET_CHAIN_ID` — read by
+  the probe only. Never print them, never move them.
 
 ## Git workflow
 

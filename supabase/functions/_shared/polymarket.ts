@@ -60,7 +60,12 @@ export const POLYMARKET_END_CURSOR = "LTE=";
 /** 2^256 − 1: an unlimited ERC-20 allowance. */
 const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
 
-/** The Polygon contracts an allowance can name, from docs.polymarket.com/resources/contracts (read 2026-09-24). */
+/**
+ * The Polygon contracts an allowance can name, from docs.polymarket.com/resources/contracts (read 2026-09-24). The live
+ * account's first probe showed a fourth spender, 0xe3333700…: Combos' Exchange v3, on the same page, so every Combos
+ * contract a wallet can approve is listed too. A spender not here reports `contract: null`, which is the point: it is
+ * the one a person should look up.
+ */
 export const POLYMARKET_CONTRACTS: Record<string, string> = {
   "0xe111180000d2663c0091e4f400237545b87b996b": "CTF Exchange",
   "0xe2222d279d744050d28e00520010520000310f59": "Neg Risk CTF Exchange",
@@ -69,8 +74,13 @@ export const POLYMARKET_CONTRACTS: Record<string, string> = {
   "0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb": "pUSD (CollateralToken)",
   "0x93070a847efef7f70739046a929d47a521f5b8ee": "CollateralOnramp",
   "0x2957922eb93258b93368531d39facca3b4dc5854": "CollateralOfframp",
+  "0xebc2459ec962869ca4c0bd1e06368272732bcb08": "PermissionedRamp",
   "0xada100db00ca00073811820692005400218fce1f": "CtfCollateralAdapter",
   "0xada2005600dec949baf300f4c6120000bdb6eaab": "NegRiskCtfCollateralAdapter",
+  "0xe3333700ca9d93003f00f0f71f8515005f6c00aa": "Combos Exchange v3",
+  "0x12121212006e4cd160d18e3f00711da5c3372600": "Combos Router",
+  "0x006f54f7f9a22e0000cc2ab60031000000ae9fef": "Combos PositionManager",
+  "0xa1200000d0002264c9a1698e001292d00e1b00af": "Combos AutoRedeemer",
 };
 
 // ── addresses and the key ────────────────────────────────────────────────────────────────────────────────────────────
