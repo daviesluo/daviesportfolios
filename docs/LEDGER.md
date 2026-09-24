@@ -672,6 +672,12 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 02:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`.claude/CLAUDE.md` follows PR5's live path** (`0aca828`): the PR5 bullet says it is built and runs in dry-run, how it
+goes live and how it stops; the secrets bullet says the executor reads key `_2`; the hand-trading rule now covers
+PR5's sub-account too.
+
 ### [2026-09-24 02:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **PR5's live path is built, in dry-run, and NOT pushed** (item 00000000000). It is on branch

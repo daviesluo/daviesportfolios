@@ -431,7 +431,17 @@ that follow from that evidence, in short:
   of its own (Davies, 2026-09-23); the rows' totals do not include it.
   Revolut X serves its whole trade history keylessly
   (`/api/1.0/public/trades/all`), and its candles are built from the MID
-  when a minute did not trade — read fills from prints.
+  when a minute did not trade — read fills from prints. **Its live path is
+  built and runs in DRY-RUN** (migration `0052`, `agents/quotes_live.ts`,
+  reference §4 item 35): on PR5's own sub-account (£50, key `_2`) it carries
+  out the paper engine's decisions order for order, under the design's
+  limits (a 600/700 POST governor, a −1 % daily loss stop, de-peg and
+  stale-input guards, a bounded 24-hour stop), and records every order it
+  WOULD send. Going live is one statement on Davies' word after at least a
+  day of dry-run watched against the paper engine: `update
+  public.agent_quote_live_config set dry_run = false, live_confirmed_at =
+  now() where id = 1;`. Its `live_confirmed_at` is its kill switch (exits
+  stay armed); `global_pause` cancels everything.
 - The tick claims a bar by inserting its decision (unique index on
   strategy, symbol, bar_start; a protective decision claims one second
   INTO its minute, never a bar start; a dislocation decision the minute).
@@ -459,7 +469,8 @@ that follow from that evidence, in short:
 - **The Revolut X account the key sees is the loop's alone.** The floor counts a live buy it cannot read back by
   the venue's balance beyond the settled book, and every live sell is capped at that balance (reference §4.24).
   A trade made there by hand would be counted and could be sold by the floor: never trade by hand in that
-  account, and tell Davies so whenever the subject comes up.
+  account, and tell Davies so whenever the subject comes up. The same holds for PR5's sub-account (key `_2`):
+  its executor books fills and inventory from that account's balance as its own.
 - Verify a key read-only before anything depends on it: the `probe`
   action (balances, pair config for every symbol on an active row, a
   signed call with a query, Revolut X active orders and Kraken closed
@@ -470,8 +481,9 @@ that follow from that evidence, in short:
   parts named (`revx`, `kraken`, `jev`, `binance`, `deribit`).
 - Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
   `Revolut_X_API_kEY_2` + `REVOLUT_X_PRIVATE_KEY_2` (a second Revolut X
-  sub-account for PR5's GBP stablecoin quotes, Davies 2026-09-24; only the
-  probe's `revx2` part reads it so far),
+  sub-account for PR5's GBP stablecoin quotes, Davies 2026-09-24; read by
+  the probe and by PR5's live executor — balances every minute, the order
+  endpoints only once it is live),
   `KRAKEN_PRO_API_KEY` + `KRAKEN_PRO_PRIVATE_KEY`, `openrouter_api_key`,
   `typesafe_API_KEY` (fallback), `Binance_API_KEY` + `Binance_SECRET_KEY`,
   `Deribit_CLIENT_ID` + `Deribit_CLIENT_SECRET` (both accounts unfunded as
