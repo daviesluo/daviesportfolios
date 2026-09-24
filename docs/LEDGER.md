@@ -567,6 +567,15 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 00:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**S1 run: the BTC-regime entry filter is REJECTED** (`reviews/2026-09-24-btc-regime-study.md`, result
+`backtests/btc_regime/btc_regime.json`, two runs byte-identical, sha256 `c30e5826…`). It makes the live row's worst window
+worse in all four evaluations — D (sideways) −7.81 → −11.58 % on the shipped stop, −3.20 → −8.13 % under the trail —
+and worse than 95–99 % of random vetoes of the same size; no fixed N rescues D. It helps only the bear year A
+(+8.51 → +14.61 %, beyond chance), and in the fresh non-bear windows it costs G (+54.9 → +30.9 %) beyond chance on three
+evaluations of four and H on both trail ones. §3.9's last written-down candidate is closed; no paper twin.
+
 ### [2026-09-24 00:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **S1 pre-registered before any arm ran: §3.9's BTC-regime entry filter on the live row** (Davies' request of

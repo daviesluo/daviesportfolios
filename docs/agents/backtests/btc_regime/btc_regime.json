@@ -1,0 +1,7146 @@
+{
+ "study": "S1 (2026-09-24): §3.9's BTC-regime entry filter on the live row trend-4h-live (Revolut X, BTC/ETH/SOL/AVAX, four $25 slots, seeded parameters), re-tested on non-bear windows — the house's four windows and four evaluations, plus four fresh windows (E–H, BTC and ETH) that no study has scored out of sample",
+ "stage": "full",
+ "preRegistration": "docs/agents/reviews/2026-09-24-btc-regime-prereg.md — committed before any arm ran; the definitions below are its definitions",
+ "definitions": {
+  "incumbent": {
+   "symbols": [
+    "BTC/USD",
+    "ETH/USD",
+    "SOL/USD",
+    "AVAX/USD"
+   ],
+   "slotUsd": 25,
+   "params": {
+    "fast": 20,
+    "slow": 100,
+    "breakoutUp": 55,
+    "breakoutDown": 20,
+    "atrN": 14,
+    "atrStop": 3,
+    "volN": 42
+   },
+   "costs": "Revolut X: the touch (half the measured spread) plus 9 bps taker per fill (backtest.ts COSTS.revx)",
+   "evaluations": [
+    "shipped·coinbase",
+    "shipped·kraken",
+    "trail·coinbase",
+    "trail·kraken"
+   ],
+   "primary": "shipped·coinbase"
+  },
+  "gate": "an entry the rulebook wants (flat, signal, not cooling down) is refused unless BTC's last CLOSED daily close (day start + 1 day ≤ the 4h bar's close) is strictly above its N-day simple average ending on that day; allowed where no close or no average exists; exits, stops and the cooldown untouched (backtest_ideas.ts regimeFiltered, §3.9). BTC's daily series is the evaluated tape's: the Coinbase-spliced dailies on the coinbase evaluations, Kraken's 4h tape's dailies on the kraken ones",
+  "primaryArm": "N chosen from {100, 150, 200} per evaluation × window on the window's in-sample span (the timestamps backtest_jev.ts windowsOn cuts for A–D; two years before the window for E–H), run on the evaluated tape with warm-up bars from before the span, by the gated sleeve's return over max(0.05, drawdown); ties to the larger N. The fixed-N arms are reported and never decide",
+  "windows": "A–D as backtest_jev.ts loadMeasuredSeries cuts them (four coins); E–H one year apart before D (E = [cb0 − 2y, cb0 − 1y), in-sample the two years before), BTC and ETH only, both tapes",
+  "bearRule": "a window is BEAR when the equal-weight buy-and-hold of its coins over its out-of-sample span is below -20 %",
+  "null": "per evaluation × window: whole breakout episodes refused at random (backtest_jev.ts episodeNullPolicy), the episode probability bisected (10 × 100 draws) so the mean entries match the primary arm's, then only draws whose entries over the window's coins EQUAL the arm's are kept, up to 1000 (at most 50000 attempts)",
+  "bar": "C1 in each evaluation the arm's worst-window return (A–D) is strictly above the incumbent's; C2 the null's worst window does as well or better in at most 5 % of draws (ties against the arm); C3 in every other window where the arm is below the incumbent, at least 5 % of null draws are strictly below the arm (ties against the arm; an unbuildable null counts against it). ADOPT = C1, C2, C3 in all four evaluations and no non-bear fresh window costed beyond chance (C3's test); REJECT = C1 or C3 fails in any evaluation; INCONCLUSIVE otherwise"
+ },
+ "inputs": {
+  "tapes": [
+   {
+    "symbol": "BTC/USD",
+    "accepted": true,
+    "coinbaseSplice": {
+     "bars4h": 27298,
+     "first": "2013-10-06T20:00Z",
+     "last": "2026-09-20T00:00Z",
+     "spliceAt": "2023-08-22T03:00Z",
+     "overlapMedian4hBps": 1.83,
+     "overlapP95_4hBps": 6.876
+    },
+    "krakenTape": {
+     "bars4h": 27308,
+     "first": "2013-10-06T20:00Z",
+     "last": "2026-09-21T20:00Z"
+    },
+    "windows": {
+     "A": {
+      "scored": true,
+      "oosFrom": "2025-09-10T00:00Z",
+      "oosTo": "2026-09-20T00:00Z",
+      "oosDays": 375
+     },
+     "B": {
+      "scored": true,
+      "oosFrom": "2024-08-31T00:00Z",
+      "oosTo": "2025-09-09T20:00Z",
+      "oosDays": 374.8
+     },
+     "C": {
+      "scored": true,
+      "oosFrom": "2023-08-22T00:00Z",
+      "oosTo": "2024-08-30T20:00Z",
+      "oosDays": 374.8
+     },
+     "D": {
+      "scored": true,
+      "oosFrom": "2022-08-22T00:00Z",
+      "oosTo": "2023-08-21T20:00Z",
+      "oosDays": 364.8
+     }
+    },
+    "pricedOn": {
+     "coinbase": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "kraken": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    "krakenDropped": {}
+   },
+   {
+    "symbol": "ETH/USD",
+    "accepted": true,
+    "coinbaseSplice": {
+     "bars4h": 23924,
+     "first": "2015-08-07T12:00Z",
+     "last": "2026-09-20T00:00Z",
+     "spliceAt": "2023-08-22T03:00Z",
+     "overlapMedian4hBps": 1.868,
+     "overlapP95_4hBps": 7.403
+    },
+    "krakenTape": {
+     "bars4h": 23933,
+     "first": "2015-08-07T12:00Z",
+     "last": "2026-09-21T20:00Z"
+    },
+    "windows": {
+     "A": {
+      "scored": true,
+      "oosFrom": "2025-09-10T00:00Z",
+      "oosTo": "2026-09-20T00:00Z",
+      "oosDays": 375
+     },
+     "B": {
+      "scored": true,
+      "oosFrom": "2024-08-31T00:00Z",
+      "oosTo": "2025-09-09T20:00Z",
+      "oosDays": 374.8
+     },
+     "C": {
+      "scored": true,
+      "oosFrom": "2023-08-22T00:00Z",
+      "oosTo": "2024-08-30T20:00Z",
+      "oosDays": 374.8
+     },
+     "D": {
+      "scored": true,
+      "oosFrom": "2022-08-22T00:00Z",
+      "oosTo": "2023-08-21T20:00Z",
+      "oosDays": 364.8
+     }
+    },
+    "pricedOn": {
+     "coinbase": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "kraken": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    "krakenDropped": {}
+   },
+   {
+    "symbol": "SOL/USD",
+    "accepted": true,
+    "coinbaseSplice": {
+     "bars4h": 11523,
+     "first": "2021-06-17T12:00Z",
+     "last": "2026-09-20T00:00Z",
+     "spliceAt": "2023-08-22T03:00Z",
+     "overlapMedian4hBps": 2.403,
+     "overlapP95_4hBps": 9.772
+    },
+    "krakenTape": {
+     "bars4h": 11532,
+     "first": "2021-06-17T12:00Z",
+     "last": "2026-09-21T20:00Z"
+    },
+    "windows": {
+     "A": {
+      "scored": true,
+      "oosFrom": "2025-09-10T00:00Z",
+      "oosTo": "2026-09-20T00:00Z",
+      "oosDays": 375
+     },
+     "B": {
+      "scored": true,
+      "oosFrom": "2024-08-31T00:00Z",
+      "oosTo": "2025-09-09T20:00Z",
+      "oosDays": 374.8
+     },
+     "C": {
+      "scored": true,
+      "oosFrom": "2023-08-22T00:00Z",
+      "oosTo": "2024-08-30T20:00Z",
+      "oosDays": 374.8
+     },
+     "D": {
+      "scored": true,
+      "oosFrom": "2022-08-22T00:00Z",
+      "oosTo": "2023-08-21T20:00Z",
+      "oosDays": 364.8
+     }
+    },
+    "pricedOn": {
+     "coinbase": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "kraken": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    "krakenDropped": {}
+   },
+   {
+    "symbol": "AVAX/USD",
+    "accepted": true,
+    "coinbaseSplice": {
+     "bars4h": 10410,
+     "first": "2021-12-21T12:00Z",
+     "last": "2026-09-21T12:00Z",
+     "spliceAt": "2023-09-22T12:00Z",
+     "overlapMedian4hBps": 5.61,
+     "overlapP95_4hBps": 21.03
+    },
+    "krakenTape": {
+     "bars4h": 10410,
+     "first": "2021-12-21T12:00Z",
+     "last": "2026-09-21T20:00Z"
+    },
+    "windows": {
+     "A": {
+      "scored": true,
+      "oosFrom": "2025-09-21T12:00Z",
+      "oosTo": "2026-09-21T12:00Z",
+      "oosDays": 365
+     },
+     "B": {
+      "scored": true,
+      "oosFrom": "2024-09-21T12:00Z",
+      "oosTo": "2025-09-21T08:00Z",
+      "oosDays": 364.8
+     },
+     "C": {
+      "scored": true,
+      "oosFrom": "2023-09-22T12:00Z",
+      "oosTo": "2024-09-21T08:00Z",
+      "oosDays": 364.8
+     },
+     "D": {
+      "scored": true,
+      "oosFrom": "2022-09-22T12:00Z",
+      "oosTo": "2023-09-22T08:00Z",
+      "oosDays": 364.8
+     }
+    },
+    "pricedOn": {
+     "coinbase": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "kraken": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    "krakenDropped": {}
+   }
+  ],
+  "tapeSha256": {
+   "data/BTC-USD_1h_3y.json": "c773e6ff90876fe7ec32e3cc46af9cc923c8f432ea12413e43bd13a799ad9d84",
+   "ext/BTC-USD_1h_kraken.json": "59d4c1fd2cc41f8791fc2738a49ed532a7f9ac175b1b94622df16259ae84aea2",
+   "ktape/BTC-USD_4h_kraken.json": "a1109d82eb9f664ce9aa13d456915d54c066eed78f58b5303cf08cc1396434c9",
+   "data/ETH-USD_1h_3y.json": "5d922a8ba568d4a031c20c71c871d4d8002819ba3a082bb2e7c23317ce418c85",
+   "ext/ETH-USD_1h_kraken.json": "cc48c3001dc09557d62a6265b98a72839cdcfda8c948dcc36059a2e29e0288dd",
+   "ktape/ETH-USD_4h_kraken.json": "614d5c26f78ce1406e1cce9361d98a2be2b9a17de8049a1852ee86bfe59f1013",
+   "data/SOL-USD_1h_3y.json": "8a23665b70c0f1dfbb84cd216a6e4f6ab71d9cab5f9a7ac44ebd26c99c489e4d",
+   "ext/SOL-USD_1h_kraken.json": "a0c55179ca0a6d72760495014fc0df41b696301acb352f98b98191bb785b81f0",
+   "ktape/SOL-USD_4h_kraken.json": "3fe744017799f283dba4adbd7d8a825602534c471e3c0f9bc5d48eca560d156c",
+   "data/AVAX-USD_1h_3y.json": "8713037a9aaff47504b97bb1a31a684b8fc9a4150a33dadba0a06b57d899f7cf",
+   "ext/AVAX-USD_1h_kraken.json": "b4d01720a8963341de61900894b2894185eed1da32d76411aa95e4acf50bdf2c",
+   "ktape/AVAX-USD_4h_kraken.json": "99482cd140ad9fb56d9d1142d62ec10f6d90ff1490be38a4fd5ce126520ecfc3"
+  },
+  "set2Sha256": "60a84be43fdb95a1e2e23eb7df759831eadb2c881ef5039d6de851d4f6758efa",
+  "suiSha256": "badf7b336e2a173c44372e05e1d6cf5ec36a388046602dfd0408c5abdae4e549"
+ },
+ "windows": {
+  "A": {
+   "coins": [
+    "BTC/USD",
+    "ETH/USD",
+    "SOL/USD",
+    "AVAX/USD"
+   ],
+   "dropped": {},
+   "oos": "2025-09-10T00:00Z → 2026-09-21T16:00Z",
+   "inSample": "2023-08-22T00:00Z → 2025-09-21T12:00Z",
+   "buyAndHoldByCoin": {
+    "BTC/USD": -0.2799,
+    "ETH/USD": -0.4007,
+    "SOL/USD": -0.5018,
+    "AVAX/USD": -0.6505
+   },
+   "equalWeightBuyAndHold": -0.4582,
+   "bear": true
+  },
+  "B": {
+   "coins": [
+    "BTC/USD",
+    "ETH/USD",
+    "SOL/USD",
+    "AVAX/USD"
+   ],
+   "dropped": {},
+   "oos": "2024-08-31T00:00Z → 2025-09-21T12:00Z",
+   "inSample": "2023-08-22T00:00Z → 2024-09-21T12:00Z",
+   "buyAndHoldByCoin": {
+    "BTC/USD": 0.8871,
+    "ETH/USD": 0.7064,
+    "SOL/USD": 0.5748,
+    "AVAX/USD": 0.1922
+   },
+   "equalWeightBuyAndHold": 0.5901,
+   "bear": false
+  },
+  "C": {
+   "coins": [
+    "BTC/USD",
+    "ETH/USD",
+    "SOL/USD",
+    "AVAX/USD"
+   ],
+   "dropped": {},
+   "oos": "2023-08-22T00:00Z → 2024-09-21T12:00Z",
+   "inSample": "2021-08-22T00:00Z → 2023-09-22T12:00Z",
+   "buyAndHoldByCoin": {
+    "BTC/USD": 1.2628,
+    "ETH/USD": 0.5151,
+    "SOL/USD": 5.5075,
+    "AVAX/USD": 2.0989
+   },
+   "equalWeightBuyAndHold": 2.3461,
+   "bear": false
+  },
+  "D": {
+   "coins": [
+    "BTC/USD",
+    "ETH/USD",
+    "SOL/USD",
+    "AVAX/USD"
+   ],
+   "dropped": {},
+   "oos": "2022-08-22T00:00Z → 2023-09-22T12:00Z",
+   "inSample": "2020-08-22T00:00Z → 2022-09-22T12:00Z",
+   "buyAndHoldByCoin": {
+    "BTC/USD": 0.2142,
+    "ETH/USD": 0.0306,
+    "SOL/USD": -0.4185,
+    "AVAX/USD": -0.4955
+   },
+   "equalWeightBuyAndHold": -0.1673,
+   "bear": false
+  },
+  "E": {
+   "coins": [
+    "BTC/USD",
+    "ETH/USD"
+   ],
+   "dropped": {},
+   "oos": "2021-08-22T00:00Z → 2022-08-22T00:00Z",
+   "inSample": "2019-08-23T00:00Z → 2021-08-22T00:00Z",
+   "buyAndHoldByCoin": {
+    "BTC/USD": -0.5597,
+    "ETH/USD": -0.4987
+   },
+   "equalWeightBuyAndHold": -0.5292,
+   "bear": true
+  },
+  "F": {
+   "coins": [
+    "BTC/USD",
+    "ETH/USD"
+   ],
+   "dropped": {},
+   "oos": "2020-08-22T00:00Z → 2021-08-22T00:00Z",
+   "inSample": "2018-08-23T00:00Z → 2020-08-22T00:00Z",
+   "buyAndHoldByCoin": {
+    "BTC/USD": 3.2408,
+    "ETH/USD": 7.3189
+   },
+   "equalWeightBuyAndHold": 5.2798,
+   "bear": false
+  },
+  "G": {
+   "coins": [
+    "BTC/USD",
+    "ETH/USD"
+   ],
+   "dropped": {},
+   "oos": "2019-08-23T00:00Z → 2020-08-22T00:00Z",
+   "inSample": "2017-08-23T00:00Z → 2019-08-23T00:00Z",
+   "buyAndHoldByCoin": {
+    "BTC/USD": 0.14,
+    "ETH/USD": 1.0364
+   },
+   "equalWeightBuyAndHold": 0.5882,
+   "bear": false
+  },
+  "H": {
+   "coins": [
+    "BTC/USD",
+    "ETH/USD"
+   ],
+   "dropped": {},
+   "oos": "2018-08-23T00:00Z → 2019-08-23T00:00Z",
+   "inSample": "2016-08-23T00:00Z → 2018-08-23T00:00Z",
+   "buyAndHoldByCoin": {
+    "BTC/USD": 0.5893,
+    "ETH/USD": -0.2947
+   },
+   "equalWeightBuyAndHold": 0.1473,
+   "bear": false
+  }
+ },
+ "btcAverages": {
+  "coinbase": {
+   "firstDaily": "2013-10-06",
+   "lastDaily": "2026-09-20",
+   "smaDefinedFrom": {
+    "100": "2014-01-15",
+    "150": "2014-03-06",
+    "200": "2014-04-25"
+   }
+  },
+  "kraken": {
+   "firstDaily": "2013-10-06",
+   "lastDaily": "2026-09-21",
+   "smaDefinedFrom": {
+    "100": "2014-01-15",
+    "150": "2014-03-06",
+    "200": "2014-04-25"
+   }
+  }
+ },
+ "fidelity": {
+  "runGatedVsRun": {
+   "cells": 96,
+   "mismatches": 0,
+   "what": "the incumbent through the flat-bar cache against backtest.ts's run: return, drawdown, trades and exposure on every coin × window × evaluation, fresh windows included"
+  },
+  "incumbentReproduction": {
+   "worstAbsDiff": 0,
+   "perCondition": {
+    "shipped·coinbase": {
+     "A": {
+      "here": {
+       "ret": 0.0851,
+       "maxDD": 0.1576,
+       "members": 4
+      },
+      "committed": {
+       "ret": 0.0851,
+       "maxDD": 0.1576,
+       "from": "sui.json withoutIt(SUI)"
+      }
+     },
+     "B": {
+      "here": {
+       "ret": 0.2505,
+       "maxDD": 0.1143,
+       "members": 4
+      },
+      "committed": {
+       "ret": 0.2505,
+       "maxDD": 0.1143,
+       "from": "sui.json withoutIt(SUI)"
+      }
+     },
+     "C": {
+      "here": {
+       "ret": 0.5564,
+       "maxDD": 0.0735,
+       "members": 4
+      },
+      "committed": {
+       "ret": 0.5564,
+       "maxDD": 0.0735,
+       "from": "set2.json equal"
+      }
+     },
+     "D": {
+      "here": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "members": 4
+      },
+      "committed": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "from": "set2.json equal"
+      }
+     }
+    },
+    "shipped·kraken": {
+     "A": {
+      "here": {
+       "ret": 0.0356,
+       "maxDD": 0.1497,
+       "members": 4
+      },
+      "committed": {
+       "ret": 0.0356,
+       "maxDD": 0.1497,
+       "from": "sui.json withoutIt(SUI)"
+      }
+     },
+     "B": {
+      "here": {
+       "ret": 0.2811,
+       "maxDD": 0.1082,
+       "members": 4
+      },
+      "committed": {
+       "ret": 0.2811,
+       "maxDD": 0.1082,
+       "from": "sui.json withoutIt(SUI)"
+      }
+     },
+     "C": {
+      "here": {
+       "ret": 0.5095,
+       "maxDD": 0.0774,
+       "members": 4
+      },
+      "committed": {
+       "ret": 0.5095,
+       "maxDD": 0.0774,
+       "from": "set2.json equal"
+      }
+     },
+     "D": {
+      "here": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "members": 4
+      },
+      "committed": {
+       "ret": -0.0781,
+       "maxDD": 0.1552,
+       "from": "set2.json equal"
+      }
+     }
+    },
+    "trail·coinbase": {
+     "A": {
+      "here": {
+       "ret": 0.0131,
+       "maxDD": 0.1353,
+       "members": 4
+      },
+      "committed": {
+       "ret": 0.0131,
+       "maxDD": 0.1353,
+       "from": "sui.json withoutIt(SUI)"
+      }
+     },
+     "B": {
+      "here": {
+       "ret": 0.1443,
+       "maxDD": 0.1115,
+       "members": 4
+      },
+      "committed": {
+       "ret": 0.1443,
+       "maxDD": 0.1115,
+       "from": "sui.json withoutIt(SUI)"
+      }
+     },
+     "C": {
+      "here": {
+       "ret": 0.4707,
+       "maxDD": 0.0578,
+       "members": 4
+      },
+      "committed": {
+       "ret": 0.4707,
+       "maxDD": 0.0578,
+       "from": "set2.json equal"
+      }
+     },
+     "D": {
+      "here": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "members": 4
+      },
+      "committed": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "from": "set2.json equal"
+      }
+     }
+    },
+    "trail·kraken": {
+     "A": {
+      "here": {
+       "ret": 0.0033,
+       "maxDD": 0.1385,
+       "members": 4
+      },
+      "committed": {
+       "ret": 0.0033,
+       "maxDD": 0.1385,
+       "from": "sui.json withoutIt(SUI)"
+      }
+     },
+     "B": {
+      "here": {
+       "ret": 0.1546,
+       "maxDD": 0.1021,
+       "members": 4
+      },
+      "committed": {
+       "ret": 0.1546,
+       "maxDD": 0.1021,
+       "from": "sui.json withoutIt(SUI)"
+      }
+     },
+     "C": {
+      "here": {
+       "ret": 0.3829,
+       "maxDD": 0.0596,
+       "members": 4
+      },
+      "committed": {
+       "ret": 0.3829,
+       "maxDD": 0.0596,
+       "from": "set2.json equal"
+      }
+     },
+     "D": {
+      "here": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "members": 4
+      },
+      "committed": {
+       "ret": -0.032,
+       "maxDD": 0.1113,
+       "from": "set2.json equal"
+      }
+     }
+    }
+   }
+  }
+ },
+ "perCondition": {
+  "shipped·coinbase": {
+   "A": {
+    "incumbent": {
+     "ret": 0.0851,
+     "maxDD": 0.1576,
+     "retOverDD": 0.54,
+     "entries": 37,
+     "entriesByCoin": {
+      "BTC/USD": 14,
+      "ETH/USD": 11,
+      "SOL/USD": 7,
+      "AVAX/USD": 5
+     },
+     "signalsSeen": 37,
+     "signalsRefused": 0,
+     "deployment": 0.096,
+     "turnoverPerYear": 17.72,
+     "from": "2025-09-10",
+     "to": "2026-09-21",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 200,
+     "inSample": {
+      "100": {
+       "ret": 0.7796,
+       "maxDD": 0.0807,
+       "score": 9.6605,
+       "entries": 93,
+       "coins": 4
+      },
+      "150": {
+       "ret": 0.7473,
+       "maxDD": 0.0824,
+       "score": 9.0692,
+       "entries": 96,
+       "coins": 4
+      },
+      "200": {
+       "ret": 0.7938,
+       "maxDD": 0.0803,
+       "score": 9.8854,
+       "entries": 89,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.1461,
+     "maxDD": 0.0538,
+     "retOverDD": 2.72,
+     "entries": 15,
+     "entriesByCoin": {
+      "BTC/USD": 5,
+      "ETH/USD": 4,
+      "SOL/USD": 3,
+      "AVAX/USD": 3
+     },
+     "signalsSeen": 72,
+     "signalsRefused": 57,
+     "deployment": 0.045,
+     "turnoverPerYear": 7.04,
+     "from": "2025-09-10",
+     "to": "2026-09-21",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.1345,
+      "maxDD": 0.0612,
+      "retOverDD": 2.2,
+      "entries": 19,
+      "entriesByCoin": {
+       "BTC/USD": 7,
+       "ETH/USD": 5,
+       "SOL/USD": 3,
+       "AVAX/USD": 4
+      },
+      "signalsSeen": 66,
+      "signalsRefused": 47,
+      "deployment": 0.053,
+      "turnoverPerYear": 8.98,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.26
+     },
+     "150": {
+      "ret": 0.1466,
+      "maxDD": 0.0543,
+      "retOverDD": 2.7,
+      "entries": 18,
+      "entriesByCoin": {
+       "BTC/USD": 6,
+       "ETH/USD": 5,
+       "SOL/USD": 3,
+       "AVAX/USD": 4
+      },
+      "signalsSeen": 63,
+      "signalsRefused": 45,
+      "deployment": 0.052,
+      "turnoverPerYear": 8.49,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.224
+     },
+     "200": {
+      "ret": 0.1461,
+      "maxDD": 0.0538,
+      "retOverDD": 2.72,
+      "entries": 15,
+      "entriesByCoin": {
+       "BTC/USD": 5,
+       "ETH/USD": 4,
+       "SOL/USD": 3,
+       "AVAX/USD": 3
+      },
+      "signalsSeen": 72,
+      "signalsRefused": 57,
+      "deployment": 0.045,
+      "turnoverPerYear": 7.04,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.213
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.0128,
+      "p05": -0.0805,
+      "p50": 0.0125,
+      "p95": 0.112,
+      "min": -0.1178,
+      "max": 0.1747
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.0781,
+      "p05": 0.0497,
+      "p50": 0.0778,
+      "p95": 0.11,
+      "min": 0.0272,
+      "max": 0.1524
+     },
+     "pNullAtLeastArm": 0.01,
+     "pEpisodeRefusal": 0.771,
+     "kept": 1000,
+     "attempts": 7127,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 25.96
+      },
+      {
+       "pEp": 0.75,
+       "meanEntries": 15.99
+      },
+      {
+       "pEp": 0.875,
+       "meanEntries": 9
+      },
+      {
+       "pEp": 0.8125,
+       "meanEntries": 12.76
+      },
+      {
+       "pEp": 0.7813,
+       "meanEntries": 14.42
+      },
+      {
+       "pEp": 0.7656,
+       "meanEntries": 15.24
+      },
+      {
+       "pEp": 0.7734,
+       "meanEntries": 14.73
+      },
+      {
+       "pEp": 0.7695,
+       "meanEntries": 15.08
+      },
+      {
+       "pEp": 0.7715,
+       "meanEntries": 14.95
+      },
+      {
+       "pEp": 0.7705,
+       "meanEntries": 15.03
+      }
+     ],
+     "note": ""
+    }
+   },
+   "B": {
+    "incumbent": {
+     "ret": 0.2505,
+     "maxDD": 0.1143,
+     "retOverDD": 2.19,
+     "entries": 53,
+     "entriesByCoin": {
+      "BTC/USD": 18,
+      "ETH/USD": 10,
+      "SOL/USD": 15,
+      "AVAX/USD": 10
+     },
+     "signalsSeen": 53,
+     "signalsRefused": 0,
+     "deployment": 0.17,
+     "turnoverPerYear": 24.82,
+     "from": "2024-08-31",
+     "to": "2025-09-21",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 200,
+     "inSample": {
+      "100": {
+       "ret": 0.5705,
+       "maxDD": 0.0727,
+       "score": 7.8473,
+       "entries": 41,
+       "coins": 4
+      },
+      "150": {
+       "ret": 0.5464,
+       "maxDD": 0.0736,
+       "score": 7.4239,
+       "entries": 44,
+       "coins": 4
+      },
+      "200": {
+       "ret": 0.5715,
+       "maxDD": 0.0727,
+       "score": 7.8611,
+       "entries": 40,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.2222,
+     "maxDD": 0.1169,
+     "retOverDD": 1.9,
+     "entries": 49,
+     "entriesByCoin": {
+      "BTC/USD": 17,
+      "ETH/USD": 10,
+      "SOL/USD": 13,
+      "AVAX/USD": 9
+     },
+     "signalsSeen": 68,
+     "signalsRefused": 19,
+     "deployment": 0.151,
+     "turnoverPerYear": 22.93,
+     "from": "2024-08-31",
+     "to": "2025-09-21",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.2153,
+      "maxDD": 0.117,
+      "retOverDD": 1.84,
+      "entries": 52,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 10,
+       "SOL/USD": 15,
+       "AVAX/USD": 10
+      },
+      "signalsSeen": 60,
+      "signalsRefused": 8,
+      "deployment": 0.164,
+      "turnoverPerYear": 24.35,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.741
+     },
+     "150": {
+      "ret": 0.2072,
+      "maxDD": 0.1183,
+      "retOverDD": 1.75,
+      "entries": 52,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 10,
+       "SOL/USD": 15,
+       "AVAX/USD": 10
+      },
+      "signalsSeen": 63,
+      "signalsRefused": 11,
+      "deployment": 0.16,
+      "turnoverPerYear": 24.35,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.785
+     },
+     "200": {
+      "ret": 0.2222,
+      "maxDD": 0.1169,
+      "retOverDD": 1.9,
+      "entries": 49,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 10,
+       "SOL/USD": 13,
+       "AVAX/USD": 9
+      },
+      "signalsSeen": 68,
+      "signalsRefused": 19,
+      "deployment": 0.151,
+      "turnoverPerYear": 22.93,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.813
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.2318,
+      "p05": 0.1538,
+      "p50": 0.237,
+      "p95": 0.2908,
+      "min": 0.0975,
+      "max": 0.3182
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1059,
+      "p05": 0.088,
+      "p50": 0.106,
+      "p95": 0.1214,
+      "min": 0.074,
+      "max": 0.128
+     },
+     "pNullAtLeastArm": 0.621,
+     "pEpisodeRefusal": 0.1929,
+     "kept": 1000,
+     "attempts": 4624,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 39.55
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 47.6
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 50.32
+      },
+      {
+       "pEp": 0.1875,
+       "meanEntries": 49.09
+      },
+      {
+       "pEp": 0.2188,
+       "meanEntries": 48.45
+      },
+      {
+       "pEp": 0.2031,
+       "meanEntries": 48.78
+      },
+      {
+       "pEp": 0.1953,
+       "meanEntries": 48.87
+      },
+      {
+       "pEp": 0.1914,
+       "meanEntries": 49.03
+      },
+      {
+       "pEp": 0.1934,
+       "meanEntries": 48.99
+      },
+      {
+       "pEp": 0.1924,
+       "meanEntries": 49.01
+      }
+     ],
+     "note": ""
+    }
+   },
+   "C": {
+    "incumbent": {
+     "ret": 0.5564,
+     "maxDD": 0.0735,
+     "retOverDD": 7.57,
+     "entries": 47,
+     "entriesByCoin": {
+      "BTC/USD": 17,
+      "ETH/USD": 8,
+      "SOL/USD": 12,
+      "AVAX/USD": 10
+     },
+     "signalsSeen": 47,
+     "signalsRefused": 0,
+     "deployment": 0.173,
+     "turnoverPerYear": 21.43,
+     "from": "2023-08-22",
+     "to": "2024-09-21",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": -0.001,
+       "maxDD": 0.1449,
+       "score": -0.0069,
+       "entries": 44,
+       "coins": 4
+      },
+      "150": {
+       "ret": -0.1572,
+       "maxDD": 0.2089,
+       "score": -0.7525,
+       "entries": 42,
+       "coins": 4
+      },
+      "200": {
+       "ret": -0.1329,
+       "maxDD": 0.186,
+       "score": -0.7145,
+       "entries": 39,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.5705,
+     "maxDD": 0.0727,
+     "retOverDD": 7.85,
+     "entries": 41,
+     "entriesByCoin": {
+      "BTC/USD": 15,
+      "ETH/USD": 7,
+      "SOL/USD": 11,
+      "AVAX/USD": 8
+     },
+     "signalsSeen": 57,
+     "signalsRefused": 16,
+     "deployment": 0.164,
+     "turnoverPerYear": 18.66,
+     "from": "2023-08-22",
+     "to": "2024-09-21",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.5705,
+      "maxDD": 0.0727,
+      "retOverDD": 7.85,
+      "entries": 41,
+      "entriesByCoin": {
+       "BTC/USD": 15,
+       "ETH/USD": 7,
+       "SOL/USD": 11,
+       "AVAX/USD": 8
+      },
+      "signalsSeen": 57,
+      "signalsRefused": 16,
+      "deployment": 0.164,
+      "turnoverPerYear": 18.66,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.684
+     },
+     "150": {
+      "ret": 0.5464,
+      "maxDD": 0.0736,
+      "retOverDD": 7.43,
+      "entries": 44,
+      "entriesByCoin": {
+       "BTC/USD": 16,
+       "ETH/USD": 8,
+       "SOL/USD": 11,
+       "AVAX/USD": 9
+      },
+      "signalsSeen": 56,
+      "signalsRefused": 12,
+      "deployment": 0.165,
+      "turnoverPerYear": 20.05,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.729
+     },
+     "200": {
+      "ret": 0.5715,
+      "maxDD": 0.0727,
+      "retOverDD": 7.86,
+      "entries": 40,
+      "entriesByCoin": {
+       "BTC/USD": 15,
+       "ETH/USD": 7,
+       "SOL/USD": 11,
+       "AVAX/USD": 7
+      },
+      "signalsSeen": 57,
+      "signalsRefused": 17,
+      "deployment": 0.163,
+      "turnoverPerYear": 18.43,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.77
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.5055,
+      "p05": 0.3655,
+      "p50": 0.5261,
+      "p95": 0.5959,
+      "min": 0.2696,
+      "max": 0.6211
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.0675,
+      "p05": 0.0449,
+      "p50": 0.0665,
+      "p95": 0.1033,
+      "min": 0.0354,
+      "max": 0.1273
+     },
+     "pNullAtLeastArm": 0.176,
+     "pEpisodeRefusal": 0.2358,
+     "kept": 1000,
+     "attempts": 5611,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 32.85
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 40.63
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 44.25
+      },
+      {
+       "pEp": 0.1875,
+       "meanEntries": 42.38
+      },
+      {
+       "pEp": 0.2188,
+       "meanEntries": 41.52
+      },
+      {
+       "pEp": 0.2344,
+       "meanEntries": 41.06
+      },
+      {
+       "pEp": 0.2422,
+       "meanEntries": 40.91
+      },
+      {
+       "pEp": 0.2383,
+       "meanEntries": 40.96
+      },
+      {
+       "pEp": 0.2363,
+       "meanEntries": 41
+      },
+      {
+       "pEp": 0.2354,
+       "meanEntries": 41.02
+      }
+     ],
+     "note": ""
+    }
+   },
+   "D": {
+    "incumbent": {
+     "ret": -0.0781,
+     "maxDD": 0.1552,
+     "retOverDD": -0.5,
+     "entries": 32,
+     "entriesByCoin": {
+      "BTC/USD": 10,
+      "ETH/USD": 12,
+      "SOL/USD": 2,
+      "AVAX/USD": 8
+     },
+     "signalsSeen": 32,
+     "signalsRefused": 0,
+     "deployment": 0.079,
+     "turnoverPerYear": 14.75,
+     "from": "2022-08-22",
+     "to": "2023-09-22",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 0.6539,
+       "maxDD": 0.0479,
+       "score": 13.078,
+       "entries": 41,
+       "coins": 4
+      },
+      "150": {
+       "ret": 0.4831,
+       "maxDD": 0.0496,
+       "score": 9.662,
+       "entries": 37,
+       "coins": 4
+      },
+      "200": {
+       "ret": 0.4952,
+       "maxDD": 0.0479,
+       "score": 9.904,
+       "entries": 36,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": -0.1158,
+     "maxDD": 0.1607,
+     "retOverDD": -0.72,
+     "entries": 27,
+     "entriesByCoin": {
+      "BTC/USD": 8,
+      "ETH/USD": 10,
+      "SOL/USD": 2,
+      "AVAX/USD": 7
+     },
+     "signalsSeen": 48,
+     "signalsRefused": 21,
+     "deployment": 0.064,
+     "turnoverPerYear": 12.44,
+     "from": "2022-08-22",
+     "to": "2023-09-22",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": -0.1158,
+      "maxDD": 0.1607,
+      "retOverDD": -0.72,
+      "entries": 27,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 10,
+       "SOL/USD": 2,
+       "AVAX/USD": 7
+      },
+      "signalsSeen": 48,
+      "signalsRefused": 21,
+      "deployment": 0.064,
+      "turnoverPerYear": 12.44,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.558
+     },
+     "150": {
+      "ret": -0.1452,
+      "maxDD": 0.1653,
+      "retOverDD": -0.88,
+      "entries": 27,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 10,
+       "SOL/USD": 2,
+       "AVAX/USD": 7
+      },
+      "signalsSeen": 54,
+      "signalsRefused": 27,
+      "deployment": 0.062,
+      "turnoverPerYear": 12.44,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.595
+     },
+     "200": {
+      "ret": -0.1329,
+      "maxDD": 0.1634,
+      "retOverDD": -0.81,
+      "entries": 25,
+      "entriesByCoin": {
+       "BTC/USD": 7,
+       "ETH/USD": 10,
+       "SOL/USD": 2,
+       "AVAX/USD": 6
+      },
+      "signalsSeen": 56,
+      "signalsRefused": 31,
+      "deployment": 0.06,
+      "turnoverPerYear": 11.52,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.593
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": -0.0559,
+      "p05": -0.0931,
+      "p50": -0.055,
+      "p95": -0.0222,
+      "min": -0.1469,
+      "max": -0.0044
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1318,
+      "p05": 0.1054,
+      "p50": 0.1307,
+      "p95": 0.1621,
+      "min": 0.0875,
+      "max": 0.1839
+     },
+     "pNullAtLeastArm": 0.993,
+     "pEpisodeRefusal": 0.231,
+     "kept": 1000,
+     "attempts": 5193,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 20.01
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 26.52
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 29.39
+      },
+      {
+       "pEp": 0.1875,
+       "meanEntries": 28.07
+      },
+      {
+       "pEp": 0.2188,
+       "meanEntries": 27.32
+      },
+      {
+       "pEp": 0.2344,
+       "meanEntries": 26.92
+      },
+      {
+       "pEp": 0.2266,
+       "meanEntries": 27.13
+      },
+      {
+       "pEp": 0.2305,
+       "meanEntries": 27.01
+      },
+      {
+       "pEp": 0.2324,
+       "meanEntries": 26.98
+      },
+      {
+       "pEp": 0.2314,
+       "meanEntries": 26.99
+      }
+     ],
+     "note": ""
+    }
+   },
+   "E": {
+    "incumbent": {
+     "ret": -0.053,
+     "maxDD": 0.1557,
+     "retOverDD": -0.34,
+     "entries": 19,
+     "entriesByCoin": {
+      "BTC/USD": 9,
+      "ETH/USD": 10
+     },
+     "signalsSeen": 19,
+     "signalsRefused": 0,
+     "deployment": 0.132,
+     "turnoverPerYear": 19.05,
+     "from": "2021-08-22",
+     "to": "2022-08-21",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 1.1099,
+       "maxDD": 0.1599,
+       "score": 6.9412,
+       "entries": 40,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.9662,
+       "maxDD": 0.1671,
+       "score": 5.7822,
+       "entries": 38,
+       "coins": 2
+      },
+      "200": {
+       "ret": 1.0188,
+       "maxDD": 0.1603,
+       "score": 6.3556,
+       "entries": 36,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": -0.0235,
+     "maxDD": 0.1511,
+     "retOverDD": -0.16,
+     "entries": 13,
+     "entriesByCoin": {
+      "BTC/USD": 5,
+      "ETH/USD": 8
+     },
+     "signalsSeen": 30,
+     "signalsRefused": 17,
+     "deployment": 0.097,
+     "turnoverPerYear": 13.04,
+     "from": "2021-08-22",
+     "to": "2022-08-21",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": -0.0235,
+      "maxDD": 0.1511,
+      "retOverDD": -0.16,
+      "entries": 13,
+      "entriesByCoin": {
+       "BTC/USD": 5,
+       "ETH/USD": 8
+      },
+      "signalsSeen": 30,
+      "signalsRefused": 17,
+      "deployment": 0.097,
+      "turnoverPerYear": 13.04,
+      "from": "2021-08-22",
+      "to": "2022-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.337
+     },
+     "150": {
+      "ret": -0.1042,
+      "maxDD": 0.1746,
+      "retOverDD": -0.6,
+      "entries": 12,
+      "entriesByCoin": {
+       "BTC/USD": 4,
+       "ETH/USD": 8
+      },
+      "signalsSeen": 41,
+      "signalsRefused": 29,
+      "deployment": 0.081,
+      "turnoverPerYear": 12.03,
+      "from": "2021-08-22",
+      "to": "2022-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.304
+     },
+     "200": {
+      "ret": -0.0766,
+      "maxDD": 0.1491,
+      "retOverDD": -0.51,
+      "entries": 11,
+      "entriesByCoin": {
+       "BTC/USD": 4,
+       "ETH/USD": 7
+      },
+      "signalsSeen": 41,
+      "signalsRefused": 30,
+      "deployment": 0.077,
+      "turnoverPerYear": 11.03,
+      "from": "2021-08-22",
+      "to": "2022-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.301
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": -0.0836,
+      "p05": -0.1917,
+      "p50": -0.0797,
+      "p95": 0.0142,
+      "min": -0.3064,
+      "max": 0.0687
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1595,
+      "p05": 0.1028,
+      "p50": 0.1542,
+      "p95": 0.2346,
+      "min": 0.0816,
+      "max": 0.3177
+     },
+     "pNullAtLeastArm": 0.177,
+     "pEpisodeRefusal": 0.605,
+     "kept": 1000,
+     "attempts": 4663,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 14.85
+      },
+      {
+       "pEp": 0.75,
+       "meanEntries": 9.78
+      },
+      {
+       "pEp": 0.625,
+       "meanEntries": 12.62
+      },
+      {
+       "pEp": 0.5625,
+       "meanEntries": 13.77
+      },
+      {
+       "pEp": 0.5938,
+       "meanEntries": 13.18
+      },
+      {
+       "pEp": 0.6094,
+       "meanEntries": 12.92
+      },
+      {
+       "pEp": 0.6016,
+       "meanEntries": 13.08
+      },
+      {
+       "pEp": 0.6055,
+       "meanEntries": 12.99
+      },
+      {
+       "pEp": 0.6035,
+       "meanEntries": 13.05
+      },
+      {
+       "pEp": 0.6045,
+       "meanEntries": 13.02
+      }
+     ],
+     "note": ""
+    }
+   },
+   "F": {
+    "incumbent": {
+     "ret": 0.8387,
+     "maxDD": 0.0756,
+     "retOverDD": 11.09,
+     "entries": 25,
+     "entriesByCoin": {
+      "BTC/USD": 10,
+      "ETH/USD": 15
+     },
+     "signalsSeen": 25,
+     "signalsRefused": 0,
+     "deployment": 0.285,
+     "turnoverPerYear": 24.57,
+     "from": "2020-08-22",
+     "to": "2021-08-21",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 150,
+     "inSample": {
+      "100": {
+       "ret": 0.4376,
+       "maxDD": 0.1599,
+       "score": 2.7367,
+       "entries": 34,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.4849,
+       "maxDD": 0.1571,
+       "score": 3.0866,
+       "entries": 29,
+       "coins": 2
+      },
+      "200": {
+       "ret": 0.442,
+       "maxDD": 0.1509,
+       "score": 2.9291,
+       "entries": 25,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.6574,
+     "maxDD": 0.079,
+     "retOverDD": 8.33,
+     "entries": 22,
+     "entriesByCoin": {
+      "BTC/USD": 9,
+      "ETH/USD": 13
+     },
+     "signalsSeen": 39,
+     "signalsRefused": 17,
+     "deployment": 0.246,
+     "turnoverPerYear": 21.56,
+     "from": "2020-08-22",
+     "to": "2021-08-21",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.7452,
+      "maxDD": 0.0756,
+      "retOverDD": 9.85,
+      "entries": 24,
+      "entriesByCoin": {
+       "BTC/USD": 10,
+       "ETH/USD": 14
+      },
+      "signalsSeen": 29,
+      "signalsRefused": 5,
+      "deployment": 0.275,
+      "turnoverPerYear": 23.56,
+      "from": "2020-08-22",
+      "to": "2021-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.753
+     },
+     "150": {
+      "ret": 0.6574,
+      "maxDD": 0.079,
+      "retOverDD": 8.33,
+      "entries": 22,
+      "entriesByCoin": {
+       "BTC/USD": 9,
+       "ETH/USD": 13
+      },
+      "signalsSeen": 39,
+      "signalsRefused": 17,
+      "deployment": 0.246,
+      "turnoverPerYear": 21.56,
+      "from": "2020-08-22",
+      "to": "2021-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.764
+     },
+     "200": {
+      "ret": 0.6574,
+      "maxDD": 0.079,
+      "retOverDD": 8.33,
+      "entries": 22,
+      "entriesByCoin": {
+       "BTC/USD": 9,
+       "ETH/USD": 13
+      },
+      "signalsSeen": 39,
+      "signalsRefused": 17,
+      "deployment": 0.246,
+      "turnoverPerYear": 21.56,
+      "from": "2020-08-22",
+      "to": "2021-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.77
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.6259,
+      "p05": 0.4285,
+      "p50": 0.6373,
+      "p95": 0.7833,
+      "min": 0.2081,
+      "max": 0.8846
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1,
+      "p05": 0.0745,
+      "p50": 0.0921,
+      "p95": 0.1482,
+      "min": 0.0714,
+      "max": 0.1976
+     },
+     "pNullAtLeastArm": 0.422,
+     "pEpisodeRefusal": 0.4526,
+     "kept": 1000,
+     "attempts": 3942,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 21.28
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 23.95
+      },
+      {
+       "pEp": 0.375,
+       "meanEntries": 22.97
+      },
+      {
+       "pEp": 0.4375,
+       "meanEntries": 22.19
+      },
+      {
+       "pEp": 0.4688,
+       "meanEntries": 21.68
+      },
+      {
+       "pEp": 0.4531,
+       "meanEntries": 21.99
+      },
+      {
+       "pEp": 0.4453,
+       "meanEntries": 22.1
+      },
+      {
+       "pEp": 0.4492,
+       "meanEntries": 22.08
+      },
+      {
+       "pEp": 0.4512,
+       "meanEntries": 22.04
+      },
+      {
+       "pEp": 0.4521,
+       "meanEntries": 22.02
+      }
+     ],
+     "note": ""
+    }
+   },
+   "G": {
+    "incumbent": {
+     "ret": 0.5494,
+     "maxDD": 0.0932,
+     "retOverDD": 5.89,
+     "entries": 18,
+     "entriesByCoin": {
+      "BTC/USD": 10,
+      "ETH/USD": 8
+     },
+     "signalsSeen": 18,
+     "signalsRefused": 0,
+     "deployment": 0.147,
+     "turnoverPerYear": 18.05,
+     "from": "2019-08-23",
+     "to": "2020-08-21",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 150,
+     "inSample": {
+      "100": {
+       "ret": 0.4143,
+       "maxDD": 0.1435,
+       "score": 2.8871,
+       "entries": 33,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.5268,
+       "maxDD": 0.1065,
+       "score": 4.9465,
+       "entries": 26,
+       "coins": 2
+      },
+      "200": {
+       "ret": 0.4606,
+       "maxDD": 0.1109,
+       "score": 4.1533,
+       "entries": 23,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.3088,
+     "maxDD": 0.1671,
+     "retOverDD": 1.85,
+     "entries": 16,
+     "entriesByCoin": {
+      "BTC/USD": 9,
+      "ETH/USD": 7
+     },
+     "signalsSeen": 39,
+     "signalsRefused": 23,
+     "deployment": 0.119,
+     "turnoverPerYear": 16.04,
+     "from": "2019-08-23",
+     "to": "2020-08-21",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.3647,
+      "maxDD": 0.1599,
+      "retOverDD": 2.28,
+      "entries": 16,
+      "entriesByCoin": {
+       "BTC/USD": 10,
+       "ETH/USD": 6
+      },
+      "signalsSeen": 35,
+      "signalsRefused": 19,
+      "deployment": 0.124,
+      "turnoverPerYear": 16.04,
+      "from": "2019-08-23",
+      "to": "2020-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.52
+     },
+     "150": {
+      "ret": 0.3088,
+      "maxDD": 0.1671,
+      "retOverDD": 1.85,
+      "entries": 16,
+      "entriesByCoin": {
+       "BTC/USD": 9,
+       "ETH/USD": 7
+      },
+      "signalsSeen": 39,
+      "signalsRefused": 23,
+      "deployment": 0.119,
+      "turnoverPerYear": 16.04,
+      "from": "2019-08-23",
+      "to": "2020-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.545
+     },
+     "200": {
+      "ret": 0.3614,
+      "maxDD": 0.1603,
+      "retOverDD": 2.25,
+      "entries": 14,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 6
+      },
+      "signalsSeen": 40,
+      "signalsRefused": 26,
+      "deployment": 0.114,
+      "turnoverPerYear": 14.04,
+      "from": "2019-08-23",
+      "to": "2020-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.542
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.4483,
+      "p05": 0.3064,
+      "p50": 0.4542,
+      "p95": 0.5641,
+      "min": 0.2051,
+      "max": 0.6093
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1053,
+      "p05": 0.0644,
+      "p50": 0.0965,
+      "p95": 0.1602,
+      "min": 0.0491,
+      "max": 0.2271
+     },
+     "pNullAtLeastArm": 0.946,
+     "pEpisodeRefusal": 0.3735,
+     "kept": 1000,
+     "attempts": 3147,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 14.63
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 16.85
+      },
+      {
+       "pEp": 0.375,
+       "meanEntries": 15.97
+      },
+      {
+       "pEp": 0.3125,
+       "meanEntries": 16.35
+      },
+      {
+       "pEp": 0.3438,
+       "meanEntries": 16.21
+      },
+      {
+       "pEp": 0.3594,
+       "meanEntries": 16.1
+      },
+      {
+       "pEp": 0.3672,
+       "meanEntries": 16.04
+      },
+      {
+       "pEp": 0.3711,
+       "meanEntries": 16.01
+      },
+      {
+       "pEp": 0.373,
+       "meanEntries": 16.01
+      },
+      {
+       "pEp": 0.374,
+       "meanEntries": 16
+      }
+     ],
+     "note": ""
+    }
+   },
+   "H": {
+    "incumbent": {
+     "ret": 0.1445,
+     "maxDD": 0.1372,
+     "retOverDD": 1.05,
+     "entries": 19,
+     "entriesByCoin": {
+      "BTC/USD": 12,
+      "ETH/USD": 7
+     },
+     "signalsSeen": 19,
+     "signalsRefused": 0,
+     "deployment": 0.114,
+     "turnoverPerYear": 19.05,
+     "from": "2018-08-23",
+     "to": "2019-08-22",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 200,
+     "inSample": {
+      "100": {
+       "ret": 1.5874,
+       "maxDD": 0.1225,
+       "score": 12.9584,
+       "entries": 38,
+       "coins": 2
+      },
+      "150": {
+       "ret": 1.6053,
+       "maxDD": 0.122,
+       "score": 13.1582,
+       "entries": 40,
+       "coins": 2
+      },
+      "200": {
+       "ret": 1.6347,
+       "maxDD": 0.122,
+       "score": 13.3992,
+       "entries": 39,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.0806,
+     "maxDD": 0.1442,
+     "retOverDD": 0.56,
+     "entries": 11,
+     "entriesByCoin": {
+      "BTC/USD": 7,
+      "ETH/USD": 4
+     },
+     "signalsSeen": 32,
+     "signalsRefused": 21,
+     "deployment": 0.074,
+     "turnoverPerYear": 11.03,
+     "from": "2018-08-23",
+     "to": "2019-08-22",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.0729,
+      "maxDD": 0.145,
+      "retOverDD": 0.5,
+      "entries": 18,
+      "entriesByCoin": {
+       "BTC/USD": 12,
+       "ETH/USD": 6
+      },
+      "signalsSeen": 25,
+      "signalsRefused": 7,
+      "deployment": 0.095,
+      "turnoverPerYear": 18.05,
+      "from": "2018-08-23",
+      "to": "2019-08-22",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.526
+     },
+     "150": {
+      "ret": 0.1761,
+      "maxDD": 0.134,
+      "retOverDD": 1.31,
+      "entries": 13,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 5
+      },
+      "signalsSeen": 30,
+      "signalsRefused": 17,
+      "deployment": 0.079,
+      "turnoverPerYear": 13.04,
+      "from": "2018-08-23",
+      "to": "2019-08-22",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.4
+     },
+     "200": {
+      "ret": 0.0806,
+      "maxDD": 0.1442,
+      "retOverDD": 0.56,
+      "entries": 11,
+      "entriesByCoin": {
+       "BTC/USD": 7,
+       "ETH/USD": 4
+      },
+      "signalsSeen": 32,
+      "signalsRefused": 21,
+      "deployment": 0.074,
+      "turnoverPerYear": 11.03,
+      "from": "2018-08-23",
+      "to": "2019-08-22",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.389
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.1825,
+      "p05": 0.0165,
+      "p50": 0.1864,
+      "p95": 0.3304,
+      "min": -0.1592,
+      "max": 0.399
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.121,
+      "p05": 0.092,
+      "p50": 0.1107,
+      "p95": 0.1769,
+      "min": 0.0688,
+      "max": 0.2954
+     },
+     "pNullAtLeastArm": 0.867,
+     "pEpisodeRefusal": 0.6187,
+     "kept": 1000,
+     "attempts": 4719,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 12.92
+      },
+      {
+       "pEp": 0.75,
+       "meanEntries": 8.39
+      },
+      {
+       "pEp": 0.625,
+       "meanEntries": 10.94
+      },
+      {
+       "pEp": 0.5625,
+       "meanEntries": 11.83
+      },
+      {
+       "pEp": 0.5938,
+       "meanEntries": 11.49
+      },
+      {
+       "pEp": 0.6094,
+       "meanEntries": 11.17
+      },
+      {
+       "pEp": 0.6172,
+       "meanEntries": 11.05
+      },
+      {
+       "pEp": 0.6211,
+       "meanEntries": 10.99
+      },
+      {
+       "pEp": 0.6191,
+       "meanEntries": 11
+      },
+      {
+       "pEp": 0.6182,
+       "meanEntries": 11.01
+      }
+     ],
+     "note": ""
+    }
+   }
+  },
+  "shipped·kraken": {
+   "A": {
+    "incumbent": {
+     "ret": 0.0356,
+     "maxDD": 0.1497,
+     "retOverDD": 0.24,
+     "entries": 37,
+     "entriesByCoin": {
+      "BTC/USD": 14,
+      "ETH/USD": 11,
+      "SOL/USD": 8,
+      "AVAX/USD": 4
+     },
+     "signalsSeen": 37,
+     "signalsRefused": 0,
+     "deployment": 0.096,
+     "turnoverPerYear": 17.96,
+     "from": "2025-09-10",
+     "to": "2026-09-21",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 200,
+     "inSample": {
+      "100": {
+       "ret": 0.7594,
+       "maxDD": 0.0789,
+       "score": 9.6248,
+       "entries": 96,
+       "coins": 4
+      },
+      "150": {
+       "ret": 0.7275,
+       "maxDD": 0.0806,
+       "score": 9.0261,
+       "entries": 99,
+       "coins": 4
+      },
+      "200": {
+       "ret": 0.769,
+       "maxDD": 0.0788,
+       "score": 9.7589,
+       "entries": 92,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.0773,
+     "maxDD": 0.0646,
+     "retOverDD": 1.2,
+     "entries": 16,
+     "entriesByCoin": {
+      "BTC/USD": 5,
+      "ETH/USD": 4,
+      "SOL/USD": 4,
+      "AVAX/USD": 3
+     },
+     "signalsSeen": 74,
+     "signalsRefused": 58,
+     "deployment": 0.045,
+     "turnoverPerYear": 7.77,
+     "from": "2025-09-10",
+     "to": "2026-09-21",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.0661,
+      "maxDD": 0.0721,
+      "retOverDD": 0.92,
+      "entries": 20,
+      "entriesByCoin": {
+       "BTC/USD": 7,
+       "ETH/USD": 5,
+       "SOL/USD": 4,
+       "AVAX/USD": 4
+      },
+      "signalsSeen": 68,
+      "signalsRefused": 48,
+      "deployment": 0.053,
+      "turnoverPerYear": 9.71,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.26
+     },
+     "150": {
+      "ret": 0.0782,
+      "maxDD": 0.065,
+      "retOverDD": 1.2,
+      "entries": 19,
+      "entriesByCoin": {
+       "BTC/USD": 6,
+       "ETH/USD": 5,
+       "SOL/USD": 4,
+       "AVAX/USD": 4
+      },
+      "signalsSeen": 65,
+      "signalsRefused": 46,
+      "deployment": 0.052,
+      "turnoverPerYear": 9.22,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.224
+     },
+     "200": {
+      "ret": 0.0773,
+      "maxDD": 0.0646,
+      "retOverDD": 1.2,
+      "entries": 16,
+      "entriesByCoin": {
+       "BTC/USD": 5,
+       "ETH/USD": 4,
+       "SOL/USD": 4,
+       "AVAX/USD": 3
+      },
+      "signalsSeen": 74,
+      "signalsRefused": 58,
+      "deployment": 0.045,
+      "turnoverPerYear": 7.77,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.213
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": -0.0015,
+      "p05": -0.0766,
+      "p50": -0.0018,
+      "p95": 0.0728,
+      "min": -0.1362,
+      "max": 0.1238
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.0793,
+      "p05": 0.0517,
+      "p50": 0.0786,
+      "p95": 0.1095,
+      "min": 0.0352,
+      "max": 0.1456
+     },
+     "pNullAtLeastArm": 0.039,
+     "pEpisodeRefusal": 0.7612,
+     "kept": 1000,
+     "attempts": 7179,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 26.42
+      },
+      {
+       "pEp": 0.75,
+       "meanEntries": 16.61
+      },
+      {
+       "pEp": 0.875,
+       "meanEntries": 9.33
+      },
+      {
+       "pEp": 0.8125,
+       "meanEntries": 12.89
+      },
+      {
+       "pEp": 0.7813,
+       "meanEntries": 14.68
+      },
+      {
+       "pEp": 0.7656,
+       "meanEntries": 15.75
+      },
+      {
+       "pEp": 0.7578,
+       "meanEntries": 16.23
+      },
+      {
+       "pEp": 0.7617,
+       "meanEntries": 15.96
+      },
+      {
+       "pEp": 0.7598,
+       "meanEntries": 16.12
+      },
+      {
+       "pEp": 0.7607,
+       "meanEntries": 16.06
+      }
+     ],
+     "note": ""
+    }
+   },
+   "B": {
+    "incumbent": {
+     "ret": 0.2811,
+     "maxDD": 0.1082,
+     "retOverDD": 2.6,
+     "entries": 55,
+     "entriesByCoin": {
+      "BTC/USD": 18,
+      "ETH/USD": 11,
+      "SOL/USD": 16,
+      "AVAX/USD": 10
+     },
+     "signalsSeen": 55,
+     "signalsRefused": 0,
+     "deployment": 0.17,
+     "turnoverPerYear": 25.77,
+     "from": "2024-08-31",
+     "to": "2025-09-21",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 200,
+     "inSample": {
+      "100": {
+       "ret": 0.5188,
+       "maxDD": 0.0765,
+       "score": 6.7817,
+       "entries": 42,
+       "coins": 4
+      },
+      "150": {
+       "ret": 0.4951,
+       "maxDD": 0.0775,
+       "score": 6.3884,
+       "entries": 45,
+       "coins": 4
+      },
+      "200": {
+       "ret": 0.5202,
+       "maxDD": 0.0765,
+       "score": 6.8,
+       "entries": 41,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.2487,
+     "maxDD": 0.1109,
+     "retOverDD": 2.24,
+     "entries": 51,
+     "entriesByCoin": {
+      "BTC/USD": 17,
+      "ETH/USD": 11,
+      "SOL/USD": 14,
+      "AVAX/USD": 9
+     },
+     "signalsSeen": 71,
+     "signalsRefused": 20,
+     "deployment": 0.152,
+     "turnoverPerYear": 23.88,
+     "from": "2024-08-31",
+     "to": "2025-09-21",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.2462,
+      "maxDD": 0.1107,
+      "retOverDD": 2.23,
+      "entries": 54,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 11,
+       "SOL/USD": 16,
+       "AVAX/USD": 10
+      },
+      "signalsSeen": 63,
+      "signalsRefused": 9,
+      "deployment": 0.164,
+      "turnoverPerYear": 25.29,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.741
+     },
+     "150": {
+      "ret": 0.2381,
+      "maxDD": 0.1119,
+      "retOverDD": 2.13,
+      "entries": 54,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 11,
+       "SOL/USD": 16,
+       "AVAX/USD": 10
+      },
+      "signalsSeen": 66,
+      "signalsRefused": 12,
+      "deployment": 0.16,
+      "turnoverPerYear": 25.29,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.785
+     },
+     "200": {
+      "ret": 0.2487,
+      "maxDD": 0.1109,
+      "retOverDD": 2.24,
+      "entries": 51,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 11,
+       "SOL/USD": 14,
+       "AVAX/USD": 9
+      },
+      "signalsSeen": 71,
+      "signalsRefused": 20,
+      "deployment": 0.152,
+      "turnoverPerYear": 23.88,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.813
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.2587,
+      "p05": 0.1903,
+      "p50": 0.2634,
+      "p95": 0.3149,
+      "min": 0.111,
+      "max": 0.3363
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1018,
+      "p05": 0.0859,
+      "p50": 0.1021,
+      "p95": 0.1152,
+      "min": 0.0762,
+      "max": 0.1263
+     },
+     "pNullAtLeastArm": 0.642,
+     "pEpisodeRefusal": 0.1792,
+     "kept": 1000,
+     "attempts": 4545,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 40.47
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 49.07
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 52.43
+      },
+      {
+       "pEp": 0.1875,
+       "meanEntries": 50.69
+      },
+      {
+       "pEp": 0.1563,
+       "meanEntries": 51.71
+      },
+      {
+       "pEp": 0.1719,
+       "meanEntries": 51.21
+      },
+      {
+       "pEp": 0.1797,
+       "meanEntries": 51
+      },
+      {
+       "pEp": 0.1758,
+       "meanEntries": 51.12
+      },
+      {
+       "pEp": 0.1777,
+       "meanEntries": 51.08
+      },
+      {
+       "pEp": 0.1787,
+       "meanEntries": 51.04
+      }
+     ],
+     "note": ""
+    }
+   },
+   "C": {
+    "incumbent": {
+     "ret": 0.5095,
+     "maxDD": 0.0774,
+     "retOverDD": 6.58,
+     "entries": 48,
+     "entriesByCoin": {
+      "BTC/USD": 17,
+      "ETH/USD": 9,
+      "SOL/USD": 12,
+      "AVAX/USD": 10
+     },
+     "signalsSeen": 48,
+     "signalsRefused": 0,
+     "deployment": 0.167,
+     "turnoverPerYear": 21.89,
+     "from": "2023-08-22",
+     "to": "2024-09-21",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": -0.001,
+       "maxDD": 0.1449,
+       "score": -0.0069,
+       "entries": 44,
+       "coins": 4
+      },
+      "150": {
+       "ret": -0.1572,
+       "maxDD": 0.2089,
+       "score": -0.7525,
+       "entries": 42,
+       "coins": 4
+      },
+      "200": {
+       "ret": -0.1329,
+       "maxDD": 0.186,
+       "score": -0.7145,
+       "entries": 39,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.5188,
+     "maxDD": 0.0765,
+     "retOverDD": 6.78,
+     "entries": 42,
+     "entriesByCoin": {
+      "BTC/USD": 15,
+      "ETH/USD": 8,
+      "SOL/USD": 11,
+      "AVAX/USD": 8
+     },
+     "signalsSeen": 58,
+     "signalsRefused": 16,
+     "deployment": 0.158,
+     "turnoverPerYear": 19.13,
+     "from": "2023-08-22",
+     "to": "2024-09-21",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.5188,
+      "maxDD": 0.0765,
+      "retOverDD": 6.78,
+      "entries": 42,
+      "entriesByCoin": {
+       "BTC/USD": 15,
+       "ETH/USD": 8,
+       "SOL/USD": 11,
+       "AVAX/USD": 8
+      },
+      "signalsSeen": 58,
+      "signalsRefused": 16,
+      "deployment": 0.158,
+      "turnoverPerYear": 19.13,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.684
+     },
+     "150": {
+      "ret": 0.4951,
+      "maxDD": 0.0775,
+      "retOverDD": 6.39,
+      "entries": 45,
+      "entriesByCoin": {
+       "BTC/USD": 16,
+       "ETH/USD": 9,
+       "SOL/USD": 11,
+       "AVAX/USD": 9
+      },
+      "signalsSeen": 58,
+      "signalsRefused": 13,
+      "deployment": 0.159,
+      "turnoverPerYear": 20.51,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.729
+     },
+     "200": {
+      "ret": 0.5202,
+      "maxDD": 0.0765,
+      "retOverDD": 6.8,
+      "entries": 41,
+      "entriesByCoin": {
+       "BTC/USD": 15,
+       "ETH/USD": 8,
+       "SOL/USD": 11,
+       "AVAX/USD": 7
+      },
+      "signalsSeen": 57,
+      "signalsRefused": 16,
+      "deployment": 0.157,
+      "turnoverPerYear": 18.9,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.77
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.4518,
+      "p05": 0.3143,
+      "p50": 0.4742,
+      "p95": 0.5388,
+      "min": 0.2364,
+      "max": 0.5797
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.0728,
+      "p05": 0.0507,
+      "p50": 0.0706,
+      "p95": 0.1069,
+      "min": 0.0451,
+      "max": 0.1314
+     },
+     "pNullAtLeastArm": 0.185,
+     "pEpisodeRefusal": 0.2456,
+     "kept": 1000,
+     "attempts": 5463,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 33.61
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 41.81
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 45.05
+      },
+      {
+       "pEp": 0.1875,
+       "meanEntries": 43.66
+      },
+      {
+       "pEp": 0.2188,
+       "meanEntries": 42.87
+      },
+      {
+       "pEp": 0.2344,
+       "meanEntries": 42.41
+      },
+      {
+       "pEp": 0.2422,
+       "meanEntries": 42.15
+      },
+      {
+       "pEp": 0.2461,
+       "meanEntries": 42
+      },
+      {
+       "pEp": 0.2441,
+       "meanEntries": 42.09
+      },
+      {
+       "pEp": 0.2451,
+       "meanEntries": 42.04
+      }
+     ],
+     "note": ""
+    }
+   },
+   "D": {
+    "incumbent": {
+     "ret": -0.0781,
+     "maxDD": 0.1552,
+     "retOverDD": -0.5,
+     "entries": 32,
+     "entriesByCoin": {
+      "BTC/USD": 10,
+      "ETH/USD": 12,
+      "SOL/USD": 2,
+      "AVAX/USD": 8
+     },
+     "signalsSeen": 32,
+     "signalsRefused": 0,
+     "deployment": 0.079,
+     "turnoverPerYear": 14.75,
+     "from": "2022-08-22",
+     "to": "2023-09-22",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 0.6539,
+       "maxDD": 0.0479,
+       "score": 13.078,
+       "entries": 41,
+       "coins": 4
+      },
+      "150": {
+       "ret": 0.4831,
+       "maxDD": 0.0496,
+       "score": 9.662,
+       "entries": 37,
+       "coins": 4
+      },
+      "200": {
+       "ret": 0.4952,
+       "maxDD": 0.0479,
+       "score": 9.904,
+       "entries": 36,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": -0.1158,
+     "maxDD": 0.1607,
+     "retOverDD": -0.72,
+     "entries": 27,
+     "entriesByCoin": {
+      "BTC/USD": 8,
+      "ETH/USD": 10,
+      "SOL/USD": 2,
+      "AVAX/USD": 7
+     },
+     "signalsSeen": 48,
+     "signalsRefused": 21,
+     "deployment": 0.064,
+     "turnoverPerYear": 12.44,
+     "from": "2022-08-22",
+     "to": "2023-09-22",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": -0.1158,
+      "maxDD": 0.1607,
+      "retOverDD": -0.72,
+      "entries": 27,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 10,
+       "SOL/USD": 2,
+       "AVAX/USD": 7
+      },
+      "signalsSeen": 48,
+      "signalsRefused": 21,
+      "deployment": 0.064,
+      "turnoverPerYear": 12.44,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.558
+     },
+     "150": {
+      "ret": -0.1452,
+      "maxDD": 0.1653,
+      "retOverDD": -0.88,
+      "entries": 27,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 10,
+       "SOL/USD": 2,
+       "AVAX/USD": 7
+      },
+      "signalsSeen": 54,
+      "signalsRefused": 27,
+      "deployment": 0.062,
+      "turnoverPerYear": 12.44,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.595
+     },
+     "200": {
+      "ret": -0.1329,
+      "maxDD": 0.1634,
+      "retOverDD": -0.81,
+      "entries": 25,
+      "entriesByCoin": {
+       "BTC/USD": 7,
+       "ETH/USD": 10,
+       "SOL/USD": 2,
+       "AVAX/USD": 6
+      },
+      "signalsSeen": 56,
+      "signalsRefused": 31,
+      "deployment": 0.06,
+      "turnoverPerYear": 11.52,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.593
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": -0.0575,
+      "p05": -0.0996,
+      "p50": -0.0557,
+      "p95": -0.0228,
+      "min": -0.1394,
+      "max": -0.0012
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1325,
+      "p05": 0.1051,
+      "p50": 0.1318,
+      "p95": 0.1627,
+      "min": 0.0847,
+      "max": 0.1844
+     },
+     "pNullAtLeastArm": 0.989,
+     "pEpisodeRefusal": 0.2339,
+     "kept": 1000,
+     "attempts": 5033,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 20.4
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 26.67
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 29.39
+      },
+      {
+       "pEp": 0.1875,
+       "meanEntries": 28.03
+      },
+      {
+       "pEp": 0.2188,
+       "meanEntries": 27.3
+      },
+      {
+       "pEp": 0.2344,
+       "meanEntries": 26.97
+      },
+      {
+       "pEp": 0.2266,
+       "meanEntries": 27.15
+      },
+      {
+       "pEp": 0.2305,
+       "meanEntries": 27.08
+      },
+      {
+       "pEp": 0.2324,
+       "meanEntries": 27.03
+      },
+      {
+       "pEp": 0.2334,
+       "meanEntries": 27.01
+      }
+     ],
+     "note": ""
+    }
+   },
+   "E": {
+    "incumbent": {
+     "ret": -0.053,
+     "maxDD": 0.1557,
+     "retOverDD": -0.34,
+     "entries": 19,
+     "entriesByCoin": {
+      "BTC/USD": 9,
+      "ETH/USD": 10
+     },
+     "signalsSeen": 19,
+     "signalsRefused": 0,
+     "deployment": 0.132,
+     "turnoverPerYear": 19.05,
+     "from": "2021-08-22",
+     "to": "2022-08-21",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 1.1099,
+       "maxDD": 0.1599,
+       "score": 6.9412,
+       "entries": 40,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.9662,
+       "maxDD": 0.1671,
+       "score": 5.7822,
+       "entries": 38,
+       "coins": 2
+      },
+      "200": {
+       "ret": 1.0188,
+       "maxDD": 0.1603,
+       "score": 6.3556,
+       "entries": 36,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": -0.0235,
+     "maxDD": 0.1511,
+     "retOverDD": -0.16,
+     "entries": 13,
+     "entriesByCoin": {
+      "BTC/USD": 5,
+      "ETH/USD": 8
+     },
+     "signalsSeen": 30,
+     "signalsRefused": 17,
+     "deployment": 0.097,
+     "turnoverPerYear": 13.04,
+     "from": "2021-08-22",
+     "to": "2022-08-21",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": -0.0235,
+      "maxDD": 0.1511,
+      "retOverDD": -0.16,
+      "entries": 13,
+      "entriesByCoin": {
+       "BTC/USD": 5,
+       "ETH/USD": 8
+      },
+      "signalsSeen": 30,
+      "signalsRefused": 17,
+      "deployment": 0.097,
+      "turnoverPerYear": 13.04,
+      "from": "2021-08-22",
+      "to": "2022-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.337
+     },
+     "150": {
+      "ret": -0.1042,
+      "maxDD": 0.1746,
+      "retOverDD": -0.6,
+      "entries": 12,
+      "entriesByCoin": {
+       "BTC/USD": 4,
+       "ETH/USD": 8
+      },
+      "signalsSeen": 41,
+      "signalsRefused": 29,
+      "deployment": 0.081,
+      "turnoverPerYear": 12.03,
+      "from": "2021-08-22",
+      "to": "2022-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.304
+     },
+     "200": {
+      "ret": -0.0766,
+      "maxDD": 0.1491,
+      "retOverDD": -0.51,
+      "entries": 11,
+      "entriesByCoin": {
+       "BTC/USD": 4,
+       "ETH/USD": 7
+      },
+      "signalsSeen": 41,
+      "signalsRefused": 30,
+      "deployment": 0.077,
+      "turnoverPerYear": 11.03,
+      "from": "2021-08-22",
+      "to": "2022-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.301
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": -0.0833,
+      "p05": -0.1983,
+      "p50": -0.0814,
+      "p95": 0.0165,
+      "min": -0.3318,
+      "max": 0.083
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1583,
+      "p05": 0.1031,
+      "p50": 0.1548,
+      "p95": 0.2327,
+      "min": 0.0816,
+      "max": 0.3318
+     },
+     "pNullAtLeastArm": 0.18,
+     "pEpisodeRefusal": 0.6089,
+     "kept": 1000,
+     "attempts": 4810,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 14.83
+      },
+      {
+       "pEp": 0.75,
+       "meanEntries": 9.93
+      },
+      {
+       "pEp": 0.625,
+       "meanEntries": 12.65
+      },
+      {
+       "pEp": 0.5625,
+       "meanEntries": 13.71
+      },
+      {
+       "pEp": 0.5938,
+       "meanEntries": 13.26
+      },
+      {
+       "pEp": 0.6094,
+       "meanEntries": 12.95
+      },
+      {
+       "pEp": 0.6016,
+       "meanEntries": 13.11
+      },
+      {
+       "pEp": 0.6055,
+       "meanEntries": 13.07
+      },
+      {
+       "pEp": 0.6074,
+       "meanEntries": 13.05
+      },
+      {
+       "pEp": 0.6084,
+       "meanEntries": 13.02
+      }
+     ],
+     "note": ""
+    }
+   },
+   "F": {
+    "incumbent": {
+     "ret": 0.8387,
+     "maxDD": 0.0756,
+     "retOverDD": 11.09,
+     "entries": 25,
+     "entriesByCoin": {
+      "BTC/USD": 10,
+      "ETH/USD": 15
+     },
+     "signalsSeen": 25,
+     "signalsRefused": 0,
+     "deployment": 0.285,
+     "turnoverPerYear": 24.57,
+     "from": "2020-08-22",
+     "to": "2021-08-21",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 150,
+     "inSample": {
+      "100": {
+       "ret": 0.4376,
+       "maxDD": 0.1599,
+       "score": 2.7367,
+       "entries": 34,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.4849,
+       "maxDD": 0.1571,
+       "score": 3.0866,
+       "entries": 29,
+       "coins": 2
+      },
+      "200": {
+       "ret": 0.442,
+       "maxDD": 0.1509,
+       "score": 2.9291,
+       "entries": 25,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.6574,
+     "maxDD": 0.079,
+     "retOverDD": 8.33,
+     "entries": 22,
+     "entriesByCoin": {
+      "BTC/USD": 9,
+      "ETH/USD": 13
+     },
+     "signalsSeen": 39,
+     "signalsRefused": 17,
+     "deployment": 0.246,
+     "turnoverPerYear": 21.56,
+     "from": "2020-08-22",
+     "to": "2021-08-21",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.7452,
+      "maxDD": 0.0756,
+      "retOverDD": 9.85,
+      "entries": 24,
+      "entriesByCoin": {
+       "BTC/USD": 10,
+       "ETH/USD": 14
+      },
+      "signalsSeen": 29,
+      "signalsRefused": 5,
+      "deployment": 0.275,
+      "turnoverPerYear": 23.56,
+      "from": "2020-08-22",
+      "to": "2021-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.753
+     },
+     "150": {
+      "ret": 0.6574,
+      "maxDD": 0.079,
+      "retOverDD": 8.33,
+      "entries": 22,
+      "entriesByCoin": {
+       "BTC/USD": 9,
+       "ETH/USD": 13
+      },
+      "signalsSeen": 39,
+      "signalsRefused": 17,
+      "deployment": 0.246,
+      "turnoverPerYear": 21.56,
+      "from": "2020-08-22",
+      "to": "2021-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.764
+     },
+     "200": {
+      "ret": 0.6574,
+      "maxDD": 0.079,
+      "retOverDD": 8.33,
+      "entries": 22,
+      "entriesByCoin": {
+       "BTC/USD": 9,
+       "ETH/USD": 13
+      },
+      "signalsSeen": 39,
+      "signalsRefused": 17,
+      "deployment": 0.246,
+      "turnoverPerYear": 21.56,
+      "from": "2020-08-22",
+      "to": "2021-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.77
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.6302,
+      "p05": 0.4314,
+      "p50": 0.6417,
+      "p95": 0.7919,
+      "min": 0.1724,
+      "max": 0.8794
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1,
+      "p05": 0.0741,
+      "p50": 0.0927,
+      "p95": 0.1499,
+      "min": 0.0718,
+      "max": 0.2329
+     },
+     "pNullAtLeastArm": 0.447,
+     "pEpisodeRefusal": 0.4507,
+     "kept": 1000,
+     "attempts": 3817,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 21.26
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 23.86
+      },
+      {
+       "pEp": 0.375,
+       "meanEntries": 22.95
+      },
+      {
+       "pEp": 0.4375,
+       "meanEntries": 22.17
+      },
+      {
+       "pEp": 0.4688,
+       "meanEntries": 21.84
+      },
+      {
+       "pEp": 0.4531,
+       "meanEntries": 22
+      },
+      {
+       "pEp": 0.4453,
+       "meanEntries": 22.06
+      },
+      {
+       "pEp": 0.4492,
+       "meanEntries": 22.01
+      },
+      {
+       "pEp": 0.4512,
+       "meanEntries": 22
+      },
+      {
+       "pEp": 0.4502,
+       "meanEntries": 22.02
+      }
+     ],
+     "note": ""
+    }
+   },
+   "G": {
+    "incumbent": {
+     "ret": 0.5494,
+     "maxDD": 0.0932,
+     "retOverDD": 5.89,
+     "entries": 18,
+     "entriesByCoin": {
+      "BTC/USD": 10,
+      "ETH/USD": 8
+     },
+     "signalsSeen": 18,
+     "signalsRefused": 0,
+     "deployment": 0.147,
+     "turnoverPerYear": 18.05,
+     "from": "2019-08-23",
+     "to": "2020-08-21",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 150,
+     "inSample": {
+      "100": {
+       "ret": 0.4143,
+       "maxDD": 0.1435,
+       "score": 2.8871,
+       "entries": 33,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.5268,
+       "maxDD": 0.1065,
+       "score": 4.9465,
+       "entries": 26,
+       "coins": 2
+      },
+      "200": {
+       "ret": 0.4606,
+       "maxDD": 0.1109,
+       "score": 4.1533,
+       "entries": 23,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.3088,
+     "maxDD": 0.1671,
+     "retOverDD": 1.85,
+     "entries": 16,
+     "entriesByCoin": {
+      "BTC/USD": 9,
+      "ETH/USD": 7
+     },
+     "signalsSeen": 39,
+     "signalsRefused": 23,
+     "deployment": 0.119,
+     "turnoverPerYear": 16.04,
+     "from": "2019-08-23",
+     "to": "2020-08-21",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.3647,
+      "maxDD": 0.1599,
+      "retOverDD": 2.28,
+      "entries": 16,
+      "entriesByCoin": {
+       "BTC/USD": 10,
+       "ETH/USD": 6
+      },
+      "signalsSeen": 35,
+      "signalsRefused": 19,
+      "deployment": 0.124,
+      "turnoverPerYear": 16.04,
+      "from": "2019-08-23",
+      "to": "2020-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.52
+     },
+     "150": {
+      "ret": 0.3088,
+      "maxDD": 0.1671,
+      "retOverDD": 1.85,
+      "entries": 16,
+      "entriesByCoin": {
+       "BTC/USD": 9,
+       "ETH/USD": 7
+      },
+      "signalsSeen": 39,
+      "signalsRefused": 23,
+      "deployment": 0.119,
+      "turnoverPerYear": 16.04,
+      "from": "2019-08-23",
+      "to": "2020-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.545
+     },
+     "200": {
+      "ret": 0.3614,
+      "maxDD": 0.1603,
+      "retOverDD": 2.25,
+      "entries": 14,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 6
+      },
+      "signalsSeen": 40,
+      "signalsRefused": 26,
+      "deployment": 0.114,
+      "turnoverPerYear": 14.04,
+      "from": "2019-08-23",
+      "to": "2020-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.542
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.4545,
+      "p05": 0.3154,
+      "p50": 0.4613,
+      "p95": 0.5657,
+      "min": 0.1589,
+      "max": 0.6225
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1046,
+      "p05": 0.0655,
+      "p50": 0.096,
+      "p95": 0.1585,
+      "min": 0.0492,
+      "max": 0.225
+     },
+     "pNullAtLeastArm": 0.961,
+     "pEpisodeRefusal": 0.3628,
+     "kept": 1000,
+     "attempts": 3176,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 14.18
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 16.98
+      },
+      {
+       "pEp": 0.375,
+       "meanEntries": 15.91
+      },
+      {
+       "pEp": 0.3125,
+       "meanEntries": 16.41
+      },
+      {
+       "pEp": 0.3438,
+       "meanEntries": 16.18
+      },
+      {
+       "pEp": 0.3594,
+       "meanEntries": 16.08
+      },
+      {
+       "pEp": 0.3672,
+       "meanEntries": 15.96
+      },
+      {
+       "pEp": 0.3633,
+       "meanEntries": 15.99
+      },
+      {
+       "pEp": 0.3613,
+       "meanEntries": 16.02
+      },
+      {
+       "pEp": 0.3623,
+       "meanEntries": 16.01
+      }
+     ],
+     "note": ""
+    }
+   },
+   "H": {
+    "incumbent": {
+     "ret": 0.1445,
+     "maxDD": 0.1372,
+     "retOverDD": 1.05,
+     "entries": 19,
+     "entriesByCoin": {
+      "BTC/USD": 12,
+      "ETH/USD": 7
+     },
+     "signalsSeen": 19,
+     "signalsRefused": 0,
+     "deployment": 0.114,
+     "turnoverPerYear": 19.05,
+     "from": "2018-08-23",
+     "to": "2019-08-22",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 200,
+     "inSample": {
+      "100": {
+       "ret": 1.5874,
+       "maxDD": 0.1225,
+       "score": 12.9584,
+       "entries": 38,
+       "coins": 2
+      },
+      "150": {
+       "ret": 1.6053,
+       "maxDD": 0.122,
+       "score": 13.1582,
+       "entries": 40,
+       "coins": 2
+      },
+      "200": {
+       "ret": 1.6347,
+       "maxDD": 0.122,
+       "score": 13.3992,
+       "entries": 39,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.0806,
+     "maxDD": 0.1442,
+     "retOverDD": 0.56,
+     "entries": 11,
+     "entriesByCoin": {
+      "BTC/USD": 7,
+      "ETH/USD": 4
+     },
+     "signalsSeen": 32,
+     "signalsRefused": 21,
+     "deployment": 0.074,
+     "turnoverPerYear": 11.03,
+     "from": "2018-08-23",
+     "to": "2019-08-22",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.0729,
+      "maxDD": 0.145,
+      "retOverDD": 0.5,
+      "entries": 18,
+      "entriesByCoin": {
+       "BTC/USD": 12,
+       "ETH/USD": 6
+      },
+      "signalsSeen": 25,
+      "signalsRefused": 7,
+      "deployment": 0.095,
+      "turnoverPerYear": 18.05,
+      "from": "2018-08-23",
+      "to": "2019-08-22",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.526
+     },
+     "150": {
+      "ret": 0.1761,
+      "maxDD": 0.134,
+      "retOverDD": 1.31,
+      "entries": 13,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 5
+      },
+      "signalsSeen": 30,
+      "signalsRefused": 17,
+      "deployment": 0.079,
+      "turnoverPerYear": 13.04,
+      "from": "2018-08-23",
+      "to": "2019-08-22",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.4
+     },
+     "200": {
+      "ret": 0.0806,
+      "maxDD": 0.1442,
+      "retOverDD": 0.56,
+      "entries": 11,
+      "entriesByCoin": {
+       "BTC/USD": 7,
+       "ETH/USD": 4
+      },
+      "signalsSeen": 32,
+      "signalsRefused": 21,
+      "deployment": 0.074,
+      "turnoverPerYear": 11.03,
+      "from": "2018-08-23",
+      "to": "2019-08-22",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.389
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.191,
+      "p05": 0.0337,
+      "p50": 0.1986,
+      "p95": 0.3225,
+      "min": -0.1965,
+      "max": 0.4203
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1203,
+      "p05": 0.0906,
+      "p50": 0.1101,
+      "p95": 0.1753,
+      "min": 0.0705,
+      "max": 0.2396
+     },
+     "pNullAtLeastArm": 0.88,
+     "pEpisodeRefusal": 0.5903,
+     "kept": 1000,
+     "attempts": 5022,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 12.56
+      },
+      {
+       "pEp": 0.75,
+       "meanEntries": 8.11
+      },
+      {
+       "pEp": 0.625,
+       "meanEntries": 10.25
+      },
+      {
+       "pEp": 0.5625,
+       "meanEntries": 11.46
+      },
+      {
+       "pEp": 0.5938,
+       "meanEntries": 10.88
+      },
+      {
+       "pEp": 0.5781,
+       "meanEntries": 11.17
+      },
+      {
+       "pEp": 0.5859,
+       "meanEntries": 11.06
+      },
+      {
+       "pEp": 0.5898,
+       "meanEntries": 11.02
+      },
+      {
+       "pEp": 0.5918,
+       "meanEntries": 10.95
+      },
+      {
+       "pEp": 0.5908,
+       "meanEntries": 10.98
+      }
+     ],
+     "note": ""
+    }
+   }
+  },
+  "trail·coinbase": {
+   "A": {
+    "incumbent": {
+     "ret": 0.0131,
+     "maxDD": 0.1353,
+     "retOverDD": 0.1,
+     "entries": 41,
+     "entriesByCoin": {
+      "BTC/USD": 16,
+      "ETH/USD": 12,
+      "SOL/USD": 8,
+      "AVAX/USD": 5
+     },
+     "signalsSeen": 41,
+     "signalsRefused": 0,
+     "deployment": 0.074,
+     "turnoverPerYear": 19.9,
+     "from": "2025-09-10",
+     "to": "2026-09-21",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 200,
+     "inSample": {
+      "100": {
+       "ret": 0.5932,
+       "maxDD": 0.0805,
+       "score": 7.3689,
+       "entries": 107,
+       "coins": 4
+      },
+      "150": {
+       "ret": 0.5769,
+       "maxDD": 0.0816,
+       "score": 7.0699,
+       "entries": 109,
+       "coins": 4
+      },
+      "200": {
+       "ret": 0.613,
+       "maxDD": 0.0798,
+       "score": 7.6817,
+       "entries": 102,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.0701,
+     "maxDD": 0.0476,
+     "retOverDD": 1.4,
+     "entries": 16,
+     "entriesByCoin": {
+      "BTC/USD": 5,
+      "ETH/USD": 4,
+      "SOL/USD": 4,
+      "AVAX/USD": 3
+     },
+     "signalsSeen": 73,
+     "signalsRefused": 57,
+     "deployment": 0.03,
+     "turnoverPerYear": 7.77,
+     "from": "2025-09-10",
+     "to": "2026-09-21",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.0531,
+      "maxDD": 0.0607,
+      "retOverDD": 0.87,
+      "entries": 21,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 5,
+       "SOL/USD": 4,
+       "AVAX/USD": 4
+      },
+      "signalsSeen": 68,
+      "signalsRefused": 47,
+      "deployment": 0.038,
+      "turnoverPerYear": 10.19,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.26
+     },
+     "150": {
+      "ret": 0.0686,
+      "maxDD": 0.0504,
+      "retOverDD": 1.36,
+      "entries": 20,
+      "entriesByCoin": {
+       "BTC/USD": 7,
+       "ETH/USD": 5,
+       "SOL/USD": 4,
+       "AVAX/USD": 4
+      },
+      "signalsSeen": 65,
+      "signalsRefused": 45,
+      "deployment": 0.038,
+      "turnoverPerYear": 9.71,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.224
+     },
+     "200": {
+      "ret": 0.0701,
+      "maxDD": 0.0476,
+      "retOverDD": 1.4,
+      "entries": 16,
+      "entriesByCoin": {
+       "BTC/USD": 5,
+       "ETH/USD": 4,
+       "SOL/USD": 4,
+       "AVAX/USD": 3
+      },
+      "signalsSeen": 73,
+      "signalsRefused": 57,
+      "deployment": 0.03,
+      "turnoverPerYear": 7.77,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.213
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": -0.0154,
+      "p05": -0.072,
+      "p50": -0.0166,
+      "p95": 0.049,
+      "min": -0.1215,
+      "max": 0.1016
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.066,
+      "p05": 0.0446,
+      "p50": 0.0649,
+      "p95": 0.0904,
+      "min": 0.0287,
+      "max": 0.1216
+     },
+     "pNullAtLeastArm": 0.009,
+     "pEpisodeRefusal": 0.7661,
+     "kept": 1000,
+     "attempts": 7191,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 27.65
+      },
+      {
+       "pEp": 0.75,
+       "meanEntries": 16.79
+      },
+      {
+       "pEp": 0.875,
+       "meanEntries": 9.41
+      },
+      {
+       "pEp": 0.8125,
+       "meanEntries": 13.5
+      },
+      {
+       "pEp": 0.7813,
+       "meanEntries": 15.25
+      },
+      {
+       "pEp": 0.7656,
+       "meanEntries": 16.01
+      },
+      {
+       "pEp": 0.7734,
+       "meanEntries": 15.61
+      },
+      {
+       "pEp": 0.7695,
+       "meanEntries": 15.82
+      },
+      {
+       "pEp": 0.7676,
+       "meanEntries": 15.9
+      },
+      {
+       "pEp": 0.7666,
+       "meanEntries": 15.96
+      }
+     ],
+     "note": ""
+    }
+   },
+   "B": {
+    "incumbent": {
+     "ret": 0.1443,
+     "maxDD": 0.1115,
+     "retOverDD": 1.29,
+     "entries": 64,
+     "entriesByCoin": {
+      "BTC/USD": 20,
+      "ETH/USD": 14,
+      "SOL/USD": 18,
+      "AVAX/USD": 12
+     },
+     "signalsSeen": 64,
+     "signalsRefused": 0,
+     "deployment": 0.134,
+     "turnoverPerYear": 30.02,
+     "from": "2024-08-31",
+     "to": "2025-09-21",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 200,
+     "inSample": {
+      "100": {
+       "ret": 0.4724,
+       "maxDD": 0.0574,
+       "score": 8.23,
+       "entries": 45,
+       "coins": 4
+      },
+      "150": {
+       "ret": 0.4529,
+       "maxDD": 0.058,
+       "score": 7.8086,
+       "entries": 48,
+       "coins": 4
+      },
+      "200": {
+       "ret": 0.4734,
+       "maxDD": 0.0574,
+       "score": 8.2474,
+       "entries": 44,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.1396,
+     "maxDD": 0.1119,
+     "retOverDD": 1.25,
+     "entries": 58,
+     "entriesByCoin": {
+      "BTC/USD": 18,
+      "ETH/USD": 14,
+      "SOL/USD": 15,
+      "AVAX/USD": 11
+     },
+     "signalsSeen": 77,
+     "signalsRefused": 19,
+     "deployment": 0.119,
+     "turnoverPerYear": 27.19,
+     "from": "2024-08-31",
+     "to": "2025-09-21",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.1275,
+      "maxDD": 0.1125,
+      "retOverDD": 1.13,
+      "entries": 62,
+      "entriesByCoin": {
+       "BTC/USD": 19,
+       "ETH/USD": 14,
+       "SOL/USD": 17,
+       "AVAX/USD": 12
+      },
+      "signalsSeen": 70,
+      "signalsRefused": 8,
+      "deployment": 0.129,
+      "turnoverPerYear": 29.08,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.741
+     },
+     "150": {
+      "ret": 0.1308,
+      "maxDD": 0.1128,
+      "retOverDD": 1.16,
+      "entries": 61,
+      "entriesByCoin": {
+       "BTC/USD": 18,
+       "ETH/USD": 14,
+       "SOL/USD": 17,
+       "AVAX/USD": 12
+      },
+      "signalsSeen": 72,
+      "signalsRefused": 11,
+      "deployment": 0.128,
+      "turnoverPerYear": 28.6,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.785
+     },
+     "200": {
+      "ret": 0.1396,
+      "maxDD": 0.1119,
+      "retOverDD": 1.25,
+      "entries": 58,
+      "entriesByCoin": {
+       "BTC/USD": 18,
+       "ETH/USD": 14,
+       "SOL/USD": 15,
+       "AVAX/USD": 11
+      },
+      "signalsSeen": 77,
+      "signalsRefused": 19,
+      "deployment": 0.119,
+      "turnoverPerYear": 27.19,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.813
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.1392,
+      "p05": 0.0635,
+      "p50": 0.144,
+      "p95": 0.1938,
+      "min": 0.0122,
+      "max": 0.2385
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1038,
+      "p05": 0.0839,
+      "p50": 0.104,
+      "p95": 0.1217,
+      "min": 0.0748,
+      "max": 0.1512
+     },
+     "pNullAtLeastArm": 0.532,
+     "pEpisodeRefusal": 0.1958,
+     "kept": 1000,
+     "attempts": 5542,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 45.22
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 56.41
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 60.37
+      },
+      {
+       "pEp": 0.1875,
+       "meanEntries": 58.26
+      },
+      {
+       "pEp": 0.2188,
+       "meanEntries": 57.28
+      },
+      {
+       "pEp": 0.2031,
+       "meanEntries": 57.66
+      },
+      {
+       "pEp": 0.1953,
+       "meanEntries": 58.03
+      },
+      {
+       "pEp": 0.1992,
+       "meanEntries": 57.9
+      },
+      {
+       "pEp": 0.1973,
+       "meanEntries": 57.93
+      },
+      {
+       "pEp": 0.1963,
+       "meanEntries": 57.96
+      }
+     ],
+     "note": ""
+    }
+   },
+   "C": {
+    "incumbent": {
+     "ret": 0.4707,
+     "maxDD": 0.0578,
+     "retOverDD": 8.14,
+     "entries": 51,
+     "entriesByCoin": {
+      "BTC/USD": 18,
+      "ETH/USD": 11,
+      "SOL/USD": 12,
+      "AVAX/USD": 10
+     },
+     "signalsSeen": 51,
+     "signalsRefused": 0,
+     "deployment": 0.129,
+     "turnoverPerYear": 23.27,
+     "from": "2023-08-22",
+     "to": "2024-09-21",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 0.0186,
+       "maxDD": 0.1063,
+       "score": 0.175,
+       "entries": 49,
+       "coins": 4
+      },
+      "150": {
+       "ret": -0.1046,
+       "maxDD": 0.158,
+       "score": -0.662,
+       "entries": 45,
+       "coins": 4
+      },
+      "200": {
+       "ret": -0.0766,
+       "maxDD": 0.1316,
+       "score": -0.5821,
+       "entries": 42,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.4724,
+     "maxDD": 0.0574,
+     "retOverDD": 8.23,
+     "entries": 45,
+     "entriesByCoin": {
+      "BTC/USD": 16,
+      "ETH/USD": 10,
+      "SOL/USD": 11,
+      "AVAX/USD": 8
+     },
+     "signalsSeen": 61,
+     "signalsRefused": 16,
+     "deployment": 0.122,
+     "turnoverPerYear": 20.51,
+     "from": "2023-08-22",
+     "to": "2024-09-21",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.4724,
+      "maxDD": 0.0574,
+      "retOverDD": 8.23,
+      "entries": 45,
+      "entriesByCoin": {
+       "BTC/USD": 16,
+       "ETH/USD": 10,
+       "SOL/USD": 11,
+       "AVAX/USD": 8
+      },
+      "signalsSeen": 61,
+      "signalsRefused": 16,
+      "deployment": 0.122,
+      "turnoverPerYear": 20.51,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.684
+     },
+     "150": {
+      "ret": 0.4529,
+      "maxDD": 0.058,
+      "retOverDD": 7.8,
+      "entries": 48,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 11,
+       "SOL/USD": 11,
+       "AVAX/USD": 9
+      },
+      "signalsSeen": 60,
+      "signalsRefused": 12,
+      "deployment": 0.123,
+      "turnoverPerYear": 21.89,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.729
+     },
+     "200": {
+      "ret": 0.4734,
+      "maxDD": 0.0574,
+      "retOverDD": 8.25,
+      "entries": 44,
+      "entriesByCoin": {
+       "BTC/USD": 16,
+       "ETH/USD": 10,
+       "SOL/USD": 11,
+       "AVAX/USD": 7
+      },
+      "signalsSeen": 61,
+      "signalsRefused": 17,
+      "deployment": 0.122,
+      "turnoverPerYear": 20.28,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.77
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.4101,
+      "p05": 0.3091,
+      "p50": 0.419,
+      "p95": 0.4872,
+      "min": 0.138,
+      "max": 0.5231
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.0567,
+      "p05": 0.046,
+      "p50": 0.0576,
+      "p95": 0.0658,
+      "min": 0.0393,
+      "max": 0.0983
+     },
+     "pNullAtLeastArm": 0.136,
+     "pEpisodeRefusal": 0.2417,
+     "kept": 1000,
+     "attempts": 5671,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 36.09
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 44.72
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 48.12
+      },
+      {
+       "pEp": 0.1875,
+       "meanEntries": 46.37
+      },
+      {
+       "pEp": 0.2188,
+       "meanEntries": 45.59
+      },
+      {
+       "pEp": 0.2344,
+       "meanEntries": 45.2
+      },
+      {
+       "pEp": 0.2422,
+       "meanEntries": 44.98
+      },
+      {
+       "pEp": 0.2383,
+       "meanEntries": 45.07
+      },
+      {
+       "pEp": 0.2402,
+       "meanEntries": 45.02
+      },
+      {
+       "pEp": 0.2412,
+       "meanEntries": 45.03
+      }
+     ],
+     "note": ""
+    }
+   },
+   "D": {
+    "incumbent": {
+     "ret": -0.032,
+     "maxDD": 0.1113,
+     "retOverDD": -0.29,
+     "entries": 33,
+     "entriesByCoin": {
+      "BTC/USD": 10,
+      "ETH/USD": 13,
+      "SOL/USD": 2,
+      "AVAX/USD": 8
+     },
+     "signalsSeen": 33,
+     "signalsRefused": 0,
+     "deployment": 0.065,
+     "turnoverPerYear": 15.21,
+     "from": "2022-08-22",
+     "to": "2023-09-22",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 0.2822,
+       "maxDD": 0.0679,
+       "score": 4.1561,
+       "entries": 62,
+       "coins": 4
+      },
+      "150": {
+       "ret": 0.1688,
+       "maxDD": 0.0587,
+       "score": 2.8756,
+       "entries": 55,
+       "coins": 4
+      },
+      "200": {
+       "ret": 0.1865,
+       "maxDD": 0.0552,
+       "score": 3.3786,
+       "entries": 54,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": -0.0813,
+     "maxDD": 0.1166,
+     "retOverDD": -0.7,
+     "entries": 28,
+     "entriesByCoin": {
+      "BTC/USD": 8,
+      "ETH/USD": 11,
+      "SOL/USD": 2,
+      "AVAX/USD": 7
+     },
+     "signalsSeen": 49,
+     "signalsRefused": 21,
+     "deployment": 0.052,
+     "turnoverPerYear": 12.9,
+     "from": "2022-08-22",
+     "to": "2023-09-22",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": -0.0813,
+      "maxDD": 0.1166,
+      "retOverDD": -0.7,
+      "entries": 28,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 11,
+       "SOL/USD": 2,
+       "AVAX/USD": 7
+      },
+      "signalsSeen": 49,
+      "signalsRefused": 21,
+      "deployment": 0.052,
+      "turnoverPerYear": 12.9,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.558
+     },
+     "150": {
+      "ret": -0.0951,
+      "maxDD": 0.1181,
+      "retOverDD": -0.81,
+      "entries": 27,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 10,
+       "SOL/USD": 2,
+       "AVAX/USD": 7
+      },
+      "signalsSeen": 54,
+      "signalsRefused": 27,
+      "deployment": 0.05,
+      "turnoverPerYear": 12.44,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.595
+     },
+     "200": {
+      "ret": -0.0847,
+      "maxDD": 0.1169,
+      "retOverDD": -0.72,
+      "entries": 25,
+      "entriesByCoin": {
+       "BTC/USD": 7,
+       "ETH/USD": 10,
+       "SOL/USD": 2,
+       "AVAX/USD": 6
+      },
+      "signalsSeen": 56,
+      "signalsRefused": 31,
+      "deployment": 0.048,
+      "turnoverPerYear": 11.52,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.593
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": -0.0266,
+      "p05": -0.0697,
+      "p50": -0.0246,
+      "p95": 0.0111,
+      "min": -0.1338,
+      "max": 0.0345
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.0982,
+      "p05": 0.0723,
+      "p50": 0.0966,
+      "p95": 0.1287,
+      "min": 0.0518,
+      "max": 0.1612
+     },
+     "pNullAtLeastArm": 0.976,
+     "pEpisodeRefusal": 0.2231,
+     "kept": 1000,
+     "attempts": 5000,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 20.08
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 27.23
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 30.42
+      },
+      {
+       "pEp": 0.1875,
+       "meanEntries": 28.85
+      },
+      {
+       "pEp": 0.2188,
+       "meanEntries": 28.1
+      },
+      {
+       "pEp": 0.2344,
+       "meanEntries": 27.74
+      },
+      {
+       "pEp": 0.2266,
+       "meanEntries": 27.95
+      },
+      {
+       "pEp": 0.2227,
+       "meanEntries": 28.03
+      },
+      {
+       "pEp": 0.2246,
+       "meanEntries": 27.98
+      },
+      {
+       "pEp": 0.2236,
+       "meanEntries": 28
+      }
+     ],
+     "note": ""
+    }
+   },
+   "E": {
+    "incumbent": {
+     "ret": -0.0146,
+     "maxDD": 0.117,
+     "retOverDD": -0.12,
+     "entries": 22,
+     "entriesByCoin": {
+      "BTC/USD": 11,
+      "ETH/USD": 11
+     },
+     "signalsSeen": 22,
+     "signalsRefused": 0,
+     "deployment": 0.099,
+     "turnoverPerYear": 22.06,
+     "from": "2021-08-22",
+     "to": "2022-08-21",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 0.3905,
+       "maxDD": 0.105,
+       "score": 3.719,
+       "entries": 60,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.2781,
+       "maxDD": 0.1161,
+       "score": 2.3953,
+       "entries": 57,
+       "coins": 2
+      },
+      "200": {
+       "ret": 0.3242,
+       "maxDD": 0.1125,
+       "score": 2.8818,
+       "entries": 55,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": -0.0178,
+     "maxDD": 0.1168,
+     "retOverDD": -0.15,
+     "entries": 16,
+     "entriesByCoin": {
+      "BTC/USD": 7,
+      "ETH/USD": 9
+     },
+     "signalsSeen": 33,
+     "signalsRefused": 17,
+     "deployment": 0.073,
+     "turnoverPerYear": 16.04,
+     "from": "2021-08-22",
+     "to": "2022-08-21",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": -0.0178,
+      "maxDD": 0.1168,
+      "retOverDD": -0.15,
+      "entries": 16,
+      "entriesByCoin": {
+       "BTC/USD": 7,
+       "ETH/USD": 9
+      },
+      "signalsSeen": 33,
+      "signalsRefused": 17,
+      "deployment": 0.073,
+      "turnoverPerYear": 16.04,
+      "from": "2021-08-22",
+      "to": "2022-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.337
+     },
+     "150": {
+      "ret": -0.0995,
+      "maxDD": 0.1394,
+      "retOverDD": -0.71,
+      "entries": 15,
+      "entriesByCoin": {
+       "BTC/USD": 6,
+       "ETH/USD": 9
+      },
+      "signalsSeen": 44,
+      "signalsRefused": 29,
+      "deployment": 0.057,
+      "turnoverPerYear": 15.04,
+      "from": "2021-08-22",
+      "to": "2022-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.304
+     },
+     "200": {
+      "ret": -0.0737,
+      "maxDD": 0.1148,
+      "retOverDD": -0.64,
+      "entries": 14,
+      "entriesByCoin": {
+       "BTC/USD": 6,
+       "ETH/USD": 8
+      },
+      "signalsSeen": 44,
+      "signalsRefused": 30,
+      "deployment": 0.054,
+      "turnoverPerYear": 14.04,
+      "from": "2021-08-22",
+      "to": "2022-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.301
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": -0.0392,
+      "p05": -0.1248,
+      "p50": -0.0379,
+      "p95": 0.0401,
+      "min": -0.2341,
+      "max": 0.0991
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1264,
+      "p05": 0.0763,
+      "p50": 0.1258,
+      "p95": 0.1775,
+      "min": 0.0507,
+      "max": 0.2341
+     },
+     "pNullAtLeastArm": 0.358,
+     "pEpisodeRefusal": 0.519,
+     "kept": 1000,
+     "attempts": 5087,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 16.49
+      },
+      {
+       "pEp": 0.75,
+       "meanEntries": 10.3
+      },
+      {
+       "pEp": 0.625,
+       "meanEntries": 13.81
+      },
+      {
+       "pEp": 0.5625,
+       "meanEntries": 15.09
+      },
+      {
+       "pEp": 0.5313,
+       "meanEntries": 15.7
+      },
+      {
+       "pEp": 0.5156,
+       "meanEntries": 16.1
+      },
+      {
+       "pEp": 0.5234,
+       "meanEntries": 15.86
+      },
+      {
+       "pEp": 0.5195,
+       "meanEntries": 15.99
+      },
+      {
+       "pEp": 0.5176,
+       "meanEntries": 16.07
+      },
+      {
+       "pEp": 0.5186,
+       "meanEntries": 16.03
+      }
+     ],
+     "note": ""
+    }
+   },
+   "F": {
+    "incumbent": {
+     "ret": 0.0931,
+     "maxDD": 0.0961,
+     "retOverDD": 0.97,
+     "entries": 43,
+     "entriesByCoin": {
+      "BTC/USD": 21,
+      "ETH/USD": 22
+     },
+     "signalsSeen": 43,
+     "signalsRefused": 0,
+     "deployment": 0.171,
+     "turnoverPerYear": 42.62,
+     "from": "2020-08-22",
+     "to": "2021-08-21",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 0.3937,
+       "maxDD": 0.1158,
+       "score": 3.3998,
+       "entries": 44,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.3246,
+       "maxDD": 0.1296,
+       "score": 2.5046,
+       "entries": 39,
+       "coins": 2
+      },
+      "200": {
+       "ret": 0.275,
+       "maxDD": 0.1228,
+       "score": 2.2394,
+       "entries": 35,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.0317,
+     "maxDD": 0.1342,
+     "retOverDD": 0.24,
+     "entries": 41,
+     "entriesByCoin": {
+      "BTC/USD": 20,
+      "ETH/USD": 21
+     },
+     "signalsSeen": 46,
+     "signalsRefused": 5,
+     "deployment": 0.163,
+     "turnoverPerYear": 40.61,
+     "from": "2020-08-22",
+     "to": "2021-08-21",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.0317,
+      "maxDD": 0.1342,
+      "retOverDD": 0.24,
+      "entries": 41,
+      "entriesByCoin": {
+       "BTC/USD": 20,
+       "ETH/USD": 21
+      },
+      "signalsSeen": 46,
+      "signalsRefused": 5,
+      "deployment": 0.163,
+      "turnoverPerYear": 40.61,
+      "from": "2020-08-22",
+      "to": "2021-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.753
+     },
+     "150": {
+      "ret": 0.0237,
+      "maxDD": 0.1409,
+      "retOverDD": 0.17,
+      "entries": 37,
+      "entriesByCoin": {
+       "BTC/USD": 18,
+       "ETH/USD": 19
+      },
+      "signalsSeen": 54,
+      "signalsRefused": 17,
+      "deployment": 0.139,
+      "turnoverPerYear": 36.6,
+      "from": "2020-08-22",
+      "to": "2021-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.764
+     },
+     "200": {
+      "ret": 0.0237,
+      "maxDD": 0.1409,
+      "retOverDD": 0.17,
+      "entries": 37,
+      "entriesByCoin": {
+       "BTC/USD": 18,
+       "ETH/USD": 19
+      },
+      "signalsSeen": 54,
+      "signalsRefused": 17,
+      "deployment": 0.139,
+      "turnoverPerYear": 36.6,
+      "from": "2020-08-22",
+      "to": "2021-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.77
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.0876,
+      "p05": 0.025,
+      "p50": 0.092,
+      "p95": 0.1421,
+      "min": -0.0781,
+      "max": 0.1719
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1008,
+      "p05": 0.093,
+      "p50": 0.0972,
+      "p95": 0.1216,
+      "min": 0.0791,
+      "max": 0.1966
+     },
+     "pNullAtLeastArm": 0.931,
+     "pEpisodeRefusal": 0.1216,
+     "kept": 1000,
+     "attempts": 3598,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 31.26
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 38.33
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 40.95
+      },
+      {
+       "pEp": 0.0625,
+       "meanEntries": 42.06
+      },
+      {
+       "pEp": 0.0938,
+       "meanEntries": 41.48
+      },
+      {
+       "pEp": 0.1094,
+       "meanEntries": 41.2
+      },
+      {
+       "pEp": 0.1172,
+       "meanEntries": 41.12
+      },
+      {
+       "pEp": 0.1211,
+       "meanEntries": 41.01
+      },
+      {
+       "pEp": 0.123,
+       "meanEntries": 40.98
+      },
+      {
+       "pEp": 0.1221,
+       "meanEntries": 40.97
+      }
+     ],
+     "note": ""
+    }
+   },
+   "G": {
+    "incumbent": {
+     "ret": 0.4865,
+     "maxDD": 0.067,
+     "retOverDD": 7.26,
+     "entries": 22,
+     "entriesByCoin": {
+      "BTC/USD": 12,
+      "ETH/USD": 10
+     },
+     "signalsSeen": 22,
+     "signalsRefused": 0,
+     "deployment": 0.102,
+     "turnoverPerYear": 22.06,
+     "from": "2019-08-23",
+     "to": "2020-08-21",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 150,
+     "inSample": {
+      "100": {
+       "ret": 0.2684,
+       "maxDD": 0.0949,
+       "score": 2.8282,
+       "entries": 44,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.289,
+       "maxDD": 0.0934,
+       "score": 3.0942,
+       "entries": 36,
+       "coins": 2
+      },
+      "200": {
+       "ret": 0.2161,
+       "maxDD": 0.1148,
+       "score": 1.8824,
+       "entries": 33,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.2544,
+     "maxDD": 0.1143,
+     "retOverDD": 2.23,
+     "entries": 20,
+     "entriesByCoin": {
+      "BTC/USD": 11,
+      "ETH/USD": 9
+     },
+     "signalsSeen": 43,
+     "signalsRefused": 23,
+     "deployment": 0.085,
+     "turnoverPerYear": 20.05,
+     "from": "2019-08-23",
+     "to": "2020-08-21",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.3588,
+      "maxDD": 0.105,
+      "retOverDD": 3.42,
+      "entries": 19,
+      "entriesByCoin": {
+       "BTC/USD": 12,
+       "ETH/USD": 7
+      },
+      "signalsSeen": 38,
+      "signalsRefused": 19,
+      "deployment": 0.09,
+      "turnoverPerYear": 19.05,
+      "from": "2019-08-23",
+      "to": "2020-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.52
+     },
+     "150": {
+      "ret": 0.2544,
+      "maxDD": 0.1143,
+      "retOverDD": 2.23,
+      "entries": 20,
+      "entriesByCoin": {
+       "BTC/USD": 11,
+       "ETH/USD": 9
+      },
+      "signalsSeen": 43,
+      "signalsRefused": 23,
+      "deployment": 0.085,
+      "turnoverPerYear": 20.05,
+      "from": "2019-08-23",
+      "to": "2020-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.545
+     },
+     "200": {
+      "ret": 0.3006,
+      "maxDD": 0.11,
+      "retOverDD": 2.73,
+      "entries": 18,
+      "entriesByCoin": {
+       "BTC/USD": 10,
+       "ETH/USD": 8
+      },
+      "signalsSeen": 44,
+      "signalsRefused": 26,
+      "deployment": 0.081,
+      "turnoverPerYear": 18.05,
+      "from": "2019-08-23",
+      "to": "2020-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.542
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.4035,
+      "p05": 0.2895,
+      "p50": 0.4119,
+      "p95": 0.4921,
+      "min": 0.1746,
+      "max": 0.5358
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.0734,
+      "p05": 0.0537,
+      "p50": 0.0687,
+      "p95": 0.1039,
+      "min": 0.0473,
+      "max": 0.1629
+     },
+     "pNullAtLeastArm": 0.986,
+     "pEpisodeRefusal": 0.2661,
+     "kept": 1000,
+     "attempts": 3362,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 16.83
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 20.18
+      },
+      {
+       "pEp": 0.375,
+       "meanEntries": 18.74
+      },
+      {
+       "pEp": 0.3125,
+       "meanEntries": 19.43
+      },
+      {
+       "pEp": 0.2813,
+       "meanEntries": 19.8
+      },
+      {
+       "pEp": 0.2656,
+       "meanEntries": 20.02
+      },
+      {
+       "pEp": 0.2734,
+       "meanEntries": 19.94
+      },
+      {
+       "pEp": 0.2695,
+       "meanEntries": 19.96
+      },
+      {
+       "pEp": 0.2676,
+       "meanEntries": 20
+      },
+      {
+       "pEp": 0.2666,
+       "meanEntries": 20
+      }
+     ],
+     "note": ""
+    }
+   },
+   "H": {
+    "incumbent": {
+     "ret": 0.1234,
+     "maxDD": 0.1069,
+     "retOverDD": 1.15,
+     "entries": 26,
+     "entriesByCoin": {
+      "BTC/USD": 17,
+      "ETH/USD": 9
+     },
+     "signalsSeen": 26,
+     "signalsRefused": 0,
+     "deployment": 0.072,
+     "turnoverPerYear": 26.07,
+     "from": "2018-08-23",
+     "to": "2019-08-22",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 0.8871,
+       "maxDD": 0.0643,
+       "score": 13.7963,
+       "entries": 55,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.8572,
+       "maxDD": 0.0649,
+       "score": 13.208,
+       "entries": 58,
+       "coins": 2
+      },
+      "200": {
+       "ret": 0.8801,
+       "maxDD": 0.0649,
+       "score": 13.5609,
+       "entries": 57,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.0348,
+     "maxDD": 0.1158,
+     "retOverDD": 0.3,
+     "entries": 25,
+     "entriesByCoin": {
+      "BTC/USD": 17,
+      "ETH/USD": 8
+     },
+     "signalsSeen": 32,
+     "signalsRefused": 7,
+     "deployment": 0.053,
+     "turnoverPerYear": 25.07,
+     "from": "2018-08-23",
+     "to": "2019-08-22",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.0348,
+      "maxDD": 0.1158,
+      "retOverDD": 0.3,
+      "entries": 25,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 8
+      },
+      "signalsSeen": 32,
+      "signalsRefused": 7,
+      "deployment": 0.053,
+      "turnoverPerYear": 25.07,
+      "from": "2018-08-23",
+      "to": "2019-08-22",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.526
+     },
+     "150": {
+      "ret": 0.0702,
+      "maxDD": 0.1121,
+      "retOverDD": 0.63,
+      "entries": 19,
+      "entriesByCoin": {
+       "BTC/USD": 12,
+       "ETH/USD": 7
+      },
+      "signalsSeen": 36,
+      "signalsRefused": 17,
+      "deployment": 0.045,
+      "turnoverPerYear": 19.05,
+      "from": "2018-08-23",
+      "to": "2019-08-22",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.4
+     },
+     "200": {
+      "ret": -0.0256,
+      "maxDD": 0.1228,
+      "retOverDD": -0.21,
+      "entries": 17,
+      "entriesByCoin": {
+       "BTC/USD": 11,
+       "ETH/USD": 6
+      },
+      "signalsSeen": 38,
+      "signalsRefused": 21,
+      "deployment": 0.043,
+      "turnoverPerYear": 17.05,
+      "from": "2018-08-23",
+      "to": "2019-08-22",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.389
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.1233,
+      "p05": 0.062,
+      "p50": 0.1316,
+      "p95": 0.1643,
+      "min": -0.0375,
+      "max": 0.1648
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1053,
+      "p05": 0.0917,
+      "p50": 0.1069,
+      "p95": 0.1149,
+      "min": 0.0899,
+      "max": 0.1529
+     },
+     "pNullAtLeastArm": 0.985,
+     "pEpisodeRefusal": 0.0659,
+     "kept": 1000,
+     "attempts": 2687,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 16.58
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 21.93
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 24.14
+      },
+      {
+       "pEp": 0.0625,
+       "meanEntries": 25.07
+      },
+      {
+       "pEp": 0.0938,
+       "meanEntries": 24.62
+      },
+      {
+       "pEp": 0.0781,
+       "meanEntries": 24.82
+      },
+      {
+       "pEp": 0.0703,
+       "meanEntries": 24.96
+      },
+      {
+       "pEp": 0.0664,
+       "meanEntries": 25
+      },
+      {
+       "pEp": 0.0645,
+       "meanEntries": 25.05
+      },
+      {
+       "pEp": 0.0654,
+       "meanEntries": 25.01
+      }
+     ],
+     "note": ""
+    }
+   }
+  },
+  "trail·kraken": {
+   "A": {
+    "incumbent": {
+     "ret": 0.0033,
+     "maxDD": 0.1385,
+     "retOverDD": 0.02,
+     "entries": 42,
+     "entriesByCoin": {
+      "BTC/USD": 17,
+      "ETH/USD": 12,
+      "SOL/USD": 9,
+      "AVAX/USD": 4
+     },
+     "signalsSeen": 42,
+     "signalsRefused": 0,
+     "deployment": 0.074,
+     "turnoverPerYear": 20.39,
+     "from": "2025-09-10",
+     "to": "2026-09-21",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 200,
+     "inSample": {
+      "100": {
+       "ret": 0.5167,
+       "maxDD": 0.078,
+       "score": 6.6244,
+       "entries": 113,
+       "coins": 4
+      },
+      "150": {
+       "ret": 0.5009,
+       "maxDD": 0.0833,
+       "score": 6.0132,
+       "entries": 115,
+       "coins": 4
+      },
+      "200": {
+       "ret": 0.5361,
+       "maxDD": 0.0774,
+       "score": 6.9264,
+       "entries": 108,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.0563,
+     "maxDD": 0.0468,
+     "retOverDD": 1.13,
+     "entries": 17,
+     "entriesByCoin": {
+      "BTC/USD": 5,
+      "ETH/USD": 4,
+      "SOL/USD": 5,
+      "AVAX/USD": 3
+     },
+     "signalsSeen": 75,
+     "signalsRefused": 58,
+     "deployment": 0.032,
+     "turnoverPerYear": 8.25,
+     "from": "2025-09-10",
+     "to": "2026-09-21",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.0382,
+      "maxDD": 0.0676,
+      "retOverDD": 0.56,
+      "entries": 22,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 5,
+       "SOL/USD": 5,
+       "AVAX/USD": 4
+      },
+      "signalsSeen": 70,
+      "signalsRefused": 48,
+      "deployment": 0.039,
+      "turnoverPerYear": 10.68,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.26
+     },
+     "150": {
+      "ret": 0.0541,
+      "maxDD": 0.0568,
+      "retOverDD": 0.95,
+      "entries": 21,
+      "entriesByCoin": {
+       "BTC/USD": 7,
+       "ETH/USD": 5,
+       "SOL/USD": 5,
+       "AVAX/USD": 4
+      },
+      "signalsSeen": 67,
+      "signalsRefused": 46,
+      "deployment": 0.039,
+      "turnoverPerYear": 10.19,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.224
+     },
+     "200": {
+      "ret": 0.0563,
+      "maxDD": 0.0468,
+      "retOverDD": 1.13,
+      "entries": 17,
+      "entriesByCoin": {
+       "BTC/USD": 5,
+       "ETH/USD": 4,
+       "SOL/USD": 5,
+       "AVAX/USD": 3
+      },
+      "signalsSeen": 75,
+      "signalsRefused": 58,
+      "deployment": 0.032,
+      "turnoverPerYear": 8.25,
+      "from": "2025-09-10",
+      "to": "2026-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.213
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": -0.0176,
+      "p05": -0.0779,
+      "p50": -0.0188,
+      "p95": 0.0448,
+      "min": -0.1266,
+      "max": 0.0988
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.0687,
+      "p05": 0.045,
+      "p50": 0.0672,
+      "p95": 0.0956,
+      "min": 0.028,
+      "max": 0.1267
+     },
+     "pNullAtLeastArm": 0.025,
+     "pEpisodeRefusal": 0.7612,
+     "kept": 1000,
+     "attempts": 7561,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 28.66
+      },
+      {
+       "pEp": 0.75,
+       "meanEntries": 17.61
+      },
+      {
+       "pEp": 0.875,
+       "meanEntries": 9.52
+      },
+      {
+       "pEp": 0.8125,
+       "meanEntries": 13.76
+      },
+      {
+       "pEp": 0.7813,
+       "meanEntries": 15.9
+      },
+      {
+       "pEp": 0.7656,
+       "meanEntries": 16.78
+      },
+      {
+       "pEp": 0.7578,
+       "meanEntries": 17.2
+      },
+      {
+       "pEp": 0.7617,
+       "meanEntries": 16.92
+      },
+      {
+       "pEp": 0.7598,
+       "meanEntries": 17.09
+      },
+      {
+       "pEp": 0.7607,
+       "meanEntries": 17.02
+      }
+     ],
+     "note": ""
+    }
+   },
+   "B": {
+    "incumbent": {
+     "ret": 0.1546,
+     "maxDD": 0.1021,
+     "retOverDD": 1.51,
+     "entries": 65,
+     "entriesByCoin": {
+      "BTC/USD": 19,
+      "ETH/USD": 15,
+      "SOL/USD": 19,
+      "AVAX/USD": 12
+     },
+     "signalsSeen": 65,
+     "signalsRefused": 0,
+     "deployment": 0.133,
+     "turnoverPerYear": 30.5,
+     "from": "2024-08-31",
+     "to": "2025-09-21",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 200,
+     "inSample": {
+      "100": {
+       "ret": 0.3852,
+       "maxDD": 0.057,
+       "score": 6.7579,
+       "entries": 50,
+       "coins": 4
+      },
+      "150": {
+       "ret": 0.3666,
+       "maxDD": 0.0575,
+       "score": 6.3757,
+       "entries": 53,
+       "coins": 4
+      },
+      "200": {
+       "ret": 0.3866,
+       "maxDD": 0.0564,
+       "score": 6.8546,
+       "entries": 49,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.1495,
+     "maxDD": 0.1025,
+     "retOverDD": 1.46,
+     "entries": 59,
+     "entriesByCoin": {
+      "BTC/USD": 17,
+      "ETH/USD": 15,
+      "SOL/USD": 16,
+      "AVAX/USD": 11
+     },
+     "signalsSeen": 79,
+     "signalsRefused": 20,
+     "deployment": 0.12,
+     "turnoverPerYear": 27.66,
+     "from": "2024-08-31",
+     "to": "2025-09-21",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.1373,
+      "maxDD": 0.1031,
+      "retOverDD": 1.33,
+      "entries": 63,
+      "entriesByCoin": {
+       "BTC/USD": 18,
+       "ETH/USD": 15,
+       "SOL/USD": 18,
+       "AVAX/USD": 12
+      },
+      "signalsSeen": 72,
+      "signalsRefused": 9,
+      "deployment": 0.129,
+      "turnoverPerYear": 29.55,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.741
+     },
+     "150": {
+      "ret": 0.14,
+      "maxDD": 0.1033,
+      "retOverDD": 1.35,
+      "entries": 62,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 15,
+       "SOL/USD": 18,
+       "AVAX/USD": 12
+      },
+      "signalsSeen": 74,
+      "signalsRefused": 12,
+      "deployment": 0.127,
+      "turnoverPerYear": 29.08,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.785
+     },
+     "200": {
+      "ret": 0.1495,
+      "maxDD": 0.1025,
+      "retOverDD": 1.46,
+      "entries": 59,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 15,
+       "SOL/USD": 16,
+       "AVAX/USD": 11
+      },
+      "signalsSeen": 79,
+      "signalsRefused": 20,
+      "deployment": 0.12,
+      "turnoverPerYear": 27.66,
+      "from": "2024-08-31",
+      "to": "2025-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.813
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.1428,
+      "p05": 0.0687,
+      "p50": 0.1497,
+      "p95": 0.1987,
+      "min": 0.0078,
+      "max": 0.2292
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.0956,
+      "p05": 0.0765,
+      "p50": 0.0966,
+      "p95": 0.1103,
+      "min": 0.066,
+      "max": 0.1543
+     },
+     "pNullAtLeastArm": 0.503,
+     "pEpisodeRefusal": 0.1987,
+     "kept": 1000,
+     "attempts": 5864,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 45.42
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 57.31
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 61.47
+      },
+      {
+       "pEp": 0.1875,
+       "meanEntries": 59.45
+      },
+      {
+       "pEp": 0.2188,
+       "meanEntries": 58.39
+      },
+      {
+       "pEp": 0.2031,
+       "meanEntries": 58.88
+      },
+      {
+       "pEp": 0.1953,
+       "meanEntries": 59.09
+      },
+      {
+       "pEp": 0.1992,
+       "meanEntries": 58.99
+      },
+      {
+       "pEp": 0.1973,
+       "meanEntries": 59.06
+      },
+      {
+       "pEp": 0.1982,
+       "meanEntries": 59.02
+      }
+     ],
+     "note": ""
+    }
+   },
+   "C": {
+    "incumbent": {
+     "ret": 0.3829,
+     "maxDD": 0.0596,
+     "retOverDD": 6.43,
+     "entries": 56,
+     "entriesByCoin": {
+      "BTC/USD": 19,
+      "ETH/USD": 13,
+      "SOL/USD": 14,
+      "AVAX/USD": 10
+     },
+     "signalsSeen": 56,
+     "signalsRefused": 0,
+     "deployment": 0.122,
+     "turnoverPerYear": 25.58,
+     "from": "2023-08-22",
+     "to": "2024-09-21",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 0.0186,
+       "maxDD": 0.1063,
+       "score": 0.175,
+       "entries": 49,
+       "coins": 4
+      },
+      "150": {
+       "ret": -0.1046,
+       "maxDD": 0.158,
+       "score": -0.662,
+       "entries": 45,
+       "coins": 4
+      },
+      "200": {
+       "ret": -0.0766,
+       "maxDD": 0.1316,
+       "score": -0.5821,
+       "entries": 42,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.3852,
+     "maxDD": 0.057,
+     "retOverDD": 6.76,
+     "entries": 50,
+     "entriesByCoin": {
+      "BTC/USD": 17,
+      "ETH/USD": 12,
+      "SOL/USD": 13,
+      "AVAX/USD": 8
+     },
+     "signalsSeen": 66,
+     "signalsRefused": 16,
+     "deployment": 0.115,
+     "turnoverPerYear": 22.81,
+     "from": "2023-08-22",
+     "to": "2024-09-21",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.3852,
+      "maxDD": 0.057,
+      "retOverDD": 6.76,
+      "entries": 50,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 12,
+       "SOL/USD": 13,
+       "AVAX/USD": 8
+      },
+      "signalsSeen": 66,
+      "signalsRefused": 16,
+      "deployment": 0.115,
+      "turnoverPerYear": 22.81,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.684
+     },
+     "150": {
+      "ret": 0.3666,
+      "maxDD": 0.0575,
+      "retOverDD": 6.37,
+      "entries": 53,
+      "entriesByCoin": {
+       "BTC/USD": 18,
+       "ETH/USD": 13,
+       "SOL/USD": 13,
+       "AVAX/USD": 9
+      },
+      "signalsSeen": 66,
+      "signalsRefused": 13,
+      "deployment": 0.116,
+      "turnoverPerYear": 24.2,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.729
+     },
+     "200": {
+      "ret": 0.3866,
+      "maxDD": 0.0564,
+      "retOverDD": 6.85,
+      "entries": 49,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 12,
+       "SOL/USD": 13,
+       "AVAX/USD": 7
+      },
+      "signalsSeen": 65,
+      "signalsRefused": 16,
+      "deployment": 0.114,
+      "turnoverPerYear": 22.58,
+      "from": "2023-08-22",
+      "to": "2024-09-21",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.77
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.3226,
+      "p05": 0.2165,
+      "p50": 0.3338,
+      "p95": 0.398,
+      "min": 0.127,
+      "max": 0.43
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.0609,
+      "p05": 0.0519,
+      "p50": 0.0602,
+      "p95": 0.0742,
+      "min": 0.0431,
+      "max": 0.1021
+     },
+     "pNullAtLeastArm": 0.114,
+     "pEpisodeRefusal": 0.2144,
+     "kept": 1000,
+     "attempts": 5742,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 39
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 49.01
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 52.66
+      },
+      {
+       "pEp": 0.1875,
+       "meanEntries": 50.8
+      },
+      {
+       "pEp": 0.2188,
+       "meanEntries": 49.87
+      },
+      {
+       "pEp": 0.2031,
+       "meanEntries": 50.36
+      },
+      {
+       "pEp": 0.2109,
+       "meanEntries": 50.16
+      },
+      {
+       "pEp": 0.2148,
+       "meanEntries": 49.99
+      },
+      {
+       "pEp": 0.2129,
+       "meanEntries": 50.04
+      },
+      {
+       "pEp": 0.2139,
+       "meanEntries": 50.02
+      }
+     ],
+     "note": ""
+    }
+   },
+   "D": {
+    "incumbent": {
+     "ret": -0.032,
+     "maxDD": 0.1113,
+     "retOverDD": -0.29,
+     "entries": 33,
+     "entriesByCoin": {
+      "BTC/USD": 10,
+      "ETH/USD": 13,
+      "SOL/USD": 2,
+      "AVAX/USD": 8
+     },
+     "signalsSeen": 33,
+     "signalsRefused": 0,
+     "deployment": 0.065,
+     "turnoverPerYear": 15.21,
+     "from": "2022-08-22",
+     "to": "2023-09-22",
+     "members": 4
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 0.2822,
+       "maxDD": 0.0679,
+       "score": 4.1561,
+       "entries": 62,
+       "coins": 4
+      },
+      "150": {
+       "ret": 0.1688,
+       "maxDD": 0.0587,
+       "score": 2.8756,
+       "entries": 55,
+       "coins": 4
+      },
+      "200": {
+       "ret": 0.1865,
+       "maxDD": 0.0552,
+       "score": 3.3786,
+       "entries": 54,
+       "coins": 4
+      }
+     }
+    },
+    "arm": {
+     "ret": -0.0813,
+     "maxDD": 0.1166,
+     "retOverDD": -0.7,
+     "entries": 28,
+     "entriesByCoin": {
+      "BTC/USD": 8,
+      "ETH/USD": 11,
+      "SOL/USD": 2,
+      "AVAX/USD": 7
+     },
+     "signalsSeen": 49,
+     "signalsRefused": 21,
+     "deployment": 0.052,
+     "turnoverPerYear": 12.9,
+     "from": "2022-08-22",
+     "to": "2023-09-22",
+     "members": 4
+    },
+    "fixedN": {
+     "100": {
+      "ret": -0.0813,
+      "maxDD": 0.1166,
+      "retOverDD": -0.7,
+      "entries": 28,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 11,
+       "SOL/USD": 2,
+       "AVAX/USD": 7
+      },
+      "signalsSeen": 49,
+      "signalsRefused": 21,
+      "deployment": 0.052,
+      "turnoverPerYear": 12.9,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.558
+     },
+     "150": {
+      "ret": -0.0951,
+      "maxDD": 0.1181,
+      "retOverDD": -0.81,
+      "entries": 27,
+      "entriesByCoin": {
+       "BTC/USD": 8,
+       "ETH/USD": 10,
+       "SOL/USD": 2,
+       "AVAX/USD": 7
+      },
+      "signalsSeen": 54,
+      "signalsRefused": 27,
+      "deployment": 0.05,
+      "turnoverPerYear": 12.44,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.595
+     },
+     "200": {
+      "ret": -0.0847,
+      "maxDD": 0.1169,
+      "retOverDD": -0.72,
+      "entries": 25,
+      "entriesByCoin": {
+       "BTC/USD": 7,
+       "ETH/USD": 10,
+       "SOL/USD": 2,
+       "AVAX/USD": 6
+      },
+      "signalsSeen": 56,
+      "signalsRefused": 31,
+      "deployment": 0.048,
+      "turnoverPerYear": 11.52,
+      "from": "2022-08-22",
+      "to": "2023-09-22",
+      "members": 4,
+      "allowShareOfDecisionBars": 0.593
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": -0.0257,
+      "p05": -0.0658,
+      "p50": -0.0242,
+      "p95": 0.0123,
+      "min": -0.1241,
+      "max": 0.038
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.097,
+      "p05": 0.0717,
+      "p50": 0.0964,
+      "p95": 0.1269,
+      "min": 0.0538,
+      "max": 0.161
+     },
+     "pNullAtLeastArm": 0.991,
+     "pEpisodeRefusal": 0.2271,
+     "kept": 1000,
+     "attempts": 5053,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 20.63
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 27.4
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 30.3
+      },
+      {
+       "pEp": 0.1875,
+       "meanEntries": 28.91
+      },
+      {
+       "pEp": 0.2188,
+       "meanEntries": 28.2
+      },
+      {
+       "pEp": 0.2344,
+       "meanEntries": 27.78
+      },
+      {
+       "pEp": 0.2266,
+       "meanEntries": 28.01
+      },
+      {
+       "pEp": 0.2305,
+       "meanEntries": 27.92
+      },
+      {
+       "pEp": 0.2285,
+       "meanEntries": 27.99
+      },
+      {
+       "pEp": 0.2275,
+       "meanEntries": 27.99
+      }
+     ],
+     "note": ""
+    }
+   },
+   "E": {
+    "incumbent": {
+     "ret": -0.0146,
+     "maxDD": 0.117,
+     "retOverDD": -0.12,
+     "entries": 22,
+     "entriesByCoin": {
+      "BTC/USD": 11,
+      "ETH/USD": 11
+     },
+     "signalsSeen": 22,
+     "signalsRefused": 0,
+     "deployment": 0.099,
+     "turnoverPerYear": 22.06,
+     "from": "2021-08-22",
+     "to": "2022-08-21",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 0.3905,
+       "maxDD": 0.105,
+       "score": 3.719,
+       "entries": 60,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.2781,
+       "maxDD": 0.1161,
+       "score": 2.3953,
+       "entries": 57,
+       "coins": 2
+      },
+      "200": {
+       "ret": 0.3242,
+       "maxDD": 0.1125,
+       "score": 2.8818,
+       "entries": 55,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": -0.0178,
+     "maxDD": 0.1168,
+     "retOverDD": -0.15,
+     "entries": 16,
+     "entriesByCoin": {
+      "BTC/USD": 7,
+      "ETH/USD": 9
+     },
+     "signalsSeen": 33,
+     "signalsRefused": 17,
+     "deployment": 0.073,
+     "turnoverPerYear": 16.04,
+     "from": "2021-08-22",
+     "to": "2022-08-21",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": -0.0178,
+      "maxDD": 0.1168,
+      "retOverDD": -0.15,
+      "entries": 16,
+      "entriesByCoin": {
+       "BTC/USD": 7,
+       "ETH/USD": 9
+      },
+      "signalsSeen": 33,
+      "signalsRefused": 17,
+      "deployment": 0.073,
+      "turnoverPerYear": 16.04,
+      "from": "2021-08-22",
+      "to": "2022-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.337
+     },
+     "150": {
+      "ret": -0.0995,
+      "maxDD": 0.1394,
+      "retOverDD": -0.71,
+      "entries": 15,
+      "entriesByCoin": {
+       "BTC/USD": 6,
+       "ETH/USD": 9
+      },
+      "signalsSeen": 44,
+      "signalsRefused": 29,
+      "deployment": 0.057,
+      "turnoverPerYear": 15.04,
+      "from": "2021-08-22",
+      "to": "2022-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.304
+     },
+     "200": {
+      "ret": -0.0737,
+      "maxDD": 0.1148,
+      "retOverDD": -0.64,
+      "entries": 14,
+      "entriesByCoin": {
+       "BTC/USD": 6,
+       "ETH/USD": 8
+      },
+      "signalsSeen": 44,
+      "signalsRefused": 30,
+      "deployment": 0.054,
+      "turnoverPerYear": 14.04,
+      "from": "2021-08-22",
+      "to": "2022-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.301
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": -0.0421,
+      "p05": -0.1236,
+      "p50": -0.0388,
+      "p95": 0.0291,
+      "min": -0.1923,
+      "max": 0.0849
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1281,
+      "p05": 0.0834,
+      "p50": 0.1279,
+      "p95": 0.1765,
+      "min": 0.0522,
+      "max": 0.2234
+     },
+     "pNullAtLeastArm": 0.326,
+     "pEpisodeRefusal": 0.5269,
+     "kept": 1000,
+     "attempts": 4940,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 16.44
+      },
+      {
+       "pEp": 0.75,
+       "meanEntries": 10.3
+      },
+      {
+       "pEp": 0.625,
+       "meanEntries": 13.88
+      },
+      {
+       "pEp": 0.5625,
+       "meanEntries": 15.14
+      },
+      {
+       "pEp": 0.5313,
+       "meanEntries": 15.85
+      },
+      {
+       "pEp": 0.5156,
+       "meanEntries": 16.12
+      },
+      {
+       "pEp": 0.5234,
+       "meanEntries": 16.04
+      },
+      {
+       "pEp": 0.5273,
+       "meanEntries": 16
+      },
+      {
+       "pEp": 0.5254,
+       "meanEntries": 16.02
+      },
+      {
+       "pEp": 0.5264,
+       "meanEntries": 16.01
+      }
+     ],
+     "note": ""
+    }
+   },
+   "F": {
+    "incumbent": {
+     "ret": 0.0931,
+     "maxDD": 0.0961,
+     "retOverDD": 0.97,
+     "entries": 43,
+     "entriesByCoin": {
+      "BTC/USD": 21,
+      "ETH/USD": 22
+     },
+     "signalsSeen": 43,
+     "signalsRefused": 0,
+     "deployment": 0.171,
+     "turnoverPerYear": 42.62,
+     "from": "2020-08-22",
+     "to": "2021-08-21",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 0.3937,
+       "maxDD": 0.1158,
+       "score": 3.3998,
+       "entries": 44,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.3246,
+       "maxDD": 0.1296,
+       "score": 2.5046,
+       "entries": 39,
+       "coins": 2
+      },
+      "200": {
+       "ret": 0.275,
+       "maxDD": 0.1228,
+       "score": 2.2394,
+       "entries": 35,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.0317,
+     "maxDD": 0.1342,
+     "retOverDD": 0.24,
+     "entries": 41,
+     "entriesByCoin": {
+      "BTC/USD": 20,
+      "ETH/USD": 21
+     },
+     "signalsSeen": 46,
+     "signalsRefused": 5,
+     "deployment": 0.163,
+     "turnoverPerYear": 40.61,
+     "from": "2020-08-22",
+     "to": "2021-08-21",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.0317,
+      "maxDD": 0.1342,
+      "retOverDD": 0.24,
+      "entries": 41,
+      "entriesByCoin": {
+       "BTC/USD": 20,
+       "ETH/USD": 21
+      },
+      "signalsSeen": 46,
+      "signalsRefused": 5,
+      "deployment": 0.163,
+      "turnoverPerYear": 40.61,
+      "from": "2020-08-22",
+      "to": "2021-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.753
+     },
+     "150": {
+      "ret": 0.0237,
+      "maxDD": 0.1409,
+      "retOverDD": 0.17,
+      "entries": 37,
+      "entriesByCoin": {
+       "BTC/USD": 18,
+       "ETH/USD": 19
+      },
+      "signalsSeen": 54,
+      "signalsRefused": 17,
+      "deployment": 0.139,
+      "turnoverPerYear": 36.6,
+      "from": "2020-08-22",
+      "to": "2021-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.764
+     },
+     "200": {
+      "ret": 0.0237,
+      "maxDD": 0.1409,
+      "retOverDD": 0.17,
+      "entries": 37,
+      "entriesByCoin": {
+       "BTC/USD": 18,
+       "ETH/USD": 19
+      },
+      "signalsSeen": 54,
+      "signalsRefused": 17,
+      "deployment": 0.139,
+      "turnoverPerYear": 36.6,
+      "from": "2020-08-22",
+      "to": "2021-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.77
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.0918,
+      "p05": 0.0292,
+      "p50": 0.0939,
+      "p95": 0.1459,
+      "min": -0.0609,
+      "max": 0.1728
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1007,
+      "p05": 0.0925,
+      "p50": 0.097,
+      "p95": 0.1217,
+      "min": 0.0806,
+      "max": 0.1625
+     },
+     "pNullAtLeastArm": 0.944,
+     "pEpisodeRefusal": 0.1079,
+     "kept": 1000,
+     "attempts": 3491,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 31.23
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 38.08
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 40.59
+      },
+      {
+       "pEp": 0.0625,
+       "meanEntries": 41.86
+      },
+      {
+       "pEp": 0.0938,
+       "meanEntries": 41.28
+      },
+      {
+       "pEp": 0.1094,
+       "meanEntries": 40.97
+      },
+      {
+       "pEp": 0.1016,
+       "meanEntries": 41.12
+      },
+      {
+       "pEp": 0.1055,
+       "meanEntries": 41.05
+      },
+      {
+       "pEp": 0.1074,
+       "meanEntries": 41.01
+      },
+      {
+       "pEp": 0.1084,
+       "meanEntries": 40.99
+      }
+     ],
+     "note": ""
+    }
+   },
+   "G": {
+    "incumbent": {
+     "ret": 0.4865,
+     "maxDD": 0.067,
+     "retOverDD": 7.26,
+     "entries": 22,
+     "entriesByCoin": {
+      "BTC/USD": 12,
+      "ETH/USD": 10
+     },
+     "signalsSeen": 22,
+     "signalsRefused": 0,
+     "deployment": 0.102,
+     "turnoverPerYear": 22.06,
+     "from": "2019-08-23",
+     "to": "2020-08-21",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 150,
+     "inSample": {
+      "100": {
+       "ret": 0.2684,
+       "maxDD": 0.0949,
+       "score": 2.8282,
+       "entries": 44,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.289,
+       "maxDD": 0.0934,
+       "score": 3.0942,
+       "entries": 36,
+       "coins": 2
+      },
+      "200": {
+       "ret": 0.2161,
+       "maxDD": 0.1148,
+       "score": 1.8824,
+       "entries": 33,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.2544,
+     "maxDD": 0.1143,
+     "retOverDD": 2.23,
+     "entries": 20,
+     "entriesByCoin": {
+      "BTC/USD": 11,
+      "ETH/USD": 9
+     },
+     "signalsSeen": 43,
+     "signalsRefused": 23,
+     "deployment": 0.085,
+     "turnoverPerYear": 20.05,
+     "from": "2019-08-23",
+     "to": "2020-08-21",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.3588,
+      "maxDD": 0.105,
+      "retOverDD": 3.42,
+      "entries": 19,
+      "entriesByCoin": {
+       "BTC/USD": 12,
+       "ETH/USD": 7
+      },
+      "signalsSeen": 38,
+      "signalsRefused": 19,
+      "deployment": 0.09,
+      "turnoverPerYear": 19.05,
+      "from": "2019-08-23",
+      "to": "2020-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.52
+     },
+     "150": {
+      "ret": 0.2544,
+      "maxDD": 0.1143,
+      "retOverDD": 2.23,
+      "entries": 20,
+      "entriesByCoin": {
+       "BTC/USD": 11,
+       "ETH/USD": 9
+      },
+      "signalsSeen": 43,
+      "signalsRefused": 23,
+      "deployment": 0.085,
+      "turnoverPerYear": 20.05,
+      "from": "2019-08-23",
+      "to": "2020-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.545
+     },
+     "200": {
+      "ret": 0.3006,
+      "maxDD": 0.11,
+      "retOverDD": 2.73,
+      "entries": 18,
+      "entriesByCoin": {
+       "BTC/USD": 10,
+       "ETH/USD": 8
+      },
+      "signalsSeen": 44,
+      "signalsRefused": 26,
+      "deployment": 0.081,
+      "turnoverPerYear": 18.05,
+      "from": "2019-08-23",
+      "to": "2020-08-21",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.542
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.411,
+      "p05": 0.2997,
+      "p50": 0.4204,
+      "p95": 0.4952,
+      "min": 0.1723,
+      "max": 0.5358
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.0715,
+      "p05": 0.053,
+      "p50": 0.0681,
+      "p95": 0.104,
+      "min": 0.0472,
+      "max": 0.1347
+     },
+     "pNullAtLeastArm": 0.987,
+     "pEpisodeRefusal": 0.2612,
+     "kept": 1000,
+     "attempts": 3197,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 16.72
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 20.14
+      },
+      {
+       "pEp": 0.375,
+       "meanEntries": 18.62
+      },
+      {
+       "pEp": 0.3125,
+       "meanEntries": 19.4
+      },
+      {
+       "pEp": 0.2813,
+       "meanEntries": 19.82
+      },
+      {
+       "pEp": 0.2656,
+       "meanEntries": 19.93
+      },
+      {
+       "pEp": 0.2578,
+       "meanEntries": 20.05
+      },
+      {
+       "pEp": 0.2617,
+       "meanEntries": 20
+      },
+      {
+       "pEp": 0.2598,
+       "meanEntries": 20.03
+      },
+      {
+       "pEp": 0.2607,
+       "meanEntries": 20.03
+      }
+     ],
+     "note": ""
+    }
+   },
+   "H": {
+    "incumbent": {
+     "ret": 0.1234,
+     "maxDD": 0.1069,
+     "retOverDD": 1.15,
+     "entries": 26,
+     "entriesByCoin": {
+      "BTC/USD": 17,
+      "ETH/USD": 9
+     },
+     "signalsSeen": 26,
+     "signalsRefused": 0,
+     "deployment": 0.072,
+     "turnoverPerYear": 26.07,
+     "from": "2018-08-23",
+     "to": "2019-08-22",
+     "members": 2
+    },
+    "chosenN": {
+     "n": 100,
+     "inSample": {
+      "100": {
+       "ret": 0.8871,
+       "maxDD": 0.0643,
+       "score": 13.7963,
+       "entries": 55,
+       "coins": 2
+      },
+      "150": {
+       "ret": 0.8572,
+       "maxDD": 0.0649,
+       "score": 13.208,
+       "entries": 58,
+       "coins": 2
+      },
+      "200": {
+       "ret": 0.8801,
+       "maxDD": 0.0649,
+       "score": 13.5609,
+       "entries": 57,
+       "coins": 2
+      }
+     }
+    },
+    "arm": {
+     "ret": 0.0348,
+     "maxDD": 0.1158,
+     "retOverDD": 0.3,
+     "entries": 25,
+     "entriesByCoin": {
+      "BTC/USD": 17,
+      "ETH/USD": 8
+     },
+     "signalsSeen": 32,
+     "signalsRefused": 7,
+     "deployment": 0.053,
+     "turnoverPerYear": 25.07,
+     "from": "2018-08-23",
+     "to": "2019-08-22",
+     "members": 2
+    },
+    "fixedN": {
+     "100": {
+      "ret": 0.0348,
+      "maxDD": 0.1158,
+      "retOverDD": 0.3,
+      "entries": 25,
+      "entriesByCoin": {
+       "BTC/USD": 17,
+       "ETH/USD": 8
+      },
+      "signalsSeen": 32,
+      "signalsRefused": 7,
+      "deployment": 0.053,
+      "turnoverPerYear": 25.07,
+      "from": "2018-08-23",
+      "to": "2019-08-22",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.526
+     },
+     "150": {
+      "ret": 0.0702,
+      "maxDD": 0.1121,
+      "retOverDD": 0.63,
+      "entries": 19,
+      "entriesByCoin": {
+       "BTC/USD": 12,
+       "ETH/USD": 7
+      },
+      "signalsSeen": 36,
+      "signalsRefused": 17,
+      "deployment": 0.045,
+      "turnoverPerYear": 19.05,
+      "from": "2018-08-23",
+      "to": "2019-08-22",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.4
+     },
+     "200": {
+      "ret": -0.0256,
+      "maxDD": 0.1228,
+      "retOverDD": -0.21,
+      "entries": 17,
+      "entriesByCoin": {
+       "BTC/USD": 11,
+       "ETH/USD": 6
+      },
+      "signalsSeen": 38,
+      "signalsRefused": 21,
+      "deployment": 0.043,
+      "turnoverPerYear": 17.05,
+      "from": "2018-08-23",
+      "to": "2019-08-22",
+      "members": 2,
+      "allowShareOfDecisionBars": 0.389
+     }
+    },
+    "null": {
+     "ret": {
+      "n": 1000,
+      "mean": 0.1272,
+      "p05": 0.062,
+      "p50": 0.1335,
+      "p95": 0.1643,
+      "min": -0.0646,
+      "max": 0.1648
+     },
+     "maxDD": {
+      "n": 1000,
+      "mean": 0.1049,
+      "p05": 0.0917,
+      "p50": 0.1069,
+      "p95": 0.1138,
+      "min": 0.0905,
+      "max": 0.1567
+     },
+     "pNullAtLeastArm": 0.985,
+     "pEpisodeRefusal": 0.0571,
+     "kept": 1000,
+     "attempts": 2648,
+     "calibration": [
+      {
+       "pEp": 0.5,
+       "meanEntries": 17.15
+      },
+      {
+       "pEp": 0.25,
+       "meanEntries": 22.1
+      },
+      {
+       "pEp": 0.125,
+       "meanEntries": 23.98
+      },
+      {
+       "pEp": 0.0625,
+       "meanEntries": 24.86
+      },
+      {
+       "pEp": 0.0313,
+       "meanEntries": 25.49
+      },
+      {
+       "pEp": 0.0469,
+       "meanEntries": 25.2
+      },
+      {
+       "pEp": 0.0547,
+       "meanEntries": 25.06
+      },
+      {
+       "pEp": 0.0586,
+       "meanEntries": 24.96
+      },
+      {
+       "pEp": 0.0566,
+       "meanEntries": 25.01
+      },
+      {
+       "pEp": 0.0576,
+       "meanEntries": 24.99
+      }
+     ],
+     "note": ""
+    }
+   }
+  }
+ },
+ "verdicts": {
+  "perCondition": {
+   "shipped·coinbase": {
+    "windows": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ],
+    "c1_improvesTheWorstWindow": {
+     "incumbentWorst": {
+      "window": "D",
+      "ret": -0.0781
+     },
+     "armWorst": {
+      "window": "D",
+      "ret": -0.1158
+     },
+     "holds": false
+    },
+    "c2_beatsChanceOnTheWorstWindow": {
+     "pNullWorstAtLeastArmWorst": 0.992,
+     "nullWorst": {
+      "n": 1000,
+      "mean": -0.0598,
+      "p05": -0.0981,
+      "p50": -0.0579,
+      "p95": -0.0254,
+      "min": -0.1469,
+      "max": -0.0058
+     },
+     "holds": false
+    },
+    "c3_costsNoOtherWindowBeyondChance": {
+     "perWindow": {
+      "A": {
+       "incumbent": 0.0851,
+       "arm": 0.1461,
+       "delta": 0.061,
+       "pNullStrictlyBelowArm": null,
+       "costsBeyondChance": false
+      },
+      "B": {
+       "incumbent": 0.2505,
+       "arm": 0.2222,
+       "delta": -0.0283,
+       "pNullStrictlyBelowArm": 0.379,
+       "costsBeyondChance": false
+      },
+      "C": {
+       "incumbent": 0.5564,
+       "arm": 0.5705,
+       "delta": 0.0141,
+       "pNullStrictlyBelowArm": null,
+       "costsBeyondChance": false
+      }
+     },
+     "holds": true
+    },
+    "onRetOverDD": {
+     "incumbentWorst": {
+      "window": "D",
+      "score": -0.503
+     },
+     "armWorst": {
+      "window": "D",
+      "score": -0.721
+     },
+     "beatsIncumbentWorst": false
+    }
+   },
+   "shipped·kraken": {
+    "windows": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ],
+    "c1_improvesTheWorstWindow": {
+     "incumbentWorst": {
+      "window": "D",
+      "ret": -0.0781
+     },
+     "armWorst": {
+      "window": "D",
+      "ret": -0.1158
+     },
+     "holds": false
+    },
+    "c2_beatsChanceOnTheWorstWindow": {
+     "pNullWorstAtLeastArmWorst": 0.986,
+     "nullWorst": {
+      "n": 1000,
+      "mean": -0.0612,
+      "p05": -0.1022,
+      "p50": -0.0596,
+      "p95": -0.0258,
+      "min": -0.1394,
+      "max": -0.0012
+     },
+     "holds": false
+    },
+    "c3_costsNoOtherWindowBeyondChance": {
+     "perWindow": {
+      "A": {
+       "incumbent": 0.0356,
+       "arm": 0.0773,
+       "delta": 0.0417,
+       "pNullStrictlyBelowArm": null,
+       "costsBeyondChance": false
+      },
+      "B": {
+       "incumbent": 0.2811,
+       "arm": 0.2487,
+       "delta": -0.0324,
+       "pNullStrictlyBelowArm": 0.358,
+       "costsBeyondChance": false
+      },
+      "C": {
+       "incumbent": 0.5095,
+       "arm": 0.5188,
+       "delta": 0.0093,
+       "pNullStrictlyBelowArm": null,
+       "costsBeyondChance": false
+      }
+     },
+     "holds": true
+    },
+    "onRetOverDD": {
+     "incumbentWorst": {
+      "window": "D",
+      "score": -0.503
+     },
+     "armWorst": {
+      "window": "D",
+      "score": -0.721
+     },
+     "beatsIncumbentWorst": false
+    }
+   },
+   "trail·coinbase": {
+    "windows": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ],
+    "c1_improvesTheWorstWindow": {
+     "incumbentWorst": {
+      "window": "D",
+      "ret": -0.032
+     },
+     "armWorst": {
+      "window": "D",
+      "ret": -0.0813
+     },
+     "holds": false
+    },
+    "c2_beatsChanceOnTheWorstWindow": {
+     "pNullWorstAtLeastArmWorst": 0.954,
+     "nullWorst": {
+      "n": 1000,
+      "mean": -0.039,
+      "p05": -0.0801,
+      "p50": -0.038,
+      "p95": 0.0004,
+      "min": -0.1338,
+      "max": 0.0219
+     },
+     "holds": false
+    },
+    "c3_costsNoOtherWindowBeyondChance": {
+     "perWindow": {
+      "A": {
+       "incumbent": 0.0131,
+       "arm": 0.0701,
+       "delta": 0.057,
+       "pNullStrictlyBelowArm": null,
+       "costsBeyondChance": false
+      },
+      "B": {
+       "incumbent": 0.1443,
+       "arm": 0.1396,
+       "delta": -0.0047,
+       "pNullStrictlyBelowArm": 0.468,
+       "costsBeyondChance": false
+      },
+      "C": {
+       "incumbent": 0.4707,
+       "arm": 0.4724,
+       "delta": 0.0017,
+       "pNullStrictlyBelowArm": null,
+       "costsBeyondChance": false
+      }
+     },
+     "holds": true
+    },
+    "onRetOverDD": {
+     "incumbentWorst": {
+      "window": "D",
+      "score": -0.288
+     },
+     "armWorst": {
+      "window": "D",
+      "score": -0.697
+     },
+     "beatsIncumbentWorst": false
+    }
+   },
+   "trail·kraken": {
+    "windows": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ],
+    "c1_improvesTheWorstWindow": {
+     "incumbentWorst": {
+      "window": "D",
+      "ret": -0.032
+     },
+     "armWorst": {
+      "window": "D",
+      "ret": -0.0813
+     },
+     "holds": false
+    },
+    "c2_beatsChanceOnTheWorstWindow": {
+     "pNullWorstAtLeastArmWorst": 0.958,
+     "nullWorst": {
+      "n": 1000,
+      "mean": -0.0398,
+      "p05": -0.0803,
+      "p50": -0.0391,
+      "p95": -0.0021,
+      "min": -0.1266,
+      "max": 0.0343
+     },
+     "holds": false
+    },
+    "c3_costsNoOtherWindowBeyondChance": {
+     "perWindow": {
+      "A": {
+       "incumbent": 0.0033,
+       "arm": 0.0563,
+       "delta": 0.053,
+       "pNullStrictlyBelowArm": null,
+       "costsBeyondChance": false
+      },
+      "B": {
+       "incumbent": 0.1546,
+       "arm": 0.1495,
+       "delta": -0.0051,
+       "pNullStrictlyBelowArm": 0.497,
+       "costsBeyondChance": false
+      },
+      "C": {
+       "incumbent": 0.3829,
+       "arm": 0.3852,
+       "delta": 0.0023,
+       "pNullStrictlyBelowArm": null,
+       "costsBeyondChance": false
+      }
+     },
+     "holds": true
+    },
+    "onRetOverDD": {
+     "incumbentWorst": {
+      "window": "D",
+      "score": -0.288
+     },
+     "armWorst": {
+      "window": "D",
+      "score": -0.697
+     },
+     "beatsIncumbentWorst": false
+    }
+   }
+  },
+  "freshNonBearWindows": [
+   "F",
+   "G",
+   "H"
+  ],
+  "freshC3": {
+   "shipped·coinbase": {
+    "F": {
+     "incumbent": 0.8387,
+     "arm": 0.6574,
+     "delta": -0.1813,
+     "pNullStrictlyBelowArm": 0.578,
+     "costsBeyondChance": false
+    },
+    "G": {
+     "incumbent": 0.5494,
+     "arm": 0.3088,
+     "delta": -0.2406,
+     "pNullStrictlyBelowArm": 0.054,
+     "costsBeyondChance": false
+    },
+    "H": {
+     "incumbent": 0.1445,
+     "arm": 0.0806,
+     "delta": -0.0639,
+     "pNullStrictlyBelowArm": 0.133,
+     "costsBeyondChance": false
+    }
+   },
+   "shipped·kraken": {
+    "F": {
+     "incumbent": 0.8387,
+     "arm": 0.6574,
+     "delta": -0.1813,
+     "pNullStrictlyBelowArm": 0.553,
+     "costsBeyondChance": false
+    },
+    "G": {
+     "incumbent": 0.5494,
+     "arm": 0.3088,
+     "delta": -0.2406,
+     "pNullStrictlyBelowArm": 0.039,
+     "costsBeyondChance": true
+    },
+    "H": {
+     "incumbent": 0.1445,
+     "arm": 0.0806,
+     "delta": -0.0639,
+     "pNullStrictlyBelowArm": 0.12,
+     "costsBeyondChance": false
+    }
+   },
+   "trail·coinbase": {
+    "F": {
+     "incumbent": 0.0931,
+     "arm": 0.0317,
+     "delta": -0.0614,
+     "pNullStrictlyBelowArm": 0.069,
+     "costsBeyondChance": false
+    },
+    "G": {
+     "incumbent": 0.4865,
+     "arm": 0.2544,
+     "delta": -0.2321,
+     "pNullStrictlyBelowArm": 0.014,
+     "costsBeyondChance": true
+    },
+    "H": {
+     "incumbent": 0.1234,
+     "arm": 0.0348,
+     "delta": -0.0886,
+     "pNullStrictlyBelowArm": 0.015,
+     "costsBeyondChance": true
+    }
+   },
+   "trail·kraken": {
+    "F": {
+     "incumbent": 0.0931,
+     "arm": 0.0317,
+     "delta": -0.0614,
+     "pNullStrictlyBelowArm": 0.056,
+     "costsBeyondChance": false
+    },
+    "G": {
+     "incumbent": 0.4865,
+     "arm": 0.2544,
+     "delta": -0.2321,
+     "pNullStrictlyBelowArm": 0.013,
+     "costsBeyondChance": true
+    },
+    "H": {
+     "incumbent": 0.1234,
+     "arm": 0.0348,
+     "delta": -0.0886,
+     "pNullStrictlyBelowArm": 0.015,
+     "costsBeyondChance": true
+    }
+   }
+  },
+  "freshCostsBeyondChance": true,
+  "verdict": "REJECT"
+ },
+ "draws": {
+  "nullKept": 1000,
+  "calibration": "10 × 100",
+  "maxAttempts": 50000,
+  "preregistered": true
+ },
+ "seeds": "mulberry32 seeded by seedOf(purpose, evaluation, window, coin, draw) — purposes cal, null",
+ "sourceIntegrity": {
+  "backtestTs": "31d27c7d82f8a94c1a8d71248ace8e5ded611190a77d06043460b469ccae845a",
+  "agentsStrategyTs": "097c9519e65aca13b93da8eeee54c39118091f7812d282580970e73460a85a82",
+  "backtestJevTs": "4d5af9e50255e6ffb686ac3704fd97a7a98d5e5219d6b20babf3580beea2d2ed",
+  "thisScript": "f77ff3888737b4e2b9758bf59b28b9a83a4b0039c02d679f2d6c6d59ec4ce738",
+  "note": "SHA-256 at the start of the run; the run throws if any changed before it finished"
+ }
+}
