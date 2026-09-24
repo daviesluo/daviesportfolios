@@ -342,6 +342,9 @@ Deno.test("runProbe(revx2) — reads the second account with GETs only, on PR5's
     assertEquals(r.keyForm, "pkcs8-b64");
     assertEquals(r.balances.status, 200);
     assertEquals(Object.keys(r.pairs.config), [...REVX2_PROBE_SYMBOLS]);
+    // The history a lost reply is reconciled from, on PR5's own book: its field names are what the live executor reads.
+    assertEquals([r.historicalOrders.status, r.historicalOrders.symbol], [200, "USDC/GBP"]);
+    assert(seen.some((c) => c.url.includes("/api/1.0/orders/historical?symbols=USDC-GBP&")), JSON.stringify(seen));
     assert(seen.length >= 5, `${seen.length} calls`);
     assert(seen.every((c) => c.method === "GET"), JSON.stringify(seen));
   } finally {

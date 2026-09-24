@@ -25,6 +25,22 @@ const QUOTE_TABLES: Record<string, { columns: string[]; key: string }> = {
   },
 };
 const QUOTE_BOOKS_OK = ["USDC-GBP", "USDT-GBP"];
+/**
+ * The live quote executor's tables as 0052 creates them: their columns, and the unique key each upsert names (the orders
+ * table is only ever inserted and updated). The orders table's own unique indexes are enforced in `memDb` below.
+ */
+const LIVE_QUOTE_TABLES: Record<string, { columns: string[]; key: string | null }> = {
+  agent_quote_live_config: { columns: ["id", "dry_run", "live_confirmed_at", "capital_gbp", "updated_at"], key: "id" },
+  agent_quote_live_orders: {
+    columns: ["id", "ts", "mode", "book", "rung_side", "k", "leg", "side", "price", "base_size", "client_order_id", "venue_order_id", "state",
+      "filled_base", "avg_fill_price", "fee_gbp", "paper_oid", "paper_live", "fair", "request", "response", "book_seen", "cancel_requested_at",
+      "cancel_reason", "filled_at", "cancelled_at", "updated_at"],
+    key: null,
+  },
+  agent_quote_live_events: { columns: ["mode", "minute", "book", "rung_side", "k", "kind", "detail"], key: "mode,minute,book,rung_side,k,kind" },
+  agent_quote_live_state: { columns: ["id", "state", "updated_at", "last_error"], key: "id" },
+};
+const LIVE_OPEN_STATES = ["pending", "new", "partially_filled"];
 /** `agent_maker_probes`' columns as 0042 and 0050 leave them: PostgREST refuses a write naming any other. */
 const PROBE_COLUMNS = ["id", "ts", "strategy_id", "order_id", "venue", "symbol", "side", "mode", "taker_price", "maker_price", "base_size",
   "state", "resolved_at", "minutes_to_fill", "mark_at_resolve", "follow_up", "expires_at", "watching", "fill_minute"];
@@ -88,6 +104,52 @@ export function schemaRefusal(table: string, r: Row): string | null {
     return notNull(["strategy_id", "venue", "symbol", "mode", "bar_start", "state", "numbers", "provider", "rule_action", "rule_reason", "final_action", "final_reason", "risk_allowed", "risk_reason"])
       ?? check("venue", VENUES.includes(String(r.venue)));
   }
+  if (table in LIVE_QUOTE_TABLES) {
+    const unknown = Object.keys(r).find((c) => !LIVE_QUOTE_TABLES[table].columns.includes(c));
+    if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
+    if (table === "agent_quote_live_config") {
+      return check("id", r.id === 1) ?? notNull(["dry_run", "capital_gbp"]) ?? check("capital_gbp", Number(r.capital_gbp) > 0);
+    }
+    if (table === "agent_quote_live_state") return check("id", r.id === 1) ?? notNull(["state"]);
+    if (table === "agent_quote_live_events") {
+      return notNull(["mode", "minute", "book", "rung_side", "k", "kind", "detail"])
+        ?? check("mode", ["dry_run", "live"].includes(String(r.mode)))
+        ?? check("book", [...QUOTE_BOOKS_OK, "-"].includes(String(r.book)))
+        ?? check("rung_side", ["bid", "ask", "-"].includes(String(r.rung_side)))
+        ?? check("kind", ["skip", "guard", "stop_unfilled", "loss_stop"].includes(String(r.kind)));
+    }
+    // agent_quote_live_orders. Its two table-level checks are unnamed in 0052, so Postgres calls them `…_check` and `…_check1`.
+    return notNull(["mode", "book", "leg", "side", "price", "base_size", "client_order_id", "state", "filled_base", "fee_gbp"])
+      ?? check("mode", ["dry_run", "live"].includes(String(r.mode)))
+      ?? check("book", QUOTE_BOOKS_OK.includes(String(r.book)))
+      ?? check("rung_side", r.rung_side == null || ["bid", "ask"].includes(String(r.rung_side)))
+      ?? check("leg", ["entry", "exit", "stop", "convert"].includes(String(r.leg)))
+      ?? check("side", ["buy", "sell"].includes(String(r.side)))
+      ?? check("state", ORDER_STATES.includes(String(r.state)))
+      ?? check("price", Number(r.price) > 0)
+      ?? check("base_size", Number(r.base_size) > 0)
+      ?? check("filled_base", Number(r.filled_base) >= 0)
+      ?? (((r.leg === "convert") === (r.rung_side == null)) ? null : `new row for relation "${table}" violates check constraint "${table}_check"`)
+      ?? (((r.rung_side == null) === (r.k == null)) ? null : `new row for relation "${table}" violates check constraint "${table}_check1"`);
+  }
+  return null;
+}
+
+/**
+ * 0052's two unique indexes on `agent_quote_live_orders`, as Postgres applies them to the row as stored (on INSERT and on
+ * UPDATE): `client_order_id uuid unique`, and never two OPEN rows on one rung of one mode — the partial index
+ * `agent_quote_live_orders_one_open_per_rung`. A conversion (no rung) is outside the second.
+ */
+function liveQuoteOrderConflict(rows: Row[], r: Row, self: Row | null): string | null {
+  if (!UUID.test(String(r.client_order_id))) return `400: invalid input syntax for type uuid: "${r.client_order_id}"`;
+  const others = rows.filter((x) => x !== self);
+  if (others.some((x) => x.client_order_id === r.client_order_id)) {
+    return "409: duplicate key value violates unique constraint \"agent_quote_live_orders_client_order_id_key\"";
+  }
+  const open = (x: Row) => LIVE_OPEN_STATES.includes(String(x.state)) && x.rung_side != null;
+  if (open(r) && others.some((x) => open(x) && x.mode === r.mode && x.book === r.book && x.rung_side === r.rung_side && Number(x.k) === Number(r.k))) {
+    return "409: duplicate key value violates unique constraint \"agent_quote_live_orders_one_open_per_rung\"";
+  }
   return null;
 }
 
@@ -103,6 +165,12 @@ function withDefaults(table: string, r: Row): Row {
     };
   }
   if (table === "agent_maker_probes") return { state: "resting", follow_up: {}, watching: true, fill_minute: null, ...r };
+  if (table === "agent_quote_live_orders") {
+    return {
+      rung_side: null, k: null, venue_order_id: null, state: "pending", filled_base: 0, avg_fill_price: null, fee_gbp: 0, paper_oid: null, paper_live: null,
+      fair: null, request: null, response: null, book_seen: null, cancel_requested_at: null, cancel_reason: null, filled_at: null, cancelled_at: null, ...r,
+    };
+  }
   return r;
 }
 
@@ -187,6 +255,14 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
           if (dup) return Promise.reject(new Error("db POST agent_orders → 409: duplicate key value violates unique constraint \"agent_orders_one_per_decision_attempt\""));
         }
       }
+      if (table === "agent_quote_live_orders") {
+        const seen: Row[] = [...(tables[table] ?? [])];
+        for (const r of list) {
+          const why = liveQuoteOrderConflict(seen, r, null);
+          if (why) return Promise.reject(new Error(`db POST ${table} → ${why}`));
+          seen.push(r);
+        }
+      }
       const out = list.map((r) => ({ id: nextId++, ts: new Date(opts.now()).toISOString(), ...r }));
       (tables[table] ??= []).push(...out);
       // deno-lint-ignore no-explicit-any
@@ -196,7 +272,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       // PostgREST's `resolution=merge-duplicates`: a row whose conflict key exists is merged, not appended. Postgres
       // checks the row as stored, and refuses an ON CONFLICT that names no unique key; so does this.
       const keys = onConflict.split(",");
-      if (table in QUOTE_TABLES && onConflict !== QUOTE_TABLES[table].key) {
+      if ((table in QUOTE_TABLES && onConflict !== QUOTE_TABLES[table].key) || (table in LIVE_QUOTE_TABLES && onConflict !== LIVE_QUOTE_TABLES[table].key)) {
         return refuse("POST", table, "there is no unique or exclusion constraint matching the ON CONFLICT specification");
       }
       const t = (tables[table] ??= []);
@@ -219,6 +295,10 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       for (const r of hit) {
         const why = schemaRefusal(table, { ...r, ...wire });
         if (why) return refuse("PATCH", table, why);     // Postgres refuses the statement: no row changes
+        if (table === "agent_quote_live_orders") {
+          const clash = liveQuoteOrderConflict(tables[table], { ...r, ...wire }, r);
+          if (clash) return Promise.reject(new Error(`db PATCH ${table} → ${clash}`));
+        }
       }
       for (const r of hit) Object.assign(r, wire);
       return Promise.resolve();
@@ -256,6 +336,9 @@ type FakeOrder = {
   filled: number; avg: number | null; fee: number; tif: string; postOnly: boolean; created: number;
 };
 
+/** Revolut X's own configuration of PR5's two GBP books (public pair list, 2026-09-24 00:12 UTC; `backtests/pr5_live/inputs`). */
+export const GBP_BOOK_PAIR = { base_step: "0.00001", quote_step: "0.0001", min_order_size: "0.00001", max_order_size: "4000000", min_order_size_quote: "0.1", max_order_size_quote: "1000000", status: "active" };
+
 /**
  * Revolut X as its own reference documents it (revolut-x-api-for-llm.md; developer.revolut.com): the placement reply's
  * `data` is an object, an order reads back as `id` / `status` / `filled_quantity` / `average_fill_price` / `total_fee` +
@@ -265,8 +348,18 @@ type FakeOrder = {
 export class FakeRevx {
   shock: Record<string, number> = {};                  // a multiplier on the UK touch, per symbol
   spreadBps: Record<string, number> = {};              // the width of the UK book, per symbol (2 bps by default)
+  /** PR5's GBP stablecoin books: their own touch, not the crypto price path. A test moves them by assigning. */
+  gbpBooks: Record<string, { bid: number; ask: number }> = { "USDC/GBP": { bid: 0.7548, ask: 0.7552 }, "USDT/GBP": { bid: 0.7546, ask: 0.7551 } };
   orders = new Map<string, FakeOrder>();
   balances: Record<string, number> = { USD: 100 };
+  /**
+   * What DELETE does to an order still resting: "ok" cancels it (204); "lost" answers 204 and the order stays live — the
+   * cancel the design says must be read back before a replacement is sent; "timeout" cancels it and the reply never
+   * arrives (the caller's fetch throws).
+   */
+  cancelMode: "ok" | "lost" | "timeout" = "ok";
+  /** How a post-only order that would cross is refused: taken and then `rejected` (the read-back says so), or a 400 at once. */
+  postOnlyRefusal: "status" | "http-400" = "status";
   /**
    * How an order reads back: "documented" (the venue's own words); "no-fee" (a filled order with no `total_fee` /
    * `fee_currency`, which the venue shows "only when present" — settled since D8 with the fee its schedule charges);
@@ -288,15 +381,46 @@ export class FakeRevx {
   private seq = 1;
   constructor(public now: () => number) {}
   quote(sym: string) {
+    if (this.gbpBooks[sym]) return { ...this.gbpBooks[sym] };
     const mid = fakePrice(this.now()) * (this.shock[sym] ?? 1);
     const half = (this.spreadBps[sym] ?? 2) / 2 / 1e4;
     return { bid: Math.round(mid * (1 - half) * 100) / 100, ask: Math.round(mid * (1 + half) * 100) / 100 };
+  }
+  /** What resting orders hold back of an asset: a resting buy its quote currency, a resting sell its coin. */
+  reserved(asset: string): number {
+    let n = 0;
+    for (const o of this.orders.values()) {
+      if (o.status !== "new" && o.status !== "partially_filled") continue;
+      const [base, quote] = o.symbol.split("/"), left = Number(o.quantity) - o.filled;
+      if (o.side === "buy" && quote === asset) n += left * Number(o.price);
+      if (o.side === "sell" && base === asset) n += left;
+    }
+    return n;
+  }
+  /**
+   * A taker trades against one of our RESTING orders: `qty` of it fills at its own price, a maker fill (0 % on this venue).
+   * The account moves as the venue's would: a buy pays the quote currency and receives the coin, a sell the reverse.
+   */
+  fillResting(id: string, qty: number) {
+    const o = this.orders.get(id);
+    if (!o || (o.status !== "new" && o.status !== "partially_filled")) throw new Error(`fake revx: ${id} is not resting`);
+    const [base, quote] = o.symbol.split("/"), px = Number(o.price);
+    const q = Math.min(qty, Number(o.quantity) - o.filled);
+    o.avg = o.filled > 0 && o.avg != null ? (o.avg * o.filled + px * q) / (o.filled + q) : px;
+    o.filled = Math.round((o.filled + q) * 1e9) / 1e9;
+    o.status = o.filled >= Number(o.quantity) - 1e-12 ? "filled" : "partially_filled";
+    if (o.side === "buy") { this.balances[quote] = (this.balances[quote] ?? 0) - q * px; this.balances[base] = (this.balances[base] ?? 0) + q; }
+    else { this.balances[base] = (this.balances[base] ?? 0) - q; this.balances[quote] = (this.balances[quote] ?? 0) + q * px; }
+  }
+  /** Every order still resting on `symbol` (slash form). */
+  resting(symbol?: string): FakeOrder[] {
+    return [...this.orders.values()].filter((o) => (o.status === "new" || o.status === "partially_filled") && (!symbol || o.symbol === symbol));
   }
   private view(o: FakeOrder): Record<string, unknown> {
     const body: Record<string, unknown> = {
       id: o.id, client_order_id: o.client_order_id, symbol: o.symbol, side: o.side, type: "limit", quantity: o.quantity,
       filled_quantity: String(o.filled), leaves_quantity: String(Number(o.quantity) - o.filled), price: o.price,
-      average_fill_price: o.avg == null ? "0" : String(o.avg), total_fee: String(o.fee), fee_currency: "USD",
+      average_fill_price: o.avg == null ? "0" : String(o.avg), total_fee: String(o.fee), fee_currency: o.symbol.split("/")[1],
       status: o.status, time_in_force: o.tif, execution_instructions: [o.postOnly ? "post_only" : "allow_taker"], created_date: o.created, updated_date: o.created,
     };
     if (this.dialect === "no-fee") { delete body.total_fee; delete body.fee_currency; }
@@ -321,7 +445,12 @@ export class FakeRevx {
     if (p === "/api/1.0/public/configuration/pairs") {
       if (this.down.pairs) return unavailable();
       const cfg = { base: "BTC", quote: "USD", base_step: "0.00000001", quote_step: "0.01", min_order_size: "0.00000001", max_order_size: "200", min_order_size_quote: "0.1", max_order_size_quote: "1000000", status: "active" };
-      return json(200, { "BTC/USD": cfg });
+      return json(200, { "BTC/USD": cfg, "USDC/GBP": { base: "USDC", quote: "GBP", ...GBP_BOOK_PAIR }, "USDT/GBP": { base: "USDT", quote: "GBP", ...GBP_BOOK_PAIR } });
+    }
+    if (p.startsWith("/api/2.0/public/order-book/")) {
+      // The public book as the venue serves it (`backtests/pr5_live/inputs/revx_books.json.gz`): levels of price, quantity, count.
+      const q = this.quote(p.split("/").at(-1)!.replace("-", "/"));
+      return json(200, { data: { bids: [{ count: 1, price: q.bid.toFixed(4), quantity: "5000" }], asks: [{ count: 1, price: q.ask.toFixed(4), quantity: "5000" }] } });
     }
     if (p.startsWith("/api/1.0/public/candles/")) {
       const sym = p.split("/").at(-1)!.replace("-", "/"), iv = Number(url.searchParams.get("interval")) * 60e3;
@@ -334,7 +463,7 @@ export class FakeRevx {
       this.onPost?.();
       const req = JSON.parse(String(init!.body));
       const sym = String(req.symbol).replace("-", "/"), lim = req.order_configuration.limit;
-      const q = this.quote(sym), price = Number(lim.price), size = Number(lim.base_size), asset = sym.split("/")[0];
+      const q = this.quote(sym), price = Number(lim.price), size = Number(lim.base_size), asset = sym.split("/")[0], quoteAsset = sym.split("/")[1];
       // What the venue's own client and CLI accept at placement (see `PlaceTimeInForce` in _shared/revx.ts): gtc or ioc,
       // gtc when omitted, and never post_only with ioc. The double refuses the rest, as the stricter reading of the venue would.
       const tif = lim.time_in_force ?? "gtc";
@@ -344,12 +473,22 @@ export class FakeRevx {
       const crosses = req.side === "buy" ? price >= q.ask : price <= q.bid;
       if (crosses && !o.postOnly) {
         const px = req.side === "buy" ? q.ask : q.bid;
-        if (req.side === "sell" && (this.balances[asset] ?? 0) + 1e-12 < size) return json(400, { error_id: "e", message: "Insufficient balance", timestamp: this.now() });
+        if (req.side === "sell" && (this.balances[asset] ?? 0) - this.reserved(asset) + 1e-12 < size) return json(400, { error_id: "e", message: "Insufficient balance", timestamp: this.now() });
+        if (req.side === "buy" && (this.balances[quoteAsset] ?? 0) - this.reserved(quoteAsset) + 1e-9 < size * px * 1.0009) return json(400, { error_id: "e", message: "Insufficient balance", timestamp: this.now() });
         o.filled = size; o.avg = px; o.fee = Math.round(size * px * 0.0009 * 1e8) / 1e8; o.status = "filled";
-        if (req.side === "buy") { this.balances.USD -= size * px + o.fee; this.balances[asset] = (this.balances[asset] ?? 0) + size; }
-        else { this.balances[asset] -= size; this.balances.USD += size * px - o.fee; }
-      } else if (crosses) o.status = "rejected";
-      else if (o.tif === "ioc") o.status = "cancelled";
+        if (req.side === "buy") { this.balances[quoteAsset] = (this.balances[quoteAsset] ?? 0) - (size * px + o.fee); this.balances[asset] = (this.balances[asset] ?? 0) + size; }
+        else { this.balances[asset] -= size; this.balances[quoteAsset] = (this.balances[quoteAsset] ?? 0) + size * px - o.fee; }
+      } else if (crosses) {
+        if (this.postOnlyRefusal === "http-400") return json(400, { error_id: "e", message: "Post only order would be executed immediately", timestamp: this.now() });
+        o.status = "rejected";
+      } else if (o.tif === "ioc") o.status = "cancelled";
+      else {
+        // A resting order holds back what it could spend, and one the account cannot cover is refused at placement — the
+        // stricter reading of an exchange that locks funds for its book (a double looser than that would let a quote
+        // engine promise the same pound to two bids).
+        const need = req.side === "buy" ? size * price : size, from = req.side === "buy" ? quoteAsset : asset;
+        if ((this.balances[from] ?? 0) - this.reserved(from) + 1e-9 < need) return json(400, { error_id: "e", message: "Insufficient balance", timestamp: this.now() });
+      }
       this.orders.set(o.id, o);
       if (this.loseReply) return Promise.reject(new DOMException("The signal has been aborted", "TimeoutError"));
       return json(200, { data: { venue_order_id: o.id, client_order_id: o.client_order_id, state: this.placementReply === "new" ? "new" : o.status } });
@@ -370,7 +509,12 @@ export class FakeRevx {
       const o = this.orders.get(p.split("/").at(-1)!);
       if (!o) return json(404, { message: "Order not found" });
       if (m === "DELETE") {
-        if (o.status === "new" || o.status === "partially_filled") { o.status = "cancelled"; return json(204, null); }
+        if (o.status === "new" || o.status === "partially_filled") {
+          if (this.cancelMode === "lost") return json(204, null);                 // said and not done
+          o.status = "cancelled";
+          if (this.cancelMode === "timeout") return Promise.reject(new DOMException("The signal has been aborted", "TimeoutError"));
+          return json(204, null);
+        }
         return this.deleteFinished === 204 ? json(204, null) : json(404, { message: "Order is not active" });
       }
       return json(200, { data: this.view(o) });

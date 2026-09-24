@@ -309,6 +309,25 @@ export function fillStamp(o: Pick<OrderRow, "filled_at" | "ts" | "request">, now
 export type FromAccount = { asset: string; held: number; rest: number; gross: number };
 
 /**
+ * The base a live BUY books, given its pair's base step — D11 and D12 (reference §4 item 33), in ONE place: the tick's
+ * live buys and PR5's live quotes (`quotes_live.ts`) both settle through it, so the two cannot drift apart.
+ *
+ * `account` is null when the venue REPORTED the fee: the base is the reply's (net of a coin fee, `toOrderView`) floored to
+ * the step, and the sub-step remainder stays at the venue as dust (D11). It is present when the fee was NOT reported and
+ * was derived (D8's `feeDerived`): the account's balance of the coin (`held`) less every other settled live order in it,
+ * buys less sells (`rest`), is what this buy can have added. The base is that, never more than the gross, floored to the
+ * step (D12). A shortfall larger than the derived fee plus two steps of rounding is not something a fee explains — a sell
+ * in flight, a stale balance, a trade by hand — and books nothing (`ok: false`); the caller reports it and asks again.
+ */
+export type LiveBuyBooking = { ok: true; base: number; fromAccount?: FromAccount } | { ok: false; beyond: number };
+export function bookLiveBuy(gross: number, step: string, account: { asset: string; held: number; rest: number; feeBps: number } | null): LiveBuyBooking {
+  if (!account) return { ok: true, base: Number(floorToStep(gross, step)) };
+  const beyond = account.held - account.rest;
+  if (gross - beyond > gross * account.feeBps / 1e4 + 2 * Number(step)) return { ok: false, beyond };
+  return { ok: true, base: Number(floorToStep(Math.min(gross, beyond), step)), fromAccount: { asset: account.asset, held: account.held, rest: account.rest, gross } };
+}
+
+/**
  * What a live settlement records as the order's `response`: the venue's reply as it came and, beside it, what the client
  * added to it. `feeDerived` when that reply carried no fee and the client derived one (go-live audit D8): the rate, the
  * notional, and the order's own field that decided maker or taker. `fee_usd` holds the fee either way; this is how the
@@ -749,7 +768,8 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
    * (a fee taken in dollars leaves the balance at the gross, and nothing changes), floored to the step. A shortfall
    * larger than the schedule's fee and two steps of rounding can explain — a sell in flight, a stale balance, a trade by
    * hand — settles nothing: it is reported, and the next turn asks again. What the booking read is recorded beside the
-   * reply (`fromAccount`), so the first live buy can be checked against the account from its own row.
+   * reply (`fromAccount`), so the first live buy can be checked against the account from its own row. The arithmetic is
+   * `bookLiveBuy`, which PR5's live quotes book their buys through as well.
    */
   type Booked = { base: number; fromAccount?: FromAccount };
   const settledBase = async (o: OrderRow, view: OrderView, gross: number): Promise<Booked | null> => {
@@ -761,7 +781,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       return null;
     }
     const venue = d.venues[o.venue];
-    if (!(o.venue === "revx" && view.feeDerived && venue)) return { base: Number(floorToStep(gross, step)) };
+    if (!(o.venue === "revx" && view.feeDerived && venue)) {
+      const b = bookLiveBuy(gross, step, null);
+      return b.ok ? { base: b.base } : null;
+    }
     const asset = o.symbol.split("/")[0];
     let held: number;
     try { held = (await balancesFor(o.venue, venue))[asset] ?? 0; }
@@ -771,12 +794,12 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     }
     const book = await d.db.selectAll<OrderRow>("agent_orders", `venue=eq.${o.venue}&mode=eq.live&state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc`);
     const rest = book.filter((r) => r.id !== o.id && r.symbol.split("/")[0] === asset).reduce((a, r) => a + (r.side === "buy" ? 1 : -1) * toFill(r).base, 0);
-    const beyond = held - rest;
-    if (gross - beyond > gross * view.feeDerived.bps / 1e4 + 2 * Number(step)) {
-      report.errors.push(`${key}: live buy ${o.client_order_id} of ${gross} ${asset} came back with no fee; ${o.venue} holds ${held} ${asset}, ${beyond} beyond the rest of the live book — short of the gross by more than its ${view.feeDerived.bps} bps fee explains (a sell in flight, or a trade by hand?); it settles when the account accounts for it`);
+    const b = bookLiveBuy(gross, step, { asset, held, rest, feeBps: view.feeDerived.bps });
+    if (!b.ok) {
+      report.errors.push(`${key}: live buy ${o.client_order_id} of ${gross} ${asset} came back with no fee; ${o.venue} holds ${held} ${asset}, ${b.beyond} beyond the rest of the live book — short of the gross by more than its ${view.feeDerived.bps} bps fee explains (a sell in flight, or a trade by hand?); it settles when the account accounts for it`);
       return null;
     }
-    return { base: Number(floorToStep(Math.min(gross, beyond), step)), fromAccount: { asset, held, rest, gross } };
+    return { base: b.base, fromAccount: b.fromAccount };
   };
   /**
    * Take a resting order off the book. Live: the venue cancels, then says

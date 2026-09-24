@@ -384,7 +384,7 @@ How the less obvious parts work, and why they are built the way they are.
   recorders that `pg_cron` calls, `snapshot-record` (every board price,
   every five minutes) and `overnight-record` (Trading 212's overnight
   quotes). Shared Deno modules live in `supabase/functions/_shared/`.
-  Migrations `0001`–`0051`, plus four timestamped records of changes that
+  Migrations `0001`–`0052`, plus four timestamped records of changes that
   were first applied out of band (`supabase/migrations/README.md`);
   `0005`/`0006` are a historical create/drop pair for the retired
   `analyst_estimates_cache` table.
@@ -564,10 +564,11 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 
 | File | What it does |
 |---|---|
-| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
+| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute and its live executor's, the one-off stablecoin conversion, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
 | `agents/binance.ts`, `agents/deribit.ts` | Read-only clients for the Binance and Deribit keys (the probe's checks, Deribit's volatility index), and Binance's paper venue, which reads public market data for its paper rows. Nothing in them can trade. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
 | `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run from its own cron job, storing every input beside every outcome. |
+| `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. |
 | `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
 | `agents/db.ts` | The loop's database access, over PostgREST. |
 | `agents/testing.ts` | Test doubles that refuse whatever the real database refuses. |
@@ -640,6 +641,7 @@ before touching migration state.
 | `0049_binance_paper_rows.sql` | Adds Binance's paper rows, the Revolut X strategies' twins, and keeps any Binance row off live. |
 | `0050_maker_probes_trade_proven.sql` | Records the minute that proved a maker probe's fill, and corrects the three probes resolved on minutes with no trade. |
 | `0051_paper_quotes.sql` | Adds the paper quote test's tables (state, prints, inputs, events, trips) and its once-a-minute cron job. |
+| `0052_live_quotes.sql` | Adds the live quote executor's tables (config, orders, events, state) and its lease; the config goes in in dry-run and unarmed. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -709,6 +711,7 @@ pg_cron → pg_net → Edge Functions (no browser needed)
  ├─ snapshot-record    every 5 min   board prices → price_snapshots
  ├─ overnight-record   every 5 min, 00:00–09:55 UTC   T212 quotes → overnight_intraday_points
  ├─ agents ?action=tick  every minute   quotes, orders, stops, decisions → agent_* tables
+ ├─ agents ?action=quotes  every minute   PR5's paper quotes → agent_quote_*, then its live executor → agent_quote_live_*
  └─ daily prunes / retention   snapshots, overnight points, agents, ops_errors, fundamentals cache
 ```
 
@@ -835,6 +838,7 @@ A copy-pasteable shape of the app-level vars lives at
 | `T212_ISA_API_SECRET` | `trading212` | Optional two-key Basic-Auth fallback for the ISA account, same role as `T212_API_SECRET` but for `T212_ISA_API_KEY`. |
 | `CRON_SECRET` | `overnight-record`, `snapshot-record`, `agents` | Bearer secret the pg_cron jobs present (these functions deploy `--no-verify-jwt`, so it is their auth gate). pg_cron reads the same value from Supabase Vault as `cron_secret` (migration `0021`). `openssl rand -hex 32`. |
 | `REVOLUT_X_API_KEY`, `REVOLUT_X_PRIVATE_KEY` | `agents` | Optional. Revolut X key id and its Ed25519 private key; without them Revolut X shows as not configured and nothing trades live there. |
+| `REVOLUT_X_API_KEY_2`, `REVOLUT_X_PRIVATE_KEY_2` | `agents` | Optional. A second Revolut X sub-account's key, for the stablecoin quotes alone: the probe reads it, and so does their live executor. Without it that executor's dry-run assumes its capital in GBP, and nothing can go live. |
 | `KRAKEN_PRO_API_KEY`, `KRAKEN_PRO_PRIVATE_KEY` | `agents` | Optional. Kraken key and its base64 secret (fee tier, balances, the probe; candles need no key). |
 | `OPENROUTER_API_KEY`, `TYPESAFE_API_KEY` | `agents` | Optional. The Jev decision model through OpenRouter, with TypeSafe's own endpoint as the fallback; without either the model is not asked and entries hold. |
 

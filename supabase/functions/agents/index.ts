@@ -8,6 +8,17 @@
 //
 //   POST ?action=tick       — one turn of the loop (tick.ts). pg_cron every
 //                             minute (migration 0037). Cron or admin.
+//   POST ?action=quotes     — PR5's paper quote test (quotes.ts, 0051), then
+//                             its live executor on PR5's own sub-account
+//                             (quotes_live.ts, 0052), in dry-run until
+//                             `agent_quote_live_config` says otherwise.
+//                             pg_cron every minute. Cron or admin.
+//   POST ?action=quotes-convert — the one-off GBP → USDC / USDT conversion
+//                             that gives the ask rungs inventory: `{ book,
+//                             gbp, send }`. Without `send: true` it returns
+//                             the order it would send; with it, it sends
+//                             only when the executor is live and armed.
+//                             Operator only; never the minute loop's.
 //   GET  ?action=dashboard  — everything the Agents page shows: strategies
 //                             with positions and P&L derived from fills,
 //                             the latest observation per symbol, the caps,
@@ -46,7 +57,7 @@
 //
 // Secrets: REVOLUT_X_API_KEY (the 64-char id; the store spells it
 // `Revolut_X_API_kEY` — both spellings are read), REVOLUT_X_PRIVATE_KEY
-// (and `Revolut_X_API_kEY_2` / REVOLUT_X_PRIVATE_KEY_2, PR5's own sub-account, read by the probe only)
+// (and `Revolut_X_API_kEY_2` / REVOLUT_X_PRIVATE_KEY_2, PR5's own sub-account: the probe, and the quotes' live executor)
 // (the Ed25519 private key in any pasted shape), KRAKEN_PRO_API_KEY +
 // KRAKEN_PRO_PRIVATE_KEY (the base64 secret as issued), OPENROUTER_API_KEY
 // / `openrouter_api_key`, TYPESAFE_API_KEY / `typesafe_API_KEY`. None is
@@ -58,7 +69,7 @@
 import { reportServerError } from "../_shared/ops.ts";
 import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 import { askJev, type JevEnv, type JevResult, type Questions } from "../_shared/jev.ts";
-import { activeOrders, balances, candles, loadPrivateKey, pairs, publicTickers, REVX_REGION, revxVenue, type RevxEnv } from "../_shared/revx.ts";
+import { activeOrders, balances, candles, historicalOrders, loadPrivateKey, pairs, publicTickers, REVX_REGION, revxVenue, type RevxEnv } from "../_shared/revx.ts";
 import {
   addOrder, balance as krakenBalance, balanceEx, cancelOrder as krakenCancel, closedOrders, krakenNonce, krakenVenue, ohlc, openOrders,
   krakenSupports, ticker as krakenTicker, tradeVolume, type KrakenEnv,
@@ -71,6 +82,7 @@ import { ALL_QUESTION_VERSIONS, isRowQuestionVersion, questionsFor, ROW_QUESTION
 import { makeDb, type Db } from "./db.ts";
 import { deribitProbe } from "./deribit.ts";
 import { QUOTE_TICK, runQuotes } from "./quotes.ts";
+import { runQuotesConvert, runQuotesLive, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -142,7 +154,8 @@ export async function authorise(req: Request, cronSecret: string): Promise<Who> 
 /**
  * The secrets that hold each Revolut X account's key. `revx` is the strategy rows' sub-account; `revx2` is a second
  * sub-account Davies opened on 2026-09-24 for the GBP stablecoin quotes (PR5), so their conversions and balances never
- * touch the rows' book. Only the probe reads `revx2` so far.
+ * touch the rows' book. The probe reads `revx2`, and so does the quotes' live executor (`quotes_live.ts`): its balances
+ * every minute, and its order endpoints only for live rows, which `dry_run` (on from `0052`) never writes.
  */
 export const REVX_KEY_NAMES = {
   revx: { apiKey: ["REVOLUT_X_API_KEY", "Revolut_X_API_kEY", "REVOLUT_X_API_KEY_ID"], priv: ["REVOLUT_X_PRIVATE_KEY", "Revolut_X_Private_Key", "REVX_PRIVATE_KEY"] },
@@ -250,7 +263,28 @@ export function quotesDelayMs(nowMs: number): number {
 }
 async function runQuotesAction(wait: boolean) {
   if (wait) await new Promise((r) => setTimeout(r, quotesDelayMs(Date.now())));
-  return await runQuotes({ db: db(), now: Date.now(), holder: crypto.randomUUID() });
+  const paper = await runQuotes({ db: db(), now: Date.now(), holder: crypto.randomUUID() });
+  // Then the live executor (`quotes_live.ts`), on the minute the paper engine just saved: the same decisions, carried to
+  // PR5's own sub-account — in dry-run until `agent_quote_live_config` says otherwise. It runs after the paper engine has
+  // finished and on its own lease, so nothing it does can change what the paper test decides or records.
+  let live: QuoteLiveReport | { error: string };
+  try {
+    live = await runQuotesLive(await quotesLiveDeps());
+    if (live.errors.length) await reportServerError("agents.quotes_live", tickErrorReport(live));
+  } catch (e) {
+    live = { error: e instanceof Error ? e.message : String(e) };
+    await reportServerError("agents.quotes_live", { message: live.error.slice(0, 500), context: { at: new Date().toISOString() } });
+  }
+  return { ...paper, live };
+}
+
+/** The live executor's dependencies: PR5's own sub-account (`revx2`) when its key loads, and nothing keyed otherwise. */
+async function quotesLiveDeps(): Promise<QuoteLiveDeps> {
+  const rx2 = await loadRevx("revx2");
+  return {
+    db: db(), now: Date.now(), holder: crypto.randomUUID(), uuid: () => crypto.randomUUID(),
+    account: "error" in rx2 ? null : revxVenue(rx2.env), accountNote: "error" in rx2 ? rx2.error : null,
+  };
 }
 
 export async function runTick(now = Date.now()) {
@@ -888,6 +922,12 @@ async function probeRevxAccount(rx: { env: RevxEnv; keyForm: string }, symbols: 
   r.activeOrders = ao.ok
     ? { status: ao.status, count: ao.data?.data?.length ?? 0, fields: Object.keys(ao.data?.data?.[0] ?? {}), clientReads: { documented: ["id", "status", "filled_quantity", "average_fill_price", "total_fee", "fee_currency", "client_order_id"], assumed: ["venue_order_id", "state", "filled_size", "fees"] } }
     : { status: ao.status, error: ao.error };
+  // The history a lost reply is reconciled from (`findOrder`): its field names, on the book the account trades. A week back,
+  // the longest window the venue serves in one call.
+  const ho = await historicalOrders(rx.env, querySymbol, now - 7 * ONE_D + 60e3, now, "", f);
+  r.historicalOrders = ho.ok
+    ? { status: ho.status, symbol: querySymbol, count: ho.data?.data?.length ?? 0, fields: Object.keys(ho.data?.data?.[0] ?? {}) }
+    : { status: ho.status, error: ho.error };
   return r;
 }
 
@@ -1034,6 +1074,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     const operator = who === "cron" || who === "admin";
     if (action === "tick" && req.method === "POST" && operator) return json(200, await runTick());
     if (action === "quotes" && req.method === "POST" && operator) return json(200, await runQuotesAction(url.searchParams.get("wait") !== "0"));
+    if (action === "quotes-convert" && req.method === "POST" && operator) return json(200, await runQuotesConvert(await quotesLiveDeps(), await req.json().catch(() => null)));
     if (action === "probe" && req.method === "GET" && operator) return json(200, await runProbe(probeParts(url.searchParams.get("only"))));
     if (action === "jev" && req.method === "POST" && operator) return json(200, await runJevBatch(await req.json().catch(() => null)));
     if (action === "dashboard" && req.method === "GET") return json(200, await runDashboard());

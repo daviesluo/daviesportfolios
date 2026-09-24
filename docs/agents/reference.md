@@ -2624,7 +2624,61 @@ Davies asked for PR5's GBP stablecoin quotes to go live at $50 beside `trend-4h-
 
 33. **D11 and D12, the coin fee §3.31 found, are fixed (2026-09-24).** Both left a book holding more of a coin than the account could sell, and so "long" for good. A live buy now books only what its exit can sell (`settledBase` in `agents/tick.ts`, at every place a live buy settles). **D11:** the base is floored to the pair's own `base_step`, so a coin fee reported at full precision leaves its sub-step remainder at the venue as dust. With no pair config at the settling minute there is no step, and the buy waits a turn rather than settle unfloored. **D12:** a Revolut X fill whose read-back carries no fee (D8's `feeDerived`) is booked from the account, which is the loop's alone (§4.24). The base is the account's balance of the coin less every other settled live order in it (buys less sells, across the rows), never more than the gross, floored to the step. A fee taken in dollars leaves the balance at the gross and changes nothing; a fee taken in the coin shows up as the shortfall. The row records what the booking read, `fromAccount` (`held`, `rest`, `gross`), beside the reply. A shortfall larger than the schedule's fee plus two steps settles nothing and is reported, as does an unreadable balance; the row stays open and the floor covers its coins at the balance. The causes are a sell in flight, a stale balance or a trade by hand. Read as buys less sells rather than as a position, the rest of the book still accounts for a buy the floor sold past before it could be read back. Otherwise that buy would never settle. Pinned in `golive.test.ts` by S2's D11 pin and D12 reproduction (their assertions unchanged), plus D12 at full precision, D12 against a hand trade, D12 after the floor sold past, and D11 with no pair config. The reproduction and the four new pins all fail on the code before the fix, and the buys-less-sells pin also fails against a clamped position. The first live buy is still read by a person before its exit: the fee fields on its reply, and `fromAccount` against the account.
 
-34. **The go-live draft is at $50 (2026-09-24).** `go_live.sql.draft` carries §3.31's amendment. The row is capital 50: four $12.50 slots, so every entry is $12.50 and the per-order limit is $13.75. The migration writes `max_exposure_usd` 15, which admits one slot for the first round trip. Two later steps are left as statements for the conversation: 30 once a person has read that trip back (the fee fields, the balance against the book, and after the exit the book flat with the account under one step), and 75 after seven clean days. `daily_loss_limit_usd` 5 and `max_orders_per_day` 40 are written out unchanged, and `live_confirmed_at` is written null, so the row goes in unarmed whatever the column held. It stays an unnumbered draft (0052 when it moves), and moving it is the go, which is Davies' word; so is the first live order. The sub-account must first hold at least about $51 of USD. PR5 live stays a NO-GO until its four weeks end on 2026-10-21 (§3.32).
+34. **The go-live draft is at $50 (2026-09-24).** `go_live.sql.draft` carries §3.31's amendment. The row is capital 50: four $12.50 slots, so every entry is $12.50 and the per-order limit is $13.75. The migration writes `max_exposure_usd` 15, which admits one slot for the first round trip. Two later steps are left as statements for the conversation: 30 once a person has read that trip back (the fee fields, the balance against the book, and after the exit the book flat with the account under one step), and 75 after seven clean days. `daily_loss_limit_usd` 5 and `max_orders_per_day` 40 are written out unchanged, and `live_confirmed_at` is written null, so the row goes in unarmed whatever the column held. It stays an unnumbered draft (the next free number when it moves: 0053 once PR5's `0052` is in), and moving it is the go, which is Davies' word; so is the first live order. The sub-account must first hold at least about $51 of USD. PR5 live stays a NO-GO until its four weeks end on 2026-10-21 (§3.32).
+
+35. **PR5's live path is built, in dry-run (2026-09-24, migration `0052`, `agents/quotes_live.ts`).** Davies wants PR5 ready to go live with £50 in its own Revolut X sub-account, so that going live is a configuration change plus his word. That sub-account's key is `Revolut_X_API_kEY_2`, which the probe verified at 01:43 UTC: the account holds GBP only.
+    - **It executes the paper engine's decisions, none of its own.** It runs after the paper engine's minute, inside the same cron job, and reads the state the paper engine saved.
+      - A rung the account holds nothing on quotes the paper rung's entry order at the paper's ticks. It sends one POST per paper decision (a placement, a re-price or a re-placement). Each order records the decision as `paper_oid` and `paper_live`, which join it to `agent_quote_events`.
+      - A rung the account DOES hold exits at the rule's `exitTicks`, on the paper engine's own fair, and re-prices by the rule's 0.05 % step. After 24 hours it is stopped.
+      - The paper engine, its tables and its replay test are not changed. A test double records every table the executor writes. Through PR5's golden 24-hour-stop window (1,710 minutes) it wrote none of the paper's.
+      - That replay ran the executor on the window's own prints. It placed 90 entries against the paper's 93 entry orders, and every one is a paper order. It saw 10 venue fills, 80 exit orders (7 filled) and 3 bounded stops (all filled). No rung ever had two open orders.
+    - **The design's build list, items 1–8** (`reviews/2026-09-24-pr5-live-design.md`):
+      - **Placement.** Orders are post-only GTC at the rung's price. Each row is written `pending` before the POST. The partial unique index `agent_quote_live_orders_one_open_per_rung` makes that insert the rung's claim.
+      - **Cancel, then replace.** A replacement waits until the cancel is READ BACK as cancelled or filled. A lost cancel freezes the rung, and the freeze is reported every minute.
+      - **Reconcile by client id.** The active list first, then the history, then GET /orders/{id}. An order the venue shows nowhere stays `pending` for a person.
+      - **Fills only from the read-back.** A buy settles by the tick's own D11/D12 rule, `bookLiveBuy`, which is now one function the tick calls as well.
+      - **Inventory against the balances, every turn.** A bid needs free GBP. An ask needs free coin beyond what the book's own longs will sell; with none it is skipped, recorded as an event and not as an error. A confirmed cancel gives back what it held before its replacement is sized. The replay found that defect: 60 asks had been skipped for it.
+      - **The kill switch and the guards.**
+        - `live_confirmed_at` on `agent_quote_live_config`: cleared, it cancels the entries and leaves exits and stops armed. `global_pause` cancels everything.
+        - The governor counts the executor's own POSTs in a UTC day: entries are withdrawn at 600, and only stops go out at 700.
+        - The loss stop trips at −1 % of capital, realised today plus marked, and holds for the rest of the UTC day.
+        - The de-peg guard: the USD book's last hour more than 50 bps from its 24-hour median, or the GBP book's last print more than 50 bps from fair.
+        - Stale inputs: the paper engine behind the clock, GBP/USD older than ten minutes, or the USD hour older than two. Exits keep their price.
+        - The 24-hour stop is an IOC bounded at fair ± 50 bps. If it comes back unfilled, it alerts; the book quotes no entries while a position there is past its stop; and the stop is tried again after an hour.
+      - **The probe** now also reads the historical orders' field names.
+      - **The pins.** 31 tests in `quotes_live.test.ts`, on doubles no looser than the venue and the database.
+        - The fake Revolut X refuses a crossing post-only order, reserves what a resting order could spend, and can lose a reply or a cancel.
+        - The in-memory database enforces 0052's checks and unique indexes. Applied to a real PostgreSQL (PGlite 16), `0052` refuses the same rows under the same constraint names, and replays cleanly.
+        - Removed one at a time, each of 32 rules fails at least one pin (the counterfactual list is in the ledger's entry for this work).
+      - **Item 9, the page, is not built.** The dry-run is read with the queries below.
+    - **Dry-run is on from `0052`.**
+      - Every entry is written as a `dry_run` row, with its price, size, client id and the book it met. That book is the paper engine's order-book snapshot of the minute, or one public read. Nothing reaches an order endpoint.
+      - A post-only order that the book shows would have crossed is recorded refused.
+      - With the key loaded, the dry-run reads the sub-account's balances each minute (a signed GET). So on £50 of GBP it quotes the six bids at £4.17 each (`capital_gbp` 50 over twelve rungs), and skips the six asks.
+      - After a live period, `dry_run` winds the live book down rather than abandoning it: live entries are cancelled, and exits and stops stay armed.
+    - **Going live** is one statement, run in the conversation where Davies says go: `update public.agent_quote_live_config set dry_run = false, live_confirmed_at = now() where id = 1;`.
+      - The kill switch is `set live_confirmed_at = null`.
+      - The asks need coin. `POST ?action=quotes-convert {"book":"USDT-GBP","gbp":12.5}` shows the order it would send. With `"send": true`, and only while the executor is live and armed, it sends one IOC buy: sized at the ask, bounded at fair + 50 bps, at most three rungs' worth. It is refused once the account already holds that much.
+      - The minute loop never converts.
+    - **Watching the dry-run against the paper engine.** Expected: L3 empty. L4 lists only minutes when a guard or the governor held, and paper re-placements at a price a dry-run order was already resting at, which leave nothing to send.
+
+          -- L1: the executor's last turn: where entries go, each book's guards, POSTs today, the day's P&L
+          select state, updated_at, last_error from public.agent_quote_live_state;
+          -- L2: what it would have sent, per day and book
+          select date_trunc('day', ts) as day, book, leg, state, count(*) from public.agent_quote_live_orders
+          where mode = 'dry_run' group by 1, 2, 3, 4 order by 1, 2, 3, 4;
+          -- L3: order for order: every entry against the paper order it carries out (expect no row)
+          select o.id, o.book, o.rung_side, o.k, o.price, e.ticks from public.agent_quote_live_orders o
+          left join public.agent_quote_events e on e.book = o.book and e.side = o.rung_side and e.k = o.k and e.kind = 'order'
+            and e.minute = o.paper_live - interval '1 minute' and (e.detail->>'oid')::int = o.paper_oid
+          where o.leg = 'entry' and (e.ticks is null or e.ticks <> round(o.price / 0.0001));
+          -- L4: paper bid decisions the dry-run did not carry out (see the guard events for the minutes they held)
+          select e.book, e.minute, e.side, e.k, e.ticks from public.agent_quote_events e
+          where e.kind = 'order' and e.side = 'bid' and e.detail->>'leg' = 'entry' and e.minute >= (select min(ts) from public.agent_quote_live_orders)
+            and not exists (select 1 from public.agent_quote_live_orders o where o.mode = 'dry_run' and o.book = e.book and o.rung_side = e.side
+              and o.k = e.k and o.paper_oid = (e.detail->>'oid')::int and o.paper_live = e.minute + interval '1 minute');
+          -- L5: skips, guards, stops that came back unfilled, the loss stop
+          select * from public.agent_quote_live_events order by minute desc limit 50;
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 

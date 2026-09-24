@@ -14,6 +14,37 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+00000000000. **PR5'S LIVE PATH: BUILT, IN DRY-RUN, NOT PUSHED (2026-09-24 02:33 UTC).** It is on branch
+   `worktree-agent-a8ae57caa382aed95`, one commit on `15056c5` (reference §4 item 35).
+   - **What it is:** `agents/quotes_live.ts` and migration `0052`. The executor carries out the paper engine's decisions
+     order for order on PR5's own sub-account, with the design's hard limits.
+     - Orders are post-only and written `pending` before the POST. They are reconciled by client id, and fills come only
+       from the venue's read-back, through the tick's D11/D12 (`bookLiveBuy`).
+     - The limits: the governor at 600 and 700 POSTs; the loss stop at −1 % of £50; the de-peg guard at 50 bps; stale
+       inputs; the 24-hour stop as an IOC bounded at 50 bps; the kill switch
+       `agent_quote_live_config.live_confirmed_at`; and `global_pause`.
+     - `0052` puts the config in dry-run and unarmed. The dry-run sends nothing, and reads the sub-account's balances
+       each minute.
+   - **The evidence:**
+     - 31 pins, and 32 counterfactuals, each caught.
+     - The golden stop window replayed through it: every live entry is a paper order, and no rung ever held two open
+       orders.
+     - `0052` applied to PGlite refuses what the test double refuses.
+     - Deno check clean, 494 passed; knip clean.
+   - **What remains before live, in order:**
+     1. Review, then push. The push applies `0052` and redeploys `agents`; nothing trades, because of the dry-run. If
+        the trend-4h go-live draft moves first as 0052, rename this migration to 0053 before pushing.
+     2. `.claude/CLAUDE.md`'s Agents section needs the lines this sitting's report lists (the PR5 bullet and the
+        secrets bullet). They are the main session's to edit.
+     3. Watch the dry-run against the paper engine for at least a day, with §4 item 35's L1–L5. L3 should be empty;
+        L4 should show only guarded minutes.
+     4. Davies' word. Then, in that conversation, run
+        `update public.agent_quote_live_config set dry_run = false, live_confirmed_at = now() where id = 1;`,
+        and confirm the first live order there.
+     5. Optional, for the asks: `POST ?action=quotes-convert {"book":"USDT-GBP","gbp":12.5}`, which previews the
+        order; `"send": true` then sends it, only while live and armed.
+     6. Not built: the page (the design's item 9).
+
 0000000000. **THE SECOND REVOLUT X KEY: VERIFIED ON THE FUNDED SUB-ACCOUNT (2026-09-24 01:43 UTC).** Davies stored
    `Revolut_X_API_kEY_2` / `REVOLUT_X_PRIVATE_KEY_2` for PR5. `?action=probe&only=revx2`, read-only: key form
    `pkcs8-b64`; balances, pairs (393) and a signed call with a query all 200; USDC/GBP, USDT/GBP, USDC/USD and USDT/USD
@@ -49,7 +80,7 @@ list stays the short version; the plan is the reasoning behind it.
         stays 5 and orders 40. `live_confirmed_at` is written null.
       - **Left, all his:**
         - the go, which means moving the draft into `supabase/migrations/`
-          as 0052;
+          as the next free number (0053 once PR5's `0052` is in);
         - funding: at least about **$51 of USD** in the Revolut X
           sub-account;
         - the first live order confirmed in the conversation;
@@ -640,6 +671,62 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 02:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**PR5's live path is built, in dry-run, and NOT pushed** (item 00000000000). It is on branch
+`worktree-agent-a8ae57caa382aed95`, off `15056c5`.
+
+**The executor.** `agents/quotes_live.ts` runs after the paper engine inside `agents?action=quotes`, and reads the state
+the paper engine saved.
+- A flat rung quotes the paper rung's own entry order, one POST per paper decision.
+- A held rung exits at the rule's `exitTicks` on the paper's fair, and is stopped after 24 hours.
+- The paper engine, its tables and its replay are untouched.
+
+**Migration `0052`** adds the config (in dry-run and unarmed), the orders table with a partial unique index (one open
+order per rung), events, state, and the lease. It applies and replays cleanly on PGlite (PostgreSQL 16).
+
+**The one D11/D12 rule.** `bookLiveBuy` was extracted from the tick's `settledBase`, and both now call it. The golive
+pins are unchanged and still green.
+
+**The doubles are stricter**, and every existing test stayed green:
+- FakeRevx reserves what a resting order could spend, and refuses a placement the account cannot cover.
+- It refuses a taker buy the account cannot pay for.
+- It charges its fee in the book's quote currency.
+- It serves the GBP books and the public order book.
+- It can lose a cancel, or refuse a post-only order with a 400.
+- memDb enforces 0052's checks and both unique indexes.
+
+**The replay.** PR5's golden stop window (1,710 min) through the live engine gave 90 entries against the paper's 93
+entry orders, 10 fills, 80 exits (7 filled) and 3 bounded stops (all filled). No rung ever held two orders.
+
+**A defect the replay found, fixed and pinned.** A re-price's confirmed cancel did not give its coin back before the
+replacement was sized, so on tight inventory the asks were skipped: 60 in the replay, 0 after the fix.
+
+**Counterfactuals, 32, each failing at least one pin:**
+- M1 the dry-run sends.
+- M2 a refused decision is sent again.
+- M3 a cancel is trusted on the DELETE's word.
+- M4 an order the venue shows nowhere is marked rejected.
+- M5 the row is not written pending before the POST.
+- M6 a missing order is taken as cancelled instead of being read back.
+- M7 D12 books gross; M8 D11 does not floor.
+- M9 and M10 the governor.
+- M11 the loss stop.
+- M12 de-peg.
+- M13 to M15 stale inputs (the paper behind, the USD hour, an exit re-priced).
+- M16 to M18 the 24-hour stop (its bound, its retry, the book's halt).
+- M19 the kill switch; M20 the global pause.
+- M21 asks without coin; M22 a cancel's inventory not given back.
+- M23 entries off the paper's price; M24 entries not post-only.
+- M25 a partial entry's remainder; M26 dust.
+- M27 the exit's price.
+- M28 and M29 the conversion.
+- M30 a paper table written.
+- M31 the double's per-rung index.
+- M32 the migration not yet applied.
+
+Deno: check clean, 494 passed; knip (Edge) clean. No venue was called with a key, and no order was sent.
 
 ### [2026-09-24 01:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

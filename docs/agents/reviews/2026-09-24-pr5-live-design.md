@@ -1,5 +1,15 @@
 # S3: PR5's GBP stablecoin quotes — what a live version needs, and whether $50 is worth it (2026-09-24)
 
+**Status (2026-09-24, later the same morning): items 1–8 of the build list are built, pinned, and in DRY-RUN.** The code
+is `agents/quotes_live.ts` and migration `0052`; reference §4 item 35 has the detail. Davies moved the test capital to
+**£50**, in its own Revolut X sub-account. That account holds GBP only, and its key was verified by the probe at
+01:43 UTC.
+* The executor carries out the paper engine's decisions order for order. Every limit in the table under "What can go
+  wrong" is enforced in code and pinned, and each pin fails with its rule removed.
+* Item 9, the page, is not built.
+* Going live is one statement plus Davies' word, after the dry-run has been watched against the paper engine for at
+  least a day. Nothing below is changed by it: the earning figures and the verdict on $50 are this review's.
+
 PR5 runs on paper since 2026-09-23 15:09 UTC (`agents?action=quotes`, `0051`): the frozen rule's 0 % quotes 0.1 / 0.2 /
 0.3 % either side of interbank on Revolut X's USDC/GBP and USDT/GBP books, twelve $100 rungs. It has no live path —
 `quotes.ts` makes public reads only, by design. Davies wants it live at $50 beside `trend-4h-live`. This is the design:
