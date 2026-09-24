@@ -14,6 +14,16 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+0000000000. **THE SECOND REVOLUT X KEY (2026-09-24 ~01:30 UTC): VERIFIED, BUT IT SEES THE WRONG ACCOUNT.**
+   Davies stored `Revolut_X_API_kEY_2` / `REVOLUT_X_PRIVATE_KEY_2` for PR5 and said he moved £50 into a new
+   sub-account. `?action=probe&only=revx2` (01:37 UTC, read-only): key form `pkcs8-b64`; balances, pairs (393) and a
+   signed call with a query all 200; USDC/GBP, USDT/GBP, USDC/USD and USDT/USD `active` (base step 0.00001, quote step
+   0.0001, minimum 0.1 in the quote); UK tickers at 1.3 bps; no active orders. **But the account holds no GBP and a
+   coin balance** (amounts told to Davies in the conversation, not written here), so the key is not on the funded
+   sub-account. Nothing may use this key but the probe until Davies re-creates it inside the sub-account that holds the
+   £50 (same secret names) and a re-run shows GBP. The rows' key (`only=revx`) sees the USD sub-account, funded above
+   the $51 the $50 go-live needs, with no orders.
+
 000000000. **DAVIES' REQUESTS OF 2026-09-24 ~00:00 UTC: two strategies live
    at $50 each, after a final validation that fixes what it finds.**
    1. **`trend-4h` at $50: GO on his word. The code and the draft are
@@ -631,6 +641,12 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 01:38 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The second Revolut X key reads, but not the funded account** (item 0000000000): `only=revx2` answered every
+read-only call and showed PR5's four books active at 1.3 bps, and an account with no GBP and a coin balance. The
+rows' account is funded for the $50 go-live. No order was placed or can be by the probe.
 
 ### [2026-09-24 01:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
