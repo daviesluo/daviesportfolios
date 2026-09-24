@@ -840,7 +840,7 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 **Davies: the two paper tests count in TESTING's totals.** "算进" on the open question (TESTING's scoreboard and the Revolut X card).
 - TESTING's scoreboard adds Stablecoin quotes and Reward quotes to its strategies. The funded cell says how many of each. Unrealised's percent is of the strategies' cost plus what the tests have deployed, and the label says `cost and deployed`.
 - The Revolut X card adds Stablecoin quotes, the test that trades there. Reward quotes stays the Polymarket card: that money is not Revolut X's, and the three cards still add up to the scoreboard. LIVE does not take either test.
-- Pin: `agents.test.js`, "says what each total covers". Leaving a test out fails it. No strategy row, rule or live state was written.
+- Pin: `agents.test.js`, "says what each total covers". Leaving a test out fails it. The sweep is 300 checks, green, on the bundle this commit ships (`app-9c918eb5.js`). No strategy row, rule or live state was written.
 
 ### [2026-09-24 23:34 UTC] Platform: Cursor | Model: Grok 4.7
 
