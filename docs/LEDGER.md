@@ -77,8 +77,12 @@ list stays the short version; the plan is the reasoning behind it.
      on 0.106 bps and on an input the engine does not record. **Davies decides:** record X and fairU every minute (a
      migration and an engine change while the test runs) so the four-week check can be exact, or keep the spec's
      ±5 % / ±10 % check. Live stays a NO-GO until the review; going live is one statement on his word.
-   - **G6 — Davies' own housekeeping (not an agent's):** delete the 75 stale branches (item 0000000000000); delete the
-     one-off `pm-geo-probe` Edge Function in the Supabase dashboard; keep the Polymarket wallet empty or small.
+   - **G6 — housekeeping.** **The 75 stale branches are DELETED** (2026-09-24 22:49 UTC, Cursor; every head is in that
+     day's 22:48 history section, restorable). **Still Davies' own, because no agent here holds a credential that can
+     do it:** delete the one-off `pm-geo-probe` Edge Function, still ACTIVE (the Supabase connector cannot delete a
+     function, and the only PAT is CI's, which only deploys): dashboard → Edge Functions → `pm-geo-probe` → delete, or
+     `supabase functions delete pm-geo-probe --project-ref flmvxigozjuizpckllvk` from his machine. Nothing in the
+     repository names it but this ledger, so nothing else goes with it. Keep the Polymarket wallet empty or small.
    - **Where things are:** RW — `agents/pmrw.ts` (engine), `agents/pmrw_view.ts` (page summary), `_shared/polymarket_public.ts`
      (keyless client), `0053_pm_rw_paper.sql`, spec `docs/agents/reviews/2026-09-24-polymarket-rw-paper-spec.md`, study
      `…/2026-09-24-polymarket-fp4-study.md`, reference §3.33 and §4 item 36. PR5 — `agents/quotes.ts`, `quotes_live.ts`,
@@ -87,10 +91,10 @@ list stays the short version; the plan is the reasoning behind it.
 0000000000000. **`main`'S HISTORY WAS REWRITTEN (2026-09-24, Davies' word): every commit's author and committer is
    daviesluo; the content is byte for byte the same (final tree `a09ad6a`, 1,053 commits, dates kept).** Old hashes map
    through `docs/commit-map-2026-09-24.md`. Remaining:
-   1. The other 75 branches (48 `claude/…`, 3 `cursor/…`, 2 `agent-remote/…`, 22 old feature branches) still exist:
-      this environment's git proxy refuses branch deletion (HTTP 403), so Davies deletes them himself (Branches page, or
-      one command from his machine). The open pull requests all closed when `main` was replaced, and dependabot
-      removed its own 14 branches.
+   1. ~~The other 75 branches (48 `claude/…`, 3 `cursor/…`, 2 `agent-remote/…`, 22 old feature branches)~~ **deleted
+      2026-09-24 22:49 UTC from Cursor**, whose git token may delete branches where Claude Code's proxy answered 403;
+      each head is in the 22:48 history section. The open pull requests all closed when `main` was replaced, and
+      dependabot removed its own 14 branches.
    2. Any clone made before the rewrite (his machine's, Cursor's) must be re-cloned or reset to `origin/main`.
 
 000000000000. **POLYMARKET: THE ACCOUNT VERIFIED READ-ONLY; POSITIONS MAY OPEN ONLY FROM IRELAND, WHILE DAVIES IS THERE (2026-09-24).**
@@ -789,6 +793,10 @@ Facts a fresh session would otherwise rediscover:
   runs it). There is no `/opt/pw-browsers`; the browser gates run on the
   system Chrome with
   `PLAYWRIGHT_CHROMIUM_PATH=/usr/bin/google-chrome-stable`.
+  Its git token deletes remote branches (`git push origin :refs/heads/<b>`),
+  which Claude Code's proxy refuses. There is no Supabase PAT or CLI on the
+  machine, and the Supabase connector lists, reads and deploys Edge
+  Functions but cannot delete one.
 - **The container clock has been wrong before.** On 2026-09-05 it read
   91 minutes behind the database, and that alone produced a false outage
   report. On anything time-gated, take the time and the WEEKDAY from the
@@ -808,6 +816,26 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 22:51 UTC] Platform: Cursor | Model: Opus 5.5
+
+**G6: the 75 branches are deleted; `pm-geo-probe` is not, because no credential here can delete a function.**
+- **Branches:** deleted 22:48–22:49 UTC, after `e7973d4` put their heads on `main`: `cloudflare/workers-autoconfig`
+  alone first, to test the token, then the other 74 in one push. Each deletion carried its recorded head as a lease
+  (`--force-with-lease=<ref>:<sha>`), so a branch that had moved since the record would have been refused and kept;
+  none was. Checked again just before: no open pull request, and no push to any of the 75 in the activity feed's last
+  day. `git ls-remote --heads` afterwards: `main` (`e7973d4`) and `agents-live-testing` (`404755c`, untouched), nothing
+  else. G6's count and the list derived here agree: 75.
+- **`pm-geo-probe`: still ACTIVE at 22:50 UTC in the project's live list** (connector `list_edge_functions`): the
+  eleven repository functions plus `pm-geo-probe`, v1, uploaded 2026-09-24 02:12:22 UTC with `verify_jwt` false and an
+  entry point under `/tmp/user_fn_…`, so deployed out of band, never by CI. Its whole source is one `index.ts` that
+  fetches `polymarket.com/api/geoblock` and `ipinfo.io/json` and returns both: no secret, no database. `git log --all
+  -S pm-geo-probe` finds only the commit that wrote G6, and nothing in the tree names it but this ledger, so there is
+  no source, map row, workflow or test to remove. The blocker, exactly: the connector's Edge Function tools are list,
+  get and deploy, with no delete; the machine has no Supabase access token and no CLI login; the one PAT that could,
+  `SUPABASE_ACCESS_TOKEN`, sits in the GitHub `production` environment, readable only by `edge-functions.yml`'s deploy
+  step, which never deletes. No credential was created. Davies deletes it (G6 has the dashboard path and the command),
+  or gives the word for a one-off CI step that runs that command with CI's PAT, taken out again in the commit after.
 
 ### [2026-09-24 22:48 UTC] Platform: Cursor | Model: Opus 5.5
 
