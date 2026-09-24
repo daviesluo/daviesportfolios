@@ -296,6 +296,49 @@ const RO_TOKEN = `${b64url(JSON.stringify({ role: 'ro', exp: NOW_MS + 3600_000 }
 const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading212', '/agents'];
 
 /**
+ * RW's paper test on Polymarket (`0053`, reference §4 item 36): a row of TESTING STRATEGIES since 2026-09-24, with a
+ * page of its own. Day 3 of the fourteen on the pinned clock. Consistent with itself, as `rwSummary` would build it:
+ * three markets chosen today and one held from an earlier day; the markets' rewards (41.60) and fill P&L (−0.60) are the
+ * totals; realised is the rewards and C's round trip (+0.40), unrealised is A's 20 Yes bought at 43¢ marked at 44¢
+ * (+0.20) and D's 20 No — 20 Yes sold at 66¢ — marked at 72¢ (−1.20), so the two sum to the total; today is the total
+ * less 26 Sep's running total; the five fills are the markets' five.
+ */
+const AGENTS_RW = (dayStartMs) => {
+  const D = 86400e3, runStart = dayStartMs - 2 * D;
+  const iso = (ms) => new Date(ms).toISOString();
+  const mk = (cond, rank, q, rate, over) => ({ cond, q, cat: 'weather', rank, quoting: rank != null, ratePerDay: rate, endDate: null,
+    net: 0, avgCost: null, mark: 0.5, settled: null, rewardUsd: 0, fillsPnlUsd: 0, totalUsd: 0, fills: 0, capitalUsd: 19, bid: null, ask: null, share: null, ...over });
+  return {
+    phase: 'run', runStart: iso(runStart), runEnd: iso(runStart + 14 * D), dayOfRun: 3, startedAt: iso(runStart - 5 * 3600e3),
+    lastMinute: iso(NOW_MS - 2 * 60e3), lagMinutes: 2, lastError: null, running: true, finished: false,
+    capitalUsd: 296, totalUsd: 41, stressUsd: 17.2, rewardUsd: 41.6, fillsPnlUsd: -0.6, realisedUsd: 42, unrealisedUsd: -1, mismatchUsd: 0,
+    todayUsd: 12.5, heldUsd: 14.4, open: 2, fills: 5, quoting: 3, bestMarketUsd: 18.6,
+    markets: [
+      mk('0xa1', 1, 'Will the highest temperature in Los Angeles be between 78-79°F on September 17?', 205,
+        { net: 20, avgCost: 0.43, mark: 0.44, rewardUsd: 18.4, fillsPnlUsd: 0.2, totalUsd: 18.6, fills: 2, bid: 0.43, ask: 0.45, share: 0.97 }),
+      mk('0xb2', 2, 'Will "Avengers: Endgame Encore" be #1 Box Office this weekend?', 162,
+        { mark: 0.13, rewardUsd: 14.1, totalUsd: 14.1, bid: 0.12, ask: 0.14, share: 0.88 }),
+      mk('0xc3', 3, 'Will the Bank of Canada make no change to the target for the overnight rate?', 103,
+        { mark: 0.45, rewardUsd: 3.1, fillsPnlUsd: 0.4, totalUsd: 3.5, fills: 2, bid: 0.44, ask: 0.46, share: 0.5 }),
+      mk('0xd4', null, 'Will Zelenskyy post 100-119 posts from September 10 to September 17?', 90,
+        { net: -20, avgCost: 0.66, mark: 0.72, rewardUsd: 6, fillsPnlUsd: -1.2, totalUsd: 4.8, fills: 1 }),
+    ],
+    days: [
+      { day: iso(dayStartMs - D).slice(0, 10), phase: 'run', totalUsd: 15.2, stressUsd: 6.1, rewardUsd: 15.5, fills: 2, capitalUsd: 290.4, markets: 15, runningUsd: 28.5 },
+      { day: iso(dayStartMs - 2 * D).slice(0, 10), phase: 'run', totalUsd: 13.3, stressUsd: 5, rewardUsd: 13.6, fills: 1, capitalUsd: 288.2, markets: 16, runningUsd: 13.3 },
+      { day: iso(dayStartMs - 3 * D).slice(0, 10), phase: 'warm-up', totalUsd: 9.8, stressUsd: 3.7, rewardUsd: 10.1, fills: 1, capitalUsd: 280.1, markets: 16, runningUsd: 9.8 },
+    ],
+    recent: [
+      { ts: iso(NOW_MS - 20 * 60e3), minute: iso(NOW_MS - 21 * 60e3), cond: '0xc3', q: 'Will the Bank of Canada make no change to the target for the overnight rate?', side: 'ask', price: 0.46, size: 20 },
+      { ts: iso(NOW_MS - 50 * 60e3), minute: iso(NOW_MS - 51 * 60e3), cond: '0xc3', q: 'Will the Bank of Canada make no change to the target for the overnight rate?', side: 'bid', price: 0.44, size: 20 },
+      { ts: iso(NOW_MS - 2 * 3600e3), minute: iso(NOW_MS - 2 * 3600e3 - 60e3), cond: '0xa1', q: 'Will the highest temperature in Los Angeles be between 78-79°F on September 17?', side: 'bid', price: 0.43, size: 10 },
+      { ts: iso(NOW_MS - 3 * 3600e3), minute: iso(NOW_MS - 3 * 3600e3 - 60e3), cond: '0xa1', q: 'Will the highest temperature in Los Angeles be between 78-79°F on September 17?', side: 'bid', price: 0.43, size: 10 },
+      { ts: iso(NOW_MS - 26 * 3600e3), minute: iso(NOW_MS - 26 * 3600e3 - 60e3), cond: '0xd4', q: 'Will Zelenskyy post 100-119 posts from September 10 to September 17?', side: 'ask', price: 0.66, size: 20 },
+    ],
+  };
+};
+
+/**
  * The Agents dashboard as the Edge Function shapes it (`dashboard()`): the
  * THREE rows that run since `0046`, all on Revolut X and all reading
  * Kraken's candles, with the 4-hour row carrying its five symbols, a
@@ -392,6 +435,7 @@ const AGENTS_DASHBOARD = (() => {
     quotes: { startedAt: '2026-09-23T15:09:00.000Z', lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
       realisedUsd: 0.42, realisedPct: 0.035, todayUsd: 0.12, todayPct: 0.01, trips: 7, won: 6, open: 1, openUsd: 99.75, unrealisedUsd: 0.14,
       ordersToday: 205, fillsToday: 8, books: QUOTE_BOOKS, recent: QUOTE_TRIPS },
+    rw: AGENTS_RW(dayStartMs),
     byVenue: {
       revx: { ...book, capitalUsd: 180, strategies: 3, live: 0 },     // 100 + 40 + 40, and the only book there is
       binance: { ...zero, capitalUsd: 180, strategies: 3, live: 0 },  // the twins' capital, nothing held yet. Kraken is the signal venue only.
@@ -475,6 +519,8 @@ const storedAt = (k) => ({
 const SHOTS_DIR = process.env.SWEEP_SHOTS || '';
 async function shot(page, name) {
   if (!SHOTS_DIR) return;
+  // A modal rises in over 0.22 s (`modal-in`): taken at once, a page opened over another shows the one beneath it.
+  await page.waitForTimeout(300);
   const w = page.viewportSize()?.width ?? 0;
   await page.screenshot({ path: `${SHOTS_DIR}/${w}-${name}.png`, fullPage: true }).catch(() => {});
 }
@@ -1347,9 +1393,10 @@ async function run() {
       // Three since `0046` deleted the Kraken twin (§4.22): `0043` retired the two rotations and the
       // Kraken momentum twin, `0044` deleted them, and the twin made no decision of its own. The rows
       // those migrations removed are off the page because none of them still holds anything here.
-      // Plus the quote test, a row of TESTING STRATEGIES since 2026-09-23 (Davies).
-      if (rows === 7) ok(S('agents'), 'seven rows — the three 0046 leaves, their Binance twins (0049) and the quote test, the deleted ones absent');
-      else fail(S('agents'), `expected 7 rows (six strategies and the quote test), got ${rows}`);
+      // Plus the quote test, a row of TESTING STRATEGIES since 2026-09-23 (Davies), and RW's paper test on Polymarket
+      // since 2026-09-24 (Davies).
+      if (rows === 8) ok(S('agents'), 'eight rows — the three 0046 leaves, their Binance twins (0049), the quote test and RW, the deleted ones absent');
+      else fail(S('agents'), `expected 8 rows (six strategies, the quote test and RW), got ${rows}`);
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
       // observation the tick wrote 40 s ago.
@@ -1403,7 +1450,7 @@ async function run() {
         ok(S('agents'), `today is a signed number on the scoreboard (${(sbToday || '').trim()}) and on the row that has a book`);
       } else fail(S('agents'), `scoreboard today "${sbToday}", row today cells ${rowToday.join(' | ')}`);
       const badgeTexts = await page.locator('.ag-strategies .ag-venue').allTextContents();
-      if (badgeTexts.length === rows && badgeTexts.every((b) => /^(Revolut X|Binance)$/.test(b.trim()))) ok(S('agents'), 'the venue badge is the venue name alone');
+      if (badgeTexts.length === rows && badgeTexts.every((b) => /^(Revolut X|Binance|Polymarket)$/.test(b.trim()))) ok(S('agents'), 'the venue badge is the venue name alone');
       else fail(S('agents'), `badges: ${badgeTexts.join(' | ')}`);
       // The badge fits its cell: a cell that clips draws the first dot of an ellipsis after the badge — the
       // "small white dot" beside Revolut X the owner saw — so overflow must be zero, not just invisible.
@@ -1470,8 +1517,54 @@ async function run() {
       } else fail(S('agents'), `quote page: title "${qTitle}", labels ${qLabels.join(',')} (${qAside}), books ${qBooks.join(',')}, rungs ${qRungs}, held ${qHeld.join(' | ')}, trips ${qTrips}, first "${qFirst}", modals ${qStacked}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-quotes-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 7) ok(S('agents'), 'closing the quote page returns to the list');
+      if (await page.locator('.ag-quotes-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 8) ok(S('agents'), 'closing the quote page returns to the list');
       else fail(S('agents'), 'the quote page did not close back to the list');
+      // RW's paper test on Polymarket (Davies, 2026-09-24): the last row of TESTING STRATEGIES, in a strategy's cells,
+      // with its own badge; the fixture's figures are rwSummary's own (AGENTS_RW).
+      const rwRowEl = page.locator('.ag-strategies-testing .ag-row', { has: page.locator('.ag-name-btn:text-is("Reward quotes")') });
+      const rwRowText = (await rwRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+      const lastName = ((await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').last().textContent().catch(() => '')) || '').trim();
+      const rwBadge = await rwRowEl.first().locator('.ag-venue-polymarket').count();
+      if (await rwRowEl.count() === 1 && lastName === 'Reward quotes' && rwBadge === 1 && /Polymarket/.test(rwRowText) && /Paper/i.test(rwRowText)
+        && /2 open · \$296\.00 cap/.test(rwRowText) && /\+\$12\.50/.test(rwRowText) && /-\$1\.00/.test(rwRowText) && /\+\$42\.00/.test(rwRowText) && /every minute/.test(rwRowText)) {
+        ok(S('agents'), 'RW is the last testing row: Polymarket, Paper, 2 open of $296, today +$12.50, unrealised -$1.00, realised +$42.00, every minute');
+      } else fail(S('agents'), `RW row "${rwRowText}", last row "${lastName}", Polymarket badges ${rwBadge}`);
+      // Its page: the strategy page's header and scoreboard, the bar so far, today's markets, the closed days and the fills.
+      await rwRowEl.first().click();
+      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
+      const rTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
+      const rLabels = (await page.locator('.ag-rw-detail .ag-scoreboard-sm .sb-label').allTextContents()).map((t) => t.trim());
+      const rSections = (await page.locator('.ag-rw-detail .ag-section-title').allTextContents()).map((t) => t.trim());
+      const rMarkets = await page.locator('.ag-rw-markets tbody tr').count();
+      const rHeldRow = ((await page.locator('.ag-rw-markets tbody tr').last().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
+      const rFirst = ((await page.locator('.ag-rw-markets tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
+      const rDays = (await page.locator('.ag-rw-days tbody tr td:first-child').allTextContents()).map((t) => t.trim());
+      const rFills = await page.locator('.ag-rw-fills tbody tr').count();
+      const rFirstFill = ((await page.locator('.ag-rw-fills tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
+      const rBar = ((await page.locator('.ag-rw-bar').innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
+      const rNote = ((await page.locator('.ag-rw-note').textContent().catch(() => '')) || '').trim();
+      const rFoot = ((await page.locator('.ag-rw-foot').textContent().catch(() => '')) || '').trim();
+      const rMeta = ((await page.locator('.ag-rw-detail .ag-detail-head .ag-venue-meta').textContent().catch(() => '')) || '').trim();
+      const rWarn = await page.locator('.ag-rw-detail .ag-warn-line').count();
+      // A market is its question: the first one reads to its date, in two lines on a desk and four on a phone.
+      const rQ = await page.locator('.ag-rw-markets tbody tr').first().locator('.ag-rw-q').evaluate((el) => ({ clipped: el.scrollHeight > el.clientHeight + 1, lines: Math.round(el.clientHeight / parseFloat(getComputedStyle(el).lineHeight)) })).catch(() => ({ clipped: true, lines: 0 }));
+      await shot(page, 'agents-rw');
+      const narrow = vpWidth <= 760;
+      const rPh = await page.locator('.ag-rw-detail th.ag-ph').evaluateAll((els) => els.filter((el) => getComputedStyle(el).display !== 'none').length);
+      const rOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth);
+      if (rTitle === 'Reward quotes' && rLabels.join(',') === 'DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L (rewards $41.60)'
+        && rSections.join(',') === 'THE BAR SO FAR,MARKETS,DAYS,FILLS' && rMarkets === 4 && /Los Angeles/.test(rFirst) && /20 Yes/.test(rFirst)
+        && (narrow || /43¢ \/ 45¢/.test(rFirst)) && /held from an earlier day/.test(rHeldRow) && /20 No/.test(rHeldRow)
+        && rDays.length === 3 && rDays.every((d) => /^\d{1,2} Sep( · warm-up)?$/.test(d)) && /warm-up$/.test(rDays[2]) && rFills === 5 && /Bank of Canada/.test(rFirstFill) && /sold Yes/.test(rFirstFill) && /46¢/.test(rFirstFill)
+        && /\+\$41\.00/.test(rBar) && /5 of 100/.test(rBar) && /45 % of the total/.test(rBar) && /upper bound/.test(rNote)
+        && /funded \(Paper\) \$296\.00 · markets today 3 · fills 5/.test(rFoot) && /day 3 of 14/.test(rMeta) && rWarn === 0
+        && (narrow ? rPh === 0 : rPh > 0) && rOverflow <= 1 && !rQ.clipped && rQ.lines <= (narrow ? 4 : 2)) {
+        ok(S('agents'), `its page: the scoreboard with rewards in realised, the bar so far (+$41.00, 5 of 100 fills), 4 markets (one held from an earlier day), 3 days (the warm-up last), 5 fills, the formula's caveat; ${narrow ? 'the phone drops the side columns' : 'every column'}, nothing wider than the page`);
+      } else fail(S('agents'), `RW page: title "${rTitle}", labels ${rLabels.join(',')}, sections ${rSections.join(',')}, markets ${rMarkets} ("${rFirst}" / "${rHeldRow}"), days ${rDays.join('|')}, fills ${rFills} ("${rFirstFill}"), bar "${rBar}", note "${rNote}", foot "${rFoot}", meta "${rMeta}", warnings ${rWarn}, side columns shown ${rPh}, overflow ${rOverflow}, question ${JSON.stringify(rQ)}`);
+      await page.locator('.ag-detail-close').click().catch(() => {});
+      await page.waitForTimeout(300);
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 8) ok(S('agents'), 'closing the RW page returns to the list');
+      else fail(S('agents'), 'the RW page did not close back to the list');
       // The menu entry was found above by its exact text, "Agents (beta)"; the page's own title must say the same.
       const pageTitle = await page.locator('.modal .modal-title').first().textContent().catch(() => '');
       if ((pageTitle || '').trim() === 'Agents (beta)') ok(S('agents'), 'the page is titled Agents (beta), as the menu entry that opened it');
@@ -1486,8 +1579,8 @@ async function run() {
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, binanceRows = badges.filter((b) => b.startsWith('Binance')).length;
-      // Four Revolut X: the three strategies and the quote test, last.
-      if (revxRows === 4 && binanceRows === 3 && badges[badges.length - 1].startsWith('Revolut X')) ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, and the quote test on Revolut X');
+      // Four Revolut X: the three strategies and the quote test; then RW on Polymarket, last.
+      if (revxRows === 4 && binanceRows === 3 && badges[badges.length - 2].startsWith('Revolut X') && badges[badges.length - 1] === 'Polymarket') ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the quote test on Revolut X and RW on Polymarket');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       const shares = await page.locator('.ag-share').allTextContents();
       if (shares.some((t) => /Revolut X 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Revolut X');
@@ -1518,7 +1611,7 @@ async function run() {
       // Four rules count down to a bar close; the minute rule decides every
       // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
-      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - 1 && nexts[rows - 1] === 'every minute') ok(S('agents'), 'every rule counts down to its next bar close; the quote test, last, decides every minute');
+      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - 2 && nexts[rows - 2] === 'every minute' && nexts[rows - 1] === 'every minute') ok(S('agents'), 'every rule counts down to its next bar close; the quote test and RW, last, decide every minute');
       else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
       const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();
@@ -1664,7 +1757,18 @@ async function run() {
       if (!hasDigits(sizeCell) && !hasDigits(costCell) && orderSizes.length > 0 && !orderSizes.some(hasDigits)) {
         ok(S('agents'), `hide-values masks the position size as well as the money (size reads "${sizeCell}")`);
       } else fail(S('agents'), `under the mask: size "${sizeCell}", avg cost "${costCell}", order sizes ${orderSizes.join(' | ')}`);
-      await page.keyboard.press('Escape');
+      await page.locator('.ag-detail-close').click().catch(() => {});        // the strategy page closes to the list
+      await page.waitForTimeout(200);
+      // RW's page under the mask: what is held, every amount and every price, in the markets and the fills.
+      await page.locator('.ag-row', { has: page.locator('.ag-name-btn:text-is("Reward quotes")') }).first().click({ timeout: 5_000 }).catch(() => {});
+      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
+      const rwCells = await page.locator('.ag-rw-markets tbody tr').first().locator('td').evaluateAll((tds) => tds.slice(4).map((td) => (td.textContent || '').trim()));
+      const rwFillCells = await page.locator('.ag-rw-fills tbody tr').first().locator('td').evaluateAll((tds) => [tds[3], tds[4]].map((td) => (td?.textContent || '').trim()));
+      const rwSb = (await page.locator('.ag-rw-detail .ag-sb-usd').allTextContents()).map((t) => t.trim());
+      if (rwCells.length === 4 && !rwCells.some(hasDigits) && !rwFillCells.some(hasDigits) && rwSb.length === 3 && !rwSb.some(hasDigits)) {
+        ok(S('agents'), `hide-values masks RW's holdings, amounts and prices (held reads "${rwCells[0]}", a fill's price "${rwFillCells[0]}")`);
+      } else fail(S('agents'), `RW under the mask: market cells ${rwCells.join(' | ')}, fill cells ${rwFillCells.join(' | ')}, scoreboard ${rwSb.join(' | ')}`);
+      await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(200);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(200);

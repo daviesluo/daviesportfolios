@@ -507,7 +507,10 @@ that follow from that evidence, in short:
   minutes, so a read that must be current carries a parameter no earlier
   read carried; and an Edge request gets 2 s of CPU, so the selection asks
   Gamma only about the markets it takes. After 10-09 both jobs do nothing;
-  a migration unschedules them with the verdict.
+  a migration unschedules them with the verdict. On the Agents page it is
+  the last row of TESTING STRATEGIES, "Reward quotes" on Polymarket, with a
+  page of its own (Davies, 2026-09-24; `agents/pmrw_view.ts`); the rows'
+  totals do not include it.
 - Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
   `Revolut_X_API_kEY_2` + `REVOLUT_X_PRIVATE_KEY_2` (a second Revolut X
   sub-account for PR5's GBP stablecoin quotes, Davies 2026-09-24; read by

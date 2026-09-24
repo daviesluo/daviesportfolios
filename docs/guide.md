@@ -107,6 +107,20 @@ page call it **Agents (beta)**.
   scoreboard, then each book's six rungs (the price each quotes, or what
   it holds and has made at the last trade) and the latest round trips,
   with today's orders against Revolut X's 1,000 a day at the foot.
+- **Reward quotes.** After it, on Polymarket (its badge in Polymarket's
+  blue): a fourteen-day paper test of small quotes on both sides of the
+  markets that pay liquidity rewards, $300 of them chosen afresh each UTC
+  day, decided every minute from the public order books and trades. Its row
+  reads like a strategy's, on what its markets have at work; realised is
+  the rewards and what closed trades made, unrealised what it still holds
+  (in Yes or No shares) at the mid. Tap it for its page: the same
+  scoreboard, the test's running figures against its bar (total, the
+  pessimistic total, fills out of the 100 it needs, the best market's
+  share), today's markets with the quote and the share of each pool, the
+  closed days and the latest fills. The rewards are worked out from
+  Polymarket's published formula against the book as it stood, so they
+  are an upper bound: only an account that quotes shows what Polymarket
+  actually pays. The first day was a warm-up that counts nowhere.
 - **A strategy.** Tap a row to open it over the list; its ✕ brings the
   list back as it was. It shows its own scoreboard and positions, a
   countdown to the next decision, and **LIVE STATE**: what the loop sees

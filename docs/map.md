@@ -540,7 +540,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 
 | File | What it does |
 |---|---|
-| `agents/agents.jsx`, `agents/agents.js`, `agents/agents_chart.js` | The Agents page: each strategy's status, positions, orders and chart, read from the `agents` function and kept in the browser so it opens drawn. |
+| `agents/agents.jsx`, `agents/agents.js`, `agents/agents_chart.js` | The Agents page: each strategy's status, positions, orders and chart, and the two paper tests' rows and pages, read from the `agents` function and kept in the browser so it opens drawn. |
 
 ### `supabase/functions/` — the server
 
@@ -570,6 +570,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run from its own cron job, storing every input beside every outcome. |
 | `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. |
 | `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
+| `agents/pmrw_view.ts` | RW's paper test as the Agents page shows it: the dashboard's summary, from the engine's own state and records by the engine's own functions. |
 | `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
 | `agents/db.ts` | The loop's database access, over PostgREST. |
 | `agents/testing.ts` | Test doubles that refuse whatever the real database refuses. |

@@ -48,6 +48,9 @@ Deno.test("a paged read names an order and ends it with the unique id: rows that
   assertThrows(() => assertPagedOrder("agent_orders", "order=kind.asc,t.asc"), Error, "must order by");
   assertPagedOrder("agent_quote_events", "kind=in.(order,fill)&select=kind&order=book.asc,minute.asc,side.asc,k.asc,kind.asc");
   assertThrows(() => assertPagedOrder("agent_quote_events", "select=kind&order=minute.asc"), Error, "must order by");
+  // RW's fills (`0053`), keyed by the market, the minute it filled and the print that proved it: the page reads them all.
+  assertPagedOrder("pm_rw_fills", "select=cond,minute,ts,side,price,size,print_id&order=cond.asc,minute.asc,print_id.asc");
+  assertThrows(() => assertPagedOrder("pm_rw_fills", "select=*&order=ts.asc,minute.asc"), Error, "must order by");
   // The probe's read before 2026-09-22: ordered, but by a column two orders can share.
   assertThrows(() => assertPagedOrder("agent_orders", "select=*&order=ts.asc"), Error, "unique id last");
   assertThrows(() => assertPagedOrder("agent_orders", "order=id.asc,ts.asc"), Error, "unique id last");

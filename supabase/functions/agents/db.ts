@@ -32,7 +32,9 @@ export type Db = {
  * production rejects; this is the second time in a day that lesson was paid for.
  */
 /** Tables whose unique key is not an `id` column: ordering by that whole key, in its order, is as total as `id`. */
-const PAGED_KEYS: Record<string, string> = { agent_quote_inputs: "kind,t", agent_quote_events: "book,minute,side,k,kind", pm_rw_minutes: "minute,cond" };
+const PAGED_KEYS: Record<string, string> = {
+  agent_quote_inputs: "kind,t", agent_quote_events: "book,minute,side,k,kind", pm_rw_minutes: "minute,cond", pm_rw_fills: "cond,minute,print_id",
+};
 
 export function assertPagedOrder(table: string, query: string): void {
   const order = /(?:^|&)order=([^&]*)/.exec(query)?.[1];

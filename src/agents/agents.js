@@ -9,10 +9,16 @@ import { Storage } from '../app/storage.js';
 
 // Kraken keeps its label, not a place on the page: it is the signal venue every rule reads candles from, and nothing
 // trades there since `0046`. VENUES shows Revolut X, where the loop executes, and Binance, the account it may use next.
-export const VENUE_LABELS = { revx: 'Revolut X', binance: 'Binance', kraken: 'Kraken' };
+// Polymarket is the venue of RW's paper test, a row of TESTING STRATEGIES; it has no card in VENUES.
+export const VENUE_LABELS = { revx: 'Revolut X', binance: 'Binance', kraken: 'Kraken', polymarket: 'Polymarket' };
 export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'momentum-1d': 'Momentum 30d', 'rotation-1d': 'Rotation', 'dislocation-1m': 'Dislocation' };
-/** The two venue hues the badges, the share bar and the detail chart all share. Binance's is its own yellow, which is why PAPER is not gold any more. */
-export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b' };
+/**
+ * The venue hues the badges, the share bar and the detail chart all share. Binance's is its own yellow, which is why
+ * PAPER is not gold any more. Polymarket's is its own blue, lifted for the dark page: ΔE 15.6 from Revolut X's with full
+ * colour vision and 15.7 under deuteranopia, and further from Binance's, the gain green and the loss red (checked with
+ * the dataviz validator, 2026-09-24). Every badge also says the venue's name.
+ */
+export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff' };
 
 /** @param {string} id */
 export const venueLabel = (id) => VENUE_LABELS[id] ?? id;
@@ -899,6 +905,77 @@ export function quoteLadderRows(book) {
 
 /** A book's name as the page writes a pair: "USDC-GBP" → "USDC/GBP". @param {string} b */
 export const quoteBookLabel = (b) => String(b ?? '').replace('-', '/');
+
+/** RW's paper test's id among the table's rows. No strategy id starts with "__", so it cannot collide with one. */
+export const RW_ROW_ID = '__rw';
+
+/** A Polymarket price in cents, as the venue writes one: "49¢", "4.5¢". @param {number | null | undefined} p */
+export function fmtCents(p) {
+  if (p == null || !Number.isFinite(Number(p))) return '—';
+  const c = Math.round(Number(p) * 1000) / 10;
+  return `${Number.isInteger(c) ? c.toFixed(0) : c.toFixed(1)}¢`;
+}
+
+/** What a market's inventory is, as a holder reads it: YES shares, or NO shares for a short YES. @param {number | null | undefined} net */
+export function rwHeldText(net) {
+  const x = Number(net) || 0;
+  if (x === 0) return '—';
+  const size = Math.abs(x);
+  return `${Number.isInteger(size) ? size : size.toFixed(2)} ${x > 0 ? 'Yes' : 'No'}`;
+}
+
+/**
+ * RW's paper test (reference §4 item 36): minimum-size quotes on both sides of Polymarket's rewarded markets, a
+ * portfolio re-chosen each UTC day, run on paper for fourteen days after a warm-up. `r` is the dashboard's `rw`; null
+ * keeps it off the page (its tables are not there yet, or it has no state).
+ * @param {any} r
+ */
+export function rwView(r) {
+  if (!r) return null;
+  const total = Number(r.totalUsd) || 0, best = r.bestMarketUsd == null ? null : Number(r.bestMarketUsd);
+  return {
+    phase: r.phase,
+    phaseText: r.phase === 'warm-up' ? 'warm-up, counted nowhere' : r.phase === 'run' ? `day ${r.dayOfRun} of 14` : 'the fourteen days are over',
+    runStart: r.runStart, runEnd: r.runEnd, since: r.startedAt ?? null,
+    stoppedText: r.finished ? 'the fourteen days are over' : r.running ? '' : `not running: its last decided minute is ${r.lagMinutes} min old`,
+    fillsText: `${Number(r.fills) || 0} of 100`,
+    bestShareText: best != null && total > 0 ? `${Math.round((100 * best) / total)} %` : '—',
+    mismatch: Math.abs(Number(r.mismatchUsd) || 0) > 0.01,
+  };
+}
+
+/**
+ * RW as a row of TESTING STRATEGIES (Davies, 2026-09-24), in the cells a strategy's row has. Its capital is what its
+ * markets have at work today (each market's first quote and its largest inventory, the spec's capital); unrealised is
+ * the open inventory at the adjusted mid against its average cost, as a percent of what it holds; realised is the
+ * rewards and what closed trades made. null keeps it off the table.
+ * @param {any} r  the dashboard's `rw`
+ */
+export function rwRow(r) {
+  if (!r) return null;
+  const capital = Number(r.capitalUsd) || 0, held = Number(r.heldUsd) || 0;
+  const pct = (usd, base) => (base > 0 ? (Number(usd) / base) * 100 : null);
+  const quoting = Number(r.quoting) || 0;
+  return {
+    id: RW_ROW_ID,
+    name: 'Reward quotes',
+    venue: venueLabel('polymarket'),
+    venueId: 'polymarket',
+    mode: 'paper',
+    capitalUsd: capital,
+    valueUsd: held,
+    todayUsd: r.todayUsd ?? 0, todayPct: pct(r.todayUsd ?? 0, capital),
+    unrealisedUsd: r.unrealisedUsd ?? 0, unrealisedPct: pct(r.unrealisedUsd ?? 0, held),
+    realisedUsd: r.realisedUsd ?? 0, realisedPct: pct(r.realisedUsd ?? 0, capital),
+    nextText: r.finished ? 'finished' : 'every minute',
+    openPositions: Number(r.open) || 0,
+    status: r.finished
+      ? { label: 'paper', running: false, tone: 'paused', detail: 'the fourteen days are over' }
+      : r.running
+        ? { label: 'paper', running: true, tone: 'running', detail: `quoting ${quoting} market${quoting === 1 ? '' : 's'} · last minute decided ${Number(r.lagMinutes) || 0} min ago` }
+        : { label: 'paper', running: false, tone: 'stale', detail: `not running: its last decided minute is ${r.lagMinutes} min old` },
+  };
+}
 
 /**
  * Whether what is shown is paper money only: every strategy (on `venue`, if one is named) is paper and holds no

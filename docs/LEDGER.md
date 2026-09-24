@@ -40,8 +40,9 @@ list stays the short version; the plan is the reasoning behind it.
       trading; Davies read it on 2026-09-24 and said the plan continues.
    2. **RW's paper run is RUNNING since 2026-09-24 19:30 UTC** (`201c19f`; migration `0053`, `agents/pmrw.ts`,
       reference §4 item 36, spec `reviews/2026-09-24-polymarket-rw-paper-spec.md`): a warm-up until midnight, then
-      fourteen days, 2026-09-25 00:00 → 10-09 00:00 UTC; read it with §4 item 36's queries R1–R5. The paper reward is
-      the published formula's against the visible book, an upper bound on what an account would be paid. After 10-09: the bar from `pm_rw_days` (a day's total
+      fourteen days, 2026-09-25 00:00 → 10-09 00:00 UTC; read it on the Agents page (the last testing row, "Reward
+      quotes", and its page) or with §4 item 36's queries R1–R5. The paper reward is the published formula's against the
+      visible book, an upper bound on what an account would be paid. After 10-09: the bar from `pm_rw_days` (a day's total
       is the change from the day before; bootstrap seed 20261009); the stored minutes replayed through rw_test.py's
       rule, and each quoted market's prints pulled again to show none was missed; then a migration unschedules
       `agents-pmrw-every-minute` and `agents-pmrw-select`. It passes → a live test under this plan; it fails → RW
@@ -705,6 +706,26 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 20:09 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**RW on the Agents page** (item 000000000000). Davies: the paper test was nowhere on the page; put it in TESTING
+STRATEGIES, with a page like the others' changed for what it holds. It is the last testing row, "Reward quotes" on
+Polymarket — a badge in Polymarket's blue, `#7d8bff`, which the dataviz validator separates from Revolut X's blue
+(ΔE 15.6, 15.7 deutan), Binance's yellow and gain/loss — with a page: the scoreboard (realised carries the rewards),
+the bar so far, today's markets (question, pool, our quote, our share of the pool, what is held, rewards, fills,
+total), the closed days, the latest fills and the formula's caveat. The rows' totals do not include it.
+- **Server:** `agents/pmrw_view.ts` builds the dashboard's `rw` from `pm_rw_*` with the engine's own `snapshot`,
+  `accTotal` and `accCapital`. The one added figure, fill P&L split by average cost into closed trades and the open
+  inventory at the mid, must sum to the engine's: pinned on 300 random fill sequences, and shown on the page as a
+  warning when it does not (`mismatchUsd`). `pm_rw_fills` pages by its whole key (`db.ts`, pinned).
+- **Client:** `rwRow` / `rwView` / `fmtCents` / `rwHeldText` with their pins; the sweep's `AGENTS_RW` is
+  `rwSummary`'s shape and consistent with itself; eight new checks at both widths (250 in all): the row, the page, the
+  phone's columns, the question's lines, "Sep", and the mask. `shot()` now waits out the modal's 0.22 s rise, so a
+  screenshot of a page opened over another shows that page.
+- **Found by looking at the screenshots, then pinned:** en-GB wrote "16 Sept" (now `fmtDayMonth`), and one line of a
+  question named no market ("Will the highest temperature in Los Ang…"): two lines on a desk, four on a phone, where
+  the Rewards column gives way (Total carries it).
 
 ### [2026-09-24 19:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

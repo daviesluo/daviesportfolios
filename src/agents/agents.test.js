@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache } from './agents.js';
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwRow, rwView, fmtCents, rwHeldText, venueLabel } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
@@ -709,6 +709,43 @@ describe('quotesRow — the quote test as a row of TESTING STRATEGIES', () => {
     expect(quotesRow({ ...q, open: 0, openUsd: 0, unrealisedUsd: 0 })?.unrealisedPct).toBe(null);
     expect(quotesRow({ ...q, unrealisedUsd: null })?.unrealisedUsd).toBe(0);    // a book with no print yet: nothing to show, not NaN
     expect(quotesRow(null)).toBe(null);
+  });
+});
+
+describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', () => {
+  // Davies, 2026-09-24: the Polymarket paper test sits in the testing table beside the quote test, in the same cells.
+  const r = { phase: 'run', dayOfRun: 3, runStart: '2026-09-25T00:00:00.000Z', runEnd: '2026-10-09T00:00:00.000Z', startedAt: '2026-09-24T19:31:00Z',
+    lastMinute: '2026-09-27T10:02:00Z', lagMinutes: 2, running: true, finished: false, lastError: null,
+    capitalUsd: 296, totalUsd: 60, stressUsd: 24, rewardUsd: 62, fillsPnlUsd: -2, realisedUsd: 61, unrealisedUsd: -1, mismatchUsd: 0,
+    todayUsd: 20, heldUsd: 40, open: 3, fills: 12, quoting: 16, bestMarketUsd: 12, markets: [], days: [], recent: [] };
+  it('fills the cells a strategy row has, on paper, at Polymarket', () => {
+    const row = rwRow(r);
+    expect([row?.id, row?.name, row?.venueId, row?.venue, row?.mode, row?.nextText]).toEqual([RW_ROW_ID, 'Reward quotes', 'polymarket', 'Polymarket', 'paper', 'every minute']);
+    expect([row?.capitalUsd, row?.valueUsd, row?.openPositions]).toEqual([296, 40, 3]);
+    // Today and realised on the capital at work; unrealised on what is held, the strategies' base.
+    expect(row?.todayPct).toBeCloseTo((20 / 296) * 100, 12);
+    expect(row?.realisedPct).toBeCloseTo((61 / 296) * 100, 12);
+    expect(row?.unrealisedPct).toBeCloseTo((-1 / 40) * 100, 12);
+    expect(row?.status).toMatchObject({ tone: 'running', detail: 'quoting 16 markets · last minute decided 2 min ago' });
+    expect(venueLabel('polymarket')).toBe('Polymarket');
+  });
+  it('is amber when it has stopped, grey when the fourteen days are over, flat when it holds nothing, and absent before it exists', () => {
+    expect(rwRow({ ...r, running: false, lagMinutes: 9 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });
+    expect(rwRow({ ...r, running: false, finished: true })).toMatchObject({ nextText: 'finished', status: { tone: 'paused', detail: 'the fourteen days are over' } });
+    expect(rwRow({ ...r, heldUsd: 0, unrealisedUsd: 0 })?.unrealisedPct).toBe(null);
+    expect(rwRow({ ...r, quoting: 1 })?.status.detail).toBe('quoting 1 market · last minute decided 2 min ago');
+    expect(rwRow(null)).toBe(null);
+  });
+  it('says which part of the run it is in, the fills against the bar, and a split that disagrees', () => {
+    expect(rwView(r)).toMatchObject({ phaseText: 'day 3 of 14', fillsText: '12 of 100', bestShareText: '20 %', stoppedText: '', mismatch: false });
+    expect(rwView({ ...r, phase: 'warm-up', dayOfRun: null })?.phaseText).toBe('warm-up, counted nowhere');
+    expect(rwView({ ...r, totalUsd: -5 })?.bestShareText).toBe('—');
+    expect(rwView({ ...r, mismatchUsd: 0.02 })?.mismatch).toBe(true);
+    expect(rwView(undefined)).toBe(null);
+  });
+  it('writes a price in cents and a holding as the side it is long', () => {
+    expect([fmtCents(0.49), fmtCents(0.045), fmtCents(0.5), fmtCents(null)]).toEqual(['49¢', '4.5¢', '50¢', '—']);
+    expect([rwHeldText(20), rwHeldText(-20), rwHeldText(0), rwHeldText(2.5)]).toEqual(['20 Yes', '20 No', '—', '2.50 Yes']);
   });
 });
 

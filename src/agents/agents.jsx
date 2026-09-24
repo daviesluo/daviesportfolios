@@ -11,10 +11,10 @@
 // way the transaction history leads with the book's.
 import React from 'react';
 import { Modal } from '../board/modals.jsx';
-import { fmtMoney, maskDigits, pctColor } from '../app/formatters.js';
+import { fmtDayMonth, fmtMoney, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  agentsAlerts, agentsErrorView, countdownText, dashboardInFlight, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtFees, fmtFrac, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
+  agentsAlerts, agentsErrorView, countdownText, dashboardInFlight, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFrac, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, RW_ROW_ID, rwHeldText, rwRow, rwView, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -280,6 +280,132 @@ function QuotesDetail({ q, m }) {
         </div>
       </section>
       <div className="ag-updated dim mono ag-quotes-foot">funded (Paper) {m(fmtUsd(v.capitalUsd))} · round trips {v.tripsText} · orders today {v.ordersText}</div>
+    </div>
+  );
+}
+
+/** A closed UTC day as the page names it: "25 Sep", in the site's own month table (en-GB alone writes "Sept"). @param {string} day */
+const dayLabel = (day) => fmtDayMonth(new Date(`${day}T00:00:00Z`), { locale: 'en-GB', timeZone: 'UTC' });
+
+/**
+ * RW's paper test (reference §4 item 36), opened from its row in TESTING STRATEGIES: the strategy page's header and
+ * scoreboard, then what differs — the bar's running figures, today's markets with our quotes and our share of each
+ * pool, the closed days, and the fills with the prints that proved them.
+ */
+function RwDetail({ r, m }) {
+  const row = rwRow(r);
+  const v = rwView(r);
+  if (!row || !v) return null;
+  const markets = r.markets ?? [], days = r.days ?? [], recent = r.recent ?? [];
+  /** @param {number | null | undefined} x */
+  const usd = (x) => m(fmtMoney(Number(x) || 0, { signed: true, compact: false }));
+  return (
+    <div className="ag-detail ag-rw-detail">
+      <div className="ag-detail-head">
+        <ModeBadge mode="paper" />
+        <StatusDot status={row.status} />
+        <span className="dim mono ag-venue-meta">{v.phaseText} · both sides a tick inside the touch · $300 of rewarded markets each UTC day{v.since ? ` · since ${when(v.since)}` : ''}</span>
+      </div>
+      <h3 className="ag-detail-title mono sr-only">Reward quotes</h3>
+      <div className="ag-scoreboard ag-scoreboard-sm">
+        <div className="ag-sb-cell ag-sb-cell-main">
+          <div className="sb-label">DEPLOYED</div>
+          <div className="sb-value sb-value-lg mono">{m(fmtUsd(row.valueUsd))}</div>
+        </div>
+        <div className="ag-sb-divider" />
+        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} />
+        <div className="ag-sb-divider" />
+        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
+        <div className="ag-sb-divider" />
+        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} aside={`rewards ${m(fmtUsd(r.rewardUsd))}`} />
+      </div>
+      {v.stoppedText && <div className="ag-warn-line">{v.stoppedText}</div>}
+      {v.mismatch && <div className="ag-warn-line">its fills and its total differ by {usd(r.mismatchUsd)}</div>}
+      <div className="ag-rw-note dim mono">Rewards are the published formula's share of each pool against the book as it stood: an upper bound. Only an account that quotes shows what Polymarket pays.</div>
+      <section className="ag-section ag-rw-bar">
+        <div className="ag-section-title mono">{v.phase === 'warm-up' ? 'WARM-UP' : 'THE BAR SO FAR'}</div>
+        <div className="ag-quotes-grid ag-rw-grid mono">
+          <span className="dim">total</span><span className="ag-gl" style={{ color: pctColor(r.totalUsd) }}>{usd(r.totalUsd)}</span>
+          <span className="dim">rewards / fills</span><span>{usd(r.rewardUsd)} / {usd(r.fillsPnlUsd)}</span>
+          <span className="dim">stress</span><span className="ag-gl" style={{ color: pctColor(r.stressUsd) }}>{usd(r.stressUsd)}</span>
+          <span className="dim">fills</span><span>{v.fillsText}</span>
+          <span className="dim">best market</span><span>{v.bestShareText} of the total</span>
+          {v.phase === 'warm-up' && <><span className="dim">fourteen days from</span><span>{when(v.runStart)} {UK_TZ}</span></>}
+          {v.phase === 'run' && <><span className="dim">ends</span><span>{when(v.runEnd)} {UK_TZ}</span></>}
+        </div>
+      </section>
+      <section className="ag-section ag-rw-markets">
+        <div className="ag-section-title mono">MARKETS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">Market</th><th className="hl-th ag-ph">Pool/day</th><th className="hl-th ag-ph">Quote</th><th className="hl-th ag-ph">Share</th>
+              <th className="hl-th">Held</th><th className="hl-th ag-ph">Rewards</th><th className="hl-th ag-ph">Fills</th><th className="hl-th">Total</th>
+            </tr></thead>
+            <tbody>
+              {markets.length === 0 && <tr><td className="hl-empty dim" colSpan={8}>No market chosen today yet.</td></tr>}
+              {markets.map((x) => (
+                <tr key={x.cond}>
+                  <td className="hl-strong ag-rw-market"><span className="ag-rw-q" title={x.q}>{x.q || x.cond}</span>{x.quoting ? null : <span className="hl-sub dim">held from an earlier day</span>}</td>
+                  <td className="ag-ph">{x.ratePerDay != null ? m(fmtUsd(x.ratePerDay)) : '—'}</td>
+                  <td className="ag-ph">{x.bid != null || x.ask != null ? `${m(fmtCents(x.bid))} / ${m(fmtCents(x.ask))}` : '—'}</td>
+                  <td className="ag-ph">{x.share != null ? `${Math.round(x.share * 100)} %` : '—'}</td>
+                  <td>{m(rwHeldText(x.net))}</td>
+                  <td className="ag-ph ag-gl" style={{ color: pctColor(x.rewardUsd) }}>{usd(x.rewardUsd)}</td>
+                  <td className="ag-ph ag-gl" style={{ color: pctColor(x.fillsPnlUsd) }}>{usd(x.fillsPnlUsd)}</td>
+                  <td className="ag-gl" style={{ color: pctColor(x.totalUsd) }}>{usd(x.totalUsd)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section className="ag-section ag-rw-days">
+        <div className="ag-section-title mono">DAYS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">Day (UTC)</th><th className="hl-th">Total</th><th className="hl-th">Rewards</th><th className="hl-th ag-ph">Fills</th><th className="hl-th ag-ph">Stress</th><th className="hl-th ag-ph">Capital</th>
+            </tr></thead>
+            <tbody>
+              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>No day has closed yet.</td></tr>}
+              {days.map((d) => (
+                <tr key={d.day}>
+                  <td className="dim">{dayLabel(d.day)}{d.phase === 'warm-up' ? ' · warm-up' : ''}</td>
+                  <td className="ag-gl" style={{ color: pctColor(d.totalUsd) }}>{usd(d.totalUsd)}</td>
+                  <td className="ag-gl" style={{ color: pctColor(d.rewardUsd) }}>{usd(d.rewardUsd)}</td>
+                  <td className="ag-ph">{d.fills}</td>
+                  <td className="ag-ph ag-gl" style={{ color: pctColor(d.stressUsd) }}>{usd(d.stressUsd)}</td>
+                  <td className="ag-ph">{m(fmtUsd(d.capitalUsd))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section className="ag-section ag-rw-fills">
+        <div className="ag-section-title mono">FILLS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">When ({UK_TZ})</th><th className="hl-th">Market</th><th className="hl-th">Side</th><th className="hl-th">Price</th><th className="hl-th ag-ph">Shares</th>
+            </tr></thead>
+            <tbody>
+              {recent.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>No fill yet.</td></tr>}
+              {recent.map((f) => (
+                <tr key={`${f.cond}|${f.minute}|${f.ts}|${f.side}|${f.price}|${f.size}`} className={`txn-row txn-row-${f.side === 'bid' ? 'buy' : 'sell'}`}>
+                  <td className="dim">{when(f.ts)}</td>
+                  <td className="hl-strong"><span className="ag-rw-q" title={f.q}>{f.q || f.cond}</span></td>
+                  <td><span className={`ag-side ag-side-${f.side === 'bid' ? 'buy' : 'sell'}`}><span className="ag-side-mark" aria-hidden="true" />{f.side === 'bid' ? 'bought Yes' : 'sold Yes'}</span></td>
+                  <td>{m(fmtCents(f.price))}</td>
+                  <td className="ag-ph">{m(String(f.size))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div className="ag-updated dim mono ag-rw-foot">funded (Paper) {m(fmtUsd(r.capitalUsd))} · markets today {r.quoting} · fills {r.fills} · decided to {when(r.lastMinute)} {UK_TZ}</div>
     </div>
   );
 }
@@ -845,10 +971,13 @@ function AgentsModal({ hideValues, onClose }) {
   const split = React.useMemo(() => splitStrategyRows(rows), [rows]);
   // The quote test is a row of TESTING STRATEGIES (Davies, 2026-09-23), after the strategies; it runs on paper only.
   const quotes = React.useMemo(() => quotesRow(dash?.quotes), [dash]);
-  const testing = React.useMemo(() => (quotes ? [...split.testing, quotes] : split.testing), [split, quotes]);
+  // RW's paper test on Polymarket joins it (Davies, 2026-09-24), after the quote test; paper only too.
+  const rw = React.useMemo(() => rwRow(dash?.rw), [dash]);
+  const testing = React.useMemo(() => [...split.testing, ...(quotes ? [quotes] : []), ...(rw ? [rw] : [])], [split, quotes, rw]);
   const phone = useMediaQuery('(max-width: 760px)');
   const current = selected ? (dash?.strategies ?? []).find((s) => s.id === selected) ?? null : null;
   const quotesOpen = selected === QUOTES_ROW_ID && !!dash?.quotes;
+  const rwOpen = selected === RW_ROW_ID && !!dash?.rw;
   const notReady = !!dash?.notReady;
 
   return (
@@ -917,6 +1046,21 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <QuotesDetail q={dash.quotes} m={m} />
+        </div>
+      </Modal>
+    )}
+    {rwOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono">Reward quotes</h2>
+          </div>
+          <div className="modal-head-actions">
+            <button className="btn-ghost icon ag-detail-close" onClick={() => setSelected(null)} aria-label="Close">✕</button>
+          </div>
+        </header>
+        <div className="modal-body ag-body">
+          <RwDetail r={dash.rw} m={m} />
         </div>
       </Modal>
     )}

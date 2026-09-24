@@ -1864,6 +1864,7 @@ body {
 }
 .ag-venue-revx { color: #8ec5ff; border-color: rgba(142,197,255,0.35); background: rgba(142,197,255,0.1); }
 .ag-venue-binance { color: #f0b90b; border-color: rgba(240,185,11,0.4); background: rgba(240,185,11,0.1); }
+.ag-venue-polymarket { color: #7d8bff; border-color: rgba(125,139,255,0.4); background: rgba(125,139,255,0.1); }
 .ag-venue-signal { font-weight: 500; letter-spacing: 0; opacity: 0.8; }
 .ag-venues { margin-bottom: 14px; }
 .ag-share-bar { display: flex; height: 18px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.04); border: 1px solid var(--line); margin-bottom: 8px; }
@@ -1885,6 +1886,14 @@ body {
 .ag-ladder th:nth-child(n+2), .ag-ladder td:nth-child(n+2) { text-align: right; }
 .ag-qheld { white-space: nowrap; }
 .ag-warn-line { margin-top: 6px; font-size: 11px; color: var(--loss); }
+/* RW's page (reference §4 item 36). A market is its question, and the question is long: two lines of it (four on a
+   phone, where the market keeps only what it holds and its total beside it), the whole of it in the title. One line cut
+   "…between 78-79°F on September 17?" down to "Will the highest temperature in Los Ang…", which names no market. */
+.ag-rw-q { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; white-space: normal; max-width: 340px; margin: 0 auto; line-height: 1.35; }
+.ag-rw-market .hl-sub { display: block; font-weight: 400; }
+.ag-rw-note { margin: 8px 0 2px; font-size: 11px; line-height: 1.5; }
+.ag-rw-grid { max-width: 420px; }
+@media (max-width: 760px) { .ag-rw-q { max-width: 200px; -webkit-line-clamp: 4; } }
 .ag-next { white-space: nowrap; }
 .ag-basis .ag-table td { padding: 6px 10px; }
 .ag-state-pending { color: #d9c37a; }

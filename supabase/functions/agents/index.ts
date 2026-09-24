@@ -91,6 +91,7 @@ import { deribitProbe } from "./deribit.ts";
 import { QUOTE_TICK, runQuotes } from "./quotes.ts";
 import { runQuotesConvert, runQuotesLive, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
 import { runPmrw, runPmrwSelect } from "./pmrw.ts";
+import { rwSummary, type RwDayRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwStateRow } from "./pmrw_view.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -689,6 +690,23 @@ async function dashboard(now: number) {
     } catch { return null; }
   })();
 
+  // RW's paper test on Polymarket (`0053`, reference §4 item 36): a row of TESTING STRATEGIES with a page of its own.
+  // Its own tables; missing ones (before the migration) or no state yet leave it off the page.
+  const rw = await (async () => {
+    try {
+      const [st, selection, days, fills, first] = await Promise.all([
+        d.select<RwStateRow>("pm_rw_state", "id=eq.1&select=state,last_minute,last_error"),
+        d.select<RwSelRow>("pm_rw_selection", `day=eq.${new Date(dayStartMs).toISOString().slice(0, 10)}&select=day,cond,rank,rate,v,min_size,capital,q,cat,end_date&order=rank.asc`),
+        d.select<RwDayRow>("pm_rw_days", "select=day,total,stress_total,reward,fills,capital,markets,detail&order=day.asc"),
+        d.selectAll<RwFillRow>("pm_rw_fills", "select=cond,minute,ts,side,price,size,print_id&order=cond.asc,minute.asc,print_id.asc"),
+        d.select<{ minute: string }>("pm_rw_minutes", "select=minute&order=minute.asc&limit=1"),
+      ]);
+      const last = st[0]?.last_minute;
+      const latest = last ? await d.select<RwMinuteRow>("pm_rw_minutes", `minute=eq.${encodeURIComponent(last)}&select=cond,minute,b,a,m,ours,others,qb,qa`) : [];
+      return rwSummary({ state: st[0] ?? null, selection, latest, days, fills, firstMinute: first[0]?.minute ?? null, nowMs: now });
+    } catch { return null; }
+  })();
+
   return {
     at: new Date(now).toISOString(),
     dayStart: new Date(dayStartMs).toISOString(),
@@ -706,6 +724,8 @@ async function dashboard(now: number) {
     jev24h: jevStats(decisions24h),
     /** PR5's quotes on paper (`0051`, reference §4 item 31); null until its tables exist and it has run. */
     quotes,
+    /** RW's quotes for Polymarket's liquidity rewards, on paper (`0053`, reference §4 item 36); null until it has a state. */
+    rw,
   };
 }
 
