@@ -27,7 +27,7 @@
 
 import { b64ToBytes, bytesToB64, concatBytes as concat, hexToBytes, toArrayBuffer } from "./bytes.ts";
 import type { PairConfig as SizingConfig } from "./agents_strategy.ts";
-import type { OrderView, PlaceResult, Quote, Venue } from "./venue.ts";
+import type { FeeDerivation, OrderView, PlaceResult, Quote, Venue } from "./venue.ts";
 
 export const REVX_BASE = "https://revx.revolut.com";
 
@@ -159,14 +159,18 @@ export type OrderPlacement = { venue_order_id: string; client_order_id: string; 
  * Reading only the assumed names, a reply in the documented names carried no `state` and no `filled_size`, so a FILLED
  * order read as "new, nothing filled": the missing-field guard (B4) never fired, the floor saw no position, and an hour
  * later the too-old cancel settled real coins as `cancelled` and freed the pair to buy them again. Both are read until
- * the first live read-back shows which one the venue sends; nothing is ever inferred from a field that is absent.
+ * the first live read-back shows which one the venue sends; nothing is ever inferred from a field that is absent — with
+ * one exception, written down where it is made: a fill with no fee is charged the fee the venue's schedule says
+ * (`derivedFee`, go-live audit D8), from the order's own `time_in_force` / `execution_instructions` and its notional.
  */
 export type VenueOrder = {
   id?: string; venue_order_id?: string; client_order_id?: string; symbol: string; side: "buy" | "sell";
   status?: string; state?: string; type?: string; order_type?: string;
   price?: string; quantity?: string; base_size?: string; quote_size?: string; leaves_quantity?: string;
+  amount?: string; filled_amount?: string;
   filled_quantity?: string; filled_size?: string; average_fill_price?: string;
   total_fee?: string; fees?: string; fee_currency?: string;
+  time_in_force?: string; execution_instructions?: string[];
   created_date?: number; updated_date?: number; created_at?: number; updated_at?: number;
 };
 
@@ -334,6 +338,13 @@ export const REVX_FEE_BPS = { maker: 0, taker: 9 };
  * recorded as 0 because the field was called something else would flatter
  * every live P&L and the daily loss breaker with it. The message names the
  * fields the reply DID carry, so the first live order tells us the truth.
+ *
+ * The FEE is the one field whose absence is not a refusal (go-live audit D8). The venue's reference lists `total_fee`
+ * and `fee_currency` on GET /orders/{id} as optional, "shown only when present", and its own examples of filled orders
+ * carry neither. Refused, such a fill was never settled: the pair stayed in flight for good and only the floor protected
+ * it. It is now charged what the schedule charges it (`derivedFee`) and recorded as derived — unless the reply names a
+ * fee currency other than the quote and gives no amount: a fee in the coin changes how many coins reached the account
+ * (D4), and a dollar fee derived over it would book the gross as held.
  */
 export function orderViewProblem(vo: VenueOrder): string | null {
   const o = readOrder(vo);
@@ -354,9 +365,16 @@ export function orderViewProblem(vo: VenueOrder): string | null {
   if (o.state === "filled" && o.filled != null && Number(o.filled) === 0) {
     return `order ${o.id} is filled but its reply says filled_size 0; not settled`;
   }
-  const fields = [["filled_quantity/filled_size", o.filled], ["average_fill_price", o.avg], ["total_fee/fees", o.fee]] as const;
+  // No fee on the reply is settled with the schedule's fee (see above), so it is not required — except where it cannot be
+  // derived: a fee currency other than the quote, named with no amount.
+  const derivable = feeToDerive(vo);
+  const fields: (readonly [string, string | undefined])[] = [["filled_quantity/filled_size", o.filled], ["average_fill_price", o.avg]];
+  if (!derivable) fields.push(["total_fee/fees", o.fee]);
   const missing = fields.filter(([, v]) => v == null).map(([k]) => k);
-  if (missing.length) return `order ${o.id} is ${o.state} but its reply has no ${missing.join(", ")} (${present}); not settled`;
+  if (missing.length) {
+    const coinFee = !derivable && o.fee == null && o.feeCurrency ? `; it names ${o.feeCurrency} as the fee's currency, and a fee in anything but ${quoteAssetOf(vo.symbol)} is never derived` : "";
+    return `order ${o.id} is ${o.state} but its reply has no ${missing.join(", ")} (${present})${coinFee}; not settled`;
+  }
   // Present is not enough: `Number("0.072 USD")` is NaN, which JSON writes as null, which `fee_usd NOT NULL` refuses —
   // the settle would throw every minute and the fill would never reach the book.
   const bad = fields.filter(([, v]) => !Number.isFinite(Number(v))).map(([k]) => k);
@@ -364,7 +382,37 @@ export function orderViewProblem(vo: VenueOrder): string | null {
   if (o.feeCurrency && o.feeCurrency !== quoteAssetOf(vo.symbol) && o.feeCurrency !== baseAssetOf(vo.symbol)) {
     return `order ${o.id} charged its fee in ${o.feeCurrency}, neither side of ${vo.symbol}; not settled`;
   }
+  // A fee derived from a notional of nothing would be a fee of 0: the flattering number this guard exists to refuse.
+  if (derivable && !(Number(vo.filled_amount) > 0) && !(Number(o.avg) > 0)) {
+    return `order ${o.id} is ${o.state} with no fee, and neither filled_amount nor average_fill_price gives a notional to derive one from (${present}); not settled`;
+  }
   return null;
+}
+
+/** True when a reply carries no fee and the fee can be derived: no fee currency named, or the quote named (D8). */
+function feeToDerive(vo: VenueOrder): boolean {
+  const o = readOrder(vo);
+  return o.fee == null && (!o.feeCurrency || o.feeCurrency === quoteAssetOf(vo.symbol));
+}
+
+/**
+ * The fee Revolut X's published schedule charges a fill whose read-back reported none (go-live audit D8): 0 % maker, 0.09 %
+ * taker (reference §2), on the quote-currency notional — the venue's own `filled_amount` when it gives one, else filled ×
+ * average price. Maker or taker is read off the order itself: `post_only` can only ever rest, so its fills are maker; an
+ * `ioc` or `fok` order never rests, so its fills are taker. Anything else — a GTC order allowed to take, which the loop
+ * never places — is charged as a taker, the side that never flatters the P&L. Only called for a fill whose fee is absent
+ * and derivable (`orderViewProblem` refuses the rest).
+ */
+export function derivedFee(vo: VenueOrder, gross: number, avgPrice: number | null): { feeUsd: number; derivation: FeeDerivation } {
+  const maker = (vo.execution_instructions ?? []).includes("post_only");
+  const tif = String(vo.time_in_force ?? "").toLowerCase();
+  const bps = maker ? REVX_FEE_BPS.maker : REVX_FEE_BPS.taker;
+  const amount = Number(vo.filled_amount);
+  const notional = Number.isFinite(amount) && amount > 0 ? amount : gross * (avgPrice ?? 0);
+  const basis = maker ? "post_only: a maker fill"
+    : tif === "ioc" || tif === "fok" ? `time_in_force ${tif}: a taker fill`
+    : "neither post_only nor ioc/fok: charged as a taker fill";
+  return { feeUsd: Math.round(notional * (bps / 1e4) * 1e8) / 1e8, derivation: { bps, notional: Math.round(notional * 1e8) / 1e8, basis } };
 }
 
 /** A venue order → the settlement view the tick acts on. A cancelled order with fills counts as filled for that volume. */
@@ -376,10 +424,12 @@ export function toOrderView(vo: VenueOrder): OrderView {
     : o.state === "rejected" ? "rejected"
     : gross > 0 ? "partially_filled" : "new";
   const avgPrice = gross > 0 ? Number(o.avg ?? NaN) || null : null;
+  // A fill with no fee on its reply is charged the schedule's fee, in the quote currency, and says so (D8).
+  const derived = gross > 0 && feeToDerive(vo) ? derivedFee(vo, gross, avgPrice) : null;
   // A fee taken in the coin is a fee in dollars at the fill price; `orderViewProblem` refuses any other currency.
   const fee = Number(o.fee ?? 0);
-  const feeInBase = !!o.feeCurrency && o.feeCurrency === baseAssetOf(vo.symbol);
-  const feeUsd = feeInBase ? (avgPrice ? fee * avgPrice : 0) : fee;
+  const feeInBase = !derived && !!o.feeCurrency && o.feeCurrency === baseAssetOf(vo.symbol);
+  const feeUsd = derived ? derived.feeUsd : feeInBase ? (avgPrice ? fee * avgPrice : 0) : fee;
   // On a BUY `filled_quantity` is GROSS, "before fees" (the venue's reference, Order.filled_quantity). A fee taken in the
   // coin never reaches the account, so the book must hold filled − fee: booked gross, the position outlives its exit by the
   // fee (the capped sell cannot sell coins that are not there) and the rulebook, reading itself long, never re-enters.
@@ -387,7 +437,7 @@ export function toOrderView(vo: VenueOrder): OrderView {
   // 0.0001591), and the book subtracts the exit's venue-reported size from it. Nothing reads a position through a dust
   // threshold (`base > 0` everywhere), so a 1e-18 residue would read "long" for good and bring D4 back.
   const filledBase = vo.side === "buy" && feeInBase ? Math.max(0, Number((gross - fee).toPrecision(15))) : gross;
-  return { state, filledBase, avgPrice, feeUsd, raw: vo };
+  return { state, filledBase, avgPrice, feeUsd, raw: vo, ...(derived ? { feeDerived: derived.derivation } : {}) };
 }
 
 /**
@@ -468,8 +518,9 @@ export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch, 
           const id = readOrder(vo).id;
           if (!id) return { ok: false, error: "historical order without an id" };
           // The history lists an order WITHOUT its average fill price or fee (the reference documents both, with
-          // fee_currency, only on GET /orders/{id}), and `orderViewProblem` rightly refuses a fill without them. So the
-          // history finds the order and the order itself is read to settle it.
+          // fee_currency, only on GET /orders/{id}), and `orderViewProblem` refuses a fill without its price. So the
+          // history finds the order and the order itself is read to settle it — which is also where the venue reports
+          // the fee it charged, when it reports one; a fee derived from the list would stand in for a fee on the record.
           const one = await getOrder(env, id, fetchImpl);
           if (!one.ok) return { ok: false, error: `order ${id}: ${one.status} ${one.error}` };
           if (!one.data?.data) return { ok: false, error: `order ${id}: empty order reply` };

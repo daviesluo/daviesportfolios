@@ -15,8 +15,10 @@ has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
 00000000. **DAVIES' REQUESTS OF 2026-09-23 ~20:40 UTC.** The go-live work
-   (item 0000000: D8–D10 and the go itself) is **PAUSED on his word**, and so
-   is the DecisionFC review; do not resume either without him.
+   (item 0000000) was paused on his word; he has since **un-paused its
+   preparation**, and D8–D10 are done (item 0000000.1). The go itself stays
+   his explicit word. The DecisionFC review is still paused; do not resume it
+   without him.
    1. **The read-only password hides the transaction history and the
       INVESTMENT view: DONE** (its password is being shared publicly). The
       menu item and the tab are not rendered for a viewer, the panel shows
@@ -72,11 +74,17 @@ list stays the short version; the plan is the reasoning behind it.
       lookup settled from a list that carries no price or fee (it would
       never have settled), and its net-of-fee left a 1e-18 residue that
       reads "long" for good; `FakeRevx` now serves the history as the venue
-      documents it. **Left:** D8 (a filled order without fee fields; verify
-      on the first order), D9 (record the touch beside the live fill), D10
-      (the lease claim is unguarded). Going live stays Davies' explicit go,
-      and the first live order needs his confirmation in the same
-      conversation.
+      documents it. **D8–D10 are DONE** (`golive.test.ts` pins each; each
+      failed on the code before its fix): D8 a fill read back without
+      `total_fee` / `fee_currency` settles with the schedule's fee (9 bps
+      taker, 0 % post-only), recorded as `feeDerived` beside the venue's
+      reply, and a coin fee with no amount is still refused (D4); D9 every
+      marketable order records its touch (`request.touch`: bid, ask, age,
+      re-read) beside its fill; D10 a lease claim the database does not
+      answer ends the turn with a note, not a crash. Every defect in the
+      audit is fixed (D7 in the draft). Going live stays Davies' explicit go, and the
+      first live order needs his confirmation in the same conversation; its
+      read-back shows which fee fields the venue sends.
    2. **A third, independent first-principles search, Binance first: DONE**
       (reference §3.29, review `reviews/2026-09-23-fp3-study.md`, three
       frozen pre-registrations, re-run here byte for byte). One pass, and it
@@ -566,6 +574,15 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 00:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The go-live audit's last three are fixed** (item 0000000.1; Davies un-paused the preparation,
+not the go). D8: a fill read back with no fee field settles with the schedule's fee, recorded as
+`feeDerived` beside the venue's reply. D9: every marketable order records the touch it was
+priced from and that quote's age. D10: a lease claim the database does not answer is a note, not
+a crash. Four new pins in `golive.test.ts` fail on the old code; lifecycle stage 7 now reads a
+reply with no average price, the one still refused. Deno: 455 passed, check clean.
 
 ### [2026-09-23 21:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

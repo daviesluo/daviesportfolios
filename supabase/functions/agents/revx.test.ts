@@ -6,7 +6,7 @@
 import { assert, assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   loadPrivateKey, orderViewProblem, privateKeyDer, publicCandles, publicTickers, quotesForRegion, REVX_BASE, REVX_REGION, revxFetch, revxVenue, signingMessage, signMessage, splitPath,
-  toCandle, toPathSymbol, toSlashSymbol,
+  toCandle, toOrderView, toPathSymbol, toSlashSymbol,
 } from "../_shared/revx.ts";
 
 Deno.test("signingMessage — the reference's literal example, byte for byte", () => {
@@ -185,11 +185,15 @@ Deno.test("orderViewProblem — a filled order whose reply lacks the settlement 
   const ok = { venue_order_id: "V1", symbol: "BTC-USD", side: "buy" as const, state: "filled", filled_size: "0.001", average_fill_price: "80000", fees: "0.072" };
   assertEquals(orderViewProblem(ok), null);
   assertEquals(orderViewProblem({ ...ok, state: "new", filled_size: "0", fees: undefined }), null);             // nothing filled: nothing to read yet
-  const noFee = orderViewProblem({ venue_order_id: "V1", symbol: "BTC-USD", side: "buy", state: "filled", filled_size: "0.001", average_fill_price: "80000" });
-  assert(noFee?.includes("no total_fee/fees") && noFee.includes("fields present: venue_order_id, symbol, side, state, filled_size, average_fill_price"), String(noFee));
-  assert(orderViewProblem({ venue_order_id: "V2", symbol: "BTC-USD", side: "sell", state: "filled" })?.includes("no filled_quantity/filled_size, average_fill_price, total_fee/fees"));
+  // No fee field at all — the venue shows `total_fee` "only when present" — is settled with the fee the schedule charges,
+  // never at 0: a taker's 9 bps here, since nothing on this reply says the order rested (go-live audit D8; golive.test.ts).
+  const noFee = { venue_order_id: "V1", symbol: "BTC-USD", side: "buy" as const, state: "filled", filled_size: "0.001", average_fill_price: "80000" };
+  assertEquals(orderViewProblem(noFee), null);
+  assertEquals([toOrderView(noFee).feeUsd, toOrderView(noFee).feeDerived?.bps], [0.072, 9]);
+  const noFill = orderViewProblem({ venue_order_id: "V2", symbol: "BTC-USD", side: "sell", state: "filled" });
+  assert(noFill?.includes("no filled_quantity/filled_size, average_fill_price (fields present: venue_order_id, symbol, side, state)"), String(noFill));
   // A partial fill is a fill: the same fields are required of it. (`partially_filled` is the venue's own word for it.)
-  assert(orderViewProblem({ venue_order_id: "V3", symbol: "BTC-USD", side: "buy", state: "partially_filled", filled_size: "0.0004" })?.includes("average_fill_price, total_fee/fees"));
+  assert(orderViewProblem({ venue_order_id: "V3", symbol: "BTC-USD", side: "buy", state: "partially_filled", filled_size: "0.0004" })?.includes("no average_fill_price ("));
 });
 
 Deno.test("orderViewProblem — a reply that says filled while reporting filled_size 0 is a problem, and an ABSENT field is still reported as absent", () => {
@@ -197,8 +201,8 @@ Deno.test("orderViewProblem — a reply that says filled while reporting filled_
   // and the next exit would try to sell coins that are not there. Zero is a field saying the opposite of filled.
   const zero = orderViewProblem({ venue_order_id: "V9", symbol: "BTC-USD", side: "buy", state: "filled", filled_size: "0", average_fill_price: "80000", fees: "0" });
   assert(zero?.includes("filled_size 0"), String(zero));
-  // Absent is not zero: that case keeps naming the fields it could not find.
-  assert(orderViewProblem({ venue_order_id: "V10", symbol: "BTC-USD", side: "buy", state: "filled" })?.includes("no filled_quantity/filled_size, average_fill_price, total_fee/fees"));
+  // Absent is not zero: that case keeps naming the fields it could not find (the fee is not among them: it is derived, D8).
+  assert(orderViewProblem({ venue_order_id: "V10", symbol: "BTC-USD", side: "buy", state: "filled" })?.includes("no filled_quantity/filled_size, average_fill_price ("));
 });
 
 // ── the order path at the client, over a fake HTTP venue (2026-09-22) ────────────────────────────────

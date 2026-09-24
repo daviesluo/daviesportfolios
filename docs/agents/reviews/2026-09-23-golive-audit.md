@@ -10,7 +10,19 @@ history list carries no average price and no fee and `orderViewProblem` refuses 
 is rounded to 15 significant digits, because `gross − fee` in floating point left a 1e-18 residue that reads "long" for good
 and brought D4 back; and `FakeRevx` now serves `/orders/historical` the way the venue documents it, without those fields,
 where before the route fell through to `/orders/{id}` and answered 404, so the reconcile path had never run in a test.
-`agents/golive.test.ts` pins D2–D6; each of its tests fails without its fix. D8–D10 are not done.
+`agents/golive.test.ts` pins D2–D6; each of its tests fails without its fix.
+
+**D8–D10 were done later that night** (the audit had no patch for them), each pinned in `agents/golive.test.ts` by a test
+that fails on the code before its fix. **D8:** a fill read back without `total_fee` / `fee_currency` settles with the fee the
+schedule charges it — 9 bps of the quote notional (`filled_amount`, else filled × average price), 0 % when the order is
+`post_only` — and the settled row keeps the venue's reply as it came with `feeDerived` (rate, notional, the field that
+decided maker or taker) beside it. A reply naming the coin as the fee's currency with no amount is still refused (D4), and
+so is one with no notional to derive from. **D9:** every marketable order, paper and live, records in `request.touch` the
+bid and ask it was priced from, that quote's age when the row was written, and whether a live order re-read it; the live
+row settles with the venue's average price beside it, so the fill-versus-touch shortfall comes from the record (the paper
+row's is 0 by construction). **D10:** a lease claim the database does not answer ends the turn with a
+`LEASE CLAIM FAILED` error, which `runTick` writes as its `agents.tick` note, instead of a crash. Every defect in the table
+is now fixed, in the code or (D7) in the draft; going live stays Davies' explicit word.
 
 ## What was re-computed here, and what was not
 
@@ -19,9 +31,10 @@ where before the route fell through to `/orders/{id}` and answered 404, so the r
 * **Every patch still applies** to `main` at the commit that adds this file (`git apply --check`, the combined diff and P1).
 * **D2–D6 reproduced on `main`** before their fixes: the audit's five failing-behaviour tests all passed on the code as it
   stood, and D2, D3, D4 and D6 fail once the fixes are in (D5's test reads the pure function, whose callers were fixed).
-* **Not re-computed here:** D2's dead-IOC rates on the UK book, D8–D10, the pricing of the draft's configuration, and
-  PR5's figures. The audit's scripts, tape copies and worktree stayed in the session's scratch folder and are not
-  committed.
+* **Not re-computed here:** D2's dead-IOC rates on the UK book, the pricing of the draft's configuration, and PR5's
+  figures. The audit's scripts, tape copies and worktree stayed in the session's scratch folder and are not committed.
+  (D8–D10 were reproduced later, by their own pins: the fake venue's documented reply without fee fields was refused, no
+  marketable row carried its touch, and a lease claim that timed out threw out of `tick`.)
 
 ---
 

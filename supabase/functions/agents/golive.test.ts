@@ -5,11 +5,16 @@
 //   D4 a buy fee taken in the coin is booked net, so the exit leaves the book flat
 //   D5 the trail counts the high of the bar the entry filled in
 //   D6 the re-entry cooldown is counted in the rule's own bars, as the backtester counts it
+//   D8 a fill read back without total_fee / fee_currency settles with the schedule's fee, recorded as derived
+//   D9 every marketable order records the touch it was priced from and that quote's age, paper and live
+//   D10 a lease claim the database does not answer ends the turn with a note, not a crash
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { highWaterSince, positionFromFills, type Candle } from "../_shared/agents_strategy.ts";
 import { krakenVenue } from "../_shared/kraken.ts";
-import { revxVenue } from "../_shared/revx.ts";
+import { orderViewProblem, revxVenue, toOrderView, type VenueOrder } from "../_shared/revx.ts";
 import type { OrderView, Quote, Venue, VenueId } from "../_shared/venue.ts";
+import { makeDb } from "./db.ts";
+import { tickErrorReport } from "./index.ts";
 import { FakeKraken, FakeRevx, jevFetch, memDb, type Row } from "./testing.ts";
 import { fromItsBar, MAX_MARKETABLE_ATTEMPTS, tick, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
@@ -210,4 +215,145 @@ Deno.test("D6 — after an exit filled at a bar's open, the next bar is still co
   assertEquals(r.decisions.map((d) => d.action), ["hold"], JSON.stringify(r));
   const d = (mem.tables.agent_decisions as Row[]).at(-1)!;
   assert(String(d.rule_reason).startsWith("cooling down"), String(d.rule_reason));
+});
+
+// ── D8–D10, pinned 2026-09-23 ─────────────────────────────────────────────────────────────────────────
+
+const LIVE_BAR = Date.parse("2026-09-23T04:00:00Z");
+
+/** The real Revolut X and Kraken clients over the fake venues, and the strict in-memory database, as D3 and D4 build them. */
+async function realWorld(rows: StrategyRow[], o: { fetchImpl?: typeof fetch; clock?: () => number } = {}) {
+  let now = LIVE_BAR + 5 * ONE_M;
+  const mem = memDb({ agent_risk: [RISK], agent_strategies: rows as unknown as Row[], agent_orders: [], agent_decisions: [], agent_observations: [],
+    agent_maker_probes: [], agent_candles: [], agent_locks: [{ name: "tick", lease_until: "1970-01-01T00:00:00.000Z", holder: null }] }, { now: () => now + 5_000 });
+  const rx = new FakeRevx(() => now), kr = new FakeKraken(() => now);
+  const { privateKey } = await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair;
+  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch), kraken: krakenVenue(null, kr.fetch) };
+  const at = (t: number) => {
+    now = t;
+    return tick({ db: mem.db, venues, jev: { openrouterKey: "k" }, now, fetchImpl: o.fetchImpl ?? jevFetch({}), uuid: () => crypto.randomUUID(), clock: o.clock });
+  };
+  return { rx, at, orders: () => mem.tables.agent_orders as Row[] };
+}
+
+Deno.test("D8 — a fill read back with no total_fee / fee_currency settles with the fee its schedule charges, recorded as derived — not refused for good with its pair in flight", async () => {
+  const w = await realWorld([{ ...LIVE, capital_usd: 20 }]);
+  // GET /orders/{id} carries `total_fee` and `fee_currency` "only when present" (the venue's reference), and the reference's own
+  // filled orders carry neither. The venue still charges its 9 bps: the fake takes them from the dollars and does not say so.
+  w.rx.dialect = "no-fee";
+  await w.at(LIVE_BAR + 5 * ONE_M);                                   // the entry: an IOC at the touch, filled on arrival
+  const [buy] = w.orders();
+  const atVenue = w.rx.orders.get(String(buy.venue_order_id))!;
+  assertEquals([buy.side, buy.state, atVenue.status, atVenue.tif], ["buy", "new", "filled", "ioc"]);
+  const r = await w.at(LIVE_BAR + 6 * ONE_M);                         // the read-back: filled, and no fee field
+  assertEquals(r.errors, [], JSON.stringify(r.errors));
+  const b = w.orders().find((o) => o.id === buy.id)!;
+  assertEquals([b.state, b.filled_base, b.avg_fill_price, b.fee_usd], ["filled", atVenue.filled, atVenue.avg, atVenue.fee]);   // 9 bps of the notional: what the venue charged
+  assert(Number(b.fee_usd) > 0, String(b.fee_usd));
+  const reply = b.response as Row;
+  assertEquals([reply.status, reply.total_fee, reply.fee_currency], ["filled", undefined, undefined]);   // the reply as the venue sent it …
+  assertEquals(reply.feeDerived, { bps: 9, notional: Math.round(atVenue.filled * atVenue.avg! * 1e8) / 1e8, basis: "time_in_force ioc: a taker fill" });   // … and how the fee was derived, beside it
+  assertEquals(Math.round(bookOf(w.orders()).base * 1e8), Math.round((w.rx.balances.BTC ?? 0) * 1e8));   // the book holds what the venue holds
+  // The pair is not held in flight by a read-back refused for good: the next bar is decided like any other.
+  const r2 = await w.at(LIVE_BAR + FOUR_H + ONE_M);
+  assert(!r2.skipped.some((x) => x.includes("order in flight")), JSON.stringify(r2.skipped));
+  assertEquals(r2.decisions.map((d) => [d.symbol, d.kind]), [["BTC/USD", "bar"]]);
+});
+
+Deno.test("D8 — the venue's own documented replies: 9 bps of filled_amount on an IOC, 0 % on a post-only fill; a reported fee is never replaced, and a coin fee with no amount is still refused (D4)", () => {
+  // GET /orders/historical's documented filled order (revolut-x-api-for-llm.md): an IOC, with no total_fee and no fee_currency.
+  const ioc: VenueOrder = {
+    id: "3f1c9d84-2b77-4a10-9c53-1e2f7a6b0d45", client_order_id: "b8e0c1a2-64d3-4f8e-9a71-5c2d3e4f6a70", symbol: "BTC/USD", side: "buy", type: "market",
+    quantity: "0.002", filled_quantity: "0.002", leaves_quantity: "0", amount: "200", filled_amount: "197.49", price: "98745", average_fill_price: "98745",
+    status: "filled", time_in_force: "ioc", execution_instructions: ["allow_taker"], created_date: 3318215482991, updated_date: 3318215482991,
+  };
+  assertEquals(orderViewProblem(ioc), null);
+  const v = toOrderView(ioc);
+  assertEquals([v.state, v.filledBase, v.avgPrice, v.feeUsd], ["filled", 0.002, 98745, Math.round(197.49 * 0.0009 * 1e8) / 1e8]);
+  assertEquals(v.feeDerived, { bps: 9, notional: 197.49, basis: "time_in_force ioc: a taker fill" });
+  // GET /orders/{id}'s documented filled post-only order (the `on_fill` example, its linked exit left out), with the schema's
+  // optional average_fill_price: a maker fill, which Revolut X charges 0 %.
+  const maker: VenueOrder = {
+    id: "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", client_order_id: "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", symbol: "BTC/USD", side: "buy", type: "limit",
+    quantity: "0.1", filled_quantity: "0.1", leaves_quantity: "0", price: "60000", average_fill_price: "60000", status: "filled", time_in_force: "gtc",
+    execution_instructions: ["post_only"], created_date: 3318215482991, updated_date: 3318215482991,
+  };
+  assertEquals(orderViewProblem(maker), null);
+  assertEquals([toOrderView(maker).feeUsd, toOrderView(maker).feeDerived], [0, { bps: 0, notional: 6000, basis: "post_only: a maker fill" }]);
+  // A fee the venue reports is the fee: nothing is derived beside it.
+  const reported = toOrderView({ ...ioc, total_fee: "0.18", fee_currency: "USD" });
+  assertEquals([reported.feeUsd, reported.feeDerived], [0.18, undefined]);
+  // D4 stays: a fee taken in the coin, WITH its amount, is booked net of the coins …
+  assertEquals(toOrderView({ ...ioc, total_fee: "0.0000018", fee_currency: "BTC" }).filledBase, 0.0019982);
+  // … and a reply that names the coin with no amount is still refused: a dollar fee derived there would book the gross coins
+  // as held, and the rule would read itself long for good.
+  const coinNoAmount = orderViewProblem({ ...ioc, fee_currency: "BTC" });
+  assert(coinNoAmount?.includes("no total_fee/fees") && coinNoAmount.includes("names BTC as the fee's currency"), String(coinNoAmount));
+  // A missing price is still a refusal, and says only what it is: a dollar fee left out is not the reason.
+  const noPrice = orderViewProblem({ ...ioc, average_fill_price: undefined, fee_currency: "USD" });
+  assert(noPrice?.includes("no average_fill_price (") && !noPrice.includes("fee's currency"), String(noPrice));
+  // No fee, and nothing to derive one from: refused, never booked at 0.
+  const nothingToDeriveFrom = orderViewProblem({ ...ioc, filled_amount: undefined, average_fill_price: "0" });
+  assert(nothingToDeriveFrom?.includes("neither filled_amount nor average_fill_price gives a notional"), String(nothingToDeriveFrom));
+});
+
+Deno.test("D9 — every marketable order records the touch it was priced from and that quote's age, paper and live; a live fill keeps the venue's price beside it, so the shortfall is read off the record", async () => {
+  const SYM = "BTC/USD";
+  let wall = Date.parse("2026-09-23T04:05:03Z"), asked = 0;
+  let rx: FakeRevx | null = null;
+  const jev = jevFetch({});
+  // Each model call takes 5 s of wall clock. By the second — the live row's — the UK book has moved up 2 bps.
+  const slowJev: typeof fetch = (input, init) => { wall += 5000; if (++asked === 2) rx!.shock[SYM] = 1.0002; return jev(input, init); };
+  // `trend-4h` (paper) sorts before `trend-4h-live`: the paper control decides the bar first, in the same turn.
+  const w = await realWorld([{ ...LIVE, id: "trend-4h", mode: "paper", capital_usd: 20 }, { ...LIVE, capital_usd: 20 }], { fetchImpl: slowJev, clock: () => wall });
+  rx = w.rx;
+  const quoteAt = (shock: number) => { w.rx.shock[SYM] = shock; const q = w.rx.quote(SYM); w.rx.shock[SYM] = 1; return q; };
+  const turnQuote = quoteAt(1), reread = quoteAt(1.0002), atArrival = quoteAt(1.0007);
+  // … and when the live IOC arrives the book is 5 bps above what the order re-read: inside its 10 bps allowance, so it fills, 5 bps worse.
+  w.rx.onPost = () => { w.rx.shock[SYM] = 1.0007; };
+  const r1 = await w.at(LIVE_BAR + 5 * ONE_M);
+  w.rx.onPost = undefined;
+  w.rx.shock[SYM] = 1;
+  assertEquals(r1.errors, [], JSON.stringify(r1.errors));
+  const paper = () => w.orders().find((o) => o.strategy_id === "trend-4h")!;
+  const live = () => w.orders().find((o) => o.strategy_id === "trend-4h-live")!;
+  // The paper control's order is priced from the turn's quote, read 5 s (one model call) before the order was written …
+  assertEquals((paper().request as Row).touch, { bid: turnQuote.bid, ask: turnQuote.ask, ageMs: 5000, reread: false });
+  // … the live order from the touch it re-read on its way out.
+  assertEquals((live().request as Row).touch, { bid: reread.bid, ask: reread.ask, ageMs: 0, reread: true });
+  await w.at(LIVE_BAR + 6 * ONE_M);                                  // both settle
+  const [p, l] = [paper(), live()];
+  assertEquals([p.state, l.state], ["filled", "filled"]);
+  // The venue's own fill price, kept beside the touch the order recorded: the fill-versus-touch shortfall comes from inputs alone.
+  assertEquals([l.avg_fill_price, (l.response as Row).average_fill_price], [atArrival.ask, String(atArrival.ask)]);
+  assertEquals((l.request as Row).touch, { bid: reread.bid, ask: reread.ask, ageMs: 0, reread: true });   // settling never overwrites it
+  const shortfallBps = (o: Row) => { const t = (o.request as { touch: Quote }).touch; return (Number(o.avg_fill_price) - t.ask) / t.ask * 1e4; };
+  assert(Math.abs(shortfallBps(l) - (atArrival.ask - reread.ask) / reread.ask * 1e4) < 1e-9 && shortfallBps(l) > 4, String(shortfallBps(l)));
+  // The paper control fills at its own price, the touch it recorded: 0 by construction — the optimistic side of the comparison.
+  assertEquals([p.avg_fill_price, shortfallBps(p)], [p.price, 0]);
+});
+
+Deno.test("D10 — a lease claim the database never answers ends the turn with a note, not a crash: nothing else is read and no venue is called", async () => {
+  // The REAL database client over a transport that never answers: the client's own AbortSignal.timeout fires and rejects as it
+  // did in production ("Signal timed out."), after 50 ms here rather than 8 s.
+  const dbCalls: string[] = [];
+  const silent: typeof fetch = (input, init) => {
+    dbCalls.push(`${init?.method ?? "GET"} ${new URL(String(input)).pathname}`);
+    return new Promise((_, reject) => init?.signal?.addEventListener("abort", () => reject(init.signal!.reason)));
+  };
+  const db = makeDb("https://db.invalid", "service-role", silent, 50);
+  const venueCalls: string[] = [];
+  const untouched = (id: VenueId): Venue => {
+    const no = (what: string) => () => { venueCalls.push(`${id} ${what}`); return Promise.reject(new Error(`${id} ${what}: a turn without its lease calls no venue`)); };
+    return { id, canTrade: true, feeBps: { maker: 0, taker: 9 }, candles: no("candles"), quotes: no("quotes"), pairs: no("pairs"), placeLimit: no("placeLimit"),
+      cancel: no("cancel"), order: no("order"), balances: no("balances"), activeOrders: no("activeOrders") };
+  };
+  const r = await tick({ db, venues: { revx: untouched("revx"), kraken: untouched("kraken") }, jev: { openrouterKey: "k" }, now: NOW, fetchImpl: jevFetch({}), uuid: () => crypto.randomUUID() });
+  assertEquals(dbCalls, ["PATCH /rest/v1/agent_locks"]);
+  assertEquals(venueCalls, []);
+  assertEquals([r.decisions, r.orders, r.settled, r.skipped], [[], [], [], []]);
+  assertEquals(r.errors.length, 1, JSON.stringify(r.errors));
+  assert(r.errors[0].startsWith("LEASE CLAIM FAILED") && r.errors[0].includes("Signal timed out."), r.errors[0]);
+  // The note every caught failure leaves: `runTick` writes a turn's errors as one `agents.tick` row, and this is its message.
+  assert(tickErrorReport(r).message.includes("LEASE CLAIM FAILED"), tickErrorReport(r).message);
 });

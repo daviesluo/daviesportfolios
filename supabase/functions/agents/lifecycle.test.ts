@@ -301,11 +301,13 @@ Deno.test("lifecycle: one live row from flat through an entry, the floor, the co
 
   await stage("7 an unreadable fill reply (B4) does not disarm the floor: the coins the venue holds for a buy it cannot settle are sold when the price falls through it — once", async () => {
     // The first live read-back is where the settlement field names are least certain. Here the venue's order reply has no
-    // fee field: the read-back is refused, the buy is never settled from a guess — and its coins must not go unprotected.
+    // average fill price (the schema marks it optional, and the reference's own `on_fill` example of a filled order leaves
+    // it out): the read-back is refused, the buy is never settled from a guess — and its coins must not go unprotected.
+    // (Until D8 this stage used a reply with no fee field; that reply now settles, with the fee the schedule charges.)
     // The placement reply says `new`, as the documented example does, so the floor cannot lean on the word `filled`: it
     // counts what the venue's own balance shows beyond the settled book.
     w.row().mode = "live";
-    w.rx.dialect = "no-fee";
+    w.rx.dialect = "no-price";
     w.rx.placementReply = "new";
     const r0 = await w.at(B(17) + ONE_M);                                        // stage 6's exit was at B(14)+11m
     assertEquals(r0.errors, [], why(r0));
@@ -314,7 +316,7 @@ Deno.test("lifecycle: one live row from flat through an entry, the floor, the co
     const bought = w.venueBtc();
     assert(bought > 0 && bought === round8(Number(buy.base_size)), `${bought}`);
     const r1 = await w.at(B(17) + 2 * ONE_M);
-    assert(r1.errors.some((e) => e.includes("order lookup") && e.includes("total_fee/fees")), why(r1));
+    assert(r1.errors.some((e) => e.includes("order lookup") && e.includes("no average_fill_price")), why(r1));
     assert(r1.errors.some((e) => e.includes(`floor counts ${bought} as held`) && e.includes("more than the settled book explains")), why(r1));
     assertEquals([w.order(buy.id).state, w.book()], ["new", 0]);               // the book cannot see the coins …
     w.rx.shock["BTC/USD"] = 0.8;
