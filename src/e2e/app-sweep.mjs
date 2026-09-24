@@ -1380,6 +1380,18 @@ async function run() {
       if (glCells.length === rows * 3 && glCells.every((g) => /^[+-]?\$[\d,.]+( \([+-]?[\d.]+%\))?$/.test(g.trim()))) {
         ok(S('agents'), `today, unrealised and realised read like the scoreboard ("${glCells[0].trim()}")`);
       } else fail(S('agents'), `G/L cells: ${glCells.join(' | ')}`);
+      // NEXT reads whole on every row. The quote test's "every minute" needs 93 px where the table gives the column
+      // 66, and was ellipsised to "every mi…" (Davies, 2026-09-23); it now breaks between its words inside the row.
+      const nextCells = await page.evaluate(() => [...document.querySelectorAll('.ag-strategies .ag-row')].map((row) => {
+        const span = row.querySelector('.ag-next');
+        const cell = row.querySelector('td.ag-col-next') || span;
+        return { name: (row.querySelector('.ag-name-btn')?.textContent || '').trim(), text: (span?.textContent || '').trim(), scroll: cell ? cell.scrollWidth : -1, client: cell ? cell.clientWidth : -1 };
+      }));
+      const quotesNext = nextCells.find((c) => c.name === 'Stablecoin quotes');
+      const clippedNext = nextCells.filter((c) => c.scroll > c.client + 0.5);
+      if (quotesNext && quotesNext.text === 'every minute' && clippedNext.length === 0) {
+        ok(S('agents'), `every NEXT cell reads whole, the quote test's "${quotesNext.text}" included (${quotesNext.scroll} of ${quotesNext.client} px)`);
+      } else fail(S('agents'), `NEXT cells cut off: ${JSON.stringify(clippedNext)}; the quote test's reads ${JSON.stringify(quotesNext)}`);
       const todayHead = await page.locator('.ag-strategies th.ag-col-today').count();
       if (vpWidth <= 760 ? true : todayHead === 1) ok(S('agents'), vpWidth <= 760 ? 'the card carries today' : 'the table has a Today column');
       else fail(S('agents'), `Today header cells: ${todayHead}`);

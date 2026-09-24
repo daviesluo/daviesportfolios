@@ -613,6 +613,16 @@ tested on `07c6e44`, NOT applied; D12 (taken but not reported: D8's derived doll
 only, red on `07c6e44`, fix to build.** Left for the main session: land D11, build D12's fix, and fold both into the
 go-live item; this branch is based on `96859b4`.
 
+### [2026-09-24 00:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The stablecoin row's NEXT reads whole** (Davies: the cell was cut off). Measured in the bundle:
+"every minute" needs 93 px, the table gives NEXT 66 px at 1400, 1024 and 800 px wide, so it read
+"every mi…"; the phone's card (338 px) and every strategy's countdown fit. It now breaks between
+its words inside the row the name cell already makes two lines tall (66 of 66 px, row height
+unchanged at 43 px). Sweep 240 → 242: the desktop check fails on the previous bundle; the phone
+one guards the card. All gates green on this tree.
+
+
 ### [2026-09-24 00:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The Agents page opens drawn, the first time after a reload too** (Davies: "every time I open it

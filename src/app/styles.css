@@ -2060,7 +2060,10 @@ body {
 .ag-strategies .ag-table th, .ag-strategies .ag-table td { padding-left: 6px; padding-right: 6px; }
 .ag-strategies .ag-name-btn { white-space: normal; line-height: 1.25; }
 .ag-strategies .ag-venue-signal { display: block; font-size: 10px; }
-.ag-strategies .ag-next { white-space: nowrap; }
+/* NEXT breaks between words rather than being cut: the quote test's "every minute" needs 93 px where the table gives
+   the column 66, and was ellipsised to "every mi…". On two lines it fits the row the name cell already makes two
+   lines tall; a strategy's countdown ("2h 13m") still fits on one. */
+.ag-strategies .ag-next { white-space: normal; }
 /* fixed layout: the table takes exactly the modal's width and wraps inside it, whatever the labels say */
 .ag-strategies .ag-table { table-layout: fixed; width: 100%; }
 .ag-strategies .ag-table td, .ag-strategies .ag-table th { overflow: hidden; text-overflow: ellipsis; }
@@ -2110,6 +2113,7 @@ body {
 /* A badge is never ellipsised: at 10 % the Revolut X badge overflowed its cell by a pixel or two and the
    table's text-overflow drew the first dot of an ellipsis after it — the "small white dot" the owner saw. */
 .ag-strategies .ag-table td.ag-col-venue { overflow: visible; text-overflow: clip; }
+.ag-strategies .ag-table td.ag-col-next { white-space: normal; overflow: visible; text-overflow: clip; }
 .ag-detail-title.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); margin: 0; }
 .ag-detail .hl-scroll { overflow-x: auto; scrollbar-width: none; }
 .ag-detail .hl-scroll::-webkit-scrollbar { display: none; }
