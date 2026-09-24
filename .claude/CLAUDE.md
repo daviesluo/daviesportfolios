@@ -237,12 +237,15 @@ that follow from that evidence, in short:
   coin clears the same bar on Kraken's costs (40 bps maker a side, 80 bps
   a round trip before the spread) and a Kraken book of ≥ $100k a day, and
   joins the Kraken row only, paper first like everything else.
-- **The set that is recommended for live is ONE row**: `trend-4h` on
-  Revolut X, BTC/ETH/SOL/AVAX, four equal $12.50 slots, $50 (Davies,
-  2026-09-24; §3.31) — the
-  allocation study's answer (§3.11) and the go-live brief's
-  (`docs/agents/go-live.md`), reached independently, less SUI (paper
-  only since 2026-09-23, §3.20's addendum). Equal slots per
+- **The set that is live is ONE row**: `trend-4h-live` ("Trend 4h ·
+  Revolut X · live") on Revolut X, BTC/ETH/SOL/AVAX, four equal $12.50
+  slots, $50, created 2026-09-24 22:51:15 UTC by `0054_go_live.sql` and
+  armed the same evening (`live_confirmed_at` 22:53:09.568 UTC) on
+  Davies' word (§3.31, §4.34). That set is the allocation study's
+  answer (§3.11) and the go-live brief's (`docs/agents/go-live.md`),
+  reached independently, less SUI. The paper `trend-4h` row stays the
+  same-venue control and still carries SUI, which does not go live
+  (paper only since 2026-09-23, §3.20's addendum). Equal slots per
   coin, because weighting by a coin's own recent record loses to the
   null on BOTH windows. **Kraken runs no real money**: 80–96 bps a round
   trip needs ~9.7 days to pay back where a Revolut X major needs 2.4 and
@@ -263,14 +266,15 @@ that follow from that evidence, in short:
   caps follow the BOOK while `riskGate` keeps the LABEL. Clearing
   `live_confirmed_at` stops live BUYS only; exits stay armed, and
   `global_pause` is the one switch that outranks an exit. The go-live
-  migration is drafted at `docs/agents/go_live.sql.draft` (unnumbered: it takes the next free number when it moves) — a NEW
-  row `trend-4h-live`, with `trend-4h` kept paper as its same-venue
-  control. Moving it into `supabase/migrations/` creates that row
-  unarmed, with a $15 cap (one slot): arming
-  (`live_confirmed_at`) is one statement run in the conversation where
-  Davies says go; the cap rises to $30 once a person has read the first
-  round trip back and to $75 after a clean week. The audit's D1–D10 and
-  the $50 validation's D11/D12 are fixed and pinned (§4.32–§4.33).
+  migration was applied as `0054_go_live.sql` at 2026-09-24 22:51:15 UTC:
+  a NEW row `trend-4h-live` ("Trend 4h · Revolut X · live"), with
+  `trend-4h` kept paper as its same-venue control. The row was created
+  unarmed, with a $15 cap (one slot); arming (`live_confirmed_at`
+  22:53:09.568 UTC) was the one statement run in the conversation where
+  Davies said go. The cap stays $15 until the first round trip has been
+  read back, then rises to $30, and to $75 after a clean week. The
+  audit's D1–D10 and the $50 validation's D11/D12 are fixed and pinned
+  (§4.32–§4.33).
 - **Jev gates entries with the v2 question at 0.45 (since 2026-09-23,
   §4.21, migration `0047`).** The v1 question listed an "established
   uptrend" checklist (trend_strength moderate/strong, momentum_30d

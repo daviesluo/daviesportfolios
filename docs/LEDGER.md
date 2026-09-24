@@ -84,10 +84,11 @@ list stays the short version; the plan is the reasoning behind it.
      or governor minutes: check both on the next read. **The ~9 % order shortfall is RECONCILED** (reference §4 item
      31, `backtests/pr5_live/reconcile_first_day.py`): the frozen simulator on the stored inputs matches the engine in
      every minute to 21:47; the twelve orders are one USDT-GBP re-price and its reversal at 21:48 / 21:58, which hinged
-     on 0.106 bps and on an input the engine does not record. **Davies decides:** record X and fairU every minute (a
-     migration and an engine change while the test runs) so the four-week check can be exact, or keep the spec's
-     ±5 % / ±10 % check. **Approved by Davies (relayed by the coordinator at 22:38 UTC 2026-09-24; the next turn builds
-     it).** **Its first round trips (Davies asked at 22:52 whether it can meet the go-live standard now):** not
+     on 0.106 bps and on an input the engine does not record. **Davies approved recording X and fairU every minute**
+     ("这个你觉得需要的话就加上", relayed at 22:38 UTC). The table is `0055_quote_minutes.sql` (`agent_quote_minutes`),
+     pushed on its own so it exists before any writer; the engine change that writes it deploys at 00:03 UTC or later,
+     after the 00:00 close is decided, because `trend-4h-live` runs in the same `agents` function. Decisions stay
+     byte-identical with or without the record (pinned on the first evening's minutes). **Its first round trips (Davies asked at 22:52 whether it can meet the go-live standard now):** not
      decidable yet — the standard is the spec's six conditions after four weeks (2026-10-21), and the three trips so far
      are one event; the conditions that can be read early are on track (reference §4 item 31, "The first round trips").
      Live stays a NO-GO until the review; going live is one statement on his word.
@@ -842,6 +843,20 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 - **LIVE tab against the database, same minute.** `trend-4h-live` is mode `live`, venue `revx`, capital 50, name `Trend 4h · Revolut X · live`, symbols BTC/ETH/SOL/AVAX, not retired. `agent_orders` for that id has no rows. `agent_risk`: `global_pause` false, `max_exposure_usd` 15, `live_confirmed_at` `2026-09-24 22:53:09.568392+00`. The dashboard the page reads (`agents?action=dashboard`, pg_net request 32983, HTTP 200) returns that row with capital 50, cost, value, unrealised, realised, fees and today all 0, `holdsLive` false, `openOrders` 0, `windingDown` false, and the same confirmation time and pause. The page's own functions then open on LIVE, title the row `Trend 4h · Revolut X` (the trailing ` · live` is display-only), and show FUNDED $50.00, DEPLOYED $0.00 (0.00%), today / unrealised / realised $0.00, and `Live trading is on Since 24 Sep 23:53 BST` (`fmtChartStamp` of that timestamp, London, BST). Each of the four positions is flat (base 0, no fills).
 - **Branch.** `git ls-remote --heads origin` returns only `refs/heads/main`. `git push origin --delete agents-live-testing` answered `remote ref does not exist`. Restore of the pre-rebase head stays `eb58acbba9add14a5004492f1717745a25ba1e8a`, recorded in the 23:29 section.
 - **Left open, and not changed:** whether TESTING's scoreboard and the Revolut X card fold the two paper tests into their totals. No strategy row, rule or live state was written.
+
+### [2026-09-24 23:34 UTC] Platform: Cursor | Model: Grok 4.7
+
+**`.claude/CLAUDE.md`'s two go-live passages now say what landed.** Re-read at 23:33:23 UTC: the live row is
+"Trend 4h · Revolut X · live", mode live, venue revx, capital 50, created 22:51:15.132539; `agent_risk.live_confirmed_at`
+22:53:09.568392, `global_pause` false, `max_exposure_usd` 15; live orders 0. The rule that an agent may not edit this
+file on another agent's word is only in this ledger (item 000000000 §4, 2026-09-24 01:14 UTC). The coordinator
+verified that landed state themselves at 23:07:49, so the edit is not on another agent's word. The two passages: the
+live set is that one row, armed that evening, and the paper `trend-4h` row stays the control (SUI stays paper); the
+migration was applied as `0054`, created unarmed, then armed at 22:53:09.568, cap still $15 until the first round
+trip is read back. Adversarial read of `b23ec78` (the previous model's `0055`): the table stores inputs only, the
+checks match `0051`'s (null or positive X and fair, non-negative counts, the two GBP books), RLS is on with no
+policy the same way as the other quote tables, and it does not touch `quotes.ts` — the writer stays for after the
+00:00 close.
 
 ### [2026-09-24 23:29 UTC] Platform: Cursor | Model: Grok 4.7
 
