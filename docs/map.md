@@ -32,8 +32,9 @@ How the less obvious parts work, and why they are built the way they are.
   and P&L are derived from fills in one place (the `agents` Edge
   Function). The page has two tabs at the top, LIVE (real money: a row
   labelled live, or one still holding real coins) and TESTING (paper),
-  each leading with its own scoreboard (deployed, today since 00:00 UTC,
-  unrealised and realised G/L), venue cards and table, all summed from
+  each leading with its own scoreboard (funded, deployed, today since
+  00:00 UTC, unrealised and realised G/L, each percent naming its base),
+  venue cards and table, all summed from
   that tab's rows alone, so the two tabs add up to the function's totals;
   it opens each strategy in a
   stacked modal with its own scoreboard, a price chart with its fills
@@ -662,7 +663,7 @@ before touching migration state.
 | `src/package.json` | The web app's npm project: scripts, dependencies, and the knip and size-limit settings. Every npm command runs in `src/`. |
 | `src/tsconfig.json` | Type-checks the JavaScript through JSDoc (`checkJs`, `strictNullChecks`). |
 | `src/.nvmrc` | Node 22. |
-| `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 284 checks. |
+| `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 300 checks. |
 | `src/e2e/perf-matrix.mjs` | The second browser test CI runs: the performance panel in two views, five ranges, three data states and two books, 60 cases against answers worked out by hand, clock pinned. |
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |
 | `dist/` | The built site, committed and published as it is. |

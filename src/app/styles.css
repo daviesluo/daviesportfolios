@@ -1891,8 +1891,6 @@ body {
    "…between 78-79°F on September 17?" down to "Will the highest temperature in Los Ang…", which names no market. */
 .ag-rw-q { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; white-space: normal; max-width: 340px; margin: 0 auto; line-height: 1.35; }
 .ag-rw-market .hl-sub { display: block; font-weight: 400; }
-.ag-rw-note { margin: 8px 0 2px; font-size: 11px; line-height: 1.5; }
-.ag-rw-grid { max-width: 420px; }
 @media (max-width: 760px) { .ag-rw-q { max-width: 200px; -webkit-line-clamp: 4; } }
 .ag-next { white-space: nowrap; }
 .ag-basis .ag-table td { padding: 6px 10px; }
@@ -2110,14 +2108,14 @@ body {
 .ag-scoreboard { justify-content: space-between; }
 .ag-sb-cell { flex: 1 1 0; }
 .ag-sb-cell-main { flex: 0 0 auto; min-width: 100px; }
-/* The strategies table is a fixed layout that fits the modal: one set of widths, summing to 100. */
-.ag-strategies .ag-table .ag-col-name { width: 24%; }
+/* The strategies table is a fixed layout that fits the modal: one set of widths, summing to 100. No Mode column
+   since the page has its LIVE and TESTING tabs (Davies, 2026-09-24). */
+.ag-strategies .ag-table .ag-col-name { width: 27%; }
 .ag-strategies .ag-table .ag-col-venue { width: 12%; }
-.ag-strategies .ag-table .ag-col-mode { width: 7%; }
-.ag-strategies .ag-table .ag-col-today { width: 15%; }
-.ag-strategies .ag-table .ag-col-unrealised { width: 17%; }
-.ag-strategies .ag-table .ag-col-realised { width: 17%; }
-.ag-strategies .ag-table .ag-col-next { width: 8%; }
+.ag-strategies .ag-table .ag-col-today { width: 16%; }
+.ag-strategies .ag-table .ag-col-unrealised { width: 18%; }
+.ag-strategies .ag-table .ag-col-realised { width: 18%; }
+.ag-strategies .ag-table .ag-col-next { width: 9%; }
 .ag-strategies .ag-table td.ag-col-today, .ag-strategies .ag-table td.ag-col-unrealised, .ag-strategies .ag-table td.ag-col-realised { overflow: visible; text-overflow: clip; }
 /* A badge is never ellipsised: at 10 % the Revolut X badge overflowed its cell by a pixel or two and the
    table's text-overflow drew the first dot of an ellipsis after it — the "small white dot" the owner saw. */
@@ -2131,8 +2129,88 @@ body {
   .ag-detail .ag-ph { display: none; }
 }
 
+/* A scoreboard label is its name and, each on a line of its own, what the cell's percent is of and what else it
+   holds. `.sb-label` is a flex ROW, so an aside beside the name broke into two ragged columns on a phone; a column
+   never does. */
+.sb-label.ag-sb-label { flex-direction: column; align-items: flex-start; gap: 2px; }
+.ag-sb-name { white-space: nowrap; }
+.ag-sb-aside { font-size: 9px; line-height: 1.3; }
+/* Five cells — FUNDED, DEPLOYED, TODAY, UNREALIZED, REALIZED (Davies, 2026-09-24) — each three rows of one grid:
+   label, figure, what is under the figure. Rows are shared (subgrid), so the figures stand on one line and so do the
+   lines under them, whatever each label says. A phone gives FUNDED the top row and the other four two rows of two. */
+.ag-scoreboard {
+  display: grid; grid-auto-flow: column; grid-template-rows: auto auto auto;
+  grid-template-columns: auto 1px auto 1px minmax(0, 1fr) 1px minmax(0, 1fr) 1px minmax(0, 1fr);
+  column-gap: 16px; row-gap: 3px; padding: 12px 18px;
+}
+.ag-sb-cell { display: grid; grid-template-rows: subgrid; grid-row: span 3; min-width: 0; }
+.ag-sb-cell > .sb-value { align-self: end; }
+.ag-sb-divider { grid-row: span 3; width: 1px; }
+.ag-sb-deployed-pct { margin-left: 6px; font-size: 12px; font-weight: 500; color: var(--chalk-dim); }
+.ag-sb-extra { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+/* How much of the funding is deployed: a hairline, gold once profits put more to work than was funded. */
+.ag-sb-meter { display: block; width: 100%; max-width: 150px; height: 3px; margin-top: 4px; border-radius: 2px; background: rgba(244,239,227,0.1); overflow: hidden; }
+.ag-sb-meter > span { display: block; height: 100%; border-radius: 2px; background: rgba(232,228,218,0.7); }
+.ag-sb-meter.is-over > span { background: #d9c37a; }
+/* RW's rewards and orders under realised and unrealised: a name and a figure a line. */
+.ag-sb-split { display: flex; justify-content: space-between; gap: 10px; max-width: 180px; font-size: 10.5px; line-height: 1.35; }
 @media (max-width: 760px) {
-  .ag-sb-aside { display: block; }
+  .ag-scoreboard { grid-auto-flow: row; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: none; gap: 3px 14px; padding: 12px 14px; }
+  .ag-sb-cell-funded { grid-column: 1 / -1; grid-row: auto; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding-bottom: 8px; margin-bottom: 7px; border-bottom: 1px solid var(--line-2); }
+  .ag-sb-cell-funded > .ag-sb-extra { display: none; }
+  .ag-sb-cell-funded > .sb-value { align-self: center; }
+  .ag-sb-cell:not(.ag-sb-cell-funded) > .ag-sb-extra { margin-bottom: 8px; }
+}
+/* What a column's percent is of, under its heading; a paper test's own base under its figure, where it differs. */
+.ag-th-base, .ag-cell-base { display: block; margin-top: 2px; font-size: 9px; font-weight: 400; letter-spacing: 0; color: var(--chalk-mute); }
+.ag-cell-base { margin-top: 1px; }
+/* A paper test's row, and a venue card beside it, say the totals leave it out. */
+.ag-name-apart { grid-column: 2; margin-top: 2px; font-size: 10px; line-height: 1.3; }
+.ag-venue-apart { margin-top: 8px; font-size: 10px; line-height: 1.4; }
+/* A figure's label in a card: its name, and what its percent is of on a small line under it. */
+.ag-fig-label { display: flex; flex-direction: column; min-width: 0; }
+.ag-fig-base { font-size: 9px; line-height: 1.3; color: var(--chalk-mute); }
+.ag-fig-pct { font-weight: 400; }
+
+/* Every agents page is one size (Davies, 2026-09-24): LIVE, TESTING and each page opened over them keep the window
+   they opened in, whatever they hold. On a phone every page is the whole screen already. */
+@media (min-width: 761px) {
+  .modal.size-lg:has(.ag-body) { height: 85vh; }
+  .modal.size-lg:has(.ag-body) > .modal-body { flex: 1 1 auto; }
+}
+
+/* Three venues on TESTING — Revolut X, Binance and Polymarket (Davies, 2026-09-24) — side by side on a desk. */
+@media (min-width: 761px) {
+  .ag-venue-cards.is-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ag-venue-cards.is-three .ag-venue-meta { font-size: 10px; }
+}
+/* Realised's two parts on Polymarket's card, a step in under it: its rewards, and what its orders made. */
+.ag-venue-grid > .ag-fig-sub { font-size: 11px; }
+.ag-venue-grid > span.dim.ag-fig-sub { padding-left: 12px; }
+.ag-venue-card-polymarket { border-left-color: rgba(125,139,255,0.75); }
+.ag-share-polymarket { background: rgba(125,139,255,0.35); color: #eef0ff; }
+
+/* RW's bar: where the run is, then four tiles — the total and its rewards and orders, the pessimistic total, the
+   fills against the 100 it needs, the best market's share. Polymarket's blue marks the run and the fills. */
+.ag-rw-bar-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 8px; }
+.ag-rw-bar-head .ag-section-title { margin-bottom: 0; }
+.ag-rw-when { font-size: 11px; color: var(--chalk-dim); }
+.ag-rw-run { height: 3px; margin-bottom: 10px; border-radius: 2px; background: rgba(244,239,227,0.08); overflow: hidden; }
+.ag-rw-run > span, .ag-rw-meter > span { display: block; height: 100%; border-radius: 2px; background: #7d8bff; }
+.ag-rw-bar.is-warm-up .ag-rw-run { display: none; }
+.ag-rw-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ag-rw-tile { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(0,0,0,0.22); }
+.ag-rw-tile-total { border-left: 3px solid rgba(125,139,255,0.75); }
+.ag-rw-tile-k { font-size: 9px; letter-spacing: 0.18em; color: var(--chalk-dim); }
+.ag-rw-tile-v { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ag-rw-of { font-size: 11px; font-weight: 400; }
+.ag-rw-tile-sub { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.ag-rw-tile-note { font-size: 10.5px; line-height: 1.35; }
+.ag-rw-meter { height: 4px; margin-top: 3px; border-radius: 2px; background: rgba(244,239,227,0.08); overflow: hidden; }
+.ag-rw-warmup-day td { opacity: 0.6; }
+@media (max-width: 760px) {
+  .ag-rw-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .ag-rw-tile-v { font-size: 15px; }
 }
 
 /* ── agents: LIVE and TESTING, the two tabs at the top (Davies, 2026-09-24) ──

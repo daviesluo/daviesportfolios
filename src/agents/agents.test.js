@@ -5,7 +5,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwRow, rwView, fmtCents, rwHeldText, venueLabel,
-  AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
+  AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
@@ -464,10 +464,12 @@ describe('agentsAlerts', () => {
     const out = agentsAlerts(dash);
     expect(out.map((a) => a.id)).toEqual(['live-unconfirmed']);
     // Since 2026-09-22 clearing the confirmation stops the BUYING only. The banner said every live order was refused,
-    // which would have told the owner a position had no way out while its floor was running.
-    expect(out[0].text).toContain('ENTRY');
-    expect(out[0].text).toContain('exits');
-    expect(out[0].text).not.toContain('every live order');
+    // which would have told the owner a position had no way out while its floor was running. Since 2026-09-24 it says
+    // so in plain words (Davies: anyone must be able to read it), and in amber: it is the state before the go.
+    expect(out[0]).toMatchObject({ tone: 'stop', label: 'Live trading is not on yet' });
+    expect(out[0].text).toContain('will not buy');
+    expect(out[0].text).toContain('still sold');
+    expect(out[0].text).not.toMatch(/every live order|live_confirmed_at|ENTRY|exits/);
     expect(agentsAlerts({ ...dash, risk: { live_confirmed_at: '2026-09-21T00:00:00Z' } })).toEqual([]);
     expect(agentsAlerts({ ...dash, strategies: [{ ...dash.strategies[0], mode: 'paper' }] })).toEqual([]);   // paper needs no confirmation
   });
@@ -716,6 +718,16 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     expect(split.testing.map((r) => r.id)).toEqual(['momentum-1d', 'trend-4h', 'trend-4h-binance']);
     expect(splitStrategyRows(strategyRows({ strategies: [row('x', 'revx', 'paper', 40, [0, 0, 0, 0, 0, 0], { holdsLive: true })] }, NOW)).live.length).toBe(1);
   });
+  it('says what each total covers, and what each percent is of', () => {
+    expect([scoreboardView(dash, 'live').strategies, scoreboardView(dash, 'testing').strategies, scoreboardView(dash).strategies]).toEqual([1, 3, 4]);
+    expect(pctOf(360, 'capital')).toBe('% of $360.00 capital');
+    expect(pctOf(99.75, 'held', (s) => s.replace(/\d/g, '•'))).toBe('% of $••.•• held');   // a base is money: the mask covers it
+    // The paper tests are rows of TESTING that no total adds up, and each says what its unrealised percent is of.
+    const q = quotesRow({ capitalUsd: 1200, openUsd: 99.75, unrealisedUsd: 0.14, running: true, lagMinutes: 1 });
+    const w = rwRow({ capitalUsd: 296, heldUsd: 14.4, totalUsd: 41, realisedUsd: 42, unrealisedUsd: -1, running: true, lagMinutes: 2 });
+    expect([q?.apart, q?.unrealisedOf, w?.apart, w?.unrealisedOf]).toEqual([true, 'deployed', true, 'deployed']);
+    expect(strategyRows(dash, NOW).some((r) => 'apart' in r)).toBe(false);
+  });
   it('over every row, the page\'s sums are the server\'s own totals and byVenue, to the last bit', () => {
     const all = scoreboardView(dash);
     for (const k of keys) expect(all[k]).toBe(dash.totals[k]);
@@ -757,12 +769,15 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     // down, and "awaiting arming" would say arming could change that.
     const winding = { ...dash, strategies: [...rows.slice(0, 3), { ...rows[3], mode: 'paused', windingDown: true }] };
     expect(liveArming(winding)).toEqual({ state: 'winding', since: null, paused: false, count: 1 });
-    expect(agentsTabsView(winding).live).toMatchObject({ text: 'Real money · winding down', tone: 'winding' });
+    expect(agentsTabsView(winding).live).toMatchObject({ text: 'Real money · selling what it holds', tone: 'winding' });
     const words = (d, extra = 0) => { const v = agentsTabsView(d, extra); return [v.live.count, v.live.text, v.live.tone, v.testing.count, v.testing.text, v.testing.tone]; };
-    expect(words(armed, 2)).toEqual([1, 'Real money · armed', 'armed', 5, 'Paper · no real money', 'paper']);   // the two paper tests' rows count on TESTING
-    expect(words(dash)).toEqual([1, 'Real money · awaiting arming', 'unarmed', 3, 'Paper · no real money', 'paper']);
-    expect(words({ ...armed, risk: { ...armed.risk, global_pause: true } })).toEqual([1, 'Real money · paused', 'paused', 3, 'Paper · no real money', 'paper']);
-    expect(words({ strategies: rows.slice(0, 3) }, 2)).toEqual([0, 'Nothing is live', 'none', 5, 'Paper · no real money', 'paper']);
+    // TESTING's count takes in the two paper tests' rows, and its line says how many of the rows are strategies — the
+    // ones its totals add up — and how many are tests.
+    expect(words(armed, 2)).toEqual([1, 'Real money · trading', 'armed', 5, 'Paper · 3 strategies, 2 tests', 'paper']);
+    expect(words(dash)).toEqual([1, 'Real money · not trading yet', 'unarmed', 3, 'Paper · 3 strategies', 'paper']);
+    expect(words({ ...armed, risk: { ...armed.risk, global_pause: true } })).toEqual([1, 'Real money · paused', 'paused', 3, 'Paper · 3 strategies', 'paper']);
+    expect(words({ strategies: rows.slice(0, 3) }, 2)).toEqual([0, 'Nothing is live', 'none', 5, 'Paper · 3 strategies, 2 tests', 'paper']);
+    expect(words({ strategies: rows.slice(1, 2) }, 1)).toEqual([0, 'Nothing is live', 'none', 2, 'Paper · 1 strategy, 1 test', 'paper']);
   });
   it('puts each banner on the tabs it concerns', () => {
     const now = Date.parse('2026-09-21T12:10:00Z');
@@ -882,6 +897,54 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
   it('writes a price in cents and a holding as the side it is long', () => {
     expect([fmtCents(0.49), fmtCents(0.045), fmtCents(0.5), fmtCents(null)]).toEqual(['49¢', '4.5¢', '50¢', '—']);
     expect([rwHeldText(20), rwHeldText(-20), rwHeldText(0), rwHeldText(2.5)]).toEqual(['20 Yes', '20 No', '—', '2.50 Yes']);
+  });
+  it('prints realised and unrealised, and rewards and orders, so every part adds up to the total printed beside it', () => {
+    // Production, 2026-09-24 (the ops read): total +$34.23 beside realised 55.75 and unrealised −21.53, which make 34.22.
+    // Figures of that shape: each part rounds on its own the way it did, and the rounded parts miss the rounded total.
+    const live = { ...r, totalUsd: 34.227, realisedUsd: 55.754, unrealisedUsd: -21.527, rewardUsd: 48.7149, fillsPnlUsd: 34.227 - 48.7149, mismatchUsd: 0 };
+    const printed = (x) => Math.round(Number(fmtUsd(x).replace(/[^0-9.-]/g, '')) * 100);
+    expect([fmtUsd(55.754), fmtUsd(-21.527), fmtUsd(34.227)]).toEqual(['$55.75', '-$21.53', '$34.23']);   // each alone: 34.22 of parts
+    const row = rwRow(live), view = rwView(live);
+    expect([fmtUsd(row?.realisedUsd), fmtUsd(row?.unrealisedUsd), fmtUsd(view?.totalUsd)]).toEqual(['$55.76', '-$21.53', '$34.23']);
+    const T = printed(view?.totalUsd);
+    expect(printed(row?.realisedUsd) + printed(row?.unrealisedUsd)).toBe(T);
+    expect(printed(view?.rewardUsd) + printed(view?.ordersUsd)).toBe(T);
+    // Davies (2026-09-24): realised and unrealised each split into rewards and what orders made, printed to add up.
+    expect(printed(row?.rewards.realisedUsd) + printed(row?.orders.realisedUsd)).toBe(printed(row?.realisedUsd));
+    expect(printed(row?.rewards.unrealisedUsd) + printed(row?.orders.unrealisedUsd)).toBe(printed(row?.unrealisedUsd));
+    expect(row?.rewards.realisedUsd).toBe(view?.rewardUsd);                                  // one rewards figure on the page
+    expect(printed(row?.orders.realisedUsd) + printed(row?.orders.unrealisedUsd)).toBe(printed(view?.ordersUsd));
+    // The row the table shows and the page's scoreboard are one object: the realised the table prints is the page's.
+    expect(row?.realisedPct).toBeCloseTo((55.76 / 296) * 100, 12);
+  });
+});
+
+describe('splitCents — parts that add up to their total as printed', () => {
+  const printed = (x) => Math.round(Number(fmtUsd(x).replace(/[^0-9.-]/g, '')) * 100);
+  it('gives each missing cent to the part rounding cut the most', () => {
+    expect(splitCents(34.227, [55.754, -21.527])).toEqual({ total: 34.23, parts: [55.76, -21.53] });
+    expect(splitCents(0.01, [0.005, 0.005])).toEqual({ total: 0.01, parts: [0, 0.01] });        // each alone rounds up: 0.02 of parts
+    expect(splitCents(-0.01, [-0.005, -0.005])).toEqual({ total: -0.01, parts: [0, -0.01] });
+    expect(splitCents(0.01, [0.0033, 0.0033, 0.0034])).toEqual({ total: 0.01, parts: [0, 0, 0.01] });  // three pieces, none a cent alone
+    expect(splitCents(60, [61, -1])).toEqual({ total: 60, parts: [61, -1] });                   // nothing to hand out
+    expect(splitCents(-0.125, [-0.125, 0])).toEqual({ total: -0.13, parts: [-0.13, 0] });       // halves away from zero, as fmtMoney prints them
+  });
+  it('leaves parts that really disagree with their total as they are, so the disagreement still shows', () => {
+    expect(splitCents(10, [7.004, 3.006])).toEqual({ total: 10, parts: [7, 3.01] });            // off by a cent: shown, not hidden
+    expect(splitCents(Number.NaN, [1, 2])).toEqual({ total: Number.NaN, parts: [1, 2] });
+  });
+  it('over 2,000 random splits into two and three, the printed parts add up to the printed total, each within a cent', () => {
+    let seed = 20260924;
+    const rand = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
+    const draw = () => Math.round((rand() - 0.5) * 5e6) / 1e4;       // ±$250, so no part reaches the $1,000 where fmtMoney drops cents
+    for (let i = 0; i < 2000; i++) {
+      const total = draw(), a = draw(), c = i % 2 ? draw() : null;
+      const parts = c == null ? [a, total - a] : [a, c, total - a - c];
+      const s = splitCents(total, parts);
+      expect(s.parts.reduce((x, p) => x + printed(p), 0)).toBe(printed(s.total));
+      expect(fmtUsd(s.total)).toBe(fmtUsd(total));                                              // the total prints as it always did
+      s.parts.forEach((p, k) => expect(Math.abs(p - parts[k])).toBeLessThan(0.01 + 1e-9));
+    }
   });
 });
 

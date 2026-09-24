@@ -496,10 +496,11 @@ const AGENTS_NOT_READY = {
  * Flipped by the agents section to prove the page renders its other
  * states too: `notReady` (the tables are not there yet), `error` (the
  * function fell over: a 500 with the server's envelope), `paused` (the
- * dashboard with a global pause set and a venue reporting a fault), and
- * `live` / `live-unarmed` (a row trading real money, armed or not).
+ * dashboard with a global pause set and a venue reporting a fault),
+ * `live` / `live-unarmed` (a row trading real money, armed or not), and
+ * `rw-cents` (RW's figures where each part rounds on its own).
  */
-let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed'} */ ('ok');
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents'} */ ('ok');
 /**
  * The reload section's levers: the book the `data` function hands back (a
  * server row's prices are those of its last SAVE, not what the page showed),
@@ -549,27 +550,57 @@ function readAgentsPanel(page) {
         tone: ([...b.classList].find((c) => /^is-(armed|unarmed|paused|winding|none|paper)$/.test(c)) || '').replace('is-', ''),
       })),
       tabsOutsideBody: !!document.querySelector('.modal > .ag-modebar') && !document.querySelector('.modal-body .ag-modebar'),
-      scoreboard: all(':scope > .ag-scoreboard .ag-sb-cell').map((c) => ({ label: txt(c.querySelector('.sb-label')), value: txt(c.querySelector('.sb-value')) })),
+      modalHeight: Math.round(document.querySelector('.modal')?.getBoundingClientRect().height ?? 0),
+      // A scoreboard cell: its name, the lines under the name (what its percent is of, what else is in it), its figure,
+      // and the lines under the figure (RW's rewards and orders).
+      scoreboard: all(':scope > .ag-scoreboard .ag-sb-cell').map((c) => ({
+        name: txt(c.querySelector('.ag-sb-name')), asides: [...c.querySelectorAll('.ag-sb-aside')].map(txt),
+        value: txt(c.querySelector('.sb-value')), split: [...c.querySelectorAll('.ag-sb-split')].map(txt),
+      })),
       venues: all('.ag-venue-card').map((c) => {
-        const cells = [...c.querySelectorAll('.ag-venue-grid > span')].map(txt);
+        const cells = [...c.querySelectorAll('.ag-venue-grid > span')];
         /** @type {Record<string, string>} */
-        const pairs = {};
-        for (let i = 0; i + 1 < cells.length; i += 2) pairs[cells[i]] = cells[i + 1];
-        return { id: ([...c.classList].find((x) => /^ag-venue-card-/.test(x)) || '').replace('ag-venue-card-', ''), meta: txt(c.querySelector('.ag-venue-meta')), pairs };
+        const pairs = {}, bases = {};
+        for (let i = 0; i + 1 < cells.length; i += 2) {
+          const key = txt(cells[i].querySelector('.ag-fig-name') ?? cells[i]);
+          pairs[key] = txt(cells[i + 1]);
+          if (cells[i].querySelector('.ag-fig-base')) bases[key] = txt(cells[i].querySelector('.ag-fig-base'));
+        }
+        return { id: ([...c.classList].find((x) => /^ag-venue-card-/.test(x)) || '').replace('ag-venue-card-', ''), meta: txt(c.querySelector('.ag-venue-meta')), pairs, bases, apart: txt(c.querySelector('.ag-venue-apart')) };
       }),
       shareBar: all('.ag-share-bar').length,
+      shares: all('.ag-share').map(txt),
       arming: txt(panel?.querySelector('.ag-arming')),
-      alerts: all('.ag-alert').map((a) => ({ label: txt(a.querySelector('.ag-alert-label')), text: txt(a.querySelector('.ag-alert-text')) })),
+      alerts: all('.ag-alert').map((a) => ({ label: txt(a.querySelector('.ag-alert-label')), text: txt(a.querySelector('.ag-alert-text')), tone: [...a.classList].find((x) => /^is-/.test(x)) || '' })),
       empty: txt(panel?.querySelector('.ag-nolive')),
       sections: all('.ag-strategies .ag-section-title').map(txt),
+      heads: all('.ag-strategies thead th').map((th) => [txt(th.firstChild ?? th), txt(th.querySelector('.ag-th-base'))].filter(Boolean).join(' / ')),
       rows: all('.ag-strategies .ag-row').map((r) => ({
-        name: txt(r.querySelector('.ag-name-btn')), sub: txt(r.querySelector('.ag-name-cell .hl-sub')), venue: txt(r.querySelector('.ag-venue')),
-        mode: txt(r.querySelector('.ag-badge')), gl: [...r.querySelectorAll('.ag-gl')].map(txt), next: txt(r.querySelector('.ag-next')),
+        name: txt(r.querySelector('.ag-name-btn')), sub: txt(r.querySelector('.ag-name-cell .hl-sub')), apart: txt(r.querySelector('.ag-name-apart')),
+        venue: txt(r.querySelector('.ag-venue')), badges: r.querySelectorAll('.ag-badge').length,
+        gl: [...r.querySelectorAll('.ag-gl')].map(txt), bases: [...r.querySelectorAll('.ag-cell-base')].map(txt), next: txt(r.querySelector('.ag-next')),
       })),
       updated: txt(panel?.querySelector('.ag-updated')),
     };
   });
 }
+/**
+ * RW with figures of the shape the ops read on production (2026-09-24), where each part rounds on its own as it did:
+ * total 34.227 prints $34.23 while realised 55.754 and unrealised −21.527 print 55.75 and −21.53, and rewards 48.7149
+ * and orders −14.4879 print 48.71 and −14.49; and a market whose rewards 18.4049 and orders 0.2049 print 18.40 and 0.20
+ * beside its total 18.6098, $18.61. Worked by hand (largest remainder, `rwSplit`): rewards $48.72, closed orders
+ * +$7.04, open orders −$21.53, so realised +$55.76, orders −$14.49, total +$34.23; the market $18.41 + $0.20 = $18.61.
+ */
+const AGENTS_RW_CENTS = () => {
+  const d = AGENTS_DASHBOARD, rw = d.rw;
+  return {
+    ...d,
+    rw: {
+      ...rw, totalUsd: 34.227, rewardUsd: 48.7149, fillsPnlUsd: 34.227 - 48.7149, realisedUsd: 55.754, unrealisedUsd: -21.527, mismatchUsd: 0,
+      markets: rw.markets.map((x, i) => (i === 0 ? { ...x, rewardUsd: 18.4049, fillsPnlUsd: 0.2049, totalUsd: 18.6098 } : x)),
+    },
+  };
+};
 const AGENTS_PAUSED = () => ({
   ...AGENTS_DASHBOARD,
   risk: { ...AGENTS_DASHBOARD.risk, global_pause: true },
@@ -697,6 +728,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'notReady') return json(AGENTS_NOT_READY);
       if (agentsMode === 'paused') return json(AGENTS_PAUSED());
       if (agentsMode === 'live' || agentsMode === 'live-unarmed') return json(AGENTS_LIVE(agentsMode === 'live'));
+      if (agentsMode === 'rw-cents') return json(AGENTS_RW_CENTS());
       if (agentsMode === 'error') {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
       }
@@ -1539,7 +1571,7 @@ async function run() {
       if (vpWidth <= 760 ? true : todayHead === 1) ok(S('agents'), vpWidth <= 760 ? 'the card carries today' : 'the table has a Today column');
       else fail(S('agents'), `Today header cells: ${todayHead}`);
       // Today is the one cell a fixture of all zeros cannot test: the payload carries +$0.42 on the row with a book.
-      const sbToday = await page.locator('.ag-scoreboard .ag-sb-cell', { has: page.locator('.sb-label:text-is("TODAY")') }).locator('.ag-sb-usd').textContent().catch(() => '');
+      const sbToday = await page.locator('.ag-scoreboard .ag-sb-cell', { has: page.locator('.ag-sb-name:text-is("TODAY")') }).locator('.ag-sb-usd').textContent().catch(() => '');
       const rowToday = (await page.locator(vpWidth <= 760 ? '.ag-card-strategy .ag-card-today' : 'td.ag-col-today .ag-gl').allTextContents()).map((t) => t.trim());
       const signedToday = rowToday.filter((t) => /^\+\$0\.42/.test(t)).length;
       if (money(sbToday) === 0.42 && /^\+/.test((sbToday || '').trim()) && signedToday === 1) {
@@ -1567,20 +1599,23 @@ async function run() {
         if (nameAlign === 'left') ok(S('agents'), 'the strategy name reads from the left, under the dot beside it');
         else fail(S('agents'), `name column text-align ${nameAlign}`);
       }
-      const sbCells = await page.locator('.ag-scoreboard .sb-label').allTextContents();
-      if (sbCells.join('|') === 'DEPLOYED|TODAY|UNREALIZED G/L|REALIZED G/L (incl. fees $0.08)') {
-        ok(S('agents'), 'four cells, no total, the fees ride on the realised label, and DEPLOYED carries no (Paper)');
+      // Five cells since 2026-09-24 (Davies): FUNDED before DEPLOYED, DEPLOYED as a percent of it; no total; each percent
+      // names its base under its label, and the fees ride on realised's.
+      const sbCells = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell').evaluateAll((els) => els.map((c) =>
+        [c.querySelector('.ag-sb-name')?.textContent, ...[...c.querySelectorAll('.ag-sb-aside')].map((a) => a.textContent)].map((t) => (t || '').trim()).join(' / ')));
+      if (sbCells.join(' | ') === 'FUNDED / 6 strategies | DEPLOYED / % of funded | TODAY / % of funded | UNREALIZED G/L / % of $20.00 cost | REALIZED G/L / % of funded / incl. fees $0.08') {
+        ok(S('agents'), 'five cells, FUNDED first, no total; each percent names its base and the fees ride on realised, DEPLOYED carries no (Paper)');
       } else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}`);
       const under = await page.locator('.ag-sb-under').count();
       if (under === 0) ok(S('agents'), 'no explanatory line under the scoreboard');
       else fail(S('agents'), `${under} sub-lines under the scoreboard`);
-      const cardLabels = await page.locator('.ag-venue-card-binance .ag-venue-grid > .dim').allTextContents();
+      const cardLabels = (await page.locator('.ag-venue-card-binance .ag-venue-grid .ag-fig-name').allTextContents()).map((t) => t.trim());
       if (cardLabels.includes('unrealised') && cardLabels.includes('realised') && !cardLabels.some((t) => /total/.test(t))) ok(S('agents'), 'a venue card shows unrealised and realised, no total');
       else fail(S('agents'), `venue card rows: ${cardLabels.join(' | ')}`);
       // Davies, 2026-09-23: funded says "(Paper)" and deployed does not — one label is enough — and the paper capital
       // row is gone: its figure IS the funding now, and the accounts' real balances are not on the page (every row
       // trades paper; they only misled).
-      const revxLabels = await page.locator('.ag-venue-card-revx .ag-venue-grid > .dim').allTextContents();
+      const revxLabels = (await page.locator('.ag-venue-card-revx .ag-venue-grid .ag-fig-name').allTextContents()).map((t) => t.trim());
       if (['funded (Paper)', 'deployed'].every((l) => revxLabels.includes(l) && cardLabels.includes(l)) && ![...revxLabels, ...cardLabels].some((t) => /paper capital|deployed \(Paper\)/.test(t))) ok(S('agents'), 'both cards read funded (Paper) and a bare deployed, with no paper capital row');
       else fail(S('agents'), `card labels: revx ${revxLabels.join(' | ')} / binance ${cardLabels.join(' | ')}`);
       // PR5's quotes on paper are a row of TESTING STRATEGIES (Davies, 2026-09-23), last, in a strategy's cells; the card
@@ -1588,9 +1623,9 @@ async function run() {
       const quoteRow = page.locator('.ag-strategies-testing .ag-row', { has: page.locator('.ag-name-btn:text-is("Stablecoin quotes")') });
       const quoteRowText = (await quoteRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const oldCard = await page.locator('.ag-quotes .ag-section-title').count() + await page.locator('text=STABLECOIN QUOTES — PAPER TEST').count();
-      if (await quoteRow.count() === 1 && /Revolut X/.test(quoteRowText) && /Paper/i.test(quoteRowText) && /1 open · \$1,200 cap/.test(quoteRowText)
-        && /\+\$0\.42/.test(quoteRowText) && /\+\$0\.12/.test(quoteRowText) && /\+\$0\.14/.test(quoteRowText) && oldCard === 0) {
-        ok(S('agents'), 'the quote test is a testing row: Revolut X, Paper, 1 open of $1,200, today +$0.12, unrealised +$0.14, realised +$0.42; no card below');
+      if (await quoteRow.count() === 1 && /Revolut X/.test(quoteRowText) && /not in the scoreboard/.test(quoteRowText) && /1 open · \$1,200 cap/.test(quoteRowText)
+        && /\+\$0\.42/.test(quoteRowText) && /\+\$0\.12/.test(quoteRowText) && /\+\$0\.14 \(\+0\.14%\)/.test(quoteRowText) && /% of deployed/.test(quoteRowText) && oldCard === 0) {
+        ok(S('agents'), 'the quote test is a testing row: Revolut X, 1 open of $1,200, not in the scoreboard, today +$0.12, unrealised +$0.14 (of deployed), realised +$0.42; no card below');
       } else fail(S('agents'), `quote row "${quoteRowText}", old card sections ${oldCard}`);
       const quotesInVenues = await page.locator('.ag-venue-cards .ag-quotes-card, .ag-quotes-cards .ag-venue-card').count();
       if (quotesInVenues === 0) ok(S('agents'), 'no quote card is a venue card, and no venue selector reaches one');
@@ -1599,8 +1634,9 @@ async function run() {
       await quoteRow.first().click();
       await page.waitForSelector('.ag-quotes-detail', { timeout: 5_000 }).catch(() => {});
       const qTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
-      // A label may carry its aside in brackets, as a strategy's REALIZED carries its fees.
-      const qLabels = (await page.locator('.ag-quotes-detail .ag-scoreboard-sm .sb-label').allTextContents()).map((t) => t.replace(/\s*\(.*\)\s*$/, '').trim());
+      // Its scoreboard's names; its head keeps the mode and the status, and lost its line of detail (Davies, 2026-09-24).
+      const qLabels = (await page.locator('.ag-quotes-detail .ag-scoreboard-sm .ag-sb-name').allTextContents()).map((t) => t.trim());
+      const qHeadMeta = await page.locator('.ag-quotes-detail .ag-detail-head .ag-venue-meta').count();
       const qAside = ((await page.locator('.ag-quotes-detail .ag-quotes-foot').textContent().catch(() => '')) || '').trim();
       const qBooks = (await page.locator('.ag-quotes-detail .ag-quotes-card .ag-quotes-head .hl-strong').allTextContents()).map((t) => t.trim());
       const qRungs = await page.locator('.ag-quotes-detail .ag-ladder tbody tr').count();
@@ -1609,10 +1645,10 @@ async function run() {
       const qFirst = ((await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
       await shot(page, 'agents-quotes');
       const qStacked = await page.locator('.modal').count();
-      if (qTitle === 'Stablecoin quotes' && qLabels.join(',') === 'DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && /round trips 7 · 86 % won/.test(qAside) && /205 of 1,000 · 8 filled/.test(qAside) && qBooks.join(',') === 'USDC/GBP,USDT/GBP'
+      if (qTitle === 'Stablecoin quotes' && qLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && qHeadMeta === 0 && /round trips 7 · 86 % won/.test(qAside) && /205 of 1,000 · 8 filled/.test(qAside) && qBooks.join(',') === 'USDC/GBP,USDT/GBP'
         && qRungs === 6 && qHeld.length === 1 && /held £0\.7542 \+\$0\.14/.test(qHeld[0]) && qTrips === 7 && /USDT\/GBP sold £0\.7564 £0\.7550/.test(qFirst.replace(/0\.2 % /, '').replace(/ maker/, '')) && qStacked === 2) {
-        ok(S('agents'), 'its page opens over the list: the scoreboard, USDC/GBP and USDT/GBP with three rungs a side, the held bid at £0.7542 (+$0.14), and all 7 round trips, newest first');
-      } else fail(S('agents'), `quote page: title "${qTitle}", labels ${qLabels.join(',')} (${qAside}), books ${qBooks.join(',')}, rungs ${qRungs}, held ${qHeld.join(' | ')}, trips ${qTrips}, first "${qFirst}", modals ${qStacked}`);
+        ok(S('agents'), 'its page opens over the list: FUNDED first on its scoreboard, no line of detail in its head, USDC/GBP and USDT/GBP with three rungs a side, the held bid at £0.7542 (+$0.14), and all 7 round trips, newest first');
+      } else fail(S('agents'), `quote page: title "${qTitle}", labels ${qLabels.join(',')} (${qAside}), head meta ${qHeadMeta}, books ${qBooks.join(',')}, rungs ${qRungs}, held ${qHeld.join(' | ')}, trips ${qTrips}, first "${qFirst}", modals ${qStacked}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
       if (await page.locator('.ag-quotes-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 8) ok(S('agents'), 'closing the quote page returns to the list');
@@ -1623,15 +1659,17 @@ async function run() {
       const rwRowText = (await rwRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const lastName = ((await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').last().textContent().catch(() => '')) || '').trim();
       const rwBadge = await rwRowEl.first().locator('.ag-venue-polymarket').count();
-      if (await rwRowEl.count() === 1 && lastName === 'Reward quotes' && rwBadge === 1 && /Polymarket/.test(rwRowText) && /Paper/i.test(rwRowText)
+      if (await rwRowEl.count() === 1 && lastName === 'Reward quotes' && rwBadge === 1 && /Polymarket/.test(rwRowText) && /not in the scoreboard/.test(rwRowText)
         && /2 open · \$296\.00 cap/.test(rwRowText) && /\+\$12\.50/.test(rwRowText) && /-\$1\.00/.test(rwRowText) && /\+\$42\.00/.test(rwRowText) && /every minute/.test(rwRowText)) {
-        ok(S('agents'), 'RW is the last testing row: Polymarket, Paper, 2 open of $296, today +$12.50, unrealised -$1.00, realised +$42.00, every minute');
+        ok(S('agents'), 'RW is the last testing row: Polymarket, 2 open of $296, not in the scoreboard, today +$12.50, unrealised -$1.00, realised +$42.00, every minute');
       } else fail(S('agents'), `RW row "${rwRowText}", last row "${lastName}", Polymarket badges ${rwBadge}`);
       // Its page: the strategy page's header and scoreboard, the bar so far, today's markets, the closed days and the fills.
       await rwRowEl.first().click();
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
       const rTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
-      const rLabels = (await page.locator('.ag-rw-detail .ag-scoreboard-sm .sb-label').allTextContents()).map((t) => t.trim());
+      // Its scoreboard, name by name, and the rewards-and-orders lines under realised and unrealised (Davies, 2026-09-24).
+      const rLabels = (await page.locator('.ag-rw-detail .ag-scoreboard-sm .ag-sb-name').allTextContents()).map((t) => t.trim());
+      const rSplit = await page.locator('.ag-rw-detail .ag-scoreboard-sm .ag-sb-cell').evaluateAll((els) => els.map((c) => [...c.querySelectorAll('.ag-sb-split')].map((s) => (s.textContent || '').replace(/\s+/g, ' ').trim()).join(' / ')).filter(Boolean));
       const rSections = (await page.locator('.ag-rw-detail .ag-section-title').allTextContents()).map((t) => t.trim());
       const rMarkets = await page.locator('.ag-rw-markets tbody tr').count();
       const rHeldRow = ((await page.locator('.ag-rw-markets tbody tr').last().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
@@ -1640,9 +1678,12 @@ async function run() {
       const rFills = await page.locator('.ag-rw-fills tbody tr').count();
       const rFirstFill = ((await page.locator('.ag-rw-fills tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
       const rBar = ((await page.locator('.ag-rw-bar').innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
-      const rNote = ((await page.locator('.ag-rw-note').textContent().catch(() => '')) || '').trim();
+      // The head's line of detail and the formula's note are gone (Davies, 2026-09-24); where the run is, is the bar's line.
+      const rNote = await page.locator('.ag-rw-note').count();
       const rFoot = ((await page.locator('.ag-rw-foot').textContent().catch(() => '')) || '').trim();
-      const rMeta = ((await page.locator('.ag-rw-detail .ag-detail-head .ag-venue-meta').textContent().catch(() => '')) || '').trim();
+      const rMeta = await page.locator('.ag-rw-detail .ag-detail-head .ag-venue-meta').count();
+      const rWhen = ((await page.locator('.ag-rw-bar .ag-rw-when').textContent().catch(() => '')) || '').trim();
+      const rTiles = (await page.locator('.ag-rw-bar .ag-rw-tile-k').allTextContents()).map((t) => t.trim());
       const rWarn = await page.locator('.ag-rw-detail .ag-warn-line').count();
       // A market is its question: the first one reads to its date, in two lines on a desk and four on a phone.
       const rQ = await page.locator('.ag-rw-markets tbody tr').first().locator('.ag-rw-q').evaluate((el) => ({ clipped: el.scrollHeight > el.clientHeight + 1, lines: Math.round(el.clientHeight / parseFloat(getComputedStyle(el).lineHeight)) })).catch(() => ({ clipped: true, lines: 0 }));
@@ -1650,15 +1691,17 @@ async function run() {
       const narrow = vpWidth <= 760;
       const rPh = await page.locator('.ag-rw-detail th.ag-ph').evaluateAll((els) => els.filter((el) => getComputedStyle(el).display !== 'none').length);
       const rOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth);
-      if (rTitle === 'Reward quotes' && rLabels.join(',') === 'DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L (rewards $41.60)'
+      if (rTitle === 'Reward quotes' && rLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L'
+        && rSplit.join(' | ') === 'rewards $0.00 / orders -$1.00 | rewards +$41.60 / orders +$0.40'
         && rSections.join(',') === 'THE BAR SO FAR,MARKETS,DAYS,FILLS' && rMarkets === 4 && /Los Angeles/.test(rFirst) && /20 Yes/.test(rFirst)
         && (narrow || /43¢ \/ 45¢/.test(rFirst)) && /held from an earlier day/.test(rHeldRow) && /20 No/.test(rHeldRow)
         && rDays.length === 3 && rDays.every((d) => /^\d{1,2} Sep( · warm-up)?$/.test(d)) && /warm-up$/.test(rDays[2]) && rFills === 5 && /Bank of Canada/.test(rFirstFill) && /sold Yes/.test(rFirstFill) && /46¢/.test(rFirstFill)
-        && /\+\$41\.00/.test(rBar) && /5 of 100/.test(rBar) && /45 % of the total/.test(rBar) && /upper bound/.test(rNote)
-        && /funded \(Paper\) \$296\.00 · markets today 3 · fills 5/.test(rFoot) && /day 3 of 14/.test(rMeta) && rWarn === 0
+        && rTiles.join(',') === 'TOTAL,STRESS,FILLS,BEST MARKET' && /TOTAL \+\$41\.00 rewards \+\$41\.60 orders -\$0\.60/.test(rBar) && /5 of 100/.test(rBar) && /45 % of the total/.test(rBar)
+        && rNote === 0 && rMeta === 0 && /^Day 3 of 14 · ends \d{1,2} \w{3} \d{2}:\d{2} (BST|GMT)$/.test(rWhen)
+        && /funded \(Paper\) \$296\.00 · markets today 3 · fills 5/.test(rFoot) && rWarn === 0
         && (narrow ? rPh === 0 : rPh > 0) && rOverflow <= 1 && !rQ.clipped && rQ.lines <= (narrow ? 4 : 2)) {
-        ok(S('agents'), `its page: the scoreboard with rewards in realised, the bar so far (+$41.00, 5 of 100 fills), 4 markets (one held from an earlier day), 3 days (the warm-up last), 5 fills, the formula's caveat; ${narrow ? 'the phone drops the side columns' : 'every column'}, nothing wider than the page`);
-      } else fail(S('agents'), `RW page: title "${rTitle}", labels ${rLabels.join(',')}, sections ${rSections.join(',')}, markets ${rMarkets} ("${rFirst}" / "${rHeldRow}"), days ${rDays.join('|')}, fills ${rFills} ("${rFirstFill}"), bar "${rBar}", note "${rNote}", foot "${rFoot}", meta "${rMeta}", warnings ${rWarn}, side columns shown ${rPh}, overflow ${rOverflow}, question ${JSON.stringify(rQ)}`);
+        ok(S('agents'), `its page: FUNDED first, realised and unrealised each split into rewards and orders, the bar as four tiles (+$41.00 = +$41.60 − $0.60, 5 of 100 fills) under "${rWhen}", no head line or formula note, 4 markets, 3 days (the warm-up last), 5 fills; ${narrow ? 'the phone drops the side columns' : 'every column'}, nothing wider than the page`);
+      } else fail(S('agents'), `RW page: title "${rTitle}", labels ${rLabels.join(',')}, split ${rSplit.join(' | ')}, sections ${rSections.join(',')}, markets ${rMarkets} ("${rFirst}" / "${rHeldRow}"), days ${rDays.join('|')}, fills ${rFills} ("${rFirstFill}"), tiles ${rTiles.join(',')}, bar "${rBar}", note ${rNote}, meta ${rMeta}, when "${rWhen}", foot "${rFoot}", warnings ${rWarn}, side columns shown ${rPh}, overflow ${rOverflow}, question ${JSON.stringify(rQ)}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
       if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 8) ok(S('agents'), 'closing the RW page returns to the list');
@@ -1680,12 +1723,25 @@ async function run() {
       // Four Revolut X: the three strategies and the quote test; then RW on Polymarket, last.
       if (revxRows === 4 && binanceRows === 3 && badges[badges.length - 2].startsWith('Revolut X') && badges[badges.length - 1] === 'Polymarket') ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the quote test on Revolut X and RW on Polymarket');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
-      const shares = await page.locator('.ag-share').allTextContents();
-      if (shares.some((t) => /Revolut X 100%/.test(t))) ok(S('agents'), 'share bar: all deployed value sits on Revolut X');
+      // Deployed value, by card: Revolut X's strategies $21.50 and RW on Polymarket $14.40 — 60 % and 40 %.
+      const shares = (await page.locator('.ag-share').allTextContents()).map((t) => t.trim());
+      if (shares.join(' | ') === 'Revolut X 60% |  | Polymarket 40%') ok(S('agents'), 'share bar: the deployed value splits between Revolut X (60%) and Polymarket (40%); Binance holds nothing');
       else fail(S('agents'), `share bar reads ${shares.join(' | ')}`);
       const cards = await page.locator('.ag-venue-card').count();
-      if (cards === 2) ok(S('agents'), 'one venue card per account');
+      if (cards === 3) ok(S('agents'), 'one venue card per venue TESTING trades on: Revolut X, Binance, Polymarket');
       else fail(S('agents'), `venue cards ${cards}`);
+      // Polymarket's card is RW's own row (Davies, 2026-09-24: Polymarket in TESTING's venues), so it reads what the row
+      // reads; realised splits into its rewards and what its orders made, which add up to it as printed.
+      const pm = await readAgentsPanel(page).then((p) => p.venues.find((v) => v.id === 'polymarket'));
+      const rwRowCells = (await rwRowEl.first().locator('.ag-gl').allTextContents()).map((t) => t.trim());
+      if (pm && pm.meta === '1 test: Reward quotes' && pm.pairs['funded (Paper)'] === '$296.00' && pm.pairs.deployed === '$14.40 (4.86%)'
+        && [pm.pairs.today, pm.pairs.unrealised, pm.pairs.realised].join(' | ') === rwRowCells.join(' | ') && pm.bases.unrealised === '% of deployed'
+        && pm.pairs.rewards === '+$41.60' && pm.pairs.orders === '+$0.40' && !('fees' in pm.pairs)) {
+        ok(S('agents'), `Polymarket's card is Reward quotes: funded (Paper) $296.00, deployed $14.40 (4.86%), the row's ${rwRowCells.join(' / ')}, realised = rewards +$41.60 + orders +$0.40`);
+      } else fail(S('agents'), `Polymarket card ${JSON.stringify(pm)}, RW row cells ${rwRowCells.join(' | ')}`);
+      const revxApart = ((await page.locator('.ag-venue-card-revx .ag-venue-apart').textContent().catch(() => '')) || '').trim();
+      if (revxApart === 'Not in these totals: Stablecoin quotes') ok(S('agents'), `the Revolut X card says which Revolut X row it leaves out ("${revxApart}")`);
+      else fail(S('agents'), `Revolut X card's note "${revxApart}"`);
       // Funded (Paper) is the capital the venue's rows are allotted — 100 + 40 + 40 on Revolut X — and the
       // accounts' real balances (the fixture's $100 USD there, 50 USDT and 0.012 BNB at Binance) are NOT shown.
       const funded = await page.locator('.ag-venue-card-revx .ag-venue-grid').textContent().catch(() => '');
@@ -1700,12 +1756,16 @@ async function run() {
       // are read back from the page, not from the stylesheet: a rule that never applies would pass a source check.
       const venuesText = await page.locator('.ag-venues').textContent().catch(() => '');
       const cardIds = await page.locator('.ag-venue-card').evaluateAll((els) => els.map((el) => [...el.classList].find((c) => /^ag-venue-card-/.test(c))));
-      if (!/Kraken/.test(venuesText || '') && cardIds.join(',') === 'ag-venue-card-revx,ag-venue-card-binance') ok(S('agents'), 'VENUES is Revolut X then Binance; Kraken is not on it');
+      if (!/Kraken/.test(venuesText || '') && cardIds.join(',') === 'ag-venue-card-revx,ag-venue-card-binance,ag-venue-card-polymarket') ok(S('agents'), 'VENUES is Revolut X, Binance, then Polymarket; Kraken is not on it');
       else fail(S('agents'), `VENUES cards ${cardIds.join(',')}, text mentions Kraken: ${/Kraken/.test(venuesText || '')}`);
       const binanceInk = await page.locator('.ag-venue-card-binance .ag-venue-binance').first().evaluate((el) => getComputedStyle(el).color).catch(() => '');
-      const paperInk = await page.locator('.ag-badge-paper').first().evaluate((el) => { const cs = getComputedStyle(el); return [cs.color, cs.borderTopStyle]; }).catch(() => ['', '']);
-      if (binanceInk === 'rgb(240, 185, 11)' && paperInk[0] === 'rgb(232, 228, 218)' && paperInk[1] === 'dashed') ok(S('agents'), 'Binance wears its yellow; PAPER is neutral and dashed, never that yellow');
-      else fail(S('agents'), `binance badge ${binanceInk}, paper badge ${paperInk.join(' ')}`);
+      if (binanceInk === 'rgb(240, 185, 11)') ok(S('agents'), 'Binance wears its yellow');
+      else fail(S('agents'), `binance badge ${binanceInk}`);
+      // No Mode column (Davies, 2026-09-24): the tab says LIVE or TESTING, so a row carries no mode badge.
+      const modeCols = await page.locator('.ag-strategies th.ag-col-mode, .ag-strategies td.ag-col-mode').count();
+      const rowBadges = await page.locator('.ag-strategies .ag-row .ag-badge').count();
+      if (modeCols === 0 && rowBadges === 0) ok(S('agents'), 'no Mode column and no mode badge on a row');
+      else fail(S('agents'), `mode cells ${modeCols}, mode badges on rows ${rowBadges}`);
       // Four rules count down to a bar close; the minute rule decides every
       // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
@@ -1727,10 +1787,15 @@ async function run() {
       const title = await page.locator('.ag-detail-title').first().textContent().catch(() => '');
       if (/Trend 4h · Revolut X/.test(title || '')) ok(S('agents'), `the row with a book opens its detail (${(title || '').trim()})`);
       else fail(S('agents'), `detail title "${title}"`);
-      // A paper strategy's own scoreboard says DEPLOYED, no "(Paper)": that label lives on the venue card's funded row.
-      const detailSb = await page.locator('.ag-detail .ag-scoreboard-sm .sb-label').first().textContent().catch(() => '');
-      if ((detailSb || '').trim() === 'DEPLOYED') ok(S('agents'), 'the strategy scoreboard reads DEPLOYED, without (Paper)');
-      else fail(S('agents'), `strategy scoreboard first label "${detailSb}"`);
+      // A strategy's own scoreboard leads with FUNDED, then DEPLOYED as a percent of it, no "(Paper)": that label lives on
+      // the venue card's funded row. Its PAPER badge is neutral and dashed, never Binance's yellow.
+      const detailSb = (await page.locator('.ag-detail .ag-scoreboard-sm .ag-sb-name').allTextContents()).map((t) => t.trim());
+      const detailVals = (await page.locator('.ag-detail .ag-scoreboard-sm .sb-value').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
+      const paperInk = await page.locator('.ag-detail .ag-detail-head .ag-badge-paper').first().evaluate((el) => { const cs = getComputedStyle(el); return [cs.color, cs.borderTopStyle]; }).catch(() => ['', '']);
+      if (detailSb.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && detailVals.slice(0, 2).join(' | ') === '$100.00 | $21.50(21.50%)'
+        && paperInk[0] === 'rgb(232, 228, 218)' && paperInk[1] === 'dashed') {
+        ok(S('agents'), 'the strategy scoreboard reads FUNDED $100.00, then DEPLOYED $21.50 (21.50% of it), without (Paper); PAPER is neutral and dashed');
+      } else fail(S('agents'), `strategy scoreboard ${detailSb.join(',')} = ${detailVals.join(' | ')}, paper badge ${paperInk.join(' ')}`);
       // One table on the detail, not three: the positions table and the decisions table said the same
       // things the cards and the live-state row already say, and the orders table now lives under the chart.
       // The orders table keeps its own class and is now inside the chart card; what must be gone is the positions
@@ -1956,11 +2021,12 @@ async function run() {
         await page.waitForTimeout(100);
       };
       const opened = (p) => p.tabs.find((t) => t.on)?.id;
-      const sbText = (p) => p.scoreboard.map((c) => `${c.label}=${c.value}`).join(' | ');
+      const sbText = (p) => p.scoreboard.map((c) => `${c.name}${c.asides.length ? ` [${c.asides.join('; ')}]` : ''}=${c.value}`).join(' | ');
       const barText = (p) => p.tabs.map((t) => `${t.label} ${t.count} ${t.text} ${t.tone}`).join(' / ');
-      const PAPER_SB = 'DEPLOYED=$21.50 | TODAY=+$0.42(+0.12%) | UNREALIZED G/L=+$1.50(+7.50%) | REALIZED G/L (incl. fees $0.08)=+$12.34(+3.43%)';
-      const LIVE_SB = 'DEPLOYED=$12.50 | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L (incl. fees $0.03)=+$0.30(+0.60%)';
-      const TESTING_BAR = 'TESTING 8 Paper · no real money paper';
+      const PAPER_SB = 'FUNDED [6 strategies]=$360.00 | DEPLOYED [% of funded]=$21.50(5.97%) | TODAY [% of funded]=+$0.42(+0.12%) | UNREALIZED G/L [% of $20.00 cost]=+$1.50(+7.50%) | REALIZED G/L [% of funded; incl. fees $0.08]=+$12.34(+3.43%)';
+      const LIVE_SB = 'FUNDED [1 strategy]=$50.00 | DEPLOYED [% of funded]=$12.50(25.00%) | TODAY [% of funded]=+$0.20(+0.40%) | UNREALIZED G/L [% of $12.00 cost]=+$0.50(+4.17%) | REALIZED G/L [% of funded; incl. fees $0.03]=+$0.30(+0.60%)';
+      const TESTING_BAR = 'TESTING 8 Paper · 6 strategies, 2 tests paper';
+      const topModalHeight = () => page.evaluate(() => { const ms = document.querySelectorAll('.modal'); return Math.round(ms[ms.length - 1]?.getBoundingClientRect().height ?? 0); });
 
       agentsMode = 'ok';
       await openAgentsPage(page);
@@ -1974,10 +2040,24 @@ async function run() {
       if (opened(n1) === 'live' && /^Nothing is live/.test(n1.empty) && n1.scoreboard.length === 0 && n1.rows.length === 0 && n1.venues.length === 0 && n1.alerts.length === 0 && barText(n1) === barText(n0)) {
         ok(T('none'), `a click opens LIVE on its empty state ("${n1.empty.slice(0, 40)}…"): no scoreboard, venue, banner or row, and the bar reads as it did`);
       } else fail(T('none'), `LIVE: open ${opened(n1)}, empty "${n1.empty}", scoreboard ${n1.scoreboard.length}, rows ${n1.rows.length}, venues ${n1.venues.length}, banners ${n1.alerts.length}, bar ${barText(n1)}`);
+      // One window size for every agents page (Davies, 2026-09-24): an empty LIVE is as tall as a full TESTING.
+      const winH = vpWidth > 760 ? Math.round(0.85 * (page.viewportSize()?.height ?? 0)) : (page.viewportSize()?.height ?? 0);
       await clickTab('testing');
       const n2 = await readAgentsPanel(page);
       if (n2.rows.length === 8 && sbText(n2) === sbText(n0) && JSON.stringify(n2.venues) === JSON.stringify(n0.venues)) ok(T('none'), 'a click back: TESTING\'s 8 rows, scoreboard and venue cards as they were');
       else fail(T('none'), `TESTING after the round trip: ${n2.rows.length} rows, ${sbText(n2)}`);
+      if (n1.modalHeight === winH && n2.modalHeight === winH) ok(T('size'), `LIVE and TESTING keep one window, ${winH}px tall, empty or full`);
+      else fail(T('size'), `window ${n1.modalHeight}px on LIVE, ${n2.modalHeight}px on TESTING, wanted ${winH}px`);
+      for (const [name, sel] of [['Trend 4h · Revolut X', '.ag-detail'], ['Stablecoin quotes', '.ag-quotes-detail'], ['Reward quotes', '.ag-rw-detail']]) {
+        await page.locator('.ag-modepanel .ag-row', { has: page.locator(`.ag-name-btn:text-is("${name}")`) }).first().click();
+        await page.waitForSelector(sel, { timeout: 5_000 }).catch(() => {});
+        await page.waitForTimeout(350);
+        const h = await topModalHeight();
+        if (h === winH) ok(T('size'), `${name}'s page opens in the same window, ${h}px`);
+        else fail(T('size'), `${name}'s page is ${h}px tall, the list ${winH}px`);
+        await page.locator('.ag-detail-close').last().click().catch(() => {});
+        await page.waitForTimeout(300);
+      }
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
 
@@ -1987,37 +2067,40 @@ async function run() {
       await page.waitForTimeout(150);
       const a0 = await readAgentsPanel(page);
       await shot(page, 'agents-tabs-live-armed');
-      if (opened(a0) === 'live' && barText(a0) === `LIVE 1 Real money · armed armed / ${TESTING_BAR}`) ok(T('armed'), `a live row opens the page on LIVE (${barText(a0)})`);
+      if (opened(a0) === 'live' && barText(a0) === `LIVE 1 Real money · trading armed / ${TESTING_BAR}`) ok(T('armed'), `a live row opens the page on LIVE (${barText(a0)})`);
       else fail(T('armed'), `bar ${barText(a0)}, open ${opened(a0)}`);
       const lr = a0.rows[0];
-      if (a0.rows.length === 1 && lr.name === 'Trend 4h · Revolut X · live' && lr.mode === 'LIVE' && lr.venue === 'Revolut X' && lr.sub === '1 open · $50.00 cap'
+      // Its name without " · live" (Davies, 2026-09-24): the tab says it. No mode badge either.
+      if (a0.rows.length === 1 && lr.name === 'Trend 4h · Revolut X' && lr.badges === 0 && lr.venue === 'Revolut X' && lr.sub === '1 open · $50.00 cap'
         && lr.gl.join(' | ') === '+$0.20 (+0.40%) | +$0.50 (+4.17%) | +$0.30 (+0.60%)' && sbText(a0) === LIVE_SB && a0.sections.join('|') === 'LIVE STRATEGIES') {
-        ok(T('armed'), `LIVE is the live row alone, and its scoreboard is that row's figures (${sbText(a0)})`);
+        ok(T('armed'), `LIVE is the live row alone, named without " · live", and its scoreboard is that row's figures (${sbText(a0)})`);
       } else fail(T('armed'), `LIVE: rows ${JSON.stringify(a0.rows)}, scoreboard ${sbText(a0)}, sections ${a0.sections.join('|')}`);
       const lv = a0.venues[0];
-      if (a0.venues.length === 1 && lv.id === 'revx' && lv.meta === '1 strategy · maker/taker 0% / 0.09%' && lv.pairs.funded === '$50.00' && lv.pairs.deployed === '$12.50'
-        && lv.pairs.today === '+$0.20 (+0.40%)' && lv.pairs.unrealised === '+$0.50 (+4.17%)' && lv.pairs.realised === '+$0.30 (+0.60%)' && lv.pairs.fees === '$0.03' && a0.shareBar === 0) {
-        ok(T('armed'), 'one venue card, Revolut X: funded $50.00 with no (Paper), the row\'s figures, and no share bar for one venue');
+      if (a0.venues.length === 1 && lv.id === 'revx' && lv.meta === '1 strategy · maker/taker 0% / 0.09%' && lv.pairs.funded === '$50.00' && lv.pairs.deployed === '$12.50 (25.00%)'
+        && lv.pairs.today === '+$0.20 (+0.40%)' && lv.pairs.unrealised === '+$0.50 (+4.17%)' && lv.pairs.realised === '+$0.30 (+0.60%)' && lv.pairs.fees === '$0.03'
+        && [lv.bases.deployed, lv.bases.today, lv.bases.unrealised, lv.bases.realised].join(' | ') === '% of funded | % of funded | % of cost | % of funded' && a0.shareBar === 0) {
+        ok(T('armed'), 'one venue card, Revolut X: funded $50.00 with no (Paper), the row\'s figures with each percent\'s base, and no share bar for one venue');
       } else fail(T('armed'), `LIVE venues ${JSON.stringify(a0.venues)}, share bars ${a0.shareBar}`);
-      if (/^Armed since 17 Sep 15:02 (BST|GMT): the loop may open live positions/.test(a0.arming) && a0.alerts.length === 0) ok(T('armed'), `the switch is on, and says since when ("${a0.arming.slice(0, 32)}…"); no banner`);
-      else fail(T('armed'), `armed line "${a0.arming}", banners ${JSON.stringify(a0.alerts)}`);
+      if (/^Live trading is on Since 17 Sep 15:02 (BST|GMT)\. It buys with real money when its rules say so/.test(a0.arming) && !/armed|live_confirmed_at|ENTRY|exits/.test(a0.arming) && a0.alerts.length === 0) {
+        ok(T('armed'), `the switch is on, said in plain words ("${a0.arming.slice(0, 44)}…"); no banner`);
+      } else fail(T('armed'), `armed line "${a0.arming}", banners ${JSON.stringify(a0.alerts)}`);
       await clickTab('testing');
       const a1 = await readAgentsPanel(page);
       await shot(page, 'agents-tabs-testing');
-      if (a1.rows.length === 8 && !a1.rows.some((r) => / · live$/.test(r.name) || r.mode === 'LIVE') && sbText(a1) === PAPER_SB && a1.sections.join('|') === 'TESTING STRATEGIES' && !a1.arming && a1.alerts.length === 0) {
+      if (a1.rows.length === 8 && !a1.rows.some((r) => / · live$/.test(r.name) || r.badges > 0) && sbText(a1) === PAPER_SB && a1.sections.join('|') === 'TESTING STRATEGIES' && !a1.arming && a1.alerts.length === 0) {
         ok(T('armed'), `TESTING is the paper rows alone (8, none live), and its scoreboard is theirs (${sbText(a1)})`);
-      } else fail(T('armed'), `TESTING: ${a1.rows.length} rows (${a1.rows.map((r) => `${r.name} ${r.mode}`).join(', ')}), scoreboard ${sbText(a1)}, armed "${a1.arming}", banners ${a1.alerts.length}`);
+      } else fail(T('armed'), `TESTING: ${a1.rows.length} rows (${a1.rows.map((r) => `${r.name} ${r.badges}`).join(', ')}), scoreboard ${sbText(a1)}, armed "${a1.arming}", banners ${a1.alerts.length}`);
       const rv = a1.venues.find((v) => v.id === 'revx'), bn = a1.venues.find((v) => v.id === 'binance');
-      if (a1.venues.length === 2 && rv && bn && rv.meta === '3 strategies · maker/taker 0% / 0.09%' && rv.pairs['funded (Paper)'] === '$180.00' && rv.pairs.deployed === '$21.50'
-        && rv.pairs.realised === '+$12.34 (+6.86%)' && bn.pairs['funded (Paper)'] === '$180.00' && a1.shareBar === 1) {
-        ok(T('armed'), 'TESTING\'s Revolut X card is its paper rows\' alone (funded (Paper) $180.00, deployed $21.50), beside Binance\'s');
+      if (a1.venues.length === 3 && rv && bn && rv.meta === '3 strategies · maker/taker 0% / 0.09%' && rv.pairs['funded (Paper)'] === '$180.00' && rv.pairs.deployed === '$21.50 (11.94%)'
+        && rv.pairs.realised === '+$12.34 (+6.86%)' && rv.apart === 'Not in these totals: Stablecoin quotes' && bn.pairs['funded (Paper)'] === '$180.00' && a1.shareBar === 1) {
+        ok(T('armed'), 'TESTING\'s Revolut X card is its paper rows\' alone (funded (Paper) $180.00, deployed $21.50, 11.94%), beside Binance\'s and Polymarket\'s');
       } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}`);
       const cents = (s) => Math.round(money(String(s).split('(')[0]) * 100);
       const both = a0.scoreboard.map((c, i) => cents(c.value) + cents(a1.scoreboard[i]?.value));
-      if (both.join(',') === '3400,62,200,1264') ok(T('armed'), 'LIVE and TESTING add up to every row: $34.00 deployed, +$0.62 today, +$2.00 unrealised, +$12.64 realised');
+      if (both.join(',') === '41000,3400,62,200,1264') ok(T('armed'), 'LIVE and TESTING add up to every row: $410.00 funded, $34.00 deployed, +$0.62 today, +$2.00 unrealised, +$12.64 realised');
       else fail(T('armed'), `LIVE + TESTING in cents: ${both.join(', ')}`);
-      if (barText(a1) === barText(a0) && a1.updated === a0.updated && /^as of /.test(a0.updated)) ok(T('armed'), 'the tab bar and the as-of line read the same on both tabs');
-      else fail(T('armed'), `bar ${barText(a0)} → ${barText(a1)}; as of "${a0.updated}" → "${a1.updated}"`);
+      if (barText(a1) === barText(a0) && a1.updated === a0.updated && /^as of /.test(a0.updated) && a1.modalHeight === a0.modalHeight) ok(T('armed'), 'the tab bar, the as-of line and the window read the same on both tabs');
+      else fail(T('armed'), `bar ${barText(a0)} → ${barText(a1)}; as of "${a0.updated}" → "${a1.updated}"; window ${a0.modalHeight} → ${a1.modalHeight}`);
       await page.locator('#ag-modetab-testing').focus();
       await page.keyboard.press('ArrowLeft');
       await page.waitForTimeout(150);
@@ -2025,17 +2108,18 @@ async function run() {
       const focused = await page.evaluate(() => document.activeElement?.id || '');
       if (opened(keyed) === 'live' && focused === 'ag-modetab-live' && sbText(keyed) === LIVE_SB) ok(T('armed'), 'ArrowLeft on TESTING selects and focuses LIVE');
       else fail(T('armed'), `after ArrowLeft: open ${opened(keyed)}, focus "${focused}"`);
-      await page.locator('.ag-row', { has: page.locator('.ag-name-btn:text-is("Trend 4h · Revolut X · live")') }).first().click();
+      await page.locator('.ag-modepanel .ag-row').first().click();
       await page.waitForSelector('.ag-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(150);
-      const dTitle = ((await page.locator('.ag-detail-title').first().textContent().catch(() => '')) || '').trim();
+      await page.waitForTimeout(350);
+      const dTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
       const dMode = ((await page.locator('.ag-detail .ag-detail-head .ag-badge').first().textContent().catch(() => '')) || '').trim();
       const dSb = (await page.locator('.ag-detail .ag-scoreboard-sm .sb-value').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const dCard = ((await page.locator('.ag-detail .ag-poscard .pc-ticker').first().textContent().catch(() => '')) || '').trim();
+      const dH = await topModalHeight();
       await shot(page, 'agents-tabs-live-detail');
-      if (dTitle === 'Trend 4h · Revolut X · live' && dMode === 'LIVE' && dSb.join(' | ') === '$12.50 | +$0.20(+0.40%) | +$0.50(+4.17%) | +$0.30(+0.60%)' && dCard === 'ETH/USD') {
-        ok(T('armed'), 'the live row opens its own page: LIVE, the same four figures as its row and as LIVE\'s scoreboard, and its ETH position');
-      } else fail(T('armed'), `live detail: title "${dTitle}", mode "${dMode}", scoreboard ${dSb.join(' | ')}, card "${dCard}"`);
+      if (dTitle === 'Trend 4h · Revolut X' && dMode === 'LIVE' && dSb.join(' | ') === '$50.00 | $12.50(25.00%) | +$0.20(+0.40%) | +$0.50(+4.17%) | +$0.30(+0.60%)' && dCard === 'ETH/USD' && dH === a0.modalHeight) {
+        ok(T('armed'), 'the live row opens its own page, titled without " · live", in the same window: LIVE, FUNDED $50.00, the same figures as its row and LIVE\'s scoreboard, its ETH position');
+      } else fail(T('armed'), `live detail: title "${dTitle}", mode "${dMode}", scoreboard ${dSb.join(' | ')}, card "${dCard}", window ${dH} of ${a0.modalHeight}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
       const back = await readAgentsPanel(page);
@@ -2046,19 +2130,58 @@ async function run() {
 
       agentsMode = 'live-unarmed';
       await openAgentsPage(page);
-      await waitFor(async () => /awaiting arming/.test((await page.locator('#ag-modetab-live .ag-modetab-text').textContent()) || ''));
+      await waitFor(async () => /not trading yet/.test((await page.locator('#ag-modetab-live .ag-modetab-text').textContent()) || ''));
       await page.waitForTimeout(150);
       const u0 = await readAgentsPanel(page);
       await shot(page, 'agents-tabs-live-unarmed');
-      if (opened(u0) === 'live' && barText(u0) === `LIVE 1 Real money · awaiting arming unarmed / ${TESTING_BAR}` && !u0.arming && sbText(u0) === LIVE_SB
-        && u0.alerts.length === 1 && u0.alerts[0].label === 'Live not confirmed' && /refuses every live ENTRY/.test(u0.alerts[0].text)) {
-        ok(T('unarmed'), 'awaiting arming: the LIVE tab says so, and LIVE\'s one banner is "Live not confirmed" (entries refused, exits running)');
+      // In plain words, and amber: it is the state before the go, not a fault (Davies, 2026-09-24).
+      if (opened(u0) === 'live' && barText(u0) === `LIVE 1 Real money · not trading yet unarmed / ${TESTING_BAR}` && !u0.arming && sbText(u0) === LIVE_SB
+        && u0.alerts.length === 1 && u0.alerts[0].label === 'Live trading is not on yet' && u0.alerts[0].tone === 'is-stop'
+        && /will not buy anything with real money/.test(u0.alerts[0].text) && /still sold/.test(u0.alerts[0].text) && !/live_confirmed_at|ENTRY|exits/.test(u0.alerts[0].text)) {
+        ok(T('unarmed'), 'not on yet: the LIVE tab says so, and LIVE\'s one banner says it in plain words, in amber — no buying with real money, selling still works');
       } else fail(T('unarmed'), `bar ${barText(u0)}, armed "${u0.arming}", banners ${JSON.stringify(u0.alerts)}, scoreboard ${sbText(u0)}`);
       await clickTab('testing');
       const u1 = await readAgentsPanel(page);
-      if (u1.alerts.length === 0 && sbText(u1) === PAPER_SB && u1.rows.length === 8) ok(T('unarmed'), 'the confirmation banner is LIVE\'s alone: TESTING carries none');
+      if (u1.alerts.length === 0 && sbText(u1) === PAPER_SB && u1.rows.length === 8) ok(T('unarmed'), 'the not-on-yet banner is LIVE\'s alone: TESTING carries none');
       else fail(T('unarmed'), `TESTING banners ${JSON.stringify(u1.alerts)}, scoreboard ${sbText(u1)}`);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
+      // ---- RW's parts add up to the total printed beside them (the ops read, 2026-09-24) ----------------------
+      // AGENTS_RW_CENTS: figures whose parts, each rounded alone, missed their total by a cent.
+      agentsMode = 'rw-cents';
+      await openAgentsPage(page);
+      const rwRowC = page.locator('.ag-modepanel .ag-row', { has: page.locator('.ag-name-btn:text-is("Reward quotes")') });
+      await waitFor(async () => /55\.7/.test((await rwRowC.first().innerText()) || ''));
+      await page.waitForTimeout(150);
+      const rowGl = (await rwRowC.first().locator('.ag-gl').allTextContents()).map((t) => t.trim().split(' (')[0]);
+      await rwRowC.first().click();
+      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const rc = await page.evaluate(() => {
+        const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+        const d = document.querySelector('.ag-rw-detail');
+        const cell = (/** @type {string} */ name) => [...(d?.querySelectorAll('.ag-scoreboard-sm .ag-sb-cell') ?? [])].find((x) => txt(x.querySelector('.ag-sb-name')) === name);
+        const lines = (/** @type {Element | null | undefined} */ el, /** @type {string} */ sel) => [...(el?.querySelectorAll(sel) ?? [])].map((s) => txt(s.lastElementChild));
+        const r = cell('REALIZED G/L'), u = cell('UNREALIZED G/L'), tile = d?.querySelector('.ag-rw-tile-total');
+        const tds = [...(d?.querySelector('.ag-rw-markets tbody tr')?.querySelectorAll('td') ?? [])].map(txt);
+        return {
+          realised: txt(r?.querySelector('.ag-sb-usd')), unrealised: txt(u?.querySelector('.ag-sb-usd')),
+          realisedSplit: lines(r, '.ag-sb-split'), unrealisedSplit: lines(u, '.ag-sb-split'),
+          total: txt(tile?.querySelector('.ag-rw-tile-v')), totalSplit: lines(tile, '.ag-rw-tile-sub'), market: tds.slice(5, 8),
+        };
+      });
+      const c2 = (s) => Math.round(money(s) * 100);
+      const sumC = (xs) => xs.reduce((a, s) => a + c2(s), 0);
+      const addsUp = c2(rc.realised) + c2(rc.unrealised) === c2(rc.total) && sumC(rc.totalSplit) === c2(rc.total)
+        && sumC(rc.realisedSplit) === c2(rc.realised) && sumC(rc.unrealisedSplit) === c2(rc.unrealised) && sumC(rc.market.slice(0, 2)) === c2(rc.market[2]);
+      if (addsUp && rc.total === '+$34.23' && rc.realised === '+$55.76' && rc.unrealised === '-$21.53' && rc.totalSplit.join(' | ') === '+$48.72 | -$14.49'
+        && rc.realisedSplit.join(' | ') === '+$48.72 | +$7.04' && rc.market.join(' | ') === '+$18.41 | +$0.20 | +$18.61' && rowGl[1] === rc.unrealised && rowGl[2] === rc.realised) {
+        ok(T('rw-cents'), `every printed part adds up to its printed total: ${rc.realised} ${rc.unrealised} = ${rc.total} = ${rc.totalSplit.join(' ')}; realised = ${rc.realisedSplit.join(' ')}; a market ${rc.market[0]} ${rc.market[1]} = ${rc.market[2]}; the row reads the page's`);
+      } else fail(T('rw-cents'), `RW parts: ${JSON.stringify(rc)}, row ${rowGl.join(' | ')}`);
       agentsMode = 'ok';
+      await page.locator('.ag-detail-close').last().click().catch(() => {});
+      await page.waitForTimeout(300);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
     } else fail(S('agents'), 'Agents menu item not found');

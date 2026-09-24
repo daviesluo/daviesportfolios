@@ -860,6 +860,49 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
   at 22:53:09 UTC; left for the main session under the rule that an agent does not edit that file on another agent's
   word.
 
+### [2026-09-24 22:54 UTC] Platform: Cursor | Model: Opus 5.5
+
+**The redesign's second round, on `agents-live-testing` (still NOT on `main`): the coordinator's three TESTING fixes,
+RW's rounding, and Davies' UI list.**
+- **Every percent names its base** (coordinator: a figure shown in two places is the same figure, or its label says
+  why): the same +$0.42 read +0.12 / +0.23 / +0.42 % on the scoreboard, the Revolut X card and the Trend 4h row, each
+  on its own capital. Each label now carries its base on a line under it ("% of funded", "% of $20.00 cost",
+  "% of deployed"; the table's headings "% of cap" / "% of cost"). RW's unrealised is on what it holds at the mid
+  (`heldUsd`), not on cost, so its own cell says so.
+- **Every total says what it covers; no sum changed.** The two paper tests stay out of the sums by decision, not by
+  accident (item 00000000.2: "Open for Davies … folding the quotes in would put $1,200 more on Revolut X's funded
+  figure"; `.claude/CLAUDE.md`: "the rows' totals do not include it"). TESTING reads "6 strategies, 2 tests", FUNDED
+  "6 strategies", each test's row "not in the scoreboard", the Revolut X card "Not in these totals: Stablecoin quotes".
+- **The phone's ragged label**: `.sb-label` is a flex ROW, so "(incl. fees …)" beside the name broke into two columns.
+  A label is now a column (the name, then each aside on its own line), and the scoreboard a subgrid of three rows
+  (label, figure, what is under it), so every figure stands on one line.
+- **RW's parts add up to its total as printed** (the ops read: +$34.23 beside realised 55.75 + unrealised −21.53 =
+  34.22; they show together on RW's page). `splitCents` rounds each part exactly as `fmtMoney` prints it (neither
+  `x * 100` nor `toFixed` does: 283.965, 257.945, −0.125 all differ) and hands a missing cent to the part rounding cut
+  most; `rwSplit` makes ONE split of the total into rewards, closed orders and open orders, which the row, the
+  scoreboard, the bar and the Polymarket card all print. A real mismatch (half a cent or more) is left visible.
+  Pins: the ops shape, ties, three parts, 2,000 random splits through the page's own formatter; the sweep's
+  `AGENTS_RW_CENTS` (+$55.76 − $21.53 = +$34.23 = +$48.72 − $14.49; a market $18.41 + $0.20 = $18.61).
+  Counterfactual, reconciliation off: 3 pins and exactly the sweep's 2 rounding checks fail, 298 pass.
+- **Davies' list (2026-09-24 22:19 UTC)**: "Stablecoin quotes页面的…删了；Reward quotes页面的…和…删了，那个warm up的表格也要设计展示的更好一些；
+  unrealised和realised g/l中请把rewards和通过order的收益分开…；live和testing的切换请保持窗口大小的一致，agents模式所有子页面窗口大小也都一致，
+  …所有的scoreboard都在DEPLOYED前加上funded的金额并且在适当的位置加上百分比（…可以超过100%）…；live的策略名称标题中也不用加live；
+  STRATEGIES表格中可以把mode删了；polymarket也做到testing的venue里…；live页…那个框显示的所有信息要普通人能看得懂的". Done: both test pages'
+  head lines and RW's formula note gone; RW's bar four tiles under a day-of-14 line; realised and unrealised split into
+  rewards and orders; one window for every agents page (85vh on a desk, the whole screen on a phone); FUNDED before
+  DEPLOYED on all four scoreboards, DEPLOYED as a share of funded with a bar (gold past 100 %); the live row named
+  without " · live" (display only, `strategyName`: `agent_strategies.name` untouched); no Mode column; a Polymarket card
+  on TESTING, which is Reward quotes' own row (the Revolut X and Binance cards and the scoreboard still add up the
+  strategies alone); LIVE's box and banner in plain words, the not-on-yet one amber rather than a red fault.
+- **Evidence:** vitest 82 in agents; sweep 300 checks (16 new), both widths; old against new (`main` `e7973d4`'s
+  bundle, the sweep's fixtures and clock): 174 figure comparisons, 0 differ; no console error in either bundle.
+  Screenshots overwritten in the Project store's `media/agents-redesign/`, with the three sub-pages added.
+- **Open, for Davies:** whether TESTING's scoreboard and the Revolut X card fold the two tests in (item 00000000.2;
+  with the Polymarket card showing Reward quotes, the question is sharper). The same rounding class — parts beside a
+  sum — also stands where a table's rows sit beside a total (the quotes page's books against its realised, a
+  strategy's position cards against its unrealised, a tab's rows against its scoreboard); not changed, since each row
+  reads its own correctly rounded figure and forcing the sum would make a row disagree with its own page.
+
 ### [2026-09-24 22:51 UTC] Platform: Cursor | Model: Opus 5.5
 
 **G6: the 75 branches are deleted; `pm-geo-probe` is not, because no credential here can delete a function.**

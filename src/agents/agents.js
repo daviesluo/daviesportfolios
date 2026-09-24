@@ -368,6 +368,13 @@ export function strategyStatus(s, risk, nowMs) {
 }
 
 /**
+ * A strategy's name as the page writes it. The tab it sits on says LIVE, so a live row's name does not carry
+ * " · live" as well (Davies, 2026-09-24); the row keeps its name in the database.
+ * @param {{ name?: string, id?: string } | null | undefined} s
+ */
+export const strategyName = (s) => String(s?.name ?? s?.id ?? '').replace(/\s*·\s*live\s*$/i, '');
+
+/**
  * One row per strategy for the overview table.
  * @param {any} dash  the dashboard payload
  * @param {number} nowMs
@@ -378,7 +385,7 @@ export function strategyRows(dash, nowMs) {
     const capital = Number(s.capitalUsd) || 0;
     return {
       id: s.id,
-      name: s.name,
+      name: strategyName(s),
       venue: venueLabel(s.venue),
       venueId: s.venue,
       signalVenue: s.signalVenue ?? s.venue,
@@ -458,24 +465,42 @@ export function liveArming(dash) {
   return { state, since, paused: !!dash?.risk?.global_pause, count: onLive.length };
 }
 
+/** "1 strategy", "6 strategies". @param {number} n @param {string} one @param {string} many */
+const counted = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
 /**
- * The tab bar's two entries: how many rows each tab lists (TESTING counts the paper tests' rows too) and the one line
- * that says what kind of money is on it.
+ * The tab bar's two entries: how many rows each tab lists and the one line that says what kind of money is on it.
+ * TESTING's count takes in the paper tests' rows as well, and its line says so, because the tab's totals cover the
+ * strategies alone.
  * @param {any} dash
- * @param {number} testingExtra  rows TESTING lists beyond the strategies: the paper tests (quotes, RW)
+ * @param {number} tests  rows TESTING lists beyond the strategies: the paper tests (quotes, RW), which no total includes
  */
-export function agentsTabsView(dash, testingExtra = 0) {
+export function agentsTabsView(dash, tests = 0) {
+  const strategies = tabStrategies(dash, 'testing').length;
   const arming = liveArming(dash);
+  // Plain words, for anyone reading the page (Davies, 2026-09-24): "armed" and "awaiting arming" were the loop's.
   const liveWords = arming.state === 'none' ? 'Nothing is live'
     : arming.paused ? 'Real money · paused'
-      : arming.state === 'winding' ? 'Real money · winding down'
-        : arming.state === 'armed' ? 'Real money · armed' : 'Real money · awaiting arming';
+      : arming.state === 'winding' ? 'Real money · selling what it holds'
+        : arming.state === 'armed' ? 'Real money · trading' : 'Real money · not trading yet';
   const tone = arming.state === 'none' ? 'none' : arming.paused ? 'paused' : arming.state;
   return {
     live: { id: /** @type {AgentsTab} */ ('live'), label: 'LIVE', count: arming.count, text: liveWords, tone },
-    testing: { id: /** @type {AgentsTab} */ ('testing'), label: 'TESTING', count: tabStrategies(dash, 'testing').length + testingExtra, text: 'Paper · no real money', tone: 'paper' },
+    testing: {
+      id: /** @type {AgentsTab} */ ('testing'), label: 'TESTING', count: strategies + tests,
+      text: `Paper · ${counted(strategies, 'strategy', 'strategies')}${tests ? `, ${counted(tests, 'test', 'tests')}` : ''}`, tone: 'paper',
+    },
   };
 }
+
+/**
+ * What a percentage is of, in the words its label carries: "% of $360.00 capital". The same gain reads a different
+ * percentage on a row, a venue card and a scoreboard, because each is on its own capital; the label says which.
+ * @param {number} usd  the base
+ * @param {string} what  "capital", "cost", "held"
+ * @param {(s: string) => string} [m]  the page's mask
+ */
+export const pctOf = (usd, what, m = (s) => s) => `% of ${m(fmtUsd(usd))} ${what}`;
 
 /**
  * The headline block: realised across everything, and how it splits.
@@ -588,11 +613,13 @@ function sumRows(strategies) {
  * @param {AgentsTab | null} [tab]
  */
 export function scoreboardView(dash, tab = null) {
-  const t = sumRows(tab ? tabStrategies(dash, tab) : (dash?.strategies ?? []));
+  const rows = tab ? tabStrategies(dash, tab) : (dash?.strategies ?? []);
+  const t = sumRows(rows);
   const capital = t.capitalUsd;
   const unrealised = t.unrealisedUsd, realised = t.realisedUsd, today = t.todayUsd, cost = t.costUsd, value = t.valueUsd;
   const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
   return {
+    strategies: rows.length,
     capitalUsd: capital, valueUsd: value, costUsd: cost, feesUsd: t.feesUsd,
     todayUsd: today, todayPct: pct(today, capital),
     unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost),
@@ -765,11 +792,15 @@ const VENUE_CARD_IDS = ['revx', 'binance'];
  * tab's rows summed by venue — the sum `dashboard()` makes for `byVenue`,
  * over this tab's rows alone — so a tab's cards add up to its scoreboard.
  * Shares are of deployed value when anything is deployed, else of
- * allotted capital, so the bar always says something.
+ * allotted capital, so the bar always says something. A venue the tab
+ * reaches only through a paper test — Polymarket, through RW — gets a card
+ * too (Davies, 2026-09-24), and that card is the test's own row; a test on
+ * a venue that has strategies stays out of their card (`apart`).
  * @param {any} dash
  * @param {AgentsTab | null} [tab]  null: every row, which is the server's `byVenue`
+ * @param {any[]} [tests]  the paper tests' rows the tab lists (`quotesRow`, `rwRow`)
  */
-export function venueRows(dash, tab = null) {
+export function venueRows(dash, tab = null, tests = []) {
   const rows = tab ? tabStrategies(dash, tab) : (dash?.strategies ?? []);
   const ids = VENUE_CARD_IDS.filter((id) => rows.some((/** @type {any} */ s) => s?.venue === id));
   const by = Object.fromEntries(ids.map((id) => {
@@ -777,26 +808,43 @@ export function venueRows(dash, tab = null) {
     return [id, { ...sumRows(on), strategies: on.length, live: on.filter((/** @type {any} */ s) => s.mode === 'live').length }];
   }));
   const venues = Object.fromEntries((dash?.venues ?? []).map((v) => [v.id, v]));
-  const totalValue = ids.reduce((a, id) => a + (by[id]?.valueUsd ?? 0), 0);
-  const totalCapital = ids.reduce((a, id) => a + (by[id]?.capitalUsd ?? 0), 0);
-  const useValue = totalValue > 0;
-  return ids.map((id) => {
+  const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
+  const cards = ids.map((id) => {
     const b = by[id] ?? {};
     const v = venues[id] ?? {};
     const value = b.valueUsd ?? 0, capital = b.capitalUsd ?? 0, cost = b.costUsd ?? 0;
     const unrealised = b.unrealisedUsd ?? 0, realised = b.realisedUsd ?? 0, today = b.todayUsd ?? 0;
-    const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
     return {
-      id, label: venueLabel(id),
-      capitalUsd: capital, valueUsd: value, costUsd: cost, unrealisedUsd: unrealised, realisedUsd: realised, feesUsd: b.feesUsd ?? 0,
+      id, label: venueLabel(id), test: /** @type {any} */ (null),
+      capitalUsd: capital, valueUsd: value, costUsd: cost, unrealisedUsd: unrealised, realisedUsd: realised, feesUsd: /** @type {number | null} */ (b.feesUsd ?? 0),
       // The same bases as the scoreboard: unrealised on the cost of what is held, realised and today on the venue's capital on the tab.
-      unrealisedPct: pct(unrealised, cost), realisedPct: pct(realised, capital), todayPct: pct(today, capital),
+      unrealisedPct: pct(unrealised, cost), realisedPct: pct(realised, capital), todayPct: pct(today, capital), deployedPct: pct(value, capital),
+      unrealisedOf: 'cost',
       strategies: b.strategies ?? 0, live: b.live ?? 0, todayUsd: today,
+      apart: tests.filter((t) => t?.venueId === id).map((t) => String(t.name)),
       balanceUsd: v.balances?.USD ?? null, balances: v.balances ?? null, canTrade: !!v.canTrade, feeBps: v.feeBps ?? null, note: v.note ?? null,
-      share: useValue ? (totalValue > 0 ? value / totalValue : 0) : (totalCapital > 0 ? capital / totalCapital : 0),
-      shareOf: useValue ? 'value' : 'capital',
     };
   });
+  for (const t of tests) {
+    if (!t?.venueId || ids.includes(t.venueId) || cards.some((c) => c.id === t.venueId)) continue;
+    const capital = Number(t.capitalUsd) || 0, value = Number(t.valueUsd) || 0;
+    cards.push({
+      id: t.venueId, label: venueLabel(t.venueId), test: t,
+      capitalUsd: capital, valueUsd: value, costUsd: 0, unrealisedUsd: t.unrealisedUsd ?? 0, realisedUsd: t.realisedUsd ?? 0, feesUsd: null,
+      unrealisedPct: t.unrealisedPct ?? null, realisedPct: t.realisedPct ?? null, todayPct: t.todayPct ?? null, deployedPct: pct(value, capital),
+      unrealisedOf: t.unrealisedOf ?? 'deployed',
+      strategies: 0, live: 0, todayUsd: t.todayUsd ?? 0, apart: [],
+      balanceUsd: null, balances: null, canTrade: false, feeBps: null, note: null,
+    });
+  }
+  const totalValue = cards.reduce((a, c) => a + c.valueUsd, 0);
+  const totalCapital = cards.reduce((a, c) => a + c.capitalUsd, 0);
+  const useValue = totalValue > 0;
+  return cards.map((c) => ({
+    ...c,
+    share: useValue ? c.valueUsd / totalValue : (totalCapital > 0 ? c.capitalUsd / totalCapital : 0),
+    shareOf: useValue ? 'value' : 'capital',
+  }));
 }
 
 /**
@@ -870,10 +918,11 @@ export function agentsAlerts(dash, now = Date.now()) {
   if (liveRows.length && dash?.risk && !dash.risk.live_confirmed_at) {
     // Since 2026-09-22 the confirmation gates ENTRIES only: clearing it is how the buying is stopped, and the exits — the
     // floor and the rule's own — keep running. This used to say every live order was refused, which was once true and
-    // would have left real coins with no way out; it must not tell the owner the exits are off when they are on.
+    // would have left real coins with no way out; it must not tell the owner the exits are off when they are on. In
+    // plain words since 2026-09-24 (Davies: "要普通人能看得懂"), and amber, not a fault: it is the state before the go.
     out.push({
-      id: 'live-unconfirmed', tone: 'fault', label: 'Live not confirmed',
-      text: `${liveRows.length} live ${liveRows.length === 1 ? 'row' : 'rows'}: live_confirmed_at is not set, so the loop refuses every live ENTRY until it is. The exits — the floor and the rule's own — still run.`,
+      id: 'live-unconfirmed', tone: 'stop', label: 'Live trading is not on yet',
+      text: 'It watches the market but will not buy anything with real money until live trading is switched on. Anything it already holds is still sold when its rules say so, or to stop a loss.',
       tabs: ['live'],
     });
   }
@@ -891,14 +940,14 @@ export function agentsAlerts(dash, now = Date.now()) {
     const how = s.retiredAt ? 'Retired' : s.mode === 'paused' ? 'Paused' : `Set to ${s.mode}`;
     out.push(s.windingDown
       ? {
-        id: `winding-down-${s.id}`, tone: 'paused', label: `${s.name ?? s.id} is winding down`,
+        id: `winding-down-${s.id}`, tone: 'paused', label: `${strategyName(s)} is winding down`,
         text: `${how} while holding ${held.join(', ')}. Its floor and its rule's own exit still run every minute and it can never buy again, so the position leaves when the rule or the floor says so. It stays on this page until it is flat.`,
         tabs: [strategyTab(s)],
       }
       : {
         // No `windingDown` flag: an older payload, or a paused row the tick is not covering. Treat it
         // as the fault it would be, rather than assuming the protection that flag is the evidence of.
-        id: `paused-long-${s.id}`, tone: 'fault', label: `${s.name ?? s.id} is paused with a position`,
+        id: `paused-long-${s.id}`, tone: 'fault', label: `${strategyName(s)} is paused with a position`,
         text: `Holding ${held.join(', ')} while paused, and this payload does not say the loop is winding it down. Check that the tick is covering it; otherwise unwind it or unpause it.`,
         tabs: [strategyTab(s)],
       });
@@ -907,7 +956,7 @@ export function agentsAlerts(dash, now = Date.now()) {
     const stuck = (s?.recentOrders ?? []).filter((o) => o?.state === 'pending' && o?.mode === 'live' && now - Date.parse(o.ts) > PENDING_ALERT_MS);
     if (!stuck.length) continue;
     out.push({
-      id: `pending-${s.id}`, tone: 'fault', label: `${s.name ?? s.id}: a live order needs a person`,
+      id: `pending-${s.id}`, tone: 'fault', label: `${strategyName(s)}: a live order needs a person`,
       text: `${stuck.length} live ${stuck.length === 1 ? 'order was' : 'orders were'} written before the venue was called and never heard back, and the venue does not list ${stuck.length === 1 ? 'it' : 'them'}: the outcome is unknown. Settle from the venue's own history — write the fill in, or mark it rejected. The loop will not guess.`,
       tabs: ['live'],
     });
@@ -982,6 +1031,8 @@ export function quotesRow(q) {
     venue: venueLabel('revx'),
     venueId: 'revx',
     mode: 'paper',
+    apart: true,    // a paper test beside the strategies: no scoreboard or venue total includes it
+    unrealisedOf: 'deployed',
     capitalUsd: Number(q.capitalUsd) || 0,
     valueUsd: openUsd,
     todayUsd: q.todayUsd ?? 0, todayPct: q.todayPct ?? null,
@@ -1042,15 +1093,68 @@ export function rwHeldText(net) {
 }
 
 /**
+ * A total and the parts it is made of, to the cent, so that the parts as printed add up to the total as printed.
+ * Each is rounded to the cent, and when the rounded parts miss the rounded total, each missing cent goes to the part
+ * rounding moved furthest the other way (largest remainder): 55.754 + −21.527 = 34.227 prints 55.76 + −21.53 = 34.23,
+ * where rounding each alone printed 55.75 and −21.53 beside 34.23. Only a rounding gap is closed: parts that miss their
+ * total by half a cent or more are printed as they are, so a real disagreement still shows. Cents are what `fmtUsd`
+ * prints below $1,000, which RW's figures stay far under.
+ * @param {number} total
+ * @param {number[]} parts  they add up to `total`, up to float
+ * @returns {{ total: number, parts: number[] }}  dollars, each a whole number of cents
+ */
+export function splitCents(total, parts) {
+  // Rounded by the formatter `fmtMoney` prints with, so a cent here is the cent on the page. Nothing else agrees with it:
+  // `x * 100` rounds in binary first (283.965 × 100 = 28396.4999…), `toFixed` rounds the exact binary value (257.945 is
+  // 257.94499…, "257.94") where `toLocaleString` rounds the shortest decimal ("257.95"), and Math.round takes −0.125 to
+  // −0.12 where the page writes −0.13.
+  const cents = (/** @type {number} */ x) => Math.sign(x) * Math.round(
+    Number(Math.abs(x).toLocaleString('en-US', { useGrouping: false, minimumFractionDigits: 2, maximumFractionDigits: 2 })) * 100);
+  const T = cents(total);
+  const c = parts.map(cents);
+  const sum = (/** @type {number[]} */ xs) => xs.reduce((s, x) => s + x, 0);
+  if (Math.abs(sum(parts) - total) < 0.005) {
+    for (let d = T - sum(c); d !== 0; d = T - sum(c)) {
+      const s = Math.sign(d);
+      let k = 0;
+      for (let i = 1; i < c.length; i++) if (s * (parts[i] * 100 - c[i]) > s * (parts[k] * 100 - c[k])) k = i;
+      c[k] += s;
+    }
+  }
+  return { total: T / 100, parts: c.map((x) => x / 100) };
+}
+
+/**
+ * RW's P&L as its page and its row print it: the total, and both ways it splits — rewards and orders, realised and
+ * unrealised — to the cent, from ONE split of the total into its three pieces: the rewards (all realised), what
+ * closed orders made, and what open orders hold. So every printed part adds up to every printed total.
+ * @param {any} r  the dashboard's `rw`
+ */
+export function rwSplit(r) {
+  const reward = Number(r?.rewardUsd) || 0, realised = Number(r?.realisedUsd) || 0, unrealised = Number(r?.unrealisedUsd) || 0;
+  const s = splitCents(Number(r?.totalUsd) || 0, [reward, realised - reward, unrealised]);
+  const [rw, closed, open] = s.parts.map((x) => Math.round(x * 100));
+  return {
+    totalUsd: s.total, rewardUsd: rw / 100, ordersUsd: (closed + open) / 100,
+    realisedUsd: (rw + closed) / 100, realisedOrdersUsd: closed / 100, unrealisedUsd: open / 100,
+  };
+}
+
+/**
  * RW's paper test (reference §4 item 36): minimum-size quotes on both sides of Polymarket's rewarded markets, a
  * portfolio re-chosen each UTC day, run on paper for fourteen days after a warm-up. `r` is the dashboard's `rw`; null
- * keeps it off the page (its tables are not there yet, or it has no state).
+ * keeps it off the page (its tables are not there yet, or it has no state). The total, its rewards and its orders
+ * come from `rwSplit`, the same split `rwRow` prints realised and unrealised from.
  * @param {any} r
  */
 export function rwView(r) {
   if (!r) return null;
   const total = Number(r.totalUsd) || 0, best = r.bestMarketUsd == null ? null : Number(r.bestMarketUsd);
+  const s = rwSplit(r);
+  const days = r.runStart && r.runEnd ? Math.round((Date.parse(r.runEnd) - Date.parse(r.runStart)) / 86400e3) : 14;
   return {
+    totalUsd: s.totalUsd, rewardUsd: s.rewardUsd, ordersUsd: s.ordersUsd,
+    dayOfRun: r.phase === 'run' ? Number(r.dayOfRun) || null : null, days,
     phase: r.phase,
     phaseText: r.phase === 'warm-up' ? 'warm-up, counted nowhere' : r.phase === 'run' ? `day ${r.dayOfRun} of 14` : 'the fourteen days are over',
     runStart: r.runStart, runEnd: r.runEnd, since: r.startedAt ?? null,
@@ -1065,7 +1169,9 @@ export function rwView(r) {
  * RW as a row of TESTING STRATEGIES (Davies, 2026-09-24), in the cells a strategy's row has. Its capital is what its
  * markets have at work today (each market's first quote and its largest inventory, the spec's capital); unrealised is
  * the open inventory at the adjusted mid against its average cost, as a percent of what it holds; realised is the
- * rewards and what closed trades made. null keeps it off the table.
+ * rewards and what closed trades made. Realised and unrealised come to the cent from `rwSplit`, against the total
+ * RW's page prints beside them, so wherever the two show they add up to it; the split is on the row too, for the page's
+ * rewards-and-orders lines and the Polymarket card. null keeps it off the table.
  * @param {any} r  the dashboard's `rw`
  */
 export function rwRow(r) {
@@ -1073,17 +1179,22 @@ export function rwRow(r) {
   const capital = Number(r.capitalUsd) || 0, held = Number(r.heldUsd) || 0;
   const pct = (usd, base) => (base > 0 ? (Number(usd) / base) * 100 : null);
   const quoting = Number(r.quoting) || 0;
+  const split = rwSplit(r);
   return {
     id: RW_ROW_ID,
     name: 'Reward quotes',
     venue: venueLabel('polymarket'),
     venueId: 'polymarket',
     mode: 'paper',
+    apart: true,    // a paper test beside the strategies: no scoreboard or venue total includes it
+    unrealisedOf: 'deployed',
     capitalUsd: capital,
     valueUsd: held,
     todayUsd: r.todayUsd ?? 0, todayPct: pct(r.todayUsd ?? 0, capital),
-    unrealisedUsd: r.unrealisedUsd ?? 0, unrealisedPct: pct(r.unrealisedUsd ?? 0, held),
-    realisedUsd: r.realisedUsd ?? 0, realisedPct: pct(r.realisedUsd ?? 0, capital),
+    unrealisedUsd: split.unrealisedUsd, unrealisedPct: pct(split.unrealisedUsd, held),
+    realisedUsd: split.realisedUsd, realisedPct: pct(split.realisedUsd, capital),
+    rewards: { realisedUsd: split.rewardUsd, unrealisedUsd: 0 },
+    orders: { realisedUsd: split.realisedOrdersUsd, unrealisedUsd: split.unrealisedUsd },
     nextText: r.finished ? 'finished' : 'every minute',
     openPositions: Number(r.open) || 0,
     status: r.finished
