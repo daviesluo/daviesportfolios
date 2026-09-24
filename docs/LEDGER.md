@@ -684,6 +684,14 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 07:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`bin/gates.sh` runs only the unit tests for a Markdown-only change** (Davies, 2026-09-24: eight minutes of gates
+for a one-line README edit). Against origin/main (unpushed commits, edits, new files), a change made only of `*.md`,
+`*.mdc` and the `.claude/`, `.cursor/`, `.agents/` folders runs `npm test` and the Deno tests, the only checks that
+read Markdown (`docs_map.test.js` reads `docs/map.md`; `agents/jev_rows.test.ts` a pre-registration); anything else,
+an empty diff, or `--full` runs every gate. Checked on seven sample change lists. CI still runs everything on push.
+
 ### [2026-09-24 07:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The public README no longer mentions AI coding agents** (Davies, 2026-09-24, before the CV goes out): the

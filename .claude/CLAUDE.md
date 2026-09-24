@@ -516,7 +516,10 @@ that follow from that evidence, in short:
   he wants that second look. Don't open one otherwise.
 - Run `sh bin/gates.sh` before every push: it runs every gate CI runs,
   in CI's order, and stops at the first failure. Push only when it ends
-  with `all gates green`.
+  with `all gates green`. A change of Markdown alone (or of the agents'
+  instruction folders) runs just the two unit-test suites, the only
+  checks that read Markdown, in a minute or two; `--full` forces every
+  gate (Davies, 2026-09-24).
 - Cloudflare Pages and the `typecheck-and-build` GitHub Action run on
   every push. If a push leaves `main` red, fix-up commit on `main` is
   the next priority — don't move on to new features while CI is broken.

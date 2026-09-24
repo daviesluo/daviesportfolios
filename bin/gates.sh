@@ -8,6 +8,30 @@
 set -e
 ROOT="$(git rev-parse --show-toplevel)"
 
+# A change made of Markdown alone (or the agents' instruction folders) cannot move
+# the types, the lint, the bundle, the browser sweep or the perf matrix. The only
+# checks that read Markdown are unit tests: docs_map.test.js reads docs/map.md and
+# agents/jev_rows.test.ts a pre-registration under docs/agents/reviews/. So such a
+# change, measured against origin/main (commits not yet pushed, edits and new
+# files), runs the two test suites alone; anything else, or `--full`, runs every
+# gate. CI runs every gate on the push either way.
+docs_only() {
+  [ "$1" = "--full" ] && return 1
+  base="$(git -C "$ROOT" merge-base HEAD origin/main 2>/dev/null)" || return 1
+  files="$( { git -C "$ROOT" diff --name-only "$base" HEAD; git -C "$ROOT" diff --name-only HEAD; git -C "$ROOT" ls-files --others --exclude-standard; } | sort -u)"
+  [ -n "$files" ] || return 1
+  ! printf '%s\n' "$files" | grep -v -E '\.(md|mdc)$|^\.claude/|^\.cursor/|^\.agents/' | grep -q .
+}
+if docs_only "$1"; then
+  echo "Markdown-only change: running the unit tests, the checks that read Markdown (bin/gates.sh --full runs everything)"
+  cd "$ROOT/src"
+  npm test
+  cd "$ROOT"
+  npx --yes deno@1.46.3 test --allow-env supabase/functions/
+  echo "all gates green (Markdown-only change)"
+  exit 0
+fi
+
 # The ledger hook moved from hooks/ to bin/hooks on 2026-09-23. A clone that
 # still points at the old folder runs no hook at all, and git says nothing.
 if [ "$(git -C "$ROOT" config core.hooksPath)" != "bin/hooks" ]; then
