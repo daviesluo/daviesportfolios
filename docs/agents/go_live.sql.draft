@@ -1,5 +1,5 @@
 -- The first live row. It carries no number until it moves: give it the next
--- free one then (`ls supabase/migrations/`; 0052 as of 2026-09-23 15:30 UTC, the
+-- free one then (`ls supabase/migrations/`; still 0052 at 2026-09-24 01:10 UTC, the
 -- remote history ends at 0051 plus the four 202608… out-of-band versions). It was numbered 0047, 0048, 0049,
 -- 0050 and 0051 on 2026-09-23 alone, and each new migration took the number
 -- from under it — so it waits unnumbered.
@@ -14,9 +14,25 @@
 -- WHAT IT DOES
 --
 -- Adds ONE live row — `trend-4h-live`, Revolut X, BTC/ETH/SOL/AVAX,
--- four equal $25 slots, $100 — and sets the confirmation the tick reads
--- before any live order. `trend-4h` stays exactly as it is: paper, same
--- rulebook, same venue, and SUI as well as the four.
+-- four equal $12.50 slots, $50 — and sets the caps its first round trip
+-- runs under. It leaves the row UNARMED: `live_confirmed_at` is null
+-- when it has run, and the one statement that arms it is run in the
+-- conversation where Davies says go (see AUDIT below). `trend-4h` stays
+-- exactly as it is: paper, $100, same rulebook, same venue, and SUI as
+-- well as the four.
+--
+-- WHY $50 (Davies, 2026-09-24; reference §3.31, reviews/2026-09-24-trend4h-golive-validation.md)
+--
+-- He wants the row live at $50 after a validation that fixes what it
+-- finds. It found nothing about $12.50 that the venue objects to: each
+-- order is 125 times the $0.10 minimum, rounding costs at most $0.00006,
+-- a round trip costs $0.025–0.036 (19.8–28.8 bps), and a floor exit
+-- loses about $1.01. It found two ways a buy fee taken in the coin left
+-- the book "long" for good, D11 and D12, and both are fixed and pinned
+-- (reference §4 item 33). Before the go the sub-account must hold at
+-- least about $51 of USD (four slots, the 10 bps entry allowance and the
+-- fees), and nothing may ever be traded in it by hand: the floor counts
+-- the venue's balance.
 --
 -- WHY FOUR COINS (2026-09-23, reference §3.20's addendum)
 --
@@ -24,12 +40,12 @@
 -- session. Real money goes only to the core majors and to coins that
 -- clear §4.15's bar under the stop that runs: AVAX does, SUI clears
 -- window A only, and its UK book is the thinnest of the five. Its paper
--- record continues on `trend-4h`. The $100 is spread over the four at $25
--- a slot; the fixed $20 per-order cap that would have held the slots at
--- $20 went the same day (`0048`, reference §4.26). The live row and its
--- control still share every bar on the four coins: the comparison reads
--- the fill against the paper assumption in bps, so the slots differing
--- ($25 live, $20 paper) does not blur it.
+-- record continues on `trend-4h`. The $50 is spread over the four at
+-- $12.50 a slot; the fixed $20 per-order cap went on 2026-09-23 (`0048`,
+-- reference §4.26). The live row and its control still share every bar
+-- on the four coins: the comparison reads the fill against the paper
+-- assumption in bps, so the slots differing ($12.50 live, $20 paper)
+-- does not blur it.
 --
 -- WHY A NEW ROW RATHER THAN FLIPPING `trend-4h`
 --
@@ -62,23 +78,48 @@
 -- the same day, so the blend no longer happens; the stranded positions
 -- still would.
 --
--- CAPS
+-- CAPS (reference §3.31)
 --
--- `max_exposure_usd` goes $100 -> $30 for the first round trip (below), and
--- to $150 once that trip has settled cleanly. $150 is NOT a loosening of risk:
--- the rulebook does not pyramid (`ruleDecision` only ever holds or exits
--- while `position.base > 0`), so four coins at one $25 slot each can
--- never deploy more than $100 of capital whatever this number says. What
--- it fixes is that `tick.ts` derives exposure as base x MARK, not cost —
--- so at $100 the fourth entry is refused the moment the three slots
--- already held are in profit at all (3 x $25 marked up, plus $25, is over
--- $100). The cap would tighten exactly when the rulebook was working.
--- $150 leaves the fourth slot reachable until the other three are up two
--- thirds. The daily loss limit ($5) and the
--- order cap (40/day) are untouched, and the paper rows keep their own
--- $300 bucket. There is no per-order number to set: since 2026-09-23 an
--- entry is its row's slot (capital / coins), and the gate refuses one
--- more than 10 % over it (reference §4.26).
+-- `max_exposure_usd` is the LIVE cap, per venue account. It starts at $15
+-- (below), then moves in two steps, each a statement run in the
+-- conversation, not in this file:
+--
+--   $15 — the first round trip. Marked to market, $15 admits ONE $12.50
+--         entry and refuses a second (the first would have to be down
+--         80 % to make room).
+--   $30 — two slots, for the rest of the first week. Only once a person has
+--         read that first round trip back cleanly. When its BUY has
+--         settled, and BEFORE its exit: the fee fields the venue sent
+--         (B4/D8), and the account's balance of the coin against the book
+--         (a buy that came back with no fee was booked from that balance,
+--         and its row's `fromAccount` shows what was read, D12). After its
+--         SELL: the book exactly flat, and the account holding under one
+--         step of the coin (D11).
+--   $75 — all four slots, with room. After seven days with no unexplained
+--         difference between the venue's balances and the book.
+--
+-- $75 is NOT a loosening of risk. The rulebook does not pyramid
+-- (`ruleDecision` only ever holds or exits while `position.base > 0`), so
+-- four coins at one $12.50 slot each can never deploy more than $50 of
+-- capital, whatever this number says. What the room is for: `tick.ts`
+-- derives exposure as base x MARK, not cost. At $50 the fourth entry
+-- would be refused the moment the three slots already held were in profit
+-- at all, so the cap would tighten exactly when the rulebook was working.
+-- $75 leaves the fourth slot reachable until the other three are up two
+-- thirds.
+--
+-- The other two limits are unchanged, and written below so what goes live
+-- is readable here:
+--
+--   daily loss limit, $5 — one number for every venue x mode bucket, paper
+--     included. It is inert at $50: all four floors in one day lose
+--     $4.05–4.27. Lowering it for the live row would halve it for its
+--     paper control too.
+--   orders, 40 a day per bucket — far above what four slots use.
+--
+-- The paper rows keep their own $300 bucket. There is no per-order number
+-- to set: an entry is its row's slot (capital / coins, so $12.50 here),
+-- and the gate refuses one more than 10 % over it (reference §4.26).
 --
 -- TO UNDO
 --
@@ -111,9 +152,9 @@ insert into public.agent_strategies
 values (
   'trend-4h-live', 'trend-4h', 'revx', 'kraken',
   'Trend 4h · Revolut X · live',
-  'The live row. Same rulebook and params as the paper `trend-4h`, which stays on as its control. Four coins at $25 a slot, SUI on paper only.',
+  'The live row. Same rulebook and params as the paper `trend-4h`, which stays on as its control. Four coins at $12.50 a slot ($50), SUI on paper only.',
   array['BTC/USD','ETH/USD','SOL/USD','AVAX/USD'],
-  100,
+  50,
   '{"fast":20,"slow":100,"breakoutUp":55,"breakoutDown":20,"atrN":14,"atrStop":3,"volN":42,"enterMin":0.45,"exitMax":0.3}'::jsonb,
   'live'
 );
@@ -128,16 +169,25 @@ values (
 -- refused (each refusal is on the record: "live not confirmed"); the operator runs the one statement below in the
 -- conversation where Davies confirms, and the first entry follows on the next signal.
 --
--- The first round trip is ONE slot: the exposure cap admits a single $25 entry (marked to market, with room), so the
+-- The first round trip is ONE slot: the exposure cap admits a single $12.50 entry (marked to market, with room), so the
 -- settlement read-back (B4: filled_quantity / average_fill_price / total_fee + fee_currency, and whether a buy's fee is
--- taken in the coin) is verified on one order before four are at risk. Raise it to 150 once that fill has settled
--- cleanly and the venue's balance equals the book.
+-- taken in the coin, D11/D12) is verified on one order before four are at risk. `live_confirmed_at` is written null
+-- here so the row goes in unarmed whatever the column held before.
 update public.agent_risk
-   set max_exposure_usd  = 30,
-       updated_at        = now()
+   set max_exposure_usd     = 15,
+       daily_loss_limit_usd = 5,
+       max_orders_per_day   = 40,
+       live_confirmed_at    = null,
+       updated_at           = now()
  where id = 1;
 
 -- In the conversation, on Davies' word (not in this file):
 --   update public.agent_risk set live_confirmed_at = now(), updated_at = now() where id = 1;
--- After the first live round trip has settled cleanly:
---   update public.agent_risk set max_exposure_usd = 150, updated_at = now() where id = 1;
+-- When the first BUY has settled, BEFORE its exit, a person reads it back: the fee fields the venue sent (B4/D8), and the
+-- account's balance of the coin against the book (with no fee reported, the row's `fromAccount` shows what the booking
+-- read, D12). After its SELL: the book exactly flat, and the account under one step of the coin (D11). Anything else:
+-- clear `live_confirmed_at` (exits stay armed) and find out why.
+-- Then, two slots for the rest of the first week:
+--   update public.agent_risk set max_exposure_usd = 30, updated_at = now() where id = 1;
+-- After seven days with no unexplained difference between the venue's balances and the book, all four slots:
+--   update public.agent_risk set max_exposure_usd = 75, updated_at = now() where id = 1;

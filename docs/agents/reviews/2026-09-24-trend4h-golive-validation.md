@@ -18,8 +18,12 @@ below were rebuilt and tested on it.
   config (its booking waits a turn).
 - **Pins:** the reproduction below passes with its assertions unchanged. Four more pins cover the cases it does not
   (reference §4 item 33).
-- **The go:** both of the verdict's code preconditions are met. What stays is Davies' word and the first buy read by a
-  person before its exit.
+- **The draft:** the $50 amendment below is now in `go_live.sql.draft`, with the daily loss limit (5), the order cap (40)
+  and `live_confirmed_at` (null) written out too (reference §4 item 34).
+- **The database agrees with (a):** read-only at about 00:55 UTC, Q1–Q3 returned what `replay.json` predicts. That
+  includes the ETH exit by the trail on the 09-23 12:00 bar, filled at 2,655.55.
+- **The go:** both of the verdict's code preconditions are met. What stays is Davies' word, the funding, and the first
+  buy read by a person before its exit.
 
 ## Answer first
 

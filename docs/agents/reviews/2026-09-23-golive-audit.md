@@ -24,6 +24,10 @@ row's is 0 by construction). **D10:** a lease claim the database does not answer
 `LEASE CLAIM FAILED` error, which `runTick` writes as its `agents.tick` note, instead of a crash. Every defect in the table
 is now fixed, in the code or (D7) in the draft; going live stays Davies' explicit word.
 
+**After the audit (2026-09-24):** the $50 validation (`2026-09-24-trend4h-golive-validation.md`) found D11 and D12, two
+ways a buy fee taken in the coin left the book "long" for good. Both are fixed and pinned (reference §4 item 33). The
+draft now starts the row at $50 with a $15 cap, unarmed (§4 item 34).
+
 ## What was re-computed here, and what was not
 
 * **D1 is real.** `agents/index.ts` awaits `kraken.refreshFees()` with no catch, and production's `ops_errors` holds

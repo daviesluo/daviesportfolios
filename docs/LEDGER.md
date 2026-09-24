@@ -14,11 +14,68 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+000000000. **DAVIES' REQUESTS OF 2026-09-24 ~00:00 UTC: two strategies live
+   at $50 each, after a final validation that fixes what it finds.**
+   1. **`trend-4h` at $50: GO on his word. The code and the draft are
+      ready.**
+      - **S2** (`reviews/2026-09-24-trend4h-golive-validation.md`, reference
+        §3.31) replayed the paper row bar for bar, and the database agrees
+        (read-only, about 00:55 UTC):
+        - Q1: 95 bar decisions through the 09-23 20:00 bar (BTC/ETH/SOL 21
+          each, AVAX/SUI 16 each). The only non-holds are ETH entering on
+          the 09-21 00:00 bar, BTC and SOL on 08:00, and ETH exiting on
+          09-23 12:00, with rule and final equal on each.
+        - Q2: no protective decisions.
+        - Q3: four paper fills, all marketable, all 9.00 bps: buy ETH
+          2665.74 (09-21 04:00:07), buy BTC 84848.67 and buy SOL 116.788
+          (12:00:08), sell ETH 2655.55 (09-23 16:00:06). The predicted ETH
+          trail exit is confirmed.
+      - **D11** (`c555abd`) and **D12** (`016903a`) are fixed and pinned
+        (§4 item 33): a live buy books only what the account can sell.
+        With no fee reported, it books from the balance and records
+        `fromAccount`.
+      - **`go_live.sql.draft` is at $50** (§4 item 34): capital 50, four
+        $12.50 slots, exposure cap 15. It rises to 30 once a person has read
+        the first round trip back, and to 75 after a clean week. Daily loss
+        stays 5 and orders 40. `live_confirmed_at` is written null.
+      - **Left, all his:**
+        - the go, which means moving the draft into `supabase/migrations/`
+          as 0052;
+        - funding: at least about **$51 of USD** in the Revolut X
+          sub-account;
+        - the first live order confirmed in the conversation;
+        - the first buy read back by a person BEFORE its exit;
+        - never trading by hand in that account.
+   2. **PR5 live: NO-GO until its four weeks end on 2026-10-21** (S3,
+      reference §3.32): it is a build, not a switch, and at $50 it earns
+      $0.021 a day. The paper engine is healthy (read about 00:55 UTC):
+      - P1: `last_minute` 2026-09-24 00:53, no error.
+      - P2: on 09-23 from 15:09, USDC-GBP 59 orders + 2 refused and USDT-GBP
+        57 + 2, with no withdrawals, fills or exits; on 09-24 so far 12 + 1
+        and 11 + 1.
+      - P3: no round trips yet, as expected.
+      - P4: 24 book snapshots, 15:10 → 00:48.
+
+      **116 orders on 09-23 against the review's ~128 (−9 %)**: not a
+      blocker, but reconcile it minute by minute at the four-week review.
+   3. **The BTC-regime entry filter is REJECTED** (S1, §3.30): §3.9's last
+      candidate is closed, with no paper twin.
+   4. **For the main session:** `.claude/CLAUDE.md`'s Agents section is
+      behind, and an agent may not edit it on another agent's word. Two
+      edits:
+      - "a BTC-regime filter on entries is the one written-down candidate,
+        to be re-tested on a non-bear window before any paper twin" should
+        say it was re-tested on non-bear windows and rejected (§3.30);
+      - the go-live bullet should say the draft starts the row at $50 (four
+        $12.50 slots) with a $15 cap, raised to $30 after the first round
+        trip is read back and to $75 after a clean week (not $100 with a
+        $30 cap and then $150), and that D8–D12 are done.
+
 00000000. **DAVIES' REQUESTS OF 2026-09-23 ~20:40 UTC.** The go-live work
    (item 0000000) was paused on his word; he has since **un-paused its
-   preparation**, and D8–D10 are done (item 0000000.1). The go itself stays
-   his explicit word. The DecisionFC review is still paused; do not resume it
-   without him.
+   preparation**: D8–D10 are done (item 0000000.1), and D11, D12 and the
+   $50 draft too (item 000000000.1). The go itself stays his explicit word.
+   The DecisionFC review is still paused; do not resume it without him.
    1. **The read-only password hides the transaction history and the
       INVESTMENT view: DONE** (its password is being shared publicly). The
       menu item and the tab are not rendered for a viewer, the panel shows
@@ -574,6 +631,17 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 01:11 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The go-live draft is at $50; the go is Davies' word alone** (item 000000000.1). `go_live.sql.draft` has capital 50
+(four $12.50 slots) and `max_exposure_usd` 15. The steps to 30 (after a person reads the first round trip back) and
+to 75 (after a clean week) are comments with their conditions. Daily loss 5 and orders 40 are written out, and
+`live_confirmed_at` is written null. It is still unnumbered (0052 when it moves). The main session's read-only checks
+at about 00:55 UTC agree with S2 and S3. Q1–Q3 are `replay.json` exactly, confirming ETH's trail exit at 2655.55.
+P1–P4 show PR5's paper engine running with no error, at 116 orders on 09-23 against about 128 expected, to reconcile
+at the four-week review. PR5 live stays a NO-GO until 2026-10-21. Reference §4 item 34, the go-live brief's note and
+both reviews' status lines say so. CLAUDE.md's two Agents lines are left for the main session (item 000000000.4).
 
 ### [2026-09-24 01:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -1,5 +1,15 @@
 # Going live — what would run, what it is expected to do, and what I would not turn on
 
+> **2026-09-24: the live row starts at $50, not $100** (Davies; reference
+> §3.31, §4 items 33–34). The draft now has four $12.50 slots and an
+> exposure cap of $15, one slot, for the first round trip. A person reads
+> that trip back before the cap goes to $30, and after a clean week it goes
+> to $75. The daily loss limit stays $5 and the order cap 40. The row stays
+> unarmed until Davies' word. D11 and D12 were fixed first: two ways a buy
+> fee taken in the coin left the book long for good. The figures below are
+> per dollar of row capital, and the venue's rules do not bind at $12.50,
+> so the percentages stand; the dollar figures halve.
+>
 > **2026-09-23: the live row is four coins, not five.** Davies left SUI's
 > seat to the session, and it stays on paper: real money goes only to the
 > core majors and to coins that clear §4.15's bar under the stop that
