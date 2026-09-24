@@ -406,8 +406,75 @@ export function strategyRows(dash, nowMs) {
       lastSymbol: s.lastDecision?.symbol ?? null,
       lastAgeMs: s.lastDecision ? nowMs - Date.parse(s.lastDecision.ts) : null,
       status: strategyStatus(s, dash?.risk ?? null, nowMs),
+      tab: strategyTab(s),
     };
   });
+}
+
+// ── The page's two tabs ──────────────────────────────────────────────────
+// Davies, 2026-09-24: once a strategy trades real money, the page opens on two tabs at the top, LIVE and TESTING,
+// with the live strategies and their figures kept apart from the ones still being measured. Everything a tab shows
+// is worked out from the rows on that tab and nothing else, so its scoreboard, its venue cards and its table always
+// add up to each other, and the two tabs together add up to the server's totals.
+
+/** @typedef {'live' | 'testing'} AgentsTab */
+/** The tabs, in the order the page draws them. @type {readonly AgentsTab[]} */
+export const AGENT_TABS = /** @type {const} */ (['live', 'testing']);
+
+/**
+ * The tab a strategy row sits on. LIVE is real money: a row labelled live, or one still holding real coins under
+ * another label (`holdsLive`, the tick's own book rule — real coins outrank the label). Everything else, a paused
+ * row included, is being measured, and sits on TESTING.
+ * @param {{ mode?: string, holdsLive?: boolean } | null | undefined} s
+ * @returns {AgentsTab}
+ */
+export function strategyTab(s) {
+  return s?.mode === 'live' || !!s?.holdsLive ? 'live' : 'testing';
+}
+
+/** The dashboard's strategies on one tab, in the payload's order. @param {any} dash @param {AgentsTab} tab */
+export function tabStrategies(dash, tab) {
+  return (dash?.strategies ?? []).filter((/** @type {any} */ s) => strategyTab(s) === tab);
+}
+
+/** The tab the page opens on: LIVE while anything trades real money, else TESTING. @param {any} dash @returns {AgentsTab} */
+export function defaultAgentsTab(dash) {
+  return tabStrategies(dash, 'live').length > 0 ? 'live' : 'testing';
+}
+
+/**
+ * Whether the live rows may buy. `live_confirmed_at` is one switch in `agent_risk` for every row labelled live: set,
+ * the loop may open live positions (armed); unset, it refuses every live entry and the exits still run. A LIVE row
+ * that is not labelled live is winding its real coins down and can never buy, whatever the switch says. The global
+ * pause outranks all of it, and is reported beside them rather than folded in.
+ * @param {any} dash
+ * @returns {{ state: 'none' | 'winding' | 'armed' | 'unarmed', since: string | null, paused: boolean, count: number }}
+ */
+export function liveArming(dash) {
+  const onLive = tabStrategies(dash, 'live');
+  const labelled = onLive.filter((/** @type {any} */ s) => s?.mode === 'live').length;
+  const since = labelled > 0 ? dash?.risk?.live_confirmed_at ?? null : null;
+  const state = onLive.length === 0 ? 'none' : labelled === 0 ? 'winding' : since ? 'armed' : 'unarmed';
+  return { state, since, paused: !!dash?.risk?.global_pause, count: onLive.length };
+}
+
+/**
+ * The tab bar's two entries: how many rows each tab lists (TESTING counts the paper tests' rows too) and the one line
+ * that says what kind of money is on it.
+ * @param {any} dash
+ * @param {number} testingExtra  rows TESTING lists beyond the strategies: the paper tests (quotes, RW)
+ */
+export function agentsTabsView(dash, testingExtra = 0) {
+  const arming = liveArming(dash);
+  const liveWords = arming.state === 'none' ? 'Nothing is live'
+    : arming.paused ? 'Real money · paused'
+      : arming.state === 'winding' ? 'Real money · winding down'
+        : arming.state === 'armed' ? 'Real money · armed' : 'Real money · awaiting arming';
+  const tone = arming.state === 'none' ? 'none' : arming.paused ? 'paused' : arming.state;
+  return {
+    live: { id: /** @type {AgentsTab} */ ('live'), label: 'LIVE', count: arming.count, text: liveWords, tone },
+    testing: { id: /** @type {AgentsTab} */ ('testing'), label: 'TESTING', count: tabStrategies(dash, 'testing').length + testingExtra, text: 'Paper · no real money', tone: 'paper' },
+  };
 }
 
 /**
@@ -491,25 +558,45 @@ export function glText(usd, pct) {
 }
 
 /**
- * The page's scoreboard: what the agents hold and have made, today and
+ * What a set of strategy rows adds up to, summed in the payload's order — the sum `dashboard()` makes over the same
+ * rows for its `totals` and `byVenue`, so over every row it is the server's figure to the last bit.
+ * @param {any[]} strategies
+ */
+function sumRows(strategies) {
+  const t = { capitalUsd: 0, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0 };
+  for (const s of strategies) {
+    t.capitalUsd += Number(s.capitalUsd) || 0;
+    t.costUsd += s.costUsd ?? 0;
+    t.valueUsd += s.valueUsd ?? 0;
+    t.unrealisedUsd += s.unrealisedUsd ?? 0;
+    t.realisedUsd += s.realisedUsd ?? 0;
+    t.feesUsd += s.feesUsd ?? 0;
+    t.todayUsd += s.todayUsd ?? 0;
+  }
+  return t;
+}
+
+/**
+ * A tab's scoreboard: what its strategies hold and have made, today and
  * in total, in the home scoreboard's cells. "Today" is the UTC calendar
  * day — realised since 00:00 plus the change in unrealised from the day's
  * opening price, the same figure the loop's daily loss limit reads.
  * Percentages are on the capital allotted (today, total, realised) or on
  * the cost of what is held (unrealised), and each cell says which.
+ * Without a tab it is every row, which is the server's `totals`.
  * @param {any} dash
+ * @param {AgentsTab | null} [tab]
  */
-export function scoreboardView(dash) {
-  const t = dash?.totals ?? {};
-  const capital = (dash?.strategies ?? []).reduce((a, s) => a + (Number(s.capitalUsd) || 0), 0);
-  const unrealised = t.unrealisedUsd ?? 0, realised = t.realisedUsd ?? 0, today = t.todayUsd ?? 0, cost = t.costUsd ?? 0, value = t.valueUsd ?? 0;
+export function scoreboardView(dash, tab = null) {
+  const t = sumRows(tab ? tabStrategies(dash, tab) : (dash?.strategies ?? []));
+  const capital = t.capitalUsd;
+  const unrealised = t.unrealisedUsd, realised = t.realisedUsd, today = t.todayUsd, cost = t.costUsd, value = t.valueUsd;
   const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
   return {
-    capitalUsd: capital, valueUsd: value, costUsd: cost, feesUsd: t.feesUsd ?? 0,
+    capitalUsd: capital, valueUsd: value, costUsd: cost, feesUsd: t.feesUsd,
     todayUsd: today, todayPct: pct(today, capital),
     unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost),
     realisedUsd: realised, realisedPct: pct(realised, capital),
-    liveRealisedUsd: t.byMode?.live?.realisedUsd ?? 0, paperRealisedUsd: t.byMode?.paper?.realisedUsd ?? 0,
     deployedPct: pct(value, capital),
     dayStart: dash?.dayStart ?? null,
   };
@@ -608,17 +695,16 @@ export function liveStateRows(s, nowMs) {
 }
 
 /**
- * The overview table, split the way the money is: what is trading real
- * money and what is only being measured. A paused row is being measured
- * too — it is not live — so it sits with the testing rows. Rendering an
- * empty half would be noise, so the page renders only the halves that
- * have rows in them, and with nothing live that is one table saying
- * TESTING, which is the honest headline.
- * @param {any[]} rows
+ * The overview table, split the way the money is — one half per tab: what
+ * is trading real money and what is only being measured (`strategyTab`).
+ * A paused row is being measured too, so it sits with the testing rows,
+ * unless it still holds real coins.
+ * @param {any[]} rows  `strategyRows`' rows, which carry their tab
  */
 export function splitStrategyRows(rows) {
   const all = rows ?? [];
-  return { live: all.filter((r) => r?.mode === 'live'), testing: all.filter((r) => r?.mode !== 'live') };
+  const tabOf = (/** @type {any} */ r) => r?.tab ?? strategyTab(r);
+  return { live: all.filter((r) => tabOf(r) === 'live'), testing: all.filter((r) => tabOf(r) !== 'live') };
 }
 
 /** The symbol the detail opens on: what is held, else what has traded, else the first. @param {any} s */
@@ -670,16 +756,26 @@ export function symbolOrderRows(chart, more, symbol) {
   return [...byId.values()].sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts));
 }
 
+/** The venues VENUES draws a card for, in its order: Kraken is the signal venue only, and Polymarket has RW's row alone. */
+const VENUE_CARD_IDS = ['revx', 'binance'];
+
 /**
- * One row per venue for the split: what each account holds, has made and
- * is funded with, and its share of the book. Shares are of deployed value
- * when anything is deployed, else of allotted capital, so the bar always
- * says something.
+ * One card per venue a tab trades on: what its rows there hold, have made
+ * and are allotted, and the venue's share of the tab. The figures are the
+ * tab's rows summed by venue — the sum `dashboard()` makes for `byVenue`,
+ * over this tab's rows alone — so a tab's cards add up to its scoreboard.
+ * Shares are of deployed value when anything is deployed, else of
+ * allotted capital, so the bar always says something.
  * @param {any} dash
+ * @param {AgentsTab | null} [tab]  null: every row, which is the server's `byVenue`
  */
-export function venueRows(dash) {
-  const ids = ['revx', 'binance'];
-  const by = dash?.byVenue ?? {};
+export function venueRows(dash, tab = null) {
+  const rows = tab ? tabStrategies(dash, tab) : (dash?.strategies ?? []);
+  const ids = VENUE_CARD_IDS.filter((id) => rows.some((/** @type {any} */ s) => s?.venue === id));
+  const by = Object.fromEntries(ids.map((id) => {
+    const on = rows.filter((/** @type {any} */ s) => s?.venue === id);
+    return [id, { ...sumRows(on), strategies: on.length, live: on.filter((/** @type {any} */ s) => s.mode === 'live').length }];
+  }));
   const venues = Object.fromEntries((dash?.venues ?? []).map((v) => [v.id, v]));
   const totalValue = ids.reduce((a, id) => a + (by[id]?.valueUsd ?? 0), 0);
   const totalCapital = ids.reduce((a, id) => a + (by[id]?.capitalUsd ?? 0), 0);
@@ -693,7 +789,7 @@ export function venueRows(dash) {
     return {
       id, label: venueLabel(id),
       capitalUsd: capital, valueUsd: value, costUsd: cost, unrealisedUsd: unrealised, realisedUsd: realised, feesUsd: b.feesUsd ?? 0,
-      // The same bases as the scoreboard: unrealised on the cost of what is held, realised and today on the venue's paper capital.
+      // The same bases as the scoreboard: unrealised on the cost of what is held, realised and today on the venue's capital on the tab.
       unrealisedPct: pct(unrealised, cost), realisedPct: pct(realised, capital), todayPct: pct(today, capital),
       strategies: b.strategies ?? 0, live: b.live ?? 0, todayUsd: today,
       balanceUsd: v.balances?.USD ?? null, balances: v.balances ?? null, canTrade: !!v.canTrade, feeBps: v.feeBps ?? null, note: v.note ?? null,
@@ -733,30 +829,42 @@ export function shareSegments(rows) {
 export const PENDING_ALERT_MS = 2 * 60e3;
 
 /**
+ * Each banner also names the tabs it belongs on (`tabs`): the global pause holds both; a venue fault shows wherever
+ * that venue has a row; the live confirmation, a live venue's missing key and a live order nobody heard back from are
+ * LIVE's; a row winding down is on its own row's tab.
  * @param {any} dash
  * @param {number} [now]
+ * @returns {Array<{ id: string, tone: string, label: string, text: string, tabs: AgentsTab[] }>}
  */
 export function agentsAlerts(dash, now = Date.now()) {
+  /** @type {Array<{ id: string, tone: string, label: string, text: string, tabs: AgentsTab[] }>} */
   const out = [];
+  const strategies = dash?.strategies ?? [];
+  /** @param {string} venue @returns {AgentsTab[]} */
+  const venueTabs = (venue) => {
+    const on = AGENT_TABS.filter((t) => strategies.some((/** @type {any} */ s) => s?.venue === venue && strategyTab(s) === t));
+    return on.length ? on : [...AGENT_TABS];
+  };
   if (dash?.risk?.global_pause) {
     out.push({
       id: 'global-pause', tone: 'stop', label: 'Global pause',
       text: 'Every strategy is held. The loop keeps reading and recording; it places no order, on either venue, until the pause is lifted.',
+      tabs: [...AGENT_TABS],
     });
   }
   for (const v of dash?.venues ?? []) {
     if (!v?.id) continue;
     if (v.note) {
-      out.push({ id: `venue-${v.id}`, tone: 'fault', label: `${venueLabel(v.id)} fault`, text: String(v.note) });
-    } else if (v.canTrade === false && (dash?.strategies ?? []).some((s) => s?.venue === v.id && s?.mode === 'live')) {
+      out.push({ id: `venue-${v.id}`, tone: 'fault', label: `${venueLabel(v.id)} fault`, text: String(v.note), tabs: venueTabs(v.id) });
+    } else if (v.canTrade === false && strategies.some((s) => s?.venue === v.id && s?.mode === 'live')) {
       // Paper needs no key; a LIVE row on a venue without one is the fault worth a banner.
       out.push({
         id: `nokey-${v.id}`, tone: 'fault', label: `${venueLabel(v.id)} has no key`,
         text: `Nothing can trade on ${venueLabel(v.id)}: this deployment has no signing key for it, so its live strategies can only watch.`,
+        tabs: ['live'],
       });
     }
   }
-  const strategies = dash?.strategies ?? [];
   // A row trading real money, or still holding real coins under another label (`holdsLive`, the tick's book rule).
   const liveRows = strategies.filter((s) => s?.mode === 'live' || s?.holdsLive);
   if (liveRows.length && dash?.risk && !dash.risk.live_confirmed_at) {
@@ -766,6 +874,7 @@ export function agentsAlerts(dash, now = Date.now()) {
     out.push({
       id: 'live-unconfirmed', tone: 'fault', label: 'Live not confirmed',
       text: `${liveRows.length} live ${liveRows.length === 1 ? 'row' : 'rows'}: live_confirmed_at is not set, so the loop refuses every live ENTRY until it is. The exits — the floor and the rule's own — still run.`,
+      tabs: ['live'],
     });
   }
   for (const s of strategies) {
@@ -784,12 +893,14 @@ export function agentsAlerts(dash, now = Date.now()) {
       ? {
         id: `winding-down-${s.id}`, tone: 'paused', label: `${s.name ?? s.id} is winding down`,
         text: `${how} while holding ${held.join(', ')}. Its floor and its rule's own exit still run every minute and it can never buy again, so the position leaves when the rule or the floor says so. It stays on this page until it is flat.`,
+        tabs: [strategyTab(s)],
       }
       : {
         // No `windingDown` flag: an older payload, or a paused row the tick is not covering. Treat it
         // as the fault it would be, rather than assuming the protection that flag is the evidence of.
         id: `paused-long-${s.id}`, tone: 'fault', label: `${s.name ?? s.id} is paused with a position`,
         text: `Holding ${held.join(', ')} while paused, and this payload does not say the loop is winding it down. Check that the tick is covering it; otherwise unwind it or unpause it.`,
+        tabs: [strategyTab(s)],
       });
   }
   for (const s of strategies) {
@@ -798,9 +909,15 @@ export function agentsAlerts(dash, now = Date.now()) {
     out.push({
       id: `pending-${s.id}`, tone: 'fault', label: `${s.name ?? s.id}: a live order needs a person`,
       text: `${stuck.length} live ${stuck.length === 1 ? 'order was' : 'orders were'} written before the venue was called and never heard back, and the venue does not list ${stuck.length === 1 ? 'it' : 'them'}: the outcome is unknown. Settle from the venue's own history — write the fill in, or mark it rejected. The loop will not guess.`,
+      tabs: ['live'],
     });
   }
   return out;
+}
+
+/** The banners one tab shows. @param {any} dash @param {AgentsTab} tab @param {number} [now] */
+export function alertsFor(dash, tab, now = Date.now()) {
+  return agentsAlerts(dash, now).filter((a) => a.tabs.includes(tab));
 }
 
 /**

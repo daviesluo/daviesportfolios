@@ -30,8 +30,12 @@ How the less obvious parts work, and why they are built the way they are.
   word. The basis between the two venues is recorded as the loop runs:
   there is no arbitrage in it, and the record keeps saying so. Positions
   and P&L are derived from fills in one place (the `agents` Edge
-  Function). The page leads with a scoreboard (deployed, today since
-  00:00 UTC, unrealised and realised G/L) and opens each strategy in a
+  Function). The page has two tabs at the top, LIVE (real money: a row
+  labelled live, or one still holding real coins) and TESTING (paper),
+  each leading with its own scoreboard (deployed, today since 00:00 UTC,
+  unrealised and realised G/L), venue cards and table, all summed from
+  that tab's rows alone, so the two tabs add up to the function's totals;
+  it opens each strategy in a
   stacked modal with its own scoreboard, a price chart with its fills
   marked, the live state per symbol, its decisions (what the model saw
   and answered, what the rule said), fills and orders. A live order needs
@@ -540,7 +544,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 
 | File | What it does |
 |---|---|
-| `agents/agents.jsx`, `agents/agents.js`, `agents/agents_chart.js` | The Agents page: each strategy's status, positions, orders and chart, and the two paper tests' rows and pages, read from the `agents` function and kept in the browser so it opens drawn. |
+| `agents/agents.jsx`, `agents/agents.js`, `agents/agents_chart.js` | The Agents page: LIVE and TESTING tabs, each with its own scoreboard, venue cards and table; each strategy's status, positions, orders and chart, and the two paper tests' rows and pages, read from the `agents` function and kept in the browser so it opens drawn. |
 
 ### `supabase/functions/` — the server
 
@@ -658,7 +662,7 @@ before touching migration state.
 | `src/package.json` | The web app's npm project: scripts, dependencies, and the knip and size-limit settings. Every npm command runs in `src/`. |
 | `src/tsconfig.json` | Type-checks the JavaScript through JSDoc (`checkJs`, `strictNullChecks`). |
 | `src/.nvmrc` | Node 22. |
-| `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 242 checks. |
+| `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 284 checks. |
 | `src/e2e/perf-matrix.mjs` | The second browser test CI runs: the performance panel in two views, five ranges, three data states and two books, 60 cases against answers worked out by hand, clock pinned. |
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |
 | `dist/` | The built site, committed and published as it is. |

@@ -4,7 +4,8 @@ import {
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwRow, rwView, fmtCents, rwHeldText, venueLabel } from './agents.js';
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwRow, rwView, fmtCents, rwHeldText, venueLabel,
+  AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
@@ -86,24 +87,33 @@ describe('fetchAgentsDashboard', () => {
 });
 
 describe('venueRows / untilText', () => {
-  it('splits the book by venue and takes the share of deployed value, or of capital while nothing is deployed', () => {
+  const row = (venue, over = {}) => ({ venue, mode: 'paper', capitalUsd: 0, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0, ...over });
+  it('sums the rows by venue and takes the share of deployed value, or of capital while nothing is deployed', () => {
     const dash = {
-      byVenue: { revx: { valueUsd: 30, capitalUsd: 140, realisedUsd: 1, strategies: 4, live: 0 }, binance: { valueUsd: 10, capitalUsd: 140, realisedUsd: -2, strategies: 3, live: 1 }, kraken: { valueUsd: 99, capitalUsd: 99 } },
+      strategies: [row('revx', { valueUsd: 30, capitalUsd: 100, realisedUsd: 1 }), row('revx', { capitalUsd: 40 }), row('binance', { valueUsd: 10, capitalUsd: 140, realisedUsd: -2, mode: 'live' }),
+        row('kraken', { valueUsd: 99, capitalUsd: 99 })],
       venues: [{ id: 'revx', canTrade: true, balances: { USD: 100 }, feeBps: { maker: 0, taker: 9 } }, { id: 'binance', canTrade: true, balances: { USD: 0, USDT: 75 }, feeBps: { maker: 10, taker: 10 } }],
     };
     const rows = venueRows(dash);
     expect(rows.map((r) => r.label)).toEqual(['Revolut X', 'Binance']);   // Kraken is the signal venue: never a card, even with a book
-    expect(rows[0]).toMatchObject({ valueUsd: 30, balanceUsd: 100, share: 0.75, shareOf: 'value', live: 0 });
+    expect(rows[0]).toMatchObject({ valueUsd: 30, capitalUsd: 140, realisedUsd: 1, balanceUsd: 100, share: 0.75, shareOf: 'value', strategies: 2, live: 0 });
     // The card's percentages sit on the scoreboard's bases: unrealised on cost, realised and today on the venue's capital.
-    const based = venueRows({ byVenue: { revx: { valueUsd: 30, costUsd: 20, capitalUsd: 140, unrealisedUsd: 1, realisedUsd: 7, todayUsd: -1.4 } }, venues: [] })[0];
+    const based = venueRows({ strategies: [row('revx', { valueUsd: 30, costUsd: 20, capitalUsd: 140, unrealisedUsd: 1, realisedUsd: 7, todayUsd: -1.4 })], venues: [] })[0];
     expect(based.unrealisedPct).toBeCloseTo(5, 6);
     expect(based.realisedPct).toBeCloseTo(5, 6);
     expect(based.todayPct).toBeCloseTo(-1, 6);
-    expect(venueRows({ byVenue: {}, venues: [] })[0].unrealisedPct).toBeNull();
-    expect(rows[1]).toMatchObject({ valueUsd: 10, balanceUsd: 0, share: 0.25, live: 1 });
-    const idle = venueRows({ byVenue: { revx: { valueUsd: 0, capitalUsd: 60 }, binance: { valueUsd: 0, capitalUsd: 140 } }, venues: [] });
+    expect(venueRows({ strategies: [row('revx', { capitalUsd: 40 })], venues: [] })[0].unrealisedPct).toBeNull();
+    expect(rows[1]).toMatchObject({ valueUsd: 10, balanceUsd: 0, share: 0.25, strategies: 1, live: 1 });
+    const idle = venueRows({ strategies: [row('revx', { capitalUsd: 60 }), row('binance', { capitalUsd: 140 })], venues: [] });
     expect(idle.map((r) => [r.share, r.shareOf])).toEqual([[0.3, 'capital'], [0.7, 'capital']]);
-    expect(venueRows(null).map((r) => r.share)).toEqual([0, 0]);
+    // A venue with no row gets no card: there is nothing on it to show.
+    expect(venueRows(null)).toEqual([]);
+    expect(venueRows({ strategies: [row('binance', { capitalUsd: 40 })] }).map((r) => r.id)).toEqual(['binance']);
+  });
+  it('on a tab, sums only that tab\'s rows: LIVE\'s Revolut X card is the live row, TESTING\'s the paper ones', () => {
+    const dash = { strategies: [row('revx', { capitalUsd: 100, valueUsd: 21.5, realisedUsd: 12.34 }), row('binance', { capitalUsd: 100 }), row('revx', { mode: 'live', holdsLive: true, capitalUsd: 50, valueUsd: 12.5, realisedUsd: 0.3 })], venues: [] };
+    expect(venueRows(dash, 'live').map((r) => [r.id, r.capitalUsd, r.valueUsd, r.realisedUsd, r.strategies, r.live])).toEqual([['revx', 50, 12.5, 0.3, 1, 1]]);
+    expect(venueRows(dash, 'testing').map((r) => [r.id, r.capitalUsd, r.valueUsd, r.realisedUsd, r.strategies, r.live])).toEqual([['revx', 100, 21.5, 12.34, 1, 0], ['binance', 100, 0, 0, 1, 0]]);
   });
   it('untilText counts down to the next bar close', () => {
     const now = Date.parse('2026-09-20T04:05:00Z');
@@ -643,8 +653,8 @@ describe('glText / scoreboardView / strategyScoreboard', () => {
     expect(glText(0, null)).toBe('$0.00');
   });
   it('puts today, unrealised and realised on their stated bases, and carries no total', () => {
-    const dash = { dayStart: '2026-09-21T00:00:00.000Z', totals: { costUsd: 40, valueUsd: 41, unrealisedUsd: 1, realisedUsd: 3, feesUsd: 0.1, todayUsd: 2, byMode: { live: { realisedUsd: 0 }, paper: { realisedUsd: 3 } } },
-      strategies: [{ capitalUsd: 60 }, { capitalUsd: 40 }] };
+    const dash = { dayStart: '2026-09-21T00:00:00.000Z',
+      strategies: [{ capitalUsd: 60, costUsd: 40, valueUsd: 41, unrealisedUsd: 1, realisedUsd: 2.5, feesUsd: 0.1, todayUsd: 1.5 }, { capitalUsd: 40, realisedUsd: 0.5, todayUsd: 0.5 }] };
     const v = scoreboardView(dash);
     expect(v.capitalUsd).toBe(100);
     expect(v.todayPct).toBeCloseTo(2, 6);           // 2 on 100 of capital
@@ -658,6 +668,132 @@ describe('glText / scoreboardView / strategyScoreboard', () => {
     expect(one.todayPct).toBeCloseTo(-0.5, 6);
     expect(scoreboardView(null).realisedPct).toBeNull();
     expect('totalPct' in strategyScoreboard(one)).toBe(false);
+  });
+});
+
+describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
+  // A dashboard the way `dashboard()` shapes one: the rows, then `totals` (with `byMode` by book) and `byVenue`
+  // summed from them in the payload's order. Three paper rows, and the go-live draft's row on Revolut X.
+  const keys = ['costUsd', 'valueUsd', 'unrealisedUsd', 'realisedUsd', 'feesUsd', 'todayUsd'];
+  /** @param {any[]} rows */
+  const sum = (rows) => {
+    const t = /** @type {Record<string, number>} */ (Object.fromEntries(keys.map((k) => [k, 0])));
+    for (const r of rows) for (const k of keys) t[k] += r[k];
+    return t;
+  };
+  const row = (id, venue, mode, capitalUsd, f, over = {}) => ({
+    id, venue, mode, capitalUsd, costUsd: f[0], valueUsd: f[1], unrealisedUsd: f[2], realisedUsd: f[3], feesUsd: f[4], todayUsd: f[5], positions: [], ...over,
+  });
+  const rows = [
+    row('momentum-1d', 'revx', 'paper', 40, [0, 0, 0, -0.11, 0.02, -0.05]),
+    row('trend-4h', 'revx', 'paper', 100, [20, 21.5, 1.5, 12.34, 0.08, 0.42]),
+    row('trend-4h-binance', 'binance', 'paper', 100, [9.9, 10.1, 0.2, 0.7, 0.01, 0.13]),
+    row('trend-4h-live', 'revx', 'live', 50, [12, 12.5, 0.5, 0.3, 0.03, 0.2], { holdsLive: true }),
+  ];
+  /** @type {Record<string, any>} */
+  const byVenue = {};
+  for (const r of rows) {
+    const v = (byVenue[r.venue] ??= { ...sum([]), capitalUsd: 0, strategies: 0, live: 0 });
+    for (const k of keys) v[k] += r[k];
+    v.capitalUsd += r.capitalUsd; v.strategies += 1; if (r.mode === 'live') v.live += 1;
+  }
+  const venues = [{ id: 'revx', canTrade: true, note: null, feeBps: { maker: 0, taker: 9 } }, { id: 'binance', canTrade: true, note: null, feeBps: { maker: 10, taker: 10 } }];
+  const dash = { risk: { global_pause: false, live_confirmed_at: null }, strategies: rows, venues, byVenue,
+    totals: { ...sum(rows), byMode: { paper: sum(rows.slice(0, 3)), live: sum(rows.slice(3)) } } };
+
+  it('a row is LIVE while it is labelled live or still holds real coins, and TESTING otherwise — a paused row included', () => {
+    expect(AGENT_TABS).toEqual(['live', 'testing']);
+    expect(strategyTab({ mode: 'live' })).toBe('live');
+    expect(strategyTab({ mode: 'paper', holdsLive: true })).toBe('live');     // relabelled away from real coins: the coins outrank the label
+    expect(strategyTab({ mode: 'paused', holdsLive: true })).toBe('live');
+    expect(strategyTab({ mode: 'paused' })).toBe('testing');
+    expect(strategyTab({ mode: 'paper' })).toBe('testing');
+    expect(strategyTab(null)).toBe('testing');
+    expect(tabStrategies(dash, 'live').map((r) => r.id)).toEqual(['trend-4h-live']);
+    expect(tabStrategies(dash, 'testing').map((r) => r.id)).toEqual(['momentum-1d', 'trend-4h', 'trend-4h-binance']);
+    const split = splitStrategyRows(strategyRows(dash, NOW));
+    expect(split.live.map((r) => r.id)).toEqual(['trend-4h-live']);
+    expect(split.testing.map((r) => r.id)).toEqual(['momentum-1d', 'trend-4h', 'trend-4h-binance']);
+    expect(splitStrategyRows(strategyRows({ strategies: [row('x', 'revx', 'paper', 40, [0, 0, 0, 0, 0, 0], { holdsLive: true })] }, NOW)).live.length).toBe(1);
+  });
+  it('over every row, the page\'s sums are the server\'s own totals and byVenue, to the last bit', () => {
+    const all = scoreboardView(dash);
+    for (const k of keys) expect(all[k]).toBe(dash.totals[k]);
+    const cards = venueRows(dash);
+    expect(cards.map((c) => c.id)).toEqual(['revx', 'binance']);
+    for (const c of cards) for (const k of [...keys, 'capitalUsd', 'strategies', 'live']) expect(c[k]).toBe(byVenue[c.id][k]);
+  });
+  it('each tab is its own rows: LIVE is the live book, TESTING the paper book, and the two add up to every row', () => {
+    const live = scoreboardView(dash, 'live'), testing = scoreboardView(dash, 'testing'), all = scoreboardView(dash);
+    for (const k of keys) {
+      expect(live[k]).toBe(dash.totals.byMode.live[k]);
+      expect(testing[k]).toBe(dash.totals.byMode.paper[k]);
+      expect(live[k] + testing[k]).toBeCloseTo(all[k], 10);
+    }
+    expect([live.capitalUsd, testing.capitalUsd]).toEqual([50, 240]);
+    expect(live.todayPct).toBeCloseTo(0.4, 9);                                  // +0.20 on the live row's $50
+    expect(live.unrealisedPct).toBeCloseTo(0.5 / 12 * 100, 9);                  // on the $12 the live row holds
+    expect(testing.realisedPct).toBeCloseTo((-0.11 + 12.34 + 0.7) / 240 * 100, 9);
+    // A tab's venue cards add up to that tab's scoreboard.
+    for (const [tab, sb] of /** @type {const} */ ([['live', live], ['testing', testing]])) {
+      const cards = venueRows(dash, tab);
+      for (const k of keys) expect(cards.reduce((a, c) => a + c[k], 0)).toBeCloseTo(sb[k], 10);
+    }
+    expect(venueRows(dash, 'live').map((c) => c.id)).toEqual(['revx']);
+  });
+  it('opens on LIVE while anything is live, else on TESTING', () => {
+    expect(defaultAgentsTab(dash)).toBe('live');
+    expect(defaultAgentsTab({ strategies: rows.slice(0, 3) })).toBe('testing');
+    expect(defaultAgentsTab(null)).toBe('testing');
+  });
+  it('says whether the live rows may buy — armed, awaiting arming or nothing live — with the pause beside it', () => {
+    expect(liveArming(dash)).toEqual({ state: 'unarmed', since: null, paused: false, count: 1 });
+    const armed = { ...dash, risk: { ...dash.risk, live_confirmed_at: '2026-09-25T09:00:00Z' } };
+    expect(liveArming(armed)).toEqual({ state: 'armed', since: '2026-09-25T09:00:00Z', paused: false, count: 1 });
+    expect(liveArming({ ...armed, risk: { ...armed.risk, global_pause: true } })).toMatchObject({ state: 'armed', paused: true });
+    // The switch left on after the last live row went is not "armed": there is nothing for it to arm.
+    expect(liveArming({ ...armed, strategies: rows.slice(0, 3) })).toEqual({ state: 'none', since: null, paused: false, count: 0 });
+    // A row on LIVE only because it still holds real coins under a paper or paused label can never buy: it is winding
+    // down, and "awaiting arming" would say arming could change that.
+    const winding = { ...dash, strategies: [...rows.slice(0, 3), { ...rows[3], mode: 'paused', windingDown: true }] };
+    expect(liveArming(winding)).toEqual({ state: 'winding', since: null, paused: false, count: 1 });
+    expect(agentsTabsView(winding).live).toMatchObject({ text: 'Real money · winding down', tone: 'winding' });
+    const words = (d, extra = 0) => { const v = agentsTabsView(d, extra); return [v.live.count, v.live.text, v.live.tone, v.testing.count, v.testing.text, v.testing.tone]; };
+    expect(words(armed, 2)).toEqual([1, 'Real money · armed', 'armed', 5, 'Paper · no real money', 'paper']);   // the two paper tests' rows count on TESTING
+    expect(words(dash)).toEqual([1, 'Real money · awaiting arming', 'unarmed', 3, 'Paper · no real money', 'paper']);
+    expect(words({ ...armed, risk: { ...armed.risk, global_pause: true } })).toEqual([1, 'Real money · paused', 'paused', 3, 'Paper · no real money', 'paper']);
+    expect(words({ strategies: rows.slice(0, 3) }, 2)).toEqual([0, 'Nothing is live', 'none', 5, 'Paper · no real money', 'paper']);
+  });
+  it('puts each banner on the tabs it concerns', () => {
+    const now = Date.parse('2026-09-21T12:10:00Z');
+    const pending = { id: 7, ts: new Date(now - 3 * 60e3).toISOString(), state: 'pending', mode: 'live' };
+    const busy = {
+      ...dash,
+      risk: { global_pause: true, live_confirmed_at: null },
+      venues: [{ id: 'revx', canTrade: true, note: 'quotes: 502' }, { id: 'binance', canTrade: true, note: 'account 451' }],
+      strategies: [...rows.slice(0, 3).map((r) => (r.id === 'momentum-1d' ? { ...r, mode: 'paused', windingDown: true, positions: [{ symbol: 'BTC/USD', base: 0.001 }] } : r)),
+        { ...rows[3], recentOrders: [pending] }],
+    };
+    const tabsOf = Object.fromEntries(alertsFor(busy, 'live', now).concat(alertsFor(busy, 'testing', now)).map((a) => [a.id, a.tabs.join('+')]));
+    expect(tabsOf).toEqual({
+      'global-pause': 'live+testing',            // holds everything
+      'venue-revx': 'live+testing',              // Revolut X has rows on both tabs
+      'venue-binance': 'testing',                // Binance's rows are all paper
+      'live-unconfirmed': 'live',
+      'winding-down-momentum-1d': 'testing',     // a paused paper row winds down where it is listed
+      'pending-trend-4h-live': 'live',
+    });
+    expect(alertsFor(busy, 'live', now).map((a) => a.id)).toEqual(['global-pause', 'venue-revx', 'live-unconfirmed', 'pending-trend-4h-live']);
+    expect(alertsFor(busy, 'testing', now).map((a) => a.id)).toEqual(['global-pause', 'venue-revx', 'venue-binance', 'winding-down-momentum-1d']);
+    // A venue no row trades on still says its fault, on both tabs: nothing is known about whom it concerns.
+    expect(alertsFor({ risk: {}, venues: [{ id: 'binance', note: 'down' }], strategies: [] }, 'live').map((a) => a.id)).toEqual(['venue-binance']);
+    // A live venue without a key, and a row still holding real coins under a paper label, are LIVE's.
+    const noKey = { risk: { live_confirmed_at: 'x' }, venues: [{ id: 'revx', canTrade: false, note: null }], strategies: [{ id: 'l', name: 'L', venue: 'revx', mode: 'live', positions: [] }] };
+    expect(alertsFor(noKey, 'live').map((a) => a.id)).toEqual(['nokey-revx']);
+    expect(alertsFor(noKey, 'testing')).toEqual([]);
+    const relabelled = { risk: { live_confirmed_at: 'x' }, venues, strategies: [{ id: 'l', name: 'L', venue: 'revx', mode: 'paper', holdsLive: true, windingDown: true, positions: [{ symbol: 'ETH/USD', base: 0.005 }] }] };
+    expect(alertsFor(relabelled, 'live').map((a) => a.id)).toEqual(['winding-down-l']);
+    expect(alertsFor(relabelled, 'testing')).toEqual([]);
   });
 });
 

@@ -2134,3 +2134,77 @@ body {
 @media (max-width: 760px) {
   .ag-sb-aside { display: block; }
 }
+
+/* ── agents: LIVE and TESTING, the two tabs at the top (Davies, 2026-09-24) ──
+   A band between the title and the page, outside the scrolling body, so the switch never scrolls away. Each tab is a
+   card: its mark, its name and its count, then what money is on it. LIVE wears its badge's gain green, TESTING the
+   PAPER badge's dashed neutral; the selected card is lit and underlined in its colour. */
+.ag-modebar { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 24px; border-bottom: 1px solid var(--line); }
+.ag-modetab {
+  appearance: none; font: inherit; color: var(--chalk-dim); text-align: left; cursor: pointer;
+  position: relative; overflow: hidden; min-width: 0;
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 10px 14px 11px; border: 1px solid var(--line-2); border-radius: 6px; background: rgba(0,0,0,0.18);
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+.ag-modetab::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: transparent; transition: background 0.18s; }
+.ag-modetab:hover { color: var(--chalk); border-color: var(--line); }
+.ag-modetab:focus-visible { outline: 1px solid var(--chalk-mute); outline-offset: 2px; }
+.ag-modetab.is-on { color: var(--chalk); background: var(--panel-hi); border-color: var(--line); }
+.ag-modetab-live.is-on { border-color: oklch(0.78 0.17 150 / 0.4); background: linear-gradient(180deg, var(--gain-wash), rgba(0,0,0,0) 85%), var(--panel); }
+.ag-modetab-live.is-on::after { background: var(--gain); }
+/* An empty LIVE does not glow: green on the page means real money. */
+.ag-modetab-live.is-none.is-on { border-color: var(--line); background: var(--panel-hi); }
+.ag-modetab-live.is-none.is-on::after { background: var(--chalk-mute); }
+.ag-modetab-live.is-none.is-on .ag-modetab-label { color: var(--chalk); }
+.ag-modetab-testing.is-on::after { background: repeating-linear-gradient(90deg, rgba(232,228,218,0.75) 0 7px, transparent 7px 11px); }
+.ag-modetab-top { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.ag-modetab-label { font-size: 12px; font-weight: 700; letter-spacing: 0.18em; }
+.ag-modetab-live.is-on .ag-modetab-label { color: var(--gain); }
+.ag-modetab-count {
+  margin-left: auto; min-width: 22px; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--line);
+  font-size: 10px; font-weight: 700; text-align: center; color: var(--chalk-dim); font-variant-numeric: tabular-nums;
+}
+.ag-modetab.is-on .ag-modetab-count { color: var(--chalk); border-color: var(--chalk-mute); }
+.ag-modetab-text { font-size: 11px; line-height: 1.35; color: var(--chalk-dim); }
+.ag-modetab-mark { width: 8px; height: 8px; border-radius: 50%; flex: none; box-sizing: border-box; }
+.ag-modetab.is-armed .ag-modetab-mark { background: var(--gain); box-shadow: 0 0 0 3px var(--gain-dim); animation: ag-pulse 2.4s ease-in-out infinite; }
+.ag-modetab.is-unarmed .ag-modetab-mark { background: #d9a441; box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.22); }
+.ag-modetab.is-paused .ag-modetab-mark, .ag-modetab.is-winding .ag-modetab-mark { background: var(--chalk-mute); }
+.ag-modetab.is-none .ag-modetab-mark { border: 1.5px solid var(--chalk-mute); }
+.ag-modetab.is-paper .ag-modetab-mark { border: 1.5px dashed rgba(232,228,218,0.7); }
+/* LIVE's scoreboard carries the same green edge a venue card carries its venue's colour on: this is real money. */
+.ag-modepanel-live .ag-scoreboard { border-left: 3px solid var(--gain); }
+/* A tab with one venue gives its card the whole width, its six figures in two columns. */
+@media (min-width: 761px) {
+  .ag-venue-cards.is-single { grid-template-columns: 1fr; }
+  .ag-venue-cards.is-single .ag-venue-grid { grid-template-columns: auto 1fr auto 1fr; }
+  .ag-venue-cards.is-single .ag-venue-grid > span:nth-child(4n+3) { padding-left: 36px; }
+}
+/* The banners and the armed line sit a section's breadth above the table they govern. */
+.ag-modepanel .ag-alerts { margin-bottom: 14px; }
+/* The live switch, once it is on: the alert banner's shape, in the gain green. */
+.ag-arming {
+  display: flex; align-items: baseline; gap: 10px; margin: 0 0 14px; padding: 9px 12px;
+  border: 1px solid oklch(0.78 0.17 150 / 0.3); border-left: 3px solid var(--gain); border-radius: 6px;
+  font-size: 12px; line-height: 1.45; background: var(--gain-wash);
+}
+.ag-arming-dot { flex: none; align-self: center; width: 7px; height: 7px; border-radius: 50%; background: var(--gain); box-shadow: 0 0 0 3px var(--gain-dim); }
+.ag-arming-label { flex: none; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gain); }
+.ag-arming-text { color: var(--chalk-dim); }
+/* LIVE with nothing on it: the not-deployed state's calm, a ring where its dot is. */
+.ag-nolive { max-width: 460px; margin: 0 auto; padding: 48px 20px 40px; text-align: center; }
+.ag-nolive-ring {
+  display: block; width: 12px; height: 12px; border-radius: 50%; margin: 0 auto 18px; box-sizing: border-box;
+  border: 1.5px solid var(--chalk-mute); box-shadow: 0 0 0 6px rgba(244,239,227,0.04), 0 0 0 13px rgba(244,239,227,0.02);
+}
+.ag-nolive-title { font-size: 15px; font-weight: 600; letter-spacing: 0.04em; margin: 0 0 8px; }
+.ag-nolive-text { font-size: 12px; line-height: 1.6; margin: 0; }
+@media (max-width: 760px) {
+  .ag-modebar { gap: 6px; padding: 10px 12px; }
+  .ag-modetab { padding: 8px 10px 9px; gap: 4px; }
+  .ag-modetab-label { font-size: 11px; letter-spacing: 0.14em; }
+  .ag-modetab-text { font-size: 10.5px; }
+  .ag-arming { flex-wrap: wrap; }
+  .ag-nolive { padding: 36px 8px 32px; }
+}

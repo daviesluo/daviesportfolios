@@ -83,22 +83,35 @@ Tap a tile to open its chart.
 
 ## The Agents page
 
-The crypto strategies, all on paper today, which is why the menu and the
-page call it **Agents (beta)**.
+The crypto strategies, called **Agents (beta)** in the menu and on the
+page: the ones trading real money and the ones still being tested, kept
+apart on two tabs.
 
-- **The list.** A scoreboard in the home page's style (deployed, today,
+- **LIVE and TESTING.** Two tabs at the very top; click one, or use the
+  arrow keys, to switch. Each says how many rows it lists and what money
+  is on it. LIVE is real money: **armed** once live trading is switched on
+  (a green dot), **awaiting arming** before that (amber: the loop refuses
+  every new position, and the exits still run), **paused** under the
+  global pause, or **nothing is live**. TESTING is paper. The page opens on
+  LIVE while anything is live, else on TESTING, and stays on the tab you
+  pick while it is open. Everything on a tab is that tab's own strategies,
+  so its scoreboard, its exchange cards and its table add up to each other,
+  and the two tabs together add up to every strategy.
+- **A tab.** A scoreboard in the home page's style (deployed, today,
   unrealised and realised gain, each with its percentage), a card per
-  exchange — Revolut X in blue and Binance in its yellow, where the same
-  strategies run as paper twins, deciding alike and filled at Binance's own
-  prices — showing **funded (Paper)**, the capital its strategies are
-  allotted (the label says it is paper while no strategy there trades real
-  money), **deployed**, what they hold, then today, unrealised, realised and fees (the accounts' real
-  balances are not shown: nothing trades them), and one row per strategy: a status dot (green running,
-  amber stale, grey paused), its exchange, its mode (LIVE in green,
-  PAPER in a dashed outline, or PAUSED), today, unrealised and realised
-  gain, and a countdown
-  to its next decision. Live strategies are listed apart from the ones
-  still being tested.
+  exchange its strategies trade on — Revolut X in blue and Binance in its
+  yellow, where the same strategies run as paper twins, deciding alike and
+  filled at Binance's own prices — showing **funded**, the capital its
+  strategies there are allotted (**funded (Paper)** on TESTING), **deployed**,
+  what they hold, then today, unrealised, realised and fees (the accounts'
+  real balances are not shown), and one row per strategy: a status dot
+  (green running, amber stale, grey paused), its exchange, its mode (LIVE
+  in green, PAPER in a dashed outline, or PAUSED), today, unrealised and
+  realised gain, and a countdown to its next decision. On LIVE, a green
+  line says since when it has been armed, or a red banner says it is not
+  yet; with nothing live, LIVE says so and TESTING holds everything. A
+  strategy still holding real coins after it was paused or relabelled
+  stays on LIVE until it has sold them.
 - **Stablecoin quotes.** The last row of the testing strategies: a
   four-week paper test of resting quotes 0.1–0.3 % either side of the
   interbank rate on Revolut X's USDC/GBP and USDT/GBP books, decided every

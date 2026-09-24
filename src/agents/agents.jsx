@@ -7,14 +7,15 @@
 //
 // Nothing is computed here that could disagree with the server: positions
 // and P&L arrive derived from fills (`runDashboard`), and the page only
-// formats. Headline: the total realised G/L across every strategy, the
-// way the transaction history leads with the book's.
+// formats. Two tabs at the top, LIVE and TESTING, each with its own
+// scoreboard, venues and table (Davies, 2026-09-24); a tab's headline is
+// its realised G/L, the way the transaction history leads with the book's.
 import React from 'react';
 import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, fmtMoney, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  agentsAlerts, agentsErrorView, countdownText, dashboardInFlight, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFrac, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, kindLabel, lastChangeText, liveStateRows, newestWins, observationView, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, RW_ROW_ID, rwHeldText, rwRow, rwView, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, totalsView, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, lastChangeText, liveArming, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, RW_ROW_ID, rwHeldText, rwRow, rwView, scoreboardView, shareSegments, sizeText, splitStrategyRows, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -99,12 +100,12 @@ function GlCell({ label, usd, pct, m, note = null, cls = '', aside = null }) {
 }
 
 /**
- * The agents' scoreboard, in the home scoreboard's cells: what is deployed,
- * today's change (the UTC day), unrealised and realised — no total, by the
- * owner's choice.
+ * A tab's scoreboard, in the home scoreboard's cells: what its strategies
+ * have deployed, today's change (the UTC day), unrealised and realised — no
+ * total, by the owner's choice.
  */
-function Scoreboard({ dash, m }) {
-  const v = scoreboardView(dash);
+function Scoreboard({ dash, tab, m }) {
+  const v = scoreboardView(dash, tab);
   return (
     <>
     <div className="ag-scoreboard">
@@ -144,30 +145,39 @@ function StrategyScoreboard({ s, m }) {
   );
 }
 
-function VenueSplit({ dash, m }) {
-  const rows = venueRows(dash);
+/**
+ * A tab's venues: a card per venue its rows trade on, and the share bar
+ * when there is more than one venue to share between. The tab names the
+ * mode, so a card no longer counts its live rows.
+ */
+function VenueSplit({ dash, tab, m }) {
+  const rows = venueRows(dash, tab);
   const segments = shareSegments(rows);
+  const onTab = tabStrategies(dash, tab);
+  if (!rows.length) return null;
   return (
     <section className="ag-venues">
       <div className="ag-section-title mono">VENUES</div>
-      <div className="ag-share-bar">
-        {segments.map((s) => (
-          <span key={s.id} className={`ag-share ag-share-${s.id}`} style={{ width: `${s.widthPct}%` }} title={s.title}>
-            {s.text}
-          </span>
-        ))}
-      </div>
-      <div className="ag-venue-cards">
+      {rows.length > 1 && (
+        <div className="ag-share-bar">
+          {segments.map((s) => (
+            <span key={s.id} className={`ag-share ag-share-${s.id}`} style={{ width: `${s.widthPct}%` }} title={s.title}>
+              {s.text}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className={`ag-venue-cards${rows.length === 1 ? ' is-single' : ''}`}>
         {rows.map((r) => (
           <div key={r.id} className={`ag-venue-card ag-venue-card-${r.id}${r.note ? ' is-warn' : ''}`}>
             <div className="ag-venue-head">
               <VenueBadge id={r.id} />
-              <div className="dim mono ag-venue-meta">{r.strategies} strategies · {r.live} live · maker/taker {fmtFees(r.feeBps)}</div>
+              <div className="dim mono ag-venue-meta">{r.strategies} {r.strategies === 1 ? 'strategy' : 'strategies'} · maker/taker {fmtFees(r.feeBps)}</div>
             </div>
             <div className="ag-venue-grid mono">
-              {/* Funded is the capital the venue's strategies are allotted, not the account's balance: every row trades
-                  paper, so a real balance here only misled (Davies, 2026-09-23). */}
-              <span className="dim" title="the capital this venue's strategies are allotted">funded{paperOnly(dash?.strategies, r.id) ? ' (Paper)' : ''}</span><span>{m(fmtUsd(r.capitalUsd))}</span>
+              {/* Funded is the capital the venue's strategies on this tab are allotted, not the account's balance: a
+                  real balance here only misled while every row traded paper (Davies, 2026-09-23). */}
+              <span className="dim" title="the capital this venue's strategies are allotted">funded{paperOnly(onTab, r.id) ? ' (Paper)' : ''}</span><span>{m(fmtUsd(r.capitalUsd))}</span>
               <span className="dim">deployed</span><span className="hl-strong">{m(fmtUsd(r.valueUsd))}</span>
               <span className="dim">today</span><span className="ag-gl" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.todayPct))}</span>
               <span className="dim">unrealised</span><span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>
@@ -649,9 +659,9 @@ function PriceChart({ chart, nowMs, hue, m = (s) => s }) {
   );
 }
 
-/** What stops everything trading, said out loud above the table: a global pause, a venue fault, a live venue with no key. */
-function Alerts({ dash }) {
-  const alerts = agentsAlerts(dash);
+/** What stops a tab's strategies trading, said out loud above its table: a global pause, a venue fault, a live venue with no key. */
+function Alerts({ dash, tab }) {
+  const alerts = alertsFor(dash, tab);
   if (!alerts.length) return null;
   return (
     <div className="ag-alerts">
@@ -841,6 +851,73 @@ function NotReady({ dash }) {
 }
 
 /**
+ * LIVE and TESTING, at the top of the page (Davies, 2026-09-24): one tab
+ * each, switched by a click or the arrow keys. A tab says how many rows it
+ * lists and what money is on it. LIVE's mark is green once armed, amber
+ * while it awaits arming, grey under the global pause or while its rows
+ * only wind real coins down, and an empty ring while nothing is live;
+ * TESTING's is PAPER's dashed ring.
+ * @param {{ view: ReturnType<typeof agentsTabsView>, tab: 'live' | 'testing', onSelect: (t: 'live' | 'testing') => void }} props
+ */
+function ModeTabs({ view, tab, onSelect }) {
+  /** @param {React.KeyboardEvent<HTMLDivElement>} e */
+  const onKey = (e) => {
+    const i = AGENT_TABS.indexOf(tab), n = AGENT_TABS.length;
+    const to = e.key === 'ArrowRight' ? (i + 1) % n : e.key === 'ArrowLeft' ? (i + n - 1) % n : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : -1;
+    if (to < 0) return;
+    e.preventDefault();
+    onSelect(AGENT_TABS[to]);
+    /** @type {HTMLElement | null} */ (e.currentTarget.querySelector(`#ag-modetab-${AGENT_TABS[to]}`))?.focus();
+  };
+  return (
+    <div className="ag-modebar" role="tablist" aria-label="Live and testing strategies" onKeyDown={onKey}>
+      {AGENT_TABS.map((id) => {
+        const t = view[id], on = id === tab;
+        return (
+          <button key={id} type="button" role="tab" id={`ag-modetab-${id}`} aria-selected={on} aria-controls={on ? 'ag-modepanel' : undefined}
+            tabIndex={on ? 0 : -1} className={`ag-modetab ag-modetab-${id} is-${t.tone}${on ? ' is-on' : ''}`} onClick={() => onSelect(id)}>
+            <span className="ag-modetab-top">
+              <span className="ag-modetab-mark" aria-hidden="true" />
+              <span className="ag-modetab-label mono">{t.label}</span>
+              <span className="ag-modetab-count mono" aria-label={`${t.count} ${t.count === 1 ? 'row' : 'rows'}`}>{t.count}</span>
+            </span>
+            <span className="ag-modetab-text">{t.text}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** LIVE with nothing on it: said once, calmly, with where everything is instead. */
+function LiveEmpty() {
+  return (
+    <div className="ag-nolive">
+      <span className="ag-nolive-ring" aria-hidden="true" />
+      <h3 className="ag-nolive-title mono">Nothing is live</h3>
+      <p className="ag-nolive-text dim">No strategy trades real money right now. Every strategy and every test runs on paper, under TESTING.</p>
+    </div>
+  );
+}
+
+/**
+ * The live rows' switch, once it is on: armed since when, and what that
+ * allows. Unarmed is the "Live not confirmed" banner below it, and under the
+ * global pause the pause's own banner speaks instead.
+ */
+function Arming({ dash }) {
+  const a = liveArming(dash);
+  if (a.state !== 'armed' || a.paused || !a.since) return null;
+  return (
+    <div className="ag-arming" role="status">
+      <span className="ag-arming-dot" aria-hidden="true" />
+      <span className="ag-arming-label mono">Armed</span>{' '}
+      <span className="ag-arming-text">since {when(a.since)} {UK_TZ}: the loop may open live positions, and the exits — the floor and the rule&apos;s own — run as always.</span>
+    </div>
+  );
+}
+
+/**
  * What the strategy is holding, as the SAME card the tactics board opens for
  * a ticker: one structure and one stylesheet for "here is a position", so a
  * person reading the agents page is not learning a second layout. Clicking a
@@ -974,11 +1051,17 @@ function AgentsModal({ hideValues, onClose }) {
   // RW's paper test on Polymarket joins it (Davies, 2026-09-24), after the quote test; paper only too.
   const rw = React.useMemo(() => rwRow(dash?.rw), [dash]);
   const testing = React.useMemo(() => [...split.testing, ...(quotes ? [quotes] : []), ...(rw ? [rw] : [])], [split, quotes, rw]);
+  const tabsView = React.useMemo(() => agentsTabsView(dash, (quotes ? 1 : 0) + (rw ? 1 : 0)), [dash, quotes, rw]);
+  // The page opens on LIVE while anything trades real money, else on TESTING, and follows the data until a tab is
+  // clicked; from then on the click holds, through every refresh and every page opened over the list.
+  const [tabChoice, setTabChoice] = React.useState(/** @type {'live' | 'testing' | null} */ (null));
+  const tab = tabChoice ?? defaultAgentsTab(dash);
   const phone = useMediaQuery('(max-width: 760px)');
   const current = selected ? (dash?.strategies ?? []).find((s) => s.id === selected) ?? null : null;
   const quotesOpen = selected === QUOTES_ROW_ID && !!dash?.quotes;
   const rwOpen = selected === RW_ROW_ID && !!dash?.rw;
   const notReady = !!dash?.notReady;
+  const tabRows = tab === 'live' ? split.live : testing;
 
   return (
     <>
@@ -992,30 +1075,33 @@ function AgentsModal({ hideValues, onClose }) {
           <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
         </div>
       </header>
+      {dash && !notReady && <ModeTabs view={tabsView} tab={tab} onSelect={setTabChoice} />}
       <div className="modal-body ag-body">
         {error && !dash && <AgentsError err={error} onRetry={load} />}
         {error && dash && <AgentsError err={error} onRetry={load} compact />}
         {!dash && !error && <div className="ag-empty dim">Loading…</div>}
         {notReady && <NotReady dash={dash} />}
         {dash && !notReady && (
-          <>
-            <Scoreboard dash={dash} m={m} />
-            <VenueSplit dash={dash} m={m} />
-            <Alerts dash={dash} />
-            {split.live.length > 0 && (
-              <section className="ag-section ag-strategies ag-strategies-live">
-                <div className="ag-section-title mono">LIVE STRATEGIES</div>
-                {phone ? <StrategyCards rows={split.live} m={m} onOpen={setSelected} /> : <StrategyTable rows={split.live} m={m} onOpen={setSelected} />}
-              </section>
-            )}
-            {testing.length > 0 && (
-              <section className="ag-section ag-strategies ag-strategies-testing">
-                <div className="ag-section-title mono">{split.live.length > 0 ? 'TESTING STRATEGIES' : 'TESTING STRATEGIES — nothing is live'}</div>
-                {phone ? <StrategyCards rows={testing} m={m} onOpen={setSelected} /> : <StrategyTable rows={testing} m={m} onOpen={setSelected} />}
-              </section>
+          <div className={`ag-modepanel ag-modepanel-${tab}`} role="tabpanel" id="ag-modepanel" aria-labelledby={`ag-modetab-${tab}`}>
+            {tab === 'live' && split.live.length === 0 ? (
+              <>
+                <Alerts dash={dash} tab={tab} />
+                <LiveEmpty />
+              </>
+            ) : (
+              <>
+                <Scoreboard dash={dash} tab={tab} m={m} />
+                <VenueSplit dash={dash} tab={tab} m={m} />
+                {tab === 'live' && <Arming dash={dash} />}
+                <Alerts dash={dash} tab={tab} />
+                <section className={`ag-section ag-strategies ag-strategies-${tab}`}>
+                  <div className="ag-section-title mono">{tab === 'live' ? 'LIVE STRATEGIES' : 'TESTING STRATEGIES'}</div>
+                  {phone ? <StrategyCards rows={tabRows} m={m} onOpen={setSelected} /> : <StrategyTable rows={tabRows} m={m} onOpen={setSelected} />}
+                </section>
+              </>
             )}
             <div className="ag-updated dim mono">as of {when(dash.at)} {UK_TZ} · refreshes every minute</div>
-          </>
+          </div>
         )}
       </div>
     </Modal>

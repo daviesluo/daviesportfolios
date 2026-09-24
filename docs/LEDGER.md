@@ -91,6 +91,8 @@ list stays the short version; the plan is the reasoning behind it.
      decidable yet — the standard is the spec's six conditions after four weeks (2026-10-21), and the three trips so far
      are one event; the conditions that can be read early are on track (reference §4 item 31, "The first round trips").
      Live stays a NO-GO until the review; going live is one statement on his word.
+   - **G4a — the Agents page on LIVE and TESTING tabs lands right after G4** (Davies asked for it once live): built on
+     branch `agents-live-testing`, not on `main`; landing it is the rebase-gates-push in the 21:48 history section.
    - **G6 — housekeeping.** **The 75 stale branches are DELETED** (2026-09-24 22:49 UTC, Cursor; every head is in that
      day's 22:48 history section, restorable). **Still Davies' own, because no agent here holds a credential that can
      do it:** delete the one-off `pm-geo-probe` Edge Function, still ACTIVE (the Supabase connector cannot delete a
@@ -1004,6 +1006,38 @@ nothing of theirs.
   the stored inputs), and `agent_quote_inputs` is re-written by every later fetch. A provisional Yahoo close, or the
   20:00 USD candle missing from the 21:00 fetch (fair then 4.606 bps away), would each leave it under the step. The
   spec's ±5 % / ±10 % check tolerates this; recording X and fairU every minute would make it exact (Davies' call, G5).
+### [2026-09-24 21:48 UTC] Platform: Cursor | Model: Opus 5.5
+
+**The Agents page on two tabs, LIVE and TESTING: built and pushed on branch `agents-live-testing`, NOT on `main`; it
+lands when trend-4h is live.** Davies: "如果上线的话，整个agents页面需要重新设计，最上方加上live和testing两个页面选择，可以点击切换，
+需要精美设计，把live和testing的策略以及信息分开". The coordinator: build it now, land it on `main` only on its word that
+trend-4h is live; until then the branch (no PR) carries it for Cloudflare's preview.
+- **What it is:** a tab bar between the title and the page, outside the scrolling body: LIVE and TESTING, each with its
+  row count and one line of words (LIVE: armed / awaiting arming / paused / winding down / nothing is live; TESTING:
+  paper), switched by a click or the arrow keys. It opens on LIVE while anything is live, else on TESTING; a click
+  holds through refreshes and stacked pages. Each tab is its own scoreboard, venue cards, banners and table, every
+  figure summed from that tab's rows alone (`scoreboardView(dash, tab)`, `venueRows(dash, tab)`: `dashboard()`'s own
+  sums over a subset, so over every row they are the server's `totals` and `byVenue` to the bit, pinned). LIVE is a
+  row labelled live or still holding real coins (`strategyTab`: `holdsLive`, the tick's book rule); banners carry the
+  tabs they concern (`alertsFor`: Binance's fault is TESTING's, the confirmation LIVE's, the pause both). LIVE shows
+  "Armed since …" once `live_confirmed_at` is set, the existing "Live not confirmed" banner while it is not, and
+  "Nothing is live" when empty. A venue card no longer counts live rows (the tab says it), and a lone card takes the
+  width. Presentation only: no strategy's data, rule or live state, no Edge Function, no migration.
+- **Evidence:** vitest, 7 new pins (two rewritten to feed rows, not aggregates); the sweep's new `AGENTS_LIVE` fixture
+  (the draft's `trend-4h-live` long ETH, armed and unarmed; `totals`/`byMode`/`byVenue` summed from its rows) and 34
+  new checks at both widths, held to hand arithmetic: LIVE $12.50 / +$0.20 / +$0.50 / +$0.30, TESTING $21.50 / +$0.42 /
+  +$1.50 / +$12.34, together $34.00 / +$0.62 / +$2.00 / +$12.64. Old against new — `main`'s bundle (`1bf254d`) and this
+  one under the sweep's own fixtures and clock, read out of the DOM — 146 comparisons, 0 differ: every row and every
+  detail page line for line; with nothing live the scoreboard and cards are TESTING's; with a live row the old single
+  scoreboard and Revolut X card are LIVE + TESTING to the cent. Counterfactuals, each caught: one build with the tabs
+  but neither the split nor the banner scoping (20 sweep failures, 10 a width, the pause and confirmation banners
+  among them; 32 comparison differences — LIVE + TESTING read $68.00 against $34.00), and `strategyTab` without
+  `holdsLive` (3 pins). No console error in either bundle. Screenshots and the harness: the Project store's
+  `media/agents-redesign/` and `internal/agents-redesign/`.
+- **To land, on the coordinator's word:** on `agents-live-testing`, `git fetch origin main && git rebase origin/main`
+  (LEDGER.md will conflict: keep both sides), `npm run build` in `src/` if `src/` moved on `main`, `sh bin/gates.sh`,
+  `git push origin HEAD:main`; then check the live site's `app-*.js` is this build's. `docs/README.md` says Agents
+  screenshots "will follow once a strategy is live": Davies' call, not part of this.
 
 ### [2026-09-24 21:35 UTC] Platform: Cursor | Model: Opus 5.5
 

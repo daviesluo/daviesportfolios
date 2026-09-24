@@ -496,9 +496,10 @@ const AGENTS_NOT_READY = {
  * Flipped by the agents section to prove the page renders its other
  * states too: `notReady` (the tables are not there yet), `error` (the
  * function fell over: a 500 with the server's envelope), `paused` (the
- * dashboard with a global pause set and a venue reporting a fault).
+ * dashboard with a global pause set and a venue reporting a fault), and
+ * `live` / `live-unarmed` (a row trading real money, armed or not).
  */
-let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused'} */ ('ok');
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed'} */ ('ok');
 /**
  * The reload section's levers: the book the `data` function hands back (a
  * server row's prices are those of its last SAVE, not what the page showed),
@@ -524,12 +525,106 @@ async function shot(page, name) {
   const w = page.viewportSize()?.width ?? 0;
   await page.screenshot({ path: `${SHOTS_DIR}/${w}-${name}.png`, fullPage: true }).catch(() => {});
 }
+/** Opens the Agents page from the menu and waits for its tab bar. */
+async function openAgentsPage(page) {
+  await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+  await page.waitForTimeout(200);
+  await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
+  await page.waitForSelector('.ag-modebar', { timeout: 10_000 }).catch(() => {});
+  await page.waitForTimeout(150);
+}
+/**
+ * What the Agents page shows right now, read out of the DOM as text: the tab bar, and the open tab's scoreboard,
+ * venue cards, banners, armed line, empty state and rows — so two tabs, or two bundles, compare figure for figure.
+ */
+function readAgentsPanel(page) {
+  return page.evaluate(() => {
+    const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+    const panel = document.querySelector('.ag-modepanel');
+    const all = (/** @type {string} */ sel) => [...(panel?.querySelectorAll(sel) ?? [])];
+    return {
+      tabs: [...document.querySelectorAll('.ag-modebar .ag-modetab')].map((b) => ({
+        id: b.id.replace('ag-modetab-', ''), on: b.getAttribute('aria-selected') === 'true',
+        label: txt(b.querySelector('.ag-modetab-label')), count: txt(b.querySelector('.ag-modetab-count')), text: txt(b.querySelector('.ag-modetab-text')),
+        tone: ([...b.classList].find((c) => /^is-(armed|unarmed|paused|winding|none|paper)$/.test(c)) || '').replace('is-', ''),
+      })),
+      tabsOutsideBody: !!document.querySelector('.modal > .ag-modebar') && !document.querySelector('.modal-body .ag-modebar'),
+      scoreboard: all(':scope > .ag-scoreboard .ag-sb-cell').map((c) => ({ label: txt(c.querySelector('.sb-label')), value: txt(c.querySelector('.sb-value')) })),
+      venues: all('.ag-venue-card').map((c) => {
+        const cells = [...c.querySelectorAll('.ag-venue-grid > span')].map(txt);
+        /** @type {Record<string, string>} */
+        const pairs = {};
+        for (let i = 0; i + 1 < cells.length; i += 2) pairs[cells[i]] = cells[i + 1];
+        return { id: ([...c.classList].find((x) => /^ag-venue-card-/.test(x)) || '').replace('ag-venue-card-', ''), meta: txt(c.querySelector('.ag-venue-meta')), pairs };
+      }),
+      shareBar: all('.ag-share-bar').length,
+      arming: txt(panel?.querySelector('.ag-arming')),
+      alerts: all('.ag-alert').map((a) => ({ label: txt(a.querySelector('.ag-alert-label')), text: txt(a.querySelector('.ag-alert-text')) })),
+      empty: txt(panel?.querySelector('.ag-nolive')),
+      sections: all('.ag-strategies .ag-section-title').map(txt),
+      rows: all('.ag-strategies .ag-row').map((r) => ({
+        name: txt(r.querySelector('.ag-name-btn')), sub: txt(r.querySelector('.ag-name-cell .hl-sub')), venue: txt(r.querySelector('.ag-venue')),
+        mode: txt(r.querySelector('.ag-badge')), gl: [...r.querySelectorAll('.ag-gl')].map(txt), next: txt(r.querySelector('.ag-next')),
+      })),
+      updated: txt(panel?.querySelector('.ag-updated')),
+    };
+  });
+}
 const AGENTS_PAUSED = () => ({
   ...AGENTS_DASHBOARD,
   risk: { ...AGENTS_DASHBOARD.risk, global_pause: true },
   // Binance's likeliest fault: a dashboard call routed to a US region is refused by address (the page pins London).
   venues: AGENTS_DASHBOARD.venues.map((v) => (v.id === 'binance' ? { ...v, canTrade: false, balances: null, note: 'account 451: 0 Service unavailable from a restricted location' } : v)),
 });
+/**
+ * The dashboard the day a row goes live: the six paper rows above, plus the go-live draft's `trend-4h-live`
+ * (reference §3.31) — Revolut X, BTC/ETH/SOL/AVAX, $50 — long ETH on the live book. `armed` is the one statement run
+ * on Davies' word (`live_confirmed_at` set, at 14:02 UTC); unarmed is the state the migration leaves. `totals`,
+ * `byMode` and `byVenue` are summed from the rows the way `dashboard()` sums them, so the fixture cannot describe a
+ * book other than its rows. Worked by hand:
+ *
+ *   live row   ETH 0.005 @ 2400 = $12.00 cost, marked at 2500 = $12.50: unrealised +$0.50 (+4.17 % on cost);
+ *              realised +$0.30 (+0.60 % of $50), fees $0.03, today +$0.20 (+0.40 % of $50)
+ *   paper rows as AGENTS_DASHBOARD: deployed $21.50, today +$0.42 (+0.12 % of $360), unrealised +$1.50 (+7.50 %),
+ *              realised +$12.34 (+3.43 % of $360), fees $0.08
+ *   every row  deployed $34.00, today +$0.62, unrealised +$2.00, realised +$12.64, fees $0.11 — the one scoreboard
+ *              the page had before its two tabs
+ */
+const AGENTS_LIVE = (armed) => {
+  const D = AGENTS_DASHBOARD;
+  const paperRow = D.strategies.find((s) => s.id === 'trend-4h');
+  const symbols = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD'];
+  const like = (symbol, state) => {
+    const p = paperRow.positions.find((x) => x.symbol === symbol);
+    return { ...p, book: 'live', base: 0, avgCost: 0, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, openedAt: null, highWater: null, fills: 0,
+      observation: { ...p.observation, state: { ...p.observation.state, position: 'flat', unrealised: 'none', time_in_position: 'none', ...state } } };
+  };
+  const eth = { ...like('ETH/USD', { position: 'long', unrealised: 'gain', time_in_position: 'hours' }),
+    base: 0.005, avgCost: 2400, mark: 2500, costUsd: 12, valueUsd: 12.5, unrealisedUsd: 0.5, realisedUsd: 0.3, feesUsd: 0.03, todayUsd: 0.2,
+    openedAt: NOW_MS - 6 * 3600e3, highWater: 2520, fills: 3 };
+  const liveRow = {
+    ...paperRow, id: 'trend-4h-live', name: 'Trend 4h · Revolut X · live', mode: 'live', capitalUsd: 50, symbols,
+    holdsLive: true, windingDown: false, todayByBook: { paper: 0, live: 0.2 }, otherBooks: [],
+    costUsd: 12, valueUsd: 12.5, unrealisedUsd: 0.5, realisedUsd: 0.3, feesUsd: 0.03, todayUsd: 0.2, ordersToday: 1,
+    positions: symbols.map((s) => (s === 'ETH/USD' ? eth : like(s, {}))),
+    recentDecisions: [], recentOrders: [{
+      id: 91, ts: new Date(NOW_MS - 6 * 3600e3).toISOString(), strategy_id: 'trend-4h-live', venue: 'revx', symbol: 'ETH/USD', mode: 'live', side: 'buy',
+      price: 2400, base_size: 0.005, state: 'filled', filled_base: 0.005, avg_fill_price: 2400, fee_usd: 0.01, filled_at: new Date(NOW_MS - 6 * 3600e3 + 5e3).toISOString(),
+    }],
+  };
+  const strategies = [...D.strategies, liveRow];
+  const keys = ['costUsd', 'valueUsd', 'unrealisedUsd', 'realisedUsd', 'feesUsd', 'todayUsd'];
+  const sum = (rows) => Object.fromEntries(keys.map((k) => [k, rows.reduce((a, s) => a + s[k], 0)]));
+  const onVenue = (v) => strategies.filter((s) => s.venue === v);
+  const venueBook = (v) => ({ ...sum(onVenue(v)), capitalUsd: onVenue(v).reduce((a, s) => a + s.capitalUsd, 0), strategies: onVenue(v).length, live: onVenue(v).filter((s) => s.mode === 'live').length });
+  return {
+    ...D,
+    risk: { ...D.risk, max_exposure_usd: 15, live_confirmed_at: armed ? '2026-09-17T14:02:00.000Z' : null },
+    strategies,
+    totals: { ...sum(strategies), byMode: { paper: sum(D.strategies), live: sum([liveRow]) } },
+    byVenue: { revx: venueBook('revx'), binance: venueBook('binance') },
+  };
+};
 
 let failures = 0;
 const log = [];
@@ -601,6 +696,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
     if (url.includes('/agents?') && url.includes('action=dashboard')) {
       if (agentsMode === 'notReady') return json(AGENTS_NOT_READY);
       if (agentsMode === 'paused') return json(AGENTS_PAUSED());
+      if (agentsMode === 'live' || agentsMode === 'live-unarmed') return json(AGENTS_LIVE(agentsMode === 'live'));
       if (agentsMode === 'error') {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
       }
@@ -1459,11 +1555,13 @@ async function run() {
         : 0;
       if (clippedVenue === 0) ok(S('agents'), vpWidth > 760 ? 'every venue badge fits its cell, nothing clipped or ellipsised' : 'no venue column on a phone');
       else fail(S('agents'), `${clippedVenue} venue cells clip their badge`);
+      // Nothing is live: the page opens on TESTING, whose one table is this list, and it is the LIVE tab that says so.
       const sectionTitle = (await page.locator('.ag-strategies .ag-section-title').allTextContents()).map((t) => t.trim());
       const liveTables = await page.locator('.ag-strategies-live').count();
-      if (sectionTitle.length === 1 && /^TESTING STRATEGIES/.test(sectionTitle[0]) && liveTables === 0) {
-        ok(S('agents'), `nothing is live, so the page says so once ("${sectionTitle[0]}") and shows no live table`);
-      } else fail(S('agents'), `strategy sections: ${sectionTitle.join(' | ')}, live tables ${liveTables}`);
+      const liveTabText = ((await page.locator('#ag-modetab-live .ag-modetab-text').textContent().catch(() => '')) || '').trim();
+      if (sectionTitle.join('|') === 'TESTING STRATEGIES' && liveTables === 0 && liveTabText === 'Nothing is live') {
+        ok(S('agents'), `nothing is live, so the LIVE tab says so ("${liveTabText}") and the page opens on TESTING's one table`);
+      } else fail(S('agents'), `strategy sections: ${sectionTitle.join(' | ')}, live tables ${liveTables}, LIVE tab "${liveTabText}"`);
       if (vpWidth > 760) {
         const nameAlign = await page.locator('.ag-strategies td.ag-col-name').first().evaluate((el) => getComputedStyle(el).textAlign);
         if (nameAlign === 'left') ok(S('agents'), 'the strategy name reads from the left, under the dot beside it');
@@ -1830,6 +1928,136 @@ async function run() {
       const faultLabel = await page.locator('.ag-alert.is-fault .ag-alert-label').textContent().catch(() => '');
       if (/Global pause/i.test(stopBanner || '') && /451/.test(faultBanner || '') && /^Binance fault$/.test((faultLabel || '').trim())) ok(S('agents'), 'a global pause and a venue fault are banners above the table, each with its label and words');
       else fail(S('agents'), `banners: stop "${stopBanner}", fault "${faultLabel}: ${faultBanner}"`);
+      // A banner is on the tabs it concerns: the pause holds both; Binance's fault is TESTING's, where its rows are.
+      await page.locator('#ag-modetab-live').click().catch(() => {});
+      await page.waitForTimeout(200);
+      const pausedLive = await readAgentsPanel(page);
+      if (pausedLive.alerts.map((a) => a.label).join('|') === 'Global pause' && /Nothing is live/.test(pausedLive.empty) && pausedLive.tabs[0]?.text === 'Nothing is live') {
+        ok(S('agents'), 'on LIVE the global pause is still said and Binance\'s fault is not: Binance has no live row');
+      } else fail(S('agents'), `LIVE under the pause: banners ${JSON.stringify(pausedLive.alerts)}, empty "${pausedLive.empty}", tab "${pausedLive.tabs[0]?.text}"`);
+      agentsMode = 'ok';
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
+      // ---- LIVE and TESTING, the two tabs at the top (Davies, 2026-09-24) --------------------------------------
+      // Three payloads: nothing live (the list above), a live row armed, and the same row awaiting arming. What each
+      // tab shows is read back out of the page and held to AGENTS_LIVE's hand-worked figures: LIVE is the live row
+      // alone, TESTING the paper rows alone, and the two add up to the one scoreboard the page had before its tabs.
+      // A figure on both tabs — the bar itself, the as-of line — reads the same on both.
+      const T = (n) => S(`tabs/${n}`);
+      const waitFor = async (fn, ms = 5000) => {
+        const by = Date.now() + ms;
+        while (Date.now() < by) { if (await fn().catch(() => false)) return true; await page.waitForTimeout(50); }
+        return false;
+      };
+      const clickTab = async (id) => {
+        await page.locator(`#ag-modetab-${id}`).click();
+        await waitFor(async () => (await page.locator(`#ag-modetab-${id}`).getAttribute('aria-selected')) === 'true');
+        await page.waitForTimeout(100);
+      };
+      const opened = (p) => p.tabs.find((t) => t.on)?.id;
+      const sbText = (p) => p.scoreboard.map((c) => `${c.label}=${c.value}`).join(' | ');
+      const barText = (p) => p.tabs.map((t) => `${t.label} ${t.count} ${t.text} ${t.tone}`).join(' / ');
+      const PAPER_SB = 'DEPLOYED=$21.50 | TODAY=+$0.42(+0.12%) | UNREALIZED G/L=+$1.50(+7.50%) | REALIZED G/L (incl. fees $0.08)=+$12.34(+3.43%)';
+      const LIVE_SB = 'DEPLOYED=$12.50 | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L (incl. fees $0.03)=+$0.30(+0.60%)';
+      const TESTING_BAR = 'TESTING 8 Paper · no real money paper';
+
+      agentsMode = 'ok';
+      await openAgentsPage(page);
+      const n0 = await readAgentsPanel(page);
+      if (n0.tabsOutsideBody && opened(n0) === 'testing' && barText(n0) === `LIVE 0 Nothing is live none / ${TESTING_BAR}` && sbText(n0) === PAPER_SB) {
+        ok(T('none'), `two tabs above the page, outside its scroll (${barText(n0)}); with nothing live it opens on TESTING, the list above`);
+      } else fail(T('none'), `bar ${barText(n0)}, open ${opened(n0)}, outside the body ${n0.tabsOutsideBody}, scoreboard ${sbText(n0)}`);
+      await clickTab('live');
+      const n1 = await readAgentsPanel(page);
+      await shot(page, 'agents-tabs-live-empty');
+      if (opened(n1) === 'live' && /^Nothing is live/.test(n1.empty) && n1.scoreboard.length === 0 && n1.rows.length === 0 && n1.venues.length === 0 && n1.alerts.length === 0 && barText(n1) === barText(n0)) {
+        ok(T('none'), `a click opens LIVE on its empty state ("${n1.empty.slice(0, 40)}…"): no scoreboard, venue, banner or row, and the bar reads as it did`);
+      } else fail(T('none'), `LIVE: open ${opened(n1)}, empty "${n1.empty}", scoreboard ${n1.scoreboard.length}, rows ${n1.rows.length}, venues ${n1.venues.length}, banners ${n1.alerts.length}, bar ${barText(n1)}`);
+      await clickTab('testing');
+      const n2 = await readAgentsPanel(page);
+      if (n2.rows.length === 8 && sbText(n2) === sbText(n0) && JSON.stringify(n2.venues) === JSON.stringify(n0.venues)) ok(T('none'), 'a click back: TESTING\'s 8 rows, scoreboard and venue cards as they were');
+      else fail(T('none'), `TESTING after the round trip: ${n2.rows.length} rows, ${sbText(n2)}`);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
+      agentsMode = 'live';
+      await openAgentsPage(page);
+      await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '1');
+      await page.waitForTimeout(150);
+      const a0 = await readAgentsPanel(page);
+      await shot(page, 'agents-tabs-live-armed');
+      if (opened(a0) === 'live' && barText(a0) === `LIVE 1 Real money · armed armed / ${TESTING_BAR}`) ok(T('armed'), `a live row opens the page on LIVE (${barText(a0)})`);
+      else fail(T('armed'), `bar ${barText(a0)}, open ${opened(a0)}`);
+      const lr = a0.rows[0];
+      if (a0.rows.length === 1 && lr.name === 'Trend 4h · Revolut X · live' && lr.mode === 'LIVE' && lr.venue === 'Revolut X' && lr.sub === '1 open · $50.00 cap'
+        && lr.gl.join(' | ') === '+$0.20 (+0.40%) | +$0.50 (+4.17%) | +$0.30 (+0.60%)' && sbText(a0) === LIVE_SB && a0.sections.join('|') === 'LIVE STRATEGIES') {
+        ok(T('armed'), `LIVE is the live row alone, and its scoreboard is that row's figures (${sbText(a0)})`);
+      } else fail(T('armed'), `LIVE: rows ${JSON.stringify(a0.rows)}, scoreboard ${sbText(a0)}, sections ${a0.sections.join('|')}`);
+      const lv = a0.venues[0];
+      if (a0.venues.length === 1 && lv.id === 'revx' && lv.meta === '1 strategy · maker/taker 0% / 0.09%' && lv.pairs.funded === '$50.00' && lv.pairs.deployed === '$12.50'
+        && lv.pairs.today === '+$0.20 (+0.40%)' && lv.pairs.unrealised === '+$0.50 (+4.17%)' && lv.pairs.realised === '+$0.30 (+0.60%)' && lv.pairs.fees === '$0.03' && a0.shareBar === 0) {
+        ok(T('armed'), 'one venue card, Revolut X: funded $50.00 with no (Paper), the row\'s figures, and no share bar for one venue');
+      } else fail(T('armed'), `LIVE venues ${JSON.stringify(a0.venues)}, share bars ${a0.shareBar}`);
+      if (/^Armed since 17 Sep 15:02 (BST|GMT): the loop may open live positions/.test(a0.arming) && a0.alerts.length === 0) ok(T('armed'), `the switch is on, and says since when ("${a0.arming.slice(0, 32)}…"); no banner`);
+      else fail(T('armed'), `armed line "${a0.arming}", banners ${JSON.stringify(a0.alerts)}`);
+      await clickTab('testing');
+      const a1 = await readAgentsPanel(page);
+      await shot(page, 'agents-tabs-testing');
+      if (a1.rows.length === 8 && !a1.rows.some((r) => / · live$/.test(r.name) || r.mode === 'LIVE') && sbText(a1) === PAPER_SB && a1.sections.join('|') === 'TESTING STRATEGIES' && !a1.arming && a1.alerts.length === 0) {
+        ok(T('armed'), `TESTING is the paper rows alone (8, none live), and its scoreboard is theirs (${sbText(a1)})`);
+      } else fail(T('armed'), `TESTING: ${a1.rows.length} rows (${a1.rows.map((r) => `${r.name} ${r.mode}`).join(', ')}), scoreboard ${sbText(a1)}, armed "${a1.arming}", banners ${a1.alerts.length}`);
+      const rv = a1.venues.find((v) => v.id === 'revx'), bn = a1.venues.find((v) => v.id === 'binance');
+      if (a1.venues.length === 2 && rv && bn && rv.meta === '3 strategies · maker/taker 0% / 0.09%' && rv.pairs['funded (Paper)'] === '$180.00' && rv.pairs.deployed === '$21.50'
+        && rv.pairs.realised === '+$12.34 (+6.86%)' && bn.pairs['funded (Paper)'] === '$180.00' && a1.shareBar === 1) {
+        ok(T('armed'), 'TESTING\'s Revolut X card is its paper rows\' alone (funded (Paper) $180.00, deployed $21.50), beside Binance\'s');
+      } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}`);
+      const cents = (s) => Math.round(money(String(s).split('(')[0]) * 100);
+      const both = a0.scoreboard.map((c, i) => cents(c.value) + cents(a1.scoreboard[i]?.value));
+      if (both.join(',') === '3400,62,200,1264') ok(T('armed'), 'LIVE and TESTING add up to every row: $34.00 deployed, +$0.62 today, +$2.00 unrealised, +$12.64 realised');
+      else fail(T('armed'), `LIVE + TESTING in cents: ${both.join(', ')}`);
+      if (barText(a1) === barText(a0) && a1.updated === a0.updated && /^as of /.test(a0.updated)) ok(T('armed'), 'the tab bar and the as-of line read the same on both tabs');
+      else fail(T('armed'), `bar ${barText(a0)} → ${barText(a1)}; as of "${a0.updated}" → "${a1.updated}"`);
+      await page.locator('#ag-modetab-testing').focus();
+      await page.keyboard.press('ArrowLeft');
+      await page.waitForTimeout(150);
+      const keyed = await readAgentsPanel(page);
+      const focused = await page.evaluate(() => document.activeElement?.id || '');
+      if (opened(keyed) === 'live' && focused === 'ag-modetab-live' && sbText(keyed) === LIVE_SB) ok(T('armed'), 'ArrowLeft on TESTING selects and focuses LIVE');
+      else fail(T('armed'), `after ArrowLeft: open ${opened(keyed)}, focus "${focused}"`);
+      await page.locator('.ag-row', { has: page.locator('.ag-name-btn:text-is("Trend 4h · Revolut X · live")') }).first().click();
+      await page.waitForSelector('.ag-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(150);
+      const dTitle = ((await page.locator('.ag-detail-title').first().textContent().catch(() => '')) || '').trim();
+      const dMode = ((await page.locator('.ag-detail .ag-detail-head .ag-badge').first().textContent().catch(() => '')) || '').trim();
+      const dSb = (await page.locator('.ag-detail .ag-scoreboard-sm .sb-value').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
+      const dCard = ((await page.locator('.ag-detail .ag-poscard .pc-ticker').first().textContent().catch(() => '')) || '').trim();
+      await shot(page, 'agents-tabs-live-detail');
+      if (dTitle === 'Trend 4h · Revolut X · live' && dMode === 'LIVE' && dSb.join(' | ') === '$12.50 | +$0.20(+0.40%) | +$0.50(+4.17%) | +$0.30(+0.60%)' && dCard === 'ETH/USD') {
+        ok(T('armed'), 'the live row opens its own page: LIVE, the same four figures as its row and as LIVE\'s scoreboard, and its ETH position');
+      } else fail(T('armed'), `live detail: title "${dTitle}", mode "${dMode}", scoreboard ${dSb.join(' | ')}, card "${dCard}"`);
+      await page.locator('.ag-detail-close').click().catch(() => {});
+      await page.waitForTimeout(300);
+      const back = await readAgentsPanel(page);
+      if (opened(back) === 'live' && back.rows.length === 1 && sbText(back) === LIVE_SB) ok(T('armed'), 'closing that page returns to LIVE as it was');
+      else fail(T('armed'), `after closing: open ${opened(back)}, rows ${back.rows.length}`);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
+      agentsMode = 'live-unarmed';
+      await openAgentsPage(page);
+      await waitFor(async () => /awaiting arming/.test((await page.locator('#ag-modetab-live .ag-modetab-text').textContent()) || ''));
+      await page.waitForTimeout(150);
+      const u0 = await readAgentsPanel(page);
+      await shot(page, 'agents-tabs-live-unarmed');
+      if (opened(u0) === 'live' && barText(u0) === `LIVE 1 Real money · awaiting arming unarmed / ${TESTING_BAR}` && !u0.arming && sbText(u0) === LIVE_SB
+        && u0.alerts.length === 1 && u0.alerts[0].label === 'Live not confirmed' && /refuses every live ENTRY/.test(u0.alerts[0].text)) {
+        ok(T('unarmed'), 'awaiting arming: the LIVE tab says so, and LIVE\'s one banner is "Live not confirmed" (entries refused, exits running)');
+      } else fail(T('unarmed'), `bar ${barText(u0)}, armed "${u0.arming}", banners ${JSON.stringify(u0.alerts)}, scoreboard ${sbText(u0)}`);
+      await clickTab('testing');
+      const u1 = await readAgentsPanel(page);
+      if (u1.alerts.length === 0 && sbText(u1) === PAPER_SB && u1.rows.length === 8) ok(T('unarmed'), 'the confirmation banner is LIVE\'s alone: TESTING carries none');
+      else fail(T('unarmed'), `TESTING banners ${JSON.stringify(u1.alerts)}, scoreboard ${sbText(u1)}`);
       agentsMode = 'ok';
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
