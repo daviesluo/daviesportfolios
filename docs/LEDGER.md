@@ -14,6 +14,42 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+00000000000000. **HANDOVER, 2026-09-24 ~20:30 UTC: the next sessions (Cursor: Opus 5.5 and Grok 4.7) — goals and plan,
+   in priority order.** Everything is committed and pushed (`main` at the commit that adds this item; CI green on
+   `9f3e8a6`, the last code commit). Read `.claude/CLAUDE.md`, the working-with-davies skill and this list first; reply to
+   Davies in Chinese; commit as daviesluo; run `sh bin/gates.sh` before every push; the ledger line goes in the same
+   commit. Nothing below needs a new strategy or a new study: the work is running things that exist and deciding them
+   by their pre-registered bars.
+   - **G1 — keep RW's paper test healthy, daily (item 000000000000).** It runs by itself (cron `agents-pmrw-every-minute`,
+     `agents-pmrw-select`). Once a day read §4 item 36's R1–R5, or the Agents page ("Reward quotes" → its page):
+     `pm_rw_state.last_error` empty and `last_minute` within ~3 min; today's `pm_rw_selection` present by ~00:05 UTC;
+     `pm_rw_days` gains a row a day; `net._http_response` has no 546 (CPU) or 5xx for `action=pmrw-select`; the page
+     shows no "fills and total differ" warning. Do NOT change `agents/pmrw.ts`'s rule (the spec is frozen); a bug fix
+     is allowed only as a recorded deviation (spec, reference, ledger) with a pin that fails on the old code.
+   - **G2 — RW's verdict, on or after 2026-10-09 00:05 UTC** (the procedure is in item 000000000000, step 3). Then the
+     page row stays as a record until Davies says otherwise, and the two cron jobs are unscheduled by a migration.
+   - **G3 — only if RW passes, and only on Davies' word: design (not build) RW's live test** under this item's plan:
+     `eu-west-1` only (refuse unless `SB_REGION` is `eu-west-1`), open positions only while his Ireland attestation is
+     current (an expiring timestamp set in conversation), reduce or close only otherwise; never a VPN, a proxy or another
+     account; `_shared/polymarket.ts` stays GET-only until the design is agreed. The design says: order signing (the
+     CLOB's EIP-712 orders and L2 headers), a dry-run first, caps, the kill switch, reconciliation by order id, and
+     reading the account's actual reward payouts to compare with the formula — the one thing paper cannot show.
+   - **G4 — trend-4h live at $50: waits on Davies' "开"** (item 000000000). On his word: move
+     `docs/agents/go_live.sql.draft` to `supabase/migrations/0054_go_live.sql` (0053 is RW's), push, read the
+     `migrations.yml` run, arm `live_confirmed_at` in that conversation, confirm the first live order with him, and have
+     the first buy read back by a person before its exit. He funds ≥ ~$51 USD in the Revolut X sub-account first. Never
+     trade by hand in that account.
+   - **G5 — PR5 (GBP stablecoin quotes): paper and dry-run keep running; the four-week review is on 2026-10-21**
+     (items 00000000000, 000000000 §2). Before then: watch the dry-run against the paper engine with §4 item 35's
+     L1–L5 (L3 empty, L4 only guarded minutes) and reconcile the ~9 % order shortfall minute by minute. Live stays a
+     NO-GO until the review; going live is one statement on Davies' word.
+   - **G6 — Davies' own housekeeping (not an agent's):** delete the 75 stale branches (item 0000000000000); delete the
+     one-off `pm-geo-probe` Edge Function in the Supabase dashboard; keep the Polymarket wallet empty or small.
+   - **Where things are:** RW — `agents/pmrw.ts` (engine), `agents/pmrw_view.ts` (page summary), `_shared/polymarket_public.ts`
+     (keyless client), `0053_pm_rw_paper.sql`, spec `docs/agents/reviews/2026-09-24-polymarket-rw-paper-spec.md`, study
+     `…/2026-09-24-polymarket-fp4-study.md`, reference §3.33 and §4 item 36. PR5 — `agents/quotes.ts`, `quotes_live.ts`,
+     `0051`/`0052`, §4 items 31 and 35. Go-live — `docs/agents/go-live.md`, `go_live.sql.draft`, §3.31, §4 items 32–34.
+
 0000000000000. **`main`'S HISTORY WAS REWRITTEN (2026-09-24, Davies' word): every commit's author and committer is
    daviesluo; the content is byte for byte the same (final tree `a09ad6a`, 1,053 commits, dates kept).** Old hashes map
    through `docs/commit-map-2026-09-24.md`. Remaining:
@@ -41,13 +77,30 @@ list stays the short version; the plan is the reasoning behind it.
    2. **RW's paper run is RUNNING since 2026-09-24 19:30 UTC** (`201c19f`; migration `0053`, `agents/pmrw.ts`,
       reference §4 item 36, spec `reviews/2026-09-24-polymarket-rw-paper-spec.md`): a warm-up until midnight, then
       fourteen days, 2026-09-25 00:00 → 10-09 00:00 UTC; read it on the Agents page (the last testing row, "Reward
-      quotes", and its page) or with §4 item 36's queries R1–R5. The paper reward is the published formula's against the
-      visible book, an upper bound on what an account would be paid. After 10-09: the bar from `pm_rw_days` (a day's total
+      quotes", and its page, `9f3e8a6`) or with §4 item 36's queries R1–R5. The paper reward is the published formula's
+      against the visible book, an upper bound on what an account would be paid. At 20:13 UTC (warm-up, 42 minutes):
+      16 markets, 38 fills, total +$36.61 (rewards $30.27, fills +$6.35), stress −$0.33 — the stress arm, not the
+      total, is the figure to watch; realised + unrealised equalled the engine's total to 1e-14.
+   3. **The verdict, on or after 2026-10-09 00:05 UTC** (once `pm_rw_days` has the row for 2026-10-08), written up as
+      `docs/agents/reviews/2026-10-09-polymarket-rw-paper-result.md`, reference §3.x and this ledger:
+      a. The bar, exactly as the spec words it, from `pm_rw_days` (the fourteen run rows, 09-25 … 10-08): each day's
+         total is the change from the row before (09-25 against 0; the warm-up row counts nowhere); (1) total > 0;
+         (2) stress total > 0; (3) ≥ 100 fills; (4) no market over 50 % of the total and the total without the best
+         market > 0 (per market from the last row's `detail.perMarket`); (5) Python `random.Random(20261009)`, 2,000
+         draws of fourteen `choice`s of the day totals, sums sorted, the one at index 100 > 0; (6) the total on the run's
+         capital (the largest daily `capital`) × 365 / 14 > 4 %. Commit the script with its output.
+      b. The engine ran the rule: replay the stored `pm_rw_minutes` rows with the stored `pm_rw_prints` through the
+         frozen rule (`stepRw`, or `rw_test.py`'s `run_market`) and reproduce `pm_rw_fills` and the rewards.
+      c. No print was missed: pull every quoted market's prints for the run again from `/v2/trades` (cache-busted, as
+         `pmPrints` does) and compare with `pm_rw_prints`; any print the engine did not see is a deviation — recompute
+         with the full prints and report both.
+      d. A migration unschedules `agents-pmrw-every-minute` and `agents-pmrw-select` (the tables stay).
+      e. Report to Davies in Chinese. Passes → G3 of the handover item (a design, on his word). Fails → RW stops. After 10-09: the bar from `pm_rw_days` (a day's total
       is the change from the day before; bootstrap seed 20261009); the stored minutes replayed through rw_test.py's
       rule, and each quoted market's prints pulled again to show none was missed; then a migration unschedules
       `agents-pmrw-every-minute` and `agents-pmrw-select`. It passes → a live test under this plan; it fails → RW
       stops. Only an account that quotes can show what Polymarket actually pays.
-   3. The key was exposed to another tool: keep the wallet empty or small; revoking that tool's Supabase token is his.
+   4. The key was exposed to another tool: keep the wallet empty or small; revoking that tool's Supabase token is his.
 
 00000000000. **PR5'S LIVE PATH: PUSHED (`0aca828`), RUNNING IN DRY-RUN SINCE 02:40 UTC 2026-09-24** (reference §4
    item 35). `0052` applied; the executor writes its state every minute, with no error. Its first minute (02:41)
@@ -70,7 +123,7 @@ list stays the short version; the plan is the reasoning behind it.
      - Deno check clean, 494 passed; knip clean.
    - **What remains before live, in order:**
      1. Done: pushed (`0aca828`, `0052` applied); `.claude/CLAUDE.md` follows (`6b7f1c4`).
-     2. Done: the trend-4h go-live draft takes 0053 when it moves.
+     2. Done: the trend-4h go-live draft moves as `0054` (RW's paper test took `0053` on 2026-09-24).
      3. Watch the dry-run against the paper engine for at least a day, with §4 item 35's L1–L5. L3 should be empty;
         L4 should show only guarded minutes.
      4. Davies' word. Then, in that conversation, run
@@ -115,7 +168,7 @@ list stays the short version; the plan is the reasoning behind it.
         stays 5 and orders 40. `live_confirmed_at` is written null.
       - **Left, all his:**
         - the go, which means moving the draft into `supabase/migrations/`
-          as the next free number (0053 once PR5's `0052` is in);
+          as the next free number (`0054`: RW's paper test took `0053`);
         - funding: at least about **$51 of USD** in the Revolut X
           sub-account;
         - the first live order confirmed in the conversation;
@@ -706,6 +759,15 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 20:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Handover for the next sessions** (item 00000000000000). Davies' usage is nearly spent; Cursor (Opus 5.5, Grok 4.7)
+continues. Checked before writing: the tree clean, CI green on `9f3e8a6`, the live site serving that commit's
+`app-acb3a648.js` on daviesluo.com and pages.dev, its `edge-functions` run green, and the production dashboard answering `rw`
+(warm-up, 16 markets, 38 fills, the split equal to the engine's total). The go-live draft's migration number moved to
+`0054` in the ledger and the reference, since RW took `0053`. RW's verdict procedure is written out (item 000000000000,
+step 3).
 
 ### [2026-09-24 20:09 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
