@@ -104,6 +104,21 @@ jobs:
           # purpose (`npm view supabase version` gives the current release).
           version: 2.117.0
 
+      # One-off, 2026-09-24: Davies asked for the out-of-band pm-geo-probe
+      # function to be deleted, and the only credential that can is this
+      # job's PAT. Removed in the commit after the live list confirms it.
+      - name: Delete the one-off pm-geo-probe function
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF:  ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$SUPABASE_PROJECT_REF" ]; then
+            echo "::error::Supabase secrets missing — cannot delete pm-geo-probe."
+            exit 1
+          fi
+          supabase functions delete pm-geo-probe --project-ref "$SUPABASE_PROJECT_REF" --yes
+
       - name: Detect changed functions
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: changed

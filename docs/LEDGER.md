@@ -94,11 +94,10 @@ list stays the short version; the plan is the reasoning behind it.
    - **G4a — the Agents page on LIVE and TESTING tabs lands right after G4** (Davies asked for it once live): built on
      branch `agents-live-testing`, not on `main`; landing it is the rebase-gates-push in the 21:48 history section.
    - **G6 — housekeeping.** **The 75 stale branches are DELETED** (2026-09-24 22:49 UTC, Cursor; every head is in that
-     day's 22:48 history section, restorable). **Still Davies' own, because no agent here holds a credential that can
-     do it:** delete the one-off `pm-geo-probe` Edge Function, still ACTIVE (the Supabase connector cannot delete a
-     function, and the only PAT is CI's, which only deploys): dashboard → Edge Functions → `pm-geo-probe` → delete, or
-     `supabase functions delete pm-geo-probe --project-ref flmvxigozjuizpckllvk` from his machine. Nothing in the
-     repository names it but this ledger, so nothing else goes with it. Keep the Polymarket wallet empty or small.
+     day's 22:48 history section, restorable). **`pm-geo-probe`:** Davies said to delete it (23:20 UTC). This commit's
+     `edge-functions.yml` runs `supabase functions delete pm-geo-probe --yes` with CI's existing PAT; the step comes
+     out in the next commit once the live function list no longer has it. Nothing in the repository names it but this
+     ledger. Keep the Polymarket wallet empty or small.
    - **Where things are:** RW — `agents/pmrw.ts` (engine), `agents/pmrw_view.ts` (page summary), `_shared/polymarket_public.ts`
      (keyless client), `0053_pm_rw_paper.sql`, spec `docs/agents/reviews/2026-09-24-polymarket-rw-paper-spec.md`, study
      `…/2026-09-24-polymarket-fp4-study.md`, reference §3.33 and §4 item 36. PR5 — `agents/quotes.ts`, `quotes_live.ts`,
@@ -832,6 +831,15 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 23:22 UTC] Platform: Cursor | Model: Grok 4.7
+
+**G6: Davies said to delete `pm-geo-probe`, so CI does it with the PAT it already has.** The connector still cannot
+delete a function and this machine still has no Supabase token, so no credential was created. `edge-functions.yml`
+gains one step, after the CLI install and only on a push to `main`: `supabase functions delete pm-geo-probe --yes`
+with `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF`. It fails the job if either secret is missing, rather than
+skipping. The step comes out in the next commit once the live function list shows it gone. The other eleven functions
+are not named by the step.
 
 ### [2026-09-24 22:57 UTC] Platform: Cursor | Model: Opus 5.5
 
