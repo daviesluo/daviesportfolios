@@ -2672,6 +2672,53 @@ Davies asked for PR5's GBP stablecoin quotes to go live at $50 beside `trend-4h-
   "better than 8 %/yr" (about 93). At $50 the result would be a plumbing test earning two cents a day. Its capacity at
   $300–$1,000 rungs is a different decision.
 
+### 3.33 Polymarket from first principles: the account may not open a position, and FAV and WX fail (RW pending) (2026-09-24)
+
+Davies asked for a fourth independent search, this time on Polymarket, where he holds an account (§2d). A research
+agent ran it on public data only — no key, no signed call, nothing placed — with the earlier programmes' method:
+brainstorm, kill by arithmetic, pre-register, run once (review `reviews/2026-09-24-polymarket-fp4-study.md`; scripts,
+inputs and results in `backtests/polymarket/`).
+
+**First: nothing that opens a position may run from Davies' account, from the UK or from Ireland.** Polymarket's
+geoblock page makes the United Kingdom close-only on the frontend AND the API, and Ireland close-only on the frontend
+only ("the API itself is not restricted"). Its Terms of Use (effective 2026-08-11), which bind API use too, say
+trading "IS NOT PERMITTED BY PERSONS OR ENTITIES WHO RESIDE IN, ARE LOCATED IN" 22 named places, **Ireland and the
+United Kingdom among them**, "THERE ARE NO EXCEPTIONS", and a wallet in breach may be put in close-only mode. Davies
+resides in both, so an order path from Supabase's Ireland region while he is in Ireland would still breach the Terms.
+Nothing here proposes a way around that; the change that would open it is Polymarket's own (its Terms and its
+geoblock list). No venue regulated for UK or Irish residents that lists these markets was verified. Each candidate
+also says whether it would survive long reduce-only stretches — the shape a split residence would give it if one
+country were ever lifted: a hold-to-resolution rule can sit a stretch out; a maker that re-quotes every minute cannot.
+
+**The venue, beyond §2d.** Taker fee `rate × p × (1 − p)` a share (the live schedules on 194,929 open markets match
+the published table; sports markets created before 2026-07-10 keep 0.03); makers pay nothing and get back 15–25 % of
+the fee-equivalent of their fills, paid daily above $1. **Liquidity rewards: $147,864 a day** over 16,075 markets
+(median pool $3, the largest $1,008), scored each minute as `((v − s)/v)² × size` within `v` of the size-cutoff
+midpoint, two-sided in full and one-sided at a third. Holding rewards 4 % a year on 309 markets; taker rebate tiers
+from $2,000 of 30-day weighted volume (3 %). The book is one book (a YES bid at `p` is a NO ask at `1 − p`); ticks
+0.01 / 0.001 / 0.0025, minimum order 5 shares; takers wait 150 ms on crypto and 1–3 s on sports. UMA: on the open
+markets a $250 bond earns $0.80 (73 %) or $500 earns $5 (16 %) for a proposal that survives two hours. A keyless
+reader gets every market with its payout (Gamma), every print (`/v2/trades`), resolution records
+(`/v2/resolutions`) and per-wallet P&L splits (`/v2/user-stats`).
+
+**31 ideas: three pre-registered tests cover five of them (FAV takes B1–B3); the other 26 die on arithmetic, a
+measurement or scope, or are not strategies.** The measurements that killed the rest: **hourly crypto up/down** (resolved on Binance's 1 h candle) — a model beat the price HISTORY and lost
+at the real prints, −2.8 ¢ a share after fees, because the history lagged the book by 12 ¢ (M3/M3b); **negative-risk
+sets** — per sweep two complete sets paid to buy every YES, and the large one was a resolution clause ("Other" if
+unknown by 2026-12-31) read as a price (M5); **strike and date ladders** — 16 violations after fees in 11,889 pairs,
+the largest 0.93 ¢ a share, settling in 2027–28 (M6); **taker tiers** — a $10 bonus costs about $61 of fees; the
+**UMA proposer role** is a race for $0.80 on a $250 bond. **The oracle is not where near-certain outcomes lose**
+(M2): of 344,229 resolved markets with $5,000 of volume, 93 had their first proposal overturned (0.27 per 1,000),
+concentrated in politics (2.7) and mentions (5.6); sports pays 50-50 on 11 games in 1,000.
+
+| test | rule | out of sample | verdict | reduce-only stretches? |
+|---|---|---|---|---|
+| FAV | buy the 0.90–0.99 side a day before the scheduled end ($10, filled from prints only, the market's taker fee), hold to resolution; one event in four, 2025 in sample | −$292.15 on 2,282 trades (2026-01 → 09-10), −1.4 % a dollar; favourites won 95.1 % at 96.3 ¢; calibration null p95 +$106.96; stress −$351.35; a week before −$55.49, an hour before −$910.51 | **fails** (5 of 6 conditions) | would survive |
+| WX | the daily temperature buckets against Open-Meteo's 48-hour forecast (a normal error fitted on 2025 → 2026-02); buy the bucket's YES or NO the model calls 10 points mispriced at noon UTC the day before, $5 from prints, hold | −$1,589.09 on 5,336 trades (2026-03 → 09-10), −6.6 % a dollar; the market's own price out-forecasts the model on 106,666 buckets (Brier 0.064 against 0.075); null p95 +$98.95; stress −$2,161.48 | **fails** (5 of 6) | would survive |
+| RW | (pending: its forward window ends at 10:42 UTC) | | | would not |
+
+(Findings and verdict pending RW.)
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

@@ -708,6 +708,14 @@ site, the functions and the database see nothing new. Force-pushed with a lease 
 `docs/commit-map-2026-09-24.md` maps old hashes to new. Deleting the other branches was refused by the session's git
 proxy (403); 75 remain for Davies (dependabot removed its 14). `decision-fc` needed nothing: its one commit and both `gh-pages` commits are his.
 
+### [2026-09-24 08:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp4's study and reference §3.33 drafted, RW pending** (not pushed). The review and the reference section carry
+FAV's and WX's failures, the measurements and the access finding; RW's rows say pending until its window closes at
+10:42 UTC. A queued job pulls RW's prints at 10:43:30, builds its input and runs its test twice. Descriptively, FAV
+would still lose $95.10 out of sample had every fill been at the shown price, which could not be traded.
+
+
 ### [2026-09-24 08:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **fp4's WX fails: the market knows more than the free forecast** (not pushed). Polymarket's daily temperature
