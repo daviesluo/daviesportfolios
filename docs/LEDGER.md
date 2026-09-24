@@ -91,13 +91,14 @@ list stays the short version; the plan is the reasoning behind it.
      decidable yet — the standard is the spec's six conditions after four weeks (2026-10-21), and the three trips so far
      are one event; the conditions that can be read early are on track (reference §4 item 31, "The first round trips").
      Live stays a NO-GO until the review; going live is one statement on his word.
-   - **G4a — the Agents page on LIVE and TESTING tabs lands right after G4** (Davies asked for it once live): built on
-     branch `agents-live-testing`, not on `main`; landing it is the rebase-gates-push in the 21:48 history section.
+   - **G4a — the Agents page on LIVE and TESTING tabs is ON MAIN** (`7a015b6`, check green; both sites serve
+     `app-cc8519ef.js`). `agents-live-testing`'s head is recorded in the 23:29 history section and deleted once that
+     commit is pushed.
    - **G6 — housekeeping.** **The 75 stale branches are DELETED** (2026-09-24 22:49 UTC, Cursor; every head is in that
-     day's 22:48 history section, restorable). **`pm-geo-probe`:** Davies said to delete it (23:20 UTC). This commit's
-     `edge-functions.yml` runs `supabase functions delete pm-geo-probe --yes` with CI's existing PAT; the step comes
-     out in the next commit once the live function list no longer has it. Nothing in the repository names it but this
-     ledger. Keep the Polymarket wallet empty or small.
+     day's 22:48 history section, restorable). **`pm-geo-probe` is DELETED** (2026-09-24 23:25 UTC): the one-off step in
+     `1883785` ran `supabase functions delete` with CI's PAT, the log says deleted, and the live list at 23:26 has the
+     eleven repository functions and not it. The step is gone again in the commit that records this. Keep the
+     Polymarket wallet empty or small.
    - **Where things are:** RW — `agents/pmrw.ts` (engine), `agents/pmrw_view.ts` (page summary), `_shared/polymarket_public.ts`
      (keyless client), `0053_pm_rw_paper.sql`, spec `docs/agents/reviews/2026-09-24-polymarket-rw-paper-spec.md`, study
      `…/2026-09-24-polymarket-fp4-study.md`, reference §3.33 and §4 item 36. PR5 — `agents/quotes.ts`, `quotes_live.ts`,
@@ -831,6 +832,21 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 23:29 UTC] Platform: Cursor | Model: Grok 4.7
+
+**G6: `pm-geo-probe` is deleted, and the one-off step is out.** Run
+[36072610413](https://github.com/daviesluo/daviesportfolios/actions/runs/36072610413) on `1883785` finished green; its
+delete step logged `Deleted Function pm-geo-probe`. The live list at 23:26 UTC is the eleven repository functions
+(`prices`, `auth`, `data`, `ops-error`, `fundamentals`, `chart`, `trading212`, `overnight-fetch`, `overnight-record`,
+`snapshot-record`, `agents`) and nothing else. This commit removes the step, so a later push deploys only what
+changed, as before. No credential was created. The step sat before "Detect changed functions" with no guard, so leaving
+it would fail every later deploy once the function was already gone.
+- **`agents-live-testing`, recorded before deletion.** Head `eb58acbba9add14a5004492f1717745a25ba1e8a` (2026-09-24
+  22:58:11 UTC, "Name what every Agents figure covers and is of, and take Davies' second pass"). No open pull request.
+  Its tree is not `7a015b6`'s: merge-base with `main` is `1bf254d`, so restore is this SHA
+  (`git push origin eb58acbba9add14a5004492f1717745a25ba1e8a:refs/heads/agents-live-testing`), not that commit. Deleted
+  once this commit is on `main`.
 
 ### [2026-09-24 23:22 UTC] Platform: Cursor | Model: Grok 4.7
 
