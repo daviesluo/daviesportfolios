@@ -1,0 +1,1 @@
+{"24h, not causal": {"market": {"brier": 0.063724, "n": 106666}, "model": {"brier": 0.072792, "n": 106666}}, "48h, as tested": {"market": {"brier": 0.063724, "n": 106666}, "model": {"brier": 0.074589, "n": 106666}}}

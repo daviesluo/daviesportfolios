@@ -1,0 +1,1 @@
+{"band_0.90_0.95": {"at_fills": -187.144353, "at_shown_price": -80.001822, "trades": 857}, "band_0.95_0.99": {"at_fills": -105.006169, "at_shown_price": -15.094397, "trades": 1425}, "mean_fill": 0.963473, "mean_shown_price": 0.954205, "oos_trades": 2282, "pnl_at_fills": -292.150522, "pnl_at_shown_price": -95.096219, "pnl_at_shown_price_plus_tick": -116.489032}

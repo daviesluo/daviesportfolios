@@ -698,6 +698,14 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 08:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp4: two descriptive checks, neither a test** (not pushed). Fed the 24-hour forecast — issued after WX's decision
+time, so it flatters the model — the same weather model still scores a Brier of 0.0728 against the market's 0.0637:
+the gap is not the forecast's age. FAV re-priced at the shown price loses $95.10 rather than $292.15: a third of its
+loss is the favourites' own price, two thirds the prints. WX's forecast script is back to the version that produced
+its data.
+
 ### [2026-09-24 08:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **`main` rewritten so every commit names Davies** (his word, 2026-09-24, before the CV goes out: "all contributors of
@@ -707,6 +715,7 @@ flow, 7 by dependabot) and dropped co-author and session trailers; the final tre
 site, the functions and the database see nothing new. Force-pushed with a lease on `bd0c2f8` → `28f5c01`.
 `docs/commit-map-2026-09-24.md` maps old hashes to new. Deleting the other branches was refused by the session's git
 proxy (403); 75 remain for Davies (dependabot removed its 14). `decision-fc` needed nothing: its one commit and both `gh-pages` commits are his.
+
 
 ### [2026-09-24 08:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
