@@ -747,6 +747,13 @@ the names. `.claude/CLAUDE.md`: the probe parts list gains `revx2` and `polymark
 `POLYMARKET_*` names, and a bullet says Polymarket opens nothing from here and why. Item 00000000000 no longer says
 PR5's live path is unpushed.
 
+### [2026-09-24 02:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp4: a third pre-registration, WX, frozen** (not pushed): Polymarket's daily temperature markets against
+Open-Meteo's archived 48-hour forecast, a normal error model fitted on 2025 → 2026-02, one trade per event when the
+model and the price differ by 10 points, OOS 2026-03 → 09-10, a calibration null. The test scripts of FAV and RW are
+committed with it, before their data is complete; RW's book recorder has run since 02:42 UTC.
+
 ### [2026-09-24 02:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Polymarket phase 1: a read-only probe part, and the facts it rests on** (item 000000000000). `_shared/polymarket.ts`
@@ -761,6 +768,7 @@ V2 since 2026-04-28 (pUSD collateral; the v1 clients are archived and "no longer
 clean; the docs-map test green. Two counterfactuals each fail a pin: signing the path WITH its query, and cutting an
 upstream error before scrubbing it. The public reads were run keylessly from this container against the live hosts.
 Not deployed, not run with the keys.
+
 
 ### [2026-09-24 02:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

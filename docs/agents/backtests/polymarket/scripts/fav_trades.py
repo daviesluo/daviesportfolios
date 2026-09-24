@@ -35,7 +35,7 @@ def main():
         path = os.path.join(outdir, cond + ".json")
         if os.path.exists(path):
             continue
-        rows, cursor, pages = [], None, 0
+        rows, cursor, pages, complete = [], None, 0, False
         while True:
             params = {"condition": cond, "limit": 1000}
             if cursor:
@@ -52,11 +52,16 @@ def main():
                 if r.get("timestamp", 0) >= since:
                     rows.append([r.get("timestamp"), r.get("side"), r.get("outcome_index"), r.get("price"), r.get("size")])
             cursor = (d.get("pagination") or {}).get("next_cursor")
-            if not cursor or not data or data[-1].get("timestamp", 0) < since or pages >= 200:
+            if not cursor or not data or data[-1].get("timestamp", 0) < since:
+                complete = True
+                break
+            if pages >= 200:
                 break
         if rows is None:
             continue
-        pmnet.dump(path, {"since": since, "pages": pages, "rows": rows})
+        # complete: the walk reached `since` (or the market's first print); otherwise the oldest
+        # prints are missing and a decision window before rows[-1] cannot be judged
+        pmnet.dump(path, {"since": since, "pages": pages, "complete": complete, "rows": rows})
         n += 1
         if n % 200 == 0:
             print("pulled", n, flush=True)
