@@ -1,0 +1,63 @@
+--- a/supabase/functions/agents/tick.ts
++++ b/supabase/functions/agents/tick.ts
+@@ -712,6 +712,20 @@
+   };
+   const resting = new Map<string, OrderRow>();     // `${strategy}|${symbol}` → an order still resting after this turn's settlement
+   /**
++   * A live BUY's settled base, floored to its pair's base step (D11, reference §3.31). A fee the venue takes in the coin
++   * is 9 bps of the gross, never a whole number of steps (0.00014823 BTC pays 0.000000133407), so `toOrderView`'s
++   * gross − fee lies between two steps. The exit can only ever sell the step below (`sizeBase` floors, and so does the
++   * sell cap), and the sub-step remainder then read "long" for good: the rulebook never entered the coin again, and the
++   * floor asked every minute to sell something under the venue minimum. The remainder stays at the venue as unsellable
++   * dust; the book holds exactly what can be sold. The step is the pair's own (`markets`, loaded above), never the
++   * decimals of a quantity string, which the venue trims ("0.002").
++   */
++  const settledBase = (o: OrderRow, base: number): number => {
++    if (o.side !== "buy" || !(base > 0)) return base;
++    const step = markets.get(mk(o.venue, o.symbol))?.pair?.base_step;
++    return step ? Number(floorToStep(base, step)) : base;
++  };
++  /**
+    * Take a resting order off the book. Live: the venue cancels, then says
+    * what filled before the cancel landed — that is the venue's to say, and
+    * a fill wins over the cancel. If the order cannot be read back after the
+@@ -730,7 +744,7 @@
+       const after = await venue.order(o.venue_order_id);
+       if (!after.ok) { report.errors.push(`${key}: cancelled ${o.venue_order_id} but could not read it back (${after.error}); left open for the next turn to settle from the venue`); return "failed"; }
+       if (after.view.filledBase > 0) {
+-        await settle(o, { filled_base: after.view.filledBase, avg_fill_price: after.view.avgPrice ?? o.price, fee_usd: after.view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: withFeeNote(after.view.raw, after.view) }, "filled");
++        await settle(o, { filled_base: settledBase(o, after.view.filledBase), avg_fill_price: after.view.avgPrice ?? o.price, fee_usd: after.view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: withFeeNote(after.view.raw, after.view) }, "filled");
+         return "filled";
+       }
+     }
+@@ -762,7 +776,7 @@
+           else if (!h.ok) report.errors.push(`${key}: order history ${h.error}`);
+         }
+         if (found) {
+-          await d.db.update("agent_orders", `id=eq.${o.id}`, { state: found.view.state, venue_order_id: found.venueOrderId, filled_base: found.view.filledBase, avg_fill_price: found.view.avgPrice, fee_usd: found.view.feeUsd, filled_at: found.view.filledBase > 0 ? fillStamp(o, nowIso) : o.filled_at, response: withFeeNote({ reconciled: true, view: found.view.raw }, found.view), updated_at: nowIso });
++          await d.db.update("agent_orders", `id=eq.${o.id}`, { state: found.view.state, venue_order_id: found.venueOrderId, filled_base: settledBase(o, found.view.filledBase), avg_fill_price: found.view.avgPrice, fee_usd: found.view.feeUsd, filled_at: found.view.filledBase > 0 ? fillStamp(o, nowIso) : o.filled_at, response: withFeeNote({ reconciled: true, view: found.view.raw }, found.view), updated_at: nowIso });
+           report.settled.push({ id: o.id, state: `reconciled:${found.view.state}` });
+           holdInFlight(key, o.side);
+           continue;
+@@ -812,17 +826,17 @@
+           if (view.state === "filled") {
+             // A fill is dated from when it FIRST filled: a completion that re-stamped it moved a position's opening — and, across
+             // midnight, a whole fill between yesterday's P&L and today's — every time an order finished in pieces.
+-            await settle(o, { filled_base: view.filledBase || o.base_size, avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), response: withFeeNote(view.raw, view) }, "filled");
++            await settle(o, { filled_base: settledBase(o, view.filledBase || Number(o.base_size)), avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), response: withFeeNote(view.raw, view) }, "filled");
+             continue;
+           }
+           if (view.state === "cancelled" || view.state === "rejected") {
+             // A cancel after a partial fill is a FILL of what filled — an IOC that took part of the ask is the usual case.
+-            if (view.filledBase > 0) await settle(o, { filled_base: view.filledBase, avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: withFeeNote(view.raw, view) }, "filled");
++            if (view.filledBase > 0) await settle(o, { filled_base: settledBase(o, view.filledBase), avg_fill_price: view.avgPrice ?? o.price, fee_usd: view.feeUsd, filled_at: fillStamp(o, nowIso), cancelled_at: nowIso, response: withFeeNote(view.raw, view) }, "filled");
+             else await settle(o, { cancelled_at: nowIso, response: view.raw }, view.state);
+             continue;
+           }
+-          if (view.state === "partially_filled" && (o.state !== "partially_filled" || Number(o.filled_base) !== view.filledBase)) {
+-            await d.db.update("agent_orders", `id=eq.${o.id}`, { state: "partially_filled", filled_base: view.filledBase, avg_fill_price: view.avgPrice, fee_usd: view.feeUsd, response: withFeeNote(view.raw, view), filled_at: fillStamp(o, nowIso), updated_at: nowIso });
++          if (view.state === "partially_filled" && (o.state !== "partially_filled" || Number(o.filled_base) !== settledBase(o, view.filledBase))) {
++            await d.db.update("agent_orders", `id=eq.${o.id}`, { state: "partially_filled", filled_base: settledBase(o, view.filledBase), avg_fill_price: view.avgPrice, fee_usd: view.feeUsd, response: withFeeNote(view.raw, view), filled_at: fillStamp(o, nowIso), updated_at: nowIso });
+           }
+         }
+       }

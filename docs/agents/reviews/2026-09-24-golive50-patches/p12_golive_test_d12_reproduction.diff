@@ -1,0 +1,50 @@
+--- a/supabase/functions/agents/golive.test.ts
++++ b/supabase/functions/agents/golive.test.ts
+@@ -297,6 +297,47 @@
+   assert(nothingToDeriveFrom?.includes("neither filled_amount nor average_fill_price gives a notional"), String(nothingToDeriveFrom));
+ });
+ 
++Deno.test("D12 — REPRODUCTION, red until fixed: a buy fee the venue takes in the coin WITHOUT reporting it is booked gross by D8's derived fee, and the book outlives its exit", async () => {
++  // D8 settles a fill whose read-back carries no total_fee / fee_currency with a DOLLAR fee from the schedule, and its double
++  // takes that fee from the dollars. If the venue instead takes a buy's fee in the coin (its reference calls a buy's
++  // filled_quantity "gross, before fees") and reports nothing, the book holds the gross while the account holds gross − fee,
++  // the floor's sell is capped at the account, and the whole fee stays in the book: D4's phantom position by another road.
++  // No reply field tells the two venues apart; the account's balance does. Land this with its fix, not before.
++  const BAR0 = Date.parse("2026-09-23T04:00:00Z");
++  let now = BAR0 + 5 * ONE_M;
++  const mem = memDb({ agent_risk: [RISK], agent_strategies: [{ ...LIVE, capital_usd: 12.5 } as unknown as Row], agent_orders: [], agent_decisions: [], agent_observations: [],
++    agent_maker_probes: [], agent_candles: [], agent_locks: [{ name: "tick", lease_until: "1970-01-01T00:00:00.000Z", holder: null }] }, { now: () => now + 5_000 });
++  const rx = new FakeRevx(() => now), kr = new FakeKraken(() => now);
++  rx.dialect = "no-fee";                                             // no total_fee, no fee_currency on the read-back
++  const inner = rx.fetch;
++  rx.fetch = async (input, init) => {
++    const p = new URL(String(input)).pathname, m = (init?.method ?? "GET").toUpperCase();
++    const before = new Set(rx.orders.keys());
++    const res = await inner(input, init);
++    if (p === "/api/1.0/orders" && m === "POST") {
++      for (const [id, o] of rx.orders) if (!before.has(id) && o.side === "buy" && o.status === "filled" && o.avg) {
++        const feeBase = Math.round(o.fee / o.avg * 1e8) / 1e8;        // on the base step, so this is not D11's sub-step case
++        rx.balances.BTC = Math.round(((rx.balances.BTC ?? 0) - feeBase) * 1e8) / 1e8; rx.balances.USD += o.fee;
++      }
++    }
++    return res;
++  };
++  const { privateKey } = await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair;
++  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch), kraken: krakenVenue(null, kr.fetch) };
++  const at = (t: number) => { now = t; return tick({ db: mem.db, venues, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({}), uuid: () => crypto.randomUUID() }); };
++  await at(BAR0 + 5 * ONE_M);                                        // entry, a $12.50 slot
++  await at(BAR0 + 6 * ONE_M);                                        // settled, with a derived dollar fee
++  rx.shock["BTC/USD"] = 0.9;                                         // the floor fires on the bid
++  await at(BAR0 + 10 * ONE_M);
++  await at(BAR0 + 11 * ONE_M);
++  rx.shock["BTC/USD"] = 1;
++  assertEquals(rx.balances.BTC, 0);                                  // the venue is flat …
++  assertEquals(bookOf(mem.tables.agent_orders as Row[]).base, 0);    // … and so must the book be (today it keeps the fee)
++  const orders = mem.tables.agent_orders.length;
++  for (const k of [3, 4, 5]) await at(BAR0 + k * FOUR_H + ONE_M);
++  assert(mem.tables.agent_orders.length > orders, "the rule entered again");
++});
++
+ Deno.test("D9 — every marketable order records the touch it was priced from and that quote's age, paper and live; a live fill keeps the venue's price beside it, so the shortfall is read off the record", async () => {
+   const SYM = "BTC/USD";
+   let wall = Date.parse("2026-09-23T04:05:03Z"), asked = 0;

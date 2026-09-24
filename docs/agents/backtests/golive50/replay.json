@@ -1,0 +1,1850 @@
+{
+ "study": "S2(a)/(b): the paper trend-4h row replayed bar by bar with the loop's decision functions on Kraken's public candles, beside backtest.ts run on the same bars",
+ "inputs": {
+  "krakenOhlc": {
+   "file": "inputs/kraken_ohlc.json.gz",
+   "sha256": "0fb1f6ca0496d526d24ecabd09d38dcf54d300177f1a5b95324cf1a4fa163aed",
+   "pulledAt": "2026-09-24T00:12:25Z"
+  },
+  "revxCandles": {
+   "file": "inputs/revx_candles.json.gz",
+   "sha256": "c1d7ecd807111a1d238372076a969bee650bab7f267ad9ff7b1214ff7f689da5"
+  }
+ },
+ "assumptions": {
+  "joined": {
+   "BTC/USD": "2026-09-20T18:23Z",
+   "ETH/USD": "2026-09-20T18:23Z",
+   "SOL/USD": "2026-09-20T18:23Z",
+   "AVAX/USD": "2026-09-21T13:10Z",
+   "SUI/USD": "2026-09-21T14:11Z"
+  },
+  "jev": "v1 at 0.60 before 2026-09-23 00:52 (the recorded answers for the three entries: ETH 0.94, BTC 0.95, SOL 0.61 — all allowed); v2 at 0.45 after, which refuses exactly weak-trend high-volatility states",
+  "loopFill": "the paper order's price is the ticker's ask (buy) / bid (sell) at the turn; stood in for by the decision minute's UK candle open × (1 ± half-spread from COSTS.revx), 9 bps taker",
+  "floor": "8 % under average cost, read against every UK 1-minute low from the decision to the next decision (conservative: the loop reads the bid once a minute)",
+  "trail": "the high-water from the START of the entry's bar (fromItsBar, P5; the loop before 2026-09-23 20:25 skipped the entry bar's own high — D5)"
+ },
+ "perCoin": {
+  "BTC/USD": {
+   "joined": "2026-09-20T18:23Z",
+   "firstBarDecided": "2026-09-20T12:00Z",
+   "barsDecided": 21,
+   "entries": [
+    "2026-09-21T08:00Z"
+   ],
+   "exits": [],
+   "ruleEntrySignals": [
+    {
+     "bar": "2026-09-21T08:00Z",
+     "position": "flat",
+     "jev": "v1 at 0.60 (answer read from the record where one exists)",
+     "final": "enter"
+    }
+   ],
+   "loopFills": [
+    {
+     "ts": "2026-09-21T12:00Z",
+     "side": "buy",
+     "price": 84766.2969955,
+     "why": "trend up, breakout, momentum positive"
+    }
+   ],
+   "floorBreachesUkMinuteLow": [],
+   "openAtEnd": {
+    "avgCost": 84766.297,
+    "highWater": 84766.2969955,
+    "lastUkClose": 84340.62,
+    "unrealisedPerSlotDollar": -0.005991
+   },
+   "loopArmSlotReturn": -0.005991,
+   "decisions": [
+    {
+     "barStart": "2026-09-20T12:00Z",
+     "decidedAt": "2026-09-20T18:23Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "weak",
+      "breakout": "inside_range",
+      "volatility": "low",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-20T16:00Z",
+     "decidedAt": "2026-09-20T20:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "low",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-20T20:00Z",
+     "decidedAt": "2026-09-21T00:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "low",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T00:00Z",
+     "decidedAt": "2026-09-21T04:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "low",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T04:00Z",
+     "decidedAt": "2026-09-21T08:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "low",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T08:00Z",
+     "decidedAt": "2026-09-21T12:00Z",
+     "position": "flat",
+     "rule": "enter",
+     "reason": "trend up, breakout, momentum positive",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "above_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "v1 at 0.60 (answer read from the record where one exists)",
+     "final": "enter",
+     "loopFill": {
+      "side": "buy",
+      "price": 84766.2969955,
+      "touchMinute": "2026-09-21T12:00Z"
+     }
+    },
+    {
+     "barStart": "2026-09-21T12:00Z",
+     "decidedAt": "2026-09-21T16:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "above_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T16:00Z",
+     "decidedAt": "2026-09-21T20:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "above_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T20:00Z",
+     "decidedAt": "2026-09-22T00:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T00:00Z",
+     "decidedAt": "2026-09-22T04:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T04:00Z",
+     "decidedAt": "2026-09-22T08:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T08:00Z",
+     "decidedAt": "2026-09-22T12:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T12:00Z",
+     "decidedAt": "2026-09-22T16:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T16:00Z",
+     "decidedAt": "2026-09-22T20:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T20:00Z",
+     "decidedAt": "2026-09-23T00:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T00:00Z",
+     "decidedAt": "2026-09-23T04:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T04:00Z",
+     "decidedAt": "2026-09-23T08:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T08:00Z",
+     "decidedAt": "2026-09-23T12:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T12:00Z",
+     "decidedAt": "2026-09-23T16:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T16:00Z",
+     "decidedAt": "2026-09-23T20:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T20:00Z",
+     "decidedAt": "2026-09-24T00:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    }
+   ]
+  },
+  "ETH/USD": {
+   "joined": "2026-09-20T18:23Z",
+   "firstBarDecided": "2026-09-20T12:00Z",
+   "barsDecided": 21,
+   "entries": [
+    "2026-09-21T00:00Z"
+   ],
+   "exits": [
+    "2026-09-23T12:00Z"
+   ],
+   "ruleEntrySignals": [
+    {
+     "bar": "2026-09-21T00:00Z",
+     "position": "flat",
+     "jev": "v1 at 0.60 (answer read from the record where one exists)",
+     "final": "enter"
+    }
+   ],
+   "loopFills": [
+    {
+     "ts": "2026-09-21T04:00Z",
+     "side": "buy",
+     "price": 2665.14981135,
+     "why": "trend up, breakout, momentum positive"
+    },
+    {
+     "ts": "2026-09-23T16:00Z",
+     "side": "sell",
+     "price": 2655.1511798499996,
+     "why": "ATR trailing stop (3×ATR from high-water)"
+    }
+   ],
+   "floorBreachesUkMinuteLow": [],
+   "openAtEnd": null,
+   "loopArmSlotReturn": -0.005543,
+   "decisions": [
+    {
+     "barStart": "2026-09-20T12:00Z",
+     "decidedAt": "2026-09-20T18:23Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-20T16:00Z",
+     "decidedAt": "2026-09-20T20:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-20T20:00Z",
+     "decidedAt": "2026-09-21T00:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T00:00Z",
+     "decidedAt": "2026-09-21T04:00Z",
+     "position": "flat",
+     "rule": "enter",
+     "reason": "trend up, breakout, momentum positive",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "above_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "v1 at 0.60 (answer read from the record where one exists)",
+     "final": "enter",
+     "loopFill": {
+      "side": "buy",
+      "price": 2665.14981135,
+      "touchMinute": "2026-09-21T04:00Z"
+     }
+    },
+    {
+     "barStart": "2026-09-21T04:00Z",
+     "decidedAt": "2026-09-21T08:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T08:00Z",
+     "decidedAt": "2026-09-21T12:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "above_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T12:00Z",
+     "decidedAt": "2026-09-21T16:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "above_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T16:00Z",
+     "decidedAt": "2026-09-21T20:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T20:00Z",
+     "decidedAt": "2026-09-22T00:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T00:00Z",
+     "decidedAt": "2026-09-22T04:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T04:00Z",
+     "decidedAt": "2026-09-22T08:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T08:00Z",
+     "decidedAt": "2026-09-22T12:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T12:00Z",
+     "decidedAt": "2026-09-22T16:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T16:00Z",
+     "decidedAt": "2026-09-22T20:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T20:00Z",
+     "decidedAt": "2026-09-23T00:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T00:00Z",
+     "decidedAt": "2026-09-23T04:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T04:00Z",
+     "decidedAt": "2026-09-23T08:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T08:00Z",
+     "decidedAt": "2026-09-23T12:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T12:00Z",
+     "decidedAt": "2026-09-23T16:00Z",
+     "position": "long",
+     "rule": "exit",
+     "reason": "ATR trailing stop (3×ATR from high-water)",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "exit",
+     "loopFill": {
+      "side": "sell",
+      "price": 2655.1511798499996,
+      "touchMinute": "2026-09-23T16:00Z"
+     }
+    },
+    {
+     "barStart": "2026-09-23T16:00Z",
+     "decidedAt": "2026-09-23T20:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T20:00Z",
+     "decidedAt": "2026-09-24T00:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    }
+   ]
+  },
+  "SOL/USD": {
+   "joined": "2026-09-20T18:23Z",
+   "firstBarDecided": "2026-09-20T12:00Z",
+   "barsDecided": 21,
+   "entries": [
+    "2026-09-21T08:00Z"
+   ],
+   "exits": [],
+   "ruleEntrySignals": [
+    {
+     "bar": "2026-09-21T08:00Z",
+     "position": "flat",
+     "jev": "v1 at 0.60 (answer read from the record where one exists)",
+     "final": "enter"
+    }
+   ],
+   "loopFills": [
+    {
+     "ts": "2026-09-21T12:00Z",
+     "side": "buy",
+     "price": 116.8581102,
+     "why": "trend up, breakout, momentum positive"
+    }
+   ],
+   "floorBreachesUkMinuteLow": [],
+   "openAtEnd": {
+    "avgCost": 116.8581102,
+    "highWater": 116.8581102,
+    "lastUkClose": 115.14,
+    "unrealisedPerSlotDollar": -0.015741
+   },
+   "loopArmSlotReturn": -0.015741,
+   "decisions": [
+    {
+     "barStart": "2026-09-20T12:00Z",
+     "decidedAt": "2026-09-20T18:23Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "moderate",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-20T16:00Z",
+     "decidedAt": "2026-09-20T20:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-20T20:00Z",
+     "decidedAt": "2026-09-21T00:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T00:00Z",
+     "decidedAt": "2026-09-21T04:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T04:00Z",
+     "decidedAt": "2026-09-21T08:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T08:00Z",
+     "decidedAt": "2026-09-21T12:00Z",
+     "position": "flat",
+     "rule": "enter",
+     "reason": "trend up, breakout, momentum positive",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "above_range",
+      "volatility": "high",
+      "momentum": "positive"
+     },
+     "jev": "v1 at 0.60 (answer read from the record where one exists)",
+     "final": "enter",
+     "loopFill": {
+      "side": "buy",
+      "price": 116.8581102,
+      "touchMinute": "2026-09-21T12:00Z"
+     }
+    },
+    {
+     "barStart": "2026-09-21T12:00Z",
+     "decidedAt": "2026-09-21T16:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "above_range",
+      "volatility": "high",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T16:00Z",
+     "decidedAt": "2026-09-21T20:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "high",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T20:00Z",
+     "decidedAt": "2026-09-22T00:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "high",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T00:00Z",
+     "decidedAt": "2026-09-22T04:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "high",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T04:00Z",
+     "decidedAt": "2026-09-22T08:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "high",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T08:00Z",
+     "decidedAt": "2026-09-22T12:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "high",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T12:00Z",
+     "decidedAt": "2026-09-22T16:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T16:00Z",
+     "decidedAt": "2026-09-22T20:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T20:00Z",
+     "decidedAt": "2026-09-23T00:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T00:00Z",
+     "decidedAt": "2026-09-23T04:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T04:00Z",
+     "decidedAt": "2026-09-23T08:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T08:00Z",
+     "decidedAt": "2026-09-23T12:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "normal",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T12:00Z",
+     "decidedAt": "2026-09-23T16:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "high",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T16:00Z",
+     "decidedAt": "2026-09-23T20:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "high",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T20:00Z",
+     "decidedAt": "2026-09-24T00:00Z",
+     "position": "long",
+     "rule": "hold",
+     "reason": "in position, no exit condition",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "high",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    }
+   ]
+  },
+  "AVAX/USD": {
+   "joined": "2026-09-21T13:10Z",
+   "firstBarDecided": "2026-09-21T08:00Z",
+   "barsDecided": 16,
+   "entries": [],
+   "exits": [],
+   "ruleEntrySignals": [],
+   "loopFills": [],
+   "floorBreachesUkMinuteLow": [],
+   "openAtEnd": null,
+   "loopArmSlotReturn": 0,
+   "decisions": [
+    {
+     "barStart": "2026-09-21T08:00Z",
+     "decidedAt": "2026-09-21T13:10Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T12:00Z",
+     "decidedAt": "2026-09-21T16:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T16:00Z",
+     "decidedAt": "2026-09-21T20:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T20:00Z",
+     "decidedAt": "2026-09-22T00:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T00:00Z",
+     "decidedAt": "2026-09-22T04:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T04:00Z",
+     "decidedAt": "2026-09-22T08:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T08:00Z",
+     "decidedAt": "2026-09-22T12:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T12:00Z",
+     "decidedAt": "2026-09-22T16:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T16:00Z",
+     "decidedAt": "2026-09-22T20:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T20:00Z",
+     "decidedAt": "2026-09-23T00:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T00:00Z",
+     "decidedAt": "2026-09-23T04:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T04:00Z",
+     "decidedAt": "2026-09-23T08:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T08:00Z",
+     "decidedAt": "2026-09-23T12:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T12:00Z",
+     "decidedAt": "2026-09-23T16:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T16:00Z",
+     "decidedAt": "2026-09-23T20:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T20:00Z",
+     "decidedAt": "2026-09-24T00:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    }
+   ]
+  },
+  "SUI/USD": {
+   "joined": "2026-09-21T14:11Z",
+   "firstBarDecided": "2026-09-21T08:00Z",
+   "barsDecided": 16,
+   "entries": [],
+   "exits": [],
+   "ruleEntrySignals": [],
+   "loopFills": [],
+   "floorBreachesUkMinuteLow": [],
+   "openAtEnd": null,
+   "loopArmSlotReturn": 0,
+   "decisions": [
+    {
+     "barStart": "2026-09-21T08:00Z",
+     "decidedAt": "2026-09-21T14:11Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "volatility extreme",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "above_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T12:00Z",
+     "decidedAt": "2026-09-21T16:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T16:00Z",
+     "decidedAt": "2026-09-21T20:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-21T20:00Z",
+     "decidedAt": "2026-09-22T00:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T00:00Z",
+     "decidedAt": "2026-09-22T04:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T04:00Z",
+     "decidedAt": "2026-09-22T08:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T08:00Z",
+     "decidedAt": "2026-09-22T12:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T12:00Z",
+     "decidedAt": "2026-09-22T16:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T16:00Z",
+     "decidedAt": "2026-09-22T20:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-22T20:00Z",
+     "decidedAt": "2026-09-23T00:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T00:00Z",
+     "decidedAt": "2026-09-23T04:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T04:00Z",
+     "decidedAt": "2026-09-23T08:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T08:00Z",
+     "decidedAt": "2026-09-23T12:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T12:00Z",
+     "decidedAt": "2026-09-23T16:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T16:00Z",
+     "decidedAt": "2026-09-23T20:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    },
+    {
+     "barStart": "2026-09-23T20:00Z",
+     "decidedAt": "2026-09-24T00:00Z",
+     "position": "flat",
+     "rule": "hold",
+     "reason": "no close above prior 55-bar high",
+     "state": {
+      "trend": "up",
+      "strength": "strong",
+      "breakout": "inside_range",
+      "volatility": "extreme",
+      "momentum": "positive"
+     },
+     "jev": "not asked",
+     "final": "hold"
+    }
+   ]
+  }
+ },
+ "fidelityAgainstRun": {
+  "BTC/USD": {
+   "runFrom": "2026-09-20T12:00Z",
+   "runTo": "2026-09-23T20:00Z",
+   "runReturn": -0.006711,
+   "runTrades": 1,
+   "runStopsHit": 0
+  },
+  "ETH/USD": {
+   "runFrom": "2026-09-20T12:00Z",
+   "runTo": "2026-09-23T20:00Z",
+   "runReturn": -0.005741,
+   "runTrades": 2,
+   "runStopsHit": 0
+  },
+  "SOL/USD": {
+   "runFrom": "2026-09-20T12:00Z",
+   "runTo": "2026-09-23T20:00Z",
+   "runReturn": -0.016279,
+   "runTrades": 1,
+   "runStopsHit": 0
+  },
+  "AVAX/USD": {
+   "runFrom": "2026-09-21T08:00Z",
+   "runTo": "2026-09-23T20:00Z",
+   "runReturn": 0,
+   "runTrades": 0,
+   "runStopsHit": 0
+  },
+  "SUI/USD": {
+   "runFrom": "2026-09-21T08:00Z",
+   "runTo": "2026-09-23T20:00Z",
+   "runReturn": 0,
+   "runTrades": 0,
+   "runStopsHit": 0
+  }
+ },
+ "stretchNoStudyScored": {
+  "lastStudiedBar": "2026-09-21T20:00Z",
+  "perCoin": {
+   "BTC/USD": {
+    "from": "2026-09-22T00:00Z",
+    "to": "2026-09-23T20:00Z",
+    "bars": 12,
+    "loopBookPerSlotDollar": {
+     "atStart": 1.020875,
+     "atEnd": 0.994009,
+     "change": -0.026317,
+     "heldAtStart": true
+    },
+    "buyAndHoldUk": -0.026317,
+    "runFlatStart": {
+     "ret": 0,
+     "trades": 0,
+     "note": "run starts flat at the first unstudied bar, so a position opened before it is not carried"
+    },
+    "buyAndHoldKraken": -0.025559,
+    "entriesOrExitsInStretch": []
+   },
+   "ETH/USD": {
+    "from": "2026-09-22T00:00Z",
+    "to": "2026-09-23T20:00Z",
+    "bars": 12,
+    "loopBookPerSlotDollar": {
+     "atStart": 1.040517,
+     "atEnd": 0.994457,
+     "change": -0.044266,
+     "heldAtStart": true
+    },
+    "buyAndHoldUk": -0.032306,
+    "runFlatStart": {
+     "ret": 0,
+     "trades": 0,
+     "note": "run starts flat at the first unstudied bar, so a position opened before it is not carried"
+    },
+    "buyAndHoldKraken": -0.032967,
+    "entriesOrExitsInStretch": [
+     "sell 2026-09-23T16:00Z (ATR trailing stop (3×ATR from high-water))"
+    ]
+   },
+   "SOL/USD": {
+    "from": "2026-09-22T00:00Z",
+    "to": "2026-09-23T20:00Z",
+    "bars": 12,
+    "loopBookPerSlotDollar": {
+     "atStart": 1.016392,
+     "atEnd": 0.984259,
+     "change": -0.031615,
+     "heldAtStart": true
+    },
+    "buyAndHoldUk": -0.031615,
+    "runFlatStart": {
+     "ret": 0,
+     "trades": 0,
+     "note": "run starts flat at the first unstudied bar, so a position opened before it is not carried"
+    },
+    "buyAndHoldKraken": -0.032717,
+    "entriesOrExitsInStretch": []
+   },
+   "AVAX/USD": {
+    "from": "2026-09-22T00:00Z",
+    "to": "2026-09-23T20:00Z",
+    "bars": 12,
+    "loopBookPerSlotDollar": {
+     "atStart": 1,
+     "atEnd": 1,
+     "change": 0,
+     "heldAtStart": false
+    },
+    "buyAndHoldUk": -0.088479,
+    "runFlatStart": {
+     "ret": 0,
+     "trades": 0,
+     "note": "run starts flat at the first unstudied bar, so a position opened before it is not carried"
+    },
+    "buyAndHoldKraken": -0.085671,
+    "entriesOrExitsInStretch": []
+   },
+   "SUI/USD": {
+    "from": "2026-09-22T00:00Z",
+    "to": "2026-09-23T20:00Z",
+    "bars": 12,
+    "loopBookPerSlotDollar": {
+     "atStart": 1,
+     "atEnd": 1,
+     "change": 0,
+     "heldAtStart": false
+    },
+    "buyAndHoldUk": -0.080138,
+    "runFlatStart": {
+     "ret": 0,
+     "trades": 0,
+     "note": "run starts flat at the first unstudied bar, so a position opened before it is not carried"
+    },
+    "buyAndHoldKraken": -0.078872,
+    "entriesOrExitsInStretch": []
+   }
+  },
+  "liveFour": [
+   "BTC/USD",
+   "ETH/USD",
+   "SOL/USD",
+   "AVAX/USD"
+  ]
+ }
+}

@@ -567,6 +567,20 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-24 00:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**S2: `trend-4h` at $50 — GO on Davies' word, after D11's patch and with the first buy read by a person**
+(`reviews/2026-09-24-trend4h-golive-validation.md`, `backtests/golive50/`, public data only, no database read). (a) The
+paper row's life replays bar for bar with the loop's own functions: ETH 09-21 00:00, BTC/SOL 08:00 entries with the
+recorded states, 80 decisions, $0.036 of fees; ETH's 3×ATR exit on the 09-23 12:00 bar is predicted (queries Q1–Q3 in
+the review confirm it, not run). (b) 12 unscored bars: −$1.31 against buy-and-hold's −$2.23. (c) Four $12.50 slots
+clear every venue rule; the daily limit is inert at $50 and stays $5; amendment to the draft (not applied): capital 50,
+exposure cap 15 → 30 → 75. **Two conditional defects, both a buy fee taken in the coin leaving the book "long" for
+good: D11 (reported at full precision: a sub-step remainder) — fix + pin in `reviews/2026-09-24-golive50-patches/`,
+tested on `07c6e44`, NOT applied; D12 (taken but not reported: D8's derived dollar fee books the gross) — reproduction
+only, red on `07c6e44`, fix to build.** Left for the main session: land D11, build D12's fix, and fold both into the
+go-live item; this branch is based on `96859b4`.
+
 ### [2026-09-24 00:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **S1 run: the BTC-regime entry filter is REJECTED** (`reviews/2026-09-24-btc-regime-study.md`, result

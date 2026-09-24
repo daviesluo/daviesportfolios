@@ -1,0 +1,171 @@
+{
+ "book": {
+  "allFourFloorsOneDayUsd": 4.0528,
+  "allFourFloorsOneDayWorstUsd": 4.2712,
+  "exposureCapForAllFourWithRoom": 75.0,
+  "exposureCapToAdmitOneSlot": "any value in [12.50, 25.00): the cap is marked to market (riskGate: exposure + order > cap refuses), so 15 admits one entry from flat and refuses a second unless the first has fallen 80 %, which the 8 % floor never allows",
+  "roundTripAllFourUsd": 0.1149
+ },
+ "capitalUsd": 50.0,
+ "coins": {
+  "AVAX/USD": {
+   "ask": 10.236,
+   "bid": 10.225,
+   "entry": {
+    "base": "1.221180",
+    "iocLimit": "10.247",
+    "notionalUsd": 12.499998,
+    "passesVenueMinimums": true,
+    "priceTickBps": 0.977,
+    "roundingResidueUsd": 2e-06,
+    "timesTheQuoteMinimum": 125.0
+   },
+   "feeInCoin": {
+    "dustBoundUsd": 1.023e-05,
+    "feeBase": "0.001099062000",
+    "feeInBaseSteps": 1099.062,
+    "feeUsd": 0.01125,
+    "note": "if the venue reports the fee to more decimals than base_step, the net base is off the grid, the exit sells floor(net) and the book keeps < 1 step: see the review's dust finding",
+    "onTheBaseGrid": false
+   },
+   "floorLossUsd": {
+    "atTheTouch": 1.0165,
+    "worstCaseAtTheExitAllowance": 1.0678
+   },
+   "pair": {
+    "base_step": "0.000001",
+    "min_order_size": "0.000001",
+    "min_order_size_quote": "0.1",
+    "quote_step": "0.001",
+    "status": "active"
+   },
+   "roundTripBps": 28.75,
+   "roundTripUsd": 0.03594,
+   "spreadBps": 10.75,
+   "touchDepthUsd": {
+    "ask": 8121.78,
+    "bid": 8114.64
+   }
+  },
+  "BTC/USD": {
+   "ask": 84328.26,
+   "bid": 84313.32,
+   "entry": {
+    "base": "0.00014823",
+    "iocLimit": "84412.59",
+    "notionalUsd": 12.499978,
+    "passesVenueMinimums": true,
+    "priceTickBps": 0.001,
+    "roundingResidueUsd": 2.2e-05,
+    "timesTheQuoteMinimum": 125.0
+   },
+   "feeInCoin": {
+    "dustBoundUsd": 0.00084321,
+    "feeBase": "0.000000133407",
+    "feeInBaseSteps": 13.341,
+    "feeUsd": 0.01125,
+    "note": "if the venue reports the fee to more decimals than base_step, the net base is off the grid, the exit sells floor(net) and the book keeps < 1 step: see the review's dust finding",
+    "onTheBaseGrid": false
+   },
+   "floorLossUsd": {
+    "atTheTouch": 1.0114,
+    "worstCaseAtTheExitAllowance": 1.0678
+   },
+   "pair": {
+    "base_step": "0.00000001",
+    "min_order_size": "0.00000001",
+    "min_order_size_quote": "0.1",
+    "quote_step": "0.01",
+    "status": "active"
+   },
+   "roundTripBps": 19.77,
+   "roundTripUsd": 0.02471,
+   "spreadBps": 1.77,
+   "touchDepthUsd": {
+    "ask": 5477.65,
+    "bid": 5476.68
+   }
+  },
+  "ETH/USD": {
+   "ask": 2684.68,
+   "bid": 2683.91,
+   "entry": {
+    "base": "0.00465604",
+    "iocLimit": "2687.37",
+    "notionalUsd": 12.499977,
+    "passesVenueMinimums": true,
+    "priceTickBps": 0.037,
+    "roundingResidueUsd": 2.3e-05,
+    "timesTheQuoteMinimum": 125.0
+   },
+   "feeInCoin": {
+    "dustBoundUsd": 2.684e-05,
+    "feeBase": "0.000004190436",
+    "feeInBaseSteps": 419.044,
+    "feeUsd": 0.01125,
+    "note": "if the venue reports the fee to more decimals than base_step, the net base is off the grid, the exit sells floor(net) and the book keeps < 1 step: see the review's dust finding",
+    "onTheBaseGrid": false
+   },
+   "floorLossUsd": {
+    "atTheTouch": 1.012,
+    "worstCaseAtTheExitAllowance": 1.0678
+   },
+   "pair": {
+    "base_step": "0.00000001",
+    "min_order_size": "0.00000001",
+    "min_order_size_quote": "0.1",
+    "quote_step": "0.01",
+    "status": "active"
+   },
+   "roundTripBps": 20.87,
+   "roundTripUsd": 0.02609,
+   "spreadBps": 2.87,
+   "touchDepthUsd": {
+    "ask": 16306.45,
+    "bid": 5433.66
+   }
+  },
+  "SOL/USD": {
+   "ask": 115.07,
+   "bid": 115.018,
+   "entry": {
+    "base": "0.108629",
+    "iocLimit": "115.186",
+    "notionalUsd": 12.499939,
+    "passesVenueMinimums": true,
+    "priceTickBps": 0.087,
+    "roundingResidueUsd": 6.1e-05,
+    "timesTheQuoteMinimum": 125.0
+   },
+   "feeInCoin": {
+    "dustBoundUsd": 0.00011504,
+    "feeBase": "0.000097766100",
+    "feeInBaseSteps": 97.766,
+    "feeUsd": 0.01125,
+    "note": "if the venue reports the fee to more decimals than base_step, the net base is off the grid, the exit sells floor(net) and the book keeps < 1 step: see the review's dust finding",
+    "onTheBaseGrid": false
+   },
+   "floorLossUsd": {
+    "atTheTouch": 1.0129,
+    "worstCaseAtTheExitAllowance": 1.0678
+   },
+   "pair": {
+    "base_step": "0.000001",
+    "min_order_size": "0.000001",
+    "min_order_size_quote": "0.1",
+    "quote_step": "0.001",
+    "status": "active"
+   },
+   "roundTripBps": 22.52,
+   "roundTripUsd": 0.02815,
+   "spreadBps": 4.52,
+   "touchDepthUsd": {
+    "ask": 5001.24,
+    "bid": 5746.73
+   }
+  }
+ },
+ "perOrderLimitUsd": 13.75,
+ "pulledAt": "2026-09-24T00:12:25Z",
+ "slotUsd": 12.5
+}
