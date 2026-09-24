@@ -60,6 +60,10 @@
    "bytes": 4101,
    "sha256": "4f05c7630884e42871f38913ca69a91340cdf7540f0598a3b666f652d35955e3"
   },
+  "results/rw_golden.json": {
+   "bytes": 951010,
+   "sha256": "7a6b69cbbe53369e7abfc10227a0f444cda827d45fd84450604d63135f421137"
+  },
   "results/rw_run1.json": {
    "bytes": 26885,
    "sha256": "6af4ddcd4221cf93fc25bb85a02795bd2856ff4addc8d896cfd5bafcf22ff205"
@@ -155,6 +159,10 @@
   "scripts/rw_collect.py": {
    "bytes": 5890,
    "sha256": "645e07976e7991d7e471a01804ab3cf1e9067b46a25928428ba1a429b00da251"
+  },
+  "scripts/rw_golden.py": {
+   "bytes": 3125,
+   "sha256": "d1d638dad33516e243c0f98b5f72382a95bb5b3fb593136690cc3a3a166c0826"
   },
   "scripts/rw_inputs.py": {
    "bytes": 3440,

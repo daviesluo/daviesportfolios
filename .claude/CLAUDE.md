@@ -495,6 +495,19 @@ that follow from that evidence, in short:
   a proxy or anyone else's account. `_shared/polymarket.ts` is read-only
   today (GET only, a fixed list of URLs, the L2 headers to the CLOB host
   only), and its key controls real funds.
+- **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for
+  fourteen days** (§3.33, §4 item 36, migration `0053`, 2026-09-24 on
+  Davies' word): 2026-09-25 → 10-09 UTC, the spec frozen at
+  `reviews/2026-09-24-polymarket-rw-paper-spec.md`. `agents?action=pmrw`
+  (every minute) stores each minute's book and decides it two minutes
+  later from the public prints; `agents?action=pmrw-select` (every five
+  minutes) picks the UTC day's portfolio once. Every read is keyless
+  (`_shared/polymarket_public.ts`) and nothing is placed. Two limits
+  shaped it: the data API and Gamma are cached by CloudFront for five
+  minutes, so a read that must be current carries a parameter no earlier
+  read carried; and an Edge request gets 2 s of CPU, so the selection asks
+  Gamma only about the markets it takes. After 10-09 both jobs do nothing;
+  a migration unschedules them with the verdict.
 - Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
   `Revolut_X_API_kEY_2` + `REVOLUT_X_PRIVATE_KEY_2` (a second Revolut X
   sub-account for PR5's GBP stablecoin quotes, Davies 2026-09-24; read by

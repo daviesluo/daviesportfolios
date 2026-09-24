@@ -90,6 +90,7 @@ import { makeDb, type Db } from "./db.ts";
 import { deribitProbe } from "./deribit.ts";
 import { QUOTE_TICK, runQuotes } from "./quotes.ts";
 import { runQuotesConvert, runQuotesLive, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
+import { runPmrw, runPmrwSelect } from "./pmrw.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -1084,6 +1085,9 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     const operator = who === "cron" || who === "admin";
     if (action === "tick" && req.method === "POST" && operator) return json(200, await runTick());
     if (action === "quotes" && req.method === "POST" && operator) return json(200, await runQuotesAction(url.searchParams.get("wait") !== "0"));
+    // RW's paper test (pmrw.ts, 0053): keyless public reads of Polymarket only, from its own cron jobs.
+    if (action === "pmrw" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+    if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "quotes-convert" && req.method === "POST" && operator) return json(200, await runQuotesConvert(await quotesLiveDeps(), await req.json().catch(() => null)));
     if (action === "probe" && req.method === "GET" && operator) return json(200, await runProbe(probeParts(url.searchParams.get("only"))));
     if (action === "jev" && req.method === "POST" && operator) return json(200, await runJevBatch(await req.json().catch(() => null)));

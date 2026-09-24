@@ -38,8 +38,13 @@ list stays the short version; the plan is the reasoning behind it.
       of one day (+$46.61 on $480: rewards $50.92 by the published formula, fills −$4.31), and would not survive
       reduce-only stretches. The study's §0 finds that the Terms of Use bar residents of the UK and Ireland from
       trading; Davies read it on 2026-09-24 and said the plan continues.
-   2. Next for RW, per this plan: a paper run on public data over days, not hours, before anything is built for
-      orders. Only an account that quotes can show what Polymarket actually pays.
+   2. **RW's paper run is built** (migration `0053`, `agents/pmrw.ts`, reference §4 item 36, spec
+      `reviews/2026-09-24-polymarket-rw-paper-spec.md`): a warm-up on 2026-09-24, then fourteen days, 2026-09-25 00:00
+      → 10-09 00:00 UTC; read it with §4 item 36's queries R1–R5. After 10-09: the bar from `pm_rw_days` (a day's total
+      is the change from the day before; bootstrap seed 20261009); the stored minutes replayed through rw_test.py's
+      rule, and each quoted market's prints pulled again to show none was missed; then a migration unschedules
+      `agents-pmrw-every-minute` and `agents-pmrw-select`. It passes → a live test under this plan; it fails → RW
+      stops. Only an account that quotes can show what Polymarket actually pays.
    3. The key was exposed to another tool: keep the wallet empty or small; revoking that tool's Supabase token is his.
 
 00000000000. **PR5'S LIVE PATH: PUSHED (`0aca828`), RUNNING IN DRY-RUN SINCE 02:40 UTC 2026-09-24** (reference §4
@@ -699,6 +704,32 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 19:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**RW's paper engine: built, pinned, and measured against the live endpoints before it ships** (item 000000000000).
+Davies: "继续推进 现在开始搭". `agents/pmrw.ts` ports RW's rule line for line and drives it from two cron jobs
+(`0053`): each minute's book stored, each minute decided two minutes later from the public prints, the UTC day's
+portfolio picked once. Every read is keyless (`_shared/polymarket_public.ts`); nothing is placed.
+- **The port is RW:** the golden replay (`rw_golden.json`, from `scripts/rw_golden.py`) — 58 raw books summarised to
+  rw_inputs.py's rows exactly, 2,821 first rows ranked to RW's primary in order, 29 markets to rw_test.py's numbers
+  to 2e-6, the primary +$46.606921 and stress +$13.78. 17 pins in `pmrw.test.ts`.
+- **Seventeen counterfactuals, each caught:** a fill at our own price; one-sided counted at a half; scores left
+  unrounded; a one-minute decide lag; a decision row without its not-null columns; no inventory cap; no cache
+  buster; no flat start; no end clamp; no end skip; the latest selection instead of the day's; settling without a
+  closed time; selecting after the run; selecting a selected day again; Gamma never asked; no Gamma tokens for the
+  markets the short list lacks; a token mismatch let through.
+- **Two findings before deploy.** (1) The data API and Gamma answer `cache-control: public, max-age=300` and
+  CloudFront served repeats of a URL from its copy (a hit 50 s old; one newest print for 36 s): every print read now
+  carries its own millisecond, and uncached the feed is prompt (4,779 prints: median 4.3 s, max 9.7 s behind), so a
+  two-minute decide lag holds. (2) An Edge request gets 2 s of CPU and reading all of Gamma cost 0.66 s of the
+  selection's 1.22 s: tokens now come from the CLOB's short list (matched Gamma on 300 of 300) and Gamma is asked only
+  about the markets `choose` takes — the same portfolio (pinned on 200 random ones), 0.87 s.
+- **Run against the live endpoints locally** (in-memory database): the selection took 16 markets for $299.78 in
+  35 s; six minutes recorded 16 books each, decided each two minutes later, read the prints, filled once, no error.
+  `0053` applied twice to PGlite refuses what the double refuses.
+- Also: the spec (frozen by this commit) now says a day quotes only on its own selection, the warm-up closes at its
+  marks so the fourteen days start flat, and nothing is read after 10-09; `MANIFEST.json` lists the two new files.
 
 ### [2026-09-24 10:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

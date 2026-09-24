@@ -384,7 +384,7 @@ How the less obvious parts work, and why they are built the way they are.
   recorders that `pg_cron` calls, `snapshot-record` (every board price,
   every five minutes) and `overnight-record` (Trading 212's overnight
   quotes). Shared Deno modules live in `supabase/functions/_shared/`.
-  Migrations `0001`–`0052`, plus four timestamped records of changes that
+  Migrations `0001`–`0053`, plus four timestamped records of changes that
   were first applied out of band (`supabase/migrations/README.md`);
   `0005`/`0006` are a historical create/drop pair for the retired
   `analyst_estimates_cache` table.
@@ -564,11 +564,12 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 
 | File | What it does |
 |---|---|
-| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute and its live executor's, the one-off stablecoin conversion, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
+| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute and its live executor's, RW's paper minute and daily selection, the one-off stablecoin conversion, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
 | `agents/binance.ts`, `agents/deribit.ts` | Read-only clients for the Binance and Deribit keys (the probe's checks, Deribit's volatility index), and Binance's paper venue, which reads public market data for its paper rows. Nothing in them can trade. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
 | `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run from its own cron job, storing every input beside every outcome. |
 | `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. |
+| `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
 | `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
 | `agents/db.ts` | The loop's database access, over PostgREST. |
 | `agents/testing.ts` | Test doubles that refuse whatever the real database refuses. |
@@ -578,6 +579,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `_shared/revx.ts`, `_shared/kraken.ts`, `_shared/venue.ts` | The Revolut X and Kraken clients (signing, candles, quotes, orders) behind one venue interface, which Binance's paper venue also implements. |
 | `_shared/jev.ts` | The TypeSafe Jev client: typed questions in, probabilities out. |
 | `_shared/polymarket.ts` | A read-only Polymarket client for the probe: the stored credentials, request signing, the private key's address, and the account checks. Nothing in it can trade. |
+| `_shared/polymarket_public.ts` | Keyless reads of Polymarket's public endpoints (reward programme, markets, books, prints) for RW's paper test. It reads no credential and cannot trade. |
 | `_shared/token.ts`, `_shared/ip.ts` | App-token checks, and which header names the caller's IP. |
 | `_shared/ops.ts` | Server-side error reports into `ops_errors`. |
 | `_shared/us_market_calendar.ts` | US market holidays, worked out by rule for any year. |
@@ -643,6 +645,7 @@ before touching migration state.
 | `0050_maker_probes_trade_proven.sql` | Records the minute that proved a maker probe's fill, and corrects the three probes resolved on minutes with no trade. |
 | `0051_paper_quotes.sql` | Adds the paper quote test's tables (state, prints, inputs, events, trips) and its once-a-minute cron job. |
 | `0052_live_quotes.sql` | Adds the live quote executor's tables (config, orders, events, state) and its lease; the config goes in in dry-run and unarmed. |
+| `0053_pm_rw_paper.sql` | Adds RW's paper test: its tables (state, selection, minutes, prints, fills, days, settlements), its two leases and its two cron jobs. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -676,6 +679,7 @@ before touching migration state.
 | `docs/agents/go_live.sql.draft` | The migration that would go live, kept out of `supabase/migrations/` until Davies says go. |
 | `docs/agents/reviews/` | The code review before going live, and one write-up per study. |
 | `docs/agents/backtests/` | The studies' results, as JSON, and in `inputs/` the public data a study read that cannot be fetched again unchanged. |
+| `docs/agents/backtests/polymarket/` | The fourth search, on Polymarket: its scripts, inputs and results, listed in `MANIFEST.json`; `scripts/rw_golden.py` cuts the paper engine's replay fixture from RW's input and result. |
 | `docs/agents/scripts/agents-baseline-backtest.py` | The first baseline backtest, in Python. |
 | `docs/agents/scripts/xsmom/list_symbols.py`, `fetch_klines.py`, `qa_data.py`, `verify_xsmom.py`, `verify_xsrev.py` | The Binance cross-sectional studies' data: every USDT pair's daily klines from the keyless bulk archive, checked and hashed; a data check; and an independent re-implementation of each study. |
 | `docs/agents/scripts/first_principles/quote_sim.py`, `pr1_revx_stable_quotes.py`, `pr2_binance_stable_quotes.py`, `pr3_revx_gbp_stable_touch.py`, `pr4_revx_usd_stable_touch.py` | The first-principles search's four pre-registered tests on Revolut X's and Binance's stablecoin books, and the quote simulator the first two share. |
@@ -713,6 +717,8 @@ pg_cron → pg_net → Edge Functions (no browser needed)
  ├─ overnight-record   every 5 min, 00:00–09:55 UTC   T212 quotes → overnight_intraday_points
  ├─ agents ?action=tick  every minute   quotes, orders, stops, decisions → agent_* tables
  ├─ agents ?action=quotes  every minute   PR5's paper quotes → agent_quote_*, then its live executor → agent_quote_live_*
+ ├─ agents ?action=pmrw  every minute   RW's paper quotes on Polymarket (public reads) → pm_rw_*
+ ├─ agents ?action=pmrw-select  every 5 min   the day's portfolio for RW, once a UTC day → pm_rw_selection
  └─ daily prunes / retention   snapshots, overnight points, agents, ops_errors, fundamentals cache
 ```
 

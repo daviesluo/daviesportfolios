@@ -41,6 +41,22 @@ const LIVE_QUOTE_TABLES: Record<string, { columns: string[]; key: string | null 
   agent_quote_live_state: { columns: ["id", "state", "updated_at", "last_error"], key: "id" },
 };
 const LIVE_OPEN_STATES = ["pending", "new", "partially_filled"];
+/** RW's paper test's tables as 0053 creates them: their columns, and the unique key each upsert names. */
+const PMRW_TABLES: Record<string, { columns: string[]; key: string }> = {
+  pm_rw_state: { columns: ["id", "state", "last_minute", "updated_at", "last_error"], key: "id" },
+  pm_rw_selection: {
+    columns: ["day", "cond", "rank", "yes", "tick", "v", "min_size", "rate", "per_dollar_day", "capital", "q", "cat", "end_date", "selected_at"],
+    key: "day,cond",
+  },
+  pm_rw_minutes: {
+    columns: ["cond", "minute", "quoting", "tick", "bb", "ba", "ab", "aa", "q1", "q2", "m", "b", "a", "ours", "others", "reward", "qb", "qa"],
+    key: "cond,minute",
+  },
+  pm_rw_prints: { columns: ["id", "cond", "ts", "side", "oi", "price", "size"], key: "id" },
+  pm_rw_fills: { columns: ["cond", "minute", "ts", "side", "price", "size", "print_id"], key: "cond,minute,print_id" },
+  pm_rw_days: { columns: ["day", "total", "stress_total", "reward", "fills", "capital", "markets", "detail", "closed_at"], key: "day" },
+  pm_rw_settlements: { columns: ["cond", "closed_time", "payout", "net", "cash", "settled_at"], key: "cond" },
+};
 /** `agent_maker_probes`' columns as 0042 and 0050 leave them: PostgREST refuses a write naming any other. */
 const PROBE_COLUMNS = ["id", "ts", "strategy_id", "order_id", "venue", "symbol", "side", "mode", "taker_price", "maker_price", "base_size",
   "state", "resolved_at", "minutes_to_fill", "mark_at_resolve", "follow_up", "expires_at", "watching", "fill_minute"];
@@ -99,6 +115,30 @@ export function schemaRefusal(table: string, r: Row): string | null {
       ?? check("book", QUOTE_BOOKS_OK.includes(String(r.book))) ?? check("side", ["bid", "ask"].includes(String(r.side)))
       ?? check("how", ["maker", "taker"].includes(String(r.how))) ?? check("entry", Number(r.entry) > 0) ?? check("qty", Number(r.qty) > 0)
       ?? check("exit", Number(r.exit) > 0);
+  }
+  if (table in PMRW_TABLES) {
+    const unknown = Object.keys(r).find((c) => !PMRW_TABLES[table].columns.includes(c));
+    if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
+    if (table === "pm_rw_state") return check("id", r.id === 1) ?? notNull(["state"]);
+    if (table === "pm_rw_selection") {
+      return notNull(["day", "cond", "rank", "yes", "tick", "v", "min_size", "rate", "per_dollar_day", "capital"])
+        ?? check("rank", Number(r.rank) > 0) ?? check("tick", Number(r.tick) > 0) ?? check("v", Number(r.v) > 0)
+        ?? check("min_size", Number(r.min_size) >= 0) ?? check("rate", Number(r.rate) >= 0) ?? check("capital", Number(r.capital) > 0);
+    }
+    if (table === "pm_rw_minutes") return notNull(["cond", "minute", "quoting", "tick"]) ?? check("tick", Number(r.tick) > 0);
+    if (table === "pm_rw_prints") {
+      return notNull(["id", "cond", "ts", "side", "oi", "price", "size"]) ?? check("side", ["BUY", "SELL"].includes(String(r.side)))
+        ?? check("price", Number(r.price) >= 0 && Number(r.price) <= 1) ?? check("size", Number(r.size) > 0);
+    }
+    if (table === "pm_rw_fills") {
+      return notNull(["cond", "minute", "ts", "side", "price", "size", "print_id"]) ?? check("side", ["bid", "ask"].includes(String(r.side)))
+        ?? check("price", Number(r.price) > 0 && Number(r.price) < 1) ?? check("size", Number(r.size) > 0);
+    }
+    if (table === "pm_rw_days") {
+      return notNull(["day", "total", "stress_total", "reward", "fills", "capital", "markets", "detail"])
+        ?? check("fills", Number(r.fills) >= 0) ?? check("capital", Number(r.capital) >= 0) ?? check("markets", Number(r.markets) >= 0);
+    }
+    return notNull(["cond", "payout", "net", "cash"]) ?? check("payout", Number(r.payout) >= 0 && Number(r.payout) <= 1);
   }
   if (table === "agent_decisions") {
     return notNull(["strategy_id", "venue", "symbol", "mode", "bar_start", "state", "numbers", "provider", "rule_action", "rule_reason", "final_action", "final_reason", "risk_allowed", "risk_reason"])
@@ -272,14 +312,18 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       // PostgREST's `resolution=merge-duplicates`: a row whose conflict key exists is merged, not appended. Postgres
       // checks the row as stored, and refuses an ON CONFLICT that names no unique key; so does this.
       const keys = onConflict.split(",");
-      if ((table in QUOTE_TABLES && onConflict !== QUOTE_TABLES[table].key) || (table in LIVE_QUOTE_TABLES && onConflict !== LIVE_QUOTE_TABLES[table].key)) {
+      if ((table in QUOTE_TABLES && onConflict !== QUOTE_TABLES[table].key) || (table in LIVE_QUOTE_TABLES && onConflict !== LIVE_QUOTE_TABLES[table].key)
+        || (table in PMRW_TABLES && onConflict !== PMRW_TABLES[table].key)) {
         return refuse("POST", table, "there is no unique or exclusion constraint matching the ON CONFLICT specification");
       }
       const t = (tables[table] ??= []);
       const list = overTheWire(rows) as Row[];
       for (const r of list) {
         const cur = t.find((x) => keys.every((k) => String(x[k]) === String(r[k])));
-        const why = schemaRefusal(table, cur ? { ...cur, ...r } : r);
+        // Postgres checks NOT NULL on the row an upsert PROPOSES, before it looks for the conflict: an ON CONFLICT
+        // update that leaves out a not-null column is refused even when the row exists. The paper RW tables are held
+        // to that (their decisions are written as upserts onto rows recorded a minute earlier).
+        const why = schemaRefusal(table, table in PMRW_TABLES ? r : cur ? { ...cur, ...r } : r);
         if (why) return refuse("POST", table, why);        // the statement fails whole: nothing is written
       }
       for (const r of list) {
