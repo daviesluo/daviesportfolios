@@ -708,6 +708,15 @@ site, the functions and the database see nothing new. Force-pushed with a lease 
 `docs/commit-map-2026-09-24.md` maps old hashes to new. Deleting the other branches was refused by the session's git
 proxy (403); 75 remain for Davies (dependabot removed its 14). `decision-fc` needed nothing: its one commit and both `gh-pages` commits are his.
 
+### [2026-09-24 07:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp4: the oracle is not where near-certain outcomes lose** (M2, not pushed). Of 344,229 resolved markets with
+$5,000 of volume since 2025-01 (crypto up/down apart), 411 were disputed and 93 had their first proposal overturned
+(0.27 per 1,000), concentrated in politics (2.7) and mentions (5.6); sports pays 50-50 on 11 games in 1,000; capital
+stays locked a median 2.3 h after a sports market's scheduled end, 30 h after a political one. FAV's twenty sample
+trades were re-read from the public feed: 28 of 28 fills found at their second, 20 of 20 payouts agree.
+
+
 ### [2026-09-24 07:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **fp4's FAV fails every condition but the trade count** (not pushed). Buying the 0.90–0.99 side a day before a

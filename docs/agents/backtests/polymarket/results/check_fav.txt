@@ -1,0 +1,21 @@
+0xe503e4d649 fills 2 payout 1.0 gamma 1.0 pnl 0.179237 recomputed 0.179237
+0xffc5a77a98 fills 1 payout 1.0 gamma 1.0 pnl 0.09601 recomputed 0.09601
+0x95bb08d826 fills 2 payout 1.0 gamma 1.0 pnl 0.343902 recomputed 0.343902
+0xd71db6cca6 fills 1 payout 1.0 gamma 1.0 pnl 0.294278 recomputed 0.294278
+0x0a99b4e64f fills 2 payout 1.0 gamma 1.0 pnl 0.165948 recomputed 0.165948
+0x5e14b9211e fills 2 payout 1.0 gamma 1.0 pnl 0.962011 recomputed 0.962011
+0xa9a53091ff fills 2 payout 1.0 gamma 1.0 pnl 0.298217 recomputed 0.298217
+0x57f486f2ce fills 1 payout 1.0 gamma 1.0 pnl 0.046535 recomputed 0.046535
+0xabe448ef0d fills 1 payout 1.0 gamma 1.0 pnl 0.144784 recomputed 0.144784
+0x36935d6238 fills 1 payout 1.0 gamma 1.0 pnl 0.333725 recomputed 0.333725
+0xcb92840175 fills 1 payout 1.0 gamma 1.0 pnl 0.107795 recomputed 0.107796
+0x092236acb7 fills 2 payout 1.0 gamma 1.0 pnl 0.09601 recomputed 0.09601
+0x941d7a9aca fills 1 payout 1.0 gamma 1.0 pnl 0.407029 recomputed 0.407029
+0xa7248ae5ed fills 1 payout 1.0 gamma 1.0 pnl 0.119636 recomputed 0.119636
+0x961b6dbe18 fills 1 payout 1.0 gamma 1.0 pnl 0.501316 recomputed 0.501316
+0xf2233e783e fills 1 payout 1.0 gamma 1.0 pnl 0.161406 recomputed 0.161406
+0xd9f9def6bb fills 1 payout 1.0 gamma 1.0 pnl 0.154602 recomputed 0.154602
+0x1de273ddd5 fills 2 payout 1.0 gamma 1.0 pnl 0.152931 recomputed 0.152931
+0xc111415f3e fills 1 payout 1.0 gamma 1.0 pnl 0.154602 recomputed 0.154602
+0x7956a93a3e fills 2 payout 1.0 gamma 1.0 pnl 0.105723 recomputed 0.105723
+{"samples": 20, "fills": 28, "fills_matched_to_a_fresh_print": 28, "payouts_agree": 20, "largest_pnl_difference": 1.097e-06}

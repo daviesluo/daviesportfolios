@@ -4,7 +4,8 @@ For each trade in a result's `sample_trades` (fav_test.py and wx_test.py write
 twenty, chosen by a fixed seed): the market's taker prints are read again from
 /v2/trades?condition= (not from the raw pulls the test's inputs were built from),
 and every fill is matched to a print at its second, on the favoured side, at or
-below the fill price; the payout is read again from Gamma; the P&L is recomputed
+below the fill price (to the sample's six decimals) and at least its size; the
+payout is read again from Gamma; the P&L is recomputed
 from the fills, the payout and the fee `r × p × (1 − p)`. Prints the result:
 matched fills, payout agreement, and the largest P&L difference.
 
@@ -59,7 +60,7 @@ def main():
                     continue
                 oi, side, p = r.get("outcome_index"), r.get("side"), r.get("price")
                 pfav = p if (oi == fav and side == "BUY") else (1.0 - p if (oi is not None and oi != fav and side == "SELL") else None)
-                if pfav is not None and pfav <= px + 1e-9 and (r.get("size") or 0) >= q - 1e-6:
+                if pfav is not None and pfav <= px + 1e-6 and (r.get("size") or 0) >= q - 1e-6:
                     hit = True
                     break
             ok_f += hit
