@@ -1,19 +1,19 @@
-"""WX data step 2: what a public forecast said 48 hours ahead, at every station (fp4, test WX).
+"""WX data step 2: what a public forecast said 24 and 48 hours ahead, at every station (fp4, test WX).
 
 Open-Meteo's keyless Previous Runs API: `temperature_2m_previous_day2` is the
-value its default blend predicted 48 hours before each valid hour (documented;
-archived from January 2024). For every station of $PM_DATA/wx/events.json, hourly
-values over the dates of its events inside the test windows, in the station's
-local time (`timezone=auto`), reduced to each local day's maximum and minimum, in
-°C. Writes $PM_DATA/wx/forecasts.json.
+value its default blend predicted 48 hours before each valid hour, and
+`_previous_day1` 24 hours before (documented; archived from January 2024). For
+every station of $PM_DATA/wx/events.json, hourly values over the events' dates
+in the station's local time (`timezone=auto`), reduced to each local day's
+maximum and minimum, in °C. Writes $PM_DATA/wx/forecasts.json. The test reads
+only the 48-hour values (`max2`, `min2`).
 
 Each station is saved as it arrives and a rerun skips the stations it has: the
-free API has a daily request limit (it refused the 27th station of the first run
+free API has a daily request limit (it refused the 22nd station of a full run
 on 2026-09-24 with "Daily API request limit exceeded"), so the pull may take more
 than one day. A refusal stops the run with what it has; nothing is written for a
-station it did not finish. To spend less of that limit the 24-hour-ahead value
-(`_previous_day1`, which the test never reads) is no longer requested; `max1` and
-`min1` stay in the file as null.
+station it did not finish. (The next run, two minutes later, was served in full:
+all 54 stations.)
 """
 import os
 import sys
@@ -22,7 +22,6 @@ from datetime import date, timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
 import pmnet  # noqa: E402
-from wx_prices import HI, LO  # noqa: E402
 
 API = "https://previous-runs-api.open-meteo.com/v1/forecast"
 
@@ -33,7 +32,7 @@ def main():
     out = pmnet.load(path) if os.path.exists(path) else {}
     dates = defaultdict(set)
     for e in ev["events"]:
-        if e.get("station") and LO <= e["date"] < HI:
+        if e.get("station"):
             dates[e["station"]].add(e["date"])
     left = 0
     for st, ds in sorted(dates.items()):
@@ -46,15 +45,17 @@ def main():
         d1 = (date.fromisoformat(max(ds)) + timedelta(days=1)).isoformat()
         try:
             d = pmnet.get(API, {"latitude": c["lat"], "longitude": c["lon"], "timezone": "auto", "start_date": d0, "end_date": d1,
-                                "hourly": "temperature_2m_previous_day2"}, timeout=180, tries=2)
+                                "hourly": "temperature_2m_previous_day1,temperature_2m_previous_day2"}, timeout=180)
         except RuntimeError as err:
             print("stopped at", st, str(err)[:200], flush=True)
             left = 1
             break
         h = d.get("hourly") or {}
         days = defaultdict(lambda: {"v1": [], "v2": []})
-        for t, v2 in zip(h.get("time") or [], h.get("temperature_2m_previous_day2") or []):
+        for t, v1, v2 in zip(h.get("time") or [], h.get("temperature_2m_previous_day1") or [], h.get("temperature_2m_previous_day2") or []):
             day = t[:10]
+            if v1 is not None:
+                days[day]["v1"].append(v1)
             if v2 is not None:
                 days[day]["v2"].append(v2)
         out[st] = {"tz": d.get("timezone"), "utc_offset_s": d.get("utc_offset_seconds"),
