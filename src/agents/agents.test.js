@@ -723,10 +723,35 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     expect(pctOf(360, 'capital')).toBe('% of $360.00 capital');
     expect(pctOf(99.75, 'held', (s) => s.replace(/\d/g, '•'))).toBe('% of $••.•• held');   // a base is money: the mask covers it
     // The paper tests are rows of TESTING that no total adds up, and each says what its unrealised percent is of.
-    const q = quotesRow({ capitalUsd: 1200, openUsd: 99.75, unrealisedUsd: 0.14, running: true, lagMinutes: 1 });
-    const w = rwRow({ capitalUsd: 296, heldUsd: 14.4, totalUsd: 41, realisedUsd: 42, unrealisedUsd: -1, running: true, lagMinutes: 2 });
-    expect([q?.apart, q?.unrealisedOf, w?.apart, w?.unrealisedOf]).toEqual([true, 'deployed', true, 'deployed']);
+    const q = quotesRow({ capitalUsd: 1200, openUsd: 99.75, unrealisedUsd: 0.14, realisedUsd: 0.42, todayUsd: 0.12, running: true, lagMinutes: 1 });
+    const w = rwRow({ capitalUsd: 296, heldUsd: 14.4, totalUsd: 41, rewardUsd: 41.6, realisedUsd: 42, unrealisedUsd: -1, todayUsd: 12.5, running: true, lagMinutes: 2 });
+    if (!q || !w) throw new Error('a test row was missing');
+    expect([q?.unrealisedOf, w?.unrealisedOf]).toEqual(['deployed', 'deployed']);
     expect(strategyRows(dash, NOW).some((r) => 'apart' in r)).toBe(false);
+    // Davies, 2026-09-24: both paper tests count in TESTING's scoreboard. Stablecoin quotes counts on the Revolut X
+    // card; Reward quotes is Polymarket's card. Leaving either out fails this. LIVE does not take them.
+    const testing = scoreboardView(dash, 'testing', [q, w]);
+    const paper = scoreboardView(dash, 'testing');
+    expect(testing.capitalUsd).toBe(paper.capitalUsd + 1200 + 296);
+    expect(testing.valueUsd).toBeCloseTo(paper.valueUsd + 99.75 + 14.4, 10);
+    expect(testing.todayUsd).toBeCloseTo(paper.todayUsd + 0.12 + 12.5, 10);
+    expect(testing.realisedUsd).toBeCloseTo(paper.realisedUsd + 0.42 + w.realisedUsd, 10);
+    expect(testing.unrealisedUsd).toBeCloseTo(paper.unrealisedUsd + 0.14 + w.unrealisedUsd, 10);
+    expect(testing.tests).toBe(2);
+    expect(testing.unrealisedOf).toBe('cost and deployed');
+    expect(testing.unrealisedBase).toBeCloseTo(29.9 + 99.75 + 14.4, 10);   // the three paper rows' cost, plus what the tests hold
+    expect(testing.unrealisedPct).toBeCloseTo(testing.unrealisedUsd / testing.unrealisedBase * 100, 9);
+    expect(scoreboardView(dash, 'live', [q, w]).capitalUsd).toBe(50);
+    const cards = venueRows(dash, 'testing', [q, w]);
+    const revx = cards.find((c) => c.id === 'revx');
+    const pm = cards.find((c) => c.id === 'polymarket');
+    if (!revx || !pm) throw new Error('a venue card was missing');
+    expect(revx.capitalUsd).toBe(140 + 1200);                               // the two paper Revolut X rows, plus the quote test
+    expect(revx.valueUsd).toBeCloseTo(21.5 + 99.75, 10);
+    expect(revx.tests).toBe(1);
+    expect(revx.apart).toEqual([]);
+    expect(pm.capitalUsd).toBe(296);
+    for (const k of keys) expect(cards.reduce((a, c) => a + (c[k] ?? 0), 0)).toBeCloseTo(testing[k], 8);
   });
   it('over every row, the page\'s sums are the server\'s own totals and byVenue, to the last bit', () => {
     const all = scoreboardView(dash);

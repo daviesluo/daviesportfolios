@@ -432,8 +432,9 @@ that follow from that evidence, in short:
   `quotes.test.ts`), public reads only, into its own `agent_quote_*`
   tables; nothing of the strategy rows reads them. Four weeks, then the
   spec's six conditions decide (`reviews/2026-09-23-pr5-paper-test-spec.md`).
-  On the Agents page it is the last row of TESTING STRATEGIES, with a page
-  of its own (Davies, 2026-09-23); the rows' totals do not include it.
+  On the Agents page it is a row of TESTING STRATEGIES, with a page of its
+  own (Davies, 2026-09-23). TESTING's scoreboard and the Revolut X card
+  include it (Davies, 2026-09-24).
   Revolut X serves its whole trade history keylessly
   (`/api/1.0/public/trades/all`), and its candles are built from the MID
   when a minute did not trade — read fills from prints. **Its live path is
@@ -513,8 +514,8 @@ that follow from that evidence, in short:
   Gamma only about the markets it takes. After 10-09 both jobs do nothing;
   a migration unschedules them with the verdict. On the Agents page it is
   the last row of TESTING STRATEGIES, "Reward quotes" on Polymarket, with a
-  page of its own (Davies, 2026-09-24; `agents/pmrw_view.ts`); the rows'
-  totals do not include it.
+  page of its own (Davies, 2026-09-24; `agents/pmrw_view.ts`). TESTING's
+  scoreboard includes it, on the Polymarket card rather than Revolut X's.
 - Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
   `Revolut_X_API_kEY_2` + `REVOLUT_X_PRIVATE_KEY_2` (a second Revolut X
   sub-account for PR5's GBP stablecoin quotes, Davies 2026-09-24; read by

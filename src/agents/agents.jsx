@@ -161,19 +161,24 @@ function FundedCells({ fundedUsd, deployedUsd, m, aside = null }) {
 /**
  * A tab's scoreboard, in the home scoreboard's cells: what its strategies
  * are funded with and have deployed, today's change (the UTC day),
- * unrealised and realised — no total, by the owner's choice. It adds up the
- * tab's strategies and not the paper tests listed beside them, and says how
- * many strategies that is.
+ * unrealised and realised — no total, by the owner's choice. TESTING adds
+ * the paper tests as well (Davies, 2026-09-24), and the funded cell says
+ * how many strategies and tests that is.
+ * @param {{ dash: any, tab: 'live' | 'testing', m: (s: string) => string, tests?: any[] }} props
  */
-function Scoreboard({ dash, tab, m }) {
-  const v = scoreboardView(dash, tab);
+function Scoreboard({ dash, tab, m, tests = [] }) {
+  const v = scoreboardView(dash, tab, tests);
+  const count = v.tests
+    ? `${v.strategies} ${v.strategies === 1 ? 'strategy' : 'strategies'}, ${v.tests} ${v.tests === 1 ? 'test' : 'tests'}`
+    : `${v.strategies} ${v.strategies === 1 ? 'strategy' : 'strategies'}`;
+  const unrealisedBase = v.unrealisedOf === 'cost' ? pctOf(v.costUsd, 'cost', m) : pctOf(v.unrealisedBase, 'cost and deployed', m);
   return (
     <div className="ag-scoreboard">
-      <FundedCells fundedUsd={v.capitalUsd} deployedUsd={v.valueUsd} m={m} aside={`${v.strategies} ${v.strategies === 1 ? 'strategy' : 'strategies'}`} />
+      <FundedCells fundedUsd={v.capitalUsd} deployedUsd={v.valueUsd} m={m} aside={count} />
       <div className="ag-sb-divider" />
       <GlCell label="TODAY" usd={v.todayUsd} pct={v.todayPct} m={m} base="% of funded" />
       <div className="ag-sb-divider" />
-      <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} base={pctOf(v.costUsd, 'cost', m)} />
+      <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} base={unrealisedBase} />
       <div className="ag-sb-divider" />
       <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} cls="ag-sb-realised" base="% of funded" aside={`incl. fees ${m(fmtUsd(v.feesUsd))}`} />
     </div>
@@ -214,9 +219,8 @@ function FigLabel({ name, pct = null, of = null, title }) {
  * A tab's venues: a card per venue its rows trade on, and the share bar
  * when there is more than one venue to share between. The tab names the
  * mode, so a card no longer counts its live rows. A card adds up the tab's
- * strategies on its venue, and says which paper test listed there it
- * leaves out; a venue reached only through a test (Polymarket) is that
- * test's card (`venueRows`).
+ * strategies on its venue and any paper test that trades there; a venue
+ * reached only through a test (Polymarket) is that test's card (`venueRows`).
  * @param {{ dash: any, tab: 'live' | 'testing', m: (s: string) => string, tests?: any[] }} props
  */
 function VenueSplit({ dash, tab, m, tests = [] }) {
@@ -243,7 +247,7 @@ function VenueSplit({ dash, tab, m, tests = [] }) {
             <div className="ag-venue-head">
               <VenueBadge id={r.id} />
               <div className="dim mono ag-venue-meta">
-                {r.test ? `1 test: ${r.test.name}` : `${r.strategies} ${r.strategies === 1 ? 'strategy' : 'strategies'} · maker/taker ${fmtFees(r.feeBps)}`}
+                {r.test ? `1 test: ${r.test.name}` : `${r.strategies} ${r.strategies === 1 ? 'strategy' : 'strategies'}${r.tests ? `, ${r.tests} ${r.tests === 1 ? 'test' : 'tests'}` : ''} · maker/taker ${fmtFees(r.feeBps)}`}
               </div>
             </div>
             <div className="ag-venue-grid mono">
@@ -264,7 +268,6 @@ function VenueSplit({ dash, tab, m, tests = [] }) {
               {r.feesUsd != null ? <><FigLabel name="fees" /><span className="dim">{m(fmtUsd(r.feesUsd))}</span></> : null}
             </div>
             {r.note && <div className="ag-warn-line">{r.note}</div>}
-            {r.apart.length > 0 && <div className="dim mono ag-venue-apart">Not in these totals: {r.apart.join(', ')}</div>}
           </div>
         ))}
       </div>
@@ -554,7 +557,7 @@ const COLUMNS = [
 
 /**
  * The status as a coloured dot beside the name — green running, amber stale, grey paused — with the words in its
- * title. A paper test's row says the scoreboard above leaves it out.
+ * title.
  */
 function NameCell({ r, m, onOpen }) {
   return (
@@ -562,7 +565,6 @@ function NameCell({ r, m, onOpen }) {
       <span className={`ag-dot ag-dot-${r.status.tone}`} title={r.status.detail} role="img" aria-label={r.status.detail} />
       <button type="button" className="ag-name-btn ag-name" onClick={() => onOpen(r.id)}>{r.name}</button>
       <span className="hl-sub dim">{r.openPositions} open · {m(fmtUsd(r.capitalUsd))} cap</span>
-      {r.apart ? <span className="ag-name-apart dim">not in the scoreboard</span> : null}
     </div>
   );
 }
@@ -1223,7 +1225,7 @@ function AgentsModal({ hideValues, onClose }) {
               </>
             ) : (
               <>
-                <Scoreboard dash={dash} tab={tab} m={m} />
+                <Scoreboard dash={dash} tab={tab} m={m} tests={tab === 'testing' ? tests : []} />
                 <VenueSplit dash={dash} tab={tab} m={m} tests={tab === 'testing' ? tests : []} />
                 {tab === 'live' && <Arming dash={dash} />}
                 <Alerts dash={dash} tab={tab} />

@@ -34,8 +34,10 @@ How the less obvious parts work, and why they are built the way they are.
   labelled live, or one still holding real coins) and TESTING (paper),
   each leading with its own scoreboard (funded, deployed, today since
   00:00 UTC, unrealised and realised G/L, each percent naming its base),
-  venue cards and table, all summed from
-  that tab's rows alone, so the two tabs add up to the function's totals;
+  venue cards and table. LIVE is that tab's strategy rows. TESTING adds
+  the two paper tests: Stablecoin quotes on the Revolut X card, Reward
+  quotes as the Polymarket card, both in the scoreboard, so the cards
+  still add up to it;
   it opens each strategy in a
   stacked modal with its own scoreboard, a price chart with its fills
   marked, the live state per symbol, its decisions (what the model saw

@@ -95,7 +95,7 @@ list stays the short version; the plan is the reasoning behind it.
    - **G4a — DONE.** The Agents page on LIVE and TESTING tabs is on `main` at `7a015b6`. Production
      `daviesportfolios.pages.dev` serves `app-cc8519ef.js`, and the agents chunks match the committed files (23:34
      history). The remote branch `agents-live-testing` is gone; its pre-rebase head is in the 23:29 section.
-     Whether TESTING's totals fold in the two paper tests stays open; the sums were not changed.
+     Davies decided the two paper tests count (23:41): TESTING's scoreboard includes both, the Revolut X card includes Stablecoin quotes, and Reward quotes stays on the Polymarket card.
    - **G6 — housekeeping.** **The 75 stale branches are DELETED** (2026-09-24 22:49 UTC, Cursor; every head is in that
      day's 22:48 history section, restorable). **`pm-geo-probe` is DELETED** (2026-09-24 23:25 UTC): the one-off step in
      `1883785` ran `supabase functions delete` with CI's PAT, the log says deleted, and the live list at 23:26 has the
@@ -834,6 +834,13 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-24 23:41 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: the two paper tests count in TESTING's totals.** "算进" on the open question (TESTING's scoreboard and the Revolut X card).
+- TESTING's scoreboard adds Stablecoin quotes and Reward quotes to its strategies. The funded cell says how many of each. Unrealised's percent is of the strategies' cost plus what the tests have deployed, and the label says `cost and deployed`.
+- The Revolut X card adds Stablecoin quotes, the test that trades there. Reward quotes stays the Polymarket card: that money is not Revolut X's, and the three cards still add up to the scoreboard. LIVE does not take either test.
+- Pin: `agents.test.js`, "says what each total covers". Leaving a test out fails it. No strategy row, rule or live state was written.
 
 ### [2026-09-24 23:34 UTC] Platform: Cursor | Model: Grok 4.7
 

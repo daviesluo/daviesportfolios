@@ -1070,7 +1070,7 @@ async function run() {
       const bad = reads.find((r) => !r.drawn || r.loading);
       const asks = heldAnswers.filter((a) => a.includes('action=dashboard')).length;
       if (!hidden) {
-        if (first && !bad && first.realised === '+$12.34' && asks === 1) {
+        if (first && !bad && first.realised === '+$54.76' && asks === 1) {
           ok(S('open'), `opened as soon as its code arrived: drawn from the first read (realised ${first.realised}), never "Loading…" through the held answer, one dashboard request`);
         } else fail(S('open'), `first read ${JSON.stringify(first)}; first undrawn/loading read ${JSON.stringify(bad)}; dashboard requests ${asks}`);
       } else {
@@ -1515,8 +1515,8 @@ async function run() {
       await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
       const head = await page.locator('.ag-sb-realised .ag-sb-usd').first().textContent().catch(() => '');
       await shot(page, 'agents-list');
-      if (money(head) === 12.34 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total (${(head || '').trim()})`);
-      else fail(S('agents'), `headline read "${head}", wanted +$12.34`);
+      if (money(head) === 54.76 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total, strategies plus the two tests (${(head || '').trim()})`);
+      else fail(S('agents'), `headline read "${head}", wanted +$54.76`);
       const rows = await page.locator('.ag-row').count();
       // Three since `0046` deleted the Kraken twin (§4.22): `0043` retired the two rotations and the
       // Kraken momentum twin, `0044` deleted them, and the twin made no decision of its own. The rows
@@ -1574,8 +1574,9 @@ async function run() {
       const sbToday = await page.locator('.ag-scoreboard .ag-sb-cell', { has: page.locator('.ag-sb-name:text-is("TODAY")') }).locator('.ag-sb-usd').textContent().catch(() => '');
       const rowToday = (await page.locator(vpWidth <= 760 ? '.ag-card-strategy .ag-card-today' : 'td.ag-col-today .ag-gl').allTextContents()).map((t) => t.trim());
       const signedToday = rowToday.filter((t) => /^\+\$0\.42/.test(t)).length;
-      if (money(sbToday) === 0.42 && /^\+/.test((sbToday || '').trim()) && signedToday === 1) {
-        ok(S('agents'), `today is a signed number on the scoreboard (${(sbToday || '').trim()}) and on the row that has a book`);
+      const rowTodaySum = Math.round(rowToday.reduce((a, t) => a + money(String(t).split('(')[0]), 0) * 100);
+      if (rowTodaySum === Math.round(money(sbToday) * 100) && /^\+/.test((sbToday || '').trim()) && signedToday === 1) {
+        ok(S('agents'), `today on the scoreboard (${(sbToday || '').trim()}) is the rows' today added up, and the row with a book still reads +$0.42`);
       } else fail(S('agents'), `scoreboard today "${sbToday}", row today cells ${rowToday.join(' | ')}`);
       const badgeTexts = await page.locator('.ag-strategies .ag-venue').allTextContents();
       if (badgeTexts.length === rows && badgeTexts.every((b) => /^(Revolut X|Binance|Polymarket)$/.test(b.trim()))) ok(S('agents'), 'the venue badge is the venue name alone');
@@ -1603,7 +1604,7 @@ async function run() {
       // names its base under its label, and the fees ride on realised's.
       const sbCells = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell').evaluateAll((els) => els.map((c) =>
         [c.querySelector('.ag-sb-name')?.textContent, ...[...c.querySelectorAll('.ag-sb-aside')].map((a) => a.textContent)].map((t) => (t || '').trim()).join(' / ')));
-      if (sbCells.join(' | ') === 'FUNDED / 6 strategies | DEPLOYED / % of funded | TODAY / % of funded | UNREALIZED G/L / % of $20.00 cost | REALIZED G/L / % of funded / incl. fees $0.08') {
+      if (sbCells.join(' | ') === 'FUNDED / 6 strategies, 2 tests | DEPLOYED / % of funded | TODAY / % of funded | UNREALIZED G/L / % of $134.15 cost and deployed | REALIZED G/L / % of funded / incl. fees $0.08') {
         ok(S('agents'), 'five cells, FUNDED first, no total; each percent names its base and the fees ride on realised, DEPLOYED carries no (Paper)');
       } else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}`);
       const under = await page.locator('.ag-sb-under').count();
@@ -1623,9 +1624,9 @@ async function run() {
       const quoteRow = page.locator('.ag-strategies-testing .ag-row', { has: page.locator('.ag-name-btn:text-is("Stablecoin quotes")') });
       const quoteRowText = (await quoteRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const oldCard = await page.locator('.ag-quotes .ag-section-title').count() + await page.locator('text=STABLECOIN QUOTES — PAPER TEST').count();
-      if (await quoteRow.count() === 1 && /Revolut X/.test(quoteRowText) && /not in the scoreboard/.test(quoteRowText) && /1 open · \$1,200 cap/.test(quoteRowText)
+      if (await quoteRow.count() === 1 && /Revolut X/.test(quoteRowText) && !/not in the scoreboard/.test(quoteRowText) && /1 open · \$1,200 cap/.test(quoteRowText)
         && /\+\$0\.42/.test(quoteRowText) && /\+\$0\.12/.test(quoteRowText) && /\+\$0\.14 \(\+0\.14%\)/.test(quoteRowText) && /% of deployed/.test(quoteRowText) && oldCard === 0) {
-        ok(S('agents'), 'the quote test is a testing row: Revolut X, 1 open of $1,200, not in the scoreboard, today +$0.12, unrealised +$0.14 (of deployed), realised +$0.42; no card below');
+        ok(S('agents'), 'the quote test is a testing row: Revolut X, 1 open of $1,200, counted in the scoreboard, today +$0.12, unrealised +$0.14 (of deployed), realised +$0.42; no card below');
       } else fail(S('agents'), `quote row "${quoteRowText}", old card sections ${oldCard}`);
       const quotesInVenues = await page.locator('.ag-venue-cards .ag-quotes-card, .ag-quotes-cards .ag-venue-card').count();
       if (quotesInVenues === 0) ok(S('agents'), 'no quote card is a venue card, and no venue selector reaches one');
@@ -1659,9 +1660,9 @@ async function run() {
       const rwRowText = (await rwRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const lastName = ((await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').last().textContent().catch(() => '')) || '').trim();
       const rwBadge = await rwRowEl.first().locator('.ag-venue-polymarket').count();
-      if (await rwRowEl.count() === 1 && lastName === 'Reward quotes' && rwBadge === 1 && /Polymarket/.test(rwRowText) && /not in the scoreboard/.test(rwRowText)
+      if (await rwRowEl.count() === 1 && lastName === 'Reward quotes' && rwBadge === 1 && /Polymarket/.test(rwRowText) && !/not in the scoreboard/.test(rwRowText)
         && /2 open · \$296\.00 cap/.test(rwRowText) && /\+\$12\.50/.test(rwRowText) && /-\$1\.00/.test(rwRowText) && /\+\$42\.00/.test(rwRowText) && /every minute/.test(rwRowText)) {
-        ok(S('agents'), 'RW is the last testing row: Polymarket, 2 open of $296, not in the scoreboard, today +$12.50, unrealised -$1.00, realised +$42.00, every minute');
+        ok(S('agents'), 'RW is the last testing row: Polymarket, 2 open of $296, counted in the scoreboard, today +$12.50, unrealised -$1.00, realised +$42.00, every minute');
       } else fail(S('agents'), `RW row "${rwRowText}", last row "${lastName}", Polymarket badges ${rwBadge}`);
       // Its page: the strategy page's header and scoreboard, the bar so far, today's markets, the closed days and the fills.
       await rwRowEl.first().click();
@@ -1723,9 +1724,9 @@ async function run() {
       // Four Revolut X: the three strategies and the quote test; then RW on Polymarket, last.
       if (revxRows === 4 && binanceRows === 3 && badges[badges.length - 2].startsWith('Revolut X') && badges[badges.length - 1] === 'Polymarket') ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the quote test on Revolut X and RW on Polymarket');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
-      // Deployed value, by card: Revolut X's strategies $21.50 and RW on Polymarket $14.40 — 60 % and 40 %.
+      // Deployed value, by card: Revolut X $121.25 (its strategy plus the quote test) and RW on Polymarket $14.40 — 89 % and 11 %.
       const shares = (await page.locator('.ag-share').allTextContents()).map((t) => t.trim());
-      if (shares.join(' | ') === 'Revolut X 60% |  | Polymarket 40%') ok(S('agents'), 'share bar: the deployed value splits between Revolut X (60%) and Polymarket (40%); Binance holds nothing');
+      if (shares.join(' | ') === 'Revolut X 89% |  | ') ok(S('agents'), 'share bar: Revolut X is 89% of deployed value (quotes included); Polymarket\'s 11% is under the label cutoff and Binance holds nothing');
       else fail(S('agents'), `share bar reads ${shares.join(' | ')}`);
       const cards = await page.locator('.ag-venue-card').count();
       if (cards === 3) ok(S('agents'), 'one venue card per venue TESTING trades on: Revolut X, Binance, Polymarket');
@@ -1739,14 +1740,14 @@ async function run() {
         && pm.pairs.rewards === '+$41.60' && pm.pairs.orders === '+$0.40' && !('fees' in pm.pairs)) {
         ok(S('agents'), `Polymarket's card is Reward quotes: funded (Paper) $296.00, deployed $14.40 (4.86%), the row's ${rwRowCells.join(' / ')}, realised = rewards +$41.60 + orders +$0.40`);
       } else fail(S('agents'), `Polymarket card ${JSON.stringify(pm)}, RW row cells ${rwRowCells.join(' | ')}`);
-      const revxApart = ((await page.locator('.ag-venue-card-revx .ag-venue-apart').textContent().catch(() => '')) || '').trim();
-      if (revxApart === 'Not in these totals: Stablecoin quotes') ok(S('agents'), `the Revolut X card says which Revolut X row it leaves out ("${revxApart}")`);
-      else fail(S('agents'), `Revolut X card's note "${revxApart}"`);
-      // Funded (Paper) is the capital the venue's rows are allotted — 100 + 40 + 40 on Revolut X — and the
-      // accounts' real balances (the fixture's $100 USD there, 50 USDT and 0.012 BNB at Binance) are NOT shown.
+      const revxApart = await page.locator('.ag-venue-card-revx .ag-venue-apart').count();
+      if (revxApart === 0) ok(S('agents'), 'the Revolut X card no longer leaves Stablecoin quotes out');
+      else fail(S('agents'), `Revolut X card still has an apart note (${revxApart})`);
+      // Funded (Paper) is the capital the venue's rows are allotted — 100 + 40 + 40 of strategies, plus the quote
+      // test's $1,200 — and the accounts' real balances are NOT shown.
       const funded = await page.locator('.ag-venue-card-revx .ag-venue-grid').textContent().catch(() => '');
       const fundedCell = await page.locator('.ag-venue-card-revx .ag-venue-grid > span:has-text("funded (Paper)") + span').textContent().catch(() => '');
-      if (money(fundedCell) === 180 && !/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card is funded with its rows\' paper capital ($180), not the account balance');
+      if (money(fundedCell) === 1380 && !/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card is funded with its strategies plus the quote test ($1,380), not the account balance');
       else fail(S('agents'), `revx funded cell "${fundedCell}", card reads "${funded}"`);
       const bnCard = await page.locator('.ag-venue-card-binance .ag-venue-grid').textContent().catch(() => '');
       const bnFundedCell = await page.locator('.ag-venue-card-binance .ag-venue-grid > span:has-text("funded (Paper)") + span').textContent().catch(() => '');
@@ -2023,7 +2024,7 @@ async function run() {
       const opened = (p) => p.tabs.find((t) => t.on)?.id;
       const sbText = (p) => p.scoreboard.map((c) => `${c.name}${c.asides.length ? ` [${c.asides.join('; ')}]` : ''}=${c.value}`).join(' | ');
       const barText = (p) => p.tabs.map((t) => `${t.label} ${t.count} ${t.text} ${t.tone}`).join(' / ');
-      const PAPER_SB = 'FUNDED [6 strategies]=$360.00 | DEPLOYED [% of funded]=$21.50(5.97%) | TODAY [% of funded]=+$0.42(+0.12%) | UNREALIZED G/L [% of $20.00 cost]=+$1.50(+7.50%) | REALIZED G/L [% of funded; incl. fees $0.08]=+$12.34(+3.43%)';
+      const PAPER_SB = 'FUNDED [6 strategies, 2 tests]=$1,856 | DEPLOYED [% of funded]=$135.65(7.31%) | TODAY [% of funded]=+$13.04(+0.70%) | UNREALIZED G/L [% of $134.15 cost and deployed]=+$0.64(+0.48%) | REALIZED G/L [% of funded; incl. fees $0.08]=+$54.76(+2.95%)';
       const LIVE_SB = 'FUNDED [1 strategy]=$50.00 | DEPLOYED [% of funded]=$12.50(25.00%) | TODAY [% of funded]=+$0.20(+0.40%) | UNREALIZED G/L [% of $12.00 cost]=+$0.50(+4.17%) | REALIZED G/L [% of funded; incl. fees $0.03]=+$0.30(+0.60%)';
       const TESTING_BAR = 'TESTING 8 Paper · 6 strategies, 2 tests paper';
       const topModalHeight = () => page.evaluate(() => { const ms = document.querySelectorAll('.modal'); return Math.round(ms[ms.length - 1]?.getBoundingClientRect().height ?? 0); });
@@ -2091,13 +2092,13 @@ async function run() {
         ok(T('armed'), `TESTING is the paper rows alone (8, none live), and its scoreboard is theirs (${sbText(a1)})`);
       } else fail(T('armed'), `TESTING: ${a1.rows.length} rows (${a1.rows.map((r) => `${r.name} ${r.badges}`).join(', ')}), scoreboard ${sbText(a1)}, armed "${a1.arming}", banners ${a1.alerts.length}`);
       const rv = a1.venues.find((v) => v.id === 'revx'), bn = a1.venues.find((v) => v.id === 'binance');
-      if (a1.venues.length === 3 && rv && bn && rv.meta === '3 strategies · maker/taker 0% / 0.09%' && rv.pairs['funded (Paper)'] === '$180.00' && rv.pairs.deployed === '$21.50 (11.94%)'
-        && rv.pairs.realised === '+$12.34 (+6.86%)' && rv.apart === 'Not in these totals: Stablecoin quotes' && bn.pairs['funded (Paper)'] === '$180.00' && a1.shareBar === 1) {
-        ok(T('armed'), 'TESTING\'s Revolut X card is its paper rows\' alone (funded (Paper) $180.00, deployed $21.50, 11.94%), beside Binance\'s and Polymarket\'s');
+      if (a1.venues.length === 3 && rv && bn && rv.meta === '3 strategies, 1 test · maker/taker 0% / 0.09%' && rv.pairs['funded (Paper)'] === '$1,380' && rv.pairs.deployed === '$121.25 (8.79%)'
+        && rv.pairs.realised === '+$12.76 (+0.92%)' && rv.apart === '' && bn.pairs['funded (Paper)'] === '$180.00' && a1.shareBar === 1) {
+        ok(T('armed'), 'TESTING\'s Revolut X card includes Stablecoin quotes (funded (Paper) $1,380.00, deployed $121.25, 8.79%), beside Binance\'s and Polymarket\'s');
       } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}`);
       const cents = (s) => Math.round(money(String(s).split('(')[0]) * 100);
       const both = a0.scoreboard.map((c, i) => cents(c.value) + cents(a1.scoreboard[i]?.value));
-      if (both.join(',') === '41000,3400,62,200,1264') ok(T('armed'), 'LIVE and TESTING add up to every row: $410.00 funded, $34.00 deployed, +$0.62 today, +$2.00 unrealised, +$12.64 realised');
+      if (both.join(',') === '190600,14815,1324,114,5506') ok(T('armed'), 'LIVE and TESTING add up to every strategy plus the two tests: $1,906.00 funded, $148.15 deployed, +$13.24 today, +$1.14 unrealised, +$55.06 realised');
       else fail(T('armed'), `LIVE + TESTING in cents: ${both.join(', ')}`);
       if (barText(a1) === barText(a0) && a1.updated === a0.updated && /^as of /.test(a0.updated) && a1.modalHeight === a0.modalHeight) ok(T('armed'), 'the tab bar, the as-of line and the window read the same on both tabs');
       else fail(T('armed'), `bar ${barText(a0)} → ${barText(a1)}; as of "${a0.updated}" → "${a1.updated}"; window ${a0.modalHeight} → ${a1.modalHeight}`);

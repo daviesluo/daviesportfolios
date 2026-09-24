@@ -103,9 +103,12 @@ apart on two tabs.
   with its share of funded (a bar under it; past 100 % once profits are
   put back to work), then today, unrealised and realised gain. Every
   percentage says what it is of on a small line under its label: funded,
-  or the cost of what is held for unrealised. The scoreboard adds up the
-  tab's strategies and says how many. Then a card per exchange — Revolut X
-  in blue, Binance in its yellow, where the same strategies run as paper
+  or the cost of what is held for unrealised. TESTING's scoreboard adds
+  the two paper tests as well as its strategies, and says how many of
+  each; when a test is in the sum, unrealised's percent is of the
+  strategies' cost plus what the tests have deployed. Then a card per
+  exchange — Revolut X in blue, which on TESTING includes Stablecoin
+  quotes, Binance in its yellow, where the same strategies run as paper
   twins, deciding alike and filled at Binance's own prices, and on TESTING
   Polymarket in its blue, whose card is the Reward quotes test — showing
   the same figures for that exchange (**funded (Paper)** on TESTING; the
@@ -113,9 +116,8 @@ apart on two tabs.
   status dot (green running, amber stale, grey paused), its exchange,
   today, unrealised and realised gain with each column's base under its
   heading, and a countdown to its next decision; the tab says the mode, so
-  a row does not, and a live strategy's name does not carry "live". The
-  two tests' rows say the scoreboard leaves them out, and the Revolut X
-  card says it leaves out Stablecoin quotes. On LIVE, a green line says
+  a row does not, and a live strategy's name does not carry "live". On
+  LIVE, a green line says
   since when live trading is on, or an amber one that it is not on yet,
   in plain words; with nothing live, LIVE says so and TESTING holds
   everything. A strategy still holding real coins after it was paused or

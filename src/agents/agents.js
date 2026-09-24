@@ -470,10 +470,9 @@ const counted = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
 /**
  * The tab bar's two entries: how many rows each tab lists and the one line that says what kind of money is on it.
- * TESTING's count takes in the paper tests' rows as well, and its line says so, because the tab's totals cover the
- * strategies alone.
+ * TESTING's count takes in the paper tests' rows as well, and its line says so: the same rows the TESTING scoreboard adds.
  * @param {any} dash
- * @param {number} tests  rows TESTING lists beyond the strategies: the paper tests (quotes, RW), which no total includes
+ * @param {number} tests  rows TESTING lists beyond the strategies: the paper tests (quotes, RW)
  */
 export function agentsTabsView(dash, tests = 0) {
   const strategies = tabStrategies(dash, 'testing').length;
@@ -606,23 +605,31 @@ function sumRows(strategies) {
  * in total, in the home scoreboard's cells. "Today" is the UTC calendar
  * day — realised since 00:00 plus the change in unrealised from the day's
  * opening price, the same figure the loop's daily loss limit reads.
- * Percentages are on the capital allotted (today, total, realised) or on
- * the cost of what is held (unrealised), and each cell says which.
- * Without a tab it is every row, which is the server's `totals`.
+ * Percentages are on the capital allotted (today, realised) or on the
+ * cost of what is held (unrealised), and each cell says which. TESTING
+ * also adds the paper tests (Davies, 2026-09-24: they count). A test's
+ * unrealised is on what it has deployed, not on a cost, so that cell's
+ * base is the strategies' cost plus the tests' deployed value, and the
+ * label names both. Without a tab, and with no tests passed, it is every
+ * strategy row, which is the server's `totals`.
  * @param {any} dash
  * @param {AgentsTab | null} [tab]
+ * @param {any[]} [tests]  paper-test rows; counted only on TESTING
  */
-export function scoreboardView(dash, tab = null) {
+export function scoreboardView(dash, tab = null, tests = []) {
   const rows = tab ? tabStrategies(dash, tab) : (dash?.strategies ?? []);
-  const t = sumRows(rows);
+  const extra = tab === 'testing' ? tests : [];
+  const t = sumRows([...rows, ...extra]);
   const capital = t.capitalUsd;
   const unrealised = t.unrealisedUsd, realised = t.realisedUsd, today = t.todayUsd, cost = t.costUsd, value = t.valueUsd;
   const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
+  const unrealisedBase = cost + extra.reduce((a, s) => a + (s?.unrealisedOf === 'deployed' ? (Number(s.valueUsd) || 0) : (Number(s.costUsd) || 0)), 0);
   return {
-    strategies: rows.length,
+    strategies: rows.length, tests: extra.length,
     capitalUsd: capital, valueUsd: value, costUsd: cost, feesUsd: t.feesUsd,
     todayUsd: today, todayPct: pct(today, capital),
-    unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost),
+    unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, extra.length ? unrealisedBase : cost),
+    unrealisedBase, unrealisedOf: extra.length ? 'cost and deployed' : 'cost',
     realisedUsd: realised, realisedPct: pct(realised, capital),
     deployedPct: pct(value, capital),
     dayStart: dash?.dayStart ?? null,
@@ -794,8 +801,11 @@ const VENUE_CARD_IDS = ['revx', 'binance'];
  * Shares are of deployed value when anything is deployed, else of
  * allotted capital, so the bar always says something. A venue the tab
  * reaches only through a paper test — Polymarket, through RW — gets a card
- * too (Davies, 2026-09-24), and that card is the test's own row; a test on
- * a venue that has strategies stays out of their card (`apart`).
+ * too (Davies, 2026-09-24), and that card is the test's own row. A test on
+ * a venue that already has strategies is added to that card (Davies,
+ * 2026-09-24: Stablecoin quotes counts on Revolut X). Reward quotes stays
+ * on Polymarket: it is not Revolut X's money, and the cards still add up
+ * to the scoreboard.
  * @param {any} dash
  * @param {AgentsTab | null} [tab]  null: every row, which is the server's `byVenue`
  * @param {any[]} [tests]  the paper tests' rows the tab lists (`quotesRow`, `rwRow`)
@@ -805,7 +815,15 @@ export function venueRows(dash, tab = null, tests = []) {
   const ids = VENUE_CARD_IDS.filter((id) => rows.some((/** @type {any} */ s) => s?.venue === id));
   const by = Object.fromEntries(ids.map((id) => {
     const on = rows.filter((/** @type {any} */ s) => s?.venue === id);
-    return [id, { ...sumRows(on), strategies: on.length, live: on.filter((/** @type {any} */ s) => s.mode === 'live').length }];
+    const folded = tests.filter((t) => t?.venueId === id);
+    const cost = on.reduce((a, s) => a + (s.costUsd ?? 0), 0);
+    const deployed = folded.reduce((a, s) => a + (Number(s.valueUsd) || 0), 0);
+    return [id, {
+      ...sumRows([...on, ...folded]), strategies: on.length, tests: folded.length,
+      live: on.filter((/** @type {any} */ s) => s.mode === 'live').length,
+      unrealisedBase: folded.length ? cost + deployed : cost,
+      unrealisedOf: folded.length ? 'cost and deployed' : 'cost',
+    }];
   }));
   const venues = Object.fromEntries((dash?.venues ?? []).map((v) => [v.id, v]));
   const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
@@ -818,10 +836,10 @@ export function venueRows(dash, tab = null, tests = []) {
       id, label: venueLabel(id), test: /** @type {any} */ (null),
       capitalUsd: capital, valueUsd: value, costUsd: cost, unrealisedUsd: unrealised, realisedUsd: realised, feesUsd: /** @type {number | null} */ (b.feesUsd ?? 0),
       // The same bases as the scoreboard: unrealised on the cost of what is held, realised and today on the venue's capital on the tab.
-      unrealisedPct: pct(unrealised, cost), realisedPct: pct(realised, capital), todayPct: pct(today, capital), deployedPct: pct(value, capital),
-      unrealisedOf: 'cost',
-      strategies: b.strategies ?? 0, live: b.live ?? 0, todayUsd: today,
-      apart: tests.filter((t) => t?.venueId === id).map((t) => String(t.name)),
+      unrealisedPct: pct(unrealised, b.unrealisedBase ?? cost), realisedPct: pct(realised, capital), todayPct: pct(today, capital), deployedPct: pct(value, capital),
+      unrealisedOf: b.unrealisedOf ?? 'cost',
+      strategies: b.strategies ?? 0, tests: b.tests ?? 0, live: b.live ?? 0, todayUsd: today,
+      apart: [],
       balanceUsd: v.balances?.USD ?? null, balances: v.balances ?? null, canTrade: !!v.canTrade, feeBps: v.feeBps ?? null, note: v.note ?? null,
     };
   });
@@ -833,7 +851,7 @@ export function venueRows(dash, tab = null, tests = []) {
       capitalUsd: capital, valueUsd: value, costUsd: 0, unrealisedUsd: t.unrealisedUsd ?? 0, realisedUsd: t.realisedUsd ?? 0, feesUsd: null,
       unrealisedPct: t.unrealisedPct ?? null, realisedPct: t.realisedPct ?? null, todayPct: t.todayPct ?? null, deployedPct: pct(value, capital),
       unrealisedOf: t.unrealisedOf ?? 'deployed',
-      strategies: 0, live: 0, todayUsd: t.todayUsd ?? 0, apart: [],
+      strategies: 0, tests: 1, live: 0, todayUsd: t.todayUsd ?? 0, apart: [],
       balanceUsd: null, balances: null, canTrade: false, feeBps: null, note: null,
     });
   }
@@ -1031,7 +1049,6 @@ export function quotesRow(q) {
     venue: venueLabel('revx'),
     venueId: 'revx',
     mode: 'paper',
-    apart: true,    // a paper test beside the strategies: no scoreboard or venue total includes it
     unrealisedOf: 'deployed',
     capitalUsd: Number(q.capitalUsd) || 0,
     valueUsd: openUsd,
@@ -1186,7 +1203,6 @@ export function rwRow(r) {
     venue: venueLabel('polymarket'),
     venueId: 'polymarket',
     mode: 'paper',
-    apart: true,    // a paper test beside the strategies: no scoreboard or venue total includes it
     unrealisedOf: 'deployed',
     capitalUsd: capital,
     valueUsd: held,
