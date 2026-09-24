@@ -112,6 +112,10 @@ def main():
                 "volume_usdc_sum": round(sum(fnum(r["volume_usdc"]) for r in rows), 2)}
     earners = [r for r in stats if fnum(r["reward_income"]) > 0]
     small = [r for r in stats if 0 < fnum(r["volume_usdc"]) < 50000]
+    # third-party wallets are kept by rank only: their addresses are public, but nothing here needs them
+    for i, r in enumerate(sorted(stats, key=lambda r: -r["maker_usd_window"])):
+        r["rank_by_maker_usd"] = i + 1
+        r.pop("wallet", None)
     out = {"markets": per_market, "days": days, "maker_wallets": len(wallets), "stats_read": len(stats),
            "all": agg(stats), "reward_earners": agg(earners), "small_volume_lt_50k": agg(small),
            "small_reward_earners": agg([r for r in small if fnum(r["reward_income"]) > 0]),

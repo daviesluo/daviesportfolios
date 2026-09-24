@@ -112,42 +112,50 @@ def main():
             pmnet.dump(cp, blob)
         kl = {int(k): v for k, v in blob["klines"].items()}
         n_used = 0
+
+        def model_at(k, opn, end):
+            """p* from the Binance close of the minute starting at k (known at k + 60)."""
+            if k not in kl:
+                return None
+            rets = []
+            for j in range(120):
+                a, b = kl.get(k - 60 * (j + 1)), kl.get(k - 60 * j)
+                if a and b:
+                    rets.append(math.log(b[1] / a[1]))
+            if len(rets) < 60:
+                return None
+            sig = math.sqrt(sum(r * r for r in rets) / len(rets))
+            tau = (end - (k + 60)) / 60.0
+            if tau <= 0 or sig <= 0:
+                return None
+            return phi(math.log(kl[k][1] / opn) / (sig * math.sqrt(tau)))
+
         for m in blob["markets"]:
             o = kl.get(int(m["start"]))
             if not o:
                 continue
             opn = o[0]
             for t, p, res in m["hist"]:
-                if res == 0 or t < m["start"] or t >= m["end"]:
+                if res == 0 or t < m["start"] or t + 300 >= m["end"]:
                     continue
-                obs_t = t + 300  # the bucket's price is known at its end
-                if obs_t >= m["end"]:
+                # the market's price was observed somewhere in [t, t + 300). Two timings for the model:
+                # "late" reads Binance at t + 300 (up to five minutes NEWER than the price: flatters the model),
+                # "early" reads it at t (up to five minutes OLDER: flatters the market).
+                late = model_at(int((t + 300) // 60 * 60) - 60, opn, m["end"])
+                early = model_at(int(t // 60 * 60) - 60, opn, m["end"])
+                if late is None or early is None:
                     continue
-                k = int(obs_t // 60 * 60) - 60  # last closed minute at obs_t
-                if k not in kl:
-                    continue
-                s_now = kl[k][1]
-                rets = []
-                for j in range(120):
-                    a, b = kl.get(k - 60 * (j + 1)), kl.get(k - 60 * j)
-                    if a and b:
-                        rets.append(math.log(b[1] / a[1]))
-                if len(rets) < 60:
-                    continue
-                sig = math.sqrt(sum(r * r for r in rets) / len(rets))
-                tau = (m["end"] - (k + 60)) / 60.0
-                if tau <= 0 or sig <= 0:
-                    continue
-                pstar = phi(math.log(s_now / opn) / (sig * math.sqrt(tau)))
-                obs.append({"series": slug, "min": round((obs_t - m["start"]) / 60), "p": p, "pstar": pstar, "y": m["up"]})
+                obs.append({"series": slug, "min": round((t - m["start"]) / 60), "p": p, "pstar": late, "pstar_early": early, "y": m["up"]})
                 n_used += 1
-        per_series[slug] = {"markets": len(blob["markets"]), "observations": n_used}
+        per_series[slug] = {"markets": len(blob["markets"]), "markets_with_history": sum(1 for m in blob["markets"] if len(m["hist"]) > 2),
+                            "observations": n_used}
 
     def brier(key):
         return sum((o[key] - o["y"]) ** 2 for o in obs) / max(1, len(obs))
 
     res = {"days": days, "series": per_series, "observations": len(obs),
-           "brier_market": brier("p"), "brier_model": brier("pstar")}
+           "brier_market": brier("p"), "brier_model_late": brier("pstar"), "brier_model_early": brier("pstar_early"),
+           "note": "late = Binance read up to 5 min after the market's price (flatters the model); early = up to 5 min before"}
     # calibration of the market by price decile
     cal = defaultdict(lambda: [0, 0.0, 0.0])
     for o in obs:
@@ -158,20 +166,22 @@ def main():
     res["market_calibration"] = {f"{b/10:.1f}-{(b+1)/10:.1f}": {"n": v[0], "mean_price": round(v[1] / v[0], 4), "freq_up": round(v[2] / v[0], 4)} for b, v in sorted(cal.items())}
     # a taker that buys the side the model favours by more than delta, at the market price plus a half-spread, pays the fee
     rules = {}
-    for half_spread in (0.005, 0.01):
-        for delta in (0.02, 0.05, 0.10, 0.15):
-            n, pnl = 0, 0.0
-            for o in obs:
-                d = o["pstar"] - o["p"]
-                if d > delta:
-                    px = min(0.99, o["p"] + half_spread)
-                    pnl += o["y"] - px - FEE * px * (1 - px)
-                    n += 1
-                elif -d > delta:
-                    px = min(0.99, (1 - o["p"]) + half_spread)
-                    pnl += (1 - o["y"]) - px - FEE * px * (1 - px)
-                    n += 1
-            rules[f"h{half_spread}_d{delta}"] = {"trades": n, "pnl_per_share_sum": round(pnl, 3), "pnl_per_trade": round(pnl / n, 4) if n else None}
+    for timing, key in (("late", "pstar"), ("early", "pstar_early")):
+        for half_spread in (0.005, 0.01):
+            for delta in (0.02, 0.05, 0.10, 0.15):
+                n, pnl = 0, 0.0
+                for o in obs:
+                    d = o[key] - o["p"]
+                    if d > delta:
+                        px = min(0.99, o["p"] + half_spread)
+                        pnl += o["y"] - px - FEE * px * (1 - px)
+                        n += 1
+                    elif -d > delta:
+                        px = min(0.99, (1 - o["p"]) + half_spread)
+                        pnl += (1 - o["y"]) - px - FEE * px * (1 - px)
+                        n += 1
+                rules[f"{timing}_h{half_spread}_d{delta}"] = {"trades": n, "pnl_per_share_sum": round(pnl, 3),
+                                                             "pnl_per_trade": round(pnl / n, 4) if n else None}
     res["taker_rules"] = rules
     dist = sorted(abs(o["pstar"] - o["p"]) for o in obs)
     if dist:

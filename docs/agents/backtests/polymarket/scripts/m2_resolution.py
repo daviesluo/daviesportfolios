@@ -4,7 +4,8 @@ Reads the closed-market pulls ($PM_DATA/closed/*.json, pull_closed.py) and the
 resolution lifecycle of every one of them from /v2/resolutions (20 conditions a
 request; cached in $PM_DATA/resolutions/<month>.json). Crypto up/down markets
 (thousands a day, resolved by Chainlink) are sampled one in ten, by a fixed rule
-on the condition id. Writes the summary JSON named on the command line.
+on the condition id. Only markets with at least $5,000 of lifetime volume are
+read. Writes the summary JSON named on the command line.
 
 usage: m2_resolution.py <out json> [first month] [last month]
 """
@@ -21,6 +22,7 @@ import pmnet  # noqa: E402
 
 DATA_API = "https://data-api.polymarket.com"
 UNSET = "69"
+MIN_VOL = 5000.0  # the markets a $10 order could matter in (FAV's universe)
 
 
 def ts(s):
@@ -89,7 +91,7 @@ def main():
     rows = []
     for f in files:
         month = os.path.basename(f)[:7]
-        ms = [m for m in pmnet.load(f) if m.get("enableOrderBook")]
+        ms = [m for m in pmnet.load(f) if m.get("enableOrderBook") and (m.get("volumeNum") or 0) >= MIN_VOL]
         keep = [m for m in ms if not is_updown(m) or int(m["conditionId"][-2:], 16) % 10 == 0]
         res = resolutions_for(month, [m["conditionId"] for m in keep])
         for m in keep:
@@ -103,7 +105,7 @@ def main():
                          "op": op, "has_res": bool(x), "was_disputed": x.get("was_disputed"), "status": x.get("status"),
                          "p1": price_of(x.get("proposed_price")), "p2": price_of(x.get("reproposed_price")),
                          "pf": price_of(x.get("price")), "q": (m.get("question") or "")[:100]})
-    out = {"months": [os.path.basename(f)[:7] for f in files], "markets": len(rows),
+    out = {"months": [os.path.basename(f)[:7] for f in files], "markets": len(rows), "min_volume_usd": MIN_VOL,
            "note": "crypto up/down markets sampled 1 in 10 by the last byte of the condition id"}
     grp = defaultdict(list)
     for r in rows:

@@ -733,6 +733,15 @@ repository map's `.claude/`, `.cursor/`, `.agents/` row is gone, and `.claude/CL
 names no AI coding agent and no folder of theirs, so a later session does not put the row back.
 
 
+### [2026-09-24 03:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp4: two data-side deviations fixed before any FAV price is read** (not pushed). FAV's prints are pulled one Gamma
+event at a time (the same prints, one walk per event), and the test runs on one event in four chosen by its id,
+because every candidate's prints would take about six hours of paced requests; a first draft of the universe that
+dropped 50-50 and void payouts was caught against the pre-registration and fixed. Measured beside the tests: 896
+strike/date ladders hold 16 out-of-order pairs after fees, the largest under 1 ¢ a share on markets settling in
+2027–28 (M6), and the 400 largest makers on the richest reward pools took $6.78 M of rewards lifetime (M4).
+
 ### [2026-09-24 02:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The Polymarket probe ran; the account is verified and cannot open positions from here** (item 000000000000).
@@ -746,6 +755,7 @@ The client now names it and three more Combos contracts (reference §2d), pinned
 the names. `.claude/CLAUDE.md`: the probe parts list gains `revx2` and `polymarket`, the secrets list the
 `POLYMARKET_*` names, and a bullet says Polymarket opens nothing from here and why. Item 00000000000 no longer says
 PR5's live path is unpushed.
+
 
 ### [2026-09-24 02:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
