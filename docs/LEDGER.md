@@ -835,6 +835,15 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 03:42 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, eight rules frozen and not yet run** (branch `cursor/polymarket-fp5-b50c`; not on main). The 03:25 section recorded ten names, six of which were arithmetic kills and do not count. This round's eight are each a frozen rule with a fill walk. No price of these rules and no return have been read. VOL, COPY, ROUND, FADE, POST, HITS, POISSON and PACE stay failed. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched.
+- MED (`reviews/2026-09-25-polymarket-fp5-prereg-med.md`): the bracket that contains the median of past winning midpoints. Self-check 39.351744.
+- VAR (`reviews/2026-09-25-polymarket-fp5-prereg-var.md`): the bracket named by the book's variance against the historical variance. Self-check 9.607843.
+- NEAR (`reviews/2026-09-25-polymarket-fp5-prereg-near.md`): the bracket beside the dearest one, toward the median. Self-check 39.751244.
+- RICH (`reviews/2026-09-25-polymarket-fp5-prereg-rich.md`): NO on the dearest bracket, and only while the YES price is inside 0.10 to 0.90. Self-check 14.638156.
+- YDAY, CLIM, JUMP, HOT (`reviews/2026-09-25-polymarket-fp5-prereg-yday.md` and the three beside it): temperature buckets from the last resolved day, the month's median, one extrapolated step, and the bucket above that median. No forecast. Self-checks 14.095244, 37.224048, 14.095244, 156.196667.
+
 ### [2026-09-25 03:25 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5, this round of ten is recorded and none clears the bar.** The 03:08 section froze HITS, POISSON and PACE and killed five rules on arithmetic. The 02:59 section froze POST and killed the Betfair gap. This section is those four runs. Branch `cursor/polymarket-fp5-b50c`, not main. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched. VOL, COPY, ROUND and FADE were not retuned. The search file is not written: nothing passed.
